@@ -1,0 +1,12 @@
+[workspace]
+members = [
+    "cache/base",
+    "cache/redis",
+    "command-parser",
+    "gateway",
+    "http",
+    "lavalink",
+    "lmao",
+    "model",
+    "voice",
+]
