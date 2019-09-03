@@ -2,7 +2,7 @@ use serde::{Deserialize, Serialize};
 use std::fmt::{Display, Formatter, Result as FmtResult};
 
 #[derive(Clone, Debug, Default, Deserialize, Hash, Serialize)]
-pub struct SkuId(pub String);
+pub struct SkuId(#[serde(with = "crate::id::string")] pub u64);
 
 impl Display for SkuId {
     fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
@@ -11,7 +11,7 @@ impl Display for SkuId {
 }
 
 #[derive(Clone, Debug, Default, Deserialize, Hash, Serialize)]
-pub struct TeamId(pub String);
+pub struct TeamId(#[serde(with = "crate::id::string")] pub u64);
 
 impl Display for TeamId {
     fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {

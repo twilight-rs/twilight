@@ -19,7 +19,7 @@ enum PermissionOverwriteTypeName {
 struct PermissionOverwriteData {
     allow: Permissions,
     deny: Permissions,
-    id: String,
+    id: u64,
     #[serde(rename = "type")]
     kind: PermissionOverwriteTypeName,
 }
