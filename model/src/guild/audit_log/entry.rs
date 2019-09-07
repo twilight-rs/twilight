@@ -4,7 +4,7 @@ use crate::{
         AuditLogEvent,
         AuditLogOptionalEntryInfo,
     },
-    id::{AuditLogEntryId, GenericId, UserId},
+    id::{AuditLogEntryId, UserId},
 };
 use serde::{Deserialize, Serialize};
 
@@ -15,6 +15,6 @@ pub struct AuditLogEntry {
     pub id: AuditLogEntryId,
     pub options: Option<AuditLogOptionalEntryInfo>,
     pub reason: Option<String>,
-    pub target_id: Option<GenericId>,
+    pub target_id: Option<String>,
     pub user_id: UserId,
 }
