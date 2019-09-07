@@ -1,0 +1,23 @@
+[package]
+authors = ["Zeyla Hellyer <zeyla@hellyer.dev>"]
+documentation = "https://docs.rs/lmao-command-parser"
+edition = "2018"
+homepage = "https://github.com/lmao-rs/lmao"
+include = ["src/*.rs", "Cargo.toml"]
+keywords = ["discord", "discord-api", "lmao"]
+license = "ISC"
+name = "lmao-command-parser"
+publish = false
+readme = "README.md"
+repository = "https://github.com/lmao-rs/lmao.git"
+version = "0.1.0"
+
+[dependencies]
+lmao-model = { optional = true, path = "../model" }
+
+[features]
+default = ["model"]
+model = ["lmao-model"]
+
+[package.metadata.docs.rs]
+all-features = true
