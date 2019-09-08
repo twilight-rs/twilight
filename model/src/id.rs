@@ -27,7 +27,7 @@ pub(crate) mod string {
 use serde::{Deserialize, Serialize};
 use std::fmt::{Display, Formatter, Result as FmtResult};
 
-#[derive(Clone, Debug, Default, Deserialize, Eq, Hash, PartialEq, PartialOrd, Serialize)]
+#[derive(Clone, Copy, Debug, Default, Deserialize, Eq, Hash, PartialEq, PartialOrd, Serialize)]
 pub struct ApplicationId(#[serde(with = "string")] pub u64);
 
 impl Display for ApplicationId {
@@ -36,7 +36,7 @@ impl Display for ApplicationId {
     }
 }
 
-#[derive(Clone, Debug, Default, Deserialize, Eq, Hash, PartialEq, PartialOrd, Serialize)]
+#[derive(Clone, Copy, Debug, Default, Deserialize, Eq, Hash, PartialEq, PartialOrd, Serialize)]
 pub struct AttachmentId(#[serde(with = "string")] pub u64);
 
 impl Display for AttachmentId {
@@ -45,7 +45,7 @@ impl Display for AttachmentId {
     }
 }
 
-#[derive(Clone, Debug, Default, Deserialize, Eq, Hash, PartialEq, PartialOrd, Serialize)]
+#[derive(Clone, Copy, Debug, Default, Deserialize, Eq, Hash, PartialEq, PartialOrd, Serialize)]
 pub struct AuditLogEntryId(#[serde(with = "string")] pub u64);
 
 impl Display for AuditLogEntryId {
@@ -54,7 +54,7 @@ impl Display for AuditLogEntryId {
     }
 }
 
-#[derive(Clone, Debug, Default, Deserialize, Eq, Hash, PartialEq, PartialOrd, Serialize)]
+#[derive(Clone, Copy, Debug, Default, Deserialize, Eq, Hash, PartialEq, PartialOrd, Serialize)]
 pub struct ChannelId(#[serde(with = "string")] pub u64);
 
 impl Display for ChannelId {
@@ -63,7 +63,7 @@ impl Display for ChannelId {
     }
 }
 
-#[derive(Clone, Debug, Default, Deserialize, Eq, Hash, PartialEq, PartialOrd, Serialize)]
+#[derive(Clone, Copy, Debug, Default, Deserialize, Eq, Hash, PartialEq, PartialOrd, Serialize)]
 pub struct EmojiId(#[serde(with = "string")] pub u64);
 
 impl Display for EmojiId {
@@ -72,7 +72,7 @@ impl Display for EmojiId {
     }
 }
 
-#[derive(Clone, Debug, Default, Deserialize, Eq, Hash, PartialEq, PartialOrd, Serialize)]
+#[derive(Clone, Copy, Debug, Default, Deserialize, Eq, Hash, PartialEq, PartialOrd, Serialize)]
 pub struct GenericId(#[serde(with = "string")] pub u64);
 
 impl Display for GenericId {
@@ -81,7 +81,7 @@ impl Display for GenericId {
     }
 }
 
-#[derive(Clone, Debug, Default, Deserialize, Eq, Hash, PartialEq, PartialOrd, Serialize)]
+#[derive(Clone, Copy, Debug, Default, Deserialize, Eq, Hash, PartialEq, PartialOrd, Serialize)]
 pub struct GuildId(#[serde(with = "string")] pub u64);
 
 impl Display for GuildId {
@@ -90,7 +90,7 @@ impl Display for GuildId {
     }
 }
 
-#[derive(Clone, Debug, Default, Deserialize, Eq, Hash, PartialEq, PartialOrd, Serialize)]
+#[derive(Clone, Copy, Debug, Default, Deserialize, Eq, Hash, PartialEq, PartialOrd, Serialize)]
 pub struct IntegrationId(#[serde(with = "string")] pub u64);
 
 impl Display for IntegrationId {
@@ -99,7 +99,7 @@ impl Display for IntegrationId {
     }
 }
 
-#[derive(Clone, Debug, Default, Deserialize, Eq, Hash, PartialEq, PartialOrd, Serialize)]
+#[derive(Clone, Copy, Debug, Default, Deserialize, Eq, Hash, PartialEq, PartialOrd, Serialize)]
 pub struct MessageId(#[serde(with = "string")] pub u64);
 
 impl Display for MessageId {
@@ -108,7 +108,7 @@ impl Display for MessageId {
     }
 }
 
-#[derive(Clone, Debug, Default, Deserialize, Eq, Hash, PartialEq, PartialOrd, Serialize)]
+#[derive(Clone, Copy, Debug, Default, Deserialize, Eq, Hash, PartialEq, PartialOrd, Serialize)]
 pub struct RoleId(#[serde(with = "string")] pub u64);
 
 impl Display for RoleId {
@@ -117,7 +117,7 @@ impl Display for RoleId {
     }
 }
 
-#[derive(Clone, Debug, Default, Deserialize, Eq, Hash, PartialEq, PartialOrd, Serialize)]
+#[derive(Clone, Copy, Debug, Default, Deserialize, Eq, Hash, PartialEq, PartialOrd, Serialize)]
 pub struct UserId(#[serde(with = "string")] pub u64);
 
 impl Display for UserId {
@@ -126,7 +126,7 @@ impl Display for UserId {
     }
 }
 
-#[derive(Clone, Debug, Default, Deserialize, Eq, Hash, PartialEq, PartialOrd, Serialize)]
+#[derive(Clone, Copy, Debug, Default, Deserialize, Eq, Hash, PartialEq, PartialOrd, Serialize)]
 pub struct WebhookId(#[serde(with = "string")] pub u64);
 
 impl Display for WebhookId {
