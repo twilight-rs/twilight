@@ -56,7 +56,7 @@ pub struct Message {
     #[serde(default)]
     pub reactions: Vec<MessageReaction>,
     #[serde(rename = "message_reference")]
-    pub reference: MessageReference,
+    pub reference: Option<MessageReference>,
     #[cfg(feature = "chrono")]
     pub timestamp: chrono::DateTime<chrono::FixedOffset>,
     #[cfg(not(feature = "chrono"))]
