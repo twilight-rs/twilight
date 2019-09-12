@@ -3,10 +3,10 @@ members = [
     "cache/base",
     "cache/redis",
     "command-parser",
+    "dawn",
     "gateway",
     "http",
     "lavalink",
-    "lmao",
     "model",
     "voice",
 ]

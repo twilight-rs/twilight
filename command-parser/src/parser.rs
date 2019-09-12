@@ -73,7 +73,7 @@ impl<'a> Output<'a> {
 /// prefix `"!"`, parse the message "!echo foo bar baz":
 ///
 /// ```rust
-/// use lmao_command_parser::{Config, Output, Parser};
+/// use dawn_command_parser::{Config, Output, Parser};
 ///
 /// let mut config = Config::new();
 /// config.add_command("echo");
@@ -120,7 +120,7 @@ impl<'a> Parser<'a> {
         &mut self.config
     }
 
-    /// Parses a `lmao_model` `Message`.
+    /// Parses a `dawn_model` `Message`.
     ///
     /// This will check if the author is in the list of ignored users and return
     /// [`Output::IgnoredUser`] if so. If the guild it was sent in is in the
@@ -131,8 +131,8 @@ impl<'a> Parser<'a> {
     /// [`Output::IgnoredGuild`]: enum.Output.html#variant.IgnoredGuild
     /// [`Output::IgnoredUser`]: enum.Output.html#variant.IgnoredUser
     /// [`parse_str`]: #method.parse_str
-    #[cfg(feature = "lmao-model")]
-    pub fn parse(&'a self, msg: &'a lmao_model::channel::Message) -> Output<'a> {
+    #[cfg(feature = "dawn-model")]
+    pub fn parse(&'a self, msg: &'a dawn_model::channel::Message) -> Output<'a> {
         if let Some(ref guild_id) = msg.guild_id {
             if self.config.ignore_guilds().contains(&guild_id.0) {
                 return Output::IgnoredGuild;

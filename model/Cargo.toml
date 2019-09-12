@@ -1,15 +1,15 @@
 [package]
 authors = ["Zeyla Hellyer <zeyla@hellyer.dev>"]
-documentation = "https://docs.rs/lmao-model"
+documentation = "https://docs.rs/dawn-model"
 edition = "2018"
-homepage = "https://github.com/lmao-rs/lmao"
+homepage = "https://github.com/dawn-rs/dawn"
 include = ["src/*.rs", "Cargo.toml"]
-keywords = ["discord", "discord-api", "lmao"]
+keywords = ["discord", "discord-api", "dawn"]
 license = "ISC"
-name = "lmao-model"
+name = "dawn-model"
 publish = false
 readme = "README.md"
-repository = "https://github.com/lmao-rs/lmao.git"
+repository = "https://github.com/dawn-rs/dawn.git"
 version = "0.1.0"
 
 [dependencies]

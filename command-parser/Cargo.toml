@@ -1,23 +1,23 @@
 [package]
 authors = ["Zeyla Hellyer <zeyla@hellyer.dev>"]
-documentation = "https://docs.rs/lmao-command-parser"
+documentation = "https://docs.rs/dawn-command-parser"
 edition = "2018"
-homepage = "https://github.com/lmao-rs/lmao"
+homepage = "https://github.com/dawn-rs/dawn"
 include = ["src/*.rs", "Cargo.toml"]
-keywords = ["discord", "discord-api", "lmao"]
+keywords = ["discord", "discord-api", "dawn"]
 license = "ISC"
-name = "lmao-command-parser"
+name = "dawn-command-parser"
 publish = false
 readme = "README.md"
-repository = "https://github.com/lmao-rs/lmao.git"
+repository = "https://github.com/dawn-rs/dawn.git"
 version = "0.1.0"
 
 [dependencies]
-lmao-model = { optional = true, path = "../model" }
+dawn-model = { optional = true, path = "../model" }
 
 [features]
 default = ["model"]
-model = ["lmao-model"]
+model = ["dawn-model"]
 
 [package.metadata.docs.rs]
 all-features = true

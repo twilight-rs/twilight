@@ -1,10 +1,10 @@
 //! [![license badge][]][license link] [![rust badge]][rust link]
 //!
-//! # lmao-model
+//! # dawn-model
 //!
-//! See the [`lmao`] documentation for more information.
+//! See the [`dawn`] documentation for more information.
 //!
-//! `lmao-model` is a crate of only serde models defining the Discord APIs with
+//! `dawn-model` is a crate of only serde models defining the Discord APIs with
 //! no implementations on top of them or functions to work with them.
 //!
 //! These are in a single crate for ease of use, a single point of definition,
@@ -28,15 +28,15 @@
 //! Add the following to your `Cargo.toml`:
 //!
 //! ```toml
-//! lmao-model = "0.1"
+//! dawn-model = "0.1"
 //! ```
 //!
 //! ## License
 //!
 //! [ISC][LICENSE.md]
 //!
-//! [LICENSE.md]: https://github.com/zeyla/lmao/blob/master/LICENSE.md
-//! [`lmao`]: https://docs.rs/lmao
+//! [LICENSE.md]: https://github.com/dawn-rs/dawn/blob/master/LICENSE.md
+//! [`dawn`]: https://docs.rs/dawn
 //! [license badge]: https://img.shields.io/badge/license-ISC-blue.svg?style=flat-square
 //! [license link]: https://opensource.org/licenses/ISC
 //! [rust badge]: https://img.shields.io/badge/rust-1.31+-93450a.svg?style=flat-square

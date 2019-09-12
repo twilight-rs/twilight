@@ -1,0 +1,31 @@
+[package]
+authors = ["Zeyla Hellyer <zeyla@hellyer.dev>"]
+documentation = "https://docs.rs/dawn"
+edition = "2018"
+homepage = "https://github.com/dawn-rs/dawn"
+include = ["src/*.rs", "Cargo.toml"]
+keywords = ["discord", "discord-api", "dawn"]
+license = "ISC"
+name = "dawn"
+publish = false
+repository = "https://github.com/dawn-rs/dawn"
+readme = "../README.md"
+version = "0.1.0"
+
+[dependencies]
+dawn-cache = { optional = true, path = "../cache/base" }
+dawn-command-parser = { optional = true, path = "../command-parser" }
+dawn-gateway = { optional = true, path = "../gateway" }
+dawn-http = { optional = true, path = "../http" }
+dawn-model = { optional = true, path = "../model" }
+dawn-voice = { optional = true, path = "../voice" }
+
+[features]
+default = ["cache", "command-parser", "gateway", "http", "model", "voice"]
+
+cache = ["dawn-cache"]
+command-parser = ["dawn-command-parser"]
+gateway = ["dawn-gateway"]
+http = ["dawn-http"]
+model = ["dawn-model"]
+voice = ["dawn-voice"]
