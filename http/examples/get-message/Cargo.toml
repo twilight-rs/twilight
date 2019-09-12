@@ -1,0 +1,13 @@
+[package]
+authors = ["Zeyla Hellyer <zeyla@hellyer.dev>"]
+edition = "2018"
+name = "dawn-http-get-message"
+publish = false
+version = "0.0.1"
+
+[dependencies]
+dawn-http = { path = "../.." }
+dawn-model = { path = "../../../model" }
+futures-preview = "0.3.0-alpha.18"
+pretty_env_logger = "0.3"
+tokio = "0.2.0-alpha.4"
