@@ -107,24 +107,3 @@ impl Ratelimiter {
         }
     }
 }
-
-#[cfg(test)]
-mod tests {
-    use super::{Bucket, RatelimitHeaders};
-
-    #[test]
-    fn test_bucket_ratelimiting() {
-        let mut bucket = Bucket::default();
-        bucket.update(&RatelimitHeaders {
-            bucket: "".to_string(),
-            global: false,
-            limit: 5,
-            remaining: 4,
-            reset: 0,
-            reset_after: 500,
-        });
-
-        // trying to reset before 500 has passed won't operate
-        assert!(!bucket.try_reset());
-    }
-}

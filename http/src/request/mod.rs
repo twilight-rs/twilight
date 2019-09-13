@@ -116,7 +116,7 @@ impl<'a> Request<'a> {
     pub fn new(
         body: Option<Vec<u8>>,
         headers: Option<HeaderMap<HeaderValue>>,
-        route: Route<'_>,
+        route: Route<'a>,
     ) -> Self {
         let (method, path, path_str) = route.into_parts();
 
