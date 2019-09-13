@@ -408,13 +408,14 @@ impl Client {
     ///
     /// # Examples
     ///
-    /// Get the gateway connection URL, which doesn't require a token:
+    /// Get the gateway connection URL without bot information:
     ///
     /// ```rust,no_run
     /// use dawn_http::Client;
+    /// use std::env;
     ///
     /// # async fn foo() -> Result<(), Box<dyn std::error::Error>> {
-    /// let client = Client::new(None);
+    /// let client = Client::new(env::var("TOKEN")?);
     ///
     /// let info = client.gateway().await?;
     ///
@@ -429,9 +430,10 @@ impl Client {
     ///
     /// ```rust,no_run
     /// use dawn_http::Client;
+    /// use std::env;
     ///
     /// # async fn foo() -> Result<(), Box<dyn std::error::Error>> {
-    /// let client = Client::new("my token");
+    /// let client = Client::new(env::var("TOKEN")?);
     ///
     /// let info = client.gateway().authed().await?;
     ///

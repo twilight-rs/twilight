@@ -24,7 +24,7 @@ use super::prelude::*;
 /// # async fn foo() -> Result<(), Box<dyn std::error::Error>> {
 /// let client = Client::new("my token");
 /// client.update_message(ChannelId(1), MessageId(2))
-///     .content("test update")
+///     .content("test update".to_owned())
 ///     .await?;
 /// # Ok(()) } fn main() {}
 /// ```

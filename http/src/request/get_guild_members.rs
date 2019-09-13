@@ -73,7 +73,7 @@ impl<'a> GetGuildMembers<'a> {
     /// # Examples
     ///
     /// ```rust,no_run
-    /// use futures::StreamExt;
+    /// use futures_util::StreamExt;
     /// use dawn_http::Client;
     /// use dawn_model::id::{GuildId, UserId};
     ///
