@@ -25,13 +25,10 @@ impl<'a> GetInvite<'a> {
     }
 
     fn start(&mut self) -> Result<()> {
-        self.fut.replace(self.http.request(Request {
-            route: Route::GetInvite {
-                code: &self.code,
-                with_counts: self.with_counts,
-            },
-            ..Default::default()
-        })?);
+        self.fut.replace(self.http.request(Request::from(Route::GetInvite {
+            code: &self.code,
+            with_counts: self.with_counts,
+        }))?);
 
         Ok(())
     }

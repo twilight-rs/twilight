@@ -45,16 +45,14 @@ impl<'a> GetCurrentUserGuilds<'a> {
     }
 
     fn start(&mut self) -> Result<()> {
-        let fut = self.http.request(Request {
-            body: Some(serde_json::to_vec(self)?),
-            route: Route::GetGuilds {
+        self.fut.replace(self.http.request(Request::from((
+            serde_json::to_vec(self)?,
+            Route::GetGuilds {
                 after: self.after.map(|x| x.0),
                 before: self.before.map(|x| x.0),
                 limit: self.limit,
             },
-            ..Default::default()
-        })?;
-        self.fut.replace(fut);
+        )))?);
 
         Ok(())
     }

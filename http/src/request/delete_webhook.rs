@@ -28,13 +28,10 @@ impl<'a> DeleteWebhook<'a> {
     }
 
     fn start(&mut self) -> Result<()> {
-        self.fut.replace(self.http.verify(Request {
-            route: Route::DeleteWebhook {
-                webhook_id: self.id.0,
-                token: self.token.as_ref().map(AsRef::as_ref),
-            },
-            ..Default::default()
-        })?);
+        self.fut.replace(self.http.verify(Request::from(Route::DeleteWebhook {
+            webhook_id: self.id.0,
+            token: self.token.as_ref().map(AsRef::as_ref),
+        }))?);
 
         Ok(())
     }

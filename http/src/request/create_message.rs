@@ -78,13 +78,12 @@ impl<'a> CreateMessage<'a> {
     }
 
     fn start(&mut self) -> Result<()> {
-        self.fut.replace(self.http.request(Request {
-            body: Some(serde_json::to_vec(self)?),
-            route: Route::CreateMessage {
+        self.fut.replace(self.http.request(Request::from((
+            serde_json::to_vec(self)?,
+            Route::CreateMessage {
                 channel_id: self.channel_id.0,
             },
-            ..Default::default()
-        })?);
+        )))?);
 
         Ok(())
     }

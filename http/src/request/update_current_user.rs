@@ -34,11 +34,10 @@ impl<'a> UpdateCurrentUser<'a> {
     }
 
     fn start(&mut self) -> Result<()> {
-        self.fut.replace(self.http.request(Request {
-            body: Some(serde_json::to_vec(&self)?),
-            route: Route::UpdateCurrentUser,
-            ..Default::default()
-        })?);
+        self.fut.replace(self.http.request(Request::from((
+            serde_json::to_vec(&self)?,
+            Route::UpdateCurrentUser,
+        )))?);
 
         Ok(())
     }

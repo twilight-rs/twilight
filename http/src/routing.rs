@@ -1,4 +1,3 @@
-use crate::Result;
 use http::Method;
 use std::{
     borrow::Cow,
@@ -351,8 +350,10 @@ pub enum Route<'a> {
 }
 
 impl<'a> Route<'a> {
-    pub fn into_parts(self) -> Result<(Method, Path, Cow<'a, str>)> {
-        Ok(match self {
+    // This function contains some `write!`s, but they can't fail, so we ignore
+    // them to remove an unnecessary Result here.
+    pub fn into_parts(self) -> (Method, Path, Cow<'a, str>) {
+        match self {
             Route::AddMemberRole { guild_id, role_id, user_id } => (
                 Method::PUT,
                 Path::GuildsIdMembersIdRolesId(guild_id),
@@ -367,11 +368,11 @@ impl<'a> Route<'a> {
                 let mut path = format!("guilds/{}/bans/{}", guild_id, user_id);
 
                 if let Some(delete_message_days) = delete_message_days {
-                    write!(path, "delete-message-days={}", delete_message_days)?;
+                    let _ = write!(path, "delete-message-days={}", delete_message_days);
                 }
 
                 if let Some(reason) = reason {
-                    write!(path, "&reason={}", reason)?;
+                    let _ = write!(path, "&reason={}", reason);
                 }
 
                 (Method::PUT, Path::GuildsIdBansUserId(guild_id), path.into())
@@ -400,15 +401,15 @@ impl<'a> Route<'a> {
                 let mut path = format!("guilds/{}/prune?", guild_id);
 
                 if let Some(compute_prune_count) = compute_prune_count {
-                    write!(
+                    let _ = write!(
                         path,
                         "compute_prune_count={}",
                         compute_prune_count,
-                    )?;
+                    );
                 }
 
                 if let Some(days) = days {
-                    write!(path, "&days={}", days)?;
+                    let _ = write!(path, "&days={}", days);
                 }
 
                 (Method::POST, Path::GuildsIdPrune(guild_id), path.into())
@@ -538,7 +539,7 @@ impl<'a> Route<'a> {
                 let mut path = format!("webhooks/{}/{}", webhook_id, token);
 
                 if let Some(wait) = wait {
-                    write!(path, "?wait={}", wait)?;
+                    let _ = write!(path, "?wait={}", wait);
                 }
 
                 (Method::POST, Path::WebhooksId(webhook_id), path.into())
@@ -553,19 +554,19 @@ impl<'a> Route<'a> {
                 let mut path = format!("guilds/{}/audit-logs", guild_id);
 
                 if let Some(action_type) = action_type {
-                    write!(path, "action_type={}", action_type)?;
+                    let _ = write!(path, "action_type={}", action_type);
                 }
 
                 if let Some(before) = before {
-                    write!(path, "&before={}", before)?;
+                    let _ = write!(path, "&before={}", before);
                 }
 
                 if let Some(limit) = limit {
-                    write!(path, "&limit={}", limit)?;
+                    let _ = write!(path, "&limit={}", limit);
                 }
 
                 if let Some(user_id) = user_id {
-                    write!(path, "&user_id={}", user_id)?;
+                    let _ = write!(path, "&user_id={}", user_id);
                 }
 
                 (Method::GET, Path::GuildsIdAuditLogs(guild_id), path.into())
@@ -644,11 +645,11 @@ impl<'a> Route<'a> {
                 let mut path = format!("guilds/{}/members?", guild_id);
 
                 if let Some(after) = after {
-                    write!(path, "after={}", after)?;
+                    let _ = write!(path, "after={}", after);
                 }
 
                 if let Some(limit) = limit {
-                    write!(path, "&limit={}", limit)?;
+                    let _ = write!(path, "&limit={}", limit);
                 }
 
                 (Method::GET, Path::GuildsIdMembers(guild_id), path.into())
@@ -657,7 +658,7 @@ impl<'a> Route<'a> {
                 let mut path = format!("guilds/{}/prune?", guild_id);
 
                 if let Some(days) = days {
-                    write!(path, "days={}", days)?;
+                    let _ = write!(path, "days={}", days);
                 }
 
                 (Method::GET, Path::GuildsIdPrune(guild_id), path.into())
@@ -686,15 +687,15 @@ impl<'a> Route<'a> {
                 let mut path = "users/@me/guilds?".to_owned();
 
                 if let Some(after) = after {
-                    write!(path, "after={}", after)?;
+                    let _ = write!(path, "after={}", after);
                 }
 
                 if let Some(before) = before {
-                    write!(path, "&before={}", before)?;
+                    let _ = write!(path, "&before={}", before);
                 }
 
                 if let Some(limit) = limit {
-                    write!(path, "&limit={}", limit)?;
+                    let _ = write!(path, "&limit={}", limit);
                 }
 
                 (Method::GET, Path::UsersIdGuilds, path.into())
@@ -718,19 +719,19 @@ impl<'a> Route<'a> {
                 let mut path = format!("channels/{}/messages?", channel_id);
 
                 if let Some(after) = after {
-                    write!(path, "after={}", after)?;
+                    let _ = write!(path, "after={}", after);
                 }
 
                 if let Some(around) = around {
-                    write!(path, "&around={}", around)?;
+                    let _ = write!(path, "&around={}", around);
                 }
 
                 if let Some(before) = before {
-                    write!(path, "&before={}", before)?;
+                    let _ = write!(path, "&before={}", before);
                 }
 
                 if let Some(limit) = limit {
-                    write!(path, "&limit={}", limit)?;
+                    let _ = write!(path, "&limit={}", limit);
                 }
 
                 (Method::GET, Path::ChannelsIdMessages(channel_id), path.into())
@@ -756,15 +757,15 @@ impl<'a> Route<'a> {
                 );
 
                 if let Some(after) = after {
-                    write!(path, "after={}", after)?;
+                    let _ = write!(path, "after={}", after);
                 }
 
                 if let Some(before) = before {
-                    write!(path, "before={}", before)?;
+                    let _ = write!(path, "before={}", before);
                 }
 
                 if let Some(limit) = limit {
-                    write!(path, "&limit={}", limit)?;
+                    let _ = write!(path, "&limit={}", limit);
                 }
 
                 (
@@ -912,6 +913,6 @@ impl<'a> Route<'a> {
 
                 (Method::PATCH, Path::WebhooksId(webhook_id), path.into())
             },
-        })
+        }
     }
 }

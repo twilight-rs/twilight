@@ -43,7 +43,7 @@ pub struct Pending<'a> {
 }
 
 impl<'a> Pending<'a> {
-    pub fn new(
+    pub(crate) fn new(
         fut: Pin<Box<dyn Future<Output = ReqwestResult<Response>>>>,
         ratelimiter: &'a Ratelimiter,
         bucket: Path,
@@ -74,7 +74,7 @@ pub struct PendingBody<'a, T: DeserializeOwned> {
 }
 
 impl<'a, T: DeserializeOwned> PendingBody<'a, T> {
-    pub fn new(
+    pub(crate) fn new(
         fut: Pin<Box<dyn Future<Output = ReqwestResult<Response>>>>,
         ratelimiter: &'a Ratelimiter,
         bucket: Path,
@@ -103,12 +103,12 @@ impl<T: DeserializeOwned + Unpin> Future for PendingBody<'_, T> {
     }
 }
 
-struct PendingText<'a> {
+pub struct PendingText<'a> {
     state: PendingState<'a>,
 }
 
 impl<'a> PendingText<'a> {
-    pub fn new(
+    pub(crate) fn new(
         fut: Pin<Box<dyn Future<Output = ReqwestResult<Response>>>>,
         ratelimiter: &'a Ratelimiter,
         bucket: Path,

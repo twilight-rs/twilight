@@ -71,14 +71,13 @@ impl<'a> UpdateRole<'a> {
     }
 
     fn start(&mut self) -> Result<()> {
-        self.fut.replace(self.http.request(Request {
-            body: Some(serde_json::to_vec(self)?),
-            route: Route::UpdateRole {
+        self.fut.replace(self.http.request(Request::from((
+            serde_json::to_vec(self)?,
+            Route::UpdateRole {
                 guild_id: self.guild_id.0,
                 role_id: self.role_id.0,
             },
-            ..Default::default()
-        })?);
+        )))?);
 
         Ok(())
     }

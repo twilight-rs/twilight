@@ -44,16 +44,13 @@ impl<'a> GetChannelMessagesConfigured<'a> {
     }
 
     fn start(&mut self) -> Result<()> {
-        self.fut.replace(self.http.request(Request {
-            route: Route::GetMessages {
-                after: self.after.map(|x| x.0),
-                around: self.around.map(|x| x.0),
-                before: self.before.map(|x| x.0),
-                channel_id: self.channel_id.0,
-                limit: self.limit,
-            },
-            ..Default::default()
-        })?);
+        self.fut.replace(self.http.request(Request::from(Route::GetMessages {
+            after: self.after.map(|x| x.0),
+            around: self.around.map(|x| x.0),
+            before: self.before.map(|x| x.0),
+            channel_id: self.channel_id.0,
+            limit: self.limit,
+        }))?);
 
         Ok(())
     }

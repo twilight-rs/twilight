@@ -98,15 +98,14 @@ impl<'a> ExecuteWebhook<'a> {
     }
 
     fn start(&mut self) -> Result<()> {
-        self.fut.replace(self.http.request(Request {
-            body: Some(serde_json::to_vec(self)?),
-            route: Route::ExecuteWebhook {
+        self.fut.replace(self.http.request(Request::from((
+            serde_json::to_vec(self)?,
+            Route::ExecuteWebhook {
                 token: &self.token,
                 wait: self.wait,
                 webhook_id: self.webhook_id.0,
             },
-            ..Default::default()
-        })?);
+        )))?);
 
         Ok(())
     }

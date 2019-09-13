@@ -40,14 +40,11 @@ impl<'a> CreateGuildPrune<'a> {
     }
 
     fn start(&mut self) -> Result<()> {
-        self.fut.replace(self.http.request(Request {
-            route: Route::CreateGuildPrune {
-                compute_prune_count: self.compute_prune_count,
-                days: self.days,
-                guild_id: self.guild_id.0,
-            },
-            ..Default::default()
-        })?);
+        self.fut.replace(self.http.request(Request::from(Route::CreateGuildPrune {
+            compute_prune_count: self.compute_prune_count,
+            days: self.days,
+            guild_id: self.guild_id.0,
+        }))?);
 
         Ok(())
     }

@@ -28,13 +28,10 @@ impl<'a> GetWebhook<'a> {
     }
 
     fn start(&mut self) -> Result<()> {
-        self.fut.replace(self.http.request(Request {
-            route: Route::GetWebhook {
-                token: self.token.as_ref().map(AsRef::as_ref),
-                webhook_id: self.id.0,
-            },
-            ..Default::default()
-        })?);
+        self.fut.replace(self.http.request(Request::from(Route::GetWebhook {
+            token: self.token.as_ref().map(AsRef::as_ref),
+            webhook_id: self.id.0,
+        }))?);
 
         Ok(())
     }

@@ -11,11 +11,10 @@
 
 pub mod client;
 pub mod error;
+pub mod pending;
 pub mod ratelimiting;
 pub mod request;
 pub mod routing;
-
-mod pending;
 
 pub use crate::{
     client::Client,

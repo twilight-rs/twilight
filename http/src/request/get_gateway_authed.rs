@@ -18,10 +18,7 @@ impl<'a> GetGatewayAuthed<'a> {
     }
 
     fn start(&mut self) -> Result<()> {
-        self.fut.replace(self.http.request(Request {
-            route: Route::GetGatewayBot,
-            ..Default::default()
-        })?);
+        self.fut.replace(self.http.request(Request::from(Route::GetGatewayBot))?);
 
         Ok(())
     }

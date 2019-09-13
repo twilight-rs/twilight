@@ -53,17 +53,14 @@ impl<'a> GetReactions<'a> {
     }
 
     fn start(&mut self) -> Result<()> {
-        self.fut.replace(self.http.request(Request {
-            route: Route::GetReactionUsers {
-                after: self.after.map(|x| x.0),
-                before: self.before.map(|x| x.0),
-                channel_id: self.channel_id.0,
-                emoji: &self.emoji,
-                limit: self.limit,
-                message_id: self.message_id.0,
-            },
-            ..Default::default()
-        })?);
+        self.fut.replace(self.http.request(Request::from(Route::GetReactionUsers {
+            after: self.after.map(|x| x.0),
+            before: self.before.map(|x| x.0),
+            channel_id: self.channel_id.0,
+            emoji: &self.emoji,
+            limit: self.limit,
+            message_id: self.message_id.0,
+        }))?);
 
         Ok(())
     }

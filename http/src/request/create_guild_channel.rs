@@ -111,13 +111,12 @@ impl<'a> CreateGuildChannel<'a> {
     }
 
     fn start(&mut self) -> Result<()> {
-        self.fut.replace(self.http.request(Request {
-            body: Some(serde_json::to_vec(self)?),
-            route: Route::CreateChannel {
+        self.fut.replace(self.http.request(Request::from((
+            serde_json::to_vec(self)?,
+            Route::CreateChannel {
                 guild_id: self.guild_id.0,
             },
-            ..Default::default()
-        })?);
+        )))?);
 
         Ok(())
     }

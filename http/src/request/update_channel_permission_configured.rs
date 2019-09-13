@@ -41,14 +41,13 @@ impl<'a> UpdateChannelPermissionConfigured<'a> {
     }
 
     fn start(&mut self) -> Result<()> {
-        self.fut.replace(self.http.verify(Request {
-            body: Some(serde_json::to_vec(self)?),
-            route: Route::UpdatePermissionOverwrite {
+        self.fut.replace(self.http.verify(Request::from((
+            serde_json::to_vec(self)?,
+            Route::UpdatePermissionOverwrite {
                 channel_id: self.channel_id.0,
                 target_id: self.target_id,
             },
-            ..Default::default()
-        })?);
+        )))?);
 
         Ok(())
     }

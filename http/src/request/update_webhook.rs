@@ -51,14 +51,13 @@ impl<'a> UpdateWebhook<'a> {
     }
 
     fn start(&mut self) -> Result<()> {
-        self.fut.replace(self.http.request(Request {
-            body: Some(serde_json::to_vec(self)?),
-            route: Route::UpdateWebhook {
+        self.fut.replace(self.http.request(Request::from((
+            serde_json::to_vec(self)?,
+            Route::UpdateWebhook {
                 token: None,
                 webhook_id: self.webhook_id.0,
             },
-            ..Default::default()
-        })?);
+        )))?);
 
         Ok(())
     }

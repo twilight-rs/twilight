@@ -7,7 +7,7 @@ use crate::{
         InvalidUrl,
         Result,
     },
-    pending::{Pending, PendingBody},
+    pending::{Pending, PendingBody, PendingText},
     ratelimiting::Ratelimiter,
     request::*,
     routing::{Path, Route},
@@ -338,15 +338,14 @@ impl Client {
         guild_id: impl Into<GuildId>,
         nick: impl Into<String>,
     ) -> Result<()> {
-        self.verify(Request {
-            body: Some(serde_json::to_vec(&json!({
+        self.verify(Request::from((
+            serde_json::to_vec(&json!({
                 "nick": nick.into(),
-            }))?),
-            route: Route::UpdateNickname {
+            }))?,
+            Route::UpdateNickname {
                 guild_id: guild_id.into().0,
             },
-            ..Default::default()
-        })?.await
+        )))?.await
     }
 
     pub async fn current_user_private_channels(&self) -> Result<Vec<PrivateChannel>> {
@@ -514,13 +513,12 @@ impl Client {
             position: pos,
         }).collect::<Vec<_>>();
 
-        self.verify(Request {
-            body: Some(serde_json::to_vec(&positions)?),
-            route: Route::UpdateGuildChannels {
+        self.verify(Request::from((
+            serde_json::to_vec(&positions)?,
+            Route::UpdateGuildChannels {
                 guild_id: guild_id.into().0,
             },
-            ..Default::default()
-        })?.await
+        )))?.await
     }
 
     pub async fn guild_embed(
@@ -554,16 +552,15 @@ impl Client {
         integration_id: impl Into<IntegrationId>,
         kind: impl AsRef<str>,
     ) -> Result<()> {
-        self.verify(Request {
-            body: Some(serde_json::to_vec(&json!({
+        self.verify(Request::from((
+            serde_json::to_vec(&json!({
                 "id": integration_id.into(),
                 "type": kind.as_ref(),
-            }))?),
-            route: Route::CreateGuildIntegration {
+            }))?,
+            Route::CreateGuildIntegration {
                 guild_id: guild_id.into().0,
             },
-            ..Default::default()
-        })?.await
+        )))?.await
     }
 
     pub async fn delete_guild_integration(
@@ -585,18 +582,17 @@ impl Client {
         expire_behavior: u64,
         expire_grace_period: u64,
     ) -> Result<()> {
-        self.verify(Request {
-            body: Some(serde_json::to_vec(&json!({
+        self.verify(Request::from((
+            serde_json::to_vec(&json!({
                 "enable_emoticons": enable_emoticons,
                 "expire_behavior": expire_behavior,
                 "expire_grace_period": expire_grace_period,
-            }))?),
-            route: Route::UpdateGuildIntegration {
+            }))?,
+            Route::UpdateGuildIntegration {
                 guild_id: guild_id.into().0,
                 integration_id: integration_id.into().0,
             },
-            ..Default::default()
-        })?.await
+        )))?.await
     }
 
     pub async fn sync_guild_integration(
@@ -781,15 +777,14 @@ impl Client {
         channel_id: impl Into<ChannelId>,
         message_ids: impl Into<Vec<MessageId>>,
     ) -> Result<()> {
-        self.verify(Request {
-            body: Some(serde_json::to_vec(&json!({
+        self.verify(Request::from((
+            serde_json::to_vec(&json!({
                 "messages": message_ids.into(),
-            }))?),
-            route: Route::DeleteMessages {
+            }))?,
+            Route::DeleteMessages {
                 channel_id: channel_id.into().0,
             },
-            ..Default::default()
-        })?.await
+        )))?.await
     }
 
     pub fn update_message(
@@ -903,13 +898,12 @@ impl Client {
         &self,
         recipient_id: impl Into<UserId>,
     ) -> Result<PrivateChannel> {
-        self.request(Request {
-            body: Some(serde_json::to_vec(&json!({
+        self.request(Request::from((
+            serde_json::to_vec(&json!({
                 "recipient_id": recipient_id.into(),
-            }))?),
-            route: Route::CreatePrivateChannel,
-            ..Default::default()
-        })?.await
+            }))?,
+            Route::CreatePrivateChannel,
+        )))?.await
     }
 
     pub async fn roles(
@@ -949,13 +943,12 @@ impl Client {
         guild_id: impl Into<GuildId>,
         roles: impl Iterator<Item = (RoleId, u64)>,
     ) -> Result<Vec<Role>> {
-        self.request(Request {
-            body: Some(serde_json::to_vec(&roles.collect::<Vec<_>>())?),
-            route: Route::UpdateRolePositions {
+        self.request(Request::from((
+            serde_json::to_vec(&roles.collect::<Vec<_>>())?,
+            Route::UpdateRolePositions {
                 guild_id: guild_id.into().0,
             },
-            ..Default::default()
-        })?.await
+        )))?.await
     }
 
     pub async fn user(&self, user_id: u64) -> Result<Option<User>> {
@@ -1010,34 +1003,38 @@ impl Client {
         ExecuteWebhook::new(self, webhook_id, token)
     }
 
-    pub(crate) fn request<'a, T: DeserializeOwned>(
-        &'a self,
+    pub fn request<T: DeserializeOwned>(
+        &self,
         request: Request<'_>,
-    ) -> Result<PendingBody<'a, T>> {
+    ) -> Result<PendingBody<'_, T>> {
         let (resp, bucket) = self.make_request(request)?;
 
         Ok(PendingBody::new(resp.boxed(), &self.state.ratelimiter, bucket))
     }
 
-    pub(crate) fn verify<'a>(
-        &'a self,
-        request: Request<'_>,
-    ) -> Result<Pending<'a>> {
+    pub fn text(&self, request: Request<'_>) -> Result<PendingText<'_>> {
+        let (resp, bucket) = self.make_request(request)?;
+
+        Ok(PendingText::new(resp.boxed(), &self.state.ratelimiter, bucket))
+    }
+
+    pub fn verify(&self, request: Request<'_>) -> Result<Pending<'_>> {
         let (resp, bucket) = self.make_request(request)?;
 
         Ok(Pending::new(resp.boxed(), &self.state.ratelimiter, bucket))
     }
 
-    pub(crate) fn make_request(
+    fn make_request(
         &self,
         request: Request<'_>,
     ) -> Result<(impl Future<Output = reqwest::Result<Response>> + Send + Unpin, Path)> {
         let Request {
             body,
             headers: req_headers,
-            route,
+            method,
+            path: bucket,
+            path_str: path,
         } = request;
-        let (method, bucket, path) = route.into_parts()?;
 
         let url = format!("https://discordapp.com/api/v6/{}", path);
 

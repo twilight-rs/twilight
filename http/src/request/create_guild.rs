@@ -89,11 +89,10 @@ impl<'a> CreateGuild<'a> {
     }
 
     fn start(&mut self) -> Result<()> {
-        self.fut.replace(self.http.request(Request {
-            body: Some(serde_json::to_vec(self)?),
-            route: Route::CreateGuild,
-            ..Default::default()
-        })?);
+        self.fut.replace(self.http.request(Request::from((
+            serde_json::to_vec(self)?,
+            Route::CreateGuild,
+        )))?);
 
         Ok(())
     }

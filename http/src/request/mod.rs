@@ -96,31 +96,80 @@ pub use self::{
     update_webhook_with_token::UpdateWebhookWithToken,
 };
 
-use crate::routing::Route;
-use http::header::{HeaderMap, HeaderValue};
+use crate::routing::{Path, Route};
+use http::{
+    header::{HeaderMap, HeaderValue},
+    method::Method,
+};
+use std::borrow::Cow;
 
 #[derive(Clone, Debug)]
-pub(crate) struct Request<'a> {
+pub struct Request<'a> {
     pub body: Option<Vec<u8>>,
     pub headers: Option<HeaderMap<HeaderValue>>,
-    pub route: Route<'a>,
+    pub method: Method,
+    pub path: Path,
+    pub path_str: Cow<'a, str>,
 }
 
-impl<'a> From<Route<'a>> for Request<'a> {
-    fn from(route: Route<'a>) -> Self {
+impl<'a> Request<'a> {
+    pub fn new(
+        body: Option<Vec<u8>>,
+        headers: Option<HeaderMap<HeaderValue>>,
+        route: Route<'_>,
+    ) -> Self {
+        let (method, path, path_str) = route.into_parts();
+
         Self {
-            route,
-            ..Default::default()
+            body,
+            headers,
+            method,
+            path,
+            path_str,
         }
     }
 }
 
-impl Default for Request<'_> {
-    fn default() -> Self {
+impl<'a> From<Route<'a>> for Request<'a> {
+    fn from(route: Route<'a>) -> Self {
+        let (method, path, path_str) = route.into_parts();
+
         Self {
             body: None,
             headers: None,
-            route: Route::GetGateway,
+            method,
+            path,
+            path_str,
+        }
+    }
+}
+
+impl<'a> From<(Vec<u8>, Route<'a>)> for Request<'a> {
+    fn from((body, route): (Vec<u8>, Route<'a>)) -> Self {
+        let (method, path, path_str) = route.into_parts();
+
+        Self {
+            body: Some(body),
+            headers: None,
+            method,
+            path,
+            path_str,
+        }
+    }
+}
+
+impl<'a> From<(Vec<u8>, HeaderMap<HeaderValue>, Route<'a>)> for Request<'a> {
+    fn from(
+        (body, headers, route): (Vec<u8>, HeaderMap<HeaderValue>, Route<'a>),
+    ) -> Self {
+        let (method, path, path_str) = route.into_parts();
+
+        Self {
+            body: Some(body),
+            headers: Some(headers),
+            method,
+            path,
+            path_str,
         }
     }
 }

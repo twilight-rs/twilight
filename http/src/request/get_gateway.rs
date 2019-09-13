@@ -22,10 +22,7 @@ impl<'a> GetGateway<'a> {
     }
 
     fn start(&mut self) -> Result<()> {
-        self.fut.replace(self.http.request(Request {
-            route: Route::GetGateway,
-            ..Default::default()
-        })?);
+        self.fut.replace(self.http.request(Request::from(Route::GetGateway))?);
 
         Ok(())
     }
