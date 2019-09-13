@@ -20,6 +20,6 @@ pub struct Invite {
     pub code: String,
     pub channel: Option<Channel>,
     pub guild: Option<PartialGuild>,
-    pub target_user: User,
+    pub target_user: Option<User>,
     pub target_user_type: Option<TargetUserType>,
 }
