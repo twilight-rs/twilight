@@ -191,20 +191,11 @@
 //! [rust badge]: https://img.shields.io/badge/rust-nightly-93450a.svg?style=flat-square
 //! [rust link]: https://github.com/rust-lang/rust/milestone/66
 
-#[cfg(feature = "cache")]
-pub extern crate dawn_cache as cache;
-
 #[cfg(feature = "command-parser")]
 pub extern crate dawn_command_parser as command_parser;
-
-#[cfg(feature = "gateway")]
-pub extern crate dawn_gateway as gateway;
 
 #[cfg(feature = "http")]
 pub extern crate dawn_http as http;
 
 #[cfg(feature = "model")]
 pub extern crate dawn_model as model;
-
-#[cfg(feature = "voice")]
-pub extern crate dawn_voice as voice;

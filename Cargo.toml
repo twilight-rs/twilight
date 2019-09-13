@@ -1,13 +1,8 @@
 [workspace]
 members = [
-    "cache/base",
-    "cache/redis",
     "command-parser",
     "dawn",
-    "gateway",
     "http",
     "http/examples/get-message",
-    "lavalink",
     "model",
-    "voice",
 ]

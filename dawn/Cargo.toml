@@ -13,19 +13,13 @@ readme = "../README.md"
 version = "0.1.0"
 
 [dependencies]
-dawn-cache = { optional = true, path = "../cache/base" }
 dawn-command-parser = { optional = true, path = "../command-parser" }
-dawn-gateway = { optional = true, path = "../gateway" }
 dawn-http = { optional = true, path = "../http" }
 dawn-model = { optional = true, path = "../model" }
-dawn-voice = { optional = true, path = "../voice" }
 
 [features]
-default = ["cache", "command-parser", "gateway", "http", "model", "voice"]
+default = ["command-parser", "http", "model"]
 
-cache = ["dawn-cache"]
 command-parser = ["dawn-command-parser"]
-gateway = ["dawn-gateway"]
 http = ["dawn-http"]
 model = ["dawn-model"]
-voice = ["dawn-voice"]
