@@ -7,10 +7,58 @@ use dawn_model::{
 };
 use super::prelude::*;
 
+/// Futures request to update a message.
+///
+/// You can pass `None` to any of the methods to remove the associated field.
+/// For example, if you have a message with an embed you want to remove, you can
+/// use `.[embed](None)` to remove the embed.
+///
+/// # Examples
+///
+/// Replace the content with `"test update"`:
+///
+/// ```rust,no_run
+/// use dawn_http::Client;
+/// use dawn_model::id::{ChannelId, MessageId};
+///
+/// # async fn foo() -> Result<(), Box<dyn std::error::Error>> {
+/// let client = Client::new("my token");
+/// client.update_message(ChannelId(1), MessageId(2))
+///     .content("test update")
+///     .await?;
+/// # Ok(()) } fn main() {}
+/// ```
+///
+/// Remove the message's content:
+///
+/// ```rust,no_run
+/// use dawn_http::Client;
+/// use dawn_model::id::{ChannelId, MessageId};
+///
+/// # async fn foo() -> Result<(), Box<dyn std::error::Error>> {
+/// let client = Client::new("my token");
+/// client.update_message(ChannelId(1), MessageId(2))
+///     .content(None)
+///     .await?;
+/// # Ok(()) } fn main() {}
+/// ```
+///
+/// [embed]: #method.embed
 #[derive(Serialize)]
 pub struct UpdateMessage<'a> {
-    content: Option<String>,
-    embed: Option<Embed>,
+    // We don't serialize if this is Option::None, to avoid overwriting the
+    // field without meaning to.
+    //
+    // So we use a nested Option, representing the following states:
+    //
+    // - Some(Some(String)): Modifying the "content" from one state to a string;
+    // - Some(None): Removing the "content" by giving the Discord API a written
+    //   `"content": null` in the JSON;
+    // - None: Don't serialize the field at all, not modifying the state.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    content: Option<Option<String>>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    embed: Option<Option<Embed>>,
     #[serde(skip)]
     channel_id: ChannelId,
     #[serde(skip)]
@@ -37,14 +85,20 @@ impl<'a> UpdateMessage<'a> {
         }
     }
 
-    pub fn content(mut self, content: impl Into<String>) -> Self {
+    /// Set the content of the message.
+    ///
+    /// Pass `None` if you want to remove the message content.
+    pub fn content(mut self, content: impl Into<Option<String>>) -> Self {
         self.content.replace(content.into());
 
         self
     }
 
-    pub fn embed(mut self, embed: Embed) -> Self {
-        self.embed.replace(embed);
+    /// Set the embed of the message.
+    ///
+    /// Pass `None` if you want to remove the message embed.
+    pub fn embed(mut self, embed: impl Into<Option<Embed>>) -> Self {
+        self.embed.replace(embed.into());
 
         self
     }
