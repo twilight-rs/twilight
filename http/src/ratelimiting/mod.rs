@@ -21,11 +21,6 @@ use std::{
     },
 };
 
-pub enum Ratelimit {
-    Queued(Receiver<Sender<Option<RatelimitHeaders>>>),
-    Ready(Sender<Option<RatelimitHeaders>>),
-}
-
 // Global lock. We use a pair to avoid actually locking the mutex every check.
 // This allows futures to only wait on the global lock when a global ratelimit
 // is in place by, in turn, waiting for a guard, and then each immediately
@@ -58,7 +53,10 @@ impl Ratelimiter {
         Self::default()
     }
 
-    pub async fn get(&self, path: Path) -> Ratelimit {
+    pub async fn get(
+        &self,
+        path: Path,
+    ) -> Receiver<Sender<Option<RatelimitHeaders>>> {
         debug!("Getting bucket for path: {:?}", path);
 
         let (tx, rx) = oneshot::channel();
@@ -73,7 +71,7 @@ impl Ratelimiter {
             ).run());
         }
 
-        Ratelimit::Queued(rx)
+        rx
     }
 
     async fn entry(

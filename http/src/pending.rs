@@ -1,9 +1,9 @@
 use crate::{
     error::{Error, ResponseError, Result},
-    ratelimiting::{Ratelimit, RatelimitHeaders, Ratelimiter},
+    ratelimiting::{RatelimitHeaders, Ratelimiter},
     routing::Path,
 };
-use futures_channel::oneshot::{Canceled, Sender};
+use futures_channel::oneshot::{Canceled, Receiver, Sender};
 use futures_util::future::{self, FutureExt};
 use log::warn;
 use reqwest::{Response, Result as ReqwestResult, StatusCode};
@@ -29,7 +29,7 @@ enum PendingState<'a> {
         req: Pin<Box<dyn Future<Output = ReqwestResult<Response>>>>,
     },
     RatelimitRetrieval {
-        fut: Pin<Box<dyn Future<Output = Ratelimit> + 'a>>,
+        fut: Pin<Box<dyn Future<Output = Receiver<Sender<Option<RatelimitHeaders>>>> + 'a>>,
         req: Pin<Box<dyn Future<Output = ReqwestResult<Response>>>>,
     },
     Request {
@@ -172,16 +172,10 @@ impl Future for PendingText<'_> {
                 },
                 PendingState::RatelimitRetrieval { mut fut, req } => {
                     match fut.as_mut().poll(cx) {
-                        Poll::Ready(ratelimit) => {
-                            self.as_mut().state = match ratelimit {
-                                Ratelimit::Queued(rx) => PendingState::RatelimitQueued {
-                                    fut: rx.boxed(),
-                                    req,
-                                },
-                                Ratelimit::Ready(tx) => PendingState::Request {
-                                    fut: req,
-                                    tx,
-                                },
+                        Poll::Ready(rx) => {
+                            self.as_mut().state = PendingState::RatelimitQueued {
+                                fut: rx.boxed(),
+                                req,
                             };
                         },
                         Poll::Pending => return Poll::Pending,
