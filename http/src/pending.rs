@@ -20,20 +20,20 @@ use std::{
 
 enum PendingState<'a> {
     Chunking {
-        fut: Pin<Box<dyn Future<Output = Result<String>>>>,
+        fut: Pin<Box<dyn Future<Output = Result<String>> + Send>>,
     },
     Done,
     Empty,
     RatelimitQueued {
-        fut: Pin<Box<dyn Future<Output = StdResult<Sender<Option<RatelimitHeaders>>, Canceled>>>>,
-        req: Pin<Box<dyn Future<Output = ReqwestResult<Response>>>>,
+        fut: Pin<Box<dyn Future<Output = StdResult<Sender<Option<RatelimitHeaders>>, Canceled>> + Send>>,
+        req: Pin<Box<dyn Future<Output = ReqwestResult<Response>> + Send>>,
     },
     RatelimitRetrieval {
-        fut: Pin<Box<dyn Future<Output = Receiver<Sender<Option<RatelimitHeaders>>>> + 'a>>,
-        req: Pin<Box<dyn Future<Output = ReqwestResult<Response>>>>,
+        fut: Pin<Box<dyn Future<Output = Receiver<Sender<Option<RatelimitHeaders>>>> + Send + 'a>>,
+        req: Pin<Box<dyn Future<Output = ReqwestResult<Response>> + Send>>,
     },
     Request {
-        fut: Pin<Box<dyn Future<Output = ReqwestResult<Response>>>>,
+        fut: Pin<Box<dyn Future<Output = ReqwestResult<Response>> + Send>>,
         tx: Sender<Option<RatelimitHeaders>>,
     },
 }
@@ -44,7 +44,7 @@ pub struct Pending<'a> {
 
 impl<'a> Pending<'a> {
     pub(crate) fn new(
-        fut: Pin<Box<dyn Future<Output = ReqwestResult<Response>>>>,
+        fut: Pin<Box<dyn Future<Output = ReqwestResult<Response>> + Send>>,
         ratelimiter: &'a Ratelimiter,
         bucket: Path,
     ) -> Self {
@@ -75,7 +75,7 @@ pub struct PendingBody<'a, T: DeserializeOwned> {
 
 impl<'a, T: DeserializeOwned> PendingBody<'a, T> {
     pub(crate) fn new(
-        fut: Pin<Box<dyn Future<Output = ReqwestResult<Response>>>>,
+        fut: Pin<Box<dyn Future<Output = ReqwestResult<Response>> + Send>>,
         ratelimiter: &'a Ratelimiter,
         bucket: Path,
     ) -> Self {
@@ -109,7 +109,7 @@ pub struct PendingText<'a> {
 
 impl<'a> PendingText<'a> {
     pub(crate) fn new(
-        fut: Pin<Box<dyn Future<Output = ReqwestResult<Response>>>>,
+        fut: Pin<Box<dyn Future<Output = ReqwestResult<Response>> + Send>>,
         ratelimiter: &'a Ratelimiter,
         bucket: Path,
     ) -> Self {

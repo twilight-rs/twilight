@@ -4,16 +4,17 @@ use crate::{
     error::{
         BuildingClient,
         CreatingHeader,
+        Error,
         InvalidUrl,
+        RequestCanceled,
+        RequestError,
         Result,
     },
-    pending::{Pending, PendingBody, PendingText},
-    ratelimiting::Ratelimiter,
+    pending::{Pending, PendingBody},
+    ratelimiting::{RatelimitHeaders, Ratelimiter},
     request::*,
     routing::{Path, Route},
 };
-use futures_util::FutureExt;
-use http::header::HeaderValue;
 use dawn_model::{
     channel::{Channel, GuildChannel, Message, PrivateChannel, Webhook},
     guild::{
@@ -40,6 +41,9 @@ use dawn_model::{
     user::{Connection, CurrentUser, User},
     voice::VoiceRegion,
 };
+use futures_util::FutureExt;
+use http::header::HeaderValue;
+use log::warn;
 use reqwest::{
     Body,
     Client as ReqwestClient,
@@ -56,6 +60,7 @@ use serde::{
 use serde_json::json;
 use snafu::ResultExt;
 use std::{
+    convert::TryFrom,
     future::Future,
     ops::{Deref, DerefMut},
     str::FromStr,
@@ -110,6 +115,7 @@ struct State {
     token: Option<String>,
 }
 
+#[derive(Clone)]
 pub struct Client {
     state: Arc<State>,
 }
@@ -1005,6 +1011,38 @@ impl Client {
         ExecuteWebhook::new(self, webhook_id, token)
     }
 
+    pub async fn raw(&self, request: Request<'_>) -> Result<Response> {
+        let (req, bucket) = self.make_request(request)?;
+        let rx = self.state.ratelimiter.get(bucket).await;
+        let tx = rx.await.context(RequestCanceled)?;
+
+        let resp = match req.await.context(RequestError) {
+            Ok(resp) => resp,
+            Err(why) => {
+                let _ = tx.send(None);
+
+                return Err(why);
+            },
+        };
+
+        match RatelimitHeaders::try_from(resp.headers()) {
+            Ok(headers) => {
+                let _ = tx.send(Some(headers));
+            },
+            Err(why) => {
+                warn!("Error parsing headers {:?}: {:?}", resp, why);
+
+                let _ = tx.send(None);
+
+                return Err(Error::Ratelimiting {
+                    source: why,
+                });
+            }
+        }
+
+        Ok(resp)
+    }
+
     pub fn request<T: DeserializeOwned>(
         &self,
         request: Request<'_>,
@@ -1012,12 +1050,6 @@ impl Client {
         let (resp, bucket) = self.make_request(request)?;
 
         Ok(PendingBody::new(resp.boxed(), &self.state.ratelimiter, bucket))
-    }
-
-    pub fn text(&self, request: Request<'_>) -> Result<PendingText<'_>> {
-        let (resp, bucket) = self.make_request(request)?;
-
-        Ok(PendingText::new(resp.boxed(), &self.state.ratelimiter, bucket))
     }
 
     pub fn verify(&self, request: Request<'_>) -> Result<Pending<'_>> {

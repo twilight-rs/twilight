@@ -70,7 +70,6 @@ pub enum Error {
         source: Canceled,
     },
     RequestError {
-        method: Method,
         source: ReqwestError,
     },
     Response {
