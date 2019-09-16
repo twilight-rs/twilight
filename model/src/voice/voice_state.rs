@@ -3,6 +3,7 @@ use crate::{
     id::{ChannelId, GuildId, UserId},
 };
 use serde::{Deserialize, Serialize};
+use serde_mappable_seq::Key;
 
 #[derive(Clone, Debug, Deserialize, Serialize)]
 pub struct VoiceState {
@@ -20,4 +21,10 @@ pub struct VoiceState {
     pub suppress: bool,
     pub token: Option<String>,
     pub user_id: UserId,
+}
+
+impl Key<'_, UserId> for VoiceState {
+    fn key(&self) -> UserId {
+        self.user_id
+    }
 }

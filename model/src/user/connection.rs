@@ -1,14 +1,17 @@
 use crate::{
     guild::GuildIntegration,
+    id::IntegrationId,
     user::ConnectionVisibility,
 };
 use serde::{Deserialize, Serialize};
+use std::collections::HashMap;
 
 #[derive(Clone, Debug, Deserialize, Serialize)]
 pub struct Connection {
     pub id: String,
     pub friend_sync: bool,
-    pub integrations: Vec<GuildIntegration>,
+    #[serde(with = "serde_mappable_seq")]
+    pub integrations: HashMap<IntegrationId, GuildIntegration>,
     #[serde(rename = "type")]
     pub kind: String,
     pub name: String,

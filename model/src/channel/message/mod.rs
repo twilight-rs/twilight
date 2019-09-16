@@ -23,10 +23,11 @@ use crate::{
         ChannelMention,
     },
     guild::PartialMember,
-    id::{ChannelId, GuildId, MessageId, RoleId, WebhookId},
+    id::{ChannelId, GuildId, MessageId, RoleId, UserId, WebhookId},
     user::User,
 };
 use serde::{Deserialize, Serialize};
+use std::collections::HashMap;
 
 #[derive(Clone, Debug, Deserialize, Serialize)]
 pub struct Message {
@@ -51,7 +52,8 @@ pub struct Message {
     pub mention_channels: Vec<ChannelMention>,
     pub mention_everyone: bool,
     pub mention_roles: Vec<RoleId>,
-    pub mentions: Vec<User>,
+    #[serde(with = "serde_mappable_seq")]
+    pub mentions: HashMap<UserId, User>,
     pub pinned: bool,
     #[serde(default)]
     pub reactions: Vec<MessageReaction>,

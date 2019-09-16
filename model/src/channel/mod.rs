@@ -29,7 +29,9 @@ pub use self::{
     webhook::Webhook,
 };
 
+use crate::id::ChannelId;
 use serde::{Deserialize, Serialize};
+use serde_mappable_seq::Key;
 
 #[derive(Clone, Debug, Deserialize, Serialize)]
 #[serde(untagged)]
@@ -45,4 +47,14 @@ pub enum GuildChannel {
     Category(CategoryChannel),
     Text(TextChannel),
     Voice(VoiceChannel),
+}
+
+impl Key<'_, ChannelId> for GuildChannel {
+    fn key(&self) -> ChannelId {
+        match self {
+            GuildChannel::Category(c) => c.id,
+            GuildChannel::Text(c) => c.id,
+            GuildChannel::Voice(c) => c.id,
+        }
+    }
 }

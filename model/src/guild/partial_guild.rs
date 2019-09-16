@@ -8,9 +8,10 @@ use crate::{
         Role,
         VerificationLevel,
     },
-    id::{ApplicationId, ChannelId, GuildId, UserId},
+    id::{ApplicationId, ChannelId, EmojiId, GuildId, RoleId, UserId},
 };
 use serde::{Deserialize, Serialize};
+use std::collections::HashMap;
 
 #[derive(Clone, Debug, Deserialize, Serialize)]
 pub struct PartialGuild {
@@ -23,7 +24,8 @@ pub struct PartialGuild {
     pub description: Option<String>,
     pub embed_channel_id: Option<ChannelId>,
     pub embed_enabled: bool,
-    pub emojis: Vec<Emoji>,
+    #[serde(with = "serde_mappable_seq")]
+    pub emojis: HashMap<EmojiId, Emoji>,
     pub features: Vec<String>,
     pub icon: Option<String>,
     pub max_members: Option<u64>,
@@ -39,7 +41,8 @@ pub struct PartialGuild {
     #[serde(default)]
     pub premium_subscription_count: u64,
     pub region: String,
-    pub roles: Vec<Role>,
+    #[serde(with = "serde_mappable_seq")]
+    pub roles: HashMap<RoleId, Role>,
     pub splash: Option<String>,
     pub system_channel_id: Option<ChannelId>,
     pub verification_level: VerificationLevel,

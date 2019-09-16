@@ -16,6 +16,7 @@ pub use self::{
 
 use crate::id::UserId;
 use serde::{Deserialize, Serialize};
+use serde_mappable_seq::Key;
 
 #[derive(Clone, Debug, Deserialize, Serialize)]
 pub struct User {
@@ -26,4 +27,10 @@ pub struct User {
     pub discriminator: String,
     #[serde(rename = "username")]
     pub name: String,
+}
+
+impl Key<'_, UserId> for User {
+    fn key(&self) -> UserId {
+        self.id
+    }
 }

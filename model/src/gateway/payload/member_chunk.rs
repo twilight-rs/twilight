@@ -1,11 +1,13 @@
 use crate::{
     guild::Member,
-    id::GuildId,
+    id::{GuildId, UserId},
 };
 use serde::{Deserialize, Serialize};
+use std::collections::HashMap;
 
 #[derive(Clone, Debug, Deserialize, Serialize)]
 pub struct MemberChunk {
     pub guild_id: GuildId,
-    pub members: Vec<Member>,
+    #[serde(with = "serde_mappable_seq")]
+    pub members: HashMap<UserId, Member>,
 }

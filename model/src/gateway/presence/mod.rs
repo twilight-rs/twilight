@@ -23,6 +23,7 @@ use crate::{
     user::User,
 };
 use serde::{Deserialize, Serialize};
+use serde_mappable_seq::Key;
 
 #[derive(Clone, Debug, Deserialize, Serialize)]
 pub struct Presence {
@@ -31,6 +32,15 @@ pub struct Presence {
     pub nick: Option<String>,
     pub status: Status,
     pub user: UserOrId,
+}
+
+impl Key<'_, UserId> for Presence {
+    fn key(&self) -> UserId {
+        match self.user {
+            UserOrId::User(ref u) => u.id,
+            UserOrId::UserId(id) => id,
+        }
+    }
 }
 
 #[derive(Clone, Debug, Deserialize, Serialize)]

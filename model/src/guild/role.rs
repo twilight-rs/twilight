@@ -3,6 +3,7 @@ use crate::{
     id::RoleId,
 };
 use serde::{Deserialize, Serialize};
+use serde_mappable_seq::Key;
 
 #[derive(Clone, Debug, Deserialize, Serialize)]
 pub struct Role {
@@ -15,4 +16,10 @@ pub struct Role {
     pub name: String,
     pub permissions: Permissions,
     pub position: i64,
+}
+
+impl Key<'_, RoleId> for Role {
+    fn key(&self) -> RoleId {
+        self.id
+    }
 }

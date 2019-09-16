@@ -1,12 +1,15 @@
 use crate::{
     guild::GuildStatus,
+    id::GuildId,
     user::CurrentUser,
 };
 use serde::{Deserialize, Serialize};
+use std::collections::HashMap;
 
 #[derive(Clone, Debug, Deserialize, Serialize)]
 pub struct Ready {
-    pub guilds: Vec<GuildStatus>,
+    #[serde(with = "serde_mappable_seq")]
+    pub guilds: HashMap<GuildId, GuildStatus>,
     pub session_id: String,
     pub shard: Option<[u64; 2]>,
     pub user: CurrentUser,
