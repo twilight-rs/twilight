@@ -1,5 +1,6 @@
 [workspace]
 members = [
+    "cache/trait",
     "command-parser",
     "dawn",
     "http",
