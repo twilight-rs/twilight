@@ -14,7 +14,7 @@ pub struct Emoji {
     pub managed: bool,
     pub require_colons: bool,
     pub roles: Vec<RoleId>,
-    pub uesr: Option<User>,
+    pub user: Option<User>,
 }
 
 impl Key<'_, EmojiId> for Emoji {
