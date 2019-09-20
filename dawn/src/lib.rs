@@ -89,7 +89,7 @@
 //!
 //! ## Examples
 //!
-//! ```rust,no_run
+//! ```rust,ignore
 //! use futures::StreamExt;
 //! use dawn::{
 //!     gateway::{Config, Event, Shard},
@@ -133,7 +133,7 @@
 //! Maintaining a cache of guilds, users, channels, and more sent by the
 //! gateway:
 //!
-//! ```rust,no_run
+//! ```rust,ignore
 //! use futures::StreamExt;
 //! use dawn::{
 //!     cache::InMemoryCache,
