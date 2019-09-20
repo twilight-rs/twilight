@@ -55,7 +55,7 @@ fn default_max_presences() -> u64 {
     5000
 }
 
-#[derive(Clone, Debug, Deserialize, Serialize)]
+#[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
 pub struct Guild {
     pub id: GuildId,
     pub afk_channel_id: Option<ChannelId>,

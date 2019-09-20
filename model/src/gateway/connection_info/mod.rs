@@ -4,7 +4,7 @@ pub use self::bot_connection_info::BotConnectionInfo;
 
 use serde::{Deserialize, Serialize};
 
-#[derive(Clone, Debug, Deserialize, Serialize)]
+#[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
 pub struct ConnectionInfo {
     pub url: String,
 }

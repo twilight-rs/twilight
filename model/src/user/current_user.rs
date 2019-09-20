@@ -1,7 +1,7 @@
 use crate::id::UserId;
 use serde::{Deserialize, Serialize};
 
-#[derive(Clone, Default, Debug, Deserialize, Serialize)]
+#[derive(Clone, Default, Debug, Deserialize, Eq, PartialEq, Serialize)]
 pub struct CurrentUser {
     pub id: UserId,
     pub avatar: Option<String>,

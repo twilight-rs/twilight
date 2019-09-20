@@ -4,7 +4,7 @@ use crate::gateway::{
 };
 use serde::{Deserialize, Serialize};
 
-#[derive(Clone, Debug, Deserialize, Serialize)]
+#[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
 pub struct UpdateStatus {
     pub d: UpdateStatusInfo,
     pub op: OpCode,
@@ -24,7 +24,7 @@ impl UpdateStatus {
     }
 }
 
-#[derive(Clone, Debug, Deserialize, Serialize)]
+#[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
 pub struct UpdateStatusInfo {
     pub afk: bool,
     pub game: Option<Activity>,

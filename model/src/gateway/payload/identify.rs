@@ -1,7 +1,7 @@
 use crate::gateway::opcode::OpCode;
 use serde::{Deserialize, Serialize};
 
-#[derive(Clone, Debug, Deserialize, Serialize)]
+#[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
 pub struct Identify {
     pub d: IdentifyInfo,
     pub op: OpCode,
@@ -23,7 +23,7 @@ impl Identify {
     }
 }
 
-#[derive(Clone, Debug, Deserialize, Serialize)]
+#[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
 pub struct IdentifyInfo {
     pub compression: bool,
     pub large_threshold: u64,
@@ -53,7 +53,7 @@ impl IdentifyInfo {
     }
 }
 
-#[derive(Clone, Debug, Deserialize, Serialize)]
+#[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
 pub struct IdentifyProperties {
     #[serde(rename = "$browser")]
     pub browser: String,

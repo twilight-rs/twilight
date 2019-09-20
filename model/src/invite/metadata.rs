@@ -1,7 +1,7 @@
 use crate::user::User;
 use serde::{Deserialize, Serialize};
 
-#[derive(Clone, Debug, Deserialize, Serialize)]
+#[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
 pub struct InviteMetadata {
     #[cfg(feature = "chrono")]
     pub created_at: chrono::DateTime<chrono::FixedOffset>,

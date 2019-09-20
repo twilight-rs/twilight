@@ -1,7 +1,7 @@
 use crate::gateway::OpCode;
 use serde::{Deserialize, Serialize};
 
-#[derive(Clone, Debug, Deserialize, Serialize)]
+#[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
 pub struct Resume {
     pub d: ResumeInfo,
     pub op: OpCode,
@@ -16,7 +16,7 @@ impl Resume {
     }
 }
 
-#[derive(Clone, Debug, Deserialize, Serialize)]
+#[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
 pub struct ResumeInfo {
     pub seq: u64,
     pub session_id: String,

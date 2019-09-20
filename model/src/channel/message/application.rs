@@ -1,7 +1,7 @@
 use crate::id::ApplicationId;
 use serde::{Deserialize, Serialize};
 
-#[derive(Clone, Debug, Deserialize, Serialize)]
+#[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
 pub struct MessageApplication {
     pub id: ApplicationId,
     pub cover_image: Option<String>,

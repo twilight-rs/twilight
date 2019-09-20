@@ -1,7 +1,7 @@
 use crate::id::AttachmentId;
 use serde::{Deserialize, Serialize};
 
-#[derive(Clone, Debug, Deserialize, Serialize)]
+#[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
 pub struct Attachment {
     pub id: AttachmentId,
     pub filename: String,

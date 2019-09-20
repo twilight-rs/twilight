@@ -1,7 +1,7 @@
 use crate::id::RoleId;
 use serde::{Deserialize, Serialize};
 
-#[derive(Clone, Debug, Deserialize, Serialize)]
+#[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
 pub struct PartialMember {
     pub deaf: bool,
     #[cfg(feature = "chrono")]

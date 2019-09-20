@@ -1,7 +1,7 @@
 use crate::id::ChannelId;
 use serde::{Deserialize, Serialize};
 
-#[derive(Clone, Debug, Deserialize, Serialize)]
+#[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
 pub struct ChannelPinsUpdate {
     pub channel_id: ChannelId,
     #[cfg(feature = "chrono")]

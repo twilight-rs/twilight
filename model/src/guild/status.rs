@@ -6,7 +6,7 @@ use serde::{Deserialize, Serialize};
 use serde_mappable_seq::Key;
 
 #[allow(clippy::large_enum_variant)]
-#[derive(Clone, Debug, Deserialize, Serialize)]
+#[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
 #[serde(untagged)]
 pub enum GuildStatus {
     OnlineGuild(Guild),

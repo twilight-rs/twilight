@@ -24,7 +24,7 @@ struct PermissionOverwriteData {
     kind: PermissionOverwriteTypeName,
 }
 
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, Eq, PartialEq)]
 pub struct PermissionOverwrite {
     pub allow: Permissions,
     pub deny: Permissions,
@@ -74,7 +74,7 @@ impl Serialize for PermissionOverwrite {
     }
 }
 
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, Eq, PartialEq)]
 pub enum PermissionOverwriteType {
     Member(UserId),
     Role(RoleId),

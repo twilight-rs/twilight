@@ -1,7 +1,7 @@
 use serde::{Deserialize, Serialize};
 use std::fmt::{Display, Formatter, Result as FmtResult};
 
-#[derive(Clone, Debug, Default, Deserialize, Hash, Serialize)]
+#[derive(Clone, Debug, Default, Deserialize, Eq, Hash, Ord, PartialEq, PartialOrd, Serialize)]
 pub struct SkuId(#[serde(with = "crate::id::string")] pub u64);
 
 impl Display for SkuId {
@@ -10,7 +10,7 @@ impl Display for SkuId {
     }
 }
 
-#[derive(Clone, Debug, Default, Deserialize, Hash, Serialize)]
+#[derive(Clone, Debug, Default, Deserialize, Eq, Hash, Ord, PartialEq, PartialOrd, Serialize)]
 pub struct TeamId(#[serde(with = "crate::id::string")] pub u64);
 
 impl Display for TeamId {
