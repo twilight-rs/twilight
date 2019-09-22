@@ -1,7 +1,7 @@
 use crate::id::{ChannelId, GenericId};
 use serde::{Deserialize, Serialize};
 
-#[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
+#[derive(Clone, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
 pub struct AuditLogOptionalEntryInfo {
     pub channel_id: Option<ChannelId>,
     pub count: Option<String>,

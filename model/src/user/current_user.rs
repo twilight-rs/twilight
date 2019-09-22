@@ -1,5 +1,6 @@
 use crate::id::UserId;
 use serde::{Deserialize, Serialize};
+use std::hash::{Hash, Hasher};
 
 #[derive(Clone, Default, Debug, Deserialize, Eq, PartialEq, Serialize)]
 pub struct CurrentUser {
@@ -13,4 +14,10 @@ pub struct CurrentUser {
     #[serde(rename = "username")]
     pub name: String,
     pub verified: bool,
+}
+
+impl Hash for CurrentUser {
+    fn hash<H: Hasher>(&self, state: &mut H) {
+        self.id.hash(state);
+    }
 }

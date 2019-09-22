@@ -25,7 +25,7 @@ use crate::{
 use serde::{Deserialize, Serialize};
 use serde_mappable_seq::Key;
 
-#[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
+#[derive(Clone, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
 pub struct Presence {
     pub activity: Option<Activity>,
     pub last_modified: Option<u64>,
@@ -43,7 +43,7 @@ impl Key<'_, UserId> for Presence {
     }
 }
 
-#[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
+#[derive(Clone, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
 #[serde(untagged)]
 pub enum UserOrId {
     User(User),

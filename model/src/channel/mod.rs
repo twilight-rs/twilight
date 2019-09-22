@@ -33,7 +33,7 @@ use crate::id::ChannelId;
 use serde::{Deserialize, Serialize};
 use serde_mappable_seq::Key;
 
-#[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
+#[derive(Clone, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
 #[serde(untagged)]
 pub enum Channel {
     Group(Group),
@@ -41,7 +41,7 @@ pub enum Channel {
     Private(PrivateChannel),
 }
 
-#[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
+#[derive(Clone, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
 #[serde(untagged)]
 pub enum GuildChannel {
     Category(CategoryChannel),

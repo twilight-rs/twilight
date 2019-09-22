@@ -4,7 +4,10 @@ use crate::{
     user::ConnectionVisibility,
 };
 use serde::{Deserialize, Serialize};
-use std::collections::HashMap;
+use std::{
+    collections::HashMap,
+    hash::{Hash, Hasher},
+};
 
 #[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
 pub struct Connection {
@@ -19,4 +22,10 @@ pub struct Connection {
     pub show_activity: bool,
     pub verified: bool,
     pub visibility: ConnectionVisibility,
+}
+
+impl Hash for Connection {
+    fn hash<H: Hasher>(&self, state: &mut H) {
+        self.id.hash(state);
+    }
 }

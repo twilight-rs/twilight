@@ -6,6 +6,7 @@ use crate::{
     id::{ChannelId, GuildId},
 };
 use serde::{Deserialize, Serialize};
+use std::hash::{Hash, Hasher};
 
 #[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
 pub struct CategoryChannel {
@@ -19,4 +20,10 @@ pub struct CategoryChannel {
     pub parent_id: Option<ChannelId>,
     pub permission_overwrites: Vec<PermissionOverwrite>,
     pub position: i64,
+}
+
+impl Hash for CategoryChannel {
+    fn hash<H: Hasher>(&self, state: &mut H) {
+        self.id.hash(state);
+    }
 }

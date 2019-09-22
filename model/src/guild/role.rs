@@ -4,6 +4,7 @@ use crate::{
 };
 use serde::{Deserialize, Serialize};
 use serde_mappable_seq::Key;
+use std::hash::{Hash, Hasher};
 
 #[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
 pub struct Role {
@@ -16,6 +17,12 @@ pub struct Role {
     pub name: String,
     pub permissions: Permissions,
     pub position: i64,
+}
+
+impl Hash for Role {
+    fn hash<H: Hasher>(&self, state: &mut H) {
+        self.id.hash(state);
+    }
 }
 
 impl Key<'_, RoleId> for Role {

@@ -6,6 +6,7 @@ use crate::{
     user::User,
 };
 use serde::{Deserialize, Serialize};
+use std::hash::{Hash, Hasher};
 
 #[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
 pub struct TeamMember {
@@ -13,4 +14,11 @@ pub struct TeamMember {
     pub permissions: Vec<String>,
     pub team_id: TeamId,
     pub user: User,
+}
+
+impl Hash for TeamMember {
+    fn hash<H: Hasher>(&self, state: &mut H) {
+        self.team_id.hash(state);
+        self.user.id.hash(state);
+    }
 }

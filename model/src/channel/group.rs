@@ -4,6 +4,7 @@ use crate::{
     user::User,
 };
 use serde::{Deserialize, Serialize};
+use std::hash::{Hash, Hasher};
 
 #[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
 pub struct Group {
@@ -20,4 +21,10 @@ pub struct Group {
     pub name: Option<String>,
     pub owner_id: UserId,
     pub recipients: Vec<User>,
+}
+
+impl Hash for Group {
+    fn hash<H: Hasher>(&self, state: &mut H) {
+        self.id.hash(state);
+    }
 }

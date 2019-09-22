@@ -49,7 +49,10 @@ use crate::{
     voice::VoiceState,
 };
 use serde::{Deserialize, Serialize};
-use std::collections::HashMap;
+use std::{
+    collections::HashMap,
+    hash::{Hash, Hasher},
+};
 
 fn default_max_presences() -> u64 {
     5000
@@ -108,4 +111,10 @@ pub struct Guild {
     pub vanity_url_code: Option<String>,
     pub widget_channel_id: Option<ChannelId>,
     pub widget_enabled: Option<bool>,
+}
+
+impl Hash for Guild {
+    fn hash<H: Hasher>(&self, state: &mut H) {
+        self.id.hash(state);
+    }
 }

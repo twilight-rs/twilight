@@ -7,6 +7,7 @@ use crate::{
     user::User,
 };
 use serde::{Deserialize, Serialize};
+use std::hash::{Hash, Hasher};
 
 #[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
 pub struct CurrentApplicationInfo {
@@ -26,4 +27,10 @@ pub struct CurrentApplicationInfo {
     pub summary: String,
     pub team: Option<Team>,
     pub verify_key: String,
+}
+
+impl Hash for CurrentApplicationInfo {
+    fn hash<H: Hasher>(&self, state: &mut H) {
+        self.id.hash(state);
+    }
 }

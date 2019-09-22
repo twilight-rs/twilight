@@ -27,7 +27,10 @@ use crate::{
     user::User,
 };
 use serde::{Deserialize, Serialize};
-use std::collections::HashMap;
+use std::{
+    collections::HashMap,
+    hash::{Hash, Hasher},
+};
 
 #[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
 pub struct Message {
@@ -65,4 +68,10 @@ pub struct Message {
     pub timestamp: String,
     pub tts: bool,
     pub webhook_id: Option<WebhookId>,
+}
+
+impl Hash for Message {
+    fn hash<H: Hasher>(&self, state: &mut H) {
+        self.id.hash(state);
+    }
 }

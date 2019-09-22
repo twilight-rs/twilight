@@ -12,6 +12,7 @@ use crate::{
     user::User,
 };
 use serde::{Deserialize, Serialize};
+use std::hash::{Hash, Hasher};
 
 #[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
 pub struct Invite {
@@ -22,4 +23,10 @@ pub struct Invite {
     pub guild: Option<PartialGuild>,
     pub target_user: Option<User>,
     pub target_user_type: Option<TargetUserType>,
+}
+
+impl Hash for Invite {
+    fn hash<H: Hasher>(&self, state: &mut H) {
+        self.code.hash(state);
+    }
 }

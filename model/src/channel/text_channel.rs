@@ -6,6 +6,7 @@ use crate::{
     id::{ChannelId, GuildId, MessageId},
 };
 use serde::{Deserialize, Serialize};
+use std::hash::{Hash, Hasher};
 
 #[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
 pub struct TextChannel {
@@ -26,4 +27,10 @@ pub struct TextChannel {
     pub position: i64,
     pub rate_limit_per_user: Option<u64>,
     pub topic: Option<String>,
+}
+
+impl Hash for TextChannel {
+    fn hash<H: Hasher>(&self, state: &mut H) {
+        self.id.hash(state);
+    }
 }

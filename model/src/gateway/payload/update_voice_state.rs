@@ -4,7 +4,7 @@ use crate::{
 };
 use serde::{Deserialize, Serialize};
 
-#[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
+#[derive(Clone, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
 pub struct UpdateVoiceState {
     pub d: UpdateVoiceStateInfo,
     pub op: OpCode,
@@ -24,7 +24,7 @@ impl UpdateVoiceState {
     }
 }
 
-#[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
+#[derive(Clone, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
 pub struct UpdateVoiceStateInfo {
     pub channel_id: Option<ChannelId>,
     pub guild_id: GuildId,

@@ -17,6 +17,7 @@ pub use self::{
 use crate::id::UserId;
 use serde::{Deserialize, Serialize};
 use serde_mappable_seq::Key;
+use std::hash::{Hash, Hasher};
 
 #[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
 pub struct User {
@@ -27,6 +28,12 @@ pub struct User {
     pub discriminator: String,
     #[serde(rename = "username")]
     pub name: String,
+}
+
+impl Hash for User {
+    fn hash<H: Hasher>(&self, state: &mut H) {
+        self.id.hash(state);
+    }
 }
 
 impl Key<'_, UserId> for User {

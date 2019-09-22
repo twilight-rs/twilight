@@ -6,6 +6,7 @@ use crate::{
     id::{ChannelId, GuildId},
 };
 use serde::{Deserialize, Serialize};
+use std::hash::{Hash, Hasher};
 
 #[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
 pub struct VoiceChannel {
@@ -19,4 +20,10 @@ pub struct VoiceChannel {
     pub parent_id: Option<ChannelId>,
     pub position: i64,
     pub user_limit: Option<u64>,
+}
+
+impl Hash for VoiceChannel {
+    fn hash<H: Hasher>(&self, state: &mut H) {
+        self.id.hash(state);
+    }
 }

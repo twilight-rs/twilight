@@ -5,6 +5,7 @@ use crate::{
 };
 use serde::{Deserialize, Serialize};
 use serde_mappable_seq::Key;
+use std::hash::{Hash, Hasher};
 
 #[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
 pub struct GuildIntegration {
@@ -23,6 +24,12 @@ pub struct GuildIntegration {
     pub synced_at: String,
     pub syncing: bool,
     pub user: User,
+}
+
+impl Hash for GuildIntegration {
+    fn hash<H: Hasher>(&self, state: &mut H) {
+        self.id.hash(state);
+    }
 }
 
 impl Key<'_, IntegrationId> for GuildIntegration {

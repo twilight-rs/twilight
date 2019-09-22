@@ -5,7 +5,7 @@ use crate::{
 use serde::{Deserialize, Serialize};
 use serde_mappable_seq::Key;
 
-#[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
+#[derive(Clone, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
 pub struct VoiceState {
     pub channel_id: Option<ChannelId>,
     pub deaf: bool,

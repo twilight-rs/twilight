@@ -3,6 +3,7 @@ use crate::{
     user::User,
 };
 use serde::{Deserialize, Serialize};
+use std::hash::{Hash, Hasher};
 
 #[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
 pub struct Webhook {
@@ -13,4 +14,10 @@ pub struct Webhook {
     pub name: Option<String>,
     pub token: String,
     pub user: Option<User>,
+}
+
+impl Hash for Webhook {
+    fn hash<H: Hasher>(&self, state: &mut H) {
+        self.id.hash(state);
+    }
 }

@@ -4,6 +4,7 @@ use crate::{
 };
 use serde::{Deserialize, Serialize};
 use serde_mappable_seq::Key;
+use std::hash::{Hash, Hasher};
 
 #[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
 pub struct Emoji {
@@ -15,6 +16,12 @@ pub struct Emoji {
     pub require_colons: bool,
     pub roles: Vec<RoleId>,
     pub user: Option<User>,
+}
+
+impl Hash for Emoji {
+    fn hash<H: Hasher>(&self, state: &mut H) {
+        self.id.hash(state);
+    }
 }
 
 impl Key<'_, EmojiId> for Emoji {

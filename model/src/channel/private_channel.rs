@@ -4,6 +4,7 @@ use crate::{
     user::User,
 };
 use serde::{Deserialize, Serialize};
+use std::hash::{Hash, Hasher};
 
 #[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
 pub struct PrivateChannel {
@@ -16,4 +17,10 @@ pub struct PrivateChannel {
     #[serde(rename = "type")]
     pub kind: ChannelType,
     pub recipients: Vec<User>,
+}
+
+impl Hash for PrivateChannel {
+    fn hash<H: Hasher>(&self, state: &mut H) {
+        self.id.hash(state);
+    }
 }
