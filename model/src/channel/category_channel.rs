@@ -3,13 +3,14 @@ use crate::{
         permission_overwrite::PermissionOverwrite,
         ChannelType,
     },
-    id::ChannelId,
+    id::{ChannelId, GuildId},
 };
 use serde::{Deserialize, Serialize};
 
 #[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
 pub struct CategoryChannel {
     pub id: ChannelId,
+    pub guild_id: GuildId,
     #[serde(rename = "type")]
     pub kind: ChannelType,
     pub name: String,
