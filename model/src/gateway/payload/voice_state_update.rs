@@ -1,7 +1,4 @@
-use crate::{
-    id::GuildId,
-    voice::VoiceState,
-};
+use crate::{id::GuildId, voice::VoiceState};
 use serde::{Deserialize, Serialize};
 
 #[derive(Clone, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]

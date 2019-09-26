@@ -1,16 +1,9 @@
 mod metadata;
 mod target_user_type;
 
-pub use self::{
-    metadata::InviteMetadata,
-    target_user_type::TargetUserType,
-};
+pub use self::{metadata::InviteMetadata, target_user_type::TargetUserType};
 
-use crate::{
-    channel::Channel,
-    guild::PartialGuild,
-    user::User,
-};
+use crate::{channel::Channel, guild::PartialGuild, user::User};
 use serde::{Deserialize, Serialize};
 use std::hash::{Hash, Hasher};
 

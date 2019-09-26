@@ -1,10 +1,7 @@
 use dawn_http::Client;
 use dawn_model::id::ChannelId;
 use futures::future;
-use std::{
-    error::Error,
-    env,
-};
+use std::{env, error::Error};
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn Error + Send + Sync>> {
@@ -14,8 +11,11 @@ async fn main() -> Result<(), Box<dyn Error + Send + Sync>> {
     let channel_id = ChannelId(511004549075566613);
 
     future::join_all((1u8..=10).map(|x| {
-        client.create_message(channel_id).content(format!("Ping #{}", x))
-    })).await;
+        client
+            .create_message(channel_id)
+            .content(format!("Ping #{}", x))
+    }))
+    .await;
 
     let me = client.current_user().await?;
     println!("Current user: {}#{}", me.name, me.discriminator);

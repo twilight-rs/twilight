@@ -1,10 +1,7 @@
+use super::{prelude::*, update_channel_permission_configured::UpdateChannelPermissionConfigured};
 use dawn_model::{
     guild::Permissions,
     id::{ChannelId, RoleId, UserId},
-};
-use super::{
-    prelude::*,
-    update_channel_permission_configured::UpdateChannelPermissionConfigured,
 };
 
 pub struct UpdateChannelPermission<'a> {
@@ -29,17 +26,11 @@ impl<'a> UpdateChannelPermission<'a> {
         }
     }
 
-    pub fn member(
-        self,
-        user_id: impl Into<UserId>,
-    ) -> UpdateChannelPermissionConfigured<'a> {
+    pub fn member(self, user_id: impl Into<UserId>) -> UpdateChannelPermissionConfigured<'a> {
         self.configure("member", user_id.into().0)
     }
 
-    pub fn role(
-        self,
-        role_id: impl Into<RoleId>,
-    ) -> UpdateChannelPermissionConfigured<'a> {
+    pub fn role(self, role_id: impl Into<RoleId>) -> UpdateChannelPermissionConfigured<'a> {
         self.configure("role", role_id.into().0)
     }
 

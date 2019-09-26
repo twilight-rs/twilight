@@ -1,5 +1,5 @@
-use dawn_model::id::WebhookId;
 use super::prelude::*;
+use dawn_model::id::WebhookId;
 
 #[derive(Serialize)]
 pub struct DeleteWebhook<'a> {
@@ -28,10 +28,12 @@ impl<'a> DeleteWebhook<'a> {
     }
 
     fn start(&mut self) -> Result<()> {
-        self.fut.replace(Box::pin(self.http.verify(Request::from(Route::DeleteWebhook {
-            webhook_id: self.id.0,
-            token: self.token.as_ref().map(ToOwned::to_owned),
-        }))));
+        self.fut.replace(Box::pin(self.http.verify(Request::from(
+            Route::DeleteWebhook {
+                webhook_id: self.id.0,
+                token: self.token.as_ref().map(ToOwned::to_owned),
+            },
+        ))));
 
         Ok(())
     }

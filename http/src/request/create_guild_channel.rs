@@ -1,13 +1,9 @@
+use super::prelude::*;
 use dawn_model::{
-    channel::{
-        permission_overwrite::PermissionOverwrite,
-        ChannelType,
-        GuildChannel,
-    },
+    channel::{permission_overwrite::PermissionOverwrite, ChannelType, GuildChannel},
     id::{ChannelId, GuildId},
 };
 use serde::Serialize;
-use super::prelude::*;
 
 #[derive(Serialize)]
 pub struct CreateGuildChannel<'a> {

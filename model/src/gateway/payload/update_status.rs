@@ -42,12 +42,7 @@ impl UpdateStatusInfo {
         Self::_new(afk, game.into(), since.into(), status.into())
     }
 
-    fn _new(
-        afk: bool,
-        game: Option<Activity>,
-        since: Option<u64>,
-        status: Status,
-    ) -> Self {
+    fn _new(afk: bool, game: Option<Activity>, since: Option<u64>, status: Status) -> Self {
         Self {
             afk,
             game,

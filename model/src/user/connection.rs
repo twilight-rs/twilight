@@ -1,8 +1,4 @@
-use crate::{
-    guild::GuildIntegration,
-    id::IntegrationId,
-    user::ConnectionVisibility,
-};
+use crate::{guild::GuildIntegration, id::IntegrationId, user::ConnectionVisibility};
 use serde::{Deserialize, Serialize};
 use std::{
     collections::HashMap,

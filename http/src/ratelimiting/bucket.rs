@@ -1,3 +1,4 @@
+use super::{headers::RatelimitHeaders, GlobalLockPair};
 use crate::routing::Path;
 use futures_channel::{
     mpsc::{self, UnboundedReceiver, UnboundedSender},
@@ -19,10 +20,6 @@ use std::{
         Arc,
     },
     time::{Duration, Instant},
-};
-use super::{
-    headers::RatelimitHeaders,
-    GlobalLockPair,
 };
 
 #[derive(Clone, Debug)]
@@ -133,10 +130,7 @@ impl BucketQueue {
         let _ = self.tx.unbounded_send(tx);
     }
 
-    pub async fn pop(
-        &self,
-        timeout: Duration,
-    ) -> Option<Sender<Sender<Option<RatelimitHeaders>>>> {
+    pub async fn pop(&self, timeout: Duration) -> Option<Sender<Sender<Option<RatelimitHeaders>>>> {
         let mut rx = self.rx.lock().await;
 
         // A bit of type weirdness here, but that's because `futures-timer`'s
@@ -204,7 +198,11 @@ impl BucketQueueTask {
                 self.path,
             );
 
-            match rx.map_err(|_| IoError::last_os_error()).timeout(Self::WAIT).await {
+            match rx
+                .map_err(|_| IoError::last_os_error())
+                .timeout(Self::WAIT)
+                .await
+            {
                 Ok(Some(headers)) => self.handle_headers(&headers).await,
                 // - None was sent through the channel (request aborted)
                 // - channel was closed
@@ -222,19 +220,27 @@ impl BucketQueueTask {
 
     async fn handle_headers(&self, headers: &RatelimitHeaders) {
         let ratelimits = match headers {
-            RatelimitHeaders::GlobalLimited { reset_after } => {
+            RatelimitHeaders::GlobalLimited {
+                reset_after,
+            } => {
                 self.lock_global(*reset_after).await;
 
                 None
             },
             RatelimitHeaders::None => return,
-            RatelimitHeaders::Present { global, limit, remaining, reset_after, .. } => {
+            RatelimitHeaders::Present {
+                global,
+                limit,
+                remaining,
+                reset_after,
+                ..
+            } => {
                 if *global {
                     self.lock_global(*reset_after).await;
                 }
 
                 Some((*limit, *remaining, *reset_after))
-            }
+            },
         };
 
         debug!("[Bucket {:?}] Updating bucket", self.path);
@@ -242,10 +248,7 @@ impl BucketQueueTask {
     }
 
     async fn lock_global(&self, wait: u64) {
-        debug!(
-            "[Bucket {:?}] Request got global ratelimited",
-            self.path,
-        );
+        debug!("[Bucket {:?}] Request got global ratelimited", self.path,);
         self.global.lock();
         let lock = self.global.0.lock().await;
         let _ = Delay::new(Duration::from_millis(wait)).await;
@@ -283,8 +286,7 @@ impl BucketQueueTask {
 
         debug!(
             "[Bucket {:?}] Waiting for {:?} for ratelimit to pass",
-            self.path,
-            wait,
+            self.path, wait,
         );
 
         let _ = Delay::new(wait).await;

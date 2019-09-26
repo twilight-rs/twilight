@@ -1,8 +1,8 @@
+use super::prelude::*;
 use dawn_model::{
     channel::Message,
     id::{ChannelId, MessageId},
 };
-use super::prelude::*;
 
 // nb: after, around, and before are mutually exclusive, so we use this
 // "configured" request to utilize the type system to prevent these from being
@@ -44,13 +44,15 @@ impl<'a> GetChannelMessagesConfigured<'a> {
     }
 
     fn start(&mut self) -> Result<()> {
-        self.fut.replace(Box::pin(self.http.request(Request::from(Route::GetMessages {
-            after: self.after.map(|x| x.0),
-            around: self.around.map(|x| x.0),
-            before: self.before.map(|x| x.0),
-            channel_id: self.channel_id.0,
-            limit: self.limit,
-        }))));
+        self.fut.replace(Box::pin(self.http.request(Request::from(
+            Route::GetMessages {
+                after: self.after.map(|x| x.0),
+                around: self.around.map(|x| x.0),
+                before: self.before.map(|x| x.0),
+                channel_id: self.channel_id.0,
+                limit: self.limit,
+            },
+        ))));
 
         Ok(())
     }

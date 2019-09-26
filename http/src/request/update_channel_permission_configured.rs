@@ -1,8 +1,5 @@
-use dawn_model::{
-    guild::Permissions,
-    id::ChannelId,
-};
 use super::prelude::*;
+use dawn_model::{guild::Permissions, id::ChannelId};
 
 #[derive(Serialize)]
 pub struct UpdateChannelPermissionConfigured<'a> {

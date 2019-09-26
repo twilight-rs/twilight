@@ -1,7 +1,4 @@
-use crate::{
-    guild::Permissions,
-    id::RoleId,
-};
+use crate::{guild::Permissions, id::RoleId};
 use serde::{Deserialize, Serialize};
 use serde_mappable_seq::Key;
 use std::hash::{Hash, Hasher};

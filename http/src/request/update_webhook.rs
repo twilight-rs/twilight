@@ -1,8 +1,8 @@
+use super::prelude::*;
 use dawn_model::{
     channel::Webhook,
     id::{ChannelId, WebhookId},
 };
-use super::prelude::*;
 
 #[derive(Serialize)]
 pub struct UpdateWebhook<'a> {
@@ -18,10 +18,7 @@ pub struct UpdateWebhook<'a> {
 }
 
 impl<'a> UpdateWebhook<'a> {
-    pub(crate) fn new(
-        http: &'a Client,
-        webhook_id: impl Into<WebhookId>,
-    ) -> Self {
+    pub(crate) fn new(http: &'a Client, webhook_id: impl Into<WebhookId>) -> Self {
         Self {
             avatar: None,
             channel_id: None,

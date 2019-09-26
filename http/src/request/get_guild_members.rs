@@ -1,8 +1,8 @@
+use super::prelude::*;
 use dawn_model::{
     guild::Member,
     id::{GuildId, UserId},
 };
-use super::prelude::*;
 
 /// Gets a list of members from a guild.
 ///
@@ -35,10 +35,7 @@ pub struct GetGuildMembers<'a> {
 }
 
 impl<'a> GetGuildMembers<'a> {
-    pub(crate) fn new(
-        http: &'a Client,
-        guild_id: impl Into<GuildId>,
-    ) -> Self {
+    pub(crate) fn new(http: &'a Client, guild_id: impl Into<GuildId>) -> Self {
         Self {
             after: None,
             fut: None,
@@ -65,11 +62,13 @@ impl<'a> GetGuildMembers<'a> {
     }
 
     fn start(&mut self) -> Result<()> {
-        self.fut.replace(Box::pin(self.http.request(Request::from(Route::GetGuildMembers {
-            after: self.after.map(|x| x.0),
-            guild_id: self.guild_id.0,
-            limit: self.limit,
-        }))));
+        self.fut.replace(Box::pin(self.http.request(Request::from(
+            Route::GetGuildMembers {
+                after: self.after.map(|x| x.0),
+                guild_id: self.guild_id.0,
+                limit: self.limit,
+            },
+        ))));
 
         Ok(())
     }

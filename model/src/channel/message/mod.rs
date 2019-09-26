@@ -1,27 +1,23 @@
-mod kind;
 mod activity;
 mod activity_type;
 mod application;
 mod flags;
-mod reference;
+mod kind;
 mod reaction;
+mod reference;
 
 pub use self::{
-    kind::MessageType,
     activity::MessageActivity,
     activity_type::MessageActivityType,
     application::MessageApplication,
     flags::MessageFlags,
-    reference::MessageReference,
+    kind::MessageType,
     reaction::MessageReaction,
+    reference::MessageReference,
 };
 
 use crate::{
-    channel::{
-        embed::Embed,
-        Attachment,
-        ChannelMention,
-    },
+    channel::{embed::Embed, Attachment, ChannelMention},
     guild::PartialMember,
     id::{ChannelId, GuildId, MessageId, RoleId, UserId, WebhookId},
     user::User,

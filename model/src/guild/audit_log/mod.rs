@@ -12,10 +12,7 @@ pub use self::{
     optional_entry_info::AuditLogOptionalEntryInfo,
 };
 
-use crate::{
-    channel::Webhook,
-    user::User,
-};
+use crate::{channel::Webhook, user::User};
 use serde::{Deserialize, Serialize};
 
 #[derive(Clone, Debug, Deserialize, Serialize)]

@@ -31,7 +31,7 @@ impl Hash for Member {
     }
 }
 
-impl Key<'_,  UserId> for Member {
+impl Key<'_, UserId> for Member {
     fn key(&self) -> UserId {
         self.user.id
     }

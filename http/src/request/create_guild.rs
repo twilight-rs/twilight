@@ -1,3 +1,4 @@
+use super::prelude::*;
 use dawn_model::{
     channel::GuildChannel,
     guild::{
@@ -9,7 +10,6 @@ use dawn_model::{
     },
 };
 use serde::Serialize;
-use super::prelude::*;
 
 #[derive(Serialize)]
 pub struct CreateGuild<'a> {
@@ -28,10 +28,7 @@ pub struct CreateGuild<'a> {
 }
 
 impl<'a> CreateGuild<'a> {
-    pub(crate) fn new(
-        http: &'a Client,
-        name: impl Into<String>,
-    ) -> Self {
+    pub(crate) fn new(http: &'a Client, name: impl Into<String>) -> Self {
         Self {
             channels: None,
             default_message_notifications: None,
@@ -56,7 +53,8 @@ impl<'a> CreateGuild<'a> {
         mut self,
         default_message_notifications: DefaultMessageNotificationLevel,
     ) -> Self {
-        self.default_message_notifications.replace(default_message_notifications);
+        self.default_message_notifications
+            .replace(default_message_notifications);
 
         self
     }
@@ -65,7 +63,8 @@ impl<'a> CreateGuild<'a> {
         mut self,
         explicit_content_filter: ExplicitContentFilter,
     ) -> Self {
-        self.explicit_content_filter.replace(explicit_content_filter);
+        self.explicit_content_filter
+            .replace(explicit_content_filter);
 
         self
     }

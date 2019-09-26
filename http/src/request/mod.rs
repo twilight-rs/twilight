@@ -3,7 +3,10 @@ macro_rules! poll_req {
         impl std::future::Future for $ty {
             type Output = $crate::error::Result<$ret>;
 
-            fn poll(mut self: std::pin::Pin<&mut Self>, cx: &mut std::task::Context<'_>) -> Poll<Self::Output> {
+            fn poll(
+                mut self: std::pin::Pin<&mut Self>,
+                cx: &mut std::task::Context<'_>,
+            ) -> Poll<Self::Output> {
                 loop {
                     if let Some(fut) = self.as_mut().fut.as_mut() {
                         return fut.as_mut().poll(cx);
@@ -27,12 +30,12 @@ mod create_invite;
 mod create_message;
 mod create_role;
 mod create_webhook;
-mod get_current_user_guilds;
 mod delete_webhook;
 mod execute_webhook;
 mod get_audit_log;
 mod get_channel_messages;
 mod get_channel_messages_configured;
+mod get_current_user_guilds;
 mod get_gateway;
 mod get_gateway_authed;
 mod get_guild_members;
@@ -154,9 +157,7 @@ impl From<(Vec<u8>, Route)> for Request {
 }
 
 impl From<(Vec<u8>, HeaderMap<HeaderValue>, Route)> for Request {
-    fn from(
-        (body, headers, route): (Vec<u8>, HeaderMap<HeaderValue>, Route),
-    ) -> Self {
+    fn from((body, headers, route): (Vec<u8>, HeaderMap<HeaderValue>, Route)) -> Self {
         let (method, path, path_str) = route.into_parts();
 
         Self {

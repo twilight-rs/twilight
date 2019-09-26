@@ -1,8 +1,5 @@
 use crate::{
-    channel::{
-        permission_overwrite::PermissionOverwrite,
-        ChannelType,
-    },
+    channel::{permission_overwrite::PermissionOverwrite, ChannelType},
     id::{ChannelId, GuildId},
 };
 use serde::{Deserialize, Serialize};

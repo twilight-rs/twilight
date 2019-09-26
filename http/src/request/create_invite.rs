@@ -1,8 +1,5 @@
-use dawn_model::{
-    id::ChannelId,
-    invite::Invite,
-};
 use super::prelude::*;
+use dawn_model::{id::ChannelId, invite::Invite};
 
 #[derive(Serialize)]
 pub struct CreateInvite<'a> {

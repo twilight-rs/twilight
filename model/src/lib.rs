@@ -49,7 +49,7 @@
     nonstandard_style,
     rust_2018_idioms,
     unused,
-    warnings,
+    warnings
 )]
 #![allow(clippy::module_name_repetitions)]
 

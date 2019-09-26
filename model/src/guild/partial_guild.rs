@@ -11,8 +11,10 @@ use crate::{
     id::{ApplicationId, ChannelId, EmojiId, GuildId, RoleId, UserId},
 };
 use serde::{Deserialize, Serialize};
-use std::collections::HashMap;
-use std::hash::{Hash, Hasher};
+use std::{
+    collections::HashMap,
+    hash::{Hash, Hasher},
+};
 
 #[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
 pub struct PartialGuild {

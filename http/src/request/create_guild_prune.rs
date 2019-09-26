@@ -1,8 +1,5 @@
-use dawn_model::{
-    guild::GuildPrune,
-    id::GuildId,
-};
 use super::prelude::*;
+use dawn_model::{guild::GuildPrune, id::GuildId};
 
 #[derive(Serialize)]
 pub struct CreateGuildPrune<'a> {
@@ -40,11 +37,13 @@ impl<'a> CreateGuildPrune<'a> {
     }
 
     fn start(&mut self) -> Result<()> {
-        self.fut.replace(Box::pin(self.http.request(Request::from(Route::CreateGuildPrune {
-            compute_prune_count: self.compute_prune_count,
-            days: self.days,
-            guild_id: self.guild_id.0,
-        }))));
+        self.fut.replace(Box::pin(self.http.request(Request::from(
+            Route::CreateGuildPrune {
+                compute_prune_count: self.compute_prune_count,
+                days: self.days,
+                guild_id: self.guild_id.0,
+            },
+        ))));
 
         Ok(())
     }

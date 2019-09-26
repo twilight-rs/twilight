@@ -1,10 +1,7 @@
+use super::{prelude::*, GetChannelMessagesConfigured};
 use dawn_model::{
     channel::Message,
     id::{ChannelId, MessageId},
-};
-use super::{
-    prelude::*,
-    GetChannelMessagesConfigured,
 };
 
 pub struct GetChannelMessages<'a> {
@@ -15,10 +12,7 @@ pub struct GetChannelMessages<'a> {
 }
 
 impl<'a> GetChannelMessages<'a> {
-    pub(crate) fn new(
-        http: &'a Client,
-        channel_id: impl Into<ChannelId>,
-    ) -> Self {
+    pub(crate) fn new(http: &'a Client, channel_id: impl Into<ChannelId>) -> Self {
         Self {
             channel_id: channel_id.into(),
             fut: None,
@@ -67,13 +61,15 @@ impl<'a> GetChannelMessages<'a> {
     }
 
     fn start(&mut self) -> Result<()> {
-        self.fut.replace(Box::pin(self.http.request(Request::from(Route::GetMessages {
-            after: None,
-            around: None,
-            before: None,
-            channel_id: self.channel_id.0,
-            limit: self.limit,
-        }))));
+        self.fut.replace(Box::pin(self.http.request(Request::from(
+            Route::GetMessages {
+                after: None,
+                around: None,
+                before: None,
+                channel_id: self.channel_id.0,
+                limit: self.limit,
+            },
+        ))));
 
         Ok(())
     }

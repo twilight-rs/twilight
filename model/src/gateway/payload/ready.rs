@@ -1,8 +1,4 @@
-use crate::{
-    guild::GuildStatus,
-    id::GuildId,
-    user::CurrentUser,
-};
+use crate::{guild::GuildStatus, id::GuildId, user::CurrentUser};
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 

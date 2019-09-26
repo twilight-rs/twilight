@@ -1,5 +1,5 @@
-use dawn_model::user::User;
 use super::prelude::*;
+use dawn_model::user::User;
 
 #[derive(Serialize)]
 pub struct UpdateCurrentUser<'a> {

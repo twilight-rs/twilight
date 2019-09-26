@@ -137,10 +137,7 @@ impl<'a> Config<'a> {
     /// config.remove_prefix("!");
     /// assert_eq!(1, config.prefixes().len());
     /// ```
-    pub fn remove_prefix(
-        &mut self,
-        prefix: impl Into<Cow<'a, str>>,
-    ) -> Option<Cow<'a, str>> {
+    pub fn remove_prefix(&mut self, prefix: impl Into<Cow<'a, str>>) -> Option<Cow<'a, str>> {
         self.prefixes.remove(&prefix.into())
     }
 }

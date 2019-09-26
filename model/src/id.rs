@@ -1,12 +1,9 @@
 pub(crate) mod string {
-    use std::{
-        fmt::Display,
-        str::FromStr,
-    };
     use serde::{
         de::{Deserialize, Deserializer, Error as DeError},
         ser::Serializer,
     };
+    use std::{fmt::Display, str::FromStr};
 
     pub fn serialize<T: Display, S: Serializer>(
         value: &T,
@@ -16,11 +13,14 @@ pub(crate) mod string {
     }
 
     pub fn deserialize<'de, T, D>(deserializer: D) -> Result<T, D::Error>
-        where T: FromStr,
-              T::Err: Display,
-              D: Deserializer<'de>
+    where
+        T: FromStr,
+        T::Err: Display,
+        D: Deserializer<'de>,
     {
-        String::deserialize(deserializer)?.parse().map_err(DeError::custom)
+        String::deserialize(deserializer)?
+            .parse()
+            .map_err(DeError::custom)
     }
 }
 
@@ -137,8 +137,8 @@ impl Display for WebhookId {
 
 #[cfg(test)]
 mod tests {
-    use std::error::Error;
     use super::GenericId;
+    use std::error::Error;
 
     #[test]
     fn test_id_deser() -> Result<(), Box<dyn Error>> {

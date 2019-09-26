@@ -1,8 +1,8 @@
+use super::prelude::*;
 use dawn_model::{
     guild::audit_log::{AuditLog, AuditLogEvent},
     id::{GuildId, UserId},
 };
-use super::prelude::*;
 
 pub struct GetAuditLog<'a> {
     action_type: Option<AuditLogEvent>,
@@ -52,13 +52,15 @@ impl<'a> GetAuditLog<'a> {
     }
 
     fn start(&mut self) -> Result<()> {
-        self.fut.replace(Box::pin(self.http.request(Request::from(Route::GetAuditLogs {
-            action_type: self.action_type.map(|x| x as u64),
-            before: self.before,
-            guild_id: self.guild_id.0,
-            limit: self.limit,
-            user_id: self.user_id.map(|x| x.0),
-        }))));
+        self.fut.replace(Box::pin(self.http.request(Request::from(
+            Route::GetAuditLogs {
+                action_type: self.action_type.map(|x| x as u64),
+                before: self.before,
+                guild_id: self.guild_id.0,
+                limit: self.limit,
+                user_id: self.user_id.map(|x| x.0),
+            },
+        ))));
 
         Ok(())
     }

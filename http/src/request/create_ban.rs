@@ -1,5 +1,5 @@
-use dawn_model::id::{GuildId, UserId};
 use super::prelude::*;
+use dawn_model::id::{GuildId, UserId};
 
 pub struct CreateBan<'a> {
     delete_message_days: Option<u64>,
@@ -39,12 +39,14 @@ impl<'a> CreateBan<'a> {
     }
 
     fn start(&mut self) -> Result<()> {
-        self.fut.replace(Box::pin(self.http.verify(Request::from(Route::CreateBan {
-            delete_message_days: self.delete_message_days,
-            guild_id: self.guild_id.0,
-            reason: self.reason.as_ref().map(ToOwned::to_owned),
-            user_id: self.user_id.0,
-        }))));
+        self.fut.replace(Box::pin(self.http.verify(Request::from(
+            Route::CreateBan {
+                delete_message_days: self.delete_message_days,
+                guild_id: self.guild_id.0,
+                reason: self.reason.as_ref().map(ToOwned::to_owned),
+                user_id: self.user_id.0,
+            },
+        ))));
 
         Ok(())
     }

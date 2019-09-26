@@ -1,11 +1,8 @@
+use super::prelude::*;
 use dawn_model::{
-    channel::{
-        permission_overwrite::PermissionOverwrite,
-        Channel,
-    },
+    channel::{permission_overwrite::PermissionOverwrite, Channel},
     id::ChannelId,
 };
-use super::prelude::*;
 
 #[derive(Serialize)]
 pub struct UpdateChannel<'a> {
@@ -27,10 +24,7 @@ pub struct UpdateChannel<'a> {
 }
 
 impl<'a> UpdateChannel<'a> {
-    pub(crate) fn new(
-        http: &'a Client,
-        channel_id: impl Into<ChannelId>,
-    ) -> Self {
+    pub(crate) fn new(http: &'a Client, channel_id: impl Into<ChannelId>) -> Self {
         Self {
             bitrate: None,
             name: None,

@@ -1,9 +1,5 @@
 use crate::{
-    guild::audit_log::{
-        AuditLogChange,
-        AuditLogEvent,
-        AuditLogOptionalEntryInfo,
-    },
+    guild::audit_log::{AuditLogChange, AuditLogEvent, AuditLogOptionalEntryInfo},
     id::{AuditLogEntryId, UserId},
 };
 use serde::{Deserialize, Serialize};

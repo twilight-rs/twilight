@@ -1,26 +1,26 @@
 pub mod identify;
 pub mod resume;
 
+mod ban_add;
+mod ban_remove;
 mod channel_create;
 mod channel_delete;
 mod channel_pins_update;
 mod channel_update;
-mod ban_add;
-mod ban_remove;
 mod guild_create;
 mod guild_delete;
 mod guild_emojis_update;
 mod guild_integrations_update;
 mod guild_update;
+mod heartbeat;
 mod member_add;
+mod member_chunk;
 mod member_remove;
 mod member_update;
-mod member_chunk;
 mod message_create;
 mod message_delete;
 mod message_delete_bulk;
 mod message_update;
-mod heartbeat;
 mod presence_update;
 mod reaction_add;
 mod reaction_remove;
@@ -40,12 +40,12 @@ mod voice_state_update;
 mod webhook_update;
 
 pub use self::{
+    ban_add::BanAdd,
+    ban_remove::BanRemove,
     channel_create::ChannelCreate,
     channel_delete::ChannelDelete,
     channel_pins_update::ChannelPinsUpdate,
     channel_update::ChannelUpdate,
-    ban_add::BanAdd,
-    ban_remove::BanRemove,
     guild_create::GuildCreate,
     guild_delete::GuildDelete,
     guild_emojis_update::GuildEmojisUpdate,

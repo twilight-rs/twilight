@@ -1,6 +1,6 @@
 use crate::{
-    id::{ChannelId, MessageId},
     channel::ChannelType,
+    id::{ChannelId, MessageId},
     user::User,
 };
 use serde::{Deserialize, Serialize};

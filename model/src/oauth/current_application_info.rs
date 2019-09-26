@@ -1,9 +1,6 @@
 use crate::{
     id::{GuildId, UserId},
-    oauth::{
-        id::SkuId,
-        team::Team,
-    },
+    oauth::{id::SkuId, team::Team},
     user::User,
 };
 use serde::{Deserialize, Serialize};

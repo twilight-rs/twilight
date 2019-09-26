@@ -1,6 +1,3 @@
-use http::header::{HeaderMap, HeaderValue};
-use snafu::{OptionExt, ResultExt};
-use std::convert::TryFrom;
 use super::error::{
     HeaderMissing,
     HeaderNotUtf8,
@@ -10,6 +7,9 @@ use super::error::{
     RatelimitError,
     RatelimitResult,
 };
+use http::header::{HeaderMap, HeaderValue};
+use snafu::{OptionExt, ResultExt};
+use std::convert::TryFrom;
 
 #[derive(Clone, Debug)]
 pub enum RatelimitHeaders {
@@ -32,9 +32,13 @@ pub enum RatelimitHeaders {
 impl RatelimitHeaders {
     pub fn global(&self) -> bool {
         match self {
-            RatelimitHeaders::GlobalLimited { .. } => true,
+            RatelimitHeaders::GlobalLimited {
+                ..
+            } => true,
             RatelimitHeaders::None => false,
-            RatelimitHeaders::Present { global, .. } => *global,
+            RatelimitHeaders::Present {
+                global, ..
+            } => *global,
         }
     }
 }
@@ -91,10 +95,10 @@ impl TryFrom<&'_ HeaderMap<HeaderValue>> for RatelimitHeaders {
     }
 }
 
-fn parse_map(
-    map: &HeaderMap<HeaderValue>,
-) -> RatelimitResult<RatelimitHeaders> {
-    let bucket = header_str(map, "x-ratelimit-bucket").ok().map(ToOwned::to_owned);
+fn parse_map(map: &HeaderMap<HeaderValue>) -> RatelimitResult<RatelimitHeaders> {
+    let bucket = header_str(map, "x-ratelimit-bucket")
+        .ok()
+        .map(ToOwned::to_owned);
     let global = header_bool(map, "x-ratelimit-global").unwrap_or(false);
     let limit = header_int(map, "x-ratelimit-limit")?;
     let remaining = header_int(map, "x-ratelimit-remaining")?;
@@ -113,11 +117,7 @@ fn parse_map(
     })
 }
 
-
-fn header_bool(
-    map: &HeaderMap<HeaderValue>,
-    name: &'static str,
-) -> RatelimitResult<bool> {
+fn header_bool(map: &HeaderMap<HeaderValue>, name: &'static str) -> RatelimitResult<bool> {
     let value = map.get(name).context(HeaderMissing {
         name,
     })?;
@@ -135,10 +135,7 @@ fn header_bool(
     Ok(end)
 }
 
-fn header_float(
-    map: &HeaderMap<HeaderValue>,
-    name: &'static str,
-) -> RatelimitResult<f64> {
+fn header_float(map: &HeaderMap<HeaderValue>, name: &'static str) -> RatelimitResult<f64> {
     let value = map.get(name).context(HeaderMissing {
         name,
     })?;
@@ -156,10 +153,7 @@ fn header_float(
     Ok(end)
 }
 
-fn header_int(
-    map: &HeaderMap<HeaderValue>,
-    name: &'static str,
-) -> RatelimitResult<u64> {
+fn header_int(map: &HeaderMap<HeaderValue>, name: &'static str) -> RatelimitResult<u64> {
     let value = map.get(name).context(HeaderMissing {
         name,
     })?;
@@ -177,10 +171,7 @@ fn header_int(
     Ok(end)
 }
 
-fn header_str<'a>(
-    map: &'a HeaderMap<HeaderValue>,
-    name: &'static str,
-) -> RatelimitResult<&'a str> {
+fn header_str<'a>(map: &'a HeaderMap<HeaderValue>, name: &'static str) -> RatelimitResult<&'a str> {
     let value = map.get(name).context(HeaderMissing {
         name,
     })?;

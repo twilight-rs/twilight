@@ -1,8 +1,5 @@
-use dawn_model::{
-    guild::GuildPrune,
-    id::GuildId,
-};
 use super::prelude::*;
+use dawn_model::{guild::GuildPrune, id::GuildId};
 
 pub struct GetGuildPruneCount<'a> {
     days: Option<u64>,
@@ -12,10 +9,7 @@ pub struct GetGuildPruneCount<'a> {
 }
 
 impl<'a> GetGuildPruneCount<'a> {
-    pub(crate) fn new(
-        http: &'a Client,
-        guild_id: impl Into<GuildId>,
-    ) -> Self {
+    pub(crate) fn new(http: &'a Client, guild_id: impl Into<GuildId>) -> Self {
         Self {
             days: None,
             fut: None,
@@ -31,10 +25,12 @@ impl<'a> GetGuildPruneCount<'a> {
     }
 
     fn start(&mut self) -> Result<()> {
-        self.fut.replace(Box::pin(self.http.request(Request::from(Route::GetGuildPruneCount {
-            days: self.days,
-            guild_id: self.guild_id.0,
-        }))));
+        self.fut.replace(Box::pin(self.http.request(Request::from(
+            Route::GetGuildPruneCount {
+                days: self.days,
+                guild_id: self.guild_id.0,
+            },
+        ))));
 
         Ok(())
     }

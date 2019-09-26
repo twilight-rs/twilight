@@ -1,8 +1,8 @@
+use super::prelude::*;
 use dawn_model::{
     guild::{Permissions, Role},
     id::GuildId,
 };
-use super::prelude::*;
 
 #[derive(Serialize)]
 pub struct CreateRole<'a> {

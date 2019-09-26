@@ -1,7 +1,4 @@
-use crate::{
-    guild::Permissions,
-    id::GuildId,
-};
+use crate::{guild::Permissions, id::GuildId};
 use serde::{Deserialize, Serialize};
 
 #[derive(Clone, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]

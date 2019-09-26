@@ -8,11 +8,11 @@ pub use self::{
     headers::RatelimitHeaders,
 };
 
+use self::bucket::{Bucket, BucketQueueTask};
 use crate::routing::Path;
 use futures_channel::oneshot::{self, Receiver, Sender};
 use futures_util::lock::Mutex;
 use log::debug;
-use self::bucket::{Bucket, BucketQueueTask};
 use std::{
     collections::hash_map::{Entry, HashMap},
     sync::{
@@ -53,22 +53,22 @@ impl Ratelimiter {
         Self::default()
     }
 
-    pub async fn get(
-        &self,
-        path: Path,
-    ) -> Receiver<Sender<Option<RatelimitHeaders>>> {
+    pub async fn get(&self, path: Path) -> Receiver<Sender<Option<RatelimitHeaders>>> {
         debug!("Getting bucket for path: {:?}", path);
 
         let (tx, rx) = oneshot::channel();
         let (bucket, fresh) = self.entry(path.clone(), tx).await;
 
         if fresh {
-            tokio::spawn(BucketQueueTask::new(
-                bucket,
-                Arc::clone(&self.buckets),
-                Arc::clone(&self.global),
-                path,
-            ).run());
+            tokio::spawn(
+                BucketQueueTask::new(
+                    bucket,
+                    Arc::clone(&self.buckets),
+                    Arc::clone(&self.global),
+                    path,
+                )
+                .run(),
+            );
         }
 
         rx

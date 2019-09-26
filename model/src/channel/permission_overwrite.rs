@@ -4,7 +4,7 @@ use crate::{
 };
 use serde::{
     de::{Deserialize, Deserializer},
-    ser::{Serialize, Serializer, SerializeStruct},
+    ser::{Serialize, SerializeStruct, Serializer},
     Deserialize as DeserializeMacro,
     Serialize as SerializeMacro,
 };
@@ -36,12 +36,8 @@ impl<'de> Deserialize<'de> for PermissionOverwrite {
         let data = PermissionOverwriteData::deserialize(deserializer)?;
 
         let kind = match data.kind {
-            PermissionOverwriteTypeName::Member => {
-                PermissionOverwriteType::Member(UserId(data.id))
-            },
-            PermissionOverwriteTypeName::Role => {
-                PermissionOverwriteType::Role(RoleId(data.id))
-            },
+            PermissionOverwriteTypeName::Member => PermissionOverwriteType::Member(UserId(data.id)),
+            PermissionOverwriteTypeName::Role => PermissionOverwriteType::Role(RoleId(data.id)),
         };
 
         Ok(Self {

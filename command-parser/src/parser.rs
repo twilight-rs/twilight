@@ -26,7 +26,9 @@ impl<'a> Output<'a> {
     /// Whether an output is about a command.
     pub fn is_command(&self) -> bool {
         match self {
-            Output::Command { .. } => true,
+            Output::Command {
+                ..
+            } => true,
             _ => false,
         }
     }
@@ -237,7 +239,11 @@ mod tests {
         let parser = simple_config();
 
         match parser.parse_str("!echo what a test") {
-            Output::Command { arguments: _, name, prefix } => {
+            Output::Command {
+                arguments: _,
+                name,
+                prefix,
+            } => {
                 assert_eq!("echo", name);
                 assert_eq!("!", prefix);
             },

@@ -18,10 +18,7 @@ pub use self::{
     status::Status,
 };
 
-use crate::{
-    id::UserId,
-    user::User,
-};
+use crate::{id::UserId, user::User};
 use serde::{Deserialize, Serialize};
 use serde_mappable_seq::Key;
 

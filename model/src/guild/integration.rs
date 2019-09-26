@@ -1,8 +1,4 @@
-use crate::{
-    guild::IntegrationAccount,
-    id::IntegrationId,
-    user::User,
-};
+use crate::{guild::IntegrationAccount, id::IntegrationId, user::User};
 use serde::{Deserialize, Serialize};
 use serde_mappable_seq::Key;
 use std::hash::{Hash, Hasher};

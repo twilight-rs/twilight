@@ -1,8 +1,8 @@
+use super::prelude::*;
 use dawn_model::{
     id::{ChannelId, MessageId, UserId},
     user::User,
 };
-use super::prelude::*;
 
 pub struct GetReactions<'a> {
     after: Option<UserId>,
@@ -53,14 +53,16 @@ impl<'a> GetReactions<'a> {
     }
 
     fn start(&mut self) -> Result<()> {
-        self.fut.replace(Box::pin(self.http.request(Request::from(Route::GetReactionUsers {
-            after: self.after.map(|x| x.0),
-            before: self.before.map(|x| x.0),
-            channel_id: self.channel_id.0,
-            emoji: self.emoji.to_owned(),
-            limit: self.limit,
-            message_id: self.message_id.0,
-        }))));
+        self.fut.replace(Box::pin(self.http.request(Request::from(
+            Route::GetReactionUsers {
+                after: self.after.map(|x| x.0),
+                before: self.before.map(|x| x.0),
+                channel_id: self.channel_id.0,
+                emoji: self.emoji.to_owned(),
+                limit: self.limit,
+                message_id: self.message_id.0,
+            },
+        ))));
 
         Ok(())
     }

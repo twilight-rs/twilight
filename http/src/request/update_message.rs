@@ -1,11 +1,8 @@
+use super::prelude::*;
 use dawn_model::{
-    channel::{
-        embed::Embed,
-        Message,
-    },
+    channel::{embed::Embed, Message},
     id::{ChannelId, MessageId},
 };
-use super::prelude::*;
 
 /// Futures request to update a message.
 ///

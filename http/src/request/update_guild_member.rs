@@ -1,9 +1,9 @@
+use super::prelude::*;
 use dawn_model::{
     guild::Member,
     id::{ChannelId, GuildId, RoleId, UserId},
 };
 use serde::Serialize;
-use super::prelude::*;
 
 #[derive(Serialize)]
 pub struct UpdateGuildMember<'a> {

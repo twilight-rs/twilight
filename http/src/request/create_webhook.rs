@@ -1,8 +1,5 @@
-use dawn_model::{
-    channel::Webhook,
-    id::ChannelId,
-};
 use super::prelude::*;
+use dawn_model::{channel::Webhook, id::ChannelId};
 
 #[derive(Serialize)]
 pub struct CreateWebhook<'a> {

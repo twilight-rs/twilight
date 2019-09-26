@@ -1,11 +1,8 @@
+use super::prelude::*;
 use dawn_model::{
-    channel::{
-        embed::Embed,
-        Message,
-    },
+    channel::{embed::Embed, Message},
     id::ChannelId,
 };
-use super::prelude::*;
 
 #[derive(Serialize)]
 pub struct CreateMessage<'a> {
@@ -24,10 +21,7 @@ pub struct CreateMessage<'a> {
 }
 
 impl<'a> CreateMessage<'a> {
-    pub(crate) fn new(
-        http: &'a Client,
-        channel_id: impl Into<ChannelId>,
-    ) -> Self {
+    pub(crate) fn new(http: &'a Client, channel_id: impl Into<ChannelId>) -> Self {
         Self {
             content: None,
             embed: None,

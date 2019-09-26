@@ -1,8 +1,5 @@
 use crate::{
-    oauth::{
-        team::TeamMembershipState,
-        id::TeamId,
-    },
+    oauth::{id::TeamId, team::TeamMembershipState},
     user::User,
 };
 use serde::{Deserialize, Serialize};

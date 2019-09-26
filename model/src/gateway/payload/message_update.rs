@@ -1,9 +1,5 @@
 use crate::{
-    channel::{
-        embed::Embed,
-        message::MessageType,
-        Attachment,
-    },
+    channel::{embed::Embed, message::MessageType, Attachment},
     id::{ChannelId, MessageId, RoleId},
     user::User,
 };

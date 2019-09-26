@@ -1,5 +1,5 @@
-use dawn_model::gateway::connection_info::BotConnectionInfo;
 use super::prelude::*;
+use dawn_model::gateway::connection_info::BotConnectionInfo;
 
 #[derive(Serialize)]
 pub struct GetGatewayAuthed<'a> {
@@ -18,7 +18,9 @@ impl<'a> GetGatewayAuthed<'a> {
     }
 
     fn start(&mut self) -> Result<()> {
-        self.fut.replace(Box::pin(self.http.request(Request::from(Route::GetGatewayBot))));
+        self.fut.replace(Box::pin(
+            self.http.request(Request::from(Route::GetGatewayBot)),
+        ));
 
         Ok(())
     }

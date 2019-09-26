@@ -1,8 +1,8 @@
+use super::prelude::*;
 use dawn_model::{
     guild::GuildEmbed,
     id::{ChannelId, GuildId},
 };
-use super::prelude::*;
 
 #[derive(Serialize)]
 pub struct UpdateGuildEmbed<'a> {

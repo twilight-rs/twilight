@@ -1,5 +1,5 @@
-use dawn_model::invite::Invite;
 use super::prelude::*;
+use dawn_model::invite::Invite;
 
 pub struct GetInvite<'a> {
     with_counts: bool,
@@ -25,10 +25,12 @@ impl<'a> GetInvite<'a> {
     }
 
     fn start(&mut self) -> Result<()> {
-        self.fut.replace(Box::pin(self.http.request(Request::from(Route::GetInvite {
-            code: self.code.to_owned(),
-            with_counts: self.with_counts,
-        }))));
+        self.fut.replace(Box::pin(self.http.request(Request::from(
+            Route::GetInvite {
+                code: self.code.to_owned(),
+                with_counts: self.with_counts,
+            },
+        ))));
 
         Ok(())
     }

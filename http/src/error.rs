@@ -1,18 +1,10 @@
 use crate::ratelimiting::RatelimitError;
 use futures_channel::oneshot::Canceled;
-use http::{
-    header::InvalidHeaderValue,
-    method::Method,
-    status::StatusCode,
-    Error as HttpError,
-};
+use http::{header::InvalidHeaderValue, method::Method, status::StatusCode, Error as HttpError};
 use reqwest::{Error as ReqwestError, Response as ReqwestResponse};
 use serde_json::Error as JsonError;
 use snafu::Snafu;
-use std::{
-    fmt::Error as FmtError,
-    result::Result as StdResult,
-};
+use std::{fmt::Error as FmtError, result::Result as StdResult};
 use url::ParseError;
 
 pub type Result<T> = StdResult<T, Error>;
@@ -22,13 +14,9 @@ pub type Result<T> = StdResult<T, Error>;
 pub enum ResponseError {
     /// A 4xx response status code. Submit a GitHub issue with this error so we
     /// can fix it.
-    Client {
-        response: ReqwestResponse,
-    },
+    Client { response: ReqwestResponse },
     /// A 5xx response status code. These are internal errors on Discord's side.
-    Server {
-        response: ReqwestResponse,
-    },
+    Server { response: ReqwestResponse },
 }
 
 #[derive(Debug, Snafu)]

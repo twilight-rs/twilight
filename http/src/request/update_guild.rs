@@ -1,3 +1,4 @@
+use super::prelude::*;
 use dawn_model::{
     guild::{
         DefaultMessageNotificationLevel,
@@ -8,7 +9,6 @@ use dawn_model::{
     id::{ChannelId, GuildId, UserId},
 };
 use serde::Serialize;
-use super::prelude::*;
 
 #[derive(Serialize)]
 pub struct UpdateGuild<'a> {
@@ -32,10 +32,7 @@ pub struct UpdateGuild<'a> {
 }
 
 impl<'a> UpdateGuild<'a> {
-    pub(crate) fn new(
-        http: &'a Client,
-        guild_id: impl Into<GuildId>,
-    ) -> Self {
+    pub(crate) fn new(http: &'a Client, guild_id: impl Into<GuildId>) -> Self {
         Self {
             afk_channel_id: None,
             afk_timeout: None,
@@ -54,10 +51,7 @@ impl<'a> UpdateGuild<'a> {
         }
     }
 
-    pub fn afk_channel_id(
-        mut self,
-        afk_channel_id: impl Into<ChannelId>,
-    ) -> Self {
+    pub fn afk_channel_id(mut self, afk_channel_id: impl Into<ChannelId>) -> Self {
         self.afk_channel_id.replace(afk_channel_id.into());
 
         self
@@ -73,7 +67,8 @@ impl<'a> UpdateGuild<'a> {
         mut self,
         default_message_notifications: DefaultMessageNotificationLevel,
     ) -> Self {
-        self.default_message_notifications.replace(default_message_notifications);
+        self.default_message_notifications
+            .replace(default_message_notifications);
 
         self
     }
@@ -82,7 +77,8 @@ impl<'a> UpdateGuild<'a> {
         mut self,
         explicit_content_filter: ExplicitContentFilter,
     ) -> Self {
-        self.explicit_content_filter.replace(explicit_content_filter);
+        self.explicit_content_filter
+            .replace(explicit_content_filter);
 
         self
     }
@@ -117,19 +113,13 @@ impl<'a> UpdateGuild<'a> {
         self
     }
 
-    pub fn system_channel_id(
-        mut self,
-        system_channel_id: impl Into<ChannelId>,
-    ) -> Self {
+    pub fn system_channel_id(mut self, system_channel_id: impl Into<ChannelId>) -> Self {
         self.system_channel_id.replace(system_channel_id.into());
 
         self
     }
 
-    pub fn verification_level(
-        mut self,
-        verification_level: VerificationLevel,
-    ) -> Self {
+    pub fn verification_level(mut self, verification_level: VerificationLevel) -> Self {
         self.verification_level.replace(verification_level);
 
         self

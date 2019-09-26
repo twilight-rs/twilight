@@ -1,8 +1,5 @@
-use dawn_model::{
-    guild::PartialGuild,
-    id::GuildId,
-};
 use super::prelude::*;
+use dawn_model::{guild::PartialGuild, id::GuildId};
 
 #[derive(Serialize)]
 pub struct GetCurrentUserGuilds<'a> {
