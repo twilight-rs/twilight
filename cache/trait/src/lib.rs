@@ -7,10 +7,7 @@ use dawn_model::{
     user::{CurrentUser, User},
     voice::VoiceState,
 };
-use std::{
-    fmt::Debug,
-    sync::Arc,
-};
+use std::fmt::Debug;
 
 #[async_trait]
 pub trait Cache {
