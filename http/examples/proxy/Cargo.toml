@@ -1,7 +1,7 @@
 [package]
 authors = ["Zeyla Hellyer <zeyla@hellyer.dev>"]
 edition = "2018"
-name = "dawn-http-example-get-message"
+name = "dawn-http-example-proxy"
 publish = false
 version = "0.0.1"
 
