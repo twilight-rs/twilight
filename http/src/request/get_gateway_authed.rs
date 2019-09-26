@@ -4,7 +4,7 @@ use super::prelude::*;
 #[derive(Serialize)]
 pub struct GetGatewayAuthed<'a> {
     #[serde(skip)]
-    fut: Option<PendingBody<'a, BotConnectionInfo>>,
+    fut: Option<Pin<Box<dyn Future<Output = Result<BotConnectionInfo>> + Send + 'a>>>,
     #[serde(skip)]
     http: &'a Client,
 }
@@ -18,7 +18,7 @@ impl<'a> GetGatewayAuthed<'a> {
     }
 
     fn start(&mut self) -> Result<()> {
-        self.fut.replace(self.http.request(Request::from(Route::GetGatewayBot))?);
+        self.fut.replace(Box::pin(self.http.request(Request::from(Route::GetGatewayBot))));
 
         Ok(())
     }

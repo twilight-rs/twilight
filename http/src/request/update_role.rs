@@ -12,7 +12,7 @@ pub struct UpdateRole<'a> {
     name: Option<String>,
     permissions: Option<Permissions>,
     #[serde(skip)]
-    fut: Option<PendingBody<'a, Role>>,
+    fut: Option<Pin<Box<dyn Future<Output = Result<Role>> + Send + 'a>>>,
     #[serde(skip)]
     guild_id: GuildId,
     #[serde(skip)]
@@ -71,13 +71,13 @@ impl<'a> UpdateRole<'a> {
     }
 
     fn start(&mut self) -> Result<()> {
-        self.fut.replace(self.http.request(Request::from((
+        self.fut.replace(Box::pin(self.http.request(Request::from((
             serde_json::to_vec(self)?,
             Route::UpdateRole {
                 guild_id: self.guild_id.0,
                 role_id: self.role_id.0,
             },
-        )))?);
+        )))));
 
         Ok(())
     }

@@ -3,17 +3,19 @@ pub mod config;
 use crate::{
     error::{
         BuildingClient,
+        ChunkingResponse,
         CreatingHeader,
         Error,
         InvalidUrl,
+        Parsing,
         RequestCanceled,
         RequestError,
+        ResponseError,
         Result,
     },
-    pending::{Pending, PendingBody},
     ratelimiting::{RatelimitHeaders, Ratelimiter},
     request::*,
-    routing::{Path, Route},
+    routing::Route,
 };
 use dawn_model::{
     channel::{Channel, GuildChannel, Message, PrivateChannel, Webhook},
@@ -41,14 +43,14 @@ use dawn_model::{
     user::{Connection, CurrentUser, User},
     voice::VoiceRegion,
 };
-use futures_util::FutureExt;
-use http::header::HeaderValue;
 use log::warn;
 use reqwest::{
+    header::HeaderValue,
     Body,
     Client as ReqwestClient,
     ClientBuilder as ReqwestClientBuilder,
     Response,
+    StatusCode,
     Url,
 };
 use self::config::ConfigBuilder;
@@ -61,7 +63,6 @@ use serde_json::json;
 use snafu::ResultExt;
 use std::{
     convert::TryFrom,
-    future::Future,
     ops::{Deref, DerefMut},
     str::FromStr,
     sync::Arc,
@@ -149,7 +150,7 @@ impl Client {
             guild_id: guild_id.into().0,
             role_id: role_id.into().0,
             user_id: user_id.into().0,
-        }))?.await
+        })).await
     }
 
     pub fn audit_log(&self, guild_id: impl Into<GuildId>) -> GetAuditLog<'_> {
@@ -162,7 +163,7 @@ impl Client {
     ) -> Result<Vec<Ban>> {
         self.request(Request::from(Route::GetBans {
             guild_id: guild_id.into().0,
-        }))?.await
+        })).await
     }
 
     pub async fn ban(
@@ -173,7 +174,7 @@ impl Client {
         self.request(Request::from(Route::GetBan {
             guild_id: guild_id.into().0,
             user_id: user_id.into().0,
-        }))?.await
+        })).await
     }
 
     /// Bans a user from a guild, optionally with the number of days' worth of
@@ -219,7 +220,7 @@ impl Client {
         self.verify(Request::from(Route::DeleteBan {
             guild_id: guild_id.into().0,
             user_id: user_id.into().0,
-        }))?.await
+        })).await
     }
 
     pub async fn channel(
@@ -228,7 +229,7 @@ impl Client {
     ) -> Result<Channel> {
         self.request(Request::from(Route::GetChannel {
             channel_id: channel_id.into().0,
-        }))?.await
+        })).await
     }
 
     pub async fn delete_channel(
@@ -237,7 +238,7 @@ impl Client {
     ) -> Result<Channel> {
         self.request(Request::from(Route::DeleteChannel {
             channel_id: channel_id.into().0,
-        }))?.await
+        })).await
     }
 
     pub fn update_channel(
@@ -253,7 +254,7 @@ impl Client {
     ) -> Result<Vec<Invite>> {
         self.request(Request::from(Route::GetChannelInvites {
             channel_id: channel_id.into().0,
-        }))?.await
+        })).await
     }
 
     pub fn channel_messages(
@@ -271,7 +272,7 @@ impl Client {
         self.verify(Request::from(Route::DeletePermissionOverwrite {
             channel_id: channel_id.into().0,
             target_id,
-        }))?.await
+        })).await
     }
 
     pub fn update_channel_permission(
@@ -289,13 +290,13 @@ impl Client {
     ) -> Result<Vec<Webhook>> {
         self.request(Request::from(Route::GetChannelWebhooks {
             channel_id: channel_id.into().0,
-        }))?.await
+        })).await
     }
 
     pub async fn current_user(&self) -> Result<CurrentUser> {
         self.request(Request::from(Route::GetUser {
-            target_user: "@me",
-        }))?.await
+            target_user: "@me".to_owned(),
+        })).await
     }
 
     pub fn update_current_user(&self) -> UpdateCurrentUser<'_> {
@@ -303,9 +304,7 @@ impl Client {
     }
 
     pub async fn current_user_connections(&self) -> Result<Vec<Connection>> {
-        self.request(Request::from(Route::GetUserConnections {
-            target_user: "@me",
-        }))?.await
+        self.request(Request::from(Route::GetUserConnections)).await
     }
 
     /// Returns a list of guilds for the current user.
@@ -351,13 +350,11 @@ impl Client {
             Route::UpdateNickname {
                 guild_id: guild_id.into().0,
             },
-        )))?.await
+        ))).await
     }
 
     pub async fn current_user_private_channels(&self) -> Result<Vec<PrivateChannel>> {
-        self.request(Request::from(Route::GetUserPrivateChannels {
-            target_user: "@me",
-        }))?.await
+        self.request(Request::from(Route::GetUserPrivateChannels)).await
     }
 
     pub async fn emojis(
@@ -366,7 +363,7 @@ impl Client {
     ) -> Result<Vec<Emoji>> {
         self.request(Request::from(Route::GetEmojis {
             guild_id: guild_id.into().0,
-        }))?.await
+        })).await
     }
 
     pub async fn emoji(
@@ -377,7 +374,7 @@ impl Client {
         self.request(Request::from(Route::GetEmoji {
             emoji_id: emoji_id.into().0,
             guild_id: guild_id.into().0,
-        }))?.await
+        })).await
     }
 
     pub fn create_emoji(
@@ -397,7 +394,7 @@ impl Client {
         self.verify(Request::from(Route::DeleteEmoji {
             emoji_id: emoji_id.into().0,
             guild_id: guild_id.into().0,
-        }))?.await
+        })).await
     }
 
     pub fn update_emoji(
@@ -456,7 +453,7 @@ impl Client {
     pub async fn guild(&self, guild_id: impl Into<GuildId>) -> Result<Guild> {
         self.request(Request::from(Route::GetGuild {
             guild_id: guild_id.into().0,
-        }))?.await
+        })).await
     }
 
     pub fn create_guild(&self, name: impl Into<String>) -> CreateGuild<'_> {
@@ -469,7 +466,7 @@ impl Client {
     ) -> Result<()> {
         self.verify(Request::from(Route::DeleteGuild {
             guild_id: guild_id.into().0,
-        }))?.await
+        })).await
     }
 
     pub fn update_guild(
@@ -485,7 +482,7 @@ impl Client {
     ) -> Result<()> {
         self.verify(Request::from(Route::LeaveGuild {
             guild_id: guild_id.into().0,
-        }))?.await
+        })).await
     }
 
     pub async fn guild_channels(
@@ -494,7 +491,7 @@ impl Client {
     ) -> Result<Vec<GuildChannel>> {
         self.request(Request::from(Route::GetChannels {
             guild_id: guild_id.into().0,
-        }))?.await
+        })).await
     }
 
     pub fn create_guild_channel(
@@ -526,7 +523,7 @@ impl Client {
             Route::UpdateGuildChannels {
                 guild_id: guild_id.into().0,
             },
-        )))?.await
+        ))).await
     }
 
     pub async fn guild_embed(
@@ -535,7 +532,7 @@ impl Client {
     ) -> Result<GuildEmbed> {
         self.request(Request::from(Route::GetGuildEmbed {
             guild_id: guild_id.into().0,
-        }))?.await
+        })).await
     }
 
     pub fn update_guild_embed(
@@ -551,7 +548,7 @@ impl Client {
     ) -> Result<Vec<GuildIntegration>> {
         self.request(Request::from(Route::GetGuildIntegrations {
             guild_id: guild_id.into().0,
-        }))?.await
+        })).await
     }
 
     pub async fn create_guild_integration(
@@ -568,7 +565,7 @@ impl Client {
             Route::CreateGuildIntegration {
                 guild_id: guild_id.into().0,
             },
-        )))?.await
+        ))).await
     }
 
     pub async fn delete_guild_integration(
@@ -579,7 +576,7 @@ impl Client {
         self.verify(Request::from(Route::DeleteGuildIntegration {
             guild_id: guild_id.into().0,
             integration_id: integration_id.into().0,
-        }))?.await
+        })).await
     }
 
     pub async fn update_guild_integration(
@@ -600,7 +597,7 @@ impl Client {
                 guild_id: guild_id.into().0,
                 integration_id: integration_id.into().0,
             },
-        )))?.await
+        ))).await
     }
 
     pub async fn sync_guild_integration(
@@ -611,7 +608,7 @@ impl Client {
         self.verify(Request::from(Route::SyncGuildIntegration {
             guild_id: guild_id.into().0,
             integration_id: integration_id.into().0,
-        }))?.await
+        })).await
     }
 
     pub async fn guild_invites(
@@ -620,7 +617,7 @@ impl Client {
     ) -> Result<Vec<Invite>> {
         self.request(Request::from(Route::GetGuildInvites {
             guild_id: guild_id.into().0,
-        }))?.await
+        })).await
     }
 
     pub fn guild_members(
@@ -638,7 +635,7 @@ impl Client {
         self.request(Request::from(Route::GetMember {
             guild_id: guild_id.into().0,
             user_id: user_id.into().0,
-        }))?.await
+        })).await
     }
 
     pub async fn remove_guild_member(
@@ -649,7 +646,7 @@ impl Client {
         self.verify(Request::from(Route::RemoveMember {
             guild_id: guild_id.into().0,
             user_id: user_id.into().0,
-        }))?.await
+        })).await
     }
 
     pub fn update_guild_member(
@@ -670,7 +667,7 @@ impl Client {
             guild_id: guild_id.into().0,
             role_id: role_id.into().0,
             user_id: user_id.into().0,
-        }))?.await
+        })).await
     }
 
     pub async fn remove_guild_member_role(
@@ -683,7 +680,7 @@ impl Client {
             guild_id: guild_id.into().0,
             role_id: role_id.into().0,
             user_id: user_id.into().0,
-        }))?.await
+        })).await
     }
 
     pub fn guild_prune_count(
@@ -711,7 +708,7 @@ impl Client {
 
         let vanity = self.request::<VanityUrl>(Request::from(Route::GetGuildVanityUrl {
             guild_id: guild_id.into().0,
-        }))?.await?;
+        })).await?;
 
         Ok(vanity.code)
     }
@@ -722,7 +719,7 @@ impl Client {
     ) -> Result<Vec<VoiceRegion>> {
         self.request(Request::from(Route::GetGuildVoiceRegions {
             guild_id: guild_id.into().0,
-        }))?.await
+        })).await
     }
 
     pub async fn guild_webhooks(
@@ -731,7 +728,7 @@ impl Client {
     ) -> Result<Vec<Webhook>> {
         self.request(Request::from(Route::GetGuildWebhooks {
             guild_id: guild_id.into().0,
-        }))?.await
+        })).await
     }
 
     pub fn invite(&self, code: impl Into<String>) -> GetInvite<'_> {
@@ -745,10 +742,10 @@ impl Client {
         CreateInvite::new(self, channel_id)
     }
 
-    pub async fn delete_invite(&self, code: impl AsRef<str>) -> Result<()> {
+    pub async fn delete_invite(&self, code: impl Into<String>) -> Result<()> {
         self.verify(Request::from(Route::DeleteInvite {
-            code: code.as_ref(),
-        }))?.await
+            code: code.into(),
+        })).await
     }
 
     pub async fn message(
@@ -759,7 +756,7 @@ impl Client {
         self.request(Request::from(Route::GetMessage {
             channel_id: channel_id.into().0,
             message_id: message_id.into().0,
-        }))?.await
+        })).await
     }
 
     pub fn create_message(
@@ -777,7 +774,7 @@ impl Client {
         self.verify(Request::from(Route::DeleteMessage {
             channel_id: channel_id.into().0,
             message_id: message_id.into().0,
-        }))?.await
+        })).await
     }
 
     pub async fn delete_messages(
@@ -792,7 +789,7 @@ impl Client {
             Route::DeleteMessages {
                 channel_id: channel_id.into().0,
             },
-        )))?.await
+        ))).await
     }
 
     pub fn update_message(
@@ -806,7 +803,7 @@ impl Client {
     pub async fn pins(&self, channel_id: ChannelId) -> Result<Vec<Message>> {
         self.request(Request::from(Route::GetPins {
             channel_id: channel_id.0,
-        }))?.await
+        })).await
     }
 
     pub async fn create_pin(
@@ -817,7 +814,7 @@ impl Client {
         self.request(Request::from(Route::PinMessage {
             channel_id: channel_id.into().0,
             message_id: message_id.into().0,
-        }))?.await
+        })).await
     }
 
     pub async fn delete_pin(
@@ -828,7 +825,7 @@ impl Client {
         self.request(Request::from(Route::UnpinMessage {
             channel_id: channel_id.into().0,
             message_id: message_id.into().0,
-        }))?.await
+        })).await
     }
 
     pub fn reactions(
@@ -844,42 +841,42 @@ impl Client {
         &self,
         channel_id: impl Into<ChannelId>,
         message_id: impl Into<MessageId>,
-        emoji: impl AsRef<str>,
+        emoji: impl Into<String>,
     ) -> Result<()> {
         self.verify(Request::from(Route::CreateReaction {
             channel_id: channel_id.into().0,
-            emoji: emoji.as_ref(),
+            emoji: emoji.into(),
             message_id: message_id.into().0,
-        }))?.await
+        })).await
     }
 
     pub async fn delete_current_user_reaction(
         &self,
         channel_id: impl Into<ChannelId>,
         message_id: impl Into<MessageId>,
-        emoji: impl AsRef<str>,
+        emoji: impl Into<String>,
     ) -> Result<()> {
         self.verify(Request::from(Route::DeleteReaction {
             channel_id: channel_id.into().0,
-            emoji: emoji.as_ref(),
+            emoji: emoji.into(),
             message_id: message_id.into().0,
-            user: "@me",
-        }))?.await
+            user: "@me".into(),
+        })).await
     }
 
     pub async fn delete_reaction(
         &self,
         channel_id: impl Into<ChannelId>,
         message_id: impl Into<MessageId>,
-        emoji: impl AsRef<str>,
+        emoji: impl Into<String>,
         user_id: impl Into<UserId>,
     ) -> Result<()> {
         self.verify(Request::from(Route::DeleteReaction {
             channel_id: channel_id.into().0,
-            emoji: emoji.as_ref(),
+            emoji: emoji.into(),
             message_id: message_id.into().0,
-            user: &user_id.into().0.to_string(),
-        }))?.await
+            user: user_id.into().0.to_string(),
+        })).await
     }
 
     pub async fn delete_all_reactions(
@@ -890,7 +887,7 @@ impl Client {
         self.verify(Request::from(Route::DeleteMessageReactions {
             channel_id: channel_id.into().0,
             message_id: message_id.into().0,
-        }))?.await
+        })).await
     }
 
     pub async fn create_typing_trigger(
@@ -899,7 +896,7 @@ impl Client {
     ) -> Result<()> {
         self.verify(Request::from(Route::CreateTypingTrigger {
             channel_id: channel_id.into().0,
-        }))?.await
+        })).await
     }
 
     pub async fn create_private_channel(
@@ -911,7 +908,7 @@ impl Client {
                 "recipient_id": recipient_id.into(),
             }))?,
             Route::CreatePrivateChannel,
-        )))?.await
+        ))).await
     }
 
     pub async fn roles(
@@ -920,7 +917,7 @@ impl Client {
     ) -> Result<Vec<Role>> {
         self.request(Request::from(Route::GetGuildRoles {
             guild_id: guild_id.into().0,
-        }))?.await
+        })).await
     }
 
     pub fn create_role(&self, guild_id: impl Into<GuildId>) -> CreateRole<'_> {
@@ -935,7 +932,7 @@ impl Client {
         self.request(Request::from(Route::DeleteRole {
             guild_id: guild_id.into().0,
             role_id: role_id.into().0,
-        }))?.await
+        })).await
     }
 
     pub fn update_role(
@@ -956,17 +953,17 @@ impl Client {
             Route::UpdateRolePositions {
                 guild_id: guild_id.into().0,
             },
-        )))?.await
+        ))).await
     }
 
     pub async fn user(&self, user_id: u64) -> Result<Option<User>> {
         self.request(Request::from(Route::GetUser {
-            target_user: &user_id.to_string(),
-        }))?.await
+            target_user: user_id.to_string(),
+        })).await
     }
 
     pub async fn voice_regions(&self) -> Result<Vec<VoiceRegion>> {
-        self.request(Request::from(Route::GetVoiceRegions))?.await
+        self.request(Request::from(Route::GetVoiceRegions)).await
     }
 
     pub fn webhook(&self, id: impl Into<WebhookId>) -> GetWebhook<'_> {
@@ -1011,57 +1008,7 @@ impl Client {
         ExecuteWebhook::new(self, webhook_id, token)
     }
 
-    pub async fn raw(&self, request: Request<'_>) -> Result<Response> {
-        let (req, bucket) = self.make_request(request)?;
-        let rx = self.state.ratelimiter.get(bucket).await;
-        let tx = rx.await.context(RequestCanceled)?;
-
-        let resp = match req.await.context(RequestError) {
-            Ok(resp) => resp,
-            Err(why) => {
-                let _ = tx.send(None);
-
-                return Err(why);
-            },
-        };
-
-        match RatelimitHeaders::try_from(resp.headers()) {
-            Ok(headers) => {
-                let _ = tx.send(Some(headers));
-            },
-            Err(why) => {
-                warn!("Error parsing headers {:?}: {:?}", resp, why);
-
-                let _ = tx.send(None);
-
-                return Err(Error::Ratelimiting {
-                    source: why,
-                });
-            }
-        }
-
-        Ok(resp)
-    }
-
-    pub fn request<T: DeserializeOwned>(
-        &self,
-        request: Request<'_>,
-    ) -> Result<PendingBody<'_, T>> {
-        let (resp, bucket) = self.make_request(request)?;
-
-        Ok(PendingBody::new(resp.boxed(), &self.state.ratelimiter, bucket))
-    }
-
-    pub fn verify(&self, request: Request<'_>) -> Result<Pending<'_>> {
-        let (resp, bucket) = self.make_request(request)?;
-
-        Ok(Pending::new(resp.boxed(), &self.state.ratelimiter, bucket))
-    }
-
-    fn make_request(
-        &self,
-        request: Request<'_>,
-    ) -> Result<(impl Future<Output = reqwest::Result<Response>> + Send + Unpin, Path)> {
+    pub async fn raw(&self, request: Request) -> Result<Response> {
         let Request {
             body,
             headers: req_headers,
@@ -1097,10 +1044,10 @@ impl Client {
         let content_type = HeaderValue::from_static("application/json");
         let precision = HeaderValue::from_static("millisecond");
         let user_agent = HeaderValue::from_static(concat!(
-            "dawn.rs (",
-            env!("CARGO_PKG_HOMEPAGE"),
-            ") ",
-            env!("CARGO_PKG_VERSION"),
+        "dawn.rs (",
+        env!("CARGO_PKG_HOMEPAGE"),
+        ") ",
+        env!("CARGO_PKG_VERSION"),
         ));
         builder = builder.header("Content-Type", content_type);
         builder = builder.header("X-RateLimit-Precision", precision);
@@ -1110,7 +1057,82 @@ impl Client {
             builder = builder.headers(req_headers);
         }
 
-        Ok((builder.send(), bucket))
+        let rx = self.state.ratelimiter.get(bucket).await;
+        let tx = rx.await.context(RequestCanceled)?;
+
+        let resp = builder.send().await.context(RequestError)?;
+
+        match RatelimitHeaders::try_from(resp.headers()) {
+            Ok(v) => {
+                let _ = tx.send(Some(v));
+            },
+            Err(why) => {
+                warn!(
+                    "Err parsing headers: {:?}; {:?}",
+                    why,
+                    resp,
+                );
+
+                let _ = tx.send(None);
+            },
+        }
+
+        Ok(resp)
+    }
+
+    pub async fn request<T: DeserializeOwned>(
+        &self,
+        request: Request,
+    ) -> Result<T> {
+        let resp = self.make_request(request).await?;
+
+        let bytes = resp.bytes().await.context(ChunkingResponse)?;
+
+        serde_json::from_slice(&bytes).with_context(|| Parsing {
+            body: (*bytes).to_vec(),
+        })
+    }
+
+    pub async fn verify(&self, request: Request) -> Result<()> {
+        self.raw(request).await?;
+
+        Ok(())
+    }
+
+    async fn make_request(
+        &self,
+        request: Request,
+    ) -> Result<Response> {
+        let resp = self.raw(request).await?;
+
+        if resp.status().is_client_error() {
+            if resp.status() == StatusCode::IM_A_TEAPOT {
+                warn!(
+                    "Discord's API now runs off of teapots -- proceed to panic: {:?}",
+                    resp,
+                );
+            }
+
+            if resp.status() == StatusCode::TOO_MANY_REQUESTS {
+                warn!("Response got 429: {:?}", resp);
+            }
+
+            return Err(Error::Response {
+                source: ResponseError::Client {
+                    response: resp,
+                },
+            });
+        }
+
+        if resp.status().is_client_error() {
+            return Err(Error::Response {
+                source: ResponseError::Server {
+                    response: resp,
+                },
+            });
+        }
+
+        Ok(resp)
     }
 }
 

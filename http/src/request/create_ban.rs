@@ -6,7 +6,7 @@ pub struct CreateBan<'a> {
     guild_id: GuildId,
     reason: Option<String>,
     user_id: UserId,
-    fut: Option<Pending<'a>>,
+    fut: Option<Pin<Box<dyn Future<Output = Result<()>> + Send + 'a>>>,
     http: &'a Client,
 }
 
@@ -39,12 +39,12 @@ impl<'a> CreateBan<'a> {
     }
 
     fn start(&mut self) -> Result<()> {
-        self.fut.replace(self.http.verify(Request::from(Route::CreateBan {
+        self.fut.replace(Box::pin(self.http.verify(Request::from(Route::CreateBan {
             delete_message_days: self.delete_message_days,
             guild_id: self.guild_id.0,
-            reason: self.reason.as_ref().map(AsRef::as_ref),
+            reason: self.reason.as_ref().map(ToOwned::to_owned),
             user_id: self.user_id.0,
-        }))?);
+        }))));
 
         Ok(())
     }

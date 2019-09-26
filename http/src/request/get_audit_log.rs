@@ -9,7 +9,7 @@ pub struct GetAuditLog<'a> {
     before: Option<u64>,
     limit: Option<u64>,
     user_id: Option<UserId>,
-    fut: Option<PendingBody<'a, AuditLog>>,
+    fut: Option<Pin<Box<dyn Future<Output = Result<Option<AuditLog>>> + Send + 'a>>>,
     guild_id: GuildId,
     http: &'a Client,
 }
@@ -52,16 +52,16 @@ impl<'a> GetAuditLog<'a> {
     }
 
     fn start(&mut self) -> Result<()> {
-        self.fut.replace(self.http.request(Request::from(Route::GetAuditLogs {
+        self.fut.replace(Box::pin(self.http.request(Request::from(Route::GetAuditLogs {
             action_type: self.action_type.map(|x| x as u64),
             before: self.before,
             guild_id: self.guild_id.0,
             limit: self.limit,
             user_id: self.user_id.map(|x| x.0),
-        }))?);
+        }))));
 
         Ok(())
     }
 }
 
-poll_req!(GetAuditLog<'_>, AuditLog);
+poll_req!(GetAuditLog<'_>, Option<AuditLog>);

@@ -13,7 +13,7 @@ pub struct UpdateGuildMember<'a> {
     nick: Option<String>,
     roles: Option<Vec<RoleId>>,
     #[serde(skip)]
-    fut: Option<PendingBody<'a, Member>>,
+    fut: Option<Pin<Box<dyn Future<Output = Result<Member>> + Send + 'a>>>,
     #[serde(skip)]
     guild_id: GuildId,
     #[serde(skip)]
@@ -72,13 +72,13 @@ impl<'a> UpdateGuildMember<'a> {
     }
 
     fn start(&mut self) -> Result<()> {
-        self.fut.replace(self.http.request(Request::from((
+        self.fut.replace(Box::pin(self.http.request(Request::from((
             serde_json::to_vec(self)?,
             Route::UpdateMember {
                 guild_id: self.guild_id.0,
                 user_id: self.user_id.0,
             },
-        )))?);
+        )))));
 
         Ok(())
     }

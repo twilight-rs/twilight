@@ -22,7 +22,7 @@ pub struct CreateGuildChannel<'a> {
     topic: Option<String>,
     user_limit: Option<u64>,
     #[serde(skip)]
-    fut: Option<PendingBody<'a, GuildChannel>>,
+    fut: Option<Pin<Box<dyn Future<Output = Result<GuildChannel>> + Send + 'a>>>,
     #[serde(skip)]
     guild_id: GuildId,
     #[serde(skip)]
@@ -111,12 +111,12 @@ impl<'a> CreateGuildChannel<'a> {
     }
 
     fn start(&mut self) -> Result<()> {
-        self.fut.replace(self.http.request(Request::from((
+        self.fut.replace(Box::pin(self.http.request(Request::from((
             serde_json::to_vec(self)?,
             Route::CreateChannel {
                 guild_id: self.guild_id.0,
             },
-        )))?);
+        )))));
 
         Ok(())
     }

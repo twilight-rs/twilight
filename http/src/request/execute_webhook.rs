@@ -18,7 +18,7 @@ pub struct ExecuteWebhook<'a> {
     username: Option<String>,
     wait: Option<bool>,
     #[serde(skip)]
-    fut: Option<PendingBody<'a, Option<Message>>>,
+    fut: Option<Pin<Box<dyn Future<Output = Result<Option<Message>>> + Send + 'a>>>,
     #[serde(skip)]
     http: &'a Client,
     #[serde(skip)]
@@ -98,14 +98,14 @@ impl<'a> ExecuteWebhook<'a> {
     }
 
     fn start(&mut self) -> Result<()> {
-        self.fut.replace(self.http.request(Request::from((
+        self.fut.replace(Box::pin(self.http.request(Request::from((
             serde_json::to_vec(self)?,
             Route::ExecuteWebhook {
-                token: &self.token,
+                token: self.token.to_owned(),
                 wait: self.wait,
                 webhook_id: self.webhook_id.0,
             },
-        )))?);
+        )))));
 
         Ok(())
     }

@@ -2,10 +2,7 @@ use dawn_model::{
     guild::Member,
     id::{GuildId, UserId},
 };
-use super::{
-    get_guild_members_iter::GetGuildMembersIter,
-    prelude::*,
-};
+use super::prelude::*;
 
 /// Gets a list of members from a guild.
 ///
@@ -32,7 +29,7 @@ use super::{
 pub struct GetGuildMembers<'a> {
     after: Option<UserId>,
     limit: Option<u64>,
-    fut: Option<PendingBody<'a, Vec<Member>>>,
+    fut: Option<Pin<Box<dyn Future<Output = Result<Vec<Member>>> + Send + 'a>>>,
     guild_id: GuildId,
     http: &'a Client,
 }
@@ -67,44 +64,12 @@ impl<'a> GetGuildMembers<'a> {
         self
     }
 
-    /// Create a streaming iterator to loop through the guild members with these
-    /// parameters.
-    ///
-    /// # Examples
-    ///
-    /// ```rust,no_run
-    /// use futures_util::StreamExt;
-    /// use dawn_http::Client;
-    /// use dawn_model::id::{GuildId, UserId};
-    ///
-    /// # async fn foo() -> Result<(), Box<dyn std::error::Error>> {
-    /// let client = Client::new("my token".to_owned());
-    /// let mut iter = client.guild_members(GuildId(377840580245585931))
-    ///     .after(UserId(114941315417899012))
-    ///     .iter();
-    ///
-    /// while let Some(Ok(members)) = iter.next().await {
-    ///     for member in members {
-    ///         println!("member name: {}", member.user.name);
-    ///     }
-    /// }
-    /// # Ok(()) } fn main() {}
-    /// ```
-    pub fn iter(self) -> GetGuildMembersIter<'a> {
-        GetGuildMembersIter::new(
-            self.http,
-            self.guild_id,
-            self.after,
-            self.limit,
-        )
-    }
-
     fn start(&mut self) -> Result<()> {
-        self.fut.replace(self.http.request(Request::from(Route::GetGuildMembers {
+        self.fut.replace(Box::pin(self.http.request(Request::from(Route::GetGuildMembers {
             after: self.after.map(|x| x.0),
             guild_id: self.guild_id.0,
             limit: self.limit,
-        }))?);
+        }))));
 
         Ok(())
     }

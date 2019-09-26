@@ -9,7 +9,7 @@ use super::{
 
 pub struct GetChannelMessages<'a> {
     limit: Option<u64>,
-    fut: Option<PendingBody<'a, Vec<Message>>>,
+    fut: Option<Pin<Box<dyn Future<Output = Result<Vec<Message>>> + Send + 'a>>>,
     channel_id: ChannelId,
     http: &'a Client,
 }
@@ -67,13 +67,13 @@ impl<'a> GetChannelMessages<'a> {
     }
 
     fn start(&mut self) -> Result<()> {
-        self.fut.replace(self.http.request(Request::from(Route::GetMessages {
+        self.fut.replace(Box::pin(self.http.request(Request::from(Route::GetMessages {
             after: None,
             around: None,
             before: None,
             channel_id: self.channel_id.0,
             limit: self.limit,
-        }))?);
+        }))));
 
         Ok(())
     }

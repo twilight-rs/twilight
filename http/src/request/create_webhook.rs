@@ -11,7 +11,7 @@ pub struct CreateWebhook<'a> {
     #[serde(skip)]
     channel_id: ChannelId,
     #[serde(skip)]
-    fut: Option<PendingBody<'a, Webhook>>,
+    fut: Option<Pin<Box<dyn Future<Output = Result<Webhook>> + Send + 'a>>>,
     #[serde(skip)]
     http: &'a Client,
 }
@@ -38,12 +38,12 @@ impl<'a> CreateWebhook<'a> {
     }
 
     fn start(&mut self) -> Result<()> {
-        self.fut.replace(self.http.request(Request::from((
+        self.fut.replace(Box::pin(self.http.request(Request::from((
             serde_json::to_vec(self)?,
             Route::CreateWebhook {
                 channel_id: self.channel_id.0,
             },
-        )))?);
+        )))));
 
         Ok(())
     }

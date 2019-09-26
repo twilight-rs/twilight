@@ -21,7 +21,7 @@ pub struct UpdateChannel<'a> {
     #[serde(skip)]
     channel_id: ChannelId,
     #[serde(skip)]
-    fut: Option<PendingBody<'a, Channel>>,
+    fut: Option<Pin<Box<dyn Future<Output = Result<Channel>> + Send + 'a>>>,
     #[serde(skip)]
     http: &'a Client,
 }
@@ -105,12 +105,12 @@ impl<'a> UpdateChannel<'a> {
     }
 
     fn start(&mut self) -> Result<()> {
-        self.fut.replace(self.http.request(Request::from((
+        self.fut.replace(Box::pin(self.http.request(Request::from((
             serde_json::to_vec(self)?,
             Route::UpdateChannel {
                 channel_id: self.channel_id.0,
             },
-        )))?);
+        )))));
 
         Ok(())
     }

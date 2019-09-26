@@ -13,7 +13,7 @@ pub struct GetChannelMessagesConfigured<'a> {
     around: Option<MessageId>,
     before: Option<MessageId>,
     channel_id: ChannelId,
-    fut: Option<PendingBody<'a, Vec<Message>>>,
+    fut: Option<Pin<Box<dyn Future<Output = Result<Vec<Message>>> + Send + 'a>>>,
     http: &'a Client,
 }
 
@@ -44,13 +44,13 @@ impl<'a> GetChannelMessagesConfigured<'a> {
     }
 
     fn start(&mut self) -> Result<()> {
-        self.fut.replace(self.http.request(Request::from(Route::GetMessages {
+        self.fut.replace(Box::pin(self.http.request(Request::from(Route::GetMessages {
             after: self.after.map(|x| x.0),
             around: self.around.map(|x| x.0),
             before: self.before.map(|x| x.0),
             channel_id: self.channel_id.0,
             limit: self.limit,
-        }))?);
+        }))));
 
         Ok(())
     }

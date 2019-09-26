@@ -6,7 +6,7 @@ use super::prelude::*;
 
 pub struct GetWebhook<'a> {
     token: Option<String>,
-    fut: Option<PendingBody<'a, Option<Webhook>>>,
+    fut: Option<Pin<Box<dyn Future<Output = Result<Option<Webhook>>> + Send + 'a>>>,
     http: &'a Client,
     id: WebhookId,
 }
@@ -28,10 +28,10 @@ impl<'a> GetWebhook<'a> {
     }
 
     fn start(&mut self) -> Result<()> {
-        self.fut.replace(self.http.request(Request::from(Route::GetWebhook {
-            token: self.token.as_ref().map(AsRef::as_ref),
+        self.fut.replace(Box::pin(self.http.request(Request::from(Route::GetWebhook {
+            token: self.token.as_ref().map(ToOwned::to_owned),
             webhook_id: self.id.0,
-        }))?);
+        }))));
 
         Ok(())
     }

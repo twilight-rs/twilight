@@ -9,7 +9,7 @@ pub struct GetCurrentUserGuilds<'a> {
     after: Option<GuildId>,
     before: Option<GuildId>,
     #[serde(skip)]
-    fut: Option<PendingBody<'a, Vec<PartialGuild>>>,
+    fut: Option<Pin<Box<dyn Future<Output = Result<Vec<PartialGuild>>> + Send + 'a>>>,
     #[serde(skip)]
     http: &'a Client,
     limit: Option<u64>,
@@ -45,14 +45,14 @@ impl<'a> GetCurrentUserGuilds<'a> {
     }
 
     fn start(&mut self) -> Result<()> {
-        self.fut.replace(self.http.request(Request::from((
+        self.fut.replace(Box::pin(self.http.request(Request::from((
             serde_json::to_vec(self)?,
             Route::GetGuilds {
                 after: self.after.map(|x| x.0),
                 before: self.before.map(|x| x.0),
                 limit: self.limit,
             },
-        )))?);
+        )))));
 
         Ok(())
     }

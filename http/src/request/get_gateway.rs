@@ -5,7 +5,7 @@ use super::{
 };
 
 pub struct GetGateway<'a> {
-    fut: Option<PendingBody<'a, ConnectionInfo>>,
+    fut: Option<Pin<Box<dyn Future<Output = Result<ConnectionInfo>> + Send + 'a>>>,
     http: &'a Client,
 }
 
@@ -22,7 +22,7 @@ impl<'a> GetGateway<'a> {
     }
 
     fn start(&mut self) -> Result<()> {
-        self.fut.replace(self.http.request(Request::from(Route::GetGateway))?);
+        self.fut.replace(Box::pin(self.http.request(Request::from(Route::GetGateway))));
 
         Ok(())
     }

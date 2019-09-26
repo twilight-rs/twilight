@@ -24,7 +24,7 @@ pub struct UpdateGuild<'a> {
     system_channel_id: Option<ChannelId>,
     verification_level: Option<VerificationLevel>,
     #[serde(skip)]
-    fut: Option<PendingBody<'a, PartialGuild>>,
+    fut: Option<Pin<Box<dyn Future<Output = Result<PartialGuild>> + Send + 'a>>>,
     #[serde(skip)]
     guild_id: GuildId,
     #[serde(skip)]
@@ -136,12 +136,12 @@ impl<'a> UpdateGuild<'a> {
     }
 
     fn start(&mut self) -> Result<()> {
-        self.fut.replace(self.http.request(Request::from((
+        self.fut.replace(Box::pin(self.http.request(Request::from((
             serde_json::to_vec(self)?,
             Route::UpdateGuild {
                 guild_id: self.guild_id.0,
             },
-        )))?);
+        )))));
 
         Ok(())
     }

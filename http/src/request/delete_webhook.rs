@@ -5,7 +5,7 @@ use super::prelude::*;
 pub struct DeleteWebhook<'a> {
     token: Option<String>,
     #[serde(skip)]
-    fut: Option<Pending<'a>>,
+    fut: Option<Pin<Box<dyn Future<Output = Result<()>> + Send + 'a>>>,
     #[serde(skip)]
     http: &'a Client,
     id: WebhookId,
@@ -28,10 +28,10 @@ impl<'a> DeleteWebhook<'a> {
     }
 
     fn start(&mut self) -> Result<()> {
-        self.fut.replace(self.http.verify(Request::from(Route::DeleteWebhook {
+        self.fut.replace(Box::pin(self.http.verify(Request::from(Route::DeleteWebhook {
             webhook_id: self.id.0,
-            token: self.token.as_ref().map(AsRef::as_ref),
-        }))?);
+            token: self.token.as_ref().map(ToOwned::to_owned),
+        }))));
 
         Ok(())
     }

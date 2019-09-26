@@ -4,7 +4,7 @@ use super::prelude::*;
 pub struct GetInvite<'a> {
     with_counts: bool,
     code: String,
-    fut: Option<PendingBody<'a, Option<Invite>>>,
+    fut: Option<Pin<Box<dyn Future<Output = Result<Option<Invite>>> + Send + 'a>>>,
     http: &'a Client,
 }
 
@@ -25,10 +25,10 @@ impl<'a> GetInvite<'a> {
     }
 
     fn start(&mut self) -> Result<()> {
-        self.fut.replace(self.http.request(Request::from(Route::GetInvite {
-            code: &self.code,
+        self.fut.replace(Box::pin(self.http.request(Request::from(Route::GetInvite {
+            code: self.code.to_owned(),
             with_counts: self.with_counts,
-        }))?);
+        }))));
 
         Ok(())
     }

@@ -9,7 +9,7 @@ pub struct UpdateGuildEmbed<'a> {
     channel_id: Option<ChannelId>,
     enabled: Option<bool>,
     #[serde(skip)]
-    fut: Option<PendingBody<'a, GuildEmbed>>,
+    fut: Option<Pin<Box<dyn Future<Output = Result<GuildEmbed>> + Send + 'a>>>,
     #[serde(skip)]
     guild_id: GuildId,
     #[serde(skip)]
@@ -40,12 +40,12 @@ impl<'a> UpdateGuildEmbed<'a> {
     }
 
     fn start(&mut self) -> Result<()> {
-        self.fut.replace(self.http.request(Request::from((
+        self.fut.replace(Box::pin(self.http.request(Request::from((
             serde_json::to_vec(self)?,
             Route::UpdateGuildEmbed {
                 guild_id: self.guild_id.0,
             },
-        )))?);
+        )))));
 
         Ok(())
     }

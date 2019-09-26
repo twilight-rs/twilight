@@ -3,17 +3,14 @@ macro_rules! poll_req {
         impl std::future::Future for $ty {
             type Output = $crate::error::Result<$ret>;
 
-            fn poll(self: std::pin::Pin<&mut Self>, cx: &mut std::task::Context<'_>) -> Poll<Self::Output> {
-                let this = self.get_mut();
-
+            fn poll(mut self: std::pin::Pin<&mut Self>, cx: &mut std::task::Context<'_>) -> Poll<Self::Output> {
                 loop {
-                    match this.fut {
-                        Some(ref mut fut) => return std::pin::Pin::new(fut).poll(cx),
-                        None => {
-                            if let Err(why) = this.start() {
-                                return std::task::Poll::Ready(Err(why));
-                            }
-                        }
+                    if let Some(fut) = self.as_mut().fut.as_mut() {
+                        return fut.as_mut().poll(cx);
+                    }
+
+                    if let Err(why) = self.as_mut().start() {
+                        return std::task::Poll::Ready(Err(why));
                     }
                 }
             }
@@ -39,7 +36,6 @@ mod get_channel_messages_configured;
 mod get_gateway;
 mod get_gateway_authed;
 mod get_guild_members;
-mod get_guild_members_iter;
 mod get_guild_prune_count;
 mod get_invite;
 mod get_reactions;
@@ -77,7 +73,6 @@ pub use self::{
     get_gateway::GetGateway,
     get_gateway_authed::GetGatewayAuthed,
     get_guild_members::GetGuildMembers,
-    get_guild_members_iter::GetGuildMembersIter,
     get_guild_prune_count::GetGuildPruneCount,
     get_invite::GetInvite,
     get_reactions::GetReactions,
@@ -104,19 +99,19 @@ use http::{
 use std::borrow::Cow;
 
 #[derive(Clone, Debug)]
-pub struct Request<'a> {
+pub struct Request {
     pub body: Option<Vec<u8>>,
     pub headers: Option<HeaderMap<HeaderValue>>,
     pub method: Method,
     pub path: Path,
-    pub path_str: Cow<'a, str>,
+    pub path_str: Cow<'static, str>,
 }
 
-impl<'a> Request<'a> {
+impl Request {
     pub fn new(
         body: Option<Vec<u8>>,
         headers: Option<HeaderMap<HeaderValue>>,
-        route: Route<'a>,
+        route: Route,
     ) -> Self {
         let (method, path, path_str) = route.into_parts();
 
@@ -130,8 +125,8 @@ impl<'a> Request<'a> {
     }
 }
 
-impl<'a> From<Route<'a>> for Request<'a> {
-    fn from(route: Route<'a>) -> Self {
+impl From<Route> for Request {
+    fn from(route: Route) -> Self {
         let (method, path, path_str) = route.into_parts();
 
         Self {
@@ -144,8 +139,8 @@ impl<'a> From<Route<'a>> for Request<'a> {
     }
 }
 
-impl<'a> From<(Vec<u8>, Route<'a>)> for Request<'a> {
-    fn from((body, route): (Vec<u8>, Route<'a>)) -> Self {
+impl From<(Vec<u8>, Route)> for Request {
+    fn from((body, route): (Vec<u8>, Route)) -> Self {
         let (method, path, path_str) = route.into_parts();
 
         Self {
@@ -158,9 +153,9 @@ impl<'a> From<(Vec<u8>, Route<'a>)> for Request<'a> {
     }
 }
 
-impl<'a> From<(Vec<u8>, HeaderMap<HeaderValue>, Route<'a>)> for Request<'a> {
+impl From<(Vec<u8>, HeaderMap<HeaderValue>, Route)> for Request {
     fn from(
-        (body, headers, route): (Vec<u8>, HeaderMap<HeaderValue>, Route<'a>),
+        (body, headers, route): (Vec<u8>, HeaderMap<HeaderValue>, Route),
     ) -> Self {
         let (method, path, path_str) = route.into_parts();
 

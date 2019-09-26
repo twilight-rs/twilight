@@ -11,7 +11,7 @@ pub struct UpdateEmoji<'a> {
     #[serde(skip)]
     emoji_id: EmojiId,
     #[serde(skip)]
-    fut: Option<PendingBody<'a, Emoji>>,
+    fut: Option<Pin<Box<dyn Future<Output = Result<Emoji>> + Send + 'a>>>,
     #[serde(skip)]
     guild_id: GuildId,
     #[serde(skip)]
@@ -47,13 +47,13 @@ impl<'a> UpdateEmoji<'a> {
     }
 
     fn start(&mut self) -> Result<()> {
-        self.fut.replace(self.http.request(Request::from((
+        self.fut.replace(Box::pin(self.http.request(Request::from((
             serde_json::to_vec(self)?,
             Route::UpdateEmoji {
                 emoji_id: self.emoji_id.0,
                 guild_id: self.guild_id.0,
             },
-        )))?);
+        )))));
 
         Ok(())
     }

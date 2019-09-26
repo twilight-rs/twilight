@@ -1,7 +1,6 @@
 pub use crate::{
     client::Client,
     error::Result,
-    pending::{Pending, PendingBody},
     routing::Route,
 };
 pub use http::Method;

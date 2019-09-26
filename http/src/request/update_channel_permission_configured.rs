@@ -11,7 +11,7 @@ pub struct UpdateChannelPermissionConfigured<'a> {
     channel_id: ChannelId,
     deny: Permissions,
     #[serde(skip)]
-    fut: Option<Pending<'a>>,
+    fut: Option<Pin<Box<dyn Future<Output = Result<()>> + Send + 'a>>>,
     #[serde(skip)]
     http: &'a Client,
     #[serde(rename = "type")]
@@ -41,13 +41,13 @@ impl<'a> UpdateChannelPermissionConfigured<'a> {
     }
 
     fn start(&mut self) -> Result<()> {
-        self.fut.replace(self.http.verify(Request::from((
+        self.fut.replace(Box::pin(self.http.verify(Request::from((
             serde_json::to_vec(self)?,
             Route::UpdatePermissionOverwrite {
                 channel_id: self.channel_id.0,
                 target_id: self.target_id,
             },
-        )))?);
+        )))));
 
         Ok(())
     }

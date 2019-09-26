@@ -1,7 +1,9 @@
+use crate::Result;
 use dawn_model::{
     channel::Webhook,
     id::WebhookId,
 };
+use futures_util::FutureExt;
 use super::prelude::*;
 
 #[derive(Serialize)]
@@ -9,7 +11,7 @@ pub struct UpdateWebhookWithToken<'a> {
     avatar: Option<String>,
     name: Option<String>,
     #[serde(skip)]
-    fut: Option<PendingBody<'a, Webhook>>,
+    fut: Option<Pin<Box<dyn Future<Output = Result<Webhook>> + Send + 'a>>>,
     #[serde(skip)]
     http: &'a Client,
     #[serde(skip)]
@@ -50,10 +52,10 @@ impl<'a> UpdateWebhookWithToken<'a> {
         self.fut.replace(self.http.request(Request::from((
             serde_json::to_vec(&self)?,
             Route::UpdateWebhook {
-                token: Some(&self.token),
+                token: Some(self.token.clone()),
                 webhook_id: self.webhook_id.0,
             },
-        )))?);
+        ))).boxed());
 
         Ok(())
     }

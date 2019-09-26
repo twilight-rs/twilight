@@ -6,7 +6,7 @@ use super::prelude::*;
 
 pub struct GetGuildPruneCount<'a> {
     days: Option<u64>,
-    fut: Option<PendingBody<'a, GuildPrune>>,
+    fut: Option<Pin<Box<dyn Future<Output = Result<GuildPrune>> + Send + 'a>>>,
     guild_id: GuildId,
     http: &'a Client,
 }
@@ -31,10 +31,10 @@ impl<'a> GetGuildPruneCount<'a> {
     }
 
     fn start(&mut self) -> Result<()> {
-        self.fut.replace(self.http.request(Request::from(Route::GetGuildPruneCount {
+        self.fut.replace(Box::pin(self.http.request(Request::from(Route::GetGuildPruneCount {
             days: self.days,
             guild_id: self.guild_id.0,
-        }))?);
+        }))));
 
         Ok(())
     }

@@ -189,7 +189,7 @@ impl TryFrom<(Method, &str)> for Path {
 }
 
 #[derive(Clone, Debug)]
-pub enum Route<'a> {
+pub enum Route {
     AddMemberRole {
         guild_id: u64,
         role_id: u64,
@@ -199,7 +199,7 @@ pub enum Route<'a> {
         guild_id: u64,
         user_id: u64,
         delete_message_days: Option<u64>,
-        reason: Option<&'a str>,
+        reason: Option<String>,
     },
     CreateChannel {
         guild_id: u64,
@@ -225,7 +225,7 @@ pub enum Route<'a> {
     CreatePrivateChannel,
     CreateReaction {
         channel_id: u64,
-        emoji: &'a str,
+        emoji: String,
         message_id: u64,
     },
     CreateRole {
@@ -256,7 +256,7 @@ pub enum Route<'a> {
         integration_id: u64,
     },
     DeleteInvite {
-        code: &'a str,
+        code: String,
     },
     DeleteMessage {
         channel_id: u64,
@@ -275,20 +275,20 @@ pub enum Route<'a> {
     },
     DeleteReaction {
         channel_id: u64,
-        emoji: &'a str,
+        emoji: String,
         message_id: u64,
-        user: &'a str,
+        user: String,
     },
     DeleteRole {
         guild_id: u64,
         role_id: u64,
     },
     DeleteWebhook {
-        token: Option<&'a str>,
+        token: Option<String>,
         webhook_id: u64,
     },
     ExecuteWebhook {
-        token: &'a str,
+        token: String,
         wait: Option<bool>,
         webhook_id: u64,
     },
@@ -366,7 +366,7 @@ pub enum Route<'a> {
         limit: Option<u64>,
     },
     GetInvite {
-        code: &'a str,
+        code: String,
         with_counts: bool,
     },
     GetMember {
@@ -391,22 +391,18 @@ pub enum Route<'a> {
         after: Option<u64>,
         before: Option<u64>,
         channel_id: u64,
-        emoji: &'a str,
+        emoji: String,
         limit: Option<u64>,
         message_id: u64,
     },
     GetUser {
-        target_user: &'a str,
+        target_user: String,
     },
-    GetUserConnections {
-        target_user: &'a str,
-    },
-    GetUserPrivateChannels {
-        target_user: &'a str,
-    },
+    GetUserConnections,
+    GetUserPrivateChannels,
     GetVoiceRegions,
     GetWebhook {
-        token: Option<&'a str>,
+        token: Option<String>,
         webhook_id: u64,
     },
     LeaveGuild {
@@ -477,15 +473,15 @@ pub enum Route<'a> {
         guild_id: u64,
     },
     UpdateWebhook {
-        token: Option<&'a str>,
+        token: Option<String>,
         webhook_id: u64,
     },
 }
 
-impl<'a> Route<'a> {
+impl Route {
     // This function contains some `write!`s, but they can't fail, so we ignore
     // them to remove an unnecessary Result here.
-    pub fn into_parts(self) -> (Method, Path, Cow<'a, str>) {
+    pub fn into_parts(self) -> (Method, Path, Cow<'static, str>) {
         match self {
             Route::AddMemberRole { guild_id, role_id, user_id } => (
                 Method::PUT,
@@ -663,7 +659,7 @@ impl<'a> Route<'a> {
 
                 if let Some(token) = token {
                     path.push('/');
-                    path.push_str(token);
+                    path.push_str(&token);
                 }
 
                 (Method::DELETE, Path::WebhooksId(webhook_id), path.into())
@@ -907,20 +903,20 @@ impl<'a> Route<'a> {
                     path.into(),
                 )
             },
-            Route::GetUserConnections { target_user } => (
+            Route::GetUserConnections => (
                 Method::GET,
                 Path::UsersIdConnections,
-                format!("users/{}", target_user).into(),
+                "users/@me/connections".into(),
+            ),
+            Route::GetUserPrivateChannels => (
+                Method::GET,
+                Path::UsersIdChannels,
+                "users/@me/channels".into(),
             ),
             Route::GetUser { target_user } => (
                 Method::GET,
                 Path::UsersId,
                 format!("users/{}", target_user).into(),
-            ),
-            Route::GetUserPrivateChannels { target_user } => (
-                Method::GET,
-                Path::UsersIdChannels,
-                format!("users/{}/channels", target_user).into(),
             ),
             Route::GetVoiceRegions => (
                 Method::GET,
@@ -932,7 +928,7 @@ impl<'a> Route<'a> {
 
                 if let Some(token) = token {
                     path.push('/');
-                    path.push_str(token);
+                    path.push_str(&token);
                 }
 
                 (Method::GET, Path::WebhooksId(webhook_id), path.into())
@@ -1041,7 +1037,7 @@ impl<'a> Route<'a> {
 
                 if let Some(token) = token {
                     path.push('/');
-                    path.push_str(token);
+                    path.push_str(&token);
                 }
 
                 (Method::PATCH, Path::WebhooksId(webhook_id), path.into())

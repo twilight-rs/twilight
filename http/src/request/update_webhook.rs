@@ -10,7 +10,7 @@ pub struct UpdateWebhook<'a> {
     channel_id: Option<ChannelId>,
     name: Option<String>,
     #[serde(skip)]
-    fut: Option<PendingBody<'a, Webhook>>,
+    fut: Option<Pin<Box<dyn Future<Output = Result<Webhook>> + Send + 'a>>>,
     #[serde(skip)]
     http: &'a Client,
     #[serde(skip)]
@@ -51,13 +51,13 @@ impl<'a> UpdateWebhook<'a> {
     }
 
     fn start(&mut self) -> Result<()> {
-        self.fut.replace(self.http.request(Request::from((
+        self.fut.replace(Box::pin(self.http.request(Request::from((
             serde_json::to_vec(self)?,
             Route::UpdateWebhook {
                 token: None,
                 webhook_id: self.webhook_id.0,
             },
-        )))?);
+        )))));
 
         Ok(())
     }

@@ -10,7 +10,7 @@ pub struct GetReactions<'a> {
     limit: Option<u64>,
     channel_id: ChannelId,
     emoji: String,
-    fut: Option<PendingBody<'a, Vec<User>>>,
+    fut: Option<Pin<Box<dyn Future<Output = Result<Vec<User>>> + Send + 'a>>>,
     http: &'a Client,
     message_id: MessageId,
 }
@@ -53,14 +53,14 @@ impl<'a> GetReactions<'a> {
     }
 
     fn start(&mut self) -> Result<()> {
-        self.fut.replace(self.http.request(Request::from(Route::GetReactionUsers {
+        self.fut.replace(Box::pin(self.http.request(Request::from(Route::GetReactionUsers {
             after: self.after.map(|x| x.0),
             before: self.before.map(|x| x.0),
             channel_id: self.channel_id.0,
-            emoji: &self.emoji,
+            emoji: self.emoji.to_owned(),
             limit: self.limit,
             message_id: self.message_id.0,
-        }))?);
+        }))));
 
         Ok(())
     }
