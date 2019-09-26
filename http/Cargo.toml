@@ -20,7 +20,7 @@ futures-timer = "0.4"
 http = "0.1"
 dawn-model = { path = "../model" }
 log = "0.4"
-reqwest = { default-features = false, features = ["rustls-tls"], git = "https://github.com/seanmonstar/reqwest" }
+reqwest = { default-features = false, features = ["rustls-tls"], git = "https://github.com/seanmonstar/reqwest", rev = "f4100e4148dad8176608eb7bd2a530e719e61cc8" }
 serde = "1"
 serde_json = "1"
 snafu = "0.5"
