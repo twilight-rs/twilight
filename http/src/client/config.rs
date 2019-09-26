@@ -1,10 +1,14 @@
-use reqwest::{Client as ReqwestClient, Proxy};
+pub use reqwest::Proxy;
+
+use reqwest::Client as ReqwestClient;
 use std::time::Duration;
 
 #[derive(Clone, Debug)]
 pub struct Config {
     pub(crate) proxy: Option<Proxy>,
+    pub(crate) proxy_http: bool,
     pub(crate) reqwest_client: Option<ReqwestClient>,
+    pub(crate) skip_ratelimiter: bool,
     pub(crate) timeout: Duration,
     pub(crate) token: Option<String>,
 }
@@ -20,9 +24,17 @@ impl Config {
         self.proxy.as_ref()
     }
 
+    pub fn proxy_http(&self) -> bool {
+        self.proxy_http
+    }
+
     /// Returns an immutable reference to the reqwest client, if any.
     pub fn reqwest_client(&self) -> Option<&ReqwestClient> {
         self.reqwest_client.as_ref()
+    }
+
+    pub fn skip_ratelimiter(&self) -> bool {
+        self.skip_ratelimiter
     }
 
     /// Returns an immutable reference to the token.
@@ -61,6 +73,12 @@ impl ConfigBuilder {
         self
     }
 
+    pub fn proxy_http(&mut self, proxy_http: bool) -> &mut Self {
+        self.0.proxy_http = proxy_http;
+
+        self
+    }
+
     /// Sets the reqwest client to use.
     ///
     /// All of the settings in the client will be overwritten by the settings
@@ -69,6 +87,15 @@ impl ConfigBuilder {
     /// The default client is a RusTLS-backed client.
     pub fn reqwest_client(&mut self, client: ReqwestClient) -> &mut Self {
         self.0.reqwest_client.replace(client);
+
+        self
+    }
+
+    /// Sets whether to skip the client's ratelimiter before making the request.
+    ///
+    /// The default is `false`.
+    pub fn skip_ratelimiter(&mut self, skip_ratelimiter: bool) -> &mut Self {
+        self.0.skip_ratelimiter = skip_ratelimiter;
 
         self
     }
@@ -94,7 +121,9 @@ impl Default for ConfigBuilder {
     fn default() -> Self {
         Self(Config {
             proxy: None,
+            proxy_http: false,
             reqwest_client: None,
+            skip_ratelimiter: false,
             timeout: Duration::from_secs(10),
             token: None,
         })

@@ -43,7 +43,7 @@ use dawn_model::{
     user::{Connection, CurrentUser, User},
     voice::VoiceRegion,
 };
-use log::warn;
+use log::{debug, warn};
 use reqwest::{
     header::HeaderValue,
     Body,
@@ -90,7 +90,9 @@ impl ClientBuilder {
             state: Arc::new(State {
                 http: Arc::new(builder.build().context(BuildingClient)?),
                 ratelimiter: Ratelimiter::new(),
+                skip_ratelimiter: config.skip_ratelimiter,
                 token: config.token,
+                use_http: config.proxy_http,
             }),
         })
     }
@@ -113,7 +115,9 @@ impl DerefMut for ClientBuilder {
 struct State {
     http: Arc<ReqwestClient>,
     ratelimiter: Ratelimiter,
+    skip_ratelimiter: bool,
     token: Option<String>,
+    use_http: bool,
 }
 
 #[derive(Clone)]
@@ -127,7 +131,9 @@ impl Client {
             state: Arc::new(State {
                 http: Arc::new(ReqwestClient::new()),
                 ratelimiter: Ratelimiter::new(),
+                skip_ratelimiter: false,
                 token: Some(token.into()),
+                use_http: false,
             }),
         }
     }
@@ -1017,12 +1023,19 @@ impl Client {
             path_str: path,
         } = request;
 
-        let url = format!("https://discordapp.com/api/v6/{}", path);
+        let protocol = if self.state.use_http {
+            "http"
+        } else {
+            "https"
+        };
+        let url = format!("{}://discordapp.com/api/v6/{}", protocol, path);
 
         let url = Url::from_str(&url).with_context(|| InvalidUrl {
             method: method.clone(),
             path: path.to_owned(),
         })?;
+
+        debug!("URL: {:?}", url);
 
         let mut builder = self.state.http.request(method.clone(), url);
 
@@ -1044,10 +1057,10 @@ impl Client {
         let content_type = HeaderValue::from_static("application/json");
         let precision = HeaderValue::from_static("millisecond");
         let user_agent = HeaderValue::from_static(concat!(
-        "dawn.rs (",
-        env!("CARGO_PKG_HOMEPAGE"),
-        ") ",
-        env!("CARGO_PKG_VERSION"),
+            "dawn.rs (",
+            env!("CARGO_PKG_HOMEPAGE"),
+            ") ",
+            env!("CARGO_PKG_VERSION"),
         ));
         builder = builder.header("Content-Type", content_type);
         builder = builder.header("X-RateLimit-Precision", precision);
@@ -1055,6 +1068,10 @@ impl Client {
 
         if let Some(req_headers) = req_headers {
             builder = builder.headers(req_headers);
+        }
+
+        if self.state.skip_ratelimiter {
+            return builder.send().await.context(RequestError);
         }
 
         let rx = self.state.ratelimiter.get(bucket).await;
@@ -1142,7 +1159,9 @@ impl From<ReqwestClient> for Client {
             state: Arc::new(State {
                 http: Arc::new(reqwest_client),
                 ratelimiter: Ratelimiter::new(),
+                skip_ratelimiter: false,
                 token: None,
+                use_http: false,
             }),
         }
     }
@@ -1154,7 +1173,9 @@ impl From<Arc<ReqwestClient>> for Client {
             state: Arc::new(State {
                 http: reqwest_client,
                 ratelimiter: Ratelimiter::new(),
+                skip_ratelimiter: false,
                 token: None,
+                use_http: false,
             }),
         }
     }
