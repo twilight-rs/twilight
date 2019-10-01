@@ -12,9 +12,6 @@ pub struct MessageUpdate {
     pub author: Option<User>,
     pub channel_id: ChannelId,
     pub content: Option<String>,
-    #[cfg(feature = "chrono")]
-    pub edited_timestamp: Option<chrono::DateTime<chrono::FixedOffset>>,
-    #[cfg(not(feature = "chrono"))]
     pub edited_timestamp: Option<String>,
     pub embeds: Option<Vec<Embed>>,
     pub kind: Option<MessageType>,
@@ -22,9 +19,6 @@ pub struct MessageUpdate {
     pub mention_roles: Option<Vec<RoleId>>,
     pub mentions: Option<Vec<User>>,
     pub pinned: Option<bool>,
-    #[cfg(feature = "chrono")]
-    pub timestamp: Option<chrono::DateTime<chrono::FixedOffset>>,
-    #[cfg(not(feature = "chrono"))]
     pub timestamp: Option<String>,
     pub tts: Option<bool>,
 }

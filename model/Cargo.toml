@@ -14,11 +14,7 @@ version = "0.1.0"
 
 [dependencies]
 bitflags = "1"
-chrono = { features = ["serde"], optional = true, version = "0.4" }
 serde = { features = ["derive"], version = "1" }
 serde_json = "1"
 serde-mappable-seq = "0.1"
 serde_repr = "0.1"
-
-[features]
-default = ["chrono", "chrono/serde"]

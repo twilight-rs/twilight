@@ -76,9 +76,6 @@ pub struct Guild {
     pub explicit_content_filter: ExplicitContentFilter,
     pub features: Vec<String>,
     pub icon: Option<String>,
-    #[cfg(feature = "chrono")]
-    pub joined_at: chrono::DateTime<chrono::FixedOffset>,
-    #[cfg(not(feature = "chrono"))]
     pub joined_at: String,
     pub large: bool,
     pub max_members: Option<u64>,

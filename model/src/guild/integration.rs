@@ -14,9 +14,6 @@ pub struct GuildIntegration {
     pub kind: String,
     pub name: String,
     pub role_id: IntegrationId,
-    #[cfg(feature = "chrono")]
-    pub synced_at: chrono::DateTime<chrono::FixedOffset>,
-    #[cfg(not(feature = "chrono"))]
     pub synced_at: String,
     pub syncing: bool,
     pub user: User,

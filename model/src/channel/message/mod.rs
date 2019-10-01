@@ -37,9 +37,6 @@ pub struct Message {
     pub author: User,
     pub channel_id: ChannelId,
     pub content: String,
-    #[cfg(feature = "chrono")]
-    pub edited_timestamp: Option<chrono::DateTime<chrono::FixedOffset>>,
-    #[cfg(not(feature = "chrono"))]
     pub edited_timestamp: Option<String>,
     pub embeds: Vec<Embed>,
     pub flags: Option<MessageFlags>,
@@ -58,9 +55,6 @@ pub struct Message {
     pub reactions: Vec<MessageReaction>,
     #[serde(rename = "message_reference")]
     pub reference: Option<MessageReference>,
-    #[cfg(feature = "chrono")]
-    pub timestamp: chrono::DateTime<chrono::FixedOffset>,
-    #[cfg(not(feature = "chrono"))]
     pub timestamp: String,
     pub tts: bool,
     pub webhook_id: Option<WebhookId>,

@@ -14,9 +14,6 @@ pub struct Group {
     #[serde(rename = "type")]
     pub kind: ChannelType,
     pub last_message_id: Option<MessageId>,
-    #[cfg(feature = "chrono")]
-    pub last_pin_timestamp: Option<chrono::DateTime<chrono::FixedOffset>>,
-    #[cfg(not(feature = "chrono"))]
     pub last_pin_timestamp: Option<String>,
     pub name: Option<String>,
     pub owner_id: UserId,

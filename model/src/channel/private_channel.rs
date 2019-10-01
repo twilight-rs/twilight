@@ -10,9 +10,6 @@ use std::hash::{Hash, Hasher};
 pub struct PrivateChannel {
     pub id: ChannelId,
     pub last_message_id: Option<MessageId>,
-    #[cfg(feature = "chrono")]
-    pub last_pin_timestamp: Option<chrono::DateTime<chrono::FixedOffset>>,
-    #[cfg(not(feature = "chrono"))]
     pub last_pin_timestamp: Option<String>,
     #[serde(rename = "type")]
     pub kind: ChannelType,
