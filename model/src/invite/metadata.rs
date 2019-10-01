@@ -10,7 +10,6 @@ pub struct InviteMetadata {
     pub inviter: User,
     pub max_age: u64,
     pub max_uses: u64,
-    pub revoked: bool,
     pub temporary: bool,
     pub uses: u64,
 }
