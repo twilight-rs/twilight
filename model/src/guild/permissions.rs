@@ -1,8 +1,7 @@
 use bitflags::bitflags;
-use serde::{Deserialize, Serialize};
 
 bitflags! {
-    #[derive(Deserialize, Serialize)]
+    #[cfg_attr(feature = "serde-support", derive(serde::Deserialize, serde::Serialize))]
     pub struct Permissions: u64 {
         const CREATE_INVITE = 0x0000_0001;
         const KICK_MEMBERS = 0x0000_0002;

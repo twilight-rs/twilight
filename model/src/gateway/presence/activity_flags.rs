@@ -1,8 +1,7 @@
 use bitflags::bitflags;
-use serde::{Deserialize, Serialize};
 
 bitflags! {
-    #[derive(Deserialize, Serialize)]
+    #[cfg_attr(feature = "serde-support", derive(serde::Deserialize, serde::Serialize))]
     pub struct ActivityFlags: u64 {
         const INSTANCE = 0b001;
         const JOIN = 0b010;

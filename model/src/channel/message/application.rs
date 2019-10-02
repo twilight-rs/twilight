@@ -1,8 +1,11 @@
 use crate::id::ApplicationId;
-use serde::{Deserialize, Serialize};
 use std::hash::{Hash, Hasher};
 
-#[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
+#[cfg_attr(
+    feature = "serde-support",
+    derive(serde::Deserialize, serde::Serialize)
+)]
+#[derive(Clone, Debug, Eq, PartialEq)]
 pub struct MessageApplication {
     pub id: ApplicationId,
     pub cover_image: Option<String>,

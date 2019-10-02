@@ -1,8 +1,7 @@
 use bitflags::bitflags;
-use serde::{Deserialize, Serialize};
 
 bitflags! {
-    #[derive(Deserialize, Serialize)]
+    #[cfg_attr(feature = "serde-support", derive(serde::Deserialize, serde::Serialize))]
     pub struct UserFlags: u64 {
         const DISCORD_EMPLOYEE = 1;
         const DISCORD_PARTNER = 1 << 1;

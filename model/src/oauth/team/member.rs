@@ -2,10 +2,13 @@ use crate::{
     oauth::{id::TeamId, team::TeamMembershipState},
     user::User,
 };
-use serde::{Deserialize, Serialize};
 use std::hash::{Hash, Hasher};
 
-#[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
+#[cfg_attr(
+    feature = "serde-support",
+    derive(serde::Deserialize, serde::Serialize)
+)]
+#[derive(Clone, Debug, Eq, PartialEq)]
 pub struct TeamMember {
     pub membership_state: TeamMembershipState,
     pub permissions: Vec<String>,

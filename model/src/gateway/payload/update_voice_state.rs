@@ -2,9 +2,12 @@ use crate::{
     gateway::opcode::OpCode,
     id::{ChannelId, GuildId},
 };
-use serde::{Deserialize, Serialize};
 
-#[derive(Clone, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
+#[cfg_attr(
+    feature = "serde-support",
+    derive(serde::Deserialize, serde::Serialize)
+)]
+#[derive(Clone, Debug, Eq, Hash, PartialEq)]
 pub struct UpdateVoiceState {
     pub d: UpdateVoiceStateInfo,
     pub op: OpCode,
@@ -24,7 +27,11 @@ impl UpdateVoiceState {
     }
 }
 
-#[derive(Clone, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
+#[cfg_attr(
+    feature = "serde-support",
+    derive(serde::Deserialize, serde::Serialize)
+)]
+#[derive(Clone, Debug, Eq, Hash, PartialEq)]
 pub struct UpdateVoiceStateInfo {
     pub channel_id: Option<ChannelId>,
     pub guild_id: GuildId,

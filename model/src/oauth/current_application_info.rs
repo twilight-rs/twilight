@@ -3,10 +3,13 @@ use crate::{
     oauth::{id::SkuId, team::Team},
     user::User,
 };
-use serde::{Deserialize, Serialize};
 use std::hash::{Hash, Hasher};
 
-#[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
+#[cfg_attr(
+    feature = "serde-support",
+    derive(serde::Deserialize, serde::Serialize)
+)]
+#[derive(Clone, Debug, Eq, PartialEq)]
 pub struct CurrentApplicationInfo {
     pub id: UserId,
     pub bot_public: bool,
@@ -18,7 +21,7 @@ pub struct CurrentApplicationInfo {
     pub name: String,
     pub owner: User,
     pub primary_sku_id: Option<SkuId>,
-    #[serde(default)]
+    #[cfg_attr(feature = "serde-support", serde(default))]
     pub rpc_origins: Vec<String>,
     pub slug: Option<String>,
     pub summary: String,

@@ -1,8 +1,11 @@
 use crate::id::EmojiId;
-use serde::{Deserialize, Serialize};
 
-#[derive(Clone, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
-#[serde(untagged)]
+#[cfg_attr(
+    feature = "serde-support",
+    derive(serde::Deserialize, serde::Serialize)
+)]
+#[cfg_attr(feature = "serde-support", serde(untagged))]
+#[derive(Clone, Debug, Eq, Hash, PartialEq)]
 pub enum ReactionType {
     Custom {
         animated: bool,

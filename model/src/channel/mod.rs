@@ -29,32 +29,43 @@ pub use self::{
     webhook::Webhook,
 };
 
-use crate::id::ChannelId;
-use serde::{Deserialize, Serialize};
-use serde_mappable_seq::Key;
-
-#[derive(Clone, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
-#[serde(untagged)]
+#[cfg_attr(
+    feature = "serde-support",
+    derive(serde::Deserialize, serde::Serialize),
+    serde(untagged)
+)]
+#[derive(Clone, Debug, Eq, Hash, PartialEq)]
 pub enum Channel {
     Group(Group),
     Guild(GuildChannel),
     Private(PrivateChannel),
 }
 
-#[derive(Clone, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
-#[serde(untagged)]
+#[cfg_attr(
+    feature = "serde-support",
+    derive(serde::Deserialize, serde::Serialize),
+    serde(untagged)
+)]
+#[derive(Clone, Debug, Eq, Hash, PartialEq)]
 pub enum GuildChannel {
     Category(CategoryChannel),
     Text(TextChannel),
     Voice(VoiceChannel),
 }
 
-impl Key<'_, ChannelId> for GuildChannel {
-    fn key(&self) -> ChannelId {
-        match self {
-            GuildChannel::Category(c) => c.id,
-            GuildChannel::Text(c) => c.id,
-            GuildChannel::Voice(c) => c.id,
+#[cfg(feature = "serde-support")]
+mod serde_mappable_seq_support {
+    use super::GuildChannel;
+    use crate::id::ChannelId;
+    use serde_mappable_seq::Key;
+
+    impl Key<'_, ChannelId> for GuildChannel {
+        fn key(&self) -> ChannelId {
+            match self {
+                GuildChannel::Category(c) => c.id,
+                GuildChannel::Text(c) => c.id,
+                GuildChannel::Voice(c) => c.id,
+            }
         }
     }
 }

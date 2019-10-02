@@ -1,15 +1,17 @@
-use serde::{Deserialize, Serialize};
-
-#[derive(Clone, Copy, Debug, Deserialize, Eq, Hash, PartialEq, PartialOrd, Ord, Serialize)]
+#[cfg_attr(
+    feature = "serde-support",
+    derive(serde::Deserialize, serde::Serialize)
+)]
+#[derive(Clone, Copy, Debug, Eq, Hash, PartialEq, PartialOrd, Ord)]
 pub enum Status {
-    #[serde(rename = "dnd")]
+    #[cfg_attr(feature = "serde-support", serde(rename = "dnd"))]
     DoNotDisturb,
-    #[serde(rename = "idle")]
+    #[cfg_attr(feature = "serde-support", serde(rename = "idle"))]
     Idle,
-    #[serde(rename = "invisible")]
+    #[cfg_attr(feature = "serde-support", serde(rename = "invisible"))]
     Invisible,
-    #[serde(rename = "offline")]
+    #[cfg_attr(feature = "serde-support", serde(rename = "offline"))]
     Offline,
-    #[serde(rename = "online")]
+    #[cfg_attr(feature = "serde-support", serde(rename = "online"))]
     Online,
 }

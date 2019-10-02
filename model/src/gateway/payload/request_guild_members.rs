@@ -1,7 +1,10 @@
 use crate::{gateway::opcode::OpCode, id::GuildId};
-use serde::{Deserialize, Serialize};
 
-#[derive(Clone, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
+#[cfg_attr(
+    feature = "serde-support",
+    derive(serde::Deserialize, serde::Serialize)
+)]
+#[derive(Clone, Debug, Eq, Hash, PartialEq)]
 pub struct RequestGuildMembers {
     pub d: RequestGuildMembersInfo,
     pub op: OpCode,
@@ -16,7 +19,11 @@ impl RequestGuildMembers {
     }
 }
 
-#[derive(Clone, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
+#[cfg_attr(
+    feature = "serde-support",
+    derive(serde::Deserialize, serde::Serialize)
+)]
+#[derive(Clone, Debug, Eq, Hash, PartialEq)]
 pub struct RequestGuildMembersInfo {
     pub guild_id: GuildId,
     pub limit: u64,

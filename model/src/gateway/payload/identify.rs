@@ -1,7 +1,10 @@
 use crate::gateway::opcode::OpCode;
-use serde::{Deserialize, Serialize};
 
-#[derive(Clone, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
+#[cfg_attr(
+    feature = "serde-support",
+    derive(serde::Deserialize, serde::Serialize)
+)]
+#[derive(Clone, Debug, Eq, Hash, PartialEq)]
 pub struct Identify {
     pub d: IdentifyInfo,
     pub op: OpCode,
@@ -23,7 +26,11 @@ impl Identify {
     }
 }
 
-#[derive(Clone, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
+#[cfg_attr(
+    feature = "serde-support",
+    derive(serde::Deserialize, serde::Serialize)
+)]
+#[derive(Clone, Debug, Eq, Hash, PartialEq)]
 pub struct IdentifyInfo {
     pub compression: bool,
     pub large_threshold: u64,
@@ -53,17 +60,21 @@ impl IdentifyInfo {
     }
 }
 
-#[derive(Clone, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
+#[cfg_attr(
+    feature = "serde-support",
+    derive(serde::Deserialize, serde::Serialize)
+)]
+#[derive(Clone, Debug, Eq, Hash, PartialEq)]
 pub struct IdentifyProperties {
-    #[serde(rename = "$browser")]
+    #[cfg_attr(feature = "serde-support", serde(rename = "$browser"))]
     pub browser: String,
-    #[serde(rename = "device")]
+    #[cfg_attr(feature = "serde-support", serde(rename = "device"))]
     pub device: String,
-    #[serde(rename = "$os")]
+    #[cfg_attr(feature = "serde-support", serde(rename = "$os"))]
     pub os: String,
-    #[serde(rename = "$referrer")]
+    #[cfg_attr(feature = "serde-support", serde(rename = "$referrer"))]
     pub referrer: String,
-    #[serde(rename = "$referring_domain")]
+    #[cfg_attr(feature = "serde-support", serde(rename = "$referring_domain"))]
     pub referring_domain: String,
 }
 

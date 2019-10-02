@@ -16,18 +16,20 @@ pub use self::{
     video::EmbedVideo,
 };
 
-use serde::{Deserialize, Serialize};
-
-#[derive(Clone, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
+#[cfg_attr(
+    feature = "serde-support",
+    derive(serde::Deserialize, serde::Serialize)
+)]
+#[derive(Clone, Debug, Eq, Hash, PartialEq)]
 pub struct Embed {
     pub author: Option<EmbedAuthor>,
     pub color: u32,
     pub description: Option<String>,
-    #[serde(default)]
+    #[cfg_attr(feature = "serde-support", serde(default))]
     pub fields: Vec<EmbedField>,
     pub footer: Option<EmbedFooter>,
     pub image: Option<EmbedImage>,
-    #[serde(rename = "type")]
+    #[cfg_attr(feature = "serde-support", serde(rename = "type"))]
     pub kind: String,
     pub provider: Option<EmbedProvider>,
     pub thumbnail: Option<EmbedThumbnail>,

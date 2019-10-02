@@ -1,8 +1,10 @@
-use serde::{Deserialize, Serialize};
-
-#[derive(Clone, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
+#[cfg_attr(
+    feature = "serde-support",
+    derive(serde::Deserialize, serde::Serialize)
+)]
+#[derive(Clone, Debug, Eq, Hash, PartialEq)]
 pub struct EmbedField {
-    #[serde(default)]
+    #[cfg_attr(feature = "serde-support", serde(default))]
     pub inline: bool,
     pub name: String,
     pub value: String,

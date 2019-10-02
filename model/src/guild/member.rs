@@ -1,12 +1,14 @@
 use crate::{
-    id::{GuildId, RoleId, UserId},
+    id::{GuildId, RoleId},
     user::User,
 };
-use serde::{Deserialize, Serialize};
-use serde_mappable_seq::Key;
 use std::hash::{Hash, Hasher};
 
-#[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
+#[cfg_attr(
+    feature = "serde-support",
+    derive(serde::Deserialize, serde::Serialize)
+)]
+#[derive(Clone, Debug, Eq, PartialEq)]
 pub struct Member {
     pub deaf: bool,
     pub guild_id: GuildId,
@@ -25,8 +27,15 @@ impl Hash for Member {
     }
 }
 
-impl Key<'_, UserId> for Member {
-    fn key(&self) -> UserId {
-        self.user.id
+#[cfg(feature = "serde-support")]
+mod serde_support {
+    use super::Member;
+    use crate::id::UserId;
+    use serde_mappable_seq::Key;
+
+    impl Key<'_, UserId> for Member {
+        fn key(&self) -> UserId {
+            self.user.id
+        }
     }
 }

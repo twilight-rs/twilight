@@ -2,10 +2,13 @@ use crate::{
     id::{ChannelId, GuildId, WebhookId},
     user::User,
 };
-use serde::{Deserialize, Serialize};
 use std::hash::{Hash, Hasher};
 
-#[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
+#[cfg_attr(
+    feature = "serde-support",
+    derive(serde::Deserialize, serde::Serialize)
+)]
+#[derive(Clone, Debug, Eq, PartialEq)]
 pub struct Webhook {
     pub id: WebhookId,
     pub avatar: Option<String>,

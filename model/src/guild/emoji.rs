@@ -2,14 +2,16 @@ use crate::{
     id::{EmojiId, RoleId},
     user::User,
 };
-use serde::{Deserialize, Serialize};
-use serde_mappable_seq::Key;
 use std::hash::{Hash, Hasher};
 
-#[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
+#[cfg_attr(
+    feature = "serde-support",
+    derive(serde::Deserialize, serde::Serialize)
+)]
+#[derive(Clone, Debug, Eq, PartialEq)]
 pub struct Emoji {
     pub id: EmojiId,
-    #[serde(default)]
+    #[cfg_attr(feature = "serde-support", serde(default))]
     pub animated: bool,
     pub name: String,
     pub managed: bool,
@@ -24,8 +26,15 @@ impl Hash for Emoji {
     }
 }
 
-impl Key<'_, EmojiId> for Emoji {
-    fn key(&self) -> EmojiId {
-        self.id
+#[cfg(feature = "serde-support")]
+mod serde_support {
+    use super::Emoji;
+    use crate::id::EmojiId;
+    use serde_mappable_seq::Key;
+
+    impl Key<'_, EmojiId> for Emoji {
+        fn key(&self) -> EmojiId {
+            self.id
+        }
     }
 }

@@ -1,17 +1,20 @@
 use crate::id::UserId;
-use serde::{Deserialize, Serialize};
 use std::hash::{Hash, Hasher};
 
-#[derive(Clone, Default, Debug, Deserialize, Eq, PartialEq, Serialize)]
+#[cfg_attr(
+    feature = "serde-support",
+    derive(serde::Deserialize, serde::Serialize)
+)]
+#[derive(Clone, Default, Debug, Eq, PartialEq)]
 pub struct CurrentUser {
     pub id: UserId,
     pub avatar: Option<String>,
-    #[serde(default)]
+    #[cfg_attr(feature = "serde-support", serde(default))]
     pub bot: bool,
     pub discriminator: String,
     pub email: Option<String>,
     pub mfa_enabled: bool,
-    #[serde(rename = "username")]
+    #[cfg_attr(feature = "serde-support", serde(rename = "username"))]
     pub name: String,
     pub verified: bool,
 }

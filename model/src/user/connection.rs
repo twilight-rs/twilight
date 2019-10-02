@@ -1,17 +1,20 @@
 use crate::{guild::GuildIntegration, id::IntegrationId, user::ConnectionVisibility};
-use serde::{Deserialize, Serialize};
 use std::{
     collections::HashMap,
     hash::{Hash, Hasher},
 };
 
-#[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
+#[cfg_attr(
+    feature = "serde-support",
+    derive(serde::Deserialize, serde::Serialize)
+)]
+#[derive(Clone, Debug, Eq, PartialEq)]
 pub struct Connection {
     pub id: String,
     pub friend_sync: bool,
-    #[serde(with = "serde_mappable_seq")]
+    #[cfg_attr(feature = "serde-support", serde(with = "serde_mappable_seq"))]
     pub integrations: HashMap<IntegrationId, GuildIntegration>,
-    #[serde(rename = "type")]
+    #[cfg_attr(feature = "serde-support", serde(rename = "type"))]
     pub kind: String,
     pub name: String,
     pub revoked: bool,

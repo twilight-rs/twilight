@@ -2,15 +2,18 @@ use crate::{
     channel::{permission_overwrite::PermissionOverwrite, ChannelType},
     id::{ChannelId, GuildId},
 };
-use serde::{Deserialize, Serialize};
 use std::hash::{Hash, Hasher};
 
-#[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
+#[cfg_attr(
+    feature = "serde-support",
+    derive(serde::Deserialize, serde::Serialize)
+)]
+#[derive(Clone, Debug, Eq, PartialEq)]
 pub struct VoiceChannel {
     pub id: ChannelId,
     pub bitrate: u64,
     pub guild_id: GuildId,
-    #[serde(rename = "type")]
+    #[cfg_attr(feature = "serde-support", serde(rename = "type"))]
     pub kind: ChannelType,
     pub name: String,
     pub permission_overwrites: Vec<PermissionOverwrite>,

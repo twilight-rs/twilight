@@ -9,16 +9,22 @@ use crate::{
     },
     id::ApplicationId,
 };
-use serde::{Deserialize, Serialize};
 
-#[derive(Clone, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
+#[cfg_attr(
+    feature = "serde-support",
+    derive(serde::Deserialize, serde::Serialize)
+)]
+#[derive(Clone, Debug, Eq, Hash, PartialEq)]
 pub struct Activity {
     pub application_id: Option<ApplicationId>,
     pub assets: Option<ActivityAssets>,
     pub details: Option<String>,
     pub flags: Option<ActivityFlags>,
     pub instance: Option<bool>,
-    #[serde(default = "ActivityType::default", rename = "type")]
+    #[cfg_attr(
+        feature = "serde-support",
+        serde(default = "ActivityType::default", rename = "type")
+    )]
     pub kind: ActivityType,
     pub name: String,
     pub party: Option<ActivityParty>,

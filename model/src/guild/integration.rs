@@ -1,16 +1,18 @@
 use crate::{guild::IntegrationAccount, id::IntegrationId, user::User};
-use serde::{Deserialize, Serialize};
-use serde_mappable_seq::Key;
 use std::hash::{Hash, Hasher};
 
-#[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
+#[cfg_attr(
+    feature = "serde-support",
+    derive(serde::Deserialize, serde::Serialize)
+)]
+#[derive(Clone, Debug, Eq, PartialEq)]
 pub struct GuildIntegration {
     pub id: IntegrationId,
     pub account: IntegrationAccount,
     pub enabled: bool,
     pub expire_behavior: u64,
     pub expire_grace_period: u64,
-    #[serde(rename = "type")]
+    #[cfg_attr(feature = "serde-support", serde(rename = "type"))]
     pub kind: String,
     pub name: String,
     pub role_id: IntegrationId,
@@ -25,8 +27,15 @@ impl Hash for GuildIntegration {
     }
 }
 
-impl Key<'_, IntegrationId> for GuildIntegration {
-    fn key(&self) -> IntegrationId {
-        self.id
+#[cfg(feature = "serde-support")]
+mod serde_support {
+    use super::GuildIntegration;
+    use crate::id::IntegrationId;
+    use serde_mappable_seq::Key;
+
+    impl Key<'_, IntegrationId> for GuildIntegration {
+        fn key(&self) -> IntegrationId {
+            self.id
+        }
     }
 }

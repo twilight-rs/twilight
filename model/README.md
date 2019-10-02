@@ -31,6 +31,23 @@ Add the following to your `Cargo.toml`:
 dawn-model = "0.1"
 ```
 
+### Features
+
+`dawn-model` has a single feature, `serde-support`. By default it is enabled.
+This enables serde support of the models, which brings in four dependencies:
+
+- `serde`
+- `serde_json`
+- `serde-mappable-seq`
+- `serde_repr`
+
+If you don't need serde support, you can disable it:
+
+```toml
+[dependencies]
+dawn-model = { default-features = false, git = "https://github.com/dawn-rs/dawn" }
+```
+
 ## License
 
 [ISC][LICENSE.md]

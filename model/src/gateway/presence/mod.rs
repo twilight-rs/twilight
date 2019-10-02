@@ -19,10 +19,12 @@ pub use self::{
 };
 
 use crate::{id::UserId, user::User};
-use serde::{Deserialize, Serialize};
-use serde_mappable_seq::Key;
 
-#[derive(Clone, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
+#[cfg_attr(
+    feature = "serde-support",
+    derive(serde::Deserialize, serde::Serialize)
+)]
+#[derive(Clone, Debug, Eq, Hash, PartialEq)]
 pub struct Presence {
     pub activity: Option<Activity>,
     pub last_modified: Option<u64>,
@@ -31,18 +33,29 @@ pub struct Presence {
     pub user: UserOrId,
 }
 
-impl Key<'_, UserId> for Presence {
-    fn key(&self) -> UserId {
-        match self.user {
-            UserOrId::User(ref u) => u.id,
-            UserOrId::UserId(id) => id,
-        }
-    }
-}
-
-#[derive(Clone, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
-#[serde(untagged)]
+#[cfg_attr(
+    feature = "serde-support",
+    derive(serde::Deserialize, serde::Serialize)
+)]
+#[cfg_attr(feature = "serde-support", serde(untagged))]
+#[derive(Clone, Debug, Eq, Hash, PartialEq)]
 pub enum UserOrId {
     User(User),
     UserId(UserId),
+}
+
+#[cfg(feature = "serde-support")]
+mod serde_support {
+    use super::{Presence, UserOrId};
+    use crate::id::UserId;
+    use serde_mappable_seq::Key;
+
+    impl Key<'_, UserId> for Presence {
+        fn key(&self) -> UserId {
+            match self.user {
+                UserOrId::User(ref u) => u.id,
+                UserOrId::UserId(id) => id,
+            }
+        }
+    }
 }

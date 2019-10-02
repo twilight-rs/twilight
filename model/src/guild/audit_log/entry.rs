@@ -2,9 +2,12 @@ use crate::{
     guild::audit_log::{AuditLogChange, AuditLogEvent, AuditLogOptionalEntryInfo},
     id::{AuditLogEntryId, UserId},
 };
-use serde::{Deserialize, Serialize};
 
-#[derive(Clone, Debug, Deserialize, Serialize)]
+#[cfg_attr(
+    feature = "serde-support",
+    derive(serde::Deserialize, serde::Serialize)
+)]
+#[derive(Clone, Debug)]
 pub struct AuditLogEntry {
     pub action_type: AuditLogEvent,
     pub changes: Option<Vec<AuditLogChange>>,

@@ -22,13 +22,16 @@ use crate::{
     id::{ChannelId, GuildId, MessageId, RoleId, UserId, WebhookId},
     user::User,
 };
-use serde::{Deserialize, Serialize};
 use std::{
     collections::HashMap,
     hash::{Hash, Hasher},
 };
 
-#[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
+#[cfg_attr(
+    feature = "serde-support",
+    derive(serde::Deserialize, serde::Serialize)
+)]
+#[derive(Clone, Debug, Eq, PartialEq)]
 pub struct Message {
     pub id: MessageId,
     pub activity: Option<MessageActivity>,
@@ -41,19 +44,19 @@ pub struct Message {
     pub embeds: Vec<Embed>,
     pub flags: Option<MessageFlags>,
     pub guild_id: Option<GuildId>,
-    #[serde(rename = "type")]
+    #[cfg_attr(feature = "serde-support", serde(rename = "type"))]
     pub kind: MessageType,
     pub member: Option<PartialMember>,
-    #[serde(default)]
+    #[cfg_attr(feature = "serde-support", serde(default))]
     pub mention_channels: Vec<ChannelMention>,
     pub mention_everyone: bool,
     pub mention_roles: Vec<RoleId>,
-    #[serde(with = "serde_mappable_seq")]
+    #[cfg_attr(feature = "serde-support", serde(with = "serde_mappable_seq"))]
     pub mentions: HashMap<UserId, User>,
     pub pinned: bool,
-    #[serde(default)]
+    #[cfg_attr(feature = "serde-support", serde(default))]
     pub reactions: Vec<MessageReaction>,
-    #[serde(rename = "message_reference")]
+    #[cfg_attr(feature = "serde-support", serde(rename = "message_reference"))]
     pub reference: Option<MessageReference>,
     pub timestamp: String,
     pub tts: bool,
