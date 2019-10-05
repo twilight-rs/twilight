@@ -193,6 +193,9 @@
 //! [rust badge]: https://img.shields.io/badge/rust-1.39+%20(beta)-93450a.svg?style=flat-square
 //! [rust link]: https://github.com/rust-lang/rust/milestone/66
 
+#[cfg(feature = "cache")]
+pub extern crate dawn_cache as cache;
+
 #[cfg(feature = "command-parser")]
 pub extern crate dawn_command_parser as command_parser;
 

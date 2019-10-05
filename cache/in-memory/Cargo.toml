@@ -1,0 +1,12 @@
+[package]
+authors = ["Zeyla Hellyer <zeyla@hellyer.dev>"]
+edition = "2018"
+name = "dawn-cache-inmemory"
+version = "0.1.0"
+
+[dependencies]
+async-trait = "0.1"
+bitflags = "1"
+futures-util-preview = "0.3.0-alpha.18"
+dawn-cache-trait = { path = "../trait" }
+dawn-model = { default-features = false, path = "../../model" }

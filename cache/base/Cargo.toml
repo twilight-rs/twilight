@@ -1,0 +1,13 @@
+[package]
+authors = ["Zeyla Hellyer <zeyla@hellyer.dev>"]
+edition = "2018"
+name = "dawn-cache"
+version = "0.1.0"
+
+[dependencies]
+dawn-cache-inmemory = { optional = true, path = "../in-memory" }
+dawn-cache-trait = { path = "../trait" }
+
+[features]
+default = ["in-memory"]
+in-memory = ["dawn-cache-inmemory"]
