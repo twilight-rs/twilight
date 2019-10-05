@@ -8,7 +8,7 @@ use crate::guild::{Guild, UnavailableGuild};
 #[cfg_attr(feature = "serde-support", serde(untagged))]
 #[derive(Clone, Debug, Eq, Hash, PartialEq)]
 pub enum GuildStatus {
-    OnlineGuild(Guild),
+    Online(Guild),
     Offline(UnavailableGuild),
 }
 
@@ -21,7 +21,7 @@ mod serde_support {
     impl Key<'_, GuildId> for GuildStatus {
         fn key(&self) -> GuildId {
             match self {
-                GuildStatus::OnlineGuild(g) => g.id,
+                GuildStatus::Online(g) => g.id,
                 GuildStatus::Offline(u) => u.id,
             }
         }
