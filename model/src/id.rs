@@ -31,7 +31,7 @@ use std::fmt::{Display, Formatter, Result as FmtResult};
     feature = "serde-support",
     derive(serde::Deserialize, serde::Serialize)
 )]
-#[derive(Clone, Copy, Debug, Default, Eq, Hash, PartialEq, PartialOrd)]
+#[derive(Clone, Copy, Debug, Default, Eq, Hash, PartialEq, PartialOrd, Ord)]
 pub struct ApplicationId(#[cfg_attr(feature = "serde-support", serde(with = "string"))] pub u64);
 
 impl Display for ApplicationId {
@@ -44,7 +44,7 @@ impl Display for ApplicationId {
     feature = "serde-support",
     derive(serde::Deserialize, serde::Serialize)
 )]
-#[derive(Clone, Copy, Debug, Default, Eq, Hash, PartialEq, PartialOrd)]
+#[derive(Clone, Copy, Debug, Default, Eq, Hash, PartialEq, PartialOrd, Ord)]
 pub struct AttachmentId(#[cfg_attr(feature = "serde-support", serde(with = "string"))] pub u64);
 
 impl Display for AttachmentId {
@@ -57,7 +57,7 @@ impl Display for AttachmentId {
     feature = "serde-support",
     derive(serde::Deserialize, serde::Serialize)
 )]
-#[derive(Clone, Copy, Debug, Default, Eq, Hash, PartialEq, PartialOrd)]
+#[derive(Clone, Copy, Debug, Default, Eq, Hash, PartialEq, PartialOrd, Ord)]
 pub struct AuditLogEntryId(#[cfg_attr(feature = "serde-support", serde(with = "string"))] pub u64);
 
 impl Display for AuditLogEntryId {
@@ -70,7 +70,7 @@ impl Display for AuditLogEntryId {
     feature = "serde-support",
     derive(serde::Deserialize, serde::Serialize)
 )]
-#[derive(Clone, Copy, Debug, Default, Eq, Hash, PartialEq, PartialOrd)]
+#[derive(Clone, Copy, Debug, Default, Eq, Hash, PartialEq, PartialOrd, Ord)]
 pub struct ChannelId(#[cfg_attr(feature = "serde-support", serde(with = "string"))] pub u64);
 
 impl Display for ChannelId {
@@ -83,7 +83,7 @@ impl Display for ChannelId {
     feature = "serde-support",
     derive(serde::Deserialize, serde::Serialize)
 )]
-#[derive(Clone, Copy, Debug, Default, Eq, Hash, PartialEq, PartialOrd)]
+#[derive(Clone, Copy, Debug, Default, Eq, Hash, PartialEq, PartialOrd, Ord)]
 pub struct EmojiId(#[cfg_attr(feature = "serde-support", serde(with = "string"))] pub u64);
 
 impl Display for EmojiId {
@@ -96,7 +96,7 @@ impl Display for EmojiId {
     feature = "serde-support",
     derive(serde::Deserialize, serde::Serialize)
 )]
-#[derive(Clone, Copy, Debug, Default, Eq, Hash, PartialEq, PartialOrd)]
+#[derive(Clone, Copy, Debug, Default, Eq, Hash, PartialEq, PartialOrd, Ord)]
 pub struct GenericId(#[cfg_attr(feature = "serde-support", serde(with = "string"))] pub u64);
 
 impl Display for GenericId {
@@ -109,7 +109,7 @@ impl Display for GenericId {
     feature = "serde-support",
     derive(serde::Deserialize, serde::Serialize)
 )]
-#[derive(Clone, Copy, Debug, Default, Eq, Hash, PartialEq, PartialOrd)]
+#[derive(Clone, Copy, Debug, Default, Eq, Hash, PartialEq, PartialOrd, Ord)]
 pub struct GuildId(#[cfg_attr(feature = "serde-support", serde(with = "string"))] pub u64);
 
 impl Display for GuildId {
@@ -122,7 +122,7 @@ impl Display for GuildId {
     feature = "serde-support",
     derive(serde::Deserialize, serde::Serialize)
 )]
-#[derive(Clone, Copy, Debug, Default, Eq, Hash, PartialEq, PartialOrd)]
+#[derive(Clone, Copy, Debug, Default, Eq, Hash, PartialEq, PartialOrd, Ord)]
 pub struct IntegrationId(#[cfg_attr(feature = "serde-support", serde(with = "string"))] pub u64);
 
 impl Display for IntegrationId {
@@ -135,7 +135,7 @@ impl Display for IntegrationId {
     feature = "serde-support",
     derive(serde::Deserialize, serde::Serialize)
 )]
-#[derive(Clone, Copy, Debug, Default, Eq, Hash, PartialEq, PartialOrd)]
+#[derive(Clone, Copy, Debug, Default, Eq, Hash, PartialEq, PartialOrd, Ord)]
 pub struct MessageId(#[cfg_attr(feature = "serde-support", serde(with = "string"))] pub u64);
 
 impl Display for MessageId {
@@ -148,7 +148,7 @@ impl Display for MessageId {
     feature = "serde-support",
     derive(serde::Deserialize, serde::Serialize)
 )]
-#[derive(Clone, Copy, Debug, Default, Eq, Hash, PartialEq, PartialOrd)]
+#[derive(Clone, Copy, Debug, Default, Eq, Hash, PartialEq, PartialOrd, Ord)]
 pub struct RoleId(#[cfg_attr(feature = "serde-support", serde(with = "string"))] pub u64);
 
 impl Display for RoleId {
@@ -161,7 +161,7 @@ impl Display for RoleId {
     feature = "serde-support",
     derive(serde::Deserialize, serde::Serialize)
 )]
-#[derive(Clone, Copy, Debug, Default, Eq, Hash, PartialEq, PartialOrd)]
+#[derive(Clone, Copy, Debug, Default, Eq, Hash, PartialEq, PartialOrd, Ord)]
 pub struct UserId(#[cfg_attr(feature = "serde-support", serde(with = "string"))] pub u64);
 
 impl Display for UserId {
@@ -174,7 +174,7 @@ impl Display for UserId {
     feature = "serde-support",
     derive(serde::Deserialize, serde::Serialize)
 )]
-#[derive(Clone, Copy, Debug, Default, Eq, Hash, PartialEq, PartialOrd)]
+#[derive(Clone, Copy, Debug, Default, Eq, Hash, PartialEq, PartialOrd, Ord)]
 pub struct WebhookId(#[cfg_attr(feature = "serde-support", serde(with = "string"))] pub u64);
 
 impl Display for WebhookId {
