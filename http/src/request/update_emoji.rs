@@ -11,7 +11,7 @@ pub struct UpdateEmoji<'a> {
     #[serde(skip)]
     emoji_id: EmojiId,
     #[serde(skip)]
-    fut: Option<Pin<Box<dyn Future<Output = Result<Emoji>> + Send + 'a>>>,
+    fut: Option<Pending<'a, Emoji>>,
     #[serde(skip)]
     guild_id: GuildId,
     #[serde(skip)]

@@ -4,7 +4,6 @@ mod target_user_type;
 pub use self::{metadata::InviteMetadata, target_user_type::TargetUserType};
 
 use crate::{channel::Channel, guild::PartialGuild, user::User};
-use std::hash::{Hash, Hasher};
 
 #[cfg_attr(
     feature = "serde-support",
@@ -19,10 +18,4 @@ pub struct Invite {
     pub guild: Option<PartialGuild>,
     pub target_user: Option<User>,
     pub target_user_type: Option<TargetUserType>,
-}
-
-impl Hash for Invite {
-    fn hash<H: Hasher>(&self, state: &mut H) {
-        self.code.hash(state);
-    }
 }

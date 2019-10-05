@@ -105,11 +105,9 @@ impl Bucket {
         }
 
         if let Some((limit, remaining, reset_after)) = ratelimits {
-            if bucket_limit != limit {
-                if bucket_limit == u64::max_value() {
-                    self.reset_after.store(reset_after, Ordering::SeqCst);
-                    self.limit.store(limit, Ordering::SeqCst);
-                }
+            if bucket_limit != limit && bucket_limit == u64::max_value() {
+                self.reset_after.store(reset_after, Ordering::SeqCst);
+                self.limit.store(limit, Ordering::SeqCst);
             }
 
             self.remaining.store(remaining, Ordering::Relaxed);
@@ -139,7 +137,7 @@ impl BucketQueue {
         // Once this closes this can be fixed:
         // <https://github.com/rustasync/futures-timer/issues/21>
         StreamExt::next(&mut *rx)
-            .map(|x| x.ok_or(IoError::last_os_error()))
+            .map(|x| x.ok_or_else(IoError::last_os_error))
             .timeout(timeout)
             .await
             .ok()

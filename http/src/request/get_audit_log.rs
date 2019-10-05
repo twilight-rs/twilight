@@ -9,7 +9,7 @@ pub struct GetAuditLog<'a> {
     before: Option<u64>,
     limit: Option<u64>,
     user_id: Option<UserId>,
-    fut: Option<Pin<Box<dyn Future<Output = Result<Option<AuditLog>>> + Send + 'a>>>,
+    fut: Option<Pending<'a, Option<AuditLog>>>,
     guild_id: GuildId,
     http: &'a Client,
 }

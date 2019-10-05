@@ -6,7 +6,7 @@ use dawn_model::{
 
 pub struct GetChannelMessages<'a> {
     limit: Option<u64>,
-    fut: Option<Pin<Box<dyn Future<Output = Result<Vec<Message>>> + Send + 'a>>>,
+    fut: Option<Pending<'a, Vec<Message>>>,
     channel_id: ChannelId,
     http: &'a Client,
 }

@@ -22,10 +22,7 @@ use crate::{
     id::{ChannelId, GuildId, MessageId, RoleId, UserId, WebhookId},
     user::User,
 };
-use std::{
-    collections::HashMap,
-    hash::{Hash, Hasher},
-};
+use std::collections::HashMap;
 
 #[cfg_attr(
     feature = "serde-support",
@@ -61,10 +58,4 @@ pub struct Message {
     pub timestamp: String,
     pub tts: bool,
     pub webhook_id: Option<WebhookId>,
-}
-
-impl Hash for Message {
-    fn hash<H: Hasher>(&self, state: &mut H) {
-        self.id.hash(state);
-    }
 }

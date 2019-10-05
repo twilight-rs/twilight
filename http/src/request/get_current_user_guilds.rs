@@ -6,7 +6,7 @@ pub struct GetCurrentUserGuilds<'a> {
     after: Option<GuildId>,
     before: Option<GuildId>,
     #[serde(skip)]
-    fut: Option<Pin<Box<dyn Future<Output = Result<Vec<PartialGuild>>> + Send + 'a>>>,
+    fut: Option<Pending<'a, Vec<PartialGuild>>>,
     #[serde(skip)]
     http: &'a Client,
     limit: Option<u64>,

@@ -5,7 +5,7 @@ use dawn_model::id::WebhookId;
 pub struct DeleteWebhook<'a> {
     token: Option<String>,
     #[serde(skip)]
-    fut: Option<Pin<Box<dyn Future<Output = Result<()>> + Send + 'a>>>,
+    fut: Option<Pending<'a, ()>>,
     #[serde(skip)]
     http: &'a Client,
     id: WebhookId,

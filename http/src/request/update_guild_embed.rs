@@ -9,7 +9,7 @@ pub struct UpdateGuildEmbed<'a> {
     channel_id: Option<ChannelId>,
     enabled: Option<bool>,
     #[serde(skip)]
-    fut: Option<Pin<Box<dyn Future<Output = Result<GuildEmbed>> + Send + 'a>>>,
+    fut: Option<Pending<'a, GuildEmbed>>,
     #[serde(skip)]
     guild_id: GuildId,
     #[serde(skip)]

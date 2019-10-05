@@ -11,7 +11,7 @@ pub enum PathParseError {
 
 impl From<ParseIntError> for PathParseError {
     fn from(source: ParseIntError) -> Self {
-        PathParseError::IntegerParsing {
+        Self::IntegerParsing {
             source,
         }
     }
@@ -93,7 +93,7 @@ impl FromStr for Path {
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         use Path::*;
 
-        let skip = if s.chars().next() == Some('/') { 1 } else { 0 };
+        let skip = usize::from(s.starts_with('/'));
 
         let parts = s.split('/').skip(skip).collect::<Vec<&str>>();
 
@@ -162,7 +162,7 @@ impl TryFrom<(Method, &str)> for Path {
             Ok(v) => Ok(v),
             Err(PathParseError::MessageIdWithoutMethod {
                 channel_id,
-            }) => Ok(Path::ChannelsIdMessagesId(method, channel_id)),
+            }) => Ok(Self::ChannelsIdMessagesId(method, channel_id)),
             Err(why) => Err(why),
         }
     }
@@ -461,9 +461,10 @@ pub enum Route {
 impl Route {
     // This function contains some `write!`s, but they can't fail, so we ignore
     // them to remove an unnecessary Result here.
+    #[allow(clippy::cognitive_complexity, clippy::too_many_lines)]
     pub fn into_parts(self) -> (Method, Path, Cow<'static, str>) {
         match self {
-            Route::AddMemberRole {
+            Self::AddMemberRole {
                 guild_id,
                 role_id,
                 user_id,
@@ -472,7 +473,7 @@ impl Route {
                 Path::GuildsIdMembersIdRolesId(guild_id),
                 format!("guilds/{}/members/{}/roles/{}", guild_id, user_id, role_id).into(),
             ),
-            Route::CreateBan {
+            Self::CreateBan {
                 guild_id,
                 delete_message_days,
                 reason,
@@ -490,29 +491,29 @@ impl Route {
 
                 (Method::PUT, Path::GuildsIdBansUserId(guild_id), path.into())
             },
-            Route::CreateChannel {
+            Self::CreateChannel {
                 guild_id,
             } => (
                 Method::POST,
                 Path::GuildsIdChannels(guild_id),
                 format!("guilds/{}/channels", guild_id).into(),
             ),
-            Route::CreateEmoji {
+            Self::CreateEmoji {
                 guild_id,
             } => (
                 Method::POST,
                 Path::GuildsIdEmojis(guild_id),
                 format!("guilds/{}/emojis", guild_id).into(),
             ),
-            Route::CreateGuild => (Method::POST, Path::Guilds, "guilds".into()),
-            Route::CreateGuildIntegration {
+            Self::CreateGuild => (Method::POST, Path::Guilds, "guilds".into()),
+            Self::CreateGuildIntegration {
                 guild_id,
             } => (
                 Method::POST,
                 Path::GuildsIdIntegrationsId(guild_id),
                 format!("guilds/{}/integrations", guild_id).into(),
             ),
-            Route::CreateGuildPrune {
+            Self::CreateGuildPrune {
                 compute_prune_count,
                 days,
                 guild_id,
@@ -529,26 +530,26 @@ impl Route {
 
                 (Method::POST, Path::GuildsIdPrune(guild_id), path.into())
             },
-            Route::CreateInvite {
+            Self::CreateInvite {
                 channel_id,
             } => (
                 Method::POST,
                 Path::ChannelsIdInvites(channel_id),
                 format!("channels/{}/invites", channel_id).into(),
             ),
-            Route::CreateMessage {
+            Self::CreateMessage {
                 channel_id,
             } => (
                 Method::POST,
                 Path::ChannelsIdMessages(channel_id),
                 format!("channels/{}/messages", channel_id).into(),
             ),
-            Route::CreatePrivateChannel => (
+            Self::CreatePrivateChannel => (
                 Method::POST,
                 Path::UsersIdChannels,
                 "users/@me/channels".into(),
             ),
-            Route::CreateReaction {
+            Self::CreateReaction {
                 channel_id,
                 emoji,
                 message_id,
@@ -561,28 +562,28 @@ impl Route {
                 )
                 .into(),
             ),
-            Route::CreateRole {
+            Self::CreateRole {
                 guild_id,
             } => (
                 Method::POST,
                 Path::GuildsIdRoles(guild_id),
                 format!("guilds/{}/roles", guild_id).into(),
             ),
-            Route::CreateTypingTrigger {
+            Self::CreateTypingTrigger {
                 channel_id,
             } => (
                 Method::POST,
                 Path::ChannelsIdTyping(channel_id),
                 format!("channels/{}/typing", channel_id).into(),
             ),
-            Route::CreateWebhook {
+            Self::CreateWebhook {
                 channel_id,
             } => (
                 Method::POST,
                 Path::ChannelsIdWebhooks(channel_id),
                 format!("channels/{}/webhooks", channel_id).into(),
             ),
-            Route::DeleteBan {
+            Self::DeleteBan {
                 guild_id,
                 user_id,
             } => (
@@ -590,14 +591,14 @@ impl Route {
                 Path::GuildsIdBansUserId(guild_id),
                 format!("guilds/{}/bans/{}", guild_id, user_id).into(),
             ),
-            Route::DeleteChannel {
+            Self::DeleteChannel {
                 channel_id,
             } => (
                 Method::DELETE,
                 Path::ChannelsId(channel_id),
                 format!("channels/{}", channel_id).into(),
             ),
-            Route::DeleteEmoji {
+            Self::DeleteEmoji {
                 emoji_id,
                 guild_id,
             } => (
@@ -605,14 +606,14 @@ impl Route {
                 Path::GuildsIdEmojisId(guild_id),
                 format!("guilds/{}/emojis/{}", guild_id, emoji_id).into(),
             ),
-            Route::DeleteGuild {
+            Self::DeleteGuild {
                 guild_id,
             } => (
                 Method::DELETE,
                 Path::GuildsId(guild_id),
                 format!("guilds/{}", guild_id).into(),
             ),
-            Route::DeleteGuildIntegration {
+            Self::DeleteGuildIntegration {
                 guild_id,
                 integration_id,
             } => (
@@ -620,14 +621,14 @@ impl Route {
                 Path::GuildsIdIntegrationsId(guild_id),
                 format!("guilds/{}/integrations/{}", guild_id, integration_id).into(),
             ),
-            Route::DeleteInvite {
+            Self::DeleteInvite {
                 code,
             } => (
                 Method::DELETE,
                 Path::InvitesCode,
                 format!("invites/{}", code).into(),
             ),
-            Route::DeleteMessageReactions {
+            Self::DeleteMessageReactions {
                 channel_id,
                 message_id,
             } => (
@@ -635,7 +636,7 @@ impl Route {
                 Path::ChannelsIdMessagesIdReactions(channel_id),
                 format!("channels/{}/messages/{}/reactions", channel_id, message_id).into(),
             ),
-            Route::DeleteMessage {
+            Self::DeleteMessage {
                 channel_id,
                 message_id,
             } => (
@@ -643,14 +644,14 @@ impl Route {
                 Path::ChannelsIdMessagesId(Method::DELETE, message_id),
                 format!("channels/{}/messages/{}", channel_id, message_id).into(),
             ),
-            Route::DeleteMessages {
+            Self::DeleteMessages {
                 channel_id,
             } => (
                 Method::POST,
                 Path::ChannelsIdMessagesBulkDelete(channel_id),
                 format!("channels/{}/messages/bulk-delete", channel_id).into(),
             ),
-            Route::DeletePermissionOverwrite {
+            Self::DeletePermissionOverwrite {
                 channel_id,
                 target_id,
             } => (
@@ -658,7 +659,7 @@ impl Route {
                 Path::ChannelsIdPermissionsOverwriteId(channel_id),
                 format!("channels/{}/permissions/{}", channel_id, target_id).into(),
             ),
-            Route::DeleteReaction {
+            Self::DeleteReaction {
                 channel_id,
                 emoji,
                 message_id,
@@ -672,7 +673,7 @@ impl Route {
                 )
                 .into(),
             ),
-            Route::DeleteRole {
+            Self::DeleteRole {
                 guild_id,
                 role_id,
             } => (
@@ -680,7 +681,7 @@ impl Route {
                 Path::GuildsIdRolesId(guild_id),
                 format!("guilds/{}/roles/{}", guild_id, role_id).into(),
             ),
-            Route::DeleteWebhook {
+            Self::DeleteWebhook {
                 token,
                 webhook_id,
             } => {
@@ -693,7 +694,7 @@ impl Route {
 
                 (Method::DELETE, Path::WebhooksId(webhook_id), path.into())
             },
-            Route::ExecuteWebhook {
+            Self::ExecuteWebhook {
                 token,
                 wait,
                 webhook_id,
@@ -706,7 +707,7 @@ impl Route {
 
                 (Method::POST, Path::WebhooksId(webhook_id), path.into())
             },
-            Route::GetAuditLogs {
+            Self::GetAuditLogs {
                 action_type,
                 before,
                 guild_id,
@@ -733,7 +734,7 @@ impl Route {
 
                 (Method::GET, Path::GuildsIdAuditLogs(guild_id), path.into())
             },
-            Route::GetBan {
+            Self::GetBan {
                 guild_id,
                 user_id,
             } => (
@@ -741,43 +742,43 @@ impl Route {
                 Path::GuildsIdBansId(guild_id),
                 format!("guilds/{}/bans/{}", guild_id, user_id).into(),
             ),
-            Route::GetBans {
+            Self::GetBans {
                 guild_id,
             } => (
                 Method::GET,
                 Path::GuildsIdBans(guild_id),
                 format!("guilds/{}/bans", guild_id).into(),
             ),
-            Route::GetGatewayBot => (Method::GET, Path::GatewayBot, "gateway/bot".into()),
-            Route::GetChannel {
+            Self::GetGatewayBot => (Method::GET, Path::GatewayBot, "gateway/bot".into()),
+            Self::GetChannel {
                 channel_id,
             } => (
                 Method::GET,
                 Path::ChannelsId(channel_id),
                 format!("channels/{}", channel_id).into(),
             ),
-            Route::GetChannelInvites {
+            Self::GetChannelInvites {
                 channel_id,
             } => (
                 Method::GET,
                 Path::ChannelsIdInvites(channel_id),
                 format!("channels/{}/invites", channel_id).into(),
             ),
-            Route::GetChannelWebhooks {
+            Self::GetChannelWebhooks {
                 channel_id,
             } => (
                 Method::GET,
                 Path::ChannelsIdWebhooks(channel_id),
                 format!("channels/{}/webhooks", channel_id).into(),
             ),
-            Route::GetChannels {
+            Self::GetChannels {
                 guild_id,
             } => (
                 Method::GET,
                 Path::GuildsIdChannels(guild_id),
                 format!("guilds/{}/channels", guild_id).into(),
             ),
-            Route::GetEmoji {
+            Self::GetEmoji {
                 emoji_id,
                 guild_id,
             } => (
@@ -785,43 +786,43 @@ impl Route {
                 Path::GuildsIdEmojisId(guild_id),
                 format!("guilds/{}/emojis/{}", guild_id, emoji_id).into(),
             ),
-            Route::GetEmojis {
+            Self::GetEmojis {
                 guild_id,
             } => (
                 Method::GET,
                 Path::GuildsIdEmojis(guild_id),
                 format!("guilds/{}/emojis", guild_id).into(),
             ),
-            Route::GetGateway => (Method::GET, Path::Gateway, "gateway".into()),
-            Route::GetGuild {
+            Self::GetGateway => (Method::GET, Path::Gateway, "gateway".into()),
+            Self::GetGuild {
                 guild_id,
             } => (
                 Method::GET,
                 Path::GuildsId(guild_id),
                 format!("guilds/{}", guild_id).into(),
             ),
-            Route::GetGuildEmbed {
+            Self::GetGuildEmbed {
                 guild_id,
             } => (
                 Method::GET,
                 Path::GuildsIdEmbed(guild_id),
                 format!("guilds/{}/embed", guild_id).into(),
             ),
-            Route::GetGuildIntegrations {
+            Self::GetGuildIntegrations {
                 guild_id,
             } => (
                 Method::GET,
                 Path::GuildsIdIntegrations(guild_id),
                 format!("guilds/{}/integrations", guild_id).into(),
             ),
-            Route::GetGuildInvites {
+            Self::GetGuildInvites {
                 guild_id,
             } => (
                 Method::GET,
                 Path::GuildsIdInvites(guild_id),
                 format!("guilds/{}/invites", guild_id).into(),
             ),
-            Route::GetGuildMembers {
+            Self::GetGuildMembers {
                 after,
                 guild_id,
                 limit,
@@ -838,7 +839,7 @@ impl Route {
 
                 (Method::GET, Path::GuildsIdMembers(guild_id), path.into())
             },
-            Route::GetGuildPruneCount {
+            Self::GetGuildPruneCount {
                 days,
                 guild_id,
             } => {
@@ -850,35 +851,35 @@ impl Route {
 
                 (Method::GET, Path::GuildsIdPrune(guild_id), path.into())
             },
-            Route::GetGuildRoles {
+            Self::GetGuildRoles {
                 guild_id,
             } => (
                 Method::GET,
                 Path::GuildsIdRoles(guild_id),
                 format!("guilds/{}/roles", guild_id).into(),
             ),
-            Route::GetGuildVanityUrl {
+            Self::GetGuildVanityUrl {
                 guild_id,
             } => (
                 Method::GET,
                 Path::GuildsIdVanityUrl(guild_id),
                 format!("guilds/{}/vanity-url", guild_id).into(),
             ),
-            Route::GetGuildVoiceRegions {
+            Self::GetGuildVoiceRegions {
                 guild_id,
             } => (
                 Method::GET,
                 Path::GuildsIdRegions(guild_id),
                 format!("guilds/{}/regions", guild_id).into(),
             ),
-            Route::GetGuildWebhooks {
+            Self::GetGuildWebhooks {
                 guild_id,
             } => (
                 Method::GET,
                 Path::GuildsIdWebhooks(guild_id),
                 format!("guilds/{}/webhooks", guild_id).into(),
             ),
-            Route::GetGuilds {
+            Self::GetGuilds {
                 after,
                 before,
                 limit,
@@ -899,7 +900,7 @@ impl Route {
 
                 (Method::GET, Path::UsersIdGuilds, path.into())
             },
-            Route::GetInvite {
+            Self::GetInvite {
                 code,
                 with_counts,
             } => (
@@ -907,7 +908,7 @@ impl Route {
                 Path::InvitesCode,
                 format!("invites/{}?with-counts={}", code, with_counts).into(),
             ),
-            Route::GetMember {
+            Self::GetMember {
                 guild_id,
                 user_id,
             } => (
@@ -915,7 +916,7 @@ impl Route {
                 Path::GuildsIdMembersId(guild_id),
                 format!("guilds/{}/members/{}", guild_id, user_id).into(),
             ),
-            Route::GetMessage {
+            Self::GetMessage {
                 channel_id,
                 message_id,
             } => (
@@ -923,7 +924,7 @@ impl Route {
                 Path::ChannelsIdMessagesId(Method::GET, channel_id),
                 format!("channels/{}/messages/{}", channel_id, message_id).into(),
             ),
-            Route::GetMessages {
+            Self::GetMessages {
                 channel_id,
                 after,
                 around,
@@ -954,14 +955,14 @@ impl Route {
                     path.into(),
                 )
             },
-            Route::GetPins {
+            Self::GetPins {
                 channel_id,
             } => (
                 Method::GET,
                 Path::ChannelsIdPins(channel_id),
                 format!("channels/{}/pins", channel_id).into(),
             ),
-            Route::GetReactionUsers {
+            Self::GetReactionUsers {
                 after,
                 before,
                 channel_id,
@@ -992,25 +993,25 @@ impl Route {
                     path.into(),
                 )
             },
-            Route::GetUserConnections => (
+            Self::GetUserConnections => (
                 Method::GET,
                 Path::UsersIdConnections,
                 "users/@me/connections".into(),
             ),
-            Route::GetUserPrivateChannels => (
+            Self::GetUserPrivateChannels => (
                 Method::GET,
                 Path::UsersIdChannels,
                 "users/@me/channels".into(),
             ),
-            Route::GetUser {
+            Self::GetUser {
                 target_user,
             } => (
                 Method::GET,
                 Path::UsersId,
                 format!("users/{}", target_user).into(),
             ),
-            Route::GetVoiceRegions => (Method::GET, Path::VoiceRegions, "voice/regions".into()),
-            Route::GetWebhook {
+            Self::GetVoiceRegions => (Method::GET, Path::VoiceRegions, "voice/regions".into()),
+            Self::GetWebhook {
                 token,
                 webhook_id,
             } => {
@@ -1023,14 +1024,14 @@ impl Route {
 
                 (Method::GET, Path::WebhooksId(webhook_id), path.into())
             },
-            Route::LeaveGuild {
+            Self::LeaveGuild {
                 guild_id,
             } => (
                 Method::DELETE,
                 Path::UsersIdGuildsId,
                 format!("users/@me/guilds/{}", guild_id).into(),
             ),
-            Route::PinMessage {
+            Self::PinMessage {
                 channel_id,
                 message_id,
             } => (
@@ -1038,7 +1039,7 @@ impl Route {
                 Path::ChannelsIdPins(channel_id),
                 format!("channels/{}/pins/{}", channel_id, message_id).into(),
             ),
-            Route::RemoveMember {
+            Self::RemoveMember {
                 guild_id,
                 user_id,
             } => (
@@ -1046,7 +1047,7 @@ impl Route {
                 Path::GuildsIdMembersId(guild_id),
                 format!("guilds/{}/members/{}", guild_id, user_id).into(),
             ),
-            Route::RemoveMemberRole {
+            Self::RemoveMemberRole {
                 guild_id,
                 role_id,
                 user_id,
@@ -1055,7 +1056,7 @@ impl Route {
                 Path::GuildsIdMembersIdRolesId(guild_id),
                 format!("guilds/{}/members/{}/roles/{}", guild_id, user_id, role_id).into(),
             ),
-            Route::SyncGuildIntegration {
+            Self::SyncGuildIntegration {
                 guild_id,
                 integration_id,
             } => (
@@ -1063,7 +1064,7 @@ impl Route {
                 Path::GuildsIdIntegrationsIdSync(guild_id),
                 format!("guilds/{}/integrations/{}/sync", guild_id, integration_id).into(),
             ),
-            Route::UnpinMessage {
+            Self::UnpinMessage {
                 channel_id,
                 message_id,
             } => (
@@ -1071,15 +1072,15 @@ impl Route {
                 Path::ChannelsIdPinsMessageId(channel_id),
                 format!("channels/{}/pins/{}", channel_id, message_id).into(),
             ),
-            Route::UpdateChannel {
+            Self::UpdateChannel {
                 channel_id,
             } => (
                 Method::PATCH,
                 Path::ChannelsId(channel_id),
                 format!("channels/{}", channel_id).into(),
             ),
-            Route::UpdateCurrentUser => (Method::PATCH, Path::UsersId, "users/@me".into()),
-            Route::UpdateEmoji {
+            Self::UpdateCurrentUser => (Method::PATCH, Path::UsersId, "users/@me".into()),
+            Self::UpdateEmoji {
                 emoji_id,
                 guild_id,
             } => (
@@ -1087,28 +1088,28 @@ impl Route {
                 Path::GuildsIdEmojisId(guild_id),
                 format!("guilds/{}/emojis/{}", guild_id, emoji_id).into(),
             ),
-            Route::UpdateGuild {
+            Self::UpdateGuild {
                 guild_id,
             } => (
                 Method::PATCH,
                 Path::GuildsId(guild_id),
                 format!("guilds/{}", guild_id).into(),
             ),
-            Route::UpdateGuildChannels {
+            Self::UpdateGuildChannels {
                 guild_id,
             } => (
                 Method::PATCH,
                 Path::GuildsIdChannels(guild_id),
                 format!("guilds/{}/channels", guild_id).into(),
             ),
-            Route::UpdateGuildEmbed {
+            Self::UpdateGuildEmbed {
                 guild_id,
             } => (
                 Method::PATCH,
                 Path::GuildsIdEmbed(guild_id),
                 format!("guilds/{}/embed", guild_id).into(),
             ),
-            Route::UpdateGuildIntegration {
+            Self::UpdateGuildIntegration {
                 guild_id,
                 integration_id,
             } => (
@@ -1116,7 +1117,7 @@ impl Route {
                 Path::GuildsIdIntegrationsId(guild_id),
                 format!("guilds/{}/integrations/{}", guild_id, integration_id,).into(),
             ),
-            Route::UpdateMember {
+            Self::UpdateMember {
                 guild_id,
                 user_id,
             } => (
@@ -1124,7 +1125,7 @@ impl Route {
                 Path::GuildsIdMembersId(guild_id),
                 format!("guilds/{}/members/{}", guild_id, user_id).into(),
             ),
-            Route::UpdateMessage {
+            Self::UpdateMessage {
                 channel_id,
                 message_id,
             } => (
@@ -1132,14 +1133,14 @@ impl Route {
                 Path::ChannelsIdMessagesId(Method::PATCH, channel_id),
                 format!("channels/{}/messages/{}", channel_id, message_id).into(),
             ),
-            Route::UpdateNickname {
+            Self::UpdateNickname {
                 guild_id,
             } => (
                 Method::PATCH,
                 Path::GuildsIdMembersMeNick(guild_id),
                 format!("guilds/{}/members/@me/nick", guild_id).into(),
             ),
-            Route::UpdatePermissionOverwrite {
+            Self::UpdatePermissionOverwrite {
                 channel_id,
                 target_id,
             } => (
@@ -1147,7 +1148,7 @@ impl Route {
                 Path::ChannelsIdPermissionsOverwriteId(channel_id),
                 format!("channels/{}/permissions/{}", channel_id, target_id).into(),
             ),
-            Route::UpdateRole {
+            Self::UpdateRole {
                 guild_id,
                 role_id,
             } => (
@@ -1155,14 +1156,14 @@ impl Route {
                 Path::GuildsIdRolesId(guild_id),
                 format!("guilds/{}/roles/{}", guild_id, role_id).into(),
             ),
-            Route::UpdateRolePositions {
+            Self::UpdateRolePositions {
                 guild_id,
             } => (
                 Method::PATCH,
                 Path::GuildsIdRolesId(guild_id),
                 format!("guilds/{}/roles", guild_id).into(),
             ),
-            Route::UpdateWebhook {
+            Self::UpdateWebhook {
                 token,
                 webhook_id,
             } => {

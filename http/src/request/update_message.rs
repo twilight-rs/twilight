@@ -52,14 +52,16 @@ pub struct UpdateMessage<'a> {
     // - Some(None): Removing the "content" by giving the Discord API a written
     //   `"content": null` in the JSON;
     // - None: Don't serialize the field at all, not modifying the state.
+    #[allow(clippy::option_option)]
     #[serde(skip_serializing_if = "Option::is_none")]
     content: Option<Option<String>>,
+    #[allow(clippy::option_option)]
     #[serde(skip_serializing_if = "Option::is_none")]
     embed: Option<Option<Embed>>,
     #[serde(skip)]
     channel_id: ChannelId,
     #[serde(skip)]
-    fut: Option<Pin<Box<dyn Future<Output = Result<Message>> + Send + 'a>>>,
+    fut: Option<Pending<'a, Message>>,
     #[serde(skip)]
     http: &'a Client,
     #[serde(skip)]

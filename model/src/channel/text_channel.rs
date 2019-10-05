@@ -2,13 +2,12 @@ use crate::{
     channel::{permission_overwrite::PermissionOverwrite, ChannelType},
     id::{ChannelId, GuildId, MessageId},
 };
-use std::hash::{Hash, Hasher};
 
 #[cfg_attr(
     feature = "serde-support",
     derive(serde::Deserialize, serde::Serialize)
 )]
-#[derive(Clone, Debug, Eq, PartialEq)]
+#[derive(Clone, Debug, Eq, Hash, PartialEq)]
 pub struct TextChannel {
     pub id: ChannelId,
     pub guild_id: GuildId,
@@ -24,10 +23,4 @@ pub struct TextChannel {
     pub position: i64,
     pub rate_limit_per_user: Option<u64>,
     pub topic: Option<String>,
-}
-
-impl Hash for TextChannel {
-    fn hash<H: Hasher>(&self, state: &mut H) {
-        self.id.hash(state);
-    }
 }

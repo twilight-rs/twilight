@@ -91,14 +91,14 @@ impl<'a> Iterator for Arguments<'a> {
         while let Some(ch) = self.buf.get(idx..=idx) {
             if quoted {
                 if ch == r#"""# {
-                    let v = self.buf.get(self.idx..=idx - 1);
+                    let v = self.buf.get(self.idx..idx);
                     self.idx = idx + 1;
 
                     return v.map(str::trim);
                 }
             } else if ch == " " {
                 if started {
-                    let v = self.buf.get(self.idx..=idx - 1);
+                    let v = self.buf.get(self.idx..idx);
                     self.idx = idx + 1;
 
                     return v.map(str::trim);

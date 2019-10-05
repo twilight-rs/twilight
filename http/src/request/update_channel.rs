@@ -18,7 +18,7 @@ pub struct UpdateChannel<'a> {
     #[serde(skip)]
     channel_id: ChannelId,
     #[serde(skip)]
-    fut: Option<Pin<Box<dyn Future<Output = Result<Channel>> + Send + 'a>>>,
+    fut: Option<Pending<'a, Channel>>,
     #[serde(skip)]
     http: &'a Client,
 }

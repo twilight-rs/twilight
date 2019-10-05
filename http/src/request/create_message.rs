@@ -15,7 +15,7 @@ pub struct CreateMessage<'a> {
     #[serde(skip)]
     channel_id: ChannelId,
     #[serde(skip)]
-    fut: Option<Pin<Box<dyn Future<Output = Result<Message>> + Send + 'a>>>,
+    fut: Option<Pending<'a, Message>>,
     #[serde(skip)]
     http: &'a Client,
 }

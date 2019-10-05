@@ -32,11 +32,11 @@ pub enum RatelimitHeaders {
 impl RatelimitHeaders {
     pub fn global(&self) -> bool {
         match self {
-            RatelimitHeaders::GlobalLimited {
+            Self::GlobalLimited {
                 ..
             } => true,
-            RatelimitHeaders::None => false,
-            RatelimitHeaders::Present {
+            Self::None => false,
+            Self::Present {
                 global, ..
             } => *global,
         }
@@ -81,20 +81,19 @@ impl TryFrom<&'_ HeaderMap<HeaderValue>> for RatelimitHeaders {
 
                 if headers.iter().any(|k| map.contains_key(*k)) {
                     Err(why)
+                } else if map.contains_key("x-ratelimit-global") {
+                    Ok(Self::GlobalLimited {
+                        reset_after: header_int(map, "x-ratelimit-reset-after")?,
+                    })
                 } else {
-                    if map.contains_key("x-ratelimit-global") {
-                        Ok(RatelimitHeaders::GlobalLimited {
-                            reset_after: header_int(map, "x-ratelimit-reset-after")?,
-                        })
-                    } else {
-                        Ok(RatelimitHeaders::None)
-                    }
+                    Ok(Self::None)
                 }
             },
         }
     }
 }
 
+#[allow(clippy::cast_possible_truncation)]
 fn parse_map(map: &HeaderMap<HeaderValue>) -> RatelimitResult<RatelimitHeaders> {
     let bucket = header_str(map, "x-ratelimit-bucket")
         .ok()
@@ -103,8 +102,10 @@ fn parse_map(map: &HeaderMap<HeaderValue>) -> RatelimitResult<RatelimitHeaders> 
     let limit = header_int(map, "x-ratelimit-limit")?;
     let remaining = header_int(map, "x-ratelimit-remaining")?;
     let reset = header_float(map, "x-ratelimit-reset")?;
+    #[allow(clippy::cast_sign_loss)]
     let reset = (reset * 1000.).ceil() as u64;
     let reset_after = header_float(map, "x-ratelimit-reset-after")?;
+    #[allow(clippy::cast_sign_loss)]
     let reset_after = (reset_after * 1000.).ceil() as u64;
 
     Ok(RatelimitHeaders::Present {

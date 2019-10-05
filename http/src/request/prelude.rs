@@ -1,4 +1,4 @@
-pub(super) use super::Request;
+pub(super) use super::{Pending, Request};
 pub use crate::{client::Client, error::Result, routing::Route};
 pub use http::Method;
 pub use serde::{Deserialize, Serialize};

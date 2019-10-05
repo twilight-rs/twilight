@@ -15,13 +15,12 @@ pub use self::{
 };
 
 use crate::id::UserId;
-use std::hash::{Hash, Hasher};
 
 #[cfg_attr(
     feature = "serde-support",
     derive(serde::Deserialize, serde::Serialize)
 )]
-#[derive(Clone, Debug, Eq, PartialEq)]
+#[derive(Clone, Debug, Eq, Hash, PartialEq)]
 pub struct User {
     pub id: UserId,
     pub avatar: Option<String>,
@@ -32,14 +31,8 @@ pub struct User {
     pub name: String,
 }
 
-impl Hash for User {
-    fn hash<H: Hasher>(&self, state: &mut H) {
-        self.id.hash(state);
-    }
-}
-
 #[cfg(feature = "serde-support")]
-mod serde_mappable_seq_support {
+mod serde_support {
     use super::User;
     use crate::id::UserId;
     use serde_mappable_seq::Key;

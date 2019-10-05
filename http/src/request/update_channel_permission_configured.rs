@@ -8,7 +8,7 @@ pub struct UpdateChannelPermissionConfigured<'a> {
     channel_id: ChannelId,
     deny: Permissions,
     #[serde(skip)]
-    fut: Option<Pin<Box<dyn Future<Output = Result<()>> + Send + 'a>>>,
+    fut: Option<Pending<'a, ()>>,
     #[serde(skip)]
     http: &'a Client,
     #[serde(rename = "type")]

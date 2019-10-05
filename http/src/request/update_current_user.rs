@@ -6,7 +6,7 @@ pub struct UpdateCurrentUser<'a> {
     avatar: Option<String>,
     username: Option<String>,
     #[serde(skip)]
-    fut: Option<Pin<Box<dyn Future<Output = Result<User>> + Send + 'a>>>,
+    fut: Option<Pending<'a, User>>,
     #[serde(skip)]
     http: &'a Client,
 }

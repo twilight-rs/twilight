@@ -4,7 +4,7 @@ use dawn_model::invite::Invite;
 pub struct GetInvite<'a> {
     with_counts: bool,
     code: String,
-    fut: Option<Pin<Box<dyn Future<Output = Result<Option<Invite>>> + Send + 'a>>>,
+    fut: Option<Pending<'a, Option<Invite>>>,
     http: &'a Client,
 }
 

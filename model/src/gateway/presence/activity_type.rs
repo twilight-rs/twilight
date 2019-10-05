@@ -12,6 +12,6 @@ pub enum ActivityType {
 
 impl Default for ActivityType {
     fn default() -> Self {
-        ActivityType::Playing
+        Self::Playing
     }
 }

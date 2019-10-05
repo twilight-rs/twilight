@@ -1,11 +1,10 @@
 use crate::{guild::IntegrationAccount, id::IntegrationId, user::User};
-use std::hash::{Hash, Hasher};
 
 #[cfg_attr(
     feature = "serde-support",
     derive(serde::Deserialize, serde::Serialize)
 )]
-#[derive(Clone, Debug, Eq, PartialEq)]
+#[derive(Clone, Debug, Eq, Hash, PartialEq)]
 pub struct GuildIntegration {
     pub id: IntegrationId,
     pub account: IntegrationAccount,
@@ -19,12 +18,6 @@ pub struct GuildIntegration {
     pub synced_at: String,
     pub syncing: bool,
     pub user: User,
-}
-
-impl Hash for GuildIntegration {
-    fn hash<H: Hasher>(&self, state: &mut H) {
-        self.id.hash(state);
-    }
 }
 
 #[cfg(feature = "serde-support")]

@@ -13,7 +13,7 @@ pub struct GetChannelMessagesConfigured<'a> {
     around: Option<MessageId>,
     before: Option<MessageId>,
     channel_id: ChannelId,
-    fut: Option<Pin<Box<dyn Future<Output = Result<Vec<Message>>> + Send + 'a>>>,
+    fut: Option<Pending<'a, Vec<Message>>>,
     http: &'a Client,
 }
 
@@ -30,7 +30,7 @@ impl<'a> GetChannelMessagesConfigured<'a> {
             after,
             around,
             before,
-            channel_id: channel_id.into(),
+            channel_id,
             fut: None,
             http,
             limit,

@@ -12,7 +12,7 @@ pub struct UpdateRole<'a> {
     name: Option<String>,
     permissions: Option<Permissions>,
     #[serde(skip)]
-    fut: Option<Pin<Box<dyn Future<Output = Result<Role>> + Send + 'a>>>,
+    fut: Option<Pending<'a, Role>>,
     #[serde(skip)]
     guild_id: GuildId,
     #[serde(skip)]

@@ -1,8 +1,5 @@
 use crate::{guild::GuildIntegration, id::IntegrationId, user::ConnectionVisibility};
-use std::{
-    collections::HashMap,
-    hash::{Hash, Hasher},
-};
+use std::collections::HashMap;
 
 #[cfg_attr(
     feature = "serde-support",
@@ -21,10 +18,4 @@ pub struct Connection {
     pub show_activity: bool,
     pub verified: bool,
     pub visibility: ConnectionVisibility,
-}
-
-impl Hash for Connection {
-    fn hash<H: Hasher>(&self, state: &mut H) {
-        self.id.hash(state);
-    }
 }

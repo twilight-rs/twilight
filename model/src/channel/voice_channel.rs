@@ -2,13 +2,12 @@ use crate::{
     channel::{permission_overwrite::PermissionOverwrite, ChannelType},
     id::{ChannelId, GuildId},
 };
-use std::hash::{Hash, Hasher};
 
 #[cfg_attr(
     feature = "serde-support",
     derive(serde::Deserialize, serde::Serialize)
 )]
-#[derive(Clone, Debug, Eq, PartialEq)]
+#[derive(Clone, Debug, Eq, Hash, PartialEq)]
 pub struct VoiceChannel {
     pub id: ChannelId,
     pub bitrate: u64,
@@ -20,10 +19,4 @@ pub struct VoiceChannel {
     pub parent_id: Option<ChannelId>,
     pub position: i64,
     pub user_limit: Option<u64>,
-}
-
-impl Hash for VoiceChannel {
-    fn hash<H: Hasher>(&self, state: &mut H) {
-        self.id.hash(state);
-    }
 }

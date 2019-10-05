@@ -83,8 +83,8 @@ impl<'a> Config<'a> {
     /// config.add_command("ping");
     /// assert_eq!(1, config.commands().len());
     /// ```
-    pub fn add_command(&mut self, command: impl ToString) {
-        self.commands.insert(command.to_string());
+    pub fn add_command(&mut self, command: impl Into<String>) {
+        self.commands.insert(command.into());
     }
 
     /// Removes a command from the list of commands.

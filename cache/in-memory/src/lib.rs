@@ -86,28 +86,30 @@ async fn upsert_item<K: Eq + Hash, V: PartialEq>(
 #[derive(Clone, Debug)]
 pub enum InMemoryCacheError {}
 
+type LockedArcMap<T, U> = Mutex<HashMap<T, Arc<U>>>;
+
 #[derive(Debug, Default)]
 struct InMemoryCacheRef {
     config: Arc<Config>,
     channels_guild: Mutex<HashMap<ChannelId, GuildItem<GuildChannel>>>,
-    channels_private: Mutex<HashMap<ChannelId, Arc<PrivateChannel>>>,
+    channels_private: LockedArcMap<ChannelId, PrivateChannel>,
     current_user: Mutex<Option<Arc<CurrentUser>>>,
     emojis: Mutex<HashMap<EmojiId, GuildItem<CachedEmoji>>>,
-    groups: Mutex<HashMap<ChannelId, Arc<Group>>>,
-    guilds: Mutex<HashMap<GuildId, Arc<CachedGuild>>>,
+    groups: LockedArcMap<ChannelId, Group>,
+    guilds: LockedArcMap<GuildId, CachedGuild>,
     guild_channels: Mutex<HashMap<GuildId, HashSet<ChannelId>>>,
     guild_emojis: Mutex<HashMap<GuildId, HashSet<EmojiId>>>,
     guild_members: Mutex<HashMap<GuildId, HashSet<UserId>>>,
     guild_presences: Mutex<HashMap<GuildId, HashSet<UserId>>>,
     guild_roles: Mutex<HashMap<GuildId, HashSet<RoleId>>>,
     guild_voice_states: Mutex<HashMap<GuildId, HashSet<(ChannelId, UserId)>>>,
-    members: Mutex<HashMap<(GuildId, UserId), Arc<CachedMember>>>,
+    members: LockedArcMap<(GuildId, UserId), CachedMember>,
     messages: Mutex<HashMap<ChannelId, BTreeMap<MessageId, Arc<CachedMessage>>>>,
-    presences: Mutex<HashMap<(Option<GuildId>, UserId), Arc<CachedPresence>>>,
+    presences: LockedArcMap<(Option<GuildId>, UserId), CachedPresence>,
     roles: Mutex<HashMap<RoleId, GuildItem<Role>>>,
     unavailable_guilds: Mutex<HashSet<GuildId>>,
-    users: Mutex<HashMap<UserId, Arc<User>>>,
-    voice_states: Mutex<HashMap<(ChannelId, UserId), Arc<CachedVoiceState>>>,
+    users: LockedArcMap<UserId, User>,
+    voice_states: LockedArcMap<(ChannelId, UserId), CachedVoiceState>,
 }
 
 /// A thread-safe, in-memory-process cache of Discord data. It can be cloned and
@@ -190,15 +192,12 @@ impl InMemoryCache {
     async fn cache_current_user(&self, mut current_user: CurrentUser) {
         let mut user = self.0.current_user.lock().await;
 
-        match user.as_mut() {
-            Some(mut user) => {
-                if let Some(user) = Arc::get_mut(&mut user) {
-                    std::mem::swap(user, &mut current_user);
+        if let Some(mut user) = user.as_mut() {
+            if let Some(user) = Arc::get_mut(&mut user) {
+                std::mem::swap(user, &mut current_user);
 
-                    return;
-                }
-            },
-            None => {},
+                return;
+            }
         }
 
         *user = Some(Arc::new(current_user));

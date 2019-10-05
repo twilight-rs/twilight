@@ -3,7 +3,7 @@ use dawn_model::{channel::Webhook, id::WebhookId};
 
 pub struct GetWebhook<'a> {
     token: Option<String>,
-    fut: Option<Pin<Box<dyn Future<Output = Result<Option<Webhook>>> + Send + 'a>>>,
+    fut: Option<Pending<'a, Option<Webhook>>>,
     http: &'a Client,
     id: WebhookId,
 }

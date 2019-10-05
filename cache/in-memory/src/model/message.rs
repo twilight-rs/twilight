@@ -16,7 +16,6 @@ use dawn_model::{
     guild::PartialMember,
     id::{ChannelId, GuildId, MessageId, RoleId, UserId, WebhookId},
 };
-use std::hash::{Hash, Hasher};
 
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct CachedMessage {
@@ -45,12 +44,6 @@ pub struct CachedMessage {
     pub webhook_id: Option<WebhookId>,
 }
 
-impl Hash for CachedMessage {
-    fn hash<H: Hasher>(&self, state: &mut H) {
-        self.id.hash(state);
-    }
-}
-
 impl From<Message> for CachedMessage {
     fn from(msg: Message) -> Self {
         Self {
@@ -70,7 +63,7 @@ impl From<Message> for CachedMessage {
             mention_channels: msg.mention_channels,
             mention_everyone: msg.mention_everyone,
             mention_roles: msg.mention_roles,
-            mentions: msg.mentions.keys().map(|x| *x).collect(),
+            mentions: msg.mentions.keys().copied().collect(),
             pinned: msg.pinned,
             reactions: msg.reactions,
             reference: msg.reference,

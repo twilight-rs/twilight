@@ -21,7 +21,7 @@ pub struct CreateGuild<'a> {
     roles: Option<Vec<Role>>,
     verification_level: Option<VerificationLevel>,
     #[serde(skip)]
-    fut: Option<Pin<Box<dyn Future<Output = Result<PartialGuild>> + Send + 'a>>>,
+    fut: Option<Pending<'a, PartialGuild>>,
     #[serde(skip)]
     http: &'a Client,
     name: String,

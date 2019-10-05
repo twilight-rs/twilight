@@ -94,12 +94,17 @@ pub use self::{
     update_webhook_with_token::UpdateWebhookWithToken,
 };
 
-use crate::routing::{Path, Route};
+use crate::{
+    error::Result,
+    routing::{Path, Route},
+};
 use http::{
     header::{HeaderMap, HeaderValue},
     method::Method,
 };
-use std::borrow::Cow;
+use std::{borrow::Cow, future::Future, pin::Pin};
+
+type Pending<'a, T> = Pin<Box<dyn Future<Output = Result<T>> + Send + 'a>>;
 
 #[derive(Clone, Debug)]
 pub struct Request {

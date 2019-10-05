@@ -71,7 +71,7 @@ pub enum Error {
 
 impl From<FmtError> for Error {
     fn from(e: FmtError) -> Self {
-        Error::Formatting {
+        Self::Formatting {
             source: e,
         }
     }
@@ -79,7 +79,7 @@ impl From<FmtError> for Error {
 
 impl From<JsonError> for Error {
     fn from(e: JsonError) -> Self {
-        Error::Json {
+        Self::Json {
             source: e,
         }
     }

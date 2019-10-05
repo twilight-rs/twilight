@@ -8,7 +8,7 @@ pub struct CreateGuildPrune<'a> {
     #[serde(skip)]
     guild_id: GuildId,
     #[serde(skip)]
-    fut: Option<Pin<Box<dyn Future<Output = Result<Option<GuildPrune>>> + Send + 'a>>>,
+    fut: Option<Pending<'a, Option<GuildPrune>>>,
     #[serde(skip)]
     http: &'a Client,
 }

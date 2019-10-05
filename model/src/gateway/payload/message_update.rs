@@ -8,7 +8,7 @@ use crate::{
     feature = "serde-support",
     derive(serde::Deserialize, serde::Serialize)
 )]
-#[derive(Clone, Debug, Eq, Hash, PartialEq)]
+#[derive(Clone, Debug, Eq, PartialEq)]
 pub struct MessageUpdate {
     pub id: MessageId,
     pub attachments: Option<Vec<Attachment>>,

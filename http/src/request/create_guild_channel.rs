@@ -18,7 +18,7 @@ pub struct CreateGuildChannel<'a> {
     topic: Option<String>,
     user_limit: Option<u64>,
     #[serde(skip)]
-    fut: Option<Pin<Box<dyn Future<Output = Result<GuildChannel>> + Send + 'a>>>,
+    fut: Option<Pending<'a, GuildChannel>>,
     #[serde(skip)]
     guild_id: GuildId,
     #[serde(skip)]

@@ -48,10 +48,7 @@ use crate::{
     id::{ApplicationId, ChannelId, EmojiId, GuildId, RoleId, UserId},
     voice::VoiceState,
 };
-use std::{
-    collections::HashMap,
-    hash::{Hash, Hasher},
-};
+use std::collections::HashMap;
 
 #[cfg(feature = "serde-support")]
 fn default_max_presences() -> u64 {
@@ -112,10 +109,4 @@ pub struct Guild {
     pub vanity_url_code: Option<String>,
     pub widget_channel_id: Option<ChannelId>,
     pub widget_enabled: Option<bool>,
-}
-
-impl Hash for Guild {
-    fn hash<H: Hasher>(&self, state: &mut H) {
-        self.id.hash(state);
-    }
 }

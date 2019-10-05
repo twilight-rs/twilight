@@ -1,11 +1,10 @@
 use crate::{guild::Permissions, id::RoleId};
-use std::hash::{Hash, Hasher};
 
 #[cfg_attr(
     feature = "serde-support",
     derive(serde::Deserialize, serde::Serialize)
 )]
-#[derive(Clone, Debug, Eq, PartialEq)]
+#[derive(Clone, Debug, Eq, Hash, PartialEq)]
 pub struct Role {
     pub id: RoleId,
     pub color: u32,
@@ -16,12 +15,6 @@ pub struct Role {
     pub name: String,
     pub permissions: Permissions,
     pub position: i64,
-}
-
-impl Hash for Role {
-    fn hash<H: Hasher>(&self, state: &mut H) {
-        self.id.hash(state);
-    }
 }
 
 #[cfg(feature = "serde-support")]

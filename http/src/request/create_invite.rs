@@ -10,7 +10,7 @@ pub struct CreateInvite<'a> {
     #[serde(skip)]
     channel_id: ChannelId,
     #[serde(skip)]
-    fut: Option<Pin<Box<dyn Future<Output = Result<Invite>> + Send + 'a>>>,
+    fut: Option<Pending<'a, Invite>>,
     #[serde(skip)]
     http: &'a Client,
 }
@@ -29,25 +29,25 @@ impl<'a> CreateInvite<'a> {
     }
 
     pub fn max_age(mut self, max_age: u64) -> Self {
-        self.max_age.replace(max_age.into());
+        self.max_age.replace(max_age);
 
         self
     }
 
     pub fn max_uses(mut self, max_uses: u64) -> Self {
-        self.max_uses.replace(max_uses.into());
+        self.max_uses.replace(max_uses);
 
         self
     }
 
     pub fn temporary(mut self, temporary: bool) -> Self {
-        self.temporary.replace(temporary.into());
+        self.temporary.replace(temporary);
 
         self
     }
 
     pub fn unique(mut self, unique: bool) -> Self {
-        self.unique.replace(unique.into());
+        self.unique.replace(unique);
 
         self
     }

@@ -15,7 +15,7 @@ pub struct ExecuteWebhook<'a> {
     username: Option<String>,
     wait: Option<bool>,
     #[serde(skip)]
-    fut: Option<Pin<Box<dyn Future<Output = Result<Option<Message>>> + Send + 'a>>>,
+    fut: Option<Pending<'a, Option<Message>>>,
     #[serde(skip)]
     http: &'a Client,
     #[serde(skip)]

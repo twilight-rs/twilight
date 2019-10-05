@@ -13,7 +13,7 @@ pub struct UpdateGuildMember<'a> {
     nick: Option<String>,
     roles: Option<Vec<RoleId>>,
     #[serde(skip)]
-    fut: Option<Pin<Box<dyn Future<Output = Result<Member>> + Send + 'a>>>,
+    fut: Option<Pending<'a, Member>>,
     #[serde(skip)]
     guild_id: GuildId,
     #[serde(skip)]

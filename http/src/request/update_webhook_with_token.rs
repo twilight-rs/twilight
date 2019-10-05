@@ -8,7 +8,7 @@ pub struct UpdateWebhookWithToken<'a> {
     avatar: Option<String>,
     name: Option<String>,
     #[serde(skip)]
-    fut: Option<Pin<Box<dyn Future<Output = Result<Webhook>> + Send + 'a>>>,
+    fut: Option<Pending<'a, Webhook>>,
     #[serde(skip)]
     http: &'a Client,
     #[serde(skip)]

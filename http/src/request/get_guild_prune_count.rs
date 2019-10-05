@@ -3,7 +3,7 @@ use dawn_model::{guild::GuildPrune, id::GuildId};
 
 pub struct GetGuildPruneCount<'a> {
     days: Option<u64>,
-    fut: Option<Pin<Box<dyn Future<Output = Result<GuildPrune>> + Send + 'a>>>,
+    fut: Option<Pending<'a, GuildPrune>>,
     guild_id: GuildId,
     http: &'a Client,
 }

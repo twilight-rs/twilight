@@ -3,13 +3,12 @@ use crate::{
     oauth::{id::SkuId, team::Team},
     user::User,
 };
-use std::hash::{Hash, Hasher};
 
 #[cfg_attr(
     feature = "serde-support",
     derive(serde::Deserialize, serde::Serialize)
 )]
-#[derive(Clone, Debug, Eq, PartialEq)]
+#[derive(Clone, Debug, Eq, Hash, PartialEq)]
 pub struct CurrentApplicationInfo {
     pub id: UserId,
     pub bot_public: bool,
@@ -27,10 +26,4 @@ pub struct CurrentApplicationInfo {
     pub summary: String,
     pub team: Option<Team>,
     pub verify_key: String,
-}
-
-impl Hash for CurrentApplicationInfo {
-    fn hash<H: Hasher>(&self, state: &mut H) {
-        self.id.hash(state);
-    }
 }

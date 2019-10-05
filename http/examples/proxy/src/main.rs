@@ -13,7 +13,7 @@ async fn main() -> Result<(), Box<dyn Error + Send + Sync>> {
         .proxy_http(true)
         .skip_ratelimiter(true);
     let client = config.build()?;
-    let channel_id = ChannelId(620980184606048278);
+    let channel_id = ChannelId(620_980_184_606_048_278);
 
     future::join_all((1u8..=10).map(|x| {
         client

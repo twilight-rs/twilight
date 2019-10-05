@@ -427,16 +427,16 @@ impl UpdateCache<MessageUpdate> for InMemoryCache {
                 msg.mentions = mentions.iter().map(|x| x.id).collect::<Vec<_>>();
             }
 
-            if let Some(pinned) = &event.pinned {
-                msg.pinned = pinned.clone();
+            if let Some(pinned) = event.pinned {
+                msg.pinned = pinned;
             }
 
             if let Some(timestamp) = &event.timestamp {
                 msg.timestamp = timestamp.clone();
             }
 
-            if let Some(tts) = &event.tts {
-                msg.tts = tts.clone();
+            if let Some(tts) = event.tts {
+                msg.tts = tts;
             }
         }
 

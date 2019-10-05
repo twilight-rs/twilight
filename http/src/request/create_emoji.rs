@@ -9,7 +9,7 @@ use serde::Serialize;
 pub struct CreateEmoji<'a> {
     roles: Option<Vec<RoleId>>,
     #[serde(skip)]
-    fut: Option<Pin<Box<dyn Future<Output = Result<Emoji>> + Send + 'a>>>,
+    fut: Option<Pending<'a, Emoji>>,
     #[serde(skip)]
     guild_id: GuildId,
     #[serde(skip)]

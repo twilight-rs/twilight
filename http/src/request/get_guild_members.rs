@@ -29,7 +29,7 @@ use dawn_model::{
 pub struct GetGuildMembers<'a> {
     after: Option<UserId>,
     limit: Option<u64>,
-    fut: Option<Pin<Box<dyn Future<Output = Result<Vec<Member>>> + Send + 'a>>>,
+    fut: Option<Pending<'a, Vec<Member>>>,
     guild_id: GuildId,
     http: &'a Client,
 }

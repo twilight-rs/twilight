@@ -6,7 +6,7 @@ pub struct CreateBan<'a> {
     guild_id: GuildId,
     reason: Option<String>,
     user_id: UserId,
-    fut: Option<Pin<Box<dyn Future<Output = Result<()>> + Send + 'a>>>,
+    fut: Option<Pending<'a, ()>>,
     http: &'a Client,
 }
 

@@ -24,7 +24,7 @@ pub struct UpdateGuild<'a> {
     system_channel_id: Option<ChannelId>,
     verification_level: Option<VerificationLevel>,
     #[serde(skip)]
-    fut: Option<Pin<Box<dyn Future<Output = Result<PartialGuild>> + Send + 'a>>>,
+    fut: Option<Pending<'a, PartialGuild>>,
     #[serde(skip)]
     guild_id: GuildId,
     #[serde(skip)]

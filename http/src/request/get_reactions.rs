@@ -10,7 +10,7 @@ pub struct GetReactions<'a> {
     limit: Option<u64>,
     channel_id: ChannelId,
     emoji: String,
-    fut: Option<Pin<Box<dyn Future<Output = Result<Vec<User>>> + Send + 'a>>>,
+    fut: Option<Pending<'a, Vec<User>>>,
     http: &'a Client,
     message_id: MessageId,
 }

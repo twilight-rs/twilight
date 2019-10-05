@@ -62,9 +62,9 @@ mod serde_mappable_seq_support {
     impl Key<'_, ChannelId> for GuildChannel {
         fn key(&self) -> ChannelId {
             match self {
-                GuildChannel::Category(c) => c.id,
-                GuildChannel::Text(c) => c.id,
-                GuildChannel::Voice(c) => c.id,
+                Self::Category(c) => c.id,
+                Self::Text(c) => c.id,
+                Self::Voice(c) => c.id,
             }
         }
     }
