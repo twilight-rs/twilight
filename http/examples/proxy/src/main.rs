@@ -1,7 +1,7 @@
 use dawn_http::client::{config::Proxy, Client};
 use dawn_model::id::ChannelId;
 use futures::future;
-use std::{env, error::Error};
+use std::error::Error;
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn Error + Send + Sync>> {
