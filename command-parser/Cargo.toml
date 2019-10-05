@@ -13,7 +13,7 @@ repository = "https://github.com/dawn-rs/dawn.git"
 version = "0.1.0"
 
 [dependencies]
-dawn-model = { optional = true, path = "../model" }
+dawn-model = { default-features = false, optional = true, path = "../model" }
 
 [features]
 default = ["model"]

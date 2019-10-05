@@ -15,7 +15,7 @@ There is a single feature, `model`, which determines whether to support
 `dawn_model::channel::Message` as an input. All that this does is additional
 checking of the author and the guild it was sent in to see if they're
 ignored. If you don't need that, you can disable this feature. With this
-feature the dependency tree is 17 dependencies, and without it is 0.
+feature the dependency tree is 1 dependency, and without it is 0.
 
 Using `model`:
 
