@@ -5,6 +5,7 @@ mod activity_party;
 mod activity_secrets;
 mod activity_timestamps;
 mod activity_type;
+mod client_status;
 mod status;
 
 pub use self::{
@@ -15,10 +16,14 @@ pub use self::{
     activity_secrets::ActivitySecrets,
     activity_timestamps::ActivityTimestamps,
     activity_type::ActivityType,
+    client_status::ClientStatus,
     status::Status,
 };
 
-use crate::{id::UserId, user::User};
+use crate::{
+    id::{GuildId, UserId},
+    user::User,
+};
 
 #[cfg_attr(
     feature = "serde-support",
@@ -26,8 +31,11 @@ use crate::{id::UserId, user::User};
 )]
 #[derive(Clone, Debug, Eq, Hash, PartialEq)]
 pub struct Presence {
-    pub activity: Option<Activity>,
-    pub last_modified: Option<u64>,
+    #[serde(default)]
+    pub activities: Vec<Activity>,
+    pub client_status: ClientStatus,
+    pub game: Option<Activity>,
+    pub guild_id: Option<GuildId>,
     pub nick: Option<String>,
     pub status: Status,
     pub user: UserOrId,
