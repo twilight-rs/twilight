@@ -17,6 +17,8 @@
 //!
 //! ## Installation
 //!
+//! Most of Dawn requires at least 1.39+ (rust beta).
+//!
 //! Add this to your `Cargo.toml`'s `[dependencies]` section:
 //!
 //! ```toml
@@ -188,7 +190,7 @@
 //! [docs:discord:sharding]: https://discordapp.com/developers/docs/topics/gateway#sharding
 //! [license badge]: https://img.shields.io/badge/license-ISC-blue.svg?style=flat-square
 //! [license link]: https://opensource.org/licenses/ISC
-//! [rust badge]: https://img.shields.io/badge/rust-nightly-93450a.svg?style=flat-square
+//! [rust badge]: https://img.shields.io/badge/rust-1.39+%20(beta)-93450a.svg?style=flat-square
 //! [rust link]: https://github.com/rust-lang/rust/milestone/66
 
 #[cfg(feature = "command-parser")]

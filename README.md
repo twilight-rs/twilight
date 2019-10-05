@@ -20,6 +20,8 @@ support, and more. Read further down for a list of known first-party and
 third-party integration crates.
 
 ## Installation
+ 
+Most of Dawn requires at least 1.39+ (rust beta).
 
 Add this to your `Cargo.toml`'s `[dependencies]` section:
 
@@ -193,5 +195,5 @@ All first-party crates are licensed under [ISC][LICENSE.md]
 [license badge]: https://img.shields.io/badge/license-ISC-blue.svg?style=flat-square
 [license link]: https://opensource.org/licenses/ISC
 [logo]: https://raw.githubusercontent.com/dawn-rs/dawn/master/logo.png
-[rust badge]: https://img.shields.io/badge/rust-nightly-93450a.svg?style=flat-square
+[rust badge]: https://img.shields.io/badge/rust-1.39+%20(beta)-93450a.svg?style=flat-square
 [rust link]: https://github.com/rust-lang/rust/milestone/66
