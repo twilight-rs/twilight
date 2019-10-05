@@ -14,4 +14,4 @@ version = "0.1.0"
 
 [dependencies]
 async-trait = "0.1"
-dawn-model = { path = "../../model" }
+dawn-model = { default-features = false, path = "../../model" }
