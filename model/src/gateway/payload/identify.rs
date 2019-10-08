@@ -1,5 +1,5 @@
-use crate::gateway::opcode::OpCode;
 use super::update_status::UpdateStatusInfo;
+use crate::gateway::opcode::OpCode;
 
 #[cfg_attr(
     feature = "serde-support",

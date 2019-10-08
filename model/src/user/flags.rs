@@ -16,11 +16,11 @@ bitflags! {
 
 #[cfg(feature = "serde-support")]
 mod serde_support {
+    use super::UserFlags;
     use serde::{
         de::{Deserialize, Deserializer},
         ser::{Serialize, Serializer},
     };
-    use super::UserFlags;
 
     impl<'de> Deserialize<'de> for UserFlags {
         fn deserialize<D: Deserializer<'de>>(deserializer: D) -> Result<Self, D::Error> {
@@ -30,7 +30,9 @@ mod serde_support {
 
     impl Serialize for UserFlags {
         fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
-            where S: Serializer {
+        where
+            S: Serializer,
+        {
             serializer.serialize_u64(self.bits())
         }
     }
