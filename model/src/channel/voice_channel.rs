@@ -11,7 +11,7 @@ use crate::{
 pub struct VoiceChannel {
     pub id: ChannelId,
     pub bitrate: u64,
-    pub guild_id: GuildId,
+    pub guild_id: Option<GuildId>,
     #[cfg_attr(feature = "serde-support", serde(rename = "type"))]
     pub kind: ChannelType,
     pub name: String,

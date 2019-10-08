@@ -10,7 +10,7 @@ use crate::{
 #[derive(Clone, Debug, Eq, Hash, PartialEq)]
 pub struct CategoryChannel {
     pub id: ChannelId,
-    pub guild_id: GuildId,
+    pub guild_id: Option<GuildId>,
     #[cfg_attr(feature = "serde-support", serde(rename = "type"))]
     pub kind: ChannelType,
     pub name: String,

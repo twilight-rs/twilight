@@ -10,7 +10,7 @@ use crate::{
 #[derive(Clone, Debug, Eq, Hash, PartialEq)]
 pub struct TextChannel {
     pub id: ChannelId,
-    pub guild_id: GuildId,
+    pub guild_id: Option<GuildId>,
     #[cfg_attr(feature = "serde-support", serde(rename = "type"))]
     pub kind: ChannelType,
     pub last_message_id: Option<MessageId>,

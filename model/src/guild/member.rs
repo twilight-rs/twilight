@@ -10,7 +10,7 @@ use crate::{
 #[derive(Clone, Debug, Eq, Hash, PartialEq)]
 pub struct Member {
     pub deaf: bool,
-    pub guild_id: GuildId,
+    pub guild_id: Option<GuildId>,
     pub joined_at: Option<String>,
     pub mute: bool,
     pub nick: Option<String>,
