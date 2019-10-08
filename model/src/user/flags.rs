@@ -1,7 +1,6 @@
 use bitflags::bitflags;
 
 bitflags! {
-    #[cfg_attr(feature = "serde-support", derive(serde::Deserialize, serde::Serialize))]
     pub struct UserFlags: u64 {
         const DISCORD_EMPLOYEE = 1;
         const DISCORD_PARTNER = 1 << 1;
@@ -12,5 +11,27 @@ bitflags! {
         const HOUSE_BALANCE = 1 << 8;
         const EARLY_SUPPORTER = 1 << 9;
         const TEAM_USER = 1 << 10;
+    }
+}
+
+#[cfg(feature = "serde-support")]
+mod serde_support {
+    use serde::{
+        de::{Deserialize, Deserializer},
+        ser::{Serialize, Serializer},
+    };
+    use super::UserFlags;
+
+    impl<'de> Deserialize<'de> for UserFlags {
+        fn deserialize<D: Deserializer<'de>>(deserializer: D) -> Result<Self, D::Error> {
+            Ok(Self::from_bits_truncate(u64::deserialize(deserializer)?))
+        }
+    }
+
+    impl Serialize for UserFlags {
+        fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+            where S: Serializer {
+            serializer.serialize_u64(self.bits())
+        }
     }
 }

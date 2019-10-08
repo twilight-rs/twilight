@@ -1,7 +1,6 @@
 use bitflags::bitflags;
 
 bitflags! {
-    #[cfg_attr(feature = "serde-support", derive(serde::Deserialize, serde::Serialize))]
     pub struct Permissions: u64 {
         const CREATE_INVITE = 0x0000_0001;
         const KICK_MEMBERS = 0x0000_0002;
@@ -33,5 +32,27 @@ bitflags! {
         const MANAGE_ROLES = 0x1000_0000;
         const MANAGE_WEBHOOKS = 0x2000_0000;
         const MANAGE_EMOJIS = 0x4000_0000;
+    }
+}
+
+#[cfg(feature = "serde-support")]
+mod serde_support {
+    use serde::{
+        de::{Deserialize, Deserializer},
+        ser::{Serialize, Serializer},
+    };
+    use super::Permissions;
+
+    impl<'de> Deserialize<'de> for Permissions {
+        fn deserialize<D: Deserializer<'de>>(deserializer: D) -> Result<Self, D::Error> {
+            Ok(Self::from_bits_truncate(u64::deserialize(deserializer)?))
+        }
+    }
+
+    impl Serialize for Permissions {
+        fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+            where S: Serializer {
+            serializer.serialize_u64(self.bits())
+        }
     }
 }
