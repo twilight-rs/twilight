@@ -1,4 +1,5 @@
 use crate::gateway::opcode::OpCode;
+use super::update_status::UpdateStatusInfo;
 
 #[cfg_attr(
     feature = "serde-support",
@@ -11,16 +12,9 @@ pub struct Identify {
 }
 
 impl Identify {
-    pub fn new(
-        shard: impl Into<Option<[u64; 2]>>,
-        token: impl Into<String>,
-        compression: bool,
-        large_threshold: u64,
-        v: u64,
-        properties: IdentifyProperties,
-    ) -> Self {
+    pub fn new(info: IdentifyInfo) -> Self {
         Self {
-            d: IdentifyInfo::new(shard, token, compression, large_threshold, v, properties),
+            d: info,
             op: OpCode::Identify,
         }
     }
@@ -33,31 +27,13 @@ impl Identify {
 #[derive(Clone, Debug, Eq, Hash, PartialEq)]
 pub struct IdentifyInfo {
     pub compression: bool,
+    pub guild_subscriptions: bool,
     pub large_threshold: u64,
+    pub presence: Option<UpdateStatusInfo>,
     pub properties: IdentifyProperties,
     pub shard: Option<[u64; 2]>,
     pub token: String,
     pub v: u64,
-}
-
-impl IdentifyInfo {
-    pub fn new(
-        shard: impl Into<Option<[u64; 2]>>,
-        token: impl Into<String>,
-        compression: bool,
-        large_threshold: u64,
-        v: u64,
-        properties: IdentifyProperties,
-    ) -> Self {
-        Self {
-            compression,
-            large_threshold,
-            properties,
-            shard: shard.into(),
-            token: token.into(),
-            v,
-        }
-    }
 }
 
 #[cfg_attr(

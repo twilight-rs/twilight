@@ -1,5 +1,6 @@
 pub mod identify;
 pub mod resume;
+pub mod update_status;
 
 mod ban_add;
 mod ban_remove;
@@ -32,7 +33,6 @@ mod role_delete;
 mod role_update;
 mod typing_start;
 mod unavailable_guild;
-mod update_status;
 mod update_voice_state;
 mod user_update;
 mod voice_server_update;
