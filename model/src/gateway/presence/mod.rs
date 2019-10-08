@@ -49,7 +49,9 @@ pub struct Presence {
 #[derive(Clone, Debug, Eq, Hash, PartialEq)]
 pub enum UserOrId {
     User(User),
-    UserId(UserId),
+    UserId {
+        id: UserId,
+    },
 }
 
 #[cfg(feature = "serde-support")]
@@ -62,7 +64,7 @@ mod serde_support {
         fn key(&self) -> UserId {
             match self.user {
                 UserOrId::User(ref u) => u.id,
-                UserOrId::UserId(id) => id,
+                UserOrId::UserId { id } => id,
             }
         }
     }

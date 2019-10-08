@@ -1,5 +1,5 @@
 use crate::{
-    gateway::presence::{Activity, ClientStatus, Presence, Status, UserOrId},
+    gateway::presence::{Activity, ClientStatus, Status, UserOrId},
     id::{GuildId, RoleId},
 };
 
@@ -14,7 +14,6 @@ pub struct PresenceUpdate {
     pub client_status: ClientStatus,
     pub game: Option<Activity>,
     pub guild_id: Option<GuildId>,
-    pub presence: Presence,
     pub roles: Option<Vec<RoleId>>,
     pub status: Status,
     pub user: UserOrId,

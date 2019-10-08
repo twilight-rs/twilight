@@ -21,7 +21,7 @@ mod serde_support {
     use super::{PermissionOverwrite, PermissionOverwriteType, Permissions};
     use crate::id::{RoleId, UserId};
     use serde::{
-        de::{Deserialize, Deserializer},
+        de::{Deserialize, Deserializer, Error as DeError},
         ser::{Serialize, SerializeStruct, Serializer},
     };
 
@@ -29,12 +29,13 @@ mod serde_support {
     struct PermissionOverwriteData {
         allow: Permissions,
         deny: Permissions,
-        id: u64,
+        id: String,
         #[serde(rename = "type")]
         kind: PermissionOverwriteTypeName,
     }
 
     #[derive(serde::Deserialize, serde::Serialize)]
+    #[serde(rename_all = "snake_case")]
     enum PermissionOverwriteTypeName {
         Member,
         Role,
@@ -46,9 +47,15 @@ mod serde_support {
 
             let kind = match data.kind {
                 PermissionOverwriteTypeName::Member => {
-                    PermissionOverwriteType::Member(UserId(data.id))
+                    let id = UserId(data.id.parse().map_err(DeError::custom)?);
+
+                    PermissionOverwriteType::Member(id)
                 },
-                PermissionOverwriteTypeName::Role => PermissionOverwriteType::Role(RoleId(data.id)),
+                PermissionOverwriteTypeName::Role => {
+                    let id = RoleId(data.id.parse().map_err(DeError::custom)?);
+
+                    PermissionOverwriteType::Role(id)
+                },
             };
 
             Ok(Self {

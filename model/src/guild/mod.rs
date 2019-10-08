@@ -79,6 +79,7 @@ pub struct Guild {
     pub icon: Option<String>,
     pub joined_at: String,
     pub large: bool,
+    pub lazy: bool,
     pub max_members: Option<u64>,
     #[cfg_attr(feature = "serde-support", serde(default = "default_max_presences"))]
     pub max_presences: u64,
@@ -91,8 +92,7 @@ pub struct Guild {
     pub owner_id: UserId,
     pub permissions: Option<Permissions>,
     pub preferred_locale: String,
-    #[cfg_attr(feature = "serde-support", serde(default))]
-    pub premium_subscription_count: u64,
+    pub premium_subscription_count: Option<u64>,
     #[cfg_attr(feature = "serde-support", serde(default))]
     pub premium_tier: PremiumTier,
     #[cfg_attr(feature = "serde-support", serde(with = "serde_mappable_seq"))]
