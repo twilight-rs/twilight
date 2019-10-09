@@ -44,7 +44,9 @@ impl UpdateCache<ChannelCreate> for InMemoryCache {
                 super::upsert_item(&self.0.groups, c.id, c).await;
             },
             Channel::Guild(c) => {
-                self.cache_guild_channel(c.clone()).await;
+                if let Some(gid) = super::guild_channel_guild_id(&c) {
+                    self.cache_guild_channel(*gid, c.clone()).await;
+                }
             },
             Channel::Private(c) => {
                 self.cache_private_channel(c.clone()).await;
@@ -99,7 +101,9 @@ impl UpdateCache<ChannelUpdate> for InMemoryCache {
                 self.cache_group(c.clone()).await;
             },
             Channel::Guild(c) => {
-                self.cache_guild_channel(c.clone()).await;
+                if let Some(gid) = super::guild_channel_guild_id(&c) {
+                    self.cache_guild_channel(*gid, c.clone()).await;
+                }
             },
             Channel::Private(c) => {
                 self.cache_private_channel(c.clone()).await;
@@ -229,7 +233,7 @@ impl UpdateCache<GuildUpdate> for InMemoryCache {
         guild.permissions = g.permissions;
         guild.preferred_locale = g.preferred_locale.clone();
         guild.premium_tier = g.premium_tier;
-        guild.premium_subscription_count = g.premium_subscription_count;
+        guild.premium_subscription_count.replace(g.premium_subscription_count);
         guild.region = g.region.clone();
         guild.splash = g.splash.clone();
         guild.system_channel_id = g.system_channel_id;
@@ -249,7 +253,7 @@ impl UpdateCache<MemberAdd> for InMemoryCache {
             return Ok(());
         }
 
-        self.cache_member(event.member.clone()).await;
+        self.cache_member(event.guild_id, event.member.clone()).await;
 
         let mut guild = self.0.guild_members.lock().await;
         guild
@@ -272,7 +276,7 @@ impl UpdateCache<MemberChunk> for InMemoryCache {
             return Ok(());
         }
 
-        self.cache_members(event.members.values().cloned()).await;
+        self.cache_members(event.guild_id, event.members.values().cloned()).await;
         let user_ids = event.members.keys();
         let mut members = self.0.guild_members.lock().await;
 

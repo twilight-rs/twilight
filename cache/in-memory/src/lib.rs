@@ -205,12 +205,13 @@ impl InMemoryCache {
 
     async fn cache_guild_channels(
         &self,
+        guild_id: GuildId,
         guild_channels: impl IntoIterator<Item = GuildChannel>,
     ) -> HashSet<ChannelId> {
         let pairs = future::join_all(guild_channels.into_iter().map(|channel| {
             async {
                 let id = *guild_channel_id(&channel);
-                self.cache_guild_channel(channel).await;
+                self.cache_guild_channel(guild_id, channel).await;
 
                 id
             }
@@ -220,11 +221,10 @@ impl InMemoryCache {
         HashSet::from_iter(pairs)
     }
 
-    async fn cache_guild_channel(&self, channel: GuildChannel) -> Arc<GuildChannel> {
+    async fn cache_guild_channel(&self, guild_id: GuildId, channel: GuildChannel) -> Arc<GuildChannel> {
         let id = *guild_channel_id(&channel);
-        let gid = *guild_channel_guild_id(&channel);
 
-        upsert_guild_item(&self.0.channels_guild, gid, id, channel).await
+        upsert_guild_item(&self.0.channels_guild, guild_id, id, channel).await
     }
 
     async fn cache_emoji(&self, guild_id: GuildId, emoji: Emoji) -> Arc<CachedEmoji> {
@@ -281,11 +281,11 @@ impl InMemoryCache {
     }
 
     async fn cache_guild(&self, guild: Guild) {
-        self.cache_guild_channels(guild.channels.into_iter().map(|(_, v)| v))
+        self.cache_guild_channels(guild.id, guild.channels.into_iter().map(|(_, v)| v))
             .await;
         self.cache_emojis(guild.id, guild.emojis.into_iter().map(|(_, v)| v))
             .await;
-        self.cache_members(guild.members.into_iter().map(|(_, v)| v))
+        self.cache_members(guild.id, guild.members.into_iter().map(|(_, v)| v))
             .await;
         self.cache_presences(Some(guild.id), guild.presences.into_iter().map(|(_, v)| v))
             .await;
@@ -339,6 +339,7 @@ impl InMemoryCache {
             icon: guild.icon,
             joined_at: guild.joined_at,
             large: guild.large,
+            lazy: guild.lazy,
             max_members: guild.max_members,
             max_presences: guild.max_presences,
             member_count: guild.member_count,
@@ -364,8 +365,8 @@ impl InMemoryCache {
         self.0.guilds.lock().await.insert(guild.id, Arc::new(guild));
     }
 
-    async fn cache_member(&self, member: Member) -> Arc<CachedMember> {
-        let id = (member.guild_id, member.user.id);
+    async fn cache_member(&self, guild_id: GuildId, member: Member) -> Arc<CachedMember> {
+        let id = (guild_id, member.user.id);
 
         match self.0.members.lock().await.get(&id) {
             Some(m) if **m == member => Arc::clone(&m),
@@ -374,7 +375,7 @@ impl InMemoryCache {
 
                 let cached = Arc::new(CachedMember {
                     deaf: member.deaf,
-                    guild_id: member.guild_id,
+                    guild_id,
                     joined_at: member.joined_at,
                     mute: member.mute,
                     nick: member.nick,
@@ -390,11 +391,11 @@ impl InMemoryCache {
         }
     }
 
-    async fn cache_members(&self, members: impl IntoIterator<Item = Member>) -> HashSet<UserId> {
+    async fn cache_members(&self, guild_id: GuildId, members: impl IntoIterator<Item = Member>) -> HashSet<UserId> {
         let ids = future::join_all(members.into_iter().map(|member| {
             async {
                 let id = member.user.id;
-                self.cache_member(member).await;
+                self.cache_member(guild_id, member).await;
 
                 id
             }
@@ -766,11 +767,11 @@ impl Cache for InMemoryCache {
     }
 }
 
-fn guild_channel_guild_id(channel: &GuildChannel) -> &GuildId {
+fn guild_channel_guild_id(channel: &GuildChannel) -> Option<&GuildId> {
     match channel {
-        GuildChannel::Category(c) => &c.guild_id,
-        GuildChannel::Text(c) => &c.guild_id,
-        GuildChannel::Voice(c) => &c.guild_id,
+        GuildChannel::Category(c) => c.guild_id.as_ref(),
+        GuildChannel::Text(c) => c.guild_id.as_ref(),
+        GuildChannel::Voice(c) => c.guild_id.as_ref(),
     }
 }
 
@@ -785,6 +786,6 @@ fn guild_channel_id(channel: &GuildChannel) -> &ChannelId {
 fn presence_user_id(presence: &Presence) -> UserId {
     match presence.user {
         UserOrId::User(ref u) => u.id,
-        UserOrId::UserId(u) => u,
+        UserOrId::UserId { id } => id,
     }
 }
