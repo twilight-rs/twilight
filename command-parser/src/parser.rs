@@ -114,19 +114,23 @@ impl<'a> Parser<'a> {
     }
 
     fn find_command(&'a self, buf: &'a str) -> Option<&'a str> {
-        self.config
-            .commands()
-            .iter()
-            .find(|command| buf.starts_with(&command[..]))
-            .map(AsRef::as_ref)
+        self.config.commands().iter().find_map(|command| {
+            if buf.starts_with(&command[..]) {
+                Some(command.as_ref())
+            } else {
+                None
+            }
+        })
     }
 
     fn find_prefix(&self, buf: &str) -> Option<(&str, &str)> {
-        self.config
-            .prefixes()
-            .iter()
-            .find(|(prefix, _)| buf.starts_with(prefix.as_ref()))
-            .map(|(prefix, padding)| (prefix.as_ref(), padding.as_ref()))
+        self.config.prefixes().iter().find_map(|(prefix, padding)| {
+            if buf.starts_with(prefix.as_ref()) {
+                Some((prefix.as_ref(), padding.as_ref()))
+            } else {
+                None
+            }
+        })
     }
 }
 

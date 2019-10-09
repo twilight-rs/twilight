@@ -18,12 +18,13 @@ use dawn_model::{
 /// use dawn_http::Client;
 /// use dawn_model::id::{ChannelId, MessageId};
 ///
-/// # async fn foo() -> Result<(), Box<dyn std::error::Error>> {
+/// # #[tokio::main]
+/// # async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
 /// let client = Client::new("my token");
 /// client.update_message(ChannelId(1), MessageId(2))
 ///     .content("test update".to_owned())
 ///     .await?;
-/// # Ok(()) } fn main() {}
+/// # Ok(()) }
 /// ```
 ///
 /// Remove the message's content:
@@ -32,12 +33,13 @@ use dawn_model::{
 /// use dawn_http::Client;
 /// use dawn_model::id::{ChannelId, MessageId};
 ///
-/// # async fn foo() -> Result<(), Box<dyn std::error::Error>> {
+/// # #[tokio::main]
+/// # async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
 /// let client = Client::new("my token");
 /// client.update_message(ChannelId(1), MessageId(2))
 ///     .content(None)
 ///     .await?;
-/// # Ok(()) } fn main() {}
+/// # Ok(()) }
 /// ```
 ///
 /// [embed]: #method.embed

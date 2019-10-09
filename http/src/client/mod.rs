@@ -172,7 +172,8 @@ impl Client {
     /// use dawn_http::Client;
     /// use dawn_model::id::{GuildId, UserId};
     ///
-    /// # async fn foo() -> Result<(), Box<dyn std::error::Error>> {
+    /// # #[tokio::main]
+    /// # async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
     /// let client = Client::new("my token");
     ///
     /// let guild_id = GuildId(377840580245585931);
@@ -184,8 +185,6 @@ impl Client {
     ///
     /// println!("Banned!");
     /// # Ok(()) }
-    /// #
-    /// # fn main() { }
     /// ```
     pub fn create_ban(
         &self,
@@ -290,7 +289,8 @@ impl Client {
     /// use dawn_http::Client;
     /// use dawn_model::id::GuildId;
     ///
-    /// # async fn foo() -> Result<(), Box<dyn std::error::Error>> {
+    /// # #[tokio::main]
+    /// # async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
     /// let client = Client::new("my token");
     ///
     /// let after = GuildId(300000000000000000);
@@ -303,8 +303,6 @@ impl Client {
     ///
     /// println!("{:?}", guilds);
     /// # Ok(()) }
-    /// #
-    /// # fn main() { }
     /// ```
     pub fn current_user_guilds(&self) -> GetCurrentUserGuilds<'_> {
         GetCurrentUserGuilds::new(self)
@@ -391,15 +389,14 @@ impl Client {
     /// use dawn_http::Client;
     /// use std::env;
     ///
-    /// # async fn foo() -> Result<(), Box<dyn std::error::Error>> {
+    /// # #[tokio::main]
+    /// # async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
     /// let client = Client::new(env::var("TOKEN")?);
     ///
     /// let info = client.gateway().await?;
     ///
     /// println!("URL: {}", info.url);
     /// # Ok(()) }
-    /// #
-    /// # fn main() { }
     /// ```
     ///
     /// Get the gateway connection URL with additional shard and session
@@ -409,7 +406,8 @@ impl Client {
     /// use dawn_http::Client;
     /// use std::env;
     ///
-    /// # async fn foo() -> Result<(), Box<dyn std::error::Error>> {
+    /// # #[tokio::main]
+    /// # async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
     /// let client = Client::new(env::var("TOKEN")?);
     ///
     /// let info = client.gateway().authed().await?;
@@ -417,8 +415,6 @@ impl Client {
     /// println!("URL: {}", info.url);
     /// println!("Recommended shards to use: {}", info.shards);
     /// # Ok(()) }
-    /// #
-    /// # fn main() { }
     /// ```
     pub fn gateway(&self) -> GetGateway<'_> {
         GetGateway::new(self)

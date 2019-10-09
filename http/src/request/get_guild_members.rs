@@ -15,7 +15,8 @@ use dawn_model::{
 /// use dawn_http::Client;
 /// use dawn_model::id::{GuildId, UserId};
 ///
-/// # async fn foo() -> Result<(), Box<dyn std::error::Error>> {
+/// # #[tokio::main]
+/// # async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
 /// let client = Client::new("bot token");
 /// let guild_id = GuildId(620316809459138607);
 /// let user_id = UserId(587175671973937162);
@@ -24,7 +25,7 @@ use dawn_model::{
 /// for member in members {
 ///     println!("name: {}#{}", member.user.name, member.user.discriminator);
 /// }
-/// # Ok(()) } fn main() {}
+/// # Ok(()) }
 /// ```
 pub struct GetGuildMembers<'a> {
     after: Option<UserId>,
