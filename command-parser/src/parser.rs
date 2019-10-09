@@ -19,10 +19,9 @@ pub struct Command<'a> {
 /// configured with. This configuration is mutable during runtime via the
 /// [`Parser::config_mut`] method.
 ///
-/// After parsing, you're given an [`Output`]: an enum representing whether a
-/// command was found and if so its relevant information, it was ignored due to
-/// an ignored guild or user, or if no match was found. Refer to its
-/// documentation for more information on these variants.
+/// After parsing, you're given an optional [`Command`]: a struct representing a
+/// command and its relevant information. Refer to its documentation for more
+/// information.
 ///
 /// # Examples
 ///
@@ -54,7 +53,7 @@ pub struct Command<'a> {
 /// }
 /// ```
 ///
-/// [`Output`]: enum.Output.html
+/// [`Command`]: struct.Command.html
 /// [`Parser::config_mut`]: #method.config_mut
 #[derive(Clone, Debug)]
 pub struct Parser<'a> {
@@ -63,9 +62,9 @@ pub struct Parser<'a> {
 
 impl<'a> Parser<'a> {
     /// Creates a new parser from a given configuration.
-    pub fn new(config: Config<'a>) -> Self {
+    pub fn new(config: impl Into<Config<'a>>) -> Self {
         Self {
-            config,
+            config: config.into(),
         }
     }
 
@@ -81,17 +80,15 @@ impl<'a> Parser<'a> {
 
     /// Parses a command out of a buffer.
     ///
-    /// If a configured prefix and command are in the buffer, then
-    /// [`Output::Command`] is returned with them and a lazy iterator of the
+    /// If a configured prefix and command are in the buffer, then some
+    /// [`Command`] is returned with them and a lazy iterator of the
     /// argument list.
     ///
-    /// If a matching prefix or command weren't found, then [`Output::NoMatch`]
-    /// is returned.
+    /// If a matching prefix or command weren't found, then `None` is returned.
     ///
     /// Refer to the struct-level documentation on how to use this.
     ///
-    /// [`Output::Command`]: enum.Output.html#variant.Command
-    /// [`Output::NoMatch`]: enum.Output.html#variant.NoMatch
+    /// [`Command`]: struct.Command.html
     pub fn parse(&'a self, buf: &'a str) -> Option<Command<'a>> {
         let (prefix, padding) = self.find_prefix(buf)?;
         let mut idx = prefix.len();
@@ -130,6 +127,12 @@ impl<'a> Parser<'a> {
             .iter()
             .find(|(prefix, _)| buf.starts_with(prefix.as_ref()))
             .map(|(prefix, padding)| (prefix.as_ref(), padding.as_ref()))
+    }
+}
+
+impl<'a, T: Into<Config<'a>>> From<T> for Parser<'a> {
+    fn from(config: T) -> Self {
+        Self::new(config)
     }
 }
 
