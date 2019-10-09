@@ -21,14 +21,14 @@ impl<'a> Arguments<'a> {
     /// then this returns `"foo bar baz"`.
     ///
     /// ```rust
-    /// use dawn_command_parser::{Config, Output, Parser};
+    /// use dawn_command_parser::{Command, Config, Parser};
     ///
     /// let mut config = Config::new();
     /// config.add_prefix("!");
     /// config.add_command("echo");
     /// let parser = Parser::new(config);
     ///
-    /// if let Output::Command { arguments, .. } = parser.parse_str("!echo foo bar baz") {
+    /// if let Some(Command { arguments, .. }) = parser.parse("!echo foo bar baz") {
     ///     assert_eq!("foo bar baz", arguments.as_str());
     /// }
     /// # else { panic!("Not command match"); }

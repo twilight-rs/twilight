@@ -9,8 +9,6 @@ use std::{
 #[derive(Clone, Debug, Default)]
 pub struct Config<'a> {
     commands: HashSet<String>,
-    ignore_guilds: HashSet<u64>,
-    ignore_users: HashSet<u64>,
     prefixes: HashMap<Cow<'a, str>, Cow<'a, str>>,
 }
 
@@ -34,26 +32,6 @@ impl<'a> Config<'a> {
     /// [`remove_command`]: #method.remove_command
     pub fn commands_mut(&mut self) -> &mut HashSet<String> {
         &mut self.commands
-    }
-
-    /// Returns an immutable reference to the ignored guilds.
-    pub fn ignore_guilds(&self) -> &HashSet<u64> {
-        &self.ignore_guilds
-    }
-
-    /// Returns a mutable reference to the ignored guilds.
-    pub fn ignore_guilds_mut(&mut self) -> &mut HashSet<u64> {
-        &mut self.ignore_guilds
-    }
-
-    /// Returns an immutable reference to the ignored users.
-    pub fn ignore_users(&self) -> &HashSet<u64> {
-        &self.ignore_users
-    }
-
-    /// Returns a mutable reference to the ignored users.
-    pub fn ignore_users_mut(&mut self) -> &mut HashSet<u64> {
-        &mut self.ignore_users
     }
 
     /// Returns an immutable reference to the prefixes.
@@ -151,11 +129,7 @@ mod tests {
         let mut config = Config::new();
         assert!(config.commands().is_empty());
         assert!(config.commands_mut().is_empty());
-        assert!(config.ignore_guilds().is_empty());
-        assert!(config.ignore_guilds_mut().is_empty());
         assert!(config.prefixes().is_empty());
         assert!(config.prefixes_mut().is_empty());
-        assert!(config.ignore_users().is_empty());
-        assert!(config.ignore_users_mut().is_empty());
     }
 }
