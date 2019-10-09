@@ -221,7 +221,11 @@ impl InMemoryCache {
         HashSet::from_iter(pairs)
     }
 
-    async fn cache_guild_channel(&self, guild_id: GuildId, channel: GuildChannel) -> Arc<GuildChannel> {
+    async fn cache_guild_channel(
+        &self,
+        guild_id: GuildId,
+        channel: GuildChannel,
+    ) -> Arc<GuildChannel> {
         let id = *guild_channel_id(&channel);
 
         upsert_guild_item(&self.0.channels_guild, guild_id, id, channel).await
@@ -391,7 +395,11 @@ impl InMemoryCache {
         }
     }
 
-    async fn cache_members(&self, guild_id: GuildId, members: impl IntoIterator<Item = Member>) -> HashSet<UserId> {
+    async fn cache_members(
+        &self,
+        guild_id: GuildId,
+        members: impl IntoIterator<Item = Member>,
+    ) -> HashSet<UserId> {
         let ids = future::join_all(members.into_iter().map(|member| {
             async {
                 let id = member.user.id;
@@ -786,6 +794,8 @@ fn guild_channel_id(channel: &GuildChannel) -> &ChannelId {
 fn presence_user_id(presence: &Presence) -> UserId {
     match presence.user {
         UserOrId::User(ref u) => u.id,
-        UserOrId::UserId { id } => id,
+        UserOrId::UserId {
+            id,
+        } => id,
     }
 }
