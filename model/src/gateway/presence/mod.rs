@@ -31,7 +31,7 @@ use crate::{
 )]
 #[derive(Clone, Debug, Eq, Hash, PartialEq)]
 pub struct Presence {
-    #[serde(default)]
+    #[cfg_attr(feature = "serde-support", serde(default))]
     pub activities: Vec<Activity>,
     pub client_status: ClientStatus,
     pub game: Option<Activity>,

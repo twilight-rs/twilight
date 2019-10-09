@@ -8,7 +8,7 @@ use crate::guild::audit_log::AuditLogChangeKey;
 pub struct AuditLogChange {
     pub key: AuditLogChangeKey,
     #[cfg(feature = "serde-support")]
-    pub new_value: Option<serde_json::Value>,
+    pub new_value: Option<serde_value::Value>,
     #[cfg(feature = "serde-support")]
-    pub old_value: Option<serde_json::Value>,
+    pub old_value: Option<serde_value::Value>,
 }

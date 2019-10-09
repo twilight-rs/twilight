@@ -183,17 +183,21 @@ impl Display for WebhookId {
     }
 }
 
-#[cfg_attr(feature = "serde-support", cfg(test))]
+#[cfg(all(feature = "serde-support", test))]
 mod tests {
+    use super::GenericId;
+    use serde_test::Token;
+
     #[test]
     fn test_id_deser() -> Result<(), Box<dyn std::error::Error>> {
-        assert_eq!(
-            super::GenericId(114941315417899012),
-            serde_json::from_str::<super::GenericId>(r#""114941315417899012""#)?,
-        );
-        assert_eq!(
-            r#""114941315417899012""#,
-            serde_json::to_string(&super::GenericId(114941315417899012))?,
+        serde_test::assert_tokens(
+            &GenericId(114941315417899012),
+            &[
+                Token::NewtypeStruct {
+                    name: "GenericId",
+                },
+                Token::Str("114941315417899012"),
+            ],
         );
 
         Ok(())
