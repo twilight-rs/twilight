@@ -91,39 +91,42 @@
 //!
 //! ## Examples
 //!
-//! ```rust,ignore
-//! use futures::StreamExt;
+//! ```no_run
 //! use dawn::{
-//!     gateway::{Config, Event, Shard},
+//!     gateway::shard::{Config, Event, Shard},
 //!     http::Client as HttpClient,
 //! };
+//! use futures::StreamExt;
 //! use std::{
 //!     env,
 //!     error::Error,
 //! };
 //!
+//! # #[tokio::main]
+//! # async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
 //! let token = env::var("DISCORD_TOKEN")?;
 //!
 //! let http = HttpClient::new(&token);
 //!
-//! let config = Config::builder(&token).build();
-//! let mut shard = Shard::new(config);
-//! shard.connect().await?;
-//! let mut events = shard.events();
+//! let shard = Shard::new(token).await?;
+//! let mut events = shard.events().await;
 //!
 //! while let Some(event) = events.next().await {
-//!     runtime::spawn(handle_event(event));
-//! }
+//!     let http = http.clone();
 //!
-//! async fn handle_event(event: Event) -> Result<(), Box<dyn Error>> {
+//!     tokio::spawn(async {
+//!         let _ = handle_event(event, http);
+//!     });
+//! }
+//! # Ok(()) }
+//!
+//! async fn handle_event(event: Event, http: HttpClient) -> Result<(), Box<dyn Error>> {
 //!     match event {
-//!         Event::Connected(connected) => {
-//!             println!("Connected on shard {}", connected.shard_id);
+//!         Event::MessageCreate(msg) if msg.content == "!ping" => {
+//!             http.create_message(msg.channel_id).content("Pong!").await?;
 //!         },
-//!         Event::Message(msg) => {
-//!             if msg.content == "!ping" {
-//!                 http.send_message(msg.channel_id).content("Pong!").await?;
-//!             }
+//!         Event::ShardConnected(connected) => {
+//!             println!("Connected on shard {}", connected.shard_id);
 //!         },
 //!         _ => {},
 //!     }
@@ -135,10 +138,10 @@
 //! Maintaining a cache of guilds, users, channels, and more sent by the
 //! gateway:
 //!
-//! ```rust,ignore
+//! ```ignore
 //! use futures::StreamExt;
 //! use dawn::{
-//!     cache::InMemoryCache,
+//!     cache::{InMemoryCache, UpdateCache},
 //!     gateway::{Config, Event, Shard},
 //! };
 //! use std::{
@@ -148,10 +151,8 @@
 //!
 //! let token = env::var("DISCORD_TOKEN")?;
 //!
-//! let config = Config::builder(&token).build();
-//! let mut shard = Shard::new(config);
-//! shard.connect().await?;
-//! let mut events = shard.events();
+//! let shard = Shard::new(token).await?;
+//! let mut events = shard.events().await;
 //!
 //! let cache = InMemoryCache::new();
 //!
@@ -198,6 +199,9 @@ pub extern crate dawn_cache as cache;
 
 #[cfg(feature = "command-parser")]
 pub extern crate dawn_command_parser as command_parser;
+
+#[cfg(feature = "gateway")]
+pub extern crate dawn_gateway as gateway;
 
 #[cfg(feature = "http")]
 pub extern crate dawn_http as http;

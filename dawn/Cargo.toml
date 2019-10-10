@@ -15,13 +15,19 @@ version = "0.1.0"
 [dependencies]
 dawn-cache = { optional = true, path = "../cache/base" }
 dawn-command-parser = { optional = true, path = "../command-parser" }
+dawn-gateway = { optional = true, path = "../gateway" }
 dawn-http = { optional = true, path = "../http" }
 dawn-model = { optional = true, path = "../model" }
 
+[dev-dependencies]
+futures-preview = "0.3.0-alpha.19"
+tokio = "0.2.0-alpha.6"
+
 [features]
-default = ["cache", "command-parser", "http", "model"]
+default = ["cache", "command-parser", "gateway", "http", "model"]
 
 cache = ["dawn-cache"]
 command-parser = ["dawn-command-parser"]
+gateway = ["dawn-gateway"]
 http = ["dawn-http"]
 model = ["dawn-model"]

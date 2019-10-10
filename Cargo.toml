@@ -5,6 +5,8 @@ members = [
     "cache/trait",
     "command-parser",
     "dawn",
+    "gateway",
+    "gateway/examples/shard",
     "http",
     "http/examples/get-message",
     "http/examples/proxy",
