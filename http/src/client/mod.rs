@@ -41,6 +41,7 @@ use serde_json::json;
 use snafu::ResultExt;
 use std::{
     convert::TryFrom,
+    fmt::{Debug, Formatter, Result as FmtResult},
     ops::{Deref, DerefMut},
     str::FromStr,
     sync::Arc,
@@ -97,7 +98,19 @@ struct State {
     use_http: bool,
 }
 
-#[derive(Clone)]
+impl Debug for State {
+    fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
+        f.debug_struct("State")
+            .field("http", &"Reqwest HTTP client")
+            .field("ratelimiter", &self.ratelimiter)
+            .field("skip_ratelimiter", &self.skip_ratelimiter)
+            .field("token", &self.token)
+            .field("use_http", &self.use_http)
+            .finish()
+    }
+}
+
+#[derive(Clone, Debug)]
 pub struct Client {
     state: Arc<State>,
 }
