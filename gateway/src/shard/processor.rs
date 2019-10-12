@@ -17,7 +17,7 @@ use dawn_model::gateway::payload::{
 };
 use futures_channel::mpsc::UnboundedReceiver;
 use futures_util::stream::StreamExt;
-use log::{trace, warn};
+use log::{debug, trace, warn};
 use serde::Serialize;
 use std::{env::consts::OS, mem, ops::Deref, sync::Arc};
 use tokio_tungstenite::tungstenite::Message;
@@ -85,7 +85,15 @@ impl ShardProcessor {
             let mut listeners = self.listeners.listeners.lock().await;
 
             for (id, listener) in listeners.iter() {
-                if !listener.events.contains(event.event_type()) {
+                let event_type = event.event_type();
+
+                if !listener.events.contains(event_type) {
+                    trace!(
+                        "[ShardProcessor] Listener {} doesn't want event type {:?}",
+                        id,
+                        event_type,
+                    );
+
                     continue;
                 }
 
@@ -97,10 +105,12 @@ impl ShardProcessor {
             }
 
             for id in &remove_listeners {
+                debug!("[ShardProcessor] Removing listener {}", id);
+
                 listeners.remove(id);
             }
 
-            listeners.clear();
+            remove_listeners.clear();
         }
     }
 
