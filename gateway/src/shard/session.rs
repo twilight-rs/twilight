@@ -18,6 +18,7 @@ use std::{
         Arc,
     },
 };
+use tokio_executor::{DefaultExecutor, Executor};
 use tokio_tungstenite::tungstenite::Message as TungsteniteMessage;
 
 #[derive(Debug)]
@@ -136,12 +137,16 @@ impl Session {
 
 impl Drop for Session {
     fn drop(&mut self) {
-        let handle = Arc::clone(&self.heartbeater_handle);
+        let mut executor = DefaultExecutor::current();
 
-        tokio_executor::spawn(async move {
-            if let Some(handle) = handle.lock().await.take() {
-                handle.abort();
-            }
-        });
+        if executor.status().is_ok() {
+            let handle = Arc::clone(&self.heartbeater_handle);
+
+            let _ = executor.spawn(Box::pin(async move {
+                if let Some(handle) = handle.lock().await.take() {
+                    handle.abort();
+                }
+            }));
+        }
     }
 }
