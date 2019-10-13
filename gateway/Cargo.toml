@@ -29,6 +29,7 @@ tokio-net = "0.2.0-alpha.6"
 tokio-timer = "0.3.0-alpha.6"
 tokio-tungstenite = { git = "https://github.com/dbcfd/tokio-tungstenite", branch = "tokio2" }
 url = "2"
+flate2 = "1.0"
 
 [dev-dependencies]
 futures-preview = "0.3.0-alpha.19"

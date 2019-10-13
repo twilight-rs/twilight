@@ -21,6 +21,7 @@ use log::{debug, trace, warn};
 use serde::Serialize;
 use std::{env::consts::OS, mem, ops::Deref, sync::Arc};
 use tokio_tungstenite::tungstenite::Message;
+use flate2::Decompress;
 
 /// Runs in the background and processes incoming events, and then broadcasts
 /// to all listeners.
@@ -30,13 +31,16 @@ pub struct ShardProcessor {
     pub properties: IdentifyProperties,
     pub rx: UnboundedReceiver<Message>,
     pub session: Arc<Session>,
+    inflater: Decompress,
+    event_buffer: Vec<u8>,
+    msg_buffer: Vec<u8>,
 }
 
 impl ShardProcessor {
     pub async fn new(config: Arc<Config>) -> Result<Self> {
         let properties = IdentifyProperties::new("dawn.rs", "dawn.rs", OS, "", "");
 
-        let url = "wss://gateway.discord.gg";
+        let url = "wss://gateway.discord.gg?compress=zlib-stream";
 
         let stream = connect::connect(url).await?;
         let (mut forwarder, rx, tx) = SocketForwarder::new(stream);
@@ -50,6 +54,9 @@ impl ShardProcessor {
             properties,
             rx,
             session: Arc::new(Session::new(tx)),
+            inflater: Decompress::new(true),
+            event_buffer: Vec::new(),
+            msg_buffer: Vec::with_capacity(2_usize.pow(20)),
         })
     }
 
@@ -241,40 +248,46 @@ impl ShardProcessor {
     }
 
     async fn next_event(&mut self) -> GatewayEvent {
+        const ZLIB_SUFFIX: [u8; 4] = [0x00, 0x00, 0xff, 0xff];
+
         loop {
             // Returns None when the socket forwarder has ended, meaning the
             // connection was dropped.
-            let msg = if let Some(msg) = self.rx.next().await {
-                msg
+            let bin = if let Some(msg) = self.rx.next().await {
+                if let tokio_tungstenite::tungstenite::Message::Binary(bin) = msg {
+                    bin
+                } else { panic!("Ehmmm this should not happen!"); }
             } else {
                 self.reconnect().await;
 
                 continue;
             };
+            
+            // Extend new message to event buffer.
+            self.event_buffer.extend_from_slice(&bin[..]);
+            
+            let length = self.event_buffer.len();
+            //warn!("LAST 4 = {:?}!", &buffer[(length - 4)..]);
+            if length >= 4 {
+                if self.event_buffer[(length - 4)..] == ZLIB_SUFFIX {
+                    let event = loop {
+                        self.inflater.decompress_vec(&self.event_buffer,
+                                                     &mut self.msg_buffer,
+                                                     flate2::FlushDecompress::Sync).unwrap();
 
-            match msg {
-                Message::Binary(bytes) => {
-                    trace!("Payload: {}", String::from_utf8_lossy(&bytes));
-
-                    match serde_json::from_slice(&bytes) {
-                        Ok(event) => break event,
-                        Err(why) => {
-                            warn!("Error deserializing {:?}: {:?}", bytes, why);
-                        },
-                    }
-                },
-                Message::Close(_) => self.reconnect().await,
-                Message::Ping(_) | Message::Pong(_) => {},
-                Message::Text(text) => {
-                    trace!("Payload: {}", text);
-
-                    match serde_json::from_str(&text) {
-                        Ok(event) => break event,
-                        Err(why) => {
-                            warn!("Error deserializing {:?}: {:?}", text, why);
-                        },
-                    }
-                },
+                        if let Ok(ev) = serde_json::from_slice(&self.msg_buffer) {
+                            self.event_buffer.clear();
+                            self.msg_buffer.clear();
+                            break ev
+                        } else {
+                            let msg_buflen = self.msg_buffer.len();
+                            self.msg_buffer.reserve(msg_buflen);
+                            warn!("[Gateway, buffer resized to {}.", msg_buflen*2);
+                            continue;
+                        }
+                    };
+                    break event
+                }
             }
         }
     }
