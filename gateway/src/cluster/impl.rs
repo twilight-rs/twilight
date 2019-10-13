@@ -148,13 +148,17 @@ impl Cluster {
     /// # Ok(()) }
     /// ```
     pub async fn info(&self) -> HashMap<u64, Information> {
-        self.0
-            .shards
-            .lock()
-            .await
-            .iter()
-            .map(|(id, shard)| (*id, shard.info()))
-            .collect()
+        // Clone this out to prevent locking up access to all of the shards.
+        let shards = self.0.shards.lock().await.clone();
+
+        future::join_all(
+            shards
+                .into_iter()
+                .map(|(id, shard)| async move { (id, shard.info().await) }),
+        )
+        .await
+        .into_iter()
+        .collect::<HashMap<_, _>>()
     }
 
     /// Returns a stream of events from all shards managed by this Cluster.

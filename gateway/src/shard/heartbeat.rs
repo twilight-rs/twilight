@@ -1,7 +1,8 @@
 use super::error::{PayloadSerialization, Result, SendingMessage};
 use dawn_model::gateway::payload::Heartbeat;
 use futures_channel::mpsc::UnboundedSender;
-use log::{debug, warn};
+use futures_util::lock::Mutex;
+use log::{debug, error, warn};
 use snafu::ResultExt;
 use std::{
     collections::VecDeque,
@@ -9,7 +10,6 @@ use std::{
     sync::{
         atomic::{AtomicU32, AtomicU64, Ordering},
         Arc,
-        Mutex,
     },
     time::{Duration, Instant},
 };
@@ -73,12 +73,12 @@ pub struct Heartbeats {
 }
 
 impl Heartbeats {
-    pub fn latency(&self) -> Latency {
+    pub async fn latency(&self) -> Latency {
         let iterations = self.total_iterations();
         let recent = self
             .recent
             .lock()
-            .expect("failed to open mutex")
+            .await
             .iter()
             .map(|x| Duration::from_millis(*x))
             .collect();
@@ -87,41 +87,33 @@ impl Heartbeats {
             average: self.total_time() / iterations,
             heartbeats: iterations,
             recent,
-            received: *self.received.lock().expect("failed to open mutex"),
-            sent: *self.sent.lock().expect("failed to open mutex"),
+            received: *self.received.lock().await,
+            sent: *self.sent.lock().await,
         }
     }
 
-    pub fn last_acked(&self) -> bool {
-        self.received
-            .lock()
-            .expect("failed to open mutex")
-            .is_some()
+    pub async fn last_acked(&self) -> bool {
+        self.received.lock().await.is_some()
     }
 
-    pub fn receive(&self) {
+    pub async fn receive(&self) {
         let now = Instant::now();
-        self.received
-            .lock()
-            .expect("failed to open mutex")
-            .replace(now);
+        self.received.lock().await.replace(now);
 
         self.total_iterations.fetch_add(1, Ordering::SeqCst);
 
-        if let Some(dur) = self
-            .sent
-            .lock()
-            .expect("failed to open mutex")
-            .map(|s| s.elapsed())
-        {
-            let millis = dur
-                .as_millis()
-                .try_into()
-                .expect("failed to convert millis to u64");
+        if let Some(dur) = self.sent.lock().await.map(|s| s.elapsed()) {
+            let millis = if let Ok(millis) = dur.as_millis().try_into() {
+                millis
+            } else {
+                error!("Duration millis is more than u64: {:?}", dur);
 
-            self.total_time.fetch_add(millis as u64, Ordering::SeqCst);
+                return;
+            };
 
-            let mut recent = self.recent.lock().unwrap();
+            self.total_time.fetch_add(millis, Ordering::SeqCst);
+
+            let mut recent = self.recent.lock().await;
 
             if recent.len() == 5 {
                 recent.pop_front();
@@ -131,9 +123,9 @@ impl Heartbeats {
         }
     }
 
-    pub fn send(&self) {
-        self.received.lock().unwrap().take();
-        self.sent.lock().unwrap().replace(Instant::now());
+    pub async fn send(&self) {
+        self.received.lock().await.take();
+        self.sent.lock().await.replace(Instant::now());
     }
 
     fn total_iterations(&self) -> u32 {
@@ -204,7 +196,7 @@ impl Heartbeater {
             // - if so, then mark that we didn't get one this time
             // - if not, then end the heartbeater because something is off
             // (connecting closed?)
-            if self.heartbeats.last_acked() {
+            if self.heartbeats.last_acked().await {
                 last = true;
             } else if last {
                 last = false;
@@ -221,7 +213,7 @@ impl Heartbeater {
                 .unbounded_send(TungsteniteMessage::Binary(bytes))
                 .context(SendingMessage)?;
             debug!("[Heartbeat] Sent heartbeat with seq: {}", seq);
-            self.heartbeats.send();
+            self.heartbeats.send().await;
         }
     }
 }
