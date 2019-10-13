@@ -41,7 +41,7 @@ impl ShardProcessor {
         let stream = connect::connect(url).await?;
         let (mut forwarder, rx, tx) = SocketForwarder::new(stream);
         tokio_executor::spawn(async move {
-            let _ = forwarder.run().await;
+            forwarder.run().await;
         });
 
         Ok(Self {
@@ -57,29 +57,19 @@ impl ShardProcessor {
         let mut remove_listeners = Vec::new();
 
         loop {
-            // Returns None when the socket forwarder has ended.
-            let msg = self.rx.next().await.unwrap();
+            let gateway_event = self.next_event().await;
 
-            let gateway_event: GatewayEvent = match msg {
-                Message::Binary(bytes) => {
-                    trace!("Payload: {}", String::from_utf8_lossy(&bytes));
+            // The only reason for an error is if the sender couldn't send a
+            // message or if the session didn't exist when it should, so do a
+            // reconnect if this fails.
+            if self.process(&gateway_event).await.is_err() {
+                debug!("Error processing event; reconnecting");
 
-                    serde_json::from_slice(&bytes).unwrap()
-                },
-                Message::Close(_) => {
-                    self.reconnect().await;
+                self.reconnect().await;
 
-                    continue;
-                },
-                Message::Ping(_) | Message::Pong(_) => continue,
-                Message::Text(text) => {
-                    trace!("Payload: {}", text);
+                continue;
+            }
 
-                    serde_json::from_str(&text).unwrap()
-                },
-            };
-
-            self.process(&gateway_event).await.unwrap();
             let event = Event::from(gateway_event);
 
             let mut listeners = self.listeners.listeners.lock().await;
@@ -146,7 +136,7 @@ impl ShardProcessor {
                     },
                     DispatchEvent::Resumed => {
                         self.session.set_stage(Stage::Connected);
-                        self.session.heartbeats.receive();
+                        self.session.heartbeats.receive().await;
                     },
                     _ => {},
                 }
@@ -173,7 +163,7 @@ impl ShardProcessor {
                 self.identify().await?;
             },
             HeartbeatAck => {
-                self.session.heartbeats.receive();
+                self.session.heartbeats.receive().await;
             },
             InvalidateSession(true) => {
                 self.resume().await?;
@@ -247,6 +237,45 @@ impl ShardProcessor {
                 Ok(())
             },
             Err(other) => Err(other),
+        }
+    }
+
+    async fn next_event(&mut self) -> GatewayEvent {
+        loop {
+            // Returns None when the socket forwarder has ended, meaning the
+            // connection was dropped.
+            let msg = if let Some(msg) = self.rx.next().await {
+                msg
+            } else {
+                self.reconnect().await;
+
+                continue;
+            };
+
+            match msg {
+                Message::Binary(bytes) => {
+                    trace!("Payload: {}", String::from_utf8_lossy(&bytes));
+
+                    match serde_json::from_slice(&bytes) {
+                        Ok(event) => break event,
+                        Err(why) => {
+                            warn!("Error deserializing {:?}: {:?}", bytes, why);
+                        },
+                    }
+                },
+                Message::Close(_) => self.reconnect().await,
+                Message::Ping(_) | Message::Pong(_) => {},
+                Message::Text(text) => {
+                    trace!("Payload: {}", text);
+
+                    match serde_json::from_str(&text) {
+                        Ok(event) => break event,
+                        Err(why) => {
+                            warn!("Error deserializing {:?}: {:?}", text, why);
+                        },
+                    }
+                },
+            }
         }
     }
 }

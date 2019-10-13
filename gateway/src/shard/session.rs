@@ -91,7 +91,7 @@ impl Session {
 
     /// Returns the current shard stage.
     pub fn stage(&self) -> Stage {
-        Stage::try_from(self.stage.load(Ordering::Relaxed)).expect("invalid stage")
+        Stage::try_from(self.stage.load(Ordering::Relaxed)).unwrap_or_default()
     }
 
     /// Sets the stage.

@@ -90,7 +90,7 @@ impl Shard {
     ///
     /// timer::delay_for(Duration::from_secs(1)).await;
     ///
-    /// let info = shard.info();
+    /// let info = shard.info().await;
     /// println!("Shard stage: {}", info.stage());
     /// # Ok(()) }
     /// ```
@@ -126,10 +126,10 @@ impl Shard {
 
     /// Returns information about the running of the shard, such as the current
     /// connection stage.
-    pub fn info(&self) -> Information {
+    pub async fn info(&self) -> Information {
         Information {
             id: self.config().shard()[0],
-            latency: self.0.session.heartbeats.latency(),
+            latency: self.0.session.heartbeats.latency().await,
             seq: self.0.session.seq(),
             stage: self.0.session.stage(),
         }

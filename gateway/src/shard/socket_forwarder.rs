@@ -1,4 +1,4 @@
-use super::{Result, ShardStream};
+use super::ShardStream;
 use futures_channel::mpsc::{self, UnboundedReceiver, UnboundedSender};
 use futures_util::{
     future::{self, Either},
@@ -31,21 +31,25 @@ impl SocketForwarder {
         )
     }
 
-    pub async fn run(&mut self) -> Result<()> {
+    pub async fn run(&mut self) {
         debug!("[SocketForwarder] Starting driving loop");
 
         loop {
             match future::select(self.rx.next(), self.stream.next()).await {
                 Either::Left((Some(msg), _)) => {
-                    self.stream.send(msg).await.unwrap();
+                    if self.stream.send(msg).await.is_err() {
+                        return;
+                    }
                 },
                 Either::Left((None, _)) => {
-                    self.stream.close(None).await.unwrap();
+                    let _ = self.stream.close(None).await;
 
-                    return Ok(());
+                    return;
                 },
                 Either::Right((Some(Ok(msg)), _)) => {
-                    self.tx.unbounded_send(msg).unwrap();
+                    if self.tx.unbounded_send(msg).is_err() {
+                        return;
+                    }
                 },
                 Either::Right((Some(Err(_)), _)) | Either::Right((None, _)) => {
                     self.tx.close_channel();

@@ -39,7 +39,7 @@
 ///         },
 ///         Event::MessageCreate(msg) if msg.content == "!latency" => {
 ///             if let Some(shard) = cluster.shard(shard_id).await {
-///                 let info = shard.info();
+///                 let info = shard.info().await;
 ///
 ///                 println!("Shard {}'s latency is {:?}", shard_id, info.latency());
 ///             }
