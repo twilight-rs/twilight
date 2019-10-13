@@ -40,8 +40,8 @@ impl<'de> Visitor<'de> for GatewayEventVisitor {
     }
 
     fn visit_map<V>(self, mut map: V) -> Result<GatewayEvent, V::Error>
-        where
-            V: MapAccess<'de>,
+    where
+        V: MapAccess<'de>,
     {
         static VALID_OPCODES: &[&str] = &[
             "EVENT",
@@ -101,8 +101,7 @@ impl<'de> Visitor<'de> for GatewayEventVisitor {
                 let s = s.ok_or_else(|| DeError::missing_field("s"))?;
                 let t = t.ok_or_else(|| DeError::missing_field("t"))?;
 
-                let dispatch =
-                    DispatchEvent::try_from((t.as_ref(), d)).map_err(DeError::custom)?;
+                let dispatch = DispatchEvent::try_from((t.as_ref(), d)).map_err(DeError::custom)?;
 
                 GatewayEvent::Dispatch(s, Box::new(dispatch))
             },
@@ -129,9 +128,7 @@ impl<'de> Visitor<'de> for GatewayEventVisitor {
 
                 GatewayEvent::InvalidateSession(resumeable)
             },
-            OpCode::Identify => {
-                return Err(DeError::unknown_variant("Identify", VALID_OPCODES))
-            },
+            OpCode::Identify => return Err(DeError::unknown_variant("Identify", VALID_OPCODES)),
             OpCode::Reconnect => GatewayEvent::Reconnect,
             OpCode::RequestGuildMembers => {
                 return Err(DeError::unknown_variant(
@@ -139,9 +136,7 @@ impl<'de> Visitor<'de> for GatewayEventVisitor {
                     VALID_OPCODES,
                 ))
             },
-            OpCode::Resume => {
-                return Err(DeError::unknown_variant("Resume", VALID_OPCODES))
-            },
+            OpCode::Resume => return Err(DeError::unknown_variant("Resume", VALID_OPCODES)),
             OpCode::StatusUpdate => {
                 return Err(DeError::unknown_variant("StatusUpdate", VALID_OPCODES))
             },
