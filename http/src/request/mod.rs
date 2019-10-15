@@ -98,9 +98,9 @@ use crate::{
     error::Result,
     routing::{Path, Route},
 };
-use http::{
+use reqwest::{
     header::{HeaderMap, HeaderValue},
-    method::Method,
+    Method,
 };
 use std::{borrow::Cow, future::Future, pin::Pin};
 

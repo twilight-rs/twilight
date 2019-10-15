@@ -23,7 +23,6 @@ use reqwest::{
     ClientBuilder as ReqwestClientBuilder,
     Response,
     StatusCode,
-    Url,
 };
 use serde::{de::DeserializeOwned, Deserialize, Serialize};
 use serde_json::json;
@@ -31,7 +30,6 @@ use std::{
     convert::TryFrom,
     fmt::{Debug, Formatter, Result as FmtResult},
     ops::{Deref, DerefMut},
-    str::FromStr,
     sync::Arc,
 };
 
@@ -977,16 +975,9 @@ impl Client {
 
         let protocol = if self.state.use_http { "http" } else { "https" };
         let url = format!("{}://discordapp.com/api/v6/{}", protocol, path);
-
-        let url = Url::from_str(&url).map_err(|source| Error::InvalidUrl {
-            method: method.clone(),
-            path: (*path).to_owned(),
-            source,
-        })?;
-
         debug!("URL: {:?}", url);
 
-        let mut builder = self.state.http.request(method.clone(), url);
+        let mut builder = self.state.http.request(method.clone(), &url);
 
         if let Some(bytes) = body {
             builder = builder.body(Body::from(bytes));

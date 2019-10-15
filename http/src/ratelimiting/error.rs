@@ -1,4 +1,4 @@
-use http::header::ToStrError;
+use reqwest::header::ToStrError;
 use std::{
     error::Error as StdError,
     fmt::{Display, Formatter, Result as FmtResult},

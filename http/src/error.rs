@@ -1,14 +1,12 @@
 use crate::ratelimiting::RatelimitError;
 use futures_channel::oneshot::Canceled;
-use http::{header::InvalidHeaderValue, method::Method, Error as HttpError};
-use reqwest::{Error as ReqwestError, Response as ReqwestResponse};
+use reqwest::{header::InvalidHeaderValue, Error as ReqwestError, Response as ReqwestResponse};
 use serde_json::Error as JsonError;
 use std::{
     error::Error as StdError,
     fmt::{Display, Error as FmtError, Formatter, Result as FmtResult},
     result::Result as StdResult,
 };
-use url::ParseError;
 
 pub type Result<T> = StdResult<T, Error>;
 
@@ -55,11 +53,6 @@ pub enum Error {
     Formatting {
         source: FmtError,
     },
-    InvalidUrl {
-        method: Method,
-        path: String,
-        source: ParseError,
-    },
     Json {
         source: JsonError,
     },
@@ -69,10 +62,6 @@ pub enum Error {
     },
     Ratelimiting {
         source: RatelimitError,
-    },
-    RequestBuilding {
-        path: String,
-        source: HttpError,
     },
     RequestCanceled {
         source: Canceled,
@@ -116,9 +105,6 @@ impl Display for Error {
             Self::Formatting {
                 ..
             } => f.write_str("Formatting a string failed"),
-            Self::InvalidUrl {
-                path, ..
-            } => write!(f, "Path {} is invalid", path),
             Self::Json {
                 ..
             } => f.write_str("Given value couldn't be serialized"),
@@ -128,9 +114,6 @@ impl Display for Error {
             Self::Ratelimiting {
                 ..
             } => f.write_str("Ratelimiting failure"),
-            Self::RequestBuilding {
-                ..
-            } => f.write_str("Request couldn't be built"),
             Self::RequestCanceled {
                 ..
             } => f.write_str("Request was canceled either before or while being sent"),
@@ -153,9 +136,6 @@ impl StdError for Error {
             Self::Formatting {
                 source,
             } => Some(source),
-            Self::InvalidUrl {
-                source, ..
-            } => Some(source),
             Self::Json {
                 source,
             }
@@ -164,9 +144,6 @@ impl StdError for Error {
             } => Some(source),
             Self::Ratelimiting {
                 source,
-            } => Some(source),
-            Self::RequestBuilding {
-                source, ..
             } => Some(source),
             Self::RequestCanceled {
                 source,
