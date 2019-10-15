@@ -1,4 +1,4 @@
-use http::Method;
+use reqwest::Method;
 use std::{
     borrow::Cow,
     convert::TryFrom,
@@ -1217,7 +1217,7 @@ impl Route {
 #[cfg(test)]
 mod tests {
     use super::{Path, PathParseError};
-    use http::Method;
+    use reqwest::Method;
     use std::{convert::TryFrom, error::Error, str::FromStr};
 
     #[test]

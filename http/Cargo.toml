@@ -16,14 +16,12 @@ version = "0.1.0"
 futures-channel-preview = "0.3.0-alpha.19"
 futures-util-preview = "0.3.0-alpha.19"
 futures-timer = "0.5"
-http = "0.1"
 dawn-model = { path = "../model" }
 log = "0.4"
 reqwest = { default-features = false, version = "0.10.0-alpha.1" }
 serde = "1"
 serde_json = "1"
 tokio-executor = "0.2.0-alpha.6"
-url = "2"
 
 [dev-dependencies]
 tokio = "0.2.0-alpha.6"
