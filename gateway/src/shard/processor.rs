@@ -15,13 +15,15 @@ use dawn_model::gateway::payload::{
     identify::{Identify, IdentifyInfo, IdentifyProperties},
     resume::Resume,
 };
+use flate2::Decompress;
 use futures_channel::mpsc::UnboundedReceiver;
 use futures_util::stream::StreamExt;
 use log::{debug, trace, warn};
 use serde::Serialize;
 use std::{env::consts::OS, mem, ops::Deref, sync::Arc};
 use tokio_tungstenite::tungstenite::Message;
-use flate2::Decompress;
+
+use std::error::Error as StdError;
 
 /// Runs in the background and processes incoming events, and then broadcasts
 /// to all listeners.
@@ -56,6 +58,10 @@ impl ShardProcessor {
             session: Arc::new(Session::new(tx)),
             inflater: Decompress::new(true),
             event_buffer: Vec::new(),
+            // Allocates around 1GB, but is in pratice not allocated,
+            // as most of it is never written to so it will not allocate
+            // all of it on systems with lazy allocation, like for example
+            // GNU/Linux.
             msg_buffer: Vec::with_capacity(2_usize.pow(30)),
         })
     }
@@ -66,10 +72,26 @@ impl ShardProcessor {
         loop {
             let gateway_event = match self.next_event().await {
                 Ok(ev) => ev,
-                Err(err) => {
-                    warn!("Decompressing failed: {}", err);
+                // Reconnect as this error is often fatal!
+                Err(crate::shard::Error::Decompressing {
+                    ..
+                }) => {
+                    warn!("[gateway] Decompressing error, clears buffers and reconnect!");
+
+                    // Clear buffers
+                    self.event_buffer.clear();
+                    self.msg_buffer.clear();
+
+                    // Reset inflater context
+                    self.inflater.reset(true);
+
+                    self.reconnect().await;
                     continue;
-                }
+                },
+                Err(err) => {
+                    warn!("Decompressing failed: {:?}", err.source());
+                    continue;
+                },
             };
 
             // The only reason for an error is if the sender couldn't send a
@@ -77,7 +99,7 @@ impl ShardProcessor {
             // reconnect if this fails.
             if self.process(&gateway_event).await.is_err() {
                 debug!("Error processing event; reconnecting");
-                
+
                 self.reconnect().await;
 
                 continue;
@@ -253,7 +275,7 @@ impl ShardProcessor {
         }
     }
 
-    async fn next_event(&mut self) -> Result<GatewayEvent> {
+    async fn next_event(&mut self) -> GatewayEvent {
         const ZLIB_SUFFIX: [u8; 4] = [0x00, 0x00, 0xff, 0xff];
 
         loop {
@@ -262,56 +284,77 @@ impl ShardProcessor {
             let bin = if let Some(msg) = self.rx.next().await {
                 if let tokio_tungstenite::tungstenite::Message::Binary(bin) = msg {
                     bin
-                } else { panic!("Ehmmm this should not happen!"); }
+                } else {
+                    panic!("Ehmmm this should not happen!");
+                }
             } else {
                 self.reconnect().await;
 
                 continue;
             };
-            
+
             // Extend new message to event buffer.
             self.event_buffer.extend_from_slice(&bin[..]);
-
+            
             let length = self.event_buffer.len();
-            //warn!("LAST 4 = {:?}!", &self.event_buffer[(length - 4)..]);
             if length >= 4 {
                 if self.event_buffer[(length - 4)..] == ZLIB_SUFFIX {
                     let event = loop {
-                        dbg!(self.inflater.decompress_vec(&self.event_buffer,
-                                                     &mut self.msg_buffer ,
-                                                     flate2::FlushDecompress::None).unwrap());
+                        self.inflater
+                            .decompress_vec(
+                                &self.event_buffer,
+                                &mut self.msg_buffer,
+                                flate2::FlushDecompress::Sync,
+                            )
+                            .map_err(|source| crate::shard::Error::Decompressing {
+                                source,
+                            })?;
 
                         match serde_json::from_slice(&self.msg_buffer.clone()) {
                             Ok(ev) => break ev,
                             Err(err) => {
-                                warn!("error: {:?}", err);
-                                if err.is_eof() || err.is_syntax() || err.is_io() || err.is_data() {
+                                trace!("error: {:?}", err);
+                                // Is maybe not enought to catch all errors but that is
+                                // currently not a problem as we just make sure to have
+                                // large enough buffer at all time.
+                                if err.is_eof() {
                                     let cap = self.msg_buffer.capacity();
-                                    warn!("msg_buffer: {}",
-                                             if let Ok(s) = String::from_utf8(self.msg_buffer.clone()) {
-                                                 s
-                                             } else { String::from("AAAAAAAAAAAAAAAAAA") });
+                                    trace!(
+                                        "msg_buffer: {}",
+                                        if let Ok(s) = String::from_utf8(self.msg_buffer.clone()) {
+                                            s
+                                        } else {
+                                            String::from("Invalid string!")
+                                        }
+                                    );
                                     &self.msg_buffer.reserve(cap);
-                                    warn!("Buffer resized to: {}", self.msg_buffer.capacity());
-                                    //self.msg_buffer.clear();
+                                    trace!("Buffer resized to: {}", self.msg_buffer.capacity());
+
                                     continue;
                                 } else {
-                                    warn!("msg_buffer: {}",
-                                             if let Ok(s) = String::from_utf8(self.msg_buffer.clone()) {
-                                                 s
-                                             } else { String::from("AAAAAAAAAAAAAAAAAA") });
-                                    return Err(crate::shard::Error::PayloadSerialization { source : err });
+                                    trace!(
+                                        "msg_buffer: {}",
+                                        if let Ok(s) = String::from_utf8(self.msg_buffer.clone()) {
+                                            s
+                                        } else {
+                                            String::from("Invalid string!")
+                                        }
+                                    );
+                                    return Err(crate::shard::Error::PayloadSerialization {
+                                        source: err,
+                                    });
                                 }
-                            }
+                            },
                         };
                     };
-                    warn!("in:out: {}:{}",
-                          self.event_buffer.len(),
-                          self.msg_buffer.len());
-                    self.msg_buffer[2^30-1] = 1;
+                    trace!(
+                        "in:out: {}:{}",
+                        self.event_buffer.len(),
+                        self.msg_buffer.len()
+                    );
                     self.event_buffer.clear();
                     self.msg_buffer.clear();
-                    break Ok(event)
+                    break Ok(event);
                 }
             }
         }

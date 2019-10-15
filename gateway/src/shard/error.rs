@@ -1,5 +1,6 @@
 //! The error type of why errors occur in the shard module.
 
+use flate2::DecompressError;
 use futures_channel::mpsc::TrySendError;
 use serde_json::Error as JsonError;
 use std::{
@@ -54,6 +55,8 @@ pub enum Error {
         /// The reason for the error.
         source: TrySendError<TungsteniteMessage>,
     },
+    /// There was a error decompressing a frame from discord.
+    Decompressing { source: DecompressError },
 }
 
 impl Display for Error {
@@ -82,6 +85,9 @@ impl Display for Error {
             Self::SendingMessage {
                 ..
             } => f.write_str("The message couldn't be sent because the receiver half dropped"),
+            Self::Decompressing {
+                ..
+            } => f.write_str("A frame could not be decompressed"),
         }
     }
 }
@@ -99,6 +105,9 @@ impl StdError for Error {
                 source,
             } => Some(source),
             Self::SendingMessage {
+                source,
+            } => Some(source),
+            Self::Decompressing {
                 source,
             } => Some(source),
             Self::IdTooLarge {
