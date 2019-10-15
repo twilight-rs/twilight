@@ -56,7 +56,7 @@ impl ShardProcessor {
             session: Arc::new(Session::new(tx)),
             inflater: Decompress::new(true),
             event_buffer: Vec::new(),
-            msg_buffer: Vec::with_capacity(2_usize.pow(20)),
+            msg_buffer: Vec::with_capacity(2_usize.pow(30)),
         })
     }
 
@@ -64,14 +64,20 @@ impl ShardProcessor {
         let mut remove_listeners = Vec::new();
 
         loop {
-            let gateway_event = self.next_event().await;
+            let gateway_event = match self.next_event().await {
+                Ok(ev) => ev,
+                Err(err) => {
+                    warn!("Decompressing failed: {}", err);
+                    continue;
+                }
+            };
 
             // The only reason for an error is if the sender couldn't send a
             // message or if the session didn't exist when it should, so do a
             // reconnect if this fails.
             if self.process(&gateway_event).await.is_err() {
                 debug!("Error processing event; reconnecting");
-
+                
                 self.reconnect().await;
 
                 continue;
@@ -247,7 +253,7 @@ impl ShardProcessor {
         }
     }
 
-    async fn next_event(&mut self) -> GatewayEvent {
+    async fn next_event(&mut self) -> Result<GatewayEvent> {
         const ZLIB_SUFFIX: [u8; 4] = [0x00, 0x00, 0xff, 0xff];
 
         loop {
@@ -265,28 +271,47 @@ impl ShardProcessor {
             
             // Extend new message to event buffer.
             self.event_buffer.extend_from_slice(&bin[..]);
-            
+
             let length = self.event_buffer.len();
-            //warn!("LAST 4 = {:?}!", &buffer[(length - 4)..]);
+            //warn!("LAST 4 = {:?}!", &self.event_buffer[(length - 4)..]);
             if length >= 4 {
                 if self.event_buffer[(length - 4)..] == ZLIB_SUFFIX {
                     let event = loop {
-                        self.inflater.decompress_vec(&self.event_buffer,
-                                                     &mut self.msg_buffer,
-                                                     flate2::FlushDecompress::Sync).unwrap();
+                        dbg!(self.inflater.decompress_vec(&self.event_buffer,
+                                                     &mut self.msg_buffer ,
+                                                     flate2::FlushDecompress::None).unwrap());
 
-                        if let Ok(ev) = serde_json::from_slice(&self.msg_buffer) {
-                            self.event_buffer.clear();
-                            self.msg_buffer.clear();
-                            break ev
-                        } else {
-                            let msg_buflen = self.msg_buffer.len();
-                            self.msg_buffer.reserve(msg_buflen);
-                            warn!("[Gateway, buffer resized to {}.", msg_buflen*2);
-                            continue;
-                        }
+                        match serde_json::from_slice(&self.msg_buffer.clone()) {
+                            Ok(ev) => break ev,
+                            Err(err) => {
+                                warn!("error: {:?}", err);
+                                if err.is_eof() || err.is_syntax() || err.is_io() || err.is_data() {
+                                    let cap = self.msg_buffer.capacity();
+                                    warn!("msg_buffer: {}",
+                                             if let Ok(s) = String::from_utf8(self.msg_buffer.clone()) {
+                                                 s
+                                             } else { String::from("AAAAAAAAAAAAAAAAAA") });
+                                    &self.msg_buffer.reserve(cap);
+                                    warn!("Buffer resized to: {}", self.msg_buffer.capacity());
+                                    //self.msg_buffer.clear();
+                                    continue;
+                                } else {
+                                    warn!("msg_buffer: {}",
+                                             if let Ok(s) = String::from_utf8(self.msg_buffer.clone()) {
+                                                 s
+                                             } else { String::from("AAAAAAAAAAAAAAAAAA") });
+                                    return Err(crate::shard::Error::PayloadSerialization { source : err });
+                                }
+                            }
+                        };
                     };
-                    break event
+                    warn!("in:out: {}:{}",
+                          self.event_buffer.len(),
+                          self.msg_buffer.len());
+                    self.msg_buffer[2^30-1] = 1;
+                    self.event_buffer.clear();
+                    self.msg_buffer.clear();
+                    break Ok(event)
                 }
             }
         }
