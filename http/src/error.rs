@@ -1,16 +1,18 @@
 use crate::ratelimiting::RatelimitError;
 use futures_channel::oneshot::Canceled;
-use http::{header::InvalidHeaderValue, method::Method, status::StatusCode, Error as HttpError};
+use http::{header::InvalidHeaderValue, method::Method, Error as HttpError};
 use reqwest::{Error as ReqwestError, Response as ReqwestResponse};
 use serde_json::Error as JsonError;
-use snafu::Snafu;
-use std::{fmt::Error as FmtError, result::Result as StdResult};
+use std::{
+    error::Error as StdError,
+    fmt::{Display, Error as FmtError, Formatter, Result as FmtResult},
+    result::Result as StdResult,
+};
 use url::ParseError;
 
 pub type Result<T> = StdResult<T, Error>;
 
-#[derive(Debug, Snafu)]
-#[snafu(visibility(pub(crate)))]
+#[derive(Debug)]
 pub enum ResponseError {
     /// A 4xx response status code. Submit a GitHub issue with this error so we
     /// can fix it.
@@ -19,8 +21,26 @@ pub enum ResponseError {
     Server { response: ReqwestResponse },
 }
 
-#[derive(Debug, Snafu)]
-#[snafu(visibility(pub(crate)))]
+impl Display for ResponseError {
+    fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
+        match self {
+            Self::Client {
+                ..
+            } => f.write_str("The response was a 4xx client side error"),
+            Self::Server {
+                ..
+            } => f.write_str("The response was a 5xx server side error"),
+        }
+    }
+}
+
+impl StdError for ResponseError {
+    fn source(&self) -> Option<&(dyn StdError + 'static)> {
+        None
+    }
+}
+
+#[derive(Debug)]
 pub enum Error {
     BuildingClient {
         source: ReqwestError,
@@ -63,24 +83,106 @@ pub enum Error {
     Response {
         source: ResponseError,
     },
-    StreamingPayload {
-        status: StatusCode,
-        source: ReqwestError,
-    },
 }
 
 impl From<FmtError> for Error {
-    fn from(e: FmtError) -> Self {
+    fn from(source: FmtError) -> Self {
         Self::Formatting {
-            source: e,
+            source,
         }
     }
 }
 
 impl From<JsonError> for Error {
-    fn from(e: JsonError) -> Self {
+    fn from(source: JsonError) -> Self {
         Self::Json {
-            source: e,
+            source,
+        }
+    }
+}
+
+impl Display for Error {
+    fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
+        match self {
+            Self::BuildingClient {
+                ..
+            } => f.write_str("HTTP client couldn't be built due to a reqwest client error"),
+            Self::ChunkingResponse {
+                ..
+            } => f.write_str("Chunking the response failed"),
+            Self::CreatingHeader {
+                name, ..
+            } => write!(f, "Parsing the value for header {} failed", name),
+            Self::Formatting {
+                ..
+            } => f.write_str("Formatting a string failed"),
+            Self::InvalidUrl {
+                path, ..
+            } => write!(f, "Path {} is invalid", path),
+            Self::Json {
+                ..
+            } => f.write_str("Given value couldn't be serialized"),
+            Self::Parsing {
+                body, ..
+            } => write!(f, "Response body couldn't be deserialized: {:?}", body),
+            Self::Ratelimiting {
+                ..
+            } => f.write_str("Ratelimiting failure"),
+            Self::RequestBuilding {
+                ..
+            } => f.write_str("Request couldn't be built"),
+            Self::RequestCanceled {
+                ..
+            } => f.write_str("Request was canceled either before or while being sent"),
+            Self::RequestError {
+                ..
+            } => f.write_str("Parsing or sending the response failed"),
+            Self::Response {
+                source,
+            } => write!(f, "{}", source),
+        }
+    }
+}
+
+impl StdError for Error {
+    fn source(&self) -> Option<&(dyn StdError + 'static)> {
+        match self {
+            Self::CreatingHeader {
+                source, ..
+            } => Some(source),
+            Self::Formatting {
+                source,
+            } => Some(source),
+            Self::InvalidUrl {
+                source, ..
+            } => Some(source),
+            Self::Json {
+                source,
+            }
+            | Self::Parsing {
+                source, ..
+            } => Some(source),
+            Self::Ratelimiting {
+                source,
+            } => Some(source),
+            Self::RequestBuilding {
+                source, ..
+            } => Some(source),
+            Self::RequestCanceled {
+                source,
+            } => Some(source),
+            Self::BuildingClient {
+                source,
+            }
+            | Self::ChunkingResponse {
+                source,
+            }
+            | Self::RequestError {
+                source,
+            } => Some(source),
+            Self::Response {
+                source,
+            } => Some(source),
         }
     }
 }

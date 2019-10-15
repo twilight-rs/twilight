@@ -1,5 +1,5 @@
 use super::{
-    error::{PayloadSerialization, Result, SendingMessage},
+    error::{Error, Result},
     heartbeat::{Heartbeater, Heartbeats},
     stage::Stage,
 };
@@ -10,7 +10,6 @@ use futures_util::{
     lock::Mutex,
 };
 use serde::ser::Serialize;
-use snafu::ResultExt;
 use std::{
     convert::TryFrom,
     sync::{
@@ -61,11 +60,15 @@ impl Session {
     /// [`Error::PayloadSerialization`]: ../enum.Error.html#variant.PayloadSerialization
     /// [`Error::SendingMessage`]: ../enum.Error.html#variant.SendingMessage
     pub fn send(&self, payload: impl Serialize) -> Result<()> {
-        let bytes = serde_json::to_vec(&payload).context(PayloadSerialization)?;
+        let bytes = serde_json::to_vec(&payload).map_err(|source| Error::PayloadSerialization {
+            source,
+        })?;
 
         self.tx
             .unbounded_send(TungsteniteMessage::Binary(bytes))
-            .context(SendingMessage)?;
+            .map_err(|source| Error::SendingMessage {
+                source,
+            })?;
 
         Ok(())
     }

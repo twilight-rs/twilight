@@ -1,8 +1,7 @@
-use super::error::{Error, LargeThresholdInvalid, Result};
+use super::error::{Error, Result};
 use crate::shard::config::{Config as ShardConfig, ConfigBuilder as ShardConfigBuilder};
 use dawn_http::Client;
 use dawn_model::gateway::payload::update_status::UpdateStatusInfo;
-use snafu::ResultExt;
 use std::{
     convert::TryFrom,
     ops::{Bound, RangeBounds},
@@ -225,7 +224,9 @@ impl ConfigBuilder {
     pub fn large_threshold(&mut self, large_threshold: u64) -> Result<&mut Self> {
         self.1
             .large_threshold(large_threshold)
-            .context(LargeThresholdInvalid)?;
+            .map_err(|source| Error::LargeThresholdInvalid {
+                source,
+            })?;
 
         Ok(self)
     }

@@ -1,6 +1,6 @@
 use super::{
     config::{Config, ShardScheme},
-    error::{GettingGatewayInfo, Result},
+    error::{Error, Result},
     event::Events,
 };
 use crate::{
@@ -8,7 +8,6 @@ use crate::{
     shard::{event::EventType, Config as ShardConfig, Information, Shard},
 };
 use futures_util::{future, lock::Mutex};
-use snafu::ResultExt;
 use std::{
     collections::HashMap,
     sync::{Arc, Weak},
@@ -81,20 +80,25 @@ impl Cluster {
     /// [`ShardScheme::Auto`]: config/enum.ShardScheme.html#variant.Auto
     /// [configured shard scheme]: config/struct.Config.html#method.shard_scheme
     pub async fn up(&self) -> Result<()> {
-        let [from, to, total] = match self.0.config.shard_scheme() {
-            ShardScheme::Auto => {
-                let http = self.0.config.http_client();
+        let [from, to, total] =
+            match self.0.config.shard_scheme() {
+                ShardScheme::Auto => {
+                    let http = self.0.config.http_client();
 
-                let gateway = http.gateway().authed().await.context(GettingGatewayInfo)?;
+                    let gateway = http.gateway().authed().await.map_err(|source| {
+                        Error::GettingGatewayInfo {
+                            source,
+                        }
+                    })?;
 
-                [0, gateway.shards - 1, gateway.shards]
-            },
-            ShardScheme::Range {
-                from,
-                to,
-                total,
-            } => [from, to, total],
-        };
+                    [0, gateway.shards - 1, gateway.shards]
+                },
+                ShardScheme::Range {
+                    from,
+                    to,
+                    total,
+                } => [from, to, total],
+            };
 
         future::join_all(
             (from..=to)

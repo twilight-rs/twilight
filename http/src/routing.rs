@@ -1,8 +1,14 @@
 use http::Method;
-use snafu::Snafu;
-use std::{borrow::Cow, convert::TryFrom, fmt::Write, num::ParseIntError, str::FromStr};
+use std::{
+    borrow::Cow,
+    convert::TryFrom,
+    error::Error as StdError,
+    fmt::{Display, Formatter, Result as FmtResult, Write},
+    num::ParseIntError,
+    str::FromStr,
+};
 
-#[derive(Clone, Debug, Eq, PartialEq, Snafu)]
+#[derive(Clone, Debug, Eq, PartialEq)]
 pub enum PathParseError {
     IntegerParsing { source: ParseIntError },
     MessageIdWithoutMethod { channel_id: u64 },
@@ -13,6 +19,34 @@ impl From<ParseIntError> for PathParseError {
     fn from(source: ParseIntError) -> Self {
         Self::IntegerParsing {
             source,
+        }
+    }
+}
+
+impl Display for PathParseError {
+    fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
+        match self {
+            Self::IntegerParsing {
+                ..
+            } => f.write_str("An ID in a segment was invalid"),
+            Self::MessageIdWithoutMethod {
+                ..
+            } => f.write_str("A message path was detected but the method wasn't given"),
+            Self::NoMatch => f.write_str("There was no matched path"),
+        }
+    }
+}
+
+impl StdError for PathParseError {
+    fn source(&self) -> Option<&(dyn StdError + 'static)> {
+        match self {
+            Self::IntegerParsing {
+                source,
+            } => Some(source),
+            Self::MessageIdWithoutMethod {
+                ..
+            }
+            | Self::NoMatch => None,
         }
     }
 }

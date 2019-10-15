@@ -1,9 +1,8 @@
-use super::error::{PayloadSerialization, Result, SendingMessage};
+use super::error::{Error, Result};
 use dawn_model::gateway::payload::Heartbeat;
 use futures_channel::mpsc::UnboundedSender;
 use futures_util::lock::Mutex;
 use log::{debug, error, warn};
-use snafu::ResultExt;
 use std::{
     collections::VecDeque,
     convert::TryInto,
@@ -206,12 +205,17 @@ impl Heartbeater {
 
             let seq = self.seq.load(Ordering::Acquire);
             let heartbeat = Heartbeat::new(seq);
-            let bytes = serde_json::to_vec(&heartbeat).context(PayloadSerialization)?;
+            let bytes =
+                serde_json::to_vec(&heartbeat).map_err(|source| Error::PayloadSerialization {
+                    source,
+                })?;
 
             debug!("[Heartbeat] Sending heartbeat with seq: {}", seq);
             self.tx
                 .unbounded_send(TungsteniteMessage::Binary(bytes))
-                .context(SendingMessage)?;
+                .map_err(|source| Error::SendingMessage {
+                    source,
+                })?;
             debug!("[Heartbeat] Sent heartbeat with seq: {}", seq);
             self.heartbeats.send().await;
         }
