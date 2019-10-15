@@ -2,18 +2,7 @@ pub mod config;
 
 use self::config::ConfigBuilder;
 use crate::{
-    error::{
-        BuildingClient,
-        ChunkingResponse,
-        CreatingHeader,
-        Error,
-        InvalidUrl,
-        Parsing,
-        RequestCanceled,
-        RequestError,
-        ResponseError,
-        Result,
-    },
+    error::{Error, ResponseError, Result},
     ratelimiting::{RatelimitHeaders, Ratelimiter},
     request::*,
     routing::Route,
@@ -38,7 +27,6 @@ use reqwest::{
 };
 use serde::{de::DeserializeOwned, Deserialize, Serialize};
 use serde_json::json;
-use snafu::ResultExt;
 use std::{
     convert::TryFrom,
     fmt::{Debug, Formatter, Result as FmtResult},
@@ -66,7 +54,9 @@ impl ClientBuilder {
 
         Ok(Client {
             state: Arc::new(State {
-                http: Arc::new(builder.build().context(BuildingClient)?),
+                http: Arc::new(builder.build().map_err(|source| Error::BuildingClient {
+                    source,
+                })?),
                 ratelimiter: Ratelimiter::new(),
                 skip_ratelimiter: config.skip_ratelimiter,
                 token: config.token,
@@ -988,9 +978,10 @@ impl Client {
         let protocol = if self.state.use_http { "http" } else { "https" };
         let url = format!("{}://discordapp.com/api/v6/{}", protocol, path);
 
-        let url = Url::from_str(&url).with_context(|| InvalidUrl {
+        let url = Url::from_str(&url).map_err(|source| Error::InvalidUrl {
             method: method.clone(),
-            path: path.to_owned(),
+            path: (*path).to_owned(),
+            source,
         })?;
 
         debug!("URL: {:?}", url);
@@ -1002,9 +993,10 @@ impl Client {
         }
 
         if let Some(ref token) = self.state.token {
-            let value = HeaderValue::from_str(&format!("Bot {}", token,)).with_context(|| {
-                CreatingHeader {
+            let value = HeaderValue::from_str(&format!("Bot {}", token,)).map_err(|source| {
+                Error::CreatingHeader {
                     name: "Authroization".to_owned(),
+                    source,
                 }
             })?;
 
@@ -1028,13 +1020,19 @@ impl Client {
         }
 
         if self.state.skip_ratelimiter {
-            return builder.send().await.context(RequestError);
+            return builder.send().await.map_err(|source| Error::RequestError {
+                source,
+            });
         }
 
         let rx = self.state.ratelimiter.get(bucket).await;
-        let tx = rx.await.context(RequestCanceled)?;
+        let tx = rx.await.map_err(|source| Error::RequestCanceled {
+            source,
+        })?;
 
-        let resp = builder.send().await.context(RequestError)?;
+        let resp = builder.send().await.map_err(|source| Error::RequestError {
+            source,
+        })?;
 
         match RatelimitHeaders::try_from(resp.headers()) {
             Ok(v) => {
@@ -1053,10 +1051,16 @@ impl Client {
     pub async fn request<T: DeserializeOwned>(&self, request: Request) -> Result<T> {
         let resp = self.make_request(request).await?;
 
-        let bytes = resp.bytes().await.context(ChunkingResponse)?;
+        let bytes = resp
+            .bytes()
+            .await
+            .map_err(|source| Error::ChunkingResponse {
+                source,
+            })?;
 
-        serde_json::from_slice(&bytes).with_context(|| Parsing {
+        serde_json::from_slice(&bytes).map_err(|source| Error::Parsing {
             body: (*bytes).to_vec(),
+            source,
         })
     }
 

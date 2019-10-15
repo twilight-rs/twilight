@@ -2,8 +2,11 @@
 
 use futures_channel::mpsc::TrySendError;
 use serde_json::Error as JsonError;
-use snafu::Snafu;
-use std::result::Result as StdResult;
+use std::{
+    error::Error as StdError,
+    fmt::{Display, Formatter, Result as FmtResult},
+    result::Result as StdResult,
+};
 use tokio_tungstenite::tungstenite::{Error as TungsteniteError, Message as TungsteniteMessage};
 use url::ParseError;
 
@@ -14,8 +17,7 @@ pub type Result<T, E = Error> = StdResult<T, E>;
 
 /// Error type representing the possible reasons for errors to occur in the
 /// shard.
-#[derive(Debug, Snafu)]
-#[snafu(visibility(pub(crate)))]
+#[derive(Debug)]
 pub enum Error {
     /// An error happened while trying to connect to the gateway.
     Connecting {
@@ -52,4 +54,59 @@ pub enum Error {
         /// The reason for the error.
         source: TrySendError<TungsteniteMessage>,
     },
+}
+
+impl Display for Error {
+    fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
+        match self {
+            Self::Connecting {
+                ..
+            } => f.write_str("An issue occurred connecting to the gateway"),
+            Self::IdTooLarge {
+                id,
+                total,
+            } => write!(f, "The shard ID {} is larger than the total, {}", id, total),
+            Self::LargeThresholdInvalid {
+                value,
+            } => write!(
+                f,
+                "The large threshold given, {}, is not in the accepted range",
+                value
+            ),
+            Self::ParsingUrl {
+                url, ..
+            } => write!(f, "The gateway URL {:?} is invalid", url),
+            Self::PayloadSerialization {
+                ..
+            } => f.write_str("Deserializing or serializing a payload failed"),
+            Self::SendingMessage {
+                ..
+            } => f.write_str("The message couldn't be sent because the receiver half dropped"),
+        }
+    }
+}
+
+impl StdError for Error {
+    fn source(&self) -> Option<&(dyn StdError + 'static)> {
+        match self {
+            Self::Connecting {
+                source,
+            } => Some(source),
+            Self::ParsingUrl {
+                source, ..
+            } => Some(source),
+            Self::PayloadSerialization {
+                source,
+            } => Some(source),
+            Self::SendingMessage {
+                source,
+            } => Some(source),
+            Self::IdTooLarge {
+                ..
+            }
+            | Self::LargeThresholdInvalid {
+                ..
+            } => None,
+        }
+    }
 }

@@ -12,16 +12,16 @@
 //! [`Shard`]: ../struct.Shard.html
 //! [`Stage`]: enum.Stage.html
 
-use snafu::Snafu;
 use std::{
     convert::TryFrom,
+    error::Error,
     fmt::{Display, Formatter, Result as FmtResult},
 };
 
 /// Reason for a failure while parsing a value into a [`Stage`].
 ///
 /// [`Stage`]: enum.Stage.html
-#[derive(Clone, Debug, Snafu)]
+#[derive(Clone, Debug)]
 pub enum StageConversionError {
     /// The integer isn't one that maps to a stage. For example, 7 might not map
     /// to a Stage variant.
@@ -30,6 +30,18 @@ pub enum StageConversionError {
         value: u8,
     },
 }
+
+impl Display for StageConversionError {
+    fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
+        match self {
+            Self::InvalidInteger {
+                value,
+            } => write!(f, "The integer {} is invalid", value),
+        }
+    }
+}
+
+impl Error for StageConversionError {}
 
 /// The current connection stage of a [`Shard`].
 ///

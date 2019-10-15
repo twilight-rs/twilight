@@ -2,8 +2,11 @@
 
 use crate::shard::Error as ShardError;
 use dawn_http::Error as HttpError;
-use snafu::Snafu;
-use std::result::Result as StdResult;
+use std::{
+    error::Error as StdError,
+    fmt::{Display, Formatter, Result as FmtResult},
+    result::Result as StdResult,
+};
 
 /// A result enum with the error type being the cluster's [`Error`] type.
 ///
@@ -12,8 +15,7 @@ pub type Result<T, E = Error> = StdResult<T, E>;
 
 /// Error type representing the possible reasons for errors to occur in the
 /// cluster.
-#[derive(Debug, Snafu)]
-#[snafu(visibility(pub(crate)))]
+#[derive(Debug)]
 pub enum Error {
     /// An error occurred while getting the gateway information with the number
     /// of shards to use.
@@ -37,4 +39,42 @@ pub enum Error {
         /// [`ConfigBuilder`]: ../../shard/config/struct.ConfigBuilder.html
         source: ShardError,
     },
+}
+
+impl Display for Error {
+    fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
+        match self {
+            Self::GettingGatewayInfo {
+                ..
+            } => f.write_str("Getting the gateway info failed"),
+            Self::IdTooLarge {
+                end,
+                start,
+                total,
+            } => write!(
+                f,
+                "The shard ID pair {}-{}/{} is mismatched",
+                start, end, total
+            ),
+            Self::LargeThresholdInvalid {
+                source,
+            } => write!(f, "{}", source),
+        }
+    }
+}
+
+impl StdError for Error {
+    fn source(&self) -> Option<&(dyn StdError + 'static)> {
+        match self {
+            Self::GettingGatewayInfo {
+                source,
+            } => Some(source),
+            Self::IdTooLarge {
+                ..
+            } => None,
+            Self::LargeThresholdInvalid {
+                source,
+            } => Some(source),
+        }
+    }
 }
