@@ -73,7 +73,7 @@ impl ShardProcessor {
             let gateway_event = match self.next_event().await {
                 Ok(ev) => ev,
                 // Reconnect as this error is often fatal!
-                Err(crate::shard::Error::Decompressing {
+                Err(Error::Decompressing {
                     ..
                 }) => {
                     warn!("[gateway] Decompressing error, clears buffers and reconnect!");
@@ -275,7 +275,7 @@ impl ShardProcessor {
         }
     }
 
-    async fn next_event(&mut self) -> GatewayEvent {
+    async fn next_event(&mut self) -> Result<GatewayEvent> {
         const ZLIB_SUFFIX: [u8; 4] = [0x00, 0x00, 0xff, 0xff];
 
         loop {
@@ -295,7 +295,7 @@ impl ShardProcessor {
 
             // Extend new message to event buffer.
             self.event_buffer.extend_from_slice(&bin[..]);
-            
+
             let length = self.event_buffer.len();
             if length >= 4 {
                 if self.event_buffer[(length - 4)..] == ZLIB_SUFFIX {
@@ -310,7 +310,7 @@ impl ShardProcessor {
                                 source,
                             })?;
 
-                        match serde_json::from_slice(&self.msg_buffer.clone()) {
+                        match serde_json::from_slice(&self.msg_buffer) {
                             Ok(ev) => break ev,
                             Err(err) => {
                                 trace!("error: {:?}", err);
@@ -340,7 +340,7 @@ impl ShardProcessor {
                                             String::from("Invalid string!")
                                         }
                                     );
-                                    return Err(crate::shard::Error::PayloadSerialization {
+                                    return Err(Error::PayloadSerialization {
                                         source: err,
                                     });
                                 }
@@ -351,6 +351,12 @@ impl ShardProcessor {
                         "in:out: {}:{}",
                         self.event_buffer.len(),
                         self.msg_buffer.len()
+                    );
+                    trace!(
+                        "Data saved: {}KiB ({:.2}%)",
+                        ((self.inflater.total_out() - self.inflater.total_in()) / 1024),
+                        (self.inflater.total_in() as f64 / self.inflater.total_out() as f64
+                            * 100.0)
                     );
                     self.event_buffer.clear();
                     self.msg_buffer.clear();
