@@ -64,7 +64,8 @@ impl Inflater {
                 trace!(
                     "Data saved: {}KiB ({:.2}%)",
                     ((self.decompress.total_out() - self.decompress.total_in()) / 1024),
-                    ((self.decompress.total_in()  as f64) / (self.decompress.total_out() as f64) * 100.0)
+                    ((self.decompress.total_in() as f64) / (self.decompress.total_out() as f64)
+                        * 100.0)
                 );
             }
             trace!("Capacity: {}", self.buffer.capacity());
