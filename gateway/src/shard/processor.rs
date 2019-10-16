@@ -340,6 +340,9 @@ impl ShardProcessor {
                                             String::from("Invalid string!")
                                         }
                                     );
+                                    trace!("Clearing buffers to remove erronous json");
+                                    self.event_buffer.clear();
+                                    self.msg_buffer.clear();
                                     return Err(Error::PayloadSerialization {
                                         source: err,
                                     });
