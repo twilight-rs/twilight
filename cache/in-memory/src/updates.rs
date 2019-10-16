@@ -261,14 +261,10 @@ impl UpdateCache<MemberAdd> for InMemoryCache {
             None => return Ok(()),
         };
 
-        self.cache_member(guild_id, event.0.clone())
-            .await;
+        self.cache_member(guild_id, event.0.clone()).await;
 
         let mut guild = self.0.guild_members.lock().await;
-        guild
-            .entry(guild_id)
-            .or_default()
-            .insert(event.0.user.id);
+        guild.entry(guild_id).or_default().insert(event.0.user.id);
 
         Ok(())
     }
