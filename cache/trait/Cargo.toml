@@ -15,3 +15,6 @@ version = "0.1.0"
 [dependencies]
 async-trait = "0.1"
 dawn-model = { default-features = false, path = "../../model" }
+
+[dev-dependencies]
+static_assertions = "1"

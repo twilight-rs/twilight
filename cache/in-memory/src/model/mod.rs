@@ -15,3 +15,11 @@ pub use self::{
     presence::CachedPresence,
     voice_state::CachedVoiceState,
 };
+
+#[cfg(tests)]
+mod tests {
+    #[test]
+    fn test_reexports() {
+        use super::{CachedEmoji, CachedGuild, CachedMember, CachedPresence, CachedVoiceState};
+    }
+}
