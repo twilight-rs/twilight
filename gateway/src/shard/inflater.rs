@@ -79,14 +79,16 @@ impl Inflater {
     pub fn clear(&mut self) {
         self.countdown_to_resize -= 1;
 
-        dbg!(self.countdown_to_resize);
         // Only shrink capacity if it is less than 4
         // times the size, this is to prevent too
         // frequent shrinking.
         let cap = self.buffer.capacity();
         if self.countdown_to_resize < 1 && self.buffer.len() < cap * 4 {
+            // When shrink_to goes stable use that on the following line.
             self.compressed.shrink_to_fit();
             self.buffer.shrink_to_fit();
+            trace!("compressed: {}", self.compressed.capacity());
+            trace!("buffer: {}", self.buffer.capacity());
             self.countdown_to_resize = COUNTDOWN;
         }
         self.compressed.clear();
