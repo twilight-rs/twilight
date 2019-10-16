@@ -11,6 +11,7 @@ use crate::{
 pub struct Member {
     pub deaf: bool,
     pub guild_id: Option<GuildId>,
+    pub hoisted_role: Option<RoleId>,
     pub joined_at: Option<String>,
     pub mute: bool,
     pub nick: Option<String>,

@@ -69,3 +69,124 @@ mod serde_support {
         }
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::{Activity, ActivityType, ClientStatus, Presence, Status, UserOrId};
+    use crate::id::UserId;
+    use serde_test::Token;
+
+    #[test]
+    fn test_custom() {
+        let activity = Activity {
+            application_id: None,
+            assets: None,
+            created_at: Some(1571048061237),
+            details: None,
+            flags: None,
+            id: Some("aaaaaaaaaaaaaaaa".to_owned()),
+            instance: None,
+            kind: ActivityType::Custom,
+            name: "foo".to_owned(),
+            party: None,
+            secrets: None,
+            state: None,
+            timestamps: None,
+            url: None,
+        };
+        let presence = Presence {
+            activities: vec![activity.clone()],
+            client_status: ClientStatus {
+                desktop: Some(Status::Online),
+                mobile: None,
+                web: None,
+            },
+            game: Some(activity),
+            guild_id: None,
+            nick: None,
+            status: Status::Online,
+            user: UserOrId::UserId {
+                id: UserId(1),
+            },
+        };
+
+        serde_test::assert_de_tokens(
+            &presence,
+            &[
+                Token::Struct {
+                    name: "Presence",
+                    len: 4,
+                },
+                Token::Str("user"),
+                Token::Struct {
+                    name: "UserOrId",
+                    len: 1,
+                },
+                Token::Str("id"),
+                Token::Str("1"),
+                Token::StructEnd,
+                Token::Str("status"),
+                Token::Enum {
+                    name: "Status",
+                },
+                Token::Str("online"),
+                Token::Unit,
+                Token::Str("game"),
+                Token::Some,
+                Token::Struct {
+                    name: "Activity",
+                    len: 4,
+                },
+                Token::Str("type"),
+                Token::U8(4),
+                Token::Str("name"),
+                Token::Str("foo"),
+                Token::Str("id"),
+                Token::Some,
+                Token::Str("aaaaaaaaaaaaaaaa"),
+                Token::Str("created_at"),
+                Token::Some,
+                Token::U64(1571048061237),
+                Token::StructEnd,
+                Token::Str("client_status"),
+                Token::Struct {
+                    name: "ClientStatus",
+                    len: 3,
+                },
+                Token::Str("desktop"),
+                Token::Some,
+                Token::Enum {
+                    name: "Status",
+                },
+                Token::Str("online"),
+                Token::Unit,
+                Token::Str("mobile"),
+                Token::None,
+                Token::Str("web"),
+                Token::None,
+                Token::StructEnd,
+                Token::Str("activities"),
+                Token::Seq {
+                    len: Some(1),
+                },
+                Token::Struct {
+                    name: "Activity",
+                    len: 4,
+                },
+                Token::Str("type"),
+                Token::U8(4),
+                Token::Str("name"),
+                Token::Str("foo"),
+                Token::Str("id"),
+                Token::Some,
+                Token::Str("aaaaaaaaaaaaaaaa"),
+                Token::Str("created_at"),
+                Token::Some,
+                Token::U64(1571048061237),
+                Token::StructEnd,
+                Token::SeqEnd,
+                Token::StructEnd,
+            ],
+        );
+    }
+}

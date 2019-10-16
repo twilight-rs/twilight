@@ -18,8 +18,12 @@ use crate::{
 pub struct Activity {
     pub application_id: Option<ApplicationId>,
     pub assets: Option<ActivityAssets>,
+    // Introduced with custom statuses.
+    pub created_at: Option<u64>,
     pub details: Option<String>,
     pub flags: Option<ActivityFlags>,
+    // Introduced with custom statuses.
+    pub id: Option<String>,
     pub instance: Option<bool>,
     #[cfg_attr(
         feature = "serde-support",
@@ -32,4 +36,9 @@ pub struct Activity {
     pub state: Option<String>,
     pub timestamps: Option<ActivityTimestamps>,
     pub url: Option<String>,
+}
+
+#[cfg(test)]
+mod tests {
+    // Custom activities is tested by the custom presence test.
 }
