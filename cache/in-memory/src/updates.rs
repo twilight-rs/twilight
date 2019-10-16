@@ -255,14 +255,20 @@ impl UpdateCache<MemberAdd> for InMemoryCache {
             return Ok(());
         }
 
-        self.cache_member(event.guild_id, event.member.clone())
+        // This will always be present on members from the gateway.
+        let guild_id = match event.guild_id {
+            Some(guild_id) => guild_id,
+            None => return Ok(()),
+        };
+
+        self.cache_member(guild_id, event.0.clone())
             .await;
 
         let mut guild = self.0.guild_members.lock().await;
         guild
-            .entry(event.guild_id)
+            .entry(guild_id)
             .or_default()
-            .insert(event.member.user.id);
+            .insert(event.0.user.id);
 
         Ok(())
     }
