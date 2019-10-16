@@ -23,7 +23,7 @@ pub use self::{
 #[derive(Clone, Debug, Eq, Hash, PartialEq)]
 pub struct Embed {
     pub author: Option<EmbedAuthor>,
-    #[serde(default)]
+    #[cfg_attr(feature = "serde-support", serde(default))]
     pub color: u32,
     pub description: Option<String>,
     #[cfg_attr(feature = "serde-support", serde(default))]
