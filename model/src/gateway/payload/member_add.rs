@@ -1,4 +1,5 @@
 use crate::guild::Member;
+use std::ops::{Deref, DerefMut};
 
 #[cfg_attr(
     feature = "serde-support",
@@ -6,6 +7,20 @@ use crate::guild::Member;
 )]
 #[derive(Clone, Debug, Eq, Hash, PartialEq)]
 pub struct MemberAdd(pub Member);
+
+impl Deref for MemberAdd {
+    type Target = Member;
+
+    fn deref(&self) -> &Self::Target {
+        &self.0
+    }
+}
+
+impl DerefMut for MemberAdd {
+    fn deref_mut(&mut self) -> &mut Self::Target {
+        &mut self.0
+    }
+}
 
 #[cfg(test)]
 mod tests {
