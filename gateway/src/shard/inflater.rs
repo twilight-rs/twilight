@@ -1,5 +1,7 @@
+use std::convert::TryInto;
+
 use flate2::{Decompress, DecompressError, FlushDecompress};
-use log::{trace, warn};
+use log::trace;
 
 const ZLIB_SUFFIX: [u8; 4] = [0x00, 0x00, 0xff, 0xff];
 const INTERNAL_BUFFER_SIZE: usize = 32 * 1024;
@@ -19,7 +21,7 @@ impl Inflater {
             decompress: Decompress::new(true),
             compressed: Vec::new(),
             internal_buffer: Vec::with_capacity(INTERNAL_BUFFER_SIZE),
-            buffer: Vec::with_capacity(1 * 1024),
+            buffer: Vec::with_capacity(32 * 1024),
             countdown_to_resize: COUNTDOWN,
         }
     }
@@ -43,7 +45,7 @@ impl Inflater {
                     FlushDecompress::Sync,
                 )?;
 
-                offset = (self.decompress.total_in() - before) as usize;
+                offset = (self.decompress.total_in() - before).try_into().unwrap();
                 self.buffer.extend_from_slice(&self.internal_buffer[..]);
                 if self.internal_buffer.len() < self.internal_buffer.capacity()
                     || offset > self.compressed.len()
@@ -54,11 +56,17 @@ impl Inflater {
 
             trace!("in:out: {}:{}", self.compressed.len(), self.buffer.len());
             self.compressed.clear();
-            trace!(
-                "Data saved: {}KiB ({:.2}%)",
-                ((self.decompress.total_out() - self.decompress.total_in()) / 1024),
-                (self.decompress.total_in() as f64 / self.decompress.total_out() as f64 * 100.0)
-            );
+
+            #[allow(clippy::cast_precision_loss)]
+            {
+                // To get around the u64 → f64 precision loss lint
+                // it does really not matter that it happens here
+                trace!(
+                    "Data saved: {}KiB ({:.2}%)",
+                    ((self.decompress.total_out() - self.decompress.total_in()) / 1024),
+                    ((self.decompress.total_in()  as f64) / (self.decompress.total_out() as f64) * 100.0)
+                );
+            }
             trace!("Capacity: {}", self.buffer.capacity());
             Ok(Some(&self.buffer))
         } else {
