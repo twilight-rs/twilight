@@ -45,7 +45,9 @@ impl Inflater {
                     FlushDecompress::Sync,
                 )?;
 
-                offset = (self.decompress.total_in() - before).try_into().unwrap();
+                offset = (self.decompress.total_in() - before)
+                    .try_into()
+                    .unwrap_or(0);
                 self.buffer.extend_from_slice(&self.internal_buffer[..]);
                 if self.internal_buffer.len() < self.internal_buffer.capacity()
                     || offset > self.compressed.len()

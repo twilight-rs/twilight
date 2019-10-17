@@ -74,9 +74,7 @@ impl ShardProcessor {
                         source
                     );
 
-                    // Reset inflater
-                    self.inflater.reset();
-
+                    // Inflater gets reset in the reconnect call.
                     self.reconnect().await;
                     continue;
                 },
@@ -208,6 +206,7 @@ impl ShardProcessor {
 
     async fn reconnect(&mut self) {
         loop {
+            self.inflater.reset();
             self.config.queue.request().await;
 
             let shard = match Self::new(Arc::clone(&self.config.clone())).await {
@@ -233,7 +232,7 @@ impl ShardProcessor {
 
             return Ok(());
         };
-
+        self.inflater.reset();
         let payload = Resume::new(self.session.seq(), id, self.config.token());
 
         self.send(payload).await?;
@@ -271,32 +270,43 @@ impl ShardProcessor {
         loop {
             // Returns None when the socket forwarder has ended, meaning the
             // connection was dropped.
-            let bin = if let Some(msg) = self.rx.next().await {
-                if let tokio_tungstenite::tungstenite::Message::Binary(bin) = msg {
-                    bin
-                } else {
-                    unreachable!();
-                }
+            let msg = if let Some(msg) = self.rx.next().await {
+                msg
             } else {
                 self.reconnect().await;
 
                 continue;
             };
-            self.inflater.extend(&bin[..]);
 
-            let msg_or_error = match self.inflater.msg().map_err(|source| Error::Decompressing {
-                source,
-            })? {
-                Some(json) => {
-                    serde_json::from_slice(json).map_err(|source| Error::PayloadSerialization {
-                        source,
-                    })
+            match msg {
+                Message::Binary(bin) => {
+                    self.inflater.extend(&bin[..]);
+
+                    let msg_or_error =
+                        match self.inflater.msg().map_err(|source| Error::Decompressing {
+                            source,
+                        })? {
+                            Some(json) => serde_json::from_slice(json).map_err(|source| {
+                                Error::PayloadSerialization {
+                                    source,
+                                }
+                            }),
+                            None => continue,
+                        };
+                    self.inflater.clear();
+                    break msg_or_error;
                 },
-                None => continue,
-            };
-
-            self.inflater.clear();
-            break msg_or_error;
+                Message::Close(_) => self.reconnect().await,
+                Message::Ping(_) | Message::Pong(_) => {},
+                Message::Text(text) => {
+                    trace!("Text payload: {}", text);
+                    break serde_json::from_str(&text).map_err(|source| {
+                        Error::PayloadSerialization {
+                            source,
+                        }
+                    });
+                },
+            }
         }
     }
 }
