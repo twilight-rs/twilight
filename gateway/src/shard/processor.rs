@@ -3,10 +3,12 @@ use super::{
     connect,
     error::{Error, Result},
     event::Event,
+    inflater::Inflater,
     session::Session,
     socket_forwarder::SocketForwarder,
     stage::Stage,
 };
+
 use crate::{
     event::{DispatchEvent, GatewayEvent},
     listener::Listeners,
@@ -22,6 +24,8 @@ use serde::Serialize;
 use std::{env::consts::OS, mem, ops::Deref, sync::Arc};
 use tokio_tungstenite::tungstenite::Message;
 
+use std::error::Error as StdError;
+
 /// Runs in the background and processes incoming events, and then broadcasts
 /// to all listeners.
 pub struct ShardProcessor {
@@ -30,13 +34,14 @@ pub struct ShardProcessor {
     pub properties: IdentifyProperties,
     pub rx: UnboundedReceiver<Message>,
     pub session: Arc<Session>,
+    inflater: Inflater,
 }
 
 impl ShardProcessor {
     pub async fn new(config: Arc<Config>) -> Result<Self> {
         let properties = IdentifyProperties::new("dawn.rs", "dawn.rs", OS, "", "");
 
-        let url = "wss://gateway.discord.gg";
+        let url = "wss://gateway.discord.gg?compress=zlib-stream";
 
         let stream = connect::connect(url).await?;
         let (mut forwarder, rx, tx) = SocketForwarder::new(stream);
@@ -50,6 +55,7 @@ impl ShardProcessor {
             properties,
             rx,
             session: Arc::new(Session::new(tx)),
+            inflater: Inflater::new(),
         })
     }
 
@@ -57,7 +63,26 @@ impl ShardProcessor {
         let mut remove_listeners = Vec::new();
 
         loop {
-            let gateway_event = self.next_event().await;
+            let gateway_event = match self.next_event().await {
+                Ok(ev) => ev,
+                // Reconnect as this error is often fatal!
+                Err(Error::Decompressing {
+                    source,
+                }) => {
+                    warn!(
+                        "[gateway] Decompressing error, clears buffers and reconnect! {:?}",
+                        source
+                    );
+
+                    // Inflater gets reset in the reconnect call.
+                    self.reconnect().await;
+                    continue;
+                },
+                Err(err) => {
+                    warn!("Error receiveing gateway event: {:?}", err.source());
+                    continue;
+                },
+            };
 
             // The only reason for an error is if the sender couldn't send a
             // message or if the session didn't exist when it should, so do a
@@ -206,7 +231,7 @@ impl ShardProcessor {
 
             return Ok(());
         };
-
+        self.inflater.reset();
         let payload = Resume::new(self.session.seq(), id, self.config.token());
 
         self.send(payload).await?;
@@ -240,7 +265,7 @@ impl ShardProcessor {
         }
     }
 
-    async fn next_event(&mut self) -> GatewayEvent {
+    async fn next_event(&mut self) -> Result<GatewayEvent> {
         loop {
             // Returns None when the socket forwarder has ended, meaning the
             // connection was dropped.
@@ -253,27 +278,32 @@ impl ShardProcessor {
             };
 
             match msg {
-                Message::Binary(bytes) => {
-                    trace!("Payload: {}", String::from_utf8_lossy(&bytes));
-
-                    match serde_json::from_slice(&bytes) {
-                        Ok(event) => break event,
-                        Err(why) => {
-                            warn!("Error deserializing {:?}: {:?}", bytes, why);
-                        },
-                    }
+                Message::Binary(bin) => {
+                    self.inflater.extend(&bin[..]);
+                    let decompressed_msg =
+                        self.inflater.msg().map_err(|source| Error::Decompressing {
+                            source,
+                        })?;
+                    let msg_or_error = match decompressed_msg {
+                        Some(json) => serde_json::from_slice(json).map_err(|source| {
+                            Error::PayloadSerialization {
+                                source,
+                            }
+                        }),
+                        None => continue,
+                    };
+                    self.inflater.clear();
+                    break msg_or_error;
                 },
                 Message::Close(_) => self.reconnect().await,
                 Message::Ping(_) | Message::Pong(_) => {},
                 Message::Text(text) => {
-                    trace!("Payload: {}", text);
-
-                    match serde_json::from_str(&text) {
-                        Ok(event) => break event,
-                        Err(why) => {
-                            warn!("Error deserializing {:?}: {:?}", text, why);
-                        },
-                    }
+                    trace!("Text payload: {}", text);
+                    break serde_json::from_str(&text).map_err(|source| {
+                        Error::PayloadSerialization {
+                            source,
+                        }
+                    });
                 },
             }
         }

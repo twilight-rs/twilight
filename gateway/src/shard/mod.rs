@@ -28,6 +28,7 @@ pub mod stage;
 mod connect;
 mod heartbeat;
 mod r#impl;
+mod inflater;
 mod processor;
 mod session;
 mod sink;
