@@ -4,9 +4,8 @@ pub mod model;
 mod updates;
 
 use self::model::*;
-use async_trait::async_trait;
 use config::Config;
-use dawn_cache_trait::Cache;
+use dawn_cache_trait::{Cache, UpdateCache};
 use dawn_model::{
     channel::{Group, GuildChannel, PrivateChannel},
     gateway::presence::{Presence, UserOrId},
@@ -22,6 +21,8 @@ use std::{
         BTreeMap,
         HashSet,
     },
+    error::Error,
+    fmt::{Display, Formatter, Result as FmtResult},
     hash::Hash,
     iter::FromIterator,
     sync::Arc,
@@ -76,6 +77,8 @@ async fn upsert_item<K: Eq + Hash, V: PartialEq>(
     }
 }
 
+pub type Result<T> = std::result::Result<T, InMemoryCacheError>;
+
 /// Error type for [`InMemoryCache`] operations.
 ///
 /// Currently this is empty as no error can occur. This exists only to satisfy
@@ -85,6 +88,14 @@ async fn upsert_item<K: Eq + Hash, V: PartialEq>(
 /// [`InMemoryCache`]: struct.InMemoryCache.html
 #[derive(Clone, Debug)]
 pub enum InMemoryCacheError {}
+
+impl Display for InMemoryCacheError {
+    fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
+        f.write_str("InMemoryCacheError")
+    }
+}
+
+impl Error for InMemoryCacheError {}
 
 type LockedArcMap<T, U> = Mutex<HashMap<T, Arc<U>>>;
 
@@ -187,6 +198,176 @@ impl InMemoryCache {
     /// Returns a copy of the config cache.
     pub fn config(&self) -> Config {
         (*self.0.config).clone()
+    }
+
+    pub async fn update<T: UpdateCache<Self, InMemoryCacheError>>(&self, value: &T) -> Result<()> {
+        value.update(self).await
+    }
+
+    /// Gets a channel by ID.
+    ///
+    /// This is an O(1) operation.
+    pub async fn guild_channel(&self, channel_id: ChannelId) -> Result<Option<Arc<GuildChannel>>> {
+        Ok(self
+            .0
+            .channels_guild
+            .lock()
+            .await
+            .get(&channel_id)
+            .map(|x| Arc::clone(&x.data)))
+    }
+
+    /// Gets the current user.
+    ///
+    /// This is an O(1) operation.
+    pub async fn current_user(&self) -> Result<Option<Arc<CurrentUser>>> {
+        Ok(self.0.current_user.lock().await.clone())
+    }
+
+    /// Gets an emoji by ID.
+    ///
+    /// This is an O(1) operation.
+    pub async fn emoji(&self, emoji_id: EmojiId) -> Result<Option<Arc<CachedEmoji>>> {
+        Ok(self
+            .0
+            .emojis
+            .lock()
+            .await
+            .get(&emoji_id)
+            .map(|x| Arc::clone(&x.data)))
+    }
+
+    /// Gets a group by ID.
+    ///
+    /// This is an O(1) operation.
+    pub async fn group(&self, channel_id: ChannelId) -> Result<Option<Arc<Group>>> {
+        Ok(self.0.groups.lock().await.get(&channel_id).cloned())
+    }
+
+    /// Gets a guild by ID.
+    ///
+    /// This is an O(1) operation.
+    pub async fn guild(&self, guild_id: GuildId) -> Result<Option<Arc<CachedGuild>>> {
+        Ok(self.0.guilds.lock().await.get(&guild_id).cloned())
+    }
+
+    /// Gets a member by guild ID and user ID.
+    ///
+    /// This is an O(1) operation.
+    pub async fn member(
+        &self,
+        guild_id: GuildId,
+        user_id: UserId,
+    ) -> Result<Option<Arc<CachedMember>>> {
+        Ok(self
+            .0
+            .members
+            .lock()
+            .await
+            .get(&(guild_id, user_id))
+            .cloned())
+    }
+
+    /// Gets a message by channel ID and message ID.
+    ///
+    /// This is an O(log n) operation.
+    pub async fn message(
+        &self,
+        channel_id: ChannelId,
+        message_id: MessageId,
+    ) -> Result<Option<Arc<CachedMessage>>> {
+        let channels = self.0.messages.lock().await;
+        let channel = match channels.get(&channel_id) {
+            Some(channel) => channel,
+            None => return Ok(None),
+        };
+
+        Ok(channel.get(&message_id).cloned())
+    }
+
+    /// Gets a presence by, optionally, guild ID, and user ID.
+    ///
+    /// This is an O(1) operation.
+    pub async fn presence(
+        &self,
+        guild_id: Option<GuildId>,
+        user_id: UserId,
+    ) -> Result<Option<Arc<CachedPresence>>> {
+        Ok(self
+            .0
+            .presences
+            .lock()
+            .await
+            .get(&(guild_id, user_id))
+            .cloned())
+    }
+
+    /// Gets a private channel by ID.
+    ///
+    /// This is an O(1) operation.
+    pub async fn private_channel(
+        &self,
+        channel_id: ChannelId,
+    ) -> Result<Option<Arc<PrivateChannel>>> {
+        Ok(self
+            .0
+            .channels_private
+            .lock()
+            .await
+            .get(&channel_id)
+            .cloned())
+    }
+
+    /// Gets a role by ID.
+    ///
+    /// This is an O(1) operation.
+    pub async fn role(&self, role_id: RoleId) -> Result<Option<Arc<Role>>> {
+        Ok(self
+            .0
+            .roles
+            .lock()
+            .await
+            .get(&role_id)
+            .map(|x| Arc::clone(&x.data)))
+    }
+
+    /// Gets a user by ID.
+    ///
+    /// This is an O(1) operation.
+    pub async fn user(&self, user_id: UserId) -> Result<Option<Arc<User>>> {
+        Ok(self.0.users.lock().await.get(&user_id).cloned())
+    }
+
+    /// Gets a voice state by channel ID and user ID.
+    ///
+    /// This is an O(1) operation.
+    pub async fn voice_state(
+        &self,
+        channel_id: ChannelId,
+        user_id: UserId,
+    ) -> Result<Option<Arc<CachedVoiceState>>> {
+        Ok(self
+            .0
+            .voice_states
+            .lock()
+            .await
+            .get(&(channel_id, user_id))
+            .cloned())
+    }
+
+    /// Clears the entire state of the Cache. This is equal to creating a new
+    /// empty Cache.
+    pub async fn clear(&self) -> Result<()> {
+        self.0.channels_guild.lock().await.clear();
+        self.0.current_user.lock().await.take();
+        self.0.emojis.lock().await.clear();
+        self.0.guilds.lock().await.clear();
+        self.0.presences.lock().await.clear();
+        self.0.roles.lock().await.clear();
+        self.0.users.lock().await.clear();
+        self.0.voice_states.lock().await.clear();
+
+        Ok(())
     }
 
     async fn cache_current_user(&self, mut current_user: CurrentUser) {
@@ -589,191 +770,8 @@ impl<T: Into<Config>> From<T> for InMemoryCache {
     }
 }
 
-#[async_trait]
-impl Cache for InMemoryCache {
-    type Error = InMemoryCacheError;
-    type CurrentUser = Arc<CurrentUser>;
-    type Emoji = Arc<CachedEmoji>;
-    type Group = Arc<Group>;
-    type Guild = Arc<CachedGuild>;
-    type GuildChannel = Arc<GuildChannel>;
-    type Member = Arc<CachedMember>;
-    type Message = Arc<CachedMessage>;
-    type Presence = Arc<CachedPresence>;
-    type PrivateChannel = Arc<PrivateChannel>;
-    type Role = Arc<Role>;
-    type User = Arc<User>;
-    type VoiceState = Arc<CachedVoiceState>;
-
-    /// Gets a channel by ID.
-    ///
-    /// This is an O(1) operation.
-    async fn guild_channel(
-        &self,
-        channel_id: ChannelId,
-    ) -> Result<Option<Self::GuildChannel>, Self::Error> {
-        Ok(self
-            .0
-            .channels_guild
-            .lock()
-            .await
-            .get(&channel_id)
-            .map(|x| Arc::clone(&x.data)))
-    }
-
-    /// Gets the current user.
-    ///
-    /// This is an O(1) operation.
-    async fn current_user(&self) -> Result<Option<Self::CurrentUser>, Self::Error> {
-        Ok(self.0.current_user.lock().await.clone())
-    }
-
-    /// Gets an emoji by ID.
-    ///
-    /// This is an O(1) operation.
-    async fn emoji(&self, emoji_id: EmojiId) -> Result<Option<Self::Emoji>, Self::Error> {
-        Ok(self
-            .0
-            .emojis
-            .lock()
-            .await
-            .get(&emoji_id)
-            .map(|x| Arc::clone(&x.data)))
-    }
-
-    /// Gets a group by ID.
-    ///
-    /// This is an O(1) operation.
-    async fn group(&self, channel_id: ChannelId) -> Result<Option<Self::Group>, Self::Error> {
-        Ok(self.0.groups.lock().await.get(&channel_id).cloned())
-    }
-
-    /// Gets a guild by ID.
-    ///
-    /// This is an O(1) operation.
-    async fn guild(&self, guild_id: GuildId) -> Result<Option<Self::Guild>, Self::Error> {
-        Ok(self.0.guilds.lock().await.get(&guild_id).cloned())
-    }
-
-    /// Gets a member by guild ID and user ID.
-    ///
-    /// This is an O(1) operation.
-    async fn member(
-        &self,
-        guild_id: GuildId,
-        user_id: UserId,
-    ) -> Result<Option<Self::Member>, Self::Error> {
-        Ok(self
-            .0
-            .members
-            .lock()
-            .await
-            .get(&(guild_id, user_id))
-            .cloned())
-    }
-
-    /// Gets a message by channel ID and message ID.
-    ///
-    /// This is an O(log n) operation.
-    async fn message(
-        &self,
-        channel_id: ChannelId,
-        message_id: MessageId,
-    ) -> Result<Option<Self::Message>, Self::Error> {
-        let channels = self.0.messages.lock().await;
-        let channel = match channels.get(&channel_id) {
-            Some(channel) => channel,
-            None => return Ok(None),
-        };
-
-        Ok(channel.get(&message_id).cloned())
-    }
-
-    /// Gets a presence by, optionally, guild ID, and user ID.
-    ///
-    /// This is an O(1) operation.
-    async fn presence(
-        &self,
-        guild_id: Option<GuildId>,
-        user_id: UserId,
-    ) -> Result<Option<Self::Presence>, Self::Error> {
-        Ok(self
-            .0
-            .presences
-            .lock()
-            .await
-            .get(&(guild_id, user_id))
-            .cloned())
-    }
-
-    /// Gets a private channel by ID.
-    ///
-    /// This is an O(1) operation.
-    async fn private_channel(
-        &self,
-        channel_id: ChannelId,
-    ) -> Result<Option<Self::PrivateChannel>, Self::Error> {
-        Ok(self
-            .0
-            .channels_private
-            .lock()
-            .await
-            .get(&channel_id)
-            .cloned())
-    }
-
-    /// Gets a role by ID.
-    ///
-    /// This is an O(1) operation.
-    async fn role(&self, role_id: RoleId) -> Result<Option<Self::Role>, Self::Error> {
-        Ok(self
-            .0
-            .roles
-            .lock()
-            .await
-            .get(&role_id)
-            .map(|x| Arc::clone(&x.data)))
-    }
-
-    /// Gets a user by ID.
-    ///
-    /// This is an O(1) operation.
-    async fn user(&self, user_id: UserId) -> Result<Option<Self::User>, Self::Error> {
-        Ok(self.0.users.lock().await.get(&user_id).cloned())
-    }
-
-    /// Gets a voice state by channel ID and user ID.
-    ///
-    /// This is an O(1) operation.
-    async fn voice_state(
-        &self,
-        channel_id: ChannelId,
-        user_id: UserId,
-    ) -> Result<Option<Self::VoiceState>, Self::Error> {
-        Ok(self
-            .0
-            .voice_states
-            .lock()
-            .await
-            .get(&(channel_id, user_id))
-            .cloned())
-    }
-
-    /// Clears the entire state of the Cache. This is equal to creating a new
-    /// empty Cache.
-    async fn clear(&self) -> Result<(), Self::Error> {
-        self.0.channels_guild.lock().await.clear();
-        self.0.current_user.lock().await.take();
-        self.0.emojis.lock().await.clear();
-        self.0.guilds.lock().await.clear();
-        self.0.presences.lock().await.clear();
-        self.0.roles.lock().await.clear();
-        self.0.users.lock().await.clear();
-        self.0.voice_states.lock().await.clear();
-
-        Ok(())
-    }
-}
+impl Cache for InMemoryCache {}
+impl Cache for &'_ InMemoryCache {}
 
 fn guild_channel_guild_id(channel: &GuildChannel) -> Option<&GuildId> {
     match channel {
@@ -797,5 +795,30 @@ fn presence_user_id(presence: &Presence) -> UserId {
         UserOrId::UserId {
             id,
         } => id,
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use crate::InMemoryCache;
+    use dawn_model::{
+        gateway::payload::RoleDelete,
+        id::{GuildId, RoleId},
+    };
+    use std::{error::Error, result::Result as StdResult};
+
+    type Result<T> = StdResult<T, Box<dyn Error>>;
+
+    #[tokio::test]
+    async fn test_syntax_update() -> Result<()> {
+        let cache = InMemoryCache::new();
+        cache
+            .update(&RoleDelete {
+                guild_id: GuildId(0),
+                role_id: RoleId(1),
+            })
+            .await?;
+
+        Ok(())
     }
 }
