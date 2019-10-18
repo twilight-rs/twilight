@@ -4,17 +4,17 @@ use dawn_model::{
     id::{EmojiId, GuildId, RoleId},
 };
 
-#[derive(Serialize)]
-pub struct UpdateEmoji<'a> {
+#[derive(Default, Serialize)]
+struct UpdateEmojiFields {
     name: Option<String>,
     roles: Option<Vec<RoleId>>,
-    #[serde(skip)]
+}
+
+pub struct UpdateEmoji<'a> {
     emoji_id: EmojiId,
-    #[serde(skip)]
+    fields: UpdateEmojiFields,
     fut: Option<Pending<'a, Emoji>>,
-    #[serde(skip)]
     guild_id: GuildId,
-    #[serde(skip)]
     http: &'a Client,
 }
 
@@ -25,8 +25,7 @@ impl<'a> UpdateEmoji<'a> {
         emoji_id: impl Into<EmojiId>,
     ) -> Self {
         Self {
-            name: None,
-            roles: None,
+            fields: UpdateEmojiFields::default(),
             emoji_id: emoji_id.into(),
             fut: None,
             guild_id: guild_id.into(),
@@ -35,20 +34,20 @@ impl<'a> UpdateEmoji<'a> {
     }
 
     pub fn name(mut self, name: impl Into<String>) -> Self {
-        self.name.replace(name.into());
+        self.fields.name.replace(name.into());
 
         self
     }
 
     pub fn roles(mut self, roles: Vec<RoleId>) -> Self {
-        self.roles.replace(roles);
+        self.fields.roles.replace(roles);
 
         self
     }
 
     fn start(&mut self) -> Result<()> {
         self.fut.replace(Box::pin(self.http.request(Request::from((
-            serde_json::to_vec(self)?,
+            serde_json::to_vec(&self.fields)?,
             Route::UpdateEmoji {
                 emoji_id: self.emoji_id.0,
                 guild_id: self.guild_id.0,

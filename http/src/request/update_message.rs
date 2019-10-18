@@ -4,6 +4,23 @@ use dawn_model::{
     id::{ChannelId, MessageId},
 };
 
+#[derive(Default, Serialize)]
+struct UpdateMessageFields {
+    // We don't serialize if this is Option::None, to avoid overwriting the
+    // field without meaning to.
+    //
+    // So we use a nested Option, representing the following states:
+    //
+    // - Some(Some(String)): Modifying the "content" from one state to a string;
+    // - Some(None): Removing the "content" by giving the Discord API a written
+    //   `"content": null` in the JSON;
+    // - None: Don't serialize the field at all, not modifying the state.
+    #[allow(clippy::option_option)]
+    content: Option<Option<String>>,
+    #[allow(clippy::option_option)]
+    embed: Option<Option<Embed>>,
+}
+
 /// Futures request to update a message.
 ///
 /// You can pass `None` to any of the methods to remove the associated field.
@@ -43,30 +60,11 @@ use dawn_model::{
 /// ```
 ///
 /// [embed]: #method.embed
-#[derive(Serialize)]
 pub struct UpdateMessage<'a> {
-    // We don't serialize if this is Option::None, to avoid overwriting the
-    // field without meaning to.
-    //
-    // So we use a nested Option, representing the following states:
-    //
-    // - Some(Some(String)): Modifying the "content" from one state to a string;
-    // - Some(None): Removing the "content" by giving the Discord API a written
-    //   `"content": null` in the JSON;
-    // - None: Don't serialize the field at all, not modifying the state.
-    #[allow(clippy::option_option)]
-    #[serde(skip_serializing_if = "Option::is_none")]
-    content: Option<Option<String>>,
-    #[allow(clippy::option_option)]
-    #[serde(skip_serializing_if = "Option::is_none")]
-    embed: Option<Option<Embed>>,
-    #[serde(skip)]
     channel_id: ChannelId,
-    #[serde(skip)]
+    fields: UpdateMessageFields,
     fut: Option<Pending<'a, Message>>,
-    #[serde(skip)]
     http: &'a Client,
-    #[serde(skip)]
     message_id: MessageId,
 }
 
@@ -78,8 +76,7 @@ impl<'a> UpdateMessage<'a> {
     ) -> Self {
         Self {
             channel_id: channel_id.into(),
-            content: None,
-            embed: None,
+            fields: UpdateMessageFields::default(),
             fut: None,
             http,
             message_id: message_id.into(),
@@ -90,7 +87,7 @@ impl<'a> UpdateMessage<'a> {
     ///
     /// Pass `None` if you want to remove the message content.
     pub fn content(mut self, content: impl Into<Option<String>>) -> Self {
-        self.content.replace(content.into());
+        self.fields.content.replace(content.into());
 
         self
     }
@@ -99,14 +96,14 @@ impl<'a> UpdateMessage<'a> {
     ///
     /// Pass `None` if you want to remove the message embed.
     pub fn embed(mut self, embed: impl Into<Option<Embed>>) -> Self {
-        self.embed.replace(embed.into());
+        self.fields.embed.replace(embed.into());
 
         self
     }
 
     fn start(&mut self) -> Result<()> {
         self.fut.replace(Box::pin(self.http.request(Request::from((
-            serde_json::to_vec(self)?,
+            serde_json::to_vec(&self.fields)?,
             Route::UpdateMessage {
                 channel_id: self.channel_id.0,
                 message_id: self.message_id.0,

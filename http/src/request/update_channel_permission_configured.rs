@@ -2,18 +2,17 @@ use super::prelude::*;
 use dawn_model::{guild::Permissions, id::ChannelId};
 
 #[derive(Serialize)]
-pub struct UpdateChannelPermissionConfigured<'a> {
+struct UpdateChannelPermissionConfiguredFields {
     allow: Permissions,
-    #[serde(skip)]
-    channel_id: ChannelId,
     deny: Permissions,
-    #[serde(skip)]
-    fut: Option<Pending<'a, ()>>,
-    #[serde(skip)]
-    http: &'a Client,
-    #[serde(rename = "type")]
     kind: String,
-    #[serde(skip)]
+}
+
+pub struct UpdateChannelPermissionConfigured<'a> {
+    channel_id: ChannelId,
+    fields: UpdateChannelPermissionConfiguredFields,
+    fut: Option<Pending<'a, ()>>,
+    http: &'a Client,
     target_id: u64,
 }
 
@@ -27,19 +26,21 @@ impl<'a> UpdateChannelPermissionConfigured<'a> {
         target_id: u64,
     ) -> Self {
         Self {
-            allow,
             channel_id: channel_id.into(),
-            deny,
+            fields: UpdateChannelPermissionConfiguredFields {
+                allow,
+                deny,
+                kind: kind.into(),
+            },
             fut: None,
             http,
-            kind: kind.into(),
             target_id,
         }
     }
 
     fn start(&mut self) -> Result<()> {
         self.fut.replace(Box::pin(self.http.verify(Request::from((
-            serde_json::to_vec(self)?,
+            serde_json::to_vec(&self.fields)?,
             Route::UpdatePermissionOverwrite {
                 channel_id: self.channel_id.0,
                 target_id: self.target_id,

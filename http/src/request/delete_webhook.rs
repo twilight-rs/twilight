@@ -1,12 +1,13 @@
 use super::prelude::*;
 use dawn_model::id::WebhookId;
 
-#[derive(Serialize)]
-pub struct DeleteWebhook<'a> {
+struct DeleteWebhookParams {
     token: Option<String>,
-    #[serde(skip)]
+}
+
+pub struct DeleteWebhook<'a> {
+    fields: DeleteWebhookParams,
     fut: Option<Pending<'a, ()>>,
-    #[serde(skip)]
     http: &'a Client,
     id: WebhookId,
 }
@@ -14,15 +15,17 @@ pub struct DeleteWebhook<'a> {
 impl<'a> DeleteWebhook<'a> {
     pub(crate) fn new(http: &'a Client, id: impl Into<WebhookId>) -> Self {
         Self {
+            fields: DeleteWebhookParams {
+                token: None,
+            },
             fut: None,
             http,
             id: id.into(),
-            token: None,
         }
     }
 
     pub fn token(mut self, token: impl Into<String>) -> Self {
-        self.token.replace(token.into());
+        self.fields.token.replace(token.into());
 
         self
     }
@@ -31,7 +34,7 @@ impl<'a> DeleteWebhook<'a> {
         self.fut.replace(Box::pin(self.http.verify(Request::from(
             Route::DeleteWebhook {
                 webhook_id: self.id.0,
-                token: self.token.as_ref().map(ToOwned::to_owned),
+                token: self.fields.token.clone(),
             },
         ))));
 

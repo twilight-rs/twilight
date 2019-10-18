@@ -1,11 +1,8 @@
 use super::prelude::*;
 use dawn_model::gateway::connection_info::BotConnectionInfo;
 
-#[derive(Serialize)]
 pub struct GetGatewayAuthed<'a> {
-    #[serde(skip)]
     fut: Option<Pending<'a, BotConnectionInfo>>,
-    #[serde(skip)]
     http: &'a Client,
 }
 

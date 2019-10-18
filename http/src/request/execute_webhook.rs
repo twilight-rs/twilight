@@ -4,8 +4,8 @@ use dawn_model::{
     id::WebhookId,
 };
 
-#[derive(Serialize)]
-pub struct ExecuteWebhook<'a> {
+#[derive(Default, Serialize)]
+struct ExecuteWebhookFields {
     avatar_url: Option<String>,
     content: Option<String>,
     embeds: Option<Vec<Embed>>,
@@ -14,13 +14,13 @@ pub struct ExecuteWebhook<'a> {
     tts: Option<bool>,
     username: Option<String>,
     wait: Option<bool>,
-    #[serde(skip)]
+}
+
+pub struct ExecuteWebhook<'a> {
+    fields: ExecuteWebhookFields,
     fut: Option<Pending<'a, Option<Message>>>,
-    #[serde(skip)]
     http: &'a Client,
-    #[serde(skip)]
     token: String,
-    #[serde(skip)]
     webhook_id: WebhookId,
 }
 
@@ -31,75 +31,68 @@ impl<'a> ExecuteWebhook<'a> {
         token: impl Into<String>,
     ) -> Self {
         Self {
-            avatar_url: None,
-            content: None,
-            embeds: None,
-            file: None,
+            fields: ExecuteWebhookFields::default(),
             fut: None,
             http,
-            payload_json: None,
             token: token.into(),
-            tts: None,
-            username: None,
-            wait: None,
             webhook_id: webhook_id.into(),
         }
     }
 
     pub fn avatar_url(mut self, avatar_url: impl Into<String>) -> Self {
-        self.avatar_url.replace(avatar_url.into());
+        self.fields.avatar_url.replace(avatar_url.into());
 
         self
     }
 
     pub fn content(mut self, content: impl Into<String>) -> Self {
-        self.content.replace(content.into());
+        self.fields.content.replace(content.into());
 
         self
     }
 
     pub fn embeds(mut self, embeds: Vec<Embed>) -> Self {
-        self.embeds.replace(embeds);
+        self.fields.embeds.replace(embeds);
 
         self
     }
 
     pub fn file(mut self, file: impl Into<Vec<u8>>) -> Self {
-        self.file.replace(file.into());
+        self.fields.file.replace(file.into());
 
         self
     }
 
     pub fn payload_json(mut self, payload_json: impl Into<Vec<u8>>) -> Self {
-        self.payload_json.replace(payload_json.into());
+        self.fields.payload_json.replace(payload_json.into());
 
         self
     }
 
     pub fn tts(mut self, tts: bool) -> Self {
-        self.tts.replace(tts);
+        self.fields.tts.replace(tts);
 
         self
     }
 
     pub fn username(mut self, username: impl Into<String>) -> Self {
-        self.username.replace(username.into());
+        self.fields.username.replace(username.into());
 
         self
     }
 
     pub fn wait(mut self, wait: bool) -> Self {
-        self.wait.replace(wait);
+        self.fields.wait.replace(wait);
 
         self
     }
 
     fn start(&mut self) -> Result<()> {
         self.fut.replace(Box::pin(self.http.request(Request::from((
-            serde_json::to_vec(self)?,
+            serde_json::to_vec(&self.fields)?,
             Route::ExecuteWebhook {
                 token: self.token.to_owned(),
-                wait: self.wait,
+                wait: self.fields.wait,
                 webhook_id: self.webhook_id.0,
             },
         )))));
