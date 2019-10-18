@@ -1,13 +1,18 @@
 use super::prelude::*;
 use dawn_model::id::{GuildId, UserId};
 
-pub struct CreateBan<'a> {
+#[derive(Default)]
+struct CreateBanFields {
     delete_message_days: Option<u64>,
-    guild_id: GuildId,
     reason: Option<String>,
-    user_id: UserId,
+}
+
+pub struct CreateBan<'a> {
+    fields: CreateBanFields,
     fut: Option<Pending<'a, ()>>,
+    guild_id: GuildId,
     http: &'a Client,
+    user_id: UserId,
 }
 
 impl<'a> CreateBan<'a> {
@@ -17,23 +22,22 @@ impl<'a> CreateBan<'a> {
         user_id: impl Into<UserId>,
     ) -> Self {
         Self {
-            guild_id: guild_id.into(),
-            user_id: user_id.into(),
-            delete_message_days: None,
-            reason: None,
+            fields: CreateBanFields::default(),
             fut: None,
+            guild_id: guild_id.into(),
             http,
+            user_id: user_id.into(),
         }
     }
 
     pub fn delete_message_days(mut self, days: u64) -> Self {
-        self.delete_message_days.replace(days);
+        self.fields.delete_message_days.replace(days);
 
         self
     }
 
     pub fn reason(mut self, reason: impl Into<String>) -> Self {
-        self.reason.replace(reason.into());
+        self.fields.reason.replace(reason.into());
 
         self
     }
@@ -41,9 +45,9 @@ impl<'a> CreateBan<'a> {
     fn start(&mut self) -> Result<()> {
         self.fut.replace(Box::pin(self.http.verify(Request::from(
             Route::CreateBan {
-                delete_message_days: self.delete_message_days,
+                delete_message_days: self.fields.delete_message_days,
                 guild_id: self.guild_id.0,
-                reason: self.reason.as_ref().map(ToOwned::to_owned),
+                reason: self.fields.reason.clone(),
                 user_id: self.user_id.0,
             },
         ))));

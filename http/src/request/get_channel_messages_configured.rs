@@ -4,15 +4,19 @@ use dawn_model::{
     id::{ChannelId, MessageId},
 };
 
+struct GetChannelMessagesConfiguredFields {
+    limit: Option<u64>,
+}
+
 // nb: after, around, and before are mutually exclusive, so we use this
 // "configured" request to utilize the type system to prevent these from being
 // set in combination.
 pub struct GetChannelMessagesConfigured<'a> {
-    limit: Option<u64>,
     after: Option<MessageId>,
     around: Option<MessageId>,
     before: Option<MessageId>,
     channel_id: ChannelId,
+    fields: GetChannelMessagesConfiguredFields,
     fut: Option<Pending<'a, Vec<Message>>>,
     http: &'a Client,
 }
@@ -31,14 +35,16 @@ impl<'a> GetChannelMessagesConfigured<'a> {
             around,
             before,
             channel_id,
+            fields: GetChannelMessagesConfiguredFields {
+                limit,
+            },
             fut: None,
             http,
-            limit,
         }
     }
 
     pub fn limit(mut self, limit: u64) -> Self {
-        self.limit.replace(limit);
+        self.fields.limit.replace(limit);
 
         self
     }
@@ -50,7 +56,7 @@ impl<'a> GetChannelMessagesConfigured<'a> {
                 around: self.around.map(|x| x.0),
                 before: self.before.map(|x| x.0),
                 channel_id: self.channel_id.0,
-                limit: self.limit,
+                limit: self.fields.limit,
             },
         ))));
 

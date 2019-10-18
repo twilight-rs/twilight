@@ -4,52 +4,51 @@ use dawn_model::{
     id::{ChannelId, WebhookId},
 };
 
-#[derive(Serialize)]
-pub struct UpdateWebhook<'a> {
+#[derive(Default, Serialize)]
+struct UpdateWebhookFields {
     avatar: Option<String>,
     channel_id: Option<ChannelId>,
     name: Option<String>,
-    #[serde(skip)]
+}
+
+pub struct UpdateWebhook<'a> {
+    fields: UpdateWebhookFields,
     fut: Option<Pending<'a, Webhook>>,
-    #[serde(skip)]
     http: &'a Client,
-    #[serde(skip)]
     webhook_id: WebhookId,
 }
 
 impl<'a> UpdateWebhook<'a> {
     pub(crate) fn new(http: &'a Client, webhook_id: impl Into<WebhookId>) -> Self {
         Self {
-            avatar: None,
-            channel_id: None,
+            fields: UpdateWebhookFields::default(),
             fut: None,
             http,
-            name: None,
             webhook_id: webhook_id.into(),
         }
     }
 
     pub fn avatar(mut self, avatar: impl Into<String>) -> Self {
-        self.avatar.replace(avatar.into());
+        self.fields.avatar.replace(avatar.into());
 
         self
     }
 
     pub fn channel_id(mut self, channel_id: impl Into<ChannelId>) -> Self {
-        self.channel_id.replace(channel_id.into());
+        self.fields.channel_id.replace(channel_id.into());
 
         self
     }
 
     pub fn name(mut self, name: impl Into<String>) -> Self {
-        self.name.replace(name.into());
+        self.fields.name.replace(name.into());
 
         self
     }
 
     fn start(&mut self) -> Result<()> {
         self.fut.replace(Box::pin(self.http.request(Request::from((
-            serde_json::to_vec(self)?,
+            serde_json::to_vec(&self.fields)?,
             Route::UpdateWebhook {
                 token: None,
                 webhook_id: self.webhook_id.0,

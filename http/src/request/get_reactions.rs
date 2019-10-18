@@ -4,12 +4,17 @@ use dawn_model::{
     user::User,
 };
 
-pub struct GetReactions<'a> {
+#[derive(Default)]
+struct GetReactionsFields {
     after: Option<UserId>,
     before: Option<UserId>,
     limit: Option<u64>,
+}
+
+pub struct GetReactions<'a> {
     channel_id: ChannelId,
     emoji: String,
+    fields: GetReactionsFields,
     fut: Option<Pending<'a, Vec<User>>>,
     http: &'a Client,
     message_id: MessageId,
@@ -23,31 +28,29 @@ impl<'a> GetReactions<'a> {
         emoji: impl Into<String>,
     ) -> Self {
         Self {
-            after: None,
-            before: None,
             channel_id: channel_id.into(),
             emoji: emoji.into(),
+            fields: GetReactionsFields::default(),
             fut: None,
             http,
-            limit: None,
             message_id: message_id.into(),
         }
     }
 
     pub fn after(mut self, after: UserId) -> Self {
-        self.after.replace(after);
+        self.fields.after.replace(after);
 
         self
     }
 
     pub fn before(mut self, before: UserId) -> Self {
-        self.before.replace(before);
+        self.fields.before.replace(before);
 
         self
     }
 
     pub fn limit(mut self, limit: u64) -> Self {
-        self.limit.replace(limit);
+        self.fields.limit.replace(limit);
 
         self
     }
@@ -55,11 +58,11 @@ impl<'a> GetReactions<'a> {
     fn start(&mut self) -> Result<()> {
         self.fut.replace(Box::pin(self.http.request(Request::from(
             Route::GetReactionUsers {
-                after: self.after.map(|x| x.0),
-                before: self.before.map(|x| x.0),
+                after: self.fields.after.map(|x| x.0),
+                before: self.fields.before.map(|x| x.0),
                 channel_id: self.channel_id.0,
                 emoji: self.emoji.to_owned(),
-                limit: self.limit,
+                limit: self.fields.limit,
                 message_id: self.message_id.0,
             },
         ))));

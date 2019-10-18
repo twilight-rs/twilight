@@ -1,17 +1,18 @@
 use super::prelude::*;
 use dawn_model::{id::ChannelId, invite::Invite};
 
-#[derive(Serialize)]
+#[derive(Default, Serialize)]
+struct CreateInviteFields {
+    max_age: Option<u64>,
+    max_uses: Option<u64>,
+    temporary: Option<bool>,
+    unique: Option<bool>,
+}
+
 pub struct CreateInvite<'a> {
-    pub max_age: Option<u64>,
-    pub max_uses: Option<u64>,
-    pub temporary: Option<bool>,
-    pub unique: Option<bool>,
-    #[serde(skip)]
     channel_id: ChannelId,
-    #[serde(skip)]
+    fields: CreateInviteFields,
     fut: Option<Pending<'a, Invite>>,
-    #[serde(skip)]
     http: &'a Client,
 }
 
@@ -19,42 +20,39 @@ impl<'a> CreateInvite<'a> {
     pub fn new(http: &'a Client, channel_id: impl Into<ChannelId>) -> Self {
         Self {
             channel_id: channel_id.into(),
+            fields: CreateInviteFields::default(),
             fut: None,
             http,
-            max_age: None,
-            max_uses: None,
-            temporary: None,
-            unique: None,
         }
     }
 
     pub fn max_age(mut self, max_age: u64) -> Self {
-        self.max_age.replace(max_age);
+        self.fields.max_age.replace(max_age);
 
         self
     }
 
     pub fn max_uses(mut self, max_uses: u64) -> Self {
-        self.max_uses.replace(max_uses);
+        self.fields.max_uses.replace(max_uses);
 
         self
     }
 
     pub fn temporary(mut self, temporary: bool) -> Self {
-        self.temporary.replace(temporary);
+        self.fields.temporary.replace(temporary);
 
         self
     }
 
     pub fn unique(mut self, unique: bool) -> Self {
-        self.unique.replace(unique);
+        self.fields.unique.replace(unique);
 
         self
     }
 
     fn start(&mut self) -> Result<()> {
         self.fut.replace(Box::pin(self.http.request(Request::from((
-            serde_json::to_vec(self)?,
+            serde_json::to_vec(&self.fields)?,
             Route::CreateInvite {
                 channel_id: self.channel_id.0,
             },

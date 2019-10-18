@@ -4,6 +4,12 @@ use dawn_model::{
     id::{GuildId, UserId},
 };
 
+#[derive(Default)]
+struct GetGuildMembersFields {
+    after: Option<UserId>,
+    limit: Option<u64>,
+}
+
 /// Gets a list of members from a guild.
 ///
 /// # Examples
@@ -28,8 +34,7 @@ use dawn_model::{
 /// # Ok(()) }
 /// ```
 pub struct GetGuildMembers<'a> {
-    after: Option<UserId>,
-    limit: Option<u64>,
+    fields: GetGuildMembersFields,
     fut: Option<Pending<'a, Vec<Member>>>,
     guild_id: GuildId,
     http: &'a Client,
@@ -38,17 +43,16 @@ pub struct GetGuildMembers<'a> {
 impl<'a> GetGuildMembers<'a> {
     pub(crate) fn new(http: &'a Client, guild_id: impl Into<GuildId>) -> Self {
         Self {
-            after: None,
+            fields: GetGuildMembersFields::default(),
             fut: None,
             guild_id: guild_id.into(),
             http,
-            limit: None,
         }
     }
 
     /// Sets the user ID to get members after.
     pub fn after(mut self, after: UserId) -> Self {
-        self.after.replace(after);
+        self.fields.after.replace(after);
 
         self
     }
@@ -57,7 +61,7 @@ impl<'a> GetGuildMembers<'a> {
     ///
     /// The maximum value accepted by the API is 1000.
     pub fn limit(mut self, limit: u64) -> Self {
-        self.limit.replace(limit);
+        self.fields.limit.replace(limit);
 
         self
     }
@@ -65,9 +69,9 @@ impl<'a> GetGuildMembers<'a> {
     fn start(&mut self) -> Result<()> {
         self.fut.replace(Box::pin(self.http.request(Request::from(
             Route::GetGuildMembers {
-                after: self.after.map(|x| x.0),
+                after: self.fields.after.map(|x| x.0),
                 guild_id: self.guild_id.0,
-                limit: self.limit,
+                limit: self.fields.limit,
             },
         ))));
 

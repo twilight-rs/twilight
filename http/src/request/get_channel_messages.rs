@@ -4,10 +4,15 @@ use dawn_model::{
     id::{ChannelId, MessageId},
 };
 
-pub struct GetChannelMessages<'a> {
+#[derive(Default)]
+struct GetChannelMessagesFields {
     limit: Option<u64>,
-    fut: Option<Pending<'a, Vec<Message>>>,
+}
+
+pub struct GetChannelMessages<'a> {
     channel_id: ChannelId,
+    fields: GetChannelMessagesFields,
+    fut: Option<Pending<'a, Vec<Message>>>,
     http: &'a Client,
 }
 
@@ -15,8 +20,8 @@ impl<'a> GetChannelMessages<'a> {
     pub(crate) fn new(http: &'a Client, channel_id: impl Into<ChannelId>) -> Self {
         Self {
             channel_id: channel_id.into(),
+            fields: GetChannelMessagesFields::default(),
             fut: None,
-            limit: None,
             http,
         }
     }
@@ -28,7 +33,7 @@ impl<'a> GetChannelMessages<'a> {
             Some(message_id),
             None,
             None,
-            self.limit,
+            self.fields.limit,
         )
     }
 
@@ -39,7 +44,7 @@ impl<'a> GetChannelMessages<'a> {
             None,
             Some(message_id),
             None,
-            self.limit,
+            self.fields.limit,
         )
     }
 
@@ -50,12 +55,12 @@ impl<'a> GetChannelMessages<'a> {
             None,
             None,
             Some(message_id),
-            self.limit,
+            self.fields.limit,
         )
     }
 
     pub fn limit(mut self, limit: u64) -> Self {
-        self.limit.replace(limit);
+        self.fields.limit.replace(limit);
 
         self
     }
@@ -67,7 +72,7 @@ impl<'a> GetChannelMessages<'a> {
                 around: None,
                 before: None,
                 channel_id: self.channel_id.0,
-                limit: self.limit,
+                limit: self.fields.limit,
             },
         ))));
 

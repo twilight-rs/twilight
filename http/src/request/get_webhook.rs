@@ -1,8 +1,13 @@
 use super::prelude::*;
 use dawn_model::{channel::Webhook, id::WebhookId};
 
-pub struct GetWebhook<'a> {
+#[derive(Default)]
+struct GetWebhookFields {
     token: Option<String>,
+}
+
+pub struct GetWebhook<'a> {
+    fields: GetWebhookFields,
     fut: Option<Pending<'a, Option<Webhook>>>,
     http: &'a Client,
     id: WebhookId,
@@ -11,15 +16,15 @@ pub struct GetWebhook<'a> {
 impl<'a> GetWebhook<'a> {
     pub(crate) fn new(http: &'a Client, id: impl Into<WebhookId>) -> Self {
         Self {
+            fields: GetWebhookFields::default(),
             fut: None,
             http,
             id: id.into(),
-            token: None,
         }
     }
 
     pub fn token(mut self, token: impl Into<String>) -> Self {
-        self.token.replace(token.into());
+        self.fields.token.replace(token.into());
 
         self
     }
@@ -27,7 +32,7 @@ impl<'a> GetWebhook<'a> {
     fn start(&mut self) -> Result<()> {
         self.fut.replace(Box::pin(self.http.request(Request::from(
             Route::GetWebhook {
-                token: self.token.as_ref().map(ToOwned::to_owned),
+                token: self.fields.token.clone(),
                 webhook_id: self.id.0,
             },
         ))));
