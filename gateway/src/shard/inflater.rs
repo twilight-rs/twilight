@@ -32,7 +32,7 @@ impl Inflater {
     pub fn msg(&mut self) -> Result<Option<&[u8]>, DecompressError> {
         let length = self.compressed.len();
         if length >= 4 && self.compressed[(length - 4)..] == ZLIB_SUFFIX {
-            // There is an payload to be decompressed.
+            // There is a payload to be decompressed.
             let before = self.decompress.total_in();
             let mut offset = 0;
             loop {
