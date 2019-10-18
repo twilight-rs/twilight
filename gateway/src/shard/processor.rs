@@ -79,7 +79,7 @@ impl ShardProcessor {
                     continue;
                 },
                 Err(err) => {
-                    warn!("Decompressing failed: {:?}", err.source());
+                    warn!("Error receiveing gateway event: {:?}", err.source());
                     continue;
                 },
             };
@@ -206,7 +206,6 @@ impl ShardProcessor {
 
     async fn reconnect(&mut self) {
         loop {
-            self.inflater.reset();
             self.config.queue.request().await;
 
             let shard = match Self::new(Arc::clone(&self.config.clone())).await {
@@ -281,18 +280,18 @@ impl ShardProcessor {
             match msg {
                 Message::Binary(bin) => {
                     self.inflater.extend(&bin[..]);
-
-                    let msg_or_error =
-                        match self.inflater.msg().map_err(|source| Error::Decompressing {
+                    let decompressed_msg =
+                        self.inflater.msg().map_err(|source| Error::Decompressing {
                             source,
-                        })? {
-                            Some(json) => serde_json::from_slice(json).map_err(|source| {
-                                Error::PayloadSerialization {
-                                    source,
-                                }
-                            }),
-                            None => continue,
-                        };
+                        })?;
+                    let msg_or_error = match decompressed_msg {
+                        Some(json) => serde_json::from_slice(json).map_err(|source| {
+                            Error::PayloadSerialization {
+                                source,
+                            }
+                        }),
+                        None => continue,
+                    };
                     self.inflater.clear();
                     break msg_or_error;
                 },

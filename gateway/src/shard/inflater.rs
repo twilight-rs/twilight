@@ -5,14 +5,13 @@ use log::trace;
 
 const ZLIB_SUFFIX: [u8; 4] = [0x00, 0x00, 0xff, 0xff];
 const INTERNAL_BUFFER_SIZE: usize = 32 * 1024;
-const COUNTDOWN: u64 = 255;
 
 pub struct Inflater {
     decompress: Decompress,
     compressed: Vec<u8>,
     internal_buffer: Vec<u8>,
     buffer: Vec<u8>,
-    countdown_to_resize: u64,
+    countdown_to_resize: u8,
 }
 
 impl Inflater {
@@ -22,7 +21,7 @@ impl Inflater {
             compressed: Vec::new(),
             internal_buffer: Vec::with_capacity(INTERNAL_BUFFER_SIZE),
             buffer: Vec::with_capacity(32 * 1024),
-            countdown_to_resize: COUNTDOWN,
+            countdown_to_resize: u8::max_value(),
         }
     }
 
@@ -33,7 +32,7 @@ impl Inflater {
     pub fn msg(&mut self) -> Result<Option<&[u8]>, DecompressError> {
         let length = self.compressed.len();
         if length >= 4 && self.compressed[(length - 4)..] == ZLIB_SUFFIX {
-            // There is a event to be decompressed
+            // There is an payload to be decompressed.
             let before = self.decompress.total_in();
             let mut offset = 0;
             loop {
@@ -73,12 +72,13 @@ impl Inflater {
             trace!("Capacity: {}", self.buffer.capacity());
             Ok(Some(&self.buffer))
         } else {
+            // Received a partial payload.
             Ok(None)
         }
     }
 
     // Clear the buffer, and shrink it if it has more space
-    // enough to grow the leng more than 4 times.
+    // enough to grow the length more than 4 times.
     pub fn clear(&mut self) {
         self.countdown_to_resize -= 1;
 
@@ -86,24 +86,26 @@ impl Inflater {
         // times the size, this is to prevent too
         // frequent shrinking.
         let cap = self.buffer.capacity();
-        if self.countdown_to_resize < 1 && self.buffer.len() < cap * 4 {
+        if self.countdown_to_resize == 0 && self.buffer.len() < cap * 4 {
             // When shrink_to goes stable use that on the following line.
+            // https://github.com/rust-lang/rust/issues/56431
             self.compressed.shrink_to_fit();
             self.buffer.shrink_to_fit();
             trace!("compressed: {}", self.compressed.capacity());
             trace!("buffer: {}", self.buffer.capacity());
-            self.countdown_to_resize = COUNTDOWN;
+            self.countdown_to_resize = u8::max_value();
         }
         self.compressed.clear();
         self.internal_buffer.clear();
         self.buffer.clear();
     }
 
+    // Reset the inflater
     pub fn reset(&mut self) {
         self.decompress.reset(true);
         self.compressed.clear();
         self.internal_buffer.clear();
         self.buffer.clear();
-        self.countdown_to_resize = COUNTDOWN;
+        self.countdown_to_resize = u8::max_value();
     }
 }
