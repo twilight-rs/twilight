@@ -453,7 +453,10 @@ impl Client {
         }
 
         let positions = channel_positions
-            .map(|(id, position)| Position { id, position })
+            .map(|(id, position)| Position {
+                id,
+                position,
+            })
             .collect::<Vec<_>>();
 
         self.verify(Request::from((
