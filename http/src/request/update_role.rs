@@ -22,17 +22,13 @@ pub struct UpdateRole<'a> {
 }
 
 impl<'a> UpdateRole<'a> {
-    pub(crate) fn new(
-        http: &'a Client,
-        guild_id: impl Into<GuildId>,
-        role_id: impl Into<RoleId>,
-    ) -> Self {
+    pub(crate) fn new(http: &'a Client, guild_id: GuildId, role_id: RoleId) -> Self {
         Self {
             fields: UpdateRoleFields::default(),
             fut: None,
-            guild_id: guild_id.into(),
+            guild_id,
             http,
-            role_id: role_id.into(),
+            role_id,
         }
     }
 

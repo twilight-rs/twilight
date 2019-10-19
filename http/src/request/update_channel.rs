@@ -25,9 +25,9 @@ pub struct UpdateChannel<'a> {
 }
 
 impl<'a> UpdateChannel<'a> {
-    pub(crate) fn new(http: &'a Client, channel_id: impl Into<ChannelId>) -> Self {
+    pub(crate) fn new(http: &'a Client, channel_id: ChannelId) -> Self {
         Self {
-            channel_id: channel_id.into(),
+            channel_id,
             fields: UpdateChannelFields::default(),
             fut: None,
             http,

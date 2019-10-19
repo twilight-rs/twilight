@@ -19,16 +19,12 @@ pub struct UpdateEmoji<'a> {
 }
 
 impl<'a> UpdateEmoji<'a> {
-    pub(crate) fn new(
-        http: &'a Client,
-        guild_id: impl Into<GuildId>,
-        emoji_id: impl Into<EmojiId>,
-    ) -> Self {
+    pub(crate) fn new(http: &'a Client, guild_id: GuildId, emoji_id: EmojiId) -> Self {
         Self {
             fields: UpdateEmojiFields::default(),
-            emoji_id: emoji_id.into(),
+            emoji_id,
             fut: None,
-            guild_id: guild_id.into(),
+            guild_id,
             http,
         }
     }

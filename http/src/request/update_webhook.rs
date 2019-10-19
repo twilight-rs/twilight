@@ -19,12 +19,12 @@ pub struct UpdateWebhook<'a> {
 }
 
 impl<'a> UpdateWebhook<'a> {
-    pub(crate) fn new(http: &'a Client, webhook_id: impl Into<WebhookId>) -> Self {
+    pub(crate) fn new(http: &'a Client, webhook_id: WebhookId) -> Self {
         Self {
             fields: UpdateWebhookFields::default(),
             fut: None,
             http,
-            webhook_id: webhook_id.into(),
+            webhook_id,
         }
     }
 

@@ -23,17 +23,17 @@ pub struct GetReactions<'a> {
 impl<'a> GetReactions<'a> {
     pub(crate) fn new(
         http: &'a Client,
-        channel_id: impl Into<ChannelId>,
-        message_id: impl Into<MessageId>,
+        channel_id: ChannelId,
+        message_id: MessageId,
         emoji: impl Into<String>,
     ) -> Self {
         Self {
-            channel_id: channel_id.into(),
+            channel_id,
             emoji: emoji.into(),
             fields: GetReactionsFields::default(),
             fut: None,
             http,
-            message_id: message_id.into(),
+            message_id,
         }
     }
 

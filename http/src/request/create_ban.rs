@@ -16,17 +16,13 @@ pub struct CreateBan<'a> {
 }
 
 impl<'a> CreateBan<'a> {
-    pub(crate) fn new(
-        http: &'a Client,
-        guild_id: impl Into<GuildId>,
-        user_id: impl Into<UserId>,
-    ) -> Self {
+    pub(crate) fn new(http: &'a Client, guild_id: GuildId, user_id: UserId) -> Self {
         Self {
             fields: CreateBanFields::default(),
             fut: None,
-            guild_id: guild_id.into(),
+            guild_id,
             http,
-            user_id: user_id.into(),
+            user_id,
         }
     }
 

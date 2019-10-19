@@ -27,11 +27,7 @@ pub struct CreateGuildChannel<'a> {
 }
 
 impl<'a> CreateGuildChannel<'a> {
-    pub(crate) fn new(
-        http: &'a Client,
-        guild_id: impl Into<GuildId>,
-        name: impl Into<String>,
-    ) -> Self {
+    pub(crate) fn new(http: &'a Client, guild_id: GuildId, name: impl Into<String>) -> Self {
         Self {
             fields: CreateGuildChannelFields {
                 bitrate: None,
@@ -46,7 +42,7 @@ impl<'a> CreateGuildChannel<'a> {
                 user_limit: None,
             },
             fut: None,
-            guild_id: guild_id.into(),
+            guild_id,
             http,
         }
     }

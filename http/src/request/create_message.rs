@@ -22,9 +22,9 @@ pub struct CreateMessage<'a> {
 }
 
 impl<'a> CreateMessage<'a> {
-    pub(crate) fn new(http: &'a Client, channel_id: impl Into<ChannelId>) -> Self {
+    pub(crate) fn new(http: &'a Client, channel_id: ChannelId) -> Self {
         Self {
-            channel_id: channel_id.into(),
+            channel_id,
             fields: CreateMessageFields::default(),
             fut: None,
             http,

@@ -25,17 +25,13 @@ pub struct ExecuteWebhook<'a> {
 }
 
 impl<'a> ExecuteWebhook<'a> {
-    pub(crate) fn new(
-        http: &'a Client,
-        webhook_id: impl Into<WebhookId>,
-        token: impl Into<String>,
-    ) -> Self {
+    pub(crate) fn new(http: &'a Client, webhook_id: WebhookId, token: impl Into<String>) -> Self {
         Self {
             fields: ExecuteWebhookFields::default(),
             fut: None,
             http,
             token: token.into(),
-            webhook_id: webhook_id.into(),
+            webhook_id,
         }
     }
 
