@@ -15,13 +15,9 @@ pub struct CreateWebhook<'a> {
 }
 
 impl<'a> CreateWebhook<'a> {
-    pub(crate) fn new(
-        http: &'a Client,
-        channel_id: impl Into<ChannelId>,
-        name: impl Into<String>,
-    ) -> Self {
+    pub(crate) fn new(http: &'a Client, channel_id: ChannelId, name: impl Into<String>) -> Self {
         Self {
-            channel_id: channel_id.into(),
+            channel_id,
             fields: CreateWebhookFields {
                 avatar: None,
                 name: name.into(),

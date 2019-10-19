@@ -21,7 +21,7 @@ pub struct CreateEmoji<'a> {
 impl<'a> CreateEmoji<'a> {
     pub(crate) fn new(
         http: &'a Client,
-        guild_id: impl Into<GuildId>,
+        guild_id: GuildId,
         name: impl Into<String>,
         image: impl Into<String>,
     ) -> Self {
@@ -32,7 +32,7 @@ impl<'a> CreateEmoji<'a> {
                 roles: None,
             },
             fut: None,
-            guild_id: guild_id.into(),
+            guild_id,
             http,
         }
     }

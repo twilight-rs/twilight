@@ -13,14 +13,14 @@ pub struct DeleteWebhook<'a> {
 }
 
 impl<'a> DeleteWebhook<'a> {
-    pub(crate) fn new(http: &'a Client, id: impl Into<WebhookId>) -> Self {
+    pub(crate) fn new(http: &'a Client, id: WebhookId) -> Self {
         Self {
             fields: DeleteWebhookParams {
                 token: None,
             },
             fut: None,
             http,
-            id: id.into(),
+            id,
         }
     }
 

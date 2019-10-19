@@ -19,14 +19,14 @@ pub struct UpdateChannelPermissionConfigured<'a> {
 impl<'a> UpdateChannelPermissionConfigured<'a> {
     pub(crate) fn new(
         http: &'a Client,
-        channel_id: impl Into<ChannelId>,
+        channel_id: ChannelId,
         allow: Permissions,
         deny: Permissions,
         kind: impl Into<String>,
         target_id: u64,
     ) -> Self {
         Self {
-            channel_id: channel_id.into(),
+            channel_id,
             fields: UpdateChannelPermissionConfiguredFields {
                 allow,
                 deny,
