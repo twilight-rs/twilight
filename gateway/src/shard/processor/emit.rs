@@ -95,5 +95,5 @@ fn _emit_to_listener(id: u64, listener: &Listener<Event>, event: Event) -> bool 
         return true;
     }
 
-    listener.tx.unbounded_send(event.clone()).is_ok()
+    listener.tx.unbounded_send(event).is_ok()
 }
