@@ -2,9 +2,7 @@ use super::{
     config::Config,
     error::Result,
     event::{Event, EventType, Events},
-    heartbeat::Latency,
-    processor::ShardProcessor,
-    session::Session,
+    processor::{Latency, Session, ShardProcessor},
     sink::ShardSink,
     stage::Stage,
 };
@@ -17,7 +15,7 @@ use tokio_tungstenite::tungstenite::Message;
 #[derive(Debug)]
 pub struct ShardRef {
     config: Arc<Config>,
-    listeners: Arc<Listeners<Event>>,
+    listeners: Listeners<Event>,
     processor_handle: AbortHandle,
     session: Arc<Session>,
 }
@@ -101,7 +99,7 @@ impl Shard {
     async fn _new(config: Config) -> Result<Self> {
         let config = Arc::new(config);
         let processor = ShardProcessor::new(Arc::clone(&config)).await?;
-        let listeners = Arc::clone(&processor.listeners);
+        let listeners = processor.listeners.clone();
         let session = Arc::clone(&processor.session);
         let (fut, handle) = future::abortable(processor.run());
 
@@ -139,10 +137,16 @@ impl Shard {
     ///
     /// There can be multiple streams of events. All events will be broadcast to
     /// all streams of events.
+    ///
+    /// All event types except for [`EventType::SHARD_PAYLOAD`] are enabled.
+    /// If you need to enable it, consider calling [`some_events`] instead.
+    ///
+    /// [`EventType::SHARD_PAYLOAD`]: events/struct.EventType.html#const.SHARD_PAYLOAD
+    /// [`some_events`]: #method.some_events
     pub async fn events(&self) -> Events {
-        let rx = self.0.listeners.add(EventType::all()).await;
+        let rx = self.0.listeners.add(EventType::default()).await;
 
-        Events::new(EventType::all(), rx)
+        Events::new(EventType::default(), rx)
     }
 
     /// Creates a new filtered stream of events from the shard.

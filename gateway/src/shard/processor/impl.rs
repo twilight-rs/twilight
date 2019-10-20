@@ -1,12 +1,15 @@
 use super::{
-    config::Config,
+    super::{
+        config::Config,
+        error::{Error, Result},
+        event::Event,
+        stage::Stage,
+    },
     connect,
-    error::{Error, Result},
-    event::Event,
+    emit,
     inflater::Inflater,
     session::Session,
     socket_forwarder::SocketForwarder,
-    stage::Stage,
 };
 
 use crate::{
@@ -30,7 +33,7 @@ use std::error::Error as StdError;
 /// to all listeners.
 pub struct ShardProcessor {
     pub config: Arc<Config>,
-    pub listeners: Arc<Listeners<Event>>,
+    pub listeners: Listeners<Event>,
     pub properties: IdentifyProperties,
     pub rx: UnboundedReceiver<Message>,
     pub session: Arc<Session>,
@@ -51,7 +54,7 @@ impl ShardProcessor {
 
         Ok(Self {
             config,
-            listeners: Arc::new(Listeners::default()),
+            listeners: Listeners::default(),
             properties,
             rx,
             session: Arc::new(Session::new(tx)),
@@ -60,8 +63,6 @@ impl ShardProcessor {
     }
 
     pub async fn run(mut self) {
-        let mut remove_listeners = Vec::new();
-
         loop {
             let gateway_event = match self.next_event().await {
                 Ok(ev) => ev,
@@ -95,37 +96,7 @@ impl ShardProcessor {
                 continue;
             }
 
-            let event = Event::from(gateway_event);
-
-            let mut listeners = self.listeners.listeners.lock().await;
-
-            for (id, listener) in listeners.iter() {
-                let event_type = event.event_type();
-
-                if !listener.events.contains(event_type) {
-                    trace!(
-                        "[ShardProcessor] Listener {} doesn't want event type {:?}",
-                        id,
-                        event_type,
-                    );
-
-                    continue;
-                }
-
-                // Since this is unbounded, this is always because the receiver
-                // dropped.
-                if listener.tx.unbounded_send(event.clone()).is_err() {
-                    remove_listeners.push(*id);
-                }
-            }
-
-            for id in &remove_listeners {
-                debug!("[ShardProcessor] Removing listener {}", id);
-
-                listeners.remove(id);
-            }
-
-            remove_listeners.clear();
+            emit::event(self.listeners.clone(), Event::from(gateway_event));
         }
     }
 
@@ -285,11 +256,15 @@ impl ShardProcessor {
                             source,
                         })?;
                     let msg_or_error = match decompressed_msg {
-                        Some(json) => serde_json::from_slice(json).map_err(|source| {
-                            Error::PayloadSerialization {
-                                source,
-                            }
-                        }),
+                        Some(json) => {
+                            emit::bytes(self.listeners.clone(), json).await;
+
+                            serde_json::from_slice(json).map_err(|source| {
+                                Error::PayloadSerialization {
+                                    source,
+                                }
+                            })
+                        },
                         None => continue,
                     };
                     self.inflater.clear();
@@ -299,6 +274,8 @@ impl ShardProcessor {
                 Message::Ping(_) | Message::Pong(_) => {},
                 Message::Text(text) => {
                     trace!("Text payload: {}", text);
+                    emit::bytes(self.listeners.clone(), text.as_bytes()).await;
+
                     break serde_json::from_str(&text).map_err(|source| {
                         Error::PayloadSerialization {
                             source,

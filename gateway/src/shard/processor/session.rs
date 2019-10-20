@@ -1,7 +1,9 @@
 use super::{
-    error::{Error, Result},
+    super::{
+        error::{Error, Result},
+        stage::Stage,
+    },
     heartbeat::{Heartbeater, Heartbeats},
-    stage::Stage,
 };
 use dawn_model::gateway::payload::Heartbeat;
 use futures_channel::mpsc::UnboundedSender;
