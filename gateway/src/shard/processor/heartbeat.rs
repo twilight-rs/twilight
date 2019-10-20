@@ -1,4 +1,4 @@
-use super::error::{Error, Result};
+use super::super::error::{Error, Result};
 use dawn_model::gateway::payload::Heartbeat;
 use futures_channel::mpsc::UnboundedSender;
 use futures_util::lock::Mutex;

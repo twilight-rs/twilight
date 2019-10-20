@@ -25,20 +25,15 @@ pub mod error;
 pub mod event;
 pub mod stage;
 
-mod connect;
-mod heartbeat;
 mod r#impl;
-mod inflater;
 mod processor;
-mod session;
 mod sink;
-mod socket_forwarder;
 
 pub use self::{
     config::Config,
     error::{Error, Result},
     event::{Event, EventType},
-    heartbeat::Latency,
+    processor::heartbeat::Latency,
     r#impl::{Information, Shard},
     sink::ShardSink,
     stage::Stage,

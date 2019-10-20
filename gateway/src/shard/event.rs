@@ -82,6 +82,7 @@ bitflags! {
         const SHARD_CONNECTING = 1 << 34;
         const SHARD_DISCONNECTED = 1 << 35;
         const SHARD_IDENTIFYING = 1 << 36;
+        const SHARD_PAYLOAD = 1 << 45;
         const SHARD_RECONNECTING = 1 << 37;
         const SHARD_RESUMING = 1 << 38;
         const TYPING_START = 1 << 39;
@@ -90,6 +91,15 @@ bitflags! {
         const VOICE_SERVER_UPDATE = 1 << 42;
         const VOICE_STATE_UPDATE = 1 << 43;
         const WEBHOOK_UPDATE = 1 << 44;
+    }
+}
+
+impl Default for EventType {
+    fn default() -> Self {
+        let mut flags = Self::all();
+        flags.remove(Self::SHARD_PAYLOAD);
+
+        flags
     }
 }
 
@@ -133,6 +143,13 @@ pub struct Identifying {
     pub shard_total: u64,
 }
 
+/// A payload of bytes came in through the gateway.
+#[derive(Clone, Debug)]
+pub struct Payload {
+    /// The bytes that came in.
+    pub bytes: Vec<u8>,
+}
+
 /// Indicator that a shard is now reconnecting.
 #[derive(Clone, Debug)]
 pub struct Reconnecting {
@@ -172,6 +189,8 @@ pub enum ShardEvent {
     ///
     /// [`Stage::Identifying`]: ../stage/enum.Stage.html#variant.Identifying
     Identifying(Identifying),
+    /// A payload of bytes came in through the shard's connection.
+    Payload(Payload),
     /// A shard is now in [`Stage::Reconnecting`] phase after a disconnect
     /// or session was ended.
     ///
@@ -291,6 +310,8 @@ pub enum Event {
     ///
     /// [`Stage::Reconnecting`]: ../stage/enum.Stage.html#variant.Reconnecting
     ShardReconnecting(Reconnecting),
+    /// A payload of bytes came in through the shard's connection.
+    ShardPayload(Payload),
     /// A shard is now in [`Stage::Resuming`] phase after a disconnect.
     ///
     /// [`Stage::Resuming`]: ../stage/enum.Stage.html#variant.Resuming
@@ -360,6 +381,7 @@ impl Event {
             Self::ShardConnecting(_) => EventType::SHARD_CONNECTING,
             Self::ShardDisconnected(_) => EventType::SHARD_DISCONNECTED,
             Self::ShardIdentifying(_) => EventType::SHARD_IDENTIFYING,
+            Self::ShardPayload(_) => EventType::SHARD_PAYLOAD,
             Self::ShardReconnecting(_) => EventType::SHARD_RECONNECTING,
             Self::ShardResuming(_) => EventType::SHARD_RESUMING,
             Self::TypingStart(_) => EventType::TYPING_START,
@@ -434,6 +456,7 @@ impl From<ShardEvent> for Event {
             ShardEvent::Connecting(v) => Self::ShardConnecting(v),
             ShardEvent::Disconnected(v) => Self::ShardDisconnected(v),
             ShardEvent::Identifying(v) => Self::ShardIdentifying(v),
+            ShardEvent::Payload(v) => Self::ShardPayload(v),
             ShardEvent::Reconnecting(v) => Self::ShardReconnecting(v),
             ShardEvent::Resuming(v) => Self::ShardResuming(v),
         }
