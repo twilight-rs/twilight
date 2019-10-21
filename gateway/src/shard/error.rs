@@ -1,5 +1,6 @@
 //! The error type of why errors occur in the shard module.
 
+use dawn_http::Error as HttpError;
 use flate2::DecompressError;
 use futures_channel::mpsc::TrySendError;
 use serde_json::Error as JsonError;
@@ -24,6 +25,11 @@ pub enum Error {
     Connecting {
         /// The error from the WebSocket client.
         source: TungsteniteError,
+    },
+    /// Getting the gateway URL via the HTTP client failed.
+    GettingGatewayUrl {
+        /// The error from the `dawn_http` client.
+        source: HttpError,
     },
     /// The shard ID was larger than the total number of shards.
     IdTooLarge {
@@ -65,6 +71,9 @@ impl Display for Error {
             Self::Connecting {
                 ..
             } => f.write_str("An issue occurred connecting to the gateway"),
+            Self::GettingGatewayUrl { .. } => {
+                f.write_str("Getting the gateway URL failed")
+            },
             Self::IdTooLarge {
                 id,
                 total,
@@ -98,6 +107,7 @@ impl StdError for Error {
             Self::Connecting {
                 source,
             } => Some(source),
+            Self::GettingGatewayUrl { source } => Some(source),
             Self::ParsingUrl {
                 source, ..
             } => Some(source),
