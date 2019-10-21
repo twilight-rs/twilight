@@ -71,9 +71,9 @@ impl Display for Error {
             Self::Connecting {
                 ..
             } => f.write_str("An issue occurred connecting to the gateway"),
-            Self::GettingGatewayUrl { .. } => {
-                f.write_str("Getting the gateway URL failed")
-            },
+            Self::GettingGatewayUrl {
+                ..
+            } => f.write_str("Getting the gateway URL failed"),
             Self::IdTooLarge {
                 id,
                 total,
@@ -107,7 +107,9 @@ impl StdError for Error {
             Self::Connecting {
                 source,
             } => Some(source),
-            Self::GettingGatewayUrl { source } => Some(source),
+            Self::GettingGatewayUrl {
+                source,
+            } => Some(source),
             Self::ParsingUrl {
                 source, ..
             } => Some(source),

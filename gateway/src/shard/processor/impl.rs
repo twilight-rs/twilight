@@ -44,9 +44,14 @@ impl ShardProcessor {
     pub async fn new(config: Arc<Config>) -> Result<Self> {
         let properties = IdentifyProperties::new("dawn.rs", "dawn.rs", OS, "", "");
 
-        let mut url = config.http_client().gateway().await.map_err(|source| Error::GettingGatewayUrl {
-            source,
-        })?.url;
+        let mut url = config
+            .http_client()
+            .gateway()
+            .await
+            .map_err(|source| Error::GettingGatewayUrl {
+                source,
+            })?
+            .url;
         url.push_str("?v=6&compress=zlib-stream");
 
         let stream = connect::connect(&url).await?;
