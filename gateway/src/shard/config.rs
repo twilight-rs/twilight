@@ -1,5 +1,6 @@
 use super::{Error, Result};
 use crate::queue::{LocalQueue, Queue};
+use dawn_http::Client as HttpClient;
 use dawn_model::gateway::payload::update_status::UpdateStatusInfo;
 
 /// The configuration used by the shard to identify with the gateway and
@@ -11,6 +12,7 @@ use dawn_model::gateway::payload::update_status::UpdateStatusInfo;
 #[derive(Debug)]
 pub struct Config {
     guild_subscriptions: bool,
+    http_client: HttpClient,
     large_threshold: u64,
     presence: Option<UpdateStatusInfo>,
     pub(crate) queue: Box<dyn Queue + Send + Sync>,
@@ -32,6 +34,11 @@ impl Config {
     /// events.
     pub fn guild_subscriptions(&self) -> bool {
         self.guild_subscriptions
+    }
+
+    /// Returns the `dawn_http` client to be used by the shard.
+    pub fn http_client(&self) -> &HttpClient {
+        &self.http_client
     }
 
     /// The maximum threshold at which point the gateway will stop sending
@@ -92,6 +99,7 @@ impl ConfigBuilder {
 
         Self(Config {
             guild_subscriptions: true,
+            http_client: HttpClient::new(token.clone()),
             large_threshold: 250,
             presence: None,
             queue: Box::new(LocalQueue::new()),
@@ -113,6 +121,13 @@ impl ConfigBuilder {
     /// The default value is `true`.
     pub fn guild_subscriptions(&mut self, guild_subscriptions: bool) -> &mut Self {
         self.0.guild_subscriptions = guild_subscriptions;
+
+        self
+    }
+
+    /// The HTTP client to be used by the shard for getting gateway information.
+    pub fn http_client(&mut self, http_client: HttpClient) -> &mut Self {
+        self.0.http_client = http_client;
 
         self
     }

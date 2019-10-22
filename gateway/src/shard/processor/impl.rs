@@ -44,9 +44,17 @@ impl ShardProcessor {
     pub async fn new(config: Arc<Config>) -> Result<Self> {
         let properties = IdentifyProperties::new("dawn.rs", "dawn.rs", OS, "", "");
 
-        let url = "wss://gateway.discord.gg?compress=zlib-stream";
+        let mut url = config
+            .http_client()
+            .gateway()
+            .await
+            .map_err(|source| Error::GettingGatewayUrl {
+                source,
+            })?
+            .url;
+        url.push_str("?v=6&compress=zlib-stream");
 
-        let stream = connect::connect(url).await?;
+        let stream = connect::connect(&url).await?;
         let (mut forwarder, rx, tx) = SocketForwarder::new(stream);
         tokio_executor::spawn(async move {
             forwarder.run().await;

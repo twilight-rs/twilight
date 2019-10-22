@@ -204,7 +204,8 @@ impl ConfigBuilder {
     ///
     /// By default, the default client is used.
     pub fn http_client(&mut self, http_client: Client) -> &mut Self {
-        self.0.http_client = http_client;
+        self.0.http_client = http_client.clone();
+        self.1.http_client(http_client);
 
         self
     }
