@@ -42,6 +42,10 @@ pub struct ShardProcessor {
 
 impl ShardProcessor {
     pub async fn new(config: Arc<Config>) -> Result<Self> {
+        debug!("[ShardProcessor {:?}] Queueing", config.shard());
+        config.queue.request().await;
+        debug!("[ShardProcessor {:?}] Finished queue", config.shard());
+
         let properties = IdentifyProperties::new("dawn.rs", "dawn.rs", OS, "", "");
 
         let mut url = config
