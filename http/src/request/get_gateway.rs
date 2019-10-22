@@ -2,7 +2,7 @@ use super::{prelude::*, GetGatewayAuthed};
 use dawn_model::gateway::connection_info::ConnectionInfo;
 
 pub struct GetGateway<'a> {
-    fut: Option<Pin<Box<dyn Future<Output = Result<ConnectionInfo>> + Send + 'a>>>,
+    fut: Option<Pending<'a, ConnectionInfo>>,
     http: &'a Client,
 }
 
