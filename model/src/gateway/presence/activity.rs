@@ -1,6 +1,7 @@
 use crate::{
     gateway::presence::{
         ActivityAssets,
+        ActivityEmoji,
         ActivityFlags,
         ActivityParty,
         ActivitySecrets,
@@ -31,6 +32,7 @@ pub struct Activity {
     )]
     pub kind: ActivityType,
     pub name: String,
+    pub emoji: Option<ActivityEmoji>,
     pub party: Option<ActivityParty>,
     pub secrets: Option<ActivitySecrets>,
     pub state: Option<String>,
