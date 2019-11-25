@@ -8,6 +8,7 @@ use dawn_model::{
 struct GetGuildMembersFields {
     after: Option<UserId>,
     limit: Option<u64>,
+    presences: Option<bool>,
 }
 
 /// Gets a list of members from a guild.
@@ -66,12 +67,20 @@ impl<'a> GetGuildMembers<'a> {
         self
     }
 
+    /// Sets whether to retrieve matched member presences
+    pub fn presences(mut self, presences: bool) -> Self {
+        self.fields.presences.replace(presences);
+
+        self
+    }
+
     fn start(&mut self) -> Result<()> {
         self.fut.replace(Box::pin(self.http.request(Request::from(
             Route::GetGuildMembers {
                 after: self.fields.after.map(|x| x.0),
                 guild_id: self.guild_id.0,
                 limit: self.fields.limit,
+                presences: self.fields.presences,
             },
         ))));
 

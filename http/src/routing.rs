@@ -356,6 +356,7 @@ pub enum Route {
     GetGuildMembers {
         after: Option<u64>,
         limit: Option<u64>,
+        presences: Option<bool>,
         guild_id: u64,
     },
     GetGuildPruneCount {
@@ -860,6 +861,7 @@ impl Route {
                 after,
                 guild_id,
                 limit,
+                presences,
             } => {
                 let mut path = format!("guilds/{}/members?", guild_id);
 
@@ -869,6 +871,10 @@ impl Route {
 
                 if let Some(limit) = limit {
                     let _ = write!(path, "&limit={}", limit);
+                }
+
+                if let Some(presences) = presences {
+                    let _ = write!(path, "&presences={}", presences);
                 }
 
                 (Method::GET, Path::GuildsIdMembers(guild_id), path.into())
