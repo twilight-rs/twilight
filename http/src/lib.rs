@@ -7,7 +7,7 @@
     unused,
     warnings
 )]
-#![allow(clippy::module_name_repetitions, clippy::pub_enum_variant_names)]
+#![allow(clippy::module_name_repetitions, clippy::pub_enum_variant_names, clippy::must_use_candidate)]
 
 pub mod client;
 pub mod error;
