@@ -10,10 +10,16 @@ mod client_status;
 mod status;
 
 pub use self::{
-    activity::Activity, activity_assets::ActivityAssets, activity_emoji::ActivityEmoji,
-    activity_flags::ActivityFlags, activity_party::ActivityParty,
-    activity_secrets::ActivitySecrets, activity_timestamps::ActivityTimestamps,
-    activity_type::ActivityType, client_status::ClientStatus, status::Status,
+    activity::Activity,
+    activity_assets::ActivityAssets,
+    activity_emoji::ActivityEmoji,
+    activity_flags::ActivityFlags,
+    activity_party::ActivityParty,
+    activity_secrets::ActivitySecrets,
+    activity_timestamps::ActivityTimestamps,
+    activity_type::ActivityType,
+    client_status::ClientStatus,
+    status::Status,
 };
 
 use crate::{
@@ -58,7 +64,9 @@ mod serde_support {
         fn key(&self) -> UserId {
             match self.user {
                 UserOrId::User(ref u) => u.id,
-                UserOrId::UserId { id } => id,
+                UserOrId::UserId {
+                    id,
+                } => id,
             }
         }
     }
@@ -104,7 +112,9 @@ mod tests {
             guild_id: None,
             nick: None,
             status: Status::Online,
-            user: UserOrId::UserId { id: UserId(1) },
+            user: UserOrId::UserId {
+                id: UserId(1),
+            },
         };
 
         serde_test::assert_de_tokens(
@@ -123,7 +133,9 @@ mod tests {
                 Token::Str("1"),
                 Token::StructEnd,
                 Token::Str("status"),
-                Token::Enum { name: "Status" },
+                Token::Enum {
+                    name: "Status",
+                },
                 Token::Str("online"),
                 Token::Unit,
                 Token::Str("game"),
@@ -163,7 +175,9 @@ mod tests {
                 },
                 Token::Str("desktop"),
                 Token::Some,
-                Token::Enum { name: "Status" },
+                Token::Enum {
+                    name: "Status",
+                },
                 Token::Str("online"),
                 Token::Unit,
                 Token::Str("mobile"),
@@ -172,7 +186,9 @@ mod tests {
                 Token::None,
                 Token::StructEnd,
                 Token::Str("activities"),
-                Token::Seq { len: Some(1) },
+                Token::Seq {
+                    len: Some(1),
+                },
                 Token::Struct {
                     name: "Activity",
                     len: 4,
