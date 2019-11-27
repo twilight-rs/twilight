@@ -4,23 +4,18 @@ use futures_channel::{
     mpsc::{self, UnboundedReceiver, UnboundedSender},
     oneshot::{self, Sender},
 };
-use futures_timer::{Delay, TryFutureExt as _};
-use futures_util::{
-    future::FutureExt,
-    lock::Mutex,
-    stream::StreamExt,
-    try_future::TryFutureExt as _,
-};
+use futures_timer::Delay;
+use futures_util::{lock::Mutex, stream::StreamExt};
 use log::debug;
 use std::{
     collections::HashMap,
-    io::Error as IoError,
     sync::{
         atomic::{AtomicU64, Ordering},
         Arc,
     },
     time::{Duration, Instant},
 };
+use tokio::future::FutureExt as _;
 
 #[derive(Clone, Debug)]
 pub enum TimeRemaining {
@@ -131,16 +126,10 @@ impl BucketQueue {
     pub async fn pop(&self, timeout: Duration) -> Option<Sender<Sender<Option<RatelimitHeaders>>>> {
         let mut rx = self.rx.lock().await;
 
-        // A bit of type weirdness here, but that's because `futures-timer`'s
-        // timeout requires an `std::io::Error` for no reason.
-        //
-        // Once this closes this can be fixed:
-        // <https://github.com/rustasync/futures-timer/issues/21>
-        StreamExt::next(&mut *rx)
-            .map(|x| x.ok_or_else(IoError::last_os_error))
-            .timeout(timeout)
-            .await
-            .ok()
+        match StreamExt::next(&mut *rx).timeout(timeout).await.ok() {
+            Some(x) => x,
+            None => None,
+        }
     }
 }
 
@@ -196,16 +185,13 @@ impl BucketQueueTask {
                 self.path,
             );
 
-            match rx
-                .map_err(|_| IoError::last_os_error())
-                .timeout(Self::WAIT)
-                .await
-            {
-                Ok(Some(headers)) => self.handle_headers(&headers).await,
+            // TODO: Find a better way of handling nested types.
+            match rx.timeout(Self::WAIT).await {
+                Ok(Ok(Some(headers))) => self.handle_headers(&headers).await,
                 // - None was sent through the channel (request aborted)
                 // - channel was closed
                 // - timeout reached
-                Ok(None) | Err(_) => {
+                Ok(Err(_)) | Err(_) | Ok(Ok(None)) => {
                     debug!("[Bucket {:?}] Receiver timed out", self.path);
                 },
             }
@@ -249,7 +235,7 @@ impl BucketQueueTask {
         debug!("[Bucket {:?}] Request got global ratelimited", self.path,);
         self.global.lock();
         let lock = self.global.0.lock().await;
-        let _ = Delay::new(Duration::from_millis(wait)).await;
+        Delay::new(Duration::from_millis(wait)).await;
         self.global.unlock();
 
         drop(lock);
@@ -287,7 +273,7 @@ impl BucketQueueTask {
             self.path, wait,
         );
 
-        let _ = Delay::new(wait).await;
+        Delay::new(wait).await;
 
         debug!(
             "[Bucket {:?}] Done waiting for ratelimit to pass",

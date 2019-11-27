@@ -8,7 +8,7 @@ async fn main() -> Result<(), Box<dyn Error + Send + Sync>> {
     pretty_env_logger::init_timed();
 
     let client = Client::new(env::var("DISCORD_TOKEN")?);
-    let channel_id = ChannelId(620_980_184_606_048_278);
+    let channel_id = ChannelId(381_926_291_785_383_946);
 
     future::join_all((1u8..=10).map(|x| {
         client

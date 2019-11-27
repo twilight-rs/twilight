@@ -20,7 +20,7 @@ dawn-http = { optional = true, path = "../http" }
 dawn-model = { optional = true, path = "../model" }
 
 [dev-dependencies]
-futures-preview = "0.3.0-alpha.19"
+futures = "0.3"
 tokio = "0.2.0-alpha.6"
 
 [features]
