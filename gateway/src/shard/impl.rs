@@ -80,13 +80,13 @@ impl Shard {
     /// ```no_run
     /// use dawn_gateway::Shard;
     /// use std::{env, time::Duration};
-    /// use tokio::timer;
+    /// use tokio::time as tokio_time;
     ///
     /// # #[tokio::main]
     /// # async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
     /// let shard = Shard::new(env::var("DISCORD_TOKEN")?).await?;
     ///
-    /// timer::delay_for(Duration::from_secs(1)).await;
+    /// tokio_time::delay_for(Duration::from_secs(1)).await;
     ///
     /// let info = shard.info().await;
     /// println!("Shard stage: {}", info.stage());
@@ -103,7 +103,7 @@ impl Shard {
         let session = Arc::clone(&processor.session);
         let (fut, handle) = future::abortable(processor.run());
 
-        tokio_executor::spawn(async move {
+        tokio::spawn(async move {
             let _ = fut.await;
 
             debug!("[Shard] Shard processor future ended");

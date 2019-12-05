@@ -2,9 +2,12 @@ use super::super::ShardStream;
 use futures_channel::mpsc::{self, UnboundedReceiver, UnboundedSender};
 use futures_util::{
     future::{self, Either},
+    sink::SinkExt,
     stream::StreamExt,
 };
-use log::debug;
+#[allow(unused_imports)]
+use log::{debug, info, trace, warn};
+use tokio::time::timeout;
 use tokio_tungstenite::tungstenite::Message;
 
 pub struct SocketForwarder {
@@ -31,30 +34,46 @@ impl SocketForwarder {
         )
     }
 
-    pub async fn run(&mut self) {
+    pub async fn run(mut self) {
+        const TIMEOUT: std::time::Duration = std::time::Duration::from_secs(30);
         debug!("[SocketForwarder] Starting driving loop");
-
         loop {
-            match future::select(self.rx.next(), self.stream.next()).await {
+            match future::select(self.rx.next(), timeout(TIMEOUT, self.stream.next())).await {
                 Either::Left((Some(msg), _)) => {
-                    if self.stream.send(msg).await.is_err() {
-                        return;
+                    trace!("[SocketForwarder] Sending msg: {}", msg);
+                    if let Err(err) = self.stream.send(msg).await {
+                        warn!("[SocketForwarder] Got error when sending: {}", err);
+                        break;
                     }
                 },
                 Either::Left((None, _)) => {
+                    warn!("[SocketForwarder] Got None, closing stream");
                     let _ = self.stream.close(None).await;
 
-                    return;
+                    break;
                 },
-                Either::Right((Some(Ok(msg)), _)) => {
+                Either::Right((Ok(Some(Ok(msg))), _)) => {
                     if self.tx.unbounded_send(msg).is_err() {
-                        return;
+                        break;
                     }
                 },
-                Either::Right((Some(Err(_)), _)) | Either::Right((None, _)) => {
+                Either::Right((Ok(Some(Err(err))), _)) => {
+                    warn!("[SocketForwarder] Got error: {}, closing tx", err);
                     self.tx.close_channel();
+                    break;
+                },
+                Either::Right((Ok(None), _)) => {
+                    warn!("[SocketForwarder] Got None, closing tx");
+                    self.tx.close_channel();
+                    break;
+                },
+                Either::Right((Err(why), _)) => {
+                    warn!("[SocketForwarder] Error: {}", why);
+                    self.tx.close_channel();
+                    break;
                 },
             }
         }
+        warn!("[SocketForwarder] Leaving looo");
     }
 }

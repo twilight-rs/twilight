@@ -1,7 +1,8 @@
 use super::super::event::{Event, EventType, Payload};
 use crate::listener::{Listener, Listeners};
-use log::{debug, trace, warn};
-use tokio_executor::{DefaultExecutor, Executor};
+#[allow(unused_imports)]
+use log::{debug, info, trace, warn};
+//use tokio_executor::{DefaultExecutor, Executor};
 
 pub async fn bytes(listeners: Listeners<Event>, bytes: &[u8]) {
     for listener in listeners.all().lock().await.values() {
@@ -18,13 +19,12 @@ pub async fn bytes(listeners: Listeners<Event>, bytes: &[u8]) {
 }
 
 pub fn event(listeners: Listeners<Event>, event: Event) {
-    let mut executor = DefaultExecutor::current();
+    // TODO: fix this so it spawns on the current executor.
+    // let mut executor = DefaultExecutor::current();
 
-    if executor.status().is_ok() {
-        if let Err(why) = executor.spawn(Box::pin(_event(listeners, event))) {
-            warn!("Spawning event emission failed: {:?}", why);
-        }
-    }
+    // if executor.status().is_ok() {
+    tokio::spawn(Box::pin(_event(listeners, event)));
+    // }
 }
 
 async fn _event(listeners: Listeners<Event>, event: Event) {

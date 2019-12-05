@@ -24,10 +24,9 @@ log = "0.4"
 serde = { features = ["derive"], version = "1" }
 serde_json = "1"
 serde-value = "0.6"
-tokio-executor = "0.2.0-alpha.6"
-tokio-net = "0.2.0-alpha.6"
-tokio-timer = "0.3.0-alpha.6"
-tokio-tungstenite = { git = "https://github.com/dbcfd/tokio-tungstenite", rev = "77de2495c2f7b2f3c7c143f29d5c0bc3c8c58cb5", features = ["tls"] }
+# Make it use less features at a later time.
+tokio = { version = "0.2", features = ["full"] }
+tokio-tungstenite = { git = "https://github.com/dbcfd/tokio-tungstenite", branch = "tokio2", features = ["tls"] }
 url = "2"
 # The default backend for flate2; miniz-oxide, works differently
 # from the C-backed backend zlib, When you give it the sync argument
@@ -37,7 +36,7 @@ flate2 = { version = "1.0", default-features = false, features = ["zlib"] }
 
 [dev-dependencies]
 futures = "0.3"
-tokio = "0.2.0-alpha.6"
+tokio = "0.2"
 
 [features]
 default = []
