@@ -27,7 +27,7 @@ serde-value = "0.6"
 tokio-executor = "0.2.0-alpha.6"
 tokio-net = "0.2.0-alpha.6"
 tokio-timer = "0.3.0-alpha.6"
-tokio-tungstenite = { git = "https://github.com/dbcfd/tokio-tungstenite", branch = "tokio2" }
+tokio-tungstenite = { git = "https://github.com/dbcfd/tokio-tungstenite", rev = "77de2495c2f7b2f3c7c143f29d5c0bc3c8c58cb5", features = ["tls"] }
 url = "2"
 # The default backend for flate2; miniz-oxide, works differently
 # from the C-backed backend zlib, When you give it the sync argument
