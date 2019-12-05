@@ -83,7 +83,7 @@ mod tests {
         let activity = Activity {
             application_id: None,
             assets: None,
-            created_at: Some(1571048061237),
+            created_at: Some(1_571_048_061_237),
             details: None,
             flags: None,
             id: Some("aaaaaaaaaaaaaaaa".to_owned()),
@@ -166,7 +166,7 @@ mod tests {
                 Token::StructEnd,
                 Token::Str("created_at"),
                 Token::Some,
-                Token::U64(1571048061237),
+                Token::U64(1_571_048_061_237),
                 Token::StructEnd,
                 Token::Str("client_status"),
                 Token::Struct {
@@ -215,7 +215,7 @@ mod tests {
                 Token::Str("aaaaaaaaaaaaaaaa"),
                 Token::Str("created_at"),
                 Token::Some,
-                Token::U64(1571048061237),
+                Token::U64(1_571_048_061_237),
                 Token::StructEnd,
                 Token::SeqEnd,
                 Token::StructEnd,
