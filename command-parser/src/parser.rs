@@ -179,16 +179,16 @@ mod tests {
     #[test]
     fn test_unicode_command() {
         let mut parser = simple_config();
-        parser.config_mut().add_command("👎"); // thumbs down unicode
+        parser.config_mut().add_command("\u{1f44e}"); // thumbs down unicode
 
-        assert!(parser.parse("!👎").is_some());
+        assert!(parser.parse("!\u{1f44e}").is_some());
     }
 
     #[test]
     fn test_unicode_prefix() {
         let mut parser = simple_config();
-        parser.config_mut().add_prefix("👍"); // thumbs up unicode
+        parser.config_mut().add_prefix("\u{1f44d}"); // thumbs up unicode
 
-        assert!(parser.parse("👍echo foo").is_some());
+        assert!(parser.parse("\u{1f44d}echo foo").is_some());
     }
 }
