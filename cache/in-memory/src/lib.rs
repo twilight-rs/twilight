@@ -666,7 +666,7 @@ impl InMemoryCache {
     async fn cache_user(&self, user: User) -> Arc<User> {
         match self.0.users.lock().await.get(&user.id) {
             Some(u) if **u == user => return Arc::clone(&u),
-            Some(_) | None => { },
+            Some(_) | None => {},
         }
         let user = Arc::new(user);
         self.0.users.lock().await.insert(user.id, Arc::clone(&user));
