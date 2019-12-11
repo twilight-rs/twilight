@@ -35,7 +35,7 @@ impl SocketForwarder {
     }
 
     pub async fn run(mut self) {
-        const TIMEOUT: std::time::Duration = std::time::Duration::from_secs(30);
+        const TIMEOUT: std::time::Duration = std::time::Duration::from_secs(90);
         debug!("[SocketForwarder] Starting driving loop");
         loop {
             match future::select(self.rx.next(), timeout(TIMEOUT, self.stream.next())).await {
