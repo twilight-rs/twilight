@@ -414,33 +414,30 @@ impl InMemoryCache {
 
     async fn cache_emoji(&self, guild_id: GuildId, emoji: Emoji) -> Arc<CachedEmoji> {
         match self.0.emojis.lock().await.get(&emoji.id) {
-            Some(e) if *e.data == emoji => Arc::clone(&e.data),
-            Some(_) | None => {
-                let user = match emoji.user {
-                    Some(u) => Some(self.cache_user(u).await),
-                    None => None,
-                };
-
-                let cached = Arc::new(CachedEmoji {
-                    id: emoji.id,
-                    animated: emoji.animated,
-                    name: emoji.name,
-                    managed: emoji.managed,
-                    require_colons: emoji.require_colons,
-                    roles: emoji.roles,
-                    user,
-                });
-                self.0.emojis.lock().await.insert(
-                    cached.id,
-                    GuildItem {
-                        data: Arc::clone(&cached),
-                        guild_id,
-                    },
-                );
-
-                cached
-            },
+            Some(e) if *e.data == emoji => return Arc::clone(&e.data),
+            Some(_) | None => {},
         }
+        let user = match emoji.user {
+            Some(u) => Some(self.cache_user(u).await),
+            None => None,
+        };
+        let cached = Arc::new(CachedEmoji {
+            id: emoji.id,
+            animated: emoji.animated,
+            name: emoji.name,
+            managed: emoji.managed,
+            require_colons: emoji.require_colons,
+            roles: emoji.roles,
+            user,
+        });
+        self.0.emojis.lock().await.insert(
+            cached.id,
+            GuildItem {
+                data: Arc::clone(&cached),
+                guild_id,
+            },
+        );
+        cached
     }
 
     async fn cache_emojis(
@@ -508,7 +505,6 @@ impl InMemoryCache {
             .lock()
             .await
             .insert(guild.id, HashSet::new());
-
         let guild = CachedGuild {
             id: guild.id,
             afk_channel_id: guild.afk_channel_id,
@@ -552,28 +548,24 @@ impl InMemoryCache {
 
     async fn cache_member(&self, guild_id: GuildId, member: Member) -> Arc<CachedMember> {
         let id = (guild_id, member.user.id);
-
         match self.0.members.lock().await.get(&id) {
-            Some(m) if **m == member => Arc::clone(&m),
-            Some(_) | None => {
-                let user = self.cache_user(member.user).await;
-
-                let cached = Arc::new(CachedMember {
-                    deaf: member.deaf,
-                    guild_id,
-                    joined_at: member.joined_at,
-                    mute: member.mute,
-                    nick: member.nick,
-                    premium_since: member.premium_since,
-                    roles: member.roles,
-                    user,
-                });
-
-                self.0.members.lock().await.insert(id, Arc::clone(&cached));
-
-                cached
-            },
+            Some(m) if **m == member => return Arc::clone(&m),
+            Some(_) | None => {},
         }
+
+        let user = self.cache_user(member.user).await;
+        let cached = Arc::new(CachedMember {
+            deaf: member.deaf,
+            guild_id,
+            joined_at: member.joined_at,
+            mute: member.mute,
+            nick: member.nick,
+            premium_since: member.premium_since,
+            roles: member.roles,
+            user,
+        });
+        self.0.members.lock().await.insert(id, Arc::clone(&cached));
+        cached
     }
 
     async fn cache_members(
@@ -620,15 +612,14 @@ impl InMemoryCache {
         let k = (guild_id, presence_user_id(&presence));
 
         match self.0.presences.lock().await.get(&k) {
-            Some(p) if **p == presence => Arc::clone(&p),
-            Some(_) | None => {
-                let cached = Arc::new(CachedPresence::from(&presence));
-
-                self.0.presences.lock().await.insert(k, Arc::clone(&cached));
-
-                cached
-            },
+            Some(p) if **p == presence => return Arc::clone(&p),
+            Some(_) | None => {},
         }
+        let cached = Arc::new(CachedPresence::from(&presence));
+
+        self.0.presences.lock().await.insert(k, Arc::clone(&cached));
+
+        cached
     }
 
     async fn cache_private_channel(&self, private_channel: PrivateChannel) -> Arc<PrivateChannel> {
@@ -674,14 +665,13 @@ impl InMemoryCache {
 
     async fn cache_user(&self, user: User) -> Arc<User> {
         match self.0.users.lock().await.get(&user.id) {
-            Some(u) if **u == user => Arc::clone(&u),
-            Some(_) | None => {
-                let user = Arc::new(user);
-                self.0.users.lock().await.insert(user.id, Arc::clone(&user));
-
-                user
-            },
+            Some(u) if **u == user => return Arc::clone(&u),
+            Some(_) | None => { },
         }
+        let user = Arc::new(user);
+        self.0.users.lock().await.insert(user.id, Arc::clone(&user));
+
+        user
     }
 
     async fn cache_voice_states(
@@ -705,30 +695,29 @@ impl InMemoryCache {
         let k = (vs.channel_id.unwrap(), vs.user_id);
 
         match self.0.voice_states.lock().await.get(&k) {
-            Some(v) if **v == vs => Arc::clone(v),
-            Some(_) | None => {
-                let state = Arc::new(CachedVoiceState {
-                    channel_id: vs.channel_id,
-                    deaf: vs.deaf,
-                    guild_id: vs.guild_id,
-                    mute: vs.mute,
-                    self_deaf: vs.self_deaf,
-                    self_mute: vs.self_mute,
-                    self_stream: vs.self_stream,
-                    session_id: vs.session_id,
-                    suppress: vs.suppress,
-                    token: vs.token,
-                    user_id: vs.user_id,
-                });
-                self.0
-                    .voice_states
-                    .lock()
-                    .await
-                    .insert(k, Arc::clone(&state));
-
-                state
-            },
+            Some(v) if **v == vs => return Arc::clone(v),
+            Some(_) | None => {},
         }
+        let state = Arc::new(CachedVoiceState {
+            channel_id: vs.channel_id,
+            deaf: vs.deaf,
+            guild_id: vs.guild_id,
+            mute: vs.mute,
+            self_deaf: vs.self_deaf,
+            self_mute: vs.self_mute,
+            self_stream: vs.self_stream,
+            session_id: vs.session_id,
+            suppress: vs.suppress,
+            token: vs.token,
+            user_id: vs.user_id,
+        });
+        self.0
+            .voice_states
+            .lock()
+            .await
+            .insert(k, Arc::clone(&state));
+
+        state
     }
 
     async fn delete_group(&self, channel_id: ChannelId) -> Option<Arc<Group>> {
