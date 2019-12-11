@@ -21,7 +21,7 @@ dawn-model = { optional = true, path = "../model" }
 
 [dev-dependencies]
 futures = "0.3"
-tokio = "0.2.0-alpha.6"
+tokio = "0.2"
 
 [features]
 default = ["cache", "command-parser", "gateway", "http", "model"]

@@ -8,6 +8,6 @@ version = "0.0.1"
 [dependencies]
 dawn-http = { path = "../.." }
 dawn-model = { path = "../../../model" }
-futures-preview = "0.3.0-alpha.18"
+futures = "0.3"
 pretty_env_logger = "0.3"
-tokio = "0.2.0-alpha.4"
+tokio = "0.2"
