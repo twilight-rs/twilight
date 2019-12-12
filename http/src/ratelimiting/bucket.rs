@@ -15,7 +15,8 @@ use std::{
     },
     time::{Duration, Instant},
 };
-use tokio::future::FutureExt as _;
+use tokio::time::timeout;
+//use tokio::future::FutureExt as _;
 
 #[derive(Clone, Debug)]
 pub enum TimeRemaining {
@@ -123,10 +124,16 @@ impl BucketQueue {
         let _ = self.tx.unbounded_send(tx);
     }
 
-    pub async fn pop(&self, timeout: Duration) -> Option<Sender<Sender<Option<RatelimitHeaders>>>> {
+    pub async fn pop(
+        &self,
+        timeout_duration: Duration,
+    ) -> Option<Sender<Sender<Option<RatelimitHeaders>>>> {
         let mut rx = self.rx.lock().await;
 
-        match StreamExt::next(&mut *rx).timeout(timeout).await.ok() {
+        match timeout(timeout_duration, StreamExt::next(&mut *rx))
+            .await
+            .ok()
+        {
             Some(x) => x,
             None => None,
         }
@@ -186,7 +193,7 @@ impl BucketQueueTask {
             );
 
             // TODO: Find a better way of handling nested types.
-            match rx.timeout(Self::WAIT).await {
+            match timeout(Self::WAIT, rx).await {
                 Ok(Ok(Some(headers))) => self.handle_headers(&headers).await,
                 // - None was sent through the channel (request aborted)
                 // - channel was closed

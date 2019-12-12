@@ -60,7 +60,7 @@ impl Ratelimiter {
         let (bucket, fresh) = self.entry(path.clone(), tx).await;
 
         if fresh {
-            tokio_executor::spawn(
+            tokio::spawn(
                 BucketQueueTask::new(
                     bucket,
                     Arc::clone(&self.buckets),

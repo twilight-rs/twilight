@@ -19,7 +19,7 @@ use std::{
         Arc,
     },
 };
-use tokio_executor::{DefaultExecutor, Executor};
+//use tokio_executor::{DefaultExecutor, Executor};
 use tokio_tungstenite::tungstenite::Message as TungsteniteMessage;
 
 #[derive(Debug)]
@@ -130,7 +130,7 @@ impl Session {
         let heartbeater = Heartbeater::new(heartbeats, interval, seq, self.tx.clone()).run();
         let (fut, handle) = future::abortable(heartbeater);
 
-        tokio_executor::spawn(async {
+        tokio::spawn(async {
             let _ = fut.await;
         });
 
@@ -142,16 +142,12 @@ impl Session {
 
 impl Drop for Session {
     fn drop(&mut self) {
-        let mut executor = DefaultExecutor::current();
+        let handle = Arc::clone(&self.heartbeater_handle);
 
-        if executor.status().is_ok() {
-            let handle = Arc::clone(&self.heartbeater_handle);
-
-            let _ = executor.spawn(Box::pin(async move {
-                if let Some(handle) = handle.lock().await.take() {
-                    handle.abort();
-                }
-            }));
-        }
+        let _ = tokio::spawn(async move {
+            if let Some(handle) = handle.lock().await.take() {
+                handle.abort();
+            }
+        });
     }
 }

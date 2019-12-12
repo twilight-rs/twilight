@@ -22,9 +22,10 @@ use dawn_model::gateway::payload::{
 };
 use futures_channel::mpsc::UnboundedReceiver;
 use futures_util::stream::StreamExt;
-use log::{debug, trace, warn};
+#[allow(unused_imports)]
+use log::{debug, info, trace, warn};
 use serde::Serialize;
-use std::{env::consts::OS, mem, ops::Deref, sync::Arc};
+use std::{env::consts::OS, ops::Deref, sync::Arc};
 use tokio_tungstenite::tungstenite::Message;
 
 use std::error::Error as StdError;
@@ -38,6 +39,7 @@ pub struct ShardProcessor {
     pub rx: UnboundedReceiver<Message>,
     pub session: Arc<Session>,
     inflater: Inflater,
+    url: String,
 }
 
 impl ShardProcessor {
@@ -59,8 +61,8 @@ impl ShardProcessor {
         url.push_str("?v=6&compress=zlib-stream");
 
         let stream = connect::connect(&url).await?;
-        let (mut forwarder, rx, tx) = SocketForwarder::new(stream);
-        tokio_executor::spawn(async move {
+        let (forwarder, rx, tx) = SocketForwarder::new(stream);
+        tokio::spawn(async move {
             forwarder.run().await;
         });
 
@@ -71,6 +73,7 @@ impl ShardProcessor {
             rx,
             session: Arc::new(Session::new(tx)),
             inflater: Inflater::new(),
+            url,
         })
     }
 
@@ -154,13 +157,14 @@ impl ShardProcessor {
                     self.resume().await?;
                 }
 
-                if self.session.heartbeat().is_err() {
-                    warn!("Error sending heartbeat; reconnecting");
+                if let Err(err) = self.session.heartbeat() {
+                    warn!("Error sending heartbeat; reconnecting: {}", err);
 
                     self.reconnect().await;
                 }
             },
             Hello(interval) => {
+                debug!("[EVENT] Hello({})", interval);
                 self.session.set_stage(Stage::Identifying);
 
                 if *interval > 0 {
@@ -174,12 +178,15 @@ impl ShardProcessor {
                 self.session.heartbeats.receive().await;
             },
             InvalidateSession(true) => {
+                debug!("[EVENT] InvalidateSession(true)");
                 self.resume().await?;
             },
             InvalidateSession(false) => {
+                debug!("[EVENT] InvalidateSession(false)");
                 self.reconnect().await;
             },
             Reconnect => {
+                debug!("[EVENT] Reconnect");
                 self.reconnect().await;
             },
         }
@@ -188,23 +195,33 @@ impl ShardProcessor {
     }
 
     async fn reconnect(&mut self) {
+        warn!("[reconnect] Reconnection started!");
         loop {
             self.config.queue.request().await;
 
-            let shard = match Self::new(Arc::clone(&self.config.clone())).await {
-                Ok(shard) => shard,
+            let new_stream = match connect::connect(&self.url).await {
+                Ok(s) => s,
                 Err(why) => {
                     warn!("Error reconnecting: {:?}", why);
-
                     continue;
                 },
             };
 
-            mem::replace(self, shard);
+            let (new_forwarder, new_rx, new_tx) = SocketForwarder::new(new_stream);
+            tokio::spawn(async move {
+                new_forwarder.run().await;
+            });
+
+            self.rx = new_rx;
+            self.session = Arc::new(Session::new(new_tx));
+            self.inflater.reset();
+
+            break;
         }
     }
 
     async fn resume(&mut self) -> Result<()> {
+        warn!("[resume] Resume started!");
         self.session.set_stage(Stage::Resuming);
 
         let id = if let Some(id) = self.session.id().await {
@@ -255,8 +272,10 @@ impl ShardProcessor {
             let msg = if let Some(msg) = self.rx.next().await {
                 msg
             } else {
-                self.reconnect().await;
-
+                if let Err(why) = self.resume().await {
+                    warn!("Resume failed with {}, reconnecting", why);
+                    self.reconnect().await;
+                }
                 continue;
             };
 

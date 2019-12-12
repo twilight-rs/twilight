@@ -1,11 +1,12 @@
 use super::super::error::{Error, Result};
 use log::debug;
 use std::str::FromStr;
-use tokio_net::tcp::TcpStream;
-use tokio_tungstenite::{tungstenite::handshake::client::Request, MaybeTlsStream, WebSocketStream};
+use tokio_tungstenite::tungstenite::handshake::client::Request;
 use url::Url;
 
-pub async fn connect(url: &str) -> Result<WebSocketStream<MaybeTlsStream<TcpStream>>> {
+use super::super::ShardStream;
+
+pub async fn connect(url: &str) -> Result<ShardStream> {
     let url = Url::from_str(url).map_err(|source| Error::ParsingUrl {
         source,
         url: url.to_owned(),

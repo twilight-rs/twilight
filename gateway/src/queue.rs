@@ -1,28 +1,17 @@
 use async_trait::async_trait;
-use futures_channel::oneshot::{self, Sender};
-use futures_util::lock::Mutex;
-use log::warn;
-use std::{
-    collections::VecDeque,
-    fmt::Debug,
-    sync::{
-        atomic::{AtomicBool, Ordering},
-        Arc,
-        Weak,
-    },
-    time::Duration,
+use futures_channel::{
+    mpsc::{unbounded, UnboundedReceiver, UnboundedSender},
+    oneshot::{self, Sender},
 };
+use futures_util::{sink::SinkExt, stream::StreamExt};
+#[allow(unused_imports)]
+use log::{info, warn};
+use std::{fmt::Debug, time::Duration};
 
 #[async_trait]
 pub trait Queue: Debug + Send + Sync {
     async fn request(&self);
-    async fn is_running(&self) -> bool;
-}
-
-#[derive(Debug, Default)]
-struct LocalQueueRef {
-    requests: Arc<Mutex<VecDeque<Sender<()>>>>,
-    task_running: AtomicBool,
+    //async fn is_running(&self) -> bool;
 }
 
 /// A local, in-process implementation of a [`Queue`] which manages the
@@ -49,13 +38,36 @@ struct LocalQueueRef {
 /// [`Cluster`]: ../cluster/struct.Cluster.html
 /// [`Shard`]: ../shard/struct.Shard.html
 /// [`gateway-queue`]: https://github.com/dawn-rs/gateway-queue
-#[derive(Clone, Debug, Default)]
-pub struct LocalQueue(Arc<LocalQueueRef>);
+#[derive(Clone, Debug)]
+pub struct LocalQueue(UnboundedSender<Sender<()>>);
+
+impl Default for LocalQueue {
+    fn default() -> Self {
+        Self::new()
+    }
+}
 
 impl LocalQueue {
     /// Creates a new local queue.
     pub fn new() -> Self {
-        Self::default()
+        let (tx, rx) = unbounded();
+
+        tokio::spawn(async {
+            waiter(rx).await;
+        });
+
+        LocalQueue(tx)
+    }
+}
+
+async fn waiter(mut rx: UnboundedReceiver<Sender<()>>) {
+    const DUR: Duration = Duration::from_secs(6);
+    while let Some(req) = rx.next().await {
+        if let Err(err) = req.send(()) {
+            warn!("[LocalQueue/waiter] send failed with: {:?}, skipping", err);
+            continue;
+        }
+        tokio::time::delay_for(DUR).await;
     }
 }
 
@@ -67,35 +79,34 @@ impl Queue for LocalQueue {
     async fn request(&self) {
         let (tx, rx) = oneshot::channel();
 
-        self.0.requests.lock().await.push_back(tx);
-
-        if !self.is_running().await {
-            let inner = Arc::downgrade(&self.0);
-
-            tokio_executor::spawn(async {
-                queue_spawner(inner).await;
-            });
-
-            self.0.task_running.store(true, Ordering::Release);
+        if let Err(err) = self.0.clone().send(tx).await {
+            warn!("[LocalQueue] send failed with: {:?}, skipping", err);
+            return;
         }
+
+        warn!("Waiting for allowance!");
 
         let _ = rx.await;
     }
-
+    /*
     /// Whether the queue is actively going through requests.
     ///
     /// Once all requests have been completed, this will return `false`.
     async fn is_running(&self) -> bool {
         self.0.task_running.load(Ordering::Relaxed)
     }
+    */
 }
 
+/*
 async fn queue_spawner(queue: Weak<LocalQueueRef>) -> Option<()> {
     const DUR: Duration = Duration::from_secs(6);
 
     while let Some(req) = queue.upgrade()?.requests.lock().await.pop_front() {
         if let Err(()) = req.send(()) {
             warn!("Request rx dropped before success");
+        } else {
+            info!("Successfully sent allowance");
         }
 
         tokio_timer::delay_for(DUR).await;
@@ -110,3 +121,4 @@ async fn queue_spawner(queue: Weak<LocalQueueRef>) -> Option<()> {
 
     Some(())
 }
+*/

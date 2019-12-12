@@ -186,7 +186,7 @@ impl Heartbeater {
         let mut last = true;
 
         loop {
-            tokio_timer::delay_for(duration).await;
+            tokio::time::delay_for(duration).await;
 
             // Check if a heartbeat acknowledgement was received.
             //
