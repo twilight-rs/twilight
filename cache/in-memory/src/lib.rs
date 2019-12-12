@@ -390,13 +390,11 @@ impl InMemoryCache {
         guild_id: GuildId,
         guild_channels: impl IntoIterator<Item = GuildChannel>,
     ) -> HashSet<ChannelId> {
-        let pairs = future::join_all(guild_channels.into_iter().map(|channel| {
-            async {
-                let id = *guild_channel_id(&channel);
-                self.cache_guild_channel(guild_id, channel).await;
+        let pairs = future::join_all(guild_channels.into_iter().map(|channel| async {
+            let id = *guild_channel_id(&channel);
+            self.cache_guild_channel(guild_id, channel).await;
 
-                id
-            }
+            id
         }))
         .await;
 
@@ -446,13 +444,11 @@ impl InMemoryCache {
         guild_id: GuildId,
         emojis: impl IntoIterator<Item = Emoji>,
     ) -> HashSet<EmojiId> {
-        let pairs = future::join_all(emojis.into_iter().map(|emoji| {
-            async {
-                let id = emoji.id;
-                self.cache_emoji(guild_id, emoji).await;
+        let pairs = future::join_all(emojis.into_iter().map(|emoji| async {
+            let id = emoji.id;
+            self.cache_emoji(guild_id, emoji).await;
 
-                id
-            }
+            id
         }))
         .await;
 
@@ -574,13 +570,11 @@ impl InMemoryCache {
         guild_id: GuildId,
         members: impl IntoIterator<Item = Member>,
     ) -> HashSet<UserId> {
-        let ids = future::join_all(members.into_iter().map(|member| {
-            async {
-                let id = member.user.id;
-                self.cache_member(guild_id, member).await;
+        let ids = future::join_all(members.into_iter().map(|member| async {
+            let id = member.user.id;
+            self.cache_member(guild_id, member).await;
 
-                id
-            }
+            id
         }))
         .await;
 
@@ -592,13 +586,11 @@ impl InMemoryCache {
         guild_id: Option<GuildId>,
         presences: impl IntoIterator<Item = Presence>,
     ) -> HashSet<UserId> {
-        let ids = future::join_all(presences.into_iter().map(|presence| {
-            async {
-                let id = presence_user_id(&presence);
-                self.cache_presence(guild_id, presence).await;
+        let ids = future::join_all(presences.into_iter().map(|presence| async {
+            let id = presence_user_id(&presence);
+            self.cache_presence(guild_id, presence).await;
 
-                id
-            }
+            id
         }))
         .await;
 
@@ -646,14 +638,12 @@ impl InMemoryCache {
         guild_id: GuildId,
         roles: impl IntoIterator<Item = Role>,
     ) -> HashSet<RoleId> {
-        let ids = future::join_all(roles.into_iter().map(|role| {
-            async {
-                let id = role.id;
+        let ids = future::join_all(roles.into_iter().map(|role| async {
+            let id = role.id;
 
-                self.cache_role(guild_id, role).await;
+            self.cache_role(guild_id, role).await;
 
-                id
-            }
+            id
         }))
         .await;
 
@@ -679,13 +669,11 @@ impl InMemoryCache {
         &self,
         voice_states: impl IntoIterator<Item = VoiceState>,
     ) -> HashSet<UserId> {
-        let ids = future::join_all(voice_states.into_iter().map(|vs| {
-            async {
-                let id = vs.user_id;
-                self.cache_voice_state(vs).await;
+        let ids = future::join_all(voice_states.into_iter().map(|vs| async {
+            let id = vs.user_id;
+            self.cache_voice_state(vs).await;
 
-                id
-            }
+            id
         }))
         .await;
 
