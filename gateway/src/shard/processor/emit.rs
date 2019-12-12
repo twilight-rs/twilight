@@ -19,12 +19,7 @@ pub async fn bytes(listeners: Listeners<Event>, bytes: &[u8]) {
 }
 
 pub fn event(listeners: Listeners<Event>, event: Event) {
-    // TODO: fix this so it spawns on the current executor.
-    // let mut executor = DefaultExecutor::current();
-
-    // if executor.status().is_ok() {
     tokio::spawn(Box::pin(_event(listeners, event)));
-    // }
 }
 
 async fn _event(listeners: Listeners<Event>, event: Event) {

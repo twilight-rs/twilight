@@ -142,17 +142,12 @@ impl Session {
 
 impl Drop for Session {
     fn drop(&mut self) {
-        // TODO: Fix this
-        // let mut executor = DefaultExecutor::current();
-
-        // if executor.status().is_ok() {
         let handle = Arc::clone(&self.heartbeater_handle);
 
-        let _ = tokio::spawn(Box::pin(async move {
+        let _ = tokio::spawn(async move {
             if let Some(handle) = handle.lock().await.take() {
                 handle.abort();
             }
-        }));
-        // }
+        });
     }
 }
