@@ -1,6 +1,7 @@
 use crate::{
     id::{ChannelId, GuildId, WebhookId},
     user::User,
+    channel::WebhookType,
 };
 
 #[cfg_attr(
@@ -10,10 +11,15 @@ use crate::{
 #[derive(Clone, Debug, Eq, Hash, PartialEq)]
 pub struct Webhook {
     pub id: WebhookId,
+    #[cfg_attr(
+        feature = "serde-support",
+        serde(default = "WebhookType::default", rename = "type")
+    )]
+    pub kind: WebhookType,
     pub avatar: Option<String>,
     pub channel_id: ChannelId,
     pub guild_id: Option<GuildId>,
     pub name: Option<String>,
-    pub token: String,
+    pub token: Option<String>,
     pub user: Option<User>,
 }

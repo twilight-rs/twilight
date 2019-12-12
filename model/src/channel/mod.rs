@@ -13,6 +13,7 @@ mod reaction_type;
 mod text_channel;
 mod voice_channel;
 mod webhook;
+mod webhook_type;
 
 pub use self::{
     attachment::Attachment,
@@ -27,6 +28,7 @@ pub use self::{
     text_channel::TextChannel,
     voice_channel::VoiceChannel,
     webhook::Webhook,
+    webhook_type::WebhookType,
 };
 
 #[cfg_attr(
