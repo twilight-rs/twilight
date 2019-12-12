@@ -1,7 +1,7 @@
 use crate::{
+    channel::WebhookType,
     id::{ChannelId, GuildId, WebhookId},
     user::User,
-    channel::WebhookType,
 };
 
 #[cfg_attr(

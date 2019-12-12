@@ -8,6 +8,8 @@ use dawn_model::{
     id::GuildId,
 };
 use futures_util::lock::Mutex;
+#[allow(unused_imports)]
+use log::debug;
 use std::{
     collections::{HashMap, HashSet},
     hash::Hash,
