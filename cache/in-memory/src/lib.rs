@@ -1,6 +1,7 @@
 pub mod config;
 pub mod model;
 
+mod shard;
 mod updates;
 
 use self::model::*;

@@ -10,6 +10,8 @@ bitflags = "1"
 futures-util = "0.3"
 dawn-cache-trait = { path = "../trait" }
 dawn-model = { default-features = false, path = "../../model" }
+dawn-gateway = { path = "../../gateway"}
+log = "0.4"
 
 [dev-dependencies]
 static_assertions = "1"

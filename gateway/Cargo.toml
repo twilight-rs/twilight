@@ -15,7 +15,6 @@ version = "0.1.0"
 [dependencies]
 async-trait = "0.1"
 bitflags = "1"
-dawn-cache-trait = { optional = true, path = "../cache/trait" }
 dawn-http = { path = "../http" }
 dawn-model = { path = "../model" }
 futures-channel = "0.3"
@@ -40,4 +39,3 @@ tokio = "0.2"
 
 [features]
 default = []
-cache = ["dawn-cache-trait"]
