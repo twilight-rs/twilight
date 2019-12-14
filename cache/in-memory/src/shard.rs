@@ -280,6 +280,7 @@ impl UpdateCache<InMemoryCache, InMemoryCacheError> for Box<VoiceStateUpdate> {
 
 #[async_trait]
 impl UpdateCache<InMemoryCache, InMemoryCacheError> for Event {
+    #[allow(clippy::cognitive_complexity)]
     async fn update(&self, c: &InMemoryCache) -> Result<(), InMemoryCacheError> {
         use dawn_gateway::shard::event::Event::*;
 
