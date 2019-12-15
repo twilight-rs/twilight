@@ -1,5 +1,10 @@
 use crate::id::EmojiId;
 
+// HACK: Hack needed until this is supported: https://github.com/serde-rs/serde/issues/368
+fn false_default() -> bool {
+    false
+}
+
 #[cfg_attr(
     feature = "serde-support",
     derive(serde::Deserialize, serde::Serialize)
@@ -8,24 +13,33 @@ use crate::id::EmojiId;
 #[derive(Clone, Debug, Eq, Hash, PartialEq)]
 pub enum ReactionType {
     Custom {
+        #[serde(default = "false_default")]
         animated: bool,
-        // Although counter-intuitive, these *CAN* be not-present.
-        id: Option<EmojiId>,
+        // Even though it says that the id can be nil in the docs,
+        // it is a bit misleading as that should only happen when
+        // the reaction is a unicode emoji and then it is caught by
+        // the other variant.
+        id: EmojiId,
+        // Name is nil if the emoji data is no longer avaiable, for
+        // example if the emoji have been deleted off the guild.
         name: Option<String>,
     },
-    Unicode(String),
+    Unicode {
+        name: String,
+    },
 }
 
 #[cfg(test)]
 mod tests {
     use super::ReactionType;
+    use crate::id::EmojiId;
     use serde_test::Token;
 
     #[test]
-    fn test_custom_null_id() {
+    fn test_custom() {
         let kind = ReactionType::Custom {
             animated: false,
-            id: None,
+            id: EmojiId(1337),
             name: Some("foo".to_owned()),
         };
 
@@ -39,10 +53,32 @@ mod tests {
                 Token::Str("animated"),
                 Token::Bool(false),
                 Token::Str("id"),
-                Token::None,
+                Token::Str("1337"),
                 Token::Str("name"),
                 Token::Some,
                 Token::Str("foo"),
+                Token::StructEnd,
+            ],
+        );
+    }
+
+    #[test]
+    fn test_unicode() {
+        let kind = ReactionType::Unicode {
+            name: "🙃".to_owned(),
+        };
+
+        serde_test::assert_de_tokens(
+            &kind,
+            &[
+                Token::Struct {
+                    name: "ReactionType",
+                    len: 2,
+                },
+                Token::Str("id"),
+                Token::None,
+                Token::Str("name"),
+                Token::Str("🙃"),
                 Token::StructEnd,
             ],
         );
