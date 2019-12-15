@@ -524,6 +524,32 @@ impl UpdateCache<InMemoryCache, InMemoryCacheError> for ReactionRemove {
             return Ok(());
         }
 
+        let mut channels = cache.0.messages.lock().await;
+        let channel = channels.entry(self.0.channel_id).or_default();
+
+        let mut message = match channel.get_mut(&self.0.message_id) {
+            Some(message) => message,
+            None => return Ok(()),
+        };
+
+        let msg = Arc::make_mut(&mut message);
+
+        if let Some(reaction) = msg.reactions.iter_mut().find(|r| r.emoji == self.0.emoji) {
+            if reaction.me {
+                if let Some(current_user) = cache.current_user().await? {
+                    if current_user.id == self.0.user_id {
+                        reaction.me = false;
+                    }
+                }
+            }
+
+            if reaction.count > 1 {
+                reaction.count -= 1;
+            } else {
+                msg.reactions.retain(|e| !(e.emoji == self.0.emoji.clone()));
+            }
+        }
+
         Ok(())
     }
 }
@@ -534,6 +560,18 @@ impl UpdateCache<InMemoryCache, InMemoryCacheError> for ReactionRemoveAll {
         if !guard(cache, EventType::REACTION_REMOVE_ALL) {
             return Ok(());
         }
+
+        let mut channels = cache.0.messages.lock().await;
+        let channel = channels.entry(self.channel_id).or_default();
+
+        let mut message = match channel.get_mut(&self.message_id) {
+            Some(message) => message,
+            None => return Ok(()),
+        };
+
+        let msg = Arc::make_mut(&mut message);
+
+        msg.reactions.clear();
 
         Ok(())
     }
