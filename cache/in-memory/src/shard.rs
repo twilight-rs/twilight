@@ -19,7 +19,6 @@ fn guard(this: &InMemoryCache, event_type: EventType) -> bool {
 #[async_trait]
 impl UpdateCache<InMemoryCache, InMemoryCacheError> for Box<GuildCreate> {
     async fn update(&self, cache: &InMemoryCache) -> Result<(), InMemoryCacheError> {
-        debug!("Caching New Guild");
         if !guard(cache, EventType::GUILD_CREATE) {
             return Ok(());
         }
