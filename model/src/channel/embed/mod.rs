@@ -24,7 +24,7 @@ pub use self::{
 pub struct Embed {
     pub author: Option<EmbedAuthor>,
     #[cfg_attr(feature = "serde-support", serde(default))]
-    pub color: u32,
+    pub color: Option<u32>,
     pub description: Option<String>,
     #[cfg_attr(feature = "serde-support", serde(default))]
     pub fields: Vec<EmbedField>,

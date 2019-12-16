@@ -4,7 +4,7 @@
 )]
 #[derive(Clone, Debug, Eq, Hash, PartialEq)]
 pub struct EmbedVideo {
-    pub height: u64,
-    pub url: String,
-    pub width: u64,
+    pub height: Option<u64>,
+    pub url: Option<String>,
+    pub width: Option<u64>,
 }
