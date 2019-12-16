@@ -5,7 +5,7 @@
 #[derive(Clone, Debug, Eq, Hash, PartialEq)]
 pub struct EmbedAuthor {
     pub icon_url: Option<String>,
-    pub name: String,
+    pub name: Option<String>,
     pub proxy_icon_url: Option<String>,
     pub url: Option<String>,
 }

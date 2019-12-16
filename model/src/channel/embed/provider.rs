@@ -4,6 +4,6 @@
 )]
 #[derive(Clone, Debug, Eq, Hash, PartialEq)]
 pub struct EmbedProvider {
-    pub name: String,
+    pub name: Option<String>,
     pub url: Option<String>,
 }

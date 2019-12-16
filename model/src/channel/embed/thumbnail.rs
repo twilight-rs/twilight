@@ -4,8 +4,8 @@
 )]
 #[derive(Clone, Debug, Eq, Hash, PartialEq)]
 pub struct EmbedThumbnail {
-    pub height: u64,
-    pub proxy_url: String,
-    pub url: String,
-    pub width: u64,
+    pub height: Option<u64>,
+    pub proxy_url: Option<String>,
+    pub url: Option<String>,
+    pub width: Option<u64>,
 }
