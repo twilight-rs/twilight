@@ -1,11 +1,13 @@
 use super::{headers::RatelimitHeaders, GlobalLockPair};
 use crate::routing::Path;
-use futures_channel::{
-    mpsc::{self, UnboundedReceiver, UnboundedSender},
-    oneshot::{self, Sender},
+use futures::{
+    channel::{
+        mpsc::{self, UnboundedReceiver, UnboundedSender},
+        oneshot::{self, Sender},
+    },
+    lock::Mutex,
+    stream::StreamExt,
 };
-use futures_timer::Delay;
-use futures_util::{lock::Mutex, stream::StreamExt};
 use log::debug;
 use std::{
     collections::HashMap,
@@ -15,7 +17,7 @@ use std::{
     },
     time::{Duration, Instant},
 };
-use tokio::time::timeout;
+use tokio::time::{delay_for, timeout};
 //use tokio::future::FutureExt as _;
 
 #[derive(Clone, Debug)]
@@ -242,7 +244,7 @@ impl BucketQueueTask {
         debug!("[Bucket {:?}] Request got global ratelimited", self.path,);
         self.global.lock();
         let lock = self.global.0.lock().await;
-        Delay::new(Duration::from_millis(wait)).await;
+        delay_for(Duration::from_millis(wait)).await;
         self.global.unlock();
 
         drop(lock);
@@ -280,7 +282,7 @@ impl BucketQueueTask {
             self.path, wait,
         );
 
-        Delay::new(wait).await;
+        delay_for(wait).await;
 
         debug!(
             "[Bucket {:?}] Done waiting for ratelimit to pass",

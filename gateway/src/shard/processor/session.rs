@@ -6,8 +6,8 @@ use super::{
     heartbeat::{Heartbeater, Heartbeats},
 };
 use dawn_model::gateway::payload::Heartbeat;
-use futures_channel::mpsc::UnboundedSender;
-use futures_util::{
+use futures::{
+    channel::mpsc::UnboundedSender,
     future::{self, AbortHandle},
     lock::Mutex,
 };

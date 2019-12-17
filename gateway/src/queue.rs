@@ -1,9 +1,12 @@
 use async_trait::async_trait;
-use futures_channel::{
-    mpsc::{unbounded, UnboundedReceiver, UnboundedSender},
-    oneshot::{self, Sender},
+use futures::{
+    channel::{
+        mpsc::{unbounded, UnboundedReceiver, UnboundedSender},
+        oneshot::{self, Sender},
+    },
+    sink::SinkExt,
+    stream::StreamExt,
 };
-use futures_util::{sink::SinkExt, stream::StreamExt};
 #[allow(unused_imports)]
 use log::{info, warn};
 use std::{fmt::Debug, time::Duration};

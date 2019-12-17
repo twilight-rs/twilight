@@ -2,7 +2,7 @@
 
 use dawn_http::Error as HttpError;
 use flate2::DecompressError;
-use futures_channel::mpsc::TrySendError;
+use futures::channel::mpsc::TrySendError;
 use serde_json::Error as JsonError;
 use std::{
     error::Error as StdError,

@@ -7,7 +7,7 @@ use super::{
     stage::Stage,
 };
 use crate::listener::Listeners;
-use futures_util::future::{self, AbortHandle};
+use futures::future::{self, AbortHandle};
 use log::debug;
 use std::sync::Arc;
 use tokio_tungstenite::tungstenite::Message;

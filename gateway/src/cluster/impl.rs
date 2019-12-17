@@ -7,7 +7,7 @@ use crate::{
     queue::{LocalQueue, Queue},
     shard::{event::EventType, Config as ShardConfig, Information, Shard},
 };
-use futures_util::{future, lock::Mutex};
+use futures::{future, lock::Mutex};
 use std::{
     collections::HashMap,
     sync::{Arc, Weak},

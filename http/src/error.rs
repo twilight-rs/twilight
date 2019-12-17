@@ -1,5 +1,5 @@
 use crate::ratelimiting::RatelimitError;
-use futures_channel::oneshot::Canceled;
+use futures::channel::oneshot::Canceled;
 use reqwest::{header::InvalidHeaderValue, Error as ReqwestError, Response as ReqwestResponse};
 use serde_json::Error as JsonError;
 use std::{

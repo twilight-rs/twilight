@@ -7,7 +7,7 @@ use dawn_model::{
     guild::GuildStatus,
     id::GuildId,
 };
-use futures_util::lock::Mutex;
+use futures::lock::Mutex;
 #[allow(unused_imports)]
 use log::debug;
 use std::{

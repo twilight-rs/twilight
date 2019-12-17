@@ -15,7 +15,7 @@ use dawn_model::{
     user::{CurrentUser, User},
     voice::VoiceState,
 };
-use futures_util::{future, lock::Mutex};
+use futures::{future, lock::Mutex};
 use std::{
     collections::{
         hash_map::{Entry, HashMap},

@@ -20,8 +20,7 @@ use dawn_model::gateway::payload::{
     identify::{Identify, IdentifyInfo, IdentifyProperties},
     resume::Resume,
 };
-use futures_channel::mpsc::UnboundedReceiver;
-use futures_util::stream::StreamExt;
+use futures::{channel::mpsc::UnboundedReceiver, stream::StreamExt};
 #[allow(unused_imports)]
 use log::{debug, info, trace, warn};
 use serde::Serialize;
