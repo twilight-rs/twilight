@@ -35,6 +35,10 @@ impl ClientBuilder {
         Self::default()
     }
 
+    /// Build the Client
+    ///
+    /// # Errors
+    /// Errors if `reqwest` fails to build the client.
     pub fn build(self) -> Result<Client> {
         let config = self.0.build();
 
