@@ -10,8 +10,10 @@ pub use self::{
 
 use self::bucket::{Bucket, BucketQueueTask};
 use crate::routing::Path;
-use futures::channel::oneshot::{self, Receiver, Sender};
-use futures::lock::Mutex;
+use futures::{
+    channel::oneshot::{self, Receiver, Sender},
+    lock::Mutex,
+};
 use log::debug;
 use std::{
     collections::hash_map::{Entry, HashMap},

@@ -1,10 +1,13 @@
 use super::{headers::RatelimitHeaders, GlobalLockPair};
 use crate::routing::Path;
-use futures::channel::{
-    mpsc::{self, UnboundedReceiver, UnboundedSender},
-    oneshot::{self, Sender},
+use futures::{
+    channel::{
+        mpsc::{self, UnboundedReceiver, UnboundedSender},
+        oneshot::{self, Sender},
+    },
+    lock::Mutex,
+    stream::StreamExt,
 };
-use futures::{lock::Mutex, stream::StreamExt};
 use log::debug;
 use std::{
     collections::HashMap,

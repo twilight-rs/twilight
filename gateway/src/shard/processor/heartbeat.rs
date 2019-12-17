@@ -1,7 +1,6 @@
 use super::super::error::{Error, Result};
 use dawn_model::gateway::payload::Heartbeat;
-use futures::channel::mpsc::UnboundedSender;
-use futures::lock::Mutex;
+use futures::{channel::mpsc::UnboundedSender, lock::Mutex};
 use log::{debug, error, warn};
 use std::{
     collections::VecDeque,

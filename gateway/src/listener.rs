@@ -1,6 +1,8 @@
 use crate::shard::EventType;
-use futures::channel::mpsc::{self, UnboundedReceiver, UnboundedSender};
-use futures::lock::Mutex;
+use futures::{
+    channel::mpsc::{self, UnboundedReceiver, UnboundedSender},
+    lock::Mutex,
+};
 use std::{
     collections::HashMap,
     sync::{

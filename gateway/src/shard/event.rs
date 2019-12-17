@@ -15,8 +15,10 @@
 use crate::event::{DispatchEvent, GatewayEvent};
 use bitflags::bitflags;
 use dawn_model::gateway::payload::*;
-use futures::channel::mpsc::UnboundedReceiver;
-use futures::stream::{Stream, StreamExt};
+use futures::{
+    channel::mpsc::UnboundedReceiver,
+    stream::{Stream, StreamExt},
+};
 use std::{
     pin::Pin,
     task::{Context, Poll},

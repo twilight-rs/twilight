@@ -1,6 +1,6 @@
 use super::super::ShardStream;
-use futures::channel::mpsc::{self, UnboundedReceiver, UnboundedSender};
 use futures::{
+    channel::mpsc::{self, UnboundedReceiver, UnboundedSender},
     future::{self, Either},
     sink::SinkExt,
     stream::StreamExt,

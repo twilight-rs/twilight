@@ -1,6 +1,5 @@
 use crate::shard::Event;
-use futures::channel::mpsc::UnboundedReceiver;
-use futures::stream::Stream;
+use futures::{channel::mpsc::UnboundedReceiver, stream::Stream};
 use std::{
     pin::Pin,
     task::{Context, Poll},
