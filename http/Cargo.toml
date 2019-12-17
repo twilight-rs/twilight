@@ -13,9 +13,7 @@ repository = "https://github.com/dawn-rs/dawn.git"
 version = "0.1.0"
 
 [dependencies]
-futures-channel = "0.3"
-futures-util = "0.3"
-futures-timer = "2"
+futures = "0.3"
 dawn-model = { path = "../model" }
 log = "0.4"
 reqwest = { default-features = false, features = ["default-tls"], git = "https://github.com/seanmonstar/reqwest.git" }

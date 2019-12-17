@@ -3,7 +3,7 @@ use async_trait::async_trait;
 use dawn_cache_trait::UpdateCache;
 use dawn_gateway::shard::event::Event;
 use dawn_model::{gateway::payload::*, guild::GuildStatus, id::GuildId};
-use futures_util::lock::Mutex;
+use futures::lock::Mutex;
 #[allow(unused_imports)]
 use log::debug;
 use std::{

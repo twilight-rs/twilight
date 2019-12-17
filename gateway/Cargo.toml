@@ -17,8 +17,7 @@ async-trait = "0.1"
 bitflags = "1"
 dawn-http = { path = "../http" }
 dawn-model = { path = "../model" }
-futures-channel = "0.3"
-futures-util = "0.3"
+futures = "0.3"
 log = "0.4"
 serde = { features = ["derive"], version = "1" }
 serde_json = "1"

@@ -1,6 +1,6 @@
 use crate::request::prelude::*;
 use dawn_model::id::GuildId;
-use futures_util::TryFutureExt;
+use futures::TryFutureExt;
 use serde::Deserialize;
 
 #[derive(Deserialize)]
