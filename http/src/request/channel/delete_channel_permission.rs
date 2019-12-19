@@ -19,7 +19,7 @@ impl<'a> DeleteChannelPermission<'a> {
     }
 
     fn start(&mut self) -> Result<()> {
-        self.fut.replace(Box::pin(self.http.request(Request::from(
+        self.fut.replace(Box::pin(self.http.verify(Request::from(
             Route::DeletePermissionOverwrite {
                 channel_id: self.channel_id.0,
                 target_id: self.target_id,
