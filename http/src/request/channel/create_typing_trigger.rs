@@ -3,7 +3,7 @@ use dawn_model::id::ChannelId;
 
 pub struct CreateTypingTrigger<'a> {
     channel_id: ChannelId,
-    fut: Option<Pending<'a, Option<()>>>,
+    fut: Option<Pending<'a, ()>>,
     http: &'a Client,
 }
 
@@ -27,4 +27,4 @@ impl<'a> CreateTypingTrigger<'a> {
     }
 }
 
-poll_req!(CreateTypingTrigger<'_>, Option<()>);
+poll_req!(CreateTypingTrigger<'_>, ());
