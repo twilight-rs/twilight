@@ -676,7 +676,11 @@ impl Client {
         let mut builder = self.state.http.request(method.clone(), &url);
 
         if let Some(bytes) = body {
+            let len = bytes.len();
             builder = builder.body(Body::from(bytes));
+            builder = builder.header("content-length", len);
+        } else {
+            builder = builder.header("content-length", 0);
         }
 
         if let Some(ref token) = self.state.token {
@@ -752,7 +756,7 @@ impl Client {
     }
 
     pub async fn verify(&self, request: Request) -> Result<()> {
-        self.raw(request).await?;
+        self.make_request(request).await?;
 
         Ok(())
     }
