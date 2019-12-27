@@ -92,7 +92,7 @@ bitflags! {
         const USER_UPDATE = 1 << 41;
         const VOICE_SERVER_UPDATE = 1 << 42;
         const VOICE_STATE_UPDATE = 1 << 43;
-        const WEBHOOK_UPDATE = 1 << 44;
+        const WEBHOOKS_UPDATE = 1 << 44;
     }
 }
 
@@ -329,7 +329,7 @@ pub enum Event {
     /// A voice state in a voice channel was updated.
     VoiceStateUpdate(Box<VoiceStateUpdate>),
     /// A webhook was updated.
-    WebhookUpdate(WebhookUpdate),
+    WebhooksUpdate(WebhooksUpdate),
 }
 
 impl Event {
@@ -391,7 +391,7 @@ impl Event {
             Self::UserUpdate(_) => EventType::USER_UPDATE,
             Self::VoiceServerUpdate(_) => EventType::VOICE_SERVER_UPDATE,
             Self::VoiceStateUpdate(_) => EventType::VOICE_STATE_UPDATE,
-            Self::WebhookUpdate(_) => EventType::WEBHOOK_UPDATE,
+            Self::WebhooksUpdate(_) => EventType::WEBHOOKS_UPDATE,
         }
     }
 }
@@ -433,7 +433,7 @@ impl From<Box<DispatchEvent>> for Event {
             DispatchEvent::UserUpdate(v) => Self::UserUpdate(v),
             DispatchEvent::VoiceServerUpdate(v) => Self::VoiceServerUpdate(v),
             DispatchEvent::VoiceStateUpdate(v) => Self::VoiceStateUpdate(v),
-            DispatchEvent::WebhookUpdate(v) => Self::WebhookUpdate(v),
+            DispatchEvent::WebhooksUpdate(v) => Self::WebhooksUpdate(v),
         }
     }
 }

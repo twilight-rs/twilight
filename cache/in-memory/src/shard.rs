@@ -330,7 +330,7 @@ impl UpdateCache<InMemoryCache, InMemoryCacheError> for Event {
             UserUpdate(v) => c.update(v).await,
             VoiceServerUpdate(v) => c.update(v).await,
             VoiceStateUpdate(v) => c.update(v).await,
-            WebhookUpdate(v) => c.update(v).await,
+            WebhooksUpdate(v) => c.update(v).await,
         }
     }
 }

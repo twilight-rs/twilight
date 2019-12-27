@@ -37,7 +37,7 @@ mod update_voice_state;
 mod user_update;
 mod voice_server_update;
 mod voice_state_update;
-mod webhook_update;
+mod webhooks_update;
 
 pub use self::{
     ban_add::BanAdd,
@@ -76,5 +76,5 @@ pub use self::{
     user_update::UserUpdate,
     voice_server_update::VoiceServerUpdate,
     voice_state_update::VoiceStateUpdate,
-    webhook_update::WebhookUpdate,
+    webhooks_update::WebhooksUpdate,
 };

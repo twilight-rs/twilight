@@ -5,7 +5,7 @@ use crate::id::{ChannelId, GuildId};
     derive(serde::Deserialize, serde::Serialize)
 )]
 #[derive(Clone, Debug, Eq, Hash, PartialEq)]
-pub struct WebhookUpdate {
+pub struct WebhooksUpdate {
     pub channel_id: ChannelId,
     pub guild_id: GuildId,
 }

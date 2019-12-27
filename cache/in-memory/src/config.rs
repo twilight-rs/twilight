@@ -34,7 +34,7 @@ bitflags! {
         const USER_UPDATE = 1 << 29;
         const VOICE_SERVER_UPDATE = 1 << 30;
         const VOICE_STATE_UPDATE = 1 << 31;
-        const WEBHOOK_UPDATE = 1 << 32;
+        const WEBHOOKS_UPDATE = 1 << 32;
     }
 }
 
@@ -159,7 +159,7 @@ mod tests {
         assert_eq!(1 << 29, EventType::USER_UPDATE.bits());
         assert_eq!(1 << 30, EventType::VOICE_SERVER_UPDATE.bits());
         assert_eq!(1 << 31, EventType::VOICE_STATE_UPDATE.bits());
-        assert_eq!(1 << 32, EventType::WEBHOOK_UPDATE.bits());
+        assert_eq!(1 << 32, EventType::WEBHOOKS_UPDATE.bits());
     }
 
     #[test]
