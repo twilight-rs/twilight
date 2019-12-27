@@ -289,11 +289,17 @@ impl ShardProcessor {
                         Some(json) => {
                             emit::bytes(self.listeners.clone(), json).await;
 
-                            serde_json::from_slice(json).map_err(|source| {
+                            match serde_json::from_slice(json).map_err(|source| {
                                 Error::PayloadSerialization {
                                     source,
                                 }
-                            })
+                            }) {
+                                Ok(ser) => Ok(ser),
+                                Err(err) => {
+                                    debug!("Broken JSON: {:?}", std::str::from_utf8(json));
+                                    Err(err)
+                                },
+                            }
                         },
                         None => continue,
                     };
@@ -306,11 +312,17 @@ impl ShardProcessor {
                     trace!("Text payload: {}", text);
                     emit::bytes(self.listeners.clone(), text.as_bytes()).await;
 
-                    break serde_json::from_str(&text).map_err(|source| {
+                    break match serde_json::from_str(&text).map_err(|source| {
                         Error::PayloadSerialization {
                             source,
                         }
-                    });
+                    }) {
+                        Ok(ser) => Ok(ser),
+                        Err(err) => {
+                            debug!("Broken JSON: {:?}", &text);
+                            Err(err)
+                        },
+                    };
                 },
             }
         }
