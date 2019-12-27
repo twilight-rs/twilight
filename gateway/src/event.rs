@@ -196,7 +196,7 @@ pub enum DispatchEvent {
     UserUpdate(UserUpdate),
     VoiceServerUpdate(VoiceServerUpdate),
     VoiceStateUpdate(Box<VoiceStateUpdate>),
-    WebhookUpdate(WebhookUpdate),
+    WebhooksUpdate(WebhooksUpdate),
 }
 
 impl TryFrom<(&str, Value)> for DispatchEvent {
@@ -243,7 +243,7 @@ impl TryFrom<(&str, Value)> for DispatchEvent {
             "VOICE_STATE_UPDATE" => {
                 Self::VoiceStateUpdate(Box::new(VoiceStateUpdate::deserialize(v)?))
             },
-            "WEBHOOK_UPDATE" => Self::WebhookUpdate(WebhookUpdate::deserialize(v)?),
+            "WEBHOOKS_UPDATE" => Self::WebhooksUpdate(WebhooksUpdate::deserialize(v)?),
             other => {
                 return Err(ValueDeserializerError::UnknownVariant(
                     other.to_owned(),

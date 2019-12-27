@@ -714,7 +714,7 @@ impl UpdateCache<InMemoryCache, InMemoryCacheError> for VoiceStateUpdate {
 }
 
 #[async_trait]
-impl UpdateCache<InMemoryCache, InMemoryCacheError> for WebhookUpdate {
+impl UpdateCache<InMemoryCache, InMemoryCacheError> for WebhooksUpdate {
     async fn update(&self, _: &InMemoryCache) -> Result<(), InMemoryCacheError> {
         Ok(())
     }
