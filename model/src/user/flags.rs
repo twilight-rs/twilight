@@ -11,6 +11,7 @@ bitflags! {
         const HOUSE_BALANCE = 1 << 8;
         const EARLY_SUPPORTER = 1 << 9;
         const TEAM_USER = 1 << 10;
+        const SYSTEM = 1 << 12;
     }
 }
 

@@ -29,6 +29,13 @@ pub struct User {
     pub discriminator: String,
     #[cfg_attr(feature = "serde-support", serde(rename = "username"))]
     pub name: String,
+    pub mfa_enabled: Option<bool>,
+    pub locale: Option<String>,
+    pub verified: Option<bool>,
+    pub email: Option<String>,
+    pub flags: Option<UserFlags>,
+    pub premium_type: Option<PremiumType>,
+    pub system: Option<bool>,
 }
 
 #[cfg(feature = "serde-support")]

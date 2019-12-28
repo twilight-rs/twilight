@@ -5,6 +5,8 @@ bitflags! {
         const CROSSPOSTED = 1;
         const IS_CROSSPOST = 1 << 1;
         const SUPPRESS_EMBEDS = 1 << 2;
+        const SOURCE_MESSAGE_DELETED = 1 << 3;
+        const URGENT = 1 << 4;
     }
 }
 
