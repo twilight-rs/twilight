@@ -17,6 +17,10 @@ pub struct MessageUpdate {
     pub content: Option<String>,
     pub edited_timestamp: Option<String>,
     pub embeds: Option<Vec<Embed>>,
+    #[cfg_attr(
+        feature = "serde-support",
+        serde(rename = "type")
+    )]
     pub kind: Option<MessageType>,
     pub mention_everyone: Option<bool>,
     pub mention_roles: Option<Vec<RoleId>>,

@@ -7,6 +7,7 @@ use crate::{
         PremiumTier,
         Role,
         VerificationLevel,
+        SystemChannelFlags,
     },
     id::{ApplicationId, ChannelId, EmojiId, GuildId, RoleId, UserId},
 };
@@ -25,7 +26,9 @@ pub struct PartialGuild {
     pub banner: Option<String>,
     pub default_message_notifications: DefaultMessageNotificationLevel,
     pub description: Option<String>,
+    pub discovery_splash: Option<String>,
     pub embed_channel_id: Option<ChannelId>,
+    #[cfg_attr(feature = "serde-support", serde(default))]
     pub embed_enabled: bool,
     #[cfg_attr(feature = "serde-support", serde(with = "serde_mappable_seq"))]
     pub emojis: HashMap<EmojiId, Emoji>,
@@ -49,8 +52,10 @@ pub struct PartialGuild {
     pub region: String,
     #[cfg_attr(feature = "serde-support", serde(with = "serde_mappable_seq"))]
     pub roles: HashMap<RoleId, Role>,
+    pub rules_channel_id: Option<ChannelId>,
     pub splash: Option<String>,
     pub system_channel_id: Option<ChannelId>,
+    pub system_channel_flags: SystemChannelFlags,
     pub verification_level: VerificationLevel,
     pub vanity_url_code: Option<String>,
     pub widget_channel_id: Option<ChannelId>,

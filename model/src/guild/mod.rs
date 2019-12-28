@@ -17,6 +17,7 @@ mod premium_tier;
 mod prune;
 mod role;
 mod status;
+mod system_channel_flags;
 mod unavailable_guild;
 mod verification_level;
 
@@ -38,6 +39,7 @@ pub use self::{
     prune::GuildPrune,
     role::Role,
     status::GuildStatus,
+    system_channel_flags::SystemChannelFlags,
     unavailable_guild::UnavailableGuild,
     verification_level::VerificationLevel,
 };
@@ -70,6 +72,7 @@ pub struct Guild {
     pub channels: HashMap<ChannelId, GuildChannel>,
     pub default_message_notifications: DefaultMessageNotificationLevel,
     pub description: Option<String>,
+    pub discovery_splash: Option<String>,
     pub embed_channel_id: Option<ChannelId>,
     pub embed_enabled: Option<bool>,
     #[cfg_attr(feature = "serde-support", serde(with = "serde_mappable_seq"))]
@@ -78,12 +81,14 @@ pub struct Guild {
     pub features: Vec<String>,
     pub icon: Option<String>,
     pub joined_at: String,
+    #[cfg_attr(feature = "serde-support", serde(default))]
     pub large: bool,
-    pub lazy: bool,
+    // Not documented so I marked it as optional.
+    pub lazy: Option<bool>,
     pub max_members: Option<u64>,
     #[cfg_attr(feature = "serde-support", serde(default = "default_max_presences"))]
     pub max_presences: u64,
-    pub member_count: u64,
+    pub member_count: Option<u64>,
     #[cfg_attr(feature = "serde-support", serde(with = "serde_mappable_seq"))]
     pub members: HashMap<UserId, Member>,
     pub mfa_level: MfaLevel,
@@ -102,6 +107,9 @@ pub struct Guild {
     pub roles: HashMap<RoleId, Role>,
     pub splash: Option<String>,
     pub system_channel_id: Option<ChannelId>,
+    pub system_channel_flags: SystemChannelFlags,
+    pub rules_channel_id: Option<ChannelId>,
+    #[cfg_attr(feature = "serde-support", serde(default))]
     pub unavailable: bool,
     pub verification_level: VerificationLevel,
     #[cfg_attr(feature = "serde-support", serde(with = "serde_mappable_seq"))]
