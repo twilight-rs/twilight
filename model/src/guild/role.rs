@@ -10,7 +10,6 @@ pub struct Role {
     pub color: u32,
     pub hoist: bool,
     pub managed: bool,
-    #[cfg_attr(feature = "serde-support", serde(default))]
     pub mentionable: bool,
     pub name: String,
     pub permissions: Permissions,
