@@ -254,7 +254,7 @@ pub enum Event {
     /// A user was removed from a guild.
     MemberRemove(MemberRemove),
     /// A user's member object in a guild was updated.
-    MemberUpdate(MemberUpdate),
+    MemberUpdate(Box<MemberUpdate>),
     /// A chunk of members were received from the gateway.
     MemberChunk(MemberChunk),
     /// A message was created in a channel.
@@ -319,7 +319,7 @@ pub enum Event {
     /// [`Stage::Resuming`]: ../stage/enum.Stage.html#variant.Resuming
     ShardResuming(Resuming),
     /// A user started typing in a channel.
-    TypingStart(TypingStart),
+    TypingStart(Box<TypingStart>),
     /// A guild is now unavailable.
     UnavailableGuild(UnavailableGuild),
     /// The current user was updated.

@@ -152,6 +152,29 @@ impl UpdateCache<InMemoryCache, InMemoryCacheError> for Box<MemberAdd> {
 }
 
 #[async_trait]
+impl UpdateCache<InMemoryCache, InMemoryCacheError> for Box<MemberUpdate> {
+    async fn update(&self, cache: &InMemoryCache) -> Result<(), InMemoryCacheError> {
+        if !guard(cache, EventType::MEMBER_UPDATE) {
+            return Ok(());
+        }
+
+        let mut members = cache.0.members.lock().await;
+
+        let mut member = match members.get_mut(&(self.guild_id, self.user.id)) {
+            Some(member) => member,
+            None => return Ok(()),
+        };
+        let mut member = Arc::make_mut(&mut member);
+
+        member.nick = self.nick.clone();
+        member.roles = self.roles.clone();
+
+        Ok(())
+    }
+}
+
+
+#[async_trait]
 impl UpdateCache<InMemoryCache, InMemoryCacheError> for Box<MessageCreate> {
     async fn update(&self, cache: &InMemoryCache) -> Result<(), InMemoryCacheError> {
         if !guard(cache, EventType::MESSAGE_CREATE) {
@@ -265,6 +288,14 @@ impl UpdateCache<InMemoryCache, InMemoryCacheError> for Box<Ready> {
         Ok(())
     }
 }
+
+#[async_trait]
+impl UpdateCache<InMemoryCache, InMemoryCacheError> for Box<TypingStart> {
+    async fn update(&self, _: &InMemoryCache) -> Result<(), InMemoryCacheError> {
+        Ok(())
+    }
+}
+
 
 #[async_trait]
 impl UpdateCache<InMemoryCache, InMemoryCacheError> for Box<VoiceStateUpdate> {

@@ -2,7 +2,7 @@ use bitflags::bitflags;
 
 bitflags! {
     pub struct SystemChannelFlags: u64 {
-        const SUPPRESS_JOIN_NOTIFICATIONS = 1 << 0;
+        const SUPPRESS_JOIN_NOTIFICATIONS = 1;
         const SUPPRESS_PREMIUM_SUBSCRIPTIONS = 1 << 1;
     }
 }
