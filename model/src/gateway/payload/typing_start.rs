@@ -1,5 +1,7 @@
-use crate::id::{ChannelId, UserId, GuildId};
-use crate::guild::Member;
+use crate::{
+    guild::Member,
+    id::{ChannelId, GuildId, UserId},
+};
 
 #[cfg_attr(
     feature = "serde-support",

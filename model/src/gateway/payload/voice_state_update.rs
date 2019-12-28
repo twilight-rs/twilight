@@ -128,7 +128,7 @@ mod tests {
                 Token::Str("0909"),
                 Token::Str("username"),
                 Token::Str("foo"),
-                                Token::Str("mfa_enabled"),
+                Token::Str("mfa_enabled"),
                 Token::None,
                 Token::Str("locale"),
                 Token::None,

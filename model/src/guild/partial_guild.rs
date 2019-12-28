@@ -6,8 +6,8 @@ use crate::{
         Permissions,
         PremiumTier,
         Role,
-        VerificationLevel,
         SystemChannelFlags,
+        VerificationLevel,
     },
     id::{ApplicationId, ChannelId, EmojiId, GuildId, RoleId, UserId},
 };

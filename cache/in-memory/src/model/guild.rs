@@ -5,8 +5,8 @@ use dawn_model::{
         MfaLevel,
         Permissions,
         PremiumTier,
-        VerificationLevel,
         SystemChannelFlags,
+        VerificationLevel,
     },
     id::{ApplicationId, ChannelId, GuildId, UserId},
 };

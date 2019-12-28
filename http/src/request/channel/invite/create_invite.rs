@@ -1,5 +1,8 @@
 use crate::request::prelude::*;
-use dawn_model::{id::{ChannelId, UserId}, invite::{Invite, TargetUserType}};
+use dawn_model::{
+    id::{ChannelId, UserId},
+    invite::{Invite, TargetUserType},
+};
 
 #[derive(Default, Serialize)]
 struct CreateInviteFields {

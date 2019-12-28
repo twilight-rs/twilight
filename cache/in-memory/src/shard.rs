@@ -173,7 +173,6 @@ impl UpdateCache<InMemoryCache, InMemoryCacheError> for Box<MemberUpdate> {
     }
 }
 
-
 #[async_trait]
 impl UpdateCache<InMemoryCache, InMemoryCacheError> for Box<MessageCreate> {
     async fn update(&self, cache: &InMemoryCache) -> Result<(), InMemoryCacheError> {
@@ -295,7 +294,6 @@ impl UpdateCache<InMemoryCache, InMemoryCacheError> for Box<TypingStart> {
         Ok(())
     }
 }
-
 
 #[async_trait]
 impl UpdateCache<InMemoryCache, InMemoryCacheError> for Box<VoiceStateUpdate> {
