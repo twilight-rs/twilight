@@ -150,7 +150,7 @@ impl UpdateCache<InMemoryCache, InMemoryCacheError> for GuildDelete {
             return Ok(());
         }
 
-        let id = self.guild.id;
+        let id = self.id;
 
         cache.0.guilds.lock().await.remove(&id);
 
