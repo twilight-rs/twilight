@@ -37,7 +37,7 @@ pub struct PartialGuild {
     pub max_members: Option<u64>,
     #[cfg_attr(
         feature = "serde-support",
-        serde(default = "super::default_max_presences")
+        serde(deserialize_with = "super::deserialize_max_presences")
     )]
     pub max_presences: u64,
     pub mfa_level: MfaLevel,

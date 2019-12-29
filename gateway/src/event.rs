@@ -253,3 +253,78 @@ impl TryFrom<(&str, Value)> for DispatchEvent {
         })
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_guild() {
+        let broken_guild = r#"{
+  "d": {
+    "afk_channel_id": "1337",
+    "afk_timeout": 300,
+    "application_id": null,
+    "banner": null,
+    "default_message_notifications": 0,
+    "description": null,
+    "discovery_splash": null,
+    "embed_channel_id": null,
+    "embed_enabled": false,
+    "emojis": [
+      {
+        "animated": false,
+        "available": true,
+        "id": "1338",
+        "managed": false,
+        "name": "goodboi",
+        "require_colons": true,
+        "roles": []
+      }
+    ],
+    "explicit_content_filter": 0,
+    "features": [
+      "INVITE_SPLASH",
+      "ANIMATED_ICON"
+    ],
+    "guild_id": "1339",
+    "icon": "foobar",
+    "id": "13310",
+    "max_members": 250000,
+    "max_presences": null,
+    "mfa_level": 0,
+    "name": "Crackshack 2020",
+    "owner_id": "13311",
+    "preferred_locale": "en-US",
+    "premium_subscription_count": 4,
+    "premium_tier": 1,
+    "region": "eu-central",
+    "roles": [
+      {
+        "color": 0,
+        "hoist": false,
+        "id": "13312",
+        "managed": false,
+        "mentionable": false,
+        "name": "@everyone",
+        "permissions": 104193601,
+        "position": 0
+      }
+    ],
+    "rules_channel_id": null,
+    "splash": "barbaz",
+    "system_channel_flags": 0,
+    "system_channel_id": "13313",
+    "vanity_url_code": null,
+    "verification_level": 0,
+    "widget_channel_id": null,
+    "widget_enabled": false
+  },
+  "op": 0,
+  "s": 42,
+  "t": "GUILD_UPDATE"
+}"#;
+
+        serde_json::from_str::<GatewayEvent>(broken_guild).unwrap();
+    }
+}
