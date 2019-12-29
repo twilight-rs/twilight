@@ -106,7 +106,7 @@ impl UpdateCache<InMemoryCache, InMemoryCacheError> for Box<GuildUpdate> {
         guild.features = g.features.clone();
         guild.icon = g.icon.clone();
         guild.max_members = g.max_members;
-        guild.max_presences = g.max_presences;
+        guild.max_presences = Some(g.max_presences.unwrap_or(5000));
         guild.mfa_level = g.mfa_level;
         guild.name = g.name.clone();
         guild.owner = g.owner;

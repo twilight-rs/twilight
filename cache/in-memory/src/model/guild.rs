@@ -30,7 +30,7 @@ pub struct CachedGuild {
     pub large: bool,
     pub lazy: Option<bool>,
     pub max_members: Option<u64>,
-    pub max_presences: u64,
+    pub max_presences: Option<u64>,
     pub member_count: Option<u64>,
     pub mfa_level: MfaLevel,
     pub name: String,
