@@ -95,10 +95,7 @@ pub struct Guild {
     // Not documented so I marked it as optional.
     pub lazy: Option<bool>,
     pub max_members: Option<u64>,
-    #[cfg_attr(
-        feature = "serde-support",
-        serde(default = "default_max_presences")
-    )]
+    #[cfg_attr(feature = "serde-support", serde(default = "default_max_presences"))]
     #[cfg_attr(
         feature = "serde-support",
         serde(deserialize_with = "deserialize_max_presences")
