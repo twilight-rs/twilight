@@ -53,6 +53,11 @@ use crate::{
 use std::collections::HashMap;
 
 #[cfg(feature = "serde-support")]
+pub(crate) fn default_max_presences() -> u64 {
+    5000
+}
+
+#[cfg(feature = "serde-support")]
 pub(crate) fn deserialize_max_presences<'de, D>(deserializer: D) -> Result<u64, D::Error>
 where
     D: serde::de::Deserializer<'de>,
@@ -90,6 +95,10 @@ pub struct Guild {
     // Not documented so I marked it as optional.
     pub lazy: Option<bool>,
     pub max_members: Option<u64>,
+    #[cfg_attr(
+        feature = "serde-support",
+        serde(default = "default_max_presences")
+    )]
     #[cfg_attr(
         feature = "serde-support",
         serde(deserialize_with = "deserialize_max_presences")
