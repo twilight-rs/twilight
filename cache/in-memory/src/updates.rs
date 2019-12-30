@@ -238,7 +238,7 @@ impl UpdateCache<InMemoryCache, InMemoryCacheError> for GuildUpdate {
         guild.premium_tier = g.premium_tier;
         guild
             .premium_subscription_count
-            .replace(g.premium_subscription_count);
+            .replace(g.premium_subscription_count.unwrap_or(0));
         guild.region = g.region.clone();
         guild.splash = g.splash.clone();
         guild.system_channel_id = g.system_channel_id;

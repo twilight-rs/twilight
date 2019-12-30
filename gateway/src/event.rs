@@ -293,7 +293,7 @@ mod tests {
     "max_members": 250000,
     "max_presences": null,
     "mfa_level": 0,
-    "name": "Crackshack 2020",
+    "name": "FooBaz",
     "owner_id": "13311",
     "preferred_locale": "en-US",
     "premium_subscription_count": 4,
@@ -327,4 +327,71 @@ mod tests {
 
         serde_json::from_str::<GatewayEvent>(broken_guild).unwrap();
     }
+
+        #[test]
+    fn test_guild_2() {
+        let broken_guild = r#"{
+  "d": {
+    "afk_channel_id": null,
+    "afk_timeout": 300,
+    "application_id": null,
+    "banner": null,
+    "default_message_notifications": 0,
+    "description": null,
+    "discovery_splash": null,
+    "embed_channel_id": null,
+    "embed_enabled": true,
+    "emojis": [
+      {
+        "animated": false,
+        "available": true,
+        "id": "42",
+        "managed": false,
+        "name": "emmet",
+        "require_colons": true,
+        "roles": []
+      }
+    ],
+    "explicit_content_filter": 2,
+    "features": [],
+    "guild_id": "43",
+    "icon": "44",
+    "id": "45",
+    "max_members": 250000,
+    "max_presences": null,
+    "mfa_level": 0,
+    "name": "FooBar",
+    "owner_id": "46",
+    "preferred_locale": "en-US",
+    "premium_subscription_count": null,
+    "premium_tier": 0,
+    "region": "us-central",
+    "roles": [
+      {
+        "color": 0,
+        "hoist": false,
+        "id": "47",
+        "managed": false,
+        "mentionable": false,
+        "name": "@everyone",
+        "permissions": 104324673,
+        "position": 0
+      }
+    ],
+    "rules_channel_id": null,
+    "splash": null,
+    "system_channel_flags": 0,
+    "system_channel_id": "48",
+    "vanity_url_code": null,
+    "verification_level": 4,
+    "widget_channel_id": null,
+    "widget_enabled": true
+  },
+  "op": 0,
+  "s": 1190911,
+  "t": "GUILD_UPDATE"
+}"#;
+        serde_json::from_str::<GatewayEvent>(broken_guild).unwrap();
+    }
+
 }
