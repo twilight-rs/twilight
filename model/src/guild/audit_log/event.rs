@@ -34,7 +34,7 @@ pub enum AuditLogEvent {
     EmojiUpdate = 61,
     EmojiDelete = 62,
     MessageDelete = 72,
-    MessageBlukDelete = 73,
+    MessageBulkDelete = 73,
     MessagePin = 74,
     MessageUnpin = 75,
     IntegrationCreate = 80,

@@ -2,7 +2,12 @@ use super::{config::EventType, InMemoryCache, InMemoryCacheError};
 use async_trait::async_trait;
 use dawn_cache_trait::UpdateCache;
 use dawn_gateway::shard::event::Event;
-use dawn_model::{gateway::payload::*, guild::GuildStatus, id::GuildId};
+use dawn_model::{
+    channel::message::MessageReaction,
+    gateway::payload::*,
+    guild::GuildStatus,
+    id::GuildId,
+};
 use futures::lock::Mutex;
 #[allow(unused_imports)]
 use log::debug;
@@ -50,7 +55,7 @@ impl UpdateCache<InMemoryCache, InMemoryCacheError> for Box<GuildDelete> {
             return Ok(());
         }
 
-        let id = self.guild.id;
+        let id = self.id;
 
         cache.0.guilds.lock().await.remove(&id);
 
@@ -106,7 +111,7 @@ impl UpdateCache<InMemoryCache, InMemoryCacheError> for Box<GuildUpdate> {
         guild.features = g.features.clone();
         guild.icon = g.icon.clone();
         guild.max_members = g.max_members;
-        guild.max_presences = g.max_presences;
+        guild.max_presences = Some(g.max_presences.unwrap_or(5000));
         guild.mfa_level = g.mfa_level;
         guild.name = g.name.clone();
         guild.owner = g.owner;
@@ -116,7 +121,7 @@ impl UpdateCache<InMemoryCache, InMemoryCacheError> for Box<GuildUpdate> {
         guild.premium_tier = g.premium_tier;
         guild
             .premium_subscription_count
-            .replace(g.premium_subscription_count);
+            .replace(g.premium_subscription_count.unwrap_or(0));
         guild.region = g.region.clone();
         guild.splash = g.splash.clone();
         guild.system_channel_id = g.system_channel_id;
@@ -146,6 +151,28 @@ impl UpdateCache<InMemoryCache, InMemoryCacheError> for Box<MemberAdd> {
 
         let mut guild = cache.0.guild_members.lock().await;
         guild.entry(guild_id).or_default().insert(self.0.user.id);
+
+        Ok(())
+    }
+}
+
+#[async_trait]
+impl UpdateCache<InMemoryCache, InMemoryCacheError> for Box<MemberUpdate> {
+    async fn update(&self, cache: &InMemoryCache) -> Result<(), InMemoryCacheError> {
+        if !guard(cache, EventType::MEMBER_UPDATE) {
+            return Ok(());
+        }
+
+        let mut members = cache.0.members.lock().await;
+
+        let mut member = match members.get_mut(&(self.guild_id, self.user.id)) {
+            Some(member) => member,
+            None => return Ok(()),
+        };
+        let mut member = Arc::make_mut(&mut member);
+
+        member.nick = self.nick.clone();
+        member.roles = self.roles.clone();
 
         Ok(())
     }
@@ -232,6 +259,90 @@ impl UpdateCache<InMemoryCache, InMemoryCacheError> for Box<MessageUpdate> {
 }
 
 #[async_trait]
+impl UpdateCache<InMemoryCache, InMemoryCacheError> for Box<ReactionAdd> {
+    async fn update(&self, cache: &InMemoryCache) -> Result<(), InMemoryCacheError> {
+        if !guard(cache, EventType::REACTION_ADD) {
+            return Ok(());
+        }
+
+        let mut channels = cache.0.messages.lock().await;
+        let channel = channels.entry(self.0.channel_id).or_default();
+
+        let mut message = match channel.get_mut(&self.0.message_id) {
+            Some(message) => message,
+            None => return Ok(()),
+        };
+
+        let msg = Arc::make_mut(&mut message);
+
+        if let Some(reaction) = msg.reactions.iter_mut().find(|r| r.emoji == self.0.emoji) {
+            if !reaction.me {
+                if let Some(current_user) = cache.current_user().await? {
+                    if current_user.id == self.0.user_id {
+                        reaction.me = true;
+                    }
+                }
+            }
+
+            reaction.count += 1;
+        } else {
+            let mut me = false;
+
+            if let Some(current_user) = cache.current_user().await? {
+                if current_user.id == self.0.user_id {
+                    me = true;
+                }
+            }
+
+            msg.reactions.push(MessageReaction {
+                count: 1,
+                emoji: self.0.emoji.clone(),
+                me,
+            });
+        }
+
+        Ok(())
+    }
+}
+
+#[async_trait]
+impl UpdateCache<InMemoryCache, InMemoryCacheError> for Box<ReactionRemove> {
+    async fn update(&self, cache: &InMemoryCache) -> Result<(), InMemoryCacheError> {
+        if !guard(cache, EventType::REACTION_REMOVE) {
+            return Ok(());
+        }
+
+        let mut channels = cache.0.messages.lock().await;
+        let channel = channels.entry(self.0.channel_id).or_default();
+
+        let mut message = match channel.get_mut(&self.0.message_id) {
+            Some(message) => message,
+            None => return Ok(()),
+        };
+
+        let msg = Arc::make_mut(&mut message);
+
+        if let Some(reaction) = msg.reactions.iter_mut().find(|r| r.emoji == self.0.emoji) {
+            if reaction.me {
+                if let Some(current_user) = cache.current_user().await? {
+                    if current_user.id == self.0.user_id {
+                        reaction.me = false;
+                    }
+                }
+            }
+
+            if reaction.count > 1 {
+                reaction.count -= 1;
+            } else {
+                msg.reactions.retain(|e| !(e.emoji == self.0.emoji.clone()));
+            }
+        }
+
+        Ok(())
+    }
+}
+
+#[async_trait]
 impl UpdateCache<InMemoryCache, InMemoryCacheError> for Box<PresenceUpdate> {
     async fn update(&self, cache: &InMemoryCache) -> Result<(), InMemoryCacheError> {
         if !guard(cache, EventType::PRESENCE_UPDATE) {
@@ -262,6 +373,13 @@ impl UpdateCache<InMemoryCache, InMemoryCacheError> for Box<Ready> {
             }
         }
 
+        Ok(())
+    }
+}
+
+#[async_trait]
+impl UpdateCache<InMemoryCache, InMemoryCacheError> for Box<TypingStart> {
+    async fn update(&self, _: &InMemoryCache) -> Result<(), InMemoryCacheError> {
         Ok(())
     }
 }

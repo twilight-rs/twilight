@@ -1,4 +1,4 @@
-use crate::id::{ChannelId, GenericId, UserId};
+use crate::id::{ChannelId, GenericId, MessageId, UserId};
 
 #[cfg_attr(
     feature = "serde-support",
@@ -8,6 +8,7 @@ use crate::id::{ChannelId, GenericId, UserId};
 pub struct AuditLogOptionalEntryInfo {
     pub channel_id: Option<ChannelId>,
     pub member_id: Option<UserId>,
+    pub message_id: Option<MessageId>,
     pub count: Option<String>,
     pub delete_member_days: Option<String>,
     pub id: Option<GenericId>,

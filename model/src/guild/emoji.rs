@@ -9,12 +9,18 @@ use crate::{
 )]
 #[derive(Clone, Debug, Eq, Hash, PartialEq)]
 pub struct Emoji {
+    // This does not need to be optional here as it can only be optional
+    // in a unicode emoji. Which can only happen in reactions, and we use
+    // another struct for emojis in that case.
     pub id: EmojiId,
     #[cfg_attr(feature = "serde-support", serde(default))]
     pub animated: bool,
     pub name: String,
+    #[cfg_attr(feature = "serde-support", serde(default))]
     pub managed: bool,
+    #[cfg_attr(feature = "serde-support", serde(default))]
     pub require_colons: bool,
+    #[cfg_attr(feature = "serde-support", serde(default))]
     pub roles: Vec<RoleId>,
     pub user: Option<User>,
 }

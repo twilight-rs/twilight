@@ -1,4 +1,4 @@
-use crate::guild::PartialGuild;
+use crate::id::GuildId;
 
 #[cfg_attr(
     feature = "serde-support",
@@ -6,5 +6,7 @@ use crate::guild::PartialGuild;
 )]
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct GuildDelete {
-    pub guild: PartialGuild,
+    pub id: GuildId,
+    // If `unavailable` is `None` the user was removed from the guild.
+    pub unavailable: Option<bool>,
 }

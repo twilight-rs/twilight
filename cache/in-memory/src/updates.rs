@@ -150,7 +150,7 @@ impl UpdateCache<InMemoryCache, InMemoryCacheError> for GuildDelete {
             return Ok(());
         }
 
-        let id = self.guild.id;
+        let id = self.id;
 
         cache.0.guilds.lock().await.remove(&id);
 
@@ -228,7 +228,7 @@ impl UpdateCache<InMemoryCache, InMemoryCacheError> for GuildUpdate {
         guild.features = g.features.clone();
         guild.icon = g.icon.clone();
         guild.max_members = g.max_members;
-        guild.max_presences = g.max_presences;
+        guild.max_presences = Some(g.max_presences.unwrap_or(5000));
         guild.mfa_level = g.mfa_level;
         guild.name = g.name.clone();
         guild.owner = g.owner;
@@ -238,7 +238,7 @@ impl UpdateCache<InMemoryCache, InMemoryCacheError> for GuildUpdate {
         guild.premium_tier = g.premium_tier;
         guild
             .premium_subscription_count
-            .replace(g.premium_subscription_count);
+            .replace(g.premium_subscription_count.unwrap_or(0));
         guild.region = g.region.clone();
         guild.splash = g.splash.clone();
         guild.system_channel_id = g.system_channel_id;

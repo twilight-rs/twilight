@@ -13,4 +13,5 @@ pub struct MemberUpdate {
     pub nick: Option<String>,
     pub roles: Vec<RoleId>,
     pub user: User,
+    pub premium_since: Option<String>,
 }

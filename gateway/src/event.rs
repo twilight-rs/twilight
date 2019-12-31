@@ -175,7 +175,7 @@ pub enum DispatchEvent {
     GuildUpdate(Box<GuildUpdate>),
     MemberAdd(Box<MemberAdd>),
     MemberRemove(MemberRemove),
-    MemberUpdate(MemberUpdate),
+    MemberUpdate(Box<MemberUpdate>),
     MemberChunk(MemberChunk),
     MessageCreate(Box<MessageCreate>),
     MessageDelete(MessageDelete),
@@ -183,15 +183,15 @@ pub enum DispatchEvent {
     MessageUpdate(Box<MessageUpdate>),
     PresenceUpdate(Box<PresenceUpdate>),
     PresencesReplace,
-    ReactionAdd(ReactionAdd),
-    ReactionRemove(ReactionRemove),
+    ReactionAdd(Box<ReactionAdd>),
+    ReactionRemove(Box<ReactionRemove>),
     ReactionRemoveAll(ReactionRemoveAll),
     Ready(Box<Ready>),
     Resumed,
     RoleCreate(RoleCreate),
     RoleDelete(RoleDelete),
     RoleUpdate(RoleUpdate),
-    TypingStart(TypingStart),
+    TypingStart(Box<TypingStart>),
     UnavailableGuild(UnavailableGuild),
     UserUpdate(UserUpdate),
     VoiceServerUpdate(VoiceServerUpdate),
@@ -219,7 +219,7 @@ impl TryFrom<(&str, Value)> for DispatchEvent {
             "GUILD_MEMBERS_CHUNK" => Self::MemberChunk(MemberChunk::deserialize(v)?),
             "GUILD_MEMBER_ADD" => Self::MemberAdd(Box::new(MemberAdd::deserialize(v)?)),
             "GUILD_MEMBER_REMOVE" => Self::MemberRemove(MemberRemove::deserialize(v)?),
-            "GUILD_MEMBER_UPDATE" => Self::MemberUpdate(MemberUpdate::deserialize(v)?),
+            "GUILD_MEMBER_UPDATE" => Self::MemberUpdate(Box::new(MemberUpdate::deserialize(v)?)),
             "GUILD_ROLE_CREATE" => Self::RoleCreate(RoleCreate::deserialize(v)?),
             "GUILD_ROLE_DELETE" => Self::RoleDelete(RoleDelete::deserialize(v)?),
             "GUILD_ROLE_UPDATE" => Self::RoleUpdate(RoleUpdate::deserialize(v)?),
@@ -227,8 +227,10 @@ impl TryFrom<(&str, Value)> for DispatchEvent {
             "MESSAGE_CREATE" => Self::MessageCreate(Box::new(MessageCreate::deserialize(v)?)),
             "MESSAGE_DELETE" => Self::MessageDelete(MessageDelete::deserialize(v)?),
             "MESSAGE_DELETE_BULK" => Self::MessageDeleteBulk(MessageDeleteBulk::deserialize(v)?),
-            "MESSAGE_REACTION_ADD" => Self::ReactionAdd(ReactionAdd::deserialize(v)?),
-            "MESSAGE_REACTION_REMOVE" => Self::ReactionRemove(ReactionRemove::deserialize(v)?),
+            "MESSAGE_REACTION_ADD" => Self::ReactionAdd(Box::new(ReactionAdd::deserialize(v)?)),
+            "MESSAGE_REACTION_REMOVE" => {
+                Self::ReactionRemove(Box::new(ReactionRemove::deserialize(v)?))
+            },
             "MESSAGE_REACTION_REMOVE_ALL" => {
                 Self::ReactionRemoveAll(ReactionRemoveAll::deserialize(v)?)
             },
@@ -237,7 +239,7 @@ impl TryFrom<(&str, Value)> for DispatchEvent {
             "PRESENCES_REPLACE" => Self::PresencesReplace,
             "READY" => Self::Ready(Box::new(Ready::deserialize(v)?)),
             "RESUMED" => Self::Resumed,
-            "TYPING_START" => Self::TypingStart(TypingStart::deserialize(v)?),
+            "TYPING_START" => Self::TypingStart(Box::new(TypingStart::deserialize(v)?)),
             "USER_UPDATE" => Self::UserUpdate(UserUpdate::deserialize(v)?),
             "VOICE_SERVER_UPDATE" => Self::VoiceServerUpdate(VoiceServerUpdate::deserialize(v)?),
             "VOICE_STATE_UPDATE" => {
@@ -251,5 +253,146 @@ impl TryFrom<(&str, Value)> for DispatchEvent {
                 ))
             },
         })
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_guild() {
+        let broken_guild = r#"{
+  "d": {
+    "afk_channel_id": "1337",
+    "afk_timeout": 300,
+    "application_id": null,
+    "banner": null,
+    "default_message_notifications": 0,
+    "description": null,
+    "discovery_splash": null,
+    "embed_channel_id": null,
+    "embed_enabled": false,
+    "emojis": [
+      {
+        "animated": false,
+        "available": true,
+        "id": "1338",
+        "managed": false,
+        "name": "goodboi",
+        "require_colons": true,
+        "roles": []
+      }
+    ],
+    "explicit_content_filter": 0,
+    "features": [
+      "INVITE_SPLASH",
+      "ANIMATED_ICON"
+    ],
+    "guild_id": "1339",
+    "icon": "foobar",
+    "id": "13310",
+    "max_members": 250000,
+    "max_presences": null,
+    "mfa_level": 0,
+    "name": "FooBaz",
+    "owner_id": "13311",
+    "preferred_locale": "en-US",
+    "premium_subscription_count": 4,
+    "premium_tier": 1,
+    "region": "eu-central",
+    "roles": [
+      {
+        "color": 0,
+        "hoist": false,
+        "id": "13312",
+        "managed": false,
+        "mentionable": false,
+        "name": "@everyone",
+        "permissions": 104193601,
+        "position": 0
+      }
+    ],
+    "rules_channel_id": null,
+    "splash": "barbaz",
+    "system_channel_flags": 0,
+    "system_channel_id": "13313",
+    "vanity_url_code": null,
+    "verification_level": 0,
+    "widget_channel_id": null,
+    "widget_enabled": false
+  },
+  "op": 0,
+  "s": 42,
+  "t": "GUILD_UPDATE"
+}"#;
+
+        serde_json::from_str::<GatewayEvent>(broken_guild).unwrap();
+    }
+
+    #[test]
+    fn test_guild_2() {
+        let broken_guild = r#"{
+  "d": {
+    "afk_channel_id": null,
+    "afk_timeout": 300,
+    "application_id": null,
+    "banner": null,
+    "default_message_notifications": 0,
+    "description": null,
+    "discovery_splash": null,
+    "embed_channel_id": null,
+    "embed_enabled": true,
+    "emojis": [
+      {
+        "animated": false,
+        "available": true,
+        "id": "42",
+        "managed": false,
+        "name": "emmet",
+        "require_colons": true,
+        "roles": []
+      }
+    ],
+    "explicit_content_filter": 2,
+    "features": [],
+    "guild_id": "43",
+    "icon": "44",
+    "id": "45",
+    "max_members": 250000,
+    "max_presences": null,
+    "mfa_level": 0,
+    "name": "FooBar",
+    "owner_id": "46",
+    "preferred_locale": "en-US",
+    "premium_subscription_count": null,
+    "premium_tier": 0,
+    "region": "us-central",
+    "roles": [
+      {
+        "color": 0,
+        "hoist": false,
+        "id": "47",
+        "managed": false,
+        "mentionable": false,
+        "name": "@everyone",
+        "permissions": 104324673,
+        "position": 0
+      }
+    ],
+    "rules_channel_id": null,
+    "splash": null,
+    "system_channel_flags": 0,
+    "system_channel_id": "48",
+    "vanity_url_code": null,
+    "verification_level": 4,
+    "widget_channel_id": null,
+    "widget_enabled": true
+  },
+  "op": 0,
+  "s": 1190911,
+  "t": "GUILD_UPDATE"
+}"#;
+        serde_json::from_str::<GatewayEvent>(broken_guild).unwrap();
     }
 }

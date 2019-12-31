@@ -1,5 +1,8 @@
 use crate::request::prelude::*;
-use dawn_model::{id::ChannelId, invite::Invite};
+use dawn_model::{
+    id::{ChannelId, UserId},
+    invite::{Invite, TargetUserType},
+};
 
 #[derive(Default, Serialize)]
 struct CreateInviteFields {
@@ -7,6 +10,8 @@ struct CreateInviteFields {
     max_uses: Option<u64>,
     temporary: Option<bool>,
     unique: Option<bool>,
+    target_user: Option<String>,
+    target_user_type: Option<TargetUserType>,
 }
 
 pub struct CreateInvite<'a> {
@@ -46,6 +51,18 @@ impl<'a> CreateInvite<'a> {
 
     pub fn unique(mut self, unique: bool) -> Self {
         self.fields.unique.replace(unique);
+
+        self
+    }
+
+    pub fn target_user(mut self, target_user: UserId) -> Self {
+        self.fields.target_user.replace(target_user.0.to_string());
+
+        self
+    }
+
+    pub fn target_user_type(mut self, target_user_type: TargetUserType) -> Self {
+        self.fields.target_user_type.replace(target_user_type);
 
         self
     }

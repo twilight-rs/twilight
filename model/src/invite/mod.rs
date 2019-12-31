@@ -14,8 +14,9 @@ pub struct Invite {
     pub approximate_member_count: Option<u64>,
     pub approximate_presence_count: Option<u64>,
     pub code: String,
-    pub channel: Option<Channel>,
+    pub channel: Channel,
     pub guild: Option<PartialGuild>,
+    pub inviter: Option<User>,
     pub target_user: Option<User>,
     pub target_user_type: Option<TargetUserType>,
 }
