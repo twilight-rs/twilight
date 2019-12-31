@@ -272,9 +272,9 @@ pub enum Event {
     /// For bots this is always empty and useless.
     PresencesReplace,
     /// A reaction was added to a message.
-    ReactionAdd(ReactionAdd),
+    ReactionAdd(Box<ReactionAdd>),
     /// A reaction was removed from a message.
-    ReactionRemove(ReactionRemove),
+    ReactionRemove(Box<ReactionRemove>),
     /// All reactions were removed from a message.
     ReactionRemoveAll(ReactionRemoveAll),
     /// A shard is now "ready" and fully connected.

@@ -19,16 +19,3 @@ pub struct PartialGuildIntegration {
     pub syncing: Option<bool>,
     pub user: Option<User>,
 }
-
-#[cfg(feature = "serde-support")]
-mod serde_support {
-    use super::GuildIntegration;
-    use crate::id::IntegrationId;
-    use serde_mappable_seq::Key;
-
-    impl Key<'_, IntegrationId> for PartialGuildIntegration {
-        fn key(&self) -> IntegrationId {
-            self.id
-        }
-    }
-}

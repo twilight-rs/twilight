@@ -183,8 +183,8 @@ pub enum DispatchEvent {
     MessageUpdate(Box<MessageUpdate>),
     PresenceUpdate(Box<PresenceUpdate>),
     PresencesReplace,
-    ReactionAdd(ReactionAdd),
-    ReactionRemove(ReactionRemove),
+    ReactionAdd(Box<ReactionAdd>),
+    ReactionRemove(Box<ReactionRemove>),
     ReactionRemoveAll(ReactionRemoveAll),
     Ready(Box<Ready>),
     Resumed,
@@ -227,8 +227,10 @@ impl TryFrom<(&str, Value)> for DispatchEvent {
             "MESSAGE_CREATE" => Self::MessageCreate(Box::new(MessageCreate::deserialize(v)?)),
             "MESSAGE_DELETE" => Self::MessageDelete(MessageDelete::deserialize(v)?),
             "MESSAGE_DELETE_BULK" => Self::MessageDeleteBulk(MessageDeleteBulk::deserialize(v)?),
-            "MESSAGE_REACTION_ADD" => Self::ReactionAdd(ReactionAdd::deserialize(v)?),
-            "MESSAGE_REACTION_REMOVE" => Self::ReactionRemove(ReactionRemove::deserialize(v)?),
+            "MESSAGE_REACTION_ADD" => Self::ReactionAdd(Box::new(ReactionAdd::deserialize(v)?)),
+            "MESSAGE_REACTION_REMOVE" => {
+                Self::ReactionRemove(Box::new(ReactionRemove::deserialize(v)?))
+            },
             "MESSAGE_REACTION_REMOVE_ALL" => {
                 Self::ReactionRemoveAll(ReactionRemoveAll::deserialize(v)?)
             },
@@ -328,7 +330,7 @@ mod tests {
         serde_json::from_str::<GatewayEvent>(broken_guild).unwrap();
     }
 
-        #[test]
+    #[test]
     fn test_guild_2() {
         let broken_guild = r#"{
   "d": {
@@ -393,5 +395,4 @@ mod tests {
 }"#;
         serde_json::from_str::<GatewayEvent>(broken_guild).unwrap();
     }
-
 }

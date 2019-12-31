@@ -2,7 +2,12 @@ use super::{config::EventType, InMemoryCache, InMemoryCacheError};
 use async_trait::async_trait;
 use dawn_cache_trait::UpdateCache;
 use dawn_gateway::shard::event::Event;
-use dawn_model::{gateway::payload::*, guild::GuildStatus, id::GuildId};
+use dawn_model::{
+    channel::message::MessageReaction,
+    gateway::payload::*,
+    guild::GuildStatus,
+    id::GuildId,
+};
 use futures::lock::Mutex;
 #[allow(unused_imports)]
 use log::debug;
@@ -246,6 +251,90 @@ impl UpdateCache<InMemoryCache, InMemoryCacheError> for Box<MessageUpdate> {
 
             if let Some(tts) = self.tts {
                 msg.tts = tts;
+            }
+        }
+
+        Ok(())
+    }
+}
+
+#[async_trait]
+impl UpdateCache<InMemoryCache, InMemoryCacheError> for Box<ReactionAdd> {
+    async fn update(&self, cache: &InMemoryCache) -> Result<(), InMemoryCacheError> {
+        if !guard(cache, EventType::REACTION_ADD) {
+            return Ok(());
+        }
+
+        let mut channels = cache.0.messages.lock().await;
+        let channel = channels.entry(self.0.channel_id).or_default();
+
+        let mut message = match channel.get_mut(&self.0.message_id) {
+            Some(message) => message,
+            None => return Ok(()),
+        };
+
+        let msg = Arc::make_mut(&mut message);
+
+        if let Some(reaction) = msg.reactions.iter_mut().find(|r| r.emoji == self.0.emoji) {
+            if !reaction.me {
+                if let Some(current_user) = cache.current_user().await? {
+                    if current_user.id == self.0.user_id {
+                        reaction.me = true;
+                    }
+                }
+            }
+
+            reaction.count += 1;
+        } else {
+            let mut me = false;
+
+            if let Some(current_user) = cache.current_user().await? {
+                if current_user.id == self.0.user_id {
+                    me = true;
+                }
+            }
+
+            msg.reactions.push(MessageReaction {
+                count: 1,
+                emoji: self.0.emoji.clone(),
+                me,
+            });
+        }
+
+        Ok(())
+    }
+}
+
+#[async_trait]
+impl UpdateCache<InMemoryCache, InMemoryCacheError> for Box<ReactionRemove> {
+    async fn update(&self, cache: &InMemoryCache) -> Result<(), InMemoryCacheError> {
+        if !guard(cache, EventType::REACTION_REMOVE) {
+            return Ok(());
+        }
+
+        let mut channels = cache.0.messages.lock().await;
+        let channel = channels.entry(self.0.channel_id).or_default();
+
+        let mut message = match channel.get_mut(&self.0.message_id) {
+            Some(message) => message,
+            None => return Ok(()),
+        };
+
+        let msg = Arc::make_mut(&mut message);
+
+        if let Some(reaction) = msg.reactions.iter_mut().find(|r| r.emoji == self.0.emoji) {
+            if reaction.me {
+                if let Some(current_user) = cache.current_user().await? {
+                    if current_user.id == self.0.user_id {
+                        reaction.me = false;
+                    }
+                }
+            }
+
+            if reaction.count > 1 {
+                reaction.count -= 1;
+            } else {
+                msg.reactions.retain(|e| !(e.emoji == self.0.emoji.clone()));
             }
         }
 

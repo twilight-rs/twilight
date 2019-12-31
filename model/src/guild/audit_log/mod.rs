@@ -3,6 +3,7 @@ mod change_key;
 mod entry;
 mod event;
 mod optional_entry_info;
+mod partial_integration;
 
 pub use self::{
     change::AuditLogChange,
