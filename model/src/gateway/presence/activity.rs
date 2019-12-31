@@ -36,7 +36,6 @@ pub struct Activity {
     pub party: Option<ActivityParty>,
     pub secrets: Option<ActivitySecrets>,
     pub state: Option<String>,
-    pub created_at: u64,
     pub timestamps: Option<ActivityTimestamps>,
     pub url: Option<String>,
 }
