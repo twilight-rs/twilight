@@ -1,6 +1,7 @@
 use crate::{
     channel::ReactionType,
-    id::{ChannelId, MessageId, UserId},
+    guild::Member,
+    id::{ChannelId, GuildId, MessageId, UserId},
 };
 
 #[cfg_attr(
@@ -11,6 +12,8 @@ use crate::{
 pub struct Reaction {
     pub channel_id: ChannelId,
     pub emoji: ReactionType,
+    pub guild_id: Option<GuildId>,
+    pub member: Option<Member>,
     pub message_id: MessageId,
     pub user_id: UserId,
 }
