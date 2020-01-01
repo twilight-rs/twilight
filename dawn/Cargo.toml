@@ -31,3 +31,6 @@ command-parser = ["dawn-command-parser"]
 gateway = ["dawn-gateway"]
 http = ["dawn-http"]
 model = ["dawn-model"]
+
+metrics = ["gateway-metrics"]
+gataway-metrics = ["dawn-gateway/metrics"]

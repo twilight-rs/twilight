@@ -7,6 +7,7 @@ members = [
     "dawn",
     "gateway",
     "gateway/examples/cluster",
+    "gateway/examples/metrics",
     "gateway/examples/shard",
     "http",
     "http/examples/get-message",

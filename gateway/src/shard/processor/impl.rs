@@ -27,6 +27,9 @@ use serde::Serialize;
 use std::{env::consts::OS, ops::Deref, sync::Arc};
 use tokio_tungstenite::tungstenite::Message;
 
+#[cfg(feature = "metrics")]
+use metrics::counter;
+
 use std::error::Error as StdError;
 
 /// Runs in the background and processes incoming events, and then broadcasts
@@ -136,7 +139,10 @@ impl ShardProcessor {
         use GatewayEvent::*;
 
         match event {
+
             Dispatch(seq, dispatch) => {
+                #[cfg(feature = "metrics")]
+                counter!("GatewayEvent", 1, "GatewayEvent" => "Dispatch");
                 self.session.set_seq(*seq);
 
                 match dispatch.deref() {
@@ -152,6 +158,8 @@ impl ShardProcessor {
                 }
             },
             Heartbeat(seq) => {
+                #[cfg(feature = "metrics")]
+                counter!("GatewayEvent", 1, "GatewayEvent" => "Heartbeat");
                 if *seq > self.session.seq() + 1 {
                     self.resume().await?;
                 }
@@ -163,6 +171,8 @@ impl ShardProcessor {
                 }
             },
             Hello(interval) => {
+                #[cfg(feature = "metrics")]
+                counter!("GatewayEvent", 1, "GatewayEvent" => "Hello");
                 debug!("[EVENT] Hello({})", interval);
                 self.session.set_stage(Stage::Identifying);
 
@@ -174,17 +184,25 @@ impl ShardProcessor {
                 self.identify().await?;
             },
             HeartbeatAck => {
+                #[cfg(feature = "metrics")]
+                counter!("GatewayEvent", 1, "GatewayEvent" => "HeartbeatAck");
                 self.session.heartbeats.receive().await;
             },
             InvalidateSession(true) => {
+                #[cfg(feature = "metrics")]
+                counter!("GatewayEvent", 1, "GatewayEvent" => "InvalidateSessionTrue");
                 debug!("[EVENT] InvalidateSession(true)");
                 self.resume().await?;
             },
             InvalidateSession(false) => {
+                #[cfg(feature = "metrics")]
+                counter!("GatewayEvent", 1, "GatewayEvent" => "InvalidateSessionFalse");
                 debug!("[EVENT] InvalidateSession(false)");
                 self.reconnect().await;
             },
             Reconnect => {
+                #[cfg(feature = "metrics")]
+                counter!("GatewayEvent", 1, "GatewayEvent" => "Reconnect");
                 debug!("[EVENT] Reconnect");
                 self.reconnect().await;
             },

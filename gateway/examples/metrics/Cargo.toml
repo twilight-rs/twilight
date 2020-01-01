@@ -1,0 +1,13 @@
+[package]
+authors = ["Valdemar Erk <valdemar@erk.io>"]
+edition = "2018"
+name = "dawn-gateway-example-metrics"
+version = "0.1.0"
+
+[dependencies]
+dawn-gateway = { path = "../..", features = ["metrics"] }
+futures = "0.3"
+log = "0.4.8"
+pretty_env_logger = "0.3"
+tokio = "0.2"
+metrics-runtime = "0.12.1"
