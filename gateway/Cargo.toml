@@ -1,5 +1,5 @@
 [package]
-authors = ["Zeyla Hellyer <zeyla@hellyer.dev>"]
+authors = ["Valdemar Erk <valdemar@erk.io>"]
 documentation = "https://docs.rs/dawn-gateway"
 edition = "2018"
 homepage = "https://dawn.valley.cafe"
