@@ -1,7 +1,8 @@
 ISC License (ISC)
 
 Copyright (c) 2019, Zeyla Hellyer <zeyla@hellyer.dev>
-Coptright (c) 2020, Valdemar Erk <valdemar@erk.io>
+
+Copyright (c) 2020, Valdemar Erk <valdemar@erk.io>
 
 Permission to use, copy, modify, and/or distribute this software for any purpose
 with or without fee is hereby granted, provided that the above copyright notice
