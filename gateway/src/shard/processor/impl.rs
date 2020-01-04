@@ -139,7 +139,6 @@ impl ShardProcessor {
         use GatewayEvent::*;
 
         match event {
-
             Dispatch(seq, dispatch) => {
                 #[cfg(feature = "metrics")]
                 counter!("GatewayEvent", 1, "GatewayEvent" => "Dispatch");

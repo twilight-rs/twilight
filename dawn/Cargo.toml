@@ -32,5 +32,5 @@ gateway = ["dawn-gateway"]
 http = ["dawn-http"]
 model = ["dawn-model"]
 
-metrics = ["gateway-metrics"]
-gataway-metrics = ["dawn-gateway/metrics"]
+metrics = ["gataway-metrics"]
+gataway-metrics = ["gateway", "dawn-gateway/metrics"]
