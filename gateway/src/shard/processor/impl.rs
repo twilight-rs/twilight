@@ -20,6 +20,7 @@ use dawn_model::gateway::payload::{
     identify::{Identify, IdentifyInfo, IdentifyProperties},
     resume::Resume,
 };
+
 use futures::{channel::mpsc::UnboundedReceiver, stream::StreamExt};
 #[allow(unused_imports)]
 use log::{debug, info, trace, warn};
@@ -143,6 +144,7 @@ impl ShardProcessor {
         let identify = Identify::new(IdentifyInfo {
             compression: false,
             guild_subscriptions: true,
+            intents: *self.config.intents(),
             large_threshold: 250,
             properties: self.properties.clone(),
             shard: Some(self.config.shard()),
