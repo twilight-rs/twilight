@@ -115,7 +115,7 @@ impl<'a> Parser<'a> {
 
     fn find_command(&'a self, buf: &'a str) -> Option<&'a str> {
         self.config.commands().iter().find_map(|command| {
-            if buf.starts_with(&command[..]) && buf.split_whitespace().next()? == command {
+            if buf.split_whitespace().next()? == command {
                 Some(command.as_ref())
             } else {
                 None
