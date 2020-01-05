@@ -115,7 +115,7 @@ impl<'a> Parser<'a> {
 
     fn find_command(&'a self, buf: &'a str) -> Option<&'a str> {
         self.config.commands().iter().find_map(|command| {
-            if buf.starts_with(&command[..]) {
+            if buf.starts_with(&command[..]) && buf.split_whitespace().next()? == command {
                 Some(command.as_ref())
             } else {
                 None
@@ -150,6 +150,19 @@ mod tests {
         config.add_command("echo");
 
         Parser::new(config)
+    }
+
+    #[test]
+    fn double_command() {
+        let parser = simple_config();
+        match parser.parse("!echoecho") {
+            Some(Command {
+                name, ..
+            }) => {
+                assert_eq!("echoecho", name);
+            },
+            None => (),
+        }
     }
 
     #[test]
