@@ -59,7 +59,7 @@ impl LocalQueue {
             waiter(rx).await;
         });
 
-        LocalQueue(tx)
+        Self(tx)
     }
 }
 
