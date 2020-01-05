@@ -65,7 +65,7 @@ mod tests {
     #[test]
     fn test_unicode() {
         let kind = ReactionType::Unicode {
-            name: "🙃".to_owned(),
+            name: "\u{1f643}".to_owned(),
         };
 
         serde_test::assert_de_tokens(
@@ -78,7 +78,7 @@ mod tests {
                 Token::Str("id"),
                 Token::None,
                 Token::Str("name"),
-                Token::Str("🙃"),
+                Token::Str("\u{1f643}"),
                 Token::StructEnd,
             ],
         );
