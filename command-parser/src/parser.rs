@@ -156,11 +156,7 @@ mod tests {
     fn double_command() {
         let parser = simple_config();
         match parser.parse("!echoecho") {
-            Some(Command {
-                name, ..
-            }) => {
-                assert_eq!("echoecho", name);
-            },
+            Some(_) => panic!("Double match!"),
             None => (),
         }
     }
