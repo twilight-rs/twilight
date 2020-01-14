@@ -1,3 +1,5 @@
+use unicase::UniCase;
+
 use std::{
     borrow::Cow,
     collections::{HashMap, HashSet},
@@ -8,8 +10,7 @@ use std::{
 /// [`Parser`]: struct.Parser.html
 #[derive(Clone, Debug, Default)]
 pub struct Config<'a> {
-    case_sensitive: bool,
-    commands: HashSet<String>,
+    commands: HashSet<CaseSensitivity>,
     prefixes: HashMap<Cow<'a, str>, Cow<'a, str>>,
 }
 
@@ -20,7 +21,7 @@ impl<'a> Config<'a> {
     }
 
     /// Returns an immutable reference to the commands.
-    pub fn commands(&self) -> &HashSet<String> {
+    pub fn commands(&self) -> &HashSet<CaseSensitivity> {
         &self.commands
     }
 
@@ -31,7 +32,7 @@ impl<'a> Config<'a> {
     ///
     /// [`add_command`]: #method.add_command
     /// [`remove_command`]: #method.remove_command
-    pub fn commands_mut(&mut self) -> &mut HashSet<String> {
+    pub fn commands_mut(&mut self) -> &mut HashSet<CaseSensitivity> {
         &mut self.commands
     }
 
@@ -51,18 +52,6 @@ impl<'a> Config<'a> {
         &mut self.prefixes
     }
 
-    /// Returns whether the parser will match the case of the command.
-    pub fn is_case_sensitive(&self) -> bool {
-        self.case_sensitive
-    }
-
-    /// Sets the case sensitivity of the parser.
-    ///
-    /// Is `false` by default.
-    pub fn case_sensitive(&mut self, case_sensitive: bool) {
-        self.case_sensitive = case_sensitive;
-    }
-
     /// Adds a command to the list of commands.
     ///
     /// # Examples
@@ -74,11 +63,13 @@ impl<'a> Config<'a> {
     /// config.add_command("ping");
     /// assert_eq!(1, config.commands().len());
     /// ```
-    pub fn add_command(&mut self, command: impl Into<String>) {
+    pub fn add_command(&mut self, command: impl Into<CaseSensitivity>) {
         self.commands.insert(command.into());
     }
 
     /// Removes a command from the list of commands.
+    ///
+    /// Any commands that would match the command provided are removed.
     ///
     /// # Examples
     ///
@@ -93,8 +84,8 @@ impl<'a> Config<'a> {
     /// config.remove_command("ping");
     /// assert!(config.commands().is_empty());
     /// ```
-    pub fn remove_command(&mut self, command: impl AsRef<str>) -> bool {
-        self.commands.remove(command.as_ref())
+    pub fn remove_command(&mut self, command: impl AsRef<str>) {
+        self.commands.retain(|c| c != command.as_ref());
     }
 
     /// Adds a prefix to the list of prefixes.
@@ -130,6 +121,56 @@ impl<'a> Config<'a> {
     /// ```
     pub fn remove_prefix(&mut self, prefix: impl Into<Cow<'a, str>>) -> Option<Cow<'a, str>> {
         self.prefixes.remove(&prefix.into())
+    }
+}
+
+#[derive(Clone, Debug, Eq, Hash, PartialEq)]
+pub enum CaseSensitivity {
+    Insensitive(UniCase<String>),
+    Sensitive(String),
+}
+
+impl CaseSensitivity {
+    pub fn new<S: Into<String>>(command: S) -> Self {
+        Self::Insensitive(UniCase::new(command.into()))
+    }
+    pub fn case_sensitive(self, case_sensitive: bool) -> Self {
+        match self {
+            Self::Sensitive(s) if !case_sensitive => Self::Insensitive(UniCase::new(s)),
+            Self::Insensitive(u) if case_sensitive => Self::Sensitive(u.into_inner()),
+            other => other,
+        }
+    }
+}
+
+impl AsRef<str> for CaseSensitivity {
+    fn as_ref(&self) -> &str {
+        match self {
+            Self::Insensitive(u) => u.as_str(),
+            Self::Sensitive(s) => s.as_str(),
+        }
+    }
+}
+
+impl PartialEq<str> for CaseSensitivity {
+    fn eq(&self, other: &str) -> bool {
+        match self {
+            Self::Insensitive(u) if u == &UniCase::new(other) => true,
+            Self::Sensitive(s) if s.eq(other) => true,
+            _ => false,
+        }
+    }
+}
+
+impl From<&str> for CaseSensitivity {
+    fn from(string: &str) -> Self {
+        Self::Insensitive(UniCase::new(string.into()))
+    }
+}
+
+impl From<String> for CaseSensitivity {
+    fn from(string: String) -> Self {
+        Self::Insensitive(UniCase::new(string))
     }
 }
 

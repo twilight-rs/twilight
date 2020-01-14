@@ -101,7 +101,7 @@ impl<'a> Parser<'a> {
         idx += padding.len();
 
         let command_buf = buf.get(idx..)?;
-        let command = self.find_command(command_buf, self.config.is_case_sensitive())?;
+        let command = self.find_command(command_buf)?;
 
         idx += command.len();
 
@@ -113,12 +113,10 @@ impl<'a> Parser<'a> {
         })
     }
 
-    fn find_command(&'a self, buf: &'a str, case_sensitive: bool) -> Option<&'a str> {
+    fn find_command(&'a self, buf: &'a str) -> Option<&'a str> {
         let buf = buf.split_whitespace().next()?;
         self.config.commands().iter().find_map(|command| {
-            let matches = (case_sensitive && buf == command)
-                || (!case_sensitive && unicase::eq(buf, command));
-            if matches {
+            if command == buf {
                 Some(command.as_ref())
             } else {
                 None
@@ -145,7 +143,7 @@ impl<'a, T: Into<Config<'a>>> From<T> for Parser<'a> {
 
 #[cfg(test)]
 mod tests {
-    use crate::{Command, Config, Parser};
+    use crate::{CaseSensitivity, Command, Config, Parser};
 
     fn simple_config() -> Parser<'static> {
         let mut config = Config::new();
@@ -206,7 +204,11 @@ mod tests {
         );
 
         // Case sensitive
-        parser.config_mut().case_sensitive(true);
+        let config = parser.config_mut();
+        config.commands_mut().clear();
+        config.add_command(CaseSensitivity::new("echo").case_sensitive(true));
+        config.add_command(CaseSensitivity::new("weiß").case_sensitive(true));
+        config.add_command(CaseSensitivity::new("Δ").case_sensitive(true));
         assert!(
             parser.parse(message_ascii).is_none(),
             "Parser is not case sensitive"
