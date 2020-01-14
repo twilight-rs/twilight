@@ -101,7 +101,7 @@ impl<'a> Parser<'a> {
         idx += padding.len();
 
         let command_buf = buf.get(idx..)?;
-        let command = self.find_command(command_buf)?;
+        let command = self.find_command(command_buf, self.config.is_case_sensitive())?;
 
         idx += command.len();
 
@@ -113,9 +113,12 @@ impl<'a> Parser<'a> {
         })
     }
 
-    fn find_command(&'a self, buf: &'a str) -> Option<&'a str> {
+    fn find_command(&'a self, buf: &'a str, case_sensitive: bool) -> Option<&'a str> {
+        let buf = buf.split_whitespace().next()?;
         self.config.commands().iter().find_map(|command| {
-            if buf.split_whitespace().next()? == command {
+            let matches = (case_sensitive && buf == command)
+                || (!case_sensitive && unicase::eq(buf, command));
+            if matches {
                 Some(command.as_ref())
             } else {
                 None
@@ -159,6 +162,63 @@ mod tests {
             Some(_) => panic!("Double match!"),
             None => (),
         }
+    }
+
+    #[test]
+    fn test_case_sensitive() {
+        let mut parser = simple_config();
+        let message_ascii = "!EcHo this is case insensitive";
+        let message_unicode = "!wEiSS is white";
+        let message_unicode_2 = "!δ is delta";
+
+        // Case insensitive - ASCII
+        let Command {
+            name, ..
+        } = parser
+            .parse(message_ascii)
+            .expect("Parser is case sensitive");
+        assert_eq!(
+            "echo", name,
+            "Command name should have the same case as in the Config"
+        );
+
+        // Case insensitive - Unicode
+        parser.config.add_command("weiß");
+        let Command {
+            name, ..
+        } = parser
+            .parse(message_unicode)
+            .expect("Parser is case sensitive");
+        assert_eq!(
+            "weiß", name,
+            "Command name should have the same case as in the Config"
+        );
+
+        parser.config.add_command("Δ");
+        let Command {
+            name, ..
+        } = parser
+            .parse(message_unicode_2)
+            .expect("Parser is case sensitive");
+        assert_eq!(
+            "Δ", name,
+            "Command name should have the same case as in the Config"
+        );
+
+        // Case sensitive
+        parser.config_mut().case_sensitive(true);
+        assert!(
+            parser.parse(message_ascii).is_none(),
+            "Parser is not case sensitive"
+        );
+        assert!(
+            parser.parse(message_unicode).is_none(),
+            "Parser is not case sensitive"
+        );
+        assert!(
+            parser.parse(message_unicode_2).is_none(),
+            "Parser is not case sensitive"
+        );
     }
 
     #[test]

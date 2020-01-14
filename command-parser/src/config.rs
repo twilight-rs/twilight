@@ -8,6 +8,7 @@ use std::{
 /// [`Parser`]: struct.Parser.html
 #[derive(Clone, Debug, Default)]
 pub struct Config<'a> {
+    case_sensitive: bool,
     commands: HashSet<String>,
     prefixes: HashMap<Cow<'a, str>, Cow<'a, str>>,
 }
@@ -48,6 +49,18 @@ impl<'a> Config<'a> {
     /// Returns a mutable reference to the prefixes.
     pub fn prefixes_mut(&mut self) -> &mut HashMap<Cow<'a, str>, Cow<'a, str>> {
         &mut self.prefixes
+    }
+
+    /// Returns whether the parser will match the case of the command.
+    pub fn is_case_sensitive(&self) -> bool {
+        self.case_sensitive
+    }
+
+    /// Sets the case sensitivity of the parser.
+    ///
+    /// Is `false` by default.
+    pub fn case_sensitive(&mut self, case_sensitive: bool) {
+        self.case_sensitive = case_sensitive;
     }
 
     /// Adds a command to the list of commands.
