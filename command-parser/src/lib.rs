@@ -30,8 +30,8 @@
 //! let mut config = Config::new();
 //!
 //! // (Use `Config::add_command` to add a single command)
-//! config.add_command("echo");
-//! config.add_command("ping");
+//! config.command("echo").add();
+//! config.command("ping").add();
 //!
 //! // Add the prefix `"!"`.
 //! // (Use `Config::add_prefixes` to add multiple prefixes)
@@ -78,6 +78,6 @@ mod parser;
 
 pub use self::{
     arguments::Arguments,
-    config::Config,
+    config::{CaseSensitivity, CommandBuilder, Config},
     parser::{Command, Parser},
 };

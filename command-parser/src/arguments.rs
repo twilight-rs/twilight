@@ -25,7 +25,7 @@ impl<'a> Arguments<'a> {
     ///
     /// let mut config = Config::new();
     /// config.add_prefix("!");
-    /// config.add_command("echo");
+    /// config.command("echo").add();
     /// let parser = Parser::new(config);
     ///
     /// if let Some(Command { arguments, .. }) = parser.parse("!echo foo bar baz") {

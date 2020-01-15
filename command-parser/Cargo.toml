@@ -11,3 +11,6 @@ publish = false
 readme = "README.md"
 repository = "https://github.com/dawn-rs/dawn.git"
 version = "0.1.0"
+
+[dependencies]
+unicase = "2"
