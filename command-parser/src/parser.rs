@@ -32,8 +32,8 @@ pub struct Command<'a> {
 /// use dawn_command_parser::{Command, Config, Parser};
 ///
 /// let mut config = Config::new();
-/// config.add_command("echo");
-/// config.add_command("ping");
+/// config.command("echo").add();
+/// config.command("ping").add();
 /// config.add_prefix("!");
 ///
 /// let parser = Parser::new(config);
@@ -143,12 +143,12 @@ impl<'a, T: Into<Config<'a>>> From<T> for Parser<'a> {
 
 #[cfg(test)]
 mod tests {
-    use crate::{CaseSensitivity, Command, Config, Parser};
+    use crate::{Command, Config, Parser};
 
     fn simple_config() -> Parser<'static> {
         let mut config = Config::new();
         config.add_prefix("!");
-        config.add_command("echo");
+        config.command("echo").add();
 
         Parser::new(config)
     }
@@ -181,7 +181,7 @@ mod tests {
         );
 
         // Case insensitive - Unicode
-        parser.config.add_command("weiß");
+        parser.config.command("weiß").add();
         let Command {
             name, ..
         } = parser
@@ -192,7 +192,7 @@ mod tests {
             "Command name should have the same case as in the Config"
         );
 
-        parser.config.add_command("Δ");
+        parser.config.command("Δ").add();
         let Command {
             name, ..
         } = parser
@@ -206,9 +206,9 @@ mod tests {
         // Case sensitive
         let config = parser.config_mut();
         config.commands_mut().clear();
-        config.add_command(CaseSensitivity::new("echo").case_sensitive(true));
-        config.add_command(CaseSensitivity::new("weiß").case_sensitive(true));
-        config.add_command(CaseSensitivity::new("Δ").case_sensitive(true));
+        config.command("echo").case_sensitive().add();
+        config.command("weiß").case_sensitive().add();
+        config.command("Δ").case_sensitive().add();
         assert!(
             parser.parse(message_ascii).is_none(),
             "Parser is not case sensitive"
@@ -250,7 +250,7 @@ mod tests {
     #[test]
     fn test_unicode_command() {
         let mut parser = simple_config();
-        parser.config_mut().add_command("\u{1f44e}"); // thumbs down unicode
+        parser.config_mut().command("\u{1f44e}").add(); // thumbs down unicode
 
         assert!(parser.parse("!\u{1f44e}").is_some());
     }
