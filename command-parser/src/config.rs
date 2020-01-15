@@ -144,7 +144,7 @@ impl<'a> Config<'a> {
 ///
 /// The [`add`] method needs to be called for the command to be added to the  [`Config`].
 ///
-/// Commands are not case sensitive by default. Use [`case_sensitive`] to enable this.
+/// **Note**: Commands are not case sensitive by default. Use [`case_sensitive`] to enable this.
 ///
 /// # Examples
 ///
@@ -232,9 +232,8 @@ impl AsRef<str> for CaseSensitivity {
 impl PartialEq<str> for CaseSensitivity {
     fn eq(&self, other: &str) -> bool {
         match self {
-            Self::Insensitive(u) if u == &UniCase::new(other) => true,
-            Self::Sensitive(s) if s.eq(other) => true,
-            _ => false,
+            Self::Insensitive(u) => u == &UniCase::new(other),
+            Self::Sensitive(s) => s == other,
         }
     }
 }
