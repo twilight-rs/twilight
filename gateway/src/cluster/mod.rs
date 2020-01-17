@@ -58,13 +58,11 @@
 pub mod config;
 pub mod error;
 
-mod event;
 mod r#impl;
 
 pub use self::{
     config::Config,
     error::{Error, Result},
-    event::Events,
     r#impl::Cluster,
 };
 pub use crate::shard::{Event, EventType};

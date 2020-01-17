@@ -1,13 +1,16 @@
 use super::{
     config::{Config, ShardScheme},
     error::{Error, Result},
-    event::Events,
 };
 use crate::{
     queue::{LocalQueue, Queue},
-    shard::{event::EventType, Config as ShardConfig, Information, Shard},
+    shard::{event::EventType, Config as ShardConfig, Event, Information, Shard},
 };
-use futures::{future, lock::Mutex};
+use futures::{
+    future,
+    lock::Mutex,
+    stream::{SelectAll, Stream, StreamExt},
+};
 use std::{
     collections::HashMap,
     sync::{Arc, Weak},
@@ -169,8 +172,9 @@ impl Cluster {
     ///
     /// Each item in the stream contains both the shard's ID and the event
     /// itself.
-    pub async fn events(&self) -> Events {
-        unreachable!();
+    pub async fn events(&self) -> impl Stream<Item = (u64, Event)> {
+        let shards = self.0.shards.lock().await.clone();
+        cluster_events(shards).await
     }
 
     /// Like [`events`], but filters the events so that the stream consumer
@@ -209,8 +213,9 @@ impl Cluster {
     /// ```
     ///
     /// [`events`]: #method.events
-    pub async fn some_events(&self, _types: EventType) -> Events {
-        unreachable!();
+    pub async fn some_events(&self, types: EventType) -> impl Stream<Item = (u64, Event)> {
+        let shards = self.0.shards.lock().await.clone();
+        cluster_some_events(shards, types).await
     }
 
     /// Queues a request to start a shard by ID and starts it once the queue
@@ -249,4 +254,29 @@ impl<T: Into<Config>> From<T> for Cluster {
             shards: Arc::new(Mutex::new(HashMap::new())),
         }))
     }
+}
+
+async fn cluster_events(
+    shards: impl IntoIterator<Item = (u64, Shard)>,
+) -> impl Stream<Item = (u64, Event)> {
+    let mut all = SelectAll::new();
+
+    for (id, shard) in shards {
+        all.push(shard.events().await.map(move |e| (id, e)));
+    }
+
+    all
+}
+
+async fn cluster_some_events(
+    shards: impl IntoIterator<Item = (u64, Shard)>,
+    types: EventType,
+) -> impl Stream<Item = (u64, Event)> {
+    let mut all = SelectAll::new();
+
+    for (id, shard) in shards {
+        all.push(shard.some_events(types).await.map(move |e| (id, e)));
+    }
+
+    all
 }
