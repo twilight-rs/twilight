@@ -6,8 +6,8 @@
 //!
 //! Once running, the shard maintains [information about itself] that you can
 //! obtain through it. This is information such as the latency or the current
-//! [`Stage`] of the connection, like whether it's [disconnected] or [resuming]
-//! the connection.
+//! [`Stage`] of the connection, like whether it's [`Disconnected`] or
+//! [`Resuming`] the connection.
 //!
 //! Shards are configurable through the [`ConfigBuilder`] struct, which
 //! provides a clean interface for correctly building a [`Config`].
@@ -16,7 +16,9 @@
 //! [`ConfigBuilder`]: config/struct.ConfigBuilder.html
 //! [`Event`]: event/enum.Event.html
 //! [`Shard`]: struct.Shard.html
-//! [`Stage`]: struct.Stage.html
+//! [`Stage`]: enum.Stage.html
+//! [`Disconnected`]: enum.Stage.html#variant.Disconnected
+//! [`Resuming`]: enum.Stage.html#variant.Resuming
 //! [channel deletions]: event/enum.Event.html#variant.ChannelDelete
 //! [new messages]: event/enum.Event.html#variant.MessageCreate
 
