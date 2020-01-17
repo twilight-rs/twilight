@@ -1,4 +1,4 @@
-use dawn_gateway::cluster::{Cluster, Config};
+use dawn_gateway::cluster::Cluster;
 
 use futures::StreamExt;
 use std::{env, error::Error};
@@ -7,23 +7,14 @@ use std::{env, error::Error};
 async fn main() -> Result<(), Box<dyn Error + Send + Sync>> {
     pretty_env_logger::init_timed();
 
-    let config = Config::builder(env::var("DISCORD_TOKEN")?).build();
-
-    let http = config.http_client().clone();
-
-    let cu = http.current_user().await?;
-
-    println!("CU: {:#?}", cu);
-
-    let cluster = Cluster::new(config);
-    println!("Created shard");
+    let cluster = Cluster::from(env::var("DISCORD_TOKEN")?);
 
     cluster.up().await?;
 
     let mut events = cluster.events().await;
 
-    while let Some(event) = events.next().await {
-        println!("Event: {:?}", event);
+    while let Some((id, event)) = events.next().await {
+        println!("Shard: {}, Event: {:?}", id, event.event_type());
     }
 
     Ok(())
