@@ -7,7 +7,10 @@ use super::{
     stage::Stage,
 };
 use crate::listener::Listeners;
-use futures::future::{self, AbortHandle};
+use futures::{
+    future::{self, AbortHandle},
+    Stream,
+};
 use log::debug;
 use std::sync::Arc;
 use tokio_tungstenite::tungstenite::Message;
@@ -143,7 +146,7 @@ impl Shard {
     ///
     /// [`EventType::SHARD_PAYLOAD`]: events/struct.EventType.html#const.SHARD_PAYLOAD
     /// [`some_events`]: #method.some_events
-    pub async fn events(&self) -> Events {
+    pub async fn events(&self) -> impl Stream<Item = Event> {
         let rx = self.0.listeners.add(EventType::default()).await;
 
         Events::new(EventType::default(), rx)
@@ -180,7 +183,7 @@ impl Shard {
     /// }
     /// # Ok(()) }
     /// ```
-    pub async fn some_events(&self, event_types: EventType) -> Events {
+    pub async fn some_events(&self, event_types: EventType) -> impl Stream<Item = Event> {
         let rx = self.0.listeners.add(event_types).await;
 
         Events::new(event_types, rx)

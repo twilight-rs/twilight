@@ -6,6 +6,7 @@ members = [
     "command-parser",
     "dawn",
     "gateway",
+    "gateway/examples/cluster",
     "gateway/examples/shard",
     "http",
     "http/examples/get-message",

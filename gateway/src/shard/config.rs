@@ -176,7 +176,9 @@ impl ConfigBuilder {
     /// your only cluster-like support.
     ///
     /// The default value is a queue used only by this shard, or a queue used by
-    /// all shards when ran by a `Cluster`.
+    /// all shards when ran by a [`Cluster`].
+    ///
+    /// [`Cluster`]: ../../cluster/struct.Cluster.html
     pub fn queue(&mut self, queue: impl Into<Box<dyn Queue + Send + Sync>>) -> &mut Self {
         self.0.queue = queue.into();
 
