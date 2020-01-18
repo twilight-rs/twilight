@@ -103,12 +103,19 @@ pub struct Client {
 
 impl Client {
     pub fn new(token: impl Into<String>) -> Self {
+        let mut token = token.into();
+
+        // Make sure it is a bot token.
+        if !token.starts_with("Bot ") {
+            token.insert_str(0, "Bot ");
+        }
+
         Self {
             state: Arc::new(State {
                 http: Arc::new(ReqwestClient::new()),
                 ratelimiter: Ratelimiter::new(),
                 skip_ratelimiter: false,
-                token: Some(token.into()),
+                token: Some(token),
                 use_http: false,
             }),
         }
@@ -684,11 +691,9 @@ impl Client {
         }
 
         if let Some(ref token) = self.state.token {
-            let value = HeaderValue::from_str(&format!("Bot {}", token,)).map_err(|source| {
-                Error::CreatingHeader {
-                    name: "Authroization".to_owned(),
-                    source,
-                }
+            let value = HeaderValue::from_str(&token).map_err(|source| Error::CreatingHeader {
+                name: "Authroization".to_owned(),
+                source,
             })?;
 
             builder = builder.header("Authorization", value);
