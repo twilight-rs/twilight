@@ -68,13 +68,15 @@ impl ShardProcessor {
             forwarder.run().await;
         });
 
+        let shard = config.shard();
+
         Ok(Self {
             config,
             listeners: Listeners::default(),
             properties,
             rx,
             session: Arc::new(Session::new(tx)),
-            inflater: Inflater::new(),
+            inflater: Inflater::new(shard),
             url,
         })
     }

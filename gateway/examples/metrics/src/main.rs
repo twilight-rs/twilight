@@ -1,4 +1,4 @@
-use dawn_gateway::Shard;
+use dawn_gateway::Cluster;
 use futures::StreamExt;
 use log::Level;
 use metrics_runtime::{exporters::LogExporter, observers::JsonBuilder, Receiver};
@@ -13,23 +13,26 @@ async fn main() -> Result<(), Box<dyn Error + Send + Sync>> {
         receiver.controller(),
         JsonBuilder::new().set_pretty_json(true),
         Level::Info,
-        Duration::from_secs(60),
+        Duration::from_secs(30),
     );
     // Install receiver.
     receiver.install();
 
     pretty_env_logger::init_timed();
 
-    let shard = Shard::new(env::var("DISCORD_TOKEN")?).await?;
-    println!("Created shard");
+    let cluster = Cluster::new(env::var("DISCORD_TOKEN")?);
+    println!("Created cluster");
 
-    let mut events = shard.events().await;
+    cluster.up().await?;
+    println!("Started cluster");
+
+    let mut events = cluster.events().await;
 
     // Start exporter in a seperate task
     tokio::task::spawn_blocking(move || exporter.run());
 
     while let Some(event) = events.next().await {
-        println!("Event: {:?}", event.event_type());
+        println!("Event: {:?}", event.1.event_type());
     }
 
     Ok(())

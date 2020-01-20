@@ -102,7 +102,11 @@ impl Cluster {
                     total,
                 } => [from, to, total],
             };
-
+        #[cfg(feature = "metrics")]
+        {
+            use std::convert::TryInto;
+            metrics::gauge!("Cluster-Shard-Count", total.try_into().unwrap_or(-1));
+        }
         future::join_all(
             (from..=to)
                 .map(|id| Self::start(Arc::downgrade(&self.0), id, total))
