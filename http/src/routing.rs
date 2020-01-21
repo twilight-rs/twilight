@@ -597,7 +597,7 @@ impl Route {
                 Method::PUT,
                 Path::ChannelsIdMessagesIdReactionsUserIdType(channel_id),
                 format!(
-                    "channels/{}/messages/{}/reactions/{}",
+                    "channels/{}/messages/{}/reactions/{}/@me",
                     channel_id, message_id, emoji,
                 )
                 .into(),
