@@ -156,9 +156,8 @@ mod tests {
     #[test]
     fn double_command() {
         let parser = simple_config();
-        match parser.parse("!echoecho") {
-            Some(_) => panic!("Double match!"),
-            None => (),
+        if parser.parse("!echoecho").is_some() {
+            panic!("Double match!")
         }
     }
 
@@ -167,7 +166,7 @@ mod tests {
         let mut parser = simple_config();
         let message_ascii = "!EcHo this is case insensitive";
         let message_unicode = "!wEiSS is white";
-        let message_unicode_2 = "!δ is delta";
+        let message_unicode_2 = "!\u{3b4} is delta";
 
         // Case insensitive - ASCII
         let Command {
@@ -181,25 +180,25 @@ mod tests {
         );
 
         // Case insensitive - Unicode
-        parser.config.command("weiß").add();
+        parser.config.command("wei\u{df}").add();
         let Command {
             name, ..
         } = parser
             .parse(message_unicode)
             .expect("Parser is case sensitive");
         assert_eq!(
-            "weiß", name,
+            "wei\u{df}", name,
             "Command name should have the same case as in the Config"
         );
 
-        parser.config.command("Δ").add();
+        parser.config.command("\u{394}").add();
         let Command {
             name, ..
         } = parser
             .parse(message_unicode_2)
             .expect("Parser is case sensitive");
         assert_eq!(
-            "Δ", name,
+            "\u{394}", name,
             "Command name should have the same case as in the Config"
         );
 
@@ -207,8 +206,8 @@ mod tests {
         let config = parser.config_mut();
         config.commands_mut().clear();
         config.command("echo").case_sensitive().add();
-        config.command("weiß").case_sensitive().add();
-        config.command("Δ").case_sensitive().add();
+        config.command("wei\u{df}").case_sensitive().add();
+        config.command("\u{394}").case_sensitive().add();
         assert!(
             parser.parse(message_ascii).is_none(),
             "Parser is not case sensitive"
@@ -235,10 +234,9 @@ mod tests {
 
         match parser.parse("!echo what a test") {
             Some(Command {
-                arguments: _,
                 name,
                 prefix,
-                __nonexhaustive: _,
+                ..
             }) => {
                 assert_eq!("echo", name);
                 assert_eq!("!", prefix);

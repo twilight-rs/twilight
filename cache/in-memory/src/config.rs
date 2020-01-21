@@ -126,6 +126,7 @@ mod tests {
     use super::{Config, ConfigBuilder, EventType};
 
     #[test]
+    #[allow(clippy::cognitive_complexity)]
     fn test_event_type_const_values() {
         assert_eq!(1, EventType::BAN_ADD.bits());
         assert_eq!(1 << 1, EventType::BAN_REMOVE.bits());

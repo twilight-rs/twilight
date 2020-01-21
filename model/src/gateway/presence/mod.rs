@@ -79,6 +79,7 @@ mod tests {
     use serde_test::Token;
 
     #[test]
+    #[allow(clippy::too_many_lines)]
     fn test_custom() {
         let activity = Activity {
             application_id: None,
