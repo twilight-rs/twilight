@@ -583,6 +583,15 @@ impl Client {
         DeleteReaction::new(self, channel_id, message_id, emoji, user_id.to_string())
     }
 
+    pub fn delete_all_reaction(
+        &self,
+        channel_id: ChannelId,
+        message_id: MessageId,
+        emoji: impl Into<String>,
+    ) -> DeleteAllReaction<'_> {
+        DeleteAllReaction::new(self, channel_id, message_id, emoji)
+    }
+
     pub fn delete_all_reactions(
         &self,
         channel_id: ChannelId,

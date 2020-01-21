@@ -18,6 +18,7 @@ mod tests {
     use serde_test::Token;
 
     #[test]
+    #[allow(clippy::too_many_lines)]
     fn test_voice_state_update() {
         let update = VoiceStateUpdate(VoiceState {
             channel_id: None,
