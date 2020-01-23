@@ -44,7 +44,7 @@ pub struct IdentifyInfo {
 pub struct IdentifyProperties {
     #[cfg_attr(feature = "serde-support", serde(rename = "$browser"))]
     pub browser: String,
-    #[cfg_attr(feature = "serde-support", serde(rename = "device"))]
+    #[cfg_attr(feature = "serde-support", serde(rename = "$device"))]
     pub device: String,
     #[cfg_attr(feature = "serde-support", serde(rename = "$os"))]
     pub os: String,
