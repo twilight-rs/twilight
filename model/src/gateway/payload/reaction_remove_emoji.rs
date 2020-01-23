@@ -1,4 +1,4 @@
-use crate::id::{ChannelId, GuildId, MessageId};
+use crate::id::{ChannelId, EmojiId, GuildId, MessageId};
 
 #[cfg_attr(
     feature = "serde-support",
@@ -18,6 +18,6 @@ pub struct ReactionRemoveEmoji {
 )]
 #[derive(Clone, Debug, Eq, Hash, PartialEq)]
 pub struct ParitalEmoji {
-    id: u64,
-    emoji: String,
+    id: Option<EmojiId>,
+    name: String,
 }
