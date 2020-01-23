@@ -62,8 +62,8 @@ bitflags! {
         const GUILD_INTEGRATIONS_UPDATE = 1 << 13;
         /// A guild was updated.
         const GUILD_UPDATE = 1 << 14;
-        const INVITE_CREATE = 1 << 60; // TODO: Replace will actual number
-        const INVITE_DELETE = 1 << 61; // TODO: same as above
+        const INVITE_CREATE = 1 << 46;
+        const INVITE_DELETE = 1 << 47;
         const MEMBER_ADD = 1 << 15;
         const MEMBER_REMOVE = 1 << 16;
         const MEMBER_UPDATE = 1 << 17;
@@ -77,7 +77,7 @@ bitflags! {
         const REACTION_ADD = 1 << 25;
         const REACTION_REMOVE = 1 << 26;
         const REACTION_REMOVE_ALL = 1 << 27;
-        const REACTION_REMOVE_EMOJI = 1 << 62; // TODO: Another temporary number that needs to be replaced
+        const REACTION_REMOVE_EMOJI = 1 << 48;
         const READY = 1 << 28;
         const RESUMED = 1 << 29;
         const ROLE_CREATE = 1 << 30;

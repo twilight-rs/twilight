@@ -1,7 +1,4 @@
-use crate::{
-    id::{ChannelId, GuildId},
-    user::User,
-};
+use crate::id::{ChannelId, GuildId, UserId};
 
 #[cfg_attr(
     feature = "serde-support",
@@ -13,9 +10,21 @@ pub struct InviteCreate {
     pub code: String,
     pub created_at: String,
     pub guild_id: GuildId,
-    pub inviter: User, // TODO: This is a partial user, need feedback on whether to make a new struct for it here, or use something else
+    pub inviter: PartialUser,
     pub max_age: u64,
     pub max_uses: u64,
     pub temporary: bool,
     pub uses: u8, // will always be zero
+}
+
+#[cfg_attr(
+    feature = "serde-support",
+    derive(serde::Deserialize, serde::Serialize)
+)]
+#[derive(Clone, Debug, Eq, Hash, PartialEq)]
+pub struct PartialUser {
+    avatar: String,
+    discriminator: String,
+    id: UserId,
+    username: String,
 }
