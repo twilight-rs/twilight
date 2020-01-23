@@ -64,10 +64,11 @@ impl Cluster {
     ///
     /// # #[tokio::main]
     /// # async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
-    /// let mut config = Config::builder(env::var("DISCORD_TOKEN")?);
-    ///
     /// let scheme = ShardScheme::try_from((0..=9, 10))?;
-    /// config.shard_scheme(scheme);
+    /// let mut config = Config::builder(env::var("DISCORD_TOKEN")?)
+    ///                         .shard_scheme(scheme)
+    ///                         .build();
+    ///
     /// let cluster = Cluster::new(config);
     ///
     /// // Finally, bring up the cluster.
