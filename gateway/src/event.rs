@@ -173,6 +173,8 @@ pub enum DispatchEvent {
     GuildEmojisUpdate(GuildEmojisUpdate),
     GuildIntegrationsUpdate(GuildIntegrationsUpdate),
     GuildUpdate(Box<GuildUpdate>),
+    InviteCreate(Box<InviteCreate>),
+    InviteDelete(InviteDelete),
     MemberAdd(Box<MemberAdd>),
     MemberRemove(MemberRemove),
     MemberUpdate(Box<MemberUpdate>),
@@ -186,6 +188,7 @@ pub enum DispatchEvent {
     ReactionAdd(Box<ReactionAdd>),
     ReactionRemove(Box<ReactionRemove>),
     ReactionRemoveAll(ReactionRemoveAll),
+    ReactionRemoveEmoji(ReactionRemoveEmoji),
     Ready(Box<Ready>),
     Resumed,
     RoleCreate(RoleCreate),
@@ -224,12 +227,17 @@ impl TryFrom<(&str, Value)> for DispatchEvent {
             "GUILD_ROLE_DELETE" => Self::RoleDelete(RoleDelete::deserialize(v)?),
             "GUILD_ROLE_UPDATE" => Self::RoleUpdate(RoleUpdate::deserialize(v)?),
             "GUILD_UPDATE" => Self::GuildUpdate(Box::new(GuildUpdate::deserialize(v)?)),
+            "INVITE_CREATE" => Self::InviteCreate(Box::new(InviteCreate::deserialize(v)?)),
+            "INVITE_DELETE" => Self::InviteDelete(InviteDelete::deserialize(v)?),
             "MESSAGE_CREATE" => Self::MessageCreate(Box::new(MessageCreate::deserialize(v)?)),
             "MESSAGE_DELETE" => Self::MessageDelete(MessageDelete::deserialize(v)?),
             "MESSAGE_DELETE_BULK" => Self::MessageDeleteBulk(MessageDeleteBulk::deserialize(v)?),
             "MESSAGE_REACTION_ADD" => Self::ReactionAdd(Box::new(ReactionAdd::deserialize(v)?)),
             "MESSAGE_REACTION_REMOVE" => {
                 Self::ReactionRemove(Box::new(ReactionRemove::deserialize(v)?))
+            },
+            "MESSAGE_REACTION_REMOVE_EMOJI" => {
+                Self::ReactionRemoveEmoji(ReactionRemoveEmoji::deserialize(v)?)
             },
             "MESSAGE_REACTION_REMOVE_ALL" => {
                 Self::ReactionRemoveAll(ReactionRemoveAll::deserialize(v)?)

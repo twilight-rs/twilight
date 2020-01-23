@@ -14,6 +14,8 @@ mod guild_emojis_update;
 mod guild_integrations_update;
 mod guild_update;
 mod heartbeat;
+mod invite_create;
+mod invite_delete;
 mod member_add;
 mod member_chunk;
 mod member_remove;
@@ -26,6 +28,7 @@ mod presence_update;
 mod reaction_add;
 mod reaction_remove;
 mod reaction_remove_all;
+mod reaction_remove_emoji;
 mod ready;
 mod request_guild_members;
 mod role_create;
@@ -52,6 +55,8 @@ pub use self::{
     guild_integrations_update::GuildIntegrationsUpdate,
     guild_update::GuildUpdate,
     heartbeat::Heartbeat,
+    invite_create::InviteCreate,
+    invite_delete::InviteDelete,
     member_add::MemberAdd,
     member_chunk::MemberChunk,
     member_remove::MemberRemove,
@@ -64,6 +69,7 @@ pub use self::{
     reaction_add::ReactionAdd,
     reaction_remove::ReactionRemove,
     reaction_remove_all::ReactionRemoveAll,
+    reaction_remove_emoji::ReactionRemoveEmoji,
     ready::Ready,
     request_guild_members::RequestGuildMembers,
     role_create::RoleCreate,
