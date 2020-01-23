@@ -11,6 +11,7 @@ use futures::{
     lock::Mutex,
     stream::{SelectAll, Stream, StreamExt},
 };
+use log::warn;
 use std::{
     collections::HashMap,
     sync::{Arc, Weak},
@@ -228,11 +229,17 @@ impl Cluster {
     /// Accepts weak references to the queue and map of shards, because by the
     /// time the future is polled the cluter may have already dropped, bringing
     /// down the queue and shards with it.
-    async fn start(cluster: Weak<ClusterRef>, shard_id: u64, _: u64) -> Option<Shard> {
+    async fn start(cluster: Weak<ClusterRef>, shard_id: u64, shard_total: u64) -> Option<Shard> {
         cluster.upgrade()?.queue.request().await;
 
         let token = cluster.upgrade()?.config.shard_config().token().to_owned();
-        let config = ShardConfig::builder(token).build();
+        let config = match ShardConfig::builder(token).shard(shard_id, shard_total) {
+            Ok(c) => c.build(),
+            Err(err) => {
+                warn!("Config creation failed with: {}", err);
+                return None;
+            },
+        };
 
         let shard = Shard::new(config).await.ok()?;
 
