@@ -283,6 +283,11 @@ pub enum Route {
         channel_id: u64,
         message_id: u64,
     },
+    DeleteMessageSpecficReaction {
+        channel_id: u64,
+        message_id: u64,
+        emoji: String,
+    },
     DeletePermissionOverwrite {
         channel_id: u64,
         target_id: u64,
@@ -592,7 +597,7 @@ impl Route {
                 Method::PUT,
                 Path::ChannelsIdMessagesIdReactionsUserIdType(channel_id),
                 format!(
-                    "channels/{}/messages/{}/reactions/{}",
+                    "channels/{}/messages/{}/reactions/{}/@me",
                     channel_id, message_id, emoji,
                 )
                 .into(),
@@ -670,6 +675,19 @@ impl Route {
                 Method::DELETE,
                 Path::ChannelsIdMessagesIdReactions(channel_id),
                 format!("channels/{}/messages/{}/reactions", channel_id, message_id).into(),
+            ),
+            Self::DeleteMessageSpecficReaction {
+                channel_id,
+                message_id,
+                emoji,
+            } => (
+                Method::DELETE,
+                Path::ChannelsIdMessagesIdReactions(channel_id),
+                format!(
+                    "channels/{}/messages/{}/reactions/{}",
+                    channel_id, message_id, emoji
+                )
+                .into(),
             ),
             Self::DeleteMessage {
                 channel_id,

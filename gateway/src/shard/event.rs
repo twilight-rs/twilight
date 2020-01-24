@@ -62,6 +62,8 @@ bitflags! {
         const GUILD_INTEGRATIONS_UPDATE = 1 << 13;
         /// A guild was updated.
         const GUILD_UPDATE = 1 << 14;
+        const INVITE_CREATE = 1 << 46;
+        const INVITE_DELETE = 1 << 47;
         const MEMBER_ADD = 1 << 15;
         const MEMBER_REMOVE = 1 << 16;
         const MEMBER_UPDATE = 1 << 17;
@@ -75,6 +77,7 @@ bitflags! {
         const REACTION_ADD = 1 << 25;
         const REACTION_REMOVE = 1 << 26;
         const REACTION_REMOVE_ALL = 1 << 27;
+        const REACTION_REMOVE_EMOJI = 1 << 48;
         const READY = 1 << 28;
         const RESUMED = 1 << 29;
         const ROLE_CREATE = 1 << 30;
@@ -249,6 +252,10 @@ pub enum Event {
     GuildIntegrationsUpdate(GuildIntegrationsUpdate),
     /// A guild was updated.
     GuildUpdate(Box<GuildUpdate>),
+    /// A invite was made.
+    InviteCreate(Box<InviteCreate>),
+    /// A invite was deleted.
+    InviteDelete(InviteDelete),
     /// A user was added to a guild.
     MemberAdd(Box<MemberAdd>),
     /// A user was removed from a guild.
@@ -277,6 +284,8 @@ pub enum Event {
     ReactionRemove(Box<ReactionRemove>),
     /// All reactions were removed from a message.
     ReactionRemoveAll(ReactionRemoveAll),
+    /// All instances of a given emoji from the reactions of a message were removed
+    ReactionRemoveEmoji(ReactionRemoveEmoji),
     /// A shard is now "ready" and fully connected.
     Ready(Box<Ready>),
     /// A shard has successfully resumed.
@@ -361,6 +370,8 @@ impl Event {
             Self::GuildEmojisUpdate(_) => EventType::GUILD_EMOJIS_UPDATE,
             Self::GuildIntegrationsUpdate(_) => EventType::GUILD_INTEGRATIONS_UPDATE,
             Self::GuildUpdate(_) => EventType::GUILD_UPDATE,
+            Self::InviteCreate(_) => EventType::INVITE_CREATE,
+            Self::InviteDelete(_) => EventType::INVITE_DELETE,
             Self::MemberAdd(_) => EventType::MEMBER_ADD,
             Self::MemberRemove(_) => EventType::MEMBER_REMOVE,
             Self::MemberUpdate(_) => EventType::MEMBER_UPDATE,
@@ -374,6 +385,7 @@ impl Event {
             Self::ReactionAdd(_) => EventType::REACTION_ADD,
             Self::ReactionRemove(_) => EventType::REACTION_REMOVE,
             Self::ReactionRemoveAll(_) => EventType::REACTION_REMOVE_ALL,
+            Self::ReactionRemoveEmoji(_) => EventType::REACTION_REMOVE_EMOJI,
             Self::Ready(_) => EventType::READY,
             Self::Resumed => EventType::RESUMED,
             Self::RoleCreate(_) => EventType::ROLE_CREATE,
@@ -409,6 +421,8 @@ impl From<Box<DispatchEvent>> for Event {
             DispatchEvent::GuildDelete(v) => Self::GuildDelete(v),
             DispatchEvent::GuildEmojisUpdate(v) => Self::GuildEmojisUpdate(v),
             DispatchEvent::GuildIntegrationsUpdate(v) => Self::GuildIntegrationsUpdate(v),
+            DispatchEvent::InviteCreate(v) => Self::InviteCreate(v),
+            DispatchEvent::InviteDelete(v) => Self::InviteDelete(v),
             DispatchEvent::MemberAdd(v) => Self::MemberAdd(v),
             DispatchEvent::MemberRemove(v) => Self::MemberRemove(v),
             DispatchEvent::MemberUpdate(v) => Self::MemberUpdate(v),
@@ -426,6 +440,7 @@ impl From<Box<DispatchEvent>> for Event {
             DispatchEvent::ReactionAdd(v) => Self::ReactionAdd(v),
             DispatchEvent::ReactionRemove(v) => Self::ReactionRemove(v),
             DispatchEvent::ReactionRemoveAll(v) => Self::ReactionRemoveAll(v),
+            DispatchEvent::ReactionRemoveEmoji(v) => Self::ReactionRemoveEmoji(v),
             DispatchEvent::Ready(v) => Self::Ready(v),
             DispatchEvent::Resumed => Self::Resumed,
             DispatchEvent::TypingStart(v) => Self::TypingStart(v),
