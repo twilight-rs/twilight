@@ -9,6 +9,9 @@ use std::{
     fmt::{Formatter, Result as FmtResult},
 };
 
+#[cfg(feature = "metrics")]
+use metrics::counter;
+
 /// An event from the gateway, which can either be a dispatch event with
 /// stateful updates or a heartbeat, hello, etc. that a shard needs to operate.
 #[derive(Clone, Debug)]
@@ -100,9 +103,9 @@ impl<'de> Visitor<'de> for GatewayEventVisitor {
                 let d = d.ok_or_else(|| DeError::missing_field("d"))?;
                 let s = s.ok_or_else(|| DeError::missing_field("s"))?;
                 let t = t.ok_or_else(|| DeError::missing_field("t"))?;
-
                 let dispatch = DispatchEvent::try_from((t.as_ref(), d)).map_err(DeError::custom)?;
-
+                #[cfg(feature = "metrics")]
+                counter!("DispatchEvent", 1, "DispatchEvent" => t);
                 GatewayEvent::Dispatch(s, Box::new(dispatch))
             },
             OpCode::Heartbeat => {

@@ -3,6 +3,9 @@ use std::convert::TryInto;
 use flate2::{Decompress, DecompressError, FlushDecompress};
 use log::trace;
 
+#[cfg(feature = "metrics")]
+use metrics::gauge;
+
 const ZLIB_SUFFIX: [u8; 4] = [0x00, 0x00, 0xff, 0xff];
 const INTERNAL_BUFFER_SIZE: usize = 32 * 1024;
 
@@ -12,16 +15,18 @@ pub struct Inflater {
     internal_buffer: Vec<u8>,
     buffer: Vec<u8>,
     countdown_to_resize: u8,
+    shard: [u64; 2],
 }
 
 impl Inflater {
-    pub fn new() -> Self {
+    pub fn new(shard: [u64; 2]) -> Self {
         Self {
             decompress: Decompress::new(true),
             compressed: Vec::new(),
             internal_buffer: Vec::with_capacity(INTERNAL_BUFFER_SIZE),
             buffer: Vec::with_capacity(32 * 1024),
             countdown_to_resize: u8::max_value(),
+            shard,
         }
     }
 
@@ -67,6 +72,21 @@ impl Inflater {
                     ((self.decompress.total_out() - self.decompress.total_in()) / 1024),
                     ((self.decompress.total_in() as f64) / (self.decompress.total_out() as f64)
                         * 100.0)
+                );
+            }
+            #[cfg(feature = "metrics")]
+            {
+                gauge!(
+                    format!("Inflater-Capacity-{}", self.shard[0]),
+                    self.buffer.capacity().try_into().unwrap_or(-1)
+                );
+                gauge!(
+                    format!("InflaterIn-{}", self.shard[0]),
+                    self.decompress.total_in().try_into().unwrap_or(-1)
+                );
+                gauge!(
+                    format!("InflaterOut-{}", self.shard[0]),
+                    self.decompress.total_out().try_into().unwrap_or(-1)
                 );
             }
             trace!("Capacity: {}", self.buffer.capacity());
