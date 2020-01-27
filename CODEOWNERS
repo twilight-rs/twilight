@@ -1,0 +1,27 @@
+# This is the CODEOWNERS file for dawn
+
+# For things not covered by other codeowners
+# this is subject to change in the future as
+# we evaluate on how it works.
+# It is also just a fallthrough with anything
+# not matched by later rules.
+*                                        @Erk-
+
+# Cache
+/cache/                                  @Arzte @TheUnitedStatesOfAmerica
+
+# Redis cache
+# Subject to be moved to its own repo.
+/cache/redis                             @TheUnitedStatesOfAmerica
+
+# Gateway
+/gateway/                                @Arzte @Erk-
+
+# Frame inflater
+/gateway/src/shard/processor/inflater.rs @Erk-
+
+# Models
+/model/                                  @Erk-
+
+# Command parser
+/command-parser/                         @Erk-
