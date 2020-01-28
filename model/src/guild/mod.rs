@@ -83,7 +83,7 @@ pub struct Guild {
     pub max_members: Option<u64>,
     pub max_presences: Option<u64>,
     pub member_count: Option<u64>,
-    #[cfg_attr(feature = "serde-support", serde(with = "serde_mappable_seq"))]
+    #[cfg_attr(feature = "serde-support", serde(default, with = "serde_mappable_seq"))]
     pub members: HashMap<UserId, Member>,
     pub mfa_level: MfaLevel,
     pub name: String,
