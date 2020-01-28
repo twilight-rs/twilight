@@ -24,7 +24,7 @@ serde_json = "1"
 serde-value = "0.6"
 # Make it use less features at a later time.
 tokio = { version = "0.2", features = ["full"] }
-tokio-tungstenite = { git = "https://github.com/dbcfd/tokio-tungstenite", branch = "tokio2", features = ["tls"] }
+tokio-tungstenite = { git = "https://github.com/snapview/tokio-tungstenite.git", features = ["tls"] }
 url = "2"
 # The default backend for flate2; miniz-oxide, works differently
 # from the C-backed backend zlib, When you give it the sync argument
