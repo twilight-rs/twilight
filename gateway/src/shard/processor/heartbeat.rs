@@ -34,6 +34,10 @@ impl Latency {
     ///
     /// For example, a reasonable value for this may be between 10 to 100
     /// milliseconds depending on the network connection and physical location.
+    ///
+    /// # Note
+    ///
+    /// If the value is none it means that the shard have not received a heartbeat.
     pub fn average(&self) -> Option<Duration> {
         self.average
     }

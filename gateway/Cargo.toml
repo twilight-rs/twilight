@@ -33,7 +33,7 @@ url = "2"
 flate2 = { version = "1.0", default-features = false, features = ["zlib"] }
 
 #optional
-metrics = { version = "0.12.1", optional = true }
+metrics = { version = "0.13", optional = true }
 
 [dev-dependencies]
 futures = "0.3"
