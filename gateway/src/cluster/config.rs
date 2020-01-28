@@ -190,9 +190,8 @@ impl ConfigBuilder {
     /// information.
     ///
     /// [`ConfigBuilder::guild_subscriptions`]: ../../shard/config/struct.ConfigBuilder.html#method.guild_subscriptions
-    pub fn guild_subscriptions(&mut self, guild_subscriptions: bool) -> &mut Self {
-        self.1.guild_subscriptions(guild_subscriptions);
-
+    pub fn guild_subscriptions(mut self, guild_subscriptions: bool) -> Self {
+        self.1 = self.1.guild_subscriptions(guild_subscriptions);
         self
     }
 
@@ -203,9 +202,9 @@ impl ConfigBuilder {
     /// information.
     ///
     /// By default, the default client is used.
-    pub fn http_client(&mut self, http_client: Client) -> &mut Self {
+    pub fn http_client(mut self, http_client: Client) -> Self {
         self.0.http_client = http_client.clone();
-        self.1.http_client(http_client);
+        self.1 = self.1.http_client(http_client);
 
         self
     }
@@ -222,12 +221,12 @@ impl ConfigBuilder {
     ///
     /// [`ConfigBuilder::large_threshold`]: ../../shard/config/struct.ConfigBuilder.html#method.large_threshold
     /// [`ShardError::LargeThresholdInvalid`]: ../../shard/error/enum.Error.html#variant.LargeThresholdInvalid
-    pub fn large_threshold(&mut self, large_threshold: u64) -> Result<&mut Self> {
-        self.1
-            .large_threshold(large_threshold)
-            .map_err(|source| Error::LargeThresholdInvalid {
+    pub fn large_threshold(mut self, large_threshold: u64) -> Result<Self> {
+        self.1 = self.1.large_threshold(large_threshold).map_err(|source| {
+            Error::LargeThresholdInvalid {
                 source,
-            })?;
+            }
+        })?;
 
         Ok(self)
     }
@@ -237,8 +236,8 @@ impl ConfigBuilder {
     /// Refer to the shard's [`ConfigBuilder::presence`] for more information.
     ///
     /// [`ConfigBuilder::presence`]: ../../shard/config/struct.ConfigBuilder.html#method.presence
-    pub fn presence(&mut self, presence: UpdateStatusInfo) -> &mut Self {
-        self.1.presence(presence);
+    pub fn presence(mut self, presence: UpdateStatusInfo) -> Self {
+        self.1 = self.1.presence(presence);
 
         self
     }
@@ -274,7 +273,7 @@ impl ConfigBuilder {
     ///
     /// [`ShardScheme::Auto`]: enum.ShardScheme.html#variant.Auto
     /// [`ShardScheme::Range`]: enum.ShardScheme.html#variant.Range
-    pub fn shard_scheme(&mut self, scheme: ShardScheme) -> &mut Self {
+    pub fn shard_scheme(mut self, scheme: ShardScheme) -> Self {
         self.0.shard_scheme = scheme;
 
         self

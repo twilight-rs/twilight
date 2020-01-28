@@ -119,14 +119,14 @@ impl ConfigBuilder {
     /// Presence updates alone account for about 85% of all event traffic.
     ///
     /// The default value is `true`.
-    pub fn guild_subscriptions(&mut self, guild_subscriptions: bool) -> &mut Self {
+    pub fn guild_subscriptions(mut self, guild_subscriptions: bool) -> Self {
         self.0.guild_subscriptions = guild_subscriptions;
 
         self
     }
 
     /// The HTTP client to be used by the shard for getting gateway information.
-    pub fn http_client(&mut self, http_client: HttpClient) -> &mut Self {
+    pub fn http_client(mut self, http_client: HttpClient) -> Self {
         self.0.http_client = http_client;
 
         self
@@ -147,7 +147,7 @@ impl ConfigBuilder {
     /// 50 or above 250.
     ///
     /// [`Error::LargeThresholdInvalid`]: ../error/enum.Error.html#variant.LargeThresholdInvalid
-    pub fn large_threshold(&mut self, large_threshold: u64) -> Result<&mut Self> {
+    pub fn large_threshold(mut self, large_threshold: u64) -> Result<Self> {
         if large_threshold > 250 || large_threshold < 50 {
             return Err(Error::LargeThresholdInvalid {
                 value: large_threshold,
@@ -163,7 +163,7 @@ impl ConfigBuilder {
     ///
     /// The default is none, which defaults to strictly being "online" with no
     /// special qualities.
-    pub fn presence(&mut self, presence: UpdateStatusInfo) -> &mut Self {
+    pub fn presence(mut self, presence: UpdateStatusInfo) -> Self {
         self.0.presence.replace(presence);
 
         self
@@ -179,7 +179,7 @@ impl ConfigBuilder {
     /// all shards when ran by a [`Cluster`].
     ///
     /// [`Cluster`]: ../../cluster/struct.Cluster.html
-    pub fn queue(&mut self, queue: impl Into<Box<dyn Queue + Send + Sync>>) -> &mut Self {
+    pub fn queue(mut self, queue: impl Into<Box<dyn Queue + Send + Sync>>) -> Self {
         self.0.queue = queue.into();
 
         self
@@ -218,7 +218,7 @@ impl ConfigBuilder {
     /// than the total.
     ///
     /// [`Error::IdTooLarge`]: ../error/enum.Error.html#variant.IdTooLarge
-    pub fn shard(&mut self, shard_id: u64, shard_total: u64) -> Result<&mut Self> {
+    pub fn shard(mut self, shard_id: u64, shard_total: u64) -> Result<Self> {
         if shard_id >= shard_total {
             return Err(Error::IdTooLarge {
                 id: shard_id,
