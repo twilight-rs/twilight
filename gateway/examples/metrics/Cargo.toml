@@ -9,5 +9,5 @@ dawn-gateway = { path = "../..", features = ["metrics"] }
 futures = "0.3"
 log = "0.4.8"
 pretty_env_logger = "0.3"
-tokio = "0.2"
-metrics-runtime = "0.12.1"
+tokio = { version = "0.2", features = ["macros", "rt-core"] }
+metrics-runtime = "0.13"
