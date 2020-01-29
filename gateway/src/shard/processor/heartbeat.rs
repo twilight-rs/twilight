@@ -37,7 +37,7 @@ impl Latency {
     ///
     /// # Note
     ///
-    /// If the value is none it means that the shard have not received a heartbeat.
+    /// If this is None, the shard has not received a heartbeat yet.
     pub fn average(&self) -> Option<Duration> {
         self.average
     }
