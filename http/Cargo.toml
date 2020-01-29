@@ -16,11 +16,10 @@ version = "0.1.0"
 futures = "0.3"
 dawn-model = { path = "../model" }
 log = "0.4"
-reqwest = { default-features = false, features = ["default-tls"], git = "https://github.com/seanmonstar/reqwest.git" }
+reqwest = "0.10"
 serde = "1"
 serde_json = "1"
 tokio = "0.2"
-#tokio-executor = "0.2"
 
 [dev-dependencies]
 tokio = "0.2"

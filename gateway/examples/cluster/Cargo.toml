@@ -8,4 +8,4 @@ version = "0.1.0"
 dawn-gateway = { path = "../.." }
 futures = "0.3"
 pretty_env_logger = "0.3"
-tokio = "0.2"
+tokio = { version = "0.2", features = ["macros", "rt-core"] }
