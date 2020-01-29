@@ -21,7 +21,7 @@ use tokio_tungstenite::tungstenite::Message as TungsteniteMessage;
 /// [`Shard::info`]: struct.Shard.html#method.info
 #[derive(Clone, Debug)]
 pub struct Latency {
-    average: Duration,
+    average: Option<Duration>,
     heartbeats: u32,
     recent: VecDeque<Duration>,
     received: Option<Instant>,
@@ -34,7 +34,11 @@ impl Latency {
     ///
     /// For example, a reasonable value for this may be between 10 to 100
     /// milliseconds depending on the network connection and physical location.
-    pub fn average(&self) -> Duration {
+    ///
+    /// # Note
+    ///
+    /// If this is None, the shard has not received a heartbeat yet.
+    pub fn average(&self) -> Option<Duration> {
         self.average
     }
 
@@ -82,7 +86,7 @@ impl Heartbeats {
             .collect();
 
         Latency {
-            average: self.total_time() / iterations,
+            average: self.total_time().checked_div(iterations),
             heartbeats: iterations,
             recent,
             received: *self.received.lock().await,

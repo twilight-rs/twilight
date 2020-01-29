@@ -63,7 +63,7 @@ pub struct Guild {
     pub afk_timeout: u64,
     pub application_id: Option<ApplicationId>,
     pub banner: Option<String>,
-    #[cfg_attr(feature = "serde-support", serde(with = "serde_mappable_seq"))]
+    #[cfg_attr(feature = "serde-support", serde(default, with = "serde_mappable_seq"))]
     pub channels: HashMap<ChannelId, GuildChannel>,
     pub default_message_notifications: DefaultMessageNotificationLevel,
     pub description: Option<String>,
@@ -75,7 +75,7 @@ pub struct Guild {
     pub explicit_content_filter: ExplicitContentFilter,
     pub features: Vec<String>,
     pub icon: Option<String>,
-    pub joined_at: String,
+    pub joined_at: Option<String>,
     #[cfg_attr(feature = "serde-support", serde(default))]
     pub large: bool,
     // Not documented so I marked it as optional.
@@ -83,7 +83,7 @@ pub struct Guild {
     pub max_members: Option<u64>,
     pub max_presences: Option<u64>,
     pub member_count: Option<u64>,
-    #[cfg_attr(feature = "serde-support", serde(with = "serde_mappable_seq"))]
+    #[cfg_attr(feature = "serde-support", serde(default, with = "serde_mappable_seq"))]
     pub members: HashMap<UserId, Member>,
     pub mfa_level: MfaLevel,
     pub name: String,
@@ -94,7 +94,7 @@ pub struct Guild {
     pub premium_subscription_count: Option<u64>,
     #[cfg_attr(feature = "serde-support", serde(default))]
     pub premium_tier: PremiumTier,
-    #[cfg_attr(feature = "serde-support", serde(with = "serde_mappable_seq"))]
+    #[cfg_attr(feature = "serde-support", serde(default, with = "serde_mappable_seq"))]
     pub presences: HashMap<UserId, Presence>,
     pub region: String,
     #[cfg_attr(feature = "serde-support", serde(with = "serde_mappable_seq"))]
@@ -106,7 +106,7 @@ pub struct Guild {
     #[cfg_attr(feature = "serde-support", serde(default))]
     pub unavailable: bool,
     pub verification_level: VerificationLevel,
-    #[cfg_attr(feature = "serde-support", serde(with = "serde_mappable_seq"))]
+    #[cfg_attr(feature = "serde-support", serde(default, with = "serde_mappable_seq"))]
     pub voice_states: HashMap<UserId, VoiceState>,
     pub vanity_url_code: Option<String>,
     pub widget_channel_id: Option<ChannelId>,

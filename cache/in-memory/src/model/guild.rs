@@ -26,7 +26,7 @@ pub struct CachedGuild {
     pub explicit_content_filter: ExplicitContentFilter,
     pub features: Vec<String>,
     pub icon: Option<String>,
-    pub joined_at: String,
+    pub joined_at: Option<String>,
     pub large: bool,
     pub lazy: Option<bool>,
     pub max_members: Option<u64>,
