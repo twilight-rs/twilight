@@ -20,6 +20,7 @@ use crate::Config;
 /// [`add`]: #method.add
 /// [`case_sensitive`]: #method.case_sensitive
 /// [`Config`]: struct.Config.html
+#[must_use = "If `add` is not called the command will not be added."]
 pub struct CommandBuilder<'a, 'b> {
     pub(crate) name: String,
     pub(crate) case_sensitive: bool,
