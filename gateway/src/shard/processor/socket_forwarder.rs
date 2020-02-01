@@ -74,6 +74,6 @@ impl SocketForwarder {
                 },
             }
         }
-        warn!("[SocketForwarder] Leaving looo");
+        warn!("[SocketForwarder] Leaving loop");
     }
 }
