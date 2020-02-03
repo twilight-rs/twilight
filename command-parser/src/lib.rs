@@ -73,11 +73,15 @@
 #![allow(clippy::module_name_repetitions, clippy::must_use_candidate)]
 
 mod arguments;
+mod builder;
+mod casing;
 mod config;
 mod parser;
 
 pub use self::{
     arguments::Arguments,
-    config::{CaseSensitivity, CommandBuilder, Config},
+    builder::CommandBuilder,
+    casing::CaseSensitivity,
+    config::Config,
     parser::{Command, Parser},
 };
