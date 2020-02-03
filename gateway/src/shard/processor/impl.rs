@@ -112,7 +112,7 @@ impl ShardProcessor {
                     );
 
                     // Inflater gets reset in the reconnect call.
-                    self.reconnect(false).await;
+                    self.reconnect(true).await;
                     continue;
                 },
                 Err(err) => {
@@ -127,7 +127,7 @@ impl ShardProcessor {
             if self.process(&gateway_event).await.is_err() {
                 debug!("Error processing event; reconnecting");
 
-                self.reconnect(false).await;
+                self.reconnect(true).await;
 
                 continue;
             }
@@ -185,7 +185,7 @@ impl ShardProcessor {
                 if let Err(err) = self.session.heartbeat() {
                     warn!("Error sending heartbeat; reconnecting: {}", err);
 
-                    self.reconnect(false).await;
+                    self.reconnect(true).await;
                 }
             },
             Hello(interval) => {
@@ -232,20 +232,20 @@ impl ShardProcessor {
                 #[cfg(feature = "metrics")]
                 counter!("GatewayEvent", 1, "GatewayEvent" => "InvalidateSessionFalse");
                 debug!("[EVENT] InvalidateSession(false)");
-                self.reconnect(false).await;
+                self.reconnect(true).await;
             },
             Reconnect => {
                 #[cfg(feature = "metrics")]
                 counter!("GatewayEvent", 1, "GatewayEvent" => "Reconnect");
                 debug!("[EVENT] Reconnect");
-                self.reconnect(false).await;
+                self.reconnect(true).await;
             },
         }
 
         Ok(())
     }
 
-    async fn reconnect(&mut self, resuming: bool) {
+    async fn reconnect(&mut self, full_reconnect: bool) {
         warn!("[reconnect] Reconnection started!");
         loop {
             self.config.queue.request().await;
@@ -281,7 +281,7 @@ impl ShardProcessor {
                 },
             };
 
-            if resuming {
+            if !full_reconnect {
                 self.session.set_stage(Stage::Resuming);
             }
 
@@ -302,13 +302,13 @@ impl ShardProcessor {
             id
         } else {
             warn!("Was not able to get the id, reconnecting.");
-            self.reconnect(false).await;
+            self.reconnect(true).await;
             return Ok(());
         };
 
         self.resume = Some((seq, id));
 
-        self.reconnect(true).await;
+        self.reconnect(false).await;
 
         Ok(())
     }
@@ -331,7 +331,7 @@ impl ShardProcessor {
                 log::warn!("Failed to send message: {:?}", source);
                 log::info!("Reconnecting");
 
-                self.reconnect(false).await;
+                self.reconnect(true).await;
 
                 Ok(())
             },
@@ -348,7 +348,7 @@ impl ShardProcessor {
             } else {
                 if let Err(why) = self.resume().await {
                     warn!("Resume failed with {}, reconnecting", why);
-                    self.reconnect(false).await;
+                    self.reconnect(true).await;
                 }
                 continue;
             };
