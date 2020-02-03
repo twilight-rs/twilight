@@ -9,6 +9,7 @@ use metrics::gauge;
 const ZLIB_SUFFIX: [u8; 4] = [0x00, 0x00, 0xff, 0xff];
 const INTERNAL_BUFFER_SIZE: usize = 32 * 1024;
 
+#[derive(Debug)]
 pub struct Inflater {
     decompress: Decompress,
     compressed: Vec<u8>,

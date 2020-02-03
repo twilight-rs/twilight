@@ -13,6 +13,8 @@ use futures::{
 };
 use log::debug;
 use std::sync::Arc;
+use tokio::sync::watch::Receiver as WatchReceiver;
+
 use tokio_tungstenite::tungstenite::Message;
 
 #[derive(Debug)]
@@ -20,7 +22,7 @@ pub struct ShardRef {
     config: Arc<Config>,
     listeners: Listeners<Event>,
     processor_handle: AbortHandle,
-    session: Arc<Session>,
+    session: WatchReceiver<Arc<Session>>,
 }
 
 /// Information about a shard, including its latency, current session sequence,
@@ -101,9 +103,9 @@ impl Shard {
 
     async fn _new(config: Config) -> Result<Self> {
         let config = Arc::new(config);
-        let processor = ShardProcessor::new(Arc::clone(&config)).await?;
+
+        let (processor, wrx) = ShardProcessor::new(Arc::clone(&config)).await?;
         let listeners = processor.listeners.clone();
-        let session = Arc::clone(&processor.session);
         let (fut, handle) = future::abortable(processor.run());
 
         tokio::spawn(async move {
@@ -116,7 +118,7 @@ impl Shard {
             config,
             listeners,
             processor_handle: handle,
-            session,
+            session: wrx,
         })))
     }
 
@@ -128,12 +130,25 @@ impl Shard {
     /// Returns information about the running of the shard, such as the current
     /// connection stage.
     pub async fn info(&self) -> Information {
+        let session = self.session();
+
         Information {
             id: self.config().shard()[0],
-            latency: self.0.session.heartbeats.latency().await,
-            seq: self.0.session.seq(),
-            stage: self.0.session.stage(),
+            latency: session.heartbeats.latency().await,
+            seq: session.seq(),
+            stage: session.stage(),
         }
+    }
+
+    /// Returns a handle to the current session
+    ///
+    /// # Note
+    ///
+    /// This session can be invalidated if it is kept around
+    /// under a reconnect or resume. In consequence this call
+    /// should not be cached.
+    pub fn session(&self) -> Arc<Session> {
+        Arc::clone(&self.0.session.borrow())
     }
 
     /// Creates a new stream of events from the shard.
@@ -191,8 +206,16 @@ impl Shard {
 
     /// Returns an interface implementing the `Sink` trait which can be used to
     /// send messages.
+    ///
+    /// # Note
+    ///
+    /// This call should not be cached for too long
+    /// as it will be invalidated by reconnects and
+    /// resumes.
     pub fn sink(&self) -> ShardSink {
-        ShardSink(self.0.session.tx.clone())
+        let session = self.session();
+
+        ShardSink(session.tx.clone())
     }
 
     /// Shuts down the shard.
@@ -203,11 +226,12 @@ impl Shard {
     /// may continue to show your bot as being online for some time when it's
     /// not.
     pub async fn shutdown(&self) {
+        let session = self.session();
         // Since we're shutting down now, we don't care if it sends or not.
-        let _ = self.0.session.tx.unbounded_send(Message::Close(None));
+        let _ = session.tx.unbounded_send(Message::Close(None));
 
         self.0.processor_handle.abort();
         self.0.listeners.remove_all().await;
-        self.0.session.stop_heartbeater().await;
+        session.stop_heartbeater().await;
     }
 }

@@ -25,6 +25,11 @@ use futures::{channel::mpsc::UnboundedReceiver, stream::StreamExt};
 use log::{debug, info, trace, warn};
 use serde::Serialize;
 use std::{env::consts::OS, ops::Deref, sync::Arc};
+use tokio::sync::watch::{
+    channel as watch_channel,
+    Receiver as WatchReceiver,
+    Sender as WatchSender,
+};
 use tokio_tungstenite::tungstenite::Message;
 
 #[cfg(feature = "metrics")]
@@ -34,6 +39,7 @@ use std::error::Error as StdError;
 
 /// Runs in the background and processes incoming events, and then broadcasts
 /// to all listeners.
+#[derive(Debug)]
 pub struct ShardProcessor {
     pub config: Arc<Config>,
     pub listeners: Listeners<Event>,
@@ -42,10 +48,12 @@ pub struct ShardProcessor {
     pub session: Arc<Session>,
     inflater: Inflater,
     url: String,
+    resume: Option<(u64, String)>,
+    wtx: WatchSender<Arc<Session>>,
 }
 
 impl ShardProcessor {
-    pub async fn new(config: Arc<Config>) -> Result<Self> {
+    pub async fn new(config: Arc<Config>) -> Result<(Self, WatchReceiver<Arc<Session>>)> {
         debug!("[ShardProcessor {:?}] Queueing", config.shard());
         config.queue.request().await;
         debug!("[ShardProcessor {:?}] Finished queue", config.shard());
@@ -70,15 +78,24 @@ impl ShardProcessor {
 
         let shard = config.shard();
 
-        Ok(Self {
-            config,
-            listeners: Listeners::default(),
-            properties,
-            rx,
-            session: Arc::new(Session::new(tx)),
-            inflater: Inflater::new(shard),
-            url,
-        })
+        let session = Arc::new(Session::new(tx));
+
+        let (wtx, wrx) = watch_channel(Arc::clone(&session));
+
+        Ok((
+            Self {
+                config,
+                listeners: Listeners::default(),
+                properties,
+                rx,
+                session,
+                inflater: Inflater::new(shard),
+                url,
+                resume: None,
+                wtx,
+            },
+            wrx,
+        ))
     }
 
     pub async fn run(mut self) {
@@ -95,7 +112,7 @@ impl ShardProcessor {
                     );
 
                     // Inflater gets reset in the reconnect call.
-                    self.reconnect().await;
+                    self.reconnect(true).await;
                     continue;
                 },
                 Err(err) => {
@@ -110,7 +127,7 @@ impl ShardProcessor {
             if self.process(&gateway_event).await.is_err() {
                 debug!("Error processing event; reconnecting");
 
-                self.reconnect().await;
+                self.reconnect(true).await;
 
                 continue;
             }
@@ -168,21 +185,37 @@ impl ShardProcessor {
                 if let Err(err) = self.session.heartbeat() {
                     warn!("Error sending heartbeat; reconnecting: {}", err);
 
-                    self.reconnect().await;
+                    self.reconnect(true).await;
                 }
             },
             Hello(interval) => {
                 #[cfg(feature = "metrics")]
                 counter!("GatewayEvent", 1, "GatewayEvent" => "Hello");
-                debug!("[EVENT] Hello({})", interval);
-                self.session.set_stage(Stage::Identifying);
+                warn!("[EVENT] Hello({})", interval);
 
-                if *interval > 0 {
-                    self.session.set_heartbeat_interval(*interval);
-                    self.session.start_heartbeater().await;
+                if self.session.stage() == Stage::Resuming && self.resume.is_some() {
+                    // Safe to unwrap so here as we have just checked that
+                    // it is some.
+                    let (seq, id) = self.resume.take().unwrap();
+                    warn!("Resumeing with ({}, {})!", seq, id);
+                    let payload = Resume::new(seq, id, self.config.token());
+
+                    if *interval > 0 {
+                        self.session.set_heartbeat_interval(*interval);
+                        self.session.start_heartbeater().await;
+                    }
+
+                    self.send(payload).await?;
+                } else {
+                    self.session.set_stage(Stage::Identifying);
+
+                    if *interval > 0 {
+                        self.session.set_heartbeat_interval(*interval);
+                        self.session.start_heartbeater().await;
+                    }
+
+                    self.identify().await?;
                 }
-
-                self.identify().await?;
             },
             HeartbeatAck => {
                 #[cfg(feature = "metrics")]
@@ -199,20 +232,20 @@ impl ShardProcessor {
                 #[cfg(feature = "metrics")]
                 counter!("GatewayEvent", 1, "GatewayEvent" => "InvalidateSessionFalse");
                 debug!("[EVENT] InvalidateSession(false)");
-                self.reconnect().await;
+                self.reconnect(true).await;
             },
             Reconnect => {
                 #[cfg(feature = "metrics")]
                 counter!("GatewayEvent", 1, "GatewayEvent" => "Reconnect");
                 debug!("[EVENT] Reconnect");
-                self.reconnect().await;
+                self.reconnect(true).await;
             },
         }
 
         Ok(())
     }
 
-    async fn reconnect(&mut self) {
+    async fn reconnect(&mut self, full_reconnect: bool) {
         warn!("[reconnect] Reconnection started!");
         loop {
             self.config.queue.request().await;
@@ -232,6 +265,26 @@ impl ShardProcessor {
 
             self.rx = new_rx;
             self.session = Arc::new(Session::new(new_tx));
+            match self.wtx.broadcast(Arc::clone(&self.session)) {
+                Ok(_) => (),
+                Err(why) => {
+                    warn!(
+                        "Broadcast of new session failed, \
+                         This should not happen, please open \
+                         a issue on the repo. {}",
+                        why
+                    );
+                    warn!(
+                        "After this many of the commands on the \
+                         shard will no longer work."
+                    );
+                },
+            };
+
+            if !full_reconnect {
+                self.session.set_stage(Stage::Resuming);
+            }
+
             self.inflater.reset();
 
             break;
@@ -241,18 +294,21 @@ impl ShardProcessor {
     async fn resume(&mut self) -> Result<()> {
         warn!("[resume] Resume started!");
         self.session.set_stage(Stage::Resuming);
+        self.session.stop_heartbeater().await;
+
+        let seq = self.session.seq();
 
         let id = if let Some(id) = self.session.id().await {
             id
         } else {
-            self.reconnect().await;
-
+            warn!("Was not able to get the id, reconnecting.");
+            self.reconnect(true).await;
             return Ok(());
         };
-        self.inflater.reset();
-        let payload = Resume::new(self.session.seq(), id, self.config.token());
 
-        self.send(payload).await?;
+        self.resume = Some((seq, id));
+
+        self.reconnect(false).await;
 
         Ok(())
     }
@@ -275,7 +331,7 @@ impl ShardProcessor {
                 log::warn!("Failed to send message: {:?}", source);
                 log::info!("Reconnecting");
 
-                self.reconnect().await;
+                self.reconnect(true).await;
 
                 Ok(())
             },
@@ -292,7 +348,7 @@ impl ShardProcessor {
             } else {
                 if let Err(why) = self.resume().await {
                     warn!("Resume failed with {}, reconnecting", why);
-                    self.reconnect().await;
+                    self.reconnect(true).await;
                 }
                 continue;
             };
@@ -325,7 +381,7 @@ impl ShardProcessor {
                     self.inflater.clear();
                     break msg_or_error;
                 },
-                Message::Close(_) => self.reconnect().await,
+                Message::Close(_) => self.resume().await?,
                 Message::Ping(_) | Message::Pong(_) => {},
                 Message::Text(text) => {
                     trace!("Text payload: {}", text);
