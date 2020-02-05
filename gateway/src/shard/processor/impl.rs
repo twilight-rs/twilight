@@ -198,7 +198,10 @@ impl ShardProcessor {
                     // it is some.
                     let (seq, id) = self.resume.take().unwrap();
                     warn!("Resumeing with ({}, {})!", seq, id);
-                    let payload = Resume::new(seq, id, self.config.token());
+                    let payload = Resume::new(seq, &id, self.config.token());
+
+                    // Set id so it is correct for next resume.
+                    self.session.set_id(id).await;
 
                     if *interval > 0 {
                         self.session.set_heartbeat_interval(*interval);
