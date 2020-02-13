@@ -8,16 +8,11 @@
 be used separately or in combination for the Discord API.
 
 The ecosystem of first-class crates includes `dawn-cache`,
-`dawn-command-parser`, `dawn-gateway`, `dawn-http`, `dawn-model`, `dawn-voice`,
+`dawn-command-parser`, `dawn-gateway`, `dawn-http`, `dawn-model`,
 and more. These are explained in detail below.
 
 The main `dawn` crate is a "skeleton crate": it includes all of the
 non-vendor-specific crates in the `dawn` ecosystem.
-
-Not included by default are crates like `dawn-cache-redis` for a
-redis-backed cache implementation, `dawn-lavalink` for lavalink voice
-support, and more. Read further down for a list of known first-party and
-third-party integration crates.
 
 ## Installation
  
@@ -55,8 +50,7 @@ responsible for holding information about things like guilds, channels, role
 information, voice states, and any other data that comes from Discord.
 
 Included by default is an `InMemoryCache` backend, which caches within the
-process's memory. Also available as a first-class library is
-`dawn-cache-redis` which supports caching via Redis.
+process's memory.
 
 ### `dawn-gateway`
 
@@ -87,110 +81,60 @@ the arguments out.
 based on `hyper`. It meets Discord's ratelimiting requirements and supports
 proxying.
 
-### `dawn-voice`
-
-`dawn-voice` is a WebSocket client supporting Discord's voice API. It
-exposes a powerful API supporting efficient managed voice connections,
-queueing, playback mutation, streaming, and audio controls.
 
 ## Examples
 
 ```rust
-use futures::StreamExt;
 use dawn::{
-    gateway::{Config, Event, Shard},
+    gateway::{shard::Event, Cluster, ClusterConfig},
     http::Client as HttpClient,
 };
-use std::{
-    env,
-    error::Error,
-};
+use futures::StreamExt;
+use std::{env, error::Error};
 
-let token = env::var("DISCORD_TOKEN")?;
+#[tokio::main]
+async fn main() -> Result<(), Box<dyn Error + Send + Sync>> {
+    let token = env::var("DISCORD_TOKEN")?;
+    let http = HttpClient::new(&token);
 
-let http = HttpClient::new(&token);
+    let cluster_config = ClusterConfig::builder(&token).build();
+    let cluster = Cluster::new(cluster_config);
+    cluster.up().await?;
 
-let config = Config::builder(&token).build();
-let mut shard = Shard::new(config);
-shard.connect().await?;
-let mut events = shard.events();
+    let mut events = cluster.events().await;
 
-while let Some(event) = events.next().await {
-    runtime::spawn(handle_event(event));
+    while let Some(event) = events.next().await {
+        tokio::spawn(handle_event(event, http.clone()));
+    }
+
+    Ok(())
 }
 
-async fn handle_event(event: Event) -> Result<(), Box<dyn Error>> {
+async fn handle_event(
+    event: (u64, Event),
+    http: HttpClient,
+) -> Result<(), Box<dyn Error + Send + Sync>> {
     match event {
-        Event::Connected(connected) => {
-            println!("Connected on shard {}", connected.shard_id);
-        },
-        Event::Message(msg) => {
+        (id, Event::Ready(_)) => {
+            println!("Connected on shard {}", id);
+        }
+        (_, Event::MessageCreate(msg)) => {
             if msg.content == "!ping" {
-                http.send_message(msg.channel_id).content("Pong!").await?;
+                http.create_message(msg.channel_id).content("Pong!").await?;
             }
-        },
-        _ => {},
+        }
+        _ => {}
     }
 
     Ok(())
 }
 ```
 
-Maintaining a cache of guilds, users, channels, and more sent by the
-gateway:
-
-```rust
-use futures::StreamExt;
-use dawn::{
-    cache::InMemoryCache,
-    gateway::{Config, Event, Shard},
-};
-use std::{
-    env,
-    error::Error,
-};
-
-let token = env::var("DISCORD_TOKEN")?;
-
-let config = Config::builder(&token).build();
-let mut shard = Shard::new(config);
-shard.connect().await?;
-let mut events = shard.events();
-
-let cache = InMemoryCache::new();
-
-while let Some(event) = events.next().await {
-    runtime::spawn(cache.update(&event));
-}
-```
-
-## Provided Crates
-
-Below is a list of crates which are either first-party or known unofficial
-third-party crates. These are not included by default.
-
-### First-party
-
-#### dawn-cache-redis
-
-`dawn-cache-redis` is an asynchronous caching implementation backed by
-Redis. It uses `redis-async-rs`.
-
-#### dawn-lavalink
-
-`dawn-lavalink` is an implementation bridging `dawn-gateway` and [Lavalink],
-offering a powerful interface for audio control.
-
-### Third-party
-
-N/A
-
 ## License
 
 All first-party crates are licensed under [ISC][LICENSE.md]
 
 [LICENSE.md]: https://github.com/dawn-rs/dawn/blob/master/LICENSE.md
-[Lavalink]: https://github.com/Frederikam/Lavalink
 [docs:discord:sharding]: https://discordapp.com/developers/docs/topics/gateway#sharding
 [license badge]: https://img.shields.io/badge/license-ISC-blue.svg?style=flat-square
 [license link]: https://opensource.org/licenses/ISC
