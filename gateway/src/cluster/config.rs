@@ -1,10 +1,12 @@
 use super::error::{Error, Result};
 use crate::shard::config::{Config as ShardConfig, ConfigBuilder as ShardConfigBuilder};
+use crate::queue::{LocalQueue, Queue};
 use dawn_http::Client;
 use dawn_model::gateway::payload::update_status::UpdateStatusInfo;
 use std::{
     convert::TryFrom,
     ops::{Bound, RangeBounds},
+    sync::Arc,
 };
 
 /// The method of sharding to use.
@@ -92,6 +94,7 @@ pub struct Config {
     http_client: Client,
     shard_config: ShardConfig,
     shard_scheme: ShardScheme,
+    queue: Arc<Box<dyn Queue>>,
 }
 
 impl Config {
@@ -130,6 +133,10 @@ impl Config {
     /// [`ConfigBuilder::shard_scheme`]: struct.ConfigBuilder.html#method.shard_scheme
     pub fn shard_scheme(&self) -> ShardScheme {
         self.shard_scheme
+    }
+
+    pub fn queue(&self) -> &Arc<Box<dyn Queue>> {
+        &self.queue
     }
 }
 
@@ -171,6 +178,7 @@ impl ConfigBuilder {
                 http_client: Client::new(token.clone()),
                 shard_config: ShardConfig::from(token.clone()),
                 shard_scheme: ShardScheme::Auto,
+                queue: Arc::new(Box::new(LocalQueue::new())),
             },
             ShardConfigBuilder::new(token),
         )
@@ -275,6 +283,17 @@ impl ConfigBuilder {
     /// [`ShardScheme::Range`]: enum.ShardScheme.html#variant.Range
     pub fn shard_scheme(mut self, scheme: ShardScheme) -> Self {
         self.0.shard_scheme = scheme;
+
+        self
+    }
+
+    /// Sets the queue to use for queueing shard connections.
+    ///
+    /// This can be used when having advanced setups with multiple
+    /// binaries connecting at the same time.
+    pub fn queue(mut self, queue: Arc<Box<dyn Queue>>) -> Self {
+        self.1 = self.1.queue(Arc::clone(&queue));
+        self.0.queue = queue;
 
         self
     }

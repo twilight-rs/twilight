@@ -1,3 +1,4 @@
+use std::sync::Arc;
 use super::{Error, Result};
 use crate::queue::{LocalQueue, Queue};
 use dawn_http::Client as HttpClient;
@@ -15,7 +16,7 @@ pub struct Config {
     http_client: HttpClient,
     large_threshold: u64,
     presence: Option<UpdateStatusInfo>,
-    pub(crate) queue: Box<dyn Queue + Send + Sync>,
+    pub(crate) queue: Arc<Box<dyn Queue>>,
     shard: [u64; 2],
     token: String,
 }
@@ -102,7 +103,7 @@ impl ConfigBuilder {
             http_client: HttpClient::new(token.clone()),
             large_threshold: 250,
             presence: None,
-            queue: Box::new(LocalQueue::new()),
+            queue: Arc::new(Box::new(LocalQueue::new())),
             shard: [0, 1],
             token,
         })
@@ -179,8 +180,8 @@ impl ConfigBuilder {
     /// all shards when ran by a [`Cluster`].
     ///
     /// [`Cluster`]: ../../cluster/struct.Cluster.html
-    pub fn queue(mut self, queue: impl Into<Box<dyn Queue + Send + Sync>>) -> Self {
-        self.0.queue = queue.into();
+    pub fn queue(mut self, queue: Arc<Box<dyn Queue>>) -> Self {
+        self.0.queue = queue;
 
         self
     }
