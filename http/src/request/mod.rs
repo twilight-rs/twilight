@@ -42,15 +42,17 @@ use crate::{
 };
 use reqwest::{
     header::{HeaderMap, HeaderValue},
+    multipart::Form,
     Method,
 };
 use std::{borrow::Cow, future::Future, pin::Pin};
 
 type Pending<'a, T> = Pin<Box<dyn Future<Output = Result<T>> + Send + 'a>>;
 
-#[derive(Clone, Debug)]
+#[derive(Debug)]
 pub struct Request {
     pub body: Option<Vec<u8>>,
+    pub form: Option<Form>,
     pub headers: Option<HeaderMap<HeaderValue>>,
     pub method: Method,
     pub path: Path,
@@ -67,6 +69,7 @@ impl Request {
 
         Self {
             body,
+            form: None,
             headers,
             method,
             path,
@@ -81,6 +84,7 @@ impl From<Route> for Request {
 
         Self {
             body: None,
+            form: None,
             headers: None,
             method,
             path,
@@ -95,6 +99,22 @@ impl From<(Vec<u8>, Route)> for Request {
 
         Self {
             body: Some(body),
+            form: None,
+            headers: None,
+            method,
+            path,
+            path_str,
+        }
+    }
+}
+
+impl From<(Vec<u8>, Form, Route)> for Request {
+    fn from((body, form, route): (Vec<u8>, Form, Route)) -> Self {
+        let (method, path, path_str) = route.into_parts();
+
+        Self {
+            body: Some(body),
+            form: Some(form),
             headers: None,
             method,
             path,
@@ -109,6 +129,7 @@ impl From<(Vec<u8>, HeaderMap<HeaderValue>, Route)> for Request {
 
         Self {
             body: Some(body),
+            form: None,
             headers: Some(headers),
             method,
             path,

@@ -3,6 +3,8 @@ use dawn_model::{
     channel::{embed::Embed, Message},
     id::ChannelId,
 };
+use reqwest::multipart::{Form, Part};
+use std::collections::HashMap;
 
 #[derive(Default, Serialize)]
 struct CreateMessageFields {
@@ -15,6 +17,7 @@ struct CreateMessageFields {
 }
 
 pub struct CreateMessage<'a> {
+    attachments: HashMap<String, Vec<u8>>,
     channel_id: ChannelId,
     fields: CreateMessageFields,
     fut: Option<Pending<'a, Message>>,
@@ -24,6 +27,7 @@ pub struct CreateMessage<'a> {
 impl<'a> CreateMessage<'a> {
     pub(crate) fn new(http: &'a Client, channel_id: ChannelId) -> Self {
         Self {
+            attachments: HashMap::new(),
             channel_id,
             fields: CreateMessageFields::default(),
             fut: None,
@@ -49,6 +53,23 @@ impl<'a> CreateMessage<'a> {
         self
     }
 
+    pub fn attachment(mut self, name: impl Into<String>, file: impl Into<Vec<u8>>) -> Self {
+        self.attachments.insert(name.into(), file.into());
+
+        self
+    }
+
+    pub fn attachments<N: Into<String>, F: Into<Vec<u8>>>(
+        mut self,
+        attachments: impl IntoIterator<Item = (N, F)>,
+    ) -> Self {
+        for (name, file) in attachments {
+            self = self.attachment(name, file);
+        }
+
+        self
+    }
+
     pub fn nonce(mut self, nonce: u64) -> Self {
         self.fields.nonce.replace(nonce);
 
@@ -68,12 +89,30 @@ impl<'a> CreateMessage<'a> {
     }
 
     fn start(&mut self) -> Result<()> {
-        self.fut.replace(Box::pin(self.http.request(Request::from((
-            serde_json::to_vec(&self.fields)?,
-            Route::CreateMessage {
-                channel_id: self.channel_id.0,
+        self.fut.replace(Box::pin(self.http.request(
+            if self.attachments.is_empty() {
+                Request::from((
+                    serde_json::to_vec(&self.fields)?,
+                    Route::CreateMessage {
+                        channel_id: self.channel_id.0,
+                    },
+                ))
+            } else {
+                let mut form = Form::new();
+
+                for (index, (name, file)) in self.attachments.clone().into_iter().enumerate() {
+                    form = form.part(format!("{}", index), Part::bytes(file).file_name(name));
+                }
+
+                Request::from((
+                    serde_json::to_vec(&self.fields)?,
+                    form,
+                    Route::CreateMessage {
+                        channel_id: self.channel_id.0,
+                    },
+                ))
             },
-        )))));
+        )));
 
         Ok(())
     }

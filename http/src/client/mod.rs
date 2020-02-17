@@ -679,6 +679,7 @@ impl Client {
     pub async fn raw(&self, request: Request) -> Result<Response> {
         let Request {
             body,
+            form,
             headers: req_headers,
             method,
             path: bucket,
@@ -687,17 +688,10 @@ impl Client {
 
         let protocol = if self.state.use_http { "http" } else { "https" };
         let url = format!("{}://discordapp.com/api/v6/{}", protocol, path);
+
         debug!("URL: {:?}", url);
 
         let mut builder = self.state.http.request(method.clone(), &url);
-
-        if let Some(bytes) = body {
-            let len = bytes.len();
-            builder = builder.body(Body::from(bytes));
-            builder = builder.header("content-length", len);
-        } else {
-            builder = builder.header("content-length", 0);
-        }
 
         if let Some(ref token) = self.state.token {
             let value = HeaderValue::from_str(&token).map_err(|source| Error::CreatingHeader {
@@ -708,7 +702,22 @@ impl Client {
             builder = builder.header("Authorization", value);
         }
 
-        let content_type = HeaderValue::from_static("application/json");
+        if let Some(form) = form {
+            builder = builder.multipart(form);
+        } else {
+            if let Some(bytes) = body {
+                let len = bytes.len();
+
+                builder = builder.body(Body::from(bytes));
+                builder = builder.header("content-length", len);
+            } else {
+                builder = builder.header("content-length", 0);
+            }
+
+            let content_type = HeaderValue::from_static("application/json");
+            builder = builder.header("Content-Type", content_type);
+        }
+
         let precision = HeaderValue::from_static("millisecond");
         let user_agent = HeaderValue::from_static(concat!(
             "dawn.rs (",
@@ -716,7 +725,6 @@ impl Client {
             ") ",
             env!("CARGO_PKG_VERSION"),
         ));
-        builder = builder.header("Content-Type", content_type);
         builder = builder.header("X-RateLimit-Precision", precision);
         builder = builder.header("User-Agent", user_agent);
 
