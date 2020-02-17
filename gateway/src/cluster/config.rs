@@ -1,6 +1,8 @@
 use super::error::{Error, Result};
-use crate::shard::config::{Config as ShardConfig, ConfigBuilder as ShardConfigBuilder};
-use crate::queue::{LocalQueue, Queue};
+use crate::{
+    queue::{LocalQueue, Queue},
+    shard::config::{Config as ShardConfig, ConfigBuilder as ShardConfigBuilder},
+};
 use dawn_http::Client;
 use dawn_model::gateway::payload::update_status::UpdateStatusInfo;
 use std::{

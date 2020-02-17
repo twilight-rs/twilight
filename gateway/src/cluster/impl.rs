@@ -2,9 +2,7 @@ use super::{
     config::{Config, ShardScheme},
     error::{Error, Result},
 };
-use crate::{
-    shard::{event::EventType, Config as ShardConfig, Event, Information, Shard},
-};
+use crate::shard::{event::EventType, Config as ShardConfig, Event, Information, Shard};
 use futures::{
     future,
     lock::Mutex,

@@ -1,8 +1,8 @@
-use std::sync::Arc;
 use super::{Error, Result};
 use crate::queue::{LocalQueue, Queue};
 use dawn_http::Client as HttpClient;
 use dawn_model::gateway::payload::update_status::UpdateStatusInfo;
+use std::sync::Arc;
 
 /// The configuration used by the shard to identify with the gateway and
 /// operate.
