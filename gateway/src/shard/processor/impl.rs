@@ -251,7 +251,10 @@ impl ShardProcessor {
     async fn reconnect(&mut self, full_reconnect: bool) {
         warn!("[reconnect] Reconnection started!");
         loop {
-            self.config.queue.request().await;
+            // Await allowance if doing a full reconnect
+            if full_reconnect {
+                self.config.queue.request().await;
+            }
 
             let new_stream = match connect::connect(&self.url).await {
                 Ok(s) => s,
