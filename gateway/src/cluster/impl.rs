@@ -227,12 +227,11 @@ impl Cluster {
     /// time the future is polled the cluter may have already dropped, bringing
     /// down the queue and shards with it.
     async fn start(cluster: Weak<ClusterRef>, shard_id: u64, shard_total: u64) -> Option<Shard> {
-        let queue = Arc::clone(cluster.upgrade()?.config.queue());
-        queue.request().await;
+        let cluster = cluster.upgrade()?;
 
-        let token = cluster.upgrade()?.config.shard_config().token().to_owned();
+        let token = cluster.config.shard_config().token().to_owned();
         let config = match ShardConfig::builder(token)
-            .queue(Arc::clone(&queue))
+            .queue(Arc::clone(&cluster.config.queue()))
             .shard(shard_id, shard_total)
         {
             Ok(c) => c.build(),
@@ -245,7 +244,6 @@ impl Cluster {
         let shard = Shard::new(config).await.ok()?;
 
         if let Some(old) = cluster
-            .upgrade()?
             .shards
             .lock()
             .await
