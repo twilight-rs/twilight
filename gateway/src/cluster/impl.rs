@@ -243,12 +243,7 @@ impl Cluster {
 
         let shard = Shard::new(config).await.ok()?;
 
-        if let Some(old) = cluster
-            .shards
-            .lock()
-            .await
-            .insert(shard_id, shard.clone())
-        {
+        if let Some(old) = cluster.shards.lock().await.insert(shard_id, shard.clone()) {
             old.shutdown().await;
         }
 
