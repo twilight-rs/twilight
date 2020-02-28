@@ -28,7 +28,7 @@ impl Identify {
 pub struct IdentifyInfo {
     pub compression: bool,
     pub guild_subscriptions: bool,
-    pub intents: GatewayIntents,
+    pub intents: Option<GatewayIntents>,
     pub large_threshold: u64,
     pub presence: Option<UpdateStatusInfo>,
     pub properties: IdentifyProperties,

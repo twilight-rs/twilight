@@ -9,7 +9,9 @@ async fn main() -> Result<(), Box<dyn Error + Send + Sync>> {
     let config = {
         use dawn_model::gateway::GatewayIntents;
         let mut conf = Config::builder(env::var("DISCORD_TOKEN")?);
-        conf.intents(GatewayIntents::GUILD_MESSAGES | GatewayIntents::DIRECT_MESSAGES);
+        conf.intents(Some(
+            GatewayIntents::GUILD_MESSAGES | GatewayIntents::DIRECT_MESSAGES,
+        ));
         conf.build()
     };
 

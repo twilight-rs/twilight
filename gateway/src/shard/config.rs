@@ -14,7 +14,7 @@ use std::sync::Arc;
 pub struct Config {
     guild_subscriptions: bool,
     http_client: HttpClient,
-    intents: GatewayIntents,
+    intents: Option<GatewayIntents>,
     large_threshold: u64,
     presence: Option<UpdateStatusInfo>,
     pub(crate) queue: Arc<Box<dyn Queue>>,
@@ -44,8 +44,8 @@ impl Config {
     }
 
     /// Returns the intents that the gateway is using.
-    pub fn intents(&self) -> &GatewayIntents {
-        &self.intents
+    pub fn intents(&self) -> Option<&GatewayIntents> {
+        self.intents.as_ref()
     }
 
     /// The maximum threshold at which point the gateway will stop sending
@@ -107,7 +107,7 @@ impl ConfigBuilder {
         Self(Config {
             guild_subscriptions: true,
             http_client: HttpClient::new(token.clone()),
-            intents: GatewayIntents::all(),
+            intents: None,
             large_threshold: 250,
             presence: None,
             queue: Arc::new(Box::new(LocalQueue::new())),
@@ -141,7 +141,7 @@ impl ConfigBuilder {
     }
 
     /// Sets the gateway intents.
-    pub fn intents(&mut self, intents: GatewayIntents) -> &mut Self {
+    pub fn intents(&mut self, intents: Option<GatewayIntents>) -> &mut Self {
         self.0.intents = intents;
 
         self
