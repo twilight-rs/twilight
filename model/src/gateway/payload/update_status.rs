@@ -22,7 +22,7 @@ impl UpdateStatus {
     ) -> Self {
         Self {
             d: UpdateStatusInfo::new(afk, game, since, status),
-            op: OpCode::Identify,
+            op: OpCode::StatusUpdate,
         }
     }
 }

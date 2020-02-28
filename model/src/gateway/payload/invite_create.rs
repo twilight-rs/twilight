@@ -10,7 +10,7 @@ pub struct InviteCreate {
     pub code: String,
     pub created_at: String,
     pub guild_id: GuildId,
-    pub inviter: PartialUser,
+    pub inviter: Option<PartialUser>,
     pub max_age: u64,
     pub max_uses: u64,
     pub temporary: bool,
@@ -23,7 +23,7 @@ pub struct InviteCreate {
 )]
 #[derive(Clone, Debug, Eq, Hash, PartialEq)]
 pub struct PartialUser {
-    avatar: String,
+    avatar: Option<String>,
     discriminator: String,
     id: UserId,
     username: String,
