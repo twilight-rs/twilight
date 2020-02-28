@@ -191,7 +191,7 @@ impl ShardProcessor {
             Hello(interval) => {
                 #[cfg(feature = "metrics")]
                 counter!("GatewayEvent", 1, "GatewayEvent" => "Hello");
-                warn!("[EVENT] Hello({})", interval);
+                debug!("[EVENT] Hello({})", interval);
 
                 if self.session.stage() == Stage::Resuming && self.resume.is_some() {
                     // Safe to unwrap so here as we have just checked that
@@ -249,9 +249,12 @@ impl ShardProcessor {
     }
 
     async fn reconnect(&mut self, full_reconnect: bool) {
-        warn!("[reconnect] Reconnection started!");
+        info!("[reconnect] Reconnection started!");
         loop {
-            self.config.queue.request().await;
+            // Await allowance if doing a full reconnect
+            if full_reconnect {
+                self.config.queue.request().await;
+            }
 
             let new_stream = match connect::connect(&self.url).await {
                 Ok(s) => s,
@@ -295,7 +298,7 @@ impl ShardProcessor {
     }
 
     async fn resume(&mut self) -> Result<()> {
-        warn!("[resume] Resume started!");
+        info!("[resume] Resume started!");
         self.session.set_stage(Stage::Resuming);
         self.session.stop_heartbeater().await;
 
@@ -322,7 +325,7 @@ impl ShardProcessor {
             Err(Error::PayloadSerialization {
                 source,
             }) => {
-                log::warn!("Failed to serialize message to send: {:?}", source);
+                warn!("Failed to serialize message to send: {:?}", source);
 
                 Err(Error::PayloadSerialization {
                     source,
@@ -331,8 +334,8 @@ impl ShardProcessor {
             Err(Error::SendingMessage {
                 source,
             }) => {
-                log::warn!("Failed to send message: {:?}", source);
-                log::info!("Reconnecting");
+                warn!("Failed to send message: {:?}", source);
+                info!("Reconnecting");
 
                 self.reconnect(true).await;
 

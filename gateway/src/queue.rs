@@ -100,28 +100,3 @@ impl Queue for LocalQueue {
     }
     */
 }
-
-/*
-async fn queue_spawner(queue: Weak<LocalQueueRef>) -> Option<()> {
-    const DUR: Duration = Duration::from_secs(6);
-
-    while let Some(req) = queue.upgrade()?.requests.lock().await.pop_front() {
-        if let Err(()) = req.send(()) {
-            warn!("Request rx dropped before success");
-        } else {
-            info!("Successfully sent allowance");
-        }
-
-        tokio_timer::delay_for(DUR).await;
-    }
-
-    tokio_timer::delay_for(DUR).await;
-
-    queue
-        .upgrade()?
-        .task_running
-        .store(false, Ordering::Release);
-
-    Some(())
-}
-*/

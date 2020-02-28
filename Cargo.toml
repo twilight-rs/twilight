@@ -9,6 +9,7 @@ members = [
     "gateway/examples/cluster",
     "gateway/examples/metrics",
     "gateway/examples/shard",
+    "gateway/examples/queue",
     "http",
     "http/examples/get-message",
     "http/examples/proxy",

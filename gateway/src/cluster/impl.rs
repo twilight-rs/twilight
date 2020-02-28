@@ -2,10 +2,7 @@ use super::{
     config::{Config, ShardScheme},
     error::{Error, Result},
 };
-use crate::{
-    queue::{LocalQueue, Queue},
-    shard::{event::EventType, Config as ShardConfig, Event, Information, Shard},
-};
+use crate::shard::{event::EventType, Config as ShardConfig, Event, Information, Shard};
 use futures::{
     future,
     lock::Mutex,
@@ -19,7 +16,6 @@ use std::{
 
 struct ClusterRef {
     config: Config,
-    queue: Box<dyn Queue>,
     shards: Arc<Mutex<HashMap<u64, Shard>>>,
 }
 
@@ -231,10 +227,13 @@ impl Cluster {
     /// time the future is polled the cluter may have already dropped, bringing
     /// down the queue and shards with it.
     async fn start(cluster: Weak<ClusterRef>, shard_id: u64, shard_total: u64) -> Option<Shard> {
-        cluster.upgrade()?.queue.request().await;
+        let cluster = cluster.upgrade()?;
 
-        let token = cluster.upgrade()?.config.shard_config().token().to_owned();
-        let config = match ShardConfig::builder(token).shard(shard_id, shard_total) {
+        let token = cluster.config.shard_config().token().to_owned();
+        let config = match ShardConfig::builder(token)
+            .queue(Arc::clone(&cluster.config.queue()))
+            .shard(shard_id, shard_total)
+        {
             Ok(c) => c.build(),
             Err(err) => {
                 warn!("Config creation failed with: {}", err);
@@ -244,13 +243,7 @@ impl Cluster {
 
         let shard = Shard::new(config).await.ok()?;
 
-        if let Some(old) = cluster
-            .upgrade()?
-            .shards
-            .lock()
-            .await
-            .insert(shard_id, shard.clone())
-        {
+        if let Some(old) = cluster.shards.lock().await.insert(shard_id, shard.clone()) {
             old.shutdown().await;
         }
 
@@ -262,7 +255,6 @@ impl<T: Into<Config>> From<T> for Cluster {
     fn from(config: T) -> Self {
         Self(Arc::new(ClusterRef {
             config: config.into(),
-            queue: Box::new(LocalQueue::new()),
             shards: Arc::new(Mutex::new(HashMap::new())),
         }))
     }
