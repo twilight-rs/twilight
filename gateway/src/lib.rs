@@ -6,7 +6,11 @@
     rust_2018_idioms,
     unsafe_code
 )]
-#![allow(clippy::module_name_repetitions, clippy::must_use_candidate)]
+#![allow(
+    clippy::module_name_repetitions,
+    clippy::must_use_candidate,
+    clippy::wildcard_imports
+)]
 
 pub mod cluster;
 pub mod queue;

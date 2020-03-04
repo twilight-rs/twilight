@@ -143,7 +143,9 @@ impl ShardProcessor {
 
         let intents = if let Some(i) = self.config.intents() {
             Some(*i)
-        } else { None };
+        } else {
+            None
+        };
 
         let identify = Identify::new(IdentifyInfo {
             compression: false,
@@ -161,7 +163,14 @@ impl ShardProcessor {
     }
 
     async fn process(&mut self, event: &GatewayEvent) -> Result<()> {
-        use GatewayEvent::*;
+        use GatewayEvent::{
+            Dispatch,
+            Heartbeat,
+            HeartbeatAck,
+            Hello,
+            InvalidateSession,
+            Reconnect,
+        };
 
         match event {
             Dispatch(seq, dispatch) => {

@@ -124,6 +124,7 @@ impl FromStr for Path {
     /// );
     /// # Ok(()) }
     /// ```
+    #[allow(clippy::enum_glob_use)]
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         use Path::*;
 
