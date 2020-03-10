@@ -2,6 +2,7 @@ use crate::{
     guild::{
         DefaultMessageNotificationLevel,
         Emoji,
+        ExplicitContentFilter,
         MfaLevel,
         Permissions,
         PremiumTier,
@@ -32,10 +33,12 @@ pub struct PartialGuild {
     pub embed_enabled: bool,
     #[cfg_attr(feature = "serde-support", serde(with = "serde_mappable_seq"))]
     pub emojis: HashMap<EmojiId, Emoji>,
+    pub explicit_content_filter: ExplicitContentFilter,
     pub features: Vec<String>,
     pub icon: Option<String>,
     pub max_members: Option<u64>,
     pub max_presences: Option<u64>,
+    pub member_count: Option<u64>,
     pub mfa_level: MfaLevel,
     pub name: String,
     pub owner: Option<bool>,
