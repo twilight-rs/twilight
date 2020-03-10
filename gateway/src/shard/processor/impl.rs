@@ -141,11 +141,7 @@ impl ShardProcessor {
     async fn identify(&mut self) -> Result<()> {
         self.session.set_stage(Stage::Identifying);
 
-        let intents = if let Some(i) = self.config.intents() {
-            Some(*i)
-        } else {
-            None
-        };
+        let intents = self.config.intents().copied();
 
         let identify = Identify::new(IdentifyInfo {
             compression: false,

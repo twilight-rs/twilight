@@ -1,4 +1,5 @@
 use dawn_gateway::{shard::Config, Shard};
+use dawn_model::gateway::GatewayIntents;
 use futures::StreamExt;
 use std::{env, error::Error};
 
@@ -7,7 +8,6 @@ async fn main() -> Result<(), Box<dyn Error + Send + Sync>> {
     pretty_env_logger::init_timed();
 
     let config = {
-        use dawn_model::gateway::GatewayIntents;
         let mut conf = Config::builder(env::var("DISCORD_TOKEN")?);
         conf.intents(Some(
             GatewayIntents::GUILD_MESSAGES | GatewayIntents::DIRECT_MESSAGES,

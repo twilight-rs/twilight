@@ -100,7 +100,7 @@ impl Shard {
     ///
     /// # Errors
     ///
-    /// The new method can error if the `ShardProcessor` could no be started.
+    /// Errors if the `ShardProcessor` could not be started.
     pub async fn new(config: impl Into<Config>) -> Result<Self> {
         Self::_new(config.into()).await
     }
