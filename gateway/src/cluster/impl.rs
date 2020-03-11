@@ -14,6 +14,7 @@ use std::{
     sync::{Arc, Weak},
 };
 
+#[derive(Debug)]
 struct ClusterRef {
     config: Config,
     shards: Arc<Mutex<HashMap<u64, Shard>>>,
@@ -27,7 +28,7 @@ struct ClusterRef {
 /// # Examples
 ///
 /// Refer to the module-level documentation for examples.
-#[derive(Clone)]
+#[derive(Clone, Debug)]
 pub struct Cluster(Arc<ClusterRef>);
 
 impl Cluster {
