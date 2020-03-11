@@ -15,7 +15,7 @@ pub struct PresenceUpdate {
     pub game: Option<Activity>,
     pub guild_id: Option<GuildId>,
     pub nick: Option<String>,
-    pub premium_sinec: Option<String>,
+    pub premium_since: Option<String>,
     pub roles: Option<Vec<RoleId>>,
     pub status: Status,
     pub user: UserOrId,
