@@ -8,6 +8,7 @@ members = [
     "gateway",
     "gateway/examples/cluster",
     "gateway/examples/metrics",
+    "gateway/examples/intents",
     "gateway/examples/shard",
     "gateway/examples/queue",
     "http",

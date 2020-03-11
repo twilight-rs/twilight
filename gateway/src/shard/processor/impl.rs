@@ -20,6 +20,7 @@ use dawn_model::gateway::payload::{
     identify::{Identify, IdentifyInfo, IdentifyProperties},
     resume::Resume,
 };
+
 use futures::{channel::mpsc::UnboundedReceiver, stream::StreamExt};
 #[allow(unused_imports)]
 use log::{debug, info, trace, warn};
@@ -140,9 +141,12 @@ impl ShardProcessor {
     async fn identify(&mut self) -> Result<()> {
         self.session.set_stage(Stage::Identifying);
 
+        let intents = self.config.intents().copied();
+
         let identify = Identify::new(IdentifyInfo {
             compression: false,
             guild_subscriptions: true,
+            intents,
             large_threshold: 250,
             properties: self.properties.clone(),
             shard: Some(self.config.shard()),
@@ -155,7 +159,14 @@ impl ShardProcessor {
     }
 
     async fn process(&mut self, event: &GatewayEvent) -> Result<()> {
-        use GatewayEvent::*;
+        use GatewayEvent::{
+            Dispatch,
+            Heartbeat,
+            HeartbeatAck,
+            Hello,
+            InvalidateSession,
+            Reconnect,
+        };
 
         match event {
             Dispatch(seq, dispatch) => {

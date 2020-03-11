@@ -1,3 +1,4 @@
+#![allow(clippy::wildcard_imports)]
 //! Events that the shard emits to event streams.
 //!
 //! Included is the larger [`Event`] exposed to event streams. It contains

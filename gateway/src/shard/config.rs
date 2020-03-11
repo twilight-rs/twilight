@@ -1,7 +1,7 @@
 use super::{Error, Result};
 use crate::queue::{LocalQueue, Queue};
 use dawn_http::Client as HttpClient;
-use dawn_model::gateway::payload::update_status::UpdateStatusInfo;
+use dawn_model::gateway::{payload::update_status::UpdateStatusInfo, GatewayIntents};
 use std::sync::Arc;
 
 /// The configuration used by the shard to identify with the gateway and
@@ -14,6 +14,7 @@ use std::sync::Arc;
 pub struct Config {
     guild_subscriptions: bool,
     http_client: HttpClient,
+    intents: Option<GatewayIntents>,
     large_threshold: u64,
     presence: Option<UpdateStatusInfo>,
     pub(crate) queue: Arc<Box<dyn Queue>>,
@@ -40,6 +41,11 @@ impl Config {
     /// Returns the `dawn_http` client to be used by the shard.
     pub fn http_client(&self) -> &HttpClient {
         &self.http_client
+    }
+
+    /// Returns the intents that the gateway is using.
+    pub fn intents(&self) -> Option<&GatewayIntents> {
+        self.intents.as_ref()
     }
 
     /// The maximum threshold at which point the gateway will stop sending
@@ -101,6 +107,7 @@ impl ConfigBuilder {
         Self(Config {
             guild_subscriptions: true,
             http_client: HttpClient::new(token.clone()),
+            intents: None,
             large_threshold: 250,
             presence: None,
             queue: Arc::new(Box::new(LocalQueue::new())),
@@ -129,6 +136,13 @@ impl ConfigBuilder {
     /// The HTTP client to be used by the shard for getting gateway information.
     pub fn http_client(mut self, http_client: HttpClient) -> Self {
         self.0.http_client = http_client;
+
+        self
+    }
+
+    /// Sets the gateway intents.
+    pub fn intents(&mut self, intents: Option<GatewayIntents>) -> &mut Self {
+        self.0.intents = intents;
 
         self
     }

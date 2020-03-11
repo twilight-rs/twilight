@@ -1,5 +1,5 @@
 use super::update_status::UpdateStatusInfo;
-use crate::gateway::opcode::OpCode;
+use crate::gateway::{intents::GatewayIntents, opcode::OpCode};
 
 #[cfg_attr(
     feature = "serde-support",
@@ -28,6 +28,7 @@ impl Identify {
 pub struct IdentifyInfo {
     pub compression: bool,
     pub guild_subscriptions: bool,
+    pub intents: Option<GatewayIntents>,
     pub large_threshold: u64,
     pub presence: Option<UpdateStatusInfo>,
     pub properties: IdentifyProperties,
