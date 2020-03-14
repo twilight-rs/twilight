@@ -520,14 +520,17 @@ impl Route {
                 reason,
                 user_id,
             } => {
-                let mut path = format!("guilds/{}/bans/{}", guild_id, user_id);
+                let mut path = format!("guilds/{}/bans/{}?", guild_id, user_id);
 
                 if let Some(delete_message_days) = delete_message_days {
                     let _ = write!(path, "delete-message-days={}", delete_message_days);
+                    if reason.is_some() {
+                        let _ = write!(path, "&");
+                    }
                 }
 
                 if let Some(reason) = reason {
-                    let _ = write!(path, "&reason={}", reason);
+                    let _ = write!(path, "reason={}", reason);
                 }
 
                 (Method::PUT, Path::GuildsIdBansUserId(guild_id), path.into())

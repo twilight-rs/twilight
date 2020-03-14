@@ -37,14 +37,17 @@ pub use self::{
 };
 
 use crate::{
-    error::Result,
+    error::{Error, Result},
     routing::{Path, Route},
 };
+
+use percent_encoding::{utf8_percent_encode, NON_ALPHANUMERIC};
 use reqwest::{
-    header::{HeaderMap, HeaderValue},
+    header::{HeaderMap, HeaderName, HeaderValue},
     multipart::Form,
     Method,
 };
+
 use std::{borrow::Cow, future::Future, pin::Pin};
 
 type Pending<'a, T> = Pin<Box<dyn Future<Output = Result<T>> + Send + 'a>>;
@@ -57,6 +60,21 @@ pub struct Request {
     pub method: Method,
     pub path: Path,
     pub path_str: Cow<'static, str>,
+}
+
+pub(crate) fn audit_header(reason: &str) -> Result<HeaderMap<HeaderValue>> {
+    let header_name = HeaderName::from_static("x-audit-log-reason");
+    let mut headers = HeaderMap::new();
+    let encoded_reason = utf8_percent_encode(reason, NON_ALPHANUMERIC).to_string();
+    let header_value =
+        HeaderValue::from_str(&encoded_reason).map_err(|e| Error::CreatingHeader {
+            name: encoded_reason.clone(),
+            source: e,
+        })?;
+
+    headers.insert(header_name, header_value);
+
+    Ok(headers)
 }
 
 impl Request {
@@ -116,6 +134,21 @@ impl From<(Vec<u8>, Form, Route)> for Request {
             body: Some(body),
             form: Some(form),
             headers: None,
+            method,
+            path,
+            path_str,
+        }
+    }
+}
+
+impl From<(HeaderMap<HeaderValue>, Route)> for Request {
+    fn from((headers, route): (HeaderMap<HeaderValue>, Route)) -> Self {
+        let (method, path, path_str) = route.into_parts();
+
+        Self {
+            body: None,
+            form: None,
+            headers: Some(headers),
             method,
             path,
             path_str,

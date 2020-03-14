@@ -22,6 +22,7 @@ pub struct UpdateChannel<'a> {
     fields: UpdateChannelFields,
     fut: Option<Pending<'a, Channel>>,
     http: &'a Client,
+    reason: Option<String>,
 }
 
 impl<'a> UpdateChannel<'a> {
@@ -31,6 +32,7 @@ impl<'a> UpdateChannel<'a> {
             fields: UpdateChannelFields::default(),
             fut: None,
             http,
+            reason: None,
         }
     }
 
@@ -93,13 +95,32 @@ impl<'a> UpdateChannel<'a> {
         self
     }
 
+    pub fn reason(mut self, reason: impl Into<String>) -> Self {
+        self.reason.replace(reason.into());
+
+        self
+    }
+
     fn start(&mut self) -> Result<()> {
-        self.fut.replace(Box::pin(self.http.request(Request::from((
-            serde_json::to_vec(&self.fields)?,
-            Route::UpdateChannel {
-                channel_id: self.channel_id.0,
-            },
-        )))));
+        let request = if let Some(reason) = &self.reason {
+            let headers = audit_header(&reason)?;
+            Request::from((
+                serde_json::to_vec(&self.fields)?,
+                headers,
+                Route::UpdateChannel {
+                    channel_id: self.channel_id.0,
+                },
+            ))
+        } else {
+            Request::from((
+                serde_json::to_vec(&self.fields)?,
+                Route::UpdateChannel {
+                    channel_id: self.channel_id.0,
+                },
+            ))
+        };
+
+        self.fut.replace(Box::pin(self.http.request(request)));
 
         Ok(())
     }

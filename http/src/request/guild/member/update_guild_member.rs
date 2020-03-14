@@ -19,6 +19,7 @@ pub struct UpdateGuildMember<'a> {
     guild_id: GuildId,
     http: &'a Client,
     user_id: UserId,
+    reason: Option<String>,
 }
 
 impl<'a> UpdateGuildMember<'a> {
@@ -29,6 +30,7 @@ impl<'a> UpdateGuildMember<'a> {
             guild_id,
             http,
             user_id,
+            reason: None,
         }
     }
 
@@ -62,14 +64,34 @@ impl<'a> UpdateGuildMember<'a> {
         self
     }
 
+    pub fn reason(mut self, reason: impl Into<String>) -> Self {
+        self.reason.replace(reason.into());
+
+        self
+    }
+
     fn start(&mut self) -> Result<()> {
-        self.fut.replace(Box::pin(self.http.request(Request::from((
-            serde_json::to_vec(&self.fields)?,
-            Route::UpdateMember {
-                guild_id: self.guild_id.0,
-                user_id: self.user_id.0,
-            },
-        )))));
+        let request = if let Some(reason) = &self.reason {
+            let headers = audit_header(&reason)?;
+            Request::from((
+                serde_json::to_vec(&self.fields)?,
+                headers,
+                Route::UpdateMember {
+                    guild_id: self.guild_id.0,
+                    user_id: self.user_id.0,
+                },
+            ))
+        } else {
+            Request::from((
+                serde_json::to_vec(&self.fields)?,
+                Route::UpdateMember {
+                    guild_id: self.guild_id.0,
+                    user_id: self.user_id.0,
+                },
+            ))
+        };
+
+        self.fut.replace(Box::pin(self.http.request(request)));
 
         Ok(())
     }
