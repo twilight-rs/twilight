@@ -10,6 +10,7 @@ pub struct DeleteWebhook<'a> {
     fut: Option<Pending<'a, ()>>,
     http: &'a Client,
     id: WebhookId,
+    reason: Option<String>,
 }
 
 impl<'a> DeleteWebhook<'a> {
@@ -21,6 +22,7 @@ impl<'a> DeleteWebhook<'a> {
             fut: None,
             http,
             id,
+            reason: None,
         }
     }
 
@@ -30,13 +32,30 @@ impl<'a> DeleteWebhook<'a> {
         self
     }
 
+    pub fn reason(mut self, reason: impl Into<String>) -> Self {
+        self.reason.replace(reason.into());
+
+        self
+    }
+
     fn start(&mut self) -> Result<()> {
-        self.fut.replace(Box::pin(self.http.verify(Request::from(
-            Route::DeleteWebhook {
+        let request = if let Some(reason) = &self.reason {
+            let headers = audit_header(&reason)?;
+            Request::from((
+                headers,
+                Route::DeleteWebhook {
+                    webhook_id: self.id.0,
+                    token: self.fields.token.clone(),
+                },
+            ))
+        } else {
+            Request::from(Route::DeleteWebhook {
                 webhook_id: self.id.0,
                 token: self.fields.token.clone(),
-            },
-        ))));
+            })
+        };
+
+        self.fut.replace(Box::pin(self.http.verify(request)));
 
         Ok(())
     }

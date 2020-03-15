@@ -805,7 +805,7 @@ impl Client {
             });
         }
 
-        if resp.status().is_client_error() {
+        if resp.status().is_server_error() {
             return Err(Error::Response {
                 source: ResponseError::Server {
                     response: resp,

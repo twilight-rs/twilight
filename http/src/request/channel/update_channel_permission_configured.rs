@@ -14,6 +14,7 @@ pub struct UpdateChannelPermissionConfigured<'a> {
     fut: Option<Pending<'a, ()>>,
     http: &'a Client,
     target_id: u64,
+    reason: Option<String>,
 }
 
 impl<'a> UpdateChannelPermissionConfigured<'a> {
@@ -35,17 +36,38 @@ impl<'a> UpdateChannelPermissionConfigured<'a> {
             fut: None,
             http,
             target_id,
+            reason: None,
         }
     }
 
+    pub fn reason(mut self, reason: impl Into<String>) -> Self {
+        self.reason.replace(reason.into());
+
+        self
+    }
+
     fn start(&mut self) -> Result<()> {
-        self.fut.replace(Box::pin(self.http.verify(Request::from((
-            serde_json::to_vec(&self.fields)?,
-            Route::UpdatePermissionOverwrite {
-                channel_id: self.channel_id.0,
-                target_id: self.target_id,
-            },
-        )))));
+        let request = if let Some(reason) = &self.reason {
+            let headers = audit_header(&reason)?;
+            Request::from((
+                serde_json::to_vec(&self.fields)?,
+                headers,
+                Route::UpdatePermissionOverwrite {
+                    channel_id: self.channel_id.0,
+                    target_id: self.target_id,
+                },
+            ))
+        } else {
+            Request::from((
+                serde_json::to_vec(&self.fields)?,
+                Route::UpdatePermissionOverwrite {
+                    channel_id: self.channel_id.0,
+                    target_id: self.target_id,
+                },
+            ))
+        };
+
+        self.fut.replace(Box::pin(self.http.verify(request)));
 
         Ok(())
     }

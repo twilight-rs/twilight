@@ -1,6 +1,7 @@
 use crate::request::prelude::*;
 use dawn_model::{guild::GuildPrune, id::GuildId};
 
+#[derive(Default)]
 struct CreateGuildPruneFields {
     compute_prune_count: Option<bool>,
     days: Option<u64>,
@@ -11,18 +12,17 @@ pub struct CreateGuildPrune<'a> {
     guild_id: GuildId,
     fut: Option<Pending<'a, Option<GuildPrune>>>,
     http: &'a Client,
+    reason: Option<String>,
 }
 
 impl<'a> CreateGuildPrune<'a> {
     pub(crate) fn new(http: &'a Client, guild_id: GuildId) -> Self {
         Self {
-            fields: CreateGuildPruneFields {
-                compute_prune_count: None,
-                days: None,
-            },
+            fields: CreateGuildPruneFields::default(),
             fut: None,
             guild_id,
             http,
+            reason: None,
         }
     }
 
@@ -38,14 +38,32 @@ impl<'a> CreateGuildPrune<'a> {
         self
     }
 
+    pub fn reason(mut self, reason: impl Into<String>) -> Self {
+        self.reason.replace(reason.into());
+
+        self
+    }
+
     fn start(&mut self) -> Result<()> {
-        self.fut.replace(Box::pin(self.http.request(Request::from(
-            Route::CreateGuildPrune {
+        let request = if let Some(reason) = &self.reason {
+            let headers = audit_header(&reason)?;
+            Request::from((
+                headers,
+                Route::CreateGuildPrune {
+                    compute_prune_count: self.fields.compute_prune_count,
+                    days: self.fields.days,
+                    guild_id: self.guild_id.0,
+                },
+            ))
+        } else {
+            Request::from(Route::CreateGuildPrune {
                 compute_prune_count: self.fields.compute_prune_count,
                 days: self.fields.days,
                 guild_id: self.guild_id.0,
-            },
-        ))));
+            })
+        };
+
+        self.fut.replace(Box::pin(self.http.request(request)));
 
         Ok(())
     }

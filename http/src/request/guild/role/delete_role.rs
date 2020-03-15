@@ -6,6 +6,7 @@ pub struct DeleteRole<'a> {
     guild_id: GuildId,
     http: &'a Client,
     role_id: RoleId,
+    reason: Option<String>,
 }
 
 impl<'a> DeleteRole<'a> {
@@ -15,16 +16,34 @@ impl<'a> DeleteRole<'a> {
             guild_id,
             http,
             role_id,
+            reason: None,
         }
     }
 
+    pub fn reason(mut self, reason: impl Into<String>) -> Self {
+        self.reason.replace(reason.into());
+
+        self
+    }
+
     fn start(&mut self) -> Result<()> {
-        self.fut.replace(Box::pin(self.http.verify(Request::from(
-            Route::DeleteRole {
+        let request = if let Some(reason) = &self.reason {
+            let headers = audit_header(&reason)?;
+            Request::from((
+                headers,
+                Route::DeleteRole {
+                    guild_id: self.guild_id.0,
+                    role_id: self.role_id.0,
+                },
+            ))
+        } else {
+            Request::from(Route::DeleteRole {
                 guild_id: self.guild_id.0,
                 role_id: self.role_id.0,
-            },
-        ))));
+            })
+        };
+
+        self.fut.replace(Box::pin(self.http.verify(request)));
 
         Ok(())
     }

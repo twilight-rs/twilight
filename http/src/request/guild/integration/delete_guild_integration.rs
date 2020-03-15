@@ -6,6 +6,7 @@ pub struct DeleteGuildIntegration<'a> {
     guild_id: GuildId,
     http: &'a Client,
     integration_id: IntegrationId,
+    reason: Option<String>,
 }
 
 impl<'a> DeleteGuildIntegration<'a> {
@@ -15,16 +16,34 @@ impl<'a> DeleteGuildIntegration<'a> {
             guild_id,
             http,
             integration_id,
+            reason: None,
         }
     }
 
+    pub fn reason(mut self, reason: impl Into<String>) -> Self {
+        self.reason.replace(reason.into());
+
+        self
+    }
+
     fn start(&mut self) -> Result<()> {
-        self.fut.replace(Box::pin(self.http.request(Request::from(
-            Route::DeleteGuildIntegration {
+        let request = if let Some(reason) = &self.reason {
+            let headers = audit_header(&reason)?;
+            Request::from((
+                headers,
+                Route::DeleteGuildIntegration {
+                    guild_id: self.guild_id.0,
+                    integration_id: self.integration_id.0,
+                },
+            ))
+        } else {
+            Request::from(Route::DeleteGuildIntegration {
                 guild_id: self.guild_id.0,
                 integration_id: self.integration_id.0,
-            },
-        ))));
+            })
+        };
+
+        self.fut.replace(Box::pin(self.http.request(request)));
 
         Ok(())
     }

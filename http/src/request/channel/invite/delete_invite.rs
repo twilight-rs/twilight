@@ -4,6 +4,7 @@ pub struct DeleteInvite<'a> {
     code: String,
     fut: Option<Pending<'a, ()>>,
     http: &'a Client,
+    reason: Option<String>,
 }
 
 impl<'a> DeleteInvite<'a> {
@@ -12,15 +13,32 @@ impl<'a> DeleteInvite<'a> {
             code: code.into(),
             fut: None,
             http,
+            reason: None,
         }
     }
 
+    pub fn reason(mut self, reason: impl Into<String>) -> Self {
+        self.reason.replace(reason.into());
+
+        self
+    }
+
     fn start(&mut self) -> Result<()> {
-        self.fut.replace(Box::pin(self.http.verify(Request::from(
-            Route::DeleteInvite {
+        let request = if let Some(reason) = &self.reason {
+            let headers = audit_header(&reason)?;
+            Request::from((
+                headers,
+                Route::DeleteInvite {
+                    code: self.code.clone(),
+                },
+            ))
+        } else {
+            Request::from(Route::DeleteInvite {
                 code: self.code.clone(),
-            },
-        ))));
+            })
+        };
+
+        self.fut.replace(Box::pin(self.http.verify(request)));
 
         Ok(())
     }
