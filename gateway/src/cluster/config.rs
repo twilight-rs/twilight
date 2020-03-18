@@ -121,9 +121,9 @@ impl Config {
 
     /// Returns the configuration used to create shards.
     ///
-    /// Refer to [`ConfigBuilder::shard_config`] for the default value.
+    /// Refer to [`shard::config::ConfigBuilder`]'s methods for the default values.
     ///
-    /// [`ConfigBuilder::shard_config`]: struct.ConfigBuilder.html#method.shard_config
+    /// [`shard::config::ConfigBuilder`]: ../../shard/config/struct.ConfigBuilder.html#methods
     pub fn shard_config(&self) -> &ShardConfig {
         &self.shard_config
     }
