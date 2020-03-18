@@ -4,7 +4,7 @@ use crate::{
     shard::config::{Config as ShardConfig, ConfigBuilder as ShardConfigBuilder},
 };
 use dawn_http::Client;
-use dawn_model::gateway::payload::update_status::UpdateStatusInfo;
+use dawn_model::gateway::{payload::update_status::UpdateStatusInfo, GatewayIntents};
 use std::{
     convert::TryFrom,
     ops::{Bound, RangeBounds},
@@ -121,9 +121,9 @@ impl Config {
 
     /// Returns the configuration used to create shards.
     ///
-    /// Refer to [`ConfigBuilder::shard_config`] for the default value.
+    /// Refer to [`shard::config::ConfigBuilder`]'s methods for the default values.
     ///
-    /// [`ConfigBuilder::shard_config`]: struct.ConfigBuilder.html#method.shard_config
+    /// [`shard::config::ConfigBuilder`]: ../../shard/config/struct.ConfigBuilder.html#methods
     pub fn shard_config(&self) -> &ShardConfig {
         &self.shard_config
     }
@@ -248,6 +248,17 @@ impl ConfigBuilder {
     /// [`ConfigBuilder::presence`]: ../../shard/config/struct.ConfigBuilder.html#method.presence
     pub fn presence(mut self, presence: UpdateStatusInfo) -> Self {
         self.1 = self.1.presence(presence);
+
+        self
+    }
+
+    /// Sets the intents to use when identifying with the gateway.
+    ///
+    /// Refer to the shard's [`ConfigBuilder::intents`] for more information.
+    ///
+    /// [`ConfigBuilder::intents`]: ../../shard/config/struct.ConfigBuilder.html#method.intents
+    pub fn intents(mut self, intents: Option<GatewayIntents>) -> Self {
+        self.1.intents(intents);
 
         self
     }
