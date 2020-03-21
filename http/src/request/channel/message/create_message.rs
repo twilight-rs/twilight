@@ -3,7 +3,10 @@ use dawn_model::{
     channel::{embed::Embed, Message},
     id::ChannelId,
 };
-use reqwest::multipart::{Form, Part};
+use reqwest::{
+    multipart::{Form, Part},
+    Body,
+};
 use std::collections::HashMap;
 
 #[derive(Default, Serialize)]
@@ -17,7 +20,7 @@ struct CreateMessageFields {
 }
 
 pub struct CreateMessage<'a> {
-    attachments: HashMap<String, Vec<u8>>,
+    attachments: HashMap<String, Body>,
     channel_id: ChannelId,
     fields: CreateMessageFields,
     fut: Option<Pending<'a, Message>>,
@@ -53,13 +56,13 @@ impl<'a> CreateMessage<'a> {
         self
     }
 
-    pub fn attachment(mut self, name: impl Into<String>, file: impl Into<Vec<u8>>) -> Self {
+    pub fn attachment(mut self, name: impl Into<String>, file: impl Into<Body>) -> Self {
         self.attachments.insert(name.into(), file.into());
 
         self
     }
 
-    pub fn attachments<N: Into<String>, F: Into<Vec<u8>>>(
+    pub fn attachments<N: Into<String>, F: Into<Body>>(
         mut self,
         attachments: impl IntoIterator<Item = (N, F)>,
     ) -> Self {
@@ -100,8 +103,8 @@ impl<'a> CreateMessage<'a> {
             } else {
                 let mut form = Form::new();
 
-                for (index, (name, file)) in self.attachments.clone().into_iter().enumerate() {
-                    form = form.part(format!("{}", index), Part::bytes(file).file_name(name));
+                for (index, (name, file)) in self.attachments.drain().enumerate() {
+                    form = form.part(format!("{}", index), Part::stream(file).file_name(name));
                 }
 
                 Request::from((
