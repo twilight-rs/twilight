@@ -1,3 +1,4 @@
+use super::allowed_mentions::{AllowedMentions, AllowedMentionsBuilder, Unspecified};
 use crate::request::prelude::*;
 use dawn_model::{
     channel::{embed::Embed, Message},
@@ -10,18 +11,19 @@ use reqwest::{
 use std::collections::HashMap;
 
 #[derive(Default, Serialize)]
-struct CreateMessageFields {
+pub(crate) struct CreateMessageFields {
     content: Option<String>,
     embed: Option<Embed>,
     nonce: Option<u64>,
     payload_json: Option<Vec<u8>>,
     tts: Option<bool>,
+    pub(crate) allowed_mentions: Option<AllowedMentions>,
 }
 
 pub struct CreateMessage<'a> {
     attachments: HashMap<String, Body>,
     channel_id: ChannelId,
-    fields: CreateMessageFields,
+    pub(crate) fields: CreateMessageFields,
     fut: Option<Pending<'a, Message>>,
     http: &'a Client,
 }
@@ -47,6 +49,12 @@ impl<'a> CreateMessage<'a> {
         self.fields.embed.replace(embed);
 
         self
+    }
+
+    pub fn allowed_mentions(
+        self,
+    ) -> AllowedMentionsBuilder<'a, Unspecified, Unspecified, Unspecified> {
+        AllowedMentionsBuilder::new(self)
     }
 
     pub fn attachment(mut self, name: impl Into<String>, file: impl Into<Body>) -> Self {

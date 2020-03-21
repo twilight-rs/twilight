@@ -12,6 +12,7 @@ members = [
     "gateway/examples/shard",
     "gateway/examples/queue",
     "http",
+    "http/examples/allowed-mentions",
     "http/examples/get-message",
     "http/examples/proxy",
     "model",
