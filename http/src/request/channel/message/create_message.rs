@@ -13,7 +13,6 @@ use std::collections::HashMap;
 struct CreateMessageFields {
     content: Option<String>,
     embed: Option<Embed>,
-    file: Option<Vec<u8>>,
     nonce: Option<u64>,
     payload_json: Option<Vec<u8>>,
     tts: Option<bool>,
@@ -46,12 +45,6 @@ impl<'a> CreateMessage<'a> {
 
     pub fn embed(mut self, embed: Embed) -> Self {
         self.fields.embed.replace(embed);
-
-        self
-    }
-
-    pub fn file(mut self, file: impl Into<Vec<u8>>) -> Self {
-        self.fields.file.replace(file.into());
 
         self
     }
