@@ -56,7 +56,8 @@ pub struct ShardProcessor {
 impl ShardProcessor {
     pub async fn new(config: Arc<Config>) -> Result<(Self, WatchReceiver<Arc<Session>>)> {
         debug!("[ShardProcessor {:?}] Queueing", config.shard());
-        config.queue.request().await;
+        let shard_id = config.shard();
+        config.queue.request(shard_id).await;
         debug!("[ShardProcessor {:?}] Finished queue", config.shard());
 
         let properties = IdentifyProperties::new("dawn.rs", "dawn.rs", OS, "", "");
@@ -264,7 +265,8 @@ impl ShardProcessor {
         loop {
             // Await allowance if doing a full reconnect
             if full_reconnect {
-                self.config.queue.request().await;
+                let shard = self.config.shard();
+                self.config.queue.request(shard).await;
             }
 
             let new_stream = match connect::connect(&self.url).await {

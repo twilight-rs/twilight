@@ -9,7 +9,7 @@ struct BadQueue;
 #[async_trait]
 impl Queue for BadQueue {
     // DISCLAIMER: THIS IS A VERY BAD QUEUE!
-    async fn request(&self) {}
+    async fn request(&self, _shard_id: [u64; 2]) {}
 }
 
 #[tokio::main]
