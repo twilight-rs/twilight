@@ -14,6 +14,7 @@ mod partial_guild;
 mod partial_member;
 mod permissions;
 mod premium_tier;
+mod preview;
 mod prune;
 mod role;
 mod status;
@@ -36,6 +37,7 @@ pub use self::{
     partial_member::PartialMember,
     permissions::Permissions,
     premium_tier::PremiumTier,
+    preview::GuildPreview,
     prune::GuildPrune,
     role::Role,
     status::GuildStatus,

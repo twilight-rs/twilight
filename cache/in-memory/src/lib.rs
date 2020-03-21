@@ -428,6 +428,7 @@ impl InMemoryCache {
             require_colons: emoji.require_colons,
             roles: emoji.roles,
             user,
+            available: emoji.available,
         });
         self.0.emojis.lock().await.insert(
             cached.id,

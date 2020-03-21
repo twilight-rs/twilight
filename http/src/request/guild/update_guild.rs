@@ -22,6 +22,9 @@ struct UpdateGuildFields {
     splash: Option<String>,
     system_channel_id: Option<ChannelId>,
     verification_level: Option<VerificationLevel>,
+    rules_channel_id: Option<ChannelId>,
+    public_updates_channel_id: Option<ChannelId>,
+    preferred_locale: Option<String>,
 }
 
 pub struct UpdateGuild<'a> {
@@ -107,10 +110,37 @@ impl<'a> UpdateGuild<'a> {
         self
     }
 
-    pub fn system_channel_id(mut self, system_channel_id: impl Into<ChannelId>) -> Self {
+    pub fn system_channel(mut self, system_channel_id: impl Into<ChannelId>) -> Self {
         self.fields
             .system_channel_id
             .replace(system_channel_id.into());
+
+        self
+    }
+
+    pub fn rules_channel(mut self, rules_channel_id: impl Into<ChannelId>) -> Self {
+        self.fields
+            .rules_channel_id
+            .replace(rules_channel_id.into());
+
+        self
+    }
+
+    pub fn public_updates_channel(
+        mut self,
+        public_updates_channel_id: impl Into<ChannelId>,
+    ) -> Self {
+        self.fields
+            .public_updates_channel_id
+            .replace(public_updates_channel_id.into());
+
+        self
+    }
+
+    pub fn preferred_locale(mut self, preferred_locale: impl Into<String>) -> Self {
+        self.fields
+            .preferred_locale
+            .replace(preferred_locale.into());
 
         self
     }

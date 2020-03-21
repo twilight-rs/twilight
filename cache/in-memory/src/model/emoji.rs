@@ -14,6 +14,7 @@ pub struct CachedEmoji {
     pub require_colons: bool,
     pub roles: Vec<RoleId>,
     pub user: Option<Arc<User>>,
+    pub available: bool,
 }
 
 impl PartialEq<Emoji> for CachedEmoji {
@@ -24,6 +25,7 @@ impl PartialEq<Emoji> for CachedEmoji {
             && self.name == other.name
             && self.require_colons == other.require_colons
             && self.roles == other.roles
+            && self.available == other.available
     }
 }
 
@@ -43,6 +45,7 @@ mod tests {
             require_colons: true,
             roles: vec![],
             user: None,
+            available: true,
         };
         let cached = CachedEmoji {
             id: EmojiId(123),
@@ -52,6 +55,7 @@ mod tests {
             require_colons: true,
             roles: vec![],
             user: None,
+            available: true,
         };
 
         assert_eq!(cached, emoji);

@@ -13,6 +13,7 @@ mod get_guild;
 mod get_guild_channels;
 mod get_guild_embed;
 mod get_guild_invites;
+mod get_guild_preview;
 mod get_guild_prune_count;
 mod get_guild_vanity_url;
 mod get_guild_voice_regions;
@@ -32,6 +33,7 @@ pub use self::{
     get_guild_channels::GetGuildChannels,
     get_guild_embed::GetGuildEmbed,
     get_guild_invites::GetGuildInvites,
+    get_guild_preview::GetGuildPreview,
     get_guild_prune_count::GetGuildPruneCount,
     get_guild_vanity_url::GetGuildVanityUrl,
     get_guild_voice_regions::GetGuildVoiceRegions,

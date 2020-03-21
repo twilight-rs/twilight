@@ -470,6 +470,11 @@ impl Client {
         RemoveRoleFromMember::new(self, guild_id, user_id, role_id)
     }
 
+    /// Note: This only works for public guilds.
+    pub fn guild_preview(&self, guild_id: GuildId) -> GetGuildPreview<'_> {
+        GetGuildPreview::new(self, guild_id)
+    }
+
     pub fn guild_prune_count(&self, guild_id: GuildId) -> GetGuildPruneCount<'_> {
         GetGuildPruneCount::new(self, guild_id)
     }

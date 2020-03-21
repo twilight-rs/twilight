@@ -23,6 +23,8 @@ pub struct Emoji {
     #[cfg_attr(feature = "serde-support", serde(default))]
     pub roles: Vec<RoleId>,
     pub user: Option<User>,
+    #[cfg_attr(feature = "serde-support", serde(default))]
+    pub available: bool,
 }
 
 #[cfg(feature = "serde-support")]
