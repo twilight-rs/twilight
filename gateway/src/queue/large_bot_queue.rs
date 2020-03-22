@@ -66,7 +66,7 @@ impl Queue for LargeBotQueue {
     /// once the request has been completed.
     async fn request(&self, shard_id: [u64; 2]) {
         #[allow(clippy::cast_possible_truncation)]
-        let bucket = (shard_id[0] % 16) as usize;
+        let bucket = (shard_id[0] % (self.buckets.len() as u64)) as usize;
         let (tx, rx) = oneshot::channel();
 
         self.limiter.get().await;
