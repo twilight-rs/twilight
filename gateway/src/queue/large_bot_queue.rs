@@ -38,7 +38,7 @@ impl LargeBotQueue {
             buckets: queues,
             limiter: DayLimiter::new(http).await.expect(
                 "Getting the first session limits failed, \
-                                                         Is network connection aviable",
+                 Is network connection available",
             ),
         }
     }
