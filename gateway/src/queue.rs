@@ -1,4 +1,10 @@
+mod day_limiter;
+mod large_bot_queue;
+
+pub use large_bot_queue::LargeBotQueue;
+
 use async_trait::async_trait;
+use day_limiter::DayLimiter;
 use futures::{
     channel::{
         mpsc::{unbounded, UnboundedReceiver, UnboundedSender},
@@ -13,8 +19,7 @@ use std::{fmt::Debug, time::Duration};
 
 #[async_trait]
 pub trait Queue: Debug + Send + Sync {
-    async fn request(&self);
-    //async fn is_running(&self) -> bool;
+    async fn request(&self, shard_id: [u64; 2]);
 }
 
 /// A local, in-process implementation of a [`Queue`] which manages the
@@ -35,9 +40,13 @@ pub trait Queue: Debug + Send + Sync {
 /// not** use this implementation. Shards across multiple processes may
 /// create new sessions at the same time, which is bad.
 ///
+/// It should also not be used for very large sharding, for that the
+/// [`LargeBotQueue`] can be used.
+///
 /// If you can't use this, look into an alternative implementation of the
 /// [`Queue`], such as the [`gateway-queue`] broker.
 ///
+/// [`LargeBotQueue`]: ./queue/struct.LargeBotQueue.html
 /// [`Cluster`]: ../cluster/struct.Cluster.html
 /// [`Shard`]: ../shard/struct.Shard.html
 /// [`gateway-queue`]: https://github.com/dawn-rs/gateway-queue
@@ -64,13 +73,14 @@ impl LocalQueue {
 }
 
 async fn waiter(mut rx: UnboundedReceiver<Sender<()>>) {
-    const DUR: Duration = Duration::from_secs(6);
+    const DUR: Duration = Duration::from_secs(5);
+    let mut ticker = tokio::time::interval(DUR);
     while let Some(req) = rx.next().await {
+        ticker.tick().await;
         if let Err(err) = req.send(()) {
             warn!("[LocalQueue/waiter] send failed with: {:?}, skipping", err);
             continue;
         }
-        tokio::time::delay_for(DUR).await;
     }
 }
 
@@ -79,7 +89,7 @@ impl Queue for LocalQueue {
     /// Request to be able to identify with the gateway. This will place this
     /// request behind all other requests, and the returned future will resolve
     /// once the request has been completed.
-    async fn request(&self) {
+    async fn request(&self, _: [u64; 2]) {
         let (tx, rx) = oneshot::channel();
 
         if let Err(err) = self.0.clone().send(tx).await {
@@ -87,16 +97,8 @@ impl Queue for LocalQueue {
             return;
         }
 
-        warn!("Waiting for allowance!");
+        info!("Waiting for allowance!");
 
         let _ = rx.await;
     }
-    /*
-    /// Whether the queue is actively going through requests.
-    ///
-    /// Once all requests have been completed, this will return `false`.
-    async fn is_running(&self) -> bool {
-        self.0.task_running.load(Ordering::Relaxed)
-    }
-    */
 }
