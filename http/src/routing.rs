@@ -87,6 +87,7 @@ pub enum Path {
     GuildsIdMembersId(u64),
     GuildsIdMembersIdRolesId(u64),
     GuildsIdMembersMeNick(u64),
+    GuildsIdPreview(u64),
     GuildsIdPrune(u64),
     GuildsIdRegions(u64),
     GuildsIdRoles(u64),
@@ -170,6 +171,7 @@ impl FromStr for Path {
             ["guilds", id, "members", _] => GuildsIdMembersId(id.parse()?),
             ["guilds", id, "members", _, "roles", _] => GuildsIdMembersIdRolesId(id.parse()?),
             ["guilds", id, "members", "@me", "nick"] => GuildsIdMembersMeNick(id.parse()?),
+            ["guilds", id, "preview"] => GuildsIdPreview(id.parse()?),
             ["guilds", id, "prune"] => GuildsIdPrune(id.parse()?),
             ["guilds", id, "regions"] => GuildsIdRegions(id.parse()?),
             ["guilds", id, "roles"] => GuildsIdRoles(id.parse()?),
@@ -363,6 +365,9 @@ pub enum Route {
         after: Option<u64>,
         limit: Option<u64>,
         presences: Option<bool>,
+        guild_id: u64,
+    },
+    GetGuildPreview {
         guild_id: u64,
     },
     GetGuildPruneCount {
@@ -901,6 +906,13 @@ impl Route {
 
                 (Method::GET, Path::GuildsIdMembers(guild_id), path.into())
             },
+            Self::GetGuildPreview {
+                guild_id,
+            } => (
+                Method::GET,
+                Path::GuildsIdPreview(guild_id),
+                format!("guilds/{}/preview", guild_id).into(),
+            ),
             Self::GetGuildPruneCount {
                 days,
                 guild_id,

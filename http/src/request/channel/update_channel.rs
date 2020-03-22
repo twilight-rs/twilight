@@ -1,6 +1,6 @@
 use crate::request::prelude::*;
 use dawn_model::{
-    channel::{permission_overwrite::PermissionOverwrite, Channel},
+    channel::{permission_overwrite::PermissionOverwrite, Channel, ChannelType},
     id::ChannelId,
 };
 
@@ -15,6 +15,8 @@ struct UpdateChannelFields {
     rate_limit_per_user: Option<u64>,
     topic: Option<String>,
     user_limit: Option<u64>,
+    #[serde(rename = "type")]
+    kind: Option<ChannelType>,
 }
 
 pub struct UpdateChannel<'a> {
@@ -91,6 +93,12 @@ impl<'a> UpdateChannel<'a> {
 
     pub fn user_limit(mut self, user_limit: u64) -> Self {
         self.fields.user_limit.replace(user_limit);
+
+        self
+    }
+
+    pub fn kind(mut self, kind: ChannelType) -> Self {
+        self.fields.kind.replace(kind);
 
         self
     }

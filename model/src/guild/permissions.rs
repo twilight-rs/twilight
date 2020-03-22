@@ -21,6 +21,7 @@ bitflags! {
         const READ_MESSAGE_HISTORY = 0x0001_0000;
         const MENTION_EVERYONE = 0x0002_0000;
         const USE_EXTERNAL_EMOJIS = 0x0004_0000;
+        const VIEW_GUILD_INSIGHTS = 0x0008_0000;
         const CONNECT = 0x0010_0000;
         const SPEAK = 0x0020_0000;
         const MUTE_MEMBERS = 0x0040_0000;

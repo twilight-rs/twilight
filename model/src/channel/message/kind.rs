@@ -18,4 +18,6 @@ pub enum MessageType {
     UserPremiumSubTier2 = 10,
     UserPremiumSubTier3 = 11,
     ChannelFollowAdd = 12,
+    GuildDiscoveryDisqualified = 14,
+    GuildDiscoveryRequalified = 15,
 }
