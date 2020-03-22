@@ -89,8 +89,7 @@ impl Queue for LocalQueue {
     /// Request to be able to identify with the gateway. This will place this
     /// request behind all other requests, and the returned future will resolve
     /// once the request has been completed.
-    #[allow(clippy::used_underscore_binding)] // Needed for some reason, possible a bug.
-    async fn request(&self, _shard_id: [u64; 2]) {
+    async fn request(&self, _: [u64; 2]) {
         let (tx, rx) = oneshot::channel();
 
         if let Err(err) = self.0.clone().send(tx).await {
