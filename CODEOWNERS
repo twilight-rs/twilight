@@ -8,11 +8,11 @@
 *                                        @Erk-
 
 # Cache
-/cache/                                  @Arzte @TheUnitedStatesOfAmerica
+/cache/                                  @Arzte @nandos
 
 # Redis cache
 # Subject to be moved to its own repo.
-/cache/redis                             @TheUnitedStatesOfAmerica
+/cache/redis                             @nandos
 
 # Gateway
 /gateway/                                @Arzte @Erk-
