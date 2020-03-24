@@ -1,7 +1,7 @@
-use twilight_http::client::{config::Proxy, Client};
-use twilight_model::id::ChannelId;
 use futures::future;
 use std::error::Error;
+use twilight_http::client::{config::Proxy, Client};
+use twilight_model::id::ChannelId;
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn Error + Send + Sync>> {

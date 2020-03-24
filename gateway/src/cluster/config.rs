@@ -3,13 +3,13 @@ use crate::{
     queue::{LocalQueue, Queue},
     shard::config::{Config as ShardConfig, ConfigBuilder as ShardConfigBuilder},
 };
-use twilight_http::Client;
-use twilight_model::gateway::{payload::update_status::UpdateStatusInfo, GatewayIntents};
 use std::{
     convert::TryFrom,
     ops::{Bound, RangeBounds},
     sync::Arc,
 };
+use twilight_http::Client;
+use twilight_model::gateway::{payload::update_status::UpdateStatusInfo, GatewayIntents};
 
 /// The method of sharding to use.
 ///

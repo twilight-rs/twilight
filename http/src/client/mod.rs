@@ -6,10 +6,6 @@ use crate::{
     ratelimiting::{RatelimitHeaders, Ratelimiter},
     request::{prelude::*, Request},
 };
-use twilight_model::{
-    guild::Permissions,
-    id::{ChannelId, EmojiId, GuildId, IntegrationId, MessageId, RoleId, UserId, WebhookId},
-};
 use log::{debug, warn};
 use reqwest::{
     header::HeaderValue,
@@ -25,6 +21,10 @@ use std::{
     fmt::{Debug, Formatter, Result as FmtResult},
     ops::{Deref, DerefMut},
     sync::Arc,
+};
+use twilight_model::{
+    guild::Permissions,
+    id::{ChannelId, EmojiId, GuildId, IntegrationId, MessageId, RoleId, UserId, WebhookId},
 };
 
 #[derive(Clone, Debug, Default)]

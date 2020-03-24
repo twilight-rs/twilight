@@ -1,6 +1,5 @@
 //! The error type of why errors occur in the shard module.
 
-use twilight_http::Error as HttpError;
 use flate2::DecompressError;
 use futures::channel::mpsc::TrySendError;
 use serde_json::Error as JsonError;
@@ -10,6 +9,7 @@ use std::{
     result::Result as StdResult,
 };
 use tokio_tungstenite::tungstenite::{Error as TungsteniteError, Message as TungsteniteMessage};
+use twilight_http::Error as HttpError;
 use url::ParseError;
 
 /// A result enum with the error type being the shard's [`Error`] type.

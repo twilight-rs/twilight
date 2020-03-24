@@ -1,13 +1,5 @@
 use super::{config::EventType, InMemoryCache, InMemoryCacheError};
 use async_trait::async_trait;
-use twilight_cache_trait::UpdateCache;
-use twilight_gateway::shard::event::Event;
-use twilight_model::{
-    channel::message::MessageReaction,
-    gateway::payload::*,
-    guild::GuildStatus,
-    id::GuildId,
-};
 use futures::lock::Mutex;
 #[allow(unused_imports)]
 use log::debug;
@@ -15,6 +7,14 @@ use std::{
     collections::{HashMap, HashSet},
     hash::Hash,
     sync::Arc,
+};
+use twilight_cache_trait::UpdateCache;
+use twilight_gateway::shard::event::Event;
+use twilight_model::{
+    channel::message::MessageReaction,
+    gateway::payload::*,
+    guild::GuildStatus,
+    id::GuildId,
 };
 
 fn guard(this: &InMemoryCache, event_type: EventType) -> bool {

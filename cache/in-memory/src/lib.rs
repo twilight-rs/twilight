@@ -6,15 +6,6 @@ mod updates;
 
 use self::model::*;
 use config::Config;
-use twilight_cache_trait::{Cache, UpdateCache};
-use twilight_model::{
-    channel::{Group, GuildChannel, PrivateChannel},
-    gateway::presence::{Presence, UserOrId},
-    guild::{Emoji, Guild, Member, Role},
-    id::{ChannelId, EmojiId, GuildId, MessageId, RoleId, UserId},
-    user::{CurrentUser, User},
-    voice::VoiceState,
-};
 use futures::{future, lock::Mutex};
 use std::{
     collections::{
@@ -27,6 +18,15 @@ use std::{
     hash::Hash,
     iter::FromIterator,
     sync::Arc,
+};
+use twilight_cache_trait::{Cache, UpdateCache};
+use twilight_model::{
+    channel::{Group, GuildChannel, PrivateChannel},
+    gateway::presence::{Presence, UserOrId},
+    guild::{Emoji, Guild, Member, Role},
+    id::{ChannelId, EmojiId, GuildId, MessageId, RoleId, UserId},
+    user::{CurrentUser, User},
+    voice::VoiceState,
 };
 
 struct GuildItem<T> {
@@ -783,11 +783,11 @@ fn presence_user_id(presence: &Presence) -> UserId {
 #[cfg(test)]
 mod tests {
     use crate::InMemoryCache;
+    use std::{error::Error, result::Result as StdResult};
     use twilight_model::{
         gateway::payload::RoleDelete,
         id::{GuildId, RoleId},
     };
-    use std::{error::Error, result::Result as StdResult};
 
     type Result<T> = StdResult<T, Box<dyn Error>>;
 

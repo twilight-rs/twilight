@@ -1,8 +1,8 @@
-use twilight_gateway::Cluster;
 use futures::StreamExt;
 use log::Level;
 use metrics_runtime::{exporters::LogExporter, observers::JsonBuilder, Receiver};
 use std::{env, error::Error, time::Duration};
+use twilight_gateway::Cluster;
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn Error + Send + Sync>> {

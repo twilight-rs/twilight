@@ -1,9 +1,9 @@
+use std::sync::Arc;
 use twilight_model::{
     guild::Emoji,
     id::{EmojiId, RoleId},
     user::User,
 };
-use std::sync::Arc;
 
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct CachedEmoji {
@@ -32,8 +32,8 @@ impl PartialEq<Emoji> for CachedEmoji {
 #[cfg(test)]
 mod tests {
     use super::CachedEmoji;
-    use twilight_model::{guild::Emoji, id::EmojiId};
     use std::fmt::Debug;
+    use twilight_model::{guild::Emoji, id::EmojiId};
 
     #[test]
     fn test_eq_emoji() {

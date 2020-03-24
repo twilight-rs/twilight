@@ -1,7 +1,7 @@
-use twilight_gateway::{shard::Config, Shard};
-use twilight_model::gateway::GatewayIntents;
 use futures::StreamExt;
 use std::{env, error::Error};
+use twilight_gateway::{shard::Config, Shard};
+use twilight_model::gateway::GatewayIntents;
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn Error + Send + Sync>> {

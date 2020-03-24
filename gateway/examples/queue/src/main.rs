@@ -1,7 +1,7 @@
 use async_trait::async_trait;
-use twilight_gateway::{queue::Queue, Shard, ShardConfig};
 use futures::StreamExt;
 use std::{env, error::Error, sync::Arc};
+use twilight_gateway::{queue::Queue, Shard, ShardConfig};
 
 #[derive(Debug)]
 struct BadQueue;

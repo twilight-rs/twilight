@@ -1,8 +1,8 @@
 use super::{Error, Result};
 use crate::queue::{LocalQueue, Queue};
+use std::sync::Arc;
 use twilight_http::Client as HttpClient;
 use twilight_model::gateway::{payload::update_status::UpdateStatusInfo, GatewayIntents};
-use std::sync::Arc;
 
 /// The configuration used by the shard to identify with the gateway and
 /// operate.

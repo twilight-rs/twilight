@@ -1,14 +1,14 @@
 use super::allowed_mentions::{AllowedMentions, AllowedMentionsBuilder, Unspecified};
 use crate::request::prelude::*;
-use twilight_model::{
-    channel::{embed::Embed, Message},
-    id::ChannelId,
-};
 use reqwest::{
     multipart::{Form, Part},
     Body,
 };
 use std::collections::HashMap;
+use twilight_model::{
+    channel::{embed::Embed, Message},
+    id::ChannelId,
+};
 
 #[derive(Default, Serialize)]
 pub(crate) struct CreateMessageFields {

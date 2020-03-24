@@ -1,6 +1,6 @@
+use std::{env, error::Error};
 use twilight_http::Client;
 use twilight_model::id::{ChannelId, UserId};
-use std::{env, error::Error};
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn Error + Send + Sync>> {

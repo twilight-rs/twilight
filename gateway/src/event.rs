@@ -1,5 +1,4 @@
 #![allow(clippy::wildcard_imports)]
-use twilight_model::gateway::{payload::*, OpCode};
 use serde::{
     de::{Deserialize, Deserializer, Error as DeError, MapAccess, Visitor},
     Deserialize as DeserializeMacro,
@@ -9,6 +8,7 @@ use std::{
     convert::TryFrom,
     fmt::{Formatter, Result as FmtResult},
 };
+use twilight_model::gateway::{payload::*, OpCode};
 
 #[cfg(feature = "metrics")]
 use metrics::counter;

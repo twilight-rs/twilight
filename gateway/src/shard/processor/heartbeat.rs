@@ -1,5 +1,4 @@
 use super::super::error::{Error, Result};
-use twilight_model::gateway::payload::Heartbeat;
 use futures::{channel::mpsc::UnboundedSender, lock::Mutex};
 use log::{debug, error, warn};
 use std::{
@@ -12,6 +11,7 @@ use std::{
     time::{Duration, Instant},
 };
 use tokio_tungstenite::tungstenite::Message as TungsteniteMessage;
+use twilight_model::gateway::payload::Heartbeat;
 
 /// Information about the latency of a [`Shard`]'s websocket connection.
 ///
