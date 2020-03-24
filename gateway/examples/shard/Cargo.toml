@@ -1,5 +1,5 @@
 [package]
-authors = ["Zeyla Hellyer <zeyla@hellyer.dev>"]
+authors = ["Valdemar Erk <valdemar@erk.io>"]
 edition = "2018"
 name = "twilight-gateway-example-shard"
 version = "0.1.0"
