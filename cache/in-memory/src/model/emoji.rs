@@ -1,4 +1,4 @@
-use dawn_model::{
+use twilight_model::{
     guild::Emoji,
     id::{EmojiId, RoleId},
     user::User,
@@ -32,7 +32,7 @@ impl PartialEq<Emoji> for CachedEmoji {
 #[cfg(test)]
 mod tests {
     use super::CachedEmoji;
-    use dawn_model::{guild::Emoji, id::EmojiId};
+    use twilight_model::{guild::Emoji, id::EmojiId};
     use std::fmt::Debug;
 
     #[test]

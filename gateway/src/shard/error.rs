@@ -1,6 +1,6 @@
 //! The error type of why errors occur in the shard module.
 
-use dawn_http::Error as HttpError;
+use twilight_http::Error as HttpError;
 use flate2::DecompressError;
 use futures::channel::mpsc::TrySendError;
 use serde_json::Error as JsonError;
@@ -28,7 +28,7 @@ pub enum Error {
     },
     /// Getting the gateway URL via the HTTP client failed.
     GettingGatewayUrl {
-        /// The error from the `dawn_http` client.
+        /// The error from the `twilight_http` client.
         source: HttpError,
     },
     /// The shard ID was larger than the total number of shards.

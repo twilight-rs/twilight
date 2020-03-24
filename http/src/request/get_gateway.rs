@@ -1,5 +1,5 @@
 use super::{prelude::*, GetGatewayAuthed};
-use dawn_model::gateway::connection_info::ConnectionInfo;
+use twilight_model::gateway::connection_info::ConnectionInfo;
 
 pub struct GetGateway<'a> {
     fut: Option<Pending<'a, ConnectionInfo>>,

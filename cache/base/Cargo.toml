@@ -1,9 +1,9 @@
 [package]
 authors = ["Zeyla Hellyer <zeyla@hellyer.dev>"]
 edition = "2018"
-name = "dawn-cache"
+name = "twilight-cache"
 version = "0.1.0"
 
 [dependencies]
-dawn-cache-inmemory = { path = "../in-memory" }
-dawn-cache-trait = { path = "../trait" }
+twilight-cache-inmemory = { path = "../in-memory" }
+twilight-cache-trait = { path = "../trait" }

@@ -1,5 +1,5 @@
 use crate::request::prelude::*;
-use dawn_model::{channel::Message, id::ChannelId};
+use twilight_model::{channel::Message, id::ChannelId};
 
 pub struct GetPins<'a> {
     channel_id: ChannelId,

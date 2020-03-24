@@ -1,5 +1,5 @@
 use async_trait::async_trait;
-use dawn_gateway::{queue::Queue, Shard, ShardConfig};
+use twilight_gateway::{queue::Queue, Shard, ShardConfig};
 use futures::StreamExt;
 use std::{env, error::Error, sync::Arc};
 

@@ -1,6 +1,6 @@
 use super::allowed_mentions::{AllowedMentions, AllowedMentionsBuilder, Unspecified};
 use crate::request::prelude::*;
-use dawn_model::{
+use twilight_model::{
     channel::{embed::Embed, Message},
     id::ChannelId,
 };

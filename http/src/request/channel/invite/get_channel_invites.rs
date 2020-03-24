@@ -1,5 +1,5 @@
 use crate::request::prelude::*;
-use dawn_model::{id::ChannelId, invite::Invite};
+use twilight_model::{id::ChannelId, invite::Invite};
 
 pub struct GetChannelInvites<'a> {
     channel_id: ChannelId,

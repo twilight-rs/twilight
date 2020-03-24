@@ -1,5 +1,5 @@
 use crate::request::prelude::*;
-use dawn_model::id::GuildId;
+use twilight_model::id::GuildId;
 
 pub struct LeaveGuild<'a> {
     fut: Option<Pending<'a, ()>>,

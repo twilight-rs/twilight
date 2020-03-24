@@ -1,5 +1,5 @@
 use crate::request::prelude::*;
-use dawn_model::{channel::PrivateChannel, id::UserId};
+use twilight_model::{channel::PrivateChannel, id::UserId};
 
 #[derive(Serialize)]
 struct CreatePrivateChannelFields {

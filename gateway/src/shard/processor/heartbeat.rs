@@ -1,5 +1,5 @@
 use super::super::error::{Error, Result};
-use dawn_model::gateway::payload::Heartbeat;
+use twilight_model::gateway::payload::Heartbeat;
 use futures::{channel::mpsc::UnboundedSender, lock::Mutex};
 use log::{debug, error, warn};
 use std::{

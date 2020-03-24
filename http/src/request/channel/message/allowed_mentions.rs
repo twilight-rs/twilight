@@ -1,5 +1,5 @@
 use super::CreateMessage;
-use dawn_model::id::{RoleId, UserId};
+use twilight_model::id::{RoleId, UserId};
 
 #[derive(Clone, Debug, Eq, Hash, PartialEq)]
 pub struct Parsed;

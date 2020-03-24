@@ -6,7 +6,7 @@ use crate::{
     ratelimiting::{RatelimitHeaders, Ratelimiter},
     request::{prelude::*, Request},
 };
-use dawn_model::{
+use twilight_model::{
     guild::Permissions,
     id::{ChannelId, EmojiId, GuildId, IntegrationId, MessageId, RoleId, UserId, WebhookId},
 };
@@ -159,8 +159,8 @@ impl Client {
     /// 1 day's worth of messages, for the reason `"memes"`:
     ///
     /// ```rust,no_run
-    /// use dawn_http::Client;
-    /// use dawn_model::id::{GuildId, UserId};
+    /// use twilight_http::Client;
+    /// use twilight_model::id::{GuildId, UserId};
     ///
     /// # #[tokio::main]
     /// # async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
@@ -245,8 +245,8 @@ impl Client {
     /// `400000000000000000`:
     ///
     /// ```rust,no_run
-    /// use dawn_http::Client;
-    /// use dawn_model::id::GuildId;
+    /// use twilight_http::Client;
+    /// use twilight_model::id::GuildId;
     ///
     /// # #[tokio::main]
     /// # async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
@@ -313,7 +313,7 @@ impl Client {
     /// Get the gateway connection URL without bot information:
     ///
     /// ```rust,no_run
-    /// use dawn_http::Client;
+    /// use twilight_http::Client;
     /// use std::env;
     ///
     /// # #[tokio::main]
@@ -330,7 +330,7 @@ impl Client {
     /// information, which requires specifying a bot token:
     ///
     /// ```rust,no_run
-    /// use dawn_http::Client;
+    /// use twilight_http::Client;
     /// use std::env;
     ///
     /// # #[tokio::main]
@@ -725,7 +725,7 @@ impl Client {
 
         let precision = HeaderValue::from_static("millisecond");
         let user_agent = HeaderValue::from_static(concat!(
-            "dawn.rs (",
+            "twilight.rs (",
             env!("CARGO_PKG_HOMEPAGE"),
             ") ",
             env!("CARGO_PKG_VERSION"),

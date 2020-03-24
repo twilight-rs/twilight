@@ -1,6 +1,6 @@
 use super::UpdateChannelPermissionConfigured;
 use crate::request::prelude::*;
-use dawn_model::{
+use twilight_model::{
     guild::Permissions,
     id::{ChannelId, RoleId, UserId},
 };

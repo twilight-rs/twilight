@@ -114,7 +114,7 @@ impl FromStr for Path {
     /// # Examples
     ///
     /// ```rust
-    /// use dawn_http::routing::Path;
+    /// use twilight_http::routing::Path;
     /// use std::str::FromStr;
     ///
     /// # fn main() -> Result<(), Box<dyn std::error::Error>> {

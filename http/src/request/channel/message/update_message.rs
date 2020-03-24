@@ -1,5 +1,5 @@
 use crate::request::prelude::*;
-use dawn_model::{
+use twilight_model::{
     channel::{embed::Embed, Message},
     id::{ChannelId, MessageId},
 };
@@ -32,8 +32,8 @@ struct UpdateMessageFields {
 /// Replace the content with `"test update"`:
 ///
 /// ```rust,no_run
-/// use dawn_http::Client;
-/// use dawn_model::id::{ChannelId, MessageId};
+/// use twilight_http::Client;
+/// use twilight_model::id::{ChannelId, MessageId};
 ///
 /// # #[tokio::main]
 /// # async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
@@ -47,8 +47,8 @@ struct UpdateMessageFields {
 /// Remove the message's content:
 ///
 /// ```rust,no_run
-/// use dawn_http::Client;
-/// use dawn_model::id::{ChannelId, MessageId};
+/// use twilight_http::Client;
+/// use twilight_model::id::{ChannelId, MessageId};
 ///
 /// # #[tokio::main]
 /// # async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {

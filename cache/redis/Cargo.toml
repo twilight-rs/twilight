@@ -1,5 +1,5 @@
 [package]
-name = "dawn-cache-redis"
+name = "twilight-cache-redis"
 version = "0.1.0"
 authors = ["Zeyla Hellyer <zeyla@hellyer.dev>"]
 edition = "2018"

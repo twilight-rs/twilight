@@ -1,5 +1,5 @@
 use crate::request::prelude::*;
-use dawn_model::{channel::Webhook, id::WebhookId};
+use twilight_model::{channel::Webhook, id::WebhookId};
 
 #[derive(Default, Serialize)]
 struct UpdateWebhookWithTokenFields {

@@ -1,5 +1,5 @@
 use crate::request::prelude::*;
-use dawn_model::{guild::GuildPrune, id::GuildId};
+use twilight_model::{guild::GuildPrune, id::GuildId};
 
 #[derive(Default)]
 struct CreateGuildPruneFields {

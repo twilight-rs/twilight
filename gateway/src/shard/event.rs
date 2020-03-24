@@ -15,7 +15,7 @@
 
 use crate::event::{DispatchEvent, GatewayEvent};
 use bitflags::bitflags;
-use dawn_model::gateway::payload::*;
+use twilight_model::gateway::payload::*;
 use futures::{
     channel::mpsc::UnboundedReceiver,
     stream::{Stream, StreamExt},
@@ -349,7 +349,7 @@ impl Event {
     /// # Examples
     ///
     /// ```
-    /// use dawn_gateway::shard::{Event, EventType};
+    /// use twilight_gateway::shard::{Event, EventType};
     ///
     /// assert_eq!(EventType::RESUMED, Event::Resumed.event_type());
     /// ```

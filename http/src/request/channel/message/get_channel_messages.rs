@@ -1,6 +1,6 @@
 use super::GetChannelMessagesConfigured;
 use crate::request::prelude::*;
-use dawn_model::{
+use twilight_model::{
     channel::Message,
     id::{ChannelId, MessageId},
 };

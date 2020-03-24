@@ -1,7 +1,7 @@
 //! The error type of why errors occur in the cluster module.
 
 use crate::shard::Error as ShardError;
-use dawn_http::Error as HttpError;
+use twilight_http::Error as HttpError;
 use std::{
     error::Error as StdError,
     fmt::{Display, Formatter, Result as FmtResult},

@@ -1,5 +1,5 @@
 use crate::request::prelude::*;
-use dawn_model::{
+use twilight_model::{
     channel::{permission_overwrite::PermissionOverwrite, ChannelType, GuildChannel},
     id::{ChannelId, GuildId},
 };

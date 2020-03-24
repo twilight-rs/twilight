@@ -1,5 +1,5 @@
 use crate::request::prelude::*;
-use dawn_model::id::{ChannelId, MessageId};
+use twilight_model::id::{ChannelId, MessageId};
 
 #[derive(Serialize)]
 struct DeleteMessagesFields {

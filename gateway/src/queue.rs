@@ -49,7 +49,7 @@ pub trait Queue: Debug + Send + Sync {
 /// [`LargeBotQueue`]: ./queue/struct.LargeBotQueue.html
 /// [`Cluster`]: ../cluster/struct.Cluster.html
 /// [`Shard`]: ../shard/struct.Shard.html
-/// [`gateway-queue`]: https://github.com/dawn-rs/gateway-queue
+/// [`gateway-queue`]: https://github.com/twilight-rs/gateway-queue
 #[derive(Clone, Debug)]
 pub struct LocalQueue(UnboundedSender<Sender<()>>);
 

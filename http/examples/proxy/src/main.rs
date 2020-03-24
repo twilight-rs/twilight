@@ -1,5 +1,5 @@
-use dawn_http::client::{config::Proxy, Client};
-use dawn_model::id::ChannelId;
+use twilight_http::client::{config::Proxy, Client};
+use twilight_model::id::ChannelId;
 use futures::future;
 use std::error::Error;
 

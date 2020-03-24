@@ -1,8 +1,8 @@
 use super::{config::EventType, InMemoryCache, InMemoryCacheError};
 use async_trait::async_trait;
-use dawn_cache_trait::UpdateCache;
-use dawn_gateway::shard::event::Event;
-use dawn_model::{
+use twilight_cache_trait::UpdateCache;
+use twilight_gateway::shard::event::Event;
+use twilight_model::{
     channel::message::MessageReaction,
     gateway::payload::*,
     guild::GuildStatus,
@@ -399,7 +399,7 @@ impl UpdateCache<InMemoryCache, InMemoryCacheError> for Box<VoiceStateUpdate> {
 impl UpdateCache<InMemoryCache, InMemoryCacheError> for Event {
     #[allow(clippy::cognitive_complexity)]
     async fn update(&self, c: &InMemoryCache) -> Result<(), InMemoryCacheError> {
-        use dawn_gateway::shard::event::Event::*;
+        use twilight_gateway::shard::event::Event::*;
 
         match self {
             BanAdd(v) => c.update(v).await,

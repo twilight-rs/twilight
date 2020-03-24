@@ -1,4 +1,4 @@
-use dawn_gateway::cluster::{config::ShardScheme, Cluster, Config};
+use twilight_gateway::cluster::{config::ShardScheme, Cluster, Config};
 
 use futures::StreamExt;
 use std::{env, error::Error};

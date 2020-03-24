@@ -1,5 +1,5 @@
 #![allow(clippy::wildcard_imports)]
-use dawn_model::gateway::{payload::*, OpCode};
+use twilight_model::gateway::{payload::*, OpCode};
 use serde::{
     de::{Deserialize, Deserializer, Error as DeError, MapAccess, Visitor},
     Deserialize as DeserializeMacro,

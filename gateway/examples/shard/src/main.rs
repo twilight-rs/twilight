@@ -1,4 +1,4 @@
-use dawn_gateway::Shard;
+use twilight_gateway::Shard;
 use futures::StreamExt;
 use std::{env, error::Error};
 

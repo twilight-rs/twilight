@@ -1,4 +1,4 @@
-use dawn_model::{
+use twilight_model::{
     guild::{
         DefaultMessageNotificationLevel,
         ExplicitContentFilter,

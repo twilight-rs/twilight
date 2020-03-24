@@ -1,5 +1,5 @@
 use crate::request::prelude::*;
-use dawn_model::{channel::Channel, id::ChannelId};
+use twilight_model::{channel::Channel, id::ChannelId};
 
 pub struct DeleteChannel<'a> {
     channel_id: ChannelId,

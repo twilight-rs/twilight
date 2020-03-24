@@ -21,7 +21,7 @@ impl<'a> Arguments<'a> {
     /// then this returns `"foo bar baz"`.
     ///
     /// ```rust
-    /// use dawn_command_parser::{Command, Config, Parser};
+    /// use twilight_command_parser::{Command, Config, Parser};
     ///
     /// let mut config = Config::new();
     /// config.add_prefix("!");
@@ -47,7 +47,7 @@ impl<'a> Arguments<'a> {
     /// rest of the arguments:
     ///
     /// ```rust
-    /// use dawn_command_parser::Arguments;
+    /// use twilight_command_parser::Arguments;
     ///
     /// let mut args = Arguments::new("1 2 3 4 5");
     /// assert_eq!(Some("1"), args.next());

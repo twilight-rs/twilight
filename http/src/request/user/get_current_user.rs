@@ -1,5 +1,5 @@
 use crate::request::prelude::*;
-use dawn_model::user::CurrentUser;
+use twilight_model::user::CurrentUser;
 
 pub struct GetCurrentUser<'a> {
     fut: Option<Pending<'a, CurrentUser>>,

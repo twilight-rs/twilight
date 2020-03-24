@@ -1,4 +1,4 @@
-use dawn_gateway::Cluster;
+use twilight_gateway::Cluster;
 use futures::StreamExt;
 use log::Level;
 use metrics_runtime::{exporters::LogExporter, observers::JsonBuilder, Receiver};

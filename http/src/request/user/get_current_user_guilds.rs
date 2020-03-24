@@ -1,5 +1,5 @@
 use crate::request::prelude::*;
-use dawn_model::{guild::PartialGuild, id::GuildId};
+use twilight_model::{guild::PartialGuild, id::GuildId};
 
 struct GetCurrentUserGuildsFields {
     after: Option<GuildId>,

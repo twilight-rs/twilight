@@ -4,7 +4,7 @@ members = [
     "cache/in-memory",
     "cache/trait",
     "command-parser",
-    "dawn",
+    "twilight",
     "gateway",
     "gateway/examples/cluster",
     "gateway/examples/metrics",

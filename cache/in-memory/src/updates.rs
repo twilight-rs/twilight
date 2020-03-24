@@ -1,7 +1,7 @@
 use super::{config::EventType, InMemoryCache, InMemoryCacheError};
 use async_trait::async_trait;
-use dawn_cache_trait::UpdateCache;
-use dawn_model::{
+use twilight_cache_trait::UpdateCache;
+use twilight_model::{
     channel::{message::MessageReaction, Channel},
     gateway::payload::*,
     guild::GuildStatus,

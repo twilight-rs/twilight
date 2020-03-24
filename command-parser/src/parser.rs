@@ -29,7 +29,7 @@ pub struct Command<'a> {
 /// prefix `"!"`, parse the message "!echo foo bar baz":
 ///
 /// ```rust
-/// use dawn_command_parser::{Command, Config, Parser};
+/// use twilight_command_parser::{Command, Config, Parser};
 ///
 /// let mut config = Config::new();
 /// config.command("echo").add();

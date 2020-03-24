@@ -1,5 +1,5 @@
 use crate::request::prelude::*;
-use dawn_model::{guild::Permissions, id::ChannelId};
+use twilight_model::{guild::Permissions, id::ChannelId};
 
 #[derive(Serialize)]
 struct UpdateChannelPermissionConfiguredFields {

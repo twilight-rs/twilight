@@ -1,5 +1,5 @@
 use crate::request::prelude::*;
-use dawn_model::{guild::GuildIntegration, id::GuildId};
+use twilight_model::{guild::GuildIntegration, id::GuildId};
 
 pub struct GetGuildIntegrations<'a> {
     fut: Option<Pending<'a, Vec<GuildIntegration>>>,

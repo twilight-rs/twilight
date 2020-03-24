@@ -1,5 +1,5 @@
-use dawn_gateway::{shard::Config, Shard};
-use dawn_model::gateway::GatewayIntents;
+use twilight_gateway::{shard::Config, Shard};
+use twilight_model::gateway::GatewayIntents;
 use futures::StreamExt;
 use std::{env, error::Error};
 

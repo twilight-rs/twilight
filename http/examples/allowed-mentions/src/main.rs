@@ -1,5 +1,5 @@
-use dawn_http::Client;
-use dawn_model::id::{ChannelId, UserId};
+use twilight_http::Client;
+use twilight_model::id::{ChannelId, UserId};
 use std::{env, error::Error};
 
 #[tokio::main]

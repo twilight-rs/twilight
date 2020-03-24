@@ -1,5 +1,5 @@
 use crate::request::prelude::*;
-use dawn_model::gateway::connection_info::BotConnectionInfo;
+use twilight_model::gateway::connection_info::BotConnectionInfo;
 
 pub struct GetGatewayAuthed<'a> {
     fut: Option<Pending<'a, BotConnectionInfo>>,

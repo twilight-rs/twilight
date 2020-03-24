@@ -1,5 +1,5 @@
 use crate::request::prelude::*;
-use dawn_model::channel::PrivateChannel;
+use twilight_model::channel::PrivateChannel;
 
 pub struct GetCurrentUserPrivateChannels<'a> {
     fut: Option<Pending<'a, Vec<PrivateChannel>>>,

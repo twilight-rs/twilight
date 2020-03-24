@@ -1,7 +1,7 @@
 use super::{Error, Result};
 use crate::queue::{LocalQueue, Queue};
-use dawn_http::Client as HttpClient;
-use dawn_model::gateway::{payload::update_status::UpdateStatusInfo, GatewayIntents};
+use twilight_http::Client as HttpClient;
+use twilight_model::gateway::{payload::update_status::UpdateStatusInfo, GatewayIntents};
 use std::sync::Arc;
 
 /// The configuration used by the shard to identify with the gateway and
@@ -38,7 +38,7 @@ impl Config {
         self.guild_subscriptions
     }
 
-    /// Returns the `dawn_http` client to be used by the shard.
+    /// Returns the `twilight_http` client to be used by the shard.
     pub fn http_client(&self) -> &HttpClient {
         &self.http_client
     }
@@ -218,7 +218,7 @@ impl ConfigBuilder {
     /// a total of 19 shards:
     ///
     /// ```no_run
-    /// use dawn_gateway::shard::Config;
+    /// use twilight_gateway::shard::Config;
     /// use std::env;
     ///
     /// # fn main() -> Result<(), Box<dyn std::error::Error>> {

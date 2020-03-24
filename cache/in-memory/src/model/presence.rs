@@ -1,4 +1,4 @@
-use dawn_model::{
+use twilight_model::{
     gateway::presence::{Activity, ClientStatus, Presence, Status, UserOrId},
     id::{GuildId, UserId},
 };

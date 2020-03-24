@@ -5,7 +5,7 @@ use super::{
     },
     heartbeat::{Heartbeater, Heartbeats},
 };
-use dawn_model::gateway::payload::Heartbeat;
+use twilight_model::gateway::payload::Heartbeat;
 use futures::{
     channel::mpsc::UnboundedSender,
     future::{self, AbortHandle},
