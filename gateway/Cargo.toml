@@ -1,22 +1,22 @@
 [package]
 authors = ["Valdemar Erk <valdemar@erk.io>"]
-documentation = "https://docs.rs/dawn-gateway"
+documentation = "https://docs.rs/twilight-gateway"
 edition = "2018"
-homepage = "https://dawn.valley.cafe"
+homepage = "https://twilight.valley.cafe"
 include = ["src/*.rs", "Cargo.toml"]
-keywords = ["discord", "discord-api", "dawn"]
+keywords = ["discord", "discord-api", "twilight"]
 license = "ISC"
-name = "dawn-gateway"
+name = "twilight-gateway"
 publish = false
 readme = "README.md"
-repository = "https://github.com/dawn-rs/dawn.git"
+repository = "https://github.com/twilight-rs/twilight.git"
 version = "0.1.0"
 
 [dependencies]
 async-trait = "0.1"
 bitflags = "1"
-dawn-http = { path = "../http" }
-dawn-model = { path = "../model" }
+twilight-http = { path = "../http" }
+twilight-model = { path = "../model" }
 futures = "0.3"
 log = "0.4"
 serde = { features = ["derive"], version = "1" }
@@ -24,7 +24,7 @@ serde_json = "1"
 serde-value = "0.6"
 # Make it use less features at a later time.
 tokio = { version = "0.2", features = ["full"] }
-tokio-tungstenite = { git = "https://github.com/snapview/tokio-tungstenite.git", features = ["tls"] }
+tokio-tungstenite = { version = "0.10.1", features = ["tls"] }
 url = "2"
 # The default backend for flate2; miniz-oxide, works differently
 # from the C-backed backend zlib, When you give it the sync argument

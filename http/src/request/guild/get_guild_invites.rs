@@ -1,5 +1,5 @@
 use crate::request::prelude::*;
-use dawn_model::{id::GuildId, invite::Invite};
+use twilight_model::{id::GuildId, invite::Invite};
 
 pub struct GetGuildInvites<'a> {
     fut: Option<Pending<'a, Vec<Invite>>>,

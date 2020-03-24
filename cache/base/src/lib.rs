@@ -1,4 +1,4 @@
-pub extern crate dawn_cache_inmemory;
+pub extern crate twilight_cache_inmemory;
 
-pub use dawn_cache_inmemory::{InMemoryCache, InMemoryCacheError};
-pub use dawn_cache_trait::{Cache, UpdateCache};
+pub use twilight_cache_inmemory::{InMemoryCache, InMemoryCacheError};
+pub use twilight_cache_trait::{Cache, UpdateCache};

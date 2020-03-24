@@ -1,5 +1,5 @@
 use crate::request::prelude::*;
-use dawn_model::id::{ChannelId, MessageId};
+use twilight_model::id::{ChannelId, MessageId};
 
 pub struct DeleteAllReactions<'a> {
     channel_id: ChannelId,

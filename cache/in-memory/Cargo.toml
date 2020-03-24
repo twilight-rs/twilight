@@ -1,16 +1,16 @@
 [package]
 authors = ["Zeyla Hellyer <zeyla@hellyer.dev>"]
 edition = "2018"
-name = "dawn-cache-inmemory"
+name = "twilight-cache-inmemory"
 version = "0.1.0"
 
 [dependencies]
 async-trait = "0.1"
 bitflags = "1"
 futures = "0.3"
-dawn-cache-trait = { path = "../trait" }
-dawn-model = { default-features = false, path = "../../model" }
-dawn-gateway = { path = "../../gateway"}
+twilight-cache-trait = { path = "../trait" }
+twilight-model = { default-features = false, path = "../../model" }
+twilight-gateway = { path = "../../gateway"}
 log = "0.4"
 
 [dev-dependencies]

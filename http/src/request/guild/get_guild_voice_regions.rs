@@ -1,5 +1,5 @@
 use crate::request::prelude::*;
-use dawn_model::{id::GuildId, voice::VoiceRegion};
+use twilight_model::{id::GuildId, voice::VoiceRegion};
 
 pub struct GetGuildVoiceRegions<'a> {
     fut: Option<Pending<'a, Vec<VoiceRegion>>>,

@@ -1,5 +1,5 @@
 use crate::request::prelude::*;
-use dawn_model::invite::Invite;
+use twilight_model::invite::Invite;
 
 #[derive(Default)]
 struct GetInviteFields {

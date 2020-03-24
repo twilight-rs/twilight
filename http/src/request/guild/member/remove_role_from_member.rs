@@ -1,5 +1,5 @@
 use crate::request::prelude::*;
-use dawn_model::id::{GuildId, RoleId, UserId};
+use twilight_model::id::{GuildId, RoleId, UserId};
 
 pub struct RemoveRoleFromMember<'a> {
     fut: Option<Pending<'a, ()>>,

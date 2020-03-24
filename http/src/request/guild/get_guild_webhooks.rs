@@ -1,5 +1,5 @@
 use crate::request::prelude::*;
-use dawn_model::{channel::Webhook, id::GuildId};
+use twilight_model::{channel::Webhook, id::GuildId};
 
 pub struct GetGuildWebhooks<'a> {
     fut: Option<Pending<'a, Vec<Webhook>>>,

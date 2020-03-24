@@ -9,7 +9,7 @@ use crate::Config;
 /// # Examples
 ///
 /// ```rust
-/// use dawn_command_parser::Config;
+/// use twilight_command_parser::Config;
 ///
 /// let mut config = Config::new();
 /// // Adds a case sensitive command to the config.
@@ -40,7 +40,7 @@ impl<'a, 'b> CommandBuilder<'a, 'b> {
     /// # Examples
     ///
     /// ```rust
-    /// use dawn_command_parser::{Config, Parser};
+    /// use twilight_command_parser::{Config, Parser};
     ///
     /// let mut config = Config::new();
     /// config.add_prefix("!");
@@ -60,7 +60,7 @@ impl<'a, 'b> CommandBuilder<'a, 'b> {
     /// # Examples
     ///
     /// ```rust
-    /// use dawn_command_parser::{Config, Parser};
+    /// use twilight_command_parser::{Config, Parser};
     ///
     /// let mut config = Config::new();
     /// config.add_prefix("!");

@@ -1,5 +1,5 @@
 use crate::request::prelude::*;
-use dawn_model::{guild::GuildEmbed, id::GuildId};
+use twilight_model::{guild::GuildEmbed, id::GuildId};
 
 pub struct GetGuildEmbed<'a> {
     fut: Option<Pending<'a, Option<GuildEmbed>>>,

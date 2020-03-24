@@ -16,7 +16,7 @@ use crate::{
     event::{DispatchEvent, GatewayEvent},
     listener::Listeners,
 };
-use dawn_model::gateway::payload::{
+use twilight_model::gateway::payload::{
     identify::{Identify, IdentifyInfo, IdentifyProperties},
     resume::Resume,
 };
@@ -60,7 +60,7 @@ impl ShardProcessor {
         config.queue.request(shard_id).await;
         debug!("[ShardProcessor {:?}] Finished queue", config.shard());
 
-        let properties = IdentifyProperties::new("dawn.rs", "dawn.rs", OS, "", "");
+        let properties = IdentifyProperties::new("twilight.rs", "twilight.rs", OS, "", "");
 
         let mut url = config
             .http_client()

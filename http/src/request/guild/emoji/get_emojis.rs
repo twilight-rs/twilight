@@ -1,5 +1,5 @@
 use crate::request::prelude::*;
-use dawn_model::{guild::Emoji, id::GuildId};
+use twilight_model::{guild::Emoji, id::GuildId};
 
 pub struct GetEmojis<'a> {
     fut: Option<Pending<'a, Vec<Emoji>>>,

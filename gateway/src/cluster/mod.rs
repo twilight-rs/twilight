@@ -7,7 +7,7 @@
 //! disconnected, and when new commands come in:
 ///
 /// ```no_run
-/// use dawn_gateway::cluster::{Cluster, Config, Event};
+/// use twilight_gateway::cluster::{Cluster, Config, Event};
 /// use futures::StreamExt;
 /// use std::env;
 ///

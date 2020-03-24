@@ -1,5 +1,5 @@
 use crate::request::prelude::*;
-use dawn_model::user::Connection;
+use twilight_model::user::Connection;
 
 pub struct GetCurrentUserConnections<'a> {
     fut: Option<Pending<'a, Vec<Connection>>>,

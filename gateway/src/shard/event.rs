@@ -15,7 +15,6 @@
 
 use crate::event::{DispatchEvent, GatewayEvent};
 use bitflags::bitflags;
-use dawn_model::gateway::payload::*;
 use futures::{
     channel::mpsc::UnboundedReceiver,
     stream::{Stream, StreamExt},
@@ -24,6 +23,7 @@ use std::{
     pin::Pin,
     task::{Context, Poll},
 };
+use twilight_model::gateway::payload::*;
 
 bitflags! {
     /// Bitflags representing all of the possible types of events.
@@ -349,7 +349,7 @@ impl Event {
     /// # Examples
     ///
     /// ```
-    /// use dawn_gateway::shard::{Event, EventType};
+    /// use twilight_gateway::shard::{Event, EventType};
     ///
     /// assert_eq!(EventType::RESUMED, Event::Resumed.event_type());
     /// ```

@@ -5,7 +5,6 @@ use super::{
     },
     heartbeat::{Heartbeater, Heartbeats},
 };
-use dawn_model::gateway::payload::Heartbeat;
 use futures::{
     channel::mpsc::UnboundedSender,
     future::{self, AbortHandle},
@@ -19,6 +18,7 @@ use std::{
         Arc,
     },
 };
+use twilight_model::gateway::payload::Heartbeat;
 //use tokio_executor::{DefaultExecutor, Executor};
 use tokio_tungstenite::tungstenite::Message as TungsteniteMessage;
 

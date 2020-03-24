@@ -57,7 +57,7 @@ impl<'a> Config<'a> {
     /// # Examples
     ///
     /// ```rust
-    /// use dawn_command_parser::Config;
+    /// use twilight_command_parser::Config;
     ///
     /// let mut config = Config::new();
     /// config.command("ping").add();
@@ -89,7 +89,7 @@ impl<'a> Config<'a> {
     /// # Examples
     ///
     /// ```rust
-    /// use dawn_command_parser::Config;
+    /// use twilight_command_parser::Config;
     ///
     /// let mut config = Config::new();
     /// config.command("ping").case_sensitive().add();
@@ -109,7 +109,7 @@ impl<'a> Config<'a> {
     /// # Examples
     ///
     /// ```rust
-    /// use dawn_command_parser::Config;
+    /// use twilight_command_parser::Config;
     ///
     /// let mut config = Config::new();
     /// config.add_prefix("!");
@@ -124,7 +124,7 @@ impl<'a> Config<'a> {
     /// # Examples
     ///
     /// ```rust
-    /// use dawn_command_parser::Config;
+    /// use twilight_command_parser::Config;
     ///
     /// let mut config = Config::new();
     /// config.add_prefix("!");

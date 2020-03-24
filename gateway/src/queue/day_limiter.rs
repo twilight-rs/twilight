@@ -12,14 +12,14 @@ pub(crate) struct DayLimiter(Mutex<DayLimiterInner>);
 
 #[derive(Debug)]
 pub(crate) struct DayLimiterInner {
-    pub http: dawn_http::Client,
+    pub http: twilight_http::Client,
     pub next_reset: Instant,
     pub total: u64,
     pub current: u64,
 }
 
 impl DayLimiter {
-    pub async fn new(http: &dawn_http::Client) -> Result<Self> {
+    pub async fn new(http: &twilight_http::Client) -> Result<Self> {
         let info = http
             .gateway()
             .authed()

@@ -1,5 +1,5 @@
 use crate::request::prelude::*;
-use dawn_model::id::{GuildId, UserId};
+use twilight_model::id::{GuildId, UserId};
 
 pub struct DeleteBan<'a> {
     fut: Option<Pending<'a, ()>>,

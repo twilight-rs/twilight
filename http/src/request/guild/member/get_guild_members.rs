@@ -1,5 +1,5 @@
 use crate::request::prelude::*;
-use dawn_model::{
+use twilight_model::{
     guild::Member,
     id::{GuildId, UserId},
 };
@@ -19,8 +19,8 @@ struct GetGuildMembersFields {
 /// `587175671973937162`:
 ///
 /// ```rust,no_run
-/// use dawn_http::Client;
-/// use dawn_model::id::{GuildId, UserId};
+/// use twilight_http::Client;
+/// use twilight_model::id::{GuildId, UserId};
 ///
 /// # #[tokio::main]
 /// # async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {

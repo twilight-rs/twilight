@@ -22,7 +22,7 @@ pub struct LargeBotQueue {
 
 impl LargeBotQueue {
     /// Creates a new large bot queue
-    pub async fn new(buckets: usize, http: &dawn_http::Client) -> Self {
+    pub async fn new(buckets: usize, http: &twilight_http::Client) -> Self {
         let mut queues = Vec::with_capacity(buckets);
         for _ in 0..buckets {
             let (tx, rx) = unbounded();

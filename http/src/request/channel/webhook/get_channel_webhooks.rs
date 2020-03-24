@@ -1,5 +1,5 @@
 use crate::request::prelude::*;
-use dawn_model::{channel::Webhook, id::ChannelId};
+use twilight_model::{channel::Webhook, id::ChannelId};
 
 pub struct GetChannelWebhooks<'a> {
     channel_id: ChannelId,

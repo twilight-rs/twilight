@@ -6,15 +6,6 @@ mod updates;
 
 use self::model::*;
 use config::Config;
-use dawn_cache_trait::{Cache, UpdateCache};
-use dawn_model::{
-    channel::{Group, GuildChannel, PrivateChannel},
-    gateway::presence::{Presence, UserOrId},
-    guild::{Emoji, Guild, Member, Role},
-    id::{ChannelId, EmojiId, GuildId, MessageId, RoleId, UserId},
-    user::{CurrentUser, User},
-    voice::VoiceState,
-};
 use futures::{future, lock::Mutex};
 use std::{
     collections::{
@@ -27,6 +18,15 @@ use std::{
     hash::Hash,
     iter::FromIterator,
     sync::Arc,
+};
+use twilight_cache_trait::{Cache, UpdateCache};
+use twilight_model::{
+    channel::{Group, GuildChannel, PrivateChannel},
+    gateway::presence::{Presence, UserOrId},
+    guild::{Emoji, Guild, Member, Role},
+    id::{ChannelId, EmojiId, GuildId, MessageId, RoleId, UserId},
+    user::{CurrentUser, User},
+    voice::VoiceState,
 };
 
 struct GuildItem<T> {
@@ -129,7 +129,7 @@ struct InMemoryCacheRef {
 ///
 /// This is an implementation of [`Cache`] designed to be used by only the
 /// current process. If the cache needs to be used by other processes, consider
-/// using [`dawn-cache-redis`] or another cache.
+/// using [`twilight-cache-redis`] or another cache.
 ///
 /// # Public Immutability
 ///
@@ -162,7 +162,7 @@ struct InMemoryCacheRef {
 /// *not* be kept up to date as pins and messages come in.
 ///
 /// [`Cache`]: trait.Cache.html
-/// [`dawn-cache-redis`]: https://github.com/dawn-rs/cache-redis
+/// [`twilight-cache-redis`]: https://github.com/twilight-rs/cache-redis
 #[derive(Clone, Debug, Default)]
 pub struct InMemoryCache(Arc<InMemoryCacheRef>);
 
@@ -184,7 +184,7 @@ impl InMemoryCache {
     /// the message cache to 50 messages per channel:
     ///
     /// ```
-    /// use dawn_cache_inmemory::{
+    /// use twilight_cache_inmemory::{
     ///     config::Config,
     ///     InMemoryCache,
     /// };
@@ -783,11 +783,11 @@ fn presence_user_id(presence: &Presence) -> UserId {
 #[cfg(test)]
 mod tests {
     use crate::InMemoryCache;
-    use dawn_model::{
+    use std::{error::Error, result::Result as StdResult};
+    use twilight_model::{
         gateway::payload::RoleDelete,
         id::{GuildId, RoleId},
     };
-    use std::{error::Error, result::Result as StdResult};
 
     type Result<T> = StdResult<T, Box<dyn Error>>;
 

@@ -1,5 +1,5 @@
 use crate::request::prelude::*;
-use dawn_model::{
+use twilight_model::{
     guild::{Permissions, Role},
     id::{GuildId, RoleId},
 };

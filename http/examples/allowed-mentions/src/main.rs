@@ -1,6 +1,6 @@
-use dawn_http::Client;
-use dawn_model::id::{ChannelId, UserId};
 use std::{env, error::Error};
+use twilight_http::Client;
+use twilight_model::id::{ChannelId, UserId};
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn Error + Send + Sync>> {

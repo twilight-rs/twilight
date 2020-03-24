@@ -1,15 +1,15 @@
 [package]
 authors = ["Valdemar Erk <valdemar@erk.io>"]
-documentation = "https://docs.rs/dawn-model"
+documentation = "https://docs.rs/twilight-model"
 edition = "2018"
-homepage = "https://github.com/dawn-rs/dawn"
+homepage = "https://github.com/twilight-rs/twilight"
 include = ["src/*.rs", "Cargo.toml"]
-keywords = ["discord", "discord-api", "dawn"]
+keywords = ["discord", "discord-api", "twilight"]
 license = "ISC"
-name = "dawn-model"
+name = "twilight-model"
 publish = false
 readme = "README.md"
-repository = "https://github.com/dawn-rs/dawn.git"
+repository = "https://github.com/twilight-rs/twilight.git"
 version = "0.1.0"
 
 [dependencies]

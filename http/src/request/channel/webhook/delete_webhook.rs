@@ -1,5 +1,5 @@
 use crate::request::prelude::*;
-use dawn_model::id::WebhookId;
+use twilight_model::id::WebhookId;
 
 struct DeleteWebhookParams {
     token: Option<String>,

@@ -1,5 +1,5 @@
 use crate::request::prelude::*;
-use dawn_model::{channel::GuildChannel, id::GuildId};
+use twilight_model::{channel::GuildChannel, id::GuildId};
 
 pub struct GetGuildChannels<'a> {
     fut: Option<Pending<'a, Vec<GuildChannel>>>,

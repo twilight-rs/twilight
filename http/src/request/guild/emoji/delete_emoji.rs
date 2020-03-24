@@ -1,5 +1,5 @@
 use crate::request::prelude::*;
-use dawn_model::id::{EmojiId, GuildId};
+use twilight_model::id::{EmojiId, GuildId};
 
 pub struct DeleteEmoji<'a> {
     emoji_id: EmojiId,

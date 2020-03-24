@@ -1,9 +1,9 @@
-use dawn_model::{
+use std::sync::Arc;
+use twilight_model::{
     guild::Member,
     id::{GuildId, RoleId},
     user::User,
 };
-use std::sync::Arc;
 
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct CachedMember {

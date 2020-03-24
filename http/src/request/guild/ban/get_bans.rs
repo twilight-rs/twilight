@@ -1,5 +1,5 @@
 use crate::request::prelude::*;
-use dawn_model::{guild::Ban, id::GuildId};
+use twilight_model::{guild::Ban, id::GuildId};
 
 pub struct GetBans<'a> {
     fut: Option<Pending<'a, Vec<Ban>>>,

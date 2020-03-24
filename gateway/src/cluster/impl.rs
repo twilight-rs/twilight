@@ -50,7 +50,7 @@ impl Cluster {
     /// Bring up a cluster, starting shards all 10 shards that a bot uses:
     ///
     /// ```no_run
-    /// use dawn_gateway::cluster::{
+    /// use twilight_gateway::cluster::{
     ///     config::{Config, ShardScheme},
     ///     Cluster,
     /// };
@@ -137,7 +137,7 @@ impl Cluster {
     /// After waiting a minute, print the ID, latency, and stage of each shard:
     ///
     /// ```no_run
-    /// use dawn_gateway::cluster::Cluster;
+    /// use twilight_gateway::cluster::Cluster;
     /// use std::{env, time::Duration};
     ///
     /// # #[tokio::main]
@@ -189,7 +189,7 @@ impl Cluster {
     /// updated:
     ///
     /// ```no_run
-    /// use dawn_gateway::cluster::{Cluster, Event, EventType};
+    /// use twilight_gateway::cluster::{Cluster, Event, EventType};
     /// use futures::StreamExt;
     /// use std::env;
     ///

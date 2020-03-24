@@ -1,7 +1,7 @@
 use crate::request::prelude::*;
-use dawn_model::id::GuildId;
 use futures::TryFutureExt;
 use serde::Deserialize;
+use twilight_model::id::GuildId;
 
 #[derive(Deserialize)]
 struct VanityUrl {

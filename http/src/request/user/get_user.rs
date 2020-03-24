@@ -1,5 +1,5 @@
 use crate::request::prelude::*;
-use dawn_model::user::User;
+use twilight_model::user::User;
 
 pub struct GetUser<'a> {
     fut: Option<Pending<'a, Option<User>>>,

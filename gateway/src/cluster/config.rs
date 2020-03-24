@@ -3,13 +3,13 @@ use crate::{
     queue::{LocalQueue, Queue},
     shard::config::{Config as ShardConfig, ConfigBuilder as ShardConfigBuilder},
 };
-use dawn_http::Client;
-use dawn_model::gateway::{payload::update_status::UpdateStatusInfo, GatewayIntents};
 use std::{
     convert::TryFrom,
     ops::{Bound, RangeBounds},
     sync::Arc,
 };
+use twilight_http::Client;
+use twilight_model::gateway::{payload::update_status::UpdateStatusInfo, GatewayIntents};
 
 /// The method of sharding to use.
 ///
@@ -32,7 +32,7 @@ pub enum ShardScheme {
     /// shards 0 through 24:
     ///
     /// ```
-    /// use dawn_gateway::cluster::config::ShardScheme;
+    /// use twilight_gateway::cluster::config::ShardScheme;
     /// use std::convert::TryFrom;
     ///
     /// # fn main() -> Result<(), Box<dyn std::error::Error>> {
@@ -109,7 +109,7 @@ impl Config {
         ConfigBuilder::new(token)
     }
 
-    /// Returns the `dawn_http` client used by the cluster and shards to get the
+    /// Returns the `twilight_http` client used by the cluster and shards to get the
     /// gateway information.
     ///
     /// Refer to [`ConfigBuilder::http_client`] for the default value.
@@ -205,7 +205,7 @@ impl ConfigBuilder {
         self
     }
 
-    /// Sets the `dawn_http` Client used by the cluster and the shards it
+    /// Sets the `twilight_http` Client used by the cluster and the shards it
     /// manages.
     ///
     /// This is needed so that the cluster and shards can retrieve gateway
@@ -278,7 +278,7 @@ impl ConfigBuilder {
     /// Configure a cluster to manage shards 0-9 out of 20 shards total:
     ///
     /// ```no_run
-    /// use dawn_gateway::cluster::config::{Config, ShardScheme};
+    /// use twilight_gateway::cluster::config::{Config, ShardScheme};
     /// use std::{
     ///     convert::TryFrom,
     ///     env,

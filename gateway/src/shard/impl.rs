@@ -83,7 +83,7 @@ impl Shard {
     /// stage:
     ///
     /// ```no_run
-    /// use dawn_gateway::Shard;
+    /// use twilight_gateway::Shard;
     /// use std::{env, time::Duration};
     /// use tokio::time as tokio_time;
     ///
@@ -181,7 +181,7 @@ impl Shard {
     /// and [`Event::ShardDisconnected`] events:
     ///
     /// ```no_run
-    /// use dawn_gateway::shard::{Event, EventType, Shard};
+    /// use twilight_gateway::shard::{Event, EventType, Shard};
     /// use futures::StreamExt;
     /// use std::env;
     ///

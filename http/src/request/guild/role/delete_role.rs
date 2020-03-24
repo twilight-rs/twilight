@@ -1,5 +1,5 @@
 use crate::request::prelude::*;
-use dawn_model::id::{GuildId, RoleId};
+use twilight_model::id::{GuildId, RoleId};
 
 pub struct DeleteRole<'a> {
     fut: Option<Pending<'a, ()>>,

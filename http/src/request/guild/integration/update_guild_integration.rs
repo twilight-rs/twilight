@@ -1,5 +1,5 @@
 use crate::request::prelude::*;
-use dawn_model::id::{GuildId, IntegrationId};
+use twilight_model::id::{GuildId, IntegrationId};
 
 #[derive(Default, Serialize)]
 struct UpdateGuildIntegrationFields {

@@ -1,11 +1,11 @@
 [package]
 authors = ["Valdemar Erk <valdemar@erk.io>"]
 edition = "2018"
-name = "dawn-gateway-example-cluster"
+name = "twilight-gateway-example-cluster"
 version = "0.1.0"
 
 [dependencies]
-dawn-gateway = { path = "../.." }
+twilight-gateway = { path = "../.." }
 futures = "0.3"
 pretty_env_logger = "0.3"
 tokio = { version = "0.2", features = ["macros", "rt-core"] }

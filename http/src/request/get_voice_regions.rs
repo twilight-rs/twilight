@@ -1,5 +1,5 @@
 use crate::request::prelude::*;
-use dawn_model::voice::VoiceRegion;
+use twilight_model::voice::VoiceRegion;
 
 pub struct GetVoiceRegions<'a> {
     fut: Option<Pending<'a, Vec<VoiceRegion>>>,
