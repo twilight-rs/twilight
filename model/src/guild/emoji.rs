@@ -7,6 +7,7 @@ use crate::{
     feature = "serde-support",
     derive(serde::Deserialize, serde::Serialize)
 )]
+#[allow(clippy::struct_excessive_bools)]
 #[derive(Clone, Debug, Eq, Hash, PartialEq)]
 pub struct Emoji {
     // This does not need to be optional here as it can only be optional

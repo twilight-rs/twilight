@@ -5,6 +5,7 @@ use std::collections::HashMap;
     feature = "serde-support",
     derive(serde::Deserialize, serde::Serialize)
 )]
+#[allow(clippy::struct_excessive_bools)]
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct Connection {
     pub id: String,
