@@ -391,6 +391,8 @@ impl UpdateCache<InMemoryCache, InMemoryCacheError> for Box<VoiceStateUpdate> {
             return Ok(());
         }
 
+        cache.cache_voice_state(self.0.clone()).await;
+
         Ok(())
     }
 }
