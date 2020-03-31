@@ -11,7 +11,7 @@ use std::{
 use twilight_cache_trait::UpdateCache;
 use twilight_model::{
     channel::{message::MessageReaction, Channel},
-    gateway::payload::*,
+    gateway::{payload::*, presence::Presence},
     guild::GuildStatus,
     id::GuildId,
 };
@@ -465,6 +465,18 @@ impl UpdateCache<InMemoryCache, InMemoryCacheError> for PresenceUpdate {
         if !guard(cache, EventType::PRESENCE_UPDATE) {
             return Ok(());
         }
+
+        let presence = Presence {
+            activities: self.activities.clone(),
+            client_status: self.client_status.clone(),
+            game: self.game.clone(),
+            guild_id: self.guild_id,
+            nick: self.nick.clone(),
+            status: self.status,
+            user: self.user.clone(),
+        };
+
+        cache.cache_presence(self.guild_id, presence).await;
 
         Ok(())
     }
