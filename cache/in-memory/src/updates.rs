@@ -1,6 +1,5 @@
 use super::{config::EventType, InMemoryCache, InMemoryCacheError};
 use async_trait::async_trait;
-use futures::lock::Mutex;
 #[allow(unused_imports)]
 use log::debug;
 use std::{
@@ -8,6 +7,7 @@ use std::{
     hash::Hash,
     sync::Arc,
 };
+use tokio::sync::Mutex;
 use twilight_cache_trait::UpdateCache;
 use twilight_model::{
     channel::{message::MessageReaction, Channel},

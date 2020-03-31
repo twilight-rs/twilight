@@ -6,7 +6,7 @@ mod updates;
 
 use self::model::*;
 use config::Config;
-use futures::{future, lock::Mutex};
+use futures::future;
 use std::{
     collections::{
         hash_map::{Entry, HashMap},
@@ -19,6 +19,7 @@ use std::{
     iter::FromIterator,
     sync::Arc,
 };
+use tokio::sync::Mutex;
 use twilight_cache_trait::{Cache, UpdateCache};
 use twilight_model::{
     channel::{Group, GuildChannel, PrivateChannel},
@@ -29,6 +30,7 @@ use twilight_model::{
     voice::VoiceState,
 };
 
+#[derive(Debug)]
 struct GuildItem<T> {
     data: Arc<T>,
     guild_id: GuildId,

@@ -1,5 +1,5 @@
 use super::super::error::{Error, Result};
-use futures::{channel::mpsc::UnboundedSender, lock::Mutex};
+use futures::channel::mpsc::UnboundedSender;
 use log::{debug, error, warn};
 use std::{
     collections::VecDeque,
@@ -10,6 +10,7 @@ use std::{
     },
     time::{Duration, Instant},
 };
+use tokio::sync::Mutex;
 use tokio_tungstenite::tungstenite::Message as TungsteniteMessage;
 use twilight_model::gateway::payload::Heartbeat;
 

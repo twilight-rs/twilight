@@ -5,7 +5,6 @@ use futures::{
         mpsc::{self, UnboundedReceiver, UnboundedSender},
         oneshot::{self, Sender},
     },
-    lock::Mutex,
     stream::StreamExt,
 };
 use log::debug;
@@ -17,7 +16,10 @@ use std::{
     },
     time::{Duration, Instant},
 };
-use tokio::time::{delay_for, timeout};
+use tokio::{
+    sync::Mutex,
+    time::{delay_for, timeout},
+};
 //use tokio::future::FutureExt as _;
 
 #[derive(Clone, Debug)]

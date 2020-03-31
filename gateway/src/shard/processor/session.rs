@@ -8,7 +8,6 @@ use super::{
 use futures::{
     channel::mpsc::UnboundedSender,
     future::{self, AbortHandle},
-    lock::Mutex,
 };
 use serde::ser::Serialize;
 use std::{
@@ -18,6 +17,7 @@ use std::{
         Arc,
     },
 };
+use tokio::sync::Mutex;
 use twilight_model::gateway::payload::Heartbeat;
 //use tokio_executor::{DefaultExecutor, Executor};
 use tokio_tungstenite::tungstenite::Message as TungsteniteMessage;

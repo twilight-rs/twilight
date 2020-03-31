@@ -5,13 +5,13 @@ use super::{
 use crate::shard::{event::EventType, Event, Information, Shard};
 use futures::{
     future,
-    lock::Mutex,
     stream::{SelectAll, Stream, StreamExt},
 };
 use std::{
     collections::HashMap,
     sync::{Arc, Weak},
 };
+use tokio::sync::Mutex;
 
 #[derive(Debug)]
 struct ClusterRef {

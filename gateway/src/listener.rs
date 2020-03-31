@@ -1,8 +1,5 @@
 use crate::shard::EventType;
-use futures::{
-    channel::mpsc::{self, UnboundedReceiver, UnboundedSender},
-    lock::Mutex,
-};
+use futures::channel::mpsc::{self, UnboundedReceiver, UnboundedSender};
 use std::{
     collections::HashMap,
     sync::{
@@ -10,7 +7,9 @@ use std::{
         Arc,
     },
 };
+use tokio::sync::Mutex;
 
+#[derive(Debug)]
 pub struct Listener<T> {
     pub events: EventType,
     pub tx: UnboundedSender<T>,
