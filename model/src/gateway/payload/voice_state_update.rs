@@ -5,7 +5,7 @@ use crate::voice::VoiceState;
     derive(serde::Deserialize, serde::Serialize)
 )]
 #[derive(Clone, Debug, Eq, Hash, PartialEq)]
-pub struct VoiceStateUpdate(VoiceState);
+pub struct VoiceStateUpdate(pub VoiceState);
 
 #[cfg(test)]
 mod tests {
