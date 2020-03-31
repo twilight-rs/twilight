@@ -72,11 +72,7 @@
     unused,
     warnings
 )]
-#![allow(
-    clippy::module_name_repetitions,
-    clippy::must_use_candidate,
-    clippy::struct_excessive_bools
-)]
+#![allow(clippy::module_name_repetitions, clippy::must_use_candidate)]
 
 pub mod channel;
 pub mod gateway;
