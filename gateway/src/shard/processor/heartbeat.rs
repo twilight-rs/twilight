@@ -1,5 +1,4 @@
 use super::super::error::{Error, Result};
-use futures::channel::mpsc::UnboundedSender;
 use log::{debug, error, warn};
 use std::{
     collections::VecDeque,
@@ -10,7 +9,7 @@ use std::{
     },
     time::{Duration, Instant},
 };
-use tokio::sync::Mutex;
+use tokio::sync::{mpsc::UnboundedSender, Mutex};
 use tokio_tungstenite::tungstenite::Message as TungsteniteMessage;
 use twilight_model::gateway::payload::Heartbeat;
 
@@ -216,7 +215,7 @@ impl Heartbeater {
 
             debug!("[Heartbeat] Sending heartbeat with seq: {}", seq);
             self.tx
-                .unbounded_send(TungsteniteMessage::Binary(bytes))
+                .send(TungsteniteMessage::Binary(bytes))
                 .map_err(|source| Error::SendingMessage {
                     source,
                 })?;

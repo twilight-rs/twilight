@@ -1,5 +1,4 @@
 use crate::ratelimiting::RatelimitError;
-use futures::channel::oneshot::Canceled;
 use reqwest::{header::InvalidHeaderValue, Error as ReqwestError, Response as ReqwestResponse};
 use serde_json::Error as JsonError;
 use std::{
@@ -7,6 +6,7 @@ use std::{
     fmt::{Display, Error as FmtError, Formatter, Result as FmtResult},
     result::Result as StdResult,
 };
+use tokio::sync::oneshot::error::RecvError;
 
 pub type Result<T> = StdResult<T, Error>;
 
@@ -64,7 +64,7 @@ pub enum Error {
         source: RatelimitError,
     },
     RequestCanceled {
-        source: Canceled,
+        source: RecvError,
     },
     RequestError {
         source: ReqwestError,

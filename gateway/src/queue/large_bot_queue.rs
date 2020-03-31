@@ -1,15 +1,14 @@
 use super::{DayLimiter, Queue};
 use async_trait::async_trait;
-use futures::{
-    channel::{
-        mpsc::{unbounded, UnboundedReceiver, UnboundedSender},
-        oneshot::{self, Sender},
-    },
-    sink::SinkExt,
-    stream::StreamExt,
-};
 use log::{info, warn};
 use std::{fmt::Debug, time::Duration};
+use tokio::{
+    stream::StreamExt,
+    sync::{
+        mpsc::{unbounded_channel, UnboundedReceiver, UnboundedSender},
+        oneshot::{self, Sender},
+    },
+};
 
 /// Large bot queue is for bots that are marked as very large by Discord.
 ///
@@ -25,7 +24,7 @@ impl LargeBotQueue {
     pub async fn new(buckets: usize, http: &twilight_http::Client) -> Self {
         let mut queues = Vec::with_capacity(buckets);
         for _ in 0..buckets {
-            let (tx, rx) = unbounded();
+            let (tx, rx) = unbounded_channel();
 
             tokio::spawn(async {
                 waiter(rx).await;
@@ -82,7 +81,7 @@ impl Queue for LargeBotQueue {
         let (tx, rx) = oneshot::channel();
 
         self.limiter.get().await;
-        if let Err(err) = self.buckets[bucket].clone().send(tx).await {
+        if let Err(err) = self.buckets[bucket].clone().send(tx) {
             warn!("[LargeBotQueue] send failed with: {:?}, skipping", err);
             return;
         }

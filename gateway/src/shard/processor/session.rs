@@ -5,10 +5,7 @@ use super::{
     },
     heartbeat::{Heartbeater, Heartbeats},
 };
-use futures::{
-    channel::mpsc::UnboundedSender,
-    future::{self, AbortHandle},
-};
+use futures::future::{self, AbortHandle};
 use serde::ser::Serialize;
 use std::{
     convert::TryFrom,
@@ -17,7 +14,7 @@ use std::{
         Arc,
     },
 };
-use tokio::sync::Mutex;
+use tokio::sync::{mpsc::UnboundedSender, Mutex};
 use twilight_model::gateway::payload::Heartbeat;
 //use tokio_executor::{DefaultExecutor, Executor};
 use tokio_tungstenite::tungstenite::Message as TungsteniteMessage;
@@ -67,7 +64,7 @@ impl Session {
         })?;
 
         self.tx
-            .unbounded_send(TungsteniteMessage::Binary(bytes))
+            .send(TungsteniteMessage::Binary(bytes))
             .map_err(|source| Error::SendingMessage {
                 source,
             })?;

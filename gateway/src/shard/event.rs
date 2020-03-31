@@ -15,14 +15,12 @@
 
 use crate::event::{DispatchEvent, GatewayEvent};
 use bitflags::bitflags;
-use futures::{
-    channel::mpsc::UnboundedReceiver,
-    stream::{Stream, StreamExt},
-};
+use futures::stream::StreamExt;
 use std::{
     pin::Pin,
     task::{Context, Poll},
 };
+use tokio::{stream::Stream, sync::mpsc::UnboundedReceiver};
 use twilight_model::gateway::payload::*;
 
 bitflags! {

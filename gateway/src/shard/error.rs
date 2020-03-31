@@ -1,13 +1,13 @@
 //! The error type of why errors occur in the shard module.
 
 use flate2::DecompressError;
-use futures::channel::mpsc::TrySendError;
 use serde_json::Error as JsonError;
 use std::{
     error::Error as StdError,
     fmt::{Display, Formatter, Result as FmtResult},
     result::Result as StdResult,
 };
+use tokio::sync::mpsc::error::SendError;
 use tokio_tungstenite::tungstenite::{Error as TungsteniteError, Message as TungsteniteMessage};
 use twilight_http::Error as HttpError;
 use url::ParseError;
@@ -59,7 +59,7 @@ pub enum Error {
     /// typically means that the shard is shutdown.
     SendingMessage {
         /// The reason for the error.
-        source: TrySendError<TungsteniteMessage>,
+        source: SendError<TungsteniteMessage>,
     },
     /// There was a error decompressing a frame from discord.
     Decompressing { source: DecompressError },

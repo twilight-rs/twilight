@@ -1,12 +1,5 @@
 use super::{headers::RatelimitHeaders, GlobalLockPair};
 use crate::routing::Path;
-use futures::{
-    channel::{
-        mpsc::{self, UnboundedReceiver, UnboundedSender},
-        oneshot::{self, Sender},
-    },
-    stream::StreamExt,
-};
 use log::debug;
 use std::{
     collections::HashMap,
@@ -17,7 +10,12 @@ use std::{
     time::{Duration, Instant},
 };
 use tokio::{
-    sync::Mutex,
+    stream::StreamExt,
+    sync::{
+        mpsc::{self, UnboundedReceiver, UnboundedSender},
+        oneshot::{self, Sender},
+        Mutex,
+    },
     time::{delay_for, timeout},
 };
 //use tokio::future::FutureExt as _;
@@ -125,7 +123,7 @@ pub struct BucketQueue {
 
 impl BucketQueue {
     pub fn push(&self, tx: Sender<Sender<Option<RatelimitHeaders>>>) {
-        let _ = self.tx.unbounded_send(tx);
+        let _ = self.tx.send(tx);
     }
 
     pub async fn pop(
@@ -146,7 +144,7 @@ impl BucketQueue {
 
 impl Default for BucketQueue {
     fn default() -> Self {
-        let (tx, rx) = mpsc::unbounded();
+        let (tx, rx) = mpsc::unbounded_channel();
 
         Self {
             rx: Mutex::new(rx),

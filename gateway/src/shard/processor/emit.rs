@@ -13,7 +13,7 @@ pub async fn bytes(listeners: Listeners<Event>, bytes: &[u8]) {
 
             // If the channel isn't active, this'll be caught by event emissions
             // later.
-            let _ = listener.tx.unbounded_send(event);
+            let _ = listener.tx.send(event);
         }
     }
 }
@@ -90,5 +90,5 @@ fn _emit_to_listener(id: u64, listener: &Listener<Event>, event: Event) -> bool 
         return true;
     }
 
-    listener.tx.unbounded_send(event).is_ok()
+    listener.tx.send(event).is_ok()
 }

@@ -21,15 +21,16 @@ use twilight_model::gateway::payload::{
     resume::Resume,
 };
 
-use futures::{channel::mpsc::UnboundedReceiver, stream::StreamExt};
 #[allow(unused_imports)]
 use log::{debug, info, trace, warn};
 use serde::Serialize;
 use std::{env::consts::OS, ops::Deref, sync::Arc};
-use tokio::sync::watch::{
-    channel as watch_channel,
-    Receiver as WatchReceiver,
-    Sender as WatchSender,
+use tokio::{
+    stream::StreamExt,
+    sync::{
+        mpsc::UnboundedReceiver,
+        watch::{channel as watch_channel, Receiver as WatchReceiver, Sender as WatchSender},
+    },
 };
 use tokio_tungstenite::tungstenite::Message;
 

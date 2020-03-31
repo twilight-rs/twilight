@@ -5,17 +5,14 @@ pub use large_bot_queue::LargeBotQueue;
 
 use async_trait::async_trait;
 use day_limiter::DayLimiter;
-use futures::{
-    channel::{
-        mpsc::{unbounded, UnboundedReceiver, UnboundedSender},
-        oneshot::{self, Sender},
-    },
-    sink::SinkExt,
-    stream::StreamExt,
-};
+use futures::stream::StreamExt;
 #[allow(unused_imports)]
 use log::{info, warn};
 use std::{fmt::Debug, time::Duration};
+use tokio::sync::{
+    mpsc::{unbounded_channel, UnboundedReceiver, UnboundedSender},
+    oneshot::{self, Sender},
+};
 
 #[async_trait]
 pub trait Queue: Debug + Send + Sync {
@@ -62,7 +59,7 @@ impl Default for LocalQueue {
 impl LocalQueue {
     /// Creates a new local queue.
     pub fn new() -> Self {
-        let (tx, rx) = unbounded();
+        let (tx, rx) = unbounded_channel();
 
         tokio::spawn(async {
             waiter(rx).await;
@@ -92,7 +89,7 @@ impl Queue for LocalQueue {
     async fn request(&self, _: [u64; 2]) {
         let (tx, rx) = oneshot::channel();
 
-        if let Err(err) = self.0.clone().send(tx).await {
+        if let Err(err) = self.0.clone().send(tx) {
             warn!("[LocalQueue] send failed with: {:?}, skipping", err);
             return;
         }

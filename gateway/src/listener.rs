@@ -1,5 +1,4 @@
 use crate::shard::EventType;
-use futures::channel::mpsc::{self, UnboundedReceiver, UnboundedSender};
 use std::{
     collections::HashMap,
     sync::{
@@ -7,7 +6,10 @@ use std::{
         Arc,
     },
 };
-use tokio::sync::Mutex;
+use tokio::sync::{
+    mpsc::{self, UnboundedReceiver, UnboundedSender},
+    Mutex,
+};
 
 #[derive(Debug)]
 pub struct Listener<T> {
@@ -36,7 +38,7 @@ pub struct Listeners<T>(Arc<ListenersRef<T>>);
 impl<T> Listeners<T> {
     pub async fn add(&self, events: EventType) -> UnboundedReceiver<T> {
         let id = self.0.id.fetch_add(1, Ordering::Release) + 1;
-        let (tx, rx) = mpsc::unbounded();
+        let (tx, rx) = mpsc::unbounded_channel();
 
         self.0.listeners.lock().await.insert(
             id,

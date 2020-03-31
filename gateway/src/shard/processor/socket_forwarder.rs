@@ -1,13 +1,15 @@
 use super::super::ShardStream;
 use futures::{
-    channel::mpsc::{self, UnboundedReceiver, UnboundedSender},
     future::{self, Either},
     sink::SinkExt,
-    stream::StreamExt,
 };
 #[allow(unused_imports)]
 use log::{debug, info, trace, warn};
-use tokio::time::timeout;
+use tokio::{
+    stream::StreamExt,
+    sync::mpsc::{self, UnboundedReceiver, UnboundedSender},
+    time::timeout,
+};
 use tokio_tungstenite::tungstenite::Message;
 
 pub struct SocketForwarder {
@@ -20,8 +22,8 @@ impl SocketForwarder {
     pub fn new(
         stream: ShardStream,
     ) -> (Self, UnboundedReceiver<Message>, UnboundedSender<Message>) {
-        let (to_user, from_forwarder) = mpsc::unbounded();
-        let (to_forwarder, from_user) = mpsc::unbounded();
+        let (to_user, from_forwarder) = mpsc::unbounded_channel();
+        let (to_forwarder, from_user) = mpsc::unbounded_channel();
 
         (
             Self {
@@ -53,23 +55,23 @@ impl SocketForwarder {
                     break;
                 },
                 Either::Right((Ok(Some(Ok(msg))), _)) => {
-                    if self.tx.unbounded_send(msg).is_err() {
+                    if self.tx.send(msg).is_err() {
                         break;
                     }
                 },
                 Either::Right((Ok(Some(Err(err))), _)) => {
                     warn!("[SocketForwarder] Got error: {}, closing tx", err);
-                    self.tx.close_channel();
+                    self.rx.close();
                     break;
                 },
                 Either::Right((Ok(None), _)) => {
                     warn!("[SocketForwarder] Got None, closing tx");
-                    self.tx.close_channel();
+                    self.rx.close();
                     break;
                 },
                 Either::Right((Err(why), _)) => {
                     warn!("[SocketForwarder] Error: {}", why);
-                    self.tx.close_channel();
+                    self.rx.close();
                     break;
                 },
             }

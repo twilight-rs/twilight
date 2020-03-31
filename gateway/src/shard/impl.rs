@@ -7,13 +7,10 @@ use super::{
     stage::Stage,
 };
 use crate::listener::Listeners;
-use futures::{
-    future::{self, AbortHandle},
-    Stream,
-};
+use futures::future::{self, AbortHandle};
 use log::debug;
 use std::sync::Arc;
-use tokio::sync::watch::Receiver as WatchReceiver;
+use tokio::{stream::Stream, sync::watch::Receiver as WatchReceiver};
 
 use tokio_tungstenite::tungstenite::Message;
 
@@ -232,7 +229,7 @@ impl Shard {
     pub async fn shutdown(&self) {
         let session = self.session();
         // Since we're shutting down now, we don't care if it sends or not.
-        let _ = session.tx.unbounded_send(Message::Close(None));
+        let _ = session.tx.send(Message::Close(None));
 
         self.0.processor_handle.abort();
         self.0.listeners.remove_all().await;
