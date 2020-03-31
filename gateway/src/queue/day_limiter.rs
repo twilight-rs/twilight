@@ -8,7 +8,7 @@ use log::warn;
 use tokio::{sync::Mutex, time::Instant};
 
 #[derive(Debug)]
-pub(crate) struct DayLimiter(Mutex<DayLimiterInner>);
+pub(crate) struct DayLimiter(pub(crate) Mutex<DayLimiterInner>);
 
 #[derive(Debug)]
 pub(crate) struct DayLimiterInner {
@@ -27,7 +27,9 @@ impl DayLimiter {
             .map_err(|e| Error::GettingGatewayUrl {
                 source: e,
             })?;
-        let next_reset = Instant::now() + Duration::from_millis(info.session_start_limit.remaining);
+
+        let next_reset =
+            Instant::now() + Duration::from_millis(info.session_start_limit.reset_after);
         let total = info.session_start_limit.total;
         let remaining = info.session_start_limit.remaining;
         assert!(total >= remaining);

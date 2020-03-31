@@ -34,12 +34,24 @@ impl LargeBotQueue {
             queues.push(tx)
         }
 
+        let limiter = DayLimiter::new(http).await.expect(
+            "Getting the first session limits failed, \
+             Is network connection available?",
+        );
+
+        if log::log_enabled!(log::Level::Info) {
+            let lock = limiter.0.lock().await;
+            log::info!(
+                "{}/{} identifies used before next reset in {:.2?}",
+                lock.current,
+                lock.total,
+                lock.next_reset - tokio::time::Instant::now()
+            );
+        }
+
         Self {
             buckets: queues,
-            limiter: DayLimiter::new(http).await.expect(
-                "Getting the first session limits failed, \
-                 Is network connection available",
-            ),
+            limiter,
         }
     }
 }
