@@ -10,7 +10,7 @@ use twilight_model::gateway::{payload::update_status::UpdateStatusInfo, GatewayI
 /// Use [`Config::builder`] to start creating a configuration.
 ///
 /// [`Config::builder`]: #method.builder
-#[derive(Debug)]
+#[derive(Clone, Debug)]
 pub struct Config {
     guild_subscriptions: bool,
     http_client: HttpClient,
@@ -18,7 +18,7 @@ pub struct Config {
     large_threshold: u64,
     presence: Option<UpdateStatusInfo>,
     pub(crate) queue: Arc<Box<dyn Queue>>,
-    shard: [u64; 2],
+    pub(crate) shard: [u64; 2],
     token: String,
 }
 

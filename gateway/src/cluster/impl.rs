@@ -2,13 +2,12 @@ use super::{
     config::{Config, ShardScheme},
     error::{Error, Result},
 };
-use crate::shard::{event::EventType, Config as ShardConfig, Event, Information, Shard};
+use crate::shard::{event::EventType, Event, Information, Shard};
 use futures::{
     future,
     lock::Mutex,
     stream::{SelectAll, Stream, StreamExt},
 };
-use log::warn;
 use std::{
     collections::HashMap,
     sync::{Arc, Weak},
@@ -230,17 +229,9 @@ impl Cluster {
     async fn start(cluster: Weak<ClusterRef>, shard_id: u64, shard_total: u64) -> Option<Shard> {
         let cluster = cluster.upgrade()?;
 
-        let token = cluster.config.shard_config().token().to_owned();
-        let config = match ShardConfig::builder(token)
-            .queue(Arc::clone(&cluster.config.queue()))
-            .shard(shard_id, shard_total)
-        {
-            Ok(c) => c.build(),
-            Err(err) => {
-                warn!("Config creation failed with: {}", err);
-                return None;
-            },
-        };
+        let mut config = cluster.config.shard_config().clone();
+
+        config.shard = [shard_id, shard_total];
 
         let shard = Shard::new(config).await.ok()?;
 
