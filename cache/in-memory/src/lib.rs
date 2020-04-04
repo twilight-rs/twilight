@@ -371,7 +371,7 @@ impl InMemoryCache {
         Ok(())
     }
 
-    async fn cache_current_user(&self, mut current_user: CurrentUser) {
+    pub async fn cache_current_user(&self, mut current_user: CurrentUser) {
         let mut user = self.0.current_user.lock().await;
 
         if let Some(mut user) = user.as_mut() {
@@ -385,7 +385,7 @@ impl InMemoryCache {
         *user = Some(Arc::new(current_user));
     }
 
-    async fn cache_guild_channels(
+    pub async fn cache_guild_channels(
         &self,
         guild_id: GuildId,
         guild_channels: impl IntoIterator<Item = GuildChannel>,
@@ -401,7 +401,7 @@ impl InMemoryCache {
         HashSet::from_iter(pairs)
     }
 
-    async fn cache_guild_channel(
+    pub async fn cache_guild_channel(
         &self,
         guild_id: GuildId,
         channel: GuildChannel,
@@ -411,7 +411,7 @@ impl InMemoryCache {
         upsert_guild_item(&self.0.channels_guild, guild_id, id, channel).await
     }
 
-    async fn cache_emoji(&self, guild_id: GuildId, emoji: Emoji) -> Arc<CachedEmoji> {
+    pub async fn cache_emoji(&self, guild_id: GuildId, emoji: Emoji) -> Arc<CachedEmoji> {
         match self.0.emojis.lock().await.get(&emoji.id) {
             Some(e) if *e.data == emoji => return Arc::clone(&e.data),
             Some(_) | None => {},
@@ -440,7 +440,7 @@ impl InMemoryCache {
         cached
     }
 
-    async fn cache_emojis(
+    pub async fn cache_emojis(
         &self,
         guild_id: GuildId,
         emojis: impl IntoIterator<Item = Emoji>,
@@ -456,11 +456,11 @@ impl InMemoryCache {
         HashSet::from_iter(pairs)
     }
 
-    async fn cache_group(&self, group: Group) -> Arc<Group> {
+    pub async fn cache_group(&self, group: Group) -> Arc<Group> {
         upsert_item(&self.0.groups, group.id, group).await
     }
 
-    async fn cache_guild(&self, guild: Guild) {
+    pub async fn cache_guild(&self, guild: Guild) {
         self.cache_guild_channels(guild.id, guild.channels.into_iter().map(|(_, v)| v))
             .await;
         self.cache_emojis(guild.id, guild.emojis.into_iter().map(|(_, v)| v))
@@ -547,7 +547,7 @@ impl InMemoryCache {
         self.0.guilds.lock().await.insert(guild.id, Arc::new(guild));
     }
 
-    async fn cache_member(&self, guild_id: GuildId, member: Member) -> Arc<CachedMember> {
+    pub async fn cache_member(&self, guild_id: GuildId, member: Member) -> Arc<CachedMember> {
         let id = (guild_id, member.user.id);
         match self.0.members.lock().await.get(&id) {
             Some(m) if **m == member => return Arc::clone(&m),
@@ -569,7 +569,7 @@ impl InMemoryCache {
         cached
     }
 
-    async fn cache_members(
+    pub async fn cache_members(
         &self,
         guild_id: GuildId,
         members: impl IntoIterator<Item = Member>,
@@ -585,7 +585,7 @@ impl InMemoryCache {
         HashSet::from_iter(ids)
     }
 
-    async fn cache_presences(
+    pub async fn cache_presences(
         &self,
         guild_id: Option<GuildId>,
         presences: impl IntoIterator<Item = Presence>,
@@ -601,7 +601,7 @@ impl InMemoryCache {
         HashSet::from_iter(ids)
     }
 
-    async fn cache_presence(
+    pub async fn cache_presence(
         &self,
         guild_id: Option<GuildId>,
         presence: Presence,
@@ -619,7 +619,10 @@ impl InMemoryCache {
         cached
     }
 
-    async fn cache_private_channel(&self, private_channel: PrivateChannel) -> Arc<PrivateChannel> {
+    pub async fn cache_private_channel(
+        &self,
+        private_channel: PrivateChannel,
+    ) -> Arc<PrivateChannel> {
         let id = private_channel.id;
 
         match self.0.channels_private.lock().await.get(&id) {
@@ -637,7 +640,7 @@ impl InMemoryCache {
         }
     }
 
-    async fn cache_roles(
+    pub async fn cache_roles(
         &self,
         guild_id: GuildId,
         roles: impl IntoIterator<Item = Role>,
@@ -654,11 +657,11 @@ impl InMemoryCache {
         HashSet::from_iter(ids)
     }
 
-    async fn cache_role(&self, guild_id: GuildId, role: Role) -> Arc<Role> {
+    pub async fn cache_role(&self, guild_id: GuildId, role: Role) -> Arc<Role> {
         upsert_guild_item(&self.0.roles, guild_id, role.id, role).await
     }
 
-    async fn cache_user(&self, user: User) -> Arc<User> {
+    pub async fn cache_user(&self, user: User) -> Arc<User> {
         match self.0.users.lock().await.get(&user.id) {
             Some(u) if **u == user => return Arc::clone(&u),
             Some(_) | None => {},
@@ -669,7 +672,7 @@ impl InMemoryCache {
         user
     }
 
-    async fn cache_voice_states(
+    pub async fn cache_voice_states(
         &self,
         voice_states: impl IntoIterator<Item = VoiceState>,
     ) -> HashSet<UserId> {
@@ -684,7 +687,7 @@ impl InMemoryCache {
         HashSet::from_iter(ids)
     }
 
-    async fn cache_voice_state(&self, vs: VoiceState) -> Arc<CachedVoiceState> {
+    pub async fn cache_voice_state(&self, vs: VoiceState) -> Arc<CachedVoiceState> {
         let k = (vs.channel_id.unwrap(), vs.user_id);
 
         match self.0.voice_states.lock().await.get(&k) {
@@ -713,16 +716,16 @@ impl InMemoryCache {
         state
     }
 
-    async fn delete_group(&self, channel_id: ChannelId) -> Option<Arc<Group>> {
+    pub async fn delete_group(&self, channel_id: ChannelId) -> Option<Arc<Group>> {
         self.0.groups.lock().await.remove(&channel_id)
     }
 
-    async fn unavailable_guild(&self, guild_id: GuildId) {
+    pub async fn unavailable_guild(&self, guild_id: GuildId) {
         self.0.unavailable_guilds.lock().await.insert(guild_id);
         self.0.guilds.lock().await.remove(&guild_id);
     }
 
-    async fn delete_guild_channel(&self, channel_id: ChannelId) -> Option<Arc<GuildChannel>> {
+    pub async fn delete_guild_channel(&self, channel_id: ChannelId) -> Option<Arc<GuildChannel>> {
         self.0
             .channels_guild
             .lock()
@@ -731,7 +734,7 @@ impl InMemoryCache {
             .map(|x| x.data)
     }
 
-    async fn delete_role(&self, role_id: RoleId) -> Option<Arc<Role>> {
+    pub async fn delete_role(&self, role_id: RoleId) -> Option<Arc<Role>> {
         let role = self.0.roles.lock().await.remove(&role_id)?;
         let mut guild_roles = self.0.guild_roles.lock().await;
 
