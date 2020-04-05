@@ -31,7 +31,12 @@ use tokio::sync::watch::{
     Receiver as WatchReceiver,
     Sender as WatchSender,
 };
-use tokio_tungstenite::tungstenite::Message;
+use tokio_tungstenite::tungstenite::{
+    protocol::{frame::coding::CloseCode, CloseFrame},
+    Message,
+};
+
+use std::borrow::Cow;
 
 #[cfg(feature = "metrics")]
 use metrics::counter;
@@ -253,7 +258,12 @@ impl ShardProcessor {
                 #[cfg(feature = "metrics")]
                 counter!("GatewayEvent", 1, "GatewayEvent" => "Reconnect");
                 debug!("[EVENT] Reconnect");
-                self.reconnect(true).await;
+                let frame = CloseFrame {
+                    code: CloseCode::Restart,
+                    reason: Cow::Borrowed("Reconnecting"),
+                };
+                self.close(Some(frame)).await?;
+                self.resume().await?;
             },
         }
 
@@ -356,6 +366,11 @@ impl ShardProcessor {
             },
             Err(other) => Err(other),
         }
+    }
+
+    async fn close(&mut self, close_frame: Option<CloseFrame<'static>>) -> Result<()> {
+        self.session.close(close_frame)?;
+        Ok(())
     }
 
     async fn next_event(&mut self) -> Result<GatewayEvent> {

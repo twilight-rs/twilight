@@ -19,8 +19,8 @@ use std::{
     },
 };
 use twilight_model::gateway::payload::Heartbeat;
-//use tokio_executor::{DefaultExecutor, Executor};
-use tokio_tungstenite::tungstenite::Message as TungsteniteMessage;
+
+use tokio_tungstenite::tungstenite::{protocol::CloseFrame, Message as TungsteniteMessage};
 
 #[derive(Debug)]
 pub struct Session {
@@ -68,6 +68,16 @@ impl Session {
 
         self.tx
             .unbounded_send(TungsteniteMessage::Binary(bytes))
+            .map_err(|source| Error::SendingMessage {
+                source,
+            })?;
+
+        Ok(())
+    }
+
+    pub fn close(&self, close_frame: Option<CloseFrame<'static>>) -> Result<()> {
+        self.tx
+            .unbounded_send(TungsteniteMessage::Close(close_frame))
             .map_err(|source| Error::SendingMessage {
                 source,
             })?;
