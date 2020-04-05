@@ -45,7 +45,7 @@ impl LargeBotQueue {
                 "{}/{} identifies used before next reset in {:.2?}",
                 lock.current,
                 lock.total,
-                lock.next_reset - tokio::time::Instant::now()
+                lock.next_reset
             );
         }
 
