@@ -16,12 +16,12 @@ non-vendor-specific crates in the `twilight` ecosystem.
 
 ## Installation
  
-Most of Dawn requires at least 1.39+ (rust beta).
+Most of Twilight requires at least 1.40+ (rust stable).
 
 Add this to your `Cargo.toml`'s `[dependencies]` section:
 
 ```toml
-twilight = "0.1"
+twilight = {version = "0.0.1-alpha.0", git = "https://github.com/twilight-rs/twilight.git" }
 ```
 
 ## Crates
@@ -83,27 +83,64 @@ proxying.
 
 
 ## Examples
-
 ```rust
-use twilight::{
-    gateway::{shard::Event, Cluster, ClusterConfig},
-    http::Client as HttpClient,
-};
-use futures::StreamExt;
 use std::{env, error::Error};
+use tokio::stream::StreamExt;
+
+use twilight::{
+    cache::{
+        twilight_cache_inmemory::config::{ConfigBuilder, EventType},
+        InMemoryCache,
+    },
+    gateway::cluster::{config::ShardScheme, Cluster, Config},
+    gateway::shard::Event,
+    http::Client as HttpClient,
+    model::gateway::GatewayIntents,
+};
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn Error + Send + Sync>> {
     let token = env::var("DISCORD_TOKEN")?;
-    let http = HttpClient::new(&token);
 
-    let cluster_config = ClusterConfig::builder(&token).build();
-    let cluster = Cluster::new(cluster_config);
+    // This is also the default.
+    let scheme = ShardScheme::Auto;
+
+    let config = Config::builder(&token)
+        .shard_scheme(scheme)
+        // Use intents to only listen to GUILD_MESSAGES events
+        .intents(Some(
+            GatewayIntents::GUILD_MESSAGES | GatewayIntents::DIRECT_MESSAGES,
+        ))
+        .build();
+
+    // Start up the cluster
+    let cluster = Cluster::new(config);
     cluster.up().await?;
 
-    let mut events = cluster.events().await;
+    // The http client is seperate from the gateway,
+    // so startup a new one
+    let http = HttpClient::new(&token);
 
+    // Since we only care about messages, make the cache only
+    // cache message related events
+    let cache_config = ConfigBuilder::new()
+        .event_types(
+            EventType::MESSAGE_CREATE
+                | EventType::MESSAGE_DELETE
+                | EventType::MESSAGE_DELETE_BULK
+                | EventType::MESSAGE_UPDATE,
+        )
+        .build();
+    let cache = InMemoryCache::from(cache_config);
+
+
+    let mut events = cluster.events().await;
+    // Startup an event loop for each event in the event stream
     while let Some(event) = events.next().await {
+        // Update the cache
+        cache.update(&event.1).await.expect("Cache failed, OhNoe");
+
+        // Spawn a new task to handle the event
         tokio::spawn(handle_event(event, http.clone()));
     }
 
@@ -115,13 +152,11 @@ async fn handle_event(
     http: HttpClient,
 ) -> Result<(), Box<dyn Error + Send + Sync>> {
     match event {
-        (id, Event::Ready(_)) => {
-            println!("Connected on shard {}", id);
+        (_, Event::MessageCreate(msg)) if msg.content == "!ping" => {
+            http.create_message(msg.channel_id).content("Pong!").await?;
         }
-        (_, Event::MessageCreate(msg)) => {
-            if msg.content == "!ping" {
-                http.create_message(msg.channel_id).content("Pong!").await?;
-            }
+        (id, Event::ShardConnected(_)) => {
+            println!("Connected on shard {}", id);
         }
         _ => {}
     }
@@ -129,6 +164,7 @@ async fn handle_event(
     Ok(())
 }
 ```
+
 
 ## License
 
@@ -139,5 +175,5 @@ All first-party crates are licensed under [ISC][LICENSE.md]
 [license badge]: https://img.shields.io/badge/license-ISC-blue.svg?style=flat-square
 [license link]: https://opensource.org/licenses/ISC
 [logo]: https://raw.githubusercontent.com/twilight-rs/twilight/master/logo.png
-[rust badge]: https://img.shields.io/badge/rust-1.39+%20(beta)-93450a.svg?style=flat-square
+[rust badge]: https://img.shields.io/badge/rust-1.40+%20(stable)-93450a.svg?style=flat-square
 [rust link]: https://github.com/rust-lang/rust/milestone/66
