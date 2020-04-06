@@ -12,7 +12,7 @@ use twilight_cache_trait::UpdateCache;
 use twilight_gateway::shard::event::Event;
 use twilight_model::{
     channel::message::MessageReaction,
-    gateway::payload::*,
+    gateway::{payload::*, presence::Presence},
     guild::GuildStatus,
     id::GuildId,
 };
@@ -349,6 +349,18 @@ impl UpdateCache<InMemoryCache, InMemoryCacheError> for Box<PresenceUpdate> {
             return Ok(());
         }
 
+        let presence = Presence {
+            activities: self.activities.clone(),
+            client_status: self.client_status.clone(),
+            game: self.game.clone(),
+            guild_id: self.guild_id,
+            nick: self.nick.clone(),
+            status: self.status,
+            user: self.user.clone(),
+        };
+
+        cache.cache_presence(self.guild_id, presence).await;
+
         Ok(())
     }
 }
@@ -390,6 +402,8 @@ impl UpdateCache<InMemoryCache, InMemoryCacheError> for Box<VoiceStateUpdate> {
         if !guard(cache, EventType::VOICE_STATE_UPDATE) {
             return Ok(());
         }
+
+        cache.cache_voice_state(self.0.clone()).await;
 
         Ok(())
     }
