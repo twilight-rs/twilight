@@ -1,17 +1,17 @@
-use crate::Config;
+use crate::CommandParserConfig;
 
 /// A builder struct for building commands.
 ///
-/// The [`add`] method needs to be called for the command to be added to the  [`Config`].
+/// The [`add`] method needs to be called for the command to be added to the  [`CommandParserConfig`].
 ///
 /// **Note**: Commands are not case sensitive by default. Use [`case_sensitive`] to enable this.
 ///
 /// # Examples
 ///
 /// ```rust
-/// use twilight_command_parser::Config;
+/// use twilight_command_parser::CommandParserConfig;
 ///
-/// let mut config = Config::new();
+/// let mut config = CommandParserConfig::new();
 /// // Adds a case sensitive command to the config.
 /// config.command("ping").case_sensitive().add();
 /// assert_eq!(1, config.commands().len());
@@ -19,18 +19,18 @@ use crate::Config;
 ///
 /// [`add`]: #method.add
 /// [`case_sensitive`]: #method.case_sensitive
-/// [`Config`]: struct.Config.html
+/// [`CommandParserConfig`]: struct.CommandParserConfig.html
 #[must_use = "If `add` is not called the command will not be added."]
 pub struct CommandBuilder<'a, 'b> {
     pub(crate) name: String,
     pub(crate) case_sensitive: bool,
-    pub(crate) config: &'a mut Config<'b>,
+    pub(crate) config: &'a mut CommandParserConfig<'b>,
 }
 
 impl<'a, 'b> CommandBuilder<'a, 'b> {
-    /// Adds the command to the [`Config`].
+    /// Adds the command to the [`CommandParserConfig`].
     ///
-    /// [`Config`]: struct.Config.html
+    /// [`CommandParserConfig`]: struct.CommandParserConfig.html
     pub fn add(self) {
         self.config.add_command(self.name, self.case_sensitive);
     }
@@ -40,9 +40,9 @@ impl<'a, 'b> CommandBuilder<'a, 'b> {
     /// # Examples
     ///
     /// ```rust
-    /// use twilight_command_parser::{Config, Parser};
+    /// use twilight_command_parser::{CommandParserConfig, Parser};
     ///
-    /// let mut config = Config::new();
+    /// let mut config = CommandParserConfig::new();
     /// config.add_prefix("!");
     /// config.command("ping").case_sensitive().add();
     /// let parser = Parser::new(config);
@@ -60,9 +60,9 @@ impl<'a, 'b> CommandBuilder<'a, 'b> {
     /// # Examples
     ///
     /// ```rust
-    /// use twilight_command_parser::{Config, Parser};
+    /// use twilight_command_parser::{CommandParserConfig, Parser};
     ///
-    /// let mut config = Config::new();
+    /// let mut config = CommandParserConfig::new();
     /// config.add_prefix("!");
     /// config.command("ping").case_insensitive().add();
     /// let parser = Parser::new(config);

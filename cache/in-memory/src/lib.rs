@@ -5,7 +5,7 @@ mod shard;
 mod updates;
 
 use self::model::*;
-use config::Config;
+use config::InMemoryConfig;
 use futures::{future, lock::Mutex};
 use std::{
     collections::{
@@ -102,7 +102,7 @@ type LockedArcMap<T, U> = Mutex<HashMap<T, Arc<U>>>;
 
 #[derive(Debug, Default)]
 struct InMemoryCacheRef {
-    config: Arc<Config>,
+    config: Arc<InMemoryConfig>,
     channels_guild: Mutex<HashMap<ChannelId, GuildItem<GuildChannel>>>,
     channels_private: LockedArcMap<ChannelId, PrivateChannel>,
     current_user: Mutex<Option<Arc<CurrentUser>>>,
@@ -175,7 +175,7 @@ pub struct InMemoryCache(Arc<InMemoryCacheRef>);
 impl InMemoryCache {
     /// Creates a new, empty cache.
     ///
-    /// If you need to customize the cache, use the `From<Config>`
+    /// If you need to customize the cache, use the `From<InMemoryConfig>`
     /// implementation.
     ///
     /// # Examples
@@ -185,11 +185,11 @@ impl InMemoryCache {
     ///
     /// ```
     /// use twilight_cache_inmemory::{
-    ///     config::Config,
+    ///     config::InMemoryConfig,
     ///     InMemoryCache,
     /// };
     ///
-    /// let config = Config::builder().message_cache_size(50);
+    /// let config = InMemoryConfig::builder().message_cache_size(50);
     /// let cache = InMemoryCache::from(config);
     /// ```
     pub fn new() -> Self {
@@ -197,7 +197,7 @@ impl InMemoryCache {
     }
 
     /// Returns a copy of the config cache.
-    pub fn config(&self) -> Config {
+    pub fn config(&self) -> InMemoryConfig {
         (*self.0.config).clone()
     }
 
@@ -743,7 +743,7 @@ impl InMemoryCache {
     }
 }
 
-impl<T: Into<Config>> From<T> for InMemoryCache {
+impl<T: Into<InMemoryConfig>> From<T> for InMemoryCache {
     fn from(config: T) -> Self {
         InMemoryCache(Arc::new(InMemoryCacheRef {
             config: Arc::new(config.into()),

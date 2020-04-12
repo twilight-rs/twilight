@@ -34,9 +34,9 @@ pub enum Error {
     },
     /// The "large threshold" value was too large or too small.
     LargeThresholdInvalid {
-        /// The error from the shard's [`ConfigBuilder`].
+        /// The error from the shard's [`ShardConfigBuilder`].
         ///
-        /// [`ConfigBuilder`]: ../../shard/config/struct.ConfigBuilder.html
+        /// [`ShardConfigBuilder`]: ../../shard/config/struct.ShardConfigBuilder.html
         source: ShardError,
     },
 }

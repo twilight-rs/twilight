@@ -9,11 +9,11 @@
 //! [`Stage`] of the connection, like whether it's [`Disconnected`] or
 //! [`Resuming`] the connection.
 //!
-//! Shards are configurable through the [`ConfigBuilder`] struct, which
-//! provides a clean interface for correctly building a [`Config`].
+//! Shards are configurable through the [`ShardConfigBuilder`] struct, which
+//! provides a clean interface for correctly building a [`ShardConfig`].
 //!
-//! [`Config`]: config/struct.Config.html
-//! [`ConfigBuilder`]: config/struct.ConfigBuilder.html
+//! [`ShardConfig`]: config/struct.ShardConfig.html
+//! [`ShardConfigBuilder`]: config/struct.ShardConfigBuilder.html
 //! [`Event`]: event/enum.Event.html
 //! [`Shard`]: struct.Shard.html
 //! [`Stage`]: enum.Stage.html
@@ -32,7 +32,7 @@ mod processor;
 mod sink;
 
 pub use self::{
-    config::Config,
+    config::ShardConfig,
     error::{Error, Result},
     event::{Event, EventType},
     processor::heartbeat::Latency,

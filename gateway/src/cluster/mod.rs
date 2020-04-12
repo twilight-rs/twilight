@@ -7,7 +7,7 @@
 //! disconnected, and when new commands come in:
 ///
 /// ```no_run
-/// use twilight_gateway::cluster::{Cluster, Config, Event};
+/// use twilight_gateway::cluster::{Cluster, ClusterConfig, Event};
 /// use futures::StreamExt;
 /// use std::env;
 ///
@@ -61,7 +61,7 @@ pub mod error;
 mod r#impl;
 
 pub use self::{
-    config::Config,
+    config::ClusterConfig,
     error::{Error, Result},
     r#impl::Cluster,
 };

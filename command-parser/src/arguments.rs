@@ -21,9 +21,9 @@ impl<'a> Arguments<'a> {
     /// then this returns `"foo bar baz"`.
     ///
     /// ```rust
-    /// use twilight_command_parser::{Command, Config, Parser};
+    /// use twilight_command_parser::{Command, CommandParserConfig, Parser};
     ///
-    /// let mut config = Config::new();
+    /// let mut config = CommandParserConfig::new();
     /// config.add_prefix("!");
     /// config.command("echo").add();
     /// let parser = Parser::new(config);

@@ -39,15 +39,15 @@ bitflags! {
 }
 
 #[derive(Clone, Debug)]
-pub struct Config {
+pub struct InMemoryConfig {
     event_types: EventType,
     message_cache_size: usize,
 }
 
-impl Config {
+impl InMemoryConfig {
     /// Creates a new builder to make a configuration.
-    pub fn builder() -> ConfigBuilder {
-        ConfigBuilder::default()
+    pub fn builder() -> InMemoryConfigBuilder {
+        InMemoryConfigBuilder::default()
     }
 
     /// Returns an immutable reference to the event types enabled.
@@ -71,7 +71,7 @@ impl Config {
     }
 }
 
-impl Default for Config {
+impl Default for InMemoryConfig {
     fn default() -> Self {
         Self {
             event_types: EventType::all(),
@@ -80,25 +80,25 @@ impl Default for Config {
     }
 }
 
-impl From<ConfigBuilder> for Config {
-    fn from(builder: ConfigBuilder) -> Self {
+impl From<InMemoryConfigBuilder> for InMemoryConfig {
+    fn from(builder: InMemoryConfigBuilder) -> Self {
         builder.build()
     }
 }
 
 #[derive(Clone, Debug, Default)]
-pub struct ConfigBuilder(Config);
+pub struct InMemoryConfigBuilder(InMemoryConfig);
 
-impl ConfigBuilder {
-    /// Creates a new, default builder for a [`Config`].
+impl InMemoryConfigBuilder {
+    /// Creates a new, default builder for a [`InMemoryConfig`].
     ///
-    /// [`Config`]: struct.Config.html
+    /// [`InMemoryConfig`]: struct.InMemoryConfig.html
     pub fn new() -> Self {
         Self::default()
     }
 
     /// Consumes the builder, returning the built configuration.
-    pub fn build(self) -> Config {
+    pub fn build(self) -> InMemoryConfig {
         self.0
     }
 
@@ -123,7 +123,7 @@ impl ConfigBuilder {
 
 #[cfg(test)]
 mod tests {
-    use super::{Config, ConfigBuilder, EventType};
+    use super::{InMemoryConfig, InMemoryConfigBuilder, EventType};
 
     #[test]
     #[allow(clippy::cognitive_complexity)]
@@ -165,20 +165,20 @@ mod tests {
 
     #[test]
     fn test_defaults() {
-        let conf = Config {
+        let conf = InMemoryConfig {
             event_types: EventType::all(),
             message_cache_size: 100,
         };
-        let default = Config::default();
+        let default = InMemoryConfig::default();
         assert_eq!(conf.event_types, default.event_types);
         assert_eq!(conf.message_cache_size, default.message_cache_size);
-        let default = ConfigBuilder::default();
+        let default = InMemoryConfigBuilder::default();
         assert_eq!(conf.event_types, default.0.event_types);
         assert_eq!(conf.message_cache_size, default.0.message_cache_size);
     }
 
     #[test]
     fn test_config_fields() {
-        static_assertions::assert_fields!(Config: event_types, message_cache_size);
+        static_assertions::assert_fields!(InMemoryConfig: event_types, message_cache_size);
     }
 }

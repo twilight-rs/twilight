@@ -7,11 +7,11 @@ use twilight_model::gateway::{payload::update_status::UpdateStatusInfo, GatewayI
 /// The configuration used by the shard to identify with the gateway and
 /// operate.
 ///
-/// Use [`Config::builder`] to start creating a configuration.
+/// Use [`ShardConfig::builder`] to start creating a configuration.
 ///
-/// [`Config::builder`]: #method.builder
+/// [`ShardConfig::builder`]: #method.builder
 #[derive(Clone, Debug)]
-pub struct Config {
+pub struct ShardConfig {
     guild_subscriptions: bool,
     http_client: HttpClient,
     intents: Option<GatewayIntents>,
@@ -22,14 +22,14 @@ pub struct Config {
     token: String,
 }
 
-impl Config {
+impl ShardConfig {
     /// Creates a new builder to create a config.
     ///
-    /// This is equivalent to calling [`ConfigBuilder::new`] directly.
+    /// This is equivalent to calling [`ShardConfigBuilder::new`] directly.
     ///
-    /// [`ConfigBuilder::new`]: struct.ConfigBuilder.html#method.new
-    pub fn builder(token: impl Into<String>) -> ConfigBuilder {
-        ConfigBuilder::new(token)
+    /// [`ShardConfigBuilder::new`]: struct.ShardConfigBuilder.html#method.new
+    pub fn builder(token: impl Into<String>) -> ShardConfigBuilder {
+        ShardConfigBuilder::new(token)
     }
 
     /// Returns whether to subscribe to guilds' presence updates and typing
@@ -73,25 +73,25 @@ impl Config {
     }
 }
 
-impl From<ConfigBuilder> for Config {
-    fn from(builder: ConfigBuilder) -> Self {
+impl From<ShardConfigBuilder> for ShardConfig {
+    fn from(builder: ShardConfigBuilder) -> Self {
         builder.build()
     }
 }
 
-impl<T: Into<String>> From<T> for Config {
+impl<T: Into<String>> From<T> for ShardConfig {
     fn from(token: T) -> Self {
-        ConfigBuilder::new(token).build()
+        ShardConfigBuilder::new(token).build()
     }
 }
 
-/// Builder to create a [`Config`].
+/// Builder to create a [`ShardConfig`].
 ///
-/// [`Config`]: struct.Config.html
+/// [`ShardConfig`]: struct.ShardConfig.html
 #[derive(Debug)]
-pub struct ConfigBuilder(Config);
+pub struct ShardConfigBuilder(ShardConfig);
 
-impl ConfigBuilder {
+impl ShardConfigBuilder {
     /// Creates a new builder with default configuration values.
     ///
     /// Refer to each method to learn their default values.
@@ -104,7 +104,7 @@ impl ConfigBuilder {
             token.insert_str(0, "Bot ");
         }
 
-        Self(Config {
+        Self(ShardConfig {
             guild_subscriptions: true,
             http_client: HttpClient::new(token.clone()),
             intents: None,
@@ -117,7 +117,7 @@ impl ConfigBuilder {
     }
 
     /// Consumes the builder and returns the final configuration.
-    pub fn build(self) -> Config {
+    pub fn build(self) -> ShardConfig {
         self.0
     }
 
@@ -218,11 +218,11 @@ impl ConfigBuilder {
     /// a total of 19 shards:
     ///
     /// ```no_run
-    /// use twilight_gateway::shard::Config;
+    /// use twilight_gateway::shard::ShardConfig;
     /// use std::env;
     ///
     /// # fn main() -> Result<(), Box<dyn std::error::Error>> {
-    /// let mut config = Config::builder(env::var("DISCORD_TOKEN")?);
+    /// let mut config = ShardConfig::builder(env::var("DISCORD_TOKEN")?);
     /// config.shard(18, 19)?;
     /// # Ok(()) }
     /// ```
@@ -247,7 +247,7 @@ impl ConfigBuilder {
     }
 }
 
-impl<T: Into<String>> From<T> for ConfigBuilder {
+impl<T: Into<String>> From<T> for ShardConfigBuilder {
     fn from(token: T) -> Self {
         Self::new(token.into())
     }
