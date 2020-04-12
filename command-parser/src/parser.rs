@@ -1,4 +1,4 @@
-use crate::{Arguments, Config};
+use crate::{Arguments, CommandParserConfig};
 
 /// Indicator that a command was used.
 #[derive(Clone, Debug)]
@@ -29,9 +29,9 @@ pub struct Command<'a> {
 /// prefix `"!"`, parse the message "!echo foo bar baz":
 ///
 /// ```rust
-/// use twilight_command_parser::{Command, Config, Parser};
+/// use twilight_command_parser::{Command, CommandParserConfig, Parser};
 ///
-/// let mut config = Config::new();
+/// let mut config = CommandParserConfig::new();
 /// config.command("echo").add();
 /// config.command("ping").add();
 /// config.add_prefix("!");
@@ -57,24 +57,24 @@ pub struct Command<'a> {
 /// [`Parser::config_mut`]: #method.config_mut
 #[derive(Clone, Debug)]
 pub struct Parser<'a> {
-    config: Config<'a>,
+    config: CommandParserConfig<'a>,
 }
 
 impl<'a> Parser<'a> {
     /// Creates a new parser from a given configuration.
-    pub fn new(config: impl Into<Config<'a>>) -> Self {
+    pub fn new(config: impl Into<CommandParserConfig<'a>>) -> Self {
         Self {
             config: config.into(),
         }
     }
 
     /// Returns an immutable reference to the configuration.
-    pub fn config(&self) -> &Config<'a> {
+    pub fn config(&self) -> &CommandParserConfig<'a> {
         &self.config
     }
 
     /// Returns a mutable reference to the configuration.
-    pub fn config_mut(&mut self) -> &mut Config<'a> {
+    pub fn config_mut(&mut self) -> &mut CommandParserConfig<'a> {
         &mut self.config
     }
 
@@ -135,7 +135,7 @@ impl<'a> Parser<'a> {
     }
 }
 
-impl<'a, T: Into<Config<'a>>> From<T> for Parser<'a> {
+impl<'a, T: Into<CommandParserConfig<'a>>> From<T> for Parser<'a> {
     fn from(config: T) -> Self {
         Self::new(config)
     }
@@ -143,10 +143,10 @@ impl<'a, T: Into<Config<'a>>> From<T> for Parser<'a> {
 
 #[cfg(test)]
 mod tests {
-    use crate::{Command, Config, Parser};
+    use crate::{Command, CommandParserConfig, Parser};
 
     fn simple_config() -> Parser<'static> {
-        let mut config = Config::new();
+        let mut config = CommandParserConfig::new();
         config.add_prefix("!");
         config.command("echo").add();
 
@@ -176,7 +176,7 @@ mod tests {
             .expect("Parser is case sensitive");
         assert_eq!(
             "echo", name,
-            "Command name should have the same case as in the Config"
+            "Command name should have the same case as in the CommandParserConfig"
         );
 
         // Case insensitive - Unicode
@@ -188,7 +188,7 @@ mod tests {
             .expect("Parser is case sensitive");
         assert_eq!(
             "wei\u{df}", name,
-            "Command name should have the same case as in the Config"
+            "Command name should have the same case as in the CommandParserConfig"
         );
 
         parser.config.command("\u{394}").add();
@@ -199,7 +199,7 @@ mod tests {
             .expect("Parser is case sensitive");
         assert_eq!(
             "\u{394}", name,
-            "Command name should have the same case as in the Config"
+            "Command name should have the same case as in the CommandParserConfig"
         );
 
         // Case sensitive

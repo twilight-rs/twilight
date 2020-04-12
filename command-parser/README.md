@@ -25,16 +25,16 @@ A simple parser for a bot with one prefix (`"!"`) and two commands: `"echo"`
 and `"ping"`:
 
 ```rust,no_run
-use twilight_command_parser::{Command, Config, Parser};
+use twilight_command_parser::{Command, CommandParserConfig, Parser};
 
-let mut config = Config::new();
+let mut config = CommandParserConfig::new();
 
-// (Use `Config::add_command` to add a single command)
+// (Use `CommandParserConfig::add_command` to add a single command)
 config.add_command("echo");
 config.add_command("ping");
 
 // Add the prefix `"!"`.
-// (Use `Config::add_prefixes` to add multiple prefixes)
+// (Use `CommandParserConfig::add_prefixes` to add multiple prefixes)
 config.add_prefix("!");
 
 let parser = Parser::new(config);

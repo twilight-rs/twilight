@@ -1,6 +1,6 @@
 use futures::StreamExt;
 use std::{env, error::Error};
-use twilight_gateway::{shard::Config, Shard};
+use twilight_gateway::{shard::ShardConfig, Shard};
 use twilight_model::gateway::GatewayIntents;
 
 #[tokio::main]
@@ -8,7 +8,7 @@ async fn main() -> Result<(), Box<dyn Error + Send + Sync>> {
     pretty_env_logger::init_timed();
 
     let config = {
-        let mut conf = Config::builder(env::var("DISCORD_TOKEN")?);
+        let mut conf = ShardConfig::builder(env::var("DISCORD_TOKEN")?);
         conf.intents(Some(
             GatewayIntents::GUILD_MESSAGES | GatewayIntents::DIRECT_MESSAGES,
         ));

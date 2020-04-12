@@ -16,6 +16,6 @@ mod event;
 mod listener;
 
 pub use self::{
-    cluster::{Cluster, Config as ClusterConfig},
-    shard::{Config as ShardConfig, Shard},
+    cluster::{Cluster, ClusterConfig},
+    shard::{Shard, ShardConfig},
 };

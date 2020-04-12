@@ -1,5 +1,5 @@
 use super::{
-    config::{Config, ShardScheme},
+    config::{ClusterConfig, ShardScheme},
     error::{Error, Result},
 };
 use crate::shard::{event::EventType, Event, Information, Shard};
@@ -15,7 +15,7 @@ use std::{
 
 #[derive(Debug)]
 struct ClusterRef {
-    config: Config,
+    config: ClusterConfig,
     shards: Arc<Mutex<HashMap<u64, Shard>>>,
 }
 
@@ -32,12 +32,12 @@ pub struct Cluster(Arc<ClusterRef>);
 
 impl Cluster {
     /// Creates a new cluster from a configuration without bringing it up.
-    pub fn new(config: impl Into<Config>) -> Self {
+    pub fn new(config: impl Into<ClusterConfig>) -> Self {
         Self::from(config)
     }
 
     /// Returns an immutable reference to the configuration of this cluster.
-    pub fn config(&self) -> &Config {
+    pub fn config(&self) -> &ClusterConfig {
         &self.0.config
     }
 
@@ -50,7 +50,7 @@ impl Cluster {
     ///
     /// ```no_run
     /// use twilight_gateway::cluster::{
-    ///     config::{Config, ShardScheme},
+    ///     config::{ClusterConfig, ShardScheme},
     ///     Cluster,
     /// };
     /// use std::{
@@ -61,7 +61,7 @@ impl Cluster {
     /// # #[tokio::main]
     /// # async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
     /// let scheme = ShardScheme::try_from((0..=9, 10))?;
-    /// let mut config = Config::builder(env::var("DISCORD_TOKEN")?)
+    /// let mut config = ClusterConfig::builder(env::var("DISCORD_TOKEN")?)
     ///                         .shard_scheme(scheme)
     ///                         .build();
     ///
@@ -79,7 +79,7 @@ impl Cluster {
     ///
     /// [`Error::GettingGatewayInfo`]: enum.Error.html#variant.GettingGatewayInfo
     /// [`ShardScheme::Auto`]: config/enum.ShardScheme.html#variant.Auto
-    /// [configured shard scheme]: config/struct.Config.html#method.shard_scheme
+    /// [configured shard scheme]: config/struct.ClusterConfig.html#method.shard_scheme
     pub async fn up(&self) -> Result<()> {
         let [from, to, total] =
             match self.0.config.shard_scheme() {
@@ -243,7 +243,7 @@ impl Cluster {
     }
 }
 
-impl<T: Into<Config>> From<T> for Cluster {
+impl<T: Into<ClusterConfig>> From<T> for Cluster {
     fn from(config: T) -> Self {
         Self(Arc::new(ClusterRef {
             config: config.into(),

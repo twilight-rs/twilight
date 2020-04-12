@@ -1,5 +1,5 @@
 use super::{
-    config::Config,
+    config::ShardConfig,
     error::Result,
     event::{Event, EventType, Events},
     processor::{Latency, Session, ShardProcessor},
@@ -19,7 +19,7 @@ use tokio_tungstenite::tungstenite::Message;
 
 #[derive(Debug)]
 pub struct ShardRef {
-    config: Arc<Config>,
+    config: Arc<ShardConfig>,
     listeners: Listeners<Event>,
     processor_handle: AbortHandle,
     session: WatchReceiver<Arc<Session>>,
@@ -101,11 +101,11 @@ impl Shard {
     /// # Errors
     ///
     /// Errors if the `ShardProcessor` could not be started.
-    pub async fn new(config: impl Into<Config>) -> Result<Self> {
+    pub async fn new(config: impl Into<ShardConfig>) -> Result<Self> {
         Self::_new(config.into()).await
     }
 
-    async fn _new(config: Config) -> Result<Self> {
+    async fn _new(config: ShardConfig) -> Result<Self> {
         let config = Arc::new(config);
 
         let (processor, wrx) = ShardProcessor::new(Arc::clone(&config)).await?;
@@ -127,7 +127,7 @@ impl Shard {
     }
 
     /// Returns an immutable reference to the configuration used for this client.
-    pub fn config(&self) -> &Config {
+    pub fn config(&self) -> &ShardConfig {
         &self.0.config
     }
 

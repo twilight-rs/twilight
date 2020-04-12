@@ -1,6 +1,6 @@
 pub mod config;
 
-use self::config::ConfigBuilder;
+use self::config::ClientConfigBuilder;
 use crate::{
     error::{Error, ResponseError, Result},
     ratelimiting::{RatelimitHeaders, Ratelimiter},
@@ -28,7 +28,7 @@ use twilight_model::{
 };
 
 #[derive(Clone, Debug, Default)]
-pub struct ClientBuilder(pub ConfigBuilder);
+pub struct ClientBuilder(pub ClientConfigBuilder);
 
 impl ClientBuilder {
     pub fn new() -> Self {
@@ -63,7 +63,7 @@ impl ClientBuilder {
 }
 
 impl Deref for ClientBuilder {
-    type Target = ConfigBuilder;
+    type Target = ClientConfigBuilder;
 
     fn deref(&self) -> &Self::Target {
         &self.0

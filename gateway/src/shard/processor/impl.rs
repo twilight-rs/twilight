@@ -1,6 +1,6 @@
 use super::{
     super::{
-        config::Config,
+        config::ShardConfig,
         error::{Error, Result},
         event::Event,
         stage::Stage,
@@ -47,7 +47,7 @@ use std::error::Error as StdError;
 /// to all listeners.
 #[derive(Debug)]
 pub struct ShardProcessor {
-    pub config: Arc<Config>,
+    pub config: Arc<ShardConfig>,
     pub listeners: Listeners<Event>,
     pub properties: IdentifyProperties,
     pub rx: UnboundedReceiver<Message>,
@@ -59,7 +59,7 @@ pub struct ShardProcessor {
 }
 
 impl ShardProcessor {
-    pub async fn new(config: Arc<Config>) -> Result<(Self, WatchReceiver<Arc<Session>>)> {
+    pub async fn new(config: Arc<ShardConfig>) -> Result<(Self, WatchReceiver<Arc<Session>>)> {
         debug!("[ShardProcessor {:?}] Queueing", config.shard());
         let shard_id = config.shard();
         config.queue.request(shard_id).await;
