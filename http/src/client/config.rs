@@ -4,7 +4,7 @@ use reqwest::Client as ReqwestClient;
 use std::time::Duration;
 
 #[derive(Clone, Debug)]
-pub struct Config {
+pub struct ClientConfig {
     pub(crate) proxy: Option<Proxy>,
     pub(crate) proxy_http: bool,
     pub(crate) reqwest_client: Option<ReqwestClient>,
@@ -13,10 +13,10 @@ pub struct Config {
     pub(crate) token: Option<String>,
 }
 
-impl Config {
-    /// Returns a builder to create a `Config`.
-    pub fn builder() -> ConfigBuilder {
-        ConfigBuilder::new()
+impl ClientConfig {
+    /// Returns a builder to create a `ClientConfig`.
+    pub fn builder() -> ClientConfigBuilder {
+        ClientConfigBuilder::new()
     }
 
     /// Returns an immutable reference to the proxy.
@@ -49,9 +49,9 @@ impl Config {
 }
 
 #[derive(Clone, Debug)]
-pub struct ConfigBuilder(Config);
+pub struct ClientConfigBuilder(ClientConfig);
 
-impl ConfigBuilder {
+impl ClientConfigBuilder {
     /// Creates a new default builder.
     ///
     /// Refer to the methods for the default value of each configuration.
@@ -60,7 +60,7 @@ impl ConfigBuilder {
     }
 
     /// Consumes the builder, returning the inner configuration.
-    pub fn build(self) -> Config {
+    pub fn build(self) -> ClientConfig {
         self.0
     }
 
@@ -117,9 +117,9 @@ impl ConfigBuilder {
     }
 }
 
-impl Default for ConfigBuilder {
+impl Default for ClientConfigBuilder {
     fn default() -> Self {
-        Self(Config {
+        Self(ClientConfig {
             proxy: None,
             proxy_http: false,
             reqwest_client: None,

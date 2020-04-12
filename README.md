@@ -89,10 +89,10 @@ use tokio::stream::StreamExt;
 
 use twilight::{
     cache::{
-        twilight_cache_inmemory::config::{ConfigBuilder, EventType},
+        twilight_cache_inmemory::config::{InMemoryConfigBuilder, EventType},
         InMemoryCache,
     },
-    gateway::cluster::{config::ShardScheme, Cluster, Config},
+    gateway::cluster::{config::ShardScheme, Cluster, ClusterConfig},
     gateway::shard::Event,
     http::Client as HttpClient,
     model::gateway::GatewayIntents,
@@ -105,7 +105,7 @@ async fn main() -> Result<(), Box<dyn Error + Send + Sync>> {
     // This is also the default.
     let scheme = ShardScheme::Auto;
 
-    let config = Config::builder(&token)
+    let config = ClusterConfig::builder(&token)
         .shard_scheme(scheme)
         // Use intents to only listen to GUILD_MESSAGES events
         .intents(Some(
@@ -123,7 +123,7 @@ async fn main() -> Result<(), Box<dyn Error + Send + Sync>> {
 
     // Since we only care about messages, make the cache only
     // cache message related events
-    let cache_config = ConfigBuilder::new()
+    let cache_config = InMemoryConfigBuilder::new()
         .event_types(
             EventType::MESSAGE_CREATE
                 | EventType::MESSAGE_DELETE

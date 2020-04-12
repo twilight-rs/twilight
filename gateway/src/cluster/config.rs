@@ -1,7 +1,7 @@
 use super::error::{Error, Result};
 use crate::{
     queue::{LocalQueue, Queue},
-    shard::config::{Config as ShardConfig, ConfigBuilder as ShardConfigBuilder},
+    shard::config::{ShardConfig, ShardConfigBuilder},
 };
 use std::{
     convert::TryFrom,
@@ -92,47 +92,47 @@ impl<T: RangeBounds<u64>> TryFrom<(T, u64)> for ShardScheme {
 ///
 /// [`Cluster`]: ../struct.Cluster.html
 #[derive(Debug)]
-pub struct Config {
+pub struct ClusterConfig {
     http_client: Client,
     shard_config: ShardConfig,
     shard_scheme: ShardScheme,
     queue: Arc<Box<dyn Queue>>,
 }
 
-impl Config {
+impl ClusterConfig {
     /// Creates a new builder to create a config.
     ///
-    /// This is equivalent to calling [`ConfigBuilder::new`] directly.
+    /// This is equivalent to calling [`ClusterConfigBuilder::new`] directly.
     ///
-    /// [`ConfigBuilder::new`]: struct.ConfigBuilder.html#method.new
-    pub fn builder(token: impl Into<String>) -> ConfigBuilder {
-        ConfigBuilder::new(token)
+    /// [`ClusterConfigBuilder::new`]: struct.ClusterConfigBuilder.html#method.new
+    pub fn builder(token: impl Into<String>) -> ClusterConfigBuilder {
+        ClusterConfigBuilder::new(token)
     }
 
     /// Returns the `twilight_http` client used by the cluster and shards to get the
     /// gateway information.
     ///
-    /// Refer to [`ConfigBuilder::http_client`] for the default value.
+    /// Refer to [`ClusterConfigBuilder::http_client`] for the default value.
     ///
-    /// [`ConfigBuilder::http_client`]: struct.ConfigBuilder.html#method.http_client
+    /// [`ClusterConfigBuilder::http_client`]: struct.ClusterConfigBuilder.html#method.http_client
     pub fn http_client(&self) -> &Client {
         &self.http_client
     }
 
     /// Returns the configuration used to create shards.
     ///
-    /// Refer to [`shard::config::ConfigBuilder`]'s methods for the default values.
+    /// Refer to [`shard::config::ClusterConfigBuilder`]'s methods for the default values.
     ///
-    /// [`shard::config::ConfigBuilder`]: ../../shard/config/struct.ConfigBuilder.html#methods
+    /// [`shard::config::ClusterConfigBuilder`]: ../../shard/config/struct.ClusterConfigBuilder.html#methods
     pub fn shard_config(&self) -> &ShardConfig {
         &self.shard_config
     }
 
     /// Returns the shard scheme used to start shards.
     ///
-    /// Refer to [`ConfigBuilder::shard_scheme`] for the default value.
+    /// Refer to [`ClusterConfigBuilder::shard_scheme`] for the default value.
     ///
-    /// [`ConfigBuilder::shard_scheme`]: struct.ConfigBuilder.html#method.shard_scheme
+    /// [`ClusterConfigBuilder::shard_scheme`]: struct.ClusterConfigBuilder.html#method.shard_scheme
     pub fn shard_scheme(&self) -> ShardScheme {
         self.shard_scheme
     }
@@ -142,27 +142,27 @@ impl Config {
     }
 }
 
-impl From<ConfigBuilder> for Config {
-    fn from(builder: ConfigBuilder) -> Self {
+impl From<ClusterConfigBuilder> for ClusterConfig {
+    fn from(builder: ClusterConfigBuilder) -> Self {
         builder.build()
     }
 }
 
-impl<T: Into<String>> From<T> for Config {
+impl<T: Into<String>> From<T> for ClusterConfig {
     fn from(token: T) -> Self {
         Self::builder(token).build()
     }
 }
 
-/// Builder to create a [`Config`].
+/// Builder to create a [`ClusterConfig`].
 ///
-/// [`Config`]: struct.Config.html
+/// [`ClusterConfig`]: struct.ClusterConfig.html
 // Yeah, I mean, we *could* deref to the `ShardConfigBuilder`, but it's not
 // clear.
 #[derive(Debug)]
-pub struct ConfigBuilder(Config, ShardConfigBuilder);
+pub struct ClusterConfigBuilder(ClusterConfig, ShardConfigBuilder);
 
-impl ConfigBuilder {
+impl ClusterConfigBuilder {
     /// Creates a new builder with default configuration values.
     ///
     /// Refer to each method to learn their default values.
@@ -176,7 +176,7 @@ impl ConfigBuilder {
         }
 
         Self(
-            Config {
+            ClusterConfig {
                 http_client: Client::new(token.clone()),
                 shard_config: ShardConfig::from(token.clone()),
                 shard_scheme: ShardScheme::Auto,
@@ -187,7 +187,7 @@ impl ConfigBuilder {
     }
 
     /// Consumes the builder and returns the final configuration.
-    pub fn build(mut self) -> Config {
+    pub fn build(mut self) -> ClusterConfig {
         self.0.shard_config = self.1.build();
 
         self.0
@@ -196,10 +196,10 @@ impl ConfigBuilder {
     /// Whether to subscribe shards to "guild subscriptions", which are the
     /// presence update and typing start events.
     ///
-    /// Refer to the shard's [`ConfigBuilder::guild_subscriptions`] for more
+    /// Refer to the shard's [`ShardConfigBuilder::guild_subscriptions`] for more
     /// information.
     ///
-    /// [`ConfigBuilder::guild_subscriptions`]: ../../shard/config/struct.ConfigBuilder.html#method.guild_subscriptions
+    /// [`ShardConfigBuilder::guild_subscriptions`]: ../../shard/config/struct.ShardConfigBuilder.html#method.guild_subscriptions
     pub fn guild_subscriptions(mut self, guild_subscriptions: bool) -> Self {
         self.1 = self.1.guild_subscriptions(guild_subscriptions);
         self
@@ -221,7 +221,7 @@ impl ConfigBuilder {
 
     /// Sets the "large threshold" of shards.
     ///
-    /// Refer to the shard's [`ConfigBuilder::large_threshold`] for more
+    /// Refer to the shard's [`ShardConfigBuilder::large_threshold`] for more
     /// information.
     ///
     /// # Errors
@@ -229,7 +229,7 @@ impl ConfigBuilder {
     /// Returns [`ShardError::LargeThresholdInvalid`] if the value was not in
     /// the accepted range.
     ///
-    /// [`ConfigBuilder::large_threshold`]: ../../shard/config/struct.ConfigBuilder.html#method.large_threshold
+    /// [`ShardConfigBuilder::large_threshold`]: ../../shard/config/struct.ShardConfigBuilder.html#method.large_threshold
     /// [`ShardError::LargeThresholdInvalid`]: ../../shard/error/enum.Error.html#variant.LargeThresholdInvalid
     pub fn large_threshold(mut self, large_threshold: u64) -> Result<Self> {
         self.1 = self.1.large_threshold(large_threshold).map_err(|source| {
@@ -243,9 +243,9 @@ impl ConfigBuilder {
 
     /// Sets the presence to use when identifying with the gateway.
     ///
-    /// Refer to the shard's [`ConfigBuilder::presence`] for more information.
+    /// Refer to the shard's [`ShardConfigBuilder::presence`] for more information.
     ///
-    /// [`ConfigBuilder::presence`]: ../../shard/config/struct.ConfigBuilder.html#method.presence
+    /// [`ShardConfigBuilder::presence`]: ../../shard/config/struct.ShardConfigBuilder.html#method.presence
     pub fn presence(mut self, presence: UpdateStatusInfo) -> Self {
         self.1 = self.1.presence(presence);
 
@@ -254,9 +254,9 @@ impl ConfigBuilder {
 
     /// Sets the intents to use when identifying with the gateway.
     ///
-    /// Refer to the shard's [`ConfigBuilder::intents`] for more information.
+    /// Refer to the shard's [`ShardConfigBuilder::intents`] for more information.
     ///
-    /// [`ConfigBuilder::intents`]: ../../shard/config/struct.ConfigBuilder.html#method.intents
+    /// [`ShardConfigBuilder::intents`]: ../../shard/config/struct.ShardConfigBuilder.html#method.intents
     pub fn intents(mut self, intents: Option<GatewayIntents>) -> Self {
         self.1.intents(intents);
 
@@ -278,14 +278,14 @@ impl ConfigBuilder {
     /// Configure a cluster to manage shards 0-9 out of 20 shards total:
     ///
     /// ```no_run
-    /// use twilight_gateway::cluster::config::{Config, ShardScheme};
+    /// use twilight_gateway::cluster::config::{ClusterConfig, ShardScheme};
     /// use std::{
     ///     convert::TryFrom,
     ///     env,
     /// };
     ///
     /// # fn main() -> Result<(), Box<dyn std::error::Error>> {
-    /// let mut config = Config::builder(env::var("DISCORD_TOKEN")?);
+    /// let mut config = ClusterConfig::builder(env::var("DISCORD_TOKEN")?);
     ///
     /// let scheme = ShardScheme::try_from((0..=9, 20))?;
     /// config.shard_scheme(scheme);
@@ -312,7 +312,7 @@ impl ConfigBuilder {
     }
 }
 
-impl<T: Into<String>> From<T> for ConfigBuilder {
+impl<T: Into<String>> From<T> for ClusterConfigBuilder {
     fn from(token: T) -> Self {
         Self::new(token)
     }

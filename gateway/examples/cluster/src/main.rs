@@ -1,4 +1,4 @@
-use twilight_gateway::cluster::{config::ShardScheme, Cluster, Config};
+use twilight_gateway::cluster::{config::ShardScheme, Cluster, ClusterConfig};
 
 use futures::StreamExt;
 use std::{env, error::Error};
@@ -10,7 +10,7 @@ async fn main() -> Result<(), Box<dyn Error + Send + Sync>> {
     // This is also the default.
     let scheme = ShardScheme::Auto;
 
-    let config = Config::builder(env::var("DISCORD_TOKEN")?)
+    let config = ClusterConfig::builder(env::var("DISCORD_TOKEN")?)
         .shard_scheme(scheme)
         .build();
 

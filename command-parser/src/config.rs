@@ -9,12 +9,12 @@ use crate::{CaseSensitivity, CommandBuilder};
 ///
 /// [`Parser`]: struct.Parser.html
 #[derive(Clone, Debug, Default)]
-pub struct Config<'a> {
+pub struct CommandParserConfig<'a> {
     commands: HashSet<CaseSensitivity>,
     prefixes: HashMap<Cow<'a, str>, Cow<'a, str>>,
 }
 
-impl<'a> Config<'a> {
+impl<'a> CommandParserConfig<'a> {
     /// Creates a fresh default configuration with no commands or prefixes.
     pub fn new() -> Self {
         Self::default()
@@ -57,9 +57,9 @@ impl<'a> Config<'a> {
     /// # Examples
     ///
     /// ```rust
-    /// use twilight_command_parser::Config;
+    /// use twilight_command_parser::CommandParserConfig;
     ///
-    /// let mut config = Config::new();
+    /// let mut config = CommandParserConfig::new();
     /// config.command("ping").add();
     /// assert_eq!(1, config.commands().len());
     /// ```
@@ -89,9 +89,9 @@ impl<'a> Config<'a> {
     /// # Examples
     ///
     /// ```rust
-    /// use twilight_command_parser::Config;
+    /// use twilight_command_parser::CommandParserConfig;
     ///
-    /// let mut config = Config::new();
+    /// let mut config = CommandParserConfig::new();
     /// config.command("ping").case_sensitive().add();
     /// config.command("PING").add();
     /// assert_eq!(2, config.commands().len());
@@ -109,9 +109,9 @@ impl<'a> Config<'a> {
     /// # Examples
     ///
     /// ```rust
-    /// use twilight_command_parser::Config;
+    /// use twilight_command_parser::CommandParserConfig;
     ///
-    /// let mut config = Config::new();
+    /// let mut config = CommandParserConfig::new();
     /// config.add_prefix("!");
     /// assert_eq!(1, config.prefixes().len());
     /// ```
@@ -124,9 +124,9 @@ impl<'a> Config<'a> {
     /// # Examples
     ///
     /// ```rust
-    /// use twilight_command_parser::Config;
+    /// use twilight_command_parser::CommandParserConfig;
     ///
-    /// let mut config = Config::new();
+    /// let mut config = CommandParserConfig::new();
     /// config.add_prefix("!");
     /// config.add_prefix("~");
     /// assert_eq!(2, config.prefixes().len());
@@ -142,11 +142,11 @@ impl<'a> Config<'a> {
 
 #[cfg(test)]
 mod tests {
-    use super::Config;
+    use super::CommandParserConfig;
 
     #[test]
     fn test_getters() {
-        let mut config = Config::new();
+        let mut config = CommandParserConfig::new();
         assert!(config.commands().is_empty());
         assert!(config.commands_mut().is_empty());
         assert!(config.prefixes().is_empty());
