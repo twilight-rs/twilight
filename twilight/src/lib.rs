@@ -153,3 +153,6 @@ pub extern crate twilight_http as http;
 
 #[cfg(feature = "model")]
 pub extern crate twilight_model as model;
+
+#[cfg(feature = "builders")]
+pub extern crate twilight_builders as builders;

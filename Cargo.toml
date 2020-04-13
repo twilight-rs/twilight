@@ -1,5 +1,6 @@
 [workspace]
 members = [
+    "builders",
     "cache/base",
     "cache/in-memory",
     "cache/trait",
