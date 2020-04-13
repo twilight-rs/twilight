@@ -18,19 +18,21 @@ twilight-command-parser = { optional = true, path = "../command-parser" }
 twilight-gateway = { optional = true, path = "../gateway" }
 twilight-http = { optional = true, path = "../http" }
 twilight-model = { optional = true, path = "../model" }
+twilight-builders = { optional = true, path = "../builders" }
 
 [dev-dependencies]
 futures = "0.3"
 tokio = "0.2"
 
 [features]
-default = ["cache", "command-parser", "gateway", "http", "model"]
+default = ["cache", "command-parser", "gateway", "http", "model", "builders"]
 
 cache = ["twilight-cache"]
 command-parser = ["twilight-command-parser"]
 gateway = ["twilight-gateway"]
 http = ["twilight-http"]
 model = ["twilight-model"]
+builders = ["twilight-builders"]
 
 metrics = ["gataway-metrics"]
 gataway-metrics = ["gateway", "twilight-gateway/metrics"]

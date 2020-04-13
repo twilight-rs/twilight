@@ -14,10 +14,7 @@ fn false_default() -> bool {
 #[derive(Clone, Debug, Eq, Hash, PartialEq)]
 pub enum ReactionType {
     Custom {
-        #[cfg_attr(
-            feature = "serde-support",
-            serde(default = "false_default")
-        )]
+        #[cfg_attr(feature = "serde-support", serde(default = "false_default"))]
         animated: bool,
         // Even though it says that the id can be nil in the docs,
         // it is a bit misleading as that should only happen when
