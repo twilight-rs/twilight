@@ -415,7 +415,10 @@ impl ShardProcessor {
                     self.inflater.clear();
                     break msg_or_error;
                 },
-                Message::Close(_) => self.resume().await?,
+                Message::Close(code) => {
+                    log::warn!("Got close code: {:?}.", code);
+                    self.resume().await?;
+                },
                 Message::Ping(_) | Message::Pong(_) => {},
                 Message::Text(text) => {
                     trace!("Text payload: {}", text);
