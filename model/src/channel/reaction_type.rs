@@ -1,6 +1,7 @@
 use crate::id::EmojiId;
 
 // HACK: Hack needed until this is supported: https://github.com/serde-rs/serde/issues/368
+#[cfg(feature = "serde-support")]
 fn false_default() -> bool {
     false
 }
@@ -13,7 +14,10 @@ fn false_default() -> bool {
 #[derive(Clone, Debug, Eq, Hash, PartialEq)]
 pub enum ReactionType {
     Custom {
-        #[serde(default = "false_default")]
+        #[cfg_attr(
+            feature = "serde-support",
+            serde(default = "false_default")
+        )]
         animated: bool,
         // Even though it says that the id can be nil in the docs,
         // it is a bit misleading as that should only happen when
