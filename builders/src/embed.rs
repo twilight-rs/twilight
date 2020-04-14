@@ -23,7 +23,7 @@ impl EmbedBuilder {
         })
     }
 
-    pub fn author(&mut self) -> AuthorBuilder<'_> {
+    pub fn author(self) -> AuthorBuilder {
         AuthorBuilder::new(self)
     }
 
@@ -37,15 +37,11 @@ impl EmbedBuilder {
         self
     }
 
-    pub fn add_field(
-        &mut self,
-        name: impl Into<String>,
-        value: impl Into<String>,
-    ) -> FieldBuilder<'_> {
+    pub fn add_field(self, name: impl Into<String>, value: impl Into<String>) -> FieldBuilder {
         FieldBuilder::new(self, name.into(), value.into())
     }
 
-    pub fn footer(&mut self, text: impl Into<String>) -> FooterBuilder<'_> {
+    pub fn footer(self, text: impl Into<String>) -> FooterBuilder {
         FooterBuilder::new(self, text.into())
     }
 
@@ -98,10 +94,10 @@ impl Default for EmbedBuilder {
 }
 
 #[must_use = "If commit is not run the author will not be changed."]
-pub struct AuthorBuilder<'a>(EmbedAuthor, &'a mut EmbedBuilder);
+pub struct AuthorBuilder(EmbedAuthor, EmbedBuilder);
 
-impl<'a> AuthorBuilder<'a> {
-    fn new(ebb: &'a mut EmbedBuilder) -> Self {
+impl AuthorBuilder {
+    fn new(ebb: EmbedBuilder) -> Self {
         AuthorBuilder(
             EmbedAuthor {
                 icon_url: None,
@@ -128,16 +124,17 @@ impl<'a> AuthorBuilder<'a> {
         self
     }
 
-    pub fn commit(self) {
+    pub fn commit(mut self) -> EmbedBuilder {
         (self.1).0.author.replace(self.0);
+        self.1
     }
 }
 
 #[must_use = "If commit is not run the field will not be added."]
-pub struct FieldBuilder<'a>(EmbedField, &'a mut EmbedBuilder);
+pub struct FieldBuilder(EmbedField, EmbedBuilder);
 
-impl<'a> FieldBuilder<'a> {
-    fn new(ebb: &'a mut EmbedBuilder, name: String, value: String) -> Self {
+impl FieldBuilder {
+    fn new(ebb: EmbedBuilder, name: String, value: String) -> Self {
         FieldBuilder(
             EmbedField {
                 inline: false,
@@ -153,16 +150,17 @@ impl<'a> FieldBuilder<'a> {
         self
     }
 
-    pub fn commit(self) {
+    pub fn commit(mut self) -> EmbedBuilder {
         (self.1).0.fields.push(self.0);
+        self.1
     }
 }
 
 #[must_use = "If commit is not run the footer will not be added."]
-pub struct FooterBuilder<'a>(EmbedFooter, &'a mut EmbedBuilder);
+pub struct FooterBuilder(EmbedFooter, EmbedBuilder);
 
-impl<'a> FooterBuilder<'a> {
-    fn new(ebb: &'a mut EmbedBuilder, text: String) -> Self {
+impl FooterBuilder {
+    fn new(ebb: EmbedBuilder, text: String) -> Self {
         FooterBuilder(
             EmbedFooter {
                 icon_url: None,
@@ -178,7 +176,50 @@ impl<'a> FooterBuilder<'a> {
         self
     }
 
-    pub fn commit(self) {
+    pub fn commit(mut self) -> EmbedBuilder {
         (self.1).0.footer.replace(self.0);
+        self.1
     }
+}
+
+#[test]
+fn builder_test() {
+    let embed = EmbedBuilder::new()
+        .color(0x0043FF)
+        .description("Description")
+        .timestamp("123")
+        .footer("Warn")
+        .icon_url("icon")
+        .commit()
+        .add_field("name", "title")
+        .inline()
+        .commit()
+        .build();
+
+    let expected = Embed {
+        author: None,
+        color: Some(17407),
+        description: Some("Description".to_string()),
+        fields: [EmbedField {
+            inline: true,
+            name: "name".to_string(),
+            value: "title".to_string(),
+        }]
+        .to_vec(),
+        footer: Some(EmbedFooter {
+            icon_url: Some("icon".to_string()),
+            proxy_icon_url: None,
+            text: "Warn".to_string(),
+        }),
+        image: None,
+        kind: "rich".to_string(),
+        provider: None,
+        thumbnail: None,
+        timestamp: Some("123".to_string()),
+        title: None,
+        url: None,
+        video: None,
+    };
+
+    assert_eq!(embed, expected);
 }
