@@ -1,6 +1,6 @@
 use super::{
     config::ShardConfig,
-    error::Result,
+    error::{Error, Result},
     event::{Event, EventType, Events},
     processor::{Latency, Session, ShardProcessor},
     sink::ShardSink,
@@ -220,6 +220,24 @@ impl Shard {
         let session = self.session();
 
         ShardSink(session.tx.clone())
+    }
+
+    /// Send a command over the gateway.
+    pub async fn command(&self, com: &impl serde::Serialize) -> Result<()> {
+        let payload = Message::Text(serde_json::to_string(&com).map_err(|err| {
+            Error::PayloadSerialization {
+                source: err,
+            }
+        })?);
+        let session = self.session();
+
+        session
+            .tx
+            .unbounded_send(payload)
+            .map_err(|err| Error::SendingMessage {
+                source: err,
+            })?;
+        Ok(())
     }
 
     /// Shuts down the shard.

@@ -22,7 +22,7 @@ impl UpdateVoiceState {
     ) -> Self {
         Self {
             d: UpdateVoiceStateInfo::new(guild_id, channel_id, self_deaf, self_mute),
-            op: OpCode::Identify,
+            op: OpCode::VoiceStateUpdate,
         }
     }
 }

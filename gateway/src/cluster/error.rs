@@ -39,6 +39,17 @@ pub enum Error {
         /// [`ShardConfigBuilder`]: ../../shard/config/struct.ShardConfigBuilder.html
         source: ShardError,
     },
+    /// The shard you are trying to get does not exist.
+    ShardDoesNotExist {
+        /// The attempted ID.
+        id: u64,
+    },
+    ShardError {
+        /// The error from the shard's [`ShardConfigBuilder`].
+        ///
+        /// [`ShardConfigBuilder`]: ../../shard/config/struct.ShardConfigBuilder.html
+        source: ShardError,
+    },
 }
 
 impl Display for Error {
@@ -59,6 +70,12 @@ impl Display for Error {
             Self::LargeThresholdInvalid {
                 source,
             } => write!(f, "{}", source),
+            Self::ShardDoesNotExist {
+                id,
+            } => write!(f, "The ID: {} does not exist", id),
+            Self::ShardError {
+                source,
+            } => write!(f, "{}", source),
         }
     }
 }
@@ -73,6 +90,12 @@ impl StdError for Error {
                 ..
             } => None,
             Self::LargeThresholdInvalid {
+                source,
+            } => Some(source),
+            Self::ShardDoesNotExist {
+                ..
+            } => None,
+            Self::ShardError {
                 source,
             } => Some(source),
         }
