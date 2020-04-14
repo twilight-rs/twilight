@@ -170,6 +170,24 @@ impl Cluster {
         .collect::<HashMap<_, _>>()
     }
 
+    /// Send a command to the specified shard.
+    pub async fn command(&self, id: u64, com: &impl serde::Serialize) -> Result<()> {
+        let shard = match self.0.shards.lock().await.get(&id) {
+            Some(shard) => shard.clone(),
+            None => {
+                return Err(Error::ShardDoesNotExist {
+                    id,
+                })
+            },
+        };
+
+        shard.command(com).await.map_err(|err| Error::ShardError {
+            source: err,
+        })?;
+
+        Ok(())
+    }
+
     /// Returns a stream of events from all shards managed by this Cluster.
     ///
     /// Each item in the stream contains both the shard's ID and the event
