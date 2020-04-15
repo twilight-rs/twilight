@@ -231,6 +231,9 @@ impl Shard {
         })?);
         let session = self.session();
 
+        // Tick ratelimiter.
+        session.ratelimit.lock().await.tick().await;
+
         session
             .tx
             .unbounded_send(payload)
