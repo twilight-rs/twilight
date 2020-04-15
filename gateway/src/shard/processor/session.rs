@@ -20,6 +20,8 @@ use std::{
 };
 use twilight_model::gateway::payload::Heartbeat;
 
+use std::time::Duration;
+use tokio::time::{interval, Interval};
 use tokio_tungstenite::tungstenite::{protocol::CloseFrame, Message as TungsteniteMessage};
 
 #[derive(Debug)]
@@ -33,6 +35,7 @@ pub struct Session {
     pub seq: Arc<AtomicU64>,
     pub stage: AtomicU8,
     pub tx: UnboundedSender<TungsteniteMessage>,
+    pub ratelimit: Mutex<Interval>,
 }
 
 impl Session {
@@ -45,6 +48,8 @@ impl Session {
             seq: Arc::new(AtomicU64::new(0)),
             stage: AtomicU8::new(Stage::default() as u8),
             tx,
+            // 520 instead of 500 to make sure that it can heartbeat.
+            ratelimit: Mutex::new(interval(Duration::from_millis(520))),
         }
     }
 
