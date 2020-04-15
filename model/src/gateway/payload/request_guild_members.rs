@@ -1,6 +1,10 @@
-use crate::{gateway::opcode::OpCode, id::GuildId};
-use crate::gateway::payload::request_guild_members::RequestGuildMembersInfo::{Query, SingleUser, MultiUser};
-use crate::id::UserId;
+use crate::{
+    gateway::{
+        opcode::OpCode,
+        payload::request_guild_members::RequestGuildMembersInfo::{MultiUser, Query, SingleUser},
+    },
+    id::{GuildId, UserId},
+};
 
 #[cfg_attr(
     feature = "serde-support",
@@ -20,21 +24,34 @@ impl RequestGuildMembers {
         }
     }
 
-    pub fn new(guild_id: impl Into<GuildId>, limit: u64, query: impl Into<String>, presences: Option<bool>) -> Self {
+    pub fn new(
+        guild_id: impl Into<GuildId>,
+        limit: u64,
+        query: impl Into<String>,
+        presences: Option<bool>,
+    ) -> Self {
         Self {
             d: RequestGuildMembersInfo::new(guild_id, limit, query, presences),
             op: OpCode::RequestGuildMembers,
         }
     }
 
-    pub fn new_single_user(guild_id: impl Into<GuildId>, user: impl Into<UserId>, presence: Option<bool>) -> Self {
+    pub fn new_single_user(
+        guild_id: impl Into<GuildId>,
+        user: impl Into<UserId>,
+        presence: Option<bool>,
+    ) -> Self {
         Self {
             d: RequestGuildMembersInfo::new_single_user(guild_id, user, presence),
             op: OpCode::RequestGuildMembers,
         }
     }
 
-    pub fn new_multi_user(guild_id: impl Into<GuildId>, users: Vec<UserId>, presences: Option<bool>) -> Self {
+    pub fn new_multi_user(
+        guild_id: impl Into<GuildId>,
+        users: Vec<UserId>,
+        presences: Option<bool>,
+    ) -> Self {
         Self {
             d: RequestGuildMembersInfo::new_multi_user(guild_id, users, presences),
             op: OpCode::RequestGuildMembers,
@@ -54,20 +71,20 @@ pub enum RequestGuildMembersInfo {
         limit: u64,
         query: String,
         #[serde(skip_serializing_if = "Option::is_none")]
-        presences: Option<bool>
+        presences: Option<bool>,
     },
     SingleUser {
         guild_id: GuildId,
         user_ids: UserId,
         #[serde(skip_serializing_if = "Option::is_none")]
-        presences: Option<bool>
+        presences: Option<bool>,
     },
     MultiUser {
         guild_id: GuildId,
         user_ids: Vec<UserId>,
         #[serde(skip_serializing_if = "Option::is_none")]
-        presences: Option<bool>
-    }
+        presences: Option<bool>,
+    },
 }
 
 impl RequestGuildMembersInfo {
@@ -75,7 +92,12 @@ impl RequestGuildMembersInfo {
         Self::_new_query(guild_id.into(), 0, String::from(""), presences)
     }
 
-    pub fn new(guild_id: impl Into<GuildId>, limit: u64, query: impl Into<String>, presences: Option<bool>) -> Self {
+    pub fn new(
+        guild_id: impl Into<GuildId>,
+        limit: u64,
+        query: impl Into<String>,
+        presences: Option<bool>,
+    ) -> Self {
         Self::_new_query(guild_id.into(), limit, query.into(), presences)
     }
 
@@ -84,11 +106,15 @@ impl RequestGuildMembersInfo {
             guild_id,
             limit,
             query,
-            presences
+            presences,
         }
     }
 
-    pub fn new_single_user(guild_id: impl Into<GuildId>, user: impl Into<UserId>, presence: Option<bool>) -> Self {
+    pub fn new_single_user(
+        guild_id: impl Into<GuildId>,
+        user: impl Into<UserId>,
+        presence: Option<bool>,
+    ) -> Self {
         Self::_new_single_user(guild_id.into(), user.into(), presence)
     }
 
@@ -96,11 +122,15 @@ impl RequestGuildMembersInfo {
         SingleUser {
             guild_id,
             presences,
-            user_ids: user
+            user_ids: user,
         }
     }
 
-    pub fn new_multi_user(guild_id: impl Into<GuildId>, users: Vec<UserId>, presences: Option<bool>) -> Self {
+    pub fn new_multi_user(
+        guild_id: impl Into<GuildId>,
+        users: Vec<UserId>,
+        presences: Option<bool>,
+    ) -> Self {
         Self::_new_multi_user(guild_id.into(), users, presences)
     }
 
@@ -108,21 +138,19 @@ impl RequestGuildMembersInfo {
         MultiUser {
             guild_id,
             user_ids,
-            presences
+            presences,
         }
     }
 }
 
 #[cfg_attr(
-feature = "serde-support",
-derive(serde::Deserialize, serde::Serialize)
+    feature = "serde-support",
+    derive(serde::Deserialize, serde::Serialize)
 )]
 #[derive(Clone, Debug, Eq, Hash, PartialEq)]
 pub struct RequestGuildMemberInfo {
     pub guild_id: GuildId,
     pub user_ids: u64,
     pub query: String,
-    pub presences: bool
+    pub presences: bool,
 }
-
-
