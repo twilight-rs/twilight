@@ -213,10 +213,23 @@ pub enum ShardEvent {
 /// This brings together all of the types of [`DispatchEvent`]s,
 /// [`GatewayEvent`]s, and [`ShardEvent`]s.
 ///
+/// If the feature `inner-event-serialize` is enabled it will be
+/// possible to serialize this enum. It will only contain the
+/// data field of the JSON discord sends. So to decide what
+/// event it is you may need to use the provided methods
+/// [`event_type`] or [`event_name`].
+///
+/// [`event_type`]: #method.event_type
+/// [`event_name`]: #method.event_name
 /// [`DispatchEvent`]: ../../event/struct.DispatchEvent.html
 /// [`GatewayEvent`]: ../../event/struct.GatewayEvent.html
 /// [`ShardEvent`]: struct.ShardEvent.html
 /// [`Shard`]: ../struct.Shard.html
+#[cfg_attr(
+    feature = "inner-event-serialize",
+    derive(serde::Serialize),
+    serde(untagged)
+)]
 #[derive(Clone, Debug)]
 pub enum Event {
     /// A user was banned from a guild.
@@ -405,6 +418,62 @@ impl Event {
             Self::VoiceServerUpdate(_) => EventType::VOICE_SERVER_UPDATE,
             Self::VoiceStateUpdate(_) => EventType::VOICE_STATE_UPDATE,
             Self::WebhooksUpdate(_) => EventType::WEBHOOKS_UPDATE,
+        }
+    }
+
+    /// This is the event name as given by Discord.
+    pub fn event_name(&self) -> &'static str {
+        match self {
+            Self::BanAdd(_) => "GUILD_BAN_ADD",
+            Self::BanRemove(_) => "GUILD_BAN_REMOVE",
+            Self::ChannelCreate(_) => "CHANNEL_CREATE",
+            Self::ChannelDelete(_) => "CHANNEL_DELETE",
+            Self::ChannelPinsUpdate(_) => "CHANNEL_PINS_UPDATE",
+            Self::ChannelUpdate(_) => "CHANNEL_UPDATE",
+            Self::GatewayHeartbeat(_) => "GATEWAY_HEARTBEAT",
+            Self::GatewayHeartbeatAck => "GATEWAY_HEARTBEAT_ACK",
+            Self::GatewayHello(_) => "GATEWAY_HELLO",
+            Self::GatewayInvalidateSession(_) => "GATEWAY_INVALIDATE_SESSION",
+            Self::GatewayReconnect => "GATEWAY_RECONNECT",
+            Self::GuildCreate(_) => "GUILD_CREATE",
+            Self::GuildDelete(_) => "GUILD_DELETE",
+            Self::GuildEmojisUpdate(_) => "GUILD_EMOJIS_UPDATE",
+            Self::GuildIntegrationsUpdate(_) => "GUILD_INTEGRATIONS_UPDATE",
+            Self::GuildUpdate(_) => "GUILD_UPDATE",
+            Self::InviteCreate(_) => "INVITE_CREATE",
+            Self::InviteDelete(_) => "INVITE_DELETE",
+            Self::MemberAdd(_) => "GUILD_MEMBER_ADD",
+            Self::MemberRemove(_) => "GUILD_MEMBER_REMOVE",
+            Self::MemberUpdate(_) => "GUILD_MEMBER_UPDATE",
+            Self::MemberChunk(_) => "GUILD_MEMBERS_CHUNK",
+            Self::MessageCreate(_) => "MESSAGE_CREATE",
+            Self::MessageDelete(_) => "MESSAGE_DELETE",
+            Self::MessageDeleteBulk(_) => "MESSAGE_DELETE_BULK",
+            Self::MessageUpdate(_) => "MESSAGE_UPDATE",
+            Self::PresenceUpdate(_) => "PRESENCE_UPDATE",
+            Self::PresencesReplace => "PRESENCES_REPLACE",
+            Self::ReactionAdd(_) => "MESSAGE_REACTION_ADD",
+            Self::ReactionRemove(_) => "MESSAGE_REACTION_REMOVE",
+            Self::ReactionRemoveAll(_) => "MESSAGE_REACTION_REMOVE_ALL",
+            Self::ReactionRemoveEmoji(_) => "MESSAGE_REACTION_REMOVE_EMOJI",
+            Self::Ready(_) => "READY",
+            Self::Resumed => "RESUMED",
+            Self::RoleCreate(_) => "GUILD_ROLE_CREATE",
+            Self::RoleDelete(_) => "GUILD_ROLE_DELETE",
+            Self::RoleUpdate(_) => "GUILD_ROLE_UPDATE",
+            Self::ShardConnected(_) => "SHARD_CONNECTED",
+            Self::ShardConnecting(_) => "SHARD_CONNECTING",
+            Self::ShardDisconnected(_) => "SHARD_DISCONNECTED",
+            Self::ShardIdentifying(_) => "SHARD_IDENTIFYING",
+            Self::ShardPayload(_) => "SHARD_PAYLOAD",
+            Self::ShardReconnecting(_) => "SHARD_RECONNECTING",
+            Self::ShardResuming(_) => "SHARD_RESUMING",
+            Self::TypingStart(_) => "TYPING_START",
+            Self::UnavailableGuild(_) => "UNAVAILABLE_GUILD",
+            Self::UserUpdate(_) => "USER_UPDATE",
+            Self::VoiceServerUpdate(_) => "VOICE_SERVER_UPDATE",
+            Self::VoiceStateUpdate(_) => "VOICE_STATE_UPDATE",
+            Self::WebhooksUpdate(_) => "WEBHOOKS_UPDATE",
         }
     }
 }

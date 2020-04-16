@@ -41,3 +41,4 @@ tokio = "0.2"
 
 [features]
 default = []
+inner-event-serialize = []
