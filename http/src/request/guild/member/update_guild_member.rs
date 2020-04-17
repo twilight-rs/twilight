@@ -93,7 +93,7 @@ impl<'a> UpdateGuildMember<'a> {
             return Err(UpdateGuildMemberError::NicknameInvalid);
         }
 
-        self.fields.nick.replace(nick.into());
+        self.fields.nick.replace(nick);
 
         Ok(self)
     }

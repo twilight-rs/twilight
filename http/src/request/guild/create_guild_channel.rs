@@ -76,7 +76,7 @@ impl<'a> CreateGuildChannel<'a> {
             fields: CreateGuildChannelFields {
                 bitrate: None,
                 kind: None,
-                name: name.into(),
+                name,
                 nsfw: None,
                 parent_id: None,
                 permission_overwrites: None,

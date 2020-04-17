@@ -75,7 +75,7 @@ impl<'a> CreateGuild<'a> {
                 default_message_notifications: None,
                 explicit_content_filter: None,
                 icon: None,
-                name: name.into(),
+                name,
                 region: None,
                 roles: None,
                 verification_level: None,
