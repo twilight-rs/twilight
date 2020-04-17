@@ -1,8 +1,27 @@
 use crate::request::prelude::*;
+use std::{
+    error::Error,
+    fmt::{Display, Formatter, Result as FmtResult},
+};
 use twilight_model::{
     channel::{embed::Embed, Message},
     id::{ChannelId, MessageId},
 };
+
+#[derive(Clone, Debug)]
+pub enum UpdateMessageError {
+    ContentInvalid,
+}
+
+impl Display for UpdateMessageError {
+    fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
+        match self {
+            Self::ContentInvalid => f.write_str("the message content is invalid"),
+        }
+    }
+}
+
+impl Error for UpdateMessageError {}
 
 #[derive(Default, Serialize)]
 struct UpdateMessageFields {
@@ -39,7 +58,7 @@ struct UpdateMessageFields {
 /// # async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
 /// let client = Client::new("my token");
 /// client.update_message(ChannelId(1), MessageId(2))
-///     .content("test update".to_owned())
+///     .content("test update".to_owned())?
 ///     .await?;
 /// # Ok(()) }
 /// ```
@@ -54,7 +73,7 @@ struct UpdateMessageFields {
 /// # async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
 /// let client = Client::new("my token");
 /// client.update_message(ChannelId(1), MessageId(2))
-///     .content(None)
+///     .content(None)?
 ///     .await?;
 /// # Ok(()) }
 /// ```
@@ -82,10 +101,29 @@ impl<'a> UpdateMessage<'a> {
     /// Set the content of the message.
     ///
     /// Pass `None` if you want to remove the message content.
-    pub fn content(mut self, content: impl Into<Option<String>>) -> Self {
-        self.fields.content.replace(content.into());
+    ///
+    /// The maximum length is 2000 UTF-8 characters.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`UpdateMessageError::ContentInvalid`] if the content length is
+    /// too long.
+    ///
+    /// [`UpdateMessageError::ContentInvalid`]: enum.UpdateMessageError.html#variant.ContentInvalid
+    pub fn content(self, content: impl Into<Option<String>>) -> Result<Self, UpdateMessageError> {
+        self._content(content.into())
+    }
 
-        self
+    fn _content(mut self, content: Option<String>) -> Result<Self, UpdateMessageError> {
+        if let Some(content) = content.as_ref() {
+            if !validate::content_limit(content) {
+                return Err(UpdateMessageError::ContentInvalid);
+            }
+        }
+
+        self.fields.content.replace(content);
+
+        Ok(self)
     }
 
     /// Set the embed of the message.

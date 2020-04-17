@@ -1,8 +1,35 @@
 use crate::request::prelude::*;
+use std::{
+    error::Error,
+    fmt::{Display, Formatter, Result as FmtResult},
+};
 use twilight_model::{
     channel::{permission_overwrite::PermissionOverwrite, Channel, ChannelType},
     id::ChannelId,
 };
+
+#[derive(Clone, Debug)]
+pub enum UpdateChannelError {
+    /// The length of the name is either fewer than 2 UTF-8 characters or
+    /// more than 100 UTF-8 characters.
+    NameInvalid,
+    /// The seconds of the rate limit per user is more than 21600.
+    RateLimitPerUserInvalid,
+    /// The length of the topic is more than 1024 UTF-8 characters.
+    TopicInvalid,
+}
+
+impl Display for UpdateChannelError {
+    fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
+        match self {
+            Self::NameInvalid => f.write_str("the length of the name is invalid"),
+            Self::RateLimitPerUserInvalid => f.write_str("the rate limit per user is invalid"),
+            Self::TopicInvalid => f.write_str("the topic is invalid"),
+        }
+    }
+}
+
+impl Error for UpdateChannelError {}
 
 #[derive(Default, Serialize)]
 struct UpdateChannelFields {
@@ -44,10 +71,29 @@ impl<'a> UpdateChannel<'a> {
         self
     }
 
-    pub fn name(mut self, name: impl Into<String>) -> Self {
-        self.fields.name.replace(name.into());
+    /// Set the name.
+    ///
+    /// The minimum length is 2 UTF-8 characters and the maximum is 100 UTF-8
+    /// characters.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`UpdateChannelError::NameInvalid`] if the name length is
+    /// too short or too long.
+    ///
+    /// [`UpdateChannelError::NameInvalid`]: enum.UpdateChannelError.html#variant.NameInvalid
+    pub fn name(self, name: impl Into<String>) -> Result<Self, UpdateChannelError> {
+        self._name(name.into())
+    }
 
-        self
+    fn _name(mut self, name: String) -> Result<Self, UpdateChannelError> {
+        if !validate::channel_name(&name) {
+            return Err(UpdateChannelError::NameInvalid);
+        }
+
+        self.fields.name.replace(name);
+
+        Ok(self)
     }
 
     pub fn nsfw(mut self, nsfw: bool) -> Self {
@@ -79,16 +125,54 @@ impl<'a> UpdateChannel<'a> {
         self
     }
 
-    pub fn rate_limit_per_user(mut self, rate_limit_per_user: u64) -> Self {
+    /// Set the number of seconds that a user must wait before before able to
+    /// send a message again.
+    ///
+    /// The minimum is 0 and the maximum is 21600.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`UpdateChannelError::RateLimitPerUserInvalid`] if the
+    /// amount is greater than 21600.
+    ///
+    /// [`UpdateChannelError::RateLimitPerUserInvalid`]: enum.UpdateChannelError.html#variant.RateLimitPerUserInvalid
+    pub fn rate_limit_per_user(
+        mut self,
+        rate_limit_per_user: u64,
+    ) -> Result<Self, UpdateChannelError> {
+        // <https://discordapp.com/developers/docs/resources/channel#channel-object-channel-structure>
+        if rate_limit_per_user > 21600 {
+            return Err(UpdateChannelError::RateLimitPerUserInvalid);
+        }
+
         self.fields.rate_limit_per_user.replace(rate_limit_per_user);
 
-        self
+        Ok(self)
     }
 
-    pub fn topic(mut self, topic: impl Into<String>) -> Self {
+    /// Set the topic.
+    ///
+    /// The maximum length is 1024 UTF-8 characters.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`CreateGuildChannel::TopicInvalid`] if the topic length is
+    /// too long.
+    ///
+    /// [`CreateGuildChannel::TopicInvalid`]: enum.CreateGuildChannel.html#variant.TopicInvalid
+    pub fn topic(self, topic: impl Into<String>) -> Result<Self, UpdateChannelError> {
+        self._topic(topic.into())
+    }
+
+    fn _topic(mut self, topic: String) -> Result<Self, UpdateChannelError> {
+        // <https://discordapp.com/developers/docs/resources/channel#channel-object-channel-structure>
+        if topic.chars().count() > 1024 {
+            return Err(UpdateChannelError::TopicInvalid);
+        }
+
         self.fields.topic.replace(topic.into());
 
-        self
+        Ok(self)
     }
 
     pub fn user_limit(mut self, user_limit: u64) -> Self {

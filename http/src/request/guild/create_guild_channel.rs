@@ -1,8 +1,35 @@
 use crate::request::prelude::*;
+use std::{
+    error::Error,
+    fmt::{Display, Formatter, Result as FmtResult},
+};
 use twilight_model::{
     channel::{permission_overwrite::PermissionOverwrite, ChannelType, GuildChannel},
     id::{ChannelId, GuildId},
 };
+
+#[derive(Clone, Debug)]
+pub enum CreateGuildChannelError {
+    /// The length of the name is either fewer than 2 UTF-8 characters or
+    /// more than 100 UTF-8 characters.
+    NameInvalid,
+    /// The seconds of the rate limit per user is more than 21600.
+    RateLimitPerUserInvalid,
+    /// The length of the topic is more than 1024 UTF-8 characters.
+    TopicInvalid,
+}
+
+impl Display for CreateGuildChannelError {
+    fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
+        match self {
+            Self::NameInvalid => f.write_str("the length of the name is invalid"),
+            Self::RateLimitPerUserInvalid => f.write_str("the rate limit per user is invalid"),
+            Self::TopicInvalid => f.write_str("the topic is invalid"),
+        }
+    }
+}
+
+impl Error for CreateGuildChannelError {}
 
 #[derive(Serialize)]
 struct CreateGuildChannelFields {
@@ -28,8 +55,24 @@ pub struct CreateGuildChannel<'a> {
 }
 
 impl<'a> CreateGuildChannel<'a> {
-    pub(crate) fn new(http: &'a Client, guild_id: GuildId, name: impl Into<String>) -> Self {
-        Self {
+    pub(crate) fn new(
+        http: &'a Client,
+        guild_id: GuildId,
+        name: impl Into<String>,
+    ) -> Result<Self, CreateGuildChannelError> {
+        Self::_new(http, guild_id, name.into())
+    }
+
+    fn _new(
+        http: &'a Client,
+        guild_id: GuildId,
+        name: String,
+    ) -> Result<Self, CreateGuildChannelError> {
+        if !validate::channel_name(&name) {
+            return Err(CreateGuildChannelError::NameInvalid);
+        }
+
+        Ok(Self {
             fields: CreateGuildChannelFields {
                 bitrate: None,
                 kind: None,
@@ -46,7 +89,7 @@ impl<'a> CreateGuildChannel<'a> {
             guild_id,
             http,
             reason: None,
-        }
+        })
     }
 
     pub fn bitrate(mut self, bitrate: u64) -> Self {
@@ -90,16 +133,54 @@ impl<'a> CreateGuildChannel<'a> {
         self
     }
 
-    pub fn rate_limit_per_user(mut self, rate_limit_per_user: u64) -> Self {
+    /// Set the number of seconds that a user must wait before before able to
+    /// send a message again.
+    ///
+    /// The minimum is 0 and the maximum is 21600.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`GetGuildPruneCountError::RateLimitPerUserInvalid`] if the
+    /// amount is greater than 21600.
+    ///
+    /// [`GetGuildPruneCountError::RateLimitPerUserInvalid`]: enum.GetGuildPruneCountError.html#variant.RateLimitPerUserInvalid
+    pub fn rate_limit_per_user(
+        mut self,
+        rate_limit_per_user: u64,
+    ) -> Result<Self, CreateGuildChannelError> {
+        // <https://discordapp.com/developers/docs/resources/channel#channel-object-channel-structure>
+        if rate_limit_per_user > 21600 {
+            return Err(CreateGuildChannelError::RateLimitPerUserInvalid);
+        }
+
         self.fields.rate_limit_per_user.replace(rate_limit_per_user);
 
-        self
+        Ok(self)
     }
 
-    pub fn topic(mut self, topic: impl Into<String>) -> Self {
-        self.fields.topic.replace(topic.into());
+    /// Set the topic.
+    ///
+    /// The maximum length is 1024 UTF-8 characters.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`CreateGuildChannel::TopicInvalid`] if the topic length is
+    /// too long.
+    ///
+    /// [`CreateGuildChannel::TopicInvalid`]: enum.CreateGuildChannel.html#variant.TopicInvalid
+    pub fn topic(self, topic: impl Into<String>) -> Result<Self, CreateGuildChannelError> {
+        self._topic(topic.into())
+    }
 
-        self
+    fn _topic(mut self, topic: String) -> Result<Self, CreateGuildChannelError> {
+        // <https://discordapp.com/developers/docs/resources/channel#channel-object-channel-structure>
+        if topic.chars().count() > 1024 {
+            return Err(CreateGuildChannelError::TopicInvalid);
+        }
+
+        self.fields.topic.replace(topic);
+
+        Ok(self)
     }
 
     pub fn user_limit(mut self, user_limit: u64) -> Self {

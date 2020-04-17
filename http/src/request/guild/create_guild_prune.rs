@@ -1,5 +1,25 @@
 use crate::request::prelude::*;
+use std::{
+    error::Error,
+    fmt::{Display, Formatter, Result as FmtResult},
+};
 use twilight_model::{guild::GuildPrune, id::GuildId};
+
+#[derive(Clone, Debug)]
+pub enum CreateGuildPruneError {
+    /// The number of days is 0.
+    DaysInvalid,
+}
+
+impl Display for CreateGuildPruneError {
+    fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
+        match self {
+            Self::DaysInvalid => f.write_str("the number of days is invalid"),
+        }
+    }
+}
+
+impl Error for CreateGuildPruneError {}
 
 #[derive(Default)]
 struct CreateGuildPruneFields {
@@ -32,10 +52,25 @@ impl<'a> CreateGuildPrune<'a> {
         self
     }
 
-    pub fn days(mut self, days: u64) -> Self {
+    /// Set the number of days that a user must be inactive before being
+    /// pruned.
+    ///
+    /// The number of days must be greater than 0.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`CreateGuildPruneError::DaysInvalid`] if the number of days is
+    /// 0.
+    ///
+    /// [`CreateGuildPruneError::DaysInvalid`]: enum.CreateGuildPruneError.html#variant.DaysInvalid
+    pub fn days(mut self, days: u64) -> Result<Self, CreateGuildPruneError> {
+        if !validate::guild_prune_days(days) {
+            return Err(CreateGuildPruneError::DaysInvalid);
+        }
+
         self.fields.days.replace(days);
 
-        self
+        Ok(self)
     }
 
     pub fn reason(mut self, reason: impl Into<String>) -> Self {

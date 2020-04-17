@@ -1,20 +1,20 @@
 pub mod ban;
+pub mod create_guild;
+pub mod create_guild_channel;
+pub mod create_guild_prune;
 pub mod emoji;
+pub mod get_audit_log;
+pub mod get_guild_prune_count;
 pub mod integration;
 pub mod member;
 pub mod role;
 
-mod create_guild;
-mod create_guild_channel;
-mod create_guild_prune;
 mod delete_guild;
-mod get_audit_log;
 mod get_guild;
 mod get_guild_channels;
 mod get_guild_embed;
 mod get_guild_invites;
 mod get_guild_preview;
-mod get_guild_prune_count;
 mod get_guild_vanity_url;
 mod get_guild_voice_regions;
 mod get_guild_webhooks;

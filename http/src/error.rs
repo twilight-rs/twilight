@@ -10,7 +10,7 @@ use std::{
 };
 use url::ParseError as UrlParseError;
 
-pub type Result<T> = StdResult<T, Error>;
+pub type Result<T, E = Error> = StdResult<T, E>;
 
 #[derive(Debug)]
 pub enum ResponseError {

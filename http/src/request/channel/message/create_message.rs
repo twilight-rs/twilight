@@ -4,11 +4,30 @@ use reqwest::{
     multipart::{Form, Part},
     Body,
 };
-use std::collections::HashMap;
+use std::{
+    collections::HashMap,
+    error::Error,
+    fmt::{Display, Formatter, Result as FmtResult},
+};
 use twilight_model::{
     channel::{embed::Embed, Message},
     id::ChannelId,
 };
+
+#[derive(Clone, Debug)]
+pub enum CreateMessageError {
+    ContentInvalid,
+}
+
+impl Display for CreateMessageError {
+    fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
+        match self {
+            Self::ContentInvalid => f.write_str("the message content is invalid"),
+        }
+    }
+}
+
+impl Error for CreateMessageError {}
 
 #[derive(Default, Serialize)]
 pub(crate) struct CreateMessageFields {
@@ -39,10 +58,28 @@ impl<'a> CreateMessage<'a> {
         }
     }
 
-    pub fn content(mut self, content: impl Into<String>) -> Self {
-        self.fields.content.replace(content.into());
+    /// Set the content of the message.
+    ///
+    /// The maximum length is 2000 UTF-8 characters.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`CreateMessageError::ContentInvalid`] if the content length is
+    /// too long.
+    ///
+    /// [`CreateMessageError::ContentInvalid`]: enum.CreateMessageError.html#variant.ContentInvalid
+    pub fn content(self, content: impl Into<String>) -> Result<Self, CreateMessageError> {
+        self._content(content.into())
+    }
 
-        self
+    fn _content(mut self, content: String) -> Result<Self, CreateMessageError> {
+        if !validate::content_limit(&content) {
+            return Err(CreateMessageError::ContentInvalid);
+        }
+
+        self.fields.content.replace(content);
+
+        Ok(self)
     }
 
     pub fn embed(mut self, embed: Embed) -> Self {

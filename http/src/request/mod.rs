@@ -29,6 +29,7 @@ pub mod user;
 mod get_gateway;
 mod get_gateway_authed;
 mod get_voice_regions;
+mod validate;
 
 pub use self::{
     get_gateway::GetGateway,

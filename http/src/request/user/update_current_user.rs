@@ -1,5 +1,26 @@
 use crate::request::prelude::*;
+use std::{
+    error::Error,
+    fmt::{Display, Formatter, Result as FmtResult},
+};
 use twilight_model::user::User;
+
+#[derive(Clone, Debug)]
+pub enum UpdateCurrentUserError {
+    /// The length of the username is either fewer than 2 UTF-8 characters or
+    /// more than 32 UTF-8 characters.
+    UsernameInvalid,
+}
+
+impl Display for UpdateCurrentUserError {
+    fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
+        match self {
+            Self::UsernameInvalid => f.write_str("the username length is invalid"),
+        }
+    }
+}
+
+impl Error for UpdateCurrentUserError {}
 
 #[derive(Default, Serialize)]
 struct UpdateCurrentUserFields {
@@ -28,10 +49,29 @@ impl<'a> UpdateCurrentUser<'a> {
         self
     }
 
-    pub fn username(mut self, username: impl Into<String>) -> Self {
-        self.fields.username.replace(username.into());
+    /// Set the username.
+    ///
+    /// The minimum length is 2 UTF-8 characters and the maximum is 32 UTF-8
+    /// characters.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`UpdateCurrentUserError::UsernameInvalid`] if the username
+    /// length is too short or too long.
+    ///
+    /// [`UpdateCurrentUserError::UsernameInvalid`]: enum.UpdateCurrentUserError.html#variant.UsernameInvalid
+    pub fn username(self, username: impl Into<String>) -> Result<Self, UpdateCurrentUserError> {
+        self._username(username.into())
+    }
 
-        self
+    fn _username(mut self, username: String) -> Result<Self, UpdateCurrentUserError> {
+        if !validate::username(&username) {
+            return Err(UpdateCurrentUserError::UsernameInvalid);
+        }
+
+        self.fields.username.replace(username);
+
+        Ok(self)
     }
 
     fn start(&mut self) -> Result<()> {

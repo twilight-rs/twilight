@@ -12,7 +12,7 @@ async fn main() -> Result<(), Box<dyn Error + Send + Sync>> {
 
     client
         .create_message(channel_id)
-        .content(format!("Hi <@{}>", user_id.0))
+        .content(format!("Hi <@{}>", user_id.0))?
         .allowed_mentions()
         .parse_specific_users(vec![user_id])
         .build()
