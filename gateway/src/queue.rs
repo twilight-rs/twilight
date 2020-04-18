@@ -73,7 +73,7 @@ impl LocalQueue {
 }
 
 async fn waiter(mut rx: UnboundedReceiver<Sender<()>>) {
-    const DUR: Duration = Duration::from_secs(5);
+    const DUR: Duration = Duration::from_secs(6);
     let mut ticker = tokio::time::interval(DUR);
     while let Some(req) = rx.next().await {
         ticker.tick().await;

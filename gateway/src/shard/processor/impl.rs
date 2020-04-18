@@ -83,8 +83,6 @@ impl ShardProcessor {
             forwarder.run().await;
         });
 
-        let shard = config.shard();
-
         let session = Arc::new(Session::new(tx));
 
         let (wtx, wrx) = watch_channel(Arc::clone(&session));
@@ -96,7 +94,7 @@ impl ShardProcessor {
                 properties,
                 rx,
                 session,
-                inflater: Inflater::new(shard),
+                inflater: Inflater::new(shard_id),
                 url,
                 resume: None,
                 wtx,
