@@ -96,9 +96,8 @@
 //!
 //!     let cluster_config = ClusterConfig::builder(&token).build();
 //!     let cluster = Cluster::new(cluster_config);
-//!     cluster.up().await?;
 //!
-//!     let mut events = cluster.events().await;
+//!     let mut events = cluster.events().await?;
 //!
 //!     while let Some(event) = events.next().await {
 //!         tokio::spawn(handle_event(event, http.clone()));

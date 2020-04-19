@@ -23,10 +23,7 @@ async fn main() -> Result<(), Box<dyn Error + Send + Sync>> {
     let cluster = Cluster::new(env::var("DISCORD_TOKEN")?);
     println!("Created cluster");
 
-    cluster.up().await?;
-    println!("Started cluster");
-
-    let mut events = cluster.events().await;
+    let mut events = cluster.events().await?;
 
     // Start exporter in a seperate task
     tokio::task::spawn_blocking(move || exporter.run());

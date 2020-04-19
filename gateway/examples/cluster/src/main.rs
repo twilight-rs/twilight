@@ -16,9 +16,7 @@ async fn main() -> Result<(), Box<dyn Error + Send + Sync>> {
 
     let cluster = Cluster::new(config);
 
-    cluster.up().await?;
-
-    let mut events = cluster.events().await;
+    let mut events = cluster.events().await?;
 
     while let Some((id, event)) = events.next().await {
         println!("Shard: {}, Event: {:?}", id, event.event_type());

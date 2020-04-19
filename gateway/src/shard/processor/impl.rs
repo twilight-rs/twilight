@@ -180,6 +180,7 @@ impl ShardProcessor {
 
                 match dispatch.deref() {
                     DispatchEvent::Ready(ready) => {
+                        println!("Ready sent [{:?}]", self.config.shard());
                         self.session.set_stage(Stage::Connected);
                         self.session.set_id(&ready.session_id).await;
                     },

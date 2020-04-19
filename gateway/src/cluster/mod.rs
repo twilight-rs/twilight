@@ -16,9 +16,7 @@
 ///     let token = env::var("DISCORD_TOKEN")?;
 ///     let cluster = Cluster::new(token);
 ///
-///     cluster.up().await?;
-///
-///     let mut events = cluster.events().await;
+///     let mut events = cluster.events().await?;
 ///
 ///     while let Some((shard_id, event)) = events.next().await {
 ///         tokio::spawn(handle_event(cluster.clone(), shard_id, event));

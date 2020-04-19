@@ -41,80 +41,6 @@ impl Cluster {
         &self.0.config
     }
 
-    /// Brings up the cluster, starting all of the shards that it was configured
-    /// to manage.
-    ///
-    /// # Examples
-    ///
-    /// Bring up a cluster, starting shards all 10 shards that a bot uses:
-    ///
-    /// ```no_run
-    /// use twilight_gateway::cluster::{
-    ///     config::{ClusterConfig, ShardScheme},
-    ///     Cluster,
-    /// };
-    /// use std::{
-    ///     convert::TryFrom,
-    ///     env,
-    /// };
-    ///
-    /// # #[tokio::main]
-    /// # async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
-    /// let scheme = ShardScheme::try_from((0..=9, 10))?;
-    /// let mut config = ClusterConfig::builder(env::var("DISCORD_TOKEN")?)
-    ///                         .shard_scheme(scheme)
-    ///                         .build();
-    ///
-    /// let cluster = Cluster::new(config);
-    ///
-    /// // Finally, bring up the cluster.
-    /// cluster.up().await?;
-    /// # Ok(()) }
-    /// ```
-    ///
-    /// # Errors
-    ///
-    /// Returns [`Error::GettingGatewayInfo`] if the [configured shard scheme]
-    /// is [`ShardScheme::Auto`].
-    ///
-    /// [`Error::GettingGatewayInfo`]: enum.Error.html#variant.GettingGatewayInfo
-    /// [`ShardScheme::Auto`]: config/enum.ShardScheme.html#variant.Auto
-    /// [configured shard scheme]: config/struct.ClusterConfig.html#method.shard_scheme
-    pub async fn up(&self) -> Result<()> {
-        let [from, to, total] =
-            match self.0.config.shard_scheme() {
-                ShardScheme::Auto => {
-                    let http = self.0.config.http_client();
-
-                    let gateway = http.gateway().authed().await.map_err(|source| {
-                        Error::GettingGatewayInfo {
-                            source,
-                        }
-                    })?;
-
-                    [0, gateway.shards - 1, gateway.shards]
-                },
-                ShardScheme::Range {
-                    from,
-                    to,
-                    total,
-                } => [from, to, total],
-            };
-        #[cfg(feature = "metrics")]
-        {
-            use std::convert::TryInto;
-            metrics::gauge!("Cluster-Shard-Count", total.try_into().unwrap_or(-1));
-        }
-        future::join_all(
-            (from..=to)
-                .map(|id| Self::start(Arc::downgrade(&self.0), id, total))
-                .collect::<Vec<_>>(),
-        )
-        .await;
-
-        Ok(())
-    }
-
     /// Brings down the cluster, stopping all of the shards that it's managing.
     pub async fn down(&self) {
         let lock = self.0.shards.lock().await;
@@ -142,7 +68,7 @@ impl Cluster {
     /// # #[tokio::main]
     /// # async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
     /// let cluster = Cluster::new(env::var("DISCORD_TOKEN")?);
-    /// cluster.up().await;
+    /// let _events = cluster.events().await?;
     ///
     /// tokio::time::delay_for(Duration::from_secs(60)).await;
     ///
@@ -188,17 +114,86 @@ impl Cluster {
         Ok(())
     }
 
-    /// Returns a stream of events from all shards managed by this Cluster.
+    /// Brings up the cluster, starting all of the shards that it was configured
+    /// to manage. Returns a stream of events. The first value in the tuple
+    /// is the id of the shard, the second is the event.
     ///
-    /// Each item in the stream contains both the shard's ID and the event
-    /// itself.
-    pub async fn events(&self) -> impl Stream<Item = (u64, Event)> {
-        let shards = self.0.shards.lock().await.clone();
-        cluster_events(shards).await
+    /// # Examples
+    ///
+    /// Bring up a cluster, starting shards all 10 shards that a bot uses:
+    ///
+    /// ```no_run
+    /// use twilight_gateway::cluster::{
+    ///     config::{ClusterConfig, ShardScheme},
+    ///     Cluster,
+    /// };
+    /// use std::{
+    ///     convert::TryFrom,
+    ///     env,
+    /// };
+    ///
+    /// # #[tokio::main]
+    /// # async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
+    /// let scheme = ShardScheme::try_from((0..=9, 10))?;
+    /// let mut config = ClusterConfig::builder(env::var("DISCORD_TOKEN")?)
+    ///                         .shard_scheme(scheme)
+    ///                         .build();
+    ///
+    /// let cluster = Cluster::new(config);
+    ///
+    /// // Finally, get the stream of events.
+    /// let events = cluster.events().await?;
+    /// # Ok(()) }
+    /// ```
+    ///
+    /// # Errors
+    ///
+    /// Returns [`Error::GettingGatewayInfo`] if the [configured shard scheme]
+    /// is [`ShardScheme::Auto`].
+    ///
+    /// [`Error::GettingGatewayInfo`]: enum.Error.html#variant.GettingGatewayInfo
+    /// [`ShardScheme::Auto`]: config/enum.ShardScheme.html#variant.Auto
+    /// [configured shard scheme]: config/struct.ClusterConfig.html#method.shard_scheme
+    pub async fn events(&self) -> Result<impl Stream<Item = (u64, Event)>> {
+        let [from, to, total] =
+            match self.0.config.shard_scheme() {
+                ShardScheme::Auto => {
+                    let http = self.0.config.http_client();
+
+                    let gateway = http.gateway().authed().await.map_err(|source| {
+                        Error::GettingGatewayInfo {
+                            source,
+                        }
+                    })?;
+
+                    [0, gateway.shards - 1, gateway.shards]
+                },
+                ShardScheme::Range {
+                    from,
+                    to,
+                    total,
+                } => [from, to, total],
+            };
+        let mut all = SelectAll::new();
+        #[cfg(feature = "metrics")]
+        {
+            use std::convert::TryInto;
+            metrics::gauge!("Cluster-Shard-Count", total.try_into().unwrap_or(-1));
+        }
+        for id in from..=to {
+            if let Some(shard) = Self::start(Arc::downgrade(&self.0), id, total).await {
+                all.push(shard.events().await.map(move |e| (id, e)));
+            } else {
+                log::warn!("Error starting shard {}", id);
+            }
+        }
+
+        Ok(all)
     }
 
     /// Like [`events`], but filters the events so that the stream consumer
-    /// receives only the selected event types.
+    /// receives only the selected event types. The first value in the tuple
+    /// is the id of the shard, the second is the event.
     ///
     /// # Examples
     ///
@@ -213,12 +208,11 @@ impl Cluster {
     /// # #[tokio::main]
     /// # async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
     /// let cluster = Cluster::from(env::var("DISCORD_TOKEN")?);
-    /// cluster.up().await;
     ///
     /// let types = EventType::MESSAGE_CREATE
     ///     | EventType::MESSAGE_DELETE
     ///     | EventType::MESSAGE_UPDATE;
-    /// let mut events = cluster.some_events(types).await;
+    /// let mut events = cluster.some_events(types).await?;
     ///
     /// while let Some((shard_id, event)) = events.next().await {
     ///     match event {
@@ -233,9 +227,41 @@ impl Cluster {
     /// ```
     ///
     /// [`events`]: #method.events
-    pub async fn some_events(&self, types: EventType) -> impl Stream<Item = (u64, Event)> {
-        let shards = self.0.shards.lock().await.clone();
-        cluster_some_events(shards, types).await
+    pub async fn some_events(&self, types: EventType) -> Result<impl Stream<Item = (u64, Event)>> {
+        let [from, to, total] =
+            match self.0.config.shard_scheme() {
+                ShardScheme::Auto => {
+                    let http = self.0.config.http_client();
+
+                    let gateway = http.gateway().authed().await.map_err(|source| {
+                        Error::GettingGatewayInfo {
+                            source,
+                        }
+                    })?;
+
+                    [0, gateway.shards - 1, gateway.shards]
+                },
+                ShardScheme::Range {
+                    from,
+                    to,
+                    total,
+                } => [from, to, total],
+            };
+        let mut all = SelectAll::new();
+        #[cfg(feature = "metrics")]
+        {
+            use std::convert::TryInto;
+            metrics::gauge!("Cluster-Shard-Count", total.try_into().unwrap_or(-1));
+        }
+        for id in from..=to {
+            if let Some(shard) = Self::start(Arc::downgrade(&self.0), id, total).await {
+                all.push(shard.some_events(types).await.map(move |e| (id, e)));
+            } else {
+                log::warn!("Error starting shard {}", id);
+            }
+        }
+
+        Ok(all)
     }
 
     /// Queues a request to start a shard by ID and starts it once the queue
@@ -276,7 +302,10 @@ async fn cluster_events(
     let mut all = SelectAll::new();
 
     for (id, shard) in shards {
-        all.push(shard.events().await.map(move |e| (id, e)));
+        all.push(shard.events().await.map(move |e| {
+            println!("[{}] {:?}", id, e.event_type());
+            (id, e)
+        }));
     }
 
     all
