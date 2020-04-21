@@ -34,5 +34,5 @@ http = ["twilight-http"]
 model = ["twilight-model"]
 builders = ["twilight-builders"]
 
-metrics = ["gataway-metrics"]
-gataway-metrics = ["gateway", "twilight-gateway/metrics"]
+metrics = ["gateway-metrics"]
+gateway-metrics = ["gateway", "twilight-gateway/metrics"]
