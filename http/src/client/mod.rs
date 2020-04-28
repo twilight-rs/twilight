@@ -4,7 +4,7 @@ use self::config::ClientConfigBuilder;
 use crate::{
     error::{Error, ResponseError, Result, UrlError},
     ratelimiting::{RatelimitHeaders, Ratelimiter},
-    request::{prelude::*, Request},
+    request::{channel::message::allowed_mentions::AllowedMentions, prelude::*, Request},
 };
 use log::{debug, warn};
 use reqwest::{
@@ -58,6 +58,7 @@ impl ClientBuilder {
                 skip_ratelimiter: config.skip_ratelimiter,
                 token: config.token,
                 use_http: config.proxy_http,
+                default_allowed_mentions: config.default_allowed_mentions,
             }),
         })
     }
@@ -83,6 +84,7 @@ struct State {
     skip_ratelimiter: bool,
     token: Option<String>,
     use_http: bool,
+    pub(crate) default_allowed_mentions: Option<AllowedMentions>,
 }
 
 impl Debug for State {
@@ -118,6 +120,7 @@ impl Client {
                 skip_ratelimiter: false,
                 token: Some(token),
                 use_http: false,
+                default_allowed_mentions: None,
             }),
         }
     }
@@ -128,6 +131,10 @@ impl Client {
 
     pub fn token(&self) -> Option<&str> {
         self.state.token.as_ref().map(AsRef::as_ref)
+    }
+
+    pub fn default_allowed_mentions(&self) -> Option<AllowedMentions> {
+        self.state.default_allowed_mentions.clone()
     }
 
     pub fn add_role(
@@ -855,6 +862,7 @@ impl From<ReqwestClient> for Client {
                 skip_ratelimiter: false,
                 token: None,
                 use_http: false,
+                default_allowed_mentions: None,
             }),
         }
     }
@@ -869,6 +877,7 @@ impl From<Arc<ReqwestClient>> for Client {
                 skip_ratelimiter: false,
                 token: None,
                 use_http: false,
+                default_allowed_mentions: None,
             }),
         }
     }

@@ -33,7 +33,10 @@ impl<'a> CreateMessage<'a> {
         Self {
             attachments: HashMap::new(),
             channel_id,
-            fields: CreateMessageFields::default(),
+            fields: CreateMessageFields {
+                allowed_mentions: http.default_allowed_mentions(),
+                ..CreateMessageFields::default()
+            },
             fut: None,
             http,
         }
@@ -54,7 +57,7 @@ impl<'a> CreateMessage<'a> {
     pub fn allowed_mentions(
         self,
     ) -> AllowedMentionsBuilder<'a, Unspecified, Unspecified, Unspecified> {
-        AllowedMentionsBuilder::new(self)
+        AllowedMentionsBuilder::for_builder(self)
     }
 
     pub fn attachment(mut self, name: impl Into<String>, file: impl Into<Body>) -> Self {
