@@ -16,4 +16,9 @@ pub struct MemberChunk {
     pub members: HashMap<UserId, Member>,
     #[cfg_attr(feature = "serde-support", serde(with = "serde_mappable_seq", default))]
     pub presences: HashMap<UserId, Presence>,
+    pub chunk_index: u32,
+    pub chunk_count: u32,
+    #[cfg_attr(feature = "serde-support", serde(default))]
+    pub not_found: Vec<UserId>,
+    pub nonce: Option<String>,
 }
