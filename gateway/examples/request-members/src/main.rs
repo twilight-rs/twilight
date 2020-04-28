@@ -25,7 +25,7 @@ async fn main() -> Result<(), Box<dyn Error + Send + Sync>> {
                     .command(&RequestGuildMembers::new_all(guildcreate.id, Some(false)))
                     .await?;
             },
-            Event::Ready(ready) => {
+            Event::Ready(_ready) => {
                 //commands can be send with the command function
 
                 //we can also request the info about a single person on a server.
