@@ -40,6 +40,12 @@ impl Display for ApplicationId {
     }
 }
 
+impl From<u64> for ApplicationId {
+    fn from(id: u64) -> Self {
+        ApplicationId(id)
+    }
+}
+
 #[cfg_attr(
     feature = "serde-support",
     derive(serde::Deserialize, serde::Serialize)
@@ -50,6 +56,12 @@ pub struct AttachmentId(#[cfg_attr(feature = "serde-support", serde(with = "stri
 impl Display for AttachmentId {
     fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
         Display::fmt(&self.0, f)
+    }
+}
+
+impl From<u64> for AttachmentId {
+    fn from(id: u64) -> Self {
+        AttachmentId(id)
     }
 }
 
@@ -66,6 +78,12 @@ impl Display for AuditLogEntryId {
     }
 }
 
+impl From<u64> for AuditLogEntryId {
+    fn from(id: u64) -> Self {
+        AuditLogEntryId(id)
+    }
+}
+
 #[cfg_attr(
     feature = "serde-support",
     derive(serde::Deserialize, serde::Serialize)
@@ -76,6 +94,12 @@ pub struct ChannelId(#[cfg_attr(feature = "serde-support", serde(with = "string"
 impl Display for ChannelId {
     fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
         Display::fmt(&self.0, f)
+    }
+}
+
+impl From<u64> for ChannelId {
+    fn from(id: u64) -> Self {
+        ChannelId(id)
     }
 }
 
@@ -92,6 +116,12 @@ impl Display for EmojiId {
     }
 }
 
+impl From<u64> for EmojiId {
+    fn from(id: u64) -> Self {
+        EmojiId(id)
+    }
+}
+
 #[cfg_attr(
     feature = "serde-support",
     derive(serde::Deserialize, serde::Serialize)
@@ -102,6 +132,12 @@ pub struct GenericId(#[cfg_attr(feature = "serde-support", serde(with = "string"
 impl Display for GenericId {
     fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
         Display::fmt(&self.0, f)
+    }
+}
+
+impl From<u64> for GenericId {
+    fn from(id: u64) -> Self {
+        GenericId(id)
     }
 }
 
@@ -118,6 +154,12 @@ impl Display for GuildId {
     }
 }
 
+impl From<u64> for GuildId {
+    fn from(id: u64) -> Self {
+        GuildId(id)
+    }
+}
+
 #[cfg_attr(
     feature = "serde-support",
     derive(serde::Deserialize, serde::Serialize)
@@ -128,6 +170,12 @@ pub struct IntegrationId(#[cfg_attr(feature = "serde-support", serde(with = "str
 impl Display for IntegrationId {
     fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
         Display::fmt(&self.0, f)
+    }
+}
+
+impl From<u64> for IntegrationId {
+    fn from(id: u64) -> Self {
+        IntegrationId(id)
     }
 }
 
@@ -144,6 +192,12 @@ impl Display for MessageId {
     }
 }
 
+impl From<u64> for MessageId {
+    fn from(id: u64) -> Self {
+        MessageId(id)
+    }
+}
+
 #[cfg_attr(
     feature = "serde-support",
     derive(serde::Deserialize, serde::Serialize)
@@ -154,6 +208,12 @@ pub struct RoleId(#[cfg_attr(feature = "serde-support", serde(with = "string"))]
 impl Display for RoleId {
     fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
         Display::fmt(&self.0, f)
+    }
+}
+
+impl From<u64> for RoleId {
+    fn from(id: u64) -> Self {
+        RoleId(id)
     }
 }
 
@@ -170,6 +230,12 @@ impl Display for UserId {
     }
 }
 
+impl From<u64> for UserId {
+    fn from(id: u64) -> Self {
+        UserId(id)
+    }
+}
+
 #[cfg_attr(
     feature = "serde-support",
     derive(serde::Deserialize, serde::Serialize)
@@ -180,6 +246,12 @@ pub struct WebhookId(#[cfg_attr(feature = "serde-support", serde(with = "string"
 impl Display for WebhookId {
     fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
         Display::fmt(&self.0, f)
+    }
+}
+
+impl From<u64> for WebhookId {
+    fn from(id: u64) -> Self {
+        WebhookId(id)
     }
 }
 
