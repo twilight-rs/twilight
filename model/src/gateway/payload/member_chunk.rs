@@ -19,6 +19,6 @@ pub struct MemberChunk {
     pub chunk_index: u32,
     pub chunk_count: u32,
     #[cfg_attr(feature = "serde-support", serde(default))]
-    pub not_found: Vec<u16>,
+    pub not_found: Vec<UserId>,
     pub nonce: Option<String>,
 }
