@@ -10,6 +10,7 @@ members = [
     "gateway/examples/intents",
     "gateway/examples/metrics",
     "gateway/examples/queue",
+    "gateway/examples/request-members",
     "gateway/examples/shard",
     "http",
     "http/examples/allowed-mentions",
