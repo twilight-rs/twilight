@@ -19,7 +19,8 @@ async fn main() -> Result<(), Box<dyn Error + Send + Sync>> {
     while let Some(event) = events.next().await {
         match event {
             Event::GuildCreate(guildcreate) => {
-                // let's request all members for caching, keep in mind this is also fired once for all guilds when we connect
+                // let's request all members for caching
+                // keep in mind this is also fired once for all guilds when we connect
                 shard
                     .command(&RequestGuildMembers::new_all(guildcreate.id, Some(false)))
                     .await?;
@@ -27,7 +28,8 @@ async fn main() -> Result<(), Box<dyn Error + Send + Sync>> {
             Event::Ready(ready) => {
                 //commands can be send with the command function
 
-                //we can also request the info about a single person on a server. and if we give it a nonce we will receive it back in the chunk
+                //we can also request the info about a single person on a server.
+                // if we give it a nonce we will receive it back in the chunk
                 shard
                     .command(&RequestGuildMembers::new_single_user_with_nonce(
                         GuildId(365498559174410241),
@@ -37,7 +39,7 @@ async fn main() -> Result<(), Box<dyn Error + Send + Sync>> {
                     ))
                     .await?;
 
-                // multiple is also possible, wrapping in UserId is needed here due to the way vec! works
+                // multiple is also possible
                 shard
                     .command(&RequestGuildMembers::new_multi_user_with_nonce(
                         GuildId(365498559174410241),
@@ -65,15 +67,23 @@ async fn main() -> Result<(), Box<dyn Error + Send + Sync>> {
                 match chunk.nonce {
                     Some(nonce) => {
                         match nonce.borrow() {
-                            // make sure to keep in mind chunks are limited to 1000 each so if request something that might contain more make sure to account for that
+                            // make sure to keep in mind chunks are limited to 1000 each
+                            // so if request something that might contain more make sure to account for that
                             "looking_by_id" => {
-                                println!("Received the info by id lookup {:?}.  missing info for {:?}", chunk.members, chunk.not_found)
+                                println!("Received the info by id lookup {:?}.  missing info for {:?}",
+                                         chunk.members,
+                                         chunk.not_found)
                             }
                             "looking_by_ids" => {
-                                println!("Received the info by multiple id lookup {:?}. missing info for {:?}", chunk.members, chunk.not_found)
+                                println!("Received the info by multiple id lookup {:?}. missing info for {:?}",
+                                         chunk.members,
+                                         chunk.not_found)
                             },
                             "hoister_list" => {
-                                println!("Received hoister list part {:?}/{:?} containing {:?} hoisters.", chunk.chunk_index+1, chunk.chunk_count, chunk.members.len())
+                                println!("Received hoister list part {:?}/{:?} containing {:?} hoisters.",
+                                         chunk.chunk_index+1,
+                                         chunk.chunk_count,
+                                         chunk.members.len())
                             }
                             _ => {
                                 // just to keep the compiler happy, empty nonces are not a thing
