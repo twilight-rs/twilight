@@ -76,16 +76,25 @@ impl VisitAllowedMentionsRoles for ExplicitRole {
 }
 
 pub struct AllowedMentionsBuilder<'a, E, U, R> {
-    create_message: CreateMessage<'a>,
+    create_message: Option<CreateMessage<'a>>,
     e: E,
     u: U,
     r: R,
 }
 
 impl<'a> AllowedMentionsBuilder<'a, Unspecified, Unspecified, Unspecified> {
-    pub(crate) fn new(create_message: CreateMessage<'a>) -> Self {
+    pub(crate) fn for_builder(create_message: CreateMessage<'a>) -> Self {
         Self {
-            create_message,
+            create_message: Some(create_message),
+            e: Unspecified,
+            u: Unspecified,
+            r: Unspecified,
+        }
+    }
+
+    pub fn new() -> Self {
+        Self {
+            create_message: None,
             e: Unspecified,
             u: Unspecified,
             r: Unspecified,
@@ -183,14 +192,28 @@ impl<
         R: VisitAllowedMentionsRoles,
     > AllowedMentionsBuilder<'a, E, U, R>
 {
-    pub fn build(mut self) -> CreateMessage<'a> {
+    pub fn build(self) -> CreateMessage<'a> {
+        match self.create_message {
+            Some(mut builder) => {
+                let mut m = AllowedMentions::default();
+                self.e.visit(&mut m);
+                self.u.visit(&mut m);
+                self.r.visit(&mut m);
+                builder.fields.allowed_mentions.replace(m);
+                builder
+            },
+            None => panic!(
+                "Tried to build to a messagebuilder but none was provided during construction"
+            ),
+        }
+    }
+
+    pub fn build_solo(self) -> AllowedMentions {
         let mut m = AllowedMentions::default();
 
         self.e.visit(&mut m);
         self.u.visit(&mut m);
         self.r.visit(&mut m);
-
-        self.create_message.fields.allowed_mentions.replace(m);
-        self.create_message
+        m
     }
 }

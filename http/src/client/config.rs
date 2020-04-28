@@ -1,5 +1,6 @@
 pub use reqwest::Proxy;
 
+use crate::request::channel::message::allowed_mentions::AllowedMentions;
 use reqwest::Client as ReqwestClient;
 use std::time::Duration;
 
@@ -11,6 +12,7 @@ pub struct ClientConfig {
     pub(crate) skip_ratelimiter: bool,
     pub(crate) timeout: Duration,
     pub(crate) token: Option<String>,
+    pub(crate) default_allowed_mentions: Option<AllowedMentions>,
 }
 
 impl ClientConfig {
@@ -45,6 +47,11 @@ impl ClientConfig {
     /// Returns an immutable reference to the token.
     pub fn token(&self) -> Option<&str> {
         self.token.as_ref().map(AsRef::as_ref)
+    }
+
+    /// The default allowed mentions setting to use on all messages send through this httpclient
+    pub fn default_allowed_mention(&self) -> Option<&AllowedMentions> {
+        self.default_allowed_mentions.as_ref()
     }
 }
 
@@ -111,8 +118,20 @@ impl ClientConfigBuilder {
 
     /// Sets the token to use for HTTP requests.
     pub fn token(&mut self, token: impl Into<String>) -> &mut Self {
-        self.0.token.replace(token.into());
+        let mut token = token.into();
 
+        // Make sure it is a bot token.
+        if !token.starts_with("Bot ") {
+            token.insert_str(0, "Bot ");
+        }
+
+        self.0.token.replace(token);
+
+        self
+    }
+
+    pub fn default_allowed_mentions(&mut self, allowed_mentions: AllowedMentions) -> &mut Self {
+        self.0.default_allowed_mentions.replace(allowed_mentions);
         self
     }
 }
@@ -126,6 +145,7 @@ impl Default for ClientConfigBuilder {
             skip_ratelimiter: false,
             timeout: Duration::from_secs(10),
             token: None,
+            default_allowed_mentions: None,
         })
     }
 }
