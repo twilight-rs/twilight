@@ -174,21 +174,27 @@ impl Cluster {
                     total,
                 } => [from, to, total],
             };
-        let mut all = SelectAll::new();
         #[cfg(feature = "metrics")]
         {
             use std::convert::TryInto;
             metrics::gauge!("Cluster-Shard-Count", total.try_into().unwrap_or(-1));
         }
+
+        let (tx, rx) = unbounded();
+        let (stx, srx) = unbounded();
+
+        tokio::spawn(shard_adder(self.0.shards.clone(), srx));
+
         for id in from..=to {
-            if let Some(shard) = Self::start(Arc::downgrade(&self.0), id, total).await {
-                all.push(shard.events().await.map(move |e| (id, e)));
-            } else {
-                log::warn!("Error starting shard {}", id);
-            }
+            let mut config = self.config().shard_config().clone();
+            config.shard = [id, total];
+            dbg!();
+            let emitter = ClusterEmitter::new(tx.clone(), stx.clone(), id, total, config);
+            emitter.start();
+            dbg!();
         }
 
-        Ok(all)
+        Ok(rx)
     }
 
     /// Like [`events`], but filters the events so that the stream consumer
@@ -322,4 +328,87 @@ async fn cluster_some_events(
     }
 
     all
+}
+
+use futures::channel::mpsc::UnboundedSender;
+use futures::channel::mpsc::UnboundedReceiver;
+use futures::channel::mpsc::unbounded;
+
+use crate::ShardConfig;
+
+async fn start_cluster_emitter(
+  cluster: Weak<ClusterRef>,
+  tx: UnboundedSender<(u64, Event)>,
+  stx: UnboundedSender<Shard>,
+  shard_id: u64,
+    shard_total: u64) -> Option<ClusterEmitter>
+{
+    let cluster = cluster.upgrade()?;
+
+    let mut config = cluster.config.shard_config().clone();
+
+    config.shard = [shard_id, shard_total];
+
+    let emitter = ClusterEmitter::new(tx, stx, shard_id, shard_total, config);
+    Some(emitter)
+}
+
+struct ClusterEmitter {
+    tx: UnboundedSender<(u64, Event)>,
+    stx: UnboundedSender<Shard>,
+    shard_id: [u64; 2],
+    config: ShardConfig,
+}
+
+impl ClusterEmitter {
+    fn new(tx: UnboundedSender<(u64, Event)>,
+           stx: UnboundedSender<Shard>,
+           shard_id: u64,
+           shard_total: u64,
+           config: ShardConfig) -> Self {
+        Self {
+            tx,
+            stx,
+            shard_id: [shard_id, shard_total],
+            config,
+        }
+    }
+
+    fn start(self) -> Result<()> {
+        tokio::spawn(async move {
+            let shard = match Shard::new(self.config).await {
+                Ok(s) => s,
+                Err(why) => {
+                    log::warn!("Shard failed to start! {}", why);
+                    return;
+                },
+            };
+            if let Err(why) = self.stx.unbounded_send(shard.clone()) {
+                log::warn!("Could not send shard to cluster! {}", why);
+            }
+            let mut tx = self.tx;
+            let mut events = shard.events().await;
+            while let Some(event) = events.next().await {
+                let event = (self.shard_id[0], event);
+                if let Err(why) = tx.unbounded_send(event) {
+                    log::warn!("Could not send event to cluster! {}", why);
+                }
+            }
+            log::warn!("ClusterEmitter closed, {:?}", self.shard_id);
+            tx.disconnect();
+        });
+        Ok(())
+    }
+}
+
+async fn shard_adder(
+    shards: Arc<Mutex<HashMap<u64, Shard>>>,
+    mut srx: UnboundedReceiver<Shard>)
+{
+    while let Some(shard) = srx.next().await {
+        let info = shard.info().await;
+        shards.lock().await.insert(info.id(), shard);
+    }
+
+    log::warn!("Shard adder closing!");
 }
