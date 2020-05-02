@@ -55,7 +55,7 @@ mod tests {
                 flags: None,
                 premium_type: None,
                 system: None,
-                public_flags: None
+                public_flags: None,
             },
         });
 
