@@ -36,6 +36,7 @@ pub struct User {
     pub flags: Option<UserFlags>,
     pub premium_type: Option<PremiumType>,
     pub system: Option<bool>,
+    pub public_flags: Option<UserFlags>,
 }
 
 #[cfg(feature = "serde-support")]
