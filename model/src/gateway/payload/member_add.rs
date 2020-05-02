@@ -55,6 +55,7 @@ mod tests {
                 flags: None,
                 premium_type: None,
                 system: None,
+                public_flags: None
             },
         });
 
@@ -94,7 +95,7 @@ mod tests {
                 Token::Str("user"),
                 Token::Struct {
                     name: "User",
-                    len: 12,
+                    len: 13,
                 },
                 Token::Str("id"),
                 Token::NewtypeStruct {
@@ -122,6 +123,8 @@ mod tests {
                 Token::Str("premium_type"),
                 Token::None,
                 Token::Str("system"),
+                Token::None,
+                Token::Str("public_flags"),
                 Token::None,
                 Token::StructEnd,
                 Token::StructEnd,
