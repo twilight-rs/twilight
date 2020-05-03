@@ -12,6 +12,9 @@ bitflags! {
         const EARLY_SUPPORTER = 1 << 9;
         const TEAM_USER = 1 << 10;
         const SYSTEM = 1 << 12;
+        const BUG_HUNTER_LEVEL_2 = 1 << 14;
+        const VERIFIED_BOT = 1 << 16;
+        const VERIFIED_BOT_DEVELOPER = 1 << 17;
     }
 }
 
