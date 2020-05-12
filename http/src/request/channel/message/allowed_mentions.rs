@@ -102,6 +102,12 @@ impl<'a> AllowedMentionsBuilder<'a, Unspecified, Unspecified, Unspecified> {
     }
 }
 
+impl<'a> Default for AllowedMentionsBuilder<'a, Unspecified, Unspecified, Unspecified> {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl<'a, U, R> AllowedMentionsBuilder<'a, Unspecified, U, R> {
     pub fn parse_everyone(self) -> AllowedMentionsBuilder<'a, Parsed, U, R> {
         AllowedMentionsBuilder {

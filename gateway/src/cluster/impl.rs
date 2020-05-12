@@ -171,6 +171,9 @@ impl Cluster {
     }
 
     /// Send a command to the specified shard.
+    ///
+    /// # Errors
+    /// Fails if command could not be serialized or if the shard does not exist.
     pub async fn command(&self, id: u64, com: &impl serde::Serialize) -> Result<()> {
         let shard = match self.0.shards.lock().await.get(&id) {
             Some(shard) => shard.clone(),
