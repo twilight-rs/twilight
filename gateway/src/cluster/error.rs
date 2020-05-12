@@ -15,6 +15,7 @@ pub type Result<T, E = Error> = StdResult<T, E>;
 
 /// Error type representing the possible reasons for errors to occur in the
 /// cluster.
+#[allow(clippy::pub_enum_variant_names)]
 #[derive(Debug)]
 pub enum Error {
     /// An error occurred while getting the gateway information with the number
@@ -69,13 +70,13 @@ impl Display for Error {
             ),
             Self::LargeThresholdInvalid {
                 source,
+            }
+            | Self::ShardError {
+                source,
             } => write!(f, "{}", source),
             Self::ShardDoesNotExist {
                 id,
             } => write!(f, "The ID: {} does not exist", id),
-            Self::ShardError {
-                source,
-            } => write!(f, "{}", source),
         }
     }
 }
@@ -88,14 +89,14 @@ impl StdError for Error {
             } => Some(source),
             Self::IdTooLarge {
                 ..
+            }
+            | Self::ShardDoesNotExist {
+                ..
             } => None,
             Self::LargeThresholdInvalid {
                 source,
-            } => Some(source),
-            Self::ShardDoesNotExist {
-                ..
-            } => None,
-            Self::ShardError {
+            }
+            | Self::ShardError {
                 source,
             } => Some(source),
         }

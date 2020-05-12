@@ -85,12 +85,15 @@ impl Heartbeats {
             .map(|x| Duration::from_millis(*x))
             .collect();
 
+        let received = *self.received.lock().await;
+        let sent = *self.sent.lock().await;
+
         Latency {
             average: self.total_time().checked_div(iterations),
             heartbeats: iterations,
             recent,
-            received: *self.received.lock().await,
-            sent: *self.sent.lock().await,
+            received,
+            sent,
         }
     }
 
