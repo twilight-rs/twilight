@@ -70,7 +70,8 @@ impl Display for Error {
             ),
             Self::LargeThresholdInvalid {
                 source,
-            } | Self::ShardError {
+            }
+            | Self::ShardError {
                 source,
             } => write!(f, "{}", source),
             Self::ShardDoesNotExist {
@@ -88,12 +89,14 @@ impl StdError for Error {
             } => Some(source),
             Self::IdTooLarge {
                 ..
-            } | Self::ShardDoesNotExist {
+            }
+            | Self::ShardDoesNotExist {
                 ..
             } => None,
             Self::LargeThresholdInvalid {
                 source,
-            } | Self::ShardError {
+            }
+            | Self::ShardError {
                 source,
             } => Some(source),
         }

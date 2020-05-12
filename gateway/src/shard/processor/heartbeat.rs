@@ -87,7 +87,7 @@ impl Heartbeats {
 
         let received = *self.received.lock().await;
         let sent = *self.sent.lock().await;
-        
+
         Latency {
             average: self.total_time().checked_div(iterations),
             heartbeats: iterations,
