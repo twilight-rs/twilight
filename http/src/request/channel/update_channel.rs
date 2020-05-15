@@ -4,9 +4,12 @@ use twilight_model::{
     id::ChannelId,
 };
 
+// The Discord API doesn't require the `name` and `kind` fields to be present,
+// but it does require them to be non-null.
 #[derive(Default, Serialize)]
 struct UpdateChannelFields {
     bitrate: Option<u64>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     name: Option<String>,
     nsfw: Option<bool>,
     parent_id: Option<ChannelId>,
@@ -16,6 +19,7 @@ struct UpdateChannelFields {
     topic: Option<String>,
     user_limit: Option<u64>,
     #[serde(rename = "type")]
+    #[serde(skip_serializing_if = "Option::is_none")]
     kind: Option<ChannelType>,
 }
 
