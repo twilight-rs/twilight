@@ -697,13 +697,39 @@ impl InMemoryCache {
         HashSet::from_iter(ids)
     }
 
-    pub async fn cache_voice_state(&self, vs: VoiceState) -> Arc<CachedVoiceState> {
-        let k = (vs.channel_id.unwrap(), vs.user_id);
+    async fn cache_voice_state(&self, vs: VoiceState) -> Option<Arc<CachedVoiceState>> {
+        // If a user leaves a voice channel, then the `VoiceState` object received contains no
+        // channel id.
+        let k = if let Some(channel_id) = vs.channel_id {
+            (channel_id, vs.user_id)
+        } else {
+            // To avoid the dead voice states from going stale and clogging up the cache,
+            // we do an iteration over the keys and find the one with the matching session ID,
+            // grab the full key, and remove the old key from the cache.
+            let mut lock = self.0.voice_states
+                .lock()
+                .await;
+            
+            let stale_k_search = lock.keys()
+                .find(|k| k.1 == vs.user_id)
+                .and_then(|k| Some(k.clone()));
+
+            if let Some(stale_k) = stale_k_search {
+                lock.remove(&stale_k);
+            } else {
+                // If a voice channel leave state arrives just as a bot starts up,
+                // then it won't have anything about that session at all to remove.
+                return None;
+            }
+
+            return None;
+        };
 
         match self.0.voice_states.lock().await.get(&k) {
-            Some(v) if **v == vs => return Arc::clone(v),
-            Some(_) | None => {}
+            Some(v) if **v == vs => return Some(Arc::clone(v)),
+            Some(_) | None => {},
         }
+
         let state = Arc::new(CachedVoiceState {
             channel_id: vs.channel_id,
             deaf: vs.deaf,
@@ -717,13 +743,14 @@ impl InMemoryCache {
             token: vs.token,
             user_id: vs.user_id,
         });
+
         self.0
             .voice_states
             .lock()
             .await
             .insert(k, Arc::clone(&state));
 
-        state
+        Some(state)
     }
 
     pub async fn delete_group(&self, channel_id: ChannelId) -> Option<Arc<Group>> {
