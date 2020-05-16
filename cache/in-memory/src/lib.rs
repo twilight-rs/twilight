@@ -706,11 +706,10 @@ impl InMemoryCache {
             // To avoid the dead voice states from going stale and clogging up the cache,
             // we do an iteration over the keys and find the one with the matching session ID,
             // grab the full key, and remove the old key from the cache.
-            let mut lock = self.0.voice_states
-                .lock()
-                .await;
+            let mut lock = self.0.voice_states.lock().await;
             
-            let stale_k_search = lock.keys()
+            let stale_k_search = lock
+                .keys()
                 .find(|k| k.1 == vs.user_id)
                 .and_then(|k| Some(k.clone()));
 
