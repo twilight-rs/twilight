@@ -112,14 +112,14 @@ struct InMemoryCacheRef {
     guild_members: Mutex<HashMap<GuildId, HashSet<UserId>>>,
     guild_presences: Mutex<HashMap<GuildId, HashSet<UserId>>>,
     guild_roles: Mutex<HashMap<GuildId, HashSet<RoleId>>>,
-    guild_voice_states: Mutex<HashMap<GuildId, HashSet<(ChannelId, UserId)>>>,
+    guild_voice_states: Mutex<HashMap<GuildId, HashSet<UserId>>>,
     members: LockedArcMap<(GuildId, UserId), CachedMember>,
     messages: Mutex<HashMap<ChannelId, BTreeMap<MessageId, Arc<CachedMessage>>>>,
     presences: LockedArcMap<(Option<GuildId>, UserId), CachedPresence>,
     roles: Mutex<HashMap<RoleId, GuildItem<Role>>>,
     unavailable_guilds: Mutex<HashSet<GuildId>>,
     users: LockedArcMap<UserId, User>,
-    voice_states: LockedArcMap<(ChannelId, UserId), CachedVoiceState>,
+    voice_states: LockedArcMap<UserId, CachedVoiceState>,
 }
 
 /// A thread-safe, in-memory-process cache of Discord data. It can be cloned and
@@ -337,12 +337,11 @@ impl InMemoryCache {
         Ok(self.0.users.lock().await.get(&user_id).cloned())
     }
 
-    /// Gets a voice state by channel ID and user ID.
+    /// Gets a voice state by user ID.
     ///
     /// This is an O(1) operation.
     pub async fn voice_state(
         &self,
-        channel_id: ChannelId,
         user_id: UserId,
     ) -> Result<Option<Arc<CachedVoiceState>>> {
         Ok(self
@@ -350,7 +349,7 @@ impl InMemoryCache {
             .voice_states
             .lock()
             .await
-            .get(&(channel_id, user_id))
+            .get(&user_id)
             .cloned())
     }
 
@@ -698,31 +697,20 @@ impl InMemoryCache {
     }
 
     async fn cache_voice_state(&self, vs: VoiceState) -> Option<Arc<CachedVoiceState>> {
+        let k = vs.user_id;
+
         // If a user leaves a voice channel, then the `VoiceState` object received contains no
         // channel id.
-        let k = if let Some(channel_id) = vs.channel_id {
-            (channel_id, vs.user_id)
-        } else {
+        if vs.channel_id.is_none() {
             // To avoid the dead voice states from going stale and clogging up the cache,
             // we do an iteration over the keys and find the one with the matching session ID,
             // grab the full key, and remove the old key from the cache.
             let mut lock = self.0.voice_states.lock().await;
             
-            let stale_k_search = lock
-                .keys()
-                .find(|k| k.1 == vs.user_id)
-                .and_then(|k| Some(k.clone()));
-
-            if let Some(stale_k) = stale_k_search {
-                lock.remove(&stale_k);
-            } else {
-                // If a voice channel leave state arrives just as a bot starts up,
-                // then it won't have anything about that session at all to remove.
-                return None;
-            }
+            lock.remove(&k);
 
             return None;
-        };
+        }
 
         match self.0.voice_states.lock().await.get(&k) {
             Some(v) if **v == vs => return Some(Arc::clone(v)),
