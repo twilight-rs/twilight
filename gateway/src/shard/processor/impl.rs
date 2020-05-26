@@ -178,7 +178,6 @@ impl ShardProcessor {
                 counter!("GatewayEvent", 1, "GatewayEvent" => "Dispatch");
                 self.session.set_seq(*seq);
 
-                #[allow(clippy::explicit_deref_methods)]
                 match dispatch.deref() {
                     DispatchEvent::Ready(ready) => {
                         self.session.set_stage(Stage::Connected);
