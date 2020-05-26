@@ -117,7 +117,7 @@
 //!         }
 //!         (_, Event::MessageCreate(msg)) => {
 //!             if msg.content == "!ping" {
-//!                 http.create_message(msg.channel_id).content("Pong!").await?;
+//!                 http.create_message(msg.channel_id).content("Pong!")?.await?;
 //!             }
 //!         }
 //!         _ => {}
