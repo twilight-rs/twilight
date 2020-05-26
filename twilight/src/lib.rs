@@ -132,7 +132,7 @@
 //! All first-party crates are licensed under [ISC][LICENSE.md]
 //!
 //! [LICENSE.md]: https://github.com/twilight-rs/twilight/blob/master/LICENSE.md
-//! [docs:discord:sharding]: https://discordapp.com/developers/docs/topics/gateway#sharding
+//! [docs:discord:sharding]: https://discord.com/developers/docs/topics/gateway#sharding
 //! [license badge]: https://img.shields.io/badge/license-ISC-blue.svg?style=flat-square
 //! [license link]: https://opensource.org/licenses/ISC
 //! [logo]: https://raw.githubusercontent.com/twilight-rs/twilight/master/logo.png

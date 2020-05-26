@@ -15,7 +15,7 @@ The main `twilight` crate is a "skeleton crate": it includes all of the
 non-vendor-specific crates in the `twilight` ecosystem.
 
 ## Installation
- 
+
 Most of Twilight requires at least 1.40+ (rust stable).
 
 Add this to your `Cargo.toml`'s `[dependencies]` section:
@@ -171,7 +171,7 @@ async fn handle_event(
 All first-party crates are licensed under [ISC][LICENSE.md]
 
 [LICENSE.md]: https://github.com/twilight-rs/twilight/blob/master/LICENSE.md
-[docs:discord:sharding]: https://discordapp.com/developers/docs/topics/gateway#sharding
+[docs:discord:sharding]: https://discord.com/developers/docs/topics/gateway#sharding
 [license badge]: https://img.shields.io/badge/license-ISC-blue.svg?style=flat-square
 [license link]: https://opensource.org/licenses/ISC
 [logo]: https://raw.githubusercontent.com/twilight-rs/twilight/master/logo.png
