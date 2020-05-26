@@ -4,7 +4,11 @@ on:
   schedule:
   - cron: "0 0 * * *"
   push:
+    paths:
+      - '**/Cargo.toml'
   pull_request:
+    paths:
+      - '**/Cargo.toml'
 
 jobs:
   audit:
