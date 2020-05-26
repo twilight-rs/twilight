@@ -723,7 +723,7 @@ impl Client {
         } = request;
 
         let protocol = if self.state.use_http { "http" } else { "https" };
-        let url = format!("{}://discordapp.com/api/v6/{}", protocol, path);
+        let url = format!("{}://discord.com/api/v6/{}", protocol, path);
 
         debug!("URL: {:?}", url);
 
@@ -911,11 +911,11 @@ mod tests {
     #[test]
     fn parse_webhook_id() -> Result<(), Box<dyn Error>> {
         assert_eq!(
-            parse_webhook_url("https://discordapp.com/api/webhooks/123")?,
+            parse_webhook_url("https://discord.com/api/webhooks/123")?,
             (WebhookId(123), None)
         );
-        assert!(parse_webhook_url("https://discordapp.com/foo/bar/456").is_err());
-        assert!(parse_webhook_url("https://discordapp.com/api/webhooks/").is_err());
+        assert!(parse_webhook_url("https://discord.com/foo/bar/456").is_err());
+        assert!(parse_webhook_url("https://discord.com/api/webhooks/").is_err());
 
         Ok(())
     }
@@ -923,12 +923,12 @@ mod tests {
     #[test]
     fn parse_webhook_token() -> Result<(), Box<dyn Error>> {
         assert_eq!(
-            parse_webhook_url("https://discordapp.com/api/webhooks/456/token")?,
+            parse_webhook_url("https://discord.com/api/webhooks/456/token")?,
             (WebhookId(456), Some("token".into()))
         );
 
         assert_eq!(
-            parse_webhook_url("https://discordapp.com/api/webhooks/456/token/slack")?,
+            parse_webhook_url("https://discord.com/api/webhooks/456/token/slack")?,
             (WebhookId(456), Some("token".into()))
         );
 
