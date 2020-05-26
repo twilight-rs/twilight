@@ -1,9 +1,29 @@
 use super::GetChannelMessagesConfigured;
 use crate::request::prelude::*;
+use std::{
+    error::Error,
+    fmt::{Display, Formatter, Result as FmtResult},
+};
 use twilight_model::{
     channel::Message,
     id::{ChannelId, MessageId},
 };
+
+#[derive(Clone, Debug)]
+pub enum GetChannelMessagesError {
+    /// The maximum number of messages to retrieve is either 0 or more than 100.
+    LimitInvalid,
+}
+
+impl Display for GetChannelMessagesError {
+    fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
+        match self {
+            Self::LimitInvalid => f.write_str("the limit is invalid"),
+        }
+    }
+}
+
+impl Error for GetChannelMessagesError {}
 
 #[derive(Default)]
 struct GetChannelMessagesFields {
@@ -60,10 +80,24 @@ impl<'a> GetChannelMessages<'a> {
         )
     }
 
-    pub fn limit(mut self, limit: u64) -> Self {
+    /// Set the maximum number of messages to retrieve.
+    ///
+    /// The minimum is 1 and the maximum is 100.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`GetChannelMessages::LimitInvalid`] if the
+    /// amount is greater than 21600.
+    ///
+    /// [`GetChannelMessages::LimitInvalid`]: enum.GetChannelMessages.html#variant.LimitInvalid
+    pub fn limit(mut self, limit: u64) -> Result<Self, GetChannelMessagesError> {
+        if !validate::get_channel_messages_limit(limit) {
+            return Err(GetChannelMessagesError::LimitInvalid);
+        }
+
         self.fields.limit.replace(limit);
 
-        self
+        Ok(self)
     }
 
     fn start(&mut self) -> Result<()> {

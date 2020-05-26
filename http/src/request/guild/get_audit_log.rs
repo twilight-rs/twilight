@@ -1,8 +1,28 @@
 use crate::request::prelude::*;
+use std::{
+    error::Error,
+    fmt::{Display, Formatter, Result as FmtResult},
+};
 use twilight_model::{
     guild::audit_log::{AuditLog, AuditLogEvent},
     id::{GuildId, UserId},
 };
+
+#[derive(Clone, Debug)]
+pub enum GetAuditLogError {
+    /// The limit is either 0 or more than 100.
+    LimitInvalid,
+}
+
+impl Display for GetAuditLogError {
+    fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
+        match self {
+            Self::LimitInvalid => f.write_str("the limit is invalid"),
+        }
+    }
+}
+
+impl Error for GetAuditLogError {}
 
 #[derive(Default)]
 struct GetAuditLogFields {
@@ -41,10 +61,24 @@ impl<'a> GetAuditLog<'a> {
         self
     }
 
-    pub fn limit(mut self, limit: u64) -> Self {
+    /// Set the maximum number of audit logs to retrieve.
+    ///
+    /// The minimum is 1 and the maximum is 100.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`GetAuditLogError::LimitInvalid`] if the `limit` is 0 or
+    /// greater than 100.
+    ///
+    /// [`GetAuditLogError::LimitInvalid`]: enum.GetAuditLogError.html#variant.LimitInvalid
+    pub fn limit(mut self, limit: u64) -> Result<Self, GetAuditLogError> {
+        if !validate::get_audit_log_limit(limit) {
+            return Err(GetAuditLogError::LimitInvalid);
+        }
+
         self.fields.limit.replace(limit);
 
-        self
+        Ok(self)
     }
 
     pub fn user_id(mut self, user_id: UserId) -> Self {

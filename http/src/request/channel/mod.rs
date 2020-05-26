@@ -1,6 +1,7 @@
 pub mod invite;
 pub mod message;
 pub mod reaction;
+pub mod update_channel;
 pub mod webhook;
 
 mod create_pin;
@@ -10,7 +11,6 @@ mod delete_channel_permission;
 mod delete_pin;
 mod get_channel;
 mod get_pins;
-mod update_channel;
 mod update_channel_permission;
 mod update_channel_permission_configured;
 

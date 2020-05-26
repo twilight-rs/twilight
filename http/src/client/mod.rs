@@ -4,7 +4,12 @@ use self::config::ClientConfigBuilder;
 use crate::{
     error::{Error, ResponseError, Result, UrlError},
     ratelimiting::{RatelimitHeaders, Ratelimiter},
-    request::{channel::message::allowed_mentions::AllowedMentions, prelude::*, Request},
+    request::{
+        channel::message::allowed_mentions::AllowedMentions,
+        guild::{create_guild::CreateGuildError, create_guild_channel::CreateGuildChannelError},
+        prelude::*,
+        Request,
+    },
 };
 use log::{debug, warn};
 use reqwest::{
@@ -20,6 +25,7 @@ use std::{
     convert::TryFrom,
     fmt::{Debug, Formatter, Result as FmtResult},
     ops::{Deref, DerefMut},
+    result::Result as StdResult,
     sync::Arc,
 };
 use twilight_model::{
@@ -177,7 +183,7 @@ impl Client {
     /// let guild_id = GuildId(377840580245585931);
     /// let user_id = UserId(114941315417899012);
     /// client.create_ban(guild_id, user_id)
-    ///     .delete_message_days(1)
+    ///     .delete_message_days(1)?
     ///     .reason("memes")
     ///     .await?;
     ///
@@ -265,7 +271,7 @@ impl Client {
     /// let guilds = client.current_user_guilds()
     ///     .after(after)
     ///     .before(before)
-    ///     .limit(25)
+    ///     .limit(25)?
     ///     .await?;
     ///
     /// println!("{:?}", guilds);
@@ -359,7 +365,21 @@ impl Client {
         GetGuild::new(self, guild_id)
     }
 
-    pub fn create_guild(&self, name: impl Into<String>) -> CreateGuild<'_> {
+    /// Create a new request to create a guild.
+    ///
+    /// The minimum length of the name is 2 UTF-16 characters and the maximum is
+    /// 100 UTF-16 characters.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`CreateGuildError::NameInvalid`] if the name length is too
+    /// short or too long.
+    ///
+    /// [`CreateGuildError::NameInvalid`]: ../request/guild/enum.CreateGuildError.html#variant.NameInvalid
+    pub fn create_guild(
+        &self,
+        name: impl Into<String>,
+    ) -> StdResult<CreateGuild<'_>, CreateGuildError> {
         CreateGuild::new(self, name)
     }
 
@@ -379,11 +399,22 @@ impl Client {
         GetGuildChannels::new(self, guild_id)
     }
 
+    /// Create a new request to create a guild channel.
+    ///
+    /// The minimum length of the name is 2 UTF-16 characters and the maximum is
+    /// 100 UTF-16 characters.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`CreateGuildChannelError::NameInvalid`] if the name length is too
+    /// short or too long.
+    ///
+    /// [`CreateGuildChannelError::NameInvalid`]: ../request/guild/enum.CreateGuildChannelError.html#variant.NameInvalid
     pub fn create_guild_channel(
         &self,
         guild_id: GuildId,
         name: impl Into<String>,
-    ) -> CreateGuildChannel<'_> {
+    ) -> StdResult<CreateGuildChannel<'_>, CreateGuildChannelError> {
         CreateGuildChannel::new(self, guild_id, name)
     }
 

@@ -1,8 +1,40 @@
 use crate::request::prelude::*;
+use std::{
+    error::Error,
+    fmt::{Display, Formatter, Result as FmtResult},
+};
 use twilight_model::{
     channel::{embed::Embed, Message},
     id::{ChannelId, MessageId},
 };
+
+#[derive(Clone, Debug)]
+pub enum UpdateMessageError {
+    ContentInvalid,
+    EmbedTooLarge { source: EmbedValidationError },
+}
+
+impl Display for UpdateMessageError {
+    fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
+        match self {
+            Self::ContentInvalid => f.write_str("the message content is invalid"),
+            Self::EmbedTooLarge {
+                ..
+            } => f.write_str("the embed's contents are too long"),
+        }
+    }
+}
+
+impl Error for UpdateMessageError {
+    fn source(&self) -> Option<&(dyn Error + 'static)> {
+        match self {
+            Self::ContentInvalid => None,
+            Self::EmbedTooLarge {
+                source,
+            } => Some(source),
+        }
+    }
+}
 
 #[derive(Default, Serialize)]
 struct UpdateMessageFields {
@@ -39,7 +71,7 @@ struct UpdateMessageFields {
 /// # async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
 /// let client = Client::new("my token");
 /// client.update_message(ChannelId(1), MessageId(2))
-///     .content("test update".to_owned())
+///     .content("test update".to_owned())?
 ///     .await?;
 /// # Ok(()) }
 /// ```
@@ -54,7 +86,7 @@ struct UpdateMessageFields {
 /// # async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
 /// let client = Client::new("my token");
 /// client.update_message(ChannelId(1), MessageId(2))
-///     .content(None)
+///     .content(None)?
 ///     .await?;
 /// # Ok(()) }
 /// ```
@@ -82,19 +114,48 @@ impl<'a> UpdateMessage<'a> {
     /// Set the content of the message.
     ///
     /// Pass `None` if you want to remove the message content.
-    pub fn content(mut self, content: impl Into<Option<String>>) -> Self {
-        self.fields.content.replace(content.into());
+    ///
+    /// The maximum length is 2000 UTF-16 characters.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`UpdateMessageError::ContentInvalid`] if the content length is
+    /// too long.
+    ///
+    /// [`UpdateMessageError::ContentInvalid`]: enum.UpdateMessageError.html#variant.ContentInvalid
+    pub fn content(self, content: impl Into<Option<String>>) -> Result<Self, UpdateMessageError> {
+        self._content(content.into())
+    }
 
-        self
+    fn _content(mut self, content: Option<String>) -> Result<Self, UpdateMessageError> {
+        if let Some(content) = content.as_ref() {
+            if !validate::content_limit(content) {
+                return Err(UpdateMessageError::ContentInvalid);
+            }
+        }
+
+        self.fields.content.replace(content);
+
+        Ok(self)
     }
 
     /// Set the embed of the message.
     ///
     /// Pass `None` if you want to remove the message embed.
-    pub fn embed(mut self, embed: impl Into<Option<Embed>>) -> Self {
-        self.fields.embed.replace(embed.into());
+    pub fn embed(self, embed: impl Into<Option<Embed>>) -> Result<Self, UpdateMessageError> {
+        self._embed(embed.into())
+    }
 
-        self
+    fn _embed(mut self, embed: Option<Embed>) -> Result<Self, UpdateMessageError> {
+        if let Some(embed) = embed.as_ref() {
+            validate::embed(&embed).map_err(|source| UpdateMessageError::EmbedTooLarge {
+                source,
+            })?;
+        }
+
+        self.fields.embed.replace(embed);
+
+        Ok(self)
     }
 
     fn start(&mut self) -> Result<()> {

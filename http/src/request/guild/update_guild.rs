@@ -1,4 +1,8 @@
 use crate::request::prelude::*;
+use std::{
+    error::Error,
+    fmt::{Display, Formatter, Result as FmtResult},
+};
 use twilight_model::{
     guild::{
         DefaultMessageNotificationLevel,
@@ -8,6 +12,23 @@ use twilight_model::{
     },
     id::{ChannelId, GuildId, UserId},
 };
+
+#[derive(Clone, Debug)]
+pub enum UpdateGuildError {
+    /// The name length is either fewer than 2 UTF-16 characters or more than
+    /// 100 UTF-16 characters.
+    NameInvalid,
+}
+
+impl Display for UpdateGuildError {
+    fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
+        match self {
+            Self::NameInvalid => f.write_str("the name's length is invalid"),
+        }
+    }
+}
+
+impl Error for UpdateGuildError {}
 
 #[derive(Default, Serialize)]
 struct UpdateGuildFields {
@@ -86,10 +107,29 @@ impl<'a> UpdateGuild<'a> {
         self
     }
 
-    pub fn name(mut self, name: impl Into<String>) -> Self {
-        self.fields.name.replace(name.into());
+    /// Set the name of the guild.
+    ///
+    /// The minimum length is 2 UTF-16 characters and the maximum is 100 UTF-16
+    /// characters.
+    ///
+    /// # Erroors
+    ///
+    /// Returns [`UpdateGuildError::NameInvalid`] if the name length is too
+    /// short or too long.
+    ///
+    /// [`UpdateGuildError::NameInvalid`]: enum.UpdateGuildError.html#variant.NameInvalid
+    pub fn name(self, name: impl Into<String>) -> Result<Self, UpdateGuildError> {
+        self._name(name.into())
+    }
 
-        self
+    fn _name(mut self, name: String) -> Result<Self, UpdateGuildError> {
+        if !validate::guild_name(&name) {
+            return Err(UpdateGuildError::NameInvalid);
+        }
+
+        self.fields.name.replace(name);
+
+        Ok(self)
     }
 
     pub fn owner_id(mut self, owner_id: impl Into<UserId>) -> Self {

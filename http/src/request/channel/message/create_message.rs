@@ -4,11 +4,43 @@ use reqwest::{
     multipart::{Form, Part},
     Body,
 };
-use std::collections::HashMap;
+use std::{
+    collections::HashMap,
+    error::Error,
+    fmt::{Display, Formatter, Result as FmtResult},
+};
 use twilight_model::{
     channel::{embed::Embed, Message},
     id::ChannelId,
 };
+
+#[derive(Clone, Debug)]
+pub enum CreateMessageError {
+    ContentInvalid,
+    EmbedTooLarge { source: EmbedValidationError },
+}
+
+impl Display for CreateMessageError {
+    fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
+        match self {
+            Self::ContentInvalid => f.write_str("the message content is invalid"),
+            Self::EmbedTooLarge {
+                ..
+            } => f.write_str("the embed's contents are too long"),
+        }
+    }
+}
+
+impl Error for CreateMessageError {
+    fn source(&self) -> Option<&(dyn Error + 'static)> {
+        match self {
+            Self::ContentInvalid => None,
+            Self::EmbedTooLarge {
+                source,
+            } => Some(source),
+        }
+    }
+}
 
 #[derive(Default, Serialize)]
 pub(crate) struct CreateMessageFields {
@@ -42,16 +74,38 @@ impl<'a> CreateMessage<'a> {
         }
     }
 
-    pub fn content(mut self, content: impl Into<String>) -> Self {
-        self.fields.content.replace(content.into());
-
-        self
+    /// Set the content of the message.
+    ///
+    /// The maximum length is 2000 UTF-16 characters.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`CreateMessageError::ContentInvalid`] if the content length is
+    /// too long.
+    ///
+    /// [`CreateMessageError::ContentInvalid`]: enum.CreateMessageError.html#variant.ContentInvalid
+    pub fn content(self, content: impl Into<String>) -> Result<Self, CreateMessageError> {
+        self._content(content.into())
     }
 
-    pub fn embed(mut self, embed: Embed) -> Self {
+    fn _content(mut self, content: String) -> Result<Self, CreateMessageError> {
+        if !validate::content_limit(&content) {
+            return Err(CreateMessageError::ContentInvalid);
+        }
+
+        self.fields.content.replace(content);
+
+        Ok(self)
+    }
+
+    pub fn embed(mut self, embed: Embed) -> Result<Self, CreateMessageError> {
+        validate::embed(&embed).map_err(|source| CreateMessageError::EmbedTooLarge {
+            source,
+        })?;
+
         self.fields.embed.replace(embed);
 
-        self
+        Ok(self)
     }
 
     pub fn allowed_mentions(

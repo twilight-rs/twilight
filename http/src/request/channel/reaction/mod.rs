@@ -1,8 +1,9 @@
+pub mod get_reactions;
+
 mod create_reaction;
 mod delete_all_reaction;
 mod delete_all_reactions;
 mod delete_reaction;
-mod get_reactions;
 
 pub use self::{
     create_reaction::CreateReaction,
