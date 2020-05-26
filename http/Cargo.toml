@@ -25,7 +25,7 @@ url = "2"
 
 [features]
 default = ["native"]
-native = ["reqwest/native-tls"]
+native = ["reqwest/default-tls"]
 rustls = ["reqwest/rustls-tls"]
 
 [dev-dependencies]
