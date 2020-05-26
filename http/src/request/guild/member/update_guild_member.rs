@@ -1,8 +1,29 @@
 use crate::request::prelude::*;
+use std::{
+    error::Error,
+    fmt::{Display, Formatter, Result as FmtResult},
+};
 use twilight_model::{
     guild::Member,
     id::{ChannelId, GuildId, RoleId, UserId},
 };
+
+#[derive(Clone, Debug)]
+pub enum UpdateGuildMemberError {
+    /// The nickname is either empty or the length is more than 32 UTF-16
+    /// characters.
+    NicknameInvalid,
+}
+
+impl Display for UpdateGuildMemberError {
+    fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
+        match self {
+            Self::NicknameInvalid => f.write_str("the nickname length is invalid"),
+        }
+    }
+}
+
+impl Error for UpdateGuildMemberError {}
 
 #[derive(Default, Serialize)]
 struct UpdateGuildMemberFields {
@@ -52,10 +73,29 @@ impl<'a> UpdateGuildMember<'a> {
         self
     }
 
-    pub fn nick(mut self, nick: impl Into<String>) -> Self {
+    /// Set the nickname.
+    ///
+    /// The minimum length is 1 UTF-16 character and the maximum is 32 UTF-16
+    /// characters.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`UpdateGuildMemberError::NicknameInvalid`] if the nickname
+    /// length is too short or too long.
+    ///
+    /// [`UpdateGuildMemberError::NicknameInvalid`]: enum.UpdateGuildMemberError.html#variant.NicknameInvalid
+    pub fn nick(self, nick: impl Into<String>) -> Result<Self, UpdateGuildMemberError> {
+        self._nick(nick.into())
+    }
+
+    fn _nick(mut self, nick: String) -> Result<Self, UpdateGuildMemberError> {
+        if !validate::nickname(&nick) {
+            return Err(UpdateGuildMemberError::NicknameInvalid);
+        }
+
         self.fields.nick.replace(nick.into());
 
-        self
+        Ok(self)
     }
 
     pub fn roles(mut self, roles: Vec<RoleId>) -> Self {

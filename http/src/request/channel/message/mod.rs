@@ -1,11 +1,12 @@
 pub mod allowed_mentions;
-mod create_message;
+pub mod create_message;
+pub mod get_channel_messages;
+pub mod get_channel_messages_configured;
+pub mod update_message;
+
 mod delete_message;
 mod delete_messages;
-mod get_channel_messages;
-mod get_channel_messages_configured;
 mod get_message;
-mod update_message;
 
 pub use self::{
     create_message::CreateMessage,

@@ -48,7 +48,7 @@ impl Display for RatelimitError {
                 name,
                 value,
                 ..
-            } => write!(f, "The header {:?} has invalid UTF-8: {:?}", name, value),
+            } => write!(f, "The header {:?} has invalid UTF-16: {:?}", name, value),
             Self::ParsingBoolText {
                 name,
                 text,

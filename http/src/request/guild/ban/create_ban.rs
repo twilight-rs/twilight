@@ -1,5 +1,27 @@
 use crate::request::prelude::*;
+use std::{
+    error::Error,
+    fmt::{Display, Formatter, Result as FmtResult},
+};
 use twilight_model::id::{GuildId, UserId};
+
+#[derive(Clone, Debug)]
+pub enum CreateBanError {
+    /// The number of days' worth of messages to delete is greater than 7.
+    DeleteMessageDaysInvalid,
+}
+
+impl Display for CreateBanError {
+    fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
+        match self {
+            Self::DeleteMessageDaysInvalid => {
+                f.write_str("the number of days' worth of messages to delete is invalid")
+            },
+        }
+    }
+}
+
+impl Error for CreateBanError {}
 
 #[derive(Default)]
 struct CreateBanFields {
@@ -26,10 +48,24 @@ impl<'a> CreateBan<'a> {
         }
     }
 
-    pub fn delete_message_days(mut self, days: u64) -> Self {
+    /// Set the number of days' worth of messages to delete.
+    ///
+    /// The number of days must be less than or equal to 7.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`CreateBanError::DeleteMessageDaysInvalid`] if the number of days
+    /// is greater than 7.
+    ///
+    /// [`CreateBanError::DeleteMessageDaysInvalid`]: enum.CreateBanError.html#variant.DeleteMessageDaysInvalid
+    pub fn delete_message_days(mut self, days: u64) -> Result<Self, CreateBanError> {
+        if !validate::ban_delete_message_days(days) {
+            return Err(CreateBanError::DeleteMessageDaysInvalid);
+        }
+
         self.fields.delete_message_days.replace(days);
 
-        self
+        Ok(self)
     }
 
     pub fn reason(mut self, reason: impl Into<String>) -> Self {

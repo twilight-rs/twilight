@@ -14,6 +14,7 @@ async fn main() -> Result<(), Box<dyn Error + Send + Sync>> {
         client
             .create_message(channel_id)
             .content(format!("Ping #{}", x))
+            .expect("content not a valid length")
     }))
     .await;
 

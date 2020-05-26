@@ -1,8 +1,28 @@
 use crate::request::prelude::*;
+use std::{
+    error::Error,
+    fmt::{Display, Formatter, Result as FmtResult},
+};
 use twilight_model::{
     guild::Member,
     id::{GuildId, UserId},
 };
+
+#[derive(Clone, Debug)]
+pub enum GetGuildMembersError {
+    /// The limit is either 0 or more than 1000.
+    LimitInvalid,
+}
+
+impl Display for GetGuildMembersError {
+    fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
+        match self {
+            Self::LimitInvalid => f.write_str("the limit is invalid"),
+        }
+    }
+}
+
+impl Error for GetGuildMembersError {}
 
 #[derive(Default)]
 struct GetGuildMembersFields {
@@ -60,11 +80,22 @@ impl<'a> GetGuildMembers<'a> {
 
     /// Sets the number of members to retrieve per request.
     ///
-    /// The maximum value accepted by the API is 1000.
-    pub fn limit(mut self, limit: u64) -> Self {
+    /// The limit must be greater than 0 and less than 1000.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`GetGuildMembersError::LimitInvalid`] if the limit is 0 or
+    /// greater than 1000.
+    ///
+    /// [`GetGuildMembersError::LimitInvalid`]: enum.GetGuildMembersError.html#variant.LimitInvalid
+    pub fn limit(mut self, limit: u64) -> Result<Self, GetGuildMembersError> {
+        if !validate::get_guild_members_limit(limit) {
+            return Err(GetGuildMembersError::LimitInvalid);
+        }
+
         self.fields.limit.replace(limit);
 
-        self
+        Ok(self)
     }
 
     /// Sets whether to retrieve matched member presences

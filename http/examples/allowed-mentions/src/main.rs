@@ -22,7 +22,7 @@ async fn main() -> Result<(), Box<dyn Error + Send + Sync>> {
         .content(format!(
             "<@{}> you are not allowed to ping @everyone!",
             user_id.0
-        ))
+        ))?
         .allowed_mentions()
         .parse_specific_users(vec![user_id])
         .build()
