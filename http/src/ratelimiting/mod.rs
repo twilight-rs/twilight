@@ -93,7 +93,7 @@ impl Ratelimiter {
                 debug!("Added request into bucket queue: {:?}", path);
 
                 (Arc::clone(&bucket), false)
-            },
+            }
             Entry::Vacant(entry) => {
                 debug!("Making new bucket for path: {:?}", path);
                 let bucket = Bucket::new(path.clone());
@@ -103,7 +103,7 @@ impl Ratelimiter {
                 entry.insert(Arc::clone(&bucket));
 
                 (bucket, true)
-            },
+            }
         }
     }
 }

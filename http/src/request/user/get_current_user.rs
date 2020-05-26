@@ -8,10 +8,7 @@ pub struct GetCurrentUser<'a> {
 
 impl<'a> GetCurrentUser<'a> {
     pub(crate) fn new(http: &'a Client) -> Self {
-        Self {
-            fut: None,
-            http,
-        }
+        Self { fut: None, http }
     }
 
     fn start(&mut self) -> Result<()> {

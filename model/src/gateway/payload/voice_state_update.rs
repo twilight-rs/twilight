@@ -75,9 +75,7 @@ mod tests {
                 Token::Bool(false),
                 Token::Str("guild_id"),
                 Token::Some,
-                Token::NewtypeStruct {
-                    name: "GuildId",
-                },
+                Token::NewtypeStruct { name: "GuildId" },
                 Token::Str("1"),
                 Token::Str("member"),
                 Token::Some,
@@ -91,9 +89,7 @@ mod tests {
                 Token::None,
                 Token::Str("hoisted_role"),
                 Token::Some,
-                Token::NewtypeStruct {
-                    name: "RoleId",
-                },
+                Token::NewtypeStruct { name: "RoleId" },
                 Token::Str("4"),
                 Token::Str("joined_at"),
                 Token::None,
@@ -104,12 +100,8 @@ mod tests {
                 Token::Str("premium_since"),
                 Token::None,
                 Token::Str("roles"),
-                Token::Seq {
-                    len: Some(1),
-                },
-                Token::NewtypeStruct {
-                    name: "RoleId",
-                },
+                Token::Seq { len: Some(1) },
+                Token::NewtypeStruct { name: "RoleId" },
                 Token::Str("4"),
                 Token::SeqEnd,
                 Token::Str("user"),
@@ -118,9 +110,7 @@ mod tests {
                     len: 13,
                 },
                 Token::Str("id"),
-                Token::NewtypeStruct {
-                    name: "UserId",
-                },
+                Token::NewtypeStruct { name: "UserId" },
                 Token::Str("1"),
                 Token::Str("avatar"),
                 Token::None,
@@ -163,9 +153,7 @@ mod tests {
                 Token::Str("token"),
                 Token::None,
                 Token::Str("user_id"),
-                Token::NewtypeStruct {
-                    name: "UserId",
-                },
+                Token::NewtypeStruct { name: "UserId" },
                 Token::Str("1"),
                 Token::StructEnd,
             ],

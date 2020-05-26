@@ -8,10 +8,7 @@ pub struct GetGatewayAuthed<'a> {
 
 impl<'a> GetGatewayAuthed<'a> {
     pub fn new(http: &'a Client) -> Self {
-        Self {
-            fut: None,
-            http,
-        }
+        Self { fut: None, http }
     }
 
     fn start(&mut self) -> Result<()> {

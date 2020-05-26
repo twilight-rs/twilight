@@ -55,9 +55,7 @@ impl<'a> GetChannelMessagesConfigured<'a> {
             around,
             before,
             channel_id,
-            fields: GetChannelMessagesConfiguredFields {
-                limit,
-            },
+            fields: GetChannelMessagesConfiguredFields { limit },
             fut: None,
             http,
         }

@@ -23,13 +23,9 @@ pub enum RatelimitHeaders {
 impl RatelimitHeaders {
     pub fn global(&self) -> bool {
         match self {
-            Self::GlobalLimited {
-                ..
-            } => true,
+            Self::GlobalLimited { .. } => true,
             Self::None => false,
-            Self::Present {
-                global, ..
-            } => *global,
+            Self::Present { global, .. } => *global,
         }
     }
 }
@@ -79,7 +75,7 @@ impl TryFrom<&'_ HeaderMap<HeaderValue>> for RatelimitHeaders {
                 } else {
                     Ok(Self::None)
                 }
-            },
+            }
         }
     }
 }
@@ -110,9 +106,9 @@ fn parse_map(map: &HeaderMap<HeaderValue>) -> RatelimitResult<RatelimitHeaders> 
 }
 
 fn header_bool(map: &HeaderMap<HeaderValue>, name: &'static str) -> RatelimitResult<bool> {
-    let value = map.get(name).ok_or(RatelimitError::HeaderMissing {
-        name,
-    })?;
+    let value = map
+        .get(name)
+        .ok_or(RatelimitError::HeaderMissing { name })?;
 
     let text = value
         .to_str()
@@ -134,9 +130,9 @@ fn header_bool(map: &HeaderMap<HeaderValue>, name: &'static str) -> RatelimitRes
 }
 
 fn header_float(map: &HeaderMap<HeaderValue>, name: &'static str) -> RatelimitResult<f64> {
-    let value = map.get(name).ok_or(RatelimitError::HeaderMissing {
-        name,
-    })?;
+    let value = map
+        .get(name)
+        .ok_or(RatelimitError::HeaderMissing { name })?;
 
     let text = value
         .to_str()
@@ -158,9 +154,9 @@ fn header_float(map: &HeaderMap<HeaderValue>, name: &'static str) -> RatelimitRe
 }
 
 fn header_int(map: &HeaderMap<HeaderValue>, name: &'static str) -> RatelimitResult<u64> {
-    let value = map.get(name).ok_or(RatelimitError::HeaderMissing {
-        name,
-    })?;
+    let value = map
+        .get(name)
+        .ok_or(RatelimitError::HeaderMissing { name })?;
 
     let text = value
         .to_str()
@@ -182,9 +178,9 @@ fn header_int(map: &HeaderMap<HeaderValue>, name: &'static str) -> RatelimitResu
 }
 
 fn header_str<'a>(map: &'a HeaderMap<HeaderValue>, name: &'static str) -> RatelimitResult<&'a str> {
-    let value = map.get(name).ok_or(RatelimitError::HeaderMissing {
-        name,
-    })?;
+    let value = map
+        .get(name)
+        .ok_or(RatelimitError::HeaderMissing { name })?;
 
     let text = value
         .to_str()

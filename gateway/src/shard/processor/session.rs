@@ -67,15 +67,12 @@ impl Session {
     /// [`Error::PayloadSerialization`]: ../enum.Error.html#variant.PayloadSerialization
     /// [`Error::SendingMessage`]: ../enum.Error.html#variant.SendingMessage
     pub fn send(&self, payload: impl Serialize) -> Result<()> {
-        let bytes = serde_json::to_vec(&payload).map_err(|source| Error::PayloadSerialization {
-            source,
-        })?;
+        let bytes = serde_json::to_vec(&payload)
+            .map_err(|source| Error::PayloadSerialization { source })?;
 
         self.tx
             .unbounded_send(TungsteniteMessage::Binary(bytes))
-            .map_err(|source| Error::SendingMessage {
-                source,
-            })?;
+            .map_err(|source| Error::SendingMessage { source })?;
 
         Ok(())
     }
@@ -83,9 +80,7 @@ impl Session {
     pub fn close(&self, close_frame: Option<CloseFrame<'static>>) -> Result<()> {
         self.tx
             .unbounded_send(TungsteniteMessage::Close(close_frame))
-            .map_err(|source| Error::SendingMessage {
-                source,
-            })?;
+            .map_err(|source| Error::SendingMessage { source })?;
 
         Ok(())
     }

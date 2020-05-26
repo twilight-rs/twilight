@@ -496,10 +496,7 @@ pub struct Events {
 
 impl Events {
     pub(super) fn new(event_types: EventType, rx: UnboundedReceiver<Event>) -> Self {
-        Self {
-            event_types,
-            rx,
-        }
+        Self { event_types, rx }
     }
 
     /// Returns the event types that can be passed to this stream.

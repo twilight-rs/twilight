@@ -81,25 +81,20 @@ impl Cluster {
     /// [`ShardScheme::Auto`]: config/enum.ShardScheme.html#variant.Auto
     /// [configured shard scheme]: config/struct.ClusterConfig.html#method.shard_scheme
     pub async fn up(&self) -> Result<()> {
-        let [from, to, total] =
-            match self.0.config.shard_scheme() {
-                ShardScheme::Auto => {
-                    let http = self.0.config.http_client();
+        let [from, to, total] = match self.0.config.shard_scheme() {
+            ShardScheme::Auto => {
+                let http = self.0.config.http_client();
 
-                    let gateway = http.gateway().authed().await.map_err(|source| {
-                        Error::GettingGatewayInfo {
-                            source,
-                        }
-                    })?;
+                let gateway = http
+                    .gateway()
+                    .authed()
+                    .await
+                    .map_err(|source| Error::GettingGatewayInfo { source })?;
 
-                    [0, gateway.shards - 1, gateway.shards]
-                },
-                ShardScheme::Range {
-                    from,
-                    to,
-                    total,
-                } => [from, to, total],
-            };
+                [0, gateway.shards - 1, gateway.shards]
+            }
+            ShardScheme::Range { from, to, total } => [from, to, total],
+        };
         #[cfg(feature = "metrics")]
         {
             use std::convert::TryInto;
@@ -177,16 +172,13 @@ impl Cluster {
     pub async fn command(&self, id: u64, com: &impl serde::Serialize) -> Result<()> {
         let shard = match self.0.shards.lock().await.get(&id) {
             Some(shard) => shard.clone(),
-            None => {
-                return Err(Error::ShardDoesNotExist {
-                    id,
-                })
-            },
+            None => return Err(Error::ShardDoesNotExist { id }),
         };
 
-        shard.command(com).await.map_err(|err| Error::ShardError {
-            source: err,
-        })?;
+        shard
+            .command(com)
+            .await
+            .map_err(|err| Error::ShardError { source: err })?;
 
         Ok(())
     }

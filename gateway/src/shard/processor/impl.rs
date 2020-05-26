@@ -5,8 +5,7 @@ use super::{
         event::Event,
         stage::Stage,
     },
-    connect,
-    emit,
+    connect, emit,
     inflater::Inflater,
     session::Session,
     socket_forwarder::SocketForwarder,
@@ -27,9 +26,7 @@ use log::{debug, info, trace, warn};
 use serde::Serialize;
 use std::{env::consts::OS, ops::Deref, sync::Arc};
 use tokio::sync::watch::{
-    channel as watch_channel,
-    Receiver as WatchReceiver,
-    Sender as WatchSender,
+    channel as watch_channel, Receiver as WatchReceiver, Sender as WatchSender,
 };
 use tokio_tungstenite::tungstenite::{
     protocol::{frame::coding::CloseCode, CloseFrame},
@@ -71,9 +68,7 @@ impl ShardProcessor {
             .http_client()
             .gateway()
             .await
-            .map_err(|source| Error::GettingGatewayUrl {
-                source,
-            })?
+            .map_err(|source| Error::GettingGatewayUrl { source })?
             .url;
         url.push_str("?v=6&compress=zlib-stream");
 
@@ -108,9 +103,7 @@ impl ShardProcessor {
             let gateway_event = match self.next_event().await {
                 Ok(ev) => ev,
                 // Reconnect as this error is often fatal!
-                Err(Error::Decompressing {
-                    source,
-                }) => {
+                Err(Error::Decompressing { source }) => {
                     warn!(
                         "[gateway] Decompressing error, clears buffers and reconnect! {:?}",
                         source
@@ -119,11 +112,11 @@ impl ShardProcessor {
                     // Inflater gets reset in the reconnect call.
                     self.reconnect(true).await;
                     continue;
-                },
+                }
                 Err(err) => {
                     warn!("Error receiveing gateway event: {:?}", err.source());
                     continue;
-                },
+                }
             };
 
             // The only reason for an error is if the sender couldn't send a
@@ -164,12 +157,7 @@ impl ShardProcessor {
 
     async fn process(&mut self, event: &GatewayEvent) -> Result<()> {
         use GatewayEvent::{
-            Dispatch,
-            Heartbeat,
-            HeartbeatAck,
-            Hello,
-            InvalidateSession,
-            Reconnect,
+            Dispatch, Heartbeat, HeartbeatAck, Hello, InvalidateSession, Reconnect,
         };
 
         match event {
@@ -182,14 +170,14 @@ impl ShardProcessor {
                     DispatchEvent::Ready(ready) => {
                         self.session.set_stage(Stage::Connected);
                         self.session.set_id(&ready.session_id).await;
-                    },
+                    }
                     DispatchEvent::Resumed => {
                         self.session.set_stage(Stage::Connected);
                         self.session.heartbeats.receive().await;
-                    },
-                    _ => {},
+                    }
+                    _ => {}
                 }
-            },
+            }
             Heartbeat(seq) => {
                 #[cfg(feature = "metrics")]
                 counter!("GatewayEvent", 1, "GatewayEvent" => "Heartbeat");
@@ -202,7 +190,7 @@ impl ShardProcessor {
 
                     self.reconnect(true).await;
                 }
-            },
+            }
             Hello(interval) => {
                 #[cfg(feature = "metrics")]
                 counter!("GatewayEvent", 1, "GatewayEvent" => "Hello");
@@ -234,24 +222,24 @@ impl ShardProcessor {
 
                     self.identify().await?;
                 }
-            },
+            }
             HeartbeatAck => {
                 #[cfg(feature = "metrics")]
                 counter!("GatewayEvent", 1, "GatewayEvent" => "HeartbeatAck");
                 self.session.heartbeats.receive().await;
-            },
+            }
             InvalidateSession(true) => {
                 #[cfg(feature = "metrics")]
                 counter!("GatewayEvent", 1, "GatewayEvent" => "InvalidateSessionTrue");
                 debug!("[EVENT] InvalidateSession(true)");
                 self.resume().await?;
-            },
+            }
             InvalidateSession(false) => {
                 #[cfg(feature = "metrics")]
                 counter!("GatewayEvent", 1, "GatewayEvent" => "InvalidateSessionFalse");
                 debug!("[EVENT] InvalidateSession(false)");
                 self.reconnect(true).await;
-            },
+            }
             Reconnect => {
                 #[cfg(feature = "metrics")]
                 counter!("GatewayEvent", 1, "GatewayEvent" => "Reconnect");
@@ -262,7 +250,7 @@ impl ShardProcessor {
                 };
                 self.close(Some(frame)).await?;
                 self.resume().await?;
-            },
+            }
         }
 
         Ok(())
@@ -282,7 +270,7 @@ impl ShardProcessor {
                 Err(why) => {
                     warn!("Error reconnecting: {:?}", why);
                     continue;
-                },
+                }
             };
 
             let (new_forwarder, new_rx, new_tx) = SocketForwarder::new(new_stream);
@@ -305,7 +293,7 @@ impl ShardProcessor {
                         "After this many of the commands on the \
                          shard will no longer work."
                     );
-                },
+                }
             };
 
             if !full_reconnect {
@@ -343,25 +331,19 @@ impl ShardProcessor {
     pub async fn send(&mut self, payload: impl Serialize) -> Result<()> {
         match self.session.send(payload) {
             Ok(()) => Ok(()),
-            Err(Error::PayloadSerialization {
-                source,
-            }) => {
+            Err(Error::PayloadSerialization { source }) => {
                 warn!("Failed to serialize message to send: {:?}", source);
 
-                Err(Error::PayloadSerialization {
-                    source,
-                })
-            },
-            Err(Error::SendingMessage {
-                source,
-            }) => {
+                Err(Error::PayloadSerialization { source })
+            }
+            Err(Error::SendingMessage { source }) => {
                 warn!("Failed to send message: {:?}", source);
                 info!("Reconnecting");
 
                 self.reconnect(true).await;
 
                 Ok(())
-            },
+            }
             Err(other) => Err(other),
         }
     }
@@ -388,52 +370,48 @@ impl ShardProcessor {
             match msg {
                 Message::Binary(bin) => {
                     self.inflater.extend(&bin[..]);
-                    let decompressed_msg =
-                        self.inflater.msg().map_err(|source| Error::Decompressing {
-                            source,
-                        })?;
+                    let decompressed_msg = self
+                        .inflater
+                        .msg()
+                        .map_err(|source| Error::Decompressing { source })?;
                     let msg_or_error = match decompressed_msg {
                         Some(json) => {
                             emit::bytes(self.listeners.clone(), json).await;
 
-                            match serde_json::from_slice(json).map_err(|source| {
-                                Error::PayloadSerialization {
-                                    source,
-                                }
-                            }) {
+                            match serde_json::from_slice(json)
+                                .map_err(|source| Error::PayloadSerialization { source })
+                            {
                                 Ok(ser) => Ok(ser),
                                 Err(err) => {
                                     debug!("Broken JSON: {:?}", std::str::from_utf8(json));
                                     Err(err)
-                                },
+                                }
                             }
-                        },
+                        }
                         None => continue,
                     };
                     self.inflater.clear();
                     break msg_or_error;
-                },
+                }
                 Message::Close(code) => {
                     log::warn!("Got close code: {:?}.", code);
                     self.resume().await?;
-                },
-                Message::Ping(_) | Message::Pong(_) => {},
+                }
+                Message::Ping(_) | Message::Pong(_) => {}
                 Message::Text(text) => {
                     trace!("Text payload: {}", text);
                     emit::bytes(self.listeners.clone(), text.as_bytes()).await;
 
-                    break match serde_json::from_str(&text).map_err(|source| {
-                        Error::PayloadSerialization {
-                            source,
-                        }
-                    }) {
+                    break match serde_json::from_str(&text)
+                        .map_err(|source| Error::PayloadSerialization { source })
+                    {
                         Ok(ser) => Ok(ser),
                         Err(err) => {
                             debug!("Broken JSON: {:?}", &text);
                             Err(err)
-                        },
+                        }
                     };
-                },
+                }
             }
         }
     }

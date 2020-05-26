@@ -16,7 +16,7 @@ impl Display for CreateBanError {
         match self {
             Self::DeleteMessageDaysInvalid => {
                 f.write_str("the number of days' worth of messages to delete is invalid")
-            },
+            }
         }
     }
 }

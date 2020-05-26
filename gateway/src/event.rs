@@ -72,28 +72,28 @@ impl<'de> Visitor<'de> for GatewayEventVisitor {
                     }
 
                     d = Some(map.next_value()?);
-                },
+                }
                 Field::Op => {
                     if op.is_some() {
                         return Err(DeError::duplicate_field("op"));
                     }
 
                     op = Some(map.next_value()?);
-                },
+                }
                 Field::S => {
                     if s.is_some() {
                         return Err(DeError::duplicate_field("s"));
                     }
 
                     s = map.next_value::<Option<_>>()?;
-                },
+                }
                 Field::T => {
                     if t.is_some() {
                         return Err(DeError::duplicate_field("t"));
                     }
 
                     t = map.next_value::<Option<_>>()?;
-                },
+                }
             }
         }
 
@@ -108,12 +108,12 @@ impl<'de> Visitor<'de> for GatewayEventVisitor {
                 #[cfg(feature = "metrics")]
                 counter!("DispatchEvent", 1, "DispatchEvent" => t);
                 GatewayEvent::Dispatch(s, Box::new(dispatch))
-            },
+            }
             OpCode::Heartbeat => {
                 let s = s.ok_or_else(|| DeError::missing_field("s"))?;
 
                 GatewayEvent::Heartbeat(s)
-            },
+            }
             OpCode::HeartbeatAck => GatewayEvent::HeartbeatAck,
             OpCode::Hello => {
                 #[derive(DeserializeMacro)]
@@ -125,13 +125,13 @@ impl<'de> Visitor<'de> for GatewayEventVisitor {
                 let hello = Hello::deserialize(d).map_err(DeError::custom)?;
 
                 GatewayEvent::Hello(hello.heartbeat_interval)
-            },
+            }
             OpCode::InvalidSession => {
                 let d = d.ok_or_else(|| DeError::missing_field("d"))?;
                 let resumeable = bool::deserialize(d).map_err(DeError::custom)?;
 
                 GatewayEvent::InvalidateSession(resumeable)
-            },
+            }
             OpCode::Identify => return Err(DeError::unknown_variant("Identify", VALID_OPCODES)),
             OpCode::Reconnect => GatewayEvent::Reconnect,
             OpCode::RequestGuildMembers => {
@@ -139,17 +139,17 @@ impl<'de> Visitor<'de> for GatewayEventVisitor {
                     "RequestGuildMembers",
                     VALID_OPCODES,
                 ))
-            },
+            }
             OpCode::Resume => return Err(DeError::unknown_variant("Resume", VALID_OPCODES)),
             OpCode::StatusUpdate => {
                 return Err(DeError::unknown_variant("StatusUpdate", VALID_OPCODES))
-            },
+            }
             OpCode::VoiceServerPing => {
                 return Err(DeError::unknown_variant("VoiceServerPing", VALID_OPCODES))
-            },
+            }
             OpCode::VoiceStateUpdate => {
                 return Err(DeError::unknown_variant("VoiceStateUpdate", VALID_OPCODES))
-            },
+            }
         })
     }
 }
@@ -222,7 +222,7 @@ impl TryFrom<(&str, Value)> for DispatchEvent {
             "GUILD_EMOJIS_UPDATE" => Self::GuildEmojisUpdate(GuildEmojisUpdate::deserialize(v)?),
             "GUILD_INTEGRATIONS_UPDATE" => {
                 Self::GuildIntegrationsUpdate(GuildIntegrationsUpdate::deserialize(v)?)
-            },
+            }
             "GUILD_MEMBERS_CHUNK" => Self::MemberChunk(MemberChunk::deserialize(v)?),
             "GUILD_MEMBER_ADD" => Self::MemberAdd(Box::new(MemberAdd::deserialize(v)?)),
             "GUILD_MEMBER_REMOVE" => Self::MemberRemove(MemberRemove::deserialize(v)?),
@@ -239,13 +239,13 @@ impl TryFrom<(&str, Value)> for DispatchEvent {
             "MESSAGE_REACTION_ADD" => Self::ReactionAdd(Box::new(ReactionAdd::deserialize(v)?)),
             "MESSAGE_REACTION_REMOVE" => {
                 Self::ReactionRemove(Box::new(ReactionRemove::deserialize(v)?))
-            },
+            }
             "MESSAGE_REACTION_REMOVE_EMOJI" => {
                 Self::ReactionRemoveEmoji(ReactionRemoveEmoji::deserialize(v)?)
-            },
+            }
             "MESSAGE_REACTION_REMOVE_ALL" => {
                 Self::ReactionRemoveAll(ReactionRemoveAll::deserialize(v)?)
-            },
+            }
             "MESSAGE_UPDATE" => Self::MessageUpdate(Box::new(MessageUpdate::deserialize(v)?)),
             "PRESENCE_UPDATE" => Self::PresenceUpdate(Box::new(PresenceUpdate::deserialize(v)?)),
             "PRESENCES_REPLACE" => Self::PresencesReplace,
@@ -256,14 +256,14 @@ impl TryFrom<(&str, Value)> for DispatchEvent {
             "VOICE_SERVER_UPDATE" => Self::VoiceServerUpdate(VoiceServerUpdate::deserialize(v)?),
             "VOICE_STATE_UPDATE" => {
                 Self::VoiceStateUpdate(Box::new(VoiceStateUpdate::deserialize(v)?))
-            },
+            }
             "WEBHOOKS_UPDATE" => Self::WebhooksUpdate(WebhooksUpdate::deserialize(v)?),
             other => {
                 return Err(ValueDeserializerError::UnknownVariant(
                     other.to_owned(),
                     &[],
                 ))
-            },
+            }
         })
     }
 }

@@ -7,13 +7,8 @@ mod thumbnail;
 mod video;
 
 pub use self::{
-    author::EmbedAuthor,
-    field::EmbedField,
-    footer::EmbedFooter,
-    image::EmbedImage,
-    provider::EmbedProvider,
-    thumbnail::EmbedThumbnail,
-    video::EmbedVideo,
+    author::EmbedAuthor, field::EmbedField, footer::EmbedFooter, image::EmbedImage,
+    provider::EmbedProvider, thumbnail::EmbedThumbnail, video::EmbedVideo,
 };
 
 #[cfg_attr(

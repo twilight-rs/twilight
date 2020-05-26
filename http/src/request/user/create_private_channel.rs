@@ -15,9 +15,7 @@ pub struct CreatePrivateChannel<'a> {
 impl<'a> CreatePrivateChannel<'a> {
     pub(crate) fn new(http: &'a Client, recipient_id: UserId) -> Self {
         Self {
-            fields: CreatePrivateChannelFields {
-                recipient_id,
-            },
+            fields: CreatePrivateChannelFields { recipient_id },
             fut: None,
             http,
         }

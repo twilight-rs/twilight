@@ -7,13 +7,8 @@ mod reaction;
 mod reference;
 
 pub use self::{
-    activity::MessageActivity,
-    activity_type::MessageActivityType,
-    application::MessageApplication,
-    flags::MessageFlags,
-    kind::MessageType,
-    reaction::MessageReaction,
-    reference::MessageReference,
+    activity::MessageActivity, activity_type::MessageActivityType, application::MessageApplication,
+    flags::MessageFlags, kind::MessageType, reaction::MessageReaction, reference::MessageReference,
 };
 
 use crate::{

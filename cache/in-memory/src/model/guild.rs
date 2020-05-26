@@ -1,12 +1,7 @@
 use twilight_model::{
     guild::{
-        DefaultMessageNotificationLevel,
-        ExplicitContentFilter,
-        MfaLevel,
-        Permissions,
-        PremiumTier,
-        SystemChannelFlags,
-        VerificationLevel,
+        DefaultMessageNotificationLevel, ExplicitContentFilter, MfaLevel, Permissions, PremiumTier,
+        SystemChannelFlags, VerificationLevel,
     },
     id::{ApplicationId, ChannelId, GuildId, UserId},
 };

@@ -6,11 +6,8 @@ mod optional_entry_info;
 mod partial_integration;
 
 pub use self::{
-    change::AuditLogChange,
-    change_key::AuditLogChangeKey,
-    entry::AuditLogEntry,
-    event::AuditLogEvent,
-    optional_entry_info::AuditLogOptionalEntryInfo,
+    change::AuditLogChange, change_key::AuditLogChangeKey, entry::AuditLogEntry,
+    event::AuditLogEvent, optional_entry_info::AuditLogOptionalEntryInfo,
     partial_integration::PartialGuildIntegration,
 };
 

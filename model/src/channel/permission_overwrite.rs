@@ -50,12 +50,12 @@ mod serde_support {
                     let id = UserId(data.id.parse().map_err(DeError::custom)?);
 
                     PermissionOverwriteType::Member(id)
-                },
+                }
                 PermissionOverwriteTypeName::Role => {
                     let id = RoleId(data.id.parse().map_err(DeError::custom)?);
 
                     PermissionOverwriteType::Role(id)
-                },
+                }
             };
 
             Ok(Self {
@@ -77,11 +77,11 @@ mod serde_support {
                 PermissionOverwriteType::Member(id) => {
                     state.serialize_field("id", &id)?;
                     state.serialize_field("type", "member")?;
-                },
+                }
                 PermissionOverwriteType::Role(id) => {
                     state.serialize_field("id", &id)?;
                     state.serialize_field("type", "role")?;
-                },
+                }
             }
 
             state.end()

@@ -25,9 +25,7 @@ impl DayLimiter {
             .gateway()
             .authed()
             .await
-            .map_err(|e| Error::GettingGatewayUrl {
-                source: e,
-            })?;
+            .map_err(|e| Error::GettingGatewayUrl { source: e })?;
 
         let last_check = Instant::now();
 

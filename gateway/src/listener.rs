@@ -39,13 +39,11 @@ impl<T> Listeners<T> {
         let id = self.0.id.fetch_add(1, Ordering::Release) + 1;
         let (tx, rx) = mpsc::unbounded();
 
-        self.0.listeners.lock().await.insert(
-            id,
-            Listener {
-                events,
-                tx,
-            },
-        );
+        self.0
+            .listeners
+            .lock()
+            .await
+            .insert(id, Listener { events, tx });
 
         rx
     }

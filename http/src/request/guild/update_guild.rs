@@ -5,10 +5,7 @@ use std::{
 };
 use twilight_model::{
     guild::{
-        DefaultMessageNotificationLevel,
-        ExplicitContentFilter,
-        PartialGuild,
-        VerificationLevel,
+        DefaultMessageNotificationLevel, ExplicitContentFilter, PartialGuild, VerificationLevel,
     },
     id::{ChannelId, GuildId, UserId},
 };

@@ -45,33 +45,33 @@ impl SocketForwarder {
                         warn!("[SocketForwarder] Got error when sending: {}", err);
                         break;
                     }
-                },
+                }
                 Either::Left((None, _)) => {
                     warn!("[SocketForwarder] Got None, closing stream");
                     let _ = self.stream.close(None).await;
 
                     break;
-                },
+                }
                 Either::Right((Ok(Some(Ok(msg))), _)) => {
                     if self.tx.unbounded_send(msg).is_err() {
                         break;
                     }
-                },
+                }
                 Either::Right((Ok(Some(Err(err))), _)) => {
                     warn!("[SocketForwarder] Got error: {}, closing tx", err);
                     self.tx.close_channel();
                     break;
-                },
+                }
                 Either::Right((Ok(None), _)) => {
                     warn!("[SocketForwarder] Got None, closing tx");
                     self.tx.close_channel();
                     break;
-                },
+                }
                 Either::Right((Err(why), _)) => {
                     warn!("[SocketForwarder] Error: {}", why);
                     self.tx.close_channel();
                     break;
-                },
+                }
             }
         }
         warn!("[SocketForwarder] Leaving loop");

@@ -18,9 +18,7 @@ impl Display for UpdateMessageError {
     fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
         match self {
             Self::ContentInvalid => f.write_str("the message content is invalid"),
-            Self::EmbedTooLarge {
-                ..
-            } => f.write_str("the embed's contents are too long"),
+            Self::EmbedTooLarge { .. } => f.write_str("the embed's contents are too long"),
         }
     }
 }
@@ -29,9 +27,7 @@ impl Error for UpdateMessageError {
     fn source(&self) -> Option<&(dyn Error + 'static)> {
         match self {
             Self::ContentInvalid => None,
-            Self::EmbedTooLarge {
-                source,
-            } => Some(source),
+            Self::EmbedTooLarge { source } => Some(source),
         }
     }
 }
@@ -148,9 +144,8 @@ impl<'a> UpdateMessage<'a> {
 
     fn _embed(mut self, embed: Option<Embed>) -> Result<Self, UpdateMessageError> {
         if let Some(embed) = embed.as_ref() {
-            validate::embed(&embed).map_err(|source| UpdateMessageError::EmbedTooLarge {
-                source,
-            })?;
+            validate::embed(&embed)
+                .map_err(|source| UpdateMessageError::EmbedTooLarge { source })?;
         }
 
         self.fields.embed.replace(embed);

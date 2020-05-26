@@ -14,14 +14,10 @@ pub async fn connect(url: &str) -> Result<ShardStream> {
 
     let request = url
         .into_client_request()
-        .map_err(|source| Error::Connecting {
-            source,
-        })?;
+        .map_err(|source| Error::Connecting { source })?;
     let (stream, _) = tokio_tungstenite::connect_async(request)
         .await
-        .map_err(|source| Error::Connecting {
-            source,
-        })?;
+        .map_err(|source| Error::Connecting { source })?;
 
     debug!("Shook hands with remote");
 

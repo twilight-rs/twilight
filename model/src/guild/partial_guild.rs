@@ -1,14 +1,7 @@
 use crate::{
     guild::{
-        DefaultMessageNotificationLevel,
-        Emoji,
-        ExplicitContentFilter,
-        MfaLevel,
-        Permissions,
-        PremiumTier,
-        Role,
-        SystemChannelFlags,
-        VerificationLevel,
+        DefaultMessageNotificationLevel, Emoji, ExplicitContentFilter, MfaLevel, Permissions,
+        PremiumTier, Role, SystemChannelFlags, VerificationLevel,
     },
     id::{ApplicationId, ChannelId, EmojiId, GuildId, RoleId, UserId},
 };
