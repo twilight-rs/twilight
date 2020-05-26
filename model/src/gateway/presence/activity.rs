@@ -1,12 +1,7 @@
 use crate::{
     gateway::presence::{
-        ActivityAssets,
-        ActivityEmoji,
-        ActivityFlags,
-        ActivityParty,
-        ActivitySecrets,
-        ActivityTimestamps,
-        ActivityType,
+        ActivityAssets, ActivityEmoji, ActivityFlags, ActivityParty, ActivitySecrets,
+        ActivityTimestamps, ActivityType,
     },
     id::ApplicationId,
 };

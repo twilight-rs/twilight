@@ -68,35 +68,24 @@ pub enum Error {
 impl Display for Error {
     fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
         match self {
-            Self::Connecting {
-                ..
-            } => f.write_str("An issue occurred connecting to the gateway"),
-            Self::GettingGatewayUrl {
-                ..
-            } => f.write_str("Getting the gateway URL failed"),
-            Self::IdTooLarge {
-                id,
-                total,
-            } => write!(f, "The shard ID {} is larger than the total, {}", id, total),
-            Self::LargeThresholdInvalid {
-                value,
-            } => write!(
+            Self::Connecting { .. } => f.write_str("An issue occurred connecting to the gateway"),
+            Self::GettingGatewayUrl { .. } => f.write_str("Getting the gateway URL failed"),
+            Self::IdTooLarge { id, total } => {
+                write!(f, "The shard ID {} is larger than the total, {}", id, total)
+            }
+            Self::LargeThresholdInvalid { value } => write!(
                 f,
                 "The large threshold given, {}, is not in the accepted range",
                 value
             ),
-            Self::ParsingUrl {
-                url, ..
-            } => write!(f, "The gateway URL {:?} is invalid", url),
-            Self::PayloadSerialization {
-                ..
-            } => f.write_str("Deserializing or serializing a payload failed"),
-            Self::SendingMessage {
-                ..
-            } => f.write_str("The message couldn't be sent because the receiver half dropped"),
-            Self::Decompressing {
-                ..
-            } => f.write_str("A frame could not be decompressed"),
+            Self::ParsingUrl { url, .. } => write!(f, "The gateway URL {:?} is invalid", url),
+            Self::PayloadSerialization { .. } => {
+                f.write_str("Deserializing or serializing a payload failed")
+            }
+            Self::SendingMessage { .. } => {
+                f.write_str("The message couldn't be sent because the receiver half dropped")
+            }
+            Self::Decompressing { .. } => f.write_str("A frame could not be decompressed"),
         }
     }
 }
@@ -104,30 +93,13 @@ impl Display for Error {
 impl StdError for Error {
     fn source(&self) -> Option<&(dyn StdError + 'static)> {
         match self {
-            Self::Connecting {
-                source,
-            } => Some(source),
-            Self::GettingGatewayUrl {
-                source,
-            } => Some(source),
-            Self::ParsingUrl {
-                source, ..
-            } => Some(source),
-            Self::PayloadSerialization {
-                source,
-            } => Some(source),
-            Self::SendingMessage {
-                source,
-            } => Some(source),
-            Self::Decompressing {
-                source,
-            } => Some(source),
-            Self::IdTooLarge {
-                ..
-            }
-            | Self::LargeThresholdInvalid {
-                ..
-            } => None,
+            Self::Connecting { source } => Some(source),
+            Self::GettingGatewayUrl { source } => Some(source),
+            Self::ParsingUrl { source, .. } => Some(source),
+            Self::PayloadSerialization { source } => Some(source),
+            Self::SendingMessage { source } => Some(source),
+            Self::Decompressing { source } => Some(source),
+            Self::IdTooLarge { .. } | Self::LargeThresholdInvalid { .. } => None,
         }
     }
 }

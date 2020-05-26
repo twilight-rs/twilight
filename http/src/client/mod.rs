@@ -13,12 +13,8 @@ use crate::{
 };
 use log::{debug, warn};
 use reqwest::{
-    header::HeaderValue,
-    Body,
-    Client as ReqwestClient,
-    ClientBuilder as ReqwestClientBuilder,
-    Response,
-    StatusCode,
+    header::HeaderValue, Body, Client as ReqwestClient, ClientBuilder as ReqwestClientBuilder,
+    Response, StatusCode,
 };
 use serde::de::DeserializeOwned;
 use std::{
@@ -57,9 +53,11 @@ impl ClientBuilder {
 
         Ok(Client {
             state: Arc::new(State {
-                http: Arc::new(builder.build().map_err(|source| Error::BuildingClient {
-                    source,
-                })?),
+                http: Arc::new(
+                    builder
+                        .build()
+                        .map_err(|source| Error::BuildingClient { source })?,
+                ),
                 ratelimiter: Ratelimiter::new(),
                 skip_ratelimiter: config.skip_ratelimiter,
                 token: config.token,
@@ -800,29 +798,31 @@ impl Client {
         }
 
         if self.state.skip_ratelimiter {
-            return builder.send().await.map_err(|source| Error::RequestError {
-                source,
-            });
+            return builder
+                .send()
+                .await
+                .map_err(|source| Error::RequestError { source });
         }
 
         let rx = self.state.ratelimiter.get(bucket).await;
-        let tx = rx.await.map_err(|source| Error::RequestCanceled {
-            source,
-        })?;
+        let tx = rx
+            .await
+            .map_err(|source| Error::RequestCanceled { source })?;
 
-        let resp = builder.send().await.map_err(|source| Error::RequestError {
-            source,
-        })?;
+        let resp = builder
+            .send()
+            .await
+            .map_err(|source| Error::RequestError { source })?;
 
         match RatelimitHeaders::try_from(resp.headers()) {
             Ok(v) => {
                 let _ = tx.send(Some(v));
-            },
+            }
             Err(why) => {
                 warn!("Err parsing headers: {:?}; {:?}", why, resp,);
 
                 let _ = tx.send(None);
-            },
+            }
         }
 
         Ok(resp)
@@ -834,9 +834,7 @@ impl Client {
         let bytes = resp
             .bytes()
             .await
-            .map_err(|source| Error::ChunkingResponse {
-                source,
-            })?;
+            .map_err(|source| Error::ChunkingResponse { source })?;
 
         serde_json::from_slice(&bytes).map_err(|source| Error::Parsing {
             body: (*bytes).to_vec(),
@@ -866,17 +864,13 @@ impl Client {
             }
 
             return Err(Error::Response {
-                source: ResponseError::Client {
-                    response: resp,
-                },
+                source: ResponseError::Client { response: resp },
             });
         }
 
         if resp.status().is_server_error() {
             return Err(Error::Response {
-                source: ResponseError::Server {
-                    response: resp,
-                },
+                source: ResponseError::Server { response: resp },
             });
         }
 

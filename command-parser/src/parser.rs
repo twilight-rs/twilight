@@ -95,7 +95,7 @@ impl<'a> Parser<'a> {
 
         match buf.get(idx..)? {
             v if !v.starts_with(padding) => return None,
-            _ => {},
+            _ => {}
         }
 
         idx += padding.len();
@@ -168,9 +168,7 @@ mod tests {
         let message_unicode_2 = "!\u{3b4} is delta";
 
         // Case insensitive - ASCII
-        let Command {
-            name, ..
-        } = parser
+        let Command { name, .. } = parser
             .parse(message_ascii)
             .expect("Parser is case sensitive");
         assert_eq!(
@@ -180,9 +178,7 @@ mod tests {
 
         // Case insensitive - Unicode
         parser.config.command("wei\u{df}").add();
-        let Command {
-            name, ..
-        } = parser
+        let Command { name, .. } = parser
             .parse(message_unicode)
             .expect("Parser is case sensitive");
         assert_eq!(
@@ -191,9 +187,7 @@ mod tests {
         );
 
         parser.config.command("\u{394}").add();
-        let Command {
-            name, ..
-        } = parser
+        let Command { name, .. } = parser
             .parse(message_unicode_2)
             .expect("Parser is case sensitive");
         assert_eq!(
@@ -232,14 +226,10 @@ mod tests {
         let parser = simple_config();
 
         match parser.parse("!echo what a test") {
-            Some(Command {
-                name,
-                prefix,
-                ..
-            }) => {
+            Some(Command { name, prefix, .. }) => {
                 assert_eq!("echo", name);
                 assert_eq!("!", prefix);
-            },
+            }
             other => panic!("Not command: {:?}", other),
         }
     }

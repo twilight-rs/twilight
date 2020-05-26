@@ -24,7 +24,7 @@ async fn main() -> Result<(), Box<dyn Error + Send + Sync>> {
                 shard
                     .command(&RequestGuildMembers::new_all(guildcreate.id, Some(false)))
                     .await?;
-            },
+            }
             Event::Ready(_ready) => {
                 //commands can be send with the command function
 
@@ -62,7 +62,7 @@ async fn main() -> Result<(), Box<dyn Error + Send + Sync>> {
                         Some(String::from("hoister_list")),
                     ))
                     .await?;
-            },
+            }
 
             Event::MemberChunk(chunk) => {
                 //this is where the magic happens
@@ -92,7 +92,7 @@ async fn main() -> Result<(), Box<dyn Error + Send + Sync>> {
                                 // just to keep the compiler happy, empty nonces are not a thing
                             }
                         }
-                    },
+                    }
                     None => println!(
                         "Received chunk {:?}/{:?} for guilds {:?}",
                         chunk.chunk_index + 1,
@@ -100,9 +100,9 @@ async fn main() -> Result<(), Box<dyn Error + Send + Sync>> {
                         chunk.guild_id
                     ),
                 }
-            },
+            }
 
-            _ => {},
+            _ => {}
         }
     }
 

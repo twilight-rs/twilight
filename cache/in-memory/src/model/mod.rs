@@ -8,12 +8,8 @@ mod presence;
 mod voice_state;
 
 pub use self::{
-    emoji::CachedEmoji,
-    guild::CachedGuild,
-    member::CachedMember,
-    message::CachedMessage,
-    presence::CachedPresence,
-    voice_state::CachedVoiceState,
+    emoji::CachedEmoji, guild::CachedGuild, member::CachedMember, message::CachedMessage,
+    presence::CachedPresence, voice_state::CachedVoiceState,
 };
 
 #[cfg(tests)]

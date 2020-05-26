@@ -10,8 +10,7 @@ use futures::{future, lock::Mutex};
 use std::{
     collections::{
         hash_map::{Entry, HashMap},
-        BTreeMap,
-        HashSet,
+        BTreeMap, HashSet,
     },
     error::Error,
     fmt::{Display, Formatter, Result as FmtResult},
@@ -50,7 +49,7 @@ async fn upsert_guild_item<K: Eq + Hash, V: PartialEq>(
             });
 
             v
-        },
+        }
         Entry::Vacant(e) => Arc::clone(
             &e.insert(GuildItem {
                 data: Arc::new(v),
@@ -73,7 +72,7 @@ async fn upsert_item<K: Eq + Hash, V: PartialEq>(
             e.insert(Arc::clone(&v));
 
             v
-        },
+        }
         Entry::Vacant(e) => Arc::clone(e.insert(Arc::new(v))),
     }
 }
@@ -414,7 +413,7 @@ impl InMemoryCache {
     pub async fn cache_emoji(&self, guild_id: GuildId, emoji: Emoji) -> Arc<CachedEmoji> {
         match self.0.emojis.lock().await.get(&emoji.id) {
             Some(e) if *e.data == emoji => return Arc::clone(&e.data),
-            Some(_) | None => {},
+            Some(_) | None => {}
         }
         let user = match emoji.user {
             Some(u) => Some(self.cache_user(u).await),
@@ -551,7 +550,7 @@ impl InMemoryCache {
         let id = (guild_id, member.user.id);
         match self.0.members.lock().await.get(&id) {
             Some(m) if **m == member => return Arc::clone(&m),
-            Some(_) | None => {},
+            Some(_) | None => {}
         }
 
         let user = self.cache_user(member.user).await;
@@ -610,7 +609,7 @@ impl InMemoryCache {
 
         match self.0.presences.lock().await.get(&k) {
             Some(p) if **p == presence => return Arc::clone(&p),
-            Some(_) | None => {},
+            Some(_) | None => {}
         }
         let cached = Arc::new(CachedPresence::from(&presence));
 
@@ -636,7 +635,7 @@ impl InMemoryCache {
                     .insert(id, Arc::clone(&v));
 
                 v
-            },
+            }
         }
     }
 
@@ -664,7 +663,7 @@ impl InMemoryCache {
     pub async fn cache_user(&self, user: User) -> Arc<User> {
         match self.0.users.lock().await.get(&user.id) {
             Some(u) if **u == user => return Arc::clone(&u),
-            Some(_) | None => {},
+            Some(_) | None => {}
         }
         let user = Arc::new(user);
         self.0.users.lock().await.insert(user.id, Arc::clone(&user));
@@ -692,7 +691,7 @@ impl InMemoryCache {
 
         match self.0.voice_states.lock().await.get(&k) {
             Some(v) if **v == vs => return Arc::clone(v),
-            Some(_) | None => {},
+            Some(_) | None => {}
         }
         let state = Arc::new(CachedVoiceState {
             channel_id: vs.channel_id,
@@ -777,9 +776,7 @@ fn guild_channel_id(channel: &GuildChannel) -> &ChannelId {
 fn presence_user_id(presence: &Presence) -> UserId {
     match presence.user {
         UserOrId::User(ref u) => u.id,
-        UserOrId::UserId {
-            id,
-        } => id,
+        UserOrId::UserId { id } => id,
     }
 }
 

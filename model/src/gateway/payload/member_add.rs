@@ -62,9 +62,7 @@ mod tests {
         serde_test::assert_tokens(
             &member_add,
             &[
-                Token::NewtypeStruct {
-                    name: "MemberAdd",
-                },
+                Token::NewtypeStruct { name: "MemberAdd" },
                 Token::Struct {
                     name: "Member",
                     len: 9,
@@ -73,9 +71,7 @@ mod tests {
                 Token::Bool(false),
                 Token::Str("guild_id"),
                 Token::Some,
-                Token::NewtypeStruct {
-                    name: "GuildId",
-                },
+                Token::NewtypeStruct { name: "GuildId" },
                 Token::Str("1"),
                 Token::Str("hoisted_role"),
                 Token::None,
@@ -88,9 +84,7 @@ mod tests {
                 Token::Str("premium_since"),
                 Token::None,
                 Token::Str("roles"),
-                Token::Seq {
-                    len: Some(0),
-                },
+                Token::Seq { len: Some(0) },
                 Token::SeqEnd,
                 Token::Str("user"),
                 Token::Struct {
@@ -98,9 +92,7 @@ mod tests {
                     len: 13,
                 },
                 Token::Str("id"),
-                Token::NewtypeStruct {
-                    name: "UserId",
-                },
+                Token::NewtypeStruct { name: "UserId" },
                 Token::Str("2"),
                 Token::Str("avatar"),
                 Token::None,

@@ -69,65 +69,49 @@ impl EmbedValidationError {
 impl Display for EmbedValidationError {
     fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
         match self {
-            Self::AuthorNameTooLarge {
-                chars,
-            } => write!(
+            Self::AuthorNameTooLarge { chars } => write!(
                 f,
                 "the author name is {} characters long, but the max is {}",
                 chars,
                 Self::AUTHOR_NAME_LENGTH
             ),
-            Self::DescriptionTooLarge {
-                chars,
-            } => write!(
+            Self::DescriptionTooLarge { chars } => write!(
                 f,
                 "the description is {} characters long, but the max is {}",
                 chars,
                 Self::DESCRIPTION_LENGTH
             ),
-            Self::EmbedTooLarge {
-                chars,
-            } => write!(
+            Self::EmbedTooLarge { chars } => write!(
                 f,
                 "the combined total length of the embed is {} characters long, but the max is {}",
                 chars,
                 Self::EMBED_TOTAL_LENGTH
             ),
-            Self::FieldNameTooLarge {
-                chars,
-            } => write!(
+            Self::FieldNameTooLarge { chars } => write!(
                 f,
                 "a field name is {} characters long, but the max is {}",
                 chars,
                 Self::FIELD_NAME_LENGTH
             ),
-            Self::FieldValueTooLarge {
-                chars,
-            } => write!(
+            Self::FieldValueTooLarge { chars } => write!(
                 f,
                 "a field value is {} characters long, but the max is {}",
                 chars,
                 Self::FIELD_VALUE_LENGTH
             ),
-            Self::FooterTextTooLarge {
-                chars,
-            } => write!(
+            Self::FooterTextTooLarge { chars } => write!(
                 f,
                 "the footer's text is {} characters long, but the max is {}",
                 chars,
                 Self::FOOTER_TEXT_LENGTH
             ),
-            Self::TitleTooLarge {
-                chars,
-            } => write!(
+            Self::TitleTooLarge { chars } => write!(
                 f,
                 "the title's length is {} characters long, but the max is {}",
                 chars,
                 Self::TITLE_LENGTH
             ),
-            Self::TooManyFields {
-                amount,
-            } => write!(
+            Self::TooManyFields { amount } => write!(
                 f,
                 "there are {} fields, but the maximum amount is {}",
                 amount,
@@ -181,9 +165,7 @@ pub fn embed(embed: &Embed) -> Result<(), EmbedValidationError> {
         let chars = name.chars().count();
 
         if chars > EmbedValidationError::AUTHOR_NAME_LENGTH {
-            return Err(EmbedValidationError::AuthorNameTooLarge {
-                chars,
-            });
+            return Err(EmbedValidationError::AuthorNameTooLarge { chars });
         }
 
         total += chars;
@@ -193,9 +175,7 @@ pub fn embed(embed: &Embed) -> Result<(), EmbedValidationError> {
         let chars = description.chars().count();
 
         if chars > EmbedValidationError::DESCRIPTION_LENGTH {
-            return Err(EmbedValidationError::DescriptionTooLarge {
-                chars,
-            });
+            return Err(EmbedValidationError::DescriptionTooLarge { chars });
         }
 
         total += chars;
@@ -205,9 +185,7 @@ pub fn embed(embed: &Embed) -> Result<(), EmbedValidationError> {
         let chars = footer.text.chars().count();
 
         if chars > EmbedValidationError::FOOTER_TEXT_LENGTH {
-            return Err(EmbedValidationError::FooterTextTooLarge {
-                chars,
-            });
+            return Err(EmbedValidationError::FooterTextTooLarge { chars });
         }
 
         total += chars;
@@ -217,17 +195,13 @@ pub fn embed(embed: &Embed) -> Result<(), EmbedValidationError> {
         let name_chars = field.name.chars().count();
 
         if name_chars > EmbedValidationError::FIELD_NAME_LENGTH {
-            return Err(EmbedValidationError::FieldNameTooLarge {
-                chars: name_chars,
-            });
+            return Err(EmbedValidationError::FieldNameTooLarge { chars: name_chars });
         }
 
         let value_chars = field.value.chars().count();
 
         if value_chars > EmbedValidationError::FIELD_VALUE_LENGTH {
-            return Err(EmbedValidationError::FieldValueTooLarge {
-                chars: value_chars,
-            });
+            return Err(EmbedValidationError::FieldValueTooLarge { chars: value_chars });
         }
 
         total += name_chars + value_chars;
@@ -237,18 +211,14 @@ pub fn embed(embed: &Embed) -> Result<(), EmbedValidationError> {
         let chars = title.chars().count();
 
         if chars > EmbedValidationError::TITLE_LENGTH {
-            return Err(EmbedValidationError::TitleTooLarge {
-                chars,
-            });
+            return Err(EmbedValidationError::TitleTooLarge { chars });
         }
 
         total += chars;
     }
 
     if total > EmbedValidationError::EMBED_TOTAL_LENGTH {
-        return Err(EmbedValidationError::EmbedTooLarge {
-            chars: total,
-        });
+        return Err(EmbedValidationError::EmbedTooLarge { chars: total });
     }
 
     Ok(())
@@ -414,9 +384,7 @@ mod tests {
         });
         assert!(matches!(
             super::embed(&embed),
-            Err(EmbedValidationError::AuthorNameTooLarge {
-                chars: 257
-            })
+            Err(EmbedValidationError::AuthorNameTooLarge { chars: 257 })
         ));
     }
 
@@ -429,9 +397,7 @@ mod tests {
         embed.description.replace(str::repeat("a", 2049));
         assert!(matches!(
             super::embed(&embed),
-            Err(EmbedValidationError::DescriptionTooLarge {
-                chars: 2049,
-            })
+            Err(EmbedValidationError::DescriptionTooLarge { chars: 2049 })
         ));
     }
 
@@ -449,9 +415,7 @@ mod tests {
 
         assert!(matches!(
             super::embed(&embed),
-            Err(EmbedValidationError::TooManyFields {
-                amount: 26,
-            })
+            Err(EmbedValidationError::TooManyFields { amount: 26 })
         ));
     }
 
@@ -472,9 +436,7 @@ mod tests {
         });
         assert!(matches!(
             super::embed(&embed),
-            Err(EmbedValidationError::FieldNameTooLarge {
-                chars: 257,
-            })
+            Err(EmbedValidationError::FieldNameTooLarge { chars: 257 })
         ));
     }
 
@@ -495,9 +457,7 @@ mod tests {
         });
         assert!(matches!(
             super::embed(&embed),
-            Err(EmbedValidationError::FieldValueTooLarge {
-                chars: 1025,
-            })
+            Err(EmbedValidationError::FieldValueTooLarge { chars: 1025 })
         ));
     }
 
@@ -518,9 +478,7 @@ mod tests {
         });
         assert!(matches!(
             super::embed(&embed),
-            Err(EmbedValidationError::FooterTextTooLarge {
-                chars: 2049,
-            })
+            Err(EmbedValidationError::FooterTextTooLarge { chars: 2049 })
         ));
     }
 
@@ -533,9 +491,7 @@ mod tests {
         embed.title.replace(str::repeat("a", 257));
         assert!(matches!(
             super::embed(&embed),
-            Err(EmbedValidationError::TitleTooLarge {
-                chars: 257,
-            })
+            Err(EmbedValidationError::TitleTooLarge { chars: 257 })
         ));
     }
 
@@ -564,9 +520,7 @@ mod tests {
 
         assert!(matches!(
             super::embed(&embed),
-            Err(EmbedValidationError::EmbedTooLarge {
-                chars: 6304,
-            })
+            Err(EmbedValidationError::EmbedTooLarge { chars: 6304 })
         ));
     }
 

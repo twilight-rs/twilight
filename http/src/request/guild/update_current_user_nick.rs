@@ -16,9 +16,7 @@ pub struct UpdateCurrentUserNick<'a> {
 impl<'a> UpdateCurrentUserNick<'a> {
     pub(crate) fn new(http: &'a Client, guild_id: GuildId, nick: impl Into<String>) -> Self {
         Self {
-            fields: UpdateCurrentUserNickFields {
-                nick: nick.into(),
-            },
+            fields: UpdateCurrentUserNickFields { nick: nick.into() },
             fut: None,
             guild_id,
             http,

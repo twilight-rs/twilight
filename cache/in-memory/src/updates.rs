@@ -44,15 +44,15 @@ impl UpdateCache<InMemoryCache, InMemoryCacheError> for ChannelCreate {
         match self.0.clone() {
             Channel::Group(c) => {
                 super::upsert_item(&cache.0.groups, c.id, c).await;
-            },
+            }
             Channel::Guild(c) => {
                 if let Some(gid) = super::guild_channel_guild_id(&c) {
                     cache.cache_guild_channel(*gid, c.clone()).await;
                 }
-            },
+            }
             Channel::Private(c) => {
                 cache.cache_private_channel(c.clone()).await;
-            },
+            }
         }
 
         Ok(())
@@ -69,15 +69,15 @@ impl UpdateCache<InMemoryCache, InMemoryCacheError> for ChannelDelete {
         match self.0 {
             Channel::Group(ref c) => {
                 cache.delete_group(c.id).await;
-            },
+            }
             Channel::Guild(ref c) => {
                 let id = *super::guild_channel_id(&c);
 
                 cache.delete_guild_channel(id).await;
-            },
+            }
             Channel::Private(ref c) => {
                 cache.0.channels_private.lock().await.remove(&c.id);
-            },
+            }
         }
 
         Ok(())
@@ -101,15 +101,15 @@ impl UpdateCache<InMemoryCache, InMemoryCacheError> for ChannelUpdate {
         match self.0.clone() {
             Channel::Group(c) => {
                 cache.cache_group(c.clone()).await;
-            },
+            }
             Channel::Guild(c) => {
                 if let Some(gid) = super::guild_channel_guild_id(&c) {
                     cache.cache_guild_channel(*gid, c.clone()).await;
                 }
-            },
+            }
             Channel::Private(c) => {
                 cache.cache_private_channel(c.clone()).await;
-            },
+            }
         }
 
         Ok(())
@@ -602,10 +602,10 @@ impl UpdateCache<InMemoryCache, InMemoryCacheError> for Ready {
             match status {
                 GuildStatus::Offline(u) => {
                     cache.unavailable_guild(u.id).await;
-                },
+                }
                 GuildStatus::Online(g) => {
                     cache.cache_guild(g.clone()).await;
-                },
+                }
             }
         }
 

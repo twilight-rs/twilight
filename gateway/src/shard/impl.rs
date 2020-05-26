@@ -228,11 +228,10 @@ impl Shard {
     /// Fails if command could not be serialized, or if the command could
     /// not be sent.
     pub async fn command(&self, com: &impl serde::Serialize) -> Result<()> {
-        let payload = Message::Text(serde_json::to_string(&com).map_err(|err| {
-            Error::PayloadSerialization {
-                source: err,
-            }
-        })?);
+        let payload = Message::Text(
+            serde_json::to_string(&com)
+                .map_err(|err| Error::PayloadSerialization { source: err })?,
+        );
         let session = self.session();
 
         // Tick ratelimiter.
@@ -241,9 +240,7 @@ impl Shard {
         session
             .tx
             .unbounded_send(payload)
-            .map_err(|err| Error::SendingMessage {
-                source: err,
-            })?;
+            .map_err(|err| Error::SendingMessage { source: err })?;
         Ok(())
     }
 

@@ -35,9 +35,7 @@ mod tests {
                 Token::None,
                 Token::Str("mobile"),
                 Token::Some,
-                Token::Enum {
-                    name: "Status",
-                },
+                Token::Enum { name: "Status" },
                 Token::Str("online"),
                 Token::Unit,
                 Token::Str("web"),

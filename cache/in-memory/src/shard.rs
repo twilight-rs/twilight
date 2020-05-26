@@ -378,10 +378,10 @@ impl UpdateCache<InMemoryCache, InMemoryCacheError> for Box<Ready> {
             match status {
                 GuildStatus::Offline(u) => {
                     cache.unavailable_guild(u.id).await;
-                },
+                }
                 GuildStatus::Online(g) => {
                     cache.cache_guild(g.clone()).await;
-                },
+                }
             }
         }
 

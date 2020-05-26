@@ -202,7 +202,7 @@ impl BucketQueueTask {
                 // - timeout reached
                 Ok(Err(_)) | Err(_) | Ok(Ok(None)) => {
                     debug!("[Bucket {:?}] Receiver timed out", self.path);
-                },
+                }
             }
         }
 
@@ -213,13 +213,11 @@ impl BucketQueueTask {
 
     async fn handle_headers(&self, headers: &RatelimitHeaders) {
         let ratelimits = match headers {
-            RatelimitHeaders::GlobalLimited {
-                reset_after,
-            } => {
+            RatelimitHeaders::GlobalLimited { reset_after } => {
                 self.lock_global(*reset_after).await;
 
                 None
-            },
+            }
             RatelimitHeaders::None => return,
             RatelimitHeaders::Present {
                 global,
@@ -233,7 +231,7 @@ impl BucketQueueTask {
                 }
 
                 Some((*limit, *remaining, *reset_after))
-            },
+            }
         };
 
         debug!("[Bucket {:?}] Updating bucket", self.path);
@@ -271,7 +269,7 @@ impl BucketQueueTask {
                     self.bucket.try_reset().await;
 
                     return;
-                },
+                }
                 TimeRemaining::NotStarted => return,
                 TimeRemaining::Some(dur) => dur,
             }

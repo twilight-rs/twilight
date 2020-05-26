@@ -265,9 +265,7 @@ mod tests {
         serde_test::assert_tokens(
             &GenericId(114_941_315_417_899_012),
             &[
-                Token::NewtypeStruct {
-                    name: "GenericId",
-                },
+                Token::NewtypeStruct { name: "GenericId" },
                 Token::Str("114941315417899012"),
             ],
         );

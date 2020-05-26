@@ -21,10 +21,7 @@ impl<'a> UpdateGuildChannelPositions<'a> {
         channel_positions: impl Iterator<Item = (ChannelId, u64)>,
     ) -> Self {
         let positions = channel_positions
-            .map(|(id, position)| Position {
-                id,
-                position,
-            })
+            .map(|(id, position)| Position { id, position })
             .collect::<Vec<_>>();
 
         Self {

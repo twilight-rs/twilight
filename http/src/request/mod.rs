@@ -32,8 +32,7 @@ mod get_voice_regions;
 mod validate;
 
 pub use self::{
-    get_gateway::GetGateway,
-    get_gateway_authed::GetGatewayAuthed,
+    get_gateway::GetGateway, get_gateway_authed::GetGatewayAuthed,
     get_voice_regions::GetVoiceRegions,
 };
 

@@ -8,10 +8,7 @@ pub struct GetVoiceRegions<'a> {
 
 impl<'a> GetVoiceRegions<'a> {
     pub(crate) fn new(http: &'a Client) -> Self {
-        Self {
-            fut: None,
-            http,
-        }
+        Self { fut: None, http }
     }
 
     fn start(&mut self) -> Result<()> {

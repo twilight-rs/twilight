@@ -73,11 +73,7 @@ impl<T: RangeBounds<u64>> TryFrom<(T, u64)> for ShardScheme {
         };
 
         if start > end {
-            return Err(Error::IdTooLarge {
-                end,
-                start,
-                total,
-            });
+            return Err(Error::IdTooLarge { end, start, total });
         }
 
         Ok(Self::Range {
@@ -232,11 +228,10 @@ impl ClusterConfigBuilder {
     /// [`ShardConfigBuilder::large_threshold`]: ../../shard/config/struct.ShardConfigBuilder.html#method.large_threshold
     /// [`ShardError::LargeThresholdInvalid`]: ../../shard/error/enum.Error.html#variant.LargeThresholdInvalid
     pub fn large_threshold(mut self, large_threshold: u64) -> Result<Self> {
-        self.1 = self.1.large_threshold(large_threshold).map_err(|source| {
-            Error::LargeThresholdInvalid {
-                source,
-            }
-        })?;
+        self.1 = self
+            .1
+            .large_threshold(large_threshold)
+            .map_err(|source| Error::LargeThresholdInvalid { source })?;
 
         Ok(self)
     }

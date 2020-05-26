@@ -16,19 +16,10 @@ mod webhook;
 mod webhook_type;
 
 pub use self::{
-    attachment::Attachment,
-    category_channel::CategoryChannel,
-    channel_mention::ChannelMention,
-    channel_type::ChannelType,
-    group::Group,
-    message::Message,
-    private_channel::PrivateChannel,
-    reaction::Reaction,
-    reaction_type::ReactionType,
-    text_channel::TextChannel,
-    voice_channel::VoiceChannel,
-    webhook::Webhook,
-    webhook_type::WebhookType,
+    attachment::Attachment, category_channel::CategoryChannel, channel_mention::ChannelMention,
+    channel_type::ChannelType, group::Group, message::Message, private_channel::PrivateChannel,
+    reaction::Reaction, reaction_type::ReactionType, text_channel::TextChannel,
+    voice_channel::VoiceChannel, webhook::Webhook, webhook_type::WebhookType,
 };
 
 #[cfg_attr(

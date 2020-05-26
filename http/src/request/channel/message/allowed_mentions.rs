@@ -207,7 +207,7 @@ impl<
                 self.r.visit(&mut m);
                 builder.fields.allowed_mentions.replace(m);
                 builder
-            },
+            }
             None => panic!(
                 "Tried to build to a messagebuilder but none was provided during construction"
             ),

@@ -211,17 +211,13 @@ impl Heartbeater {
 
             let seq = self.seq.load(Ordering::Acquire);
             let heartbeat = Heartbeat::new(seq);
-            let bytes =
-                serde_json::to_vec(&heartbeat).map_err(|source| Error::PayloadSerialization {
-                    source,
-                })?;
+            let bytes = serde_json::to_vec(&heartbeat)
+                .map_err(|source| Error::PayloadSerialization { source })?;
 
             debug!("[Heartbeat] Sending heartbeat with seq: {}", seq);
             self.tx
                 .unbounded_send(TungsteniteMessage::Binary(bytes))
-                .map_err(|source| Error::SendingMessage {
-                    source,
-                })?;
+                .map_err(|source| Error::SendingMessage { source })?;
             debug!("[Heartbeat] Sent heartbeat with seq: {}", seq);
             self.heartbeats.send().await;
         }

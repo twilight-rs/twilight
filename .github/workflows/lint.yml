@@ -20,14 +20,12 @@ jobs:
       - uses: actions/checkout@master
       - uses: actions-rs/toolchain@v1
         with:
-          toolchain: nightly
-          components: rustfmt
+          profile: minimal
+          toolchain: stable
           override: true
-
-      - run: rustup component add rustfmt
-
+          components: rustfmt
       - name: Run cargo fmt
         uses: actions-rs/cargo@v1
         with:
           command: fmt
-          args: -- --check
+          args: --all -- --check

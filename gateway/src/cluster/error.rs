@@ -56,27 +56,16 @@ pub enum Error {
 impl Display for Error {
     fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
         match self {
-            Self::GettingGatewayInfo {
-                ..
-            } => f.write_str("Getting the gateway info failed"),
-            Self::IdTooLarge {
-                end,
-                start,
-                total,
-            } => write!(
+            Self::GettingGatewayInfo { .. } => f.write_str("Getting the gateway info failed"),
+            Self::IdTooLarge { end, start, total } => write!(
                 f,
                 "The shard ID pair {}-{}/{} is mismatched",
                 start, end, total
             ),
-            Self::LargeThresholdInvalid {
-                source,
+            Self::LargeThresholdInvalid { source } | Self::ShardError { source } => {
+                write!(f, "{}", source)
             }
-            | Self::ShardError {
-                source,
-            } => write!(f, "{}", source),
-            Self::ShardDoesNotExist {
-                id,
-            } => write!(f, "The ID: {} does not exist", id),
+            Self::ShardDoesNotExist { id } => write!(f, "The ID: {} does not exist", id),
         }
     }
 }
@@ -84,21 +73,9 @@ impl Display for Error {
 impl StdError for Error {
     fn source(&self) -> Option<&(dyn StdError + 'static)> {
         match self {
-            Self::GettingGatewayInfo {
-                source,
-            } => Some(source),
-            Self::IdTooLarge {
-                ..
-            }
-            | Self::ShardDoesNotExist {
-                ..
-            } => None,
-            Self::LargeThresholdInvalid {
-                source,
-            }
-            | Self::ShardError {
-                source,
-            } => Some(source),
+            Self::GettingGatewayInfo { source } => Some(source),
+            Self::IdTooLarge { .. } | Self::ShardDoesNotExist { .. } => None,
+            Self::LargeThresholdInvalid { source } | Self::ShardError { source } => Some(source),
         }
     }
 }

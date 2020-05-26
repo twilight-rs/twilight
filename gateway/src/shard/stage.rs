@@ -34,9 +34,7 @@ pub enum StageConversionError {
 impl Display for StageConversionError {
     fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
         match self {
-            Self::InvalidInteger {
-                value,
-            } => write!(f, "The integer {} is invalid", value),
+            Self::InvalidInteger { value } => write!(f, "The integer {} is invalid", value),
         }
     }
 }
@@ -92,11 +90,7 @@ impl TryFrom<u8> for Stage {
             2 => Self::Handshaking,
             3 => Self::Identifying,
             4 => Self::Resuming,
-            other => {
-                return Err(StageConversionError::InvalidInteger {
-                    value: other,
-                })
-            },
+            other => return Err(StageConversionError::InvalidInteger { value: other }),
         })
     }
 }
