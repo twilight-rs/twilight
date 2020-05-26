@@ -43,7 +43,10 @@ async fn main() -> Result<(), Box<dyn Error + Send + Sync>> {
                 shard
                     .command(&RequestGuildMembers::new_multi_user_with_nonce(
                         GuildId(365_498_559_174_410_241),
-                        vec![UserId(77_469_400_222_932_992), UserId(77_812_253_511_913_472)],
+                        vec![
+                            UserId(77_469_400_222_932_992),
+                            UserId(77_812_253_511_913_472),
+                        ],
                         Some(true),
                         Some(String::from("looking_by_ids")),
                     ))
