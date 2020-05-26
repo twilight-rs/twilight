@@ -73,7 +73,7 @@ impl Display for EmbedValidationError {
                 chars,
             } => write!(
                 f,
-                "the author name is {} characters long, the max is {}",
+                "the author name is {} characters long, but the max is {}",
                 chars,
                 Self::AUTHOR_NAME_LENGTH
             ),
@@ -81,7 +81,7 @@ impl Display for EmbedValidationError {
                 chars,
             } => write!(
                 f,
-                "the description is {} characters long, the max is {}",
+                "the description is {} characters long, but the max is {}",
                 chars,
                 Self::DESCRIPTION_LENGTH
             ),
@@ -89,7 +89,7 @@ impl Display for EmbedValidationError {
                 chars,
             } => write!(
                 f,
-                "the combined total length of the embed is {} characters long, the max is {}",
+                "the combined total length of the embed is {} characters long, but the max is {}",
                 chars,
                 Self::EMBED_TOTAL_LENGTH
             ),
@@ -97,7 +97,7 @@ impl Display for EmbedValidationError {
                 chars,
             } => write!(
                 f,
-                "a field name is {} characters long, the max is {}",
+                "a field name is {} characters long, but the max is {}",
                 chars,
                 Self::FIELD_NAME_LENGTH
             ),
@@ -105,7 +105,7 @@ impl Display for EmbedValidationError {
                 chars,
             } => write!(
                 f,
-                "a field value is {} characters long, the max is {}",
+                "a field value is {} characters long, but the max is {}",
                 chars,
                 Self::FIELD_VALUE_LENGTH
             ),
@@ -113,7 +113,7 @@ impl Display for EmbedValidationError {
                 chars,
             } => write!(
                 f,
-                "the footer's text is {} characters long, the max is {}",
+                "the footer's text is {} characters long, but the max is {}",
                 chars,
                 Self::FOOTER_TEXT_LENGTH
             ),
@@ -121,7 +121,7 @@ impl Display for EmbedValidationError {
                 chars,
             } => write!(
                 f,
-                "the title's length is {} characters long, the max is {}",
+                "the title's length is {} characters long, but the max is {}",
                 chars,
                 Self::TITLE_LENGTH
             ),
