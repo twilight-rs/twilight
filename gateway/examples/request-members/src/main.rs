@@ -32,8 +32,8 @@ async fn main() -> Result<(), Box<dyn Error + Send + Sync>> {
                 // if we give it a nonce we will receive it back in the chunk
                 shard
                     .command(&RequestGuildMembers::new_single_user_with_nonce(
-                        GuildId(365498559174410241),
-                        UserId(106354106196570112),
+                        GuildId(365_498_559_174_410_241),
+                        UserId(106_354_106_196_570_112),
                         Some(true),
                         Some(String::from("looking_by_id")),
                     ))
@@ -42,8 +42,11 @@ async fn main() -> Result<(), Box<dyn Error + Send + Sync>> {
                 // multiple is also possible
                 shard
                     .command(&RequestGuildMembers::new_multi_user_with_nonce(
-                        GuildId(365498559174410241),
-                        vec![UserId(77469400222932992), UserId(77812253511913472)],
+                        GuildId(365_498_559_174_410_241),
+                        vec![
+                            UserId(77_469_400_222_932_992),
+                            UserId(77_812_253_511_913_472),
+                        ],
                         Some(true),
                         Some(String::from("looking_by_ids")),
                     ))
@@ -52,7 +55,7 @@ async fn main() -> Result<(), Box<dyn Error + Send + Sync>> {
                 // need a list of hoisters?
                 shard
                     .command(&RequestGuildMembers::new_with_nonce(
-                        GuildId(365498559174410241),
+                        GuildId(365_498_559_174_410_241),
                         0,
                         "!",
                         Some(false),

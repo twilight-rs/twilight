@@ -2,6 +2,7 @@ use crate::{Arguments, CommandParserConfig};
 
 /// Indicator that a command was used.
 #[derive(Clone, Debug)]
+#[non_exhaustive]
 pub struct Command<'a> {
     /// A lazy iterator of command arguments. Refer to its documentation on
     /// how to use it.
@@ -10,7 +11,6 @@ pub struct Command<'a> {
     pub name: &'a str,
     /// The prefix used to call the command.
     pub prefix: &'a str,
-    __nonexhaustive: (),
 }
 
 /// A struct to parse prefixes, commands, and arguments out of messages.
@@ -109,7 +109,6 @@ impl<'a> Parser<'a> {
             arguments: Arguments::new(buf.get(idx..)?),
             name: command,
             prefix,
-            __nonexhaustive: (),
         })
     }
 

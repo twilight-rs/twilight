@@ -106,25 +106,43 @@ pub enum RequestGuildMembersInfo {
         guild_id: GuildId,
         limit: u64,
         query: String,
-        #[serde(skip_serializing_if = "Option::is_none")]
+        #[cfg_attr(
+            feature = "serde-support",
+            serde(skip_serializing_if = "Option::is_none")
+        )]
         presences: Option<bool>,
-        #[serde(skip_serializing_if = "Option::is_none")]
+        #[cfg_attr(
+            feature = "serde-support",
+            serde(skip_serializing_if = "Option::is_none")
+        )]
         nonce: Option<String>,
     },
     SingleUser {
         guild_id: GuildId,
         user_ids: UserId,
-        #[serde(skip_serializing_if = "Option::is_none")]
+        #[cfg_attr(
+            feature = "serde-support",
+            serde(skip_serializing_if = "Option::is_none")
+        )]
         presences: Option<bool>,
-        #[serde(skip_serializing_if = "Option::is_none")]
+        #[cfg_attr(
+            feature = "serde-support",
+            serde(skip_serializing_if = "Option::is_none")
+        )]
         nonce: Option<String>,
     },
     MultiUser {
         guild_id: GuildId,
         user_ids: Vec<UserId>,
-        #[serde(skip_serializing_if = "Option::is_none")]
+        #[cfg_attr(
+            feature = "serde-support",
+            serde(skip_serializing_if = "Option::is_none")
+        )]
         presences: Option<bool>,
-        #[serde(skip_serializing_if = "Option::is_none")]
+        #[cfg_attr(
+            feature = "serde-support",
+            serde(skip_serializing_if = "Option::is_none")
+        )]
         nonce: Option<String>,
     },
 }
