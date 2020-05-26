@@ -11,17 +11,30 @@ use twilight_model::{
 #[derive(Clone, Debug)]
 pub enum UpdateMessageError {
     ContentInvalid,
+    EmbedTooLarge { source: EmbedValidationError },
 }
 
 impl Display for UpdateMessageError {
     fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
         match self {
             Self::ContentInvalid => f.write_str("the message content is invalid"),
+            Self::EmbedTooLarge {
+                ..
+            } => f.write_str("the embed's contents are too long"),
         }
     }
 }
 
-impl Error for UpdateMessageError {}
+impl Error for UpdateMessageError {
+    fn source(&self) -> Option<&(dyn Error + 'static)> {
+        match self {
+            Self::ContentInvalid => None,
+            Self::EmbedTooLarge {
+                source,
+            } => Some(source),
+        }
+    }
+}
 
 #[derive(Default, Serialize)]
 struct UpdateMessageFields {
@@ -129,10 +142,20 @@ impl<'a> UpdateMessage<'a> {
     /// Set the embed of the message.
     ///
     /// Pass `None` if you want to remove the message embed.
-    pub fn embed(mut self, embed: impl Into<Option<Embed>>) -> Self {
-        self.fields.embed.replace(embed.into());
+    pub fn embed(self, embed: impl Into<Option<Embed>>) -> Result<Self, UpdateMessageError> {
+        self._embed(embed.into())
+    }
 
-        self
+    fn _embed(mut self, embed: Option<Embed>) -> Result<Self, UpdateMessageError> {
+        if let Some(embed) = embed.as_ref() {
+            validate::embed(&embed).map_err(|source| UpdateMessageError::EmbedTooLarge {
+                source,
+            })?;
+        }
+
+        self.fields.embed.replace(embed);
+
+        Ok(self)
     }
 
     fn start(&mut self) -> Result<()> {

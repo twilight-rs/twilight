@@ -24,4 +24,4 @@ percent-encoding = "2.1"
 url = "2"
 
 [dev-dependencies]
-tokio = "0.2"
+tokio = { features = ["macros"], version = "0.2" }

@@ -17,17 +17,30 @@ use twilight_model::{
 #[derive(Clone, Debug)]
 pub enum CreateMessageError {
     ContentInvalid,
+    EmbedTooLarge { source: EmbedValidationError },
 }
 
 impl Display for CreateMessageError {
     fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
         match self {
             Self::ContentInvalid => f.write_str("the message content is invalid"),
+            Self::EmbedTooLarge {
+                ..
+            } => f.write_str("the embed's contents are too long"),
         }
     }
 }
 
-impl Error for CreateMessageError {}
+impl Error for CreateMessageError {
+    fn source(&self) -> Option<&(dyn Error + 'static)> {
+        match self {
+            Self::ContentInvalid => None,
+            Self::EmbedTooLarge {
+                source,
+            } => Some(source),
+        }
+    }
+}
 
 #[derive(Default, Serialize)]
 pub(crate) struct CreateMessageFields {
@@ -85,10 +98,14 @@ impl<'a> CreateMessage<'a> {
         Ok(self)
     }
 
-    pub fn embed(mut self, embed: Embed) -> Self {
+    pub fn embed(mut self, embed: Embed) -> Result<Self, CreateMessageError> {
+        validate::embed(&embed).map_err(|source| CreateMessageError::EmbedTooLarge {
+            source,
+        })?;
+
         self.fields.embed.replace(embed);
 
-        self
+        Ok(self)
     }
 
     pub fn allowed_mentions(

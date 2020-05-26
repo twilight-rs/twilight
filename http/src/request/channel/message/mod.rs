@@ -17,3 +17,4 @@ pub use self::{
     get_message::GetMessage,
     update_message::UpdateMessage,
 };
+pub use super::super::validate::EmbedValidationError;
