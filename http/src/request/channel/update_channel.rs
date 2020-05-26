@@ -174,7 +174,7 @@ impl<'a> UpdateChannel<'a> {
             return Err(UpdateChannelError::TopicInvalid);
         }
 
-        self.fields.topic.replace(topic.into());
+        self.fields.topic.replace(topic);
 
         Ok(self)
     }
