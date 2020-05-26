@@ -5,7 +5,7 @@ HTTP support for the twilight ecosystem.
 ## Features
 
 `twilight-http` includes two features: `native` and `rustls`. `native` is
-enabled by default. `native` will enable `reqwest`'s `native-tls` feature,
+enabled by default. `native` will enable `reqwest`'s `default-tls` feature,
 which will use the TLS library native to your OS (for example, OpenSSL on
 Linux). `rustls` will enable `reqwest`'s `rustls-tls` feature, which will use
 [rustls].
