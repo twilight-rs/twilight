@@ -403,8 +403,20 @@ impl InMemoryCache {
     pub async fn cache_guild_channel(
         &self,
         guild_id: GuildId,
-        channel: GuildChannel,
+        mut channel: GuildChannel,
     ) -> Arc<GuildChannel> {
+        match channel {
+            GuildChannel::Category(ref mut c) => {
+                c.guild_id.replace(guild_id);
+            }
+            GuildChannel::Text(ref mut c) => {
+                c.guild_id.replace(guild_id);
+            }
+            GuildChannel::Voice(ref mut c) => {
+                c.guild_id.replace(guild_id);
+            }
+        }
+
         let id = *guild_channel_id(&channel);
 
         upsert_guild_item(&self.0.channels_guild, guild_id, id, channel).await
@@ -783,13 +795,104 @@ fn presence_user_id(presence: &Presence) -> UserId {
 #[cfg(test)]
 mod tests {
     use crate::InMemoryCache;
-    use std::{error::Error, result::Result as StdResult};
+    use std::{collections::HashMap, error::Error, result::Result as StdResult};
     use twilight_model::{
+        channel::{ChannelType, GuildChannel, TextChannel},
         gateway::payload::RoleDelete,
-        id::{GuildId, RoleId},
+        guild::{
+            DefaultMessageNotificationLevel, ExplicitContentFilter, Guild, MfaLevel, Permissions,
+            PremiumTier, SystemChannelFlags, VerificationLevel,
+        },
+        id::{ChannelId, GuildId, RoleId, UserId},
     };
 
     type Result<T> = StdResult<T, Box<dyn Error>>;
+
+    #[tokio::test]
+    async fn test_guild_create_channels_have_guild_ids() -> Result<()> {
+        let mut channels = HashMap::new();
+        channels.insert(
+            ChannelId(111),
+            GuildChannel::Text(TextChannel {
+                id: ChannelId(111),
+                guild_id: None,
+                kind: ChannelType::GuildText,
+                last_message_id: None,
+                last_pin_timestamp: None,
+                name: "guild channel with no guild id".to_owned(),
+                nsfw: true,
+                permission_overwrites: Vec::new(),
+                parent_id: None,
+                position: 1,
+                rate_limit_per_user: None,
+                topic: None,
+            }),
+        );
+
+        let guild = Guild {
+            id: GuildId(123),
+            afk_channel_id: None,
+            afk_timeout: 300,
+            application_id: None,
+            banner: None,
+            channels,
+            default_message_notifications: DefaultMessageNotificationLevel::Mentions,
+            description: None,
+            discovery_splash: None,
+            embed_channel_id: None,
+            embed_enabled: None,
+            emojis: HashMap::new(),
+            explicit_content_filter: ExplicitContentFilter::AllMembers,
+            features: vec![],
+            icon: None,
+            joined_at: Some("".to_owned()),
+            large: false,
+            lazy: Some(true),
+            max_members: Some(50),
+            max_presences: Some(100),
+            member_count: Some(25),
+            members: HashMap::new(),
+            mfa_level: MfaLevel::Elevated,
+            name: "this is a guild".to_owned(),
+            owner: Some(false),
+            owner_id: UserId(456),
+            permissions: Some(Permissions::SEND_MESSAGES),
+            preferred_locale: "en-GB".to_owned(),
+            premium_subscription_count: Some(0),
+            premium_tier: PremiumTier::None,
+            presences: HashMap::new(),
+            region: "us-east".to_owned(),
+            roles: HashMap::new(),
+            splash: None,
+            system_channel_id: None,
+            system_channel_flags: SystemChannelFlags::SUPPRESS_JOIN_NOTIFICATIONS,
+            rules_channel_id: None,
+            unavailable: false,
+            verification_level: VerificationLevel::VeryHigh,
+            voice_states: HashMap::new(),
+            vanity_url_code: None,
+            widget_channel_id: None,
+            widget_enabled: None,
+        };
+
+        let cache = InMemoryCache::new();
+        cache.cache_guild(guild).await;
+
+        let channel = cache.guild_channel(ChannelId(111)).await?.unwrap();
+
+        // The channel was given to the cache without a guild ID, but because
+        // it's part of a guild create, the cache can automatically attach the
+        // guild ID to it. So now, the channel's guild ID is present with the
+        // correct value.
+        match *channel {
+            GuildChannel::Text(ref c) => {
+                assert_eq!(Some(GuildId(123)), c.guild_id);
+            }
+            _ => assert!(false, "{:?}", channel),
+        }
+
+        Ok(())
+    }
 
     #[tokio::test]
     async fn test_syntax_update() -> Result<()> {
