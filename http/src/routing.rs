@@ -572,7 +572,7 @@ impl Route {
                         "include_roles={}",
                         include_roles
                             .iter()
-                            .map(|e| e.to_string())
+                            .map(ToString::to_string)
                             .collect::<Vec<String>>()
                             .join(",")
                     );
@@ -878,7 +878,7 @@ impl Route {
                         "include_roles={}",
                         include_roles
                             .iter()
-                            .map(|e| e.to_string())
+                            .map(ToString::to_string)
                             .collect::<Vec<String>>()
                             .join(",")
                     );
