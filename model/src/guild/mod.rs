@@ -2,7 +2,6 @@ pub mod audit_log;
 
 mod ban;
 mod default_message_notification_level;
-mod widget;
 mod emoji;
 mod explicit_content_filter;
 mod info;
@@ -21,16 +20,17 @@ mod status;
 mod system_channel_flags;
 mod unavailable_guild;
 mod verification_level;
+mod widget;
 
 pub use self::{
-    ban::Ban, default_message_notification_level::DefaultMessageNotificationLevel,
-    widget::GuildWidget, emoji::Emoji, explicit_content_filter::ExplicitContentFilter,
-    info::GuildInfo, integration::GuildIntegration, integration_account::IntegrationAccount,
-    member::Member, mfa_level::MfaLevel, partial_guild::PartialGuild,
-    partial_member::PartialMember, permissions::Permissions, premium_tier::PremiumTier,
-    preview::GuildPreview, prune::GuildPrune, role::Role, status::GuildStatus,
-    system_channel_flags::SystemChannelFlags, unavailable_guild::UnavailableGuild,
-    verification_level::VerificationLevel,
+    ban::Ban, default_message_notification_level::DefaultMessageNotificationLevel, emoji::Emoji,
+    explicit_content_filter::ExplicitContentFilter, info::GuildInfo, integration::GuildIntegration,
+    integration_account::IntegrationAccount, member::Member, mfa_level::MfaLevel,
+    partial_guild::PartialGuild, partial_member::PartialMember, permissions::Permissions,
+    premium_tier::PremiumTier, preview::GuildPreview, prune::GuildPrune, role::Role,
+    status::GuildStatus, system_channel_flags::SystemChannelFlags,
+    unavailable_guild::UnavailableGuild, verification_level::VerificationLevel,
+    widget::GuildWidget,
 };
 
 use crate::{
