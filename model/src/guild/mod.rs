@@ -100,6 +100,7 @@ pub struct Guild {
     pub vanity_url_code: Option<String>,
     pub widget_channel_id: Option<ChannelId>,
     pub widget_enabled: Option<bool>,
+    pub max_video_channel_users: Option<u64>,
     pub approximate_member_count: Option<u64>,
     pub approximate_presence_count: Option<u64>,
 }
