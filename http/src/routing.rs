@@ -342,6 +342,7 @@ pub enum Route {
     GetGatewayBot,
     GetGuild {
         guild_id: u64,
+        with_counts: bool,
     },
     GetGuildEmbed {
         guild_id: u64,
@@ -793,11 +794,16 @@ impl Route {
                 format!("guilds/{}/emojis", guild_id).into(),
             ),
             Self::GetGateway => (Method::GET, Path::Gateway, "gateway".into()),
-            Self::GetGuild { guild_id } => (
-                Method::GET,
-                Path::GuildsId(guild_id),
-                format!("guilds/{}", guild_id).into(),
-            ),
+            Self::GetGuild {
+                guild_id,
+                with_counts,
+            } => {
+                let mut path = format!("guilds/{}", guild_id);
+                if with_counts {
+                    let _ = write!(path, "?with_counts=true");
+                }
+                (Method::GET, Path::GuildsId(guild_id), path.into())
+            }
             Self::GetGuildEmbed { guild_id } => (
                 Method::GET,
                 Path::GuildsIdEmbed(guild_id),

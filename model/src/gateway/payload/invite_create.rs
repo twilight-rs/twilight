@@ -1,4 +1,6 @@
 use crate::id::{ChannelId, GuildId, UserId};
+use crate::invite::TargetUserType;
+use crate::user::User;
 
 #[cfg_attr(
     feature = "serde-support",
@@ -10,9 +12,11 @@ pub struct InviteCreate {
     pub code: String,
     pub created_at: String,
     pub guild_id: GuildId,
-    pub inviter: Option<PartialUser>,
+    pub inviter: Option<User>,
     pub max_age: u64,
     pub max_uses: u64,
+    pub target_user: Option<PartialUser>,
+    pub target_user_type: Option<TargetUserType>,
     pub temporary: bool,
     pub uses: u8, // will always be zero
 }
