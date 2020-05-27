@@ -67,7 +67,7 @@ pub enum Path {
     GuildsIdAuditLogs(u64),
     GuildsIdBansUserId(u64),
     GuildsIdChannels(u64),
-    GuildsIdEmbed(u64),
+    GuildsIdWidget(u64),
     GuildsIdEmojis(u64),
     GuildsIdEmojisId(u64),
     GuildsIdIntegrations(u64),
@@ -151,7 +151,7 @@ impl FromStr for Path {
             ["guilds", id, "bans"] => GuildsIdBans(id.parse()?),
             ["guilds", id, "bans", _] => GuildsIdBansUserId(id.parse()?),
             ["guilds", id, "channels"] => GuildsIdChannels(id.parse()?),
-            ["guilds", id, "embed"] => GuildsIdEmbed(id.parse()?),
+            ["guilds", id, "widget"] => GuildsIdWidget(id.parse()?),
             ["guilds", id, "emojis"] => GuildsIdEmojis(id.parse()?),
             ["guilds", id, "emojis", _] => GuildsIdEmojisId(id.parse()?),
             ["guilds", id, "integrations"] => GuildsIdIntegrations(id.parse()?),
@@ -345,7 +345,7 @@ pub enum Route {
         guild_id: u64,
         with_counts: bool,
     },
-    GetGuildEmbed {
+    GetGuildWidget {
         guild_id: u64,
     },
     GetGuildIntegrations {
@@ -463,7 +463,7 @@ pub enum Route {
     UpdateGuildChannels {
         guild_id: u64,
     },
-    UpdateGuildEmbed {
+    UpdateGuildWidget {
         guild_id: u64,
     },
     UpdateGuildIntegration {
@@ -819,10 +819,10 @@ impl Route {
                 }
                 (Method::GET, Path::GuildsId(guild_id), path.into())
             }
-            Self::GetGuildEmbed { guild_id } => (
+            Self::GetGuildWidget { guild_id } => (
                 Method::GET,
-                Path::GuildsIdEmbed(guild_id),
-                format!("guilds/{}/embed", guild_id).into(),
+                Path::GuildsIdWidget(guild_id),
+                format!("guilds/{}/widget", guild_id).into(),
             ),
             Self::GetGuildIntegrations { guild_id } => (
                 Method::GET,
@@ -1102,10 +1102,10 @@ impl Route {
                 Path::GuildsIdChannels(guild_id),
                 format!("guilds/{}/channels", guild_id).into(),
             ),
-            Self::UpdateGuildEmbed { guild_id } => (
+            Self::UpdateGuildWidget { guild_id } => (
                 Method::PATCH,
-                Path::GuildsIdEmbed(guild_id),
-                format!("guilds/{}/embed", guild_id).into(),
+                Path::GuildsIdWidget(guild_id),
+                format!("guilds/{}/widget", guild_id).into(),
             ),
             Self::UpdateGuildIntegration {
                 guild_id,

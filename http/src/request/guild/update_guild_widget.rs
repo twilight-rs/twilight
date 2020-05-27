@@ -1,26 +1,26 @@
 use crate::request::prelude::*;
 use twilight_model::{
-    guild::GuildEmbed,
+    guild::GuildWidget,
     id::{ChannelId, GuildId},
 };
 
 #[derive(Default, Serialize)]
-struct UpdateGuildEmbedFields {
+struct UpdateGuildWidgetFields {
     channel_id: Option<ChannelId>,
     enabled: Option<bool>,
 }
 
-pub struct UpdateGuildEmbed<'a> {
-    fields: UpdateGuildEmbedFields,
-    fut: Option<Pending<'a, GuildEmbed>>,
+pub struct UpdateGuildWidget<'a> {
+    fields: UpdateGuildWidgetFields,
+    fut: Option<Pending<'a, GuildWidget>>,
     guild_id: GuildId,
     http: &'a Client,
 }
 
-impl<'a> UpdateGuildEmbed<'a> {
+impl<'a> UpdateGuildWidget<'a> {
     pub(crate) fn new(http: &'a Client, guild_id: GuildId) -> Self {
         Self {
-            fields: UpdateGuildEmbedFields::default(),
+            fields: UpdateGuildWidgetFields::default(),
             fut: None,
             guild_id,
             http,
@@ -42,7 +42,7 @@ impl<'a> UpdateGuildEmbed<'a> {
     fn start(&mut self) -> Result<()> {
         self.fut.replace(Box::pin(self.http.request(Request::from((
             serde_json::to_vec(&self.fields)?,
-            Route::UpdateGuildEmbed {
+            Route::UpdateGuildWidget {
                 guild_id: self.guild_id.0,
             },
         )))));
@@ -51,4 +51,4 @@ impl<'a> UpdateGuildEmbed<'a> {
     }
 }
 
-poll_req!(UpdateGuildEmbed<'_>, GuildEmbed);
+poll_req!(UpdateGuildWidget<'_>, GuildWidget);
