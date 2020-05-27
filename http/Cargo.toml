@@ -23,5 +23,10 @@ tokio = "0.2"
 percent-encoding = "2.1"
 url = "2"
 
+[features]
+default = ["native"]
+native = ["reqwest/default-tls"]
+rustls = ["reqwest/rustls-tls"]
+
 [dev-dependencies]
 tokio = { features = ["macros"], version = "0.2" }
