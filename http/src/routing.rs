@@ -223,6 +223,7 @@ pub enum Route {
         compute_prune_count: Option<bool>,
         days: Option<u64>,
         guild_id: u64,
+        include_roles: Vec<u64>,
     },
     CreateInvite {
         channel_id: u64,
@@ -365,6 +366,7 @@ pub enum Route {
     GetGuildPruneCount {
         days: Option<u64>,
         guild_id: u64,
+        include_roles: Vec<u64>,
     },
     GetGuildRoles {
         guild_id: u64,
@@ -552,15 +554,28 @@ impl Route {
                 compute_prune_count,
                 days,
                 guild_id,
+                include_roles,
             } => {
                 let mut path = format!("guilds/{}/prune?", guild_id);
 
                 if let Some(compute_prune_count) = compute_prune_count {
-                    let _ = write!(path, "compute_prune_count={}", compute_prune_count,);
+                    let _ = write!(path, "compute_prune_count={}&", compute_prune_count,);
                 }
 
                 if let Some(days) = days {
-                    let _ = write!(path, "&days={}", days);
+                    let _ = write!(path, "days={}&", days);
+                }
+
+                if !include_roles.is_empty() {
+                    let _ = write!(
+                        path,
+                        "include_roles={}",
+                        include_roles
+                            .iter()
+                            .map(|e| e.to_string())
+                            .collect::<Vec<String>>()
+                            .join(",")
+                    );
                 }
 
                 (Method::POST, Path::GuildsIdPrune(guild_id), path.into())
@@ -846,11 +861,27 @@ impl Route {
                 Path::GuildsIdPreview(guild_id),
                 format!("guilds/{}/preview", guild_id).into(),
             ),
-            Self::GetGuildPruneCount { days, guild_id } => {
+            Self::GetGuildPruneCount {
+                days,
+                guild_id,
+                include_roles,
+            } => {
                 let mut path = format!("guilds/{}/prune?", guild_id);
 
                 if let Some(days) = days {
-                    let _ = write!(path, "days={}", days);
+                    let _ = write!(path, "days={}&", days);
+                }
+
+                if !include_roles.is_empty() {
+                    let _ = write!(
+                        path,
+                        "include_roles={}",
+                        include_roles
+                            .iter()
+                            .map(|e| e.to_string())
+                            .collect::<Vec<String>>()
+                            .join(",")
+                    );
                 }
 
                 (Method::GET, Path::GuildsIdPrune(guild_id), path.into())

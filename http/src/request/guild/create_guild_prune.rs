@@ -3,7 +3,10 @@ use std::{
     error::Error,
     fmt::{Display, Formatter, Result as FmtResult},
 };
-use twilight_model::{guild::GuildPrune, id::GuildId};
+use twilight_model::{
+    guild::GuildPrune,
+    id::{GuildId, RoleId},
+};
 
 #[derive(Clone, Debug)]
 pub enum CreateGuildPruneError {
@@ -25,6 +28,7 @@ impl Error for CreateGuildPruneError {}
 struct CreateGuildPruneFields {
     compute_prune_count: Option<bool>,
     days: Option<u64>,
+    include_roles: Vec<u64>,
 }
 
 pub struct CreateGuildPrune<'a> {
@@ -44,6 +48,15 @@ impl<'a> CreateGuildPrune<'a> {
             http,
             reason: None,
         }
+    }
+
+    /// List of roles to include when pruning.
+    pub fn include_roles(mut self, roles: impl Iterator<Item = RoleId>) -> Self {
+        let roles = roles.map(|e| e.0).collect::<Vec<_>>();
+
+        self.fields.include_roles = roles;
+
+        self
     }
 
     pub fn compute_prune_count(mut self, compute_prune_count: bool) -> Self {
@@ -88,6 +101,7 @@ impl<'a> CreateGuildPrune<'a> {
                     compute_prune_count: self.fields.compute_prune_count,
                     days: self.fields.days,
                     guild_id: self.guild_id.0,
+                    include_roles: self.fields.include_roles.clone(),
                 },
             ))
         } else {
@@ -95,6 +109,7 @@ impl<'a> CreateGuildPrune<'a> {
                 compute_prune_count: self.fields.compute_prune_count,
                 days: self.fields.days,
                 guild_id: self.guild_id.0,
+                include_roles: self.fields.include_roles.clone(),
             })
         };
 
