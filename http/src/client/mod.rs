@@ -785,10 +785,11 @@ impl Client {
 
         let precision = HeaderValue::from_static("millisecond");
         let user_agent = HeaderValue::from_static(concat!(
-            "twilight.rs (",
+            "DiscordBot (",
             env!("CARGO_PKG_HOMEPAGE"),
-            ") ",
+            ", ",
             env!("CARGO_PKG_VERSION"),
+            ") Twilight-rs",
         ));
         builder = builder.header("X-RateLimit-Precision", precision);
         builder = builder.header("User-Agent", user_agent);
