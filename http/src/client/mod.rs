@@ -424,18 +424,8 @@ impl Client {
         UpdateGuildChannelPositions::new(self, guild_id, channel_positions)
     }
 
-    #[deprecated(note = "Please use the guild_widget method instead.")]
-    pub fn guild_embed(&self, guild_id: GuildId) -> GetGuildWidget<'_> {
-        GetGuildWidget::new(self, guild_id)
-    }
-
     pub fn guild_widget(&self, guild_id: GuildId) -> GetGuildWidget<'_> {
         GetGuildWidget::new(self, guild_id)
-    }
-
-    #[deprecated(note = "Please use the update_guild_widget method instead.")]
-    pub fn update_guild_embed(&self, guild_id: GuildId) -> UpdateGuildWidget<'_> {
-        UpdateGuildWidget::new(self, guild_id)
     }
 
     pub fn update_guild_widget(&self, guild_id: GuildId) -> UpdateGuildWidget<'_> {
