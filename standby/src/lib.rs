@@ -19,6 +19,7 @@
 //! # Examples
 //!
 //! Wait for a message in channel 123 by user 456 with the content "test":
+//!
 //! ```no_run
 //! # #[tokio::main] async fn main() -> Result<(), Box<dyn std::error::Error>> {
 //! use futures_util::future;
