@@ -292,37 +292,75 @@ impl Standby {
     }
 
     async fn process_event(&self, event: &Event) {
+        let kind = event.kind();
         let mut events = self.0.events.lock().await;
 
-        if let Some(mut bystanders) = events.get_mut(&event.kind()) {
-            self.iter_bystanders(&mut bystanders, event);
+        let remove = match events.get_mut(&kind) {
+            Some(mut bystanders) => {
+                self.iter_bystanders(&mut bystanders, event);
+
+                bystanders.is_empty()
+            }
+            None => return,
+        };
+
+        if remove {
+            events.remove(&kind);
         }
     }
 
     async fn process_guild(&self, guild_id: GuildId, event: &Event) {
         let mut guilds = self.0.guilds.lock().await;
 
-        if let Some(mut bystanders) = guilds.get_mut(&guild_id) {
-            self.iter_bystanders(&mut bystanders, event);
+        let remove = match guilds.get_mut(&guild_id) {
+            Some(mut bystanders) => {
+                self.iter_bystanders(&mut bystanders, event);
+
+                bystanders.is_empty()
+            }
+            None => return,
+        };
+
+        if remove {
+            guilds.remove(&guild_id);
         }
     }
 
     async fn process_message(&self, channel_id: ChannelId, event: &MessageCreate) {
         let mut messages = self.0.messages.lock().await;
 
-        if let Some(mut bystanders) = messages.get_mut(&channel_id) {
-            self.iter_bystanders(&mut bystanders, event);
+        let remove = match messages.get_mut(&channel_id) {
+            Some(mut bystanders) => {
+                self.iter_bystanders(&mut bystanders, event);
+
+                bystanders.is_empty()
+            }
+            None => return,
+        };
+
+        if remove {
+            messages.remove(&channel_id);
         }
     }
 
     async fn process_reaction(&self, message_id: MessageId, event: &ReactionAdd) {
         let mut reactions = self.0.reactions.lock().await;
 
-        if let Some(mut bystanders) = reactions.get_mut(&message_id) {
-            self.iter_bystanders(&mut bystanders, event);
+        let remove = match reactions.get_mut(&message_id) {
+            Some(mut bystanders) => {
+                self.iter_bystanders(&mut bystanders, event);
+
+                bystanders.is_empty()
+            }
+            None => return,
+        };
+
+        if remove {
+            reactions.remove(&message_id);
         }
     }
 
+    /// Iterate over bystanders and remove the ones that match the predicate.
     fn iter_bystanders<E: Clone>(&self, bystanders: &mut Vec<Bystander<E>>, event: &E) {
         // https://doc.rust-lang.org/std/vec/struct.Vec.html#method.drain_filter
         // https://github.com/rust-lang/rust/issues/43244
@@ -342,6 +380,10 @@ impl Standby {
             let _ = bystander.sender.try_send(event.clone());
 
             remove.push(idx);
+        }
+
+        for idx in remove.into_iter().rev() {
+            bystanders.remove(idx);
         }
     }
 }
@@ -434,6 +476,7 @@ mod tests {
                 role_id: RoleId(2),
             }))
         ));
+        assert!(standby.0.guilds.lock().await.is_empty());
     }
 
     #[tokio::test]
