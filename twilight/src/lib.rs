@@ -80,8 +80,8 @@
 //!
 //! ### `twilight-standby`
 //!
-//! `twilight-standby` is an event processor that allows for tasks to wait for a
-//! message to come in. This is useful, for example, when you have a reaction
+//! `twilight-standby` is an event processor that allows for tasks to wait for
+//! an event to come in. This is useful, for example, when you have a reaction
 //! menu and want to wait for a reaction to it to come in.
 //!
 //! ## Examples
