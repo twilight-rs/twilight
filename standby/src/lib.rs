@@ -42,8 +42,8 @@
 //! [`Standby::wait_for_message`]: struct.Standby.html#method.wait_for_message
 //! [`Standby::wait_for_reaction`]: struct.Standby.html#method.wait_for_reaction
 
-use futures_channel::mpsc::{self, Sender};
-use futures_util::{lock::Mutex, stream::StreamExt};
+use futures_channel::oneshot::{self, Sender};
+use futures_util::lock::Mutex;
 use std::{
     collections::HashMap,
     fmt::{Debug, Formatter, Result as FmtResult},
@@ -57,7 +57,7 @@ use twilight_model::{
 
 struct Bystander<E> {
     func: Box<dyn Fn(&E) -> bool>,
-    sender: Sender<E>,
+    sender: Option<Sender<E>>,
 }
 
 impl<E> Debug for Bystander<E> {
@@ -139,7 +139,7 @@ impl Standby {
         guild_id: GuildId,
         check: impl Into<Box<F>>,
     ) -> Option<Event> {
-        let (tx, mut rx) = mpsc::channel(1);
+        let (tx, rx) = oneshot::channel();
 
         {
             let mut guilds = self.0.guilds.lock().await;
@@ -147,11 +147,11 @@ impl Standby {
             let guild = guilds.entry(guild_id).or_default();
             guild.push(Bystander {
                 func: check.into(),
-                sender: tx,
+                sender: Some(tx),
             });
         }
 
-        rx.next().await
+        rx.await.ok()
     }
 
     /// Wait for an event not in a certain guild. This must be filtered by an
@@ -188,7 +188,7 @@ impl Standby {
         event_type: EventType,
         check: impl Into<Box<F>>,
     ) -> Option<Event> {
-        let (tx, mut rx) = mpsc::channel(1);
+        let (tx, rx) = oneshot::channel();
 
         {
             let mut events = self.0.events.lock().await;
@@ -196,11 +196,11 @@ impl Standby {
             let guild = events.entry(event_type).or_default();
             guild.push(Bystander {
                 func: check.into(),
-                sender: tx,
+                sender: Some(tx),
             });
         }
 
-        rx.next().await
+        rx.await.ok()
     }
 
     /// Wait for a message in a certain channel.
@@ -232,7 +232,7 @@ impl Standby {
         channel_id: ChannelId,
         check: impl Into<Box<F>>,
     ) -> Option<MessageCreate> {
-        let (tx, mut rx) = mpsc::channel(1);
+        let (tx, rx) = oneshot::channel();
 
         {
             let mut messages = self.0.messages.lock().await;
@@ -240,11 +240,11 @@ impl Standby {
             let guild = messages.entry(channel_id).or_default();
             guild.push(Bystander {
                 func: check.into(),
-                sender: tx,
+                sender: Some(tx),
             });
         }
 
-        rx.next().await
+        rx.await.ok()
     }
 
     /// Wait for a reaction on a certain message.
@@ -276,7 +276,7 @@ impl Standby {
         message_id: MessageId,
         check: impl Into<Box<F>>,
     ) -> Option<ReactionAdd> {
-        let (tx, mut rx) = mpsc::channel(1);
+        let (tx, rx) = oneshot::channel();
 
         {
             let mut reactions = self.0.reactions.lock().await;
@@ -284,11 +284,11 @@ impl Standby {
             let guild = reactions.entry(message_id).or_default();
             guild.push(Bystander {
                 func: check.into(),
-                sender: tx,
+                sender: Some(tx),
             });
         }
 
-        rx.next().await
+        rx.await.ok()
     }
 
     async fn process_event(&self, event: &Event) {
@@ -367,7 +367,12 @@ impl Standby {
         let mut remove = Vec::new();
 
         for (idx, bystander) in bystanders.iter_mut().enumerate() {
-            if bystander.sender.is_closed() {
+            let sender = match bystander.sender.take() {
+                Some(sender) => sender,
+                None => continue,
+            };
+
+            if sender.is_canceled() {
                 remove.push(idx);
 
                 continue;
@@ -377,7 +382,7 @@ impl Standby {
                 continue;
             }
 
-            let _ = bystander.sender.try_send(event.clone());
+            let _ = sender.send(event.clone());
 
             remove.push(idx);
         }
