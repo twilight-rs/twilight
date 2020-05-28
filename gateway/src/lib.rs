@@ -17,5 +17,7 @@ mod listener;
 
 pub use self::{
     cluster::{Cluster, ClusterConfig},
+    event::EventTypeFlags,
     shard::{Shard, ShardConfig},
 };
+pub use twilight_model::gateway::event::{Event, EventType};

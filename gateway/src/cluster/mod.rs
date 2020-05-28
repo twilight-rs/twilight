@@ -7,7 +7,7 @@
 //! disconnected, and when new commands come in:
 ///
 /// ```no_run
-/// use twilight_gateway::cluster::{Cluster, ClusterConfig, Event};
+/// use twilight_gateway::{cluster::{Cluster, ClusterConfig}, Event};
 /// use futures::StreamExt;
 /// use std::env;
 ///
@@ -65,4 +65,3 @@ pub use self::{
     error::{Error, Result},
     r#impl::Cluster,
 };
-pub use crate::shard::{Event, EventType};

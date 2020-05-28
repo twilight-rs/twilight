@@ -9,10 +9,9 @@ use std::{
     sync::Arc,
 };
 use twilight_cache_trait::UpdateCache;
-use twilight_gateway::shard::event::Event;
 use twilight_model::{
     channel::message::MessageReaction,
-    gateway::{payload::*, presence::Presence},
+    gateway::{event::Event, payload::*, presence::Presence},
     guild::GuildStatus,
     id::GuildId,
 };
@@ -413,7 +412,7 @@ impl UpdateCache<InMemoryCache, InMemoryCacheError> for Box<VoiceStateUpdate> {
 impl UpdateCache<InMemoryCache, InMemoryCacheError> for Event {
     #[allow(clippy::cognitive_complexity)]
     async fn update(&self, c: &InMemoryCache) -> Result<(), InMemoryCacheError> {
-        use twilight_gateway::shard::event::Event::*;
+        use twilight_model::gateway::event::Event::*;
 
         match self {
             BanAdd(v) => c.update(v).await,

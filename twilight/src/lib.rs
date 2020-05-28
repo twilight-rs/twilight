@@ -83,7 +83,7 @@
 //!
 //! ```no_run
 //! use twilight::{
-//!     gateway::{shard::Event, Cluster, ClusterConfig},
+//!     gateway::{Cluster, ClusterConfig, Event},
 //!     http::Client as HttpClient,
 //! };
 //! use futures::StreamExt;

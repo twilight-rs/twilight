@@ -1,4 +1,4 @@
-use crate::shard::EventType;
+use crate::EventTypeFlags;
 use futures::{
     channel::mpsc::{self, UnboundedReceiver, UnboundedSender},
     lock::Mutex,
@@ -12,7 +12,7 @@ use std::{
 };
 
 pub struct Listener<T> {
-    pub events: EventType,
+    pub events: EventTypeFlags,
     pub tx: UnboundedSender<T>,
 }
 
@@ -35,7 +35,7 @@ impl<T> Default for ListenersRef<T> {
 pub struct Listeners<T>(Arc<ListenersRef<T>>);
 
 impl<T> Listeners<T> {
-    pub async fn add(&self, events: EventType) -> UnboundedReceiver<T> {
+    pub async fn add(&self, events: EventTypeFlags) -> UnboundedReceiver<T> {
         let id = self.0.id.fetch_add(1, Ordering::Release) + 1;
         let (tx, rx) = mpsc::unbounded();
 
