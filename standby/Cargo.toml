@@ -1,5 +1,5 @@
 [package]
-authors = ["Twilight Developers"]
+authors = ["Twilight Contributors"]
 documentation = "https://docs.rs/twilight-standby"
 edition = "2018"
 homepage = "https://github.com/twilight-rs/twilight/tree/master/standby"
