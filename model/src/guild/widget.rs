@@ -5,7 +5,7 @@ use crate::id::ChannelId;
     derive(serde::Deserialize, serde::Serialize)
 )]
 #[derive(Clone, Debug, Eq, Hash, PartialEq)]
-pub struct GuildEmbed {
+pub struct GuildWidget {
     pub channel_id: ChannelId,
     pub enabled: bool,
 }

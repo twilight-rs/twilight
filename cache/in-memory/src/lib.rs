@@ -873,6 +873,9 @@ mod tests {
             vanity_url_code: None,
             widget_channel_id: None,
             widget_enabled: None,
+            max_video_channel_users: None,
+            approximate_member_count: None,
+            approximate_presence_count: None,
         };
 
         let cache = InMemoryCache::new();

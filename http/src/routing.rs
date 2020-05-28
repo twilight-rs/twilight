@@ -67,7 +67,7 @@ pub enum Path {
     GuildsIdAuditLogs(u64),
     GuildsIdBansUserId(u64),
     GuildsIdChannels(u64),
-    GuildsIdEmbed(u64),
+    GuildsIdWidget(u64),
     GuildsIdEmojis(u64),
     GuildsIdEmojisId(u64),
     GuildsIdIntegrations(u64),
@@ -151,7 +151,7 @@ impl FromStr for Path {
             ["guilds", id, "bans"] => GuildsIdBans(id.parse()?),
             ["guilds", id, "bans", _] => GuildsIdBansUserId(id.parse()?),
             ["guilds", id, "channels"] => GuildsIdChannels(id.parse()?),
-            ["guilds", id, "embed"] => GuildsIdEmbed(id.parse()?),
+            ["guilds", id, "widget"] => GuildsIdWidget(id.parse()?),
             ["guilds", id, "emojis"] => GuildsIdEmojis(id.parse()?),
             ["guilds", id, "emojis", _] => GuildsIdEmojisId(id.parse()?),
             ["guilds", id, "integrations"] => GuildsIdIntegrations(id.parse()?),
@@ -223,6 +223,7 @@ pub enum Route {
         compute_prune_count: Option<bool>,
         days: Option<u64>,
         guild_id: u64,
+        include_roles: Vec<u64>,
     },
     CreateInvite {
         channel_id: u64,
@@ -342,8 +343,9 @@ pub enum Route {
     GetGatewayBot,
     GetGuild {
         guild_id: u64,
+        with_counts: bool,
     },
-    GetGuildEmbed {
+    GetGuildWidget {
         guild_id: u64,
     },
     GetGuildIntegrations {
@@ -364,6 +366,7 @@ pub enum Route {
     GetGuildPruneCount {
         days: Option<u64>,
         guild_id: u64,
+        include_roles: Vec<u64>,
     },
     GetGuildRoles {
         guild_id: u64,
@@ -460,7 +463,7 @@ pub enum Route {
     UpdateGuildChannels {
         guild_id: u64,
     },
-    UpdateGuildEmbed {
+    UpdateGuildWidget {
         guild_id: u64,
     },
     UpdateGuildIntegration {
@@ -551,15 +554,28 @@ impl Route {
                 compute_prune_count,
                 days,
                 guild_id,
+                include_roles,
             } => {
                 let mut path = format!("guilds/{}/prune?", guild_id);
 
                 if let Some(compute_prune_count) = compute_prune_count {
-                    let _ = write!(path, "compute_prune_count={}", compute_prune_count,);
+                    let _ = write!(path, "compute_prune_count={}&", compute_prune_count,);
                 }
 
                 if let Some(days) = days {
-                    let _ = write!(path, "&days={}", days);
+                    let _ = write!(path, "days={}&", days);
+                }
+
+                if !include_roles.is_empty() {
+                    let _ = write!(
+                        path,
+                        "include_roles={}",
+                        include_roles
+                            .iter()
+                            .map(ToString::to_string)
+                            .collect::<Vec<String>>()
+                            .join(",")
+                    );
                 }
 
                 (Method::POST, Path::GuildsIdPrune(guild_id), path.into())
@@ -793,15 +809,20 @@ impl Route {
                 format!("guilds/{}/emojis", guild_id).into(),
             ),
             Self::GetGateway => (Method::GET, Path::Gateway, "gateway".into()),
-            Self::GetGuild { guild_id } => (
+            Self::GetGuild {
+                guild_id,
+                with_counts,
+            } => {
+                let mut path = format!("guilds/{}", guild_id);
+                if with_counts {
+                    let _ = write!(path, "?with_counts=true");
+                }
+                (Method::GET, Path::GuildsId(guild_id), path.into())
+            }
+            Self::GetGuildWidget { guild_id } => (
                 Method::GET,
-                Path::GuildsId(guild_id),
-                format!("guilds/{}", guild_id).into(),
-            ),
-            Self::GetGuildEmbed { guild_id } => (
-                Method::GET,
-                Path::GuildsIdEmbed(guild_id),
-                format!("guilds/{}/embed", guild_id).into(),
+                Path::GuildsIdWidget(guild_id),
+                format!("guilds/{}/widget", guild_id).into(),
             ),
             Self::GetGuildIntegrations { guild_id } => (
                 Method::GET,
@@ -840,11 +861,27 @@ impl Route {
                 Path::GuildsIdPreview(guild_id),
                 format!("guilds/{}/preview", guild_id).into(),
             ),
-            Self::GetGuildPruneCount { days, guild_id } => {
+            Self::GetGuildPruneCount {
+                days,
+                guild_id,
+                include_roles,
+            } => {
                 let mut path = format!("guilds/{}/prune?", guild_id);
 
                 if let Some(days) = days {
-                    let _ = write!(path, "days={}", days);
+                    let _ = write!(path, "days={}&", days);
+                }
+
+                if !include_roles.is_empty() {
+                    let _ = write!(
+                        path,
+                        "include_roles={}",
+                        include_roles
+                            .iter()
+                            .map(ToString::to_string)
+                            .collect::<Vec<String>>()
+                            .join(",")
+                    );
                 }
 
                 (Method::GET, Path::GuildsIdPrune(guild_id), path.into())
@@ -1065,10 +1102,10 @@ impl Route {
                 Path::GuildsIdChannels(guild_id),
                 format!("guilds/{}/channels", guild_id).into(),
             ),
-            Self::UpdateGuildEmbed { guild_id } => (
+            Self::UpdateGuildWidget { guild_id } => (
                 Method::PATCH,
-                Path::GuildsIdEmbed(guild_id),
-                format!("guilds/{}/embed", guild_id).into(),
+                Path::GuildsIdWidget(guild_id),
+                format!("guilds/{}/widget", guild_id).into(),
             ),
             Self::UpdateGuildIntegration {
                 guild_id,

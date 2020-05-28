@@ -424,12 +424,12 @@ impl Client {
         UpdateGuildChannelPositions::new(self, guild_id, channel_positions)
     }
 
-    pub fn guild_embed(&self, guild_id: GuildId) -> GetGuildEmbed<'_> {
-        GetGuildEmbed::new(self, guild_id)
+    pub fn guild_widget(&self, guild_id: GuildId) -> GetGuildWidget<'_> {
+        GetGuildWidget::new(self, guild_id)
     }
 
-    pub fn update_guild_embed(&self, guild_id: GuildId) -> UpdateGuildEmbed<'_> {
-        UpdateGuildEmbed::new(self, guild_id)
+    pub fn update_guild_widget(&self, guild_id: GuildId) -> UpdateGuildWidget<'_> {
+        UpdateGuildWidget::new(self, guild_id)
     }
 
     pub fn guild_integrations(&self, guild_id: GuildId) -> GetGuildIntegrations<'_> {

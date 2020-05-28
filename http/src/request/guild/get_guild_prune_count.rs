@@ -3,7 +3,10 @@ use std::{
     error::Error,
     fmt::{Display, Formatter, Result as FmtResult},
 };
-use twilight_model::{guild::GuildPrune, id::GuildId};
+use twilight_model::{
+    guild::GuildPrune,
+    id::{GuildId, RoleId},
+};
 
 #[derive(Clone, Debug)]
 pub enum GetGuildPruneCountError {
@@ -24,6 +27,7 @@ impl Error for GetGuildPruneCountError {}
 #[derive(Default)]
 struct GetGuildPruneCountFields {
     days: Option<u64>,
+    include_roles: Vec<u64>,
 }
 
 pub struct GetGuildPruneCount<'a> {
@@ -64,11 +68,21 @@ impl<'a> GetGuildPruneCount<'a> {
         Ok(self)
     }
 
+    /// List of roles to include when calculating prune count
+    pub fn include_roles(mut self, roles: impl Iterator<Item = RoleId>) -> Self {
+        let roles = roles.map(|e| e.0).collect::<Vec<_>>();
+
+        self.fields.include_roles = roles;
+
+        self
+    }
+
     fn start(&mut self) -> Result<()> {
         self.fut.replace(Box::pin(self.http.request(Request::from(
             Route::GetGuildPruneCount {
                 days: self.fields.days,
                 guild_id: self.guild_id.0,
+                include_roles: self.fields.include_roles.clone(),
             },
         ))));
 

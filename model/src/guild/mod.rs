@@ -2,7 +2,6 @@ pub mod audit_log;
 
 mod ban;
 mod default_message_notification_level;
-mod embed;
 mod emoji;
 mod explicit_content_filter;
 mod info;
@@ -21,16 +20,17 @@ mod status;
 mod system_channel_flags;
 mod unavailable_guild;
 mod verification_level;
+mod widget;
 
 pub use self::{
-    ban::Ban, default_message_notification_level::DefaultMessageNotificationLevel,
-    embed::GuildEmbed, emoji::Emoji, explicit_content_filter::ExplicitContentFilter,
-    info::GuildInfo, integration::GuildIntegration, integration_account::IntegrationAccount,
-    member::Member, mfa_level::MfaLevel, partial_guild::PartialGuild,
-    partial_member::PartialMember, permissions::Permissions, premium_tier::PremiumTier,
-    preview::GuildPreview, prune::GuildPrune, role::Role, status::GuildStatus,
-    system_channel_flags::SystemChannelFlags, unavailable_guild::UnavailableGuild,
-    verification_level::VerificationLevel,
+    ban::Ban, default_message_notification_level::DefaultMessageNotificationLevel, emoji::Emoji,
+    explicit_content_filter::ExplicitContentFilter, info::GuildInfo, integration::GuildIntegration,
+    integration_account::IntegrationAccount, member::Member, mfa_level::MfaLevel,
+    partial_guild::PartialGuild, partial_member::PartialMember, permissions::Permissions,
+    premium_tier::PremiumTier, preview::GuildPreview, prune::GuildPrune, role::Role,
+    status::GuildStatus, system_channel_flags::SystemChannelFlags,
+    unavailable_guild::UnavailableGuild, verification_level::VerificationLevel,
+    widget::GuildWidget,
 };
 
 use crate::{
@@ -100,4 +100,7 @@ pub struct Guild {
     pub vanity_url_code: Option<String>,
     pub widget_channel_id: Option<ChannelId>,
     pub widget_enabled: Option<bool>,
+    pub max_video_channel_users: Option<u64>,
+    pub approximate_member_count: Option<u64>,
+    pub approximate_presence_count: Option<u64>,
 }
