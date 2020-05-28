@@ -453,14 +453,17 @@ mod tests {
     use futures_util::future;
     use std::collections::HashMap;
     use twilight_model::{
-        channel::message::{Message, MessageType},
-        gateway::payload::{Event, MessageCreate, RoleDelete},
+        channel::{
+            message::{Message, MessageType},
+            Reaction, ReactionType,
+        },
+        gateway::payload::{Event, EventType, MessageCreate, ReactionAdd, Ready, RoleDelete},
         id::{ChannelId, GuildId, MessageId, RoleId, UserId},
-        user::User,
+        user::{CurrentUser, User},
     };
 
     #[tokio::test]
-    async fn test_wait_for_simple() {
+    async fn test_wait_for() {
         let standby = Standby::new();
         let wait = standby.wait_for(GuildId(1), |event: &Event| match event {
             Event::RoleDelete(e) => e.guild_id == GuildId(1),
@@ -482,6 +485,40 @@ mod tests {
             }))
         ));
         assert!(standby.0.guilds.lock().await.is_empty());
+    }
+
+    #[tokio::test]
+    async fn test_wait_for_event() {
+        let ready = Ready {
+            guilds: HashMap::new(),
+            session_id: String::new(),
+            shard: Some([5, 7]),
+            user: CurrentUser {
+                avatar: None,
+                bot: false,
+                discriminator: "0001".to_owned(),
+                email: None,
+                id: UserId(1),
+                mfa_enabled: true,
+                name: "twilight".to_owned(),
+                verified: false,
+            },
+            version: 6,
+        };
+        let event = Event::Ready(Box::new(ready));
+
+        let standby = Standby::new();
+        let wait = standby.wait_for_event(EventType::Ready, |event: &Event| match event {
+            Event::Ready(ready) => ready.shard.map(|[id, _]| id == 5).unwrap_or(false),
+            _ => false,
+        });
+        let process = standby.process(&event);
+
+        // wait always gets polled first
+        let (res, _) = future::join(wait, process).await;
+
+        assert_eq!(Some(event), res);
+        assert!(standby.0.events.lock().await.is_empty());
     }
 
     #[tokio::test]
@@ -538,5 +575,34 @@ mod tests {
         let (res, _) = future::join(wait, process).await;
 
         assert_eq!(Some(MessageId(3)), res.map(|msg| msg.id));
+        assert!(standby.0.messages.lock().await.is_empty());
+    }
+
+    #[tokio::test]
+    async fn test_wait_for_reaction() {
+        let reaction = Reaction {
+            channel_id: ChannelId(2),
+            emoji: ReactionType::Unicode {
+                name: "🍎".to_owned(),
+            },
+            guild_id: Some(GuildId(1)),
+            member: None,
+            message_id: MessageId(4),
+            user_id: UserId(3),
+        };
+        let event = Event::ReactionAdd(Box::new(ReactionAdd(reaction)));
+
+        let standby = Standby::new();
+        let wait = standby.wait_for_reaction(MessageId(4), |reaction: &ReactionAdd| {
+            reaction.user_id == UserId(3)
+        });
+
+        let process = standby.process(&event);
+
+        // wait always gets polled first
+        let (res, _) = future::join(wait, process).await;
+
+        assert_eq!(Some(UserId(3)), res.map(|reaction| reaction.user_id));
+        assert!(standby.0.reactions.lock().await.is_empty());
     }
 }

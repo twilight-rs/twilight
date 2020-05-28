@@ -63,7 +63,7 @@ pub use self::{
 
 /// A dispatch event, containing information about a created guild, a member
 /// added, etc.
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, Eq, PartialEq)]
 pub enum Event {
     BanAdd(BanAdd),
     BanRemove(BanRemove),
