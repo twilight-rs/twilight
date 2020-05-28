@@ -1,4 +1,5 @@
 pub mod identify;
+pub mod reaction_remove_emoji;
 pub mod resume;
 pub mod update_status;
 
@@ -28,7 +29,6 @@ mod presence_update;
 mod reaction_add;
 mod reaction_remove;
 mod reaction_remove_all;
-mod reaction_remove_emoji;
 mod ready;
 mod request_guild_members;
 mod role_create;
