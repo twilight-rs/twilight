@@ -2,7 +2,7 @@ pub mod config;
 
 use self::config::ClientConfigBuilder;
 use crate::{
-    error::{Error, ResponseError, Result, UrlError},
+    error::{Error, Result, UrlError},
     ratelimiting::{RatelimitHeaders, Ratelimiter},
     request::{
         channel::message::allowed_mentions::AllowedMentions,
@@ -851,31 +851,37 @@ impl Client {
 
     async fn make_request(&self, request: Request) -> Result<Response> {
         let resp = self.raw(request).await?;
+        let status = resp.status();
 
-        if resp.status().is_client_error() {
-            if resp.status() == StatusCode::IM_A_TEAPOT {
-                warn!(
-                    "Discord's API now runs off of teapots -- proceed to panic: {:?}",
-                    resp,
-                );
-            }
-
-            if resp.status() == StatusCode::TOO_MANY_REQUESTS {
-                warn!("Response got 429: {:?}", resp);
-            }
-
-            return Err(Error::Response {
-                source: ResponseError::Client { response: resp },
-            });
+        if status.is_success() {
+            return Ok(resp);
         }
 
-        if resp.status().is_server_error() {
-            return Err(Error::Response {
-                source: ResponseError::Server { response: resp },
-            });
+        if status == StatusCode::IM_A_TEAPOT {
+            warn!(
+                "Discord's API now runs off of teapots -- proceed to panic: {:?}",
+                resp,
+            );
         }
 
-        Ok(resp)
+        if status == StatusCode::TOO_MANY_REQUESTS {
+            warn!("Response got 429: {:?}", resp);
+        }
+
+        let bytes = resp
+            .bytes()
+            .await
+            .map_err(|source| Error::ChunkingResponse { source })?;
+        let error = serde_json::from_slice(&bytes).map_err(|source| Error::Parsing {
+            body: bytes.to_vec(),
+            source,
+        })?;
+
+        Err(Error::Response {
+            body: bytes.as_ref().to_vec(),
+            error,
+            status,
+        })
     }
 }
 

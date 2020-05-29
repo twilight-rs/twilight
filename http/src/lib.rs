@@ -20,7 +20,10 @@ pub mod ratelimiting;
 pub mod request;
 pub mod routing;
 
+mod api_error;
+
 pub use crate::{
+    api_error::ApiError,
     client::Client,
     error::{Error, Result},
 };
