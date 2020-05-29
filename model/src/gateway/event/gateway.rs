@@ -1,11 +1,4 @@
-use super::super::OpCode;
-use super::{DispatchEvent, DispatchEventWithTypeDeserializer};
-use serde::{
-    de::{Deserialize, DeserializeSeed, Deserializer, Error as DeError, MapAccess, Visitor},
-    Deserialize as DeserializeMacro,
-};
-use serde_value::Value;
-use std::fmt::{Formatter, Result as FmtResult};
+use super::DispatchEvent;
 
 /// An event from the gateway, which can either be a dispatch event with
 /// stateful updates or a heartbeat, hello, etc. that a shard needs to operate.
@@ -19,140 +12,155 @@ pub enum GatewayEvent {
     Reconnect,
 }
 
-#[derive(DeserializeMacro)]
-#[serde(field_identifier, rename_all = "lowercase")]
-enum Field {
-    D,
-    Op,
-    S,
-    T,
-}
+#[cfg(feature = "serde-support")]
+mod if_serde {
+    use super::super::super::OpCode;
+    use super::super::DispatchEventWithTypeDeserializer;
+    use super::GatewayEvent;
+    use serde::{
+        de::{Deserialize, DeserializeSeed, Deserializer, Error as DeError, MapAccess, Visitor},
+        Deserialize as DeserializeMacro,
+    };
+    use serde_value::Value;
+    use std::fmt::{Formatter, Result as FmtResult};
 
-struct GatewayEventVisitor;
-
-impl<'de> Visitor<'de> for GatewayEventVisitor {
-    type Value = GatewayEvent;
-
-    fn expecting(&self, formatter: &mut Formatter<'_>) -> FmtResult {
-        formatter.write_str("struct GatewayEvent")
+    #[derive(DeserializeMacro)]
+    #[serde(field_identifier, rename_all = "lowercase")]
+    enum Field {
+        D,
+        Op,
+        S,
+        T,
     }
 
-    fn visit_map<V>(self, mut map: V) -> Result<GatewayEvent, V::Error>
-    where
-        V: MapAccess<'de>,
-    {
-        static VALID_OPCODES: &[&str] = &[
-            "EVENT",
-            "HEARTBEAT",
-            "HEARTBEAT_ACK",
-            "HELLO",
-            "IDENTIFY",
-            "INVALID_SESSION",
-            "RECONNECT",
-        ];
+    struct GatewayEventVisitor;
 
-        // Have to use a serde_json::Value here because serde has no
-        // abstract container type.
-        let mut d = None::<Value>;
-        let mut op = None::<OpCode>;
-        let mut s = None::<u64>;
-        let mut t = None::<String>;
+    impl<'de> Visitor<'de> for GatewayEventVisitor {
+        type Value = GatewayEvent;
 
-        while let Some(key) = map.next_key()? {
-            match key {
-                Field::D => {
-                    if d.is_some() {
-                        return Err(DeError::duplicate_field("d"));
-                    }
-
-                    d = Some(map.next_value()?);
-                }
-                Field::Op => {
-                    if op.is_some() {
-                        return Err(DeError::duplicate_field("op"));
-                    }
-
-                    op = Some(map.next_value()?);
-                }
-                Field::S => {
-                    if s.is_some() {
-                        return Err(DeError::duplicate_field("s"));
-                    }
-
-                    s = map.next_value::<Option<_>>()?;
-                }
-                Field::T => {
-                    if t.is_some() {
-                        return Err(DeError::duplicate_field("t"));
-                    }
-
-                    t = map.next_value::<Option<_>>()?;
-                }
-            }
+        fn expecting(&self, formatter: &mut Formatter<'_>) -> FmtResult {
+            formatter.write_str("struct GatewayEvent")
         }
 
-        let op = op.ok_or_else(|| DeError::missing_field("op"))?;
+        fn visit_map<V>(self, mut map: V) -> Result<GatewayEvent, V::Error>
+        where
+            V: MapAccess<'de>,
+        {
+            static VALID_OPCODES: &[&str] = &[
+                "EVENT",
+                "HEARTBEAT",
+                "HEARTBEAT_ACK",
+                "HELLO",
+                "IDENTIFY",
+                "INVALID_SESSION",
+                "RECONNECT",
+            ];
 
-        Ok(match op {
-            OpCode::Event => {
-                let d = d.ok_or_else(|| DeError::missing_field("d"))?;
-                let s = s.ok_or_else(|| DeError::missing_field("s"))?;
-                let t = t.ok_or_else(|| DeError::missing_field("t"))?;
-                let event_deserialize = DispatchEventWithTypeDeserializer::new(t.as_ref());
-                let dispatch = event_deserialize.deserialize(d).map_err(DeError::custom)?;
+            // Have to use a serde_json::Value here because serde has no
+            // abstract container type.
+            let mut d = None::<Value>;
+            let mut op = None::<OpCode>;
+            let mut s = None::<u64>;
+            let mut t = None::<String>;
 
-                GatewayEvent::Dispatch(s, Box::new(dispatch))
-            }
-            OpCode::Heartbeat => {
-                let s = s.ok_or_else(|| DeError::missing_field("s"))?;
+            while let Some(key) = map.next_key()? {
+                match key {
+                    Field::D => {
+                        if d.is_some() {
+                            return Err(DeError::duplicate_field("d"));
+                        }
 
-                GatewayEvent::Heartbeat(s)
-            }
-            OpCode::HeartbeatAck => GatewayEvent::HeartbeatAck,
-            OpCode::Hello => {
-                #[derive(DeserializeMacro)]
-                struct Hello {
-                    heartbeat_interval: u64,
+                        d = Some(map.next_value()?);
+                    }
+                    Field::Op => {
+                        if op.is_some() {
+                            return Err(DeError::duplicate_field("op"));
+                        }
+
+                        op = Some(map.next_value()?);
+                    }
+                    Field::S => {
+                        if s.is_some() {
+                            return Err(DeError::duplicate_field("s"));
+                        }
+
+                        s = map.next_value::<Option<_>>()?;
+                    }
+                    Field::T => {
+                        if t.is_some() {
+                            return Err(DeError::duplicate_field("t"));
+                        }
+
+                        t = map.next_value::<Option<_>>()?;
+                    }
                 }
+            }
 
-                let d = d.ok_or_else(|| DeError::missing_field("d"))?;
-                let hello = Hello::deserialize(d).map_err(DeError::custom)?;
+            let op = op.ok_or_else(|| DeError::missing_field("op"))?;
 
-                GatewayEvent::Hello(hello.heartbeat_interval)
-            }
-            OpCode::InvalidSession => {
-                let d = d.ok_or_else(|| DeError::missing_field("d"))?;
-                let resumeable = bool::deserialize(d).map_err(DeError::custom)?;
+            Ok(match op {
+                OpCode::Event => {
+                    let d = d.ok_or_else(|| DeError::missing_field("d"))?;
+                    let s = s.ok_or_else(|| DeError::missing_field("s"))?;
+                    let t = t.ok_or_else(|| DeError::missing_field("t"))?;
+                    let event_deserialize = DispatchEventWithTypeDeserializer::new(t.as_ref());
+                    let dispatch = event_deserialize.deserialize(d).map_err(DeError::custom)?;
 
-                GatewayEvent::InvalidateSession(resumeable)
-            }
-            OpCode::Identify => return Err(DeError::unknown_variant("Identify", VALID_OPCODES)),
-            OpCode::Reconnect => GatewayEvent::Reconnect,
-            OpCode::RequestGuildMembers => {
-                return Err(DeError::unknown_variant(
-                    "RequestGuildMembers",
-                    VALID_OPCODES,
-                ))
-            }
-            OpCode::Resume => return Err(DeError::unknown_variant("Resume", VALID_OPCODES)),
-            OpCode::StatusUpdate => {
-                return Err(DeError::unknown_variant("StatusUpdate", VALID_OPCODES))
-            }
-            OpCode::VoiceServerPing => {
-                return Err(DeError::unknown_variant("VoiceServerPing", VALID_OPCODES))
-            }
-            OpCode::VoiceStateUpdate => {
-                return Err(DeError::unknown_variant("VoiceStateUpdate", VALID_OPCODES))
-            }
-        })
+                    GatewayEvent::Dispatch(s, Box::new(dispatch))
+                }
+                OpCode::Heartbeat => {
+                    let s = s.ok_or_else(|| DeError::missing_field("s"))?;
+
+                    GatewayEvent::Heartbeat(s)
+                }
+                OpCode::HeartbeatAck => GatewayEvent::HeartbeatAck,
+                OpCode::Hello => {
+                    #[derive(DeserializeMacro)]
+                    struct Hello {
+                        heartbeat_interval: u64,
+                    }
+
+                    let d = d.ok_or_else(|| DeError::missing_field("d"))?;
+                    let hello = Hello::deserialize(d).map_err(DeError::custom)?;
+
+                    GatewayEvent::Hello(hello.heartbeat_interval)
+                }
+                OpCode::InvalidSession => {
+                    let d = d.ok_or_else(|| DeError::missing_field("d"))?;
+                    let resumeable = bool::deserialize(d).map_err(DeError::custom)?;
+
+                    GatewayEvent::InvalidateSession(resumeable)
+                }
+                OpCode::Identify => {
+                    return Err(DeError::unknown_variant("Identify", VALID_OPCODES))
+                }
+                OpCode::Reconnect => GatewayEvent::Reconnect,
+                OpCode::RequestGuildMembers => {
+                    return Err(DeError::unknown_variant(
+                        "RequestGuildMembers",
+                        VALID_OPCODES,
+                    ))
+                }
+                OpCode::Resume => return Err(DeError::unknown_variant("Resume", VALID_OPCODES)),
+                OpCode::StatusUpdate => {
+                    return Err(DeError::unknown_variant("StatusUpdate", VALID_OPCODES))
+                }
+                OpCode::VoiceServerPing => {
+                    return Err(DeError::unknown_variant("VoiceServerPing", VALID_OPCODES))
+                }
+                OpCode::VoiceStateUpdate => {
+                    return Err(DeError::unknown_variant("VoiceStateUpdate", VALID_OPCODES))
+                }
+            })
+        }
     }
-}
 
-impl<'de> Deserialize<'de> for GatewayEvent {
-    fn deserialize<D: Deserializer<'de>>(deserializer: D) -> Result<Self, D::Error> {
-        const FIELDS: &[&str] = &["d", "op", "s", "t"];
+    impl<'de> Deserialize<'de> for GatewayEvent {
+        fn deserialize<D: Deserializer<'de>>(deserializer: D) -> Result<Self, D::Error> {
+            const FIELDS: &[&str] = &["d", "op", "s", "t"];
 
-        deserializer.deserialize_struct("GatewayEvent", FIELDS, GatewayEventVisitor)
+            deserializer.deserialize_struct("GatewayEvent", FIELDS, GatewayEventVisitor)
+        }
     }
 }
 
@@ -160,6 +168,7 @@ impl<'de> Deserialize<'de> for GatewayEvent {
 mod tests {
     use super::*;
 
+    #[cfg(feature = "serde-support")]
     #[test]
     fn test_guild() {
         let broken_guild = r#"{
@@ -230,6 +239,7 @@ mod tests {
         serde_json::from_str::<GatewayEvent>(broken_guild).unwrap();
     }
 
+    #[cfg(feature = "serde-support")]
     #[test]
     fn test_guild_2() {
         let broken_guild = r#"{

@@ -6,11 +6,10 @@ mod dispatch;
 mod gateway;
 mod kind;
 
-pub use self::{
-    dispatch::{DispatchEvent, DispatchEventWithTypeDeserializer},
-    gateway::GatewayEvent,
-    kind::EventType,
-};
+pub use self::{dispatch::DispatchEvent, gateway::GatewayEvent, kind::EventType};
+
+#[cfg(feature = "serde-support")]
+pub use self::dispatch::DispatchEventWithTypeDeserializer;
 
 use self::shard::*;
 use super::payload::*;
