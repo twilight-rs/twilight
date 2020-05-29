@@ -1,6 +1,6 @@
-use crate::ratelimiting::RatelimitError;
+use crate::{api_error::ApiError, ratelimiting::RatelimitError};
 use futures::channel::oneshot::Canceled;
-use reqwest::{header::InvalidHeaderValue, Error as ReqwestError, Response as ReqwestResponse};
+use reqwest::{header::InvalidHeaderValue, Error as ReqwestError, StatusCode};
 use serde_json::Error as JsonError;
 use std::{
     error::Error as StdError,
@@ -11,30 +11,6 @@ use std::{
 use url::ParseError as UrlParseError;
 
 pub type Result<T, E = Error> = StdResult<T, E>;
-
-#[derive(Debug)]
-pub enum ResponseError {
-    /// A 4xx response status code. Submit a GitHub issue with this error so we
-    /// can fix it.
-    Client { response: ReqwestResponse },
-    /// A 5xx response status code. These are internal errors on Discord's side.
-    Server { response: ReqwestResponse },
-}
-
-impl Display for ResponseError {
-    fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
-        match self {
-            Self::Client { .. } => f.write_str("The response was a 4xx client side error"),
-            Self::Server { .. } => f.write_str("The response was a 5xx server side error"),
-        }
-    }
-}
-
-impl StdError for ResponseError {
-    fn source(&self) -> Option<&(dyn StdError + 'static)> {
-        None
-    }
-}
 
 #[derive(Debug)]
 pub enum UrlError {
@@ -112,7 +88,9 @@ pub enum Error {
         source: ReqwestError,
     },
     Response {
-        source: ResponseError,
+        body: Vec<u8>,
+        error: ApiError,
+        status: StatusCode,
     },
 }
 
@@ -155,7 +133,11 @@ impl Display for Error {
                 f.write_str("Request was canceled either before or while being sent")
             }
             Self::RequestError { .. } => f.write_str("Parsing or sending the response failed"),
-            Self::Response { source } => write!(f, "{}", source),
+            Self::Response { error, status, .. } => write!(
+                f,
+                "Response error: status code {}, error: {}",
+                status, error
+            ),
         }
     }
 }
@@ -172,7 +154,7 @@ impl StdError for Error {
             Self::BuildingClient { source }
             | Self::ChunkingResponse { source }
             | Self::RequestError { source } => Some(source),
-            Self::Response { source } => Some(source),
+            Self::Response { .. } => None,
         }
     }
 }

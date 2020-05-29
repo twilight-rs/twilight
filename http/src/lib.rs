@@ -14,6 +14,7 @@
     clippy::missing_errors_doc
 )]
 
+pub mod api_error;
 pub mod client;
 pub mod error;
 pub mod ratelimiting;
