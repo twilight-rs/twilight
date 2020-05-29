@@ -13,26 +13,28 @@ readme = "../README.md"
 version = "0.1.0"
 
 [dependencies]
+twilight-builders = { optional = true, path = "../builders" }
 twilight-cache = { optional = true, path = "../cache/base" }
 twilight-command-parser = { optional = true, path = "../command-parser" }
 twilight-gateway = { optional = true, path = "../gateway" }
 twilight-http = { optional = true, path = "../http" }
 twilight-model = { optional = true, path = "../model" }
-twilight-builders = { optional = true, path = "../builders" }
+twilight-standby = { optional = true, path = "../standby" }
 
 [dev-dependencies]
 futures = "0.3"
 tokio = "0.2"
 
 [features]
-default = ["cache", "command-parser", "gateway", "http", "model", "builders"]
+default = ["builders", "cache", "command-parser", "gateway", "http", "model", "standby"]
 
+builders = ["twilight-builders"]
 cache = ["twilight-cache"]
 command-parser = ["twilight-command-parser"]
 gateway = ["twilight-gateway"]
 http = ["twilight-http"]
 model = ["twilight-model"]
-builders = ["twilight-builders"]
+standby = ["twilight-standby"]
 
 metrics = ["gateway-metrics"]
 gateway-metrics = ["gateway", "twilight-gateway/metrics"]

@@ -22,7 +22,7 @@ use super::payload::*;
 /// [`DispatchEvent`]: struct.DispatchEvent.html
 /// [`GatewayEvent`]: struct.GatewayEvent.html
 /// [`ShardEvent`]: shard/struct.ShardEvent.html
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, Eq, PartialEq)]
 pub enum Event {
     /// A user was banned from a guild.
     BanAdd(BanAdd),

@@ -78,6 +78,11 @@
 //! based on `hyper`. It meets Discord's ratelimiting requirements and supports
 //! proxying.
 //!
+//! ### `twilight-standby`
+//!
+//! `twilight-standby` is an event processor that allows for tasks to wait for
+//! an event to come in. This is useful, for example, when you have a reaction
+//! menu and want to wait for a reaction to it to come in.
 //!
 //! ## Examples
 //!
@@ -139,6 +144,9 @@
 //! [rust badge]: https://img.shields.io/badge/rust-1.39+%20(beta)-93450a.svg?style=flat-square
 //! [rust link]: https://github.com/rust-lang/rust/milestone/66
 
+#[cfg(feature = "builders")]
+pub extern crate twilight_builders as builders;
+
 #[cfg(feature = "cache")]
 pub extern crate twilight_cache as cache;
 
@@ -154,5 +162,5 @@ pub extern crate twilight_http as http;
 #[cfg(feature = "model")]
 pub extern crate twilight_model as model;
 
-#[cfg(feature = "builders")]
-pub extern crate twilight_builders as builders;
+#[cfg(feature = "standby")]
+pub extern crate twilight_standby as standby;

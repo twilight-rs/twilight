@@ -81,8 +81,14 @@ the arguments out.
 based on `hyper`. It meets Discord's ratelimiting requirements and supports
 proxying.
 
+### `twilight-standby`
+
+`twilight-standby` is an event processor that allows for tasks to wait for an
+event to come in. This is useful, for example, when you have a reaction menu
+and want to wait for a reaction to it to come in.
 
 ## Examples
+
 ```rust
 use std::{env, error::Error};
 use tokio::stream::StreamExt;

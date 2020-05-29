@@ -17,5 +17,6 @@ members = [
     "http/examples/get-message",
     "http/examples/proxy",
     "model",
+    "standby",
     "twilight",
 ]
