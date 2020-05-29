@@ -362,32 +362,33 @@ impl Standby {
 
     /// Iterate over bystanders and remove the ones that match the predicate.
     fn iter_bystanders<E: Clone>(&self, bystanders: &mut Vec<Bystander<E>>, event: &E) {
-        // https://doc.rust-lang.org/std/vec/struct.Vec.html#method.drain_filter
-        // https://github.com/rust-lang/rust/issues/43244
-        let mut remove = Vec::new();
+        let mut idx = 0;
 
-        for (idx, bystander) in bystanders.iter_mut().enumerate() {
+        while idx < bystanders.len() {
+            let bystander = &mut bystanders[idx];
+
             let sender = match bystander.sender.take() {
                 Some(sender) => sender,
-                None => continue,
+                None => {
+                    idx += 1;
+
+                    continue;
+                },
             };
 
             if sender.is_canceled() {
-                remove.push(idx);
+                bystanders.remove(idx);
 
                 continue;
             }
 
             if !(bystander.func)(event) {
+                idx += 1;
+
                 continue;
             }
 
             let _ = sender.send(event.clone());
-
-            remove.push(idx);
-        }
-
-        for idx in remove.into_iter().rev() {
             bystanders.remove(idx);
         }
     }
