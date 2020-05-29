@@ -51,7 +51,10 @@ use std::{
 };
 use twilight_model::{
     channel::{Channel, GuildChannel},
-    gateway::{event::{EventType, Event}, payload::{MessageCreate, ReactionAdd}},
+    gateway::{
+        event::{Event, EventType},
+        payload::{MessageCreate, ReactionAdd},
+    },
     id::{ChannelId, GuildId, MessageId},
 };
 
@@ -470,7 +473,10 @@ mod tests {
             message::{Message, MessageType},
             Reaction, ReactionType,
         },
-        gateway::{event::{EventType, Event}, payload::{MessageCreate, ReactionAdd, Ready, RoleDelete}},
+        gateway::{
+            event::{Event, EventType},
+            payload::{MessageCreate, ReactionAdd, Ready, RoleDelete},
+        },
         id::{ChannelId, GuildId, MessageId, RoleId, UserId},
         user::{CurrentUser, User},
     };
