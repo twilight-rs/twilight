@@ -51,7 +51,7 @@ use std::{
 };
 use twilight_model::{
     channel::{Channel, GuildChannel},
-    gateway::payload::{Event, EventType, MessageCreate, ReactionAdd},
+    gateway::{event::{EventType, Event}, payload::{MessageCreate, ReactionAdd}},
     id::{ChannelId, GuildId, MessageId},
 };
 
@@ -120,7 +120,7 @@ impl Standby {
     /// # #[tokio::main] async fn main() -> Result<(), Box<dyn std::error::Error>> {
     /// use futures_util::future;
     /// use twilight_model::{
-    ///     gateway::payload::{EventType, Event},
+    ///     gateway::event::{EventType, Event},
     ///     id::GuildId,
     /// };
     /// use twilight_standby::Standby;
@@ -167,7 +167,7 @@ impl Standby {
     /// ```no_run
     /// # #[tokio::main] async fn main() -> Result<(), Box<dyn std::error::Error>> {
     /// use futures_util::future;
-    /// use twilight_model::{gateway::payload::{EventType, Event}};
+    /// use twilight_model::gateway::event::{EventType, Event};
     /// use twilight_standby::Standby;
     ///
     /// let standby = Standby::new();
@@ -402,6 +402,11 @@ fn event_guild_id(event: &Event) -> Option<GuildId> {
         Event::ChannelDelete(e) => channel_guild_id(e),
         Event::ChannelPinsUpdate(_) => None,
         Event::ChannelUpdate(e) => channel_guild_id(e),
+        Event::GatewayHeartbeatAck => None,
+        Event::GatewayHeartbeat(_) => None,
+        Event::GatewayHello(_) => None,
+        Event::GatewayInvalidateSession(_) => None,
+        Event::GatewayReconnect => None,
         Event::GuildCreate(e) => Some(e.id),
         Event::GuildDelete(e) => Some(e.id),
         Event::GuildEmojisUpdate(e) => Some(e.guild_id),
@@ -428,6 +433,13 @@ fn event_guild_id(event: &Event) -> Option<GuildId> {
         Event::RoleCreate(e) => Some(e.guild_id),
         Event::RoleDelete(e) => Some(e.guild_id),
         Event::RoleUpdate(e) => Some(e.guild_id),
+        Event::ShardConnected(_) => None,
+        Event::ShardConnecting(_) => None,
+        Event::ShardDisconnected(_) => None,
+        Event::ShardIdentifying(_) => None,
+        Event::ShardPayload(_) => None,
+        Event::ShardReconnecting(_) => None,
+        Event::ShardResuming(_) => None,
         Event::TypingStart(e) => e.guild_id,
         Event::UnavailableGuild(e) => Some(e.id),
         Event::UserUpdate(_) => None,
@@ -458,7 +470,7 @@ mod tests {
             message::{Message, MessageType},
             Reaction, ReactionType,
         },
-        gateway::payload::{Event, EventType, MessageCreate, ReactionAdd, Ready, RoleDelete},
+        gateway::{event::{EventType, Event}, payload::{MessageCreate, ReactionAdd, Ready, RoleDelete}},
         id::{ChannelId, GuildId, MessageId, RoleId, UserId},
         user::{CurrentUser, User},
     };

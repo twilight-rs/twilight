@@ -1,5 +1,5 @@
 /// Indicator that a shard is now fully connected.
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, Eq, PartialEq)]
 pub struct Connected {
     /// The interval that heartbeats are being sent to the gateway.
     pub heartbeat_interval: u64,
@@ -8,7 +8,7 @@ pub struct Connected {
 }
 
 /// Indicator that a shard is now connecting.
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, Eq, PartialEq)]
 pub struct Connecting {
     /// The URL used to connect to the gateway.
     pub gateway: String,
@@ -18,7 +18,7 @@ pub struct Connecting {
 
 /// Indicator that a shard is now disconnected and may soon be reconnecting if
 /// not explicitly shutdown.
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, Eq, PartialEq)]
 pub struct Disconnected {
     /// The code for the disconnect if not initiated by the host, if any.
     pub code: Option<u16>,
@@ -30,7 +30,7 @@ pub struct Disconnected {
 
 /// Indicator that a shard is now identifying with the gateway to create a new
 /// session.
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, Eq, PartialEq)]
 pub struct Identifying {
     /// The ID of the shard that identified with the gateway.
     pub shard_id: u64,
@@ -39,21 +39,21 @@ pub struct Identifying {
 }
 
 /// A payload of bytes came in through the gateway.
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, Eq, PartialEq)]
 pub struct Payload {
     /// The bytes that came in.
     pub bytes: Vec<u8>,
 }
 
 /// Indicator that a shard is now reconnecting.
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, Eq, PartialEq)]
 pub struct Reconnecting {
     /// The ID of the shard that began reconnecting.
     pub shard_id: u64,
 }
 
 /// Indicator that a shard is now resuming a session after a disconnect.
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, Eq, PartialEq)]
 pub struct Resuming {
     /// The event sequence sent when resuming was initiated.
     pub seq: u64,
@@ -62,7 +62,7 @@ pub struct Resuming {
 }
 
 /// "Meta" events about a shard's status, not from the gateway.
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, Eq, PartialEq)]
 pub enum ShardEvent {
     /// A shard is now in a Connected stage after being fully connected to the
     /// gateway.
