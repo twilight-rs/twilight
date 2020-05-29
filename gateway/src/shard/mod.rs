@@ -34,7 +34,6 @@ mod sink;
 pub use self::{
     config::ShardConfig,
     error::{Error, Result},
-    event::{Event, EventType},
     processor::heartbeat::Latency,
     r#impl::{Information, Shard},
     sink::ShardSink,

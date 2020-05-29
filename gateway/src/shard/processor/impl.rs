@@ -2,7 +2,6 @@ use super::{
     super::{
         config::ShardConfig,
         error::{Error, Result},
-        event::Event,
         stage::Stage,
     },
     connect, emit,
@@ -11,13 +10,13 @@ use super::{
     socket_forwarder::SocketForwarder,
 };
 
-use crate::{
-    event::{DispatchEvent, GatewayEvent},
-    listener::Listeners,
-};
-use twilight_model::gateway::payload::{
-    identify::{Identify, IdentifyInfo, IdentifyProperties},
-    resume::Resume,
+use crate::listener::Listeners;
+use twilight_model::gateway::{
+    event::{DispatchEvent, Event, GatewayEvent},
+    payload::{
+        identify::{Identify, IdentifyInfo, IdentifyProperties},
+        resume::Resume,
+    },
 };
 
 use futures::{channel::mpsc::UnboundedReceiver, stream::StreamExt};

@@ -20,6 +20,7 @@ serde_repr = { optional = true, version = "0.1" }
 serde-value = { optional = true, version = "0.6" }
 
 [dev-dependencies]
+serde_json = "1"
 serde_test = "1"
 
 [features]

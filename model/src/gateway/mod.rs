@@ -1,4 +1,5 @@
 pub mod connection_info;
+pub mod event;
 pub mod payload;
 pub mod presence;
 

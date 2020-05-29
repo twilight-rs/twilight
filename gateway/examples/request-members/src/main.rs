@@ -1,6 +1,6 @@
 use futures::StreamExt;
 use std::{borrow::Borrow, env, error::Error};
-use twilight_gateway::{shard::Event, Shard};
+use twilight_gateway::{Event, Shard};
 use twilight_model::{
     gateway::payload::RequestGuildMembers,
     id::{GuildId, UserId},

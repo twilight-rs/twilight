@@ -1,12 +1,12 @@
 use super::{
     config::ShardConfig,
     error::{Error, Result},
-    event::{Event, EventType, Events},
+    event::Events,
     processor::{Latency, Session, ShardProcessor},
     sink::ShardSink,
     stage::Stage,
 };
-use crate::listener::Listeners;
+use crate::{listener::Listeners, EventTypeFlags};
 use futures::{
     future::{self, AbortHandle},
     Stream,
@@ -14,8 +14,8 @@ use futures::{
 use log::debug;
 use std::sync::Arc;
 use tokio::sync::watch::Receiver as WatchReceiver;
-
 use tokio_tungstenite::tungstenite::Message;
+use twilight_model::gateway::event::Event;
 
 #[derive(Debug)]
 pub struct ShardRef {
@@ -166,9 +166,9 @@ impl Shard {
     /// [`EventType::SHARD_PAYLOAD`]: events/struct.EventType.html#const.SHARD_PAYLOAD
     /// [`some_events`]: #method.some_events
     pub async fn events(&self) -> impl Stream<Item = Event> {
-        let rx = self.0.listeners.add(EventType::default()).await;
+        let rx = self.0.listeners.add(EventTypeFlags::default()).await;
 
-        Events::new(EventType::default(), rx)
+        Events::new(EventTypeFlags::default(), rx)
     }
 
     /// Creates a new filtered stream of events from the shard.
@@ -181,7 +181,7 @@ impl Shard {
     /// and [`Event::ShardDisconnected`] events:
     ///
     /// ```no_run
-    /// use twilight_gateway::shard::{Event, EventType, Shard};
+    /// use twilight_gateway::{EventTypeFlags, Event, Shard};
     /// use futures::StreamExt;
     /// use std::env;
     ///
@@ -189,7 +189,7 @@ impl Shard {
     /// # async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
     /// let shard = Shard::new(env::var("DISCORD_TOKEN")?).await?;
     ///
-    /// let event_types = EventType::SHARD_CONNECTED | EventType::SHARD_DISCONNECTED;
+    /// let event_types = EventTypeFlags::SHARD_CONNECTED | EventTypeFlags::SHARD_DISCONNECTED;
     /// let mut events = shard.some_events(event_types).await;
     ///
     /// while let Some(event) = events.next().await {
@@ -202,7 +202,7 @@ impl Shard {
     /// }
     /// # Ok(()) }
     /// ```
-    pub async fn some_events(&self, event_types: EventType) -> impl Stream<Item = Event> {
+    pub async fn some_events(&self, event_types: EventTypeFlags) -> impl Stream<Item = Event> {
         let rx = self.0.listeners.add(event_types).await;
 
         Events::new(event_types, rx)

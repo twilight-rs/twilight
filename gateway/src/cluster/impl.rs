@@ -2,7 +2,10 @@ use super::{
     config::{ClusterConfig, ShardScheme},
     error::{Error, Result},
 };
-use crate::shard::{event::EventType, Event, Information, Shard};
+use crate::{
+    shard::{Information, Shard},
+    EventTypeFlags,
+};
 use futures::{
     future,
     lock::Mutex,
@@ -12,6 +15,7 @@ use std::{
     collections::HashMap,
     sync::{Arc, Weak},
 };
+use twilight_model::gateway::event::Event;
 
 #[derive(Debug)]
 struct ClusterRef {
@@ -201,7 +205,7 @@ impl Cluster {
     /// updated:
     ///
     /// ```no_run
-    /// use twilight_gateway::cluster::{Cluster, Event, EventType};
+    /// use twilight_gateway::{Cluster, EventTypeFlags, Event};
     /// use futures::StreamExt;
     /// use std::env;
     ///
@@ -210,9 +214,9 @@ impl Cluster {
     /// let cluster = Cluster::from(env::var("DISCORD_TOKEN")?);
     /// cluster.up().await;
     ///
-    /// let types = EventType::MESSAGE_CREATE
-    ///     | EventType::MESSAGE_DELETE
-    ///     | EventType::MESSAGE_UPDATE;
+    /// let types = EventTypeFlags::MESSAGE_CREATE
+    ///     | EventTypeFlags::MESSAGE_DELETE
+    ///     | EventTypeFlags::MESSAGE_UPDATE;
     /// let mut events = cluster.some_events(types).await;
     ///
     /// while let Some((shard_id, event)) = events.next().await {
@@ -228,7 +232,7 @@ impl Cluster {
     /// ```
     ///
     /// [`events`]: #method.events
-    pub async fn some_events(&self, types: EventType) -> impl Stream<Item = (u64, Event)> {
+    pub async fn some_events(&self, types: EventTypeFlags) -> impl Stream<Item = (u64, Event)> {
         let shards = self.0.shards.lock().await.clone();
         cluster_some_events(shards, types).await
     }
@@ -279,7 +283,7 @@ async fn cluster_events(
 
 async fn cluster_some_events(
     shards: impl IntoIterator<Item = (u64, Shard)>,
-    types: EventType,
+    types: EventTypeFlags,
 ) -> impl Stream<Item = (u64, Event)> {
     let mut all = SelectAll::new();
 

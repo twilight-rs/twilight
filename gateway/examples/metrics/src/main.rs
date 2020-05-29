@@ -32,7 +32,7 @@ async fn main() -> Result<(), Box<dyn Error + Send + Sync>> {
     tokio::task::spawn_blocking(move || exporter.run());
 
     while let Some(event) = events.next().await {
-        println!("Event: {:?}", event.1.event_type());
+        println!("Event: {:?}", event.1.kind());
     }
 
     Ok(())
