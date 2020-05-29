@@ -373,7 +373,7 @@ impl Standby {
                     idx += 1;
 
                     continue;
-                },
+                }
             };
 
             if sender.is_canceled() {
