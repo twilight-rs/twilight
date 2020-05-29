@@ -14,16 +14,14 @@
     clippy::missing_errors_doc
 )]
 
+pub mod api_error;
 pub mod client;
 pub mod error;
 pub mod ratelimiting;
 pub mod request;
 pub mod routing;
 
-mod api_error;
-
 pub use crate::{
-    api_error::ApiError,
     client::Client,
     error::{Error, Result},
 };
