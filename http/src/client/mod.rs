@@ -2,6 +2,7 @@ pub mod config;
 
 use self::config::ClientConfigBuilder;
 use crate::{
+    api_error::{ApiError, ErrorCode},
     error::{Error, Result, UrlError},
     ratelimiting::{RatelimitHeaders, Ratelimiter},
     request::{
@@ -872,10 +873,18 @@ impl Client {
             .bytes()
             .await
             .map_err(|source| Error::ChunkingResponse { source })?;
-        let error = serde_json::from_slice(&bytes).map_err(|source| Error::Parsing {
-            body: bytes.to_vec(),
-            source,
-        })?;
+        let error =
+            serde_json::from_slice::<ApiError>(&bytes).map_err(|source| Error::Parsing {
+                body: bytes.to_vec(),
+                source,
+            })?;
+
+        if let ErrorCode::Other(num) = error.code {
+            debug!(
+                "Got an unknown API error code variant: {}; {:?}",
+                num, error
+            );
+        }
 
         Err(Error::Response {
             body: bytes.as_ref().to_vec(),
