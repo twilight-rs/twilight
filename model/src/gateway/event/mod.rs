@@ -14,15 +14,14 @@ pub use self::dispatch::DispatchEventWithTypeDeserializer;
 use self::shard::*;
 use super::payload::*;
 
-/// Any type of event that a [`Shard`] emits.
+/// Any type of event that a shard emits.
 ///
 /// This brings together all of the types of [`DispatchEvent`]s,
 /// [`GatewayEvent`]s, and [`ShardEvent`]s.
 ///
-/// [`DispatchEvent`]: ../../event/struct.DispatchEvent.html
-/// [`GatewayEvent`]: ../../event/struct.GatewayEvent.html
-/// [`ShardEvent`]: struct.ShardEvent.html
-/// [`Shard`]: ../struct.Shard.html
+/// [`DispatchEvent`]: struct.DispatchEvent.html
+/// [`GatewayEvent`]: struct.GatewayEvent.html
+/// [`ShardEvent`]: shard/struct.ShardEvent.html
 #[derive(Clone, Debug)]
 pub enum Event {
     /// A user was banned from a guild.
@@ -91,7 +90,8 @@ pub enum Event {
     ReactionRemove(Box<ReactionRemove>),
     /// All reactions were removed from a message.
     ReactionRemoveAll(ReactionRemoveAll),
-    /// All instances of a given emoji from the reactions of a message were removed
+    /// All instances of a given emoji from the reactions of a message were
+    /// removed.
     ReactionRemoveEmoji(ReactionRemoveEmoji),
     /// A shard is now "ready" and fully connected.
     Ready(Box<Ready>),
@@ -103,36 +103,22 @@ pub enum Event {
     RoleDelete(RoleDelete),
     /// A role was updated in a guild.
     RoleUpdate(RoleUpdate),
-    /// A shard is now in [`Stage::Connected`] phase after being fully connected
-    /// to the gateway.
-    ///
-    /// [`Stage::Connected`]: ../stage/enum.Stage.html#variant.Connected
+    /// A shard is now in a connected stage after being fully connected to the
+    /// gateway.
     ShardConnected(Connected),
-    /// A shard is now in [`Stage::Connecting`] phase after starting to connect
-    /// to the gateway.
-    ///
-    /// [`Stage::Connecting`]: ../stage/enum.Stage.html#variant.Connecting
+    /// A shard is now in a connecting stage after starting to connect to the
+    /// gateway.
     ShardConnecting(Connecting),
-    /// A shard is now in [`Stage::Disconnected`] phase after the connection was
-    /// closed.
-    ///
-    /// [`Stage::Disconnected`]: ../stage/enum.Stage.html#variant.Disconnected
+    /// A shard is now in a disconnected stage after the connection was closed.
     ShardDisconnected(Disconnected),
-    /// A shard is now in [`Stage::Identifying`] phase after starting a new
-    /// session.
-    ///
-    /// [`Stage::Identifying`]: ../stage/enum.Stage.html#variant.Identifying
+    /// A shard is now in a identifying stage after starting a new session.
     ShardIdentifying(Identifying),
-    /// A shard is now in [`Stage::Reconnecting`] phase after a disconnect
-    /// or session was ended.
-    ///
-    /// [`Stage::Reconnecting`]: ../stage/enum.Stage.html#variant.Reconnecting
+    /// A shard is now in a reconnecting stage after a disconnect or session was
+    /// ended.
     ShardReconnecting(Reconnecting),
     /// A payload of bytes came in through the shard's connection.
     ShardPayload(Payload),
-    /// A shard is now in [`Stage::Resuming`] phase after a disconnect.
-    ///
-    /// [`Stage::Resuming`]: ../stage/enum.Stage.html#variant.Resuming
+    /// A shard is now in a Resuming stage after a disconnect.
     ShardResuming(Resuming),
     /// A user started typing in a channel.
     TypingStart(Box<TypingStart>),

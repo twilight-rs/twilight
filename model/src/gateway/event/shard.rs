@@ -64,35 +64,21 @@ pub struct Resuming {
 /// "Meta" events about a shard's status, not from the gateway.
 #[derive(Clone, Debug)]
 pub enum ShardEvent {
-    /// A shard is now in [`Stage::Connected`] phase after being fully connected
-    /// to the gateway.
-    ///
-    /// [`Stage::Connected`]: ../stage/enum.Stage.html#variant.Connected
+    /// A shard is now in a Connected stage after being fully connected to the
+    /// gateway.
     Connected(Connected),
-    /// A shard is now in [`Stage::Connecting`] phase after starting to connect
-    /// to the gateway.
-    ///
-    /// [`Stage::Connecting`]: ../stage/enum.Stage.html#variant.Connecting
+    /// A shard is now in a Connecting stage after starting to connect to the
+    /// gateway.
     Connecting(Connecting),
-    /// A shard is now in [`Stage::Disconnected`] phase after the connection was
-    /// closed.
-    ///
-    /// [`Stage::Disconnected`]: ../stage/enum.Stage.html#variant.Disconnected
+    /// A shard is now in a Disconnected stage after the connection was closed.
     Disconnected(Disconnected),
-    /// A shard is now in [`Stage::Identifying`] phase after starting a new
-    /// session.
-    ///
-    /// [`Stage::Identifying`]: ../stage/enum.Stage.html#variant.Identifying
+    /// A shard is now in a Identifying stage after starting a new session.
     Identifying(Identifying),
     /// A payload of bytes came in through the shard's connection.
     Payload(Payload),
-    /// A shard is now in [`Stage::Reconnecting`] phase after a disconnect
-    /// or session was ended.
-    ///
-    /// [`Stage::Reconnecting`]: ../stage/enum.Stage.html#variant.Reconnecting
+    /// A shard is now in a Reconnecting stage after a disconnect or session was
+    /// ended.
     Reconnecting(Reconnecting),
-    /// A shard is now in [`Stage::Resuming`] phase after a disconnect.
-    ///
-    /// [`Stage::Resuming`]: ../stage/enum.Stage.html#variant.Resuming
+    /// A shard is now in a Resuming stage after a disconnect.
     Resuming(Resuming),
 }

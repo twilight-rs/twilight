@@ -7,7 +7,8 @@ pub use self::if_serde::DispatchEventWithTypeDeserializer;
 /// A dispatch event, containing information about a created guild, a member
 /// added, etc.
 ///
-/// To deserialize into a `DispatchEvent`, use
+/// If you have the `serde-support` model feature enabled, then you can
+/// deserialize into a `DispatchEvent`, via
 /// [`DispatchEventWithTypeDeserializer`].
 ///
 /// [`DispatchEventWithTypeDeserializer`]: struct.DispatchEventWithTypeDeserializer.html
@@ -55,7 +56,6 @@ pub enum DispatchEvent {
 
 impl DispatchEvent {
     /// Returns the type of event that this event is.
-    /// ```
     pub fn kind(&self) -> EventType {
         match self {
             Self::BanAdd(_) => EventType::BanAdd,
