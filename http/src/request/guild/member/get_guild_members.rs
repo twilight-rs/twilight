@@ -10,7 +10,7 @@ use std::{
     task::{Context, Poll},
 };
 use twilight_model::{
-    guild::member::{MemberDeserializer, Member},
+    guild::member::{Member, MemberDeserializer},
     id::{GuildId, UserId},
 };
 
@@ -112,14 +112,15 @@ impl<'a> GetGuildMembers<'a> {
     }
 
     fn start(&mut self) -> Result<()> {
-        self.fut.replace(Box::pin(self.http.request_bytes(Request::from(
-            Route::GetGuildMembers {
-                after: self.fields.after.map(|x| x.0),
-                guild_id: self.guild_id.0,
-                limit: self.fields.limit,
-                presences: self.fields.presences,
-            },
-        ))));
+        self.fut
+            .replace(Box::pin(self.http.request_bytes(Request::from(
+                Route::GetGuildMembers {
+                    after: self.fields.after.map(|x| x.0),
+                    guild_id: self.guild_id.0,
+                    limit: self.fields.limit,
+                    presences: self.fields.presences,
+                },
+            ))));
 
         Ok(())
     }
@@ -128,10 +129,7 @@ impl<'a> GetGuildMembers<'a> {
 impl Future for GetGuildMembers<'_> {
     type Output = Result<Vec<Member>>;
 
-    fn poll(
-        mut self: Pin<&mut Self>,
-        cx: &mut Context<'_>,
-    ) -> Poll<Self::Output> {
+    fn poll(mut self: Pin<&mut Self>, cx: &mut Context<'_>) -> Poll<Self::Output> {
         if self.fut.is_none() {
             self.as_mut().start()?;
         }
@@ -150,7 +148,7 @@ impl Future for GetGuildMembers<'_> {
                 }
 
                 Poll::Ready(Ok(members))
-            },
+            }
             Poll::Pending => Poll::Pending,
         }
     }

@@ -8,7 +8,7 @@ use std::{
     task::{Context, Poll},
 };
 use twilight_model::{
-    guild::member::{MemberDeserializer, Member},
+    guild::member::{Member, MemberDeserializer},
     id::{GuildId, UserId},
 };
 
@@ -30,12 +30,13 @@ impl<'a> GetMember<'a> {
     }
 
     fn start(&mut self) -> Result<()> {
-        self.fut.replace(Box::pin(self.http.request_bytes(Request::from(
-            Route::GetMember {
-                guild_id: self.guild_id.0,
-                user_id: self.user_id.0,
-            },
-        ))));
+        self.fut
+            .replace(Box::pin(self.http.request_bytes(Request::from(
+                Route::GetMember {
+                    guild_id: self.guild_id.0,
+                    user_id: self.user_id.0,
+                },
+            ))));
 
         Ok(())
     }
@@ -44,10 +45,7 @@ impl<'a> GetMember<'a> {
 impl Future for GetMember<'_> {
     type Output = Result<Option<Member>>;
 
-    fn poll(
-        mut self: Pin<&mut Self>,
-        cx: &mut Context<'_>,
-    ) -> Poll<Self::Output> {
+    fn poll(mut self: Pin<&mut Self>, cx: &mut Context<'_>) -> Poll<Self::Output> {
         if self.fut.is_none() {
             self.as_mut().start()?;
         }
@@ -59,11 +57,12 @@ impl Future for GetMember<'_> {
                 let bytes = res?;
 
                 let member_deserializer = MemberDeserializer::new(self.guild_id);
-                let deserializer: BorrowedBytesDeserializer<'_, JsonError> = BorrowedBytesDeserializer::new(&bytes);
+                let deserializer: BorrowedBytesDeserializer<'_, JsonError> =
+                    BorrowedBytesDeserializer::new(&bytes);
                 let member = member_deserializer.deserialize(deserializer)?;
 
                 Poll::Ready(Ok(Some(member)))
-            },
+            }
             Poll::Pending => Poll::Pending,
         }
     }

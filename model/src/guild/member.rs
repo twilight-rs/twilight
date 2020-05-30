@@ -26,8 +26,14 @@ pub struct Member {
 #[cfg(feature = "serde-support")]
 mod if_serde_support {
     use super::Member;
-    use crate::{id::{GuildId, RoleId, UserId}, user::User};
-    use serde::de::{DeserializeSeed, Deserializer, Deserialize, MapAccess, Visitor, value::MapAccessDeserializer};
+    use crate::{
+        id::{GuildId, RoleId, UserId},
+        user::User,
+    };
+    use serde::{
+        de::{value::MapAccessDeserializer, DeserializeSeed, Deserializer, MapAccess, Visitor},
+        Deserialize, Serialize,
+    };
     use serde_mappable_seq::Key;
     use std::fmt::{Formatter, Result as FmtResult};
 
@@ -37,16 +43,16 @@ mod if_serde_support {
         }
     }
 
-    #[derive(serde::Deserialize, serde::Serialize)]
-    pub struct MemberIntermediary {
-        pub deaf: bool,
-        pub hoisted_role: Option<RoleId>,
-        pub joined_at: Option<String>,
-        pub mute: bool,
-        pub nick: Option<String>,
-        pub premium_since: Option<String>,
-        pub roles: Vec<RoleId>,
-        pub user: User,
+    #[derive(Deserialize, Serialize)]
+    struct MemberIntermediary {
+        deaf: bool,
+        hoisted_role: Option<RoleId>,
+        joined_at: Option<String>,
+        mute: bool,
+        nick: Option<String>,
+        premium_since: Option<String>,
+        roles: Vec<RoleId>,
+        user: User,
     }
 
     /// Deserialize a member when the payload doesn't have the guild ID but
@@ -68,7 +74,10 @@ mod if_serde_support {
     impl<'de> DeserializeSeed<'de> for MemberDeserializer {
         type Value = Member;
 
-        fn deserialize<D: Deserializer<'de>>(self, deserializer: D) -> Result<Self::Value, D::Error> {
+        fn deserialize<D: Deserializer<'de>>(
+            self,
+            deserializer: D,
+        ) -> Result<Self::Value, D::Error> {
             struct MemberDeserializerVisitor(GuildId);
 
             impl<'de> Visitor<'de> for MemberDeserializerVisitor {
@@ -105,8 +114,11 @@ mod if_serde_support {
 mod tests {
     #[cfg(feature = "serde-support")]
     mod if_serde {
-        use super::super::{MemberDeserializer, Member};
-        use crate::{user::User, id::{GuildId, UserId}};
+        use super::super::{Member, MemberDeserializer};
+        use crate::{
+            id::{GuildId, UserId},
+            user::User,
+        };
         use serde::de::DeserializeSeed;
         use serde_value::Value;
         use std::collections::BTreeMap;
@@ -114,17 +126,38 @@ mod tests {
         #[test]
         fn test_member_deserializer() {
             let mut user = BTreeMap::new();
-            user.insert(Value::String("discriminator".to_owned()), Value::String("0001".to_owned()));
-            user.insert(Value::String("id".to_owned()), Value::String("2".to_owned()));
-            user.insert(Value::String("username".to_owned()), Value::String("twilight".to_owned()));
+            user.insert(
+                Value::String("discriminator".to_owned()),
+                Value::String("0001".to_owned()),
+            );
+            user.insert(
+                Value::String("id".to_owned()),
+                Value::String("2".to_owned()),
+            );
+            user.insert(
+                Value::String("username".to_owned()),
+                Value::String("twilight".to_owned()),
+            );
 
             let mut map = BTreeMap::new();
             map.insert(Value::String("deaf".to_owned()), Value::Bool(false));
-            map.insert(Value::String("hoisted_role".to_owned()), Value::Option(None));
-            map.insert(Value::String("joined_at".to_owned()), Value::String(String::new()));
+            map.insert(
+                Value::String("hoisted_role".to_owned()),
+                Value::Option(None),
+            );
+            map.insert(
+                Value::String("joined_at".to_owned()),
+                Value::String(String::new()),
+            );
             map.insert(Value::String("mute".to_owned()), Value::Bool(true));
-            map.insert(Value::String("nick".to_owned()), Value::Option(Some(Box::new(Value::String("twilight".to_owned())))));
-            map.insert(Value::String("premium_since".to_owned()), Value::Option(None));
+            map.insert(
+                Value::String("nick".to_owned()),
+                Value::Option(Some(Box::new(Value::String("twilight".to_owned())))),
+            );
+            map.insert(
+                Value::String("premium_since".to_owned()),
+                Value::Option(None),
+            );
             map.insert(Value::String("roles".to_owned()), Value::Seq(Vec::new()));
             map.insert(Value::String("user".to_owned()), Value::Map(user));
             let value = Value::Map(map);

@@ -848,8 +848,7 @@ impl Client {
     pub async fn request_bytes(&self, request: Request) -> Result<Bytes> {
         let resp = self.make_request(request).await?;
 
-        resp
-            .bytes()
+        resp.bytes()
             .await
             .map_err(|source| Error::ChunkingResponse { source })
     }
