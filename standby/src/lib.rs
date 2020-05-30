@@ -417,7 +417,7 @@ fn event_guild_id(event: &Event) -> Option<GuildId> {
         Event::GuildUpdate(e) => Some(e.id),
         Event::InviteCreate(e) => Some(e.guild_id),
         Event::InviteDelete(e) => Some(e.guild_id),
-        Event::MemberAdd(e) => e.guild_id,
+        Event::MemberAdd(e) => Some(e.guild_id),
         Event::MemberChunk(e) => Some(e.guild_id),
         Event::MemberRemove(e) => Some(e.guild_id),
         Event::MemberUpdate(e) => Some(e.guild_id),

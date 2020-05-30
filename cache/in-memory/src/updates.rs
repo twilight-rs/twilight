@@ -258,16 +258,10 @@ impl UpdateCache<InMemoryCache, InMemoryCacheError> for MemberAdd {
             return Ok(());
         }
 
-        // This will always be present on members from the gateway.
-        let guild_id = match self.guild_id {
-            Some(guild_id) => guild_id,
-            None => return Ok(()),
-        };
-
-        cache.cache_member(guild_id, self.0.clone()).await;
+        cache.cache_member(self.guild_id, self.0.clone()).await;
 
         let mut guild = cache.0.guild_members.lock().await;
-        guild.entry(guild_id).or_default().insert(self.0.user.id);
+        guild.entry(self.guild_id).or_default().insert(self.0.user.id);
 
         Ok(())
     }
