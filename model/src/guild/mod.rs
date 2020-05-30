@@ -1,4 +1,5 @@
 pub mod audit_log;
+pub mod member;
 
 mod ban;
 mod default_message_notification_level;
@@ -7,7 +8,6 @@ mod explicit_content_filter;
 mod info;
 mod integration;
 mod integration_account;
-mod member;
 mod mfa_level;
 mod partial_guild;
 mod partial_member;

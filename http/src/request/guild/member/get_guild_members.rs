@@ -1,10 +1,16 @@
 use crate::request::prelude::*;
+use bytes::Bytes;
+use serde::de::DeserializeSeed;
+use serde_json::Value;
 use std::{
     error::Error,
     fmt::{Display, Formatter, Result as FmtResult},
+    future::Future,
+    pin::Pin,
+    task::{Context, Poll},
 };
 use twilight_model::{
-    guild::Member,
+    guild::member::{Member, MemberDeserializer},
     id::{GuildId, UserId},
 };
 
@@ -56,7 +62,7 @@ struct GetGuildMembersFields {
 /// ```
 pub struct GetGuildMembers<'a> {
     fields: GetGuildMembersFields,
-    fut: Option<Pending<'a, Vec<Member>>>,
+    fut: Option<Pending<'a, Bytes>>,
     guild_id: GuildId,
     http: &'a Client,
 }
@@ -106,17 +112,44 @@ impl<'a> GetGuildMembers<'a> {
     }
 
     fn start(&mut self) -> Result<()> {
-        self.fut.replace(Box::pin(self.http.request(Request::from(
-            Route::GetGuildMembers {
-                after: self.fields.after.map(|x| x.0),
-                guild_id: self.guild_id.0,
-                limit: self.fields.limit,
-                presences: self.fields.presences,
-            },
-        ))));
+        self.fut
+            .replace(Box::pin(self.http.request_bytes(Request::from(
+                Route::GetGuildMembers {
+                    after: self.fields.after.map(|x| x.0),
+                    guild_id: self.guild_id.0,
+                    limit: self.fields.limit,
+                    presences: self.fields.presences,
+                },
+            ))));
 
         Ok(())
     }
 }
 
-poll_req!(GetGuildMembers<'_>, Vec<Member>);
+impl Future for GetGuildMembers<'_> {
+    type Output = Result<Vec<Member>>;
+
+    fn poll(mut self: Pin<&mut Self>, cx: &mut Context<'_>) -> Poll<Self::Output> {
+        if self.fut.is_none() {
+            self.as_mut().start()?;
+        }
+
+        let fut = self.fut.as_mut().expect("future is created");
+
+        match fut.as_mut().poll(cx) {
+            Poll::Ready(res) => {
+                let bytes = res?;
+                let mut members = Vec::new();
+                let values = serde_json::from_slice::<Vec<Value>>(&bytes)?;
+
+                for value in values {
+                    let member_deserializer = MemberDeserializer::new(self.guild_id);
+                    members.push(member_deserializer.deserialize(value)?);
+                }
+
+                Poll::Ready(Ok(members))
+            }
+            Poll::Pending => Poll::Pending,
+        }
+    }
+}
