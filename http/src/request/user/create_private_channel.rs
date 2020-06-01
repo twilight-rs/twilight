@@ -1,3 +1,4 @@
+use crate::json_to_vec;
 use crate::request::prelude::*;
 use twilight_model::{channel::PrivateChannel, id::UserId};
 
@@ -22,7 +23,7 @@ impl<'a> CreatePrivateChannel<'a> {
     }
     fn start(&mut self) -> Result<()> {
         self.fut.replace(Box::pin(self.http.request(Request::from((
-            serde_json::to_vec(&self.fields)?,
+            json_to_vec(&self.fields)?,
             Route::CreatePrivateChannel,
         )))));
 

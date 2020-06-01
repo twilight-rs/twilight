@@ -1,3 +1,4 @@
+use crate::json_to_vec;
 use crate::request::prelude::*;
 use twilight_model::{
     guild::{Permissions, Role},
@@ -72,7 +73,7 @@ impl<'a> CreateRole<'a> {
         let request = if let Some(reason) = &self.reason {
             let headers = audit_header(&reason)?;
             Request::from((
-                serde_json::to_vec(&self.fields)?,
+                json_to_vec(&self.fields)?,
                 headers,
                 Route::CreateRole {
                     guild_id: self.guild_id.0,
@@ -80,7 +81,7 @@ impl<'a> CreateRole<'a> {
             ))
         } else {
             Request::from((
-                serde_json::to_vec(&self.fields)?,
+                json_to_vec(&self.fields)?,
                 Route::CreateRole {
                     guild_id: self.guild_id.0,
                 },

@@ -1,3 +1,4 @@
+use crate::json_to_vec;
 use crate::request::prelude::*;
 use twilight_model::id::{GuildId, IntegrationId};
 
@@ -60,7 +61,7 @@ impl<'a> UpdateGuildIntegration<'a> {
         let request = if let Some(reason) = &self.reason {
             let headers = audit_header(&reason)?;
             Request::from((
-                serde_json::to_vec(&self.fields)?,
+                json_to_vec(&self.fields)?,
                 headers,
                 Route::UpdateGuildIntegration {
                     guild_id: self.guild_id.0,
@@ -69,7 +70,7 @@ impl<'a> UpdateGuildIntegration<'a> {
             ))
         } else {
             Request::from((
-                serde_json::to_vec(&self.fields)?,
+                json_to_vec(&self.fields)?,
                 Route::UpdateGuildIntegration {
                     guild_id: self.guild_id.0,
                     integration_id: self.integration_id.0,

@@ -26,8 +26,9 @@ futures = "0.3"
 tokio = "0.2"
 
 [features]
-default = ["builders", "cache", "command-parser", "gateway", "http", "model", "standby"]
+default = ["all"]
 
+all = ["builders", "cache", "command-parser", "gateway", "http", "model", "standby"]
 builders = ["twilight-builders"]
 cache = ["twilight-cache"]
 command-parser = ["twilight-command-parser"]
@@ -35,6 +36,7 @@ gateway = ["twilight-gateway"]
 http = ["twilight-http"]
 model = ["twilight-model"]
 standby = ["twilight-standby"]
+simd-json = ["twilight-gateway/simd-json", "twilight-http/simd-json"]
 
 metrics = ["gateway-metrics"]
 gateway-metrics = ["gateway", "twilight-gateway/metrics"]

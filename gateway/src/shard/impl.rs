@@ -229,7 +229,7 @@ impl Shard {
     /// not be sent.
     pub async fn command(&self, com: &impl serde::Serialize) -> Result<()> {
         let payload = Message::Text(
-            serde_json::to_string(&com)
+            crate::json_to_string(&com)
                 .map_err(|err| Error::PayloadSerialization { source: err })?,
         );
         let session = self.session();

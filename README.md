@@ -8,7 +8,7 @@
 be used separately or in combination for the Discord API.
 
 The ecosystem of first-class crates includes `twilight-cache`,
-`twilight-command-parser`, `twilight-gateway`, `twilight-http`, `twilight-model`,
+`twilight-command-parser`, `twilight-gateway`, `twilight-http`, `twilight-model`, `twilight-standby`
 and more. These are explained in detail below.
 
 The main `twilight` crate is a "skeleton crate": it includes all of the

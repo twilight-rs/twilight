@@ -211,7 +211,7 @@ impl Heartbeater {
 
             let seq = self.seq.load(Ordering::Acquire);
             let heartbeat = Heartbeat::new(seq);
-            let bytes = serde_json::to_vec(&heartbeat)
+            let bytes = crate::json_to_vec(&heartbeat)
                 .map_err(|source| Error::PayloadSerialization { source })?;
 
             debug!("[Heartbeat] Sending heartbeat with seq: {}", seq);

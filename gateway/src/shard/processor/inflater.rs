@@ -35,7 +35,7 @@ impl Inflater {
         self.compressed.extend_from_slice(&slice);
     }
 
-    pub fn msg(&mut self) -> Result<Option<&[u8]>, DecompressError> {
+    pub fn msg(&mut self) -> Result<Option<&mut [u8]>, DecompressError> {
         let length = self.compressed.len();
         if length >= 4 && self.compressed[(length - 4)..] == ZLIB_SUFFIX {
             // There is a payload to be decompressed.
@@ -91,7 +91,7 @@ impl Inflater {
                 );
             }
             trace!("Capacity: {}", self.buffer.capacity());
-            Ok(Some(&self.buffer))
+            Ok(Some(&mut self.buffer))
         } else {
             // Received a partial payload.
             Ok(None)
