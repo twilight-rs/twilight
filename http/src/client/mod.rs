@@ -12,7 +12,6 @@ use crate::{
         Request,
     },
 };
-use bytes::Bytes;
 use log::{debug, warn};
 use reqwest::{
     header::HeaderValue, Body, Client as ReqwestClient, ClientBuilder as ReqwestClientBuilder,
@@ -843,14 +842,6 @@ impl Client {
             body: (*bytes).to_vec(),
             source,
         })
-    }
-
-    pub async fn request_bytes(&self, request: Request) -> Result<Bytes> {
-        let resp = self.make_request(request).await?;
-
-        resp.bytes()
-            .await
-            .map_err(|source| Error::ChunkingResponse { source })
     }
 
     pub async fn verify(&self, request: Request) -> Result<()> {

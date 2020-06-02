@@ -35,7 +35,7 @@ mod tests {
     fn test_member_add() {
         let member_add = MemberAdd(Member {
             deaf: false,
-            guild_id: GuildId(1),
+            guild_id: Some(GuildId(1)),
             hoisted_role: None,
             joined_at: None,
             mute: false,
@@ -70,6 +70,7 @@ mod tests {
                 Token::Str("deaf"),
                 Token::Bool(false),
                 Token::Str("guild_id"),
+                Token::Some,
                 Token::NewtypeStruct { name: "GuildId" },
                 Token::Str("1"),
                 Token::Str("hoisted_role"),
