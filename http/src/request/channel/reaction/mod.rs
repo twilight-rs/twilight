@@ -14,7 +14,7 @@ pub use self::{
 use std::fmt::Write;
 use twilight_model::channel::ReactionType;
 
-pub fn format_emoji(emoji: ReactionType) -> String {
+fn format_emoji(emoji: ReactionType) -> String {
     match emoji {
         ReactionType::Custom { animated, id, name } => {
             let mut emoji = String::from("<");
