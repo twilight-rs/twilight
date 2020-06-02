@@ -26,7 +26,7 @@ mod tests {
             guild_id: Some(GuildId(1)),
             member: Some(Member {
                 deaf: false,
-                guild_id: GuildId(1),
+                guild_id: None,
                 hoisted_role: Some(RoleId(4)),
                 joined_at: None,
                 mute: false,
@@ -86,8 +86,7 @@ mod tests {
                 Token::Str("deaf"),
                 Token::Bool(false),
                 Token::Str("guild_id"),
-                Token::NewtypeStruct { name: "GuildId" },
-                Token::Str("1"),
+                Token::None,
                 Token::Str("hoisted_role"),
                 Token::Some,
                 Token::NewtypeStruct { name: "RoleId" },
