@@ -6,18 +6,80 @@ use log::debug;
 use std::{
     collections::{HashMap, HashSet},
     hash::Hash,
+    ops::Deref,
     sync::Arc,
 };
 use twilight_cache_trait::UpdateCache;
 use twilight_model::{
     channel::{message::MessageReaction, Channel},
-    gateway::{payload::*, presence::Presence},
+    gateway::{event::Event, payload::*, presence::Presence},
     guild::GuildStatus,
     id::GuildId,
 };
 
 fn guard(this: &InMemoryCache, event_type: EventType) -> bool {
     this.0.config.event_types().contains(event_type)
+}
+
+#[async_trait]
+impl UpdateCache<InMemoryCache, InMemoryCacheError> for Event {
+    #[allow(clippy::cognitive_complexity)]
+    async fn update(&self, c: &InMemoryCache) -> Result<(), InMemoryCacheError> {
+        use Event::*;
+
+        match self {
+            BanAdd(v) => c.update(v).await,
+            BanRemove(v) => c.update(v).await,
+            ChannelCreate(v) => c.update(v).await,
+            ChannelDelete(v) => c.update(v).await,
+            ChannelPinsUpdate(v) => c.update(v).await,
+            ChannelUpdate(v) => c.update(v).await,
+            GatewayHeartbeat(_v) => Ok(()),
+            GatewayHeartbeatAck => Ok(()),
+            GatewayHello(_v) => Ok(()),
+            GatewayInvalidateSession(_v) => Ok(()),
+            GatewayReconnect => Ok(()),
+            GuildCreate(v) => c.update(v.deref()).await,
+            GuildDelete(v) => c.update(v.deref()).await,
+            GuildEmojisUpdate(v) => c.update(v).await,
+            GuildIntegrationsUpdate(v) => c.update(v).await,
+            GuildUpdate(v) => c.update(v.deref()).await,
+            InviteCreate(_v) => Ok(()),
+            InviteDelete(_v) => Ok(()),
+            MemberAdd(v) => c.update(v.deref()).await,
+            MemberRemove(v) => c.update(v).await,
+            MemberUpdate(v) => c.update(v.deref()).await,
+            MemberChunk(v) => c.update(v).await,
+            MessageCreate(v) => c.update(v.deref()).await,
+            MessageDelete(v) => c.update(v).await,
+            MessageDeleteBulk(v) => c.update(v).await,
+            MessageUpdate(v) => c.update(v.deref()).await,
+            PresenceUpdate(v) => c.update(v.deref()).await,
+            PresencesReplace => Ok(()),
+            ReactionAdd(v) => c.update(v.deref()).await,
+            ReactionRemove(v) => c.update(v.deref()).await,
+            ReactionRemoveAll(v) => c.update(v).await,
+            ReactionRemoveEmoji(_v) => Ok(()),
+            Ready(v) => c.update(v.deref()).await,
+            Resumed => Ok(()),
+            RoleCreate(v) => c.update(v).await,
+            RoleDelete(v) => c.update(v).await,
+            RoleUpdate(v) => c.update(v).await,
+            ShardConnected(_v) => Ok(()),
+            ShardConnecting(_v) => Ok(()),
+            ShardDisconnected(_v) => Ok(()),
+            ShardIdentifying(_v) => Ok(()),
+            ShardReconnecting(_v) => Ok(()),
+            ShardPayload(_v) => Ok(()),
+            ShardResuming(_v) => Ok(()),
+            TypingStart(v) => c.update(v.deref()).await,
+            UnavailableGuild(v) => c.update(v).await,
+            UserUpdate(v) => c.update(v).await,
+            VoiceServerUpdate(v) => c.update(v).await,
+            VoiceStateUpdate(v) => c.update(v.deref()).await,
+            WebhooksUpdate(v) => c.update(v).await,
+        }
+    }
 }
 
 #[async_trait]
