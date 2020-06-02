@@ -27,6 +27,7 @@ use std::{
     sync::Arc,
 };
 use twilight_model::{
+    channel::ReactionType,
     guild::Permissions,
     id::{ChannelId, EmojiId, GuildId, IntegrationId, MessageId, RoleId, UserId, WebhookId},
 };
@@ -603,7 +604,7 @@ impl Client {
         &self,
         channel_id: ChannelId,
         message_id: MessageId,
-        emoji: impl Into<String>,
+        emoji: ReactionType,
     ) -> CreateReaction<'_> {
         CreateReaction::new(self, channel_id, message_id, emoji)
     }
@@ -612,7 +613,7 @@ impl Client {
         &self,
         channel_id: ChannelId,
         message_id: MessageId,
-        emoji: impl Into<String>,
+        emoji: ReactionType,
     ) -> DeleteReaction<'_> {
         DeleteReaction::new(self, channel_id, message_id, emoji, "@me")
     }
@@ -621,7 +622,7 @@ impl Client {
         &self,
         channel_id: ChannelId,
         message_id: MessageId,
-        emoji: impl Into<String>,
+        emoji: ReactionType,
         user_id: UserId,
     ) -> DeleteReaction<'_> {
         DeleteReaction::new(self, channel_id, message_id, emoji, user_id.to_string())
@@ -631,7 +632,7 @@ impl Client {
         &self,
         channel_id: ChannelId,
         message_id: MessageId,
-        emoji: impl Into<String>,
+        emoji: ReactionType,
     ) -> DeleteAllReaction<'_> {
         DeleteAllReaction::new(self, channel_id, message_id, emoji)
     }

@@ -1,5 +1,8 @@
 use crate::request::prelude::*;
-use twilight_model::id::{ChannelId, MessageId};
+use twilight_model::{
+    channel::ReactionType,
+    id::{ChannelId, MessageId},
+};
 
 pub struct DeleteReaction<'a> {
     channel_id: ChannelId,
@@ -15,12 +18,12 @@ impl<'a> DeleteReaction<'a> {
         http: &'a Client,
         channel_id: ChannelId,
         message_id: MessageId,
-        emoji: impl Into<String>,
+        emoji: ReactionType,
         target_user: impl Into<String>,
     ) -> Self {
         Self {
             channel_id,
-            emoji: emoji.into(),
+            emoji: super::format_emoji(emoji),
             fut: None,
             http,
             message_id,

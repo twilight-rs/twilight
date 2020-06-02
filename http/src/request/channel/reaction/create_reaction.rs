@@ -1,5 +1,8 @@
 use crate::request::prelude::*;
-use twilight_model::id::{ChannelId, MessageId};
+use twilight_model::{
+    channel::ReactionType,
+    id::{ChannelId, MessageId},
+};
 
 pub struct CreateReaction<'a> {
     channel_id: ChannelId,
@@ -14,11 +17,11 @@ impl<'a> CreateReaction<'a> {
         http: &'a Client,
         channel_id: ChannelId,
         message_id: MessageId,
-        emoji: impl Into<String>,
+        emoji: ReactionType,
     ) -> Self {
         Self {
             channel_id,
-            emoji: emoji.into(),
+            emoji: super::format_emoji(emoji),
             fut: None,
             http,
             message_id,
