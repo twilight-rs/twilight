@@ -30,7 +30,7 @@
 //!
 //! let message = standby.wait_for_message(ChannelId(123), |event: &MessageCreate| {
 //!     event.author.id == UserId(456) && event.content == "test"
-//! }).await;
+//! }).await?;
 //! # Ok(()) }
 //! ```
 //!
@@ -42,7 +42,7 @@
 //! [`Standby::wait_for_message`]: struct.Standby.html#method.wait_for_message
 //! [`Standby::wait_for_reaction`]: struct.Standby.html#method.wait_for_reaction
 
-use futures_channel::oneshot::{self, Sender};
+use futures_channel::oneshot::{self, Canceled, Sender};
 use futures_util::lock::Mutex;
 use std::{
     collections::HashMap,
@@ -132,7 +132,7 @@ impl Standby {
     ///
     /// let reaction = standby.wait_for(GuildId(123), |event: &Event| {
     ///     event.kind() == EventType::BanAdd
-    /// }).await;
+    /// }).await?;
     /// # Ok(()) }
     /// ```
     ///
@@ -141,7 +141,7 @@ impl Standby {
         &self,
         guild_id: GuildId,
         check: impl Into<Box<F>>,
-    ) -> Option<Event> {
+    ) -> Result<Event, Canceled> {
         let (tx, rx) = oneshot::channel();
 
         {
@@ -154,7 +154,7 @@ impl Standby {
             });
         }
 
-        rx.await.ok()
+        rx.await
     }
 
     /// Wait for an event not in a certain guild. This must be filtered by an
@@ -181,7 +181,7 @@ impl Standby {
     ///     } else {
     ///         false
     ///     }
-    /// }).await;
+    /// }).await?;
     /// # Ok(()) }
     /// ```
     ///
@@ -190,7 +190,7 @@ impl Standby {
         &self,
         event_type: EventType,
         check: impl Into<Box<F>>,
-    ) -> Option<Event> {
+    ) -> Result<Event, Canceled> {
         let (tx, rx) = oneshot::channel();
 
         {
@@ -203,7 +203,7 @@ impl Standby {
             });
         }
 
-        rx.await.ok()
+        rx.await
     }
 
     /// Wait for a message in a certain channel.
@@ -225,7 +225,7 @@ impl Standby {
     ///
     /// let message = standby.wait_for_message(ChannelId(123), |event: &MessageCreate| {
     ///     event.author.id == UserId(456) && event.content == "test"
-    /// }).await;
+    /// }).await?;
     /// # Ok(()) }
     /// ```
     ///
@@ -234,7 +234,7 @@ impl Standby {
         &self,
         channel_id: ChannelId,
         check: impl Into<Box<F>>,
-    ) -> Option<MessageCreate> {
+    ) -> Result<MessageCreate, Canceled> {
         let (tx, rx) = oneshot::channel();
 
         {
@@ -247,7 +247,7 @@ impl Standby {
             });
         }
 
-        rx.await.ok()
+        rx.await
     }
 
     /// Wait for a reaction on a certain message.
@@ -269,7 +269,7 @@ impl Standby {
     ///
     /// let reaction = standby.wait_for_reaction(MessageId(123), |event: &ReactionAdd| {
     ///     event.user_id == UserId(456)
-    /// }).await;
+    /// }).await?;
     /// # Ok(()) }
     /// ```
     ///
@@ -278,7 +278,7 @@ impl Standby {
         &self,
         message_id: MessageId,
         check: impl Into<Box<F>>,
-    ) -> Option<ReactionAdd> {
+    ) -> Result<ReactionAdd, Canceled> {
         let (tx, rx) = oneshot::channel();
 
         {
@@ -291,7 +291,7 @@ impl Standby {
             });
         }
 
-        rx.await.ok()
+        rx.await
     }
 
     async fn process_event(&self, event: &Event) {
@@ -498,7 +498,7 @@ mod tests {
 
         assert!(matches!(
             res,
-            Some(Event::RoleDelete(RoleDelete {
+            Ok(Event::RoleDelete(RoleDelete {
                 guild_id: GuildId(1),
                 role_id: RoleId(2),
             }))
@@ -536,7 +536,7 @@ mod tests {
         // wait always gets polled first
         let (res, _) = future::join(wait, process).await;
 
-        assert_eq!(Some(event), res);
+        assert_eq!(Ok(event), res);
         assert!(standby.0.events.lock().await.is_empty());
     }
 
@@ -593,7 +593,7 @@ mod tests {
         // wait always gets polled first
         let (res, _) = future::join(wait, process).await;
 
-        assert_eq!(Some(MessageId(3)), res.map(|msg| msg.id));
+        assert_eq!(Ok(MessageId(3)), res.map(|msg| msg.id));
         assert!(standby.0.messages.lock().await.is_empty());
     }
 
@@ -621,7 +621,7 @@ mod tests {
         // wait always gets polled first
         let (res, _) = future::join(wait, process).await;
 
-        assert_eq!(Some(UserId(3)), res.map(|reaction| reaction.user_id));
+        assert_eq!(Ok(UserId(3)), res.map(|reaction| reaction.user_id));
         assert!(standby.0.reactions.lock().await.is_empty());
     }
 }
