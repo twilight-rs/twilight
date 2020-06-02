@@ -11,14 +11,30 @@ pub use self::{
     get_reactions::GetReactions,
 };
 
+use std::fmt::Write;
 use twilight_model::channel::ReactionType;
 
 pub fn format_emoji(emoji: ReactionType) -> String {
     match emoji {
-        ReactionType::Custom { animated, id, name } => match animated {
-            true => format!("<a:{}:{}>", name.unwrap_or("".into()), id).to_string(),
-            false => format!("<:{}:{}>", name.unwrap_or("".into()), id).to_string(),
-        },
+        ReactionType::Custom { animated, id, name } => {
+            let mut emoji = String::from("<");
+
+            if animated {
+                emoji.push('a');
+            }
+
+            emoji.push(':');
+
+            if let Some(name) = name {
+                emoji.push_str(name.as_ref());
+            }
+
+            emoji.push(':');
+            let _ = write!(emoji, "{}", id);
+            emoji.push('>');
+
+            emoji
+        }
         ReactionType::Unicode { name } => name,
     }
 }
