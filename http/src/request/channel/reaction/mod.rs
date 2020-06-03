@@ -10,3 +10,22 @@ pub use self::{
     delete_all_reactions::DeleteAllReactions, delete_reaction::DeleteReaction,
     get_reactions::GetReactions,
 };
+
+use std::fmt::Write;
+use twilight_model::channel::ReactionType;
+
+fn format_emoji(emoji: ReactionType) -> String {
+    match emoji {
+        ReactionType::Custom { id, name, .. } => {
+            let mut emoji = String::new();
+            match name {
+                Some(name) => emoji.push_str(name.as_ref()),
+                None => emoji.push_str("e"),
+            }
+            let _ = write!(emoji, ":{}", id);
+
+            emoji
+        }
+        ReactionType::Unicode { name } => name,
+    }
+}
