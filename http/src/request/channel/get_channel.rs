@@ -3,7 +3,7 @@ use twilight_model::{channel::Channel, id::ChannelId};
 
 pub struct GetChannel<'a> {
     channel_id: ChannelId,
-    fut: Option<Pending<'a, Option<Channel>>>,
+    fut: Option<PendingOption<'a>>,
     http: &'a Client,
 }
 
@@ -17,14 +17,15 @@ impl<'a> GetChannel<'a> {
     }
 
     fn start(&mut self) -> Result<()> {
-        self.fut.replace(Box::pin(self.http.request(Request::from(
-            Route::GetChannel {
-                channel_id: self.channel_id.0,
-            },
-        ))));
+        self.fut
+            .replace(Box::pin(self.http.request_bytes(Request::from(
+                Route::GetChannel {
+                    channel_id: self.channel_id.0,
+                },
+            ))));
 
         Ok(())
     }
 }
 
-poll_req!(GetChannel<'_>, Option<Channel>);
+poll_req!(opt, GetChannel<'_>, Channel);

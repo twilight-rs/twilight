@@ -6,7 +6,7 @@ use twilight_model::{
 
 pub struct GetMessage<'a> {
     channel_id: ChannelId,
-    fut: Option<Pending<'a, Option<Message>>>,
+    fut: Option<PendingOption<'a>>,
     http: &'a Client,
     message_id: MessageId,
 }
@@ -22,15 +22,16 @@ impl<'a> GetMessage<'a> {
     }
 
     fn start(&mut self) -> Result<()> {
-        self.fut.replace(Box::pin(self.http.request(Request::from(
-            Route::GetMessage {
-                channel_id: self.channel_id.0,
-                message_id: self.message_id.0,
-            },
-        ))));
+        self.fut
+            .replace(Box::pin(self.http.request_bytes(Request::from(
+                Route::GetMessage {
+                    channel_id: self.channel_id.0,
+                    message_id: self.message_id.0,
+                },
+            ))));
 
         Ok(())
     }
 }
 
-poll_req!(GetMessage<'_>, Option<Message>);
+poll_req!(opt, GetMessage<'_>, Message);

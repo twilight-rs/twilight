@@ -1,4 +1,4 @@
-pub(super) use super::{audit_header, validate, Pending, Request};
+pub(super) use super::{audit_header, validate, Pending, PendingOption, Request};
 pub use super::{
     channel::{invite::*, message::*, reaction::*, webhook::*, *},
     get_gateway::GetGateway,

@@ -6,7 +6,7 @@ use twilight_model::{
 
 pub struct GetEmoji<'a> {
     emoji_id: EmojiId,
-    fut: Option<Pending<'a, Option<Emoji>>>,
+    fut: Option<PendingOption<'a>>,
     guild_id: GuildId,
     http: &'a Client,
 }
@@ -22,15 +22,16 @@ impl<'a> GetEmoji<'a> {
     }
 
     fn start(&mut self) -> Result<()> {
-        self.fut.replace(Box::pin(self.http.request(Request::from(
-            Route::GetEmoji {
-                emoji_id: self.emoji_id.0,
-                guild_id: self.guild_id.0,
-            },
-        ))));
+        self.fut
+            .replace(Box::pin(self.http.request_bytes(Request::from(
+                Route::GetEmoji {
+                    emoji_id: self.emoji_id.0,
+                    guild_id: self.guild_id.0,
+                },
+            ))));
 
         Ok(())
     }
 }
 
-poll_req!(GetEmoji<'_>, Option<Emoji>);
+poll_req!(opt, GetEmoji<'_>, Emoji);

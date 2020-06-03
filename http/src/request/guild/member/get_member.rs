@@ -5,7 +5,7 @@ use twilight_model::{
 };
 
 pub struct GetMember<'a> {
-    fut: Option<Pending<'a, Option<Member>>>,
+    fut: Option<PendingOption<'a>>,
     guild_id: GuildId,
     http: &'a Client,
     user_id: UserId,
@@ -22,15 +22,16 @@ impl<'a> GetMember<'a> {
     }
 
     fn start(&mut self) -> Result<()> {
-        self.fut.replace(Box::pin(self.http.request(Request::from(
-            Route::GetMember {
-                guild_id: self.guild_id.0,
-                user_id: self.user_id.0,
-            },
-        ))));
+        self.fut
+            .replace(Box::pin(self.http.request_bytes(Request::from(
+                Route::GetMember {
+                    guild_id: self.guild_id.0,
+                    user_id: self.user_id.0,
+                },
+            ))));
 
         Ok(())
     }
 }
 
-poll_req!(GetMember<'_>, Option<Member>);
+poll_req!(opt, GetMember<'_>, Member);
