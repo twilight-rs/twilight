@@ -22,8 +22,7 @@ fn format_emoji(emoji: ReactionType) -> String {
                 Some(name) => emoji.push_str(name.as_ref()),
                 None => emoji.push_str("e"),
             }
-            emoji.push(':');
-            let _ = write!(emoji, "{}", id);
+            let _ = write!(emoji, ":{}", id);
 
             emoji
         }
