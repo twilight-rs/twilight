@@ -16,22 +16,14 @@ use twilight_model::channel::ReactionType;
 
 fn format_emoji(emoji: ReactionType) -> String {
     match emoji {
-        ReactionType::Custom { animated, id, name } => {
-            let mut emoji = String::from("<");
-
-            if animated {
-                emoji.push('a');
+        ReactionType::Custom { id, name, .. } => {
+            let mut emoji = String::new();
+            match name {
+                Some(name) => emoji.push_str(name.as_ref()),
+                None => emoji.push_str("e"),
             }
-
-            emoji.push(':');
-
-            if let Some(name) = name {
-                emoji.push_str(name.as_ref());
-            }
-
             emoji.push(':');
             let _ = write!(emoji, "{}", id);
-            emoji.push('>');
 
             emoji
         }
