@@ -111,7 +111,7 @@ impl ShardProcessor {
 
         if resumable {
             debug!("Shard {:?} resuming", shard_id);
-            processor.resume().await;
+            processor.resume().await?;
         }
 
         Ok((processor, wrx))

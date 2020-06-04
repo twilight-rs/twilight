@@ -11,6 +11,7 @@ use std::{
 };
 use twilight_http::Client;
 use twilight_model::gateway::{payload::update_status::UpdateStatusInfo, GatewayIntents};
+use crate::shard::ShardResumeData;
 
 /// The method of sharding to use.
 ///
@@ -94,7 +95,7 @@ pub struct ClusterConfig {
     shard_config: ShardConfig,
     shard_scheme: ShardScheme,
     queue: Arc<Box<dyn Queue>>,
-    resume_data: HashMap<u64, (String, u64)>,
+    resume_data: HashMap<u64, ShardResumeData>,
 }
 
 impl ClusterConfig {
@@ -144,7 +145,7 @@ impl ClusterConfig {
     /// Refer to [`ClusterConfigBuilder::resume_data`] for the default value.
     ///
     /// [`ClusterConfigBuilder::resume_data`]: struct.ClusterConfigBuilder.html#method.resume_data
-    pub fn resume_data(&self) -> &HashMap<u64, (String, u64)> {
+    pub fn resume_data(&self) -> &HashMap<u64, ShardResumeData> {
         &self.resume_data
     }
 }
@@ -322,7 +323,7 @@ impl ClusterConfigBuilder {
     ///
     /// This requires having recovered the resume data when shutting down the cluster
     /// NOTE: this does not guarantee these shards will be able to resume. If their sessions are invalid they will have to re-identify as normal
-    pub fn resume_data(mut self, resume_data: HashMap<u64, (String, u64)>) -> Self {
+    pub fn resume_data(mut self, resume_data: HashMap<u64, ShardResumeData>) -> Self {
         self.0.resume_data = resume_data;
         self
     }

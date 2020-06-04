@@ -75,6 +75,12 @@ impl Information {
         self.stage
     }
 }
+/// holds the sessions id and sequence number to resume this shard's session with with
+#[derive(Clone, Debug)]
+pub struct ShardResumeData {
+    pub session_id: String,
+    pub sequence: u64
+}
 
 #[derive(Clone, Debug)]
 pub struct Shard(Arc<ShardRef>);
@@ -249,7 +255,7 @@ impl Shard {
         Ok(())
     }
 
-    /// Shuts down the shard
+    /// Shuts down the shard.
     ///
     /// This will cleanly close the connection, causing discord to end the session and show the bot offline
     pub async fn shutdown(&self) {
@@ -262,8 +268,8 @@ impl Shard {
         session.stop_heartbeater().await;
     }
 
-    /// This will shut down the shard in a resumable way and return the info required to resume later
-    pub async fn shutdown_resumable(&self) -> (u64, Option<String>, u64) {
+    /// This will shut down the shard in a resumable way and return shard id and optional session info to resume with later if this shard is resumable
+    pub async fn shutdown_resumable(&self) -> (u64, Option<ShardResumeData>) {
         let session = self.session();
         let _ = session.tx.unbounded_send(Message::Close(Some(CloseFrame {
             code: CloseCode::Restart,
@@ -271,12 +277,22 @@ impl Shard {
         })));
         let shard_id = self.config().shard[0];
         let session_id = session.id.lock().await.clone();
-        let seq = session.seq.load(Ordering::Relaxed);
+        let sequence = session.seq.load(Ordering::Relaxed);
 
         self.0.processor_handle.abort();
         self.0.listeners.remove_all().await;
         session.stop_heartbeater().await;
 
-        (shard_id, session_id, seq)
+        let data = match session_id {
+            Some(id) => Some(ShardResumeData {
+                session_id: id,
+                sequence
+            }),
+            None => None
+        };
+
+        (shard_id, data)
+
+
     }
 }

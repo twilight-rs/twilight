@@ -16,6 +16,7 @@ use std::{
     sync::{Arc, Weak},
 };
 use twilight_model::gateway::event::Event;
+use crate::shard::ShardResumeData;
 
 #[derive(Debug)]
 struct ClusterRef {
@@ -126,7 +127,7 @@ impl Cluster {
     /// Brings down the cluster in a resumable way and returns all info needed for resuming
     ///
     /// Note discord only allows resuming for a few minutes after disconnection. You can also not resume if you missed too many events already
-    pub async fn down_resumable(&self) -> Vec<(u64, Option<String>, u64)> {
+    pub async fn down_resumable(&self) -> Vec<(u64, Option<ShardResumeData>)> {
         let lock = self.0.shards.lock().await;
 
         let tasks = lock
@@ -264,12 +265,10 @@ impl Cluster {
 
         config.shard = [shard_id, shard_total];
         let resume_data = cluster.config.resume_data().get(&shard_id);
-        let (session_id, sequence) = match &resume_data {
-            Some(data) => (Some(data.0.clone()), Some(data.1)),
-            None => (None, None),
+        if let Some(data) = resume_data {
+            config.session_id = Some(data.session_id.clone());
+            config.sequence = Some(data.sequence);
         };
-        config.session_id = session_id;
-        config.sequence = sequence;
 
         let shard = Shard::new(config).await.ok()?;
 
