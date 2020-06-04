@@ -38,6 +38,7 @@ use std::borrow::Cow;
 use metrics::counter;
 
 use std::error::Error as StdError;
+use std::sync::atomic::Ordering;
 
 /// Runs in the background and processes incoming events, and then broadcasts
 /// to all listeners.
@@ -56,10 +57,15 @@ pub struct ShardProcessor {
 
 impl ShardProcessor {
     pub async fn new(config: Arc<ShardConfig>) -> Result<(Self, WatchReceiver<Arc<Session>>)> {
-        debug!("[ShardProcessor {:?}] Queueing", config.shard());
+        //if we got resume info we don't need to wait
         let shard_id = config.shard();
-        config.queue.request(shard_id).await;
-        debug!("[ShardProcessor {:?}] Finished queue", config.shard());
+        let resumable = config.sequence.is_some() && config.session_id.is_some();
+        if !resumable {
+            debug!("Shard {:?} is not resumable", shard_id);
+            debug!("[ShardProcessor {:?}] Queueing", shard_id);
+            config.queue.request(shard_id).await;
+            debug!("[ShardProcessor {:?}] Finished queue", config.shard());
+        }
 
         let properties = IdentifyProperties::new("twilight.rs", "twilight.rs", OS, "", "");
 
@@ -78,23 +84,37 @@ impl ShardProcessor {
         });
 
         let session = Arc::new(Session::new(tx));
+        if resumable {
+            session
+                .id
+                .lock()
+                .await
+                .replace(config.session_id.clone().unwrap());
+            session
+                .seq
+                .store(config.sequence.unwrap(), Ordering::Relaxed)
+        }
 
         let (wtx, wrx) = watch_channel(Arc::clone(&session));
 
-        Ok((
-            Self {
-                config,
-                listeners: Listeners::default(),
-                properties,
-                rx,
-                session,
-                inflater: Inflater::new(shard_id),
-                url,
-                resume: None,
-                wtx,
-            },
-            wrx,
-        ))
+        let mut processor = Self {
+            config,
+            listeners: Listeners::default(),
+            properties,
+            rx,
+            session,
+            inflater: Inflater::new(shard_id),
+            url,
+            resume: None,
+            wtx,
+        };
+
+        if resumable {
+            debug!("Shard {:?} resuming", shard_id);
+            processor.resume().await;
+        }
+
+        Ok((processor, wrx))
     }
 
     pub async fn run(mut self) {

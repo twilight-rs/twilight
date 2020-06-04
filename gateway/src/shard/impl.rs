@@ -11,9 +11,14 @@ use futures::{
     future::{self, AbortHandle},
     Stream,
 };
+
 use log::debug;
+use std::sync::atomic::Ordering;
 use std::sync::Arc;
 use tokio::sync::watch::Receiver as WatchReceiver;
+
+use std::borrow::Cow;
+use tokio_tungstenite::tungstenite::protocol::{frame::coding::CloseCode, CloseFrame};
 use tokio_tungstenite::tungstenite::Message;
 use twilight_model::gateway::event::Event;
 
@@ -244,13 +249,9 @@ impl Shard {
         Ok(())
     }
 
-    /// Shuts down the shard.
+    /// Shuts down the shard
     ///
-    /// If `wait` is true, then this will wait until a close message has been
-    /// sent to Discord, which will immediately show the shard as offline. If
-    /// `wait` is false, then the connection will be immediately dropped. This
-    /// may continue to show your bot as being online for some time when it's
-    /// not.
+    /// This will cleanly close the connection, causing discord to end the session and show the bot offline
     pub async fn shutdown(&self) {
         let session = self.session();
         // Since we're shutting down now, we don't care if it sends or not.
@@ -259,5 +260,23 @@ impl Shard {
         self.0.processor_handle.abort();
         self.0.listeners.remove_all().await;
         session.stop_heartbeater().await;
+    }
+
+    /// This will shut down the shard in a resumable way and return the info required to resume later
+    pub async fn shutdown_resumable(&self) -> (u64, Option<String>, u64) {
+        let session = self.session();
+        let _ = session.tx.unbounded_send(Message::Close(Some(CloseFrame {
+            code: CloseCode::Restart,
+            reason: Cow::from("Closing in a resumable way"),
+        })));
+        let shard_id = self.config().shard[0];
+        let session_id = session.id.lock().await.clone();
+        let seq = session.seq.load(Ordering::Relaxed);
+
+        self.0.processor_handle.abort();
+        self.0.listeners.remove_all().await;
+        session.stop_heartbeater().await;
+
+        (shard_id, session_id, seq)
     }
 }

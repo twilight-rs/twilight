@@ -3,6 +3,7 @@ use crate::{
     queue::{LocalQueue, Queue},
     shard::config::{ShardConfig, ShardConfigBuilder},
 };
+use std::collections::HashMap;
 use std::{
     convert::TryFrom,
     ops::{Bound, RangeBounds},
@@ -93,6 +94,7 @@ pub struct ClusterConfig {
     shard_config: ShardConfig,
     shard_scheme: ShardScheme,
     queue: Arc<Box<dyn Queue>>,
+    resume_data: HashMap<u64, (String, u64)>,
 }
 
 impl ClusterConfig {
@@ -136,6 +138,15 @@ impl ClusterConfig {
     pub fn queue(&self) -> &Arc<Box<dyn Queue>> {
         &self.queue
     }
+
+    /// Returns the resume data to resume shards for this cluster
+    ///
+    /// Refer to [`ClusterConfigBuilder::resume_data`] for the default value.
+    ///
+    /// [`ClusterConfigBuilder::resume_data`]: struct.ClusterConfigBuilder.html#method.resume_data
+    pub fn resume_data(&self) -> &HashMap<u64, (String, u64)> {
+        &self.resume_data
+    }
 }
 
 impl From<ClusterConfigBuilder> for ClusterConfig {
@@ -177,6 +188,7 @@ impl ClusterConfigBuilder {
                 shard_config: ShardConfig::from(token.clone()),
                 shard_scheme: ShardScheme::Auto,
                 queue: Arc::new(Box::new(LocalQueue::new())),
+                resume_data: HashMap::new(),
             },
             ShardConfigBuilder::new(token),
         )
@@ -303,6 +315,15 @@ impl ClusterConfigBuilder {
         self.1 = self.1.queue(Arc::clone(&queue));
         self.0.queue = queue;
 
+        self
+    }
+
+    /// Sets the resume data to resume shards with
+    ///
+    /// This requires having recovered the resume data when shutting down the cluster
+    /// NOTE: this does not guarantee these shards will be able to resume. If their sessions are invalid they will have to re-identify as normal
+    pub fn resume_data(mut self, resume_data: HashMap<u64, (String, u64)>) -> Self {
+        self.0.resume_data = resume_data;
         self
     }
 }
