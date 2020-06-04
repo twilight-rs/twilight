@@ -2,6 +2,7 @@ use super::{
     config::{ClusterConfig, ShardScheme},
     error::{Error, Result},
 };
+use crate::shard::ShardResumeData;
 use crate::{
     shard::{Information, Shard},
     EventTypeFlags,
@@ -16,7 +17,6 @@ use std::{
     sync::{Arc, Weak},
 };
 use twilight_model::gateway::event::Event;
-use crate::shard::ShardResumeData;
 
 #[derive(Debug)]
 struct ClusterRef {

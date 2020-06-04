@@ -1,4 +1,5 @@
 use super::error::{Error, Result};
+use crate::shard::ShardResumeData;
 use crate::{
     queue::{LocalQueue, Queue},
     shard::config::{ShardConfig, ShardConfigBuilder},
@@ -11,7 +12,6 @@ use std::{
 };
 use twilight_http::Client;
 use twilight_model::gateway::{payload::update_status::UpdateStatusInfo, GatewayIntents};
-use crate::shard::ShardResumeData;
 
 /// The method of sharding to use.
 ///

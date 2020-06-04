@@ -79,7 +79,7 @@ impl Information {
 #[derive(Clone, Debug)]
 pub struct ShardResumeData {
     pub session_id: String,
-    pub sequence: u64
+    pub sequence: u64,
 }
 
 #[derive(Clone, Debug)]
@@ -286,13 +286,11 @@ impl Shard {
         let data = match session_id {
             Some(id) => Some(ShardResumeData {
                 session_id: id,
-                sequence
+                sequence,
             }),
-            None => None
+            None => None,
         };
 
         (shard_id, data)
-
-
     }
 }
