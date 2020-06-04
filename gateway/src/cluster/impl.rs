@@ -11,7 +11,6 @@ use futures::{
     lock::Mutex,
     stream::{SelectAll, Stream, StreamExt},
 };
-use std::sync::atomic::AtomicU64;
 use std::{
     collections::HashMap,
     sync::{Arc, Weak},
@@ -135,9 +134,7 @@ impl Cluster {
             .map(Shard::shutdown_resumable)
             .collect::<Vec<_>>();
 
-        let temp = future::join_all(tasks).await;
-
-        temp
+        future::join_all(tasks).await
     }
 
     /// Returns a Shard by its ID.
