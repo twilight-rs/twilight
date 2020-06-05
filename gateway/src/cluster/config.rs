@@ -95,7 +95,7 @@ pub struct ClusterConfig {
     shard_config: ShardConfig,
     shard_scheme: ShardScheme,
     queue: Arc<Box<dyn Queue>>,
-    resume_data: HashMap<u64, ShardResumeData>,
+    resume_sessions: HashMap<u64, ShardResumeData>,
 }
 
 impl ClusterConfig {
@@ -142,11 +142,11 @@ impl ClusterConfig {
 
     /// Returns the resume data to resume shards for this cluster
     ///
-    /// Refer to [`ClusterConfigBuilder::resume_data`] for the default value.
+    /// Refer to [`ClusterConfigBuilder::resume_sessions`] for the default value.
     ///
-    /// [`ClusterConfigBuilder::resume_data`]: struct.ClusterConfigBuilder.html#method.resume_data
-    pub fn resume_data(&self) -> &HashMap<u64, ShardResumeData> {
-        &self.resume_data
+    /// [`ClusterConfigBuilder::resume_sessions`]: struct.ClusterConfigBuilder.html#method.resume_sessions
+    pub fn resume_sessions(&self) -> &HashMap<u64, ShardResumeData> {
+        &self.resume_sessions
     }
 }
 
@@ -189,7 +189,7 @@ impl ClusterConfigBuilder {
                 shard_config: ShardConfig::from(token.clone()),
                 shard_scheme: ShardScheme::Auto,
                 queue: Arc::new(Box::new(LocalQueue::new())),
-                resume_data: HashMap::new(),
+                resume_sessions: HashMap::new(),
             },
             ShardConfigBuilder::new(token),
         )
@@ -319,12 +319,12 @@ impl ClusterConfigBuilder {
         self
     }
 
-    /// Sets the resume data to resume shards with
+    /// Sets the session information to resume shards with
     ///
     /// This requires having recovered the resume data when shutting down the cluster
     /// NOTE: this does not guarantee these shards will be able to resume. If their sessions are invalid they will have to re-identify as normal
-    pub fn resume_data(mut self, resume_data: HashMap<u64, ShardResumeData>) -> Self {
-        self.0.resume_data = resume_data;
+    pub fn resume_sessions(mut self, resume_sessions: HashMap<u64, ShardResumeData>) -> Self {
+        self.0.resume_sessions = resume_sessions;
         self
     }
 }

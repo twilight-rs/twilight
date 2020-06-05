@@ -264,8 +264,8 @@ impl Cluster {
         let mut config = cluster.config.shard_config().clone();
 
         config.shard = [shard_id, shard_total];
-        let resume_data = cluster.config.resume_data().get(&shard_id);
-        if let Some(data) = resume_data {
+        let resume_sessions = cluster.config.resume_sessions().get(&shard_id);
+        if let Some(data) = resume_sessions {
             config.session_id = Some(data.session_id.clone());
             config.sequence = Some(data.sequence);
         };
