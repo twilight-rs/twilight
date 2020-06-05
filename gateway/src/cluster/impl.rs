@@ -2,7 +2,7 @@ use super::{
     config::{ClusterConfig, ShardScheme},
     error::{Error, Result},
 };
-use crate::shard::ShardResumeData;
+use crate::shard::ResumeSession;
 use crate::{
     shard::{Information, Shard},
     EventTypeFlags,
@@ -127,7 +127,7 @@ impl Cluster {
     /// Brings down the cluster in a resumable way and returns all info needed for resuming
     ///
     /// Note discord only allows resuming for a few minutes after disconnection. You can also not resume if you missed too many events already
-    pub async fn down_resumable(&self) -> Vec<(u64, Option<ShardResumeData>)> {
+    pub async fn down_resumable(&self) -> Vec<(u64, Option<ResumeSession>)> {
         let lock = self.0.shards.lock().await;
 
         let tasks = lock

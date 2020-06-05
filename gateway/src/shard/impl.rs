@@ -75,9 +75,9 @@ impl Information {
         self.stage
     }
 }
-/// holds the sessions id and sequence number to resume this shard's session with with
+/// Holds the sessions id and sequence number to resume this shard's session with with
 #[derive(Clone, Debug)]
-pub struct ShardResumeData {
+pub struct ResumeSession {
     pub session_id: String,
     pub sequence: u64,
 }
@@ -269,7 +269,7 @@ impl Shard {
     }
 
     /// This will shut down the shard in a resumable way and return shard id and optional session info to resume with later if this shard is resumable
-    pub async fn shutdown_resumable(&self) -> (u64, Option<ShardResumeData>) {
+    pub async fn shutdown_resumable(&self) -> (u64, Option<ResumeSession>) {
         let session = self.session();
         let _ = session.tx.unbounded_send(Message::Close(Some(CloseFrame {
             code: CloseCode::Restart,
@@ -284,7 +284,7 @@ impl Shard {
         session.stop_heartbeater().await;
 
         let data = match session_id {
-            Some(id) => Some(ShardResumeData {
+            Some(id) => Some(ResumeSession {
                 session_id: id,
                 sequence,
             }),

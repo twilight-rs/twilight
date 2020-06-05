@@ -1,5 +1,5 @@
 use super::error::{Error, Result};
-use crate::shard::ShardResumeData;
+use crate::shard::ResumeSession;
 use crate::{
     queue::{LocalQueue, Queue},
     shard::config::{ShardConfig, ShardConfigBuilder},
@@ -95,7 +95,7 @@ pub struct ClusterConfig {
     shard_config: ShardConfig,
     shard_scheme: ShardScheme,
     queue: Arc<Box<dyn Queue>>,
-    resume_sessions: HashMap<u64, ShardResumeData>,
+    resume_sessions: HashMap<u64, ResumeSession>,
 }
 
 impl ClusterConfig {
@@ -145,7 +145,7 @@ impl ClusterConfig {
     /// Refer to [`ClusterConfigBuilder::resume_sessions`] for the default value.
     ///
     /// [`ClusterConfigBuilder::resume_sessions`]: struct.ClusterConfigBuilder.html#method.resume_sessions
-    pub fn resume_sessions(&self) -> &HashMap<u64, ShardResumeData> {
+    pub fn resume_sessions(&self) -> &HashMap<u64, ResumeSession> {
         &self.resume_sessions
     }
 }
@@ -323,7 +323,7 @@ impl ClusterConfigBuilder {
     ///
     /// This requires having recovered the resume data when shutting down the cluster
     /// NOTE: this does not guarantee these shards will be able to resume. If their sessions are invalid they will have to re-identify as normal
-    pub fn resume_sessions(mut self, resume_sessions: HashMap<u64, ShardResumeData>) -> Self {
+    pub fn resume_sessions(mut self, resume_sessions: HashMap<u64, ResumeSession>) -> Self {
         self.0.resume_sessions = resume_sessions;
         self
     }

@@ -35,7 +35,7 @@ pub use self::{
     config::ShardConfig,
     error::{Error, Result},
     processor::heartbeat::Latency,
-    r#impl::{Information, Shard, ShardResumeData},
+    r#impl::{Information, Shard, ResumeSession},
     sink::ShardSink,
     stage::Stage,
 };
