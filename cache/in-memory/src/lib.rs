@@ -336,7 +336,7 @@ impl InMemoryCache {
         Ok(self.0.users.lock().await.get(&user_id).cloned())
     }
 
-    /// Gets a voice state by user ID.
+    /// Gets a voice state by user ID and Guild ID.
     ///
     /// This is an O(1) operation.
     pub async fn voice_state(
