@@ -5,7 +5,7 @@ use twilight_model::{
 };
 
 pub struct GetBan<'a> {
-    fut: Option<Pending<'a, Option<Ban>>>,
+    fut: Option<PendingOption<'a>>,
     guild_id: GuildId,
     http: &'a Client,
     user_id: UserId,
@@ -23,13 +23,15 @@ impl<'a> GetBan<'a> {
 
     fn start(&mut self) -> Result<()> {
         self.fut
-            .replace(Box::pin(self.http.request(Request::from(Route::GetBan {
-                guild_id: self.guild_id.0,
-                user_id: self.user_id.0,
-            }))));
+            .replace(Box::pin(self.http.request_bytes(Request::from(
+                Route::GetBan {
+                    guild_id: self.guild_id.0,
+                    user_id: self.user_id.0,
+                },
+            ))));
 
         Ok(())
     }
 }
 
-poll_req!(GetBan<'_>, Option<Ban>);
+poll_req!(opt, GetBan<'_>, Ban);

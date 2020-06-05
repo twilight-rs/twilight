@@ -2,7 +2,7 @@ use crate::request::prelude::*;
 use twilight_model::user::User;
 
 pub struct GetUser<'a> {
-    fut: Option<Pending<'a, Option<User>>>,
+    fut: Option<PendingOption<'a>>,
     http: &'a Client,
     target_user: String,
 }
@@ -18,12 +18,14 @@ impl<'a> GetUser<'a> {
 
     fn start(&mut self) -> Result<()> {
         self.fut
-            .replace(Box::pin(self.http.request(Request::from(Route::GetUser {
-                target_user: self.target_user.clone(),
-            }))));
+            .replace(Box::pin(self.http.request_bytes(Request::from(
+                Route::GetUser {
+                    target_user: self.target_user.clone(),
+                },
+            ))));
 
         Ok(())
     }
 }
 
-poll_req!(GetUser<'_>, Option<User>);
+poll_req!(opt, GetUser<'_>, User);

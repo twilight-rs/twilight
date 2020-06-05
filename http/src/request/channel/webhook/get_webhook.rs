@@ -8,7 +8,7 @@ struct GetWebhookFields {
 
 pub struct GetWebhook<'a> {
     fields: GetWebhookFields,
-    fut: Option<Pending<'a, Option<Webhook>>>,
+    fut: Option<PendingOption<'a>>,
     http: &'a Client,
     id: WebhookId,
 }
@@ -30,15 +30,16 @@ impl<'a> GetWebhook<'a> {
     }
 
     fn start(&mut self) -> Result<()> {
-        self.fut.replace(Box::pin(self.http.request(Request::from(
-            Route::GetWebhook {
-                token: self.fields.token.clone(),
-                webhook_id: self.id.0,
-            },
-        ))));
+        self.fut
+            .replace(Box::pin(self.http.request_bytes(Request::from(
+                Route::GetWebhook {
+                    token: self.fields.token.clone(),
+                    webhook_id: self.id.0,
+                },
+            ))));
 
         Ok(())
     }
 }
 
-poll_req!(GetWebhook<'_>, Option<Webhook>);
+poll_req!(opt, GetWebhook<'_>, Webhook);

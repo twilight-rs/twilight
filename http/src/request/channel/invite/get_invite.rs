@@ -9,7 +9,7 @@ struct GetInviteFields {
 pub struct GetInvite<'a> {
     code: String,
     fields: GetInviteFields,
-    fut: Option<Pending<'a, Option<Invite>>>,
+    fut: Option<PendingOption<'a>>,
     http: &'a Client,
 }
 
@@ -30,15 +30,16 @@ impl<'a> GetInvite<'a> {
     }
 
     fn start(&mut self) -> Result<()> {
-        self.fut.replace(Box::pin(self.http.request(Request::from(
-            Route::GetInvite {
-                code: self.code.clone(),
-                with_counts: self.fields.with_counts,
-            },
-        ))));
+        self.fut
+            .replace(Box::pin(self.http.request_bytes(Request::from(
+                Route::GetInvite {
+                    code: self.code.clone(),
+                    with_counts: self.fields.with_counts,
+                },
+            ))));
 
         Ok(())
     }
 }
 
-poll_req!(GetInvite<'_>, Option<Invite>);
+poll_req!(opt, GetInvite<'_>, Invite);

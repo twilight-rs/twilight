@@ -19,6 +19,45 @@ macro_rules! poll_req {
             }
         }
     };
+
+    (opt, $ty: ty, $ret: ty) => {
+        impl std::future::Future for $ty {
+            type Output = $crate::error::Result<Option<$ret>>;
+
+            fn poll(
+                mut self: std::pin::Pin<&mut Self>,
+                cx: &mut std::task::Context<'_>,
+            ) -> ::std::task::Poll<Self::Output> {
+                use std::task::Poll;
+
+                loop {
+                    if let Some(fut) = self.as_mut().fut.as_mut() {
+                        let bytes = match fut.as_mut().poll(cx) {
+                            Poll::Ready(Ok(bytes)) => bytes,
+                            Poll::Ready(Err(crate::Error::Response { status, .. }))
+                                if status == reqwest::StatusCode::NOT_FOUND =>
+                            {
+                                return Poll::Ready(Ok(None));
+                            }
+                            Poll::Ready(Err(why)) => return Poll::Ready(Err(why)),
+                            Poll::Pending => return Poll::Pending,
+                        };
+
+                        return Poll::Ready(serde_json::from_slice(&bytes).map(Some).map_err(
+                            |source| crate::Error::Parsing {
+                                body: bytes.to_vec(),
+                                source,
+                            },
+                        ));
+                    }
+
+                    if let Err(why) = self.as_mut().start() {
+                        return Poll::Ready(Err(why));
+                    }
+                }
+            }
+        }
+    };
 }
 
 pub mod channel;
@@ -40,7 +79,7 @@ use crate::{
     error::{Error, Result},
     routing::{Path, Route},
 };
-
+use bytes::Bytes;
 use percent_encoding::{utf8_percent_encode, NON_ALPHANUMERIC};
 use reqwest::{
     header::{HeaderMap, HeaderName, HeaderValue},
@@ -51,6 +90,7 @@ use reqwest::{
 use std::{borrow::Cow, future::Future, pin::Pin};
 
 type Pending<'a, T> = Pin<Box<dyn Future<Output = Result<T>> + Send + 'a>>;
+type PendingOption<'a> = Pin<Box<dyn Future<Output = Result<Bytes>> + Send + 'a>>;
 
 #[derive(Debug)]
 pub struct Request {
