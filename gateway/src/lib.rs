@@ -7,7 +7,6 @@
     unsafe_code
 )]
 #![allow(
-    clippy::explicit_deref_methods,
     clippy::module_name_repetitions,
     clippy::must_use_candidate,
     // This issue made it into a stable clippy:
