@@ -16,6 +16,8 @@ members = [
     "http/examples/allowed-mentions",
     "http/examples/get-message",
     "http/examples/proxy",
+    "lavalink",
+    "lavalink/examples/basic-lavalink-bot",
     "model",
     "standby",
     "twilight",

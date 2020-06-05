@@ -1,0 +1,19 @@
+[package]
+name = "twilight-lavalink-basic-lavalink-bot"
+version = "0.1.0"
+authors = ["Twilight Contributors"]
+edition = "2018"
+
+[dependencies]
+futures = "0.3"
+log = { version = "0.4" }
+pretty_env_logger = "0.4"
+reqwest = { features = ["json"], version = "0.10" }
+serde_json = { version = "1" }
+tokio = { features = ["macros", "rt-threaded"], version = "0.2" }
+twilight-command-parser = { path = "../../../command-parser" }
+twilight-gateway = { path = "../../../gateway" }
+twilight-http = { path = "../../../http" }
+twilight-lavalink = { path = "../.." }
+twilight-model = { path = "../../../model" }
+twilight-standby = { path = "../../../standby" }
