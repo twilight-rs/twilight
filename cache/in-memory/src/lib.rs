@@ -112,14 +112,13 @@ struct InMemoryCacheRef {
     guild_members: Mutex<HashMap<GuildId, HashSet<UserId>>>,
     guild_presences: Mutex<HashMap<GuildId, HashSet<UserId>>>,
     guild_roles: Mutex<HashMap<GuildId, HashSet<RoleId>>>,
-    guild_voice_states: Mutex<HashMap<GuildId, HashSet<(ChannelId, UserId)>>>,
+    guild_voice_states: Mutex<HashMap<GuildId, HashMap<UserId, Arc<VoiceState>>>>,
     members: LockedArcMap<(GuildId, UserId), CachedMember>,
     messages: Mutex<HashMap<ChannelId, BTreeMap<MessageId, Arc<CachedMessage>>>>,
     presences: LockedArcMap<(Option<GuildId>, UserId), CachedPresence>,
     roles: Mutex<HashMap<RoleId, GuildItem<Role>>>,
     unavailable_guilds: Mutex<HashSet<GuildId>>,
     users: LockedArcMap<UserId, User>,
-    voice_states: LockedArcMap<(ChannelId, UserId), CachedVoiceState>,
 }
 
 /// A thread-safe, in-memory-process cache of Discord data. It can be cloned and
@@ -337,21 +336,20 @@ impl InMemoryCache {
         Ok(self.0.users.lock().await.get(&user_id).cloned())
     }
 
-    /// Gets a voice state by channel ID and user ID.
+    /// Gets a voice state by user ID and Guild ID.
     ///
     /// This is an O(1) operation.
     pub async fn voice_state(
         &self,
-        channel_id: ChannelId,
         user_id: UserId,
-    ) -> Result<Option<Arc<CachedVoiceState>>> {
-        Ok(self
-            .0
-            .voice_states
-            .lock()
-            .await
-            .get(&(channel_id, user_id))
-            .cloned())
+        guild_id: GuildId,
+    ) -> Result<Option<Arc<VoiceState>>> {
+        if let Some(guild_map) = self.0.guild_voice_states.lock().await.get(&guild_id) {
+            let vs = guild_map.get(&user_id).cloned();
+            Ok(vs)
+        } else {
+            Ok(None)
+        }
     }
 
     /// Clears the entire state of the Cache. This is equal to creating a new
@@ -364,7 +362,7 @@ impl InMemoryCache {
         self.0.presences.lock().await.clear();
         self.0.roles.lock().await.clear();
         self.0.users.lock().await.clear();
-        self.0.voice_states.lock().await.clear();
+        self.0.guild_voice_states.lock().await.clear();
 
         Ok(())
     }
@@ -483,36 +481,43 @@ impl InMemoryCache {
             .await;
         self.cache_voice_states(guild.voice_states.into_iter().map(|(_, v)| v))
             .await;
+
         self.0
             .guild_channels
             .lock()
             .await
             .insert(guild.id, HashSet::new());
+
         self.0
             .guild_emojis
             .lock()
             .await
             .insert(guild.id, HashSet::new());
+
         self.0
             .guild_members
             .lock()
             .await
             .insert(guild.id, HashSet::new());
+
         self.0
             .guild_presences
             .lock()
             .await
             .insert(guild.id, HashSet::new());
+
         self.0
             .guild_roles
             .lock()
             .await
             .insert(guild.id, HashSet::new());
+
         self.0
             .guild_voice_states
             .lock()
             .await
-            .insert(guild.id, HashSet::new());
+            .insert(guild.id, HashMap::new());
+
         let guild = CachedGuild {
             id: guild.id,
             afk_channel_id: guild.afk_channel_id,
@@ -697,17 +702,41 @@ impl InMemoryCache {
         HashSet::from_iter(ids)
     }
 
-    pub async fn cache_voice_state(&self, vs: VoiceState) -> Arc<CachedVoiceState> {
-        let k = (vs.channel_id.unwrap(), vs.user_id);
+    async fn cache_voice_state(&self, vs: VoiceState) -> Option<Arc<VoiceState>> {
+        // This should always exist, but just incase use a match
+        let guild_id = match vs.guild_id {
+            Some(id) => id,
+            None => return None,
+        };
 
-        match self.0.voice_states.lock().await.get(&k) {
-            Some(v) if **v == vs => return Arc::clone(v),
+        let user_id = vs.user_id;
+
+        let mut lock = self.0.guild_voice_states.lock().await;
+        // This won't panic because we always insert a hashmap for each guild that the bot knows
+        // about, and to even receive events for them, we must have a key for them already.
+        let guild_states = lock.get_mut(&guild_id).unwrap();
+
+        // If a user leaves a voice channel, then the `VoiceState` object received contains no
+        // channel id.
+        if vs.channel_id.is_none() {
+            // To avoid the dead voice states from going stale and clogging up the cache,
+            // we remove it.
+            guild_states.remove(&user_id);
+
+            return None;
+        }
+
+        // This won't panic for the reason above.
+        match guild_states.get(&user_id) {
+            Some(v) if **v == vs => return Some(Arc::clone(v)),
             Some(_) | None => {}
         }
-        let state = Arc::new(CachedVoiceState {
+
+        let state = Arc::new(VoiceState {
             channel_id: vs.channel_id,
             deaf: vs.deaf,
             guild_id: vs.guild_id,
+            member: vs.member,
             mute: vs.mute,
             self_deaf: vs.self_deaf,
             self_mute: vs.self_mute,
@@ -717,13 +746,10 @@ impl InMemoryCache {
             token: vs.token,
             user_id: vs.user_id,
         });
-        self.0
-            .voice_states
-            .lock()
-            .await
-            .insert(k, Arc::clone(&state));
 
-        state
+        guild_states.insert(user_id, Arc::clone(&state));
+
+        Some(state)
     }
 
     pub async fn delete_group(&self, channel_id: ChannelId) -> Option<Arc<Group>> {
