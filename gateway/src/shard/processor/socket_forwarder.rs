@@ -14,6 +14,7 @@ pub struct SocketForwarder {
     rx: UnboundedReceiver<Message>,
     pub stream: ShardStream,
     tx: UnboundedSender<Message>,
+    closed: bool,
 }
 
 impl SocketForwarder {
@@ -28,6 +29,7 @@ impl SocketForwarder {
                 rx: from_user,
                 stream,
                 tx: to_user,
+                closed: false,
             },
             from_forwarder,
             to_forwarder,
@@ -41,6 +43,9 @@ impl SocketForwarder {
             match future::select(self.rx.next(), timeout(TIMEOUT, self.stream.next())).await {
                 Either::Left((Some(msg), _)) => {
                     trace!("[SocketForwarder] Sending msg: {}", msg);
+                    if self.closed {
+                        break;
+                    }
                     if let Err(err) = self.stream.send(msg).await {
                         warn!("[SocketForwarder] Got error when sending: {}", err);
                         break;
@@ -49,7 +54,7 @@ impl SocketForwarder {
                 Either::Left((None, _)) => {
                     warn!("[SocketForwarder] Got None, closing stream");
                     let _ = self.stream.close(None).await;
-
+                    self.closed = true;
                     break;
                 }
                 Either::Right((Ok(Some(Ok(msg))), _)) => {
