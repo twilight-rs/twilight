@@ -1,8 +1,10 @@
 use super::error::{Error, Result};
+use crate::shard::ResumeSession;
 use crate::{
     queue::{LocalQueue, Queue},
     shard::config::{ShardConfig, ShardConfigBuilder},
 };
+use std::collections::HashMap;
 use std::{
     convert::TryFrom,
     ops::{Bound, RangeBounds},
@@ -93,6 +95,7 @@ pub struct ClusterConfig {
     shard_config: ShardConfig,
     shard_scheme: ShardScheme,
     queue: Arc<Box<dyn Queue>>,
+    resume_sessions: HashMap<u64, ResumeSession>,
 }
 
 impl ClusterConfig {
@@ -136,6 +139,15 @@ impl ClusterConfig {
     pub fn queue(&self) -> &Arc<Box<dyn Queue>> {
         &self.queue
     }
+
+    /// Returns the resume data to resume shards for this cluster
+    ///
+    /// Refer to [`ClusterConfigBuilder::resume_sessions`] for the default value.
+    ///
+    /// [`ClusterConfigBuilder::resume_sessions`]: struct.ClusterConfigBuilder.html#method.resume_sessions
+    pub fn resume_sessions(&self) -> &HashMap<u64, ResumeSession> {
+        &self.resume_sessions
+    }
 }
 
 impl From<ClusterConfigBuilder> for ClusterConfig {
@@ -177,6 +189,7 @@ impl ClusterConfigBuilder {
                 shard_config: ShardConfig::from(token.clone()),
                 shard_scheme: ShardScheme::Auto,
                 queue: Arc::new(Box::new(LocalQueue::new())),
+                resume_sessions: HashMap::new(),
             },
             ShardConfigBuilder::new(token),
         )
@@ -303,6 +316,15 @@ impl ClusterConfigBuilder {
         self.1 = self.1.queue(Arc::clone(&queue));
         self.0.queue = queue;
 
+        self
+    }
+
+    /// Sets the session information to resume shards with
+    ///
+    /// This requires having recovered the resume data when shutting down the cluster
+    /// NOTE: this does not guarantee these shards will be able to resume. If their sessions are invalid they will have to re-identify as normal
+    pub fn resume_sessions(mut self, resume_sessions: HashMap<u64, ResumeSession>) -> Self {
+        self.0.resume_sessions = resume_sessions;
         self
     }
 }

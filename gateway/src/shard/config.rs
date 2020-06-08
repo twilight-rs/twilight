@@ -20,6 +20,8 @@ pub struct ShardConfig {
     pub(crate) queue: Arc<Box<dyn Queue>>,
     pub(crate) shard: [u64; 2],
     token: String,
+    pub(crate) session_id: Option<String>,
+    pub(crate) sequence: Option<u64>,
 }
 
 impl ShardConfig {
@@ -113,6 +115,8 @@ impl ShardConfigBuilder {
             queue: Arc::new(Box::new(LocalQueue::new())),
             shard: [0, 1],
             token,
+            session_id: None,
+            sequence: None,
         })
     }
 
