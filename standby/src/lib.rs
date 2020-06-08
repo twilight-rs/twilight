@@ -59,7 +59,7 @@ use twilight_model::{
 };
 
 struct Bystander<E> {
-    func: Box<dyn Fn(&E) -> bool>,
+    func: Box<dyn Fn(&E) -> bool + Send>,
     sender: Option<Sender<E>>,
 }
 
@@ -137,7 +137,7 @@ impl Standby {
     /// ```
     ///
     /// [`Standby`]: struct.Standby.html
-    pub async fn wait_for<F: Fn(&Event) -> bool + 'static>(
+    pub async fn wait_for<F: Fn(&Event) -> bool + Send + 'static>(
         &self,
         guild_id: GuildId,
         check: impl Into<Box<F>>,
@@ -186,7 +186,7 @@ impl Standby {
     /// ```
     ///
     /// [`Standby`]: struct.Standby.html
-    pub async fn wait_for_event<F: Fn(&Event) -> bool + 'static>(
+    pub async fn wait_for_event<F: Fn(&Event) -> bool + Send + 'static>(
         &self,
         event_type: EventType,
         check: impl Into<Box<F>>,
@@ -230,7 +230,7 @@ impl Standby {
     /// ```
     ///
     /// [`Standby`]: struct.Standby.html
-    pub async fn wait_for_message<F: Fn(&MessageCreate) -> bool + 'static>(
+    pub async fn wait_for_message<F: Fn(&MessageCreate) -> bool + Send + 'static>(
         &self,
         channel_id: ChannelId,
         check: impl Into<Box<F>>,
@@ -274,7 +274,7 @@ impl Standby {
     /// ```
     ///
     /// [`Standby`]: struct.Standby.html
-    pub async fn wait_for_reaction<F: Fn(&ReactionAdd) -> bool + 'static>(
+    pub async fn wait_for_reaction<F: Fn(&ReactionAdd) -> bool + Send + 'static>(
         &self,
         message_id: MessageId,
         check: impl Into<Box<F>>,
