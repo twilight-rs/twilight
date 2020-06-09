@@ -21,10 +21,17 @@ use twilight_model::{
     id::{GuildId, UserId},
 };
 
+/// An error that can occur while interacting with the client.
 #[derive(Clone, Debug, PartialEq)]
 pub enum ClientError {
+    /// A node isn't configured, so the operation isn't possible to fulfill.
     NodesUnconfigured,
-    SendingVoiceUpdate { source: TrySendError<OutgoingEvent> },
+    /// Sending a voice update event to the node failed because the node's
+    /// connection was shutdown.
+    SendingVoiceUpdate {
+        /// The source of the error.
+        source: TrySendError<OutgoingEvent>,
+    },
 }
 
 impl Display for ClientError {
@@ -62,6 +69,17 @@ struct LavalinkRef {
     waiting: DashMap<GuildId, VoiceStateHalf>,
 }
 
+/// The lavalink client that manages nodes, players, and processes events from
+/// Discord to tie it all together.
+///
+/// You can use the client to process voice events, which it will use to forward
+/// server updates and voice states to Lavalink. Additionally, you can retrieve
+/// players using the [`player`] method. Players contain information about the
+/// active playing information of a guild and allows you to send events to the
+/// connected node, such as [`Play`] events.
+///
+/// [`Play`]: ../model/struct.Play.html
+/// [`player`]: #method.player
 #[derive(Clone, Debug)]
 pub struct Lavalink(Arc<LavalinkRef>);
 

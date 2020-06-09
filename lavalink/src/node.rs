@@ -1,3 +1,24 @@
+//! Nodes for communicating with a Lavalink server.
+//!
+//! Using nodes, you can send events to a server and receive events.
+//!
+//! This is a bit more low level than using the [`Lavalink`] client because you
+//! will need to provide your own [`VoiceUpdate`] events when your bot joins
+//! channels, meaning you will have to accumulate and combine voice state update
+//! and voice server update events from the Discord gateway to send them to
+//! a node.
+//!
+//! Additionally, you will have to create and manage your own [`PlayerManager`]
+//! and make your own players for guilds when your bot joins voice channels.
+//!
+//! This can be a lot of work, and there's not really much reason to do it
+//! yourself. For that reason, you should almost always use the `Lavalink`
+//! client which does all of this for you.
+//!
+//! [`Lavalink`]: ../client/struct.Lavalink.html
+//! [`PlayerManager`]: ../player/struct.PlayerManager.html
+//! [`VoiceUpdate`]: ../model/struct.VoiceUpdate.html
+
 use crate::{
     model::{IncomingEvent, Opcode, OutgoingEvent, PlayerUpdate, Stats, StatsCpu, StatsMemory},
     player::PlayerManager,
@@ -21,18 +42,21 @@ use std::{
 use tokio::net::TcpStream;
 use twilight_model::id::UserId;
 
+/// An error occurred while either initializing a connection or while running
+/// its event loop.
 #[derive(Debug)]
 #[non_exhaustive]
 pub enum NodeError {
+    /// Building the HTTP request to initialize a connection failed.
     BuildingConnectionRequest {
+        /// The source of the error from the `http` crate.
         source: HttpError,
     },
-    IncomingMessageInvalid {
-        source: JsonError,
-        text: String,
-    },
+    /// Serializing a JSON message to be sent to a Lavalink node failed.
     SerializingMessage {
+        /// The message that couldn't be serialized.
         message: OutgoingEvent,
+        /// The source of the error from the `serde_json` crate.
         source: JsonError,
     },
 }
@@ -42,9 +66,6 @@ impl Display for NodeError {
         match self {
             Self::BuildingConnectionRequest { .. } => {
                 f.write_str("failed to build connection request")
-            }
-            Self::IncomingMessageInvalid { .. } => {
-                f.write_str("the incoming message is invalid json or unsupported")
             }
             Self::SerializingMessage { .. } => {
                 f.write_str("failed to serialize outgoing message as json")
@@ -57,19 +78,28 @@ impl Error for NodeError {
     fn source(&self) -> Option<&(dyn Error + 'static)> {
         match self {
             Self::BuildingConnectionRequest { source } => Some(source),
-            Self::IncomingMessageInvalid { source, .. } => Some(source),
             Self::SerializingMessage { source, .. } => Some(source),
         }
     }
 }
 
+/// The configuration that a [`Node`] uses to connect to a Lavalink server.
+///
+/// [`Node`]: struct.Node.html
 #[derive(Clone, Debug, Eq, PartialEq)]
 #[non_exhaustive]
 pub struct NodeConfig {
+    /// The address of the node.
     pub address: SocketAddr,
+    /// The password to use when authenticating.
     pub authorization: String,
+    /// The details for resuming a Lavalink session, if any.
+    ///
+    /// Set this to `None` to disable resume capability.
     pub resume: Option<Resume>,
+    /// The number of shards in use by the bot.
     pub shard_count: u64,
+    /// The user ID of the bot.
     pub user_id: UserId,
 }
 
@@ -85,6 +115,8 @@ pub struct Resume {
 }
 
 impl Resume {
+    /// Configure resume capability, providing the number of seconds that the
+    /// Lavalink server should queue events for when the connection is resumed.
     pub fn new(seconds: u64) -> Self {
         Self { timeout: seconds }
     }
@@ -97,6 +129,14 @@ impl Default for Resume {
 }
 
 impl NodeConfig {
+    /// Create a new configuration for connecting to a node via
+    /// [`Node::connect`].
+    ///
+    /// If adding a node through the [`Lavalink`] client then you don't need to
+    /// do this yourself.
+    ///
+    /// [`Lavalink`]: ../client/struct.Lavalink.html
+    /// [`Node::connect`]: struct.Node.html#method.connect
     pub fn new(
         user_id: UserId,
         shard_count: u64,
@@ -138,10 +178,25 @@ struct NodeRef {
     stats: BiLock<Stats>,
 }
 
+/// A connection to a single Lavalink server. It receives events and forwards
+/// events from players to the server.
+///
+/// Please refer to the [module] documentation.
+///
+/// [module]: index.html
 #[derive(Clone, Debug)]
 pub struct Node(Arc<NodeRef>);
 
 impl Node {
+    /// Connect to a node, providing a player manager so that the node can
+    /// update player details.
+    ///
+    /// Please refer to the [module] documentation for some additional
+    /// information about directly creating and using nodes. You are encouraged
+    /// to use the [`Lavalink`] client instead.
+    ///
+    /// [`Lavalink`]: ../client/struct.Lavalink.html
+    /// [module]: index.html
     pub async fn connect(
         config: NodeConfig,
         players: PlayerManager,
@@ -181,26 +236,35 @@ impl Node {
         ))
     }
 
+    /// Retrieve an immutable reference to the node's configuration.
     pub fn config(&self) -> &NodeConfig {
         &self.0.config
     }
 
+    /// Retrieve an immutable reference to the player manager used by the node.
     pub async fn players(&self) -> &PlayerManager {
         &self.0.players
     }
 
+    /// Retrieve an immutable reference to the node's configuration.
     pub fn send(&self, event: OutgoingEvent) -> Result<(), TrySendError<OutgoingEvent>> {
         self.sender().unbounded_send(event)
     }
 
+    /// Retrieve a unique sender to send events to the Lavalink server.
     pub fn sender(&self) -> UnboundedSender<OutgoingEvent> {
         self.0.lavalink_tx.clone()
     }
 
+    /// Retrieve a copy of the node's stats.
     pub async fn stats(&self) -> Stats {
         (*self.0.stats.lock().await).clone()
     }
 
+    /// Retrieve the calculated penalty score of the node.
+    ///
+    /// This score can be used to calculate how loaded the server is. A higher
+    /// number means it is more heavily loaded.
     pub async fn penalty(&self) -> i32 {
         let stats = self.0.stats.lock().await;
         let cpu = 1.05f64.powf(100f64 * stats.cpu.system_load) * 10f64 - 10f64;

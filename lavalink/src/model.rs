@@ -3,20 +3,32 @@
 
 use serde::{Deserialize, Serialize};
 
+/// The type of event that something is.
 #[derive(Clone, Copy, Debug, Deserialize, Eq, PartialEq, Serialize)]
 #[non_exhaustive]
 #[serde(rename_all = "camelCase")]
 pub enum Opcode {
+    /// Destroy a player from a node.
     Destroy,
+    /// Equalize a player.
     Equalizer,
+    /// Meta information about a track starting or ending.
     Event,
+    /// Pause a player.
     Pause,
+    /// Add a track to a player's queue, optionally forcing it to play now.
     Play,
+    /// An update about a player's current track.
     PlayerUpdate,
+    /// Seek a player's active track to a new position.
     Seek,
+    /// Updated statistics about a node.
     Stats,
+    /// Stop a player.
     Stop,
+    /// A combined voice server and voice state update.
     VoiceUpdate,
+    /// Set the volume of a player.
     Volume,
 }
 
@@ -25,17 +37,26 @@ mod outgoing {
     use serde::{Deserialize, Serialize};
     use twilight_model::{gateway::payload::VoiceServerUpdate, id::GuildId};
 
+    /// An outgoing event to send to Lavalink.
     #[derive(Clone, Debug, Deserialize, PartialEq, Serialize)]
     #[non_exhaustive]
     #[serde(untagged)]
     pub enum OutgoingEvent {
+        /// Destroy a player for a guild.
         Destroy(Destroy),
+        /// Equalize a player.
         Equalizer(Equalizer),
+        /// Pause or unpause a player.
         Pause(Pause),
+        /// Add a track to the queue, optionally forcing it to play now.
         Play(Play),
+        /// Seek a player's active track to a new position.
         Seek(Seek),
+        /// Stop a player.
         Stop(Stop),
+        /// A combined voice server and voice state update.
         VoiceUpdate(VoiceUpdate),
+        /// Set the volume of a player.
         Volume(Volume),
     }
 
@@ -87,15 +108,19 @@ mod outgoing {
         }
     }
 
+    /// Destroy a player from a node.
     #[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
     #[non_exhaustive]
     #[serde(rename_all = "camelCase")]
     pub struct Destroy {
-        op: Opcode,
+        /// The guild ID of the player.
         pub guild_id: GuildId,
+        /// The opcode of the event.
+        pub op: Opcode,
     }
 
     impl Destroy {
+        /// Create a new destroy event.
         pub fn new(guild_id: GuildId) -> Self {
             Self {
                 guild_id,
@@ -113,16 +138,21 @@ mod outgoing {
         }
     }
 
+    /// Equalize a player.
     #[derive(Clone, Debug, Deserialize, PartialEq, Serialize)]
     #[non_exhaustive]
     #[serde(rename_all = "camelCase")]
     pub struct Equalizer {
-        op: Opcode,
+        /// The bands to use as part of the equalizer.
         pub bands: Vec<EqualizerBand>,
+        /// The guild ID of the player.
         pub guild_id: GuildId,
+        /// The opcode of the event.
+        pub op: Opcode,
     }
 
     impl Equalizer {
+        /// Create a new equalizer event.
         pub fn new(guild_id: GuildId, bands: Vec<EqualizerBand>) -> Self {
             Self::from((guild_id, bands))
         }
@@ -138,15 +168,19 @@ mod outgoing {
         }
     }
 
+    /// A band of the equalizer event.
     #[derive(Clone, Debug, Deserialize, PartialEq, Serialize)]
     #[non_exhaustive]
     #[serde(rename_all = "camelCase")]
     pub struct EqualizerBand {
+        /// The band.
         pub band: i64,
+        /// The gain.
         pub gain: f64,
     }
 
     impl EqualizerBand {
+        /// Create a new equalizer band.
         pub fn new(band: i64, gain: f64) -> Self {
             Self::from((band, gain))
         }
@@ -158,16 +192,25 @@ mod outgoing {
         }
     }
 
+    /// Pause or unpause a player.
     #[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
     #[non_exhaustive]
     #[serde(rename_all = "camelCase")]
     pub struct Pause {
-        op: Opcode,
+        /// The guild ID of the player.
         pub guild_id: GuildId,
+        /// The opcode of the event.
+        pub op: Opcode,
+        /// Whether to pause the player.
+        ///
+        /// Set to `true` to pause or `false` to resume.
         pub pause: bool,
     }
 
     impl Pause {
+        /// Create a new pause event.
+        ///
+        /// Set to `true` to pause the player or `false` to resume it.
         pub fn new(guild_id: GuildId, pause: bool) -> Self {
             Self::from((guild_id, pause))
         }
@@ -183,21 +226,39 @@ mod outgoing {
         }
     }
 
+    /// Add a track to the queue, optionally forcing it to play now.
     #[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
     #[non_exhaustive]
     #[serde(rename_all = "camelCase")]
     pub struct Play {
+        /// The position in milliseconds to end the track.
+        ///
+        /// This currently [does nothing] as of this writing.
+        ///
+        /// [does nothing]: https://github.com/Frederikam/Lavalink/issues/179
         #[serde(skip_serializing_if = "Option::is_none")]
         pub end_time: Option<u64>,
+        /// The guild ID of the player.
         pub guild_id: GuildId,
+        /// Whether or not to replace the currently playing track with this new
+        /// track.
+        ///
+        /// Set to `true` to push this track to the end of the queue, or `false`
+        /// to replace the current track in-place.
         pub no_replace: bool,
-        op: Opcode,
+        /// The opcode of the event.
+        pub op: Opcode,
+        /// The position in milliseconds to start the track from.
+        ///
+        /// For example, set to 5000 to start the track 5 seconds in.
         #[serde(skip_serializing_if = "Option::is_none")]
         pub start_time: Option<u64>,
+        /// The base64 track information.
         pub track: String,
     }
 
     impl Play {
+        /// Create a new play event.
         pub fn new(
             guild_id: GuildId,
             track: impl Into<String>,
@@ -246,16 +307,21 @@ mod outgoing {
         }
     }
 
+    /// Seek a player's active track to a new position.
     #[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
     #[non_exhaustive]
     #[serde(rename_all = "camelCase")]
     pub struct Seek {
-        op: Opcode,
+        /// The guild ID of the player.
         pub guild_id: GuildId,
+        /// The opcode of the event.
+        pub op: Opcode,
+        /// The position in milliseconds to seek to.
         pub position: i64,
     }
 
     impl Seek {
+        /// Create a new seek event.
         pub fn new(guild_id: GuildId, position: i64) -> Self {
             Self::from((guild_id, position))
         }
@@ -271,15 +337,19 @@ mod outgoing {
         }
     }
 
+    /// Stop a player.
     #[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
     #[non_exhaustive]
     #[serde(rename_all = "camelCase")]
     pub struct Stop {
-        op: Opcode,
+        /// The opcode of the event.
+        pub op: Opcode,
+        /// The guild ID of the player.
         pub guild_id: GuildId,
     }
 
     impl Stop {
+        /// Create a new stop event.
         pub fn new(guild_id: GuildId) -> Self {
             Self::from(guild_id)
         }
@@ -294,17 +364,23 @@ mod outgoing {
         }
     }
 
+    /// A combined voice server and voice state update.
     #[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
     #[non_exhaustive]
     #[serde(rename_all = "camelCase")]
     pub struct VoiceUpdate {
-        op: Opcode,
-        pub guild_id: GuildId,
-        pub session_id: String,
+        /// The inner event being forwarded to a node.
         pub event: SlimVoiceServerUpdate,
+        /// The guild ID of the player.
+        pub guild_id: GuildId,
+        /// The opcode of the event.
+        pub op: Opcode,
+        /// The session ID of the voice channel.
+        pub session_id: String,
     }
 
     impl VoiceUpdate {
+        /// Create a new voice update event.
         pub fn new(
             guild_id: GuildId,
             session_id: impl Into<String>,
@@ -325,13 +401,18 @@ mod outgoing {
         }
     }
 
+    /// A slimmed version of a twilight voice server update.
     #[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
     #[non_exhaustive]
     #[serde(rename_all = "snake_case")]
     pub struct SlimVoiceServerUpdate {
-        endpoint: Option<String>,
-        guild_id: Option<GuildId>,
-        token: String,
+        /// The endpoint of the Discord voice server.
+        pub endpoint: Option<String>,
+        /// The guild ID of the player.
+        pub guild_id: Option<GuildId>,
+        /// The authentication token used by the bot to connect to the Discord
+        /// voice server.
+        pub token: String,
     }
 
     impl From<VoiceServerUpdate> for SlimVoiceServerUpdate {
@@ -344,16 +425,21 @@ mod outgoing {
         }
     }
 
+    /// Set the volume of a player.
     #[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
     #[non_exhaustive]
     #[serde(rename_all = "camelCase")]
     pub struct Volume {
-        op: Opcode,
+        /// The guild ID of the player.
         pub guild_id: GuildId,
+        /// The opcode of the event.
+        pub op: Opcode,
+        /// The volume of the player from 0 to 1000. 100 is the default.
         pub volume: i64,
     }
 
     impl Volume {
+        /// Create a new volume event.
         pub fn new(guild_id: GuildId, volume: i64) -> Self {
             Self::from((guild_id, volume))
         }
@@ -375,13 +461,18 @@ mod incoming {
     use serde::{Deserialize, Serialize};
     use twilight_model::id::GuildId;
 
+    /// An incoming event from a Lavalink node.
     #[derive(Clone, Debug, Deserialize, PartialEq, Serialize)]
     #[non_exhaustive]
     #[serde(untagged)]
     pub enum IncomingEvent {
+        /// An update about the information of a player.
         PlayerUpdate(PlayerUpdate),
+        /// New statistics about a node and its host.
         Stats(Stats),
+        /// A track ended.
         TrackEnd(TrackEnd),
+        /// A track started.
         TrackStart(TrackStart),
     }
 
@@ -397,83 +488,123 @@ mod incoming {
         }
     }
 
+    /// An update about the information of a player.
     #[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
     #[non_exhaustive]
     #[serde(rename_all = "camelCase")]
     pub struct PlayerUpdate {
-        pub op: Opcode,
+        /// The guild ID of the player.
         pub guild_id: GuildId,
+        /// The opcode of the event.
+        pub op: Opcode,
+        /// The new state of the player.
         pub state: PlayerUpdateState,
     }
 
+    /// New statistics about a node and its host.
     #[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
     #[non_exhaustive]
     #[serde(rename_all = "camelCase")]
     pub struct PlayerUpdateState {
-        pub time: i64,
+        /// The new position of the player.
         pub position: i64,
+        /// The new time of the player.
+        pub time: i64,
     }
 
+    /// Statistics about a node and its host.
     #[derive(Clone, Debug, Deserialize, PartialEq, Serialize)]
     #[non_exhaustive]
     #[serde(rename_all = "camelCase")]
     pub struct Stats {
+        /// CPU information about the node's host.
         pub cpu: StatsCpu,
+        /// Memory information about the node's host.
         pub memory: StatsMemory,
+        /// The current number of total players (active and not active) within
+        /// the node.
         pub players: u64,
+        /// The current number of active players within the node.
         pub playing_players: u64,
+        /// The opcode of the event.
         pub op: Opcode,
+        /// The uptime of the Lavalink server in seconds.
         pub uptime: u64,
     }
 
+    /// CPU information about a node and its host.
     #[derive(Clone, Debug, Deserialize, PartialEq, Serialize)]
     #[non_exhaustive]
     #[serde(rename_all = "camelCase")]
     pub struct StatsCpu {
+        /// The number of CPU cores.
         pub cores: usize,
+        /// The load of the Lavalink server.
         pub lavalink_load: f64,
+        /// The load of the system as a whole.
         pub system_load: f64,
     }
 
+    /// Memory information about a node and its host.
     #[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
     #[non_exhaustive]
     #[serde(rename_all = "camelCase")]
     pub struct StatsMemory {
+        /// The number of bytes allocated.
         pub allocated: u64,
+        /// The number of bytes free.
         pub free: u64,
+        /// The number of bytes reservable.
         pub reservable: u64,
+        /// The number of bytes used.
         pub used: u64,
     }
 
+    /// The type of track event that was received.
     #[derive(Clone, Copy, Debug, Deserialize, Eq, PartialEq, Serialize)]
     #[non_exhaustive]
     pub enum TrackEventType {
+        /// A track for a player ended.
         #[serde(rename = "TrackEndEvent")]
         End,
+        /// A track for a player started.
         #[serde(rename = "TrackStartEvent")]
         Start,
     }
 
+    /// A track ended.
     #[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
     #[non_exhaustive]
     #[serde(rename_all = "camelCase")]
     pub struct TrackEnd {
+        /// The guild ID of the player.
         pub guild_id: GuildId,
+        /// The type of track event.
         #[serde(rename = "type")]
         pub kind: TrackEventType,
+        /// The opcode of the event.
         pub op: Opcode,
+        /// The reason that the track ended.
+        ///
+        /// For example, this may be `"FINISHED"`.
         pub reason: String,
+        /// The base64 track that was affected.
         pub track: String,
     }
 
+    /// A track started.
     #[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
     #[non_exhaustive]
     #[serde(rename_all = "camelCase")]
     pub struct TrackStart {
+        /// The guild ID of the player.
         pub guild_id: GuildId,
+        /// The type of track event.
         #[serde(rename = "type")]
         pub kind: TrackEventType,
+        /// The opcode of the event.
         pub op: Opcode,
+        /// The base64 track that was affected.
         pub track: String,
     }
 }

@@ -65,6 +65,7 @@
 #![deny(
     clippy::all,
     future_incompatible,
+    missing_docs,
     nonstandard_style,
     rust_2018_idioms,
     unused,
