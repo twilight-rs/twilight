@@ -1,0 +1,36 @@
+[package]
+authors = ["Twilight Contributors"]
+documentation = "https://docs.rs/twilight-lavalink"
+edition = "2018"
+homepage = "https://github.com/twilight-rs/twilight/tree/master/lavalink"
+include = ["src/*.rs", "Cargo.toml"]
+keywords = ["discord", "discord-api", "twilight"]
+license = "ISC"
+name = "twilight-lavalink"
+publish = false
+readme = "README.md"
+repository = "https://github.com/twilight-rs/twilight.git"
+version = "0.1.0"
+
+[dependencies]
+async-tungstenite = { default-features = false, features = ["tokio-runtime"], version = "0.5" }
+dashmap = { default-features = false, version = "3" }
+futures-channel = { default-features = false, features = ["std"], version = "0.3" }
+futures-util = { default-features = false, features = ["bilock", "std", "unstable"], version = "0.3" }
+http = { default-features = false, optional = true, version = "0.2" }
+log = { default-features = false, version = "0.4" }
+percent-encoding = { default-features = false, optional = true, version = "2" }
+serde = { default-features = false, features = ["derive", "std"], version = "1" }
+serde_json = { default-features = false, version = "1" }
+tokio = { default-features = false, features = ["net", "rt-core", "time"], version = "0.2" }
+twilight-model = { path = "../model" }
+
+[dev-dependencies]
+static_assertions = { default-features = false, version = "1" }
+tokio = { default-features = false, features = ["macros", "rt-threaded"], version = "0.2" }
+twilight-gateway = { path = "../gateway" }
+twilight-http = { path = "../http" }
+
+[features]
+default = ["http-support"]
+http-support = ["http", "percent-encoding"]
