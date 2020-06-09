@@ -77,9 +77,7 @@ impl Display for NodeError {
             Self::BuildingConnectionRequest { .. } => {
                 f.write_str("failed to build connection request")
             }
-            Self::Connecting { .. } => {
-                f.write_str("Failed to connect to the node")
-            }
+            Self::Connecting { .. } => f.write_str("Failed to connect to the node"),
             Self::SerializingMessage { .. } => {
                 f.write_str("failed to serialize outgoing message as json")
             }
@@ -535,9 +533,9 @@ async fn backoff(
                 seconds *= 2;
 
                 continue;
-            },
+            }
         }
-    };
+    }
 }
 
 #[cfg(test)]

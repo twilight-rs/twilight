@@ -15,7 +15,13 @@ use dashmap::{
     DashMap,
 };
 use futures_channel::mpsc::TrySendError;
-use std::{fmt::Debug, sync::{atomic::{AtomicBool, Ordering}, Arc}};
+use std::{
+    fmt::Debug,
+    sync::{
+        atomic::{AtomicBool, Ordering},
+        Arc,
+    },
+};
 use twilight_model::id::{ChannelId, GuildId};
 
 /// Retrieve and create players for guilds.
