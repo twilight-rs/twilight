@@ -373,7 +373,7 @@ impl Standby {
             let sender = match bystander.sender.take() {
                 Some(sender) => sender,
                 None => {
-                    idx += 1;
+                    bystanders.remove(idx);
 
                     continue;
                 }
@@ -386,6 +386,7 @@ impl Standby {
             }
 
             if !(bystander.func)(event) {
+                bystander.sender.replace(sender);
                 idx += 1;
 
                 continue;
@@ -623,5 +624,21 @@ mod tests {
 
         assert_eq!(Ok(UserId(3)), res.map(|reaction| reaction.user_id));
         assert!(standby.0.reactions.lock().await.is_empty());
+    }
+
+    #[tokio::test]
+    async fn test_handles_wrong_events() {
+        let standby = Standby::new();
+        let wait = standby.wait_for_event(EventType::Resumed, |event: &Event| {
+            matches!(event, Event::Resumed)
+        });
+
+        standby.process(&Event::PresencesReplace).await;
+        standby.process(&Event::PresencesReplace).await;
+        let process = standby.process(&Event::Resumed);
+
+        // wait always gets polled first
+        let (res, _) = future::join(wait, process).await;
+        assert!(res.is_ok());
     }
 }
