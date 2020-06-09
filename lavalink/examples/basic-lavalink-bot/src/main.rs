@@ -154,7 +154,7 @@ async fn play(msg: Message, state: State) -> Result<(), Box<dyn Error + Send + S
         player.send(Play::from((guild_id, &track.track)))?;
 
         let content = format!(
-            "Playing **{}** by **{}**",
+            "Playing **{:?}** by **{:?}**",
             track.info.title, track.info.author
         );
         state
