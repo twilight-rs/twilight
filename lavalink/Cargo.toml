@@ -22,7 +22,7 @@ log = { default-features = false, version = "0.4" }
 percent-encoding = { default-features = false, optional = true, version = "2" }
 serde = { default-features = false, features = ["derive", "std"], version = "1" }
 serde_json = { default-features = false, version = "1" }
-tokio = { default-features = false, features = ["net", "rt-core"], version = "0.2" }
+tokio = { default-features = false, features = ["net", "rt-core", "time"], version = "0.2" }
 twilight-model = { path = "../model" }
 
 [dev-dependencies]

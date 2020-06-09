@@ -23,7 +23,11 @@ use crate::{
     model::{IncomingEvent, Opcode, OutgoingEvent, PlayerUpdate, Stats, StatsCpu, StatsMemory},
     player::PlayerManager,
 };
-use async_tungstenite::{tokio::TokioAdapter, tungstenite::Message, WebSocketStream};
+use async_tungstenite::{
+    tokio::TokioAdapter,
+    tungstenite::{Error as TungsteniteError, Message},
+    WebSocketStream,
+};
 use futures_channel::mpsc::{self, TrySendError, UnboundedReceiver, UnboundedSender};
 use futures_util::{
     future::{self, Either},
@@ -31,15 +35,16 @@ use futures_util::{
     sink::SinkExt,
     stream::StreamExt,
 };
-use http::{header::HeaderName, Error as HttpError, Request};
+use http::{header::HeaderName, Error as HttpError, Request, Response};
 use serde_json::Error as JsonError;
 use std::{
     error::Error,
     fmt::{Display, Formatter, Result as FmtResult},
     net::SocketAddr,
     sync::Arc,
+    time::Duration,
 };
-use tokio::net::TcpStream;
+use tokio::{net::TcpStream, time as tokio_time};
 use twilight_model::id::UserId;
 
 /// An error occurred while either initializing a connection or while running
@@ -51,6 +56,11 @@ pub enum NodeError {
     BuildingConnectionRequest {
         /// The source of the error from the `http` crate.
         source: HttpError,
+    },
+    /// Connecting to the Lavalink server failed after several backoff attempts.
+    Connecting {
+        /// The source of the error from the `tungstenite` crate.
+        source: TungsteniteError,
     },
     /// Serializing a JSON message to be sent to a Lavalink node failed.
     SerializingMessage {
@@ -67,6 +77,9 @@ impl Display for NodeError {
             Self::BuildingConnectionRequest { .. } => {
                 f.write_str("failed to build connection request")
             }
+            Self::Connecting { .. } => {
+                f.write_str("Failed to connect to the node")
+            }
             Self::SerializingMessage { .. } => {
                 f.write_str("failed to serialize outgoing message as json")
             }
@@ -78,6 +91,7 @@ impl Error for NodeError {
     fn source(&self) -> Option<&(dyn Error + 'static)> {
         match self {
             Self::BuildingConnectionRequest { source } => Some(source),
+            Self::Connecting { source } => Some(source),
             Self::SerializingMessage { source, .. } => Some(source),
         }
     }
@@ -446,9 +460,7 @@ impl Connection {
     }
 }
 
-async fn reconnect(
-    state: &NodeConfig,
-) -> Result<WebSocketStream<TokioAdapter<TcpStream>>, NodeError> {
+fn connect_request(state: &NodeConfig) -> Result<Request<()>, NodeError> {
     let mut builder = Request::get(format!("ws://{}", state.address));
     builder = builder.header("Authorization", &state.authorization);
     builder = builder.header("Num-Shards", state.shard_count);
@@ -458,31 +470,74 @@ async fn reconnect(
         builder = builder.header("Resume-Key", state.address.to_string());
     }
 
-    let req = builder
+    builder
         .body(())
-        .map_err(|source| NodeError::BuildingConnectionRequest { source })?;
+        .map_err(|source| NodeError::BuildingConnectionRequest { source })
+}
 
-    let (mut stream, res) = async_tungstenite::tokio::connect_async(req).await.unwrap();
+async fn reconnect(
+    config: &NodeConfig,
+) -> Result<WebSocketStream<TokioAdapter<TcpStream>>, NodeError> {
+    let (mut stream, res) = backoff(config).await?;
+
     let headers = res.headers();
 
-    if let Some(resume) = state.resume.as_ref() {
+    if let Some(resume) = config.resume.as_ref() {
         let header = HeaderName::from_static("session-resumed");
 
         if let Some(value) = headers.get(header) {
             if value.as_bytes() == b"false" {
+                log::debug!("Session to node {} didn't resume", config.address);
+
                 let payload = serde_json::json!({
                     "op": "configureResuming",
-                    "key": state.address,
+                    "key": config.address,
                     "timeout": resume.timeout,
                 });
                 let msg = Message::Text(serde_json::to_string(&payload).unwrap());
 
                 stream.send(msg).await.unwrap();
+            } else {
+                log::debug!("Session to {} resumed", config.address);
             }
         }
     }
 
     Ok(stream)
+}
+
+async fn backoff(
+    config: &NodeConfig,
+) -> Result<(WebSocketStream<TokioAdapter<TcpStream>>, Response<()>), NodeError> {
+    let mut seconds = 1;
+
+    loop {
+        let req = connect_request(config)?;
+
+        match async_tungstenite::tokio::connect_async(req).await {
+            Ok((stream, res)) => return Ok((stream, res)),
+            Err(source) => {
+                log::warn!("Failed to connect to node {}: {:?}", source, config.address);
+
+                if seconds > 64 {
+                    log::debug!("No longer trying to connect to node {}", config.address);
+
+                    return Err(NodeError::Connecting { source });
+                }
+
+                log::debug!(
+                    "Trying to connect to node {} again in {} seconds",
+                    config.address,
+                    seconds,
+                );
+                tokio_time::delay_for(Duration::from_secs(seconds)).await;
+
+                seconds *= 2;
+
+                continue;
+            },
+        }
+    };
 }
 
 #[cfg(test)]
