@@ -631,8 +631,8 @@ pub use self::{incoming::*, outgoing::*};
 mod tests {
     use super::{
         incoming::{
-            IncomingEvent, PlayerUpdate, PlayerUpdateState, Stats, StatsCpu, StatsFrames, StatsMemory, TrackEnd,
-            TrackEventType, TrackStart,
+            IncomingEvent, PlayerUpdate, PlayerUpdateState, Stats, StatsCpu, StatsFrames,
+            StatsMemory, TrackEnd, TrackEventType, TrackStart,
         },
         outgoing::{
             Destroy, Equalizer, EqualizerBand, OutgoingEvent, Pause, Play, Seek,

@@ -20,7 +20,10 @@
 //! [`VoiceUpdate`]: ../model/struct.VoiceUpdate.html
 
 use crate::{
-    model::{IncomingEvent, Opcode, OutgoingEvent, PlayerUpdate, Stats, StatsCpu, StatsFrames, StatsMemory},
+    model::{
+        IncomingEvent, Opcode, OutgoingEvent, PlayerUpdate, Stats, StatsCpu, StatsFrames,
+        StatsMemory,
+    },
     player::PlayerManager,
 };
 use async_tungstenite::{
@@ -307,7 +310,8 @@ impl Node {
 
         let (deficit_frame, null_frame) = (
             1.03f64.powf(500f64 * (stats.frames.deficit as f64 / 3000f64)) * 300f64 - 300f64,
-            (1.03f64.powf(500f64 * (stats.frames.nulled as f64 / 3000f64)) * 300f64 - 300f64) * 2f64,
+            (1.03f64.powf(500f64 * (stats.frames.nulled as f64 / 3000f64)) * 300f64 - 300f64)
+                * 2f64,
         );
 
         stats.playing_players as i32 + cpu as i32 + deficit_frame as i32 + null_frame as i32
