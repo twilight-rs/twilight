@@ -2,7 +2,11 @@
 
 use flate2::DecompressError;
 use futures::channel::mpsc::TrySendError;
+#[cfg(all(feature = "serde_json", not(feature = "simd-json")))]
 use serde_json::Error as JsonError;
+#[cfg(feature = "simd-json")]
+use simd_json::Error as JsonError;
+
 use std::{
     error::Error as StdError,
     fmt::{Display, Formatter, Result as FmtResult},

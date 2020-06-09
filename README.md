@@ -58,17 +58,6 @@ process's memory.
 This is responsible for receiving stateful events in real-time from Discord
 and sending *some* stateful information.
 
-It includes two primary types: the Shard and Cluster.
-
-The Shard handles a single WebSocket connection and can manage up to 2500
-guilds. If you manage a small bot in under about 2000 guilds, then this is
-what you use. See the [Discord docs][docs:discord:sharding] for more
-information on sharding.
-
-The Cluster is an interface which manages the health of the shards it
-manages and proxies all of their events under one unified stream. This is
-useful to use if you have a large bot in over 1000 or 2000 guilds.
-
 ### `twilight-command-parser`
 
 `twilight-command-parser` is a crate for parsing commands out of messages

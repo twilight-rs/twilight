@@ -67,7 +67,7 @@ impl Session {
     /// [`Error::PayloadSerialization`]: ../enum.Error.html#variant.PayloadSerialization
     /// [`Error::SendingMessage`]: ../enum.Error.html#variant.SendingMessage
     pub fn send(&self, payload: impl Serialize) -> Result<()> {
-        let bytes = serde_json::to_vec(&payload)
+        let bytes = crate::json_to_vec(&payload)
             .map_err(|source| Error::PayloadSerialization { source })?;
 
         self.tx

@@ -33,6 +33,8 @@ use twilight_model::{
 };
 use url::Url;
 
+use crate::json_from_slice;
+
 #[derive(Clone, Debug, Default)]
 pub struct ClientBuilder(pub ClientConfigBuilder);
 
@@ -840,7 +842,11 @@ impl Client {
             .await
             .map_err(|source| Error::ChunkingResponse { source })?;
 
-        serde_json::from_slice(&bytes).map_err(|source| Error::Parsing {
+        let mut bytes_b = bytes.as_ref().to_vec();
+
+        let result = json_from_slice(&mut bytes_b);
+
+        result.map_err(|source| Error::Parsing {
             body: (*bytes).to_vec(),
             source,
         })
@@ -883,8 +889,11 @@ impl Client {
             .bytes()
             .await
             .map_err(|source| Error::ChunkingResponse { source })?;
+
+        let mut bytes_b = bytes.as_ref().to_vec();
+
         let error =
-            serde_json::from_slice::<ApiError>(&bytes).map_err(|source| Error::Parsing {
+            crate::json_from_slice::<ApiError>(&mut bytes_b).map_err(|source| Error::Parsing {
                 body: bytes.to_vec(),
                 source,
             })?;

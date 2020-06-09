@@ -1,3 +1,4 @@
+use crate::json_to_vec;
 use crate::request::prelude::*;
 use twilight_model::{channel::Webhook, id::ChannelId};
 
@@ -45,7 +46,7 @@ impl<'a> CreateWebhook<'a> {
         let request = if let Some(reason) = &self.reason {
             let headers = audit_header(&reason)?;
             Request::from((
-                serde_json::to_vec(&self.fields)?,
+                json_to_vec(&self.fields)?,
                 headers,
                 Route::CreateWebhook {
                     channel_id: self.channel_id.0,
@@ -53,7 +54,7 @@ impl<'a> CreateWebhook<'a> {
             ))
         } else {
             Request::from((
-                serde_json::to_vec(&self.fields)?,
+                json_to_vec(&self.fields)?,
                 Route::CreateWebhook {
                     channel_id: self.channel_id.0,
                 },

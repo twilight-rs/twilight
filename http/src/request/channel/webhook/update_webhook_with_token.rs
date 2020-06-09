@@ -1,3 +1,4 @@
+use crate::json_to_vec;
 use crate::request::prelude::*;
 use twilight_model::{channel::Webhook, id::WebhookId};
 
@@ -40,7 +41,7 @@ impl<'a> UpdateWebhookWithToken<'a> {
 
     fn start(&mut self) -> Result<()> {
         self.fut.replace(Box::pin(self.http.request(Request::from((
-            serde_json::to_vec(&self.fields)?,
+            json_to_vec(&self.fields)?,
             Route::UpdateWebhook {
                 token: Some(self.token.clone()),
                 webhook_id: self.webhook_id.0,

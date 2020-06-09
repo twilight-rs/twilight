@@ -399,7 +399,7 @@ impl ShardProcessor {
                         Some(json) => {
                             emit::bytes(self.listeners.clone(), json).await;
 
-                            match serde_json::from_slice(json)
+                            match crate::json_from_slice(json)
                                 .map_err(|source| Error::PayloadSerialization { source })
                             {
                                 Ok(ser) => Ok(ser),
@@ -419,11 +419,12 @@ impl ShardProcessor {
                     self.resume().await?;
                 }
                 Message::Ping(_) | Message::Pong(_) => {}
-                Message::Text(text) => {
+                Message::Text(mut text) => {
                     trace!("Text payload: {}", text);
+
                     emit::bytes(self.listeners.clone(), text.as_bytes()).await;
 
-                    break match serde_json::from_str(&text)
+                    break match crate::json_from_str(&mut text)
                         .map_err(|source| Error::PayloadSerialization { source })
                     {
                         Ok(ser) => Ok(ser),

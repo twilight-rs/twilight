@@ -1,3 +1,4 @@
+use crate::json_to_vec;
 use crate::request::prelude::*;
 use twilight_model::{
     channel::{embed::Embed, Message},
@@ -85,7 +86,7 @@ impl<'a> ExecuteWebhook<'a> {
 
     fn start(&mut self) -> Result<()> {
         self.fut.replace(Box::pin(self.http.request(Request::from((
-            serde_json::to_vec(&self.fields)?,
+            json_to_vec(&self.fields)?,
             Route::ExecuteWebhook {
                 token: self.token.to_owned(),
                 wait: self.fields.wait,

@@ -1,3 +1,4 @@
+use crate::json_to_vec;
 use crate::request::prelude::*;
 use twilight_model::id::{ChannelId, GuildId};
 
@@ -34,7 +35,7 @@ impl<'a> UpdateGuildChannelPositions<'a> {
 
     fn start(&mut self) -> Result<()> {
         self.fut.replace(Box::pin(self.http.request(Request::from((
-            serde_json::to_vec(&self.positions)?,
+            json_to_vec(&self.positions)?,
             Route::UpdateGuildChannels {
                 guild_id: self.guild_id.0,
             },

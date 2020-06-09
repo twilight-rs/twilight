@@ -1,3 +1,4 @@
+use crate::json_to_vec;
 use crate::request::prelude::*;
 use std::{
     error::Error,
@@ -199,7 +200,7 @@ impl<'a> CreateGuildChannel<'a> {
         let request = if let Some(reason) = &self.reason {
             let headers = audit_header(&reason)?;
             Request::from((
-                serde_json::to_vec(&self.fields)?,
+                json_to_vec(&self.fields)?,
                 headers,
                 Route::CreateChannel {
                     guild_id: self.guild_id.0,
@@ -207,7 +208,7 @@ impl<'a> CreateGuildChannel<'a> {
             ))
         } else {
             Request::from((
-                serde_json::to_vec(&self.fields)?,
+                json_to_vec(&self.fields)?,
                 Route::CreateChannel {
                     guild_id: self.guild_id.0,
                 },
