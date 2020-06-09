@@ -406,6 +406,7 @@ impl Standby {
             let sender = match bystander.sender.take() {
                 Some(sender) => sender,
                 None => {
+                    idx += 1;
                     log::trace!("Bystander has no sender, removing");
                     bystanders.remove(idx);
 
