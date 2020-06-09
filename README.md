@@ -24,11 +24,12 @@ Add this to your `Cargo.toml`'s `[dependencies]` section:
 twilight = {version = "0.0.1-alpha.0", git = "https://github.com/twilight-rs/twilight.git" }
 ```
 
-## Crates
+## Core Crates
 
-These are crates that can work together for a full application experience.
-You may not need all of these - such as `twilight-cache` - but they can be
-mixed together to accomplish just what you need.
+These are essential crates that most users will use together for a full
+development experience. You may not need all of these - such as
+`twilight-cache` - but they are often used together to accomplish most of what
+you need.
 
 ### `twilight-model`
 
@@ -75,6 +76,22 @@ proxying.
 `twilight-standby` is an event processor that allows for tasks to wait for an
 event to come in. This is useful, for example, when you have a reaction menu
 and want to wait for a reaction to it to come in.
+
+## Additional Crates
+
+These are crates that are officially supported by Twilight, but aren't
+considered core crates due to being vendor-specific or non-essential for most
+users.
+
+### `twilight-lavalink`
+
+`twilight-lavalink` is a client for [Lavalink] as part of the twilight
+ecosystem.
+
+It includes support for managing multiple nodes, a player manager for
+conveniently using players to send events and retrieve information for each
+guild, and an HTTP module for creating requests using the [`http`] crate and
+providing models to deserialize their responses.
 
 ## Examples
 
@@ -166,6 +183,8 @@ async fn handle_event(
 All first-party crates are licensed under [ISC][LICENSE.md]
 
 [LICENSE.md]: https://github.com/twilight-rs/twilight/blob/master/LICENSE.md
+[Lavalink]: https://github.com/Frederikam/Lavalink
+[`http`]: https://crates.io/crates/http
 [docs:discord:sharding]: https://discord.com/developers/docs/topics/gateway#sharding
 [license badge]: https://img.shields.io/badge/license-ISC-blue.svg?style=flat-square
 [license link]: https://opensource.org/licenses/ISC
