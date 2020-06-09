@@ -1,3 +1,5 @@
+<!-- cargo-sync-readme start -->
+
 [![license badge][]][license link] [![rust badge]][rust link]
 
 # twilight-model
@@ -41,6 +43,10 @@ This enables serde support of the models, which brings in four dependencies:
 - `serde-mappable-seq`
 - `serde_repr`
 
+Enabling only the `serde` dependency will do nothing: all of them need to be
+enabled for correct (de)serialization, so you need to enable
+`serde-support`.
+
 If you don't need serde support, you can disable it:
 
 ```toml
@@ -58,3 +64,5 @@ twilight-model = { default-features = false, git = "https://github.com/twilight-
 [license link]: https://opensource.org/licenses/ISC
 [rust badge]: https://img.shields.io/badge/rust-1.31+-93450a.svg?style=flat-square
 [rust link]: https://blog.rust-lang.org/2018/12/06/Rust-1.31-and-rust-2018.html
+
+<!-- cargo-sync-readme end -->

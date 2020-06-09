@@ -20,7 +20,7 @@
 //! Create a [client], add a [node], and give events to the client to [process]
 //! events:
 //!
-//! ```no_run
+//! ```rust,no_run
 //! use futures_util::stream::StreamExt;
 //! use std::{
 //!     convert::TryInto,

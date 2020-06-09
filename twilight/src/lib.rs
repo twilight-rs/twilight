@@ -1,4 +1,7 @@
 //! [![license badge][]][license link] [![rust badge]][rust link]
+//!
+//! ![project logo][logo]
+//!
 //! # twilight
 //!
 //! `twilight` is an asynchronous, simple, and extensible set of libraries which can
@@ -13,12 +16,12 @@
 //!
 //! ## Installation
 //!
-//! Most of twilight requires at least 1.39+ (rust beta).
+//! Most of Twilight requires at least 1.40+ (rust stable).
 //!
 //! Add this to your `Cargo.toml`'s `[dependencies]` section:
 //!
 //! ```toml
-//! twilight = "0.0.1-alpha.0"
+//! twilight = {version = "0.0.1-alpha.0", git = "https://github.com/twilight-rs/twilight.git" }
 //! ```
 //!
 //! ## Crates
@@ -55,17 +58,6 @@
 //! This is responsible for receiving stateful events in real-time from Discord
 //! and sending *some* stateful information.
 //!
-//! It includes two primary types: the Shard and Cluster.
-//!
-//! The Shard handles a single WebSocket connection and can manage up to 2500
-//! guilds. If you manage a small bot in under about 2000 guilds, then this is
-//! what you use. See the [Discord docs][docs:discord:sharding] for more
-//! information on sharding.
-//!
-//! The Cluster is an interface which manages the health of the shards it
-//! manages and proxies all of their events under one unified stream. This is
-//! useful to use if you have a large bot in over 1000 or 2000 guilds.
-//!
 //! ### `twilight-command-parser`
 //!
 //! `twilight-command-parser` is a crate for parsing commands out of messages
@@ -80,13 +72,13 @@
 //!
 //! ### `twilight-standby`
 //!
-//! `twilight-standby` is an event processor that allows for tasks to wait for
-//! an event to come in. This is useful, for example, when you have a reaction
-//! menu and want to wait for a reaction to it to come in.
+//! `twilight-standby` is an event processor that allows for tasks to wait for an
+//! event to come in. This is useful, for example, when you have a reaction menu
+//! and want to wait for a reaction to it to come in.
 //!
 //! ## Examples
 //!
-//! ```no_run
+//! ```rust,no_run
 //! use twilight::{
 //!     gateway::{Cluster, ClusterConfig, Event},
 //!     http::Client as HttpClient,
@@ -141,7 +133,7 @@
 //! [license badge]: https://img.shields.io/badge/license-ISC-blue.svg?style=flat-square
 //! [license link]: https://opensource.org/licenses/ISC
 //! [logo]: https://raw.githubusercontent.com/twilight-rs/twilight/master/logo.png
-//! [rust badge]: https://img.shields.io/badge/rust-1.39+%20(beta)-93450a.svg?style=flat-square
+//! [rust badge]: https://img.shields.io/badge/rust-1.40+%20(stable)-93450a.svg?style=flat-square
 //! [rust link]: https://github.com/rust-lang/rust/milestone/66
 
 #[cfg(feature = "builders")]

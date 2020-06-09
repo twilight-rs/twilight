@@ -1,3 +1,5 @@
+<!-- cargo-sync-readme start -->
+
 [![license badge][]][license link] [![rust badge]][rust link]
 
 # twilight-command-parser
@@ -5,8 +7,8 @@
 `twilight-command-parser` is a command parser for the [`twilight`] ecosystem.
 
 Included is a mutable configuration that allows you to specify the command
-names and prefixes. The parser parses out commands matching an available command
-and prefix and provides the command arguments to you.
+names and prefixes. The parser parses out commands matching an available
+command and prefix and provides the command arguments to you.
 
 # Installation
 
@@ -30,8 +32,8 @@ use twilight_command_parser::{Command, CommandParserConfig, Parser};
 let mut config = CommandParserConfig::new();
 
 // (Use `CommandParserConfig::add_command` to add a single command)
-config.add_command("echo");
-config.add_command("ping");
+config.command("echo").add();
+config.command("ping").add();
 
 // Add the prefix `"!"`.
 // (Use `CommandParserConfig::add_prefixes` to add multiple prefixes)
@@ -59,4 +61,6 @@ match parser.parse("!echo a message") {
 [license link]: https://opensource.org/licenses/ISC
 [rust badge]: https://img.shields.io/badge/rust-1.36+-93450a.svg?style=flat-square
 [rust link]: https://blog.rust-lang.org/2019/07/04/Rust-1.36.0.html
-[`twilight`]: https://github.com/twilight-rs/twilight
+[`twilight`]: https://twilight.valley.cafe
+
+<!-- cargo-sync-readme end -->

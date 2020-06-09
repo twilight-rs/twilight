@@ -1,3 +1,5 @@
+<!-- cargo-sync-readme start -->
+
 # twilight-lavalink
 
 `twilight-lavalink` is a client for [Lavalink] as part of the twilight
@@ -12,14 +14,15 @@ providing models to deserialize their responses.
 
 Included is the `http-support` feature.
 
-The `http-support` feature adds support for the `http` module to return request
-types from the [`http`] crate. This is enabled by default.
+The `http-support` feature adds support for the `http` module to return
+request types from the [`http`] crate. This is enabled by default.
 
 ## Examples
 
-Create a client, add a node, and give events to the client to process events:
+Create a [client], add a [node], and give events to the client to [process]
+events:
 
-```rust
+```rust,no_run
 use futures_util::stream::StreamExt;
 use std::{
     convert::TryInto,
@@ -63,4 +66,9 @@ async fn main() -> Result<(), Box<dyn Error + Send + Sync + 'static>> {
 ```
 
 [Lavalink]: https://github.com/Frederikam/Lavalink
+[client]: client/struct.Lavalink.html
+[node]: node/struct.Node.html
+[process]: client/struct.Lavalink.html#method.process
 [`http`]: https://crates.io/crates/http
+
+<!-- cargo-sync-readme end -->
