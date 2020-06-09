@@ -35,7 +35,7 @@ use futures_util::{
     sink::SinkExt,
     stream::StreamExt,
 };
-use http::{header::HeaderName, Error as HttpError, Request, Response};
+use http::{header::HeaderName, Error as HttpError, Request, Response, StatusCode};
 use serde_json::Error as JsonError;
 use std::{
     error::Error,
@@ -69,6 +69,13 @@ pub enum NodeError {
         /// The source of the error from the `serde_json` crate.
         source: JsonError,
     },
+    /// The given authorization for the node is incorrect.
+    Unauthorized {
+        /// The address of the node that failed to authorize.
+        address: SocketAddr,
+        /// The authorization used to connect to the node.
+        authorization: String,
+    },
 }
 
 impl Display for NodeError {
@@ -81,6 +88,11 @@ impl Display for NodeError {
             Self::SerializingMessage { .. } => {
                 f.write_str("failed to serialize outgoing message as json")
             }
+            Self::Unauthorized { address, .. } => write!(
+                f,
+                "the authorization used to connect to node {} is invalid",
+                address
+            ),
         }
     }
 }
@@ -91,6 +103,7 @@ impl Error for NodeError {
             Self::BuildingConnectionRequest { source } => Some(source),
             Self::Connecting { source } => Some(source),
             Self::SerializingMessage { source, .. } => Some(source),
+            Self::Unauthorized { .. } => None,
         }
     }
 }
@@ -516,6 +529,14 @@ async fn backoff(
             Ok((stream, res)) => return Ok((stream, res)),
             Err(source) => {
                 log::warn!("Failed to connect to node {}: {:?}", source, config.address);
+
+                if matches!(source, TungsteniteError::Http(status) if status == StatusCode::UNAUTHORIZED)
+                {
+                    return Err(NodeError::Unauthorized {
+                        address: config.address,
+                        authorization: config.authorization.to_owned(),
+                    });
+                }
 
                 if seconds > 64 {
                     log::debug!("No longer trying to connect to node {}", config.address);
