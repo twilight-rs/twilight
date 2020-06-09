@@ -303,11 +303,13 @@ impl Connection {
 
         let text = match incoming {
             Message::Close(_) => {
+                log::debug!("Got a close, closing connection");
                 let _ = self.connection.send(Message::Close(None)).await;
 
                 return Ok(false);
             }
             Message::Ping(data) => {
+                log::debug!("Got a ping, sending a pong");
                 let msg = Message::Pong(data);
 
                 // We don't need to immediately care if a pong fails.
@@ -317,18 +319,25 @@ impl Connection {
             }
             Message::Text(text) => text,
             other => {
-                log::info!("Got a pong or bytes payload: {:?}", other);
+                log::debug!("Got a pong or bytes payload: {:?}", other);
 
                 return Ok(true);
             }
         };
 
-        let event = serde_json::from_str(&text)
-            .map_err(|source| NodeError::IncomingMessageInvalid { source, text })?;
+        let event = match serde_json::from_str(&text) {
+            Ok(event) => event,
+            Err(_) => {
+                log::warn!("Unknown message from Lavalink node: {}", text);
+
+                return Ok(true);
+            },
+        };
 
         match event {
             IncomingEvent::PlayerUpdate(ref update) => self.player_update(update).await?,
             IncomingEvent::Stats(ref stats) => self.stats(stats).await?,
+            _ => {},
         }
 
         // It's fine if the rx end dropped, often users don't need to care about

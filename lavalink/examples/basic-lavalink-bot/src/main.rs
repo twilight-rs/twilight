@@ -30,7 +30,11 @@ fn spawn(
 async fn main() -> Result<(), Box<dyn Error + Send + Sync + 'static>> {
     pretty_env_logger::init_timed();
 
+<<<<<<< Updated upstream
     let (state, _) = {
+=======
+    let (state, _rx) = {
+>>>>>>> Stashed changes
         let token = env::var("DISCORD_TOKEN")?;
         let lavalink_host = SocketAddr::from_str(&env::var("LAVALINK_HOST")?)?;
         let lavalink_auth = env::var("LAVALINK_AUTHORIZATION")?;
@@ -62,8 +66,17 @@ async fn main() -> Result<(), Box<dyn Error + Send + Sync + 'static>> {
         state.standby.process(&event).await;
         state.lavalink.process(&event).await?;
 
+<<<<<<< Updated upstream
         match event {
             Event::MessageCreate(msg) => {
+=======
+        log::debug!("got event");
+
+        match event {
+            Event::MessageCreate(msg) => {
+                log::debug!("got msg create");
+
+>>>>>>> Stashed changes
                 if msg.guild_id.is_none() || !msg.content.starts_with("!") {
                     continue;
                 }
@@ -151,7 +164,11 @@ async fn play(msg: Message, state: State) -> Result<(), Box<dyn Error + Send + S
     let loaded = res.json::<LoadedTracks>().await?;
 
     if let Some(track) = loaded.tracks.first() {
+<<<<<<< Updated upstream
         player.send(Play::from((guild_id, &track.track, 0, track.info.length)))?;
+=======
+        player.send(Play::from((guild_id, &track.track)))?;
+>>>>>>> Stashed changes
 
         let content = format!(
             "Playing **{}** by **{}**",

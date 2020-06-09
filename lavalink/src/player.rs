@@ -4,12 +4,12 @@ use dashmap::{
     DashMap,
 };
 use futures_channel::mpsc::TrySendError;
-use std::fmt::Debug;
+use std::{fmt::Debug, sync::Arc};
 use twilight_model::id::{ChannelId, GuildId};
 
 #[derive(Clone, Debug, Default)]
 pub struct PlayerManager {
-    pub(crate) players: DashMap<GuildId, Player>,
+    pub(crate) players: Arc<DashMap<GuildId, Player>>,
 }
 
 impl PlayerManager {

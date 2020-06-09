@@ -9,6 +9,7 @@ use serde::{Deserialize, Serialize};
 pub enum Opcode {
     Destroy,
     Equalizer,
+    Event,
     Pause,
     Play,
     PlayerUpdate,
@@ -300,26 +301,45 @@ mod outgoing {
         op: Opcode,
         pub guild_id: GuildId,
         pub session_id: String,
-        pub event: VoiceServerUpdate,
+        pub event: SlimVoiceServerUpdate,
     }
 
     impl VoiceUpdate {
         pub fn new(
             guild_id: GuildId,
             session_id: impl Into<String>,
-            event: VoiceServerUpdate,
+            event: SlimVoiceServerUpdate,
         ) -> Self {
             Self::from((guild_id, session_id, event))
         }
     }
 
-    impl<T: Into<String>> From<(GuildId, T, VoiceServerUpdate)> for VoiceUpdate {
-        fn from((guild_id, session_id, event): (GuildId, T, VoiceServerUpdate)) -> Self {
+    impl<T: Into<String>> From<(GuildId, T, SlimVoiceServerUpdate)> for VoiceUpdate {
+        fn from((guild_id, session_id, event): (GuildId, T, SlimVoiceServerUpdate)) -> Self {
             Self {
                 event,
                 guild_id,
                 op: Opcode::VoiceUpdate,
                 session_id: session_id.into(),
+            }
+        }
+    }
+
+    #[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
+    #[non_exhaustive]
+    #[serde(rename_all = "snake_case")]
+    pub struct SlimVoiceServerUpdate {
+        endpoint: Option<String>,
+        guild_id: Option<GuildId>,
+        token: String,
+    }
+
+    impl From<VoiceServerUpdate> for SlimVoiceServerUpdate {
+        fn from(update: VoiceServerUpdate) -> Self {
+            Self {
+                endpoint: update.endpoint,
+                guild_id: update.guild_id,
+                token: update.token,
             }
         }
     }
@@ -361,6 +381,8 @@ mod incoming {
     pub enum IncomingEvent {
         PlayerUpdate(PlayerUpdate),
         Stats(Stats),
+        TrackEnd(TrackEnd),
+        TrackStart(TrackStart),
     }
 
     impl From<PlayerUpdate> for IncomingEvent {
@@ -422,6 +444,38 @@ mod incoming {
         pub reservable: u64,
         pub used: u64,
     }
+
+    #[derive(Clone, Copy, Debug, Deserialize, Eq, PartialEq, Serialize)]
+    #[non_exhaustive]
+    pub enum TrackEventType {
+        #[serde(rename = "TrackEndEvent")]
+        End,
+        #[serde(rename = "TrackStartEvent")]
+        Start,
+    }
+
+    #[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
+    #[non_exhaustive]
+    #[serde(rename_all = "camelCase")]
+    pub struct TrackEnd {
+        pub guild_id: GuildId,
+        #[serde(rename = "type")]
+        pub kind: TrackEventType,
+        pub op: Opcode,
+        pub reason: String,
+        pub track: String,
+    }
+
+    #[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
+    #[non_exhaustive]
+    #[serde(rename_all = "camelCase")]
+    pub struct TrackStart {
+        pub guild_id: GuildId,
+        #[serde(rename = "type")]
+        pub kind: TrackEventType,
+        pub op: Opcode,
+        pub track: String,
+    }
 }
 
 pub use self::{incoming::*, outgoing::*};
@@ -429,10 +483,10 @@ pub use self::{incoming::*, outgoing::*};
 #[cfg(test)]
 mod tests {
     use super::{
-        incoming::{IncomingEvent, PlayerUpdate, PlayerUpdateState, Stats, StatsCpu, StatsMemory},
+        incoming::{IncomingEvent, PlayerUpdate, PlayerUpdateState, Stats, StatsCpu, StatsMemory, TrackEventType, TrackEnd, TrackStart},
         outgoing::{
-            Destroy, Equalizer, EqualizerBand, OutgoingEvent, Pause, Play, Seek, Stop, VoiceUpdate,
-            Volume,
+            Destroy, Equalizer, EqualizerBand, OutgoingEvent, Pause, Play, Seek,
+            SlimVoiceServerUpdate, Stop, VoiceUpdate, Volume,
         },
     };
     use serde::{Deserialize, Serialize};
@@ -516,6 +570,14 @@ mod tests {
         Serialize
     );
     assert_impl_all!(
+        SlimVoiceServerUpdate: Clone,
+        Debug,
+        Deserialize<'static>,
+        Eq,
+        PartialEq,
+        Serialize
+    );
+    assert_impl_all!(
         Stats: Clone,
         Debug,
         Deserialize<'static>,
@@ -541,6 +603,28 @@ mod tests {
         Debug,
         Deserialize<'static>,
         Eq,
+        PartialEq,
+        Serialize
+    );
+    assert_impl_all!(
+        TrackEnd: Clone,
+        Debug,
+        Deserialize<'static>,
+        PartialEq,
+        Serialize
+    );
+    assert_impl_all!(
+        TrackEventType: Clone,
+        Copy,
+        Debug,
+        Deserialize<'static>,
+        PartialEq,
+        Serialize
+    );
+    assert_impl_all!(
+        TrackStart: Clone,
+        Debug,
+        Deserialize<'static>,
         PartialEq,
         Serialize
     );

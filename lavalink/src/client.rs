@@ -199,7 +199,7 @@ impl Lavalink {
                     return Ok(());
                 }
                 (VoiceStateHalf::Server(ref server), VoiceStateHalf::State(ref state)) => {
-                    VoiceUpdate::new(guild_id, &state.0.session_id, server.clone())
+                    VoiceUpdate::new(guild_id, &state.0.session_id, From::from(server.clone()))
                 }
                 (VoiceStateHalf::State(_), VoiceStateHalf::State(state)) => {
                     // Just like above, we got the same half twice...
@@ -215,7 +215,7 @@ impl Lavalink {
                     return Ok(());
                 }
                 (VoiceStateHalf::State(ref state), VoiceStateHalf::Server(ref server)) => {
-                    VoiceUpdate::new(guild_id, &state.0.session_id, server.clone())
+                    VoiceUpdate::new(guild_id, &state.0.session_id, From::from(server.clone()))
                 }
             }
         };
