@@ -10,7 +10,6 @@ bitflags = "1"
 futures = "0.3"
 twilight-cache-trait = { path = "../trait" }
 twilight-model = { default-features = false, path = "../../model" }
-twilight-gateway = { path = "../../gateway"}
 log = "0.4"
 
 [dev-dependencies]
