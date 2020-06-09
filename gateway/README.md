@@ -8,7 +8,7 @@ and sending *some* stateful information.
 
 It includes two primary types: the Shard and Cluster.
 
-The Shard handles a single WebSocket connection and can manage up to 2500
+The Shard handles a single websocket connection and can manage up to 2500
 guilds. If you manage a small bot in under about 2000 guilds, then this is
 what you use. See the [Discord docs][docs:discord:sharding] for more
 information on sharding.
