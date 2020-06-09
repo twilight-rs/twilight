@@ -331,13 +331,13 @@ impl Connection {
                 log::warn!("Unknown message from Lavalink node: {}", text);
 
                 return Ok(true);
-            },
+            }
         };
 
         match event {
             IncomingEvent::PlayerUpdate(ref update) => self.player_update(update).await?,
             IncomingEvent::Stats(ref stats) => self.stats(stats).await?,
-            _ => {},
+            _ => {}
         }
 
         // It's fine if the rx end dropped, often users don't need to care about

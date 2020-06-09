@@ -483,7 +483,10 @@ pub use self::{incoming::*, outgoing::*};
 #[cfg(test)]
 mod tests {
     use super::{
-        incoming::{IncomingEvent, PlayerUpdate, PlayerUpdateState, Stats, StatsCpu, StatsMemory, TrackEventType, TrackEnd, TrackStart},
+        incoming::{
+            IncomingEvent, PlayerUpdate, PlayerUpdateState, Stats, StatsCpu, StatsMemory, TrackEnd,
+            TrackEventType, TrackStart,
+        },
         outgoing::{
             Destroy, Equalizer, EqualizerBand, OutgoingEvent, Pause, Play, Seek,
             SlimVoiceServerUpdate, Stop, VoiceUpdate, Volume,
