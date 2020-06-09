@@ -247,11 +247,17 @@ impl Node {
     }
 
     /// Retrieve an immutable reference to the node's configuration.
+    ///
+    /// Note that sending player events through the node's sender won't update
+    /// player states, such as whether it's paused.
     pub fn send(&self, event: OutgoingEvent) -> Result<(), TrySendError<OutgoingEvent>> {
         self.sender().unbounded_send(event)
     }
 
     /// Retrieve a unique sender to send events to the Lavalink server.
+    ///
+    /// Note that sending player events through the node's sender won't update
+    /// player states, such as whether it's paused.
     pub fn sender(&self) -> UnboundedSender<OutgoingEvent> {
         self.0.lavalink_tx.clone()
     }

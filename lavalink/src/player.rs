@@ -15,7 +15,7 @@ use dashmap::{
     DashMap,
 };
 use futures_channel::mpsc::TrySendError;
-use std::{fmt::Debug, sync::Arc};
+use std::{fmt::Debug, sync::{atomic::{AtomicBool, Ordering}, Arc}};
 use twilight_model::id::{ChannelId, GuildId};
 
 /// Retrieve and create players for guilds.
@@ -56,12 +56,12 @@ impl PlayerManager {
 ///
 /// This can be used to send events over a node and to read the details of a
 /// player for a guild.
-#[derive(Clone, Debug)]
+#[derive(Debug)]
 pub struct Player {
     channel_id: Option<ChannelId>,
     guild_id: GuildId,
     node: Node,
-    paused: bool,
+    paused: AtomicBool,
     playing: Option<()>,
     position: i64,
     time: i64,
@@ -74,7 +74,7 @@ impl Player {
             channel_id: None,
             guild_id,
             node,
-            paused: false,
+            paused: AtomicBool::new(false),
             playing: None,
             position: 0,
             time: 0,
@@ -120,6 +120,10 @@ impl Player {
             event
         );
 
+        if let OutgoingEvent::Pause(ref event) = event {
+            self.paused.store(event.pause, Ordering::Release);
+        }
+
         self.node.send(event)
     }
 
@@ -140,7 +144,7 @@ impl Player {
 
     /// Return a copy of whether the player is paused.
     pub fn paused(&self) -> bool {
-        self.paused
+        self.paused.load(Ordering::Acquire)
     }
 
     /// Return a copy of the player's position.
@@ -176,5 +180,5 @@ mod tests {
     use std::fmt::Debug;
 
     assert_impl_all!(PlayerManager: Clone, Debug, Default, Send, Sync);
-    assert_impl_all!(Player: Clone, Debug, Send, Sync);
+    assert_impl_all!(Player: Debug, Send, Sync);
 }
