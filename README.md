@@ -23,15 +23,15 @@ Most of Twilight requires at least 1.40+ (rust stable).
 Add this to your `Cargo.toml`'s `[dependencies]` section:
 
 ```toml
-twilight = { git = "https://github.com/twilight-rs/twilight" }
+twilight = { git = "https://github.com/twilight-rs/twilight.git" }
 ```
 
 ## Core Crates
 
 These are essential crates that most users will use together for a full
 development experience. You may not need all of these - such as
-`twilight-cache` - but they are often used together to accomplish most of what
-you need.
+`twilight-cache` - but they are often used together to accomplish most of
+what you need.
 
 ### `twilight-model`
 
