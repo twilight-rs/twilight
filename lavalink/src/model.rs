@@ -519,6 +519,9 @@ mod incoming {
     pub struct Stats {
         /// CPU information about the node's host.
         pub cpu: StatsCpu,
+        /// Statistics about audio frames.
+        #[serde(rename = "frameStats")]
+        pub frames: StatsFrames,
         /// Memory information about the node's host.
         pub memory: StatsMemory,
         /// The current number of total players (active and not active) within
@@ -543,6 +546,19 @@ mod incoming {
         pub lavalink_load: f64,
         /// The load of the system as a whole.
         pub system_load: f64,
+    }
+
+    /// CPU information about a node and its host.
+    #[derive(Clone, Debug, Deserialize, PartialEq, Serialize)]
+    #[non_exhaustive]
+    #[serde(rename_all = "camelCase")]
+    pub struct StatsFrames {
+        /// The number of CPU cores.
+        pub sent: u64,
+        /// The load of the Lavalink server.
+        pub nulled: u64,
+        /// The load of the system as a whole.
+        pub deficit: u64,
     }
 
     /// Memory information about a node and its host.
@@ -615,7 +631,7 @@ pub use self::{incoming::*, outgoing::*};
 mod tests {
     use super::{
         incoming::{
-            IncomingEvent, PlayerUpdate, PlayerUpdateState, Stats, StatsCpu, StatsMemory, TrackEnd,
+            IncomingEvent, PlayerUpdate, PlayerUpdateState, Stats, StatsCpu, StatsFrames, StatsMemory, TrackEnd,
             TrackEventType, TrackStart,
         },
         outgoing::{
@@ -720,6 +736,13 @@ mod tests {
     );
     assert_impl_all!(
         StatsCpu: Clone,
+        Debug,
+        Deserialize<'static>,
+        PartialEq,
+        Serialize
+    );
+    assert_impl_all!(
+        StatsFrames: Clone,
         Debug,
         Deserialize<'static>,
         PartialEq,
