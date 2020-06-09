@@ -15,6 +15,7 @@ version = "0.1.0"
 [dependencies]
 futures-channel = { default-features = false, features = ["std"], version = "0.3" }
 futures-util = { default-features = false, features = ["std"], version = "0.3" }
+log = { default-features = false, version = "0.4" }
 twilight-model = { default-features = false, path = "../model" }
 
 [dev-dependencies]
