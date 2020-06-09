@@ -8,11 +8,7 @@ use twilight_lavalink::{
     model::{Destroy, Pause, Play, Seek, Stop, Volume},
     Lavalink,
 };
-use twilight_model::{
-    channel::Message,
-    gateway::payload::MessageCreate,
-    id::ChannelId,
-};
+use twilight_model::{channel::Message, gateway::payload::MessageCreate, id::ChannelId};
 use twilight_standby::Standby;
 
 #[derive(Clone, Debug)]
@@ -155,7 +151,11 @@ async fn leave(msg: Message, state: State) -> Result<(), Box<dyn Error + Send + 
         }))
         .await?;
 
-    state.http.create_message(msg.channel_id).content("Left the channel")?.await?;
+    state
+        .http
+        .create_message(msg.channel_id)
+        .content("Left the channel")?
+        .await?;
 
     Ok(())
 }
@@ -228,7 +228,11 @@ async fn pause(msg: Message, state: State) -> Result<(), Box<dyn Error + Send + 
 
     let action = if paused { "Unpaused " } else { "Paused" };
 
-    state.http.create_message(msg.channel_id).content(format!("{} the track", action))?.await?;
+    state
+        .http
+        .create_message(msg.channel_id)
+        .content(format!("{} the track", action))?
+        .await?;
 
     Ok(())
 }
@@ -258,7 +262,11 @@ async fn seek(msg: Message, state: State) -> Result<(), Box<dyn Error + Send + S
     let player = state.lavalink.player(guild_id).await.unwrap();
     player.send(Seek::from((guild_id, position * 1000)))?;
 
-    state.http.create_message(msg.channel_id).content(format!("Seeked to {}s", position))?.await?;
+    state
+        .http
+        .create_message(msg.channel_id)
+        .content(format!("Seeked to {}s", position))?
+        .await?;
 
     Ok(())
 }
@@ -274,7 +282,11 @@ async fn stop(msg: Message, state: State) -> Result<(), Box<dyn Error + Send + S
     let player = state.lavalink.player(guild_id).await.unwrap();
     player.send(Stop::from(guild_id))?;
 
-    state.http.create_message(msg.channel_id).content("Stopped the track")?.await?;
+    state
+        .http
+        .create_message(msg.channel_id)
+        .content("Stopped the track")?
+        .await?;
 
     Ok(())
 }
@@ -302,7 +314,11 @@ async fn volume(msg: Message, state: State) -> Result<(), Box<dyn Error + Send +
     let volume = msg.content.parse::<i64>()?;
 
     if volume > 1000 || volume < 0 {
-        state.http.create_message(msg.channel_id).content("That's more than 1000")?.await?;
+        state
+            .http
+            .create_message(msg.channel_id)
+            .content("That's more than 1000")?
+            .await?;
 
         return Ok(());
     }
@@ -310,7 +326,11 @@ async fn volume(msg: Message, state: State) -> Result<(), Box<dyn Error + Send +
     let player = state.lavalink.player(guild_id).await.unwrap();
     player.send(Volume::from((guild_id, volume)))?;
 
-    state.http.create_message(msg.channel_id).content(format!("Set the volume to {}", volume))?.await?;
+    state
+        .http
+        .create_message(msg.channel_id)
+        .content(format!("Set the volume to {}", volume))?
+        .await?;
 
     Ok(())
 }
