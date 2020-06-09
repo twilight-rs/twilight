@@ -8,7 +8,14 @@ conveniently using players to send events and retrieve information for each
 guild, and an HTTP module for creating requests using the [`http`] crate and
 providing models to deserialize their responses.
 
-# Examples
+## Features
+
+Included is the `http-support` feature.
+
+The `http-support` feature adds support for the `http` module to return request
+types from the [`http`] crate. This is enabled by default.
+
+## Examples
 
 Create a client, add a node, and give events to the client to process events:
 
