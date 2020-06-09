@@ -16,7 +16,6 @@ jobs:
       with:
         crate: cargo-sync-readme
         version: latest
-        use-tool-cache: true
     - name: Run in builders
       run: cd builders && cargo sync-readme --check
     - name: Run in command-parser
