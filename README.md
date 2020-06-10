@@ -106,8 +106,7 @@ use twilight::{
         twilight_cache_inmemory::config::{InMemoryConfigBuilder, EventType},
         InMemoryCache,
     },
-    gateway::cluster::{config::ShardScheme, Cluster, ClusterConfig},
-    gateway::shard::Event,
+    gateway::{cluster::{config::ShardScheme, Cluster, ClusterConfig}, Event},
     http::Client as HttpClient,
     model::gateway::GatewayIntents,
 };
@@ -167,7 +166,7 @@ async fn handle_event(
 ) -> Result<(), Box<dyn Error + Send + Sync>> {
     match event {
         (_, Event::MessageCreate(msg)) if msg.content == "!ping" => {
-            http.create_message(msg.channel_id).content("Pong!").await?;
+            http.create_message(msg.channel_id).content("Pong!")?.await?;
         }
         (id, Event::ShardConnected(_)) => {
             println!("Connected on shard {}", id);
