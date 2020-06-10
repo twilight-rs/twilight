@@ -41,10 +41,7 @@ use crate::{
 };
 use std::collections::HashMap;
 
-#[cfg_attr(
-    feature = "serde-support",
-    derive(serde::Serialize)
-)]
+#[cfg_attr(feature = "serde-support", derive(serde::Serialize))]
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct Guild {
     pub id: GuildId,
@@ -107,12 +104,22 @@ pub struct Guild {
 
 #[cfg(feature = "serde-support")]
 mod if_serde_support {
-    use super::{member::{if_serde_support::MemberIntermediary, Member}, Guild};
-    use serde::{de::{Deserializer, Error as DeError, MapAccess, Visitor}, Deserialize};
+    use super::{
+        member::{if_serde_support::MemberIntermediary, Member},
+        Guild,
+    };
+    use serde::{
+        de::{Deserializer, Error as DeError, MapAccess, Visitor},
+        Deserialize,
+    };
     use serde_value::Value;
-    use std::{collections::HashMap, fmt::{Formatter, Result as FmtResult}};
+    use std::{
+        collections::HashMap,
+        fmt::{Formatter, Result as FmtResult},
+    };
 
     impl<'de> Deserialize<'de> for Guild {
+        #[allow(clippy::too_many_lines)]
         fn deserialize<D: Deserializer<'de>>(deserializer: D) -> Result<Self, D::Error> {
             #[derive(Debug, Deserialize)]
             #[serde(field_identifier, rename_all = "snake_case")]
@@ -174,7 +181,7 @@ mod if_serde_support {
                     f.write_str("struct Guild")
                 }
 
-                #[allow(unreachable_code, unused)]
+                #[allow(clippy::too_many_lines)]
                 fn visit_map<V: MapAccess<'de>>(self, mut map: V) -> Result<Self::Value, V::Error> {
                     let mut afk_channel_id = None::<Option<_>>;
                     let mut afk_timeout = None;
@@ -230,13 +237,13 @@ mod if_serde_support {
                                 log::debug!("breaking");
 
                                 break;
-                            },
+                            }
                             Err(_) => {
                                 // Encountered when we run into an unknown key.
                                 log::debug!("continuing");
 
                                 continue;
-                            },
+                            }
                         };
 
                         log::debug!("key {:?}", key);
@@ -265,14 +272,18 @@ mod if_serde_support {
                             }
                             Field::ApproximateMemberCount => {
                                 if approximate_member_count.is_some() {
-                                    return Err(DeError::duplicate_field("approximate_member_count"));
+                                    return Err(DeError::duplicate_field(
+                                        "approximate_member_count",
+                                    ));
                                 }
 
                                 approximate_member_count = Some(map.next_value()?);
                             }
                             Field::ApproximatePresenceCount => {
                                 if approximate_presence_count.is_some() {
-                                    return Err(DeError::duplicate_field("approximate_presence_count"));
+                                    return Err(DeError::duplicate_field(
+                                        "approximate_presence_count",
+                                    ));
                                 }
 
                                 approximate_presence_count = Some(map.next_value()?);
@@ -290,11 +301,14 @@ mod if_serde_support {
                                 }
 
                                 let raw_channels = map.next_value::<Value>()?;
-                                channels = Some(serde_mappable_seq::deserialize(raw_channels).unwrap());
+                                channels =
+                                    Some(serde_mappable_seq::deserialize(raw_channels).unwrap());
                             }
                             Field::DefaultMessageNotifications => {
                                 if default_message_notifications.is_some() {
-                                    return Err(DeError::duplicate_field("default_message_notifications"));
+                                    return Err(DeError::duplicate_field(
+                                        "default_message_notifications",
+                                    ));
                                 }
 
                                 default_message_notifications = Some(map.next_value()?);
@@ -337,7 +351,9 @@ mod if_serde_support {
                             }
                             Field::ExplicitContentFilter => {
                                 if explicit_content_filter.is_some() {
-                                    return Err(DeError::duplicate_field("explicit_content_filter"));
+                                    return Err(DeError::duplicate_field(
+                                        "explicit_content_filter",
+                                    ));
                                 }
 
                                 explicit_content_filter = Some(map.next_value()?);
@@ -400,7 +416,9 @@ mod if_serde_support {
                             }
                             Field::MaxVideoChannelUsers => {
                                 if max_video_channel_users.is_some() {
-                                    return Err(DeError::duplicate_field("max_video_channel_users"));
+                                    return Err(DeError::duplicate_field(
+                                        "max_video_channel_users",
+                                    ));
                                 }
 
                                 max_video_channel_users = Some(map.next_value()?);
@@ -463,7 +481,9 @@ mod if_serde_support {
                             }
                             Field::PremiumSubscriptionCount => {
                                 if premium_subscription_count.is_some() {
-                                    return Err(DeError::duplicate_field("premium_subscription_count"));
+                                    return Err(DeError::duplicate_field(
+                                        "premium_subscription_count",
+                                    ));
                                 }
 
                                 premium_subscription_count = Some(map.next_value()?);
@@ -481,7 +501,8 @@ mod if_serde_support {
                                 }
 
                                 let raw_presences = map.next_value::<Value>()?;
-                                presences = Some(serde_mappable_seq::deserialize(raw_presences).unwrap());
+                                presences =
+                                    Some(serde_mappable_seq::deserialize(raw_presences).unwrap());
                             }
                             Field::Region => {
                                 if region.is_some() {
@@ -546,7 +567,9 @@ mod if_serde_support {
                                 }
 
                                 let raw_voice_states = map.next_value::<Value>()?;
-                                voice_states = Some(serde_mappable_seq::deserialize(raw_voice_states).unwrap());
+                                voice_states = Some(
+                                    serde_mappable_seq::deserialize(raw_voice_states).unwrap(),
+                                );
                             }
                             Field::VanityUrlCode => {
                                 if vanity_url_code.is_some() {
@@ -573,19 +596,22 @@ mod if_serde_support {
                     }
 
                     let afk_channel_id = afk_channel_id.unwrap_or_default();
-                    let afk_timeout = afk_timeout.ok_or_else(|| DeError::missing_field("afk_timeout"))?;
+                    let afk_timeout =
+                        afk_timeout.ok_or_else(|| DeError::missing_field("afk_timeout"))?;
                     let application_id = application_id.unwrap_or_default();
                     let approximate_member_count = approximate_member_count.unwrap_or_default();
                     let approximate_presence_count = approximate_presence_count.unwrap_or_default();
                     let banner = banner.unwrap_or_default();
                     let channels = channels.unwrap_or_default();
-                    let default_message_notifications = default_message_notifications.ok_or_else(|| DeError::missing_field("default_message_notifications"))?;
+                    let default_message_notifications = default_message_notifications
+                        .ok_or_else(|| DeError::missing_field("default_message_notifications"))?;
                     let description = description.unwrap_or_default();
                     let discovery_splash = discovery_splash.unwrap_or_default();
                     let embed_channel_id = embed_channel_id.unwrap_or_default();
                     let embed_enabled = embed_enabled.unwrap_or_default();
                     let emojis = emojis.unwrap_or_default();
-                    let explicit_content_filter = explicit_content_filter.ok_or_else(|| DeError::missing_field("explicit_content_filter"))?;
+                    let explicit_content_filter = explicit_content_filter
+                        .ok_or_else(|| DeError::missing_field("explicit_content_filter"))?;
                     let features = features.ok_or_else(|| DeError::missing_field("features"))?;
                     let icon = icon.unwrap_or_default();
                     let id = id.ok_or_else(|| DeError::missing_field("id"))?;
@@ -601,7 +627,8 @@ mod if_serde_support {
                     let owner_id = owner_id.ok_or_else(|| DeError::missing_field("owner_id"))?;
                     let owner = owner.unwrap_or_default();
                     let permissions = permissions.unwrap_or_default();
-                    let preferred_locale = preferred_locale.ok_or_else(|| DeError::missing_field("preferred_locale"))?;
+                    let preferred_locale = preferred_locale
+                        .ok_or_else(|| DeError::missing_field("preferred_locale"))?;
                     let premium_subscription_count = premium_subscription_count.unwrap_or_default();
                     let premium_tier = premium_tier.unwrap_or_default();
                     let presences = presences.unwrap_or_default();
@@ -609,31 +636,42 @@ mod if_serde_support {
                     let roles = roles.ok_or_else(|| DeError::missing_field("roles"))?;
                     let rules_channel_id = rules_channel_id.unwrap_or_default();
                     let splash = splash.unwrap_or_default();
-                    let system_channel_flags = system_channel_flags.ok_or_else(|| DeError::missing_field("system_channel_flags"))?;
+                    let system_channel_flags = system_channel_flags
+                        .ok_or_else(|| DeError::missing_field("system_channel_flags"))?;
                     let system_channel_id = system_channel_id.unwrap_or_default();
                     let unavailable = unavailable.unwrap_or_default();
                     let vanity_url_code = vanity_url_code.unwrap_or_default();
-                    let verification_level = verification_level.ok_or_else(|| DeError::missing_field("verification_level"))?;
+                    let verification_level = verification_level
+                        .ok_or_else(|| DeError::missing_field("verification_level"))?;
                     let voice_states = voice_states.unwrap_or_default();
                     let widget_channel_id = widget_channel_id.unwrap_or_default();
                     let widget_enabled = widget_enabled.unwrap_or_default();
 
                     let members = match members {
                         Some(value) => {
-                            let members = value.deserialize_into::<Vec<MemberIntermediary>>().unwrap();
+                            let members =
+                                value.deserialize_into::<Vec<MemberIntermediary>>().unwrap();
 
-                            members.into_iter().map(|member| (member.user.id, Member {
-                                deaf: member.deaf,
-                                guild_id: id,
-                                hoisted_role: member.hoisted_role,
-                                joined_at: member.joined_at,
-                                mute: member.mute,
-                                nick: member.nick,
-                                premium_since: member.premium_since,
-                                roles: member.roles,
-                                user: member.user,
-                            })).collect::<HashMap<_, _>>()
-                        },
+                            members
+                                .into_iter()
+                                .map(|member| {
+                                    (
+                                        member.user.id,
+                                        Member {
+                                            deaf: member.deaf,
+                                            guild_id: id,
+                                            hoisted_role: member.hoisted_role,
+                                            joined_at: member.joined_at,
+                                            mute: member.mute,
+                                            nick: member.nick,
+                                            premium_since: member.premium_since,
+                                            roles: member.roles,
+                                            user: member.user,
+                                        },
+                                    )
+                                })
+                                .collect::<HashMap<_, _>>()
+                        }
                         None => HashMap::default(),
                     };
 
@@ -688,7 +726,7 @@ mod if_serde_support {
                 }
             }
 
-            const FIELDS: &'static [&'static str] = &[
+            const FIELDS: &[&str] = &[
                 "afk_channel_id",
                 "afk_timeout",
                 "application_id",
