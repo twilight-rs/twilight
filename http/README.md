@@ -1,3 +1,5 @@
+<!-- cargo-sync-readme start -->
+
 # twilight-http
 
 HTTP support for the twilight ecosystem.
@@ -8,7 +10,7 @@ HTTP support for the twilight ecosystem.
 enabled by default. `native` will enable `reqwest`'s `default-tls` feature,
 which will use the TLS library native to your OS (for example, OpenSSL on
 Linux). `rustls` will enable `reqwest`'s `rustls-tls` feature, which will use
-[rustls]. 
+[rustls].
 
 If you want to use Rustls instead of your native library, it's easy to switch it
 out:
@@ -29,7 +31,7 @@ To use this feature you need to also add these lines to a file in `<project root
 [build]
 rustflags = ["-C", "target-cpu=native"]
 ```
-you can also use this environment variable `RUSTFLAGS="-C target-cpu=native"`. If you enable both 
+you can also use this environment variable `RUSTFLAGS="-C target-cpu=native"`. If you enable both
 `serde_json` and `simd-json` at the same time; this crate uses `simd-json`. But it is recommended to
 disable `serde_json` if you are going to use `simd-json`. It is easy to switch to out:
 
@@ -40,3 +42,5 @@ twilight-gateway = { default-features = false, features = ["simd-json"], git = "
 
 [rustls]: https://github.com/ctz/rustls
 [simd-json]: https://github.com/simd-lite/simd-json
+
+<!-- cargo-sync-readme end -->

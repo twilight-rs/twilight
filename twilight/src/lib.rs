@@ -1,4 +1,7 @@
 //! [![license badge][]][license link] [![rust badge]][rust link]
+//!
+//! ![project logo][logo]
+//!
 //! # twilight
 //!
 //! `twilight` is an asynchronous, simple, and extensible set of libraries which can
@@ -13,19 +16,20 @@
 //!
 //! ## Installation
 //!
-//! Most of twilight requires at least 1.39+ (rust beta).
+//! Most of Twilight requires at least 1.40+ (rust stable).
 //!
 //! Add this to your `Cargo.toml`'s `[dependencies]` section:
 //!
 //! ```toml
-//! twilight = "0.0.1-alpha.0"
+//! twilight = { git = "https://github.com/twilight-rs/twilight.git" }
 //! ```
 //!
-//! ## Crates
+//! ## Core Crates
 //!
-//! These are crates that can work together for a full application experience.
-//! You may not need all of these - such as `twilight-cache` - but they can be
-//! mixed together to accomplish just what you need.
+//! These are essential crates that most users will use together for a full
+//! development experience. You may not need all of these - such as
+//! `twilight-cache` - but they are often used together to accomplish most of
+//! what you need.
 //!
 //! ### `twilight-model`
 //!
@@ -55,17 +59,6 @@
 //! This is responsible for receiving stateful events in real-time from Discord
 //! and sending *some* stateful information.
 //!
-//! It includes two primary types: the Shard and Cluster.
-//!
-//! The Shard handles a single WebSocket connection and can manage up to 2500
-//! guilds. If you manage a small bot in under about 2000 guilds, then this is
-//! what you use. See the [Discord docs][docs:discord:sharding] for more
-//! information on sharding.
-//!
-//! The Cluster is an interface which manages the health of the shards it
-//! manages and proxies all of their events under one unified stream. This is
-//! useful to use if you have a large bot in over 1000 or 2000 guilds.
-//!
 //! ### `twilight-command-parser`
 //!
 //! `twilight-command-parser` is a crate for parsing commands out of messages
@@ -80,32 +73,85 @@
 //!
 //! ### `twilight-standby`
 //!
-//! `twilight-standby` is an event processor that allows for tasks to wait for
-//! an event to come in. This is useful, for example, when you have a reaction
-//! menu and want to wait for a reaction to it to come in.
+//! `twilight-standby` is an event processor that allows for tasks to wait for an
+//! event to come in. This is useful, for example, when you have a reaction menu
+//! and want to wait for a reaction to it to come in.
+//!
+//! ## Additional Crates
+//!
+//! These are crates that are officially supported by Twilight, but aren't
+//! considered core crates due to being vendor-specific or non-essential for most
+//! users.
+//!
+//! ### `twilight-lavalink`
+//!
+//! `twilight-lavalink` is a client for [Lavalink] as part of the twilight
+//! ecosystem.
+//!
+//! It includes support for managing multiple nodes, a player manager for
+//! conveniently using players to send events and retrieve information for each
+//! guild, and an HTTP module for creating requests using the [`http`] crate and
+//! providing models to deserialize their responses.
 //!
 //! ## Examples
 //!
-//! ```no_run
-//! use twilight::{
-//!     gateway::{Cluster, ClusterConfig, Event},
-//!     http::Client as HttpClient,
-//! };
-//! use futures::StreamExt;
+//! ```rust,no_run
 //! use std::{env, error::Error};
+//! use tokio::stream::StreamExt;
+//!
+//! use twilight::{
+//!     cache::{
+//!         twilight_cache_inmemory::config::{InMemoryConfigBuilder, EventType},
+//!         InMemoryCache,
+//!     },
+//!     gateway::{cluster::{config::ShardScheme, Cluster, ClusterConfig}, Event},
+//!     http::Client as HttpClient,
+//!     model::gateway::GatewayIntents,
+//! };
 //!
 //! #[tokio::main]
 //! async fn main() -> Result<(), Box<dyn Error + Send + Sync>> {
 //!     let token = env::var("DISCORD_TOKEN")?;
-//!     let http = HttpClient::new(&token);
 //!
-//!     let cluster_config = ClusterConfig::builder(&token).build();
-//!     let cluster = Cluster::new(cluster_config);
+//!     // This is also the default.
+//!     let scheme = ShardScheme::Auto;
+//!
+//!     let config = ClusterConfig::builder(&token)
+//!         .shard_scheme(scheme)
+//!         // Use intents to only listen to GUILD_MESSAGES events
+//!         .intents(Some(
+//!             GatewayIntents::GUILD_MESSAGES | GatewayIntents::DIRECT_MESSAGES,
+//!         ))
+//!         .build();
+//!
+//!     // Start up the cluster
+//!     let cluster = Cluster::new(config);
 //!     cluster.up().await?;
 //!
-//!     let mut events = cluster.events().await;
+//!     // The http client is seperate from the gateway,
+//!     // so startup a new one
+//!     let http = HttpClient::new(&token);
 //!
+//!     // Since we only care about messages, make the cache only
+//!     // cache message related events
+//!     let cache_config = InMemoryConfigBuilder::new()
+//!         .event_types(
+//!             EventType::MESSAGE_CREATE
+//!                 | EventType::MESSAGE_DELETE
+//!                 | EventType::MESSAGE_DELETE_BULK
+//!                 | EventType::MESSAGE_UPDATE,
+//!         )
+//!         .build();
+//!     let cache = InMemoryCache::from(cache_config);
+//!
+//!
+//!     let mut events = cluster.events().await;
+//!     // Startup an event loop for each event in the event stream
 //!     while let Some(event) = events.next().await {
+//!         // Update the cache
+//!         cache.update(&event.1).await.expect("Cache failed, OhNoe");
+//!
+//!         // Spawn a new task to handle the event
 //!         tokio::spawn(handle_event(event, http.clone()));
 //!     }
 //!
@@ -117,13 +163,11 @@
 //!     http: HttpClient,
 //! ) -> Result<(), Box<dyn Error + Send + Sync>> {
 //!     match event {
-//!         (id, Event::Ready(_)) => {
-//!             println!("Connected on shard {}", id);
+//!         (_, Event::MessageCreate(msg)) if msg.content == "!ping" => {
+//!             http.create_message(msg.channel_id).content("Pong!")?.await?;
 //!         }
-//!         (_, Event::MessageCreate(msg)) => {
-//!             if msg.content == "!ping" {
-//!                 http.create_message(msg.channel_id).content("Pong!")?.await?;
-//!             }
+//!         (id, Event::ShardConnected(_)) => {
+//!             println!("Connected on shard {}", id);
 //!         }
 //!         _ => {}
 //!     }
@@ -137,11 +181,13 @@
 //! All first-party crates are licensed under [ISC][LICENSE.md]
 //!
 //! [LICENSE.md]: https://github.com/twilight-rs/twilight/blob/master/LICENSE.md
+//! [Lavalink]: https://github.com/Frederikam/Lavalink
+//! [`http`]: https://crates.io/crates/http
 //! [docs:discord:sharding]: https://discord.com/developers/docs/topics/gateway#sharding
 //! [license badge]: https://img.shields.io/badge/license-ISC-blue.svg?style=flat-square
 //! [license link]: https://opensource.org/licenses/ISC
 //! [logo]: https://raw.githubusercontent.com/twilight-rs/twilight/master/logo.png
-//! [rust badge]: https://img.shields.io/badge/rust-1.39+%20(beta)-93450a.svg?style=flat-square
+//! [rust badge]: https://img.shields.io/badge/rust-1.40+%20(stable)-93450a.svg?style=flat-square
 //! [rust link]: https://github.com/rust-lang/rust/milestone/66
 
 #[cfg(feature = "builders")]

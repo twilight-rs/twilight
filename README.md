@@ -1,3 +1,5 @@
+<!-- cargo-sync-readme start -->
+
 [![license badge][]][license link] [![rust badge]][rust link]
 
 ![project logo][logo]
@@ -21,15 +23,15 @@ Most of Twilight requires at least 1.40+ (rust stable).
 Add this to your `Cargo.toml`'s `[dependencies]` section:
 
 ```toml
-twilight = {version = "0.0.1-alpha.0", git = "https://github.com/twilight-rs/twilight.git" }
+twilight = { git = "https://github.com/twilight-rs/twilight.git" }
 ```
 
 ## Core Crates
 
 These are essential crates that most users will use together for a full
 development experience. You may not need all of these - such as
-`twilight-cache` - but they are often used together to accomplish most of what
-you need.
+`twilight-cache` - but they are often used together to accomplish most of
+what you need.
 
 ### `twilight-model`
 
@@ -95,7 +97,7 @@ providing models to deserialize their responses.
 
 ## Examples
 
-```rust
+```rust,no_run
 use std::{env, error::Error};
 use tokio::stream::StreamExt;
 
@@ -104,8 +106,7 @@ use twilight::{
         twilight_cache_inmemory::config::{InMemoryConfigBuilder, EventType},
         InMemoryCache,
     },
-    gateway::cluster::{config::ShardScheme, Cluster, ClusterConfig},
-    gateway::shard::Event,
+    gateway::{cluster::{config::ShardScheme, Cluster, ClusterConfig}, Event},
     http::Client as HttpClient,
     model::gateway::GatewayIntents,
 };
@@ -165,7 +166,7 @@ async fn handle_event(
 ) -> Result<(), Box<dyn Error + Send + Sync>> {
     match event {
         (_, Event::MessageCreate(msg)) if msg.content == "!ping" => {
-            http.create_message(msg.channel_id).content("Pong!").await?;
+            http.create_message(msg.channel_id).content("Pong!")?.await?;
         }
         (id, Event::ShardConnected(_)) => {
             println!("Connected on shard {}", id);
@@ -176,7 +177,6 @@ async fn handle_event(
     Ok(())
 }
 ```
-
 
 ## License
 
@@ -191,3 +191,5 @@ All first-party crates are licensed under [ISC][LICENSE.md]
 [logo]: https://raw.githubusercontent.com/twilight-rs/twilight/master/logo.png
 [rust badge]: https://img.shields.io/badge/rust-1.40+%20(stable)-93450a.svg?style=flat-square
 [rust link]: https://github.com/rust-lang/rust/milestone/66
+
+<!-- cargo-sync-readme end -->

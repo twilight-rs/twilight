@@ -66,24 +66,21 @@ async fn main() -> Result<(), Box<dyn Error + Send + Sync + 'static>> {
         state.standby.process(&event).await;
         state.lavalink.process(&event).await?;
 
-        match event {
-            Event::MessageCreate(msg) => {
-                if msg.guild_id.is_none() || !msg.content.starts_with("!") {
-                    continue;
-                }
-
-                match msg.content.splitn(2, ' ').next() {
-                    Some("!join") => spawn(join(msg.0, state.clone())),
-                    Some("!leave") => spawn(leave(msg.0, state.clone())),
-                    Some("!pause") => spawn(pause(msg.0, state.clone())),
-                    Some("!play") => spawn(play(msg.0, state.clone())),
-                    Some("!seek") => spawn(seek(msg.0, state.clone())),
-                    Some("!stop") => spawn(stop(msg.0, state.clone())),
-                    Some("!volume") => spawn(volume(msg.0, state.clone())),
-                    _ => continue,
-                };
+        if let Event::MessageCreate(msg) = event {
+            if msg.guild_id.is_none() || !msg.content.starts_with('!') {
+                continue;
             }
-            _ => {}
+
+            match msg.content.splitn(2, ' ').next() {
+                Some("!join") => spawn(join(msg.0, state.clone())),
+                Some("!leave") => spawn(leave(msg.0, state.clone())),
+                Some("!pause") => spawn(pause(msg.0, state.clone())),
+                Some("!play") => spawn(play(msg.0, state.clone())),
+                Some("!seek") => spawn(seek(msg.0, state.clone())),
+                Some("!stop") => spawn(stop(msg.0, state.clone())),
+                Some("!volume") => spawn(volume(msg.0, state.clone())),
+                _ => continue,
+            }
         }
     }
 
