@@ -1,6 +1,10 @@
 use futures_channel::oneshot::{Canceled, Receiver};
 use futures_util::future::FutureExt;
-use std::{future::Future, pin::Pin, task::{Context, Poll}};
+use std::{
+    future::Future,
+    pin::Pin,
+    task::{Context, Poll},
+};
 use twilight_model::gateway::{
     event::Event,
     payload::{MessageCreate, ReactionAdd},

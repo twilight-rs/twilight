@@ -44,7 +44,9 @@
 
 mod futures;
 
-pub use futures::{WaitForEventFuture, WaitForGuildEventFuture, WaitForMessageFuture, WaitForReactionFuture};
+pub use futures::{
+    WaitForEventFuture, WaitForGuildEventFuture, WaitForMessageFuture, WaitForReactionFuture,
+};
 
 use dashmap::DashMap;
 use futures_channel::oneshot::{self, Sender};
