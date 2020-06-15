@@ -63,7 +63,7 @@ async fn main() -> Result<(), Box<dyn Error + Send + Sync + 'static>> {
     let mut events = state.shard.events().await;
 
     while let Some(event) = events.next().await {
-        state.standby.process(&event).await;
+        state.standby.process(&event);
         state.lavalink.process(&event).await?;
 
         if let Event::MessageCreate(msg) = event {

@@ -42,10 +42,15 @@
 //! [`Standby::wait_for_message`]: struct.Standby.html#method.wait_for_message
 //! [`Standby::wait_for_reaction`]: struct.Standby.html#method.wait_for_reaction
 
-use futures_channel::oneshot::{self, Canceled, Sender};
-use futures_util::lock::Mutex;
+mod futures;
+
+pub use futures::{
+    WaitForEventFuture, WaitForGuildEventFuture, WaitForMessageFuture, WaitForReactionFuture,
+};
+
+use dashmap::DashMap;
+use futures_channel::oneshot::{self, Sender};
 use std::{
-    collections::HashMap,
     fmt::{Debug, Formatter, Result as FmtResult},
     sync::Arc,
 };
@@ -59,7 +64,7 @@ use twilight_model::{
 };
 
 struct Bystander<E> {
-    func: Box<dyn Fn(&E) -> bool + Send>,
+    func: Box<dyn Fn(&E) -> bool + Send + Sync>,
     sender: Option<Sender<E>>,
 }
 
@@ -74,10 +79,10 @@ impl<E> Debug for Bystander<E> {
 
 #[derive(Debug, Default)]
 struct StandbyRef {
-    events: Mutex<HashMap<EventType, Vec<Bystander<Event>>>>,
-    guilds: Mutex<HashMap<GuildId, Vec<Bystander<Event>>>>,
-    messages: Mutex<HashMap<ChannelId, Vec<Bystander<MessageCreate>>>>,
-    reactions: Mutex<HashMap<MessageId, Vec<Bystander<ReactionAdd>>>>,
+    events: DashMap<EventType, Vec<Bystander<Event>>>,
+    guilds: DashMap<GuildId, Vec<Bystander<Event>>>,
+    messages: DashMap<ChannelId, Vec<Bystander<MessageCreate>>>,
+    reactions: DashMap<MessageId, Vec<Bystander<ReactionAdd>>>,
 }
 
 /// The `Standby` struct, used by the main event loop to process events and by
@@ -97,25 +102,24 @@ impl Standby {
     ///
     /// When a bystander checks to see if an event is what it's waiting for, it
     /// will receive the event by cloning it.
-    pub async fn process(&self, event: &Event) {
+    pub fn process(&self, event: &Event) {
         log::trace!("Processing event: {:?}", event);
 
         match event {
-            Event::MessageCreate(e) => return self.process_message(e.0.channel_id, &e).await,
-            Event::ReactionAdd(e) => return self.process_reaction(e.0.message_id, &e).await,
+            Event::MessageCreate(e) => return self.process_message(e.0.channel_id, &e),
+            Event::ReactionAdd(e) => return self.process_reaction(e.0.message_id, &e),
             _ => {}
         }
 
         match event_guild_id(event) {
-            Some(guild_id) => self.process_guild(guild_id, event).await,
-            None => self.process_event(event).await,
+            Some(guild_id) => self.process_guild(guild_id, event),
+            None => self.process_event(event),
         }
     }
 
     /// Wait for an event in a certain guild.
     ///
-    /// Returns `None` if the `Standby` instance was dropped or this waiter was
-    /// dropped before an event could be found.
+    /// Returns a Canceled error if the Standby struct was dropped.
     ///
     /// # Examples
     ///
@@ -139,32 +143,29 @@ impl Standby {
     /// ```
     ///
     /// [`Standby`]: struct.Standby.html
-    pub async fn wait_for<F: Fn(&Event) -> bool + Send + 'static>(
+    pub fn wait_for<F: Fn(&Event) -> bool + Send + Sync + 'static>(
         &self,
         guild_id: GuildId,
         check: impl Into<Box<F>>,
-    ) -> Result<Event, Canceled> {
+    ) -> WaitForGuildEventFuture {
         log::trace!("Waiting for event in guild {}", guild_id);
         let (tx, rx) = oneshot::channel();
 
         {
-            let mut guilds = self.0.guilds.lock().await;
-
-            let guild = guilds.entry(guild_id).or_default();
+            let mut guild = self.0.guilds.entry(guild_id).or_default();
             guild.push(Bystander {
                 func: check.into(),
                 sender: Some(tx),
             });
         }
 
-        rx.await
+        WaitForGuildEventFuture { rx }
     }
 
     /// Wait for an event not in a certain guild. This must be filtered by an
     /// event type.
     ///
-    /// Returns `None` if the `Standby` instance was dropped or this waiter was
-    /// dropped before an event could be found.
+    /// Returns a `Canceled` error if the `Standby` struct was dropped.
     ///
     /// # Examples
     ///
@@ -189,31 +190,28 @@ impl Standby {
     /// ```
     ///
     /// [`Standby`]: struct.Standby.html
-    pub async fn wait_for_event<F: Fn(&Event) -> bool + Send + 'static>(
+    pub fn wait_for_event<F: Fn(&Event) -> bool + Send + Sync + 'static>(
         &self,
         event_type: EventType,
         check: impl Into<Box<F>>,
-    ) -> Result<Event, Canceled> {
+    ) -> WaitForEventFuture {
         log::trace!("Waiting for event {:?}", event_type);
         let (tx, rx) = oneshot::channel();
 
         {
-            let mut events = self.0.events.lock().await;
-
-            let guild = events.entry(event_type).or_default();
+            let mut guild = self.0.events.entry(event_type).or_default();
             guild.push(Bystander {
                 func: check.into(),
                 sender: Some(tx),
             });
         }
 
-        rx.await
+        WaitForEventFuture { rx }
     }
 
     /// Wait for a message in a certain channel.
     ///
-    /// Returns `None` if the `Standby` instance was dropped or this waiter was
-    /// dropped before an event could be found.
+    /// Returns a `Canceled` error if the `Standby` struct was dropped.
     ///
     /// # Examples
     ///
@@ -234,31 +232,28 @@ impl Standby {
     /// ```
     ///
     /// [`Standby`]: struct.Standby.html
-    pub async fn wait_for_message<F: Fn(&MessageCreate) -> bool + Send + 'static>(
+    pub fn wait_for_message<F: Fn(&MessageCreate) -> bool + Send + Sync + 'static>(
         &self,
         channel_id: ChannelId,
         check: impl Into<Box<F>>,
-    ) -> Result<MessageCreate, Canceled> {
+    ) -> WaitForMessageFuture {
         log::trace!("Waiting for message in channel {}", channel_id);
         let (tx, rx) = oneshot::channel();
 
         {
-            let mut messages = self.0.messages.lock().await;
-
-            let guild = messages.entry(channel_id).or_default();
+            let mut guild = self.0.messages.entry(channel_id).or_default();
             guild.push(Bystander {
                 func: check.into(),
                 sender: Some(tx),
             });
         }
 
-        rx.await
+        WaitForMessageFuture { rx }
     }
 
     /// Wait for a reaction on a certain message.
     ///
-    /// Returns `None` if the `Standby` instance was dropped or this waiter was
-    /// dropped before an event could be found.
+    /// Returns a `Canceled` error if the `Standby` struct was dropped.
     ///
     /// # Examples
     ///
@@ -279,33 +274,30 @@ impl Standby {
     /// ```
     ///
     /// [`Standby`]: struct.Standby.html
-    pub async fn wait_for_reaction<F: Fn(&ReactionAdd) -> bool + Send + 'static>(
+    pub fn wait_for_reaction<F: Fn(&ReactionAdd) -> bool + Send + Sync + 'static>(
         &self,
         message_id: MessageId,
         check: impl Into<Box<F>>,
-    ) -> Result<ReactionAdd, Canceled> {
+    ) -> WaitForReactionFuture {
         log::trace!("Waiting for reaction on message {}", message_id);
         let (tx, rx) = oneshot::channel();
 
         {
-            let mut reactions = self.0.reactions.lock().await;
-
-            let guild = reactions.entry(message_id).or_default();
+            let mut guild = self.0.reactions.entry(message_id).or_default();
             guild.push(Bystander {
                 func: check.into(),
                 sender: Some(tx),
             });
         }
 
-        rx.await
+        WaitForReactionFuture { rx }
     }
 
-    async fn process_event(&self, event: &Event) {
+    fn process_event(&self, event: &Event) {
         log::trace!("Processing event type {:?}", event);
         let kind = event.kind();
-        let mut events = self.0.events.lock().await;
 
-        let remove = match events.get_mut(&kind) {
+        let remove = match self.0.events.get_mut(&kind) {
             Some(mut bystanders) => {
                 self.iter_bystanders(&mut bystanders, event);
 
@@ -321,14 +313,12 @@ impl Standby {
         if remove {
             log::trace!("Removing event type {:?}", kind);
 
-            events.remove(&kind);
+            self.0.events.remove(&kind);
         }
     }
 
-    async fn process_guild(&self, guild_id: GuildId, event: &Event) {
-        let mut guilds = self.0.guilds.lock().await;
-
-        let remove = match guilds.get_mut(&guild_id) {
+    fn process_guild(&self, guild_id: GuildId, event: &Event) {
+        let remove = match self.0.guilds.get_mut(&guild_id) {
             Some(mut bystanders) => {
                 self.iter_bystanders(&mut bystanders, event);
 
@@ -344,14 +334,12 @@ impl Standby {
         if remove {
             log::trace!("Removing guild {}", guild_id);
 
-            guilds.remove(&guild_id);
+            self.0.guilds.remove(&guild_id);
         }
     }
 
-    async fn process_message(&self, channel_id: ChannelId, event: &MessageCreate) {
-        let mut messages = self.0.messages.lock().await;
-
-        let remove = match messages.get_mut(&channel_id) {
+    fn process_message(&self, channel_id: ChannelId, event: &MessageCreate) {
+        let remove = match self.0.messages.get_mut(&channel_id) {
             Some(mut bystanders) => {
                 self.iter_bystanders(&mut bystanders, event);
 
@@ -367,14 +355,12 @@ impl Standby {
         if remove {
             log::trace!("Removing channel {}", channel_id);
 
-            messages.remove(&channel_id);
+            self.0.messages.remove(&channel_id);
         }
     }
 
-    async fn process_reaction(&self, message_id: MessageId, event: &ReactionAdd) {
-        let mut reactions = self.0.reactions.lock().await;
-
-        let remove = match reactions.get_mut(&message_id) {
+    fn process_reaction(&self, message_id: MessageId, event: &ReactionAdd) {
+        let remove = match self.0.reactions.get_mut(&message_id) {
             Some(mut bystanders) => {
                 self.iter_bystanders(&mut bystanders, event);
 
@@ -389,7 +375,7 @@ impl Standby {
 
         if remove {
             log::trace!("Removing message {}", message_id);
-            reactions.remove(&message_id);
+            self.0.reactions.remove(&message_id);
         }
     }
 
@@ -505,7 +491,6 @@ fn channel_guild_id(channel: &Channel) -> Option<GuildId> {
 #[cfg(test)]
 mod tests {
     use super::Standby;
-    use futures_util::future;
     use std::collections::HashMap;
     use twilight_model::{
         channel::{
@@ -527,22 +512,19 @@ mod tests {
             Event::RoleDelete(e) => e.guild_id == GuildId(1),
             _ => false,
         });
-        let process = standby.process(&Event::RoleDelete(RoleDelete {
+        standby.process(&Event::RoleDelete(RoleDelete {
             guild_id: GuildId(1),
             role_id: RoleId(2),
         }));
 
-        // wait always gets polled first
-        let (res, _) = future::join(wait, process).await;
-
         assert!(matches!(
-            res,
+            wait.await,
             Ok(Event::RoleDelete(RoleDelete {
                 guild_id: GuildId(1),
                 role_id: RoleId(2),
             }))
         ));
-        assert!(standby.0.guilds.lock().await.is_empty());
+        assert!(standby.0.guilds.is_empty());
     }
 
     #[tokio::test]
@@ -570,13 +552,10 @@ mod tests {
             Event::Ready(ready) => ready.shard.map(|[id, _]| id == 5).unwrap_or(false),
             _ => false,
         });
-        let process = standby.process(&event);
+        standby.process(&event);
 
-        // wait always gets polled first
-        let (res, _) = future::join(wait, process).await;
-
-        assert_eq!(Ok(event), res);
-        assert!(standby.0.events.lock().await.is_empty());
+        assert_eq!(Ok(event), wait.await);
+        assert!(standby.0.events.is_empty());
     }
 
     #[tokio::test]
@@ -626,14 +605,10 @@ mod tests {
         let wait = standby.wait_for_message(ChannelId(1), |message: &MessageCreate| {
             message.author.id == UserId(2)
         });
+        standby.process(&event);
 
-        let process = standby.process(&event);
-
-        // wait always gets polled first
-        let (res, _) = future::join(wait, process).await;
-
-        assert_eq!(Ok(MessageId(3)), res.map(|msg| msg.id));
-        assert!(standby.0.messages.lock().await.is_empty());
+        assert_eq!(Ok(MessageId(3)), wait.await.map(|msg| msg.id));
+        assert!(standby.0.messages.is_empty());
     }
 
     #[tokio::test]
@@ -655,13 +630,10 @@ mod tests {
             reaction.user_id == UserId(3)
         });
 
-        let process = standby.process(&event);
+        standby.process(&event);
 
-        // wait always gets polled first
-        let (res, _) = future::join(wait, process).await;
-
-        assert_eq!(Ok(UserId(3)), res.map(|reaction| reaction.user_id));
-        assert!(standby.0.reactions.lock().await.is_empty());
+        assert_eq!(Ok(UserId(3)), wait.await.map(|reaction| reaction.user_id));
+        assert!(standby.0.reactions.is_empty());
     }
 
     #[tokio::test]
@@ -671,12 +643,10 @@ mod tests {
             matches!(event, Event::Resumed)
         });
 
-        standby.process(&Event::PresencesReplace).await;
-        standby.process(&Event::PresencesReplace).await;
-        let process = standby.process(&Event::Resumed);
+        standby.process(&Event::PresencesReplace);
+        standby.process(&Event::PresencesReplace);
+        standby.process(&Event::Resumed);
 
-        // wait always gets polled first
-        let (res, _) = future::join(wait, process).await;
-        assert!(res.is_ok());
+        assert_eq!(Ok(Event::Resumed), wait.await);
     }
 }
