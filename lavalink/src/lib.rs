@@ -51,7 +51,8 @@
 //!     let lavalink = Lavalink::new(user_id, shard_count);
 //!     lavalink.add(lavalink_host, lavalink_auth).await?;
 //!
-//!     let shard = Shard::new(token).await?;
+//!     let mut shard = Shard::new(token);
+//!     shard.start().await?;
 //!
 //!     let mut events = shard.events().await;
 //!

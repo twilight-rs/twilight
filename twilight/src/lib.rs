@@ -125,8 +125,8 @@
 //!         .build();
 //!
 //!     // Start up the cluster
-//!     let cluster = Cluster::new(config);
-//!     cluster.up().await?;
+//!     let cluster = Cluster::new(config).await?;
+//!     cluster.up().await;
 //!
 //!     // The http client is seperate from the gateway,
 //!     // so startup a new one

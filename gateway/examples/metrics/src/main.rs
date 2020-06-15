@@ -20,10 +20,10 @@ async fn main() -> Result<(), Box<dyn Error + Send + Sync>> {
 
     pretty_env_logger::init_timed();
 
-    let cluster = Cluster::new(env::var("DISCORD_TOKEN")?);
+    let cluster = Cluster::new(env::var("DISCORD_TOKEN")?).await?;
     println!("Created cluster");
 
-    cluster.up().await?;
+    cluster.up().await;
     println!("Started cluster");
 
     let mut events = cluster.events().await;

@@ -128,7 +128,7 @@ async fn main() -> Result<(), Box<dyn Error + Send + Sync>> {
 
     // Start up the cluster
     let cluster = Cluster::new(config);
-    cluster.up().await?;
+    cluster.up().await;
 
     // The http client is seperate from the gateway,
     // so startup a new one
