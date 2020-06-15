@@ -40,6 +40,8 @@ jobs:
   test_http_runtimes:
     name: Test HTTP crate runtimes
     runs-on: ubuntu-latest
+    env:
+      working-directory: ./http
     steps:
       - name: Checkout sources
         uses: actions/checkout@v1
@@ -75,9 +77,9 @@ jobs:
         uses: actions-rs/cargo@v1
         with:
           command: test
-          args: --package twilight-http --no-default-features --features "serde_json smol-runtime" -- --ignored
+          args: --no-default-features --features "serde_json smol-runtime" -- --ignored
       - name: Run cargo test with tokio
         uses: actions-rs/cargo@v1
         with:
           command: test
-          args: --package twilight-http --no-default-features --features "serde_json tokio-runtime" -- --ignored
+          args: --no-default-features --features "serde_json tokio-runtime" -- --ignored
