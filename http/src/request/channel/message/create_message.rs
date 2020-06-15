@@ -1,14 +1,12 @@
 use super::allowed_mentions::{AllowedMentions, AllowedMentionsBuilder, Unspecified};
 use crate::json_to_vec;
-use crate::request::prelude::*;
-use reqwest::{
-    multipart::{Form, Part},
-    Body,
-};
+use crate::request::{multipart::TwilightBoundaryGenerator, prelude::*};
+use common_multipart_rfc7578::client::multipart::Form;
 use std::{
     collections::HashMap,
     error::Error,
     fmt::{Display, Formatter, Result as FmtResult},
+    io::Cursor,
 };
 use twilight_model::{
     channel::{embed::Embed, Message},
@@ -50,7 +48,7 @@ pub(crate) struct CreateMessageFields {
 }
 
 pub struct CreateMessage<'a> {
-    attachments: HashMap<String, Body>,
+    attachments: HashMap<String, Cursor<Vec<u8>>>,
     channel_id: ChannelId,
     pub(crate) fields: CreateMessageFields,
     fut: Option<Pending<'a, Message>>,
@@ -109,13 +107,13 @@ impl<'a> CreateMessage<'a> {
         AllowedMentionsBuilder::for_builder(self)
     }
 
-    pub fn attachment(mut self, name: impl Into<String>, file: impl Into<Body>) -> Self {
+    pub fn attachment(mut self, name: impl Into<String>, file: impl Into<Cursor<Vec<u8>>>) -> Self {
         self.attachments.insert(name.into(), file.into());
 
         self
     }
 
-    pub fn attachments<N: Into<String>, F: Into<Body>>(
+    pub fn attachments<N: Into<String>, F: Into<Cursor<Vec<u8>>>>(
         mut self,
         attachments: impl IntoIterator<Item = (N, F)>,
     ) -> Self {
@@ -154,10 +152,10 @@ impl<'a> CreateMessage<'a> {
                     },
                 ))
             } else {
-                let mut form = Form::new();
+                let mut form = Form::new::<TwilightBoundaryGenerator>();
 
                 for (index, (name, file)) in self.attachments.drain().enumerate() {
-                    form = form.part(format!("{}", index), Part::stream(file).file_name(name));
+                    form.add_reader_file(format!("{}", index), file, name);
                 }
 
                 Request::from((

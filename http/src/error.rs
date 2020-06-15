@@ -1,6 +1,9 @@
 use crate::{api_error::ApiError, ratelimiting::RatelimitError};
 use futures::channel::oneshot::Canceled;
-use reqwest::{header::InvalidHeaderValue, Error as ReqwestError, StatusCode};
+use isahc::{
+    http::{header::InvalidHeaderValue, StatusCode},
+    Error as IsahcError,
+};
 #[cfg(all(feature = "serde_json", not(feature = "simd-json")))]
 use serde_json::Error as JsonError;
 #[cfg(feature = "simd-json")]
@@ -9,6 +12,7 @@ use simd_json::Error as JsonError;
 use std::{
     error::Error as StdError,
     fmt::{Display, Error as FmtError, Formatter, Result as FmtResult},
+    io::Error as IoError,
     num::ParseIntError,
     result::Result as StdResult,
 };
@@ -60,10 +64,10 @@ impl From<ParseIntError> for UrlError {
 #[derive(Debug)]
 pub enum Error {
     BuildingClient {
-        source: ReqwestError,
+        source: IsahcError,
     },
     ChunkingResponse {
-        source: ReqwestError,
+        source: IoError,
     },
     CreatingHeader {
         name: String,
@@ -88,8 +92,8 @@ pub enum Error {
     RequestCanceled {
         source: Canceled,
     },
-    RequestError {
-        source: ReqwestError,
+    Request {
+        source: IsahcError,
     },
     Response {
         body: Vec<u8>,
@@ -136,7 +140,7 @@ impl Display for Error {
             Self::RequestCanceled { .. } => {
                 f.write_str("Request was canceled either before or while being sent")
             }
-            Self::RequestError { .. } => f.write_str("Parsing or sending the response failed"),
+            Self::Request { .. } => f.write_str("Parsing or sending the response failed"),
             Self::Response { error, status, .. } => write!(
                 f,
                 "Response error: status code {}, error: {}",
@@ -155,9 +159,8 @@ impl StdError for Error {
             Self::Url { source } => Some(source),
             Self::Ratelimiting { source } => Some(source),
             Self::RequestCanceled { source } => Some(source),
-            Self::BuildingClient { source }
-            | Self::ChunkingResponse { source }
-            | Self::RequestError { source } => Some(source),
+            Self::BuildingClient { source } | Self::Request { source } => Some(source),
+            Self::ChunkingResponse { source } => Some(source),
             Self::Response { .. } => None,
         }
     }

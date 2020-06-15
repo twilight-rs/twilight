@@ -1,14 +1,14 @@
-pub use reqwest::Proxy;
+pub use isahc::http::Uri;
 
 use crate::request::channel::message::allowed_mentions::AllowedMentions;
-use reqwest::Client as ReqwestClient;
+use isahc::HttpClient;
 use std::time::Duration;
 
-#[derive(Clone, Debug)]
+#[derive(Debug)]
 pub struct ClientConfig {
-    pub(crate) proxy: Option<Proxy>,
+    pub(crate) isahc_client: Option<HttpClient>,
+    pub(crate) proxy: Option<Uri>,
     pub(crate) proxy_http: bool,
-    pub(crate) reqwest_client: Option<ReqwestClient>,
     pub(crate) skip_ratelimiter: bool,
     pub(crate) timeout: Duration,
     pub(crate) token: Option<String>,
@@ -22,7 +22,7 @@ impl ClientConfig {
     }
 
     /// Returns an immutable reference to the proxy.
-    pub fn proxy(&self) -> Option<&Proxy> {
+    pub fn proxy(&self) -> Option<&Uri> {
         self.proxy.as_ref()
     }
 
@@ -30,9 +30,9 @@ impl ClientConfig {
         self.proxy_http
     }
 
-    /// Returns an immutable reference to the reqwest client, if any.
-    pub fn reqwest_client(&self) -> Option<&ReqwestClient> {
-        self.reqwest_client.as_ref()
+    /// Returns an immutable reference to the isahc client, if any.
+    pub fn isahc_client(&self) -> Option<&HttpClient> {
+        self.isahc_client.as_ref()
     }
 
     pub fn skip_ratelimiter(&self) -> bool {
@@ -55,7 +55,7 @@ impl ClientConfig {
     }
 }
 
-#[derive(Clone, Debug)]
+#[derive(Debug)]
 pub struct ClientConfigBuilder(ClientConfig);
 
 impl ClientConfigBuilder {
@@ -73,8 +73,8 @@ impl ClientConfigBuilder {
 
     /// Sets the proxy to use for all HTTP requests.
     ///
-    /// This accepts a `reqwest::Proxy`.
-    pub fn proxy(&mut self, proxy: Proxy) -> &mut Self {
+    /// This accepts a `http::Uri`.
+    pub fn proxy(&mut self, proxy: Uri) -> &mut Self {
         self.0.proxy.replace(proxy);
 
         self
@@ -86,14 +86,14 @@ impl ClientConfigBuilder {
         self
     }
 
-    /// Sets the reqwest client to use.
+    /// Sets the isahc client to use.
     ///
     /// All of the settings in the client will be overwritten by the settings
     /// in this configuration, if specified.
     ///
     /// The default client is a RusTLS-backed client.
-    pub fn reqwest_client(&mut self, client: ReqwestClient) -> &mut Self {
-        self.0.reqwest_client.replace(client);
+    pub fn isahc_client(&mut self, client: HttpClient) -> &mut Self {
+        self.0.isahc_client.replace(client);
 
         self
     }
@@ -141,7 +141,7 @@ impl Default for ClientConfigBuilder {
         Self(ClientConfig {
             proxy: None,
             proxy_http: false,
-            reqwest_client: None,
+            isahc_client: None,
             skip_ratelimiter: false,
             timeout: Duration::from_secs(10),
             token: None,

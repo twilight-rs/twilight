@@ -48,7 +48,7 @@ impl Future for GetGuildVanityUrl<'_> {
                 let bytes = match fut.as_mut().poll(cx) {
                     Poll::Ready(Ok(bytes)) => bytes,
                     Poll::Ready(Err(crate::Error::Response { status, .. }))
-                        if status == reqwest::StatusCode::NOT_FOUND =>
+                        if status == isahc::http::StatusCode::NOT_FOUND =>
                     {
                         return Poll::Ready(Ok(None));
                     }

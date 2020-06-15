@@ -35,7 +35,7 @@ macro_rules! poll_req {
                         let bytes = match fut.as_mut().poll(cx) {
                             Poll::Ready(Ok(bytes)) => bytes,
                             Poll::Ready(Err(crate::Error::Response { status, .. }))
-                                if status == reqwest::StatusCode::NOT_FOUND =>
+                                if status == isahc::http::StatusCode::NOT_FOUND =>
                             {
                                 return Poll::Ready(Ok(None));
                             }
@@ -68,6 +68,7 @@ pub mod user;
 mod get_gateway;
 mod get_gateway_authed;
 mod get_voice_regions;
+mod multipart;
 mod validate;
 
 pub use self::{
@@ -79,23 +80,22 @@ use crate::{
     error::{Error, Result},
     routing::{Path, Route},
 };
-use bytes::Bytes;
-use percent_encoding::{utf8_percent_encode, NON_ALPHANUMERIC};
-use reqwest::{
+use common_multipart_rfc7578::client::multipart::Form;
+use isahc::http::{
     header::{HeaderMap, HeaderName, HeaderValue},
-    multipart::Form,
     Method,
 };
+use percent_encoding::{utf8_percent_encode, NON_ALPHANUMERIC};
+use std::fmt::{Debug, Formatter, Result as FmtResult};
 
 use std::{borrow::Cow, future::Future, pin::Pin};
 
 type Pending<'a, T> = Pin<Box<dyn Future<Output = Result<T>> + Send + 'a>>;
-type PendingOption<'a> = Pin<Box<dyn Future<Output = Result<Bytes>> + Send + 'a>>;
+type PendingOption<'a> = Pin<Box<dyn Future<Output = Result<Vec<u8>>> + Send + 'a>>;
 
-#[derive(Debug)]
 pub struct Request {
     pub body: Option<Vec<u8>>,
-    pub form: Option<Form>,
+    pub form: Option<Form<'static>>,
     pub headers: Option<HeaderMap<HeaderValue>>,
     pub method: Method,
     pub path: Path,
@@ -136,6 +136,18 @@ impl Request {
     }
 }
 
+impl Debug for Request {
+    fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
+        f.debug_struct("Request")
+            .field("body", &self.body)
+            .field("headers", &self.headers)
+            .field("method", &self.method)
+            .field("path", &self.path)
+            .field("path_str", &self.path_str)
+            .finish()
+    }
+}
+
 impl From<Route> for Request {
     fn from(route: Route) -> Self {
         let (method, path, path_str) = route.into_parts();
@@ -166,8 +178,8 @@ impl From<(Vec<u8>, Route)> for Request {
     }
 }
 
-impl From<(Vec<u8>, Form, Route)> for Request {
-    fn from((body, form, route): (Vec<u8>, Form, Route)) -> Self {
+impl From<(Vec<u8>, Form<'static>, Route)> for Request {
+    fn from((body, form, route): (Vec<u8>, Form<'static>, Route)) -> Self {
         let (method, path, path_str) = route.into_parts();
 
         Self {

@@ -17,8 +17,6 @@ use std::{
     },
     time::{Duration, Instant},
 };
-use tokio::time::{delay_for, timeout};
-//use tokio::future::FutureExt as _;
 
 #[derive(Clone, Debug)]
 pub enum TimeRemaining {
@@ -132,13 +130,9 @@ impl BucketQueue {
     ) -> Option<Sender<Sender<Option<RatelimitHeaders>>>> {
         let mut rx = self.rx.lock().await;
 
-        match timeout(timeout_duration, StreamExt::next(&mut *rx))
+        crate::timeout(timeout_duration, StreamExt::next(&mut *rx))
             .await
-            .ok()
-        {
-            Some(x) => x,
-            None => None,
-        }
+            .flatten()
     }
 }
 
@@ -195,12 +189,12 @@ impl BucketQueueTask {
             );
 
             // TODO: Find a better way of handling nested types.
-            match timeout(Self::WAIT, rx).await {
-                Ok(Ok(Some(headers))) => self.handle_headers(&headers).await,
+            match crate::timeout(Self::WAIT, rx).await {
+                Some(Ok(Some(headers))) => self.handle_headers(&headers).await,
                 // - None was sent through the channel (request aborted)
                 // - channel was closed
                 // - timeout reached
-                Ok(Err(_)) | Err(_) | Ok(Ok(None)) => {
+                Some(Err(_)) | None | Some(Ok(None)) => {
                     debug!("[Bucket {:?}] Receiver timed out", self.path);
                 }
             }
@@ -242,7 +236,7 @@ impl BucketQueueTask {
         debug!("[Bucket {:?}] Request got global ratelimited", self.path,);
         self.global.lock();
         let lock = self.global.0.lock().await;
-        delay_for(Duration::from_millis(wait)).await;
+        crate::delay(Duration::from_millis(wait)).await;
         self.global.unlock();
 
         drop(lock);
@@ -280,7 +274,7 @@ impl BucketQueueTask {
             self.path, wait,
         );
 
-        delay_for(wait).await;
+        crate::delay(wait).await;
 
         debug!(
             "[Bucket {:?}] Done waiting for ratelimit to pass",

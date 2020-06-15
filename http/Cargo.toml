@@ -13,23 +13,26 @@ repository = "https://github.com/twilight-rs/twilight.git"
 version = "0.1.0"
 
 [dependencies]
-bytes = { default-features = false, version = "0.5" }
+common-multipart-rfc7578 = { default-features = false, version = "0.2.0-rc" }
 futures = "0.3"
+futures-timer = { default-features = false, optional = true, version = "3" }
+isahc = { default-features = false, features = ["http2", "static-curl"], version = "0.9" }
 twilight-model = { path = "../model" }
 log = "0.4"
-reqwest = "0.10"
+rand = { default-features = false, features = ["getrandom", "small_rng"], version = "0.7" }
 serde = { features = ["derive"], version = "1" }
 serde_json = { version = "1", optional = true }
 serde_repr = { default-features = false, version = "0.1" }
 simd-json = { version = "0.3", optional = true }
-tokio = "0.2"
+smol = { default-features = false, optional = true, version = "0.1" }
+tokio = { default-features = false, features = ["rt-core", "time"], optional = true, version = "0.2" }
 percent-encoding = "2.1"
 url = "2"
 
 [features]
-default = ["native", "serde_json"]
-native = ["reqwest/default-tls"]
-rustls = ["reqwest/rustls-tls"]
+default = ["serde_json", "tokio-runtime"]
+smol-runtime = ["futures-timer", "smol"]
+tokio-runtime = ["tokio"]
 
 [dev-dependencies]
 serde_test = { default-features = false, version = "1" }

@@ -1,6 +1,6 @@
 use futures::future;
-use std::error::Error;
-use twilight_http::client::{config::Proxy, Client};
+use std::{error::Error, str::FromStr};
+use twilight_http::client::{config::Uri, Client};
 use twilight_model::id::ChannelId;
 
 #[tokio::main]
@@ -9,7 +9,7 @@ async fn main() -> Result<(), Box<dyn Error + Send + Sync>> {
 
     let mut config = Client::builder();
     config
-        .proxy(Proxy::all("http://localhost:3000")?)
+        .proxy(Uri::from_str("http://localhost:3000")?)
         .proxy_http(true)
         .skip_ratelimiter(true);
     let client = config.build()?;

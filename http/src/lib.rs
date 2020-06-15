@@ -4,42 +4,62 @@
 //!
 //! ## Features
 //!
-//! `twilight-http` includes three features: `native`, `simd` and `rustls`. `native` is
-//! enabled by default. `native` will enable `reqwest`'s `default-tls` feature,
-//! which will use the TLS library native to your OS (for example, OpenSSL on
-//! Linux). `rustls` will enable `reqwest`'s `rustls-tls` feature, which will use
-//! [rustls].
+//! ### Deserialization
 //!
-//! If you want to use Rustls instead of your native library, it's easy to switch it
-//! out:
+//! `twilight-http` supports `serde_json` and `simd-json` for deserializing
+//! responses. `serde_json` is enabled by default.
 //!
-//! ```toml
-//! [dependencies]
-//! twilight-http = { default-features = false, features = ["rustls"], git = "https://github.com/twilight-rs/twilight" }
-//! ```
+//! #### `simd-json`
 //!
-//! You can also choose to use neither feature. This is only useful if you provide
-//! your own configured Reqwest client to the HTTP client, otherwise you will
-//! encounter TLS errors.
+//! The `simd-json` feature enables [`simd-json`] support to use simd features of
+//! the modern cpus to deserialize responses faster. It is not enabled by
+//! default, and instead the `serde_json` feature is enabled by default.
 //!
-//! `simd` feature enables [simd-json] support to use simd features of the modern cpus
-//! to deserialize json data faster. It is not enabled by default since not every cpu has those features.
-//! To use this feature you need to also add these lines to a file in `<project root>/.cargo/config`
+//! To use this feature you need to also add these lines to
+//! `<project root>/.cargo/config`:
 //! ```toml
 //! [build]
 //! rustflags = ["-C", "target-cpu=native"]
 //! ```
-//! you can also use this environment variable `RUSTFLAGS="-C target-cpu=native"`. If you enable both
-//! `serde_json` and `simd-json` at the same time; this crate uses `simd-json`. But it is recommended to
-//! disable `serde_json` if you are going to use `simd-json`. It is easy to switch to out:
+//!
+//! You can also set the environment variable
+//! `RUSTFLAGS="-C target-cpu=native"`. If you enable both `serde_json` and
+//! `simd-json` at the same time, then `simd-json` will be used.
+//!
+//! #### `serde_json`
+//!
+//! `serde_json` is the inverse of `simd-json` and will use the `serde_json`
+//! crate to deserialize responses.
+//!
+//! ### Runtimes
+//!
+//! `twilight-http` supports some of the popular async runtimes. The
+//! `tokio-runtime` feature is enabled by default.
+//!
+//! #### `smol-runtime`
+//!
+//! Use [`smol`] as an asynchronous executor for background tasks. The
+//! [`futures-timer`] crate will be used for asynchronous timing. If you're
+//! using `smol` in your runtime, then you'll want to disable the
+//! `tokio-runtime` feature and enable this, like so:
 //!
 //! ```toml
-//! [dependencies]
-//! twilight-gateway = { default-features = false, features = ["simd-json"], git = "https://github.com/twilight-rs/twilight" }
+//! [dependencies.twilight-http]
+//! default-features = false
+//! features = ["serde_json", "smol-runtime"]
+//! git = "https://github.com/twilight-rs/twilight"
 //! ```
 //!
-//! [rustls]: https://github.com/ctz/rustls
-//! [simd-json]: https://github.com/simd-lite/simd-json
+//! #### `tokio-runtime`
+//!
+//! Use [`tokio`] as an asynchronous executor for background tasks and
+//! asynchronous timing. If you're using `tokio` in your application, this is
+//! what you want and you don't need to change anything in your dependencies.
+//!
+//! [`futures-timer`]: https://crates.io/crates/futures-timer
+//! [`simd-json`]: https://crates.io/crates/simd-json
+//! [`smol`]: https://crates.io/crates/smol
+//! [`tokio`]: https://crates.io/crates/tokio
 
 #![deny(
     clippy::all,
@@ -61,6 +81,14 @@
     clippy::used_underscore_binding
 )]
 
+#[cfg(any(
+    all(not(feature = "smol-runtime"), not(feature = "tokio-runtime")),
+    all(feature = "smol-runtime", feature = "tokio-runtime"),
+))]
+compile_error!(
+    "You must enable feature `smol-runtime` or `tokio-runtime`, but not neither or both"
+);
+
 pub mod api_error;
 pub mod client;
 pub mod error;
@@ -73,12 +101,14 @@ pub use crate::{
     error::{Error, Result},
 };
 
+use std::{future::Future, time::Duration};
+
 #[cfg(all(feature = "serde_json", not(feature = "simd-json")))]
 use serde_json::Result as JsonResult;
 #[cfg(feature = "simd-json")]
 use simd_json::Result as JsonResult;
 
-pub(crate) fn json_from_slice<'a, T: serde::de::Deserialize<'a>>(s: &'a mut [u8]) -> JsonResult<T> {
+pub fn json_from_slice<'a, T: serde::de::Deserialize<'a>>(s: &'a mut [u8]) -> JsonResult<T> {
     #[cfg(all(feature = "serde_json", not(feature = "simd-json")))]
     return serde_json::from_slice(s);
     #[cfg(feature = "simd-json")]
@@ -86,6 +116,46 @@ pub(crate) fn json_from_slice<'a, T: serde::de::Deserialize<'a>>(s: &'a mut [u8]
 }
 
 #[cfg(all(feature = "serde_json", not(feature = "simd-json")))]
-pub(crate) use serde_json::to_vec as json_to_vec;
+pub use serde_json::to_vec as json_to_vec;
 #[cfg(feature = "simd-json")]
-pub(crate) use simd_json::to_vec as json_to_vec;
+pub use simd_json::to_vec as json_to_vec;
+
+fn spawn(fut: impl Future<Output = ()> + Send + 'static) {
+    #[cfg(feature = "smol")]
+    smol::Task::spawn(fut).detach();
+
+    #[cfg(feature = "tokio")]
+    tokio::spawn(fut);
+}
+
+async fn delay(duration: Duration) {
+    #[cfg(feature = "smol")]
+    {
+        use futures_timer::Delay;
+
+        Delay::new(duration).await
+    }
+
+    #[cfg(feature = "tokio")]
+    {
+        tokio::time::delay_for(duration).await
+    }
+}
+
+async fn timeout<T, F: Future<Output = T> + Unpin>(duration: Duration, future: F) -> Option<T> {
+    #[cfg(feature = "smol")]
+    {
+        use futures::future::{self, Either};
+        use futures_timer::Delay;
+
+        match future::select(future, Delay::new(duration)).await {
+            Either::Left((res, _)) => Some(res),
+            Either::Right(_) => None,
+        }
+    }
+
+    #[cfg(feature = "tokio")]
+    {
+        tokio::time::timeout(duration, future).await.ok()
+    }
+}

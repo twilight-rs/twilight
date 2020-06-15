@@ -12,12 +12,13 @@ use crate::{
         Request,
     },
 };
-use bytes::Bytes;
-use log::{debug, warn};
-use reqwest::{
-    header::HeaderValue, Body, Client as ReqwestClient, ClientBuilder as ReqwestClientBuilder,
-    Response, StatusCode,
+use futures::{io::AsyncReadExt, stream::StreamExt};
+use isahc::{
+    config::Configurable,
+    http::{header::HeaderValue, request::Builder as RequestBuilder, Response, StatusCode},
+    Body, HttpClient, HttpClientBuilder,
 };
+use log::{debug, warn};
 use serde::de::DeserializeOwned;
 use std::{
     convert::TryFrom,
@@ -35,7 +36,7 @@ use url::Url;
 
 use crate::json_from_slice;
 
-#[derive(Clone, Debug, Default)]
+#[derive(Debug, Default)]
 pub struct ClientBuilder(pub ClientConfigBuilder);
 
 impl ClientBuilder {
@@ -50,7 +51,7 @@ impl ClientBuilder {
     pub fn build(self) -> Result<Client> {
         let config = self.0.build();
 
-        let mut builder = ReqwestClientBuilder::new().timeout(config.timeout);
+        let mut builder = HttpClientBuilder::new().timeout(config.timeout);
 
         if let Some(proxy) = config.proxy {
             builder = builder.proxy(proxy)
@@ -88,7 +89,7 @@ impl DerefMut for ClientBuilder {
 }
 
 struct State {
-    http: Arc<ReqwestClient>,
+    http: Arc<HttpClient>,
     ratelimiter: Ratelimiter,
     skip_ratelimiter: bool,
     token: Option<String>,
@@ -124,7 +125,7 @@ impl Client {
 
         Self {
             state: Arc::new(State {
-                http: Arc::new(ReqwestClient::new()),
+                http: Arc::new(HttpClient::new().unwrap()),
                 ratelimiter: Ratelimiter::new(),
                 skip_ratelimiter: false,
                 token: Some(token),
@@ -746,7 +747,7 @@ impl Client {
         Ok(self.execute_webhook(id, token.ok_or(UrlError::SegmentMissing)?))
     }
 
-    pub async fn raw(&self, request: Request) -> Result<Response> {
+    pub async fn raw(&self, request: Request) -> Result<Response<Body>> {
         let Request {
             body,
             form,
@@ -761,7 +762,9 @@ impl Client {
 
         debug!("URL: {:?}", url);
 
-        let mut builder = self.state.http.request(method.clone(), &url);
+        let mut builder = RequestBuilder::new();
+        builder = builder.method(method);
+        builder = builder.uri(url);
 
         if let Some(ref token) = self.state.token {
             let value = HeaderValue::from_str(&token).map_err(|source| Error::CreatingHeader {
@@ -770,22 +773,6 @@ impl Client {
             })?;
 
             builder = builder.header("Authorization", value);
-        }
-
-        if let Some(form) = form {
-            builder = builder.multipart(form);
-        } else {
-            if let Some(bytes) = body {
-                let len = bytes.len();
-
-                builder = builder.body(Body::from(bytes));
-                builder = builder.header("content-length", len);
-            } else {
-                builder = builder.header("content-length", 0);
-            }
-
-            let content_type = HeaderValue::from_static("application/json");
-            builder = builder.header("Content-Type", content_type);
         }
 
         let precision = HeaderValue::from_static("millisecond");
@@ -799,15 +786,44 @@ impl Client {
         builder = builder.header("X-RateLimit-Precision", precision);
         builder = builder.header("User-Agent", user_agent);
 
-        if let Some(req_headers) = req_headers {
-            builder = builder.headers(req_headers);
+        if let Some(mut req_headers) = req_headers {
+            builder.headers_mut().replace(&mut req_headers);
         }
 
+        let request = if let Some(form) = form {
+            let mut form_body: common_multipart_rfc7578::client::multipart::Body<'_> = form.into();
+            let mut buf = Vec::new();
+
+            while let Some(section) = form_body.next().await {
+                let section = section.unwrap();
+                buf.extend_from_slice(section.as_ref());
+            }
+
+            builder.body(Body::from(buf)).unwrap()
+        } else {
+            let content_type = HeaderValue::from_static("application/json");
+            builder = builder.header("Content-Type", content_type);
+
+            if let Some(bytes) = body {
+                let len = bytes.len();
+
+                builder = builder.header("content-length", len);
+
+                builder.body(Body::from(bytes)).unwrap()
+            } else {
+                builder = builder.header("content-length", 0);
+
+                builder.body(Body::empty()).unwrap()
+            }
+        };
+
         if self.state.skip_ratelimiter {
-            return builder
-                .send()
+            return self
+                .state
+                .http
+                .send_async(request)
                 .await
-                .map_err(|source| Error::RequestError { source });
+                .map_err(|source| Error::Request { source });
         }
 
         let rx = self.state.ratelimiter.get(bucket).await;
@@ -815,10 +831,12 @@ impl Client {
             .await
             .map_err(|source| Error::RequestCanceled { source })?;
 
-        let resp = builder
-            .send()
+        let resp = self
+            .state
+            .http
+            .send_async(request)
             .await
-            .map_err(|source| Error::RequestError { source })?;
+            .map_err(|source| Error::Request { source })?;
 
         match RatelimitHeaders::try_from(resp.headers()) {
             Ok(v) => {
@@ -836,28 +854,31 @@ impl Client {
 
     pub async fn request<T: DeserializeOwned>(&self, request: Request) -> Result<T> {
         let resp = self.make_request(request).await?;
+        let mut bytes = Vec::new();
 
-        let bytes = resp
-            .bytes()
+        resp.into_body()
+            .read_to_end(&mut bytes)
             .await
             .map_err(|source| Error::ChunkingResponse { source })?;
 
-        let mut bytes_b = bytes.as_ref().to_vec();
-
-        let result = json_from_slice(&mut bytes_b);
+        let result = json_from_slice(&mut bytes);
 
         result.map_err(|source| Error::Parsing {
-            body: (*bytes).to_vec(),
+            body: bytes,
             source,
         })
     }
 
-    pub(crate) async fn request_bytes(&self, request: Request) -> Result<Bytes> {
+    pub(crate) async fn request_bytes(&self, request: Request) -> Result<Vec<u8>> {
         let resp = self.make_request(request).await?;
+        let mut bytes = Vec::new();
 
-        resp.bytes()
+        resp.into_body()
+            .read_to_end(&mut bytes)
             .await
-            .map_err(|source| Error::ChunkingResponse { source })
+            .map_err(|source| Error::ChunkingResponse { source })?;
+
+        Ok(bytes)
     }
 
     pub async fn verify(&self, request: Request) -> Result<()> {
@@ -866,7 +887,7 @@ impl Client {
         Ok(())
     }
 
-    async fn make_request(&self, request: Request) -> Result<Response> {
+    async fn make_request(&self, request: Request) -> Result<Response<Body>> {
         let resp = self.raw(request).await?;
         let status = resp.status();
 
@@ -885,15 +906,15 @@ impl Client {
             warn!("Response got 429: {:?}", resp);
         }
 
-        let bytes = resp
-            .bytes()
+        let mut bytes = Vec::new();
+
+        resp.into_body()
+            .read_to_end(&mut bytes)
             .await
             .map_err(|source| Error::ChunkingResponse { source })?;
 
-        let mut bytes_b = bytes.as_ref().to_vec();
-
         let error =
-            crate::json_from_slice::<ApiError>(&mut bytes_b).map_err(|source| Error::Parsing {
+            crate::json_from_slice::<ApiError>(&mut bytes).map_err(|source| Error::Parsing {
                 body: bytes.to_vec(),
                 source,
             })?;
@@ -906,18 +927,18 @@ impl Client {
         }
 
         Err(Error::Response {
-            body: bytes.as_ref().to_vec(),
+            body: bytes,
             error,
             status,
         })
     }
 }
 
-impl From<ReqwestClient> for Client {
-    fn from(reqwest_client: ReqwestClient) -> Self {
+impl From<HttpClient> for Client {
+    fn from(http_client: HttpClient) -> Self {
         Self {
             state: Arc::new(State {
-                http: Arc::new(reqwest_client),
+                http: Arc::new(http_client),
                 ratelimiter: Ratelimiter::new(),
                 skip_ratelimiter: false,
                 token: None,
@@ -928,11 +949,11 @@ impl From<ReqwestClient> for Client {
     }
 }
 
-impl From<Arc<ReqwestClient>> for Client {
-    fn from(reqwest_client: Arc<ReqwestClient>) -> Self {
+impl From<Arc<HttpClient>> for Client {
+    fn from(http_client: Arc<HttpClient>) -> Self {
         Self {
             state: Arc::new(State {
-                http: reqwest_client,
+                http: http_client,
                 ratelimiter: Ratelimiter::new(),
                 skip_ratelimiter: false,
                 token: None,
