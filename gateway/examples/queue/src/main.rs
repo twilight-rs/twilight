@@ -19,7 +19,8 @@ async fn main() -> Result<(), Box<dyn Error + Send + Sync>> {
     let token = env::var("DISCORD_TOKEN")?;
     let config = ShardConfig::builder(&token).queue(Arc::new(Box::new(BadQueue)));
 
-    let shard = Shard::new(config).await?;
+    let mut shard = Shard::new(config);
+    shard.start().await?;
     println!("Created shard");
 
     let mut events = shard.events().await;

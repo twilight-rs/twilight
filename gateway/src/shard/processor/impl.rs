@@ -59,6 +59,7 @@ impl ShardProcessor {
     pub async fn new(
         config: Arc<ShardConfig>,
         mut url: String,
+        listeners: Listeners<Event>,
     ) -> Result<(Self, WatchReceiver<Arc<Session>>)> {
         //if we got resume info we don't need to wait
         let shard_id = config.shard();
@@ -96,7 +97,7 @@ impl ShardProcessor {
 
         let mut processor = Self {
             config,
-            listeners: Listeners::default(),
+            listeners,
             properties,
             rx,
             session,

@@ -8,17 +8,27 @@ async fn main() -> Result<(), Box<dyn Error + Send + Sync>> {
     pretty_env_logger::init_timed();
 
     // This is also the default.
-    let scheme = ShardScheme::Auto;
+    let scheme = ShardScheme::Range {
+        from: 0,
+        to: 10,
+        total: 11,
+    };
 
     let config = ClusterConfig::builder(env::var("DISCORD_TOKEN")?)
         .shard_scheme(scheme)
         .build();
 
-    let cluster = Cluster::new(config);
-
-    cluster.up().await?;
+    let cluster = Cluster::new(config).await?;
 
     let mut events = cluster.events().await;
+
+    let cluster_spawn = cluster.clone();
+
+    tokio::spawn(async move {
+        if let Err(why) = cluster_spawn.up().await {
+            panic!("Failed to start the cluster: {:?}", why);
+        }
+    });
 
     while let Some((id, event)) = events.next().await {
         println!("Shard: {}, Event: {:?}", id, event.kind());

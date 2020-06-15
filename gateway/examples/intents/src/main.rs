@@ -15,7 +15,8 @@ async fn main() -> Result<(), Box<dyn Error + Send + Sync>> {
         conf.build()
     };
 
-    let shard = Shard::new(config).await?;
+    let mut shard = Shard::new(config);
+    shard.start().await?;
     println!("Created shard");
 
     let mut events = shard.events().await;
