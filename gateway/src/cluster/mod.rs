@@ -14,9 +14,9 @@
 /// #[tokio::main]
 /// async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
 ///     let token = env::var("DISCORD_TOKEN")?;
-///     let cluster = Cluster::new(token);
+///     let cluster = Cluster::new(token).await?;
 ///
-///     cluster.up().await?;
+///     cluster.up().await;
 ///
 ///     let mut events = cluster.events().await;
 ///
@@ -39,9 +39,9 @@
 ///         },
 ///         Event::MessageCreate(msg) if msg.content == "!latency" => {
 ///             if let Some(shard) = cluster.shard(shard_id).await {
-///                 let info = shard.info().await;
-///
-///                 println!("Shard {}'s latency is {:?}", shard_id, info.latency());
+///                 if let Ok(info) = shard.info().await {
+///                     println!("Shard {}'s latency is {:?}", shard_id, info.latency());
+///                 }
 ///             }
 ///         },
 ///         Event::MessageCreate(msg) if msg.content == "!shutdown" => {

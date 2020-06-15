@@ -12,7 +12,8 @@ async fn main() -> Result<(), Box<dyn Error + Send + Sync>> {
     pretty_env_logger::init_timed();
 
     // to interact with the gateway we first need to connect to it (with a shard or cluster)
-    let shard = Shard::new(env::var("DISCORD_TOKEN")?).await?;
+    let mut shard = Shard::new(env::var("DISCORD_TOKEN")?);
+    shard.start().await?;
     println!("Created shard");
 
     let mut events = shard.events().await;

@@ -67,6 +67,8 @@ pub enum Error {
         /// The reason for the error.
         source: TrySendError<TungsteniteMessage>,
     },
+    /// The shard hasn't been started, so there is no active session.
+    Stopped,
     /// There was a error decompressing a frame from discord.
     Decompressing { source: DecompressError },
 }
@@ -96,6 +98,7 @@ impl Display for Error {
             Self::SendingMessage { .. } => {
                 f.write_str("The message couldn't be sent because the receiver half dropped")
             }
+            Self::Stopped { .. } => f.write_str("the shard hasn't been started yet"),
             Self::Decompressing { .. } => f.write_str("A frame could not be decompressed"),
         }
     }
@@ -112,7 +115,8 @@ impl StdError for Error {
             Self::Decompressing { source } => Some(source),
             Self::AuthorizationInvalid { .. }
             | Self::IdTooLarge { .. }
-            | Self::LargeThresholdInvalid { .. } => None,
+            | Self::LargeThresholdInvalid { .. }
+            | Self::Stopped { .. } => None,
         }
     }
 }

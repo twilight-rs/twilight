@@ -21,7 +21,9 @@ use twilight_model::gateway::event::Event;
 #[derive(Debug)]
 struct ClusterRef {
     config: ClusterConfig,
-    shards: Arc<Mutex<HashMap<u64, Shard>>>,
+    shard_from: u64,
+    shard_to: u64,
+    shards: Mutex<HashMap<u64, Shard>>,
 }
 
 /// A manager for multiple shards.
@@ -37,8 +39,61 @@ pub struct Cluster(Arc<ClusterRef>);
 
 impl Cluster {
     /// Creates a new cluster from a configuration without bringing it up.
-    pub fn new(config: impl Into<ClusterConfig>) -> Self {
-        Self::from(config)
+    ///
+    /// # Errors
+    ///
+    /// Returns [`Error::GettingGatewayInfo`] if there was an HTTP error getting
+    /// the gateway information.
+    ///
+    /// [`Error::GettingGatewayInfo`]: ../error/enum.Error.html#variant.GettingGatewayInfo
+    pub async fn new(config: impl Into<ClusterConfig>) -> Result<Self> {
+        Self::_new(config.into()).await
+    }
+
+    async fn _new(config: ClusterConfig) -> Result<Self> {
+        let [from, to, total] = match config.shard_scheme() {
+            ShardScheme::Auto => {
+                let http = config.http_client();
+
+                let gateway = http
+                    .gateway()
+                    .authed()
+                    .await
+                    .map_err(|source| Error::GettingGatewayInfo { source })?;
+
+                [0, gateway.shards - 1, gateway.shards]
+            }
+            ShardScheme::Range { from, to, total } => [from, to, total],
+        };
+
+        #[cfg(feature = "metrics")]
+        {
+            use std::convert::TryInto;
+
+            metrics::gauge!("Cluster-Shard-Count", total.try_into().unwrap_or(-1));
+        }
+
+        let mut shards = HashMap::new();
+
+        for idx in from..=to {
+            let mut shard_config = config.shard_config().clone();
+            shard_config.shard = [idx, total];
+            let resume_sessions = config.resume_sessions().get(&idx);
+
+            if let Some(data) = resume_sessions {
+                shard_config.session_id = Some(data.session_id.clone());
+                shard_config.sequence = Some(data.sequence);
+            };
+
+            shards.insert(idx, Shard::new(shard_config));
+        }
+
+        Ok(Self(Arc::new(ClusterRef {
+            config,
+            shard_from: from,
+            shard_to: to,
+            shards: Mutex::new(shards),
+        })))
     }
 
     /// Returns an immutable reference to the configuration of this cluster.
@@ -70,10 +125,10 @@ impl Cluster {
     ///                         .shard_scheme(scheme)
     ///                         .build();
     ///
-    /// let cluster = Cluster::new(config);
+    /// let cluster = Cluster::new(config).await?;
     ///
     /// // Finally, bring up the cluster.
-    /// cluster.up().await?;
+    /// cluster.up().await;
     /// # Ok(()) }
     /// ```
     ///
@@ -85,34 +140,13 @@ impl Cluster {
     /// [`Error::GettingGatewayInfo`]: enum.Error.html#variant.GettingGatewayInfo
     /// [`ShardScheme::Auto`]: config/enum.ShardScheme.html#variant.Auto
     /// [configured shard scheme]: config/struct.ClusterConfig.html#method.shard_scheme
-    pub async fn up(&self) -> Result<()> {
-        let [from, to, total] = match self.0.config.shard_scheme() {
-            ShardScheme::Auto => {
-                let http = self.0.config.http_client();
-
-                let gateway = http
-                    .gateway()
-                    .authed()
-                    .await
-                    .map_err(|source| Error::GettingGatewayInfo { source })?;
-
-                [0, gateway.shards - 1, gateway.shards]
-            }
-            ShardScheme::Range { from, to, total } => [from, to, total],
-        };
-        #[cfg(feature = "metrics")]
-        {
-            use std::convert::TryInto;
-            metrics::gauge!("Cluster-Shard-Count", total.try_into().unwrap_or(-1));
-        }
+    pub async fn up(&self) {
         future::join_all(
-            (from..=to)
-                .map(|id| Self::start(Arc::downgrade(&self.0), id, total))
+            (self.0.shard_from..=self.0.shard_to)
+                .map(|id| Self::start(Arc::downgrade(&self.0), id))
                 .collect::<Vec<_>>(),
         )
         .await;
-
-        Ok(())
     }
 
     /// Brings down the cluster, stopping all of the shards that it's managing.
@@ -155,7 +189,7 @@ impl Cluster {
     ///
     /// # #[tokio::main]
     /// # async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
-    /// let cluster = Cluster::new(env::var("DISCORD_TOKEN")?);
+    /// let cluster = Cluster::new(env::var("DISCORD_TOKEN")?).await?;
     /// cluster.up().await;
     ///
     /// tokio::time::delay_for(Duration::from_secs(60)).await;
@@ -181,6 +215,7 @@ impl Cluster {
         )
         .await
         .into_iter()
+        .filter_map(|(id, info)| info.map(|info| (id, info)).ok())
         .collect::<HashMap<_, _>>()
     }
 
@@ -226,7 +261,7 @@ impl Cluster {
     ///
     /// # #[tokio::main]
     /// # async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
-    /// let cluster = Cluster::from(env::var("DISCORD_TOKEN")?);
+    /// let cluster = Cluster::new(env::var("DISCORD_TOKEN")?).await?;
     /// cluster.up().await;
     ///
     /// let types = EventTypeFlags::MESSAGE_CREATE
@@ -258,34 +293,12 @@ impl Cluster {
     /// Accepts weak references to the queue and map of shards, because by the
     /// time the future is polled the cluster may have already dropped, bringing
     /// down the queue and shards with it.
-    async fn start(cluster: Weak<ClusterRef>, shard_id: u64, shard_total: u64) -> Option<Shard> {
+    async fn start(cluster: Weak<ClusterRef>, shard_id: u64) -> Option<Shard> {
         let cluster = cluster.upgrade()?;
-
-        let mut config = cluster.config.shard_config().clone();
-
-        config.shard = [shard_id, shard_total];
-        let resume_sessions = cluster.config.resume_sessions().get(&shard_id);
-        if let Some(data) = resume_sessions {
-            config.session_id = Some(data.session_id.clone());
-            config.sequence = Some(data.sequence);
-        };
-
-        let shard = Shard::new(config).await.ok()?;
-
-        if let Some(old) = cluster.shards.lock().await.insert(shard_id, shard.clone()) {
-            old.shutdown().await;
-        }
+        let mut shard = cluster.shards.lock().await.get(&shard_id).cloned()?;
+        shard.start().await.ok()?;
 
         Some(shard)
-    }
-}
-
-impl<T: Into<ClusterConfig>> From<T> for Cluster {
-    fn from(config: T) -> Self {
-        Self(Arc::new(ClusterRef {
-            config: config.into(),
-            shards: Arc::new(Mutex::new(HashMap::new())),
-        }))
     }
 }
 

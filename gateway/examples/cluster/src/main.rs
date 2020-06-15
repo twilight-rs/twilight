@@ -14,11 +14,15 @@ async fn main() -> Result<(), Box<dyn Error + Send + Sync>> {
         .shard_scheme(scheme)
         .build();
 
-    let cluster = Cluster::new(config);
-
-    cluster.up().await?;
+    let cluster = Cluster::new(config).await?;
 
     let mut events = cluster.events().await;
+
+    let cluster_spawn = cluster.clone();
+
+    tokio::spawn(async move {
+        cluster_spawn.up().await;
+    });
 
     while let Some((id, event)) = events.next().await {
         println!("Shard: {}, Event: {:?}", id, event.kind());
