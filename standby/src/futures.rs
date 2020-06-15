@@ -14,6 +14,7 @@ use twilight_model::gateway::{
 ///
 /// [`Standby::wait_for_event`]: struct.Standby.html#method.wait_for_event
 #[derive(Debug)]
+#[must_use = "futures do nothing unless you `.await` or poll them"]
 pub struct WaitForEventFuture {
     pub(crate) rx: Receiver<Event>,
 }
@@ -30,6 +31,7 @@ impl Future for WaitForEventFuture {
 ///
 /// [`Standby::wait_for`]: struct.Standby.html#method.wait_for
 #[derive(Debug)]
+#[must_use = "futures do nothing unless you `.await` or poll them"]
 pub struct WaitForGuildEventFuture {
     pub(crate) rx: Receiver<Event>,
 }
@@ -46,6 +48,7 @@ impl Future for WaitForGuildEventFuture {
 ///
 /// [`Standby::wait_for_message`]: struct.Standby.html#method.wait_for_message
 #[derive(Debug)]
+#[must_use = "futures do nothing unless you `.await` or poll them"]
 pub struct WaitForMessageFuture {
     pub(crate) rx: Receiver<MessageCreate>,
 }
@@ -62,6 +65,7 @@ impl Future for WaitForMessageFuture {
 ///
 /// [`Standby::wait_for_reaction`]: struct.Standby.html#method.wait_for_reaction
 #[derive(Debug)]
+#[must_use = "futures do nothing unless you `.await` or poll them"]
 pub struct WaitForReactionFuture {
     pub(crate) rx: Receiver<ReactionAdd>,
 }
