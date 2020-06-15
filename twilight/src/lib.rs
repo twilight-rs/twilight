@@ -126,7 +126,12 @@
 //!
 //!     // Start up the cluster
 //!     let cluster = Cluster::new(config).await?;
-//!     cluster.up().await;
+//!
+//!     let cluster_spawn = cluster.clone();
+//!
+//!     tokio::spawn(async move {
+//!         cluster_spawn.up().await;
+//!     });
 //!
 //!     // The http client is seperate from the gateway,
 //!     // so startup a new one
@@ -143,7 +148,6 @@
 //!         )
 //!         .build();
 //!     let cache = InMemoryCache::from(cache_config);
-//!
 //!
 //!     let mut events = cluster.events().await;
 //!     // Startup an event loop for each event in the event stream
