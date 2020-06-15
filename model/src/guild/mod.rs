@@ -301,8 +301,10 @@ mod if_serde_support {
                                 }
 
                                 let raw_channels = map.next_value::<Value>()?;
-                                channels =
-                                    Some(serde_mappable_seq::deserialize(raw_channels).map_err(DeError::custom)?);
+                                channels = Some(
+                                    serde_mappable_seq::deserialize(raw_channels)
+                                        .map_err(DeError::custom)?,
+                                );
                             }
                             Field::DefaultMessageNotifications => {
                                 if default_message_notifications.is_some() {
@@ -347,7 +349,10 @@ mod if_serde_support {
                                 }
 
                                 let raw_emojis = map.next_value::<Value>()?;
-                                emojis = Some(serde_mappable_seq::deserialize(raw_emojis).map_err(DeError::custom)?);
+                                emojis = Some(
+                                    serde_mappable_seq::deserialize(raw_emojis)
+                                        .map_err(DeError::custom)?,
+                                );
                             }
                             Field::ExplicitContentFilter => {
                                 if explicit_content_filter.is_some() {
@@ -501,8 +506,10 @@ mod if_serde_support {
                                 }
 
                                 let raw_presences = map.next_value::<Value>()?;
-                                presences =
-                                    Some(serde_mappable_seq::deserialize(raw_presences).map_err(DeError::custom)?);
+                                presences = Some(
+                                    serde_mappable_seq::deserialize(raw_presences)
+                                        .map_err(DeError::custom)?,
+                                );
                             }
                             Field::Region => {
                                 if region.is_some() {
@@ -517,7 +524,10 @@ mod if_serde_support {
                                 }
 
                                 let raw_roles = map.next_value::<Value>()?;
-                                roles = Some(serde_mappable_seq::deserialize(raw_roles).map_err(DeError::custom)?);
+                                roles = Some(
+                                    serde_mappable_seq::deserialize(raw_roles)
+                                        .map_err(DeError::custom)?,
+                                );
                             }
                             Field::Splash => {
                                 if splash.is_some() {
@@ -568,7 +578,8 @@ mod if_serde_support {
 
                                 let raw_voice_states = map.next_value::<Value>()?;
                                 voice_states = Some(
-                                    serde_mappable_seq::deserialize(raw_voice_states).map_err(DeError::custom)?,
+                                    serde_mappable_seq::deserialize(raw_voice_states)
+                                        .map_err(DeError::custom)?,
                                 );
                             }
                             Field::VanityUrlCode => {
