@@ -8,11 +8,7 @@ async fn main() -> Result<(), Box<dyn Error + Send + Sync>> {
     pretty_env_logger::init_timed();
 
     // This is also the default.
-    let scheme = ShardScheme::Range {
-        from: 0,
-        to: 10,
-        total: 11,
-    };
+    let scheme = ShardScheme::Auto;
 
     let config = ClusterConfig::builder(env::var("DISCORD_TOKEN")?)
         .shard_scheme(scheme)
