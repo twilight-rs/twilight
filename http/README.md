@@ -8,7 +8,7 @@ HTTP support for the twilight ecosystem.
 
 ### Deserialization
 
-`twilight-http` supports `serde_json` and `simd-json` for deserializing
+`twilight-http` supports [`serde_json`] and [`simd-json`] for deserializing
 responses. `serde_json` is enabled by default.
 
 #### `simd-json`
@@ -30,9 +30,10 @@ You can also set the environment variable
 
 #### `serde_json`
 
-`serde_json` is the inverse of `simd-json` and will use the `serde_json`
+[`serde_json`] is the inverse of `simd-json` and will use the `serde_json`
 crate to deserialize responses.
 
+[`serde_json`]: https://crates.io/crates/serde_json
 [`simd-json`]: https://crates.io/crates/simd-json
 
 <!-- cargo-sync-readme end -->
