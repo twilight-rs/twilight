@@ -122,6 +122,7 @@ impl Shard {
         let url = config
             .http_client()
             .gateway()
+            .authed()
             .await
             .map_err(|source| Error::GettingGatewayUrl { source })?
             .url;
