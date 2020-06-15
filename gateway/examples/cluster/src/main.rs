@@ -25,9 +25,7 @@ async fn main() -> Result<(), Box<dyn Error + Send + Sync>> {
     let cluster_spawn = cluster.clone();
 
     tokio::spawn(async move {
-        if let Err(why) = cluster_spawn.up().await {
-            panic!("Failed to start the cluster: {:?}", why);
-        }
+        cluster_spawn.up().await;
     });
 
     while let Some((id, event)) = events.next().await {
