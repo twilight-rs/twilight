@@ -25,6 +25,8 @@ pub type Result<T, E = Error> = StdResult<T, E>;
 /// shard.
 #[derive(Debug)]
 pub enum Error {
+    /// The provided authorization token is invalid.
+    AuthorizationInvalid { shard_id: u64, token: String },
     /// An error happened while trying to connect to the gateway.
     Connecting {
         /// The error from the WebSocket client.
@@ -72,6 +74,11 @@ pub enum Error {
 impl Display for Error {
     fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
         match self {
+            Self::AuthorizationInvalid { shard_id, .. } => write!(
+                f,
+                "The authorization token for shard {} is invalid",
+                shard_id
+            ),
             Self::Connecting { .. } => f.write_str("An issue occurred connecting to the gateway"),
             Self::GettingGatewayUrl { .. } => f.write_str("Getting the gateway URL failed"),
             Self::IdTooLarge { id, total } => {
@@ -103,7 +110,9 @@ impl StdError for Error {
             Self::PayloadSerialization { source } => Some(source),
             Self::SendingMessage { source } => Some(source),
             Self::Decompressing { source } => Some(source),
-            Self::IdTooLarge { .. } | Self::LargeThresholdInvalid { .. } => None,
+            Self::AuthorizationInvalid { .. }
+            | Self::IdTooLarge { .. }
+            | Self::LargeThresholdInvalid { .. } => None,
         }
     }
 }

@@ -119,7 +119,14 @@ impl Shard {
     async fn _new(config: ShardConfig) -> Result<Self> {
         let config = Arc::new(config);
 
-        let (processor, wrx) = ShardProcessor::new(Arc::clone(&config)).await?;
+        let url = config
+            .http_client()
+            .gateway()
+            .await
+            .map_err(|source| Error::GettingGatewayUrl { source })?
+            .url;
+
+        let (processor, wrx) = ShardProcessor::new(Arc::clone(&config), url).await?;
         let listeners = processor.listeners.clone();
         let (fut, handle) = future::abortable(processor.run());
 

@@ -56,7 +56,10 @@ pub struct ShardProcessor {
 }
 
 impl ShardProcessor {
-    pub async fn new(config: Arc<ShardConfig>) -> Result<(Self, WatchReceiver<Arc<Session>>)> {
+    pub async fn new(
+        config: Arc<ShardConfig>,
+        mut url: String,
+    ) -> Result<(Self, WatchReceiver<Arc<Session>>)> {
         //if we got resume info we don't need to wait
         let shard_id = config.shard();
         let resumable = config.sequence.is_some() && config.session_id.is_some();
@@ -69,12 +72,6 @@ impl ShardProcessor {
 
         let properties = IdentifyProperties::new("twilight.rs", "twilight.rs", OS, "", "");
 
-        let mut url = config
-            .http_client()
-            .gateway()
-            .await
-            .map_err(|source| Error::GettingGatewayUrl { source })?
-            .url;
         url.push_str("?v=6&compress=zlib-stream");
 
         let stream = connect::connect(&url).await?;
@@ -121,6 +118,16 @@ impl ShardProcessor {
         loop {
             let gateway_event = match self.next_event().await {
                 Ok(ev) => ev,
+                // The authorization is invalid, so we should just quit.
+                Err(Error::AuthorizationInvalid { shard_id, .. }) => {
+                    warn!(
+                        "The authorization for shard {} is invalid, quitting",
+                        shard_id
+                    );
+                    self.listeners.remove_all().await;
+
+                    return;
+                }
                 // Reconnect as this error is often fatal!
                 Err(Error::Decompressing { source }) => {
                     warn!(
@@ -374,6 +381,12 @@ impl ShardProcessor {
         Ok(())
     }
 
+    /// # Errors
+    ///
+    /// Returns [`Error::AuthorizationInvalid`] if the provided authorization
+    /// is invalid.
+    ///
+    /// [`Error::AuthorizationInvalid`]: ../../error/enum.Error.html#variant.AuthorizationInvalid
     async fn next_event(&mut self) -> Result<GatewayEvent> {
         loop {
             // Returns None when the socket forwarder has ended, meaning the
@@ -414,8 +427,18 @@ impl ShardProcessor {
                     self.inflater.clear();
                     break msg_or_error;
                 }
-                Message::Close(code) => {
-                    log::warn!("Got close code: {:?}.", code);
+                Message::Close(close_frame) => {
+                    log::warn!("Got close code: {:?}.", close_frame);
+
+                    if let Some(close_frame) = close_frame {
+                        if close_frame.code == CloseCode::Library(4004) {
+                            return Err(Error::AuthorizationInvalid {
+                                shard_id: self.config.shard()[0],
+                                token: self.config.token().to_owned(),
+                            });
+                        }
+                    }
+
                     self.resume().await?;
                 }
                 Message::Ping(_) | Message::Pong(_) => {}
