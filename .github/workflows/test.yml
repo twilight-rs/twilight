@@ -10,10 +10,10 @@ jobs:
       - name: Checkout sources
         uses: actions/checkout@v1
 
-      - name: Install beta toolchain
+      - name: Install stable toolchain
         uses: actions-rs/toolchain@v1
         with:
-          toolchain: beta
+          toolchain: stable
           override: true
 
       - name: Cache cargo registry
