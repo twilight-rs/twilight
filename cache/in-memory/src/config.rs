@@ -31,11 +31,10 @@ bitflags! {
         const ROLE_UPDATE = 1 << 26;
         const TYPING_START = 1 << 27;
         const UNAVAILABLE_GUILD = 1 << 28;
-        const UPDATE_VOICE_STATE = 1 << 29;
-        const USER_UPDATE = 1 << 30;
-        const VOICE_SERVER_UPDATE = 1 << 31;
-        const VOICE_STATE_UPDATE = 1 << 32;
-        const WEBHOOKS_UPDATE = 1 << 33;
+        const USER_UPDATE = 1 << 29;
+        const VOICE_SERVER_UPDATE = 1 << 30;
+        const VOICE_STATE_UPDATE = 1 << 31;
+        const WEBHOOKS_UPDATE = 1 << 32;
     }
 }
 
@@ -158,11 +157,10 @@ mod tests {
         assert_eq!(1 << 26, EventType::ROLE_UPDATE.bits());
         assert_eq!(1 << 27, EventType::TYPING_START.bits());
         assert_eq!(1 << 28, EventType::UNAVAILABLE_GUILD.bits());
-        assert_eq!(1 << 29, EventType::UPDATE_VOICE_STATE.bits());
-        assert_eq!(1 << 30, EventType::USER_UPDATE.bits());
-        assert_eq!(1 << 31, EventType::VOICE_SERVER_UPDATE.bits());
-        assert_eq!(1 << 32, EventType::VOICE_STATE_UPDATE.bits());
-        assert_eq!(1 << 33, EventType::WEBHOOKS_UPDATE.bits());
+        assert_eq!(1 << 29, EventType::USER_UPDATE.bits());
+        assert_eq!(1 << 30, EventType::VOICE_SERVER_UPDATE.bits());
+        assert_eq!(1 << 31, EventType::VOICE_STATE_UPDATE.bits());
+        assert_eq!(1 << 32, EventType::WEBHOOKS_UPDATE.bits());
     }
 
     #[test]
