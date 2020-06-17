@@ -322,8 +322,8 @@ impl Client {
 
     /// Get the invites for a guild channel.
     ///
-    /// This method only works if the channel is of type GuildChannel. It also requires the
-    /// permission MANAGE_CHANNELS.
+    /// This method only works if the channel is of type `GuildChannel`. It also requires the
+    /// permission `MANAGE_CHANNELS`.
     pub fn channel_invites(&self, channel_id: ChannelId) -> GetChannelInvites<'_> {
         GetChannelInvites::new(self, channel_id)
     }
