@@ -20,49 +20,92 @@ pub enum EmbedValidationError {
     /// [the maximum][`AUTHOR_NAME_LENGTH`].
     ///
     /// [`AUTHOR_NAME_LENGTH`]: #const.AUTHOR_NAME_LENGTH
-    AuthorNameTooLarge { chars: usize },
+    AuthorNameTooLarge {
+        /// The number of codepoints that were provided.
+        chars: usize,
+    },
     /// The embed description is larger than
     /// [the maximum][`DESCRIPTION_LENGTH`].
     ///
     /// [`DESCRIPTION_LENGTH`]: #const.DESCRIPTION_LENGTH
-    DescriptionTooLarge { chars: usize },
+    DescriptionTooLarge {
+        /// The number of codepoints that were provided.
+        chars: usize,
+    },
     /// The combined content of all embed fields - author name, description,
     /// footer, field names and values, and title - is larger than
     /// [the maximum][`EMBED_TOTAL_LENGTH`].
     ///
     /// [`EMBED_TOTAL_LENGTH`]: #const.EMBED_TOTAL_LENGTH
-    EmbedTooLarge { chars: usize },
+    EmbedTooLarge {
+        /// The number of codepoints that were provided.
+        chars: usize,
+    },
     /// A field's name is larger than [the maximum][`FIELD_NAME_LENGTH`].
     ///
     /// [`FIELD_NAME_LENGTH`]: #const.FIELD_NAME_LENGTH
-    FieldNameTooLarge { chars: usize },
+    FieldNameTooLarge {
+        /// The number of codepoints that were provided.
+        chars: usize,
+    },
     /// A field's value is larger than [the maximum][`FIELD_VALUE_LENGTH`].
     ///
     /// [`FIELD_VALUE_LENGTH`]: #const.FIELD_VALUE_LENGTH
-    FieldValueTooLarge { chars: usize },
+    FieldValueTooLarge {
+        /// The number of codepoints that were provided.
+        chars: usize,
+    },
     /// The footer text is larger than [the maximum][`FOOTER_TEXT_LENGTH`].
     ///
     /// [`FOOTER_TEXT_LENGTH`]: #const.FOOTER_TEXT_LENGTH
-    FooterTextTooLarge { chars: usize },
+    FooterTextTooLarge {
+        /// The number of codepoints that were provided.
+        chars: usize,
+    },
     /// The title is larger than [the maximum][`TITLE_LENGTH`].
     ///
     /// [`TITLE_LENGTH`]: #const.TITLE_LENGTH
-    TitleTooLarge { chars: usize },
+    TitleTooLarge {
+        /// The number of codepoints that were provided.
+        chars: usize,
+    },
     /// There are more than [the maximum][`FIELD_COUNT`] number of fields in the
     /// embed.
     ///
     /// [`FIELD_COUNT`]: #const.FIELD_COUNT
-    TooManyFields { amount: usize },
+    TooManyFields {
+        /// The number of fields that were provided.
+        amount: usize,
+    },
 }
 
 impl EmbedValidationError {
+    /// The maximum embed author name length in codepoints.
     pub const AUTHOR_NAME_LENGTH: usize = 256;
+
+    /// The maximum embed description length in codepoints.
     pub const DESCRIPTION_LENGTH: usize = 2048;
+
+    /// The maximum combined embed length in codepoints.
+    ///
+    /// See the [`embed`] function for more information.
+    ///
+    /// [`embed`]: fn.embed.html
     pub const EMBED_TOTAL_LENGTH: usize = 6000;
+
+    /// The maximum number of fields in an embed.
     pub const FIELD_COUNT: usize = 25;
+
+    /// The maximum length of an embed field name in codepoints.
     pub const FIELD_NAME_LENGTH: usize = 256;
+
+    /// The maximum length of an embed field value in codepoints.
     pub const FIELD_VALUE_LENGTH: usize = 1024;
+
+    /// The maximum embed footer length in codepoints.
     pub const FOOTER_TEXT_LENGTH: usize = 2048;
+
+    /// The maximum embed title length in codepoints.
     pub const TITLE_LENGTH: usize = 256;
 }
 

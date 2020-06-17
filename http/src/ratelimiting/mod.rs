@@ -51,6 +51,10 @@ pub struct Ratelimiter {
 }
 
 impl Ratelimiter {
+    /// Create a new ratelimiter.
+    ///
+    /// Most users won't need to use this directly. If you're creating your own
+    /// HTTP proxy then this is good to use for your own ratelimiting.
     pub fn new() -> Self {
         Self::default()
     }

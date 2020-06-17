@@ -16,40 +16,46 @@ pub struct ClientConfig {
 }
 
 impl ClientConfig {
-    /// Returns a builder to create a `ClientConfig`.
+    /// Create a builder to create a `ClientConfig`.
     pub fn builder() -> ClientConfigBuilder {
         ClientConfigBuilder::new()
     }
 
-    /// Returns an immutable reference to the proxy.
+    /// Retrieve an immutable reference to the proxy.
     pub fn proxy(&self) -> Option<&Proxy> {
         self.proxy.as_ref()
     }
 
+    /// Retrieve whether to proxy over HTTP.
     pub fn proxy_http(&self) -> bool {
         self.proxy_http
     }
 
-    /// Returns an immutable reference to the reqwest client, if any.
+    /// Retrieve an immutable reference to the reqwest client, if any.
     pub fn reqwest_client(&self) -> Option<&ReqwestClient> {
         self.reqwest_client.as_ref()
     }
 
+    /// Retrieve whether to skip the ratelimiter.
+    ///
+    /// This should only be used when you're doing this elsewhere, such as when
+    /// using a ratelimited proxy.
     pub fn skip_ratelimiter(&self) -> bool {
         self.skip_ratelimiter
     }
 
-    /// Returns an immutable reference to the token.
+    /// Retrieve an immutable reference to the token.
     pub fn timeout(&self) -> Duration {
         self.timeout
     }
 
-    /// Returns an immutable reference to the token.
+    /// Retrieve an immutable reference to the token.
     pub fn token(&self) -> Option<&str> {
         self.token.as_ref().map(AsRef::as_ref)
     }
 
-    /// The default allowed mentions setting to use on all messages send through this httpclient
+    /// Retrieve an immutable reference to the default allowed mentions setting
+    /// to use on all messages sent through the HTTP client.
     pub fn default_allowed_mention(&self) -> Option<&AllowedMentions> {
         self.default_allowed_mentions.as_ref()
     }
@@ -59,14 +65,14 @@ impl ClientConfig {
 pub struct ClientConfigBuilder(ClientConfig);
 
 impl ClientConfigBuilder {
-    /// Creates a new default builder.
+    /// Create a new default builder.
     ///
     /// Refer to the methods for the default value of each configuration.
     pub fn new() -> Self {
         Self::default()
     }
 
-    /// Consumes the builder, returning the inner configuration.
+    /// Consume the builder, returning the inner configuration.
     pub fn build(self) -> ClientConfig {
         self.0
     }
@@ -80,13 +86,16 @@ impl ClientConfigBuilder {
         self
     }
 
+    /// Set whether to proxy over HTTP.
+    ///
+    /// The default is `false`.
     pub fn proxy_http(&mut self, proxy_http: bool) -> &mut Self {
         self.0.proxy_http = proxy_http;
 
         self
     }
 
-    /// Sets the reqwest client to use.
+    /// Set the reqwest client to use.
     ///
     /// All of the settings in the client will be overwritten by the settings
     /// in this configuration, if specified.
@@ -98,7 +107,7 @@ impl ClientConfigBuilder {
         self
     }
 
-    /// Sets whether to skip the client's ratelimiter before making the request.
+    /// Set whether to skip the client's ratelimiter before making the request.
     ///
     /// The default is `false`.
     pub fn skip_ratelimiter(&mut self, skip_ratelimiter: bool) -> &mut Self {
@@ -107,7 +116,7 @@ impl ClientConfigBuilder {
         self
     }
 
-    /// Sets the timeout for HTTP requests.
+    /// Set the timeout for HTTP requests.
     ///
     /// The default is 10 seconds.
     pub fn timeout(&mut self, duration: Duration) -> &mut Self {
@@ -116,7 +125,7 @@ impl ClientConfigBuilder {
         self
     }
 
-    /// Sets the token to use for HTTP requests.
+    /// Set the token to use for HTTP requests.
     pub fn token(&mut self, token: impl Into<String>) -> &mut Self {
         let mut token = token.into();
 
@@ -130,6 +139,8 @@ impl ClientConfigBuilder {
         self
     }
 
+    /// Set the default allowed mentions setting to use on all messages sent
+    /// through the HTTP client.
     pub fn default_allowed_mentions(&mut self, allowed_mentions: AllowedMentions) -> &mut Self {
         self.0.default_allowed_mentions.replace(allowed_mentions);
         self

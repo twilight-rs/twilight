@@ -46,7 +46,11 @@ impl ClientBuilder {
     /// Build the Client
     ///
     /// # Errors
-    /// Errors if `reqwest` fails to build the client.
+    ///
+    /// Returns [`Error::BuildingClient`] if `reqwest` fails to build the
+    /// client.
+    ///
+    /// [`Error::BuildingClient`]: ../error/enum.Error.html#variant.BuildingClient
     pub fn build(self) -> Result<Client> {
         let config = self.0.build();
 
@@ -108,12 +112,18 @@ impl Debug for State {
     }
 }
 
+/// Twilight's http client.
 #[derive(Clone, Debug)]
 pub struct Client {
     state: Arc<State>,
 }
 
 impl Client {
+    /// Create a new client with a token.
+    ///
+    /// If you want to customize the client, use [`builder`].
+    ///
+    /// [`builder`]: #method.builder
     pub fn new(token: impl Into<String>) -> Self {
         let mut token = token.into();
 
@@ -134,18 +144,49 @@ impl Client {
         }
     }
 
+    /// Create a new builder to create a client.
+    ///
+    /// Refer to its documentation for more information.
     pub fn builder() -> ClientBuilder {
         ClientBuilder::new()
     }
 
+    /// Retrieve an immutable reference to the token used by the client.
     pub fn token(&self) -> Option<&str> {
         self.state.token.as_ref().map(AsRef::as_ref)
     }
 
+    /// Get the default allowed mentions for sent messages.
+    ///
+    /// Refer to [`allowed_mentions`] for more information.
+    ///
+    /// [`allowed_mentions`]: ../request/channel/message/allowed_mentions/index.html
     pub fn default_allowed_mentions(&self) -> Option<AllowedMentions> {
         self.state.default_allowed_mentions.clone()
     }
 
+    /// Add a role to a member in a guild.
+    ///
+    /// # Examples
+    ///
+    /// In guild `1`, add role `2` to user `3`, for the reason `"test"`:
+    ///
+    /// ```rust,no_run
+    /// use std::env;
+    /// use twilight_http::Client;
+    /// use twilight_model::id::{GuildId, RoleId, UserId};
+    ///
+    /// # #[tokio::main]
+    /// # async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
+    /// let client = Client::new(env::var("DISCORD_TOKEN")?);
+    ///
+    /// let guild_id = GuildId(1);
+    /// let role_id = RoleId(2);
+    /// let user_id = UserId(3);
+    ///
+    /// client.add_role(guild_id, user_id, role_id).reason("test").await?;
+    /// # Ok(()) }
+    /// ```
     pub fn add_role(
         &self,
         guild_id: GuildId,
@@ -159,6 +200,26 @@ impl Client {
         GetAuditLog::new(self, guild_id)
     }
 
+    /// Retrieve the bans for a guild.
+    ///
+    /// # Examples
+    ///
+    /// Retrieve the bans for guild `1`:
+    ///
+    /// ```rust,no_run
+    /// use std::env;
+    /// use twilight_http::Client;
+    /// use twilight_model::id::GuildId;
+    ///
+    /// # #[tokio::main]
+    /// # async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
+    /// let client = Client::new(env::var("DISCORD_TOKEN")?);
+    ///
+    /// let guild_id = GuildId(1);
+    ///
+    /// let bans = client.bans(guild_id).await?;
+    /// # Ok(()) }
+    /// ```
     pub fn bans(&self, guild_id: GuildId) -> GetBans<'_> {
         GetBans::new(self, guild_id)
     }
@@ -197,10 +258,49 @@ impl Client {
         CreateBan::new(self, guild_id, user_id)
     }
 
+    /// Remove a ban from a user in a guild, optionally with the reason why.
+    ///
+    /// # Examples
+    ///
+    /// Unban user `2` from guild `1`:
+    ///
+    /// ```rust,no_run
+    /// use twilight_http::Client;
+    /// use twilight_model::id::{GuildId, UserId};
+    ///
+    /// # #[tokio::main]
+    /// # async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
+    /// let client = Client::new("my token");
+    ///
+    /// let guild_id = GuildId(377840580245585931);
+    /// let user_id = UserId(114941315417899012);
+    ///
+    /// client.delete_ban(guild_id, user_id).await?;
+    /// # Ok(()) }
+    /// ```
     pub fn delete_ban(&self, guild_id: GuildId, user_id: UserId) -> DeleteBan<'_> {
         DeleteBan::new(self, guild_id, user_id)
     }
 
+    /// Get a channel by its ID.
+    ///
+    /// # Examples
+    ///
+    /// Get channel `100`:
+    ///
+    /// ```rust,no_run
+    /// use twilight_http::Client;
+    /// use twilight_model::id::ChannelId;
+    ///
+    /// # #[tokio::main]
+    /// # async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
+    /// let client = Client::new("my token");
+    ///
+    /// let channel_id = ChannelId(100);
+    ///
+    /// client.channel(channel_id).await?;
+    /// # Ok(()) }
+    /// ```
     pub fn channel(&self, channel_id: ChannelId) -> GetChannel<'_> {
         GetChannel::new(self, channel_id)
     }
@@ -296,10 +396,49 @@ impl Client {
         GetCurrentUserPrivateChannels::new(self)
     }
 
+    /// Get the emojis for a guild by the guild's ID.
+    ///
+    /// # Examples
+    ///
+    /// Get the emojis for guild `100`:
+    ///
+    /// ```rust,no_run
+    /// use twilight_http::Client;
+    /// use twilight_model::id::GuildId;
+    ///
+    /// # #[tokio::main]
+    /// # async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
+    /// let client = Client::new("my token");
+    ///
+    /// let guild_id = GuildId(377840580245585931);
+    ///
+    /// client.emojis(guild_id).await?;
+    /// # Ok(()) }
+    /// ```
     pub fn emojis(&self, guild_id: GuildId) -> GetEmojis<'_> {
         GetEmojis::new(self, guild_id)
     }
 
+    /// Get an emoji for a guild by the the guild's ID and emoji's ID.
+    ///
+    /// # Examples
+    ///
+    /// Get emoji `100` from guild `50`:
+    ///
+    /// ```rust,no_run
+    /// use twilight_http::Client;
+    /// use twilight_model::id::{EmojiId, GuildId};
+    ///
+    /// # #[tokio::main]
+    /// # async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
+    /// let client = Client::new("my token");
+    ///
+    /// let guild_id = GuildId(377840580245585931);
+    /// let emoji_id = EmojiId(114941315417899012);
+    ///
+    /// client.emoji(guild_id, emoji_id).await?;
+    /// # Ok(()) }
+    /// ```
     pub fn emoji(&self, guild_id: GuildId, emoji_id: EmojiId) -> GetEmoji<'_> {
         GetEmoji::new(self, guild_id, emoji_id)
     }

@@ -94,11 +94,17 @@ type PendingOption<'a> = Pin<Box<dyn Future<Output = Result<Bytes>> + Send + 'a>
 
 #[derive(Debug)]
 pub struct Request {
+    /// The body of the request, if any.
     pub body: Option<Vec<u8>>,
+    /// The multipart form of the request, if any.
     pub form: Option<Form>,
+    /// The headers to set in the request, if any.
     pub headers: Option<HeaderMap<HeaderValue>>,
+    /// The method of the request.
     pub method: Method,
+    /// The ratelimiting bucket path.
     pub path: Path,
+    /// The URI path to request.
     pub path_str: Cow<'static, str>,
 }
 
@@ -118,6 +124,10 @@ pub(crate) fn audit_header(reason: &str) -> Result<HeaderMap<HeaderValue>> {
 }
 
 impl Request {
+    /// Create a simple `Request` with basic information.
+    ///
+    /// Use the various `From` implementations for different combinations of
+    /// configurations.
     pub fn new(
         body: Option<Vec<u8>>,
         headers: Option<HeaderMap<HeaderValue>>,

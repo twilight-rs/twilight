@@ -10,8 +10,20 @@ use std::{
 
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub enum PathParseError {
-    IntegerParsing { source: ParseIntError },
-    MessageIdWithoutMethod { channel_id: u64 },
+    /// The ID couldn't be parsed as an integer.
+    IntegerParsing {
+        /// Additional information about the parsing failure.
+        source: ParseIntError,
+    },
+    /// When parsing into a [`Path::ChannelsIdMessagesId`] variant, the method
+    /// must also be specified via its `TryFrom` impl.
+    ///
+    /// [`Path::ChannelsIdMessageId`]: enum.Path.html#variant.ChannelsIdMessagesId
+    MessageIdWithoutMethod {
+        /// The ID of the channel.
+        channel_id: u64,
+    },
+    /// A static path for the provided path string wasn't found.
     NoMatch,
 }
 
@@ -46,21 +58,38 @@ impl StdError for PathParseError {
 // If adding to this enum, be sure to add to the `TryFrom` impl.
 #[derive(Clone, Debug, Eq, Hash, PartialEq)]
 pub enum Path {
+    /// Operating on a channel.
     ChannelsId(u64),
+    /// Operating on a channel's invites.
     ChannelsIdInvites(u64),
+    /// Operating on a channel's messages.
     ChannelsIdMessages(u64),
+    /// Operating on a channel's messages by bulk deleting.
     ChannelsIdMessagesBulkDelete(u64),
+    /// Operating on an individual channel's message.
     ChannelsIdMessagesId(Method, u64),
+    /// Operating on an individual channel's message's reactions.
     ChannelsIdMessagesIdReactions(u64),
+    /// Operating on an individual channel's message's reactions while
+    /// specifying the user ID and emoji type.
     ChannelsIdMessagesIdReactionsUserIdType(u64),
+    /// Operating on a channel's permission overwrites by ID.
     ChannelsIdPermissionsOverwriteId(u64),
+    /// Operating on a channel's pins.
     ChannelsIdPins(u64),
+    /// Operating on a channel's individual pinned message.
     ChannelsIdPinsMessageId(u64),
+    /// Operating on a channel's typing indicator.
     ChannelsIdTyping(u64),
+    /// Operating on a channel's webhooks.
     ChannelsIdWebhooks(u64),
+    /// Operating with the gateway information.
     Gateway,
+    /// Operating with the gateway information tailored to the current user.
     GatewayBot,
+    /// Operating on the guild resource.
     Guilds,
+    /// Operating on one of user's guilds.
     GuildsId(u64),
     GuildsIdBans(u64),
     GuildsIdBansId(u64),
@@ -89,9 +118,13 @@ pub enum Path {
     UsersId,
     UsersIdConnections,
     UsersIdChannels,
+    /// Operating on the state of a guild that the user is in.
     UsersIdGuilds,
+    /// Operating on the state of a guild that the user is in.
     UsersIdGuildsId,
+    /// Operating on the voice regions available to the current user.
     VoiceRegions,
+    /// Operating on a webhook.
     WebhooksId(u64),
 }
 
@@ -198,307 +231,553 @@ impl TryFrom<(Method, &str)> for Path {
 
 #[derive(Clone, Debug)]
 pub enum Route {
+    /// Route information to add a role to guild member.
     AddMemberRole {
+        /// The ID of the guild.
         guild_id: u64,
+        /// The ID of the role.
         role_id: u64,
+        /// The ID of the user.
         user_id: u64,
     },
+    /// Route information to create a ban on a user in a guild.
     CreateBan {
-        guild_id: u64,
-        user_id: u64,
+        /// The number of days' worth of the user's messages to delete in the
+        /// guild's channels.
         delete_message_days: Option<u64>,
+        /// The ID of the guild.
+        guild_id: u64,
+        /// The reason for the ban.
         reason: Option<String>,
+        /// The ID of the user.
+        user_id: u64,
     },
+    /// Route information to create a channel in a guild.
     CreateChannel {
+        /// The ID of the guild.
         guild_id: u64,
     },
+    /// Route information to create an emoji in a guild.
     CreateEmoji {
+        /// The ID of the guild.
         guild_id: u64,
     },
+    /// Route information to create a guild.
     CreateGuild,
+    /// Route information to create a guild's integration.
     CreateGuildIntegration {
+        /// The ID of the guild.
         guild_id: u64,
     },
+    /// Route information to create a prune in a guild.
     CreateGuildPrune {
+        /// Whether to compute the number of pruned users.
         compute_prune_count: Option<bool>,
+        /// The number of days that a user must be offline before being able to
+        /// be pruned.
         days: Option<u64>,
+        /// The ID of the guild.
         guild_id: u64,
+        /// The roles to filter the prune by.
+        ///
+        /// A user must have at least one of these roles to be able to be
+        /// pruned.
         include_roles: Vec<u64>,
     },
+    /// Route information to create an invite to a channel.
     CreateInvite {
+        /// The ID of the channel.
         channel_id: u64,
     },
+    /// Route information to create a message in a channel.
     CreateMessage {
+        /// The ID of the channel.
         channel_id: u64,
     },
+    /// Route information to create a private channel.
     CreatePrivateChannel,
+    /// Route information to create a reaction on a message.
     CreateReaction {
+        /// The ID of the channel.
         channel_id: u64,
+        /// The URI encoded custom or unicode emoji.
         emoji: String,
+        /// The ID of the message.
         message_id: u64,
     },
+    /// Route information to create a role in a guild.
     CreateRole {
+        /// The ID of the guild.
         guild_id: u64,
     },
+    /// Route information to create a typing trigger in a channel.
     CreateTypingTrigger {
+        /// The ID of the channel.
         channel_id: u64,
     },
+    /// Route information to create a webhook in a channel.
     CreateWebhook {
+        /// The ID of the channel.
         channel_id: u64,
     },
+    /// Route information to delete a ban on a user in a guild.
     DeleteBan {
+        /// The ID of the guild.
         guild_id: u64,
+        /// The ID of the user.
         user_id: u64,
     },
+    /// Route information to delete a channel.
     DeleteChannel {
+        /// The ID of the channel.
         channel_id: u64,
     },
+    /// Route information to delete a guild's custom emoji.
     DeleteEmoji {
-        guild_id: u64,
+        /// The ID of the emoji.
         emoji_id: u64,
+        /// The ID of the guild.
+        guild_id: u64,
     },
+    /// Route information to delete a guild.
     DeleteGuild {
+        /// The ID of the guild.
         guild_id: u64,
     },
+    /// Route information to delete a guild integration.
     DeleteGuildIntegration {
+        /// The ID of the guild.
         guild_id: u64,
+        /// The ID of the integration.
         integration_id: u64,
     },
+    /// Route information to delete an invite.
     DeleteInvite {
+        /// The unique invite code.
         code: String,
     },
+    /// Route information to delete a channel's message.
     DeleteMessage {
+        /// The ID of the channel.
         channel_id: u64,
+        /// The ID of the message.
         message_id: u64,
     },
+    /// Route information to bulk delete messages in a channel.
     DeleteMessages {
+        /// The ID of the channel.
         channel_id: u64,
     },
+    /// Route information to delete all of the reactions on a message.
     DeleteMessageReactions {
+        /// The ID of the channel.
         channel_id: u64,
+        /// The ID of the message.
         message_id: u64,
     },
+    /// Route information to delete all of the reactions on a message with a
+    /// specific emoji.
     DeleteMessageSpecficReaction {
+        /// The ID of the channel.
         channel_id: u64,
-        message_id: u64,
+        /// The URI encoded custom or unicode emoji.
         emoji: String,
+        /// The ID of the message.
+        message_id: u64,
     },
+    /// Route information to delete a permission overwrite for a role or user in
+    /// a channel.
     DeletePermissionOverwrite {
+        /// The ID of the channel.
         channel_id: u64,
+        /// The ID of the target role or user.
         target_id: u64,
     },
+    /// Route information to delete a user's reaction on a message.
     DeleteReaction {
+        /// The ID of the channel.
         channel_id: u64,
+        /// The URI encoded custom or unicode emoji.
         emoji: String,
+        /// The ID of the message.
         message_id: u64,
+        /// The ID of the user. This can be `@me` to specify the current user.
         user: String,
     },
+    /// Route information to delete a guild's role.
     DeleteRole {
+        /// The ID of the guild.
         guild_id: u64,
+        /// The ID of the role.
         role_id: u64,
     },
+    /// Route information to delete a webhook.
     DeleteWebhook {
+        /// The token of the webhook.
         token: Option<String>,
+        /// The ID of the webhook.
         webhook_id: u64,
     },
+    /// Route information to execute a webhook by ID and token.
     ExecuteWebhook {
+        /// The token of the webhook.
         token: String,
+        /// Whether to wait for a message response.
         wait: Option<bool>,
+        /// The ID of the webhook.
         webhook_id: u64,
     },
+    /// Route information to get a paginated list of audit logs in a guild.
     GetAuditLogs {
+        /// The type of action to get audit logs for.
         action_type: Option<u64>,
+        /// The maximum ID of audit logs to get.
         before: Option<u64>,
+        /// The ID of the guild.
         guild_id: u64,
+        /// The maximum number of audit logs to get.
         limit: Option<u64>,
+        /// The ID of the user, if specified.
         user_id: Option<u64>,
     },
+    /// Route information to get information about a single ban in a guild.
     GetBan {
+        /// The ID of the guild.
         guild_id: u64,
+        /// The ID of the user.
         user_id: u64,
     },
+    /// Route information to get a guild's bans.
     GetBans {
+        /// The ID of the guild.
         guild_id: u64,
     },
+    /// Route information to get a channel.
     GetChannel {
+        /// The ID of the channel.
         channel_id: u64,
     },
+    /// Route information to get a channel's invites.
     GetChannelInvites {
+        /// The ID of the channel.
         channel_id: u64,
     },
+    /// Route information to get a channel's webhooks.
     GetChannelWebhooks {
+        /// The ID of the channel.
         channel_id: u64,
     },
+    /// Route information to get a guild's channels.
     GetChannels {
+        /// The ID of the guild.
         guild_id: u64,
     },
+    /// Route information to get an emoji by ID within a guild.
     GetEmoji {
+        /// The ID of the emoji.
         emoji_id: u64,
+        /// The ID of the guild.
         guild_id: u64,
     },
+    /// Route information to get a guild's emojis.
     GetEmojis {
+        /// The ID of the guild.
         guild_id: u64,
     },
+    /// Route information to get basic gateway information.
     GetGateway,
+    /// Route information to get gateway information tailored to the current
+    /// user.
     GetGatewayBot,
+    /// Route information to get a guild.
     GetGuild {
+        /// The ID of the guild.
         guild_id: u64,
+        /// Whether to include approximate member and presence counts for the
+        /// guild.
         with_counts: bool,
     },
+    /// Route information to get a guild's widget.
     GetGuildWidget {
+        /// The ID of the guild.
         guild_id: u64,
     },
+    /// Route information to get a guild's integrations.
     GetGuildIntegrations {
+        /// The ID of the guild.
         guild_id: u64,
     },
+    /// Route information to get a guild's invites.
     GetGuildInvites {
+        /// The ID of the guild.
         guild_id: u64,
     },
+    /// Route information to get a guild's members.
     GetGuildMembers {
+        /// The minimum ID of members to get.
         after: Option<u64>,
+        /// The ID of the guild.
+        guild_id: u64,
+        /// The maximum number of members to get.
         limit: Option<u64>,
+        /// Whether to get the members' presences.
         presences: Option<bool>,
-        guild_id: u64,
     },
+    /// Route information to get a guild's preview.
     GetGuildPreview {
+        /// The ID of the guild.
         guild_id: u64,
     },
+    /// Route information to get the number of members that would be pruned,
+    /// filtering by inactivity and users with one of the provided roles.
     GetGuildPruneCount {
+        /// The number of days that a user must be offline before being able to
+        /// be pruned.
         days: Option<u64>,
+        /// The ID of the guild.
         guild_id: u64,
+        /// The roles to filter the prune by.
+        ///
+        /// A user must have at least one of these roles to be able to be
+        /// pruned.
         include_roles: Vec<u64>,
     },
+    /// Route information to get a guild's roles.
     GetGuildRoles {
+        /// The ID of the guild.
         guild_id: u64,
     },
+    /// Route information to get a guild's vanity URL.
     GetGuildVanityUrl {
+        /// The ID of the guild.
         guild_id: u64,
     },
+    /// Route information to get a guild's available voice regions.
     GetGuildVoiceRegions {
+        /// The ID of the guild.
         guild_id: u64,
     },
+    /// Route information to get a guild's webhooks.
     GetGuildWebhooks {
+        /// The ID of the guild.
         guild_id: u64,
     },
+    /// Route information to get a paginated list of guilds.
     GetGuilds {
+        /// The minimum ID of guilds to get.
         after: Option<u64>,
+        /// The maximum ID of guilds to get.
         before: Option<u64>,
+        /// The maximum number of guilds to get.
         limit: Option<u64>,
     },
+    /// Route information to get an invite.
     GetInvite {
+        /// The unique invite code.
         code: String,
+        /// Whether to retrieve statistics about the invite.
         with_counts: bool,
     },
+    /// Route information to get a member.
     GetMember {
+        /// The ID of the guild.
         guild_id: u64,
+        /// The ID of the user.
         user_id: u64,
     },
+    /// Route information to get a single message in a channel.
     GetMessage {
+        /// The ID of the channel.
         channel_id: u64,
+        /// The ID of the message.
         message_id: u64,
     },
+    /// Route information to get a paginated list of messages in a channel.
     GetMessages {
+        /// The minimum ID of messages to get.
         after: Option<u64>,
+        /// The message ID to get the messages around.
         around: Option<u64>,
+        /// The maximum ID of messages to get.
         before: Option<u64>,
+        /// The ID of the channel.
         channel_id: u64,
+        /// The maximum number of messages to get.
         limit: Option<u64>,
     },
+    /// Route information to get a channel's pins.
     GetPins {
+        /// The ID of the channel.
         channel_id: u64,
     },
+    /// Route information to get the users who reacted to a message with a
+    /// specified emoji.
     GetReactionUsers {
+        /// The minimum ID of users to get.
         after: Option<u64>,
+        /// The maximum ID of users to get.
         before: Option<u64>,
+        /// The ID of the channel.
         channel_id: u64,
+        /// The URI encoded custom or unicode emoji.
         emoji: String,
+        /// The maximum number of users to retrieve.
         limit: Option<u64>,
+        /// The ID of the message.
         message_id: u64,
     },
+    /// Route information to get the current user.
     GetUser {
+        /// The ID of the target user. This can be `@me` to specify the current
+        /// user.
         target_user: String,
     },
+    /// Route information to get the current user's connections.
     GetUserConnections,
+    /// Route information to get the current user's private channels and groups.
     GetUserPrivateChannels,
+    /// Route information to get a list of the voice regions.
     GetVoiceRegions,
+    /// Route information to get a webhook by ID, optionally with a token if the
+    /// current user doesn't have access to it.
     GetWebhook {
+        /// The token of the webhook.
         token: Option<String>,
+        /// The ID of the webhook.
         webhook_id: u64,
     },
+    /// Route information to leave the guild.
     LeaveGuild {
+        /// The ID of the guild.
         guild_id: u64,
     },
+    /// Route information to pin a message to a channel.
     PinMessage {
+        /// The ID of the channel.
         channel_id: u64,
+        /// The ID of the message.
         message_id: u64,
     },
+    /// Route information to remove a member from a guild.
     RemoveMember {
+        /// The ID of the guild.
         guild_id: u64,
+        /// The ID of the user.
         user_id: u64,
     },
+    /// Route information to remove a role from a member.
     RemoveMemberRole {
+        /// The ID of the guild.
         guild_id: u64,
+        /// The ID of the role.
         role_id: u64,
+        /// The ID of the user.
         user_id: u64,
     },
+    /// Route information to sync a guild's integration.
     SyncGuildIntegration {
+        /// The ID of the guild.
         guild_id: u64,
+        /// The ID of the integration.
         integration_id: u64,
     },
+    /// Route information to unpin a message from a channel.
     UnpinMessage {
+        /// The ID of the channel.
         channel_id: u64,
+        /// The ID of the message.
         message_id: u64,
     },
+    /// Route information to update a channel, such as a guild channel or group.
     UpdateChannel {
+        /// The ID of the channel.
         channel_id: u64,
     },
+    /// Route information to update the current user.
     UpdateCurrentUser,
+    /// Route information to update an emoji.
     UpdateEmoji {
-        guild_id: u64,
+        /// The ID of the emoji.
         emoji_id: u64,
+        /// The ID of the guild.
+        guild_id: u64,
     },
+    /// Route information to update a guild.
     UpdateGuild {
+        /// The ID of the guild.
         guild_id: u64,
     },
+    /// Route information to update a guild channel.
     UpdateGuildChannels {
+        /// The ID of the guild.
         guild_id: u64,
     },
+    /// Route information to update a guild's widget.
     UpdateGuildWidget {
+        /// The ID of the guild.
         guild_id: u64,
     },
+    /// Route information to update a guild's integration.
     UpdateGuildIntegration {
+        /// The ID of the guild.
         guild_id: u64,
+        /// The ID of the integration.
         integration_id: u64,
     },
+    /// Route information to update a member.
     UpdateMember {
+        /// The ID of the guild.
         guild_id: u64,
+        /// The ID of the user.
         user_id: u64,
     },
+    /// Route information to update a message.
     UpdateMessage {
+        /// The ID of the channel.
         channel_id: u64,
+        /// The ID of the message.
         message_id: u64,
     },
+    /// Route information to update the current member's nickname.
     UpdateNickname {
+        /// The ID of the guild.
         guild_id: u64,
     },
+    /// Route information to update the permission overwrite of a role or user
+    /// in a channel.
     UpdatePermissionOverwrite {
+        /// The ID of the channel.
         channel_id: u64,
+        /// The ID of the role or user.
         target_id: u64,
     },
+    /// Route information to update a role.
     UpdateRole {
+        /// The ID of the guild.
         guild_id: u64,
+        /// The ID of the role.
         role_id: u64,
     },
+    /// Route information to update the positions of roles.
     UpdateRolePositions {
+        /// The ID of the guild.
         guild_id: u64,
     },
+    /// Route information to update a webhook.
     UpdateWebhook {
+        /// The token of the webhook.
         token: Option<String>,
+        /// The ID of the webhook.
         webhook_id: u64,
     },
 }
 
 impl Route {
+    /// Separate a route into its parts: the HTTP method, the path enum to use
+    /// for ratelimit buckets, and the URI path.
+    ///
+    /// The method and URI path are useful for actually performing requests,
+    /// while the returned path enum is useful for ratelimiting.
     // This function contains some `write!`s, but they can't fail, so we ignore
     // them to remove an unnecessary Result here.
     #[allow(clippy::cognitive_complexity, clippy::too_many_lines)]
