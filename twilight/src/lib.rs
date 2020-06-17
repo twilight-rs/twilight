@@ -21,7 +21,7 @@
 //! Add this to your `Cargo.toml`'s `[dependencies]` section:
 //!
 //! ```toml
-//! twilight = { git = "https://github.com/twilight-rs/twilight.git" }
+//! twilight = { branch = "trunk", git = "https://github.com/twilight-rs/twilight.git" }
 //! ```
 //!
 //! ## Core Crates

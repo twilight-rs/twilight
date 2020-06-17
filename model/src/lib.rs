@@ -49,7 +49,7 @@
 //!
 //! ```toml
 //! [dependencies]
-//! twilight-model = { default-features = false, git = "https://github.com/twilight-rs/twilight" }
+//! twilight-model = { branch = "trunk", default-features = false, git = "https://github.com/twilight-rs/twilight" }
 //! ```
 //!
 //! ## License

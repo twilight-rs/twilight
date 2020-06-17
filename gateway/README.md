@@ -34,7 +34,7 @@ disable `serde_json` if you are going to use `simd-json`. It is easy to switch t
 
 ```toml
 [dependencies]
-twilight-gateway = { default-features = false, features = ["simd-json"], git = "https://github.com/twilight-rs/twilight" }
+twilight-gateway = { branch = "trunk", default-features = false, features = ["simd-json"], git = "https://github.com/twilight-rs/twilight" }
 ```
 
 [simd-json]: https://github.com/simd-lite/simd-json
