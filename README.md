@@ -23,7 +23,7 @@ Most of Twilight requires at least 1.40+ (rust stable).
 Add this to your `Cargo.toml`'s `[dependencies]` section:
 
 ```toml
-twilight = { git = "https://github.com/twilight-rs/twilight.git" }
+twilight = { branch = "trunk", git = "https://github.com/twilight-rs/twilight.git" }
 ```
 
 ## Core Crates

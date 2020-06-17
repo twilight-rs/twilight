@@ -41,7 +41,7 @@ To enable `simd-json`, do something like this in your `Cargo.toml`:
 
 ```toml
 [dependencies]
-twilight-http = { default-features = false, features = ["native", "simd-json"], git = "https://github.com/twilight-rs/twilight" }
+twilight-http = { branch = "trunk", default-features = false, features = ["native", "simd-json"], git = "https://github.com/twilight-rs/twilight" }
 ```
 
 ### TLS
@@ -65,7 +65,7 @@ To enable `rustls`, do something like this in your `Cargo.toml`:
 
 ```toml
 [dependencies]
-twilight-http = { default-features = false, features = ["rustls", "serde_json"], git = "https://github.com/twilight-rs/twilight" }
+twilight-http = { branch = "trunk", default-features = false, features = ["rustls", "serde_json"], git = "https://github.com/twilight-rs/twilight" }
 ```
 
 [`native-tls`]: https://crates.io/crates/native-tls
