@@ -522,7 +522,7 @@ impl Route {
                 let mut path = format!("guilds/{}/bans/{}?", guild_id, user_id);
 
                 if let Some(delete_message_days) = delete_message_days {
-                    let _ = write!(path, "delete-message-days={}", delete_message_days);
+                    let _ = write!(path, "delete_message_days={}", delete_message_days);
                     if reason.is_some() {
                         let _ = write!(path, "&");
                     }
