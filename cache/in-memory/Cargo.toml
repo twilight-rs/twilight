@@ -5,13 +5,13 @@ name = "twilight-cache-inmemory"
 version = "0.1.0"
 
 [dependencies]
-async-trait = "0.1"
-bitflags = "1"
-futures = "0.3"
-twilight-cache-trait = { path = "../trait" }
+async-trait = { default-features = false, version = "0.1" }
+bitflags = { default-features = false, version = "1" }
+futures-util = { default-features = false, features = ["std"], version = "0.3" }
+twilight-cache-trait = { default-features = false, path = "../trait" }
 twilight-model = { default-features = false, path = "../../model" }
-log = "0.4"
+log = { default-features = false, version = "0.4" }
 
 [dev-dependencies]
-static_assertions = "1"
-tokio = "0.2"
+static_assertions = { default-features = false, version = "1" }
+tokio = { default-features = false, features = ["rt-core", "macros"], version = "0.2" }

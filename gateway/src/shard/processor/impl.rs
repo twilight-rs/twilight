@@ -19,7 +19,8 @@ use twilight_model::gateway::{
     },
 };
 
-use futures::{channel::mpsc::UnboundedReceiver, stream::StreamExt};
+use futures_channel::mpsc::UnboundedReceiver;
+use futures_util::stream::StreamExt;
 #[allow(unused_imports)]
 use log::{debug, info, trace, warn};
 use serde::Serialize;

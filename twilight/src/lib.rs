@@ -98,7 +98,6 @@
 //! ```rust,no_run
 //! use std::{env, error::Error};
 //! use tokio::stream::StreamExt;
-//!
 //! use twilight::{
 //!     cache::{
 //!         twilight_cache_inmemory::config::{InMemoryConfigBuilder, EventType},

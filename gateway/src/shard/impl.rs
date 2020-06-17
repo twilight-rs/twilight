@@ -7,9 +7,9 @@ use super::{
     stage::Stage,
 };
 use crate::{listener::Listeners, EventTypeFlags};
-use futures::{
+use futures_util::{
     future::{self, AbortHandle},
-    Stream,
+    stream::Stream,
 };
 
 use log::debug;

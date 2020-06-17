@@ -14,10 +14,8 @@
 //! [`Shard::some_events`]: ../struct.Shard.html#method.some_events
 
 use crate::EventTypeFlags;
-use futures::{
-    channel::mpsc::UnboundedReceiver,
-    stream::{Stream, StreamExt},
-};
+use futures_channel::mpsc::UnboundedReceiver;
+use futures_util::stream::{Stream, StreamExt};
 use std::{
     pin::Pin,
     task::{Context, Poll},

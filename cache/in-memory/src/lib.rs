@@ -5,7 +5,7 @@ mod updates;
 
 use self::model::*;
 use config::InMemoryConfig;
-use futures::{future, lock::Mutex};
+use futures_util::{future, lock::Mutex};
 use std::{
     collections::{
         hash_map::{Entry, HashMap},

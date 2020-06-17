@@ -1,7 +1,5 @@
-use futures::{
-    channel::mpsc::{SendError, TrySendError, UnboundedSender},
-    sink::Sink,
-};
+use futures_channel::mpsc::{SendError, TrySendError, UnboundedSender};
+use futures_util::sink::Sink;
 use std::{
     pin::Pin,
     task::{Context, Poll},

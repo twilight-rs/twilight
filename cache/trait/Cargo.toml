@@ -13,8 +13,8 @@ repository = "https://github.com/twilight-rs/twilight.git"
 version = "0.1.0"
 
 [dependencies]
-async-trait = "0.1"
+async-trait = { default-features = false, version = "0.1" }
 twilight-model = { default-features = false, path = "../../model" }
 
 [dev-dependencies]
-static_assertions = "1"
+static_assertions = { default-features = false, version = "1" }

@@ -1,5 +1,5 @@
 use crate::{api_error::ApiError, ratelimiting::RatelimitError};
-use futures::channel::oneshot::Canceled;
+use futures_channel::oneshot::Canceled;
 use reqwest::{header::InvalidHeaderValue, Error as ReqwestError, StatusCode};
 #[cfg(all(feature = "serde_json", not(feature = "simd-json")))]
 use serde_json::Error as JsonError;
