@@ -35,10 +35,17 @@ use url::Url;
 
 use crate::json_from_slice;
 
+/// A builder for [`Client`]. Create with [`new`].
+///
+/// [`Client`]: struct.Client
+/// [`new`]: method#new
 #[derive(Clone, Debug, Default)]
 pub struct ClientBuilder(pub ClientConfigBuilder);
 
 impl ClientBuilder {
+    /// Create a new builder to create a [`Client`].
+    ///
+    /// [`Client`]: struct.Client.html
     pub fn new() -> Self {
         Self::default()
     }
@@ -313,6 +320,10 @@ impl Client {
         UpdateChannel::new(self, channel_id)
     }
 
+    /// Get the invites for a guild channel.
+    ///
+    /// This method only works if the channel is of type GuildChannel. It also requires the
+    /// permission MANAGE_CHANNELS.
     pub fn channel_invites(&self, channel_id: ChannelId) -> GetChannelInvites<'_> {
         GetChannelInvites::new(self, channel_id)
     }
@@ -676,14 +687,55 @@ impl Client {
         GetGuildWebhooks::new(self, guild_id)
     }
 
+    /// Get information about an invite by its code.
+    ///
+    /// If [`with_counts`] is called, the returned invite will contain approximate member counts.
+    ///
+    /// # Examples
+    ///
+    /// ```rust,no_run
+    /// # use twilight_http::Client;
+    /// #
+    /// # #[tokio::main]
+    /// # async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
+    /// # let client = Client::new("my token");
+    /// #
+    /// let invite = client
+    ///     .invite("code")
+    ///     .with_counts()
+    ///     .await?;
+    /// # Ok(()) }
+    /// ```
+    ///
+    /// [`with_counts`]: ../request/channel/invite/struct.GetInvite.html#method.with_counts
     pub fn invite(&self, code: impl Into<String>) -> GetInvite<'_> {
         GetInvite::new(self, code)
     }
 
+    /// Create an invite, with options.
+    ///
+    /// # Examples
+    ///
+    /// ```rust,no_run
+    /// # use twilight_http::Client;
+    /// # use twilight_model::id::ChannelId;
+    /// #
+    /// # #[tokio::main]
+    /// # async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
+    /// # let client = Client::new("my token");
+    /// #
+    /// let channel_id = ChannelId(123);
+    /// let invite = client
+    ///     .create_invite(channel_id)
+    ///     .max_uses(3)
+    ///     .await?;
+    /// # Ok(()) }
+    /// ```
     pub fn create_invite(&self, channel_id: ChannelId) -> CreateInvite<'_> {
         CreateInvite::new(self, channel_id)
     }
 
+    /// Delete an invite by its code.
     pub fn delete_invite(&self, code: impl Into<String>) -> DeleteInvite<'_> {
         DeleteInvite::new(self, code)
     }

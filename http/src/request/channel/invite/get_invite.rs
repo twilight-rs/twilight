@@ -6,6 +6,27 @@ struct GetInviteFields {
     with_counts: bool,
 }
 
+/// Get information about an invite by its code.
+///
+/// If [`with_counts`] is called, the returned invite will contain approximate member counts.
+///
+/// # Examples
+///
+/// ```rust,no_run
+/// use twilight_http::Client;
+///
+/// # #[tokio::main]
+/// # async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
+/// let client = Client::new("my token");
+///
+/// let invite = client
+///     .invite("code")
+///     .with_counts()
+///     .await?;
+/// # Ok(()) }
+/// ```
+///
+/// [`with_counts`]: ./struct.GetInvite.html#method.with_counts
 pub struct GetInvite<'a> {
     code: String,
     fields: GetInviteFields,
@@ -23,6 +44,7 @@ impl<'a> GetInvite<'a> {
         }
     }
 
+    /// Whether the invite returned should contain approximate member counts.
     pub fn with_counts(mut self) -> Self {
         self.fields.with_counts = true;
 

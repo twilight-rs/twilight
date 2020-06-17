@@ -1,5 +1,6 @@
 use crate::request::prelude::*;
 
+/// Delete an invite by its code.
 pub struct DeleteInvite<'a> {
     code: String,
     fut: Option<Pending<'a, ()>>,
@@ -17,6 +18,7 @@ impl<'a> DeleteInvite<'a> {
         }
     }
 
+    /// Attach an audit log reason to this request.
     pub fn reason(mut self, reason: impl Into<String>) -> Self {
         self.reason.replace(reason.into());
 
