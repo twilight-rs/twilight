@@ -22,8 +22,7 @@ twilight-model = { optional = true, path = "../model" }
 twilight-standby = { optional = true, path = "../standby" }
 
 [dev-dependencies]
-futures = "0.3"
-tokio = "0.2"
+tokio = { default-features = false, features = ["macros", "rt-core"], version = "0.2" }
 
 [features]
 default = ["all"]

@@ -1,6 +1,6 @@
 use super::{config::EventType, InMemoryCache, InMemoryCacheError};
 use async_trait::async_trait;
-use futures::lock::Mutex;
+use futures_util::lock::Mutex;
 #[allow(unused_imports)]
 use log::debug;
 use std::{

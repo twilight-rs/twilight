@@ -5,14 +5,11 @@ pub use large_bot_queue::LargeBotQueue;
 
 use async_trait::async_trait;
 use day_limiter::DayLimiter;
-use futures::{
-    channel::{
-        mpsc::{unbounded, UnboundedReceiver, UnboundedSender},
-        oneshot::{self, Sender},
-    },
-    sink::SinkExt,
-    stream::StreamExt,
+use futures_channel::{
+    mpsc::{unbounded, UnboundedReceiver, UnboundedSender},
+    oneshot::{self, Sender},
 };
+use futures_util::{sink::SinkExt, stream::StreamExt};
 #[allow(unused_imports)]
 use log::{info, warn};
 use std::{fmt::Debug, time::Duration};

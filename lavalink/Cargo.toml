@@ -23,11 +23,11 @@ percent-encoding = { default-features = false, optional = true, version = "2" }
 serde = { default-features = false, features = ["derive", "std"], version = "1" }
 serde_json = { default-features = false, version = "1" }
 tokio = { default-features = false, features = ["net", "rt-core", "time"], version = "0.2" }
-twilight-model = { path = "../model" }
+twilight-model = { default-features = false, features = ["serde-support"], path = "../model" }
 
 [dev-dependencies]
 static_assertions = { default-features = false, version = "1" }
-tokio = { default-features = false, features = ["macros", "rt-threaded"], version = "0.2" }
+tokio = { default-features = false, features = ["macros", "rt-core"], version = "0.2" }
 twilight-gateway = { path = "../gateway" }
 twilight-http = { path = "../http" }
 
