@@ -1,6 +1,6 @@
 use super::{config::EventType, InMemoryCache, InMemoryCacheError};
 use async_trait::async_trait;
-use futures::lock::Mutex;
+use futures_util::lock::Mutex;
 #[allow(unused_imports)]
 use log::debug;
 use std::{
@@ -11,7 +11,7 @@ use std::{
 };
 use twilight_cache_trait::UpdateCache;
 use twilight_model::{
-    channel::{message::MessageReaction, Channel},
+    channel::{message::MessageReaction, Channel, GuildChannel},
     gateway::{event::Event, payload::*, presence::Presence},
     guild::GuildStatus,
     id::GuildId,
@@ -28,15 +28,15 @@ impl UpdateCache<InMemoryCache, InMemoryCacheError> for Event {
         use Event::*;
 
         match self {
-            BanAdd(v) => c.update(v).await,
-            BanRemove(v) => c.update(v).await,
+            BanAdd(_) => Ok(()),
+            BanRemove(_) => Ok(()),
             ChannelCreate(v) => c.update(v).await,
             ChannelDelete(v) => c.update(v).await,
             ChannelPinsUpdate(v) => c.update(v).await,
             ChannelUpdate(v) => c.update(v).await,
-            GatewayHeartbeat(_v) => Ok(()),
+            GatewayHeartbeat(_) => Ok(()),
             GatewayHeartbeatAck => Ok(()),
-            GatewayHello(_v) => Ok(()),
+            GatewayHello(_) => Ok(()),
             GatewayInvalidateSession(_v) => Ok(()),
             GatewayReconnect => Ok(()),
             GuildCreate(v) => c.update(v.deref()).await,
@@ -44,8 +44,8 @@ impl UpdateCache<InMemoryCache, InMemoryCacheError> for Event {
             GuildEmojisUpdate(v) => c.update(v).await,
             GuildIntegrationsUpdate(v) => c.update(v).await,
             GuildUpdate(v) => c.update(v.deref()).await,
-            InviteCreate(_v) => Ok(()),
-            InviteDelete(_v) => Ok(()),
+            InviteCreate(_) => Ok(()),
+            InviteDelete(_) => Ok(()),
             MemberAdd(v) => c.update(v.deref()).await,
             MemberRemove(v) => c.update(v).await,
             MemberUpdate(v) => c.update(v.deref()).await,
@@ -59,19 +59,19 @@ impl UpdateCache<InMemoryCache, InMemoryCacheError> for Event {
             ReactionAdd(v) => c.update(v.deref()).await,
             ReactionRemove(v) => c.update(v.deref()).await,
             ReactionRemoveAll(v) => c.update(v).await,
-            ReactionRemoveEmoji(_v) => Ok(()),
+            ReactionRemoveEmoji(_) => Ok(()),
             Ready(v) => c.update(v.deref()).await,
             Resumed => Ok(()),
             RoleCreate(v) => c.update(v).await,
             RoleDelete(v) => c.update(v).await,
             RoleUpdate(v) => c.update(v).await,
-            ShardConnected(_v) => Ok(()),
-            ShardConnecting(_v) => Ok(()),
-            ShardDisconnected(_v) => Ok(()),
-            ShardIdentifying(_v) => Ok(()),
-            ShardReconnecting(_v) => Ok(()),
-            ShardPayload(_v) => Ok(()),
-            ShardResuming(_v) => Ok(()),
+            ShardConnected(_) => Ok(()),
+            ShardConnecting(_) => Ok(()),
+            ShardDisconnected(_) => Ok(()),
+            ShardIdentifying(_) => Ok(()),
+            ShardReconnecting(_) => Ok(()),
+            ShardPayload(_) => Ok(()),
+            ShardResuming(_) => Ok(()),
             TypingStart(v) => c.update(v.deref()).await,
             UnavailableGuild(v) => c.update(v).await,
             UserUpdate(v) => c.update(v).await,
@@ -148,7 +148,43 @@ impl UpdateCache<InMemoryCache, InMemoryCacheError> for ChannelDelete {
 
 #[async_trait]
 impl UpdateCache<InMemoryCache, InMemoryCacheError> for ChannelPinsUpdate {
-    async fn update(&self, _: &InMemoryCache) -> Result<(), InMemoryCacheError> {
+    async fn update(&self, cache: &InMemoryCache) -> Result<(), InMemoryCacheError> {
+        if !guard(cache, EventType::CHANNEL_PINS_UPDATE) {
+            return Ok(());
+        }
+
+        {
+            let mut channels_guild = cache.0.channels_guild.lock().await;
+
+            if let Some(item) = channels_guild.get_mut(&self.channel_id) {
+                let channel = Arc::make_mut(&mut item.data);
+
+                if let GuildChannel::Text(text) = channel {
+                    text.last_pin_timestamp = self.last_pin_timestamp.clone();
+                }
+
+                return Ok(());
+            }
+        }
+
+        {
+            let mut channels_private = cache.0.channels_private.lock().await;
+
+            if let Some(mut channel) = channels_private.get_mut(&self.channel_id) {
+                Arc::make_mut(&mut channel).last_pin_timestamp = self.last_pin_timestamp.clone();
+
+                return Ok(());
+            }
+        }
+
+        {
+            let mut groups = cache.0.groups.lock().await;
+
+            if let Some(mut group) = groups.get_mut(&self.channel_id) {
+                Arc::make_mut(&mut group).last_pin_timestamp = self.last_pin_timestamp.clone();
+            }
+        }
+
         Ok(())
     }
 }
@@ -734,17 +770,6 @@ impl UpdateCache<InMemoryCache, InMemoryCacheError> for UnavailableGuild {
 
         cache.0.guilds.lock().await.remove(&self.id);
         cache.0.unavailable_guilds.lock().await.insert(self.id);
-
-        Ok(())
-    }
-}
-
-#[async_trait]
-impl UpdateCache<InMemoryCache, InMemoryCacheError> for UpdateVoiceState {
-    async fn update(&self, cache: &InMemoryCache) -> Result<(), InMemoryCacheError> {
-        if !guard(cache, EventType::UPDATE_VOICE_STATE) {
-            return Ok(());
-        }
 
         Ok(())
     }

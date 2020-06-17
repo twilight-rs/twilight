@@ -1,7 +1,7 @@
 //! The error type of why errors occur in the shard module.
 
 use flate2::DecompressError;
-use futures::channel::mpsc::TrySendError;
+use futures_channel::mpsc::TrySendError;
 #[cfg(all(feature = "serde_json", not(feature = "simd-json")))]
 use serde_json::Error as JsonError;
 #[cfg(feature = "simd-json")]

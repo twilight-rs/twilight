@@ -1,13 +1,10 @@
 use super::{DayLimiter, Queue};
 use async_trait::async_trait;
-use futures::{
-    channel::{
-        mpsc::{unbounded, UnboundedReceiver, UnboundedSender},
-        oneshot::{self, Sender},
-    },
-    sink::SinkExt,
-    stream::StreamExt,
+use futures_channel::{
+    mpsc::{unbounded, UnboundedReceiver, UnboundedSender},
+    oneshot::{self, Sender},
 };
+use futures_util::{sink::SinkExt, stream::StreamExt};
 use log::{info, warn};
 use std::{fmt::Debug, time::Duration};
 

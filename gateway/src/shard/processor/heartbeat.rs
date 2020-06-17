@@ -1,5 +1,6 @@
 use super::super::error::{Error, Result};
-use futures::{channel::mpsc::UnboundedSender, lock::Mutex};
+use futures_channel::mpsc::UnboundedSender;
+use futures_util::lock::Mutex;
 use log::{debug, error, warn};
 use std::{
     collections::VecDeque,

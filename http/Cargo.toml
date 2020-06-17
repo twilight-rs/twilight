@@ -14,17 +14,18 @@ version = "0.1.0"
 
 [dependencies]
 bytes = { default-features = false, version = "0.5" }
-futures = "0.3"
-twilight-model = { path = "../model" }
-log = "0.4"
-reqwest = "0.10"
-serde = { features = ["derive"], version = "1" }
-serde_json = { version = "1", optional = true }
+futures-channel = { default-features = false, version = "0.3" }
+futures-util = { default-features = false, features = ["std"], version = "0.3" }
+twilight-model = { default-features = false, features = ["serde-support"], path = "../model" }
+log = { default-features = false, version = "0.4" }
+reqwest = { default-features = false, version = "0.10" }
+serde = { default-features = false, features = ["derive"], version = "1" }
+serde_json = { default-features = false, optional = true, version = "1" }
 serde_repr = { default-features = false, version = "0.1" }
-simd-json = { version = "0.3", optional = true }
-tokio = "0.2"
-percent-encoding = "2.1"
-url = "2"
+simd-json = { default-features = false, optional = true, version = "0.3" }
+tokio = { default-features = false, version = "0.2" }
+percent-encoding = { default-features = false, version = "2" }
+url = { default-features = false, version = "2" }
 
 [features]
 default = ["native", "serde_json"]
@@ -33,4 +34,4 @@ rustls = ["reqwest/rustls-tls"]
 
 [dev-dependencies]
 serde_test = { default-features = false, version = "1" }
-tokio = { features = ["macros"], version = "0.2" }
+tokio = { default-features = false, features = ["macros", "rt-core"], version = "0.2" }

@@ -5,8 +5,8 @@ use super::{
     },
     heartbeat::{Heartbeater, Heartbeats},
 };
-use futures::{
-    channel::mpsc::UnboundedSender,
+use futures_channel::mpsc::UnboundedSender;
+use futures_util::{
     future::{self, AbortHandle},
     lock::Mutex,
 };

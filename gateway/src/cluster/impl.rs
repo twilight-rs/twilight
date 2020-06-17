@@ -7,7 +7,7 @@ use crate::{
     shard::{Information, Shard},
     EventTypeFlags,
 };
-use futures::{
+use futures_util::{
     future,
     lock::Mutex,
     stream::{SelectAll, Stream, StreamExt},

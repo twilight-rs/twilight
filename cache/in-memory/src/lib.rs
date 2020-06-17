@@ -5,7 +5,7 @@ mod updates;
 
 use self::model::*;
 use config::InMemoryConfig;
-use futures::{future, lock::Mutex};
+use futures_util::{future, lock::Mutex};
 use std::{
     collections::{
         hash_map::{Entry, HashMap},
@@ -155,8 +155,8 @@ struct InMemoryCacheRef {
 ///
 /// # Caveats
 ///
-/// - The "last pin timestamp" and "last message id" fields of channels will
-/// *not* be kept up to date as pins and messages come in.
+/// - the "last message id" field of channels will *not* be kept up to date as
+/// - messages come in.
 ///
 /// [`Cache`]: trait.Cache.html
 /// [`twilight-cache-redis`]: https://github.com/twilight-rs/cache-redis
