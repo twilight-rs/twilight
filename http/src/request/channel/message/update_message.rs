@@ -10,9 +10,15 @@ use twilight_model::{
 };
 
 #[derive(Clone, Debug)]
+/// The error created when a message can not be updated.
 pub enum UpdateMessageError {
+    /// Returned when the content is over 2000 UTF-16 characters.
     ContentInvalid,
-    EmbedTooLarge { source: EmbedValidationError },
+    /// Returned when the length of the embed is over 6000 characters.
+    EmbedTooLarge {
+        /// The source of the error.
+        source: EmbedValidationError,
+    },
 }
 
 impl Display for UpdateMessageError {
@@ -50,11 +56,11 @@ struct UpdateMessageFields {
     embed: Option<Option<Embed>>,
 }
 
-/// Futures request to update a message.
+/// Update a message by [`ChannelId`] and [`MessageId`].
 ///
 /// You can pass `None` to any of the methods to remove the associated field.
 /// For example, if you have a message with an embed you want to remove, you can
-/// use `.[embed](None)` to remove the embed.
+/// use `.embed(None)` to remove the embed.
 ///
 /// # Examples
 ///
@@ -76,19 +82,20 @@ struct UpdateMessageFields {
 /// Remove the message's content:
 ///
 /// ```rust,no_run
-/// use twilight_http::Client;
-/// use twilight_model::id::{ChannelId, MessageId};
-///
+/// # use twilight_http::Client;
+/// # use twilight_model::id::{ChannelId, MessageId};
+/// #
 /// # #[tokio::main]
 /// # async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
-/// let client = Client::new("my token");
+/// # let client = Client::new("my token");
 /// client.update_message(ChannelId(1), MessageId(2))
 ///     .content(None)?
 ///     .await?;
 /// # Ok(()) }
 /// ```
 ///
-/// [embed]: #method.embed
+/// [`ChannelId`]: ../../../../../twilight_model/id/struct.ChannelId.html
+/// [`MessageId`]: ../../../../../twilight_model/id/struct.MessageId.html
 pub struct UpdateMessage<'a> {
     channel_id: ChannelId,
     fields: UpdateMessageFields,

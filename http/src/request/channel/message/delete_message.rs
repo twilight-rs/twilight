@@ -1,6 +1,10 @@
 use crate::request::prelude::*;
 use twilight_model::id::{ChannelId, MessageId};
 
+/// Delete a message by [`ChannelId`] and [`MessageId`].
+///
+/// [`ChannelId`]: ../../../../twilight_model/id/struct.ChannelId.html
+/// [`MessageId`]: ../../../../twilight_model/id/struct.MessageId.html
 pub struct DeleteMessage<'a> {
     channel_id: ChannelId,
     fut: Option<Pending<'a, ()>>,
@@ -20,6 +24,7 @@ impl<'a> DeleteMessage<'a> {
         }
     }
 
+    /// Attach an audit log reason to this request.
     pub fn reason(mut self, reason: impl Into<String>) -> Self {
         self.reason.replace(reason.into());
 

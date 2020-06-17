@@ -4,6 +4,10 @@ use twilight_model::{
     id::{ChannelId, MessageId},
 };
 
+/// Get a message by [`ChannelId`] and [`MessageId`].
+///
+/// [`ChannelId`]: ../../../../twilight_model/id/struct.ChannelId.html
+/// [`MessageId`]: ../../../../twilight_model/id/struct.MessageId.html
 pub struct GetMessage<'a> {
     channel_id: ChannelId,
     fut: Option<PendingOption<'a>>,

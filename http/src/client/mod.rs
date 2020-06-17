@@ -328,6 +328,45 @@ impl Client {
         GetChannelInvites::new(self, channel_id)
     }
 
+    /// Get channel messages, by [`ChannelId`].
+    ///
+    /// Only one of [`after`], [`around`], and [`before`] can be specified at a time.
+    /// Once these are specified, the type returned is [`GetChannelMessagesConfigured`].
+    ///
+    /// If [`limit`] is unspecified, the default set by Discord is 50.
+    ///
+    /// # Examples
+    ///
+    /// ```rust,no_run
+    /// use twilight_http::Client;
+    /// use twilight_model::id::{ChannelId, MessageId};
+    ///
+    /// # #[tokio::main]
+    /// # async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
+    /// let client = Client::new("my token");
+    /// let channel_id = ChannelId(123);
+    /// let message_id = MessageId(234);
+    ///
+    /// let messages = client
+    ///     .channel_messages(channel_id)
+    ///     .before(message_id)
+    ///     .limit(6u64)?
+    ///     .await?;
+    ///
+    /// # Ok(()) }
+    /// ```
+    ///
+    /// # Errors
+    ///
+    /// Returns [`GetChannelMessages::LimitInvalid`] if the amount is less than 1 or greater than 100.
+    ///
+    /// [`ChannelId`]: ../../twilight_model/id/struct.ChannelId.html
+    /// [`after`]: ../request/channel/message/get_channel_messages/struct.GetChannelMessages.html#method.after
+    /// [`around`]: ../request/channel/message/get_channel_messages/struct.GetChannelMessages.html#method.around
+    /// [`before`]: ../request/channel/message/get_channel_messages/struct.GetChannelMessages.html#method.before
+    /// [`GetChannelMessagesConfigured`]: ../request/channel/message/get_channel_messages_configured/struct.GetChannelMessagesConfigured.html
+    /// [`limit`]: ../request/channel/message/get_channel_messages/struct.GetChannelMessages.html#method.limit
+    /// [`GetChannelMessages::LimitInvalid`]: ../request/channel/message/get_channel_messages/enum.GetChannelMessages.html#variant.LimitInvalid
     pub fn channel_messages(&self, channel_id: ChannelId) -> GetChannelMessages<'_> {
         GetChannelMessages::new(self, channel_id)
     }
@@ -740,14 +779,56 @@ impl Client {
         DeleteInvite::new(self, code)
     }
 
+    /// Get a message by [`ChannelId`] and [`MessageId`].
+    ///
+    /// [`ChannelId`]: ../../twilight_model/id/struct.ChannelId.html
+    /// [`MessageId`]: ../../twilight_model/id/struct.MessageId.html
     pub fn message(&self, channel_id: ChannelId, message_id: MessageId) -> GetMessage<'_> {
         GetMessage::new(self, channel_id, message_id)
     }
 
+    /// # Example
+    ///
+    /// ```rust,no_run
+    /// # use twilight_http::Client;
+    /// # use twilight_model::id::ChannelId;
+    /// #
+    /// # #[tokio::main]
+    /// # async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
+    /// # let client = Client::new("my token");
+    /// #
+    /// let channel_id = ChannelId(123);
+    /// let message = client
+    ///     .create_message(channel_id)
+    ///     .content("Twilight is best pony")?
+    ///     .tts(true)
+    ///     .await?;
+    /// # Ok(()) }
+    /// ```
+    ///
+    /// # Errors
+    ///
+    /// The method [`content`] returns [`CreateMessageError::ContentInvalid`] if the content is
+    /// over 2000 UTF-16 characters.
+    ///
+    /// The method [`embed`] returns [`CreateMessageError::EmbedTooLarge`] if the length of the
+    /// embed is over 6000 characters.
+    ///
+    /// [`content`]:
+    /// ../request/channel/message/create_message/struct.CreateMessage.html#method.content
+    /// [`embed`]: ../request/channel/message/create_message/struct.CreateMessage.html#method.embed
+    /// [`CreateMessageError::ContentInvalid`]:
+    /// ../request/channel/message/create_message/enum.CreateMessageError.html#variant.ContentInvalid
+    /// [`CreateMessageError::EmbedTooLarge`]:
+    /// ../request/channel/message/create_message/enum.CreateMessageError.html#variant.EmbedTooLarge
     pub fn create_message(&self, channel_id: ChannelId) -> CreateMessage<'_> {
         CreateMessage::new(self, channel_id)
     }
 
+    /// Delete a message by [`ChannelId`] and [`MessageId`].
+    ///
+    /// [`ChannelId`]: ../../twilight_model/id/struct.ChannelId.html
+    /// [`MessageId`]: ../../twilight_model/id/struct.MessageId.html
     pub fn delete_message(
         &self,
         channel_id: ChannelId,
@@ -756,6 +837,15 @@ impl Client {
         DeleteMessage::new(self, channel_id, message_id)
     }
 
+    /// Delete messgaes by [`ChannelId`] and Vec<[`MessageId`]>.
+    ///
+    /// The vec count can be between 2 and 100. If the supplied [`MessageId`]s are invalid, they
+    /// still count towards the lower and upper limits. This method will not delete messages older
+    /// than two weeks. See [Discord Docs] for more information.
+    ///
+    /// [`ChannelId`]: ../../twilight_model/id/struct.ChannelId.html
+    /// [`MessageId`]: ../../twilight_model/id/struct.MessageId.html
+    /// [Discord Docs]: https://discord.com/developers/docs/resources/channel#bulk-delete-messages
     pub fn delete_messages(
         &self,
         channel_id: ChannelId,
@@ -764,6 +854,47 @@ impl Client {
         DeleteMessages::new(self, channel_id, message_ids)
     }
 
+    /// Update a message by [`ChannelId`] and [`MessageId`].
+    ///
+    /// You can pass `None` to any of the methods to remove the associated field.
+    /// For example, if you have a message with an embed you want to remove, you can
+    /// use `.[embed](None)` to remove the embed.
+    ///
+    /// # Examples
+    ///
+    /// Replace the content with `"test update"`:
+    ///
+    /// ```rust,no_run
+    /// use twilight_http::Client;
+    /// use twilight_model::id::{ChannelId, MessageId};
+    ///
+    /// # #[tokio::main]
+    /// # async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
+    /// let client = Client::new("my token");
+    /// client.update_message(ChannelId(1), MessageId(2))
+    ///     .content("test update".to_owned())?
+    ///     .await?;
+    /// # Ok(()) }
+    /// ```
+    ///
+    /// Remove the message's content:
+    ///
+    /// ```rust,no_run
+    /// # use twilight_http::Client;
+    /// # use twilight_model::id::{ChannelId, MessageId};
+    /// #
+    /// # #[tokio::main]
+    /// # async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
+    /// # let client = Client::new("my token");
+    /// client.update_message(ChannelId(1), MessageId(2))
+    ///     .content(None)?
+    ///     .await?;
+    /// # Ok(()) }
+    /// ```
+    ///
+    /// [`ChannelId`]: ../../twilight_model/id/struct.ChannelId.html
+    /// [`MessageId`]: ../../twilight_model/id/struct.MessageId.html
+    /// [embed]: #method.embed
     pub fn update_message(
         &self,
         channel_id: ChannelId,

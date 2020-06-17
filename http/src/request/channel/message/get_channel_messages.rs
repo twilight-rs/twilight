@@ -10,6 +10,7 @@ use twilight_model::{
 };
 
 #[derive(Clone, Debug)]
+/// The error returned if the request is invalid.
 pub enum GetChannelMessagesError {
     /// The maximum number of messages to retrieve is either 0 or more than 100.
     LimitInvalid,
@@ -30,6 +31,46 @@ struct GetChannelMessagesFields {
     limit: Option<u64>,
 }
 
+/// Get channel messages, by [`ChannelId`].
+///
+/// Only one of [`after`], [`around`], and [`before`] can be specified at a time.
+/// Once these are specified, the type returned is [`GetChannelMessagesConfigured`].
+///
+/// If [`limit`] is unspecified, the default set by Discord is 50.
+///
+/// # Examples
+///
+/// ```rust,no_run
+/// use twilight_http::Client;
+/// use twilight_model::id::{ChannelId, MessageId};
+///
+/// # #[tokio::main]
+/// # async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
+/// let client = Client::new("my token");
+/// let channel_id = ChannelId(123);
+/// let message_id = MessageId(234);
+///
+/// let messages = client
+///     .channel_messages(channel_id)
+///     .before(message_id)
+///     .limit(6u64)?
+///     .await?;
+///
+/// # Ok(()) }
+/// ```
+///
+/// # Errors
+///
+/// Returns [`GetChannelMessages::LimitInvalid`] if the amount is less than 1 or greater than 100.
+///
+/// [`ChannelId`]: ../../../../../twilight_model/id/struct.ChannelId.html
+/// [`after`]: struct.GetChannelMessages.html#method.after
+/// [`around`]: struct.GetChannelMessages.html#method.around
+/// [`before`]: struct.GetChannelMessages.html#method.before
+/// [`GetChannelMessagesConfigured`]:
+/// ../get_channel_messages_configured/struct.GetChannelMessagesConfigured.html
+/// [`limit`]: struct.GetChannelMessages.html#method.limit
+/// [`GetChannelMessages::LimitInvalid`]: enum.GetChannelMessages.html#variant.LimitInvalid
 pub struct GetChannelMessages<'a> {
     channel_id: ChannelId,
     fields: GetChannelMessagesFields,
@@ -86,8 +127,8 @@ impl<'a> GetChannelMessages<'a> {
     ///
     /// # Errors
     ///
-    /// Returns [`GetChannelMessages::LimitInvalid`] if the
-    /// amount is greater than 21600.
+    /// Returns [`GetChannelMessages::LimitInvalid`] if the amount is less than 1 or greater than
+    /// 100.
     ///
     /// [`GetChannelMessages::LimitInvalid`]: enum.GetChannelMessages.html#variant.LimitInvalid
     pub fn limit(mut self, limit: u64) -> Result<Self, GetChannelMessagesError> {

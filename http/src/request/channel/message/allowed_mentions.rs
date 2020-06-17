@@ -1,18 +1,23 @@
 use super::CreateMessage;
 use twilight_model::id::{RoleId, UserId};
 
+/// Whether or not the section will be parsed.
 #[derive(Clone, Debug, Eq, Hash, PartialEq)]
 pub struct Parsed;
 
+/// A vec of explicit users to be parsed.
 #[derive(Clone, Debug, Eq, Hash, PartialEq)]
 pub struct ExplicitUser(Vec<UserId>);
 
+/// A vec of explicit roles to be parsed.
 #[derive(Clone, Debug, Eq, Hash, PartialEq)]
 pub struct ExplicitRole(Vec<RoleId>);
 
+/// Not currently specified.
 #[derive(Clone, Debug, Eq, Hash, PartialEq)]
 pub struct Unspecified;
 
+/// Parse types.
 #[derive(Clone, Debug, Eq, Hash, PartialEq, serde::Deserialize, serde::Serialize)]
 #[serde(rename_all = "lowercase")]
 pub enum ParseTypes {
@@ -21,6 +26,7 @@ pub enum ParseTypes {
     Everyone,
 }
 
+/// Stores the allowed mentions.
 #[derive(serde::Deserialize, serde::Serialize, Clone, Default, Debug, Eq, Hash, PartialEq)]
 #[must_use = "It will not be added unless `build()` is called."]
 pub struct AllowedMentions {
@@ -75,6 +81,20 @@ impl VisitAllowedMentionsRoles for ExplicitRole {
     }
 }
 
+/// A builder for allowed mentions.
+///
+/// # Example
+///
+/// ```rust,no_run
+/// use twilight_http::request::channel::message::allowed_mentions::AllowedMentionsBuilder;
+/// # #[tokio::main]
+/// # async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
+/// let mut allowed_mentions = AllowedMentionsBuilder::new()
+///     .parse_everyone()
+///     .parse_users()
+///     .build_solo();
+/// # Ok(()) }
+/// ```
 pub struct AllowedMentionsBuilder<'a, E, U, R> {
     create_message: Option<CreateMessage<'a>>,
     e: E,
@@ -92,6 +112,7 @@ impl<'a> AllowedMentionsBuilder<'a, Unspecified, Unspecified, Unspecified> {
         }
     }
 
+    /// Create the builder.
     pub fn new() -> Self {
         Self {
             create_message: None,
@@ -109,6 +130,7 @@ impl<'a> Default for AllowedMentionsBuilder<'a, Unspecified, Unspecified, Unspec
 }
 
 impl<'a, U, R> AllowedMentionsBuilder<'a, Unspecified, U, R> {
+    /// Enable parsing for the `@everyone` and `@here` tags.
     pub fn parse_everyone(self) -> AllowedMentionsBuilder<'a, Parsed, U, R> {
         AllowedMentionsBuilder {
             create_message: self.create_message,
@@ -120,6 +142,7 @@ impl<'a, U, R> AllowedMentionsBuilder<'a, Unspecified, U, R> {
 }
 
 impl<'a, E, R> AllowedMentionsBuilder<'a, E, Unspecified, R> {
+    /// Enable parsing for all user tags.
     pub fn parse_users(self) -> AllowedMentionsBuilder<'a, E, Parsed, R> {
         AllowedMentionsBuilder {
             create_message: self.create_message,
@@ -129,6 +152,7 @@ impl<'a, E, R> AllowedMentionsBuilder<'a, E, Unspecified, R> {
         }
     }
 
+    /// Enable parsing for specific user tags.
     pub fn parse_specific_users(
         self,
         u: impl IntoIterator<Item = UserId>,
@@ -144,6 +168,7 @@ impl<'a, E, R> AllowedMentionsBuilder<'a, E, Unspecified, R> {
 }
 
 impl<'a, E, U> AllowedMentionsBuilder<'a, E, U, Unspecified> {
+    /// Enable parsing for all role tags.
     pub fn parse_roles(self) -> AllowedMentionsBuilder<'a, E, U, Parsed> {
         AllowedMentionsBuilder {
             create_message: self.create_message,
@@ -153,6 +178,7 @@ impl<'a, E, U> AllowedMentionsBuilder<'a, E, U, Unspecified> {
         }
     }
 
+    /// Enable parsing for specific role tags.
     pub fn parse_specific_roles(
         self,
         r: impl IntoIterator<Item = RoleId>,
@@ -168,6 +194,10 @@ impl<'a, E, U> AllowedMentionsBuilder<'a, E, U, Unspecified> {
 }
 
 impl<'a, E, U> AllowedMentionsBuilder<'a, E, U, ExplicitRole> {
+    /// Enable parsing for more specific role tags.
+    ///
+    /// If there are already some specific `RoleId`s in this builder, extend them with the content
+    /// of `r`.
     pub fn parse_specific_roles(mut self, r: impl IntoIterator<Item = RoleId>) -> Self {
         self.r.0.extend(r);
         AllowedMentionsBuilder {
@@ -180,6 +210,10 @@ impl<'a, E, U> AllowedMentionsBuilder<'a, E, U, ExplicitRole> {
 }
 
 impl<'a, E, R> AllowedMentionsBuilder<'a, E, ExplicitUser, R> {
+    /// Enable parsing for more specific user tags.
+    ///
+    /// If there are already some specific `UserId`s in this builder, extend them with the content
+    /// of `u`.
     pub fn parse_specific_users(mut self, u: impl IntoIterator<Item = UserId>) -> Self {
         self.u.0.extend(u);
         AllowedMentionsBuilder {
@@ -198,6 +232,9 @@ impl<
         R: VisitAllowedMentionsRoles,
     > AllowedMentionsBuilder<'a, E, U, R>
 {
+    /// Return a [`CreateMessage`] struct with the specified `allowed_mentions`.
+    ///
+    /// [`CreateMessage`]: ../create_message/struct.CreateMessage.html
     pub fn build(self) -> CreateMessage<'a> {
         match self.create_message {
             Some(mut builder) => {
@@ -214,6 +251,9 @@ impl<
         }
     }
 
+    /// Build a raw [`AllowedMentions`].
+    ///
+    /// [`AllowedMentions`]: ./struct.AllowedMentions.html
     pub fn build_solo(self) -> AllowedMentions {
         let mut m = AllowedMentions::default();
 
