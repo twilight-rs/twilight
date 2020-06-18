@@ -176,11 +176,9 @@ impl<'a> CreateMessage<'a> {
         self
     }
 
-    /// JSON encoded body of any additional request fields.
+    /// JSON encoded body of any additional request fields.  See [Discord Docs/Create Message]
     ///
-    /// Taken from Discord Docs [`Create Message`]
-    ///
-    /// [`Create Message`]: https://discord.com/developers/docs/resources/channel#create-message-params
+    /// [Discord Docs/Create Message]: https://discord.com/developers/docs/resources/channel#create-message-params
     pub fn payload_json(mut self, payload_json: impl Into<Vec<u8>>) -> Self {
         self.fields.payload_json.replace(payload_json.into());
 

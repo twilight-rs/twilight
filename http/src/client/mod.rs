@@ -388,6 +388,7 @@ impl Client {
         UpdateChannelPermission::new(self, channel_id, allow, deny)
     }
 
+    /// Get all the webhooks of a channel.
     pub fn channel_webhooks(&self, channel_id: ChannelId) -> GetChannelWebhooks<'_> {
         GetChannelWebhooks::new(self, channel_id)
     }
@@ -1046,10 +1047,29 @@ impl Client {
         GetVoiceRegions::new(self)
     }
 
+    /// Get a webhook by ID.
     pub fn webhook(&self, id: WebhookId) -> GetWebhook<'_> {
         GetWebhook::new(self, id)
     }
 
+    /// Create a webhook in a channel.
+    ///
+    /// # Examples
+    ///
+    /// ```rust,no_run
+    /// # use twilight_http::Client;
+    /// # use twilight_model::id::ChannelId;
+    /// #
+    /// # #[tokio::main]
+    /// # async fn main() -> Result<(), Box<dyn std::error::Error>> {
+    /// # let client = Client::new("my token");
+    /// let channel_id = ChannelId(123);
+    ///
+    /// let webhook = client
+    ///     .create_webhook(channel_id, "Twily Bot")
+    ///     .await?;
+    /// # Ok(()) }
+    /// ```
     pub fn create_webhook(
         &self,
         channel_id: ChannelId,
@@ -1058,24 +1078,41 @@ impl Client {
         CreateWebhook::new(self, channel_id, name)
     }
 
+    /// Delete a webhook by its ID.
     pub fn delete_webhook(&self, id: WebhookId) -> DeleteWebhook<'_> {
         DeleteWebhook::new(self, id)
     }
 
+    /// Delete a webhook by its URL.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`UrlError::SegmentMissing`] if the URL can not be parsed.
+    ///
+    /// [`UrlError::SegmentMissing`]: ../error/enum.UrlError.html#variant.SegmentMissing
     pub fn delete_webhook_from_url(&self, url: impl AsRef<str>) -> Result<DeleteWebhook<'_>> {
         let (id, _) = parse_webhook_url(url)?;
         Ok(self.delete_webhook(id))
     }
 
+    /// Update a webhook by ID.
     pub fn update_webhook(&self, webhook_id: WebhookId) -> UpdateWebhook<'_> {
         UpdateWebhook::new(self, webhook_id)
     }
 
+    /// Update a webhook by its URL.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`UrlError::SegmentMissing`] if the URL can not be parsed.
+    ///
+    /// [`UrlError::SegmentMissing`]: ../error/enum.UrlError.html#variant.SegmentMissing
     pub fn update_webhook_from_url(&self, url: impl AsRef<str>) -> Result<UpdateWebhook<'_>> {
         let (id, _) = parse_webhook_url(url)?;
         Ok(self.update_webhook(id))
     }
 
+    /// Update a webhook, with a token, by ID.
     pub fn update_webhook_with_token(
         &self,
         webhook_id: WebhookId,
@@ -1084,6 +1121,13 @@ impl Client {
         UpdateWebhookWithToken::new(self, webhook_id, token)
     }
 
+    /// Update a webhook, with a token, by its URL.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`UrlError::SegmentMissing`] if the URL can not be parsed.
+    ///
+    /// [`UrlError::SegmentMissing`]: ../error/enum.UrlError.html#variant.SegmentMissing
     pub fn update_webhook_with_token_from_url(
         &self,
         url: impl AsRef<str>,
@@ -1092,6 +1136,31 @@ impl Client {
         Ok(self.update_webhook_with_token(id, token.ok_or(UrlError::SegmentMissing)?))
     }
 
+    /// Executes a webhook, sending a message to its channel.
+    ///
+    /// You can only specify one of [`content`], [`embeds`], or [`file`].
+    ///
+    /// # Examples
+    ///
+    /// ```rust,no_run
+    /// # use twilight_http::Client;
+    /// # use twilight_model::id::WebhookId;
+    /// #
+    /// # #[tokio::main]
+    /// # async fn main() -> Result<(), Box<dyn std::error::Error>> {
+    /// # let client = Client::new("my token");
+    /// let id = WebhookId(432);
+    /// #
+    /// let webhook = client
+    ///     .execute_webhook(id, "webhook token")
+    ///     .content("Pinkie...")
+    ///     .await?;
+    /// # Ok(()) }
+    /// ```
+    ///
+    /// [`content`]: ../request/channel/webhook/struct.ExecuteWebhook.html#method.content
+    /// [`embeds`]: ../request/channel/webhook/struct.ExecuteWebhook.html#method.embeds
+    /// [`file`]: ../request/channel/webhook/struct.ExecuteWebhook.html#method.file
     pub fn execute_webhook(
         &self,
         webhook_id: WebhookId,
@@ -1100,6 +1169,13 @@ impl Client {
         ExecuteWebhook::new(self, webhook_id, token)
     }
 
+    /// Execute a webhook by its URL.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`UrlError::SegmentMissing`] if the URL can not be parsed.
+    ///
+    /// [`UrlError::SegmentMissing`]: ../error/enum.UrlError.html#variant.SegmentMissing
     pub fn execute_webhook_from_url(&self, url: impl AsRef<str>) -> Result<ExecuteWebhook<'_>> {
         let (id, token) = parse_webhook_url(url)?;
         Ok(self.execute_webhook(id, token.ok_or(UrlError::SegmentMissing)?))

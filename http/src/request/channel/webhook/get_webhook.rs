@@ -6,6 +6,7 @@ struct GetWebhookFields {
     token: Option<String>,
 }
 
+/// Get a webhook by ID.
 pub struct GetWebhook<'a> {
     fields: GetWebhookFields,
     fut: Option<PendingOption<'a>>,
@@ -23,6 +24,7 @@ impl<'a> GetWebhook<'a> {
         }
     }
 
+    /// Specify the token for auth, if not already authenticated with a Bot token.
     pub fn token(mut self, token: impl Into<String>) -> Self {
         self.fields.token.replace(token.into());
 
