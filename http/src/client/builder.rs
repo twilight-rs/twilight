@@ -8,6 +8,9 @@ use reqwest::{Client as ReqwestClient, ClientBuilder as ReqwestClientBuilder, Pr
 use std::{sync::Arc, time::Duration};
 
 #[derive(Clone, Debug)]
+/// A builder for [`Client`].
+///
+/// [`Client`]: ../struct.Client.html
 pub struct ClientBuilder {
     pub(crate) proxy: Option<Proxy>,
     pub(crate) proxy_http: bool,
@@ -19,15 +22,20 @@ pub struct ClientBuilder {
 }
 
 impl ClientBuilder {
+    /// Create a new builder to create a [`Client`].
+    ///
+    /// [`Client`]: ../struct.Client.html
     pub fn new() -> Self {
         Self::default()
     }
 
-    /// Build the Client
+    /// Build the [`Client`].
     ///
     /// # Errors
     ///
     /// Errors if `reqwest` fails to build the client.
+    ///
+    /// [`Client`]: ../struct.Client.html
     pub fn build(self) -> Result<Client> {
         let mut builder = ReqwestClientBuilder::new().timeout(self.timeout);
 
@@ -51,6 +59,8 @@ impl ClientBuilder {
         })
     }
 
+    /// Set the default allowed mentions setting to use on all messages sent through the HTTP
+    /// client.
     pub fn default_allowed_mentions(&mut self, allowed_mentions: AllowedMentions) -> &mut Self {
         self.default_allowed_mentions.replace(allowed_mentions);
 

@@ -10,7 +10,7 @@ use twilight_model::{
 };
 
 #[derive(Clone, Debug)]
-/// The error created when a message can not be updated.
+/// The error created when a message can not be updated as configured.
 pub enum UpdateMessageError {
     /// Returned when the content is over 2000 UTF-16 characters.
     ContentInvalid,

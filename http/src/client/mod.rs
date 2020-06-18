@@ -55,6 +55,42 @@ impl Debug for State {
 }
 
 /// Twilight's http client.
+///
+/// Almost all of the client methods require authentication, and as such, the client must be
+/// supplied with a Discord Token. Get yours [here].
+///
+/// # Examples
+///
+/// Create a client called `client`:
+/// ```rust,no_run
+/// use twilight_http::Client;
+///
+/// # #[tokio::main]
+/// # async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
+/// let client = Client::new("my token");
+/// # Ok(()) }
+/// ```
+///
+/// Use [`ClientBuilder`] to create a client called `client`, with a shorter timeout:
+/// ```rust,no_run
+/// use twilight_http::Client;
+/// use std::time::Duration;
+///
+/// # #[tokio::main]
+/// # async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
+/// let mut client_builder = Client::builder();
+/// client_builder
+///     .token("my token")
+///     .timeout(Duration::from_secs(5));
+/// let client = client_builder.build()?;
+/// # Ok(()) }
+/// ```
+///
+/// All the examples on this page assume you have already created a client, and have named it
+/// `client`.
+///
+/// [here]: https://discord.com/developers/applications
+/// [`ClientBuilder`]: ../struct.ClientBuilder.html
 #[derive(Clone, Debug)]
 pub struct Client {
     state: Arc<State>,
@@ -94,6 +130,9 @@ impl Client {
     }
 
     /// Retrieve an immutable reference to the token used by the client.
+    ///
+    /// If the initial token provided is not prefixed with `Bot `, it will be, and this method
+    /// reflects that.
     pub fn token(&self) -> Option<&str> {
         self.state.token.as_ref().map(AsRef::as_ref)
     }
@@ -138,6 +177,24 @@ impl Client {
         AddRoleToMember::new(self, guild_id, user_id, role_id)
     }
 
+    /// Get the audit log for a guild.
+    ///
+    /// # Examples
+    ///
+    /// ```rust,no_run
+    /// # use twilight_http::Client;
+    /// use twilight_model::id::GuildId;
+    ///
+    /// # #[tokio::main]
+    /// # async fn main() -> Result<(), Box<dyn std::error::Error>> {
+    /// # let client = Client::new("token");
+    /// let guild_id = GuildId(101);
+    /// let audit_log = client
+    /// // not done
+    ///     .audit_log(guild_id)
+    ///     .await?;
+    /// # Ok(()) }
+    /// ```
     pub fn audit_log(&self, guild_id: GuildId) -> GetAuditLog<'_> {
         GetAuditLog::new(self, guild_id)
     }
@@ -300,11 +357,12 @@ impl Client {
     /// let client = Client::new("my token");
     /// let channel_id = ChannelId(123);
     /// let message_id = MessageId(234);
+    /// let limit: u64 = 6;
     ///
     /// let messages = client
     ///     .channel_messages(channel_id)
     ///     .before(message_id)
-    ///     .limit(6u64)?
+    ///     .limit(limit)?
     ///     .await?;
     ///
     /// # Ok(()) }
@@ -388,8 +446,8 @@ impl Client {
     ///
     /// # Examples
     ///
-    /// Get the first 25 guilds with an ID after `300000000000000000` and before
-    /// `400000000000000000`:
+    /// Get the first 25 guilds with an ID after `300` and before
+    /// `400`:
     ///
     /// ```rust,no_run
     /// use twilight_http::Client;
@@ -399,8 +457,8 @@ impl Client {
     /// # async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
     /// let client = Client::new("my token");
     ///
-    /// let after = GuildId(300000000000000000);
-    /// let before = GuildId(400000000000000000);
+    /// let after = GuildId(300);
+    /// let before = GuildId(400);
     /// let guilds = client.current_user_guilds()
     ///     .after(after)
     ///     .before(before)
@@ -440,7 +498,7 @@ impl Client {
     /// # async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
     /// let client = Client::new("my token");
     ///
-    /// let guild_id = GuildId(377840580245585931);
+    /// let guild_id = GuildId(100);
     ///
     /// client.emojis(guild_id).await?;
     /// # Ok(()) }
@@ -463,8 +521,8 @@ impl Client {
     /// # async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
     /// let client = Client::new("my token");
     ///
-    /// let guild_id = GuildId(377840580245585931);
-    /// let emoji_id = EmojiId(114941315417899012);
+    /// let guild_id = GuildId(50);
+    /// let emoji_id = EmojiId(100);
     ///
     /// client.emoji(guild_id, emoji_id).await?;
     /// # Ok(()) }

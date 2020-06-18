@@ -63,26 +63,28 @@ impl<'a> CreateInvite<'a> {
         self
     }
 
-    /// Set the maximum uses for an invite.
+    /// Set the maximum uses for an invite, or 0 for infinite.
     ///
-    /// Discord defaults this to infinite.
+    /// Discord defaults this to 0, or infinite.
     pub fn max_uses(mut self, max_uses: u64) -> Self {
         self.fields.max_uses.replace(max_uses);
 
         self
     }
 
-    /// Set whether the invite will grant temporary membership.
+    /// Specify true if the invite should grant temporary membership. Defaults to false.
     pub fn temporary(mut self, temporary: bool) -> Self {
         self.fields.temporary.replace(temporary);
 
         self
     }
 
-    /// If true, don't try to reuse a similar invite (useful for creating many unique one time use
-    /// invites) ([Discord Docs])
+    /// Specify true if the invite should be unique. Defaults to false.
     ///
-    /// [Discord Docs]: https://discord.com/developers/docs/resources/channel#create-channel-invite
+    /// If true, don't try to reuse a similar invite (useful for creating many unique one time use
+    /// invites). Refer to [the discord docs] for more information.
+    ///
+    /// [the discord docs]: https://discord.com/developers/docs/resources/channel#create-channel-invite
     pub fn unique(mut self, unique: bool) -> Self {
         self.fields.unique.replace(unique);
 

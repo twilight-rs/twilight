@@ -16,7 +16,7 @@ use twilight_model::{
 };
 
 #[derive(Clone, Debug)]
-/// The error created when a messsage can not send.
+/// The error created when a messsage can not be created as configured.
 pub enum CreateMessageError {
     /// Returned when the content is over 2000 UTF-16 characters.
     ContentInvalid,
@@ -121,7 +121,8 @@ impl<'a> CreateMessage<'a> {
 
     /// Set the embed of the message.
     ///
-    /// Embed total character length must not exceed 6000 characters.
+    /// Embed total character length must not exceed 6000 characters. Additionally, the internal
+    /// fields also have character limits. Refer to [the discord docs] for more information.
     ///
     /// # Examples
     ///
@@ -131,6 +132,7 @@ impl<'a> CreateMessage<'a> {
     ///
     /// Returns [`CreateMessageError::EmbedTooLarge`] if the embed is too large.
     ///
+    /// [the discord docs]: https://discord.com/developers/docs/resources/channel#embed-limits
     /// [`EmbedBuilder`]: ../../../../../twilight_builders/embed/struct.EmbedBuilder.html
     /// [`CreateMessageError::EmbedTooLarge`]: enum.CreateMessageError.html#variant.EmbedTooLarge
     pub fn embed(mut self, embed: Embed) -> Result<Self, CreateMessageError> {
