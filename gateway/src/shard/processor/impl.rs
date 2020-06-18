@@ -12,7 +12,7 @@ use super::{
 
 use crate::listener::Listeners;
 use twilight_model::gateway::{
-    event::{shard::{Connected, Connecting, Disconnected, Reconnecting, Resuming}, DispatchEvent, Event, GatewayEvent},
+    event::{shard::{Connected, Connecting, Disconnected, Identifying, Reconnecting, Resuming}, DispatchEvent, Event, GatewayEvent},
     payload::{
         identify::{Identify, IdentifyInfo, IdentifyProperties},
         resume::Resume,
@@ -183,6 +183,10 @@ impl ShardProcessor {
             token: self.config.token().to_owned(),
             v: 6,
         });
+        emit::event(self.listeners.clone(), Event::ShardIdentifying(Identifying {
+            shard_id: self.config.shard()[0],
+            shard_total: self.config.shard()[1],
+        }));
 
         self.send(identify).await
     }
@@ -243,7 +247,7 @@ impl ShardProcessor {
                     // Safe to unwrap so here as we have just checked that
                     // it is some.
                     let (seq, id) = self.resume.take().unwrap();
-                    warn!("Resumeing with ({}, {})!", seq, id);
+                    warn!("Resumeng with ({}, {})!", seq, id);
                     let payload = Resume::new(seq, &id, self.config.token());
 
                     // Set id so it is correct for next resume.
