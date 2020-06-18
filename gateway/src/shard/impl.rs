@@ -13,6 +13,7 @@ use futures_util::{
 };
 
 use log::debug;
+use once_cell::sync::OnceCell;
 use std::sync::atomic::Ordering;
 use std::sync::Arc;
 use tokio::sync::watch::Receiver as WatchReceiver;
@@ -74,13 +75,16 @@ pub struct ResumeSession {
     pub sequence: u64,
 }
 
-#[derive(Clone, Debug)]
-pub struct Shard {
+#[derive(Debug)]
+struct ShardRef {
     config: Arc<ShardConfig>,
     listeners: Listeners<Event>,
-    processor_handle: Option<AbortHandle>,
-    session: Option<WatchReceiver<Arc<Session>>>,
+    processor_handle: OnceCell<AbortHandle>,
+    session: OnceCell<WatchReceiver<Arc<Session>>>,
 }
+
+#[derive(Clone, Debug)]
+pub struct Shard(Arc<ShardRef>);
 
 impl Shard {
     /// Creates a new shard, which will automatically connect to the gateway.
@@ -113,17 +117,17 @@ impl Shard {
     fn _new(config: ShardConfig) -> Self {
         let config = Arc::new(config);
 
-        Self {
+        Self(Arc::new(ShardRef {
             config,
             listeners: Listeners::default(),
-            processor_handle: None,
-            session: None,
-        }
+            processor_handle: OnceCell::new(),
+            session: OnceCell::new(),
+        }))
     }
 
     /// Returns an immutable reference to the configuration used for this client.
     pub fn config(&self) -> &ShardConfig {
-        &self.config
+        &self.0.config
     }
 
     /// Start the shard, connecting it to the gateway and starting the process
@@ -134,6 +138,7 @@ impl Shard {
     /// Errors if the `ShardProcessor` could not be started.
     pub async fn start(&mut self) -> Result<()> {
         let url = self
+            .0
             .config
             .http_client()
             .gateway()
@@ -142,9 +147,9 @@ impl Shard {
             .map_err(|source| Error::GettingGatewayUrl { source })?
             .url;
 
-        let listeners = self.listeners.clone();
+        let listeners = self.0.listeners.clone();
         let (processor, wrx) =
-            ShardProcessor::new(Arc::clone(&self.config), url, listeners).await?;
+            ShardProcessor::new(Arc::clone(&self.0.config), url, listeners).await?;
         let (fut, handle) = future::abortable(processor.run());
 
         tokio::spawn(async move {
@@ -153,8 +158,9 @@ impl Shard {
             debug!("[Shard] Shard processor future ended");
         });
 
-        self.processor_handle.replace(handle);
-        self.session.replace(wrx);
+        // We know that these haven't been set, so we can ignore this.
+        let _ = self.0.processor_handle.set(handle);
+        let _ = self.0.session.set(wrx);
 
         Ok(())
     }
@@ -170,7 +176,7 @@ impl Shard {
     /// [`EventType::SHARD_PAYLOAD`]: events/struct.EventType.html#const.SHARD_PAYLOAD
     /// [`some_events`]: #method.some_events
     pub async fn events(&self) -> impl Stream<Item = Event> {
-        let rx = self.listeners.add(EventTypeFlags::default()).await;
+        let rx = self.0.listeners.add(EventTypeFlags::default()).await;
 
         Events::new(EventTypeFlags::default(), rx)
     }
@@ -208,7 +214,7 @@ impl Shard {
     /// # Ok(()) }
     /// ```
     pub async fn some_events(&self, event_types: EventTypeFlags) -> impl Stream<Item = Event> {
-        let rx = self.listeners.add(event_types).await;
+        let rx = self.0.listeners.add(event_types).await;
 
         Events::new(event_types, rx)
     }
@@ -246,7 +252,7 @@ impl Shard {
     ///
     /// [`Error::Shutdown`]: error/enum.Error.html
     pub fn session(&self) -> Result<Arc<Session>> {
-        let session = self.session.as_ref().ok_or_else(|| Error::Stopped)?;
+        let session = self.0.session.get().ok_or(Error::Stopped)?;
 
         Ok(Arc::clone(&session.borrow()))
     }
@@ -301,9 +307,9 @@ impl Shard {
     ///
     /// This will cleanly close the connection, causing discord to end the session and show the bot offline
     pub async fn shutdown(&self) {
-        self.listeners.remove_all().await;
+        self.0.listeners.remove_all().await;
 
-        if let Some(processor_handle) = self.processor_handle.as_ref() {
+        if let Some(processor_handle) = self.0.processor_handle.get() {
             processor_handle.abort();
         }
 
@@ -316,9 +322,9 @@ impl Shard {
 
     /// This will shut down the shard in a resumable way and return shard id and optional session info to resume with later if this shard is resumable
     pub async fn shutdown_resumable(&self) -> (u64, Option<ResumeSession>) {
-        self.listeners.remove_all().await;
+        self.0.listeners.remove_all().await;
 
-        if let Some(processor_handle) = self.processor_handle.as_ref() {
+        if let Some(processor_handle) = self.0.processor_handle.get() {
             processor_handle.abort();
         }
 
