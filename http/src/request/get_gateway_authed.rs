@@ -7,7 +7,7 @@ pub struct GetGatewayAuthed<'a> {
 }
 
 impl<'a> GetGatewayAuthed<'a> {
-    pub fn new(http: &'a Client) -> Self {
+    pub(crate) fn new(http: &'a Client) -> Self {
         Self { fut: None, http }
     }
 

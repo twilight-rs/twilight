@@ -24,7 +24,7 @@ pub struct CreateInvite<'a> {
 }
 
 impl<'a> CreateInvite<'a> {
-    pub fn new(http: &'a Client, channel_id: ChannelId) -> Self {
+    pub(crate) fn new(http: &'a Client, channel_id: ChannelId) -> Self {
         Self {
             channel_id,
             fields: CreateInviteFields::default(),
