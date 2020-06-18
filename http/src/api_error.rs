@@ -495,18 +495,21 @@ mod tests {
             retry_after: 6457,
         };
 
-        serde_test::assert_tokens(&expected, &[
-            Token::Struct {
-                name: "RatelimitedApiError",
-                len: 3,
-            },
-            Token::Str("global"),
-            Token::Bool(true),
-            Token::Str("message"),
-            Token::Str("You are being rate limited."),
-            Token::Str("retry_after"),
-            Token::U64(6457),
-            Token::StructEnd,
-        ]);
+        serde_test::assert_tokens(
+            &expected,
+            &[
+                Token::Struct {
+                    name: "RatelimitedApiError",
+                    len: 3,
+                },
+                Token::Str("global"),
+                Token::Bool(true),
+                Token::Str("message"),
+                Token::Str("You are being rate limited."),
+                Token::Str("retry_after"),
+                Token::U64(6457),
+                Token::StructEnd,
+            ],
+        );
     }
 }
