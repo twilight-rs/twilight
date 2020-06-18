@@ -898,11 +898,13 @@ impl Client {
                 source,
             })?;
 
-        if let ErrorCode::Other(num) = error.code {
-            debug!(
-                "Got an unknown API error code variant: {}; {:?}",
-                num, error
-            );
+        if let ApiError::General(ref general) = error {
+            if let ErrorCode::Other(num) = general.code {
+                debug!(
+                    "Got an unknown API error code variant: {}; {:?}",
+                    num, error
+                );
+            }
         }
 
         Err(Error::Response {
