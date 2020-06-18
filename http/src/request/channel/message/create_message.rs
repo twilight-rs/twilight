@@ -151,6 +151,12 @@ impl<'a> CreateMessage<'a> {
     }
 
     /// Attach a new file to the message.
+    ///
+    /// If the file is an image, see [Discord Docs/Image Data] for more information. It must then
+    /// be a Data URI, in the form of `data:image/{type};base64,{data}` where `{type}` is the image
+    /// MIME type and `{data}` is the base64-encoded image.
+    ///
+    /// [Discord Docs/Image Data]: https://discord.com/developers/docs/reference#image-data
     pub fn attachment(mut self, name: impl Into<String>, file: impl Into<Body>) -> Self {
         self.attachments.insert(name.into(), file.into());
 
