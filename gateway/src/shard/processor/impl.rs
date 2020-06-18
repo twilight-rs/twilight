@@ -262,7 +262,7 @@ impl ShardProcessor {
                     // Safe to unwrap so here as we have just checked that
                     // it is some.
                     let (seq, id) = self.resume.take().unwrap();
-                    warn!("Resumeng with ({}, {})!", seq, id);
+                    warn!("Resuming with ({}, {})!", seq, id);
                     let payload = Resume::new(seq, &id, self.config.token());
 
                     // Set id so it is correct for next resume.
