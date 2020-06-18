@@ -32,7 +32,7 @@
 //!
 //! ```toml
 //! [dependencies]
-//! twilight-gateway = { default-features = false, features = ["simd-json"], git = "https://github.com/twilight-rs/twilight" }
+//! twilight-gateway = { branch = "trunk", default-features = false, features = ["simd-json"], git = "https://github.com/twilight-rs/twilight" }
 //! ```
 //!
 //! [simd-json]: https://github.com/simd-lite/simd-json

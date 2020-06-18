@@ -1,6 +1,6 @@
 use futures::future;
 use std::error::Error;
-use twilight_http::client::{config::Proxy, Client};
+use twilight_http::client::{Client, Proxy};
 use twilight_model::id::ChannelId;
 
 #[tokio::main]

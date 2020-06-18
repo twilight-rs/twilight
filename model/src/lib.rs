@@ -49,14 +49,14 @@
 //!
 //! ```toml
 //! [dependencies]
-//! twilight-model = { default-features = false, git = "https://github.com/twilight-rs/twilight" }
+//! twilight-model = { branch = "trunk", default-features = false, git = "https://github.com/twilight-rs/twilight" }
 //! ```
 //!
 //! ## License
 //!
 //! [ISC][LICENSE.md]
 //!
-//! [LICENSE.md]: https://github.com/twilight-rs/twilight/blob/master/LICENSE.md
+//! [LICENSE.md]: https://github.com/twilight-rs/twilight/blob/trunk/LICENSE.md
 //! [`twilight`]: https://docs.rs/twilight
 //! [license badge]: https://img.shields.io/badge/license-ISC-blue.svg?style=flat-square
 //! [license link]: https://opensource.org/licenses/ISC

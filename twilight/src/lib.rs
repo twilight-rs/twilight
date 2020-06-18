@@ -21,7 +21,7 @@
 //! Add this to your `Cargo.toml`'s `[dependencies]` section:
 //!
 //! ```toml
-//! twilight = { git = "https://github.com/twilight-rs/twilight.git" }
+//! twilight = { branch = "trunk", git = "https://github.com/twilight-rs/twilight.git" }
 //! ```
 //!
 //! ## Core Crates
@@ -183,13 +183,13 @@
 //!
 //! All first-party crates are licensed under [ISC][LICENSE.md]
 //!
-//! [LICENSE.md]: https://github.com/twilight-rs/twilight/blob/master/LICENSE.md
+//! [LICENSE.md]: https://github.com/twilight-rs/twilight/blob/trunk/LICENSE.md
 //! [Lavalink]: https://github.com/Frederikam/Lavalink
 //! [`http`]: https://crates.io/crates/http
 //! [docs:discord:sharding]: https://discord.com/developers/docs/topics/gateway#sharding
 //! [license badge]: https://img.shields.io/badge/license-ISC-blue.svg?style=flat-square
 //! [license link]: https://opensource.org/licenses/ISC
-//! [logo]: https://raw.githubusercontent.com/twilight-rs/twilight/master/logo.png
+//! [logo]: https://raw.githubusercontent.com/twilight-rs/twilight/trunk/logo.png
 //! [rust badge]: https://img.shields.io/badge/rust-1.40+%20(stable)-93450a.svg?style=flat-square
 //! [rust link]: https://github.com/rust-lang/rust/milestone/66
 

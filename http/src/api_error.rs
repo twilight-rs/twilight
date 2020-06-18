@@ -407,12 +407,29 @@ impl Serialize for ErrorCode {
 
 #[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
 #[non_exhaustive]
-pub struct ApiError {
+#[serde(untagged)]
+pub enum ApiError {
+    General(GeneralApiError),
+    Ratelimited(RatelimitedApiError),
+}
+
+impl Display for ApiError {
+    fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
+        match self {
+            Self::General(inner) => write!(f, "{}", inner),
+            Self::Ratelimited(inner) => write!(f, "{}", inner),
+        }
+    }
+}
+
+#[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
+#[non_exhaustive]
+pub struct GeneralApiError {
     pub code: ErrorCode,
     pub message: String,
 }
 
-impl Display for ApiError {
+impl Display for GeneralApiError {
     fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
         f.write_fmt(format_args!(
             "Error code {}: {}",
@@ -422,14 +439,34 @@ impl Display for ApiError {
     }
 }
 
+#[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
+#[non_exhaustive]
+pub struct RatelimitedApiError {
+    pub global: bool,
+    pub message: String,
+    pub retry_after: u64,
+}
+
+impl Display for RatelimitedApiError {
+    fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
+        f.write_str("Got ")?;
+
+        if self.global {
+            f.write_str("global ")?;
+        }
+
+        write!(f, "ratelimited for {}ms", self.retry_after)
+    }
+}
+
 #[cfg(test)]
 mod tests {
-    use super::{ApiError, ErrorCode};
+    use super::{ErrorCode, GeneralApiError, RatelimitedApiError};
     use serde_test::Token;
 
     #[test]
     fn test_api_error_deser() {
-        let expected = ApiError {
+        let expected = GeneralApiError {
             code: ErrorCode::UnknownAccount,
             message: "Unknown account".to_owned(),
         };
@@ -438,13 +475,39 @@ mod tests {
             &expected,
             &[
                 Token::Struct {
-                    name: "ApiError",
+                    name: "GeneralApiError",
                     len: 2,
                 },
                 Token::Str("code"),
                 Token::U64(10001),
                 Token::Str("message"),
                 Token::Str("Unknown account"),
+                Token::StructEnd,
+            ],
+        );
+    }
+
+    #[test]
+    fn test_api_error_ratelimited() {
+        let expected = RatelimitedApiError {
+            global: true,
+            message: "You are being rate limited.".to_owned(),
+            retry_after: 6457,
+        };
+
+        serde_test::assert_tokens(
+            &expected,
+            &[
+                Token::Struct {
+                    name: "RatelimitedApiError",
+                    len: 3,
+                },
+                Token::Str("global"),
+                Token::Bool(true),
+                Token::Str("message"),
+                Token::Str("You are being rate limited."),
+                Token::Str("retry_after"),
+                Token::U64(6457),
                 Token::StructEnd,
             ],
         );
