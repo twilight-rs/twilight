@@ -34,26 +34,24 @@ pub enum Channel {
     Private(PrivateChannel),
 }
 
-#[cfg_attr(
-    feature = "serde-support",
-    derive(serde::Deserialize, serde::Serialize),
-    serde(untagged)
-)]
+#[cfg_attr(feature = "serde-support", derive(serde::Serialize), serde(untagged))]
 #[derive(Clone, Debug, Eq, Hash, PartialEq)]
 pub enum GuildChannel {
-    // Order here matters: the text and voice channel has all the fields that a
-    // category channel has, so we need to make category channels deserialize
-    // last.
-    Voice(VoiceChannel),
-    Text(TextChannel),
     Category(CategoryChannel),
+    Text(TextChannel),
+    Voice(VoiceChannel),
 }
 
 #[cfg(feature = "serde-support")]
 mod if_serde_support {
-    use super::GuildChannel;
-    use crate::id::ChannelId;
+    use super::{CategoryChannel, ChannelType, GuildChannel, TextChannel, VoiceChannel};
+    use crate::id::{ChannelId, MessageId};
+    use serde::{
+        de::{Deserializer, Error as DeError, MapAccess, Visitor},
+        Deserialize,
+    };
     use serde_mappable_seq::Key;
+    use std::fmt::{Formatter, Result as FmtResult};
 
     impl Key<'_, ChannelId> for GuildChannel {
         fn key(&self) -> ChannelId {
@@ -65,15 +63,243 @@ mod if_serde_support {
         }
     }
 
+    #[derive(Deserialize)]
+    #[serde(field_identifier, rename_all = "snake_case")]
+    enum GuildChannelField {
+        Bitrate,
+        GuildId,
+        Id,
+        LastMessageId,
+        LastPinTimestamp,
+        Name,
+        Nsfw,
+        ParentId,
+        PermissionOverwrites,
+        Position,
+        RateLimitPerUser,
+        Topic,
+        Type,
+        UserLimit,
+    }
+
+    struct GuildChannelVisitor;
+
+    impl<'de> Visitor<'de> for GuildChannelVisitor {
+        type Value = GuildChannel;
+
+        fn expecting(&self, f: &mut Formatter<'_>) -> FmtResult {
+            f.write_str("enum GuildChannel")
+        }
+
+        #[allow(clippy::too_many_lines)]
+        fn visit_map<V: MapAccess<'de>>(self, mut map: V) -> Result<Self::Value, V::Error> {
+            const VARIANTS: &[&str] = &[
+                "GuildCategory",
+                "GuildNews",
+                "GuildStore",
+                "GuildText",
+                "GuildVoice",
+            ];
+
+            let mut bitrate = None;
+            let mut guild_id = None;
+            let mut id = None;
+            let mut kind = None;
+            let mut last_message_id: Option<Option<MessageId>> = None;
+            let mut last_pin_timestamp: Option<Option<String>> = None;
+            let mut name = None;
+            let mut nsfw = None;
+            let mut parent_id: Option<Option<ChannelId>> = None;
+            let mut permission_overwrites = None;
+            let mut position = None;
+            let mut rate_limit_per_user = None;
+            let mut topic: Option<Option<String>> = None;
+            let mut user_limit = None;
+
+            while let Some(key) = map.next_key()? {
+                match key {
+                    GuildChannelField::Bitrate => {
+                        if bitrate.is_some() {
+                            return Err(DeError::duplicate_field("bitrate"));
+                        }
+
+                        bitrate = Some(map.next_value()?);
+                    }
+                    GuildChannelField::GuildId => {
+                        if guild_id.is_some() {
+                            return Err(DeError::duplicate_field("guild_id"));
+                        }
+
+                        guild_id = Some(map.next_value()?);
+                    }
+                    GuildChannelField::Id => {
+                        if id.is_some() {
+                            return Err(DeError::duplicate_field("id"));
+                        }
+
+                        id = Some(map.next_value()?);
+                    }
+                    GuildChannelField::Type => {
+                        if kind.is_some() {
+                            return Err(DeError::duplicate_field("type"));
+                        }
+
+                        kind = Some(map.next_value()?);
+                    }
+                    GuildChannelField::LastMessageId => {
+                        if last_message_id.is_some() {
+                            return Err(DeError::duplicate_field("last_message_id"));
+                        }
+
+                        last_message_id = Some(map.next_value()?);
+                    }
+                    GuildChannelField::LastPinTimestamp => {
+                        if last_pin_timestamp.is_some() {
+                            return Err(DeError::duplicate_field("last_pin_timestamp"));
+                        }
+
+                        last_pin_timestamp = Some(map.next_value()?);
+                    }
+                    GuildChannelField::Name => {
+                        if name.is_some() {
+                            return Err(DeError::duplicate_field("name"));
+                        }
+
+                        name = Some(map.next_value()?);
+                    }
+                    GuildChannelField::Nsfw => {
+                        if nsfw.is_some() {
+                            return Err(DeError::duplicate_field("nsfw"));
+                        }
+
+                        nsfw = Some(map.next_value()?);
+                    }
+                    GuildChannelField::ParentId => {
+                        if parent_id.is_some() {
+                            return Err(DeError::duplicate_field("parent_id"));
+                        }
+
+                        parent_id = Some(map.next_value()?);
+                    }
+                    GuildChannelField::PermissionOverwrites => {
+                        if permission_overwrites.is_some() {
+                            return Err(DeError::duplicate_field("permission_overwrites"));
+                        }
+
+                        permission_overwrites = Some(map.next_value()?);
+                    }
+                    GuildChannelField::Position => {
+                        if position.is_some() {
+                            return Err(DeError::duplicate_field("position"));
+                        }
+
+                        position = Some(map.next_value()?);
+                    }
+                    GuildChannelField::RateLimitPerUser => {
+                        if rate_limit_per_user.is_some() {
+                            return Err(DeError::duplicate_field("rate_limit_per_user"));
+                        }
+
+                        rate_limit_per_user = Some(map.next_value()?);
+                    }
+                    GuildChannelField::Topic => {
+                        if topic.is_some() {
+                            return Err(DeError::duplicate_field("topic"));
+                        }
+
+                        topic = Some(map.next_value()?);
+                    }
+                    GuildChannelField::UserLimit => {
+                        if user_limit.is_some() {
+                            return Err(DeError::duplicate_field("user_limit"));
+                        }
+
+                        user_limit = Some(map.next_value()?);
+                    }
+                }
+            }
+
+            // Now let's get all of the fields required by each guild channel
+            // type.
+            let id = id.ok_or_else(|| DeError::missing_field("id"))?;
+            let kind = kind.ok_or_else(|| DeError::missing_field("type"))?;
+            let name = name.ok_or_else(|| DeError::missing_field("name"))?;
+            let nsfw = nsfw.unwrap_or_default();
+            let parent_id = parent_id.unwrap_or_default();
+            let permission_overwrites = permission_overwrites
+                .ok_or_else(|| DeError::missing_field("permission_overwrites"))?;
+            let position = position.ok_or_else(|| DeError::missing_field("position"))?;
+
+            Ok(match kind {
+                ChannelType::GuildCategory => GuildChannel::Category(CategoryChannel {
+                    id,
+                    guild_id,
+                    kind,
+                    name,
+                    nsfw,
+                    permission_overwrites,
+                    parent_id,
+                    position,
+                }),
+                ChannelType::GuildVoice => {
+                    let bitrate = bitrate.ok_or_else(|| DeError::missing_field("bitrate"))?;
+                    let user_limit =
+                        user_limit.ok_or_else(|| DeError::missing_field("user_limit"))?;
+
+                    GuildChannel::Voice(VoiceChannel {
+                        id,
+                        bitrate,
+                        guild_id,
+                        kind,
+                        name,
+                        permission_overwrites,
+                        parent_id,
+                        position,
+                        user_limit,
+                    })
+                }
+                ChannelType::GuildNews | ChannelType::GuildStore | ChannelType::GuildText => {
+                    let last_message_id = last_message_id.unwrap_or_default();
+                    let last_pin_timestamp = last_pin_timestamp.unwrap_or_default();
+                    let topic = topic.unwrap_or_default();
+
+                    GuildChannel::Text(TextChannel {
+                        id,
+                        guild_id,
+                        kind,
+                        last_message_id,
+                        last_pin_timestamp,
+                        name,
+                        nsfw,
+                        permission_overwrites,
+                        parent_id,
+                        position,
+                        rate_limit_per_user,
+                        topic,
+                    })
+                }
+                other => return Err(DeError::unknown_variant(other.name(), VARIANTS)),
+            })
+        }
+    }
+
+    impl<'de> Deserialize<'de> for GuildChannel {
+        fn deserialize<D: Deserializer<'de>>(deserializer: D) -> Result<Self, D::Error> {
+            deserializer.deserialize_map(GuildChannelVisitor)
+        }
+    }
+
     #[cfg(test)]
     mod tests {
         use super::super::{CategoryChannel, ChannelType, GuildChannel, TextChannel, VoiceChannel};
-        use crate::id::{ChannelId, GuildId};
-        use serde_test::Token;
+        use crate::{
+            channel::permission_overwrite::PermissionOverwrite,
+            id::{ChannelId, GuildId, MessageId},
+        };
 
         #[test]
-        fn test_guild_category_channel_serialization() {
-            let expected = CategoryChannel {
+        fn test_guild_category_channel_deserialization() {
+            let expected = GuildChannel::Category(CategoryChannel {
                 id: ChannelId(1),
                 guild_id: Some(GuildId(2)),
                 kind: ChannelType::GuildCategory,
@@ -82,42 +308,27 @@ mod if_serde_support {
                 parent_id: None,
                 permission_overwrites: Vec::new(),
                 position: 3,
-            };
+            });
+            let permission_overwrites: Vec<PermissionOverwrite> = Vec::new();
 
-            serde_test::assert_tokens(
-                &expected,
-                &[
-                    Token::Struct {
-                        name: "CategoryChannel",
-                        len: 8,
-                    },
-                    Token::String("id"),
-                    Token::NewtypeStruct { name: "ChannelId" },
-                    Token::String("1"),
-                    Token::String("guild_id"),
-                    Token::Some,
-                    Token::NewtypeStruct { name: "GuildId" },
-                    Token::String("2"),
-                    Token::String("type"),
-                    Token::U8(4),
-                    Token::String("name"),
-                    Token::String("foo"),
-                    Token::String("nsfw"),
-                    Token::Bool(false),
-                    Token::String("parent_id"),
-                    Token::None,
-                    Token::String("permission_overwrites"),
-                    Token::Seq { len: Some(0) },
-                    Token::SeqEnd,
-                    Token::String("position"),
-                    Token::I64(3),
-                    Token::StructEnd,
-                ],
+            assert_eq!(
+                expected,
+                serde_json::from_value(serde_json::json!({
+                    "id": "1",
+                    "guild_id": Some("2"),
+                    "name": "foo",
+                    "nsfw": false,
+                    "parent_id": None::<ChannelId>,
+                    "permission_overwrites": permission_overwrites,
+                    "position": 3,
+                    "type": 4,
+                }))
+                .unwrap()
             );
         }
 
         #[test]
-        fn test_guild_text_channel_serialization() {
+        fn test_guild_text_channel_deserialization() {
             let expected = GuildChannel::Text(TextChannel {
                 id: ChannelId(1),
                 guild_id: Some(GuildId(2)),
@@ -132,51 +343,30 @@ mod if_serde_support {
                 rate_limit_per_user: Some(10),
                 topic: Some("a topic".to_owned()),
             });
+            let permission_overwrites: Vec<PermissionOverwrite> = Vec::new();
 
-            serde_test::assert_tokens(
-                &expected,
-                &[
-                    Token::Struct {
-                        name: "TextChannel",
-                        len: 12,
-                    },
-                    Token::String("id"),
-                    Token::NewtypeStruct { name: "ChannelId" },
-                    Token::String("1"),
-                    Token::String("guild_id"),
-                    Token::Some,
-                    Token::NewtypeStruct { name: "GuildId" },
-                    Token::String("2"),
-                    Token::String("type"),
-                    Token::U8(0),
-                    Token::String("last_message_id"),
-                    Token::None,
-                    Token::String("last_pin_timestamp"),
-                    Token::None,
-                    Token::String("name"),
-                    Token::String("foo"),
-                    Token::String("nsfw"),
-                    Token::Bool(true),
-                    Token::String("permission_overwrites"),
-                    Token::Seq { len: Some(0) },
-                    Token::SeqEnd,
-                    Token::String("parent_id"),
-                    Token::None,
-                    Token::String("position"),
-                    Token::I64(3),
-                    Token::String("rate_limit_per_user"),
-                    Token::Some,
-                    Token::U64(10),
-                    Token::String("topic"),
-                    Token::Some,
-                    Token::String("a topic"),
-                    Token::StructEnd,
-                ],
+            assert_eq!(
+                expected,
+                serde_json::from_value(serde_json::json!({
+                    "id": "1",
+                    "guild_id": "2",
+                    "last_message_id": None::<MessageId>,
+                    "last_pin_timestamp": None::<MessageId>,
+                    "name": "foo",
+                    "nsfw": true,
+                    "permission_overwrites": permission_overwrites,
+                    "parent_id": None::<ChannelId>,
+                    "position": 3,
+                    "rate_limit_per_user": 10,
+                    "topic": Some("a topic"),
+                    "type": 0,
+                }))
+                .unwrap()
             );
         }
 
         #[test]
-        fn test_guild_voice_channel_serialization() {
+        fn test_guild_voice_channel_deserialization() {
             let expected = GuildChannel::Voice(VoiceChannel {
                 id: ChannelId(1),
                 bitrate: 124_000,
@@ -188,39 +378,22 @@ mod if_serde_support {
                 position: 3,
                 user_limit: Some(7),
             });
+            let permission_overwrites: Vec<PermissionOverwrite> = Vec::new();
 
-            serde_test::assert_tokens(
-                &expected,
-                &[
-                    Token::Struct {
-                        name: "VoiceChannel",
-                        len: 9,
-                    },
-                    Token::String("id"),
-                    Token::NewtypeStruct { name: "ChannelId" },
-                    Token::String("1"),
-                    Token::String("bitrate"),
-                    Token::U64(124_000),
-                    Token::String("guild_id"),
-                    Token::Some,
-                    Token::NewtypeStruct { name: "GuildId" },
-                    Token::String("2"),
-                    Token::String("type"),
-                    Token::U8(2),
-                    Token::String("name"),
-                    Token::String("foo"),
-                    Token::String("permission_overwrites"),
-                    Token::Seq { len: Some(0) },
-                    Token::SeqEnd,
-                    Token::String("parent_id"),
-                    Token::None,
-                    Token::String("position"),
-                    Token::I64(3),
-                    Token::String("user_limit"),
-                    Token::Some,
-                    Token::U64(7),
-                    Token::StructEnd,
-                ],
+            assert_eq!(
+                expected,
+                serde_json::from_value(serde_json::json!({
+                    "id": "1",
+                    "bitrate": 124_000,
+                    "guild_id": "2",
+                    "name": "foo",
+                    "permission_overwrites": permission_overwrites,
+                    "parent_id": None::<ChannelId>,
+                    "position": 3,
+                    "type": 2,
+                    "user_limit": 7,
+                }))
+                .unwrap()
             );
         }
     }

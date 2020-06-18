@@ -13,3 +13,17 @@ pub enum ChannelType {
     GuildNews = 5,
     GuildStore = 6,
 }
+
+impl ChannelType {
+    pub fn name(self) -> &'static str {
+        match self {
+            Self::Group => "Group",
+            Self::GuildCategory => "GuildCategory",
+            Self::GuildNews => "GuildNews",
+            Self::GuildStore => "GuildStore",
+            Self::GuildText => "GuildText",
+            Self::GuildVoice => "GuildVoice",
+            Self::Private => "Private",
+        }
+    }
+}
