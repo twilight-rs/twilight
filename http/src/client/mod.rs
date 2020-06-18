@@ -1,6 +1,8 @@
-pub mod config;
+mod builder;
 
-use self::config::ClientConfigBuilder;
+pub use self::builder::ClientBuilder;
+pub use reqwest::Proxy;
+
 use crate::{
     api_error::{ApiError, ErrorCode},
     error::{Error, Result, UrlError},
@@ -14,15 +16,11 @@ use crate::{
 };
 use bytes::Bytes;
 use log::{debug, warn};
-use reqwest::{
-    header::HeaderValue, Body, Client as ReqwestClient, ClientBuilder as ReqwestClientBuilder,
-    Response, StatusCode,
-};
+use reqwest::{header::HeaderValue, Body, Client as ReqwestClient, Response, StatusCode};
 use serde::de::DeserializeOwned;
 use std::{
     convert::TryFrom,
     fmt::{Debug, Formatter, Result as FmtResult},
-    ops::{Deref, DerefMut},
     result::Result as StdResult,
     sync::Arc,
 };
@@ -34,58 +32,6 @@ use twilight_model::{
 use url::Url;
 
 use crate::json_from_slice;
-
-#[derive(Clone, Debug, Default)]
-pub struct ClientBuilder(pub ClientConfigBuilder);
-
-impl ClientBuilder {
-    pub fn new() -> Self {
-        Self::default()
-    }
-
-    /// Build the Client
-    ///
-    /// # Errors
-    /// Errors if `reqwest` fails to build the client.
-    pub fn build(self) -> Result<Client> {
-        let config = self.0.build();
-
-        let mut builder = ReqwestClientBuilder::new().timeout(config.timeout);
-
-        if let Some(proxy) = config.proxy {
-            builder = builder.proxy(proxy)
-        }
-
-        Ok(Client {
-            state: Arc::new(State {
-                http: Arc::new(
-                    builder
-                        .build()
-                        .map_err(|source| Error::BuildingClient { source })?,
-                ),
-                ratelimiter: Ratelimiter::new(),
-                skip_ratelimiter: config.skip_ratelimiter,
-                token: config.token,
-                use_http: config.proxy_http,
-                default_allowed_mentions: config.default_allowed_mentions,
-            }),
-        })
-    }
-}
-
-impl Deref for ClientBuilder {
-    type Target = ClientConfigBuilder;
-
-    fn deref(&self) -> &Self::Target {
-        &self.0
-    }
-}
-
-impl DerefMut for ClientBuilder {
-    fn deref_mut(&mut self) -> &mut Self::Target {
-        &mut self.0
-    }
-}
 
 struct State {
     http: Arc<ReqwestClient>,
