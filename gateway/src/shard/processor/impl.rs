@@ -12,7 +12,7 @@ use super::{
 
 use crate::listener::Listeners;
 use twilight_model::gateway::{
-    event::{DispatchEvent, Event, GatewayEvent},
+    event::{shard::{Connected, Connecting, Disconnected, Reconnecting, Resuming}, DispatchEvent, Event, GatewayEvent},
     payload::{
         identify::{Identify, IdentifyInfo, IdentifyProperties},
         resume::Resume,
@@ -76,6 +76,10 @@ impl ShardProcessor {
 
         url.push_str("?v=6&compress=zlib-stream");
 
+        emit::event(listeners.clone(), Event::ShardConnecting(Connecting {
+            gateway: url.clone(),
+            shard_id: config.shard()[0],
+        }));
         let stream = connect::connect(&url).await?;
         let (forwarder, rx, tx) = SocketForwarder::new(stream);
         tokio::spawn(async move {
@@ -200,9 +204,18 @@ impl ShardProcessor {
                     DispatchEvent::Ready(ready) => {
                         self.session.set_stage(Stage::Connected);
                         self.session.set_id(&ready.session_id).await;
+
+                        emit::event(self.listeners.clone(), Event::ShardConnected(Connected {
+                            heartbeat_interval: self.session.heartbeat_interval(),
+                            shard_id: self.config.shard()[0],
+                        }));
                     }
                     DispatchEvent::Resumed => {
                         self.session.set_stage(Stage::Connected);
+                        emit::event(self.listeners.clone(), Event::ShardConnected(Connected {
+                            heartbeat_interval: self.session.heartbeat_interval(),
+                            shard_id: self.config.shard()[0],
+                        }));
                         self.session.heartbeats.receive().await;
                     }
                     _ => {}
@@ -295,6 +308,17 @@ impl ShardProcessor {
                 self.config.queue.request(shard).await;
             }
 
+            if full_reconnect {
+                emit::event(self.listeners.clone(), Event::ShardReconnecting(Reconnecting {
+                    shard_id: self.config.shard()[0],
+                }));
+            } else {
+                emit::event(self.listeners.clone(), Event::ShardResuming(Resuming {
+                    seq: self.session.seq(),
+                    shard_id: self.config.shard()[0],
+                }));
+            }
+
             let new_stream = match connect::connect(&self.url).await {
                 Ok(s) => s,
                 Err(why) => {
@@ -334,6 +358,11 @@ impl ShardProcessor {
 
             break;
         }
+
+        emit::event(self.listeners.clone(), Event::ShardConnecting(Connecting {
+            gateway: self.url.clone(),
+            shard_id: self.config.shard()[0],
+        }));
     }
 
     async fn resume(&mut self) -> Result<()> {
@@ -431,6 +460,11 @@ impl ShardProcessor {
                 }
                 Message::Close(close_frame) => {
                     log::warn!("Got close code: {:?}.", close_frame);
+                    emit::event(self.listeners.clone(), Event::ShardDisconnected(Disconnected {
+                        code: close_frame.as_ref().map(|frame| frame.code.into()),
+                        reason: close_frame.as_ref().map(|frame| frame.reason.clone().into()),
+                        shard_id: self.config.shard()[0],
+                    }));
 
                     if let Some(close_frame) = close_frame {
                         if close_frame.code == CloseCode::Library(4004) {
