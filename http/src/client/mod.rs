@@ -915,6 +915,10 @@ impl Client {
         DeletePin::new(self, channel_id, message_id)
     }
 
+    /// Get a list of users that reacted to a message with an `emoji`.
+    ///
+    /// This endpoint is limited to 100 users maximum, so if a message has more than 100 reactions,
+    /// requests must be chained until all reactions are retireved.
     pub fn reactions(
         &self,
         channel_id: ChannelId,
@@ -924,6 +928,35 @@ impl Client {
         GetReactions::new(self, channel_id, message_id, emoji)
     }
 
+    /// Create a reaction in a [`ChannelId`] on a [`MessageId`].
+    ///
+    /// The reaction must be a variant of [`ReactionType`].
+    ///
+    /// # Examples
+    /// ```rust,no_run
+    /// # use twilight_http::Client;
+    /// # use twilight_model::{
+    /// #     channel::ReactionType,
+    /// #     id::{ChannelId, MessageId},
+    /// # };
+    /// #
+    /// # #[tokio::main]
+    /// # async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
+    /// # let client = Client::new("my token");
+    /// #
+    /// let channel_id = ChannelId(123);
+    /// let message_id = MessageId(456);
+    /// let emoji = ReactionType::Unicode { name: String::from("🌃") };
+    ///
+    /// let reaction = client
+    ///     .create_reaction(channel_id, message_id, emoji)
+    ///     .await?;
+    /// # Ok(()) }
+    /// ```
+    ///
+    /// [`ChannelId`]: ../../twilight_model/id/struct.ChannelId.html
+    /// [`MessageId`]: ../../twilight_model/id/struct.MessageId.html
+    /// [`ReactionType`]: ../../twilight_model/channel/enum.ReactionType.html
     pub fn create_reaction(
         &self,
         channel_id: ChannelId,
@@ -933,6 +966,7 @@ impl Client {
         CreateReaction::new(self, channel_id, message_id, emoji)
     }
 
+    /// Delete the current user's (`@me`) reaction on a message.
     pub fn delete_current_user_reaction(
         &self,
         channel_id: ChannelId,
@@ -942,6 +976,7 @@ impl Client {
         DeleteReaction::new(self, channel_id, message_id, emoji, "@me")
     }
 
+    /// Delete a reaction by a user on a message.
     pub fn delete_reaction(
         &self,
         channel_id: ChannelId,
@@ -952,6 +987,7 @@ impl Client {
         DeleteReaction::new(self, channel_id, message_id, emoji, user_id.to_string())
     }
 
+    /// Remove all reactions on a message of an emoji.
     pub fn delete_all_reaction(
         &self,
         channel_id: ChannelId,
@@ -961,6 +997,7 @@ impl Client {
         DeleteAllReaction::new(self, channel_id, message_id, emoji)
     }
 
+    /// Delete all reactions by all users on a message.
     pub fn delete_all_reactions(
         &self,
         channel_id: ChannelId,
