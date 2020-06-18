@@ -8,5 +8,6 @@ use crate::id::GuildId;
 pub struct GuildDelete {
     pub id: GuildId,
     // If `unavailable` is `None` the user was removed from the guild.
-    pub unavailable: Option<bool>,
+    #[cfg_attr(feature = "serde-support", serde(default))]
+    pub unavailable: bool,
 }
