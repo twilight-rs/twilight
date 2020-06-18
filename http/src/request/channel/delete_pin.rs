@@ -1,6 +1,7 @@
 use crate::request::prelude::*;
 use twilight_model::id::{ChannelId, MessageId};
 
+/// Delete a pin in a channel, by ID.
 pub struct DeletePin<'a> {
     channel_id: ChannelId,
     fut: Option<Pending<'a, ()>>,
@@ -20,6 +21,7 @@ impl<'a> DeletePin<'a> {
         }
     }
 
+    /// Attach an audit log reason to this request.
     pub fn reason(mut self, reason: impl Into<String>) -> Self {
         self.reason.replace(reason.into());
 

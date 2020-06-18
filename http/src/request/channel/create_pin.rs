@@ -1,6 +1,7 @@
 use crate::request::prelude::*;
 use twilight_model::id::{ChannelId, MessageId};
 
+/// Create a new pin in a channel.
 pub struct CreatePin<'a> {
     channel_id: ChannelId,
     fut: Option<Pending<'a, ()>>,
@@ -20,6 +21,7 @@ impl<'a> CreatePin<'a> {
         }
     }
 
+    /// Attach an audit log reason to this request.
     pub fn reason(mut self, reason: impl Into<String>) -> Self {
         self.reason.replace(reason.into());
 

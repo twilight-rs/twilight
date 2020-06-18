@@ -296,34 +296,53 @@ impl Client {
     /// Get channel `100`:
     ///
     /// ```rust,no_run
-    /// use twilight_http::Client;
-    /// use twilight_model::id::ChannelId;
-    ///
+    /// # use twilight_http::Client;
+    /// # use twilight_model::id::ChannelId;
+    /// #
     /// # #[tokio::main]
     /// # async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
-    /// let client = Client::new("my token");
-    ///
+    /// # let client = Client::new("my token");
+    /// #
     /// let channel_id = ChannelId(100);
-    ///
-    /// client.channel(channel_id).await?;
+    /// #
+    /// let channel = client.channel(channel_id).await?;
     /// # Ok(()) }
     /// ```
     pub fn channel(&self, channel_id: ChannelId) -> GetChannel<'_> {
         GetChannel::new(self, channel_id)
     }
 
+    /// Delete a channel by ID.
     pub fn delete_channel(&self, channel_id: ChannelId) -> DeleteChannel<'_> {
         DeleteChannel::new(self, channel_id)
     }
 
+    /// Update a channel.
+    ///
+    /// All fields are optional. The minimum length of the name is 2 UTF-16 characters and the
+    /// maximum is 100 UTF-16 characters.
+    ///
+    /// # Errors
+    ///
+    /// Returns a [`UpdateChannelError::NameInvalid`] when the length of the name is either fewer
+    /// than 2 UTF-16 characters or more than 100 UTF-16 characters.
+    ///
+    /// Returns a [`UpdateChannelError::RateLimitPerUserInvalid`] when the seconds of the rate limit
+    /// per user is more than 21600.
+    ///
+    /// Returns a [`UpdateChannelError::TopicInvalid`] when the length of the topic is more than
+    /// 1024 UTF-16 characters.
+    ///
+    /// [`UpdateChannelError::NameInvalid`]: ../enum.UpdateChannelError.html#variant.NameInvalid
+    /// [`UpdateChannelError::RateLimitPerUserInvalid`]: ../enum.UpdateChannelError.html#variant.RateLimitPerUserInvalid
+    /// [`UpdateChannelError::TopicInvalid`]: ../enum.UpdateChannelError.html#variant.TopicInvalid
     pub fn update_channel(&self, channel_id: ChannelId) -> UpdateChannel<'_> {
         UpdateChannel::new(self, channel_id)
     }
 
     /// Get the invites for a guild channel.
     ///
-    /// This method only works if the channel is of type `GuildChannel`. It also requires the
-    /// permission `MANAGE_CHANNELS`.
+    /// This method only works if the channel is of type `GuildChannel`.
     pub fn channel_invites(&self, channel_id: ChannelId) -> GetChannelInvites<'_> {
         GetChannelInvites::new(self, channel_id)
     }
@@ -379,6 +398,31 @@ impl Client {
         DeleteChannelPermission::new(self, channel_id, target_id)
     }
 
+    /// Update the permissions for a role or a user in a channel.
+    ///
+    /// # Examples:
+    ///
+    /// Create permission overrides for a role to view the channel, but not send messages:
+    ///
+    /// ```rust,no_run
+    /// # use twilight_http::Client;
+    /// use twilight_model::guild::Permissions;
+    /// use twilight_model::id::{ChannelId, RoleId};
+    /// #
+    /// # #[tokio::main]
+    /// # async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
+    /// # let client = Client::new("my token");
+    ///
+    /// let channel_id = ChannelId(123);
+    /// let allow = Permissions::VIEW_CHANNEL;
+    /// let deny = Permissions::SEND_MESSAGES;
+    /// let role_id = RoleId(432);
+    ///
+    /// client.update_channel_permission(channel_id, allow, deny)
+    ///     .role(role_id)
+    ///     .await?;
+    /// # Ok(()) }
+    /// ```
     pub fn update_channel_permission(
         &self,
         channel_id: ChannelId,
@@ -594,15 +638,24 @@ impl Client {
 
     /// Create a new request to create a guild channel.
     ///
-    /// The minimum length of the name is 2 UTF-16 characters and the maximum is
-    /// 100 UTF-16 characters.
+    /// All fields are optional except for name. The minimum length of the name is 2 UTF-16
+    /// characters and the maximum is 100 UTF-16 characters.
     ///
     /// # Errors
     ///
-    /// Returns [`CreateGuildChannelError::NameInvalid`] if the name length is too
-    /// short or too long.
+    /// Returns a [`CreateGuildChannelError::NameInvalid`] when the length of the name is either
+    /// fewer than 2 UTF-16 characters or more than 100 UTF-16 characters.
     ///
-    /// [`CreateGuildChannelError::NameInvalid`]: ../request/guild/enum.CreateGuildChannelError.html#variant.NameInvalid
+    /// Returns a [`CreateGuildChannelError::RateLimitPerUserInvalid`] when the seconds of the rate
+    /// limit per user is more than 21600.
+    ///
+    /// Returns a [`CreateGuildChannelError::TopicInvalid`] when the length of the topic is more
+    /// than
+    /// 1024 UTF-16 characters.
+    ///
+    /// [`CreateGuildChannelError::NameInvalid`]: ../request/guild/create_guild_channel/enum.CreateGuildChannelError.html#variant.NameInvalid
+    /// [`CreateGuildChannelError::RateLimitPerUserInvalid`]: ../request/guild/create_guild_channel/enum.CreateGuildChannelError.html#variant.RateLimitPerUserInvalid
+    /// [`CreateGuildChannelError::TopicInvalid`]: ../request/guild/create_guild_channel/enum.CreateGuildChannelError.html#variant.TopicInvalid
     pub fn create_guild_channel(
         &self,
         guild_id: GuildId,
@@ -904,14 +957,17 @@ impl Client {
         UpdateMessage::new(self, channel_id, message_id)
     }
 
+    /// Get the pins of a channel.
     pub fn pins(&self, channel_id: ChannelId) -> GetPins<'_> {
         GetPins::new(self, channel_id)
     }
 
+    /// Create a new pin in a channel, by ID.
     pub fn create_pin(&self, channel_id: ChannelId, message_id: MessageId) -> CreatePin<'_> {
         CreatePin::new(self, channel_id, message_id)
     }
 
+    /// Delete a pin in a channel, by ID.
     pub fn delete_pin(&self, channel_id: ChannelId, message_id: MessageId) -> DeletePin<'_> {
         DeletePin::new(self, channel_id, message_id)
     }
@@ -1007,6 +1063,7 @@ impl Client {
         DeleteAllReactions::new(self, channel_id, message_id)
     }
 
+    /// Fire a Typing Start event in the channel.
     pub fn create_typing_trigger(&self, channel_id: ChannelId) -> CreateTypingTrigger<'_> {
         CreateTypingTrigger::new(self, channel_id)
     }

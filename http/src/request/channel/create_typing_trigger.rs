@@ -1,6 +1,7 @@
 use crate::request::prelude::*;
 use twilight_model::id::ChannelId;
 
+/// Fire a Typing Start event in the channel.
 pub struct CreateTypingTrigger<'a> {
     channel_id: ChannelId,
     fut: Option<Pending<'a, ()>>,
