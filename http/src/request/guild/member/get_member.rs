@@ -1,6 +1,6 @@
 use crate::request::prelude::*;
-use serde::de::{value::BorrowedBytesDeserializer, DeserializeSeed};
-use serde_json::Error as JsonError;
+use serde::de::DeserializeSeed;
+use serde_json::Value;
 use std::{
     future::Future,
     pin::Pin,
@@ -58,10 +58,9 @@ impl Future for GetMember<'_> {
                     Poll::Pending => return Poll::Pending,
                 };
 
+                let value = serde_json::from_slice::<Value>(&bytes)?;
                 let member_deserializer = MemberDeserializer::new(self.guild_id);
-                let deserializer: BorrowedBytesDeserializer<'_, JsonError> =
-                    BorrowedBytesDeserializer::new(&bytes);
-                let member = member_deserializer.deserialize(deserializer)?;
+                let member = member_deserializer.deserialize(value)?;
 
                 return Poll::Ready(Ok(Some(member)));
             }
