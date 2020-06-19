@@ -472,6 +472,7 @@ impl Client {
         GetCurrentUserGuilds::new(self)
     }
 
+    /// Changes the user's nickname in a guild.
     pub fn update_current_user_nick(
         &self,
         guild_id: GuildId,
@@ -591,19 +592,19 @@ impl Client {
         GetGateway::new(self)
     }
 
+    /// Get information about a guild.
     pub fn guild(&self, guild_id: GuildId) -> GetGuild<'_> {
         GetGuild::new(self, guild_id)
     }
 
     /// Create a new request to create a guild.
     ///
-    /// The minimum length of the name is 2 UTF-16 characters and the maximum is
-    /// 100 UTF-16 characters.
+    /// The minimum length of the name is 2 UTF-16 characters and the maximum is 100 UTF-16
+    /// characters. This endpoint can only be used by bots in less than 10 guilds.
     ///
     /// # Errors
     ///
-    /// Returns [`CreateGuildError::NameInvalid`] if the name length is too
-    /// short or too long.
+    /// Returns [`CreateGuildError::NameInvalid`] if the name length is too short or too long.
     ///
     /// [`CreateGuildError::NameInvalid`]: ../request/guild/enum.CreateGuildError.html#variant.NameInvalid
     pub fn create_guild(
@@ -613,10 +614,16 @@ impl Client {
         CreateGuild::new(self, name)
     }
 
+    /// Delete a guild permanently. The user must be the owner.
     pub fn delete_guild(&self, guild_id: GuildId) -> DeleteGuild<'_> {
         DeleteGuild::new(self, guild_id)
     }
 
+    /// Update a guild.
+    ///
+    /// All endpoints are optional. Refer to [the discord docs] for more information.
+    ///
+    /// [the discord docs]: https://discord.com/developers/docs/resources/guild#modify-guild
     pub fn update_guild(&self, guild_id: GuildId) -> UpdateGuild<'_> {
         UpdateGuild::new(self, guild_id)
     }
@@ -625,6 +632,7 @@ impl Client {
         LeaveGuild::new(self, guild_id)
     }
 
+    /// Get the channels in a guild.
     pub fn guild_channels(&self, guild_id: GuildId) -> GetGuildChannels<'_> {
         GetGuildChannels::new(self, guild_id)
     }
@@ -657,6 +665,9 @@ impl Client {
         CreateGuildChannel::new(self, guild_id, name)
     }
 
+    /// Modify the positions of the channels.
+    ///
+    /// The minimum amount of channels to modify, is a swap between two channels.
     pub fn update_guild_channel_positions(
         &self,
         guild_id: GuildId,
@@ -665,10 +676,16 @@ impl Client {
         UpdateGuildChannelPositions::new(self, guild_id, channel_positions)
     }
 
+    /// Get the guild widget.
+    ///
+    /// Refer to [the discord docs] for more information.
+    ///
+    /// [the discord docs]: https://discord.com/developers/docs/resources/guild#get-guild-widget
     pub fn guild_widget(&self, guild_id: GuildId) -> GetGuildWidget<'_> {
         GetGuildWidget::new(self, guild_id)
     }
 
+    /// Modify the guild widget.
     pub fn update_guild_widget(&self, guild_id: GuildId) -> UpdateGuildWidget<'_> {
         UpdateGuildWidget::new(self, guild_id)
     }
@@ -710,6 +727,7 @@ impl Client {
         SyncGuildIntegration::new(self, guild_id, integration_id)
     }
 
+    /// Get information about the invites of a guild.
     pub fn guild_invites(&self, guild_id: GuildId) -> GetGuildInvites<'_> {
         GetGuildInvites::new(self, guild_id)
     }
@@ -748,27 +766,40 @@ impl Client {
         RemoveRoleFromMember::new(self, guild_id, user_id, role_id)
     }
 
-    /// Note: This only works for public guilds.
+    /// For public guilds, get the guild preview.
+    ///
+    /// This works even if the user is not in the guild.
     pub fn guild_preview(&self, guild_id: GuildId) -> GetGuildPreview<'_> {
         GetGuildPreview::new(self, guild_id)
     }
 
+    /// Get the counts of guild members to be pruned.
     pub fn guild_prune_count(&self, guild_id: GuildId) -> GetGuildPruneCount<'_> {
         GetGuildPruneCount::new(self, guild_id)
     }
 
+    /// Begin a guild prune.
+    ///
+    /// Refer to [the discord docs] for more information.
+    ///
+    /// [the discord docs]: https://discord.com/developers/docs/resources/guild#begin-guild-prune
     pub fn create_guild_prune(&self, guild_id: GuildId) -> CreateGuildPrune<'_> {
         CreateGuildPrune::new(self, guild_id)
     }
 
+    /// Get a guild's vanity url, if there is one.
     pub fn guild_vanity_url(&self, guild_id: GuildId) -> GetGuildVanityUrl<'_> {
         GetGuildVanityUrl::new(self, guild_id)
     }
 
+    /// Get voice region data for the guild.
+    ///
+    /// Can return VIP servers if the guild is VIP-enabled.
     pub fn guild_voice_regions(&self, guild_id: GuildId) -> GetGuildVoiceRegions<'_> {
         GetGuildVoiceRegions::new(self, guild_id)
     }
 
+    /// Get the webhooks of a guild.
     pub fn guild_webhooks(&self, guild_id: GuildId) -> GetGuildWebhooks<'_> {
         GetGuildWebhooks::new(self, guild_id)
     }

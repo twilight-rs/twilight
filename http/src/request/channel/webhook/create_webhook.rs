@@ -50,11 +50,11 @@ impl<'a> CreateWebhook<'a> {
 
     /// Set the avatar of the webhook.
     ///
-    /// See [Discord Docs/Image Data] for more information. This must be a Data URI, in the form of
-    /// `data:image/{type};base64,{data}` where `{type}` is the image MIME type and `{data}` is the
-    /// base64-encoded image.
+    /// This must be a Data URI, in the form of `data:image/{type};base64,{data}` where `{type}` is
+    /// the image MIME type and `{data}` is the base64-encoded image. Refer to [the discord docs]
+    /// for more information.
     ///
-    /// [Discord Docs/Image Data]: https://discord.com/developers/docs/reference#image-data
+    /// [the discord docs]: https://discord.com/developers/docs/reference#image-data
     pub fn avatar(mut self, avatar: impl Into<String>) -> Self {
         self.fields.avatar.replace(avatar.into());
 

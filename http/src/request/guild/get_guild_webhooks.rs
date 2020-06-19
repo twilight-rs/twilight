@@ -1,6 +1,7 @@
 use crate::request::prelude::*;
 use twilight_model::{channel::Webhook, id::GuildId};
 
+/// Get the webhooks of a guild.
 pub struct GetGuildWebhooks<'a> {
     fut: Option<Pending<'a, Vec<Webhook>>>,
     guild_id: GuildId,

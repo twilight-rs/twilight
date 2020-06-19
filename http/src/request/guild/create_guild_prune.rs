@@ -8,6 +8,7 @@ use twilight_model::{
     id::{GuildId, RoleId},
 };
 
+/// The error created when the guild prune can not be created as configured.
 #[derive(Clone, Debug)]
 pub enum CreateGuildPruneError {
     /// The number of days is 0.
@@ -31,6 +32,11 @@ struct CreateGuildPruneFields {
     include_roles: Vec<u64>,
 }
 
+/// Begin a guild prune.
+///
+/// Refer to [the discord docs] for more information.
+///
+/// [the discord docs]: https://discord.com/developers/docs/resources/guild#begin-guild-prune
 pub struct CreateGuildPrune<'a> {
     fields: CreateGuildPruneFields,
     guild_id: GuildId,
@@ -59,21 +65,20 @@ impl<'a> CreateGuildPrune<'a> {
         self
     }
 
+    /// Return the amount of pruned members. Discouraged for large guilds.
     pub fn compute_prune_count(mut self, compute_prune_count: bool) -> Self {
         self.fields.compute_prune_count.replace(compute_prune_count);
 
         self
     }
 
-    /// Set the number of days that a user must be inactive before being
-    /// pruned.
+    /// Set the number of days that a user must be inactive before being pruned.
     ///
     /// The number of days must be greater than 0.
     ///
     /// # Errors
     ///
-    /// Returns [`CreateGuildPruneError::DaysInvalid`] if the number of days is
-    /// 0.
+    /// Returns [`CreateGuildPruneError::DaysInvalid`] if the number of days is 0.
     ///
     /// [`CreateGuildPruneError::DaysInvalid`]: enum.CreateGuildPruneError.html#variant.DaysInvalid
     pub fn days(mut self, days: u64) -> Result<Self, CreateGuildPruneError> {
@@ -86,6 +91,7 @@ impl<'a> CreateGuildPrune<'a> {
         Ok(self)
     }
 
+    /// Attach an audit log reason to this request.
     pub fn reason(mut self, reason: impl Into<String>) -> Self {
         self.reason.replace(reason.into());
 

@@ -8,6 +8,9 @@ struct Position {
     position: u64,
 }
 
+/// Modify the positions of the channels.
+///
+/// The minimum amount of channels to modify, is a swap between two channels.
 pub struct UpdateGuildChannelPositions<'a> {
     fut: Option<Pending<'a, ()>>,
     guild_id: GuildId,

@@ -1,6 +1,7 @@
 use crate::request::prelude::*;
 use twilight_model::{id::GuildId, invite::Invite};
 
+/// Get information about the invites of a guild.
 pub struct GetGuildInvites<'a> {
     fut: Option<Pending<'a, Vec<Invite>>>,
     guild_id: GuildId,

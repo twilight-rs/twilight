@@ -7,6 +7,7 @@ struct UpdateCurrentUserNickFields {
     nick: String,
 }
 
+/// Changes the user's nickname in a guild.
 pub struct UpdateCurrentUserNick<'a> {
     fields: UpdateCurrentUserNickFields,
     fut: Option<Pending<'a, ()>>,
