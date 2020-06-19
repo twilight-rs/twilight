@@ -328,6 +328,42 @@ mod if_serde_support {
         }
 
         #[test]
+        fn test_guild_news_channel_deserialization() {
+            let expected = GuildChannel::Text(TextChannel {
+                id: ChannelId(1),
+                guild_id: Some(GuildId(2)),
+                kind: ChannelType::GuildNews,
+                last_message_id: Some(MessageId(4)),
+                last_pin_timestamp: None,
+                name: "news".to_owned(),
+                nsfw: true,
+                permission_overwrites: Vec::new(),
+                parent_id: Some(ChannelId(5)),
+                position: 3,
+                rate_limit_per_user: None,
+                topic: Some("a news channel".to_owned()),
+            });
+            let permission_overwrites: Vec<PermissionOverwrite> = Vec::new();
+
+            assert_eq!(
+                expected,
+                serde_json::from_value(serde_json::json!({
+                  "id": "1",
+                  "guild_id": "2",
+                  "name": "news",
+                  "nsfw": true,
+                  "last_message_id": "4",
+                  "parent_id": "5",
+                  "permission_overwrites": permission_overwrites,
+                  "position": 3,
+                  "topic": "a news channel",
+                  "type": ChannelType::GuildNews,
+                }))
+                .unwrap()
+            );
+        }
+
+        #[test]
         fn test_guild_text_channel_deserialization() {
             let expected = GuildChannel::Text(TextChannel {
                 id: ChannelId(1),
