@@ -8,8 +8,8 @@ use twilight_model::{
     id::{GuildId, UserId},
 };
 
-#[derive(Clone, Debug)]
 /// The error returned when the audit log can not be requested as configured.
+#[derive(Clone, Debug)]
 pub enum GetAuditLogError {
     /// The limit is either 0 or more than 100.
     LimitInvalid,

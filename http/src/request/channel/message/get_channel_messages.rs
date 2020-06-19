@@ -9,8 +9,8 @@ use twilight_model::{
     id::{ChannelId, MessageId},
 };
 
+/// The error returned if the request can not be sent as configured.
 #[derive(Clone, Debug)]
-/// The error returned if the request is invalid.
 pub enum GetChannelMessagesError {
     /// The maximum number of messages to retrieve is either 0 or more than 100.
     LimitInvalid,

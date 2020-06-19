@@ -9,8 +9,8 @@ use twilight_model::{
     id::{ChannelId, MessageId},
 };
 
-#[derive(Clone, Debug)]
 /// The error created when a message can not be updated as configured.
+#[derive(Clone, Debug)]
 pub enum UpdateMessageError {
     /// Returned when the content is over 2000 UTF-16 characters.
     ContentInvalid,

@@ -8,8 +8,8 @@ use twilight_model::{
     user::User,
 };
 
+/// The error created if the reactions can not be retrieved as configured.
 #[derive(Clone, Debug)]
-/// The error created if the request is invalid.
 pub enum GetReactionsError {
     /// The number of reactions to retrieve must be between 1 and 100, inclusive.
     LimitInvalid,

@@ -15,8 +15,8 @@ use twilight_model::{
     id::ChannelId,
 };
 
-#[derive(Clone, Debug)]
 /// The error created when a messsage can not be created as configured.
+#[derive(Clone, Debug)]
 pub enum CreateMessageError {
     /// Returned when the content is over 2000 UTF-16 characters.
     ContentInvalid,
