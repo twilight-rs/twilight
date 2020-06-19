@@ -233,20 +233,12 @@ mod if_serde_support {
                     loop {
                         let key = match map.next_key() {
                             Ok(Some(key)) => key,
-                            Ok(None) => {
-                                log::debug!("breaking");
-
-                                break;
-                            }
+                            Ok(None) => break,
                             Err(_) => {
                                 // Encountered when we run into an unknown key.
-                                log::debug!("continuing");
-
                                 continue;
                             }
                         };
-
-                        log::debug!("key {:?}", key);
 
                         match key {
                             Field::AfkChannelId => {
