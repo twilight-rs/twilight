@@ -17,7 +17,10 @@ pub struct TypingStart {
 mod if_serde_support {
     use super::TypingStart;
     use crate::guild::member::if_serde_support::MemberDeserializer;
-    use serde::{de::{DeserializeSeed, Deserializer, Error as DeError, MapAccess, Visitor}, Deserialize};
+    use serde::{
+        de::{DeserializeSeed, Deserializer, Error as DeError, MapAccess, Visitor},
+        Deserialize,
+    };
     use serde_value::Value;
     use std::fmt::{Formatter, Result as FmtResult};
 
@@ -81,18 +84,14 @@ mod if_serde_support {
                     }
                     Field::Timestamp => {
                         if timestamp.is_some() {
-                            return Err(DeError::duplicate_field(
-                                "timestamp",
-                            ));
+                            return Err(DeError::duplicate_field("timestamp"));
                         }
 
                         timestamp = Some(map.next_value()?);
                     }
                     Field::UserId => {
                         if user_id.is_some() {
-                            return Err(DeError::duplicate_field(
-                                "user_id",
-                            ));
+                            return Err(DeError::duplicate_field("user_id"));
                         }
 
                         user_id = Some(map.next_value()?);
@@ -111,7 +110,7 @@ mod if_serde_support {
                     let deserializer = MemberDeserializer::new(guild_id);
 
                     Some(deserializer.deserialize(value).map_err(DeError::custom)?)
-                },
+                }
                 _ => None,
             };
 
@@ -127,13 +126,7 @@ mod if_serde_support {
 
     impl<'de> Deserialize<'de> for TypingStart {
         fn deserialize<D: Deserializer<'de>>(deserializer: D) -> Result<Self, D::Error> {
-            const FIELDS: &[&str] = &[
-                "channel_id",
-                "guild_id",
-                "member",
-                "timestamp",
-                "user_id",
-            ];
+            const FIELDS: &[&str] = &["channel_id", "guild_id", "member", "timestamp", "user_id"];
 
             deserializer.deserialize_struct("TypingStart", FIELDS, TypingStartVisitor)
         }
@@ -142,8 +135,12 @@ mod if_serde_support {
     #[cfg(test)]
     mod tests {
         use super::super::TypingStart;
+        use crate::{
+            guild::Member,
+            id::{ChannelId, GuildId, RoleId, UserId},
+            user::User,
+        };
         use serde_json::json;
-        use crate::{guild::Member, id::{ChannelId, GuildId, RoleId, UserId}, user::User};
 
         #[test]
         fn test_typing_start_with_member_deser() {
