@@ -652,8 +652,9 @@ mod if_serde_support {
 
                     let members = match members {
                         Some(value) => {
-                            let members =
-                                value.deserialize_into::<Vec<MemberIntermediary>>().unwrap();
+                            let members = value
+                                .deserialize_into::<Vec<MemberIntermediary>>()
+                                .map_err(DeError::custom)?;
 
                             members
                                 .into_iter()
