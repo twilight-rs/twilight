@@ -24,7 +24,7 @@ pub struct Member {
 }
 
 #[cfg(feature = "serde-support")]
-pub(super) mod if_serde_support {
+pub(crate) mod if_serde_support {
     use super::Member;
     use crate::{
         id::{GuildId, RoleId, UserId},
