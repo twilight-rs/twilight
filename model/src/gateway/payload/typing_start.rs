@@ -40,7 +40,7 @@ mod if_serde_support {
         type Value = TypingStart;
 
         fn expecting(&self, f: &mut Formatter<'_>) -> FmtResult {
-            f.write_str("struct Guild")
+            f.write_str("struct TypingStart")
         }
 
         fn visit_map<V: MapAccess<'de>>(self, mut map: V) -> Result<Self::Value, V::Error> {
