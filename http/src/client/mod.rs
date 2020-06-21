@@ -206,14 +206,13 @@ impl Client {
     /// Retrieve the bans for guild `1`:
     ///
     /// ```rust,no_run
-    /// use std::env;
-    /// use twilight_http::Client;
-    /// use twilight_model::id::GuildId;
-    ///
+    /// # use twilight_http::Client;
+    /// # use twilight_model::id::GuildId;
+    /// #
     /// # #[tokio::main]
     /// # async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
-    /// let client = Client::new(env::var("DISCORD_TOKEN")?);
-    ///
+    /// # let client = Client::new("my token");
+    /// #
     /// let guild_id = GuildId(1);
     ///
     /// let bans = client.bans(guild_id).await?;
@@ -223,6 +222,9 @@ impl Client {
         GetBans::new(self, guild_id)
     }
 
+    /// Get information about a ban of a guild.
+    ///
+    /// Includes the user banned and the reason.
     pub fn ban(&self, guild_id: GuildId, user_id: UserId) -> GetBan<'_> {
         GetBan::new(self, guild_id, user_id)
     }
@@ -236,41 +238,39 @@ impl Client {
     /// 1 day's worth of messages, for the reason `"memes"`:
     ///
     /// ```rust,no_run
-    /// use twilight_http::Client;
-    /// use twilight_model::id::{GuildId, UserId};
-    ///
+    /// # use twilight_http::Client;
+    /// # use twilight_model::id::{GuildId, UserId};
+    /// #
     /// # #[tokio::main]
     /// # async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
-    /// let client = Client::new("my token");
-    ///
+    /// # let client = Client::new("my token");
+    /// #
     /// let guild_id = GuildId(100);
     /// let user_id = UserId(200);
     /// client.create_ban(guild_id, user_id)
     ///     .delete_message_days(1)?
     ///     .reason("memes")
     ///     .await?;
-    ///
-    /// println!("Banned!");
     /// # Ok(()) }
     /// ```
     pub fn create_ban(&self, guild_id: GuildId, user_id: UserId) -> CreateBan<'_> {
         CreateBan::new(self, guild_id, user_id)
     }
 
-    /// Remove a ban from a user in a guild, optionally with the reason why.
+    /// Remove a ban from a user in a guild.
     ///
     /// # Examples
     ///
     /// Unban user `200` from guild `100`:
     ///
     /// ```rust,no_run
-    /// use twilight_http::Client;
-    /// use twilight_model::id::{GuildId, UserId};
-    ///
+    /// # use twilight_http::Client;
+    /// # use twilight_model::id::{GuildId, UserId};
+    /// #
     /// # #[tokio::main]
     /// # async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
-    /// let client = Client::new("my token");
-    ///
+    /// # let client = Client::new("my token");
+    /// #
     /// let guild_id = GuildId(100);
     /// let user_id = UserId(200);
     ///
