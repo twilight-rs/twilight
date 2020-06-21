@@ -9,10 +9,10 @@ use twilight_model::{
     id::{ChannelId, GuildId, RoleId, UserId},
 };
 
+/// The error created when the member can not be updated as configured.
 #[derive(Clone, Debug)]
 pub enum UpdateGuildMemberError {
-    /// The nickname is either empty or the length is more than 32 UTF-16
-    /// characters.
+    /// The nickname is either empty or the length is more than 32 UTF-16 characters.
     NicknameInvalid,
 }
 
@@ -35,6 +35,18 @@ struct UpdateGuildMemberFields {
     roles: Option<Vec<RoleId>>,
 }
 
+/// Update a guild member.
+///
+/// All fields are optional. Refer to [the discord docs] for more information.
+///
+/// # Errors
+///
+/// Returns [`UpdateGuildMemberError::NicknameInvalid`] if the nickname length is too short or too
+/// long.
+///
+/// [`UpdateGuildMemberError::NicknameInvalid`]: enum.UpdateGuildMemberError.html#variant.NicknameInvalid
+///
+/// [the discord docs]: https://discord.com/developers/docs/resources/guild#modify-guild-member
 pub struct UpdateGuildMember<'a> {
     fields: UpdateGuildMemberFields,
     fut: Option<Pending<'a, Member>>,
@@ -56,18 +68,21 @@ impl<'a> UpdateGuildMember<'a> {
         }
     }
 
+    /// Move the member to a different voice channel.
     pub fn channel_id(mut self, channel_id: impl Into<ChannelId>) -> Self {
         self.fields.channel_id.replace(channel_id.into());
 
         self
     }
 
+    /// If true, restrict the member's ability to hear sound from a voice channel.
     pub fn deaf(mut self, deaf: bool) -> Self {
         self.fields.deaf.replace(deaf);
 
         self
     }
 
+    /// If true, restrict the member's ability to speak in a voice channel.
     pub fn mute(mut self, mute: bool) -> Self {
         self.fields.mute.replace(mute);
 
@@ -76,13 +91,12 @@ impl<'a> UpdateGuildMember<'a> {
 
     /// Set the nickname.
     ///
-    /// The minimum length is 1 UTF-16 character and the maximum is 32 UTF-16
-    /// characters.
+    /// The minimum length is 1 UTF-16 character and the maximum is 32 UTF-16 characters.
     ///
     /// # Errors
     ///
-    /// Returns [`UpdateGuildMemberError::NicknameInvalid`] if the nickname
-    /// length is too short or too long.
+    /// Returns [`UpdateGuildMemberError::NicknameInvalid`] if the nickname length is too short or
+    /// too long.
     ///
     /// [`UpdateGuildMemberError::NicknameInvalid`]: enum.UpdateGuildMemberError.html#variant.NicknameInvalid
     pub fn nick(self, nick: impl Into<String>) -> Result<Self, UpdateGuildMemberError> {
@@ -99,12 +113,14 @@ impl<'a> UpdateGuildMember<'a> {
         Ok(self)
     }
 
+    /// Set the new list of roles for a member.
     pub fn roles(mut self, roles: Vec<RoleId>) -> Self {
         self.fields.roles.replace(roles);
 
         self
     }
 
+    /// Attach an audit log reason to this request.
     pub fn reason(mut self, reason: impl Into<String>) -> Self {
         self.reason.replace(reason.into());
 

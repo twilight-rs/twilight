@@ -153,14 +153,13 @@ impl Client {
     /// In guild `1`, add role `2` to user `3`, for the reason `"test"`:
     ///
     /// ```rust,no_run
-    /// use std::env;
-    /// use twilight_http::Client;
-    /// use twilight_model::id::{GuildId, RoleId, UserId};
-    ///
+    /// # use twilight_http::Client;
+    /// # use twilight_model::id::{GuildId, RoleId, UserId};
+    /// #
     /// # #[tokio::main]
     /// # async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
-    /// let client = Client::new(env::var("DISCORD_TOKEN")?);
-    ///
+    /// # let client = Client::new("my token");
+    /// #
     /// let guild_id = GuildId(1);
     /// let role_id = RoleId(2);
     /// let user_id = UserId(3);
@@ -754,18 +753,60 @@ impl Client {
         GetGuildInvites::new(self, guild_id)
     }
 
+    /// Get the members of a guild, by id.
+    ///
+    /// The upper limit to this request is 1000. If more than 1000 members are needed, the requests
+    /// must be chained. Discord defaults the limit to 1.
+    ///
+    /// # Examples
+    ///
+    /// Get the first 500 members of guild `100` after user ID `3000`:
+    ///
+    /// ```rust,no_run
+    /// # use twilight_http::Client;
+    /// use twilight_model::id::{GuildId, UserId};
+    /// #
+    /// # #[tokio::main]
+    /// # async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
+    /// # let client = Client::new("my token");
+    /// #
+    /// let guild_id = GuildId(100);
+    /// let user_id = UserId(3000);
+    /// let members = client.guild_members(guild_id).after(user_id).await?;
+    /// # Ok(()) }
+    /// ```
+    ///
+    /// # Errors
+    ///
+    /// Returns [`GetGuildMembersError::LimitInvalid`] if the limit is invalid.
+    ///
+    /// [`GetGuildMembersError::LimitInvalid`]: ../request/guild/member/get_guild_members/enum.GetGuildMembersError.html#variant.LimitInvalid
     pub fn guild_members(&self, guild_id: GuildId) -> GetGuildMembers<'_> {
         GetGuildMembers::new(self, guild_id)
     }
 
+    /// Get a member of a guild, by their id.
     pub fn guild_member(&self, guild_id: GuildId, user_id: UserId) -> GetMember<'_> {
         GetMember::new(self, guild_id, user_id)
     }
 
+    /// Kick a member from a guild.
     pub fn remove_guild_member(&self, guild_id: GuildId, user_id: UserId) -> RemoveMember<'_> {
         RemoveMember::new(self, guild_id, user_id)
     }
 
+    /// Update a guild member.
+    ///
+    /// All fields are optional. Refer to [the discord docs] for more information.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`UpdateGuildMemberError::NicknameInvalid`] if the nickname length is too short or too
+    /// long.
+    ///
+    /// [`UpdateGuildMemberError::NicknameInvalid`]: ../request/guild/member/update_guild_member/enum.UpdateGuildMemberError.html#variant.NicknameInvalid
+    ///
+    /// [the discord docs]: https://discord.com/developers/docs/resources/guild#modify-guild-member
     pub fn update_guild_member(&self, guild_id: GuildId, user_id: UserId) -> UpdateGuildMember<'_> {
         UpdateGuildMember::new(self, guild_id, user_id)
     }
@@ -779,6 +820,7 @@ impl Client {
         AddRoleToMember::new(self, guild_id, user_id, role_id)
     }
 
+    /// Remove a role from a member in a guild, by id.
     pub fn remove_guild_member_role(
         &self,
         guild_id: GuildId,
