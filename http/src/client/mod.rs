@@ -1162,22 +1162,47 @@ impl Client {
         CreatePrivateChannel::new(self, recipient_id)
     }
 
+    /// Get the roles of a guild.
     pub fn roles(&self, guild_id: GuildId) -> GetGuildRoles<'_> {
         GetGuildRoles::new(self, guild_id)
     }
 
+    /// Create a role in a guild.
+    ///
+    /// # Examples
+    ///
+    /// ```rust,no_run
+    /// # use twilight_http::Client;
+    /// use twilight_model::id::GuildId;
+    ///
+    /// # #[tokio::main]
+    /// # async fn main() -> Result<(), Box<dyn std::error::Error>> {
+    /// # let client = Client::new("my token");
+    /// let guild_id = GuildId(234);
+    ///
+    /// client.create_role(guild_id)
+    ///     .color(0xd90083)
+    ///     .name("Bright Pink")
+    ///     .await?;
+    /// # Ok(()) }
+    /// ```
     pub fn create_role(&self, guild_id: GuildId) -> CreateRole<'_> {
         CreateRole::new(self, guild_id)
     }
 
+    /// Delete a role in a guild, by id.
     pub fn delete_role(&self, guild_id: GuildId, role_id: RoleId) -> DeleteRole<'_> {
         DeleteRole::new(self, guild_id, role_id)
     }
 
+    /// Update a role by guild id and its id.
     pub fn update_role(&self, guild_id: GuildId, role_id: RoleId) -> UpdateRole<'_> {
         UpdateRole::new(self, guild_id, role_id)
     }
 
+    /// Modify the position of the roles.
+    ///
+    /// The minimum amount of roles to modify, is a swap between two roles.
     pub fn update_role_positions(
         &self,
         guild_id: GuildId,

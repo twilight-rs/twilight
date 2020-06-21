@@ -5,6 +5,9 @@ use twilight_model::{
     id::{GuildId, RoleId},
 };
 
+/// Modify the position of the roles.
+///
+/// The minimum amount of roles to modify, is a swap between two roles.
 pub struct UpdateRolePositions<'a> {
     fut: Option<Pending<'a, Vec<Role>>>,
     guild_id: GuildId,

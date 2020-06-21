@@ -1,6 +1,7 @@
 use crate::request::prelude::*;
 use twilight_model::id::{GuildId, RoleId};
 
+/// Delete a role in a guild, by id.
 pub struct DeleteRole<'a> {
     fut: Option<Pending<'a, ()>>,
     guild_id: GuildId,
@@ -20,6 +21,7 @@ impl<'a> DeleteRole<'a> {
         }
     }
 
+    /// Attach an audit log reason to this request.
     pub fn reason(mut self, reason: impl Into<String>) -> Self {
         self.reason.replace(reason.into());
 
