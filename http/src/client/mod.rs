@@ -154,7 +154,7 @@ impl Client {
     ///
     /// ```rust,no_run
     /// # use twilight_http::Client;
-    /// # use twilight_model::id::{GuildId, RoleId, UserId};
+    /// use twilight_model::id::{GuildId, RoleId, UserId};
     /// #
     /// # #[tokio::main]
     /// # async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
@@ -206,7 +206,7 @@ impl Client {
     ///
     /// ```rust,no_run
     /// # use twilight_http::Client;
-    /// # use twilight_model::id::GuildId;
+    /// use twilight_model::id::GuildId;
     /// #
     /// # #[tokio::main]
     /// # async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
@@ -238,7 +238,7 @@ impl Client {
     ///
     /// ```rust,no_run
     /// # use twilight_http::Client;
-    /// # use twilight_model::id::{GuildId, UserId};
+    /// use twilight_model::id::{GuildId, UserId};
     /// #
     /// # #[tokio::main]
     /// # async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
@@ -264,7 +264,7 @@ impl Client {
     ///
     /// ```rust,no_run
     /// # use twilight_http::Client;
-    /// # use twilight_model::id::{GuildId, UserId};
+    /// use twilight_model::id::{GuildId, UserId};
     /// #
     /// # #[tokio::main]
     /// # async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
