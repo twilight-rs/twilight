@@ -5,8 +5,7 @@ use crate::{
 use serde::{
     de::{Deserializer, Error as DeError},
     ser::{SerializeStruct, Serializer},
-    Deserialize,
-    Serialize,
+    Deserialize, Serialize,
 };
 
 #[derive(Clone, Debug, Eq, Hash, PartialEq)]
