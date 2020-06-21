@@ -1,6 +1,9 @@
 use crate::request::prelude::*;
 use twilight_model::id::ChannelId;
 
+/// Clear the permissions for a target ID in a channel.
+///
+/// The `target_id` is a `u64`, but it should point to a `RoleId` or a `UserId`.
 pub struct DeleteChannelPermission<'a> {
     channel_id: ChannelId,
     fut: Option<Pending<'a, ()>>,
@@ -20,6 +23,7 @@ impl<'a> DeleteChannelPermission<'a> {
         }
     }
 
+    /// Attach an audit log reason to this request.
     pub fn reason(mut self, reason: impl Into<String>) -> Self {
         self.reason.replace(reason.into());
 

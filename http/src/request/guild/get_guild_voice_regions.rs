@@ -1,6 +1,9 @@
 use crate::request::prelude::*;
 use twilight_model::{id::GuildId, voice::VoiceRegion};
 
+/// Get voice region data for the guild.
+///
+/// Can return VIP servers if the guild is VIP-enabled.
 pub struct GetGuildVoiceRegions<'a> {
     fut: Option<Pending<'a, Vec<VoiceRegion>>>,
     guild_id: GuildId,

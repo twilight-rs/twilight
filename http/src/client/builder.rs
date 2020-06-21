@@ -8,6 +8,9 @@ use reqwest::{Client as ReqwestClient, ClientBuilder as ReqwestClientBuilder, Pr
 use std::{sync::Arc, time::Duration};
 
 #[derive(Clone, Debug)]
+/// A builder for [`Client`].
+///
+/// [`Client`]: ../struct.Client.html
 pub struct ClientBuilder {
     pub(crate) proxy: Option<Proxy>,
     pub(crate) proxy_http: bool,
@@ -19,15 +22,20 @@ pub struct ClientBuilder {
 }
 
 impl ClientBuilder {
+    /// Create a new builder to create a [`Client`].
+    ///
+    /// [`Client`]: ../struct.Client.html
     pub fn new() -> Self {
         Self::default()
     }
 
-    /// Build the Client
+    /// Build the [`Client`].
     ///
     /// # Errors
     ///
     /// Errors if `reqwest` fails to build the client.
+    ///
+    /// [`Client`]: ../struct.Client.html
     pub fn build(self) -> Result<Client> {
         let mut builder = ReqwestClientBuilder::new().timeout(self.timeout);
 
@@ -51,6 +59,8 @@ impl ClientBuilder {
         })
     }
 
+    /// Set the default allowed mentions setting to use on all messages sent through the HTTP
+    /// client.
     pub fn default_allowed_mentions(&mut self, allowed_mentions: AllowedMentions) -> &mut Self {
         self.default_allowed_mentions.replace(allowed_mentions);
 
@@ -66,13 +76,16 @@ impl ClientBuilder {
         self
     }
 
+    /// Set whether to proxy over HTTP.
+    ///
+    /// The default is `false`.
     pub fn proxy_http(&mut self, proxy_http: bool) -> &mut Self {
         self.proxy_http = proxy_http;
 
         self
     }
 
-    /// Sets the reqwest client to use.
+    /// Set the reqwest client to use.
     ///
     /// All of the settings in the client will be overwritten by the settings
     /// in this configuration, if specified.
@@ -84,7 +97,7 @@ impl ClientBuilder {
         self
     }
 
-    /// Sets whether to skip the client's ratelimiter before making the request.
+    /// Set whether to skip the client's ratelimiter before making the request.
     ///
     /// The default is `false`.
     pub fn skip_ratelimiter(&mut self, skip_ratelimiter: bool) -> &mut Self {
@@ -93,7 +106,7 @@ impl ClientBuilder {
         self
     }
 
-    /// Sets the timeout for HTTP requests.
+    /// Set the timeout for HTTP requests.
     ///
     /// The default is 10 seconds.
     pub fn timeout(&mut self, duration: Duration) -> &mut Self {
@@ -102,7 +115,7 @@ impl ClientBuilder {
         self
     }
 
-    /// Sets the token to use for HTTP requests.
+    /// Set the token to use for HTTP requests.
     pub fn token(&mut self, token: impl Into<String>) -> &mut Self {
         let mut token = token.into();
 

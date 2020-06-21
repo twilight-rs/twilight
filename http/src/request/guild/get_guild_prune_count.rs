@@ -8,6 +8,7 @@ use twilight_model::{
     id::{GuildId, RoleId},
 };
 
+/// The error created when the guild prune count can not be requested as configured.
 #[derive(Clone, Debug)]
 pub enum GetGuildPruneCountError {
     /// The number of days is 0.
@@ -30,6 +31,7 @@ struct GetGuildPruneCountFields {
     include_roles: Vec<u64>,
 }
 
+/// Get the counts of guild members to be pruned.
 pub struct GetGuildPruneCount<'a> {
     fields: GetGuildPruneCountFields,
     fut: Option<Pending<'a, GuildPrune>>,

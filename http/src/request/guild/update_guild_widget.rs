@@ -11,6 +11,7 @@ struct UpdateGuildWidgetFields {
     enabled: Option<bool>,
 }
 
+/// Modify the guild widget.
 pub struct UpdateGuildWidget<'a> {
     fields: UpdateGuildWidgetFields,
     fut: Option<Pending<'a, GuildWidget>>,
@@ -28,12 +29,14 @@ impl<'a> UpdateGuildWidget<'a> {
         }
     }
 
+    /// Set which channel to display on the widget.
     pub fn channel_id(mut self, channel_id: impl Into<ChannelId>) -> Self {
         self.fields.channel_id.replace(channel_id.into());
 
         self
     }
 
+    /// Set to true to enable the guild widget.
     pub fn enabled(mut self, enabled: bool) -> Self {
         self.fields.enabled.replace(enabled);
 

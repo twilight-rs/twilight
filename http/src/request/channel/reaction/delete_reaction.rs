@@ -4,6 +4,7 @@ use twilight_model::{
     id::{ChannelId, MessageId},
 };
 
+/// Delete one reaction by a user on a message.
 pub struct DeleteReaction<'a> {
     channel_id: ChannelId,
     emoji: String,

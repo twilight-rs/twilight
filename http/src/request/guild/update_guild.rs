@@ -11,10 +11,11 @@ use twilight_model::{
     id::{ChannelId, GuildId, UserId},
 };
 
+/// The error returned when the guild can not be updated as configured.
 #[derive(Clone, Debug)]
 pub enum UpdateGuildError {
-    /// The name length is either fewer than 2 UTF-16 characters or more than
-    /// 100 UTF-16 characters.
+    /// The name length is either fewer than 2 UTF-16 characters or more than 100 UTF-16
+    /// characters.
     NameInvalid,
 }
 
@@ -46,6 +47,11 @@ struct UpdateGuildFields {
     preferred_locale: Option<String>,
 }
 
+/// Update a guild.
+///
+/// All endpoints are optional. Refer to [the discord docs] for more information.
+///
+/// [the discord docs]: https://discord.com/developers/docs/resources/guild#modify-guild
 pub struct UpdateGuild<'a> {
     fields: UpdateGuildFields,
     fut: Option<Pending<'a, PartialGuild>>,
@@ -65,18 +71,24 @@ impl<'a> UpdateGuild<'a> {
         }
     }
 
+    /// Set the voice channel where AFK voice users are sent.
     pub fn afk_channel_id(mut self, afk_channel_id: impl Into<ChannelId>) -> Self {
         self.fields.afk_channel_id.replace(afk_channel_id.into());
 
         self
     }
 
+    /// Set how much time it takes for a voice user to be considered AFK.
     pub fn afk_timeout(mut self, afk_timeout: u64) -> Self {
         self.fields.afk_timeout.replace(afk_timeout);
 
         self
     }
 
+    /// Set the default message notification level. Refer to [the discord docs] for more
+    /// information.
+    ///
+    /// [the discord docs]: https://discord.com/developers/docs/resources/guild#create-guild
     pub fn default_message_notifications(
         mut self,
         default_message_notifications: DefaultMessageNotificationLevel,
@@ -88,6 +100,7 @@ impl<'a> UpdateGuild<'a> {
         self
     }
 
+    /// Set the explicit content filter level.
     pub fn explicit_content_filter(
         mut self,
         explicit_content_filter: ExplicitContentFilter,
@@ -99,6 +112,13 @@ impl<'a> UpdateGuild<'a> {
         self
     }
 
+    /// Set the icon.
+    ///
+    /// This must be a Data URI, in the form of `data:image/{type};base64,{data}` where `{type}` is
+    /// the image MIME type and `{data}` is the base64-encoded image. Refer to [the discord docs]
+    /// for more information.
+    ///
+    /// [the discord docs]: https://discord.com/developers/docs/reference#image-data
     pub fn icon(mut self, icon: impl Into<String>) -> Self {
         self.fields.icon.replace(icon.into());
 
@@ -130,24 +150,35 @@ impl<'a> UpdateGuild<'a> {
         Ok(self)
     }
 
+    /// Transfer ownership to another user.
+    ///
+    /// Only works if the current user is the owner.
     pub fn owner_id(mut self, owner_id: impl Into<UserId>) -> Self {
         self.fields.owner_id.replace(owner_id.into());
 
         self
     }
 
+    /// Specify the voice server region for the guild. Refer to [the discord docs] for more
+    /// information.
+    ///
+    /// [the discord docs]: https://discord.com/developers/docs/resources/voice#voice-region-object
     pub fn region(mut self, region: impl Into<String>) -> Self {
         self.fields.region.replace(region.into());
 
         self
     }
 
+    /// Set the guild's splash image.
+    ///
+    /// Requires the guild to have the `INVITE_SPLASH` feature enabled.
     pub fn splash(mut self, splash: impl Into<String>) -> Self {
         self.fields.splash.replace(splash.into());
 
         self
     }
 
+    /// Set the channel where events such as welcome messages are posted.
     pub fn system_channel(mut self, system_channel_id: impl Into<ChannelId>) -> Self {
         self.fields
             .system_channel_id
@@ -156,6 +187,11 @@ impl<'a> UpdateGuild<'a> {
         self
     }
 
+    /// Set the rules channel.
+    ///
+    /// Requires the guild to be `PUBLIC`. Refer to [the discord docs] for more information.
+    ///
+    /// [the discord docs]: https://discord.com/developers/docs/resources/guild#modify-guild
     pub fn rules_channel(mut self, rules_channel_id: impl Into<ChannelId>) -> Self {
         self.fields
             .rules_channel_id
@@ -164,6 +200,9 @@ impl<'a> UpdateGuild<'a> {
         self
     }
 
+    /// Set the public updates channel.
+    ///
+    /// Requires the guild to be `PUBLIC`.
     pub fn public_updates_channel(
         mut self,
         public_updates_channel_id: impl Into<ChannelId>,
@@ -175,6 +214,9 @@ impl<'a> UpdateGuild<'a> {
         self
     }
 
+    /// Set the preferred locale for the guild.
+    ///
+    /// Defaults to `en-US`. Requires the guild to be `PUBLIC`.
     pub fn preferred_locale(mut self, preferred_locale: impl Into<String>) -> Self {
         self.fields
             .preferred_locale
@@ -183,12 +225,16 @@ impl<'a> UpdateGuild<'a> {
         self
     }
 
+    /// Set the verification level. Refer to [the discord docs] for more information.
+    ///
+    /// [the discord docs]: https://discord.com/developers/docs/resources/guild#guild-object-verification-level
     pub fn verification_level(mut self, verification_level: VerificationLevel) -> Self {
         self.fields.verification_level.replace(verification_level);
 
         self
     }
 
+    /// Attach an audit log reason to this request.
     pub fn reason(mut self, reason: impl Into<String>) -> Self {
         self.reason.replace(reason.into());
 

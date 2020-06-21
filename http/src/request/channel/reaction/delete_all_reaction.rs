@@ -4,6 +4,7 @@ use twilight_model::{
     id::{ChannelId, MessageId},
 };
 
+/// Remove all reactions of a specified emoji from a message.
 pub struct DeleteAllReaction<'a> {
     channel_id: ChannelId,
     emoji: String,

@@ -4,6 +4,35 @@ use twilight_model::{
     id::{ChannelId, MessageId},
 };
 
+/// Create a reaction in a [`ChannelId`] on a [`MessageId`].
+///
+/// The reaction must be a variant of [`ReactionType`].
+///
+/// # Examples
+/// ```rust,no_run
+/// use twilight_http::Client;
+/// use twilight_model::{
+///     channel::ReactionType,
+///     id::{ChannelId, MessageId},
+/// };
+///
+/// # #[tokio::main]
+/// # async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
+/// let client = Client::new("my token");
+///
+/// let channel_id = ChannelId(123);
+/// let message_id = MessageId(456);
+/// let emoji = ReactionType::Unicode { name: String::from("🌃") };
+///
+/// let reaction = client
+///     .create_reaction(channel_id, message_id, emoji)
+///     .await?;
+/// # Ok(()) }
+/// ```
+///
+/// [`ChannelId`]: ../../../../twilight_model/id/struct.ChannelId.html
+/// [`MessageId`]: ../../../../twilight_model/id/struct.MessageId.html
+/// [`ReactionType`]: ../../../../twilight_model/channel/enum.ReactionType.html
 pub struct CreateReaction<'a> {
     channel_id: ChannelId,
     emoji: String,

@@ -8,9 +8,10 @@ use twilight_model::{
     user::User,
 };
 
+/// The error created if the reactions can not be retrieved as configured.
 #[derive(Clone, Debug)]
 pub enum GetReactionsError {
-    /// The maximum number of reactions to retrieve is 0 or more than 100.
+    /// The number of reactions to retrieve must be between 1 and 100, inclusive.
     LimitInvalid,
 }
 
@@ -31,6 +32,10 @@ struct GetReactionsFields {
     limit: Option<u64>,
 }
 
+/// Get a list of users that reacted to a message with an `emoji`.
+///
+/// This endpoint is limited to 100 users maximum, so if a message has more than 100 reactions,
+/// requests must be chained until all reactions are retireved.
 pub struct GetReactions<'a> {
     channel_id: ChannelId,
     emoji: String,
@@ -57,28 +62,30 @@ impl<'a> GetReactions<'a> {
         }
     }
 
+    /// Get users after this id.
     pub fn after(mut self, after: UserId) -> Self {
         self.fields.after.replace(after);
 
         self
     }
 
+    /// Get users before this id.
     pub fn before(mut self, before: UserId) -> Self {
         self.fields.before.replace(before);
 
         self
     }
 
-    /// Set the maximum number of reactions to retrieve.
+    /// Set the maximum number of users to retrieve.
     ///
-    /// The minimum is 1 and the maximum is 100.
+    /// The minimum is 1 and the maximum is 100. If no limit is specified, Discord sets the default
+    /// to 25.
     ///
     /// # Errors
     ///
-    /// Returns [`GetReactionsError::LimitInvalid`] if the amount is greater
-    /// than 100.
+    /// Returns [`GetReactionsError::LimitInvalid`] if the amount is greater than 100.
     ///
-    /// [`GetReactionsError::LimitInvalid`]: enum.GetReactionsError.hLml#variant.LimitInvalid
+    /// [`GetReactionsError::LimitInvalid`]: enum.GetReactionsError.html#variant.LimitInvalid
     pub fn limit(mut self, limit: u64) -> Result<Self, GetReactionsError> {
         if !validate::get_reactions_limit(limit) {
             return Err(GetReactionsError::LimitInvalid);

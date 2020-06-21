@@ -1,5 +1,23 @@
 use twilight_model::channel::embed::*;
 
+/// Create an embed via a builder.
+///
+/// # Examples
+///
+/// ```rust,no_run
+/// use twilight_builders::embed::EmbedBuilder;
+///
+/// # fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
+/// let embed = EmbedBuilder::new()
+///     .description("Here's a list of reasons why Twilight is the best pony:")
+///     .add_field("Wings", "She has wings.")
+///         .inline()
+///         .commit()
+///     .add_field("Horn", "She can do magic, and she's really good at it.")
+///         .commit()
+///     .build();
+/// # Ok(()) }
+/// ```
 #[derive(Clone, Debug)]
 #[must_use = "The embed is not constructed. You need to call build to construct the embed."]
 pub struct EmbedBuilder(Embed);

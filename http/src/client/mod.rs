@@ -54,12 +54,54 @@ impl Debug for State {
     }
 }
 
+/// Twilight's http client.
+///
+/// Almost all of the client methods require authentication, and as such, the client must be
+/// supplied with a Discord Token. Get yours [here].
+///
+/// # Examples
+///
+/// Create a client called `client`:
+/// ```rust,no_run
+/// use twilight_http::Client;
+///
+/// # #[tokio::main]
+/// # async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
+/// let client = Client::new("my token");
+/// # Ok(()) }
+/// ```
+///
+/// Use [`ClientBuilder`] to create a client called `client`, with a shorter timeout:
+/// ```rust,no_run
+/// use twilight_http::Client;
+/// use std::time::Duration;
+///
+/// # #[tokio::main]
+/// # async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
+/// let mut client_builder = Client::builder();
+/// client_builder
+///     .token("my token")
+///     .timeout(Duration::from_secs(5));
+/// let client = client_builder.build()?;
+/// # Ok(()) }
+/// ```
+///
+/// All the examples on this page assume you have already created a client, and have named it
+/// `client`.
+///
+/// [here]: https://discord.com/developers/applications
+/// [`ClientBuilder`]: ../struct.ClientBuilder.html
 #[derive(Clone, Debug)]
 pub struct Client {
     state: Arc<State>,
 }
 
 impl Client {
+    /// Create a new client with a token.
+    ///
+    /// If you want to customize the client, use [`builder`].
+    ///
+    /// [`builder`]: #method.builder
     pub fn new(token: impl Into<String>) -> Self {
         let mut token = token.into();
 
@@ -80,18 +122,52 @@ impl Client {
         }
     }
 
+    /// Create a new builder to create a client.
+    ///
+    /// Refer to its documentation for more information.
     pub fn builder() -> ClientBuilder {
         ClientBuilder::new()
     }
 
+    /// Retrieve an immutable reference to the token used by the client.
+    ///
+    /// If the initial token provided is not prefixed with `Bot `, it will be, and this method
+    /// reflects that.
     pub fn token(&self) -> Option<&str> {
         self.state.token.as_ref().map(AsRef::as_ref)
     }
 
+    /// Get the default allowed mentions for sent messages.
+    ///
+    /// Refer to [`allowed_mentions`] for more information.
+    ///
+    /// [`allowed_mentions`]: ../request/channel/message/allowed_mentions/index.html
     pub fn default_allowed_mentions(&self) -> Option<AllowedMentions> {
         self.state.default_allowed_mentions.clone()
     }
 
+    /// Add a role to a member in a guild.
+    ///
+    /// # Examples
+    ///
+    /// In guild `1`, add role `2` to user `3`, for the reason `"test"`:
+    ///
+    /// ```rust,no_run
+    /// use std::env;
+    /// use twilight_http::Client;
+    /// use twilight_model::id::{GuildId, RoleId, UserId};
+    ///
+    /// # #[tokio::main]
+    /// # async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
+    /// let client = Client::new(env::var("DISCORD_TOKEN")?);
+    ///
+    /// let guild_id = GuildId(1);
+    /// let role_id = RoleId(2);
+    /// let user_id = UserId(3);
+    ///
+    /// client.add_role(guild_id, user_id, role_id).reason("test").await?;
+    /// # Ok(()) }
+    /// ```
     pub fn add_role(
         &self,
         guild_id: GuildId,
@@ -101,10 +177,48 @@ impl Client {
         AddRoleToMember::new(self, guild_id, user_id, role_id)
     }
 
+    /// Get the audit log for a guild.
+    ///
+    /// # Examples
+    ///
+    /// ```rust,no_run
+    /// # use twilight_http::Client;
+    /// use twilight_model::id::GuildId;
+    ///
+    /// # #[tokio::main]
+    /// # async fn main() -> Result<(), Box<dyn std::error::Error>> {
+    /// # let client = Client::new("token");
+    /// let guild_id = GuildId(101);
+    /// let audit_log = client
+    /// // not done
+    ///     .audit_log(guild_id)
+    ///     .await?;
+    /// # Ok(()) }
+    /// ```
     pub fn audit_log(&self, guild_id: GuildId) -> GetAuditLog<'_> {
         GetAuditLog::new(self, guild_id)
     }
 
+    /// Retrieve the bans for a guild.
+    ///
+    /// # Examples
+    ///
+    /// Retrieve the bans for guild `1`:
+    ///
+    /// ```rust,no_run
+    /// use std::env;
+    /// use twilight_http::Client;
+    /// use twilight_model::id::GuildId;
+    ///
+    /// # #[tokio::main]
+    /// # async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
+    /// let client = Client::new(env::var("DISCORD_TOKEN")?);
+    ///
+    /// let guild_id = GuildId(1);
+    ///
+    /// let bans = client.bans(guild_id).await?;
+    /// # Ok(()) }
+    /// ```
     pub fn bans(&self, guild_id: GuildId) -> GetBans<'_> {
         GetBans::new(self, guild_id)
     }
@@ -118,7 +232,7 @@ impl Client {
     ///
     /// # Examples
     ///
-    /// Ban user `114941315417899012` from guild `377840580245585931`, deleting
+    /// Ban user `200` from guild `100`, deleting
     /// 1 day's worth of messages, for the reason `"memes"`:
     ///
     /// ```rust,no_run
@@ -129,8 +243,8 @@ impl Client {
     /// # async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
     /// let client = Client::new("my token");
     ///
-    /// let guild_id = GuildId(377840580245585931);
-    /// let user_id = UserId(114941315417899012);
+    /// let guild_id = GuildId(100);
+    /// let user_id = UserId(200);
     /// client.create_ban(guild_id, user_id)
     ///     .delete_message_days(1)?
     ///     .reason("memes")
@@ -143,26 +257,128 @@ impl Client {
         CreateBan::new(self, guild_id, user_id)
     }
 
+    /// Remove a ban from a user in a guild, optionally with the reason why.
+    ///
+    /// # Examples
+    ///
+    /// Unban user `200` from guild `100`:
+    ///
+    /// ```rust,no_run
+    /// use twilight_http::Client;
+    /// use twilight_model::id::{GuildId, UserId};
+    ///
+    /// # #[tokio::main]
+    /// # async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
+    /// let client = Client::new("my token");
+    ///
+    /// let guild_id = GuildId(100);
+    /// let user_id = UserId(200);
+    ///
+    /// client.delete_ban(guild_id, user_id).await?;
+    /// # Ok(()) }
+    /// ```
     pub fn delete_ban(&self, guild_id: GuildId, user_id: UserId) -> DeleteBan<'_> {
         DeleteBan::new(self, guild_id, user_id)
     }
 
+    /// Get a channel by its ID.
+    ///
+    /// # Examples
+    ///
+    /// Get channel `100`:
+    ///
+    /// ```rust,no_run
+    /// # use twilight_http::Client;
+    /// # use twilight_model::id::ChannelId;
+    /// #
+    /// # #[tokio::main]
+    /// # async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
+    /// # let client = Client::new("my token");
+    /// #
+    /// let channel_id = ChannelId(100);
+    /// #
+    /// let channel = client.channel(channel_id).await?;
+    /// # Ok(()) }
+    /// ```
     pub fn channel(&self, channel_id: ChannelId) -> GetChannel<'_> {
         GetChannel::new(self, channel_id)
     }
 
+    /// Delete a channel by ID.
     pub fn delete_channel(&self, channel_id: ChannelId) -> DeleteChannel<'_> {
         DeleteChannel::new(self, channel_id)
     }
 
+    /// Update a channel.
+    ///
+    /// All fields are optional. The minimum length of the name is 2 UTF-16 characters and the
+    /// maximum is 100 UTF-16 characters.
+    ///
+    /// # Errors
+    ///
+    /// Returns a [`UpdateChannelError::NameInvalid`] when the length of the name is either fewer
+    /// than 2 UTF-16 characters or more than 100 UTF-16 characters.
+    ///
+    /// Returns a [`UpdateChannelError::RateLimitPerUserInvalid`] when the seconds of the rate limit
+    /// per user is more than 21600.
+    ///
+    /// Returns a [`UpdateChannelError::TopicInvalid`] when the length of the topic is more than
+    /// 1024 UTF-16 characters.
+    ///
+    /// [`UpdateChannelError::NameInvalid`]: ../enum.UpdateChannelError.html#variant.NameInvalid
+    /// [`UpdateChannelError::RateLimitPerUserInvalid`]: ../enum.UpdateChannelError.html#variant.RateLimitPerUserInvalid
+    /// [`UpdateChannelError::TopicInvalid`]: ../enum.UpdateChannelError.html#variant.TopicInvalid
     pub fn update_channel(&self, channel_id: ChannelId) -> UpdateChannel<'_> {
         UpdateChannel::new(self, channel_id)
     }
 
+    /// Get the invites for a guild channel.
+    ///
+    /// This method only works if the channel is of type `GuildChannel`.
     pub fn channel_invites(&self, channel_id: ChannelId) -> GetChannelInvites<'_> {
         GetChannelInvites::new(self, channel_id)
     }
 
+    /// Get channel messages, by [`ChannelId`].
+    ///
+    /// Only one of [`after`], [`around`], and [`before`] can be specified at a time.
+    /// Once these are specified, the type returned is [`GetChannelMessagesConfigured`].
+    ///
+    /// If [`limit`] is unspecified, the default set by Discord is 50.
+    ///
+    /// # Examples
+    ///
+    /// ```rust,no_run
+    /// use twilight_http::Client;
+    /// use twilight_model::id::{ChannelId, MessageId};
+    ///
+    /// # #[tokio::main]
+    /// # async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
+    /// let client = Client::new("my token");
+    /// let channel_id = ChannelId(123);
+    /// let message_id = MessageId(234);
+    /// let limit: u64 = 6;
+    ///
+    /// let messages = client
+    ///     .channel_messages(channel_id)
+    ///     .before(message_id)
+    ///     .limit(limit)?
+    ///     .await?;
+    ///
+    /// # Ok(()) }
+    /// ```
+    ///
+    /// # Errors
+    ///
+    /// Returns [`GetChannelMessages::LimitInvalid`] if the amount is less than 1 or greater than 100.
+    ///
+    /// [`ChannelId`]: ../../twilight_model/id/struct.ChannelId.html
+    /// [`after`]: ../request/channel/message/get_channel_messages/struct.GetChannelMessages.html#method.after
+    /// [`around`]: ../request/channel/message/get_channel_messages/struct.GetChannelMessages.html#method.around
+    /// [`before`]: ../request/channel/message/get_channel_messages/struct.GetChannelMessages.html#method.before
+    /// [`GetChannelMessagesConfigured`]: ../request/channel/message/get_channel_messages_configured/struct.GetChannelMessagesConfigured.html
+    /// [`limit`]: ../request/channel/message/get_channel_messages/struct.GetChannelMessages.html#method.limit
+    /// [`GetChannelMessages::LimitInvalid`]: ../request/channel/message/get_channel_messages/enum.GetChannelMessages.html#variant.LimitInvalid
     pub fn channel_messages(&self, channel_id: ChannelId) -> GetChannelMessages<'_> {
         GetChannelMessages::new(self, channel_id)
     }
@@ -175,6 +391,31 @@ impl Client {
         DeleteChannelPermission::new(self, channel_id, target_id)
     }
 
+    /// Update the permissions for a role or a user in a channel.
+    ///
+    /// # Examples:
+    ///
+    /// Create permission overrides for a role to view the channel, but not send messages:
+    ///
+    /// ```rust,no_run
+    /// # use twilight_http::Client;
+    /// use twilight_model::guild::Permissions;
+    /// use twilight_model::id::{ChannelId, RoleId};
+    /// #
+    /// # #[tokio::main]
+    /// # async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
+    /// # let client = Client::new("my token");
+    ///
+    /// let channel_id = ChannelId(123);
+    /// let allow = Permissions::VIEW_CHANNEL;
+    /// let deny = Permissions::SEND_MESSAGES;
+    /// let role_id = RoleId(432);
+    ///
+    /// client.update_channel_permission(channel_id, allow, deny)
+    ///     .role(role_id)
+    ///     .await?;
+    /// # Ok(()) }
+    /// ```
     pub fn update_channel_permission(
         &self,
         channel_id: ChannelId,
@@ -184,6 +425,7 @@ impl Client {
         UpdateChannelPermission::new(self, channel_id, allow, deny)
     }
 
+    /// Get all the webhooks of a channel.
     pub fn channel_webhooks(&self, channel_id: ChannelId) -> GetChannelWebhooks<'_> {
         GetChannelWebhooks::new(self, channel_id)
     }
@@ -204,8 +446,8 @@ impl Client {
     ///
     /// # Examples
     ///
-    /// Get the first 25 guilds with an ID after `300000000000000000` and before
-    /// `400000000000000000`:
+    /// Get the first 25 guilds with an ID after `300` and before
+    /// `400`:
     ///
     /// ```rust,no_run
     /// use twilight_http::Client;
@@ -215,8 +457,8 @@ impl Client {
     /// # async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
     /// let client = Client::new("my token");
     ///
-    /// let after = GuildId(300000000000000000);
-    /// let before = GuildId(400000000000000000);
+    /// let after = GuildId(300);
+    /// let before = GuildId(400);
     /// let guilds = client.current_user_guilds()
     ///     .after(after)
     ///     .before(before)
@@ -230,6 +472,7 @@ impl Client {
         GetCurrentUserGuilds::new(self)
     }
 
+    /// Changes the user's nickname in a guild.
     pub fn update_current_user_nick(
         &self,
         guild_id: GuildId,
@@ -242,10 +485,49 @@ impl Client {
         GetCurrentUserPrivateChannels::new(self)
     }
 
+    /// Get the emojis for a guild by the guild's ID.
+    ///
+    /// # Examples
+    ///
+    /// Get the emojis for guild `100`:
+    ///
+    /// ```rust,no_run
+    /// use twilight_http::Client;
+    /// use twilight_model::id::GuildId;
+    ///
+    /// # #[tokio::main]
+    /// # async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
+    /// let client = Client::new("my token");
+    ///
+    /// let guild_id = GuildId(100);
+    ///
+    /// client.emojis(guild_id).await?;
+    /// # Ok(()) }
+    /// ```
     pub fn emojis(&self, guild_id: GuildId) -> GetEmojis<'_> {
         GetEmojis::new(self, guild_id)
     }
 
+    /// Get an emoji for a guild by the the guild's ID and emoji's ID.
+    ///
+    /// # Examples
+    ///
+    /// Get emoji `100` from guild `50`:
+    ///
+    /// ```rust,no_run
+    /// use twilight_http::Client;
+    /// use twilight_model::id::{EmojiId, GuildId};
+    ///
+    /// # #[tokio::main]
+    /// # async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
+    /// let client = Client::new("my token");
+    ///
+    /// let guild_id = GuildId(50);
+    /// let emoji_id = EmojiId(100);
+    ///
+    /// client.emoji(guild_id, emoji_id).await?;
+    /// # Ok(()) }
+    /// ```
     pub fn emoji(&self, guild_id: GuildId, emoji_id: EmojiId) -> GetEmoji<'_> {
         GetEmoji::new(self, guild_id, emoji_id)
     }
@@ -310,19 +592,19 @@ impl Client {
         GetGateway::new(self)
     }
 
+    /// Get information about a guild.
     pub fn guild(&self, guild_id: GuildId) -> GetGuild<'_> {
         GetGuild::new(self, guild_id)
     }
 
     /// Create a new request to create a guild.
     ///
-    /// The minimum length of the name is 2 UTF-16 characters and the maximum is
-    /// 100 UTF-16 characters.
+    /// The minimum length of the name is 2 UTF-16 characters and the maximum is 100 UTF-16
+    /// characters. This endpoint can only be used by bots in less than 10 guilds.
     ///
     /// # Errors
     ///
-    /// Returns [`CreateGuildError::NameInvalid`] if the name length is too
-    /// short or too long.
+    /// Returns [`CreateGuildError::NameInvalid`] if the name length is too short or too long.
     ///
     /// [`CreateGuildError::NameInvalid`]: ../request/guild/enum.CreateGuildError.html#variant.NameInvalid
     pub fn create_guild(
@@ -332,10 +614,16 @@ impl Client {
         CreateGuild::new(self, name)
     }
 
+    /// Delete a guild permanently. The user must be the owner.
     pub fn delete_guild(&self, guild_id: GuildId) -> DeleteGuild<'_> {
         DeleteGuild::new(self, guild_id)
     }
 
+    /// Update a guild.
+    ///
+    /// All endpoints are optional. Refer to [the discord docs] for more information.
+    ///
+    /// [the discord docs]: https://discord.com/developers/docs/resources/guild#modify-guild
     pub fn update_guild(&self, guild_id: GuildId) -> UpdateGuild<'_> {
         UpdateGuild::new(self, guild_id)
     }
@@ -344,21 +632,31 @@ impl Client {
         LeaveGuild::new(self, guild_id)
     }
 
+    /// Get the channels in a guild.
     pub fn guild_channels(&self, guild_id: GuildId) -> GetGuildChannels<'_> {
         GetGuildChannels::new(self, guild_id)
     }
 
     /// Create a new request to create a guild channel.
     ///
-    /// The minimum length of the name is 2 UTF-16 characters and the maximum is
-    /// 100 UTF-16 characters.
+    /// All fields are optional except for name. The minimum length of the name is 2 UTF-16
+    /// characters and the maximum is 100 UTF-16 characters.
     ///
     /// # Errors
     ///
-    /// Returns [`CreateGuildChannelError::NameInvalid`] if the name length is too
-    /// short or too long.
+    /// Returns a [`CreateGuildChannelError::NameInvalid`] when the length of the name is either
+    /// fewer than 2 UTF-16 characters or more than 100 UTF-16 characters.
     ///
-    /// [`CreateGuildChannelError::NameInvalid`]: ../request/guild/enum.CreateGuildChannelError.html#variant.NameInvalid
+    /// Returns a [`CreateGuildChannelError::RateLimitPerUserInvalid`] when the seconds of the rate
+    /// limit per user is more than 21600.
+    ///
+    /// Returns a [`CreateGuildChannelError::TopicInvalid`] when the length of the topic is more
+    /// than
+    /// 1024 UTF-16 characters.
+    ///
+    /// [`CreateGuildChannelError::NameInvalid`]: ../request/guild/create_guild_channel/enum.CreateGuildChannelError.html#variant.NameInvalid
+    /// [`CreateGuildChannelError::RateLimitPerUserInvalid`]: ../request/guild/create_guild_channel/enum.CreateGuildChannelError.html#variant.RateLimitPerUserInvalid
+    /// [`CreateGuildChannelError::TopicInvalid`]: ../request/guild/create_guild_channel/enum.CreateGuildChannelError.html#variant.TopicInvalid
     pub fn create_guild_channel(
         &self,
         guild_id: GuildId,
@@ -367,6 +665,9 @@ impl Client {
         CreateGuildChannel::new(self, guild_id, name)
     }
 
+    /// Modify the positions of the channels.
+    ///
+    /// The minimum amount of channels to modify, is a swap between two channels.
     pub fn update_guild_channel_positions(
         &self,
         guild_id: GuildId,
@@ -375,10 +676,16 @@ impl Client {
         UpdateGuildChannelPositions::new(self, guild_id, channel_positions)
     }
 
+    /// Get the guild widget.
+    ///
+    /// Refer to [the discord docs] for more information.
+    ///
+    /// [the discord docs]: https://discord.com/developers/docs/resources/guild#get-guild-widget
     pub fn guild_widget(&self, guild_id: GuildId) -> GetGuildWidget<'_> {
         GetGuildWidget::new(self, guild_id)
     }
 
+    /// Modify the guild widget.
     pub fn update_guild_widget(&self, guild_id: GuildId) -> UpdateGuildWidget<'_> {
         UpdateGuildWidget::new(self, guild_id)
     }
@@ -420,6 +727,7 @@ impl Client {
         SyncGuildIntegration::new(self, guild_id, integration_id)
     }
 
+    /// Get information about the invites of a guild.
     pub fn guild_invites(&self, guild_id: GuildId) -> GetGuildInvites<'_> {
         GetGuildInvites::new(self, guild_id)
     }
@@ -458,51 +766,149 @@ impl Client {
         RemoveRoleFromMember::new(self, guild_id, user_id, role_id)
     }
 
-    /// Note: This only works for public guilds.
+    /// For public guilds, get the guild preview.
+    ///
+    /// This works even if the user is not in the guild.
     pub fn guild_preview(&self, guild_id: GuildId) -> GetGuildPreview<'_> {
         GetGuildPreview::new(self, guild_id)
     }
 
+    /// Get the counts of guild members to be pruned.
     pub fn guild_prune_count(&self, guild_id: GuildId) -> GetGuildPruneCount<'_> {
         GetGuildPruneCount::new(self, guild_id)
     }
 
+    /// Begin a guild prune.
+    ///
+    /// Refer to [the discord docs] for more information.
+    ///
+    /// [the discord docs]: https://discord.com/developers/docs/resources/guild#begin-guild-prune
     pub fn create_guild_prune(&self, guild_id: GuildId) -> CreateGuildPrune<'_> {
         CreateGuildPrune::new(self, guild_id)
     }
 
+    /// Get a guild's vanity url, if there is one.
     pub fn guild_vanity_url(&self, guild_id: GuildId) -> GetGuildVanityUrl<'_> {
         GetGuildVanityUrl::new(self, guild_id)
     }
 
+    /// Get voice region data for the guild.
+    ///
+    /// Can return VIP servers if the guild is VIP-enabled.
     pub fn guild_voice_regions(&self, guild_id: GuildId) -> GetGuildVoiceRegions<'_> {
         GetGuildVoiceRegions::new(self, guild_id)
     }
 
+    /// Get the webhooks of a guild.
     pub fn guild_webhooks(&self, guild_id: GuildId) -> GetGuildWebhooks<'_> {
         GetGuildWebhooks::new(self, guild_id)
     }
 
+    /// Get information about an invite by its code.
+    ///
+    /// If [`with_counts`] is called, the returned invite will contain approximate member counts.
+    ///
+    /// # Examples
+    ///
+    /// ```rust,no_run
+    /// # use twilight_http::Client;
+    /// #
+    /// # #[tokio::main]
+    /// # async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
+    /// # let client = Client::new("my token");
+    /// #
+    /// let invite = client
+    ///     .invite("code")
+    ///     .with_counts()
+    ///     .await?;
+    /// # Ok(()) }
+    /// ```
+    ///
+    /// [`with_counts`]: ../request/channel/invite/struct.GetInvite.html#method.with_counts
     pub fn invite(&self, code: impl Into<String>) -> GetInvite<'_> {
         GetInvite::new(self, code)
     }
 
+    /// Create an invite, with options.
+    ///
+    /// # Examples
+    ///
+    /// ```rust,no_run
+    /// # use twilight_http::Client;
+    /// # use twilight_model::id::ChannelId;
+    /// #
+    /// # #[tokio::main]
+    /// # async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
+    /// # let client = Client::new("my token");
+    /// #
+    /// let channel_id = ChannelId(123);
+    /// let invite = client
+    ///     .create_invite(channel_id)
+    ///     .max_uses(3)
+    ///     .await?;
+    /// # Ok(()) }
+    /// ```
     pub fn create_invite(&self, channel_id: ChannelId) -> CreateInvite<'_> {
         CreateInvite::new(self, channel_id)
     }
 
+    /// Delete an invite by its code.
     pub fn delete_invite(&self, code: impl Into<String>) -> DeleteInvite<'_> {
         DeleteInvite::new(self, code)
     }
 
+    /// Get a message by [`ChannelId`] and [`MessageId`].
+    ///
+    /// [`ChannelId`]: ../../twilight_model/id/struct.ChannelId.html
+    /// [`MessageId`]: ../../twilight_model/id/struct.MessageId.html
     pub fn message(&self, channel_id: ChannelId, message_id: MessageId) -> GetMessage<'_> {
         GetMessage::new(self, channel_id, message_id)
     }
 
+    /// Send a message to a channel.
+    ///
+    /// # Example
+    ///
+    /// ```rust,no_run
+    /// # use twilight_http::Client;
+    /// # use twilight_model::id::ChannelId;
+    /// #
+    /// # #[tokio::main]
+    /// # async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
+    /// # let client = Client::new("my token");
+    /// #
+    /// let channel_id = ChannelId(123);
+    /// let message = client
+    ///     .create_message(channel_id)
+    ///     .content("Twilight is best pony")?
+    ///     .tts(true)
+    ///     .await?;
+    /// # Ok(()) }
+    /// ```
+    ///
+    /// # Errors
+    ///
+    /// The method [`content`] returns [`CreateMessageError::ContentInvalid`] if the content is
+    /// over 2000 UTF-16 characters.
+    ///
+    /// The method [`embed`] returns [`CreateMessageError::EmbedTooLarge`] if the length of the
+    /// embed is over 6000 characters.
+    ///
+    /// [`content`]:
+    /// ../request/channel/message/create_message/struct.CreateMessage.html#method.content
+    /// [`embed`]: ../request/channel/message/create_message/struct.CreateMessage.html#method.embed
+    /// [`CreateMessageError::ContentInvalid`]:
+    /// ../request/channel/message/create_message/enum.CreateMessageError.html#variant.ContentInvalid
+    /// [`CreateMessageError::EmbedTooLarge`]:
+    /// ../request/channel/message/create_message/enum.CreateMessageError.html#variant.EmbedTooLarge
     pub fn create_message(&self, channel_id: ChannelId) -> CreateMessage<'_> {
         CreateMessage::new(self, channel_id)
     }
 
+    /// Delete a message by [`ChannelId`] and [`MessageId`].
+    ///
+    /// [`ChannelId`]: ../../twilight_model/id/struct.ChannelId.html
+    /// [`MessageId`]: ../../twilight_model/id/struct.MessageId.html
     pub fn delete_message(
         &self,
         channel_id: ChannelId,
@@ -511,6 +917,15 @@ impl Client {
         DeleteMessage::new(self, channel_id, message_id)
     }
 
+    /// Delete messages by [`ChannelId`] and Vec<[`MessageId`]>.
+    ///
+    /// The vec count can be between 2 and 100. If the supplied [`MessageId`]s are invalid, they
+    /// still count towards the lower and upper limits. This method will not delete messages older
+    /// than two weeks. Refer to [the discord docs] for more information.
+    ///
+    /// [`ChannelId`]: ../../twilight_model/id/struct.ChannelId.html
+    /// [`MessageId`]: ../../twilight_model/id/struct.MessageId.html
+    /// [the discord docs]: https://discord.com/developers/docs/resources/channel#bulk-delete-messages
     pub fn delete_messages(
         &self,
         channel_id: ChannelId,
@@ -519,6 +934,47 @@ impl Client {
         DeleteMessages::new(self, channel_id, message_ids)
     }
 
+    /// Update a message by [`ChannelId`] and [`MessageId`].
+    ///
+    /// You can pass `None` to any of the methods to remove the associated field.
+    /// For example, if you have a message with an embed you want to remove, you can
+    /// use `.[embed](None)` to remove the embed.
+    ///
+    /// # Examples
+    ///
+    /// Replace the content with `"test update"`:
+    ///
+    /// ```rust,no_run
+    /// use twilight_http::Client;
+    /// use twilight_model::id::{ChannelId, MessageId};
+    ///
+    /// # #[tokio::main]
+    /// # async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
+    /// let client = Client::new("my token");
+    /// client.update_message(ChannelId(1), MessageId(2))
+    ///     .content("test update".to_owned())?
+    ///     .await?;
+    /// # Ok(()) }
+    /// ```
+    ///
+    /// Remove the message's content:
+    ///
+    /// ```rust,no_run
+    /// # use twilight_http::Client;
+    /// # use twilight_model::id::{ChannelId, MessageId};
+    /// #
+    /// # #[tokio::main]
+    /// # async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
+    /// # let client = Client::new("my token");
+    /// client.update_message(ChannelId(1), MessageId(2))
+    ///     .content(None)?
+    ///     .await?;
+    /// # Ok(()) }
+    /// ```
+    ///
+    /// [`ChannelId`]: ../../twilight_model/id/struct.ChannelId.html
+    /// [`MessageId`]: ../../twilight_model/id/struct.MessageId.html
+    /// [embed]: #method.embed
     pub fn update_message(
         &self,
         channel_id: ChannelId,
@@ -527,18 +983,25 @@ impl Client {
         UpdateMessage::new(self, channel_id, message_id)
     }
 
+    /// Get the pins of a channel.
     pub fn pins(&self, channel_id: ChannelId) -> GetPins<'_> {
         GetPins::new(self, channel_id)
     }
 
+    /// Create a new pin in a channel, by ID.
     pub fn create_pin(&self, channel_id: ChannelId, message_id: MessageId) -> CreatePin<'_> {
         CreatePin::new(self, channel_id, message_id)
     }
 
+    /// Delete a pin in a channel, by ID.
     pub fn delete_pin(&self, channel_id: ChannelId, message_id: MessageId) -> DeletePin<'_> {
         DeletePin::new(self, channel_id, message_id)
     }
 
+    /// Get a list of users that reacted to a message with an `emoji`.
+    ///
+    /// This endpoint is limited to 100 users maximum, so if a message has more than 100 reactions,
+    /// requests must be chained until all reactions are retireved.
     pub fn reactions(
         &self,
         channel_id: ChannelId,
@@ -548,6 +1011,35 @@ impl Client {
         GetReactions::new(self, channel_id, message_id, emoji)
     }
 
+    /// Create a reaction in a [`ChannelId`] on a [`MessageId`].
+    ///
+    /// The reaction must be a variant of [`ReactionType`].
+    ///
+    /// # Examples
+    /// ```rust,no_run
+    /// # use twilight_http::Client;
+    /// # use twilight_model::{
+    /// #     channel::ReactionType,
+    /// #     id::{ChannelId, MessageId},
+    /// # };
+    /// #
+    /// # #[tokio::main]
+    /// # async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
+    /// # let client = Client::new("my token");
+    /// #
+    /// let channel_id = ChannelId(123);
+    /// let message_id = MessageId(456);
+    /// let emoji = ReactionType::Unicode { name: String::from("🌃") };
+    ///
+    /// let reaction = client
+    ///     .create_reaction(channel_id, message_id, emoji)
+    ///     .await?;
+    /// # Ok(()) }
+    /// ```
+    ///
+    /// [`ChannelId`]: ../../twilight_model/id/struct.ChannelId.html
+    /// [`MessageId`]: ../../twilight_model/id/struct.MessageId.html
+    /// [`ReactionType`]: ../../twilight_model/channel/enum.ReactionType.html
     pub fn create_reaction(
         &self,
         channel_id: ChannelId,
@@ -557,6 +1049,7 @@ impl Client {
         CreateReaction::new(self, channel_id, message_id, emoji)
     }
 
+    /// Delete the current user's (`@me`) reaction on a message.
     pub fn delete_current_user_reaction(
         &self,
         channel_id: ChannelId,
@@ -566,6 +1059,7 @@ impl Client {
         DeleteReaction::new(self, channel_id, message_id, emoji, "@me")
     }
 
+    /// Delete a reaction by a user on a message.
     pub fn delete_reaction(
         &self,
         channel_id: ChannelId,
@@ -576,6 +1070,7 @@ impl Client {
         DeleteReaction::new(self, channel_id, message_id, emoji, user_id.to_string())
     }
 
+    /// Remove all reactions on a message of an emoji.
     pub fn delete_all_reaction(
         &self,
         channel_id: ChannelId,
@@ -585,6 +1080,7 @@ impl Client {
         DeleteAllReaction::new(self, channel_id, message_id, emoji)
     }
 
+    /// Delete all reactions by all users on a message.
     pub fn delete_all_reactions(
         &self,
         channel_id: ChannelId,
@@ -593,6 +1089,7 @@ impl Client {
         DeleteAllReactions::new(self, channel_id, message_id)
     }
 
+    /// Fire a Typing Start event in the channel.
     pub fn create_typing_trigger(&self, channel_id: ChannelId) -> CreateTypingTrigger<'_> {
         CreateTypingTrigger::new(self, channel_id)
     }
@@ -633,10 +1130,29 @@ impl Client {
         GetVoiceRegions::new(self)
     }
 
+    /// Get a webhook by ID.
     pub fn webhook(&self, id: WebhookId) -> GetWebhook<'_> {
         GetWebhook::new(self, id)
     }
 
+    /// Create a webhook in a channel.
+    ///
+    /// # Examples
+    ///
+    /// ```rust,no_run
+    /// # use twilight_http::Client;
+    /// # use twilight_model::id::ChannelId;
+    /// #
+    /// # #[tokio::main]
+    /// # async fn main() -> Result<(), Box<dyn std::error::Error>> {
+    /// # let client = Client::new("my token");
+    /// let channel_id = ChannelId(123);
+    ///
+    /// let webhook = client
+    ///     .create_webhook(channel_id, "Twily Bot")
+    ///     .await?;
+    /// # Ok(()) }
+    /// ```
     pub fn create_webhook(
         &self,
         channel_id: ChannelId,
@@ -645,24 +1161,41 @@ impl Client {
         CreateWebhook::new(self, channel_id, name)
     }
 
+    /// Delete a webhook by its ID.
     pub fn delete_webhook(&self, id: WebhookId) -> DeleteWebhook<'_> {
         DeleteWebhook::new(self, id)
     }
 
+    /// Delete a webhook by its URL.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`UrlError::SegmentMissing`] if the URL can not be parsed.
+    ///
+    /// [`UrlError::SegmentMissing`]: ../error/enum.UrlError.html#variant.SegmentMissing
     pub fn delete_webhook_from_url(&self, url: impl AsRef<str>) -> Result<DeleteWebhook<'_>> {
         let (id, _) = parse_webhook_url(url)?;
         Ok(self.delete_webhook(id))
     }
 
+    /// Update a webhook by ID.
     pub fn update_webhook(&self, webhook_id: WebhookId) -> UpdateWebhook<'_> {
         UpdateWebhook::new(self, webhook_id)
     }
 
+    /// Update a webhook by its URL.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`UrlError::SegmentMissing`] if the URL can not be parsed.
+    ///
+    /// [`UrlError::SegmentMissing`]: ../error/enum.UrlError.html#variant.SegmentMissing
     pub fn update_webhook_from_url(&self, url: impl AsRef<str>) -> Result<UpdateWebhook<'_>> {
         let (id, _) = parse_webhook_url(url)?;
         Ok(self.update_webhook(id))
     }
 
+    /// Update a webhook, with a token, by ID.
     pub fn update_webhook_with_token(
         &self,
         webhook_id: WebhookId,
@@ -671,6 +1204,13 @@ impl Client {
         UpdateWebhookWithToken::new(self, webhook_id, token)
     }
 
+    /// Update a webhook, with a token, by its URL.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`UrlError::SegmentMissing`] if the URL can not be parsed.
+    ///
+    /// [`UrlError::SegmentMissing`]: ../error/enum.UrlError.html#variant.SegmentMissing
     pub fn update_webhook_with_token_from_url(
         &self,
         url: impl AsRef<str>,
@@ -679,6 +1219,31 @@ impl Client {
         Ok(self.update_webhook_with_token(id, token.ok_or(UrlError::SegmentMissing)?))
     }
 
+    /// Executes a webhook, sending a message to its channel.
+    ///
+    /// You can only specify one of [`content`], [`embeds`], or [`file`].
+    ///
+    /// # Examples
+    ///
+    /// ```rust,no_run
+    /// # use twilight_http::Client;
+    /// # use twilight_model::id::WebhookId;
+    /// #
+    /// # #[tokio::main]
+    /// # async fn main() -> Result<(), Box<dyn std::error::Error>> {
+    /// # let client = Client::new("my token");
+    /// let id = WebhookId(432);
+    /// #
+    /// let webhook = client
+    ///     .execute_webhook(id, "webhook token")
+    ///     .content("Pinkie...")
+    ///     .await?;
+    /// # Ok(()) }
+    /// ```
+    ///
+    /// [`content`]: ../request/channel/webhook/struct.ExecuteWebhook.html#method.content
+    /// [`embeds`]: ../request/channel/webhook/struct.ExecuteWebhook.html#method.embeds
+    /// [`file`]: ../request/channel/webhook/struct.ExecuteWebhook.html#method.file
     pub fn execute_webhook(
         &self,
         webhook_id: WebhookId,
@@ -687,6 +1252,13 @@ impl Client {
         ExecuteWebhook::new(self, webhook_id, token)
     }
 
+    /// Execute a webhook by its URL.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`UrlError::SegmentMissing`] if the URL can not be parsed.
+    ///
+    /// [`UrlError::SegmentMissing`]: ../error/enum.UrlError.html#variant.SegmentMissing
     pub fn execute_webhook_from_url(&self, url: impl AsRef<str>) -> Result<ExecuteWebhook<'_>> {
         let (id, token) = parse_webhook_url(url)?;
         Ok(self.execute_webhook(id, token.ok_or(UrlError::SegmentMissing)?))

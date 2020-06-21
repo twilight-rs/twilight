@@ -5,6 +5,7 @@ struct DeleteWebhookParams {
     token: Option<String>,
 }
 
+/// Delete a webhook by its ID.
 pub struct DeleteWebhook<'a> {
     fields: DeleteWebhookParams,
     fut: Option<Pending<'a, ()>>,
@@ -24,12 +25,14 @@ impl<'a> DeleteWebhook<'a> {
         }
     }
 
+    /// Specify the token for auth, if not already authenticated with a Bot token.
     pub fn token(mut self, token: impl Into<String>) -> Self {
         self.fields.token.replace(token.into());
 
         self
     }
 
+    /// Attach an audit log reason to this request.
     pub fn reason(mut self, reason: impl Into<String>) -> Self {
         self.reason.replace(reason.into());
 

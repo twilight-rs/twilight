@@ -6,6 +6,7 @@ struct GetGuildFields {
     with_counts: bool,
 }
 
+/// Get information about a guild.
 pub struct GetGuild<'a> {
     fields: GetGuildFields,
     fut: Option<Pending<'a, Option<Guild>>>,
@@ -23,8 +24,8 @@ impl<'a> GetGuild<'a> {
         }
     }
 
-    /// Sets if you want to receive `approximate_member_count` and
-    /// `approximate_presence_count` in the guld structure.
+    /// Sets if you want to receive `approximate_member_count` and `approximate_presence_count` in
+    /// the guild structure.
     pub fn with_counts(mut self, with: bool) -> Self {
         self.fields.with_counts = with;
 

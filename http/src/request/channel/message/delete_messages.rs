@@ -7,6 +7,15 @@ struct DeleteMessagesFields {
     messages: Vec<MessageId>,
 }
 
+/// Delete messgaes by [`ChannelId`] and Vec<[`MessageId`]>.
+///
+/// The vec count can be between 2 and 100. If the supplied [`MessageId`]s are invalid, they
+/// still count towards the lower and upper limits. This method will not delete messages older
+/// than two weeks. Refer to [the discord docs] for more information.
+///
+/// [`ChannelId`]: ../../../../twilight_model/id/struct.ChannelId.html
+/// [`MessageId`]: ../../../../twilight_model/id/struct.MessageId.html
+/// [the discord docs]: https://discord.com/developers/docs/resources/channel#bulk-delete-messages
 pub struct DeleteMessages<'a> {
     channel_id: ChannelId,
     fields: DeleteMessagesFields,
@@ -32,6 +41,7 @@ impl<'a> DeleteMessages<'a> {
         }
     }
 
+    /// Attach an audit log reason to this request.
     pub fn reason(mut self, reason: impl Into<String>) -> Self {
         self.reason.replace(reason.into());
 

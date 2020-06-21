@@ -9,6 +9,7 @@ struct UpdateChannelPermissionConfiguredFields {
     kind: String,
 }
 
+/// Created when either `member` or `role` is called on a `DeleteChannelPermission` struct.
 pub struct UpdateChannelPermissionConfigured<'a> {
     channel_id: ChannelId,
     fields: UpdateChannelPermissionConfiguredFields,
@@ -41,6 +42,7 @@ impl<'a> UpdateChannelPermissionConfigured<'a> {
         }
     }
 
+    /// Attach an audit log reason to this request.
     pub fn reason(mut self, reason: impl Into<String>) -> Self {
         self.reason.replace(reason.into());
 

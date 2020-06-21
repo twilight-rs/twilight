@@ -8,6 +8,7 @@ use twilight_model::{
     id::{GuildId, UserId},
 };
 
+/// The error returned when the audit log can not be requested as configured.
 #[derive(Clone, Debug)]
 pub enum GetAuditLogError {
     /// The limit is either 0 or more than 100.
@@ -32,6 +33,25 @@ struct GetAuditLogFields {
     user_id: Option<UserId>,
 }
 
+/// Get the audit log for a guild.
+///
+/// # Examples
+///
+/// ```rust,no_run
+/// use twilight_http::Client;
+/// use twilight_model::id::GuildId;
+///
+/// # #[tokio::main]
+/// # async fn main() -> Result<(), Box<dyn std::error::Error>> {
+/// let client = Client::new("token");
+///
+/// let guild_id = GuildId(101);
+/// let audit_log = client
+/// // not done
+///     .audit_log(guild_id)
+///     .await?;
+/// # Ok(()) }
+/// ```
 pub struct GetAuditLog<'a> {
     fields: GetAuditLogFields,
     fut: Option<Pending<'a, Option<AuditLog>>>,
@@ -49,12 +69,14 @@ impl<'a> GetAuditLog<'a> {
         }
     }
 
+    /// Filter by an action type.
     pub fn action_type(mut self, action_type: AuditLogEvent) -> Self {
         self.fields.action_type.replace(action_type);
 
         self
     }
 
+    /// Get audit log entries before the entry specified.
     pub fn before(mut self, before: u64) -> Self {
         self.fields.before.replace(before);
 
@@ -81,6 +103,9 @@ impl<'a> GetAuditLog<'a> {
         Ok(self)
     }
 
+    /// Filter audit log for entries from a user.
+    ///
+    /// This is the user who did the auditable action, not the target of the auditable action.
     pub fn user_id(mut self, user_id: UserId) -> Self {
         self.fields.user_id.replace(user_id);
 

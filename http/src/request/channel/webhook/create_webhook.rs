@@ -8,6 +8,24 @@ struct CreateWebhookFields {
     name: String,
 }
 
+/// Create a webhook in a channel.
+///
+/// # Examples
+///
+/// ```rust,no_run
+/// use twilight_http::Client;
+/// use twilight_model::id::ChannelId;
+///
+/// # #[tokio::main]
+/// # async fn main() -> Result<(), Box<dyn std::error::Error>> {
+/// let client = Client::new("my token");
+/// let channel_id = ChannelId(123);
+///
+/// let webhook = client
+///     .create_webhook(channel_id, "Twily Bot")
+///     .await?;
+/// # Ok(()) }
+/// ```
 pub struct CreateWebhook<'a> {
     channel_id: ChannelId,
     fields: CreateWebhookFields,
@@ -30,12 +48,20 @@ impl<'a> CreateWebhook<'a> {
         }
     }
 
+    /// Set the avatar of the webhook.
+    ///
+    /// This must be a Data URI, in the form of `data:image/{type};base64,{data}` where `{type}` is
+    /// the image MIME type and `{data}` is the base64-encoded image. Refer to [the discord docs]
+    /// for more information.
+    ///
+    /// [the discord docs]: https://discord.com/developers/docs/reference#image-data
     pub fn avatar(mut self, avatar: impl Into<String>) -> Self {
         self.fields.avatar.replace(avatar.into());
 
         self
     }
 
+    /// Attach an audit log reason to this request.
     pub fn reason(mut self, reason: impl Into<String>) -> Self {
         self.reason.replace(reason.into());
 

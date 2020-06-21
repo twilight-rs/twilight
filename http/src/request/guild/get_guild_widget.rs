@@ -1,6 +1,11 @@
 use crate::request::prelude::*;
 use twilight_model::{guild::GuildWidget, id::GuildId};
 
+/// Get the guild widget.
+///
+/// Refer to [the discord docs] for more information.
+///
+/// [the discord docs]: https://discord.com/developers/docs/resources/guild#get-guild-widget
 pub struct GetGuildWidget<'a> {
     fut: Option<PendingOption<'a>>,
     guild_id: GuildId,

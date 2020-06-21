@@ -1,6 +1,7 @@
 use crate::request::prelude::*;
 use twilight_model::id::{ChannelId, MessageId};
 
+/// Delete all reactions by all users on a message.
 pub struct DeleteAllReactions<'a> {
     channel_id: ChannelId,
     fut: Option<Pending<'a, ()>>,

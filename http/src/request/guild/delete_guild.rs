@@ -1,6 +1,7 @@
 use crate::request::prelude::*;
 use twilight_model::id::GuildId;
 
+/// Delete a guild permanently. The user must be the owner.
 pub struct DeleteGuild<'a> {
     fut: Option<Pending<'a, ()>>,
     guild_id: GuildId,

@@ -12,10 +12,11 @@ use twilight_model::{
     },
 };
 
+/// The error returned when the guild can not be created as configured.
 #[derive(Clone, Debug)]
 pub enum CreateGuildError {
-    /// The name of the guild is either fewer than 2 UTF-16 characters or more
-    /// than 100 UTF-16 characters.
+    /// The name of the guild is either fewer than 2 UTF-16 characters or more than 100 UTF-16
+    /// characters.
     NameInvalid,
     /// The number of channels provided is too many.
     ///
@@ -51,6 +52,16 @@ struct CreateGuildFields {
     verification_level: Option<VerificationLevel>,
 }
 
+/// Create a new request to create a guild.
+///
+/// The minimum length of the name is 2 UTF-16 characters and the maximum is 100 UTF-16 characters.
+/// This endpoint can only be used by bots in less than 10 guilds.
+///
+/// # Errors
+///
+/// Returns [`CreateGuildError::NameInvalid`] if the name length is too short or too long.
+///
+/// [`CreateGuildError::NameInvalid`]: ../request/guild/enum.CreateGuildError.html#variant.NameInvalid
 pub struct CreateGuild<'a> {
     fields: CreateGuildFields,
     fut: Option<Pending<'a, PartialGuild>>,
@@ -89,8 +100,7 @@ impl<'a> CreateGuild<'a> {
     ///
     /// # Errors
     ///
-    /// Returns [`CreateGuildError::TooManyChannels`] if the number of channels
-    /// is over 500.
+    /// Returns [`CreateGuildError::TooManyChannels`] if the number of channels is over 500.
     ///
     /// [`CreateGuildError::TooManyChannels`]: enum.CreateGuildError.html#variant.TooManyChannels
     pub fn channels(mut self, channels: Vec<GuildChannel>) -> Result<Self, CreateGuildError> {
@@ -105,6 +115,10 @@ impl<'a> CreateGuild<'a> {
         Ok(self)
     }
 
+    /// Set the default message notification level. Refer to [the discord docs] for more
+    /// information.
+    ///
+    /// [the discord docs]: https://discord.com/developers/docs/resources/guild#create-guild
     pub fn default_message_notifications(
         mut self,
         default_message_notifications: DefaultMessageNotificationLevel,
@@ -116,6 +130,7 @@ impl<'a> CreateGuild<'a> {
         self
     }
 
+    /// Set the explicit content filter level.
     pub fn explicit_content_filter(
         mut self,
         explicit_content_filter: ExplicitContentFilter,
@@ -127,12 +142,23 @@ impl<'a> CreateGuild<'a> {
         self
     }
 
+    /// Set the icon.
+    ///
+    /// This must be a Data URI, in the form of `data:image/{type};base64,{data}` where `{type}` is
+    /// the image MIME type and `{data}` is the base64-encoded image. Refer to [the discord docs]
+    /// for more information.
+    ///
+    /// [the discord docs]: https://discord.com/developers/docs/reference#image-data
     pub fn icon(mut self, icon: impl Into<String>) -> Self {
         self.fields.icon.replace(icon.into());
 
         self
     }
 
+    /// Specify the voice server region for the guild. Refer to [the discord docs] for more
+    /// information.
+    ///
+    /// [the discord docs]: https://discord.com/developers/docs/resources/voice#voice-region-object
     pub fn region(mut self, region: impl Into<String>) -> Self {
         self.fields.region.replace(region.into());
 

@@ -12,6 +12,7 @@ struct VanityUrl {
     code: String,
 }
 
+/// Get a guild's vanity url, if there is one.
 pub struct GetGuildVanityUrl<'a> {
     fut: Option<PendingOption<'a>>,
     guild_id: GuildId,

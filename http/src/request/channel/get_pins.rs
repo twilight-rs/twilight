@@ -1,6 +1,7 @@
 use crate::request::prelude::*;
 use twilight_model::{channel::Message, id::ChannelId};
 
+/// Get the pins of a channel.
 pub struct GetPins<'a> {
     channel_id: ChannelId,
     fut: Option<Pending<'a, Vec<Message>>>,

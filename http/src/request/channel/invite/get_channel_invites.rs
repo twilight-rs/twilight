@@ -1,6 +1,9 @@
 use crate::request::prelude::*;
 use twilight_model::{id::ChannelId, invite::Invite};
 
+/// Get the invites for a guild channel.
+///
+/// This method only works if the channel is of type `GuildChannel`.
 pub struct GetChannelInvites<'a> {
     channel_id: ChannelId,
     fut: Option<Pending<'a, Vec<Invite>>>,

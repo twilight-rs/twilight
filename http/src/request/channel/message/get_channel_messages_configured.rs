@@ -8,6 +8,7 @@ use twilight_model::{
     id::{ChannelId, MessageId},
 };
 
+/// The error returned if the request can not be created as configured.
 #[derive(Clone, Debug)]
 pub enum GetChannelMessagesConfiguredError {
     /// The maximum number of messages to retrieve is either 0 or more than 100.
@@ -31,6 +32,10 @@ struct GetChannelMessagesConfiguredFields {
 // nb: after, around, and before are mutually exclusive, so we use this
 // "configured" request to utilize the type system to prevent these from being
 // set in combination.
+/// This struct is returned when one of `after`, `around`, or `before` is specified in
+/// [`GetChannelMessages`].
+///
+/// [`GetChannelMessages`]: ../get_channel_messages/struct.GetChannelMessages.html
 pub struct GetChannelMessagesConfigured<'a> {
     after: Option<MessageId>,
     around: Option<MessageId>,

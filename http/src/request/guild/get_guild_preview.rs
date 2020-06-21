@@ -1,6 +1,9 @@
 use crate::request::prelude::*;
 use twilight_model::{guild::GuildPreview, id::GuildId};
 
+/// For public guilds, get the guild preview.
+///
+/// This works even if the user is not in the guild.
 pub struct GetGuildPreview<'a> {
     fut: Option<Pending<'a, GuildPreview>>,
     guild_id: GuildId,

@@ -1,6 +1,7 @@
 use crate::request::prelude::*;
 use twilight_model::{channel::GuildChannel, id::GuildId};
 
+/// Get the channels in a guild.
 pub struct GetGuildChannels<'a> {
     fut: Option<Pending<'a, Vec<GuildChannel>>>,
     guild_id: GuildId,
