@@ -9,6 +9,11 @@ struct CreateGuildIntegrationFields {
     kind: String,
 }
 
+/// Create a guild integration from the current user to the guild.
+///
+/// Refer to [the discord docs] for more information.
+///
+/// [the discord docs]: https://discord.com/developers/docs/resources/guild#create-guild-integration
 pub struct CreateGuildIntegration<'a> {
     fields: CreateGuildIntegrationFields,
     fut: Option<Pending<'a, ()>>,
@@ -36,6 +41,7 @@ impl<'a> CreateGuildIntegration<'a> {
         }
     }
 
+    /// Attach an audit log reason to this request.
     pub fn reason(mut self, reason: impl Into<String>) -> Self {
         self.reason.replace(reason.into());
 

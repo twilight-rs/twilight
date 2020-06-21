@@ -1,6 +1,7 @@
 use crate::request::prelude::*;
 use twilight_model::{guild::GuildIntegration, id::GuildId};
 
+/// Get the guild's integrations.
 pub struct GetGuildIntegrations<'a> {
     fut: Option<Pending<'a, Vec<GuildIntegration>>>,
     guild_id: GuildId,

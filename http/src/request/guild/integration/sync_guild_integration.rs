@@ -1,6 +1,7 @@
 use crate::request::prelude::*;
 use twilight_model::id::{GuildId, IntegrationId};
 
+/// Synchronize a guild's integration by its id.
 pub struct SyncGuildIntegration<'a> {
     fut: Option<Pending<'a, ()>>,
     guild_id: GuildId,

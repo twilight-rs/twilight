@@ -12,6 +12,11 @@ struct UpdateGuildIntegrationFields {
     expire_grace_period: Option<u64>,
 }
 
+/// Update a guild's integration, by its id.
+///
+/// Refer to [the discord docs] for more information.
+///
+/// [the discord docs]: https://discord.com/developers/docs/resources/guild#modify-guild-integrationb
 pub struct UpdateGuildIntegration<'a> {
     fields: UpdateGuildIntegrationFields,
     fut: Option<Pending<'a, ()>>,
@@ -33,24 +38,34 @@ impl<'a> UpdateGuildIntegration<'a> {
         }
     }
 
+    /// Whether to enable emoticons for this integration.
+    ///
+    /// This only works for Twitch integrations.
     pub fn enable_emoticons(mut self, enable_emoticons: bool) -> Self {
         self.fields.enable_emoticons.replace(enable_emoticons);
 
         self
     }
 
+    /// The behavior when an integration lapses.
+    ///
+    /// Refer to [the discord docs] for more information.
+    ///
+    /// [the discord docs]: https://discord.com/developers/docs/resources/guild#integration-object-integration-expire-behaviors
     pub fn expire_behavior(mut self, expire_behavior: u64) -> Self {
         self.fields.expire_behavior.replace(expire_behavior);
 
         self
     }
 
+    /// Set the grace period in days that the integration will ignore lapsed subscriptions.
     pub fn expire_grace_period(mut self, expire_grace_period: u64) -> Self {
         self.fields.expire_grace_period.replace(expire_grace_period);
 
         self
     }
 
+    /// Attach an audit log reason to this request.
     pub fn reason(mut self, reason: impl Into<String>) -> Self {
         self.reason.replace(reason.into());
 

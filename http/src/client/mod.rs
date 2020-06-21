@@ -699,10 +699,16 @@ impl Client {
         UpdateGuildWidget::new(self, guild_id)
     }
 
+    /// Get the guild's integrations.
     pub fn guild_integrations(&self, guild_id: GuildId) -> GetGuildIntegrations<'_> {
         GetGuildIntegrations::new(self, guild_id)
     }
 
+    /// Create a guild integration from the current user to the guild.
+    ///
+    /// Refer to [the discord docs] for more information.
+    ///
+    /// [the discord docs]: https://discord.com/developers/docs/resources/guild#create-guild-integration
     pub fn create_guild_integration(
         &self,
         guild_id: GuildId,
@@ -712,6 +718,7 @@ impl Client {
         CreateGuildIntegration::new(self, guild_id, integration_id, kind)
     }
 
+    /// Delete an integration for a guild, by the integration's id.
     pub fn delete_guild_integration(
         &self,
         guild_id: GuildId,
@@ -720,6 +727,11 @@ impl Client {
         DeleteGuildIntegration::new(self, guild_id, integration_id)
     }
 
+    /// Update a guild's integration, by its id.
+    ///
+    /// Refer to [the discord docs] for more information.
+    ///
+    /// [the discord docs]: https://discord.com/developers/docs/resources/guild#modify-guild-integrationb
     pub fn update_guild_integration(
         &self,
         guild_id: GuildId,
@@ -728,6 +740,7 @@ impl Client {
         UpdateGuildIntegration::new(self, guild_id, integration_id)
     }
 
+    /// Synchronize a guild's integration by its id.
     pub fn sync_guild_integration(
         &self,
         guild_id: GuildId,
