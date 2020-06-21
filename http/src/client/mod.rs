@@ -232,7 +232,7 @@ impl Client {
     ///
     /// # Examples
     ///
-    /// Ban user `114941315417899012` from guild `377840580245585931`, deleting
+    /// Ban user `200` from guild `100`, deleting
     /// 1 day's worth of messages, for the reason `"memes"`:
     ///
     /// ```rust,no_run
@@ -243,8 +243,8 @@ impl Client {
     /// # async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
     /// let client = Client::new("my token");
     ///
-    /// let guild_id = GuildId(377840580245585931);
-    /// let user_id = UserId(114941315417899012);
+    /// let guild_id = GuildId(100);
+    /// let user_id = UserId(200);
     /// client.create_ban(guild_id, user_id)
     ///     .delete_message_days(1)?
     ///     .reason("memes")
@@ -261,7 +261,7 @@ impl Client {
     ///
     /// # Examples
     ///
-    /// Unban user `2` from guild `1`:
+    /// Unban user `200` from guild `100`:
     ///
     /// ```rust,no_run
     /// use twilight_http::Client;
@@ -271,8 +271,8 @@ impl Client {
     /// # async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
     /// let client = Client::new("my token");
     ///
-    /// let guild_id = GuildId(377840580245585931);
-    /// let user_id = UserId(114941315417899012);
+    /// let guild_id = GuildId(100);
+    /// let user_id = UserId(200);
     ///
     /// client.delete_ban(guild_id, user_id).await?;
     /// # Ok(()) }
@@ -865,6 +865,8 @@ impl Client {
         GetMessage::new(self, channel_id, message_id)
     }
 
+    /// Send a message to a channel.
+    ///
     /// # Example
     ///
     /// ```rust,no_run
@@ -915,15 +917,15 @@ impl Client {
         DeleteMessage::new(self, channel_id, message_id)
     }
 
-    /// Delete messgaes by [`ChannelId`] and Vec<[`MessageId`]>.
+    /// Delete messages by [`ChannelId`] and Vec<[`MessageId`]>.
     ///
     /// The vec count can be between 2 and 100. If the supplied [`MessageId`]s are invalid, they
     /// still count towards the lower and upper limits. This method will not delete messages older
-    /// than two weeks. See [Discord Docs] for more information.
+    /// than two weeks. Refer to [the discord docs] for more information.
     ///
     /// [`ChannelId`]: ../../twilight_model/id/struct.ChannelId.html
     /// [`MessageId`]: ../../twilight_model/id/struct.MessageId.html
-    /// [Discord Docs]: https://discord.com/developers/docs/resources/channel#bulk-delete-messages
+    /// [the discord docs]: https://discord.com/developers/docs/resources/channel#bulk-delete-messages
     pub fn delete_messages(
         &self,
         channel_id: ChannelId,

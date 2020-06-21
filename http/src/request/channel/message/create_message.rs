@@ -55,6 +55,8 @@ pub(crate) struct CreateMessageFields {
     pub(crate) allowed_mentions: Option<AllowedMentions>,
 }
 
+/// Send a message to a channel.
+///
 /// # Example
 ///
 /// ```rust,no_run
