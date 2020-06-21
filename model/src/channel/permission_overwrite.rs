@@ -20,7 +20,7 @@ pub enum PermissionOverwriteType {
     Role(RoleId),
 }
 
-#[derive(serde::Deserialize, serde::Serialize)]
+#[derive(Deserialize, Serialize)]
 struct PermissionOverwriteData {
     allow: Permissions,
     deny: Permissions,
@@ -29,7 +29,7 @@ struct PermissionOverwriteData {
     kind: PermissionOverwriteTypeName,
 }
 
-#[derive(serde::Deserialize, serde::Serialize)]
+#[derive(Deserialize, Serialize)]
 #[serde(rename_all = "snake_case")]
 enum PermissionOverwriteTypeName {
     Member,
