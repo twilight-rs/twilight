@@ -3,8 +3,10 @@ use crate::{
     id::{RoleId, UserId},
 };
 use serde::{
-    de::{Deserialize, Deserializer, Error as DeError},
-    ser::{Serialize, SerializeStruct, Serializer},
+    de::{Deserializer, Error as DeError},
+    ser::{SerializeStruct, Serializer},
+    Deserialize,
+    Serialize,
 };
 
 #[derive(Clone, Debug, Eq, Hash, PartialEq)]
