@@ -25,8 +25,7 @@ pub use self::{
 use crate::id::{ChannelId, MessageId};
 use serde::{
     de::{Deserializer, Error as DeError, MapAccess, Visitor},
-    Deserialize,
-    Serialize,
+    Deserialize, Serialize,
 };
 use serde_mappable_seq::Key;
 use std::fmt::{Formatter, Result as FmtResult};
@@ -46,7 +45,6 @@ pub enum GuildChannel {
     Text(TextChannel),
     Voice(VoiceChannel),
 }
-
 
 impl Key<'_, ChannelId> for GuildChannel {
     fn key(&self) -> ChannelId {
@@ -221,8 +219,8 @@ impl<'de> Visitor<'de> for GuildChannelVisitor {
         let name = name.ok_or_else(|| DeError::missing_field("name"))?;
         let nsfw = nsfw.unwrap_or_default();
         let parent_id = parent_id.unwrap_or_default();
-        let permission_overwrites = permission_overwrites
-            .ok_or_else(|| DeError::missing_field("permission_overwrites"))?;
+        let permission_overwrites =
+            permission_overwrites.ok_or_else(|| DeError::missing_field("permission_overwrites"))?;
         let position = position.ok_or_else(|| DeError::missing_field("position"))?;
 
         Ok(match kind {
@@ -238,8 +236,7 @@ impl<'de> Visitor<'de> for GuildChannelVisitor {
             }),
             ChannelType::GuildVoice => {
                 let bitrate = bitrate.ok_or_else(|| DeError::missing_field("bitrate"))?;
-                let user_limit =
-                    user_limit.ok_or_else(|| DeError::missing_field("user_limit"))?;
+                let user_limit = user_limit.ok_or_else(|| DeError::missing_field("user_limit"))?;
 
                 GuildChannel::Voice(VoiceChannel {
                     id,

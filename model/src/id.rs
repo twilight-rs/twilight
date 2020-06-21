@@ -27,7 +27,9 @@ pub(crate) mod string {
 use serde::{Deserialize, Serialize};
 use std::fmt::{Display, Formatter, Result as FmtResult};
 
-#[derive(Clone, Copy, Debug, Default, Deserialize, Eq, Hash, Ord, PartialEq, PartialOrd, Serialize)]
+#[derive(
+    Clone, Copy, Debug, Default, Deserialize, Eq, Hash, Ord, PartialEq, PartialOrd, Serialize,
+)]
 pub struct ApplicationId(#[serde(with = "string")] pub u64);
 
 impl Display for ApplicationId {
@@ -42,7 +44,9 @@ impl From<u64> for ApplicationId {
     }
 }
 
-#[derive(Clone, Copy, Debug, Default, Deserialize, Eq, Hash, Ord, PartialEq, PartialOrd, Serialize)]
+#[derive(
+    Clone, Copy, Debug, Default, Deserialize, Eq, Hash, Ord, PartialEq, PartialOrd, Serialize,
+)]
 pub struct AttachmentId(#[serde(with = "string")] pub u64);
 
 impl Display for AttachmentId {
@@ -57,7 +61,9 @@ impl From<u64> for AttachmentId {
     }
 }
 
-#[derive(Clone, Copy, Debug, Default, Deserialize, Eq, Hash, Ord, PartialEq, PartialOrd, Serialize)]
+#[derive(
+    Clone, Copy, Debug, Default, Deserialize, Eq, Hash, Ord, PartialEq, PartialOrd, Serialize,
+)]
 pub struct AuditLogEntryId(#[serde(with = "string")] pub u64);
 
 impl Display for AuditLogEntryId {
@@ -72,7 +78,9 @@ impl From<u64> for AuditLogEntryId {
     }
 }
 
-#[derive(Clone, Copy, Debug, Default, Deserialize, Eq, Hash, Ord, PartialEq, PartialOrd, Serialize)]
+#[derive(
+    Clone, Copy, Debug, Default, Deserialize, Eq, Hash, Ord, PartialEq, PartialOrd, Serialize,
+)]
 pub struct ChannelId(#[serde(with = "string")] pub u64);
 
 impl Display for ChannelId {
@@ -87,7 +95,9 @@ impl From<u64> for ChannelId {
     }
 }
 
-#[derive(Clone, Copy, Debug, Default, Deserialize, Eq, Hash, Ord, PartialEq, PartialOrd, Serialize)]
+#[derive(
+    Clone, Copy, Debug, Default, Deserialize, Eq, Hash, Ord, PartialEq, PartialOrd, Serialize,
+)]
 pub struct EmojiId(#[serde(with = "string")] pub u64);
 
 impl Display for EmojiId {
@@ -102,7 +112,9 @@ impl From<u64> for EmojiId {
     }
 }
 
-#[derive(Clone, Copy, Debug, Default, Deserialize, Eq, Hash, Ord, PartialEq, PartialOrd, Serialize)]
+#[derive(
+    Clone, Copy, Debug, Default, Deserialize, Eq, Hash, Ord, PartialEq, PartialOrd, Serialize,
+)]
 pub struct GenericId(#[serde(with = "string")] pub u64);
 
 impl Display for GenericId {
@@ -117,7 +129,9 @@ impl From<u64> for GenericId {
     }
 }
 
-#[derive(Clone, Copy, Debug, Default, Deserialize, Eq, Hash, Ord, PartialEq, PartialOrd, Serialize)]
+#[derive(
+    Clone, Copy, Debug, Default, Deserialize, Eq, Hash, Ord, PartialEq, PartialOrd, Serialize,
+)]
 pub struct GuildId(#[serde(with = "string")] pub u64);
 
 impl Display for GuildId {
@@ -132,7 +146,9 @@ impl From<u64> for GuildId {
     }
 }
 
-#[derive(Clone, Copy, Debug, Default, Deserialize, Eq, Hash, Ord, PartialEq, PartialOrd, Serialize)]
+#[derive(
+    Clone, Copy, Debug, Default, Deserialize, Eq, Hash, Ord, PartialEq, PartialOrd, Serialize,
+)]
 pub struct IntegrationId(#[serde(with = "string")] pub u64);
 
 impl Display for IntegrationId {
@@ -147,7 +163,9 @@ impl From<u64> for IntegrationId {
     }
 }
 
-#[derive(Clone, Copy, Debug, Default, Deserialize, Eq, Hash, Ord, PartialEq, PartialOrd, Serialize)]
+#[derive(
+    Clone, Copy, Debug, Default, Deserialize, Eq, Hash, Ord, PartialEq, PartialOrd, Serialize,
+)]
 pub struct MessageId(#[serde(with = "string")] pub u64);
 
 impl Display for MessageId {
@@ -162,7 +180,9 @@ impl From<u64> for MessageId {
     }
 }
 
-#[derive(Clone, Copy, Debug, Default, Deserialize, Eq, Hash, Ord, PartialEq, PartialOrd, Serialize)]
+#[derive(
+    Clone, Copy, Debug, Default, Deserialize, Eq, Hash, Ord, PartialEq, PartialOrd, Serialize,
+)]
 pub struct RoleId(#[serde(with = "string")] pub u64);
 
 impl Display for RoleId {
@@ -177,7 +197,9 @@ impl From<u64> for RoleId {
     }
 }
 
-#[derive(Clone, Copy, Debug, Default, Deserialize, Eq, Hash, Ord, PartialEq, PartialOrd, Serialize)]
+#[derive(
+    Clone, Copy, Debug, Default, Deserialize, Eq, Hash, Ord, PartialEq, PartialOrd, Serialize,
+)]
 pub struct UserId(#[serde(with = "string")] pub u64);
 
 impl Display for UserId {
@@ -192,7 +214,9 @@ impl From<u64> for UserId {
     }
 }
 
-#[derive(Clone, Copy, Debug, Default, Deserialize, Eq, Hash, Ord, PartialEq, PartialOrd, Serialize)]
+#[derive(
+    Clone, Copy, Debug, Default, Deserialize, Eq, Hash, Ord, PartialEq, PartialOrd, Serialize,
+)]
 pub struct WebhookId(#[serde(with = "string")] pub u64);
 
 impl Display for WebhookId {

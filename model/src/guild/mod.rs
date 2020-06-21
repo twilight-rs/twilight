@@ -42,8 +42,7 @@ use crate::{
 };
 use serde::{
     de::{Deserializer, Error as DeError, MapAccess, Visitor},
-    Deserialize,
-    Serialize,
+    Deserialize, Serialize,
 };
 use serde_value::Value;
 use std::{
@@ -257,18 +256,14 @@ impl<'de> Deserialize<'de> for Guild {
                         }
                         Field::ApproximateMemberCount => {
                             if approximate_member_count.is_some() {
-                                return Err(DeError::duplicate_field(
-                                    "approximate_member_count",
-                                ));
+                                return Err(DeError::duplicate_field("approximate_member_count"));
                             }
 
                             approximate_member_count = Some(map.next_value()?);
                         }
                         Field::ApproximatePresenceCount => {
                             if approximate_presence_count.is_some() {
-                                return Err(DeError::duplicate_field(
-                                    "approximate_presence_count",
-                                ));
+                                return Err(DeError::duplicate_field("approximate_presence_count"));
                             }
 
                             approximate_presence_count = Some(map.next_value()?);
@@ -341,9 +336,7 @@ impl<'de> Deserialize<'de> for Guild {
                         }
                         Field::ExplicitContentFilter => {
                             if explicit_content_filter.is_some() {
-                                return Err(DeError::duplicate_field(
-                                    "explicit_content_filter",
-                                ));
+                                return Err(DeError::duplicate_field("explicit_content_filter"));
                             }
 
                             explicit_content_filter = Some(map.next_value()?);
@@ -406,9 +399,7 @@ impl<'de> Deserialize<'de> for Guild {
                         }
                         Field::MaxVideoChannelUsers => {
                             if max_video_channel_users.is_some() {
-                                return Err(DeError::duplicate_field(
-                                    "max_video_channel_users",
-                                ));
+                                return Err(DeError::duplicate_field("max_video_channel_users"));
                             }
 
                             max_video_channel_users = Some(map.next_value()?);
@@ -471,9 +462,7 @@ impl<'de> Deserialize<'de> for Guild {
                         }
                         Field::PremiumSubscriptionCount => {
                             if premium_subscription_count.is_some() {
-                                return Err(DeError::duplicate_field(
-                                    "premium_subscription_count",
-                                ));
+                                return Err(DeError::duplicate_field("premium_subscription_count"));
                             }
 
                             premium_subscription_count = Some(map.next_value()?);
@@ -623,8 +612,8 @@ impl<'de> Deserialize<'de> for Guild {
                 let owner_id = owner_id.ok_or_else(|| DeError::missing_field("owner_id"))?;
                 let owner = owner.unwrap_or_default();
                 let permissions = permissions.unwrap_or_default();
-                let preferred_locale = preferred_locale
-                    .ok_or_else(|| DeError::missing_field("preferred_locale"))?;
+                let preferred_locale =
+                    preferred_locale.ok_or_else(|| DeError::missing_field("preferred_locale"))?;
                 let premium_subscription_count = premium_subscription_count.unwrap_or_default();
                 let premium_tier = premium_tier.unwrap_or_default();
                 let presences = presences.unwrap_or_default();

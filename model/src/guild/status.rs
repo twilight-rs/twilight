@@ -1,4 +1,7 @@
-use crate::{guild::{Guild, UnavailableGuild}, id::GuildId};
+use crate::{
+    guild::{Guild, UnavailableGuild},
+    id::GuildId,
+};
 use serde::{Deserialize, Serialize};
 use serde_mappable_seq::Key;
 

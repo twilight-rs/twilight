@@ -1,5 +1,5 @@
 use crate::id::GuildId;
-use serde::{Deserializer, Deserialize, Serialize};
+use serde::{Deserialize, Deserializer, Serialize};
 
 #[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
 pub struct GuildDelete {
@@ -9,10 +9,7 @@ pub struct GuildDelete {
     pub unavailable: bool,
 }
 
-
-fn nullable_unavailable<'de, D: Deserializer<'de>>(
-    deserializer: D,
-) -> Result<bool, D::Error> {
+fn nullable_unavailable<'de, D: Deserializer<'de>>(deserializer: D) -> Result<bool, D::Error> {
     Ok(Deserialize::deserialize(deserializer).unwrap_or_default())
 }
 

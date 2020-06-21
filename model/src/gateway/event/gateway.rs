@@ -1,5 +1,5 @@
 use super::super::OpCode;
-use super::{DispatchEventWithTypeDeserializer, DispatchEvent};
+use super::{DispatchEvent, DispatchEventWithTypeDeserializer};
 use serde::{
     de::{Deserialize, DeserializeSeed, Deserializer, Error as DeError, MapAccess, Visitor},
     Deserialize as DeserializeMacro,
@@ -126,9 +126,7 @@ impl<'de> Visitor<'de> for GatewayEventVisitor {
 
                 GatewayEvent::InvalidateSession(resumeable)
             }
-            OpCode::Identify => {
-                return Err(DeError::unknown_variant("Identify", VALID_OPCODES))
-            }
+            OpCode::Identify => return Err(DeError::unknown_variant("Identify", VALID_OPCODES)),
             OpCode::Reconnect => GatewayEvent::Reconnect,
             OpCode::RequestGuildMembers => {
                 return Err(DeError::unknown_variant(

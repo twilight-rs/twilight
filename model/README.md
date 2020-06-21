@@ -33,27 +33,6 @@ Add the following to your `Cargo.toml`:
 twilight-model = "0.1"
 ```
 
-### Features
-
-`twilight-model` has a single feature, `serde-support`. By default it is enabled.
-This enables serde support of the models, which brings in four dependencies:
-
-- `serde`
-- `serde_json`
-- `serde-mappable-seq`
-- `serde_repr`
-
-Enabling only the `serde` dependency will do nothing: all of them need to be
-enabled for correct (de)serialization, so you need to enable
-`serde-support`.
-
-If you don't need serde support, you can disable it:
-
-```toml
-[dependencies]
-twilight-model = { branch = "trunk", default-features = false, git = "https://github.com/twilight-rs/twilight" }
-```
-
 ## License
 
 [ISC][LICENSE.md]

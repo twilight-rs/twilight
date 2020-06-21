@@ -1,14 +1,14 @@
 use crate::{
     gateway::presence::{Presence, UserOrId},
-    guild::member::{MemberIntermediary, Member},
+    guild::member::{Member, MemberIntermediary},
     id::{GuildId, UserId},
 };
+use serde::Serialize;
 use serde::{
     de::{Deserializer, Error as DeError, MapAccess, Visitor},
     Deserialize,
 };
 use serde_value::Value;
-use serde::Serialize;
 use std::{
     collections::HashMap,
     fmt::{Formatter, Result as FmtResult},

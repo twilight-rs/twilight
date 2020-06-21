@@ -59,10 +59,7 @@ impl MemberDeserializer {
 impl<'de> DeserializeSeed<'de> for MemberDeserializer {
     type Value = Member;
 
-    fn deserialize<D: Deserializer<'de>>(
-        self,
-        deserializer: D,
-    ) -> Result<Self::Value, D::Error> {
+    fn deserialize<D: Deserializer<'de>>(self, deserializer: D) -> Result<Self::Value, D::Error> {
         struct MemberDeserializerVisitor(GuildId);
 
         impl<'de> Visitor<'de> for MemberDeserializerVisitor {
