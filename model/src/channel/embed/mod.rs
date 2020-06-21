@@ -11,21 +11,19 @@ pub use self::{
     provider::EmbedProvider, thumbnail::EmbedThumbnail, video::EmbedVideo,
 };
 
-#[cfg_attr(
-    feature = "serde-support",
-    derive(serde::Deserialize, serde::Serialize)
-)]
-#[derive(Clone, Debug, Eq, Hash, PartialEq)]
+use serde::{Deserialize, Serialize};
+
+#[derive(Clone, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
 pub struct Embed {
     pub author: Option<EmbedAuthor>,
-    #[cfg_attr(feature = "serde-support", serde(default))]
+    #[serde(default)]
     pub color: Option<u32>,
     pub description: Option<String>,
-    #[cfg_attr(feature = "serde-support", serde(default))]
+    #[serde(default)]
     pub fields: Vec<EmbedField>,
     pub footer: Option<EmbedFooter>,
     pub image: Option<EmbedImage>,
-    #[cfg_attr(feature = "serde-support", serde(rename = "type"))]
+    #[serde(rename = "type")]
     pub kind: String,
     pub provider: Option<EmbedProvider>,
     pub thumbnail: Option<EmbedThumbnail>,

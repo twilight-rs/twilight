@@ -1,10 +1,7 @@
 use crate::channel::ReactionType;
+use serde::{Deserialize, Serialize};
 
-#[cfg_attr(
-    feature = "serde-support",
-    derive(serde::Deserialize, serde::Serialize)
-)]
-#[derive(Clone, Debug, Eq, Hash, PartialEq)]
+#[derive(Clone, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
 pub struct MessageReaction {
     pub count: u64,
     pub emoji: ReactionType,

@@ -2,11 +2,9 @@ mod bot_connection_info;
 
 pub use self::bot_connection_info::BotConnectionInfo;
 
-#[cfg_attr(
-    feature = "serde-support",
-    derive(serde::Deserialize, serde::Serialize)
-)]
-#[derive(Clone, Debug, Eq, Hash, PartialEq)]
+use serde::{Deserialize, Serialize};
+
+#[derive(Clone, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
 pub struct ConnectionInfo {
     pub url: String,
 }

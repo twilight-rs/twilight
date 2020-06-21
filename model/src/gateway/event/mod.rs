@@ -8,7 +8,6 @@ mod kind;
 
 pub use self::{dispatch::DispatchEvent, gateway::GatewayEvent, kind::EventType};
 
-#[cfg(feature = "serde-support")]
 pub use self::dispatch::DispatchEventWithTypeDeserializer;
 
 use self::shard::*;

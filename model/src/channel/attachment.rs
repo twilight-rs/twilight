@@ -1,10 +1,7 @@
 use crate::id::AttachmentId;
+use serde::{Deserialize, Serialize};
 
-#[cfg_attr(
-    feature = "serde-support",
-    derive(serde::Deserialize, serde::Serialize)
-)]
-#[derive(Clone, Debug, Eq, PartialEq)]
+#[derive(Clone, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
 pub struct Attachment {
     pub id: AttachmentId,
     pub filename: String,

@@ -2,16 +2,13 @@ use crate::{
     channel::ChannelType,
     id::{ChannelId, GuildId},
 };
+use serde::{Deserialize, Serialize};
 
-#[cfg_attr(
-    feature = "serde-support",
-    derive(serde::Deserialize, serde::Serialize)
-)]
-#[derive(Clone, Debug, Eq, Hash, PartialEq)]
+#[derive(Clone, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
 pub struct ChannelMention {
     pub guild_id: GuildId,
     pub id: ChannelId,
-    #[cfg_attr(feature = "serde-support", serde(rename = "type"))]
+    #[serde(rename = "type")]
     pub kind: ChannelType,
     pub name: String,
 }

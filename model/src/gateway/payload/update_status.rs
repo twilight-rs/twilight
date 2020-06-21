@@ -2,12 +2,9 @@ use crate::gateway::{
     opcode::OpCode,
     presence::{Activity, Status},
 };
+use serde::{Deserialize, Serialize};
 
-#[cfg_attr(
-    feature = "serde-support",
-    derive(serde::Deserialize, serde::Serialize)
-)]
-#[derive(Clone, Debug, Eq, Hash, PartialEq)]
+#[derive(Clone, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
 pub struct UpdateStatus {
     pub d: UpdateStatusInfo,
     pub op: OpCode,
@@ -27,11 +24,7 @@ impl UpdateStatus {
     }
 }
 
-#[cfg_attr(
-    feature = "serde-support",
-    derive(serde::Deserialize, serde::Serialize)
-)]
-#[derive(Clone, Debug, Eq, Hash, PartialEq)]
+#[derive(Clone, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
 pub struct UpdateStatusInfo {
     pub afk: bool,
     pub game: Option<Activity>,

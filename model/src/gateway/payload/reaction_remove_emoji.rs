@@ -1,10 +1,7 @@
 use crate::id::{ChannelId, EmojiId, GuildId, MessageId};
+use serde::{Deserialize, Serialize};
 
-#[cfg_attr(
-    feature = "serde-support",
-    derive(serde::Deserialize, serde::Serialize)
-)]
-#[derive(Clone, Debug, Eq, Hash, PartialEq)]
+#[derive(Clone, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
 pub struct ReactionRemoveEmoji {
     pub channel_id: ChannelId,
     pub message_id: MessageId,
@@ -12,11 +9,7 @@ pub struct ReactionRemoveEmoji {
     pub emoji: PartialEmoji,
 }
 
-#[cfg_attr(
-    feature = "serde-support",
-    derive(serde::Deserialize, serde::Serialize)
-)]
-#[derive(Clone, Debug, Eq, Hash, PartialEq)]
+#[derive(Clone, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
 pub struct PartialEmoji {
     id: Option<EmojiId>,
     name: String,

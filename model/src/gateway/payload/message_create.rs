@@ -1,11 +1,8 @@
 use crate::channel::Message;
+use serde::{Deserialize, Serialize};
 use std::ops::{Deref, DerefMut};
 
-#[cfg_attr(
-    feature = "serde-support",
-    derive(serde::Deserialize, serde::Serialize)
-)]
-#[derive(Clone, Debug, Eq, PartialEq)]
+#[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
 pub struct MessageCreate(pub Message);
 
 impl Deref for MessageCreate {

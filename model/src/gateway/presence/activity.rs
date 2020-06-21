@@ -5,12 +5,9 @@ use crate::{
     },
     id::ApplicationId,
 };
+use serde::{Deserialize, Serialize};
 
-#[cfg_attr(
-    feature = "serde-support",
-    derive(serde::Deserialize, serde::Serialize)
-)]
-#[derive(Clone, Debug, Eq, Hash, PartialEq)]
+#[derive(Clone, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
 pub struct Activity {
     pub application_id: Option<ApplicationId>,
     pub assets: Option<ActivityAssets>,
@@ -21,10 +18,7 @@ pub struct Activity {
     // Introduced with custom statuses.
     pub id: Option<String>,
     pub instance: Option<bool>,
-    #[cfg_attr(
-        feature = "serde-support",
-        serde(default = "ActivityType::default", rename = "type")
-    )]
+    #[serde(default = "ActivityType::default", rename = "type")]
     pub kind: ActivityType,
     pub name: String,
     pub emoji: Option<ActivityEmoji>,

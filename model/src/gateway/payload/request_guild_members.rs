@@ -5,12 +5,9 @@ use crate::{
     },
     id::{GuildId, UserId},
 };
+use serde::{Deserialize, Serialize};
 
-#[cfg_attr(
-    feature = "serde-support",
-    derive(serde::Deserialize, serde::Serialize)
-)]
-#[derive(Clone, Debug, Eq, Hash, PartialEq)]
+#[derive(Clone, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
 pub struct RequestGuildMembers {
     pub d: RequestGuildMembersInfo,
     pub op: OpCode,
@@ -95,54 +92,31 @@ impl RequestGuildMembers {
     }
 }
 
-#[cfg_attr(
-    feature = "serde-support",
-    derive(serde::Deserialize, serde::Serialize),
-    serde(untagged)
-)]
-#[derive(Clone, Debug, Eq, Hash, PartialEq)]
+#[derive(Clone, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
 pub enum RequestGuildMembersInfo {
     Query {
         guild_id: GuildId,
         limit: u64,
         query: String,
-        #[cfg_attr(
-            feature = "serde-support",
-            serde(skip_serializing_if = "Option::is_none")
-        )]
+        #[serde(skip_serializing_if = "Option::is_none")]
         presences: Option<bool>,
-        #[cfg_attr(
-            feature = "serde-support",
-            serde(skip_serializing_if = "Option::is_none")
-        )]
+        #[serde(skip_serializing_if = "Option::is_none")]
         nonce: Option<String>,
     },
     SingleUser {
         guild_id: GuildId,
         user_ids: UserId,
-        #[cfg_attr(
-            feature = "serde-support",
-            serde(skip_serializing_if = "Option::is_none")
-        )]
+        #[serde(skip_serializing_if = "Option::is_none")]
         presences: Option<bool>,
-        #[cfg_attr(
-            feature = "serde-support",
-            serde(skip_serializing_if = "Option::is_none")
-        )]
+        #[serde(skip_serializing_if = "Option::is_none")]
         nonce: Option<String>,
     },
     MultiUser {
         guild_id: GuildId,
         user_ids: Vec<UserId>,
-        #[cfg_attr(
-            feature = "serde-support",
-            serde(skip_serializing_if = "Option::is_none")
-        )]
+        #[serde(skip_serializing_if = "Option::is_none")]
         presences: Option<bool>,
-        #[cfg_attr(
-            feature = "serde-support",
-            serde(skip_serializing_if = "Option::is_none")
-        )]
+        #[serde(skip_serializing_if = "Option::is_none")]
         nonce: Option<String>,
     },
 }
@@ -229,11 +203,7 @@ impl RequestGuildMembersInfo {
     }
 }
 
-#[cfg_attr(
-    feature = "serde-support",
-    derive(serde::Deserialize, serde::Serialize)
-)]
-#[derive(Clone, Debug, Eq, Hash, PartialEq)]
+#[derive(Clone, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
 pub struct RequestGuildMemberInfo {
     pub guild_id: GuildId,
     pub user_ids: u64,

@@ -1,10 +1,7 @@
 use crate::id::ChannelId;
+use serde::{Deserialize, Serialize};
 
-#[cfg_attr(
-    feature = "serde-support",
-    derive(serde::Deserialize, serde::Serialize)
-)]
-#[derive(Clone, Debug, Eq, Hash, PartialEq)]
+#[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
 pub struct GuildWidget {
     pub channel_id: ChannelId,
     pub enabled: bool,

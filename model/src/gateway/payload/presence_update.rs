@@ -2,14 +2,11 @@ use crate::{
     gateway::presence::{Activity, ClientStatus, Status, UserOrId},
     id::{GuildId, RoleId},
 };
+use serde::{Deserialize, Serialize};
 
-#[cfg_attr(
-    feature = "serde-support",
-    derive(serde::Deserialize, serde::Serialize)
-)]
-#[derive(Clone, Debug, Eq, Hash, PartialEq)]
+#[derive(Clone, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
 pub struct PresenceUpdate {
-    #[cfg_attr(feature = "serde-support", serde(default))]
+    #[serde(default)]
     pub activities: Vec<Activity>,
     pub client_status: ClientStatus,
     pub game: Option<Activity>,

@@ -1,9 +1,7 @@
-#[cfg_attr(
-    feature = "serde-support",
-    derive(serde::Deserialize, serde::Serialize)
-)]
-#[cfg_attr(feature = "serde-support", serde(rename_all = "snake_case"))]
-#[derive(Clone, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
+use serde::{Deserialize, Serialize};
+
+#[derive(Clone, Debug, Deserialize, Eq, Hash, Ord, PartialEq, PartialOrd, Serialize)]
+#[serde(rename_all = "snake_case")]
 pub enum AuditLogChangeKey {
     AfkChannelId,
     AfkTimeout,
@@ -35,9 +33,9 @@ pub enum AuditLogChangeKey {
     Permissions,
     Position,
     PruneDeleteDays,
-    #[cfg_attr(feature = "serde-support", serde(rename = "$add"))]
+    #[serde(rename = "$add")]
     RoleAdded,
-    #[cfg_attr(feature = "serde-support", serde(rename = "$remove"))]
+    #[serde(rename = "$remove")]
     RoleRemoved,
     Region,
     SplashHash,
