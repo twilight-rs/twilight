@@ -1,6 +1,25 @@
 use crate::request::prelude::*;
 use twilight_model::{guild::Emoji, id::GuildId};
 
+/// Get the emojis for a guild, by the guild's id.
+///
+/// # Examples
+///
+/// Get the emojis for guild `100`:
+///
+/// ```rust,no_run
+/// use twilight_http::Client;
+/// use twilight_model::id::GuildId;
+///
+/// # #[tokio::main]
+/// # async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
+/// let client = Client::new("my token");
+///
+/// let guild_id = GuildId(100);
+///
+/// client.emojis(guild_id).await?;
+/// # Ok(()) }
+/// ```
 pub struct GetEmojis<'a> {
     fut: Option<Pending<'a, Vec<Emoji>>>,
     guild_id: GuildId,

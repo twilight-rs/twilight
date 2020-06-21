@@ -485,20 +485,20 @@ impl Client {
         GetCurrentUserPrivateChannels::new(self)
     }
 
-    /// Get the emojis for a guild by the guild's ID.
+    /// Get the emojis for a guild, by the guild's id.
     ///
     /// # Examples
     ///
     /// Get the emojis for guild `100`:
     ///
     /// ```rust,no_run
-    /// use twilight_http::Client;
-    /// use twilight_model::id::GuildId;
-    ///
+    /// # use twilight_http::Client;
+    /// # use twilight_model::id::GuildId;
+    /// #
     /// # #[tokio::main]
     /// # async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
-    /// let client = Client::new("my token");
-    ///
+    /// # let client = Client::new("my token");
+    /// #
     /// let guild_id = GuildId(100);
     ///
     /// client.emojis(guild_id).await?;
@@ -515,13 +515,13 @@ impl Client {
     /// Get emoji `100` from guild `50`:
     ///
     /// ```rust,no_run
-    /// use twilight_http::Client;
-    /// use twilight_model::id::{EmojiId, GuildId};
-    ///
+    /// # use twilight_http::Client;
+    /// # use twilight_model::id::{EmojiId, GuildId};
+    /// #
     /// # #[tokio::main]
     /// # async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
-    /// let client = Client::new("my token");
-    ///
+    /// # let client = Client::new("my token");
+    /// #
     /// let guild_id = GuildId(50);
     /// let emoji_id = EmojiId(100);
     ///
@@ -532,6 +532,13 @@ impl Client {
         GetEmoji::new(self, guild_id, emoji_id)
     }
 
+    /// Create an emoji in a guild.
+    ///
+    /// The emoji must be a Data URI, in the form of `data:image/{type};base64,{data}` where
+    /// `{type}` is the image MIME type and `{data}` is the base64-encoded image.  Refer to [the
+    /// discord docs] for more information about image data.
+    ///
+    /// [the discord docs]: https://discord.com/developers/docs/reference#image-data
     pub fn create_emoji(
         &self,
         guild_id: GuildId,
@@ -541,10 +548,12 @@ impl Client {
         CreateEmoji::new(self, guild_id, name, image)
     }
 
+    /// Delete an emoji in a guild, by id.
     pub fn delete_emoji(&self, guild_id: GuildId, emoji_id: EmojiId) -> DeleteEmoji<'_> {
         DeleteEmoji::new(self, guild_id, emoji_id)
     }
 
+    /// Update an emoji in a guild, by id.
     pub fn update_emoji(&self, guild_id: GuildId, emoji_id: EmojiId) -> UpdateEmoji<'_> {
         UpdateEmoji::new(self, guild_id, emoji_id)
     }

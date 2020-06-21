@@ -12,6 +12,13 @@ struct CreateEmojiFields {
     roles: Option<Vec<RoleId>>,
 }
 
+/// Create an emoji in a guild.
+///
+/// The emoji must be a Data URI, in the form of `data:image/{type};base64,{data}` where `{type}`
+/// is the image MIME type and `{data}` is the base64-encoded image.  Refer to [the discord docs]
+/// for more information about image data.
+///
+/// [the discord docs]: https://discord.com/developers/docs/reference#image-data
 pub struct CreateEmoji<'a> {
     fut: Option<Pending<'a, Emoji>>,
     fields: CreateEmojiFields,
@@ -40,12 +47,18 @@ impl<'a> CreateEmoji<'a> {
         }
     }
 
+    /// Whitelist roles for this emoji.
+    ///
+    /// Refer to [the discord docs] for more information.
+    ///
+    /// [the discord docs]: https://discord.com/developers/docs/resources/emoji
     pub fn roles(mut self, roles: Vec<RoleId>) -> Self {
         self.fields.roles.replace(roles);
 
         self
     }
 
+    /// Attach an audit log reason to this request.
     pub fn reason(mut self, reason: impl Into<String>) -> Self {
         self.reason.replace(reason.into());
 
