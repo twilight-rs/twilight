@@ -14,6 +14,7 @@ use std::{
 };
 use tokio_tungstenite::tungstenite::{Error as TungsteniteError, Message as TungsteniteMessage};
 use twilight_http::Error as HttpError;
+use twilight_model::gateway::GatewayIntents;
 use url::ParseError;
 
 /// A result enum with the error type being the shard's [`Error`] type.
@@ -43,6 +44,25 @@ pub enum Error {
         id: u64,
         /// The total number of shards in use.
         total: u64,
+    },
+    /// The current user isn't allowed to use at least one of the configured
+    /// intents.
+    ///
+    /// The intents are provided.
+    IntentsDisallowed {
+        /// The configured intents for the shard.
+        intents: Option<GatewayIntents>,
+        /// The ID of the shard.
+        shard_id: u64,
+    },
+    /// The configured intents aren't supported by Discord's gateway.
+    ///
+    /// The intents are provided.
+    IntentsInvalid {
+        /// The configured intents for the shard.
+        intents: Option<GatewayIntents>,
+        /// The ID of the shard.
+        shard_id: u64,
     },
     /// The "large threshold" value was too large or too small.
     LargeThresholdInvalid {
@@ -86,6 +106,16 @@ impl Display for Error {
             Self::IdTooLarge { id, total } => {
                 write!(f, "The shard ID {} is larger than the total, {}", id, total)
             }
+            Self::IntentsDisallowed { intents, shard_id } => write!(
+                f,
+                "At least one of the intents ({:?}) for shard {} are disallowed",
+                intents, shard_id
+            ),
+            Self::IntentsInvalid { intents, shard_id } => write!(
+                f,
+                "At least one of the intents ({:?}) for shard {} are invalid",
+                intents, shard_id
+            ),
             Self::LargeThresholdInvalid { value } => write!(
                 f,
                 "The large threshold given, {}, is not in the accepted range",
@@ -115,6 +145,8 @@ impl StdError for Error {
             Self::Decompressing { source } => Some(source),
             Self::AuthorizationInvalid { .. }
             | Self::IdTooLarge { .. }
+            | Self::IntentsDisallowed { .. }
+            | Self::IntentsInvalid { .. }
             | Self::LargeThresholdInvalid { .. }
             | Self::Stopped { .. } => None,
         }
