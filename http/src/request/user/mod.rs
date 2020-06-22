@@ -1,9 +1,9 @@
+pub mod get_current_user_guilds;
 pub mod update_current_user;
 
 mod create_private_channel;
 mod get_current_user;
 mod get_current_user_connections;
-mod get_current_user_guilds;
 mod get_current_user_private_channels;
 mod get_user;
 mod leave_guild;

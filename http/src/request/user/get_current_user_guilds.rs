@@ -5,6 +5,7 @@ use std::{
 };
 use twilight_model::{guild::PartialGuild, id::GuildId};
 
+/// The error created when the current guilds can not be retrieved as configured.
 #[derive(Clone, Debug)]
 pub enum GetCurrentUserGuildsError {
     /// The maximum number of guilds to retrieve is 0 or more than 100.
@@ -27,6 +28,30 @@ struct GetCurrentUserGuildsFields {
     limit: Option<u64>,
 }
 
+/// Returns a list of guilds for the current user.
+///
+/// # Examples
+///
+/// Get the first 25 guilds with an ID after `300` and before
+/// `400`:
+///
+/// ```rust,no_run
+/// use twilight_http::Client;
+/// use twilight_model::id::GuildId;
+///
+/// # #[tokio::main]
+/// # async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
+/// let client = Client::new("my token");
+///
+/// let after = GuildId(300);
+/// let before = GuildId(400);
+/// let guilds = client.current_user_guilds()
+///     .after(after)
+///     .before(before)
+///     .limit(25)?
+///     .await?;
+/// # Ok(()) }
+/// ```
 pub struct GetCurrentUserGuilds<'a> {
     fields: GetCurrentUserGuildsFields,
     fut: Option<Pending<'a, Vec<PartialGuild>>>,
@@ -46,12 +71,14 @@ impl<'a> GetCurrentUserGuilds<'a> {
         }
     }
 
+    /// Get guilds after this guild id.
     pub fn after(mut self, guild_id: GuildId) -> Self {
         self.fields.after.replace(guild_id);
 
         self
     }
 
+    /// Get guilds before this guild id.
     pub fn before(mut self, guild_id: GuildId) -> Self {
         self.fields.before.replace(guild_id);
 
@@ -60,16 +87,16 @@ impl<'a> GetCurrentUserGuilds<'a> {
 
     /// Set the maximum number of guilds to retrieve.
     ///
-    /// The minimum is 1 and the maximum is 100.
+    /// The minimum is 1 and the maximum is 100. Refer to [the discord docs] for more information.
     ///
     /// # Errors
     ///
     /// Returns [`GetCurrentUserGuildsError::LimitInvalid`] if the amount is greater
     /// than 100.
     ///
-    /// [`GetCurrentUserGuildsError::LimitInvalid`]: enum.GetCurrentUserGuildsError.hLml#variant.LimitInvalid
+    /// [`GetCurrentUserGuildsError::LimitInvalid`]: enum.GetCurrentUserGuildsError.html#variant.LimitInvalid
+    /// [the discord docs]: https://discordapp.com/developers/docs/resources/user#get-current-user-guilds-query-string-params
     pub fn limit(mut self, limit: u64) -> Result<Self, GetCurrentUserGuildsError> {
-        // <https://discordapp.com/developers/docs/resources/user#get-current-user-guilds-query-string-params>
         if !validate::get_current_user_guilds_limit(limit) {
             return Err(GetCurrentUserGuildsError::LimitInvalid);
         }
