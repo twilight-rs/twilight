@@ -563,39 +563,34 @@ impl Client {
         UpdateEmoji::new(self, guild_id, emoji_id)
     }
 
-    /// Get information about the gateway, optionally with additional
-    /// information detailing the number of shards to use and sessions
-    /// remaining.
+    /// Get information about the gateway, optionally with additional information detailing the
+    /// number of shards to use and sessions remaining.
     ///
     /// # Examples
     ///
     /// Get the gateway connection URL without bot information:
     ///
     /// ```rust,no_run
-    /// use twilight_http::Client;
-    /// use std::env;
-    ///
+    /// # use twilight_http::Client;
+    /// #
     /// # #[tokio::main]
     /// # async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
-    /// let client = Client::new(env::var("TOKEN")?);
-    ///
+    /// # let client = Client::new("my token");
+    /// #
     /// let info = client.gateway().await?;
-    ///
-    /// println!("URL: {}", info.url);
     /// # Ok(()) }
     /// ```
     ///
-    /// Get the gateway connection URL with additional shard and session
-    /// information, which requires specifying a bot token:
+    /// Get the gateway connection URL with additional shard and session information, which
+    /// requires specifying a bot token:
     ///
     /// ```rust,no_run
-    /// use twilight_http::Client;
-    /// use std::env;
-    ///
+    /// # use twilight_http::Client;
+    /// #
     /// # #[tokio::main]
     /// # async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
-    /// let client = Client::new(env::var("TOKEN")?);
-    ///
+    /// # let client = Client::new("my token");
+    /// #
     /// let info = client.gateway().authed().await?;
     ///
     /// println!("URL: {}", info.url);
@@ -1145,6 +1140,7 @@ impl Client {
         GetUser::new(self, user_id.to_string())
     }
 
+    /// Get a list of voice regions that can be used when creating a guild.
     pub fn voice_regions(&self) -> GetVoiceRegions<'_> {
         GetVoiceRegions::new(self)
     }
