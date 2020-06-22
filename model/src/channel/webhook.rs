@@ -8,7 +8,7 @@ use serde::{Deserialize, Serialize};
 #[derive(Clone, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
 pub struct Webhook {
     pub id: WebhookId,
-    #[serde(default, rename = "type")]
+    #[serde(default = "WebhookType::default", rename = "type")]
     pub kind: WebhookType,
     pub avatar: Option<String>,
     pub channel_id: ChannelId,
