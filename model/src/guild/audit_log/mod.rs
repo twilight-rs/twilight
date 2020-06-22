@@ -12,12 +12,9 @@ pub use self::{
 };
 
 use crate::{channel::Webhook, user::User};
+use serde::{Deserialize, Serialize};
 
-#[cfg_attr(
-    feature = "serde-support",
-    derive(serde::Deserialize, serde::Serialize)
-)]
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, Deserialize, Serialize)]
 pub struct AuditLog {
     audit_log_entries: Vec<AuditLogEntry>,
     users: Vec<User>,

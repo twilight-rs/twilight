@@ -2,12 +2,9 @@ use crate::{
     guild::Member,
     id::{ChannelId, GuildId, UserId},
 };
+use serde::{Deserialize, Serialize};
 
-#[cfg_attr(
-    feature = "serde-support",
-    derive(serde::Deserialize, serde::Serialize)
-)]
-#[derive(Clone, Debug, Eq, Hash, PartialEq)]
+#[derive(Clone, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
 pub struct TypingStart {
     pub channel_id: ChannelId,
     pub guild_id: Option<GuildId>,

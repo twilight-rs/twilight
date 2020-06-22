@@ -1,10 +1,7 @@
 use crate::id::{ChannelId, GuildId};
+use serde::{Deserialize, Serialize};
 
-#[cfg_attr(
-    feature = "serde-support",
-    derive(serde::Deserialize, serde::Serialize)
-)]
-#[derive(Clone, Debug, Eq, Hash, PartialEq)]
+#[derive(Clone, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
 pub struct VoiceServerUpdate {
     pub channel_id: Option<ChannelId>,
     pub endpoint: Option<String>,

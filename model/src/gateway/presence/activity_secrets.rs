@@ -1,11 +1,9 @@
-#[cfg_attr(
-    feature = "serde-support",
-    derive(serde::Deserialize, serde::Serialize)
-)]
-#[derive(Clone, Debug, Eq, Hash, PartialEq)]
+use serde::{Deserialize, Serialize};
+
+#[derive(Clone, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
 pub struct ActivitySecrets {
     pub join: Option<String>,
-    #[cfg_attr(feature = "serde-support", serde(rename = "match"))]
+    #[serde(rename = "match")]
     pub match_: Option<String>,
     pub spectate: Option<String>,
 }

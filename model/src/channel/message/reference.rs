@@ -1,10 +1,7 @@
 use crate::id::{ChannelId, GuildId, MessageId};
+use serde::{Deserialize, Serialize};
 
-#[cfg_attr(
-    feature = "serde-support",
-    derive(serde::Deserialize, serde::Serialize)
-)]
-#[derive(Clone, Debug, Eq, Hash, PartialEq)]
+#[derive(Clone, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
 pub struct MessageReference {
     pub channel_id: ChannelId,
     pub guild_id: Option<GuildId>,

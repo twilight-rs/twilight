@@ -1,14 +1,11 @@
 use super::super::payload::*;
 use super::EventType;
-
-#[cfg(feature = "serde-support")]
-pub use self::if_serde::DispatchEventWithTypeDeserializer;
+use serde::de::{Deserialize, DeserializeSeed, Deserializer, Error as DeError};
 
 /// A dispatch event, containing information about a created guild, a member
 /// added, etc.
 ///
-/// If you have the `serde-support` model feature enabled, then you can
-/// deserialize into a `DispatchEvent`, via
+/// You can deserialize into a `DispatchEvent` via
 /// [`DispatchEventWithTypeDeserializer`].
 ///
 /// [`DispatchEventWithTypeDeserializer`]: struct.DispatchEventWithTypeDeserializer.html
@@ -100,137 +97,126 @@ impl DispatchEvent {
     }
 }
 
-#[cfg(feature = "serde-support")]
-mod if_serde {
-    use super::{super::super::payload::*, DispatchEvent};
-    use serde::de::{Deserialize, DeserializeSeed, Deserializer, Error as DeError};
+/// Deserialize into a [`DispatchEvent`] by knowing its event name.
+///
+/// An event name is something like `"CHANNEL_CREATE"` or `"GUILD_MEMBER_ADD"`.
+///
+/// [`DispatchEvent`]: enum.DispatchEvent.html
+pub struct DispatchEventWithTypeDeserializer<'a>(&'a str);
 
-    /// Deserialize into a [`DispatchEvent`] by knowing its event name.
-    ///
-    /// An event name is something like `"CHANNEL_CREATE"` or `"GUILD_MEMBER_ADD"`.
-    ///
-    /// [`DispatchEvent`]: enum.DispatchEvent.html
-    pub struct DispatchEventWithTypeDeserializer<'a>(&'a str);
-
-    impl<'a> DispatchEventWithTypeDeserializer<'a> {
-        /// Create a new deserializer.
-        pub fn new(event_name: &'a str) -> Self {
-            Self(event_name)
-        }
+impl<'a> DispatchEventWithTypeDeserializer<'a> {
+    /// Create a new deserializer.
+    pub fn new(event_name: &'a str) -> Self {
+        Self(event_name)
     }
+}
 
-    impl<'de, 'a> DeserializeSeed<'de> for DispatchEventWithTypeDeserializer<'a> {
-        type Value = DispatchEvent;
+impl<'de, 'a> DeserializeSeed<'de> for DispatchEventWithTypeDeserializer<'a> {
+    type Value = DispatchEvent;
 
-        #[allow(clippy::too_many_lines)]
-        fn deserialize<D: Deserializer<'de>>(
-            self,
-            deserializer: D,
-        ) -> Result<Self::Value, D::Error> {
-            Ok(match self.0 {
-                "CHANNEL_CREATE" => {
-                    DispatchEvent::ChannelCreate(ChannelCreate::deserialize(deserializer)?)
-                }
-                "CHANNEL_DELETE" => {
-                    DispatchEvent::ChannelDelete(ChannelDelete::deserialize(deserializer)?)
-                }
-                "CHANNEL_PINS_UPDATE" => {
-                    DispatchEvent::ChannelPinsUpdate(ChannelPinsUpdate::deserialize(deserializer)?)
-                }
-                "CHANNEL_UPDATE" => {
-                    DispatchEvent::ChannelUpdate(ChannelUpdate::deserialize(deserializer)?)
-                }
-                "GUILD_BAN_ADD" => DispatchEvent::BanAdd(BanAdd::deserialize(deserializer)?),
-                "GUILD_BAN_REMOVE" => {
-                    DispatchEvent::BanRemove(BanRemove::deserialize(deserializer)?)
-                }
-                "GUILD_CREATE" => {
-                    DispatchEvent::GuildCreate(Box::new(GuildCreate::deserialize(deserializer)?))
-                }
-                "GUILD_DELETE" => {
-                    DispatchEvent::GuildDelete(Box::new(GuildDelete::deserialize(deserializer)?))
-                }
-                "GUILD_EMOJIS_UPDATE" => {
-                    DispatchEvent::GuildEmojisUpdate(GuildEmojisUpdate::deserialize(deserializer)?)
-                }
-                "GUILD_INTEGRATIONS_UPDATE" => DispatchEvent::GuildIntegrationsUpdate(
-                    GuildIntegrationsUpdate::deserialize(deserializer)?,
-                ),
-                "GUILD_MEMBERS_CHUNK" => {
-                    DispatchEvent::MemberChunk(MemberChunk::deserialize(deserializer)?)
-                }
-                "GUILD_MEMBER_ADD" => {
-                    DispatchEvent::MemberAdd(Box::new(MemberAdd::deserialize(deserializer)?))
-                }
-                "GUILD_MEMBER_REMOVE" => {
-                    DispatchEvent::MemberRemove(MemberRemove::deserialize(deserializer)?)
-                }
-                "GUILD_MEMBER_UPDATE" => {
-                    DispatchEvent::MemberUpdate(Box::new(MemberUpdate::deserialize(deserializer)?))
-                }
-                "GUILD_ROLE_CREATE" => {
-                    DispatchEvent::RoleCreate(RoleCreate::deserialize(deserializer)?)
-                }
-                "GUILD_ROLE_DELETE" => {
-                    DispatchEvent::RoleDelete(RoleDelete::deserialize(deserializer)?)
-                }
-                "GUILD_ROLE_UPDATE" => {
-                    DispatchEvent::RoleUpdate(RoleUpdate::deserialize(deserializer)?)
-                }
-                "GUILD_UPDATE" => {
-                    DispatchEvent::GuildUpdate(Box::new(GuildUpdate::deserialize(deserializer)?))
-                }
-                "INVITE_CREATE" => {
-                    DispatchEvent::InviteCreate(Box::new(InviteCreate::deserialize(deserializer)?))
-                }
-                "INVITE_DELETE" => {
-                    DispatchEvent::InviteDelete(InviteDelete::deserialize(deserializer)?)
-                }
-                "MESSAGE_CREATE" => DispatchEvent::MessageCreate(Box::new(
-                    MessageCreate::deserialize(deserializer)?,
-                )),
-                "MESSAGE_DELETE" => {
-                    DispatchEvent::MessageDelete(MessageDelete::deserialize(deserializer)?)
-                }
-                "MESSAGE_DELETE_BULK" => {
-                    DispatchEvent::MessageDeleteBulk(MessageDeleteBulk::deserialize(deserializer)?)
-                }
-                "MESSAGE_REACTION_ADD" => {
-                    DispatchEvent::ReactionAdd(Box::new(ReactionAdd::deserialize(deserializer)?))
-                }
-                "MESSAGE_REACTION_REMOVE" => DispatchEvent::ReactionRemove(Box::new(
-                    ReactionRemove::deserialize(deserializer)?,
-                )),
-                "MESSAGE_REACTION_REMOVE_EMOJI" => DispatchEvent::ReactionRemoveEmoji(
-                    ReactionRemoveEmoji::deserialize(deserializer)?,
-                ),
-                "MESSAGE_REACTION_REMOVE_ALL" => {
-                    DispatchEvent::ReactionRemoveAll(ReactionRemoveAll::deserialize(deserializer)?)
-                }
-                "MESSAGE_UPDATE" => DispatchEvent::MessageUpdate(Box::new(
-                    MessageUpdate::deserialize(deserializer)?,
-                )),
-                "PRESENCE_UPDATE" => DispatchEvent::PresenceUpdate(Box::new(
-                    PresenceUpdate::deserialize(deserializer)?,
-                )),
-                "PRESENCES_REPLACE" => DispatchEvent::PresencesReplace,
-                "READY" => DispatchEvent::Ready(Box::new(Ready::deserialize(deserializer)?)),
-                "RESUMED" => DispatchEvent::Resumed,
-                "TYPING_START" => {
-                    DispatchEvent::TypingStart(Box::new(TypingStart::deserialize(deserializer)?))
-                }
-                "USER_UPDATE" => DispatchEvent::UserUpdate(UserUpdate::deserialize(deserializer)?),
-                "VOICE_SERVER_UPDATE" => {
-                    DispatchEvent::VoiceServerUpdate(VoiceServerUpdate::deserialize(deserializer)?)
-                }
-                "VOICE_STATE_UPDATE" => DispatchEvent::VoiceStateUpdate(Box::new(
-                    VoiceStateUpdate::deserialize(deserializer)?,
-                )),
-                "WEBHOOKS_UPDATE" => {
-                    DispatchEvent::WebhooksUpdate(WebhooksUpdate::deserialize(deserializer)?)
-                }
-                other => return Err(DeError::unknown_variant(other, &[])),
-            })
-        }
+    #[allow(clippy::too_many_lines)]
+    fn deserialize<D: Deserializer<'de>>(self, deserializer: D) -> Result<Self::Value, D::Error> {
+        Ok(match self.0 {
+            "CHANNEL_CREATE" => {
+                DispatchEvent::ChannelCreate(ChannelCreate::deserialize(deserializer)?)
+            }
+            "CHANNEL_DELETE" => {
+                DispatchEvent::ChannelDelete(ChannelDelete::deserialize(deserializer)?)
+            }
+            "CHANNEL_PINS_UPDATE" => {
+                DispatchEvent::ChannelPinsUpdate(ChannelPinsUpdate::deserialize(deserializer)?)
+            }
+            "CHANNEL_UPDATE" => {
+                DispatchEvent::ChannelUpdate(ChannelUpdate::deserialize(deserializer)?)
+            }
+            "GUILD_BAN_ADD" => DispatchEvent::BanAdd(BanAdd::deserialize(deserializer)?),
+            "GUILD_BAN_REMOVE" => DispatchEvent::BanRemove(BanRemove::deserialize(deserializer)?),
+            "GUILD_CREATE" => {
+                DispatchEvent::GuildCreate(Box::new(GuildCreate::deserialize(deserializer)?))
+            }
+            "GUILD_DELETE" => {
+                DispatchEvent::GuildDelete(Box::new(GuildDelete::deserialize(deserializer)?))
+            }
+            "GUILD_EMOJIS_UPDATE" => {
+                DispatchEvent::GuildEmojisUpdate(GuildEmojisUpdate::deserialize(deserializer)?)
+            }
+            "GUILD_INTEGRATIONS_UPDATE" => DispatchEvent::GuildIntegrationsUpdate(
+                GuildIntegrationsUpdate::deserialize(deserializer)?,
+            ),
+            "GUILD_MEMBERS_CHUNK" => {
+                DispatchEvent::MemberChunk(MemberChunk::deserialize(deserializer)?)
+            }
+            "GUILD_MEMBER_ADD" => {
+                DispatchEvent::MemberAdd(Box::new(MemberAdd::deserialize(deserializer)?))
+            }
+            "GUILD_MEMBER_REMOVE" => {
+                DispatchEvent::MemberRemove(MemberRemove::deserialize(deserializer)?)
+            }
+            "GUILD_MEMBER_UPDATE" => {
+                DispatchEvent::MemberUpdate(Box::new(MemberUpdate::deserialize(deserializer)?))
+            }
+            "GUILD_ROLE_CREATE" => {
+                DispatchEvent::RoleCreate(RoleCreate::deserialize(deserializer)?)
+            }
+            "GUILD_ROLE_DELETE" => {
+                DispatchEvent::RoleDelete(RoleDelete::deserialize(deserializer)?)
+            }
+            "GUILD_ROLE_UPDATE" => {
+                DispatchEvent::RoleUpdate(RoleUpdate::deserialize(deserializer)?)
+            }
+            "GUILD_UPDATE" => {
+                DispatchEvent::GuildUpdate(Box::new(GuildUpdate::deserialize(deserializer)?))
+            }
+            "INVITE_CREATE" => {
+                DispatchEvent::InviteCreate(Box::new(InviteCreate::deserialize(deserializer)?))
+            }
+            "INVITE_DELETE" => {
+                DispatchEvent::InviteDelete(InviteDelete::deserialize(deserializer)?)
+            }
+            "MESSAGE_CREATE" => {
+                DispatchEvent::MessageCreate(Box::new(MessageCreate::deserialize(deserializer)?))
+            }
+            "MESSAGE_DELETE" => {
+                DispatchEvent::MessageDelete(MessageDelete::deserialize(deserializer)?)
+            }
+            "MESSAGE_DELETE_BULK" => {
+                DispatchEvent::MessageDeleteBulk(MessageDeleteBulk::deserialize(deserializer)?)
+            }
+            "MESSAGE_REACTION_ADD" => {
+                DispatchEvent::ReactionAdd(Box::new(ReactionAdd::deserialize(deserializer)?))
+            }
+            "MESSAGE_REACTION_REMOVE" => {
+                DispatchEvent::ReactionRemove(Box::new(ReactionRemove::deserialize(deserializer)?))
+            }
+            "MESSAGE_REACTION_REMOVE_EMOJI" => {
+                DispatchEvent::ReactionRemoveEmoji(ReactionRemoveEmoji::deserialize(deserializer)?)
+            }
+            "MESSAGE_REACTION_REMOVE_ALL" => {
+                DispatchEvent::ReactionRemoveAll(ReactionRemoveAll::deserialize(deserializer)?)
+            }
+            "MESSAGE_UPDATE" => {
+                DispatchEvent::MessageUpdate(Box::new(MessageUpdate::deserialize(deserializer)?))
+            }
+            "PRESENCE_UPDATE" => {
+                DispatchEvent::PresenceUpdate(Box::new(PresenceUpdate::deserialize(deserializer)?))
+            }
+            "PRESENCES_REPLACE" => DispatchEvent::PresencesReplace,
+            "READY" => DispatchEvent::Ready(Box::new(Ready::deserialize(deserializer)?)),
+            "RESUMED" => DispatchEvent::Resumed,
+            "TYPING_START" => {
+                DispatchEvent::TypingStart(Box::new(TypingStart::deserialize(deserializer)?))
+            }
+            "USER_UPDATE" => DispatchEvent::UserUpdate(UserUpdate::deserialize(deserializer)?),
+            "VOICE_SERVER_UPDATE" => {
+                DispatchEvent::VoiceServerUpdate(VoiceServerUpdate::deserialize(deserializer)?)
+            }
+            "VOICE_STATE_UPDATE" => DispatchEvent::VoiceStateUpdate(Box::new(
+                VoiceStateUpdate::deserialize(deserializer)?,
+            )),
+            "WEBHOOKS_UPDATE" => {
+                DispatchEvent::WebhooksUpdate(WebhooksUpdate::deserialize(deserializer)?)
+            }
+            other => return Err(DeError::unknown_variant(other, &[])),
+        })
     }
 }

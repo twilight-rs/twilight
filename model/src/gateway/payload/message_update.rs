@@ -3,12 +3,9 @@ use crate::{
     id::{ChannelId, MessageId, RoleId},
     user::User,
 };
+use serde::{Deserialize, Serialize};
 
-#[cfg_attr(
-    feature = "serde-support",
-    derive(serde::Deserialize, serde::Serialize)
-)]
-#[derive(Clone, Debug, Eq, PartialEq)]
+#[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
 pub struct MessageUpdate {
     pub id: MessageId,
     pub attachments: Option<Vec<Attachment>>,
@@ -17,7 +14,7 @@ pub struct MessageUpdate {
     pub content: Option<String>,
     pub edited_timestamp: Option<String>,
     pub embeds: Option<Vec<Embed>>,
-    #[cfg_attr(feature = "serde-support", serde(rename = "type"))]
+    #[serde(rename = "type")]
     pub kind: Option<MessageType>,
     pub mention_everyone: Option<bool>,
     pub mention_roles: Option<Vec<RoleId>>,

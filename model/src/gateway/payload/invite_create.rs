@@ -1,12 +1,9 @@
 use crate::id::{ChannelId, GuildId, UserId};
 use crate::invite::TargetUserType;
 use crate::user::User;
+use serde::{Deserialize, Serialize};
 
-#[cfg_attr(
-    feature = "serde-support",
-    derive(serde::Deserialize, serde::Serialize)
-)]
-#[derive(Clone, Debug, Eq, Hash, PartialEq)]
+#[derive(Clone, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
 pub struct InviteCreate {
     pub channel_id: ChannelId,
     pub code: String,
@@ -21,11 +18,7 @@ pub struct InviteCreate {
     pub uses: u8, // will always be zero
 }
 
-#[cfg_attr(
-    feature = "serde-support",
-    derive(serde::Deserialize, serde::Serialize)
-)]
-#[derive(Clone, Debug, Eq, Hash, PartialEq)]
+#[derive(Clone, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
 pub struct PartialUser {
     avatar: Option<String>,
     discriminator: String,

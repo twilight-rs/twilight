@@ -1,11 +1,8 @@
 use crate::user::CurrentUser;
+use serde::{Deserialize, Serialize};
 use std::ops::{Deref, DerefMut};
 
-#[cfg_attr(
-    feature = "serde-support",
-    derive(serde::Deserialize, serde::Serialize)
-)]
-#[derive(Clone, Debug, Eq, Hash, PartialEq)]
+#[derive(Clone, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
 pub struct UserUpdate(pub CurrentUser);
 
 impl Deref for UserUpdate {

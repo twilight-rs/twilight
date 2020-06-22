@@ -5,13 +5,10 @@ use crate::{
     },
     id::{ApplicationId, ChannelId, EmojiId, GuildId, RoleId, UserId},
 };
+use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 
-#[cfg_attr(
-    feature = "serde-support",
-    derive(serde::Deserialize, serde::Serialize)
-)]
-#[derive(Clone, Debug, Eq, PartialEq)]
+#[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
 pub struct PartialGuild {
     pub id: GuildId,
     pub afk_channel_id: Option<ChannelId>,
@@ -22,9 +19,9 @@ pub struct PartialGuild {
     pub description: Option<String>,
     pub discovery_splash: Option<String>,
     pub embed_channel_id: Option<ChannelId>,
-    #[cfg_attr(feature = "serde-support", serde(default))]
+    #[serde(default)]
     pub embed_enabled: bool,
-    #[cfg_attr(feature = "serde-support", serde(with = "serde_mappable_seq"))]
+    #[serde(with = "serde_mappable_seq")]
     pub emojis: HashMap<EmojiId, Emoji>,
     pub explicit_content_filter: ExplicitContentFilter,
     pub features: Vec<String>,
@@ -41,7 +38,7 @@ pub struct PartialGuild {
     pub premium_tier: PremiumTier,
     pub premium_subscription_count: Option<u64>,
     pub region: String,
-    #[cfg_attr(feature = "serde-support", serde(with = "serde_mappable_seq"))]
+    #[serde(with = "serde_mappable_seq")]
     pub roles: HashMap<RoleId, Role>,
     pub rules_channel_id: Option<ChannelId>,
     pub splash: Option<String>,

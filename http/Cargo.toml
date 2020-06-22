@@ -16,7 +16,7 @@ version = "0.1.0"
 bytes = { default-features = false, version = "0.5" }
 futures-channel = { default-features = false, version = "0.3" }
 futures-util = { default-features = false, features = ["std"], version = "0.3" }
-twilight-model = { default-features = false, features = ["serde-support"], path = "../model" }
+twilight-model = { default-features = false, path = "../model" }
 log = { default-features = false, version = "0.4" }
 reqwest = { default-features = false, version = "0.10" }
 serde = { default-features = false, features = ["derive"], version = "1" }

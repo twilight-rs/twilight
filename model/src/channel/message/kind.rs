@@ -1,8 +1,6 @@
-#[cfg_attr(
-    feature = "serde-support",
-    derive(serde_repr::Deserialize_repr, serde_repr::Serialize_repr)
-)]
-#[derive(Clone, Copy, Debug, Eq, Hash, PartialEq, PartialOrd, Ord)]
+use serde::{Deserialize, Serialize};
+
+#[derive(Clone, Debug, Deserialize, Eq, Hash, Ord, PartialEq, PartialOrd, Serialize)]
 #[repr(u8)]
 pub enum MessageType {
     Regular = 0,

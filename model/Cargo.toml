@@ -15,15 +15,11 @@ version = "0.1.0"
 [dependencies]
 bitflags = { default-features = false, version = "1" }
 log = { default-features = false, version = "0.4" }
-serde = { default-features = false, features = ["derive"], optional = true, version = "1" }
-serde-mappable-seq = { default-features = false, optional = true, version = "0.1" }
-serde_repr = { default-features = false, optional = true, version = "0.1" }
-serde-value = { default-features = false, optional = true, version = "0.6" }
+serde = { default-features = false, features = ["derive"], version = "1" }
+serde-mappable-seq = { default-features = false, version = "0.1" }
+serde_repr = { default-features = false, version = "0.1" }
+serde-value = { default-features = false, version = "0.6" }
 
 [dev-dependencies]
 serde_json = { default-features = false, features = ["alloc"], version = "1" }
 serde_test = { default-features = false, version = "1" }
-
-[features]
-default = ["serde-support"]
-serde-support = ["serde", "serde-mappable-seq", "serde_repr", "serde-value"]

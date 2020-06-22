@@ -1,10 +1,8 @@
 use crate::{guild::Permissions, id::RoleId};
+use serde::{Deserialize, Serialize};
+use serde_mappable_seq::Key;
 
-#[cfg_attr(
-    feature = "serde-support",
-    derive(serde::Deserialize, serde::Serialize)
-)]
-#[derive(Clone, Debug, Eq, Hash, PartialEq)]
+#[derive(Clone, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
 pub struct Role {
     pub id: RoleId,
     pub color: u32,
@@ -16,15 +14,8 @@ pub struct Role {
     pub position: i64,
 }
 
-#[cfg(feature = "serde-support")]
-mod serde_support {
-    use super::Role;
-    use crate::id::RoleId;
-    use serde_mappable_seq::Key;
-
-    impl Key<'_, RoleId> for Role {
-        fn key(&self) -> RoleId {
-            self.id
-        }
+impl Key<'_, RoleId> for Role {
+    fn key(&self) -> RoleId {
+        self.id
     }
 }

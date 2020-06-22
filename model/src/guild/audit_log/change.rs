@@ -1,14 +1,10 @@
 use crate::guild::audit_log::AuditLogChangeKey;
+use serde::{Deserialize, Serialize};
+use serde_value::Value;
 
-#[cfg_attr(
-    feature = "serde-support",
-    derive(serde::Deserialize, serde::Serialize)
-)]
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, Deserialize, Serialize)]
 pub struct AuditLogChange {
     pub key: AuditLogChangeKey,
-    #[cfg(feature = "serde-support")]
-    pub new_value: Option<serde_value::Value>,
-    #[cfg(feature = "serde-support")]
-    pub old_value: Option<serde_value::Value>,
+    pub new_value: Option<Value>,
+    pub old_value: Option<Value>,
 }
