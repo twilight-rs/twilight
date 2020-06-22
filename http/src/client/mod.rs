@@ -445,7 +445,7 @@ impl Client {
 
     /// Get the current user's connections.
     ///
-    /// Requires the `connections` OAuth2 scope.
+    /// Requires the `connections` `OAuth2` scope.
     pub fn current_user_connections(&self) -> GetCurrentUserConnections<'_> {
         GetCurrentUserConnections::new(self)
     }
