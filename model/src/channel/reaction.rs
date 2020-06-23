@@ -1,9 +1,12 @@
 use crate::{
     channel::ReactionType,
-    guild::member::{MemberDeserializer, Member},
+    guild::member::{Member, MemberDeserializer},
     id::{ChannelId, GuildId, MessageId, UserId},
 };
-use serde::{de::{DeserializeSeed, Deserializer, Error as DeError, MapAccess, Visitor}, Deserialize, Serialize};
+use serde::{
+    de::{DeserializeSeed, Deserializer, Error as DeError, MapAccess, Visitor},
+    Deserialize, Serialize,
+};
 use serde_value::Value;
 use std::fmt::{Formatter, Result as FmtResult};
 
