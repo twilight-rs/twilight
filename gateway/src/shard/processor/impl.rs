@@ -141,6 +141,22 @@ impl ShardProcessor {
                     self.reconnect(true).await;
                     continue;
                 }
+                Err(Error::IntentsDisallowed { shard_id, .. }) => {
+                    warn!(
+                        "At least one of the provided intents for shard {} are disallowed",
+                        shard_id
+                    );
+                    self.listeners.remove_all().await;
+                    return;
+                }
+                Err(Error::IntentsInvalid { shard_id, .. }) => {
+                    warn!(
+                        "At least one of the provided intents for shard {} are invalid",
+                        shard_id
+                    );
+                    self.listeners.remove_all().await;
+                    return;
+                }
                 Err(err) => {
                     warn!("Error receiveing gateway event: {:?}", err.source());
                     continue;
@@ -433,11 +449,26 @@ impl ShardProcessor {
                     log::warn!("Got close code: {:?}.", close_frame);
 
                     if let Some(close_frame) = close_frame {
-                        if close_frame.code == CloseCode::Library(4004) {
-                            return Err(Error::AuthorizationInvalid {
-                                shard_id: self.config.shard()[0],
-                                token: self.config.token().to_owned(),
-                            });
+                        match close_frame.code {
+                            CloseCode::Library(4004) => {
+                                return Err(Error::AuthorizationInvalid {
+                                    shard_id: self.config.shard()[0],
+                                    token: self.config.token().to_owned(),
+                                });
+                            }
+                            CloseCode::Library(4013) => {
+                                return Err(Error::IntentsInvalid {
+                                    intents: self.config.intents().copied(),
+                                    shard_id: self.config.shard()[0],
+                                });
+                            }
+                            CloseCode::Library(4014) => {
+                                return Err(Error::IntentsDisallowed {
+                                    intents: self.config.intents().copied(),
+                                    shard_id: self.config.shard()[0],
+                                });
+                            }
+                            _ => {}
                         }
                     }
 
