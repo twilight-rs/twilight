@@ -153,14 +153,13 @@ impl Client {
     /// In guild `1`, add role `2` to user `3`, for the reason `"test"`:
     ///
     /// ```rust,no_run
-    /// use std::env;
-    /// use twilight_http::Client;
+    /// # use twilight_http::Client;
     /// use twilight_model::id::{GuildId, RoleId, UserId};
-    ///
+    /// #
     /// # #[tokio::main]
     /// # async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
-    /// let client = Client::new(env::var("DISCORD_TOKEN")?);
-    ///
+    /// # let client = Client::new("my token");
+    /// #
     /// let guild_id = GuildId(1);
     /// let role_id = RoleId(2);
     /// let user_id = UserId(3);
@@ -206,14 +205,13 @@ impl Client {
     /// Retrieve the bans for guild `1`:
     ///
     /// ```rust,no_run
-    /// use std::env;
-    /// use twilight_http::Client;
+    /// # use twilight_http::Client;
     /// use twilight_model::id::GuildId;
-    ///
+    /// #
     /// # #[tokio::main]
     /// # async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
-    /// let client = Client::new(env::var("DISCORD_TOKEN")?);
-    ///
+    /// # let client = Client::new("my token");
+    /// #
     /// let guild_id = GuildId(1);
     ///
     /// let bans = client.bans(guild_id).await?;
@@ -223,6 +221,9 @@ impl Client {
         GetBans::new(self, guild_id)
     }
 
+    /// Get information about a ban of a guild.
+    ///
+    /// Includes the user banned and the reason.
     pub fn ban(&self, guild_id: GuildId, user_id: UserId) -> GetBan<'_> {
         GetBan::new(self, guild_id, user_id)
     }
@@ -236,41 +237,39 @@ impl Client {
     /// 1 day's worth of messages, for the reason `"memes"`:
     ///
     /// ```rust,no_run
-    /// use twilight_http::Client;
+    /// # use twilight_http::Client;
     /// use twilight_model::id::{GuildId, UserId};
-    ///
+    /// #
     /// # #[tokio::main]
     /// # async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
-    /// let client = Client::new("my token");
-    ///
+    /// # let client = Client::new("my token");
+    /// #
     /// let guild_id = GuildId(100);
     /// let user_id = UserId(200);
     /// client.create_ban(guild_id, user_id)
     ///     .delete_message_days(1)?
     ///     .reason("memes")
     ///     .await?;
-    ///
-    /// println!("Banned!");
     /// # Ok(()) }
     /// ```
     pub fn create_ban(&self, guild_id: GuildId, user_id: UserId) -> CreateBan<'_> {
         CreateBan::new(self, guild_id, user_id)
     }
 
-    /// Remove a ban from a user in a guild, optionally with the reason why.
+    /// Remove a ban from a user in a guild.
     ///
     /// # Examples
     ///
     /// Unban user `200` from guild `100`:
     ///
     /// ```rust,no_run
-    /// use twilight_http::Client;
+    /// # use twilight_http::Client;
     /// use twilight_model::id::{GuildId, UserId};
-    ///
+    /// #
     /// # #[tokio::main]
     /// # async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
-    /// let client = Client::new("my token");
-    ///
+    /// # let client = Client::new("my token");
+    /// #
     /// let guild_id = GuildId(100);
     /// let user_id = UserId(200);
     ///
@@ -485,20 +484,20 @@ impl Client {
         GetCurrentUserPrivateChannels::new(self)
     }
 
-    /// Get the emojis for a guild by the guild's ID.
+    /// Get the emojis for a guild, by the guild's id.
     ///
     /// # Examples
     ///
     /// Get the emojis for guild `100`:
     ///
     /// ```rust,no_run
-    /// use twilight_http::Client;
-    /// use twilight_model::id::GuildId;
-    ///
+    /// # use twilight_http::Client;
+    /// # use twilight_model::id::GuildId;
+    /// #
     /// # #[tokio::main]
     /// # async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
-    /// let client = Client::new("my token");
-    ///
+    /// # let client = Client::new("my token");
+    /// #
     /// let guild_id = GuildId(100);
     ///
     /// client.emojis(guild_id).await?;
@@ -515,13 +514,13 @@ impl Client {
     /// Get emoji `100` from guild `50`:
     ///
     /// ```rust,no_run
-    /// use twilight_http::Client;
-    /// use twilight_model::id::{EmojiId, GuildId};
-    ///
+    /// # use twilight_http::Client;
+    /// # use twilight_model::id::{EmojiId, GuildId};
+    /// #
     /// # #[tokio::main]
     /// # async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
-    /// let client = Client::new("my token");
-    ///
+    /// # let client = Client::new("my token");
+    /// #
     /// let guild_id = GuildId(50);
     /// let emoji_id = EmojiId(100);
     ///
@@ -532,6 +531,13 @@ impl Client {
         GetEmoji::new(self, guild_id, emoji_id)
     }
 
+    /// Create an emoji in a guild.
+    ///
+    /// The emoji must be a Data URI, in the form of `data:image/{type};base64,{data}` where
+    /// `{type}` is the image MIME type and `{data}` is the base64-encoded image.  Refer to [the
+    /// discord docs] for more information about image data.
+    ///
+    /// [the discord docs]: https://discord.com/developers/docs/reference#image-data
     pub fn create_emoji(
         &self,
         guild_id: GuildId,
@@ -541,10 +547,12 @@ impl Client {
         CreateEmoji::new(self, guild_id, name, image)
     }
 
+    /// Delete an emoji in a guild, by id.
     pub fn delete_emoji(&self, guild_id: GuildId, emoji_id: EmojiId) -> DeleteEmoji<'_> {
         DeleteEmoji::new(self, guild_id, emoji_id)
     }
 
+    /// Update an emoji in a guild, by id.
     pub fn update_emoji(&self, guild_id: GuildId, emoji_id: EmojiId) -> UpdateEmoji<'_> {
         UpdateEmoji::new(self, guild_id, emoji_id)
     }
@@ -690,10 +698,16 @@ impl Client {
         UpdateGuildWidget::new(self, guild_id)
     }
 
+    /// Get the guild's integrations.
     pub fn guild_integrations(&self, guild_id: GuildId) -> GetGuildIntegrations<'_> {
         GetGuildIntegrations::new(self, guild_id)
     }
 
+    /// Create a guild integration from the current user to the guild.
+    ///
+    /// Refer to [the discord docs] for more information.
+    ///
+    /// [the discord docs]: https://discord.com/developers/docs/resources/guild#create-guild-integration
     pub fn create_guild_integration(
         &self,
         guild_id: GuildId,
@@ -703,6 +717,7 @@ impl Client {
         CreateGuildIntegration::new(self, guild_id, integration_id, kind)
     }
 
+    /// Delete an integration for a guild, by the integration's id.
     pub fn delete_guild_integration(
         &self,
         guild_id: GuildId,
@@ -711,6 +726,11 @@ impl Client {
         DeleteGuildIntegration::new(self, guild_id, integration_id)
     }
 
+    /// Update a guild's integration, by its id.
+    ///
+    /// Refer to [the discord docs] for more information.
+    ///
+    /// [the discord docs]: https://discord.com/developers/docs/resources/guild#modify-guild-integrationb
     pub fn update_guild_integration(
         &self,
         guild_id: GuildId,
@@ -719,6 +739,7 @@ impl Client {
         UpdateGuildIntegration::new(self, guild_id, integration_id)
     }
 
+    /// Synchronize a guild's integration by its id.
     pub fn sync_guild_integration(
         &self,
         guild_id: GuildId,
@@ -732,18 +753,60 @@ impl Client {
         GetGuildInvites::new(self, guild_id)
     }
 
+    /// Get the members of a guild, by id.
+    ///
+    /// The upper limit to this request is 1000. If more than 1000 members are needed, the requests
+    /// must be chained. Discord defaults the limit to 1.
+    ///
+    /// # Examples
+    ///
+    /// Get the first 500 members of guild `100` after user ID `3000`:
+    ///
+    /// ```rust,no_run
+    /// # use twilight_http::Client;
+    /// use twilight_model::id::{GuildId, UserId};
+    /// #
+    /// # #[tokio::main]
+    /// # async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
+    /// # let client = Client::new("my token");
+    /// #
+    /// let guild_id = GuildId(100);
+    /// let user_id = UserId(3000);
+    /// let members = client.guild_members(guild_id).after(user_id).await?;
+    /// # Ok(()) }
+    /// ```
+    ///
+    /// # Errors
+    ///
+    /// Returns [`GetGuildMembersError::LimitInvalid`] if the limit is invalid.
+    ///
+    /// [`GetGuildMembersError::LimitInvalid`]: ../request/guild/member/get_guild_members/enum.GetGuildMembersError.html#variant.LimitInvalid
     pub fn guild_members(&self, guild_id: GuildId) -> GetGuildMembers<'_> {
         GetGuildMembers::new(self, guild_id)
     }
 
+    /// Get a member of a guild, by their id.
     pub fn guild_member(&self, guild_id: GuildId, user_id: UserId) -> GetMember<'_> {
         GetMember::new(self, guild_id, user_id)
     }
 
+    /// Kick a member from a guild.
     pub fn remove_guild_member(&self, guild_id: GuildId, user_id: UserId) -> RemoveMember<'_> {
         RemoveMember::new(self, guild_id, user_id)
     }
 
+    /// Update a guild member.
+    ///
+    /// All fields are optional. Refer to [the discord docs] for more information.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`UpdateGuildMemberError::NicknameInvalid`] if the nickname length is too short or too
+    /// long.
+    ///
+    /// [`UpdateGuildMemberError::NicknameInvalid`]: ../request/guild/member/update_guild_member/enum.UpdateGuildMemberError.html#variant.NicknameInvalid
+    ///
+    /// [the discord docs]: https://discord.com/developers/docs/resources/guild#modify-guild-member
     pub fn update_guild_member(&self, guild_id: GuildId, user_id: UserId) -> UpdateGuildMember<'_> {
         UpdateGuildMember::new(self, guild_id, user_id)
     }
@@ -757,6 +820,7 @@ impl Client {
         AddRoleToMember::new(self, guild_id, user_id, role_id)
     }
 
+    /// Remove a role from a member in a guild, by id.
     pub fn remove_guild_member_role(
         &self,
         guild_id: GuildId,
@@ -1098,22 +1162,47 @@ impl Client {
         CreatePrivateChannel::new(self, recipient_id)
     }
 
+    /// Get the roles of a guild.
     pub fn roles(&self, guild_id: GuildId) -> GetGuildRoles<'_> {
         GetGuildRoles::new(self, guild_id)
     }
 
+    /// Create a role in a guild.
+    ///
+    /// # Examples
+    ///
+    /// ```rust,no_run
+    /// # use twilight_http::Client;
+    /// use twilight_model::id::GuildId;
+    ///
+    /// # #[tokio::main]
+    /// # async fn main() -> Result<(), Box<dyn std::error::Error>> {
+    /// # let client = Client::new("my token");
+    /// let guild_id = GuildId(234);
+    ///
+    /// client.create_role(guild_id)
+    ///     .color(0xd90083)
+    ///     .name("Bright Pink")
+    ///     .await?;
+    /// # Ok(()) }
+    /// ```
     pub fn create_role(&self, guild_id: GuildId) -> CreateRole<'_> {
         CreateRole::new(self, guild_id)
     }
 
+    /// Delete a role in a guild, by id.
     pub fn delete_role(&self, guild_id: GuildId, role_id: RoleId) -> DeleteRole<'_> {
         DeleteRole::new(self, guild_id, role_id)
     }
 
+    /// Update a role by guild id and its id.
     pub fn update_role(&self, guild_id: GuildId, role_id: RoleId) -> UpdateRole<'_> {
         UpdateRole::new(self, guild_id, role_id)
     }
 
+    /// Modify the position of the roles.
+    ///
+    /// The minimum amount of roles to modify, is a swap between two roles.
     pub fn update_role_positions(
         &self,
         guild_id: GuildId,

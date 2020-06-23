@@ -1,6 +1,7 @@
 use crate::request::prelude::*;
 use twilight_model::id::{EmojiId, GuildId};
 
+/// Delete an emoji in a guild, by id.
 pub struct DeleteEmoji<'a> {
     emoji_id: EmojiId,
     fut: Option<Pending<'a, ()>>,
@@ -20,6 +21,7 @@ impl<'a> DeleteEmoji<'a> {
         }
     }
 
+    /// Attach an audit log reason to this request.
     pub fn reason(mut self, reason: impl Into<String>) -> Self {
         self.reason.replace(reason.into());
 

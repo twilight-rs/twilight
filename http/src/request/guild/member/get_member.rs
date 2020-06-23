@@ -11,6 +11,7 @@ use twilight_model::{
     id::{GuildId, UserId},
 };
 
+/// Get a member of a guild, by id.
 pub struct GetMember<'a> {
     fut: Option<PendingOption<'a>>,
     guild_id: GuildId,

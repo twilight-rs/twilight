@@ -14,6 +14,7 @@ struct UpdateRoleFields {
     permissions: Option<Permissions>,
 }
 
+/// Update a role by guild id and its id.
 pub struct UpdateRole<'a> {
     fields: UpdateRoleFields,
     fut: Option<Pending<'a, Role>>,
@@ -35,36 +36,42 @@ impl<'a> UpdateRole<'a> {
         }
     }
 
+    /// Set the color of the role.
     pub fn color(mut self, color: u64) -> Self {
         self.fields.color.replace(color);
 
         self
     }
 
+    /// If true, display the role in the members list.
     pub fn hoist(mut self, hoist: bool) -> Self {
         self.fields.hoist.replace(hoist);
 
         self
     }
 
+    /// If true, the role can be @mentioned (pinged) in chat.
     pub fn mentionable(mut self, mentionable: bool) -> Self {
         self.fields.mentionable.replace(mentionable);
 
         self
     }
 
+    /// Set the name of the role.
     pub fn name(mut self, name: impl Into<String>) -> Self {
         self.fields.name.replace(name.into());
 
         self
     }
 
+    /// Set the allowed permissions of this role.
     pub fn permissions(mut self, permissions: Permissions) -> Self {
         self.fields.permissions.replace(permissions);
 
         self
     }
 
+    /// Attach an audit log reason to this request.
     pub fn reason(mut self, reason: impl Into<String>) -> Self {
         self.reason.replace(reason.into());
 

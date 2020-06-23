@@ -1,6 +1,7 @@
 use crate::request::prelude::*;
 use twilight_model::id::{GuildId, UserId};
 
+/// Kick a member from a guild, by their id.
 pub struct RemoveMember<'a> {
     fut: Option<Pending<'a, ()>>,
     guild_id: GuildId,
@@ -20,6 +21,7 @@ impl<'a> RemoveMember<'a> {
         }
     }
 
+    /// Attach an audit log reason to this request.
     pub fn reason(mut self, reason: impl Into<String>) -> Self {
         self.reason.replace(reason.into());
 

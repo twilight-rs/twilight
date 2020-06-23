@@ -1,6 +1,7 @@
 use crate::request::prelude::*;
 use twilight_model::id::{GuildId, IntegrationId};
 
+/// Delete an integration for a guild, by the integration's id.
 pub struct DeleteGuildIntegration<'a> {
     fut: Option<Pending<'a, ()>>,
     guild_id: GuildId,
@@ -20,6 +21,7 @@ impl<'a> DeleteGuildIntegration<'a> {
         }
     }
 
+    /// Attach an audit log reason to this request.
     pub fn reason(mut self, reason: impl Into<String>) -> Self {
         self.reason.replace(reason.into());
 

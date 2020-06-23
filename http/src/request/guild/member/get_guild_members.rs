@@ -14,6 +14,7 @@ use twilight_model::{
     id::{GuildId, UserId},
 };
 
+/// The error created when the members can not be fetched as configured.
 #[derive(Clone, Debug)]
 pub enum GetGuildMembersError {
     /// The limit is either 0 or more than 1000.
@@ -37,12 +38,14 @@ struct GetGuildMembersFields {
     presences: Option<bool>,
 }
 
-/// Gets a list of members from a guild.
+/// Get the members of a guild, by id.
+///
+/// The upper limit to this request is 1000. If more than 1000 members are needed, the requests
+/// must be chained. Discord defaults the limit to 1.
 ///
 /// # Examples
 ///
-/// Get the first 500 members of guild `620316809459138607` after user ID
-/// `587175671973937162`:
+/// Get the first 500 members of guild `100` after user ID `3000`:
 ///
 /// ```rust,no_run
 /// use twilight_http::Client;
@@ -50,16 +53,19 @@ struct GetGuildMembersFields {
 ///
 /// # #[tokio::main]
 /// # async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
-/// let client = Client::new("bot token");
-/// let guild_id = GuildId(620316809459138607);
-/// let user_id = UserId(587175671973937162);
-/// let members = client.guild_members(guild_id).after(user_id).await?;
+/// let client = Client::new("my token");
 ///
-/// for member in members {
-///     println!("name: {}#{}", member.user.name, member.user.discriminator);
-/// }
+/// let guild_id = GuildId(100);
+/// let user_id = UserId(3000);
+/// let members = client.guild_members(guild_id).after(user_id).await?;
 /// # Ok(()) }
 /// ```
+///
+/// # Errors
+///
+/// Returns [`GetGuildMembersError::LimitInvalid`] if the limit is invalid.
+///
+/// [`GetGuildMembersError::LimitInvalid`]: enum.GetGuildMembersError.html#variant.LimitInvalid
 pub struct GetGuildMembers<'a> {
     fields: GetGuildMembersFields,
     fut: Option<Pending<'a, Bytes>>,

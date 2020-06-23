@@ -4,6 +4,9 @@ use twilight_model::{
     id::{GuildId, UserId},
 };
 
+/// Get information about a ban of a guild.
+///
+/// Includes the user banned and the reason.
 pub struct GetBan<'a> {
     fut: Option<PendingOption<'a>>,
     guild_id: GuildId,

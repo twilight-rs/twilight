@@ -1,6 +1,7 @@
 use crate::request::prelude::*;
 use twilight_model::{guild::Role, id::GuildId};
 
+/// Get the roles of a guild.
 pub struct GetGuildRoles<'a> {
     fut: Option<Pending<'a, Vec<Role>>>,
     guild_id: GuildId,

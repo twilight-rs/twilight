@@ -5,6 +5,7 @@ use std::{
 };
 use twilight_model::id::{GuildId, UserId};
 
+/// The error created when the ban can not be created as configured.
 #[derive(Clone, Debug)]
 pub enum CreateBanError {
     /// The number of days' worth of messages to delete is greater than 7.
@@ -29,6 +30,30 @@ struct CreateBanFields {
     reason: Option<String>,
 }
 
+/// Bans a user from a guild, optionally with the number of days' worth of
+/// messages to delete and the reason.
+///
+/// # Examples
+///
+/// Ban user `200` from guild `100`, deleting
+/// 1 day's worth of messages, for the reason `"memes"`:
+///
+/// ```rust,no_run
+/// use twilight_http::Client;
+/// use twilight_model::id::{GuildId, UserId};
+///
+/// # #[tokio::main]
+/// # async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
+/// let client = Client::new("my token");
+///
+/// let guild_id = GuildId(100);
+/// let user_id = UserId(200);
+/// client.create_ban(guild_id, user_id)
+///     .delete_message_days(1)?
+///     .reason("memes")
+///     .await?;
+/// # Ok(()) }
+/// ```
 pub struct CreateBan<'a> {
     fields: CreateBanFields,
     fut: Option<Pending<'a, ()>>,
@@ -68,6 +93,7 @@ impl<'a> CreateBan<'a> {
         Ok(self)
     }
 
+    /// Attach an audit log reason to this request.
     pub fn reason(mut self, reason: impl Into<String>) -> Self {
         self.fields.reason.replace(reason.into());
 
