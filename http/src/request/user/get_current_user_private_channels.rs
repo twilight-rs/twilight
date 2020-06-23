@@ -1,6 +1,7 @@
 use crate::request::prelude::*;
 use twilight_model::channel::PrivateChannel;
 
+/// Get a list of the current user's private channels.
 pub struct GetCurrentUserPrivateChannels<'a> {
     fut: Option<Pending<'a, Vec<PrivateChannel>>>,
     http: &'a Client,

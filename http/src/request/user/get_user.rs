@@ -1,6 +1,7 @@
 use crate::request::prelude::*;
 use twilight_model::user::User;
 
+/// Get a user's information by id.
 pub struct GetUser<'a> {
     fut: Option<PendingOption<'a>>,
     http: &'a Client,

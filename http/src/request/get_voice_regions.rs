@@ -1,6 +1,7 @@
 use crate::request::prelude::*;
 use twilight_model::voice::VoiceRegion;
 
+/// Get a list of voice regions that can be used when creating a guild.
 pub struct GetVoiceRegions<'a> {
     fut: Option<Pending<'a, Vec<VoiceRegion>>>,
     http: &'a Client,

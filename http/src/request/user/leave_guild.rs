@@ -1,6 +1,7 @@
 use crate::request::prelude::*;
 use twilight_model::id::GuildId;
 
+/// Leave a guild by id.
 pub struct LeaveGuild<'a> {
     fut: Option<Pending<'a, ()>>,
     guild_id: GuildId,

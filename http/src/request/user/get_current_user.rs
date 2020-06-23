@@ -1,6 +1,7 @@
 use crate::request::prelude::*;
 use twilight_model::user::CurrentUser;
 
+/// Get information about the current user.
 pub struct GetCurrentUser<'a> {
     fut: Option<Pending<'a, CurrentUser>>,
     http: &'a Client,

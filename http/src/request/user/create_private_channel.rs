@@ -7,6 +7,9 @@ struct CreatePrivateChannelFields {
     recipient_id: UserId,
 }
 
+/// Create a group DM.
+///
+/// This endpoint is limited to 10 active group DMs.
 pub struct CreatePrivateChannel<'a> {
     fields: CreatePrivateChannelFields,
     fut: Option<Pending<'a, PrivateChannel>>,

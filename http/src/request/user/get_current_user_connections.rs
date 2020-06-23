@@ -1,6 +1,9 @@
 use crate::request::prelude::*;
 use twilight_model::user::Connection;
 
+/// Get the current user's connections.
+///
+/// Requires the `connections` `OAuth2` scope.
 pub struct GetCurrentUserConnections<'a> {
     fut: Option<Pending<'a, Vec<Connection>>>,
     http: &'a Client,

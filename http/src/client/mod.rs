@@ -429,14 +429,22 @@ impl Client {
         GetChannelWebhooks::new(self, channel_id)
     }
 
+    /// Get information about the current user.
     pub fn current_user(&self) -> GetCurrentUser<'_> {
         GetCurrentUser::new(self)
     }
 
+    /// Update the current user.
+    ///
+    /// All paramaters are optional. If the username is changed, it may cause the discriminator to
+    /// be randomized.
     pub fn update_current_user(&self) -> UpdateCurrentUser<'_> {
         UpdateCurrentUser::new(self)
     }
 
+    /// Get the current user's connections.
+    ///
+    /// Requires the `connections` `OAuth2` scope.
     pub fn current_user_connections(&self) -> GetCurrentUserConnections<'_> {
         GetCurrentUserConnections::new(self)
     }
@@ -449,13 +457,13 @@ impl Client {
     /// `400`:
     ///
     /// ```rust,no_run
-    /// use twilight_http::Client;
+    /// # use twilight_http::Client;
     /// use twilight_model::id::GuildId;
     ///
     /// # #[tokio::main]
     /// # async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
-    /// let client = Client::new("my token");
-    ///
+    /// # let client = Client::new("my token");
+    /// #
     /// let after = GuildId(300);
     /// let before = GuildId(400);
     /// let guilds = client.current_user_guilds()
@@ -463,10 +471,15 @@ impl Client {
     ///     .before(before)
     ///     .limit(25)?
     ///     .await?;
-    ///
-    /// println!("{:?}", guilds);
     /// # Ok(()) }
     /// ```
+    ///
+    /// # Errors
+    ///
+    /// Returns [`GetCurrentUserGuildsError::LimitInvalid`] if the amount is greater
+    /// than 100.
+    ///
+    /// [`GetCurrentUserGuildsError::LimitInvalid`]: ../request/user/get_current_user_guilds/enum.GetCurrentUserGuildsError.html#variant.LimitInvalid
     pub fn current_user_guilds(&self) -> GetCurrentUserGuilds<'_> {
         GetCurrentUserGuilds::new(self)
     }
@@ -480,6 +493,7 @@ impl Client {
         UpdateCurrentUserNick::new(self, guild_id, nick)
     }
 
+    /// Get a list of the current user's private channels.
     pub fn current_user_private_channels(&self) -> GetCurrentUserPrivateChannels<'_> {
         GetCurrentUserPrivateChannels::new(self)
     }
@@ -557,39 +571,34 @@ impl Client {
         UpdateEmoji::new(self, guild_id, emoji_id)
     }
 
-    /// Get information about the gateway, optionally with additional
-    /// information detailing the number of shards to use and sessions
-    /// remaining.
+    /// Get information about the gateway, optionally with additional information detailing the
+    /// number of shards to use and sessions remaining.
     ///
     /// # Examples
     ///
     /// Get the gateway connection URL without bot information:
     ///
     /// ```rust,no_run
-    /// use twilight_http::Client;
-    /// use std::env;
-    ///
+    /// # use twilight_http::Client;
+    /// #
     /// # #[tokio::main]
     /// # async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
-    /// let client = Client::new(env::var("TOKEN")?);
-    ///
+    /// # let client = Client::new("my token");
+    /// #
     /// let info = client.gateway().await?;
-    ///
-    /// println!("URL: {}", info.url);
     /// # Ok(()) }
     /// ```
     ///
-    /// Get the gateway connection URL with additional shard and session
-    /// information, which requires specifying a bot token:
+    /// Get the gateway connection URL with additional shard and session information, which
+    /// requires specifying a bot token:
     ///
     /// ```rust,no_run
-    /// use twilight_http::Client;
-    /// use std::env;
-    ///
+    /// # use twilight_http::Client;
+    /// #
     /// # #[tokio::main]
     /// # async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
-    /// let client = Client::new(env::var("TOKEN")?);
-    ///
+    /// # let client = Client::new("my token");
+    /// #
     /// let info = client.gateway().authed().await?;
     ///
     /// println!("URL: {}", info.url);
@@ -636,6 +645,7 @@ impl Client {
         UpdateGuild::new(self, guild_id)
     }
 
+    /// Leave a guild by id.
     pub fn leave_guild(&self, guild_id: GuildId) -> LeaveGuild<'_> {
         LeaveGuild::new(self, guild_id)
     }
@@ -1158,6 +1168,9 @@ impl Client {
         CreateTypingTrigger::new(self, channel_id)
     }
 
+    /// Create a group DM.
+    ///
+    /// This endpoint is limited to 10 active group DMs.
     pub fn create_private_channel(&self, recipient_id: UserId) -> CreatePrivateChannel<'_> {
         CreatePrivateChannel::new(self, recipient_id)
     }
@@ -1211,10 +1224,12 @@ impl Client {
         UpdateRolePositions::new(self, guild_id, roles)
     }
 
+    /// Get a user's information by id.
     pub fn user(&self, user_id: u64) -> GetUser<'_> {
         GetUser::new(self, user_id.to_string())
     }
 
+    /// Get a list of voice regions that can be used when creating a guild.
     pub fn voice_regions(&self) -> GetVoiceRegions<'_> {
         GetVoiceRegions::new(self)
     }
