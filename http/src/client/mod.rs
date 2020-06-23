@@ -438,7 +438,7 @@ impl Client {
     /// Update the current user.
     ///
     /// All paramaters are optional. If the username is changed, it may cause the discriminator to
-    /// be rnadomized.
+    /// be randomized.
     pub fn update_current_user(&self) -> UpdateCurrentUser<'_> {
         UpdateCurrentUser::new(self)
     }
