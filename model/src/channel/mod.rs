@@ -218,7 +218,6 @@ impl<'de> Visitor<'de> for GuildChannelVisitor {
             }
         }
 
-
         // Now let's get all of the fields required by each guild channel
         // type.
         let id = id.ok_or_else(|| DeError::missing_field("id"))?;
