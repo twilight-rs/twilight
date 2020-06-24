@@ -212,16 +212,17 @@ impl<'de> Visitor<'de> for GuildChannelVisitor {
             }
         }
 
-        // Now let's get all of the fields required by each guild channel
+        // Now let's get all of the fields required by every guild channel
         // type.
         let id = id.ok_or_else(|| DeError::missing_field("id"))?;
         let kind = kind.ok_or_else(|| DeError::missing_field("type"))?;
         let name = name.ok_or_else(|| DeError::missing_field("name"))?;
-        let nsfw = nsfw.unwrap_or_default();
-        let parent_id = parent_id.unwrap_or_default();
         let permission_overwrites =
             permission_overwrites.ok_or_else(|| DeError::missing_field("permission_overwrites"))?;
         let position = position.ok_or_else(|| DeError::missing_field("position"))?;
+
+        let nsfw = nsfw.unwrap_or_default();
+        let parent_id = parent_id.unwrap_or_default();
 
         Ok(match kind {
             ChannelType::GuildCategory => GuildChannel::Category(CategoryChannel {

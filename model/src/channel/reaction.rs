@@ -106,10 +106,11 @@ impl<'de> Visitor<'de> for ReactionVisitor {
 
         let channel_id = channel_id.ok_or_else(|| DeError::missing_field("channel_id"))?;
         let emoji = emoji.ok_or_else(|| DeError::missing_field("emoji"))?;
-        let guild_id = guild_id.unwrap_or_default();
-        let member = member.unwrap_or_default();
         let message_id = message_id.ok_or_else(|| DeError::missing_field("message_id"))?;
         let user_id = user_id.ok_or_else(|| DeError::missing_field("user_id"))?;
+
+        let guild_id = guild_id.unwrap_or_default();
+        let member = member.unwrap_or_default();
 
         let member = match (member, guild_id) {
             (Some(value), Some(guild_id)) => {

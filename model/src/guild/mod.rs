@@ -580,26 +580,38 @@ impl<'de> Deserialize<'de> for Guild {
                     }
                 }
 
-                let afk_channel_id = afk_channel_id.unwrap_or_default();
                 let afk_timeout =
                     afk_timeout.ok_or_else(|| DeError::missing_field("afk_timeout"))?;
+                let default_message_notifications = default_message_notifications
+                    .ok_or_else(|| DeError::missing_field("default_message_notifications"))?;
+                let explicit_content_filter = explicit_content_filter
+                    .ok_or_else(|| DeError::missing_field("explicit_content_filter"))?;
+                let features = features.ok_or_else(|| DeError::missing_field("features"))?;
+                let id = id.ok_or_else(|| DeError::missing_field("id"))?;
+                let mfa_level = mfa_level.ok_or_else(|| DeError::missing_field("mfa_level"))?;
+                let name = name.ok_or_else(|| DeError::missing_field("name"))?;
+                let owner_id = owner_id.ok_or_else(|| DeError::missing_field("owner_id"))?;
+                let preferred_locale =
+                    preferred_locale.ok_or_else(|| DeError::missing_field("preferred_locale"))?;
+                let region = region.ok_or_else(|| DeError::missing_field("region"))?;
+                let roles = roles.ok_or_else(|| DeError::missing_field("roles"))?;
+                let system_channel_flags = system_channel_flags
+                    .ok_or_else(|| DeError::missing_field("system_channel_flags"))?;
+                let verification_level = verification_level
+                    .ok_or_else(|| DeError::missing_field("verification_level"))?;
+
+                let afk_channel_id = afk_channel_id.unwrap_or_default();
                 let application_id = application_id.unwrap_or_default();
                 let approximate_member_count = approximate_member_count.unwrap_or_default();
                 let approximate_presence_count = approximate_presence_count.unwrap_or_default();
                 let banner = banner.unwrap_or_default();
                 let channels = channels.unwrap_or_default();
-                let default_message_notifications = default_message_notifications
-                    .ok_or_else(|| DeError::missing_field("default_message_notifications"))?;
                 let description = description.unwrap_or_default();
                 let discovery_splash = discovery_splash.unwrap_or_default();
                 let embed_channel_id = embed_channel_id.unwrap_or_default();
                 let embed_enabled = embed_enabled.unwrap_or_default();
                 let emojis = emojis.unwrap_or_default();
-                let explicit_content_filter = explicit_content_filter
-                    .ok_or_else(|| DeError::missing_field("explicit_content_filter"))?;
-                let features = features.ok_or_else(|| DeError::missing_field("features"))?;
                 let icon = icon.unwrap_or_default();
-                let id = id.ok_or_else(|| DeError::missing_field("id"))?;
                 let large = large.unwrap_or_default();
                 let joined_at = joined_at.unwrap_or_default();
                 let lazy = lazy.unwrap_or_default();
@@ -607,27 +619,16 @@ impl<'de> Deserialize<'de> for Guild {
                 let max_presences = max_presences.unwrap_or_default();
                 let max_video_channel_users = max_video_channel_users.unwrap_or_default();
                 let member_count = member_count.unwrap_or_default();
-                let mfa_level = mfa_level.ok_or_else(|| DeError::missing_field("mfa_level"))?;
-                let name = name.ok_or_else(|| DeError::missing_field("name"))?;
-                let owner_id = owner_id.ok_or_else(|| DeError::missing_field("owner_id"))?;
                 let owner = owner.unwrap_or_default();
                 let permissions = permissions.unwrap_or_default();
-                let preferred_locale =
-                    preferred_locale.ok_or_else(|| DeError::missing_field("preferred_locale"))?;
                 let premium_subscription_count = premium_subscription_count.unwrap_or_default();
                 let premium_tier = premium_tier.unwrap_or_default();
                 let presences = presences.unwrap_or_default();
-                let region = region.ok_or_else(|| DeError::missing_field("region"))?;
-                let roles = roles.ok_or_else(|| DeError::missing_field("roles"))?;
                 let rules_channel_id = rules_channel_id.unwrap_or_default();
                 let splash = splash.unwrap_or_default();
-                let system_channel_flags = system_channel_flags
-                    .ok_or_else(|| DeError::missing_field("system_channel_flags"))?;
                 let system_channel_id = system_channel_id.unwrap_or_default();
                 let unavailable = unavailable.unwrap_or_default();
                 let vanity_url_code = vanity_url_code.unwrap_or_default();
-                let verification_level = verification_level
-                    .ok_or_else(|| DeError::missing_field("verification_level"))?;
                 let voice_states = voice_states.unwrap_or_default();
                 let widget_channel_id = widget_channel_id.unwrap_or_default();
                 let widget_enabled = widget_enabled.unwrap_or_default();
