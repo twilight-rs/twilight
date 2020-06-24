@@ -78,7 +78,6 @@ impl<'de> Visitor<'de> for PresenceMapDeserializerVisitor {
         f.write_str("a sequence of presences")
     }
 
-    #[allow(unused)]
     fn visit_seq<S: SeqAccess<'de>>(self, mut seq: S) -> Result<Self::Value, S::Error> {
         let mut map = seq
             .size_hint()
