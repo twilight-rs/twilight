@@ -20,8 +20,15 @@ use crate::{
     id::{GuildId, UserId},
     user::User,
 };
-use serde::{Deserialize, Serialize};
+use serde::{
+    de::{DeserializeSeed, Deserializer, SeqAccess, Visitor},
+    Deserialize, Serialize,
+};
 use serde_mappable_seq::Key;
+use std::{
+    collections::HashMap,
+    fmt::{Formatter, Result as FmtResult},
+};
 
 #[derive(Clone, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
 pub struct Presence {
@@ -48,6 +55,53 @@ impl Key<'_, UserId> for Presence {
             UserOrId::User(ref u) => u.id,
             UserOrId::UserId { id } => id,
         }
+    }
+}
+
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub struct PresenceMapDeserializer(GuildId);
+
+impl PresenceMapDeserializer {
+    /// Create a new deserializer for a map of presences when you know the
+    /// Guild ID but the payload probably doesn't contain it.
+    pub fn new(guild_id: GuildId) -> Self {
+        Self(guild_id)
+    }
+}
+
+struct PresenceMapDeserializerVisitor(GuildId);
+
+impl<'de> Visitor<'de> for PresenceMapDeserializerVisitor {
+    type Value = HashMap<UserId, Presence>;
+
+    fn expecting(&self, f: &mut Formatter<'_>) -> FmtResult {
+        f.write_str("a sequence of presences")
+    }
+
+    #[allow(unused)]
+    fn visit_seq<S: SeqAccess<'de>>(self, mut seq: S) -> Result<Self::Value, S::Error> {
+        let mut map = seq
+            .size_hint()
+            .map_or_else(HashMap::new, HashMap::with_capacity);
+
+        while let Some(presence) = seq.next_element::<Presence>()? {
+            let user_id = match presence.user {
+                UserOrId::User(ref user) => user.id,
+                UserOrId::UserId { id } => id,
+            };
+
+            map.insert(user_id, presence);
+        }
+
+        Ok(map)
+    }
+}
+
+impl<'de> DeserializeSeed<'de> for PresenceMapDeserializer {
+    type Value = HashMap<UserId, Presence>;
+
+    fn deserialize<D: Deserializer<'de>>(self, deserializer: D) -> Result<Self::Value, D::Error> {
+        deserializer.deserialize_any(PresenceMapDeserializerVisitor(self.0))
     }
 }
 
