@@ -118,6 +118,9 @@ impl<'de> Visitor<'de> for MemberChunkVisitor {
                         return Err(DeError::duplicate_field("presences"));
                     }
 
+                    // Since the guild ID may not be deserialised yet we'll use
+                    // a temporary placeholder value and update it with the real
+                    // guild ID after all the fields have been deserialised.
                     let deserializer = PresenceMapDeserializer::new(GuildId(0));
 
                     presences = Some(map.next_value_seed(deserializer)?);
