@@ -93,6 +93,7 @@ impl RequestGuildMembers {
 }
 
 #[derive(Clone, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
+#[serde(untagged)]
 pub enum RequestGuildMembersInfo {
     Query {
         guild_id: GuildId,
