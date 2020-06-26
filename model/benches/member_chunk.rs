@@ -1,11 +1,12 @@
-#![feature(test)]
-
-extern crate test;
+use criterion::{Criterion, criterion_group, criterion_main};
 
 use twilight_model::gateway::payload::MemberChunk;
 
-#[bench]
-fn bench_member_chunk(b: &mut test::Bencher) {
+fn member_chunk(input: &str) {
+    serde_json::from_str::<MemberChunk>(input).unwrap();
+}
+
+fn criterion_benchmark(c: &mut Criterion) {
     let input = r#"{
         "chunk_count": 1,
         "chunk_index": 0,
@@ -102,7 +103,8 @@ fn bench_member_chunk(b: &mut test::Bencher) {
         }]
     }"#;
 
-    b.iter(|| {
-        serde_json::from_str::<MemberChunk>(input).unwrap();
-    });
+    c.bench_function("member chunks", |b| b.iter(|| member_chunk(input)));
 }
+
+criterion_group!(benches, criterion_benchmark);
+criterion_main!(benches);
