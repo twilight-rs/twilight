@@ -5,7 +5,8 @@ use crate::{
 
 use serde::{
     de::{
-        value::MapAccessDeserializer, DeserializeSeed, Deserializer, MapAccess, SeqAccess, Visitor,
+        value::MapAccessDeserializer, DeserializeSeed, Deserializer, Error as DeError, MapAccess,
+        SeqAccess, Visitor,
     },
     Deserialize, Serialize,
 };
@@ -67,34 +68,71 @@ impl<'de> DeserializeSeed<'de> for MemberDeserializer {
     type Value = Member;
 
     fn deserialize<D: Deserializer<'de>>(self, deserializer: D) -> Result<Self::Value, D::Error> {
-        struct MemberDeserializerVisitor(GuildId);
+        deserializer.deserialize_map(MemberVisitor(self.0))
+    }
+}
 
-        impl<'de> Visitor<'de> for MemberDeserializerVisitor {
-            type Value = Member;
+pub(crate) struct MemberVisitor(GuildId);
 
-            fn expecting(&self, f: &mut Formatter<'_>) -> FmtResult {
-                f.write_str("a map of member fields")
-            }
+impl<'de> Visitor<'de> for MemberVisitor {
+    type Value = Member;
 
-            fn visit_map<M: MapAccess<'de>>(self, map: M) -> Result<Self::Value, M::Error> {
-                let deser = MapAccessDeserializer::new(map);
-                let member = MemberIntermediary::deserialize(deser)?;
+    fn expecting(&self, f: &mut Formatter<'_>) -> FmtResult {
+        f.write_str("a map of member fields")
+    }
 
-                Ok(Member {
-                    deaf: member.deaf,
-                    guild_id: self.0,
-                    hoisted_role: member.hoisted_role,
-                    joined_at: member.joined_at,
-                    mute: member.mute,
-                    nick: member.nick,
-                    premium_since: member.premium_since,
-                    roles: member.roles,
-                    user: member.user,
-                })
-            }
-        }
+    fn visit_map<M: MapAccess<'de>>(self, map: M) -> Result<Self::Value, M::Error> {
+        let deser = MapAccessDeserializer::new(map);
+        let member = MemberIntermediary::deserialize(deser)?;
 
-        deserializer.deserialize_map(MemberDeserializerVisitor(self.0))
+        Ok(Member {
+            deaf: member.deaf,
+            guild_id: self.0,
+            hoisted_role: member.hoisted_role,
+            joined_at: member.joined_at,
+            mute: member.mute,
+            nick: member.nick,
+            premium_since: member.premium_since,
+            roles: member.roles,
+            user: member.user,
+        })
+    }
+}
+
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub(crate) struct OptionalMemberDeserializer(GuildId);
+
+impl OptionalMemberDeserializer {
+    /// Create a new deserializer for a member when you know the ID but the
+    /// payload probably doesn't contain it.
+    pub fn new(guild_id: GuildId) -> Self {
+        Self(guild_id)
+    }
+}
+
+impl<'de> DeserializeSeed<'de> for OptionalMemberDeserializer {
+    type Value = Option<Member>;
+
+    fn deserialize<D: Deserializer<'de>>(self, deserializer: D) -> Result<Self::Value, D::Error> {
+        deserializer.deserialize_option(OptionalMemberVisitor(self.0))
+    }
+}
+
+struct OptionalMemberVisitor(GuildId);
+
+impl<'de> Visitor<'de> for OptionalMemberVisitor {
+    type Value = Option<Member>;
+
+    fn expecting(&self, f: &mut Formatter<'_>) -> FmtResult {
+        f.write_str("an optional member")
+    }
+
+    fn visit_none<E: DeError>(self) -> Result<Self::Value, E> {
+        Ok(None)
+    }
+
+    fn visit_some<D: Deserializer<'de>>(self, deserializer: D) -> Result<Self::Value, D::Error> {
+        Ok(Some(deserializer.deserialize_map(MemberVisitor(self.0))?))
     }
 }
 
@@ -109,9 +147,9 @@ impl MemberMapDeserializer {
     }
 }
 
-struct MemberMapDeserializerVisitor(GuildId);
+struct MemberMapVisitor(GuildId);
 
-impl<'de> Visitor<'de> for MemberMapDeserializerVisitor {
+impl<'de> Visitor<'de> for MemberMapVisitor {
     type Value = HashMap<UserId, Member>;
 
     fn expecting(&self, f: &mut Formatter<'_>) -> FmtResult {
@@ -135,7 +173,7 @@ impl<'de> DeserializeSeed<'de> for MemberMapDeserializer {
     type Value = HashMap<UserId, Member>;
 
     fn deserialize<D: Deserializer<'de>>(self, deserializer: D) -> Result<Self::Value, D::Error> {
-        deserializer.deserialize_any(MemberMapDeserializerVisitor(self.0))
+        deserializer.deserialize_any(MemberMapVisitor(self.0))
     }
 }
 

@@ -26,5 +26,5 @@ serde_json = { default-features = false, features = ["alloc"], version = "1" }
 serde_test = { default-features = false, version = "1" }
 
 [[bench]]
-name = "member_chunk"
+name = "deserialization"
 harness = false

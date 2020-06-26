@@ -1,12 +1,11 @@
 use crate::{
-    guild::member::{Member, MemberDeserializer},
+    guild::member::{Member, OptionalMemberDeserializer},
     id::{ChannelId, GuildId, UserId},
 };
 use serde::{
-    de::{DeserializeSeed, Deserializer, Error as DeError, MapAccess, Visitor},
+    de::{Deserializer, Error as DeError, MapAccess, Visitor},
     Deserialize, Serialize,
 };
-use serde_value::Value;
 use std::fmt::{Formatter, Result as FmtResult};
 
 #[derive(Clone, Debug, Eq, Hash, PartialEq, Serialize)]
@@ -40,7 +39,7 @@ impl<'de> Visitor<'de> for TypingStartVisitor {
     fn visit_map<V: MapAccess<'de>>(self, mut map: V) -> Result<Self::Value, V::Error> {
         let mut channel_id = None;
         let mut guild_id = None::<Option<_>>;
-        let mut member = None::<Option<Value>>;
+        let mut member = None::<Member>;
         let mut timestamp = None;
         let mut user_id = None;
 
@@ -74,7 +73,9 @@ impl<'de> Visitor<'de> for TypingStartVisitor {
                         return Err(DeError::duplicate_field("member"));
                     }
 
-                    member = Some(map.next_value()?);
+                    let deserializer = OptionalMemberDeserializer::new(GuildId(0));
+
+                    member = map.next_value_seed(deserializer)?;
                 }
                 Field::Timestamp => {
                     if timestamp.is_some() {
@@ -94,20 +95,13 @@ impl<'de> Visitor<'de> for TypingStartVisitor {
         }
 
         let channel_id = channel_id.ok_or_else(|| DeError::missing_field("channel_id"))?;
+        let guild_id = guild_id.unwrap_or_default();
         let timestamp = timestamp.ok_or_else(|| DeError::missing_field("timestamp"))?;
         let user_id = user_id.ok_or_else(|| DeError::missing_field("user_id"))?;
 
-        let guild_id = guild_id.unwrap_or_default();
-        let member = member.unwrap_or_default();
-
-        let member = match (member, guild_id) {
-            (Some(value), Some(guild_id)) => {
-                let deserializer = MemberDeserializer::new(guild_id);
-
-                Some(deserializer.deserialize(value).map_err(DeError::custom)?)
-            }
-            _ => None,
-        };
+        if let (Some(guild_id), Some(member)) = (guild_id, member.as_mut()) {
+            member.guild_id = guild_id;
+        }
 
         Ok(TypingStart {
             channel_id,
