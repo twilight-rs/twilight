@@ -109,7 +109,13 @@ impl<'de> Visitor<'de> for GuildChannelVisitor {
         let mut topic: Option<Option<String>> = None;
         let mut user_limit = None;
 
-        while let Some(key) = map.next_key()? {
+        loop {
+            let key = match map.next_key() {
+                Ok(Some(key)) => key,
+                Ok(None) => break,
+                Err(_) => continue,
+            };
+
             match key {
                 GuildChannelField::Bitrate => {
                     if bitrate.is_some() {
@@ -288,6 +294,55 @@ mod tests {
         channel::permission_overwrite::PermissionOverwrite,
         id::{ChannelId, GuildId, MessageId},
     };
+
+    // The deserializer for GuildChannel should skip over fields names that
+    // it couldn't deserialize.
+    #[test]
+    fn test_guild_channel_unknown_field_deserialization() {
+        let input = serde_json::json!({
+            "type": 0,
+            "topic": "a",
+            "rate_limit_per_user": 0,
+            "position": 0,
+            "permission_overwrites": [],
+            "parent_id": null,
+            "nsfw": false,
+            "name": "hey",
+            "last_message_id": "3",
+            "id": "2",
+            "guild_id": "1",
+            "guild_hashes": {
+                "version": 1,
+                "roles": {
+                    "hash": "aaaaaaaaaaa"
+                },
+                "metadata": {
+                    "hash": "bbbbbbbbbbb"
+                },
+                "channels": {
+                    "hash": "ccccccccccc"
+                }
+            },
+            "unknown_field": "the deserializer should skip unknown field names",
+        });
+
+        let expected = GuildChannel::Text(TextChannel {
+            guild_id: Some(GuildId(1)),
+            id: ChannelId(2),
+            kind: ChannelType::GuildText,
+            last_message_id: Some(MessageId(3)),
+            last_pin_timestamp: None,
+            name: "hey".to_owned(),
+            nsfw: false,
+            parent_id: None,
+            permission_overwrites: Vec::new(),
+            position: 0,
+            rate_limit_per_user: Some(0),
+            topic: Some("a".to_owned()),
+        });
+
+        assert_eq!(expected, serde_json::from_value(input).unwrap());
+    }
 
     #[test]
     fn test_guild_category_channel_deserialization() {
