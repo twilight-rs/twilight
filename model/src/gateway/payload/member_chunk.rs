@@ -1,6 +1,6 @@
 use crate::{
-    gateway::presence::{Presence, UserOrId},
-    guild::member::{Member, MemberIntermediary},
+    gateway::presence::{Presence, PresenceMapDeserializer},
+    guild::member::{Member, MemberMapDeserializer},
     id::{GuildId, UserId},
 };
 use serde::Serialize;
@@ -8,7 +8,6 @@ use serde::{
     de::{Deserializer, Error as DeError, MapAccess, Visitor},
     Deserialize,
 };
-use serde_value::Value;
 use std::{
     collections::HashMap,
     fmt::{Formatter, Result as FmtResult},
@@ -54,10 +53,10 @@ impl<'de> Visitor<'de> for MemberChunkVisitor {
         let mut chunk_count = None;
         let mut chunk_index = None;
         let mut guild_id = None;
-        let mut members = None::<Value>;
+        let mut members = None;
         let mut nonce = None;
         let mut not_found = None;
-        let mut presences = None::<Value>;
+        let mut presences = None;
 
         loop {
             let key = match map.next_key() {
@@ -96,7 +95,12 @@ impl<'de> Visitor<'de> for MemberChunkVisitor {
                         return Err(DeError::duplicate_field("members"));
                     }
 
-                    members = Some(map.next_value()?);
+                    // Since the guild ID may not be deserialised yet we'll use
+                    // a temporary placeholder value and update it with the real
+                    // guild ID after all the fields have been deserialised.
+                    let deserializer = MemberMapDeserializer::new(GuildId(0));
+
+                    members = Some(map.next_value_seed(deserializer)?);
                 }
                 Field::Nonce => {
                     if nonce.is_some() {
@@ -117,7 +121,9 @@ impl<'de> Visitor<'de> for MemberChunkVisitor {
                         return Err(DeError::duplicate_field("presences"));
                     }
 
-                    presences = Some(map.next_value()?);
+                    let deserializer = PresenceMapDeserializer::new(GuildId(0));
+
+                    presences = Some(map.next_value_seed(deserializer)?);
                 }
             }
         }
@@ -125,47 +131,17 @@ impl<'de> Visitor<'de> for MemberChunkVisitor {
         let chunk_count = chunk_count.ok_or_else(|| DeError::missing_field("chunk_count"))?;
         let chunk_index = chunk_index.ok_or_else(|| DeError::missing_field("chunk_index"))?;
         let guild_id = guild_id.ok_or_else(|| DeError::missing_field("guild_id"))?;
-        let members = members.ok_or_else(|| DeError::missing_field("members"))?;
+        let mut members = members.ok_or_else(|| DeError::missing_field("members"))?;
         let not_found = not_found.unwrap_or_default();
+        let mut presences = presences.unwrap_or_default();
 
-        let members = members
-            .deserialize_into::<Vec<MemberIntermediary>>()
-            .map_err(DeError::custom)?
-            .into_iter()
-            .map(|member| {
-                (
-                    member.user.id,
-                    Member {
-                        deaf: member.deaf,
-                        guild_id,
-                        hoisted_role: member.hoisted_role,
-                        joined_at: member.joined_at,
-                        mute: member.mute,
-                        nick: member.nick,
-                        premium_since: member.premium_since,
-                        roles: member.roles,
-                        user: member.user,
-                    },
-                )
-            })
-            .collect::<HashMap<_, _>>();
+        for member in members.values_mut() {
+            member.guild_id = guild_id;
+        }
 
-        let presences = match presences {
-            Some(presences) => presences
-                .deserialize_into::<Vec<Presence>>()
-                .map_err(DeError::custom)?
-                .into_iter()
-                .map(|presence| {
-                    let user_id = match presence.user {
-                        UserOrId::User(ref u) => u.id,
-                        UserOrId::UserId { id } => id,
-                    };
-
-                    (user_id, presence)
-                })
-                .collect::<HashMap<_, _>>(),
-            None => HashMap::new(),
-        };
+        for presence in presences.values_mut() {
+            presence.guild_id.replace(guild_id);
+        }
 
         Ok(MemberChunk {
             chunk_count,
@@ -439,7 +415,7 @@ mod tests {
                             web: Some(Status::Online),
                         },
                         game: None,
-                        guild_id: None,
+                        guild_id: Some(GuildId(1)),
                         nick: None,
                         status: Status::Online,
                         user: UserOrId::UserId { id: UserId(2) },
@@ -455,7 +431,7 @@ mod tests {
                             web: Some(Status::Online),
                         },
                         game: None,
-                        guild_id: None,
+                        guild_id: Some(GuildId(1)),
                         nick: None,
                         status: Status::Online,
                         user: UserOrId::UserId { id: UserId(3) },
@@ -471,7 +447,7 @@ mod tests {
                             web: None,
                         },
                         game: None,
-                        guild_id: None,
+                        guild_id: Some(GuildId(1)),
                         nick: None,
                         status: Status::DoNotDisturb,
                         user: UserOrId::UserId { id: UserId(5) },
@@ -482,9 +458,19 @@ mod tests {
             },
         };
 
-        assert_eq!(
-            expected,
-            serde_json::from_value::<MemberChunk>(input).unwrap()
-        );
+        let actual = serde_json::from_value::<MemberChunk>(input).unwrap();
+        assert_eq!(expected.chunk_count, actual.chunk_count);
+        assert_eq!(expected.chunk_index, actual.chunk_index);
+        assert_eq!(expected.guild_id, actual.guild_id);
+        assert_eq!(expected.nonce, actual.nonce);
+        assert_eq!(expected.not_found, actual.not_found);
+
+        for member in actual.members.values() {
+            assert!(expected.members.values().any(|m| m == member));
+        }
+
+        for presences in actual.presences.values() {
+            assert!(expected.presences.values().any(|p| p == presences));
+        }
     }
 }

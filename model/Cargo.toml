@@ -21,5 +21,10 @@ serde_repr = { default-features = false, version = "0.1" }
 serde-value = { default-features = false, version = "0.6" }
 
 [dev-dependencies]
+criterion = "0.3"
 serde_json = { default-features = false, features = ["alloc"], version = "1" }
 serde_test = { default-features = false, version = "1" }
+
+[[bench]]
+name = "member_chunk"
+harness = false
