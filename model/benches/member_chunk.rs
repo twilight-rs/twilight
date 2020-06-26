@@ -103,7 +103,7 @@ fn criterion_benchmark(c: &mut Criterion) {
         }]
     }"#;
 
-    c.bench_function("member chunks", |b| b.iter(|| member_chunk(input)));
+    c.bench_function("member chunk", |b| b.iter(|| member_chunk(input)));
 }
 
 criterion_group!(benches, criterion_benchmark);
