@@ -201,7 +201,7 @@ impl ShardProcessor {
             large_threshold: 250,
             properties: self.properties.clone(),
             shard: Some(self.config.shard()),
-            presence: None,
+            presence: self.config.presence(),
             token: self.config.token().to_owned(),
             v: 6,
         });

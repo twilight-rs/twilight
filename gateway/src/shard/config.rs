@@ -60,8 +60,8 @@ impl ShardConfig {
     ///
     /// This will be the bot's presence. For example, setting an activity in
     /// the presence will show the activity in the bot's status.
-    pub fn presence(&self) -> Option<&UpdateStatusInfo> {
-        self.presence.as_ref()
+    pub fn presence(&self) -> Option<UpdateStatusInfo> {
+        self.presence.clone()
     }
 
     /// The shard's ID and the total number of shards used by the bot.
