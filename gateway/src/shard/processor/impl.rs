@@ -43,6 +43,7 @@ use metrics::counter;
 
 use std::error::Error as StdError;
 use std::sync::atomic::Ordering;
+use twilight_model::gateway::payload::update_status::UpdateStatusInfo;
 
 /// Runs in the background and processes incoming events, and then broadcasts
 /// to all listeners.
@@ -201,7 +202,7 @@ impl ShardProcessor {
             large_threshold: 250,
             properties: self.properties.clone(),
             shard: Some(self.config.shard()),
-            presence: self.config.presence(),
+            presence: self.config.presence().cloned(),
             token: self.config.token().to_owned(),
             v: 6,
         });
