@@ -158,7 +158,7 @@ mod tests {
     use serde_test::Token;
 
     #[test]
-    fn test_typing_start_with_member_deser() {
+    fn test_reaction_with_member() {
         let expected = Reaction {
             channel_id: ChannelId(2),
             emoji: ReactionType::Unicode {
@@ -293,7 +293,7 @@ mod tests {
     }
 
     #[test]
-    fn test_typing_start_without_member_deser() {
+    fn test_reaction_without_member() {
         let expected = Reaction {
             channel_id: ChannelId(2),
             emoji: ReactionType::Unicode {
