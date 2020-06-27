@@ -1,14 +1,11 @@
 use crate::json_to_vec;
-use crate::request::{
-    prelude::*,
-    channel::message::allowed_mentions::AllowedMentions
-};
+use crate::request::{channel::message::allowed_mentions::AllowedMentions, prelude::*};
 use std::{
     error::Error,
     fmt::{Display, Formatter, Result as FmtResult},
 };
 use twilight_model::{
-    channel::{embed::Embed, Message, message::MessageFlags},
+    channel::{embed::Embed, message::MessageFlags, Message},
     id::{ChannelId, MessageId},
 };
 
@@ -64,7 +61,6 @@ struct UpdateMessageFields {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub(crate) allowed_mentions: Option<AllowedMentions>,
 }
-
 
 /// Update a message by [`ChannelId`] and [`MessageId`].
 ///
