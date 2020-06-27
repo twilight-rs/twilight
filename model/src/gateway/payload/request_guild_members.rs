@@ -98,27 +98,27 @@ pub enum RequestGuildMembersInfo {
     Query {
         guild_id: GuildId,
         limit: u64,
-        query: String,
-        #[serde(skip_serializing_if = "Option::is_none")]
-        presences: Option<bool>,
         #[serde(skip_serializing_if = "Option::is_none")]
         nonce: Option<String>,
+        #[serde(skip_serializing_if = "Option::is_none")]
+        presences: Option<bool>,
+        query: String,
     },
     SingleUser {
         guild_id: GuildId,
-        user_ids: UserId,
-        #[serde(skip_serializing_if = "Option::is_none")]
-        presences: Option<bool>,
         #[serde(skip_serializing_if = "Option::is_none")]
         nonce: Option<String>,
+        #[serde(skip_serializing_if = "Option::is_none")]
+        presences: Option<bool>,
+        user_ids: UserId,
     },
     MultiUser {
         guild_id: GuildId,
-        user_ids: Vec<UserId>,
-        #[serde(skip_serializing_if = "Option::is_none")]
-        presences: Option<bool>,
         #[serde(skip_serializing_if = "Option::is_none")]
         nonce: Option<String>,
+        #[serde(skip_serializing_if = "Option::is_none")]
+        presences: Option<bool>,
+        user_ids: Vec<UserId>,
     },
 }
 
@@ -207,7 +207,7 @@ impl RequestGuildMembersInfo {
 #[derive(Clone, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
 pub struct RequestGuildMemberInfo {
     pub guild_id: GuildId,
-    pub user_ids: u64,
-    pub query: String,
     pub presences: bool,
+    pub query: String,
+    pub user_ids: u64,
 }

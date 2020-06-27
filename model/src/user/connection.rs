@@ -5,8 +5,8 @@ use std::collections::HashMap;
 #[allow(clippy::struct_excessive_bools)]
 #[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
 pub struct Connection {
-    pub id: String,
     pub friend_sync: bool,
+    pub id: String,
     #[serde(with = "serde_mappable_seq", default)]
     pub integrations: HashMap<IntegrationId, GuildIntegration>,
     #[serde(rename = "type")]

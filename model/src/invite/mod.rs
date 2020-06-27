@@ -10,10 +10,10 @@ use serde::{Deserialize, Serialize};
 pub struct Invite {
     pub approximate_member_count: Option<u64>,
     pub approximate_presence_count: Option<u64>,
-    pub code: String,
     pub channel: Channel,
+    pub code: String,
     pub guild: Option<PartialGuild>,
     pub inviter: Option<User>,
-    pub target_user: Option<User>,
     pub target_user_type: Option<TargetUserType>,
+    pub target_user: Option<User>,
 }

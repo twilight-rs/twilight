@@ -15,16 +15,16 @@ use std::{
 
 #[derive(Clone, Debug, Eq, PartialEq, Serialize)]
 pub struct MemberChunk {
+    pub chunk_index: u32,
+    pub chunk_count: u32,
     pub guild_id: GuildId,
     #[serde(with = "serde_mappable_seq")]
     pub members: HashMap<UserId, Member>,
+    #[serde(default)]
+    pub nonce: Option<String>,
+    pub not_found: Vec<UserId>,
     #[serde(with = "serde_mappable_seq", default)]
     pub presences: HashMap<UserId, Presence>,
-    pub chunk_index: u32,
-    pub chunk_count: u32,
-    #[serde(default)]
-    pub not_found: Vec<UserId>,
-    pub nonce: Option<String>,
 }
 
 #[derive(Debug, Deserialize)]

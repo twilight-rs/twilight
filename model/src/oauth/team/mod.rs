@@ -8,8 +8,8 @@ use serde::{Deserialize, Serialize};
 
 #[derive(Clone, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
 pub struct Team {
-    pub id: TeamId,
     pub icon: Option<String>,
+    pub id: TeamId,
     pub members: Vec<TeamMember>,
     pub owner_user_id: UserId,
 }

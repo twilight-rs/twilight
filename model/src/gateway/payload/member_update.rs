@@ -8,7 +8,7 @@ use serde::{Deserialize, Serialize};
 pub struct MemberUpdate {
     pub guild_id: GuildId,
     pub nick: Option<String>,
+    pub premium_since: Option<String>,
     pub roles: Vec<RoleId>,
     pub user: User,
-    pub premium_since: Option<String>,
 }
