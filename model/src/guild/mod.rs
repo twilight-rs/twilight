@@ -52,10 +52,11 @@ use std::{
 
 #[derive(Clone, Debug, Eq, PartialEq, Serialize)]
 pub struct Guild {
-    pub id: GuildId,
     pub afk_channel_id: Option<ChannelId>,
     pub afk_timeout: u64,
     pub application_id: Option<ApplicationId>,
+    pub approximate_member_count: Option<u64>,
+    pub approximate_presence_count: Option<u64>,
     pub banner: Option<String>,
     #[serde(default, with = "serde_mappable_seq")]
     pub channels: HashMap<ChannelId, GuildChannel>,
@@ -69,6 +70,7 @@ pub struct Guild {
     pub explicit_content_filter: ExplicitContentFilter,
     pub features: Vec<String>,
     pub icon: Option<String>,
+    pub id: GuildId,
     pub joined_at: Option<String>,
     #[serde(default)]
     pub large: bool,
@@ -76,13 +78,14 @@ pub struct Guild {
     pub lazy: Option<bool>,
     pub max_members: Option<u64>,
     pub max_presences: Option<u64>,
+    pub max_video_channel_users: Option<u64>,
     pub member_count: Option<u64>,
     #[serde(default, with = "serde_mappable_seq")]
     pub members: HashMap<UserId, Member>,
     pub mfa_level: MfaLevel,
     pub name: String,
-    pub owner: Option<bool>,
     pub owner_id: UserId,
+    pub owner: Option<bool>,
     pub permissions: Option<Permissions>,
     pub preferred_locale: String,
     pub premium_subscription_count: Option<u64>,
@@ -93,21 +96,18 @@ pub struct Guild {
     pub region: String,
     #[serde(with = "serde_mappable_seq")]
     pub roles: HashMap<RoleId, Role>,
-    pub splash: Option<String>,
-    pub system_channel_id: Option<ChannelId>,
-    pub system_channel_flags: SystemChannelFlags,
     pub rules_channel_id: Option<ChannelId>,
+    pub splash: Option<String>,
+    pub system_channel_flags: SystemChannelFlags,
+    pub system_channel_id: Option<ChannelId>,
     #[serde(default)]
     pub unavailable: bool,
+    pub vanity_url_code: Option<String>,
     pub verification_level: VerificationLevel,
     #[serde(default, with = "serde_mappable_seq")]
     pub voice_states: HashMap<UserId, VoiceState>,
-    pub vanity_url_code: Option<String>,
     pub widget_channel_id: Option<ChannelId>,
     pub widget_enabled: Option<bool>,
-    pub max_video_channel_users: Option<u64>,
-    pub approximate_member_count: Option<u64>,
-    pub approximate_presence_count: Option<u64>,
 }
 
 impl<'de> Deserialize<'de> for Guild {

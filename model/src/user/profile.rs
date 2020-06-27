@@ -6,13 +6,13 @@ use serde::{Deserialize, Serialize};
 
 #[derive(Clone, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
 pub struct UserProfile {
-    pub id: UserId,
     pub avatar: Option<String>,
     #[serde(default)]
     pub bot: bool,
     pub discriminator: String,
     pub email: Option<String>,
     pub flags: Option<UserFlags>,
+    pub id: UserId,
     pub locale: Option<String>,
     pub mfa_enabled: Option<bool>,
     #[serde(rename = "username")]

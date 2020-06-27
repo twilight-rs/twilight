@@ -22,7 +22,6 @@ use std::collections::HashMap;
 
 #[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
 pub struct Message {
-    pub id: MessageId,
     pub activity: Option<MessageActivity>,
     pub application: Option<MessageApplication>,
     pub attachments: Vec<Attachment>,
@@ -33,6 +32,7 @@ pub struct Message {
     pub embeds: Vec<Embed>,
     pub flags: Option<MessageFlags>,
     pub guild_id: Option<GuildId>,
+    pub id: MessageId,
     #[serde(rename = "type")]
     pub kind: MessageType,
     pub member: Option<PartialMember>,

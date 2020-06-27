@@ -12,8 +12,8 @@ pub struct InviteCreate {
     pub inviter: Option<User>,
     pub max_age: u64,
     pub max_uses: u64,
-    pub target_user: Option<PartialUser>,
     pub target_user_type: Option<TargetUserType>,
+    pub target_user: Option<PartialUser>,
     pub temporary: bool,
     pub uses: u8, // will always be zero
 }

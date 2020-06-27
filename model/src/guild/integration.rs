@@ -4,11 +4,11 @@ use serde_mappable_seq::Key;
 
 #[derive(Clone, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
 pub struct GuildIntegration {
-    pub id: IntegrationId,
     pub account: IntegrationAccount,
     pub enabled: bool,
     pub expire_behavior: u64,
     pub expire_grace_period: u64,
+    pub id: IntegrationId,
     #[serde(rename = "type")]
     pub kind: String,
     pub name: String,

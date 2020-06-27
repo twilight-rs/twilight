@@ -14,6 +14,7 @@ pub struct Activity {
     // Introduced with custom statuses.
     pub created_at: Option<u64>,
     pub details: Option<String>,
+    pub emoji: Option<ActivityEmoji>,
     pub flags: Option<ActivityFlags>,
     // Introduced with custom statuses.
     pub id: Option<String>,
@@ -21,7 +22,6 @@ pub struct Activity {
     #[serde(default = "ActivityType::default", rename = "type")]
     pub kind: ActivityType,
     pub name: String,
-    pub emoji: Option<ActivityEmoji>,
     pub party: Option<ActivityParty>,
     pub secrets: Option<ActivitySecrets>,
     pub state: Option<String>,

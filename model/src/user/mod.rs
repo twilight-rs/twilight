@@ -16,21 +16,21 @@ use serde_mappable_seq::Key;
 
 #[derive(Clone, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
 pub struct User {
-    pub id: UserId,
     pub avatar: Option<String>,
     #[serde(default)]
     pub bot: bool,
     pub discriminator: String,
-    #[serde(rename = "username")]
-    pub name: String,
-    pub mfa_enabled: Option<bool>,
-    pub locale: Option<String>,
-    pub verified: Option<bool>,
     pub email: Option<String>,
     pub flags: Option<UserFlags>,
+    pub id: UserId,
+    pub locale: Option<String>,
+    pub mfa_enabled: Option<bool>,
+    #[serde(rename = "username")]
+    pub name: String,
     pub premium_type: Option<PremiumType>,
-    pub system: Option<bool>,
     pub public_flags: Option<UserFlags>,
+    pub system: Option<bool>,
+    pub verified: Option<bool>,
 }
 
 impl Key<'_, UserId> for User {

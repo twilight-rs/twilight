@@ -7,13 +7,13 @@ use serde::{Deserialize, Serialize};
 
 #[derive(Clone, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
 pub struct CurrentApplicationInfo {
-    pub id: UserId,
     pub bot_public: bool,
     pub bot_require_code_grant: bool,
     pub cover_image: Option<String>,
     pub description: String,
     pub guild_id: Option<GuildId>,
     pub icon: Option<String>,
+    pub id: UserId,
     pub name: String,
     pub owner: User,
     pub primary_sku_id: Option<SkuId>,
