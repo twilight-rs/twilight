@@ -7,6 +7,7 @@ use futures_channel::{
 use futures_util::{sink::SinkExt, stream::StreamExt};
 use log::{info, warn};
 use std::{fmt::Debug, time::Duration};
+use tokio::time::delay_for;
 
 /// Large bot queue is for bots that are marked as very large by Discord.
 ///
@@ -55,9 +56,7 @@ impl LargeBotQueue {
 
 async fn waiter(mut rx: UnboundedReceiver<Sender<()>>) {
     const DUR: Duration = Duration::from_secs(6);
-    let mut ticker = tokio::time::interval(DUR);
     while let Some(req) = rx.next().await {
-        ticker.tick().await;
         if let Err(err) = req.send(()) {
             warn!(
                 "[LargeBotQueue/waiter] send failed with: {:?}, skipping",
@@ -65,6 +64,7 @@ async fn waiter(mut rx: UnboundedReceiver<Sender<()>>) {
             );
             continue;
         }
+        delay_for(DUR).await;
     }
 }
 
