@@ -157,4 +157,80 @@ mod tests {
             ],
         );
     }
+
+    #[test]
+    fn voice_state_update_deser() {
+        let input = serde_json::json!({
+            "member": {
+                "user": {
+                    "username": "Twilight Sparkle",
+                    "id": "1234123123123",
+                    "discriminator": "4242",
+                    "avatar": "a21312321231236060dfe562c"
+                },
+                "roles": [
+                    "123",
+                    "124"
+                ],
+                "nick": "Twilight",
+                "mute": false,
+                "joined_at": "2016-12-08T18:41:21.954000+00:00",
+                "hoisted_role": "123",
+                "deaf": false
+            },
+            "user_id": "123213",
+            "suppress": false,
+            "session_id": "asdasdas1da98da2b3ab3a",
+            "self_video": false,
+            "self_mute": false,
+            "self_deaf": false,
+            "mute": false,
+            "guild_id": "999999",
+            "deaf": false,
+            "channel_id": null
+        });
+
+        let expected = VoiceStateUpdate(VoiceState {
+            channel_id: None,
+            deaf: false,
+            guild_id: Some(GuildId(999999)),
+            member: Some(Member {
+                deaf: false,
+                guild_id: GuildId(999999),
+                hoisted_role: Some(RoleId(123)),
+                joined_at: Some("2016-12-08T18:41:21.954000+00:00".to_string()),
+                mute: false,
+                nick: Some("Twilight".to_string()),
+                premium_since: None,
+                roles: vec![RoleId(123), RoleId(124)],
+                user: User {
+                    id: UserId(1234123123123),
+                    avatar: Some("a21312321231236060dfe562c".to_string()),
+                    bot: false,
+                    discriminator: "4242".to_string(),
+                    name: "Twilight Sparkle".to_string(),
+                    mfa_enabled: None,
+                    locale: None,
+                    verified: None,
+                    email: None,
+                    flags: None,
+                    premium_type: None,
+                    system: None,
+                    public_flags: None,
+                },
+            }),
+            mute: false,
+            self_deaf: false,
+            self_mute: false,
+            self_stream: false,
+            session_id: "asdasdas1da98da2b3ab3a".to_owned(),
+            suppress: false,
+            token: None,
+            user_id: UserId(123213),
+        });
+
+        let parsed: VoiceStateUpdate = serde_json::from_value(input).unwrap();
+
+        assert_eq!(parsed, expected);
+    }
 }
