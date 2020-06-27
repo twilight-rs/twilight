@@ -11,6 +11,6 @@ pub struct ReactionRemoveEmoji {
 
 #[derive(Clone, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
 pub struct PartialEmoji {
-    id: Option<EmojiId>,
-    name: String,
+    pub id: Option<EmojiId>,
+    pub name: String,
 }
