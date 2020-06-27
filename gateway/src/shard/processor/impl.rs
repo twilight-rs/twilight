@@ -43,7 +43,6 @@ use metrics::counter;
 
 use std::error::Error as StdError;
 use std::sync::atomic::Ordering;
-use twilight_model::gateway::payload::update_status::UpdateStatusInfo;
 
 /// Runs in the background and processes incoming events, and then broadcasts
 /// to all listeners.
