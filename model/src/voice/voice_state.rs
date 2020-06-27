@@ -1,5 +1,5 @@
 use crate::{
-    guild::member::{Member, MemberDeserializer},
+    guild::member::{Member, OptionalMemberDeserializer},
     id::{ChannelId, GuildId, UserId},
 };
 use serde::{
@@ -53,8 +53,8 @@ impl<'de> Deserialize<'de> for VoiceState {
 
         let member = if let Some(proto_member) = member {
             if let Some(guild_id) = guild_id {
-                let member_deserializer = MemberDeserializer::new(guild_id);
-                Some(member_deserializer.deserialize(proto_member).map_err(DeError::custom)?)
+                let member_deserializer = OptionalMemberDeserializer::new(guild_id);
+                member_deserializer.deserialize(proto_member).map_err(DeError::custom)?
             } else {
                 return Err(DeError::missing_field("guild_id"));
             }
