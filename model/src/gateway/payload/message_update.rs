@@ -7,13 +7,13 @@ use serde::{Deserialize, Serialize};
 
 #[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
 pub struct MessageUpdate {
-    pub id: MessageId,
     pub attachments: Option<Vec<Attachment>>,
     pub author: Option<User>,
     pub channel_id: ChannelId,
     pub content: Option<String>,
     pub edited_timestamp: Option<String>,
     pub embeds: Option<Vec<Embed>>,
+    pub id: MessageId,
     #[serde(rename = "type")]
     pub kind: Option<MessageType>,
     pub mention_everyone: Option<bool>,

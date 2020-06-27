@@ -7,9 +7,9 @@ use serde::{Deserialize, Serialize};
 
 #[derive(Clone, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
 pub struct Group {
-    pub id: ChannelId,
     pub application_id: Option<ApplicationId>,
     pub icon: Option<String>,
+    pub id: ChannelId,
     #[serde(rename = "type")]
     pub kind: ChannelType,
     pub last_message_id: Option<MessageId>,

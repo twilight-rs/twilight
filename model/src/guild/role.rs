@@ -4,9 +4,9 @@ use serde_mappable_seq::Key;
 
 #[derive(Clone, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
 pub struct Role {
-    pub id: RoleId,
     pub color: u32,
     pub hoist: bool,
+    pub id: RoleId,
     pub managed: bool,
     pub mentionable: bool,
     pub name: String,

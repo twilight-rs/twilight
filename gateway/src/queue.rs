@@ -13,6 +13,7 @@ use futures_util::{sink::SinkExt, stream::StreamExt};
 #[allow(unused_imports)]
 use log::{info, warn};
 use std::{fmt::Debug, time::Duration};
+use tokio::time::delay_for;
 
 #[async_trait]
 pub trait Queue: Debug + Send + Sync {
@@ -71,13 +72,12 @@ impl LocalQueue {
 
 async fn waiter(mut rx: UnboundedReceiver<Sender<()>>) {
     const DUR: Duration = Duration::from_secs(6);
-    let mut ticker = tokio::time::interval(DUR);
     while let Some(req) = rx.next().await {
-        ticker.tick().await;
         if let Err(err) = req.send(()) {
             warn!("[LocalQueue/waiter] send failed with: {:?}, skipping", err);
             continue;
         }
+        delay_for(DUR).await;
     }
 }
 
