@@ -104,14 +104,20 @@ mod tests {
             unavailable: false,
         };
 
-        serde_test::assert_de_tokens(&expected, &[
-            Token::Struct { name: "GuildDelete", len: 2 },
-            Token::Str("id"),
-            Token::NewtypeStruct { name: "GuildId" },
-            Token::Str("123"),
-            Token::Str("unavailable"),
-            Token::None,
-            Token::StructEnd,
-        ]);
+        serde_test::assert_de_tokens(
+            &expected,
+            &[
+                Token::Struct {
+                    name: "GuildDelete",
+                    len: 2,
+                },
+                Token::Str("id"),
+                Token::NewtypeStruct { name: "GuildId" },
+                Token::Str("123"),
+                Token::Str("unavailable"),
+                Token::None,
+                Token::StructEnd,
+            ],
+        );
     }
 }
