@@ -155,35 +155,10 @@ mod tests {
         id::{ChannelId, GuildId, MessageId, RoleId, UserId},
         user::User,
     };
-    use serde_json::json;
+    use serde_test::Token;
 
     #[test]
-    fn test_typing_start_with_member_deser() {
-        let input = json!({
-            "channel_id": "2",
-            "emoji": {
-                "id": null,
-                "name": "🙂",
-            },
-            "guild_id": "1",
-            "member": {
-                "deaf": false,
-                "hoisted_role": "5",
-                "joined_at": "2020-01-01T00:00:00.000000+00:00",
-                "mute": false,
-                "nick": "typing",
-                "roles": ["5"],
-                "user": {
-                    "username": "test",
-                    "id": "4",
-                    "discriminator": "0001",
-                    "avatar": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
-                },
-            },
-            "message_id": "3",
-            "user_id": "4",
-        });
-
+    fn test_reaction_with_member() {
         let expected = Reaction {
             channel_id: ChannelId(2),
             emoji: ReactionType::Unicode {
@@ -200,42 +175,125 @@ mod tests {
                 premium_since: None,
                 roles: vec![RoleId(5)],
                 user: User {
-                    id: UserId(4),
                     avatar: Some("aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa".to_owned()),
                     bot: false,
                     discriminator: "0001".to_owned(),
-                    name: "test".to_owned(),
-                    mfa_enabled: None,
-                    locale: None,
-                    verified: None,
                     email: None,
                     flags: None,
+                    id: UserId(4),
+                    locale: None,
+                    mfa_enabled: None,
+                    name: "test".to_owned(),
                     premium_type: None,
-                    system: None,
                     public_flags: None,
+                    system: None,
+                    verified: None,
                 },
             }),
             message_id: MessageId(3),
             user_id: UserId(4),
         };
 
-        assert_eq!(expected, serde_json::from_value(input).unwrap());
+        serde_test::assert_tokens(
+            &expected,
+            &[
+                Token::Struct {
+                    name: "Reaction",
+                    len: 6,
+                },
+                Token::Str("channel_id"),
+                Token::NewtypeStruct { name: "ChannelId" },
+                Token::Str("2"),
+                Token::Str("emoji"),
+                Token::Struct {
+                    name: "ReactionType",
+                    len: 1,
+                },
+                Token::Str("name"),
+                Token::Str("🙂"),
+                Token::StructEnd,
+                Token::Str("guild_id"),
+                Token::Some,
+                Token::NewtypeStruct { name: "GuildId" },
+                Token::Str("1"),
+                Token::Str("member"),
+                Token::Some,
+                Token::Struct {
+                    name: "Member",
+                    len: 9,
+                },
+                Token::Str("deaf"),
+                Token::Bool(false),
+                Token::Str("guild_id"),
+                Token::NewtypeStruct { name: "GuildId" },
+                Token::Str("1"),
+                Token::Str("hoisted_role"),
+                Token::Some,
+                Token::NewtypeStruct { name: "RoleId" },
+                Token::Str("5"),
+                Token::Str("joined_at"),
+                Token::Some,
+                Token::Str("2020-01-01T00:00:00.000000+00:00"),
+                Token::Str("mute"),
+                Token::Bool(false),
+                Token::Str("nick"),
+                Token::Some,
+                Token::Str("typing"),
+                Token::Str("premium_since"),
+                Token::None,
+                Token::Str("roles"),
+                Token::Seq { len: Some(1) },
+                Token::NewtypeStruct { name: "RoleId" },
+                Token::Str("5"),
+                Token::SeqEnd,
+                Token::Str("user"),
+                Token::Struct {
+                    name: "User",
+                    len: 13,
+                },
+                Token::Str("avatar"),
+                Token::Some,
+                Token::Str("aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"),
+                Token::Str("bot"),
+                Token::Bool(false),
+                Token::Str("discriminator"),
+                Token::Str("0001"),
+                Token::Str("email"),
+                Token::None,
+                Token::Str("flags"),
+                Token::None,
+                Token::Str("id"),
+                Token::NewtypeStruct { name: "UserId" },
+                Token::Str("4"),
+                Token::Str("locale"),
+                Token::None,
+                Token::Str("mfa_enabled"),
+                Token::None,
+                Token::Str("username"),
+                Token::Str("test"),
+                Token::Str("premium_type"),
+                Token::None,
+                Token::Str("public_flags"),
+                Token::None,
+                Token::Str("system"),
+                Token::None,
+                Token::Str("verified"),
+                Token::None,
+                Token::StructEnd,
+                Token::StructEnd,
+                Token::Str("message_id"),
+                Token::NewtypeStruct { name: "MessageId" },
+                Token::Str("3"),
+                Token::Str("user_id"),
+                Token::NewtypeStruct { name: "UserId" },
+                Token::Str("4"),
+                Token::StructEnd,
+            ],
+        );
     }
 
     #[test]
-    fn test_typing_start_without_member_deser() {
-        let input = json!({
-            "channel_id": "2",
-            "emoji": {
-                "id": null,
-                "name": "🙂",
-            },
-            "guild_id": null,
-            "member": null,
-            "message_id": "3",
-            "user_id": "4",
-        });
-
+    fn test_reaction_without_member() {
         let expected = Reaction {
             channel_id: ChannelId(2),
             emoji: ReactionType::Unicode {
@@ -247,6 +305,36 @@ mod tests {
             user_id: UserId(4),
         };
 
-        assert_eq!(expected, serde_json::from_value(input).unwrap());
+        serde_test::assert_tokens(
+            &expected,
+            &[
+                Token::Struct {
+                    name: "Reaction",
+                    len: 6,
+                },
+                Token::Str("channel_id"),
+                Token::NewtypeStruct { name: "ChannelId" },
+                Token::Str("2"),
+                Token::Str("emoji"),
+                Token::Struct {
+                    name: "ReactionType",
+                    len: 1,
+                },
+                Token::Str("name"),
+                Token::Str("🙂"),
+                Token::StructEnd,
+                Token::Str("guild_id"),
+                Token::None,
+                Token::Str("member"),
+                Token::None,
+                Token::Str("message_id"),
+                Token::NewtypeStruct { name: "MessageId" },
+                Token::Str("3"),
+                Token::Str("user_id"),
+                Token::NewtypeStruct { name: "UserId" },
+                Token::Str("4"),
+                Token::StructEnd,
+            ],
+        );
     }
 }
