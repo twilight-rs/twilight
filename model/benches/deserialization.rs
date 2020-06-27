@@ -1,6 +1,9 @@
 use criterion::{criterion_group, criterion_main, Criterion};
 
-use twilight_model::gateway::payload::{MemberChunk, TypingStart};
+use twilight_model::{
+    channel::Reaction,
+    gateway::payload::{MemberChunk, TypingStart},
+};
 
 fn member_chunk() {
     let input = r#"{
@@ -102,6 +105,35 @@ fn member_chunk() {
     serde_json::from_str::<MemberChunk>(input).unwrap();
 }
 
+fn reaction() {
+    let input = r#"{
+        "channel_id": "2",
+        "emoji": {
+            "id": null,
+            "name": "🙂"
+        },
+        "guild_id": "1",
+        "member": {
+            "deaf": false,
+            "hoisted_role": "5",
+            "joined_at": "2020-01-01T00:00:00.000000+00:00",
+            "mute": false,
+            "nick": "typing",
+            "roles": ["5"],
+            "user": {
+                "username": "test",
+                "id": "4",
+                "discriminator": "0001",
+                "avatar": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+            }
+        },
+        "message_id": "3",
+        "user_id": "4",
+    }"#;
+
+    serde_json::from_str::<Reaction>(input).unwrap();
+}
+
 fn typing_start() {
     let input = r#"{
         "channel_id": "2",
@@ -129,6 +161,7 @@ fn typing_start() {
 
 fn criterion_benchmark(c: &mut Criterion) {
     c.bench_function("member chunk", |b| b.iter(|| member_chunk()));
+    c.bench_function("reaction", |b| b.iter(|| reaction()));
     c.bench_function("typing start", |b| b.iter(|| typing_start()));
 }
 
