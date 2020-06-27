@@ -17,7 +17,6 @@ fn nullable_unavailable<'de, D: Deserializer<'de>>(deserializer: D) -> Result<bo
 mod tests {
     use super::super::GuildDelete;
     use crate::id::GuildId;
-    use serde_json::json;
     use serde_test::Token;
 
     #[test]
@@ -105,13 +104,20 @@ mod tests {
             unavailable: false,
         };
 
-        assert_eq!(
-            expected,
-            serde_json::from_value(json!({
-                "id": "123",
-                "unavailable": null,
-            }))
-            .unwrap()
+        serde_test::assert_de_tokens(
+            &expected,
+            &[
+                Token::Struct {
+                    name: "GuildDelete",
+                    len: 2,
+                },
+                Token::Str("id"),
+                Token::NewtypeStruct { name: "GuildId" },
+                Token::Str("123"),
+                Token::Str("unavailable"),
+                Token::None,
+                Token::StructEnd,
+            ],
         );
     }
 }
