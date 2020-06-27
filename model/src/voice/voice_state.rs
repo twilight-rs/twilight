@@ -54,7 +54,9 @@ impl<'de> Deserialize<'de> for VoiceState {
         let member = if let Some(proto_member) = member {
             if let Some(guild_id) = guild_id {
                 let member_deserializer = OptionalMemberDeserializer::new(guild_id);
-                member_deserializer.deserialize(proto_member).map_err(DeError::custom)?
+                member_deserializer
+                    .deserialize(proto_member)
+                    .map_err(DeError::custom)?
             } else {
                 return Err(DeError::missing_field("guild_id"));
             }
