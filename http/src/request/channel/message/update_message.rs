@@ -195,7 +195,7 @@ impl<'a> UpdateMessage<'a> {
     /// [`AllowedMentions`]: ../allowed_mentions/struct.AllowedMentions.html
     pub fn allowed_mentions(mut self, allowed: AllowedMentions) -> Self {
         self.fields.allowed_mentions.replace(allowed);
-        
+
         self
     }
 
