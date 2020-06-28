@@ -41,6 +41,8 @@ impl Error for UpdateMessageError {
 
 #[derive(Default, Serialize)]
 struct UpdateMessageFields {
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub(crate) allowed_mentions: Option<AllowedMentions>,
     // We don't serialize if this is Option::None, to avoid overwriting the
     // field without meaning to.
     //
@@ -58,8 +60,6 @@ struct UpdateMessageFields {
     embed: Option<Option<Embed>>,
     #[serde(skip_serializing_if = "Option::is_none")]
     flags: Option<MessageFlags>,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub(crate) allowed_mentions: Option<AllowedMentions>,
 }
 
 /// Update a message by [`ChannelId`] and [`MessageId`].
@@ -124,8 +124,9 @@ impl<'a> UpdateMessage<'a> {
     /// Set the content of the message.
     ///
     /// Pass `None` if you want to remove the message content.
-    /// Note that if that are no embed you will not be able to remove
-    /// the content of the message.
+    ///
+    /// Note that if there is no embed then you will not be able
+    /// to remove the content of the message.
     ///
     /// The maximum length is 2000 UTF-16 characters.
     ///
@@ -154,8 +155,9 @@ impl<'a> UpdateMessage<'a> {
     /// Set the embed of the message.
     ///
     /// Pass `None` if you want to remove the message embed.
-    /// Note that you will not be able to remove the embed if the content
-    /// is empty.
+    ///
+    /// Note that if there is no content then you will not be
+    /// able to remove the embed of the message.
     pub fn embed(self, embed: impl Into<Option<Embed>>) -> Result<Self, UpdateMessageError> {
         self._embed(embed.into())
     }
@@ -171,11 +173,11 @@ impl<'a> UpdateMessage<'a> {
         Ok(self)
     }
 
-    /// Supress the embeds in the message.
-    pub fn supress_embeds(mut self, supress: bool) -> Self {
+    /// Suppress the embeds in the message.
+    pub fn suppress_embeds(mut self, suppress: bool) -> Self {
         let mut flags = self.fields.flags.unwrap_or_else(MessageFlags::empty);
 
-        if supress {
+        if suppress {
             flags |= MessageFlags::SUPPRESS_EMBEDS;
         } else {
             flags &= !MessageFlags::SUPPRESS_EMBEDS;
@@ -185,13 +187,15 @@ impl<'a> UpdateMessage<'a> {
         self
     }
 
-    /// Set the allowed mentions in the message, use the [`build_solo`]
-    /// method to get a [`AllowedMentions`] structure.
+    /// Set the allowed mentions in the message.
+    ///
+    /// Use the [`build_solo`] method to get a [`AllowedMentions`] structure.
     ///
     /// [`build_solo`]: ../allowed_mentions/struct.AllowedMentionsBuilder.html#method.build_solo
     /// [`AllowedMentions`]: ../allowed_mentions/struct.AllowedMentions.html
     pub fn allowed_mentions(mut self, allowed: AllowedMentions) -> Self {
         self.fields.allowed_mentions.replace(allowed);
+        
         self
     }
 
