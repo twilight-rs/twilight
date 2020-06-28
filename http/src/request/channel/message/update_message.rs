@@ -1,11 +1,11 @@
 use crate::json_to_vec;
-use crate::request::prelude::*;
+use crate::request::{channel::message::allowed_mentions::AllowedMentions, prelude::*};
 use std::{
     error::Error,
     fmt::{Display, Formatter, Result as FmtResult},
 };
 use twilight_model::{
-    channel::{embed::Embed, Message},
+    channel::{embed::Embed, message::MessageFlags, Message},
     id::{ChannelId, MessageId},
 };
 
@@ -41,6 +41,8 @@ impl Error for UpdateMessageError {
 
 #[derive(Default, Serialize)]
 struct UpdateMessageFields {
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub(crate) allowed_mentions: Option<AllowedMentions>,
     // We don't serialize if this is Option::None, to avoid overwriting the
     // field without meaning to.
     //
@@ -51,9 +53,13 @@ struct UpdateMessageFields {
     //   `"content": null` in the JSON;
     // - None: Don't serialize the field at all, not modifying the state.
     #[allow(clippy::option_option)]
+    #[serde(skip_serializing_if = "Option::is_none")]
     content: Option<Option<String>>,
     #[allow(clippy::option_option)]
+    #[serde(skip_serializing_if = "Option::is_none")]
     embed: Option<Option<Embed>>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    flags: Option<MessageFlags>,
 }
 
 /// Update a message by [`ChannelId`] and [`MessageId`].
@@ -119,6 +125,9 @@ impl<'a> UpdateMessage<'a> {
     ///
     /// Pass `None` if you want to remove the message content.
     ///
+    /// Note that if there is no embed then you will not be able
+    /// to remove the content of the message.
+    ///
     /// The maximum length is 2000 UTF-16 characters.
     ///
     /// # Errors
@@ -146,6 +155,9 @@ impl<'a> UpdateMessage<'a> {
     /// Set the embed of the message.
     ///
     /// Pass `None` if you want to remove the message embed.
+    ///
+    /// Note that if there is no content then you will not be
+    /// able to remove the embed of the message.
     pub fn embed(self, embed: impl Into<Option<Embed>>) -> Result<Self, UpdateMessageError> {
         self._embed(embed.into())
     }
@@ -159,6 +171,32 @@ impl<'a> UpdateMessage<'a> {
         self.fields.embed.replace(embed);
 
         Ok(self)
+    }
+
+    /// Suppress the embeds in the message.
+    pub fn suppress_embeds(mut self, suppress: bool) -> Self {
+        let mut flags = self.fields.flags.unwrap_or_else(MessageFlags::empty);
+
+        if suppress {
+            flags |= MessageFlags::SUPPRESS_EMBEDS;
+        } else {
+            flags &= !MessageFlags::SUPPRESS_EMBEDS;
+        }
+        self.fields.flags.replace(flags);
+
+        self
+    }
+
+    /// Set the allowed mentions in the message.
+    ///
+    /// Use the [`build_solo`] method to get a [`AllowedMentions`] structure.
+    ///
+    /// [`build_solo`]: ../allowed_mentions/struct.AllowedMentionsBuilder.html#method.build_solo
+    /// [`AllowedMentions`]: ../allowed_mentions/struct.AllowedMentions.html
+    pub fn allowed_mentions(mut self, allowed: AllowedMentions) -> Self {
+        self.fields.allowed_mentions.replace(allowed);
+
+        self
     }
 
     fn start(&mut self) -> Result<()> {
