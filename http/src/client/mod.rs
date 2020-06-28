@@ -1391,7 +1391,7 @@ impl Client {
 
         if let Some(ref token) = self.state.token {
             let value = HeaderValue::from_str(&token).map_err(|source| Error::CreatingHeader {
-                name: "Authroization".to_owned(),
+                name: "Authorization".to_owned(),
                 source,
             })?;
 
