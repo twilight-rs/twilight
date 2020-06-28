@@ -42,7 +42,7 @@ impl GlobalLockPair {
     }
 }
 
-#[derive(Debug, Default)]
+#[derive(Clone, Debug, Default)]
 pub struct Ratelimiter {
     buckets: Arc<Mutex<HashMap<Path, Arc<Bucket>>>>,
     global: Arc<GlobalLockPair>,
