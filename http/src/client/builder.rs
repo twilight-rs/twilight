@@ -15,10 +15,17 @@ pub struct ClientBuilder {
     pub(crate) proxy: Option<Proxy>,
     pub(crate) proxy_http: bool,
     pub(crate) reqwest_client: Option<ReqwestClient>,
-    pub(crate) skip_ratelimiter: bool,
+    pub(crate) ratelimiter: RatelimiterBuilder,
     pub(crate) timeout: Duration,
     pub(crate) token: Option<String>,
     pub(crate) default_allowed_mentions: Option<AllowedMentions>,
+}
+
+#[derive(Clone, Debug)]
+pub enum RatelimiterBuilder {
+    Skip,
+    New,
+    Use(Ratelimiter),
 }
 
 impl ClientBuilder {
@@ -43,6 +50,12 @@ impl ClientBuilder {
             builder = builder.proxy(proxy)
         }
 
+        let (skip_ratelimiter, ratelimiter) = match self.ratelimiter {
+            RatelimiterBuilder::New => (false, Ratelimiter::new()),
+            RatelimiterBuilder::Skip => (true, Ratelimiter::new()),
+            RatelimiterBuilder::Use(rl) => (false, rl),
+        };
+
         Ok(Client {
             state: Arc::new(State {
                 http: Arc::new(
@@ -50,8 +63,8 @@ impl ClientBuilder {
                         .build()
                         .map_err(|source| Error::BuildingClient { source })?,
                 ),
-                ratelimiter: Ratelimiter::new(),
-                skip_ratelimiter: self.skip_ratelimiter,
+                ratelimiter,
+                skip_ratelimiter,
                 token: self.token,
                 use_http: self.proxy_http,
                 default_allowed_mentions: self.default_allowed_mentions,
@@ -97,11 +110,18 @@ impl ClientBuilder {
         self
     }
 
-    /// Set whether to skip the client's ratelimiter before making the request.
+    /// Set a ratelimiter to use.
     ///
-    /// The default is `false`.
-    pub fn skip_ratelimiter(&mut self, skip_ratelimiter: bool) -> &mut Self {
-        self.skip_ratelimiter = skip_ratelimiter;
+    /// If the argument is `None` then the client's ratelimiter will be skipped
+    /// before making a request.
+    ///
+    /// If this method is not called at all then a default ratelimiter will be
+    /// created by `ClientBuilder::build`.
+    pub fn ratelimiter(&mut self, ratelimiter: impl Into<Option<Ratelimiter>>) -> &mut Self {
+        self.ratelimiter = match ratelimiter.into() {
+            Some(rl) => RatelimiterBuilder::Use(rl),
+            None => RatelimiterBuilder::Skip,
+        };
 
         self
     }
@@ -141,7 +161,7 @@ impl Default for ClientBuilder {
             proxy: None,
             proxy_http: false,
             reqwest_client: None,
-            skip_ratelimiter: false,
+            ratelimiter: RatelimiterBuilder::New,
             timeout: Duration::from_secs(10),
             token: None,
         }
