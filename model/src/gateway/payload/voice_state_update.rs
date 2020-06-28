@@ -159,37 +159,8 @@ mod tests {
     }
 
     #[test]
-    fn voice_state_update_deser() {
-        let input = serde_json::json!({
-            "member": {
-                "user": {
-                    "username": "Twilight Sparkle",
-                    "id": "1234123123123",
-                    "discriminator": "4242",
-                    "avatar": "a21312321231236060dfe562c"
-                },
-                "roles": [
-                    "123",
-                    "124"
-                ],
-                "nick": "Twilight",
-                "mute": false,
-                "joined_at": "2016-12-08T18:41:21.954000+00:00",
-                "hoisted_role": "123",
-                "deaf": false
-            },
-            "user_id": "123213",
-            "suppress": false,
-            "session_id": "asdasdas1da98da2b3ab3a",
-            "self_video": false,
-            "self_mute": false,
-            "self_deaf": false,
-            "mute": false,
-            "guild_id": "999999",
-            "deaf": false,
-            "channel_id": null
-        });
-
+    #[allow(clippy::too_many_lines)]
+    fn voice_state_update_deser_tokens() {
         let expected = VoiceStateUpdate(VoiceState {
             channel_id: None,
             deaf: false,
@@ -229,8 +200,111 @@ mod tests {
             user_id: UserId(123213),
         });
 
-        let parsed: VoiceStateUpdate = serde_json::from_value(input).unwrap();
-
-        assert_eq!(parsed, expected);
+        // Token stream here's `Member` has no `guild_id`, which deserialiser
+        // must add.
+        // Lack of "guild_id" in real "member" means that de+ser does not
+        // reproduce original input (assert only `de`).
+        serde_test::assert_de_tokens(
+            &expected,
+            &[
+                Token::NewtypeStruct {
+                    name: "VoiceStateUpdate",
+                },
+                Token::Struct {
+                    name: "VoiceState",
+                    len: 12,
+                },
+                Token::Str("channel_id"),
+                Token::None,
+                Token::Str("deaf"),
+                Token::Bool(false),
+                Token::Str("guild_id"),
+                Token::Some,
+                Token::NewtypeStruct { name: "GuildId" },
+                Token::Str("999999"),
+                Token::Str("member"),
+                Token::Some,
+                Token::Struct {
+                    name: "Member",
+                    len: 9,
+                },
+                Token::Str("deaf"),
+                Token::Bool(false),
+                Token::Str("hoisted_role"),
+                Token::Some,
+                Token::NewtypeStruct { name: "RoleId" },
+                Token::Str("123"),
+                Token::Str("joined_at"),
+                Token::Some,
+                Token::Str("2016-12-08T18:41:21.954000+00:00"),
+                Token::Str("mute"),
+                Token::Bool(false),
+                Token::Str("nick"),
+                Token::Some,
+                Token::Str("Twilight"),
+                Token::Str("premium_since"),
+                Token::None,
+                Token::Str("roles"),
+                Token::Seq { len: Some(2) },
+                Token::NewtypeStruct { name: "RoleId" },
+                Token::Str("123"),
+                Token::NewtypeStruct { name: "RoleId" },
+                Token::Str("124"),
+                Token::SeqEnd,
+                Token::Str("user"),
+                Token::Struct {
+                    name: "User",
+                    len: 13,
+                },
+                Token::Str("avatar"),
+                Token::Some,
+                Token::Str("a21312321231236060dfe562c"),
+                Token::Str("bot"),
+                Token::Bool(false),
+                Token::Str("discriminator"),
+                Token::Str("4242"),
+                Token::Str("email"),
+                Token::None,
+                Token::Str("flags"),
+                Token::None,
+                Token::Str("id"),
+                Token::NewtypeStruct { name: "UserId" },
+                Token::Str("1234123123123"),
+                Token::Str("locale"),
+                Token::None,
+                Token::Str("mfa_enabled"),
+                Token::None,
+                Token::Str("username"),
+                Token::Str("Twilight Sparkle"),
+                Token::Str("premium_type"),
+                Token::None,
+                Token::Str("public_flags"),
+                Token::None,
+                Token::Str("system"),
+                Token::None,
+                Token::Str("verified"),
+                Token::None,
+                Token::StructEnd,
+                Token::StructEnd,
+                Token::Str("mute"),
+                Token::Bool(false),
+                Token::Str("self_deaf"),
+                Token::Bool(false),
+                Token::Str("self_mute"),
+                Token::Bool(false),
+                Token::Str("self_stream"),
+                Token::Bool(false),
+                Token::Str("session_id"),
+                Token::Str("asdasdas1da98da2b3ab3a"),
+                Token::Str("suppress"),
+                Token::Bool(false),
+                Token::Str("token"),
+                Token::None,
+                Token::Str("user_id"),
+                Token::NewtypeStruct { name: "UserId" },
+                Token::Str("123213"),
+                Token::StructEnd,
+            ],
+        );
     }
 }
