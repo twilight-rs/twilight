@@ -45,11 +45,9 @@ impl ClientBuilder {
 
         Ok(Client {
             state: Arc::new(State {
-                http: Arc::new(
-                    builder
-                        .build()
-                        .map_err(|source| Error::BuildingClient { source })?,
-                ),
+                http: builder
+                    .build()
+                    .map_err(|source| Error::BuildingClient { source })?,
                 ratelimiter: Ratelimiter::new(),
                 skip_ratelimiter: self.skip_ratelimiter,
                 token: self.token,
