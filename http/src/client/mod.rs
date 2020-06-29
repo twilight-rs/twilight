@@ -34,7 +34,7 @@ use url::Url;
 use crate::json_from_slice;
 
 struct State {
-    http: Arc<ReqwestClient>,
+    http: ReqwestClient,
     ratelimiter: Ratelimiter,
     skip_ratelimiter: bool,
     token: Option<String>,
@@ -116,7 +116,7 @@ impl Client {
 
         Self {
             state: Arc::new(State {
-                http: Arc::new(ReqwestClient::new()),
+                http: ReqwestClient::new(),
                 ratelimiter: Ratelimiter::new(),
                 skip_ratelimiter: false,
                 token: Some(token),
@@ -1543,21 +1543,6 @@ impl Client {
 
 impl From<ReqwestClient> for Client {
     fn from(reqwest_client: ReqwestClient) -> Self {
-        Self {
-            state: Arc::new(State {
-                http: Arc::new(reqwest_client),
-                ratelimiter: Ratelimiter::new(),
-                skip_ratelimiter: false,
-                token: None,
-                use_http: false,
-                default_allowed_mentions: None,
-            }),
-        }
-    }
-}
-
-impl From<Arc<ReqwestClient>> for Client {
-    fn from(reqwest_client: Arc<ReqwestClient>) -> Self {
         Self {
             state: Arc::new(State {
                 http: reqwest_client,

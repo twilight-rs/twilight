@@ -75,7 +75,6 @@ async fn waiter(mut rx: UnboundedReceiver<Sender<()>>) {
     while let Some(req) = rx.next().await {
         if let Err(err) = req.send(()) {
             warn!("[LocalQueue/waiter] send failed with: {:?}, skipping", err);
-            continue;
         }
         delay_for(DUR).await;
     }

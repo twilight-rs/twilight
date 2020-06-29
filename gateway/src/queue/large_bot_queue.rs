@@ -62,7 +62,6 @@ async fn waiter(mut rx: UnboundedReceiver<Sender<()>>) {
                 "[LargeBotQueue/waiter] send failed with: {:?}, skipping",
                 err
             );
-            continue;
         }
         delay_for(DUR).await;
     }
