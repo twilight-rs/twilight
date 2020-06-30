@@ -41,7 +41,6 @@ A full sample bot connecting to the gateway, processing events, and
 including a handler to wait for reactions:
 
 ```rust,no_run
-#[tokio::main] async fn main() -> Result<(), Box<dyn std::error::Error>> {
 use futures_util::StreamExt;
 use std::{env, error::Error};
 use twilight_gateway::{Event, Shard};
@@ -52,24 +51,29 @@ use twilight_model::{
 };
 use twilight_standby::Standby;
 
-// Start a shard connected to the gateway to receive events.
-let mut shard = Shard::new(env::var("DISCORD_TOKEN")?);
-let mut events = shard.events().await;
-shard.start().await?;
+#[tokio::main]
+async fn main() -> Result<(), Box<dyn Error>> {
+    // Start a shard connected to the gateway to receive events.
+    let mut shard = Shard::new(env::var("DISCORD_TOKEN")?);
+    let mut events = shard.events().await;
+    shard.start().await?;
 
-let standby = Standby::new();
+    let standby = Standby::new();
 
-while let Some(event) = events.next().await {
-    // Have standby process the event, which will fulfill any futures that
-    // are waiting for an event.
-    standby.process(&event);
+    while let Some(event) = events.next().await {
+        // Have standby process the event, which will fulfill any futures that
+        // are waiting for an event.
+        standby.process(&event);
 
-    match event {
-        Event::MessageCreate(msg) if msg.content == "!react" => {
-            tokio::spawn(react(msg.0, standby.clone()));
-        },
-        _ => {},
+        match event {
+            Event::MessageCreate(msg) if msg.content == "!react" => {
+                tokio::spawn(react(msg.0, standby.clone()));
+            },
+            _ => {},
+        }
     }
+
+    Ok(())
 }
 
 // Wait for a reaction from the user who sent the message, and then print it
