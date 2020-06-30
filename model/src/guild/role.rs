@@ -1,7 +1,13 @@
 use crate::{guild::Permissions, id::RoleId};
-use serde::{de::{DeserializeSeed, Deserializer, SeqAccess, Visitor}, Deserialize, Serialize};
+use serde::{
+    de::{DeserializeSeed, Deserializer, SeqAccess, Visitor},
+    Deserialize, Serialize,
+};
 use serde_mappable_seq::Key;
-use std::{collections::HashMap, fmt::{Formatter, Result as FmtResult}};
+use std::{
+    collections::HashMap,
+    fmt::{Formatter, Result as FmtResult},
+};
 
 #[derive(Clone, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
 pub struct Role {
@@ -34,7 +40,9 @@ impl<'de> Visitor<'de> for RoleMapDeserializerVisitor {
     }
 
     fn visit_seq<S: SeqAccess<'de>>(self, mut seq: S) -> Result<Self::Value, S::Error> {
-        let mut map = seq.size_hint().map_or_else(HashMap::new, HashMap::with_capacity);
+        let mut map = seq
+            .size_hint()
+            .map_or_else(HashMap::new, HashMap::with_capacity);
 
         while let Some(role) = seq.next_element::<Role>()? {
             map.insert(role.id, role);
@@ -47,10 +55,7 @@ impl<'de> Visitor<'de> for RoleMapDeserializerVisitor {
 impl<'de> DeserializeSeed<'de> for RoleMapDeserializer {
     type Value = HashMap<RoleId, Role>;
 
-    fn deserialize<D: Deserializer<'de>>(
-        self,
-        deserializer: D,
-    ) -> Result<Self::Value, D::Error> {
+    fn deserialize<D: Deserializer<'de>>(self, deserializer: D) -> Result<Self::Value, D::Error> {
         deserializer.deserialize_seq(RoleMapDeserializerVisitor)
     }
 }

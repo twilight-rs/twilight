@@ -7,7 +7,10 @@ use serde::{
     Deserialize, Serialize,
 };
 use serde_mappable_seq::Key;
-use std::{collections::HashMap, fmt::{Formatter, Result as FmtResult}};
+use std::{
+    collections::HashMap,
+    fmt::{Formatter, Result as FmtResult},
+};
 
 #[allow(clippy::struct_excessive_bools)]
 #[derive(Clone, Debug, Eq, Hash, PartialEq, Serialize)]
@@ -240,7 +243,9 @@ impl<'de> Visitor<'de> for VoiceStateMapVisitor {
     }
 
     fn visit_seq<S: SeqAccess<'de>>(self, mut seq: S) -> Result<Self::Value, S::Error> {
-        let mut map = seq.size_hint().map_or_else(HashMap::new, HashMap::with_capacity);
+        let mut map = seq
+            .size_hint()
+            .map_or_else(HashMap::new, HashMap::with_capacity);
 
         while let Some(voice_state) = seq.next_element::<VoiceState>()? {
             map.insert(voice_state.user_id, voice_state);
@@ -253,10 +258,7 @@ impl<'de> Visitor<'de> for VoiceStateMapVisitor {
 impl<'de> DeserializeSeed<'de> for VoiceStateMapDeserializer {
     type Value = HashMap<UserId, VoiceState>;
 
-    fn deserialize<D: Deserializer<'de>>(
-        self,
-        deserializer: D,
-    ) -> Result<Self::Value, D::Error> {
+    fn deserialize<D: Deserializer<'de>>(self, deserializer: D) -> Result<Self::Value, D::Error> {
         deserializer.deserialize_seq(VoiceStateMapVisitor)
     }
 }

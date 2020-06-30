@@ -35,11 +35,11 @@ pub use self::{
 
 use self::{member::MemberMapDeserializer, role::RoleMapDeserializer};
 use crate::{
-    channel::{GuildChannelMapDeserializer, GuildChannel},
+    channel::{GuildChannel, GuildChannelMapDeserializer},
+    gateway::presence::{Presence, PresenceMapDeserializer},
     guild::emoji::EmojiMapDeserializer,
-    gateway::presence::{PresenceMapDeserializer, Presence},
     id::{ApplicationId, ChannelId, EmojiId, GuildId, RoleId, UserId},
-    voice::voice_state::{VoiceStateMapDeserializer, VoiceState},
+    voice::voice_state::{VoiceState, VoiceStateMapDeserializer},
 };
 use serde::{
     de::{Deserializer, Error as DeError, MapAccess, Visitor},
@@ -622,13 +622,13 @@ impl<'de> Deserialize<'de> for Guild {
                     match channel {
                         GuildChannel::Category(c) => {
                             c.guild_id.replace(id);
-                        },
+                        }
                         GuildChannel::Text(c) => {
                             c.guild_id.replace(id);
-                        },
+                        }
                         GuildChannel::Voice(c) => {
                             c.guild_id.replace(id);
-                        },
+                        }
                     }
                 }
 

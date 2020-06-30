@@ -28,7 +28,10 @@ use serde::{
     Deserialize, Serialize,
 };
 use serde_mappable_seq::Key;
-use std::{collections::HashMap, fmt::{Formatter, Result as FmtResult}};
+use std::{
+    collections::HashMap,
+    fmt::{Formatter, Result as FmtResult},
+};
 
 #[derive(Clone, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
 #[serde(untagged)]
@@ -301,7 +304,9 @@ impl<'de> Visitor<'de> for GuildChannelMapVisitor {
     }
 
     fn visit_seq<S: SeqAccess<'de>>(self, mut seq: S) -> Result<Self::Value, S::Error> {
-        let mut map = seq.size_hint().map_or_else(HashMap::new, HashMap::with_capacity);
+        let mut map = seq
+            .size_hint()
+            .map_or_else(HashMap::new, HashMap::with_capacity);
 
         while let Some(channel) = seq.next_element()? {
             let id = match channel {
@@ -320,10 +325,7 @@ impl<'de> Visitor<'de> for GuildChannelMapVisitor {
 impl<'de> DeserializeSeed<'de> for GuildChannelMapDeserializer {
     type Value = HashMap<ChannelId, GuildChannel>;
 
-    fn deserialize<D: Deserializer<'de>>(
-        self,
-        deserializer: D,
-    ) -> Result<Self::Value, D::Error> {
+    fn deserialize<D: Deserializer<'de>>(self, deserializer: D) -> Result<Self::Value, D::Error> {
         deserializer.deserialize_seq(GuildChannelMapVisitor)
     }
 }

@@ -2,9 +2,15 @@ use crate::{
     id::{EmojiId, RoleId},
     user::User,
 };
-use serde::{de::{DeserializeSeed, Deserializer, SeqAccess, Visitor}, Deserialize, Serialize};
+use serde::{
+    de::{DeserializeSeed, Deserializer, SeqAccess, Visitor},
+    Deserialize, Serialize,
+};
 use serde_mappable_seq::Key;
-use std::{collections::HashMap, fmt::{Formatter, Result as FmtResult}};
+use std::{
+    collections::HashMap,
+    fmt::{Formatter, Result as FmtResult},
+};
 
 #[allow(clippy::struct_excessive_bools)]
 #[derive(Clone, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
@@ -46,7 +52,9 @@ impl<'de> Visitor<'de> for EmojiMapVisitor {
     }
 
     fn visit_seq<S: SeqAccess<'de>>(self, mut seq: S) -> Result<Self::Value, S::Error> {
-        let mut map = seq.size_hint().map_or_else(HashMap::new, HashMap::with_capacity);
+        let mut map = seq
+            .size_hint()
+            .map_or_else(HashMap::new, HashMap::with_capacity);
 
         while let Some(emoji) = seq.next_element::<Emoji>()? {
             map.insert(emoji.id, emoji);
@@ -59,10 +67,7 @@ impl<'de> Visitor<'de> for EmojiMapVisitor {
 impl<'de> DeserializeSeed<'de> for EmojiMapDeserializer {
     type Value = HashMap<EmojiId, Emoji>;
 
-    fn deserialize<D: Deserializer<'de>>(
-        self,
-        deserializer: D,
-    ) -> Result<Self::Value, D::Error> {
+    fn deserialize<D: Deserializer<'de>>(self, deserializer: D) -> Result<Self::Value, D::Error> {
         deserializer.deserialize_seq(EmojiMapVisitor)
     }
 }
