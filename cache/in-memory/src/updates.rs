@@ -39,6 +39,7 @@ impl UpdateCache<InMemoryCache, InMemoryCacheError> for Event {
             GatewayHello(_) => Ok(()),
             GatewayInvalidateSession(_v) => Ok(()),
             GatewayReconnect => Ok(()),
+            GiftCodeUpdate => Ok(()),
             GuildCreate(v) => c.update(v.deref()).await,
             GuildDelete(v) => c.update(v.deref()).await,
             GuildEmojisUpdate(v) => c.update(v).await,

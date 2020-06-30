@@ -29,6 +29,7 @@ bitflags! {
         const GATEWAY_INVALIDATE_SESSION = 1 << 8;
         /// The gateway is indicating to perform a reconnect.
         const GATEWAY_RECONNECT = 1 << 9;
+        const GIFT_CODE_UPDATE = 1 << 49;
         /// A guild was created.
         const GUILD_CREATE = 1 << 10;
         /// A guild was deleted or the current user was removed from a guild.
@@ -90,6 +91,7 @@ impl From<EventType> for EventTypeFlags {
             EventType::GatewayHello => EventTypeFlags::GATEWAY_HELLO,
             EventType::GatewayInvalidateSession => EventTypeFlags::GATEWAY_INVALIDATE_SESSION,
             EventType::GatewayReconnect => EventTypeFlags::GATEWAY_RECONNECT,
+            EventType::GiftCodeUpdate => EventTypeFlags::GIFT_CODE_UPDATE,
             EventType::GuildCreate => EventTypeFlags::GUILD_CREATE,
             EventType::GuildDelete => EventTypeFlags::GUILD_DELETE,
             EventType::GuildEmojisUpdate => EventTypeFlags::GUILD_EMOJIS_UPDATE,

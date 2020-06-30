@@ -47,6 +47,8 @@ pub enum Event {
     GatewayInvalidateSession(bool),
     /// The gateway is indicating to perform a reconnect.
     GatewayReconnect,
+    /// Undocumented event, should be ignored
+    GiftCodeUpdate,
     /// A guild was created.
     GuildCreate(Box<GuildCreate>),
     /// A guild was deleted or the current user was removed from a guild.
@@ -147,6 +149,7 @@ impl Event {
             Self::GatewayHello(_) => EventType::GatewayHello,
             Self::GatewayInvalidateSession(_) => EventType::GatewayInvalidateSession,
             Self::GatewayReconnect => EventType::GatewayReconnect,
+            Self::GiftCodeUpdate => EventType::GiftCodeUpdate,
             Self::GuildCreate(_) => EventType::GuildCreate,
             Self::GuildDelete(_) => EventType::GuildDelete,
             Self::GuildEmojisUpdate(_) => EventType::GuildEmojisUpdate,
@@ -199,6 +202,7 @@ impl From<Box<DispatchEvent>> for Event {
             DispatchEvent::ChannelDelete(v) => Self::ChannelDelete(v),
             DispatchEvent::ChannelPinsUpdate(v) => Self::ChannelPinsUpdate(v),
             DispatchEvent::ChannelUpdate(v) => Self::ChannelUpdate(v),
+            DispatchEvent::GiftCodeUpdate => Self::GiftCodeUpdate,
             DispatchEvent::GuildCreate(v) => Self::GuildCreate(v),
             DispatchEvent::GuildDelete(v) => Self::GuildDelete(v),
             DispatchEvent::GuildEmojisUpdate(v) => Self::GuildEmojisUpdate(v),

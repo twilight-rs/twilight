@@ -435,6 +435,7 @@ fn event_guild_id(event: &Event) -> Option<GuildId> {
         Event::GatewayHello(_) => None,
         Event::GatewayInvalidateSession(_) => None,
         Event::GatewayReconnect => None,
+        Event::GiftCodeUpdate => None,
         Event::GuildCreate(e) => Some(e.id),
         Event::GuildDelete(e) => Some(e.id),
         Event::GuildEmojisUpdate(e) => Some(e.guild_id),
