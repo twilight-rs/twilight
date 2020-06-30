@@ -12,6 +12,7 @@ pub enum EventType {
     GatewayHello,
     GatewayInvalidateSession,
     GatewayReconnect,
+    GiftCodeUpdate,
     GuildCreate,
     GuildDelete,
     GuildEmojisUpdate,
