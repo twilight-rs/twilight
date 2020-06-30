@@ -20,4 +20,5 @@ log = { default-features = false, version = "0.4" }
 twilight-model = { default-features = false, path = "../model" }
 
 [dev-dependencies]
+twilight-gateway = { path = "../gateway" }
 tokio = { default-features = false, features = ["macros", "rt-core"], version = "0.2" }
