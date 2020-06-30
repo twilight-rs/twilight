@@ -24,11 +24,11 @@ pub use self::{
 
 use crate::id::{ChannelId, MessageId};
 use serde::{
-    de::{Deserializer, Error as DeError, MapAccess, Visitor},
+    de::{DeserializeSeed, Deserializer, Error as DeError, MapAccess, SeqAccess, Visitor},
     Deserialize, Serialize,
 };
 use serde_mappable_seq::Key;
-use std::fmt::{Formatter, Result as FmtResult};
+use std::{collections::HashMap, fmt::{Formatter, Result as FmtResult}};
 
 #[derive(Clone, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
 #[serde(untagged)]
@@ -285,6 +285,46 @@ impl<'de> Visitor<'de> for GuildChannelVisitor {
 impl<'de> Deserialize<'de> for GuildChannel {
     fn deserialize<D: Deserializer<'de>>(deserializer: D) -> Result<Self, D::Error> {
         deserializer.deserialize_map(GuildChannelVisitor)
+    }
+}
+
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub(crate) struct GuildChannelMapDeserializer;
+
+struct GuildChannelMapVisitor;
+
+impl<'de> Visitor<'de> for GuildChannelMapVisitor {
+    type Value = HashMap<ChannelId, GuildChannel>;
+
+    fn expecting(&self, f: &mut Formatter<'_>) -> FmtResult {
+        f.write_str("a sequence of guild channels")
+    }
+
+    fn visit_seq<S: SeqAccess<'de>>(self, mut seq: S) -> Result<Self::Value, S::Error> {
+        let mut map = seq.size_hint().map_or_else(HashMap::new, HashMap::with_capacity);
+
+        while let Some(channel) = seq.next_element()? {
+            let id = match channel {
+                GuildChannel::Category(ref c) => c.id,
+                GuildChannel::Text(ref t) => t.id,
+                GuildChannel::Voice(ref v) => v.id,
+            };
+
+            map.insert(id, channel);
+        }
+
+        Ok(map)
+    }
+}
+
+impl<'de> DeserializeSeed<'de> for GuildChannelMapDeserializer {
+    type Value = HashMap<ChannelId, GuildChannel>;
+
+    fn deserialize<D: Deserializer<'de>>(
+        self,
+        deserializer: D,
+    ) -> Result<Self::Value, D::Error> {
+        deserializer.deserialize_seq(GuildChannelMapVisitor)
     }
 }
 

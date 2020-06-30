@@ -33,18 +33,18 @@ pub use self::{
     widget::GuildWidget,
 };
 
-use self::member::MemberIntermediary;
+use self::{member::MemberMapDeserializer, role::RoleMapDeserializer};
 use crate::{
-    channel::GuildChannel,
-    gateway::presence::Presence,
+    channel::{GuildChannelMapDeserializer, GuildChannel},
+    guild::emoji::EmojiMapDeserializer,
+    gateway::presence::{PresenceMapDeserializer, Presence},
     id::{ApplicationId, ChannelId, EmojiId, GuildId, RoleId, UserId},
-    voice::VoiceState,
+    voice::voice_state::{VoiceStateMapDeserializer, VoiceState},
 };
 use serde::{
     de::{Deserializer, Error as DeError, MapAccess, Visitor},
     Deserialize, Serialize,
 };
-use serde_value::Value;
 use std::{
     collections::HashMap,
     fmt::{Formatter, Result as FmtResult},
@@ -280,11 +280,7 @@ impl<'de> Deserialize<'de> for Guild {
                                 return Err(DeError::duplicate_field("channels"));
                             }
 
-                            let raw_channels = map.next_value::<Value>()?;
-                            channels = Some(
-                                serde_mappable_seq::deserialize(raw_channels)
-                                    .map_err(DeError::custom)?,
-                            );
+                            channels = Some(map.next_value_seed(GuildChannelMapDeserializer)?);
                         }
                         Field::DefaultMessageNotifications => {
                             if default_message_notifications.is_some() {
@@ -328,11 +324,7 @@ impl<'de> Deserialize<'de> for Guild {
                                 return Err(DeError::duplicate_field("emojis"));
                             }
 
-                            let raw_emojis = map.next_value::<Value>()?;
-                            emojis = Some(
-                                serde_mappable_seq::deserialize(raw_emojis)
-                                    .map_err(DeError::custom)?,
-                            );
+                            emojis = Some(map.next_value_seed(EmojiMapDeserializer)?);
                         }
                         Field::ExplicitContentFilter => {
                             if explicit_content_filter.is_some() {
@@ -416,7 +408,9 @@ impl<'de> Deserialize<'de> for Guild {
                                 return Err(DeError::duplicate_field("members"));
                             }
 
-                            members = Some(map.next_value::<Value>()?);
+                            let deserializer = MemberMapDeserializer::new(GuildId(0));
+
+                            members = Some(map.next_value_seed(deserializer)?);
                         }
                         Field::MfaLevel => {
                             if mfa_level.is_some() {
@@ -479,11 +473,9 @@ impl<'de> Deserialize<'de> for Guild {
                                 return Err(DeError::duplicate_field("presences"));
                             }
 
-                            let raw_presences = map.next_value::<Value>()?;
-                            presences = Some(
-                                serde_mappable_seq::deserialize(raw_presences)
-                                    .map_err(DeError::custom)?,
-                            );
+                            let deserializer = PresenceMapDeserializer::new(GuildId(0));
+
+                            presences = Some(map.next_value_seed(deserializer)?);
                         }
                         Field::Region => {
                             if region.is_some() {
@@ -497,11 +489,7 @@ impl<'de> Deserialize<'de> for Guild {
                                 return Err(DeError::duplicate_field("roles"));
                             }
 
-                            let raw_roles = map.next_value::<Value>()?;
-                            roles = Some(
-                                serde_mappable_seq::deserialize(raw_roles)
-                                    .map_err(DeError::custom)?,
-                            );
+                            roles = Some(map.next_value_seed(RoleMapDeserializer)?);
                         }
                         Field::Splash => {
                             if splash.is_some() {
@@ -550,11 +538,7 @@ impl<'de> Deserialize<'de> for Guild {
                                 return Err(DeError::duplicate_field("voice_states"));
                             }
 
-                            let raw_voice_states = map.next_value::<Value>()?;
-                            voice_states = Some(
-                                serde_mappable_seq::deserialize(raw_voice_states)
-                                    .map_err(DeError::custom)?,
-                            );
+                            voice_states = Some(map.next_value_seed(VoiceStateMapDeserializer)?);
                         }
                         Field::VanityUrlCode => {
                             if vanity_url_code.is_some() {
@@ -605,7 +589,7 @@ impl<'de> Deserialize<'de> for Guild {
                 let approximate_member_count = approximate_member_count.unwrap_or_default();
                 let approximate_presence_count = approximate_presence_count.unwrap_or_default();
                 let banner = banner.unwrap_or_default();
-                let channels = channels.unwrap_or_default();
+                let mut channels = channels.unwrap_or_default();
                 let description = description.unwrap_or_default();
                 let discovery_splash = discovery_splash.unwrap_or_default();
                 let embed_channel_id = embed_channel_id.unwrap_or_default();
@@ -619,48 +603,46 @@ impl<'de> Deserialize<'de> for Guild {
                 let max_presences = max_presences.unwrap_or_default();
                 let max_video_channel_users = max_video_channel_users.unwrap_or_default();
                 let member_count = member_count.unwrap_or_default();
+                let mut members = members.unwrap_or_default();
                 let owner = owner.unwrap_or_default();
                 let permissions = permissions.unwrap_or_default();
                 let premium_subscription_count = premium_subscription_count.unwrap_or_default();
                 let premium_tier = premium_tier.unwrap_or_default();
-                let presences = presences.unwrap_or_default();
+                let mut presences = presences.unwrap_or_default();
                 let rules_channel_id = rules_channel_id.unwrap_or_default();
                 let splash = splash.unwrap_or_default();
                 let system_channel_id = system_channel_id.unwrap_or_default();
                 let unavailable = unavailable.unwrap_or_default();
                 let vanity_url_code = vanity_url_code.unwrap_or_default();
-                let voice_states = voice_states.unwrap_or_default();
+                let mut voice_states = voice_states.unwrap_or_default();
                 let widget_channel_id = widget_channel_id.unwrap_or_default();
                 let widget_enabled = widget_enabled.unwrap_or_default();
 
-                let members = match members {
-                    Some(value) => {
-                        let members = value
-                            .deserialize_into::<Vec<MemberIntermediary>>()
-                            .map_err(DeError::custom)?;
-
-                        members
-                            .into_iter()
-                            .map(|member| {
-                                (
-                                    member.user.id,
-                                    Member {
-                                        deaf: member.deaf,
-                                        guild_id: id,
-                                        hoisted_role: member.hoisted_role,
-                                        joined_at: member.joined_at,
-                                        mute: member.mute,
-                                        nick: member.nick,
-                                        premium_since: member.premium_since,
-                                        roles: member.roles,
-                                        user: member.user,
-                                    },
-                                )
-                            })
-                            .collect::<HashMap<_, _>>()
+                for channel in channels.values_mut() {
+                    match channel {
+                        GuildChannel::Category(c) => {
+                            c.guild_id.replace(id);
+                        },
+                        GuildChannel::Text(c) => {
+                            c.guild_id.replace(id);
+                        },
+                        GuildChannel::Voice(c) => {
+                            c.guild_id.replace(id);
+                        },
                     }
-                    None => HashMap::default(),
-                };
+                }
+
+                for member in members.values_mut() {
+                    member.guild_id = id;
+                }
+
+                for presence in presences.values_mut() {
+                    presence.guild_id.replace(id);
+                }
+
+                for voice_state in voice_states.values_mut() {
+                    voice_state.guild_id.replace(id);
+                }
 
                 Ok(Guild {
                     afk_channel_id,
