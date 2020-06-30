@@ -11,7 +11,7 @@ async fn main() -> Result<(), Box<dyn Error + Send + Sync>> {
     config
         .proxy(Proxy::all("http://localhost:3000")?)
         .proxy_http(true)
-        .skip_ratelimiter(true);
+        .ratelimiter(None);
     let client = config.build()?;
     let channel_id = ChannelId(620_980_184_606_048_278);
 
