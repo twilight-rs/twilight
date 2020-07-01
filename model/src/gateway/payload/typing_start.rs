@@ -129,31 +129,10 @@ mod tests {
         id::{ChannelId, GuildId, RoleId, UserId},
         user::User,
     };
-    use serde_json::json;
+    use serde_test::Token;
 
     #[test]
-    fn test_typing_start_with_member_deser() {
-        let input = json!({
-            "channel_id": "2",
-            "guild_id": "1",
-            "member": {
-                "deaf": false,
-                "hoisted_role": "4",
-                "joined_at": "2020-01-01T00:00:00.000000+00:00",
-                "mute": false,
-                "nick": "typing",
-                "roles": ["4"],
-                "user": {
-                    "username": "test",
-                    "id": "3",
-                    "discriminator": "0001",
-                    "avatar": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
-                },
-            },
-            "timestamp": 1500000000,
-            "user_id": "3",
-        });
-
+    fn test_typing_start_with_member() {
         let expected = TypingStart {
             channel_id: ChannelId(2),
             guild_id: Some(GuildId(1)),
@@ -186,19 +165,97 @@ mod tests {
             user_id: UserId(3),
         };
 
-        assert_eq!(expected, serde_json::from_value(input).unwrap());
+        serde_test::assert_tokens(
+            &expected,
+            &[
+                Token::Struct {
+                    name: "TypingStart",
+                    len: 5,
+                },
+                Token::Str("channel_id"),
+                Token::NewtypeStruct { name: "ChannelId" },
+                Token::Str("2"),
+                Token::Str("guild_id"),
+                Token::Some,
+                Token::NewtypeStruct { name: "GuildId" },
+                Token::Str("1"),
+                Token::Str("member"),
+                Token::Some,
+                Token::Struct {
+                    name: "Member",
+                    len: 9,
+                },
+                Token::Str("deaf"),
+                Token::Bool(false),
+                Token::Str("guild_id"),
+                Token::NewtypeStruct { name: "GuildId" },
+                Token::Str("1"),
+                Token::Str("hoisted_role"),
+                Token::Some,
+                Token::NewtypeStruct { name: "RoleId" },
+                Token::Str("4"),
+                Token::Str("joined_at"),
+                Token::Some,
+                Token::Str("2020-01-01T00:00:00.000000+00:00"),
+                Token::Str("mute"),
+                Token::Bool(false),
+                Token::Str("nick"),
+                Token::Some,
+                Token::Str("typing"),
+                Token::Str("premium_since"),
+                Token::None,
+                Token::Str("roles"),
+                Token::Seq { len: Some(1) },
+                Token::NewtypeStruct { name: "RoleId" },
+                Token::Str("4"),
+                Token::SeqEnd,
+                Token::Str("user"),
+                Token::Struct {
+                    name: "User",
+                    len: 13,
+                },
+                Token::Str("avatar"),
+                Token::Some,
+                Token::Str("aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"),
+                Token::Str("bot"),
+                Token::Bool(false),
+                Token::Str("discriminator"),
+                Token::Str("0001"),
+                Token::Str("email"),
+                Token::None,
+                Token::Str("flags"),
+                Token::None,
+                Token::Str("id"),
+                Token::NewtypeStruct { name: "UserId" },
+                Token::Str("3"),
+                Token::Str("locale"),
+                Token::None,
+                Token::Str("mfa_enabled"),
+                Token::None,
+                Token::Str("username"),
+                Token::Str("test"),
+                Token::Str("premium_type"),
+                Token::None,
+                Token::Str("public_flags"),
+                Token::None,
+                Token::Str("system"),
+                Token::None,
+                Token::Str("verified"),
+                Token::None,
+                Token::StructEnd,
+                Token::StructEnd,
+                Token::Str("timestamp"),
+                Token::U64(1500000000),
+                Token::Str("user_id"),
+                Token::NewtypeStruct { name: "UserId" },
+                Token::Str("3"),
+                Token::StructEnd,
+            ],
+        );
     }
 
     #[test]
-    fn test_typing_start_without_member_deser() {
-        let input = json!({
-            "channel_id": "2",
-            "guild_id": null,
-            "member": null,
-            "timestamp": 1500000000,
-            "user_id": "3",
-        });
-
+    fn test_typing_start_without_member() {
         let expected = TypingStart {
             channel_id: ChannelId(2),
             guild_id: None,
@@ -207,6 +264,27 @@ mod tests {
             user_id: UserId(3),
         };
 
-        assert_eq!(expected, serde_json::from_value(input).unwrap());
+        serde_test::assert_tokens(
+            &expected,
+            &[
+                Token::Struct {
+                    name: "TypingStart",
+                    len: 5,
+                },
+                Token::Str("channel_id"),
+                Token::NewtypeStruct { name: "ChannelId" },
+                Token::Str("2"),
+                Token::Str("guild_id"),
+                Token::None,
+                Token::Str("member"),
+                Token::None,
+                Token::Str("timestamp"),
+                Token::U64(1500000000),
+                Token::Str("user_id"),
+                Token::NewtypeStruct { name: "UserId" },
+                Token::Str("3"),
+                Token::StructEnd,
+            ],
+        );
     }
 }
