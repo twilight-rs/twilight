@@ -26,7 +26,9 @@ impl Error for UpdateCurrentUserError {}
 
 #[derive(Default, Serialize)]
 struct UpdateCurrentUserFields {
+    #[serde(skip_serializing_if = "Option::is_none")]
     avatar: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     username: Option<String>,
 }
 
