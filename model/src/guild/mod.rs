@@ -42,7 +42,7 @@ use crate::{
     voice::voice_state::{VoiceState, VoiceStateMapDeserializer},
 };
 use serde::{
-    de::{Deserializer, Error as DeError, MapAccess, Visitor},
+    de::{Deserializer, Error as DeError, IgnoredAny, MapAccess, Visitor},
     Deserialize, Serialize,
 };
 use std::{
@@ -228,6 +228,8 @@ impl<'de> Deserialize<'de> for Guild {
                         Ok(None) => break,
                         Err(_) => {
                             // Encountered when we run into an unknown key.
+                            map.next_value::<IgnoredAny>()?;
+
                             continue;
                         }
                     };

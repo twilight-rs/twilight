@@ -1,10 +1,12 @@
 use super::super::OpCode;
 use super::{DispatchEvent, DispatchEventWithTypeDeserializer};
 use serde::{
-    de::{Deserialize, DeserializeSeed, Deserializer, Error as DeError, MapAccess, Visitor},
-    Deserialize as DeserializeMacro,
+    de::{
+        value::U8Deserializer, DeserializeSeed, Deserializer, Error as DeError, IgnoredAny,
+        IntoDeserializer, MapAccess, Unexpected, Visitor,
+    },
+    Deserialize,
 };
-use serde_value::Value;
 use std::fmt::{Formatter, Result as FmtResult};
 
 /// An event from the gateway, which can either be a dispatch event with
@@ -19,7 +21,7 @@ pub enum GatewayEvent {
     Reconnect,
 }
 
-#[derive(DeserializeMacro)]
+#[derive(Clone, Copy, Deserialize, PartialEq)]
 #[serde(field_identifier, rename_all = "lowercase")]
 enum Field {
     D,
@@ -28,9 +30,83 @@ enum Field {
     T,
 }
 
-struct GatewayEventVisitor;
+pub struct GatewayEventDeserializer<'a> {
+    event_type: Option<&'a str>,
+    op: u8,
+}
 
-impl<'de> Visitor<'de> for GatewayEventVisitor {
+impl<'a> GatewayEventDeserializer<'a> {
+    // Create a gateway event deserializer with some information found by
+    // scanning the JSON payload to deserialise.
+    //
+    // This will scan the payload for the opcode and, optionally, event type if
+    // provided. The opcode key ("op"), must be in the payload while the event
+    // type key ("t") is optional and only required for event ops.
+    pub fn new(input: &'a str) -> Option<Self> {
+        let op = Self::find_opcode(input)?;
+        let event_type = Self::find_event_type(input);
+
+        Some(Self { event_type, op })
+    }
+
+    fn find_event_type(input: &'a str) -> Option<&'a str> {
+        // Discord seems to usually (always?) provide the type at the end of the
+        // payload, so let's search from the right...
+        let from = input.rfind(r#""t":"#)? + 4;
+
+        // Now let's find where the value starts. There may or may not be any
+        // amount of whitespace after the "t" key.
+        let start = input.get(from..)?.find('"')? + from + 1;
+        let to = input.get(start..)?.find('"')?;
+
+        input.get(start..start + to)
+    }
+
+    fn find_opcode(input: &'a str) -> Option<u8> {
+        // Find the op key's position and then search for where the first
+        // character that's not base 10 is. This'll give us the bytes with the
+        // op which can be parsed.
+        //
+        // Add on 5 at the end since that's the length of what we're finding.
+        let from = input.find(r#""op":"#)? + 5;
+
+        // Look for the first thing that isn't a base 10 digit or whitespace,
+        // i.e. a comma (denoting another JSON field), curly brace (end of the
+        // object), etc. This'll give us the op number, maybe with a little
+        // whitespace.
+        let to = input.get(from..)?.find(|c: char| c == ',' || c == '}')?;
+        // We might have some whitespace, so let's trim this.
+        let clean = input.get(from..from + to)?.trim();
+
+        clean.parse::<u8>().ok()
+    }
+}
+
+struct GatewayEventVisitor<'a>(u8, Option<&'a str>);
+
+impl GatewayEventVisitor<'_> {
+    fn field<'de, T: Deserialize<'de>, V: MapAccess<'de>>(
+        map: &mut V,
+        field: Field,
+    ) -> Result<T, V::Error> {
+        loop {
+            match map.next_key::<Field>() {
+                Ok(Some(key)) if key == field => return map.next_value(),
+                Ok(Some(_)) | Err(_) => continue,
+                Ok(None) => {
+                    return Err(DeError::missing_field(match field {
+                        Field::D => "d",
+                        Field::Op => "op",
+                        Field::S => "s",
+                        Field::T => "t",
+                    }));
+                }
+            }
+        }
+    }
+}
+
+impl<'de> Visitor<'de> for GatewayEventVisitor<'_> {
     type Value = GatewayEvent;
 
     fn expecting(&self, formatter: &mut Formatter<'_>) -> FmtResult {
@@ -51,80 +127,82 @@ impl<'de> Visitor<'de> for GatewayEventVisitor {
             "RECONNECT",
         ];
 
-        // Have to use a serde_json::Value here because serde has no
-        // abstract container type.
-        let mut d = None::<Value>;
-        let mut op = None::<OpCode>;
-        let mut s = None::<u64>;
-        let mut t = None::<String>;
+        let op_deser: U8Deserializer<V::Error> = self.0.into_deserializer();
 
-        while let Some(key) = map.next_key()? {
-            match key {
-                Field::D => {
-                    if d.is_some() {
-                        return Err(DeError::duplicate_field("d"));
-                    }
+        let op = OpCode::deserialize(op_deser).ok().ok_or_else(|| {
+            let unexpected = Unexpected::Unsigned(u64::from(self.0));
 
-                    d = Some(map.next_value()?);
-                }
-                Field::Op => {
-                    if op.is_some() {
-                        return Err(DeError::duplicate_field("op"));
-                    }
-
-                    op = Some(map.next_value()?);
-                }
-                Field::S => {
-                    if s.is_some() {
-                        return Err(DeError::duplicate_field("s"));
-                    }
-
-                    s = map.next_value::<Option<_>>()?;
-                }
-                Field::T => {
-                    if t.is_some() {
-                        return Err(DeError::duplicate_field("t"));
-                    }
-
-                    t = map.next_value::<Option<_>>()?;
-                }
-            }
-        }
-
-        let op = op.ok_or_else(|| DeError::missing_field("op"))?;
+            DeError::invalid_value(unexpected, &"an opcode")
+        })?;
 
         Ok(match op {
             OpCode::Event => {
+                let t = self
+                    .1
+                    .ok_or_else(|| DeError::custom("event type not provided beforehand"))?;
+
+                let mut d = None;
+                let mut s = None;
+
+                loop {
+                    let key = match map.next_key() {
+                        Ok(Some(key)) => key,
+                        Ok(None) => break,
+                        Err(_) => {
+                            map.next_value::<IgnoredAny>()?;
+
+                            continue;
+                        }
+                    };
+
+                    match key {
+                        Field::D => {
+                            if d.is_some() {
+                                return Err(DeError::duplicate_field("d"));
+                            }
+
+                            let deserializer = DispatchEventWithTypeDeserializer::new(t);
+
+                            d = Some(map.next_value_seed(deserializer)?);
+                        }
+                        Field::S => {
+                            if s.is_some() {
+                                return Err(DeError::duplicate_field("s"));
+                            }
+
+                            s = Some(map.next_value()?);
+                        }
+                        Field::Op | Field::T => {
+                            map.next_value::<IgnoredAny>()?;
+                        }
+                    }
+                }
+
                 let d = d.ok_or_else(|| DeError::missing_field("d"))?;
                 let s = s.ok_or_else(|| DeError::missing_field("s"))?;
-                let t = t.ok_or_else(|| DeError::missing_field("t"))?;
-                let event_deserialize = DispatchEventWithTypeDeserializer::new(t.as_ref());
-                let dispatch = event_deserialize.deserialize(d).map_err(DeError::custom)?;
 
-                GatewayEvent::Dispatch(s, Box::new(dispatch))
+                GatewayEvent::Dispatch(s, Box::new(d))
             }
             OpCode::Heartbeat => {
-                let s = s.ok_or_else(|| DeError::missing_field("s"))?;
+                let seq = Self::field(&mut map, Field::S)?;
 
-                GatewayEvent::Heartbeat(s)
+                GatewayEvent::Heartbeat(seq)
             }
             OpCode::HeartbeatAck => GatewayEvent::HeartbeatAck,
             OpCode::Hello => {
-                #[derive(DeserializeMacro)]
+                #[derive(Deserialize)]
                 struct Hello {
                     heartbeat_interval: u64,
                 }
 
-                let d = d.ok_or_else(|| DeError::missing_field("d"))?;
-                let hello = Hello::deserialize(d).map_err(DeError::custom)?;
+                let hello = Self::field::<Hello, _>(&mut map, Field::D)?;
 
                 GatewayEvent::Hello(hello.heartbeat_interval)
             }
             OpCode::InvalidSession => {
-                let d = d.ok_or_else(|| DeError::missing_field("d"))?;
-                let resumeable = bool::deserialize(d).map_err(DeError::custom)?;
+                let invalidate = Self::field::<bool, _>(&mut map, Field::D)?;
 
-                GatewayEvent::InvalidateSession(resumeable)
+                GatewayEvent::InvalidateSession(invalidate)
             }
             OpCode::Identify => return Err(DeError::unknown_variant("Identify", VALID_OPCODES)),
             OpCode::Reconnect => GatewayEvent::Reconnect,
@@ -148,21 +226,47 @@ impl<'de> Visitor<'de> for GatewayEventVisitor {
     }
 }
 
-impl<'de> Deserialize<'de> for GatewayEvent {
-    fn deserialize<D: Deserializer<'de>>(deserializer: D) -> Result<Self, D::Error> {
-        const FIELDS: &[&str] = &["d", "op", "s", "t"];
+impl<'de> DeserializeSeed<'de> for GatewayEventDeserializer<'_> {
+    type Value = GatewayEvent;
 
-        deserializer.deserialize_struct("GatewayEvent", FIELDS, GatewayEventVisitor)
+    fn deserialize<D: Deserializer<'de>>(self, deserializer: D) -> Result<Self::Value, D::Error> {
+        const FIELDS: &[&str] = &["d", "s"];
+
+        deserializer.deserialize_struct(
+            "GatewayEvent",
+            FIELDS,
+            GatewayEventVisitor(self.op, self.event_type),
+        )
     }
 }
 
 #[cfg(test)]
 mod tests {
-    use super::*;
+    use super::{GatewayEvent, GatewayEventDeserializer};
+    use serde::de::DeserializeSeed;
+    use serde_json::de::Deserializer;
+
+    #[test]
+    fn test_deserializer_constructor() {
+        let input = r#"{
+            "d": {
+                "guild_id": "1",
+                "role_id": "2"
+            },
+            "op": 0,
+            "s": 7,
+            "t": "GUILD_ROLE_DELETE"
+        }"#;
+
+        let deserializer = GatewayEventDeserializer::new(input).unwrap();
+        let mut json_deserializer = Deserializer::from_str(input);
+        let event = deserializer.deserialize(&mut json_deserializer).unwrap();
+        assert!(matches!(event, GatewayEvent::Dispatch(7, _)));
+    }
 
     #[test]
     fn test_guild() {
-        let broken_guild = r#"{
+        let input = r#"{
   "d": {
     "afk_channel_id": "1337",
     "afk_timeout": 300,
@@ -227,12 +331,16 @@ mod tests {
   "t": "GUILD_UPDATE"
 }"#;
 
-        serde_json::from_str::<GatewayEvent>(broken_guild).unwrap();
+        let deserializer = GatewayEventDeserializer::new(input).unwrap();
+        let mut json_deserializer = Deserializer::from_str(input);
+        let event = deserializer.deserialize(&mut json_deserializer).unwrap();
+
+        assert!(matches!(event, GatewayEvent::Dispatch(42, _)));
     }
 
     #[test]
     fn test_guild_2() {
-        let broken_guild = r#"{
+        let input = r#"{
   "d": {
     "afk_channel_id": null,
     "afk_timeout": 300,
@@ -293,6 +401,11 @@ mod tests {
   "s": 1190911,
   "t": "GUILD_UPDATE"
 }"#;
-        serde_json::from_str::<GatewayEvent>(broken_guild).unwrap();
+
+        let deserializer = GatewayEventDeserializer::new(input).unwrap();
+        let mut json_deserializer = Deserializer::from_str(input);
+        let event = deserializer.deserialize(&mut json_deserializer).unwrap();
+
+        assert!(matches!(event, GatewayEvent::Dispatch(1190911, _)));
     }
 }
