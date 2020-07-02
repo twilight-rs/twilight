@@ -25,6 +25,7 @@ use twilight_model::channel::embed::*;
 /// ```
 ///
 /// An embed with images:
+///
 /// ```rust,no_run
 /// use twilight_builders::embed::EmbedBuilder;
 ///
@@ -63,14 +64,14 @@ impl EmbedBuilder {
 
     /// Return a new [`AuthorBuilder`].
     /// 
-    /// [`AuthorBuilder`]: ../struct.AuthorBuilder.html
+    /// [`AuthorBuilder`]: ./struct.AuthorBuilder.html
     pub fn author(self) -> AuthorBuilder {
         AuthorBuilder::new(self)
     }
 
     /// Set the color.
     ///
-    /// Use hexadecimal syntax to specify an integer in familar hex colors: `0xD4A4E8`
+    /// Use hexadecimal syntax to specify an integer: `0xD4A4E8`
     pub fn color(mut self, color: u32) -> Self {
         self.0.color.replace(color);
         self
@@ -89,7 +90,7 @@ impl EmbedBuilder {
     /// The name is limited to 256 UTF-16 code points, and the value is limited to 1024. The amount
     /// of fields is limited to 25.
     ///
-    /// [`FieldBuilder`]: ../struct.FieldBuilder.html
+    /// [`FieldBuilder`]: ./struct.FieldBuilder.html
     pub fn add_field(self, name: impl Into<String>, value: impl Into<String>) -> FieldBuilder {
         FieldBuilder::new(self, name.into(), value.into())
     }
@@ -98,7 +99,7 @@ impl EmbedBuilder {
     ///
     /// The text is limited to 2048 UTF-16 code points.
     ///
-    /// [`FooterBuilder`]: ../struct.FooterBuilder.html
+    /// [`FooterBuilder`]: ./struct.FooterBuilder.html
     pub fn footer(self, text: impl Into<String>) -> FooterBuilder {
         FooterBuilder::new(self, text.into())
     }
