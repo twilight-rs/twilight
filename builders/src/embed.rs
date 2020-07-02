@@ -63,7 +63,7 @@ impl EmbedBuilder {
     }
 
     /// Return a new [`AuthorBuilder`].
-    /// 
+    ///
     /// [`AuthorBuilder`]: ./struct.AuthorBuilder.html
     pub fn author(self) -> AuthorBuilder {
         AuthorBuilder::new(self)
@@ -202,7 +202,7 @@ impl AuthorBuilder {
         self
     }
 
-    /// Build the author, and return the embed builder. 
+    /// Build the author, and return the embed builder.
     pub fn commit(mut self) -> EmbedBuilder {
         (self.1).0.author.replace(self.0);
         self.1
