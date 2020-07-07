@@ -11,6 +11,7 @@ use std::{
     error::Error as StdError,
     fmt::{Display, Formatter, Result as FmtResult},
     result::Result as StdResult,
+    str::Utf8Error,
 };
 use tokio_tungstenite::tungstenite::{Error as TungsteniteError, Message as TungsteniteMessage};
 use twilight_http::Error as HttpError;
@@ -76,6 +77,19 @@ pub enum Error {
         /// The URL that couldn't be parsed.
         url: String,
     },
+    /// The payload received from Discord was an invalid structure.
+    ///
+    /// The payload was either invalid JSON or did not contain the necessary
+    /// "op" key in the object.
+    PayloadInvalid {
+        /// The payload received over the connection.
+        payload: String,
+    },
+    /// The binary payload received from Discord wasn't UTF-8 valid.
+    PayloadNotUtf8 {
+        /// Source error when converting to a UTF-8 valid string.
+        source: Utf8Error,
+    },
     /// There was an error serializing or deserializing a payload.
     PayloadSerialization {
         /// The serialization error.
@@ -122,6 +136,8 @@ impl Display for Error {
                 value
             ),
             Self::ParsingUrl { url, .. } => write!(f, "The gateway URL {:?} is invalid", url),
+            Self::PayloadInvalid { .. } => write!(f, "The binary payload received from Discord wasn't UTF-8 valid"),
+            Self::PayloadNotUtf8 { .. } => write!(f, "The payload from Discord wasn't UTF-8 valid"),
             Self::PayloadSerialization { .. } => {
                 f.write_str("Deserializing or serializing a payload failed")
             }
@@ -140,6 +156,7 @@ impl StdError for Error {
             Self::Connecting { source } => Some(source),
             Self::GettingGatewayUrl { source } => Some(source),
             Self::ParsingUrl { source, .. } => Some(source),
+            Self::PayloadNotUtf8 { source } => Some(source),
             Self::PayloadSerialization { source } => Some(source),
             Self::SendingMessage { source } => Some(source),
             Self::Decompressing { source } => Some(source),
@@ -148,6 +165,7 @@ impl StdError for Error {
             | Self::IntentsDisallowed { .. }
             | Self::IntentsInvalid { .. }
             | Self::LargeThresholdInvalid { .. }
+            | Self::PayloadInvalid { .. }
             | Self::Stopped { .. } => None,
         }
     }

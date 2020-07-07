@@ -22,7 +22,7 @@ fn gateway_event_role_delete() {
     }"##;
 
     let mut json_deserializer = Deserializer::from_str(input);
-    let gateway_deserializer = GatewayEventDeserializer::new(input).unwrap();
+    let gateway_deserializer = GatewayEventDeserializer::from_json(input).unwrap();
     gateway_deserializer
         .deserialize(&mut json_deserializer)
         .unwrap();
