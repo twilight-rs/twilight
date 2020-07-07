@@ -92,7 +92,11 @@ impl GatewayEventVisitor<'_> {
         loop {
             match map.next_key::<Field>() {
                 Ok(Some(key)) if key == field => return map.next_value(),
-                Ok(Some(_)) | Err(_) => continue,
+                Ok(Some(_)) | Err(_) => {
+                    map.next_value::<IgnoredAny>()?;
+
+                    continue;
+                },
                 Ok(None) => {
                     return Err(DeError::missing_field(match field {
                         Field::D => "d",
