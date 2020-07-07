@@ -30,6 +30,41 @@ enum Field {
     T,
 }
 
+/// A deserializer that deserializes into a GatewayEvent by cloning some bits
+/// of scanned information before the actual deserialisation.
+///
+/// This is the owned version of [`GatewayEventDeserializer`].
+///
+/// You should use this if you're using a mutable deserialization library
+/// like `simd-json`.
+///
+/// [`GatewayEventDeserializer`]: struct.GatewayEventDeserializer.html
+pub struct GatewayEventDeserializerOwned {
+    event_type: Option<String>,
+    op: u8,
+}
+
+impl GatewayEventDeserializerOwned {
+    pub fn from_json(input: &str) -> Option<Self> {
+        let deser = GatewayEventDeserializer::from_json(input)?;
+        let GatewayEventDeserializer { event_type, op } = deser;
+
+        Some(Self {
+            event_type: event_type.map(ToOwned::to_owned),
+            op,
+        })
+    }
+}
+
+/// A deserializer that deserializes into a GatewayEvent by borrowing some bits
+/// of scanned information before the actual deserialisation.
+///
+/// This is the borrowed version of [`GatewayEventDeserializerOwned`].
+///
+/// You should use this if you're using an immutable deserialization library
+/// like `serde_json`.
+///
+/// [`GatewayEventDeserializerOwned`]: struct.GatewayEventDeserializerOwned.html
 pub struct GatewayEventDeserializer<'a> {
     event_type: Option<&'a str>,
     op: u8,
@@ -42,7 +77,7 @@ impl<'a> GatewayEventDeserializer<'a> {
     // This will scan the payload for the opcode and, optionally, event type if
     // provided. The opcode key ("op"), must be in the payload while the event
     // type key ("t") is optional and only required for event ops.
-    pub fn new(input: &'a str) -> Option<Self> {
+    pub fn from_json(input: &'a str) -> Option<Self> {
         let op = Self::find_opcode(input)?;
         let event_type = Self::find_event_type(input);
 
@@ -239,7 +274,21 @@ impl<'de> DeserializeSeed<'de> for GatewayEventDeserializer<'_> {
         deserializer.deserialize_struct(
             "GatewayEvent",
             FIELDS,
-            GatewayEventVisitor(self.op, self.event_type),
+            GatewayEventVisitor(self.op, self.event_type.as_deref()),
+        )
+    }
+}
+
+impl<'de> DeserializeSeed<'de> for GatewayEventDeserializerOwned {
+    type Value = GatewayEvent;
+
+    fn deserialize<D: Deserializer<'de>>(self, deserializer: D) -> Result<Self::Value, D::Error> {
+        const FIELDS: &[&str] = &["d", "s"];
+
+        deserializer.deserialize_struct(
+            "GatewayEvent",
+            FIELDS,
+            GatewayEventVisitor(self.op, self.event_type.as_deref()),
         )
     }
 }
@@ -262,7 +311,7 @@ mod tests {
             "t": "GUILD_ROLE_DELETE"
         }"#;
 
-        let deserializer = GatewayEventDeserializer::new(input).unwrap();
+        let deserializer = GatewayEventDeserializer::from_json(input).unwrap();
         let mut json_deserializer = Deserializer::from_str(input);
         let event = deserializer.deserialize(&mut json_deserializer).unwrap();
         assert!(matches!(event, GatewayEvent::Dispatch(7, _)));
@@ -335,7 +384,7 @@ mod tests {
   "t": "GUILD_UPDATE"
 }"#;
 
-        let deserializer = GatewayEventDeserializer::new(input).unwrap();
+        let deserializer = GatewayEventDeserializer::from_json(input).unwrap();
         let mut json_deserializer = Deserializer::from_str(input);
         let event = deserializer.deserialize(&mut json_deserializer).unwrap();
 
