@@ -80,7 +80,7 @@ impl ShardProcessor {
         url.push_str("?v=6&compress=zlib-stream");
 
         emit::event(
-            listeners.clone(),
+            &listeners,
             Event::ShardConnecting(Connecting {
                 gateway: url.clone(),
                 shard_id: config.shard()[0],
@@ -136,7 +136,7 @@ impl ShardProcessor {
                         "The authorization for shard {} is invalid, quitting",
                         shard_id
                     );
-                    self.listeners.remove_all().await;
+                    self.listeners.remove_all();
 
                     return;
                 }
@@ -156,7 +156,7 @@ impl ShardProcessor {
                         "At least one of the provided intents for shard {} are disallowed",
                         shard_id
                     );
-                    self.listeners.remove_all().await;
+                    self.listeners.remove_all();
                     return;
                 }
                 Err(Error::IntentsInvalid { shard_id, .. }) => {
@@ -164,7 +164,7 @@ impl ShardProcessor {
                         "At least one of the provided intents for shard {} are invalid",
                         shard_id
                     );
-                    self.listeners.remove_all().await;
+                    self.listeners.remove_all();
                     return;
                 }
                 Err(err) => {
@@ -184,7 +184,7 @@ impl ShardProcessor {
                 continue;
             }
 
-            emit::event(self.listeners.clone(), Event::from(gateway_event));
+            emit::event(&self.listeners, Event::from(gateway_event));
         }
     }
 
@@ -206,7 +206,7 @@ impl ShardProcessor {
             v: 6,
         });
         emit::event(
-            self.listeners.clone(),
+            &self.listeners,
             Event::ShardIdentifying(Identifying {
                 shard_id: self.config.shard()[0],
                 shard_total: self.config.shard()[1],
@@ -235,7 +235,7 @@ impl ShardProcessor {
                         self.session.set_id(&ready.session_id).await;
 
                         emit::event(
-                            self.listeners.clone(),
+                            &self.listeners,
                             Event::ShardConnected(Connected {
                                 heartbeat_interval: self.session.heartbeat_interval(),
                                 shard_id: self.config.shard()[0],
@@ -245,7 +245,7 @@ impl ShardProcessor {
                     DispatchEvent::Resumed => {
                         self.session.set_stage(Stage::Connected);
                         emit::event(
-                            self.listeners.clone(),
+                            &self.listeners,
                             Event::ShardConnected(Connected {
                                 heartbeat_interval: self.session.heartbeat_interval(),
                                 shard_id: self.config.shard()[0],
@@ -345,14 +345,14 @@ impl ShardProcessor {
 
             if full_reconnect {
                 emit::event(
-                    self.listeners.clone(),
+                    &self.listeners,
                     Event::ShardReconnecting(Reconnecting {
                         shard_id: self.config.shard()[0],
                     }),
                 );
             } else {
                 emit::event(
-                    self.listeners.clone(),
+                    &self.listeners,
                     Event::ShardResuming(Resuming {
                         seq: self.session.seq(),
                         shard_id: self.config.shard()[0],
@@ -401,7 +401,7 @@ impl ShardProcessor {
         }
 
         emit::event(
-            self.listeners.clone(),
+            &self.listeners,
             Event::ShardConnecting(Connecting {
                 gateway: self.url.clone(),
                 shard_id: self.config.shard()[0],
@@ -505,7 +505,7 @@ impl ShardProcessor {
                 Message::Close(close_frame) => {
                     log::warn!("Got close code: {:?}.", close_frame);
                     emit::event(
-                        self.listeners.clone(),
+                        &self.listeners,
                         Event::ShardDisconnected(Disconnected {
                             code: close_frame.as_ref().map(|frame| frame.code.into()),
                             reason: close_frame
