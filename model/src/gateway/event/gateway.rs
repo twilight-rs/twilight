@@ -455,10 +455,31 @@ mod tests {
   "t": "GUILD_UPDATE"
 }"#;
 
-        let deserializer = GatewayEventDeserializer::new(input).unwrap();
+        let deserializer = GatewayEventDeserializer::from_json(input).unwrap();
         let mut json_deserializer = Deserializer::from_str(input);
         let event = deserializer.deserialize(&mut json_deserializer).unwrap();
 
         assert!(matches!(event, GatewayEvent::Dispatch(1190911, _)));
+    }
+
+    #[test]
+    fn hello() {
+        let input = r#"{
+            "t": null,
+            "s": null,
+            "op": 10,
+            "d": {
+                "heartbeat_interval": 41250,
+                "_trace": [
+                    "[\"gateway-prd-main-mjmw\",{\"micros\":0.0}]"
+                ]
+            }
+        }"#;
+
+        let deserializer = GatewayEventDeserializer::from_json(input).unwrap();
+        let mut json_deserializer = Deserializer::from_str(input);
+        let event = deserializer.deserialize(&mut json_deserializer).unwrap();
+
+        assert!(matches!(event, GatewayEvent::Hello(41250)));
     }
 }
