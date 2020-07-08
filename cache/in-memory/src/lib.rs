@@ -5,12 +5,10 @@ mod updates;
 
 use self::model::*;
 use config::InMemoryConfig;
+use dashmap::{mapref::entry::Entry, DashMap, DashSet};
 use futures_util::{future, lock::Mutex};
 use std::{
-    collections::{
-        hash_map::{Entry, HashMap},
-        BTreeMap, HashSet,
-    },
+    collections::{BTreeMap, HashMap, HashSet},
     error::Error,
     fmt::{Display, Formatter, Result as FmtResult},
     hash::Hash,
@@ -27,18 +25,19 @@ use twilight_model::{
     voice::VoiceState,
 };
 
+#[derive(Debug)]
 struct GuildItem<T> {
     data: Arc<T>,
     guild_id: GuildId,
 }
 
 async fn upsert_guild_item<K: Eq + Hash, V: PartialEq>(
-    map: &Mutex<HashMap<K, GuildItem<V>>>,
+    map: &DashMap<K, GuildItem<V>>,
     guild_id: GuildId,
     k: K,
     v: V,
 ) -> Arc<V> {
-    match map.lock().await.entry(k) {
+    match map.entry(k) {
         Entry::Occupied(e) if *e.get().data == v => Arc::clone(&e.get().data),
         Entry::Occupied(mut e) => {
             let v = Arc::new(v);
@@ -59,12 +58,8 @@ async fn upsert_guild_item<K: Eq + Hash, V: PartialEq>(
     }
 }
 
-async fn upsert_item<K: Eq + Hash, V: PartialEq>(
-    map: &Mutex<HashMap<K, Arc<V>>>,
-    k: K,
-    v: V,
-) -> Arc<V> {
-    match map.lock().await.entry(k) {
+async fn upsert_item<K: Eq + Hash, V: PartialEq>(map: &DashMap<K, Arc<V>>, k: K, v: V) -> Arc<V> {
+    match map.entry(k) {
         Entry::Occupied(e) if **e.get() == v => Arc::clone(e.get()),
         Entry::Occupied(mut e) => {
             let v = Arc::new(v);
@@ -72,7 +67,12 @@ async fn upsert_item<K: Eq + Hash, V: PartialEq>(
 
             v
         }
-        Entry::Vacant(e) => Arc::clone(e.insert(Arc::new(v))),
+        Entry::Vacant(e) => {
+            let v = Arc::new(v);
+            e.insert(Arc::clone(&v));
+
+            v
+        }
     }
 }
 
@@ -96,29 +96,27 @@ impl Display for InMemoryCacheError {
 
 impl Error for InMemoryCacheError {}
 
-type LockedArcMap<T, U> = Mutex<HashMap<T, Arc<U>>>;
-
 #[derive(Debug, Default)]
 struct InMemoryCacheRef {
     config: Arc<InMemoryConfig>,
-    channels_guild: Mutex<HashMap<ChannelId, GuildItem<GuildChannel>>>,
-    channels_private: LockedArcMap<ChannelId, PrivateChannel>,
+    channels_guild: DashMap<ChannelId, GuildItem<GuildChannel>>,
+    channels_private: DashMap<ChannelId, Arc<PrivateChannel>>,
     current_user: Mutex<Option<Arc<CurrentUser>>>,
-    emojis: Mutex<HashMap<EmojiId, GuildItem<CachedEmoji>>>,
-    groups: LockedArcMap<ChannelId, Group>,
-    guilds: LockedArcMap<GuildId, CachedGuild>,
-    guild_channels: Mutex<HashMap<GuildId, HashSet<ChannelId>>>,
-    guild_emojis: Mutex<HashMap<GuildId, HashSet<EmojiId>>>,
-    guild_members: Mutex<HashMap<GuildId, HashSet<UserId>>>,
-    guild_presences: Mutex<HashMap<GuildId, HashSet<UserId>>>,
-    guild_roles: Mutex<HashMap<GuildId, HashSet<RoleId>>>,
-    guild_voice_states: Mutex<HashMap<GuildId, HashMap<UserId, Arc<VoiceState>>>>,
-    members: LockedArcMap<(GuildId, UserId), CachedMember>,
-    messages: Mutex<HashMap<ChannelId, BTreeMap<MessageId, Arc<CachedMessage>>>>,
-    presences: LockedArcMap<(Option<GuildId>, UserId), CachedPresence>,
-    roles: Mutex<HashMap<RoleId, GuildItem<Role>>>,
-    unavailable_guilds: Mutex<HashSet<GuildId>>,
-    users: LockedArcMap<UserId, User>,
+    emojis: DashMap<EmojiId, GuildItem<CachedEmoji>>,
+    groups: DashMap<ChannelId, Arc<Group>>,
+    guilds: DashMap<GuildId, Arc<CachedGuild>>,
+    guild_channels: DashMap<GuildId, HashSet<ChannelId>>,
+    guild_emojis: DashMap<GuildId, HashSet<EmojiId>>,
+    guild_members: DashMap<GuildId, HashSet<UserId>>,
+    guild_presences: DashMap<GuildId, HashSet<UserId>>,
+    guild_roles: DashMap<GuildId, HashSet<RoleId>>,
+    guild_voice_states: DashMap<GuildId, HashMap<UserId, Arc<VoiceState>>>,
+    members: DashMap<(GuildId, UserId), Arc<CachedMember>>,
+    messages: DashMap<ChannelId, BTreeMap<MessageId, Arc<CachedMessage>>>,
+    presences: DashMap<(Option<GuildId>, UserId), Arc<CachedPresence>>,
+    roles: DashMap<RoleId, GuildItem<Role>>,
+    unavailable_guilds: DashSet<GuildId>,
+    users: DashMap<UserId, Arc<User>>,
 }
 
 /// A thread-safe, in-memory-process cache of Discord data. It can be cloned and
@@ -209,8 +207,6 @@ impl InMemoryCache {
         Ok(self
             .0
             .channels_guild
-            .lock()
-            .await
             .get(&channel_id)
             .map(|x| Arc::clone(&x.data)))
     }
@@ -226,27 +222,25 @@ impl InMemoryCache {
     ///
     /// This is an O(1) operation.
     pub async fn emoji(&self, emoji_id: EmojiId) -> Result<Option<Arc<CachedEmoji>>> {
-        Ok(self
-            .0
-            .emojis
-            .lock()
-            .await
-            .get(&emoji_id)
-            .map(|x| Arc::clone(&x.data)))
+        Ok(self.0.emojis.get(&emoji_id).map(|x| Arc::clone(&x.data)))
     }
 
     /// Gets a group by ID.
     ///
     /// This is an O(1) operation.
     pub async fn group(&self, channel_id: ChannelId) -> Result<Option<Arc<Group>>> {
-        Ok(self.0.groups.lock().await.get(&channel_id).cloned())
+        Ok(self
+            .0
+            .groups
+            .get(&channel_id)
+            .map(|r| Arc::clone(r.value())))
     }
 
     /// Gets a guild by ID.
     ///
     /// This is an O(1) operation.
     pub async fn guild(&self, guild_id: GuildId) -> Result<Option<Arc<CachedGuild>>> {
-        Ok(self.0.guilds.lock().await.get(&guild_id).cloned())
+        Ok(self.0.guilds.get(&guild_id).map(|r| Arc::clone(r.value())))
     }
 
     /// Gets a member by guild ID and user ID.
@@ -260,10 +254,8 @@ impl InMemoryCache {
         Ok(self
             .0
             .members
-            .lock()
-            .await
             .get(&(guild_id, user_id))
-            .cloned())
+            .map(|r| Arc::clone(r.value())))
     }
 
     /// Gets a message by channel ID and message ID.
@@ -274,8 +266,7 @@ impl InMemoryCache {
         channel_id: ChannelId,
         message_id: MessageId,
     ) -> Result<Option<Arc<CachedMessage>>> {
-        let channels = self.0.messages.lock().await;
-        let channel = match channels.get(&channel_id) {
+        let channel = match self.0.messages.get(&channel_id) {
             Some(channel) => channel,
             None => return Ok(None),
         };
@@ -294,10 +285,8 @@ impl InMemoryCache {
         Ok(self
             .0
             .presences
-            .lock()
-            .await
             .get(&(guild_id, user_id))
-            .cloned())
+            .map(|r| Arc::clone(r.value())))
     }
 
     /// Gets a private channel by ID.
@@ -310,30 +299,22 @@ impl InMemoryCache {
         Ok(self
             .0
             .channels_private
-            .lock()
-            .await
             .get(&channel_id)
-            .cloned())
+            .map(|r| Arc::clone(r.value())))
     }
 
     /// Gets a role by ID.
     ///
     /// This is an O(1) operation.
     pub async fn role(&self, role_id: RoleId) -> Result<Option<Arc<Role>>> {
-        Ok(self
-            .0
-            .roles
-            .lock()
-            .await
-            .get(&role_id)
-            .map(|x| Arc::clone(&x.data)))
+        Ok(self.0.roles.get(&role_id).map(|x| Arc::clone(&x.data)))
     }
 
     /// Gets a user by ID.
     ///
     /// This is an O(1) operation.
     pub async fn user(&self, user_id: UserId) -> Result<Option<Arc<User>>> {
-        Ok(self.0.users.lock().await.get(&user_id).cloned())
+        Ok(self.0.users.get(&user_id).map(|r| Arc::clone(r.value())))
     }
 
     /// Gets a voice state by user ID and Guild ID.
@@ -344,7 +325,7 @@ impl InMemoryCache {
         user_id: UserId,
         guild_id: GuildId,
     ) -> Result<Option<Arc<VoiceState>>> {
-        if let Some(guild_map) = self.0.guild_voice_states.lock().await.get(&guild_id) {
+        if let Some(guild_map) = self.0.guild_voice_states.get(&guild_id) {
             let vs = guild_map.get(&user_id).cloned();
             Ok(vs)
         } else {
@@ -355,14 +336,14 @@ impl InMemoryCache {
     /// Clears the entire state of the Cache. This is equal to creating a new
     /// empty Cache.
     pub async fn clear(&self) -> Result<()> {
-        self.0.channels_guild.lock().await.clear();
+        self.0.channels_guild.clear();
         self.0.current_user.lock().await.take();
-        self.0.emojis.lock().await.clear();
-        self.0.guilds.lock().await.clear();
-        self.0.presences.lock().await.clear();
-        self.0.roles.lock().await.clear();
-        self.0.users.lock().await.clear();
-        self.0.guild_voice_states.lock().await.clear();
+        self.0.emojis.clear();
+        self.0.guilds.clear();
+        self.0.presences.clear();
+        self.0.roles.clear();
+        self.0.users.clear();
+        self.0.guild_voice_states.clear();
 
         Ok(())
     }
@@ -420,7 +401,7 @@ impl InMemoryCache {
     }
 
     pub async fn cache_emoji(&self, guild_id: GuildId, emoji: Emoji) -> Arc<CachedEmoji> {
-        match self.0.emojis.lock().await.get(&emoji.id) {
+        match self.0.emojis.get(&emoji.id) {
             Some(e) if *e.data == emoji => return Arc::clone(&e.data),
             Some(_) | None => {}
         }
@@ -438,7 +419,7 @@ impl InMemoryCache {
             user,
             available: emoji.available,
         });
-        self.0.emojis.lock().await.insert(
+        self.0.emojis.insert(
             cached.id,
             GuildItem {
                 data: Arc::clone(&cached),
@@ -560,13 +541,13 @@ impl InMemoryCache {
             widget_enabled: guild.widget_enabled,
         };
 
-        self.0.unavailable_guilds.lock().await.remove(&guild.id);
-        self.0.guilds.lock().await.insert(guild.id, Arc::new(guild));
+        self.0.unavailable_guilds.remove(&guild.id);
+        self.0.guilds.insert(guild.id, Arc::new(guild));
     }
 
     pub async fn cache_member(&self, guild_id: GuildId, member: Member) -> Arc<CachedMember> {
         let id = (guild_id, member.user.id);
-        match self.0.members.lock().await.get(&id) {
+        match self.0.members.get(&id) {
             Some(m) if **m == member => return Arc::clone(&m),
             Some(_) | None => {}
         }
@@ -582,7 +563,7 @@ impl InMemoryCache {
             roles: member.roles,
             user,
         });
-        self.0.members.lock().await.insert(id, Arc::clone(&cached));
+        self.0.members.insert(id, Arc::clone(&cached));
         cached
     }
 
@@ -625,13 +606,13 @@ impl InMemoryCache {
     ) -> Arc<CachedPresence> {
         let k = (guild_id, presence_user_id(&presence));
 
-        match self.0.presences.lock().await.get(&k) {
+        match self.0.presences.get(&k) {
             Some(p) if **p == presence => return Arc::clone(&p),
             Some(_) | None => {}
         }
         let cached = Arc::new(CachedPresence::from(&presence));
 
-        self.0.presences.lock().await.insert(k, Arc::clone(&cached));
+        self.0.presences.insert(k, Arc::clone(&cached));
 
         cached
     }
@@ -642,15 +623,11 @@ impl InMemoryCache {
     ) -> Arc<PrivateChannel> {
         let id = private_channel.id;
 
-        match self.0.channels_private.lock().await.get(&id) {
+        match self.0.channels_private.get(&id) {
             Some(c) if **c == private_channel => Arc::clone(&c),
             Some(_) | None => {
                 let v = Arc::new(private_channel);
-                self.0
-                    .channels_private
-                    .lock()
-                    .await
-                    .insert(id, Arc::clone(&v));
+                self.0.channels_private.insert(id, Arc::clone(&v));
 
                 v
             }
@@ -679,12 +656,12 @@ impl InMemoryCache {
     }
 
     pub async fn cache_user(&self, user: User) -> Arc<User> {
-        match self.0.users.lock().await.get(&user.id) {
+        match self.0.users.get(&user.id) {
             Some(u) if **u == user => return Arc::clone(&u),
             Some(_) | None => {}
         }
         let user = Arc::new(user);
-        self.0.users.lock().await.insert(user.id, Arc::clone(&user));
+        self.0.users.insert(user.id, Arc::clone(&user));
 
         user
     }
@@ -713,10 +690,9 @@ impl InMemoryCache {
 
         let user_id = vs.user_id;
 
-        let mut lock = self.0.guild_voice_states.lock().await;
         // This won't panic because we always insert a hashmap for each guild that the bot knows
         // about, and to even receive events for them, we must have a key for them already.
-        let guild_states = lock.get_mut(&guild_id).unwrap();
+        let mut guild_states = self.0.guild_voice_states.get_mut(&guild_id).unwrap();
 
         // If a user leaves a voice channel, then the `VoiceState` object received contains no
         // channel id.
@@ -755,28 +731,25 @@ impl InMemoryCache {
     }
 
     pub async fn delete_group(&self, channel_id: ChannelId) -> Option<Arc<Group>> {
-        self.0.groups.lock().await.remove(&channel_id)
+        self.0.groups.remove(&channel_id).map(|(_, v)| v)
     }
 
     pub async fn unavailable_guild(&self, guild_id: GuildId) {
-        self.0.unavailable_guilds.lock().await.insert(guild_id);
-        self.0.guilds.lock().await.remove(&guild_id);
+        self.0.unavailable_guilds.insert(guild_id);
+        self.0.guilds.remove(&guild_id);
     }
 
     pub async fn delete_guild_channel(&self, channel_id: ChannelId) -> Option<Arc<GuildChannel>> {
         self.0
             .channels_guild
-            .lock()
-            .await
             .remove(&channel_id)
-            .map(|x| x.data)
+            .map(|(_, v)| v.data)
     }
 
     pub async fn delete_role(&self, role_id: RoleId) -> Option<Arc<Role>> {
-        let role = self.0.roles.lock().await.remove(&role_id)?;
-        let mut guild_roles = self.0.guild_roles.lock().await;
+        let role = self.0.roles.remove(&role_id).map(|(_, v)| v)?;
 
-        if let Some(roles) = guild_roles.get_mut(&role.guild_id) {
+        if let Some(mut roles) = self.0.guild_roles.get_mut(&role.guild_id) {
             roles.remove(&role_id);
         }
 
