@@ -24,7 +24,6 @@ once_cell = { default-features = false, features = ["std"], version = "1" }
 serde = { default-features = false, features = ["derive"], version = "1" }
 serde_json = { default-features = false, optional = true, version = "1" }
 simd-json = { default-features = false, optional = true, version = "0.3" }
-serde-value = { default-features = false, version = "0.6" }
 tokio = { default-features = false, features = ["net", "rt-core", "sync"], version = "0.2" }
 tokio-tungstenite = { default-features = false, features = ["connect", "tls"], version = "0.10" }
 url = { default-features = false, version = "2" }
