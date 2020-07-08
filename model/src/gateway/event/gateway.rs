@@ -131,7 +131,7 @@ impl GatewayEventVisitor<'_> {
                     map.next_value::<IgnoredAny>()?;
 
                     continue;
-                },
+                }
                 Ok(None) => {
                     return Err(DeError::missing_field(match field {
                         Field::D => "d",

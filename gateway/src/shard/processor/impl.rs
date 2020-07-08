@@ -487,11 +487,8 @@ impl ShardProcessor {
                         Some(json) => {
                             emit::bytes(self.listeners.clone(), json).await;
 
-                            let mut text = str::from_utf8_mut(json).map_err(|source| {
-                                Error::PayloadNotUtf8 {
-                                    source,
-                                }
-                            })?;
+                            let mut text = str::from_utf8_mut(json)
+                                .map_err(|source| Error::PayloadNotUtf8 { source })?;
 
                             Self::parse_gateway_event(&mut text)
                         }
@@ -560,9 +557,9 @@ impl ShardProcessor {
         let gateway_deserializer = GatewayEventDeserializer::from_json(json).unwrap();
         let mut json_deserializer = Deserializer::from_str(json);
 
-        gateway_deserializer.deserialize(&mut json_deserializer).map_err(|source| Error::PayloadSerialization {
-            source
-        })
+        gateway_deserializer
+            .deserialize(&mut json_deserializer)
+            .map_err(|source| Error::PayloadSerialization { source })
     }
 
     #[allow(unsafe_code)]
@@ -573,10 +570,11 @@ impl ShardProcessor {
         use twilight_model::gateway::event::gateway::GatewayEventDeserializerOwned;
 
         let gateway_deserializer = GatewayEventDeserializerOwned::from_json(json).unwrap();
-        let mut json_deserializer = Deserializer::from_slice(unsafe { json.as_bytes_mut() }).unwrap();
+        let mut json_deserializer =
+            Deserializer::from_slice(unsafe { json.as_bytes_mut() }).unwrap();
 
-        gateway_deserializer.deserialize(&mut json_deserializer).map_err(|source| Error::PayloadSerialization {
-            source
-        })
+        gateway_deserializer
+            .deserialize(&mut json_deserializer)
+            .map_err(|source| Error::PayloadSerialization { source })
     }
 }

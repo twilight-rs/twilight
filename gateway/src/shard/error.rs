@@ -136,7 +136,10 @@ impl Display for Error {
                 value
             ),
             Self::ParsingUrl { url, .. } => write!(f, "The gateway URL {:?} is invalid", url),
-            Self::PayloadInvalid { .. } => write!(f, "The binary payload received from Discord wasn't UTF-8 valid"),
+            Self::PayloadInvalid { .. } => write!(
+                f,
+                "The binary payload received from Discord wasn't UTF-8 valid"
+            ),
             Self::PayloadNotUtf8 { .. } => write!(f, "The payload from Discord wasn't UTF-8 valid"),
             Self::PayloadSerialization { .. } => {
                 f.write_str("Deserializing or serializing a payload failed")
