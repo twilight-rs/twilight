@@ -469,19 +469,8 @@ impl InMemoryCache {
     }
 
     pub async fn cache_guild(&self, guild: Guild) {
-        self.cache_guild_channels(guild.id, guild.channels.into_iter().map(|(_, v)| v))
-            .await;
-        self.cache_emojis(guild.id, guild.emojis.into_iter().map(|(_, v)| v))
-            .await;
-        self.cache_members(guild.id, guild.members.into_iter().map(|(_, v)| v))
-            .await;
-        self.cache_presences(Some(guild.id), guild.presences.into_iter().map(|(_, v)| v))
-            .await;
-        self.cache_roles(guild.id, guild.roles.into_iter().map(|(_, v)| v))
-            .await;
-        self.cache_voice_states(guild.voice_states.into_iter().map(|(_, v)| v))
-            .await;
-
+        // The map and set creation needs to occur first, so caching states and objects
+        // always has a place to put them.
         self.0
             .guild_channels
             .lock()
@@ -517,6 +506,19 @@ impl InMemoryCache {
             .lock()
             .await
             .insert(guild.id, HashMap::new());
+
+        self.cache_guild_channels(guild.id, guild.channels.into_iter().map(|(_, v)| v))
+            .await;
+        self.cache_emojis(guild.id, guild.emojis.into_iter().map(|(_, v)| v))
+            .await;
+        self.cache_members(guild.id, guild.members.into_iter().map(|(_, v)| v))
+            .await;
+        self.cache_presences(Some(guild.id), guild.presences.into_iter().map(|(_, v)| v))
+            .await;
+        self.cache_roles(guild.id, guild.roles.into_iter().map(|(_, v)| v))
+            .await;
+        self.cache_voice_states(guild.voice_states.into_iter().map(|(_, v)| v))
+            .await;
 
         let guild = CachedGuild {
             id: guild.id,
