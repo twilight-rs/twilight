@@ -30,7 +30,7 @@ enum Field {
     T,
 }
 
-/// A deserializer that deserializes into a GatewayEvent by cloning some bits
+/// A deserializer that deserializes into a `GatewayEvent` by cloning some bits
 /// of scanned information before the actual deserialisation.
 ///
 /// This is the owned version of [`GatewayEventDeserializer`].
@@ -56,7 +56,7 @@ impl GatewayEventDeserializerOwned {
     }
 }
 
-/// A deserializer that deserializes into a GatewayEvent by borrowing some bits
+/// A deserializer that deserializes into a `GatewayEvent` by borrowing some bits
 /// of scanned information before the actual deserialisation.
 ///
 /// This is the borrowed version of [`GatewayEventDeserializerOwned`].
