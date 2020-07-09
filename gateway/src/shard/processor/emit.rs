@@ -7,7 +7,7 @@ use log::{debug, info, trace, warn};
 use twilight_model::gateway::event::{shard::Payload, Event};
 
 pub async fn bytes(listeners: Listeners<Event>, bytes: &[u8]) {
-    for listener in listeners.all().lock().await.values() {
+    for listener in listeners.all() {
         if listener.events.contains(EventTypeFlags::SHARD_PAYLOAD) {
             let event = Event::ShardPayload(Payload {
                 bytes: bytes.to_owned(),
@@ -20,12 +20,8 @@ pub async fn bytes(listeners: Listeners<Event>, bytes: &[u8]) {
     }
 }
 
-pub fn event(listeners: Listeners<Event>, event: Event) {
-    tokio::spawn(Box::pin(_event(listeners, event)));
-}
-
-async fn _event(listeners: Listeners<Event>, event: Event) {
-    let mut listeners = listeners.all().lock().await;
+pub fn event(listeners: &Listeners<Event>, event: Event) {
+    let listeners = listeners.all();
     let mut remove_listeners = Vec::new();
 
     // Take up to the last one so that we can later get the last and *move*
@@ -36,9 +32,11 @@ async fn _event(listeners: Listeners<Event>, event: Event) {
     // entirely avoid cloning.
     let mut last = None;
 
-    for (idx, (id, listener)) in listeners.iter().enumerate() {
+    for (idx, guard) in listeners.iter().enumerate() {
+        let id = *guard.key();
+        let listener = guard.value();
         if idx == listeners.len() - 1 {
-            last = Some(*id);
+            last = Some(*guard.key());
 
             break;
         }
@@ -55,14 +53,14 @@ async fn _event(listeners: Listeners<Event>, event: Event) {
             continue;
         }
 
-        if !_emit_to_listener(*id, listener, event.clone()) {
-            remove_listeners.push(*id);
+        if !_emit_to_listener(id, listener, event.clone()) {
+            remove_listeners.push(id);
         }
     }
 
     if let Some(id) = last {
         if let Some(listener) = listeners.get(&id) {
-            if !_emit_to_listener(id, listener, event) {
+            if !_emit_to_listener(id, listener.value(), event) {
                 remove_listeners.push(id);
             }
         }

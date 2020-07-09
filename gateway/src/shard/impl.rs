@@ -176,7 +176,7 @@ impl Shard {
     /// [`EventType::SHARD_PAYLOAD`]: events/struct.EventType.html#const.SHARD_PAYLOAD
     /// [`some_events`]: #method.some_events
     pub async fn events(&self) -> impl Stream<Item = Event> {
-        let rx = self.0.listeners.add(EventTypeFlags::default()).await;
+        let rx = self.0.listeners.add(EventTypeFlags::default());
 
         Events::new(EventTypeFlags::default(), rx)
     }
@@ -214,7 +214,7 @@ impl Shard {
     /// # Ok(()) }
     /// ```
     pub async fn some_events(&self, event_types: EventTypeFlags) -> impl Stream<Item = Event> {
-        let rx = self.0.listeners.add(event_types).await;
+        let rx = self.0.listeners.add(event_types);
 
         Events::new(event_types, rx)
     }
@@ -307,7 +307,7 @@ impl Shard {
     ///
     /// This will cleanly close the connection, causing discord to end the session and show the bot offline
     pub async fn shutdown(&self) {
-        self.0.listeners.remove_all().await;
+        self.0.listeners.remove_all();
 
         if let Some(processor_handle) = self.0.processor_handle.get() {
             processor_handle.abort();
@@ -322,7 +322,7 @@ impl Shard {
 
     /// This will shut down the shard in a resumable way and return shard id and optional session info to resume with later if this shard is resumable
     pub async fn shutdown_resumable(&self) -> (u64, Option<ResumeSession>) {
-        self.0.listeners.remove_all().await;
+        self.0.listeners.remove_all();
 
         if let Some(processor_handle) = self.0.processor_handle.get() {
             processor_handle.abort();
