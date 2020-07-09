@@ -168,7 +168,7 @@ impl ShardProcessor {
                     return;
                 }
                 Err(err) => {
-                    warn!("Error receiveing gateway event: {:?}", err.source());
+                    warn!("Error receiving gateway event: {:?}", err.source());
                     continue;
                 }
             };
