@@ -482,4 +482,22 @@ mod tests {
 
         assert!(matches!(event, GatewayEvent::Hello(41250)));
     }
+
+    /// Test that the deserializer won't mess up on a nested "t" in user input
+    /// while searching for the event type.
+    #[test]
+    fn test_deserializer_from_json_nested_quotes() {
+        let input = r#"{
+            "t": "DOESNT_MATTER",
+            "s": 5144,
+            "op": 0,
+            "d": {
+                "name": "a \"t\"role"
+            }
+        }"#;
+
+        let deserializer = GatewayEventDeserializer::from_json(input).unwrap();
+        assert_eq!(deserializer.event_type, Some("DOESNT_MATTER"));
+        assert_eq!(deserializer.op, 0);
+    }
 }
