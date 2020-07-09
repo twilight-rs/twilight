@@ -987,11 +987,11 @@ mod tests {
             Event::Ready(ready) => ready.shard.map(|[id, _]| id == 5).unwrap_or(false),
             _ => false,
         });
-        assert!(!standby.0.guilds.is_empty());
+        assert!(!standby.0.events.is_empty());
         standby.process(&event);
 
         assert_eq!(Ok(event), wait.await);
-        assert!(standby.0.guilds.is_empty());
+        assert!(standby.0.events.is_empty());
     }
 
     #[tokio::test]
