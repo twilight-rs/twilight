@@ -85,7 +85,8 @@ pub enum Error {
         /// The payload received over the connection.
         payload: String,
     },
-    /// The binary payload received from Discord wasn't UTF-8 valid.
+    /// The binary payload received from Discord wasn't validly encoded as
+    /// UTF-8.
     PayloadNotUtf8 {
         /// Source error when converting to a UTF-8 valid string.
         source: Utf8Error,
@@ -138,7 +139,7 @@ impl Display for Error {
             Self::ParsingUrl { url, .. } => write!(f, "The gateway URL {:?} is invalid", url),
             Self::PayloadInvalid { .. } => write!(
                 f,
-                "The binary payload received from Discord wasn't UTF-8 valid"
+                "The payload received from Discord contained an invalid data structure"
             ),
             Self::PayloadNotUtf8 { .. } => write!(f, "The payload from Discord wasn't UTF-8 valid"),
             Self::PayloadSerialization { .. } => {

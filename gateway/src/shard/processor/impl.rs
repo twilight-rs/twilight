@@ -462,6 +462,7 @@ impl ShardProcessor {
     /// is invalid.
     ///
     /// [`Error::AuthorizationInvalid`]: ../../error/enum.Error.html#variant.AuthorizationInvalid
+    #[allow(unsafe_code)]
     async fn next_event(&mut self) -> Result<GatewayEvent> {
         loop {
             // Returns None when the socket forwarder has ended, meaning the
@@ -490,7 +491,8 @@ impl ShardProcessor {
                             let mut text = str::from_utf8_mut(json)
                                 .map_err(|source| Error::PayloadNotUtf8 { source })?;
 
-                            Self::parse_gateway_event(&mut text)
+                            // Safety: the buffer isn't used again after parsing.
+                            unsafe { Self::parse_gateway_event(&mut text) }
                         }
                         None => continue,
                     };
@@ -542,14 +544,33 @@ impl ShardProcessor {
 
                     emit::bytes(self.listeners.clone(), text.as_bytes()).await;
 
-                    break Self::parse_gateway_event(&mut text);
+                    // Safety: the buffer isn't used again after parsing.
+                    break unsafe { Self::parse_gateway_event(&mut text) };
                 }
             }
         }
     }
 
+    /// Parse a gateway event from a string using `serde_json`.
+    ///
+    /// # Safety
+    ///
+    /// This function is actually safe, though it is marked unsafe to have a
+    /// compatible signature with the simd-json variant of this function.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`Error::PayloadInvalid`] if the payload wasn't a valid
+    /// `GatewayEvent` data structure.
+    ///
+    /// Returns [`Error::PayloadSerialization`] if the payload failed to
+    /// deserialize.
+    ///
+    /// [`Error::PayloadInvalid`]: ../enum.Error.html#variant.PayloadInvalid
+    /// [`Error::PayloadSerialization`]: ../enum.Error.html#variant.PayloadSerialization
+    #[allow(unsafe_code)]
     #[cfg(all(feature = "serde_json", not(feature = "simd-json")))]
-    fn parse_gateway_event(json: &mut str) -> Result<GatewayEvent> {
+    unsafe fn parse_gateway_event(json: &mut str) -> Result<GatewayEvent> {
         use serde::de::DeserializeSeed;
         use serde_json::Deserializer;
         use twilight_model::gateway::event::GatewayEventDeserializer;
@@ -562,16 +583,35 @@ impl ShardProcessor {
             .map_err(|source| Error::PayloadSerialization { source })
     }
 
+    /// Parse a gateway event from a string using `simd-json`.
+    ///
+    /// # Safety
+    ///
+    /// This is unsafe because it calls `std::str::as_bytes_mut`. The provided
+    /// string must not be used again because the value may be changed in ways
+    /// that aren't UTF-8 valid.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`Error::PayloadInvalid`] if the payload wasn't a valid
+    /// `GatewayEvent` data structure.
+    ///
+    /// Returns [`Error::PayloadSerialization`] if the payload failed to
+    /// deserialize.
+    ///
+    /// [`Error::PayloadInvalid`]: ../enum.Error.html#variant.PayloadInvalid
+    /// [`Error::PayloadSerialization`]: ../enum.Error.html#variant.PayloadSerialization
     #[allow(unsafe_code)]
     #[cfg(feature = "simd-json")]
-    fn parse_gateway_event(json: &mut str) -> Result<GatewayEvent> {
+    unsafe fn parse_gateway_event(json: &mut str) -> Result<GatewayEvent> {
         use serde::de::DeserializeSeed;
         use simd_json::Deserializer;
         use twilight_model::gateway::event::gateway::GatewayEventDeserializerOwned;
 
-        let gateway_deserializer = GatewayEventDeserializerOwned::from_json(json).unwrap();
-        let mut json_deserializer =
-            Deserializer::from_slice(unsafe { json.as_bytes_mut() }).unwrap();
+        let gateway_deserializer =
+            GatewayEventDeserializerOwned::from_json(json).map_err(|_| Error::PayloadInvalid)?;
+        let mut json_deserializer = Deserializer::from_slice(unsafe { json.as_bytes_mut() })
+            .map_err(|_| Error::PayloadInvalid)?;
 
         gateway_deserializer
             .deserialize(&mut json_deserializer)
