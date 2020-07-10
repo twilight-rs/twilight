@@ -6,7 +6,10 @@
 //! It includes support for managing multiple nodes, a player manager for
 //! conveniently using players to send events and retrieve information for each
 //! guild, and an HTTP module for creating requests using the [`http`] crate and
-//! providing models to deserialize their responses.
+//! providing models to deserialize their responses. It will automatically
+//! handle sending voice channel updates to Lavalink by processing events via
+//! the [client's `process` method][`Lavalink::process`], which you must call
+//! with every Voice State Update and Voice Server Update you receive.
 //!
 //! ## Features
 //!
@@ -65,6 +68,7 @@
 //! ```
 //!
 //! [Lavalink]: https://github.com/Frederikam/Lavalink
+//! [`Lavalink::process`]: client/struct.Lavalink.html#method.process
 //! [client]: client/struct.Lavalink.html
 //! [node]: node/struct.Node.html
 //! [process]: client/struct.Lavalink.html#method.process
