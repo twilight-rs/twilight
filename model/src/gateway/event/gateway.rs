@@ -89,7 +89,8 @@ impl<'a> GatewayEventDeserializer<'a> {
         // in the first several bytes, start searching from the start. There
         // doesn't appear to be any particular chance it's on either side by the
         // looks of it.
-        let from = Self::find_event_type_end(input).or_else(|| Self::find_event_type_start(input))?;
+        let from =
+            Self::find_event_type_end(input).or_else(|| Self::find_event_type_start(input))?;
 
         // Now let's find where the value starts. There may or may not be any
         // amount of whitespace after the "t" key.
@@ -113,9 +114,10 @@ impl<'a> GatewayEventDeserializer<'a> {
 
         // If we find it, add 4, since that's the length of what we're searching
         // for.
-        let x = input.get(search_idx..)?.find(r#""t":"#).map(|idx| search_idx + idx + 4);
-
-        x
+        input
+            .get(search_idx..)?
+            .find(r#""t":"#)
+            .map(|idx| search_idx + idx + 4)
     }
 
     fn find_opcode(input: &'a str) -> Option<u8> {
