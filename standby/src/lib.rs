@@ -199,7 +199,7 @@ impl Standby {
     /// This function must be called when events are received in order for
     /// futures returned by methods to fulfill.
     pub fn process(&self, event: &Event) {
-        log::debug!("Processing event: {:?}", event);
+        log::trace!("Processing event: {:?}", event);
 
         match event {
             Event::MessageCreate(e) => return self.process_message(e.0.channel_id, &e),
