@@ -6,8 +6,8 @@
 
 See the [`twilight`] documentation for more information.
 
-`twilight-model` is a crate of only serde models defining the Discord APIs with
-no implementations on top of them or functions to work with them.
+`twilight-model` is a crate of serde models defining the Discord APIs with
+few convenience methods on top of them.
 
 These are in a single crate for ease of use, a single point of definition,
 and a sort of versioning of the Discord API. Similar to how a database
