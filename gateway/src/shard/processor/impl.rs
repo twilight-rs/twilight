@@ -581,7 +581,11 @@ impl ShardProcessor {
 
         gateway_deserializer
             .deserialize(&mut json_deserializer)
-            .map_err(|source| Error::PayloadSerialization { source })
+            .map_err(|source| {
+                log::debug!("Broken JSON: {}", json);
+
+                Error::PayloadSerialization { source }
+            })
     }
 
     /// Parse a gateway event from a string using `simd-json`.
@@ -616,6 +620,10 @@ impl ShardProcessor {
 
         gateway_deserializer
             .deserialize(&mut json_deserializer)
-            .map_err(|source| Error::PayloadSerialization { source })
+            .map_err(|source| {
+                log::debug!("Broken JSON: {}", json);
+
+                Error::PayloadSerialization { source }
+            })
     }
 }
