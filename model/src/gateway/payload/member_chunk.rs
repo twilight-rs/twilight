@@ -5,7 +5,7 @@ use crate::{
 };
 use serde::Serialize;
 use serde::{
-    de::{Deserializer, Error as DeError, MapAccess, Visitor},
+    de::{Deserializer, Error as DeError, IgnoredAny, MapAccess, Visitor},
     Deserialize,
 };
 use std::{
@@ -64,6 +64,8 @@ impl<'de> Visitor<'de> for MemberChunkVisitor {
                 Ok(None) => break,
                 Err(_) => {
                     // Encountered when we run into an unknown key.
+                    map.next_value::<IgnoredAny>()?;
+
                     continue;
                 }
             };
