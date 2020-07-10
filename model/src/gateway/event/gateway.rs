@@ -108,7 +108,6 @@ impl<'a> GatewayEventDeserializer<'a> {
     }
 
     // Search for the index of the event type key from the end.
-    #[allow(unused)]
     fn find_event_type_end(input: &'a str) -> Option<usize> {
         let search_idx = input.len().saturating_sub(100);
 
