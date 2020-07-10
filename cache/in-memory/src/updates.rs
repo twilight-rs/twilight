@@ -109,8 +109,8 @@ impl UpdateCache<InMemoryCache, InMemoryCacheError> for ChannelCreate {
                 super::upsert_item(&cache.0.groups, c.id, c).await;
             }
             Channel::Guild(c) => {
-                if let Some(gid) = super::guild_channel_guild_id(&c) {
-                    cache.cache_guild_channel(*gid, c.clone()).await;
+                if let Some(gid) = c.guild_id() {
+                    cache.cache_guild_channel(gid, c.clone()).await;
                 }
             }
             Channel::Private(c) => {
@@ -134,9 +134,7 @@ impl UpdateCache<InMemoryCache, InMemoryCacheError> for ChannelDelete {
                 cache.delete_group(c.id).await;
             }
             Channel::Guild(ref c) => {
-                let id = *super::guild_channel_id(&c);
-
-                cache.delete_guild_channel(id).await;
+                cache.delete_guild_channel(c.id()).await;
             }
             Channel::Private(ref c) => {
                 cache.0.channels_private.lock().await.remove(&c.id);
@@ -202,8 +200,8 @@ impl UpdateCache<InMemoryCache, InMemoryCacheError> for ChannelUpdate {
                 cache.cache_group(c.clone()).await;
             }
             Channel::Guild(c) => {
-                if let Some(gid) = super::guild_channel_guild_id(&c) {
-                    cache.cache_guild_channel(*gid, c.clone()).await;
+                if let Some(gid) = c.guild_id() {
+                    cache.cache_guild_channel(gid, c.clone()).await;
                 }
             }
             Channel::Private(c) => {

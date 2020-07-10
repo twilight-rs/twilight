@@ -387,7 +387,7 @@ impl InMemoryCache {
         guild_channels: impl IntoIterator<Item = GuildChannel>,
     ) -> HashSet<ChannelId> {
         let pairs = future::join_all(guild_channels.into_iter().map(|channel| async {
-            let id = *guild_channel_id(&channel);
+            let id = channel.id();
             self.cache_guild_channel(guild_id, channel).await;
 
             id
@@ -414,7 +414,7 @@ impl InMemoryCache {
             }
         }
 
-        let id = *guild_channel_id(&channel);
+        let id = channel.id();
 
         upsert_guild_item(&self.0.channels_guild, guild_id, id, channel).await
     }
@@ -795,22 +795,6 @@ impl<T: Into<InMemoryConfig>> From<T> for InMemoryCache {
 
 impl Cache for InMemoryCache {}
 impl Cache for &'_ InMemoryCache {}
-
-fn guild_channel_guild_id(channel: &GuildChannel) -> Option<&GuildId> {
-    match channel {
-        GuildChannel::Category(c) => c.guild_id.as_ref(),
-        GuildChannel::Text(c) => c.guild_id.as_ref(),
-        GuildChannel::Voice(c) => c.guild_id.as_ref(),
-    }
-}
-
-fn guild_channel_id(channel: &GuildChannel) -> &ChannelId {
-    match channel {
-        GuildChannel::Category(c) => &c.id,
-        GuildChannel::Text(c) => &c.id,
-        GuildChannel::Voice(c) => &c.id,
-    }
-}
 
 fn presence_user_id(presence: &Presence) -> UserId {
     match presence.user {
