@@ -12,7 +12,7 @@
 //!
 //! ```toml
 //! [dependencies]
-//! twilight-mention = { branch = "main", git = "https://github.com/twilight-rs/twilight" }
+//! twilight-mention = { branch = "trunk", git = "https://github.com/twilight-rs/twilight" }
 //! ```
 //!
 //! ## Examples
