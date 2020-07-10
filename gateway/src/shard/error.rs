@@ -81,10 +81,7 @@ pub enum Error {
     ///
     /// The payload was either invalid JSON or did not contain the necessary
     /// "op" key in the object.
-    PayloadInvalid {
-        /// The payload received over the connection.
-        payload: String,
-    },
+    PayloadInvalid,
     /// The binary payload received from Discord wasn't validly encoded as
     /// UTF-8.
     PayloadNotUtf8 {

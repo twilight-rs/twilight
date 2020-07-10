@@ -575,7 +575,7 @@ impl ShardProcessor {
         use serde_json::Deserializer;
         use twilight_model::gateway::event::GatewayEventDeserializer;
 
-        let gateway_deserializer = GatewayEventDeserializer::from_json(json).unwrap();
+        let gateway_deserializer = GatewayEventDeserializer::from_json(json).ok_or_else(|| Error::PayloadInvalid)?;
         let mut json_deserializer = Deserializer::from_str(json);
 
         gateway_deserializer
