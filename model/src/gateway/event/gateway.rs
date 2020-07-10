@@ -85,9 +85,11 @@ impl<'a> GatewayEventDeserializer<'a> {
     }
 
     fn find_event_type(input: &'a str) -> Option<&'a str> {
-        // Discord seems to usually (always?) provide the type at the end of the
-        // payload, so let's search from the right...
-        let from = input.rfind(r#""t":"#)? + 4;
+        // So we're going to search the end *just a little bit* and, if it's not
+        // in the first several bytes, start searching from the start. There
+        // doesn't appear to be any particular chance it's on either side by the
+        // looks of it.
+        let from = Self::find_event_type_end(input).or_else(|| Self::find_event_type_start(input))?;
 
         // Now let's find where the value starts. There may or may not be any
         // amount of whitespace after the "t" key.
@@ -97,19 +99,38 @@ impl<'a> GatewayEventDeserializer<'a> {
         input.get(start..start + to)
     }
 
+    // Search for the index of the event type key from the end.
+    fn find_event_type_start(input: &'a str) -> Option<usize> {
+        // If we find it, add 4, since that's the length of what we're searching
+        // for.
+        input.find(r#""t":"#).map(|idx| idx + 4)
+    }
+
+    // Search for the index of the event type key from the end.
+    #[allow(unused)]
+    fn find_event_type_end(input: &'a str) -> Option<usize> {
+        let search_idx = input.len().saturating_sub(100);
+
+        // If we find it, add 4, since that's the length of what we're searching
+        // for.
+        let x = input.get(search_idx..)?.find(r#""t":"#).map(|idx| search_idx + idx + 4);
+
+        x
+    }
+
     fn find_opcode(input: &'a str) -> Option<u8> {
         // Find the op key's position and then search for where the first
         // character that's not base 10 is. This'll give us the bytes with the
         // op which can be parsed.
         //
-        // Add on 5 at the end since that's the length of what we're finding.
+        // Add 5 at the end since that's the length of what we're finding.
         let from = input.find(r#""op":"#)? + 5;
 
         // Look for the first thing that isn't a base 10 digit or whitespace,
         // i.e. a comma (denoting another JSON field), curly brace (end of the
         // object), etc. This'll give us the op number, maybe with a little
         // whitespace.
-        let to = input.get(from..)?.find(|c: char| c == ',' || c == '}')?;
+        let to = input.get(from..)?.find(&[',', '}'] as &[_])?;
         // We might have some whitespace, so let's trim this.
         let clean = input.get(from..from + to)?.trim();
 
