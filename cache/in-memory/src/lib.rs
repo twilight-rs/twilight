@@ -452,41 +452,12 @@ impl InMemoryCache {
     pub async fn cache_guild(&self, guild: Guild) {
         // The map and set creation needs to occur first, so caching states and objects
         // always has a place to put them.
-        self.0
-            .guild_channels
-            .lock()
-            .await
-            .insert(guild.id, HashSet::new());
-
-        self.0
-            .guild_emojis
-            .lock()
-            .await
-            .insert(guild.id, HashSet::new());
-
-        self.0
-            .guild_members
-            .lock()
-            .await
-            .insert(guild.id, HashSet::new());
-
-        self.0
-            .guild_presences
-            .lock()
-            .await
-            .insert(guild.id, HashSet::new());
-
-        self.0
-            .guild_roles
-            .lock()
-            .await
-            .insert(guild.id, HashSet::new());
-
-        self.0
-            .guild_voice_states
-            .lock()
-            .await
-            .insert(guild.id, HashMap::new());
+        self.0.guild_channels.insert(guild.id, HashSet::new());
+        self.0.guild_emojis.insert(guild.id, HashSet::new());
+        self.0.guild_members.insert(guild.id, HashSet::new());
+        self.0.guild_presences.insert(guild.id, HashSet::new());
+        self.0.guild_roles.insert(guild.id, HashSet::new());
+        self.0.guild_voice_states.insert(guild.id, HashMap::new());
 
         self.cache_guild_channels(guild.id, guild.channels.into_iter().map(|(_, v)| v))
             .await;
