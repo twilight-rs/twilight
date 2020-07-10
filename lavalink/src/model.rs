@@ -520,8 +520,8 @@ mod incoming {
         /// CPU information about the node's host.
         pub cpu: StatsCpu,
         /// Statistics about audio frames.
-        #[serde(rename = "frameStats")]
-        pub frames: StatsFrames,
+        #[serde(rename = "frameStats", skip_serializing_if = "Option::is_none")]
+        pub frames: Option<StatsFrames>,
         /// Memory information about the node's host.
         pub memory: StatsMemory,
         /// The current number of total players (active and not active) within
@@ -638,8 +638,10 @@ mod tests {
             Destroy, Equalizer, EqualizerBand, OutgoingEvent, Pause, Play, Seek,
             SlimVoiceServerUpdate, Stop, VoiceUpdate, Volume,
         },
+        Opcode,
     };
     use serde::{Deserialize, Serialize};
+    use serde_test::Token;
     use static_assertions::assert_impl_all;
     use std::fmt::Debug;
 
@@ -801,4 +803,59 @@ mod tests {
         PartialEq,
         Serialize
     );
+
+    #[test]
+    fn stats_frames_not_provided() {
+        let expected = Stats {
+            cpu: StatsCpu {
+                cores: 4,
+                lavalink_load: 0.27611940298507465,
+                system_load: 0.1953805363788359,
+            },
+            frames: None,
+            memory: StatsMemory {
+                allocated: 62914560,
+                free: 27664576,
+                reservable: 4294967296,
+                used: 35249984,
+            },
+            players: 0,
+            playing_players: 0,
+            op: Opcode::Stats,
+            uptime: 18589,
+        };
+
+        serde_test::assert_de_tokens(&expected, &[
+            Token::Struct { name: "Stats", len: 6 },
+            Token::Str("cpu"),
+            Token::Struct { name: "StatsCpu", len: 3 },
+            Token::Str("cores"),
+            Token::U64(4),
+            Token::Str("lavalinkLoad"),
+            Token::F64(0.27611940298507465),
+            Token::Str("systemLoad"),
+            Token::F64(0.1953805363788359),
+            Token::StructEnd,
+            Token::Str("memory"),
+            Token::Struct { name: "StatsMemory", len: 4 },
+            Token::Str("allocated"),
+            Token::U64(62914560),
+            Token::Str("free"),
+            Token::U64(27664576),
+            Token::Str("reservable"),
+            Token::U64(4294967296),
+            Token::Str("used"),
+            Token::U64(35249984),
+            Token::StructEnd,
+            Token::Str("op"),
+            Token::UnitVariant { name: "Opcode", variant: "stats" },
+            Token::Str("players"),
+            Token::U64(0),
+            Token::Str("playingPlayers"),
+            Token::U64(0),
+            Token::Str("uptime"),
+            Token::U64(18589),
+            Token::StructEnd,
+        ]);
+    }
 }
