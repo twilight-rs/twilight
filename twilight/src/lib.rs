@@ -85,13 +85,19 @@
 //!
 //! ### `twilight-lavalink`
 //!
-//! `twilight-lavalink` is a client for [Lavalink] as part of the twilight
+//! [`twilight-lavalink`] is a client for [Lavalink] as part of the twilight
 //! ecosystem.
 //!
 //! It includes support for managing multiple nodes, a player manager for
 //! conveniently using players to send events and retrieve information for each
 //! guild, and an HTTP module for creating requests using the [`http`] crate and
 //! providing models to deserialize their responses.
+//!
+//! ### `twilight-mention`
+//!
+//! [`twilight-mention`] is a utility crate for creating display formatters for
+//! various model types that format mentions. For example, it can create
+//! formatters for mentioning a channel or emoji, or pinging a role or user.
 //!
 //! ## Examples
 //!
@@ -192,6 +198,8 @@
 //! [logo]: https://raw.githubusercontent.com/twilight-rs/twilight/trunk/logo.png
 //! [rust badge]: https://img.shields.io/badge/rust-1.40+%20(stable)-93450a.svg?style=flat-square
 //! [rust link]: https://github.com/rust-lang/rust/milestone/66
+//! [`twilight-lavalink`]: https://github.com/twilight-rs/twilight/tree/trunk/lavalink
+//! [`twilight-mention`]: https://github.com/twilight-rs/twilight/tree/trunk/utils/mention
 
 #[cfg(feature = "builders")]
 pub extern crate twilight_builders as builders;

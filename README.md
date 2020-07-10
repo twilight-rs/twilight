@@ -95,6 +95,12 @@ conveniently using players to send events and retrieve information for each
 guild, and an HTTP module for creating requests using the [`http`] crate and
 providing models to deserialize their responses.
 
+### `twilight-mention`
+
+`twilight-mention` is a utility crate for creating display formatters for
+various model types that format mentions. For example, it can create
+formatters for mentioning a channel or emoji, or pinging a role or user.
+
 ## Examples
 
 ```rust,no_run
