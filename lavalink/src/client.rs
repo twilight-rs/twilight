@@ -72,14 +72,18 @@ struct LavalinkRef {
 /// The lavalink client that manages nodes, players, and processes events from
 /// Discord to tie it all together.
 ///
-/// You can use the client to process voice events, which it will use to forward
-/// server updates and voice states to Lavalink. Additionally, you can retrieve
-/// players using the [`player`] method. Players contain information about the
-/// active playing information of a guild and allows you to send events to the
+/// **Note**: You must call the [`process`] method with every Voice State Update
+/// and Voice Server Update event you receive from Discord. It will
+/// automatically forward these events to Lavalink. See its documentation for
+/// more information.
+///
+/// You can retrieve players using the [`player`] method. Players contain
+/// information about the active playing information of a guild and allows you to send events to the
 /// connected node, such as [`Play`] events.
 ///
 /// [`Play`]: ../model/struct.Play.html
 /// [`player`]: #method.player
+/// [`process`]: #method.process
 #[derive(Clone, Debug)]
 pub struct Lavalink(Arc<LavalinkRef>);
 
@@ -128,12 +132,17 @@ impl Lavalink {
 
     /// Process an event into the Lavalink client.
     ///
-    /// This requires the `VoiceServerUpdate` and `VoiceStateUpdate` events to
-    /// send voice updates to nodes.
+    /// **Note**: calling this method in your event loop is required. See the
+    /// [crate documentation] for an example.
     ///
-    /// Additionally, the `Ready` event can optionally be provided to do some
-    /// cleaning of stalled voice states that never received their voice server
-    /// update half or vice versa.
+    /// This requires the `VoiceServerUpdate` and `VoiceStateUpdate` events that
+    /// you receive from Discord over the gateway to send voice updates to
+    /// nodes. For simplicity in some applications' event loops, any event can
+    /// be provided, but they will just be ignored.
+    ///
+    /// The Ready event can optionally be provided to do some cleaning of
+    /// stalled voice states that never received their voice server update half
+    /// or vice versa. It is recommended that you process Ready events.
     ///
     /// # Errors
     ///
@@ -141,6 +150,7 @@ impl Lavalink {
     /// to the client when attempting to retrieve a guild's player.
     ///
     /// [`ClientError::NodesUnconfigured`]: enum.ClientError.html#variant.NodesUnconfigured
+    /// [crate documentation]: ../index.html#examples
     pub async fn process(&self, event: &Event) -> Result<(), ClientError> {
         log::trace!("Processing event: {:?}", event);
 
