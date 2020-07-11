@@ -85,12 +85,13 @@ impl<'a> GatewayEventDeserializer<'a> {
     }
 
     fn find_event_type(input: &'a str) -> Option<&'a str> {
-        // So we're going to search the end *just a little bit* and, if it's not
-        // in the first several bytes, start searching from the start. There
-        // doesn't appear to be any particular chance it's on either side by the
-        // looks of it.
-        let from =
-            Self::find_event_type_end(input).or_else(|| Self::find_event_type_start(input))?;
+        // We're going to search for the event type key from the start. Discord
+        // always puts it at the front before the D key from some testing of
+        // several hundred payloads.
+        //
+        // If we find it, add 4, since that's the length of what we're searching
+        // for.
+        let from = input.find(r#""t":"#)? + 4;
 
         // Now let's find where the value starts. There may or may not be any
         // amount of whitespace after the "t" key.
@@ -98,25 +99,6 @@ impl<'a> GatewayEventDeserializer<'a> {
         let to = input.get(start..)?.find('"')?;
 
         input.get(start..start + to)
-    }
-
-    // Search for the index of the event type key from the end.
-    fn find_event_type_start(input: &'a str) -> Option<usize> {
-        // If we find it, add 4, since that's the length of what we're searching
-        // for.
-        input.find(r#""t":"#).map(|idx| idx + 4)
-    }
-
-    // Search for the index of the event type key from the end.
-    fn find_event_type_end(input: &'a str) -> Option<usize> {
-        let search_idx = input.len().saturating_sub(100);
-
-        // If we find it, add 4, since that's the length of what we're searching
-        // for.
-        input
-            .get(search_idx..)?
-            .find(r#""t":"#)
-            .map(|idx| search_idx + idx + 4)
     }
 
     fn find_opcode(input: &'a str) -> Option<u8> {
