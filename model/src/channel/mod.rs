@@ -24,7 +24,9 @@ pub use self::{
 
 use crate::id::{ChannelId, MessageId};
 use serde::{
-    de::{DeserializeSeed, Deserializer, Error as DeError, MapAccess, SeqAccess, Visitor},
+    de::{
+        DeserializeSeed, Deserializer, Error as DeError, IgnoredAny, MapAccess, SeqAccess, Visitor,
+    },
     Deserialize, Serialize,
 };
 use serde_mappable_seq::Key;
@@ -116,7 +118,12 @@ impl<'de> Visitor<'de> for GuildChannelVisitor {
             let key = match map.next_key() {
                 Ok(Some(key)) => key,
                 Ok(None) => break,
-                Err(_) => continue,
+                Err(_) => {
+                    // Encountered when we run into an unknown key.
+                    map.next_value::<IgnoredAny>()?;
+
+                    continue;
+                }
             };
 
             match key {

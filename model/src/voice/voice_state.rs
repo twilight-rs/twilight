@@ -3,7 +3,9 @@ use crate::{
     id::{ChannelId, GuildId, UserId},
 };
 use serde::{
-    de::{DeserializeSeed, Deserializer, Error as DeError, MapAccess, SeqAccess, Visitor},
+    de::{
+        DeserializeSeed, Deserializer, Error as DeError, IgnoredAny, MapAccess, SeqAccess, Visitor,
+    },
     Deserialize, Serialize,
 };
 use serde_mappable_seq::Key;
@@ -84,6 +86,8 @@ impl<'de> Visitor<'de> for VoiceStateVisitor {
                 Ok(None) => break,
                 Err(_) => {
                     // Encountered when we run into an unknown key.
+                    map.next_value::<IgnoredAny>()?;
+
                     continue;
                 }
             };

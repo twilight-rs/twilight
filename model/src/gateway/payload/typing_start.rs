@@ -3,7 +3,7 @@ use crate::{
     id::{ChannelId, GuildId, UserId},
 };
 use serde::{
-    de::{Deserializer, Error as DeError, MapAccess, Visitor},
+    de::{Deserializer, Error as DeError, IgnoredAny, MapAccess, Visitor},
     Deserialize, Serialize,
 };
 use std::fmt::{Formatter, Result as FmtResult};
@@ -49,6 +49,8 @@ impl<'de> Visitor<'de> for TypingStartVisitor {
                 Ok(None) => break,
                 Err(_) => {
                     // Encountered when we run into an unknown key.
+                    map.next_value::<IgnoredAny>()?;
+
                     continue;
                 }
             };
