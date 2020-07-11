@@ -1,14 +1,9 @@
 use super::{config::EventType, InMemoryCache, InMemoryCacheError};
 use async_trait::async_trait;
-use futures_util::lock::Mutex;
+use dashmap::DashMap;
 #[allow(unused_imports)]
 use log::debug;
-use std::{
-    collections::{HashMap, HashSet},
-    hash::Hash,
-    ops::Deref,
-    sync::Arc,
-};
+use std::{collections::HashSet, hash::Hash, ops::Deref, sync::Arc};
 use twilight_cache_trait::UpdateCache;
 use twilight_model::{
     channel::{message::MessageReaction, Channel, GuildChannel},
@@ -139,7 +134,7 @@ impl UpdateCache<InMemoryCache, InMemoryCacheError> for ChannelDelete {
                 cache.delete_guild_channel(id).await;
             }
             Channel::Private(ref c) => {
-                cache.0.channels_private.lock().await.remove(&c.id);
+                cache.0.channels_private.remove(&c.id);
             }
         }
 
@@ -155,9 +150,7 @@ impl UpdateCache<InMemoryCache, InMemoryCacheError> for ChannelPinsUpdate {
         }
 
         {
-            let mut channels_guild = cache.0.channels_guild.lock().await;
-
-            if let Some(item) = channels_guild.get_mut(&self.channel_id) {
+            if let Some(mut item) = cache.0.channels_guild.get_mut(&self.channel_id) {
                 let channel = Arc::make_mut(&mut item.data);
 
                 if let GuildChannel::Text(text) = channel {
@@ -169,9 +162,7 @@ impl UpdateCache<InMemoryCache, InMemoryCacheError> for ChannelPinsUpdate {
         }
 
         {
-            let mut channels_private = cache.0.channels_private.lock().await;
-
-            if let Some(mut channel) = channels_private.get_mut(&self.channel_id) {
+            if let Some(mut channel) = cache.0.channels_private.get_mut(&self.channel_id) {
                 Arc::make_mut(&mut channel).last_pin_timestamp = self.last_pin_timestamp.clone();
 
                 return Ok(());
@@ -179,9 +170,7 @@ impl UpdateCache<InMemoryCache, InMemoryCacheError> for ChannelPinsUpdate {
         }
 
         {
-            let mut groups = cache.0.groups.lock().await;
-
-            if let Some(mut group) = groups.get_mut(&self.channel_id) {
+            if let Some(mut group) = cache.0.groups.get_mut(&self.channel_id) {
                 Arc::make_mut(&mut group).last_pin_timestamp = self.last_pin_timestamp.clone();
             }
         }
@@ -232,15 +221,13 @@ impl UpdateCache<InMemoryCache, InMemoryCacheError> for GuildCreate {
 impl UpdateCache<InMemoryCache, InMemoryCacheError> for GuildDelete {
     async fn update(&self, cache: &InMemoryCache) -> Result<(), InMemoryCacheError> {
         async fn remove_ids<T: Eq + Hash, U>(
-            guild_map: &Mutex<HashMap<GuildId, HashSet<T>>>,
-            container: &Mutex<HashMap<T, U>>,
+            guild_map: &DashMap<GuildId, HashSet<T>>,
+            container: &DashMap<T, U>,
             guild_id: GuildId,
         ) {
-            if let Some(ids) = guild_map.lock().await.remove(&guild_id) {
-                let mut items = container.lock().await;
-
+            if let Some((_, ids)) = guild_map.remove(&guild_id) {
                 for id in ids {
-                    items.remove(&id);
+                    container.remove(&id);
                 }
             }
         }
@@ -251,27 +238,23 @@ impl UpdateCache<InMemoryCache, InMemoryCacheError> for GuildDelete {
 
         let id = self.id;
 
-        cache.0.guilds.lock().await.remove(&id);
+        cache.0.guilds.remove(&id);
 
         remove_ids(&cache.0.guild_channels, &cache.0.channels_guild, id).await;
         remove_ids(&cache.0.guild_emojis, &cache.0.emojis, id).await;
         remove_ids(&cache.0.guild_roles, &cache.0.roles, id).await;
         // Clear out a guilds voice states when a guild leaves
-        cache.0.guild_voice_states.lock().await.remove(&id);
+        cache.0.guild_voice_states.remove(&id);
 
-        if let Some(ids) = cache.0.guild_members.lock().await.remove(&id) {
-            let mut members = cache.0.members.lock().await;
-
+        if let Some((_, ids)) = cache.0.guild_members.remove(&id) {
             for user_id in ids {
-                members.remove(&(id, user_id));
+                cache.0.members.remove(&(id, user_id));
             }
         }
 
-        if let Some(ids) = cache.0.guild_presences.lock().await.remove(&id) {
-            let mut presences = cache.0.presences.lock().await;
-
+        if let Some((_, ids)) = cache.0.guild_presences.remove(&id) {
             for user_id in ids {
-                presences.remove(&(Some(id), user_id));
+                cache.0.presences.remove(&(Some(id), user_id));
             }
         }
 
@@ -308,9 +291,12 @@ impl UpdateCache<InMemoryCache, InMemoryCacheError> for GuildUpdate {
             return Ok(());
         }
 
-        let mut guilds = cache.0.guilds.lock().await;
-
-        let mut guild = match guilds.get_mut(&self.0.id).cloned() {
+        let mut guild = match cache
+            .0
+            .guilds
+            .get_mut(&self.0.id)
+            .map(|r| Arc::clone(r.value()))
+        {
             Some(guild) => guild,
             None => return Ok(()),
         };
@@ -360,8 +346,9 @@ impl UpdateCache<InMemoryCache, InMemoryCacheError> for MemberAdd {
 
         cache.cache_member(self.guild_id, self.0.clone()).await;
 
-        let mut guild = cache.0.guild_members.lock().await;
-        guild
+        cache
+            .0
+            .guild_members
             .entry(self.guild_id)
             .or_default()
             .insert(self.0.user.id);
@@ -385,9 +372,7 @@ impl UpdateCache<InMemoryCache, InMemoryCacheError> for MemberChunk {
             .cache_members(self.guild_id, self.members.values().cloned())
             .await;
         let user_ids = self.members.keys();
-        let mut members = cache.0.guild_members.lock().await;
-
-        let guild = members.entry(self.guild_id).or_default();
+        let mut guild = cache.0.guild_members.entry(self.guild_id).or_default();
 
         for id in user_ids {
             guild.insert(*id);
@@ -404,16 +389,9 @@ impl UpdateCache<InMemoryCache, InMemoryCacheError> for MemberRemove {
             return Ok(());
         }
 
-        cache
-            .0
-            .members
-            .lock()
-            .await
-            .remove(&(self.guild_id, self.user.id));
+        cache.0.members.remove(&(self.guild_id, self.user.id));
 
-        let mut guild_members = cache.0.guild_members.lock().await;
-
-        if let Some(members) = guild_members.get_mut(&self.guild_id) {
+        if let Some(mut members) = cache.0.guild_members.get_mut(&self.guild_id) {
             members.remove(&self.user.id);
         }
 
@@ -428,9 +406,7 @@ impl UpdateCache<InMemoryCache, InMemoryCacheError> for MemberUpdate {
             return Ok(());
         }
 
-        let mut members = cache.0.members.lock().await;
-
-        let mut member = match members.get_mut(&(self.guild_id, self.user.id)) {
+        let mut member = match cache.0.members.get_mut(&(self.guild_id, self.user.id)) {
             Some(member) => member,
             None => return Ok(()),
         };
@@ -450,8 +426,7 @@ impl UpdateCache<InMemoryCache, InMemoryCacheError> for MessageCreate {
             return Ok(());
         }
 
-        let mut channels = cache.0.messages.lock().await;
-        let channel = channels.entry(self.0.channel_id).or_default();
+        let mut channel = cache.0.messages.entry(self.0.channel_id).or_default();
 
         if channel.len() > cache.0.config.message_cache_size() {
             if let Some(k) = channel.iter().next_back().map(|x| *x.0) {
@@ -472,8 +447,7 @@ impl UpdateCache<InMemoryCache, InMemoryCacheError> for MessageDelete {
             return Ok(());
         }
 
-        let mut channels = cache.0.messages.lock().await;
-        let channel = channels.entry(self.channel_id).or_default();
+        let mut channel = cache.0.messages.entry(self.channel_id).or_default();
         channel.remove(&self.id);
 
         Ok(())
@@ -487,8 +461,7 @@ impl UpdateCache<InMemoryCache, InMemoryCacheError> for MessageDeleteBulk {
             return Ok(());
         }
 
-        let mut channels = cache.0.messages.lock().await;
-        let channel = channels.entry(self.channel_id).or_default();
+        let mut channel = cache.0.messages.entry(self.channel_id).or_default();
 
         for id in &self.ids {
             channel.remove(id);
@@ -505,8 +478,7 @@ impl UpdateCache<InMemoryCache, InMemoryCacheError> for MessageUpdate {
             return Ok(());
         }
 
-        let mut channels = cache.0.messages.lock().await;
-        let channel = channels.entry(self.channel_id).or_default();
+        let mut channel = cache.0.messages.entry(self.channel_id).or_default();
 
         if let Some(mut message) = channel.get_mut(&self.id) {
             let mut msg = Arc::make_mut(&mut message);
@@ -586,8 +558,7 @@ impl UpdateCache<InMemoryCache, InMemoryCacheError> for ReactionAdd {
             return Ok(());
         }
 
-        let mut channels = cache.0.messages.lock().await;
-        let channel = channels.entry(self.0.channel_id).or_default();
+        let mut channel = cache.0.messages.entry(self.0.channel_id).or_default();
 
         let mut message = match channel.get_mut(&self.0.message_id) {
             Some(message) => message,
@@ -633,8 +604,7 @@ impl UpdateCache<InMemoryCache, InMemoryCacheError> for ReactionRemove {
             return Ok(());
         }
 
-        let mut channels = cache.0.messages.lock().await;
-        let channel = channels.entry(self.0.channel_id).or_default();
+        let mut channel = cache.0.messages.entry(self.0.channel_id).or_default();
 
         let mut message = match channel.get_mut(&self.0.message_id) {
             Some(message) => message,
@@ -670,8 +640,7 @@ impl UpdateCache<InMemoryCache, InMemoryCacheError> for ReactionRemoveAll {
             return Ok(());
         }
 
-        let mut channels = cache.0.messages.lock().await;
-        let channel = channels.entry(self.channel_id).or_default();
+        let mut channel = cache.0.messages.entry(self.channel_id).or_default();
 
         let mut message = match channel.get_mut(&self.message_id) {
             Some(message) => message,
@@ -679,7 +648,6 @@ impl UpdateCache<InMemoryCache, InMemoryCacheError> for ReactionRemoveAll {
         };
 
         let msg = Arc::make_mut(&mut message);
-
         msg.reactions.clear();
 
         Ok(())
@@ -769,8 +737,8 @@ impl UpdateCache<InMemoryCache, InMemoryCacheError> for UnavailableGuild {
             return Ok(());
         }
 
-        cache.0.guilds.lock().await.remove(&self.id);
-        cache.0.unavailable_guilds.lock().await.insert(self.id);
+        cache.0.guilds.remove(&self.id);
+        cache.0.unavailable_guilds.insert(self.id);
 
         Ok(())
     }
