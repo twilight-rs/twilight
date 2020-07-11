@@ -26,6 +26,7 @@ tokio = { default-features = false, features = ["net", "rt-core", "time"], versi
 twilight-model = { default-features = false, path = "../model" }
 
 [dev-dependencies]
+serde_test = { default-features = false, version = "1" }
 static_assertions = { default-features = false, version = "1" }
 tokio = { default-features = false, features = ["macros", "rt-core"], version = "0.2" }
 twilight-gateway = { path = "../gateway" }

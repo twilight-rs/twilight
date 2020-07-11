@@ -20,10 +20,7 @@
 //! [`VoiceUpdate`]: ../model/struct.VoiceUpdate.html
 
 use crate::{
-    model::{
-        IncomingEvent, Opcode, OutgoingEvent, PlayerUpdate, Stats, StatsCpu, StatsFrames,
-        StatsMemory,
-    },
+    model::{IncomingEvent, Opcode, OutgoingEvent, PlayerUpdate, Stats, StatsCpu, StatsMemory},
     player::PlayerManager,
 };
 use async_tungstenite::{
@@ -235,11 +232,7 @@ impl Node {
                 lavalink_load: 0f64,
                 system_load: 0f64,
             },
-            frames: StatsFrames {
-                deficit: 0,
-                nulled: 0,
-                sent: 0,
-            },
+            frames: None,
             memory: StatsMemory {
                 allocated: 0,
                 free: 0,
@@ -309,8 +302,14 @@ impl Node {
         let cpu = 1.05f64.powf(100f64 * stats.cpu.system_load) * 10f64 - 10f64;
 
         let (deficit_frame, null_frame) = (
-            1.03f64.powf(500f64 * (stats.frames.deficit as f64 / 3000f64)) * 300f64 - 300f64,
-            (1.03f64.powf(500f64 * (stats.frames.nulled as f64 / 3000f64)) * 300f64 - 300f64)
+            1.03f64
+                .powf(500f64 * (stats.frames.as_ref().map_or(0, |f| f.deficit) as f64 / 3000f64))
+                * 300f64
+                - 300f64,
+            (1.03f64
+                .powf(500f64 * (stats.frames.as_ref().map_or(0, |f| f.nulled) as f64 / 3000f64))
+                * 300f64
+                - 300f64)
                 * 2f64,
         );
 
