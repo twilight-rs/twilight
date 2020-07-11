@@ -20,7 +20,6 @@ impl Identify {
 #[derive(Clone, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
 pub struct IdentifyInfo {
     pub compression: bool,
-    pub guild_subscriptions: bool,
     pub intents: Option<GatewayIntents>,
     pub large_threshold: u64,
     pub presence: Option<UpdateStatusInfo>,
