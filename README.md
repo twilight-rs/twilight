@@ -187,6 +187,15 @@ async fn handle_event(
 }
 ```
 
+## Note about tracing
+
+When using tracing you will by default not see logs from libraries that uses the
+`log` crate. You can add that back by using the [`tracing-log`] crate and 
+initalize it like this:
+```rust,ignore
+tracing_log::LogTracer::init()?;
+```
+
 ## License
 
 All first-party crates are licensed under [ISC][LICENSE.md]
@@ -202,5 +211,6 @@ All first-party crates are licensed under [ISC][LICENSE.md]
 [rust link]: https://github.com/rust-lang/rust/milestone/66
 [`twilight-lavalink`]: https://github.com/twilight-rs/twilight/tree/trunk/lavalink
 [`twilight-mention`]: https://github.com/twilight-rs/twilight/tree/trunk/utils/mention
+[`tracing-log`]: https://github.com/tokio-rs/tracing/tree/master/tracing-log
 
 <!-- cargo-sync-readme end -->
