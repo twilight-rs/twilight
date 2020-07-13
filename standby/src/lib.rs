@@ -134,7 +134,7 @@ use std::{
     sync::Arc,
 };
 use twilight_model::{
-    channel::{Channel, GuildChannel},
+    channel::Channel,
     gateway::{
         event::{Event, EventType},
         payload::{MessageCreate, ReactionAdd},
@@ -819,11 +819,7 @@ fn event_guild_id(event: &Event) -> Option<GuildId> {
 
 fn channel_guild_id(channel: &Channel) -> Option<GuildId> {
     match channel {
-        Channel::Guild(c) => match c {
-            GuildChannel::Category(c) => c.guild_id,
-            GuildChannel::Text(c) => c.guild_id,
-            GuildChannel::Voice(c) => c.guild_id,
-        },
+        Channel::Guild(c) => c.guild_id(),
         _ => None,
     }
 }

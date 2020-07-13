@@ -22,7 +22,7 @@ pub use self::{
     voice_channel::VoiceChannel, webhook::Webhook, webhook_type::WebhookType,
 };
 
-use crate::id::{ChannelId, MessageId};
+use crate::id::{ChannelId, GuildId, MessageId};
 use serde::{
     de::{
         DeserializeSeed, Deserializer, Error as DeError, IgnoredAny, MapAccess, SeqAccess, Visitor,
@@ -43,12 +43,65 @@ pub enum Channel {
     Private(PrivateChannel),
 }
 
+impl Channel {
+    /// Return the ID of the inner channel.
+    pub fn id(&self) -> ChannelId {
+        match self {
+            Self::Group(group) => group.id,
+            Self::Guild(guild_channel) => guild_channel.id(),
+            Self::Private(private) => private.id,
+        }
+    }
+
+    /// Return an immutable reference to the name of the inner channel.
+    ///
+    /// The group variant might not always have a name, since they are optional
+    /// for groups. The guild variant will always have a name. The private
+    /// variant doesn't have a name.
+    pub fn name(&self) -> Option<&str> {
+        match self {
+            Self::Group(group) => group.name.as_deref(),
+            Self::Guild(guild_channel) => Some(guild_channel.name()),
+            Self::Private(_) => None,
+        }
+    }
+}
+
 #[derive(Clone, Debug, Eq, Hash, PartialEq, Serialize)]
 #[serde(untagged)]
 pub enum GuildChannel {
     Category(CategoryChannel),
     Text(TextChannel),
     Voice(VoiceChannel),
+}
+
+impl GuildChannel {
+    /// Return the guild ID of the inner guild channel.
+    pub fn guild_id(&self) -> Option<GuildId> {
+        match self {
+            Self::Category(category) => category.guild_id,
+            Self::Text(text) => text.guild_id,
+            Self::Voice(voice) => voice.guild_id,
+        }
+    }
+
+    /// Return the ID of the inner guild channel.
+    pub fn id(&self) -> ChannelId {
+        match self {
+            Self::Category(category) => category.id,
+            Self::Text(text) => text.id,
+            Self::Voice(voice) => voice.id,
+        }
+    }
+
+    /// Return an immutable reference to the name of the inner guild channel.
+    pub fn name(&self) -> &str {
+        match self {
+            Self::Category(category) => category.name.as_ref(),
+            Self::Text(text) => text.name.as_ref(),
+            Self::Voice(voice) => voice.name.as_ref(),
+        }
+    }
 }
 
 impl Key<'_, ChannelId> for GuildChannel {
@@ -315,14 +368,8 @@ impl<'de> Visitor<'de> for GuildChannelMapVisitor {
             .size_hint()
             .map_or_else(HashMap::new, HashMap::with_capacity);
 
-        while let Some(channel) = seq.next_element()? {
-            let id = match channel {
-                GuildChannel::Category(ref c) => c.id,
-                GuildChannel::Text(ref t) => t.id,
-                GuildChannel::Voice(ref v) => v.id,
-            };
-
-            map.insert(id, channel);
+        while let Some(channel) = seq.next_element::<GuildChannel>()? {
+            map.insert(channel.id(), channel);
         }
 
         Ok(map)
@@ -339,11 +386,154 @@ impl<'de> DeserializeSeed<'de> for GuildChannelMapDeserializer {
 
 #[cfg(test)]
 mod tests {
-    use super::{CategoryChannel, ChannelType, GuildChannel, TextChannel, VoiceChannel};
+    use super::{
+        CategoryChannel, Channel, ChannelType, Group, GuildChannel, PrivateChannel, TextChannel,
+        VoiceChannel,
+    };
     use crate::{
         channel::permission_overwrite::PermissionOverwrite,
-        id::{ChannelId, GuildId, MessageId},
+        id::{ChannelId, GuildId, MessageId, UserId},
     };
+
+    fn group() -> Group {
+        Group {
+            application_id: None,
+            icon: None,
+            id: ChannelId(123),
+            kind: ChannelType::Group,
+            last_message_id: None,
+            last_pin_timestamp: None,
+            name: Some("a group".to_owned()),
+            owner_id: UserId(456),
+            recipients: Vec::new(),
+        }
+    }
+
+    fn guild_category() -> CategoryChannel {
+        CategoryChannel {
+            guild_id: Some(GuildId(321)),
+            id: ChannelId(123),
+            kind: ChannelType::GuildCategory,
+            name: "category".to_owned(),
+            nsfw: false,
+            parent_id: None,
+            permission_overwrites: Vec::new(),
+            position: 0,
+        }
+    }
+
+    fn guild_text() -> TextChannel {
+        TextChannel {
+            guild_id: Some(GuildId(321)),
+            id: ChannelId(456),
+            kind: ChannelType::GuildText,
+            last_message_id: None,
+            last_pin_timestamp: None,
+            name: "text".to_owned(),
+            nsfw: false,
+            permission_overwrites: Vec::new(),
+            parent_id: None,
+            position: 1,
+            rate_limit_per_user: None,
+            topic: None,
+        }
+    }
+
+    fn guild_voice() -> VoiceChannel {
+        VoiceChannel {
+            bitrate: 1000,
+            guild_id: Some(GuildId(321)),
+            id: ChannelId(789),
+            kind: ChannelType::GuildVoice,
+            name: "voice".to_owned(),
+            permission_overwrites: Vec::new(),
+            parent_id: None,
+            position: 2,
+            user_limit: None,
+        }
+    }
+
+    fn private() -> PrivateChannel {
+        PrivateChannel {
+            id: ChannelId(234),
+            last_message_id: None,
+            last_pin_timestamp: None,
+            kind: ChannelType::Private,
+            recipients: Vec::new(),
+        }
+    }
+
+    #[test]
+    fn test_channel_helpers() {
+        assert_eq!(Channel::Group(group()).id(), ChannelId(123));
+        assert_eq!(
+            Channel::Guild(GuildChannel::Category(guild_category())).id(),
+            ChannelId(123)
+        );
+        assert_eq!(
+            Channel::Guild(GuildChannel::Text(guild_text())).id(),
+            ChannelId(456)
+        );
+        assert_eq!(
+            Channel::Guild(GuildChannel::Voice(guild_voice())).id(),
+            ChannelId(789)
+        );
+        assert_eq!(Channel::Private(private()).id(), ChannelId(234));
+    }
+
+    #[test]
+    fn test_channel_name() {
+        assert_eq!(Channel::Group(group()).name(), Some("a group"));
+        let mut group_no_name = group();
+        group_no_name.name = None;
+        assert!(Channel::Group(group_no_name).name().is_none());
+        assert_eq!(
+            Channel::Guild(GuildChannel::Category(guild_category())).name(),
+            Some("category")
+        );
+        assert_eq!(
+            Channel::Guild(GuildChannel::Text(guild_text())).name(),
+            Some("text")
+        );
+        assert_eq!(
+            Channel::Guild(GuildChannel::Voice(guild_voice())).name(),
+            Some("voice")
+        );
+        assert!(Channel::Private(private()).name().is_none());
+    }
+
+    #[test]
+    fn test_guild_channel_guild_id() {
+        assert_eq!(
+            GuildChannel::Category(guild_category()).guild_id(),
+            Some(GuildId(321))
+        );
+        assert_eq!(
+            GuildChannel::Text(guild_text()).guild_id(),
+            Some(GuildId(321))
+        );
+        assert_eq!(
+            GuildChannel::Voice(guild_voice()).guild_id(),
+            Some(GuildId(321))
+        );
+    }
+
+    #[test]
+    fn test_guild_channel_id() {
+        assert_eq!(
+            GuildChannel::Category(guild_category()).id(),
+            ChannelId(123)
+        );
+        assert_eq!(GuildChannel::Text(guild_text()).id(), ChannelId(456));
+        assert_eq!(GuildChannel::Voice(guild_voice()).id(), ChannelId(789));
+    }
+
+    #[test]
+    fn test_guild_channel_name() {
+        assert_eq!(GuildChannel::Category(guild_category()).name(), "category");
+        assert_eq!(GuildChannel::Text(guild_text()).name(), "text");
+        assert_eq!(GuildChannel::Voice(guild_voice()).name(), "voice");
+    }
 
     // The deserializer for GuildChannel should skip over fields names that
     // it couldn't deserialize.
