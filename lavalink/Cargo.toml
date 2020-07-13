@@ -18,7 +18,7 @@ dashmap = { default-features = false, version = "3" }
 futures-channel = { default-features = false, features = ["std"], version = "0.3" }
 futures-util = { default-features = false, features = ["bilock", "std", "unstable"], version = "0.3" }
 http = { default-features = false, optional = true, version = "0.2" }
-tracing = { default-features = false, features = ["std", "attributes"] version = "0.1" }
+tracing = { default-features = false, features = ["std", "attributes"], version = "0.1" }
 percent-encoding = { default-features = false, optional = true, version = "2" }
 serde = { default-features = false, features = ["derive", "std"], version = "1" }
 serde_json = { default-features = false, version = "1" }

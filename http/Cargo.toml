@@ -17,7 +17,7 @@ bytes = { default-features = false, version = "0.5" }
 futures-channel = { default-features = false, version = "0.3" }
 futures-util = { default-features = false, features = ["std"], version = "0.3" }
 twilight-model = { default-features = false, path = "../model" }
-tracing = { default-features = false, features = ["std", "attributes"] version = "0.1" }
+tracing = { default-features = false, features = ["std", "attributes"], version = "0.1" }
 reqwest = { default-features = false, version = "0.10" }
 serde = { default-features = false, features = ["derive"], version = "1" }
 serde_json = { default-features = false, optional = true, version = "1" }
