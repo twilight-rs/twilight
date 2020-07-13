@@ -32,7 +32,8 @@ fn spawn(
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn Error + Send + Sync + 'static>> {
-    pretty_env_logger::init_timed();
+    // Initialize the tracing subscriber.
+    tracing_subscriber::fmt::init();
 
     let (state, _rx) = {
         let token = env::var("DISCORD_TOKEN")?;

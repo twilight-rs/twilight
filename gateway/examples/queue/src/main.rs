@@ -14,7 +14,8 @@ impl Queue for BadQueue {
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn Error + Send + Sync>> {
-    pretty_env_logger::init_timed();
+    // Initialize the tracing subscriber.
+    tracing_subscriber::fmt::init();
 
     let token = env::var("DISCORD_TOKEN")?;
     let config = ShardConfig::builder(&token).queue(Arc::new(Box::new(BadQueue)));

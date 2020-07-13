@@ -9,6 +9,7 @@ twilight-gateway = { path = "../..", features = ["metrics"] }
 futures = "0.3"
 log = "0.4"
 tracing = "0.1"
-pretty_env_logger = "0.3"
+tracing-log = "0.1"
+tracing-subscriber = "0.2"
 tokio = { version = "0.2", features = ["macros", "rt-core"] }
 metrics-runtime = "0.13"

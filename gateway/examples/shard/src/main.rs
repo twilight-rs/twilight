@@ -4,7 +4,8 @@ use twilight_gateway::Shard;
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn Error + Send + Sync>> {
-    pretty_env_logger::init_timed();
+    // Initialize the tracing subscriber.
+    tracing_subscriber::fmt::init();
 
     let mut shard = Shard::new(env::var("DISCORD_TOKEN")?);
     let mut events = shard.events().await;

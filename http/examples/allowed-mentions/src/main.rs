@@ -4,7 +4,8 @@ use twilight_model::id::{ChannelId, UserId};
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn Error + Send + Sync>> {
-    pretty_env_logger::init_timed();
+    // Initialize the tracing subscriber.
+    tracing_subscriber::fmt::init();
 
     //if we want to set the default for allowed mentions we need to use the builder, keep in mind these calls can't be chained!
     let mut builder = Client::builder();
