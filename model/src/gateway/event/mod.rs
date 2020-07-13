@@ -1,12 +1,16 @@
 #![allow(clippy::wildcard_imports)]
 
+pub mod gateway;
 pub mod shard;
 
 mod dispatch;
-mod gateway;
 mod kind;
 
-pub use self::{dispatch::DispatchEvent, gateway::GatewayEvent, kind::EventType};
+pub use self::{
+    dispatch::DispatchEvent,
+    gateway::{GatewayEvent, GatewayEventDeserializer},
+    kind::EventType,
+};
 
 pub use self::dispatch::DispatchEventWithTypeDeserializer;
 

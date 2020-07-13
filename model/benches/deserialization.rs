@@ -1,9 +1,32 @@
 use criterion::{criterion_group, criterion_main, Criterion};
 
+use serde::de::DeserializeSeed;
+use serde_json::Deserializer;
 use twilight_model::{
     channel::Reaction,
-    gateway::payload::{MemberChunk, TypingStart},
+    gateway::{
+        event::GatewayEventDeserializer,
+        payload::{MemberChunk, TypingStart},
+    },
 };
+
+fn gateway_event_role_delete() {
+    let input = r##"{
+        "op": 0,
+        "s": 2,
+        "d": {
+            "guild_id": "1",
+            "role_id": "2"
+        },
+        "t": "GUILD_ROLE_DELETE"
+    }"##;
+
+    let mut json_deserializer = Deserializer::from_str(input);
+    let gateway_deserializer = GatewayEventDeserializer::from_json(input).unwrap();
+    gateway_deserializer
+        .deserialize(&mut json_deserializer)
+        .unwrap();
+}
 
 fn member_chunk() {
     let input = r#"{
@@ -160,6 +183,9 @@ fn typing_start() {
 }
 
 fn criterion_benchmark(c: &mut Criterion) {
+    c.bench_function("gateway event role delete", |b| {
+        b.iter(|| gateway_event_role_delete())
+    });
     c.bench_function("member chunk", |b| b.iter(|| member_chunk()));
     c.bench_function("reaction", |b| b.iter(|| reaction()));
     c.bench_function("typing start", |b| b.iter(|| typing_start()));
