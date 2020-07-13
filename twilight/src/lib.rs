@@ -187,9 +187,9 @@
 //!
 //! ## Note about tracing
 //!
-//! When using tracing you will by default not see logs from libraries that uses the
+//! When using tracing you won't, by default, see logs from any libraries that use the
 //! `log` crate. You can add that back by using the [`tracing-log`] crate and 
-//! initalize it like this:
+//! initializing it like this:
 //! ```rust,ignore
 //! tracing_log::LogTracer::init()?;
 //! ```
