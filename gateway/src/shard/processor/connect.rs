@@ -1,7 +1,7 @@
 use super::super::error::{Error, Result};
-use tracing::debug;
 use std::str::FromStr;
 use tokio_tungstenite::tungstenite::client::IntoClientRequest;
+use tracing::debug;
 use url::Url;
 
 use super::super::ShardStream;

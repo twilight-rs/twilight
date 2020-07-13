@@ -5,9 +5,9 @@ use futures_channel::{
     oneshot::{self, Sender},
 };
 use futures_util::{sink::SinkExt, stream::StreamExt};
-use tracing::{info, warn};
 use std::{fmt::Debug, time::Duration};
 use tokio::time::delay_for;
+use tracing::{info, warn};
 
 /// Large bot queue is for bots that are marked as very large by Discord.
 ///

@@ -10,10 +10,10 @@ use futures_channel::{
     oneshot::{self, Sender},
 };
 use futures_util::{sink::SinkExt, stream::StreamExt};
-#[allow(unused_imports)]
-use tracing::{info, warn};
 use std::{fmt::Debug, time::Duration};
 use tokio::time::delay_for;
+#[allow(unused_imports)]
+use tracing::{info, warn};
 
 #[async_trait]
 pub trait Queue: Debug + Send + Sync {

@@ -5,10 +5,10 @@ use futures_util::{
     sink::SinkExt,
     stream::StreamExt,
 };
-#[allow(unused_imports)]
-use tracing::{debug, info, trace, warn};
 use tokio::time::timeout;
 use tokio_tungstenite::tungstenite::Message;
+#[allow(unused_imports)]
+use tracing::{debug, info, trace, warn};
 
 pub struct SocketForwarder {
     rx: UnboundedReceiver<Message>,

@@ -15,7 +15,6 @@ use crate::{
     },
 };
 use bytes::Bytes;
-use tracing::{debug, warn};
 use reqwest::{header::HeaderValue, Body, Client as ReqwestClient, Response, StatusCode};
 use serde::de::DeserializeOwned;
 use std::{
@@ -24,6 +23,7 @@ use std::{
     result::Result as StdResult,
     sync::Arc,
 };
+use tracing::{debug, warn};
 use twilight_model::{
     channel::ReactionType,
     guild::Permissions,

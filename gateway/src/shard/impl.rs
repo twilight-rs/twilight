@@ -12,11 +12,11 @@ use futures_util::{
     stream::Stream,
 };
 
-use tracing::debug;
 use once_cell::sync::OnceCell;
 use std::sync::atomic::Ordering;
 use std::sync::Arc;
 use tokio::sync::watch::Receiver as WatchReceiver;
+use tracing::debug;
 
 use std::borrow::Cow;
 use tokio_tungstenite::tungstenite::protocol::{frame::coding::CloseCode, CloseFrame};

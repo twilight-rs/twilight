@@ -21,10 +21,10 @@ async fn main() -> Result<(), Box<dyn Error + Send + Sync>> {
     // This is needed because the metrics LogExporter
     // exports the the log and not tracing.
     tracing_log::LogTracer::init()?;
-    
+
     // Initialize the tracing subscriber.
     tracing_subscriber::fmt::init();
-    
+
     let cluster = Cluster::new(env::var("DISCORD_TOKEN")?).await?;
     println!("Created cluster");
 

@@ -24,8 +24,6 @@ use twilight_model::gateway::{
 
 use futures_channel::mpsc::UnboundedReceiver;
 use futures_util::stream::StreamExt;
-#[allow(unused_imports)]
-use tracing::{debug, info, trace, warn};
 use serde::Serialize;
 use std::{env::consts::OS, ops::Deref, str, sync::Arc};
 use tokio::sync::watch::{
@@ -35,6 +33,8 @@ use tokio_tungstenite::tungstenite::{
     protocol::{frame::coding::CloseCode, CloseFrame},
     Message,
 };
+#[allow(unused_imports)]
+use tracing::{debug, info, trace, warn};
 
 use std::borrow::Cow;
 

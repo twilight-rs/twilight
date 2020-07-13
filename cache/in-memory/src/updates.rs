@@ -1,9 +1,9 @@
 use super::{config::EventType, InMemoryCache, InMemoryCacheError};
 use async_trait::async_trait;
 use dashmap::DashMap;
+use std::{collections::HashSet, hash::Hash, ops::Deref, sync::Arc};
 #[allow(unused_imports)]
 use tracing::debug;
-use std::{collections::HashSet, hash::Hash, ops::Deref, sync::Arc};
 use twilight_cache_trait::UpdateCache;
 use twilight_model::{
     channel::{message::MessageReaction, Channel, GuildChannel},
