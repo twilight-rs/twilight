@@ -1,5 +1,5 @@
 use super::super::error::{Error, Result};
-use log::debug;
+use tracing::debug;
 use std::str::FromStr;
 use tokio_tungstenite::tungstenite::client::IntoClientRequest;
 use url::Url;

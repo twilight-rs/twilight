@@ -5,7 +5,7 @@ use futures_channel::{
     oneshot::{self, Sender},
 };
 use futures_util::{lock::Mutex, stream::StreamExt};
-use log::debug;
+use tracing::debug;
 use std::{
     collections::HashMap,
     sync::{

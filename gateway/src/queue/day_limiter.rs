@@ -4,7 +4,7 @@ use tokio::time::delay_until;
 
 use std::time::Duration;
 
-use log::warn;
+use tracing::warn;
 use tokio::{sync::Mutex, time::Instant};
 
 #[derive(Debug)]
@@ -53,7 +53,7 @@ impl DayLimiter {
             if let Ok(info) = lock.http.gateway().authed().await {
                 let last_check = Instant::now();
                 let next_reset = Duration::from_millis(info.session_start_limit.remaining);
-                log::info!("Next session start limit reset in: {:.2?}", next_reset);
+                tracing::info!("Next session start limit reset in: {:.2?}", next_reset);
                 let total = info.session_start_limit.total;
                 let remaining = info.session_start_limit.remaining;
                 assert!(total >= remaining);

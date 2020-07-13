@@ -5,7 +5,7 @@ use futures_channel::{
     oneshot::{self, Sender},
 };
 use futures_util::{sink::SinkExt, stream::StreamExt};
-use log::{info, warn};
+use tracing::{info, warn};
 use std::{fmt::Debug, time::Duration};
 use tokio::time::delay_for;
 
@@ -37,9 +37,10 @@ impl LargeBotQueue {
              Is network connection available?",
         );
 
-        if log::log_enabled!(log::Level::Info) {
+        // This is not in the public api of tracing so it may break.
+        if tracing::level_enabled!(tracing::Level::INFO) {
             let lock = limiter.0.lock().await;
-            log::info!(
+            tracing::info!(
                 "{}/{} identifies used before next reset in {:.2?}",
                 lock.current,
                 lock.total,

@@ -6,7 +6,8 @@ edition = "2018"
 
 [dependencies]
 futures = "0.3"
-log = { version = "0.4" }
+tracing = "0.1"
+tracing-futures = "0.2.4"
 pretty_env_logger = "0.4"
 reqwest = { features = ["json"], version = "0.10" }
 serde_json = { version = "1" }

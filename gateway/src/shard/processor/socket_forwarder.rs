@@ -6,7 +6,7 @@ use futures_util::{
     stream::StreamExt,
 };
 #[allow(unused_imports)]
-use log::{debug, info, trace, warn};
+use tracing::{debug, info, trace, warn};
 use tokio::time::timeout;
 use tokio_tungstenite::tungstenite::Message;
 

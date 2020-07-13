@@ -1,7 +1,7 @@
 use super::super::error::{Error, Result};
 use futures_channel::mpsc::UnboundedSender;
 use futures_util::lock::Mutex;
-use log::{debug, error, warn};
+use tracing::{debug, error, warn};
 use std::{
     collections::VecDeque,
     convert::TryInto,

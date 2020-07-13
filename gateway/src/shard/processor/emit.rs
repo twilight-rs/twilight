@@ -3,7 +3,7 @@ use crate::{
     EventTypeFlags,
 };
 #[allow(unused_imports)]
-use log::{debug, info, trace, warn};
+use tracing::{debug, info, trace, warn};
 use twilight_model::gateway::event::{shard::Payload, Event};
 
 pub async fn bytes(listeners: Listeners<Event>, bytes: &[u8]) {

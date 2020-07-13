@@ -12,7 +12,7 @@ use futures_util::{
     stream::Stream,
 };
 
-use log::debug;
+use tracing::debug;
 use once_cell::sync::OnceCell;
 use std::sync::atomic::Ordering;
 use std::sync::Arc;

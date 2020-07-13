@@ -11,7 +11,7 @@ use futures_channel::{
 };
 use futures_util::{sink::SinkExt, stream::StreamExt};
 #[allow(unused_imports)]
-use log::{info, warn};
+use tracing::{info, warn};
 use std::{fmt::Debug, time::Duration};
 use tokio::time::delay_for;
 

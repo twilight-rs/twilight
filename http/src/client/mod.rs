@@ -15,7 +15,7 @@ use crate::{
     },
 };
 use bytes::Bytes;
-use log::{debug, warn};
+use tracing::{debug, warn};
 use reqwest::{header::HeaderValue, Body, Client as ReqwestClient, Response, StatusCode};
 use serde::de::DeserializeOwned;
 use std::{
