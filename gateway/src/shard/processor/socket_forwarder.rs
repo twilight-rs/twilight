@@ -47,7 +47,7 @@ impl SocketForwarder {
                     }
                 }
                 Either::Left((None, _)) => {
-                    warn!("[SocketForwarder] Got None, closing stream");
+                    debug!("[SocketForwarder] Got None, closing stream");
                     let _ = self.stream.close(None).await;
 
                     break;
@@ -63,7 +63,7 @@ impl SocketForwarder {
                     break;
                 }
                 Either::Right((Ok(None), _)) => {
-                    warn!("[SocketForwarder] Got None, closing tx");
+                    debug!("[SocketForwarder] Got None, closing tx");
                     self.tx.close_channel();
                     break;
                 }
@@ -74,6 +74,6 @@ impl SocketForwarder {
                 }
             }
         }
-        warn!("[SocketForwarder] Leaving loop");
+        debug!("[SocketForwarder] Leaving loop");
     }
 }
