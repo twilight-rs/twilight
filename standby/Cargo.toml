@@ -16,7 +16,7 @@ version = "0.1.0"
 dashmap = { default-features = false, version = "3" }
 futures-channel = { default-features = false, features = ["std"], version = "0.3" }
 futures-util = { default-features = false, features = ["std"], version = "0.3" }
-tracing = "0.1"
+tracing = { default-features = false, features = ["std", "attributes"] version = "0.1" }
 twilight-model = { default-features = false, path = "../model" }
 
 [dev-dependencies]
