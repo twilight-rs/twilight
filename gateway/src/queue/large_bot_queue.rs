@@ -37,7 +37,10 @@ impl LargeBotQueue {
              Is network connection available?",
         );
 
-        // This is not in the public api of tracing so it may break.
+        // The level_enabled macro does not turn off with the dynamic
+        // tracing levels. It is made for the static_max_level_xxx features
+        // And will return false if you do not use those features of if
+        // You use the feature but then dynamically set a lower feature.
         if tracing::level_enabled!(tracing::Level::INFO) {
             let lock = limiter.0.lock().await;
             tracing::info!(
