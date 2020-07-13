@@ -391,6 +391,15 @@ impl UpdateCache<InMemoryCache, InMemoryCacheError> for MemberRemove {
             members.remove(&self.user.id);
         }
 
+        if let Some(mut user_tuple) = cache.0.users.get_mut(&self.user.id) {
+            user_tuple.1.remove(&self.guild_id);
+
+            cache
+                .0
+                .users
+                .remove_if(&self.user.id, |_, guild_hash| guild_hash.1.is_empty());
+        }
+
         Ok(())
     }
 }

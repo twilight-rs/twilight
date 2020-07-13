@@ -114,7 +114,7 @@ struct InMemoryCacheRef {
     presences: DashMap<(Option<GuildId>, UserId), Arc<CachedPresence>>,
     roles: DashMap<RoleId, GuildItem<Role>>,
     unavailable_guilds: DashSet<GuildId>,
-    users: DashMap<UserId, Arc<User>>,
+    users: DashMap<UserId, (Arc<User>, HashSet<GuildId>)>,
 }
 
 /// A thread-safe, in-memory-process cache of Discord data. It can be cloned and
@@ -303,7 +303,7 @@ impl InMemoryCache {
     ///
     /// This is an O(1) operation.
     pub async fn user(&self, user_id: UserId) -> Result<Option<Arc<User>>> {
-        Ok(self.0.users.get(&user_id).map(|r| Arc::clone(r.value())))
+        Ok(self.0.users.get(&user_id).map(|r| Arc::clone(&r.0)))
     }
 
     /// Gets a voice state by user ID and Guild ID.
@@ -400,7 +400,7 @@ impl InMemoryCache {
             Some(_) | None => {}
         }
         let user = match emoji.user {
-            Some(u) => Some(self.cache_user(u).await),
+            Some(u) => Some(self.cache_user(u, guild_id).await),
             None => None,
         };
         let cached = Arc::new(CachedEmoji {
@@ -517,7 +517,7 @@ impl InMemoryCache {
             Some(_) | None => {}
         }
 
-        let user = self.cache_user(member.user).await;
+        let user = self.cache_user(member.user, guild_id).await;
         let cached = Arc::new(CachedMember {
             deaf: member.deaf,
             guild_id,
@@ -620,13 +620,20 @@ impl InMemoryCache {
         upsert_guild_item(&self.0.roles, guild_id, role.id, role).await
     }
 
-    pub async fn cache_user(&self, user: User) -> Arc<User> {
-        match self.0.users.get(&user.id) {
-            Some(u) if **u == user => return Arc::clone(&u),
+    pub async fn cache_user(&self, user: User, guild_id: GuildId) -> Arc<User> {
+        match self.0.users.get_mut(&user.id) {
+            Some(mut u) if *u.0 == user => {
+                u.1.insert(guild_id);
+                return Arc::clone(&u.0);
+            }
             Some(_) | None => {}
         }
         let user = Arc::new(user);
-        self.0.users.insert(user.id, Arc::clone(&user));
+        let mut guild_id_set = HashSet::new();
+        guild_id_set.insert(guild_id);
+        self.0
+            .users
+            .insert(user.id, (Arc::clone(&user), guild_id_set));
 
         user
     }
