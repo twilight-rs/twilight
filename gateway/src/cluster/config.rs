@@ -202,18 +202,6 @@ impl ClusterConfigBuilder {
         self.0
     }
 
-    /// Whether to subscribe shards to "guild subscriptions", which are the
-    /// presence update and typing start events.
-    ///
-    /// Refer to the shard's [`ShardConfigBuilder::guild_subscriptions`] for more
-    /// information.
-    ///
-    /// [`ShardConfigBuilder::guild_subscriptions`]: ../../shard/config/struct.ShardConfigBuilder.html#method.guild_subscriptions
-    pub fn guild_subscriptions(mut self, guild_subscriptions: bool) -> Self {
-        self.1 = self.1.guild_subscriptions(guild_subscriptions);
-        self
-    }
-
     /// Sets the `twilight_http` Client used by the cluster and the shards it
     /// manages.
     ///

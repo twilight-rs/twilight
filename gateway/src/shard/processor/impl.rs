@@ -196,7 +196,6 @@ impl ShardProcessor {
 
         let identify = Identify::new(IdentifyInfo {
             compression: false,
-            guild_subscriptions: true,
             intents,
             large_threshold: 250,
             properties: self.properties.clone(),

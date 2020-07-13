@@ -12,7 +12,6 @@ use twilight_model::gateway::{payload::update_status::UpdateStatusInfo, GatewayI
 /// [`ShardConfig::builder`]: #method.builder
 #[derive(Clone, Debug)]
 pub struct ShardConfig {
-    guild_subscriptions: bool,
     http_client: HttpClient,
     intents: Option<GatewayIntents>,
     large_threshold: u64,
@@ -32,12 +31,6 @@ impl ShardConfig {
     /// [`ShardConfigBuilder::new`]: struct.ShardConfigBuilder.html#method.new
     pub fn builder(token: impl Into<String>) -> ShardConfigBuilder {
         ShardConfigBuilder::new(token)
-    }
-
-    /// Returns whether to subscribe to guilds' presence updates and typing
-    /// events.
-    pub fn guild_subscriptions(&self) -> bool {
-        self.guild_subscriptions
     }
 
     /// Returns the `twilight_http` client to be used by the shard.
@@ -107,7 +100,6 @@ impl ShardConfigBuilder {
         }
 
         Self(ShardConfig {
-            guild_subscriptions: true,
             http_client: HttpClient::new(token.clone()),
             intents: None,
             large_threshold: 250,
@@ -123,18 +115,6 @@ impl ShardConfigBuilder {
     /// Consumes the builder and returns the final configuration.
     pub fn build(self) -> ShardConfig {
         self.0
-    }
-
-    /// Whether to subscribe to guilds' presence updates and typing events.
-    ///
-    /// Many bots don't need these, so it would be beneficial to turn this off.
-    /// Presence updates alone account for about 85% of all event traffic.
-    ///
-    /// The default value is `true`.
-    pub fn guild_subscriptions(mut self, guild_subscriptions: bool) -> Self {
-        self.0.guild_subscriptions = guild_subscriptions;
-
-        self
     }
 
     /// The HTTP client to be used by the shard for getting gateway information.
