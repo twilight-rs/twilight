@@ -190,7 +190,7 @@ async fn handle_event(
 ## Note about tracing
 
 When using tracing you won't, by default, see logs from any libraries that use the
-`log` crate. You can add that back by using the [`tracing-log`] crate and 
+`log` crate. You can add that back by using the [`tracing-log`] crate and
 initializing it like this:
 ```rust,ignore
 tracing_log::LogTracer::init()?;
