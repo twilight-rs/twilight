@@ -8,7 +8,7 @@ use config::InMemoryConfig;
 use dashmap::{mapref::entry::Entry, DashMap, DashSet};
 use futures_util::{future, lock::Mutex};
 use std::{
-    collections::{BTreeMap, HashMap, HashSet},
+    collections::{BTreeMap, BTreeSet, HashMap, HashSet},
     error::Error,
     fmt::{Display, Formatter, Result as FmtResult},
     hash::Hash,
@@ -114,7 +114,7 @@ struct InMemoryCacheRef {
     presences: DashMap<(Option<GuildId>, UserId), Arc<CachedPresence>>,
     roles: DashMap<RoleId, GuildItem<Role>>,
     unavailable_guilds: DashSet<GuildId>,
-    users: DashMap<UserId, (Arc<User>, HashSet<GuildId>)>,
+    users: DashMap<UserId, (Arc<User>, BTreeSet<GuildId>)>,
 }
 
 /// A thread-safe, in-memory-process cache of Discord data. It can be cloned and
@@ -629,7 +629,7 @@ impl InMemoryCache {
             Some(_) | None => {}
         }
         let user = Arc::new(user);
-        let mut guild_id_set = HashSet::new();
+        let mut guild_id_set = BTreeSet::new();
         guild_id_set.insert(guild_id);
         self.0
             .users

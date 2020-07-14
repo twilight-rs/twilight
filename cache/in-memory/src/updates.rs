@@ -397,7 +397,7 @@ impl UpdateCache<InMemoryCache, InMemoryCacheError> for MemberRemove {
             cache
                 .0
                 .users
-                .remove_if(&self.user.id, |_, guild_hash| guild_hash.1.is_empty());
+                .remove_if(&self.user.id, |_, guild_set| guild_set.1.is_empty());
         }
 
         Ok(())
