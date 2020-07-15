@@ -17,7 +17,7 @@ async-trait = { default-features = false, version = "0.1" }
 bitflags = { default-features = false, version = "1" }
 twilight-http = { path = "../http" }
 twilight-model = { default-features = false, path = "../model" }
-futures-channel = { default-features = false, version = "0.3" }
+futures-channel = { default-features = false, features = ["sink"], version = "0.3" }
 futures-util = { default-features = false, features = ["std"], version = "0.3" }
 log = { default-features = false, version = "0.4" }
 once_cell = { default-features = false, features = ["std"], version = "1" }
