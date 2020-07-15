@@ -14,6 +14,7 @@ version = "0.1.0"
 
 [dependencies]
 async-trait = { default-features = false, version = "0.1" }
+async-tungstenite = { default-features = false, features = ["tokio-runtime", "tokio-native-tls"], version = "0.7" }
 bitflags = { default-features = false, version = "1" }
 twilight-http = { path = "../http" }
 twilight-model = { default-features = false, path = "../model" }
@@ -25,7 +26,6 @@ serde = { default-features = false, features = ["derive"], version = "1" }
 serde_json = { default-features = false, optional = true, version = "1" }
 simd-json = { default-features = false, features = ["serde_impl", "swar-number-parsing"], optional = true, version = "0.3" }
 tokio = { default-features = false, features = ["net", "rt-core", "sync"], version = "0.2" }
-tokio-tungstenite = { default-features = false, features = ["connect", "tls"], version = "0.10" }
 url = { default-features = false, version = "2" }
 # The default backend for flate2; miniz-oxide, works differently
 # from the C-backed backend zlib, When you give it the sync argument

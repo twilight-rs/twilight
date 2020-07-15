@@ -18,9 +18,9 @@ use std::sync::Arc;
 use tokio::sync::watch::Receiver as WatchReceiver;
 use tracing::debug;
 
+use async_tungstenite::tungstenite::protocol::{frame::coding::CloseCode, CloseFrame};
+use async_tungstenite::tungstenite::Message;
 use std::borrow::Cow;
-use tokio_tungstenite::tungstenite::protocol::{frame::coding::CloseCode, CloseFrame};
-use tokio_tungstenite::tungstenite::Message;
 use twilight_model::gateway::event::Event;
 
 /// Information about a shard, including its latency, current session sequence,

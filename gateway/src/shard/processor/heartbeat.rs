@@ -1,4 +1,5 @@
 use super::super::error::{Error, Result};
+use async_tungstenite::tungstenite::Message as TungsteniteMessage;
 use futures_channel::mpsc::UnboundedSender;
 use futures_util::lock::Mutex;
 use std::{
@@ -10,7 +11,6 @@ use std::{
     },
     time::{Duration, Instant},
 };
-use tokio_tungstenite::tungstenite::Message as TungsteniteMessage;
 use tracing::{debug, error, warn};
 use twilight_model::gateway::payload::Heartbeat;
 

@@ -22,16 +22,16 @@ use twilight_model::gateway::{
     },
 };
 
+use async_tungstenite::tungstenite::{
+    protocol::{frame::coding::CloseCode, CloseFrame},
+    Message,
+};
 use futures_channel::mpsc::UnboundedReceiver;
 use futures_util::stream::StreamExt;
 use serde::Serialize;
 use std::{env::consts::OS, ops::Deref, str, sync::Arc};
 use tokio::sync::watch::{
     channel as watch_channel, Receiver as WatchReceiver, Sender as WatchSender,
-};
-use tokio_tungstenite::tungstenite::{
-    protocol::{frame::coding::CloseCode, CloseFrame},
-    Message,
 };
 #[allow(unused_imports)]
 use tracing::{debug, info, trace, warn};

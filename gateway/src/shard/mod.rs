@@ -40,7 +40,7 @@ pub use self::{
     stage::Stage,
 };
 
-use tokio::net::TcpStream;
-use tokio_tungstenite::{MaybeTlsStream, WebSocketStream};
+use async_tungstenite::tokio::ConnectStream;
+use async_tungstenite::WebSocketStream;
 
-type ShardStream = WebSocketStream<MaybeTlsStream<TcpStream>>;
+type ShardStream = WebSocketStream<ConnectStream>;

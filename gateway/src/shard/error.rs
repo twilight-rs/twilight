@@ -7,13 +7,13 @@ use serde_json::Error as JsonError;
 #[cfg(feature = "simd-json")]
 use simd_json::Error as JsonError;
 
+use async_tungstenite::tungstenite::{Error as TungsteniteError, Message as TungsteniteMessage};
 use std::{
     error::Error as StdError,
     fmt::{Display, Formatter, Result as FmtResult},
     result::Result as StdResult,
     str::Utf8Error,
 };
-use tokio_tungstenite::tungstenite::{Error as TungsteniteError, Message as TungsteniteMessage};
 use twilight_http::Error as HttpError;
 use twilight_model::gateway::GatewayIntents;
 use url::ParseError;

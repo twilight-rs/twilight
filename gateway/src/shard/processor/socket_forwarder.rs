@@ -1,4 +1,5 @@
 use super::super::ShardStream;
+use async_tungstenite::tungstenite::Message;
 use futures_channel::mpsc::{self, UnboundedReceiver, UnboundedSender};
 use futures_util::{
     future::{self, Either},
@@ -6,7 +7,6 @@ use futures_util::{
     stream::StreamExt,
 };
 use tokio::time::timeout;
-use tokio_tungstenite::tungstenite::Message;
 #[allow(unused_imports)]
 use tracing::{debug, info, trace, warn};
 
