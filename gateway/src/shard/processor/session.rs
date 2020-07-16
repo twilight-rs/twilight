@@ -20,9 +20,9 @@ use std::{
 };
 use twilight_model::gateway::payload::Heartbeat;
 
+use async_tungstenite::tungstenite::{protocol::CloseFrame, Message as TungsteniteMessage};
 use std::time::Duration;
 use tokio::time::{interval, Interval};
-use tokio_tungstenite::tungstenite::{protocol::CloseFrame, Message as TungsteniteMessage};
 
 #[derive(Debug)]
 pub struct Session {

@@ -16,8 +16,8 @@ version = "0.1.0"
 twilight-builders = { optional = true, path = "../builders" }
 twilight-cache = { optional = true, path = "../cache/base" }
 twilight-command-parser = { optional = true, path = "../command-parser" }
-twilight-gateway = { optional = true, path = "../gateway" }
-twilight-http = { optional = true, path = "../http" }
+twilight-gateway = { default-features = false, features = ["serde_json"], optional = true, path = "../gateway" }
+twilight-http = { default-features = false, features = ["serde_json"], optional = true, path = "../http" }
 twilight-model = { optional = true, path = "../model" }
 twilight-standby = { optional = true, path = "../standby" }
 
@@ -25,7 +25,7 @@ twilight-standby = { optional = true, path = "../standby" }
 tokio = { default-features = false, features = ["macros", "rt-core"], version = "0.2" }
 
 [features]
-default = ["all"]
+default = ["all", "native"]
 
 all = ["builders", "cache", "command-parser", "gateway", "http", "model", "standby"]
 builders = ["twilight-builders"]
@@ -36,6 +36,8 @@ http = ["twilight-http"]
 model = ["twilight-model"]
 standby = ["twilight-standby"]
 simd-json = ["twilight-gateway/simd-json", "twilight-http/simd-json"]
+native = ["twilight-gateway/native", "twilight-http/native"]
+rustls = ["twilight-gateway/rustls", "twilight-http/rustls"]
 
 metrics = ["gateway-metrics"]
 gateway-metrics = ["gateway", "twilight-gateway/metrics"]

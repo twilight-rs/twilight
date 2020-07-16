@@ -24,7 +24,7 @@ use crate::{
     player::PlayerManager,
 };
 use async_tungstenite::{
-    tokio::TokioAdapter,
+    tokio::ConnectStream,
     tungstenite::{Error as TungsteniteError, Message},
     WebSocketStream,
 };
@@ -44,7 +44,7 @@ use std::{
     sync::Arc,
     time::Duration,
 };
-use tokio::{net::TcpStream, time as tokio_time};
+use tokio::time as tokio_time;
 use twilight_model::id::UserId;
 
 /// An error occurred while either initializing a connection or while running
@@ -319,7 +319,7 @@ impl Node {
 
 struct Connection {
     config: NodeConfig,
-    connection: WebSocketStream<TokioAdapter<TcpStream>>,
+    connection: WebSocketStream<ConnectStream>,
     node_from: UnboundedReceiver<OutgoingEvent>,
     node_to: UnboundedSender<IncomingEvent>,
     players: PlayerManager,
@@ -499,9 +499,7 @@ fn connect_request(state: &NodeConfig) -> Result<Request<()>, NodeError> {
         .map_err(|source| NodeError::BuildingConnectionRequest { source })
 }
 
-async fn reconnect(
-    config: &NodeConfig,
-) -> Result<WebSocketStream<TokioAdapter<TcpStream>>, NodeError> {
+async fn reconnect(config: &NodeConfig) -> Result<WebSocketStream<ConnectStream>, NodeError> {
     let (mut stream, res) = backoff(config).await?;
 
     let headers = res.headers();
@@ -532,7 +530,7 @@ async fn reconnect(
 
 async fn backoff(
     config: &NodeConfig,
-) -> Result<(WebSocketStream<TokioAdapter<TcpStream>>, Response<()>), NodeError> {
+) -> Result<(WebSocketStream<ConnectStream>, Response<()>), NodeError> {
     let mut seconds = 1;
 
     loop {

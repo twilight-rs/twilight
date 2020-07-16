@@ -1,10 +1,10 @@
+use async_tungstenite::tungstenite::Message;
 use futures_channel::mpsc::{SendError, TrySendError, UnboundedSender};
 use futures_util::sink::Sink;
 use std::{
     pin::Pin,
     task::{Context, Poll},
 };
-use tokio_tungstenite::tungstenite::Message;
 
 /// A sink which tungstenite messages can be sunk into. ⚓
 ///

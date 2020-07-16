@@ -120,3 +120,6 @@ pub(crate) fn json_from_slice<'a, T: serde::de::Deserialize<'a>>(s: &'a mut [u8]
 pub(crate) use serde_json::to_vec as json_to_vec;
 #[cfg(feature = "simd-json")]
 pub(crate) use simd_json::to_vec as json_to_vec;
+
+#[cfg(not(any(feature = "native", feature = "rustls")))]
+compile_error!("Either the `native` or `rustls` feature must be enabled.");
