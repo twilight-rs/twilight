@@ -5,7 +5,8 @@ use twilight_model::id::ChannelId;
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn Error + Send + Sync>> {
-    pretty_env_logger::init_timed();
+    // Initialize the tracing subscriber.
+    tracing_subscriber::fmt::init();
 
     let client = Client::new(env::var("DISCORD_TOKEN")?);
     let channel_id = ChannelId(381_926_291_785_383_946);

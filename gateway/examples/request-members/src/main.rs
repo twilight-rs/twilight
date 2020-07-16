@@ -9,7 +9,8 @@ use twilight_model::{
 /// simple example of how to request one or more members from the gateway
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn Error + Send + Sync>> {
-    pretty_env_logger::init_timed();
+    // Initialize the tracing subscriber.
+    tracing_subscriber::fmt::init();
 
     // to interact with the gateway we first need to connect to it (with a shard or cluster)
     let mut shard = Shard::new(env::var("DISCORD_TOKEN")?);

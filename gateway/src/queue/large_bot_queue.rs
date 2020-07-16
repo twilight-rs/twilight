@@ -5,9 +5,9 @@ use futures_channel::{
     oneshot::{self, Sender},
 };
 use futures_util::{sink::SinkExt, stream::StreamExt};
-use log::{info, warn};
 use std::{fmt::Debug, time::Duration};
 use tokio::time::delay_for;
+use tracing::{info, warn};
 
 /// Large bot queue is for bots that are marked as very large by Discord.
 ///
@@ -37,9 +37,13 @@ impl LargeBotQueue {
              Is network connection available?",
         );
 
-        if log::log_enabled!(log::Level::Info) {
+        // The level_enabled macro does not turn off with the dynamic
+        // tracing levels. It is made for the static_max_level_xxx features
+        // And will return false if you do not use those features of if
+        // You use the feature but then dynamically set a lower feature.
+        if tracing::level_enabled!(tracing::Level::INFO) {
             let lock = limiter.0.lock().await;
-            log::info!(
+            tracing::info!(
                 "{}/{} identifies used before next reset in {:.2?}",
                 lock.current,
                 lock.total,

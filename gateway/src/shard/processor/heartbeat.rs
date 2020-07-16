@@ -1,7 +1,6 @@
 use super::super::error::{Error, Result};
 use futures_channel::mpsc::UnboundedSender;
 use futures_util::lock::Mutex;
-use log::{debug, error, warn};
 use std::{
     collections::VecDeque,
     convert::TryInto,
@@ -12,6 +11,7 @@ use std::{
     time::{Duration, Instant},
 };
 use tokio_tungstenite::tungstenite::Message as TungsteniteMessage;
+use tracing::{debug, error, warn};
 use twilight_model::gateway::payload::Heartbeat;
 
 /// Information about the latency of a [`Shard`]'s websocket connection.

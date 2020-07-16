@@ -25,14 +25,15 @@ fn spawn(
 ) {
     tokio::spawn(async move {
         if let Err(why) = fut.await {
-            log::debug!("Got an error from a handler: {:?}", why);
+            tracing::debug!("Got an error from a handler: {:?}", why);
         }
     });
 }
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn Error + Send + Sync + 'static>> {
-    pretty_env_logger::init_timed();
+    // Initialize the tracing subscriber.
+    tracing_subscriber::fmt::init();
 
     let (state, _rx) = {
         let token = env::var("DISCORD_TOKEN")?;
@@ -127,7 +128,7 @@ async fn join(msg: Message, state: State) -> Result<(), Box<dyn Error + Send + S
 }
 
 async fn leave(msg: Message, state: State) -> Result<(), Box<dyn Error + Send + Sync + 'static>> {
-    log::debug!(
+    tracing::debug!(
         "Got a leave command in channel {} by {}",
         msg.channel_id,
         msg.author.name
@@ -159,7 +160,7 @@ async fn leave(msg: Message, state: State) -> Result<(), Box<dyn Error + Send + 
 }
 
 async fn play(msg: Message, state: State) -> Result<(), Box<dyn Error + Send + Sync + 'static>> {
-    log::debug!(
+    tracing::debug!(
         "Got a play command in channel {} by {}",
         msg.channel_id,
         msg.author.name
@@ -213,7 +214,7 @@ async fn play(msg: Message, state: State) -> Result<(), Box<dyn Error + Send + S
 }
 
 async fn pause(msg: Message, state: State) -> Result<(), Box<dyn Error + Send + Sync + 'static>> {
-    log::debug!(
+    tracing::debug!(
         "Got a pause command in channel {} by {}",
         msg.channel_id,
         msg.author.name
@@ -236,7 +237,7 @@ async fn pause(msg: Message, state: State) -> Result<(), Box<dyn Error + Send + 
 }
 
 async fn seek(msg: Message, state: State) -> Result<(), Box<dyn Error + Send + Sync + 'static>> {
-    log::debug!(
+    tracing::debug!(
         "Got a seek command in channel {} by {}",
         msg.channel_id,
         msg.author.name
@@ -270,7 +271,7 @@ async fn seek(msg: Message, state: State) -> Result<(), Box<dyn Error + Send + S
 }
 
 async fn stop(msg: Message, state: State) -> Result<(), Box<dyn Error + Send + Sync + 'static>> {
-    log::debug!(
+    tracing::debug!(
         "Got a stop command in channel {} by {}",
         msg.channel_id,
         msg.author.name
@@ -290,7 +291,7 @@ async fn stop(msg: Message, state: State) -> Result<(), Box<dyn Error + Send + S
 }
 
 async fn volume(msg: Message, state: State) -> Result<(), Box<dyn Error + Send + Sync + 'static>> {
-    log::debug!(
+    tracing::debug!(
         "Got a volume command in channel {} by {}",
         msg.channel_id,
         msg.author.name

@@ -11,7 +11,7 @@ dashmap = { default-features = false, version = "3" }
 futures-util = { default-features = false, features = ["std"], version = "0.3" }
 twilight-cache-trait = { default-features = false, path = "../trait" }
 twilight-model = { default-features = false, path = "../../model" }
-log = { default-features = false, version = "0.4" }
+tracing = { default-features = false, features = ["std", "attributes"], version = "0.1" }
 
 [dev-dependencies]
 static_assertions = { default-features = false, version = "1" }

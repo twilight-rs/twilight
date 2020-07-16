@@ -1,5 +1,4 @@
 use futures::StreamExt;
-use log::Level;
 use metrics_runtime::{exporters::LogExporter, observers::JsonBuilder, Receiver};
 use std::{env, error::Error, time::Duration};
 use twilight_gateway::Cluster;
@@ -12,13 +11,19 @@ async fn main() -> Result<(), Box<dyn Error + Send + Sync>> {
     let mut exporter = LogExporter::new(
         receiver.controller(),
         JsonBuilder::new().set_pretty_json(true),
-        Level::Info,
+        log::Level::Info,
         Duration::from_secs(30),
     );
     // Install receiver.
     receiver.install();
 
-    pretty_env_logger::init_timed();
+    // Forward log events to the tracing subscriber
+    // This is needed because the metrics LogExporter
+    // exports the the log and not tracing.
+    tracing_log::LogTracer::init()?;
+
+    // Initialize the tracing subscriber.
+    tracing_subscriber::fmt::init();
 
     let cluster = Cluster::new(env::var("DISCORD_TOKEN")?).await?;
     println!("Created cluster");

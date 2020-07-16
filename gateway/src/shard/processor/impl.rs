@@ -24,8 +24,6 @@ use twilight_model::gateway::{
 
 use futures_channel::mpsc::UnboundedReceiver;
 use futures_util::stream::StreamExt;
-#[allow(unused_imports)]
-use log::{debug, info, trace, warn};
 use serde::Serialize;
 use std::{env::consts::OS, ops::Deref, str, sync::Arc};
 use tokio::sync::watch::{
@@ -35,6 +33,8 @@ use tokio_tungstenite::tungstenite::{
     protocol::{frame::coding::CloseCode, CloseFrame},
     Message,
 };
+#[allow(unused_imports)]
+use tracing::{debug, info, trace, warn};
 
 use std::borrow::Cow;
 
@@ -499,7 +499,7 @@ impl ShardProcessor {
                     break msg_or_error;
                 }
                 Message::Close(close_frame) => {
-                    log::warn!("Got close code: {:?}.", close_frame);
+                    tracing::warn!("Got close code: {:?}.", close_frame);
                     emit::event(
                         &self.listeners,
                         Event::ShardDisconnected(Disconnected {
@@ -581,7 +581,7 @@ impl ShardProcessor {
         gateway_deserializer
             .deserialize(&mut json_deserializer)
             .map_err(|source| {
-                log::debug!("Broken JSON: {}", json);
+                tracing::debug!("Broken JSON: {}", json);
 
                 Error::PayloadSerialization { source }
             })
@@ -620,7 +620,7 @@ impl ShardProcessor {
         gateway_deserializer
             .deserialize(&mut json_deserializer)
             .map_err(|source| {
-                log::debug!("Broken JSON: {}", json);
+                tracing::debug!("Broken JSON: {}", json);
 
                 Error::PayloadSerialization { source }
             })

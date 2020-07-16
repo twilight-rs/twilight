@@ -152,7 +152,7 @@ impl Lavalink {
     /// [`ClientError::NodesUnconfigured`]: enum.ClientError.html#variant.NodesUnconfigured
     /// [crate documentation]: ../index.html#examples
     pub async fn process(&self, event: &Event) -> Result<(), ClientError> {
-        log::trace!("Processing event: {:?}", event);
+        tracing::trace!("Processing event: {:?}", event);
 
         let (guild_id, half) = match event {
             Event::Ready(e) => {
@@ -165,7 +165,7 @@ impl Lavalink {
             Event::VoiceServerUpdate(e) => (e.guild_id, VoiceStateHalf::Server(e.clone())),
             Event::VoiceStateUpdate(e) => {
                 if e.0.user_id != self.0.user_id {
-                    log::trace!("Got a voice state update from another user");
+                    tracing::trace!("Got a voice state update from another user");
 
                     return Ok(());
                 }
@@ -175,7 +175,7 @@ impl Lavalink {
             _ => return Ok(()),
         };
 
-        log::debug!(
+        tracing::debug!(
             "Got a voice server/state update for {:?}: {:?}",
             guild_id,
             half
@@ -184,7 +184,7 @@ impl Lavalink {
         let guild_id = match guild_id {
             Some(guild_id) => guild_id,
             None => {
-                log::trace!("Processed event has no guild ID: {:?}", event);
+                tracing::trace!("Processed event has no guild ID: {:?}", event);
 
                 return Ok(());
             }
@@ -194,7 +194,7 @@ impl Lavalink {
             let existing_half = match self.0.waiting.get(&guild_id) {
                 Some(existing_half) => existing_half,
                 None => {
-                    log::debug!(
+                    tracing::debug!(
                         "Guild {} is now waiting for other half; got: {:?}",
                         guild_id,
                         half
@@ -204,7 +204,7 @@ impl Lavalink {
                     return Ok(());
                 }
             };
-            log::debug!(
+            tracing::debug!(
                 "Got both halves for {}: {:?}; {:?}",
                 guild_id,
                 half,
@@ -215,7 +215,7 @@ impl Lavalink {
                 (VoiceStateHalf::Server(_), VoiceStateHalf::Server(server)) => {
                     // We got the same half twice... weird, but let's just replace
                     // the existing one.
-                    log::debug!(
+                    tracing::debug!(
                         "Got the same server half twice for guild {}: {:?}",
                         guild_id,
                         server
@@ -231,7 +231,7 @@ impl Lavalink {
                 }
                 (VoiceStateHalf::State(_), VoiceStateHalf::State(state)) => {
                     // Just like above, we got the same half twice...
-                    log::debug!(
+                    tracing::debug!(
                         "Got the same state half twice for guild {}: {:?}",
                         guild_id,
                         state
@@ -248,16 +248,16 @@ impl Lavalink {
             }
         };
 
-        log::debug!("Removing guild {} from waiting list", guild_id);
+        tracing::debug!("Removing guild {} from waiting list", guild_id);
         self.0.waiting.remove(&guild_id);
 
-        log::debug!("Getting player for guild {}", guild_id);
+        tracing::debug!("Getting player for guild {}", guild_id);
         let player = self.player(guild_id).await?;
-        log::debug!("Sending voice update for guild {}: {:?}", guild_id, update);
+        tracing::debug!("Sending voice update for guild {}: {:?}", guild_id, update);
         player
             .send(update)
             .map_err(|source| ClientError::SendingVoiceUpdate { source })?;
-        log::debug!("Sent voice update for guild {}", guild_id);
+        tracing::debug!("Sent voice update for guild {}", guild_id);
 
         Ok(())
     }

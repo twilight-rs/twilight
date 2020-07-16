@@ -5,7 +5,8 @@ use twilight_model::gateway::GatewayIntents;
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn Error + Send + Sync>> {
-    pretty_env_logger::init_timed();
+    // Initialize the tracing subscriber.
+    tracing_subscriber::fmt::init();
 
     let config = {
         let mut conf = ShardConfig::builder(env::var("DISCORD_TOKEN")?);

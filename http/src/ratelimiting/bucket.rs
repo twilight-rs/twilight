@@ -5,7 +5,6 @@ use futures_channel::{
     oneshot::{self, Sender},
 };
 use futures_util::{lock::Mutex, stream::StreamExt};
-use log::debug;
 use std::{
     collections::HashMap,
     sync::{
@@ -15,6 +14,7 @@ use std::{
     time::{Duration, Instant},
 };
 use tokio::time::{delay_for, timeout};
+use tracing::debug;
 //use tokio::future::FutureExt as _;
 
 #[derive(Clone, Debug)]
