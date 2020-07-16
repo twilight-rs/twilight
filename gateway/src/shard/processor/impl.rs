@@ -1,10 +1,7 @@
 use super::{
-    super::{
-        config::ShardConfig,
-        error::{Error, Result},
-        stage::Stage,
-    },
+    super::{config::ShardConfig, stage::Stage},
     connect, emit,
+    error::{Error, Result},
     inflater::Inflater,
     session::Session,
     socket_forwarder::SocketForwarder,

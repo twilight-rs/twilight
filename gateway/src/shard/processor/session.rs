@@ -1,8 +1,6 @@
 use super::{
-    super::{
-        error::{Error, Result},
-        stage::Stage,
-    },
+    super::stage::Stage,
+    error::{Error, Result},
     heartbeat::{Heartbeater, Heartbeats},
 };
 use futures_channel::mpsc::UnboundedSender;
