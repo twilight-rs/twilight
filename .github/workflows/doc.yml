@@ -1,13 +1,22 @@
-name: Sync Documentation
+name: Check Documentation
 
-on:
-  push:
-  pull_request:
-    paths:
-      - '**/lib.rs'
-      - '**/README.md'
+on: [push, pull_request]
 
 jobs:
+  build-docs:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v1
+    - uses: actions-rs/toolchain@v1
+      with:
+        toolchain: nightly
+        profile: minimal
+        override: true
+    - name: Build docs
+      env:
+        RUSTDOCFLAGS: -D intra_doc_link_resolution_failure
+      run: cargo doc --no-deps
+
   sync-readme:
     runs-on: ubuntu-latest
     steps:
