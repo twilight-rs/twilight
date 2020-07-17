@@ -11,6 +11,7 @@
 //! [`Shard::some_events`].
 //!
 //! [`Event`]: enum.Event.html
+//! [`EventType`]: ../struct.EventType.html
 //! [`Shard::some_events`]: ../struct.Shard.html#method.some_events
 
 use crate::EventTypeFlags;

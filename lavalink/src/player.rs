@@ -6,9 +6,10 @@
 //! the active audio.
 //!
 //! [`PlayerManager`]: struct.PlayerManager.html
-/// [players]: struct.Player.html
-/// [send events]: struct.Player.html#method.send
-/// [read the position]: struct.Player.html#method.position
+//! [players]: struct.Player.html
+//! [send events]: struct.Player.html#method.send
+//! [read the position]: struct.Player.html#method.position
+
 use crate::{model::*, node::Node};
 use dashmap::{
     mapref::one::{Ref, RefMut},
