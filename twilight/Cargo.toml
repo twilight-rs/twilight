@@ -22,6 +22,7 @@ twilight-model = { optional = true, path = "../model" }
 twilight-standby = { optional = true, path = "../standby" }
 
 [dev-dependencies]
+rusty-hook = { default-features = false, version = "0.11" }
 tokio = { default-features = false, features = ["macros", "rt-core"], version = "0.2" }
 
 [features]
