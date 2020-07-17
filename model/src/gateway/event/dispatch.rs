@@ -9,7 +9,7 @@ use serde::de::{Deserialize, DeserializeSeed, Deserializer, Error as DeError};
 /// [`DispatchEventWithTypeDeserializer`].
 ///
 /// [`DispatchEventWithTypeDeserializer`]: struct.DispatchEventWithTypeDeserializer.html
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, Eq, PartialEq)]
 pub enum DispatchEvent {
     BanAdd(BanAdd),
     BanRemove(BanRemove),
@@ -104,6 +104,7 @@ impl DispatchEvent {
 /// An event name is something like `"CHANNEL_CREATE"` or `"GUILD_MEMBER_ADD"`.
 ///
 /// [`DispatchEvent`]: enum.DispatchEvent.html
+#[derive(PartialEq, Eq)]
 pub struct DispatchEventWithTypeDeserializer<'a>(&'a str);
 
 impl<'a> DispatchEventWithTypeDeserializer<'a> {
