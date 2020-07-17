@@ -396,6 +396,11 @@ impl InMemoryCache {
         }
 
         let id = channel.id();
+        self.0
+            .guild_channels
+            .entry(guild_id)
+            .or_default()
+            .insert(id);
 
         upsert_guild_item(&self.0.channels_guild, guild_id, id, channel).await
     }
@@ -710,11 +715,18 @@ impl InMemoryCache {
         self.0.guilds.remove(&guild_id);
     }
 
+    /// Delete a guild channel from the cache.
+    ///
+    /// The guild channel data itself and the channel entry in its guild's list
+    /// of channels will be deleted.
     pub async fn delete_guild_channel(&self, channel_id: ChannelId) -> Option<Arc<GuildChannel>> {
-        self.0
-            .channels_guild
-            .remove(&channel_id)
-            .map(|(_, v)| v.data)
+        let GuildItem { data, guild_id } = self.0.channels_guild.remove(&channel_id)?.1;
+
+        if let Some(mut guild_channels) = self.0.guild_channels.get_mut(&guild_id) {
+            guild_channels.remove(&channel_id);
+        }
+
+        Some(data)
     }
 
     pub async fn delete_role(&self, role_id: RoleId) -> Option<Arc<Role>> {

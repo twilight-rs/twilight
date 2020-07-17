@@ -785,3 +785,74 @@ impl UpdateCache<InMemoryCache, InMemoryCacheError> for WebhooksUpdate {
         Ok(())
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use twilight_model::{
+        channel::{ChannelType, GuildChannel, TextChannel},
+        gateway::payload::ChannelDelete,
+        id::{ChannelId, GuildId},
+    };
+
+    fn guild_channel_text() -> (GuildId, ChannelId, GuildChannel) {
+        let guild_id = GuildId(1);
+        let channel_id = ChannelId(2);
+        let channel = GuildChannel::Text(TextChannel {
+            guild_id: Some(guild_id),
+            id: channel_id,
+            kind: ChannelType::GuildText,
+            last_message_id: None,
+            last_pin_timestamp: None,
+            name: "test".to_owned(),
+            nsfw: false,
+            parent_id: None,
+            permission_overwrites: Vec::new(),
+            position: 3,
+            rate_limit_per_user: None,
+            topic: None,
+        });
+
+        (guild_id, channel_id, channel)
+    }
+
+    #[tokio::test]
+    async fn test_channel_delete_guild() {
+        let cache = InMemoryCache::new();
+        let (guild_id, channel_id, channel) = guild_channel_text();
+
+        cache.cache_guild_channel(guild_id, channel.clone()).await;
+        assert_eq!(1, cache.0.channels_guild.len());
+        assert!(cache
+            .0
+            .guild_channels
+            .get(&guild_id)
+            .unwrap()
+            .contains(&channel_id));
+
+        cache
+            .update(&ChannelDelete(Channel::Guild(channel)))
+            .await
+            .unwrap();
+        assert!(cache.0.channels_guild.is_empty());
+        assert!(cache.0.guild_channels.get(&guild_id).unwrap().is_empty());
+    }
+
+    #[tokio::test]
+    async fn test_channel_update_guild() {
+        let cache = InMemoryCache::new();
+        let (guild_id, channel_id, channel) = guild_channel_text();
+
+        cache
+            .update(&ChannelUpdate(Channel::Guild(channel)))
+            .await
+            .unwrap();
+        assert_eq!(1, cache.0.channels_guild.len());
+        assert!(cache
+            .0
+            .guild_channels
+            .get(&guild_id)
+            .unwrap()
+            .contains(&channel_id));
+    }
+}
