@@ -101,7 +101,7 @@ impl<'a> GatewayEventDeserializer<'a> {
         let start = input.get(from..)?.find(|c: char| !c.is_whitespace())? + from + 1;
 
         // Check if the character just before the cursor is '"'.
-        if input.as_bytes().get(start-1).copied()? != b'"' {
+        if input.as_bytes().get(start - 1).copied()? != b'"' {
             return None;
         }
 
@@ -138,7 +138,7 @@ impl GatewayEventVisitor<'_> {
         field: Field,
     ) -> Result<T, V::Error> {
         let mut found = None;
-        
+
         loop {
             match map.next_key::<Field>() {
                 Ok(Some(key)) if key == field => found = Some(map.next_value()?),
@@ -148,18 +148,19 @@ impl GatewayEventVisitor<'_> {
                     continue;
                 }
                 Ok(None) => {
-                    break; 
+                    break;
                 }
             }
         }
 
-        found.ok_or(
+        found.ok_or_else(|| {
             DeError::missing_field(match field {
                 Field::D => "d",
                 Field::Op => "op",
                 Field::S => "s",
                 Field::T => "t",
-            }))
+            })
+        })
     }
 }
 
@@ -170,6 +171,7 @@ impl<'de> Visitor<'de> for GatewayEventVisitor<'_> {
         formatter.write_str("struct GatewayEvent")
     }
 
+    #[allow(clippy::too_many_lines)]
     fn visit_map<V>(self, mut map: V) -> Result<GatewayEvent, V::Error>
     where
         V: MapAccess<'de>,
@@ -191,23 +193,22 @@ impl<'de> Visitor<'de> for GatewayEventVisitor<'_> {
 
             DeError::invalid_value(unexpected, &"an opcode")
         })?;
-        dbg!(op);
+
         Ok(match op {
             OpCode::Event => {
                 let t = self
                     .1
                     .ok_or_else(|| DeError::custom("event type not provided beforehand"))?;
-                dbg!(t);
+
                 let mut d = None;
                 let mut s = None;
-                
+
                 loop {
-                    let key = match dbg!(map.next_key()) {
+                    let key = match map.next_key() {
                         Ok(Some(key)) => key,
                         Ok(None) => break,
                         Err(_) => {
-                            dbg!();
-                            dbg!(map.next_value::<IgnoredAny>())?;
+                            map.next_value::<IgnoredAny>()?;
 
                             continue;
                         }
@@ -221,7 +222,7 @@ impl<'de> Visitor<'de> for GatewayEventVisitor<'_> {
 
                             let deserializer = DispatchEventWithTypeDeserializer::new(t);
 
-                            d = Some(dbg!(map.next_value_seed(deserializer))?);
+                            d = Some(map.next_value_seed(deserializer)?);
                         }
                         Field::S => {
                             if s.is_some() {
@@ -247,20 +248,11 @@ impl<'de> Visitor<'de> for GatewayEventVisitor<'_> {
                 GatewayEvent::Heartbeat(seq)
             }
             OpCode::HeartbeatAck => {
-                loop {
-                    match map.next_key::<Field>() {
-                        Ok(Some(_)) | Err(_) => {
-                            map.next_value::<IgnoredAny>()?;
-
-                            continue;
-                        }
-                        Ok(None) => {
-                            break; 
-                        }
-                    };
-                };
+                while let Ok(Some(_)) | Err(_) = map.next_key::<Field>() {
+                    map.next_value::<IgnoredAny>()?;
+                }
                 GatewayEvent::HeartbeatAck
-            },
+            }
             OpCode::Hello => {
                 #[derive(Deserialize)]
                 struct Hello {
@@ -548,6 +540,8 @@ mod tests {
         assert!(matches!(event, GatewayEvent::HeartbeatAck));
     }
 
+    // Test that events which are not documented to have any data will not fail if
+    // they contain it
     #[allow(unused)]
     #[test]
     fn test_deserializer_handles_resumed() {
@@ -562,11 +556,10 @@ mod tests {
   }
 }"#;
 
-        let deserializer = dbg!(GatewayEventDeserializer::from_json(input).unwrap());
+        let deserializer = GatewayEventDeserializer::from_json(input).unwrap();
         let mut json_deserializer = Deserializer::from_str(input);
         let event = deserializer.deserialize(&mut json_deserializer).unwrap();
 
-        assert!(matches!(event, GatewayEvent::Dispatch(_,_)));
+        assert!(matches!(event, GatewayEvent::Dispatch(_, _)));
     }
 }
-

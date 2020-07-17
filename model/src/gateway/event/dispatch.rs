@@ -207,13 +207,13 @@ impl<'de, 'a> DeserializeSeed<'de> for DispatchEventWithTypeDeserializer<'a> {
                 deserializer.deserialize_ignored_any(IgnoredAny)?;
 
                 DispatchEvent::PresencesReplace
-            },
+            }
             "READY" => DispatchEvent::Ready(Box::new(Ready::deserialize(deserializer)?)),
             "RESUMED" => {
                 deserializer.deserialize_ignored_any(IgnoredAny)?;
 
                 DispatchEvent::Resumed
-            },
+            }
             "TYPING_START" => {
                 DispatchEvent::TypingStart(Box::new(TypingStart::deserialize(deserializer)?))
             }

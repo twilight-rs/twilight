@@ -48,8 +48,8 @@
     future_incompatible,
     nonstandard_style,
     rust_2018_idioms,
-    //unused,
-    //warnings
+    unused,
+    warnings
 )]
 #![allow(clippy::module_name_repetitions, clippy::must_use_candidate)]
 
