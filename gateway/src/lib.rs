@@ -36,6 +36,7 @@
 //! ```
 //!
 //! [simd-json]: https://github.com/simd-lite/simd-json
+//! [docs:discord:sharding]: https://discord.com/developers/docs/topics/gateway#sharding
 
 #![deny(
     clippy::all,
