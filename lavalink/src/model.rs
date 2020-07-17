@@ -16,7 +16,7 @@ pub enum Opcode {
     Event,
     /// Pause a player.
     Pause,
-    /// Add a track to a player's queue, optionally forcing it to play now.
+    /// Play a track.
     Play,
     /// An update about a player's current track.
     PlayerUpdate,
@@ -48,7 +48,7 @@ mod outgoing {
         Equalizer(Equalizer),
         /// Pause or unpause a player.
         Pause(Pause),
-        /// Add a track to the queue, optionally forcing it to play now.
+        /// Play a track.
         Play(Play),
         /// Seek a player's active track to a new position.
         Seek(Seek),
@@ -226,7 +226,7 @@ mod outgoing {
         }
     }
 
-    /// Add a track to the queue, optionally forcing it to play now.
+    /// Play a track, optionally specifying to not skip the current track.
     #[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
     #[non_exhaustive]
     #[serde(rename_all = "camelCase")]
@@ -243,8 +243,8 @@ mod outgoing {
         /// Whether or not to replace the currently playing track with this new
         /// track.
         ///
-        /// Set to `true` to push this track to the end of the queue, or `false`
-        /// to replace the current track in-place.
+        /// Set to `true` to keep playing the current playing track, or `false`
+        /// to replace the current playing track with a new one.
         pub no_replace: bool,
         /// The opcode of the event.
         pub op: Opcode,
