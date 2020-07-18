@@ -12,20 +12,13 @@ use std::{sync::Arc, time::Duration};
 ///
 /// [`Client`]: ../struct.Client.html
 pub struct ClientBuilder {
+    pub(crate) default_allowed_mentions: Option<AllowedMentions>,
     pub(crate) proxy: Option<Proxy>,
     pub(crate) proxy_http: bool,
+    pub(crate) ratelimiter: Option<Ratelimiter>,
     pub(crate) reqwest_client: Option<ReqwestClient>,
-    pub(crate) ratelimiter: RatelimiterBuilder,
     pub(crate) timeout: Duration,
     pub(crate) token: Option<String>,
-    pub(crate) default_allowed_mentions: Option<AllowedMentions>,
-}
-
-#[derive(Clone, Debug)]
-pub enum RatelimiterBuilder {
-    Skip,
-    New,
-    Use(Ratelimiter),
 }
 
 impl ClientBuilder {
@@ -50,19 +43,12 @@ impl ClientBuilder {
             builder = builder.proxy(proxy)
         }
 
-        let (skip_ratelimiter, ratelimiter) = match self.ratelimiter {
-            RatelimiterBuilder::New => (false, Ratelimiter::new()),
-            RatelimiterBuilder::Skip => (true, Ratelimiter::new()),
-            RatelimiterBuilder::Use(rl) => (false, rl),
-        };
-
         Ok(Client {
             state: Arc::new(State {
                 http: builder
                     .build()
                     .map_err(|source| Error::BuildingClient { source })?,
-                ratelimiter,
-                skip_ratelimiter,
+                ratelimiter: self.ratelimiter,
                 token: self.token,
                 use_http: self.proxy_http,
                 default_allowed_mentions: self.default_allowed_mentions,
@@ -116,10 +102,7 @@ impl ClientBuilder {
     /// If this method is not called at all then a default ratelimiter will be
     /// created by `ClientBuilder::build`.
     pub fn ratelimiter(&mut self, ratelimiter: impl Into<Option<Ratelimiter>>) -> &mut Self {
-        self.ratelimiter = match ratelimiter.into() {
-            Some(rl) => RatelimiterBuilder::Use(rl),
-            None => RatelimiterBuilder::Skip,
-        };
+        self.ratelimiter = ratelimiter.into();
 
         self
     }
@@ -159,7 +142,7 @@ impl Default for ClientBuilder {
             proxy: None,
             proxy_http: false,
             reqwest_client: None,
-            ratelimiter: RatelimiterBuilder::New,
+            ratelimiter: Some(Ratelimiter::new()),
             timeout: Duration::from_secs(10),
             token: None,
         }
