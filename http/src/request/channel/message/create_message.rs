@@ -6,6 +6,7 @@ use reqwest::{
     Body,
 };
 use std::{
+    borrow::Cow,
     collections::HashMap,
     error::Error,
     fmt::{Display, Formatter, Result as FmtResult},
@@ -46,11 +47,11 @@ impl Error for CreateMessageError {
 }
 
 #[derive(Default, Serialize)]
-pub(crate) struct CreateMessageFields {
-    content: Option<String>,
-    embed: Option<Embed>,
+pub(crate) struct CreateMessageFields<'a> {
+    content: Option<Cow<'a, str>>,
+    embed: Option<&'a Embed>,
     nonce: Option<u64>,
-    payload_json: Option<Vec<u8>>,
+    payload_json: Option<Cow<'a, [u8]>>,
     tts: Option<bool>,
     pub(crate) allowed_mentions: Option<AllowedMentions>,
 }
@@ -78,7 +79,7 @@ pub(crate) struct CreateMessageFields {
 pub struct CreateMessage<'a> {
     attachments: HashMap<String, Body>,
     channel_id: ChannelId,
-    pub(crate) fields: CreateMessageFields,
+    pub(crate) fields: CreateMessageFields<'a>,
     fut: Option<Pending<'a, Message>>,
     http: &'a Client,
 }
@@ -107,11 +108,11 @@ impl<'a> CreateMessage<'a> {
     /// too long.
     ///
     /// [`CreateMessageError::ContentInvalid`]: enum.CreateMessageError.html#variant.ContentInvalid
-    pub fn content(self, content: impl Into<String>) -> Result<Self, CreateMessageError> {
+    pub fn content(self, content: impl Into<Cow<'a, str>>) -> Result<Self, CreateMessageError> {
         self._content(content.into())
     }
 
-    fn _content(mut self, content: String) -> Result<Self, CreateMessageError> {
+    fn _content(mut self, content: Cow<'a, str>) -> Result<Self, CreateMessageError> {
         if !validate::content_limit(&content) {
             return Err(CreateMessageError::ContentInvalid);
         }
@@ -137,8 +138,8 @@ impl<'a> CreateMessage<'a> {
     /// [the discord docs]: https://discord.com/developers/docs/resources/channel#embed-limits
     /// [`EmbedBuilder`]: ../../../../../twilight_builders/embed/struct.EmbedBuilder.html
     /// [`CreateMessageError::EmbedTooLarge`]: enum.CreateMessageError.html#variant.EmbedTooLarge
-    pub fn embed(mut self, embed: Embed) -> Result<Self, CreateMessageError> {
-        validate::embed(&embed).map_err(|source| CreateMessageError::EmbedTooLarge { source })?;
+    pub fn embed(mut self, embed: &'a Embed) -> Result<Self, CreateMessageError> {
+        validate::embed(embed).map_err(|source| CreateMessageError::EmbedTooLarge { source })?;
 
         self.fields.embed.replace(embed);
 
@@ -185,7 +186,7 @@ impl<'a> CreateMessage<'a> {
     /// JSON encoded body of any additional request fields.  See [Discord Docs/Create Message]
     ///
     /// [Discord Docs/Create Message]: https://discord.com/developers/docs/resources/channel#create-message-params
-    pub fn payload_json(mut self, payload_json: impl Into<Vec<u8>>) -> Self {
+    pub fn payload_json(mut self, payload_json: impl Into<Cow<'a, [u8]>>) -> Self {
         self.fields.payload_json.replace(payload_json.into());
 
         self

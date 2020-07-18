@@ -1,6 +1,7 @@
 use crate::json_to_vec;
 use crate::request::prelude::*;
 use std::{
+    borrow::Cow,
     error::Error,
     fmt::{Display, Formatter, Result as FmtResult},
 };
@@ -25,11 +26,11 @@ impl Display for UpdateCurrentUserError {
 impl Error for UpdateCurrentUserError {}
 
 #[derive(Default, Serialize)]
-struct UpdateCurrentUserFields {
+struct UpdateCurrentUserFields<'a> {
     #[serde(skip_serializing_if = "Option::is_none")]
-    avatar: Option<String>,
+    avatar: Option<Cow<'a, str>>,
     #[serde(skip_serializing_if = "Option::is_none")]
-    username: Option<String>,
+    username: Option<Cow<'a, str>>,
 }
 
 /// Update the current user.
@@ -37,7 +38,7 @@ struct UpdateCurrentUserFields {
 /// All paramaters are optional. If the username is changed, it may cause the discriminator to be
 /// rnadomized.
 pub struct UpdateCurrentUser<'a> {
-    fields: UpdateCurrentUserFields,
+    fields: UpdateCurrentUserFields<'a>,
     fut: Option<Pending<'a, User>>,
     http: &'a Client,
 }
@@ -58,7 +59,7 @@ impl<'a> UpdateCurrentUser<'a> {
     /// for more information.
     ///
     /// [the discord docs]: https://discord.com/developers/docs/reference#image-data
-    pub fn avatar(mut self, avatar: impl Into<String>) -> Self {
+    pub fn avatar(mut self, avatar: impl Into<Cow<'a, str>>) -> Self {
         self.fields.avatar.replace(avatar.into());
 
         self
@@ -74,11 +75,14 @@ impl<'a> UpdateCurrentUser<'a> {
     /// too long.
     ///
     /// [`UpdateCurrentUserError::UsernameInvalid`]: enum.UpdateCurrentUserError.html#variant.UsernameInvalid
-    pub fn username(self, username: impl Into<String>) -> Result<Self, UpdateCurrentUserError> {
+    pub fn username(
+        self,
+        username: impl Into<Cow<'a, str>>,
+    ) -> Result<Self, UpdateCurrentUserError> {
         self._username(username.into())
     }
 
-    fn _username(mut self, username: String) -> Result<Self, UpdateCurrentUserError> {
+    fn _username(mut self, username: Cow<'a, str>) -> Result<Self, UpdateCurrentUserError> {
         if !validate::username(&username) {
             return Err(UpdateCurrentUserError::UsernameInvalid);
         }

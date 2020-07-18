@@ -1,4 +1,5 @@
 use crate::request::prelude::*;
+use std::borrow::Cow;
 use twilight_model::invite::Invite;
 
 #[derive(Default)]
@@ -28,14 +29,14 @@ struct GetInviteFields {
 ///
 /// [`with_counts`]: #method.with_counts
 pub struct GetInvite<'a> {
-    code: String,
+    code: Cow<'a, str>,
     fields: GetInviteFields,
     fut: Option<PendingOption<'a>>,
     http: &'a Client,
 }
 
 impl<'a> GetInvite<'a> {
-    pub(crate) fn new(http: &'a Client, code: impl Into<String>) -> Self {
+    pub(crate) fn new(http: &'a Client, code: impl Into<Cow<'a, str>>) -> Self {
         Self {
             code: code.into(),
             fields: GetInviteFields::default(),
@@ -55,7 +56,7 @@ impl<'a> GetInvite<'a> {
         self.fut
             .replace(Box::pin(self.http.request_bytes(Request::from(
                 Route::GetInvite {
-                    code: self.code.clone(),
+                    code: &self.code,
                     with_counts: self.fields.with_counts,
                 },
             ))));

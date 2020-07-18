@@ -1,5 +1,6 @@
 use crate::request::prelude::*;
 use std::{
+    borrow::{Borrow, Cow},
     error::Error,
     fmt::{Display, Formatter, Result as FmtResult},
 };
@@ -26,10 +27,10 @@ impl Display for CreateGuildPruneError {
 impl Error for CreateGuildPruneError {}
 
 #[derive(Default)]
-struct CreateGuildPruneFields {
+struct CreateGuildPruneFields<'a> {
     compute_prune_count: Option<bool>,
     days: Option<u64>,
-    include_roles: Vec<u64>,
+    include_roles: Option<Cow<'a, [RoleId]>>,
 }
 
 /// Begin a guild prune.
@@ -38,11 +39,11 @@ struct CreateGuildPruneFields {
 ///
 /// [the discord docs]: https://discord.com/developers/docs/resources/guild#begin-guild-prune
 pub struct CreateGuildPrune<'a> {
-    fields: CreateGuildPruneFields,
+    fields: CreateGuildPruneFields<'a>,
     guild_id: GuildId,
     fut: Option<Pending<'a, Option<GuildPrune>>>,
     http: &'a Client,
-    reason: Option<String>,
+    reason: Option<Cow<'a, str>>,
 }
 
 impl<'a> CreateGuildPrune<'a> {
@@ -57,10 +58,8 @@ impl<'a> CreateGuildPrune<'a> {
     }
 
     /// List of roles to include when pruning.
-    pub fn include_roles(mut self, roles: impl Iterator<Item = RoleId>) -> Self {
-        let roles = roles.map(|e| e.0).collect::<Vec<_>>();
-
-        self.fields.include_roles = roles;
+    pub fn include_roles(mut self, roles: impl Into<Cow<'a, [RoleId]>>) -> Self {
+        self.fields.include_roles.replace(roles.into());
 
         self
     }
@@ -92,22 +91,26 @@ impl<'a> CreateGuildPrune<'a> {
     }
 
     /// Attach an audit log reason to this request.
-    pub fn reason(mut self, reason: impl Into<String>) -> Self {
+    pub fn reason(mut self, reason: impl Into<Cow<'a, str>>) -> Self {
         self.reason.replace(reason.into());
 
         self
     }
 
     fn start(&mut self) -> Result<()> {
-        let request = if let Some(reason) = &self.reason {
-            let headers = audit_header(&reason)?;
+        let include_roles = self.fields.include_roles.take();
+        let include_roles = include_roles.as_deref();
+
+        let request = if let Some(reason) = self.reason.take() {
+            let headers = audit_header(reason.borrow())?;
+
             Request::from((
                 headers,
                 Route::CreateGuildPrune {
                     compute_prune_count: self.fields.compute_prune_count,
                     days: self.fields.days,
                     guild_id: self.guild_id.0,
-                    include_roles: self.fields.include_roles.clone(),
+                    include_roles,
                 },
             ))
         } else {
@@ -115,7 +118,7 @@ impl<'a> CreateGuildPrune<'a> {
                 compute_prune_count: self.fields.compute_prune_count,
                 days: self.fields.days,
                 guild_id: self.guild_id.0,
-                include_roles: self.fields.include_roles.clone(),
+                include_roles,
             })
         };
 

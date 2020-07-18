@@ -1,5 +1,6 @@
 use crate::request::prelude::*;
 use std::{
+    borrow::Cow,
     error::Error,
     fmt::{Display, Formatter, Result as FmtResult},
 };
@@ -38,7 +39,7 @@ struct GetReactionsFields {
 /// requests must be chained until all reactions are retireved.
 pub struct GetReactions<'a> {
     channel_id: ChannelId,
-    emoji: String,
+    emoji: Cow<'a, str>,
     fields: GetReactionsFields,
     fut: Option<Pending<'a, Vec<User>>>,
     http: &'a Client,
@@ -50,7 +51,7 @@ impl<'a> GetReactions<'a> {
         http: &'a Client,
         channel_id: ChannelId,
         message_id: MessageId,
-        emoji: impl Into<String>,
+        emoji: impl Into<Cow<'a, str>>,
     ) -> Self {
         Self {
             channel_id,
@@ -102,7 +103,7 @@ impl<'a> GetReactions<'a> {
                 after: self.fields.after.map(|x| x.0),
                 before: self.fields.before.map(|x| x.0),
                 channel_id: self.channel_id.0,
-                emoji: self.emoji.to_owned(),
+                emoji: &self.emoji,
                 limit: self.fields.limit,
                 message_id: self.message_id.0,
             },

@@ -1,6 +1,7 @@
 use crate::json_to_vec;
 use crate::request::prelude::*;
 use std::{
+    borrow::Cow,
     error::Error,
     fmt::{Display, Formatter, Result as FmtResult},
 };
@@ -36,16 +37,16 @@ impl Error for UpdateChannelError {}
 // The Discord API doesn't require the `name` and `kind` fields to be present,
 // but it does require them to be non-null.
 #[derive(Default, Serialize)]
-struct UpdateChannelFields {
+struct UpdateChannelFields<'a> {
     bitrate: Option<u64>,
     #[serde(skip_serializing_if = "Option::is_none")]
-    name: Option<String>,
+    name: Option<Cow<'a, str>>,
     nsfw: Option<bool>,
     parent_id: Option<ChannelId>,
-    permission_overwrites: Option<Vec<PermissionOverwrite>>,
+    permission_overwrites: Option<Cow<'a, [PermissionOverwrite]>>,
     position: Option<u64>,
     rate_limit_per_user: Option<u64>,
-    topic: Option<String>,
+    topic: Option<Cow<'a, str>>,
     user_limit: Option<u64>,
     #[serde(rename = "type")]
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -73,10 +74,10 @@ struct UpdateChannelFields {
 /// [`UpdateChannelError::TopicInvalid`]: ../enum.UpdateChannelError.html#variant.TopicInvalid
 pub struct UpdateChannel<'a> {
     channel_id: ChannelId,
-    fields: UpdateChannelFields,
+    fields: UpdateChannelFields<'a>,
     fut: Option<Pending<'a, Channel>>,
     http: &'a Client,
-    reason: Option<String>,
+    reason: Option<Cow<'a, str>>,
 }
 
 impl<'a> UpdateChannel<'a> {
@@ -108,11 +109,9 @@ impl<'a> UpdateChannel<'a> {
     /// too short or too long.
     ///
     /// [`UpdateChannelError::NameInvalid`]: enum.UpdateChannelError.html#variant.NameInvalid
-    pub fn name(self, name: impl Into<String>) -> Result<Self, UpdateChannelError> {
-        self._name(name.into())
-    }
+    pub fn name(mut self, name: impl Into<Cow<'a, str>>) -> Result<Self, UpdateChannelError> {
+        let name = name.into();
 
-    fn _name(mut self, name: String) -> Result<Self, UpdateChannelError> {
         if !validate::channel_name(&name) {
             return Err(UpdateChannelError::NameInvalid);
         }
@@ -141,11 +140,11 @@ impl<'a> UpdateChannel<'a> {
     /// channel currently has, so use with caution!
     pub fn permission_overwrites(
         mut self,
-        permission_overwrites: Vec<PermissionOverwrite>,
+        permission_overwrites: impl Into<Cow<'a, [PermissionOverwrite]>>,
     ) -> Self {
         self.fields
             .permission_overwrites
-            .replace(permission_overwrites);
+            .replace(permission_overwrites.into());
 
         self
     }
@@ -197,11 +196,10 @@ impl<'a> UpdateChannel<'a> {
     ///
     /// [the discord docs]: https://discordapp.com/developers/docs/resources/channel#channel-object-channel-structure
     /// [`CreateGuildChannel::TopicInvalid`]: enum.CreateGuildChannel.html#variant.TopicInvalid
-    pub fn topic(self, topic: impl Into<String>) -> Result<Self, UpdateChannelError> {
-        self._topic(topic.into())
-    }
+    pub fn topic(mut self, topic: impl Into<Cow<'a, str>>) -> Result<Self, UpdateChannelError> {
+        let topic = topic.into();
 
-    fn _topic(mut self, topic: String) -> Result<Self, UpdateChannelError> {
+        // <https://discordapp.com/developers/docs/resources/channel#channel-object-channel-structure>
         if topic.chars().count() > 1024 {
             return Err(UpdateChannelError::TopicInvalid);
         }
@@ -237,7 +235,7 @@ impl<'a> UpdateChannel<'a> {
     }
 
     /// Attach an audit log reason to this request.
-    pub fn reason(mut self, reason: impl Into<String>) -> Self {
+    pub fn reason(mut self, reason: impl Into<Cow<'a, str>>) -> Self {
         self.reason.replace(reason.into());
 
         self
