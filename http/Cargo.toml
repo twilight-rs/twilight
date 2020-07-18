@@ -30,7 +30,7 @@ url = { default-features = false, version = "2" }
 simd-json = { default-features = false, features = ["serde_impl", "swar-number-parsing"], optional = true, version = "0.3" }
 
 [features]
-default = ["native"]
+default = ["rustls"]
 native = ["reqwest/default-tls"]
 rustls = ["reqwest/rustls-tls"]
 

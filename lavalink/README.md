@@ -15,10 +15,35 @@ with every Voice State Update and Voice Server Update you receive.
 
 ## Features
 
-Included is the `http-support` feature.
+### `http-support`
 
 The `http-support` feature adds support for the `http` module to return
 request types from the [`http`] crate. This is enabled by default.
+
+### TLS
+
+`twilight-lavalink` has features to enable [`async-tungstenite`]'s TLS
+features. These features are mutually exclusive. `rustls` is enabled by
+default.
+
+#### `native`
+
+The `native` feature enables [`async-tungstenite`]'s `tokio-native-tls`
+feature.
+
+To enable `native`, do something like this in your `Cargo.toml`:
+
+```toml
+[dependencies]
+twilight-lavalink = { branch = "trunk", default-features = false, features = ["native"], git = "https://github.com/twilight-rs/twilight" }
+```
+
+#### `rustls`
+
+The `rustls` feature enables [`async-tungstenite`]'s `async-tls` feature, which
+use [`rustls`] as the TLS backend.
+
+This is enabled by default.
 
 ## Examples
 
@@ -69,11 +94,13 @@ async fn main() -> Result<(), Box<dyn Error + Send + Sync + 'static>> {
 }
 ```
 
-[Lavalink]: https://github.com/Frederikam/Lavalink
 [`Lavalink::process`]: client/struct.Lavalink.html#method.process
+[Lavalink]: https://github.com/Frederikam/Lavalink
+[`async-tungstenite`]: https://crates.io/crates/async-tungstenite
+[`http`]: https://crates.io/crates/http
+[`rustls`]: https://crates.io/crates/rustls
 [client]: client/struct.Lavalink.html
 [node]: node/struct.Node.html
 [process]: client/struct.Lavalink.html#method.process
-[`http`]: https://crates.io/crates/http
 
 <!-- cargo-sync-readme end -->
