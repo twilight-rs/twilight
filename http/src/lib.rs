@@ -86,10 +86,6 @@
     clippy::pub_enum_variant_names,
     clippy::must_use_candidate,
     clippy::missing_errors_doc,
-    // This issue made it into a stable clippy:
-    //
-    // <https://github.com/rust-lang/rust-clippy/issues/5360>
-    clippy::used_underscore_binding
 )]
 
 pub mod api_error;
