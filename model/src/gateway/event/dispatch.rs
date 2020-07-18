@@ -1,6 +1,9 @@
 use super::super::payload::*;
 use super::EventType;
-use serde::{de::{Deserialize, DeserializeSeed, Deserializer, Error as DeError, IgnoredAny}, Serialize};
+use serde::{
+    de::{Deserialize, DeserializeSeed, Deserializer, Error as DeError, IgnoredAny},
+    Serialize,
+};
 
 /// A dispatch event, containing information about a created guild, a member
 /// added, etc.
