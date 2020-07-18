@@ -284,7 +284,7 @@ impl<'de> Visitor<'de> for GatewayEventVisitor<'_> {
                 Self::ignore_all(&mut map)?;
 
                 GatewayEvent::Reconnect
-            },
+            }
             OpCode::RequestGuildMembers => {
                 return Err(DeError::unknown_variant(
                     "RequestGuildMembers",
