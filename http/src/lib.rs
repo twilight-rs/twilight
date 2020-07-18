@@ -117,5 +117,8 @@ pub(crate) use serde_json::to_vec as json_to_vec;
 #[cfg(feature = "simd-json")]
 pub(crate) use simd_json::to_vec as json_to_vec;
 
+#[cfg(not(any(feature = "serde_json", feature = "simd-json")))]
+compile_error!("Either the `serde_json` or `simd-json` feature must be enabled.");
+
 #[cfg(not(any(feature = "native", feature = "rustls")))]
 compile_error!("Either the `native` or `rustls` feature must be enabled.");

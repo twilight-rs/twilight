@@ -72,5 +72,8 @@ pub(crate) use serde_json::to_string as json_to_string;
 #[cfg(feature = "simd-json")]
 pub(crate) use simd_json::to_string as json_to_string;
 
+#[cfg(not(any(feature = "serde_json", feature = "simd-json")))]
+compile_error!("Either the `serde_json` or `simd-json` feature must be enabled.");
+
 #[cfg(not(any(feature = "native", feature = "rustls")))]
-compile_error!("Either the `native` or `rustls` feature must be enabled");
+compile_error!("Either the `native` or `rustls` feature must be enabled.");
