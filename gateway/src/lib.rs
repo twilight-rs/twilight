@@ -46,14 +46,7 @@
     rust_2018_idioms,
     unsafe_code
 )]
-#![allow(
-    clippy::module_name_repetitions,
-    clippy::must_use_candidate,
-    // This issue made it into a stable clippy:
-    //
-    // <https://github.com/rust-lang/rust-clippy/issues/5360>
-    clippy::used_underscore_binding
-)]
+#![allow(clippy::module_name_repetitions, clippy::must_use_candidate)]
 
 pub mod cluster;
 pub mod queue;
