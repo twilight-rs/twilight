@@ -1,6 +1,9 @@
 use super::super::payload::*;
 use super::EventType;
-use serde::de::{Deserialize, DeserializeSeed, Deserializer, Error as DeError, IgnoredAny};
+use serde::{
+    de::{Deserialize, DeserializeSeed, Deserializer, Error as DeError, IgnoredAny},
+    Serialize,
+};
 
 /// A dispatch event, containing information about a created guild, a member
 /// added, etc.
@@ -9,7 +12,7 @@ use serde::de::{Deserialize, DeserializeSeed, Deserializer, Error as DeError, Ig
 /// [`DispatchEventWithTypeDeserializer`].
 ///
 /// [`DispatchEventWithTypeDeserializer`]: struct.DispatchEventWithTypeDeserializer.html
-#[derive(Clone, Debug, Eq, PartialEq)]
+#[derive(Clone, Debug, Eq, PartialEq, Serialize)]
 pub enum DispatchEvent {
     BanAdd(BanAdd),
     BanRemove(BanRemove),
