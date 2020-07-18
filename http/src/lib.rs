@@ -85,7 +85,7 @@
     clippy::module_name_repetitions,
     clippy::pub_enum_variant_names,
     clippy::must_use_candidate,
-    clippy::missing_errors_doc,
+    clippy::missing_errors_doc
 )]
 
 pub mod api_error;
