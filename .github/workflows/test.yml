@@ -1,11 +1,12 @@
-on: [push, pull_request]
-
 name: Test
+
+on: [push, pull_request]
 
 jobs:
   test:
     name: Test
     runs-on: ubuntu-latest
+
     steps:
       - name: Checkout sources
         uses: actions/checkout@v2
