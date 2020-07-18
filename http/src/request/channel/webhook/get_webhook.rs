@@ -1,14 +1,15 @@
 use crate::request::prelude::*;
+use std::borrow::Cow;
 use twilight_model::{channel::Webhook, id::WebhookId};
 
 #[derive(Default)]
-struct GetWebhookFields {
-    token: Option<String>,
+struct GetWebhookFields<'a> {
+    token: Option<Cow<'a, str>>,
 }
 
 /// Get a webhook by ID.
 pub struct GetWebhook<'a> {
-    fields: GetWebhookFields,
+    fields: GetWebhookFields<'a>,
     fut: Option<PendingOption<'a>>,
     http: &'a Client,
     id: WebhookId,
@@ -25,7 +26,7 @@ impl<'a> GetWebhook<'a> {
     }
 
     /// Specify the token for auth, if not already authenticated with a Bot token.
-    pub fn token(mut self, token: impl Into<String>) -> Self {
+    pub fn token(mut self, token: impl Into<Cow<'a, str>>) -> Self {
         self.fields.token.replace(token.into());
 
         self
@@ -35,7 +36,7 @@ impl<'a> GetWebhook<'a> {
         self.fut
             .replace(Box::pin(self.http.request_bytes(Request::from(
                 Route::GetWebhook {
-                    token: self.fields.token.clone(),
+                    token: self.fields.token.as_deref(),
                     webhook_id: self.id.0,
                 },
             ))));

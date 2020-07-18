@@ -1,6 +1,7 @@
 use crate::json_to_vec;
 use crate::request::prelude::*;
 use std::{
+    borrow::Cow,
     error::Error,
     fmt::{Display, Formatter, Result as FmtResult},
 };
@@ -27,12 +28,12 @@ impl Display for UpdateGuildMemberError {
 impl Error for UpdateGuildMemberError {}
 
 #[derive(Default, Serialize)]
-struct UpdateGuildMemberFields {
+struct UpdateGuildMemberFields<'a> {
     channel_id: Option<ChannelId>,
     deaf: Option<bool>,
     mute: Option<bool>,
-    nick: Option<String>,
-    roles: Option<Vec<RoleId>>,
+    nick: Option<Cow<'a, str>>,
+    roles: Option<Cow<'a, [RoleId]>>,
 }
 
 /// Update a guild member.
@@ -48,12 +49,12 @@ struct UpdateGuildMemberFields {
 ///
 /// [the discord docs]: https://discord.com/developers/docs/resources/guild#modify-guild-member
 pub struct UpdateGuildMember<'a> {
-    fields: UpdateGuildMemberFields,
+    fields: UpdateGuildMemberFields<'a>,
     fut: Option<Pending<'a, Member>>,
     guild_id: GuildId,
     http: &'a Client,
     user_id: UserId,
-    reason: Option<String>,
+    reason: Option<Cow<'a, str>>,
 }
 
 impl<'a> UpdateGuildMember<'a> {
@@ -99,11 +100,9 @@ impl<'a> UpdateGuildMember<'a> {
     /// too long.
     ///
     /// [`UpdateGuildMemberError::NicknameInvalid`]: enum.UpdateGuildMemberError.html#variant.NicknameInvalid
-    pub fn nick(self, nick: impl Into<String>) -> Result<Self, UpdateGuildMemberError> {
-        self._nick(nick.into())
-    }
+    pub fn nick(mut self, nick: impl Into<Cow<'a, str>>) -> Result<Self, UpdateGuildMemberError> {
+        let nick = nick.into();
 
-    fn _nick(mut self, nick: String) -> Result<Self, UpdateGuildMemberError> {
         if !validate::nickname(&nick) {
             return Err(UpdateGuildMemberError::NicknameInvalid);
         }
@@ -114,14 +113,14 @@ impl<'a> UpdateGuildMember<'a> {
     }
 
     /// Set the new list of roles for a member.
-    pub fn roles(mut self, roles: Vec<RoleId>) -> Self {
-        self.fields.roles.replace(roles);
+    pub fn roles(mut self, roles: impl Into<Cow<'a, [RoleId]>>) -> Self {
+        self.fields.roles.replace(roles.into());
 
         self
     }
 
     /// Attach an audit log reason to this request.
-    pub fn reason(mut self, reason: impl Into<String>) -> Self {
+    pub fn reason(mut self, reason: impl Into<Cow<'a, str>>) -> Self {
         self.reason.replace(reason.into());
 
         self

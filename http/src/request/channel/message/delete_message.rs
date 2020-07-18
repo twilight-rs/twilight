@@ -1,4 +1,5 @@
 use crate::request::prelude::*;
+use std::borrow::Cow;
 use twilight_model::id::{ChannelId, MessageId};
 
 /// Delete a message by [`ChannelId`] and [`MessageId`].
@@ -10,7 +11,7 @@ pub struct DeleteMessage<'a> {
     fut: Option<Pending<'a, ()>>,
     http: &'a Client,
     message_id: MessageId,
-    reason: Option<String>,
+    reason: Option<Cow<'a, str>>,
 }
 
 impl<'a> DeleteMessage<'a> {
@@ -25,14 +26,14 @@ impl<'a> DeleteMessage<'a> {
     }
 
     /// Attach an audit log reason to this request.
-    pub fn reason(mut self, reason: impl Into<String>) -> Self {
+    pub fn reason(mut self, reason: impl Into<Cow<'a, str>>) -> Self {
         self.reason.replace(reason.into());
 
         self
     }
 
     fn start(&mut self) -> Result<()> {
-        let request = if let Some(reason) = &self.reason {
+        let request = if let Some(reason) = self.reason.as_ref() {
             let headers = audit_header(&reason)?;
             Request::from((
                 headers,

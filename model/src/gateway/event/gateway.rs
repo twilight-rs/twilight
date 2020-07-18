@@ -5,7 +5,8 @@ use serde::{
         value::U8Deserializer, DeserializeSeed, Deserializer, Error as DeError, IgnoredAny,
         IntoDeserializer, MapAccess, Unexpected, Visitor,
     },
-    Deserialize,
+    ser::{SerializeStruct, Serializer},
+    Deserialize, Serialize,
 };
 use std::fmt::{Formatter, Result as FmtResult};
 
@@ -21,13 +22,18 @@ pub enum GatewayEvent {
     Reconnect,
 }
 
-#[derive(Clone, Copy, Deserialize, PartialEq)]
+#[derive(Clone, Copy, Debug, Deserialize, PartialEq)]
 #[serde(field_identifier, rename_all = "lowercase")]
 enum Field {
     D,
     Op,
     S,
     T,
+}
+
+#[derive(Deserialize, Serialize)]
+struct Hello {
+    heartbeat_interval: u64,
 }
 
 /// A deserializer that deserializes into a `GatewayEvent` by cloning some bits
@@ -39,6 +45,7 @@ enum Field {
 /// like `simd-json`.
 ///
 /// [`GatewayEventDeserializer`]: struct.GatewayEventDeserializer.html
+#[derive(Clone, Debug, Eq, PartialEq)]
 pub struct GatewayEventDeserializerOwned {
     event_type: Option<String>,
     op: u8,
@@ -65,6 +72,7 @@ impl GatewayEventDeserializerOwned {
 /// like `serde_json`.
 ///
 /// [`GatewayEventDeserializerOwned`]: struct.GatewayEventDeserializerOwned.html
+#[derive(Clone, Debug, Eq, PartialEq)]
 pub struct GatewayEventDeserializer<'a> {
     event_type: Option<&'a str>,
     op: u8,
@@ -93,9 +101,16 @@ impl<'a> GatewayEventDeserializer<'a> {
         // for.
         let from = input.find(r#""t":"#)? + 4;
 
-        // Now let's find where the value starts. There may or may not be any
-        // amount of whitespace after the "t" key.
-        let start = input.get(from..)?.find('"')? + from + 1;
+        // Now let's find where the value starts, which may be a string or null.
+        // Or maybe something else. If it's anything but a string, then there's
+        // no event type.
+        let start = input.get(from..)?.find(|c: char| !c.is_whitespace())? + from + 1;
+
+        // Check if the character just before the cursor is '"'.
+        if input.as_bytes().get(start - 1).copied()? != b'"' {
+            return None;
+        }
+
         let to = input.get(start..)?.find('"')?;
 
         input.get(start..start + to)
@@ -128,24 +143,30 @@ impl GatewayEventVisitor<'_> {
         map: &mut V,
         field: Field,
     ) -> Result<T, V::Error> {
+        let mut found = None;
+
         loop {
             match map.next_key::<Field>() {
-                Ok(Some(key)) if key == field => return map.next_value(),
+                Ok(Some(key)) if key == field => found = Some(map.next_value()?),
                 Ok(Some(_)) | Err(_) => {
                     map.next_value::<IgnoredAny>()?;
 
                     continue;
                 }
                 Ok(None) => {
-                    return Err(DeError::missing_field(match field {
-                        Field::D => "d",
-                        Field::Op => "op",
-                        Field::S => "s",
-                        Field::T => "t",
-                    }));
+                    break;
                 }
             }
         }
+
+        found.ok_or_else(|| {
+            DeError::missing_field(match field {
+                Field::D => "d",
+                Field::Op => "op",
+                Field::S => "s",
+                Field::T => "t",
+            })
+        })
     }
 }
 
@@ -156,6 +177,7 @@ impl<'de> Visitor<'de> for GatewayEventVisitor<'_> {
         formatter.write_str("struct GatewayEvent")
     }
 
+    #[allow(clippy::too_many_lines)]
     fn visit_map<V>(self, mut map: V) -> Result<GatewayEvent, V::Error>
     where
         V: MapAccess<'de>,
@@ -231,13 +253,13 @@ impl<'de> Visitor<'de> for GatewayEventVisitor<'_> {
 
                 GatewayEvent::Heartbeat(seq)
             }
-            OpCode::HeartbeatAck => GatewayEvent::HeartbeatAck,
-            OpCode::Hello => {
-                #[derive(Deserialize)]
-                struct Hello {
-                    heartbeat_interval: u64,
+            OpCode::HeartbeatAck => {
+                while let Ok(Some(_)) | Err(_) = map.next_key::<Field>() {
+                    map.next_value::<IgnoredAny>()?;
                 }
-
+                GatewayEvent::HeartbeatAck
+            }
+            OpCode::Hello => {
                 let hello = Self::field::<Hello, _>(&mut map, Field::D)?;
 
                 GatewayEvent::Hello(hello.heartbeat_interval)
@@ -297,11 +319,69 @@ impl<'de> DeserializeSeed<'de> for GatewayEventDeserializerOwned {
     }
 }
 
+impl Serialize for GatewayEvent {
+    fn serialize<S: Serializer>(&self, serializer: S) -> Result<S::Ok, S::Error> {
+        fn opcode(gateway_event: &GatewayEvent) -> OpCode {
+            match gateway_event {
+                GatewayEvent::Dispatch(_, _) => OpCode::Event,
+                GatewayEvent::Heartbeat(_) => OpCode::Heartbeat,
+                GatewayEvent::HeartbeatAck => OpCode::HeartbeatAck,
+                GatewayEvent::Hello(_) => OpCode::Hello,
+                GatewayEvent::InvalidateSession(_) => OpCode::InvalidSession,
+                GatewayEvent::Reconnect => OpCode::Reconnect,
+            }
+        }
+
+        let mut s = serializer.serialize_struct("GatewayEvent", 4)?;
+
+        if let Self::Dispatch(sequence, event) = self {
+            s.serialize_field("t", &event.kind())?;
+            s.serialize_field("s", &sequence)?;
+            s.serialize_field("op", &opcode(self))?;
+            s.serialize_field("d", &event)?;
+
+            return s.end();
+        }
+
+        // S and T are always null when not a Dispatch event
+        s.serialize_field("t", &None::<&str>)?;
+        s.serialize_field("s", &None::<u64>)?;
+        s.serialize_field("op", &opcode(self))?;
+
+        match self {
+            Self::Dispatch(_, _) => unreachable!("dispatch already handled"),
+            Self::Heartbeat(sequence) => {
+                s.serialize_field("d", &sequence)?;
+            }
+            Self::Hello(interval) => {
+                let hello = Hello {
+                    heartbeat_interval: *interval,
+                };
+
+                s.serialize_field("d", &hello)?;
+            }
+            Self::InvalidateSession(invalidate) => {
+                s.serialize_field("d", &invalidate)?;
+            }
+            Self::HeartbeatAck | Self::Reconnect => {
+                s.serialize_field("d", &None::<u64>)?;
+            }
+        }
+
+        s.end()
+    }
+}
+
 #[cfg(test)]
 mod tests {
-    use super::{GatewayEvent, GatewayEventDeserializer};
+    use super::{DispatchEvent, GatewayEvent, GatewayEventDeserializer, OpCode};
+    use crate::{
+        gateway::payload::RoleDelete,
+        id::{GuildId, RoleId},
+    };
     use serde::de::DeserializeSeed;
     use serde_json::de::Deserializer;
+    use serde_test::Token;
 
     #[test]
     fn test_deserializer_constructor() {
@@ -503,5 +583,206 @@ mod tests {
         let deserializer = GatewayEventDeserializer::from_json(input).unwrap();
         assert_eq!(deserializer.event_type, Some("DOESNT_MATTER"));
         assert_eq!(deserializer.op, 0);
+    }
+
+    // Test that the GatewayEventDeserializer handles non-string (read: null)
+    // event types. For example HeartbeatAck
+    #[allow(unused)]
+    #[test]
+    fn test_deserializer_handles_null_event_types() {
+        let input = r#"{"t":null,"op":11}"#;
+
+        let deserializer = GatewayEventDeserializer::from_json(input).unwrap();
+        let mut json_deserializer = Deserializer::from_str(input);
+        let event = deserializer.deserialize(&mut json_deserializer).unwrap();
+
+        assert!(matches!(event, GatewayEvent::HeartbeatAck));
+    }
+
+    // Test that events which are not documented to have any data will not fail if
+    // they contain it
+    #[allow(unused)]
+    #[test]
+    fn test_deserializer_handles_resumed() {
+        let input = r#"{
+  "t": "RESUMED",
+  "s": 37448,
+  "op": 0,
+  "d": {
+    "_trace": [
+      "[\"gateway-prd-main-zqnl\",{\"micros\":11488,\"calls\":[\"discord-sessions-prd-1-38\",{\"micros\":1756}]}]"
+    ]
+  }
+}"#;
+
+        let deserializer = GatewayEventDeserializer::from_json(input).unwrap();
+        let mut json_deserializer = Deserializer::from_str(input);
+        let event = deserializer.deserialize(&mut json_deserializer).unwrap();
+
+        assert!(matches!(event, GatewayEvent::Dispatch(_, _)));
+    }
+
+    #[test]
+    fn test_serialize_dispatch() {
+        let role_delete = RoleDelete {
+            guild_id: GuildId(1),
+            role_id: RoleId(2),
+        };
+        let dispatch = Box::new(DispatchEvent::RoleDelete(role_delete));
+        let event = GatewayEvent::Dispatch(2048, dispatch);
+
+        serde_test::assert_ser_tokens(
+            &event,
+            &[
+                Token::Struct {
+                    name: "GatewayEvent",
+                    len: 4,
+                },
+                Token::Str("t"),
+                Token::UnitVariant {
+                    name: "EventType",
+                    variant: "GUILD_ROLE_DELETE",
+                },
+                Token::Str("s"),
+                Token::U64(2048),
+                Token::Str("op"),
+                Token::U8(OpCode::Event as u8),
+                Token::Str("d"),
+                Token::NewtypeVariant {
+                    name: "DispatchEvent",
+                    variant: "RoleDelete",
+                },
+                Token::Struct {
+                    name: "RoleDelete",
+                    len: 2,
+                },
+                Token::Str("guild_id"),
+                Token::NewtypeStruct { name: "GuildId" },
+                Token::Str("1"),
+                Token::Str("role_id"),
+                Token::NewtypeStruct { name: "RoleId" },
+                Token::Str("2"),
+                Token::StructEnd,
+                Token::StructEnd,
+            ],
+        );
+    }
+
+    #[test]
+    fn test_serialize_heartbeat() {
+        serde_test::assert_ser_tokens(
+            &GatewayEvent::Heartbeat(1024),
+            &[
+                Token::Struct {
+                    name: "GatewayEvent",
+                    len: 4,
+                },
+                Token::Str("t"),
+                Token::None,
+                Token::Str("s"),
+                Token::None,
+                Token::Str("op"),
+                Token::U8(OpCode::Heartbeat as u8),
+                Token::Str("d"),
+                Token::U64(1024),
+                Token::StructEnd,
+            ],
+        );
+    }
+
+    #[test]
+    fn test_serialize_heartbeat_ack() {
+        serde_test::assert_ser_tokens(
+            &GatewayEvent::HeartbeatAck,
+            &[
+                Token::Struct {
+                    name: "GatewayEvent",
+                    len: 4,
+                },
+                Token::Str("t"),
+                Token::None,
+                Token::Str("s"),
+                Token::None,
+                Token::Str("op"),
+                Token::U8(OpCode::HeartbeatAck as u8),
+                Token::Str("d"),
+                Token::None,
+                Token::StructEnd,
+            ],
+        );
+    }
+
+    #[test]
+    fn test_serialize_hello() {
+        serde_test::assert_ser_tokens(
+            &GatewayEvent::Hello(41250),
+            &[
+                Token::Struct {
+                    name: "GatewayEvent",
+                    len: 4,
+                },
+                Token::Str("t"),
+                Token::None,
+                Token::Str("s"),
+                Token::None,
+                Token::Str("op"),
+                Token::U8(OpCode::Hello as u8),
+                Token::Str("d"),
+                Token::Struct {
+                    name: "Hello",
+                    len: 1,
+                },
+                Token::Str("heartbeat_interval"),
+                Token::U64(41250),
+                Token::StructEnd,
+                Token::StructEnd,
+            ],
+        );
+    }
+
+    #[test]
+    fn test_serialize_invalidate() {
+        let invalidate = GatewayEvent::InvalidateSession(true);
+
+        serde_test::assert_ser_tokens(
+            &invalidate,
+            &[
+                Token::Struct {
+                    name: "GatewayEvent",
+                    len: 4,
+                },
+                Token::Str("t"),
+                Token::None,
+                Token::Str("s"),
+                Token::None,
+                Token::Str("op"),
+                Token::U8(OpCode::InvalidSession as u8),
+                Token::Str("d"),
+                Token::Bool(true),
+                Token::StructEnd,
+            ],
+        );
+    }
+
+    #[test]
+    fn test_serialize_reconnect() {
+        serde_test::assert_ser_tokens(
+            &GatewayEvent::Reconnect,
+            &[
+                Token::Struct {
+                    name: "GatewayEvent",
+                    len: 4,
+                },
+                Token::Str("t"),
+                Token::None,
+                Token::Str("s"),
+                Token::None,
+                Token::Str("op"),
+                Token::U8(OpCode::Reconnect as u8),
+                Token::Str("d"),
+                Token::None,
+                Token::StructEnd,
+            ],
+        );
     }
 }

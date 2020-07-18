@@ -1,5 +1,6 @@
 use crate::json_to_vec;
 use crate::request::prelude::*;
+use std::borrow::Cow;
 use twilight_model::id::{GuildId, IntegrationId};
 
 #[derive(Default, Serialize)]
@@ -23,7 +24,7 @@ pub struct UpdateGuildIntegration<'a> {
     guild_id: GuildId,
     http: &'a Client,
     integration_id: IntegrationId,
-    reason: Option<String>,
+    reason: Option<Cow<'a, str>>,
 }
 
 impl<'a> UpdateGuildIntegration<'a> {
@@ -66,7 +67,7 @@ impl<'a> UpdateGuildIntegration<'a> {
     }
 
     /// Attach an audit log reason to this request.
-    pub fn reason(mut self, reason: impl Into<String>) -> Self {
+    pub fn reason(mut self, reason: impl Into<Cow<'a, str>>) -> Self {
         self.reason.replace(reason.into());
 
         self

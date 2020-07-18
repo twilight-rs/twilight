@@ -1,4 +1,4 @@
-use super::super::error::{Error, Result};
+use super::error::{Error, Result};
 use tracing::debug;
 use url::Url;
 

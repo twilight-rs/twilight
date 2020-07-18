@@ -1,6 +1,7 @@
 use crate::json_to_vec;
 use crate::request::prelude::*;
 use std::{
+    borrow::Cow,
     error::Error,
     fmt::{Display, Formatter, Result as FmtResult},
 };
@@ -30,23 +31,23 @@ impl Display for UpdateGuildError {
 impl Error for UpdateGuildError {}
 
 #[derive(Default, Serialize)]
-struct UpdateGuildFields {
+struct UpdateGuildFields<'a> {
     afk_channel_id: Option<ChannelId>,
     afk_timeout: Option<u64>,
     default_message_notifications: Option<DefaultMessageNotificationLevel>,
     explicit_content_filter: Option<ExplicitContentFilter>,
-    icon: Option<String>,
+    icon: Option<Cow<'a, str>>,
     #[serde(skip_serializing_if = "Option::is_none")]
-    name: Option<String>,
+    name: Option<Cow<'a, str>>,
     #[serde(skip_serializing_if = "Option::is_none")]
     owner_id: Option<UserId>,
-    region: Option<String>,
-    splash: Option<String>,
+    region: Option<Cow<'a, str>>,
+    splash: Option<Cow<'a, str>>,
     system_channel_id: Option<ChannelId>,
     verification_level: Option<VerificationLevel>,
     rules_channel_id: Option<ChannelId>,
     public_updates_channel_id: Option<ChannelId>,
-    preferred_locale: Option<String>,
+    preferred_locale: Option<Cow<'a, str>>,
 }
 
 /// Update a guild.
@@ -55,11 +56,11 @@ struct UpdateGuildFields {
 ///
 /// [the discord docs]: https://discord.com/developers/docs/resources/guild#modify-guild
 pub struct UpdateGuild<'a> {
-    fields: UpdateGuildFields,
+    fields: UpdateGuildFields<'a>,
     fut: Option<Pending<'a, PartialGuild>>,
     guild_id: GuildId,
     http: &'a Client,
-    reason: Option<String>,
+    reason: Option<Cow<'a, str>>,
 }
 
 impl<'a> UpdateGuild<'a> {
@@ -121,7 +122,7 @@ impl<'a> UpdateGuild<'a> {
     /// for more information.
     ///
     /// [the discord docs]: https://discord.com/developers/docs/reference#image-data
-    pub fn icon(mut self, icon: impl Into<String>) -> Self {
+    pub fn icon(mut self, icon: impl Into<Cow<'a, str>>) -> Self {
         self.fields.icon.replace(icon.into());
 
         self
@@ -138,11 +139,9 @@ impl<'a> UpdateGuild<'a> {
     /// short or too long.
     ///
     /// [`UpdateGuildError::NameInvalid`]: enum.UpdateGuildError.html#variant.NameInvalid
-    pub fn name(self, name: impl Into<String>) -> Result<Self, UpdateGuildError> {
-        self._name(name.into())
-    }
+    pub fn name(mut self, name: impl Into<Cow<'a, str>>) -> Result<Self, UpdateGuildError> {
+        let name = name.into();
 
-    fn _name(mut self, name: String) -> Result<Self, UpdateGuildError> {
         if !validate::guild_name(&name) {
             return Err(UpdateGuildError::NameInvalid);
         }
@@ -165,7 +164,7 @@ impl<'a> UpdateGuild<'a> {
     /// information.
     ///
     /// [the discord docs]: https://discord.com/developers/docs/resources/voice#voice-region-object
-    pub fn region(mut self, region: impl Into<String>) -> Self {
+    pub fn region(mut self, region: impl Into<Cow<'a, str>>) -> Self {
         self.fields.region.replace(region.into());
 
         self
@@ -174,7 +173,7 @@ impl<'a> UpdateGuild<'a> {
     /// Set the guild's splash image.
     ///
     /// Requires the guild to have the `INVITE_SPLASH` feature enabled.
-    pub fn splash(mut self, splash: impl Into<String>) -> Self {
+    pub fn splash(mut self, splash: impl Into<Cow<'a, str>>) -> Self {
         self.fields.splash.replace(splash.into());
 
         self
@@ -219,7 +218,7 @@ impl<'a> UpdateGuild<'a> {
     /// Set the preferred locale for the guild.
     ///
     /// Defaults to `en-US`. Requires the guild to be `PUBLIC`.
-    pub fn preferred_locale(mut self, preferred_locale: impl Into<String>) -> Self {
+    pub fn preferred_locale(mut self, preferred_locale: impl Into<Cow<'a, str>>) -> Self {
         self.fields
             .preferred_locale
             .replace(preferred_locale.into());
@@ -237,7 +236,7 @@ impl<'a> UpdateGuild<'a> {
     }
 
     /// Attach an audit log reason to this request.
-    pub fn reason(mut self, reason: impl Into<String>) -> Self {
+    pub fn reason(mut self, reason: impl Into<Cow<'a, str>>) -> Self {
         self.reason.replace(reason.into());
 
         self

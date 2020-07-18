@@ -1,4 +1,5 @@
 use crate::request::prelude::*;
+use std::borrow::Cow;
 use twilight_model::{
     channel::ReactionType,
     id::{ChannelId, MessageId},
@@ -11,7 +12,7 @@ pub struct DeleteReaction<'a> {
     fut: Option<Pending<'a, ()>>,
     http: &'a Client,
     message_id: MessageId,
-    target_user: String,
+    target_user: Cow<'a, str>,
 }
 
 impl<'a> DeleteReaction<'a> {
@@ -20,7 +21,7 @@ impl<'a> DeleteReaction<'a> {
         channel_id: ChannelId,
         message_id: MessageId,
         emoji: ReactionType,
-        target_user: impl Into<String>,
+        target_user: impl Into<Cow<'a, str>>,
     ) -> Self {
         Self {
             channel_id,
@@ -36,7 +37,7 @@ impl<'a> DeleteReaction<'a> {
         self.fut.replace(Box::pin(self.http.verify(Request::from(
             Route::DeleteReaction {
                 channel_id: self.channel_id.0,
-                emoji: self.emoji.clone(),
+                emoji: Cow::Owned(self.emoji.clone()),
                 message_id: self.message_id.0,
                 user: self.target_user.clone(),
             },

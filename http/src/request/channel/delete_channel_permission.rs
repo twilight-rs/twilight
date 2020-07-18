@@ -1,4 +1,5 @@
 use crate::request::prelude::*;
+use std::borrow::Cow;
 use twilight_model::id::ChannelId;
 
 /// Clear the permissions for a target ID in a channel.
@@ -9,7 +10,7 @@ pub struct DeleteChannelPermission<'a> {
     fut: Option<Pending<'a, ()>>,
     http: &'a Client,
     target_id: u64,
-    reason: Option<String>,
+    reason: Option<Cow<'a, str>>,
 }
 
 impl<'a> DeleteChannelPermission<'a> {
@@ -24,7 +25,7 @@ impl<'a> DeleteChannelPermission<'a> {
     }
 
     /// Attach an audit log reason to this request.
-    pub fn reason(mut self, reason: impl Into<String>) -> Self {
+    pub fn reason(mut self, reason: impl Into<Cow<'a, str>>) -> Self {
         self.reason.replace(reason.into());
 
         self

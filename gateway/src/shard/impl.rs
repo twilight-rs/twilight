@@ -147,9 +147,11 @@ impl Shard {
             .map_err(|source| Error::GettingGatewayUrl { source })?
             .url;
 
+        let config = Arc::clone(&self.0.config);
         let listeners = self.0.listeners.clone();
-        let (processor, wrx) =
-            ShardProcessor::new(Arc::clone(&self.0.config), url, listeners).await?;
+        let (processor, wrx) = ShardProcessor::new(config, url, listeners)
+            .await
+            .map_err(|source| Error::Processor { source })?;
         let (fut, handle) = future::abortable(processor.run());
 
         tokio::spawn(async move {

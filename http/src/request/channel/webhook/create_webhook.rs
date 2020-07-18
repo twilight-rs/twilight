@@ -1,11 +1,12 @@
 use crate::json_to_vec;
 use crate::request::prelude::*;
+use std::borrow::Cow;
 use twilight_model::{channel::Webhook, id::ChannelId};
 
 #[derive(Serialize)]
-struct CreateWebhookFields {
-    avatar: Option<String>,
-    name: String,
+struct CreateWebhookFields<'a> {
+    avatar: Option<Cow<'a, str>>,
+    name: Cow<'a, str>,
 }
 
 /// Create a webhook in a channel.
@@ -28,14 +29,18 @@ struct CreateWebhookFields {
 /// ```
 pub struct CreateWebhook<'a> {
     channel_id: ChannelId,
-    fields: CreateWebhookFields,
+    fields: CreateWebhookFields<'a>,
     fut: Option<Pending<'a, Webhook>>,
     http: &'a Client,
-    reason: Option<String>,
+    reason: Option<Cow<'a, str>>,
 }
 
 impl<'a> CreateWebhook<'a> {
-    pub(crate) fn new(http: &'a Client, channel_id: ChannelId, name: impl Into<String>) -> Self {
+    pub(crate) fn new(
+        http: &'a Client,
+        channel_id: ChannelId,
+        name: impl Into<Cow<'a, str>>,
+    ) -> Self {
         Self {
             channel_id,
             fields: CreateWebhookFields {
@@ -55,14 +60,14 @@ impl<'a> CreateWebhook<'a> {
     /// for more information.
     ///
     /// [the discord docs]: https://discord.com/developers/docs/reference#image-data
-    pub fn avatar(mut self, avatar: impl Into<String>) -> Self {
+    pub fn avatar(mut self, avatar: impl Into<Cow<'a, str>>) -> Self {
         self.fields.avatar.replace(avatar.into());
 
         self
     }
 
     /// Attach an audit log reason to this request.
-    pub fn reason(mut self, reason: impl Into<String>) -> Self {
+    pub fn reason(mut self, reason: impl Into<Cow<'a, str>>) -> Self {
         self.reason.replace(reason.into());
 
         self
