@@ -39,7 +39,7 @@
 //!
 //! ```toml
 //! [dependencies]
-//! twilight-gateway = { branch = "trunk", default-features = false, features = ["native", "simd-json"], git = "https://github.com/twilight-rs/twilight" }
+//! twilight-gateway = { branch = "trunk", default-features = false, features = ["rustls", "simd-json"], git = "https://github.com/twilight-rs/twilight" }
 //! ```
 //!
 //! ### TLS
