@@ -1,0 +1,39 @@
+name: Deploy documentation
+
+on:
+  push:
+    branches:
+      - trunk
+
+jobs:
+  deploy-docs:
+    name: Deploy docs to gh-pages
+
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v2
+    - uses: actions-rs/toolchain@v1
+      with:
+        toolchain: nightly
+        profile: minimal
+        override: true
+
+    - name: Build docs
+      env:
+        RUSTDOCFLAGS: -D intra_doc_link_resolution_failure
+      run: |
+        exclude_examples=($(grep -h '^name' **/examples/**/Cargo.toml | cut -d'"' -f2 | xargs -I '{}' echo '--exclude {}'))
+        cargo doc --workspace --no-deps "${exclude_examples[@]}"
+
+    - name: Prepare docs
+      run: |
+        echo '<meta http-equiv="refresh" content="0;url=twilight/index.html">' > target/doc/index.html
+
+    - name: Deploy docs
+      uses: peaceiris/actions-gh-pages@v3
+      with:
+        github_token: ${{ secrets.GITHUB_TOKEN }}
+        publish_branch: gh-pages
+        publish_dir: target/doc
+        allow_empty_commit: true
