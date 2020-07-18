@@ -21,7 +21,7 @@ pub enum GatewayEvent {
     Reconnect,
 }
 
-#[derive(Clone, Copy, Deserialize, PartialEq)]
+#[derive(Clone, Copy, Debug, Deserialize, PartialEq)]
 #[serde(field_identifier, rename_all = "lowercase")]
 enum Field {
     D,
@@ -39,6 +39,7 @@ enum Field {
 /// like `simd-json`.
 ///
 /// [`GatewayEventDeserializer`]: struct.GatewayEventDeserializer.html
+#[derive(Clone, Debug, Eq, PartialEq)]
 pub struct GatewayEventDeserializerOwned {
     event_type: Option<String>,
     op: u8,
@@ -65,6 +66,7 @@ impl GatewayEventDeserializerOwned {
 /// like `serde_json`.
 ///
 /// [`GatewayEventDeserializerOwned`]: struct.GatewayEventDeserializerOwned.html
+#[derive(Clone, Debug, Eq, PartialEq)]
 pub struct GatewayEventDeserializer<'a> {
     event_type: Option<&'a str>,
     op: u8,
@@ -93,9 +95,16 @@ impl<'a> GatewayEventDeserializer<'a> {
         // for.
         let from = input.find(r#""t":"#)? + 4;
 
-        // Now let's find where the value starts. There may or may not be any
-        // amount of whitespace after the "t" key.
-        let start = input.get(from..)?.find('"')? + from + 1;
+        // Now let's find where the value starts, which may be a string or null.
+        // Or maybe something else. If it's anything but a string, then there's
+        // no event type.
+        let start = input.get(from..)?.find(|c: char| !c.is_whitespace())? + from + 1;
+
+        // Check if the character just before the cursor is '"'.
+        if input.as_bytes().get(start - 1).copied()? != b'"' {
+            return None;
+        }
+
         let to = input.get(start..)?.find('"')?;
 
         input.get(start..start + to)
@@ -128,24 +137,30 @@ impl GatewayEventVisitor<'_> {
         map: &mut V,
         field: Field,
     ) -> Result<T, V::Error> {
+        let mut found = None;
+
         loop {
             match map.next_key::<Field>() {
-                Ok(Some(key)) if key == field => return map.next_value(),
+                Ok(Some(key)) if key == field => found = Some(map.next_value()?),
                 Ok(Some(_)) | Err(_) => {
                     map.next_value::<IgnoredAny>()?;
 
                     continue;
                 }
                 Ok(None) => {
-                    return Err(DeError::missing_field(match field {
-                        Field::D => "d",
-                        Field::Op => "op",
-                        Field::S => "s",
-                        Field::T => "t",
-                    }));
+                    break;
                 }
             }
         }
+
+        found.ok_or_else(|| {
+            DeError::missing_field(match field {
+                Field::D => "d",
+                Field::Op => "op",
+                Field::S => "s",
+                Field::T => "t",
+            })
+        })
     }
 }
 
@@ -156,6 +171,7 @@ impl<'de> Visitor<'de> for GatewayEventVisitor<'_> {
         formatter.write_str("struct GatewayEvent")
     }
 
+    #[allow(clippy::too_many_lines)]
     fn visit_map<V>(self, mut map: V) -> Result<GatewayEvent, V::Error>
     where
         V: MapAccess<'de>,
@@ -231,7 +247,12 @@ impl<'de> Visitor<'de> for GatewayEventVisitor<'_> {
 
                 GatewayEvent::Heartbeat(seq)
             }
-            OpCode::HeartbeatAck => GatewayEvent::HeartbeatAck,
+            OpCode::HeartbeatAck => {
+                while let Ok(Some(_)) | Err(_) = map.next_key::<Field>() {
+                    map.next_value::<IgnoredAny>()?;
+                }
+                GatewayEvent::HeartbeatAck
+            }
             OpCode::Hello => {
                 #[derive(Deserialize)]
                 struct Hello {
@@ -503,5 +524,42 @@ mod tests {
         let deserializer = GatewayEventDeserializer::from_json(input).unwrap();
         assert_eq!(deserializer.event_type, Some("DOESNT_MATTER"));
         assert_eq!(deserializer.op, 0);
+    }
+
+    // Test that the GatewayEventDeserializer handles non-string (read: null)
+    // event types. For example HeartbeatAck
+    #[allow(unused)]
+    #[test]
+    fn test_deserializer_handles_null_event_types() {
+        let input = r#"{"t":null,"op":11}"#;
+
+        let deserializer = GatewayEventDeserializer::from_json(input).unwrap();
+        let mut json_deserializer = Deserializer::from_str(input);
+        let event = deserializer.deserialize(&mut json_deserializer).unwrap();
+
+        assert!(matches!(event, GatewayEvent::HeartbeatAck));
+    }
+
+    // Test that events which are not documented to have any data will not fail if
+    // they contain it
+    #[allow(unused)]
+    #[test]
+    fn test_deserializer_handles_resumed() {
+        let input = r#"{
+  "t": "RESUMED",
+  "s": 37448,
+  "op": 0,
+  "d": {
+    "_trace": [
+      "[\"gateway-prd-main-zqnl\",{\"micros\":11488,\"calls\":[\"discord-sessions-prd-1-38\",{\"micros\":1756}]}]"
+    ]
+  }
+}"#;
+
+        let deserializer = GatewayEventDeserializer::from_json(input).unwrap();
+        let mut json_deserializer = Deserializer::from_str(input);
+        let event = deserializer.deserialize(&mut json_deserializer).unwrap();
+
+        assert!(matches!(event, GatewayEvent::Dispatch(_, _)));
     }
 }

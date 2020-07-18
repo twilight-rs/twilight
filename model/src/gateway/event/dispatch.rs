@@ -1,6 +1,6 @@
 use super::super::payload::*;
 use super::EventType;
-use serde::de::{Deserialize, DeserializeSeed, Deserializer, Error as DeError};
+use serde::de::{Deserialize, DeserializeSeed, Deserializer, Error as DeError, IgnoredAny};
 
 /// A dispatch event, containing information about a created guild, a member
 /// added, etc.
@@ -9,7 +9,7 @@ use serde::de::{Deserialize, DeserializeSeed, Deserializer, Error as DeError};
 /// [`DispatchEventWithTypeDeserializer`].
 ///
 /// [`DispatchEventWithTypeDeserializer`]: struct.DispatchEventWithTypeDeserializer.html
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, Eq, PartialEq)]
 pub enum DispatchEvent {
     BanAdd(BanAdd),
     BanRemove(BanRemove),
@@ -104,6 +104,7 @@ impl DispatchEvent {
 /// An event name is something like `"CHANNEL_CREATE"` or `"GUILD_MEMBER_ADD"`.
 ///
 /// [`DispatchEvent`]: enum.DispatchEvent.html
+#[derive(PartialEq, Eq)]
 pub struct DispatchEventWithTypeDeserializer<'a>(&'a str);
 
 impl<'a> DispatchEventWithTypeDeserializer<'a> {
@@ -202,9 +203,17 @@ impl<'de, 'a> DeserializeSeed<'de> for DispatchEventWithTypeDeserializer<'a> {
             "PRESENCE_UPDATE" => {
                 DispatchEvent::PresenceUpdate(Box::new(PresenceUpdate::deserialize(deserializer)?))
             }
-            "PRESENCES_REPLACE" => DispatchEvent::PresencesReplace,
+            "PRESENCES_REPLACE" => {
+                deserializer.deserialize_ignored_any(IgnoredAny)?;
+
+                DispatchEvent::PresencesReplace
+            }
             "READY" => DispatchEvent::Ready(Box::new(Ready::deserialize(deserializer)?)),
-            "RESUMED" => DispatchEvent::Resumed,
+            "RESUMED" => {
+                deserializer.deserialize_ignored_any(IgnoredAny)?;
+
+                DispatchEvent::Resumed
+            }
             "TYPING_START" => {
                 DispatchEvent::TypingStart(Box::new(TypingStart::deserialize(deserializer)?))
             }
