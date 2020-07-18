@@ -36,8 +36,7 @@ use crate::json_from_slice;
 
 struct State {
     http: ReqwestClient,
-    ratelimiter: Ratelimiter,
-    skip_ratelimiter: bool,
+    ratelimiter: Option<Ratelimiter>,
     token: Option<String>,
     use_http: bool,
     pub(crate) default_allowed_mentions: Option<AllowedMentions>,
@@ -48,7 +47,6 @@ impl Debug for State {
         f.debug_struct("State")
             .field("http", &"Reqwest HTTP client")
             .field("ratelimiter", &self.ratelimiter)
-            .field("skip_ratelimiter", &self.skip_ratelimiter)
             .field("token", &self.token)
             .field("use_http", &self.use_http)
             .finish()
@@ -118,8 +116,7 @@ impl Client {
         Self {
             state: Arc::new(State {
                 http: ReqwestClient::new(),
-                ratelimiter: Ratelimiter::new(),
-                skip_ratelimiter: false,
+                ratelimiter: Some(Ratelimiter::new()),
                 token: Some(token),
                 use_http: false,
                 default_allowed_mentions: None,
@@ -1430,14 +1427,17 @@ impl Client {
             builder = builder.headers(req_headers);
         }
 
-        if self.state.skip_ratelimiter {
-            return builder
-                .send()
-                .await
-                .map_err(|source| Error::RequestError { source });
-        }
+        let ratelimiter = match self.state.ratelimiter.as_ref() {
+            Some(ratelimiter) => ratelimiter,
+            None => {
+                return builder
+                    .send()
+                    .await
+                    .map_err(|source| Error::RequestError { source })
+            }
+        };
 
-        let rx = self.state.ratelimiter.get(bucket).await;
+        let rx = ratelimiter.get(bucket).await;
         let tx = rx
             .await
             .map_err(|source| Error::RequestCanceled { source })?;
@@ -1547,8 +1547,7 @@ impl From<ReqwestClient> for Client {
         Self {
             state: Arc::new(State {
                 http: reqwest_client,
-                ratelimiter: Ratelimiter::new(),
-                skip_ratelimiter: false,
+                ratelimiter: Some(Ratelimiter::new()),
                 token: None,
                 use_http: false,
                 default_allowed_mentions: None,
