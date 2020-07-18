@@ -1,4 +1,5 @@
 use crate::request::prelude::*;
+use std::borrow::Cow;
 use twilight_model::id::{ChannelId, MessageId};
 
 /// Delete a pin in a channel, by ID.
@@ -7,7 +8,7 @@ pub struct DeletePin<'a> {
     fut: Option<Pending<'a, ()>>,
     http: &'a Client,
     message_id: MessageId,
-    reason: Option<String>,
+    reason: Option<Cow<'a, str>>,
 }
 
 impl<'a> DeletePin<'a> {
@@ -22,7 +23,7 @@ impl<'a> DeletePin<'a> {
     }
 
     /// Attach an audit log reason to this request.
-    pub fn reason(mut self, reason: impl Into<String>) -> Self {
+    pub fn reason(mut self, reason: impl Into<Cow<'a, str>>) -> Self {
         self.reason.replace(reason.into());
 
         self

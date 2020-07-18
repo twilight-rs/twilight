@@ -1,5 +1,6 @@
 use crate::request::prelude::*;
 use std::{
+    borrow::Cow,
     error::Error,
     fmt::{Display, Formatter, Result as FmtResult},
 };
@@ -25,9 +26,9 @@ impl Display for CreateBanError {
 impl Error for CreateBanError {}
 
 #[derive(Default)]
-struct CreateBanFields {
+struct CreateBanFields<'a> {
     delete_message_days: Option<u64>,
-    reason: Option<String>,
+    reason: Option<Cow<'a, str>>,
 }
 
 /// Bans a user from a guild, optionally with the number of days' worth of
@@ -55,7 +56,7 @@ struct CreateBanFields {
 /// # Ok(()) }
 /// ```
 pub struct CreateBan<'a> {
-    fields: CreateBanFields,
+    fields: CreateBanFields<'a>,
     fut: Option<Pending<'a, ()>>,
     guild_id: GuildId,
     http: &'a Client,
@@ -94,7 +95,7 @@ impl<'a> CreateBan<'a> {
     }
 
     /// Attach an audit log reason to this request.
-    pub fn reason(mut self, reason: impl Into<String>) -> Self {
+    pub fn reason(mut self, reason: impl Into<Cow<'a, str>>) -> Self {
         self.fields.reason.replace(reason.into());
 
         self
@@ -105,7 +106,7 @@ impl<'a> CreateBan<'a> {
             Route::CreateBan {
                 delete_message_days: self.fields.delete_message_days,
                 guild_id: self.guild_id.0,
-                reason: self.fields.reason.clone(),
+                reason: self.fields.reason.as_deref(),
                 user_id: self.user_id.0,
             },
         ))));

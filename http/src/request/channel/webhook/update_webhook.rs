@@ -1,24 +1,25 @@
 use crate::json_to_vec;
 use crate::request::prelude::*;
+use std::borrow::Cow;
 use twilight_model::{
     channel::Webhook,
     id::{ChannelId, WebhookId},
 };
 
 #[derive(Default, Serialize)]
-struct UpdateWebhookFields {
-    avatar: Option<String>,
+struct UpdateWebhookFields<'a> {
+    avatar: Option<Cow<'a, str>>,
     channel_id: Option<ChannelId>,
-    name: Option<String>,
+    name: Option<Cow<'a, str>>,
 }
 
 /// Update a webhook by ID.
 pub struct UpdateWebhook<'a> {
-    fields: UpdateWebhookFields,
+    fields: UpdateWebhookFields<'a>,
     fut: Option<Pending<'a, Webhook>>,
     http: &'a Client,
     webhook_id: WebhookId,
-    reason: Option<String>,
+    reason: Option<Cow<'a, str>>,
 }
 
 /// Update a webhook by its ID.
@@ -40,7 +41,7 @@ impl<'a> UpdateWebhook<'a> {
     /// base64-encoded image.
     ///
     /// [Discord Docs/Image Data]: https://discord.com/developers/docs/reference#image-data
-    pub fn avatar(mut self, avatar: impl Into<String>) -> Self {
+    pub fn avatar(mut self, avatar: impl Into<Cow<'a, str>>) -> Self {
         self.fields.avatar.replace(avatar.into());
 
         self
@@ -54,14 +55,14 @@ impl<'a> UpdateWebhook<'a> {
     }
 
     /// Change the name of the webhook.
-    pub fn name(mut self, name: impl Into<String>) -> Self {
+    pub fn name(mut self, name: impl Into<Cow<'a, str>>) -> Self {
         self.fields.name.replace(name.into());
 
         self
     }
 
     /// Attach an audit log reason to this request.
-    pub fn reason(mut self, reason: impl Into<String>) -> Self {
+    pub fn reason(mut self, reason: impl Into<Cow<'a, str>>) -> Self {
         self.reason.replace(reason.into());
 
         self

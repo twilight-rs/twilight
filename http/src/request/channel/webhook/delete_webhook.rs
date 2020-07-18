@@ -1,17 +1,18 @@
 use crate::request::prelude::*;
+use std::borrow::Cow;
 use twilight_model::id::WebhookId;
 
-struct DeleteWebhookParams {
-    token: Option<String>,
+struct DeleteWebhookParams<'a> {
+    token: Option<Cow<'a, str>>,
 }
 
 /// Delete a webhook by its ID.
 pub struct DeleteWebhook<'a> {
-    fields: DeleteWebhookParams,
+    fields: DeleteWebhookParams<'a>,
     fut: Option<Pending<'a, ()>>,
     http: &'a Client,
     id: WebhookId,
-    reason: Option<String>,
+    reason: Option<Cow<'a, str>>,
 }
 
 impl<'a> DeleteWebhook<'a> {
@@ -26,14 +27,14 @@ impl<'a> DeleteWebhook<'a> {
     }
 
     /// Specify the token for auth, if not already authenticated with a Bot token.
-    pub fn token(mut self, token: impl Into<String>) -> Self {
+    pub fn token(mut self, token: impl Into<Cow<'a, str>>) -> Self {
         self.fields.token.replace(token.into());
 
         self
     }
 
     /// Attach an audit log reason to this request.
-    pub fn reason(mut self, reason: impl Into<String>) -> Self {
+    pub fn reason(mut self, reason: impl Into<Cow<'a, str>>) -> Self {
         self.reason.replace(reason.into());
 
         self
@@ -46,13 +47,13 @@ impl<'a> DeleteWebhook<'a> {
                 headers,
                 Route::DeleteWebhook {
                     webhook_id: self.id.0,
-                    token: self.fields.token.clone(),
+                    token: self.fields.token.as_deref(),
                 },
             ))
         } else {
             Request::from(Route::DeleteWebhook {
                 webhook_id: self.id.0,
-                token: self.fields.token.clone(),
+                token: self.fields.token.as_deref(),
             })
         };
 

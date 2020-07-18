@@ -7,7 +7,7 @@ pub struct DeleteEmoji<'a> {
     fut: Option<Pending<'a, ()>>,
     guild_id: GuildId,
     http: &'a Client,
-    reason: Option<String>,
+    reason: Option<&'a str>,
 }
 
 impl<'a> DeleteEmoji<'a> {
@@ -22,8 +22,8 @@ impl<'a> DeleteEmoji<'a> {
     }
 
     /// Attach an audit log reason to this request.
-    pub fn reason(mut self, reason: impl Into<String>) -> Self {
-        self.reason.replace(reason.into());
+    pub fn reason(mut self, reason: &'a str) -> Self {
+        self.reason.replace(reason);
 
         self
     }

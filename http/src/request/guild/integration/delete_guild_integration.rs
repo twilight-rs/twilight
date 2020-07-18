@@ -1,4 +1,5 @@
 use crate::request::prelude::*;
+use std::borrow::Cow;
 use twilight_model::id::{GuildId, IntegrationId};
 
 /// Delete an integration for a guild, by the integration's id.
@@ -7,7 +8,7 @@ pub struct DeleteGuildIntegration<'a> {
     guild_id: GuildId,
     http: &'a Client,
     integration_id: IntegrationId,
-    reason: Option<String>,
+    reason: Option<Cow<'a, str>>,
 }
 
 impl<'a> DeleteGuildIntegration<'a> {
@@ -22,7 +23,7 @@ impl<'a> DeleteGuildIntegration<'a> {
     }
 
     /// Attach an audit log reason to this request.
-    pub fn reason(mut self, reason: impl Into<String>) -> Self {
+    pub fn reason(mut self, reason: impl Into<Cow<'a, str>>) -> Self {
         self.reason.replace(reason.into());
 
         self

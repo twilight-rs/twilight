@@ -1,15 +1,16 @@
 use crate::request::prelude::*;
+use std::borrow::Cow;
 use twilight_model::user::User;
 
 /// Get a user's information by id.
 pub struct GetUser<'a> {
     fut: Option<PendingOption<'a>>,
     http: &'a Client,
-    target_user: String,
+    target_user: Cow<'a, str>,
 }
 
 impl<'a> GetUser<'a> {
-    pub(crate) fn new(http: &'a Client, target_user: impl Into<String>) -> Self {
+    pub(crate) fn new(http: &'a Client, target_user: impl Into<Cow<'a, str>>) -> Self {
         Self {
             fut: None,
             http,
@@ -21,7 +22,7 @@ impl<'a> GetUser<'a> {
         self.fut
             .replace(Box::pin(self.http.request_bytes(Request::from(
                 Route::GetUser {
-                    target_user: self.target_user.clone(),
+                    target_user: &self.target_user,
                 },
             ))));
 

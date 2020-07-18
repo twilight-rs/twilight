@@ -87,14 +87,14 @@ use reqwest::{
     Method,
 };
 
-use std::{borrow::Cow, future::Future, pin::Pin};
+use std::{future::Future, pin::Pin};
 
 type Pending<'a, T> = Pin<Box<dyn Future<Output = Result<T>> + Send + 'a>>;
 type PendingOption<'a> = Pin<Box<dyn Future<Output = Result<Bytes>> + Send + 'a>>;
 
+/// The body of the request, if any.
 #[derive(Debug)]
 pub struct Request {
-    /// The body of the request, if any.
     pub body: Option<Vec<u8>>,
     /// The multipart form of the request, if any.
     pub form: Option<Form>,
@@ -105,7 +105,7 @@ pub struct Request {
     /// The ratelimiting bucket path.
     pub path: Path,
     /// The URI path to request.
-    pub path_str: Cow<'static, str>,
+    pub path_str: String,
 }
 
 pub(crate) fn audit_header(reason: &str) -> Result<HeaderMap<HeaderValue>> {
@@ -131,7 +131,7 @@ impl Request {
     pub fn new(
         body: Option<Vec<u8>>,
         headers: Option<HeaderMap<HeaderValue>>,
-        route: Route,
+        route: Route<'_>,
     ) -> Self {
         let (method, path, path_str) = route.into_parts();
 
@@ -146,8 +146,8 @@ impl Request {
     }
 }
 
-impl From<Route> for Request {
-    fn from(route: Route) -> Self {
+impl<'a> From<Route<'a>> for Request {
+    fn from(route: Route<'a>) -> Self {
         let (method, path, path_str) = route.into_parts();
 
         Self {
@@ -161,8 +161,8 @@ impl From<Route> for Request {
     }
 }
 
-impl From<(Vec<u8>, Route)> for Request {
-    fn from((body, route): (Vec<u8>, Route)) -> Self {
+impl<'a> From<(Vec<u8>, Route<'a>)> for Request {
+    fn from((body, route): (Vec<u8>, Route<'a>)) -> Self {
         let (method, path, path_str) = route.into_parts();
 
         Self {
@@ -176,8 +176,8 @@ impl From<(Vec<u8>, Route)> for Request {
     }
 }
 
-impl From<(Vec<u8>, Form, Route)> for Request {
-    fn from((body, form, route): (Vec<u8>, Form, Route)) -> Self {
+impl<'a> From<(Vec<u8>, Form, Route<'a>)> for Request {
+    fn from((body, form, route): (Vec<u8>, Form, Route<'a>)) -> Self {
         let (method, path, path_str) = route.into_parts();
 
         Self {
@@ -191,8 +191,8 @@ impl From<(Vec<u8>, Form, Route)> for Request {
     }
 }
 
-impl From<(HeaderMap<HeaderValue>, Route)> for Request {
-    fn from((headers, route): (HeaderMap<HeaderValue>, Route)) -> Self {
+impl<'a> From<(HeaderMap<HeaderValue>, Route<'a>)> for Request {
+    fn from((headers, route): (HeaderMap<HeaderValue>, Route<'a>)) -> Self {
         let (method, path, path_str) = route.into_parts();
 
         Self {
@@ -206,8 +206,8 @@ impl From<(HeaderMap<HeaderValue>, Route)> for Request {
     }
 }
 
-impl From<(Vec<u8>, HeaderMap<HeaderValue>, Route)> for Request {
-    fn from((body, headers, route): (Vec<u8>, HeaderMap<HeaderValue>, Route)) -> Self {
+impl<'a> From<(Vec<u8>, HeaderMap<HeaderValue>, Route<'a>)> for Request {
+    fn from((body, headers, route): (Vec<u8>, HeaderMap<HeaderValue>, Route<'a>)) -> Self {
         let (method, path, path_str) = route.into_parts();
 
         Self {

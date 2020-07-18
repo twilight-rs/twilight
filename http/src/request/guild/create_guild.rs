@@ -1,6 +1,7 @@
 use crate::json_to_vec;
 use crate::request::prelude::*;
 use std::{
+    borrow::Cow,
     error::Error,
     fmt::{Display, Formatter, Result as FmtResult},
 };
@@ -41,14 +42,14 @@ impl Display for CreateGuildError {
 impl Error for CreateGuildError {}
 
 #[derive(Serialize)]
-struct CreateGuildFields {
-    channels: Option<Vec<GuildChannel>>,
+struct CreateGuildFields<'a> {
+    channels: Option<Cow<'a, [Cow<'a, GuildChannel>]>>,
     default_message_notifications: Option<DefaultMessageNotificationLevel>,
     explicit_content_filter: Option<ExplicitContentFilter>,
-    icon: Option<String>,
-    name: String,
-    region: Option<String>,
-    roles: Option<Vec<Role>>,
+    icon: Option<Cow<'a, str>>,
+    name: Cow<'a, str>,
+    region: Option<Cow<'a, str>>,
+    roles: Option<Cow<'a, [Role]>>,
     verification_level: Option<VerificationLevel>,
 }
 
@@ -63,17 +64,18 @@ struct CreateGuildFields {
 ///
 /// [`CreateGuildError::NameInvalid`]: ../request/guild/enum.CreateGuildError.html#variant.NameInvalid
 pub struct CreateGuild<'a> {
-    fields: CreateGuildFields,
+    fields: CreateGuildFields<'a>,
     fut: Option<Pending<'a, PartialGuild>>,
     http: &'a Client,
 }
 
 impl<'a> CreateGuild<'a> {
-    pub(crate) fn new(http: &'a Client, name: impl Into<String>) -> Result<Self, CreateGuildError> {
-        Self::_new(http, name.into())
-    }
+    pub(crate) fn new(
+        http: &'a Client,
+        name: impl Into<Cow<'a, str>>,
+    ) -> Result<Self, CreateGuildError> {
+        let name = name.into();
 
-    fn _new(http: &'a Client, name: String) -> Result<Self, CreateGuildError> {
         if !validate::guild_name(&name) {
             return Err(CreateGuildError::NameInvalid);
         }
@@ -103,7 +105,12 @@ impl<'a> CreateGuild<'a> {
     /// Returns [`CreateGuildError::TooManyChannels`] if the number of channels is over 500.
     ///
     /// [`CreateGuildError::TooManyChannels`]: enum.CreateGuildError.html#variant.TooManyChannels
-    pub fn channels(mut self, channels: Vec<GuildChannel>) -> Result<Self, CreateGuildError> {
+    pub fn channels(
+        mut self,
+        channels: impl Into<Cow<'a, [Cow<'a, GuildChannel>]>>,
+    ) -> Result<Self, CreateGuildError> {
+        let channels = channels.into();
+
         // Error 30013
         // <https://discordapp.com/developers/docs/topics/opcodes-and-status-codes#json>
         if channels.len() > 500 {
@@ -149,7 +156,7 @@ impl<'a> CreateGuild<'a> {
     /// for more information.
     ///
     /// [the discord docs]: https://discord.com/developers/docs/reference#image-data
-    pub fn icon(mut self, icon: impl Into<String>) -> Self {
+    pub fn icon(mut self, icon: impl Into<Cow<'a, str>>) -> Self {
         self.fields.icon.replace(icon.into());
 
         self
@@ -159,7 +166,7 @@ impl<'a> CreateGuild<'a> {
     /// information.
     ///
     /// [the discord docs]: https://discord.com/developers/docs/resources/voice#voice-region-object
-    pub fn region(mut self, region: impl Into<String>) -> Self {
+    pub fn region(mut self, region: impl Into<Cow<'a, str>>) -> Self {
         self.fields.region.replace(region.into());
 
         self
@@ -175,7 +182,9 @@ impl<'a> CreateGuild<'a> {
     /// over 250.
     ///
     /// [`CreateGuildError::TooManyRoles`]: enum.CreateGuildError.html#variant.TooManyRoles
-    pub fn roles(mut self, roles: Vec<Role>) -> Result<Self, CreateGuildError> {
+    pub fn roles(mut self, roles: impl Into<Cow<'a, [Role]>>) -> Result<Self, CreateGuildError> {
+        let roles = roles.into();
+
         if roles.len() > 250 {
             return Err(CreateGuildError::TooManyRoles);
         }

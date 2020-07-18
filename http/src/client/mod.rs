@@ -18,6 +18,7 @@ use bytes::Bytes;
 use reqwest::{header::HeaderValue, Body, Client as ReqwestClient, Response, StatusCode};
 use serde::de::DeserializeOwned;
 use std::{
+    borrow::Cow,
     convert::TryFrom,
     fmt::{Debug, Formatter, Result as FmtResult},
     result::Result as StdResult,
@@ -489,11 +490,11 @@ impl Client {
     }
 
     /// Changes the user's nickname in a guild.
-    pub fn update_current_user_nick(
-        &self,
+    pub fn update_current_user_nick<'a>(
+        &'a self,
         guild_id: GuildId,
-        nick: impl Into<String>,
-    ) -> UpdateCurrentUserNick<'_> {
+        nick: impl Into<Cow<'a, str>>,
+    ) -> UpdateCurrentUserNick<'a> {
         UpdateCurrentUserNick::new(self, guild_id, nick)
     }
 
@@ -556,12 +557,12 @@ impl Client {
     /// discord docs] for more information about image data.
     ///
     /// [the discord docs]: https://discord.com/developers/docs/reference#image-data
-    pub fn create_emoji(
-        &self,
+    pub fn create_emoji<'a>(
+        &'a self,
         guild_id: GuildId,
-        name: impl Into<String>,
-        image: impl Into<String>,
-    ) -> CreateEmoji<'_> {
+        name: impl Into<Cow<'a, str>>,
+        image: impl Into<Cow<'a, str>>,
+    ) -> CreateEmoji<'a> {
         CreateEmoji::new(self, guild_id, name, image)
     }
 
@@ -628,10 +629,10 @@ impl Client {
     /// Returns [`CreateGuildError::NameInvalid`] if the name length is too short or too long.
     ///
     /// [`CreateGuildError::NameInvalid`]: ../request/guild/enum.CreateGuildError.html#variant.NameInvalid
-    pub fn create_guild(
-        &self,
-        name: impl Into<String>,
-    ) -> StdResult<CreateGuild<'_>, CreateGuildError> {
+    pub fn create_guild<'a>(
+        &'a self,
+        name: impl Into<Cow<'a, str>>,
+    ) -> StdResult<CreateGuild<'a>, CreateGuildError> {
         CreateGuild::new(self, name)
     }
 
@@ -679,11 +680,11 @@ impl Client {
     /// [`CreateGuildChannelError::NameInvalid`]: ../request/guild/create_guild_channel/enum.CreateGuildChannelError.html#variant.NameInvalid
     /// [`CreateGuildChannelError::RateLimitPerUserInvalid`]: ../request/guild/create_guild_channel/enum.CreateGuildChannelError.html#variant.RateLimitPerUserInvalid
     /// [`CreateGuildChannelError::TopicInvalid`]: ../request/guild/create_guild_channel/enum.CreateGuildChannelError.html#variant.TopicInvalid
-    pub fn create_guild_channel(
-        &self,
+    pub fn create_guild_channel<'a>(
+        &'a self,
         guild_id: GuildId,
-        name: impl Into<String>,
-    ) -> StdResult<CreateGuildChannel<'_>, CreateGuildChannelError> {
+        name: impl Into<Cow<'a, str>>,
+    ) -> StdResult<CreateGuildChannel<'a>, CreateGuildChannelError> {
         CreateGuildChannel::new(self, guild_id, name)
     }
 
@@ -722,12 +723,12 @@ impl Client {
     /// Refer to [the discord docs] for more information.
     ///
     /// [the discord docs]: https://discord.com/developers/docs/resources/guild#create-guild-integration
-    pub fn create_guild_integration(
-        &self,
+    pub fn create_guild_integration<'a>(
+        &'a self,
         guild_id: GuildId,
         integration_id: IntegrationId,
-        kind: impl Into<String>,
-    ) -> CreateGuildIntegration<'_> {
+        kind: impl Into<Cow<'a, str>>,
+    ) -> CreateGuildIntegration<'a> {
         CreateGuildIntegration::new(self, guild_id, integration_id, kind)
     }
 
@@ -903,7 +904,7 @@ impl Client {
     /// ```
     ///
     /// [`with_counts`]: ../request/channel/invite/struct.GetInvite.html#method.with_counts
-    pub fn invite(&self, code: impl Into<String>) -> GetInvite<'_> {
+    pub fn invite<'a>(&'a self, code: impl Into<Cow<'a, str>>) -> GetInvite<'a> {
         GetInvite::new(self, code)
     }
 
@@ -931,7 +932,7 @@ impl Client {
     }
 
     /// Delete an invite by its code.
-    pub fn delete_invite(&self, code: impl Into<String>) -> DeleteInvite<'_> {
+    pub fn delete_invite<'a>(&'a self, code: impl Into<Cow<'a, str>>) -> DeleteInvite<'a> {
         DeleteInvite::new(self, code)
     }
 
@@ -1004,11 +1005,11 @@ impl Client {
     /// [`ChannelId`]: ../../twilight_model/id/struct.ChannelId.html
     /// [`MessageId`]: ../../twilight_model/id/struct.MessageId.html
     /// [the discord docs]: https://discord.com/developers/docs/resources/channel#bulk-delete-messages
-    pub fn delete_messages(
-        &self,
+    pub fn delete_messages<'a>(
+        &'a self,
         channel_id: ChannelId,
-        message_ids: impl Into<Vec<MessageId>>,
-    ) -> DeleteMessages<'_> {
+        message_ids: impl Into<Cow<'a, [MessageId]>>,
+    ) -> DeleteMessages<'a> {
         DeleteMessages::new(self, channel_id, message_ids)
     }
 
@@ -1030,7 +1031,7 @@ impl Client {
     /// # async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
     /// let client = Client::new("my token");
     /// client.update_message(ChannelId(1), MessageId(2))
-    ///     .content("test update".to_owned())?
+    ///     .content(Some("test update".into()))?
     ///     .await?;
     /// # Ok(()) }
     /// ```
@@ -1080,12 +1081,12 @@ impl Client {
     ///
     /// This endpoint is limited to 100 users maximum, so if a message has more than 100 reactions,
     /// requests must be chained until all reactions are retireved.
-    pub fn reactions(
-        &self,
+    pub fn reactions<'a>(
+        &'a self,
         channel_id: ChannelId,
         message_id: MessageId,
-        emoji: impl Into<String>,
-    ) -> GetReactions<'_> {
+        emoji: impl Into<Cow<'a, str>>,
+    ) -> GetReactions<'a> {
         GetReactions::new(self, channel_id, message_id, emoji)
     }
 
@@ -1220,11 +1221,11 @@ impl Client {
     /// Modify the position of the roles.
     ///
     /// The minimum amount of roles to modify, is a swap between two roles.
-    pub fn update_role_positions(
-        &self,
+    pub fn update_role_positions<'a>(
+        &'a self,
         guild_id: GuildId,
-        roles: impl Iterator<Item = (RoleId, u64)>,
-    ) -> UpdateRolePositions<'_> {
+        roles: impl Into<Cow<'a, [(RoleId, u64)]>>,
+    ) -> UpdateRolePositions<'a> {
         UpdateRolePositions::new(self, guild_id, roles)
     }
 
@@ -1261,11 +1262,11 @@ impl Client {
     ///     .await?;
     /// # Ok(()) }
     /// ```
-    pub fn create_webhook(
-        &self,
+    pub fn create_webhook<'a>(
+        &'a self,
         channel_id: ChannelId,
-        name: impl Into<String>,
-    ) -> CreateWebhook<'_> {
+        name: impl Into<Cow<'a, str>>,
+    ) -> CreateWebhook<'a> {
         CreateWebhook::new(self, channel_id, name)
     }
 
@@ -1281,7 +1282,7 @@ impl Client {
     /// Returns [`UrlError::SegmentMissing`] if the URL can not be parsed.
     ///
     /// [`UrlError::SegmentMissing`]: ../error/enum.UrlError.html#variant.SegmentMissing
-    pub fn delete_webhook_from_url(&self, url: impl AsRef<str>) -> Result<DeleteWebhook<'_>> {
+    pub fn delete_webhook_from_url<'a>(&'a self, url: &str) -> Result<DeleteWebhook<'a>> {
         let (id, _) = parse_webhook_url(url)?;
         Ok(self.delete_webhook(id))
     }
@@ -1298,17 +1299,17 @@ impl Client {
     /// Returns [`UrlError::SegmentMissing`] if the URL can not be parsed.
     ///
     /// [`UrlError::SegmentMissing`]: ../error/enum.UrlError.html#variant.SegmentMissing
-    pub fn update_webhook_from_url(&self, url: impl AsRef<str>) -> Result<UpdateWebhook<'_>> {
+    pub fn update_webhook_from_url(&self, url: &str) -> Result<UpdateWebhook<'_>> {
         let (id, _) = parse_webhook_url(url)?;
         Ok(self.update_webhook(id))
     }
 
     /// Update a webhook, with a token, by ID.
-    pub fn update_webhook_with_token(
-        &self,
+    pub fn update_webhook_with_token<'a>(
+        &'a self,
         webhook_id: WebhookId,
-        token: impl Into<String>,
-    ) -> UpdateWebhookWithToken<'_> {
+        token: impl Into<Cow<'a, str>>,
+    ) -> UpdateWebhookWithToken<'a> {
         UpdateWebhookWithToken::new(self, webhook_id, token)
     }
 
@@ -1319,10 +1320,10 @@ impl Client {
     /// Returns [`UrlError::SegmentMissing`] if the URL can not be parsed.
     ///
     /// [`UrlError::SegmentMissing`]: ../error/enum.UrlError.html#variant.SegmentMissing
-    pub fn update_webhook_with_token_from_url(
-        &self,
-        url: impl AsRef<str>,
-    ) -> Result<UpdateWebhookWithToken<'_>> {
+    pub fn update_webhook_with_token_from_url<'a>(
+        &'a self,
+        url: &'a str,
+    ) -> Result<UpdateWebhookWithToken<'a>> {
         let (id, token) = parse_webhook_url(url)?;
         Ok(self.update_webhook_with_token(id, token.ok_or(UrlError::SegmentMissing)?))
     }
@@ -1352,11 +1353,11 @@ impl Client {
     /// [`content`]: ../request/channel/webhook/struct.ExecuteWebhook.html#method.content
     /// [`embeds`]: ../request/channel/webhook/struct.ExecuteWebhook.html#method.embeds
     /// [`file`]: ../request/channel/webhook/struct.ExecuteWebhook.html#method.file
-    pub fn execute_webhook(
-        &self,
+    pub fn execute_webhook<'a>(
+        &'a self,
         webhook_id: WebhookId,
-        token: impl Into<String>,
-    ) -> ExecuteWebhook<'_> {
+        token: impl Into<Cow<'a, str>>,
+    ) -> ExecuteWebhook<'a> {
         ExecuteWebhook::new(self, webhook_id, token)
     }
 
@@ -1367,7 +1368,7 @@ impl Client {
     /// Returns [`UrlError::SegmentMissing`] if the URL can not be parsed.
     ///
     /// [`UrlError::SegmentMissing`]: ../error/enum.UrlError.html#variant.SegmentMissing
-    pub fn execute_webhook_from_url(&self, url: impl AsRef<str>) -> Result<ExecuteWebhook<'_>> {
+    pub fn execute_webhook_from_url<'a>(&'a self, url: &'a str) -> Result<ExecuteWebhook<'a>> {
         let (id, token) = parse_webhook_url(url)?;
         Ok(self.execute_webhook(id, token.ok_or(UrlError::SegmentMissing)?))
     }
@@ -1558,9 +1559,9 @@ impl From<ReqwestClient> for Client {
 
 // parse the webhook id and token, if it exists in the string
 fn parse_webhook_url(
-    url: impl AsRef<str>,
-) -> std::result::Result<(WebhookId, Option<String>), UrlError> {
-    let url = Url::parse(url.as_ref())?;
+    webhook_uri: &str,
+) -> std::result::Result<(WebhookId, Option<&str>), UrlError> {
+    let url = Url::parse(webhook_uri)?;
     let mut segments = url.path_segments().ok_or(UrlError::SegmentMissing)?;
 
     segments
@@ -1572,9 +1573,14 @@ fn parse_webhook_url(
         .filter(|s| s == &"webhooks")
         .ok_or(UrlError::SegmentMissing)?;
     let id = segments.next().ok_or(UrlError::SegmentMissing)?;
-    let token = segments.next();
 
-    Ok((WebhookId(id.parse()?), token.map(String::from)))
+    let token = segments.next().and_then(|_| {
+        let half = webhook_uri.split("api/webhooks/").nth(1)?;
+
+        half.split('/').nth(1)
+    });
+
+    Ok((WebhookId(id.parse()?), token))
 }
 
 #[cfg(test)]

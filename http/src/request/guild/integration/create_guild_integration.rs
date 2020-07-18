@@ -1,12 +1,13 @@
 use crate::json_to_vec;
 use crate::request::prelude::*;
+use std::borrow::Cow;
 use twilight_model::id::{GuildId, IntegrationId};
 
 #[derive(Serialize)]
-struct CreateGuildIntegrationFields {
+struct CreateGuildIntegrationFields<'a> {
     id: IntegrationId,
     #[serde(rename = "type")]
-    kind: String,
+    kind: Cow<'a, str>,
 }
 
 /// Create a guild integration from the current user to the guild.
@@ -15,11 +16,11 @@ struct CreateGuildIntegrationFields {
 ///
 /// [the discord docs]: https://discord.com/developers/docs/resources/guild#create-guild-integration
 pub struct CreateGuildIntegration<'a> {
-    fields: CreateGuildIntegrationFields,
+    fields: CreateGuildIntegrationFields<'a>,
     fut: Option<Pending<'a, ()>>,
     guild_id: GuildId,
     http: &'a Client,
-    reason: Option<String>,
+    reason: Option<Cow<'a, str>>,
 }
 
 impl<'a> CreateGuildIntegration<'a> {
@@ -27,7 +28,7 @@ impl<'a> CreateGuildIntegration<'a> {
         http: &'a Client,
         guild_id: GuildId,
         integration_id: IntegrationId,
-        kind: impl Into<String>,
+        kind: impl Into<Cow<'a, str>>,
     ) -> Self {
         Self {
             fields: CreateGuildIntegrationFields {
@@ -42,7 +43,7 @@ impl<'a> CreateGuildIntegration<'a> {
     }
 
     /// Attach an audit log reason to this request.
-    pub fn reason(mut self, reason: impl Into<String>) -> Self {
+    pub fn reason(mut self, reason: impl Into<Cow<'a, str>>) -> Self {
         self.reason.replace(reason.into());
 
         self

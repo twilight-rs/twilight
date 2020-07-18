@@ -1,5 +1,6 @@
 use crate::request::prelude::*;
 use std::{
+    borrow::Cow,
     error::Error,
     fmt::{Display, Formatter, Result as FmtResult},
 };
@@ -26,14 +27,14 @@ impl Display for GetGuildPruneCountError {
 impl Error for GetGuildPruneCountError {}
 
 #[derive(Default)]
-struct GetGuildPruneCountFields {
+struct GetGuildPruneCountFields<'a> {
     days: Option<u64>,
-    include_roles: Vec<u64>,
+    include_roles: Option<Cow<'a, [RoleId]>>,
 }
 
 /// Get the counts of guild members to be pruned.
 pub struct GetGuildPruneCount<'a> {
-    fields: GetGuildPruneCountFields,
+    fields: GetGuildPruneCountFields<'a>,
     fut: Option<Pending<'a, GuildPrune>>,
     guild_id: GuildId,
     http: &'a Client,
@@ -71,10 +72,8 @@ impl<'a> GetGuildPruneCount<'a> {
     }
 
     /// List of roles to include when calculating prune count
-    pub fn include_roles(mut self, roles: impl Iterator<Item = RoleId>) -> Self {
-        let roles = roles.map(|e| e.0).collect::<Vec<_>>();
-
-        self.fields.include_roles = roles;
+    pub fn include_roles(mut self, roles: Cow<'a, [RoleId]>) -> Self {
+        self.fields.include_roles.replace(roles);
 
         self
     }
@@ -84,7 +83,7 @@ impl<'a> GetGuildPruneCount<'a> {
             Route::GetGuildPruneCount {
                 days: self.fields.days,
                 guild_id: self.guild_id.0,
-                include_roles: self.fields.include_roles.clone(),
+                include_roles: self.fields.include_roles.take().as_deref(),
             },
         ))));
 
