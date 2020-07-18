@@ -168,6 +168,14 @@ impl GatewayEventVisitor<'_> {
             })
         })
     }
+
+    fn ignore_all<'de, V: MapAccess<'de>>(map: &mut V) -> Result<(), V::Error> {
+        while let Ok(Some(_)) | Err(_) = map.next_key::<Field>() {
+            map.next_value::<IgnoredAny>()?;
+        }
+
+        Ok(())
+    }
 }
 
 impl<'de> Visitor<'de> for GatewayEventVisitor<'_> {
@@ -249,28 +257,34 @@ impl<'de> Visitor<'de> for GatewayEventVisitor<'_> {
                 GatewayEvent::Dispatch(s, Box::new(d))
             }
             OpCode::Heartbeat => {
-                let seq = Self::field(&mut map, Field::S)?;
+                let seq = Self::field(&mut map, Field::D)?;
+                Self::ignore_all(&mut map)?;
 
                 GatewayEvent::Heartbeat(seq)
             }
             OpCode::HeartbeatAck => {
-                while let Ok(Some(_)) | Err(_) = map.next_key::<Field>() {
-                    map.next_value::<IgnoredAny>()?;
-                }
+                Self::ignore_all(&mut map)?;
+
                 GatewayEvent::HeartbeatAck
             }
             OpCode::Hello => {
                 let hello = Self::field::<Hello, _>(&mut map, Field::D)?;
+                Self::ignore_all(&mut map)?;
 
                 GatewayEvent::Hello(hello.heartbeat_interval)
             }
             OpCode::InvalidSession => {
                 let invalidate = Self::field::<bool, _>(&mut map, Field::D)?;
+                Self::ignore_all(&mut map)?;
 
                 GatewayEvent::InvalidateSession(invalidate)
             }
             OpCode::Identify => return Err(DeError::unknown_variant("Identify", VALID_OPCODES)),
-            OpCode::Reconnect => GatewayEvent::Reconnect,
+            OpCode::Reconnect => {
+                Self::ignore_all(&mut map)?;
+
+                GatewayEvent::Reconnect
+            },
             OpCode::RequestGuildMembers => {
                 return Err(DeError::unknown_variant(
                     "RequestGuildMembers",
@@ -384,7 +398,7 @@ mod tests {
     use serde_test::Token;
 
     #[test]
-    fn test_deserializer_constructor() {
+    fn test_deserialize_dispatch_role_delete() {
         let input = r#"{
             "d": {
                 "guild_id": "1",
@@ -402,7 +416,7 @@ mod tests {
     }
 
     #[test]
-    fn test_guild() {
+    fn test_deserialize_dispatch_guild_update() {
         let input = r#"{
   "d": {
     "afk_channel_id": "1337",
@@ -476,7 +490,7 @@ mod tests {
     }
 
     #[test]
-    fn test_guild_2() {
+    fn test_deserialize_dispatch_guild_update_2() {
         let input = r#"{
   "d": {
     "afk_channel_id": null,
@@ -546,8 +560,62 @@ mod tests {
         assert!(matches!(event, GatewayEvent::Dispatch(1190911, _)));
     }
 
+    // Test that events which are not documented to have any data will not fail if
+    // they contain it
     #[test]
-    fn hello() {
+    fn test_deserialize_dispatch_resumed() {
+        let input = r#"{
+  "t": "RESUMED",
+  "s": 37448,
+  "op": 0,
+  "d": {
+    "_trace": [
+      "[\"gateway-prd-main-zqnl\",{\"micros\":11488,\"calls\":[\"discord-sessions-prd-1-38\",{\"micros\":1756}]}]"
+    ]
+  }
+}"#;
+
+        let deserializer = GatewayEventDeserializer::from_json(input).unwrap();
+        let mut json_deserializer = Deserializer::from_str(input);
+        let event = deserializer.deserialize(&mut json_deserializer).unwrap();
+
+        assert!(matches!(event, GatewayEvent::Dispatch(_, _)));
+    }
+
+    #[test]
+    fn test_deserialize_heartbeat() {
+        let input = r#"{
+            "t": null,
+            "s": null,
+            "op": 1,
+            "d": 123
+        }"#;
+
+        let deserializer = GatewayEventDeserializer::from_json(input).unwrap();
+        let mut json_deserializer = Deserializer::from_str(input);
+        let event = deserializer.deserialize(&mut json_deserializer).unwrap();
+
+        assert!(matches!(event, GatewayEvent::Heartbeat(123)));
+    }
+
+    #[test]
+    fn test_deserialize_heartbeat_ack() {
+        let input = r#"{
+            "t": null,
+            "s": null,
+            "op": 11,
+            "d": null
+        }"#;
+
+        let deserializer = GatewayEventDeserializer::from_json(input).unwrap();
+        let mut json_deserializer = Deserializer::from_str(input);
+        let event = deserializer.deserialize(&mut json_deserializer).unwrap();
+
+        assert!(matches!(event, GatewayEvent::HeartbeatAck));
+    }
+
+    #[test]
+    fn test_deserialize_hello() {
         let input = r#"{
             "t": null,
             "s": null,
@@ -565,6 +633,38 @@ mod tests {
         let event = deserializer.deserialize(&mut json_deserializer).unwrap();
 
         assert!(matches!(event, GatewayEvent::Hello(41250)));
+    }
+
+    #[test]
+    fn test_deserialize_invalidate_session() {
+        let input = r#"{
+            "t": null,
+            "s": null,
+            "op": 9,
+            "d": true
+        }"#;
+
+        let deserializer = GatewayEventDeserializer::from_json(input).unwrap();
+        let mut json_deserializer = Deserializer::from_str(input);
+        let event = deserializer.deserialize(&mut json_deserializer).unwrap();
+
+        assert!(matches!(event, GatewayEvent::InvalidateSession(true)));
+    }
+
+    #[test]
+    fn test_deserialize_reconnect() {
+        let input = r#"{
+            "t": null,
+            "s": null,
+            "op": 7,
+            "d": null
+        }"#;
+
+        let deserializer = GatewayEventDeserializer::from_json(input).unwrap();
+        let mut json_deserializer = Deserializer::from_str(input);
+        let event = deserializer.deserialize(&mut json_deserializer).unwrap();
+
+        assert!(matches!(event, GatewayEvent::Reconnect));
     }
 
     /// Test that the deserializer won't mess up on a nested "t" in user input
@@ -597,29 +697,6 @@ mod tests {
         let event = deserializer.deserialize(&mut json_deserializer).unwrap();
 
         assert!(matches!(event, GatewayEvent::HeartbeatAck));
-    }
-
-    // Test that events which are not documented to have any data will not fail if
-    // they contain it
-    #[allow(unused)]
-    #[test]
-    fn test_deserializer_handles_resumed() {
-        let input = r#"{
-  "t": "RESUMED",
-  "s": 37448,
-  "op": 0,
-  "d": {
-    "_trace": [
-      "[\"gateway-prd-main-zqnl\",{\"micros\":11488,\"calls\":[\"discord-sessions-prd-1-38\",{\"micros\":1756}]}]"
-    ]
-  }
-}"#;
-
-        let deserializer = GatewayEventDeserializer::from_json(input).unwrap();
-        let mut json_deserializer = Deserializer::from_str(input);
-        let event = deserializer.deserialize(&mut json_deserializer).unwrap();
-
-        assert!(matches!(event, GatewayEvent::Dispatch(_, _)));
     }
 
     #[test]
