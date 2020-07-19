@@ -24,8 +24,8 @@
 //!
 //! #### `simd-json`
 //!
-//! The `simd-json` feature enables [`simd-json`] support to use simd features of
-//! the modern cpus to deserialize responses faster. It is not enabled by
+//! The `simd-json` feature enables [`simd-json`] support to use simd features
+//! of modern cpus to deserialize responses faster. It is not enabled by
 //! default.
 //!
 //! To use this feature you need to also add these lines to
