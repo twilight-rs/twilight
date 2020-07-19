@@ -1,28 +1,27 @@
 use crate::json_to_vec;
 use crate::request::prelude::*;
-use std::borrow::Cow;
 use twilight_model::{
     guild::{Permissions, Role},
     id::{GuildId, RoleId},
 };
 
 #[derive(Default, Serialize)]
-struct UpdateRoleFields<'a> {
+struct UpdateRoleFields {
     color: Option<u64>,
     hoist: Option<bool>,
     mentionable: Option<bool>,
-    name: Option<Cow<'a, str>>,
+    name: Option<String>,
     permissions: Option<Permissions>,
 }
 
 /// Update a role by guild id and its id.
 pub struct UpdateRole<'a> {
-    fields: UpdateRoleFields<'a>,
+    fields: UpdateRoleFields,
     fut: Option<Pending<'a, Role>>,
     guild_id: GuildId,
     http: &'a Client,
     role_id: RoleId,
-    reason: Option<Cow<'a, str>>,
+    reason: Option<String>,
 }
 
 impl<'a> UpdateRole<'a> {
@@ -59,7 +58,7 @@ impl<'a> UpdateRole<'a> {
     }
 
     /// Set the name of the role.
-    pub fn name(mut self, name: impl Into<Cow<'a, str>>) -> Self {
+    pub fn name(mut self, name: impl Into<String>) -> Self {
         self.fields.name.replace(name.into());
 
         self
@@ -73,7 +72,7 @@ impl<'a> UpdateRole<'a> {
     }
 
     /// Attach an audit log reason to this request.
-    pub fn reason(mut self, reason: impl Into<Cow<'a, str>>) -> Self {
+    pub fn reason(mut self, reason: impl Into<String>) -> Self {
         self.reason.replace(reason.into());
 
         self

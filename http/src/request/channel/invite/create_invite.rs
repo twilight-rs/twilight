@@ -39,7 +39,7 @@ pub struct CreateInvite<'a> {
     fields: CreateInviteFields,
     fut: Option<Pending<'a, Invite>>,
     http: &'a Client,
-    reason: Option<&'a str>,
+    reason: Option<String>,
 }
 
 impl<'a> CreateInvite<'a> {
@@ -106,8 +106,8 @@ impl<'a> CreateInvite<'a> {
     }
 
     /// Attach an audit log reason to this request.
-    pub fn reason(mut self, reason: &'a str) -> Self {
-        self.reason.replace(reason);
+    pub fn reason(mut self, reason: impl Into<String>) -> Self {
+        self.reason.replace(reason.into());
 
         self
     }

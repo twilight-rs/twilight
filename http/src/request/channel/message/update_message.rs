@@ -1,7 +1,6 @@
 use crate::json_to_vec;
 use crate::request::{channel::message::allowed_mentions::AllowedMentions, prelude::*};
 use std::{
-    borrow::Cow,
     error::Error,
     fmt::{Display, Formatter, Result as FmtResult},
 };
@@ -41,7 +40,7 @@ impl Error for UpdateMessageError {
 }
 
 #[derive(Default, Serialize)]
-struct UpdateMessageFields<'a> {
+struct UpdateMessageFields {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub(crate) allowed_mentions: Option<AllowedMentions>,
     // We don't serialize if this is Option::None, to avoid overwriting the
@@ -55,10 +54,10 @@ struct UpdateMessageFields<'a> {
     // - None: Don't serialize the field at all, not modifying the state.
     #[allow(clippy::option_option)]
     #[serde(skip_serializing_if = "Option::is_none")]
-    content: Option<Option<Cow<'a, str>>>,
+    content: Option<Option<String>>,
     #[allow(clippy::option_option)]
     #[serde(skip_serializing_if = "Option::is_none")]
-    embed: Option<Option<Cow<'a, Embed>>>,
+    embed: Option<Option<Embed>>,
     #[serde(skip_serializing_if = "Option::is_none")]
     flags: Option<MessageFlags>,
 }
@@ -81,7 +80,7 @@ struct UpdateMessageFields<'a> {
 /// # async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
 /// let client = Client::new("my token");
 /// client.update_message(ChannelId(1), MessageId(2))
-///     .content(Some("test update".into()))?
+///     .content("test update".to_owned())?
 ///     .await?;
 /// # Ok(()) }
 /// ```
@@ -105,7 +104,7 @@ struct UpdateMessageFields<'a> {
 /// [`MessageId`]: ../../../../../twilight_model/id/struct.MessageId.html
 pub struct UpdateMessage<'a> {
     channel_id: ChannelId,
-    fields: UpdateMessageFields<'a>,
+    fields: UpdateMessageFields,
     fut: Option<Pending<'a, Message>>,
     http: &'a Client,
     message_id: MessageId,
@@ -137,7 +136,11 @@ impl<'a> UpdateMessage<'a> {
     /// too long.
     ///
     /// [`UpdateMessageError::ContentInvalid`]: enum.UpdateMessageError.html#variant.ContentInvalid
-    pub fn content(mut self, content: Option<Cow<'a, str>>) -> Result<Self, UpdateMessageError> {
+    pub fn content(self, content: impl Into<Option<String>>) -> Result<Self, UpdateMessageError> {
+        self._content(content.into())
+    }
+
+    fn _content(mut self, content: Option<String>) -> Result<Self, UpdateMessageError> {
         if let Some(content) = content.as_ref() {
             if !validate::content_limit(content) {
                 return Err(UpdateMessageError::ContentInvalid);
@@ -155,14 +158,11 @@ impl<'a> UpdateMessage<'a> {
     ///
     /// Note that if there is no content then you will not be
     /// able to remove the embed of the message.
-    pub fn embed(
-        self,
-        embed: impl Into<Option<Cow<'a, Embed>>>,
-    ) -> Result<Self, UpdateMessageError> {
+    pub fn embed(self, embed: impl Into<Option<Embed>>) -> Result<Self, UpdateMessageError> {
         self._embed(embed.into())
     }
 
-    fn _embed(mut self, embed: Option<Cow<'a, Embed>>) -> Result<Self, UpdateMessageError> {
+    fn _embed(mut self, embed: Option<Embed>) -> Result<Self, UpdateMessageError> {
         if let Some(embed) = embed.as_ref() {
             validate::embed(&embed)
                 .map_err(|source| UpdateMessageError::EmbedTooLarge { source })?;

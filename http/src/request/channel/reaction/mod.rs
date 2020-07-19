@@ -19,7 +19,7 @@ fn format_emoji(emoji: ReactionType) -> String {
         ReactionType::Custom { id, name, .. } => {
             let mut emoji = String::new();
             match name {
-                Some(name) => emoji.push_str(&name),
+                Some(name) => emoji.push_str(name.as_ref()),
                 None => emoji.push_str("e"),
             }
             let _ = write!(emoji, ":{}", id);

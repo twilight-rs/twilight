@@ -1,23 +1,22 @@
 use crate::json_to_vec;
 use crate::request::prelude::*;
-use std::borrow::Cow;
 use twilight_model::{guild::Permissions, id::ChannelId};
 
 #[derive(Serialize)]
-struct UpdateChannelPermissionConfiguredFields<'a> {
+struct UpdateChannelPermissionConfiguredFields {
     allow: Permissions,
     deny: Permissions,
-    kind: Cow<'a, str>,
+    kind: String,
 }
 
 /// Created when either `member` or `role` is called on a `DeleteChannelPermission` struct.
 pub struct UpdateChannelPermissionConfigured<'a> {
     channel_id: ChannelId,
-    fields: UpdateChannelPermissionConfiguredFields<'a>,
+    fields: UpdateChannelPermissionConfiguredFields,
     fut: Option<Pending<'a, ()>>,
     http: &'a Client,
     target_id: u64,
-    reason: Option<Cow<'a, str>>,
+    reason: Option<String>,
 }
 
 impl<'a> UpdateChannelPermissionConfigured<'a> {
@@ -26,7 +25,7 @@ impl<'a> UpdateChannelPermissionConfigured<'a> {
         channel_id: ChannelId,
         allow: Permissions,
         deny: Permissions,
-        kind: impl Into<Cow<'a, str>>,
+        kind: impl Into<String>,
         target_id: u64,
     ) -> Self {
         Self {
@@ -44,7 +43,7 @@ impl<'a> UpdateChannelPermissionConfigured<'a> {
     }
 
     /// Attach an audit log reason to this request.
-    pub fn reason(mut self, reason: impl Into<Cow<'a, str>>) -> Self {
+    pub fn reason(mut self, reason: impl Into<String>) -> Self {
         self.reason.replace(reason.into());
 
         self

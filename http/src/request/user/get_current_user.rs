@@ -13,10 +13,10 @@ impl<'a> GetCurrentUser<'a> {
     }
 
     fn start(&mut self) -> Result<()> {
-        self.fut.replace(Box::pin(
-            self.http
-                .request(Request::from(Route::GetUser { target_user: "@me" })),
-        ));
+        self.fut
+            .replace(Box::pin(self.http.request(Request::from(Route::GetUser {
+                target_user: "@me".to_owned(),
+            }))));
 
         Ok(())
     }

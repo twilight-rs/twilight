@@ -1,25 +1,24 @@
 use crate::json_to_vec;
 use crate::request::prelude::*;
-use std::borrow::Cow;
 use twilight_model::{
     guild::Emoji,
     id::{EmojiId, GuildId, RoleId},
 };
 
 #[derive(Default, Serialize)]
-struct UpdateEmojiFields<'a> {
-    name: Option<Cow<'a, str>>,
-    roles: Option<Cow<'a, [RoleId]>>,
+struct UpdateEmojiFields {
+    name: Option<String>,
+    roles: Option<Vec<RoleId>>,
 }
 
 /// Update an emoji in a guild, by id.
 pub struct UpdateEmoji<'a> {
     emoji_id: EmojiId,
-    fields: UpdateEmojiFields<'a>,
+    fields: UpdateEmojiFields,
     fut: Option<Pending<'a, Emoji>>,
     guild_id: GuildId,
     http: &'a Client,
-    reason: Option<Cow<'a, str>>,
+    reason: Option<String>,
 }
 
 impl<'a> UpdateEmoji<'a> {
@@ -35,21 +34,21 @@ impl<'a> UpdateEmoji<'a> {
     }
 
     /// Change the name of the emoji.
-    pub fn name(mut self, name: impl Into<Cow<'a, str>>) -> Self {
+    pub fn name(mut self, name: impl Into<String>) -> Self {
         self.fields.name.replace(name.into());
 
         self
     }
 
     /// Change the roles that the emoji is whitelisted to.
-    pub fn roles(mut self, roles: impl Into<Cow<'a, [RoleId]>>) -> Self {
-        self.fields.roles.replace(roles.into());
+    pub fn roles(mut self, roles: Vec<RoleId>) -> Self {
+        self.fields.roles.replace(roles);
 
         self
     }
 
     /// Attach an audit log reason to this request.
-    pub fn reason(mut self, reason: impl Into<Cow<'a, str>>) -> Self {
+    pub fn reason(mut self, reason: impl Into<String>) -> Self {
         self.reason.replace(reason.into());
 
         self

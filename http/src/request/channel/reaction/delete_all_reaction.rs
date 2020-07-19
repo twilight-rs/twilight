@@ -1,5 +1,4 @@
 use crate::request::prelude::*;
-use std::borrow::Cow;
 use twilight_model::{
     channel::ReactionType,
     id::{ChannelId, MessageId},
@@ -35,7 +34,7 @@ impl<'a> DeleteAllReaction<'a> {
             Route::DeleteMessageSpecficReaction {
                 channel_id: self.channel_id.0,
                 message_id: self.message_id.0,
-                emoji: Cow::Owned(self.emoji.clone()),
+                emoji: self.emoji.clone(),
             },
         ))));
 

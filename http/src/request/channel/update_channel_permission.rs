@@ -62,7 +62,11 @@ impl<'a> UpdateChannelPermission<'a> {
         self.configure("role", role_id.into().0)
     }
 
-    fn configure(self, kind: &'a str, target_id: u64) -> UpdateChannelPermissionConfigured<'a> {
+    fn configure(
+        self,
+        kind: impl Into<String>,
+        target_id: u64,
+    ) -> UpdateChannelPermissionConfigured<'a> {
         UpdateChannelPermissionConfigured::new(
             self.http,
             self.channel_id,

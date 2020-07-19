@@ -1,5 +1,4 @@
 use crate::request::prelude::*;
-use std::borrow::Cow;
 use twilight_model::id::{GuildId, RoleId};
 
 /// Delete a role in a guild, by id.
@@ -8,7 +7,7 @@ pub struct DeleteRole<'a> {
     guild_id: GuildId,
     http: &'a Client,
     role_id: RoleId,
-    reason: Option<Cow<'a, str>>,
+    reason: Option<String>,
 }
 
 impl<'a> DeleteRole<'a> {
@@ -23,7 +22,7 @@ impl<'a> DeleteRole<'a> {
     }
 
     /// Attach an audit log reason to this request.
-    pub fn reason(mut self, reason: impl Into<Cow<'a, str>>) -> Self {
+    pub fn reason(mut self, reason: impl Into<String>) -> Self {
         self.reason.replace(reason.into());
 
         self

@@ -1,7 +1,6 @@
 use crate::json_to_vec;
 use crate::request::prelude::*;
 use std::{
-    borrow::Cow,
     error::Error,
     fmt::{Display, Formatter, Result as FmtResult},
 };
@@ -31,23 +30,23 @@ impl Display for UpdateGuildError {
 impl Error for UpdateGuildError {}
 
 #[derive(Default, Serialize)]
-struct UpdateGuildFields<'a> {
+struct UpdateGuildFields {
     afk_channel_id: Option<ChannelId>,
     afk_timeout: Option<u64>,
     default_message_notifications: Option<DefaultMessageNotificationLevel>,
     explicit_content_filter: Option<ExplicitContentFilter>,
-    icon: Option<Cow<'a, str>>,
     #[serde(skip_serializing_if = "Option::is_none")]
-    name: Option<Cow<'a, str>>,
+    icon: Option<String>,
     #[serde(skip_serializing_if = "Option::is_none")]
+    name: Option<String>,
     owner_id: Option<UserId>,
-    region: Option<Cow<'a, str>>,
-    splash: Option<Cow<'a, str>>,
+    region: Option<String>,
+    splash: Option<String>,
     system_channel_id: Option<ChannelId>,
     verification_level: Option<VerificationLevel>,
     rules_channel_id: Option<ChannelId>,
     public_updates_channel_id: Option<ChannelId>,
-    preferred_locale: Option<Cow<'a, str>>,
+    preferred_locale: Option<String>,
 }
 
 /// Update a guild.
@@ -56,11 +55,11 @@ struct UpdateGuildFields<'a> {
 ///
 /// [the discord docs]: https://discord.com/developers/docs/resources/guild#modify-guild
 pub struct UpdateGuild<'a> {
-    fields: UpdateGuildFields<'a>,
+    fields: UpdateGuildFields,
     fut: Option<Pending<'a, PartialGuild>>,
     guild_id: GuildId,
     http: &'a Client,
-    reason: Option<Cow<'a, str>>,
+    reason: Option<String>,
 }
 
 impl<'a> UpdateGuild<'a> {
@@ -122,7 +121,7 @@ impl<'a> UpdateGuild<'a> {
     /// for more information.
     ///
     /// [the discord docs]: https://discord.com/developers/docs/reference#image-data
-    pub fn icon(mut self, icon: impl Into<Cow<'a, str>>) -> Self {
+    pub fn icon(mut self, icon: impl Into<String>) -> Self {
         self.fields.icon.replace(icon.into());
 
         self
@@ -139,9 +138,11 @@ impl<'a> UpdateGuild<'a> {
     /// short or too long.
     ///
     /// [`UpdateGuildError::NameInvalid`]: enum.UpdateGuildError.html#variant.NameInvalid
-    pub fn name(mut self, name: impl Into<Cow<'a, str>>) -> Result<Self, UpdateGuildError> {
-        let name = name.into();
+    pub fn name(self, name: impl Into<String>) -> Result<Self, UpdateGuildError> {
+        self._name(name.into())
+    }
 
+    fn _name(mut self, name: String) -> Result<Self, UpdateGuildError> {
         if !validate::guild_name(&name) {
             return Err(UpdateGuildError::NameInvalid);
         }
@@ -164,7 +165,7 @@ impl<'a> UpdateGuild<'a> {
     /// information.
     ///
     /// [the discord docs]: https://discord.com/developers/docs/resources/voice#voice-region-object
-    pub fn region(mut self, region: impl Into<Cow<'a, str>>) -> Self {
+    pub fn region(mut self, region: impl Into<String>) -> Self {
         self.fields.region.replace(region.into());
 
         self
@@ -173,7 +174,7 @@ impl<'a> UpdateGuild<'a> {
     /// Set the guild's splash image.
     ///
     /// Requires the guild to have the `INVITE_SPLASH` feature enabled.
-    pub fn splash(mut self, splash: impl Into<Cow<'a, str>>) -> Self {
+    pub fn splash(mut self, splash: impl Into<String>) -> Self {
         self.fields.splash.replace(splash.into());
 
         self
@@ -218,7 +219,7 @@ impl<'a> UpdateGuild<'a> {
     /// Set the preferred locale for the guild.
     ///
     /// Defaults to `en-US`. Requires the guild to be `PUBLIC`.
-    pub fn preferred_locale(mut self, preferred_locale: impl Into<Cow<'a, str>>) -> Self {
+    pub fn preferred_locale(mut self, preferred_locale: impl Into<String>) -> Self {
         self.fields
             .preferred_locale
             .replace(preferred_locale.into());
@@ -236,7 +237,7 @@ impl<'a> UpdateGuild<'a> {
     }
 
     /// Attach an audit log reason to this request.
-    pub fn reason(mut self, reason: impl Into<Cow<'a, str>>) -> Self {
+    pub fn reason(mut self, reason: impl Into<String>) -> Self {
         self.reason.replace(reason.into());
 
         self
