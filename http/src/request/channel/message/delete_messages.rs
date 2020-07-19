@@ -1,11 +1,10 @@
 use crate::json_to_vec;
 use crate::request::prelude::*;
-use std::borrow::Cow;
 use twilight_model::id::{ChannelId, MessageId};
 
 #[derive(Serialize)]
-struct DeleteMessagesFields<'a> {
-    messages: Cow<'a, [MessageId]>,
+struct DeleteMessagesFields {
+    messages: Vec<MessageId>,
 }
 
 /// Delete messgaes by [`ChannelId`] and Vec<[`MessageId`]>.
@@ -19,17 +18,17 @@ struct DeleteMessagesFields<'a> {
 /// [the discord docs]: https://discord.com/developers/docs/resources/channel#bulk-delete-messages
 pub struct DeleteMessages<'a> {
     channel_id: ChannelId,
-    fields: DeleteMessagesFields<'a>,
+    fields: DeleteMessagesFields,
     fut: Option<Pending<'a, ()>>,
     http: &'a Client,
-    reason: Option<Cow<'a, str>>,
+    reason: Option<String>,
 }
 
 impl<'a> DeleteMessages<'a> {
     pub(crate) fn new(
         http: &'a Client,
         channel_id: ChannelId,
-        message_ids: impl Into<Cow<'a, [MessageId]>>,
+        message_ids: impl Into<Vec<MessageId>>,
     ) -> Self {
         Self {
             channel_id,
@@ -43,7 +42,7 @@ impl<'a> DeleteMessages<'a> {
     }
 
     /// Attach an audit log reason to this request.
-    pub fn reason(mut self, reason: impl Into<Cow<'a, str>>) -> Self {
+    pub fn reason(mut self, reason: impl Into<String>) -> Self {
         self.reason.replace(reason.into());
 
         self

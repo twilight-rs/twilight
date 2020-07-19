@@ -1,6 +1,5 @@
 use crate::json_to_vec;
 use crate::request::prelude::*;
-use std::borrow::Cow;
 use twilight_model::{
     guild::Role,
     id::{GuildId, RoleId},
@@ -13,20 +12,20 @@ pub struct UpdateRolePositions<'a> {
     fut: Option<Pending<'a, Vec<Role>>>,
     guild_id: GuildId,
     http: &'a Client,
-    roles: Cow<'a, [(RoleId, u64)]>,
+    roles: Vec<(RoleId, u64)>,
 }
 
 impl<'a> UpdateRolePositions<'a> {
     pub(crate) fn new(
         http: &'a Client,
         guild_id: GuildId,
-        roles: impl Into<Cow<'a, [(RoleId, u64)]>>,
+        roles: impl Iterator<Item = (RoleId, u64)>,
     ) -> Self {
         Self {
             fut: None,
             guild_id,
             http,
-            roles: roles.into(),
+            roles: roles.collect(),
         }
     }
 

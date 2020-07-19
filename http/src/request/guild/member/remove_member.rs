@@ -1,5 +1,4 @@
 use crate::request::prelude::*;
-use std::borrow::Cow;
 use twilight_model::id::{GuildId, UserId};
 
 /// Kick a member from a guild, by their id.
@@ -8,7 +7,7 @@ pub struct RemoveMember<'a> {
     guild_id: GuildId,
     http: &'a Client,
     user_id: UserId,
-    reason: Option<Cow<'a, str>>,
+    reason: Option<String>,
 }
 
 impl<'a> RemoveMember<'a> {
@@ -23,7 +22,7 @@ impl<'a> RemoveMember<'a> {
     }
 
     /// Attach an audit log reason to this request.
-    pub fn reason(mut self, reason: impl Into<Cow<'a, str>>) -> Self {
+    pub fn reason(mut self, reason: impl Into<String>) -> Self {
         self.reason.replace(reason.into());
 
         self

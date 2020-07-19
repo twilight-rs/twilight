@@ -1,29 +1,24 @@
 use crate::json_to_vec;
 use crate::request::prelude::*;
-use std::borrow::Cow;
 use twilight_model::{channel::Webhook, id::WebhookId};
 
 #[derive(Default, Serialize)]
-struct UpdateWebhookWithTokenFields<'a> {
-    avatar: Option<Cow<'a, str>>,
-    name: Option<Cow<'a, str>>,
+struct UpdateWebhookWithTokenFields {
+    avatar: Option<String>,
+    name: Option<String>,
 }
 
 /// Update a webhook, with a token, by ID.
 pub struct UpdateWebhookWithToken<'a> {
-    fields: UpdateWebhookWithTokenFields<'a>,
+    fields: UpdateWebhookWithTokenFields,
     fut: Option<Pending<'a, Webhook>>,
     http: &'a Client,
-    token: Cow<'a, str>,
+    token: String,
     webhook_id: WebhookId,
 }
 
 impl<'a> UpdateWebhookWithToken<'a> {
-    pub(crate) fn new(
-        http: &'a Client,
-        webhook_id: WebhookId,
-        token: impl Into<Cow<'a, str>>,
-    ) -> Self {
+    pub(crate) fn new(http: &'a Client, webhook_id: WebhookId, token: impl Into<String>) -> Self {
         Self {
             fields: UpdateWebhookWithTokenFields::default(),
             fut: None,
@@ -40,14 +35,14 @@ impl<'a> UpdateWebhookWithToken<'a> {
     /// base64-encoded image.
     ///
     /// [Discord Docs/Image Data]: https://discord.com/developers/docs/reference#image-data
-    pub fn avatar(mut self, avatar: impl Into<Cow<'a, str>>) -> Self {
+    pub fn avatar(mut self, avatar: impl Into<String>) -> Self {
         self.fields.avatar.replace(avatar.into());
 
         self
     }
 
     /// Change the name of the webhook.
-    pub fn name(mut self, name: impl Into<Cow<'a, str>>) -> Self {
+    pub fn name(mut self, name: impl Into<String>) -> Self {
         self.fields.name.replace(name.into());
 
         self
@@ -57,7 +52,7 @@ impl<'a> UpdateWebhookWithToken<'a> {
         self.fut.replace(Box::pin(self.http.request(Request::from((
             json_to_vec(&self.fields)?,
             Route::UpdateWebhook {
-                token: Some(&self.token),
+                token: Some(self.token.clone()),
                 webhook_id: self.webhook_id.0,
             },
         )))));

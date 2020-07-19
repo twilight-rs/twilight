@@ -1,23 +1,22 @@
 use crate::json_to_vec;
 use crate::request::prelude::*;
-use std::borrow::Cow;
 use twilight_model::id::GuildId;
 
 #[derive(Serialize)]
-struct UpdateCurrentUserNickFields<'a> {
-    nick: Cow<'a, str>,
+struct UpdateCurrentUserNickFields {
+    nick: String,
 }
 
 /// Changes the user's nickname in a guild.
 pub struct UpdateCurrentUserNick<'a> {
-    fields: UpdateCurrentUserNickFields<'a>,
+    fields: UpdateCurrentUserNickFields,
     fut: Option<Pending<'a, ()>>,
     guild_id: GuildId,
     http: &'a Client,
 }
 
 impl<'a> UpdateCurrentUserNick<'a> {
-    pub(crate) fn new(http: &'a Client, guild_id: GuildId, nick: impl Into<Cow<'a, str>>) -> Self {
+    pub(crate) fn new(http: &'a Client, guild_id: GuildId, nick: impl Into<String>) -> Self {
         Self {
             fields: UpdateCurrentUserNickFields { nick: nick.into() },
             fut: None,

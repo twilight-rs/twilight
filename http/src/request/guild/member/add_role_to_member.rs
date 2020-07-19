@@ -1,5 +1,4 @@
 use crate::request::prelude::*;
-use std::borrow::Cow;
 use twilight_model::id::{GuildId, RoleId, UserId};
 
 /// Add a role to a member in a guild.
@@ -29,7 +28,7 @@ pub struct AddRoleToMember<'a> {
     http: &'a Client,
     role_id: RoleId,
     user_id: UserId,
-    reason: Option<Cow<'a, str>>,
+    reason: Option<String>,
 }
 
 impl<'a> AddRoleToMember<'a> {
@@ -50,7 +49,7 @@ impl<'a> AddRoleToMember<'a> {
     }
 
     /// Attach an audit log reason to this request.
-    pub fn reason(mut self, reason: impl Into<Cow<'a, str>>) -> Self {
+    pub fn reason(mut self, reason: impl Into<String>) -> Self {
         self.reason.replace(reason.into());
 
         self

@@ -1,5 +1,4 @@
 use crate::request::prelude::*;
-use std::borrow::Cow;
 use twilight_model::{
     channel::ReactionType,
     id::{ChannelId, MessageId},
@@ -62,7 +61,7 @@ impl<'a> CreateReaction<'a> {
         self.fut.replace(Box::pin(self.http.verify(Request::from(
             Route::CreateReaction {
                 channel_id: self.channel_id.0,
-                emoji: Cow::Owned(self.emoji.clone()),
+                emoji: self.emoji.clone(),
                 message_id: self.message_id.0,
             },
         ))));

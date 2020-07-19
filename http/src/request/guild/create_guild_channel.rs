@@ -1,7 +1,6 @@
 use crate::json_to_vec;
 use crate::request::prelude::*;
 use std::{
-    borrow::Cow,
     error::Error,
     fmt::{Display, Formatter, Result as FmtResult},
 };
@@ -35,17 +34,17 @@ impl Display for CreateGuildChannelError {
 impl Error for CreateGuildChannelError {}
 
 #[derive(Serialize)]
-struct CreateGuildChannelFields<'a> {
+struct CreateGuildChannelFields {
     bitrate: Option<u64>,
     #[serde(rename = "type")]
     kind: Option<ChannelType>,
-    name: Cow<'a, str>,
+    name: String,
     nsfw: Option<bool>,
     parent_id: Option<ChannelId>,
-    permission_overwrites: Option<Cow<'a, [PermissionOverwrite]>>,
+    permission_overwrites: Option<Vec<PermissionOverwrite>>,
     position: Option<u64>,
     rate_limit_per_user: Option<u64>,
-    topic: Option<Cow<'a, str>>,
+    topic: Option<String>,
     user_limit: Option<u64>,
 }
 
@@ -69,21 +68,27 @@ struct CreateGuildChannelFields<'a> {
 /// [`CreateGuildChannelError::RateLimitPerUserInvalid`]: ../request/guild/create_guild_channel/enum.CreateGuildChannelError.html#variant.RateLimitPerUserInvalid
 /// [`CreateGuildChannelError::TopicInvalid`]: ../request/guild/create_guild_channel/enum.CreateGuildChannelError.html#variant.TopicInvalid
 pub struct CreateGuildChannel<'a> {
-    fields: CreateGuildChannelFields<'a>,
+    fields: CreateGuildChannelFields,
     fut: Option<Pending<'a, GuildChannel>>,
     guild_id: GuildId,
     http: &'a Client,
-    reason: Option<Cow<'a, str>>,
+    reason: Option<String>,
 }
 
 impl<'a> CreateGuildChannel<'a> {
     pub(crate) fn new(
         http: &'a Client,
         guild_id: GuildId,
-        name: impl Into<Cow<'a, str>>,
+        name: impl Into<String>,
     ) -> Result<Self, CreateGuildChannelError> {
-        let name = name.into();
+        Self::_new(http, guild_id, name.into())
+    }
 
+    fn _new(
+        http: &'a Client,
+        guild_id: GuildId,
+        name: String,
+    ) -> Result<Self, CreateGuildChannelError> {
         if !validate::channel_name(&name) {
             return Err(CreateGuildChannelError::NameInvalid);
         }
@@ -140,11 +145,11 @@ impl<'a> CreateGuildChannel<'a> {
     /// Set the permission overwrites of a channel.
     pub fn permission_overwrites(
         mut self,
-        permission_overwrites: impl Into<Cow<'a, [PermissionOverwrite]>>,
+        permission_overwrites: Vec<PermissionOverwrite>,
     ) -> Self {
         self.fields
             .permission_overwrites
-            .replace(permission_overwrites.into());
+            .replace(permission_overwrites);
 
         self
     }
@@ -196,13 +201,11 @@ impl<'a> CreateGuildChannel<'a> {
     ///
     /// [the discord docs]: https://discordapp.com/developers/docs/resources/channel#channel-object-channel-structure
     /// [`CreateGuildChannel::TopicInvalid`]: enum.CreateGuildChannel.html#variant.TopicInvalid
-    pub fn topic(
-        mut self,
-        topic: impl Into<Cow<'a, str>>,
-    ) -> Result<Self, CreateGuildChannelError> {
-        let topic = topic.into();
+    pub fn topic(self, topic: impl Into<String>) -> Result<Self, CreateGuildChannelError> {
+        self._topic(topic.into())
+    }
 
-        // <https://discordapp.com/developers/docs/resources/channel#channel-object-channel-structure>
+    fn _topic(mut self, topic: String) -> Result<Self, CreateGuildChannelError> {
         if topic.chars().count() > 1024 {
             return Err(CreateGuildChannelError::TopicInvalid);
         }
@@ -225,7 +228,7 @@ impl<'a> CreateGuildChannel<'a> {
     }
 
     /// Attach an audit log reason to this request.
-    pub fn reason(mut self, reason: impl Into<Cow<'a, str>>) -> Self {
+    pub fn reason(mut self, reason: impl Into<String>) -> Self {
         self.reason.replace(reason.into());
 
         self

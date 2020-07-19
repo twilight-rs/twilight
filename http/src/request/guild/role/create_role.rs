@@ -1,17 +1,16 @@
 use crate::json_to_vec;
 use crate::request::prelude::*;
-use std::borrow::Cow;
 use twilight_model::{
     guild::{Permissions, Role},
     id::GuildId,
 };
 
 #[derive(Default, Serialize)]
-struct CreateRoleFields<'a> {
+struct CreateRoleFields {
     color: Option<u64>,
     hoist: Option<bool>,
     mentionable: Option<bool>,
-    name: Option<Cow<'a, str>>,
+    name: Option<String>,
     permissions: Option<Permissions>,
 }
 
@@ -35,11 +34,11 @@ struct CreateRoleFields<'a> {
 /// # Ok(()) }
 /// ```
 pub struct CreateRole<'a> {
-    fields: CreateRoleFields<'a>,
+    fields: CreateRoleFields,
     fut: Option<Pending<'a, Role>>,
     guild_id: GuildId,
     http: &'a Client,
-    reason: Option<Cow<'a, str>>,
+    reason: Option<String>,
 }
 
 impl<'a> CreateRole<'a> {
@@ -77,7 +76,7 @@ impl<'a> CreateRole<'a> {
     /// Set the name of the role.
     ///
     /// If none is specified, Discord sets this to `New Role`.
-    pub fn name(mut self, name: impl Into<Cow<'a, str>>) -> Self {
+    pub fn name(mut self, name: impl Into<String>) -> Self {
         self.fields.name.replace(name.into());
 
         self
@@ -91,7 +90,7 @@ impl<'a> CreateRole<'a> {
     }
 
     /// Attach an audit log reason to this request.
-    pub fn reason(mut self, reason: impl Into<Cow<'a, str>>) -> Self {
+    pub fn reason(mut self, reason: impl Into<String>) -> Self {
         self.reason.replace(reason.into());
 
         self

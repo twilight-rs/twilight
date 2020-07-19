@@ -1,16 +1,15 @@
 use crate::json_to_vec;
 use crate::request::prelude::*;
-use std::borrow::Cow;
 use twilight_model::{
     guild::Emoji,
     id::{GuildId, RoleId},
 };
 
 #[derive(Serialize)]
-struct CreateEmojiFields<'a> {
-    image: Cow<'a, str>,
-    name: Cow<'a, str>,
-    roles: Option<Cow<'a, [RoleId]>>,
+struct CreateEmojiFields {
+    image: String,
+    name: String,
+    roles: Option<Vec<RoleId>>,
 }
 
 /// Create an emoji in a guild.
@@ -22,18 +21,18 @@ struct CreateEmojiFields<'a> {
 /// [the discord docs]: https://discord.com/developers/docs/reference#image-data
 pub struct CreateEmoji<'a> {
     fut: Option<Pending<'a, Emoji>>,
-    fields: CreateEmojiFields<'a>,
+    fields: CreateEmojiFields,
     guild_id: GuildId,
     http: &'a Client,
-    reason: Option<Cow<'a, str>>,
+    reason: Option<String>,
 }
 
 impl<'a> CreateEmoji<'a> {
     pub(crate) fn new(
         http: &'a Client,
         guild_id: GuildId,
-        name: impl Into<Cow<'a, str>>,
-        image: impl Into<Cow<'a, str>>,
+        name: impl Into<String>,
+        image: impl Into<String>,
     ) -> Self {
         Self {
             fields: CreateEmojiFields {
@@ -53,14 +52,14 @@ impl<'a> CreateEmoji<'a> {
     /// Refer to [the discord docs] for more information.
     ///
     /// [the discord docs]: https://discord.com/developers/docs/resources/emoji
-    pub fn roles(mut self, roles: impl Into<Cow<'a, [RoleId]>>) -> Self {
-        self.fields.roles.replace(roles.into());
+    pub fn roles(mut self, roles: Vec<RoleId>) -> Self {
+        self.fields.roles.replace(roles);
 
         self
     }
 
     /// Attach an audit log reason to this request.
-    pub fn reason(mut self, reason: impl Into<Cow<'a, str>>) -> Self {
+    pub fn reason(mut self, reason: impl Into<String>) -> Self {
         self.reason.replace(reason.into());
 
         self

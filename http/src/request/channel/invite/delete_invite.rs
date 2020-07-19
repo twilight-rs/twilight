@@ -1,16 +1,15 @@
 use crate::request::prelude::*;
-use std::borrow::Cow;
 
 /// Delete an invite by its code.
 pub struct DeleteInvite<'a> {
-    code: Cow<'a, str>,
+    code: String,
     fut: Option<Pending<'a, ()>>,
     http: &'a Client,
-    reason: Option<Cow<'a, str>>,
+    reason: Option<String>,
 }
 
 impl<'a> DeleteInvite<'a> {
-    pub(crate) fn new(http: &'a Client, code: impl Into<Cow<'a, str>>) -> Self {
+    pub(crate) fn new(http: &'a Client, code: impl Into<String>) -> Self {
         Self {
             code: code.into(),
             fut: None,
@@ -20,20 +19,25 @@ impl<'a> DeleteInvite<'a> {
     }
 
     /// Attach an audit log reason to this request.
-    pub fn reason(mut self, reason: impl Into<Cow<'a, str>>) -> Self {
+    pub fn reason(mut self, reason: impl Into<String>) -> Self {
         self.reason.replace(reason.into());
 
         self
     }
 
     fn start(&mut self) -> Result<()> {
-        let reason = self.reason.take();
-
-        let request = if let Some(reason) = reason.as_deref() {
+        let request = if let Some(reason) = &self.reason {
             let headers = audit_header(&reason)?;
-            Request::from((headers, Route::DeleteInvite { code: &self.code }))
+            Request::from((
+                headers,
+                Route::DeleteInvite {
+                    code: self.code.clone(),
+                },
+            ))
         } else {
-            Request::from(Route::DeleteInvite { code: &self.code })
+            Request::from(Route::DeleteInvite {
+                code: self.code.clone(),
+            })
         };
 
         self.fut.replace(Box::pin(self.http.verify(request)));
