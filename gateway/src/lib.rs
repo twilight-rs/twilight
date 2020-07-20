@@ -26,9 +26,7 @@
 //! [build]
 //! rustflags = ["-C", "target-cpu=native"]
 //! ```
-//! you can also use this environment variable `RUSTFLAGS="-C target-cpu=native"`. If you enable both
-//! `serde_json` and `simd-json` at the same time; this crate uses `simd-json`. But it is recommended to
-//! disable `serde_json` if you are going to use `simd-json`. It is easy to switch to out:
+//! you can also use this environment variable `RUSTFLAGS="-C target-cpu=native"`.
 //!
 //! ```toml
 //! [dependencies]

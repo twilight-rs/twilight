@@ -8,16 +8,7 @@ HTTP support for the twilight ecosystem.
 
 ### Deserialization
 
-`twilight-http` supports [`serde_json`] and [`simd-json`] for deserializing
-responses. These features are mutually exclusive. `serde_json` is enabled by
-default.
-
-#### `serde_json`
-
-[`serde_json`] is the inverse of `simd-json` and will use the `serde_json`
-crate to deserialize responses.
-
-This is enabled by default.
+`twilight-http` supports [`serde_json`] and [`simd-json`] for deserializing responses.
 
 #### `simd-json`
 
@@ -65,7 +56,7 @@ To enable `rustls`, do something like this in your `Cargo.toml`:
 
 ```toml
 [dependencies]
-twilight-http = { branch = "trunk", default-features = false, features = ["rustls", "serde_json"], git = "https://github.com/twilight-rs/twilight" }
+twilight-http = { branch = "trunk", default-features = false, features = ["rustls"], git = "https://github.com/twilight-rs/twilight" }
 ```
 
 [`native-tls`]: https://crates.io/crates/native-tls
