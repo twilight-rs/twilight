@@ -35,10 +35,10 @@ struct UpdateGuildFields {
     afk_timeout: Option<u64>,
     default_message_notifications: Option<DefaultMessageNotificationLevel>,
     explicit_content_filter: Option<ExplicitContentFilter>,
-    #[serde(skip_serializing_if = "Option::is_none")]
     icon: Option<String>,
     #[serde(skip_serializing_if = "Option::is_none")]
     name: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     owner_id: Option<UserId>,
     region: Option<String>,
     splash: Option<String>,
