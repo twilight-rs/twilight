@@ -16,8 +16,8 @@ version = "0.1.0"
 twilight-builders = { optional = true, path = "../builders" }
 twilight-cache = { optional = true, path = "../cache/base" }
 twilight-command-parser = { optional = true, path = "../command-parser" }
-twilight-gateway = { default-features = false, features = ["serde_json"], optional = true, path = "../gateway" }
-twilight-http = { default-features = false, features = ["serde_json"], optional = true, path = "../http" }
+twilight-gateway = { default-features = false, optional = true, path = "../gateway" }
+twilight-http = { default-features = false, optional = true, path = "../http" }
 twilight-model = { optional = true, path = "../model" }
 twilight-standby = { optional = true, path = "../standby" }
 

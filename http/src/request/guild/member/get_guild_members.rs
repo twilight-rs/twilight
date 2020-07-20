@@ -1,7 +1,10 @@
 use crate::request::prelude::*;
 use bytes::Bytes;
 use serde::de::DeserializeSeed;
+#[cfg(not(feature = "simd-json"))]
 use serde_json::Value;
+#[cfg(feature = "simd-json")]
+use simd_json::value::OwnedValue as Value;
 use std::{
     error::Error,
     fmt::{Display, Formatter, Result as FmtResult},
@@ -146,7 +149,9 @@ impl Future for GetGuildMembers<'_> {
             Poll::Ready(res) => {
                 let bytes = res?;
                 let mut members = Vec::new();
-                let values = serde_json::from_slice::<Vec<Value>>(&bytes)?;
+
+                let mut bytes = bytes.as_ref().to_vec();
+                let values = crate::json_from_slice::<Vec<Value>>(&mut bytes)?;
 
                 for value in values {
                     let member_deserializer = MemberDeserializer::new(self.guild_id);

@@ -57,12 +57,14 @@ impl Future for GetGuildVanityUrl<'_> {
                     Poll::Pending => return Poll::Pending,
                 };
 
-                let vanity_url = serde_json::from_slice::<VanityUrl>(&bytes).map_err(|source| {
-                    Error::Parsing {
-                        body: bytes.to_vec(),
-                        source,
-                    }
-                })?;
+                let mut bytes = bytes.as_ref().to_vec();
+                let vanity_url =
+                    crate::json_from_slice::<VanityUrl>(&mut bytes).map_err(|source| {
+                        Error::Parsing {
+                            body: bytes.to_vec(),
+                            source,
+                        }
+                    })?;
 
                 return Poll::Ready(Ok(Some(vanity_url.code)));
             }

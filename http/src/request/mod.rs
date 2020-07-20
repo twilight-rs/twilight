@@ -28,6 +28,7 @@ macro_rules! poll_req {
                 mut self: std::pin::Pin<&mut Self>,
                 cx: &mut std::task::Context<'_>,
             ) -> ::std::task::Poll<Self::Output> {
+                use crate::json_from_slice;
                 use std::task::Poll;
 
                 loop {
@@ -43,7 +44,8 @@ macro_rules! poll_req {
                             Poll::Pending => return Poll::Pending,
                         };
 
-                        return Poll::Ready(serde_json::from_slice(&bytes).map(Some).map_err(
+                        let mut bytes = bytes.as_ref().to_vec();
+                        return Poll::Ready(json_from_slice(&mut bytes).map(Some).map_err(
                             |source| crate::Error::Parsing {
                                 body: bytes.to_vec(),
                                 source,
