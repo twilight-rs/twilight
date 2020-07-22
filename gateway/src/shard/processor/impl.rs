@@ -565,7 +565,7 @@ impl ShardProcessor {
     /// [`Error::PayloadInvalid`]: ../enum.Error.html#variant.PayloadInvalid
     /// [`Error::PayloadSerialization`]: ../enum.Error.html#variant.PayloadSerialization
     #[allow(unsafe_code)]
-    #[cfg(all(feature = "serde_json", not(feature = "simd-json")))]
+    #[cfg(not(feature = "simd-json"))]
     unsafe fn parse_gateway_event(json: &mut str) -> Result<GatewayEvent> {
         use serde::de::DeserializeSeed;
         use serde_json::Deserializer;
@@ -610,9 +610,9 @@ impl ShardProcessor {
         use twilight_model::gateway::event::gateway::GatewayEventDeserializerOwned;
 
         let gateway_deserializer =
-            GatewayEventDeserializerOwned::from_json(json).map_err(|_| Error::PayloadInvalid)?;
-        let mut json_deserializer = Deserializer::from_slice(unsafe { json.as_bytes_mut() })
-            .map_err(|_| Error::PayloadInvalid)?;
+            GatewayEventDeserializerOwned::from_json(json).ok_or_else(|| Error::PayloadInvalid)?;
+        let mut json_deserializer =
+            Deserializer::from_slice(json.as_bytes_mut()).map_err(|_| Error::PayloadInvalid)?;
 
         gateway_deserializer
             .deserialize(&mut json_deserializer)

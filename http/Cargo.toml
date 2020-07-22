@@ -20,15 +20,17 @@ twilight-model = { default-features = false, path = "../model" }
 tracing = { default-features = false, features = ["std", "attributes"], version = "0.1" }
 reqwest = { default-features = false, version = "0.10" }
 serde = { default-features = false, features = ["derive"], version = "1" }
-serde_json = { default-features = false, optional = true, version = "1" }
+serde_json = { default-features = false, version = "1" }
 serde_repr = { default-features = false, version = "0.1" }
-simd-json = { default-features = false, optional = true, version = "0.3" }
 tokio = { default-features = false, version = "0.2" }
 percent-encoding = { default-features = false, version = "2" }
 url = { default-features = false, version = "2" }
 
+# optional
+simd-json = { default-features = false, features = ["serde_impl", "swar-number-parsing"], optional = true, version = "0.3" }
+
 [features]
-default = ["native", "serde_json"]
+default = ["native"]
 native = ["reqwest/default-tls"]
 rustls = ["reqwest/rustls-tls"]
 

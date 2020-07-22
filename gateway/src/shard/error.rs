@@ -1,7 +1,7 @@
 //! The error type of why errors occur in the shard module.
 
 use futures_channel::mpsc::TrySendError;
-#[cfg(all(feature = "serde_json", not(feature = "simd-json")))]
+#[cfg(not(feature = "simd-json"))]
 use serde_json::Error as JsonError;
 #[cfg(feature = "simd-json")]
 use simd_json::Error as JsonError;

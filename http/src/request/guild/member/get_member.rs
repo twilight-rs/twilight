@@ -1,6 +1,9 @@
 use crate::request::prelude::*;
 use serde::de::DeserializeSeed;
+#[cfg(not(feature = "simd-json"))]
 use serde_json::Value;
+#[cfg(feature = "simd-json")]
+use simd_json::value::OwnedValue as Value;
 use std::{
     future::Future,
     pin::Pin,
@@ -59,7 +62,9 @@ impl Future for GetMember<'_> {
                     Poll::Pending => return Poll::Pending,
                 };
 
-                let value = serde_json::from_slice::<Value>(&bytes)?;
+                let mut bytes = bytes.as_ref().to_vec();
+                let value = crate::json_from_slice::<Value>(&mut bytes)?;
+
                 let member_deserializer = MemberDeserializer::new(self.guild_id);
                 let member = member_deserializer.deserialize(value)?;
 

@@ -26,9 +26,7 @@
 //! [build]
 //! rustflags = ["-C", "target-cpu=native"]
 //! ```
-//! you can also use this environment variable `RUSTFLAGS="-C target-cpu=native"`. If you enable both
-//! `serde_json` and `simd-json` at the same time; this crate uses `simd-json`. But it is recommended to
-//! disable `serde_json` if you are going to use `simd-json`. It is easy to switch to out:
+//! you can also use this environment variable `RUSTFLAGS="-C target-cpu=native"`.
 //!
 //! ```toml
 //! [dependencies]
@@ -62,12 +60,12 @@ pub use self::{
 };
 pub use twilight_model::gateway::event::{Event, EventType};
 
-#[cfg(all(feature = "serde_json", not(feature = "simd-json")))]
+#[cfg(not(feature = "simd-json"))]
 pub(crate) use serde_json::to_vec as json_to_vec;
 #[cfg(feature = "simd-json")]
 pub(crate) use simd_json::to_vec as json_to_vec;
 
-#[cfg(all(feature = "serde_json", not(feature = "simd-json")))]
+#[cfg(not(feature = "simd-json"))]
 pub(crate) use serde_json::to_string as json_to_string;
 #[cfg(feature = "simd-json")]
 pub(crate) use simd_json::to_string as json_to_string;
