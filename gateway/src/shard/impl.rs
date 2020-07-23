@@ -18,7 +18,6 @@ use std::{
     sync::{atomic::Ordering, Arc},
 };
 use tokio::sync::watch::Receiver as WatchReceiver;
-use tracing::debug;
 use twilight_model::gateway::event::Event;
 
 /// Information about a shard, including its latency, current session sequence,
@@ -155,7 +154,7 @@ impl Shard {
         tokio::spawn(async move {
             let _ = fut.await;
 
-            debug!("shard processor future ended");
+            tracing::debug!("shard processor future ended");
         });
 
         // We know that these haven't been set, so we can ignore this.

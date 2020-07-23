@@ -19,7 +19,6 @@ use std::{
         Arc,
     },
 };
-use tracing::debug;
 
 /// Global lock. We use a pair to avoid actually locking the mutex every check.
 /// This allows futures to only wait on the global lock when a global ratelimit
@@ -58,7 +57,7 @@ impl Ratelimiter {
     }
 
     pub async fn get(&self, path: Path) -> Receiver<Sender<Option<RatelimitHeaders>>> {
-        debug!("getting bucket for path: {:?}", path);
+        tracing::debug!("getting bucket for path: {:?}", path);
 
         let (tx, rx) = oneshot::channel();
         let (bucket, fresh) = self.entry(path.clone(), tx).await;
@@ -88,16 +87,16 @@ impl Ratelimiter {
 
         match buckets.entry(path.clone()) {
             Entry::Occupied(bucket) => {
-                debug!("got existing bucket: {:?}", path);
+                tracing::debug!("got existing bucket: {:?}", path);
 
                 let bucket = bucket.into_mut();
                 bucket.queue.push(tx);
-                debug!("added request into bucket queue: {:?}", path);
+                tracing::debug!("added request into bucket queue: {:?}", path);
 
                 (Arc::clone(&bucket), false)
             }
             Entry::Vacant(entry) => {
-                debug!("making new bucket for path: {:?}", path);
+                tracing::debug!("making new bucket for path: {:?}", path);
                 let bucket = Bucket::new(path.clone());
                 bucket.queue.push(tx);
 

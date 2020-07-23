@@ -14,7 +14,6 @@ use std::{
     time::{Duration, Instant},
 };
 use tokio::time::{delay_for, timeout};
-use tracing::debug;
 
 #[derive(Clone, Debug)]
 pub enum TimeRemaining {
@@ -185,7 +184,7 @@ impl BucketQueueTask {
 
             let _ = queue_tx.send(tx);
 
-            debug!(parent: &span, "starting to wait for response headers",);
+            tracing::debug!(parent: &span, "starting to wait for response headers",);
 
             // TODO: Find a better way of handling nested types.
             match timeout(Self::WAIT, rx).await {
@@ -194,12 +193,12 @@ impl BucketQueueTask {
                 // - channel was closed
                 // - timeout reached
                 Ok(Err(_)) | Err(_) | Ok(Ok(None)) => {
-                    debug!(parent: &span, "receiver timed out");
+                    tracing::debug!(parent: &span, "receiver timed out");
                 }
             }
         }
 
-        debug!(parent: &span, "bucket appears finished, removing");
+        tracing::debug!(parent: &span, "bucket appears finished, removing");
 
         self.buckets.lock().await.remove(&self.path);
     }
@@ -227,12 +226,12 @@ impl BucketQueueTask {
             }
         };
 
-        debug!(path=?self.path, "updating bucket");
+        tracing::debug!(path=?self.path, "updating bucket");
         self.bucket.update(ratelimits).await;
     }
 
     async fn lock_global(&self, wait: u64) {
-        debug!(path=?self.path, "request got global ratelimited");
+        tracing::debug!(path=?self.path, "request got global ratelimited");
         self.global.lock();
         let lock = self.global.0.lock().await;
         delay_for(Duration::from_millis(wait)).await;
@@ -242,7 +241,7 @@ impl BucketQueueTask {
     }
 
     async fn next(&self) -> Option<Sender<Sender<Option<RatelimitHeaders>>>> {
-        debug!(path=?self.path, "starting to get next in queue");
+        tracing::debug!(path=?self.path, "starting to get next in queue");
 
         self.wait_if_needed().await;
 
@@ -257,7 +256,7 @@ impl BucketQueueTask {
                 return;
             }
 
-            debug!(parent: &span, "0 tickets remaining, may have to wait");
+            tracing::debug!(parent: &span, "0 tickets remaining, may have to wait");
 
             match self.bucket.time_remaining().await {
                 TimeRemaining::Finished => {
@@ -270,7 +269,7 @@ impl BucketQueueTask {
             }
         };
 
-        debug!(
+        tracing::debug!(
             parent: &span,
             milliseconds=%wait.as_millis(),
             "waiting for ratelimit to pass",
@@ -278,7 +277,7 @@ impl BucketQueueTask {
 
         delay_for(wait).await;
 
-        debug!(parent: &span, "done waiting for ratelimit to pass");
+        tracing::debug!(parent: &span, "done waiting for ratelimit to pass");
 
         self.bucket.try_reset().await;
     }

@@ -11,7 +11,6 @@ use std::{
     },
     time::{Duration, Instant},
 };
-use tracing::{debug, error, warn};
 use twilight_model::gateway::payload::Heartbeat;
 
 /// Information about the latency of a [`Shard`]'s websocket connection.
@@ -112,7 +111,7 @@ impl Heartbeats {
             let millis = if let Ok(millis) = dur.as_millis().try_into() {
                 millis
             } else {
-                error!("duration millis is more than u64: {:?}", dur);
+                tracing::error!("duration millis is more than u64: {:?}", dur);
 
                 return;
             };
@@ -179,7 +178,7 @@ impl Heartbeater {
 
     pub async fn run(self) {
         if let Err(why) = self.run_inner().await {
-            warn!("Error sending heartbeat: {:?}", why);
+            tracing::warn!("Error sending heartbeat: {:?}", why);
         }
     }
 
@@ -215,11 +214,11 @@ impl Heartbeater {
             let bytes = crate::json_to_vec(&heartbeat)
                 .map_err(|source| Error::PayloadSerialization { source })?;
 
-            debug!("sending heartbeat with seq: {}", seq);
+            tracing::debug!("sending heartbeat with seq: {}", seq);
             self.tx
                 .unbounded_send(TungsteniteMessage::Binary(bytes))
                 .map_err(|source| Error::SendingMessage { source })?;
-            debug!("sent heartbeat with seq: {}", seq);
+            tracing::debug!("sent heartbeat with seq: {}", seq);
             self.heartbeats.send().await;
         }
     }

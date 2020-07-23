@@ -8,8 +8,6 @@ use futures_util::{
 };
 use std::time::Duration;
 use tokio::time::timeout;
-#[allow(unused_imports)]
-use tracing::{debug, info, trace, warn};
 
 pub struct SocketForwarder {
     rx: UnboundedReceiver<Message>,
@@ -38,19 +36,19 @@ impl SocketForwarder {
     }
 
     pub async fn run(mut self) {
-        debug!("starting driving loop");
+        tracing::debug!("starting driving loop");
 
         loop {
             match future::select(self.rx.next(), timeout(Self::TIMEOUT, self.stream.next())).await {
                 Either::Left((Some(msg), _)) => {
-                    trace!("sending message: {}", msg);
+                    tracing::trace!("sending message: {}", msg);
                     if let Err(err) = self.stream.send(msg).await {
-                        warn!("sending failed: {}", err);
+                        tracing::warn!("sending failed: {}", err);
                         break;
                     }
                 }
                 Either::Left((None, _)) => {
-                    debug!("rx stream ended, closing socket");
+                    tracing::debug!("rx stream ended, closing socket");
                     let _ = self.stream.close(None).await;
 
                     break;
@@ -61,22 +59,22 @@ impl SocketForwarder {
                     }
                 }
                 Either::Right((Ok(Some(Err(err))), _)) => {
-                    warn!("socket errored, closing tx: {}", err);
+                    tracing::warn!("socket errored, closing tx: {}", err);
                     self.tx.close_channel();
                     break;
                 }
                 Either::Right((Ok(None), _)) => {
-                    debug!("socket ended, closing tx");
+                    tracing::debug!("socket ended, closing tx");
                     self.tx.close_channel();
                     break;
                 }
                 Either::Right((Err(why), _)) => {
-                    warn!("socket errored, closing tx: {}", why);
+                    tracing::warn!("socket errored, closing tx: {}", why);
                     self.tx.close_channel();
                     break;
                 }
             }
         }
-        debug!("Leaving loop");
+        tracing::debug!("Leaving loop");
     }
 }

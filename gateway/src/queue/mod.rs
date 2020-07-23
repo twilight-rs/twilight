@@ -13,9 +13,6 @@ use futures_util::{sink::SinkExt, stream::StreamExt};
 use std::{fmt::Debug, time::Duration};
 use tokio::time::delay_for;
 
-#[allow(unused_imports)]
-use tracing::{info, warn};
-
 #[async_trait]
 pub trait Queue: Debug + Send + Sync {
     async fn request(&self, shard_id: [u64; 2]);
@@ -74,7 +71,7 @@ async fn waiter(mut rx: UnboundedReceiver<Sender<()>>) {
     const DUR: Duration = Duration::from_secs(6);
     while let Some(req) = rx.next().await {
         if let Err(err) = req.send(()) {
-            warn!("skipping, send failed: {:?}", err);
+            tracing::warn!("skipping, send failed: {:?}", err);
         }
         delay_for(DUR).await;
     }
@@ -89,11 +86,11 @@ impl Queue for LocalQueue {
         let (tx, rx) = oneshot::channel();
 
         if let Err(err) = self.0.clone().send(tx).await {
-            warn!("skipping, send failed: {:?}", err);
+            tracing::warn!("skipping, send failed: {:?}", err);
             return;
         }
 
-        info!("shard {}/{} waiting for allowance", id, total);
+        tracing::info!("shard {}/{} waiting for allowance", id, total);
 
         let _ = rx.await;
     }

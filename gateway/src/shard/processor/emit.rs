@@ -2,8 +2,6 @@ use crate::{
     listener::{Listener, Listeners},
     EventTypeFlags,
 };
-#[allow(unused_imports)]
-use tracing::{debug, info, trace, warn};
 use twilight_model::gateway::event::{shard::Payload, Event};
 
 pub async fn bytes(listeners: Listeners<Event>, bytes: &[u8]) {
@@ -44,7 +42,7 @@ pub fn event(listeners: &Listeners<Event>, event: Event) {
         let event_type = EventTypeFlags::from(event.kind());
 
         if !listener.events.contains(event_type) {
-            trace!("listener {} doesn't want event type {:?}", id, event_type,);
+            tracing::trace!("listener {} doesn't want event type {:?}", id, event_type,);
 
             continue;
         }
@@ -63,7 +61,7 @@ pub fn event(listeners: &Listeners<Event>, event: Event) {
     }
 
     for id in &remove_listeners {
-        debug!("removing listener {}", id);
+        tracing::debug!("removing listener {}", id);
 
         listeners.remove(id);
     }
@@ -77,7 +75,7 @@ fn _emit_to_listener(id: u64, listener: &Listener<Event>, event: Event) -> bool 
     let event_type = EventTypeFlags::from(event.kind());
 
     if !listener.events.contains(event_type) {
-        trace!("listener {} doesn't want event type {:?}", id, event_type,);
+        tracing::trace!("listener {} doesn't want event type {:?}", id, event_type,);
 
         return true;
     }

@@ -7,7 +7,6 @@ use futures_channel::{
 use futures_util::{sink::SinkExt, stream::StreamExt};
 use std::{fmt::Debug, time::Duration};
 use tokio::time::delay_for;
-use tracing::{info, warn};
 
 /// Large bot queue is for bots that are marked as very large by Discord.
 ///
@@ -60,7 +59,7 @@ async fn waiter(mut rx: UnboundedReceiver<Sender<()>>) {
     const DUR: Duration = Duration::from_secs(6);
     while let Some(req) = rx.next().await {
         if let Err(err) = req.send(()) {
-            warn!("skipping, send failed with: {:?}", err);
+            tracing::warn!("skipping, send failed with: {:?}", err);
         }
         delay_for(DUR).await;
     }
@@ -78,11 +77,11 @@ impl Queue for LargeBotQueue {
 
         self.limiter.get().await;
         if let Err(err) = self.buckets[bucket].clone().send(tx).await {
-            warn!("skipping, send failed with: {:?}", err);
+            tracing::warn!("skipping, send failed with: {:?}", err);
             return;
         }
 
-        info!("waiting for allowance on shard {}", shard_id[0]);
+        tracing::info!("waiting for allowance on shard {}", shard_id[0]);
 
         let _ = rx.await;
     }

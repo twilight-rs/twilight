@@ -23,7 +23,6 @@ use std::{
     result::Result as StdResult,
     sync::Arc,
 };
-use tracing::{debug, warn};
 use twilight_model::{
     channel::ReactionType,
     guild::Permissions,
@@ -1379,7 +1378,7 @@ impl Client {
         let protocol = if self.state.use_http { "http" } else { "https" };
         let url = format!("{}://discord.com/api/v6/{}", protocol, path);
 
-        debug!("URL: {:?}", url);
+        tracing::debug!("URL: {:?}", url);
 
         let mut builder = self.state.http.request(method.clone(), &url);
 
@@ -1448,7 +1447,7 @@ impl Client {
                 let _ = tx.send(Some(v));
             }
             Err(why) => {
-                warn!("header parsing failed: {:?}; {:?}", why, resp);
+                tracing::warn!("header parsing failed: {:?}; {:?}", why, resp);
 
                 let _ = tx.send(None);
             }
@@ -1498,14 +1497,14 @@ impl Client {
         }
 
         if status == StatusCode::IM_A_TEAPOT {
-            warn!(
+            tracing::warn!(
                 "discord's api now runs off of teapots -- proceed to panic: {:?}",
                 resp,
             );
         }
 
         if status == StatusCode::TOO_MANY_REQUESTS {
-            warn!("429 response: {:?}", resp);
+            tracing::warn!("429 response: {:?}", resp);
         }
 
         let bytes = resp
@@ -1523,7 +1522,7 @@ impl Client {
 
         if let ApiError::General(ref general) = error {
             if let ErrorCode::Other(num) = general.code {
-                debug!("got unknown API error code variant: {}; {:?}", num, error);
+                tracing::debug!("got unknown API error code variant: {}; {:?}", num, error);
             }
         }
 
