@@ -21,10 +21,10 @@ use std::{
 };
 use tracing::debug;
 
-// Global lock. We use a pair to avoid actually locking the mutex every check.
-// This allows futures to only wait on the global lock when a global ratelimit
-// is in place by, in turn, waiting for a guard, and then each immediately
-// dropping it.
+/// Global lock. We use a pair to avoid actually locking the mutex every check.
+/// This allows futures to only wait on the global lock when a global ratelimit
+/// is in place by, in turn, waiting for a guard, and then each immediately
+/// dropping it.
 #[derive(Debug, Default)]
 struct GlobalLockPair(Mutex<()>, AtomicBool);
 
