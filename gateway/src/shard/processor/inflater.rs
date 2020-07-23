@@ -2,9 +2,6 @@ use flate2::{Decompress, DecompressError, FlushDecompress};
 use std::convert::TryInto;
 use tracing::trace;
 
-#[cfg(feature = "metrics")]
-use metrics::gauge;
-
 const ZLIB_SUFFIX: [u8; 4] = [0x00, 0x00, 0xff, 0xff];
 const INTERNAL_BUFFER_SIZE: usize = 32 * 1024;
 
@@ -76,15 +73,15 @@ impl Inflater {
             }
             #[cfg(feature = "metrics")]
             {
-                gauge!(
+                metrics::gauge!(
                     format!("Inflater-Capacity-{}", self.shard[0]),
                     self.buffer.capacity().try_into().unwrap_or(-1)
                 );
-                gauge!(
+                metrics::gauge!(
                     format!("InflaterIn-{}", self.shard[0]),
                     self.decompress.total_in().try_into().unwrap_or(-1)
                 );
-                gauge!(
+                metrics::gauge!(
                     format!("InflaterOut-{}", self.shard[0]),
                     self.decompress.total_out().try_into().unwrap_or(-1)
                 );
