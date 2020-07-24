@@ -178,10 +178,8 @@ impl Shard {
     ///
     /// [`EventType::SHARD_PAYLOAD`]: events/struct.EventType.html#const.SHARD_PAYLOAD
     /// [`some_events`]: #method.some_events
-    pub async fn events(&self) -> impl Stream<Item = Event> {
-        let rx = self.0.listeners.add(EventTypeFlags::default());
-
-        Events::new(EventTypeFlags::default(), rx)
+    pub async fn events(&self) -> Events {
+        self.some_events(EventTypeFlags::default())
     }
 
     /// Creates a new filtered stream of events from the shard.
@@ -216,7 +214,7 @@ impl Shard {
     /// }
     /// # Ok(()) }
     /// ```
-    pub async fn some_events(&self, event_types: EventTypeFlags) -> impl Stream<Item = Event> {
+    pub async fn some_events(&self, event_types: EventTypeFlags) -> Events {
         let rx = self.0.listeners.add(event_types);
 
         Events::new(event_types, rx)

@@ -24,9 +24,9 @@
 
 pub mod config;
 pub mod error;
-pub mod event;
 pub mod stage;
 
+mod event;
 mod r#impl;
 mod processor;
 mod sink;
@@ -34,6 +34,7 @@ mod sink;
 pub use self::{
     config::ShardConfig,
     error::{Error, Result},
+    event::Events,
     processor::heartbeat::Latency,
     r#impl::{Information, ResumeSession, Shard},
     sink::ShardSink,
