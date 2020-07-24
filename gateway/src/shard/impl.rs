@@ -11,10 +11,7 @@ use async_tungstenite::tungstenite::{
     protocol::{frame::coding::CloseCode, CloseFrame},
     Message,
 };
-use futures_util::{
-    future::{self, AbortHandle},
-    stream::Stream,
-};
+use futures_util::future::{self, AbortHandle};
 use once_cell::sync::OnceCell;
 use std::{
     borrow::Cow,
@@ -179,7 +176,7 @@ impl Shard {
     /// [`EventType::SHARD_PAYLOAD`]: events/struct.EventType.html#const.SHARD_PAYLOAD
     /// [`some_events`]: #method.some_events
     pub async fn events(&self) -> Events {
-        self.some_events(EventTypeFlags::default())
+        self.some_events(EventTypeFlags::default()).await
     }
 
     /// Creates a new filtered stream of events from the shard.
