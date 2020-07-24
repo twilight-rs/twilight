@@ -3,13 +3,14 @@
 use async_tungstenite::tungstenite::{Error as TungsteniteError, Message as TungsteniteMessage};
 use flate2::DecompressError;
 use futures_channel::mpsc::TrySendError;
+use std::{fmt, str::Utf8Error};
+use twilight_model::gateway::GatewayIntents;
+use url::ParseError;
+
 #[cfg(not(feature = "simd-json"))]
 use serde_json::Error as JsonError;
 #[cfg(feature = "simd-json")]
 use simd_json::Error as JsonError;
-use std::{fmt, str::Utf8Error};
-use twilight_model::gateway::GatewayIntents;
-use url::ParseError;
 
 /// A result enum with the error type being the shard processor's [`Error`] type.
 ///
