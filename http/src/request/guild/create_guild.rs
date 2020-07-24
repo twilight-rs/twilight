@@ -1,4 +1,3 @@
-use crate::json_to_vec;
 use crate::request::prelude::*;
 use std::{
     error::Error,
@@ -187,7 +186,7 @@ impl<'a> CreateGuild<'a> {
 
     fn start(&mut self) -> Result<()> {
         self.fut.replace(Box::pin(self.http.request(Request::from((
-            json_to_vec(&self.fields)?,
+            crate::json_to_vec(&self.fields)?,
             Route::CreateGuild,
         )))));
 

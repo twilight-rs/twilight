@@ -1,11 +1,13 @@
 use super::error::{Error, Result};
-use crate::shard::ResumeSession;
 use crate::{
     queue::{LocalQueue, Queue},
-    shard::config::{ShardConfig, ShardConfigBuilder},
+    shard::{
+        config::{ShardConfig, ShardConfigBuilder},
+        ResumeSession,
+    },
 };
-use std::collections::HashMap;
 use std::{
+    collections::HashMap,
     convert::TryFrom,
     ops::{Bound, RangeBounds},
     sync::Arc,

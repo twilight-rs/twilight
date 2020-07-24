@@ -1,6 +1,5 @@
-use std::convert::TryInto;
-
 use flate2::{Decompress, DecompressError, FlushDecompress};
+use std::convert::TryInto;
 use tracing::trace;
 
 #[cfg(feature = "metrics")]

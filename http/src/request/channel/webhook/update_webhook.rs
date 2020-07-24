@@ -1,4 +1,3 @@
-use crate::json_to_vec;
 use crate::request::prelude::*;
 use twilight_model::{
     channel::Webhook,
@@ -71,7 +70,7 @@ impl<'a> UpdateWebhook<'a> {
         let request = if let Some(reason) = &self.reason {
             let headers = audit_header(&reason)?;
             Request::from((
-                json_to_vec(&self.fields)?,
+                crate::json_to_vec(&self.fields)?,
                 headers,
                 Route::UpdateWebhook {
                     token: None,
@@ -80,7 +79,7 @@ impl<'a> UpdateWebhook<'a> {
             ))
         } else {
             Request::from((
-                json_to_vec(&self.fields)?,
+                crate::json_to_vec(&self.fields)?,
                 Route::UpdateWebhook {
                     token: None,
                     webhook_id: self.webhook_id.0,

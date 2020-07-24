@@ -7,12 +7,10 @@ mod dispatch;
 mod kind;
 
 pub use self::{
-    dispatch::DispatchEvent,
+    dispatch::{DispatchEvent, DispatchEventWithTypeDeserializer},
     gateway::{GatewayEvent, GatewayEventDeserializer},
     kind::EventType,
 };
-
-pub use self::dispatch::DispatchEventWithTypeDeserializer;
 
 use self::shard::*;
 use super::payload::*;

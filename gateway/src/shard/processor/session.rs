@@ -3,6 +3,7 @@ use super::{
     error::{Error, Result},
     heartbeat::{Heartbeater, Heartbeats},
 };
+use async_tungstenite::tungstenite::{protocol::CloseFrame, Message as TungsteniteMessage};
 use futures_channel::mpsc::UnboundedSender;
 use futures_util::{
     future::{self, AbortHandle},
@@ -15,12 +16,10 @@ use std::{
         atomic::{AtomicU64, AtomicU8, Ordering},
         Arc,
     },
+    time::Duration,
 };
-use twilight_model::gateway::payload::Heartbeat;
-
-use async_tungstenite::tungstenite::{protocol::CloseFrame, Message as TungsteniteMessage};
-use std::time::Duration;
 use tokio::time::{interval, Interval};
+use twilight_model::gateway::payload::Heartbeat;
 
 #[derive(Debug)]
 pub struct Session {

@@ -1,5 +1,4 @@
 use super::allowed_mentions::{AllowedMentions, AllowedMentionsBuilder, Unspecified};
-use crate::json_to_vec;
 use crate::request::prelude::*;
 use reqwest::{
     multipart::{Form, Part},
@@ -202,7 +201,7 @@ impl<'a> CreateMessage<'a> {
         self.fut.replace(Box::pin(self.http.request(
             if self.attachments.is_empty() {
                 Request::from((
-                    json_to_vec(&self.fields)?,
+                    crate::json_to_vec(&self.fields)?,
                     Route::CreateMessage {
                         channel_id: self.channel_id.0,
                     },
@@ -215,7 +214,7 @@ impl<'a> CreateMessage<'a> {
                 }
 
                 Request::from((
-                    json_to_vec(&self.fields)?,
+                    crate::json_to_vec(&self.fields)?,
                     form,
                     Route::CreateMessage {
                         channel_id: self.channel_id.0,

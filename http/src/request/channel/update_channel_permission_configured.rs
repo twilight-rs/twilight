@@ -1,4 +1,3 @@
-use crate::json_to_vec;
 use crate::request::prelude::*;
 use twilight_model::{guild::Permissions, id::ChannelId};
 
@@ -53,7 +52,7 @@ impl<'a> UpdateChannelPermissionConfigured<'a> {
         let request = if let Some(reason) = &self.reason {
             let headers = audit_header(&reason)?;
             Request::from((
-                json_to_vec(&self.fields)?,
+                crate::json_to_vec(&self.fields)?,
                 headers,
                 Route::UpdatePermissionOverwrite {
                     channel_id: self.channel_id.0,
@@ -62,7 +61,7 @@ impl<'a> UpdateChannelPermissionConfigured<'a> {
             ))
         } else {
             Request::from((
-                json_to_vec(&self.fields)?,
+                crate::json_to_vec(&self.fields)?,
                 Route::UpdatePermissionOverwrite {
                     channel_id: self.channel_id.0,
                     target_id: self.target_id,

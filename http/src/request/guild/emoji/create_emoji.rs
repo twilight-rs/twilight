@@ -1,4 +1,3 @@
-use crate::json_to_vec;
 use crate::request::prelude::*;
 use twilight_model::{
     guild::Emoji,
@@ -69,7 +68,7 @@ impl<'a> CreateEmoji<'a> {
         let request = if let Some(reason) = &self.reason {
             let headers = audit_header(&reason)?;
             Request::from((
-                json_to_vec(&self.fields)?,
+                crate::json_to_vec(&self.fields)?,
                 headers,
                 Route::CreateEmoji {
                     guild_id: self.guild_id.0,
@@ -77,7 +76,7 @@ impl<'a> CreateEmoji<'a> {
             ))
         } else {
             Request::from((
-                json_to_vec(&self.fields)?,
+                crate::json_to_vec(&self.fields)?,
                 Route::CreateEmoji {
                     guild_id: self.guild_id.0,
                 },

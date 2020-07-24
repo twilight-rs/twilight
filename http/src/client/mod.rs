@@ -31,8 +31,6 @@ use twilight_model::{
 };
 use url::Url;
 
-use crate::json_from_slice;
-
 struct State {
     http: ReqwestClient,
     ratelimiter: Option<Ratelimiter>,
@@ -1470,7 +1468,7 @@ impl Client {
 
         let mut bytes_b = bytes.as_ref().to_vec();
 
-        let result = json_from_slice(&mut bytes_b);
+        let result = crate::json_from_slice(&mut bytes_b);
 
         result.map_err(|source| Error::Parsing {
             body: (*bytes).to_vec(),

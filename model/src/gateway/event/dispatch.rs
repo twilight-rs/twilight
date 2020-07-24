@@ -1,5 +1,4 @@
-use super::super::payload::*;
-use super::EventType;
+use super::{super::payload::*, EventType};
 use serde::{
     de::{Deserialize, DeserializeSeed, Deserializer, Error as DeError, IgnoredAny},
     Serialize,

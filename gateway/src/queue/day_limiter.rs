@@ -1,10 +1,9 @@
 use crate::shard::error::{Error, Result};
-
-use tokio::time::delay_until;
-
 use std::time::Duration;
-
-use tokio::{sync::Mutex, time::Instant};
+use tokio::{
+    sync::Mutex,
+    time::{self, Instant},
+};
 use tracing::warn;
 
 #[derive(Debug)]
@@ -49,7 +48,7 @@ impl DayLimiter {
             lock.current += 1;
         } else {
             let wait = lock.last_check + lock.next_reset;
-            delay_until(wait).await;
+            time::delay_until(wait).await;
             if let Ok(info) = lock.http.gateway().authed().await {
                 let last_check = Instant::now();
                 let next_reset = Duration::from_millis(info.session_start_limit.remaining);

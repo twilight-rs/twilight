@@ -2,9 +2,8 @@ use super::{
     config::{ClusterConfig, ShardScheme},
     error::{Error, Result},
 };
-use crate::shard::ResumeSession;
 use crate::{
-    shard::{Information, Shard},
+    shard::{Information, ResumeSession, Shard},
     EventTypeFlags,
 };
 use futures_util::{

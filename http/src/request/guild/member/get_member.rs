@@ -1,9 +1,5 @@
 use crate::request::prelude::*;
 use serde::de::DeserializeSeed;
-#[cfg(not(feature = "simd-json"))]
-use serde_json::Value;
-#[cfg(feature = "simd-json")]
-use simd_json::value::OwnedValue as Value;
 use std::{
     future::Future,
     pin::Pin,
@@ -13,6 +9,11 @@ use twilight_model::{
     guild::member::{Member, MemberDeserializer},
     id::{GuildId, UserId},
 };
+
+#[cfg(not(feature = "simd-json"))]
+use serde_json::Value;
+#[cfg(feature = "simd-json")]
+use simd_json::value::OwnedValue as Value;
 
 /// Get a member of a guild, by id.
 pub struct GetMember<'a> {

@@ -1,12 +1,8 @@
 //! The error type of why errors occur in the shard module.
 
-use futures_channel::mpsc::TrySendError;
-#[cfg(not(feature = "simd-json"))]
-use serde_json::Error as JsonError;
-#[cfg(feature = "simd-json")]
-use simd_json::Error as JsonError;
-
+use super::processor::Error as ProcessorError;
 use async_tungstenite::tungstenite::{Error as TungsteniteError, Message as TungsteniteMessage};
+use futures_channel::mpsc::TrySendError;
 use std::{
     error::Error as StdError,
     fmt::{Display, Formatter, Result as FmtResult},
@@ -14,7 +10,10 @@ use std::{
 };
 use twilight_http::Error as HttpError;
 
-use super::processor::Error as ProcessorError;
+#[cfg(not(feature = "simd-json"))]
+use serde_json::Error as JsonError;
+#[cfg(feature = "simd-json")]
+use simd_json::Error as JsonError;
 
 /// A result enum with the error type being the shard's [`Error`] type.
 ///
