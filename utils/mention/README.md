@@ -19,7 +19,7 @@ twilight-mention = { branch = "trunk", git = "https://github.com/twilight-rs/twi
 
 ## Examples
 
-Create a mention formatter a user ID, and then format it in a message:
+Create a mention formatter for a user ID, and then format it in a message:
 
 ```rust
 use twilight_mention::Mention;
