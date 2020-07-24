@@ -1,4 +1,3 @@
-use crate::json_to_vec;
 use crate::request::prelude::*;
 use twilight_model::id::GuildId;
 
@@ -27,7 +26,7 @@ impl<'a> UpdateCurrentUserNick<'a> {
 
     fn start(&mut self) -> Result<()> {
         self.fut.replace(Box::pin(self.http.request(Request::from((
-            json_to_vec(&self.fields)?,
+            crate::json_to_vec(&self.fields)?,
             Route::UpdateNickname {
                 guild_id: self.guild_id.0,
             },

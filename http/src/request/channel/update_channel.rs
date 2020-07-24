@@ -1,4 +1,3 @@
-use crate::json_to_vec;
 use crate::request::prelude::*;
 use std::{
     error::Error,
@@ -247,7 +246,7 @@ impl<'a> UpdateChannel<'a> {
         let request = if let Some(reason) = &self.reason {
             let headers = audit_header(&reason)?;
             Request::from((
-                json_to_vec(&self.fields)?,
+                crate::json_to_vec(&self.fields)?,
                 headers,
                 Route::UpdateChannel {
                     channel_id: self.channel_id.0,
@@ -255,7 +254,7 @@ impl<'a> UpdateChannel<'a> {
             ))
         } else {
             Request::from((
-                json_to_vec(&self.fields)?,
+                crate::json_to_vec(&self.fields)?,
                 Route::UpdateChannel {
                     channel_id: self.channel_id.0,
                 },

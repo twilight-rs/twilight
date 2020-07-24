@@ -40,7 +40,6 @@ pub use self::{
     stage::Stage,
 };
 
-use async_tungstenite::tokio::ConnectStream;
-use async_tungstenite::WebSocketStream;
+use async_tungstenite::{tokio::ConnectStream, WebSocketStream};
 
 type ShardStream = WebSocketStream<ConnectStream>;

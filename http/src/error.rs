@@ -1,11 +1,6 @@
 use crate::{api_error::ApiError, ratelimiting::RatelimitError};
 use futures_channel::oneshot::Canceled;
 use reqwest::{header::InvalidHeaderValue, Error as ReqwestError, StatusCode};
-#[cfg(not(feature = "simd-json"))]
-use serde_json::Error as JsonError;
-#[cfg(feature = "simd-json")]
-use simd_json::Error as JsonError;
-
 use std::{
     error::Error as StdError,
     fmt::{Display, Error as FmtError, Formatter, Result as FmtResult},
@@ -13,6 +8,11 @@ use std::{
     result::Result as StdResult,
 };
 use url::ParseError as UrlParseError;
+
+#[cfg(not(feature = "simd-json"))]
+use serde_json::Error as JsonError;
+#[cfg(feature = "simd-json")]
+use simd_json::Error as JsonError;
 
 pub type Result<T, E = Error> = StdResult<T, E>;
 

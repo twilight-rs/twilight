@@ -3,10 +3,9 @@ use crate::{
     guild::member::{Member, MemberMapDeserializer},
     id::{GuildId, UserId},
 };
-use serde::Serialize;
 use serde::{
     de::{Deserializer, Error as DeError, IgnoredAny, MapAccess, Visitor},
-    Deserialize,
+    Deserialize, Serialize,
 };
 use std::{
     collections::HashMap,

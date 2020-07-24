@@ -1,5 +1,4 @@
-use super::super::OpCode;
-use super::{DispatchEvent, DispatchEventWithTypeDeserializer};
+use super::{super::OpCode, DispatchEvent, DispatchEventWithTypeDeserializer};
 use serde::{
     de::{
         value::U8Deserializer, DeserializeSeed, Deserializer, Error as DeError, IgnoredAny,

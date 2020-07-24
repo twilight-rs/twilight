@@ -1,10 +1,6 @@
 use crate::request::prelude::*;
 use bytes::Bytes;
 use serde::de::DeserializeSeed;
-#[cfg(not(feature = "simd-json"))]
-use serde_json::Value;
-#[cfg(feature = "simd-json")]
-use simd_json::value::OwnedValue as Value;
 use std::{
     error::Error,
     fmt::{Display, Formatter, Result as FmtResult},
@@ -16,6 +12,11 @@ use twilight_model::{
     guild::member::{Member, MemberDeserializer},
     id::{GuildId, UserId},
 };
+
+#[cfg(not(feature = "simd-json"))]
+use serde_json::Value;
+#[cfg(feature = "simd-json")]
+use simd_json::value::OwnedValue as Value;
 
 /// The error created when the members can not be fetched as configured.
 #[derive(Clone, Debug)]

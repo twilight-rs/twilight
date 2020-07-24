@@ -6,8 +6,27 @@ use super::{
     session::Session,
     socket_forwarder::SocketForwarder,
 };
-
 use crate::listener::Listeners;
+use async_tungstenite::tungstenite::{
+    protocol::{frame::coding::CloseCode, CloseFrame},
+    Message,
+};
+use futures_channel::mpsc::UnboundedReceiver;
+use futures_util::stream::StreamExt;
+use serde::Serialize;
+use std::{
+    borrow::Cow,
+    env::consts::OS,
+    error::Error as StdError,
+    ops::Deref,
+    str,
+    sync::{atomic::Ordering, Arc},
+};
+use tokio::sync::watch::{
+    channel as watch_channel, Receiver as WatchReceiver, Sender as WatchSender,
+};
+#[allow(unused_imports)]
+use tracing::{debug, info, trace, warn};
 use twilight_model::gateway::{
     event::{
         shard::{Connected, Connecting, Disconnected, Identifying, Reconnecting, Resuming},
@@ -19,27 +38,8 @@ use twilight_model::gateway::{
     },
 };
 
-use async_tungstenite::tungstenite::{
-    protocol::{frame::coding::CloseCode, CloseFrame},
-    Message,
-};
-use futures_channel::mpsc::UnboundedReceiver;
-use futures_util::stream::StreamExt;
-use serde::Serialize;
-use std::{env::consts::OS, ops::Deref, str, sync::Arc};
-use tokio::sync::watch::{
-    channel as watch_channel, Receiver as WatchReceiver, Sender as WatchSender,
-};
-#[allow(unused_imports)]
-use tracing::{debug, info, trace, warn};
-
-use std::borrow::Cow;
-
 #[cfg(feature = "metrics")]
 use metrics::counter;
-
-use std::error::Error as StdError;
-use std::sync::atomic::Ordering;
 
 /// Runs in the background and processes incoming events, and then broadcasts
 /// to all listeners.

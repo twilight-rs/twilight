@@ -1,4 +1,3 @@
-use crate::json_to_vec;
 use crate::request::{channel::message::allowed_mentions::AllowedMentions, prelude::*};
 use std::{
     error::Error,
@@ -201,7 +200,7 @@ impl<'a> UpdateMessage<'a> {
 
     fn start(&mut self) -> Result<()> {
         self.fut.replace(Box::pin(self.http.request(Request::from((
-            json_to_vec(&self.fields)?,
+            crate::json_to_vec(&self.fields)?,
             Route::UpdateMessage {
                 channel_id: self.channel_id.0,
                 message_id: self.message_id.0,

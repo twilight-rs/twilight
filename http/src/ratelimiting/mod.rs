@@ -8,8 +8,8 @@ pub use self::{
     headers::RatelimitHeaders,
 };
 
-use self::bucket::{Bucket, BucketQueueTask};
 use crate::routing::Path;
+use bucket::{Bucket, BucketQueueTask};
 use futures_channel::oneshot::{self, Receiver, Sender};
 use futures_util::lock::Mutex;
 use std::{

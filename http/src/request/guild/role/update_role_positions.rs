@@ -1,4 +1,3 @@
-use crate::json_to_vec;
 use crate::request::prelude::*;
 use twilight_model::{
     guild::Role,
@@ -31,7 +30,7 @@ impl<'a> UpdateRolePositions<'a> {
 
     fn start(&mut self) -> Result<()> {
         self.fut.replace(Box::pin(self.http.request(Request::from((
-            json_to_vec(&self.roles)?,
+            crate::json_to_vec(&self.roles)?,
             Route::UpdateRolePositions {
                 guild_id: self.guild_id.0,
             },

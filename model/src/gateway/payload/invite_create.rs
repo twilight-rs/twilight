@@ -1,6 +1,8 @@
-use crate::id::{ChannelId, GuildId, UserId};
-use crate::invite::TargetUserType;
-use crate::user::User;
+use crate::{
+    id::{ChannelId, GuildId, UserId},
+    invite::TargetUserType,
+    user::User,
+};
 use serde::{Deserialize, Serialize};
 
 #[derive(Clone, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]

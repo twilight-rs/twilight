@@ -7,20 +7,21 @@ use super::{
     stage::Stage,
 };
 use crate::{listener::Listeners, EventTypeFlags};
+use async_tungstenite::tungstenite::{
+    protocol::{frame::coding::CloseCode, CloseFrame},
+    Message,
+};
 use futures_util::{
     future::{self, AbortHandle},
     stream::Stream,
 };
-
 use once_cell::sync::OnceCell;
-use std::sync::atomic::Ordering;
-use std::sync::Arc;
+use std::{
+    borrow::Cow,
+    sync::{atomic::Ordering, Arc},
+};
 use tokio::sync::watch::Receiver as WatchReceiver;
 use tracing::debug;
-
-use async_tungstenite::tungstenite::protocol::{frame::coding::CloseCode, CloseFrame};
-use async_tungstenite::tungstenite::Message;
-use std::borrow::Cow;
 use twilight_model::gateway::event::Event;
 
 /// Information about a shard, including its latency, current session sequence,
