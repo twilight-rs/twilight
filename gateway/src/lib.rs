@@ -58,7 +58,7 @@
 //!
 //! ```toml
 //! [dependencies]
-//! twilight-gateway = { branch = "trunk", default-features = false, features = ["native", "serde_json"], git = "https://github.com/twilight-rs/twilight" }
+//! twilight-gateway = { branch = "trunk", default-features = false, features = ["native"], git = "https://github.com/twilight-rs/twilight" }
 //! ```
 //!
 //! #### `rustls`
