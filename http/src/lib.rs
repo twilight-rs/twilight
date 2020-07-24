@@ -6,12 +6,13 @@
 //!
 //! ### Deserialization
 //!
-//! `twilight-http` supports [`serde_json`] and [`simd-json`] for deserializing responses.
+//! `twilight-http` supports [`serde_json`] and [`simd-json`] for deserializing
+//! responses.
 //!
 //! #### `simd-json`
 //!
-//! The `simd-json` feature enables [`simd-json`] support to use simd features of
-//! the modern cpus to deserialize responses faster. It is not enabled by
+//! The `simd-json` feature enables [`simd-json`] support to use simd features
+//! of modern cpus to deserialize responses faster. It is not enabled by
 //! default.
 //!
 //! To use this feature you need to also add these lines to
@@ -30,32 +31,32 @@
 //!
 //! ```toml
 //! [dependencies]
-//! twilight-http = { branch = "trunk", default-features = false, features = ["native", "simd-json"], git = "https://github.com/twilight-rs/twilight" }
+//! twilight-http = { branch = "trunk", default-features = false, features = ["rustls", "simd-json"], git = "https://github.com/twilight-rs/twilight" }
 //! ```
 //!
 //! ### TLS
 //!
 //! `twilight-http` has features to enable [`reqwest`]'s TLS features. These
-//! features are mutually exclusive. `native` is enabled by default.
+//! features are mutually exclusive. `rustls` is enabled by default.
 //!
 //! #### `native`
 //!
 //! The `native` feature enables [`reqwest`]'s `default-tls`
 //! feature, which is mostly equivalent to using [`native-tls`].
 //!
-//! This is enabled by default.
+//! To enable `native`, do something like this in your `Cargo.toml`:
+//!
+//! ```toml
+//! [dependencies]
+//! twilight-http = { branch = "trunk", default-features = false, features = ["native"], git = "https://github.com/twilight-rs/twilight" }
+//! ```
 //!
 //! #### `rustls`
 //!
 //! The `rustls` feature enables [`reqwest`]'s `rustls` feature, which uses
 //! [`rustls`] as the TLS backend.
 //!
-//! To enable `rustls`, do something like this in your `Cargo.toml`:
-//!
-//! ```toml
-//! [dependencies]
-//! twilight-http = { branch = "trunk", default-features = false, features = ["rustls"], git = "https://github.com/twilight-rs/twilight" }
-//! ```
+//! This is enabled by default.
 //!
 //! [`native-tls`]: https://crates.io/crates/native-tls
 //! [`reqwest`]: https://crates.io/crates/reqwest

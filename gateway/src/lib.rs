@@ -17,11 +17,20 @@
 //!
 //! ## Features
 //!
-//! `twilight-gateway` includes only a feature: `simd-json`.
+//! ### Deserialization
 //!
-//! `simd` feature enables [simd-json] support to use simd features of the modern cpus
-//! to deserialize json data faster. It is not enabled by default since not every cpu has those features.
-//! To use this feature you need to also add these lines to a file in `<project root>/.cargo/config`
+//! `twilight-gateway` supports [`serde_json`] and [`simd-json`] for
+//! deserializing and serializing events.
+//!
+//! #### `simd-json`
+//!
+//! The `simd-json` feature enables [`simd-json`] support to use simd features
+//! of modern cpus to deserialize responses faster. It is not enabled by
+//! default.
+//!
+//! To use this feature you need to also add these lines to
+//! `<project root>/.cargo/config`:
+//!
 //! ```toml
 //! [build]
 //! rustflags = ["-C", "target-cpu=native"]
@@ -30,10 +39,41 @@
 //!
 //! ```toml
 //! [dependencies]
-//! twilight-gateway = { branch = "trunk", default-features = false, features = ["simd-json"], git = "https://github.com/twilight-rs/twilight" }
+//! twilight-gateway = { branch = "trunk", default-features = false, features = ["rustls", "simd-json"], git = "https://github.com/twilight-rs/twilight" }
 //! ```
 //!
-//! [simd-json]: https://github.com/simd-lite/simd-json
+//! ### TLS
+//!
+//! `twilight-gateway` has features to enable [`async-tungstenite`] and
+//! [`twilight-http`]'s TLS features. These features are mutually exclusive.
+//! `rustls` is enabled by default.
+//!
+//! #### `native`
+//!
+//! The `native` feature enables [`async-tungstenite`]'s `tokio-native-tls`
+//! feature as well as [`twilight-http`]'s `native` feature which is mostly
+//! equivalent to using [`native-tls`].
+//!
+//! To enable `native`, do something like this in your `Cargo.toml`:
+//!
+//! ```toml
+//! [dependencies]
+//! twilight-gateway = { branch = "trunk", default-features = false, features = ["native"], git = "https://github.com/twilight-rs/twilight" }
+//! ```
+//!
+//! #### `rustls`
+//!
+//! The `rustls` feature enables [`async-tungstenite`]'s `async-tls` feature and
+//! [`twilight-http`]'s `rustls` feature, which use [`rustls`] as the TLS backend.
+//!
+//! This is enabled by default.
+//!
+//! [`async-tungstenite`]: https://crates.io/crates/async-tungstenite
+//! [`native-tls`]: https://crates.io/crates/native-tls
+//! [`rustls`]: https://crates.io/crates/rustls
+//! [`serde_json`]: https://crates.io/crates/serde_json
+//! [`simd-json`]: https://crates.io/crates/simd-json
+//! [`twilight-http`]: https://twilight-rs.github.io/twilight/twilight_http/index.html
 //! [docs:discord:sharding]: https://discord.com/developers/docs/topics/gateway#sharding
 
 #![deny(

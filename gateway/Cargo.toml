@@ -42,6 +42,6 @@ futures = { default-features = false, version = "0.3" }
 tokio = { default-features = false, features = ["rt-core", "macros"], version = "0.2" }
 
 [features]
-default = ["native"]
+default = ["rustls"]
 native = ["twilight-http/native", "async-tungstenite/tokio-native-tls"]
 rustls = ["twilight-http/rustls", "async-tungstenite/async-tls"]
