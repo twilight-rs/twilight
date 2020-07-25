@@ -11,6 +11,8 @@ use serde::{
 /// [`DispatchEventWithTypeDeserializer`].
 ///
 /// [`DispatchEventWithTypeDeserializer`]: struct.DispatchEventWithTypeDeserializer.html
+// **NOTE**: When adding a variant, be sure to add it to the DeserializeSeed
+// implementation.
 #[derive(Clone, Debug, Eq, PartialEq, Serialize)]
 pub enum DispatchEvent {
     BanAdd(BanAdd),
@@ -134,6 +136,11 @@ impl<'de, 'a> DeserializeSeed<'de> for DispatchEventWithTypeDeserializer<'a> {
             "CHANNEL_UPDATE" => {
                 DispatchEvent::ChannelUpdate(ChannelUpdate::deserialize(deserializer)?)
             }
+            "GIFT_CODE_UPDATE" => {
+                deserializer.deserialize_ignored_any(IgnoredAny)?;
+
+                DispatchEvent::GiftCodeUpdate
+            }
             "GUILD_BAN_ADD" => DispatchEvent::BanAdd(BanAdd::deserialize(deserializer)?),
             "GUILD_BAN_REMOVE" => DispatchEvent::BanRemove(BanRemove::deserialize(deserializer)?),
             "GUILD_CREATE" => {
@@ -231,5 +238,26 @@ impl<'de, 'a> DeserializeSeed<'de> for DispatchEventWithTypeDeserializer<'a> {
             }
             other => return Err(DeError::unknown_variant(other, &[])),
         })
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::{DispatchEvent, DispatchEventWithTypeDeserializer};
+    use serde::de::DeserializeSeed;
+    use serde_json::Deserializer;
+
+    #[test]
+    fn test_gift_code_update() {
+        // Input will be ignored so long as it's valid JSON.
+        let input = r#"{
+            "a": "b"
+        }"#;
+
+        let deserializer = DispatchEventWithTypeDeserializer::new("GIFT_CODE_UPDATE");
+        let mut json_deserializer = Deserializer::from_str(input);
+        let event = deserializer.deserialize(&mut json_deserializer).unwrap();
+
+        assert_eq!(event, DispatchEvent::GiftCodeUpdate);
     }
 }
