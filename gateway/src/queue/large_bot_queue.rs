@@ -25,9 +25,7 @@ impl LargeBotQueue {
         for _ in 0..buckets {
             let (tx, rx) = unbounded();
 
-            tokio::spawn(async {
-                waiter(rx).await;
-            });
+            tokio::spawn(waiter(rx));
 
             queues.push(tx)
         }
