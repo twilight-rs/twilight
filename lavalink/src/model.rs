@@ -32,7 +32,8 @@ pub enum Opcode {
     Volume,
 }
 
-mod outgoing {
+pub mod outgoing {
+    //! Events that clients send to Lavalink.
     use super::Opcode;
     use serde::{Deserialize, Serialize};
     use twilight_model::{gateway::payload::VoiceServerUpdate, id::GuildId};
@@ -456,7 +457,9 @@ mod outgoing {
     }
 }
 
-mod incoming {
+pub mod incoming {
+    //! Events that Lavalink sends to clients.
+
     use super::Opcode;
     use serde::{Deserialize, Serialize};
     use twilight_model::id::GuildId;
@@ -625,7 +628,16 @@ mod incoming {
     }
 }
 
-pub use self::{incoming::*, outgoing::*};
+pub use self::{
+    incoming::{
+        IncomingEvent, PlayerUpdate, PlayerUpdateState, Stats, StatsCpu, StatsFrames, StatsMemory,
+        TrackEnd, TrackEventType, TrackStart,
+    },
+    outgoing::{
+        Destroy, Equalizer, EqualizerBand, OutgoingEvent, Pause, Play, Seek, SlimVoiceServerUpdate,
+        Stop, VoiceUpdate, Volume,
+    },
+};
 
 #[cfg(test)]
 mod tests {
