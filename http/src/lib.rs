@@ -75,7 +75,6 @@
 )]
 #![allow(
     clippy::module_name_repetitions,
-    clippy::option_option,
     clippy::pub_enum_variant_names,
     clippy::must_use_candidate,
     clippy::missing_errors_doc
