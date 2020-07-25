@@ -13,6 +13,7 @@ use futures_util::{
 };
 use std::{
     collections::HashMap,
+    iter::FromIterator,
     sync::{Arc, Weak},
 };
 use twilight_model::gateway::event::Event;
@@ -157,10 +158,16 @@ impl Cluster {
         future::join_all(tasks).await;
     }
 
-    /// Brings down the cluster in a resumable way and returns all info needed for resuming
+    /// Brings down the cluster in a resumable way and returns all info needed
+    /// for resuming.
     ///
-    /// Note discord only allows resuming for a few minutes after disconnection. You can also not resume if you missed too many events already
-    pub async fn down_resumable(&self) -> Vec<(u64, Option<ResumeSession>)> {
+    /// The returned map is keyed by the shard's ID to the information needed
+    /// to resume. If a shard can't resume, then it is not included in the map.
+    ///
+    /// **Note**: Discord only allows resuming for a few minutes after
+    /// disconnection. You may also not be able to resume if you missed too many
+    /// events already.
+    pub async fn down_resumable(&self) -> HashMap<u64, ResumeSession> {
         let lock = self.0.shards.lock().await;
 
         let tasks = lock
@@ -168,7 +175,13 @@ impl Cluster {
             .map(Shard::shutdown_resumable)
             .collect::<Vec<_>>();
 
-        future::join_all(tasks).await
+        let sessions = future::join_all(tasks).await;
+
+        HashMap::from_iter(
+            sessions
+                .into_iter()
+                .filter_map(|(shard_id, session)| session.map(|session| (shard_id, session))),
+        )
     }
 
     /// Returns a Shard by its ID.
