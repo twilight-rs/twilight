@@ -1,6 +1,6 @@
 use super::{
-    super::{config::ShardConfig, stage::Stage},
-    connect, emit,
+    super::{config::ShardConfig, stage::Stage, ShardStream},
+    emit,
     error::{Error, Result},
     inflater::Inflater,
     session::Session,
@@ -37,6 +37,7 @@ use twilight_model::gateway::{
         resume::Resume,
     },
 };
+use url::Url;
 
 #[cfg(feature = "metrics")]
 use metrics::counter;
@@ -83,7 +84,7 @@ impl ShardProcessor {
                 shard_id: config.shard()[0],
             }),
         );
-        let stream = connect::connect(&url).await?;
+        let stream = Self::connect(&url).await?;
         let (forwarder, rx, tx) = SocketForwarder::new(stream);
         tokio::spawn(async move {
             forwarder.run().await;
@@ -356,7 +357,7 @@ impl ShardProcessor {
                 );
             }
 
-            let new_stream = match connect::connect(&self.url).await {
+            let new_stream = match Self::connect(&self.url).await {
                 Ok(s) => s,
                 Err(why) => {
                     warn!("Error reconnecting: {:?}", why);
@@ -545,6 +546,21 @@ impl ShardProcessor {
                 }
             }
         }
+    }
+
+    async fn connect(url: &str) -> Result<ShardStream> {
+        let url = Url::parse(url).map_err(|source| Error::ParsingUrl {
+            source,
+            url: url.to_owned(),
+        })?;
+
+        let (stream, _) = async_tungstenite::tokio::connect_async(url)
+            .await
+            .map_err(|source| Error::Connecting { source })?;
+
+        debug!("Shook hands with remote");
+
+        Ok(stream)
     }
 
     /// Parse a gateway event from a string using `serde_json`.
