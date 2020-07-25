@@ -40,7 +40,7 @@ mod tests {
             name: Some("foo".to_owned()),
         };
 
-        serde_test::assert_de_tokens(
+        serde_test::assert_tokens(
             &kind,
             &[
                 Token::Struct {
@@ -50,6 +50,26 @@ mod tests {
                 Token::Str("animated"),
                 Token::Bool(false),
                 Token::Str("id"),
+                Token::NewtypeStruct { name: "EmojiId" },
+                Token::Str("1337"),
+                Token::Str("name"),
+                Token::Some,
+                Token::Str("foo"),
+                Token::StructEnd,
+            ],
+        );
+
+        // When `animated` isn't present in the payload it should default to
+        // `false`.
+        serde_test::assert_de_tokens(
+            &kind,
+            &[
+                Token::Struct {
+                    name: "ReactionType",
+                    len: 2,
+                },
+                Token::Str("id"),
+                Token::NewtypeStruct { name: "EmojiId" },
                 Token::Str("1337"),
                 Token::Str("name"),
                 Token::Some,
@@ -65,15 +85,13 @@ mod tests {
             name: "\u{1f643}".to_owned(),
         };
 
-        serde_test::assert_de_tokens(
+        serde_test::assert_tokens(
             &kind,
             &[
                 Token::Struct {
                     name: "ReactionType",
-                    len: 2,
+                    len: 1,
                 },
-                Token::Str("id"),
-                Token::None,
                 Token::Str("name"),
                 Token::Str("\u{1f643}"),
                 Token::StructEnd,
