@@ -1,5 +1,5 @@
 [package]
-authors = ["AEnterprise <aenterprise@aenterprise.info>"]
+authors = ["Twilight Contributors"]
 edition = "2018"
 name = "twilight-gateway-example-request-members"
 publish = false

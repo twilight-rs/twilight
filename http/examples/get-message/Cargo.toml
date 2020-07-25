@@ -1,5 +1,5 @@
 [package]
-authors = ["Valdemar Erk <valdemar@erk.io>"]
+authors = ["Twilight Contributors"]
 edition = "2018"
 name = "twilight-http-example-get-message"
 publish = false
