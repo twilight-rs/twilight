@@ -170,10 +170,13 @@ impl Shard {
     /// There can be multiple streams of events. All events will be broadcast to
     /// all streams of events.
     ///
+    /// The returned event stream implements [`futures::stream::Stream`].
+    ///
     /// All event types except for [`EventType::SHARD_PAYLOAD`] are enabled.
     /// If you need to enable it, consider calling [`some_events`] instead.
     ///
     /// [`EventType::SHARD_PAYLOAD`]: events/struct.EventType.html#const.SHARD_PAYLOAD
+    /// [`futures::stream::Stream`]: https://docs.rs/futures/*/futures/stream/trait.Stream.html
     /// [`some_events`]: #method.some_events
     pub async fn events(&self) -> Events {
         self.some_events(EventTypeFlags::default()).await
@@ -182,6 +185,8 @@ impl Shard {
     /// Creates a new filtered stream of events from the shard.
     ///
     /// Only the events specified in the bitflags will be sent over the stream.
+    ///
+    /// The returned event stream implements [`futures::stream::Stream`].
     ///
     /// # Examples
     ///
@@ -211,6 +216,8 @@ impl Shard {
     /// }
     /// # Ok(()) }
     /// ```
+    ///
+    /// [`futures::stream::Stream`]: https://docs.rs/futures/*/futures/stream/trait.Stream.html
     pub async fn some_events(&self, event_types: EventTypeFlags) -> Events {
         let rx = self.0.listeners.add(event_types);
 
