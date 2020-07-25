@@ -34,6 +34,7 @@ pub enum Opcode {
 
 pub mod outgoing {
     //! Events that clients send to Lavalink.
+
     use super::Opcode;
     use serde::{Deserialize, Serialize};
     use twilight_model::{gateway::payload::VoiceServerUpdate, id::GuildId};
