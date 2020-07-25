@@ -32,6 +32,7 @@ impl Error for UpdateGuildError {}
 struct UpdateGuildFields {
     afk_channel_id: Option<ChannelId>,
     afk_timeout: Option<u64>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     banner: Option<Option<String>>,
     default_message_notifications: Option<DefaultMessageNotificationLevel>,
     explicit_content_filter: Option<ExplicitContentFilter>,
