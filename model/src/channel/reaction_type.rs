@@ -1,16 +1,11 @@
 use crate::id::EmojiId;
 use serde::{Deserialize, Serialize};
 
-// HACK: Hack needed until this is supported: https://github.com/serde-rs/serde/issues/368
-fn false_default() -> bool {
-    false
-}
-
 #[derive(Clone, Debug, Eq, Hash, PartialEq, Deserialize, Serialize)]
 #[serde(untagged)]
 pub enum ReactionType {
     Custom {
-        #[serde(default = "false_default")]
+        #[serde(default)]
         animated: bool,
         // Even though it says that the id can be nil in the docs,
         // it is a bit misleading as that should only happen when
