@@ -203,7 +203,7 @@ impl<'a> CreateGuildChannel<'a> {
     ///
     /// # Errors
     ///
-    /// Returns [`CreateGuildChannel::TopicInvalid`] if the topic length is
+    /// Returns [`CreateGuildChannelError::TopicInvalid`] if the topic length is
     /// too long.
     ///
     /// [the discord docs]: https://discordapp.com/developers/docs/resources/channel#channel-object-channel-structure
