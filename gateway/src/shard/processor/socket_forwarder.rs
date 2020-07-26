@@ -6,6 +6,7 @@ use futures_util::{
     sink::SinkExt,
     stream::StreamExt,
 };
+use std::time::Duration;
 use tokio::time::timeout;
 #[allow(unused_imports)]
 use tracing::{debug, info, trace, warn};
@@ -17,6 +18,8 @@ pub struct SocketForwarder {
 }
 
 impl SocketForwarder {
+    const TIMEOUT: Duration = Duration::from_secs(90);
+
     pub fn new(
         stream: ShardStream,
     ) -> (Self, UnboundedReceiver<Message>, UnboundedSender<Message>) {
@@ -35,10 +38,9 @@ impl SocketForwarder {
     }
 
     pub async fn run(mut self) {
-        const TIMEOUT: std::time::Duration = std::time::Duration::from_secs(90);
         debug!("[SocketForwarder] Starting driving loop");
         loop {
-            match future::select(self.rx.next(), timeout(TIMEOUT, self.stream.next())).await {
+            match future::select(self.rx.next(), timeout(Self::TIMEOUT, self.stream.next())).await {
                 Either::Left((Some(msg), _)) => {
                     trace!("[SocketForwarder] Sending msg: {}", msg);
                     if let Err(err) = self.stream.send(msg).await {
