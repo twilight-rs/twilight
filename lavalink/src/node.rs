@@ -360,10 +360,6 @@ impl Connection {
 
     async fn run(mut self) -> Result<(), NodeError> {
         loop {
-            if self.node_to.is_closed() {
-                break;
-            }
-
             let from_lavalink = self.connection.next();
             let to_lavalink = self.node_from.next();
 
