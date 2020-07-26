@@ -1,6 +1,5 @@
 pub mod heartbeat;
 
-mod connect;
 mod emit;
 mod error;
 mod r#impl;
