@@ -32,6 +32,9 @@ impl Error for UpdateGuildError {}
 struct UpdateGuildFields {
     afk_channel_id: Option<ChannelId>,
     afk_timeout: Option<u64>,
+    #[allow(clippy::option_option)]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    banner: Option<Option<String>>,
     default_message_notifications: Option<DefaultMessageNotificationLevel>,
     explicit_content_filter: Option<ExplicitContentFilter>,
     icon: Option<String>,
@@ -82,6 +85,18 @@ impl<'a> UpdateGuild<'a> {
     /// Set how much time it takes for a voice user to be considered AFK.
     pub fn afk_timeout(mut self, afk_timeout: u64) -> Self {
         self.fields.afk_timeout.replace(afk_timeout);
+
+        self
+    }
+
+    /// Set the banner.
+    ///
+    /// This is a base64 encoded 16:9 PNG or JPEG image. Pass `None` to remove
+    /// the banner.
+    ///
+    /// The server must have the `BANNER` feature.
+    pub fn banner(mut self, banner: impl Into<Option<String>>) -> Self {
+        self.fields.banner.replace(banner.into());
 
         self
     }
