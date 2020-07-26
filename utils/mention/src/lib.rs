@@ -146,11 +146,7 @@ impl Mention<ChannelId> for &'_ CategoryChannel {
 /// Mention a channel. This will format as `<#ID>`.
 impl Mention<ChannelId> for Channel {
     fn mention(&self) -> MentionFormat<ChannelId> {
-        MentionFormat(match self {
-            Self::Group(group) => group.id,
-            Self::Guild(guild) => guild_channel_id(guild),
-            Self::Private(private) => private.id,
-        })
+        MentionFormat(self.id())
     }
 }
 
@@ -220,7 +216,7 @@ impl Mention<ChannelId> for &'_ Group {
 /// Mention a guild channel. This will format as `<#ID>`.
 impl Mention<ChannelId> for GuildChannel {
     fn mention(&self) -> MentionFormat<ChannelId> {
-        MentionFormat(guild_channel_id(self))
+        MentionFormat(self.id())
     }
 }
 
@@ -340,14 +336,6 @@ impl Mention<ChannelId> for VoiceChannel {
 impl Mention<ChannelId> for &'_ VoiceChannel {
     fn mention(&self) -> MentionFormat<ChannelId> {
         (*self).mention()
-    }
-}
-
-fn guild_channel_id(channel: &GuildChannel) -> ChannelId {
-    match channel {
-        GuildChannel::Category(c) => c.id,
-        GuildChannel::Text(c) => c.id,
-        GuildChannel::Voice(c) => c.id,
     }
 }
 
