@@ -1553,7 +1553,7 @@ impl From<ReqwestClient> for Client {
     }
 }
 
-// parse the webhook id and token, if it exists in the string
+/// Parse the webhook ID and token, if it exists in the string.
 fn parse_webhook_url(
     url: impl AsRef<str>,
 ) -> std::result::Result<(WebhookId, Option<String>), UrlError> {

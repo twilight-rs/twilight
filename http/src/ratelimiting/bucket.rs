@@ -15,7 +15,6 @@ use std::{
 };
 use tokio::time::{delay_for, timeout};
 use tracing::debug;
-//use tokio::future::FutureExt as _;
 
 #[derive(Clone, Debug)]
 pub enum TimeRemaining {

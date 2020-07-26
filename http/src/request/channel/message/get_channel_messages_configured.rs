@@ -29,13 +29,13 @@ struct GetChannelMessagesConfiguredFields {
     limit: Option<u64>,
 }
 
-// nb: after, around, and before are mutually exclusive, so we use this
-// "configured" request to utilize the type system to prevent these from being
-// set in combination.
 /// This struct is returned when one of `after`, `around`, or `before` is specified in
 /// [`GetChannelMessages`].
 ///
 /// [`GetChannelMessages`]: ../get_channel_messages/struct.GetChannelMessages.html
+// nb: after, around, and before are mutually exclusive, so we use this
+// "configured" request to utilize the type system to prevent these from being
+// set in combination.
 pub struct GetChannelMessagesConfigured<'a> {
     after: Option<MessageId>,
     around: Option<MessageId>,
