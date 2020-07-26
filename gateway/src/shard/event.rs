@@ -29,8 +29,16 @@ use twilight_model::gateway::event::Event;
 /// event types returned by [`Events::event_types`] to see what events can come
 /// in through this stream.
 ///
+/// This implements [`futures::stream::Stream`].
+///
+/// # Examples
+///
+/// Refer to [`Shard::some_events`] for an example of how to use this.
+///
 /// [`Events::event_types`]: #method.event_types
 /// [`Shard`]: ../struct.Shard.html
+/// [`Shard::some_events`]: struct.Shard.html#method.some_events
+/// [`futures::stream::Stream`]: https://docs.rs/futures/*/futures/stream/trait.Stream.html
 pub struct Events {
     event_types: EventTypeFlags,
     rx: UnboundedReceiver<Event>,
