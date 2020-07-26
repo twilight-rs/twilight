@@ -8,6 +8,7 @@ pub mod get_guild_prune_count;
 pub mod integration;
 pub mod member;
 pub mod role;
+pub mod update_guild;
 
 mod delete_guild;
 mod get_guild;
@@ -19,7 +20,6 @@ mod get_guild_voice_regions;
 mod get_guild_webhooks;
 mod get_guild_widget;
 mod update_current_user_nick;
-mod update_guild;
 mod update_guild_channel_positions;
 mod update_guild_widget;
 

@@ -10,8 +10,8 @@
 //! the type of an event and to filter events from event streams via
 //! [`Shard::some_events`].
 //!
-//! [`Event`]: enum.Event.html
-//! [`EventType`]: ../struct.EventType.html
+//! [`Event`]: ../../../twilight_model/gateway/event/enum.Event.html
+//! [`EventType`]: ../../../twilight_model/gateway/event/enum.EventType.html
 //! [`Shard::some_events`]: ../struct.Shard.html#method.some_events
 
 use crate::EventTypeFlags;

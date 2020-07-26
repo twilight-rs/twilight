@@ -61,7 +61,7 @@ impl Information {
     /// For example, once a shard is fully booted then it will be
     /// [`Connected`].
     ///
-    /// [`Connected`]: enum.Stage.html
+    /// [`Connected`]: stage/enum.Stage.html#variant.Connected
     pub fn stage(&self) -> Stage {
         self.stage
     }
@@ -133,7 +133,7 @@ impl Shard {
     ///
     /// # Errors
     ///
-    /// Errors if the `ShardProcessor` could not be started.
+    /// Errors if the shard's processor could not be started.
     pub async fn start(&mut self) -> Result<()> {
         let url = self
             .0
@@ -172,10 +172,10 @@ impl Shard {
     ///
     /// The returned event stream implements [`futures::stream::Stream`].
     ///
-    /// All event types except for [`EventType::SHARD_PAYLOAD`] are enabled.
+    /// All event types except for [`EventType::ShardPayload`] are enabled.
     /// If you need to enable it, consider calling [`some_events`] instead.
     ///
-    /// [`EventType::SHARD_PAYLOAD`]: events/struct.EventType.html#const.SHARD_PAYLOAD
+    /// [`EventType::ShardPayload`]: ../../twilight_model/gateway/event/enum.EventType.html#variant.ShardPayload
     /// [`futures::stream::Stream`]: https://docs.rs/futures/*/futures/stream/trait.Stream.html
     /// [`some_events`]: #method.some_events
     pub async fn events(&self) -> Events {
@@ -217,8 +217,10 @@ impl Shard {
     /// # Ok(()) }
     /// ```
     ///
+    /// [`Event::ShardConnected`]: ../../twilight_model/gateway/event/enum.Event.html#variant.ShardConnected
+    /// [`Event::ShardDisconnected`]: ../../twilight_model/gateway/event/enum.Event.html#variant.ShardDisconnected
     /// [`futures::stream::Stream`]: https://docs.rs/futures/*/futures/stream/trait.Stream.html
-    pub async fn some_events(&self, event_types: EventTypeFlags) -> Events {
+    pub async fn some_events(&self, event_types: EventTypeFlags) -> impl Stream<Item = Event> {
         let rx = self.0.listeners.add(event_types);
 
         Events::new(event_types, rx)
@@ -229,9 +231,9 @@ impl Shard {
     ///
     /// # Errors
     ///
-    /// Returns [`Error::Shutdown`] if the shard isn't actively running.
+    /// Returns [`Error::Stopped`] if the shard isn't actively running.
     ///
-    /// [`Error::Shutdown`]: error/enum.Error.html
+    /// [`Error::Stopped`]: error/enum.Error.html#variant.Stopped
     pub async fn info(&self) -> Result<Information> {
         let session = self.session()?;
 
@@ -253,9 +255,9 @@ impl Shard {
     ///
     /// # Errors
     ///
-    /// Returns [`Error::Shutdown`] if the shard isn't actively running.
+    /// Returns [`Error::Stopped`] if the shard isn't actively running.
     ///
-    /// [`Error::Shutdown`]: error/enum.Error.html
+    /// [`Error::Stopped`]: error/enum.Error.html#variant.Stopped
     pub fn session(&self) -> Result<Arc<Session>> {
         let session = self.0.session.get().ok_or(Error::Stopped)?;
 
@@ -273,9 +275,9 @@ impl Shard {
     ///
     /// # Errors
     ///
-    /// Returns [`Error::Shutdown`] if the shard isn't actively running.
+    /// Returns [`Error::Stopped`] if the shard isn't actively running.
     ///
-    /// [`Error::Shutdown`]: error/enum.Error.html
+    /// [`Error::Stopped`]: error/enum.Error.html#variant.Stopped
     pub fn sink(&self) -> Result<ShardSink> {
         let session = self.session()?;
 
@@ -288,9 +290,9 @@ impl Shard {
     /// Fails if command could not be serialized, or if the command could
     /// not be sent.
     ///
-    /// Returns [`Error::Shutdown`] if the shard isn't actively running.
+    /// Returns [`Error::Stopped`] if the shard isn't actively running.
     ///
-    /// [`Error::Shutdown`]: error/enum.Error.html
+    /// [`Error::Stopped`]: error/enum.Error.html#variant.Stopped
     pub async fn command(&self, com: &impl serde::Serialize) -> Result<()> {
         let payload = Message::Text(
             crate::json_to_string(&com)

@@ -45,7 +45,7 @@ impl Cluster {
     /// Returns [`Error::GettingGatewayInfo`] if there was an HTTP error getting
     /// the gateway information.
     ///
-    /// [`Error::GettingGatewayInfo`]: ../error/enum.Error.html#variant.GettingGatewayInfo
+    /// [`Error::GettingGatewayInfo`]: ./error/enum.Error.html#variant.GettingGatewayInfo
     pub async fn new(config: impl Into<ClusterConfig>) -> Result<Self> {
         Self::_new(config.into()).await
     }
@@ -137,9 +137,9 @@ impl Cluster {
     /// Returns [`Error::GettingGatewayInfo`] if the [configured shard scheme]
     /// is [`ShardScheme::Auto`].
     ///
-    /// [`Error::GettingGatewayInfo`]: enum.Error.html#variant.GettingGatewayInfo
-    /// [`ShardScheme::Auto`]: config/enum.ShardScheme.html#variant.Auto
-    /// [configured shard scheme]: config/struct.ClusterConfig.html#method.shard_scheme
+    /// [`Error::GettingGatewayInfo`]: ./error/enum.Error.html#variant.GettingGatewayInfo
+    /// [`ShardScheme::Auto`]: ./config/enum.ShardScheme.html#variant.Auto
+    /// [configured shard scheme]: ./config/struct.ClusterConfig.html#method.shard_scheme
     pub async fn up(&self) {
         future::join_all(
             (self.0.shard_from..=self.0.shard_to)

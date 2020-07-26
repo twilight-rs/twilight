@@ -87,10 +87,6 @@ impl EmbedValidationError {
     pub const DESCRIPTION_LENGTH: usize = 2048;
 
     /// The maximum combined embed length in codepoints.
-    ///
-    /// See the [`embed`] function for more information.
-    ///
-    /// [`embed`]: fn.embed.html
     pub const EMBED_TOTAL_LENGTH: usize = 6000;
 
     /// The maximum number of fields in an embed.

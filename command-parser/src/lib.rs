@@ -2,7 +2,8 @@
 //!
 //! # twilight-command-parser
 //!
-//! `twilight-command-parser` is a command parser for the [`twilight`] ecosystem.
+//! `twilight-command-parser` is a command parser for the [`twilight-rs`]
+//! ecosystem.
 //!
 //! Included is a mutable configuration that allows you to specify the command
 //! names and prefixes. The parser parses out commands matching an available
@@ -59,7 +60,7 @@
 //! [license link]: https://opensource.org/licenses/ISC
 //! [rust badge]: https://img.shields.io/badge/rust-1.36+-93450a.svg?style=flat-square
 //! [rust link]: https://blog.rust-lang.org/2019/07/04/Rust-1.36.0.html
-//! [`twilight`]: https://twilight.valley.cafe
+//! [`twilight-rs`]: https://github.com/twilight-rs/twilight
 
 #![deny(
     clippy::all,

@@ -45,8 +45,9 @@ pub trait Queue: Debug + Send + Sync {
 /// If you can't use this, look into an alternative implementation of the
 /// [`Queue`], such as the [`gateway-queue`] broker.
 ///
-/// [`LargeBotQueue`]: ./queue/struct.LargeBotQueue.html
+/// [`LargeBotQueue`]: ./struct.LargeBotQueue.html
 /// [`Cluster`]: ../cluster/struct.Cluster.html
+/// [`Queue`]: trait.Queue.html
 /// [`Shard`]: ../shard/struct.Shard.html
 /// [`gateway-queue`]: https://github.com/twilight-rs/gateway-queue
 #[derive(Clone, Debug)]
