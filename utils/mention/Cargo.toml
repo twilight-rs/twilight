@@ -1,5 +1,5 @@
 [package]
-authors = ["Vivian Hellyer <vivian@hellyer.dev>"]
+authors = ["Twilight Contributors"]
 description = "Utility crate for twilight-model to create mentions for resources."
 documentation = "https://twilight.cascadia.cafe/twilight_mention/index.html"
 edition = "2018"

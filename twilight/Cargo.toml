@@ -1,5 +1,5 @@
 [package]
-authors = ["Valdemar Erk <valdemar@erk.io>"]
+authors = ["Twilight Contributors"]
 documentation = "https://docs.rs/twilight"
 edition = "2018"
 homepage = "https://github.com/twilight-rs/twilight"

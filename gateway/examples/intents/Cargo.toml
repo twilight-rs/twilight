@@ -1,5 +1,5 @@
 [package]
-authors = ["Valdemar Erk <valdemar@erk.io>"]
+authors = ["Twilight Contributors"]
 edition = "2018"
 name = "twilight-gateway-example-intents"
 version = "0.1.0"
