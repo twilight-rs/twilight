@@ -39,9 +39,6 @@ use twilight_model::gateway::{
 };
 use url::Url;
 
-#[cfg(feature = "metrics")]
-use metrics::counter;
-
 /// Runs in the background and processes incoming events, and then broadcasts
 /// to all listeners.
 #[derive(Debug)]
@@ -221,7 +218,7 @@ impl ShardProcessor {
         match event {
             Dispatch(seq, dispatch) => {
                 #[cfg(feature = "metrics")]
-                counter!("GatewayEvent", 1, "GatewayEvent" => "Dispatch");
+                metrics::counter!("GatewayEvent", 1, "GatewayEvent" => "Dispatch");
                 self.session.set_seq(*seq);
 
                 // this lint is wrong and generates invalid code
@@ -255,7 +252,7 @@ impl ShardProcessor {
             }
             Heartbeat(seq) => {
                 #[cfg(feature = "metrics")]
-                counter!("GatewayEvent", 1, "GatewayEvent" => "Heartbeat");
+                metrics::counter!("GatewayEvent", 1, "GatewayEvent" => "Heartbeat");
                 if *seq > self.session.seq() + 1 {
                     self.resume().await?;
                 }
@@ -268,7 +265,7 @@ impl ShardProcessor {
             }
             Hello(interval) => {
                 #[cfg(feature = "metrics")]
-                counter!("GatewayEvent", 1, "GatewayEvent" => "Hello");
+                metrics::counter!("GatewayEvent", 1, "GatewayEvent" => "Hello");
                 debug!("[EVENT] Hello({})", interval);
 
                 if self.session.stage() == Stage::Resuming && self.resume.is_some() {
@@ -300,24 +297,24 @@ impl ShardProcessor {
             }
             HeartbeatAck => {
                 #[cfg(feature = "metrics")]
-                counter!("GatewayEvent", 1, "GatewayEvent" => "HeartbeatAck");
+                metrics::counter!("GatewayEvent", 1, "GatewayEvent" => "HeartbeatAck");
                 self.session.heartbeats.receive().await;
             }
             InvalidateSession(true) => {
                 #[cfg(feature = "metrics")]
-                counter!("GatewayEvent", 1, "GatewayEvent" => "InvalidateSessionTrue");
+                metrics::counter!("GatewayEvent", 1, "GatewayEvent" => "InvalidateSessionTrue");
                 debug!("[EVENT] InvalidateSession(true)");
                 self.resume().await?;
             }
             InvalidateSession(false) => {
                 #[cfg(feature = "metrics")]
-                counter!("GatewayEvent", 1, "GatewayEvent" => "InvalidateSessionFalse");
+                metrics::counter!("GatewayEvent", 1, "GatewayEvent" => "InvalidateSessionFalse");
                 debug!("[EVENT] InvalidateSession(false)");
                 self.reconnect(true).await;
             }
             Reconnect => {
                 #[cfg(feature = "metrics")]
-                counter!("GatewayEvent", 1, "GatewayEvent" => "Reconnect");
+                metrics::counter!("GatewayEvent", 1, "GatewayEvent" => "Reconnect");
                 debug!("[EVENT] Reconnect");
                 let frame = CloseFrame {
                     code: CloseCode::Restart,
