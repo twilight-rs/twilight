@@ -6,10 +6,15 @@ use twilight_model::{
 
 #[derive(Default, Serialize)]
 struct CreateRoleFields {
+    #[serde(skip_serializing_if = "Option::is_none")]
     color: Option<u64>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     hoist: Option<bool>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     mentionable: Option<bool>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     name: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     permissions: Option<Permissions>,
 }
 

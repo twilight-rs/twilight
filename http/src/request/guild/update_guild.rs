@@ -30,25 +30,48 @@ impl Error for UpdateGuildError {}
 
 #[derive(Default, Serialize)]
 struct UpdateGuildFields {
-    afk_channel_id: Option<ChannelId>,
+    #[allow(clippy::option_option)]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    afk_channel_id: Option<Option<ChannelId>>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     afk_timeout: Option<u64>,
     #[allow(clippy::option_option)]
     #[serde(skip_serializing_if = "Option::is_none")]
     banner: Option<Option<String>>,
-    default_message_notifications: Option<DefaultMessageNotificationLevel>,
-    explicit_content_filter: Option<ExplicitContentFilter>,
-    icon: Option<String>,
+    #[allow(clippy::option_option)]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    default_message_notifications: Option<Option<DefaultMessageNotificationLevel>>,
+    #[allow(clippy::option_option)]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    explicit_content_filter: Option<Option<ExplicitContentFilter>>,
+    #[allow(clippy::option_option)]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    icon: Option<Option<String>>,
     #[serde(skip_serializing_if = "Option::is_none")]
     name: Option<String>,
     #[serde(skip_serializing_if = "Option::is_none")]
     owner_id: Option<UserId>,
-    region: Option<String>,
-    splash: Option<String>,
-    system_channel_id: Option<ChannelId>,
-    verification_level: Option<VerificationLevel>,
-    rules_channel_id: Option<ChannelId>,
-    public_updates_channel_id: Option<ChannelId>,
-    preferred_locale: Option<String>,
+    #[allow(clippy::option_option)]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    region: Option<Option<String>>,
+    #[allow(clippy::option_option)]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    splash: Option<Option<String>>,
+    #[allow(clippy::option_option)]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    system_channel_id: Option<Option<ChannelId>>,
+    #[allow(clippy::option_option)]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    verification_level: Option<Option<VerificationLevel>>,
+    #[allow(clippy::option_option)]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    rules_channel_id: Option<Option<ChannelId>>,
+    #[allow(clippy::option_option)]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    public_updates_channel_id: Option<Option<ChannelId>>,
+    #[allow(clippy::option_option)]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    preferred_locale: Option<Option<String>>,
 }
 
 /// Update a guild.
@@ -76,7 +99,7 @@ impl<'a> UpdateGuild<'a> {
     }
 
     /// Set the voice channel where AFK voice users are sent.
-    pub fn afk_channel_id(mut self, afk_channel_id: impl Into<ChannelId>) -> Self {
+    pub fn afk_channel_id(mut self, afk_channel_id: impl Into<Option<ChannelId>>) -> Self {
         self.fields.afk_channel_id.replace(afk_channel_id.into());
 
         self
@@ -107,11 +130,11 @@ impl<'a> UpdateGuild<'a> {
     /// [the discord docs]: https://discord.com/developers/docs/resources/guild#create-guild
     pub fn default_message_notifications(
         mut self,
-        default_message_notifications: DefaultMessageNotificationLevel,
+        default_message_notifications: impl Into<Option<DefaultMessageNotificationLevel>>,
     ) -> Self {
         self.fields
             .default_message_notifications
-            .replace(default_message_notifications);
+            .replace(default_message_notifications.into());
 
         self
     }
@@ -119,11 +142,11 @@ impl<'a> UpdateGuild<'a> {
     /// Set the explicit content filter level.
     pub fn explicit_content_filter(
         mut self,
-        explicit_content_filter: ExplicitContentFilter,
+        explicit_content_filter: impl Into<Option<ExplicitContentFilter>>,
     ) -> Self {
         self.fields
             .explicit_content_filter
-            .replace(explicit_content_filter);
+            .replace(explicit_content_filter.into());
 
         self
     }
@@ -135,7 +158,7 @@ impl<'a> UpdateGuild<'a> {
     /// for more information.
     ///
     /// [the discord docs]: https://discord.com/developers/docs/reference#image-data
-    pub fn icon(mut self, icon: impl Into<String>) -> Self {
+    pub fn icon(mut self, icon: impl Into<Option<String>>) -> Self {
         self.fields.icon.replace(icon.into());
 
         self
@@ -179,7 +202,7 @@ impl<'a> UpdateGuild<'a> {
     /// information.
     ///
     /// [the discord docs]: https://discord.com/developers/docs/resources/voice#voice-region-object
-    pub fn region(mut self, region: impl Into<String>) -> Self {
+    pub fn region(mut self, region: impl Into<Option<String>>) -> Self {
         self.fields.region.replace(region.into());
 
         self
@@ -188,14 +211,14 @@ impl<'a> UpdateGuild<'a> {
     /// Set the guild's splash image.
     ///
     /// Requires the guild to have the `INVITE_SPLASH` feature enabled.
-    pub fn splash(mut self, splash: impl Into<String>) -> Self {
+    pub fn splash(mut self, splash: impl Into<Option<String>>) -> Self {
         self.fields.splash.replace(splash.into());
 
         self
     }
 
     /// Set the channel where events such as welcome messages are posted.
-    pub fn system_channel(mut self, system_channel_id: impl Into<ChannelId>) -> Self {
+    pub fn system_channel(mut self, system_channel_id: impl Into<Option<ChannelId>>) -> Self {
         self.fields
             .system_channel_id
             .replace(system_channel_id.into());
@@ -208,7 +231,7 @@ impl<'a> UpdateGuild<'a> {
     /// Requires the guild to be `PUBLIC`. Refer to [the discord docs] for more information.
     ///
     /// [the discord docs]: https://discord.com/developers/docs/resources/guild#modify-guild
-    pub fn rules_channel(mut self, rules_channel_id: impl Into<ChannelId>) -> Self {
+    pub fn rules_channel(mut self, rules_channel_id: impl Into<Option<ChannelId>>) -> Self {
         self.fields
             .rules_channel_id
             .replace(rules_channel_id.into());
@@ -221,7 +244,7 @@ impl<'a> UpdateGuild<'a> {
     /// Requires the guild to be `PUBLIC`.
     pub fn public_updates_channel(
         mut self,
-        public_updates_channel_id: impl Into<ChannelId>,
+        public_updates_channel_id: impl Into<Option<ChannelId>>,
     ) -> Self {
         self.fields
             .public_updates_channel_id
@@ -233,7 +256,7 @@ impl<'a> UpdateGuild<'a> {
     /// Set the preferred locale for the guild.
     ///
     /// Defaults to `en-US`. Requires the guild to be `PUBLIC`.
-    pub fn preferred_locale(mut self, preferred_locale: impl Into<String>) -> Self {
+    pub fn preferred_locale(mut self, preferred_locale: impl Into<Option<String>>) -> Self {
         self.fields
             .preferred_locale
             .replace(preferred_locale.into());
@@ -244,8 +267,13 @@ impl<'a> UpdateGuild<'a> {
     /// Set the verification level. Refer to [the discord docs] for more information.
     ///
     /// [the discord docs]: https://discord.com/developers/docs/resources/guild#guild-object-verification-level
-    pub fn verification_level(mut self, verification_level: VerificationLevel) -> Self {
-        self.fields.verification_level.replace(verification_level);
+    pub fn verification_level(
+        mut self,
+        verification_level: impl Into<Option<VerificationLevel>>,
+    ) -> Self {
+        self.fields
+            .verification_level
+            .replace(verification_level.into());
 
         self
     }

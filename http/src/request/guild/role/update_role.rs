@@ -6,10 +6,17 @@ use twilight_model::{
 
 #[derive(Default, Serialize)]
 struct UpdateRoleFields {
-    color: Option<u64>,
+    #[allow(clippy::option_option)]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    color: Option<Option<u64>>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     hoist: Option<bool>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     mentionable: Option<bool>,
-    name: Option<String>,
+    #[allow(clippy::option_option)]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    name: Option<Option<String>>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     permissions: Option<Permissions>,
 }
 
@@ -36,8 +43,8 @@ impl<'a> UpdateRole<'a> {
     }
 
     /// Set the color of the role.
-    pub fn color(mut self, color: u64) -> Self {
-        self.fields.color.replace(color);
+    pub fn color(mut self, color: impl Into<Option<u64>>) -> Self {
+        self.fields.color.replace(color.into());
 
         self
     }
@@ -57,7 +64,7 @@ impl<'a> UpdateRole<'a> {
     }
 
     /// Set the name of the role.
-    pub fn name(mut self, name: impl Into<String>) -> Self {
+    pub fn name(mut self, name: impl Into<Option<String>>) -> Self {
         self.fields.name.replace(name.into());
 
         self

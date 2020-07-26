@@ -3,8 +3,12 @@ use twilight_model::{channel::Webhook, id::WebhookId};
 
 #[derive(Default, Serialize)]
 struct UpdateWebhookWithTokenFields {
-    avatar: Option<String>,
-    name: Option<String>,
+    #[allow(clippy::option_option)]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    avatar: Option<Option<String>>,
+    #[allow(clippy::option_option)]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    name: Option<Option<String>>,
 }
 
 /// Update a webhook, with a token, by ID.
@@ -34,14 +38,14 @@ impl<'a> UpdateWebhookWithToken<'a> {
     /// base64-encoded image.
     ///
     /// [Discord Docs/Image Data]: https://discord.com/developers/docs/reference#image-data
-    pub fn avatar(mut self, avatar: impl Into<String>) -> Self {
+    pub fn avatar(mut self, avatar: impl Into<Option<String>>) -> Self {
         self.fields.avatar.replace(avatar.into());
 
         self
     }
 
     /// Change the name of the webhook.
-    pub fn name(mut self, name: impl Into<String>) -> Self {
+    pub fn name(mut self, name: impl Into<Option<String>>) -> Self {
         self.fields.name.replace(name.into());
 
         self

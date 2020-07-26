@@ -6,7 +6,9 @@ use twilight_model::{
 
 #[derive(Default, Serialize)]
 struct UpdateEmojiFields {
+    #[serde(skip_serializing_if = "Option::is_none")]
     name: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     roles: Option<Vec<RoleId>>,
 }
 
