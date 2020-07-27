@@ -8,6 +8,7 @@ use twilight_model::{
 struct CreateEmojiFields {
     image: String,
     name: String,
+    #[serde(skip_serializing_if = "Option::is_none")]
     roles: Option<Vec<RoleId>>,
 }
 

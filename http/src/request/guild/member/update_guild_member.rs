@@ -27,10 +27,17 @@ impl Error for UpdateGuildMemberError {}
 
 #[derive(Default, Serialize)]
 struct UpdateGuildMemberFields {
-    channel_id: Option<ChannelId>,
+    #[allow(clippy::option_option)]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    channel_id: Option<Option<ChannelId>>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     deaf: Option<bool>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     mute: Option<bool>,
-    nick: Option<String>,
+    #[allow(clippy::option_option)]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    nick: Option<Option<String>>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     roles: Option<Vec<RoleId>>,
 }
 
@@ -68,7 +75,7 @@ impl<'a> UpdateGuildMember<'a> {
     }
 
     /// Move the member to a different voice channel.
-    pub fn channel_id(mut self, channel_id: impl Into<ChannelId>) -> Self {
+    pub fn channel_id(mut self, channel_id: impl Into<Option<ChannelId>>) -> Self {
         self.fields.channel_id.replace(channel_id.into());
 
         self
@@ -98,13 +105,15 @@ impl<'a> UpdateGuildMember<'a> {
     /// too long.
     ///
     /// [`UpdateGuildMemberError::NicknameInvalid`]: enum.UpdateGuildMemberError.html#variant.NicknameInvalid
-    pub fn nick(self, nick: impl Into<String>) -> Result<Self, UpdateGuildMemberError> {
+    pub fn nick(self, nick: impl Into<Option<String>>) -> Result<Self, UpdateGuildMemberError> {
         self._nick(nick.into())
     }
 
-    fn _nick(mut self, nick: String) -> Result<Self, UpdateGuildMemberError> {
-        if !validate::nickname(&nick) {
-            return Err(UpdateGuildMemberError::NicknameInvalid);
+    fn _nick(mut self, nick: Option<String>) -> Result<Self, UpdateGuildMemberError> {
+        if let Some(nick) = nick.as_ref() {
+            if !validate::nickname(&nick) {
+                return Err(UpdateGuildMemberError::NicknameInvalid);
+            }
         }
 
         self.fields.nick.replace(nick);

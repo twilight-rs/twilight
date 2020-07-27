@@ -46,11 +46,17 @@ impl Error for CreateMessageError {
 
 #[derive(Default, Serialize)]
 pub(crate) struct CreateMessageFields {
+    #[serde(skip_serializing_if = "Option::is_none")]
     content: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     embed: Option<Embed>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     nonce: Option<u64>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     payload_json: Option<Vec<u8>>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     tts: Option<bool>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub(crate) allowed_mentions: Option<AllowedMentions>,
 }
 

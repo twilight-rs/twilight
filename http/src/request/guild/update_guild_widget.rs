@@ -6,7 +6,10 @@ use twilight_model::{
 
 #[derive(Default, Serialize)]
 struct UpdateGuildWidgetFields {
-    channel_id: Option<ChannelId>,
+    #[allow(clippy::option_option)]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    channel_id: Option<Option<ChannelId>>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     enabled: Option<bool>,
 }
 
@@ -29,7 +32,7 @@ impl<'a> UpdateGuildWidget<'a> {
     }
 
     /// Set which channel to display on the widget.
-    pub fn channel_id(mut self, channel_id: impl Into<ChannelId>) -> Self {
+    pub fn channel_id(mut self, channel_id: impl Into<Option<ChannelId>>) -> Self {
         self.fields.channel_id.replace(channel_id.into());
 
         self

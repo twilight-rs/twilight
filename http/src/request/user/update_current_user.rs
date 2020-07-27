@@ -25,8 +25,9 @@ impl Error for UpdateCurrentUserError {}
 
 #[derive(Default, Serialize)]
 struct UpdateCurrentUserFields {
+    #[allow(clippy::option_option)]
     #[serde(skip_serializing_if = "Option::is_none")]
-    avatar: Option<String>,
+    avatar: Option<Option<String>>,
     #[serde(skip_serializing_if = "Option::is_none")]
     username: Option<String>,
 }
@@ -57,7 +58,7 @@ impl<'a> UpdateCurrentUser<'a> {
     /// for more information.
     ///
     /// [the discord docs]: https://discord.com/developers/docs/reference#image-data
-    pub fn avatar(mut self, avatar: impl Into<String>) -> Self {
+    pub fn avatar(mut self, avatar: impl Into<Option<String>>) -> Self {
         self.fields.avatar.replace(avatar.into());
 
         self

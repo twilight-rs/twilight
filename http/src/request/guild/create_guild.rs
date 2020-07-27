@@ -41,13 +41,20 @@ impl Error for CreateGuildError {}
 
 #[derive(Serialize)]
 struct CreateGuildFields {
+    #[serde(skip_serializing_if = "Option::is_none")]
     channels: Option<Vec<GuildChannel>>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     default_message_notifications: Option<DefaultMessageNotificationLevel>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     explicit_content_filter: Option<ExplicitContentFilter>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     icon: Option<String>,
     name: String,
+    #[serde(skip_serializing_if = "Option::is_none")]
     region: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     roles: Option<Vec<Role>>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     verification_level: Option<VerificationLevel>,
 }
 

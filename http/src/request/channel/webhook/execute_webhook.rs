@@ -6,13 +6,21 @@ use twilight_model::{
 
 #[derive(Default, Serialize)]
 struct ExecuteWebhookFields {
+    #[serde(skip_serializing_if = "Option::is_none")]
     avatar_url: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     content: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     embeds: Option<Vec<Embed>>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     file: Option<Vec<u8>>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     payload_json: Option<Vec<u8>>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     tts: Option<bool>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     username: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     wait: Option<bool>,
 }
 

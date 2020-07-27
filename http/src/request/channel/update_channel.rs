@@ -36,15 +36,24 @@ impl Error for UpdateChannelError {}
 // but it does require them to be non-null.
 #[derive(Default, Serialize)]
 struct UpdateChannelFields {
+    #[serde(skip_serializing_if = "Option::is_none")]
     bitrate: Option<u64>,
     #[serde(skip_serializing_if = "Option::is_none")]
     name: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     nsfw: Option<bool>,
-    parent_id: Option<ChannelId>,
+    #[allow(clippy::option_option)]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    parent_id: Option<Option<ChannelId>>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     permission_overwrites: Option<Vec<PermissionOverwrite>>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     position: Option<u64>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     rate_limit_per_user: Option<u64>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     topic: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     user_limit: Option<u64>,
     #[serde(rename = "type")]
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -130,8 +139,8 @@ impl<'a> UpdateChannel<'a> {
 
     /// If this is specified, and the parent ID is a `ChannelType::CategoryChannel`, move this
     /// channel to a child of the category channel.
-    pub fn parent_id(mut self, parent_id: ChannelId) -> Self {
-        self.fields.parent_id.replace(parent_id);
+    pub fn parent_id(mut self, parent_id: impl Into<Option<ChannelId>>) -> Self {
+        self.fields.parent_id.replace(parent_id.into());
 
         self
     }

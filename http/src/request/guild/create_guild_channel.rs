@@ -34,16 +34,24 @@ impl Error for CreateGuildChannelError {}
 
 #[derive(Serialize)]
 struct CreateGuildChannelFields {
+    #[serde(skip_serializing_if = "Option::is_none")]
     bitrate: Option<u64>,
-    #[serde(rename = "type")]
+    #[serde(rename = "type", skip_serializing_if = "Option::is_none")]
     kind: Option<ChannelType>,
     name: String,
+    #[serde(skip_serializing_if = "Option::is_none")]
     nsfw: Option<bool>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     parent_id: Option<ChannelId>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     permission_overwrites: Option<Vec<PermissionOverwrite>>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     position: Option<u64>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     rate_limit_per_user: Option<u64>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     topic: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     user_limit: Option<u64>,
 }
 

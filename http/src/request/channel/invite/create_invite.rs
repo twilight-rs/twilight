@@ -6,11 +6,17 @@ use twilight_model::{
 
 #[derive(Default, Serialize)]
 struct CreateInviteFields {
+    #[serde(skip_serializing_if = "Option::is_none")]
     max_age: Option<u64>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     max_uses: Option<u64>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     temporary: Option<bool>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     unique: Option<bool>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     target_user: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     target_user_type: Option<TargetUserType>,
 }
 

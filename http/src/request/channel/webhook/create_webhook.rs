@@ -3,6 +3,7 @@ use twilight_model::{channel::Webhook, id::ChannelId};
 
 #[derive(Serialize)]
 struct CreateWebhookFields {
+    #[serde(skip_serializing_if = "Option::is_none")]
     avatar: Option<String>,
     name: String,
 }
