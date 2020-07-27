@@ -178,6 +178,21 @@ impl From<(Vec<u8>, Route)> for Request {
     }
 }
 
+impl From<(Form, Route)> for Request {
+    fn from((form, route): (Form, Route)) -> Self {
+        let (method, path, path_str) = route.into_parts();
+
+        Self {
+            body: None,
+            form: Some(form),
+            headers: None,
+            method,
+            path,
+            path_str,
+        }
+    }
+}
+
 impl From<(Vec<u8>, Form, Route)> for Request {
     fn from((body, form, route): (Vec<u8>, Form, Route)) -> Self {
         let (method, path, path_str) = route.into_parts();

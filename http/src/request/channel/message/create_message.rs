@@ -213,8 +213,10 @@ impl<'a> CreateMessage<'a> {
                     form = form.part(format!("{}", index), Part::stream(file).file_name(name));
                 }
 
+                let body = crate::json_to_vec(&self.fields)?;
+                form = form.part("payload_json", Part::bytes(body));
+
                 Request::from((
-                    crate::json_to_vec(&self.fields)?,
                     form,
                     Route::CreateMessage {
                         channel_id: self.channel_id.0,
