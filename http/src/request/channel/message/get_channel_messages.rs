@@ -13,13 +13,16 @@ use twilight_model::{
 #[derive(Clone, Debug)]
 pub enum GetChannelMessagesError {
     /// The maximum number of messages to retrieve is either 0 or more than 100.
-    LimitInvalid,
+    LimitInvalid {
+        /// Provided maximum number of messages to retrieve.
+        limit: u64,
+    },
 }
 
 impl Display for GetChannelMessagesError {
     fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
         match self {
-            Self::LimitInvalid => f.write_str("the limit is invalid"),
+            Self::LimitInvalid { .. } => f.write_str("the limit is invalid"),
         }
     }
 }
@@ -133,7 +136,7 @@ impl<'a> GetChannelMessages<'a> {
     /// [`GetChannelMessages::LimitInvalid`]: enum.GetChannelMessages.html#variant.LimitInvalid
     pub fn limit(mut self, limit: u64) -> Result<Self, GetChannelMessagesError> {
         if !validate::get_channel_messages_limit(limit) {
-            return Err(GetChannelMessagesError::LimitInvalid);
+            return Err(GetChannelMessagesError::LimitInvalid { limit });
         }
 
         self.fields.limit.replace(limit);

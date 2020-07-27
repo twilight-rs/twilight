@@ -10,13 +10,16 @@ use twilight_model::user::User;
 pub enum UpdateCurrentUserError {
     /// The length of the username is either fewer than 2 UTF-16 characters or more than 32 UTF-16
     /// characters.
-    UsernameInvalid,
+    UsernameInvalid {
+        /// Provided username.
+        username: String,
+    },
 }
 
 impl Display for UpdateCurrentUserError {
     fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
         match self {
-            Self::UsernameInvalid => f.write_str("the username length is invalid"),
+            Self::UsernameInvalid { .. } => f.write_str("the username length is invalid"),
         }
     }
 }
@@ -80,7 +83,7 @@ impl<'a> UpdateCurrentUser<'a> {
 
     fn _username(mut self, username: String) -> Result<Self, UpdateCurrentUserError> {
         if !validate::username(&username) {
-            return Err(UpdateCurrentUserError::UsernameInvalid);
+            return Err(UpdateCurrentUserError::UsernameInvalid { username });
         }
 
         self.fields.username.replace(username);

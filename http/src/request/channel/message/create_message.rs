@@ -18,9 +18,14 @@ use twilight_model::{
 #[derive(Clone, Debug)]
 pub enum CreateMessageError {
     /// Returned when the content is over 2000 UTF-16 characters.
-    ContentInvalid,
+    ContentInvalid {
+        /// Provided content.
+        content: String,
+    },
     /// Returned when the length of the embed is over 6000 characters.
     EmbedTooLarge {
+        /// Provided embed.
+        embed: Box<Embed>,
         /// The source of the error.
         source: EmbedValidationError,
     },
@@ -29,7 +34,7 @@ pub enum CreateMessageError {
 impl Display for CreateMessageError {
     fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
         match self {
-            Self::ContentInvalid => f.write_str("the message content is invalid"),
+            Self::ContentInvalid { .. } => f.write_str("the message content is invalid"),
             Self::EmbedTooLarge { .. } => f.write_str("the embed's contents are too long"),
         }
     }
@@ -38,8 +43,8 @@ impl Display for CreateMessageError {
 impl Error for CreateMessageError {
     fn source(&self) -> Option<&(dyn Error + 'static)> {
         match self {
-            Self::ContentInvalid => None,
-            Self::EmbedTooLarge { source } => Some(source),
+            Self::ContentInvalid { .. } => None,
+            Self::EmbedTooLarge { source, .. } => Some(source),
         }
     }
 }
@@ -118,7 +123,7 @@ impl<'a> CreateMessage<'a> {
 
     fn _content(mut self, content: String) -> Result<Self, CreateMessageError> {
         if !validate::content_limit(&content) {
-            return Err(CreateMessageError::ContentInvalid);
+            return Err(CreateMessageError::ContentInvalid { content });
         }
 
         self.fields.content.replace(content);
@@ -143,7 +148,12 @@ impl<'a> CreateMessage<'a> {
     /// [`EmbedBuilder`]: ../../../../../twilight_builders/embed/struct.EmbedBuilder.html
     /// [`CreateMessageError::EmbedTooLarge`]: enum.CreateMessageError.html#variant.EmbedTooLarge
     pub fn embed(mut self, embed: Embed) -> Result<Self, CreateMessageError> {
-        validate::embed(&embed).map_err(|source| CreateMessageError::EmbedTooLarge { source })?;
+        if let Err(source) = validate::embed(&embed) {
+            return Err(CreateMessageError::EmbedTooLarge {
+                embed: Box::new(embed),
+                source,
+            });
+        }
 
         self.fields.embed.replace(embed);
 

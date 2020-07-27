@@ -12,13 +12,16 @@ use twilight_model::{
 #[derive(Clone, Debug)]
 pub enum GetAuditLogError {
     /// The limit is either 0 or more than 100.
-    LimitInvalid,
+    LimitInvalid {
+        /// Provided maximum number of audit logs to get.
+        limit: u64,
+    },
 }
 
 impl Display for GetAuditLogError {
     fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
         match self {
-            Self::LimitInvalid => f.write_str("the limit is invalid"),
+            Self::LimitInvalid { .. } => f.write_str("the limit is invalid"),
         }
     }
 }
@@ -95,7 +98,7 @@ impl<'a> GetAuditLog<'a> {
     /// [`GetAuditLogError::LimitInvalid`]: enum.GetAuditLogError.html#variant.LimitInvalid
     pub fn limit(mut self, limit: u64) -> Result<Self, GetAuditLogError> {
         if !validate::get_audit_log_limit(limit) {
-            return Err(GetAuditLogError::LimitInvalid);
+            return Err(GetAuditLogError::LimitInvalid { limit });
         }
 
         self.fields.limit.replace(limit);

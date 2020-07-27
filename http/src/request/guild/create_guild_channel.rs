@@ -13,19 +13,30 @@ use twilight_model::{
 pub enum CreateGuildChannelError {
     /// The length of the name is either fewer than 2 UTF-16 characters or
     /// more than 100 UTF-16 characters.
-    NameInvalid,
+    NameInvalid {
+        /// Provided name.
+        name: String,
+    },
     /// The seconds of the rate limit per user is more than 21600.
-    RateLimitPerUserInvalid,
+    RateLimitPerUserInvalid {
+        /// Provided ratelimit.
+        rate_limit_per_user: u64,
+    },
     /// The length of the topic is more than 1024 UTF-16 characters.
-    TopicInvalid,
+    TopicInvalid {
+        /// Provided topic.
+        topic: String,
+    },
 }
 
 impl Display for CreateGuildChannelError {
     fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
         match self {
-            Self::NameInvalid => f.write_str("the length of the name is invalid"),
-            Self::RateLimitPerUserInvalid => f.write_str("the rate limit per user is invalid"),
-            Self::TopicInvalid => f.write_str("the topic is invalid"),
+            Self::NameInvalid { .. } => f.write_str("the length of the name is invalid"),
+            Self::RateLimitPerUserInvalid { .. } => {
+                f.write_str("the rate limit per user is invalid")
+            }
+            Self::TopicInvalid { .. } => f.write_str("the topic is invalid"),
         }
     }
 }
@@ -97,7 +108,7 @@ impl<'a> CreateGuildChannel<'a> {
         name: String,
     ) -> Result<Self, CreateGuildChannelError> {
         if !validate::channel_name(&name) {
-            return Err(CreateGuildChannelError::NameInvalid);
+            return Err(CreateGuildChannelError::NameInvalid { name });
         }
 
         Ok(Self {
@@ -189,7 +200,9 @@ impl<'a> CreateGuildChannel<'a> {
         rate_limit_per_user: u64,
     ) -> Result<Self, CreateGuildChannelError> {
         if rate_limit_per_user > 21600 {
-            return Err(CreateGuildChannelError::RateLimitPerUserInvalid);
+            return Err(CreateGuildChannelError::RateLimitPerUserInvalid {
+                rate_limit_per_user,
+            });
         }
 
         self.fields.rate_limit_per_user.replace(rate_limit_per_user);
@@ -214,7 +227,7 @@ impl<'a> CreateGuildChannel<'a> {
 
     fn _topic(mut self, topic: String) -> Result<Self, CreateGuildChannelError> {
         if topic.chars().count() > 1024 {
-            return Err(CreateGuildChannelError::TopicInvalid);
+            return Err(CreateGuildChannelError::TopicInvalid { topic });
         }
 
         self.fields.topic.replace(topic);

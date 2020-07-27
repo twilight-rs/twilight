@@ -12,9 +12,14 @@ use twilight_model::{
 #[derive(Clone, Debug)]
 pub enum UpdateMessageError {
     /// Returned when the content is over 2000 UTF-16 characters.
-    ContentInvalid,
+    ContentInvalid {
+        /// Provided content.
+        content: String,
+    },
     /// Returned when the length of the embed is over 6000 characters.
     EmbedTooLarge {
+        /// Provided embed.
+        embed: Box<Embed>,
         /// The source of the error.
         source: EmbedValidationError,
     },
@@ -23,7 +28,7 @@ pub enum UpdateMessageError {
 impl Display for UpdateMessageError {
     fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
         match self {
-            Self::ContentInvalid => f.write_str("the message content is invalid"),
+            Self::ContentInvalid { .. } => f.write_str("the message content is invalid"),
             Self::EmbedTooLarge { .. } => f.write_str("the embed's contents are too long"),
         }
     }
@@ -32,8 +37,8 @@ impl Display for UpdateMessageError {
 impl Error for UpdateMessageError {
     fn source(&self) -> Option<&(dyn Error + 'static)> {
         match self {
-            Self::ContentInvalid => None,
-            Self::EmbedTooLarge { source } => Some(source),
+            Self::ContentInvalid { .. } => None,
+            Self::EmbedTooLarge { source, .. } => Some(source),
         }
     }
 }
@@ -140,9 +145,11 @@ impl<'a> UpdateMessage<'a> {
     }
 
     fn _content(mut self, content: Option<String>) -> Result<Self, UpdateMessageError> {
-        if let Some(content) = content.as_ref() {
-            if !validate::content_limit(content) {
-                return Err(UpdateMessageError::ContentInvalid);
+        if let Some(content_ref) = content.as_ref() {
+            if !validate::content_limit(content_ref) {
+                return Err(UpdateMessageError::ContentInvalid {
+                    content: content.expect("content is known to be some"),
+                });
             }
         }
 
@@ -162,9 +169,13 @@ impl<'a> UpdateMessage<'a> {
     }
 
     fn _embed(mut self, embed: Option<Embed>) -> Result<Self, UpdateMessageError> {
-        if let Some(embed) = embed.as_ref() {
-            validate::embed(&embed)
-                .map_err(|source| UpdateMessageError::EmbedTooLarge { source })?;
+        if let Some(embed_ref) = embed.as_ref() {
+            if let Err(source) = validate::embed(&embed_ref) {
+                return Err(UpdateMessageError::EmbedTooLarge {
+                    embed: Box::new(embed.expect("embed is known to be some")),
+                    source,
+                });
+            }
         }
 
         self.fields.embed.replace(embed);
