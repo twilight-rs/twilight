@@ -63,9 +63,7 @@ impl LocalQueue {
     pub fn new() -> Self {
         let (tx, rx) = unbounded();
 
-        tokio::spawn(async {
-            waiter(rx).await;
-        });
+        tokio::spawn(waiter(rx));
 
         Self(tx)
     }

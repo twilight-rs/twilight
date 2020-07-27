@@ -137,9 +137,7 @@ impl Session {
         let heartbeater = Heartbeater::new(heartbeats, interval, seq, self.tx.clone()).run();
         let (fut, handle) = future::abortable(heartbeater);
 
-        tokio::spawn(async {
-            let _ = fut.await;
-        });
+        tokio::spawn(fut);
 
         if let Some(old) = self.heartbeater_handle.lock().await.replace(handle) {
             old.abort();
@@ -151,7 +149,7 @@ impl Drop for Session {
     fn drop(&mut self) {
         let handle = Arc::clone(&self.heartbeater_handle);
 
-        let _ = tokio::spawn(async move {
+        tokio::spawn(async move {
             if let Some(handle) = handle.lock().await.take() {
                 handle.abort();
             }
