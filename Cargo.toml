@@ -4,7 +4,6 @@ members = [
     "cache/in-memory",
     "cache/trait",
     "command-parser",
-    "embed-builder",
     "gateway",
     "gateway/examples/cluster",
     "gateway/examples/intents",
@@ -21,5 +20,6 @@ members = [
     "model",
     "standby",
     "twilight",
+    "utils/embed-builder",
     "utils/mention",
 ]
