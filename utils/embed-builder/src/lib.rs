@@ -60,7 +60,7 @@ pub use self::{
         EmbedBuildError, EmbedBuilder, EmbedColorError, EmbedDescriptionError, EmbedTitleError,
     },
     field::{EmbedFieldBuilder, EmbedFieldError},
-    footer::EmbedFooterBuilder,
+    footer::{EmbedFooterBuilder, EmbedFooterTextError},
 };
 
 #[cfg(test)]
