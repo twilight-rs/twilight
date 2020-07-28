@@ -453,7 +453,7 @@ impl EmbedBuilder {
     /// # fn main() -> Result<(), Box<dyn std::error::Error>> {
     /// let embed = EmbedBuilder::new()
     ///     .description("a picture of twilight")?
-    ///     .image(ImageSource::attachment("twilight.png")?)
+    ///     .thumbnail(ImageSource::attachment("twilight.png")?)
     ///     .build()?;
     /// # Ok(()) }
     /// ```
