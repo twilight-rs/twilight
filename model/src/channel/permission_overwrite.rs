@@ -30,7 +30,7 @@ struct PermissionOverwriteData {
     kind: PermissionOverwriteTypeName,
 }
 
-#[derive(Deserialize, Serialize)]
+#[derive(Debug, Deserialize, Serialize)]
 #[serde(rename_all = "snake_case")]
 enum PermissionOverwriteTypeName {
     Member,
@@ -41,14 +41,18 @@ impl<'de> Deserialize<'de> for PermissionOverwrite {
     fn deserialize<D: Deserializer<'de>>(deserializer: D) -> Result<Self, D::Error> {
         let data = PermissionOverwriteData::deserialize(deserializer)?;
 
+        let span = tracing::trace_span!("deserializing permission overwrite");
+
         let kind = match data.kind {
             PermissionOverwriteTypeName::Member => {
                 let id = UserId(data.id.parse().map_err(DeError::custom)?);
+                tracing::trace!(parent: &span, id = %id.0, kind = ?data.kind);
 
                 PermissionOverwriteType::Member(id)
             }
             PermissionOverwriteTypeName::Role => {
                 let id = RoleId(data.id.parse().map_err(DeError::custom)?);
+                tracing::trace!(parent: &span, id = %id.0, kind = ?data.kind);
 
                 PermissionOverwriteType::Role(id)
             }

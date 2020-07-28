@@ -47,13 +47,23 @@ impl<'de> Visitor<'de> for ReactionVisitor {
         let mut message_id = None;
         let mut user_id = None;
 
+        let span = tracing::trace_span!("deserializing reaction");
+
         loop {
+            let span_child = tracing::trace_span!(parent: &span, "iterating over element");
+
             let key = match map.next_key() {
-                Ok(Some(key)) => key,
+                Ok(Some(key)) => {
+                    tracing::trace!(parent: &span_child, ?key, "found key");
+
+                    key
+                }
                 Ok(None) => break,
-                Err(_) => {
+                Err(why) => {
                     // Encountered when we run into an unknown key.
                     map.next_value::<IgnoredAny>()?;
+
+                    tracing::trace!(parent: &span_child, "ran into an unknown key: {:?}", why);
 
                     continue;
                 }
@@ -112,7 +122,11 @@ impl<'de> Visitor<'de> for ReactionVisitor {
         let message_id = message_id.ok_or_else(|| DeError::missing_field("message_id"))?;
         let user_id = user_id.ok_or_else(|| DeError::missing_field("user_id"))?;
 
+        tracing::trace!(parent: &span, ?channel_id, ?emoji, ?message_id, ?user_id);
+
         if let (Some(guild_id), Some(member)) = (guild_id, member.as_mut()) {
+            tracing::trace!(parent: &span, %guild_id, ?member, "setting member guild id");
+
             member.guild_id = guild_id;
         }
 

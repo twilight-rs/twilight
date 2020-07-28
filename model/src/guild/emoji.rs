@@ -56,7 +56,11 @@ impl<'de> Visitor<'de> for EmojiMapVisitor {
             .size_hint()
             .map_or_else(HashMap::new, HashMap::with_capacity);
 
+        let span = tracing::trace_span!("adding elements to emoji map");
+
         while let Some(emoji) = seq.next_element::<Emoji>()? {
+            tracing::trace!(parent: &span, %emoji.id, ?emoji);
+
             map.insert(emoji.id, emoji);
         }
 

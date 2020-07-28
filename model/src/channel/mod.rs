@@ -129,7 +129,7 @@ impl Key<'_, ChannelId> for GuildChannel {
     }
 }
 
-#[derive(Deserialize)]
+#[derive(Debug, Deserialize)]
 #[serde(field_identifier, rename_all = "snake_case")]
 enum GuildChannelField {
     Bitrate,
@@ -182,13 +182,23 @@ impl<'de> Visitor<'de> for GuildChannelVisitor {
         let mut topic: Option<Option<String>> = None;
         let mut user_limit = None;
 
+        let span = tracing::trace_span!("deserializing guild channel");
+
         loop {
+            let span_child = tracing::trace_span!(parent: &span, "iterating over element");
+
             let key = match map.next_key() {
-                Ok(Some(key)) => key,
+                Ok(Some(key)) => {
+                    tracing::trace!(parent: &span_child, ?key, "found key");
+
+                    key
+                }
                 Ok(None) => break,
-                Err(_) => {
+                Err(why) => {
                     // Encountered when we run into an unknown key.
                     map.next_value::<IgnoredAny>()?;
+
+                    tracing::trace!(parent: &span_child, "ran into an unknown key: {:?}", why);
 
                     continue;
                 }
@@ -308,20 +318,38 @@ impl<'de> Visitor<'de> for GuildChannelVisitor {
         let nsfw = nsfw.unwrap_or_default();
         let parent_id = parent_id.unwrap_or_default();
 
+        tracing::trace!(
+            parent: &span,
+            %id,
+            ?kind,
+            %name,
+            %nsfw,
+            ?parent_id,
+            ?permission_overwrites,
+            %position,
+            "common fields of all variants exist"
+        );
+
         Ok(match kind {
-            ChannelType::GuildCategory => GuildChannel::Category(CategoryChannel {
-                id,
-                guild_id,
-                kind,
-                name,
-                nsfw,
-                permission_overwrites,
-                parent_id,
-                position,
-            }),
+            ChannelType::GuildCategory => {
+                tracing::trace!(parent: &span, "handling category channel");
+
+                GuildChannel::Category(CategoryChannel {
+                    id,
+                    guild_id,
+                    kind,
+                    name,
+                    nsfw,
+                    permission_overwrites,
+                    parent_id,
+                    position,
+                })
+            }
             ChannelType::GuildVoice => {
                 let bitrate = bitrate.ok_or_else(|| DeError::missing_field("bitrate"))?;
                 let user_limit = user_limit.ok_or_else(|| DeError::missing_field("user_limit"))?;
+
+                tracing::trace!(parent: &span, %bitrate, ?user_limit, "handling voice channel");
 
                 GuildChannel::Voice(VoiceChannel {
                     id,
@@ -339,6 +367,14 @@ impl<'de> Visitor<'de> for GuildChannelVisitor {
                 let last_message_id = last_message_id.unwrap_or_default();
                 let last_pin_timestamp = last_pin_timestamp.unwrap_or_default();
                 let topic = topic.unwrap_or_default();
+
+                tracing::trace!(
+                    parent: &span,
+                    ?last_message_id,
+                    ?last_pin_timestamp,
+                    ?topic,
+                    "handling news, store, or text channel"
+                );
 
                 GuildChannel::Text(TextChannel {
                     id,
@@ -383,7 +419,12 @@ impl<'de> Visitor<'de> for GuildChannelMapVisitor {
             .size_hint()
             .map_or_else(HashMap::new, HashMap::with_capacity);
 
+        let span = tracing::trace_span!("adding elements to guild channel map");
+
         while let Some(channel) = seq.next_element::<GuildChannel>()? {
+            let id = channel.id();
+            tracing::trace!(parent: &span, %id, ?channel);
+
             map.insert(channel.id(), channel);
         }
 
