@@ -1,10 +1,10 @@
 [workspace]
 members = [
-    "builders",
     "cache/base",
     "cache/in-memory",
     "cache/trait",
     "command-parser",
+    "embed-builder",
     "gateway",
     "gateway/examples/cluster",
     "gateway/examples/intents",

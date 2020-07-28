@@ -211,9 +211,6 @@
 //! [`twilight-mention`]: https://github.com/twilight-rs/twilight/tree/trunk/utils/mention
 //! [`tracing-log`]: https://github.com/tokio-rs/tracing/tree/master/tracing-log
 
-#[cfg(feature = "builders")]
-pub extern crate twilight_builders as builders;
-
 #[cfg(feature = "cache")]
 pub extern crate twilight_cache as cache;
 
