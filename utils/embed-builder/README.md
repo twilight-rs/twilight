@@ -4,9 +4,6 @@
 
 Builders for creating an embed, useful when creating or updating messages.
 
-If uploading an image as an attachment, set as the image or thumbnail with
-`attachment://{filename}.{extension}`. Refer to [the discord docs] for more information.
-
 # Examples
 
 Build a simple embed:
@@ -24,11 +21,11 @@ let embed = EmbedBuilder::new()
 Build an embed with an image:
 
 ```rust,no_run
-use twilight_embed_builder::EmbedBuilder;
+use twilight_embed_builder::{EmbedBuilder, ImageSource};
 
 let embed = EmbedBuilder::new()
     .description("Here's a cool image of Twilight Sparkle")?
-    .image("attachment://bestpony.png")
+    .image(ImageSource::attachment("bestpony.png")?)
     .build();
 
 ```
