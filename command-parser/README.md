@@ -31,9 +31,8 @@ use twilight_command_parser::{Command, CommandParserConfig, Parser};
 
 let mut config = CommandParserConfig::new();
 
-// (Use `CommandParserConfig::add_command` to add a single command)
-config.command("echo").add();
-config.command("ping").add();
+config.add_command("echo", false);
+config.add_command("ping", false);
 
 // Add the prefix `"!"`.
 // (Use `CommandParserConfig::add_prefixes` to add multiple prefixes)
