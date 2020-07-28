@@ -125,7 +125,7 @@ impl ShardConfigBuilder {
     }
 
     /// Sets the gateway intents.
-    pub fn intents(&mut self, intents: Option<GatewayIntents>) -> &mut Self {
+    pub fn intents(mut self, intents: Option<GatewayIntents>) -> Self {
         self.0.intents = intents;
 
         self

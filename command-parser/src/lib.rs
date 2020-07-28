@@ -29,9 +29,8 @@
 //!
 //! let mut config = CommandParserConfig::new();
 //!
-//! // (Use `CommandParserConfig::add_command` to add a single command)
-//! config.command("echo").add();
-//! config.command("ping").add();
+//! config.add_command("echo", false);
+//! config.add_command("ping", false);
 //!
 //! // Add the prefix `"!"`.
 //! // (Use `CommandParserConfig::add_prefixes` to add multiple prefixes)
@@ -73,14 +72,12 @@
 #![allow(clippy::module_name_repetitions, clippy::must_use_candidate)]
 
 mod arguments;
-mod builder;
 mod casing;
 mod config;
 mod parser;
 
 pub use self::{
     arguments::Arguments,
-    builder::CommandBuilder,
     casing::CaseSensitivity,
     config::CommandParserConfig,
     parser::{Command, Parser},

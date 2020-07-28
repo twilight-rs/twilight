@@ -8,13 +8,11 @@ async fn main() -> Result<(), Box<dyn Error + Send + Sync>> {
     // Initialize the tracing subscriber.
     tracing_subscriber::fmt::init();
 
-    let config = {
-        let mut conf = ShardConfig::builder(env::var("DISCORD_TOKEN")?);
-        conf.intents(Some(
+    let config = ShardConfig::builder(env::var("DISCORD_TOKEN")?)
+        .intents(Some(
             GatewayIntents::GUILD_MESSAGES | GatewayIntents::DIRECT_MESSAGES,
-        ));
-        conf.build()
-    };
+        ))
+        .build();
 
     let mut shard = Shard::new(config);
     shard.start().await?;

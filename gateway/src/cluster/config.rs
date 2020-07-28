@@ -256,7 +256,7 @@ impl ClusterConfigBuilder {
     ///
     /// [`ShardConfigBuilder::intents`]: ../../shard/config/struct.ShardConfigBuilder.html#method.intents
     pub fn intents(mut self, intents: Option<GatewayIntents>) -> Self {
-        self.1.intents(intents);
+        self.1 = self.1.intents(intents);
 
         self
     }

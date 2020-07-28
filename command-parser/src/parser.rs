@@ -32,8 +32,8 @@ pub struct Command<'a> {
 /// use twilight_command_parser::{Command, CommandParserConfig, Parser};
 ///
 /// let mut config = CommandParserConfig::new();
-/// config.command("echo").add();
-/// config.command("ping").add();
+/// config.add_command("echo", false);
+/// config.add_command("ping", false);
 /// config.add_prefix("!");
 ///
 /// let parser = Parser::new(config);
@@ -147,7 +147,7 @@ mod tests {
     fn simple_config() -> Parser<'static> {
         let mut config = CommandParserConfig::new();
         config.add_prefix("!");
-        config.command("echo").add();
+        config.add_command("echo", false);
 
         Parser::new(config)
     }
@@ -177,7 +177,7 @@ mod tests {
         );
 
         // Case insensitive - Unicode
-        parser.config.command("wei\u{df}").add();
+        parser.config.add_command("wei\u{df}", false);
         let Command { name, .. } = parser
             .parse(message_unicode)
             .expect("Parser is case sensitive");
@@ -186,7 +186,7 @@ mod tests {
             "Command name should have the same case as in the CommandParserConfig"
         );
 
-        parser.config.command("\u{394}").add();
+        parser.config.add_command("\u{394}", false);
         let Command { name, .. } = parser
             .parse(message_unicode_2)
             .expect("Parser is case sensitive");
@@ -198,9 +198,9 @@ mod tests {
         // Case sensitive
         let config = parser.config_mut();
         config.commands_mut().clear();
-        config.command("echo").case_sensitive().add();
-        config.command("wei\u{df}").case_sensitive().add();
-        config.command("\u{394}").case_sensitive().add();
+        config.add_command("echo", true);
+        config.add_command("wei\u{df}", true);
+        config.add_command("\u{394}", true);
         assert!(
             parser.parse(message_ascii).is_none(),
             "Parser is not case sensitive"
@@ -237,7 +237,7 @@ mod tests {
     #[test]
     fn test_unicode_command() {
         let mut parser = simple_config();
-        parser.config_mut().command("\u{1f44e}").add(); // thumbs down unicode
+        parser.config_mut().add_command("\u{1f44e}", false);
 
         assert!(parser.parse("!\u{1f44e}").is_some());
     }

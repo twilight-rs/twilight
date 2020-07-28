@@ -58,7 +58,7 @@ impl ClientBuilder {
 
     /// Set the default allowed mentions setting to use on all messages sent through the HTTP
     /// client.
-    pub fn default_allowed_mentions(&mut self, allowed_mentions: AllowedMentions) -> &mut Self {
+    pub fn default_allowed_mentions(mut self, allowed_mentions: AllowedMentions) -> Self {
         self.default_allowed_mentions.replace(allowed_mentions);
 
         self
@@ -67,7 +67,7 @@ impl ClientBuilder {
     /// Sets the proxy to use for all HTTP requests.
     ///
     /// This accepts a `reqwest::Proxy`.
-    pub fn proxy(&mut self, proxy: Proxy) -> &mut Self {
+    pub fn proxy(mut self, proxy: Proxy) -> Self {
         self.proxy.replace(proxy);
 
         self
@@ -76,7 +76,7 @@ impl ClientBuilder {
     /// Set whether to proxy over HTTP.
     ///
     /// The default is `false`.
-    pub fn proxy_http(&mut self, proxy_http: bool) -> &mut Self {
+    pub fn proxy_http(mut self, proxy_http: bool) -> Self {
         self.proxy_http = proxy_http;
 
         self
@@ -88,7 +88,7 @@ impl ClientBuilder {
     /// in this configuration, if specified.
     ///
     /// The default client is a RusTLS-backed client.
-    pub fn reqwest_client(&mut self, client: ReqwestClient) -> &mut Self {
+    pub fn reqwest_client(mut self, client: ReqwestClient) -> Self {
         self.reqwest_client.replace(client);
 
         self
@@ -101,7 +101,7 @@ impl ClientBuilder {
     ///
     /// If this method is not called at all then a default ratelimiter will be
     /// created by `ClientBuilder::build`.
-    pub fn ratelimiter(&mut self, ratelimiter: impl Into<Option<Ratelimiter>>) -> &mut Self {
+    pub fn ratelimiter(mut self, ratelimiter: impl Into<Option<Ratelimiter>>) -> Self {
         self.ratelimiter = ratelimiter.into();
 
         self
@@ -110,14 +110,14 @@ impl ClientBuilder {
     /// Set the timeout for HTTP requests.
     ///
     /// The default is 10 seconds.
-    pub fn timeout(&mut self, duration: Duration) -> &mut Self {
+    pub fn timeout(mut self, duration: Duration) -> Self {
         self.timeout = duration;
 
         self
     }
 
     /// Set the token to use for HTTP requests.
-    pub fn token(&mut self, token: impl Into<String>) -> &mut Self {
+    pub fn token(mut self, token: impl Into<String>) -> Self {
         let mut token = token.into();
 
         let is_bot = token.starts_with("Bot ");

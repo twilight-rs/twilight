@@ -3,7 +3,7 @@ use std::{
     collections::{HashMap, HashSet},
 };
 
-use crate::{CaseSensitivity, CommandBuilder};
+use crate::CaseSensitivity;
 
 /// Configuration for a [`Parser`].
 ///
@@ -52,28 +52,26 @@ impl<'a> CommandParserConfig<'a> {
         &mut self.prefixes
     }
 
-    /// Returns a [`CommandBuilder`] which can be used to add a command to the list of commands.
+    /// Add a command to the list of commands.
     ///
     /// # Examples
+    ///
+    /// Add a case-sensitive "ping" command:
     ///
     /// ```rust
     /// use twilight_command_parser::CommandParserConfig;
     ///
     /// let mut config = CommandParserConfig::new();
-    /// config.command("ping").add();
+    /// config.add_command("ping", true);
     /// assert_eq!(1, config.commands().len());
     /// ```
     ///
     /// [`CommandBuilder`]: struct.CommandBuilder.html
-    pub fn command<'b>(&'b mut self, name: impl Into<String>) -> CommandBuilder<'b, 'a> {
-        CommandBuilder {
-            name: name.into(),
-            case_sensitive: false,
-            config: self,
-        }
+    pub fn add_command(&mut self, name: impl Into<String>, case_sensitive: bool) -> bool {
+        self._add_command(name.into(), case_sensitive)
     }
 
-    pub(crate) fn add_command(&mut self, name: String, case_sensitive: bool) -> bool {
+    fn _add_command(&mut self, name: String, case_sensitive: bool) -> bool {
         let command = if case_sensitive {
             CaseSensitivity::Sensitive(name)
         } else {
@@ -92,8 +90,8 @@ impl<'a> CommandParserConfig<'a> {
     /// use twilight_command_parser::CommandParserConfig;
     ///
     /// let mut config = CommandParserConfig::new();
-    /// config.command("ping").case_sensitive().add();
-    /// config.command("PING").add();
+    /// config.add_command("ping", true);
+    /// config.add_command("PING", false);
     /// assert_eq!(2, config.commands().len());
     ///
     /// // Now remove it and verify that there are no commands.

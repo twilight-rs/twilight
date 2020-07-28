@@ -74,11 +74,10 @@ impl Debug for State {
 ///
 /// # #[tokio::main]
 /// # async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
-/// let mut client_builder = Client::builder();
-/// client_builder
+/// let client = Client::builder()
 ///     .token("my token")
-///     .timeout(Duration::from_secs(5));
-/// let client = client_builder.build()?;
+///     .timeout(Duration::from_secs(5))
+///     .build()?;
 /// # Ok(()) }
 /// ```
 ///
