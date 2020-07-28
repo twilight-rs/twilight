@@ -1,5 +1,6 @@
 //! Create embeds.
 
+use super::image_source::ImageSource;
 use std::{
     convert::TryFrom,
     error::Error,
@@ -415,25 +416,24 @@ impl EmbedBuilder {
     ///
     /// # Examples
     ///
+    /// Set the image source to a URL:
+    ///
     /// ```rust
-    /// use twilight_embed_builder::{EmbedBuilder, EmbedFooterBuilder};
+    /// use twilight_embed_builder::{EmbedBuilder, EmbedFooterBuilder, ImageSource};
     ///
     /// # fn main() -> Result<(), Box<dyn std::error::Error>> {
+    /// let source = ImageSource::url("https://raw.githubusercontent.com/twilight-rs/twilight/trunk/logo.png")?;
     /// let embed = EmbedBuilder::new()
     ///     .footer(EmbedFooterBuilder::new("twilight")?)
-    ///     .image("https://raw.githubusercontent.com/twilight-rs/twilight/trunk/logo.png")
+    ///     .image(source)
     ///     .build()?;
     /// # Ok(()) }
     /// ```
-    pub fn image(self, image_url: impl Into<String>) -> Self {
-        self._image(image_url.into())
-    }
-
-    fn _image(mut self, image_url: String) -> Self {
+    pub fn image(mut self, image_source: ImageSource) -> Self {
         self.0.image.replace(EmbedImage {
             height: None,
             proxy_url: None,
-            url: Some(image_url),
+            url: Some(image_source.0),
             width: None,
         });
 
@@ -442,31 +442,26 @@ impl EmbedBuilder {
 
     /// Add a thumbnail.
     ///
-    /// Either the URL to an image or an `attachment://` path.
-    ///
     /// # Examples
     ///
-    /// Set the thumbnail to an attachment with the filename "twilight.png":
+    /// Set the thumbnail to an image attachment with the filename
+    /// `"twilight.png"`:
     ///
     /// ```rust
-    /// use twilight_embed_builder::EmbedBuilder;
+    /// use twilight_embed_builder::{EmbedBuilder, ImageSource};
     ///
     /// # fn main() -> Result<(), Box<dyn std::error::Error>> {
     /// let embed = EmbedBuilder::new()
     ///     .description("a picture of twilight")?
-    ///     .image("attachment://twilight.png")
+    ///     .image(ImageSource::attachment("twilight.png")?)
     ///     .build()?;
     /// # Ok(()) }
     /// ```
-    pub fn thumbnail(self, thumbnail: impl Into<String>) -> Self {
-        self._thumbnail(thumbnail.into())
-    }
-
-    fn _thumbnail(mut self, thumbnail: String) -> Self {
+    pub fn thumbnail(mut self, image_source: ImageSource) -> Self {
         self.0.thumbnail.replace(EmbedThumbnail {
             height: None,
             proxy_url: None,
-            url: Some(thumbnail),
+            url: Some(image_source.0),
             width: None,
         });
 

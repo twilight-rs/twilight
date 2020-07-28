@@ -2,9 +2,6 @@
 //!
 //! Builders for creating an embed, useful when creating or updating messages.
 //!
-//! If uploading an image as an attachment, set as the image or thumbnail with
-//! `attachment://{filename}.{extension}`. Refer to [the discord docs] for more information.
-//!
 //! # Examples
 //!
 //! Build a simple embed:
@@ -24,12 +21,12 @@
 //! Build an embed with an image:
 //!
 //! ```rust,no_run
-//! use twilight_embed_builder::EmbedBuilder;
+//! use twilight_embed_builder::{EmbedBuilder, ImageSource};
 //!
 //! # fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
 //! let embed = EmbedBuilder::new()
 //!     .description("Here's a cool image of Twilight Sparkle")?
-//!     .image("attachment://bestpony.png")
+//!     .image(ImageSource::attachment("bestpony.png")?)
 //!     .build();
 //!
 //! # Ok(()) }
@@ -53,6 +50,7 @@ pub mod author;
 pub mod builder;
 pub mod field;
 pub mod footer;
+pub mod image_source;
 
 pub use self::{
     author::{EmbedAuthorBuilder, EmbedAuthorNameError},
@@ -61,6 +59,7 @@ pub use self::{
     },
     field::{EmbedFieldBuilder, EmbedFieldError},
     footer::{EmbedFooterBuilder, EmbedFooterTextError},
+    image_source::{ImageSource, ImageSourceAttachmentError, ImageSourceUrlError},
 };
 
 #[cfg(test)]
@@ -70,13 +69,21 @@ mod tests {
 
     #[test]
     fn builder_test() {
+        let footer_image = ImageSource::url(
+            "https://raw.githubusercontent.com/twilight-rs/twilight/trunk/logo.png",
+        )
+        .unwrap();
         let embed = EmbedBuilder::new()
             .color(0x004_3FF)
             .unwrap()
             .description("Description")
             .unwrap()
             .timestamp("123")
-            .footer(EmbedFooterBuilder::new("Warn").unwrap().icon_url("icon"))
+            .footer(
+                EmbedFooterBuilder::new("Warn")
+                    .unwrap()
+                    .icon_url(footer_image),
+            )
             .field(EmbedFieldBuilder::new("name", "title").unwrap().inline())
             .build()
             .unwrap();
@@ -92,7 +99,10 @@ mod tests {
             }]
             .to_vec(),
             footer: Some(EmbedFooter {
-                icon_url: Some("icon".to_string()),
+                icon_url: Some(
+                    "https://raw.githubusercontent.com/twilight-rs/twilight/trunk/logo.png"
+                        .to_string(),
+                ),
                 proxy_icon_url: None,
                 text: "Warn".to_string(),
             }),

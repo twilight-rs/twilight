@@ -1,5 +1,6 @@
 //! Create embed footers.
 
+use super::image_source::ImageSource;
 use std::{
     error::Error,
     fmt::{Display, Formatter, Result as FmtResult},
@@ -91,27 +92,22 @@ impl EmbedFooterBuilder {
 
     /// Add a footer icon.
     ///
-    /// Either the URL to an image or an `attachment://` path.
-    ///
     /// # Examples
     ///
-    /// Create a footer by Twilight with an image of its logo:
+    /// Create a footer by Twilight with a URL to an image of its logo:
     ///
     /// ```rust
-    /// use twilight_embed_builder::EmbedFooterBuilder;
+    /// use twilight_embed_builder::{EmbedFooterBuilder, ImageSource};
     ///
     /// # fn main() -> Result<(), Box<dyn std::error::Error>> {
+    /// let icon_url = ImageSource::url("https://raw.githubusercontent.com/twilight-rs/twilight/trunk/logo.png")?;
     /// let footer = EmbedFooterBuilder::new("Twilight")?
-    ///     .icon_url("https://raw.githubusercontent.com/twilight-rs/twilight/trunk/logo.png")
+    ///     .icon_url(icon_url)
     ///     .build();
     /// # Ok(()) }
     /// ```
-    pub fn icon_url(self, url: impl Into<String>) -> Self {
-        self._icon_url(url.into())
-    }
-
-    fn _icon_url(mut self, url: String) -> Self {
-        self.0.icon_url.replace(url);
+    pub fn icon_url(mut self, image_source: ImageSource) -> Self {
+        self.0.icon_url.replace(image_source.0);
 
         self
     }

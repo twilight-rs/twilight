@@ -1,5 +1,6 @@
 //! Create embed authors.
 
+use super::image_source::ImageSource;
 use std::{
     error::Error,
     fmt::{Display, Formatter, Result as FmtResult},
@@ -56,14 +57,8 @@ impl EmbedAuthorBuilder {
     }
 
     /// Add an author icon.
-    ///
-    /// Either the URL to an image or an `attachment://` path.
-    pub fn icon_url(self, icon_url: impl Into<String>) -> Self {
-        self._icon_url(icon_url.into())
-    }
-
-    fn _icon_url(mut self, icon_url: String) -> Self {
-        self.0.icon_url.replace(icon_url);
+    pub fn icon_url(mut self, image_source: ImageSource) -> Self {
+        self.0.icon_url.replace(image_source.0);
 
         self
     }
