@@ -45,6 +45,13 @@ impl Error for EmbedAuthorNameError {}
 pub struct EmbedAuthorBuilder(EmbedAuthor);
 
 impl EmbedAuthorBuilder {
+    /// The maximum number of UTF-16 code points that can be in an author name.
+    ///
+    /// This is used by [`name`].
+    ///
+    /// [`name`]: #method.name
+    pub const NAME_LENGTH_LIMIT: usize = 256;
+
     /// Create a new default embed author builder.
     pub fn new() -> Self {
         Self::default()
@@ -65,15 +72,17 @@ impl EmbedAuthorBuilder {
 
     /// The author's name.
     ///
-    /// Limited to 256 UTF-16 code points.
+    /// Refer to [`NAME_LENGTH_LIMIT`] for the maximum number of UTF-16
+    /// code points that can be in a description.
     ///
     /// # Errors
     ///
     /// Returns [`EmbedAuthorNameError::Empty`] if the provided name is empty.
     ///
     /// Returns [`EmbedAuthorNameError::TooLong`] if the provided name is longer
-    /// than 256 UTF-16 code points.
+    /// than the maximum number of code points.
     ///
+    /// [`NAME_LENGTH_LIMIT`]: #const.NAME_LENGTH_LIMIT
     /// [`EmbedAuthorNameError::Empty`]: enum.EmbedAuthorNameError.html#variant.Empty
     /// [`EmbedAuthorNameError::TooLong`]: enum.EmbedAuthorNameError.html#variant.TooLong
     pub fn name(self, name: impl Into<String>) -> Result<Self, EmbedAuthorNameError> {
@@ -81,6 +90,14 @@ impl EmbedAuthorBuilder {
     }
 
     fn _name(mut self, name: String) -> Result<Self, EmbedAuthorNameError> {
+        if name.is_empty() {
+            return Err(EmbedAuthorNameError::Empty { name });
+        }
+
+        if name.chars().count() > Self::NAME_LENGTH_LIMIT {
+            return Err(EmbedAuthorNameError::TooLong { name });
+        }
+
         self.0.name.replace(name);
 
         Ok(self)
@@ -117,5 +134,21 @@ impl From<EmbedAuthorBuilder> for EmbedAuthor {
     /// [`EmbedAuthorBuilder::build`]: #method.build
     fn from(builder: EmbedAuthorBuilder) -> Self {
         builder.build()
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::{EmbedAuthorBuilder, EmbedAuthorNameError};
+
+    #[test]
+    fn test_name_empty() {
+        assert!(matches!(EmbedAuthorBuilder::new().name(""), Err(EmbedAuthorNameError::Empty { .. })));
+    }
+
+    #[test]
+    fn test_name_too_long() {
+        assert!(EmbedAuthorBuilder::new().name("a".repeat(256)).is_ok());
+        assert!(matches!(EmbedAuthorBuilder::new().name("a".repeat(257)), Err(EmbedAuthorNameError::TooLong { .. })));
     }
 }
