@@ -214,6 +214,7 @@ All first-party crates are licensed under [ISC][LICENSE.md]
 [logo]: https://raw.githubusercontent.com/twilight-rs/twilight/trunk/logo.png
 [rust badge]: https://img.shields.io/badge/rust-1.40+%20(stable)-93450a.svg?style=flat-square
 [rust link]: https://github.com/rust-lang/rust/milestone/66
+[`twilight-embed-builder`]: https://github.com/twilight-rs/twilight/tree/trunk/utils/embed-builder
 [`twilight-lavalink`]: https://github.com/twilight-rs/twilight/tree/trunk/lavalink
 [`twilight-mention`]: https://github.com/twilight-rs/twilight/tree/trunk/utils/mention
 [`tracing-log`]: https://github.com/tokio-rs/tracing/tree/master/tracing-log
