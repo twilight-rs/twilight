@@ -83,6 +83,11 @@
 //! considered core crates due to being vendor-specific or non-essential for most
 //! users.
 //!
+//! ### `twilight-embed-builder`
+//!
+//! [`twilight-embed-builder`] is a utility crate for creating and validating
+//! message embeds, to be used when creating or updating messages.
+//!
 //! ### `twilight-lavalink`
 //!
 //! [`twilight-lavalink`] is a client for [Lavalink] as part of the twilight
