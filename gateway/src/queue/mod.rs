@@ -73,7 +73,7 @@ async fn waiter(mut rx: UnboundedReceiver<Sender<()>>) {
     const DUR: Duration = Duration::from_secs(6);
     while let Some(req) = rx.next().await {
         if let Err(err) = req.send(()) {
-            warn!("[LocalQueue/waiter] send failed with: {:?}, skipping", err);
+            warn!("skipping, send failed: {:?}", err);
         }
         delay_for(DUR).await;
     }
@@ -84,15 +84,15 @@ impl Queue for LocalQueue {
     /// Request to be able to identify with the gateway. This will place this
     /// request behind all other requests, and the returned future will resolve
     /// once the request has been completed.
-    async fn request(&self, _: [u64; 2]) {
+    async fn request(&self, [id, total]: [u64; 2]) {
         let (tx, rx) = oneshot::channel();
 
         if let Err(err) = self.0.clone().send(tx).await {
-            warn!("[LocalQueue] send failed with: {:?}, skipping", err);
+            warn!("skipping, send failed: {:?}", err);
             return;
         }
 
-        info!("Waiting for allowance!");
+        info!("shard {}/{} waiting for allowance", id, total);
 
         let _ = rx.await;
     }

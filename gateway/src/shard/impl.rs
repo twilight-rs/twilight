@@ -155,7 +155,7 @@ impl Shard {
         tokio::spawn(async move {
             let _ = fut.await;
 
-            debug!("[Shard] Shard processor future ended");
+            debug!("shard processor future ended");
         });
 
         // We know that these haven't been set, so we can ignore this.
