@@ -103,9 +103,9 @@ impl ImageSource {
     ///
     /// # Errors
     ///
-    /// Returns [`ImageSourceUrlError`] if the URL's protocol is unsupported.
+    /// Returns [`ImageSourceUrlError::ProtocolUnsupported`] if the URL's protocol is unsupported.
     ///
-    /// [`ImageSourceUrlError`]: enum.ImageSourceUrlError.html#variant.ProtocolUnsupported
+    /// [`ImageSourceUrlError::ProtocolUnsupported`]: enum.ImageSourceUrlError.html#variant.ProtocolUnsupported
     pub fn url(url: impl Into<String>) -> Result<Self, ImageSourceUrlError> {
         Self::_url(url.into())
     }
