@@ -51,6 +51,8 @@ jobs:
         run: cd builders && cargo sync-readme --check
       - name: Run in command-parser
         run: cd command-parser && cargo sync-readme --check
+      - name: Run in embed-builder
+        run: cd embed-builder && cargo sync-readme --check
       - name: Run in gateway
         run: cd gateway && cargo sync-readme --check
       - name: Run in http
