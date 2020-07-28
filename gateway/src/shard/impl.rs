@@ -220,7 +220,7 @@ impl Shard {
     /// [`Event::ShardConnected`]: ../../twilight_model/gateway/event/enum.Event.html#variant.ShardConnected
     /// [`Event::ShardDisconnected`]: ../../twilight_model/gateway/event/enum.Event.html#variant.ShardDisconnected
     /// [`futures::stream::Stream`]: https://docs.rs/futures/*/futures/stream/trait.Stream.html
-    pub async fn some_events(&self, event_types: EventTypeFlags) -> impl Stream<Item = Event> {
+    pub async fn some_events(&self, event_types: EventTypeFlags) -> Events {
         let rx = self.0.listeners.add(event_types);
 
         Events::new(event_types, rx)
