@@ -462,7 +462,7 @@ impl ShardProcessor {
                 msg
             } else {
                 if let Err(why) = self.resume().await {
-                    warn!("resuming failed, reconnecting:", why);
+                    warn!("resuming failed, reconnecting: {:?}", why);
                     self.reconnect(true).await;
                 }
                 continue;
