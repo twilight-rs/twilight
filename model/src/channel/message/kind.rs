@@ -1,6 +1,6 @@
 use crate::channel::ConversionError;
-use core::convert::TryFrom;
 use serde_repr::{Deserialize_repr, Serialize_repr};
+use std::convert::TryFrom;
 
 #[derive(
     Clone, Copy, Debug, Deserialize_repr, Eq, Hash, Ord, PartialEq, PartialOrd, Serialize_repr,
