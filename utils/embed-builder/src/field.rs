@@ -7,6 +7,10 @@ use std::{
 use twilight_model::channel::embed::EmbedField;
 
 /// Error creating an embed field.
+///
+/// This is returned from [`EmbedFieldBuilder::new`].
+///
+/// [`EmbedFieldBuilder::new`]: struct.EmbedFieldBuilder.html#method.new
 #[derive(Clone, Debug, Eq, PartialEq)]
 #[non_exhaustive]
 pub enum EmbedFieldError {
@@ -108,7 +112,7 @@ impl EmbedFieldBuilder {
             return Err(EmbedFieldError::ValueEmpty { name, value });
         }
 
-        if value.chars().count() > 256 {
+        if value.chars().count() > 1024 {
             return Err(EmbedFieldError::ValueTooLong { name, value });
         }
 

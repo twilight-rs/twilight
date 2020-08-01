@@ -8,6 +8,10 @@ use std::{
 use twilight_model::channel::embed::EmbedFooter;
 
 /// Error creating an embed footer.
+///
+/// This is returned from [`EmbedFooterBuilder::new`].
+///
+/// [`EmbedFooterBuilder::new`]: struct.EmbedFooterBuilder.html#method.new
 #[derive(Clone, Debug, Eq, PartialEq)]
 #[non_exhaustive]
 pub enum EmbedFooterTextError {

@@ -11,6 +11,10 @@ use twilight_model::channel::embed::{
 };
 
 /// Error building an embed.
+///
+/// This is returned from [`EmbedBuilder::build`].
+///
+/// [`EmbedBuilder::build`]: struct.EmbedBuilder.html#method.build
 #[derive(Clone, Debug, Eq, PartialEq)]
 #[non_exhaustive]
 pub enum EmbedBuildError {
@@ -48,6 +52,10 @@ impl Display for EmbedBuildError {
 impl Error for EmbedBuildError {}
 
 /// Error working with an embed builder.
+///
+/// This is returned from [`EmbedBuilder::color`].
+///
+/// [`EmbedBuilder::color`]: struct.EmbedBuilder.html#method.color
 #[derive(Clone, Debug, Eq, PartialEq)]
 #[non_exhaustive]
 pub enum EmbedColorError {
@@ -73,6 +81,10 @@ impl Display for EmbedColorError {
 impl Error for EmbedColorError {}
 
 /// Error adding a description to an embed builder.
+///
+/// This is returned from [`EmbedBuilder::description`].
+///
+/// [`EmbedBuilder::description`]: struct.EmbedBuilder.html#method.description
 #[derive(Clone, Debug, Eq, PartialEq)]
 #[non_exhaustive]
 pub enum EmbedDescriptionError {
@@ -101,6 +113,10 @@ impl Display for EmbedDescriptionError {
 impl Error for EmbedDescriptionError {}
 
 /// Error adding a title to an embed builder.
+///
+/// This is returned from [`EmbedBuilder::title`].
+///
+/// [`EmbedBuilder::title`]: struct.EmbedBuilder.html#method.title
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub enum EmbedTitleError {
     /// Title is empty.

@@ -8,6 +8,10 @@ use std::{
 use twilight_model::channel::embed::EmbedAuthor;
 
 /// Error setting an embed author's name.
+///
+/// This is returned from [`EmbedAuthorBuilder::name`].
+///
+/// [`EmbedAuthorBuilder::name`]: struct.EmbedAuthorBuilder.html#method.name
 #[derive(Clone, Debug, Eq, PartialEq)]
 #[non_exhaustive]
 pub enum EmbedAuthorNameError {
