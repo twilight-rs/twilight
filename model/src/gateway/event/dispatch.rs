@@ -1,4 +1,4 @@
-use super::{super::payload::*, Event, EventType};
+use super::{super::payload::*, Event, EventConversionError, EventType};
 use serde::{
     de::{Deserialize, DeserializeSeed, Deserializer, Error as DeError, IgnoredAny},
     Serialize,
@@ -103,7 +103,7 @@ impl DispatchEvent {
 }
 
 impl TryFrom<Event> for DispatchEvent {
-    type Error = &'static str;
+    type Error = EventConversionError<Event>;
 
     fn try_from(event: Event) -> Result<Self, Self::Error> {
         match event {
@@ -147,7 +147,10 @@ impl TryFrom<Event> for DispatchEvent {
             Event::VoiceStateUpdate(v) => Ok(Self::VoiceStateUpdate(v)),
             Event::WebhooksUpdate(v) => Ok(Self::WebhooksUpdate(v)),
 
-            _ => Err("event is not a DispatchEvent"),
+            _ => Err(EventConversionError::new(
+                event,
+                "event is not a DispatchEvent",
+            )),
         }
     }
 }

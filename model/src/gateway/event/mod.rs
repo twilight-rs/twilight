@@ -14,6 +14,7 @@ pub use self::{
 
 use self::shard::*;
 use super::payload::*;
+use std::fmt::{Display, Formatter, Result as FmtResult};
 
 /// Any type of event that a shard emits.
 ///
@@ -265,5 +266,31 @@ impl From<ShardEvent> for Event {
             ShardEvent::Reconnecting(v) => Self::ShardReconnecting(v),
             ShardEvent::Resuming(v) => Self::ShardResuming(v),
         }
+    }
+}
+
+/// An error that describes a failure to convert
+/// from one event type to another.
+#[derive(Debug)]
+pub struct EventConversionError<T> {
+    /// The original event
+    event: T,
+    msg: &'static str,
+}
+
+impl<T> EventConversionError<T> {
+    pub fn new(event: T, msg: &'static str) -> EventConversionError<T> {
+        Self { event, msg }
+    }
+
+    /// Get the original event
+    pub fn into_event(self) -> T {
+        self.event
+    }
+}
+
+impl<T> Display for EventConversionError<T> {
+    fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
+        write!(f, "{}", self.msg)
     }
 }

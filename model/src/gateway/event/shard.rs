@@ -1,4 +1,4 @@
-use super::Event;
+use super::{Event, EventConversionError};
 use serde::{Deserialize, Serialize};
 use std::convert::TryFrom;
 
@@ -89,7 +89,7 @@ pub enum ShardEvent {
 }
 
 impl TryFrom<Event> for ShardEvent {
-    type Error = &'static str;
+    type Error = EventConversionError<Event>;
 
     fn try_from(event: Event) -> Result<Self, Self::Error> {
         match event {
@@ -101,7 +101,10 @@ impl TryFrom<Event> for ShardEvent {
             Event::ShardReconnecting(v) => Ok(Self::Reconnecting(v)),
             Event::ShardResuming(v) => Ok(Self::Resuming(v)),
 
-            _ => Err("event was not a ShardEvent"),
+            _ => Err(EventConversionError::new(
+                event,
+                "event is not a ShardEvent",
+            )),
         }
     }
 }

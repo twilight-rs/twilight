@@ -1,4 +1,6 @@
-use super::{super::OpCode, DispatchEvent, DispatchEventWithTypeDeserializer, Event};
+use super::{
+    super::OpCode, DispatchEvent, DispatchEventWithTypeDeserializer, Event, EventConversionError,
+};
 use serde::{
     de::{
         value::U8Deserializer, DeserializeSeed, Deserializer, Error as DeError, IgnoredAny,
@@ -23,7 +25,7 @@ pub enum GatewayEvent {
 }
 
 impl TryFrom<Event> for GatewayEvent {
-    type Error = &'static str;
+    type Error = EventConversionError<Event>;
 
     fn try_from(event: Event) -> Result<Self, Self::Error> {
         match event {
@@ -33,7 +35,10 @@ impl TryFrom<Event> for GatewayEvent {
             Event::GatewayInvalidateSession(v) => Ok(Self::InvalidateSession(v)),
             Event::GatewayReconnect => Ok(Self::Reconnect),
 
-            _ => Err("event is not a GatewayEvent"),
+            _ => Err(EventConversionError::new(
+                event,
+                "event is not a GatewayEvent",
+            )),
         }
     }
 }
