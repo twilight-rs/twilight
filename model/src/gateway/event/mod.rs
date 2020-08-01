@@ -14,7 +14,8 @@ pub use self::{
 
 use self::shard::*;
 use super::payload::*;
-use std::fmt::{Display, Formatter, Result as FmtResult};
+use std::error::Error;
+use std::fmt::{Debug, Display, Formatter, Result as FmtResult};
 
 /// Any type of event that a shard emits.
 ///
@@ -292,5 +293,11 @@ impl<T> EventConversionError<T> {
 impl<T> Display for EventConversionError<T> {
     fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
         write!(f, "{}", self.msg)
+    }
+}
+
+impl<T: Debug> Error for EventConversionError<T> {
+    fn source(&self) -> Option<&(dyn Error + 'static)> {
+        None
     }
 }
