@@ -60,10 +60,7 @@ async fn waiter(mut rx: UnboundedReceiver<Sender<()>>) {
     const DUR: Duration = Duration::from_secs(6);
     while let Some(req) = rx.next().await {
         if let Err(err) = req.send(()) {
-            warn!(
-                "[LargeBotQueue/waiter] send failed with: {:?}, skipping",
-                err
-            );
+            warn!("skipping, send failed with: {:?}", err);
         }
         delay_for(DUR).await;
     }
@@ -81,11 +78,11 @@ impl Queue for LargeBotQueue {
 
         self.limiter.get().await;
         if let Err(err) = self.buckets[bucket].clone().send(tx).await {
-            warn!("[LargeBotQueue] send failed with: {:?}, skipping", err);
+            warn!("skipping, send failed with: {:?}", err);
             return;
         }
 
-        info!("Waiting for allowance on shard: {}!", shard_id[0]);
+        info!("waiting for allowance on shard {}", shard_id[0]);
 
         let _ = rx.await;
     }

@@ -38,18 +38,19 @@ impl SocketForwarder {
     }
 
     pub async fn run(mut self) {
-        debug!("[SocketForwarder] Starting driving loop");
+        debug!("starting driving loop");
+
         loop {
             match future::select(self.rx.next(), timeout(Self::TIMEOUT, self.stream.next())).await {
                 Either::Left((Some(msg), _)) => {
-                    trace!("[SocketForwarder] Sending msg: {}", msg);
+                    trace!("sending message: {}", msg);
                     if let Err(err) = self.stream.send(msg).await {
-                        warn!("[SocketForwarder] Got error when sending: {}", err);
+                        warn!("sending failed: {}", err);
                         break;
                     }
                 }
                 Either::Left((None, _)) => {
-                    debug!("[SocketForwarder] Got None, closing stream");
+                    debug!("rx stream ended, closing socket");
                     let _ = self.stream.close(None).await;
 
                     break;
@@ -60,22 +61,22 @@ impl SocketForwarder {
                     }
                 }
                 Either::Right((Ok(Some(Err(err))), _)) => {
-                    warn!("[SocketForwarder] Got error: {}, closing tx", err);
+                    warn!("socket errored, closing tx: {}", err);
                     self.tx.close_channel();
                     break;
                 }
                 Either::Right((Ok(None), _)) => {
-                    debug!("[SocketForwarder] Got None, closing tx");
+                    debug!("socket ended, closing tx");
                     self.tx.close_channel();
                     break;
                 }
                 Either::Right((Err(why), _)) => {
-                    warn!("[SocketForwarder] Error: {}", why);
+                    warn!("socket errored, closing tx: {}", why);
                     self.tx.close_channel();
                     break;
                 }
             }
         }
-        debug!("[SocketForwarder] Leaving loop");
+        debug!("Leaving loop");
     }
 }

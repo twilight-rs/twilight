@@ -58,7 +58,7 @@ impl Ratelimiter {
     }
 
     pub async fn get(&self, path: Path) -> Receiver<Sender<Option<RatelimitHeaders>>> {
-        debug!("Getting bucket for path: {:?}", path);
+        debug!("getting bucket for path: {:?}", path);
 
         let (tx, rx) = oneshot::channel();
         let (bucket, fresh) = self.entry(path.clone(), tx).await;
@@ -88,16 +88,16 @@ impl Ratelimiter {
 
         match buckets.entry(path.clone()) {
             Entry::Occupied(bucket) => {
-                debug!("Got existing bucket: {:?}", path);
+                debug!("got existing bucket: {:?}", path);
 
                 let bucket = bucket.into_mut();
                 bucket.queue.push(tx);
-                debug!("Added request into bucket queue: {:?}", path);
+                debug!("added request into bucket queue: {:?}", path);
 
                 (Arc::clone(&bucket), false)
             }
             Entry::Vacant(entry) => {
-                debug!("Making new bucket for path: {:?}", path);
+                debug!("making new bucket for path: {:?}", path);
                 let bucket = Bucket::new(path.clone());
                 bucket.queue.push(tx);
 

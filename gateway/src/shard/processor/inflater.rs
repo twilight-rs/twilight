@@ -57,7 +57,7 @@ impl Inflater {
                 }
             }
 
-            trace!("in:out: {}:{}", self.compressed.len(), self.buffer.len());
+            trace!("in: {}, out: {}", self.compressed.len(), self.buffer.len());
             self.compressed.clear();
 
             #[allow(clippy::cast_precision_loss)]
@@ -65,7 +65,7 @@ impl Inflater {
                 // To get around the u64 → f64 precision loss lint
                 // it does really not matter that it happens here
                 trace!(
-                    "Data saved: {}KiB ({:.2}%)",
+                    "data saved: {}KiB ({:.2}%)",
                     ((self.decompress.total_out() - self.decompress.total_in()) / 1024),
                     ((self.decompress.total_in() as f64) / (self.decompress.total_out() as f64)
                         * 100.0)
@@ -86,7 +86,7 @@ impl Inflater {
                     self.decompress.total_out().try_into().unwrap_or(-1)
                 );
             }
-            trace!("Capacity: {}", self.buffer.capacity());
+            trace!("capacity: {}", self.buffer.capacity());
             Ok(Some(&mut self.buffer))
         } else {
             // Received a partial payload.

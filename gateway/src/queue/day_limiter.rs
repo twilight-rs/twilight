@@ -52,7 +52,7 @@ impl DayLimiter {
             if let Ok(info) = lock.http.gateway().authed().await {
                 let last_check = Instant::now();
                 let next_reset = Duration::from_millis(info.session_start_limit.remaining);
-                tracing::info!("Next session start limit reset in: {:.2?}", next_reset);
+                tracing::info!("next session start limit reset in: {:.2?}", next_reset);
                 let total = info.session_start_limit.total;
                 let remaining = info.session_start_limit.remaining;
                 assert!(total >= remaining);
@@ -62,7 +62,7 @@ impl DayLimiter {
                 lock.total = total;
                 lock.current = current + 1;
             } else {
-                warn!("Unable to get new session limits, skipping it. (This may cause bad things)")
+                warn!("unable to get new session limits, skipping (this may cause bad things)")
             }
         }
     }

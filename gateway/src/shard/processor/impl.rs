@@ -64,10 +64,10 @@ impl ShardProcessor {
         let shard_id = config.shard();
         let resumable = config.sequence.is_some() && config.session_id.is_some();
         if !resumable {
-            debug!("Shard {:?} is not resumable", shard_id);
-            debug!("[ShardProcessor {:?}] Queueing", shard_id);
+            debug!("shard {:?} is not resumable", shard_id);
+            debug!("shard {:?} queued", shard_id);
             config.queue.request(shard_id).await;
-            debug!("[ShardProcessor {:?}] Finished queue", config.shard());
+            debug!("shard {:?} finished queue", config.shard());
         }
 
         let properties = IdentifyProperties::new("twilight.rs", "twilight.rs", OS, "", "");
@@ -114,7 +114,7 @@ impl ShardProcessor {
         };
 
         if resumable {
-            debug!("Shard {:?} resuming", shard_id);
+            debug!("resuming shard {:?}", shard_id);
             processor.resume().await?;
         }
 
@@ -127,10 +127,7 @@ impl ShardProcessor {
                 Ok(ev) => ev,
                 // The authorization is invalid, so we should just quit.
                 Err(Error::AuthorizationInvalid { shard_id, .. }) => {
-                    warn!(
-                        "The authorization for shard {} is invalid, quitting",
-                        shard_id
-                    );
+                    warn!("authorization for shard {} is invalid, quitting", shard_id);
                     self.listeners.remove_all();
 
                     return;
@@ -138,7 +135,7 @@ impl ShardProcessor {
                 // Reconnect as this error is often fatal!
                 Err(Error::Decompressing { source }) => {
                     warn!(
-                        "[gateway] Decompressing error, clears buffers and reconnect! {:?}",
+                        "decompressing failed, clearing buffers and reconnecting: {:?}",
                         source
                     );
 
@@ -148,7 +145,7 @@ impl ShardProcessor {
                 }
                 Err(Error::IntentsDisallowed { shard_id, .. }) => {
                     warn!(
-                        "At least one of the provided intents for shard {} are disallowed",
+                        "at least one of the provided intents for shard {} are disallowed",
                         shard_id
                     );
                     self.listeners.remove_all();
@@ -156,14 +153,14 @@ impl ShardProcessor {
                 }
                 Err(Error::IntentsInvalid { shard_id, .. }) => {
                     warn!(
-                        "At least one of the provided intents for shard {} are invalid",
+                        "at least one of the provided intents for shard {} are invalid",
                         shard_id
                     );
                     self.listeners.remove_all();
                     return;
                 }
                 Err(err) => {
-                    warn!("Error receiving gateway event: {:?}", err.source());
+                    warn!("error receiving gateway event: {:?}", err.source());
                     continue;
                 }
             };
@@ -172,7 +169,7 @@ impl ShardProcessor {
             // message or if the session didn't exist when it should, so do a
             // reconnect if this fails.
             if self.process(&gateway_event).await.is_err() {
-                debug!("Error processing event; reconnecting");
+                debug!("error processing event; reconnecting");
 
                 self.reconnect(true).await;
 
@@ -258,7 +255,7 @@ impl ShardProcessor {
                 }
 
                 if let Err(err) = self.session.heartbeat() {
-                    warn!("Error sending heartbeat; reconnecting: {}", err);
+                    warn!("error sending heartbeat; reconnecting: {}", err);
 
                     self.reconnect(true).await;
                 }
@@ -266,13 +263,13 @@ impl ShardProcessor {
             Hello(interval) => {
                 #[cfg(feature = "metrics")]
                 metrics::counter!("GatewayEvent", 1, "GatewayEvent" => "Hello");
-                debug!("[EVENT] Hello({})", interval);
+                debug!("got hello with interval {}", interval);
 
                 if self.session.stage() == Stage::Resuming && self.resume.is_some() {
                     // Safe to unwrap so here as we have just checked that
                     // it is some.
                     let (seq, id) = self.resume.take().unwrap();
-                    warn!("Resuming with ({}, {})!", seq, id);
+                    warn!("resuming with sequence {}, session id {}", seq, id);
                     let payload = Resume::new(seq, &id, self.config.token());
 
                     // Set id so it is correct for next resume.
@@ -303,19 +300,19 @@ impl ShardProcessor {
             InvalidateSession(true) => {
                 #[cfg(feature = "metrics")]
                 metrics::counter!("GatewayEvent", 1, "GatewayEvent" => "InvalidateSessionTrue");
-                debug!("[EVENT] InvalidateSession(true)");
+                debug!("got request to resume the session");
                 self.resume().await?;
             }
             InvalidateSession(false) => {
                 #[cfg(feature = "metrics")]
                 metrics::counter!("GatewayEvent", 1, "GatewayEvent" => "InvalidateSessionFalse");
-                debug!("[EVENT] InvalidateSession(false)");
+                debug!("got request to invalidate the session and reconnect");
                 self.reconnect(true).await;
             }
             Reconnect => {
                 #[cfg(feature = "metrics")]
                 metrics::counter!("GatewayEvent", 1, "GatewayEvent" => "Reconnect");
-                debug!("[EVENT] Reconnect");
+                debug!("got request to reconnect");
                 let frame = CloseFrame {
                     code: CloseCode::Restart,
                     reason: Cow::Borrowed("Reconnecting"),
@@ -329,7 +326,7 @@ impl ShardProcessor {
     }
 
     async fn reconnect(&mut self, full_reconnect: bool) {
-        info!("[reconnect] Reconnection started!");
+        info!("reconnection started");
         loop {
             // Await allowance if doing a full reconnect
             if full_reconnect {
@@ -357,7 +354,7 @@ impl ShardProcessor {
             let new_stream = match Self::connect(&self.url).await {
                 Ok(s) => s,
                 Err(why) => {
-                    warn!("Error reconnecting: {:?}", why);
+                    warn!("reconnecting failed: {:?}", why);
                     continue;
                 }
             };
@@ -373,14 +370,14 @@ impl ShardProcessor {
                 Ok(_) => (),
                 Err(why) => {
                     warn!(
-                        "Broadcast of new session failed, \
-                         This should not happen, please open \
-                         a issue on the repo. {}",
+                        "broadcast of new session failed, \
+                         this should not happen, please open \
+                         an issue on the twilight repo: {}",
                         why
                     );
                     warn!(
-                        "After this many of the commands on the \
-                         shard will no longer work."
+                        "after this many of the commands on the \
+                         shard will no longer work"
                     );
                 }
             };
@@ -404,7 +401,7 @@ impl ShardProcessor {
     }
 
     async fn resume(&mut self) -> Result<()> {
-        info!("[resume] Resume started!");
+        info!("resuming shard {:?}", self.config.shard());
         self.session.set_stage(Stage::Resuming);
         self.session.stop_heartbeater().await;
 
@@ -413,7 +410,7 @@ impl ShardProcessor {
         let id = if let Some(id) = self.session.id().await {
             id
         } else {
-            warn!("Was not able to get the id, reconnecting.");
+            warn!("session id unavailable, reconnecting");
             self.reconnect(true).await;
             return Ok(());
         };
@@ -429,13 +426,13 @@ impl ShardProcessor {
         match self.session.send(payload) {
             Ok(()) => Ok(()),
             Err(Error::PayloadSerialization { source }) => {
-                warn!("Failed to serialize message to send: {:?}", source);
+                warn!("serializing message to send failed: {:?}", source);
 
                 Err(Error::PayloadSerialization { source })
             }
             Err(Error::SendingMessage { source }) => {
-                warn!("Failed to send message: {:?}", source);
-                info!("Reconnecting");
+                warn!("sending message failed: {:?}", source);
+                info!("reconnecting shard {:?}", self.config.shard());
 
                 self.reconnect(true).await;
 
@@ -465,7 +462,7 @@ impl ShardProcessor {
                 msg
             } else {
                 if let Err(why) = self.resume().await {
-                    warn!("Resume failed with {}, reconnecting", why);
+                    warn!("resuming failed, reconnecting: {:?}", why);
                     self.reconnect(true).await;
                 }
                 continue;
@@ -494,7 +491,7 @@ impl ShardProcessor {
                     break msg_or_error;
                 }
                 Message::Close(close_frame) => {
-                    tracing::warn!("Got close code: {:?}.", close_frame);
+                    tracing::warn!("got close code: {:?}", close_frame);
                     emit::event(
                         &self.listeners,
                         Event::ShardDisconnected(Disconnected {
@@ -534,7 +531,7 @@ impl ShardProcessor {
                 }
                 Message::Ping(_) | Message::Pong(_) => {}
                 Message::Text(mut text) => {
-                    trace!("Text payload: {}", text);
+                    trace!("text payload: {}", text);
 
                     emit::bytes(self.listeners.clone(), text.as_bytes()).await;
 
@@ -591,7 +588,7 @@ impl ShardProcessor {
         gateway_deserializer
             .deserialize(&mut json_deserializer)
             .map_err(|source| {
-                tracing::debug!("Broken JSON: {}", json);
+                tracing::debug!("invalid JSON: {}", json);
 
                 Error::PayloadSerialization { source }
             })
@@ -630,7 +627,7 @@ impl ShardProcessor {
         gateway_deserializer
             .deserialize(&mut json_deserializer)
             .map_err(|source| {
-                tracing::debug!("Broken JSON: {}", json);
+                tracing::debug!("invalid JSON: {}", json);
 
                 Error::PayloadSerialization { source }
             })
