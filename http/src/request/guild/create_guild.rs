@@ -67,7 +67,7 @@ struct CreateGuildFields {
 ///
 /// Returns [`CreateGuildError::NameInvalid`] if the name length is too short or too long.
 ///
-/// [`CreateGuildError::NameInvalid`]: ../request/guild/enum.CreateGuildError.html#variant.NameInvalid
+/// [`CreateGuildError::NameInvalid`]: enum.CreateGuildError.html#variant.NameInvalid
 pub struct CreateGuild<'a> {
     fields: CreateGuildFields,
     fut: Option<Pending<'a, PartialGuild>>,

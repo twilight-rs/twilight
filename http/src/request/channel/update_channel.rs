@@ -76,9 +76,9 @@ struct UpdateChannelFields {
 /// Returns a [`UpdateChannelError::TopicInvalid`] when the length of the topic is more than
 /// 1024 UTF-16 characters.
 ///
-/// [`UpdateChannelError::NameInvalid`]: ../enum.UpdateChannelError.html#variant.NameInvalid
-/// [`UpdateChannelError::RateLimitPerUserInvalid`]: ../enum.UpdateChannelError.html#variant.RateLimitPerUserInvalid
-/// [`UpdateChannelError::TopicInvalid`]: ../enum.UpdateChannelError.html#variant.TopicInvalid
+/// [`UpdateChannelError::NameInvalid`]: enum.UpdateChannelError.html#variant.NameInvalid
+/// [`UpdateChannelError::RateLimitPerUserInvalid`]: enum.UpdateChannelError.html#variant.RateLimitPerUserInvalid
+/// [`UpdateChannelError::TopicInvalid`]: enum.UpdateChannelError.html#variant.TopicInvalid
 pub struct UpdateChannel<'a> {
     channel_id: ChannelId,
     fields: UpdateChannelFields,
@@ -176,10 +176,10 @@ impl<'a> UpdateChannel<'a> {
     ///
     /// # Errors
     ///
-    /// Returns [`GetGuildPruneCountError::RateLimitPerUserInvalid`] if the amount is greater than
+    /// Returns [`UpdateChannelError::RateLimitPerUserInvalid`] if the amount is greater than
     /// 21600.
     ///
-    /// [`GetGuildPruneCountError::RateLimitPerUserInvalid`]: enum.GetGuildPruneCountError.html#variant.RateLimitPerUserInvalid
+    /// [`UpdateChannelError::RateLimitPerUserInvalid`]: enum.UpdateChannelError.html#variant.RateLimitPerUserInvalid
     /// [the discord docs]: https://discordapp.com/developers/docs/resources/channel#channel-object-channel-structure>
     pub fn rate_limit_per_user(
         mut self,
@@ -200,11 +200,11 @@ impl<'a> UpdateChannel<'a> {
     ///
     /// # Errors
     ///
-    /// Returns [`CreateGuildChannel::TopicInvalid`] if the topic length is
+    /// Returns [`UpdateGuildChannel::TopicInvalid`] if the topic length is
     /// too long.
     ///
     /// [the discord docs]: https://discordapp.com/developers/docs/resources/channel#channel-object-channel-structure
-    /// [`CreateGuildChannel::TopicInvalid`]: enum.CreateGuildChannel.html#variant.TopicInvalid
+    /// [`UpdateGuildChannel::TopicInvalid`]: enum.UpdateChannelError.html#variant.TopicInvalid
     pub fn topic(self, topic: impl Into<String>) -> Result<Self, UpdateChannelError> {
         self._topic(topic.into())
     }

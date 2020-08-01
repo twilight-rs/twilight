@@ -93,11 +93,13 @@ pub mod shard;
 mod event;
 mod listener;
 
+#[doc(no_inline)]
 pub use self::{
     cluster::{Cluster, ClusterConfig},
     event::EventTypeFlags,
     shard::{Shard, ShardConfig},
 };
+#[doc(no_inline)]
 pub use twilight_model::gateway::event::{Event, EventType};
 
 #[cfg(not(feature = "simd-json"))]

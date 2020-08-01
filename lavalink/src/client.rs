@@ -108,7 +108,7 @@ impl Lavalink {
     /// Provide `None` for the `resume` parameter to disable session resume
     /// capability. See the [`Resume`] documentation for defaults.
     ///
-    /// [`Resume`]: node/struct.Resume.html
+    /// [`Resume`]: ../node/struct.Resume.html
     /// [`new`]: #method.new
     pub fn new_with_resume(
         user_id: UserId,
@@ -303,7 +303,7 @@ impl Lavalink {
     /// Returns [`ClientError::NodesUnconfigured`] if there are no configured
     /// nodes available in the client.
     ///
-    /// [`ClientError::NodesUnconfigured`]: struct.ClientError.html#variant.NodesUnconfigured
+    /// [`ClientError::NodesUnconfigured`]: enum.ClientError.html#variant.NodesUnconfigured
     /// [`Node::penalty`]: ../node/struct.Node.html#method.penalty
     pub async fn best(&self) -> Result<Node, ClientError> {
         let mut lowest = i32::MAX;
@@ -338,7 +338,7 @@ impl Lavalink {
     /// configured via [`add`].
     ///
     /// [`ClientError::NodesUnconfigured`]: enum.ClientError.html#variant.NodesUnconfigured
-    /// [`PlayerManager::get`]: player/struct.PlayerManager.html#method.get
+    /// [`PlayerManager::get`]: ../player/struct.PlayerManager.html#method.get
     /// [`add`]: #method.add
     pub async fn player(&self, guild_id: GuildId) -> Result<Ref<'_, GuildId, Player>, ClientError> {
         if let Some(player) = self.players().get(&guild_id) {

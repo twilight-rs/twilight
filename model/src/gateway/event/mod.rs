@@ -20,9 +20,9 @@ use super::payload::*;
 /// This brings together all of the types of [`DispatchEvent`]s,
 /// [`GatewayEvent`]s, and [`ShardEvent`]s.
 ///
-/// [`DispatchEvent`]: struct.DispatchEvent.html
-/// [`GatewayEvent`]: struct.GatewayEvent.html
-/// [`ShardEvent`]: shard/struct.ShardEvent.html
+/// [`DispatchEvent`]: enum.DispatchEvent.html
+/// [`GatewayEvent`]: gateway/enum.GatewayEvent.html
+/// [`ShardEvent`]: shard/enum.ShardEvent.html
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub enum Event {
     /// A user was banned from a guild.

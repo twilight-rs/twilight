@@ -27,10 +27,10 @@ impl<'a> CommandParserConfig<'a> {
 
     /// Returns a mutable reference to the commands.
     ///
-    /// Use the [`add_command`] and [`remove_command`] methods for an easier way
-    /// to manage commands.
+    /// Use the [`command`] and [`remove_command`] methods for an easier way to
+    /// manage commands.
     ///
-    /// [`add_command`]: #method.add_command
+    /// [`command`]: #method.command
     /// [`remove_command`]: #method.remove_command
     pub fn commands_mut(&mut self) -> &mut HashSet<CaseSensitivity> {
         &mut self.commands

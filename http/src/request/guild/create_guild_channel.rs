@@ -71,9 +71,9 @@ struct CreateGuildChannelFields {
 /// Returns a [`CreateGuildChannelError::TopicInvalid`] when the length of the topic is more than
 /// 1024 UTF-16 characters.
 ///
-/// [`CreateGuildChannelError::NameInvalid`]: ../request/guild/create_guild_channel/enum.CreateGuildChannelError.html#variant.NameInvalid
-/// [`CreateGuildChannelError::RateLimitPerUserInvalid`]: ../request/guild/create_guild_channel/enum.CreateGuildChannelError.html#variant.RateLimitPerUserInvalid
-/// [`CreateGuildChannelError::TopicInvalid`]: ../request/guild/create_guild_channel/enum.CreateGuildChannelError.html#variant.TopicInvalid
+/// [`CreateGuildChannelError::NameInvalid`]: enum.CreateGuildChannelError.html#variant.NameInvalid
+/// [`CreateGuildChannelError::RateLimitPerUserInvalid`]: enum.CreateGuildChannelError.html#variant.RateLimitPerUserInvalid
+/// [`CreateGuildChannelError::TopicInvalid`]: enum.CreateGuildChannelError.html#variant.TopicInvalid
 pub struct CreateGuildChannel<'a> {
     fields: CreateGuildChannelFields,
     fut: Option<Pending<'a, GuildChannel>>,
@@ -183,7 +183,7 @@ impl<'a> CreateGuildChannel<'a> {
     /// 21600.
     ///
     /// [the discord docs]: https://discordapp.com/developers/docs/resources/channel#channel-object-channel-structure
-    /// [`GetGuildPruneCountError::RateLimitPerUserInvalid`]: enum.GetGuildPruneCountError.html#variant.RateLimitPerUserInvalid
+    /// [`GetGuildPruneCountError::RateLimitPerUserInvalid`]: ../get_guild_prune_count/enum.GetGuildPruneCountError.html#variant.RateLimitPerUserInvalid
     pub fn rate_limit_per_user(
         mut self,
         rate_limit_per_user: u64,
@@ -203,11 +203,11 @@ impl<'a> CreateGuildChannel<'a> {
     ///
     /// # Errors
     ///
-    /// Returns [`CreateGuildChannel::TopicInvalid`] if the topic length is
+    /// Returns [`CreateGuildChannelError::TopicInvalid`] if the topic length is
     /// too long.
     ///
     /// [the discord docs]: https://discordapp.com/developers/docs/resources/channel#channel-object-channel-structure
-    /// [`CreateGuildChannel::TopicInvalid`]: enum.CreateGuildChannel.html#variant.TopicInvalid
+    /// [`CreateGuildChannelError::TopicInvalid`]: enum.CreateGuildChannelError.html#variant.TopicInvalid
     pub fn topic(self, topic: impl Into<String>) -> Result<Self, CreateGuildChannelError> {
         self._topic(topic.into())
     }

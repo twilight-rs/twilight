@@ -80,10 +80,8 @@ pub type Result<T> = std::result::Result<T, InMemoryCacheError>;
 
 /// Error type for [`InMemoryCache`] operations.
 ///
-/// Currently this is empty as no error can occur. This exists only to satisfy
-/// the `Cache`'s associated type [`Cache::Error`].
+/// Currently this is empty as no error can occur.
 ///
-/// [`Cache::Error`]: trait.Cache.html#type.Error
 /// [`InMemoryCache`]: struct.InMemoryCache.html
 #[derive(Clone, Debug)]
 pub enum InMemoryCacheError {}
@@ -122,9 +120,8 @@ struct InMemoryCacheRef {
 /// A thread-safe, in-memory-process cache of Discord data. It can be cloned and
 /// sent to other threads.
 ///
-/// This is an implementation of [`Cache`] designed to be used by only the
-/// current process. If the cache needs to be used by other processes, consider
-/// using [`twilight-cache-redis`] or another cache.
+/// This is an implementation of a cache designed to be used by only the
+/// current process.
 ///
 /// # Public Immutability
 ///
@@ -155,18 +152,10 @@ struct InMemoryCacheRef {
 ///
 /// - the "last message id" field of channels will *not* be kept up to date as
 /// - messages come in.
-///
-/// [`Cache`]: trait.Cache.html
-/// [`twilight-cache-redis`]: https://github.com/twilight-rs/cache-redis
 #[derive(Clone, Debug, Default)]
 pub struct InMemoryCache(Arc<InMemoryCacheRef>);
 
 /// Implemented methods and types for the cache.
-///
-/// **Note**: This section may *appear* empty. Please read the implementation
-/// in the [`Cache` trait implementation].
-///
-/// [`Cache` trait implementation]: #impl-Cache
 impl InMemoryCache {
     /// Creates a new, empty cache.
     ///
