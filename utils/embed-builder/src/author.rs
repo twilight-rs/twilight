@@ -147,12 +147,18 @@ mod tests {
 
     #[test]
     fn test_name_empty() {
-        assert!(matches!(EmbedAuthorBuilder::new().name(""), Err(EmbedAuthorNameError::Empty { .. })));
+        assert!(matches!(
+            EmbedAuthorBuilder::new().name(""),
+            Err(EmbedAuthorNameError::Empty { .. })
+        ));
     }
 
     #[test]
     fn test_name_too_long() {
         assert!(EmbedAuthorBuilder::new().name("a".repeat(256)).is_ok());
-        assert!(matches!(EmbedAuthorBuilder::new().name("a".repeat(257)), Err(EmbedAuthorNameError::TooLong { .. })));
+        assert!(matches!(
+            EmbedAuthorBuilder::new().name("a".repeat(257)),
+            Err(EmbedAuthorNameError::TooLong { .. })
+        ));
     }
 }

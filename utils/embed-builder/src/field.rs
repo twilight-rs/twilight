@@ -72,6 +72,20 @@ impl Error for EmbedFieldError {}
 pub struct EmbedFieldBuilder(EmbedField);
 
 impl EmbedFieldBuilder {
+    /// The maximum number of UTF-16 code points that can be in a field name.
+    ///
+    /// This is used by [`new`].
+    ///
+    /// [`new`]: #method.new
+    pub const NAME_LENGTH_LIMIT: usize = 256;
+
+    /// The maximum number of UTF-16 code points that can be in a field value.
+    ///
+    /// This is used by [`new`].
+    ///
+    /// [`new`]: #method.new
+    pub const VALUE_LENGTH_LIMIT: usize = 1024;
+
     /// Create a new default embed field builder.
     ///
     /// The name is limited to 256 UTF-16 code points, and the value is limited
@@ -104,7 +118,7 @@ impl EmbedFieldBuilder {
             return Err(EmbedFieldError::NameEmpty { name, value });
         }
 
-        if name.chars().count() > 256 {
+        if name.chars().count() > Self::NAME_LENGTH_LIMIT {
             return Err(EmbedFieldError::NameTooLong { name, value });
         }
 
@@ -112,7 +126,7 @@ impl EmbedFieldBuilder {
             return Err(EmbedFieldError::ValueEmpty { name, value });
         }
 
-        if value.chars().count() > 1024 {
+        if value.chars().count() > Self::VALUE_LENGTH_LIMIT {
             return Err(EmbedFieldError::ValueTooLong { name, value });
         }
 
