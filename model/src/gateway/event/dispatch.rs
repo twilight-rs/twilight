@@ -1,8 +1,9 @@
-use super::{super::payload::*, EventType};
+use super::{super::payload::*, Event, EventType};
 use serde::{
     de::{Deserialize, DeserializeSeed, Deserializer, Error as DeError, IgnoredAny},
     Serialize,
 };
+use std::convert::TryFrom;
 
 /// A dispatch event, containing information about a created guild, a member
 /// added, etc.
@@ -97,6 +98,56 @@ impl DispatchEvent {
             Self::VoiceServerUpdate(_) => EventType::VoiceServerUpdate,
             Self::VoiceStateUpdate(_) => EventType::VoiceStateUpdate,
             Self::WebhooksUpdate(_) => EventType::WebhooksUpdate,
+        }
+    }
+}
+
+impl TryFrom<Event> for DispatchEvent {
+    type Error = &'static str;
+
+    fn try_from(event: Event) -> Result<Self, Self::Error> {
+        match event {
+            Event::BanAdd(v) => Ok(Self::BanAdd(v)),
+            Event::BanRemove(v) => Ok(Self::BanRemove(v)),
+            Event::ChannelCreate(v) => Ok(Self::ChannelCreate(v)),
+            Event::ChannelDelete(v) => Ok(Self::ChannelDelete(v)),
+            Event::ChannelPinsUpdate(v) => Ok(Self::ChannelPinsUpdate(v)),
+            Event::ChannelUpdate(v) => Ok(Self::ChannelUpdate(v)),
+            Event::GiftCodeUpdate => Ok(Self::GiftCodeUpdate),
+            Event::GuildCreate(v) => Ok(Self::GuildCreate(v)),
+            Event::GuildDelete(v) => Ok(Self::GuildDelete(v)),
+            Event::GuildEmojisUpdate(v) => Ok(Self::GuildEmojisUpdate(v)),
+            Event::GuildIntegrationsUpdate(v) => Ok(Self::GuildIntegrationsUpdate(v)),
+            Event::GuildUpdate(v) => Ok(Self::GuildUpdate(v)),
+            Event::InviteCreate(v) => Ok(Self::InviteCreate(v)),
+            Event::InviteDelete(v) => Ok(Self::InviteDelete(v)),
+            Event::MemberAdd(v) => Ok(Self::MemberAdd(v)),
+            Event::MemberRemove(v) => Ok(Self::MemberRemove(v)),
+            Event::MemberUpdate(v) => Ok(Self::MemberUpdate(v)),
+            Event::MemberChunk(v) => Ok(Self::MemberChunk(v)),
+            Event::MessageCreate(v) => Ok(Self::MessageCreate(v)),
+            Event::MessageDelete(v) => Ok(Self::MessageDelete(v)),
+            Event::MessageDeleteBulk(v) => Ok(Self::MessageDeleteBulk(v)),
+            Event::MessageUpdate(v) => Ok(Self::MessageUpdate(v)),
+            Event::PresenceUpdate(v) => Ok(Self::PresenceUpdate(v)),
+            Event::PresencesReplace => Ok(Self::PresencesReplace),
+            Event::ReactionAdd(v) => Ok(Self::ReactionAdd(v)),
+            Event::ReactionRemove(v) => Ok(Self::ReactionRemove(v)),
+            Event::ReactionRemoveAll(v) => Ok(Self::ReactionRemoveAll(v)),
+            Event::ReactionRemoveEmoji(v) => Ok(Self::ReactionRemoveEmoji(v)),
+            Event::Ready(v) => Ok(Self::Ready(v)),
+            Event::Resumed => Ok(Self::Resumed),
+            Event::RoleCreate(v) => Ok(Self::RoleCreate(v)),
+            Event::RoleDelete(v) => Ok(Self::RoleDelete(v)),
+            Event::RoleUpdate(v) => Ok(Self::RoleUpdate(v)),
+            Event::TypingStart(v) => Ok(Self::TypingStart(v)),
+            Event::UnavailableGuild(v) => Ok(Self::UnavailableGuild(v)),
+            Event::UserUpdate(v) => Ok(Self::UserUpdate(v)),
+            Event::VoiceServerUpdate(v) => Ok(Self::VoiceServerUpdate(v)),
+            Event::VoiceStateUpdate(v) => Ok(Self::VoiceStateUpdate(v)),
+            Event::WebhooksUpdate(v) => Ok(Self::WebhooksUpdate(v)),
+
+            _ => Err("event is not a DispatchEvent"),
         }
     }
 }
