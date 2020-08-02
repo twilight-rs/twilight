@@ -295,8 +295,4 @@ impl Display for EventConversionError {
     }
 }
 
-impl Error for EventConversionError {
-    fn source(&self) -> Option<&(dyn Error + 'static)> {
-        None
-    }
-}
+impl Error for EventConversionError {}
