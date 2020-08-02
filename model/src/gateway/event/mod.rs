@@ -273,30 +273,29 @@ impl From<ShardEvent> for Event {
 /// An error that describes a failure to convert
 /// from one event type to another.
 #[derive(Debug)]
-pub struct EventConversionError<T> {
+pub struct EventConversionError {
     /// The original event
-    event: T,
-    msg: &'static str,
+    event: Event,
 }
 
-impl<T> EventConversionError<T> {
-    pub fn new(event: T, msg: &'static str) -> EventConversionError<T> {
-        Self { event, msg }
+impl EventConversionError {
+    pub fn new(event: Event) -> EventConversionError {
+        Self { event }
     }
 
     /// Get the original event
-    pub fn into_event(self) -> T {
+    pub fn into_event(self) -> Event {
         self.event
     }
 }
 
-impl<T> Display for EventConversionError<T> {
+impl Display for EventConversionError {
     fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
-        write!(f, "{}", self.msg)
+        write!(f, "event variant failed to convert")
     }
 }
 
-impl<T: Debug> Error for EventConversionError<T> {
+impl Error for EventConversionError {
     fn source(&self) -> Option<&(dyn Error + 'static)> {
         None
     }

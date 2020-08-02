@@ -89,22 +89,19 @@ pub enum ShardEvent {
 }
 
 impl TryFrom<Event> for ShardEvent {
-    type Error = EventConversionError<Event>;
+    type Error = EventConversionError;
 
     fn try_from(event: Event) -> Result<Self, Self::Error> {
-        match event {
-            Event::ShardConnected(v) => Ok(Self::Connected(v)),
-            Event::ShardConnecting(v) => Ok(Self::Connecting(v)),
-            Event::ShardDisconnected(v) => Ok(Self::Disconnected(v)),
-            Event::ShardIdentifying(v) => Ok(Self::Identifying(v)),
-            Event::ShardPayload(v) => Ok(Self::Payload(v)),
-            Event::ShardReconnecting(v) => Ok(Self::Reconnecting(v)),
-            Event::ShardResuming(v) => Ok(Self::Resuming(v)),
+        Ok(match event {
+            Event::ShardConnected(v) => Self::Connected(v),
+            Event::ShardConnecting(v) => Self::Connecting(v),
+            Event::ShardDisconnected(v) => Self::Disconnected(v),
+            Event::ShardIdentifying(v) => Self::Identifying(v),
+            Event::ShardPayload(v) => Self::Payload(v),
+            Event::ShardReconnecting(v) => Self::Reconnecting(v),
+            Event::ShardResuming(v) => Self::Resuming(v),
 
-            _ => Err(EventConversionError::new(
-                event,
-                "event is not a ShardEvent",
-            )),
-        }
+            _ => return Err(EventConversionError::new(event)),
+        })
     }
 }

@@ -25,21 +25,18 @@ pub enum GatewayEvent {
 }
 
 impl TryFrom<Event> for GatewayEvent {
-    type Error = EventConversionError<Event>;
+    type Error = EventConversionError;
 
     fn try_from(event: Event) -> Result<Self, Self::Error> {
-        match event {
-            Event::GatewayHeartbeat(v) => Ok(Self::Heartbeat(v)),
-            Event::GatewayHeartbeatAck => Ok(Self::HeartbeatAck),
-            Event::GatewayHello(v) => Ok(Self::Hello(v)),
-            Event::GatewayInvalidateSession(v) => Ok(Self::InvalidateSession(v)),
-            Event::GatewayReconnect => Ok(Self::Reconnect),
+        Ok(match event {
+            Event::GatewayHeartbeat(v) => Self::Heartbeat(v),
+            Event::GatewayHeartbeatAck => Self::HeartbeatAck,
+            Event::GatewayHello(v) => Self::Hello(v),
+            Event::GatewayInvalidateSession(v) => Self::InvalidateSession(v),
+            Event::GatewayReconnect => Self::Reconnect,
 
-            _ => Err(EventConversionError::new(
-                event,
-                "event is not a GatewayEvent",
-            )),
-        }
+            _ => return Err(EventConversionError::new(event)),
+        })
     }
 }
 
