@@ -12,6 +12,7 @@ use serde::{
 ///
 /// [`DispatchEventWithTypeDeserializer`]: struct.DispatchEventWithTypeDeserializer.html
 #[derive(Clone, Debug, Eq, PartialEq, Serialize)]
+#[serde(untagged)]
 pub enum DispatchEvent {
     BanAdd(BanAdd),
     BanRemove(BanRemove),
