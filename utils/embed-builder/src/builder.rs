@@ -607,3 +607,102 @@ impl TryFrom<EmbedBuilder> for Embed {
         builder.build()
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::{EmbedBuilder, EmbedColorError, EmbedDescriptionError, EmbedTitleError};
+    use crate::{field::EmbedFieldBuilder, footer::EmbedFooterBuilder, image_source::ImageSource};
+    use std::error::Error;
+    use twilight_model::channel::embed::{Embed, EmbedField, EmbedFooter};
+
+    #[test]
+    fn test_color_error() -> Result<(), Box<dyn Error>> {
+        assert!(matches!(
+            EmbedBuilder::new().color(0).unwrap_err(),
+            EmbedColorError::Zero
+        ));
+        assert!(matches!(
+            EmbedBuilder::new().color(u32::MAX).unwrap_err(),
+            EmbedColorError::NotRgb { color }
+            if color == u32::MAX
+        ));
+
+        Ok(())
+    }
+
+    #[test]
+    fn test_description_error() {
+        assert!(matches!(
+            EmbedBuilder::new().description("").unwrap_err(),
+            EmbedDescriptionError::Empty { description }
+            if description.is_empty()
+        ));
+        let description_too_long = EmbedBuilder::DESCRIPTION_LENGTH_LIMIT + 1;
+        assert!(matches!(
+            EmbedBuilder::new().description("a".repeat(description_too_long)).unwrap_err(),
+            EmbedDescriptionError::TooLong { description }
+            if description.len() == description_too_long
+        ));
+    }
+
+    #[test]
+    fn test_title_error() {
+        assert!(matches!(
+            EmbedBuilder::new().title("").unwrap_err(),
+            EmbedTitleError::Empty { title }
+            if title.is_empty()
+        ));
+        let title_too_long = EmbedBuilder::TITLE_LENGTH_LIMIT + 1;
+        assert!(matches!(
+            EmbedBuilder::new().title("a".repeat(title_too_long)).unwrap_err(),
+            EmbedTitleError::TooLong { title }
+            if title.len() == title_too_long
+        ));
+    }
+
+    #[test]
+    fn test_builder() -> Result<(), Box<dyn Error>> {
+        let footer_image = ImageSource::url(
+            "https://raw.githubusercontent.com/twilight-rs/twilight/trunk/logo.png",
+        )?;
+        let embed = EmbedBuilder::new()
+            .color(0x00_43_ff)?
+            .description("Description")?
+            .timestamp("123")
+            .footer(EmbedFooterBuilder::new("Warn")?.icon_url(footer_image))
+            .field(EmbedFieldBuilder::new("name", "title")?.inline())
+            .build()?;
+
+        let expected = Embed {
+            author: None,
+            color: Some(0x00_43_ff),
+            description: Some("Description".to_string()),
+            fields: [EmbedField {
+                inline: true,
+                name: "name".to_string(),
+                value: "title".to_string(),
+            }]
+            .to_vec(),
+            footer: Some(EmbedFooter {
+                icon_url: Some(
+                    "https://raw.githubusercontent.com/twilight-rs/twilight/trunk/logo.png"
+                        .to_string(),
+                ),
+                proxy_icon_url: None,
+                text: "Warn".to_string(),
+            }),
+            image: None,
+            kind: "rich".to_string(),
+            provider: None,
+            thumbnail: None,
+            timestamp: Some("123".to_string()),
+            title: None,
+            url: None,
+            video: None,
+        };
+
+        assert_eq!(embed, expected);
+
+        Ok(())
+    }
+}

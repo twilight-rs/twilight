@@ -175,3 +175,62 @@ impl From<EmbedFieldBuilder> for EmbedField {
         builder.build()
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::{EmbedFieldBuilder, EmbedFieldError};
+    use std::error::Error;
+    use twilight_model::channel::embed::EmbedField;
+
+    #[test]
+    fn test_new_errors() {
+        assert!(matches!(
+            EmbedFieldBuilder::new("", "a"),
+            Err(EmbedFieldError::NameEmpty { name, value })
+            if name.is_empty() && value.len() == 1
+        ));
+        assert!(matches!(
+            EmbedFieldBuilder::new("a".repeat(257), "a"),
+            Err(EmbedFieldError::NameTooLong { name, value })
+            if name.len() == 257 && value.len() == 1
+        ));
+        assert!(matches!(
+            EmbedFieldBuilder::new("a", ""),
+            Err(EmbedFieldError::ValueEmpty { name, value })
+            if name.len() == 1 && value.is_empty()
+        ));
+        assert!(matches!(
+            EmbedFieldBuilder::new("a", "a".repeat(1025)),
+            Err(EmbedFieldError::ValueTooLong { name, value })
+            if name.len() == 1 && value.len() == 1025
+        ));
+    }
+
+    #[test]
+    fn test_builder_inline() -> Result<(), Box<dyn Error>> {
+        let expected = EmbedField {
+            inline: true,
+            name: "name".to_owned(),
+            value: "value".to_owned(),
+        };
+        let actual = EmbedFieldBuilder::new("name", "value")?.inline().build();
+
+        assert_eq!(actual, expected);
+
+        Ok(())
+    }
+
+    #[test]
+    fn test_builder_no_inline() -> Result<(), Box<dyn Error>> {
+        let expected = EmbedField {
+            inline: false,
+            name: "name".to_owned(),
+            value: "value".to_owned(),
+        };
+        let actual = EmbedFieldBuilder::new("name", "value")?.build();
+
+        assert_eq!(actual, expected);
+
+        Ok(())
+    }
+}

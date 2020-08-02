@@ -118,3 +118,46 @@ impl ImageSource {
         Ok(Self(url))
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::{ImageSource, ImageSourceAttachmentError, ImageSourceUrlError};
+    use std::error::Error;
+
+    #[test]
+    fn test_attachment() -> Result<(), Box<dyn Error>> {
+        assert!(matches!(
+            ImageSource::attachment("abc").unwrap_err(),
+            ImageSourceAttachmentError::ExtensionMissing
+        ));
+        assert!(matches!(
+            ImageSource::attachment("abc.").unwrap_err(),
+            ImageSourceAttachmentError::ExtensionEmpty
+        ));
+        assert_eq!(
+            ImageSource::attachment("abc.png")?,
+            ImageSource("attachment://abc.png".to_owned()),
+        );
+
+        Ok(())
+    }
+
+    #[test]
+    fn test_url() -> Result<(), Box<dyn Error>> {
+        assert!(matches!(
+            ImageSource::url("ftp://example.com/foo").unwrap_err(),
+            ImageSourceUrlError::ProtocolUnsupported { url }
+            if url == "ftp://example.com/foo"
+        ));
+        assert_eq!(
+            ImageSource::url("https://example.com")?,
+            ImageSource("https://example.com".to_owned()),
+        );
+        assert_eq!(
+            ImageSource::url("http://example.com")?,
+            ImageSource("http://example.com".to_owned()),
+        );
+
+        Ok(())
+    }
+}

@@ -127,3 +127,50 @@ impl From<EmbedFooterBuilder> for EmbedFooter {
         builder.build()
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::{EmbedFooterBuilder, EmbedFooterTextError};
+    use crate::ImageSource;
+    use std::error::Error;
+    use twilight_model::channel::embed::EmbedFooter;
+
+    #[test]
+    fn test_text() -> Result<(), Box<dyn Error>> {
+        assert!(matches!(
+            EmbedFooterBuilder::new("").unwrap_err(),
+            EmbedFooterTextError::Empty { text }
+            if text.is_empty()
+        ));
+        let too_long_len = EmbedFooterBuilder::TEXT_LENGTH_LIMIT + 1;
+        assert!(matches!(
+            EmbedFooterBuilder::new("a".repeat(too_long_len)).unwrap_err(),
+            EmbedFooterTextError::TooLong { text }
+            if text.len() == too_long_len
+        ));
+
+        let expected = EmbedFooter {
+            icon_url: None,
+            proxy_icon_url: None,
+            text: "a footer".to_owned(),
+        };
+        let actual = EmbedFooterBuilder::new("a footer")?.build();
+        assert_eq!(actual, expected);
+
+        Ok(())
+    }
+
+    #[test]
+    fn test_builder() -> Result<(), Box<dyn Error>> {
+        let expected = EmbedFooter {
+            icon_url: Some("https://example.com/1.png".to_owned()),
+            proxy_icon_url: None,
+            text: "a footer".to_owned(),
+        };
+        let image = ImageSource::url("https://example.com/1.png")?;
+        let actual = EmbedFooterBuilder::new("a footer")?.icon_url(image).build();
+        assert_eq!(actual, expected);
+
+        Ok(())
+    }
+}

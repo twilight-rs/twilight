@@ -144,6 +144,22 @@ impl From<EmbedAuthorBuilder> for EmbedAuthor {
 #[cfg(test)]
 mod tests {
     use super::{EmbedAuthorBuilder, EmbedAuthorNameError};
+    use crate::ImageSource;
+    use std::error::Error;
+    use twilight_model::channel::embed::EmbedAuthor;
+
+    #[test]
+    fn test_defaults() {
+        let expected = EmbedAuthor {
+            icon_url: None,
+            name: None,
+            proxy_icon_url: None,
+            url: None,
+        };
+
+        assert_eq!(expected, EmbedAuthorBuilder::new().0);
+        assert_eq!(EmbedAuthorBuilder::new().0, EmbedAuthorBuilder::default().0);
+    }
 
     #[test]
     fn test_name_empty() {
@@ -160,5 +176,26 @@ mod tests {
             EmbedAuthorBuilder::new().name("a".repeat(257)),
             Err(EmbedAuthorNameError::TooLong { .. })
         ));
+    }
+
+    #[test]
+    fn test_builder() -> Result<(), Box<dyn Error>> {
+        let expected = EmbedAuthor {
+            icon_url: Some("https://example.com/1.png".to_owned()),
+            name: Some("an author".to_owned()),
+            proxy_icon_url: None,
+            url: Some("https://example.com".to_owned()),
+        };
+
+        let source = ImageSource::url("https://example.com/1.png")?;
+        let actual = EmbedAuthorBuilder::new()
+            .icon_url(source)
+            .name("an author")?
+            .url("https://example.com")
+            .build();
+
+        assert_eq!(actual, expected);
+
+        Ok(())
     }
 }
