@@ -32,8 +32,23 @@ use serde::{
 use serde_mappable_seq::Key;
 use std::{
     collections::HashMap,
-    fmt::{Formatter, Result as FmtResult},
+    fmt::{self, Formatter, Result as FmtResult},
 };
+
+#[derive(Copy, Clone, Debug, Eq, PartialEq)]
+pub enum ConversionError {
+    MessageType(u8),
+}
+
+impl fmt::Display for ConversionError {
+    fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
+        match self {
+            ConversionError::MessageType(num) => {
+                write!(f, "Could not convert {} into a valid MessageType!", num)
+            }
+        }
+    }
+}
 
 #[derive(Clone, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
 #[serde(untagged)]
