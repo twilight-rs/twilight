@@ -1,4 +1,6 @@
-use super::{super::OpCode, DispatchEvent, DispatchEventWithTypeDeserializer};
+use super::{
+    super::OpCode, DispatchEvent, DispatchEventWithTypeDeserializer, Event, EventConversionError,
+};
 use serde::{
     de::{
         value::U8Deserializer, DeserializeSeed, Deserializer, Error as DeError, IgnoredAny,
@@ -7,6 +9,7 @@ use serde::{
     ser::{SerializeStruct, Serializer},
     Deserialize, Serialize,
 };
+use std::convert::TryFrom;
 use std::fmt::{Formatter, Result as FmtResult};
 
 /// An event from the gateway, which can either be a dispatch event with
@@ -19,6 +22,22 @@ pub enum GatewayEvent {
     Hello(u64),
     InvalidateSession(bool),
     Reconnect,
+}
+
+impl TryFrom<Event> for GatewayEvent {
+    type Error = EventConversionError;
+
+    fn try_from(event: Event) -> Result<Self, Self::Error> {
+        Ok(match event {
+            Event::GatewayHeartbeat(v) => Self::Heartbeat(v),
+            Event::GatewayHeartbeatAck => Self::HeartbeatAck,
+            Event::GatewayHello(v) => Self::Hello(v),
+            Event::GatewayInvalidateSession(v) => Self::InvalidateSession(v),
+            Event::GatewayReconnect => Self::Reconnect,
+
+            _ => return Err(EventConversionError::new(event)),
+        })
+    }
 }
 
 #[derive(Clone, Copy, Debug, Deserialize, PartialEq)]
