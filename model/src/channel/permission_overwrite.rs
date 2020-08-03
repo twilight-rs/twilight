@@ -42,6 +42,7 @@ impl<'de> Deserialize<'de> for PermissionOverwrite {
         let data = PermissionOverwriteData::deserialize(deserializer)?;
 
         let span = tracing::trace_span!("deserializing permission overwrite");
+        let _span_enter = span.enter();
 
         let kind = match data.kind {
             PermissionOverwriteTypeName::Member => {

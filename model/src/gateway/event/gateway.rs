@@ -219,6 +219,7 @@ impl<'de> Visitor<'de> for GatewayEventVisitor<'_> {
         ];
 
         let span = tracing::trace_span!("deserializing gateway event");
+        let _span_enter = span.enter();
         tracing::trace!(parent: &span, event_type=?self.1, op=self.0);
 
         let op_deser: U8Deserializer<V::Error> = self.0.into_deserializer();
@@ -243,6 +244,7 @@ impl<'de> Visitor<'de> for GatewayEventVisitor<'_> {
 
                 loop {
                     let span_child = tracing::trace_span!(parent: &span, "iterating over element");
+                    let _span_child_enter = span_child.enter();
 
                     let key = match map.next_key() {
                         Ok(Some(key)) => {

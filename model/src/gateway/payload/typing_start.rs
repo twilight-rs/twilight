@@ -44,9 +44,11 @@ impl<'de> Visitor<'de> for TypingStartVisitor {
         let mut user_id = None;
 
         let span = tracing::trace_span!("deserializing typing start");
+        let _span_enter = span.enter();
 
         loop {
             let span_child = tracing::trace_span!(parent: &span, "iterating over element");
+            let _span_child_enter = span_child.enter();
 
             let key = match map.next_key() {
                 Ok(Some(key)) => {

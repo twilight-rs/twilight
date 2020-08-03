@@ -223,9 +223,11 @@ impl<'de> Deserialize<'de> for Guild {
                 let mut widget_enabled = None::<Option<_>>;
 
                 let span = tracing::trace_span!("deserializing guild");
+                let _span_enter = span.enter();
 
                 loop {
                     let span_child = tracing::trace_span!(parent: &span, "iterating over element");
+                    let _span_child_enter = span_child.enter();
 
                     let key = match map.next_key() {
                         Ok(Some(key)) => {

@@ -183,9 +183,11 @@ impl<'de> Visitor<'de> for GuildChannelVisitor {
         let mut user_limit = None;
 
         let span = tracing::trace_span!("deserializing guild channel");
+        let _span_enter = span.enter();
 
         loop {
             let span_child = tracing::trace_span!(parent: &span, "iterating over element");
+            let _span_child_enter = span_child.enter();
 
             let key = match map.next_key() {
                 Ok(Some(key)) => {
@@ -420,6 +422,7 @@ impl<'de> Visitor<'de> for GuildChannelMapVisitor {
             .map_or_else(HashMap::new, HashMap::with_capacity);
 
         let span = tracing::trace_span!("adding elements to guild channel map");
+        let _span_enter = span.enter();
 
         while let Some(channel) = seq.next_element::<GuildChannel>()? {
             let id = channel.id();
