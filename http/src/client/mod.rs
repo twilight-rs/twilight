@@ -85,7 +85,7 @@ impl Debug for State {
 /// `client`.
 ///
 /// [here]: https://discord.com/developers/applications
-/// [`ClientBuilder`]: ../struct.ClientBuilder.html
+/// [`ClientBuilder`]: struct.ClientBuilder.html
 #[derive(Clone, Debug)]
 pub struct Client {
     state: Arc<State>,
@@ -322,9 +322,9 @@ impl Client {
     /// Returns a [`UpdateChannelError::TopicInvalid`] when the length of the topic is more than
     /// 1024 UTF-16 characters.
     ///
-    /// [`UpdateChannelError::NameInvalid`]: ../enum.UpdateChannelError.html#variant.NameInvalid
-    /// [`UpdateChannelError::RateLimitPerUserInvalid`]: ../enum.UpdateChannelError.html#variant.RateLimitPerUserInvalid
-    /// [`UpdateChannelError::TopicInvalid`]: ../enum.UpdateChannelError.html#variant.TopicInvalid
+    /// [`UpdateChannelError::NameInvalid`]: ../request/channel/update_channel/enum.UpdateChannelError.html#variant.NameInvalid
+    /// [`UpdateChannelError::RateLimitPerUserInvalid`]: ../request/channel/update_channel/enum.UpdateChannelError.html#variant.RateLimitPerUserInvalid
+    /// [`UpdateChannelError::TopicInvalid`]: ../request/channel/update_channel/enum.UpdateChannelError.html#variant.TopicInvalid
     pub fn update_channel(&self, channel_id: ChannelId) -> UpdateChannel<'_> {
         UpdateChannel::new(self, channel_id)
     }
@@ -375,7 +375,7 @@ impl Client {
     /// [`before`]: ../request/channel/message/get_channel_messages/struct.GetChannelMessages.html#method.before
     /// [`GetChannelMessagesConfigured`]: ../request/channel/message/get_channel_messages_configured/struct.GetChannelMessagesConfigured.html
     /// [`limit`]: ../request/channel/message/get_channel_messages/struct.GetChannelMessages.html#method.limit
-    /// [`GetChannelMessages::LimitInvalid`]: ../request/channel/message/get_channel_messages/enum.GetChannelMessages.html#variant.LimitInvalid
+    /// [`GetChannelMessages::LimitInvalid`]: ../request/channel/message/get_channel_messages/enum.GetChannelMessagesError.html#variant.LimitInvalid
     pub fn channel_messages(&self, channel_id: ChannelId) -> GetChannelMessages<'_> {
         GetChannelMessages::new(self, channel_id)
     }
@@ -621,7 +621,7 @@ impl Client {
     ///
     /// Returns [`CreateGuildError::NameInvalid`] if the name length is too short or too long.
     ///
-    /// [`CreateGuildError::NameInvalid`]: ../request/guild/enum.CreateGuildError.html#variant.NameInvalid
+    /// [`CreateGuildError::NameInvalid`]: ../request/guild/create_guild/enum.CreateGuildError.html#variant.NameInvalid
     pub fn create_guild(
         &self,
         name: impl Into<String>,
@@ -1448,7 +1448,7 @@ impl Client {
                 let _ = tx.send(Some(v));
             }
             Err(why) => {
-                warn!("Err parsing headers: {:?}; {:?}", why, resp,);
+                warn!("header parsing failed: {:?}; {:?}", why, resp);
 
                 let _ = tx.send(None);
             }
@@ -1499,13 +1499,13 @@ impl Client {
 
         if status == StatusCode::IM_A_TEAPOT {
             warn!(
-                "Discord's API now runs off of teapots -- proceed to panic: {:?}",
+                "discord's api now runs off of teapots -- proceed to panic: {:?}",
                 resp,
             );
         }
 
         if status == StatusCode::TOO_MANY_REQUESTS {
-            warn!("Response got 429: {:?}", resp);
+            warn!("429 response: {:?}", resp);
         }
 
         let bytes = resp
@@ -1523,10 +1523,7 @@ impl Client {
 
         if let ApiError::General(ref general) = error {
             if let ErrorCode::Other(num) = general.code {
-                debug!(
-                    "Got an unknown API error code variant: {}; {:?}",
-                    num, error
-                );
+                debug!("got unknown API error code variant: {}; {:?}", num, error);
             }
         }
 

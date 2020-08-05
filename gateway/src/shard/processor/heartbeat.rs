@@ -112,7 +112,7 @@ impl Heartbeats {
             let millis = if let Ok(millis) = dur.as_millis().try_into() {
                 millis
             } else {
-                error!("Duration millis is more than u64: {:?}", dur);
+                error!("duration millis is more than u64: {:?}", dur);
 
                 return;
             };
@@ -215,11 +215,11 @@ impl Heartbeater {
             let bytes = crate::json_to_vec(&heartbeat)
                 .map_err(|source| Error::PayloadSerialization { source })?;
 
-            debug!("[Heartbeat] Sending heartbeat with seq: {}", seq);
+            debug!("sending heartbeat with seq: {}", seq);
             self.tx
                 .unbounded_send(TungsteniteMessage::Binary(bytes))
                 .map_err(|source| Error::SendingMessage { source })?;
-            debug!("[Heartbeat] Sent heartbeat with seq: {}", seq);
+            debug!("sent heartbeat with seq: {}", seq);
             self.heartbeats.send().await;
         }
     }

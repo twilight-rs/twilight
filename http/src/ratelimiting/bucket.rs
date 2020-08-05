@@ -174,7 +174,7 @@ impl BucketQueueTask {
     }
 
     pub async fn run(self) {
-        debug!("[Bucket {:?}] Starting background queue task", self.path);
+        let span = tracing::debug_span!("background queue task", path=?self.path);
 
         while let Some(queue_tx) = self.next().await {
             let (tx, rx) = oneshot::channel();
@@ -185,10 +185,7 @@ impl BucketQueueTask {
 
             let _ = queue_tx.send(tx);
 
-            debug!(
-                "[Bucket {:?}] Starting to wait for headers from response",
-                self.path,
-            );
+            debug!(parent: &span, "starting to wait for response headers",);
 
             // TODO: Find a better way of handling nested types.
             match timeout(Self::WAIT, rx).await {
@@ -197,12 +194,12 @@ impl BucketQueueTask {
                 // - channel was closed
                 // - timeout reached
                 Ok(Err(_)) | Err(_) | Ok(Ok(None)) => {
-                    debug!("[Bucket {:?}] Receiver timed out", self.path);
+                    debug!(parent: &span, "receiver timed out");
                 }
             }
         }
 
-        debug!("[Bucket {:?}] Bucket appears finished, removing", self.path);
+        debug!(parent: &span, "bucket appears finished, removing");
 
         self.buckets.lock().await.remove(&self.path);
     }
@@ -230,12 +227,12 @@ impl BucketQueueTask {
             }
         };
 
-        debug!("[Bucket {:?}] Updating bucket", self.path);
+        debug!(path=?self.path, "updating bucket");
         self.bucket.update(ratelimits).await;
     }
 
     async fn lock_global(&self, wait: u64) {
-        debug!("[Bucket {:?}] Request got global ratelimited", self.path,);
+        debug!(path=?self.path, "request got global ratelimited");
         self.global.lock();
         let lock = self.global.0.lock().await;
         delay_for(Duration::from_millis(wait)).await;
@@ -245,7 +242,7 @@ impl BucketQueueTask {
     }
 
     async fn next(&self) -> Option<Sender<Sender<Option<RatelimitHeaders>>>> {
-        debug!("[Bucket {:?}] Starting to get next in queue", self.path);
+        debug!(path=?self.path, "starting to get next in queue");
 
         self.wait_if_needed().await;
 
@@ -253,12 +250,14 @@ impl BucketQueueTask {
     }
 
     async fn wait_if_needed(&self) {
+        let span = tracing::debug_span!("waiting for bucket to refresh", path=?self.path);
+
         let wait = {
             if self.bucket.remaining() > 0 {
                 return;
             }
 
-            debug!("[Bucket {:?}] 0 remaining, may have to wait", self.path);
+            debug!(parent: &span, "0 tickets remaining, may have to wait");
 
             match self.bucket.time_remaining().await {
                 TimeRemaining::Finished => {
@@ -272,16 +271,14 @@ impl BucketQueueTask {
         };
 
         debug!(
-            "[Bucket {:?}] Waiting for {:?} for ratelimit to pass",
-            self.path, wait,
+            parent: &span,
+            milliseconds=%wait.as_millis(),
+            "waiting for ratelimit to pass",
         );
 
         delay_for(wait).await;
 
-        debug!(
-            "[Bucket {:?}] Done waiting for ratelimit to pass",
-            self.path,
-        );
+        debug!(parent: &span, "done waiting for ratelimit to pass");
 
         self.bucket.try_reset().await;
     }

@@ -122,7 +122,7 @@ impl Player {
 
     fn _send(&self, event: OutgoingEvent) -> Result<(), TrySendError<OutgoingEvent>> {
         tracing::debug!(
-            "Sending event on guild player {}: {:?}",
+            "sending event on guild player {}: {:?}",
             self.guild_id,
             event
         );

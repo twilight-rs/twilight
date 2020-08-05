@@ -3,7 +3,8 @@ use twilight_model::channel::embed::*;
 /// Create an embed via a builder.
 ///
 /// If uploading an image as an attachment, set as the image or thumbnail with
-/// `attachment://{filename}.{extension}`. Refer to [the discord docs] for more information.
+/// `attachment://{filename}.{extension}`. Refer to [the discord docs] for more
+/// information.
 ///
 /// # Examples
 ///

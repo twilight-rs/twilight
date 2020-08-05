@@ -199,7 +199,7 @@ impl Standby {
     /// This function must be called when events are received in order for
     /// futures returned by methods to fulfill.
     pub fn process(&self, event: &Event) {
-        tracing::trace!("Processing event: {:?}", event);
+        tracing::trace!("processing event: {:?}", event);
 
         match event {
             Event::MessageCreate(e) => return self.process_message(e.0.channel_id, &e),
@@ -248,7 +248,7 @@ impl Standby {
         guild_id: GuildId,
         check: impl Into<Box<F>>,
     ) -> WaitForGuildEventFuture {
-        tracing::trace!("Waiting for event in guild {}", guild_id);
+        tracing::trace!("waiting for event in guild {}", guild_id);
         let (tx, rx) = oneshot::channel();
 
         {
@@ -303,7 +303,7 @@ impl Standby {
         guild_id: GuildId,
         check: impl Into<Box<F>>,
     ) -> WaitForGuildEventStream {
-        tracing::trace!("Waiting for event in guild {}", guild_id);
+        tracing::trace!("waiting for event in guild {}", guild_id);
         let (tx, rx) = mpsc::unbounded();
 
         {
@@ -354,7 +354,7 @@ impl Standby {
         event_type: EventType,
         check: impl Into<Box<F>>,
     ) -> WaitForEventFuture {
-        tracing::trace!("Waiting for event {:?}", event_type);
+        tracing::trace!("waiting for event {:?}", event_type);
         let (tx, rx) = oneshot::channel();
 
         {
@@ -409,7 +409,7 @@ impl Standby {
         event_type: EventType,
         check: impl Into<Box<F>>,
     ) -> WaitForEventStream {
-        tracing::trace!("Waiting for event {:?}", event_type);
+        tracing::trace!("waiting for event {:?}", event_type);
         let (tx, rx) = mpsc::unbounded();
 
         {
@@ -455,7 +455,7 @@ impl Standby {
         channel_id: ChannelId,
         check: impl Into<Box<F>>,
     ) -> WaitForMessageFuture {
-        tracing::trace!("Waiting for message in channel {}", channel_id);
+        tracing::trace!("waiting for message in channel {}", channel_id);
         let (tx, rx) = oneshot::channel();
 
         {
@@ -506,7 +506,7 @@ impl Standby {
         channel_id: ChannelId,
         check: impl Into<Box<F>>,
     ) -> WaitForMessageStream {
-        tracing::trace!("Waiting for message in channel {}", channel_id);
+        tracing::trace!("waiting for message in channel {}", channel_id);
         let (tx, rx) = mpsc::unbounded();
 
         {
@@ -552,7 +552,7 @@ impl Standby {
         message_id: MessageId,
         check: impl Into<Box<F>>,
     ) -> WaitForReactionFuture {
-        tracing::trace!("Waiting for reaction on message {}", message_id);
+        tracing::trace!("waiting for reaction on message {}", message_id);
         let (tx, rx) = oneshot::channel();
 
         {
@@ -606,7 +606,7 @@ impl Standby {
         message_id: MessageId,
         check: impl Into<Box<F>>,
     ) -> WaitForReactionStream {
-        tracing::trace!("Waiting for reaction on message {}", message_id);
+        tracing::trace!("waiting for reaction on message {}", message_id);
         let (tx, rx) = mpsc::unbounded();
 
         {
@@ -621,7 +621,7 @@ impl Standby {
     }
 
     fn process_event(&self, event: &Event) {
-        tracing::trace!("Processing event type {:?}", event);
+        tracing::trace!("processing event type {:?}", event);
         let kind = event.kind();
 
         let remove = match self.0.events.get_mut(&kind) {
@@ -631,14 +631,14 @@ impl Standby {
                 bystanders.is_empty()
             }
             None => {
-                tracing::trace!("Event type {:?} has no bystanders", kind);
+                tracing::trace!("event type {:?} has no bystanders", kind);
 
                 return;
             }
         };
 
         if remove {
-            tracing::trace!("Removing event type {:?}", kind);
+            tracing::trace!("removing event type {:?}", kind);
 
             self.0.events.remove(&kind);
         }
@@ -652,14 +652,14 @@ impl Standby {
                 bystanders.is_empty()
             }
             None => {
-                tracing::trace!("Guild {} has no event bystanders", guild_id);
+                tracing::trace!("guild {} has no event bystanders", guild_id);
 
                 return;
             }
         };
 
         if remove {
-            tracing::trace!("Removing guild {}", guild_id);
+            tracing::trace!("removing guild {}", guild_id);
 
             self.0.guilds.remove(&guild_id);
         }
@@ -673,14 +673,14 @@ impl Standby {
                 bystanders.is_empty()
             }
             None => {
-                tracing::trace!("Channel {} has no message bystanders", channel_id);
+                tracing::trace!("channel {} has no message bystanders", channel_id);
 
                 return;
             }
         };
 
         if remove {
-            tracing::trace!("Removing channel {}", channel_id);
+            tracing::trace!("removing channel {}", channel_id);
 
             self.0.messages.remove(&channel_id);
         }
@@ -694,32 +694,32 @@ impl Standby {
                 bystanders.is_empty()
             }
             None => {
-                tracing::trace!("Message {} has no reaction bystanders", message_id);
+                tracing::trace!("message {} has no reaction bystanders", message_id);
 
                 return;
             }
         };
 
         if remove {
-            tracing::trace!("Removing message {}", message_id);
+            tracing::trace!("removing message {}", message_id);
             self.0.reactions.remove(&message_id);
         }
     }
 
     /// Iterate over bystanders and remove the ones that match the predicate.
     fn iter_bystanders<E: Clone>(&self, bystanders: &mut Vec<Bystander<E>>, event: &E) {
-        tracing::trace!("Iterating over bystanders: {:?}", bystanders);
+        tracing::trace!("iterating over bystanders: {:?}", bystanders);
 
         let mut idx = 0;
 
         while idx < bystanders.len() {
-            tracing::trace!("Checking bystander");
+            tracing::trace!("checking bystander");
             let bystander = &mut bystanders[idx];
 
             let sender = match bystander.sender.take() {
                 Some(sender) => sender,
                 None => {
-                    tracing::trace!("Bystander has no sender, removing");
+                    tracing::trace!("bystander has no sender, removing");
                     bystanders.remove(idx);
                     idx += 1;
 
@@ -728,14 +728,14 @@ impl Standby {
             };
 
             if sender.is_closed() {
-                tracing::trace!("Bystander's rx dropped, removing");
+                tracing::trace!("bystander's rx dropped, removing");
                 bystanders.remove(idx);
 
                 continue;
             }
 
             if !(bystander.func)(event) {
-                tracing::trace!("Bystander check doesn't match, continuing");
+                tracing::trace!("bystander check doesn't match, continuing");
                 bystander.sender.replace(sender);
                 idx += 1;
 
@@ -745,7 +745,7 @@ impl Standby {
             match sender {
                 Sender::Oneshot(tx) => {
                     let _ = tx.send(event.clone());
-                    tracing::trace!("Bystander matched event, removing");
+                    tracing::trace!("bystander matched event, removing");
                     bystanders.remove(idx);
                 }
                 Sender::Mpsc(tx) => {

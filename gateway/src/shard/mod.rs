@@ -14,13 +14,14 @@
 //!
 //! [`ShardConfig`]: config/struct.ShardConfig.html
 //! [`ShardConfigBuilder`]: config/struct.ShardConfigBuilder.html
-//! [`Event`]: event/enum.Event.html
+//! [`Event`]: ../../twilight_model/gateway/event/enum.Event.html
 //! [`Shard`]: struct.Shard.html
-//! [`Stage`]: enum.Stage.html
-//! [`Disconnected`]: enum.Stage.html#variant.Disconnected
-//! [`Resuming`]: enum.Stage.html#variant.Resuming
-//! [channel deletions]: event/enum.Event.html#variant.ChannelDelete
-//! [new messages]: event/enum.Event.html#variant.MessageCreate
+//! [`Stage`]: stage/enum.Stage.html
+//! [`Disconnected`]: stage/enum.Stage.html#variant.Disconnected
+//! [`Resuming`]: stage/enum.Stage.html#variant.Resuming
+//! [channel deletions]: ../../twilight_model/gateway/event/enum.Event.html#variant.ChannelDelete
+//! [information about itself]: struct.Shard.html#method.info
+//! [new messages]: ../../twilight_model/gateway/event/enum.Event.html#variant.MessageCreate
 
 pub mod config;
 pub mod error;

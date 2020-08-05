@@ -44,11 +44,7 @@ pub fn event(listeners: &Listeners<Event>, event: Event) {
         let event_type = EventTypeFlags::from(event.kind());
 
         if !listener.events.contains(event_type) {
-            trace!(
-                "[ShardProcessor] Listener {} doesn't want event type {:?}",
-                id,
-                event_type,
-            );
+            trace!("listener {} doesn't want event type {:?}", id, event_type,);
 
             continue;
         }
@@ -67,7 +63,7 @@ pub fn event(listeners: &Listeners<Event>, event: Event) {
     }
 
     for id in &remove_listeners {
-        debug!("[ShardProcessor] Removing listener {}", id);
+        debug!("removing listener {}", id);
 
         listeners.remove(id);
     }
@@ -81,11 +77,7 @@ fn _emit_to_listener(id: u64, listener: &Listener<Event>, event: Event) -> bool 
     let event_type = EventTypeFlags::from(event.kind());
 
     if !listener.events.contains(event_type) {
-        trace!(
-            "[ShardProcessor] Listener {} doesn't want event type {:?}",
-            id,
-            event_type,
-        );
+        trace!("listener {} doesn't want event type {:?}", id, event_type,);
 
         return true;
     }

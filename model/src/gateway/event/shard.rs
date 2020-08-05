@@ -1,4 +1,6 @@
+use super::{Event, EventConversionError};
 use serde::{Deserialize, Serialize};
+use std::convert::TryFrom;
 
 /// Indicator that a shard is now fully connected.
 #[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
@@ -84,4 +86,22 @@ pub enum ShardEvent {
     Reconnecting(Reconnecting),
     /// A shard is now in a Resuming stage after a disconnect.
     Resuming(Resuming),
+}
+
+impl TryFrom<Event> for ShardEvent {
+    type Error = EventConversionError;
+
+    fn try_from(event: Event) -> Result<Self, Self::Error> {
+        Ok(match event {
+            Event::ShardConnected(v) => Self::Connected(v),
+            Event::ShardConnecting(v) => Self::Connecting(v),
+            Event::ShardDisconnected(v) => Self::Disconnected(v),
+            Event::ShardIdentifying(v) => Self::Identifying(v),
+            Event::ShardPayload(v) => Self::Payload(v),
+            Event::ShardReconnecting(v) => Self::Reconnecting(v),
+            Event::ShardResuming(v) => Self::Resuming(v),
+
+            _ => return Err(EventConversionError::new(event)),
+        })
+    }
 }

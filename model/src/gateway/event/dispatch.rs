@@ -1,8 +1,9 @@
-use super::{super::payload::*, EventType};
+use super::{super::payload::*, Event, EventConversionError, EventType};
 use serde::{
     de::{Deserialize, DeserializeSeed, Deserializer, Error as DeError, IgnoredAny},
     Serialize,
 };
+use std::convert::TryFrom;
 
 /// A dispatch event, containing information about a created guild, a member
 /// added, etc.
@@ -11,6 +12,8 @@ use serde::{
 /// [`DispatchEventWithTypeDeserializer`].
 ///
 /// [`DispatchEventWithTypeDeserializer`]: struct.DispatchEventWithTypeDeserializer.html
+// **NOTE**: When adding a variant, be sure to add it to the DeserializeSeed
+// implementation.
 #[derive(Clone, Debug, Eq, PartialEq, Serialize)]
 pub enum DispatchEvent {
     BanAdd(BanAdd),
@@ -101,6 +104,56 @@ impl DispatchEvent {
     }
 }
 
+impl TryFrom<Event> for DispatchEvent {
+    type Error = EventConversionError;
+
+    fn try_from(event: Event) -> Result<Self, Self::Error> {
+        Ok(match event {
+            Event::BanAdd(v) => Self::BanAdd(v),
+            Event::BanRemove(v) => Self::BanRemove(v),
+            Event::ChannelCreate(v) => Self::ChannelCreate(v),
+            Event::ChannelDelete(v) => Self::ChannelDelete(v),
+            Event::ChannelPinsUpdate(v) => Self::ChannelPinsUpdate(v),
+            Event::ChannelUpdate(v) => Self::ChannelUpdate(v),
+            Event::GiftCodeUpdate => Self::GiftCodeUpdate,
+            Event::GuildCreate(v) => Self::GuildCreate(v),
+            Event::GuildDelete(v) => Self::GuildDelete(v),
+            Event::GuildEmojisUpdate(v) => Self::GuildEmojisUpdate(v),
+            Event::GuildIntegrationsUpdate(v) => Self::GuildIntegrationsUpdate(v),
+            Event::GuildUpdate(v) => Self::GuildUpdate(v),
+            Event::InviteCreate(v) => Self::InviteCreate(v),
+            Event::InviteDelete(v) => Self::InviteDelete(v),
+            Event::MemberAdd(v) => Self::MemberAdd(v),
+            Event::MemberRemove(v) => Self::MemberRemove(v),
+            Event::MemberUpdate(v) => Self::MemberUpdate(v),
+            Event::MemberChunk(v) => Self::MemberChunk(v),
+            Event::MessageCreate(v) => Self::MessageCreate(v),
+            Event::MessageDelete(v) => Self::MessageDelete(v),
+            Event::MessageDeleteBulk(v) => Self::MessageDeleteBulk(v),
+            Event::MessageUpdate(v) => Self::MessageUpdate(v),
+            Event::PresenceUpdate(v) => Self::PresenceUpdate(v),
+            Event::PresencesReplace => Self::PresencesReplace,
+            Event::ReactionAdd(v) => Self::ReactionAdd(v),
+            Event::ReactionRemove(v) => Self::ReactionRemove(v),
+            Event::ReactionRemoveAll(v) => Self::ReactionRemoveAll(v),
+            Event::ReactionRemoveEmoji(v) => Self::ReactionRemoveEmoji(v),
+            Event::Ready(v) => Self::Ready(v),
+            Event::Resumed => Self::Resumed,
+            Event::RoleCreate(v) => Self::RoleCreate(v),
+            Event::RoleDelete(v) => Self::RoleDelete(v),
+            Event::RoleUpdate(v) => Self::RoleUpdate(v),
+            Event::TypingStart(v) => Self::TypingStart(v),
+            Event::UnavailableGuild(v) => Self::UnavailableGuild(v),
+            Event::UserUpdate(v) => Self::UserUpdate(v),
+            Event::VoiceServerUpdate(v) => Self::VoiceServerUpdate(v),
+            Event::VoiceStateUpdate(v) => Self::VoiceStateUpdate(v),
+            Event::WebhooksUpdate(v) => Self::WebhooksUpdate(v),
+
+            _ => return Err(EventConversionError::new(event)),
+        })
+    }
+}
+
 /// Deserialize into a [`DispatchEvent`] by knowing its event name.
 ///
 /// An event name is something like `"CHANNEL_CREATE"` or `"GUILD_MEMBER_ADD"`.
@@ -133,6 +186,11 @@ impl<'de, 'a> DeserializeSeed<'de> for DispatchEventWithTypeDeserializer<'a> {
             }
             "CHANNEL_UPDATE" => {
                 DispatchEvent::ChannelUpdate(ChannelUpdate::deserialize(deserializer)?)
+            }
+            "GIFT_CODE_UPDATE" => {
+                deserializer.deserialize_ignored_any(IgnoredAny)?;
+
+                DispatchEvent::GiftCodeUpdate
             }
             "GUILD_BAN_ADD" => DispatchEvent::BanAdd(BanAdd::deserialize(deserializer)?),
             "GUILD_BAN_REMOVE" => DispatchEvent::BanRemove(BanRemove::deserialize(deserializer)?),
@@ -231,5 +289,26 @@ impl<'de, 'a> DeserializeSeed<'de> for DispatchEventWithTypeDeserializer<'a> {
             }
             other => return Err(DeError::unknown_variant(other, &[])),
         })
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::{DispatchEvent, DispatchEventWithTypeDeserializer};
+    use serde::de::DeserializeSeed;
+    use serde_json::Deserializer;
+
+    #[test]
+    fn test_gift_code_update() {
+        // Input will be ignored so long as it's valid JSON.
+        let input = r#"{
+            "a": "b"
+        }"#;
+
+        let deserializer = DispatchEventWithTypeDeserializer::new("GIFT_CODE_UPDATE");
+        let mut json_deserializer = Deserializer::from_str(input);
+        let event = deserializer.deserialize(&mut json_deserializer).unwrap();
+
+        assert_eq!(event, DispatchEvent::GiftCodeUpdate);
     }
 }

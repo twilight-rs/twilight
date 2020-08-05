@@ -14,15 +14,17 @@ pub use self::{
 
 use self::shard::*;
 use super::payload::*;
+use std::error::Error;
+use std::fmt::{Debug, Display, Formatter, Result as FmtResult};
 
 /// Any type of event that a shard emits.
 ///
 /// This brings together all of the types of [`DispatchEvent`]s,
 /// [`GatewayEvent`]s, and [`ShardEvent`]s.
 ///
-/// [`DispatchEvent`]: struct.DispatchEvent.html
-/// [`GatewayEvent`]: struct.GatewayEvent.html
-/// [`ShardEvent`]: shard/struct.ShardEvent.html
+/// [`DispatchEvent`]: enum.DispatchEvent.html
+/// [`GatewayEvent`]: gateway/enum.GatewayEvent.html
+/// [`ShardEvent`]: shard/enum.ShardEvent.html
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub enum Event {
     /// A user was banned from a guild.
@@ -267,3 +269,30 @@ impl From<ShardEvent> for Event {
         }
     }
 }
+
+/// An error that describes a failure to convert
+/// from one event type to another.
+#[derive(Debug)]
+pub struct EventConversionError {
+    /// The original event
+    event: Event,
+}
+
+impl EventConversionError {
+    pub fn new(event: Event) -> EventConversionError {
+        Self { event }
+    }
+
+    /// Get the original event
+    pub fn into_event(self) -> Event {
+        self.event
+    }
+}
+
+impl Display for EventConversionError {
+    fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
+        write!(f, "event variant failed to convert")
+    }
+}
+
+impl Error for EventConversionError {}

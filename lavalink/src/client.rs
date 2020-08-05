@@ -108,7 +108,7 @@ impl Lavalink {
     /// Provide `None` for the `resume` parameter to disable session resume
     /// capability. See the [`Resume`] documentation for defaults.
     ///
-    /// [`Resume`]: node/struct.Resume.html
+    /// [`Resume`]: ../node/struct.Resume.html
     /// [`new`]: #method.new
     pub fn new_with_resume(
         user_id: UserId,
@@ -152,7 +152,7 @@ impl Lavalink {
     /// [`ClientError::NodesUnconfigured`]: enum.ClientError.html#variant.NodesUnconfigured
     /// [crate documentation]: ../index.html#examples
     pub async fn process(&self, event: &Event) -> Result<(), ClientError> {
-        tracing::trace!("Processing event: {:?}", event);
+        tracing::trace!("processing event: {:?}", event);
 
         let (guild_id, half) = match event {
             Event::Ready(e) => {
@@ -165,7 +165,7 @@ impl Lavalink {
             Event::VoiceServerUpdate(e) => (e.guild_id, VoiceStateHalf::Server(e.clone())),
             Event::VoiceStateUpdate(e) => {
                 if e.0.user_id != self.0.user_id {
-                    tracing::trace!("Got a voice state update from another user");
+                    tracing::trace!("got voice state update from another user");
 
                     return Ok(());
                 }
@@ -176,7 +176,7 @@ impl Lavalink {
         };
 
         tracing::debug!(
-            "Got a voice server/state update for {:?}: {:?}",
+            "got voice server/state update for {:?}: {:?}",
             guild_id,
             half
         );
@@ -184,7 +184,7 @@ impl Lavalink {
         let guild_id = match guild_id {
             Some(guild_id) => guild_id,
             None => {
-                tracing::trace!("Processed event has no guild ID: {:?}", event);
+                tracing::trace!("event has no guild ID: {:?}", event);
 
                 return Ok(());
             }
@@ -195,7 +195,7 @@ impl Lavalink {
                 Some(existing_half) => existing_half,
                 None => {
                     tracing::debug!(
-                        "Guild {} is now waiting for other half; got: {:?}",
+                        "guild {} is now waiting for other half; got: {:?}",
                         guild_id,
                         half
                     );
@@ -205,7 +205,7 @@ impl Lavalink {
                 }
             };
             tracing::debug!(
-                "Got both halves for {}: {:?}; {:?}",
+                "got both halves for {}: {:?}; {:?}",
                 guild_id,
                 half,
                 existing_half.value()
@@ -216,7 +216,7 @@ impl Lavalink {
                     // We got the same half twice... weird, but let's just replace
                     // the existing one.
                     tracing::debug!(
-                        "Got the same server half twice for guild {}: {:?}",
+                        "got the same server half twice for guild {}: {:?}",
                         guild_id,
                         server
                     );
@@ -232,7 +232,7 @@ impl Lavalink {
                 (VoiceStateHalf::State(_), VoiceStateHalf::State(state)) => {
                     // Just like above, we got the same half twice...
                     tracing::debug!(
-                        "Got the same state half twice for guild {}: {:?}",
+                        "got the same state half twice for guild {}: {:?}",
                         guild_id,
                         state
                     );
@@ -248,16 +248,16 @@ impl Lavalink {
             }
         };
 
-        tracing::debug!("Removing guild {} from waiting list", guild_id);
+        tracing::debug!("removing guild {} from waiting list", guild_id);
         self.0.waiting.remove(&guild_id);
 
-        tracing::debug!("Getting player for guild {}", guild_id);
+        tracing::debug!("getting player for guild {}", guild_id);
         let player = self.player(guild_id).await?;
-        tracing::debug!("Sending voice update for guild {}: {:?}", guild_id, update);
+        tracing::debug!("sending voice update for guild {}: {:?}", guild_id, update);
         player
             .send(update)
             .map_err(|source| ClientError::SendingVoiceUpdate { source })?;
-        tracing::debug!("Sent voice update for guild {}", guild_id);
+        tracing::debug!("sent voice update for guild {}", guild_id);
 
         Ok(())
     }
@@ -303,7 +303,7 @@ impl Lavalink {
     /// Returns [`ClientError::NodesUnconfigured`] if there are no configured
     /// nodes available in the client.
     ///
-    /// [`ClientError::NodesUnconfigured`]: struct.ClientError.html#variant.NodesUnconfigured
+    /// [`ClientError::NodesUnconfigured`]: enum.ClientError.html#variant.NodesUnconfigured
     /// [`Node::penalty`]: ../node/struct.Node.html#method.penalty
     pub async fn best(&self) -> Result<Node, ClientError> {
         let mut lowest = i32::MAX;
@@ -338,7 +338,7 @@ impl Lavalink {
     /// configured via [`add`].
     ///
     /// [`ClientError::NodesUnconfigured`]: enum.ClientError.html#variant.NodesUnconfigured
-    /// [`PlayerManager::get`]: player/struct.PlayerManager.html#method.get
+    /// [`PlayerManager::get`]: ../player/struct.PlayerManager.html#method.get
     /// [`add`]: #method.add
     pub async fn player(&self, guild_id: GuildId) -> Result<Ref<'_, GuildId, Player>, ClientError> {
         if let Some(player) = self.players().get(&guild_id) {

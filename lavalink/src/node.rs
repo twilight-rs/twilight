@@ -244,10 +244,10 @@ impl Node {
             op: Opcode::Stats,
             uptime: 0,
         });
-        tracing::debug!("Starting connection to {}", config.address);
+        tracing::debug!("starting connection to {}", config.address);
         let (conn_loop, lavalink_tx, lavalink_rx) =
             Connection::connect(config.clone(), players.clone(), bilock_right).await?;
-        tracing::debug!("Started connection to {}", config.address);
+        tracing::debug!("started connection to {}", config.address);
 
         tokio::spawn(conn_loop.run());
 
@@ -368,12 +368,12 @@ impl Connection {
                     self.incoming(incoming).await?;
                 }
                 Either::Left((_, _)) => {
-                    tracing::debug!("Connection to {} closed, reconnecting", self.config.address);
+                    tracing::debug!("connection to {} closed, reconnecting", self.config.address);
                     self.connection = reconnect(&self.config).await?;
                 }
                 Either::Right((Some(outgoing), _)) => {
                     tracing::debug!(
-                        "Forwarding event to {}: {:?}",
+                        "forwarding event to {}: {:?}",
                         self.config.address,
                         outgoing
                     );
@@ -388,7 +388,7 @@ impl Connection {
                     self.connection.send(msg).await.unwrap();
                 }
                 Either::Right((_, _)) => {
-                    tracing::debug!("Node {} closed, ending connection", self.config.address);
+                    tracing::debug!("node {} closed, ending connection", self.config.address);
 
                     break;
                 }
@@ -400,20 +400,20 @@ impl Connection {
 
     async fn incoming(&mut self, incoming: Message) -> Result<bool, NodeError> {
         tracing::debug!(
-            "Received message from {}: {:?}",
+            "received message from {}: {:?}",
             self.config.address,
             incoming
         );
 
         let text = match incoming {
             Message::Close(_) => {
-                tracing::debug!("Got a close, closing connection");
+                tracing::debug!("got close, closing connection");
                 let _ = self.connection.send(Message::Close(None)).await;
 
                 return Ok(false);
             }
             Message::Ping(data) => {
-                tracing::debug!("Got a ping, sending a pong");
+                tracing::debug!("got ping, sending pong");
                 let msg = Message::Pong(data);
 
                 // We don't need to immediately care if a pong fails.
@@ -423,7 +423,7 @@ impl Connection {
             }
             Message::Text(text) => text,
             other => {
-                tracing::debug!("Got a pong or bytes payload: {:?}", other);
+                tracing::debug!("got pong or bytes payload: {:?}", other);
 
                 return Ok(true);
             }
@@ -432,7 +432,7 @@ impl Connection {
         let event = match serde_json::from_str(&text) {
             Ok(event) => event,
             Err(_) => {
-                tracing::warn!("Unknown message from Lavalink node: {}", text);
+                tracing::warn!("unknown message from lavalink node: {}", text);
 
                 return Ok(true);
             }
@@ -458,7 +458,7 @@ impl Connection {
             Some(player) => player,
             None => {
                 tracing::warn!(
-                    "Got invalid player update for guild {}: {:?}",
+                    "invalid player update for guild {}: {:?}",
                     update.guild_id,
                     update,
                 );
@@ -505,7 +505,7 @@ async fn reconnect(config: &NodeConfig) -> Result<WebSocketStream<ConnectStream>
 
         if let Some(value) = headers.get(header) {
             if value.as_bytes() == b"false" {
-                tracing::debug!("Session to node {} didn't resume", config.address);
+                tracing::debug!("session to node {} didn't resume", config.address);
 
                 let payload = serde_json::json!({
                     "op": "configureResuming",
@@ -516,7 +516,7 @@ async fn reconnect(config: &NodeConfig) -> Result<WebSocketStream<ConnectStream>
 
                 stream.send(msg).await.unwrap();
             } else {
-                tracing::debug!("Session to {} resumed", config.address);
+                tracing::debug!("session to {} resumed", config.address);
             }
         }
     }
@@ -535,7 +535,7 @@ async fn backoff(
         match async_tungstenite::tokio::connect_async(req).await {
             Ok((stream, res)) => return Ok((stream, res)),
             Err(source) => {
-                tracing::warn!("Failed to connect to node {}: {:?}", source, config.address);
+                tracing::warn!("failed to connect to node {}: {:?}", source, config.address);
 
                 if matches!(source, TungsteniteError::Http(status) if status == StatusCode::UNAUTHORIZED)
                 {
@@ -546,15 +546,15 @@ async fn backoff(
                 }
 
                 if seconds > 64 {
-                    tracing::debug!("No longer trying to connect to node {}", config.address);
+                    tracing::debug!("no longer trying to connect to node {}", config.address);
 
                     return Err(NodeError::Connecting { source });
                 }
 
                 tracing::debug!(
-                    "Trying to connect to node {} again in {} seconds",
-                    config.address,
+                    "waiting {} sceonds before attempting to connect to node {} again",
                     seconds,
+                    config.address,
                 );
                 tokio_time::delay_for(Duration::from_secs(seconds)).await;
 

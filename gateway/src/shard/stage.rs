@@ -1,15 +1,13 @@
-//! Utilities for knowing and parsing the current connection stage of a
-//! [`Shard`].
+//! Utilities for knowing and parsing the current connection stage of a shard.
 //!
 //! Included is the [`Stage`], which is an enum representing the connection
 //! stage with variants such as [`Connecting`] or [`Disconnected`].
 //!
-//! The `Stage` also has some parsing capability, so an error type for
+//! The [`Stage`] also has some parsing capability, so an error type for
 //! conversion reasons is included.
 //!
 //! [`Connecting`]: enum.Stage.html#variant.Connecting
 //! [`Disconnected`]: enum.Stage.html#variant.Disconnected
-//! [`Shard`]: ../struct.Shard.html
 //! [`Stage`]: enum.Stage.html
 
 use std::{
@@ -43,7 +41,7 @@ impl Error for StageConversionError {}
 
 /// The current connection stage of a [`Shard`].
 ///
-/// [`Shard`]: struct.Shard.html
+/// [`Shard`]: ../struct.Shard.html
 #[derive(Clone, Copy, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
 #[repr(u8)]
 pub enum Stage {

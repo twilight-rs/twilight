@@ -124,7 +124,7 @@ impl ClusterConfig {
     ///
     /// Refer to [`shard::config::ClusterConfigBuilder`]'s methods for the default values.
     ///
-    /// [`shard::config::ClusterConfigBuilder`]: ../../shard/config/struct.ClusterConfigBuilder.html#methods
+    /// [`shard::config::ClusterConfigBuilder`]: ../../shard/config/struct.ShardConfigBuilder.html#methods
     pub fn shard_config(&self) -> &ShardConfig {
         &self.shard_config
     }
