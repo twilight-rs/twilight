@@ -8,11 +8,11 @@ async fn main() -> Result<(), Box<dyn Error + Send + Sync>> {
     tracing_subscriber::fmt::init();
 
     //if we want to set the default for allowed mentions we need to use the builder, keep in mind these calls can't be chained!
-    let mut builder = Client::builder();
-    builder.token(env::var("DISCORD_TOKEN")?);
-    //add an empty allowed mentions, this will prevent any and all pings
-    builder.default_allowed_mentions(AllowedMentionsBuilder::new().build_solo());
-    let client = builder.build()?;
+    let client = Client::builder()
+        .token(env::var("DISCORD_TOKEN")?)
+        //add an empty allowed mentions, this will prevent any and all pings
+        .default_allowed_mentions(AllowedMentionsBuilder::new().build_solo())
+        .build()?;
     let channel_id = ChannelId(381_926_291_785_383_946);
     let user_id = UserId(77_469_400_222_932_992);
 

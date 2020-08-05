@@ -8,12 +8,11 @@ async fn main() -> Result<(), Box<dyn Error + Send + Sync>> {
     // Initialize the tracing subscriber.
     tracing_subscriber::fmt::init();
 
-    let mut config = Client::builder();
-    config
+    let client = Client::builder()
         .proxy(Proxy::all("http://localhost:3000")?)
         .proxy_http(true)
-        .ratelimiter(None);
-    let client = config.build()?;
+        .ratelimiter(None)
+        .build()?;
     let channel_id = ChannelId(620_980_184_606_048_278);
 
     future::join_all((1u8..=10).map(|x| {
