@@ -1,15 +1,26 @@
 //! # twilight-embed-builder
 //!
-//! Builders for creating an embed, useful when creating or updating messages.
+//! `twilight-embed-builder` is a set of builder for the [`twilight-rs`]
+//! ecosystem to create a message embed, useful when creating or updating
+//! messages.
 //!
-//! # Examples
+//! ## Installation
+//!
+//! Add the following to your `Cargo.toml`:
+//!
+//! ```toml
+//! [dependencies]
+//! twilight-embed-builder = { branch = "trunk", git = "https://github.com/twilight-rs/twilight" }
+//! ```
+//!
+//! ## Examples
 //!
 //! Build a simple embed:
 //!
 //! ```rust,no_run
 //! use twilight_embed_builder::{EmbedBuilder, EmbedFieldBuilder};
 //!
-//! # fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
+//! # fn main() -> Result<(), Box<dyn std::error::Error>> {
 //! let embed = EmbedBuilder::new()
 //!     .description("Here's a list of reasons why Twilight is the best pony:")?
 //!     .field(EmbedFieldBuilder::new("Wings", "She has wings.")?.inline())
@@ -23,7 +34,7 @@
 //! ```rust,no_run
 //! use twilight_embed_builder::{EmbedBuilder, ImageSource};
 //!
-//! # fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
+//! # fn main() -> Result<(), Box<dyn std::error::Error>> {
 //! let embed = EmbedBuilder::new()
 //!     .description("Here's a cool image of Twilight Sparkle")?
 //!     .image(ImageSource::attachment("bestpony.png")?)
@@ -32,6 +43,7 @@
 //! # Ok(()) }
 //! ```
 //!
+//! [`twilight-rs`]: https://github.com/twilight-rs/twilight
 //! [the discord docs]: https://discord.com/developers/docs/resources/channel#create-message-using-attachments-within-embeds
 
 #![deny(

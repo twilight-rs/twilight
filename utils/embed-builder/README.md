@@ -2,9 +2,20 @@
 
 # twilight-embed-builder
 
-Builders for creating an embed, useful when creating or updating messages.
+`twilight-embed-builder` is a set of builder for the [`twilight-rs`]
+ecosystem to create a message embed, useful when creating or updating
+messages.
 
-# Examples
+## Installation
+
+Add the following to your `Cargo.toml`:
+
+```toml
+[dependencies]
+twilight-embed-builder = { branch = "trunk", git = "https://github.com/twilight-rs/twilight" }
+```
+
+## Examples
 
 Build a simple embed:
 
@@ -30,6 +41,7 @@ let embed = EmbedBuilder::new()
 
 ```
 
+[`twilight-rs`]: https://github.com/twilight-rs/twilight
 [the discord docs]: https://discord.com/developers/docs/resources/channel#create-message-using-attachments-within-embeds
 
 <!-- cargo-sync-readme end -->
