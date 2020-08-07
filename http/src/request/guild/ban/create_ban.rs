@@ -9,13 +9,16 @@ use twilight_model::id::{GuildId, UserId};
 #[derive(Clone, Debug)]
 pub enum CreateBanError {
     /// The number of days' worth of messages to delete is greater than 7.
-    DeleteMessageDaysInvalid,
+    DeleteMessageDaysInvalid {
+        /// Provided number of days' worth of messages to delete.
+        days: u64,
+    },
 }
 
 impl Display for CreateBanError {
     fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
         match self {
-            Self::DeleteMessageDaysInvalid => {
+            Self::DeleteMessageDaysInvalid { .. } => {
                 f.write_str("the number of days' worth of messages to delete is invalid")
             }
         }
@@ -85,7 +88,7 @@ impl<'a> CreateBan<'a> {
     /// [`CreateBanError::DeleteMessageDaysInvalid`]: enum.CreateBanError.html#variant.DeleteMessageDaysInvalid
     pub fn delete_message_days(mut self, days: u64) -> Result<Self, CreateBanError> {
         if !validate::ban_delete_message_days(days) {
-            return Err(CreateBanError::DeleteMessageDaysInvalid);
+            return Err(CreateBanError::DeleteMessageDaysInvalid { days });
         }
 
         self.fields.delete_message_days.replace(days);

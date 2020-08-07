@@ -9,13 +9,16 @@ use twilight_model::{guild::PartialGuild, id::GuildId};
 #[derive(Clone, Debug)]
 pub enum GetCurrentUserGuildsError {
     /// The maximum number of guilds to retrieve is 0 or more than 100.
-    LimitInvalid,
+    LimitInvalid {
+        /// Provided maximum number of guilds to retrieve.
+        limit: u64,
+    },
 }
 
 impl Display for GetCurrentUserGuildsError {
     fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
         match self {
-            Self::LimitInvalid => f.write_str("the limit is invalid"),
+            Self::LimitInvalid { .. } => f.write_str("the limit is invalid"),
         }
     }
 }
@@ -98,7 +101,7 @@ impl<'a> GetCurrentUserGuilds<'a> {
     /// [the discord docs]: https://discordapp.com/developers/docs/resources/user#get-current-user-guilds-query-string-params
     pub fn limit(mut self, limit: u64) -> Result<Self, GetCurrentUserGuildsError> {
         if !validate::get_current_user_guilds_limit(limit) {
-            return Err(GetCurrentUserGuildsError::LimitInvalid);
+            return Err(GetCurrentUserGuildsError::LimitInvalid { limit });
         }
 
         self.fields.limit.replace(limit);

@@ -15,13 +15,16 @@ use twilight_model::{
 pub enum UpdateGuildError {
     /// The name length is either fewer than 2 UTF-16 characters or more than 100 UTF-16
     /// characters.
-    NameInvalid,
+    NameInvalid {
+        /// Provided name.
+        name: String,
+    },
 }
 
 impl Display for UpdateGuildError {
     fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
         match self {
-            Self::NameInvalid => f.write_str("the name's length is invalid"),
+            Self::NameInvalid { .. } => f.write_str("the name's length is invalid"),
         }
     }
 }
@@ -181,7 +184,7 @@ impl<'a> UpdateGuild<'a> {
 
     fn _name(mut self, name: String) -> Result<Self, UpdateGuildError> {
         if !validate::guild_name(&name) {
-            return Err(UpdateGuildError::NameInvalid);
+            return Err(UpdateGuildError::NameInvalid { name });
         }
 
         self.fields.name.replace(name);

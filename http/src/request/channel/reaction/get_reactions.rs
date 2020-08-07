@@ -12,13 +12,16 @@ use twilight_model::{
 #[derive(Clone, Debug)]
 pub enum GetReactionsError {
     /// The number of reactions to retrieve must be between 1 and 100, inclusive.
-    LimitInvalid,
+    LimitInvalid {
+        /// The provided maximum number of reactions to get.
+        limit: u64,
+    },
 }
 
 impl Display for GetReactionsError {
     fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
         match self {
-            Self::LimitInvalid => f.write_str("the limit is invalid"),
+            Self::LimitInvalid { .. } => f.write_str("the limit is invalid"),
         }
     }
 }
@@ -88,7 +91,7 @@ impl<'a> GetReactions<'a> {
     /// [`GetReactionsError::LimitInvalid`]: enum.GetReactionsError.html#variant.LimitInvalid
     pub fn limit(mut self, limit: u64) -> Result<Self, GetReactionsError> {
         if !validate::get_reactions_limit(limit) {
-            return Err(GetReactionsError::LimitInvalid);
+            return Err(GetReactionsError::LimitInvalid { limit });
         }
 
         self.fields.limit.replace(limit);

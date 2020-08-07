@@ -16,23 +16,32 @@ use twilight_model::{
 pub enum CreateGuildError {
     /// The name of the guild is either fewer than 2 UTF-16 characters or more than 100 UTF-16
     /// characters.
-    NameInvalid,
+    NameInvalid {
+        /// Provided name.
+        name: String,
+    },
     /// The number of channels provided is too many.
     ///
     /// The maximum amount is 500.
-    TooManyChannels,
+    TooManyChannels {
+        /// Provided channels.
+        channels: Vec<GuildChannel>,
+    },
     /// The number of roles provided is too many.
     ///
     /// The maximum amount is 250.
-    TooManyRoles,
+    TooManyRoles {
+        /// Provided roles.
+        roles: Vec<Role>,
+    },
 }
 
 impl Display for CreateGuildError {
     fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
         match self {
-            Self::NameInvalid => f.write_str("the guild name is invalid"),
-            Self::TooManyChannels => f.write_str("too many channels were provided"),
-            Self::TooManyRoles => f.write_str("too many roles were provided"),
+            Self::NameInvalid { .. } => f.write_str("the guild name is invalid"),
+            Self::TooManyChannels { .. } => f.write_str("too many channels were provided"),
+            Self::TooManyRoles { .. } => f.write_str("too many roles were provided"),
         }
     }
 }
@@ -81,7 +90,7 @@ impl<'a> CreateGuild<'a> {
 
     fn _new(http: &'a Client, name: String) -> Result<Self, CreateGuildError> {
         if !validate::guild_name(&name) {
-            return Err(CreateGuildError::NameInvalid);
+            return Err(CreateGuildError::NameInvalid { name });
         }
 
         Ok(Self {
@@ -113,7 +122,7 @@ impl<'a> CreateGuild<'a> {
         // Error 30013
         // <https://discordapp.com/developers/docs/topics/opcodes-and-status-codes#json>
         if channels.len() > 500 {
-            return Err(CreateGuildError::TooManyChannels);
+            return Err(CreateGuildError::TooManyChannels { channels });
         }
 
         self.fields.channels.replace(channels);
@@ -183,7 +192,7 @@ impl<'a> CreateGuild<'a> {
     /// [`CreateGuildError::TooManyRoles`]: enum.CreateGuildError.html#variant.TooManyRoles
     pub fn roles(mut self, roles: Vec<Role>) -> Result<Self, CreateGuildError> {
         if roles.len() > 250 {
-            return Err(CreateGuildError::TooManyRoles);
+            return Err(CreateGuildError::TooManyRoles { roles });
         }
 
         self.fields.roles.replace(roles);

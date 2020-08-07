@@ -18,7 +18,7 @@ pub enum CreateGuildPruneError {
 impl Display for CreateGuildPruneError {
     fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
         match self {
-            Self::DaysInvalid => f.write_str("the number of days is invalid"),
+            Self::DaysInvalid { .. } => f.write_str("the number of days is invalid"),
         }
     }
 }

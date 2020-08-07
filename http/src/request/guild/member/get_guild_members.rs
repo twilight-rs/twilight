@@ -22,13 +22,16 @@ use simd_json::value::OwnedValue as Value;
 #[derive(Clone, Debug)]
 pub enum GetGuildMembersError {
     /// The limit is either 0 or more than 1000.
-    LimitInvalid,
+    LimitInvalid {
+        /// Provided limit.
+        limit: u64,
+    },
 }
 
 impl Display for GetGuildMembersError {
     fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
         match self {
-            Self::LimitInvalid => f.write_str("the limit is invalid"),
+            Self::LimitInvalid { .. } => f.write_str("the limit is invalid"),
         }
     }
 }
@@ -106,7 +109,7 @@ impl<'a> GetGuildMembers<'a> {
     /// [`GetGuildMembersError::LimitInvalid`]: enum.GetGuildMembersError.html#variant.LimitInvalid
     pub fn limit(mut self, limit: u64) -> Result<Self, GetGuildMembersError> {
         if !validate::get_guild_members_limit(limit) {
-            return Err(GetGuildMembersError::LimitInvalid);
+            return Err(GetGuildMembersError::LimitInvalid { limit });
         }
 
         self.fields.limit.replace(limit);

@@ -13,19 +13,30 @@ use twilight_model::{
 pub enum UpdateChannelError {
     /// The length of the name is either fewer than 2 UTF-16 characters or
     /// more than 100 UTF-16 characters.
-    NameInvalid,
+    NameInvalid {
+        /// Provided name.
+        name: String,
+    },
     /// The seconds of the rate limit per user is more than 21600.
-    RateLimitPerUserInvalid,
+    RateLimitPerUserInvalid {
+        /// Provided ratelimit is invalid.
+        rate_limit_per_user: u64,
+    },
     /// The length of the topic is more than 1024 UTF-16 characters.
-    TopicInvalid,
+    TopicInvalid {
+        /// Provided topic.
+        topic: String,
+    },
 }
 
 impl Display for UpdateChannelError {
     fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
         match self {
-            Self::NameInvalid => f.write_str("the length of the name is invalid"),
-            Self::RateLimitPerUserInvalid => f.write_str("the rate limit per user is invalid"),
-            Self::TopicInvalid => f.write_str("the topic is invalid"),
+            Self::NameInvalid { .. } => f.write_str("the length of the name is invalid"),
+            Self::RateLimitPerUserInvalid { .. } => {
+                f.write_str("the rate limit per user is invalid")
+            }
+            Self::TopicInvalid { .. } => f.write_str("the topic is invalid"),
         }
     }
 }
@@ -122,7 +133,7 @@ impl<'a> UpdateChannel<'a> {
 
     fn _name(mut self, name: String) -> Result<Self, UpdateChannelError> {
         if !validate::channel_name(&name) {
-            return Err(UpdateChannelError::NameInvalid);
+            return Err(UpdateChannelError::NameInvalid { name });
         }
 
         self.fields.name.replace(name);
@@ -186,7 +197,9 @@ impl<'a> UpdateChannel<'a> {
         rate_limit_per_user: u64,
     ) -> Result<Self, UpdateChannelError> {
         if rate_limit_per_user > 21600 {
-            return Err(UpdateChannelError::RateLimitPerUserInvalid);
+            return Err(UpdateChannelError::RateLimitPerUserInvalid {
+                rate_limit_per_user,
+            });
         }
 
         self.fields.rate_limit_per_user.replace(rate_limit_per_user);
@@ -211,7 +224,7 @@ impl<'a> UpdateChannel<'a> {
 
     fn _topic(mut self, topic: String) -> Result<Self, UpdateChannelError> {
         if topic.chars().count() > 1024 {
-            return Err(UpdateChannelError::TopicInvalid);
+            return Err(UpdateChannelError::TopicInvalid { topic });
         }
 
         self.fields.topic.replace(topic);

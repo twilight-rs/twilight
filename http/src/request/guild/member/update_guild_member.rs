@@ -12,13 +12,13 @@ use twilight_model::{
 #[derive(Clone, Debug)]
 pub enum UpdateGuildMemberError {
     /// The nickname is either empty or the length is more than 32 UTF-16 characters.
-    NicknameInvalid,
+    NicknameInvalid { nickname: String },
 }
 
 impl Display for UpdateGuildMemberError {
     fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
         match self {
-            Self::NicknameInvalid => f.write_str("the nickname length is invalid"),
+            Self::NicknameInvalid { .. } => f.write_str("the nickname length is invalid"),
         }
     }
 }
@@ -112,7 +112,9 @@ impl<'a> UpdateGuildMember<'a> {
     fn _nick(mut self, nick: Option<String>) -> Result<Self, UpdateGuildMemberError> {
         if let Some(nick) = nick.as_ref() {
             if !validate::nickname(&nick) {
-                return Err(UpdateGuildMemberError::NicknameInvalid);
+                return Err(UpdateGuildMemberError::NicknameInvalid {
+                    nickname: nick.to_owned(),
+                });
             }
         }
 
