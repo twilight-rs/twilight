@@ -15,6 +15,7 @@ use std::convert::TryFrom;
 // **NOTE**: When adding a variant, be sure to add it to the DeserializeSeed
 // implementation.
 #[derive(Clone, Debug, Eq, PartialEq, Serialize)]
+#[serde(untagged)]
 pub enum DispatchEvent {
     BanAdd(BanAdd),
     BanRemove(BanRemove),

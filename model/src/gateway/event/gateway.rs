@@ -743,10 +743,6 @@ mod tests {
                 Token::Str("op"),
                 Token::U8(OpCode::Event as u8),
                 Token::Str("d"),
-                Token::NewtypeVariant {
-                    name: "DispatchEvent",
-                    variant: "RoleDelete",
-                },
                 Token::Struct {
                     name: "RoleDelete",
                     len: 2,
