@@ -47,8 +47,6 @@ jobs:
           crate: cargo-sync-readme
           version: latest
 
-      - name: Run in builders
-        run: cd builders && cargo sync-readme --check
       - name: Run in command-parser
         run: cd command-parser && cargo sync-readme --check
       - name: Run in gateway
@@ -63,3 +61,5 @@ jobs:
         run: cd standby && cargo sync-readme --check
       - name: Run in twilight
         run: cd twilight && cargo sync-readme --check
+      - name: Run in embed-builder
+        run: cd utils/embed-builder && cargo sync-readme --check

@@ -1,6 +1,5 @@
 [workspace]
 members = [
-    "builders",
     "cache/base",
     "cache/in-memory",
     "cache/trait",
@@ -21,5 +20,6 @@ members = [
     "model",
     "standby",
     "twilight",
+    "utils/embed-builder",
     "utils/mention",
 ]
