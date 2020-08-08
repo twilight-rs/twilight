@@ -58,7 +58,7 @@ impl ShardProcessor {
         mut url: String,
         listeners: Listeners<Event>,
     ) -> Result<(Self, WatchReceiver<Arc<Session>>)> {
-        //if we got resume tracing::info we don't need to wait
+        //if we got resume info we don't need to wait
         let shard_id = config.shard();
         let resumable = config.sequence.is_some() && config.session_id.is_some();
         if !resumable {
