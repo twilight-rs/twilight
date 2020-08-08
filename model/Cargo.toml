@@ -18,7 +18,7 @@ tracing = { default-features = false, features = ["std", "attributes"], version 
 serde = { default-features = false, features = ["derive"], version = "1" }
 serde-mappable-seq = { default-features = false, version = "0.1" }
 serde_repr = { default-features = false, version = "0.1" }
-serde-value = { default-features = false, version = "0.6" }
+serde-value = { default-features = false, version = "0.7" }
 
 [dev-dependencies]
 criterion = "0.3"
