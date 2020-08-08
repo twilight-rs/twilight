@@ -14,7 +14,6 @@ version = "0.1.0"
 
 [dependencies]
 bitflags = { default-features = false, version = "1" }
-tracing = { default-features = false, features = ["std", "attributes"], version = "0.1" }
 serde = { default-features = false, features = ["derive"], version = "1" }
 serde-mappable-seq = { default-features = false, version = "0.1" }
 serde_repr = { default-features = false, version = "0.1" }
