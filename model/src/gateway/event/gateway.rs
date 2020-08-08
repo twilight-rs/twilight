@@ -286,7 +286,7 @@ impl<'de> Visitor<'de> for GatewayEventVisitor<'_> {
                         Field::Op | Field::T => {
                             map.next_value::<IgnoredAny>()?;
 
-                            tracing::trace!(parent: &span_child, key=?key, "ignoring key")
+                            tracing::trace!(parent: &span_child, key=?key, "ignoring key");
                         }
                     }
                 }
