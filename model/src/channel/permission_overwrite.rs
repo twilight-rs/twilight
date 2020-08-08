@@ -47,13 +47,13 @@ impl<'de> Deserialize<'de> for PermissionOverwrite {
         let kind = match data.kind {
             PermissionOverwriteTypeName::Member => {
                 let id = UserId(data.id.parse().map_err(DeError::custom)?);
-                tracing::trace!(parent: &span, id = %id.0, kind = ?data.kind);
+                tracing::trace!(id = %id.0, kind = ?data.kind);
 
                 PermissionOverwriteType::Member(id)
             }
             PermissionOverwriteTypeName::Role => {
                 let id = RoleId(data.id.parse().map_err(DeError::custom)?);
-                tracing::trace!(parent: &span, id = %id.0, kind = ?data.kind);
+                tracing::trace!(id = %id.0, kind = ?data.kind);
 
                 PermissionOverwriteType::Role(id)
             }

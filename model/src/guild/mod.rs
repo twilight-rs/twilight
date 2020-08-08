@@ -226,12 +226,12 @@ impl<'de> Deserialize<'de> for Guild {
                 let _span_enter = span.enter();
 
                 loop {
-                    let span_child = tracing::trace_span!(parent: &span, "iterating over element");
+                    let span_child = tracing::trace_span!("iterating over element");
                     let _span_child_enter = span_child.enter();
 
                     let key = match map.next_key() {
                         Ok(Some(key)) => {
-                            tracing::trace!(parent: &span_child, ?key, "found key");
+                            tracing::trace!(?key, "found key");
 
                             key
                         }
@@ -240,11 +240,7 @@ impl<'de> Deserialize<'de> for Guild {
                             // Encountered when we run into an unknown key.
                             map.next_value::<IgnoredAny>()?;
 
-                            tracing::trace!(
-                                parent: &span_child,
-                                "ran into an unknown key: {:?}",
-                                why
-                            );
+                            tracing::trace!("ran into an unknown key: {:?}", why);
 
                             continue;
                         }
@@ -637,7 +633,6 @@ impl<'de> Deserialize<'de> for Guild {
                 let widget_enabled = widget_enabled.unwrap_or_default();
 
                 tracing::trace!(
-                    parent: &span,
                     ?afk_channel_id,
                     %afk_timeout,
                     ?application_id,
@@ -673,7 +668,7 @@ impl<'de> Deserialize<'de> for Guild {
                 );
 
                 // Split in two due to generic impl only going up to 32.
-                tracing::trace!(parent: &span,
+                tracing::trace!(
                     ?premium_tier,
                     ?presences,
                     %region,

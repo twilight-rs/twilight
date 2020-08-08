@@ -48,7 +48,7 @@ impl<'de> Visitor<'de> for RoleMapDeserializerVisitor {
         let _span_enter = span.enter();
 
         while let Some(role) = seq.next_element::<Role>()? {
-            tracing::trace!(parent: &span, %role.id, ?role);
+            tracing::trace!(%role.id, ?role);
 
             map.insert(role.id, role);
         }

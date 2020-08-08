@@ -61,12 +61,12 @@ impl<'de> Visitor<'de> for MemberChunkVisitor {
         let _span_enter = span.enter();
 
         loop {
-            let span_child = tracing::trace_span!(parent: &span, "iterating over element");
+            let span_child = tracing::trace_span!("iterating over element");
             let _span_child_enter = span_child.enter();
 
             let key = match map.next_key() {
                 Ok(Some(key)) => {
-                    tracing::trace!(parent: &span_child, ?key, "found key");
+                    tracing::trace!(?key, "found key");
 
                     key
                 }
@@ -75,7 +75,7 @@ impl<'de> Visitor<'de> for MemberChunkVisitor {
                     // Encountered when we run into an unknown key.
                     map.next_value::<IgnoredAny>()?;
 
-                    tracing::trace!(parent: &span_child, "ran into an unknown key: {:?}", why);
+                    tracing::trace!("ran into an unknown key: {:?}", why);
 
                     continue;
                 }
@@ -149,7 +149,6 @@ impl<'de> Visitor<'de> for MemberChunkVisitor {
         let mut presences = presences.unwrap_or_default();
 
         tracing::trace!(
-            parent: &span,
             %chunk_count,
             %chunk_index,
             ?guild_id,

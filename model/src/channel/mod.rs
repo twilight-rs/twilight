@@ -186,12 +186,12 @@ impl<'de> Visitor<'de> for GuildChannelVisitor {
         let _span_enter = span.enter();
 
         loop {
-            let span_child = tracing::trace_span!(parent: &span, "iterating over element");
+            let span_child = tracing::trace_span!("iterating over element");
             let _span_child_enter = span_child.enter();
 
             let key = match map.next_key() {
                 Ok(Some(key)) => {
-                    tracing::trace!(parent: &span_child, ?key, "found key");
+                    tracing::trace!(?key, "found key");
 
                     key
                 }
@@ -200,7 +200,7 @@ impl<'de> Visitor<'de> for GuildChannelVisitor {
                     // Encountered when we run into an unknown key.
                     map.next_value::<IgnoredAny>()?;
 
-                    tracing::trace!(parent: &span_child, "ran into an unknown key: {:?}", why);
+                    tracing::trace!("ran into an unknown key: {:?}", why);
 
                     continue;
                 }
@@ -321,7 +321,6 @@ impl<'de> Visitor<'de> for GuildChannelVisitor {
         let parent_id = parent_id.unwrap_or_default();
 
         tracing::trace!(
-            parent: &span,
             %id,
             ?kind,
             %name,
@@ -334,7 +333,7 @@ impl<'de> Visitor<'de> for GuildChannelVisitor {
 
         Ok(match kind {
             ChannelType::GuildCategory => {
-                tracing::trace!(parent: &span, "handling category channel");
+                tracing::trace!("handling category channel");
 
                 GuildChannel::Category(CategoryChannel {
                     id,
@@ -351,7 +350,7 @@ impl<'de> Visitor<'de> for GuildChannelVisitor {
                 let bitrate = bitrate.ok_or_else(|| DeError::missing_field("bitrate"))?;
                 let user_limit = user_limit.ok_or_else(|| DeError::missing_field("user_limit"))?;
 
-                tracing::trace!(parent: &span, %bitrate, ?user_limit, "handling voice channel");
+                tracing::trace!(%bitrate, ?user_limit, "handling voice channel");
 
                 GuildChannel::Voice(VoiceChannel {
                     id,
@@ -371,7 +370,6 @@ impl<'de> Visitor<'de> for GuildChannelVisitor {
                 let topic = topic.unwrap_or_default();
 
                 tracing::trace!(
-                    parent: &span,
                     ?last_message_id,
                     ?last_pin_timestamp,
                     ?topic,
@@ -426,7 +424,7 @@ impl<'de> Visitor<'de> for GuildChannelMapVisitor {
 
         while let Some(channel) = seq.next_element::<GuildChannel>()? {
             let id = channel.id();
-            tracing::trace!(parent: &span, %id, ?channel);
+            tracing::trace!(%id, ?channel);
 
             map.insert(channel.id(), channel);
         }

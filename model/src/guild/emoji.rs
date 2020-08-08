@@ -60,7 +60,7 @@ impl<'de> Visitor<'de> for EmojiMapVisitor {
         let _span_enter = span.enter();
 
         while let Some(emoji) = seq.next_element::<Emoji>()? {
-            tracing::trace!(parent: &span, %emoji.id, ?emoji);
+            tracing::trace!(%emoji.id, ?emoji);
 
             map.insert(emoji.id, emoji);
         }

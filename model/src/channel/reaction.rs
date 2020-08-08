@@ -51,12 +51,12 @@ impl<'de> Visitor<'de> for ReactionVisitor {
         let _span_enter = span.enter();
 
         loop {
-            let span_child = tracing::trace_span!(parent: &span, "iterating over element");
+            let span_child = tracing::trace_span!("iterating over element");
             let _span_child_enter = span_child.enter();
 
             let key = match map.next_key() {
                 Ok(Some(key)) => {
-                    tracing::trace!(parent: &span_child, ?key, "found key");
+                    tracing::trace!(?key, "found key");
 
                     key
                 }
@@ -65,7 +65,7 @@ impl<'de> Visitor<'de> for ReactionVisitor {
                     // Encountered when we run into an unknown key.
                     map.next_value::<IgnoredAny>()?;
 
-                    tracing::trace!(parent: &span_child, "ran into an unknown key: {:?}", why);
+                    tracing::trace!("ran into an unknown key: {:?}", why);
 
                     continue;
                 }
@@ -124,10 +124,10 @@ impl<'de> Visitor<'de> for ReactionVisitor {
         let message_id = message_id.ok_or_else(|| DeError::missing_field("message_id"))?;
         let user_id = user_id.ok_or_else(|| DeError::missing_field("user_id"))?;
 
-        tracing::trace!(parent: &span, ?channel_id, ?emoji, ?message_id, ?user_id);
+        tracing::trace!(?channel_id, ?emoji, ?message_id, ?user_id);
 
         if let (Some(guild_id), Some(member)) = (guild_id, member.as_mut()) {
-            tracing::trace!(parent: &span, %guild_id, ?member, "setting member guild id");
+            tracing::trace!(%guild_id, ?member, "setting member guild id");
 
             member.guild_id = guild_id;
         }

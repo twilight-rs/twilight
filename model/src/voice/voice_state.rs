@@ -84,12 +84,12 @@ impl<'de> Visitor<'de> for VoiceStateVisitor {
         let _span_enter = span.enter();
 
         loop {
-            let span_child = tracing::trace_span!(parent: &span, "iterating over element");
+            let span_child = tracing::trace_span!("iterating over element");
             let _span_child_enter = span_child.enter();
 
             let key = match map.next_key() {
                 Ok(Some(key)) => {
-                    tracing::trace!(parent: &span_child, ?key, "found key");
+                    tracing::trace!(?key, "found key");
 
                     key
                 }
@@ -98,7 +98,7 @@ impl<'de> Visitor<'de> for VoiceStateVisitor {
                     // Encountered when we run into an unknown key.
                     map.next_value::<IgnoredAny>()?;
 
-                    tracing::trace!(parent: &span_child, "ran into an unknown key: {:?}", why);
+                    tracing::trace!("ran into an unknown key: {:?}", why);
 
                     continue;
                 }
@@ -205,7 +205,6 @@ impl<'de> Visitor<'de> for VoiceStateVisitor {
         let self_stream = self_stream.unwrap_or_default();
 
         tracing::trace!(
-            parent: &span,
             %deaf,
             %mute,
             %self_deaf,
@@ -217,7 +216,7 @@ impl<'de> Visitor<'de> for VoiceStateVisitor {
         );
 
         if let (Some(guild_id), Some(member)) = (guild_id, member.as_mut()) {
-            tracing::trace!(parent: &span, %guild_id, ?member, "setting member guild id");
+            tracing::trace!(%guild_id, ?member, "setting member guild id");
 
             member.guild_id = guild_id;
         }
