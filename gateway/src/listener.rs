@@ -12,6 +12,13 @@ pub struct Listener<T> {
     pub tx: UnboundedSender<T>,
 }
 
+impl<T> Listener<T> {
+    /// Return whether the listener wants (contains) an event type.
+    pub fn wants(&self, event_type: EventTypeFlags) -> bool {
+        self.events.contains(event_type)
+    }
+}
+
 #[derive(Debug)]
 struct ListenersRef<T> {
     id: AtomicU64,
@@ -42,6 +49,11 @@ impl<T> Listeners<T> {
 
     pub fn all(&self) -> &DashMap<u64, Listener<T>> {
         &self.0.listeners
+    }
+
+    /// Return the length of the listeners map.
+    pub fn len(&self) -> usize {
+        self.0.listeners.len()
     }
 
     pub fn remove_all(&self) {
