@@ -412,6 +412,7 @@ impl UpdateCache<InMemoryCache, InMemoryCacheError> for MemberUpdate {
 
         member.nick = self.nick.clone();
         member.roles = self.roles.clone();
+        member.joined_at = self.joined_at.clone();
 
         Ok(())
     }
