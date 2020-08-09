@@ -24,7 +24,6 @@
 //! [new messages]: ../../twilight_model/gateway/event/enum.Event.html#variant.MessageCreate
 
 pub mod config;
-pub mod error;
 pub mod stage;
 
 mod event;
@@ -34,10 +33,11 @@ mod sink;
 
 pub use self::{
     config::ShardConfig,
-    error::{Error, Result},
     event::Events,
     processor::heartbeat::Latency,
-    r#impl::{Information, ResumeSession, Shard},
+    r#impl::{
+        CommandError, Information, ResumeSession, SessionInactiveError, Shard, ShardStartError,
+    },
     sink::ShardSink,
     stage::Stage,
 };

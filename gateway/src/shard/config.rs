@@ -1,8 +1,70 @@
-use super::{Error, Result};
 use crate::queue::{LocalQueue, Queue};
-use std::sync::Arc;
+use std::{
+    error::Error,
+    fmt::{Display, Formatter, Result as FmtResult},
+    sync::Arc,
+};
 use twilight_http::Client as HttpClient;
 use twilight_model::gateway::{payload::update_status::UpdateStatusInfo, GatewayIntents};
+
+/// Large threshold configuration is invalid.
+///
+/// Returned by [`ShardConfigBuilder::large_threshold`].
+///
+/// [`ShardConfigBuilder::large_threshold`]: struct.ShardConfigBuilder.html#method.large_threshold
+#[derive(Debug)]
+pub enum LargeThresholdError {
+    /// Provided large threshold value is too few in number.
+    TooFew {
+        /// Provided value.
+        value: u64,
+    },
+    /// Provided large threshold value is too many in number.
+    TooMany {
+        /// Provided value.
+        value: u64,
+    },
+}
+
+impl Display for LargeThresholdError {
+    fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
+        match self {
+            Self::TooFew { .. } => f.write_str("provided large threshold value is fewer than 50"),
+            Self::TooMany { .. } => f.write_str("provided large threshold value is more than 250"),
+        }
+    }
+}
+
+impl Error for LargeThresholdError {}
+
+/// Shard ID configuration is invalid.
+///
+/// Returned by [`ShardConfigBuilder::shard`].
+///
+/// [`ShardConfigBuilder::shard`]: struct.ShardConfigBuilder.html#method.shard
+#[derive(Debug)]
+pub enum ShardIdError {
+    /// Provided shard ID is higher than provided total shard count.
+    IdTooLarge {
+        /// Shard ID.
+        id: u64,
+        /// Total shard count.
+        total: u64,
+    },
+}
+
+impl Display for ShardIdError {
+    fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
+        match self {
+            Self::IdTooLarge { id, total } => f.write_fmt(format_args!(
+                "provided shard ID {} is larger than the total {}",
+                id, total,
+            )),
+        }
+    }
+}
+
+impl Error for ShardIdError {}
 
 /// The configuration used by the shard to identify with the gateway and
 /// operate.
@@ -142,15 +204,27 @@ impl ShardConfigBuilder {
     ///
     /// # Errors
     ///
-    /// Returns [`Error::LargeThresholdInvalid`] if the provided value was below
-    /// 50 or above 250.
+    /// Returns [`LargeThresholdError::TooFew`] if the provided value is below
+    /// 50.
     ///
-    /// [`Error::LargeThresholdInvalid`]: ../error/enum.Error.html#variant.LargeThresholdInvalid
-    pub fn large_threshold(mut self, large_threshold: u64) -> Result<Self> {
-        if large_threshold > 250 || large_threshold < 50 {
-            return Err(Error::LargeThresholdInvalid {
-                value: large_threshold,
-            });
+    /// Returns [`LargeThresholdError::TooMany`] if the provided value is above
+    /// 250.
+    ///
+    /// [`LargeThresholdError::TooFew`]: enum.LargeThresholdError.html#variant.TooFew
+    /// [`LargeThresholdError::TooMany`]: enum.LargeThresholdError.html#variant.TooMany
+    pub fn large_threshold(mut self, large_threshold: u64) -> Result<Self, LargeThresholdError> {
+        match large_threshold {
+            0..=49 => {
+                return Err(LargeThresholdError::TooFew {
+                    value: large_threshold,
+                })
+            }
+            50..=250 => {}
+            251..=u64::MAX => {
+                return Err(LargeThresholdError::TooMany {
+                    value: large_threshold,
+                })
+            }
         }
 
         self.0.large_threshold = large_threshold;
@@ -213,13 +287,13 @@ impl ShardConfigBuilder {
     ///
     /// # Errors
     ///
-    /// Returns [`Error::IdTooLarge`] if the shard ID to connect as is larger
-    /// than the total.
+    /// Returns [`ShardIdError::IdTooLarge`] if the shard ID to connect as is
+    /// larger than the total.
     ///
-    /// [`Error::IdTooLarge`]: ../error/enum.Error.html#variant.IdTooLarge
-    pub fn shard(mut self, shard_id: u64, shard_total: u64) -> Result<Self> {
+    /// [`ShardIdError::IdTooLarge`]: enum.ShardIdError.html#variant.IdTooLarge
+    pub fn shard(mut self, shard_id: u64, shard_total: u64) -> Result<Self, ShardIdError> {
         if shard_id >= shard_total {
-            return Err(Error::IdTooLarge {
+            return Err(ShardIdError::IdTooLarge {
                 id: shard_id,
                 total: shard_total,
             });

@@ -1,19 +1,47 @@
-use super::error::{Error, Result};
 use crate::{
     queue::{LocalQueue, Queue},
     shard::{
-        config::{ShardConfig, ShardConfigBuilder},
+        config::{LargeThresholdError, ShardConfig, ShardConfigBuilder},
         ResumeSession,
     },
 };
 use std::{
     collections::HashMap,
     convert::TryFrom,
+    error::Error,
+    fmt::{Display, Formatter, Result as FmtResult},
     ops::{Bound, RangeBounds},
     sync::Arc,
 };
 use twilight_http::Client;
 use twilight_model::gateway::{payload::update_status::UpdateStatusInfo, GatewayIntents};
+
+/// Starting a cluster failed.
+#[derive(Debug)]
+pub enum ShardSchemeRangeError {
+    /// The start of the shard range was greater than the end or total.
+    IdTooLarge {
+        /// The last shard in the range to manage.
+        end: u64,
+        /// The first shard in the range to manage.
+        start: u64,
+        /// The total number of shards used by the bot.
+        total: u64,
+    },
+}
+
+impl Display for ShardSchemeRangeError {
+    fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
+        match self {
+            Self::IdTooLarge { end, start, total } => f.write_fmt(format_args!(
+                "The shard ID range {}-{}/{} is larger than the total",
+                start, end, total
+            )),
+        }
+    }
+}
+
+impl Error for ShardSchemeRangeError {}
 
 /// The method of sharding to use.
 ///
@@ -62,7 +90,7 @@ impl Default for ShardScheme {
 }
 
 impl<T: RangeBounds<u64>> TryFrom<(T, u64)> for ShardScheme {
-    type Error = Error;
+    type Error = ShardSchemeRangeError;
 
     fn try_from((range, total): (T, u64)) -> Result<Self, Self::Error> {
         let start = match range.start_bound() {
@@ -77,7 +105,7 @@ impl<T: RangeBounds<u64>> TryFrom<(T, u64)> for ShardScheme {
         };
 
         if start > end {
-            return Err(Error::IdTooLarge { end, start, total });
+            return Err(ShardSchemeRangeError::IdTooLarge { end, start, total });
         }
 
         Ok(Self::Range {
@@ -225,16 +253,16 @@ impl ClusterConfigBuilder {
     ///
     /// # Errors
     ///
-    /// Returns [`ShardError::LargeThresholdInvalid`] if the value was not in
-    /// the accepted range.
+    /// Returns [`LargeThresholdError::TooFew`] if the provided value is below
+    /// 50.
     ///
-    /// [`ShardConfigBuilder::large_threshold`]: ../../shard/config/struct.ShardConfigBuilder.html#method.large_threshold
-    /// [`ShardError::LargeThresholdInvalid`]: ../../shard/error/enum.Error.html#variant.LargeThresholdInvalid
-    pub fn large_threshold(mut self, large_threshold: u64) -> Result<Self> {
-        self.1 = self
-            .1
-            .large_threshold(large_threshold)
-            .map_err(|source| Error::LargeThresholdInvalid { source })?;
+    /// Returns [`LargeThresholdError::TooMany`] if the provided value is above
+    /// 250.
+    ///
+    /// [`LargeThresholdError::TooFew`]: ../../shard/config/enum.LargeThresholdError.html#variant.TooFew
+    /// [`LargeThresholdError::TooMany`]: ../../shard/config/enum.LargeThresholdError.html#variant.TooMany
+    pub fn large_threshold(mut self, large_threshold: u64) -> Result<Self, LargeThresholdError> {
+        self.1 = self.1.large_threshold(large_threshold)?;
 
         Ok(self)
     }

@@ -1,9 +1,42 @@
-use crate::shard::error::{Error, Result};
-use std::time::Duration;
+use std::{
+    error::Error,
+    fmt::{Display, Formatter, Result as FmtResult},
+    time::Duration,
+};
 use tokio::{
     sync::Mutex,
     time::{self, Instant},
 };
+use twilight_http::Error as HttpError;
+
+/// Creating a day limiter queue failed.
+#[derive(Debug)]
+pub enum DayLimiterError {
+    /// Retrieving the bot's available gateway session initiation information
+    /// via the HTTP API failed.
+    RetrievingSessionAvailability {
+        /// Reason for the error.
+        source: HttpError,
+    },
+}
+
+impl Display for DayLimiterError {
+    fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
+        match self {
+            Self::RetrievingSessionAvailability { .. } => {
+                f.write_str("retrieving the bot's gateway session availability failed")
+            }
+        }
+    }
+}
+
+impl Error for DayLimiterError {
+    fn source(&self) -> Option<&(dyn Error + 'static)> {
+        match self {
+            Self::RetrievingSessionAvailability { source } => Some(source),
+        }
+    }
+}
 
 #[derive(Debug)]
 pub(crate) struct DayLimiter(pub(crate) Mutex<DayLimiterInner>);
@@ -18,12 +51,12 @@ pub(crate) struct DayLimiterInner {
 }
 
 impl DayLimiter {
-    pub async fn new(http: &twilight_http::Client) -> Result<Self> {
+    pub async fn new(http: &twilight_http::Client) -> Result<Self, DayLimiterError> {
         let info = http
             .gateway()
             .authed()
             .await
-            .map_err(|e| Error::GettingGatewayUrl { source: e })?;
+            .map_err(|source| DayLimiterError::RetrievingSessionAvailability { source })?;
 
         let last_check = Instant::now();
 

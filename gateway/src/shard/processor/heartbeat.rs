@@ -1,4 +1,4 @@
-use super::super::error::{Error, Result};
+use super::session::SessionSendError;
 use async_tungstenite::tungstenite::Message as TungsteniteMessage;
 use futures_channel::mpsc::UnboundedSender;
 use futures_util::lock::Mutex;
@@ -186,7 +186,7 @@ impl Heartbeater {
     // got disconnected due to the session ending. This task should have
     // *also* become aborted. Log if that's the case, because that's a
     // programmatic error.
-    async fn run_inner(self) -> Result<()> {
+    async fn run_inner(self) -> Result<(), SessionSendError> {
         let duration = Duration::from_millis(self.interval);
 
         let mut last = true;
@@ -212,12 +212,12 @@ impl Heartbeater {
             let seq = self.seq.load(Ordering::Acquire);
             let heartbeat = Heartbeat::new(seq);
             let bytes = crate::json_to_vec(&heartbeat)
-                .map_err(|source| Error::PayloadSerialization { source })?;
+                .map_err(|source| SessionSendError::Serializing { source })?;
 
             tracing::debug!("sending heartbeat with seq: {}", seq);
             self.tx
                 .unbounded_send(TungsteniteMessage::Binary(bytes))
-                .map_err(|source| Error::SendingMessage { source })?;
+                .map_err(|source| SessionSendError::Sending { source })?;
             tracing::debug!("sent heartbeat with seq: {}", seq);
             self.heartbeats.send().await;
         }
