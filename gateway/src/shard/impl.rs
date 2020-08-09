@@ -13,7 +13,6 @@ use async_tungstenite::tungstenite::{
 use futures_channel::mpsc::TrySendError;
 use futures_util::future::{self, AbortHandle};
 use once_cell::sync::OnceCell;
-use serde_json::Error as JsonError;
 use std::{
     borrow::Cow,
     error::Error,
@@ -24,6 +23,11 @@ use tokio::sync::watch::Receiver as WatchReceiver;
 use twilight_http::Error as HttpError;
 use twilight_model::gateway::event::Event;
 use url::ParseError as UrlParseError;
+
+#[cfg(not(feature = "simd-json"))]
+use serde_json::Error as JsonError;
+#[cfg(feature = "simd-json")]
+use simd_json::Error as JsonError;
 
 /// Sending a command failed.
 #[derive(Debug)]

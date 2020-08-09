@@ -9,7 +9,6 @@ use futures_util::{
     lock::Mutex,
 };
 use serde::ser::Serialize;
-use serde_json::Error as JsonError;
 use std::{
     convert::TryFrom,
     error::Error,
@@ -22,6 +21,11 @@ use std::{
 };
 use tokio::time::{interval, Interval};
 use twilight_model::gateway::payload::Heartbeat;
+
+#[cfg(not(feature = "simd-json"))]
+use serde_json::Error as JsonError;
+#[cfg(feature = "simd-json")]
+use simd_json::Error as JsonError;
 
 #[derive(Debug)]
 pub enum SessionSendError {
