@@ -1,6 +1,5 @@
 use flate2::{Decompress, DecompressError, FlushDecompress};
 use std::convert::TryInto;
-use tracing::trace;
 
 const ZLIB_SUFFIX: [u8; 4] = [0x00, 0x00, 0xff, 0xff];
 const INTERNAL_BUFFER_SIZE: usize = 32 * 1024;
@@ -57,14 +56,14 @@ impl Inflater {
                 }
             }
 
-            trace!("in: {}, out: {}", self.compressed.len(), self.buffer.len());
+            tracing::trace!("in: {}, out: {}", self.compressed.len(), self.buffer.len());
             self.compressed.clear();
 
             #[allow(clippy::cast_precision_loss)]
             {
                 // To get around the u64 → f64 precision loss lint
                 // it does really not matter that it happens here
-                trace!(
+                tracing::trace!(
                     "data saved: {}KiB ({:.2}%)",
                     ((self.decompress.total_out() - self.decompress.total_in()) / 1024),
                     ((self.decompress.total_in() as f64) / (self.decompress.total_out() as f64)
@@ -86,7 +85,7 @@ impl Inflater {
                     self.decompress.total_out().try_into().unwrap_or(-1)
                 );
             }
-            trace!("capacity: {}", self.buffer.capacity());
+            tracing::trace!("capacity: {}", self.buffer.capacity());
             Ok(Some(&mut self.buffer))
         } else {
             // Received a partial payload.
@@ -108,8 +107,8 @@ impl Inflater {
             // https://github.com/rust-lang/rust/issues/56431
             self.compressed.shrink_to_fit();
             self.buffer.shrink_to_fit();
-            trace!("compressed: {}", self.compressed.capacity());
-            trace!("buffer: {}", self.buffer.capacity());
+            tracing::trace!("compressed: {}", self.compressed.capacity());
+            tracing::trace!("buffer: {}", self.buffer.capacity());
             self.countdown_to_resize = u8::max_value();
         }
         self.compressed.clear();

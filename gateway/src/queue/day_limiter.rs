@@ -4,7 +4,6 @@ use tokio::{
     sync::Mutex,
     time::{self, Instant},
 };
-use tracing::warn;
 
 #[derive(Debug)]
 pub(crate) struct DayLimiter(pub(crate) Mutex<DayLimiterInner>);
@@ -62,7 +61,9 @@ impl DayLimiter {
                 lock.total = total;
                 lock.current = current + 1;
             } else {
-                warn!("unable to get new session limits, skipping (this may cause bad things)")
+                tracing::warn!(
+                    "unable to get new session limits, skipping (this may cause bad things)"
+                )
             }
         }
     }
