@@ -1,25 +1,27 @@
 use super::{
     super::{config::ShardConfig, stage::Stage, ShardStream},
     emit,
-    error::{Error, Result},
     inflater::Inflater,
-    session::Session,
+    session::{Session, SessionSendError},
     socket_forwarder::SocketForwarder,
 };
 use crate::listener::Listeners;
 use async_tungstenite::tungstenite::{
     protocol::{frame::coding::CloseCode, CloseFrame},
-    Message,
+    Error as TungsteniteError, Message,
 };
-use futures_channel::mpsc::UnboundedReceiver;
+use flate2::DecompressError;
+use futures_channel::mpsc::{TrySendError, UnboundedReceiver};
 use futures_util::stream::StreamExt;
 use serde::Serialize;
+use serde_json::Error as JsonError;
 use std::{
     borrow::Cow,
     env::consts::OS,
-    error::Error as StdError,
+    error::Error,
+    fmt::{Display, Formatter, Result as FmtResult},
     ops::Deref,
-    str,
+    str::{self, Utf8Error},
     sync::{atomic::Ordering, Arc},
 };
 use tokio::sync::watch::{
@@ -34,8 +36,179 @@ use twilight_model::gateway::{
         identify::{Identify, IdentifyInfo, IdentifyProperties},
         resume::Resume,
     },
+    GatewayIntents,
 };
-use url::Url;
+use url::{ParseError as UrlParseError, Url};
+
+/// Connecting to the gateway failed.
+#[derive(Debug)]
+pub enum ConnectingError {
+    Establishing { source: TungsteniteError },
+    ParsingUrl { source: UrlParseError, url: String },
+}
+
+impl Display for ConnectingError {
+    fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
+        match self {
+            Self::Establishing { source } => Display::fmt(source, f),
+            Self::ParsingUrl { source, url } => f.write_fmt(format_args!(
+                "the gateway url `{}` is invalid: {}",
+                url, source,
+            )),
+        }
+    }
+}
+
+impl Error for ConnectingError {
+    fn source(&self) -> Option<&(dyn Error + 'static)> {
+        match self {
+            Self::Establishing { source } => Some(source),
+            Self::ParsingUrl { source, .. } => Some(source),
+        }
+    }
+}
+
+#[derive(Debug)]
+pub enum GatewayEventParsingError {
+    /// Deserializing the GatewayEvent payload from JSON failed.
+    Deserializing {
+        /// Reason for the error.
+        source: JsonError,
+    },
+    /// The payload received from Discord was an invalid structure.
+    ///
+    /// The payload was either invalid JSON or did not contain the necessary
+    /// "op" key in the object.
+    PayloadInvalid,
+}
+
+impl Display for GatewayEventParsingError {
+    fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
+        match self {
+            Self::Deserializing { source } => Display::fmt(source, f),
+            Self::PayloadInvalid => f.write_str("payload is an invalid json structure"),
+        }
+    }
+}
+
+impl Error for GatewayEventParsingError {
+    fn source(&self) -> Option<&(dyn Error + 'static)> {
+        match self {
+            Self::Deserializing { source } => Some(source),
+            Self::PayloadInvalid => None,
+        }
+    }
+}
+
+#[derive(Debug)]
+pub enum ProcessError {
+    /// A close message tried to be sent but the receiving half was dropped.
+    /// This typically means that the shard is shutdown.
+    SendingClose {
+        /// Reason for the error.
+        source: TrySendError<Message>,
+    },
+    SessionSend {
+        /// Reason for the error.
+        source: SessionSendError,
+    },
+}
+
+impl Display for ProcessError {
+    fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
+        match self {
+            Self::SendingClose { source } => Display::fmt(source, f),
+            Self::SessionSend { source } => Display::fmt(source, f),
+        }
+    }
+}
+
+impl Error for ProcessError {
+    fn source(&self) -> Option<&(dyn Error + 'static)> {
+        match self {
+            Self::SendingClose { source } => Some(source),
+            Self::SessionSend { source } => Some(source),
+        }
+    }
+}
+
+#[derive(Debug)]
+pub enum ReceivingEventError {
+    /// Provided authorization token is invalid.
+    AuthorizationInvalid { shard_id: u64, token: String },
+    /// Decompressing a frame from Discord failed.
+    Decompressing {
+        /// Reason for the error.
+        source: DecompressError,
+    },
+    /// Current user isn't allowed to use at least one of the configured
+    /// intents.
+    ///
+    /// The intents are provided.
+    IntentsDisallowed {
+        /// The configured intents for the shard.
+        intents: Option<GatewayIntents>,
+        /// The ID of the shard.
+        shard_id: u64,
+    },
+    /// Configured intents aren't supported by Discord's gateway.
+    ///
+    /// The intents are provided.
+    IntentsInvalid {
+        /// Configured intents for the shard.
+        intents: Option<GatewayIntents>,
+        /// ID of the shard.
+        shard_id: u64,
+    },
+    /// There was an error parsing a GatewayEvent payload.
+    ParsingPayload {
+        /// Reason for the error.
+        source: GatewayEventParsingError,
+    },
+    /// The binary payload received from Discord wasn't validly encoded as
+    /// UTF-8.
+    PayloadNotUtf8 {
+        /// Source error when converting to a UTF-8 valid string.
+        source: Utf8Error,
+    },
+}
+
+impl Display for ReceivingEventError {
+    fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
+        match self {
+            Self::AuthorizationInvalid { shard_id, .. } => f.write_fmt(format_args!(
+                "the authorization token for shard {} is invalid",
+                shard_id
+            )),
+            Self::Decompressing { .. } => f.write_str("a frame could not be decompressed"),
+            Self::IntentsDisallowed { intents, shard_id } => f.write_fmt(format_args!(
+                "at least one of the intents ({:?}) for shard {} are disallowed",
+                intents, shard_id
+            )),
+            Self::IntentsInvalid { intents, shard_id } => f.write_fmt(format_args!(
+                "at least one of the intents ({:?}) for shard {} are invalid",
+                intents, shard_id
+            )),
+            Self::ParsingPayload { source } => Display::fmt(source, f),
+            Self::PayloadNotUtf8 { .. } => {
+                f.write_str("the payload from Discord wasn't UTF-8 valid")
+            }
+        }
+    }
+}
+
+impl Error for ReceivingEventError {
+    fn source(&self) -> Option<&(dyn Error + 'static)> {
+        match self {
+            Self::ParsingPayload { source } => Some(source),
+            Self::PayloadNotUtf8 { source } => Some(source),
+            Self::AuthorizationInvalid { .. }
+            | Self::Decompressing { .. }
+            | Self::IntentsDisallowed { .. }
+            | Self::IntentsInvalid { .. } => None,
+        }
+    }
+}
 
 /// Runs in the background and processes incoming events, and then broadcasts
 /// to all listeners.
@@ -57,7 +230,7 @@ impl ShardProcessor {
         config: Arc<ShardConfig>,
         mut url: String,
         listeners: Listeners<Event>,
-    ) -> Result<(Self, WatchReceiver<Arc<Session>>)> {
+    ) -> Result<(Self, WatchReceiver<Arc<Session>>), ConnectingError> {
         //if we got resume info we don't need to wait
         let shard_id = config.shard();
         let resumable = config.sequence.is_some() && config.session_id.is_some();
@@ -113,7 +286,7 @@ impl ShardProcessor {
 
         if resumable {
             tracing::debug!("resuming shard {:?}", shard_id);
-            processor.resume().await?;
+            processor.resume().await;
         }
 
         Ok((processor, wrx))
@@ -124,14 +297,14 @@ impl ShardProcessor {
             let gateway_event = match self.next_event().await {
                 Ok(ev) => ev,
                 // The authorization is invalid, so we should just quit.
-                Err(Error::AuthorizationInvalid { shard_id, .. }) => {
+                Err(ReceivingEventError::AuthorizationInvalid { shard_id, .. }) => {
                     tracing::warn!("authorization for shard {} is invalid, quitting", shard_id);
                     self.listeners.remove_all();
 
                     return;
                 }
                 // Reconnect as this error is often fatal!
-                Err(Error::Decompressing { source }) => {
+                Err(ReceivingEventError::Decompressing { source }) => {
                     tracing::warn!(
                         "decompressing failed, clearing buffers and reconnecting: {:?}",
                         source
@@ -141,7 +314,7 @@ impl ShardProcessor {
                     self.reconnect(true).await;
                     continue;
                 }
-                Err(Error::IntentsDisallowed { shard_id, .. }) => {
+                Err(ReceivingEventError::IntentsDisallowed { shard_id, .. }) => {
                     tracing::warn!(
                         "at least one of the provided intents for shard {} are disallowed",
                         shard_id
@@ -149,7 +322,7 @@ impl ShardProcessor {
                     self.listeners.remove_all();
                     return;
                 }
-                Err(Error::IntentsInvalid { shard_id, .. }) => {
+                Err(ReceivingEventError::IntentsInvalid { shard_id, .. }) => {
                     tracing::warn!(
                         "at least one of the provided intents for shard {} are invalid",
                         shard_id
@@ -179,7 +352,7 @@ impl ShardProcessor {
     }
 
     /// Identifies with the gateway to create a new session.
-    async fn identify(&mut self) -> Result<()> {
+    async fn identify(&mut self) -> Result<(), SessionSendError> {
         self.session.set_stage(Stage::Identifying);
 
         let intents = self.config.intents().copied();
@@ -205,7 +378,8 @@ impl ShardProcessor {
         self.send(identify).await
     }
 
-    async fn process(&mut self, event: &GatewayEvent) -> Result<()> {
+    #[allow(clippy::too_many_lines)]
+    async fn process(&mut self, event: &GatewayEvent) -> Result<(), ProcessError> {
         use GatewayEvent::{
             Dispatch, Heartbeat, HeartbeatAck, Hello, InvalidateSession, Reconnect,
         };
@@ -249,7 +423,7 @@ impl ShardProcessor {
                 #[cfg(feature = "metrics")]
                 metrics::counter!("GatewayEvent", 1, "GatewayEvent" => "Heartbeat");
                 if *seq > self.session.seq() + 1 {
-                    self.resume().await?;
+                    self.resume().await;
                 }
 
                 if let Err(err) = self.session.heartbeat() {
@@ -278,7 +452,9 @@ impl ShardProcessor {
                         self.session.start_heartbeater().await;
                     }
 
-                    self.send(payload).await?;
+                    self.send(payload)
+                        .await
+                        .map_err(|source| ProcessError::SessionSend { source })?;
                 } else {
                     self.session.set_stage(Stage::Identifying);
 
@@ -287,7 +463,9 @@ impl ShardProcessor {
                         self.session.start_heartbeater().await;
                     }
 
-                    self.identify().await?;
+                    self.identify()
+                        .await
+                        .map_err(|source| ProcessError::SessionSend { source })?;
                 }
             }
             HeartbeatAck => {
@@ -299,7 +477,7 @@ impl ShardProcessor {
                 #[cfg(feature = "metrics")]
                 metrics::counter!("GatewayEvent", 1, "GatewayEvent" => "InvalidateSessionTrue");
                 tracing::debug!("got request to resume the session");
-                self.resume().await?;
+                self.resume().await;
             }
             InvalidateSession(false) => {
                 #[cfg(feature = "metrics")]
@@ -315,15 +493,17 @@ impl ShardProcessor {
                     code: CloseCode::Restart,
                     reason: Cow::Borrowed("Reconnecting"),
                 };
-                self.close(Some(frame)).await?;
-                self.resume().await?;
+                self.close(Some(frame))
+                    .await
+                    .map_err(|source| ProcessError::SendingClose { source })?;
+                self.resume().await;
             }
         }
 
         Ok(())
     }
 
-    async fn reconnect(&mut self, full_reconnect: bool) {
+    async fn reconnect(&mut self, mut full_reconnect: bool) {
         tracing::info!("reconnection started");
         loop {
             // Await allowance if doing a full reconnect
@@ -353,6 +533,7 @@ impl ShardProcessor {
                 Ok(s) => s,
                 Err(why) => {
                     tracing::warn!("reconnecting failed: {:?}", why);
+                    full_reconnect = true;
                     continue;
                 }
             };
@@ -398,7 +579,7 @@ impl ShardProcessor {
         );
     }
 
-    async fn resume(&mut self) -> Result<()> {
+    async fn resume(&mut self) {
         tracing::info!("resuming shard {:?}", self.config.shard());
         self.session.set_stage(Stage::Resuming);
         self.session.stop_heartbeater().await;
@@ -410,39 +591,38 @@ impl ShardProcessor {
         } else {
             tracing::warn!("session id unavailable, reconnecting");
             self.reconnect(true).await;
-            return Ok(());
+            return;
         };
 
         self.resume = Some((seq, id));
 
         self.reconnect(false).await;
-
-        Ok(())
     }
 
-    pub async fn send(&mut self, payload: impl Serialize) -> Result<()> {
+    pub async fn send(&mut self, payload: impl Serialize) -> Result<(), SessionSendError> {
         match self.session.send(payload) {
             Ok(()) => Ok(()),
-            Err(Error::PayloadSerialization { source }) => {
-                tracing::warn!("serializing message to send failed: {:?}", source);
-
-                Err(Error::PayloadSerialization { source })
-            }
-            Err(Error::SendingMessage { source }) => {
+            Err(SessionSendError::Sending { source }) => {
                 tracing::warn!("sending message failed: {:?}", source);
                 tracing::info!("reconnecting shard {:?}", self.config.shard());
 
                 self.reconnect(true).await;
 
-                Ok(())
+                Err(SessionSendError::Sending { source })
             }
-            Err(other) => Err(other),
+            Err(SessionSendError::Serializing { source }) => {
+                tracing::warn!("serializing message to send failed: {:?}", source);
+
+                Err(SessionSendError::Serializing { source })
+            }
         }
     }
 
-    async fn close(&mut self, close_frame: Option<CloseFrame<'static>>) -> Result<()> {
-        self.session.close(close_frame)?;
-        Ok(())
+    async fn close(
+        &mut self,
+        close_frame: Option<CloseFrame<'static>>,
+    ) -> Result<(), TrySendError<Message>> {
+        self.session.close(close_frame)
     }
 
     /// # Errors
@@ -452,17 +632,13 @@ impl ShardProcessor {
     ///
     /// [`Error::AuthorizationInvalid`]: ../../error/enum.Error.html#variant.AuthorizationInvalid
     #[allow(unsafe_code)]
-    async fn next_event(&mut self) -> Result<GatewayEvent> {
+    async fn next_event(&mut self) -> Result<GatewayEvent, ReceivingEventError> {
         loop {
             // Returns None when the socket forwarder has ended, meaning the
             // connection was dropped.
             let msg = if let Some(msg) = self.rx.next().await {
                 msg
             } else {
-                if let Err(why) = self.resume().await {
-                    tracing::warn!("resuming failed, reconnecting: {:?}", why);
-                    self.reconnect(true).await;
-                }
                 continue;
             };
 
@@ -472,13 +648,13 @@ impl ShardProcessor {
                     let decompressed_msg = self
                         .inflater
                         .msg()
-                        .map_err(|source| Error::Decompressing { source })?;
+                        .map_err(|source| ReceivingEventError::Decompressing { source })?;
                     let msg_or_error = match decompressed_msg {
                         Some(json) => {
                             emit::bytes(self.listeners.clone(), json).await;
 
                             let mut text = str::from_utf8_mut(json)
-                                .map_err(|source| Error::PayloadNotUtf8 { source })?;
+                                .map_err(|source| ReceivingEventError::PayloadNotUtf8 { source })?;
 
                             // Safety: the buffer isn't used again after parsing.
                             unsafe { Self::parse_gateway_event(&mut text) }
@@ -486,7 +662,8 @@ impl ShardProcessor {
                         None => continue,
                     };
                     self.inflater.clear();
-                    break msg_or_error;
+                    break msg_or_error
+                        .map_err(|source| ReceivingEventError::ParsingPayload { source });
                 }
                 Message::Close(close_frame) => {
                     tracing::warn!("got close code: {:?}", close_frame);
@@ -504,19 +681,19 @@ impl ShardProcessor {
                     if let Some(close_frame) = close_frame {
                         match close_frame.code {
                             CloseCode::Library(4004) => {
-                                return Err(Error::AuthorizationInvalid {
+                                return Err(ReceivingEventError::AuthorizationInvalid {
                                     shard_id: self.config.shard()[0],
                                     token: self.config.token().to_owned(),
                                 });
                             }
                             CloseCode::Library(4013) => {
-                                return Err(Error::IntentsInvalid {
+                                return Err(ReceivingEventError::IntentsInvalid {
                                     intents: self.config.intents().copied(),
                                     shard_id: self.config.shard()[0],
                                 });
                             }
                             CloseCode::Library(4014) => {
-                                return Err(Error::IntentsDisallowed {
+                                return Err(ReceivingEventError::IntentsDisallowed {
                                     intents: self.config.intents().copied(),
                                     shard_id: self.config.shard()[0],
                                 });
@@ -525,7 +702,7 @@ impl ShardProcessor {
                         }
                     }
 
-                    self.resume().await?;
+                    self.resume().await;
                 }
                 Message::Ping(_) | Message::Pong(_) => {}
                 Message::Text(mut text) => {
@@ -534,21 +711,24 @@ impl ShardProcessor {
                     emit::bytes(self.listeners.clone(), text.as_bytes()).await;
 
                     // Safety: the buffer isn't used again after parsing.
-                    break unsafe { Self::parse_gateway_event(&mut text) };
+                    break unsafe {
+                        Self::parse_gateway_event(&mut text)
+                            .map_err(|source| ReceivingEventError::ParsingPayload { source })
+                    };
                 }
             }
         }
     }
 
-    async fn connect(url: &str) -> Result<ShardStream> {
-        let url = Url::parse(url).map_err(|source| Error::ParsingUrl {
+    async fn connect(url: &str) -> Result<ShardStream, ConnectingError> {
+        let url = Url::parse(url).map_err(|source| ConnectingError::ParsingUrl {
             source,
             url: url.to_owned(),
         })?;
 
         let (stream, _) = async_tungstenite::tokio::connect_async(url)
             .await
-            .map_err(|source| Error::Connecting { source })?;
+            .map_err(|source| ConnectingError::Establishing { source })?;
 
         tracing::debug!("Shook hands with remote");
 
@@ -574,13 +754,15 @@ impl ShardProcessor {
     /// [`Error::PayloadSerialization`]: ../enum.Error.html#variant.PayloadSerialization
     #[allow(unsafe_code)]
     #[cfg(not(feature = "simd-json"))]
-    unsafe fn parse_gateway_event(json: &mut str) -> Result<GatewayEvent> {
+    unsafe fn parse_gateway_event(
+        json: &mut str,
+    ) -> Result<GatewayEvent, GatewayEventParsingError> {
         use serde::de::DeserializeSeed;
         use serde_json::Deserializer;
         use twilight_model::gateway::event::GatewayEventDeserializer;
 
-        let gateway_deserializer =
-            GatewayEventDeserializer::from_json(json).ok_or_else(|| Error::PayloadInvalid)?;
+        let gateway_deserializer = GatewayEventDeserializer::from_json(json)
+            .ok_or_else(|| GatewayEventParsingError::PayloadInvalid)?;
         let mut json_deserializer = Deserializer::from_str(json);
 
         gateway_deserializer
@@ -588,7 +770,7 @@ impl ShardProcessor {
             .map_err(|source| {
                 tracing::debug!("invalid JSON: {}", json);
 
-                Error::PayloadSerialization { source }
+                GatewayEventParsingError::Deserializing { source }
             })
     }
 
@@ -612,22 +794,24 @@ impl ShardProcessor {
     /// [`Error::PayloadSerialization`]: ../enum.Error.html#variant.PayloadSerialization
     #[allow(unsafe_code)]
     #[cfg(feature = "simd-json")]
-    unsafe fn parse_gateway_event(json: &mut str) -> Result<GatewayEvent> {
+    unsafe fn parse_gateway_event(
+        json: &mut str,
+    ) -> Result<GatewayEvent, GatewayEventParsingError> {
         use serde::de::DeserializeSeed;
         use simd_json::Deserializer;
         use twilight_model::gateway::event::gateway::GatewayEventDeserializerOwned;
 
-        let gateway_deserializer =
-            GatewayEventDeserializerOwned::from_json(json).ok_or_else(|| Error::PayloadInvalid)?;
-        let mut json_deserializer =
-            Deserializer::from_slice(json.as_bytes_mut()).map_err(|_| Error::PayloadInvalid)?;
+        let gateway_deserializer = GatewayEventDeserializerOwned::from_json(json)
+            .ok_or_else(|| GatewayEventParsingError::PayloadInvalid)?;
+        let mut json_deserializer = Deserializer::from_slice(json.as_bytes_mut())
+            .map_err(|_| GatewayEventParsingError::PayloadInvalid)?;
 
         gateway_deserializer
             .deserialize(&mut json_deserializer)
             .map_err(|source| {
                 tracing::debug!("invalid JSON: {}", json);
 
-                Error::PayloadSerialization { source }
+                GatewayEventParsingError::Deserializing { source }
             })
     }
 }

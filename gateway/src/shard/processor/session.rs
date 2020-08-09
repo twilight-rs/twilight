@@ -1,17 +1,19 @@
 use super::{
     super::stage::Stage,
-    error::{Error, Result},
     heartbeat::{Heartbeater, Heartbeats},
 };
 use async_tungstenite::tungstenite::{protocol::CloseFrame, Message as TungsteniteMessage};
-use futures_channel::mpsc::UnboundedSender;
+use futures_channel::mpsc::{TrySendError, UnboundedSender};
 use futures_util::{
     future::{self, AbortHandle},
     lock::Mutex,
 };
 use serde::ser::Serialize;
+use serde_json::Error as JsonError;
 use std::{
     convert::TryFrom,
+    error::Error,
+    fmt::{Display, Formatter, Result as FmtResult},
     sync::{
         atomic::{AtomicU64, AtomicU8, Ordering},
         Arc,
@@ -20,6 +22,34 @@ use std::{
 };
 use tokio::time::{interval, Interval};
 use twilight_model::gateway::payload::Heartbeat;
+
+#[derive(Debug)]
+pub enum SessionSendError {
+    Sending {
+        source: TrySendError<TungsteniteMessage>,
+    },
+    Serializing {
+        source: JsonError,
+    },
+}
+
+impl Display for SessionSendError {
+    fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
+        match self {
+            Self::Serializing { source } => Display::fmt(source, f),
+            Self::Sending { source } => Display::fmt(source, f),
+        }
+    }
+}
+
+impl Error for SessionSendError {
+    fn source(&self) -> Option<&(dyn Error + 'static)> {
+        match self {
+            Self::Sending { source } => Some(source),
+            Self::Serializing { source } => Some(source),
+        }
+    }
+}
 
 #[derive(Debug)]
 pub struct Session {
@@ -63,23 +93,23 @@ impl Session {
     ///
     /// [`Error::PayloadSerialization`]: ../enum.Error.html#variant.PayloadSerialization
     /// [`Error::SendingMessage`]: ../enum.Error.html#variant.SendingMessage
-    pub fn send(&self, payload: impl Serialize) -> Result<()> {
+    pub fn send(&self, payload: impl Serialize) -> Result<(), SessionSendError> {
         let bytes = crate::json_to_vec(&payload)
-            .map_err(|source| Error::PayloadSerialization { source })?;
+            .map_err(|source| SessionSendError::Serializing { source })?;
 
         self.tx
             .unbounded_send(TungsteniteMessage::Binary(bytes))
-            .map_err(|source| Error::SendingMessage { source })?;
+            .map_err(|source| SessionSendError::Sending { source })?;
 
         Ok(())
     }
 
-    pub fn close(&self, close_frame: Option<CloseFrame<'static>>) -> Result<()> {
+    pub fn close(
+        &self,
+        close_frame: Option<CloseFrame<'static>>,
+    ) -> Result<(), TrySendError<TungsteniteMessage>> {
         self.tx
             .unbounded_send(TungsteniteMessage::Close(close_frame))
-            .map_err(|source| Error::SendingMessage { source })?;
-
-        Ok(())
     }
 
     pub fn heartbeat_interval(&self) -> u64 {
@@ -111,7 +141,7 @@ impl Session {
         self.stage.store(stage as u8, Ordering::Release);
     }
 
-    pub fn heartbeat(&self) -> Result<()> {
+    pub fn heartbeat(&self) -> Result<(), SessionSendError> {
         self.send(Heartbeat::new(self.seq()))
     }
 

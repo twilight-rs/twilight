@@ -1,24 +1,137 @@
 use super::{
     config::ShardConfig,
-    error::{Error, Result},
     event::Events,
-    processor::{Latency, Session, ShardProcessor},
+    processor::{ConnectingError, Latency, Session, ShardProcessor},
     sink::ShardSink,
     stage::Stage,
 };
 use crate::{listener::Listeners, EventTypeFlags};
 use async_tungstenite::tungstenite::{
     protocol::{frame::coding::CloseCode, CloseFrame},
-    Message,
+    Error as TungsteniteError, Message,
 };
+use futures_channel::mpsc::TrySendError;
 use futures_util::future::{self, AbortHandle};
 use once_cell::sync::OnceCell;
+use serde_json::Error as JsonError;
 use std::{
     borrow::Cow,
+    error::Error,
+    fmt::{Display, Formatter, Result as FmtResult},
     sync::{atomic::Ordering, Arc},
 };
 use tokio::sync::watch::Receiver as WatchReceiver;
+use twilight_http::Error as HttpError;
 use twilight_model::gateway::event::Event;
+use url::ParseError as UrlParseError;
+
+/// Sending a command failed.
+#[derive(Debug)]
+pub enum CommandError {
+    /// Sending the payload over the WebSocket failed. This is indicative of a
+    /// shutdown shard.
+    Sending {
+        /// Reason for the error.
+        source: TrySendError<Message>,
+    },
+    /// Serializing the payload as JSON failed.
+    Serializing {
+        /// Reason for the error.
+        source: JsonError,
+    },
+    /// Shard's session is inactive because the shard hasn't been started.
+    SessionInactive {
+        /// Reason for the error.
+        source: SessionInactiveError,
+    },
+}
+
+impl Display for CommandError {
+    fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
+        f.write_str("the shard session is inactive and has not been started")
+    }
+}
+
+impl Error for CommandError {
+    fn source(&self) -> Option<&(dyn Error + 'static)> {
+        match self {
+            Self::Sending { source } => Some(source),
+            Self::Serializing { source } => Some(source),
+            Self::SessionInactive { source } => Some(source),
+        }
+    }
+}
+
+/// The Shard's session is inactive.
+///
+/// This means that the shard has not yet been started.
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub struct SessionInactiveError;
+
+impl Display for SessionInactiveError {
+    fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
+        f.write_str("the shard session is inactive and was not started")
+    }
+}
+
+impl Error for SessionInactiveError {}
+
+/// Starting a shard and connecting to the gateway failed.
+#[derive(Debug)]
+pub enum ShardStartError {
+    /// Establishing a connection to the gateway failed.
+    Establishing {
+        /// Reason for the error.
+        source: TungsteniteError,
+    },
+    /// Parsing the gateway URL provided by Discord to connect to the gateway
+    /// failed due to an invalid URL.
+    ParsingUrl {
+        /// Reason for the error.
+        source: UrlParseError,
+        /// URL that couldn't be parsed.
+        url: String,
+    },
+    /// Retrieving the gateway URL via the Twilight HTTP client failed.
+    RetrievingGatewayUrl {
+        /// The reason for the error.
+        source: HttpError,
+    },
+}
+
+impl Display for ShardStartError {
+    fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
+        match self {
+            Self::Establishing { source } => Display::fmt(source, f),
+            Self::ParsingUrl { source, url } => f.write_fmt(format_args!(
+                "the gateway url `{}` is invalid: {}",
+                url, source,
+            )),
+            Self::RetrievingGatewayUrl { .. } => {
+                f.write_str("retrieving the gateway URL via HTTP failed")
+            }
+        }
+    }
+}
+
+impl Error for ShardStartError {
+    fn source(&self) -> Option<&(dyn Error + 'static)> {
+        match self {
+            Self::Establishing { source } => Some(source),
+            Self::ParsingUrl { source, .. } => Some(source),
+            Self::RetrievingGatewayUrl { source } => Some(source),
+        }
+    }
+}
+
+impl From<ConnectingError> for ShardStartError {
+    fn from(error: ConnectingError) -> Self {
+        match error {
+            ConnectingError::Establishing { source } => Self::Establishing { source },
+            ConnectingError::ParsingUrl { source, url } => Self::ParsingUrl { source, url },
+        }
+    }
+}
 
 /// Information about a shard, including its latency, current session sequence,
 /// and connection stage.
@@ -132,8 +245,19 @@ impl Shard {
     ///
     /// # Errors
     ///
-    /// Errors if the shard's processor could not be started.
-    pub async fn start(&mut self) -> Result<()> {
+    /// Returns [`ShardStartError::Establishing`] if establishing a connection
+    /// to the gateway failed.
+    ///
+    /// Returns [`ShardStartError::ParsingUrl`] if the gateway URL couldn't be
+    /// parsed.
+    ///
+    /// Returns [`ShardStartError::RetrievingGatewayUrl`] if the gateway URL
+    /// couldn't be retrieved from the HTTP API.
+    ///
+    /// [`ShardStartError::Establishing`]: enum.ShardStartError.html#variant.Establishing
+    /// [`ShardStartError::ParsingUrl`]: enum.ShardStartError.html#variant.ParsingUrl
+    /// [`ShardStartError::RetrievingGatewayUrl`]: enum.ShardStartError.html#variant.RetrievingGatewayUrl
+    pub async fn start(&mut self) -> Result<(), ShardStartError> {
         let url = self
             .0
             .config
@@ -141,14 +265,14 @@ impl Shard {
             .gateway()
             .authed()
             .await
-            .map_err(|source| Error::GettingGatewayUrl { source })?
+            .map_err(|source| ShardStartError::RetrievingGatewayUrl { source })?
             .url;
 
         let config = Arc::clone(&self.0.config);
         let listeners = self.0.listeners.clone();
         let (processor, wrx) = ShardProcessor::new(config, url, listeners)
             .await
-            .map_err(|source| Error::Processor { source })?;
+            .map_err(ShardStartError::from)?;
         let (fut, handle) = future::abortable(processor.run());
 
         tokio::spawn(async move {
@@ -230,10 +354,10 @@ impl Shard {
     ///
     /// # Errors
     ///
-    /// Returns [`Error::Stopped`] if the shard isn't actively running.
+    /// Returns a [`SessionInactiveError`] if the shard's session is inactive.
     ///
-    /// [`Error::Stopped`]: error/enum.Error.html#variant.Stopped
-    pub async fn info(&self) -> Result<Information> {
+    /// [`SessionInactiveError`]: struct.SessionInactiveError.html
+    pub async fn info(&self) -> Result<Information, SessionInactiveError> {
         let session = self.session()?;
 
         Ok(Information {
@@ -254,11 +378,11 @@ impl Shard {
     ///
     /// # Errors
     ///
-    /// Returns [`Error::Stopped`] if the shard isn't actively running.
+    /// Returns a [`SessionInactiveError`] if the shard's session is inactive.
     ///
-    /// [`Error::Stopped`]: error/enum.Error.html#variant.Stopped
-    pub fn session(&self) -> Result<Arc<Session>> {
-        let session = self.0.session.get().ok_or(Error::Stopped)?;
+    /// [`SessionInactiveError`]: struct.SessionInactiveError.html
+    pub fn session(&self) -> Result<Arc<Session>, SessionInactiveError> {
+        let session = self.0.session.get().ok_or(SessionInactiveError)?;
 
         Ok(Arc::clone(&session.borrow()))
     }
@@ -274,10 +398,10 @@ impl Shard {
     ///
     /// # Errors
     ///
-    /// Returns [`Error::Stopped`] if the shard isn't actively running.
+    /// Returns a [`SessionInactiveError`] if the shard's session is inactive.
     ///
-    /// [`Error::Stopped`]: error/enum.Error.html#variant.Stopped
-    pub fn sink(&self) -> Result<ShardSink> {
+    /// [`SessionInactiveError`]: struct.SessionInactiveError.html
+    pub fn sink(&self) -> Result<ShardSink, SessionInactiveError> {
         let session = self.session()?;
 
         Ok(ShardSink(session.tx.clone()))
@@ -286,26 +410,35 @@ impl Shard {
     /// Send a command over the gateway.
     ///
     /// # Errors
-    /// Fails if command could not be serialized, or if the command could
-    /// not be sent.
     ///
-    /// Returns [`Error::Stopped`] if the shard isn't actively running.
+    /// Returns [`CommandError::Sending`] if the message could not be sent
+    /// over the websocket. This is indicative of the shard currently
+    /// restarting.
     ///
-    /// [`Error::Stopped`]: error/enum.Error.html#variant.Stopped
-    pub async fn command(&self, com: &impl serde::Serialize) -> Result<()> {
-        let payload = Message::Text(
-            crate::json_to_string(&com)
-                .map_err(|err| Error::PayloadSerialization { source: err })?,
-        );
-        let session = self.session()?;
+    /// Returns [`CommandError::Serializing`] if the provided value failed to
+    /// serialize into JSON.
+    ///
+    /// Returns [`CommandError::SessionInactive`] if the shard has not been
+    /// started.
+    ///
+    /// [`CommandError::Sending`]: enum.CommandError.html#variant.Sending
+    /// [`CommandError::Serializing`]: enum.CommandError.html#variant.Serializing
+    /// [`CommandError::SessionInactive`]: enum.CommandError.html#variant.SessionInactive
+    pub async fn command(&self, value: &impl serde::Serialize) -> Result<(), CommandError> {
+        let session = self
+            .session()
+            .map_err(|source| CommandError::SessionInactive { source })?;
+        let json =
+            crate::json_to_string(value).map_err(|source| CommandError::Serializing { source })?;
+        let message = Message::Text(json);
 
         // Tick ratelimiter.
         session.ratelimit.lock().await.tick().await;
 
         session
             .tx
-            .unbounded_send(payload)
-            .map_err(|err| Error::SendingMessage { source: err })?;
+            .unbounded_send(message)
+            .map_err(|source| CommandError::Sending { source })?;
         Ok(())
     }
 

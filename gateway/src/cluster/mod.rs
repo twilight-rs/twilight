@@ -55,12 +55,10 @@
 //! ```
 
 pub mod config;
-pub mod error;
 
 mod r#impl;
 
 pub use self::{
     config::ClusterConfig,
-    error::{Error, Result},
-    r#impl::Cluster,
+    r#impl::{Cluster, ClusterCommandError, ClusterStartError},
 };

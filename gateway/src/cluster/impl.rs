@@ -1,9 +1,6 @@
-use super::{
-    config::{ClusterConfig, ShardScheme},
-    error::{Error, Result},
-};
+use super::config::{ClusterConfig, ShardScheme};
 use crate::{
-    shard::{Information, ResumeSession, Shard},
+    shard::{CommandError, Information, ResumeSession, Shard},
     EventTypeFlags,
 };
 use futures_util::{
@@ -13,10 +10,79 @@ use futures_util::{
 };
 use std::{
     collections::HashMap,
+    error::Error,
+    fmt::{Display, Formatter, Result as FmtResult},
     iter::FromIterator,
     sync::{Arc, Weak},
 };
+use twilight_http::Error as HttpError;
 use twilight_model::gateway::event::Event;
+
+/// Sending a command to a shard failed.
+#[derive(Debug)]
+pub enum ClusterCommandError {
+    /// The shard exists, but sending the provided value failed.
+    Sending {
+        /// Reason for the error.
+        source: CommandError,
+    },
+    /// The provided shard ID does not exist.
+    ShardNonexistent {
+        /// The provided shard ID.
+        id: u64,
+    },
+}
+
+impl Display for ClusterCommandError {
+    fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
+        match self {
+            Self::Sending { source } => Display::fmt(source, f),
+            Self::ShardNonexistent { id } => {
+                f.write_fmt(format_args!("shard {} does not exist", id,))
+            }
+        }
+    }
+}
+
+impl Error for ClusterCommandError {
+    fn source(&self) -> Option<&(dyn Error + 'static)> {
+        match self {
+            Self::Sending { source } => Some(source),
+            Self::ShardNonexistent { .. } => None,
+        }
+    }
+}
+
+/// Starting a cluster failed.
+#[derive(Debug)]
+pub enum ClusterStartError {
+    /// Retrieving the bot's gateway information via the HTTP API failed.
+    ///
+    /// This information includes the number of shards for the cluster to
+    /// automatically use.
+    RetrievingGatewayInfo {
+        /// Reason for the error.
+        source: HttpError,
+    },
+}
+
+impl Display for ClusterStartError {
+    fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
+        match self {
+            Self::RetrievingGatewayInfo { .. } => {
+                f.write_str("getting the bot's gateway info failed")
+            }
+        }
+    }
+}
+
+impl Error for ClusterStartError {
+    fn source(&self) -> Option<&(dyn Error + 'static)> {
+        match self {
+            Self::RetrievingGatewayInfo { source } => Some(source),
+        }
+    }
+}
 
 #[derive(Debug)]
 struct ClusterRef {
@@ -42,15 +108,15 @@ impl Cluster {
     ///
     /// # Errors
     ///
-    /// Returns [`Error::GettingGatewayInfo`] if there was an HTTP error getting
+    /// Returns [`ClusterStartError::RetrievingGatewayInfo`] if there was an HTTP error Retrieving
     /// the gateway information.
     ///
-    /// [`Error::GettingGatewayInfo`]: ./error/enum.Error.html#variant.GettingGatewayInfo
-    pub async fn new(config: impl Into<ClusterConfig>) -> Result<Self> {
+    /// [`ClusterStartError::RetrievingGatewayInfo`]: enum.ClusterStartError.html#variant.RetrievingGatewayInfo
+    pub async fn new(config: impl Into<ClusterConfig>) -> Result<Self, ClusterStartError> {
         Self::_new(config.into()).await
     }
 
-    async fn _new(config: ClusterConfig) -> Result<Self> {
+    async fn _new(config: ClusterConfig) -> Result<Self, ClusterStartError> {
         let [from, to, total] = match config.shard_scheme() {
             ShardScheme::Auto => {
                 let http = config.http_client();
@@ -59,7 +125,7 @@ impl Cluster {
                     .gateway()
                     .authed()
                     .await
-                    .map_err(|source| Error::GettingGatewayInfo { source })?;
+                    .map_err(|source| ClusterStartError::RetrievingGatewayInfo { source })?;
 
                 [0, gateway.shards - 1, gateway.shards]
             }
@@ -131,15 +197,6 @@ impl Cluster {
     /// cluster.up().await;
     /// # Ok(()) }
     /// ```
-    ///
-    /// # Errors
-    ///
-    /// Returns [`Error::GettingGatewayInfo`] if the [configured shard scheme]
-    /// is [`ShardScheme::Auto`].
-    ///
-    /// [`Error::GettingGatewayInfo`]: ./error/enum.Error.html#variant.GettingGatewayInfo
-    /// [`ShardScheme::Auto`]: ./config/enum.ShardScheme.html#variant.Auto
-    /// [configured shard scheme]: ./config/struct.ClusterConfig.html#method.shard_scheme
     pub async fn up(&self) {
         future::join_all(
             (self.0.shard_from..=self.0.shard_to)
@@ -234,17 +291,29 @@ impl Cluster {
     /// Send a command to the specified shard.
     ///
     /// # Errors
-    /// Fails if command could not be serialized or if the shard does not exist.
-    pub async fn command(&self, id: u64, com: &impl serde::Serialize) -> Result<()> {
+    ///
+    /// Returns [`ClusterCommandError::Sending`] if the shard exists, but
+    /// sending it failed.
+    ///
+    /// Returns [`ClusterCommandError::ShardNonexistent`] if the provided shard
+    /// ID does not exist in the cluster.
+    ///
+    /// [`ClusterCommandError::Sending`]: enum.ClusterCommandError.html#variant.Sending
+    /// [`ClusterCommandError::ShardNonexistent`]: enum.ClusterCommandError.html#variant.ShardNonexistent
+    pub async fn command(
+        &self,
+        id: u64,
+        value: &impl serde::Serialize,
+    ) -> Result<(), ClusterCommandError> {
         let shard = match self.0.shards.lock().await.get(&id) {
             Some(shard) => shard.clone(),
-            None => return Err(Error::ShardDoesNotExist { id }),
+            None => return Err(ClusterCommandError::ShardNonexistent { id }),
         };
 
         shard
-            .command(com)
+            .command(value)
             .await
-            .map_err(|err| Error::ShardError { source: err })?;
+            .map_err(|source| ClusterCommandError::Sending { source })?;
 
         Ok(())
     }
