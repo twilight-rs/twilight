@@ -4,3 +4,27 @@ use serde::{Deserialize, Serialize};
 pub struct GuildPrune {
     pub pruned: u64,
 }
+
+#[cfg(test)]
+mod tests {
+    use super::GuildPrune;
+    use serde_test::Token;
+
+    #[test]
+    fn test_guild_prune() {
+        let prune = GuildPrune { pruned: 31 };
+
+        serde_test::assert_tokens(
+            &prune,
+            &[
+                Token::Struct {
+                    name: "GuildPrune",
+                    len: 1,
+                },
+                Token::Str("pruned"),
+                Token::U64(31),
+                Token::StructEnd,
+            ],
+        );
+    }
+}
