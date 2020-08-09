@@ -248,8 +248,8 @@ impl Shard {
     /// Returns [`ShardStartError::Establishing`] if establishing a connection
     /// to the gateway failed.
     ///
-    /// Returns [`ShardStartError::ParsingGatewayUrl`] if the gateway URL couldn't be
-    /// parsed.
+    /// Returns [`ShardStartError::ParsingGatewayUrl`] if the gateway URL
+    /// couldn't be parsed.
     ///
     /// Returns [`ShardStartError::RetrievingGatewayUrl`] if the gateway URL
     /// couldn't be retrieved from the HTTP API.
