@@ -14,7 +14,6 @@ use flate2::DecompressError;
 use futures_channel::mpsc::{TrySendError, UnboundedReceiver};
 use futures_util::stream::StreamExt;
 use serde::Serialize;
-use serde_json::Error as JsonError;
 use std::{
     borrow::Cow,
     env::consts::OS,
@@ -39,6 +38,11 @@ use twilight_model::gateway::{
     GatewayIntents,
 };
 use url::{ParseError as UrlParseError, Url};
+
+#[cfg(not(feature = "simd-json"))]
+use serde_json::Error as JsonError;
+#[cfg(feature = "simd-json")]
+use simd_json::Error as JsonError;
 
 /// Connecting to the gateway failed.
 #[derive(Debug)]
