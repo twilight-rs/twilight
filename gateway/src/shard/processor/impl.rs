@@ -475,7 +475,7 @@ impl ShardProcessor {
                         .map_err(|source| Error::Decompressing { source })?;
                     let msg_or_error = match decompressed_msg {
                         Some(json) => {
-                            emit::bytes(self.listeners.clone(), json).await;
+                            emit::bytes(&self.listeners, json);
 
                             let mut text = str::from_utf8_mut(json)
                                 .map_err(|source| Error::PayloadNotUtf8 { source })?;
@@ -531,7 +531,7 @@ impl ShardProcessor {
                 Message::Text(mut text) => {
                     tracing::trace!("text payload: {}", text);
 
-                    emit::bytes(self.listeners.clone(), text.as_bytes()).await;
+                    emit::bytes(&self.listeners, text.as_bytes());
 
                     // Safety: the buffer isn't used again after parsing.
                     break unsafe { Self::parse_gateway_event(&mut text) };
