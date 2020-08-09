@@ -79,7 +79,8 @@ pub enum GatewayEventParsingError {
         /// Reason for the error.
         source: JsonError,
     },
-    /// The payload received from Discord was an invalid structure.
+    /// The payload received from Discord was an unrecognized or invalid
+    /// structure.
     ///
     /// The payload was either invalid JSON or did not contain the necessary
     /// "op" key in the object.
@@ -112,6 +113,7 @@ pub enum ProcessError {
         /// Reason for the error.
         source: TrySendError<Message>,
     },
+    /// Sending a message over the session was unsuccessful.
     SessionSend {
         /// Reason for the error.
         source: SessionSendError,

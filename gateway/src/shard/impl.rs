@@ -416,8 +416,7 @@ impl Shard {
     /// # Errors
     ///
     /// Returns [`CommandError::Sending`] if the message could not be sent
-    /// over the websocket. This is indicative of the shard currently
-    /// restarting.
+    /// over the websocket. This indicates the shard is currently restarting.
     ///
     /// Returns [`CommandError::Serializing`] if the provided value failed to
     /// serialize into JSON.

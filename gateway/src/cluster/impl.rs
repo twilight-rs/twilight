@@ -58,8 +58,11 @@ impl Error for ClusterCommandError {
 pub enum ClusterStartError {
     /// Retrieving the bot's gateway information via the HTTP API failed.
     ///
-    /// This information includes the number of shards for the cluster to
-    /// automatically use.
+    /// This can occur when using [automatic sharding] and retrieval of the
+    /// number of recommended number of shards to start fails, which can happen
+    /// due to something like a network or response parsing issue.
+    ///
+    /// [automatic sharding]: config/enum.ShardScheme.html#variant.Auto
     RetrievingGatewayInfo {
         /// Reason for the error.
         source: HttpError,
