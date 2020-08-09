@@ -86,7 +86,7 @@ pub enum ShardStartError {
     },
     /// Parsing the gateway URL provided by Discord to connect to the gateway
     /// failed due to an invalid URL.
-    ParsingUrl {
+    ParsingGatewayUrl {
         /// Reason for the error.
         source: UrlParseError,
         /// URL that couldn't be parsed.
@@ -103,7 +103,7 @@ impl Display for ShardStartError {
     fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
         match self {
             Self::Establishing { source } => Display::fmt(source, f),
-            Self::ParsingUrl { source, url } => f.write_fmt(format_args!(
+            Self::ParsingGatewayUrl { source, url } => f.write_fmt(format_args!(
                 "the gateway url `{}` is invalid: {}",
                 url, source,
             )),
@@ -118,7 +118,7 @@ impl Error for ShardStartError {
     fn source(&self) -> Option<&(dyn Error + 'static)> {
         match self {
             Self::Establishing { source } => Some(source),
-            Self::ParsingUrl { source, .. } => Some(source),
+            Self::ParsingGatewayUrl { source, .. } => Some(source),
             Self::RetrievingGatewayUrl { source } => Some(source),
         }
     }
@@ -128,7 +128,7 @@ impl From<ConnectingError> for ShardStartError {
     fn from(error: ConnectingError) -> Self {
         match error {
             ConnectingError::Establishing { source } => Self::Establishing { source },
-            ConnectingError::ParsingUrl { source, url } => Self::ParsingUrl { source, url },
+            ConnectingError::ParsingUrl { source, url } => Self::ParsingGatewayUrl { source, url },
         }
     }
 }
@@ -248,14 +248,14 @@ impl Shard {
     /// Returns [`ShardStartError::Establishing`] if establishing a connection
     /// to the gateway failed.
     ///
-    /// Returns [`ShardStartError::ParsingUrl`] if the gateway URL couldn't be
+    /// Returns [`ShardStartError::ParsingGatewayUrl`] if the gateway URL couldn't be
     /// parsed.
     ///
     /// Returns [`ShardStartError::RetrievingGatewayUrl`] if the gateway URL
     /// couldn't be retrieved from the HTTP API.
     ///
     /// [`ShardStartError::Establishing`]: enum.ShardStartError.html#variant.Establishing
-    /// [`ShardStartError::ParsingUrl`]: enum.ShardStartError.html#variant.ParsingUrl
+    /// [`ShardStartError::ParsingGatewayUrl`]: enum.ShardStartError.html#variant.ParsingGatewayUrl
     /// [`ShardStartError::RetrievingGatewayUrl`]: enum.ShardStartError.html#variant.RetrievingGatewayUrl
     pub async fn start(&mut self) -> Result<(), ShardStartError> {
         let url = self
