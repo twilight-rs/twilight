@@ -14,8 +14,8 @@ use std::{
 
 #[derive(Clone, Debug, Eq, PartialEq, Serialize)]
 pub struct MemberChunk {
-    pub chunk_index: u32,
     pub chunk_count: u32,
+    pub chunk_index: u32,
     pub guild_id: GuildId,
     #[serde(with = "serde_mappable_seq")]
     pub members: HashMap<UserId, Member>,
