@@ -220,7 +220,7 @@ impl Shard {
     ///
     /// tokio_time::delay_for(Duration::from_secs(1)).await;
     ///
-    /// let info = shard.info().await?;
+    /// let info = shard.info()?;
     /// println!("Shard stage: {}", info.stage());
     /// # Ok(()) }
     /// ```
@@ -305,8 +305,8 @@ impl Shard {
     /// [`EventType::ShardPayload`]: ../../twilight_model/gateway/event/enum.EventType.html#variant.ShardPayload
     /// [`futures::stream::Stream`]: https://docs.rs/futures/*/futures/stream/trait.Stream.html
     /// [`some_events`]: #method.some_events
-    pub async fn events(&self) -> Events {
-        self.some_events(EventTypeFlags::default()).await
+    pub fn events(&self) -> Events {
+        self.some_events(EventTypeFlags::default())
     }
 
     /// Creates a new filtered stream of events from the shard.
@@ -331,7 +331,7 @@ impl Shard {
     /// shard.start().await?;
     ///
     /// let event_types = EventTypeFlags::SHARD_CONNECTED | EventTypeFlags::SHARD_DISCONNECTED;
-    /// let mut events = shard.some_events(event_types).await;
+    /// let mut events = shard.some_events(event_types);
     ///
     /// while let Some(event) = events.next().await {
     ///     match event {
@@ -347,7 +347,7 @@ impl Shard {
     /// [`Event::ShardConnected`]: ../../twilight_model/gateway/event/enum.Event.html#variant.ShardConnected
     /// [`Event::ShardDisconnected`]: ../../twilight_model/gateway/event/enum.Event.html#variant.ShardDisconnected
     /// [`futures::stream::Stream`]: https://docs.rs/futures/*/futures/stream/trait.Stream.html
-    pub async fn some_events(&self, event_types: EventTypeFlags) -> Events {
+    pub fn some_events(&self, event_types: EventTypeFlags) -> Events {
         let rx = self.0.listeners.add(event_types);
 
         Events::new(event_types, rx)
@@ -361,12 +361,12 @@ impl Shard {
     /// Returns a [`SessionInactiveError`] if the shard's session is inactive.
     ///
     /// [`SessionInactiveError`]: struct.SessionInactiveError.html
-    pub async fn info(&self) -> Result<Information, SessionInactiveError> {
+    pub fn info(&self) -> Result<Information, SessionInactiveError> {
         let session = self.session()?;
 
         Ok(Information {
             id: self.config().shard()[0],
-            latency: session.heartbeats.latency().await,
+            latency: session.heartbeats.latency(),
             seq: session.seq(),
             stage: session.stage(),
         })
@@ -441,14 +441,13 @@ impl Shard {
         session
             .tx
             .unbounded_send(message)
-            .map_err(|source| CommandError::Sending { source })?;
-        Ok(())
+            .map_err(|source| CommandError::Sending { source })
     }
 
     /// Shuts down the shard.
     ///
     /// This will cleanly close the connection, causing discord to end the session and show the bot offline
-    pub async fn shutdown(&self) {
+    pub fn shutdown(&self) {
         self.0.listeners.remove_all();
 
         if let Some(processor_handle) = self.0.processor_handle.get() {
@@ -461,12 +460,12 @@ impl Shard {
                 code: CloseCode::Normal,
                 reason: "".into(),
             })));
-            session.stop_heartbeater().await;
+            session.stop_heartbeater();
         }
     }
 
     /// This will shut down the shard in a resumable way and return shard id and optional session info to resume with later if this shard is resumable
-    pub async fn shutdown_resumable(&self) -> (u64, Option<ResumeSession>) {
+    pub fn shutdown_resumable(&self) -> (u64, Option<ResumeSession>) {
         self.0.listeners.remove_all();
 
         if let Some(processor_handle) = self.0.processor_handle.get() {
@@ -485,18 +484,15 @@ impl Shard {
             reason: Cow::from("Closing in a resumable way"),
         })));
 
-        let session_id = session.id.lock().await.clone();
+        let session_id = session.id();
         let sequence = session.seq.load(Ordering::Relaxed);
 
-        session.stop_heartbeater().await;
+        session.stop_heartbeater();
 
-        let data = match session_id {
-            Some(id) => Some(ResumeSession {
-                session_id: id,
-                sequence,
-            }),
-            None => None,
-        };
+        let data = session_id.map(|id| ResumeSession {
+            session_id: id,
+            sequence,
+        });
 
         (shard_id, data)
     }

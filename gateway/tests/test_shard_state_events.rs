@@ -12,7 +12,7 @@ fn shard() -> Result<Shard, Box<dyn Error>> {
 #[tokio::test]
 async fn test_shard_event_emits() -> Result<(), Box<dyn Error>> {
     let mut shard = shard()?;
-    let mut events = shard.events().await;
+    let mut events = shard.events();
     shard.start().await?;
 
     assert!(matches!(events.next().await.unwrap(), Event::ShardConnecting(c) if c.shard_id == 0));
@@ -37,7 +37,7 @@ async fn test_shard_event_emits() -> Result<(), Box<dyn Error>> {
         Event::ShardResuming(_)
     ));
     assert!(matches!(events.next().await.unwrap(), Event::ShardConnecting(c) if c.shard_id == 0));
-    shard.shutdown().await;
+    shard.shutdown();
 
     Ok(())
 }

@@ -24,7 +24,7 @@ async fn main() -> Result<(), Box<dyn Error + Send + Sync>> {
     shard.start().await?;
     println!("Created shard");
 
-    let mut events = shard.events().await;
+    let mut events = shard.events();
 
     while let Some(event) = events.next().await {
         println!("Event: {:?}", event.kind());

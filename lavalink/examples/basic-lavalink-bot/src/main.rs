@@ -59,7 +59,7 @@ async fn main() -> Result<(), Box<dyn Error + Send + Sync + 'static>> {
         }
     };
 
-    let mut events = state.shard.events().await;
+    let mut events = state.shard.events();
 
     while let Some(event) = events.next().await {
         state.standby.process(&event);

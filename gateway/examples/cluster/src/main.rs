@@ -17,7 +17,7 @@ async fn main() -> Result<(), Box<dyn Error + Send + Sync>> {
 
     let cluster = Cluster::new(config).await?;
 
-    let mut events = cluster.events().await;
+    let mut events = cluster.events();
 
     let cluster_spawn = cluster.clone();
 
