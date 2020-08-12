@@ -119,7 +119,7 @@ impl Cluster {
         Self::_new(config.into()).await
     }
 
-    async fn _new(config: ClusterConfig) -> Result<Self, ClusterStartError> {
+    async fn _new(mut config: ClusterConfig) -> Result<Self, ClusterStartError> {
         let [from, to, total] = match config.shard_scheme() {
             ShardScheme::Auto => {
                 let http = config.http_client();
@@ -147,8 +147,8 @@ impl Cluster {
                 let mut shard_config = config.shard_config().clone();
                 shard_config.shard = [idx, total];
 
-                if let Some(data) = config.resume_sessions().get(&idx) {
-                    shard_config.session_id = Some(data.session_id.clone());
+                if let Some(data) = config.resume_sessions.remove(&idx) {
+                    shard_config.session_id = Some(data.session_id);
                     shard_config.sequence = Some(data.sequence);
                 }
 
@@ -165,6 +165,9 @@ impl Cluster {
     }
 
     /// Returns an immutable reference to the configuration of this cluster.
+    ///
+    /// The configuration's resume map will be empty, as it's consumed when the
+    /// cluster is created to make shards.
     pub fn config(&self) -> &ClusterConfig {
         &self.0.config
     }
