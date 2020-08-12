@@ -10,7 +10,7 @@ pub struct PresenceUpdate {
     pub activities: Vec<Activity>,
     pub client_status: ClientStatus,
     pub game: Option<Activity>,
-    pub guild_id: Option<GuildId>,
+    pub guild_id: GuildId,
     pub nick: Option<String>,
     pub premium_since: Option<String>,
     pub roles: Option<Vec<RoleId>>,

@@ -790,7 +790,7 @@ fn event_guild_id(event: &Event) -> Option<GuildId> {
         Event::MessageDelete(_) => None,
         Event::MessageDeleteBulk(_) => None,
         Event::MessageUpdate(_) => None,
-        Event::PresenceUpdate(e) => e.guild_id,
+        Event::PresenceUpdate(e) => Some(e.guild_id),
         Event::PresencesReplace => None,
         Event::ReactionAdd(e) => e.guild_id,
         Event::ReactionRemove(e) => e.guild_id,
