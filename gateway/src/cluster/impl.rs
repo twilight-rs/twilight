@@ -3,7 +3,6 @@ use crate::{
     shard::{CommandError, Information, ResumeSession, Shard},
     EventTypeFlags,
 };
-use dashmap::DashMap;
 use futures_util::{
     future,
     stream::{SelectAll, Stream, StreamExt},
@@ -13,7 +12,7 @@ use std::{
     error::Error,
     fmt::{Display, Formatter, Result as FmtResult},
     iter::FromIterator,
-    sync::Arc,
+    sync::{Arc, Mutex},
 };
 use twilight_http::Error as HttpError;
 use twilight_model::gateway::event::Event;
@@ -92,7 +91,7 @@ struct ClusterRef {
     config: ClusterConfig,
     shard_from: u64,
     shard_to: u64,
-    shards: DashMap<u64, Shard>,
+    shards: Mutex<HashMap<u64, Shard>>,
 }
 
 /// A manager for multiple shards.
@@ -160,7 +159,7 @@ impl Cluster {
             config,
             shard_from: from,
             shard_to: to,
-            shards,
+            shards: Mutex::new(shards),
         })))
     }
 
@@ -211,8 +210,8 @@ impl Cluster {
 
     /// Brings down the cluster, stopping all of the shards that it's managing.
     pub fn down(&self) {
-        for r in self.0.shards.iter() {
-            r.value().shutdown();
+        for shard in self.0.shards.lock().expect("shards poisoned").values() {
+            shard.shutdown();
         }
     }
 
@@ -228,15 +227,17 @@ impl Cluster {
     pub fn down_resumable(&self) -> HashMap<u64, ResumeSession> {
         self.0
             .shards
-            .iter()
-            .map(|r| r.value().shutdown_resumable())
+            .lock()
+            .expect("shards poisoned")
+            .values()
+            .map(|shard| shard.shutdown_resumable())
             .filter_map(|(id, session)| session.map(|s| (id, s)))
             .collect()
     }
 
     /// Returns a Shard by its ID.
     pub fn shard(&self, id: u64) -> Option<Shard> {
-        self.0.shards.get(&id).map(|r| r.value().clone())
+        self.0.shards.lock().expect("shards poisoned").get(&id).cloned()
     }
 
     /// Returns information about all shards.
@@ -269,8 +270,10 @@ impl Cluster {
     pub fn info(&self) -> HashMap<u64, Information> {
         self.0
             .shards
+            .lock()
+            .expect("shards poisoned")
             .iter()
-            .filter_map(|r| r.value().info().ok().map(|info| (*r.key(), info)))
+            .filter_map(|(id, shard)| shard.info().ok().map(|info| (*id, info)))
             .collect()
     }
 
@@ -294,8 +297,10 @@ impl Cluster {
         let shard = self
             .0
             .shards
+            .lock()
+            .expect("shards poisoned")
             .get(&id)
-            .map(|r| r.value().clone())
+            .cloned()
             .ok_or(ClusterCommandError::ShardNonexistent { id })?;
 
         shard
@@ -352,11 +357,10 @@ impl Cluster {
         &'a self,
         types: EventTypeFlags,
     ) -> impl Stream<Item = (u64, Event)> + 'a {
-        let stream = self
-            .0
-            .shards
-            .iter()
-            .map(|r| r.value().some_events(types).map(move |e| (*r.key(), e)));
+        let shards = self.0.shards.lock().expect("shards poisoned").clone();
+        let stream = shards.into_iter().map(|(id, shard)| {
+            shard.some_events(types).map(move |e| (id, e))
+        });
 
         SelectAll::from_iter(stream)
     }
@@ -368,7 +372,11 @@ impl Cluster {
     /// time the future is polled the cluster may have already dropped, bringing
     /// down the queue and shards with it.
     async fn start(cluster: Arc<ClusterRef>, shard_id: u64) -> Option<Shard> {
-        let mut shard = cluster.shards.get(&shard_id)?.value().clone();
+        let mut shard = cluster.shards
+            .lock()
+            .expect("shards poisoned")
+            .get(&shard_id)?
+            .clone();
 
         shard.start().await.ok()?;
 
