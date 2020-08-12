@@ -7,7 +7,7 @@ use twilight_model::{
 #[derive(Default, Serialize)]
 struct CreateRoleFields {
     #[serde(skip_serializing_if = "Option::is_none")]
-    color: Option<u64>,
+    color: Option<u32>,
     #[serde(skip_serializing_if = "Option::is_none")]
     hoist: Option<bool>,
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -57,7 +57,7 @@ impl<'a> CreateRole<'a> {
     }
 
     /// Set the color of the role.
-    pub fn color(mut self, color: u64) -> Self {
+    pub fn color(mut self, color: u32) -> Self {
         self.fields.color.replace(color);
 
         self
