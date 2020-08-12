@@ -230,7 +230,7 @@ impl Cluster {
             .lock()
             .expect("shards poisoned")
             .values()
-            .map(|shard| shard.shutdown_resumable())
+            .map(Shard::shutdown_resumable)
             .filter_map(|(id, session)| session.map(|s| (id, s)))
             .collect()
     }
