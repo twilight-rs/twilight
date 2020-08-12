@@ -237,7 +237,12 @@ impl Cluster {
 
     /// Returns a Shard by its ID.
     pub fn shard(&self, id: u64) -> Option<Shard> {
-        self.0.shards.lock().expect("shards poisoned").get(&id).cloned()
+        self.0
+            .shards
+            .lock()
+            .expect("shards poisoned")
+            .get(&id)
+            .cloned()
     }
 
     /// Returns information about all shards.
@@ -358,9 +363,9 @@ impl Cluster {
         types: EventTypeFlags,
     ) -> impl Stream<Item = (u64, Event)> + 'a {
         let shards = self.0.shards.lock().expect("shards poisoned").clone();
-        let stream = shards.into_iter().map(|(id, shard)| {
-            shard.some_events(types).map(move |e| (id, e))
-        });
+        let stream = shards
+            .into_iter()
+            .map(|(id, shard)| shard.some_events(types).map(move |e| (id, e)));
 
         SelectAll::from_iter(stream)
     }
@@ -372,7 +377,8 @@ impl Cluster {
     /// time the future is polled the cluster may have already dropped, bringing
     /// down the queue and shards with it.
     async fn start(cluster: Arc<ClusterRef>, shard_id: u64) -> Option<Shard> {
-        let mut shard = cluster.shards
+        let mut shard = cluster
+            .shards
             .lock()
             .expect("shards poisoned")
             .get(&shard_id)?
