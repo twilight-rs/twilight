@@ -80,13 +80,25 @@ impl<'de> Visitor<'de> for VoiceStateVisitor {
         let mut token = None;
         let mut user_id = None;
 
+        let span = tracing::trace_span!("deserializing voice state");
+        let _span_enter = span.enter();
+
         loop {
+            let span_child = tracing::trace_span!("iterating over element");
+            let _span_child_enter = span_child.enter();
+
             let key = match map.next_key() {
-                Ok(Some(key)) => key,
+                Ok(Some(key)) => {
+                    tracing::trace!(?key, "found key");
+
+                    key
+                }
                 Ok(None) => break,
-                Err(_) => {
+                Err(why) => {
                     // Encountered when we run into an unknown key.
                     map.next_value::<IgnoredAny>()?;
+
+                    tracing::trace!("ran into an unknown key: {:?}", why);
 
                     continue;
                 }
@@ -192,7 +204,20 @@ impl<'de> Visitor<'de> for VoiceStateVisitor {
 
         let self_stream = self_stream.unwrap_or_default();
 
+        tracing::trace!(
+            %deaf,
+            %mute,
+            %self_deaf,
+            %self_mute,
+            %self_stream,
+            ?session_id,
+            %suppress,
+            %user_id,
+        );
+
         if let (Some(guild_id), Some(member)) = (guild_id, member.as_mut()) {
+            tracing::trace!(%guild_id, ?member, "setting member guild id");
+
             member.guild_id = guild_id;
         }
 

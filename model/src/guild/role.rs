@@ -44,7 +44,12 @@ impl<'de> Visitor<'de> for RoleMapDeserializerVisitor {
             .size_hint()
             .map_or_else(HashMap::new, HashMap::with_capacity);
 
+        let span = tracing::trace_span!("adding elements to role map");
+        let _span_enter = span.enter();
+
         while let Some(role) = seq.next_element::<Role>()? {
+            tracing::trace!(%role.id, ?role);
+
             map.insert(role.id, role);
         }
 
