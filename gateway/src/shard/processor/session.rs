@@ -15,7 +15,7 @@ use std::{
     fmt::{Display, Formatter, Result as FmtResult},
     sync::{
         atomic::{AtomicU64, AtomicU8, Ordering},
-        Arc,
+        Arc, Mutex as MutexSync,
     },
     time::Duration,
 };
@@ -59,10 +59,10 @@ impl Error for SessionSendError {
 pub struct Session {
     // Needs to be Arc so it can be cloned in the `Drop` impl when spawned on
     // the runtime.
-    pub heartbeater_handle: Arc<Mutex<Option<AbortHandle>>>,
+    pub heartbeater_handle: Arc<MutexSync<Option<AbortHandle>>>,
     pub heartbeats: Arc<Heartbeats>,
     pub heartbeat_interval: AtomicU64,
-    pub id: Mutex<Option<String>>,
+    pub id: MutexSync<Option<String>>,
     pub seq: Arc<AtomicU64>,
     pub stage: AtomicU8,
     pub tx: UnboundedSender<TungsteniteMessage>,
@@ -72,10 +72,10 @@ pub struct Session {
 impl Session {
     pub fn new(tx: UnboundedSender<TungsteniteMessage>) -> Self {
         Self {
-            heartbeater_handle: Arc::new(Mutex::new(None)),
+            heartbeater_handle: Arc::new(MutexSync::new(None)),
             heartbeats: Arc::new(Heartbeats::default()),
             heartbeat_interval: AtomicU64::new(0),
-            id: Mutex::new(None),
+            id: MutexSync::new(None),
             seq: Arc::new(AtomicU64::new(0)),
             stage: AtomicU8::new(Stage::default() as u8),
             tx,
@@ -149,21 +149,30 @@ impl Session {
         self.send(Heartbeat::new(self.seq()))
     }
 
-    pub async fn id(&self) -> Option<String> {
-        self.id.lock().await.clone()
+    pub fn id(&self) -> Option<String> {
+        self.id.lock().expect("id poisoned").clone()
     }
 
-    pub async fn set_id(&self, new_id: impl Into<String>) {
-        self.id.lock().await.replace(new_id.into());
+    pub fn set_id(&self, new_id: impl Into<String>) {
+        self._set_id(new_id.into())
     }
 
-    pub async fn stop_heartbeater(&self) {
-        if let Some(handle) = self.heartbeater_handle.lock().await.take() {
+    fn _set_id(&self, new_id: String) {
+        self.id.lock().expect("id poisoned").replace(new_id);
+    }
+
+    pub fn stop_heartbeater(&self) {
+        if let Some(handle) = self
+            .heartbeater_handle
+            .lock()
+            .expect("heartbeater poisoned")
+            .take()
+        {
             handle.abort();
         }
     }
 
-    pub async fn start_heartbeater(&self) {
+    pub fn start_heartbeater(&self) {
         let interval = self.heartbeat_interval();
         let seq = Arc::clone(&self.seq);
         let heartbeats = Arc::clone(&self.heartbeats);
@@ -173,7 +182,12 @@ impl Session {
 
         tokio::spawn(fut);
 
-        if let Some(old) = self.heartbeater_handle.lock().await.replace(handle) {
+        if let Some(old) = self
+            .heartbeater_handle
+            .lock()
+            .expect("heartbeater poisoned")
+            .replace(handle)
+        {
             old.abort();
         }
     }
@@ -181,12 +195,6 @@ impl Session {
 
 impl Drop for Session {
     fn drop(&mut self) {
-        let handle = Arc::clone(&self.heartbeater_handle);
-
-        tokio::spawn(async move {
-            if let Some(handle) = handle.lock().await.take() {
-                handle.abort();
-            }
-        });
+        self.stop_heartbeater();
     }
 }

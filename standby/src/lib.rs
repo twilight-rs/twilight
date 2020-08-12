@@ -71,7 +71,7 @@
 //! async fn main() -> Result<(), Box<dyn Error>> {
 //!     // Start a shard connected to the gateway to receive events.
 //!     let mut shard = Shard::new(env::var("DISCORD_TOKEN")?);
-//!     let mut events = shard.events().await;
+//!     let mut events = shard.events();
 //!     shard.start().await?;
 //!
 //!     let standby = Standby::new();

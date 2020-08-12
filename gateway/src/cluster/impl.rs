@@ -5,7 +5,6 @@ use crate::{
 };
 use futures_util::{
     future,
-    lock::Mutex,
     stream::{SelectAll, Stream, StreamExt},
 };
 use std::{
@@ -13,7 +12,7 @@ use std::{
     error::Error,
     fmt::{Display, Formatter, Result as FmtResult},
     iter::FromIterator,
-    sync::{Arc, Weak},
+    sync::{Arc, Mutex},
 };
 use twilight_http::Error as HttpError;
 use twilight_model::gateway::event::Event;
@@ -119,7 +118,7 @@ impl Cluster {
         Self::_new(config.into()).await
     }
 
-    async fn _new(config: ClusterConfig) -> Result<Self, ClusterStartError> {
+    async fn _new(mut config: ClusterConfig) -> Result<Self, ClusterStartError> {
         let [from, to, total] = match config.shard_scheme() {
             ShardScheme::Auto => {
                 let http = config.http_client();
@@ -142,20 +141,19 @@ impl Cluster {
             metrics::gauge!("Cluster-Shard-Count", total.try_into().unwrap_or(-1));
         }
 
-        let mut shards = HashMap::new();
+        let shards = (from..=to)
+            .map(|idx| {
+                let mut shard_config = config.shard_config().clone();
+                shard_config.shard = [idx, total];
 
-        for idx in from..=to {
-            let mut shard_config = config.shard_config().clone();
-            shard_config.shard = [idx, total];
-            let resume_sessions = config.resume_sessions().get(&idx);
+                if let Some(data) = config.resume_sessions.remove(&idx) {
+                    shard_config.session_id = Some(data.session_id);
+                    shard_config.sequence = Some(data.sequence);
+                }
 
-            if let Some(data) = resume_sessions {
-                shard_config.session_id = Some(data.session_id.clone());
-                shard_config.sequence = Some(data.sequence);
-            };
-
-            shards.insert(idx, Shard::new(shard_config));
-        }
+                (idx, Shard::new(shard_config))
+            })
+            .collect();
 
         Ok(Self(Arc::new(ClusterRef {
             config,
@@ -166,6 +164,9 @@ impl Cluster {
     }
 
     /// Returns an immutable reference to the configuration of this cluster.
+    ///
+    /// The configuration's resume map will be empty, as it's consumed when the
+    /// cluster is created to make shards.
     pub fn config(&self) -> &ClusterConfig {
         &self.0.config
     }
@@ -202,20 +203,16 @@ impl Cluster {
     /// ```
     pub async fn up(&self) {
         future::join_all(
-            (self.0.shard_from..=self.0.shard_to)
-                .map(|id| Self::start(Arc::downgrade(&self.0), id))
-                .collect::<Vec<_>>(),
+            (self.0.shard_from..=self.0.shard_to).map(|id| Self::start(Arc::clone(&self.0), id)),
         )
         .await;
     }
 
     /// Brings down the cluster, stopping all of the shards that it's managing.
-    pub async fn down(&self) {
-        let lock = self.0.shards.lock().await;
-
-        let tasks = lock.values().map(Shard::shutdown).collect::<Vec<_>>();
-
-        future::join_all(tasks).await;
+    pub fn down(&self) {
+        for shard in self.0.shards.lock().expect("shards poisoned").values() {
+            shard.shutdown();
+        }
     }
 
     /// Brings down the cluster in a resumable way and returns all info needed
@@ -227,26 +224,25 @@ impl Cluster {
     /// **Note**: Discord only allows resuming for a few minutes after
     /// disconnection. You may also not be able to resume if you missed too many
     /// events already.
-    pub async fn down_resumable(&self) -> HashMap<u64, ResumeSession> {
-        let lock = self.0.shards.lock().await;
-
-        let tasks = lock
+    pub fn down_resumable(&self) -> HashMap<u64, ResumeSession> {
+        self.0
+            .shards
+            .lock()
+            .expect("shards poisoned")
             .values()
             .map(Shard::shutdown_resumable)
-            .collect::<Vec<_>>();
-
-        let sessions = future::join_all(tasks).await;
-
-        HashMap::from_iter(
-            sessions
-                .into_iter()
-                .filter_map(|(shard_id, session)| session.map(|session| (shard_id, session))),
-        )
+            .filter_map(|(id, session)| session.map(|s| (id, s)))
+            .collect()
     }
 
     /// Returns a Shard by its ID.
-    pub async fn shard(&self, id: u64) -> Option<Shard> {
-        self.0.shards.lock().await.get(&id).cloned()
+    pub fn shard(&self, id: u64) -> Option<Shard> {
+        self.0
+            .shards
+            .lock()
+            .expect("shards poisoned")
+            .get(&id)
+            .cloned()
     }
 
     /// Returns information about all shards.
@@ -266,7 +262,7 @@ impl Cluster {
     ///
     /// tokio::time::delay_for(Duration::from_secs(60)).await;
     ///
-    /// for (shard_id, info) in cluster.info().await {
+    /// for (shard_id, info) in cluster.info() {
     ///     println!(
     ///         "Shard {} is {} with an average latency of {:?}",
     ///         shard_id,
@@ -276,19 +272,14 @@ impl Cluster {
     /// }
     /// # Ok(()) }
     /// ```
-    pub async fn info(&self) -> HashMap<u64, Information> {
-        // Clone this out to prevent locking up access to all of the shards.
-        let shards = self.0.shards.lock().await.clone();
-
-        future::join_all(
-            shards
-                .into_iter()
-                .map(|(id, shard)| async move { (id, shard.info().await) }),
-        )
-        .await
-        .into_iter()
-        .filter_map(|(id, info)| info.map(|info| (id, info)).ok())
-        .collect::<HashMap<_, _>>()
+    pub fn info(&self) -> HashMap<u64, Information> {
+        self.0
+            .shards
+            .lock()
+            .expect("shards poisoned")
+            .iter()
+            .filter_map(|(id, shard)| shard.info().ok().map(|info| (*id, info)))
+            .collect()
     }
 
     /// Send a command to the specified shard.
@@ -308,26 +299,27 @@ impl Cluster {
         id: u64,
         value: &impl serde::Serialize,
     ) -> Result<(), ClusterCommandError> {
-        let shard = match self.0.shards.lock().await.get(&id) {
-            Some(shard) => shard.clone(),
-            None => return Err(ClusterCommandError::ShardNonexistent { id }),
-        };
+        let shard = self
+            .0
+            .shards
+            .lock()
+            .expect("shards poisoned")
+            .get(&id)
+            .cloned()
+            .ok_or(ClusterCommandError::ShardNonexistent { id })?;
 
         shard
             .command(value)
             .await
-            .map_err(|source| ClusterCommandError::Sending { source })?;
-
-        Ok(())
+            .map_err(|source| ClusterCommandError::Sending { source })
     }
 
     /// Returns a stream of events from all shards managed by this Cluster.
     ///
     /// Each item in the stream contains both the shard's ID and the event
     /// itself.
-    pub async fn events(&self) -> impl Stream<Item = (u64, Event)> {
-        let shards = self.0.shards.lock().await.clone();
-        cluster_events(shards).await
+    pub fn events<'a>(&'a self) -> impl Stream<Item = (u64, Event)> + 'a {
+        self.some_events(EventTypeFlags::default())
     }
 
     /// Like [`events`], but filters the events so that the stream consumer
@@ -351,7 +343,7 @@ impl Cluster {
     /// let types = EventTypeFlags::MESSAGE_CREATE
     ///     | EventTypeFlags::MESSAGE_DELETE
     ///     | EventTypeFlags::MESSAGE_UPDATE;
-    /// let mut events = cluster.some_events(types).await;
+    /// let mut events = cluster.some_events(types);
     ///
     /// while let Some((shard_id, event)) = events.next().await {
     ///     match event {
@@ -366,9 +358,16 @@ impl Cluster {
     /// ```
     ///
     /// [`events`]: #method.events
-    pub async fn some_events(&self, types: EventTypeFlags) -> impl Stream<Item = (u64, Event)> {
-        let shards = self.0.shards.lock().await.clone();
-        cluster_some_events(shards, types).await
+    pub fn some_events<'a>(
+        &'a self,
+        types: EventTypeFlags,
+    ) -> impl Stream<Item = (u64, Event)> + 'a {
+        let shards = self.0.shards.lock().expect("shards poisoned").clone();
+        let stream = shards
+            .into_iter()
+            .map(|(id, shard)| shard.some_events(types).map(move |e| (id, e)));
+
+        SelectAll::from_iter(stream)
     }
 
     /// Queues a request to start a shard by ID and starts it once the queue
@@ -377,36 +376,16 @@ impl Cluster {
     /// Accepts weak references to the queue and map of shards, because by the
     /// time the future is polled the cluster may have already dropped, bringing
     /// down the queue and shards with it.
-    async fn start(cluster: Weak<ClusterRef>, shard_id: u64) -> Option<Shard> {
-        let cluster = cluster.upgrade()?;
-        let mut shard = cluster.shards.lock().await.get(&shard_id).cloned()?;
+    async fn start(cluster: Arc<ClusterRef>, shard_id: u64) -> Option<Shard> {
+        let mut shard = cluster
+            .shards
+            .lock()
+            .expect("shards poisoned")
+            .get(&shard_id)?
+            .clone();
+
         shard.start().await.ok()?;
 
         Some(shard)
     }
-}
-
-async fn cluster_events(
-    shards: impl IntoIterator<Item = (u64, Shard)>,
-) -> impl Stream<Item = (u64, Event)> {
-    let mut all = SelectAll::new();
-
-    for (id, shard) in shards {
-        all.push(shard.events().await.map(move |e| (id, e)));
-    }
-
-    all
-}
-
-async fn cluster_some_events(
-    shards: impl IntoIterator<Item = (u64, Shard)>,
-    types: EventTypeFlags,
-) -> impl Stream<Item = (u64, Event)> {
-    let mut all = SelectAll::new();
-
-    for (id, shard) in shards {
-        all.push(shard.some_events(types).await.map(move |e| (id, e)));
-    }
-
-    all
 }
