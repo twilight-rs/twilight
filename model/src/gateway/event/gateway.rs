@@ -524,6 +524,7 @@ mod tests {
         "mentionable": false,
         "name": "@everyone",
         "permissions": 104193601,
+        "permissions_new": "104193601",
         "position": 0
       }
     ],
@@ -595,6 +596,7 @@ mod tests {
         "mentionable": false,
         "name": "@everyone",
         "permissions": 104324673,
+        "permissions_new": "104324673",
         "position": 0
       }
     ],

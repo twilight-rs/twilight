@@ -11,7 +11,7 @@ mod integration_account;
 mod mfa_level;
 mod partial_guild;
 mod partial_member;
-mod permissions;
+pub(crate) mod permissions;
 mod premium_tier;
 mod preview;
 mod prune;

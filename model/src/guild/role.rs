@@ -1,4 +1,7 @@
-use crate::{guild::Permissions, id::RoleId};
+use crate::{
+    guild::permissions::{self, Permissions},
+    id::RoleId,
+};
 use serde::{
     de::{DeserializeSeed, Deserializer, SeqAccess, Visitor},
     Deserialize, Serialize,
@@ -17,6 +20,9 @@ pub struct Role {
     pub managed: bool,
     pub mentionable: bool,
     pub name: String,
+    #[serde(rename = "permissions", serialize_with = "permissions::serialize_u64")]
+    pub permissions_old: Permissions,
+    #[serde(rename = "permissions_new")]
     pub permissions: Permissions,
     pub position: i64,
 }
@@ -62,5 +68,56 @@ impl<'de> DeserializeSeed<'de> for RoleMapDeserializer {
 
     fn deserialize<D: Deserializer<'de>>(self, deserializer: D) -> Result<Self::Value, D::Error> {
         deserializer.deserialize_seq(RoleMapDeserializerVisitor)
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::{Permissions, Role, RoleId};
+    use serde_test::Token;
+
+    #[test]
+    fn test_role() {
+        let role = Role {
+            color: 0,
+            hoist: true,
+            id: RoleId(123),
+            managed: false,
+            mentionable: true,
+            name: "test".to_owned(),
+            permissions_old: Permissions::ADMINISTRATOR,
+            permissions: Permissions::ADMINISTRATOR,
+            position: 12,
+        };
+
+        serde_test::assert_tokens(
+            &role,
+            &[
+                Token::Struct {
+                    name: "Role",
+                    len: 9,
+                },
+                Token::Str("color"),
+                Token::U32(0),
+                Token::Str("hoist"),
+                Token::Bool(true),
+                Token::Str("id"),
+                Token::NewtypeStruct { name: "RoleId" },
+                Token::Str("123"),
+                Token::Str("managed"),
+                Token::Bool(false),
+                Token::Str("mentionable"),
+                Token::Bool(true),
+                Token::Str("name"),
+                Token::Str("test"),
+                Token::Str("permissions"),
+                Token::U64(8),
+                Token::Str("permissions_new"),
+                Token::Str("8"),
+                Token::Str("position"),
+                Token::I64(12),
+                Token::StructEnd,
+            ],
+        );
     }
 }
