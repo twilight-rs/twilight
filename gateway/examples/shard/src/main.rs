@@ -1,7 +1,6 @@
 use futures::StreamExt;
 use std::{env, error::Error};
-use twilight_gateway::{Event, Shard};
-use twilight_model::{gateway::payload::RequestGuildMembers, id::GuildId};
+use twilight_gateway::Shard;
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn Error + Send + Sync>> {
