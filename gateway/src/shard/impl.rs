@@ -11,7 +11,10 @@ use async_tungstenite::tungstenite::{
     Error as TungsteniteError, Message,
 };
 use futures_channel::mpsc::TrySendError;
-use futures_util::future::{self, AbortHandle};
+use futures_util::{
+    future::{self, AbortHandle},
+    stream::StreamExt,
+};
 use once_cell::sync::OnceCell;
 use std::{
     borrow::Cow,
@@ -436,7 +439,7 @@ impl Shard {
         let message = Message::Text(json);
 
         // Tick ratelimiter.
-        session.ratelimit.lock().await.tick().await;
+        session.ratelimit.lock().await.next().await;
 
         session
             .tx
