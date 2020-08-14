@@ -17,6 +17,7 @@ members = [
     "lavalink/examples/basic-lavalink-bot",
     "mention",
     "model",
+    "oauth2",
     "standby",
     "twilight",
     "util",
