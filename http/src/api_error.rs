@@ -410,14 +410,17 @@ impl Serialize for ErrorCode {
 #[serde(untagged)]
 pub enum ApiError {
     General(GeneralApiError),
+    /// Something was wrong with the input when sending a message.
+    Message(MessageApiError),
     Ratelimited(RatelimitedApiError),
 }
 
 impl Display for ApiError {
     fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
         match self {
-            Self::General(inner) => write!(f, "{}", inner),
-            Self::Ratelimited(inner) => write!(f, "{}", inner),
+            Self::General(inner) => Display::fmt(inner, f),
+            Self::Message(inner) => Display::fmt(inner, f),
+            Self::Ratelimited(inner) => Display::fmt(inner, f),
         }
     }
 }
@@ -436,6 +439,59 @@ impl Display for GeneralApiError {
             self.code.num(),
             self.message
         ))
+    }
+}
+
+/// Sending a message failed because the provided fields contained invalid
+/// input.
+#[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
+#[non_exhaustive]
+pub struct MessageApiError {
+    /// Fields within a provided embed were invalid.
+    pub embed: Option<Vec<MessageApiErrorEmbedField>>,
+}
+
+impl Display for MessageApiError {
+    fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
+        f.write_str("message fields invalid: ")?;
+
+        if let Some(embed) = &self.embed {
+            f.write_str("embed (")?;
+
+            let field_count = embed.len().saturating_sub(1);
+
+            for (idx, field) in embed.iter().enumerate() {
+                Display::fmt(field, f)?;
+
+                if idx == field_count {
+                    f.write_str(", ")?;
+                }
+            }
+
+            f.write_str(")")?;
+        }
+
+        Ok(())
+    }
+}
+
+/// Field within a [`MessageApiError`] [embed] list.
+///
+/// [`MessageApiError`]: enum.MessageApiError.html
+/// [embed]: enum.MessageApiError.html#structfield.embed
+#[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
+#[non_exhaustive]
+#[serde(rename_all = "snake_case")]
+pub enum MessageApiErrorEmbedField {
+    /// Something was wrong with the provided fields.
+    Fields,
+}
+
+impl Display for MessageApiErrorEmbedField {
+    fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
+        f.write_str(match self {
+            Self::Fields => "fields",
+        })
     }
 }
 
@@ -461,7 +517,10 @@ impl Display for RatelimitedApiError {
 
 #[cfg(test)]
 mod tests {
-    use super::{ErrorCode, GeneralApiError, RatelimitedApiError};
+    use super::{
+        ApiError, ErrorCode, GeneralApiError, MessageApiError, MessageApiErrorEmbedField,
+        RatelimitedApiError,
+    };
     use serde_test::Token;
 
     #[test]
@@ -482,6 +541,32 @@ mod tests {
                 Token::U64(10001),
                 Token::Str("message"),
                 Token::Str("Unknown account"),
+                Token::StructEnd,
+            ],
+        );
+    }
+
+    #[test]
+    fn test_api_error_message() {
+        let expected = ApiError::Message(MessageApiError {
+            embed: Some([MessageApiErrorEmbedField::Fields].to_vec()),
+        });
+
+        serde_test::assert_tokens(
+            &expected,
+            &[
+                Token::Struct {
+                    name: "MessageApiError",
+                    len: 1,
+                },
+                Token::Str("embed"),
+                Token::Some,
+                Token::Seq { len: Some(1) },
+                Token::UnitVariant {
+                    name: "MessageApiErrorEmbedField",
+                    variant: "fields",
+                },
+                Token::SeqEnd,
                 Token::StructEnd,
             ],
         );
