@@ -313,8 +313,7 @@ impl<'a> CreateGuild<'a> {
         let mut roles = vec![everyone];
 
         // if some roles have already been set, retain them
-        if self.fields.roles.is_some() {
-            let fields_roles = self.fields.roles.take().unwrap();
+        if let Some(fields_roles) = self.fields.roles.as_mut() {
             roles.extend_from_slice(&fields_roles[1..]);
         }
 
@@ -368,9 +367,10 @@ impl<'a> CreateGuild<'a> {
 
         // if there are already overrides, retain the first role in the vec. discord understands
         // the first role to be overrides for @everyone, and it is set with override_everyone.
-        if self.fields.roles.is_some() {
-            let mut fields_roles = self.fields.roles.take().unwrap();
-            roles.insert(0, fields_roles.remove(0));
+        if let Some(fields_roles) = self.fields.roles.as_mut() {
+            if !fields_roles.is_empty() {
+                roles.insert(0, fields_roles.remove(0));
+            }
         }
 
         self.fields.roles.replace(roles);
