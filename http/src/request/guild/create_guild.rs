@@ -254,8 +254,6 @@ impl<'a> CreateGuild<'a> {
             channels.push(channel);
         }
 
-        println!("{:#?}", channels);
-
         self.fields.channels.replace(channels);
 
         Ok(self)
