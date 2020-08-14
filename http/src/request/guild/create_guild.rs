@@ -303,6 +303,7 @@ impl<'a> CreateGuild<'a> {
             managed: false,
             mentionable: fragment.mentionable,
             name: fragment.name.unwrap_or_else(|| String::from("@everyone")),
+            permissions_old: fragment.permissions.unwrap_or_else(Permissions::empty),
             permissions: fragment.permissions.unwrap_or_else(Permissions::empty),
             position: fragment.position.unwrap_or_default(),
         };
@@ -357,6 +358,7 @@ impl<'a> CreateGuild<'a> {
                 managed: false,
                 mentionable: f.mentionable,
                 name: f.name.clone().unwrap_or_default(),
+                permissions_old: f.permissions.unwrap_or_else(Permissions::empty),
                 permissions: f.permissions.unwrap_or_else(Permissions::empty),
                 position: f.position.unwrap_or_default(),
             })
