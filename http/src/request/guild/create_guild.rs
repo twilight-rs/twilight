@@ -244,7 +244,7 @@ impl<'a> CreateGuild<'a> {
 
         let mut channels: Vec<GuildChannel> = Vec::new();
 
-        for fragment in fragments.into_iter() {
+        for fragment in fragments {
             let channel: GuildChannel = match fragment {
                 GuildChannelFragment::Category(c) => GuildChannel::Category(c.into()),
                 GuildChannelFragment::Text(t) => GuildChannel::Text(t.into()),
