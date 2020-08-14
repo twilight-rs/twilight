@@ -4,11 +4,15 @@ use std::{
     fmt::{Display, Formatter, Result as FmtResult},
 };
 use twilight_model::{
-    channel::GuildChannel,
+    channel::{
+        permission_overwrite::PermissionOverwrite, CategoryChannel, ChannelType, GuildChannel,
+        TextChannel, VoiceChannel,
+    },
     guild::{
-        DefaultMessageNotificationLevel, ExplicitContentFilter, PartialGuild, Role,
+        DefaultMessageNotificationLevel, ExplicitContentFilter, PartialGuild, Permissions, Role,
         VerificationLevel,
     },
+    id::{ChannelId, GuildId, RoleId},
 };
 
 /// The error returned when the guild can not be created as configured.
@@ -25,14 +29,14 @@ pub enum CreateGuildError {
     /// The maximum amount is 500.
     TooManyChannels {
         /// Provided channels.
-        channels: Vec<GuildChannel>,
+        channels: Vec<GuildChannelFragment>,
     },
     /// The number of roles provided is too many.
     ///
     /// The maximum amount is 250.
     TooManyRoles {
         /// Provided roles.
-        roles: Vec<Role>,
+        roles: Vec<RoleFragment>,
     },
 }
 
@@ -65,6 +69,104 @@ struct CreateGuildFields {
     roles: Option<Vec<Role>>,
     #[serde(skip_serializing_if = "Option::is_none")]
     verification_level: Option<VerificationLevel>,
+}
+
+/// Fillable struct to send new roles to a guild create.
+#[derive(Clone, Debug, Default)]
+pub struct RoleFragment {
+    pub color: Option<u32>,
+    pub hoist: bool,
+    pub id: Option<RoleId>,
+    pub mentionable: bool,
+    pub name: Option<String>,
+    pub permissions: Option<Permissions>,
+    pub position: Option<i64>,
+}
+
+#[derive(Clone, Debug)]
+pub enum GuildChannelFragment {
+    Category(CategoryChannelFragment),
+    Text(TextChannelFragment),
+    Voice(VoiceChannelFragment),
+}
+
+/// Fillable struct to send new category channels to a guild create.
+#[derive(Clone, Debug)]
+pub struct CategoryChannelFragment {
+    pub id: ChannelId,
+    pub name: String,
+    pub permission_overwrites: Option<Vec<PermissionOverwrite>>,
+}
+
+impl Into<CategoryChannel> for CategoryChannelFragment {
+    fn into(self) -> CategoryChannel {
+        CategoryChannel {
+            guild_id: Some(GuildId(1)),
+            id: self.id,
+            kind: ChannelType::GuildCategory,
+            name: self.name,
+            nsfw: false,
+            parent_id: None,
+            permission_overwrites: self.permission_overwrites.unwrap_or_else(Vec::new),
+            position: 0,
+        }
+    }
+}
+
+/// Fillable struct to send new text channels to a guild create.
+#[derive(Clone, Debug)]
+pub struct TextChannelFragment {
+    pub name: String,
+    pub nsfw: bool,
+    pub parent_id: Option<ChannelId>,
+    pub permission_overwrites: Option<Vec<PermissionOverwrite>>,
+    pub rate_limit_per_user: Option<u64>,
+    pub topic: Option<String>,
+}
+
+impl Into<TextChannel> for TextChannelFragment {
+    fn into(self) -> TextChannel {
+        TextChannel {
+            guild_id: Some(GuildId(1)),
+            id: ChannelId(501),
+            kind: ChannelType::GuildText,
+            last_message_id: None,
+            last_pin_timestamp: None,
+            name: self.name,
+            nsfw: self.nsfw,
+            permission_overwrites: self.permission_overwrites.unwrap_or_else(Vec::new),
+            parent_id: self.parent_id,
+            position: 0,
+            rate_limit_per_user: self.rate_limit_per_user,
+            topic: self.topic,
+        }
+    }
+}
+
+/// Fillable struct to send new voice channels to a guild create.
+#[derive(Clone, Debug)]
+pub struct VoiceChannelFragment {
+    pub bitrate: Option<u64>,
+    pub name: String,
+    pub parent_id: Option<ChannelId>,
+    pub permission_overwrites: Option<Vec<PermissionOverwrite>>,
+    pub user_limit: Option<u64>,
+}
+
+impl Into<VoiceChannel> for VoiceChannelFragment {
+    fn into(self) -> VoiceChannel {
+        VoiceChannel {
+            bitrate: self.bitrate.unwrap_or(64000),
+            guild_id: Some(GuildId(1)),
+            id: ChannelId(502),
+            kind: ChannelType::GuildVoice,
+            name: self.name,
+            permission_overwrites: self.permission_overwrites.unwrap_or_else(Vec::new),
+            parent_id: self.parent_id,
+            position: 0,
+            user_limit: self.user_limit.or(Some(0)),
+        }
+    }
 }
 
 /// Create a new request to create a guild.
@@ -111,19 +213,48 @@ impl<'a> CreateGuild<'a> {
 
     /// Set the channels to create with the guild.
     ///
-    /// The maximum number of channels that can be provided is 500.
+    /// The maximum number of channels that can be provided is 500. A `Vec` of
+    /// [`GuildChannelFragment`]s must be passed. The channels will be created in the order they
+    /// are passed. If inserting [`CategoryChannelFragment`]s, all child channels must be after the
+    /// category, and any non-children [`GuildChannelFragment`]s can not be between the children.
+    /// To specify `PermissionOverwrite`s, set the `PermissionOverwriteType` to `Role`, and its
+    /// `RoleId` to the id of a role you create with [`CreateGuild#roles`]. This `Vec` will be
+    /// transformed into temporary instances of each channel type, and sent to Discord for
+    /// validation.
     ///
     /// # Errors
     ///
     /// Returns [`CreateGuildError::TooManyChannels`] if the number of channels is over 500.
     ///
+    /// [`GuildChannelFragment`]: enum.GuildChannelFragment.html
+    /// [`CategoryChannelFragment`]: struct.CategoryChannelFragment.html
     /// [`CreateGuildError::TooManyChannels`]: enum.CreateGuildError.html#variant.TooManyChannels
-    pub fn channels(mut self, channels: Vec<GuildChannel>) -> Result<Self, CreateGuildError> {
+    /// [`CreateGuild#roles`]: struct.CreateGuild.html#method.roles
+    pub fn channels(
+        mut self,
+        fragments: Vec<GuildChannelFragment>,
+    ) -> Result<Self, CreateGuildError> {
         // Error 30013
         // <https://discordapp.com/developers/docs/topics/opcodes-and-status-codes#json>
-        if channels.len() > 500 {
-            return Err(CreateGuildError::TooManyChannels { channels });
+        if fragments.len() > 500 {
+            return Err(CreateGuildError::TooManyChannels {
+                channels: fragments,
+            });
         }
+
+        let mut channels: Vec<GuildChannel> = Vec::new();
+
+        for fragment in fragments.into_iter() {
+            let channel: GuildChannel = match fragment {
+                GuildChannelFragment::Category(c) => GuildChannel::Category(c.into()),
+                GuildChannelFragment::Text(t) => GuildChannel::Text(t.into()),
+                GuildChannelFragment::Voice(v) => GuildChannel::Voice(v.into()),
+            };
+
+            channels.push(channel);
+        }
+
+        println!("{:#?}", channels);
 
         self.fields.channels.replace(channels);
 
@@ -170,6 +301,32 @@ impl<'a> CreateGuild<'a> {
         self
     }
 
+    /// Set overrides to the everyone role.
+    pub fn override_everyone(mut self, fragment: RoleFragment) -> Self {
+        let everyone = Role {
+            color: fragment.color.unwrap_or(0),
+            hoist: fragment.hoist,
+            id: RoleId(1),
+            managed: false,
+            mentionable: fragment.mentionable,
+            name: fragment.name.unwrap_or_else(|| String::from("@everyone")),
+            permissions: fragment.permissions.unwrap_or_else(Permissions::empty),
+            position: fragment.position.unwrap_or(0),
+        };
+
+        let mut roles: Vec<Role> = vec![everyone];
+
+        // if some roles have already been set, retain them
+        if self.fields.roles.is_some() {
+            let fields_roles = self.fields.roles.take().unwrap();
+            roles.extend_from_slice(&fields_roles[1..]);
+        }
+
+        self.fields.roles.replace(roles);
+
+        self
+    }
+
     /// Specify the voice server region for the guild. Refer to [the discord docs] for more
     /// information.
     ///
@@ -182,7 +339,9 @@ impl<'a> CreateGuild<'a> {
 
     /// Set the roles to create with the guild.
     ///
-    /// The maximum number of roles that can be provided is 250.
+    /// The maximum number of roles that can be provided is 250. A `Vec` of [`RoleFragment`]
+    /// structs must be provided. These will be turned into instances of `Role`s that are sent to
+    /// Discord. If specifying `Some` for [`RoleFragment.id`], do not use the id of 1.
     ///
     /// # Errors
     ///
@@ -190,9 +349,32 @@ impl<'a> CreateGuild<'a> {
     /// over 250.
     ///
     /// [`CreateGuildError::TooManyRoles`]: enum.CreateGuildError.html#variant.TooManyRoles
-    pub fn roles(mut self, roles: Vec<Role>) -> Result<Self, CreateGuildError> {
-        if roles.len() > 250 {
-            return Err(CreateGuildError::TooManyRoles { roles });
+    /// [`RoleFragment`]: struct.RoleFragment.html
+    /// [`RoleFragment.id`]: struct.RoleFragment.html#structfield.id
+    pub fn roles(mut self, fragments: Vec<RoleFragment>) -> Result<Self, CreateGuildError> {
+        if fragments.len() > 250 {
+            return Err(CreateGuildError::TooManyRoles { roles: fragments });
+        }
+
+        let mut roles: Vec<Role> = fragments
+            .iter()
+            .map(|f| Role {
+                color: f.color.unwrap_or(0),
+                hoist: f.hoist,
+                id: f.id.unwrap_or_else(|| RoleId(2)),
+                managed: false,
+                mentionable: f.mentionable,
+                name: f.name.clone().unwrap_or_else(String::new),
+                permissions: f.permissions.unwrap_or_else(Permissions::empty),
+                position: f.position.unwrap_or(0),
+            })
+            .collect();
+
+        // if there are already overrides, retain the first role in the vec.
+        // discord understands the first role to be overrides for @everyone.
+        if self.fields.roles.is_some() {
+            let mut fields_roles = self.fields.roles.take().unwrap();
+            roles.insert(0, fields_roles.remove(0));
         }
 
         self.fields.roles.replace(roles);
@@ -207,6 +389,100 @@ impl<'a> CreateGuild<'a> {
         )))));
 
         Ok(())
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::{CategoryChannelFragment, TextChannelFragment, VoiceChannelFragment};
+    use twilight_model::{
+        channel::{CategoryChannel, ChannelType, TextChannel, VoiceChannel},
+        id::{ChannelId, GuildId},
+    };
+
+    #[test]
+    fn category_channel() {
+        let fragment = CategoryChannelFragment {
+            id: ChannelId(1),
+            name: "cat channel".to_string(),
+            permission_overwrites: None,
+        };
+
+        let category: CategoryChannel = fragment.into();
+
+        assert_eq!(
+            category,
+            CategoryChannel {
+                guild_id: Some(GuildId(1)),
+                id: ChannelId(1),
+                kind: ChannelType::GuildCategory,
+                name: "cat channel".to_string(),
+                nsfw: false,
+                parent_id: None,
+                permission_overwrites: Vec::new(),
+                position: 0,
+            }
+        );
+    }
+
+    #[test]
+    fn text_channel() {
+        let fragment = TextChannelFragment {
+            name: "text channel".to_string(),
+            nsfw: false,
+            parent_id: None,
+            permission_overwrites: None,
+            rate_limit_per_user: None,
+            topic: Some("topic".to_string()),
+        };
+
+        let text: TextChannel = fragment.into();
+
+        assert_eq!(
+            text,
+            TextChannel {
+                guild_id: Some(GuildId(1)),
+                id: ChannelId(501),
+                kind: ChannelType::GuildText,
+                last_message_id: None,
+                last_pin_timestamp: None,
+                name: "text channel".to_string(),
+                nsfw: false,
+                permission_overwrites: Vec::new(),
+                parent_id: None,
+                position: 0,
+                rate_limit_per_user: None,
+                topic: Some("topic".to_string()),
+            }
+        );
+    }
+
+    #[test]
+    fn voice_channel() {
+        let fragment = VoiceChannelFragment {
+            bitrate: Some(64000),
+            name: "voice channel".to_string(),
+            parent_id: None,
+            permission_overwrites: None,
+            user_limit: None,
+        };
+
+        let voice: VoiceChannel = fragment.into();
+
+        assert_eq!(
+            voice,
+            VoiceChannel {
+                bitrate: 64000,
+                guild_id: Some(GuildId(1)),
+                id: ChannelId(502),
+                kind: ChannelType::GuildVoice,
+                name: "voice channel".to_string(),
+                permission_overwrites: Vec::new(),
+                parent_id: None,
+                position: 0,
+                user_limit: Some(0),
+            }
+        );
     }
 }
 
