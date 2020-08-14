@@ -159,7 +159,7 @@
 //!         .build();
 //!     let cache = InMemoryCache::from(cache_config);
 //!
-//!     let mut events = cluster.events().await;
+//!     let mut events = cluster.events();
 //!     // Startup an event loop for each event in the event stream
 //!     while let Some(event) = events.next().await {
 //!         // Update the cache

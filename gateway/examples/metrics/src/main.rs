@@ -31,7 +31,7 @@ async fn main() -> Result<(), Box<dyn Error + Send + Sync>> {
     cluster.up().await;
     println!("Started cluster");
 
-    let mut events = cluster.events().await;
+    let mut events = cluster.events();
 
     // Start exporter in a seperate task
     tokio::task::spawn_blocking(move || exporter.run());

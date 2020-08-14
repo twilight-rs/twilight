@@ -3,7 +3,7 @@ authors = ["Twilight Contributors"]
 documentation = "https://docs.rs/twilight-model"
 edition = "2018"
 homepage = "https://github.com/twilight-rs/twilight"
-include = ["src/*.rs", "Cargo.toml"]
+include = ["src/**/*.rs", "Cargo.toml"]
 keywords = ["discord", "discord-api", "twilight"]
 license = "ISC"
 name = "twilight-model"
@@ -18,6 +18,7 @@ serde = { default-features = false, features = ["derive"], version = "1" }
 serde-mappable-seq = { default-features = false, version = "0.1" }
 serde_repr = { default-features = false, version = "0.1" }
 serde-value = { default-features = false, version = "0.7" }
+tracing = { default-features = false, version = "0.1" }
 
 [dev-dependencies]
 criterion = "0.3"

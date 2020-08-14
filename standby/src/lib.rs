@@ -71,7 +71,7 @@
 //! async fn main() -> Result<(), Box<dyn Error>> {
 //!     // Start a shard connected to the gateway to receive events.
 //!     let mut shard = Shard::new(env::var("DISCORD_TOKEN")?);
-//!     let mut events = shard.events().await;
+//!     let mut events = shard.events();
 //!     shard.start().await?;
 //!
 //!     let standby = Standby::new();
@@ -131,12 +131,15 @@ use futures_channel::{
 };
 use std::{
     fmt::{Debug, Formatter, Result as FmtResult},
-    sync::Arc,
+    sync::{
+        atomic::{AtomicU64, Ordering},
+        Arc,
+    },
 };
 use twilight_model::{
     channel::Channel,
     gateway::{
-        event::{Event, EventType},
+        event::Event,
         payload::{MessageCreate, ReactionAdd},
     },
     id::{ChannelId, GuildId, MessageId},
@@ -172,7 +175,8 @@ impl<E> Debug for Bystander<E> {
 
 #[derive(Debug, Default)]
 struct StandbyRef {
-    events: DashMap<EventType, Vec<Bystander<Event>>>,
+    events: DashMap<u64, Bystander<Event>>,
+    event_counter: AtomicU64,
     guilds: DashMap<GuildId, Vec<Bystander<Event>>>,
     messages: DashMap<ChannelId, Vec<Bystander<MessageCreate>>>,
     reactions: DashMap<MessageId, Vec<Bystander<ReactionAdd>>>,
@@ -337,7 +341,7 @@ impl Standby {
     ///
     /// let standby = Standby::new();
     ///
-    /// let ready = standby.wait_for_event(EventType::Ready, |event: &Event| {
+    /// let ready = standby.wait_for_event(|event: &Event| {
     ///     if let Event::Ready(ready) = event {
     ///         ready.shard.map(|[id, _]| id == 5).unwrap_or(false)
     ///     } else {
@@ -351,18 +355,19 @@ impl Standby {
     /// [`wait_for_event_stream`]: #method.wait_for_event_stream
     pub fn wait_for_event<F: Fn(&Event) -> bool + Send + Sync + 'static>(
         &self,
-        event_type: EventType,
         check: impl Into<Box<F>>,
     ) -> WaitForEventFuture {
-        tracing::trace!("waiting for event {:?}", event_type);
+        tracing::trace!("waiting for event");
         let (tx, rx) = oneshot::channel();
 
         {
-            let mut guild = self.0.events.entry(event_type).or_default();
-            guild.push(Bystander {
-                func: check.into(),
-                sender: Some(Sender::Oneshot(tx)),
-            });
+            self.0.events.insert(
+                self.next_event_id(),
+                Bystander {
+                    func: check.into(),
+                    sender: Some(Sender::Oneshot(tx)),
+                },
+            );
         }
 
         WaitForEventFuture { rx }
@@ -388,7 +393,7 @@ impl Standby {
     ///
     /// let standby = Standby::new();
     ///
-    /// let mut events = standby.wait_for_event_stream(EventType::Ready, |event: &Event| {
+    /// let mut events = standby.wait_for_event_stream(|event: &Event| {
     ///     if let Event::Ready(ready) = event {
     ///         ready.shard.map(|[id, _]| id == 5).unwrap_or(false)
     ///     } else {
@@ -406,18 +411,19 @@ impl Standby {
     /// [`wait_for_event`]: #method.wait_for_event
     pub fn wait_for_event_stream<F: Fn(&Event) -> bool + Send + Sync + 'static>(
         &self,
-        event_type: EventType,
         check: impl Into<Box<F>>,
     ) -> WaitForEventStream {
-        tracing::trace!("waiting for event {:?}", event_type);
+        tracing::trace!("waiting for event");
         let (tx, rx) = mpsc::unbounded();
 
         {
-            let mut guild = self.0.events.entry(event_type).or_default();
-            guild.push(Bystander {
-                func: check.into(),
-                sender: Some(Sender::Mpsc(tx)),
-            });
+            self.0.events.insert(
+                self.next_event_id(),
+                Bystander {
+                    func: check.into(),
+                    sender: Some(Sender::Mpsc(tx)),
+                },
+            );
         }
 
         WaitForEventStream { rx }
@@ -620,34 +626,24 @@ impl Standby {
         WaitForReactionStream { rx }
     }
 
+    fn next_event_id(&self) -> u64 {
+        self.0.event_counter.fetch_add(1, Ordering::SeqCst)
+    }
+
     fn process_event(&self, event: &Event) {
         tracing::trace!("processing event type {:?}", event);
-        let kind = event.kind();
 
-        let remove = match self.0.events.get_mut(&kind) {
-            Some(mut bystanders) => {
-                self.iter_bystanders(&mut bystanders, event);
-
-                bystanders.is_empty()
-            }
-            None => {
-                tracing::trace!("event type {:?} has no bystanders", kind);
-
-                return;
-            }
-        };
-
-        if remove {
-            tracing::trace!("removing event type {:?}", kind);
-
-            self.0.events.remove(&kind);
-        }
+        self.0.events.retain(|_, bystander| {
+            // `bystander_process` returns whether it is fulfilled, so invert it
+            // here. If it's fulfilled, then we don't want to retain it.
+            !self.bystander_process(bystander, event)
+        });
     }
 
     fn process_guild(&self, guild_id: GuildId, event: &Event) {
         let remove = match self.0.guilds.get_mut(&guild_id) {
             Some(mut bystanders) => {
-                self.iter_bystanders(&mut bystanders, event);
+                self.bystander_iter(&mut bystanders, event);
 
                 bystanders.is_empty()
             }
@@ -668,7 +664,7 @@ impl Standby {
     fn process_message(&self, channel_id: ChannelId, event: &MessageCreate) {
         let remove = match self.0.messages.get_mut(&channel_id) {
             Some(mut bystanders) => {
-                self.iter_bystanders(&mut bystanders, event);
+                self.bystander_iter(&mut bystanders, event);
 
                 bystanders.is_empty()
             }
@@ -689,7 +685,7 @@ impl Standby {
     fn process_reaction(&self, message_id: MessageId, event: &ReactionAdd) {
         let remove = match self.0.reactions.get_mut(&message_id) {
             Some(mut bystanders) => {
-                self.iter_bystanders(&mut bystanders, event);
+                self.bystander_iter(&mut bystanders, event);
 
                 bystanders.is_empty()
             }
@@ -707,7 +703,7 @@ impl Standby {
     }
 
     /// Iterate over bystanders and remove the ones that match the predicate.
-    fn iter_bystanders<E: Clone>(&self, bystanders: &mut Vec<Bystander<E>>, event: &E) {
+    fn bystander_iter<E: Clone>(&self, bystanders: &mut Vec<Bystander<E>>, event: &E) {
         tracing::trace!("iterating over bystanders: {:?}", bystanders);
 
         let mut idx = 0;
@@ -716,45 +712,56 @@ impl Standby {
             tracing::trace!("checking bystander");
             let bystander = &mut bystanders[idx];
 
-            let sender = match bystander.sender.take() {
-                Some(sender) => sender,
-                None => {
-                    tracing::trace!("bystander has no sender, removing");
-                    bystanders.remove(idx);
-                    idx += 1;
-
-                    continue;
-                }
-            };
-
-            if sender.is_closed() {
-                tracing::trace!("bystander's rx dropped, removing");
+            if self.bystander_process(bystander, event) {
                 bystanders.remove(idx);
-
-                continue;
-            }
-
-            if !(bystander.func)(event) {
-                tracing::trace!("bystander check doesn't match, continuing");
-                bystander.sender.replace(sender);
+            } else {
                 idx += 1;
-
-                continue;
             }
+        }
+    }
 
-            match sender {
-                Sender::Oneshot(tx) => {
-                    let _ = tx.send(event.clone());
-                    tracing::trace!("bystander matched event, removing");
-                    bystanders.remove(idx);
-                }
-                Sender::Mpsc(tx) => {
-                    if tx.unbounded_send(event.clone()).is_ok() {
-                        bystander.sender.replace(Sender::Mpsc(tx));
-                        idx += 1;
-                    } else {
-                        bystanders.remove(idx);
-                    }
+    /// Process a bystander, sending the event if the sender is active and the
+    /// predicate matches. Returns whether the bystander has fulfilled.
+    ///
+    /// Returns `true` if the bystander is fulfilled, meaning that the channel
+    /// is now closed or the predicate matched and the event closed.
+    fn bystander_process<E: Clone>(&self, bystander: &mut Bystander<E>, event: &E) -> bool {
+        let sender = match bystander.sender.take() {
+            Some(sender) => sender,
+            None => {
+                tracing::trace!("bystander has no sender, indicating for removal");
+
+                return true;
+            }
+        };
+
+        if sender.is_closed() {
+            tracing::trace!("bystander's rx dropped, indicating for removal");
+
+            return true;
+        }
+
+        if !(bystander.func)(event) {
+            tracing::trace!("bystander check doesn't match, continuing");
+            bystander.sender.replace(sender);
+
+            return false;
+        }
+
+        match sender {
+            Sender::Oneshot(tx) => {
+                let _ = tx.send(event.clone());
+                tracing::trace!("bystander matched event, indicating for removal");
+
+                true
+            }
+            Sender::Mpsc(tx) => {
+                if tx.unbounded_send(event.clone()).is_ok() {
+                    bystander.sender.replace(Sender::Mpsc(tx));
+
+                    false
+                } else {
+                    true
                 }
             }
         }
@@ -790,7 +797,7 @@ fn event_guild_id(event: &Event) -> Option<GuildId> {
         Event::MessageDelete(_) => None,
         Event::MessageDeleteBulk(_) => None,
         Event::MessageUpdate(_) => None,
-        Event::PresenceUpdate(e) => e.guild_id,
+        Event::PresenceUpdate(e) => Some(e.guild_id),
         Event::PresencesReplace => None,
         Event::ReactionAdd(e) => e.guild_id,
         Event::ReactionRemove(e) => e.guild_id,
@@ -979,7 +986,7 @@ mod tests {
         let event = Event::Ready(Box::new(ready));
 
         let standby = Standby::new();
-        let wait = standby.wait_for_event(EventType::Ready, |event: &Event| match event {
+        let wait = standby.wait_for_event(|event: &Event| match event {
             Event::Ready(ready) => ready.shard.map(|[id, _]| id == 5).unwrap_or(false),
             _ => false,
         });
@@ -993,7 +1000,8 @@ mod tests {
     #[tokio::test]
     async fn test_wait_for_event_stream() {
         let standby = Standby::new();
-        let mut stream = standby.wait_for_event_stream(EventType::Resumed, |_: &Event| true);
+        let mut stream =
+            standby.wait_for_event_stream(|event: &Event| event.kind() == EventType::Resumed);
         standby.process(&Event::Resumed);
         assert_eq!(stream.next().await, Some(Event::Resumed));
         assert!(!standby.0.events.is_empty());
@@ -1065,9 +1073,7 @@ mod tests {
     #[tokio::test]
     async fn test_handles_wrong_events() {
         let standby = Standby::new();
-        let wait = standby.wait_for_event(EventType::Resumed, |event: &Event| {
-            matches!(event, Event::Resumed)
-        });
+        let wait = standby.wait_for_event(|event: &Event| event.kind() == EventType::Resumed);
 
         standby.process(&Event::PresencesReplace);
         standby.process(&Event::PresencesReplace);

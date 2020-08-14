@@ -1,11 +1,15 @@
 use bitflags::bitflags;
 use serde::{
-    de::{Deserialize, Deserializer},
-    ser::{Serialize, Serializer},
+    de::{Deserialize, Deserializer, Error as DeError, Visitor},
+    ser::{Error as SerError, Serialize, Serializer},
+};
+use std::{
+    convert::TryInto,
+    fmt::{Formatter, Result as FmtResult},
 };
 
 bitflags! {
-    pub struct Permissions: u64 {
+    pub struct Permissions: u128 {
         const CREATE_INVITE = 0x0000_0001;
         const KICK_MEMBERS = 0x0000_0002;
         const BAN_MEMBERS = 0x0000_0004;
@@ -40,17 +44,68 @@ bitflags! {
     }
 }
 
+pub(crate) fn serialize_u64<S: Serializer>(
+    permissions: &Permissions,
+    serializer: S,
+) -> Result<S::Ok, S::Error> {
+    let bits = permissions
+        .bits()
+        .try_into()
+        .map_err(|_| SerError::custom("permission bits can't be a u64"))?;
+
+    serializer.serialize_u64(bits)
+}
+
+struct PermissionsVisitor;
+
+impl<'de> Visitor<'de> for PermissionsVisitor {
+    type Value = Permissions;
+
+    fn expecting(&self, f: &mut Formatter<'_>) -> FmtResult {
+        f.write_str("integer or string permissions")
+    }
+
+    fn visit_u128<E: DeError>(self, v: u128) -> Result<Self::Value, E> {
+        Ok(Permissions::from_bits_truncate(v))
+    }
+
+    fn visit_u64<E: DeError>(self, v: u64) -> Result<Self::Value, E> {
+        self.visit_u128(u128::from(v))
+    }
+
+    fn visit_str<E: DeError>(self, v: &str) -> Result<Self::Value, E> {
+        let num = v
+            .parse()
+            .map_err(|_| DeError::custom("permissions is not valid bitflags"))?;
+
+        self.visit_u128(num)
+    }
+}
+
 impl<'de> Deserialize<'de> for Permissions {
     fn deserialize<D: Deserializer<'de>>(deserializer: D) -> Result<Self, D::Error> {
-        Ok(Self::from_bits_truncate(u64::deserialize(deserializer)?))
+        deserializer.deserialize_any(PermissionsVisitor)
     }
 }
 
 impl Serialize for Permissions {
-    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
-    where
-        S: Serializer,
-    {
-        serializer.serialize_u64(self.bits())
+    fn serialize<S: Serializer>(&self, serializer: S) -> Result<S::Ok, S::Error> {
+        serializer.serialize_str(&self.bits().to_string())
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::Permissions;
+    use serde_test::Token;
+
+    #[test]
+    fn test_permissions() {
+        let permissions = Permissions::DEAFEN_MEMBERS;
+
+        serde_test::assert_tokens(&permissions, &[Token::Str("8388608")]);
+        // serde_test doesn't support a u128. Only test deserialization here
+        // since it serializes into a string.
+        serde_test::assert_de_tokens(&permissions, &[Token::U64(8388608)]);
     }
 }

@@ -125,7 +125,7 @@ pub struct ClusterConfig {
     shard_config: ShardConfig,
     shard_scheme: ShardScheme,
     queue: Arc<Box<dyn Queue>>,
-    resume_sessions: HashMap<u64, ResumeSession>,
+    pub(super) resume_sessions: HashMap<u64, ResumeSession>,
 }
 
 impl ClusterConfig {

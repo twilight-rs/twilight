@@ -18,7 +18,7 @@
 //!
 //!     cluster.up().await;
 //!
-//!     let mut events = cluster.events().await;
+//!     let mut events = cluster.events();
 //!
 //!     while let Some((shard_id, event)) = events.next().await {
 //!         tokio::spawn(handle_event(cluster.clone(), shard_id, event));
@@ -38,8 +38,8 @@
 //!             println!("Shard {} is now disconnected", shard_id);
 //!         },
 //!         Event::MessageCreate(msg) if msg.content == "!latency" => {
-//!             if let Some(shard) = cluster.shard(shard_id).await {
-//!                 if let Ok(info) = shard.info().await {
+//!             if let Some(shard) = cluster.shard(shard_id) {
+//!                 if let Ok(info) = shard.info() {
 //!                     println!("Shard {}'s latency is {:?}", shard_id, info.latency());
 //!                 }
 //!             }
@@ -47,7 +47,7 @@
 //!         Event::MessageCreate(msg) if msg.content == "!shutdown" => {
 //!             println!("Got a shutdown request from shard {}", shard_id);
 //!
-//!             cluster.down().await;
+//!             cluster.down();
 //!         },
 //!         _ => {},
 //!     }

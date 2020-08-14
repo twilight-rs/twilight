@@ -82,7 +82,7 @@
 //!     let mut shard = Shard::new(token);
 //!     shard.start().await?;
 //!
-//!     let mut events = shard.events().await;
+//!     let mut events = shard.events();
 //!
 //!     while let Some(event) = events.next().await {
 //!         lavalink.process(&event).await?;

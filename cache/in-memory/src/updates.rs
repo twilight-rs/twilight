@@ -536,13 +536,13 @@ impl UpdateCache<InMemoryCache, InMemoryCacheError> for PresenceUpdate {
             activities: self.activities.clone(),
             client_status: self.client_status.clone(),
             game: self.game.clone(),
-            guild_id: self.guild_id,
+            guild_id: Some(self.guild_id),
             nick: self.nick.clone(),
             status: self.status,
             user: self.user.clone(),
         };
 
-        cache.cache_presence(self.guild_id, presence).await;
+        cache.cache_presence(Some(self.guild_id), presence).await;
 
         Ok(())
     }
@@ -782,5 +782,76 @@ impl UpdateCache<InMemoryCache, InMemoryCacheError> for VoiceStateUpdate {
 impl UpdateCache<InMemoryCache, InMemoryCacheError> for WebhooksUpdate {
     async fn update(&self, _: &InMemoryCache) -> Result<(), InMemoryCacheError> {
         Ok(())
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use twilight_model::{
+        channel::{ChannelType, GuildChannel, TextChannel},
+        gateway::payload::ChannelDelete,
+        id::{ChannelId, GuildId},
+    };
+
+    fn guild_channel_text() -> (GuildId, ChannelId, GuildChannel) {
+        let guild_id = GuildId(1);
+        let channel_id = ChannelId(2);
+        let channel = GuildChannel::Text(TextChannel {
+            guild_id: Some(guild_id),
+            id: channel_id,
+            kind: ChannelType::GuildText,
+            last_message_id: None,
+            last_pin_timestamp: None,
+            name: "test".to_owned(),
+            nsfw: false,
+            parent_id: None,
+            permission_overwrites: Vec::new(),
+            position: 3,
+            rate_limit_per_user: None,
+            topic: None,
+        });
+
+        (guild_id, channel_id, channel)
+    }
+
+    #[tokio::test]
+    async fn test_channel_delete_guild() {
+        let cache = InMemoryCache::new();
+        let (guild_id, channel_id, channel) = guild_channel_text();
+
+        cache.cache_guild_channel(guild_id, channel.clone()).await;
+        assert_eq!(1, cache.0.channels_guild.len());
+        assert!(cache
+            .0
+            .guild_channels
+            .get(&guild_id)
+            .unwrap()
+            .contains(&channel_id));
+
+        cache
+            .update(&ChannelDelete(Channel::Guild(channel)))
+            .await
+            .unwrap();
+        assert!(cache.0.channels_guild.is_empty());
+        assert!(cache.0.guild_channels.get(&guild_id).unwrap().is_empty());
+    }
+
+    #[tokio::test]
+    async fn test_channel_update_guild() {
+        let cache = InMemoryCache::new();
+        let (guild_id, channel_id, channel) = guild_channel_text();
+
+        cache
+            .update(&ChannelUpdate(Channel::Guild(channel)))
+            .await
+            .unwrap();
+        assert_eq!(1, cache.0.channels_guild.len());
+        assert!(cache
+            .0
+            .guild_channels
+            .get(&guild_id)
+            .unwrap()
+            .contains(&channel_id));
     }
 }

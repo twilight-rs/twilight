@@ -8,7 +8,7 @@ use twilight_model::{
 struct UpdateRoleFields {
     #[allow(clippy::option_option)]
     #[serde(skip_serializing_if = "Option::is_none")]
-    color: Option<Option<u64>>,
+    color: Option<Option<u32>>,
     #[serde(skip_serializing_if = "Option::is_none")]
     hoist: Option<bool>,
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -43,7 +43,7 @@ impl<'a> UpdateRole<'a> {
     }
 
     /// Set the color of the role.
-    pub fn color(mut self, color: impl Into<Option<u64>>) -> Self {
+    pub fn color(mut self, color: impl Into<Option<u32>>) -> Self {
         self.fields.color.replace(color.into());
 
         self

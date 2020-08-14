@@ -1,6 +1,6 @@
 use crate::{
     channel::{embed::Embed, message::MessageType, Attachment},
-    id::{ChannelId, MessageId, RoleId},
+    id::{ChannelId, GuildId, MessageId, RoleId},
     user::User,
 };
 use serde::{Deserialize, Serialize};
@@ -13,6 +13,7 @@ pub struct MessageUpdate {
     pub content: Option<String>,
     pub edited_timestamp: Option<String>,
     pub embeds: Option<Vec<Embed>>,
+    pub guild_id: Option<GuildId>,
     pub id: MessageId,
     #[serde(rename = "type")]
     pub kind: Option<MessageType>,

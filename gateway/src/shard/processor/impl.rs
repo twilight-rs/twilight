@@ -266,11 +266,7 @@ impl ShardProcessor {
 
         let session = Arc::new(Session::new(tx));
         if resumable {
-            session
-                .id
-                .lock()
-                .await
-                .replace(config.session_id.clone().unwrap());
+            session.set_id(config.session_id.clone().unwrap());
             session
                 .seq
                 .store(config.sequence.unwrap(), Ordering::Relaxed)
@@ -401,7 +397,7 @@ impl ShardProcessor {
                 match dispatch.deref() {
                     DispatchEvent::Ready(ready) => {
                         self.session.set_stage(Stage::Connected);
-                        self.session.set_id(&ready.session_id).await;
+                        self.session.set_id(&ready.session_id);
 
                         emit::event(
                             &self.listeners,
@@ -420,7 +416,7 @@ impl ShardProcessor {
                                 shard_id: self.config.shard()[0],
                             }),
                         );
-                        self.session.heartbeats.receive().await;
+                        self.session.heartbeats.receive();
                     }
                     _ => {}
                 }
@@ -451,11 +447,11 @@ impl ShardProcessor {
                     let payload = Resume::new(seq, &id, self.config.token());
 
                     // Set id so it is correct for next resume.
-                    self.session.set_id(id).await;
+                    self.session.set_id(id);
 
                     if *interval > 0 {
                         self.session.set_heartbeat_interval(*interval);
-                        self.session.start_heartbeater().await;
+                        self.session.start_heartbeater();
                     }
 
                     self.send(payload)
@@ -466,7 +462,7 @@ impl ShardProcessor {
 
                     if *interval > 0 {
                         self.session.set_heartbeat_interval(*interval);
-                        self.session.start_heartbeater().await;
+                        self.session.start_heartbeater();
                     }
 
                     self.identify()
@@ -477,7 +473,7 @@ impl ShardProcessor {
             HeartbeatAck => {
                 #[cfg(feature = "metrics")]
                 metrics::counter!("GatewayEvent", 1, "GatewayEvent" => "HeartbeatAck");
-                self.session.heartbeats.receive().await;
+                self.session.heartbeats.receive();
             }
             InvalidateSession(true) => {
                 #[cfg(feature = "metrics")]
@@ -588,11 +584,11 @@ impl ShardProcessor {
     async fn resume(&mut self) {
         tracing::info!("resuming shard {:?}", self.config.shard());
         self.session.set_stage(Stage::Resuming);
-        self.session.stop_heartbeater().await;
+        self.session.stop_heartbeater();
 
         let seq = self.session.seq();
 
-        let id = if let Some(id) = self.session.id().await {
+        let id = if let Some(id) = self.session.id() {
             id
         } else {
             tracing::warn!("session id unavailable, reconnecting");
