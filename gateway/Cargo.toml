@@ -45,3 +45,4 @@ tokio = { default-features = false, features = ["rt-core", "macros"], version = 
 default = ["rustls"]
 native = ["twilight-http/native", "async-tungstenite/tokio-native-tls"]
 rustls = ["twilight-http/rustls", "async-tungstenite/async-tls"]
+simd-zlib = ["flate2/cloudflare_zlib"]
