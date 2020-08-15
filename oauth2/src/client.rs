@@ -1,7 +1,11 @@
 use super::{
     access_token_exchange::AccessTokenExchangeBuilder,
-    authorization_url::{AuthorizationUrlBuilder, RedirectUriInvalidError},
+    authorization_url::{AuthorizationUrlBuilder, BotAuthorizationUrlBuilder},
     refresh_token_exchange::RefreshTokenExchangeBuilder,
+};
+use std::{
+    error::Error,
+    fmt::{Display, Formatter, Result as FmtResult},
 };
 use twilight_model::id::ApplicationId;
 use url::{ParseError, Url};
@@ -10,6 +14,42 @@ use url::{ParseError, Url};
 #[non_exhaustive]
 pub enum CreateClientError<'a> {
     RedirectUriInvalid { source: ParseError, uri: &'a str },
+}
+
+impl Display for CreateClientError<'_> {
+    fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
+        f.write_str("creating oauth2 client failed: ")?;
+
+        match self {
+            Self::RedirectUriInvalid { source, .. } => Display::fmt(source, f),
+        }
+    }
+}
+
+impl Error for CreateClientError<'_> {
+    fn source(&self) -> Option<&(dyn Error + 'static)> {
+        match self {
+            Self::RedirectUriInvalid { source, .. } => Some(source),
+        }
+    }
+}
+
+#[derive(Clone, Debug, Eq, PartialEq)]
+#[non_exhaustive]
+pub enum RedirectUriInvalidError<'a> {
+    /// The provided URI string isn't a valid URI.
+    Invalid {
+        /// Reason for the error.
+        source: ParseError,
+        /// Provided URI string.
+        uri: &'a str,
+    },
+    /// The provided redirect URI is valid, but isn't in the client's list of
+    /// configured redirect URIs.
+    Unconfigured {
+        /// Parsed URI.
+        uri: Url,
+    },
 }
 
 #[derive(Clone, Debug)]
@@ -44,6 +84,32 @@ impl Client {
         })
     }
 
+    /// Return a builder to create a URL for bot authorization.
+    ///
+    /// # Examples
+    ///
+    /// Create a bot authorization URL requesting the "Send Messages"
+    /// permission:
+    ///
+    /// ```
+    /// # fn main() -> Result<(), Box<dyn std::error::Error>> {
+    /// use twilight_model::{guild::Permissions, id::ApplicationId};
+    /// use twilight_oauth2::Client;
+    ///
+    /// let application_id = ApplicationId(123);
+    /// let client_secret = "abcdef01234567890";
+    ///
+    /// let client = Client::new(application_id, client_secret, &["https://example.com"])?;
+    /// let mut url_builder = client.bot_authorization_url();
+    /// url_builder.permissions(Permissions::SEND_MESSAGES);
+    ///
+    /// println!("bot authorization url: {}", url_builder.build());
+    /// # Ok(()) }
+    /// ```
+    pub fn bot_authorization_url(&self) -> BotAuthorizationUrlBuilder<'_> {
+        BotAuthorizationUrlBuilder::new(self)
+    }
+
     pub fn authorization_url<'a>(
         &'a self,
         redirect_uri: &'a str,
@@ -75,6 +141,24 @@ impl Client {
     /// Return an immutable reference to the configured redirect URIs.
     pub fn redirect_uris(&self) -> &[Url] {
         self.redirect_uris.as_ref()
+    }
+
+    pub(crate) fn redirect_uri<'a>(
+        &'a self,
+        redirect_uri: &'a str,
+    ) -> Result<&'a Url, RedirectUriInvalidError<'a>> {
+        let url = Url::parse(redirect_uri).map_err(|source| RedirectUriInvalidError::Invalid {
+            source,
+            uri: redirect_uri,
+        })?;
+
+        let redirect_uri = self
+            .redirect_uris()
+            .iter()
+            .find(|uri| **uri == url)
+            .ok_or_else(|| RedirectUriInvalidError::Unconfigured { uri: url })?;
+
+        Ok(redirect_uri)
     }
 }
 
