@@ -1,5 +1,7 @@
 //! # twilight-lavalink
 //!
+//! [![github badge][]][github link] [![license badge][]][license link] ![rust badge]
+//!
 //! `twilight-lavalink` is a client for [Lavalink] as part of the twilight
 //! ecosystem.
 //!
@@ -98,8 +100,13 @@
 //! [`http`]: https://crates.io/crates/http
 //! [`rustls`]: https://crates.io/crates/rustls
 //! [client]: client/struct.Lavalink.html
+//! [github badge]: https://img.shields.io/badge/github-twilight-6f42c1.svg?style=for-the-badge&logo=github
+//! [github link]: https://github.com/twilight-rs/twilight
+//! [license badge]: https://img.shields.io/badge/license-ISC-blue.svg?style=for-the-badge&logo=pastebin
+//! [license link]: https://github.com/twilight-rs/twilight/blob/trunk/LICENSE.md
 //! [node]: node/struct.Node.html
 //! [process]: client/struct.Lavalink.html#method.process
+//! [rust badge]: https://img.shields.io/badge/rust-stable-93450a.svg?style=for-the-badge&logo=rust
 
 #![deny(
     clippy::all,

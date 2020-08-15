@@ -1,8 +1,8 @@
 <!-- cargo-sync-readme start -->
 
-[![license badge][]][license link] [![rust badge]][rust link]
-
 # twilight-model
+
+[![github badge][]][github link] [![license badge][]][license link] ![rust badge]
 
 See the [`twilight`] documentation for more information.
 
@@ -39,9 +39,10 @@ twilight-model = "0.1"
 
 [LICENSE.md]: https://github.com/twilight-rs/twilight/blob/trunk/LICENSE.md
 [`twilight`]: https://docs.rs/twilight
-[license badge]: https://img.shields.io/badge/license-ISC-blue.svg?style=flat-square
-[license link]: https://opensource.org/licenses/ISC
-[rust badge]: https://img.shields.io/badge/rust-1.31+-93450a.svg?style=flat-square
-[rust link]: https://blog.rust-lang.org/2018/12/06/Rust-1.31-and-rust-2018.html
+[github badge]: https://img.shields.io/badge/github-twilight-6f42c1.svg?style=for-the-badge&logo=github
+[github link]: https://github.com/twilight-rs/twilight
+[license badge]: https://img.shields.io/badge/license-ISC-blue.svg?style=for-the-badge&logo=pastebin
+[license link]: https://github.com/twilight-rs/twilight/blob/trunk/LICENSE.md
+[rust badge]: https://img.shields.io/badge/rust-stable-93450a.svg?style=for-the-badge&logo=rust
 
 <!-- cargo-sync-readme end -->
