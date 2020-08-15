@@ -1,7 +1,9 @@
 use super::{
+    super::{
+        scope::{self, Scope},
+        Client, GrantType,
+    },
     access_token_exchange::AccessTokenExchangeResponse,
-    scope::{self, Scope},
-    Client, GrantType,
 };
 use serde::Serialize;
 use std::fmt::Write;

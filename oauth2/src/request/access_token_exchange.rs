@@ -1,4 +1,4 @@
-use super::{
+use super::super::{
     scope::{self, Scope},
     Client, GrantType, TokenType,
 };

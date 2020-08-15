@@ -1,8 +1,10 @@
 use super::{
-    access_token_exchange::AccessTokenExchangeBuilder,
     authorization_url::{AuthorizationUrlBuilder, BotAuthorizationUrlBuilder},
-    client_credentials_grant::ClientCredentialsGrantBuilder,
-    refresh_token_exchange::RefreshTokenExchangeBuilder,
+    request::{
+        access_token_exchange::AccessTokenExchangeBuilder,
+        client_credentials_grant::ClientCredentialsGrantBuilder,
+        refresh_token_exchange::RefreshTokenExchangeBuilder,
+    },
 };
 use std::{
     error::Error,

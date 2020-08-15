@@ -16,11 +16,9 @@
 //! [`twilight-rs`]: https://github.com/twilight-rs/twilight
 //! [OAuth 2 API]: https://discord.com/developers/docs/topics/oauth2
 
-pub mod access_token_exchange;
 pub mod authorization_url;
 pub mod client;
-pub mod client_credentials_grant;
-pub mod refresh_token_exchange;
+pub mod request;
 
 mod grant_type;
 mod prompt;
