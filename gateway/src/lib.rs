@@ -68,7 +68,14 @@
 //!
 //! This is enabled by default.
 //!
+//! ### zlib
+//!
+//! The `simd-zlib` feature enables [`flate2`]'s [`cloudflare_zlib`] feature which
+//! uses Cloudflares SIMD-accelerated fork of zlib.
+//!
 //! [`async-tungstenite`]: https://crates.io/crates/async-tungstenite
+//! [`cloudflare_zlib`]: https://crates.io/crates/cloudflare-zlib
+//! [`flate2`]: https://crates.io/crates/flate2
 //! [`native-tls`]: https://crates.io/crates/native-tls
 //! [`rustls`]: https://crates.io/crates/rustls
 //! [`serde_json`]: https://crates.io/crates/serde_json
