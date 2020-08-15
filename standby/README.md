@@ -2,6 +2,8 @@
 
 # twilight-standby
 
+[![github badge][]][github link] [![license badge][]][license link] ![rust badge]
+
 Standby is a utility to wait for an event to happen based on a predicate
 check. For example, you may have a command that has a reaction menu of ✅ and
 ❌. If you want to handle a reaction to these, using something like an
@@ -116,5 +118,10 @@ For more examples, check out each of the methods on [`Standby`].
 [`Standby::wait_for_message`]: struct.Standby.html#method.wait_for_message
 [`Standby::wait_for_message_stream`]: struct.Standby.html#method.wait_for_message_stream
 [`Standby::wait_for_reaction`]: struct.Standby.html#method.wait_for_reaction
+[github badge]: https://img.shields.io/badge/github-twilight-6f42c1.svg?style=for-the-badge&logo=github
+[github link]: https://github.com/twilight-rs/twilight
+[license badge]: https://img.shields.io/badge/license-ISC-blue.svg?style=for-the-badge&logo=pastebin
+[license link]: https://github.com/twilight-rs/twilight/blob/trunk/LICENSE.md
+[rust badge]: https://img.shields.io/badge/rust-stable-93450a.svg?style=for-the-badge&logo=rust
 
 <!-- cargo-sync-readme end -->
