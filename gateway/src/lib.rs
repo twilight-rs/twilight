@@ -76,6 +76,7 @@
 //! [`async-tungstenite`]: https://crates.io/crates/async-tungstenite
 //! [`cloudflare_zlib`]: https://crates.io/crates/cloudflare-zlib
 //! [`flate2`]: https://crates.io/crates/flate2
+//! [`native-tls`]: https://crates.io/crates/native-tls
 //! [`rustls`]: https://crates.io/crates/rustls
 //! [`serde_json`]: https://crates.io/crates/serde_json
 //! [`simd-json`]: https://crates.io/crates/simd-json
