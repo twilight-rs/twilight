@@ -1,6 +1,6 @@
-//! [![license badge][]][license link] [![rust badge]][rust link]
-//!
 //! # twilight-command-parser
+//!
+//! [![github badge][]][github link] [![license badge][]][license link] ![rust badge]
 //!
 //! `twilight-command-parser` is a command parser for the [`twilight-rs`]
 //! ecosystem.
@@ -55,10 +55,11 @@
 //! }
 //! ```
 //!
-//! [license badge]: https://img.shields.io/badge/license-ISC-blue.svg?style=flat-square
-//! [license link]: https://opensource.org/licenses/ISC
-//! [rust badge]: https://img.shields.io/badge/rust-1.36+-93450a.svg?style=flat-square
-//! [rust link]: https://blog.rust-lang.org/2019/07/04/Rust-1.36.0.html
+//! [github badge]: https://img.shields.io/badge/github-twilight-6f42c1.svg?style=for-the-badge&logo=github
+//! [github link]: https://github.com/twilight-rs/twilight
+//! [license badge]: https://img.shields.io/badge/license-ISC-blue.svg?style=for-the-badge&logo=pastebin
+//! [license link]: https://github.com/twilight-rs/twilight/blob/trunk/LICENSE.md
+//! [rust badge]: https://img.shields.io/badge/rust-stable-93450a.svg?style=for-the-badge&logo=rust
 //! [`twilight-rs`]: https://github.com/twilight-rs/twilight
 
 #![deny(

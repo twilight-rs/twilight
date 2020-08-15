@@ -1,10 +1,10 @@
 <!-- cargo-sync-readme start -->
 
-[![license badge][]][license link] [![rust badge]][rust link]
+# twilight
+
+[![github badge][]][github link] [![license badge][]][license link] ![rust badge]
 
 ![project logo][logo]
-
-# twilight
 
 `twilight` is an asynchronous, simple, and extensible set of libraries which can
 be used separately or in combination for the Discord API.
@@ -209,11 +209,12 @@ All first-party crates are licensed under [ISC][LICENSE.md]
 [Lavalink]: https://github.com/Frederikam/Lavalink
 [`http`]: https://crates.io/crates/http
 [docs:discord:sharding]: https://discord.com/developers/docs/topics/gateway#sharding
-[license badge]: https://img.shields.io/badge/license-ISC-blue.svg?style=flat-square
-[license link]: https://opensource.org/licenses/ISC
+[github badge]: https://img.shields.io/badge/github-twilight-6f42c1.svg?style=for-the-badge&logo=github
+[github link]: https://github.com/twilight-rs/twilight
+[license badge]: https://img.shields.io/badge/license-ISC-blue.svg?style=for-the-badge&logo=pastebin
+[license link]: https://github.com/twilight-rs/twilight/blob/trunk/LICENSE.md
 [logo]: https://raw.githubusercontent.com/twilight-rs/twilight/trunk/logo.png
-[rust badge]: https://img.shields.io/badge/rust-1.40+%20(stable)-93450a.svg?style=flat-square
-[rust link]: https://github.com/rust-lang/rust/milestone/66
+[rust badge]: https://img.shields.io/badge/rust-stable-93450a.svg?style=for-the-badge&logo=rust
 [`twilight-embed-builder`]: https://github.com/twilight-rs/twilight/tree/trunk/utils/embed-builder
 [`twilight-lavalink`]: https://github.com/twilight-rs/twilight/tree/trunk/lavalink
 [`twilight-mention`]: https://github.com/twilight-rs/twilight/tree/trunk/utils/mention

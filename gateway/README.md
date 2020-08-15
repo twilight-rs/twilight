@@ -2,6 +2,8 @@
 
 # twilight-gateway
 
+[![github badge][]][github link] [![license badge][]][license link] ![rust badge]
+
 `twilight-gateway` is an implementation of Discord's sharding gateway sessions.
 This is responsible for receiving stateful events in real-time from Discord
 and sending *some* stateful information.
@@ -77,5 +79,10 @@ This is enabled by default.
 [`simd-json`]: https://crates.io/crates/simd-json
 [`twilight-http`]: https://twilight-rs.github.io/twilight/twilight_http/index.html
 [docs:discord:sharding]: https://discord.com/developers/docs/topics/gateway#sharding
+[github badge]: https://img.shields.io/badge/github-twilight-6f42c1.svg?style=for-the-badge&logo=github
+[github link]: https://github.com/twilight-rs/twilight
+[license badge]: https://img.shields.io/badge/license-ISC-blue.svg?style=for-the-badge&logo=pastebin
+[license link]: https://github.com/twilight-rs/twilight/blob/trunk/LICENSE.md
+[rust badge]: https://img.shields.io/badge/rust-stable-93450a.svg?style=for-the-badge&logo=rust
 
 <!-- cargo-sync-readme end -->

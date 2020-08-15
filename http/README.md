@@ -2,6 +2,8 @@
 
 # twilight-http
 
+[![github badge][]][github link] [![license badge][]][license link] ![rust badge]
+
 HTTP support for the twilight ecosystem.
 
 ## Features
@@ -65,5 +67,10 @@ This is enabled by default.
 [`rustls`]: https://crates.io/crates/rustls
 [`serde_json`]: https://crates.io/crates/serde_json
 [`simd-json`]: https://crates.io/crates/simd-json
+[github badge]: https://img.shields.io/badge/github-twilight-6f42c1.svg?style=for-the-badge&logo=github
+[github link]: https://github.com/twilight-rs/twilight
+[license badge]: https://img.shields.io/badge/license-ISC-blue.svg?style=for-the-badge&logo=pastebin
+[license link]: https://github.com/twilight-rs/twilight/blob/trunk/LICENSE.md
+[rust badge]: https://img.shields.io/badge/rust-stable-93450a.svg?style=for-the-badge&logo=rust
 
 <!-- cargo-sync-readme end -->
