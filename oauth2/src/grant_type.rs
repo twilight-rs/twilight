@@ -5,6 +5,7 @@ use serde::{Deserialize, Serialize};
 #[serde(rename_all = "snake_case")]
 pub enum GrantType {
     AuthorizationCode,
+    ClientCredentials,
     RefreshToken,
 }
 
@@ -23,6 +24,7 @@ impl GrantType {
     pub fn name(&self) -> &str {
         match self {
             Self::AuthorizationCode => "authorization_code",
+            Self::ClientCredentials => "client_credentials",
             Self::RefreshToken => "refresh_token",
         }
     }
@@ -35,6 +37,7 @@ mod tests {
     #[test]
     fn test_grant_types() {
         assert_eq!("authorization_code", GrantType::AuthorizationCode.name());
+        assert_eq!("client_credentials", GrantType::ClientCredentials.name());
         assert_eq!("refresh_token", GrantType::RefreshToken.name());
     }
 }

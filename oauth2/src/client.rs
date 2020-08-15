@@ -1,6 +1,7 @@
 use super::{
     access_token_exchange::AccessTokenExchangeBuilder,
     authorization_url::{AuthorizationUrlBuilder, BotAuthorizationUrlBuilder},
+    client_credentials_grant::ClientCredentialsGrantBuilder,
     refresh_token_exchange::RefreshTokenExchangeBuilder,
 };
 use std::{
@@ -126,6 +127,15 @@ impl Client {
         refresh_token: &'a str,
     ) -> RefreshTokenExchangeBuilder<'a> {
         RefreshTokenExchangeBuilder::new(self, refresh_token)
+    }
+
+    /// Create a client credentials grant request.
+    ///
+    /// A client credentials grant can be used to quickly create bearer tokens
+    /// for a bot owner. Read the documentation of the builder for more
+    /// information.
+    pub fn client_credentials_grant(&self) -> ClientCredentialsGrantBuilder<'_> {
+        ClientCredentialsGrantBuilder::new(self)
     }
 
     /// Return an immutable reference to the configured client ID.

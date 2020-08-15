@@ -19,6 +19,7 @@
 pub mod access_token_exchange;
 pub mod authorization_url;
 pub mod client;
+pub mod client_credentials_grant;
 pub mod refresh_token_exchange;
 
 mod grant_type;
