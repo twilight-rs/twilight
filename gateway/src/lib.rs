@@ -93,10 +93,11 @@ pub mod shard;
 mod event;
 mod listener;
 
+pub use self::event::EventTypeFlags;
+
 #[doc(no_inline)]
 pub use self::{
     cluster::{Cluster, ClusterConfig},
-    event::EventTypeFlags,
     shard::{Shard, ShardConfig},
 };
 #[doc(no_inline)]
