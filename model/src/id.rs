@@ -233,11 +233,55 @@ impl From<u64> for WebhookId {
 
 #[cfg(test)]
 mod tests {
-    use super::GenericId;
+    use super::{
+        ApplicationId, AttachmentId, AuditLogEntryId, ChannelId, EmojiId, GenericId, GuildId,
+        IntegrationId, MessageId, RoleId, UserId, WebhookId,
+    };
     use serde_test::Token;
 
     #[test]
-    fn test_id_deser() -> Result<(), Box<dyn std::error::Error>> {
+    fn test_id_deser() {
+        serde_test::assert_tokens(
+            &ApplicationId(114_941_315_417_899_012),
+            &[
+                Token::NewtypeStruct {
+                    name: "ApplicationId",
+                },
+                Token::Str("114941315417899012"),
+            ],
+        );
+        serde_test::assert_tokens(
+            &AttachmentId(114_941_315_417_899_012),
+            &[
+                Token::NewtypeStruct {
+                    name: "AttachmentId",
+                },
+                Token::Str("114941315417899012"),
+            ],
+        );
+        serde_test::assert_tokens(
+            &AuditLogEntryId(114_941_315_417_899_012),
+            &[
+                Token::NewtypeStruct {
+                    name: "AuditLogEntryId",
+                },
+                Token::Str("114941315417899012"),
+            ],
+        );
+        serde_test::assert_tokens(
+            &ChannelId(114_941_315_417_899_012),
+            &[
+                Token::NewtypeStruct { name: "ChannelId" },
+                Token::Str("114941315417899012"),
+            ],
+        );
+        serde_test::assert_tokens(
+            &EmojiId(114_941_315_417_899_012),
+            &[
+                Token::NewtypeStruct { name: "EmojiId" },
+                Token::Str("114941315417899012"),
+            ],
+        );
         serde_test::assert_tokens(
             &GenericId(114_941_315_417_899_012),
             &[
@@ -245,7 +289,49 @@ mod tests {
                 Token::Str("114941315417899012"),
             ],
         );
-
-        Ok(())
+        serde_test::assert_tokens(
+            &GuildId(114_941_315_417_899_012),
+            &[
+                Token::NewtypeStruct { name: "GuildId" },
+                Token::Str("114941315417899012"),
+            ],
+        );
+        serde_test::assert_tokens(
+            &IntegrationId(114_941_315_417_899_012),
+            &[
+                Token::NewtypeStruct {
+                    name: "IntegrationId",
+                },
+                Token::Str("114941315417899012"),
+            ],
+        );
+        serde_test::assert_tokens(
+            &MessageId(114_941_315_417_899_012),
+            &[
+                Token::NewtypeStruct { name: "MessageId" },
+                Token::Str("114941315417899012"),
+            ],
+        );
+        serde_test::assert_tokens(
+            &RoleId(114_941_315_417_899_012),
+            &[
+                Token::NewtypeStruct { name: "RoleId" },
+                Token::Str("114941315417899012"),
+            ],
+        );
+        serde_test::assert_tokens(
+            &UserId(114_941_315_417_899_012),
+            &[
+                Token::NewtypeStruct { name: "UserId" },
+                Token::Str("114941315417899012"),
+            ],
+        );
+        serde_test::assert_tokens(
+            &WebhookId(114_941_315_417_899_012),
+            &[
+                Token::NewtypeStruct { name: "WebhookId" },
+                Token::Str("114941315417899012"),
+            ],
+        );
     }
 }

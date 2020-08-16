@@ -18,7 +18,7 @@ mod tests {
 
     #[test]
     fn test_voice_region() {
-        let region = VoiceRegion {
+        let value = VoiceRegion {
             custom: false,
             deprecated: false,
             id: "region".to_owned(),
@@ -28,7 +28,7 @@ mod tests {
         };
 
         serde_test::assert_tokens(
-            &region,
+            &value,
             &[
                 Token::Struct {
                     name: "VoiceRegion",

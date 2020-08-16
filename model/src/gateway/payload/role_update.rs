@@ -6,3 +6,67 @@ pub struct RoleUpdate {
     pub guild_id: GuildId,
     pub role: Role,
 }
+
+#[cfg(test)]
+mod tests {
+    use super::{GuildId, Role, RoleUpdate};
+    use crate::{guild::Permissions, id::RoleId};
+    use serde_test::Token;
+
+    #[test]
+    fn test_role_update() {
+        let value = RoleUpdate {
+            guild_id: GuildId(1),
+            role: Role {
+                color: 0,
+                hoist: true,
+                id: RoleId(1),
+                managed: false,
+                mentionable: false,
+                name: "a role".to_owned(),
+                permissions_old: Permissions::SEND_MESSAGES,
+                permissions: Permissions::SEND_MESSAGES,
+                position: 12,
+            },
+        };
+
+        serde_test::assert_tokens(
+            &value,
+            &[
+                Token::Struct {
+                    name: "RoleUpdate",
+                    len: 2,
+                },
+                Token::Str("guild_id"),
+                Token::NewtypeStruct { name: "GuildId" },
+                Token::Str("1"),
+                Token::Str("role"),
+                Token::Struct {
+                    name: "Role",
+                    len: 9,
+                },
+                Token::Str("color"),
+                Token::U32(0),
+                Token::Str("hoist"),
+                Token::Bool(true),
+                Token::Str("id"),
+                Token::NewtypeStruct { name: "RoleId" },
+                Token::Str("1"),
+                Token::Str("managed"),
+                Token::Bool(false),
+                Token::Str("mentionable"),
+                Token::Bool(false),
+                Token::Str("name"),
+                Token::Str("a role"),
+                Token::Str("permissions"),
+                Token::U64(2048),
+                Token::Str("permissions_new"),
+                Token::Str("2048"),
+                Token::Str("position"),
+                Token::I64(12),
+                Token::StructEnd,
+                Token::StructEnd,
+            ],
+        );
+    }
+}

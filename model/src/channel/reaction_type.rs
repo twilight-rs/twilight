@@ -29,14 +29,14 @@ mod tests {
 
     #[test]
     fn test_custom() {
-        let kind = ReactionType::Custom {
+        let value = ReactionType::Custom {
             animated: false,
             id: EmojiId(1337),
             name: Some("foo".to_owned()),
         };
 
         serde_test::assert_tokens(
-            &kind,
+            &value,
             &[
                 Token::Struct {
                     name: "ReactionType",
@@ -57,7 +57,7 @@ mod tests {
         // When `animated` isn't present in the payload it should default to
         // `false`.
         serde_test::assert_de_tokens(
-            &kind,
+            &value,
             &[
                 Token::Struct {
                     name: "ReactionType",
@@ -76,12 +76,12 @@ mod tests {
 
     #[test]
     fn test_unicode() {
-        let kind = ReactionType::Unicode {
+        let value = ReactionType::Unicode {
             name: "\u{1f643}".to_owned(),
         };
 
         serde_test::assert_tokens(
-            &kind,
+            &value,
             &[
                 Token::Struct {
                     name: "ReactionType",

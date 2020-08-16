@@ -157,7 +157,7 @@ mod tests {
     #[allow(clippy::too_many_lines)]
     #[test]
     fn test_typing_start_with_member() {
-        let expected = TypingStart {
+        let value = TypingStart {
             channel_id: ChannelId(2),
             guild_id: Some(GuildId(1)),
             member: Some(Member {
@@ -190,7 +190,7 @@ mod tests {
         };
 
         serde_test::assert_tokens(
-            &expected,
+            &value,
             &[
                 Token::Struct {
                     name: "TypingStart",
@@ -280,7 +280,7 @@ mod tests {
 
     #[test]
     fn test_typing_start_without_member() {
-        let expected = TypingStart {
+        let value = TypingStart {
             channel_id: ChannelId(2),
             guild_id: None,
             member: None,
@@ -289,7 +289,7 @@ mod tests {
         };
 
         serde_test::assert_tokens(
-            &expected,
+            &value,
             &[
                 Token::Struct {
                     name: "TypingStart",

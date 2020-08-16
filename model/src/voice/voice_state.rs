@@ -291,3 +291,67 @@ impl<'de> DeserializeSeed<'de> for VoiceStateMapDeserializer {
         deserializer.deserialize_seq(VoiceStateMapVisitor)
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::{ChannelId, GuildId, UserId, VoiceState};
+    use serde_test::Token;
+
+    #[test]
+    fn test_voice_state() {
+        let value = VoiceState {
+            channel_id: Some(ChannelId(1)),
+            deaf: false,
+            guild_id: Some(GuildId(2)),
+            member: None,
+            mute: true,
+            self_deaf: false,
+            self_mute: true,
+            self_stream: false,
+            session_id: "a".to_owned(),
+            suppress: true,
+            token: None,
+            user_id: UserId(3),
+        };
+
+        serde_test::assert_tokens(
+            &value,
+            &[
+                Token::Struct {
+                    name: "VoiceState",
+                    len: 12,
+                },
+                Token::Str("channel_id"),
+                Token::Some,
+                Token::NewtypeStruct { name: "ChannelId" },
+                Token::Str("1"),
+                Token::Str("deaf"),
+                Token::Bool(false),
+                Token::Str("guild_id"),
+                Token::Some,
+                Token::NewtypeStruct { name: "GuildId" },
+                Token::Str("2"),
+                Token::Str("member"),
+                Token::None,
+                Token::Str("mute"),
+                Token::Bool(true),
+                Token::Str("self_deaf"),
+                Token::Bool(false),
+                Token::Str("self_mute"),
+                Token::Bool(true),
+                Token::Str("self_stream"),
+                Token::Bool(false),
+                Token::Str("session_id"),
+                Token::Str("a"),
+                Token::Str("suppress"),
+                Token::Bool(true),
+                Token::Str("token"),
+                Token::None,
+                Token::Str("user_id"),
+                Token::NewtypeStruct { name: "UserId" },
+                Token::Str("3"),
+                Token::StructEnd,
+            ],
+        );
+    }
+}

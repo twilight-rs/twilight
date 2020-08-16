@@ -6,3 +6,34 @@ pub struct RoleDelete {
     pub guild_id: GuildId,
     pub role_id: RoleId,
 }
+
+#[cfg(test)]
+mod tests {
+    use super::{GuildId, RoleDelete, RoleId};
+    use serde_test::Token;
+
+    #[test]
+    fn test_webhooks_update() {
+        let value = RoleDelete {
+            guild_id: GuildId(1),
+            role_id: RoleId(2),
+        };
+
+        serde_test::assert_tokens(
+            &value,
+            &[
+                Token::Struct {
+                    name: "RoleDelete",
+                    len: 2,
+                },
+                Token::Str("guild_id"),
+                Token::NewtypeStruct { name: "GuildId" },
+                Token::Str("1"),
+                Token::Str("role_id"),
+                Token::NewtypeStruct { name: "RoleId" },
+                Token::Str("2"),
+                Token::StructEnd,
+            ],
+        );
+    }
+}

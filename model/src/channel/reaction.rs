@@ -171,7 +171,7 @@ mod tests {
     #[allow(clippy::too_many_lines)]
     #[test]
     fn test_reaction_with_member() {
-        let expected = Reaction {
+        let value = Reaction {
             channel_id: ChannelId(2),
             emoji: ReactionType::Unicode {
                 name: "a".to_owned(),
@@ -207,7 +207,7 @@ mod tests {
         };
 
         serde_test::assert_tokens(
-            &expected,
+            &value,
             &[
                 Token::Struct {
                     name: "Reaction",
@@ -306,7 +306,7 @@ mod tests {
 
     #[test]
     fn test_reaction_without_member() {
-        let expected = Reaction {
+        let value = Reaction {
             channel_id: ChannelId(2),
             emoji: ReactionType::Unicode {
                 name: "a".to_owned(),
@@ -318,7 +318,7 @@ mod tests {
         };
 
         serde_test::assert_tokens(
-            &expected,
+            &value,
             &[
                 Token::Struct {
                     name: "Reaction",

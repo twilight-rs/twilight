@@ -22,7 +22,7 @@ mod tests {
 
     #[test]
     fn test_member_update() {
-        let member_update = MemberUpdate {
+        let value = MemberUpdate {
             user: User {
                 name: "Twilight Sparkle".to_string(),
                 public_flags: None,
@@ -46,7 +46,7 @@ mod tests {
         };
 
         serde_test::assert_tokens(
-            &member_update,
+            &value,
             &[
                 Token::Struct {
                     name: "MemberUpdate",

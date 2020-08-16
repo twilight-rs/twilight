@@ -30,7 +30,7 @@ mod tests {
 
     #[test]
     fn test_member_add() {
-        let member_add = MemberAdd(Member {
+        let value = MemberAdd(Member {
             deaf: false,
             guild_id: GuildId(1),
             hoisted_role: None,
@@ -57,7 +57,7 @@ mod tests {
         });
 
         serde_test::assert_tokens(
-            &member_add,
+            &value,
             &[
                 Token::NewtypeStruct { name: "MemberAdd" },
                 Token::Struct {

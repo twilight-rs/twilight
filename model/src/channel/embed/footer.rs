@@ -6,3 +6,63 @@ pub struct EmbedFooter {
     pub proxy_icon_url: Option<String>,
     pub text: String,
 }
+
+#[cfg(test)]
+mod tests {
+    use super::EmbedFooter;
+    use serde_test::Token;
+
+    #[test]
+    fn test_embed_footer_with_icon() {
+        let value = EmbedFooter {
+            icon_url: Some("https://example.com/1.png".to_owned()),
+            proxy_icon_url: Some("https://cdn.example.com/1-hash.png".to_owned()),
+            text: "a footer".to_owned(),
+        };
+
+        serde_test::assert_tokens(
+            &value,
+            &[
+                Token::Struct {
+                    name: "EmbedFooter",
+                    len: 3,
+                },
+                Token::Str("icon_url"),
+                Token::Some,
+                Token::Str("https://example.com/1.png"),
+                Token::Str("proxy_icon_url"),
+                Token::Some,
+                Token::Str("https://cdn.example.com/1-hash.png"),
+                Token::Str("text"),
+                Token::Str("a footer"),
+                Token::StructEnd,
+            ],
+        );
+    }
+
+    #[test]
+    fn test_embed_footer_without_icon() {
+        let value = EmbedFooter {
+            icon_url: None,
+            proxy_icon_url: None,
+            text: "a footer".to_owned(),
+        };
+
+        serde_test::assert_tokens(
+            &value,
+            &[
+                Token::Struct {
+                    name: "EmbedFooter",
+                    len: 3,
+                },
+                Token::Str("icon_url"),
+                Token::None,
+                Token::Str("proxy_icon_url"),
+                Token::None,
+                Token::Str("text"),
+                Token::Str("a footer"),
+                Token::StructEnd,
+            ],
+        );
+    }
+}

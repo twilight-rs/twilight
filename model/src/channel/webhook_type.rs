@@ -26,12 +26,8 @@ mod tests {
     }
 
     #[test]
-    fn test_activity_type_incoming() {
+    fn test_variants() {
         serde_test::assert_tokens(&WebhookType::Incoming, &[Token::U8(1)]);
-    }
-
-    #[test]
-    fn test_activity_type_channel_follower() {
         serde_test::assert_tokens(&WebhookType::ChannelFollower, &[Token::U8(2)]);
     }
 }

@@ -21,7 +21,7 @@ mod tests {
 
     #[test]
     fn test_connection_info() {
-        let start = SessionStartLimit {
+        let value = SessionStartLimit {
             max_concurrency: 16,
             remaining: 998,
             reset_after: 84_686_789,
@@ -29,7 +29,7 @@ mod tests {
         };
 
         serde_test::assert_tokens(
-            &start,
+            &value,
             &[
                 Token::Struct {
                     name: "SessionStartLimit",
