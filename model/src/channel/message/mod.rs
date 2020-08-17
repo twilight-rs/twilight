@@ -81,7 +81,6 @@ mod tests {
             "id": "4",
             "member": {
                 "deaf": false,
-                "hoisted_role": null,
                 "joined_at": "2020-01-01T00:00:00.000000+00:00",
                 "mute": false,
                 "nick": null,
@@ -128,6 +127,7 @@ mod tests {
                 deaf: false,
                 joined_at: Some("2020-01-01T00:00:00.000000+00:00".to_owned()),
                 mute: false,
+                nick: None,
                 roles: Vec::new(),
             }),
             mention_channels: Vec::new(),
