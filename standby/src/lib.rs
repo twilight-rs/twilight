@@ -213,15 +213,16 @@ impl Standby {
         tracing::trace!("processing event: {:?}", event);
 
         match event {
-            Event::MessageCreate(e) => return self.process_message(e.0.channel_id, &e),
-            Event::ReactionAdd(e) => return self.process_reaction(e.0.message_id, &e),
+            Event::MessageCreate(e) => self.process_message(e.0.channel_id, &e),
+            Event::ReactionAdd(e) => self.process_reaction(e.0.message_id, &e),
             _ => {}
         }
 
-        match event_guild_id(event) {
-            Some(guild_id) => self.process_guild(guild_id, event),
-            None => self.process_event(event),
+        if let Some(guild_id) = event_guild_id(event) {
+            self.process_guild(guild_id, event);
         }
+
+        self.process_event(event);
     }
 
     /// Wait for an event in a certain guild.
@@ -1087,5 +1088,39 @@ mod tests {
         standby.process(&Event::Resumed);
 
         assert_eq!(Ok(Event::Resumed), wait.await);
+    }
+
+    /// Test that generic event handlers will be given the opportunity to
+    /// process events with specific handlers (message creates, reaction adds)
+    /// and guild events. Similarly, guild handlers should be able to process
+    /// specific handler events as well.
+    #[tokio::test]
+    async fn test_process_nonspecific_handling() {
+        let standby = Standby::new();
+
+        // generic event handler gets message creates
+        let wait = standby.wait_for_event(|event: &Event| event.kind() == EventType::MessageCreate);
+        standby.process(&Event::MessageCreate(Box::new(MessageCreate(message()))));
+        assert!(matches!(wait.await, Ok(Event::MessageCreate(_))));
+
+        // generic event handler gets reaction adds
+        let wait = standby.wait_for_event(|event: &Event| event.kind() == EventType::ReactionAdd);
+        standby.process(&Event::ReactionAdd(Box::new(ReactionAdd(reaction()))));
+        assert!(matches!(wait.await, Ok(Event::ReactionAdd(_))));
+
+        // generic event handler gets other guild events
+        let wait = standby.wait_for_event(|event: &Event| event.kind() == EventType::RoleDelete);
+        standby.process(&Event::RoleDelete(RoleDelete {
+            guild_id: GuildId(1),
+            role_id: RoleId(2),
+        }));
+        assert!(matches!(wait.await, Ok(Event::RoleDelete(_))));
+
+        // guild event handler gets message creates or reaction events
+        let wait = standby.wait_for(GuildId(1), |event: &Event| {
+            event.kind() == EventType::ReactionAdd
+        });
+        standby.process(&Event::ReactionAdd(Box::new(ReactionAdd(reaction()))));
+        assert!(matches!(wait.await, Ok(Event::ReactionAdd(_))));
     }
 }
