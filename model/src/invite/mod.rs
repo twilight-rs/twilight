@@ -2,11 +2,7 @@ mod guild;
 mod metadata;
 mod target_user_type;
 
-pub use self::{
-    guild::InviteGuild,
-    metadata::InviteMetadata,
-    target_user_type::TargetUserType,
-};
+pub use self::{guild::InviteGuild, metadata::InviteMetadata, target_user_type::TargetUserType};
 
 use super::{channel::Channel, user::User};
 use serde::{Deserialize, Serialize};
