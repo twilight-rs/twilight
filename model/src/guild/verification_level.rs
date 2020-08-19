@@ -11,3 +11,18 @@ pub enum VerificationLevel {
     High = 3,
     VeryHigh = 4,
 }
+
+#[cfg(test)]
+mod tests {
+    use super::VerificationLevel;
+    use serde_test::Token;
+
+    #[test]
+    fn test_variants() {
+        serde_test::assert_tokens(&VerificationLevel::None, &[Token::U8(0)]);
+        serde_test::assert_tokens(&VerificationLevel::Low, &[Token::U8(1)]);
+        serde_test::assert_tokens(&VerificationLevel::Medium, &[Token::U8(2)]);
+        serde_test::assert_tokens(&VerificationLevel::High, &[Token::U8(3)]);
+        serde_test::assert_tokens(&VerificationLevel::VeryHigh, &[Token::U8(4)]);
+    }
+}

@@ -8,3 +8,15 @@ pub enum DefaultMessageNotificationLevel {
     All = 0,
     Mentions = 1,
 }
+
+#[cfg(test)]
+mod tests {
+    use super::DefaultMessageNotificationLevel;
+    use serde_test::Token;
+
+    #[test]
+    fn test_variants() {
+        serde_test::assert_tokens(&DefaultMessageNotificationLevel::All, &[Token::U8(0)]);
+        serde_test::assert_tokens(&DefaultMessageNotificationLevel::Mentions, &[Token::U8(1)]);
+    }
+}

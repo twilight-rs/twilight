@@ -8,3 +8,15 @@ pub enum MfaLevel {
     None = 0,
     Elevated = 1,
 }
+
+#[cfg(test)]
+mod tests {
+    use super::MfaLevel;
+    use serde_test::Token;
+
+    #[test]
+    fn test_variants() {
+        serde_test::assert_tokens(&MfaLevel::None, &[Token::U8(0)]);
+        serde_test::assert_tokens(&MfaLevel::Elevated, &[Token::U8(1)]);
+    }
+}
