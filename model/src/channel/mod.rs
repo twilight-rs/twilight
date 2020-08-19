@@ -340,9 +340,7 @@ impl<'de> Visitor<'de> for GuildChannelVisitor {
                     guild_id,
                     kind,
                     name,
-                    nsfw,
                     permission_overwrites,
-                    parent_id,
                     position,
                 })
             }
@@ -472,8 +470,6 @@ mod tests {
             id: ChannelId(123),
             kind: ChannelType::GuildCategory,
             name: "category".to_owned(),
-            nsfw: false,
-            parent_id: None,
             permission_overwrites: Vec::new(),
             position: 0,
         }
@@ -648,8 +644,6 @@ mod tests {
             guild_id: Some(GuildId(2)),
             kind: ChannelType::GuildCategory,
             name: "foo".to_owned(),
-            nsfw: false,
-            parent_id: None,
             permission_overwrites: Vec::new(),
             position: 3,
         });
