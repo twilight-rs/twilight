@@ -154,6 +154,7 @@ mod tests {
     };
     use serde_test::Token;
 
+    #[allow(clippy::too_many_lines)]
     #[test]
     fn test_typing_start_with_member() {
         let expected = TypingStart {
@@ -184,7 +185,7 @@ mod tests {
                     public_flags: None,
                 },
             }),
-            timestamp: 1500000000,
+            timestamp: 1_500_000_000,
             user_id: UserId(3),
         };
 
@@ -268,7 +269,7 @@ mod tests {
                 Token::StructEnd,
                 Token::StructEnd,
                 Token::Str("timestamp"),
-                Token::U64(1500000000),
+                Token::U64(1_500_000_000),
                 Token::Str("user_id"),
                 Token::NewtypeStruct { name: "UserId" },
                 Token::Str("3"),
@@ -283,7 +284,7 @@ mod tests {
             channel_id: ChannelId(2),
             guild_id: None,
             member: None,
-            timestamp: 1500000000,
+            timestamp: 1_500_000_000,
             user_id: UserId(3),
         };
 
@@ -302,7 +303,7 @@ mod tests {
                 Token::Str("member"),
                 Token::None,
                 Token::Str("timestamp"),
-                Token::U64(1500000000),
+                Token::U64(1_500_000_000),
                 Token::Str("user_id"),
                 Token::NewtypeStruct { name: "UserId" },
                 Token::Str("3"),

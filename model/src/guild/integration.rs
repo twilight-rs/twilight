@@ -37,6 +37,7 @@ mod tests {
     use crate::id::{RoleId, UserId};
     use serde_test::Token;
 
+    #[allow(clippy::too_many_lines)]
     #[test]
     fn test_guild_integration() {
         let value = GuildIntegration {
