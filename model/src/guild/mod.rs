@@ -8,6 +8,7 @@ mod explicit_content_filter;
 mod info;
 mod integration;
 mod integration_account;
+mod integration_expire_behavior;
 mod mfa_level;
 mod partial_guild;
 mod partial_member;
@@ -25,7 +26,8 @@ mod widget;
 pub use self::{
     ban::Ban, default_message_notification_level::DefaultMessageNotificationLevel, emoji::Emoji,
     explicit_content_filter::ExplicitContentFilter, info::GuildInfo, integration::GuildIntegration,
-    integration_account::IntegrationAccount, member::Member, mfa_level::MfaLevel,
+    integration_account::IntegrationAccount,
+    integration_expire_behavior::IntegrationExpireBehavior, member::Member, mfa_level::MfaLevel,
     partial_guild::PartialGuild, partial_member::PartialMember, permissions::Permissions,
     premium_tier::PremiumTier, preview::GuildPreview, prune::GuildPrune, role::Role,
     status::GuildStatus, system_channel_flags::SystemChannelFlags,
