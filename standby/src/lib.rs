@@ -1,6 +1,6 @@
 //! # twilight-standby
 //!
-//! [![github badge][]][github link] [![license badge][]][license link] ![rust badge]
+//! [![discord badge][]][discord link] [![github badge][]][github link] [![license badge][]][license link] ![rust badge]
 //!
 //! Standby is a utility to wait for an event to happen based on a predicate
 //! check. For example, you may have a command that has a reaction menu of ✅ and
@@ -118,6 +118,8 @@
 //! [`Standby::wait_for_message`]: struct.Standby.html#method.wait_for_message
 //! [`Standby::wait_for_message_stream`]: struct.Standby.html#method.wait_for_message_stream
 //! [`Standby::wait_for_reaction`]: struct.Standby.html#method.wait_for_reaction
+//! [discord badge]: https://img.shields.io/discord/745809834183753828?color=%237289DA&label=discord%20server&logo=discord&style=for-the-badge
+//! [discord link]: https://discord.gg/7jj8n7D
 //! [github badge]: https://img.shields.io/badge/github-twilight-6f42c1.svg?style=for-the-badge&logo=github
 //! [github link]: https://github.com/twilight-rs/twilight
 //! [license badge]: https://img.shields.io/badge/license-ISC-blue.svg?style=for-the-badge&logo=pastebin

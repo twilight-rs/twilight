@@ -2,7 +2,7 @@
 
 # twilight
 
-[![github badge][]][github link] [![license badge][]][license link] ![rust badge]
+[![discord badge][]][discord link] [![github badge][]][github link] [![license badge][]][license link] ![rust badge]
 
 ![project logo][logo]
 
@@ -208,6 +208,8 @@ All first-party crates are licensed under [ISC][LICENSE.md]
 [LICENSE.md]: https://github.com/twilight-rs/twilight/blob/trunk/LICENSE.md
 [Lavalink]: https://github.com/Frederikam/Lavalink
 [`http`]: https://crates.io/crates/http
+[discord badge]: https://img.shields.io/discord/745809834183753828?color=%237289DA&label=discord%20server&logo=discord&style=for-the-badge
+[discord link]: https://discord.gg/7jj8n7D
 [docs:discord:sharding]: https://discord.com/developers/docs/topics/gateway#sharding
 [github badge]: https://img.shields.io/badge/github-twilight-6f42c1.svg?style=for-the-badge&logo=github
 [github link]: https://github.com/twilight-rs/twilight
