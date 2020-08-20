@@ -391,9 +391,17 @@ impl UpdateCache<InMemoryCache, InMemoryCacheError> for MemberRemove {
             members.remove(&self.user.id);
         }
 
+        // Avoid a deadlock by mutating the user, dropping the lock to the map,
+        // and then maybe conditionally removing the user later.
+        let mut maybe_remove_user = false;
+
         if let Some(mut user_tuple) = cache.0.users.get_mut(&self.user.id) {
             user_tuple.1.remove(&self.guild_id);
 
+            maybe_remove_user = true;
+        }
+
+        if maybe_remove_user {
             cache
                 .0
                 .users
