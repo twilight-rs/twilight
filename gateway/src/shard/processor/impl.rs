@@ -337,7 +337,7 @@ impl ShardProcessor {
                     return;
                 }
                 Err(ReceivingEventError::EventStreamEnded) => {
-                    tracing::warn!("event stream ended, reconnecting");
+                    tracing::debug!("event stream ended, reconnecting");
 
                     self.resume().await;
                     continue;
@@ -648,11 +648,11 @@ impl ShardProcessor {
         loop {
             // Returns None when the socket forwarder has ended, meaning the
             // connection was dropped.
-            let msg = if let Some(msg) = self.rx.next().await {
-                msg
-            } else {
-                break Err(ReceivingEventError::EventStreamEnded);
-            };
+            let msg = self
+                .rx
+                .next()
+                .await
+                .ok_or(ReceivingEventError::EventStreamEnded)?;
 
             match msg {
                 Message::Binary(bin) => {
