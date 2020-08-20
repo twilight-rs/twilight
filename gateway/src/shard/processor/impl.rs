@@ -177,6 +177,8 @@ pub enum ReceivingEventError {
         /// Source error when converting to a UTF-8 valid string.
         source: Utf8Error,
     },
+    /// The event stream has ended, this is recoverable by resuming.
+    EventStreamEnded,
 }
 
 impl Display for ReceivingEventError {
@@ -199,6 +201,7 @@ impl Display for ReceivingEventError {
             Self::PayloadNotUtf8 { .. } => {
                 f.write_str("the payload from Discord wasn't UTF-8 valid")
             }
+            Self::EventStreamEnded => f.write_str("event stream from gateway ended"),
         }
     }
 }
@@ -211,7 +214,8 @@ impl Error for ReceivingEventError {
             Self::AuthorizationInvalid { .. }
             | Self::Decompressing { .. }
             | Self::IntentsDisallowed { .. }
-            | Self::IntentsInvalid { .. } => None,
+            | Self::IntentsInvalid { .. }
+            | Self::EventStreamEnded => None,
         }
     }
 }
@@ -331,6 +335,12 @@ impl ShardProcessor {
                     );
                     self.listeners.remove_all();
                     return;
+                }
+                Err(ReceivingEventError::EventStreamEnded) => {
+                    tracing::debug!("event stream ended, reconnecting");
+
+                    self.resume().await;
+                    continue;
                 }
                 Err(err) => {
                     tracing::warn!("error receiving gateway event: {:?}", err.source());
@@ -638,11 +648,11 @@ impl ShardProcessor {
         loop {
             // Returns None when the socket forwarder has ended, meaning the
             // connection was dropped.
-            let msg = if let Some(msg) = self.rx.next().await {
-                msg
-            } else {
-                continue;
-            };
+            let msg = self
+                .rx
+                .next()
+                .await
+                .ok_or(ReceivingEventError::EventStreamEnded)?;
 
             match msg {
                 Message::Binary(bin) => {
