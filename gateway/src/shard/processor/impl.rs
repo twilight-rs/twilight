@@ -200,7 +200,7 @@ impl Display for ReceivingEventError {
             Self::ParsingPayload { source } => Display::fmt(source, f),
             Self::PayloadNotUtf8 { .. } => {
                 f.write_str("the payload from Discord wasn't UTF-8 valid")
-            },
+            }
             Self::EventStreamEnded => f.write_str("event stream from gateway ended"),
         }
     }
@@ -337,9 +337,7 @@ impl ShardProcessor {
                     return;
                 }
                 Err(ReceivingEventError::EventStreamEnded) => {
-                    tracing::warn!(
-                        "event stream ended, reconnecting"
-                    );
+                    tracing::warn!("event stream ended, reconnecting");
 
                     self.resume().await;
                     continue;
