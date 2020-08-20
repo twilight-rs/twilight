@@ -168,12 +168,13 @@ mod tests {
     };
     use serde_test::Token;
 
+    #[allow(clippy::too_many_lines)]
     #[test]
     fn test_reaction_with_member() {
         let expected = Reaction {
             channel_id: ChannelId(2),
             emoji: ReactionType::Unicode {
-                name: "🙂".to_owned(),
+                name: "a".to_owned(),
             },
             guild_id: Some(GuildId(1)),
             member: Some(Member {
@@ -221,7 +222,7 @@ mod tests {
                     len: 1,
                 },
                 Token::Str("name"),
-                Token::Str("🙂"),
+                Token::Str("a"),
                 Token::StructEnd,
                 Token::Str("guild_id"),
                 Token::Some,
@@ -308,7 +309,7 @@ mod tests {
         let expected = Reaction {
             channel_id: ChannelId(2),
             emoji: ReactionType::Unicode {
-                name: "🙂".to_owned(),
+                name: "a".to_owned(),
             },
             guild_id: None,
             member: None,
@@ -332,7 +333,7 @@ mod tests {
                     len: 1,
                 },
                 Token::Str("name"),
-                Token::Str("🙂"),
+                Token::Str("a"),
                 Token::StructEnd,
                 Token::Str("guild_id"),
                 Token::None,

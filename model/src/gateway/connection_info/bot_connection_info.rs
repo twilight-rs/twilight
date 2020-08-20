@@ -24,7 +24,7 @@ mod tests {
             session_start_limit: SessionStartLimit {
                 max_concurrency: 16,
                 remaining: 998,
-                reset_after: 84686789,
+                reset_after: 84_686_789,
                 total: 1000,
             },
             shards: 3,
@@ -48,7 +48,7 @@ mod tests {
                 Token::Str("remaining"),
                 Token::U64(998),
                 Token::Str("reset_after"),
-                Token::U64(84686789),
+                Token::U64(84_686_789),
                 Token::Str("total"),
                 Token::U64(1000),
                 Token::StructEnd,

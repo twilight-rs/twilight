@@ -24,8 +24,8 @@ mod tests {
         let start = SessionStartLimit {
             max_concurrency: 16,
             remaining: 998,
-            reset_after: 84686789,
-            total: 1000,
+            reset_after: 84_686_789,
+            total: 1_000,
         };
 
         serde_test::assert_tokens(
@@ -40,9 +40,9 @@ mod tests {
                 Token::Str("remaining"),
                 Token::U64(998),
                 Token::Str("reset_after"),
-                Token::U64(84686789),
+                Token::U64(84_686_789),
                 Token::Str("total"),
-                Token::U64(1000),
+                Token::U64(1_000),
                 Token::StructEnd,
             ],
         );

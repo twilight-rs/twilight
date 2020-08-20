@@ -164,10 +164,10 @@ mod tests {
         let expected = VoiceStateUpdate(VoiceState {
             channel_id: None,
             deaf: false,
-            guild_id: Some(GuildId(999999)),
+            guild_id: Some(GuildId(999_999)),
             member: Some(Member {
                 deaf: false,
-                guild_id: GuildId(999999),
+                guild_id: GuildId(999_999),
                 hoisted_role: Some(RoleId(123)),
                 joined_at: Some("2016-12-08T18:41:21.954000+00:00".to_string()),
                 mute: false,
@@ -175,7 +175,7 @@ mod tests {
                 premium_since: None,
                 roles: vec![RoleId(123), RoleId(124)],
                 user: User {
-                    id: UserId(1234123123123),
+                    id: UserId(1_234_123_123_123),
                     avatar: Some("a21312321231236060dfe562c".to_string()),
                     bot: false,
                     discriminator: "4242".to_string(),
@@ -197,7 +197,7 @@ mod tests {
             session_id: "asdasdas1da98da2b3ab3a".to_owned(),
             suppress: false,
             token: None,
-            user_id: UserId(123213),
+            user_id: UserId(123_213),
         });
 
         // Token stream here's `Member` has no `guild_id`, which deserialiser

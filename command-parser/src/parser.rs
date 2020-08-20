@@ -168,30 +168,30 @@ mod tests {
         let message_unicode_2 = "!\u{3b4} is delta";
 
         // Case insensitive - ASCII
-        let Command { name, .. } = parser
+        let command = parser
             .parse(message_ascii)
             .expect("Parser is case sensitive");
         assert_eq!(
-            "echo", name,
+            "echo", command.name,
             "Command name should have the same case as in the CommandParserConfig"
         );
 
         // Case insensitive - Unicode
         parser.config.add_command("wei\u{df}", false);
-        let Command { name, .. } = parser
+        let command = parser
             .parse(message_unicode)
             .expect("Parser is case sensitive");
         assert_eq!(
-            "wei\u{df}", name,
+            "wei\u{df}", command.name,
             "Command name should have the same case as in the CommandParserConfig"
         );
 
         parser.config.add_command("\u{394}", false);
-        let Command { name, .. } = parser
+        let command = parser
             .parse(message_unicode_2)
             .expect("Parser is case sensitive");
         assert_eq!(
-            "\u{394}", name,
+            "\u{394}", command.name,
             "Command name should have the same case as in the CommandParserConfig"
         );
 
