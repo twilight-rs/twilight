@@ -177,6 +177,8 @@ pub enum ReceivingEventError {
         /// Source error when converting to a UTF-8 valid string.
         source: Utf8Error,
     },
+    /// Socket forwarder stopped
+    SocketForwarder,
 }
 
 impl Display for ReceivingEventError {
@@ -198,7 +200,8 @@ impl Display for ReceivingEventError {
             Self::ParsingPayload { source } => Display::fmt(source, f),
             Self::PayloadNotUtf8 { .. } => {
                 f.write_str("the payload from Discord wasn't UTF-8 valid")
-            }
+            },
+            Self::SocketForwarder => f.write_str("the socket forwarder have stopped"),
         }
     }
 }
@@ -211,7 +214,8 @@ impl Error for ReceivingEventError {
             Self::AuthorizationInvalid { .. }
             | Self::Decompressing { .. }
             | Self::IntentsDisallowed { .. }
-            | Self::IntentsInvalid { .. } => None,
+            | Self::IntentsInvalid { .. }
+            | Self::SocketForwarder => None,
         }
     }
 }
@@ -641,7 +645,7 @@ impl ShardProcessor {
             let msg = if let Some(msg) = self.rx.next().await {
                 msg
             } else {
-                continue;
+                break Err(ReceivingEventError::SocketForwarder);
             };
 
             match msg {

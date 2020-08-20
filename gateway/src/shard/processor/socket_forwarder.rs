@@ -60,17 +60,17 @@ impl SocketForwarder {
                 }
                 Either::Right((Ok(Some(Err(err))), _)) => {
                     tracing::warn!("socket errored, closing tx: {}", err);
-                    //self.tx.close_channel();
+                    self.tx.close_channel();
                     break;
                 }
                 Either::Right((Ok(None), _)) => {
                     tracing::debug!("socket ended, closing tx");
-                    //self.tx.close_channel();
+                    self.tx.close_channel();
                     break;
                 }
                 Either::Right((Err(why), _)) => {
                     tracing::warn!("socket errored, closing tx: {}", why);
-                    //self.tx.close_channel();
+                    self.tx.close_channel();
                     break;
                 }
             }
