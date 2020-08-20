@@ -315,9 +315,12 @@ impl InMemoryCache {
     pub fn voice_channel_states(&self, channel_id: ChannelId) -> Option<Vec<Arc<VoiceState>>> {
         let user_ids = self.0.voice_state_channels.get(&channel_id)?;
 
-        Some(user_ids.iter().filter_map(|key| {
-            self.0.voice_states.get(&key).map(|r| Arc::clone(r.value()))
-        }).collect())
+        Some(
+            user_ids
+                .iter()
+                .filter_map(|key| self.0.voice_states.get(&key).map(|r| Arc::clone(r.value())))
+                .collect(),
+        )
     }
 
     /// Gets a voice state by user ID and Guild ID.
@@ -328,7 +331,11 @@ impl InMemoryCache {
         user_id: UserId,
         guild_id: GuildId,
     ) -> Result<Option<Arc<VoiceState>>> {
-        Ok(self.0.voice_states.get(&(guild_id, user_id)).map(|r| Arc::clone(r.value())))
+        Ok(self
+            .0
+            .voice_states
+            .get(&(guild_id, user_id))
+            .map(|r| Arc::clone(r.value())))
     }
 
     /// Clears the entire state of the Cache. This is equal to creating a new
@@ -673,11 +680,16 @@ impl InMemoryCache {
 
         if vs.channel_id.is_none() {
             {
-                let remove = self.0.voice_state_guilds.get_mut(&guild_id).map(|mut guild_users| {
-                    guild_users.remove(&user_id);
+                let remove = self
+                    .0
+                    .voice_state_guilds
+                    .get_mut(&guild_id)
+                    .map(|mut guild_users| {
+                        guild_users.remove(&user_id);
 
-                    guild_users.is_empty()
-                }).unwrap_or_default();
+                        guild_users.is_empty()
+                    })
+                    .unwrap_or_default();
 
                 if remove {
                     self.0.voice_state_guilds.remove(&guild_id);
@@ -687,11 +699,16 @@ impl InMemoryCache {
             let (_, state) = self.0.voice_states.remove(&(guild_id, user_id))?;
 
             if let Some(channel_id) = state.channel_id {
-                let remove = self.0.voice_state_channels.get_mut(&channel_id).map(|mut users| {
-                    users.remove(&(guild_id, user_id));
+                let remove = self
+                    .0
+                    .voice_state_channels
+                    .get_mut(&channel_id)
+                    .map(|mut users| {
+                        users.remove(&(guild_id, user_id));
 
-                    users.is_empty()
-                }).unwrap_or_default();
+                        users.is_empty()
+                    })
+                    .unwrap_or_default();
 
                 if remove {
                     self.0.voice_state_channels.remove(&channel_id);
@@ -703,8 +720,14 @@ impl InMemoryCache {
 
         let state = Arc::new(vs);
 
-        self.0.voice_states.insert((guild_id, user_id), Arc::clone(&state));
-        self.0.voice_state_guilds.entry(guild_id).or_default().insert(user_id);
+        self.0
+            .voice_states
+            .insert((guild_id, user_id), Arc::clone(&state));
+        self.0
+            .voice_state_guilds
+            .entry(guild_id)
+            .or_default()
+            .insert(user_id);
 
         if let Some(channel_id) = state.channel_id {
             self.0
