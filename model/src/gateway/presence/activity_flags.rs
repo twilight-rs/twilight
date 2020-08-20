@@ -6,12 +6,12 @@ use serde::{
 
 bitflags! {
     pub struct ActivityFlags: u64 {
-        const INSTANCE = 0b001;
-        const JOIN = 0b010;
-        const SPECTATE = 0b011;
-        const JOIN_REQUEST = 0b100;
-        const SYNC = 0b101;
-        const PLAY = 0b110;
+        const INSTANCE = 1;
+        const JOIN = 1 << 1;
+        const SPECTATE = 1 << 2;
+        const JOIN_REQUEST = 1 << 3;
+        const SYNC = 1 << 4;
+        const PLAY = 1 << 5;
     }
 }
 
@@ -27,5 +27,21 @@ impl Serialize for ActivityFlags {
         S: Serializer,
     {
         serializer.serialize_u64(self.bits())
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::ActivityFlags;
+    use serde_test::Token;
+
+    #[test]
+    fn test_variants() {
+        serde_test::assert_tokens(&ActivityFlags::INSTANCE, &[Token::U64(1)]);
+        serde_test::assert_tokens(&ActivityFlags::JOIN, &[Token::U64(1 << 1)]);
+        serde_test::assert_tokens(&ActivityFlags::SPECTATE, &[Token::U64(1 << 2)]);
+        serde_test::assert_tokens(&ActivityFlags::JOIN_REQUEST, &[Token::U64(1 << 3)]);
+        serde_test::assert_tokens(&ActivityFlags::SYNC, &[Token::U64(1 << 4)]);
+        serde_test::assert_tokens(&ActivityFlags::PLAY, &[Token::U64(1 << 5)]);
     }
 }
