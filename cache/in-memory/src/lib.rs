@@ -655,9 +655,8 @@ impl InMemoryCache {
 
         let user_id = vs.user_id;
 
-        // This won't panic because we always insert a hashmap for each guild that the bot knows
-        // about, and to even receive events for them, we must have a key for them already.
-        let mut guild_states = self.0.guild_voice_states.get_mut(&guild_id).unwrap();
+        // If then user isn't caching guilds, then simply ignore the update since theres nowhere to put it.
+        let mut guild_states = self.0.guild_voice_states.get_mut(&guild_id)?;
 
         // If a user leaves a voice channel, then the `VoiceState` object received contains no
         // channel id.

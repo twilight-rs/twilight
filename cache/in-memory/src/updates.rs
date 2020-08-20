@@ -788,10 +788,12 @@ impl UpdateCache<InMemoryCache, InMemoryCacheError> for WebhooksUpdate {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::config::InMemoryConfig;
     use twilight_model::{
         channel::{ChannelType, GuildChannel, TextChannel},
         gateway::payload::ChannelDelete,
-        id::{ChannelId, GuildId},
+        id::{ChannelId, GuildId, UserId},
+        voice::VoiceState,
     };
 
     fn guild_channel_text() -> (GuildId, ChannelId, GuildChannel) {
@@ -853,5 +855,32 @@ mod tests {
             .get(&guild_id)
             .unwrap()
             .contains(&channel_id));
+    }
+
+    #[tokio::test]
+    async fn test_voice_states_with_no_cached_guilds() {
+        let cache = InMemoryCache::from(
+            InMemoryConfig::builder()
+                .event_types(crate::config::EventType::VOICE_STATE_UPDATE)
+                .build(),
+        );
+
+        cache
+            .update(&VoiceStateUpdate(VoiceState {
+                channel_id: None,
+                deaf: false,
+                guild_id: Some(GuildId(01)),
+                member: None,
+                mute: false,
+                self_deaf: false,
+                self_mute: false,
+                self_stream: false,
+                session_id: "38fj3jfkh3pfho3prh2".to_string(),
+                suppress: false,
+                token: None,
+                user_id: UserId(01),
+            }))
+            .await
+            .expect("Caching a voice state should not fail")
     }
 }
