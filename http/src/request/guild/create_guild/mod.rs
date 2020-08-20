@@ -94,10 +94,12 @@ pub struct RoleFields {
 }
 
 impl From<RoleFieldsBuilder> for RoleFields {
-    /// Convert a RoleFieldsBuilder into a RoleFields.
+    /// Convert a [`RoleFieldsBuilder`] into a [`RoleFields`].
     ///
     /// This is equivalent to calling [`RoleFieldsBuilder::build`].
     ///
+    /// [`RoleFieldsBuilder`]: struct.RoleFieldsBuilder.html
+    /// [`RoleFields`]: struct.RoleFields.html
     /// [`RoleFieldsBuilder::build`]: struct.RoleFieldsBuilder.html#method.build
     fn from(builder: RoleFieldsBuilder) -> Self {
         builder.build()

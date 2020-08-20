@@ -562,14 +562,14 @@ impl CategoryFieldsBuilder {
 }
 
 /// A builder for a list of channels.
-#[derive(Clone, Debug, Eq, PartialEq)]
+#[derive(Clone, Debug, Default, Eq, PartialEq)]
 #[must_use = "must be built into a list of channnels"]
 pub struct GuildChannelFieldsBuilder(Vec<GuildChannelFields>);
 
 impl GuildChannelFieldsBuilder {
     /// Create a new channels builder.
     pub fn new() -> Self {
-        Self(Vec::new())
+        Self::default()
     }
 
     /// Build the list of channels.
@@ -598,8 +598,7 @@ impl GuildChannelFieldsBuilder {
             .iter()
             .rev()
             .find(|c| matches!(c, GuildChannelFields::Category(_)))
-            .map(|c| c.to_owned().id())
-            .unwrap_or(ChannelId(1));
+            .map_or(ChannelId(1), |c| c.to_owned().id());
 
         let mut channels = channel.build(ChannelId(last_id.0 + 1));
 
