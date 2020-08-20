@@ -338,10 +338,9 @@ impl ShardProcessor {
                 }
                 Err(ReceivingEventError::SocketForwarder) => {
                     tracing::warn!(
-                        "socket forwarder is closed, reconnect"
+                        "socket forwarder is closed, reconnecting"
                     );
 
-                    // Inflater gets reset in the reconnect call.
                     self.reconnect(true).await;
                     continue;
                 }
