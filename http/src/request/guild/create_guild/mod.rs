@@ -4,12 +4,17 @@ use std::{
     fmt::{Display, Formatter, Result as FmtResult},
 };
 use twilight_model::{
-    channel::GuildChannel,
+    channel::{permission_overwrite::PermissionOverwrite, ChannelType},
     guild::{
-        DefaultMessageNotificationLevel, ExplicitContentFilter, PartialGuild, Role,
+        DefaultMessageNotificationLevel, ExplicitContentFilter, PartialGuild, Permissions,
         VerificationLevel,
     },
+    id::{ChannelId, RoleId},
 };
+
+mod builder;
+
+pub use self::builder::*;
 
 /// The error returned when the guild can not be created as configured.
 #[derive(Clone, Debug)]
@@ -25,14 +30,14 @@ pub enum CreateGuildError {
     /// The maximum amount is 500.
     TooManyChannels {
         /// Provided channels.
-        channels: Vec<GuildChannel>,
+        channels: Vec<GuildChannelFields>,
     },
     /// The number of roles provided is too many.
     ///
     /// The maximum amount is 250.
     TooManyRoles {
         /// Provided roles.
-        roles: Vec<Role>,
+        roles: Vec<RoleFields>,
     },
 }
 
@@ -51,7 +56,7 @@ impl Error for CreateGuildError {}
 #[derive(Serialize)]
 struct CreateGuildFields {
     #[serde(skip_serializing_if = "Option::is_none")]
-    channels: Option<Vec<GuildChannel>>,
+    channels: Option<Vec<GuildChannelFields>>,
     #[serde(skip_serializing_if = "Option::is_none")]
     default_message_notifications: Option<DefaultMessageNotificationLevel>,
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -62,9 +67,119 @@ struct CreateGuildFields {
     #[serde(skip_serializing_if = "Option::is_none")]
     region: Option<String>,
     #[serde(skip_serializing_if = "Option::is_none")]
-    roles: Option<Vec<Role>>,
+    roles: Option<Vec<RoleFields>>,
     #[serde(skip_serializing_if = "Option::is_none")]
     verification_level: Option<VerificationLevel>,
+}
+
+/// Role fields sent to Discord.
+#[derive(Clone, Debug, Eq, PartialEq, Serialize)]
+pub struct RoleFields {
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub color: Option<u32>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub hoist: Option<bool>,
+    pub id: RoleId,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub mentionable: Option<bool>,
+    pub name: String,
+    #[serde(rename = "permissions")]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub permissions_old: Option<Permissions>,
+    #[serde(rename = "permissions_new")]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub permissions: Option<Permissions>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub position: Option<i64>,
+}
+
+impl From<RoleFieldsBuilder> for RoleFields {
+    /// Convert a RoleFieldsBuilder into a RoleFields.
+    ///
+    /// This is equivalent to calling [`RoleFieldsBuilder::build`].
+    ///
+    /// [`RoleFieldsBuilder::build`]: struct.RoleFieldsBuilder.html#method.build
+    fn from(builder: RoleFieldsBuilder) -> Self {
+        builder.build()
+    }
+}
+
+/// Variants of channel fields sent to Discord.
+#[derive(Clone, Debug, Eq, PartialEq, Serialize)]
+#[serde(untagged)]
+pub enum GuildChannelFields {
+    Category(CategoryFields),
+    Text(TextFields),
+    Voice(VoiceFields),
+}
+
+impl GuildChannelFields {
+    pub fn id(self) -> ChannelId {
+        match self {
+            Self::Category(c) => c.id,
+            Self::Text(t) => t.id,
+            Self::Voice(v) => v.id,
+        }
+    }
+}
+
+/// Category channel fields sent to Discord.
+#[derive(Clone, Debug, Eq, PartialEq, Serialize)]
+pub struct CategoryFields {
+    pub id: ChannelId,
+    #[serde(rename = "type")]
+    pub kind: ChannelType,
+    pub name: String,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub permission_overwrites: Option<Vec<PermissionOverwrite>>,
+}
+
+/// Text channel fields sent to Discord.
+#[derive(Clone, Debug, Eq, PartialEq, Serialize)]
+pub struct TextFields {
+    pub id: ChannelId,
+    #[serde(rename = "type")]
+    pub kind: ChannelType,
+    pub name: String,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub nsfw: Option<bool>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub permission_overwrites: Option<Vec<PermissionOverwrite>>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub parent_id: Option<ChannelId>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub rate_limit_per_user: Option<u64>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub topic: Option<String>,
+}
+
+impl From<TextFieldsBuilder> for TextFields {
+    fn from(builder: TextFieldsBuilder) -> TextFields {
+        builder.build()
+    }
+}
+
+/// Voice channel fields sent to Discord.
+#[derive(Clone, Debug, Eq, PartialEq, Serialize)]
+pub struct VoiceFields {
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub bitrate: Option<u64>,
+    pub id: ChannelId,
+    #[serde(rename = "type")]
+    pub kind: ChannelType,
+    pub name: String,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub permission_overwrites: Option<Vec<PermissionOverwrite>>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub parent_id: Option<ChannelId>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub user_limit: Option<u64>,
+}
+
+impl From<VoiceFieldsBuilder> for VoiceFields {
+    fn from(builder: VoiceFieldsBuilder) -> VoiceFields {
+        builder.build()
+    }
 }
 
 /// Create a new request to create a guild.
@@ -109,6 +224,20 @@ impl<'a> CreateGuild<'a> {
         })
     }
 
+    /// Add a role to the list of roles.
+    pub fn add_role(mut self, role: impl Into<RoleFields>) -> Self {
+        if self.fields.roles.is_none() {
+            let builder = RoleFieldsBuilder::new("@everyone");
+            self.fields.roles.replace(vec![builder.build()]);
+        }
+
+        if let Some(roles) = self.fields.roles.as_mut() {
+            roles.push(role.into());
+        }
+
+        self
+    }
+
     /// Set the channels to create with the guild.
     ///
     /// The maximum number of channels that can be provided is 500.
@@ -118,7 +247,7 @@ impl<'a> CreateGuild<'a> {
     /// Returns [`CreateGuildError::TooManyChannels`] if the number of channels is over 500.
     ///
     /// [`CreateGuildError::TooManyChannels`]: enum.CreateGuildError.html#variant.TooManyChannels
-    pub fn channels(mut self, channels: Vec<GuildChannel>) -> Result<Self, CreateGuildError> {
+    pub fn channels(mut self, channels: Vec<GuildChannelFields>) -> Result<Self, CreateGuildError> {
         // Error 30013
         // <https://discordapp.com/developers/docs/topics/opcodes-and-status-codes#json>
         if channels.len() > 500 {
@@ -170,6 +299,18 @@ impl<'a> CreateGuild<'a> {
         self
     }
 
+    /// Override the everyone role of the guild.
+    pub fn override_everyone(mut self, everyone: impl Into<RoleFields>) -> Self {
+        if let Some(roles) = self.fields.roles.as_mut() {
+            roles.remove(0);
+            roles.insert(0, everyone.into());
+        } else {
+            self.fields.roles.replace(vec![everyone.into()]);
+        }
+
+        self
+    }
+
     /// Specify the voice server region for the guild. Refer to [the discord docs] for more
     /// information.
     ///
@@ -190,7 +331,7 @@ impl<'a> CreateGuild<'a> {
     /// over 250.
     ///
     /// [`CreateGuildError::TooManyRoles`]: enum.CreateGuildError.html#variant.TooManyRoles
-    pub fn roles(mut self, roles: Vec<Role>) -> Result<Self, CreateGuildError> {
+    pub fn roles(mut self, roles: Vec<RoleFields>) -> Result<Self, CreateGuildError> {
         if roles.len() > 250 {
             return Err(CreateGuildError::TooManyRoles { roles });
         }
