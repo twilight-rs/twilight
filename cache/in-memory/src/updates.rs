@@ -99,15 +99,15 @@ impl UpdateCache<InMemoryCache, InMemoryCacheError> for ChannelCreate {
 
         match &self.0 {
             Channel::Group(c) => {
-                super::upsert_item(&cache.0.groups, c.id, c.clone()).await;
+                super::upsert_item(&cache.0.groups, c.id, c.clone());
             }
             Channel::Guild(c) => {
                 if let Some(gid) = c.guild_id() {
-                    cache.cache_guild_channel(gid, c.clone()).await;
+                    cache.cache_guild_channel(gid, c.clone());
                 }
             }
             Channel::Private(c) => {
-                cache.cache_private_channel(c.clone()).await;
+                cache.cache_private_channel(c.clone());
             }
         }
 
@@ -124,10 +124,10 @@ impl UpdateCache<InMemoryCache, InMemoryCacheError> for ChannelDelete {
 
         match self.0 {
             Channel::Group(ref c) => {
-                cache.delete_group(c.id).await;
+                cache.delete_group(c.id);
             }
             Channel::Guild(ref c) => {
-                cache.delete_guild_channel(c.id()).await;
+                cache.delete_guild_channel(c.id());
             }
             Channel::Private(ref c) => {
                 cache.0.channels_private.remove(&c.id);
@@ -178,15 +178,15 @@ impl UpdateCache<InMemoryCache, InMemoryCacheError> for ChannelUpdate {
 
         match self.0.clone() {
             Channel::Group(c) => {
-                cache.cache_group(c.clone()).await;
+                cache.cache_group(c);
             }
             Channel::Guild(c) => {
                 if let Some(gid) = c.guild_id() {
-                    cache.cache_guild_channel(gid, c.clone()).await;
+                    cache.cache_guild_channel(gid, c);
                 }
             }
             Channel::Private(c) => {
-                cache.cache_private_channel(c.clone()).await;
+                cache.cache_private_channel(c);
             }
         }
 
@@ -201,7 +201,7 @@ impl UpdateCache<InMemoryCache, InMemoryCacheError> for GuildCreate {
             return Ok(());
         }
 
-        cache.cache_guild(self.0.clone()).await;
+        cache.cache_guild(self.0.clone());
 
         Ok(())
     }
@@ -210,7 +210,7 @@ impl UpdateCache<InMemoryCache, InMemoryCacheError> for GuildCreate {
 #[async_trait]
 impl UpdateCache<InMemoryCache, InMemoryCacheError> for GuildDelete {
     async fn update(&self, cache: &InMemoryCache) -> Result<(), InMemoryCacheError> {
-        async fn remove_ids<T: Eq + Hash, U>(
+        fn remove_ids<T: Eq + Hash, U>(
             guild_map: &DashMap<GuildId, HashSet<T>>,
             container: &DashMap<T, U>,
             guild_id: GuildId,
@@ -230,9 +230,9 @@ impl UpdateCache<InMemoryCache, InMemoryCacheError> for GuildDelete {
 
         cache.0.guilds.remove(&id);
 
-        remove_ids(&cache.0.guild_channels, &cache.0.channels_guild, id).await;
-        remove_ids(&cache.0.guild_emojis, &cache.0.emojis, id).await;
-        remove_ids(&cache.0.guild_roles, &cache.0.roles, id).await;
+        remove_ids(&cache.0.guild_channels, &cache.0.channels_guild, id);
+        remove_ids(&cache.0.guild_emojis, &cache.0.emojis, id);
+        remove_ids(&cache.0.guild_roles, &cache.0.roles, id);
         // Clear out a guilds voice states when a guild leaves
         cache.0.voice_state_guilds.remove(&id);
 
@@ -259,9 +259,7 @@ impl UpdateCache<InMemoryCache, InMemoryCacheError> for GuildEmojisUpdate {
             return Ok(());
         }
 
-        cache
-            .cache_emojis(self.guild_id, self.emojis.values().cloned())
-            .await;
+        cache.cache_emojis(self.guild_id, self.emojis.values().cloned());
 
         Ok(())
     }
@@ -334,7 +332,7 @@ impl UpdateCache<InMemoryCache, InMemoryCacheError> for MemberAdd {
             return Ok(());
         }
 
-        cache.cache_member(self.guild_id, self.0.clone()).await;
+        cache.cache_member(self.guild_id, self.0.clone());
 
         cache
             .0
@@ -358,9 +356,7 @@ impl UpdateCache<InMemoryCache, InMemoryCacheError> for MemberChunk {
             return Ok(());
         }
 
-        cache
-            .cache_members(self.guild_id, self.members.values().cloned())
-            .await;
+        cache.cache_members(self.guild_id, self.members.values().cloned());
         let mut guild = cache.0.guild_members.entry(self.guild_id).or_default();
         guild.extend(self.members.keys());
 
@@ -549,7 +545,7 @@ impl UpdateCache<InMemoryCache, InMemoryCacheError> for PresenceUpdate {
             user: self.user.clone(),
         };
 
-        cache.cache_presence(Some(self.guild_id), presence).await;
+        cache.cache_presence(Some(self.guild_id), presence);
 
         Ok(())
     }
@@ -573,7 +569,7 @@ impl UpdateCache<InMemoryCache, InMemoryCacheError> for ReactionAdd {
 
         if let Some(reaction) = msg.reactions.iter_mut().find(|r| r.emoji == self.0.emoji) {
             if !reaction.me {
-                if let Some(current_user) = cache.current_user().await? {
+                if let Some(current_user) = cache.current_user() {
                     if current_user.id == self.0.user_id {
                         reaction.me = true;
                     }
@@ -584,7 +580,6 @@ impl UpdateCache<InMemoryCache, InMemoryCacheError> for ReactionAdd {
         } else {
             let me = cache
                 .current_user()
-                .await?
                 .map(|user| user.id == self.0.user_id)
                 .unwrap_or_default();
 
@@ -617,7 +612,7 @@ impl UpdateCache<InMemoryCache, InMemoryCacheError> for ReactionRemove {
 
         if let Some(reaction) = msg.reactions.iter_mut().find(|r| r.emoji == self.0.emoji) {
             if reaction.me {
-                if let Some(current_user) = cache.current_user().await? {
+                if let Some(current_user) = cache.current_user() {
                     if current_user.id == self.0.user_id {
                         reaction.me = false;
                     }
@@ -663,15 +658,15 @@ impl UpdateCache<InMemoryCache, InMemoryCacheError> for Ready {
             return Ok(());
         }
 
-        cache.cache_current_user(self.user.clone()).await;
+        cache.cache_current_user(self.user.clone());
 
         for status in self.guilds.values() {
             match status {
                 GuildStatus::Offline(u) => {
-                    cache.unavailable_guild(u.id).await;
+                    cache.unavailable_guild(u.id);
                 }
                 GuildStatus::Online(g) => {
-                    cache.cache_guild(g.clone()).await;
+                    cache.cache_guild(g.clone());
                 }
             }
         }
@@ -692,8 +687,7 @@ impl UpdateCache<InMemoryCache, InMemoryCacheError> for RoleCreate {
             self.guild_id,
             self.role.id,
             self.role.clone(),
-        )
-        .await;
+        );
 
         Ok(())
     }
@@ -706,7 +700,7 @@ impl UpdateCache<InMemoryCache, InMemoryCacheError> for RoleDelete {
             return Ok(());
         }
 
-        cache.delete_role(self.role_id).await;
+        cache.delete_role(self.role_id);
 
         Ok(())
     }
@@ -719,7 +713,7 @@ impl UpdateCache<InMemoryCache, InMemoryCacheError> for RoleUpdate {
             return Ok(());
         }
 
-        cache.cache_role(self.guild_id, self.role.clone()).await;
+        cache.cache_role(self.guild_id, self.role.clone());
 
         Ok(())
     }
@@ -753,7 +747,7 @@ impl UpdateCache<InMemoryCache, InMemoryCacheError> for UserUpdate {
             return Ok(());
         }
 
-        cache.cache_current_user(self.0.clone()).await;
+        cache.cache_current_user(self.0.clone());
 
         Ok(())
     }
@@ -777,7 +771,7 @@ impl UpdateCache<InMemoryCache, InMemoryCacheError> for VoiceStateUpdate {
             return Ok(());
         }
 
-        cache.cache_voice_state(self.0.clone()).await;
+        cache.cache_voice_state(self.0.clone());
 
         Ok(())
     }
@@ -827,7 +821,7 @@ mod tests {
         let cache = InMemoryCache::new();
         let (guild_id, channel_id, channel) = guild_channel_text();
 
-        cache.cache_guild_channel(guild_id, channel.clone()).await;
+        cache.cache_guild_channel(guild_id, channel.clone());
         assert_eq!(1, cache.0.channels_guild.len());
         assert!(cache
             .0
