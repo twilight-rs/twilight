@@ -1,5 +1,6 @@
 use super::{
-    config::ShardConfig,
+    builder::ShardBuilder,
+    config::Config,
     event::Events,
     processor::{ConnectingError, Latency, Session, ShardProcessor},
     sink::ShardSink,
@@ -194,7 +195,7 @@ pub struct ResumeSession {
 
 #[derive(Debug)]
 struct ShardRef {
-    config: Arc<ShardConfig>,
+    config: Arc<Config>,
     listeners: Listeners<Event>,
     processor_handle: OnceCell<AbortHandle>,
     session: OnceCell<WatchReceiver<Arc<Session>>>,
@@ -204,7 +205,9 @@ struct ShardRef {
 pub struct Shard(Arc<ShardRef>);
 
 impl Shard {
-    /// Creates a new shard, which will automatically connect to the gateway.
+    /// Creates a new unconfingured shard.
+    ///
+    /// Use [`start`] to initiate the gateway session.
     ///
     /// # Examples
     ///
@@ -227,11 +230,13 @@ impl Shard {
     /// println!("Shard stage: {}", info.stage());
     /// # Ok(()) }
     /// ```
-    pub fn new(config: impl Into<ShardConfig>) -> Self {
-        Self::_new(config.into())
+    ///
+    /// [`start`]: #method.start
+    pub fn new(token: impl Into<String>) -> Self {
+        Self::builder(token).build()
     }
 
-    fn _new(config: ShardConfig) -> Self {
+    pub(crate) fn new_with_config(config: Config) -> Self {
         let config = Arc::new(config);
 
         Self(Arc::new(ShardRef {
@@ -242,8 +247,13 @@ impl Shard {
         }))
     }
 
+    /// Create a builder to configure and construct a shard.
+    pub fn builder(token: impl Into<String>) -> ShardBuilder {
+        ShardBuilder::new(token)
+    }
+
     /// Returns an immutable reference to the configuration used for this client.
-    pub fn config(&self) -> &ShardConfig {
+    pub fn config(&self) -> &Config {
         &self.0.config
     }
 

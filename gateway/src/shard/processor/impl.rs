@@ -1,5 +1,5 @@
 use super::{
-    super::{config::ShardConfig, stage::Stage, ShardStream},
+    super::{config::Config, stage::Stage, ShardStream},
     emit,
     inflater::Inflater,
     session::{Session, SessionSendError},
@@ -224,7 +224,7 @@ impl Error for ReceivingEventError {
 /// to all listeners.
 #[derive(Debug)]
 pub struct ShardProcessor {
-    pub config: Arc<ShardConfig>,
+    pub config: Arc<Config>,
     pub listeners: Listeners<Event>,
     pub properties: IdentifyProperties,
     pub rx: UnboundedReceiver<Message>,
@@ -237,7 +237,7 @@ pub struct ShardProcessor {
 
 impl ShardProcessor {
     pub async fn new(
-        config: Arc<ShardConfig>,
+        config: Arc<Config>,
         mut url: String,
         listeners: Listeners<Event>,
     ) -> Result<(Self, WatchReceiver<Arc<Session>>), ConnectingError> {

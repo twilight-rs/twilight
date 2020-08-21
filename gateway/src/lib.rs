@@ -113,8 +113,8 @@ pub use self::event::EventTypeFlags;
 
 #[doc(no_inline)]
 pub use self::{
-    cluster::{Cluster, ClusterConfig},
-    shard::{Shard, ShardConfig},
+    cluster::{Cluster, Config as ClusterConfig},
+    shard::{Config as ShardConfig, Shard},
 };
 #[doc(no_inline)]
 pub use twilight_model::gateway::event::{Event, EventType};
