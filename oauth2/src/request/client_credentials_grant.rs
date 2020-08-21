@@ -127,6 +127,7 @@ impl<'a> ClientCredentialsGrantBuilder<'a> {
     /// [RFC 6749 § 3.3] on access token scopes.
     ///
     /// [`Bot`]: enum.Scope.html#variant.Bot
+    /// [`Identify`]: enum.Scope.html#variant.Identify
     /// [RFC 6749 § 3.3]: https://tools.ietf.org/html/rfc6749#section-3.3
     /// [scope documentation]: https://discord.com/developers/docs/topics/oauth2#shared-resources-oauth2-scopes
     pub fn scopes(&mut self, scopes: &'a [Scope]) -> &mut Self {
