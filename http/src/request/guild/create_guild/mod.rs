@@ -288,7 +288,7 @@ impl<'a> CreateGuild<'a> {
     ///
     /// let channels = GuildChannelFieldsBuilder::new()
     ///     .add_text(text)
-    ///     .add_category(category)
+    ///     .add_category_builder(category)
     ///     .build();
     ///
     /// let guild = client.create_guild("guild name")?.channels(channels)?.await?;

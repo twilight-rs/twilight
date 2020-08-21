@@ -759,9 +759,10 @@ mod tests {
         );
 
         let fields = category();
+        let channels = GuildChannelFieldsBuilder::new().add_category_builder(fields);
 
         assert_eq!(
-            fields.build(ChannelId(2)),
+            channels.build(),
             vec![
                 GuildChannelFields::Category(CategoryFields {
                     id: ChannelId(2),
