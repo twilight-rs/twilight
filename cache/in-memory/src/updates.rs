@@ -234,7 +234,7 @@ impl UpdateCache<InMemoryCache, InMemoryCacheError> for GuildDelete {
         remove_ids(&cache.0.guild_emojis, &cache.0.emojis, id).await;
         remove_ids(&cache.0.guild_roles, &cache.0.roles, id).await;
         // Clear out a guilds voice states when a guild leaves
-        cache.0.guild_voice_states.remove(&id);
+        cache.0.voice_state_guilds.remove(&id);
 
         if let Some((_, ids)) = cache.0.guild_members.remove(&id) {
             for user_id in ids {

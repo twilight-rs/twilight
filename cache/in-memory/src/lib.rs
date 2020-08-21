@@ -8,7 +8,7 @@ use config::InMemoryConfig;
 use dashmap::{mapref::entry::Entry, DashMap, DashSet};
 use futures_util::{future, lock::Mutex};
 use std::{
-    collections::{BTreeMap, BTreeSet, HashMap, HashSet},
+    collections::{BTreeMap, BTreeSet, HashSet},
     error::Error,
     fmt::{Display, Formatter, Result as FmtResult},
     hash::Hash,
@@ -108,13 +108,18 @@ struct InMemoryCacheRef {
     guild_members: DashMap<GuildId, HashSet<UserId>>,
     guild_presences: DashMap<GuildId, HashSet<UserId>>,
     guild_roles: DashMap<GuildId, HashSet<RoleId>>,
-    guild_voice_states: DashMap<GuildId, HashMap<UserId, Arc<VoiceState>>>,
     members: DashMap<(GuildId, UserId), Arc<CachedMember>>,
     messages: DashMap<ChannelId, BTreeMap<MessageId, Arc<CachedMessage>>>,
     presences: DashMap<(Option<GuildId>, UserId), Arc<CachedPresence>>,
     roles: DashMap<RoleId, GuildItem<Role>>,
     unavailable_guilds: DashSet<GuildId>,
     users: DashMap<UserId, (Arc<User>, BTreeSet<GuildId>)>,
+    /// Mapping of channels and the users currently connected.
+    voice_state_channels: DashMap<ChannelId, HashSet<(GuildId, UserId)>>,
+    /// Mapping of guilds and users currently connected to its voice channels.
+    voice_state_guilds: DashMap<GuildId, HashSet<UserId>>,
+    /// Mapping of guild ID and user ID pairs to their voice states.
+    voice_states: DashMap<(GuildId, UserId), Arc<VoiceState>>,
 }
 
 /// A thread-safe, in-memory-process cache of Discord data. It can be cloned and
@@ -306,6 +311,18 @@ impl InMemoryCache {
         Ok(self.0.users.get(&user_id).map(|r| Arc::clone(&r.0)))
     }
 
+    /// Gets the voice states within a voice channel.
+    pub fn voice_channel_states(&self, channel_id: ChannelId) -> Option<Vec<Arc<VoiceState>>> {
+        let user_ids = self.0.voice_state_channels.get(&channel_id)?;
+
+        Some(
+            user_ids
+                .iter()
+                .filter_map(|key| self.0.voice_states.get(&key).map(|r| Arc::clone(r.value())))
+                .collect(),
+        )
+    }
+
     /// Gets a voice state by user ID and Guild ID.
     ///
     /// This is an O(1) operation.
@@ -314,12 +331,11 @@ impl InMemoryCache {
         user_id: UserId,
         guild_id: GuildId,
     ) -> Result<Option<Arc<VoiceState>>> {
-        if let Some(guild_map) = self.0.guild_voice_states.get(&guild_id) {
-            let vs = guild_map.get(&user_id).cloned();
-            Ok(vs)
-        } else {
-            Ok(None)
-        }
+        Ok(self
+            .0
+            .voice_states
+            .get(&(guild_id, user_id))
+            .map(|r| Arc::clone(r.value())))
     }
 
     /// Clears the entire state of the Cache. This is equal to creating a new
@@ -332,7 +348,7 @@ impl InMemoryCache {
         self.0.presences.clear();
         self.0.roles.clear();
         self.0.users.clear();
-        self.0.guild_voice_states.clear();
+        self.0.voice_state_guilds.clear();
 
         Ok(())
     }
@@ -451,7 +467,7 @@ impl InMemoryCache {
         self.0.guild_members.insert(guild.id, HashSet::new());
         self.0.guild_presences.insert(guild.id, HashSet::new());
         self.0.guild_roles.insert(guild.id, HashSet::new());
-        self.0.guild_voice_states.insert(guild.id, HashMap::new());
+        self.0.voice_state_guilds.insert(guild.id, HashSet::new());
 
         self.cache_guild_channels(guild.id, guild.channels.into_iter().map(|(_, v)| v))
             .await;
@@ -662,41 +678,64 @@ impl InMemoryCache {
 
         let user_id = vs.user_id;
 
-        // If then user isn't caching guilds, then simply ignore the update since theres nowhere to put it.
-        let mut guild_states = self.0.guild_voice_states.get_mut(&guild_id)?;
-
-        // If a user leaves a voice channel, then the `VoiceState` object received contains no
-        // channel id.
         if vs.channel_id.is_none() {
-            // To avoid the dead voice states from going stale and clogging up the cache,
-            // we remove it.
-            guild_states.remove(&user_id);
+            {
+                let remove = self
+                    .0
+                    .voice_state_guilds
+                    .get_mut(&guild_id)
+                    .map(|mut guild_users| {
+                        guild_users.remove(&user_id);
 
-            return None;
+                        guild_users.is_empty()
+                    })
+                    .unwrap_or_default();
+
+                if remove {
+                    self.0.voice_state_guilds.remove(&guild_id);
+                }
+            }
+
+            let (_, state) = self.0.voice_states.remove(&(guild_id, user_id))?;
+
+            if let Some(channel_id) = state.channel_id {
+                let remove = self
+                    .0
+                    .voice_state_channels
+                    .get_mut(&channel_id)
+                    .map(|mut users| {
+                        users.remove(&(guild_id, user_id));
+
+                        users.is_empty()
+                    })
+                    .unwrap_or_default();
+
+                if remove {
+                    self.0.voice_state_channels.remove(&channel_id);
+                }
+            }
+
+            return Some(state);
         }
 
-        // This won't panic for the reason above.
-        match guild_states.get(&user_id) {
-            Some(v) if **v == vs => return Some(Arc::clone(v)),
-            Some(_) | None => {}
+        let state = Arc::new(vs);
+
+        self.0
+            .voice_states
+            .insert((guild_id, user_id), Arc::clone(&state));
+        self.0
+            .voice_state_guilds
+            .entry(guild_id)
+            .or_default()
+            .insert(user_id);
+
+        if let Some(channel_id) = state.channel_id {
+            self.0
+                .voice_state_channels
+                .entry(channel_id)
+                .or_default()
+                .insert((guild_id, user_id));
         }
-
-        let state = Arc::new(VoiceState {
-            channel_id: vs.channel_id,
-            deaf: vs.deaf,
-            guild_id: vs.guild_id,
-            member: vs.member,
-            mute: vs.mute,
-            self_deaf: vs.self_deaf,
-            self_mute: vs.self_mute,
-            self_stream: vs.self_stream,
-            session_id: vs.session_id,
-            suppress: vs.suppress,
-            token: vs.token,
-            user_id: vs.user_id,
-        });
-
-        guild_states.insert(user_id, Arc::clone(&state));
 
         Some(state)
     }
@@ -767,6 +806,7 @@ mod tests {
         },
         id::{ChannelId, GuildId, RoleId, UserId},
         user::User,
+        voice::VoiceState,
     };
 
     type Result<T> = StdResult<T, Box<dyn Error>>;
@@ -786,6 +826,23 @@ mod tests {
             public_flags: None,
             system: None,
             verified: None,
+        }
+    }
+
+    fn voice_state(guild_id: u64, channel_id: Option<u64>, user_id: u64) -> VoiceState {
+        VoiceState {
+            channel_id: channel_id.map(ChannelId),
+            deaf: false,
+            guild_id: Some(GuildId(guild_id)),
+            member: None,
+            mute: true,
+            self_deaf: false,
+            self_mute: true,
+            self_stream: false,
+            session_id: "a".to_owned(),
+            suppress: false,
+            token: None,
+            user_id: UserId(user_id),
         }
     }
 
@@ -939,5 +996,78 @@ mod tests {
             .await
             .is_ok());
         assert!(!cache.0.users.contains_key(&user_id));
+    }
+
+    #[tokio::test]
+    async fn test_voice_state_inserts_and_removes() {
+        let cache = InMemoryCache::new();
+        cache.cache_voice_state(voice_state(1, Some(2), 3)).await;
+        assert!(cache.0.voice_states.contains_key(&(GuildId(1), UserId(3))));
+        assert_eq!(1, cache.0.voice_states.len());
+        assert!(cache.0.voice_state_channels.contains_key(&ChannelId(2)));
+        assert_eq!(1, cache.0.voice_state_channels.len());
+        assert!(cache.0.voice_state_guilds.contains_key(&GuildId(1)));
+        assert_eq!(1, cache.0.voice_state_guilds.len());
+
+        // Inserting another voice state with a different guild ID, channel ID,
+        // and user ID will make all of these 2.
+        cache.cache_voice_state(voice_state(4, Some(5), 6)).await;
+        assert!(cache.0.voice_states.contains_key(&(GuildId(4), UserId(6))));
+        assert_eq!(2, cache.0.voice_states.len());
+        assert!(cache.0.voice_state_channels.contains_key(&ChannelId(5)));
+        assert_eq!(2, cache.0.voice_state_channels.len());
+        assert!(cache.0.voice_state_guilds.contains_key(&GuildId(4)));
+        assert_eq!(2, cache.0.voice_state_guilds.len());
+
+        // Inserting another voice state with the same guild ID and channel ID
+        // but a different user will cause the guild to have 2 voice states,
+        // the channel to have 2 voice states, and 3 overall voice states.
+        cache.cache_voice_state(voice_state(1, Some(2), 7)).await;
+        assert!(cache.0.voice_states.contains_key(&(GuildId(4), UserId(6))));
+        assert_eq!(3, cache.0.voice_states.len());
+        assert!(cache.0.voice_state_channels.contains_key(&ChannelId(5)));
+        assert_eq!(2, cache.0.voice_state_channels.len());
+        assert!(cache.0.voice_state_guilds.contains_key(&GuildId(4)));
+        assert_eq!(2, cache.0.voice_state_guilds.len());
+
+        // Now test that deleting the last voice state in all of a channel and
+        // guild causes both to be removed from the map.
+        cache.cache_voice_state(voice_state(4, None, 6)).await;
+        assert!(!cache.0.voice_states.contains_key(&(GuildId(4), UserId(6))));
+        assert_eq!(2, cache.0.voice_states.len());
+        assert!(!cache.0.voice_state_channels.contains_key(&ChannelId(5)));
+        assert_eq!(1, cache.0.voice_state_channels.len());
+        assert!(!cache.0.voice_state_guilds.contains_key(&GuildId(4)));
+        assert_eq!(1, cache.0.voice_state_guilds.len());
+
+        // Now test that deleting one of two voice states in a guild and channel
+        // causes the other to remain in all cases.
+        cache.cache_voice_state(voice_state(1, None, 7)).await;
+        assert!(!cache.0.voice_states.contains_key(&(GuildId(1), UserId(7))));
+        assert_eq!(1, cache.0.voice_states.len());
+        assert!(cache.0.voice_state_channels.contains_key(&ChannelId(2)));
+        assert_eq!(1, cache.0.voice_state_channels.len());
+        assert!(cache.0.voice_state_guilds.contains_key(&GuildId(1)));
+        assert_eq!(1, cache.0.voice_state_guilds.len());
+
+        // And now that deleting the last voice state deletes all of the maps'
+        // entries.
+        cache.cache_voice_state(voice_state(1, None, 3)).await;
+        assert!(cache.0.voice_states.is_empty());
+        assert!(cache.0.voice_state_channels.is_empty());
+        assert!(cache.0.voice_state_guilds.is_empty());
+    }
+
+    #[tokio::test]
+    async fn test_voice_states() {
+        let cache = InMemoryCache::new();
+        cache.cache_voice_state(voice_state(1, Some(2), 3)).await;
+        cache.cache_voice_state(voice_state(1, Some(2), 4)).await;
+
+        // Returns both voice states for the channel that exists.
+        assert_eq!(2, cache.voice_channel_states(ChannelId(2)).unwrap().len());
+
+        // Returns None if the channel does not exist.
+        assert!(cache.voice_channel_states(ChannelId(0)).is_none());
     }
 }
