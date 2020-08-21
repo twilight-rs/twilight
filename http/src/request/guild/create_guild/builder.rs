@@ -48,14 +48,11 @@ impl RoleFieldsBuilder {
     /// [`color`]: #method.color
     pub const COLOR_MAXIMUM: u32 = 0xff_ff_ff;
 
-    /// The default `RoleId`.
-    ///
-    /// Any other id specified can not be 1.
-    pub const ROLE_ID: RoleId = RoleId(1);
+    const ROLE_ID: RoleId = RoleId(1);
 
     /// Create a new default role field builder.
     pub fn new(name: impl Into<String>) -> Self {
-        RoleFieldsBuilder(RoleFields {
+        Self(RoleFields {
             color: None,
             hoist: None,
             id: Self::ROLE_ID,
@@ -248,7 +245,7 @@ impl TextFieldsBuilder {
             return Err(TextFieldsError::NameTooLong { name });
         }
 
-        Ok(TextFieldsBuilder(TextFields {
+        Ok(Self(TextFields {
             id: ChannelId(1),
             kind: ChannelType::GuildText,
             name,
@@ -518,31 +515,21 @@ impl CategoryFieldsBuilder {
         })
     }
 
-    /// Build the category into a list of itself and its children, with an id.
-    pub fn build(self, id: ChannelId) -> Vec<GuildChannelFields> {
-        let mut channels = self
-            .channels
-            .iter()
-            .map(|c| match c.to_owned() {
-                GuildChannelFields::Text(t) => GuildChannelFields::Text(TextFields {
-                    parent_id: Some(id),
-                    ..t
-                }),
-                GuildChannelFields::Voice(v) => GuildChannelFields::Voice(VoiceFields {
-                    parent_id: Some(id),
-                    ..v
-                }),
-                GuildChannelFields::Category(_) => unreachable!(),
-            })
-            .collect::<Vec<GuildChannelFields>>();
+    pub(super) fn build(mut self, id: ChannelId) -> Vec<GuildChannelFields> {
+        for channel in &mut self.channels {
+            match channel {
+                GuildChannelFields::Text(t) => t.parent_id.replace(id),
+                GuildChannelFields::Voice(v) => v.parent_id.replace(id),
+                GuildChannelFields::Category(_) => None,
+            };
+        }
 
-        channels.insert(0, GuildChannelFields::Category(self._build(id)));
+        self.channels.insert(
+            0,
+            GuildChannelFields::Category(CategoryFields { id, ..self.fields }),
+        );
 
-        channels
-    }
-
-    fn _build(self, id: ChannelId) -> CategoryFields {
-        CategoryFields { id, ..self.fields }
+        self.channels
     }
 
     /// Add a child text channel.
@@ -591,8 +578,8 @@ impl GuildChannelFieldsBuilder {
         self
     }
 
-    /// Add a category channel, and all its children to the builder.
-    pub fn add_category(mut self, channel: CategoryFieldsBuilder) -> Self {
+    /// Add a category channel builder, and all its children to the builder.
+    pub fn add_category_builder(mut self, channel: CategoryFieldsBuilder) -> Self {
         let last_id = self
             .0
             .iter()
@@ -628,7 +615,7 @@ mod tests {
         Permissions::CONNECT | Permissions::SPEAK | Permissions::SEND_TTS_MESSAGES
     }
 
-    fn overwrites() -> PermissionOverwrite {
+    fn overwrite() -> PermissionOverwrite {
         PermissionOverwrite {
             allow_old: Permissions::empty(),
             allow: perms(),
@@ -642,15 +629,17 @@ mod tests {
         VoiceFieldsBuilder::new("voicename")
             .unwrap()
             .bitrate(96_000)
-            .permission_overwrites(vec![overwrites()])
+            .permission_overwrites(vec![overwrite()])
             .user_limit(40)
     }
 
     #[test]
     fn test_role_fields() {
         assert_eq!(
-            Err(RoleFieldsError::ColorNotRgb { color: 123_123_123 }),
-            RoleFieldsBuilder::new("role").color(123_123_123)
+            RoleFieldsError::ColorNotRgb { color: 123_123_123 },
+            RoleFieldsBuilder::new("role")
+                .color(123_123_123)
+                .unwrap_err()
         );
 
         let fields = RoleFieldsBuilder::new("rolename")
@@ -682,10 +671,10 @@ mod tests {
     #[test]
     fn test_voice_fields() {
         assert_eq!(
-            Err(VoiceFieldsError::NameTooShort {
+            VoiceFieldsError::NameTooShort {
                 name: String::from("c")
-            }),
-            VoiceFieldsBuilder::new("c")
+            },
+            VoiceFieldsBuilder::new("c").unwrap_err()
         );
 
         let fields = voice();
@@ -714,7 +703,7 @@ mod tests {
         TextFieldsBuilder::new("textname")
             .unwrap()
             .nsfw()
-            .permission_overwrites(vec![overwrites()])
+            .permission_overwrites(vec![overwrite()])
             .rate_limit_per_user(4_000)
             .unwrap()
             .topic("a topic")
@@ -724,10 +713,10 @@ mod tests {
     #[test]
     fn test_text_fields() {
         assert_eq!(
-            Err(TextFieldsError::NameTooShort {
+            TextFieldsError::NameTooShort {
                 name: String::from("b")
-            }),
-            TextFieldsBuilder::new("b")
+            },
+            TextFieldsBuilder::new("b").unwrap_err()
         );
 
         let fields = text();
@@ -763,10 +752,10 @@ mod tests {
     #[test]
     fn test_category_fields() {
         assert_eq!(
-            Err(CategoryFieldsError::NameTooShort {
+            CategoryFieldsError::NameTooShort {
                 name: String::from("a")
-            }),
-            CategoryFieldsBuilder::new("a")
+            },
+            CategoryFieldsBuilder::new("a").unwrap_err()
         );
 
         let fields = category();
