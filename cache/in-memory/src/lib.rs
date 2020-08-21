@@ -8,7 +8,7 @@ use config::InMemoryConfig;
 use dashmap::{mapref::entry::Entry, DashMap, DashSet};
 use futures_util::{future, lock::Mutex};
 use std::{
-    collections::{BTreeMap, HashMap, HashSet},
+    collections::{BTreeMap, BTreeSet, HashMap, HashSet},
     error::Error,
     fmt::{Display, Formatter, Result as FmtResult},
     hash::Hash,
@@ -114,7 +114,7 @@ struct InMemoryCacheRef {
     presences: DashMap<(Option<GuildId>, UserId), Arc<CachedPresence>>,
     roles: DashMap<RoleId, GuildItem<Role>>,
     unavailable_guilds: DashSet<GuildId>,
-    users: DashMap<UserId, Arc<User>>,
+    users: DashMap<UserId, (Arc<User>, BTreeSet<GuildId>)>,
 }
 
 /// A thread-safe, in-memory-process cache of Discord data. It can be cloned and
@@ -303,7 +303,7 @@ impl InMemoryCache {
     ///
     /// This is an O(1) operation.
     pub async fn user(&self, user_id: UserId) -> Result<Option<Arc<User>>> {
-        Ok(self.0.users.get(&user_id).map(|r| Arc::clone(r.value())))
+        Ok(self.0.users.get(&user_id).map(|r| Arc::clone(&r.0)))
     }
 
     /// Gets a voice state by user ID and Guild ID.
@@ -400,7 +400,7 @@ impl InMemoryCache {
             Some(_) | None => {}
         }
         let user = match emoji.user {
-            Some(u) => Some(self.cache_user(u).await),
+            Some(u) => Some(self.cache_user(u, guild_id).await),
             None => None,
         };
         let cached = Arc::new(CachedEmoji {
@@ -517,7 +517,7 @@ impl InMemoryCache {
             Some(_) | None => {}
         }
 
-        let user = self.cache_user(member.user).await;
+        let user = self.cache_user(member.user, guild_id).await;
         let cached = Arc::new(CachedMember {
             deaf: member.deaf,
             guild_id,
@@ -620,13 +620,20 @@ impl InMemoryCache {
         upsert_guild_item(&self.0.roles, guild_id, role.id, role).await
     }
 
-    pub async fn cache_user(&self, user: User) -> Arc<User> {
-        match self.0.users.get(&user.id) {
-            Some(u) if **u == user => return Arc::clone(&u),
+    pub async fn cache_user(&self, user: User, guild_id: GuildId) -> Arc<User> {
+        match self.0.users.get_mut(&user.id) {
+            Some(mut u) if *u.0 == user => {
+                u.1.insert(guild_id);
+                return Arc::clone(&u.0);
+            }
             Some(_) | None => {}
         }
         let user = Arc::new(user);
-        self.0.users.insert(user.id, Arc::clone(&user));
+        let mut guild_id_set = BTreeSet::new();
+        guild_id_set.insert(guild_id);
+        self.0
+            .users
+            .insert(user.id, (Arc::clone(&user), guild_id_set));
 
         user
     }
@@ -753,15 +760,34 @@ mod tests {
     use std::{collections::HashMap, error::Error, result::Result as StdResult};
     use twilight_model::{
         channel::{ChannelType, GuildChannel, TextChannel},
-        gateway::payload::RoleDelete,
+        gateway::payload::{MemberRemove, RoleDelete},
         guild::{
             DefaultMessageNotificationLevel, ExplicitContentFilter, Guild, MfaLevel, Permissions,
             PremiumTier, SystemChannelFlags, VerificationLevel,
         },
         id::{ChannelId, GuildId, RoleId, UserId},
+        user::User,
     };
 
     type Result<T> = StdResult<T, Box<dyn Error>>;
+
+    fn user(id: UserId) -> User {
+        User {
+            avatar: None,
+            bot: false,
+            discriminator: "0001".to_owned(),
+            email: None,
+            flags: None,
+            id,
+            locale: None,
+            mfa_enabled: None,
+            name: "user".to_owned(),
+            premium_type: None,
+            public_flags: None,
+            system: None,
+            verified: None,
+        }
+    }
 
     #[tokio::test]
     async fn test_guild_create_channels_have_guild_ids() -> Result<()> {
@@ -863,5 +889,55 @@ mod tests {
             .await?;
 
         Ok(())
+    }
+
+    #[tokio::test]
+    async fn test_cache_user_guild_state() {
+        let user_id = UserId(2);
+        let cache = InMemoryCache::new();
+        cache.cache_user(user(user_id), GuildId(1)).await;
+
+        // Test the guild's ID is the only one in the user's set of guilds.
+        {
+            let user = cache.0.users.get(&user_id).unwrap();
+            assert!(user.1.contains(&GuildId(1)));
+            assert_eq!(1, user.1.len());
+        }
+
+        // Test that a second guild will cause 2 in the set.
+        cache.cache_user(user(user_id), GuildId(3)).await;
+
+        {
+            let user = cache.0.users.get(&user_id).unwrap();
+            assert!(user.1.contains(&GuildId(3)));
+            assert_eq!(2, user.1.len());
+        }
+
+        // Test that removing a user from a guild will cause the ID to be
+        // removed from the set, leaving the other ID.
+        assert!(cache
+            .update(&MemberRemove {
+                guild_id: GuildId(3),
+                user: user(user_id),
+            })
+            .await
+            .is_ok());
+
+        {
+            let user = cache.0.users.get(&user_id).unwrap();
+            assert!(!user.1.contains(&GuildId(3)));
+            assert_eq!(1, user.1.len());
+        }
+
+        // Test that removing the user from its last guild removes the user's
+        // entry.
+        assert!(cache
+            .update(&MemberRemove {
+                guild_id: GuildId(1),
+                user: user(user_id),
+            })
+            .await
+            .is_ok());
+        assert!(!cache.0.users.contains_key(&user_id));
     }
 }
