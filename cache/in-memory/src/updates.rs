@@ -97,9 +97,9 @@ impl UpdateCache<InMemoryCache, InMemoryCacheError> for ChannelCreate {
             return Ok(());
         }
 
-        match self.0.clone() {
+        match &self.0 {
             Channel::Group(c) => {
-                super::upsert_item(&cache.0.groups, c.id, c).await;
+                super::upsert_item(&cache.0.groups, c.id, c.clone()).await;
             }
             Channel::Guild(c) => {
                 if let Some(gid) = c.guild_id() {
@@ -145,30 +145,24 @@ impl UpdateCache<InMemoryCache, InMemoryCacheError> for ChannelPinsUpdate {
             return Ok(());
         }
 
-        {
-            if let Some(mut item) = cache.0.channels_guild.get_mut(&self.channel_id) {
-                let channel = Arc::make_mut(&mut item.data);
+        if let Some(mut item) = cache.0.channels_guild.get_mut(&self.channel_id) {
+            let channel = Arc::make_mut(&mut item.data);
 
-                if let GuildChannel::Text(text) = channel {
-                    text.last_pin_timestamp = self.last_pin_timestamp.clone();
-                }
-
-                return Ok(());
+            if let GuildChannel::Text(text) = channel {
+                text.last_pin_timestamp = self.last_pin_timestamp.clone();
             }
+
+            return Ok(());
         }
 
-        {
-            if let Some(mut channel) = cache.0.channels_private.get_mut(&self.channel_id) {
-                Arc::make_mut(&mut channel).last_pin_timestamp = self.last_pin_timestamp.clone();
+        if let Some(mut channel) = cache.0.channels_private.get_mut(&self.channel_id) {
+            Arc::make_mut(&mut channel).last_pin_timestamp = self.last_pin_timestamp.clone();
 
-                return Ok(());
-            }
+            return Ok(());
         }
 
-        {
-            if let Some(mut group) = cache.0.groups.get_mut(&self.channel_id) {
-                Arc::make_mut(&mut group).last_pin_timestamp = self.last_pin_timestamp.clone();
-            }
+        if let Some(mut group) = cache.0.groups.get_mut(&self.channel_id) {
+            Arc::make_mut(&mut group).last_pin_timestamp = self.last_pin_timestamp.clone();
         }
 
         Ok(())
@@ -320,7 +314,7 @@ impl UpdateCache<InMemoryCache, InMemoryCacheError> for GuildUpdate {
         guild.premium_tier = g.premium_tier;
         guild
             .premium_subscription_count
-            .replace(g.premium_subscription_count.unwrap_or(0));
+            .replace(g.premium_subscription_count.unwrap_or_default());
         guild.region = g.region.clone();
         guild.splash = g.splash.clone();
         guild.system_channel_id = g.system_channel_id;
@@ -367,12 +361,8 @@ impl UpdateCache<InMemoryCache, InMemoryCacheError> for MemberChunk {
         cache
             .cache_members(self.guild_id, self.members.values().cloned())
             .await;
-        let user_ids = self.members.keys();
         let mut guild = cache.0.guild_members.entry(self.guild_id).or_default();
-
-        for id in user_ids {
-            guild.insert(*id);
-        }
+        guild.extend(self.members.keys());
 
         Ok(())
     }
@@ -427,7 +417,7 @@ impl UpdateCache<InMemoryCache, InMemoryCacheError> for MemberUpdate {
 
         member.nick = self.nick.clone();
         member.roles = self.roles.clone();
-        member.joined_at = Some(self.joined_at.clone());
+        member.joined_at.replace(self.joined_at.clone());
 
         Ok(())
     }
@@ -592,13 +582,11 @@ impl UpdateCache<InMemoryCache, InMemoryCacheError> for ReactionAdd {
 
             reaction.count += 1;
         } else {
-            let mut me = false;
-
-            if let Some(current_user) = cache.current_user().await? {
-                if current_user.id == self.0.user_id {
-                    me = true;
-                }
-            }
+            let me = cache
+                .current_user()
+                .await?
+                .map(|user| user.id == self.0.user_id)
+                .unwrap_or_default();
 
             msg.reactions.push(MessageReaction {
                 count: 1,
@@ -639,7 +627,7 @@ impl UpdateCache<InMemoryCache, InMemoryCacheError> for ReactionRemove {
             if reaction.count > 1 {
                 reaction.count -= 1;
             } else {
-                msg.reactions.retain(|e| !(e.emoji == self.0.emoji.clone()));
+                msg.reactions.retain(|e| !(e.emoji == self.0.emoji));
             }
         }
 
