@@ -30,7 +30,7 @@ jobs:
 
       - name: Build docs
         env:
-          RUSTDOCFLAGS: -D intra_doc_link_resolution_failure
+          RUSTDOCFLAGS: -D broken_intra_doc_links
         run: cargo doc --no-deps
 
   sync-readme:
