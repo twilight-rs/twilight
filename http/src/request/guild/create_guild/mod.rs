@@ -73,6 +73,10 @@ struct CreateGuildFields {
 }
 
 /// Role fields sent to Discord.
+///
+/// Use [`RoleFieldsBuilder`] to build one.
+///
+/// [`RoleFieldsBuilder`]: struct.RoleFieldsBuilder.html
 #[derive(Clone, Debug, Eq, PartialEq, Serialize)]
 pub struct RoleFields {
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -107,6 +111,10 @@ impl From<RoleFieldsBuilder> for RoleFields {
 }
 
 /// Variants of channel fields sent to Discord.
+///
+/// Use [`GuildChannelFieldsBuilder`] to build one.
+///
+/// [`GuildChannelFieldsBuilder`]: struct.GuildChannelFieldsBuilder.html
 #[derive(Clone, Debug, Eq, PartialEq, Serialize)]
 #[serde(untagged)]
 pub enum GuildChannelFields {
@@ -126,6 +134,10 @@ impl GuildChannelFields {
 }
 
 /// Category channel fields sent to Discord.
+///
+/// Use [`CategoryFieldsBuilder`] to build one.
+///
+/// [`CategoryFieldsBuilder`]: struct.CategoryFieldsBuilder.html
 #[derive(Clone, Debug, Eq, PartialEq, Serialize)]
 pub struct CategoryFields {
     pub id: ChannelId,
@@ -137,6 +149,10 @@ pub struct CategoryFields {
 }
 
 /// Text channel fields sent to Discord.
+///
+/// Use [`TextFieldsBuilder`] to build one.
+///
+/// [`TextFieldsBuilder`]: struct.TextFieldsBuilder.html
 #[derive(Clone, Debug, Eq, PartialEq, Serialize)]
 pub struct TextFields {
     pub id: ChannelId,
@@ -162,6 +178,10 @@ impl From<TextFieldsBuilder> for TextFields {
 }
 
 /// Voice channel fields sent to Discord.
+///
+/// Use [`VoiceFieldsBuilder`] to build one.
+///
+/// [`VoiceFieldsBuilder`]: struct.VoiceFieldsBuilder.html
 #[derive(Clone, Debug, Eq, PartialEq, Serialize)]
 pub struct VoiceFields {
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -244,6 +264,37 @@ impl<'a> CreateGuild<'a> {
     ///
     /// The maximum number of channels that can be provided is 500.
     ///
+    /// # Examples
+    ///
+    /// ```rust,no_run
+    /// use twilight_http::{
+    ///     Client,
+    ///     request::guild::create_guild::{
+    ///         GuildChannelFieldsBuilder, CategoryFieldsBuilder, TextFieldsBuilder,
+    ///         VoiceFieldsBuilder,
+    ///     },
+    /// };
+    /// # #[tokio::main] async fn main() -> Result<(), Box<dyn std::error::Error>> {
+    /// # let client = Client::new("my token");
+    ///
+    /// let text = TextFieldsBuilder::new("text channel")?;
+    /// let voice = VoiceFieldsBuilder::new("voice channel")?;
+    /// let text2 = TextFieldsBuilder::new("other text channel")?
+    ///     .topic("posting")?;
+    ///
+    /// let category = CategoryFieldsBuilder::new("category channel")?
+    ///     .add_text(text2)
+    ///     .add_voice(voice);
+    ///
+    /// let channels = GuildChannelFieldsBuilder::new()
+    ///     .add_text(text)
+    ///     .add_category(category)
+    ///     .build();
+    ///
+    /// let guild = client.create_guild("guild name")?.channels(channels)?.await?;
+    /// # Ok(()) }
+    /// ```
+    ///
     /// # Errors
     ///
     /// Returns [`CreateGuildError::TooManyChannels`] if the number of channels is over 500.
@@ -302,6 +353,10 @@ impl<'a> CreateGuild<'a> {
     }
 
     /// Override the everyone role of the guild.
+    ///
+    /// If there are not yet roles set with [`roles`], this will create a role override in the
+    /// first position. Discord understands the first role in the list to override @everyone.
+    /// If there are roles, this replaces the first role in the position.
     pub fn override_everyone(mut self, everyone: impl Into<RoleFields>) -> Self {
         if let Some(roles) = self.fields.roles.as_mut() {
             roles.remove(0);
@@ -326,6 +381,18 @@ impl<'a> CreateGuild<'a> {
     /// Set the roles to create with the guild.
     ///
     /// The maximum number of roles that can be provided is 250.
+    ///
+    /// # Examples
+    ///
+    /// ```rust,no_run
+    /// use twilight_http::{Client, request::guild::create_guild::RoleFieldsBuilder};
+    /// # #[tokio::main] async fn main() -> Result<(), Box<dyn std::error::Error>> {
+    /// # let client = Client::new("my token");
+    ///
+    /// let roles = vec![RoleFieldsBuilder::new("role 1").color(0x543923)?.build()];
+    /// client.create_guild("guild name")?.roles(roles)?.await?;
+    /// # Ok(()) }
+    /// ```
     ///
     /// # Errors
     ///

@@ -607,3 +607,263 @@ impl GuildChannelFieldsBuilder {
         self
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::{
+        super::{CategoryFields, GuildChannelFields, RoleFields, TextFields, VoiceFields},
+        CategoryFieldsBuilder, CategoryFieldsError, GuildChannelFieldsBuilder, RoleFieldsBuilder,
+        RoleFieldsError, TextFieldsBuilder, TextFieldsError, VoiceFieldsBuilder, VoiceFieldsError,
+    };
+    use twilight_model::{
+        channel::{
+            permission_overwrite::{PermissionOverwrite, PermissionOverwriteType},
+            ChannelType,
+        },
+        guild::Permissions,
+        id::{ChannelId, RoleId},
+    };
+
+    fn perms() -> Permissions {
+        Permissions::CONNECT | Permissions::SPEAK | Permissions::SEND_TTS_MESSAGES
+    }
+
+    fn overwrites() -> PermissionOverwrite {
+        PermissionOverwrite {
+            allow_old: Permissions::empty(),
+            allow: perms(),
+            deny_old: Permissions::empty(),
+            deny: Permissions::empty(),
+            kind: PermissionOverwriteType::Role(RoleId(2)),
+        }
+    }
+
+    fn voice() -> VoiceFieldsBuilder {
+        VoiceFieldsBuilder::new("voicename")
+            .unwrap()
+            .bitrate(96_000)
+            .permission_overwrites(vec![overwrites()])
+            .user_limit(40)
+    }
+
+    #[test]
+    fn test_role_fields() {
+        assert_eq!(
+            Err(RoleFieldsError::ColorNotRgb { color: 123123123 }),
+            RoleFieldsBuilder::new("role").color(123123123)
+        );
+
+        let fields = RoleFieldsBuilder::new("rolename")
+            .color(0x123456)
+            .unwrap()
+            .hoist()
+            .id(RoleId(2))
+            .unwrap()
+            .mentionable()
+            .permissions_old(Permissions::empty())
+            .permissions(Permissions::empty())
+            .position(1);
+
+        assert_eq!(
+            fields.build(),
+            RoleFields {
+                color: Some(0x123456),
+                hoist: Some(true),
+                id: RoleId(2),
+                mentionable: Some(true),
+                name: String::from("rolename"),
+                permissions_old: Some(Permissions::empty()),
+                permissions: Some(Permissions::empty()),
+                position: Some(1),
+            }
+        );
+    }
+
+    #[test]
+    fn test_voice_fields() {
+        assert_eq!(
+            Err(VoiceFieldsError::NameTooShort {
+                name: String::from("c")
+            }),
+            VoiceFieldsBuilder::new("c")
+        );
+
+        let fields = voice();
+
+        assert_eq!(
+            fields.build(),
+            VoiceFields {
+                bitrate: Some(96_000),
+                id: ChannelId(1),
+                kind: ChannelType::GuildVoice,
+                name: String::from("voicename"),
+                permission_overwrites: Some(vec![PermissionOverwrite {
+                    allow_old: Permissions::empty(),
+                    allow: perms(),
+                    deny_old: Permissions::empty(),
+                    deny: Permissions::empty(),
+                    kind: PermissionOverwriteType::Role(RoleId(2)),
+                }]),
+                parent_id: None,
+                user_limit: Some(40),
+            }
+        );
+    }
+
+    fn text() -> TextFieldsBuilder {
+        TextFieldsBuilder::new("textname")
+            .unwrap()
+            .nsfw()
+            .permission_overwrites(vec![overwrites()])
+            .rate_limit_per_user(4_000)
+            .unwrap()
+            .topic("a topic")
+            .unwrap()
+    }
+
+    #[test]
+    fn test_text_fields() {
+        assert_eq!(
+            Err(TextFieldsError::NameTooShort {
+                name: String::from("b")
+            }),
+            TextFieldsBuilder::new("b")
+        );
+
+        let fields = text();
+
+        assert_eq!(
+            fields.build(),
+            TextFields {
+                id: ChannelId(1),
+                kind: ChannelType::GuildText,
+                name: String::from("textname"),
+                nsfw: Some(true),
+                permission_overwrites: Some(vec![PermissionOverwrite {
+                    allow_old: Permissions::empty(),
+                    allow: perms(),
+                    deny_old: Permissions::empty(),
+                    deny: Permissions::empty(),
+                    kind: PermissionOverwriteType::Role(RoleId(2)),
+                }]),
+                parent_id: None,
+                rate_limit_per_user: Some(4_000),
+                topic: Some(String::from("a topic")),
+            }
+        );
+    }
+
+    fn category() -> CategoryFieldsBuilder {
+        CategoryFieldsBuilder::new("category")
+            .unwrap()
+            .add_text(text())
+            .add_voice(voice())
+    }
+
+    #[test]
+    fn test_category_fields() {
+        assert_eq!(
+            Err(CategoryFieldsError::NameTooShort {
+                name: String::from("a")
+            }),
+            CategoryFieldsBuilder::new("a")
+        );
+
+        let fields = category();
+
+        assert_eq!(
+            fields.build(ChannelId(2)),
+            vec![
+                GuildChannelFields::Category(CategoryFields {
+                    id: ChannelId(2),
+                    kind: ChannelType::GuildCategory,
+                    name: String::from("category"),
+                    permission_overwrites: None,
+                }),
+                GuildChannelFields::Text(TextFields {
+                    id: ChannelId(1),
+                    kind: ChannelType::GuildText,
+                    name: String::from("textname"),
+                    nsfw: Some(true),
+                    permission_overwrites: Some(vec![PermissionOverwrite {
+                        allow_old: Permissions::empty(),
+                        allow: Permissions::CONNECT
+                            | Permissions::SPEAK
+                            | Permissions::SEND_TTS_MESSAGES,
+                        deny_old: Permissions::empty(),
+                        deny: Permissions::empty(),
+                        kind: PermissionOverwriteType::Role(RoleId(2)),
+                    }]),
+                    parent_id: Some(ChannelId(2)),
+                    rate_limit_per_user: Some(4_000),
+                    topic: Some(String::from("a topic")),
+                }),
+                GuildChannelFields::Voice(VoiceFields {
+                    bitrate: Some(96_000),
+                    id: ChannelId(1),
+                    kind: ChannelType::GuildVoice,
+                    name: String::from("voicename"),
+                    permission_overwrites: Some(vec![PermissionOverwrite {
+                        allow_old: Permissions::empty(),
+                        allow: Permissions::CONNECT
+                            | Permissions::SPEAK
+                            | Permissions::SEND_TTS_MESSAGES,
+                        deny_old: Permissions::empty(),
+                        deny: Permissions::empty(),
+                        kind: PermissionOverwriteType::Role(RoleId(2)),
+                    }]),
+                    parent_id: Some(ChannelId(2)),
+                    user_limit: Some(40),
+                }),
+            ]
+        );
+    }
+
+    #[test]
+    fn test_channels() {
+        let channels = GuildChannelFieldsBuilder::new()
+            .add_text(text())
+            .add_voice(voice());
+
+        assert_eq!(
+            channels.build(),
+            vec![
+                GuildChannelFields::Text(TextFields {
+                    id: ChannelId(1),
+                    kind: ChannelType::GuildText,
+                    name: String::from("textname"),
+                    nsfw: Some(true),
+                    permission_overwrites: Some(vec![PermissionOverwrite {
+                        allow_old: Permissions::empty(),
+                        allow: Permissions::CONNECT
+                            | Permissions::SPEAK
+                            | Permissions::SEND_TTS_MESSAGES,
+                        deny_old: Permissions::empty(),
+                        deny: Permissions::empty(),
+                        kind: PermissionOverwriteType::Role(RoleId(2)),
+                    }]),
+                    parent_id: None,
+                    rate_limit_per_user: Some(4_000),
+                    topic: Some(String::from("a topic")),
+                }),
+                GuildChannelFields::Voice(VoiceFields {
+                    bitrate: Some(96_000),
+                    id: ChannelId(1),
+                    kind: ChannelType::GuildVoice,
+                    name: String::from("voicename"),
+                    permission_overwrites: Some(vec![PermissionOverwrite {
+                        allow_old: Permissions::empty(),
+                        allow: Permissions::CONNECT
+                            | Permissions::SPEAK
+                            | Permissions::SEND_TTS_MESSAGES,
+                        deny_old: Permissions::empty(),
+                        deny: Permissions::empty(),
+                        kind: PermissionOverwriteType::Role(RoleId(2)),
+                    }]),
+                    parent_id: None,
+                    user_limit: Some(40),
+                }),
+            ]
+        );
+    }
+}
