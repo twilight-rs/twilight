@@ -357,6 +357,8 @@ impl<'a> CreateGuild<'a> {
     /// If there are not yet roles set with [`roles`], this will create a role override in the
     /// first position. Discord understands the first role in the list to override @everyone.
     /// If there are roles, this replaces the first role in the position.
+    ///
+    /// [`roles`]: #method.roles
     pub fn override_everyone(mut self, everyone: impl Into<RoleFields>) -> Self {
         if let Some(roles) = self.fields.roles.as_mut() {
             roles.remove(0);

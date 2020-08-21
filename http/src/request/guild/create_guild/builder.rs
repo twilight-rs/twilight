@@ -649,12 +649,12 @@ mod tests {
     #[test]
     fn test_role_fields() {
         assert_eq!(
-            Err(RoleFieldsError::ColorNotRgb { color: 123123123 }),
-            RoleFieldsBuilder::new("role").color(123123123)
+            Err(RoleFieldsError::ColorNotRgb { color: 123_123_123 }),
+            RoleFieldsBuilder::new("role").color(123_123_123)
         );
 
         let fields = RoleFieldsBuilder::new("rolename")
-            .color(0x123456)
+            .color(0x12_34_56)
             .unwrap()
             .hoist()
             .id(RoleId(2))
@@ -667,7 +667,7 @@ mod tests {
         assert_eq!(
             fields.build(),
             RoleFields {
-                color: Some(0x123456),
+                color: Some(0x12_34_56),
                 hoist: Some(true),
                 id: RoleId(2),
                 mentionable: Some(true),
