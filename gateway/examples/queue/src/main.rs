@@ -1,7 +1,7 @@
 use async_trait::async_trait;
 use futures::StreamExt;
 use std::{env, error::Error, sync::Arc};
-use twilight_gateway::{queue::Queue, Shard, ShardConfig};
+use twilight_gateway::{queue::Queue, Shard};
 
 #[derive(Debug)]
 struct BadQueue;
@@ -18,9 +18,10 @@ async fn main() -> Result<(), Box<dyn Error + Send + Sync>> {
     tracing_subscriber::fmt::init();
 
     let token = env::var("DISCORD_TOKEN")?;
-    let config = ShardConfig::builder(&token).queue(Arc::new(Box::new(BadQueue)));
+    let mut shard = Shard::builder(&token)
+        .queue(Arc::new(Box::new(BadQueue)))
+        .build();
 
-    let mut shard = Shard::new(config);
     shard.start().await?;
     println!("Created shard");
 

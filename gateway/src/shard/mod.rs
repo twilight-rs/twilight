@@ -9,11 +9,10 @@
 //! [`Stage`] of the connection, like whether it's [`Disconnected`] or
 //! [`Resuming`] the connection.
 //!
-//! Shards are configurable through the [`ShardConfigBuilder`] struct, which
-//! provides a clean interface for correctly building a [`ShardConfig`].
+//! Shards are configurable through the [`ShardBuilder`], which provides a clean
+//! interface for correctly configuring a shard.
 //!
-//! [`ShardConfig`]: config/struct.ShardConfig.html
-//! [`ShardConfigBuilder`]: config/struct.ShardConfigBuilder.html
+//! [`ShardBuilder`]: struct.ShardBuilder.html
 //! [`Event`]: ../../twilight_model/gateway/event/enum.Event.html
 //! [`Shard`]: struct.Shard.html
 //! [`Stage`]: stage/enum.Stage.html
@@ -23,16 +22,18 @@
 //! [information about itself]: struct.Shard.html#method.info
 //! [new messages]: ../../twilight_model/gateway/event/enum.Event.html#variant.MessageCreate
 
-pub mod config;
 pub mod stage;
 
+mod builder;
+mod config;
 mod event;
 mod r#impl;
 mod processor;
 mod sink;
 
 pub use self::{
-    config::ShardConfig,
+    builder::{LargeThresholdError, ShardBuilder, ShardIdError},
+    config::Config,
     event::Events,
     processor::heartbeat::Latency,
     r#impl::{

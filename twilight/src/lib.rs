@@ -114,7 +114,7 @@
 //!         twilight_cache_inmemory::config::{InMemoryConfigBuilder, EventType},
 //!         InMemoryCache,
 //!     },
-//!     gateway::{cluster::{config::ShardScheme, Cluster, ClusterConfig}, Event},
+//!     gateway::{cluster::{Cluster, ShardScheme}, Event},
 //!     http::Client as HttpClient,
 //!     model::gateway::GatewayIntents,
 //! };
@@ -126,17 +126,16 @@
 //!     // This is also the default.
 //!     let scheme = ShardScheme::Auto;
 //!
-//!     let config = ClusterConfig::builder(&token)
+//!     let cluster = Cluster::builder(&token)
 //!         .shard_scheme(scheme)
 //!         // Use intents to only listen to GUILD_MESSAGES events
 //!         .intents(Some(
 //!             GatewayIntents::GUILD_MESSAGES | GatewayIntents::DIRECT_MESSAGES,
 //!         ))
-//!         .build();
+//!         .build()
+//!         .await?;
 //!
 //!     // Start up the cluster
-//!     let cluster = Cluster::new(config).await?;
-//!
 //!     let cluster_spawn = cluster.clone();
 //!
 //!     tokio::spawn(async move {
