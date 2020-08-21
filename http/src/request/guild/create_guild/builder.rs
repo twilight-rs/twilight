@@ -389,7 +389,7 @@ impl VoiceFieldsBuilder {
             return Err(VoiceFieldsError::NameTooLong { name });
         }
 
-        Ok(VoiceFieldsBuilder(VoiceFields {
+        Ok(Self(VoiceFields {
             bitrate: None,
             id: ChannelId(1),
             kind: ChannelType::GuildVoice,
