@@ -212,7 +212,7 @@ impl Standby {
     /// This function must be called when events are received in order for
     /// futures returned by methods to fulfill.
     pub fn process(&self, event: &Event) {
-        tracing::trace!("processing event: {:?}", event);
+        tracing::trace!(event_type = ?event.kind(), ?event, "processing event");
 
         match event {
             Event::MessageCreate(e) => self.process_message(e.0.channel_id, &e),
@@ -262,7 +262,7 @@ impl Standby {
         guild_id: GuildId,
         check: impl Into<Box<F>>,
     ) -> WaitForGuildEventFuture {
-        tracing::trace!("waiting for event in guild {}", guild_id);
+        tracing::trace!(%guild_id, "waiting for event in guild");
         let (tx, rx) = oneshot::channel();
 
         {
@@ -317,7 +317,7 @@ impl Standby {
         guild_id: GuildId,
         check: impl Into<Box<F>>,
     ) -> WaitForGuildEventStream {
-        tracing::trace!("waiting for event in guild {}", guild_id);
+        tracing::trace!(%guild_id, "waiting for event in guild");
         let (tx, rx) = mpsc::unbounded();
 
         {
@@ -471,7 +471,7 @@ impl Standby {
         channel_id: ChannelId,
         check: impl Into<Box<F>>,
     ) -> WaitForMessageFuture {
-        tracing::trace!("waiting for message in channel {}", channel_id);
+        tracing::trace!(%channel_id, "waiting for message in channel");
         let (tx, rx) = oneshot::channel();
 
         {
@@ -522,7 +522,7 @@ impl Standby {
         channel_id: ChannelId,
         check: impl Into<Box<F>>,
     ) -> WaitForMessageStream {
-        tracing::trace!("waiting for message in channel {}", channel_id);
+        tracing::trace!(%channel_id, "waiting for message in channel");
         let (tx, rx) = mpsc::unbounded();
 
         {
@@ -568,7 +568,7 @@ impl Standby {
         message_id: MessageId,
         check: impl Into<Box<F>>,
     ) -> WaitForReactionFuture {
-        tracing::trace!("waiting for reaction on message {}", message_id);
+        tracing::trace!(%message_id, "waiting for reaction on message");
         let (tx, rx) = oneshot::channel();
 
         {
@@ -622,7 +622,7 @@ impl Standby {
         message_id: MessageId,
         check: impl Into<Box<F>>,
     ) -> WaitForReactionStream {
-        tracing::trace!("waiting for reaction on message {}", message_id);
+        tracing::trace!(%message_id, "waiting for reaction on message");
         let (tx, rx) = mpsc::unbounded();
 
         {
@@ -640,16 +640,22 @@ impl Standby {
         self.0.event_counter.fetch_add(1, Ordering::SeqCst)
     }
 
+    #[tracing::instrument(level = "trace")]
     fn process_event(&self, event: &Event) {
-        tracing::trace!("processing event type {:?}", event);
+        tracing::trace!(?event, event_type = ?event.kind(), "processing event");
 
-        self.0.events.retain(|_, bystander| {
+        self.0.events.retain(|id, bystander| {
             // `bystander_process` returns whether it is fulfilled, so invert it
             // here. If it's fulfilled, then we don't want to retain it.
-            !self.bystander_process(bystander, event)
+            let retaining = !self.bystander_process(bystander, event);
+
+            tracing::trace!(bystander_id = id, %retaining, "event bystander processed");
+
+            retaining
         });
     }
 
+    #[tracing::instrument(level = "trace")]
     fn process_guild(&self, guild_id: GuildId, event: &Event) {
         let remove = match self.0.guilds.get_mut(&guild_id) {
             Some(mut bystanders) => {
@@ -658,20 +664,23 @@ impl Standby {
                 bystanders.is_empty()
             }
             None => {
-                tracing::trace!("guild {} has no event bystanders", guild_id);
+                tracing::trace!(%guild_id, "guild has no event bystanders");
 
                 return;
             }
         };
 
         if remove {
-            tracing::trace!("removing guild {}", guild_id);
+            tracing::trace!(%guild_id, "removing guild from map");
 
             self.0.guilds.remove(&guild_id);
         }
     }
 
+    #[tracing::instrument(level = "trace")]
     fn process_message(&self, channel_id: ChannelId, event: &MessageCreate) {
+        tracing::trace!(%channel_id, "processing message bystanders in channel");
+
         let remove = match self.0.messages.get_mut(&channel_id) {
             Some(mut bystanders) => {
                 self.bystander_iter(&mut bystanders, event);
@@ -679,14 +688,16 @@ impl Standby {
                 bystanders.is_empty()
             }
             None => {
-                tracing::trace!("channel {} has no message bystanders", channel_id);
+                tracing::trace!(%channel_id, "channel has no message bystanders");
 
                 return;
             }
         };
 
+        tracing::trace!(%channel_id, %remove, "bystanders processed");
+
         if remove {
-            tracing::trace!("removing channel {}", channel_id);
+            tracing::trace!(%channel_id, "removing channel");
 
             self.0.messages.remove(&channel_id);
         }
@@ -713,18 +724,23 @@ impl Standby {
     }
 
     /// Iterate over bystanders and remove the ones that match the predicate.
-    fn bystander_iter<E: Clone>(&self, bystanders: &mut Vec<Bystander<E>>, event: &E) {
-        tracing::trace!("iterating over bystanders: {:?}", bystanders);
+    #[tracing::instrument(level = "trace")]
+    fn bystander_iter<E: Clone + Debug>(&self, bystanders: &mut Vec<Bystander<E>>, event: &E) {
+        tracing::trace!(?bystanders, "iterating over bystanders");
 
         let mut idx = 0;
 
         while idx < bystanders.len() {
-            tracing::trace!("checking bystander");
+            tracing::trace!(%idx, "checking bystander");
             let bystander = &mut bystanders[idx];
 
             if self.bystander_process(bystander, event) {
+                tracing::trace!(%idx, "removing bystander in list");
+
                 bystanders.remove(idx);
             } else {
+                tracing::trace!("retaining bystander");
+
                 idx += 1;
             }
         }
@@ -735,7 +751,8 @@ impl Standby {
     ///
     /// Returns `true` if the bystander is fulfilled, meaning that the channel
     /// is now closed or the predicate matched and the event closed.
-    fn bystander_process<E: Clone>(&self, bystander: &mut Bystander<E>, event: &E) -> bool {
+    #[tracing::instrument(level = "trace")]
+    fn bystander_process<E: Clone + Debug>(&self, bystander: &mut Bystander<E>, event: &E) -> bool {
         let sender = match bystander.sender.take() {
             Some(sender) => sender,
             None => {
@@ -752,7 +769,7 @@ impl Standby {
         }
 
         if !(bystander.func)(event) {
-            tracing::trace!("bystander check doesn't match, continuing");
+            tracing::trace!("bystander check doesn't match, not removing");
             bystander.sender.replace(sender);
 
             return false;
@@ -767,6 +784,8 @@ impl Standby {
             }
             Sender::Mpsc(tx) => {
                 if tx.unbounded_send(event.clone()).is_ok() {
+                    tracing::trace!("bystander is a stream, retaining in map");
+
                     bystander.sender.replace(Sender::Mpsc(tx));
 
                     false
