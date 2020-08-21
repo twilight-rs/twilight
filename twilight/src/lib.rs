@@ -110,10 +110,7 @@
 //! use std::{env, error::Error};
 //! use tokio::stream::StreamExt;
 //! use twilight::{
-//!     cache::{
-//!         twilight_cache_inmemory::config::{InMemoryConfigBuilder, EventType},
-//!         InMemoryCache,
-//!     },
+//!     cache::twilight_cache_inmemory::{EventType, InMemoryCache},
 //!     gateway::{cluster::{Cluster, ShardScheme}, Event},
 //!     http::Client as HttpClient,
 //!     model::gateway::GatewayIntents,
@@ -148,7 +145,7 @@
 //!
 //!     // Since we only care about messages, make the cache only
 //!     // cache message related events
-//!     let cache_config = InMemoryConfigBuilder::new()
+//!     let cache = InMemoryCache::builder()
 //!         .event_types(
 //!             EventType::MESSAGE_CREATE
 //!                 | EventType::MESSAGE_DELETE
@@ -156,7 +153,6 @@
 //!                 | EventType::MESSAGE_UPDATE,
 //!         )
 //!         .build();
-//!     let cache = InMemoryCache::from(cache_config);
 //!
 //!     let mut events = cluster.events();
 //!     // Startup an event loop for each event in the event stream
