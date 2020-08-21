@@ -333,9 +333,16 @@ impl<'a> CreateGuild<'a> {
     /// over 250.
     ///
     /// [`CreateGuildError::TooManyRoles`]: enum.CreateGuildError.html#variant.TooManyRoles
-    pub fn roles(mut self, roles: Vec<RoleFields>) -> Result<Self, CreateGuildError> {
+    pub fn roles(mut self, mut roles: Vec<RoleFields>) -> Result<Self, CreateGuildError> {
         if roles.len() > 250 {
             return Err(CreateGuildError::TooManyRoles { roles });
+        }
+
+        if let Some(prev_roles) = self.fields.roles.as_mut() {
+            roles.insert(0, prev_roles.remove(0));
+        } else {
+            let builder = RoleFieldsBuilder::new("@everyone");
+            roles.insert(0, builder.build());
         }
 
         self.fields.roles.replace(roles);
