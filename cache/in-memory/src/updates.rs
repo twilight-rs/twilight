@@ -565,7 +565,8 @@ impl UpdateCache<InMemoryCache, InMemoryCacheError> for ReactionAdd {
 
             reaction.count += 1;
         } else {
-            let me = cache.current_user()
+            let me = cache
+                .current_user()
                 .await?
                 .map(|user| user.id == self.0.user_id)
                 .unwrap_or_default();
