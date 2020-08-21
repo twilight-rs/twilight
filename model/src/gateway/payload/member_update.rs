@@ -26,8 +26,8 @@ mod tests {
             user: User {
                 name: "Twilight Sparkle".to_string(),
                 public_flags: None,
-                id: 424242.into(),
-                discriminator: 1234.to_string(),
+                id: 424_242.into(),
+                discriminator: 1_234.to_string(),
                 avatar: Some("cool image".to_string()),
                 bot: false,
                 email: None,
@@ -42,7 +42,7 @@ mod tests {
             premium_since: None,
             nick: Some("Twilight".to_string()),
             joined_at: "2017-02-27T22:21:50.121000+00:00".to_string(),
-            guild_id: 1234.into(),
+            guild_id: 1_234.into(),
         };
 
         serde_test::assert_tokens(

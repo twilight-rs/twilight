@@ -1,6 +1,6 @@
 //! # twilight-standby
 //!
-//! [![github badge][]][github link] [![license badge][]][license link] ![rust badge]
+//! [![discord badge][]][discord link] [![github badge][]][github link] [![license badge][]][license link] ![rust badge]
 //!
 //! Standby is a utility to wait for an event to happen based on a predicate
 //! check. For example, you may have a command that has a reaction menu of ✅ and
@@ -118,6 +118,8 @@
 //! [`Standby::wait_for_message`]: struct.Standby.html#method.wait_for_message
 //! [`Standby::wait_for_message_stream`]: struct.Standby.html#method.wait_for_message_stream
 //! [`Standby::wait_for_reaction`]: struct.Standby.html#method.wait_for_reaction
+//! [discord badge]: https://img.shields.io/discord/745809834183753828?color=%237289DA&label=discord%20server&logo=discord&style=for-the-badge
+//! [discord link]: https://discord.gg/7jj8n7D
 //! [github badge]: https://img.shields.io/badge/github-twilight-6f42c1.svg?style=for-the-badge&logo=github
 //! [github link]: https://github.com/twilight-rs/twilight
 //! [license badge]: https://img.shields.io/badge/license-ISC-blue.svg?style=for-the-badge&logo=pastebin
@@ -210,18 +212,19 @@ impl Standby {
     /// This function must be called when events are received in order for
     /// futures returned by methods to fulfill.
     pub fn process(&self, event: &Event) {
-        tracing::trace!("processing event: {:?}", event);
+        tracing::trace!(event_type = ?event.kind(), ?event, "processing event");
 
         match event {
-            Event::MessageCreate(e) => return self.process_message(e.0.channel_id, &e),
-            Event::ReactionAdd(e) => return self.process_reaction(e.0.message_id, &e),
+            Event::MessageCreate(e) => self.process_message(e.0.channel_id, &e),
+            Event::ReactionAdd(e) => self.process_reaction(e.0.message_id, &e),
             _ => {}
         }
 
-        match event_guild_id(event) {
-            Some(guild_id) => self.process_guild(guild_id, event),
-            None => self.process_event(event),
+        if let Some(guild_id) = event_guild_id(event) {
+            self.process_guild(guild_id, event);
         }
+
+        self.process_event(event);
     }
 
     /// Wait for an event in a certain guild.
@@ -259,7 +262,7 @@ impl Standby {
         guild_id: GuildId,
         check: impl Into<Box<F>>,
     ) -> WaitForGuildEventFuture {
-        tracing::trace!("waiting for event in guild {}", guild_id);
+        tracing::trace!(%guild_id, "waiting for event in guild");
         let (tx, rx) = oneshot::channel();
 
         {
@@ -314,7 +317,7 @@ impl Standby {
         guild_id: GuildId,
         check: impl Into<Box<F>>,
     ) -> WaitForGuildEventStream {
-        tracing::trace!("waiting for event in guild {}", guild_id);
+        tracing::trace!(%guild_id, "waiting for event in guild");
         let (tx, rx) = mpsc::unbounded();
 
         {
@@ -468,7 +471,7 @@ impl Standby {
         channel_id: ChannelId,
         check: impl Into<Box<F>>,
     ) -> WaitForMessageFuture {
-        tracing::trace!("waiting for message in channel {}", channel_id);
+        tracing::trace!(%channel_id, "waiting for message in channel");
         let (tx, rx) = oneshot::channel();
 
         {
@@ -519,7 +522,7 @@ impl Standby {
         channel_id: ChannelId,
         check: impl Into<Box<F>>,
     ) -> WaitForMessageStream {
-        tracing::trace!("waiting for message in channel {}", channel_id);
+        tracing::trace!(%channel_id, "waiting for message in channel");
         let (tx, rx) = mpsc::unbounded();
 
         {
@@ -565,7 +568,7 @@ impl Standby {
         message_id: MessageId,
         check: impl Into<Box<F>>,
     ) -> WaitForReactionFuture {
-        tracing::trace!("waiting for reaction on message {}", message_id);
+        tracing::trace!(%message_id, "waiting for reaction on message");
         let (tx, rx) = oneshot::channel();
 
         {
@@ -619,7 +622,7 @@ impl Standby {
         message_id: MessageId,
         check: impl Into<Box<F>>,
     ) -> WaitForReactionStream {
-        tracing::trace!("waiting for reaction on message {}", message_id);
+        tracing::trace!(%message_id, "waiting for reaction on message");
         let (tx, rx) = mpsc::unbounded();
 
         {
@@ -637,16 +640,22 @@ impl Standby {
         self.0.event_counter.fetch_add(1, Ordering::SeqCst)
     }
 
+    #[tracing::instrument(level = "trace")]
     fn process_event(&self, event: &Event) {
-        tracing::trace!("processing event type {:?}", event);
+        tracing::trace!(?event, event_type = ?event.kind(), "processing event");
 
-        self.0.events.retain(|_, bystander| {
+        self.0.events.retain(|id, bystander| {
             // `bystander_process` returns whether it is fulfilled, so invert it
             // here. If it's fulfilled, then we don't want to retain it.
-            !self.bystander_process(bystander, event)
+            let retaining = !self.bystander_process(bystander, event);
+
+            tracing::trace!(bystander_id = id, %retaining, "event bystander processed");
+
+            retaining
         });
     }
 
+    #[tracing::instrument(level = "trace")]
     fn process_guild(&self, guild_id: GuildId, event: &Event) {
         let remove = match self.0.guilds.get_mut(&guild_id) {
             Some(mut bystanders) => {
@@ -655,20 +664,23 @@ impl Standby {
                 bystanders.is_empty()
             }
             None => {
-                tracing::trace!("guild {} has no event bystanders", guild_id);
+                tracing::trace!(%guild_id, "guild has no event bystanders");
 
                 return;
             }
         };
 
         if remove {
-            tracing::trace!("removing guild {}", guild_id);
+            tracing::trace!(%guild_id, "removing guild from map");
 
             self.0.guilds.remove(&guild_id);
         }
     }
 
+    #[tracing::instrument(level = "trace")]
     fn process_message(&self, channel_id: ChannelId, event: &MessageCreate) {
+        tracing::trace!(%channel_id, "processing message bystanders in channel");
+
         let remove = match self.0.messages.get_mut(&channel_id) {
             Some(mut bystanders) => {
                 self.bystander_iter(&mut bystanders, event);
@@ -676,14 +688,16 @@ impl Standby {
                 bystanders.is_empty()
             }
             None => {
-                tracing::trace!("channel {} has no message bystanders", channel_id);
+                tracing::trace!(%channel_id, "channel has no message bystanders");
 
                 return;
             }
         };
 
+        tracing::trace!(%channel_id, %remove, "bystanders processed");
+
         if remove {
-            tracing::trace!("removing channel {}", channel_id);
+            tracing::trace!(%channel_id, "removing channel");
 
             self.0.messages.remove(&channel_id);
         }
@@ -710,18 +724,23 @@ impl Standby {
     }
 
     /// Iterate over bystanders and remove the ones that match the predicate.
-    fn bystander_iter<E: Clone>(&self, bystanders: &mut Vec<Bystander<E>>, event: &E) {
-        tracing::trace!("iterating over bystanders: {:?}", bystanders);
+    #[tracing::instrument(level = "trace")]
+    fn bystander_iter<E: Clone + Debug>(&self, bystanders: &mut Vec<Bystander<E>>, event: &E) {
+        tracing::trace!(?bystanders, "iterating over bystanders");
 
         let mut idx = 0;
 
         while idx < bystanders.len() {
-            tracing::trace!("checking bystander");
+            tracing::trace!(%idx, "checking bystander");
             let bystander = &mut bystanders[idx];
 
             if self.bystander_process(bystander, event) {
+                tracing::trace!(%idx, "removing bystander in list");
+
                 bystanders.remove(idx);
             } else {
+                tracing::trace!("retaining bystander");
+
                 idx += 1;
             }
         }
@@ -732,7 +751,8 @@ impl Standby {
     ///
     /// Returns `true` if the bystander is fulfilled, meaning that the channel
     /// is now closed or the predicate matched and the event closed.
-    fn bystander_process<E: Clone>(&self, bystander: &mut Bystander<E>, event: &E) -> bool {
+    #[tracing::instrument(level = "trace")]
+    fn bystander_process<E: Clone + Debug>(&self, bystander: &mut Bystander<E>, event: &E) -> bool {
         let sender = match bystander.sender.take() {
             Some(sender) => sender,
             None => {
@@ -749,7 +769,7 @@ impl Standby {
         }
 
         if !(bystander.func)(event) {
-            tracing::trace!("bystander check doesn't match, continuing");
+            tracing::trace!("bystander check doesn't match, not removing");
             bystander.sender.replace(sender);
 
             return false;
@@ -764,6 +784,8 @@ impl Standby {
             }
             Sender::Mpsc(tx) => {
                 if tx.unbounded_send(event.clone()).is_ok() {
+                    tracing::trace!("bystander is a stream, retaining in map");
+
                     bystander.sender.replace(Sender::Mpsc(tx));
 
                     false
@@ -1087,5 +1109,39 @@ mod tests {
         standby.process(&Event::Resumed);
 
         assert_eq!(Ok(Event::Resumed), wait.await);
+    }
+
+    /// Test that generic event handlers will be given the opportunity to
+    /// process events with specific handlers (message creates, reaction adds)
+    /// and guild events. Similarly, guild handlers should be able to process
+    /// specific handler events as well.
+    #[tokio::test]
+    async fn test_process_nonspecific_handling() {
+        let standby = Standby::new();
+
+        // generic event handler gets message creates
+        let wait = standby.wait_for_event(|event: &Event| event.kind() == EventType::MessageCreate);
+        standby.process(&Event::MessageCreate(Box::new(MessageCreate(message()))));
+        assert!(matches!(wait.await, Ok(Event::MessageCreate(_))));
+
+        // generic event handler gets reaction adds
+        let wait = standby.wait_for_event(|event: &Event| event.kind() == EventType::ReactionAdd);
+        standby.process(&Event::ReactionAdd(Box::new(ReactionAdd(reaction()))));
+        assert!(matches!(wait.await, Ok(Event::ReactionAdd(_))));
+
+        // generic event handler gets other guild events
+        let wait = standby.wait_for_event(|event: &Event| event.kind() == EventType::RoleDelete);
+        standby.process(&Event::RoleDelete(RoleDelete {
+            guild_id: GuildId(1),
+            role_id: RoleId(2),
+        }));
+        assert!(matches!(wait.await, Ok(Event::RoleDelete(_))));
+
+        // guild event handler gets message creates or reaction events
+        let wait = standby.wait_for(GuildId(1), |event: &Event| {
+            event.kind() == EventType::ReactionAdd
+        });
+        standby.process(&Event::ReactionAdd(Box::new(ReactionAdd(reaction()))));
+        assert!(matches!(wait.await, Ok(Event::ReactionAdd(_))));
     }
 }

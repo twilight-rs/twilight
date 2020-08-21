@@ -106,6 +106,6 @@ mod tests {
         serde_test::assert_tokens(&permissions, &[Token::Str("8388608")]);
         // serde_test doesn't support a u128. Only test deserialization here
         // since it serializes into a string.
-        serde_test::assert_de_tokens(&permissions, &[Token::U64(8388608)]);
+        serde_test::assert_de_tokens(&permissions, &[Token::U64(8_388_608)]);
     }
 }

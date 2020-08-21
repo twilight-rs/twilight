@@ -2,7 +2,7 @@
 
 # twilight
 
-[![github badge][]][github link] [![license badge][]][license link] ![rust badge]
+[![discord badge][]][discord link] [![github badge][]][github link] [![license badge][]][license link] ![rust badge]
 
 ![project logo][logo]
 
@@ -116,7 +116,7 @@ use twilight::{
         twilight_cache_inmemory::config::{InMemoryConfigBuilder, EventType},
         InMemoryCache,
     },
-    gateway::{cluster::{config::ShardScheme, Cluster, ClusterConfig}, Event},
+    gateway::{cluster::{Cluster, ShardScheme}, Event},
     http::Client as HttpClient,
     model::gateway::GatewayIntents,
 };
@@ -128,17 +128,16 @@ async fn main() -> Result<(), Box<dyn Error + Send + Sync>> {
     // This is also the default.
     let scheme = ShardScheme::Auto;
 
-    let config = ClusterConfig::builder(&token)
+    let cluster = Cluster::builder(&token)
         .shard_scheme(scheme)
         // Use intents to only listen to GUILD_MESSAGES events
         .intents(Some(
             GatewayIntents::GUILD_MESSAGES | GatewayIntents::DIRECT_MESSAGES,
         ))
-        .build();
+        .build()
+        .await?;
 
     // Start up the cluster
-    let cluster = Cluster::new(config).await?;
-
     let cluster_spawn = cluster.clone();
 
     tokio::spawn(async move {
@@ -208,6 +207,8 @@ All first-party crates are licensed under [ISC][LICENSE.md]
 [LICENSE.md]: https://github.com/twilight-rs/twilight/blob/trunk/LICENSE.md
 [Lavalink]: https://github.com/Frederikam/Lavalink
 [`http`]: https://crates.io/crates/http
+[discord badge]: https://img.shields.io/discord/745809834183753828?color=%237289DA&label=discord%20server&logo=discord&style=for-the-badge
+[discord link]: https://discord.gg/7jj8n7D
 [docs:discord:sharding]: https://discord.com/developers/docs/topics/gateway#sharding
 [github badge]: https://img.shields.io/badge/github-twilight-6f42c1.svg?style=for-the-badge&logo=github
 [github link]: https://github.com/twilight-rs/twilight

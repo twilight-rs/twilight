@@ -618,7 +618,7 @@ mod tests {
         let mut json_deserializer = Deserializer::from_str(input);
         let event = deserializer.deserialize(&mut json_deserializer).unwrap();
 
-        assert!(matches!(event, GatewayEvent::Dispatch(1190911, _)));
+        assert!(matches!(event, GatewayEvent::Dispatch(1_190_911, _)));
     }
 
     // Test that events which are not documented to have any data will not fail if
@@ -693,7 +693,7 @@ mod tests {
         let mut json_deserializer = Deserializer::from_str(input);
         let event = deserializer.deserialize(&mut json_deserializer).unwrap();
 
-        assert!(matches!(event, GatewayEvent::Hello(41250)));
+        assert!(matches!(event, GatewayEvent::Hello(41_250)));
     }
 
     #[test]
@@ -767,7 +767,7 @@ mod tests {
             role_id: RoleId(2),
         };
         let dispatch = Box::new(DispatchEvent::RoleDelete(role_delete));
-        let event = GatewayEvent::Dispatch(2048, dispatch);
+        let event = GatewayEvent::Dispatch(2_048, dispatch);
 
         serde_test::assert_ser_tokens(
             &event,
@@ -782,7 +782,7 @@ mod tests {
                     variant: "GUILD_ROLE_DELETE",
                 },
                 Token::Str("s"),
-                Token::U64(2048),
+                Token::U64(2_048),
                 Token::Str("op"),
                 Token::U8(OpCode::Event as u8),
                 Token::Str("d"),

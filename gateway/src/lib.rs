@@ -1,6 +1,6 @@
 //! # twilight-gateway
 //!
-//! [![github badge][]][github link] [![license badge][]][license link] ![rust badge]
+//! [![discord badge][]][discord link] [![github badge][]][github link] [![license badge][]][license link] ![rust badge]
 //!
 //! `twilight-gateway` is an implementation of Discord's sharding gateway sessions.
 //! This is responsible for receiving stateful events in real-time from Discord
@@ -83,6 +83,8 @@
 //! [`serde_json`]: https://crates.io/crates/serde_json
 //! [`simd-json`]: https://crates.io/crates/simd-json
 //! [`twilight-http`]: https://twilight-rs.github.io/twilight/twilight_http/index.html
+//! [discord badge]: https://img.shields.io/discord/745809834183753828?color=%237289DA&label=discord%20server&logo=discord&style=for-the-badge
+//! [discord link]: https://discord.gg/7jj8n7D
 //! [docs:discord:sharding]: https://discord.com/developers/docs/topics/gateway#sharding
 //! [github badge]: https://img.shields.io/badge/github-twilight-6f42c1.svg?style=for-the-badge&logo=github
 //! [github link]: https://github.com/twilight-rs/twilight
@@ -111,8 +113,8 @@ pub use self::event::EventTypeFlags;
 
 #[doc(no_inline)]
 pub use self::{
-    cluster::{Cluster, ClusterConfig},
-    shard::{Shard, ShardConfig},
+    cluster::{Cluster, Config as ClusterConfig},
+    shard::{Config as ShardConfig, Shard},
 };
 #[doc(no_inline)]
 pub use twilight_model::gateway::event::{Event, EventType};

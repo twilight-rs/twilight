@@ -392,7 +392,7 @@ mod tests {
             proxy_icon_url: None,
             url: None,
         });
-        embed.color.replace(0xff0000);
+        embed.color.replace(0xff_00_00);
         embed.description.replace("a".repeat(100));
         embed.fields.push(EmbedField {
             inline: true,

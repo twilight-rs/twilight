@@ -204,6 +204,7 @@ mod tests {
     };
     use std::collections::HashMap;
 
+    #[allow(clippy::too_many_lines)]
     #[test]
     fn test_simple_member_chunk() {
         let input = serde_json::json!({
@@ -221,7 +222,7 @@ mod tests {
                     "avatar": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
                     "discriminator": "0001",
                     "id": "5",
-                    "public_flags": 131072,
+                    "public_flags": 131_072,
                     "username": "test",
                 },
             }, {

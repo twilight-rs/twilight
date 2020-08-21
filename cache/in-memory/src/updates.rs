@@ -97,9 +97,9 @@ impl UpdateCache<InMemoryCache, InMemoryCacheError> for ChannelCreate {
             return Ok(());
         }
 
-        match self.0.clone() {
+        match &self.0 {
             Channel::Group(c) => {
-                super::upsert_item(&cache.0.groups, c.id, c).await;
+                super::upsert_item(&cache.0.groups, c.id, c.clone()).await;
             }
             Channel::Guild(c) => {
                 if let Some(gid) = c.guild_id() {
@@ -145,30 +145,24 @@ impl UpdateCache<InMemoryCache, InMemoryCacheError> for ChannelPinsUpdate {
             return Ok(());
         }
 
-        {
-            if let Some(mut item) = cache.0.channels_guild.get_mut(&self.channel_id) {
-                let channel = Arc::make_mut(&mut item.data);
+        if let Some(mut item) = cache.0.channels_guild.get_mut(&self.channel_id) {
+            let channel = Arc::make_mut(&mut item.data);
 
-                if let GuildChannel::Text(text) = channel {
-                    text.last_pin_timestamp = self.last_pin_timestamp.clone();
-                }
-
-                return Ok(());
+            if let GuildChannel::Text(text) = channel {
+                text.last_pin_timestamp = self.last_pin_timestamp.clone();
             }
+
+            return Ok(());
         }
 
-        {
-            if let Some(mut channel) = cache.0.channels_private.get_mut(&self.channel_id) {
-                Arc::make_mut(&mut channel).last_pin_timestamp = self.last_pin_timestamp.clone();
+        if let Some(mut channel) = cache.0.channels_private.get_mut(&self.channel_id) {
+            Arc::make_mut(&mut channel).last_pin_timestamp = self.last_pin_timestamp.clone();
 
-                return Ok(());
-            }
+            return Ok(());
         }
 
-        {
-            if let Some(mut group) = cache.0.groups.get_mut(&self.channel_id) {
-                Arc::make_mut(&mut group).last_pin_timestamp = self.last_pin_timestamp.clone();
-            }
+        if let Some(mut group) = cache.0.groups.get_mut(&self.channel_id) {
+            Arc::make_mut(&mut group).last_pin_timestamp = self.last_pin_timestamp.clone();
         }
 
         Ok(())
@@ -320,7 +314,7 @@ impl UpdateCache<InMemoryCache, InMemoryCacheError> for GuildUpdate {
         guild.premium_tier = g.premium_tier;
         guild
             .premium_subscription_count
-            .replace(g.premium_subscription_count.unwrap_or(0));
+            .replace(g.premium_subscription_count.unwrap_or_default());
         guild.region = g.region.clone();
         guild.splash = g.splash.clone();
         guild.system_channel_id = g.system_channel_id;
@@ -367,12 +361,8 @@ impl UpdateCache<InMemoryCache, InMemoryCacheError> for MemberChunk {
         cache
             .cache_members(self.guild_id, self.members.values().cloned())
             .await;
-        let user_ids = self.members.keys();
         let mut guild = cache.0.guild_members.entry(self.guild_id).or_default();
-
-        for id in user_ids {
-            guild.insert(*id);
-        }
+        guild.extend(self.members.keys());
 
         Ok(())
     }
@@ -389,6 +379,23 @@ impl UpdateCache<InMemoryCache, InMemoryCacheError> for MemberRemove {
 
         if let Some(mut members) = cache.0.guild_members.get_mut(&self.guild_id) {
             members.remove(&self.user.id);
+        }
+
+        // Avoid a deadlock by mutating the user, dropping the lock to the map,
+        // and then maybe conditionally removing the user later.
+        let mut maybe_remove_user = false;
+
+        if let Some(mut user_tuple) = cache.0.users.get_mut(&self.user.id) {
+            user_tuple.1.remove(&self.guild_id);
+
+            maybe_remove_user = true;
+        }
+
+        if maybe_remove_user {
+            cache
+                .0
+                .users
+                .remove_if(&self.user.id, |_, guild_set| guild_set.1.is_empty());
         }
 
         Ok(())
@@ -410,7 +417,7 @@ impl UpdateCache<InMemoryCache, InMemoryCacheError> for MemberUpdate {
 
         member.nick = self.nick.clone();
         member.roles = self.roles.clone();
-        member.joined_at = Some(self.joined_at.clone());
+        member.joined_at.replace(self.joined_at.clone());
 
         Ok(())
     }
@@ -575,13 +582,11 @@ impl UpdateCache<InMemoryCache, InMemoryCacheError> for ReactionAdd {
 
             reaction.count += 1;
         } else {
-            let mut me = false;
-
-            if let Some(current_user) = cache.current_user().await? {
-                if current_user.id == self.0.user_id {
-                    me = true;
-                }
-            }
+            let me = cache
+                .current_user()
+                .await?
+                .map(|user| user.id == self.0.user_id)
+                .unwrap_or_default();
 
             msg.reactions.push(MessageReaction {
                 count: 1,
@@ -622,7 +627,7 @@ impl UpdateCache<InMemoryCache, InMemoryCacheError> for ReactionRemove {
             if reaction.count > 1 {
                 reaction.count -= 1;
             } else {
-                msg.reactions.retain(|e| !(e.emoji == self.0.emoji.clone()));
+                msg.reactions.retain(|e| !(e.emoji == self.0.emoji));
             }
         }
 
@@ -788,10 +793,12 @@ impl UpdateCache<InMemoryCache, InMemoryCacheError> for WebhooksUpdate {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::config::InMemoryConfig;
     use twilight_model::{
         channel::{ChannelType, GuildChannel, TextChannel},
         gateway::payload::ChannelDelete,
-        id::{ChannelId, GuildId},
+        id::{ChannelId, GuildId, UserId},
+        voice::VoiceState,
     };
 
     fn guild_channel_text() -> (GuildId, ChannelId, GuildChannel) {
@@ -853,5 +860,32 @@ mod tests {
             .get(&guild_id)
             .unwrap()
             .contains(&channel_id));
+    }
+
+    #[tokio::test]
+    async fn test_voice_states_with_no_cached_guilds() {
+        let cache = InMemoryCache::from(
+            InMemoryConfig::builder()
+                .event_types(crate::config::EventType::VOICE_STATE_UPDATE)
+                .build(),
+        );
+
+        cache
+            .update(&VoiceStateUpdate(VoiceState {
+                channel_id: None,
+                deaf: false,
+                guild_id: Some(GuildId(01)),
+                member: None,
+                mute: false,
+                self_deaf: false,
+                self_mute: false,
+                self_stream: false,
+                session_id: "38fj3jfkh3pfho3prh2".to_string(),
+                suppress: false,
+                token: None,
+                user_id: UserId(01),
+            }))
+            .await
+            .expect("Caching a voice state should not fail")
     }
 }

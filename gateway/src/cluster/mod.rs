@@ -7,7 +7,7 @@
 //! disconnected, and when new commands come in:
 //!
 //! ```no_run
-//! use twilight_gateway::{cluster::{Cluster, ClusterConfig}, Event};
+//! use twilight_gateway::{Cluster, Event};
 //! use futures::StreamExt;
 //! use std::env;
 //!
@@ -54,11 +54,12 @@
 //! }
 //! ```
 
-pub mod config;
-
+mod builder;
+mod config;
 mod r#impl;
 
 pub use self::{
-    config::ClusterConfig,
+    builder::{ClusterBuilder, ShardScheme, ShardSchemeRangeError},
+    config::Config,
     r#impl::{Cluster, ClusterCommandError, ClusterStartError},
 };

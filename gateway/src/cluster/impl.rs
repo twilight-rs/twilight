@@ -1,4 +1,7 @@
-use super::config::{ClusterConfig, ShardScheme};
+use super::{
+    builder::{ClusterBuilder, ShardScheme},
+    config::Config,
+};
 use crate::{
     shard::{CommandError, Information, ResumeSession, Shard},
     EventTypeFlags,
@@ -88,7 +91,7 @@ impl Error for ClusterStartError {
 
 #[derive(Debug)]
 struct ClusterRef {
-    config: ClusterConfig,
+    config: Config,
     shard_from: u64,
     shard_to: u64,
     shards: Mutex<HashMap<u64, Shard>>,
@@ -106,7 +109,9 @@ struct ClusterRef {
 pub struct Cluster(Arc<ClusterRef>);
 
 impl Cluster {
-    /// Creates a new cluster from a configuration without bringing it up.
+    /// Create a new unconfigured cluster.
+    ///
+    /// Use [`builder`] to configure and construct a cluster.
     ///
     /// # Errors
     ///
@@ -114,11 +119,12 @@ impl Cluster {
     /// the gateway information.
     ///
     /// [`ClusterStartError::RetrievingGatewayInfo`]: enum.ClusterStartError.html#variant.RetrievingGatewayInfo
-    pub async fn new(config: impl Into<ClusterConfig>) -> Result<Self, ClusterStartError> {
-        Self::_new(config.into()).await
+    /// [`builder`]: #method.builder
+    pub async fn new(token: impl Into<String>) -> Result<Self, ClusterStartError> {
+        Self::builder(token).build().await
     }
 
-    async fn _new(mut config: ClusterConfig) -> Result<Self, ClusterStartError> {
+    pub(super) async fn new_with_config(mut config: Config) -> Result<Self, ClusterStartError> {
         let [from, to, total] = match config.shard_scheme() {
             ShardScheme::Auto => {
                 let http = config.http_client();
@@ -151,7 +157,7 @@ impl Cluster {
                     shard_config.sequence = Some(data.sequence);
                 }
 
-                (idx, Shard::new(shard_config))
+                (idx, Shard::new_with_config(shard_config))
             })
             .collect();
 
@@ -163,11 +169,13 @@ impl Cluster {
         })))
     }
 
+    /// Create a builder to configure and construct a cluster.
+    pub fn builder(token: impl Into<String>) -> ClusterBuilder {
+        ClusterBuilder::new(token)
+    }
+
     /// Returns an immutable reference to the configuration of this cluster.
-    ///
-    /// The configuration's resume map will be empty, as it's consumed when the
-    /// cluster is created to make shards.
-    pub fn config(&self) -> &ClusterConfig {
+    pub fn config(&self) -> &Config {
         &self.0.config
     }
 
@@ -179,10 +187,7 @@ impl Cluster {
     /// Bring up a cluster, starting shards all 10 shards that a bot uses:
     ///
     /// ```no_run
-    /// use twilight_gateway::cluster::{
-    ///     config::{ClusterConfig, ShardScheme},
-    ///     Cluster,
-    /// };
+    /// use twilight_gateway::cluster::{Cluster, ShardScheme};
     /// use std::{
     ///     convert::TryFrom,
     ///     env,
@@ -190,12 +195,9 @@ impl Cluster {
     ///
     /// # #[tokio::main]
     /// # async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
+    /// let token = env::var("DISCORD_TOKEN")?;
     /// let scheme = ShardScheme::try_from((0..=9, 10))?;
-    /// let mut config = ClusterConfig::builder(env::var("DISCORD_TOKEN")?)
-    ///                         .shard_scheme(scheme)
-    ///                         .build();
-    ///
-    /// let cluster = Cluster::new(config).await?;
+    /// let cluster = Cluster::builder(token).shard_scheme(scheme).build().await?;
     ///
     /// // Finally, bring up the cluster.
     /// cluster.up().await;
