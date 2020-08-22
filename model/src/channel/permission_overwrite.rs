@@ -4,16 +4,13 @@ use crate::{
 };
 use serde::{
     de::{Deserializer, Error as DeError},
-    ser::{Error as SerError, SerializeStruct, Serializer},
-    Deserialize, Serialize,
+    ser::SerializeStruct,
+    Deserialize, Serialize, Serializer,
 };
-use std::convert::TryInto;
 
 #[derive(Clone, Debug, Eq, Hash, PartialEq)]
 pub struct PermissionOverwrite {
-    pub allow_old: Permissions,
     pub allow: Permissions,
-    pub deny_old: Permissions,
     pub deny: Permissions,
     pub kind: PermissionOverwriteType,
 }
@@ -26,12 +23,8 @@ pub enum PermissionOverwriteType {
 
 #[derive(Deserialize)]
 struct PermissionOverwriteData {
-    #[serde(rename = "allow")]
-    allow_old: Permissions,
     #[serde(rename = "allow_new")]
     allow: Permissions,
-    #[serde(rename = "deny")]
-    deny_old: Permissions,
     #[serde(rename = "deny_new")]
     deny: Permissions,
     id: String,
@@ -69,9 +62,7 @@ impl<'de> Deserialize<'de> for PermissionOverwrite {
         };
 
         Ok(Self {
-            allow_old: data.allow_old,
             allow: data.allow,
-            deny_old: data.deny_old,
             deny: data.deny,
             kind,
         })
@@ -83,19 +74,7 @@ impl Serialize for PermissionOverwrite {
         let mut state = serializer.serialize_struct("PermissionOverwrite", 4)?;
 
         state.serialize_field("allow_new", &self.allow)?;
-        let allow_bits: u64 = self
-            .allow_old
-            .bits()
-            .try_into()
-            .map_err(|_| SerError::custom("allow_old bits can't be a u64"))?;
-        state.serialize_field("allow", &allow_bits)?;
         state.serialize_field("deny_new", &self.deny)?;
-        let deny_bits: u64 = self
-            .deny_old
-            .bits()
-            .try_into()
-            .map_err(|_| SerError::custom("deny_old bits can't be a u64"))?;
-        state.serialize_field("deny", &deny_bits)?;
 
         match &self.kind {
             PermissionOverwriteType::Member(id) => {
@@ -120,9 +99,7 @@ mod tests {
     #[test]
     fn test_overwrite() {
         let overwrite = PermissionOverwrite {
-            allow_old: Permissions::CREATE_INVITE,
             allow: Permissions::CREATE_INVITE,
-            deny_old: Permissions::KICK_MEMBERS,
             deny: Permissions::KICK_MEMBERS,
             kind: PermissionOverwriteType::Member(UserId(12_345_678)),
         };
@@ -132,9 +109,7 @@ mod tests {
         // <https://github.com/serde-rs/serde/issues/1281>
         let input = r#"{
   "allow_new": "1",
-  "allow": 1,
   "deny_new": "2",
-  "deny": 2,
   "id": "12345678",
   "type": "member"
 }"#;

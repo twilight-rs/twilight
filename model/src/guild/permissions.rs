@@ -1,12 +1,9 @@
 use bitflags::bitflags;
 use serde::{
     de::{Deserialize, Deserializer, Error as DeError, Visitor},
-    ser::{Error as SerError, Serialize, Serializer},
+    ser::{Serialize, Serializer},
 };
-use std::{
-    convert::TryInto,
-    fmt::{Formatter, Result as FmtResult},
-};
+use std::fmt::{Formatter, Result as FmtResult};
 
 bitflags! {
     pub struct Permissions: u128 {
@@ -42,18 +39,6 @@ bitflags! {
         const MANAGE_WEBHOOKS = 0x2000_0000;
         const MANAGE_EMOJIS = 0x4000_0000;
     }
-}
-
-pub(crate) fn serialize_u64<S: Serializer>(
-    permissions: &Permissions,
-    serializer: S,
-) -> Result<S::Ok, S::Error> {
-    let bits = permissions
-        .bits()
-        .try_into()
-        .map_err(|_| SerError::custom("permission bits can't be a u64"))?;
-
-    serializer.serialize_u64(bits)
 }
 
 struct PermissionsVisitor;
