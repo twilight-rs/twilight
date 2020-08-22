@@ -7,18 +7,16 @@ mod updates;
 pub use self::{
     builder::InMemoryCacheBuilder,
     config::{Config, EventType},
+    updates::UpdateCache,
 };
 
 use self::model::*;
 use dashmap::{mapref::entry::Entry, DashMap, DashSet};
 use std::{
     collections::{BTreeMap, BTreeSet, HashSet},
-    error::Error,
-    fmt::{Display, Formatter, Result as FmtResult},
     hash::Hash,
     sync::{Arc, Mutex},
 };
-use twilight_cache_trait::{Cache, UpdateCache};
 use twilight_model::{
     channel::{Group, GuildChannel, PrivateChannel},
     gateway::presence::{Presence, UserOrId},
@@ -78,24 +76,6 @@ fn upsert_item<K: Eq + Hash, V: PartialEq>(map: &DashMap<K, Arc<V>>, k: K, v: V)
         }
     }
 }
-
-pub type Result<T> = std::result::Result<T, InMemoryCacheError>;
-
-/// Error type for [`InMemoryCache`] operations.
-///
-/// Currently this is empty as no error can occur.
-///
-/// [`InMemoryCache`]: struct.InMemoryCache.html
-#[derive(Clone, Debug)]
-pub enum InMemoryCacheError {}
-
-impl Display for InMemoryCacheError {
-    fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
-        f.write_str("InMemoryCacheError")
-    }
-}
-
-impl Error for InMemoryCacheError {}
 
 #[derive(Debug, Default)]
 struct InMemoryCacheRef {
@@ -202,8 +182,9 @@ impl InMemoryCache {
         (*self.0.config).clone()
     }
 
-    pub async fn update<T: UpdateCache<Self, InMemoryCacheError>>(&self, value: &T) -> Result<()> {
-        value.update(self).await
+    /// Update the cache with an event from the gateway.
+    pub fn update(&self, value: &impl UpdateCache) {
+        value.update(self);
     }
 
     /// Gets a channel by ID.
@@ -767,9 +748,6 @@ impl InMemoryCache {
     }
 }
 
-impl Cache for InMemoryCache {}
-impl Cache for &'_ InMemoryCache {}
-
 fn presence_user_id(presence: &Presence) -> UserId {
     match presence.user {
         UserOrId::User(ref u) => u.id,
@@ -939,20 +917,17 @@ mod tests {
         }
     }
 
-    #[tokio::test]
-    async fn test_syntax_update() {
+    #[test]
+    fn test_syntax_update() {
         let cache = InMemoryCache::new();
-        assert!(cache
-            .update(&RoleDelete {
-                guild_id: GuildId(0),
-                role_id: RoleId(1),
-            })
-            .await
-            .is_ok());
+        cache.update(&RoleDelete {
+            guild_id: GuildId(0),
+            role_id: RoleId(1),
+        });
     }
 
-    #[tokio::test]
-    async fn test_cache_user_guild_state() {
+    #[test]
+    fn test_cache_user_guild_state() {
         let user_id = UserId(2);
         let cache = InMemoryCache::new();
         cache.cache_user(user(user_id), GuildId(1));
@@ -975,13 +950,10 @@ mod tests {
 
         // Test that removing a user from a guild will cause the ID to be
         // removed from the set, leaving the other ID.
-        assert!(cache
-            .update(&MemberRemove {
-                guild_id: GuildId(3),
-                user: user(user_id),
-            })
-            .await
-            .is_ok());
+        cache.update(&MemberRemove {
+            guild_id: GuildId(3),
+            user: user(user_id),
+        });
 
         {
             let user = cache.0.users.get(&user_id).unwrap();
@@ -991,13 +963,10 @@ mod tests {
 
         // Test that removing the user from its last guild removes the user's
         // entry.
-        assert!(cache
-            .update(&MemberRemove {
-                guild_id: GuildId(1),
-                user: user(user_id),
-            })
-            .await
-            .is_ok());
+        cache.update(&MemberRemove {
+            guild_id: GuildId(1),
+            user: user(user_id),
+        });
         assert!(!cache.0.users.contains_key(&user_id));
     }
 
