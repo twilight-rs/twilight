@@ -58,7 +58,6 @@ impl RoleFieldsBuilder {
             id: Self::ROLE_ID,
             mentionable: None,
             name: name.into(),
-            permissions_old: None,
             permissions: None,
             position: None,
         })
@@ -115,13 +114,6 @@ impl RoleFieldsBuilder {
     /// Allow the role to be @mentioned.
     pub fn mentionable(mut self) -> Self {
         self.0.mentionable.replace(true);
-
-        self
-    }
-
-    /// Set the old permissions of the role.
-    pub fn permissions_old(mut self, permissions: Permissions) -> Self {
-        self.0.permissions_old.replace(permissions);
 
         self
     }
@@ -649,7 +641,6 @@ mod tests {
             .id(RoleId(2))
             .unwrap()
             .mentionable()
-            .permissions_old(Permissions::empty())
             .permissions(Permissions::empty())
             .position(1);
 
@@ -661,7 +652,6 @@ mod tests {
                 id: RoleId(2),
                 mentionable: Some(true),
                 name: String::from("rolename"),
-                permissions_old: Some(Permissions::empty()),
                 permissions: Some(Permissions::empty()),
                 position: Some(1),
             }
