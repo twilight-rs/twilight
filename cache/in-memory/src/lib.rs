@@ -1,10 +1,15 @@
-pub mod config;
 pub mod model;
 
+mod builder;
+mod config;
 mod updates;
 
+pub use self::{
+    builder::InMemoryCacheBuilder,
+    config::{Config, EventType},
+};
+
 use self::model::*;
-use config::InMemoryConfig;
 use dashmap::{mapref::entry::Entry, DashMap, DashSet};
 use std::{
     collections::{BTreeMap, BTreeSet, HashSet},
@@ -94,7 +99,7 @@ impl Error for InMemoryCacheError {}
 
 #[derive(Debug, Default)]
 struct InMemoryCacheRef {
-    config: Arc<InMemoryConfig>,
+    config: Arc<Config>,
     channels_guild: DashMap<ChannelId, GuildItem<GuildChannel>>,
     channels_private: DashMap<ChannelId, Arc<PrivateChannel>>,
     // So long as the lock isn't held across await or panic points this is fine.
@@ -172,20 +177,28 @@ impl InMemoryCache {
     /// the message cache to 50 messages per channel:
     ///
     /// ```
-    /// use twilight_cache_inmemory::{
-    ///     config::InMemoryConfig,
-    ///     InMemoryCache,
-    /// };
+    /// use twilight_cache_inmemory::InMemoryCache;
     ///
-    /// let config = InMemoryConfig::builder().message_cache_size(50);
-    /// let cache = InMemoryCache::from(config);
+    /// let cache = InMemoryCache::builder().message_cache_size(50).build();
     /// ```
     pub fn new() -> Self {
         Self::default()
     }
 
+    fn new_with_config(config: Config) -> Self {
+        Self(Arc::new(InMemoryCacheRef {
+            config: Arc::new(config),
+            ..Default::default()
+        }))
+    }
+
+    /// Create a new builder to configure and construct an in-memory cache.
+    pub fn builder() -> InMemoryCacheBuilder {
+        InMemoryCacheBuilder::new()
+    }
+
     /// Returns a copy of the config cache.
-    pub fn config(&self) -> InMemoryConfig {
+    pub fn config(&self) -> Config {
         (*self.0.config).clone()
     }
 
@@ -751,15 +764,6 @@ impl InMemoryCache {
         }
 
         Some(role.data)
-    }
-}
-
-impl<T: Into<InMemoryConfig>> From<T> for InMemoryCache {
-    fn from(config: T) -> Self {
-        InMemoryCache(Arc::new(InMemoryCacheRef {
-            config: Arc::new(config.into()),
-            ..Default::default()
-        }))
     }
 }
 

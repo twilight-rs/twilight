@@ -1,6 +1,7 @@
 use bitflags::bitflags;
 
 bitflags! {
+    /// Bitflags to filter what event types to process in the cache.
     pub struct EventType: u64 {
         const BAN_ADD = 1;
         const BAN_REMOVE = 1 << 1;
@@ -38,18 +39,16 @@ bitflags! {
     }
 }
 
-#[derive(Clone, Debug)]
-pub struct InMemoryConfig {
-    event_types: EventType,
-    message_cache_size: usize,
+/// Configuration for an [`InMemoryCache`].
+///
+/// [`InMemoryCache`]: struct.InMemoryCache.html
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub struct Config {
+    pub(super) event_types: EventType,
+    pub(super) message_cache_size: usize,
 }
 
-impl InMemoryConfig {
-    /// Creates a new builder to make a configuration.
-    pub fn builder() -> InMemoryConfigBuilder {
-        InMemoryConfigBuilder::default()
-    }
-
+impl Config {
     /// Returns an immutable reference to the event types enabled.
     pub fn event_types(&self) -> EventType {
         self.event_types
@@ -71,7 +70,7 @@ impl InMemoryConfig {
     }
 }
 
-impl Default for InMemoryConfig {
+impl Default for Config {
     fn default() -> Self {
         Self {
             event_types: EventType::all(),
@@ -80,50 +79,9 @@ impl Default for InMemoryConfig {
     }
 }
 
-impl From<InMemoryConfigBuilder> for InMemoryConfig {
-    fn from(builder: InMemoryConfigBuilder) -> Self {
-        builder.build()
-    }
-}
-
-#[derive(Clone, Debug, Default)]
-pub struct InMemoryConfigBuilder(InMemoryConfig);
-
-impl InMemoryConfigBuilder {
-    /// Creates a new, default builder for a [`InMemoryConfig`].
-    ///
-    /// [`InMemoryConfig`]: struct.InMemoryConfig.html
-    pub fn new() -> Self {
-        Self::default()
-    }
-
-    /// Consumes the builder, returning the built configuration.
-    pub fn build(self) -> InMemoryConfig {
-        self.0
-    }
-
-    /// Sets the list of event types for the cache to handle.
-    ///
-    /// Defaults to all types.
-    pub fn event_types(mut self, event_types: EventType) -> Self {
-        self.0.event_types = event_types;
-
-        self
-    }
-
-    /// Sets the number of messages to cache per channel.
-    ///
-    /// Defaults to 100.
-    pub fn message_cache_size(mut self, message_cache_size: usize) -> Self {
-        self.0.message_cache_size = message_cache_size;
-
-        self
-    }
-}
-
 #[cfg(test)]
 mod tests {
-    use super::{EventType, InMemoryConfig, InMemoryConfigBuilder};
+    use super::{Config, EventType};
 
     #[test]
     #[allow(clippy::cognitive_complexity)]
@@ -165,20 +123,17 @@ mod tests {
 
     #[test]
     fn test_defaults() {
-        let conf = InMemoryConfig {
+        let conf = Config {
             event_types: EventType::all(),
             message_cache_size: 100,
         };
-        let default = InMemoryConfig::default();
+        let default = Config::default();
         assert_eq!(conf.event_types, default.event_types);
         assert_eq!(conf.message_cache_size, default.message_cache_size);
-        let default = InMemoryConfigBuilder::default();
-        assert_eq!(conf.event_types, default.0.event_types);
-        assert_eq!(conf.message_cache_size, default.0.message_cache_size);
     }
 
     #[test]
     fn test_config_fields() {
-        static_assertions::assert_fields!(InMemoryConfig: event_types, message_cache_size);
+        static_assertions::assert_fields!(Config: event_types, message_cache_size);
     }
 }
