@@ -13,7 +13,7 @@ readme = "../README.md"
 version = "0.1.0"
 
 [dependencies]
-twilight-cache = { optional = true, path = "../cache/base" }
+twilight-cache-inmemory = { optional = true, path = "../cache/in-memory" }
 twilight-command-parser = { optional = true, path = "../command-parser" }
 twilight-gateway = { default-features = false, optional = true, path = "../gateway" }
 twilight-http = { default-features = false, optional = true, path = "../http" }
@@ -26,8 +26,8 @@ tokio = { default-features = false, features = ["macros", "rt-core"], version = 
 [features]
 default = ["all", "native"]
 
-all = ["cache", "command-parser", "gateway", "http", "model", "standby"]
-cache = ["twilight-cache"]
+all = ["cache-inmemory", "command-parser", "gateway", "http", "model", "standby"]
+cache-inmemory = ["twilight-cache-inmemory"]
 command-parser = ["twilight-command-parser"]
 gateway = ["twilight-gateway"]
 http = ["twilight-http"]

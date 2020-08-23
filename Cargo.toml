@@ -1,8 +1,6 @@
 [workspace]
 members = [
-    "cache/base",
     "cache/in-memory",
-    "cache/trait",
     "command-parser",
     "gateway",
     "gateway/examples/cluster",

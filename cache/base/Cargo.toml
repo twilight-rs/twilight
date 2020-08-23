@@ -1,9 +1,0 @@
-[package]
-authors = ["Twilight Contributors"]
-edition = "2018"
-name = "twilight-cache"
-version = "0.1.0"
-
-[dependencies]
-twilight-cache-inmemory = { path = "../in-memory" }
-twilight-cache-trait = { path = "../trait" }

@@ -1,8 +1,6 @@
-use super::{config::EventType, InMemoryCache, InMemoryCacheError};
-use async_trait::async_trait;
+use super::{config::EventType, InMemoryCache};
 use dashmap::DashMap;
 use std::{collections::HashSet, hash::Hash, ops::Deref, sync::Arc};
-use twilight_cache_trait::UpdateCache;
 use twilight_model::{
     channel::{message::MessageReaction, Channel, GuildChannel},
     gateway::{event::Event, payload::*, presence::Presence},
@@ -14,87 +12,81 @@ fn guard(this: &InMemoryCache, event_type: EventType) -> bool {
     this.0.config.event_types().contains(event_type)
 }
 
-#[async_trait]
-impl UpdateCache<InMemoryCache, InMemoryCacheError> for Event {
+pub trait UpdateCache {
+    // Allow this for presentation purposes in documentation.
+    #[allow(unused_variables)]
+    fn update(&self, cache: &InMemoryCache) {}
+}
+
+impl UpdateCache for Event {
     #[allow(clippy::cognitive_complexity)]
-    async fn update(&self, c: &InMemoryCache) -> Result<(), InMemoryCacheError> {
+    fn update(&self, c: &InMemoryCache) {
         use Event::*;
 
         match self {
-            BanAdd(_) => Ok(()),
-            BanRemove(_) => Ok(()),
-            ChannelCreate(v) => c.update(v).await,
-            ChannelDelete(v) => c.update(v).await,
-            ChannelPinsUpdate(v) => c.update(v).await,
-            ChannelUpdate(v) => c.update(v).await,
-            GatewayHeartbeat(_) => Ok(()),
-            GatewayHeartbeatAck => Ok(()),
-            GatewayHello(_) => Ok(()),
-            GatewayInvalidateSession(_v) => Ok(()),
-            GatewayReconnect => Ok(()),
-            GiftCodeUpdate => Ok(()),
-            GuildCreate(v) => c.update(v.deref()).await,
-            GuildDelete(v) => c.update(v.deref()).await,
-            GuildEmojisUpdate(v) => c.update(v).await,
-            GuildIntegrationsUpdate(v) => c.update(v).await,
-            GuildUpdate(v) => c.update(v.deref()).await,
-            InviteCreate(_) => Ok(()),
-            InviteDelete(_) => Ok(()),
-            MemberAdd(v) => c.update(v.deref()).await,
-            MemberRemove(v) => c.update(v).await,
-            MemberUpdate(v) => c.update(v.deref()).await,
-            MemberChunk(v) => c.update(v).await,
-            MessageCreate(v) => c.update(v.deref()).await,
-            MessageDelete(v) => c.update(v).await,
-            MessageDeleteBulk(v) => c.update(v).await,
-            MessageUpdate(v) => c.update(v.deref()).await,
-            PresenceUpdate(v) => c.update(v.deref()).await,
-            PresencesReplace => Ok(()),
-            ReactionAdd(v) => c.update(v.deref()).await,
-            ReactionRemove(v) => c.update(v.deref()).await,
-            ReactionRemoveAll(v) => c.update(v).await,
-            ReactionRemoveEmoji(_) => Ok(()),
-            Ready(v) => c.update(v.deref()).await,
-            Resumed => Ok(()),
-            RoleCreate(v) => c.update(v).await,
-            RoleDelete(v) => c.update(v).await,
-            RoleUpdate(v) => c.update(v).await,
-            ShardConnected(_) => Ok(()),
-            ShardConnecting(_) => Ok(()),
-            ShardDisconnected(_) => Ok(()),
-            ShardIdentifying(_) => Ok(()),
-            ShardReconnecting(_) => Ok(()),
-            ShardPayload(_) => Ok(()),
-            ShardResuming(_) => Ok(()),
-            TypingStart(v) => c.update(v.deref()).await,
-            UnavailableGuild(v) => c.update(v).await,
-            UserUpdate(v) => c.update(v).await,
-            VoiceServerUpdate(v) => c.update(v).await,
-            VoiceStateUpdate(v) => c.update(v.deref()).await,
-            WebhooksUpdate(v) => c.update(v).await,
+            BanAdd(_) => {}
+            BanRemove(_) => {}
+            ChannelCreate(v) => c.update(v),
+            ChannelDelete(v) => c.update(v),
+            ChannelPinsUpdate(v) => c.update(v),
+            ChannelUpdate(v) => c.update(v),
+            GatewayHeartbeat(_) => {}
+            GatewayHeartbeatAck => {}
+            GatewayHello(_) => {}
+            GatewayInvalidateSession(_v) => {}
+            GatewayReconnect => {}
+            GiftCodeUpdate => {}
+            GuildCreate(v) => c.update(v.deref()),
+            GuildDelete(v) => c.update(v.deref()),
+            GuildEmojisUpdate(v) => c.update(v),
+            GuildIntegrationsUpdate(v) => c.update(v),
+            GuildUpdate(v) => c.update(v.deref()),
+            InviteCreate(_) => {}
+            InviteDelete(_) => {}
+            MemberAdd(v) => c.update(v.deref()),
+            MemberRemove(v) => c.update(v),
+            MemberUpdate(v) => c.update(v.deref()),
+            MemberChunk(v) => c.update(v),
+            MessageCreate(v) => c.update(v.deref()),
+            MessageDelete(v) => c.update(v),
+            MessageDeleteBulk(v) => c.update(v),
+            MessageUpdate(v) => c.update(v.deref()),
+            PresenceUpdate(v) => c.update(v.deref()),
+            PresencesReplace => {}
+            ReactionAdd(v) => c.update(v.deref()),
+            ReactionRemove(v) => c.update(v.deref()),
+            ReactionRemoveAll(v) => c.update(v),
+            ReactionRemoveEmoji(_) => {}
+            Ready(v) => c.update(v.deref()),
+            Resumed => {}
+            RoleCreate(v) => c.update(v),
+            RoleDelete(v) => c.update(v),
+            RoleUpdate(v) => c.update(v),
+            ShardConnected(_) => {}
+            ShardConnecting(_) => {}
+            ShardDisconnected(_) => {}
+            ShardIdentifying(_) => {}
+            ShardReconnecting(_) => {}
+            ShardPayload(_) => {}
+            ShardResuming(_) => {}
+            TypingStart(v) => c.update(v.deref()),
+            UnavailableGuild(v) => c.update(v),
+            UserUpdate(v) => c.update(v),
+            VoiceServerUpdate(v) => c.update(v),
+            VoiceStateUpdate(v) => c.update(v.deref()),
+            WebhooksUpdate(v) => c.update(v),
         }
     }
 }
 
-#[async_trait]
-impl UpdateCache<InMemoryCache, InMemoryCacheError> for BanAdd {
-    async fn update(&self, _: &InMemoryCache) -> Result<(), InMemoryCacheError> {
-        Ok(())
-    }
-}
+impl UpdateCache for BanAdd {}
 
-#[async_trait]
-impl UpdateCache<InMemoryCache, InMemoryCacheError> for BanRemove {
-    async fn update(&self, _: &InMemoryCache) -> Result<(), InMemoryCacheError> {
-        Ok(())
-    }
-}
+impl UpdateCache for BanRemove {}
 
-#[async_trait]
-impl UpdateCache<InMemoryCache, InMemoryCacheError> for ChannelCreate {
-    async fn update(&self, cache: &InMemoryCache) -> Result<(), InMemoryCacheError> {
+impl UpdateCache for ChannelCreate {
+    fn update(&self, cache: &InMemoryCache) {
         if !guard(cache, EventType::CHANNEL_CREATE) {
-            return Ok(());
+            return;
         }
 
         match &self.0 {
@@ -110,16 +102,13 @@ impl UpdateCache<InMemoryCache, InMemoryCacheError> for ChannelCreate {
                 cache.cache_private_channel(c.clone());
             }
         }
-
-        Ok(())
     }
 }
 
-#[async_trait]
-impl UpdateCache<InMemoryCache, InMemoryCacheError> for ChannelDelete {
-    async fn update(&self, cache: &InMemoryCache) -> Result<(), InMemoryCacheError> {
+impl UpdateCache for ChannelDelete {
+    fn update(&self, cache: &InMemoryCache) {
         if !guard(cache, EventType::CHANNEL_DELETE) {
-            return Ok(());
+            return;
         }
 
         match self.0 {
@@ -133,16 +122,13 @@ impl UpdateCache<InMemoryCache, InMemoryCacheError> for ChannelDelete {
                 cache.0.channels_private.remove(&c.id);
             }
         }
-
-        Ok(())
     }
 }
 
-#[async_trait]
-impl UpdateCache<InMemoryCache, InMemoryCacheError> for ChannelPinsUpdate {
-    async fn update(&self, cache: &InMemoryCache) -> Result<(), InMemoryCacheError> {
+impl UpdateCache for ChannelPinsUpdate {
+    fn update(&self, cache: &InMemoryCache) {
         if !guard(cache, EventType::CHANNEL_PINS_UPDATE) {
-            return Ok(());
+            return;
         }
 
         if let Some(mut item) = cache.0.channels_guild.get_mut(&self.channel_id) {
@@ -152,28 +138,25 @@ impl UpdateCache<InMemoryCache, InMemoryCacheError> for ChannelPinsUpdate {
                 text.last_pin_timestamp = self.last_pin_timestamp.clone();
             }
 
-            return Ok(());
+            return;
         }
 
         if let Some(mut channel) = cache.0.channels_private.get_mut(&self.channel_id) {
             Arc::make_mut(&mut channel).last_pin_timestamp = self.last_pin_timestamp.clone();
 
-            return Ok(());
+            return;
         }
 
         if let Some(mut group) = cache.0.groups.get_mut(&self.channel_id) {
             Arc::make_mut(&mut group).last_pin_timestamp = self.last_pin_timestamp.clone();
         }
-
-        Ok(())
     }
 }
 
-#[async_trait]
-impl UpdateCache<InMemoryCache, InMemoryCacheError> for ChannelUpdate {
-    async fn update(&self, cache: &InMemoryCache) -> Result<(), InMemoryCacheError> {
+impl UpdateCache for ChannelUpdate {
+    fn update(&self, cache: &InMemoryCache) {
         if !guard(cache, EventType::CHANNEL_UPDATE) {
-            return Ok(());
+            return;
         }
 
         match self.0.clone() {
@@ -189,27 +172,21 @@ impl UpdateCache<InMemoryCache, InMemoryCacheError> for ChannelUpdate {
                 cache.cache_private_channel(c);
             }
         }
-
-        Ok(())
     }
 }
 
-#[async_trait]
-impl UpdateCache<InMemoryCache, InMemoryCacheError> for GuildCreate {
-    async fn update(&self, cache: &InMemoryCache) -> Result<(), InMemoryCacheError> {
+impl UpdateCache for GuildCreate {
+    fn update(&self, cache: &InMemoryCache) {
         if !guard(cache, EventType::GUILD_CREATE) {
-            return Ok(());
+            return;
         }
 
         cache.cache_guild(self.0.clone());
-
-        Ok(())
     }
 }
 
-#[async_trait]
-impl UpdateCache<InMemoryCache, InMemoryCacheError> for GuildDelete {
-    async fn update(&self, cache: &InMemoryCache) -> Result<(), InMemoryCacheError> {
+impl UpdateCache for GuildDelete {
+    fn update(&self, cache: &InMemoryCache) {
         fn remove_ids<T: Eq + Hash, U>(
             guild_map: &DashMap<GuildId, HashSet<T>>,
             container: &DashMap<T, U>,
@@ -223,7 +200,7 @@ impl UpdateCache<InMemoryCache, InMemoryCacheError> for GuildDelete {
         }
 
         if !guard(cache, EventType::GUILD_DELETE) {
-            return Ok(());
+            return;
         }
 
         let id = self.id;
@@ -247,36 +224,25 @@ impl UpdateCache<InMemoryCache, InMemoryCacheError> for GuildDelete {
                 cache.0.presences.remove(&(Some(id), user_id));
             }
         }
-
-        Ok(())
     }
 }
 
-#[async_trait]
-impl UpdateCache<InMemoryCache, InMemoryCacheError> for GuildEmojisUpdate {
-    async fn update(&self, cache: &InMemoryCache) -> Result<(), InMemoryCacheError> {
+impl UpdateCache for GuildEmojisUpdate {
+    fn update(&self, cache: &InMemoryCache) {
         if !guard(cache, EventType::GUILD_EMOJIS_UPDATE) {
-            return Ok(());
+            return;
         }
 
         cache.cache_emojis(self.guild_id, self.emojis.values().cloned());
-
-        Ok(())
     }
 }
 
-#[async_trait]
-impl UpdateCache<InMemoryCache, InMemoryCacheError> for GuildIntegrationsUpdate {
-    async fn update(&self, _: &InMemoryCache) -> Result<(), InMemoryCacheError> {
-        Ok(())
-    }
-}
+impl UpdateCache for GuildIntegrationsUpdate {}
 
-#[async_trait]
-impl UpdateCache<InMemoryCache, InMemoryCacheError> for GuildUpdate {
-    async fn update(&self, cache: &InMemoryCache) -> Result<(), InMemoryCacheError> {
+impl UpdateCache for GuildUpdate {
+    fn update(&self, cache: &InMemoryCache) {
         if !guard(cache, EventType::GUILD_UPDATE) {
-            return Ok(());
+            return;
         }
 
         let mut guild = match cache
@@ -286,7 +252,7 @@ impl UpdateCache<InMemoryCache, InMemoryCacheError> for GuildUpdate {
             .map(|r| Arc::clone(r.value()))
         {
             Some(guild) => guild,
-            None => return Ok(()),
+            None => return,
         };
 
         let g = &self.0;
@@ -320,16 +286,13 @@ impl UpdateCache<InMemoryCache, InMemoryCacheError> for GuildUpdate {
         guild.vanity_url_code = g.vanity_url_code.clone();
         guild.widget_channel_id = g.widget_channel_id;
         guild.widget_enabled = g.widget_enabled;
-
-        Ok(())
     }
 }
 
-#[async_trait]
-impl UpdateCache<InMemoryCache, InMemoryCacheError> for MemberAdd {
-    async fn update(&self, cache: &InMemoryCache) -> Result<(), InMemoryCacheError> {
+impl UpdateCache for MemberAdd {
+    fn update(&self, cache: &InMemoryCache) {
         if !guard(cache, EventType::MEMBER_ADD) {
-            return Ok(());
+            return;
         }
 
         cache.cache_member(self.guild_id, self.0.clone());
@@ -340,35 +303,29 @@ impl UpdateCache<InMemoryCache, InMemoryCacheError> for MemberAdd {
             .entry(self.guild_id)
             .or_default()
             .insert(self.0.user.id);
-
-        Ok(())
     }
 }
 
-#[async_trait]
-impl UpdateCache<InMemoryCache, InMemoryCacheError> for MemberChunk {
-    async fn update(&self, cache: &InMemoryCache) -> Result<(), InMemoryCacheError> {
+impl UpdateCache for MemberChunk {
+    fn update(&self, cache: &InMemoryCache) {
         if !guard(cache, EventType::MEMBER_CHUNK) {
-            return Ok(());
+            return;
         }
 
         if self.members.is_empty() {
-            return Ok(());
+            return;
         }
 
         cache.cache_members(self.guild_id, self.members.values().cloned());
         let mut guild = cache.0.guild_members.entry(self.guild_id).or_default();
         guild.extend(self.members.keys());
-
-        Ok(())
     }
 }
 
-#[async_trait]
-impl UpdateCache<InMemoryCache, InMemoryCacheError> for MemberRemove {
-    async fn update(&self, cache: &InMemoryCache) -> Result<(), InMemoryCacheError> {
+impl UpdateCache for MemberRemove {
+    fn update(&self, cache: &InMemoryCache) {
         if !guard(cache, EventType::MEMBER_REMOVE) {
-            return Ok(());
+            return;
         }
 
         cache.0.members.remove(&(self.guild_id, self.user.id));
@@ -393,37 +350,31 @@ impl UpdateCache<InMemoryCache, InMemoryCacheError> for MemberRemove {
                 .users
                 .remove_if(&self.user.id, |_, guild_set| guild_set.1.is_empty());
         }
-
-        Ok(())
     }
 }
 
-#[async_trait]
-impl UpdateCache<InMemoryCache, InMemoryCacheError> for MemberUpdate {
-    async fn update(&self, cache: &InMemoryCache) -> Result<(), InMemoryCacheError> {
+impl UpdateCache for MemberUpdate {
+    fn update(&self, cache: &InMemoryCache) {
         if !guard(cache, EventType::MEMBER_UPDATE) {
-            return Ok(());
+            return;
         }
 
         let mut member = match cache.0.members.get_mut(&(self.guild_id, self.user.id)) {
             Some(member) => member,
-            None => return Ok(()),
+            None => return,
         };
         let mut member = Arc::make_mut(&mut member);
 
         member.nick = self.nick.clone();
         member.roles = self.roles.clone();
         member.joined_at.replace(self.joined_at.clone());
-
-        Ok(())
     }
 }
 
-#[async_trait]
-impl UpdateCache<InMemoryCache, InMemoryCacheError> for MessageCreate {
-    async fn update(&self, cache: &InMemoryCache) -> Result<(), InMemoryCacheError> {
+impl UpdateCache for MessageCreate {
+    fn update(&self, cache: &InMemoryCache) {
         if !guard(cache, EventType::MESSAGE_CREATE) {
-            return Ok(());
+            return;
         }
 
         let mut channel = cache.0.messages.entry(self.0.channel_id).or_default();
@@ -435,30 +386,24 @@ impl UpdateCache<InMemoryCache, InMemoryCacheError> for MessageCreate {
         }
 
         channel.insert(self.0.id, Arc::new(From::from(self.0.clone())));
-
-        Ok(())
     }
 }
 
-#[async_trait]
-impl UpdateCache<InMemoryCache, InMemoryCacheError> for MessageDelete {
-    async fn update(&self, cache: &InMemoryCache) -> Result<(), InMemoryCacheError> {
+impl UpdateCache for MessageDelete {
+    fn update(&self, cache: &InMemoryCache) {
         if !guard(cache, EventType::MESSAGE_DELETE) {
-            return Ok(());
+            return;
         }
 
         let mut channel = cache.0.messages.entry(self.channel_id).or_default();
         channel.remove(&self.id);
-
-        Ok(())
     }
 }
 
-#[async_trait]
-impl UpdateCache<InMemoryCache, InMemoryCacheError> for MessageDeleteBulk {
-    async fn update(&self, cache: &InMemoryCache) -> Result<(), InMemoryCacheError> {
+impl UpdateCache for MessageDeleteBulk {
+    fn update(&self, cache: &InMemoryCache) {
         if !guard(cache, EventType::MESSAGE_DELETE_BULK) {
-            return Ok(());
+            return;
         }
 
         let mut channel = cache.0.messages.entry(self.channel_id).or_default();
@@ -466,16 +411,13 @@ impl UpdateCache<InMemoryCache, InMemoryCacheError> for MessageDeleteBulk {
         for id in &self.ids {
             channel.remove(id);
         }
-
-        Ok(())
     }
 }
 
-#[async_trait]
-impl UpdateCache<InMemoryCache, InMemoryCacheError> for MessageUpdate {
-    async fn update(&self, cache: &InMemoryCache) -> Result<(), InMemoryCacheError> {
+impl UpdateCache for MessageUpdate {
+    fn update(&self, cache: &InMemoryCache) {
         if !guard(cache, EventType::MESSAGE_UPDATE) {
-            return Ok(());
+            return;
         }
 
         let mut channel = cache.0.messages.entry(self.channel_id).or_default();
@@ -523,16 +465,13 @@ impl UpdateCache<InMemoryCache, InMemoryCacheError> for MessageUpdate {
                 msg.tts = tts;
             }
         }
-
-        Ok(())
     }
 }
 
-#[async_trait]
-impl UpdateCache<InMemoryCache, InMemoryCacheError> for PresenceUpdate {
-    async fn update(&self, cache: &InMemoryCache) -> Result<(), InMemoryCacheError> {
+impl UpdateCache for PresenceUpdate {
+    fn update(&self, cache: &InMemoryCache) {
         if !guard(cache, EventType::PRESENCE_UPDATE) {
-            return Ok(());
+            return;
         }
 
         let presence = Presence {
@@ -546,23 +485,20 @@ impl UpdateCache<InMemoryCache, InMemoryCacheError> for PresenceUpdate {
         };
 
         cache.cache_presence(Some(self.guild_id), presence);
-
-        Ok(())
     }
 }
 
-#[async_trait]
-impl UpdateCache<InMemoryCache, InMemoryCacheError> for ReactionAdd {
-    async fn update(&self, cache: &InMemoryCache) -> Result<(), InMemoryCacheError> {
+impl UpdateCache for ReactionAdd {
+    fn update(&self, cache: &InMemoryCache) {
         if !guard(cache, EventType::REACTION_ADD) {
-            return Ok(());
+            return;
         }
 
         let mut channel = cache.0.messages.entry(self.0.channel_id).or_default();
 
         let mut message = match channel.get_mut(&self.0.message_id) {
             Some(message) => message,
-            None => return Ok(()),
+            None => return,
         };
 
         let msg = Arc::make_mut(&mut message);
@@ -589,23 +525,20 @@ impl UpdateCache<InMemoryCache, InMemoryCacheError> for ReactionAdd {
                 me,
             });
         }
-
-        Ok(())
     }
 }
 
-#[async_trait]
-impl UpdateCache<InMemoryCache, InMemoryCacheError> for ReactionRemove {
-    async fn update(&self, cache: &InMemoryCache) -> Result<(), InMemoryCacheError> {
+impl UpdateCache for ReactionRemove {
+    fn update(&self, cache: &InMemoryCache) {
         if !guard(cache, EventType::REACTION_REMOVE) {
-            return Ok(());
+            return;
         }
 
         let mut channel = cache.0.messages.entry(self.0.channel_id).or_default();
 
         let mut message = match channel.get_mut(&self.0.message_id) {
             Some(message) => message,
-            None => return Ok(()),
+            None => return,
         };
 
         let msg = Arc::make_mut(&mut message);
@@ -625,37 +558,31 @@ impl UpdateCache<InMemoryCache, InMemoryCacheError> for ReactionRemove {
                 msg.reactions.retain(|e| !(e.emoji == self.0.emoji));
             }
         }
-
-        Ok(())
     }
 }
 
-#[async_trait]
-impl UpdateCache<InMemoryCache, InMemoryCacheError> for ReactionRemoveAll {
-    async fn update(&self, cache: &InMemoryCache) -> Result<(), InMemoryCacheError> {
+impl UpdateCache for ReactionRemoveAll {
+    fn update(&self, cache: &InMemoryCache) {
         if !guard(cache, EventType::REACTION_REMOVE_ALL) {
-            return Ok(());
+            return;
         }
 
         let mut channel = cache.0.messages.entry(self.channel_id).or_default();
 
         let mut message = match channel.get_mut(&self.message_id) {
             Some(message) => message,
-            None => return Ok(()),
+            None => return,
         };
 
         let msg = Arc::make_mut(&mut message);
         msg.reactions.clear();
-
-        Ok(())
     }
 }
 
-#[async_trait]
-impl UpdateCache<InMemoryCache, InMemoryCacheError> for Ready {
-    async fn update(&self, cache: &InMemoryCache) -> Result<(), InMemoryCacheError> {
+impl UpdateCache for Ready {
+    fn update(&self, cache: &InMemoryCache) {
         if !guard(cache, EventType::READY) {
-            return Ok(());
+            return;
         }
 
         cache.cache_current_user(self.user.clone());
@@ -670,16 +597,13 @@ impl UpdateCache<InMemoryCache, InMemoryCacheError> for Ready {
                 }
             }
         }
-
-        Ok(())
     }
 }
 
-#[async_trait]
-impl UpdateCache<InMemoryCache, InMemoryCacheError> for RoleCreate {
-    async fn update(&self, cache: &InMemoryCache) -> Result<(), InMemoryCacheError> {
+impl UpdateCache for RoleCreate {
+    fn update(&self, cache: &InMemoryCache) {
         if !guard(cache, EventType::ROLE_CREATE) {
-            return Ok(());
+            return;
         }
 
         super::upsert_guild_item(
@@ -688,101 +612,71 @@ impl UpdateCache<InMemoryCache, InMemoryCacheError> for RoleCreate {
             self.role.id,
             self.role.clone(),
         );
-
-        Ok(())
     }
 }
 
-#[async_trait]
-impl UpdateCache<InMemoryCache, InMemoryCacheError> for RoleDelete {
-    async fn update(&self, cache: &InMemoryCache) -> Result<(), InMemoryCacheError> {
+impl UpdateCache for RoleDelete {
+    fn update(&self, cache: &InMemoryCache) {
         if !guard(cache, EventType::ROLE_DELETE) {
-            return Ok(());
+            return;
         }
 
         cache.delete_role(self.role_id);
-
-        Ok(())
     }
 }
 
-#[async_trait]
-impl UpdateCache<InMemoryCache, InMemoryCacheError> for RoleUpdate {
-    async fn update(&self, cache: &InMemoryCache) -> Result<(), InMemoryCacheError> {
+impl UpdateCache for RoleUpdate {
+    fn update(&self, cache: &InMemoryCache) {
         if !guard(cache, EventType::ROLE_UPDATE) {
-            return Ok(());
+            return;
         }
 
         cache.cache_role(self.guild_id, self.role.clone());
-
-        Ok(())
     }
 }
 
-#[async_trait]
-impl UpdateCache<InMemoryCache, InMemoryCacheError> for TypingStart {
-    async fn update(&self, _: &InMemoryCache) -> Result<(), InMemoryCacheError> {
-        Ok(())
-    }
-}
+impl UpdateCache for TypingStart {}
 
-#[async_trait]
-impl UpdateCache<InMemoryCache, InMemoryCacheError> for UnavailableGuild {
-    async fn update(&self, cache: &InMemoryCache) -> Result<(), InMemoryCacheError> {
+impl UpdateCache for UnavailableGuild {
+    fn update(&self, cache: &InMemoryCache) {
         if !guard(cache, EventType::UNAVAILABLE_GUILD) {
-            return Ok(());
+            return;
         }
 
         cache.0.guilds.remove(&self.id);
         cache.0.unavailable_guilds.insert(self.id);
-
-        Ok(())
     }
 }
 
-#[async_trait]
-impl UpdateCache<InMemoryCache, InMemoryCacheError> for UserUpdate {
-    async fn update(&self, cache: &InMemoryCache) -> Result<(), InMemoryCacheError> {
+impl UpdateCache for UserUpdate {
+    fn update(&self, cache: &InMemoryCache) {
         if !guard(cache, EventType::USER_UPDATE) {
-            return Ok(());
+            return;
         }
 
         cache.cache_current_user(self.0.clone());
-
-        Ok(())
     }
 }
 
-#[async_trait]
-impl UpdateCache<InMemoryCache, InMemoryCacheError> for VoiceServerUpdate {
-    async fn update(&self, cache: &InMemoryCache) -> Result<(), InMemoryCacheError> {
+impl UpdateCache for VoiceServerUpdate {
+    fn update(&self, cache: &InMemoryCache) {
         if !guard(cache, EventType::VOICE_SERVER_UPDATE) {
-            return Ok(());
+            return;
         }
-
-        Ok(())
     }
 }
 
-#[async_trait]
-impl UpdateCache<InMemoryCache, InMemoryCacheError> for VoiceStateUpdate {
-    async fn update(&self, cache: &InMemoryCache) -> Result<(), InMemoryCacheError> {
+impl UpdateCache for VoiceStateUpdate {
+    fn update(&self, cache: &InMemoryCache) {
         if !guard(cache, EventType::VOICE_STATE_UPDATE) {
-            return Ok(());
+            return;
         }
 
         cache.cache_voice_state(self.0.clone());
-
-        Ok(())
     }
 }
 
-#[async_trait]
-impl UpdateCache<InMemoryCache, InMemoryCacheError> for WebhooksUpdate {
-    async fn update(&self, _: &InMemoryCache) -> Result<(), InMemoryCacheError> {
-        Ok(())
-    }
-}
+impl UpdateCache for WebhooksUpdate {}
 
 #[cfg(test)]
 mod tests {
@@ -815,8 +709,8 @@ mod tests {
         (guild_id, channel_id, channel)
     }
 
-    #[tokio::test]
-    async fn test_channel_delete_guild() {
+    #[test]
+    fn test_channel_delete_guild() {
         let cache = InMemoryCache::new();
         let (guild_id, channel_id, channel) = guild_channel_text();
 
@@ -829,23 +723,17 @@ mod tests {
             .unwrap()
             .contains(&channel_id));
 
-        cache
-            .update(&ChannelDelete(Channel::Guild(channel)))
-            .await
-            .unwrap();
+        cache.update(&ChannelDelete(Channel::Guild(channel)));
         assert!(cache.0.channels_guild.is_empty());
         assert!(cache.0.guild_channels.get(&guild_id).unwrap().is_empty());
     }
 
-    #[tokio::test]
-    async fn test_channel_update_guild() {
+    #[test]
+    fn test_channel_update_guild() {
         let cache = InMemoryCache::new();
         let (guild_id, channel_id, channel) = guild_channel_text();
 
-        cache
-            .update(&ChannelUpdate(Channel::Guild(channel)))
-            .await
-            .unwrap();
+        cache.update(&ChannelUpdate(Channel::Guild(channel)));
         assert_eq!(1, cache.0.channels_guild.len());
         assert!(cache
             .0
@@ -855,28 +743,25 @@ mod tests {
             .contains(&channel_id));
     }
 
-    #[tokio::test]
-    async fn test_voice_states_with_no_cached_guilds() {
+    #[test]
+    fn test_voice_states_with_no_cached_guilds() {
         let cache = InMemoryCache::builder()
             .event_types(crate::config::EventType::VOICE_STATE_UPDATE)
             .build();
 
-        cache
-            .update(&VoiceStateUpdate(VoiceState {
-                channel_id: None,
-                deaf: false,
-                guild_id: Some(GuildId(1)),
-                member: None,
-                mute: false,
-                self_deaf: false,
-                self_mute: false,
-                self_stream: false,
-                session_id: "38fj3jfkh3pfho3prh2".to_string(),
-                suppress: false,
-                token: None,
-                user_id: UserId(1),
-            }))
-            .await
-            .expect("Caching a voice state should not fail")
+        cache.update(&VoiceStateUpdate(VoiceState {
+            channel_id: None,
+            deaf: false,
+            guild_id: Some(GuildId(1)),
+            member: None,
+            mute: false,
+            self_deaf: false,
+            self_mute: false,
+            self_stream: false,
+            session_id: "38fj3jfkh3pfho3prh2".to_string(),
+            suppress: false,
+            token: None,
+            user_id: UserId(1),
+        }));
     }
 }

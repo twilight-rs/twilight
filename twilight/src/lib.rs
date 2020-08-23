@@ -7,9 +7,9 @@
 //! `twilight` is an asynchronous, simple, and extensible set of libraries which can
 //! be used separately or in combination for the Discord API.
 //!
-//! The ecosystem of first-class crates includes `twilight-cache`,
-//! `twilight-command-parser`, `twilight-gateway`, `twilight-http`, `twilight-model`,
-//! and more. These are explained in detail below.
+//! The ecosystem of first-class crates includes `twilight-cache-inmemory`,
+//! `twilight-command-parser`, `twilight-gateway`, `twilight-http`,
+//! `twilight-model`, and more. These are explained in detail below.
 //!
 //! The main `twilight` crate is a "skeleton crate": it includes all of the
 //! non-vendor-specific crates in the `twilight` ecosystem.
@@ -43,15 +43,11 @@
 //! depending on `twilight-gateway`. One use case is if you write your own WebSocket
 //! gateway implementation.
 //!
-//! ### `twilight-cache`
+//! ### `twilight-cache-inmemory`
 //!
-//! `twilight-cache` is based on a single trait which can be implemented to use
-//! custom third-party backends with a single ubiquitous interface. The Cache is
+//! `twilight-cache-inmemory` is an in-process-memory based cache. It's
 //! responsible for holding information about things like guilds, channels, role
 //! information, voice states, and any other data that comes from Discord.
-//!
-//! Included by default is an `InMemoryCache` backend, which caches within the
-//! process's memory.
 //!
 //! ### `twilight-gateway`
 //!
@@ -110,7 +106,7 @@
 //! use std::{env, error::Error};
 //! use tokio::stream::StreamExt;
 //! use twilight::{
-//!     cache::twilight_cache_inmemory::{EventType, InMemoryCache},
+//!     cache_inmemory::{EventType, InMemoryCache},
 //!     gateway::{cluster::{Cluster, ShardScheme}, Event},
 //!     http::Client as HttpClient,
 //!     model::gateway::GatewayIntents,
@@ -156,27 +152,28 @@
 //!
 //!     let mut events = cluster.events();
 //!     // Startup an event loop for each event in the event stream
-//!     while let Some(event) = events.next().await {
+//!     while let Some((shard_id, event)) = events.next().await {
 //!         // Update the cache
-//!         cache.update(&event.1).await.expect("Cache failed, OhNoe");
+//!         cache.update(&event);
 //!
 //!         // Spawn a new task to handle the event
-//!         tokio::spawn(handle_event(event, http.clone()));
+//!         tokio::spawn(handle_event(shard_id, event, http.clone()));
 //!     }
 //!
 //!     Ok(())
 //! }
 //!
 //! async fn handle_event(
-//!     event: (u64, Event),
+//!     shard_id: u64,
+//!     event: Event,
 //!     http: HttpClient,
 //! ) -> Result<(), Box<dyn Error + Send + Sync>> {
 //!     match event {
-//!         (_, Event::MessageCreate(msg)) if msg.content == "!ping" => {
+//!         Event::MessageCreate(msg) if msg.content == "!ping" => {
 //!             http.create_message(msg.channel_id).content("Pong!")?.await?;
 //!         }
-//!         (id, Event::ShardConnected(_)) => {
-//!             println!("Connected on shard {}", id);
+//!         Event::ShardConnected(_) => {
+//!             println!("Connected on shard {}", shard_id);
 //!         }
 //!         _ => {}
 //!     }
@@ -215,8 +212,8 @@
 //! [`twilight-mention`]: https://github.com/twilight-rs/twilight/tree/trunk/utils/mention
 //! [`tracing-log`]: https://github.com/tokio-rs/tracing/tree/master/tracing-log
 
-#[cfg(feature = "cache")]
-pub extern crate twilight_cache as cache;
+#[cfg(feature = "cache-inmemory")]
+pub extern crate twilight_cache_inmemory as cache_inmemory;
 
 #[cfg(feature = "command-parser")]
 pub extern crate twilight_command_parser as command_parser;
