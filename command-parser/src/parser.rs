@@ -128,7 +128,7 @@ impl<'a> Parser<'a> {
     ///
     /// let parser = Parser::new(config);
     ///
-    /// let prefix_fn = |buf: &str| if buf.starts_with("=") { Some(1) } else { None };
+    /// let prefix_fn = |buf: &str| if buf.starts_with('=') { Some(1) } else { None };
     ///
     /// let command = parser.parse_dynamic_prefix("=echo foo", prefix_fn);
     /// assert!(command.is_some());
@@ -302,7 +302,7 @@ mod tests {
     #[test]
     fn test_dynamic_prefix() {
         let parser = simple_config();
-        let prefix_fn = |buf: &str| if buf.starts_with("=") { Some(1) } else { None };
+        let prefix_fn = |buf: &str| if buf.starts_with('=') { Some(1) } else { None };
 
         let command = parser.parse_dynamic_prefix("=echo foo", prefix_fn);
         assert!(command.is_some());
