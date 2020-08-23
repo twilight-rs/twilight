@@ -1,7 +1,4 @@
-use crate::{
-    guild::permissions::{self, Permissions},
-    id::RoleId,
-};
+use crate::{guild::Permissions, id::RoleId};
 use serde::{
     de::{DeserializeSeed, Deserializer, SeqAccess, Visitor},
     Deserialize, Serialize,
@@ -20,8 +17,6 @@ pub struct Role {
     pub managed: bool,
     pub mentionable: bool,
     pub name: String,
-    #[serde(rename = "permissions", serialize_with = "permissions::serialize_u64")]
-    pub permissions_old: Permissions,
     #[serde(rename = "permissions_new")]
     pub permissions: Permissions,
     pub position: i64,
@@ -85,7 +80,6 @@ mod tests {
             managed: false,
             mentionable: true,
             name: "test".to_owned(),
-            permissions_old: Permissions::ADMINISTRATOR,
             permissions: Permissions::ADMINISTRATOR,
             position: 12,
         };
@@ -95,7 +89,7 @@ mod tests {
             &[
                 Token::Struct {
                     name: "Role",
-                    len: 9,
+                    len: 8,
                 },
                 Token::Str("color"),
                 Token::U32(0),
@@ -110,8 +104,6 @@ mod tests {
                 Token::Bool(true),
                 Token::Str("name"),
                 Token::Str("test"),
-                Token::Str("permissions"),
-                Token::U64(8),
                 Token::Str("permissions_new"),
                 Token::Str("8"),
                 Token::Str("position"),

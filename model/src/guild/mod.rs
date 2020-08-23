@@ -12,7 +12,7 @@ mod integration_expire_behavior;
 mod mfa_level;
 mod partial_guild;
 mod partial_member;
-pub(crate) mod permissions;
+mod permissions;
 mod premium_tier;
 mod preview;
 mod prune;
