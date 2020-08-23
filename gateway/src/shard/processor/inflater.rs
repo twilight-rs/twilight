@@ -92,7 +92,6 @@ impl Inflater {
 
         let saved_kib = (self.decompress.total_out() - self.decompress.total_in()) / 1_024;
 
-        #[allow(clippy::cast_precision_loss)]
         tracing::trace!(
             saved_kib = saved_kib,
             saved_percentage = %saved_percentage_readable,
