@@ -7,9 +7,15 @@ use futures_util::{sink::SinkExt, stream::StreamExt};
 use std::{fmt::Debug, future::Future, pin::Pin, time::Duration};
 use tokio::time::delay_for;
 
-/// Large bot queue is for bots that are marked as very large by Discord.
+/// Queue built for single-process clusters that require identifying via
+/// [Sharding for Very Large Bots].
 ///
-/// Usage with other bots will end up getting a large amount of failed identifies.
+/// Usage with other processes will cause inconsistencies between each process
+/// cluster's ratelimit buckets. If you use multiple processes for clusters,
+/// then refer to the [module-level] documentation.
+///
+/// [Sharding for Very Large Bots]: https://discord.com/developers/docs/topics/gateway#sharding-for-very-large-bots
+/// [module-level]: ./index.html
 #[derive(Debug)]
 pub struct LargeBotQueue {
     buckets: Vec<UnboundedSender<Sender<()>>>,
@@ -17,7 +23,10 @@ pub struct LargeBotQueue {
 }
 
 impl LargeBotQueue {
-    /// Creates a new large bot queue
+    /// Creates a new large bot queue.
+    ///
+    /// You must provide the number of buckets Discord requires your bot to
+    /// connect with.
     pub async fn new(buckets: usize, http: &twilight_http::Client) -> Self {
         let mut queues = Vec::with_capacity(buckets);
         for _ in 0..buckets {

@@ -70,7 +70,7 @@ impl Error for CommandError {
     }
 }
 
-/// The Shard's session is inactive.
+/// Shard's session is inactive.
 ///
 /// This means that the shard has not yet been started.
 #[derive(Clone, Debug, Eq, PartialEq)]
@@ -152,12 +152,12 @@ pub struct Information {
 }
 
 impl Information {
-    /// Returns the ID of the shard.
+    /// Return the ID of the shard.
     pub fn id(&self) -> u64 {
         self.id
     }
 
-    /// Returns the latency information for the shard.
+    /// Return an immutable reference to the latency information for the shard.
     ///
     /// This includes the average latency over all time, and the latency
     /// information for the 5 most recent heartbeats.
@@ -165,7 +165,7 @@ impl Information {
         &self.latency
     }
 
-    /// The current sequence of the connection.
+    /// Current sequence of the connection.
     ///
     /// This is the number of the event that was received this session (without
     /// reconnecting). A larger number typically correlates that the shard has
@@ -176,20 +176,21 @@ impl Information {
         self.seq
     }
 
-    /// The current stage of the shard.
+    /// Current stage of the shard.
     ///
-    /// For example, once a shard is fully booted then it will be
-    /// [`Connected`].
+    /// For example, once a shard is fully booted then it will be [`Connected`].
     ///
     /// [`Connected`]: stage/enum.Stage.html#variant.Connected
     pub fn stage(&self) -> Stage {
         self.stage
     }
 }
-/// Holds the sessions id and sequence number to resume this shard's session with with
+/// Details to resume a gateway session.
 #[derive(Clone, Debug)]
 pub struct ResumeSession {
+    /// ID of the session being resumed.
     pub session_id: String,
+    /// Last received event sequence number.
     pub sequence: u64,
 }
 
@@ -201,18 +202,68 @@ struct ShardRef {
     session: OnceCell<WatchReceiver<Arc<Session>>>,
 }
 
+/// Shard to run and manage a session with the gateway.
+///
+/// Shards are responsible for handling incoming events, process events relevant
+/// to the operation of shards - such as requests from the gateway to re-connect
+/// or invalidate a session - and then pass the events on to the user via an
+/// [event stream][`events`].
+///
+/// Shards will [go through a queue][`queue`] to initialize new ratelimited
+/// sessions with the ratelimit. Refer to Discord's [documentation][docs:shards]
+/// on shards to have a better understanding of what they are.
+///
+/// # Examples
+///
+/// Create and start a shard and print new and deleted messages:
+///
+/// ```no_run
+/// use futures::stream::StreamExt;
+/// use std::env;
+/// use twilight_gateway::{EventTypeFlags, Event, Shard};
+///
+/// # #[tokio::main] async fn main() -> Result<(), Box<dyn std::error::Error>> {
+/// // Use the value of the "DISCORD_TOKEN" environment variable as the bot's
+/// // token. Of course, you may pass this into your program however you want.
+/// let token = env::var("DISCORD_TOKEN")?;
+/// let mut shard = Shard::new(token);
+///
+/// // Start the shard.
+/// shard.start().await?;
+///
+/// // Create a loop of only new message and deleted message events.
+/// let event_types = EventTypeFlags::MESSAGE_CREATE | EventTypeFlags::MESSAGE_DELETE;
+/// let mut events = shard.some_events(event_types);
+///
+/// while let Some(event) = events.next().await {
+///     match event {
+///         Event::MessageCreate(message) => {
+///             println!("message received with content: {}", message.content);
+///         },
+///         Event::MessageDelete(message) => {
+///             println!("message with ID {} deleted", message.id);
+///         },
+///         _ => {},
+///     }
+/// }
+/// # Ok(()) }
+/// ```
+///
+/// [`events`]: #method.events
+/// [`queue`]: ../queue/index.html
+/// [docs:shards]: https://discord.com/developers/docs/topics/gateway#sharding
 #[derive(Clone, Debug)]
 pub struct Shard(Arc<ShardRef>);
 
 impl Shard {
-    /// Creates a new unconfingured shard.
+    /// Create a new unconfingured shard.
     ///
     /// Use [`start`] to initiate the gateway session.
     ///
     /// # Examples
     ///
-    /// Create a new shard, wait a second, and then print its current connection
-    /// stage:
+    /// Create a new shard and start it, wait a second, and then print its
+    /// current connection stage:
     ///
     /// ```no_run
     /// use twilight_gateway::Shard;
@@ -221,7 +272,9 @@ impl Shard {
     ///
     /// # #[tokio::main]
     /// # async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
-    /// let mut shard = Shard::new(env::var("DISCORD_TOKEN")?);
+    /// let token = env::var("DISCORD_TOKEN")?;
+    ///
+    /// let mut shard = Shard::new(token);
     /// shard.start().await?;
     ///
     /// tokio_time::delay_for(Duration::from_secs(1)).await;
@@ -248,11 +301,13 @@ impl Shard {
     }
 
     /// Create a builder to configure and construct a shard.
+    ///
+    /// Refer to the builder for more information.
     pub fn builder(token: impl Into<String>) -> ShardBuilder {
         ShardBuilder::new(token)
     }
 
-    /// Returns an immutable reference to the configuration used for this client.
+    /// Return an immutable reference to the configuration used for this client.
     pub fn config(&self) -> &Config {
         &self.0.config
     }
@@ -298,22 +353,22 @@ impl Shard {
             tracing::debug!("shard processor future ended");
         });
 
-        // We know that these haven't been set, so we can ignore this.
+        // We know that these haven't been set, so we can ignore the result.
         let _ = self.0.processor_handle.set(handle);
         let _ = self.0.session.set(wrx);
 
         Ok(())
     }
 
-    /// Creates a new stream of events from the shard.
+    /// Create a new stream of events from the shard.
     ///
     /// There can be multiple streams of events. All events will be broadcast to
     /// all streams of events.
     ///
     /// The returned event stream implements [`futures::stream::Stream`].
     ///
-    /// All event types except for [`EventType::ShardPayload`] are enabled.
-    /// If you need to enable it, consider calling [`some_events`] instead.
+    /// All event types except for [`EventType::ShardPayload`] are enabled. If
+    /// you need to enable it, consider calling [`some_events`] instead.
     ///
     /// [`EventType::ShardPayload`]: ../../twilight_model/gateway/event/enum.EventType.html#variant.ShardPayload
     /// [`futures::stream::Stream`]: https://docs.rs/futures/*/futures/stream/trait.Stream.html
@@ -322,7 +377,7 @@ impl Shard {
         self.some_events(EventTypeFlags::default())
     }
 
-    /// Creates a new filtered stream of events from the shard.
+    /// Create a new filtered stream of events from the shard.
     ///
     /// Only the events specified in the bitflags will be sent over the stream.
     ///
@@ -366,7 +421,7 @@ impl Shard {
         Events::new(event_types, rx)
     }
 
-    /// Returns information about the running of the shard, such as the current
+    /// Retrieve information about the running of the shard, such as the current
     /// connection stage.
     ///
     /// # Errors
@@ -404,14 +459,13 @@ impl Shard {
         Ok(Arc::clone(&session.borrow()))
     }
 
-    /// Returns an interface implementing the `Sink` trait which can be used to
+    /// Retrieve an interface implementing the `Sink` trait which can be used to
     /// send messages.
     ///
-    /// # Note
-    ///
-    /// This call should not be cached for too long
-    /// as it will be invalidated by reconnects and
-    /// resumes.
+    /// This sink is only valid for the current websocket connection. If the
+    /// shard's session is invalidated, or network connectivity is lost, or
+    /// anything else happens that causes a need to create a new connection,
+    /// then the sink will be invalidated.
     ///
     /// # Errors
     ///
@@ -457,9 +511,11 @@ impl Shard {
             .map_err(|source| CommandError::Sending { source })
     }
 
-    /// Shuts down the shard.
+    /// Shut down the shard.
     ///
-    /// This will cleanly close the connection, causing discord to end the session and show the bot offline
+    /// The shard will cleanly close the connection by sending a normal close
+    /// code, causing Discord to show the bot as being offline. The session will
+    /// not be resumable.
     pub fn shutdown(&self) {
         self.0.listeners.remove_all();
 
@@ -477,7 +533,14 @@ impl Shard {
         }
     }
 
-    /// This will shut down the shard in a resumable way and return shard id and optional session info to resume with later if this shard is resumable
+    /// Shut down the shard in a resumable fashion.
+    ///
+    /// The shard will cleanly close the connection by sending a restart close
+    /// code, causing Discord to keep the bot as showing online. The connection
+    /// will be resumable by using the provided session resume information
+    /// to [`ClusterBuilder::resume_sessions`].
+    ///
+    /// [`ClusterBuilder::resume_sessions`]: ../cluster/struct.ClusterBuilder.html#method.resume_sessions
     pub fn shutdown_resumable(&self) -> (u64, Option<ResumeSession>) {
         self.0.listeners.remove_all();
 

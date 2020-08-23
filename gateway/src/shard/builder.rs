@@ -69,9 +69,31 @@ impl Error for ShardIdError {}
 
 /// Builder to configure and construct a shard.
 ///
-/// Use [`ShardBuilder::new`] to start creating a shard.
+/// Use [`ShardBuilder::new`] to start configuring a new [`Shard`].
+///
+/// # Examples
+///
+/// Create a new shard, setting the [`large_threshold`] to 100 and the
+/// [`shard`] ID to 5 out of 10:
+///
+/// ```rust,no_run
+/// use std::env;
+/// use twilight_gateway::Shard;
+///
+/// # fn main() -> Result<(), Box<dyn std::error::Error>> {
+/// let token = env::var("DISCORD_TOKEN")?;
+///
+/// let shard = Shard::builder(token)
+///     .large_threshold(100)?
+///     .shard(5, 10)?
+///     .build();
+/// # Ok(()) }
+/// ```
 ///
 /// [`ShardBuilder::new`]: #method.new
+/// [`Shard`]: struct.Shard.html
+/// [`large_threshold`]: #method.large_threshold
+/// [`shard`]: #method.shard
 #[derive(Clone, Debug)]
 pub struct ShardBuilder(pub(crate) Config);
 
@@ -106,28 +128,35 @@ impl ShardBuilder {
         Shard::new_with_config(self.0)
     }
 
-    /// The HTTP client to be used by the shard for getting gateway information.
+    /// Set the HTTP client to be used by the shard for getting gateway
+    /// information.
+    ///
+    /// Default is a new, unconfigured instance of an HTTP client.
     pub fn http_client(mut self, http_client: HttpClient) -> Self {
         self.0.http_client = http_client;
 
         self
     }
 
-    /// Sets the gateway intents.
+    /// Set the gateway intents.
+    ///
+    /// Default is Discord's default.
     pub fn intents(mut self, intents: Option<GatewayIntents>) -> Self {
         self.0.intents = intents;
 
         self
     }
 
-    /// The maximum number of members in a guild to load the member list.
+    /// Set the maximum number of members in a guild to load the member list.
+    ///
+    /// Default value is `250`. The minimum value is `50` and the maximum is
+    /// `250`.
+    ///
+    /// # Examples
     ///
     /// If you pass `200`, then if there are 250 members in a guild the member
-    /// list won't be sent. If there are 150 members, then the list **will** be
+    /// list won't be sent. If there are 150 members, then the list *will* be
     /// sent.
-    ///
-    /// The default value is `250`. The minimum value is `50` and the maximum is
-    /// `250`.
     ///
     /// # Errors
     ///
@@ -159,33 +188,34 @@ impl ShardBuilder {
         Ok(self)
     }
 
-    /// Sets the presence to use automatically when starting a new session.
+    /// Set the presence to use automatically when starting a new session.
     ///
-    /// The default is none, which defaults to strictly being "online" with no
-    /// special qualities.
+    /// Default is no presence, which defaults to strictly being "online"
+    /// with no special qualities.
     pub fn presence(mut self, presence: UpdateStatusInfo) -> Self {
         self.0.presence.replace(presence);
 
         self
     }
 
-    /// Sets the queue to use for queueing shard connections.
+    /// Set the queue to use for queueing shard connections.
     ///
     /// You probably don't need to set this yourself, because the [`Cluster`]
-    /// manages that for you. You only need to set this if you're implementing
-    /// your only cluster-like support.
+    /// manages that for you. Refer to the [`queue`] module for more
+    /// information.
     ///
     /// The default value is a queue used only by this shard, or a queue used by
     /// all shards when ran by a [`Cluster`].
     ///
-    /// [`Cluster`]: ../../cluster/struct.Cluster.html
+    /// [`Cluster`]: ../cluster/struct.Cluster.html
+    /// [`queue`]: ../queue/index.html
     pub fn queue(mut self, queue: Arc<Box<dyn Queue>>) -> Self {
         self.0.queue = queue;
 
         self
     }
 
-    /// Sets the shard ID to connect as, and the total number of shards used by
+    /// Set the shard ID to connect as, and the total number of shards used by
     /// the bot.
     ///
     /// The shard ID is 0-indexed, while the total is 1-indexed.
@@ -193,11 +223,11 @@ impl ShardBuilder {
     /// The default value is a shard ID of 0 and a shard total of 1, which is
     /// good for smaller bots.
     ///
-    /// **Note**: If your bot is in over 100'000 guilds then `shard_total`
+    /// **Note**: If your bot is in over 250'000 guilds then `shard_total`
     /// *should probably* be a multiple of 16 if you're in the "Large Bot
     /// Sharding" program.
     ///
-    /// # Errors
+    /// # Examples
     ///
     /// If you have 19 shards, then your last shard will have an ID of 18 out of
     /// a total of 19 shards:

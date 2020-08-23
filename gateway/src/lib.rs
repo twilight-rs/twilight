@@ -96,9 +96,11 @@
     clippy::all,
     clippy::pedantic,
     future_incompatible,
+    missing_docs,
     nonstandard_style,
     rust_2018_idioms,
-    unsafe_code
+    unused,
+    warnings
 )]
 #![allow(clippy::module_name_repetitions, clippy::must_use_candidate)]
 
