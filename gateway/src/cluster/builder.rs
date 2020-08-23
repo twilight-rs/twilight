@@ -293,7 +293,7 @@ impl ClusterBuilder {
         self
     }
 
-    /// Set the session information to resume shards with
+    /// Set the session information to resume shards with.
     ///
     /// This requires having recovered the resume data when shutting down the
     /// cluster via [`Cluster::down_resumable`].

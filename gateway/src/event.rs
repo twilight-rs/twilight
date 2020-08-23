@@ -12,7 +12,7 @@ bitflags! {
         const CHANNEL_CREATE = 1 << 2;
         /// Channel has been deleted.
         const CHANNEL_DELETE = 1 << 3;
-        /// Channel's pins has been updated.
+        /// Channel's pins have been updated.
         const CHANNEL_PINS_UPDATE = 1 << 4;
         /// Channel has been updated.
         const CHANNEL_UPDATE = 1 << 5;
@@ -24,8 +24,8 @@ bitflags! {
         const GATEWAY_HELLO = 1 << 8;
         /// Shard's session has been invalidated.
         ///
-        /// A payload containing a boolean is included. If`true` the session is
-        /// resumeable. If not, then the shard must initialize a new session.
+        /// A payload containing a boolean is included. If `true` the session is
+        /// resumable. If not, then the shard must initialize a new session.
         const GATEWAY_INVALIDATE_SESSION = 1 << 8;
         /// Gateway is indicating that a shard should perform a reconnect.
         const GATEWAY_RECONNECT = 1 << 9;

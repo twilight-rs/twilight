@@ -23,7 +23,7 @@ pub struct LargeBotQueue {
 }
 
 impl LargeBotQueue {
-    /// Creates a new large bot queue.
+    /// Create a new large bot queue.
     ///
     /// You must provide the number of buckets Discord requires your bot to
     /// connect with.
