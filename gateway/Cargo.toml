@@ -13,7 +13,6 @@ repository = "https://github.com/twilight-rs/twilight.git"
 version = "0.1.0"
 
 [dependencies]
-async-trait = { default-features = false, version = "0.1" }
 async-tungstenite = { default-features = false, features = ["tokio-runtime"], version = "0.8" }
 bitflags = { default-features = false, version = "1" }
 twilight-http = { default-features = false, path = "../http" }

@@ -1,11 +1,10 @@
 use super::{DayLimiter, Queue};
-use async_trait::async_trait;
 use futures_channel::{
     mpsc::{unbounded, UnboundedReceiver, UnboundedSender},
     oneshot::{self, Sender},
 };
 use futures_util::{sink::SinkExt, stream::StreamExt};
-use std::{fmt::Debug, time::Duration};
+use std::{fmt::Debug, future::Future, pin::Pin, time::Duration};
 use tokio::time::delay_for;
 
 /// Large bot queue is for bots that are marked as very large by Discord.
@@ -65,24 +64,25 @@ async fn waiter(mut rx: UnboundedReceiver<Sender<()>>) {
     }
 }
 
-#[async_trait]
 impl Queue for LargeBotQueue {
     /// Request to be able to identify with the gateway. This will place this
     /// request behind all other requests, and the returned future will resolve
     /// once the request has been completed.
-    async fn request(&self, shard_id: [u64; 2]) {
+    fn request(&'_ self, shard_id: [u64; 2]) -> Pin<Box<dyn Future<Output = ()> + Send + '_>> {
         #[allow(clippy::cast_possible_truncation)]
         let bucket = (shard_id[0] % (self.buckets.len() as u64)) as usize;
         let (tx, rx) = oneshot::channel();
 
-        self.limiter.get().await;
-        if let Err(err) = self.buckets[bucket].clone().send(tx).await {
-            tracing::warn!("skipping, send failed with: {:?}", err);
-            return;
-        }
+        Box::pin(async move {
+            self.limiter.get().await;
+            if let Err(err) = self.buckets[bucket].clone().send(tx).await {
+                tracing::warn!("skipping, send failed with: {:?}", err);
+                return;
+            }
 
-        tracing::info!("waiting for allowance on shard {}", shard_id[0]);
+            tracing::info!("waiting for allowance on shard {}", shard_id[0]);
 
-        let _ = rx.await;
+            let _ = rx.await;
+        })
     }
 }
