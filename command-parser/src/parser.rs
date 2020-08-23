@@ -112,6 +112,55 @@ impl<'a> Parser<'a> {
         })
     }
 
+    /// Parses a command out of a buffer.
+    ///
+    /// Instead of using the list of set prefixes can you here define a
+    /// function that returns the index at which the prefix ends if it
+    /// matches, or return none if there is no prefix that matches.
+    ///
+    /// # Example
+    ///
+    /// ```rust
+    /// # use twilight_command_parser::{Command, CommandParserConfig, Parser};
+    /// let mut config = CommandParserConfig::new();
+    /// config.add_prefix("!");
+    /// config.add_command("echo", false);
+    ///
+    /// let parser = Parser::new(config);
+    ///
+    /// let prefix_fn = |buf: &str| if buf.starts_with("=") { Some(1) } else { None };
+    ///
+    /// let command = parser.parse_dynamic_prefix("=echo foo", prefix_fn);
+    /// assert!(command.is_some());
+    /// let command = command.unwrap();
+    /// assert_eq!("=", command.prefix);
+    /// assert_eq!("echo", command.name);
+    /// ```
+    ///
+    /// [`Command`]: struct.Command.html
+    pub fn parse_dynamic_prefix(
+        &'a self,
+        buf: &'a str,
+        prefix_fn: impl FnOnce(&'a str) -> Option<usize>,
+    ) -> Option<Command<'a>> {
+        if let Some(mut idx) = prefix_fn(buf) {
+            let prefix = buf.get(0..idx)?;
+
+            let command_buf = buf.get((idx as usize)..)?;
+            let command = self.find_command(command_buf)?;
+
+            idx += command.len();
+
+            Some(Command {
+                arguments: Arguments::new(buf.get(idx..)?),
+                name: command,
+                prefix,
+            })
+        } else {
+            None
+        }
+    }
+
     fn find_command(&'a self, buf: &'a str) -> Option<&'a str> {
         let buf = buf.split_whitespace().next()?;
         self.config.commands().iter().find_map(|command| {
@@ -248,5 +297,17 @@ mod tests {
         parser.config_mut().add_prefix("\u{1f44d}"); // thumbs up unicode
 
         assert!(parser.parse("\u{1f44d}echo foo").is_some());
+    }
+
+    #[test]
+    fn test_dynamic_prefix() {
+        let parser = simple_config();
+        let prefix_fn = |buf: &str| if buf.starts_with("=") { Some(1) } else { None };
+
+        let command = parser.parse_dynamic_prefix("=echo foo", prefix_fn);
+        assert!(command.is_some());
+        let command = command.unwrap();
+        assert_eq!("=", command.prefix);
+        assert_eq!("echo", command.name);
     }
 }
