@@ -3,19 +3,17 @@ mod large_bot_queue;
 
 pub use large_bot_queue::LargeBotQueue;
 
-use async_trait::async_trait;
 use day_limiter::DayLimiter;
 use futures_channel::{
     mpsc::{unbounded, UnboundedReceiver, UnboundedSender},
     oneshot::{self, Sender},
 };
 use futures_util::{sink::SinkExt, stream::StreamExt};
-use std::{fmt::Debug, time::Duration};
+use std::{fmt::Debug, future::Future, pin::Pin, time::Duration};
 use tokio::time::delay_for;
 
-#[async_trait]
 pub trait Queue: Debug + Send + Sync {
-    async fn request(&self, shard_id: [u64; 2]);
+    fn request<'a>(&'a self, shard_id: [u64; 2]) -> Pin<Box<dyn Future<Output = ()> + Send + 'a>>;
 }
 
 /// A local, in-process implementation of a [`Queue`] which manages the
@@ -77,21 +75,22 @@ async fn waiter(mut rx: UnboundedReceiver<Sender<()>>) {
     }
 }
 
-#[async_trait]
 impl Queue for LocalQueue {
     /// Request to be able to identify with the gateway. This will place this
     /// request behind all other requests, and the returned future will resolve
     /// once the request has been completed.
-    async fn request(&self, [id, total]: [u64; 2]) {
-        let (tx, rx) = oneshot::channel();
+    fn request(&'_ self, [id, total]: [u64; 2]) -> Pin<Box<dyn Future<Output = ()> + Send + '_>> {
+        Box::pin(async move {
+            let (tx, rx) = oneshot::channel();
 
-        if let Err(err) = self.0.clone().send(tx).await {
-            tracing::warn!("skipping, send failed: {:?}", err);
-            return;
-        }
+            if let Err(err) = self.0.clone().send(tx).await {
+                tracing::warn!("skipping, send failed: {:?}", err);
+                return;
+            }
 
-        tracing::info!("shard {}/{} waiting for allowance", id, total);
+            tracing::info!("shard {}/{} waiting for allowance", id, total);
 
-        let _ = rx.await;
+            let _ = rx.await;
+        })
     }
 }
