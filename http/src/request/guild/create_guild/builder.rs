@@ -609,9 +609,7 @@ mod tests {
 
     fn overwrite() -> PermissionOverwrite {
         PermissionOverwrite {
-            allow_old: Permissions::empty(),
             allow: perms(),
-            deny_old: Permissions::empty(),
             deny: Permissions::empty(),
             kind: PermissionOverwriteType::Role(RoleId(2)),
         }
@@ -677,9 +675,7 @@ mod tests {
                 kind: ChannelType::GuildVoice,
                 name: String::from("voicename"),
                 permission_overwrites: Some(vec![PermissionOverwrite {
-                    allow_old: Permissions::empty(),
                     allow: perms(),
-                    deny_old: Permissions::empty(),
                     deny: Permissions::empty(),
                     kind: PermissionOverwriteType::Role(RoleId(2)),
                 }]),
@@ -719,9 +715,7 @@ mod tests {
                 name: String::from("textname"),
                 nsfw: Some(true),
                 permission_overwrites: Some(vec![PermissionOverwrite {
-                    allow_old: Permissions::empty(),
                     allow: perms(),
-                    deny_old: Permissions::empty(),
                     deny: Permissions::empty(),
                     kind: PermissionOverwriteType::Role(RoleId(2)),
                 }]),
@@ -766,11 +760,9 @@ mod tests {
                     name: String::from("textname"),
                     nsfw: Some(true),
                     permission_overwrites: Some(vec![PermissionOverwrite {
-                        allow_old: Permissions::empty(),
                         allow: Permissions::CONNECT
                             | Permissions::SPEAK
                             | Permissions::SEND_TTS_MESSAGES,
-                        deny_old: Permissions::empty(),
                         deny: Permissions::empty(),
                         kind: PermissionOverwriteType::Role(RoleId(2)),
                     }]),
@@ -784,11 +776,9 @@ mod tests {
                     kind: ChannelType::GuildVoice,
                     name: String::from("voicename"),
                     permission_overwrites: Some(vec![PermissionOverwrite {
-                        allow_old: Permissions::empty(),
                         allow: Permissions::CONNECT
                             | Permissions::SPEAK
                             | Permissions::SEND_TTS_MESSAGES,
-                        deny_old: Permissions::empty(),
                         deny: Permissions::empty(),
                         kind: PermissionOverwriteType::Role(RoleId(2)),
                     }]),
@@ -814,11 +804,9 @@ mod tests {
                     name: String::from("textname"),
                     nsfw: Some(true),
                     permission_overwrites: Some(vec![PermissionOverwrite {
-                        allow_old: Permissions::empty(),
                         allow: Permissions::CONNECT
                             | Permissions::SPEAK
                             | Permissions::SEND_TTS_MESSAGES,
-                        deny_old: Permissions::empty(),
                         deny: Permissions::empty(),
                         kind: PermissionOverwriteType::Role(RoleId(2)),
                     }]),
@@ -832,11 +820,9 @@ mod tests {
                     kind: ChannelType::GuildVoice,
                     name: String::from("voicename"),
                     permission_overwrites: Some(vec![PermissionOverwrite {
-                        allow_old: Permissions::empty(),
                         allow: Permissions::CONNECT
                             | Permissions::SPEAK
                             | Permissions::SEND_TTS_MESSAGES,
-                        deny_old: Permissions::empty(),
                         deny: Permissions::empty(),
                         kind: PermissionOverwriteType::Role(RoleId(2)),
                     }]),
