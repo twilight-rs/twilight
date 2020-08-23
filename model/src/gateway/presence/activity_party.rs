@@ -5,3 +5,37 @@ pub struct ActivityParty {
     pub id: Option<String>,
     pub size: Option<[u64; 2]>,
 }
+
+#[cfg(test)]
+mod tests {
+    use super::ActivityParty;
+    use serde_test::Token;
+
+    #[test]
+    fn test_activity_secrets() {
+        let value = ActivityParty {
+            id: Some("party id".to_owned()),
+            size: Some([2, 6]),
+        };
+
+        serde_test::assert_tokens(
+            &value,
+            &[
+                Token::Struct {
+                    name: "ActivityParty",
+                    len: 2,
+                },
+                Token::Str("id"),
+                Token::Some,
+                Token::Str("party id"),
+                Token::Str("size"),
+                Token::Some,
+                Token::Tuple { len: 2 },
+                Token::U64(2),
+                Token::U64(6),
+                Token::TupleEnd,
+                Token::StructEnd,
+            ],
+        );
+    }
+}

@@ -20,7 +20,7 @@ mod tests {
 
     #[test]
     fn test_connection_info() {
-        let info = BotConnectionInfo {
+        let value = BotConnectionInfo {
             session_start_limit: SessionStartLimit {
                 max_concurrency: 16,
                 remaining: 998,
@@ -32,7 +32,7 @@ mod tests {
         };
 
         serde_test::assert_tokens(
-            &info,
+            &value,
             &[
                 Token::Struct {
                     name: "BotConnectionInfo",

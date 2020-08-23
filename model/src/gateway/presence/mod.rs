@@ -134,7 +134,7 @@ mod tests {
             timestamps: None,
             url: None,
         };
-        let presence = Presence {
+        let value = Presence {
             activities: vec![activity.clone()],
             client_status: ClientStatus {
                 desktop: Some(Status::Online),
@@ -149,7 +149,7 @@ mod tests {
         };
 
         serde_test::assert_de_tokens(
-            &presence,
+            &value,
             &[
                 Token::Struct {
                     name: "Presence",

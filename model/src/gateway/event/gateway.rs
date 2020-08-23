@@ -767,10 +767,10 @@ mod tests {
             role_id: RoleId(2),
         };
         let dispatch = Box::new(DispatchEvent::RoleDelete(role_delete));
-        let event = GatewayEvent::Dispatch(2_048, dispatch);
+        let value = GatewayEvent::Dispatch(2_048, dispatch);
 
         serde_test::assert_ser_tokens(
-            &event,
+            &value,
             &[
                 Token::Struct {
                     name: "GatewayEvent",
@@ -876,10 +876,10 @@ mod tests {
 
     #[test]
     fn test_serialize_invalidate() {
-        let invalidate = GatewayEvent::InvalidateSession(true);
+        let value = GatewayEvent::InvalidateSession(true);
 
         serde_test::assert_ser_tokens(
-            &invalidate,
+            &value,
             &[
                 Token::Struct {
                     name: "GatewayEvent",

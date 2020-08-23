@@ -105,3 +105,233 @@ impl TryFrom<Event> for ShardEvent {
         })
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::{
+        Connected, Connecting, Disconnected, Event, Identifying, Payload, Reconnecting, Resuming,
+        ShardEvent,
+    };
+    use serde_test::Token;
+    use std::convert::TryInto;
+
+    #[test]
+    fn test_connected() {
+        let value = Connected {
+            heartbeat_interval: 41_250,
+            shard_id: 4,
+        };
+
+        serde_test::assert_tokens(
+            &value,
+            &[
+                Token::Struct {
+                    name: "Connected",
+                    len: 2,
+                },
+                Token::Str("heartbeat_interval"),
+                Token::U64(41_250),
+                Token::Str("shard_id"),
+                Token::U64(4),
+                Token::StructEnd,
+            ],
+        );
+    }
+
+    #[test]
+    fn test_connecting() {
+        let value = Connecting {
+            gateway: "https://example.com".to_owned(),
+            shard_id: 4,
+        };
+
+        serde_test::assert_tokens(
+            &value,
+            &[
+                Token::Struct {
+                    name: "Connecting",
+                    len: 2,
+                },
+                Token::Str("gateway"),
+                Token::Str("https://example.com"),
+                Token::Str("shard_id"),
+                Token::U64(4),
+                Token::StructEnd,
+            ],
+        );
+    }
+
+    #[test]
+    fn test_disconnected() {
+        let value = Disconnected {
+            code: Some(4_000),
+            reason: Some("the reason".to_owned()),
+            shard_id: 4,
+        };
+
+        serde_test::assert_tokens(
+            &value,
+            &[
+                Token::Struct {
+                    name: "Disconnected",
+                    len: 3,
+                },
+                Token::Str("code"),
+                Token::Some,
+                Token::U16(4_000),
+                Token::Str("reason"),
+                Token::Some,
+                Token::Str("the reason"),
+                Token::Str("shard_id"),
+                Token::U64(4),
+                Token::StructEnd,
+            ],
+        );
+    }
+
+    #[test]
+    fn test_identifying() {
+        let value = Identifying {
+            shard_id: 4,
+            shard_total: 7,
+        };
+
+        serde_test::assert_tokens(
+            &value,
+            &[
+                Token::Struct {
+                    name: "Identifying",
+                    len: 2,
+                },
+                Token::Str("shard_id"),
+                Token::U64(4),
+                Token::Str("shard_total"),
+                Token::U64(7),
+                Token::StructEnd,
+            ],
+        );
+    }
+
+    #[test]
+    fn test_payload() {
+        let value = Payload { bytes: vec![1, 2] };
+
+        serde_test::assert_tokens(
+            &value,
+            &[
+                Token::Struct {
+                    name: "Payload",
+                    len: 1,
+                },
+                Token::Str("bytes"),
+                Token::Seq { len: Some(2) },
+                Token::U8(1),
+                Token::U8(2),
+                Token::SeqEnd,
+                Token::StructEnd,
+            ],
+        );
+    }
+
+    #[test]
+    fn test_reconnecting() {
+        let value = Reconnecting { shard_id: 4 };
+
+        serde_test::assert_tokens(
+            &value,
+            &[
+                Token::Struct {
+                    name: "Reconnecting",
+                    len: 1,
+                },
+                Token::Str("shard_id"),
+                Token::U64(4),
+                Token::StructEnd,
+            ],
+        );
+    }
+
+    #[test]
+    fn test_resuming() {
+        let value = Resuming {
+            seq: 100,
+            shard_id: 4,
+        };
+
+        serde_test::assert_tokens(
+            &value,
+            &[
+                Token::Struct {
+                    name: "Resuming",
+                    len: 2,
+                },
+                Token::Str("seq"),
+                Token::U64(100),
+                Token::Str("shard_id"),
+                Token::U64(4),
+                Token::StructEnd,
+            ],
+        );
+    }
+
+    #[test]
+    fn test_shard_event_try_from_event() {
+        let connected = Event::ShardConnected(Connected {
+            heartbeat_interval: 41_250,
+            shard_id: 4,
+        });
+        assert!(matches!(
+            connected.try_into().unwrap(),
+            ShardEvent::Connected(_)
+        ));
+
+        let connecting = Event::ShardConnecting(Connecting {
+            gateway: "https://example.com".to_owned(),
+            shard_id: 4,
+        });
+        assert!(matches!(
+            connecting.try_into().unwrap(),
+            ShardEvent::Connecting(_)
+        ));
+
+        let disconnected = Event::ShardDisconnected(Disconnected {
+            code: Some(4_000),
+            reason: None,
+            shard_id: 4,
+        });
+        assert!(matches!(
+            disconnected.try_into().unwrap(),
+            ShardEvent::Disconnected(_)
+        ));
+
+        let identifying = Event::ShardIdentifying(Identifying {
+            shard_id: 4,
+            shard_total: 7,
+        });
+        assert!(matches!(
+            identifying.try_into().unwrap(),
+            ShardEvent::Identifying(_)
+        ));
+
+        let payload = Event::ShardPayload(Payload { bytes: vec![1, 2] });
+        assert!(matches!(
+            payload.try_into().unwrap(),
+            ShardEvent::Payload(_)
+        ));
+
+        let reconnecting = Event::ShardReconnecting(Reconnecting { shard_id: 4 });
+        assert!(matches!(
+            reconnecting.try_into().unwrap(),
+            ShardEvent::Reconnecting(_)
+        ));
+
+        let resuming = Event::ShardResuming(Resuming {
+            seq: 100,
+            shard_id: 4,
+        });
+        assert!(matches!(
+            resuming.try_into().unwrap(),
+            ShardEvent::Resuming(_)
+        ));
+    }
+}

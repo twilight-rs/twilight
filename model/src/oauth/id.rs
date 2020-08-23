@@ -18,3 +18,27 @@ impl Display for TeamId {
         Display::fmt(&self.0, f)
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::{SkuId, TeamId};
+    use serde_test::Token;
+
+    #[test]
+    fn test_id_deser() {
+        serde_test::assert_tokens(
+            &SkuId(114_941_315_417_899_012),
+            &[
+                Token::NewtypeStruct { name: "SkuId" },
+                Token::Str("114941315417899012"),
+            ],
+        );
+        serde_test::assert_tokens(
+            &TeamId(114_941_315_417_899_012),
+            &[
+                Token::NewtypeStruct { name: "TeamId" },
+                Token::Str("114941315417899012"),
+            ],
+        );
+    }
+}

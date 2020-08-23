@@ -38,3 +38,74 @@ impl Key<'_, UserId> for User {
         self.id
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::{PremiumType, User, UserFlags, UserId};
+    use serde_test::Token;
+
+    #[test]
+    fn test_user() {
+        let value = User {
+            avatar: Some("aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa".to_owned()),
+            bot: false,
+            discriminator: "0001".to_owned(),
+            email: Some("address@example.com".to_owned()),
+            flags: Some(UserFlags::EARLY_SUPPORTER | UserFlags::VERIFIED_BOT_DEVELOPER),
+            id: UserId(1),
+            locale: Some("en-us".to_owned()),
+            mfa_enabled: Some(true),
+            name: "test".to_owned(),
+            premium_type: Some(PremiumType::Nitro),
+            public_flags: Some(UserFlags::EARLY_SUPPORTER | UserFlags::VERIFIED_BOT_DEVELOPER),
+            system: None,
+            verified: Some(true),
+        };
+
+        serde_test::assert_tokens(
+            &value,
+            &[
+                Token::Struct {
+                    name: "User",
+                    len: 13,
+                },
+                Token::Str("avatar"),
+                Token::Some,
+                Token::Str("aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"),
+                Token::Str("bot"),
+                Token::Bool(false),
+                Token::Str("discriminator"),
+                Token::Str("0001"),
+                Token::Str("email"),
+                Token::Some,
+                Token::Str("address@example.com"),
+                Token::Str("flags"),
+                Token::Some,
+                Token::U64(131_584),
+                Token::Str("id"),
+                Token::NewtypeStruct { name: "UserId" },
+                Token::Str("1"),
+                Token::Str("locale"),
+                Token::Some,
+                Token::Str("en-us"),
+                Token::Str("mfa_enabled"),
+                Token::Some,
+                Token::Bool(true),
+                Token::Str("username"),
+                Token::Str("test"),
+                Token::Str("premium_type"),
+                Token::Some,
+                Token::U8(2),
+                Token::Str("public_flags"),
+                Token::Some,
+                Token::U64(131_584),
+                Token::Str("system"),
+                Token::None,
+                Token::Str("verified"),
+                Token::Some,
+                Token::Bool(true),
+                Token::StructEnd,
+            ],
+        );
+    }
+}

@@ -18,11 +18,11 @@ mod tests {
     #[test]
     fn test_partial_member() {
         let value = PartialMember {
-            deaf: true,
+            deaf: false,
             joined_at: Some("timestamp".to_owned()),
             mute: true,
             nick: Some("a nickname".to_owned()),
-            roles: vec![RoleId(1), RoleId(2)],
+            roles: vec![RoleId(1)],
         };
 
         serde_test::assert_tokens(
@@ -33,7 +33,7 @@ mod tests {
                     len: 5,
                 },
                 Token::Str("deaf"),
-                Token::Bool(true),
+                Token::Bool(false),
                 Token::Str("joined_at"),
                 Token::Some,
                 Token::Str("timestamp"),
@@ -43,11 +43,9 @@ mod tests {
                 Token::Some,
                 Token::Str("a nickname"),
                 Token::Str("roles"),
-                Token::Seq { len: Some(2) },
+                Token::Seq { len: Some(1) },
                 Token::NewtypeStruct { name: "RoleId" },
                 Token::Str("1"),
-                Token::NewtypeStruct { name: "RoleId" },
-                Token::Str("2"),
                 Token::SeqEnd,
                 Token::StructEnd,
             ],

@@ -619,7 +619,7 @@ mod tests {
             "unknown_field": "the deserializer should skip unknown field names",
         });
 
-        let expected = GuildChannel::Text(TextChannel {
+        let value = GuildChannel::Text(TextChannel {
             guild_id: Some(GuildId(1)),
             id: ChannelId(2),
             kind: ChannelType::GuildText,
@@ -634,12 +634,12 @@ mod tests {
             topic: Some("a".to_owned()),
         });
 
-        assert_eq!(expected, serde_json::from_value(input).unwrap());
+        assert_eq!(value, serde_json::from_value(input).unwrap());
     }
 
     #[test]
     fn test_guild_category_channel_deserialization() {
-        let expected = GuildChannel::Category(CategoryChannel {
+        let value = GuildChannel::Category(CategoryChannel {
             id: ChannelId(1),
             guild_id: Some(GuildId(2)),
             kind: ChannelType::GuildCategory,
@@ -650,7 +650,7 @@ mod tests {
         let permission_overwrites: Vec<PermissionOverwrite> = Vec::new();
 
         assert_eq!(
-            expected,
+            value,
             serde_json::from_value(serde_json::json!({
                 "id": "1",
                 "guild_id": Some("2"),
@@ -667,7 +667,7 @@ mod tests {
 
     #[test]
     fn test_guild_news_channel_deserialization() {
-        let expected = GuildChannel::Text(TextChannel {
+        let value = GuildChannel::Text(TextChannel {
             id: ChannelId(1),
             guild_id: Some(GuildId(2)),
             kind: ChannelType::GuildNews,
@@ -684,7 +684,7 @@ mod tests {
         let permission_overwrites: Vec<PermissionOverwrite> = Vec::new();
 
         assert_eq!(
-            expected,
+            value,
             serde_json::from_value(serde_json::json!({
                 "id": "1",
                 "guild_id": "2",
@@ -703,7 +703,7 @@ mod tests {
 
     #[test]
     fn test_guild_store_channel_deserialization() {
-        let expected = GuildChannel::Text(TextChannel {
+        let value = GuildChannel::Text(TextChannel {
             id: ChannelId(1),
             guild_id: Some(GuildId(2)),
             kind: ChannelType::GuildStore,
@@ -720,7 +720,7 @@ mod tests {
         let permission_overwrites: Vec<PermissionOverwrite> = Vec::new();
 
         assert_eq!(
-            expected,
+            value,
             serde_json::from_value(serde_json::json!({
                 "id": "1",
                 "guild_id": "2",
@@ -730,76 +730,6 @@ mod tests {
                 "position": 2,
                 "topic": "a store channel",
                 "type": ChannelType::GuildStore,
-            }))
-            .unwrap()
-        );
-    }
-
-    #[test]
-    fn test_guild_text_channel_deserialization() {
-        let expected = GuildChannel::Text(TextChannel {
-            id: ChannelId(1),
-            guild_id: Some(GuildId(2)),
-            kind: ChannelType::GuildText,
-            last_message_id: None,
-            last_pin_timestamp: None,
-            name: "foo".to_owned(),
-            nsfw: true,
-            permission_overwrites: Vec::new(),
-            parent_id: None,
-            position: 3,
-            rate_limit_per_user: Some(10),
-            topic: Some("a topic".to_owned()),
-        });
-        let permission_overwrites: Vec<PermissionOverwrite> = Vec::new();
-
-        assert_eq!(
-            expected,
-            serde_json::from_value(serde_json::json!({
-                "id": "1",
-                "guild_id": "2",
-                "last_message_id": None::<MessageId>,
-                "last_pin_timestamp": None::<MessageId>,
-                "name": "foo",
-                "nsfw": true,
-                "permission_overwrites": permission_overwrites,
-                "parent_id": None::<ChannelId>,
-                "position": 3,
-                "rate_limit_per_user": 10,
-                "topic": Some("a topic"),
-                "type": 0,
-            }))
-            .unwrap()
-        );
-    }
-
-    #[test]
-    fn test_guild_voice_channel_deserialization() {
-        let expected = GuildChannel::Voice(VoiceChannel {
-            id: ChannelId(1),
-            bitrate: 124_000,
-            guild_id: Some(GuildId(2)),
-            kind: ChannelType::GuildVoice,
-            name: "foo".to_owned(),
-            permission_overwrites: Vec::new(),
-            parent_id: None,
-            position: 3,
-            user_limit: Some(7),
-        });
-        let permission_overwrites: Vec<PermissionOverwrite> = Vec::new();
-
-        assert_eq!(
-            expected,
-            serde_json::from_value(serde_json::json!({
-                "id": "1",
-                "bitrate": 124_000,
-                "guild_id": "2",
-                "name": "foo",
-                "permission_overwrites": permission_overwrites,
-                "parent_id": None::<ChannelId>,
-                "position": 3,
-                "type": 2,
-                "user_limit": 7,
             }))
             .unwrap()
         );

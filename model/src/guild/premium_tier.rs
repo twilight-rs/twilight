@@ -16,3 +16,17 @@ impl Default for PremiumTier {
         Self::None
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::PremiumTier;
+    use serde_test::Token;
+
+    #[test]
+    fn test_variants() {
+        serde_test::assert_tokens(&PremiumTier::None, &[Token::U8(0)]);
+        serde_test::assert_tokens(&PremiumTier::Tier1, &[Token::U8(1)]);
+        serde_test::assert_tokens(&PremiumTier::Tier2, &[Token::U8(2)]);
+        serde_test::assert_tokens(&PremiumTier::Tier3, &[Token::U8(3)]);
+    }
+}

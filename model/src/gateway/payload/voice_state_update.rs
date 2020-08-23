@@ -17,7 +17,7 @@ mod tests {
     #[test]
     #[allow(clippy::too_many_lines)]
     fn test_voice_state_update() {
-        let update = VoiceStateUpdate(VoiceState {
+        let value = VoiceStateUpdate(VoiceState {
             channel_id: None,
             deaf: false,
             guild_id: Some(GuildId(1)),
@@ -57,7 +57,7 @@ mod tests {
         });
 
         serde_test::assert_tokens(
-            &update,
+            &value,
             &[
                 Token::NewtypeStruct {
                     name: "VoiceStateUpdate",
@@ -161,7 +161,7 @@ mod tests {
     #[test]
     #[allow(clippy::too_many_lines)]
     fn voice_state_update_deser_tokens() {
-        let expected = VoiceStateUpdate(VoiceState {
+        let value = VoiceStateUpdate(VoiceState {
             channel_id: None,
             deaf: false,
             guild_id: Some(GuildId(999_999)),
@@ -205,7 +205,7 @@ mod tests {
         // Lack of "guild_id" in real "member" means that de+ser does not
         // reproduce original input (assert only `de`).
         serde_test::assert_de_tokens(
-            &expected,
+            &value,
             &[
                 Token::NewtypeStruct {
                     name: "VoiceStateUpdate",

@@ -14,13 +14,13 @@ mod tests {
 
     #[test]
     fn test_guild_widget() {
-        let prune = GuildWidget {
+        let value = GuildWidget {
             channel_id: ChannelId(111_111_111_111_111_111),
             enabled: true,
         };
 
         serde_test::assert_tokens(
-            &prune,
+            &value,
             &[
                 Token::Struct {
                     name: "GuildWidget",

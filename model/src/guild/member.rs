@@ -179,71 +179,32 @@ impl<'de> DeserializeSeed<'de> for MemberMapDeserializer {
 
 #[cfg(test)]
 mod tests {
-    use super::{Member, MemberDeserializer};
+    use super::Member;
     use crate::{
-        id::{GuildId, UserId},
+        id::{GuildId, RoleId, UserId},
         user::User,
     };
-    use serde::de::DeserializeSeed;
-    use serde_value::Value;
-    use std::collections::BTreeMap;
+    use serde_test::Token;
 
     #[test]
     fn test_member_deserializer() {
-        let mut user = BTreeMap::new();
-        user.insert(
-            Value::String("discriminator".to_owned()),
-            Value::String("0001".to_owned()),
-        );
-        user.insert(
-            Value::String("id".to_owned()),
-            Value::String("2".to_owned()),
-        );
-        user.insert(
-            Value::String("username".to_owned()),
-            Value::String("twilight".to_owned()),
-        );
-
-        let mut map = BTreeMap::new();
-        map.insert(Value::String("deaf".to_owned()), Value::Bool(false));
-        map.insert(
-            Value::String("hoisted_role".to_owned()),
-            Value::Option(None),
-        );
-        map.insert(
-            Value::String("joined_at".to_owned()),
-            Value::String(String::new()),
-        );
-        map.insert(Value::String("mute".to_owned()), Value::Bool(true));
-        map.insert(
-            Value::String("nick".to_owned()),
-            Value::Option(Some(Box::new(Value::String("twilight".to_owned())))),
-        );
-        map.insert(
-            Value::String("premium_since".to_owned()),
-            Value::Option(None),
-        );
-        map.insert(Value::String("roles".to_owned()), Value::Seq(Vec::new()));
-        map.insert(Value::String("user".to_owned()), Value::Map(user));
-        let value = Value::Map(map);
-
-        let expected = Member {
+        let value = Member {
             deaf: false,
             guild_id: GuildId(1),
-            hoisted_role: None,
-            joined_at: Some(String::new()),
+            hoisted_role: Some(RoleId(2)),
+            joined_at: Some("timestamp".to_owned()),
             mute: true,
             nick: Some("twilight".to_owned()),
-            premium_since: None,
+            premium_since: Some("timestamp".to_owned()),
             roles: Vec::new(),
             user: User {
                 avatar: None,
                 bot: false,
                 discriminator: "0001".to_owned(),
-                locale: None,
                 email: None,
                 flags: None,
-                id: UserId(2),
+                id: UserId(3),
+                locale: None,
                 mfa_enabled: None,
                 name: "twilight".to_owned(),
                 premium_type: None,
@@ -253,8 +214,71 @@ mod tests {
             },
         };
 
-        let deserializer = MemberDeserializer::new(GuildId(1));
-
-        assert_eq!(expected, deserializer.deserialize(value).unwrap());
+        serde_test::assert_tokens(
+            &value,
+            &[
+                Token::Struct {
+                    name: "Member",
+                    len: 9,
+                },
+                Token::Str("deaf"),
+                Token::Bool(false),
+                Token::Str("guild_id"),
+                Token::NewtypeStruct { name: "GuildId" },
+                Token::Str("1"),
+                Token::Str("hoisted_role"),
+                Token::Some,
+                Token::NewtypeStruct { name: "RoleId" },
+                Token::Str("2"),
+                Token::Str("joined_at"),
+                Token::Some,
+                Token::Str("timestamp"),
+                Token::Str("mute"),
+                Token::Bool(true),
+                Token::Str("nick"),
+                Token::Some,
+                Token::Str("twilight"),
+                Token::Str("premium_since"),
+                Token::Some,
+                Token::Str("timestamp"),
+                Token::Str("roles"),
+                Token::Seq { len: Some(0) },
+                Token::SeqEnd,
+                Token::Str("user"),
+                Token::Struct {
+                    name: "User",
+                    len: 13,
+                },
+                Token::Str("avatar"),
+                Token::None,
+                Token::Str("bot"),
+                Token::Bool(false),
+                Token::Str("discriminator"),
+                Token::Str("0001"),
+                Token::Str("email"),
+                Token::None,
+                Token::Str("flags"),
+                Token::None,
+                Token::Str("id"),
+                Token::NewtypeStruct { name: "UserId" },
+                Token::Str("3"),
+                Token::Str("locale"),
+                Token::None,
+                Token::Str("mfa_enabled"),
+                Token::None,
+                Token::Str("username"),
+                Token::Str("twilight"),
+                Token::Str("premium_type"),
+                Token::None,
+                Token::Str("public_flags"),
+                Token::None,
+                Token::Str("system"),
+                Token::None,
+                Token::Str("verified"),
+                Token::None,
+                Token::StructEnd,
+                Token::StructEnd,
+            ],
+        );
     }
 }

@@ -7,3 +7,14 @@ use serde_repr::{Deserialize_repr, Serialize_repr};
 pub enum TargetUserType {
     Stream = 1,
 }
+
+#[cfg(test)]
+mod tests {
+    use super::TargetUserType;
+    use serde_test::Token;
+
+    #[test]
+    fn test_variants() {
+        serde_test::assert_tokens(&TargetUserType::Stream, &[Token::U8(1)]);
+    }
+}

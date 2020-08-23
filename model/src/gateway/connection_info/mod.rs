@@ -18,12 +18,12 @@ mod tests {
 
     #[test]
     fn test_connection_info() {
-        let info = ConnectionInfo {
+        let value = ConnectionInfo {
             url: "wss://gateway.discord.gg".to_owned(),
         };
 
         serde_test::assert_tokens(
-            &info,
+            &value,
             &[
                 Token::Struct {
                     name: "ConnectionInfo",
