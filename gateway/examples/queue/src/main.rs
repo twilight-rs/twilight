@@ -1,15 +1,15 @@
-use async_trait::async_trait;
 use futures::StreamExt;
-use std::{env, error::Error, sync::Arc};
+use std::{env, error::Error, future::Future, pin::Pin, sync::Arc};
 use twilight_gateway::{queue::Queue, Shard};
 
 #[derive(Debug)]
 struct BadQueue;
 
-#[async_trait]
 impl Queue for BadQueue {
     // DISCLAIMER: THIS IS A VERY BAD QUEUE!
-    async fn request(&self, _shard_id: [u64; 2]) {}
+    fn request(&'_ self, _shard_id: [u64; 2]) -> Pin<Box<dyn Future<Output = ()> + Send + '_>> {
+        Box::pin(async {})
+    }
 }
 
 #[tokio::main]
