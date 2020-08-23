@@ -112,11 +112,11 @@ impl<'a> Parser<'a> {
         })
     }
 
-    /// Parses a command out of a buffer.
+    /// Parses a command out of a buffer with a dynamic prefix.
     ///
-    /// Instead of using the list of set prefixes can you here define a
-    /// function that returns the index at which the prefix ends if it
-    /// matches, or return none if there is no prefix that matches.
+    /// Instead of using the list of set prefixes, define a function that
+    /// manually tests for a prefix. The function must return an option,
+    /// with the Some value being the first index of the name of the command.
     ///
     /// # Example
     ///
@@ -302,6 +302,7 @@ mod tests {
     #[test]
     fn test_dynamic_prefix() {
         let parser = simple_config();
+
         let prefix_fn = |buf: &str| if buf.starts_with('=') { Some(1) } else { None };
 
         let command = parser.parse_dynamic_prefix("=echo foo", prefix_fn);
