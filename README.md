@@ -18,7 +18,7 @@ non-vendor-specific crates in the `twilight` ecosystem.
 
 ## Installation
 
-Twilight requires the latest Rust version.
+Twilight requires the latest stable Rust version.
 
 Add this to your `Cargo.toml`'s `[dependencies]` section:
 
