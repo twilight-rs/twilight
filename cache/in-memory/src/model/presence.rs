@@ -8,7 +8,7 @@ pub struct CachedPresence {
     pub activities: Vec<Activity>,
     pub client_status: ClientStatus,
     pub game: Option<Activity>,
-    pub guild_id: Option<GuildId>,
+    pub guild_id: GuildId,
     pub status: Status,
     pub user_id: UserId,
 }

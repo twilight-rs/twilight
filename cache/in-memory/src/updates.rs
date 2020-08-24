@@ -221,7 +221,7 @@ impl UpdateCache for GuildDelete {
 
         if let Some((_, ids)) = cache.0.guild_presences.remove(&id) {
             for user_id in ids {
-                cache.0.presences.remove(&(Some(id), user_id));
+                cache.0.presences.remove(&(id, user_id));
             }
         }
     }
@@ -478,13 +478,13 @@ impl UpdateCache for PresenceUpdate {
             activities: self.activities.clone(),
             client_status: self.client_status.clone(),
             game: self.game.clone(),
-            guild_id: Some(self.guild_id),
+            guild_id: self.guild_id,
             nick: self.nick.clone(),
             status: self.status,
             user: self.user.clone(),
         };
 
-        cache.cache_presence(Some(self.guild_id), presence);
+        cache.cache_presence(self.guild_id, presence);
     }
 }
 

@@ -706,7 +706,7 @@ impl<'de> Deserialize<'de> for Guild {
                 }
 
                 for presence in presences.values_mut() {
-                    presence.guild_id.replace(id);
+                    presence.guild_id = id;
                 }
 
                 for voice_state in voice_states.values_mut() {

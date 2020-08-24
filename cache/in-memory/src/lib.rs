@@ -94,7 +94,7 @@ struct InMemoryCacheRef {
     guild_roles: DashMap<GuildId, HashSet<RoleId>>,
     members: DashMap<(GuildId, UserId), Arc<CachedMember>>,
     messages: DashMap<ChannelId, BTreeMap<MessageId, Arc<CachedMessage>>>,
-    presences: DashMap<(Option<GuildId>, UserId), Arc<CachedPresence>>,
+    presences: DashMap<(GuildId, UserId), Arc<CachedPresence>>,
     roles: DashMap<RoleId, GuildItem<Role>>,
     unavailable_guilds: DashSet<GuildId>,
     users: DashMap<UserId, (Arc<User>, BTreeSet<GuildId>)>,
@@ -258,11 +258,7 @@ impl InMemoryCache {
     /// Gets a presence by, optionally, guild ID, and user ID.
     ///
     /// This is an O(1) operation.
-    pub fn presence(
-        &self,
-        guild_id: Option<GuildId>,
-        user_id: UserId,
-    ) -> Option<Arc<CachedPresence>> {
+    pub fn presence(&self, guild_id: GuildId, user_id: UserId) -> Option<Arc<CachedPresence>> {
         self.0
             .presences
             .get(&(guild_id, user_id))
@@ -454,7 +450,7 @@ impl InMemoryCache {
         self.cache_guild_channels(guild.id, guild.channels.into_iter().map(|(_, v)| v));
         self.cache_emojis(guild.id, guild.emojis.into_iter().map(|(_, v)| v));
         self.cache_members(guild.id, guild.members.into_iter().map(|(_, v)| v));
-        self.cache_presences(Some(guild.id), guild.presences.into_iter().map(|(_, v)| v));
+        self.cache_presences(guild.id, guild.presences.into_iter().map(|(_, v)| v));
         self.cache_roles(guild.id, guild.roles.into_iter().map(|(_, v)| v));
         self.cache_voice_states(guild.voice_states.into_iter().map(|(_, v)| v));
 
@@ -542,7 +538,7 @@ impl InMemoryCache {
 
     pub fn cache_presences(
         &self,
-        guild_id: Option<GuildId>,
+        guild_id: GuildId,
         presences: impl IntoIterator<Item = Presence>,
     ) -> HashSet<UserId> {
         presences
@@ -556,11 +552,7 @@ impl InMemoryCache {
             .collect()
     }
 
-    pub fn cache_presence(
-        &self,
-        guild_id: Option<GuildId>,
-        presence: Presence,
-    ) -> Arc<CachedPresence> {
+    pub fn cache_presence(&self, guild_id: GuildId, presence: Presence) -> Arc<CachedPresence> {
         let k = (guild_id, presence_user_id(&presence));
 
         match self.0.presences.get(&k) {
