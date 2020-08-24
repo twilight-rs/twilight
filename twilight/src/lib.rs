@@ -4,8 +4,8 @@
 //!
 //! ![project logo][logo]
 //!
-//! `twilight` is an asynchronous, simple, and extensible set of libraries which can
-//! be used separately or in combination for the Discord API.
+//! `twilight` is a powerful asynchronous, flexible, and scalable ecosystem of
+//! Rust libraries for the Discord API.
 //!
 //! The ecosystem of first-class crates includes `twilight-cache-inmemory`,
 //! `twilight-command-parser`, `twilight-gateway`, `twilight-http`,
@@ -16,7 +16,7 @@
 //!
 //! ## Installation
 //!
-//! Most of Twilight requires at least 1.40+ (rust stable).
+//! Twilight requires the latest stable Rust version.
 //!
 //! Add this to your `Cargo.toml`'s `[dependencies]` section:
 //!
