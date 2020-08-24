@@ -28,9 +28,9 @@ pub enum ClusterCommandError {
         /// Reason for the error.
         source: CommandError,
     },
-    /// The provided shard ID does not exist.
+    /// Provided shard ID does not exist.
     ShardNonexistent {
-        /// The provided shard ID.
+        /// Provided shard ID.
         id: u64,
     },
 }
@@ -115,8 +115,8 @@ impl Cluster {
     ///
     /// # Errors
     ///
-    /// Returns [`ClusterStartError::RetrievingGatewayInfo`] if there was an HTTP error Retrieving
-    /// the gateway information.
+    /// Returns [`ClusterStartError::RetrievingGatewayInfo`] if there was an
+    /// HTTP error Retrieving the gateway information.
     ///
     /// [`ClusterStartError::RetrievingGatewayInfo`]: enum.ClusterStartError.html#variant.RetrievingGatewayInfo
     /// [`builder`]: #method.builder
@@ -174,12 +174,12 @@ impl Cluster {
         ClusterBuilder::new(token)
     }
 
-    /// Returns an immutable reference to the configuration of this cluster.
+    /// Return an immutable reference to the configuration of this cluster.
     pub fn config(&self) -> &Config {
         &self.0.config
     }
 
-    /// Brings up the cluster, starting all of the shards that it was configured
+    /// Bring up the cluster, starting all of the shards that it was configured
     /// to manage.
     ///
     /// # Examples
@@ -210,14 +210,14 @@ impl Cluster {
         .await;
     }
 
-    /// Brings down the cluster, stopping all of the shards that it's managing.
+    /// Bring down the cluster, stopping all of the shards that it's managing.
     pub fn down(&self) {
         for shard in self.0.shards.lock().expect("shards poisoned").values() {
             shard.shutdown();
         }
     }
 
-    /// Brings down the cluster in a resumable way and returns all info needed
+    /// Bring down the cluster in a resumable way and returns all info needed
     /// for resuming.
     ///
     /// The returned map is keyed by the shard's ID to the information needed
@@ -237,7 +237,7 @@ impl Cluster {
             .collect()
     }
 
-    /// Returns a Shard by its ID.
+    /// Return a Shard by its ID.
     pub fn shard(&self, id: u64) -> Option<Shard> {
         self.0
             .shards
@@ -247,7 +247,7 @@ impl Cluster {
             .cloned()
     }
 
-    /// Returns information about all shards.
+    /// Return information about all shards.
     ///
     /// # Examples
     ///
@@ -316,7 +316,7 @@ impl Cluster {
             .map_err(|source| ClusterCommandError::Sending { source })
     }
 
-    /// Returns a stream of events from all shards managed by this Cluster.
+    /// Return a stream of events from all shards managed by this Cluster.
     ///
     /// Each item in the stream contains both the shard's ID and the event
     /// itself.
@@ -372,7 +372,7 @@ impl Cluster {
         SelectAll::from_iter(stream)
     }
 
-    /// Queues a request to start a shard by ID and starts it once the queue
+    /// Queue a request to start a shard by ID and starts it once the queue
     /// accepts the request.
     ///
     /// Accepts weak references to the queue and map of shards, because by the

@@ -1,10 +1,10 @@
-//! The cluster is a manager for running and maintaing multiple shards, bringing
-//! their event streams into one unified stream.
+//! The cluster is a manager for running and maintaining multiple shards,
+//! bringing their event streams into one unified stream.
 //!
 //! # Examples
 //!
 //! Start a cluster of 10 shards and print when a shard is connected,
-//! disconnected, and when new commands come in:
+//! disconnected, and when new message commands come in:
 //!
 //! ```no_run
 //! use twilight_gateway::{Cluster, Event};

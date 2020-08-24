@@ -19,30 +19,31 @@ pub struct Config {
 }
 
 impl Config {
-    /// Returns the `twilight_http` client used by the cluster and shards to get the
-    /// gateway information.
+    /// Return an immutable reference to the `twilight_http` client used by the
+    /// cluster and shards to get the gateway information.
     ///
-    /// Refer to [`ClusterConfigBuilder::http_client`] for the default value.
+    /// Refer to [`ClusterBuilder::http_client`] for the default value.
     ///
-    /// [`ClusterConfigBuilder::http_client`]: struct.ClusterConfigBuilder.html#method.http_client
+    /// [`ClusterBuilder::http_client`]: struct.ClusterBuilder.html#method.http_client
     pub fn http_client(&self) -> &Client {
         &self.http_client
     }
 
-    /// Returns the configuration used to create shards.
+    /// Return an immutable reference to the configuration used to create
+    /// shards.
     ///
-    /// Refer to [`shard::config::ClusterConfigBuilder`]'s methods for the default values.
+    /// Refer to [`shard::config::ClusterBuilder`]'s methods for the default values.
     ///
-    /// [`shard::config::ClusterConfigBuilder`]: ../../shard/config/struct.ShardConfigBuilder.html#methods
+    /// [`shard::config::ClusterBuilder`]: ../../shard/config/struct.ShardConfigBuilder.html#methods
     pub fn shard_config(&self) -> &ShardConfig {
         &self.shard_config
     }
 
-    /// Returns the shard scheme used to start shards.
+    /// Return the shard scheme used to start shards.
     ///
-    /// Refer to [`ClusterConfigBuilder::shard_scheme`] for the default value.
+    /// Refer to [`ClusterBuilder::shard_scheme`] for the default value.
     ///
-    /// [`ClusterConfigBuilder::shard_scheme`]: struct.ClusterConfigBuilder.html#method.shard_scheme
+    /// [`ClusterBuilder::shard_scheme`]: struct.ClusterBuilder.html#method.shard_scheme
     pub fn shard_scheme(&self) -> ShardScheme {
         self.shard_scheme
     }
