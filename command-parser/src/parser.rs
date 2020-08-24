@@ -1,5 +1,6 @@
 use crate::{Arguments, CommandParserConfig};
 
+
 /// Indicator that a command was used.
 #[derive(Clone, Debug)]
 #[non_exhaustive]
@@ -120,7 +121,7 @@ impl<'a> Parser<'a> {
     ///
     /// # Example
     ///
-    /// ```rust
+    /// ```rust,skip
     /// # use twilight_command_parser::{Command, CommandParserConfig, Parser};
     /// let mut config = CommandParserConfig::new();
     /// config.add_prefix("!");
@@ -128,7 +129,7 @@ impl<'a> Parser<'a> {
     ///
     /// let parser = Parser::new(config);
     ///
-    /// let prefix_fn = |buf: &str| if buf.starts_with('=') { Some(1) } else { None };
+    /// let prefix_fn = |buf: &str| if buf.starts_with('=') { buf.get(..1) } else { None };
     ///
     /// let command = parser.parse_dynamic_prefix("=echo foo", prefix_fn);
     /// assert!(command.is_some());
@@ -141,12 +142,11 @@ impl<'a> Parser<'a> {
     pub fn parse_dynamic_prefix(
         &'a self,
         buf: &'a str,
-        prefix_fn: impl FnOnce(&'a str) -> Option<usize>,
+        prefix_fn: impl FnOnce(&'a str) -> Option<&'a str>,
     ) -> Option<Command<'a>> {
-        if let Some(mut idx) = prefix_fn(buf) {
-            let prefix = buf.get(0..idx)?;
-
-            let command_buf = buf.get((idx as usize)..)?;
+        if let Some(prefix) = prefix_fn(buf) {
+            let mut idx = prefix.len();
+            let command_buf = buf.get(idx..)?;
             let command = self.find_command(command_buf)?;
 
             idx += command.len();
@@ -303,7 +303,7 @@ mod tests {
     fn test_dynamic_prefix() {
         let parser = simple_config();
 
-        let prefix_fn = |buf: &str| if buf.starts_with('=') { Some(1) } else { None };
+        let prefix_fn = |buf: &str| if buf.starts_with('=') { buf.get(..1) } else { None };
 
         let command = parser.parse_dynamic_prefix("=echo foo", prefix_fn);
         assert!(command.is_some());
