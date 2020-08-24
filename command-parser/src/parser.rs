@@ -1,6 +1,5 @@
 use crate::{Arguments, CommandParserConfig};
 
-
 /// Indicator that a command was used.
 #[derive(Clone, Debug)]
 #[non_exhaustive]
@@ -91,15 +90,8 @@ impl<'a> Parser<'a> {
     ///
     /// [`Command`]: struct.Command.html
     pub fn parse(&'a self, buf: &'a str) -> Option<Command<'a>> {
-        let (prefix, padding) = self.find_prefix(buf)?;
+        let prefix = self.find_prefix(buf)?;
         let mut idx = prefix.len();
-
-        match buf.get(idx..)? {
-            v if !v.starts_with(padding) => return None,
-            _ => {}
-        }
-
-        idx += padding.len();
 
         let command_buf = buf.get(idx..)?;
         let command = self.find_command(command_buf)?;
@@ -113,52 +105,50 @@ impl<'a> Parser<'a> {
         })
     }
 
-    /// Parses a command out of a buffer with a dynamic prefix.
+    /// Parse a command out of a buffer with a specific prefix.
     ///
-    /// Instead of using the list of set prefixes, define a function that
-    /// manually tests for a prefix. The function must return an option,
-    /// with the Some value being the first index of the name of the command.
+    /// Instead of using the list of set prefixes, give a specific prefix
+    /// to parse the message, this can be used to have a kind of dynamic
+    /// prefixes.
     ///
     /// # Example
     ///
-    /// ```rust,skip
+    /// ```rust
     /// # use twilight_command_parser::{Command, CommandParserConfig, Parser};
+    /// # fn example() -> Option<()> {
     /// let mut config = CommandParserConfig::new();
     /// config.add_prefix("!");
     /// config.add_command("echo", false);
     ///
     /// let parser = Parser::new(config);
     ///
-    /// let prefix_fn = |buf: &str| if buf.starts_with('=') { buf.get(..1) } else { None };
+    /// let command = parser.parse_with_prefix("=", "=echo foo")?;
     ///
-    /// let command = parser.parse_dynamic_prefix("=echo foo", prefix_fn);
-    /// assert!(command.is_some());
-    /// let command = command.unwrap();
     /// assert_eq!("=", command.prefix);
     /// assert_eq!("echo", command.name);
+    /// # Some(())
+    /// # }
     /// ```
     ///
     /// [`Command`]: struct.Command.html
-    pub fn parse_dynamic_prefix(
+    pub fn parse_with_prefix(
         &'a self,
+        prefix: &'a str,
         buf: &'a str,
-        prefix_fn: impl FnOnce(&'a str) -> Option<&'a str>,
     ) -> Option<Command<'a>> {
-        if let Some(prefix) = prefix_fn(buf) {
-            let mut idx = prefix.len();
-            let command_buf = buf.get(idx..)?;
-            let command = self.find_command(command_buf)?;
+        if !buf.starts_with(prefix) { return None }
+        
+        let mut idx = prefix.len();
+        let command_buf = buf.get(idx..)?;
+        let command = self.find_command(command_buf)?;
 
-            idx += command.len();
+        idx += command.len();
 
-            Some(Command {
-                arguments: Arguments::new(buf.get(idx..)?),
-                name: command,
-                prefix,
-            })
-        } else {
-            None
-        }
+        Some(Command {
+            arguments: Arguments::new(buf.get(idx..)?),
+            name: command,
+            prefix,
+        })
     }
 
     fn find_command(&'a self, buf: &'a str) -> Option<&'a str> {
@@ -172,10 +162,10 @@ impl<'a> Parser<'a> {
         })
     }
 
-    fn find_prefix(&self, buf: &str) -> Option<(&str, &str)> {
-        self.config.prefixes().iter().find_map(|(prefix, padding)| {
+    fn find_prefix(&self, buf: &str) -> Option<&str> {
+        self.config.prefixes().iter().find_map(|prefix| {
             if buf.starts_with(prefix.as_ref()) {
-                Some((prefix.as_ref(), padding.as_ref()))
+                Some(prefix.as_ref())
             } else {
                 None
             }
@@ -302,10 +292,9 @@ mod tests {
     #[test]
     fn test_dynamic_prefix() {
         let parser = simple_config();
-
-        let prefix_fn = |buf: &str| if buf.starts_with('=') { buf.get(..1) } else { None };
-
-        let command = parser.parse_dynamic_prefix("=echo foo", prefix_fn);
+        
+        let command = parser.parse_with_prefix("=", "=echo foo");
+        
         assert!(command.is_some());
         let command = command.unwrap();
         assert_eq!("=", command.prefix);
