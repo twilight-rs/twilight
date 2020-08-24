@@ -440,25 +440,6 @@ impl Shard {
         })
     }
 
-    /// Returns a handle to the current session
-    ///
-    /// # Note
-    ///
-    /// This session can be invalidated if it is kept around
-    /// under a reconnect or resume. In consequence this call
-    /// should not be cached.
-    ///
-    /// # Errors
-    ///
-    /// Returns a [`SessionInactiveError`] if the shard's session is inactive.
-    ///
-    /// [`SessionInactiveError`]: struct.SessionInactiveError.html
-    pub fn session(&self) -> Result<Arc<Session>, SessionInactiveError> {
-        let session = self.0.session.get().ok_or(SessionInactiveError)?;
-
-        Ok(Arc::clone(&session.borrow()))
-    }
-
     /// Retrieve an interface implementing the `Sink` trait which can be used to
     /// send messages.
     ///
@@ -571,5 +552,18 @@ impl Shard {
         });
 
         (shard_id, data)
+    }
+
+    /// Return a handle to the current session.
+    ///
+    /// # Errors
+    ///
+    /// Returns a [`SessionInactiveError`] if the shard's session is inactive.
+    ///
+    /// [`SessionInactiveError`]: struct.SessionInactiveError.html
+    fn session(&self) -> Result<Arc<Session>, SessionInactiveError> {
+        let session = self.0.session.get().ok_or(SessionInactiveError)?;
+
+        Ok(Arc::clone(&session.borrow()))
     }
 }
