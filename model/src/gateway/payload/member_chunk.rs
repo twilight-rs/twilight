@@ -162,7 +162,7 @@ impl<'de> Visitor<'de> for MemberChunkVisitor {
         }
 
         for presence in presences.values_mut() {
-            presence.guild_id.replace(guild_id);
+            presence.guild_id = guild_id;
         }
 
         Ok(MemberChunk {
@@ -276,6 +276,7 @@ mod tests {
                     "web": "online",
                 },
                 "game": null,
+                "guild_id": "1",
                 "status": "online",
                 "user": {
                     "id": "2",
@@ -286,6 +287,7 @@ mod tests {
                     "web": "online",
                 },
                 "game": null,
+                "guild_id": "1",
                 "status": "online",
                 "user": {
                     "id": "3",
@@ -296,6 +298,7 @@ mod tests {
                     "desktop": "dnd",
                 },
                 "game": null,
+                "guild_id": "1",
                 "status": "dnd",
                 "user": {
                     "id": "5",
@@ -438,7 +441,7 @@ mod tests {
                             web: Some(Status::Online),
                         },
                         game: None,
-                        guild_id: Some(GuildId(1)),
+                        guild_id: GuildId(1),
                         nick: None,
                         status: Status::Online,
                         user: UserOrId::UserId { id: UserId(2) },
@@ -454,7 +457,7 @@ mod tests {
                             web: Some(Status::Online),
                         },
                         game: None,
-                        guild_id: Some(GuildId(1)),
+                        guild_id: GuildId(1),
                         nick: None,
                         status: Status::Online,
                         user: UserOrId::UserId { id: UserId(3) },
@@ -470,7 +473,7 @@ mod tests {
                             web: None,
                         },
                         game: None,
-                        guild_id: Some(GuildId(1)),
+                        guild_id: GuildId(1),
                         nick: None,
                         status: Status::DoNotDisturb,
                         user: UserOrId::UserId { id: UserId(5) },

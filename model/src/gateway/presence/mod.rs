@@ -36,7 +36,7 @@ pub struct Presence {
     pub activities: Vec<Activity>,
     pub client_status: ClientStatus,
     pub game: Option<Activity>,
-    pub guild_id: Option<GuildId>,
+    pub guild_id: GuildId,
     pub nick: Option<String>,
     pub status: Status,
     pub user: UserOrId,
@@ -107,7 +107,7 @@ impl<'de> DeserializeSeed<'de> for PresenceMapDeserializer {
 #[cfg(test)]
 mod tests {
     use super::{Activity, ActivityEmoji, ActivityType, ClientStatus, Presence, Status, UserOrId};
-    use crate::id::UserId;
+    use crate::id::{GuildId, UserId};
     use serde_test::Token;
 
     #[test]
@@ -142,7 +142,7 @@ mod tests {
                 web: None,
             },
             game: Some(activity),
-            guild_id: None,
+            guild_id: GuildId(2),
             nick: None,
             status: Status::Online,
             user: UserOrId::UserId { id: UserId(1) },
@@ -163,6 +163,9 @@ mod tests {
                 Token::Str("id"),
                 Token::Str("1"),
                 Token::StructEnd,
+                Token::Str("guild_id"),
+                Token::NewtypeStruct { name: "GuildId" },
+                Token::Str("2"),
                 Token::Str("status"),
                 Token::Enum { name: "Status" },
                 Token::Str("online"),
