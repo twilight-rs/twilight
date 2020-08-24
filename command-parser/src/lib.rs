@@ -11,8 +11,6 @@
 //!
 //! # Installation
 //!
-//! `twilight-command-parser` requires at least Rust 1.36.0.
-//!
 //! Add the following to your Cargo.toml:
 //!
 //! ```toml

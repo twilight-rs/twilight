@@ -25,8 +25,6 @@ or extended by other crates.
 
 ### Installation
 
-This crate requires Rust 1.31+.
-
 Add the following to your `Cargo.toml`:
 
 ```toml
