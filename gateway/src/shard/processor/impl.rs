@@ -803,7 +803,7 @@ impl ShardProcessor {
         let gateway_deserializer = GatewayEventDeserializerOwned::from_json(json)
             .ok_or_else(|| GatewayEventParsingError::PayloadInvalid)?;
 
-        // # Unsafe
+        // # Safety
         //
         // The SIMD deserializer may change the string in ways that aren't
         // UTF-8 valid, but that's fine because it won't be used again.
