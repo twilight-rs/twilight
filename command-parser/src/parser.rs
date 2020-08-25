@@ -120,13 +120,11 @@ impl<'a> Parser<'a> {
     /// ```
     ///
     /// [`Command`]: struct.Command.html
-    pub fn parse_with_prefix(
-        &'a self,
-        prefix: &'a str,
-        buf: &'a str,
-    ) -> Option<Command<'a>> {
-        if !buf.starts_with(prefix) { return None }
-        
+    pub fn parse_with_prefix(&'a self, prefix: &'a str, buf: &'a str) -> Option<Command<'a>> {
+        if !buf.starts_with(prefix) {
+            return None;
+        }
+
         let mut idx = prefix.len();
         let command_buf = buf.get(idx..)?;
         let command = self.find_command(command_buf)?;
@@ -150,7 +148,6 @@ impl<'a> Parser<'a> {
             }
         })
     }
-
 
     fn find_prefix(&self, buf: &str) -> Option<(&str, &str)> {
         self.config.prefixes().iter().find_map(|(prefix, padding)| {
@@ -282,11 +279,9 @@ mod tests {
     #[test]
     fn test_dynamic_prefix() {
         let parser = simple_config();
-        
-        let command = parser.parse_with_prefix("=", "=echo foo");
-        
-        assert!(command.is_some());
-        let command = command.unwrap();
+
+        let command = parser.parse_with_prefix("=", "=echo foo").unwrap();
+
         assert_eq!("=", command.prefix);
         assert_eq!("echo", command.name);
     }
