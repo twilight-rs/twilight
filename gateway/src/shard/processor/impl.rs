@@ -538,22 +538,17 @@ impl ShardProcessor {
     }
 
     pub async fn send(&mut self, payload: impl Serialize) -> Result<(), SessionSendError> {
-        match self.session.send(payload) {
-            Ok(()) => Ok(()),
-            Err(SessionSendError::Sending { source }) => {
-                tracing::warn!("sending message failed: {:?}", source);
-                tracing::info!("reconnecting shard {:?}", self.config.shard());
+        if let Err(source) = self.session.send(payload) {
+            tracing::warn!("sending message failed: {:?}", source);
 
+            if matches!(source, SessionSendError::Sending { .. }) {
                 self.reconnect().await;
-
-                Err(SessionSendError::Sending { source })
             }
-            Err(SessionSendError::Serializing { source }) => {
-                tracing::warn!("serializing message to send failed: {:?}", source);
 
-                Err(SessionSendError::Serializing { source })
-            }
+            return Err(source);
         }
+
+        Ok(())
     }
 
     /// # Errors
