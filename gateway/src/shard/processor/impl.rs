@@ -538,85 +538,103 @@ impl ShardProcessor {
     /// is invalid.
     ///
     /// [`Error::AuthorizationInvalid`]: ../../error/enum.Error.html#variant.AuthorizationInvalid
-    #[allow(unsafe_code)]
     async fn next_event(&mut self) -> Result<GatewayEvent, ReceivingEventError> {
         loop {
             // Returns None when the socket forwarder has ended, meaning the
             // connection was dropped.
-            let msg = self
+            let mut msg = self
                 .rx
                 .next()
                 .await
                 .ok_or(ReceivingEventError::EventStreamEnded)?;
 
-            match msg {
-                Message::Binary(bin) => {
-                    self.inflater.extend(&bin[..]);
-                    let decompressed_msg = self
-                        .inflater
-                        .msg()
-                        .map_err(|source| ReceivingEventError::Decompressing { source })?;
-                    let msg_or_error = match decompressed_msg {
-                        Some(json) => {
-                            self.emitter.bytes(json);
+            let json = match self.handle_message(&mut msg).await? {
+                Some(json) => json,
+                None => continue,
+            };
+            let res = Self::parse_gateway_event(json)
+                .map_err(|source| ReceivingEventError::ParsingPayload { source });
+            self.inflater.clear();
 
-                            let mut text = str::from_utf8_mut(json)
-                                .map_err(|source| ReceivingEventError::PayloadNotUtf8 { source })?;
+            break res;
+        }
+    }
 
-                            Self::parse_gateway_event(&mut text)
-                        }
-                        None => continue,
-                    };
-                    self.inflater.clear();
-                    break msg_or_error
-                        .map_err(|source| ReceivingEventError::ParsingPayload { source });
-                }
-                Message::Close(close_frame) => {
-                    tracing::warn!("got close code: {:?}", close_frame);
-                    self.emitter.event(Event::ShardDisconnected(Disconnected {
-                        code: close_frame.as_ref().map(|frame| frame.code.into()),
-                        reason: close_frame
-                            .as_ref()
-                            .map(|frame| frame.reason.clone().into()),
-                        shard_id: self.config.shard()[0],
-                    }));
+    async fn handle_message<'a>(
+        &'a mut self,
+        msg: &'a mut Message,
+    ) -> Result<Option<&'a mut str>, ReceivingEventError> {
+        match msg {
+            Message::Binary(bin) => {
+                self.inflater.extend(&bin[..]);
 
-                    if let Some(close_frame) = close_frame {
-                        match close_frame.code {
-                            CloseCode::Library(4004) => {
-                                return Err(ReceivingEventError::AuthorizationInvalid {
-                                    shard_id: self.config.shard()[0],
-                                    token: self.config.token().to_owned(),
-                                });
-                            }
-                            CloseCode::Library(4013) => {
-                                return Err(ReceivingEventError::IntentsInvalid {
-                                    intents: self.config.intents().copied(),
-                                    shard_id: self.config.shard()[0],
-                                });
-                            }
-                            CloseCode::Library(4014) => {
-                                return Err(ReceivingEventError::IntentsDisallowed {
-                                    intents: self.config.intents().copied(),
-                                    shard_id: self.config.shard()[0],
-                                });
-                            }
-                            _ => {}
-                        }
-                    }
+                let bytes = match self.inflater.msg() {
+                    Ok(Some(bytes)) => bytes,
+                    Ok(None) => return Ok(None),
+                    Err(source) => return Err(ReceivingEventError::Decompressing { source }),
+                };
 
-                    self.resume().await;
-                }
-                Message::Ping(_) | Message::Pong(_) => {}
-                Message::Text(mut text) => {
-                    tracing::trace!("text payload: {}", text);
-                    self.emitter.bytes(text.as_bytes());
+                self.emitter.bytes(bytes);
 
-                    break Self::parse_gateway_event(&mut text)
-                        .map_err(|source| ReceivingEventError::ParsingPayload { source });
-                }
+                str::from_utf8_mut(bytes)
+                    .map(Some)
+                    .map_err(|source| ReceivingEventError::PayloadNotUtf8 { source })
+            }
+            Message::Close(close_frame) => {
+                self.handle_close(close_frame.as_ref()).await?;
+
+                Ok(None)
+            }
+            Message::Ping(_) | Message::Pong(_) => Ok(None),
+            Message::Text(text) => {
+                self.emitter.bytes(text.as_bytes());
+
+                Ok(Some(text))
             }
         }
+    }
+
+    async fn handle_close(
+        &mut self,
+        close_frame: Option<&CloseFrame<'_>>,
+    ) -> Result<(), ReceivingEventError> {
+        tracing::warn!("got close code: {:?}", close_frame);
+
+        self.emitter.event(Event::ShardDisconnected(Disconnected {
+            code: close_frame.as_ref().map(|frame| frame.code.into()),
+            reason: close_frame
+                .as_ref()
+                .map(|frame| frame.reason.clone().into()),
+            shard_id: self.config.shard()[0],
+        }));
+
+        if let Some(close_frame) = close_frame {
+            match close_frame.code {
+                CloseCode::Library(4004) => {
+                    return Err(ReceivingEventError::AuthorizationInvalid {
+                        shard_id: self.config.shard()[0],
+                        token: self.config.token().to_owned(),
+                    });
+                }
+                CloseCode::Library(4013) => {
+                    return Err(ReceivingEventError::IntentsInvalid {
+                        intents: self.config.intents().copied(),
+                        shard_id: self.config.shard()[0],
+                    });
+                }
+                CloseCode::Library(4014) => {
+                    return Err(ReceivingEventError::IntentsDisallowed {
+                        intents: self.config.intents().copied(),
+                        shard_id: self.config.shard()[0],
+                    });
+                }
+                _ => {}
+            }
+        }
+
+        self.resume().await;
+
+        Ok(())
     }
 
     async fn connect(url: &str) -> Result<ShardStream, ConnectingError> {
