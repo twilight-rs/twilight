@@ -582,8 +582,7 @@ impl ShardProcessor {
                             let mut text = str::from_utf8_mut(json)
                                 .map_err(|source| ReceivingEventError::PayloadNotUtf8 { source })?;
 
-                            // Safety: the buffer isn't used again after parsing.
-                            unsafe { Self::parse_gateway_event(&mut text) }
+                            Self::parse_gateway_event(&mut text)
                         }
                         None => continue,
                     };
@@ -636,11 +635,8 @@ impl ShardProcessor {
 
                     emit::bytes(&self.listeners, text.as_bytes());
 
-                    // Safety: the buffer isn't used again after parsing.
-                    break unsafe {
-                        Self::parse_gateway_event(&mut text)
-                            .map_err(|source| ReceivingEventError::ParsingPayload { source })
-                    };
+                    break Self::parse_gateway_event(&mut text)
+                            .map_err(|source| ReceivingEventError::ParsingPayload { source });
                 }
             }
         }
@@ -770,11 +766,6 @@ impl ShardProcessor {
 
     /// Parse a gateway event from a string using `serde_json`.
     ///
-    /// # Safety
-    ///
-    /// This function is actually safe, though it is marked unsafe to have a
-    /// compatible signature with the simd-json variant of this function.
-    ///
     /// # Errors
     ///
     /// Returns [`Error::PayloadInvalid`] if the payload wasn't a valid
@@ -785,9 +776,8 @@ impl ShardProcessor {
     ///
     /// [`Error::PayloadInvalid`]: ../enum.Error.html#variant.PayloadInvalid
     /// [`Error::PayloadSerialization`]: ../enum.Error.html#variant.PayloadSerialization
-    #[allow(unsafe_code)]
     #[cfg(not(feature = "simd-json"))]
-    unsafe fn parse_gateway_event(
+    fn parse_gateway_event(
         json: &mut str,
     ) -> Result<GatewayEvent, GatewayEventParsingError> {
         use serde::de::DeserializeSeed;
@@ -809,12 +799,6 @@ impl ShardProcessor {
 
     /// Parse a gateway event from a string using `simd-json`.
     ///
-    /// # Safety
-    ///
-    /// This is unsafe because it calls `std::str::as_bytes_mut`. The provided
-    /// string must not be used again because the value may be changed in ways
-    /// that aren't UTF-8 valid.
-    ///
     /// # Errors
     ///
     /// Returns [`Error::PayloadInvalid`] if the payload wasn't a valid
@@ -827,7 +811,7 @@ impl ShardProcessor {
     /// [`Error::PayloadSerialization`]: ../enum.Error.html#variant.PayloadSerialization
     #[allow(unsafe_code)]
     #[cfg(feature = "simd-json")]
-    unsafe fn parse_gateway_event(
+    fn parse_gateway_event(
         json: &mut str,
     ) -> Result<GatewayEvent, GatewayEventParsingError> {
         use serde::de::DeserializeSeed;
@@ -836,7 +820,13 @@ impl ShardProcessor {
 
         let gateway_deserializer = GatewayEventDeserializerOwned::from_json(json)
             .ok_or_else(|| GatewayEventParsingError::PayloadInvalid)?;
-        let mut json_deserializer = Deserializer::from_slice(json.as_bytes_mut())
+
+        /// This is unsafe because it calls `std::str::as_bytes_mut`, which may
+        /// change the string in ways that aren't UTF-8 valid. The string won't
+        /// be used again.
+        let json_bytes = unsafe { json.as_bytes_mut() };
+
+        let mut json_deserializer = Deserializer::from_slice(json_bytes)
             .map_err(|_| GatewayEventParsingError::PayloadInvalid)?;
 
         gateway_deserializer
