@@ -58,11 +58,7 @@ impl Emitter {
         })
     }
 
-    fn send(
-        &self,
-        event_type: EventTypeFlags,
-        mut f: impl FnMut(usize) -> Event,
-    ) {
+    fn send(&self, event_type: EventTypeFlags, mut f: impl FnMut(usize) -> Event) {
         let listener_count = self.listeners.len();
         let mut idx = 0;
 
