@@ -81,7 +81,8 @@ impl Heartbeats {
             .lock()
             .expect("recent poisoned")
             .iter()
-            .map(|x| Duration::from_millis(*x))
+            .copied()
+            .map(Duration::from_millis)
             .collect();
 
         Latency {
@@ -190,7 +191,7 @@ impl Heartbeater {
     }
 
     pub async fn run(self) {
-        if let Err(why) = self.run_inner().await {
+        if let Err(why) = self.try_run().await {
             tracing::warn!("Error sending heartbeat: {:?}", why);
         }
     }
@@ -199,7 +200,7 @@ impl Heartbeater {
     // got disconnected due to the session ending. This task should have
     // *also* become aborted. Log if that's the case, because that's a
     // programmatic error.
-    async fn run_inner(self) -> Result<(), SessionSendError> {
+    async fn try_run(self) -> Result<(), SessionSendError> {
         let duration = Duration::from_millis(self.interval);
 
         let mut last = true;
@@ -227,11 +228,11 @@ impl Heartbeater {
             let bytes = crate::json_to_vec(&heartbeat)
                 .map_err(|source| SessionSendError::Serializing { source })?;
 
-            tracing::debug!("sending heartbeat with seq: {}", seq);
+            tracing::debug!(seq, "sending heartbeat");
             self.tx
                 .unbounded_send(TungsteniteMessage::Binary(bytes))
                 .map_err(|source| SessionSendError::Sending { source })?;
-            tracing::debug!("sent heartbeat with seq: {}", seq);
+            tracing::debug!(seq, "sent heartbeat");
             self.heartbeats.send();
         }
     }
