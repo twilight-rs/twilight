@@ -337,7 +337,7 @@ impl ShardProcessor {
                     }
 
                     continue;
-                },
+                }
             };
 
             // The only reason for an error is if the sender couldn't send a
@@ -630,7 +630,7 @@ impl ShardProcessor {
                     emit::bytes(&self.listeners, text.as_bytes());
 
                     break Self::parse_gateway_event(&mut text)
-                            .map_err(|source| ReceivingEventError::ParsingPayload { source });
+                        .map_err(|source| ReceivingEventError::ParsingPayload { source });
                 }
             }
         }
@@ -771,9 +771,7 @@ impl ShardProcessor {
     /// [`Error::PayloadInvalid`]: ../enum.Error.html#variant.PayloadInvalid
     /// [`Error::PayloadSerialization`]: ../enum.Error.html#variant.PayloadSerialization
     #[cfg(not(feature = "simd-json"))]
-    fn parse_gateway_event(
-        json: &mut str,
-    ) -> Result<GatewayEvent, GatewayEventParsingError> {
+    fn parse_gateway_event(json: &mut str) -> Result<GatewayEvent, GatewayEventParsingError> {
         use serde::de::DeserializeSeed;
         use serde_json::Deserializer;
         use twilight_model::gateway::event::GatewayEventDeserializer;
@@ -805,9 +803,7 @@ impl ShardProcessor {
     /// [`Error::PayloadSerialization`]: ../enum.Error.html#variant.PayloadSerialization
     #[allow(unsafe_code)]
     #[cfg(feature = "simd-json")]
-    fn parse_gateway_event(
-        json: &mut str,
-    ) -> Result<GatewayEvent, GatewayEventParsingError> {
+    fn parse_gateway_event(json: &mut str) -> Result<GatewayEvent, GatewayEventParsingError> {
         use serde::de::DeserializeSeed;
         use simd_json::Deserializer;
         use twilight_model::gateway::event::gateway::GatewayEventDeserializerOwned;
