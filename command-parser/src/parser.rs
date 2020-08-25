@@ -90,19 +90,8 @@ impl<'a> Parser<'a> {
     ///
     /// [`Command`]: struct.Command.html
     pub fn parse(&'a self, buf: &'a str) -> Option<Command<'a>> {
-        let prefix = self.find_prefix(buf)?;
-        let mut idx = prefix.len();
-
-        let command_buf = buf.get(idx..)?;
-        let command = self.find_command(command_buf)?;
-
-        idx += command.len();
-
-        Some(Command {
-            arguments: Arguments::new(buf.get(idx..)?),
-            name: command,
-            prefix,
-        })
+        let (prefix, _) = self.find_prefix(buf)?;
+        self.parse_with_prefix(prefix, buf)
     }
 
     /// Parse a command out of a buffer with a specific prefix.
@@ -162,10 +151,11 @@ impl<'a> Parser<'a> {
         })
     }
 
-    fn find_prefix(&self, buf: &str) -> Option<&str> {
-        self.config.prefixes().iter().find_map(|prefix| {
+
+    fn find_prefix(&self, buf: &str) -> Option<(&str, &str)> {
+        self.config.prefixes().iter().find_map(|(prefix, padding)| {
             if buf.starts_with(prefix.as_ref()) {
-                Some(prefix.as_ref())
+                Some((prefix.as_ref(), padding.as_ref()))
             } else {
                 None
             }
