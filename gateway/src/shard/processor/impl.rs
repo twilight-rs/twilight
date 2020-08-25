@@ -361,12 +361,10 @@ impl ShardProcessor {
     async fn identify(&mut self) -> Result<(), SessionSendError> {
         self.session.set_stage(Stage::Identifying);
 
-        let intents = self.config.intents().copied();
-
         let identify = Identify::new(IdentifyInfo {
             compression: false,
-            intents,
             large_threshold: self.config.large_threshold(),
+            intents: self.config.intents().copied(),
             properties: self.properties.clone(),
             shard: Some(self.config.shard()),
             presence: self.config.presence().cloned(),
