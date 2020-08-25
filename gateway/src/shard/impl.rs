@@ -506,10 +506,10 @@ impl Shard {
 
         if let Ok(session) = self.session() {
             // Since we're shutting down now, we don't care if it sends or not.
-            let _ = session.tx.unbounded_send(Message::Close(Some(CloseFrame {
+            let _ = session.close(Some(CloseFrame {
                 code: CloseCode::Normal,
                 reason: "".into(),
-            })));
+            }));
             session.stop_heartbeater();
         }
     }
@@ -536,10 +536,10 @@ impl Shard {
             Err(_) => return (shard_id, None),
         };
 
-        let _ = session.tx.unbounded_send(Message::Close(Some(CloseFrame {
+        let _ = session.close(Some(CloseFrame {
             code: CloseCode::Restart,
             reason: Cow::from("Closing in a resumable way"),
-        })));
+        }));
 
         let session_id = session.id();
         let sequence = session.seq.load(Ordering::Relaxed);
