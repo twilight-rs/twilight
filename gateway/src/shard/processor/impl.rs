@@ -73,7 +73,7 @@ impl Error for ConnectingError {
 }
 
 #[derive(Debug)]
-pub enum GatewayEventParsingError {
+enum GatewayEventParsingError {
     /// Deserializing the GatewayEvent payload from JSON failed.
     Deserializing {
         /// Reason for the error.
@@ -106,7 +106,7 @@ impl Error for GatewayEventParsingError {
 }
 
 #[derive(Debug)]
-pub enum ProcessError {
+enum ProcessError {
     /// A close message tried to be sent but the receiving half was dropped.
     /// This typically means that the shard is shutdown.
     SendingClose {
@@ -139,7 +139,7 @@ impl Error for ProcessError {
 }
 
 #[derive(Debug)]
-pub enum ReceivingEventError {
+enum ReceivingEventError {
     /// Provided authorization token is invalid.
     AuthorizationInvalid { shard_id: u64, token: String },
     /// Decompressing a frame from Discord failed.
@@ -179,6 +179,25 @@ pub enum ReceivingEventError {
     },
     /// The event stream has ended, this is recoverable by resuming.
     EventStreamEnded,
+}
+
+impl ReceivingEventError {
+    fn fatal(&self) -> bool {
+        matches!(
+            self,
+            ReceivingEventError::AuthorizationInvalid { .. }
+            | ReceivingEventError::IntentsDisallowed { .. }
+            | ReceivingEventError::IntentsInvalid { .. }
+        )
+    }
+
+    fn reconnectable(&self) -> bool {
+        matches!(self, ReceivingEventError::Decompressing { .. })
+    }
+
+    fn resumable(&self) -> bool {
+        matches!(self, ReceivingEventError::EventStreamEnded)
+    }
 }
 
 impl Display for ReceivingEventError {
@@ -302,50 +321,23 @@ impl ShardProcessor {
         loop {
             let gateway_event = match self.next_event().await {
                 Ok(ev) => ev,
-                // The authorization is invalid, so we should just quit.
-                Err(ReceivingEventError::AuthorizationInvalid { shard_id, .. }) => {
-                    tracing::warn!("authorization for shard {} is invalid, quitting", shard_id);
-                    self.listeners.remove_all();
+                Err(source) => {
+                    tracing::warn!("{}", source);
 
-                    return;
-                }
-                // Reconnect as this error is often fatal!
-                Err(ReceivingEventError::Decompressing { source }) => {
-                    tracing::warn!(
-                        "decompressing failed, clearing buffers and reconnecting: {:?}",
-                        source
-                    );
+                    if source.fatal() {
+                        break;
+                    }
 
-                    // Inflater gets reset in the reconnect call.
-                    self.reconnect().await;
-                    continue;
-                }
-                Err(ReceivingEventError::IntentsDisallowed { shard_id, .. }) => {
-                    tracing::warn!(
-                        "at least one of the provided intents for shard {} are disallowed",
-                        shard_id
-                    );
-                    self.listeners.remove_all();
-                    return;
-                }
-                Err(ReceivingEventError::IntentsInvalid { shard_id, .. }) => {
-                    tracing::warn!(
-                        "at least one of the provided intents for shard {} are invalid",
-                        shard_id
-                    );
-                    self.listeners.remove_all();
-                    return;
-                }
-                Err(ReceivingEventError::EventStreamEnded) => {
-                    tracing::debug!("event stream ended, reconnecting");
+                    if source.reconnectable() {
+                        self.reconnect().await;
+                    }
 
-                    self.resume().await;
+                    if source.resumable() {
+                        self.resume().await;
+                    }
+
                     continue;
-                }
-                Err(err) => {
-                    tracing::warn!("error receiving gateway event: {:?}", err.source());
-                    continue;
-                }
+                },
             };
 
             // The only reason for an error is if the sender couldn't send a
@@ -361,6 +353,8 @@ impl ShardProcessor {
 
             emit::event(&self.listeners, Event::from(gateway_event));
         }
+
+        self.listeners.remove_all();
     }
 
     /// Identifies with the gateway to create a new session.
