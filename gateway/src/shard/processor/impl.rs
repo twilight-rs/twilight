@@ -1,6 +1,6 @@
 use super::{
     super::{config::Config, stage::Stage, ShardStream},
-    emit,
+    emitter::Emitter,
     inflater::Inflater,
     session::{Session, SessionSendError},
     socket_forwarder::SocketForwarder,
@@ -243,7 +243,7 @@ impl Error for ReceivingEventError {
 #[derive(Debug)]
 pub struct ShardProcessor {
     pub config: Arc<Config>,
-    pub listeners: Listeners<Event>,
+    pub emitter: Emitter,
     pub properties: IdentifyProperties,
     pub rx: UnboundedReceiver<Message>,
     pub session: Arc<Session>,
@@ -276,13 +276,11 @@ impl ShardProcessor {
 
         url.push_str("?v=6&compress=zlib-stream");
 
-        emit::event(
-            &listeners,
-            Event::ShardConnecting(Connecting {
-                gateway: url.clone(),
-                shard_id: config.shard()[0],
-            }),
-        );
+        let emitter = Emitter::new(listeners);
+        emitter.event(Event::ShardConnecting(Connecting {
+            gateway: url.clone(),
+            shard_id: config.shard()[0],
+        }));
         let stream = Self::connect(&url).await?;
         let (forwarder, rx, tx) = SocketForwarder::new(stream);
         tokio::spawn(async move {
@@ -301,7 +299,7 @@ impl ShardProcessor {
 
         let mut processor = Self {
             config,
-            listeners,
+            emitter,
             properties,
             rx,
             session,
@@ -353,10 +351,10 @@ impl ShardProcessor {
                 continue;
             }
 
-            emit::event(&self.listeners, Event::from(gateway_event));
+            self.emitter.event(Event::from(gateway_event));
         }
 
-        self.listeners.remove_all();
+        self.emitter.into_listeners().remove_all();
     }
 
     /// Identifies with the gateway to create a new session.
@@ -375,13 +373,10 @@ impl ShardProcessor {
             token: self.config.token().to_owned(),
             v: Self::GATEWAY_VERSION,
         });
-        emit::event(
-            &self.listeners,
-            Event::ShardIdentifying(Identifying {
-                shard_id: self.config.shard()[0],
-                shard_total: self.config.shard()[1],
-            }),
-        );
+        self.emitter.event(Event::ShardIdentifying(Identifying {
+            shard_id: self.config.shard()[0],
+            shard_total: self.config.shard()[1],
+        }));
 
         self.send(identify).await
     }
@@ -413,23 +408,17 @@ impl ShardProcessor {
                 self.session.set_stage(Stage::Connected);
                 self.session.set_id(&ready.session_id);
 
-                emit::event(
-                    &self.listeners,
-                    Event::ShardConnected(Connected {
-                        heartbeat_interval: self.session.heartbeat_interval(),
-                        shard_id: self.config.shard()[0],
-                    }),
-                );
+                self.emitter.event(Event::ShardConnected(Connected {
+                    heartbeat_interval: self.session.heartbeat_interval(),
+                    shard_id: self.config.shard()[0],
+                }));
             }
             DispatchEvent::Resumed => {
                 self.session.set_stage(Stage::Connected);
-                emit::event(
-                    &self.listeners,
-                    Event::ShardConnected(Connected {
-                        heartbeat_interval: self.session.heartbeat_interval(),
-                        shard_id: self.config.shard()[0],
-                    }),
-                );
+                self.emitter.event(Event::ShardConnected(Connected {
+                    heartbeat_interval: self.session.heartbeat_interval(),
+                    shard_id: self.config.shard()[0],
+                }));
                 self.session.heartbeats.receive();
             }
             _ => {}
@@ -571,7 +560,7 @@ impl ShardProcessor {
                         .map_err(|source| ReceivingEventError::Decompressing { source })?;
                     let msg_or_error = match decompressed_msg {
                         Some(json) => {
-                            emit::bytes(&self.listeners, json);
+                            self.emitter.bytes(json);
 
                             let mut text = str::from_utf8_mut(json)
                                 .map_err(|source| ReceivingEventError::PayloadNotUtf8 { source })?;
@@ -586,16 +575,13 @@ impl ShardProcessor {
                 }
                 Message::Close(close_frame) => {
                     tracing::warn!("got close code: {:?}", close_frame);
-                    emit::event(
-                        &self.listeners,
-                        Event::ShardDisconnected(Disconnected {
-                            code: close_frame.as_ref().map(|frame| frame.code.into()),
-                            reason: close_frame
-                                .as_ref()
-                                .map(|frame| frame.reason.clone().into()),
-                            shard_id: self.config.shard()[0],
-                        }),
-                    );
+                    self.emitter.event(Event::ShardDisconnected(Disconnected {
+                        code: close_frame.as_ref().map(|frame| frame.code.into()),
+                        reason: close_frame
+                            .as_ref()
+                            .map(|frame| frame.reason.clone().into()),
+                        shard_id: self.config.shard()[0],
+                    }));
 
                     if let Some(close_frame) = close_frame {
                         match close_frame.code {
@@ -626,8 +612,7 @@ impl ShardProcessor {
                 Message::Ping(_) | Message::Pong(_) => {}
                 Message::Text(mut text) => {
                     tracing::trace!("text payload: {}", text);
-
-                    emit::bytes(&self.listeners, text.as_bytes());
+                    self.emitter.bytes(text.as_bytes());
 
                     break Self::parse_gateway_event(&mut text)
                         .map_err(|source| ReceivingEventError::ParsingPayload { source });
@@ -659,12 +644,9 @@ impl ShardProcessor {
             // Await allowance when doing a full reconnect.
             self.config.queue.request(self.config.shard()).await;
 
-            emit::event(
-                &self.listeners,
-                Event::ShardReconnecting(Reconnecting {
-                    shard_id: self.config.shard()[0],
-                }),
-            );
+            self.emitter.event(Event::ShardReconnecting(Reconnecting {
+                shard_id: self.config.shard()[0],
+            }));
 
             let stream = match Self::connect(&self.url).await {
                 Ok(s) => s,
@@ -680,13 +662,10 @@ impl ShardProcessor {
             break;
         }
 
-        emit::event(
-            &self.listeners,
-            Event::ShardConnecting(Connecting {
-                gateway: self.url.clone(),
-                shard_id: self.config.shard()[0],
-            }),
-        );
+        self.emitter.event(Event::ShardConnecting(Connecting {
+            gateway: self.url.clone(),
+            shard_id: self.config.shard()[0],
+        }));
     }
 
     /// Resume a session if possible, defaulting to instantiating a new
@@ -723,13 +702,10 @@ impl ShardProcessor {
 
     /// Attempt to resume a session.
     async fn try_resume(&mut self) -> Result<(), ConnectingError> {
-        emit::event(
-            &self.listeners,
-            Event::ShardResuming(Resuming {
-                seq: self.session.seq(),
-                shard_id: self.config.shard()[0],
-            }),
-        );
+        self.emitter.event(Event::ShardResuming(Resuming {
+            seq: self.session.seq(),
+            shard_id: self.config.shard()[0],
+        }));
 
         let stream = Self::connect(&self.url).await?;
 
