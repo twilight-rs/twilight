@@ -92,14 +92,16 @@ impl Emitter {
 
 #[cfg(test)]
 mod tests {
+    use super::Emitter;
     use crate::{listener::Listeners, Event, EventTypeFlags};
 
     #[test]
     fn test_bytes_send() {
         let listeners = Listeners::default();
         let mut rx = listeners.add(EventTypeFlags::SHARD_PAYLOAD);
-        super::bytes(&listeners, &[1]);
-        assert_eq!(1, listeners.len());
+        let emitter = Emitter::new(listeners);
+        emitter.bytes(&[1]);
+        assert_eq!(1, emitter.listeners.len());
 
         assert!(matches!(rx.try_next(), Ok(Some(_))));
         assert!(rx.try_next().is_err());
@@ -109,8 +111,9 @@ mod tests {
     fn test_event_removes_closed_channels() {
         let listeners = Listeners::default();
         let _ = listeners.add(EventTypeFlags::default());
-        super::event(&listeners, Event::GatewayReconnect);
-        assert!(listeners.all().is_empty());
+        let emitter = Emitter::new(listeners);
+        emitter.event(Event::GatewayReconnect);
+        assert!(emitter.listeners.all().is_empty());
     }
 
     #[test]
@@ -118,8 +121,9 @@ mod tests {
         let listeners = Listeners::default();
         let mut rx1 = listeners.add(EventTypeFlags::default());
         let mut rx2 = listeners.add(EventTypeFlags::default());
-        super::event(&listeners, Event::GatewayReconnect);
-        assert_eq!(2, listeners.len());
+        let emitter = Emitter::new(listeners);
+        emitter.event(Event::GatewayReconnect);
+        assert_eq!(2, emitter.listeners.len());
 
         assert!(matches!(rx1.try_next(), Ok(Some(_))));
         assert!(matches!(rx2.try_next(), Ok(Some(_))));
