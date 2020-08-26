@@ -372,7 +372,7 @@ impl ShardProcessor {
         let identify = Identify::new(IdentifyInfo {
             compression: false,
             intents,
-            large_threshold: 250,
+            large_threshold: self.config.large_threshold(),
             properties: self.properties.clone(),
             shard: Some(self.config.shard()),
             presence: self.config.presence().cloned(),
