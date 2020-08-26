@@ -38,7 +38,7 @@ async fn test_shard_command_ratelimit() {
     assert!(matches!(events.next().await.unwrap(), Event::Ready(_)));
 
     // now that we're connected we can test sending
-    let payload = RequestGuildMembers::new_all(GuildId(644_743_296_891_224_113), None);
+    let payload = RequestGuildMembers::builder(GuildId(1)).query("", None);
     let now = Instant::now();
     shard.command(&payload).await.unwrap();
     assert!(now.elapsed() < Duration::from_millis(500));
