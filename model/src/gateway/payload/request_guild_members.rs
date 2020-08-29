@@ -26,7 +26,7 @@ impl Display for UserIdsError {
     fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
         match self {
             Self::TooMany { ids } => f.write_fmt(format_args!(
-                "{} user IDs were permitted when only a maximum of 100 is allowed",
+                "{} user IDs were provided when only a maximum of 100 is allowed",
                 ids.len(),
             )),
         }
@@ -99,7 +99,7 @@ impl RequestGuildMembersBuilder {
     /// to retrieve.
     ///
     /// If you specify no limit, then Discord's default will be used, which will
-    /// be an unbounded number of members.
+    /// be an unbounded number of members. Specifying 0 is also equivalent.
     ///
     /// To request the entire member list, pass in a `None` query. You must also
     /// have the `GUILD_MEMBERS` intent enabled.
