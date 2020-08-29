@@ -88,6 +88,7 @@ pub struct Guild {
     pub name: String,
     pub owner_id: UserId,
     pub owner: Option<bool>,
+    #[serde(rename = "permissions_new")]
     pub permissions: Option<Permissions>,
     pub preferred_locale: String,
     pub premium_subscription_count: Option<u64>,
@@ -147,6 +148,7 @@ impl<'de> Deserialize<'de> for Guild {
             Name,
             OwnerId,
             Owner,
+            #[serde(rename = "permissions_new")]
             Permissions,
             PreferredLocale,
             PremiumSubscriptionCount,
@@ -794,7 +796,7 @@ impl<'de> Deserialize<'de> for Guild {
             "name",
             "owner",
             "owner_id",
-            "permissions",
+            "permissions_new",
             "preferred_locale",
             "premium_subscription_count",
             "premium_tier",
@@ -828,7 +830,7 @@ mod tests {
 
     #[allow(clippy::too_many_lines)]
     #[test]
-    fn test_partial_guild() {
+    fn test_guild() {
         let value = Guild {
             afk_channel_id: Some(ChannelId(2)),
             afk_timeout: 900,
@@ -972,7 +974,7 @@ mod tests {
                 Token::Str("owner"),
                 Token::Some,
                 Token::Bool(false),
-                Token::Str("permissions"),
+                Token::Str("permissions_new"),
                 Token::Some,
                 Token::Str("2048"),
                 Token::Str("preferred_locale"),

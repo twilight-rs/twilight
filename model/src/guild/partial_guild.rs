@@ -33,6 +33,7 @@ pub struct PartialGuild {
     pub name: String,
     pub owner_id: UserId,
     pub owner: Option<bool>,
+    #[serde(rename = "permissions_new")]
     pub permissions: Option<Permissions>,
     pub preferred_locale: String,
     pub premium_subscription_count: Option<u64>,
@@ -171,7 +172,7 @@ mod tests {
                 Token::Str("owner"),
                 Token::Some,
                 Token::Bool(false),
-                Token::Str("permissions"),
+                Token::Str("permissions_new"),
                 Token::Some,
                 Token::Str("2048"),
                 Token::Str("preferred_locale"),
