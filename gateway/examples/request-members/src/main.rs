@@ -1,5 +1,5 @@
 use futures::StreamExt;
-use std::{borrow::Borrow, env, error::Error};
+use std::{env, error::Error};
 use twilight_gateway::{Event, Shard};
 use twilight_model::{
     gateway::payload::RequestGuildMembers,
@@ -8,7 +8,7 @@ use twilight_model::{
 
 /// simple example of how to request one or more members from the gateway
 #[tokio::main]
-async fn main() -> Result<(), Box<dyn Error + Send + Sync>> {
+async fn main() -> Result<(), Box<dyn Error>> {
     // Initialize the tracing subscriber.
     tracing_subscriber::fmt::init();
 
@@ -21,83 +21,73 @@ async fn main() -> Result<(), Box<dyn Error + Send + Sync>> {
 
     while let Some(event) = events.next().await {
         match event {
-            Event::GuildCreate(guildcreate) => {
-                // let's request all members for caching
-                // keep in mind this is also fired once for all guilds when we connect
+            Event::GuildCreate(guild) => {
+                // Let's request all of the guild's members for caching.
                 shard
-                    .command(&RequestGuildMembers::new_all(guildcreate.id, Some(false)))
+                    .command(&RequestGuildMembers::builder(guild.id).query("", None))
                     .await?;
             }
-            Event::Ready(_ready) => {
-                //commands can be send with the command function
+            Event::Ready(_) => {
+                // You can also specify an individual member within a guild.
+                //
+                // Additionally, you can pass in a "nonce" and get it back in
+                // the received member chunk. This can be used to help identify
+                // which request the member is from.
+                let request = RequestGuildMembers::builder(GuildId(1))
+                    .nonce("requesting a single member")
+                    .user_id(UserId(2));
 
-                //we can also request the info about a single person on a server.
-                // if we give it a nonce we will receive it back in the chunk
-                shard
-                    .command(&RequestGuildMembers::new_single_user_with_nonce(
-                        GuildId(365_498_559_174_410_241),
-                        UserId(106_354_106_196_570_112),
-                        Some(true),
-                        Some(String::from("looking_by_id")),
-                    ))
-                    .await?;
+                shard.command(&request).await?;
 
-                // multiple is also possible
-                shard
-                    .command(&RequestGuildMembers::new_multi_user_with_nonce(
-                        GuildId(365_498_559_174_410_241),
-                        vec![
-                            UserId(77_469_400_222_932_992),
-                            UserId(77_812_253_511_913_472),
-                        ],
-                        Some(true),
-                        Some(String::from("looking_by_ids")),
-                    ))
-                    .await?;
+                // Similarly, you can also request multiple members. Only 100
+                // members by ID can be requested at a time, so the builder will
+                // check to make sure you're requesting at most that many:
+                let request = RequestGuildMembers::builder(GuildId(1))
+                    .nonce("requesting two member")
+                    .user_ids(vec![UserId(2), UserId(3)])
+                    .unwrap();
 
-                // need a list of hoisters?
-                shard
-                    .command(&RequestGuildMembers::new_with_nonce(
-                        GuildId(365_498_559_174_410_241),
-                        0,
-                        "!",
-                        Some(false),
-                        Some(String::from("hoister_list")),
-                    ))
-                    .await?;
+                shard.command(&request).await?;
+
+                // Instead of specifying user IDs, you can also search for
+                // members that you don't know the IDs of through their names.
+                // A name query can be specified, and an optional limit to the
+                // number of members to retrieve can be specified. Here we'll
+                // request a list of up to 50 members and their current presence
+                // details whose names start with the letters "tw":
+                let request = RequestGuildMembers::builder(GuildId(1))
+                    .nonce("querying for members")
+                    .presences(true)
+                    .query("tw", Some(50));
+
+                shard.command(&request).await?;
             }
-
             Event::MemberChunk(chunk) => {
-                //this is where the magic happens
-
-                match chunk.nonce {
-                    Some(nonce) => {
-                        match nonce.borrow() {
-                            // make sure to keep in mind chunks are limited to 1000 each
-                            // so if request something that might contain more make sure to account for that
-                            "looking_by_id" => {
-                                println!("Received the info by id lookup {:?}.  missing info for {:?}",
-                                         chunk.members,
-                                         chunk.not_found)
-                            }
-                            "looking_by_ids" => {
-                                println!("Received the info by multiple id lookup {:?}. missing info for {:?}",
-                                         chunk.members,
-                                         chunk.not_found)
-                            },
-                            "hoister_list" => {
-                                println!("Received hoister list part {:?}/{:?} containing {:?} hoisters.",
-                                         chunk.chunk_index+1,
-                                         chunk.chunk_count,
-                                         chunk.members.len())
-                            }
-                            _ => {
-                                // just to keep the compiler happy, empty nonces are not a thing
-                            }
-                        }
+                // Member chunks are received in response to requests for guild
+                // members. They may each contain only a portion of the
+                // requested members within an individual guild.
+                match chunk.nonce.as_deref() {
+                    Some("requesting a single member") => {
+                        println!(
+                            "received the single member; found: {:?}; missing: {:?}",
+                            chunk.members, chunk.not_found,
+                        );
                     }
-                    None => println!(
-                        "Received chunk {:?}/{:?} for guilds {:?}",
+                    Some("requesting two users") => {
+                        println!(
+                            "received response for requesting two members; found: {:?}; missing: {:?}",
+                            chunk.members,
+                            chunk.not_found,
+                        );
+                    }
+                    Some("querying for members") => {
+                        println!(
+                            "found members starting with 'tw'; found: {:?}; missing: {:?}",
+                            chunk.members, chunk.not_found,
+                        );
+                    }
+                    _ => println!(
+                        "Received chunk {:?}/{:?} for guild {:?}",
                         chunk.chunk_index + 1,
                         chunk.chunk_count,
                         chunk.guild_id
