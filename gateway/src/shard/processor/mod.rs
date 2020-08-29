@@ -1,6 +1,6 @@
 pub mod heartbeat;
 
-mod emit;
+mod emitter;
 mod r#impl;
 mod inflater;
 mod session;
