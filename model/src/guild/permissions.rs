@@ -6,7 +6,7 @@ use serde::{
 use std::fmt::{Formatter, Result as FmtResult};
 
 bitflags! {
-    pub struct Permissions: u128 {
+    pub struct Permissions: u64 {
         const CREATE_INVITE = 0x0000_0001;
         const KICK_MEMBERS = 0x0000_0002;
         const BAN_MEMBERS = 0x0000_0004;
@@ -50,12 +50,8 @@ impl<'de> Visitor<'de> for PermissionsVisitor {
         f.write_str("integer or string permissions")
     }
 
-    fn visit_u128<E: DeError>(self, v: u128) -> Result<Self::Value, E> {
-        Ok(Permissions::from_bits_truncate(v))
-    }
-
     fn visit_u64<E: DeError>(self, v: u64) -> Result<Self::Value, E> {
-        self.visit_u128(u128::from(v))
+        Ok(Permissions::from_bits_truncate(v))
     }
 
     fn visit_str<E: DeError>(self, v: &str) -> Result<Self::Value, E> {
@@ -63,7 +59,7 @@ impl<'de> Visitor<'de> for PermissionsVisitor {
             .parse()
             .map_err(|_| DeError::custom("permissions is not valid bitflags"))?;
 
-        self.visit_u128(num)
+        self.visit_u64(num)
     }
 }
 
@@ -89,8 +85,5 @@ mod tests {
         let permissions = Permissions::DEAFEN_MEMBERS;
 
         serde_test::assert_tokens(&permissions, &[Token::Str("8388608")]);
-        // serde_test doesn't support a u128. Only test deserialization here
-        // since it serializes into a string.
-        serde_test::assert_de_tokens(&permissions, &[Token::U64(8_388_608)]);
     }
 }
