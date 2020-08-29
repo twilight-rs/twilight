@@ -3,10 +3,7 @@ use std::{
     error::Error,
     fmt::{Display, Formatter, Result as FmtResult},
 };
-use twilight_model::{
-    guild::Member,
-    id::{ChannelId, GuildId, RoleId, UserId},
-};
+use twilight_model::id::{ChannelId, GuildId, RoleId, UserId};
 
 /// The error created when the member can not be updated as configured.
 #[derive(Clone, Debug)]
@@ -55,7 +52,7 @@ struct UpdateGuildMemberFields {
 /// [the discord docs]: https://discord.com/developers/docs/resources/guild#modify-guild-member
 pub struct UpdateGuildMember<'a> {
     fields: UpdateGuildMemberFields,
-    fut: Option<Pending<'a, Member>>,
+    fut: Option<Pending<'a, ()>>,
     guild_id: GuildId,
     http: &'a Client,
     user_id: UserId,
@@ -158,10 +155,10 @@ impl<'a> UpdateGuildMember<'a> {
             ))
         };
 
-        self.fut.replace(Box::pin(self.http.request(request)));
+        self.fut.replace(Box::pin(self.http.verify(request)));
 
         Ok(())
     }
 }
 
-poll_req!(UpdateGuildMember<'_>, Member);
+poll_req!(UpdateGuildMember<'_>, ());

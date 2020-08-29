@@ -45,7 +45,7 @@ impl<'a> DeleteGuildIntegration<'a> {
             })
         };
 
-        self.fut.replace(Box::pin(self.http.request(request)));
+        self.fut.replace(Box::pin(self.http.verify(request)));
 
         Ok(())
     }
