@@ -90,16 +90,42 @@ impl<'a> Parser<'a> {
     ///
     /// [`Command`]: struct.Command.html
     pub fn parse(&'a self, buf: &'a str) -> Option<Command<'a>> {
-        let (prefix, padding) = self.find_prefix(buf)?;
-        let mut idx = prefix.len();
+        let (prefix, _) = self.find_prefix(buf)?;
+        self.parse_with_prefix(prefix, buf)
+    }
 
-        match buf.get(idx..)? {
-            v if !v.starts_with(padding) => return None,
-            _ => {}
+    /// Parse a command out of a buffer with a specific prefix.
+    ///
+    /// Instead of using the list of set prefixes, give a specific prefix
+    /// to parse the message, this can be used to have a kind of dynamic
+    /// prefixes.
+    ///
+    /// # Example
+    ///
+    /// ```rust
+    /// # use twilight_command_parser::{Command, CommandParserConfig, Parser};
+    /// # fn example() -> Option<()> {
+    /// let mut config = CommandParserConfig::new();
+    /// config.add_prefix("!");
+    /// config.add_command("echo", false);
+    ///
+    /// let parser = Parser::new(config);
+    ///
+    /// let command = parser.parse_with_prefix("=", "=echo foo")?;
+    ///
+    /// assert_eq!("=", command.prefix);
+    /// assert_eq!("echo", command.name);
+    /// # Some(())
+    /// # }
+    /// ```
+    ///
+    /// [`Command`]: struct.Command.html
+    pub fn parse_with_prefix(&'a self, prefix: &'a str, buf: &'a str) -> Option<Command<'a>> {
+        if !buf.starts_with(prefix) {
+            return None;
         }
 
-        idx += padding.len();
-
+        let mut idx = prefix.len();
         let command_buf = buf.get(idx..)?;
         let command = self.find_command(command_buf)?;
 
@@ -248,5 +274,15 @@ mod tests {
         parser.config_mut().add_prefix("\u{1f44d}"); // thumbs up unicode
 
         assert!(parser.parse("\u{1f44d}echo foo").is_some());
+    }
+
+    #[test]
+    fn test_dynamic_prefix() {
+        let parser = simple_config();
+
+        let command = parser.parse_with_prefix("=", "=echo foo").unwrap();
+
+        assert_eq!("=", command.prefix);
+        assert_eq!("echo", command.name);
     }
 }
