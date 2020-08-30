@@ -2,9 +2,9 @@ use super::super::{
     scope::{self, Scope},
     Client, GrantType, TokenType,
 };
-use serde::Serialize;
+use serde::{Deserialize, Serialize};
 use std::fmt::Write;
-use twilight_model::id::ApplicationId;
+use twilight_model::{channel::Webhook, id::ApplicationId};
 
 #[derive(Clone, Debug, Eq, PartialEq, Serialize)]
 #[non_exhaustive]
@@ -49,18 +49,12 @@ impl AccessTokenExchangeRequest<'_> {
     }
 }
 
-#[derive(Clone, Debug, Eq, PartialEq, Serialize)]
+#[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
 #[non_exhaustive]
 pub struct AccessTokenExchangeResponse {
     /// Access token to be used when making requests to the API on the user's
     /// behalf.
     pub access_token: String,
-    /// Type of token provided.
-    ///
-    /// This will always be [`TokenType::Bearer`].
-    ///
-    /// [`TokenType::Bearer`]: ../enum.TokenType.html#variant.Bearer
-    pub token_type: TokenType,
     /// Number of seconds from issuing that the access token is valid.
     ///
     /// After this duration, the refresh token must be exchanged for another
@@ -71,6 +65,19 @@ pub struct AccessTokenExchangeResponse {
     pub refresh_token: String,
     /// Space-delimited list of scopes that the token has had approved.
     pub scope: String,
+    /// Type of token provided.
+    ///
+    /// This will always be [`TokenType::Bearer`].
+    ///
+    /// [`TokenType::Bearer`]: ../enum.TokenType.html#variant.Bearer
+    pub token_type: TokenType,
+    /// Information about the webhook that was created by user authorization.
+    ///
+    /// This will be present with information about the newly created webhook if
+    /// the [`WebhookIncoming`] scope was selected and approved.
+    ///
+    /// [`WebhookIncoming`]: ../../enum.Scope.html#variant.WebhookIncoming
+    pub webhook: Option<Webhook>,
 }
 
 pub struct AccessTokenExchangeBuilder<'a> {
@@ -112,9 +119,93 @@ impl<'a> AccessTokenExchangeBuilder<'a> {
         }
     }
 
+    /// Set the scopes for the access token exchange request.
+    ///
+    /// This must be the same scopes you requested in the authorization URL.
+    ///
+    /// Read about Discord's [scope documentation].
+    ///
+    /// [RFC 6749 § 3.3] on access token scopes.
+    ///
+    /// [`Bot`]: enum.Scope.html#variant.Bot
+    /// [RFC 6749 § 3.3]: https://tools.ietf.org/html/rfc6749#section-3.3
+    /// [scope documentation]: https://discord.com/developers/docs/topics/oauth2#shared-resources-oauth2-scopes
     pub fn scopes(&mut self, scopes: &'a [Scope]) -> &mut Self {
         self.scopes.replace(scopes);
 
         self
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::AccessTokenExchangeResponse;
+    use crate::TokenType;
+    use serde_test::Token;
+    use twilight_model::{
+        channel::{WebhookType, Webhook},
+        id::{ChannelId, GuildId, WebhookId},
+    };
+
+    #[test]
+    fn test_response_webhook() {
+        let actual = AccessTokenExchangeResponse {
+            access_token: "a".to_owned(),
+            expires_in: 604_800,
+            token_type: TokenType::Bearer,
+            refresh_token: "b".to_owned(),
+            scope: "webhook.incoming".to_owned(),
+            webhook: Some(Webhook {
+                avatar: None,
+                channel_id: ChannelId(1),
+                guild_id: Some(GuildId(2)),
+                id: WebhookId(3),
+                kind: WebhookType::Incoming,
+                name: Some("test".to_owned()),
+                token: Some("token".to_owned()),
+                user: None,
+            }),
+        };
+
+        serde_test::assert_tokens(&actual, &[
+            Token::Struct { name: "AccessTokenExchangeResponse", len: 6 },
+            Token::Str("access_token"),
+            Token::Str("a"),
+            Token::Str("expires_in"),
+            Token::U64(604_800),
+            Token::Str("refresh_token"),
+            Token::Str("b"),
+            Token::Str("scope"),
+            Token::Str("webhook.incoming"),
+            Token::Str("token_type"),
+            Token::UnitVariant { name: "TokenType", variant: "Bearer" },
+            Token::Str("webhook"),
+            Token::Some,
+            Token::Struct { name: "Webhook", len: 8 },
+            Token::Str("avatar"),
+            Token::None,
+            Token::Str("channel_id"),
+            Token::NewtypeStruct { name: "ChannelId" },
+            Token::Str("1"),
+            Token::Str("guild_id"),
+            Token::Some,
+            Token::NewtypeStruct { name: "GuildId" },
+            Token::Str("2"),
+            Token::Str("id"),
+            Token::NewtypeStruct { name: "WebhookId" },
+            Token::Str("3"),
+            Token::Str("type"),
+            Token::U8(1),
+            Token::Str("name"),
+            Token::Some,
+            Token::Str("test"),
+            Token::Str("token"),
+            Token::Some,
+            Token::Str("token"),
+            Token::Str("user"),
+            Token::None,
+            Token::StructEnd,
+            Token::StructEnd,
+        ]);
     }
 }

@@ -105,10 +105,15 @@ impl<'a> AuthorizationUrlBuilder<'a> {
 
     /// Set the scopes for the authorization request.
     ///
+    /// If you set the [`WebhookIncoming`] scope then a webhook will be
+    /// returned on the [`AccessTokenExchangeResponse`].
+    ///
     /// Read about Discord's [scope documentation].
     ///
     /// [RFC 6749 § 3.3] on access token scopes.
     ///
+    /// [`AccessTokenExchangeResponse`]: ../request/access_token_exchange/struct.AccessTokenExchangeResponse.html
+    /// [`WebhookIncoming`]: ../enum.Scope.html#variant.WebhookIncoming
     /// [RFC 6749 § 3.3]: https://tools.ietf.org/html/rfc6749#section-3.3
     /// [scope documentation]: https://discord.com/developers/docs/topics/oauth2#shared-resources-oauth2-scopes
     pub fn scopes(&mut self, scopes: &'a [Scope]) -> &mut Self {

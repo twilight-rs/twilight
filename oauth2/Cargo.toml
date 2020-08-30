@@ -17,3 +17,6 @@ serde = { default-features = false, features = ["derive"], version = "1" }
 twilight-model = { default-features = false, path = "../model" }
 urlencoding = { default-features = false, version = "1" }
 url = { default-features = false, version = "2" }
+
+[dev-dependencies]
+serde_test = { default-features = false, version = "1" }
