@@ -9,8 +9,8 @@ use serde::{
     ser::{SerializeStruct, Serializer},
     Deserialize, Serialize,
 };
-use std::convert::TryFrom;
 use std::fmt::{Formatter, Result as FmtResult};
+use std::{convert::TryFrom, str::FromStr};
 
 /// An event from the gateway, which can either be a dispatch event with
 /// stateful updates or a heartbeat, hello, etc. that a shard needs to operate.
@@ -67,17 +67,57 @@ struct Hello {
 pub struct GatewayEventDeserializerOwned {
     event_type: Option<String>,
     op: u8,
+    sequence: Option<u64>,
 }
 
 impl GatewayEventDeserializerOwned {
+    /// Create a new owned gateway event deserializer when you already know the
+    /// event type and opcode.
+    ///
+    /// This might be useful if you scan the payload for this information and
+    /// do some work with the event type prior to deserializing the payload.
+    pub fn new(op: u8, sequence: Option<u64>, event_type: impl Into<Option<String>>) -> Self {
+        Self {
+            event_type: event_type.into(),
+            op,
+            sequence,
+        }
+    }
+
     pub fn from_json(input: &str) -> Option<Self> {
         let deser = GatewayEventDeserializer::from_json(input)?;
-        let GatewayEventDeserializer { event_type, op } = deser;
+        let GatewayEventDeserializer {
+            event_type,
+            op,
+            sequence,
+        } = deser;
 
         Some(Self {
             event_type: event_type.map(ToOwned::to_owned),
             op,
+            sequence,
         })
+    }
+
+    /// Return an immutable reference to the event type of the payload.
+    pub fn event_type_ref(&self) -> Option<&str> {
+        self.event_type.as_deref()
+    }
+
+    /// Return the opcode of the payload.
+    pub fn op(&self) -> u8 {
+        self.op
+    }
+
+    /// Return the sequence of the payload.
+    pub fn sequence(&self) -> Option<u64> {
+        self.sequence
+    }
+
+    /// Consume the deserializer, returning its opcode, sequence, and event type
+    /// components.
+    pub fn into_parts(self) -> (u8, Option<u64>, Option<String>) {
+        (self.op, self.sequence, self.event_type)
     }
 }
 
@@ -94,20 +134,60 @@ impl GatewayEventDeserializerOwned {
 pub struct GatewayEventDeserializer<'a> {
     event_type: Option<&'a str>,
     op: u8,
+    sequence: Option<u64>,
 }
 
 impl<'a> GatewayEventDeserializer<'a> {
-    // Create a gateway event deserializer with some information found by
-    // scanning the JSON payload to deserialise.
-    //
-    // This will scan the payload for the opcode and, optionally, event type if
-    // provided. The opcode key ("op"), must be in the payload while the event
-    // type key ("t") is optional and only required for event ops.
+    /// Create a new gateway event deserializer when you already know the event
+    /// type and opcode.
+    ///
+    /// This might be useful if you scan the payload for this information and
+    /// do some work with the event type prior to deserializing the payload.
+    pub fn new(op: u8, sequence: Option<u64>, event_type: Option<&'a str>) -> Self {
+        Self {
+            event_type,
+            op,
+            sequence,
+        }
+    }
+
+    /// Create a gateway event deserializer with some information found by
+    /// scanning the JSON payload to deserialise.
+    ///
+    /// This will scan the payload for the opcode and, optionally, event type if
+    /// provided. The opcode key ("op"), must be in the payload while the event
+    /// type key ("t") is optional and only required for event ops.
     pub fn from_json(input: &'a str) -> Option<Self> {
         let op = Self::find_opcode(input)?;
         let event_type = Self::find_event_type(input);
+        let sequence = Self::find_sequence(input);
 
-        Some(Self { event_type, op })
+        Some(Self {
+            event_type,
+            op,
+            sequence,
+        })
+    }
+
+    /// Return an immutable reference to the event type of the payload.
+    pub fn event_type_ref(&self) -> Option<&str> {
+        self.event_type
+    }
+
+    /// Return the opcode of the payload.
+    pub fn op(&self) -> u8 {
+        self.op
+    }
+
+    /// Return the sequence of the payload.
+    pub fn sequence(&self) -> Option<u64> {
+        self.sequence
+    }
+
+    /// Consume the deserializer, returning its opcode and event type
+    /// components.
+    pub fn into_parts(self) -> (u8, Option<u64>, Option<&'a str>) {
+        (self.op, self.sequence, self.event_type)
     }
 
     fn find_event_type(input: &'a str) -> Option<&'a str> {
@@ -135,12 +215,20 @@ impl<'a> GatewayEventDeserializer<'a> {
     }
 
     fn find_opcode(input: &'a str) -> Option<u8> {
+        Self::find_integer(input, r#""op":"#)
+    }
+
+    fn find_sequence(input: &'a str) -> Option<u64> {
+        Self::find_integer(input, r#""s":"#)
+    }
+
+    fn find_integer<T: FromStr>(input: &'a str, key: &str) -> Option<T> {
         // Find the op key's position and then search for where the first
         // character that's not base 10 is. This'll give us the bytes with the
         // op which can be parsed.
         //
         // Add 5 at the end since that's the length of what we're finding.
-        let from = input.find(r#""op":"#)? + 5;
+        let from = input.find(key)? + key.len();
 
         // Look for the first thing that isn't a base 10 digit or whitespace,
         // i.e. a comma (denoting another JSON field), curly brace (end of the
@@ -150,11 +238,11 @@ impl<'a> GatewayEventDeserializer<'a> {
         // We might have some whitespace, so let's trim this.
         let clean = input.get(from..from + to)?.trim();
 
-        clean.parse::<u8>().ok()
+        T::from_str(clean).ok()
     }
 }
 
-struct GatewayEventVisitor<'a>(u8, Option<&'a str>);
+struct GatewayEventVisitor<'a>(u8, Option<u64>, Option<&'a str>);
 
 impl GatewayEventVisitor<'_> {
     fn field<'de, T: Deserialize<'de>, V: MapAccess<'de>>(
@@ -188,9 +276,13 @@ impl GatewayEventVisitor<'_> {
     }
 
     fn ignore_all<'de, V: MapAccess<'de>>(map: &mut V) -> Result<(), V::Error> {
+        tracing::trace!("ignoring all other fields");
+
         while let Ok(Some(_)) | Err(_) = map.next_key::<Field>() {
             map.next_value::<IgnoredAny>()?;
         }
+
+        tracing::trace!("ignored all other fields");
 
         Ok(())
     }
@@ -220,7 +312,7 @@ impl<'de> Visitor<'de> for GatewayEventVisitor<'_> {
 
         let span = tracing::trace_span!("deserializing gateway event");
         let _span_enter = span.enter();
-        tracing::trace!(event_type=?self.1, op=self.0);
+        tracing::trace!(event_type=?self.2, op=self.0, seq=?self.1);
 
         let op_deser: U8Deserializer<V::Error> = self.0.into_deserializer();
 
@@ -234,13 +326,12 @@ impl<'de> Visitor<'de> for GatewayEventVisitor<'_> {
         Ok(match op {
             OpCode::Event => {
                 let t = self
-                    .1
+                    .2
                     .ok_or_else(|| DeError::custom("event type not provided beforehand"))?;
 
                 tracing::trace!("deserializing gateway dispatch");
 
                 let mut d = None;
-                let mut s = None;
 
                 loop {
                     let span_child = tracing::trace_span!("iterating over element");
@@ -272,14 +363,7 @@ impl<'de> Visitor<'de> for GatewayEventVisitor<'_> {
 
                             d = Some(map.next_value_seed(deserializer)?);
                         }
-                        Field::S => {
-                            if s.is_some() {
-                                return Err(DeError::duplicate_field("s"));
-                            }
-
-                            s = Some(map.next_value()?);
-                        }
-                        Field::Op | Field::T => {
+                        Field::Op | Field::S | Field::T => {
                             map.next_value::<IgnoredAny>()?;
 
                             tracing::trace!(key=?key, "ignoring key");
@@ -288,9 +372,9 @@ impl<'de> Visitor<'de> for GatewayEventVisitor<'_> {
                 }
 
                 let d = d.ok_or_else(|| DeError::missing_field("d"))?;
-                let s = s.ok_or_else(|| DeError::missing_field("s"))?;
+                let s = self.1.ok_or_else(|| DeError::missing_field("s"))?;
 
-                tracing::trace!(s, ?d);
+                Self::ignore_all(&mut map)?;
 
                 GatewayEvent::Dispatch(s, Box::new(d))
             }
@@ -299,18 +383,14 @@ impl<'de> Visitor<'de> for GatewayEventVisitor<'_> {
                 let seq = Self::field(&mut map, Field::D)?;
                 tracing::trace!(seq = %seq);
 
-                tracing::trace!("ignoring all other fields");
                 Self::ignore_all(&mut map)?;
-                tracing::trace!("ignored all other fields");
 
                 GatewayEvent::Heartbeat(seq)
             }
             OpCode::HeartbeatAck => {
                 tracing::trace!("deserializing gateway heartbeat ack");
 
-                tracing::trace!("ignoring all other fields");
                 Self::ignore_all(&mut map)?;
-                tracing::trace!("ignored all other fields");
 
                 GatewayEvent::HeartbeatAck
             }
@@ -319,9 +399,7 @@ impl<'de> Visitor<'de> for GatewayEventVisitor<'_> {
                 let hello = Self::field::<Hello, _>(&mut map, Field::D)?;
                 tracing::trace!(hello = ?hello);
 
-                tracing::trace!("ignoring all other fields");
                 Self::ignore_all(&mut map)?;
-                tracing::trace!("ignored all other fields");
 
                 GatewayEvent::Hello(hello.heartbeat_interval)
             }
@@ -330,17 +408,13 @@ impl<'de> Visitor<'de> for GatewayEventVisitor<'_> {
                 let invalidate = Self::field::<bool, _>(&mut map, Field::D)?;
                 tracing::trace!(invalidate = %invalidate);
 
-                tracing::trace!("ignoring all other fields");
                 Self::ignore_all(&mut map)?;
-                tracing::trace!("ignored all other fields");
 
                 GatewayEvent::InvalidateSession(invalidate)
             }
             OpCode::Identify => return Err(DeError::unknown_variant("Identify", VALID_OPCODES)),
             OpCode::Reconnect => {
-                tracing::trace!("ignoring all other fields");
                 Self::ignore_all(&mut map)?;
-                tracing::trace!("ignored all other fields");
 
                 GatewayEvent::Reconnect
             }
@@ -373,7 +447,7 @@ impl<'de> DeserializeSeed<'de> for GatewayEventDeserializer<'_> {
         deserializer.deserialize_struct(
             "GatewayEvent",
             FIELDS,
-            GatewayEventVisitor(self.op, self.event_type.as_deref()),
+            GatewayEventVisitor(self.op, self.sequence, self.event_type.as_deref()),
         )
     }
 }
@@ -387,7 +461,7 @@ impl<'de> DeserializeSeed<'de> for GatewayEventDeserializerOwned {
         deserializer.deserialize_struct(
             "GatewayEvent",
             FIELDS,
-            GatewayEventVisitor(self.op, self.event_type.as_deref()),
+            GatewayEventVisitor(self.op, self.sequence, self.event_type.as_deref()),
         )
     }
 }

@@ -1,4 +1,5 @@
 use bitflags::bitflags;
+use std::convert::TryFrom;
 use twilight_model::gateway::event::EventType;
 
 bitflags! {
@@ -172,6 +173,26 @@ impl From<EventType> for EventTypeFlags {
             EventType::VoiceServerUpdate => EventTypeFlags::VOICE_SERVER_UPDATE,
             EventType::VoiceStateUpdate => EventTypeFlags::VOICE_STATE_UPDATE,
             EventType::WebhooksUpdate => EventTypeFlags::WEBHOOKS_UPDATE,
+        }
+    }
+}
+
+impl<'a> TryFrom<(u8, Option<&'a str>)> for EventTypeFlags {
+    type Error = (u8, Option<&'a str>);
+
+    fn try_from((op, event_type): (u8, Option<&'a str>)) -> Result<Self, Self::Error> {
+        match (op, event_type) {
+            (1, _) => Ok(EventTypeFlags::GATEWAY_HEARTBEAT),
+            (7, _) => Ok(EventTypeFlags::GATEWAY_RECONNECT),
+            (9, _) => Ok(EventTypeFlags::GATEWAY_INVALIDATE_SESSION),
+            (10, _) => Ok(EventTypeFlags::GATEWAY_HELLO),
+            (11, _) => Ok(EventTypeFlags::GATEWAY_HEARTBEAT_ACK),
+            (_, Some(event_type)) => {
+                let flag = EventType::try_from(event_type).map_err(|kind| (op, Some(kind)))?;
+
+                Ok(Self::from(flag))
+            }
+            (_, None) => Err((op, event_type)),
         }
     }
 }

@@ -2,6 +2,7 @@ use super::{
     builder::ShardBuilder,
     config::Config,
     event::Events,
+    json,
     processor::{ConnectingError, Latency, Session, ShardProcessor},
     sink::ShardSink,
     stage::Stage,
@@ -365,6 +366,13 @@ impl Shard {
     /// There can be multiple streams of events. All events will be broadcast to
     /// all streams of events.
     ///
+    /// **Note** that we *highly* recommend specifying only the events that you
+    /// need via [`some_events`], especially if performance is a concern. This
+    /// will ensure that events you don't care about aren't deserialized from
+    /// received websocket messages. Gateway intents only allow specifying
+    /// categories of events, but using [`some_events`] will filter it further
+    /// on the client side.
+    ///
     /// The returned event stream implements [`futures::stream::Stream`].
     ///
     /// All event types except for [`EventType::ShardPayload`] are enabled. If
@@ -479,8 +487,7 @@ impl Shard {
         let session = self
             .session()
             .map_err(|source| CommandError::SessionInactive { source })?;
-        let json =
-            crate::json_to_string(value).map_err(|source| CommandError::Serializing { source })?;
+        let json = json::to_string(value).map_err(|source| CommandError::Serializing { source })?;
         let message = Message::Text(json);
 
         // Tick ratelimiter.

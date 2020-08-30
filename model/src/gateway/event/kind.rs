@@ -1,4 +1,5 @@
 use serde::{Deserialize, Serialize};
+use std::convert::TryFrom;
 
 /// The type of an event.
 #[derive(Clone, Copy, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
@@ -68,6 +69,113 @@ pub enum EventType {
     VoiceServerUpdate,
     VoiceStateUpdate,
     WebhooksUpdate,
+}
+
+impl EventType {
+    pub fn name(self) -> Option<&'static str> {
+        match self {
+            Self::BanAdd => Some("GUILD_BAN_ADD"),
+            Self::BanRemove => Some("GUILD_BAN_REMOVE"),
+            Self::ChannelCreate => Some("CHANNEL_CREATE"),
+            Self::ChannelDelete => Some("CHANNEL_DELETE"),
+            Self::ChannelPinsUpdate => Some("CHANNEL_PINS_UPDATE"),
+            Self::ChannelUpdate => Some("CHANNEL_UPDATE"),
+            Self::GiftCodeUpdate => Some("GIFT_CODE_UPDATE"),
+            Self::GuildCreate => Some("GUILD_CREATE"),
+            Self::GuildDelete => Some("GUILD_DELETE"),
+            Self::GuildEmojisUpdate => Some("GUILD_EMOJIS_UPDATE"),
+            Self::GuildIntegrationsUpdate => Some("GUILD_INTEGRATIONS_UPDATE"),
+            Self::GuildUpdate => Some("GUILD_UPDATE"),
+            Self::InviteCreate => Some("INVITE_CREATE"),
+            Self::InviteDelete => Some("INVITE_DELETE"),
+            Self::MemberAdd => Some("GUILD_MEMBER_ADD"),
+            Self::MemberRemove => Some("GUILD_MEMBER_REMOVE"),
+            Self::MemberUpdate => Some("GUILD_MEMBER_UPDATE"),
+            Self::MemberChunk => Some("GUILD_MEMBERS_CHUNK"),
+            Self::MessageCreate => Some("MESSAGE_CREATE"),
+            Self::MessageDelete => Some("MESSAGE_DELETE"),
+            Self::MessageDeleteBulk => Some("MESSAGE_DELETE_BULK"),
+            Self::MessageUpdate => Some("MESSAGE_UPDATE"),
+            Self::PresenceUpdate => Some("PRESENCE_UPDATE"),
+            Self::PresencesReplace => Some("PRESENCES_REPLACE"),
+            Self::ReactionAdd => Some("MESSAGE_REACTION_ADD"),
+            Self::ReactionRemove => Some("MESSAGE_REACTION_REMOVE"),
+            Self::ReactionRemoveAll => Some("MESSAGE_REACTION_REMOVE_ALL"),
+            Self::ReactionRemoveEmoji => Some("MESSAGE_REACTION_REMOVE_EMOJI"),
+            Self::Ready => Some("READY"),
+            Self::Resumed => Some("RESUMED"),
+            Self::RoleCreate => Some("GUILD_ROLE_CREATE"),
+            Self::RoleDelete => Some("GUILD_ROLE_DELETE"),
+            Self::RoleUpdate => Some("GUILD_ROLE_UPDATE"),
+            Self::TypingStart => Some("TYPING_START"),
+            Self::UnavailableGuild => Some("UNAVAILABLE_GUILD"),
+            Self::UserUpdate => Some("USER_UPDATE"),
+            Self::VoiceServerUpdate => Some("VOICE_SERVER_UPDATE"),
+            Self::VoiceStateUpdate => Some("VOICE_STATE_UPDATE"),
+            Self::WebhooksUpdate => Some("WEBHOOKS_UPDATE"),
+            Self::GatewayHeartbeat
+            | Self::GatewayHeartbeatAck
+            | Self::GatewayHello
+            | Self::GatewayInvalidateSession
+            | Self::GatewayReconnect
+            | Self::ShardConnected
+            | Self::ShardConnecting
+            | Self::ShardDisconnected
+            | Self::ShardIdentifying
+            | Self::ShardReconnecting
+            | Self::ShardPayload
+            | Self::ShardResuming => None,
+        }
+    }
+}
+
+impl<'a> TryFrom<&'a str> for EventType {
+    type Error = &'a str;
+
+    fn try_from(event_type: &'a str) -> Result<Self, Self::Error> {
+        match event_type {
+            "GUILD_BAN_ADD" => Ok(Self::BanAdd),
+            "GUILD_BAN_REMOVE" => Ok(Self::BanRemove),
+            "CHANNEL_CREATE" => Ok(Self::ChannelCreate),
+            "CHANNEL_DELETE" => Ok(Self::ChannelDelete),
+            "CHANNEL_PINS_UPDATE" => Ok(Self::ChannelPinsUpdate),
+            "CHANNEL_UPDATE" => Ok(Self::ChannelUpdate),
+            "GIFT_CODE_UPDATE" => Ok(Self::GiftCodeUpdate),
+            "GUILD_CREATE" => Ok(Self::GuildCreate),
+            "GUILD_DELETE" => Ok(Self::GuildDelete),
+            "GUILD_EMOJIS_UPDATE" => Ok(Self::GuildEmojisUpdate),
+            "GUILD_INTEGRATIONS_UPDATE" => Ok(Self::GuildIntegrationsUpdate),
+            "GUILD_UPDATE" => Ok(Self::GuildUpdate),
+            "INVITE_CREATE" => Ok(Self::InviteCreate),
+            "INVITE_DELETE" => Ok(Self::InviteDelete),
+            "GUILD_MEMBER_ADD" => Ok(Self::MemberAdd),
+            "GUILD_MEMBER_REMOVE" => Ok(Self::MemberRemove),
+            "GUILD_MEMBER_UPDATE" => Ok(Self::MemberUpdate),
+            "GUILD_MEMBERS_CHUNK" => Ok(Self::MemberChunk),
+            "MESSAGE_CREATE" => Ok(Self::MessageCreate),
+            "MESSAGE_DELETE" => Ok(Self::MessageDelete),
+            "MESSAGE_DELETE_BULK" => Ok(Self::MessageDeleteBulk),
+            "MESSAGE_UPDATE" => Ok(Self::MessageUpdate),
+            "PRESENCE_UPDATE" => Ok(Self::PresenceUpdate),
+            "PRESENCES_REPLACE" => Ok(Self::PresencesReplace),
+            "MESSAGE_REACTION_ADD" => Ok(Self::ReactionAdd),
+            "MESSAGE_REACTION_REMOVE" => Ok(Self::ReactionRemove),
+            "MESSAGE_REACTION_REMOVE_ALL" => Ok(Self::ReactionRemoveAll),
+            "MESSAGE_REACTION_REMOVE_EMOJI" => Ok(Self::ReactionRemoveEmoji),
+            "READY" => Ok(Self::Ready),
+            "RESUMED" => Ok(Self::Resumed),
+            "GUILD_ROLE_CREATE" => Ok(Self::RoleCreate),
+            "GUILD_ROLE_DELETE" => Ok(Self::RoleDelete),
+            "GUILD_ROLE_UPDATE" => Ok(Self::RoleUpdate),
+            "TYPING_START" => Ok(Self::TypingStart),
+            "UNAVAILABLE_GUILD" => Ok(Self::UnavailableGuild),
+            "USER_UPDATE" => Ok(Self::UserUpdate),
+            "VOICE_SERVER_UPDATE" => Ok(Self::VoiceServerUpdate),
+            "VOICE_STATE_UPDATE" => Ok(Self::VoiceStateUpdate),
+            "WEBHOOKS_UPDATE" => Ok(Self::WebhooksUpdate),
+            _ => Err(event_type),
+        }
+    }
 }
 
 #[cfg(test)]

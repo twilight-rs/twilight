@@ -1,5 +1,5 @@
 use super::{
-    super::stage::Stage,
+    super::{json, stage::Stage},
     heartbeat::{Heartbeater, Heartbeats},
 };
 use async_tungstenite::tungstenite::{protocol::CloseFrame, Message as TungsteniteMessage};
@@ -102,8 +102,8 @@ impl Session {
     /// [`Error::PayloadSerialization`]: ../enum.Error.html#variant.PayloadSerialization
     /// [`Error::SendingMessage`]: ../enum.Error.html#variant.SendingMessage
     pub fn send(&self, payload: impl Serialize) -> Result<(), SessionSendError> {
-        let bytes = crate::json_to_vec(&payload)
-            .map_err(|source| SessionSendError::Serializing { source })?;
+        let bytes =
+            json::to_vec(&payload).map_err(|source| SessionSendError::Serializing { source })?;
 
         self.tx
             .unbounded_send(TungsteniteMessage::Binary(bytes))
