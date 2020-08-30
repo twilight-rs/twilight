@@ -441,12 +441,12 @@ impl ShardProcessor {
             })
     }
 
-    fn process_ready(&self) -> Result<(), ProcessError> {
+    fn process_ready(&mut self) -> Result<(), ProcessError> {
         #[cfg(feature = "metrics")]
         metrics::counter!("GatewayEvent", 1, "GatewayEvent" => "Dispatch");
 
         let ready =
-            json::from_slice::<ReadyMinimal<'_>>(self.inflater.buffer_ref()).map_err(|source| {
+            json::from_slice::<ReadyMinimal<'_>>(self.inflater.buffer_mut()).map_err(|source| {
                 ProcessError::ParsingPayload {
                     source: GatewayEventParsingError::Deserializing { source },
                 }
