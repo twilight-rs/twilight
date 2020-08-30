@@ -864,7 +864,8 @@ fn channel_guild_id(channel: &Channel) -> Option<GuildId> {
 mod tests {
     use super::Standby;
     use futures_util::StreamExt;
-    use std::collections::HashMap;
+    use static_assertions::assert_impl_all;
+    use std::{collections::HashMap, fmt::Debug};
     use twilight_model::{
         channel::{
             message::{Message, MessageType},
@@ -877,6 +878,8 @@ mod tests {
         id::{ChannelId, GuildId, MessageId, RoleId, UserId},
         user::{CurrentUser, User},
     };
+
+    assert_impl_all!(Standby: Clone, Debug, Default, Send, Sync);
 
     fn message() -> Message {
         Message {
