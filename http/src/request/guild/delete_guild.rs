@@ -18,7 +18,7 @@ impl<'a> DeleteGuild<'a> {
     }
 
     fn start(&mut self) -> Result<()> {
-        self.fut.replace(Box::pin(self.http.request(Request::from(
+        self.fut.replace(Box::pin(self.http.verify(Request::from(
             Route::DeleteGuild {
                 guild_id: self.guild_id.0,
             },
