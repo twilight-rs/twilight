@@ -350,8 +350,56 @@ impl Mention<ChannelId> for &'_ VoiceChannel {
 
 #[cfg(test)]
 mod tests {
-    use super::Mention;
-    use twilight_model::id::{ChannelId, EmojiId, RoleId, UserId};
+    use super::{Mention, MentionFormat};
+    use static_assertions::assert_impl_all;
+    use std::fmt::{Debug, Display};
+    use twilight_model::{
+        channel::{
+            CategoryChannel, Channel, Group, GuildChannel, PrivateChannel, TextChannel,
+            VoiceChannel,
+        },
+        guild::{Emoji, Member, Role},
+        id::{ChannelId, EmojiId, RoleId, UserId},
+        user::{CurrentUser, User},
+    };
+
+    assert_impl_all!(MentionFormat<()>: Clone, Copy, Debug, Eq, PartialEq, Send, Sync);
+    assert_impl_all!(MentionFormat<ChannelId>: Clone, Copy, Debug, Display, Eq, PartialEq, Send, Sync);
+    assert_impl_all!(MentionFormat<EmojiId>: Clone, Copy, Debug, Display, Eq, PartialEq, Send, Sync);
+    assert_impl_all!(MentionFormat<RoleId>: Clone, Copy, Debug, Display, Eq, PartialEq, Send, Sync);
+    assert_impl_all!(MentionFormat<UserId>: Clone, Copy, Debug, Display, Eq, PartialEq, Send, Sync);
+    assert_impl_all!(ChannelId: Mention<ChannelId>);
+    assert_impl_all!(&'static ChannelId: Mention<ChannelId>);
+    assert_impl_all!(CategoryChannel: Mention<ChannelId>);
+    assert_impl_all!(&'static CategoryChannel: Mention<ChannelId>);
+    assert_impl_all!(Channel: Mention<ChannelId>);
+    assert_impl_all!(&'static Channel: Mention<ChannelId>);
+    assert_impl_all!(CurrentUser: Mention<UserId>);
+    assert_impl_all!(&'static CurrentUser: Mention<UserId>);
+    assert_impl_all!(EmojiId: Mention<EmojiId>);
+    assert_impl_all!(&'static EmojiId: Mention<EmojiId>);
+    assert_impl_all!(Emoji: Mention<EmojiId>);
+    assert_impl_all!(&'static Emoji: Mention<EmojiId>);
+    assert_impl_all!(Group: Mention<ChannelId>);
+    assert_impl_all!(&'static Group: Mention<ChannelId>);
+    assert_impl_all!(GuildChannel: Mention<ChannelId>);
+    assert_impl_all!(&'static GuildChannel: Mention<ChannelId>);
+    assert_impl_all!(Member: Mention<UserId>);
+    assert_impl_all!(&'static Member: Mention<UserId>);
+    assert_impl_all!(PrivateChannel: Mention<ChannelId>);
+    assert_impl_all!(&'static PrivateChannel: Mention<ChannelId>);
+    assert_impl_all!(RoleId: Mention<RoleId>);
+    assert_impl_all!(&'static RoleId: Mention<RoleId>);
+    assert_impl_all!(Role: Mention<RoleId>);
+    assert_impl_all!(&'static Role: Mention<RoleId>);
+    assert_impl_all!(TextChannel: Mention<ChannelId>);
+    assert_impl_all!(&'static TextChannel: Mention<ChannelId>);
+    assert_impl_all!(UserId: Mention<UserId>);
+    assert_impl_all!(&'static UserId: Mention<UserId>);
+    assert_impl_all!(User: Mention<UserId>);
+    assert_impl_all!(&'static User: Mention<UserId>);
+    assert_impl_all!(VoiceChannel: Mention<ChannelId>);
+    assert_impl_all!(&'static VoiceChannel: Mention<ChannelId>);
 
     #[test]
     fn test_mention_format_channel_id() {
