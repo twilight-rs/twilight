@@ -1,7 +1,4 @@
-use std::{
-    borrow::Cow,
-    collections::{HashMap, HashSet},
-};
+use std::{borrow::Cow, collections::HashSet};
 
 use crate::CaseSensitivity;
 
@@ -11,7 +8,7 @@ use crate::CaseSensitivity;
 #[derive(Clone, Debug, Default)]
 pub struct CommandParserConfig<'a> {
     commands: HashSet<CaseSensitivity>,
-    prefixes: HashMap<Cow<'a, str>, Cow<'a, str>>,
+    prefixes: HashSet<Cow<'a, str>>,
 }
 
 impl<'a> CommandParserConfig<'a> {
@@ -43,12 +40,12 @@ impl<'a> CommandParserConfig<'a> {
     ///
     /// [`add_prefix`]: #method.add_prefix
     /// [`remove_prefix`]: #method.remove_prefix
-    pub fn prefixes(&self) -> &HashMap<Cow<'_, str>, Cow<'_, str>> {
+    pub fn prefixes(&self) -> &HashSet<Cow<'_, str>> {
         &self.prefixes
     }
 
     /// Returns a mutable reference to the prefixes.
-    pub fn prefixes_mut(&mut self) -> &mut HashMap<Cow<'a, str>, Cow<'a, str>> {
+    pub fn prefixes_mut(&mut self) -> &mut HashSet<Cow<'a, str>> {
         &mut self.prefixes
     }
 
@@ -114,10 +111,12 @@ impl<'a> CommandParserConfig<'a> {
     /// assert_eq!(1, config.prefixes().len());
     /// ```
     pub fn add_prefix(&mut self, prefix: impl Into<Cow<'a, str>>) {
-        self.prefixes.insert(prefix.into(), Cow::Borrowed(""));
+        self.prefixes.insert(prefix.into());
     }
 
     /// Removes a prefix from the list of prefixes.
+    ///
+    /// Returns true when a prefix with the name was removed.
     ///
     /// # Examples
     ///
@@ -133,7 +132,7 @@ impl<'a> CommandParserConfig<'a> {
     /// config.remove_prefix("!");
     /// assert_eq!(1, config.prefixes().len());
     /// ```
-    pub fn remove_prefix(&mut self, prefix: impl Into<Cow<'a, str>>) -> Option<Cow<'a, str>> {
+    pub fn remove_prefix(&mut self, prefix: impl Into<Cow<'a, str>>) -> bool {
         self.prefixes.remove(&prefix.into())
     }
 }
