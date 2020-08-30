@@ -72,8 +72,8 @@
 //!
 //! ### zlib
 //!
-//! The `stock-zlib` feature disables [`flate2`]'s [`zlib-ng-compat`] feature which
-//! uses the [`zlib-ng`] fork of zlib, the system zlib will then be used instead.
+//! The `stock-zlib` feature enables [`flate2`]'s [`zlib`] feature which makes
+//! [`flate2`] use system zlib instead of [`zlib-ng`].
 //!
 //! This is not enabled by default.
 //!
