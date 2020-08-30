@@ -14,3 +14,6 @@ version = "0.1.0"
 
 [dependencies]
 twilight-model = { path = "../../model", default-features = false }
+
+[dev-dependencies]
+static_assertions = { default-features = false, version = "1" }

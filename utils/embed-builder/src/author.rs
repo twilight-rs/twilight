@@ -145,8 +145,32 @@ impl From<EmbedAuthorBuilder> for EmbedAuthor {
 mod tests {
     use super::{EmbedAuthorBuilder, EmbedAuthorNameError};
     use crate::ImageSource;
-    use std::error::Error;
+    use static_assertions::{assert_fields, assert_impl_all, const_assert};
+    use std::{error::Error, fmt::Debug};
     use twilight_model::channel::embed::EmbedAuthor;
+
+    assert_impl_all!(
+        EmbedAuthorNameError: Clone,
+        Debug,
+        Error,
+        Eq,
+        PartialEq,
+        Send,
+        Sync
+    );
+    assert_fields!(EmbedAuthorNameError::Empty: name);
+    assert_fields!(EmbedAuthorNameError::TooLong: name);
+    assert_impl_all!(
+        EmbedAuthorBuilder: Clone,
+        Debug,
+        Default,
+        Eq,
+        PartialEq,
+        Send,
+        Sync
+    );
+    const_assert!(EmbedAuthorBuilder::NAME_LENGTH_LIMIT == 256);
+    assert_impl_all!(EmbedAuthor: From<EmbedAuthorBuilder>);
 
     #[test]
     fn test_defaults() {

@@ -610,10 +610,72 @@ impl TryFrom<EmbedBuilder> for Embed {
 
 #[cfg(test)]
 mod tests {
-    use super::{EmbedBuilder, EmbedColorError, EmbedDescriptionError, EmbedTitleError};
+    use super::{
+        EmbedBuildError, EmbedBuilder, EmbedColorError, EmbedDescriptionError, EmbedTitleError,
+    };
     use crate::{field::EmbedFieldBuilder, footer::EmbedFooterBuilder, image_source::ImageSource};
-    use std::error::Error;
+    use static_assertions::{assert_fields, assert_impl_all, const_assert};
+    use std::{convert::TryFrom, error::Error, fmt::Debug};
     use twilight_model::channel::embed::{Embed, EmbedField, EmbedFooter};
+
+    assert_impl_all!(
+        EmbedBuildError: Clone,
+        Debug,
+        Error,
+        Eq,
+        PartialEq,
+        Send,
+        Sync
+    );
+    assert_fields!(EmbedBuildError::ContentTooLarge: length);
+    assert_fields!(EmbedBuildError::TooManyFields: fields);
+    assert_impl_all!(
+        EmbedColorError: Clone,
+        Debug,
+        Error,
+        Eq,
+        PartialEq,
+        Send,
+        Sync
+    );
+    assert_fields!(EmbedColorError::NotRgb: color);
+    assert_impl_all!(
+        EmbedDescriptionError: Clone,
+        Debug,
+        Error,
+        Eq,
+        PartialEq,
+        Send,
+        Sync
+    );
+    assert_fields!(EmbedDescriptionError::Empty: description);
+    assert_fields!(EmbedDescriptionError::TooLong: description);
+    assert_impl_all!(
+        EmbedTitleError: Clone,
+        Debug,
+        Error,
+        Eq,
+        PartialEq,
+        Send,
+        Sync
+    );
+    assert_fields!(EmbedTitleError::Empty: title);
+    assert_fields!(EmbedTitleError::TooLong: title);
+    assert_impl_all!(
+        EmbedBuilder: Clone,
+        Debug,
+        Default,
+        Eq,
+        PartialEq,
+        Send,
+        Sync
+    );
+    const_assert!(EmbedBuilder::COLOR_MAXIMUM == 0xff_ff_ff);
+    const_assert!(EmbedBuilder::DESCRIPTION_LENGTH_LIMIT == 2048);
+    const_assert!(EmbedBuilder::EMBED_FIELD_LIMIT == 25);
+    const_assert!(EmbedBuilder::EMBED_LENGTH_LIMIT == 6000);
+    const_assert!(EmbedBuilder::TITLE_LENGTH_LIMIT == 256);
+    assert_impl_all!(Embed: TryFrom<EmbedBuilder>);
 
     #[test]
     fn test_color_error() -> Result<(), Box<dyn Error>> {
