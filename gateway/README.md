@@ -74,17 +74,19 @@ This is enabled by default.
 
 ### zlib
 
-The `simd-zlib` feature enables [`flate2`]'s [`cloudflare_zlib`] feature which
-uses Cloudflares SIMD-accelerated fork of zlib.
+The `stock-zlib` feature disables [`flate2`]'s [`zlib-ng-compat`] feature which
+uses the [`zlib-ng`] fork of zlib, the system zlib will then be used instead.
+
+This is not enabled by default.
 
 [`async-tungstenite`]: https://crates.io/crates/async-tungstenite
-[`cloudflare_zlib`]: https://crates.io/crates/cloudflare-zlib
 [`flate2`]: https://crates.io/crates/flate2
 [`native-tls`]: https://crates.io/crates/native-tls
 [`rustls`]: https://crates.io/crates/rustls
 [`serde_json`]: https://crates.io/crates/serde_json
 [`simd-json`]: https://crates.io/crates/simd-json
 [`twilight-http`]: https://twilight-rs.github.io/twilight/twilight_http/index.html
+[`zlib-ng`]: https://github.com/zlib-ng/zlib-ng
 [discord badge]: https://img.shields.io/discord/745809834183753828?color=%237289DA&label=discord%20server&logo=discord&style=for-the-badge
 [discord link]: https://discord.gg/7jj8n7D
 [docs:discord:sharding]: https://discord.com/developers/docs/topics/gateway#sharding
