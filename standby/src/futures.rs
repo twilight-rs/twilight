@@ -151,3 +151,23 @@ impl Stream for WaitForReactionStream {
         self.rx.poll_next_unpin(cx)
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::{
+        WaitForEventFuture, WaitForEventStream, WaitForGuildEventFuture, WaitForGuildEventStream,
+        WaitForMessageFuture, WaitForMessageStream, WaitForReactionFuture, WaitForReactionStream,
+    };
+    use futures_util::stream::Stream;
+    use static_assertions::assert_impl_all;
+    use std::{fmt::Debug, future::Future};
+
+    assert_impl_all!(WaitForEventFuture: Debug, Future, Send, Sync);
+    assert_impl_all!(WaitForGuildEventFuture: Debug, Future, Send, Sync);
+    assert_impl_all!(WaitForMessageFuture: Debug, Future, Send, Sync);
+    assert_impl_all!(WaitForReactionFuture: Debug, Future, Send, Sync);
+    assert_impl_all!(WaitForEventStream: Debug, Stream, Send, Sync);
+    assert_impl_all!(WaitForGuildEventStream: Debug, Stream, Send, Sync);
+    assert_impl_all!(WaitForMessageStream: Debug, Stream, Send, Sync);
+    assert_impl_all!(WaitForReactionStream: Debug, Stream, Send, Sync);
+}
