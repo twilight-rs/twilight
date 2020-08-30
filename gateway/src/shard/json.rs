@@ -1,7 +1,7 @@
-#[cfg(feature = "simd-json")]
-pub use simd_json::{from_slice, from_str, to_string, to_vec, Error as JsonError};
 #[cfg(not(feature = "simd-json"))]
 pub use serde_json::{from_slice, from_str, to_string, to_vec, Error as JsonError};
+#[cfg(feature = "simd-json")]
+pub use simd_json::{from_slice, from_str, to_string, to_vec, Error as JsonError};
 
 use std::{
     error::Error,
