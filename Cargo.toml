@@ -6,7 +6,6 @@ members = [
     "gateway/examples/cluster",
     "gateway/examples/intents",
     "gateway/examples/metrics",
-    "gateway/examples/queue",
     "gateway/examples/request-members",
     "gateway/examples/shard",
     "http",
