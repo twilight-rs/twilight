@@ -132,8 +132,24 @@ impl From<EmbedFooterBuilder> for EmbedFooter {
 mod tests {
     use super::{EmbedFooterBuilder, EmbedFooterTextError};
     use crate::ImageSource;
-    use std::error::Error;
+    use static_assertions::{assert_fields, assert_impl_all, const_assert};
+    use std::{error::Error, fmt::Debug};
     use twilight_model::channel::embed::EmbedFooter;
+
+    assert_impl_all!(
+        EmbedFooterTextError: Clone,
+        Debug,
+        Error,
+        Eq,
+        PartialEq,
+        Send,
+        Sync
+    );
+    assert_fields!(EmbedFooterTextError::Empty: text);
+    assert_fields!(EmbedFooterTextError::TooLong: text);
+    assert_impl_all!(EmbedFooterBuilder: Clone, Debug, Eq, PartialEq, Send, Sync);
+    const_assert!(EmbedFooterBuilder::TEXT_LENGTH_LIMIT == 2048);
+    assert_impl_all!(EmbedFooter: From<EmbedFooterBuilder>);
 
     #[test]
     fn test_text() -> Result<(), Box<dyn Error>> {

@@ -179,8 +179,27 @@ impl From<EmbedFieldBuilder> for EmbedField {
 #[cfg(test)]
 mod tests {
     use super::{EmbedFieldBuilder, EmbedFieldError};
-    use std::error::Error;
+    use static_assertions::{assert_fields, assert_impl_all, const_assert};
+    use std::{error::Error, fmt::Debug};
     use twilight_model::channel::embed::EmbedField;
+
+    assert_impl_all!(
+        EmbedFieldError: Clone,
+        Debug,
+        Error,
+        Eq,
+        PartialEq,
+        Send,
+        Sync
+    );
+    assert_fields!(EmbedFieldError::NameEmpty: name, value);
+    assert_fields!(EmbedFieldError::NameTooLong: name, value);
+    assert_fields!(EmbedFieldError::ValueEmpty: name, value);
+    assert_fields!(EmbedFieldError::ValueTooLong: name, value);
+    assert_impl_all!(EmbedFieldBuilder: Clone, Debug, Eq, PartialEq, Send, Sync);
+    const_assert!(EmbedFieldBuilder::NAME_LENGTH_LIMIT == 256);
+    const_assert!(EmbedFieldBuilder::VALUE_LENGTH_LIMIT == 1024);
+    assert_impl_all!(EmbedField: From<EmbedFieldBuilder>);
 
     #[test]
     fn test_new_errors() {

@@ -122,7 +122,29 @@ impl ImageSource {
 #[cfg(test)]
 mod tests {
     use super::{ImageSource, ImageSourceAttachmentError, ImageSourceUrlError};
-    use std::error::Error;
+    use static_assertions::{assert_fields, assert_impl_all};
+    use std::{error::Error, fmt::Debug};
+
+    assert_impl_all!(
+        ImageSourceAttachmentError: Clone,
+        Debug,
+        Error,
+        Eq,
+        PartialEq,
+        Send,
+        Sync
+    );
+    assert_impl_all!(
+        ImageSourceUrlError: Clone,
+        Debug,
+        Error,
+        Eq,
+        PartialEq,
+        Send,
+        Sync
+    );
+    assert_fields!(ImageSourceUrlError::ProtocolUnsupported: url);
+    assert_impl_all!(ImageSource: Clone, Debug, Eq, PartialEq, Send, Sync);
 
     #[test]
     fn test_attachment() -> Result<(), Box<dyn Error>> {
