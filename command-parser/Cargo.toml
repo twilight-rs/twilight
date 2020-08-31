@@ -14,3 +14,11 @@ version = "0.1.0"
 
 [dependencies]
 unicase = { default-features = false, version = "2" }
+
+[dev-dependencies]
+criterion = "0.3"
+
+
+[[bench]]
+name = "prefix"
+harness = false
