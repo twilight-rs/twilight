@@ -74,7 +74,7 @@ This is enabled by default.
 
 ### zlib
 
-The `stock-zlib` feature enables [`flate2`]'s [`zlib`] feature which makes
+The `stock-zlib` feature enables [`flate2`]'s `zlib` feature which makes
 [`flate2`] use system zlib instead of [`zlib-ng`].
 
 This is not enabled by default.
