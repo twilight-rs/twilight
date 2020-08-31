@@ -116,7 +116,7 @@ impl<'a> CommandParserConfig<'a> {
 
     /// Removes a prefix from the list of prefixes.
     ///
-    /// Returns true when a prefix with the name was removed.
+    /// Returns whether a prefix with the name was removed.
     ///
     /// # Examples
     ///
