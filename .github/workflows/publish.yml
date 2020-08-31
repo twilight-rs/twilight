@@ -49,3 +49,4 @@ jobs:
           publish_branch: gh-pages
           publish_dir: target/doc
           allow_empty_commit: true
+          cname: twilight.rs
