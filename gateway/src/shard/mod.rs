@@ -28,6 +28,7 @@ mod builder;
 mod config;
 mod event;
 mod r#impl;
+mod json;
 mod processor;
 mod sink;
 

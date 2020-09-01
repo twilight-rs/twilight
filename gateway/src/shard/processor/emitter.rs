@@ -1,9 +1,53 @@
+use super::super::json::{self, GatewayEventParsingError};
 use crate::{listener::Listeners, EventTypeFlags};
+use std::{
+    convert::TryFrom,
+    error::Error,
+    fmt::{Display, Formatter, Result as FmtResult},
+};
 use twilight_model::gateway::event::{shard::Payload, Event};
+
+#[derive(Debug)]
+pub enum EmitJsonError {
+    /// Provided event type and/or opcode combination doesn't match a known
+    /// event type flag.
+    EventTypeUnknown {
+        /// Received dispatch event type.
+        event_type: Option<String>,
+        /// Received opcode.
+        op: u8,
+    },
+    /// Parsing a a gateway event failed.
+    Parsing {
+        /// Reason for the error.
+        source: GatewayEventParsingError,
+    },
+}
+
+impl Display for EmitJsonError {
+    fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
+        match self {
+            Self::EventTypeUnknown { event_type, op } => f.write_fmt(format_args!(
+                "provided event type ({:?})/op ({}) pair is unknown",
+                event_type, op,
+            )),
+            Self::Parsing { source } => Display::fmt(source, f),
+        }
+    }
+}
+
+impl Error for EmitJsonError {
+    fn source(&self) -> Option<&(dyn Error + 'static)> {
+        match self {
+            Self::EventTypeUnknown { .. } => None,
+            Self::Parsing { source } => Some(source),
+        }
+    }
+}
 
 /// Emitter over a map of listeners with some useful things on top to abstract
 /// common operations.
-#[derive(Debug)]
+#[derive(Clone, Debug)]
 pub struct Emitter {
     listeners: Listeners<Event>,
 }
@@ -19,6 +63,11 @@ impl Emitter {
         self.listeners
     }
 
+    /// Determine if any of the listeners want a certain event type.
+    pub fn wants(&self, event_type: EventTypeFlags) -> bool {
+        self.listeners.event_types().contains(event_type)
+    }
+
     /// Send some bytes to listeners that have subscribed to shard payloads.
     ///
     /// Shard payload events aren't subscribed to by default and must be opted in
@@ -26,6 +75,10 @@ impl Emitter {
     /// cloned. This means that for most users, this will be a cheap check.
     #[tracing::instrument(level = "trace")]
     pub fn bytes(&self, bytes: &[u8]) {
+        if !self.wants(EventTypeFlags::SHARD_PAYLOAD) {
+            return;
+        }
+
         self.send(EventTypeFlags::SHARD_PAYLOAD, |_| {
             Event::ShardPayload(Payload {
                 bytes: bytes.to_vec(),
@@ -36,8 +89,13 @@ impl Emitter {
     /// Send an event to listeners that have subscribed to its event type.
     #[tracing::instrument(level = "trace")]
     pub fn event(&self, event: Event) {
-        let listener_count = self.listeners.len();
         let event_type = EventTypeFlags::from(event.kind());
+
+        if !self.wants(event_type) {
+            return;
+        }
+
+        let listener_count = self.listeners.len();
         let mut event = Some(event);
 
         self.send(event_type, |idx| {
@@ -56,6 +114,33 @@ impl Emitter {
                 event.clone().unwrap()
             }
         })
+    }
+
+    /// Emit a JSON payload that hasn't been deserialized yet, but only if at
+    /// least one of the listeners wants the event type.
+    pub fn json(
+        &self,
+        op: u8,
+        seq: Option<u64>,
+        event_type: Option<&str>,
+        json: &mut str,
+    ) -> Result<(), EmitJsonError> {
+        let flag = EventTypeFlags::try_from((op, event_type)).map_err(|(op, event_type)| {
+            EmitJsonError::EventTypeUnknown {
+                event_type: event_type.map(ToOwned::to_owned),
+                op,
+            }
+        })?;
+
+        if !self.wants(flag) {
+            return Ok(());
+        }
+
+        let gateway_event = json::parse_gateway_event(op, seq, event_type, json)
+            .map_err(|source| EmitJsonError::Parsing { source })?;
+        self.event(Event::from(gateway_event));
+
+        Ok(())
     }
 
     fn send(&self, event_type: EventTypeFlags, mut f: impl FnMut(usize) -> Event) {

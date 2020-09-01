@@ -320,6 +320,15 @@ impl Cluster {
     ///
     /// Each item in the stream contains both the shard's ID and the event
     /// itself.
+    ///
+    /// **Note** that we *highly* recommend specifying only the events that you
+    /// need via [`some_events`], especially if performance is a concern. This
+    /// will ensure that events you don't care about aren't deserialized from
+    /// received websocket messages. Gateway intents only allow specifying
+    /// categories of events, but using [`some_events`] will filter it further
+    /// on the client side.
+    ///
+    /// [`some_events`]: #method.some_events
     pub fn events<'a>(&'a self) -> impl Stream<Item = (u64, Event)> + 'a {
         self.some_events(EventTypeFlags::default())
     }

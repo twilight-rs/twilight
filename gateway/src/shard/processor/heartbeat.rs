@@ -1,4 +1,4 @@
-use super::session::SessionSendError;
+use super::{super::json, session::SessionSendError};
 use async_tungstenite::tungstenite::Message as TungsteniteMessage;
 use futures_channel::mpsc::UnboundedSender;
 use std::{
@@ -225,7 +225,7 @@ impl Heartbeater {
 
             let seq = self.seq.load(Ordering::Acquire);
             let heartbeat = Heartbeat::new(seq);
-            let bytes = crate::json_to_vec(&heartbeat)
+            let bytes = json::to_vec(&heartbeat)
                 .map_err(|source| SessionSendError::Serializing { source })?;
 
             tracing::debug!(seq, "sending heartbeat");

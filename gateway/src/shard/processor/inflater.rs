@@ -27,6 +27,16 @@ impl Inflater {
         }
     }
 
+    /// Return an immutable reference to the buffer.
+    pub fn buffer_ref(&self) -> &[u8] {
+        self.buffer.as_slice()
+    }
+
+    /// Return a mutable reference to the buffer.
+    pub fn buffer_mut(&mut self) -> &mut [u8] {
+        self.buffer.as_mut_slice()
+    }
+
     /// Extend the internal compressed buffer with bytes.
     pub fn extend(&mut self, slice: &[u8]) {
         self.compressed.extend_from_slice(&slice);
