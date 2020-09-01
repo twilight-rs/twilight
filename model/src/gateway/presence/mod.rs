@@ -21,7 +21,9 @@ use crate::{
     user::User,
 };
 use serde::{
-    de::{value::MapAccessDeserializer, DeserializeSeed, Deserializer, MapAccess, SeqAccess, Visitor},
+    de::{
+        value::MapAccessDeserializer, DeserializeSeed, Deserializer, MapAccess, SeqAccess, Visitor,
+    },
     Deserialize, Serialize,
 };
 use serde_mappable_seq::Key;
@@ -162,10 +164,13 @@ impl<'de> DeserializeSeed<'de> for PresenceMapDeserializer {
 
 #[cfg(test)]
 mod tests {
-    use super::{Activity, ActivityEmoji, ActivityType, ClientStatus, PresenceMapDeserializer, Presence, Status, UserOrId};
+    use super::{
+        Activity, ActivityEmoji, ActivityType, ClientStatus, Presence, PresenceMapDeserializer,
+        Status, UserOrId,
+    };
     use crate::id::{GuildId, UserId};
-    use serde_json::Deserializer;
     use serde::de::DeserializeSeed;
+    use serde_json::Deserializer;
     use serde_test::Token;
     use std::collections::HashMap;
 
@@ -329,19 +334,22 @@ mod tests {
         }]"#;
 
         let mut expected = HashMap::new();
-        expected.insert(UserId(1), Presence {
-            activities: vec![],
-            client_status: ClientStatus {
-                desktop: Some(Status::Online),
-                mobile: None,
-                web: None,
+        expected.insert(
+            UserId(1),
+            Presence {
+                activities: vec![],
+                client_status: ClientStatus {
+                    desktop: Some(Status::Online),
+                    mobile: None,
+                    web: None,
+                },
+                game: None,
+                guild_id: GuildId(2),
+                nick: None,
+                status: Status::Online,
+                user: UserOrId::UserId { id: UserId(1) },
             },
-            game: None,
-            guild_id: GuildId(2),
-            nick: None,
-            status: Status::Online,
-            user: UserOrId::UserId { id: UserId(1) },
-        });
+        );
 
         let mut json_deserializer = Deserializer::from_str(input);
         let deserializer = PresenceMapDeserializer::new(GuildId(2));
