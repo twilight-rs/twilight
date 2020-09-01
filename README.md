@@ -116,31 +116,30 @@ use twilight_model::gateway::GatewayIntents;
 async fn main() -> Result<(), Box<dyn Error + Send + Sync>> {
     let token = env::var("DISCORD_TOKEN")?;
 
-    // This is also the default.
+    // This is the default scheme. It will automatically create as many
+    // shards as is suggested by Discord.
     let scheme = ShardScheme::Auto;
 
     let cluster = Cluster::builder(&token)
         .shard_scheme(scheme)
-        // Use intents to only listen to GUILD_MESSAGES events
-        .intents(Some(
-            GatewayIntents::GUILD_MESSAGES | GatewayIntents::DIRECT_MESSAGES,
-        ))
+        // Use intents to only receive guild message events.
+        .intents(Some(GatewayIntents::GUILD_MESSAGES))
         .build()
         .await?;
 
-    // Start up the cluster
+    // Start up the cluster.
     let cluster_spawn = cluster.clone();
 
+    // Start all shards in the cluster in the background.
     tokio::spawn(async move {
         cluster_spawn.up().await;
     });
 
-    // The http client is seperate from the gateway,
-    // so startup a new one
+    // HTTP is separate from the gateway, so create a new client.
     let http = HttpClient::new(&token);
 
-    // Since we only care about messages, make the cache only
-    // cache message related events
+    // Since we only care about new messages, make the cache only
+    // cache new messages.
     let cache = InMemoryCache::builder()
         .event_types(
             EventType::MESSAGE_CREATE
@@ -151,12 +150,12 @@ async fn main() -> Result<(), Box<dyn Error + Send + Sync>> {
         .build();
 
     let mut events = cluster.events();
-    // Startup an event loop for each event in the event stream
+
+    // Process each event as they come in.
     while let Some((shard_id, event)) = events.next().await {
-        // Update the cache
+        // Update the cache with the event.
         cache.update(&event);
 
-        // Spawn a new task to handle the event
         tokio::spawn(handle_event(shard_id, event, http.clone()));
     }
 
@@ -175,6 +174,7 @@ async fn handle_event(
         Event::ShardConnected(_) => {
             println!("Connected on shard {}", shard_id);
         }
+        // Other events here...
         _ => {}
     }
 
