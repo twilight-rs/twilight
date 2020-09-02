@@ -1,8 +1,8 @@
 use crate::request::prelude::*;
 use twilight_model::{
-    channel::ReactionType,
     id::{ChannelId, MessageId},
 };
+use crate::client::ReactionType;
 
 /// Create a reaction in a [`ChannelId`] on a [`MessageId`].
 ///
@@ -12,9 +12,9 @@ use twilight_model::{
 /// ```rust,no_run
 /// use twilight_http::Client;
 /// use twilight_model::{
-///     channel::ReactionType,
 ///     id::{ChannelId, MessageId},
 /// };
+/// use twilight_http::client::ReactionType;
 ///
 /// # #[tokio::main]
 /// # async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
@@ -32,7 +32,7 @@ use twilight_model::{
 ///
 /// [`ChannelId`]: ../../../../twilight_model/id/struct.ChannelId.html
 /// [`MessageId`]: ../../../../twilight_model/id/struct.MessageId.html
-/// [`ReactionType`]: ../../../../twilight_model/channel/enum.ReactionType.html
+/// [`ReactionType`]: ../../../client/enum.ReactionType.html
 pub struct CreateReaction<'a> {
     channel_id: ChannelId,
     emoji: String,

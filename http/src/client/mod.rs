@@ -24,7 +24,6 @@ use std::{
     sync::Arc,
 };
 use twilight_model::{
-    channel::ReactionType,
     guild::Permissions,
     id::{ChannelId, EmojiId, GuildId, IntegrationId, MessageId, RoleId, UserId, WebhookId},
 };
@@ -47,6 +46,16 @@ impl Debug for State {
             .field("use_http", &self.use_http)
             .finish()
     }
+}
+
+pub enum ReactionType {
+    Unicode {
+        name: String
+    },
+    Custom {
+        id: EmojiId,
+        name: Option<String>
+    },
 }
 
 /// Twilight's http client.
@@ -686,7 +695,7 @@ impl Client {
     pub fn update_guild_channel_positions(
         &self,
         guild_id: GuildId,
-        channel_positions: impl Iterator<Item = (ChannelId, u64)>,
+        channel_positions: impl Iterator<Item=(ChannelId, u64)>,
     ) -> UpdateGuildChannelPositions<'_> {
         UpdateGuildChannelPositions::new(self, guild_id, channel_positions)
     }
@@ -1090,13 +1099,13 @@ impl Client {
     /// ```rust,no_run
     /// # use twilight_http::Client;
     /// # use twilight_model::{
-    /// #     channel::ReactionType,
     /// #     id::{ChannelId, MessageId},
     /// # };
     /// #
     /// # #[tokio::main]
     /// # async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
-    /// # let client = Client::new("my token");
+    /// # use twilight_http::client::ReactionType;
+    /// let client = Client::new("my token");
     /// #
     /// let channel_id = ChannelId(123);
     /// let message_id = MessageId(456);
@@ -1110,7 +1119,7 @@ impl Client {
     ///
     /// [`ChannelId`]: ../../twilight_model/id/struct.ChannelId.html
     /// [`MessageId`]: ../../twilight_model/id/struct.MessageId.html
-    /// [`ReactionType`]: ../../twilight_model/channel/enum.ReactionType.html
+    /// [`ReactionType`]: ../client/enum.ReactionType.html
     pub fn create_reaction(
         &self,
         channel_id: ChannelId,
@@ -1216,7 +1225,7 @@ impl Client {
     pub fn update_role_positions(
         &self,
         guild_id: GuildId,
-        roles: impl Iterator<Item = (RoleId, u64)>,
+        roles: impl Iterator<Item=(RoleId, u64)>,
     ) -> UpdateRolePositions<'_> {
         UpdateRolePositions::new(self, guild_id, roles)
     }
@@ -1409,11 +1418,11 @@ impl Client {
 
         let precision = HeaderValue::from_static("millisecond");
         let user_agent = HeaderValue::from_static(concat!(
-            "DiscordBot (",
-            env!("CARGO_PKG_HOMEPAGE"),
-            ", ",
-            env!("CARGO_PKG_VERSION"),
-            ") Twilight-rs",
+        "DiscordBot (",
+        env!("CARGO_PKG_HOMEPAGE"),
+        ", ",
+        env!("CARGO_PKG_VERSION"),
+        ") Twilight-rs",
         ));
         builder = builder.header("X-RateLimit-Precision", precision);
         builder = builder.header("User-Agent", user_agent);
@@ -1573,6 +1582,7 @@ fn parse_webhook_url(
 mod tests {
     use super::{parse_webhook_url, WebhookId};
     use std::error::Error;
+
     #[test]
     fn parse_webhook_id() -> Result<(), Box<dyn Error>> {
         assert_eq!(

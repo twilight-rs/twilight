@@ -12,18 +12,17 @@ pub use self::{
 };
 
 use std::fmt::Write;
-use twilight_model::channel::ReactionType;
+use crate::client::ReactionType;
 
 fn format_emoji(emoji: ReactionType) -> String {
     match emoji {
-        ReactionType::Custom { id, name, .. } => {
+        ReactionType::Custom { id, name } => {
             let mut emoji = String::new();
             match name {
                 Some(name) => emoji.push_str(name.as_ref()),
                 None => emoji.push_str("e"),
             }
             let _ = write!(emoji, ":{}", id);
-
             emoji
         }
         ReactionType::Unicode { name } => name,

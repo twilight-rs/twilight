@@ -1,8 +1,8 @@
 use crate::request::prelude::*;
 use twilight_model::{
-    channel::ReactionType,
     id::{ChannelId, MessageId},
 };
+use crate::client::ReactionType;
 
 /// Delete one reaction by a user on a message.
 pub struct DeleteReaction<'a> {
