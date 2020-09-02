@@ -83,11 +83,11 @@ impl<'a> CommandParserConfig<'a> {
         } else {
             CaseSensitivity::Insensitive(name.into())
         };
-        if !self.commands.contains(&command) {
+        if self.commands.contains(&command) {
+            false
+        } else {
             self.commands.push(command);
             true
-        } else {
-            false
         }
     }
 
@@ -126,11 +126,11 @@ impl<'a> CommandParserConfig<'a> {
     /// ```
     pub fn add_prefix(&mut self, prefix: impl Into<Cow<'a, str>>) -> bool {
         let prefix = prefix.into();
-        if !self.prefixes.contains(&prefix) {
+        if self.prefixes.contains(&prefix) {
+            false
+        } else {
             self.prefixes.push(prefix);
             true
-        } else {
-            false
         }
     }
 
