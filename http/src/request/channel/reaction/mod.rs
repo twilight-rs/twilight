@@ -11,8 +11,8 @@ pub use self::{
     get_reactions::GetReactions,
 };
 
-use std::fmt::Write;
 use crate::client::ReactionType;
+use std::fmt::Write;
 
 fn format_emoji(emoji: ReactionType) -> String {
     match emoji {

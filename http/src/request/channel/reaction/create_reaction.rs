@@ -1,8 +1,6 @@
-use crate::request::prelude::*;
-use twilight_model::{
-    id::{ChannelId, MessageId},
-};
 use crate::client::ReactionType;
+use crate::request::prelude::*;
+use twilight_model::id::{ChannelId, MessageId};
 
 /// Create a reaction in a [`ChannelId`] on a [`MessageId`].
 ///

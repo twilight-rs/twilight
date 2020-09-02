@@ -49,13 +49,8 @@ impl Debug for State {
 }
 
 pub enum ReactionType {
-    Unicode {
-        name: String
-    },
-    Custom {
-        id: EmojiId,
-        name: Option<String>
-    },
+    Unicode { name: String },
+    Custom { id: EmojiId, name: Option<String> },
 }
 
 /// Twilight's http client.
@@ -695,7 +690,7 @@ impl Client {
     pub fn update_guild_channel_positions(
         &self,
         guild_id: GuildId,
-        channel_positions: impl Iterator<Item=(ChannelId, u64)>,
+        channel_positions: impl Iterator<Item = (ChannelId, u64)>,
     ) -> UpdateGuildChannelPositions<'_> {
         UpdateGuildChannelPositions::new(self, guild_id, channel_positions)
     }
@@ -1225,7 +1220,7 @@ impl Client {
     pub fn update_role_positions(
         &self,
         guild_id: GuildId,
-        roles: impl Iterator<Item=(RoleId, u64)>,
+        roles: impl Iterator<Item = (RoleId, u64)>,
     ) -> UpdateRolePositions<'_> {
         UpdateRolePositions::new(self, guild_id, roles)
     }
@@ -1418,11 +1413,11 @@ impl Client {
 
         let precision = HeaderValue::from_static("millisecond");
         let user_agent = HeaderValue::from_static(concat!(
-        "DiscordBot (",
-        env!("CARGO_PKG_HOMEPAGE"),
-        ", ",
-        env!("CARGO_PKG_VERSION"),
-        ") Twilight-rs",
+            "DiscordBot (",
+            env!("CARGO_PKG_HOMEPAGE"),
+            ", ",
+            env!("CARGO_PKG_VERSION"),
+            ") Twilight-rs",
         ));
         builder = builder.header("X-RateLimit-Precision", precision);
         builder = builder.header("User-Agent", user_agent);
