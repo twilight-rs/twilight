@@ -1,4 +1,5 @@
-use std::{borrow::Cow, collections::HashSet};
+use std::borrow::Cow;
+use std::slice::{Iter, IterMut};
 
 use crate::CaseSensitivity;
 
@@ -7,8 +8,8 @@ use crate::CaseSensitivity;
 /// [`Parser`]: struct.Parser.html
 #[derive(Clone, Debug, Default)]
 pub struct CommandParserConfig<'a> {
-    commands: HashSet<CaseSensitivity>,
-    prefixes: HashSet<Cow<'a, str>>,
+    pub(crate) commands: Vec<CaseSensitivity>,
+    pub(crate) prefixes: Vec<Cow<'a, str>>,
 }
 
 impl<'a> CommandParserConfig<'a> {
@@ -17,36 +18,44 @@ impl<'a> CommandParserConfig<'a> {
         Self::default()
     }
 
-    /// Returns an immutable reference to the commands.
-    pub fn commands(&self) -> &HashSet<CaseSensitivity> {
-        &self.commands
+    /// Returns an immutable iterator for the commands.
+    pub fn commands(&self) -> Commands<'_> {
+        Commands {
+            iter: self.commands.iter(),
+        }
     }
 
-    /// Returns a mutable reference to the commands.
+    /// Returns a mutable iterator for the commands.
     ///
     /// Use the [`command`] and [`remove_command`] methods for an easier way to
     /// manage commands.
     ///
     /// [`command`]: #method.command
     /// [`remove_command`]: #method.remove_command
-    pub fn commands_mut(&mut self) -> &mut HashSet<CaseSensitivity> {
-        &mut self.commands
+    pub fn commands_mut(&mut self) -> CommandsMut<'_> {
+        CommandsMut {
+            iter: self.commands.iter_mut(),
+        }
     }
 
-    /// Returns an immutable reference to the prefixes.
+    /// Returns an immutable iterator for the prefixes.
     ///
     /// Use the [`add_prefix`] and [`remove_prefix`] methods for an easier way
     /// to manage prefixes.
     ///
     /// [`add_prefix`]: #method.add_prefix
     /// [`remove_prefix`]: #method.remove_prefix
-    pub fn prefixes(&self) -> &HashSet<Cow<'_, str>> {
-        &self.prefixes
+    pub fn prefixes(&self) -> Prefixes<'_> {
+        Prefixes {
+            iter: self.prefixes.iter(),
+        }
     }
 
-    /// Returns a mutable reference to the prefixes.
-    pub fn prefixes_mut(&mut self) -> &mut HashSet<Cow<'a, str>> {
-        &mut self.prefixes
+    /// Returns a mutable iterator for the prefixes.
+    pub fn prefixes_mut(&'a mut self) -> PrefixesMut<'a> {
+        PrefixesMut {
+            iter: self.prefixes.iter_mut(),
+        }
     }
 
     /// Add a command to the list of commands.
@@ -74,7 +83,12 @@ impl<'a> CommandParserConfig<'a> {
         } else {
             CaseSensitivity::Insensitive(name.into())
         };
-        self.commands.insert(command)
+        if !self.commands.contains(&command) {
+            self.commands.push(command);
+            true
+        } else {
+            false
+        }
     }
 
     /// Removes a command from the list of commands.
@@ -93,7 +107,7 @@ impl<'a> CommandParserConfig<'a> {
     ///
     /// // Now remove it and verify that there are no commands.
     /// config.remove_command("ping");
-    /// assert!(config.commands().is_empty());
+    /// assert_eq!(config.commands().len(), 0);
     /// ```
     pub fn remove_command(&mut self, command: impl AsRef<str>) {
         self.commands.retain(|c| c != command.as_ref());
@@ -110,8 +124,14 @@ impl<'a> CommandParserConfig<'a> {
     /// config.add_prefix("!");
     /// assert_eq!(1, config.prefixes().len());
     /// ```
-    pub fn add_prefix(&mut self, prefix: impl Into<Cow<'a, str>>) {
-        self.prefixes.insert(prefix.into());
+    pub fn add_prefix(&mut self, prefix: impl Into<Cow<'a, str>>) -> bool {
+        let prefix = prefix.into();
+        if !self.prefixes.contains(&prefix) {
+            self.prefixes.push(prefix);
+            true
+        } else {
+            false
+        }
     }
 
     /// Removes a prefix from the list of prefixes.
@@ -132,10 +152,320 @@ impl<'a> CommandParserConfig<'a> {
     /// config.remove_prefix("!");
     /// assert_eq!(1, config.prefixes().len());
     /// ```
-    pub fn remove_prefix(&mut self, prefix: impl Into<Cow<'a, str>>) -> bool {
-        self.prefixes.remove(&prefix.into())
+    pub fn remove_prefix(&mut self, prefix: impl Into<Cow<'a, str>>) -> Option<Cow<'a, str>> {
+        let needle = prefix.into();
+        let pos = self.prefixes.iter().position(|e| *e == needle)?;
+        Some(self.prefixes.remove(pos))
     }
 }
+
+pub struct Commands<'a> {
+    iter: Iter<'a, CaseSensitivity>,
+}
+
+impl<'a> Iterator for Commands<'a> {
+    type Item = &'a CaseSensitivity;
+
+    fn next(&mut self) -> Option<Self::Item> {
+        self.iter.next()
+    }
+
+    fn size_hint(&self) -> (usize, Option<usize>) {
+        self.iter.size_hint()
+    }
+
+    fn count(self) -> usize {
+        self.iter.count()
+    }
+
+    fn nth(&mut self, n: usize) -> Option<Self::Item> {
+        self.iter.nth(n)
+    }
+
+    fn last(self) -> Option<Self::Item> {
+        self.iter.last()
+    }
+
+    fn for_each<F>(self, f: F)
+    where
+        F: FnMut(Self::Item),
+    {
+        self.iter.for_each(f)
+    }
+
+    fn all<F>(&mut self, f: F) -> bool
+    where
+        Self: Sized,
+        F: FnMut(Self::Item) -> bool,
+    {
+        self.iter.all(f)
+    }
+
+    fn any<F>(&mut self, f: F) -> bool
+    where
+        Self: Sized,
+        F: FnMut(Self::Item) -> bool,
+    {
+        self.iter.any(f)
+    }
+
+    fn find<P>(&mut self, predicate: P) -> Option<Self::Item>
+    where
+        Self: Sized,
+        P: FnMut(&Self::Item) -> bool,
+    {
+        self.iter.find(predicate)
+    }
+
+    fn find_map<B, F>(&mut self, f: F) -> Option<B>
+    where
+        Self: Sized,
+        F: FnMut(Self::Item) -> Option<B>,
+    {
+        self.iter.find_map(f)
+    }
+
+    fn position<P>(&mut self, predicate: P) -> Option<usize>
+    where
+        Self: Sized,
+        P: FnMut(Self::Item) -> bool,
+    {
+        self.iter.position(predicate)
+    }
+}
+
+impl<'a> ExactSizeIterator for Commands<'a> {}
+
+pub struct CommandsMut<'a> {
+    iter: IterMut<'a, CaseSensitivity>,
+}
+
+impl<'a> Iterator for CommandsMut<'a> {
+    type Item = &'a mut CaseSensitivity;
+
+    fn next(&mut self) -> Option<Self::Item> {
+        self.iter.next()
+    }
+
+    fn size_hint(&self) -> (usize, Option<usize>) {
+        self.iter.size_hint()
+    }
+
+    fn count(self) -> usize {
+        self.iter.count()
+    }
+
+    fn nth(&mut self, n: usize) -> Option<Self::Item> {
+        self.iter.nth(n)
+    }
+
+    fn last(self) -> Option<Self::Item> {
+        self.iter.last()
+    }
+
+    fn for_each<F>(self, f: F)
+    where
+        F: FnMut(Self::Item),
+    {
+        self.iter.for_each(f)
+    }
+
+    fn all<F>(&mut self, f: F) -> bool
+    where
+        Self: Sized,
+        F: FnMut(Self::Item) -> bool,
+    {
+        self.iter.all(f)
+    }
+
+    fn any<F>(&mut self, f: F) -> bool
+    where
+        Self: Sized,
+        F: FnMut(Self::Item) -> bool,
+    {
+        self.iter.any(f)
+    }
+
+    fn find<P>(&mut self, predicate: P) -> Option<Self::Item>
+    where
+        Self: Sized,
+        P: FnMut(&Self::Item) -> bool,
+    {
+        self.iter.find(predicate)
+    }
+
+    fn find_map<B, F>(&mut self, f: F) -> Option<B>
+    where
+        Self: Sized,
+        F: FnMut(Self::Item) -> Option<B>,
+    {
+        self.iter.find_map(f)
+    }
+
+    fn position<P>(&mut self, predicate: P) -> Option<usize>
+    where
+        Self: Sized,
+        P: FnMut(Self::Item) -> bool,
+    {
+        self.iter.position(predicate)
+    }
+}
+
+impl<'a> ExactSizeIterator for CommandsMut<'a> {}
+
+pub struct Prefixes<'a> {
+    iter: Iter<'a, Cow<'a, str>>,
+}
+
+impl<'a> Iterator for Prefixes<'a> {
+    type Item = &'a Cow<'a, str>;
+
+    fn next(&mut self) -> Option<Self::Item> {
+        self.iter.next()
+    }
+
+    fn size_hint(&self) -> (usize, Option<usize>) {
+        self.iter.size_hint()
+    }
+
+    fn count(self) -> usize {
+        self.iter.count()
+    }
+
+    fn nth(&mut self, n: usize) -> Option<Self::Item> {
+        self.iter.nth(n)
+    }
+
+    fn last(self) -> Option<Self::Item> {
+        self.iter.last()
+    }
+
+    fn for_each<F>(self, f: F)
+    where
+        F: FnMut(Self::Item),
+    {
+        self.iter.for_each(f)
+    }
+
+    fn all<F>(&mut self, f: F) -> bool
+    where
+        Self: Sized,
+        F: FnMut(Self::Item) -> bool,
+    {
+        self.iter.all(f)
+    }
+
+    fn any<F>(&mut self, f: F) -> bool
+    where
+        Self: Sized,
+        F: FnMut(Self::Item) -> bool,
+    {
+        self.iter.any(f)
+    }
+
+    fn find<P>(&mut self, predicate: P) -> Option<Self::Item>
+    where
+        Self: Sized,
+        P: FnMut(&Self::Item) -> bool,
+    {
+        self.iter.find(predicate)
+    }
+
+    fn find_map<B, F>(&mut self, f: F) -> Option<B>
+    where
+        Self: Sized,
+        F: FnMut(Self::Item) -> Option<B>,
+    {
+        self.iter.find_map(f)
+    }
+
+    fn position<P>(&mut self, predicate: P) -> Option<usize>
+    where
+        Self: Sized,
+        P: FnMut(Self::Item) -> bool,
+    {
+        self.iter.position(predicate)
+    }
+}
+
+impl<'a> ExactSizeIterator for Prefixes<'a> {}
+
+pub struct PrefixesMut<'a> {
+    iter: IterMut<'a, Cow<'a, str>>,
+}
+
+impl<'a> Iterator for PrefixesMut<'a> {
+    type Item = &'a mut Cow<'a, str>;
+
+    fn next(&mut self) -> Option<Self::Item> {
+        self.iter.next()
+    }
+
+    fn size_hint(&self) -> (usize, Option<usize>) {
+        self.iter.size_hint()
+    }
+
+    fn count(self) -> usize {
+        self.iter.count()
+    }
+
+    fn nth(&mut self, n: usize) -> Option<Self::Item> {
+        self.iter.nth(n)
+    }
+
+    fn last(self) -> Option<Self::Item> {
+        self.iter.last()
+    }
+
+    fn for_each<F>(self, f: F)
+    where
+        F: FnMut(Self::Item),
+    {
+        self.iter.for_each(f)
+    }
+
+    fn all<F>(&mut self, f: F) -> bool
+    where
+        Self: Sized,
+        F: FnMut(Self::Item) -> bool,
+    {
+        self.iter.all(f)
+    }
+
+    fn any<F>(&mut self, f: F) -> bool
+    where
+        Self: Sized,
+        F: FnMut(Self::Item) -> bool,
+    {
+        self.iter.any(f)
+    }
+
+    fn find<P>(&mut self, predicate: P) -> Option<Self::Item>
+    where
+        Self: Sized,
+        P: FnMut(&Self::Item) -> bool,
+    {
+        self.iter.find(predicate)
+    }
+
+    fn find_map<B, F>(&mut self, f: F) -> Option<B>
+    where
+        Self: Sized,
+        F: FnMut(Self::Item) -> Option<B>,
+    {
+        self.iter.find_map(f)
+    }
+
+    fn position<P>(&mut self, predicate: P) -> Option<usize>
+    where
+        Self: Sized,
+        P: FnMut(Self::Item) -> bool,
+    {
+        self.iter.position(predicate)
+    }
+}
+
+impl<'a> ExactSizeIterator for PrefixesMut<'a> {}
 
 #[cfg(test)]
 mod tests {
@@ -144,9 +474,9 @@ mod tests {
     #[test]
     fn test_getters() {
         let mut config = CommandParserConfig::new();
-        assert!(config.commands().is_empty());
-        assert!(config.commands_mut().is_empty());
-        assert!(config.prefixes().is_empty());
-        assert!(config.prefixes_mut().is_empty());
+        assert!(config.commands().len() == 0);
+        assert!(config.commands_mut().len() == 0);
+        assert!(config.prefixes().len() == 0);
+        assert!(config.prefixes_mut().len() == 0);
     }
 }

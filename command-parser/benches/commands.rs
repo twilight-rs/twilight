@@ -5,7 +5,6 @@ use std::{
     collections::{BTreeSet, HashSet},
 };
 
-
 fn btreeset(set: &BTreeSet<Cow<'static, str>>, needle: &str) {
     let start = needle.get(0..1).unwrap();
     set.range(Cow::from(start)..)
@@ -97,7 +96,7 @@ fn criterion_benchmark(c: &mut Criterion) {
         for e in commands.iter() {
             set.insert(Cow::from(*e));
         }
-        
+
         b.iter(|| {
             for command in commands.iter() {
                 hashset(&set, command);

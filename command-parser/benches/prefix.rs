@@ -1,21 +1,34 @@
 use criterion::{criterion_group, criterion_main, Criterion};
-use std::{borrow::Cow, collections::{BTreeSet, HashSet}};
 use patricia_tree::PatriciaSet;
+use std::{
+    borrow::Cow,
+    collections::{BTreeSet, HashSet},
+};
 
 fn btreeset(set: &BTreeSet<Cow<'static, str>>) {
-    set.iter().find(|item| ("!command").starts_with(item.as_ref())).unwrap();
+    set.iter()
+        .find(|item| ("!command").starts_with(item.as_ref()))
+        .unwrap();
 }
 
 fn hashset(set: &HashSet<Cow<'static, str>>) {
-    set.iter().find(|item| ("!command").starts_with(item.as_ref())).unwrap();
+    set.iter()
+        .find(|item| ("!command").starts_with(item.as_ref()))
+        .unwrap();
 }
 
 fn vec(items: &[Cow<'static, str>]) {
-    items.iter().find(|item| ("!command").starts_with(item.as_ref())).unwrap();
+    items
+        .iter()
+        .find(|item| ("!command").starts_with(item.as_ref()))
+        .unwrap();
 }
 
 fn vec_worst_case(items: &[Cow<'static, str>]) {
-    items.iter().find(|item| ("!command").starts_with(item.as_ref())).unwrap();
+    items
+        .iter()
+        .find(|item| ("!command").starts_with(item.as_ref()))
+        .unwrap();
 }
 
 fn patricia_tree(items: &PatriciaSet) {

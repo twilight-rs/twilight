@@ -140,7 +140,7 @@ impl<'a> Parser<'a> {
 
     fn find_command(&'a self, buf: &'a str) -> Option<&'a str> {
         let buf = buf.split_whitespace().next()?;
-        self.config.commands().iter().find_map(|command| {
+        self.config.commands.iter().find_map(|command| {
             if command == buf {
                 Some(command.as_ref())
             } else {
@@ -150,7 +150,7 @@ impl<'a> Parser<'a> {
     }
 
     fn find_prefix(&self, buf: &str) -> Option<&str> {
-        self.config.prefixes().iter().find_map(|prefix| {
+        self.config.prefixes.iter().find_map(|prefix| {
             if buf.starts_with(prefix.as_ref()) {
                 Some(prefix.as_ref())
             } else {
@@ -223,7 +223,7 @@ mod tests {
 
         // Case sensitive
         let config = parser.config_mut();
-        config.commands_mut().clear();
+        config.commands.clear();
         config.add_command("echo", true);
         config.add_command("wei\u{df}", true);
         config.add_command("\u{394}", true);
