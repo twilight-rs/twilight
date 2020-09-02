@@ -173,65 +173,6 @@ impl<'a> Iterator for Commands<'a> {
     fn size_hint(&self) -> (usize, Option<usize>) {
         self.iter.size_hint()
     }
-
-    fn count(self) -> usize {
-        self.iter.count()
-    }
-
-    fn nth(&mut self, n: usize) -> Option<Self::Item> {
-        self.iter.nth(n)
-    }
-
-    fn last(self) -> Option<Self::Item> {
-        self.iter.last()
-    }
-
-    fn for_each<F>(self, f: F)
-    where
-        F: FnMut(Self::Item),
-    {
-        self.iter.for_each(f)
-    }
-
-    fn all<F>(&mut self, f: F) -> bool
-    where
-        Self: Sized,
-        F: FnMut(Self::Item) -> bool,
-    {
-        self.iter.all(f)
-    }
-
-    fn any<F>(&mut self, f: F) -> bool
-    where
-        Self: Sized,
-        F: FnMut(Self::Item) -> bool,
-    {
-        self.iter.any(f)
-    }
-
-    fn find<P>(&mut self, predicate: P) -> Option<Self::Item>
-    where
-        Self: Sized,
-        P: FnMut(&Self::Item) -> bool,
-    {
-        self.iter.find(predicate)
-    }
-
-    fn find_map<B, F>(&mut self, f: F) -> Option<B>
-    where
-        Self: Sized,
-        F: FnMut(Self::Item) -> Option<B>,
-    {
-        self.iter.find_map(f)
-    }
-
-    fn position<P>(&mut self, predicate: P) -> Option<usize>
-    where
-        Self: Sized,
-        P: FnMut(Self::Item) -> bool,
-    {
-        self.iter.position(predicate)
-    }
 }
 
 impl<'a> ExactSizeIterator for Commands<'a> {}
@@ -249,65 +190,6 @@ impl<'a> Iterator for CommandsMut<'a> {
 
     fn size_hint(&self) -> (usize, Option<usize>) {
         self.iter.size_hint()
-    }
-
-    fn count(self) -> usize {
-        self.iter.count()
-    }
-
-    fn nth(&mut self, n: usize) -> Option<Self::Item> {
-        self.iter.nth(n)
-    }
-
-    fn last(self) -> Option<Self::Item> {
-        self.iter.last()
-    }
-
-    fn for_each<F>(self, f: F)
-    where
-        F: FnMut(Self::Item),
-    {
-        self.iter.for_each(f)
-    }
-
-    fn all<F>(&mut self, f: F) -> bool
-    where
-        Self: Sized,
-        F: FnMut(Self::Item) -> bool,
-    {
-        self.iter.all(f)
-    }
-
-    fn any<F>(&mut self, f: F) -> bool
-    where
-        Self: Sized,
-        F: FnMut(Self::Item) -> bool,
-    {
-        self.iter.any(f)
-    }
-
-    fn find<P>(&mut self, predicate: P) -> Option<Self::Item>
-    where
-        Self: Sized,
-        P: FnMut(&Self::Item) -> bool,
-    {
-        self.iter.find(predicate)
-    }
-
-    fn find_map<B, F>(&mut self, f: F) -> Option<B>
-    where
-        Self: Sized,
-        F: FnMut(Self::Item) -> Option<B>,
-    {
-        self.iter.find_map(f)
-    }
-
-    fn position<P>(&mut self, predicate: P) -> Option<usize>
-    where
-        Self: Sized,
-        P: FnMut(Self::Item) -> bool,
-    {
-        self.iter.position(predicate)
     }
 }
 
@@ -327,65 +209,6 @@ impl<'a> Iterator for Prefixes<'a> {
     fn size_hint(&self) -> (usize, Option<usize>) {
         self.iter.size_hint()
     }
-
-    fn count(self) -> usize {
-        self.iter.count()
-    }
-
-    fn nth(&mut self, n: usize) -> Option<Self::Item> {
-        self.iter.nth(n)
-    }
-
-    fn last(self) -> Option<Self::Item> {
-        self.iter.last()
-    }
-
-    fn for_each<F>(self, f: F)
-    where
-        F: FnMut(Self::Item),
-    {
-        self.iter.for_each(f)
-    }
-
-    fn all<F>(&mut self, f: F) -> bool
-    where
-        Self: Sized,
-        F: FnMut(Self::Item) -> bool,
-    {
-        self.iter.all(f)
-    }
-
-    fn any<F>(&mut self, f: F) -> bool
-    where
-        Self: Sized,
-        F: FnMut(Self::Item) -> bool,
-    {
-        self.iter.any(f)
-    }
-
-    fn find<P>(&mut self, predicate: P) -> Option<Self::Item>
-    where
-        Self: Sized,
-        P: FnMut(&Self::Item) -> bool,
-    {
-        self.iter.find(predicate)
-    }
-
-    fn find_map<B, F>(&mut self, f: F) -> Option<B>
-    where
-        Self: Sized,
-        F: FnMut(Self::Item) -> Option<B>,
-    {
-        self.iter.find_map(f)
-    }
-
-    fn position<P>(&mut self, predicate: P) -> Option<usize>
-    where
-        Self: Sized,
-        P: FnMut(Self::Item) -> bool,
-    {
-        self.iter.position(predicate)
-    }
 }
 
 impl<'a> ExactSizeIterator for Prefixes<'a> {}
@@ -403,65 +226,6 @@ impl<'a> Iterator for PrefixesMut<'a> {
 
     fn size_hint(&self) -> (usize, Option<usize>) {
         self.iter.size_hint()
-    }
-
-    fn count(self) -> usize {
-        self.iter.count()
-    }
-
-    fn nth(&mut self, n: usize) -> Option<Self::Item> {
-        self.iter.nth(n)
-    }
-
-    fn last(self) -> Option<Self::Item> {
-        self.iter.last()
-    }
-
-    fn for_each<F>(self, f: F)
-    where
-        F: FnMut(Self::Item),
-    {
-        self.iter.for_each(f)
-    }
-
-    fn all<F>(&mut self, f: F) -> bool
-    where
-        Self: Sized,
-        F: FnMut(Self::Item) -> bool,
-    {
-        self.iter.all(f)
-    }
-
-    fn any<F>(&mut self, f: F) -> bool
-    where
-        Self: Sized,
-        F: FnMut(Self::Item) -> bool,
-    {
-        self.iter.any(f)
-    }
-
-    fn find<P>(&mut self, predicate: P) -> Option<Self::Item>
-    where
-        Self: Sized,
-        P: FnMut(&Self::Item) -> bool,
-    {
-        self.iter.find(predicate)
-    }
-
-    fn find_map<B, F>(&mut self, f: F) -> Option<B>
-    where
-        Self: Sized,
-        F: FnMut(Self::Item) -> Option<B>,
-    {
-        self.iter.find_map(f)
-    }
-
-    fn position<P>(&mut self, predicate: P) -> Option<usize>
-    where
-        Self: Sized,
-        P: FnMut(Self::Item) -> bool,
-    {
-        self.iter.position(predicate)
     }
 }
 

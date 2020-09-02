@@ -77,11 +77,7 @@ fn criterion_benchmark(c: &mut Criterion) {
     ];
 
     c.bench_function("c: btreeset", |b| {
-        let mut set = BTreeSet::new();
-
-        for e in commands.iter() {
-            set.insert(Cow::from(*e));
-        }
+        let mut set = BTreeSet::from_iter(commands.iter().map(Cow::from));
 
         b.iter(|| {
             for command in commands.iter() {
@@ -91,7 +87,7 @@ fn criterion_benchmark(c: &mut Criterion) {
     });
 
     c.bench_function("c: hashset", |b| {
-        let mut set = HashSet::new();
+        let mut set = HashSet::from_iter(commands.iter().map(Cow::from));
 
         for e in commands.iter() {
             set.insert(Cow::from(*e));
@@ -115,10 +111,7 @@ fn criterion_benchmark(c: &mut Criterion) {
     });
 
     c.bench_function("c: patricia_tree", |b| {
-        let mut set = PatriciaSet::new();
-        for e in commands.iter() {
-            set.insert(e);
-        }
+        let mut set = PatriciaSet::from_iter(commands.iter());
 
         b.iter(|| {
             for command in commands.iter() {
