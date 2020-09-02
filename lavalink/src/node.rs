@@ -3,7 +3,7 @@
 //! Using nodes, you can send events to a server and receive events.
 //!
 //! This is a bit more low level than using the [`Lavalink`] client because you
-//! will need to provide your own [`VoiceUpdate`] events when your bot joins
+//! will need to provide your own `VoiceUpdate` events when your bot joins
 //! channels, meaning you will have to accumulate and combine voice state update
 //! and voice server update events from the Discord gateway to send them to
 //! a node.
@@ -17,7 +17,6 @@
 //!
 //! [`Lavalink`]: ../client/struct.Lavalink.html
 //! [`PlayerManager`]: ../player/struct.PlayerManager.html
-//! [`VoiceUpdate`]: ../model/struct.VoiceUpdate.html
 
 use crate::{
     model::{IncomingEvent, Opcode, OutgoingEvent, PlayerUpdate, Stats, StatsCpu, StatsMemory},

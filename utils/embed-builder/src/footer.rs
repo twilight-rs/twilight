@@ -43,7 +43,7 @@ impl Error for EmbedFooterTextError {}
 ///
 /// This can be passed into [`EmbedBuilder::footer`].
 ///
-/// [`EmbedBuilder::footer`]: struct.EmbedBuilder.html#method.footer
+/// [`EmbedBuilder::footer`]: ../builder/struct.EmbedBuilder.html#method.footer
 #[derive(Clone, Debug, Eq, PartialEq)]
 #[must_use = "must be built into an embed footer"]
 pub struct EmbedFooterBuilder(EmbedFooter);
@@ -66,8 +66,8 @@ impl EmbedFooterBuilder {
     /// longer than the limit defined at [`TEXT_LENGTH_LIMIT`].
     ///
     /// [`TEXT_LENGTH_LIMIT`]: #const.TEXT_LENGTH_LIMIT
-    /// [`EmbedFooterTextError::Empty`]: enum.EmbedFooterTextError.variant.Empty
-    /// [`EmbedFooterTextError::TooLong`]: enum.EmbedFooterTextError.variant.TooLong
+    /// [`EmbedFooterTextError::Empty`]: enum.EmbedFooterTextError.html#variant.Empty
+    /// [`EmbedFooterTextError::TooLong`]: enum.EmbedFooterTextError.html#variant.TooLong
     pub fn new(text: impl Into<String>) -> Result<Self, EmbedFooterTextError> {
         Self::_new(text.into())
     }

@@ -114,8 +114,8 @@ impl Player {
     /// # Ok(()) }
     /// ```
     ///
-    /// [`Pause`]: ../model/struct.Pause.html
-    /// [`Play`]: ../model/struct.Play.html
+    /// [`Pause`]: ../model/outgoing/struct.Pause.html
+    /// [`Play`]: ../model/outgoing/struct.Play.html
     pub fn send(&self, event: impl Into<OutgoingEvent>) -> Result<(), TrySendError<OutgoingEvent>> {
         self._send(event.into())
     }

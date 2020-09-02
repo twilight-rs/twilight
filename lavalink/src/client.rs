@@ -81,7 +81,7 @@ struct LavalinkRef {
 /// information about the active playing information of a guild and allows you to send events to the
 /// connected node, such as [`Play`] events.
 ///
-/// [`Play`]: ../model/struct.Play.html
+/// [`Play`]: ../model/outgoing/struct.Play.html
 /// [`player`]: #method.player
 /// [`process`]: #method.process
 #[derive(Clone, Debug)]
