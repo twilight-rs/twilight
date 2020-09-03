@@ -347,7 +347,7 @@ impl ShardProcessor {
             let json = str::from_utf8_mut(self.inflater.buffer_mut())
                 .map_err(|source| ProcessError::PayloadNotUtf8 { source })?;
 
-            tracing::debug!("{}", json);
+            tracing::trace!(%json, "Received JSON");
             let emitter = self.emitter.clone();
 
             let (op, seq, event_type) =
