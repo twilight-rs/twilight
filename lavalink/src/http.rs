@@ -35,7 +35,7 @@ pub struct Track {
     pub info: TrackInfo,
     /// The base64 track string that you use in the [`Play`] event.
     ///
-    /// [`Play`]: ../model/struct.Play.html
+    /// [`Play`]: ../model/outgoing/struct.Play.html
     pub track: String,
 }
 

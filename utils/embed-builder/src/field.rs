@@ -65,7 +65,7 @@ impl Error for EmbedFieldError {}
 ///
 /// Fields are not inlined by default. Use [`inline`] to inline a field.
 ///
-/// [`EmbedBuilder::field`]: struct.EmbedBuilder.html#method.field
+/// [`EmbedBuilder::field`]: ../builder/struct.EmbedBuilder.html#method.field
 /// [`inline`]: #method.inline
 #[derive(Clone, Debug, Eq, PartialEq)]
 #[must_use = "must be built into an embed field"]

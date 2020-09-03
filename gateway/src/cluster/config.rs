@@ -32,9 +32,9 @@ impl Config {
     /// Return an immutable reference to the configuration used to create
     /// shards.
     ///
-    /// Refer to [`shard::config::ClusterBuilder`]'s methods for the default values.
+    /// Refer to [`ShardBuilder`]'s methods for the default values.
     ///
-    /// [`shard::config::ClusterBuilder`]: ../../shard/config/struct.ShardConfigBuilder.html#methods
+    /// [`ShardBuilder`]: ../shard/struct.ShardBuilder.html#methods
     pub fn shard_config(&self) -> &ShardConfig {
         &self.shard_config
     }

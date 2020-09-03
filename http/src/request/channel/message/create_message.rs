@@ -145,7 +145,7 @@ impl<'a> CreateMessage<'a> {
     /// Returns [`CreateMessageError::EmbedTooLarge`] if the embed is too large.
     ///
     /// [the discord docs]: https://discord.com/developers/docs/resources/channel#embed-limits
-    /// [`EmbedBuilder`]: ../../../../../twilight_builders/embed/struct.EmbedBuilder.html
+    /// [`EmbedBuilder`]: ../../../../../twilight_embed_builder/builder/struct.EmbedBuilder.html
     /// [`CreateMessageError::EmbedTooLarge`]: enum.CreateMessageError.html#variant.EmbedTooLarge
     pub fn embed(mut self, embed: Embed) -> Result<Self, CreateMessageError> {
         if let Err(source) = validate::embed(&embed) {

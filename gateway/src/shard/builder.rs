@@ -10,9 +10,9 @@ use twilight_model::gateway::{payload::update_status::UpdateStatusInfo, GatewayI
 
 /// Large threshold configuration is invalid.
 ///
-/// Returned by [`ShardConfigBuilder::large_threshold`].
+/// Returned by [`ShardBuilder::large_threshold`].
 ///
-/// [`ShardConfigBuilder::large_threshold`]: struct.ShardConfigBuilder.html#method.large_threshold
+/// [`ShardBuilder::large_threshold`]: struct.ShardBuilder.html#method.large_threshold
 #[derive(Debug)]
 pub enum LargeThresholdError {
     /// Provided large threshold value is too few in number.
@@ -40,9 +40,9 @@ impl Error for LargeThresholdError {}
 
 /// Shard ID configuration is invalid.
 ///
-/// Returned by [`ShardConfigBuilder::shard`].
+/// Returned by [`ShardBuilder::shard`].
 ///
-/// [`ShardConfigBuilder::shard`]: struct.ShardConfigBuilder.html#method.shard
+/// [`ShardBuilder::shard`]: struct.ShardBuilder.html#method.shard
 #[derive(Debug)]
 pub enum ShardIdError {
     /// Provided shard ID is higher than provided total shard count.

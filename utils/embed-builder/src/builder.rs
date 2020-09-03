@@ -321,8 +321,8 @@ impl EmbedBuilder {
     /// an acceptable value.
     ///
     /// [`COLOR_MAXIMUM`]: #const.COLOR_MAXIMUM
-    /// [`EmbedError::NotRgb`]: enum.EmbedError.html#variant.NotRgb
-    /// [`EmbedError::Zero`]: enum.EmbedError.html#variant.Zero
+    /// [`EmbedError::NotRgb`]: enum.EmbedColorError.html#variant.NotRgb
+    /// [`EmbedError::Zero`]: enum.EmbedColorError.html#variant.Zero
     pub fn color(mut self, color: u32) -> Result<Self, EmbedColorError> {
         if color == 0 {
             return Err(EmbedColorError::Zero);

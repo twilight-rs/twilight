@@ -43,7 +43,7 @@ impl Error for EmbedAuthorNameError {}
 ///
 /// This can be passed into [`EmbedBuilder::author`].
 ///
-/// [`EmbedBuilder::author`]: struct.EmbedBuilder.html#method.author
+/// [`EmbedBuilder::author`]: ../builder/struct.EmbedBuilder.html#method.author
 #[derive(Clone, Debug, Eq, PartialEq)]
 #[must_use = "must be built into an embed author"]
 pub struct EmbedAuthorBuilder(EmbedAuthor);

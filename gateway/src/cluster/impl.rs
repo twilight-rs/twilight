@@ -64,7 +64,7 @@ pub enum ClusterStartError {
     /// number of recommended number of shards to start fails, which can happen
     /// due to something like a network or response parsing issue.
     ///
-    /// [automatic sharding]: config/enum.ShardScheme.html#variant.Auto
+    /// [automatic sharding]: enum.ShardScheme.html#variant.Auto
     RetrievingGatewayInfo {
         /// Reason for the error.
         source: HttpError,

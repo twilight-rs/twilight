@@ -34,7 +34,7 @@
 //! [`Cluster`]: ../cluster/struct.Cluster.html
 //! [`LargeBotQueue`]: struct.LargeBotQueue.html
 //! [`LocalQueue`]: struct.LocalQueue.html
-//! [`ShardBuilder::queue`]: ../Shard/struct.ShardBuilder.html#method.queue
+//! [`ShardBuilder::queue`]: ../shard/struct.ShardBuilder.html#method.queue
 //! [`Shard`]: ../shard/struct.Shard.html
 //! [Sharding for Very Large Bots]: https://discord.com/developers/docs/topics/gateway#sharding-for-very-large-bots
 
