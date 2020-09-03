@@ -50,6 +50,7 @@ impl Error for ShardSchemeRangeError {}
 ///
 /// [`Auto`]: #variant.Auto
 #[derive(Clone, Copy, Debug, Eq, Hash, PartialEq, PartialOrd, Ord)]
+#[non_exhaustive]
 pub enum ShardScheme {
     /// Specifies to retrieve the amount of shards recommended by Discord and
     /// then start all of them.
