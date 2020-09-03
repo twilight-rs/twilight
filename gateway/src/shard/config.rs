@@ -1,7 +1,7 @@
 use crate::queue::Queue;
 use std::sync::Arc;
 use twilight_http::Client;
-use twilight_model::gateway::{payload::update_status::UpdateStatusInfo, GatewayIntents};
+use twilight_model::gateway::{payload::update_status::UpdateStatusInfo, Intents};
 
 /// The configuration used by the shard to identify with the gateway and
 /// operate.
@@ -12,7 +12,7 @@ use twilight_model::gateway::{payload::update_status::UpdateStatusInfo, GatewayI
 #[derive(Clone, Debug)]
 pub struct Config {
     pub(super) http_client: Client,
-    pub(super) intents: Option<GatewayIntents>,
+    pub(super) intents: Option<Intents>,
     pub(super) large_threshold: u64,
     pub(super) presence: Option<UpdateStatusInfo>,
     pub(super) queue: Arc<Box<dyn Queue>>,
@@ -30,7 +30,7 @@ impl Config {
     }
 
     /// Return an immutable reference to the intents that the gateway is using.
-    pub fn intents(&self) -> Option<&GatewayIntents> {
+    pub fn intents(&self) -> Option<&Intents> {
         self.intents.as_ref()
     }
 

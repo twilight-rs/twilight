@@ -5,7 +5,7 @@ use serde::{
 };
 
 bitflags! {
-    pub struct GatewayIntents: u64 {
+    pub struct Intents: u64 {
         const GUILDS = 1;
         const GUILD_MEMBERS = 1 << 1;
         const GUILD_BANS = 1 << 2;
@@ -24,13 +24,13 @@ bitflags! {
     }
 }
 
-impl<'de> Deserialize<'de> for GatewayIntents {
+impl<'de> Deserialize<'de> for Intents {
     fn deserialize<D: Deserializer<'de>>(deserializer: D) -> Result<Self, D::Error> {
         Ok(Self::from_bits_truncate(u64::deserialize(deserializer)?))
     }
 }
 
-impl Serialize for GatewayIntents {
+impl Serialize for Intents {
     fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
     where
         S: Serializer,
@@ -41,36 +41,36 @@ impl Serialize for GatewayIntents {
 
 #[cfg(test)]
 mod tests {
-    use super::GatewayIntents;
+    use super::Intents;
     use serde_test::Token;
 
     #[test]
     fn test_variants() {
-        serde_test::assert_tokens(&GatewayIntents::GUILDS, &[Token::U64(1)]);
-        serde_test::assert_tokens(&GatewayIntents::GUILD_MEMBERS, &[Token::U64(1 << 1)]);
-        serde_test::assert_tokens(&GatewayIntents::GUILD_BANS, &[Token::U64(1 << 2)]);
-        serde_test::assert_tokens(&GatewayIntents::GUILD_EMOJIS, &[Token::U64(1 << 3)]);
-        serde_test::assert_tokens(&GatewayIntents::GUILD_INTEGRATIONS, &[Token::U64(1 << 4)]);
-        serde_test::assert_tokens(&GatewayIntents::GUILD_WEBHOOKS, &[Token::U64(1 << 5)]);
-        serde_test::assert_tokens(&GatewayIntents::GUILD_INVITES, &[Token::U64(1 << 6)]);
-        serde_test::assert_tokens(&GatewayIntents::GUILD_VOICE_STATES, &[Token::U64(1 << 7)]);
-        serde_test::assert_tokens(&GatewayIntents::GUILD_PRESENCES, &[Token::U64(1 << 8)]);
-        serde_test::assert_tokens(&GatewayIntents::GUILD_MESSAGES, &[Token::U64(1 << 9)]);
+        serde_test::assert_tokens(&Intents::GUILDS, &[Token::U64(1)]);
+        serde_test::assert_tokens(&Intents::GUILD_MEMBERS, &[Token::U64(1 << 1)]);
+        serde_test::assert_tokens(&Intents::GUILD_BANS, &[Token::U64(1 << 2)]);
+        serde_test::assert_tokens(&Intents::GUILD_EMOJIS, &[Token::U64(1 << 3)]);
+        serde_test::assert_tokens(&Intents::GUILD_INTEGRATIONS, &[Token::U64(1 << 4)]);
+        serde_test::assert_tokens(&Intents::GUILD_WEBHOOKS, &[Token::U64(1 << 5)]);
+        serde_test::assert_tokens(&Intents::GUILD_INVITES, &[Token::U64(1 << 6)]);
+        serde_test::assert_tokens(&Intents::GUILD_VOICE_STATES, &[Token::U64(1 << 7)]);
+        serde_test::assert_tokens(&Intents::GUILD_PRESENCES, &[Token::U64(1 << 8)]);
+        serde_test::assert_tokens(&Intents::GUILD_MESSAGES, &[Token::U64(1 << 9)]);
         serde_test::assert_tokens(
-            &GatewayIntents::GUILD_MESSAGE_REACTIONS,
+            &Intents::GUILD_MESSAGE_REACTIONS,
             &[Token::U64(1 << 10)],
         );
         serde_test::assert_tokens(
-            &GatewayIntents::GUILD_MESSAGE_TYPING,
+            &Intents::GUILD_MESSAGE_TYPING,
             &[Token::U64(1 << 11)],
         );
-        serde_test::assert_tokens(&GatewayIntents::DIRECT_MESSAGES, &[Token::U64(1 << 12)]);
+        serde_test::assert_tokens(&Intents::DIRECT_MESSAGES, &[Token::U64(1 << 12)]);
         serde_test::assert_tokens(
-            &GatewayIntents::DIRECT_MESSAGE_REACTIONS,
+            &Intents::DIRECT_MESSAGE_REACTIONS,
             &[Token::U64(1 << 13)],
         );
         serde_test::assert_tokens(
-            &GatewayIntents::DIRECT_MESSAGE_TYPING,
+            &Intents::DIRECT_MESSAGE_TYPING,
             &[Token::U64(1 << 14)],
         );
     }

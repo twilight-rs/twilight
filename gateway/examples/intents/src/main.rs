@@ -1,7 +1,7 @@
 use futures::StreamExt;
 use std::{env, error::Error};
 use twilight_gateway::Shard;
-use twilight_model::gateway::GatewayIntents;
+use twilight_model::gateway::Intents;
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn Error + Send + Sync>> {
@@ -10,7 +10,7 @@ async fn main() -> Result<(), Box<dyn Error + Send + Sync>> {
 
     let mut shard = Shard::builder(env::var("DISCORD_TOKEN")?)
         .intents(Some(
-            GatewayIntents::GUILD_MESSAGES | GatewayIntents::DIRECT_MESSAGES,
+            Intents::GUILD_MESSAGES | Intents::DIRECT_MESSAGES,
         ))
         .build();
 
