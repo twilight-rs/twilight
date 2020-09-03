@@ -9,9 +9,7 @@ async fn main() -> Result<(), Box<dyn Error + Send + Sync>> {
     tracing_subscriber::fmt::init();
 
     let mut shard = Shard::builder(env::var("DISCORD_TOKEN")?)
-        .intents(Some(
-            Intents::GUILD_MESSAGES | Intents::DIRECT_MESSAGES,
-        ))
+        .intents(Some(Intents::GUILD_MESSAGES | Intents::DIRECT_MESSAGES))
         .build();
 
     shard.start().await?;

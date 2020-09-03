@@ -56,22 +56,10 @@ mod tests {
         serde_test::assert_tokens(&Intents::GUILD_VOICE_STATES, &[Token::U64(1 << 7)]);
         serde_test::assert_tokens(&Intents::GUILD_PRESENCES, &[Token::U64(1 << 8)]);
         serde_test::assert_tokens(&Intents::GUILD_MESSAGES, &[Token::U64(1 << 9)]);
-        serde_test::assert_tokens(
-            &Intents::GUILD_MESSAGE_REACTIONS,
-            &[Token::U64(1 << 10)],
-        );
-        serde_test::assert_tokens(
-            &Intents::GUILD_MESSAGE_TYPING,
-            &[Token::U64(1 << 11)],
-        );
+        serde_test::assert_tokens(&Intents::GUILD_MESSAGE_REACTIONS, &[Token::U64(1 << 10)]);
+        serde_test::assert_tokens(&Intents::GUILD_MESSAGE_TYPING, &[Token::U64(1 << 11)]);
         serde_test::assert_tokens(&Intents::DIRECT_MESSAGES, &[Token::U64(1 << 12)]);
-        serde_test::assert_tokens(
-            &Intents::DIRECT_MESSAGE_REACTIONS,
-            &[Token::U64(1 << 13)],
-        );
-        serde_test::assert_tokens(
-            &Intents::DIRECT_MESSAGE_TYPING,
-            &[Token::U64(1 << 14)],
-        );
+        serde_test::assert_tokens(&Intents::DIRECT_MESSAGE_REACTIONS, &[Token::U64(1 << 13)]);
+        serde_test::assert_tokens(&Intents::DIRECT_MESSAGE_TYPING, &[Token::U64(1 << 14)]);
     }
 }
