@@ -7,4 +7,4 @@ mod intents;
 mod opcode;
 mod session_start_limit;
 
-pub use self::{intents::GatewayIntents, opcode::OpCode, session_start_limit::SessionStartLimit};
+pub use self::{intents::Intents, opcode::OpCode, session_start_limit::SessionStartLimit};

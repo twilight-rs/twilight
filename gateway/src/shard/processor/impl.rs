@@ -39,7 +39,7 @@ use twilight_model::gateway::{
         identify::{Identify, IdentifyInfo, IdentifyProperties},
         resume::Resume,
     },
-    GatewayIntents, OpCode,
+    Intents, OpCode,
 };
 use url::{ParseError as UrlParseError, Url};
 
@@ -160,7 +160,7 @@ enum ReceivingEventError {
     /// The intents are provided.
     IntentsDisallowed {
         /// The configured intents for the shard.
-        intents: Option<GatewayIntents>,
+        intents: Option<Intents>,
         /// The ID of the shard.
         shard_id: u64,
     },
@@ -169,7 +169,7 @@ enum ReceivingEventError {
     /// The intents are provided.
     IntentsInvalid {
         /// Configured intents for the shard.
-        intents: Option<GatewayIntents>,
+        intents: Option<Intents>,
         /// ID of the shard.
         shard_id: u64,
     },

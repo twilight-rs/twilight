@@ -6,7 +6,7 @@ use std::{
     sync::Arc,
 };
 use twilight_http::Client as HttpClient;
-use twilight_model::gateway::{payload::update_status::UpdateStatusInfo, GatewayIntents};
+use twilight_model::gateway::{payload::update_status::UpdateStatusInfo, Intents};
 
 /// Large threshold configuration is invalid.
 ///
@@ -141,7 +141,7 @@ impl ShardBuilder {
     /// Set the gateway intents.
     ///
     /// Default is Discord's default.
-    pub fn intents(mut self, intents: Option<GatewayIntents>) -> Self {
+    pub fn intents(mut self, intents: Option<Intents>) -> Self {
         self.0.intents = intents;
 
         self

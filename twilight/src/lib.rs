@@ -108,7 +108,7 @@
 //! use twilight_cache_inmemory::{EventType, InMemoryCache};
 //! use twilight_gateway::{cluster::{Cluster, ShardScheme}, Event};
 //! use twilight_http::Client as HttpClient;
-//! use twilight_model::gateway::GatewayIntents;
+//! use twilight_model::gateway::Intents;
 //!
 //! #[tokio::main]
 //! async fn main() -> Result<(), Box<dyn Error + Send + Sync>> {
@@ -121,7 +121,7 @@
 //!     let cluster = Cluster::builder(&token)
 //!         .shard_scheme(scheme)
 //!         // Use intents to only receive guild message events.
-//!         .intents(Some(GatewayIntents::GUILD_MESSAGES))
+//!         .intents(Some(Intents::GUILD_MESSAGES))
 //!         .build()
 //!         .await?;
 //!

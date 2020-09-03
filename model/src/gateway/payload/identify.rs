@@ -1,5 +1,5 @@
 use super::update_status::UpdateStatusInfo;
-use crate::gateway::{intents::GatewayIntents, opcode::OpCode};
+use crate::gateway::{intents::Intents, opcode::OpCode};
 use serde::{Deserialize, Serialize};
 
 #[derive(Clone, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
@@ -20,7 +20,7 @@ impl Identify {
 #[derive(Clone, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
 pub struct IdentifyInfo {
     pub compression: bool,
-    pub intents: Option<GatewayIntents>,
+    pub intents: Option<Intents>,
     pub large_threshold: u64,
     pub presence: Option<UpdateStatusInfo>,
     pub properties: IdentifyProperties,

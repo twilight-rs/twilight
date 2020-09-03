@@ -15,7 +15,7 @@ use std::{
     sync::Arc,
 };
 use twilight_http::Client;
-use twilight_model::gateway::{payload::update_status::UpdateStatusInfo, GatewayIntents};
+use twilight_model::gateway::{payload::update_status::UpdateStatusInfo, Intents};
 
 /// Starting a cluster failed.
 #[derive(Debug)]
@@ -127,12 +127,12 @@ impl<T: RangeBounds<u64>> TryFrom<(T, u64)> for ShardScheme {
 /// ```rust,no_run
 /// use std::env;
 /// use twilight_gateway::Cluster;
-/// use twilight_model::gateway::GatewayIntents;
+/// use twilight_model::gateway::Intents;
 ///
 /// # #[tokio::main] async fn main() -> Result<(), Box<dyn std::error::Error>> {
 /// let token = env::var("DISCORD_TOKEN")?;
 ///
-/// let intents = GatewayIntents::GUILD_MESSAGES;
+/// let intents = Intents::GUILD_MESSAGES;
 /// let cluster = Cluster::builder(token)
 ///     .intents(Some(intents))
 ///     .large_threshold(100)?
@@ -224,7 +224,7 @@ impl ClusterBuilder {
     /// Refer to the shard's [`ShardBuilder::intents`] for more information.
     ///
     /// [`ShardBuilder::intents`]: ../shard/struct.ShardBuilder.html#method.intents
-    pub fn intents(mut self, intents: Option<GatewayIntents>) -> Self {
+    pub fn intents(mut self, intents: Option<Intents>) -> Self {
         self.1 = self.1.intents(intents);
 
         self
