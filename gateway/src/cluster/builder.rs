@@ -49,7 +49,7 @@ impl Error for ShardSchemeRangeError {}
 /// By default this is [`Auto`].
 ///
 /// [`Auto`]: #variant.Auto
-#[derive(Clone, Copy, Debug, Eq, Hash, PartialEq, PartialOrd, Ord)]
+#[derive(Clone, Debug, Eq, Hash, PartialEq)]
 #[non_exhaustive]
 pub enum ShardScheme {
     /// Specifies to retrieve the amount of shards recommended by Discord and
