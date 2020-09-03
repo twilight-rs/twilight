@@ -10,13 +10,17 @@ pub use self::{
     delete_all_reactions::DeleteAllReactions, delete_reaction::DeleteReaction,
     get_reactions::GetReactions,
 };
-
-use crate::client::ReactionType;
 use std::fmt::Write;
+use twilight_model::id::EmojiId;
 
-fn format_emoji(emoji: ReactionType) -> String {
+pub enum CreateReactionType {
+    Unicode { name: String },
+    Custom { id: EmojiId, name: Option<String> },
+}
+
+fn format_emoji(emoji: CreateReactionType) -> String {
     match emoji {
-        ReactionType::Custom { id, name } => {
+        CreateReactionType::Custom { id, name } => {
             let mut emoji = String::new();
             match name {
                 Some(name) => emoji.push_str(name.as_ref()),
@@ -25,6 +29,6 @@ fn format_emoji(emoji: ReactionType) -> String {
             let _ = write!(emoji, ":{}", id);
             emoji
         }
-        ReactionType::Unicode { name } => name,
+        CreateReactionType::Unicode { name } => name,
     }
 }

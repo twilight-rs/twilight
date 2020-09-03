@@ -48,11 +48,6 @@ impl Debug for State {
     }
 }
 
-pub enum ReactionType {
-    Unicode { name: String },
-    Custom { id: EmojiId, name: Option<String> },
-}
-
 /// Twilight's http client.
 ///
 /// Almost all of the client methods require authentication, and as such, the client must be
@@ -1088,23 +1083,22 @@ impl Client {
 
     /// Create a reaction in a [`ChannelId`] on a [`MessageId`].
     ///
-    /// The reaction must be a variant of [`ReactionType`].
+    /// The reaction must be a variant of [`CreateReactionType`].
     ///
     /// # Examples
     /// ```rust,no_run
-    /// # use twilight_http::Client;
+    /// # use twilight_http::{Client, request::channel::reaction::CreateReactionType};
     /// # use twilight_model::{
     /// #     id::{ChannelId, MessageId},
     /// # };
     /// #
     /// # #[tokio::main]
     /// # async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
-    /// # use twilight_http::client::ReactionType;
     /// let client = Client::new("my token");
     /// #
     /// let channel_id = ChannelId(123);
     /// let message_id = MessageId(456);
-    /// let emoji = ReactionType::Unicode { name: String::from("🌃") };
+    /// let emoji = CreateReactionType::Unicode { name: String::from("🌃") };
     ///
     /// let reaction = client
     ///     .create_reaction(channel_id, message_id, emoji)
@@ -1114,12 +1108,12 @@ impl Client {
     ///
     /// [`ChannelId`]: ../../twilight_model/id/struct.ChannelId.html
     /// [`MessageId`]: ../../twilight_model/id/struct.MessageId.html
-    /// [`ReactionType`]: ../client/enum.ReactionType.html
+    /// [`CreateReactionType`]: ../request/channel/reaction/enum.CreateReactionType.html
     pub fn create_reaction(
         &self,
         channel_id: ChannelId,
         message_id: MessageId,
-        emoji: ReactionType,
+        emoji: CreateReactionType,
     ) -> CreateReaction<'_> {
         CreateReaction::new(self, channel_id, message_id, emoji)
     }
@@ -1129,7 +1123,7 @@ impl Client {
         &self,
         channel_id: ChannelId,
         message_id: MessageId,
-        emoji: ReactionType,
+        emoji: CreateReactionType,
     ) -> DeleteReaction<'_> {
         DeleteReaction::new(self, channel_id, message_id, emoji, "@me")
     }
@@ -1139,7 +1133,7 @@ impl Client {
         &self,
         channel_id: ChannelId,
         message_id: MessageId,
-        emoji: ReactionType,
+        emoji: CreateReactionType,
         user_id: UserId,
     ) -> DeleteReaction<'_> {
         DeleteReaction::new(self, channel_id, message_id, emoji, user_id.to_string())
@@ -1150,7 +1144,7 @@ impl Client {
         &self,
         channel_id: ChannelId,
         message_id: MessageId,
-        emoji: ReactionType,
+        emoji: CreateReactionType,
     ) -> DeleteAllReaction<'_> {
         DeleteAllReaction::new(self, channel_id, message_id, emoji)
     }

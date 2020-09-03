@@ -1,4 +1,3 @@
-use crate::client::ReactionType;
 use crate::request::prelude::*;
 use twilight_model::id::{ChannelId, MessageId};
 
@@ -16,7 +15,7 @@ impl<'a> DeleteAllReaction<'a> {
         http: &'a Client,
         channel_id: ChannelId,
         message_id: MessageId,
-        emoji: ReactionType,
+        emoji: CreateReactionType,
     ) -> Self {
         Self {
             channel_id,

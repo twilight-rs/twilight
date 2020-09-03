@@ -1,18 +1,16 @@
-use crate::client::ReactionType;
 use crate::request::prelude::*;
 use twilight_model::id::{ChannelId, MessageId};
 
 /// Create a reaction in a [`ChannelId`] on a [`MessageId`].
 ///
-/// The reaction must be a variant of [`ReactionType`].
+/// The reaction must be a variant of [`CreateReactionType`].
 ///
 /// # Examples
 /// ```rust,no_run
-/// use twilight_http::Client;
+/// use twilight_http::{Client, request::channel::reaction::CreateReactionType};
 /// use twilight_model::{
 ///     id::{ChannelId, MessageId},
 /// };
-/// use twilight_http::client::ReactionType;
 ///
 /// # #[tokio::main]
 /// # async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
@@ -20,7 +18,7 @@ use twilight_model::id::{ChannelId, MessageId};
 ///
 /// let channel_id = ChannelId(123);
 /// let message_id = MessageId(456);
-/// let emoji = ReactionType::Unicode { name: String::from("🌃") };
+/// let emoji = CreateReactionType::Unicode { name: String::from("🌃") };
 ///
 /// let reaction = client
 ///     .create_reaction(channel_id, message_id, emoji)
@@ -30,7 +28,7 @@ use twilight_model::id::{ChannelId, MessageId};
 ///
 /// [`ChannelId`]: ../../../../twilight_model/id/struct.ChannelId.html
 /// [`MessageId`]: ../../../../twilight_model/id/struct.MessageId.html
-/// [`ReactionType`]: ../../../client/enum.ReactionType.html
+/// [`CreateReactionType`]: enum.CreateReactionType.html
 pub struct CreateReaction<'a> {
     channel_id: ChannelId,
     emoji: String,
@@ -44,7 +42,7 @@ impl<'a> CreateReaction<'a> {
         http: &'a Client,
         channel_id: ChannelId,
         message_id: MessageId,
-        emoji: ReactionType,
+        emoji: CreateReactionType,
     ) -> Self {
         Self {
             channel_id,
