@@ -21,7 +21,9 @@ use crate::{
     user::User,
 };
 use serde::{
-    de::{DeserializeSeed, Deserializer, SeqAccess, Visitor},
+    de::{
+        value::MapAccessDeserializer, DeserializeSeed, Deserializer, MapAccess, SeqAccess, Visitor,
+    },
     Deserialize, Serialize,
 };
 use serde_mappable_seq::Key;
@@ -58,6 +60,62 @@ impl Key<'_, UserId> for Presence {
     }
 }
 
+#[derive(Clone, Debug, Deserialize, Eq, Hash, PartialEq)]
+pub struct PresenceIntermediary {
+    #[serde(default)]
+    pub activities: Vec<Activity>,
+    pub client_status: ClientStatus,
+    pub game: Option<Activity>,
+    pub guild_id: Option<GuildId>,
+    pub nick: Option<String>,
+    pub status: Status,
+    pub user: UserOrId,
+}
+
+struct PresenceVisitor(GuildId);
+
+impl<'de> Visitor<'de> for PresenceVisitor {
+    type Value = Presence;
+
+    fn expecting(&self, f: &mut Formatter<'_>) -> FmtResult {
+        f.write_str("Presence struct")
+    }
+
+    fn visit_map<M: MapAccess<'de>>(self, map: M) -> Result<Self::Value, M::Error> {
+        let deser = MapAccessDeserializer::new(map);
+        let presence = PresenceIntermediary::deserialize(deser)?;
+
+        Ok(Presence {
+            activities: presence.activities,
+            client_status: presence.client_status,
+            game: presence.game,
+            guild_id: presence.guild_id.unwrap_or(self.0),
+            nick: presence.nick,
+            status: presence.status,
+            user: presence.user,
+        })
+    }
+}
+
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub struct PresenceDeserializer(GuildId);
+
+impl PresenceDeserializer {
+    /// Create a new deserializer for a presence when you know the guild ID but
+    /// the payload probably doesn't contain it.
+    pub fn new(guild_id: GuildId) -> Self {
+        Self(guild_id)
+    }
+}
+
+impl<'de> DeserializeSeed<'de> for PresenceDeserializer {
+    type Value = Presence;
+
+    fn deserialize<D: Deserializer<'de>>(self, deserializer: D) -> Result<Self::Value, D::Error> {
+        deserializer.deserialize_map(PresenceVisitor(self.0))
+    }
+}
+
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct PresenceMapDeserializer(GuildId);
 
@@ -83,7 +141,7 @@ impl<'de> Visitor<'de> for PresenceMapDeserializerVisitor {
             .size_hint()
             .map_or_else(HashMap::new, HashMap::with_capacity);
 
-        while let Some(presence) = seq.next_element::<Presence>()? {
+        while let Some(presence) = seq.next_element_seed(PresenceDeserializer(self.0))? {
             let user_id = match presence.user {
                 UserOrId::User(ref user) => user.id,
                 UserOrId::UserId { id } => id,
@@ -106,9 +164,15 @@ impl<'de> DeserializeSeed<'de> for PresenceMapDeserializer {
 
 #[cfg(test)]
 mod tests {
-    use super::{Activity, ActivityEmoji, ActivityType, ClientStatus, Presence, Status, UserOrId};
+    use super::{
+        Activity, ActivityEmoji, ActivityType, ClientStatus, Presence, PresenceMapDeserializer,
+        Status, UserOrId,
+    };
     use crate::id::{GuildId, UserId};
+    use serde::de::DeserializeSeed;
+    use serde_json::Deserializer;
     use serde_test::Token;
+    use std::collections::HashMap;
 
     #[test]
     #[allow(clippy::too_many_lines)]
@@ -249,5 +313,48 @@ mod tests {
                 Token::StructEnd,
             ],
         );
+    }
+
+    // Test that presences through the deserializer are given a default guild ID
+    // if they have none.
+    //
+    // Can't test seeded deserializers with serde_test.
+    #[test]
+    fn test_presence_map_guild_id_default() {
+        let input = r#"[{
+            "user": {
+                "id": "1"
+            },
+            "status": "online",
+            "game": null,
+            "client_status": {
+                "desktop": "online"
+            },
+            "activities": []
+        }]"#;
+
+        let mut expected = HashMap::new();
+        expected.insert(
+            UserId(1),
+            Presence {
+                activities: vec![],
+                client_status: ClientStatus {
+                    desktop: Some(Status::Online),
+                    mobile: None,
+                    web: None,
+                },
+                game: None,
+                guild_id: GuildId(2),
+                nick: None,
+                status: Status::Online,
+                user: UserOrId::UserId { id: UserId(1) },
+            },
+        );
+
+        let mut json_deserializer = Deserializer::from_str(input);
+        let deserializer = PresenceMapDeserializer::new(GuildId(2));
+        let actual = deserializer.deserialize(&mut json_deserializer).unwrap();
+
+        assert_eq!(actual, expected);
     }
 }
