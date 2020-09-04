@@ -1,9 +1,10 @@
+use serde::Serialize;
 use twilight_model::{
     id::{ChannelId, GuildId, UserId},
     voice::VoiceState,
 };
 
-#[derive(Clone, Debug, Eq, PartialEq)]
+#[derive(Clone, Debug, Eq, PartialEq, Serialize)]
 pub struct CachedVoiceState {
     pub channel_id: Option<ChannelId>,
     pub deaf: bool,

@@ -1,3 +1,4 @@
+use serde::Serialize;
 use twilight_model::{
     guild::{
         DefaultMessageNotificationLevel, ExplicitContentFilter, MfaLevel, Permissions, PremiumTier,
@@ -6,7 +7,7 @@ use twilight_model::{
     id::{ApplicationId, ChannelId, GuildId, UserId},
 };
 
-#[derive(Clone, Debug, Eq, PartialEq)]
+#[derive(Clone, Debug, Eq, PartialEq, Serialize)]
 pub struct CachedGuild {
     pub id: GuildId,
     pub afk_channel_id: Option<ChannelId>,
