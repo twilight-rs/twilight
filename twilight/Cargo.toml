@@ -24,7 +24,7 @@ twilight-standby = { optional = true, path = "../standby" }
 tokio = { default-features = false, features = ["macros", "rt-core"], version = "0.2" }
 
 [features]
-default = ["all", "native"]
+default = ["all", "rustls"]
 
 all = ["cache-inmemory", "command-parser", "gateway", "http", "model", "standby"]
 cache-inmemory = ["twilight-cache-inmemory"]
