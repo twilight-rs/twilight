@@ -1,3 +1,4 @@
+use serde::Serialize;
 use twilight_model::{
     channel::{
         embed::Embed,
@@ -11,7 +12,7 @@ use twilight_model::{
     id::{ChannelId, GuildId, MessageId, RoleId, UserId, WebhookId},
 };
 
-#[derive(Clone, Debug, Eq, PartialEq)]
+#[derive(Clone, Debug, Eq, PartialEq, Serialize)]
 pub struct CachedMessage {
     pub id: MessageId,
     pub activity: Option<MessageActivity>,

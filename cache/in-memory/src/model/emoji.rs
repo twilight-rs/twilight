@@ -1,3 +1,4 @@
+use serde::Serialize;
 use std::sync::Arc;
 use twilight_model::{
     guild::Emoji,
@@ -5,7 +6,7 @@ use twilight_model::{
     user::User,
 };
 
-#[derive(Clone, Debug, Eq, PartialEq)]
+#[derive(Clone, Debug, Eq, PartialEq, Serialize)]
 pub struct CachedEmoji {
     pub id: EmojiId,
     pub animated: bool,
