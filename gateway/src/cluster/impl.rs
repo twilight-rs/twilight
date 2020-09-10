@@ -316,6 +316,38 @@ impl Cluster {
             .map_err(|source| ClusterCommandError::Sending { source })
     }
 
+    /// Send a raw command to the specified shard.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`ClusterCommandError::Sending`] if the shard exists, but
+    /// sending it failed.
+    ///
+    /// Returns [`ClusterCommandError::ShardNonexistent`] if the provided shard
+    /// ID does not exist in the cluster.
+    ///
+    /// [`ClusterCommandError::Sending`]: enum.ClusterCommandError.html#variant.Sending
+    /// [`ClusterCommandError::ShardNonexistent`]: enum.ClusterCommandError.html#variant.ShardNonexistent
+    pub async fn raw_command(
+        &self,
+        id: u64,
+        value: String,
+    ) -> Result<(), ClusterCommandError> {
+        let shard = self
+            .0
+            .shards
+            .lock()
+            .expect("shards poisoned")
+            .get(&id)
+            .cloned()
+            .ok_or(ClusterCommandError::ShardNonexistent { id })?;
+
+        shard
+            .raw_command(value)
+            .await
+            .map_err(|source| ClusterCommandError::Sending { source })
+    }
+
     /// Return a stream of events from all shards managed by this Cluster.
     ///
     /// Each item in the stream contains both the shard's ID and the event
