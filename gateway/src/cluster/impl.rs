@@ -328,11 +328,7 @@ impl Cluster {
     ///
     /// [`ClusterCommandError::Sending`]: enum.ClusterCommandError.html#variant.Sending
     /// [`ClusterCommandError::ShardNonexistent`]: enum.ClusterCommandError.html#variant.ShardNonexistent
-    pub async fn raw_command(
-        &self,
-        id: u64,
-        value: String,
-    ) -> Result<(), ClusterCommandError> {
+    pub async fn raw_command(&self, id: u64, value: String) -> Result<(), ClusterCommandError> {
         let shard = self
             .0
             .shards
