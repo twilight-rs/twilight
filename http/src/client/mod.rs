@@ -1223,7 +1223,7 @@ impl Client {
 
     /// Get a user's information by id.
     pub fn user(&self, user_id: UserId) -> GetUser<'_> {
-        GetUser::new(self, user_id.0.to_string())
+        GetUser::new(self, user_id.to_string())
     }
 
     /// Get a list of voice regions that can be used when creating a guild.
