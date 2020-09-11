@@ -18,14 +18,14 @@ impl<'a> CommandParserConfig<'a> {
         Self::default()
     }
 
-    /// Returns an immutable iterator for the commands.
+    /// Returns an iterator of immutable references to the commands.
     pub fn commands(&self) -> Commands<'_> {
         Commands {
             iter: self.commands.iter(),
         }
     }
 
-    /// Returns a mutable iterator of the commands.
+    /// Returns an iterator of mutable references to the commands.
     ///
     /// Use the [`command`] and [`remove_command`] methods for an easier way to
     /// manage commands.
@@ -38,7 +38,7 @@ impl<'a> CommandParserConfig<'a> {
         }
     }
 
-    /// Returns an immutable iterator of the prefixes.
+    /// Returns an iterator of immutable references to the prefixes.
     ///
     /// Use the [`add_prefix`] and [`remove_prefix`] methods for an easier way
     /// to manage prefixes.
@@ -51,7 +51,7 @@ impl<'a> CommandParserConfig<'a> {
         }
     }
 
-    /// Returns a mutable iterator for the prefixes.
+    /// Returns an iterator of mutable references to the prefixes.
     pub fn prefixes_mut(&'a mut self) -> PrefixesMut<'a> {
         PrefixesMut {
             iter: self.prefixes.iter_mut(),
