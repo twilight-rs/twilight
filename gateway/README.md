@@ -74,13 +74,15 @@ This is enabled by default.
 
 ### zlib
 
-The `stock-zlib` feature enables [`flate2`]'s `zlib` feature which makes
-[`flate2`] use system zlib instead of [`zlib-ng`].
+There are 2 zlib features `stock-zlib` and `simd-zlib` for the library to work
+one of them has to be enabled. If both are enabled it will use `stock-zlib`
 
-This is not enabled by default.
+`stock-zlib` enabled by default.
+
+Enabling **only** `simd-zlib` will make the library use [`zlib-ng`] which is a modern
+fork of zlib that is faster and more effective, but it needs `cmake` to compile.
 
 [`async-tungstenite`]: https://crates.io/crates/async-tungstenite
-[`flate2`]: https://crates.io/crates/flate2
 [`native-tls`]: https://crates.io/crates/native-tls
 [`rustls`]: https://crates.io/crates/rustls
 [`serde_json`]: https://crates.io/crates/serde_json
