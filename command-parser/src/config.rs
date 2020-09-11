@@ -25,7 +25,7 @@ impl<'a> CommandParserConfig<'a> {
         }
     }
 
-    /// Returns a mutable iterator for the commands.
+    /// Returns a mutable iterator of the commands.
     ///
     /// Use the [`command`] and [`remove_command`] methods for an easier way to
     /// manage commands.
@@ -38,7 +38,7 @@ impl<'a> CommandParserConfig<'a> {
         }
     }
 
-    /// Returns an immutable iterator for the prefixes.
+    /// Returns an immutable iterator of the prefixes.
     ///
     /// Use the [`add_prefix`] and [`remove_prefix`] methods for an easier way
     /// to manage prefixes.
