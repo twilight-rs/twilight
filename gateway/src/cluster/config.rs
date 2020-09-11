@@ -39,7 +39,7 @@ impl Config {
         &self.shard_config
     }
 
-    /// Return a immutable reference to the shard scheme used to start shards.
+    /// Return an immutable reference to the shard scheme used to start shards.
     ///
     /// Refer to [`ClusterBuilder::shard_scheme`] for the default value.
     ///
