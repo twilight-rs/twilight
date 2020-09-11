@@ -523,7 +523,7 @@ impl ShardProcessor {
             // Safe to unwrap so here as we have just checked that
             // it is some.
             let (seq, id) = self.resume.take().unwrap();
-            tracing::warn!("resuming with sequence {}, session id {}", seq, id);
+            tracing::debug!("resuming with sequence {}, session id {}", seq, id);
             let payload = Resume::new(seq, &id, self.config.token());
 
             // Set id so it is correct for next resume.
