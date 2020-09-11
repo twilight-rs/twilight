@@ -484,8 +484,8 @@ impl Shard {
     /// [`CommandError::Serializing`]: enum.CommandError.html#variant.Serializing
     /// [`CommandError::SessionInactive`]: enum.CommandError.html#variant.SessionInactive
     pub async fn command(&self, value: &impl serde::Serialize) -> Result<(), CommandError> {
-        let json = json::to_string(value).map_err(|source| CommandError::Serializing { source })?;
-        self.raw_command(json).await
+        let json = json::to_vec(value).map_err(|source| CommandError::Serializing { source })?;
+        self.command_raw(json).await
     }
 
     /// Send a raw command over the gateway.
@@ -507,11 +507,11 @@ impl Shard {
     /// [`CommandError::Sending`]: enum.CommandError.html#variant.Sending
     /// [`CommandError::Serializing`]: enum.CommandError.html#variant.Serializing
     /// [`CommandError::SessionInactive`]: enum.CommandError.html#variant.SessionInactive
-    pub async fn raw_command(&self, value: String) -> Result<(), CommandError> {
+    pub async fn command_raw(&self, value: Vec<u8>) -> Result<(), CommandError> {
         let session = self
             .session()
             .map_err(|source| CommandError::SessionInactive { source })?;
-        let message = Message::Text(value);
+        let message = Message::Binary(value);
 
         // Tick ratelimiter.
         session.ratelimit.lock().await.next().await;

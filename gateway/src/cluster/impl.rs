@@ -302,12 +302,7 @@ impl Cluster {
         value: &impl serde::Serialize,
     ) -> Result<(), ClusterCommandError> {
         let shard = self
-            .0
-            .shards
-            .lock()
-            .expect("shards poisoned")
-            .get(&id)
-            .cloned()
+            .shard(id)
             .ok_or(ClusterCommandError::ShardNonexistent { id })?;
 
         shard
@@ -328,18 +323,13 @@ impl Cluster {
     ///
     /// [`ClusterCommandError::Sending`]: enum.ClusterCommandError.html#variant.Sending
     /// [`ClusterCommandError::ShardNonexistent`]: enum.ClusterCommandError.html#variant.ShardNonexistent
-    pub async fn raw_command(&self, id: u64, value: String) -> Result<(), ClusterCommandError> {
+    pub async fn command_raw(&self, id: u64, value: Vec<u8>) -> Result<(), ClusterCommandError> {
         let shard = self
-            .0
-            .shards
-            .lock()
-            .expect("shards poisoned")
-            .get(&id)
-            .cloned()
+            .shard(id)
             .ok_or(ClusterCommandError::ShardNonexistent { id })?;
 
         shard
-            .raw_command(value)
+            .command_raw(value)
             .await
             .map_err(|source| ClusterCommandError::Sending { source })
     }
