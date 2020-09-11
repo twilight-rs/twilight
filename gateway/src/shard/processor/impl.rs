@@ -676,7 +676,7 @@ impl ShardProcessor {
         &mut self,
         close_frame: Option<&CloseFrame<'_>>,
     ) -> Result<(), ReceivingEventError> {
-        tracing::warn!("got close code: {:?}", close_frame);
+        tracing::info!("got close code: {:?}", close_frame);
 
         self.emitter.event(Event::ShardDisconnected(Disconnected {
             code: close_frame.as_ref().map(|frame| frame.code.into()),
@@ -796,7 +796,7 @@ impl ShardProcessor {
         let id = if let Some(id) = self.session.id() {
             id
         } else {
-            tracing::warn!("session id unavailable, reconnecting");
+            tracing::info!("session id unavailable, reconnecting");
             self.reconnect().await;
             return;
         };
