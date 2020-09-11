@@ -1218,7 +1218,7 @@ impl Client {
     }
 
     /// Get a user's information by id.
-    pub fn user(&self, user_id: UserId) -> GetUser<'_> {
+    pub fn user(&self, user_id: u64) -> GetUser<'_> {
         GetUser::new(self, user_id.to_string())
     }
 
