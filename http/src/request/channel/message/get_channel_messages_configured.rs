@@ -10,6 +10,7 @@ use twilight_model::{
 
 /// The error returned if the request can not be created as configured.
 #[derive(Clone, Debug)]
+#[non_exhaustive]
 pub enum GetChannelMessagesConfiguredError {
     /// The maximum number of messages to retrieve is either 0 or more than 100.
     LimitInvalid {

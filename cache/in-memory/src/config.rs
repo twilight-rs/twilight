@@ -2,6 +2,7 @@ use bitflags::bitflags;
 
 bitflags! {
     /// Bitflags to filter what event types to process in the cache.
+    #[non_exhaustive]
     pub struct EventType: u64 {
         const BAN_ADD = 1;
         const BAN_REMOVE = 1 << 1;

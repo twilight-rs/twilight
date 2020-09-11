@@ -8,8 +8,9 @@ use twilight_model::{
     id::{ChannelId, GuildId},
 };
 
-#[derive(Clone, Debug)]
 /// Returned when the channel can not be created as configured.
+#[derive(Clone, Debug)]
+#[non_exhaustive]
 pub enum CreateGuildChannelError {
     /// The length of the name is either fewer than 2 UTF-16 characters or
     /// more than 100 UTF-16 characters.

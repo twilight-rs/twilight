@@ -15,6 +15,7 @@ use twilight_model::channel::embed::Embed;
 ///
 /// [docs]: https://discord.com/developers/docs/resources/channel#embed-limits
 #[derive(Clone, Debug)]
+#[non_exhaustive]
 pub enum EmbedValidationError {
     /// The embed author's name is larger than
     /// [the maximum][`AUTHOR_NAME_LENGTH`].

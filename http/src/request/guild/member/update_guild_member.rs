@@ -7,6 +7,7 @@ use twilight_model::id::{ChannelId, GuildId, RoleId, UserId};
 
 /// The error created when the member can not be updated as configured.
 #[derive(Clone, Debug)]
+#[non_exhaustive]
 pub enum UpdateGuildMemberError {
     /// The nickname is either empty or the length is more than 32 UTF-16 characters.
     NicknameInvalid { nickname: String },

@@ -23,6 +23,7 @@ use twilight_model::{
 
 /// An error that can occur while interacting with the client.
 #[derive(Clone, Debug, PartialEq)]
+#[non_exhaustive]
 pub enum ClientError {
     /// A node isn't configured, so the operation isn't possible to fulfill.
     NodesUnconfigured,

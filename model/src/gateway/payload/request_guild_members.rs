@@ -14,6 +14,7 @@ use std::{
 ///
 /// [`RequestGuildMembersBuilder::user_ids`]: struct.RequestGuildMembersBuilder.html#method.user_ids
 #[derive(Clone, Debug)]
+#[non_exhaustive]
 pub enum UserIdsError {
     /// More than 100 user IDs were provided.
     TooMany {

@@ -8,8 +8,9 @@ use twilight_model::{
     id::ChannelId,
 };
 
-#[derive(Clone, Debug)]
 /// Returned when the channel can not be updated as configured.
+#[derive(Clone, Debug)]
+#[non_exhaustive]
 pub enum UpdateChannelError {
     /// The length of the name is either fewer than 2 UTF-16 characters or
     /// more than 100 UTF-16 characters.

@@ -10,6 +10,7 @@ use std::{
 pub type RatelimitResult<T> = StdResult<T, RatelimitError>;
 
 #[derive(Debug)]
+#[non_exhaustive]
 pub enum RatelimitError {
     NoHeaders,
     HeaderMissing {

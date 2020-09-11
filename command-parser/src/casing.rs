@@ -1,6 +1,7 @@
 use unicase::UniCase;
 
 #[derive(Clone, Debug, Eq, Hash, PartialEq)]
+#[non_exhaustive]
 pub enum CaseSensitivity {
     Insensitive(UniCase<String>),
     Sensitive(String),

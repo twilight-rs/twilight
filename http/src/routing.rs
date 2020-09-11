@@ -9,6 +9,7 @@ use std::{
 };
 
 #[derive(Clone, Debug, Eq, PartialEq)]
+#[non_exhaustive]
 pub enum PathParseError {
     /// The ID couldn't be parsed as an integer.
     IntegerParsing {
@@ -57,6 +58,7 @@ impl StdError for PathParseError {
 /// An enum representing a path, most useful for ratelimiting implementations.
 // If adding to this enum, be sure to add to the `TryFrom` impl.
 #[derive(Clone, Debug, Eq, Hash, PartialEq)]
+#[non_exhaustive]
 pub enum Path {
     /// Operating on a channel.
     ChannelsId(u64),
@@ -230,6 +232,7 @@ impl TryFrom<(Method, &str)> for Path {
 }
 
 #[derive(Clone, Debug)]
+#[non_exhaustive]
 pub enum Route {
     /// Route information to add a role to guild member.
     AddMemberRole {

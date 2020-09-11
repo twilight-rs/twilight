@@ -18,6 +18,7 @@ pub use self::builder::*;
 
 /// The error returned when the guild can not be created as configured.
 #[derive(Clone, Debug)]
+#[non_exhaustive]
 pub enum CreateGuildError {
     /// The name of the guild is either fewer than 2 UTF-16 characters or more than 100 UTF-16
     /// characters.
@@ -113,6 +114,7 @@ impl From<RoleFieldsBuilder> for RoleFields {
 ///
 /// [`GuildChannelFieldsBuilder`]: struct.GuildChannelFieldsBuilder.html
 #[derive(Clone, Debug, Eq, PartialEq, Serialize)]
+#[non_exhaustive]
 #[serde(untagged)]
 pub enum GuildChannelFields {
     Category(CategoryFields),

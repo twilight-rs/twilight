@@ -10,6 +10,7 @@ use twilight_model::{
 
 /// The error created when the guild prune can not be created as configured.
 #[derive(Clone, Debug)]
+#[non_exhaustive]
 pub enum CreateGuildPruneError {
     /// The number of days is 0.
     DaysInvalid,
