@@ -15,12 +15,12 @@ impl<'a> DeleteChannelPermission<'a> {
         Self { channel_id, http }
     }
 
-    /// Delete a override for an member.
+    /// Delete an override for an member.
     pub fn member(self, user_id: impl Into<UserId>) -> DeleteChannelPermissionConfigured<'a> {
         self.configure(user_id.into().0)
     }
 
-    /// Delete a override for an role.
+    /// Delete an override for an role.
     pub fn role(self, role_id: impl Into<RoleId>) -> DeleteChannelPermissionConfigured<'a> {
         self.configure(role_id.into().0)
     }
