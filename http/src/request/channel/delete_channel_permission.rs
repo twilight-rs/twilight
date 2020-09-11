@@ -1,56 +1,31 @@
+use super::DeleteChannelPermissionConfigured;
 use crate::request::prelude::*;
-use twilight_model::id::ChannelId;
+use twilight_model::id::{ChannelId, RoleId, UserId};
 
 /// Clear the permissions for a target ID in a channel.
 ///
-/// The `target_id` is a `u64`, but it should point to a `RoleId` or a `UserId`.
+/// The target ID has to be set with one of the associated methods.
 pub struct DeleteChannelPermission<'a> {
     channel_id: ChannelId,
-    fut: Option<Pending<'a, ()>>,
     http: &'a Client,
-    target_id: u64,
-    reason: Option<String>,
 }
 
 impl<'a> DeleteChannelPermission<'a> {
-    pub(crate) fn new(http: &'a Client, channel_id: ChannelId, target_id: u64) -> Self {
-        Self {
-            channel_id,
-            fut: None,
-            http,
-            target_id,
-            reason: None,
-        }
+    pub(crate) fn new(http: &'a Client, channel_id: ChannelId) -> Self {
+        Self { channel_id, http }
     }
 
-    /// Attach an audit log reason to this request.
-    pub fn reason(mut self, reason: impl Into<String>) -> Self {
-        self.reason.replace(reason.into());
-
-        self
+    /// Delete a override for a member.
+    pub fn member(self, user_id: impl Into<UserId>) -> DeleteChannelPermissionConfigured<'a> {
+        self.configure(user_id.into().0)
     }
 
-    fn start(&mut self) -> Result<()> {
-        let request = if let Some(reason) = &self.reason {
-            let headers = audit_header(&reason)?;
-            Request::from((
-                headers,
-                Route::DeletePermissionOverwrite {
-                    channel_id: self.channel_id.0,
-                    target_id: self.target_id,
-                },
-            ))
-        } else {
-            Request::from(Route::DeletePermissionOverwrite {
-                channel_id: self.channel_id.0,
-                target_id: self.target_id,
-            })
-        };
+    /// Delete a override for a role.
+    pub fn role(self, role_id: impl Into<RoleId>) -> DeleteChannelPermissionConfigured<'a> {
+        self.configure(role_id.into().0)
+    }
 
-        self.fut.replace(Box::pin(self.http.verify(request)));
-
-        Ok(())
+    fn configure(self, target_id: u64) -> DeleteChannelPermissionConfigured<'a> {
+        DeleteChannelPermissionConfigured::new(self.http, self.channel_id, target_id)
     }
 }
-
-poll_req!(DeleteChannelPermission<'_>, ());

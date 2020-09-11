@@ -379,12 +379,8 @@ impl Client {
         GetChannelMessages::new(self, channel_id)
     }
 
-    pub fn delete_channel_permission(
-        &self,
-        channel_id: ChannelId,
-        target_id: u64,
-    ) -> DeleteChannelPermission<'_> {
-        DeleteChannelPermission::new(self, channel_id, target_id)
+    pub fn delete_channel_permission(&self, channel_id: ChannelId) -> DeleteChannelPermission<'_> {
+        DeleteChannelPermission::new(self, channel_id)
     }
 
     /// Update the permissions for a role or a user in a channel.
