@@ -57,7 +57,7 @@ jobs:
             rustflags: '-C target-cpu=native'
           - package: gateway
             features: simd-json
-            additional: --features rustls
+            additional: --features rustls,stock-zlib
             rustflags: '-C target-cpu=native'
           - package: lavalink
             additional: --features http-support
