@@ -90,7 +90,7 @@ impl<'a> Parser<'a> {
     ///
     /// [`Command`]: struct.Command.html
     pub fn parse(&'a self, buf: &'a str) -> Option<Command<'a>> {
-        let (prefix, _) = self.find_prefix(buf)?;
+        let prefix = self.find_prefix(buf)?;
         self.parse_with_prefix(prefix, buf)
     }
 
@@ -140,7 +140,7 @@ impl<'a> Parser<'a> {
 
     fn find_command(&'a self, buf: &'a str) -> Option<&'a str> {
         let buf = buf.split_whitespace().next()?;
-        self.config.commands().iter().find_map(|command| {
+        self.config.commands.iter().find_map(|command| {
             if command == buf {
                 Some(command.as_ref())
             } else {
@@ -149,10 +149,10 @@ impl<'a> Parser<'a> {
         })
     }
 
-    fn find_prefix(&self, buf: &str) -> Option<(&str, &str)> {
-        self.config.prefixes().iter().find_map(|(prefix, padding)| {
+    fn find_prefix(&self, buf: &str) -> Option<&str> {
+        self.config.prefixes.iter().find_map(|prefix| {
             if buf.starts_with(prefix.as_ref()) {
-                Some((prefix.as_ref(), padding.as_ref()))
+                Some(prefix.as_ref())
             } else {
                 None
             }
@@ -223,7 +223,7 @@ mod tests {
 
         // Case sensitive
         let config = parser.config_mut();
-        config.commands_mut().clear();
+        config.commands.clear();
         config.add_command("echo", true);
         config.add_command("wei\u{df}", true);
         config.add_command("\u{394}", true);

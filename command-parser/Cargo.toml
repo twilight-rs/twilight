@@ -14,3 +14,15 @@ version = "0.1.0"
 
 [dependencies]
 unicase = { default-features = false, version = "2" }
+
+[dev-dependencies]
+criterion = "0.3"
+patricia_tree = "0.2"
+
+[[bench]]
+name = "prefix"
+harness = false
+
+[[bench]]
+name = "commands"
+harness = false
