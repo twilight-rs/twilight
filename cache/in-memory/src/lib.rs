@@ -173,10 +173,10 @@ struct InMemoryCacheRef {
 ///
 /// The defining characteristic of this cache is that returned types (such as a
 /// guild or user) do not use locking for access. The internals of the cache use
-/// a lock-free concurrent map for mutability and the returned types themselves
-/// are Arcs. If a user is retrieved from the cache, an `Arc<User>` is returned.
-/// If a reference to that user is held but the cache updates the user, the
-/// reference held by you will be outdated, but still exist.
+/// a concurrent map for mutability and the returned types themselves are Arcs.
+/// If a user is retrieved from the cache, an `Arc<User>` is returned. If a
+/// reference to that user is held but the cache updates the user, the reference
+/// held by you will be outdated, but still exist.
 ///
 /// The intended use is that data is held outside the cache for only as long
 /// as necessary, where the state of the value at that point time doesn't need
