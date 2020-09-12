@@ -1,9 +1,10 @@
 [package]
 authors = ["Twilight Contributors"]
-description = "Utility crate for twilight-model to create mentions for resources."
+categories = []
+description = "Create mentions for resources in the Twilight ecosystem."
 documentation = "https://twilight.cascadia.cafe/twilight_mention/index.html"
 edition = "2018"
-homepage = "https://github.com/twilight-rs/twilight"
+homepage = "https://twilight.rs/chapter_1_crates/section_8_first_party/section_2_mention.html"
 include = ["src/**/*.rs", "Cargo.toml", "README.md"]
 keywords = ["twilight"]
 license = "ISC"

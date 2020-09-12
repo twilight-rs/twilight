@@ -1,5 +1,6 @@
 [package]
 authors = ["Twilight Contributors"]
+categories = []
 description = "Advertisement crate for the twilight ecosystem; please use the individual crates instead."
 documentation = "https://docs.rs/twilight"
 edition = "2018"
