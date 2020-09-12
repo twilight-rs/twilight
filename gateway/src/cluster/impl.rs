@@ -137,7 +137,7 @@ impl Cluster {
 
                 [0, gateway.shards - 1, gateway.shards]
             }
-            ShardScheme::Range { from, to, total } => [from, to, total],
+            ShardScheme::Range { from, to, total } => [*from, *to, *total],
         };
 
         #[cfg(feature = "metrics")]

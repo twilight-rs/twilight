@@ -39,13 +39,13 @@ impl Config {
         &self.shard_config
     }
 
-    /// Return the shard scheme used to start shards.
+    /// Return an immutable reference to the shard scheme used to start shards.
     ///
     /// Refer to [`ClusterBuilder::shard_scheme`] for the default value.
     ///
     /// [`ClusterBuilder::shard_scheme`]: struct.ClusterBuilder.html#method.shard_scheme
-    pub fn shard_scheme(&self) -> ShardScheme {
-        self.shard_scheme
+    pub fn shard_scheme(&self) -> &ShardScheme {
+        &self.shard_scheme
     }
 
     /// Return an immutable reference to the queue used for initiating shard
