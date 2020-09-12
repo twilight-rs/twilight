@@ -14,7 +14,6 @@ use twilight_model::gateway::{payload::update_status::UpdateStatusInfo, Intents}
 ///
 /// [`ShardBuilder::large_threshold`]: struct.ShardBuilder.html#method.large_threshold
 #[derive(Debug)]
-#[non_exhaustive]
 pub enum LargeThresholdError {
     /// Provided large threshold value is too few in number.
     TooFew {
@@ -45,7 +44,6 @@ impl Error for LargeThresholdError {}
 ///
 /// [`ShardBuilder::shard`]: struct.ShardBuilder.html#method.shard
 #[derive(Debug)]
-#[non_exhaustive]
 pub enum ShardIdError {
     /// Provided shard ID is higher than provided total shard count.
     IdTooLarge {
