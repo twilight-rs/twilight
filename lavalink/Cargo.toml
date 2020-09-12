@@ -1,10 +1,12 @@
 [package]
 authors = ["Twilight Contributors"]
+categories = ["api-bindings", "asynchronous", "web-programming::http-client", "web-programming::websocket"]
+description = "Lavalink client for the Twilight ecosystem."
 documentation = "https://docs.rs/twilight-lavalink"
 edition = "2018"
-homepage = "https://github.com/twilight-rs/twilight/tree/trunk/lavalink"
+homepage = "https://twilight.rs/chapter_1_crates/section_8_first_party/section_3_lavalink.html"
 include = ["src/**/*.rs", "Cargo.toml"]
-keywords = ["discord", "discord-api", "twilight"]
+keywords = ["discord", "discord-api", "lavalink", "twilight"]
 license = "ISC"
 name = "twilight-lavalink"
 publish = false
