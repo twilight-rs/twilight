@@ -16,7 +16,7 @@ impl<'a> DeleteReaction<'a> {
         http: &'a Client,
         channel_id: ChannelId,
         message_id: MessageId,
-        emoji: CreateReactionType,
+        emoji: RequestReactionType,
         target_user: impl Into<String>,
     ) -> Self {
         Self {

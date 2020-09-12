@@ -13,14 +13,14 @@ pub use self::{
 use std::fmt::Write;
 use twilight_model::id::EmojiId;
 
-pub enum CreateReactionType {
+pub enum RequestReactionType {
     Unicode { name: String },
     Custom { id: EmojiId, name: Option<String> },
 }
 
-fn format_emoji(emoji: CreateReactionType) -> String {
+fn format_emoji(emoji: RequestReactionType) -> String {
     match emoji {
-        CreateReactionType::Custom { id, name } => {
+        RequestReactionType::Custom { id, name } => {
             let mut emoji = String::new();
             match name {
                 Some(name) => emoji.push_str(name.as_ref()),
@@ -29,6 +29,6 @@ fn format_emoji(emoji: CreateReactionType) -> String {
             let _ = write!(emoji, ":{}", id);
             emoji
         }
-        CreateReactionType::Unicode { name } => name,
+        RequestReactionType::Unicode { name } => name,
     }
 }

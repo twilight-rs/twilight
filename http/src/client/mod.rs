@@ -1087,18 +1087,18 @@ impl Client {
     ///
     /// # Examples
     /// ```rust,no_run
-    /// # use twilight_http::{Client, request::channel::reaction::CreateReactionType};
+    /// # use twilight_http::{Client, request::channel::reaction::RequestReactionType};
     /// # use twilight_model::{
     /// #     id::{ChannelId, MessageId},
     /// # };
     /// #
     /// # #[tokio::main]
     /// # async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
-    /// let client = Client::new("my token");
+    /// # let client = Client::new("my token");
     /// #
     /// let channel_id = ChannelId(123);
     /// let message_id = MessageId(456);
-    /// let emoji = CreateReactionType::Unicode { name: String::from("🌃") };
+    /// let emoji = RequestReactionType::Unicode { name: String::from("🌃") };
     ///
     /// let reaction = client
     ///     .create_reaction(channel_id, message_id, emoji)
@@ -1113,7 +1113,7 @@ impl Client {
         &self,
         channel_id: ChannelId,
         message_id: MessageId,
-        emoji: CreateReactionType,
+        emoji: RequestReactionType,
     ) -> CreateReaction<'_> {
         CreateReaction::new(self, channel_id, message_id, emoji)
     }
@@ -1123,7 +1123,7 @@ impl Client {
         &self,
         channel_id: ChannelId,
         message_id: MessageId,
-        emoji: CreateReactionType,
+        emoji: RequestReactionType,
     ) -> DeleteReaction<'_> {
         DeleteReaction::new(self, channel_id, message_id, emoji, "@me")
     }
@@ -1133,7 +1133,7 @@ impl Client {
         &self,
         channel_id: ChannelId,
         message_id: MessageId,
-        emoji: CreateReactionType,
+        emoji: RequestReactionType,
         user_id: UserId,
     ) -> DeleteReaction<'_> {
         DeleteReaction::new(self, channel_id, message_id, emoji, user_id.to_string())
@@ -1144,7 +1144,7 @@ impl Client {
         &self,
         channel_id: ChannelId,
         message_id: MessageId,
-        emoji: CreateReactionType,
+        emoji: RequestReactionType,
     ) -> DeleteAllReaction<'_> {
         DeleteAllReaction::new(self, channel_id, message_id, emoji)
     }

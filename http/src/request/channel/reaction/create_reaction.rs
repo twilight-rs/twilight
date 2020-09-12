@@ -7,7 +7,7 @@ use twilight_model::id::{ChannelId, MessageId};
 ///
 /// # Examples
 /// ```rust,no_run
-/// use twilight_http::{Client, request::channel::reaction::CreateReactionType};
+/// use twilight_http::{Client, request::channel::reaction::RequestReactionType};
 /// use twilight_model::{
 ///     id::{ChannelId, MessageId},
 /// };
@@ -18,7 +18,7 @@ use twilight_model::id::{ChannelId, MessageId};
 ///
 /// let channel_id = ChannelId(123);
 /// let message_id = MessageId(456);
-/// let emoji = CreateReactionType::Unicode { name: String::from("🌃") };
+/// let emoji = RequestReactionType::Unicode { name: String::from("🌃") };
 ///
 /// let reaction = client
 ///     .create_reaction(channel_id, message_id, emoji)
@@ -42,7 +42,7 @@ impl<'a> CreateReaction<'a> {
         http: &'a Client,
         channel_id: ChannelId,
         message_id: MessageId,
-        emoji: CreateReactionType,
+        emoji: RequestReactionType,
     ) -> Self {
         Self {
             channel_id,
