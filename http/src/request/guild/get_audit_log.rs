@@ -10,6 +10,7 @@ use twilight_model::{
 
 /// The error returned when the audit log can not be requested as configured.
 #[derive(Clone, Debug)]
+#[non_exhaustive]
 pub enum GetAuditLogError {
     /// The limit is either 0 or more than 100.
     LimitInvalid {

@@ -36,6 +36,7 @@ use simd_json::Error as JsonError;
 
 /// Sending a command failed.
 #[derive(Debug)]
+#[non_exhaustive]
 pub enum CommandError {
     /// Sending the payload over the WebSocket failed. This is indicative of a
     /// shutdown shard.
@@ -75,6 +76,7 @@ impl Error for CommandError {
 ///
 /// This means that the shard has not yet been started.
 #[derive(Clone, Debug, Eq, PartialEq)]
+#[non_exhaustive]
 pub struct SessionInactiveError;
 
 impl Display for SessionInactiveError {
@@ -87,6 +89,7 @@ impl Error for SessionInactiveError {}
 
 /// Starting a shard and connecting to the gateway failed.
 #[derive(Debug)]
+#[non_exhaustive]
 pub enum ShardStartError {
     /// Establishing a connection to the gateway failed.
     Establishing {

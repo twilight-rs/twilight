@@ -45,6 +45,7 @@ use url::{ParseError as UrlParseError, Url};
 
 /// Connecting to the gateway failed.
 #[derive(Debug)]
+#[non_exhaustive]
 pub enum ConnectingError {
     Establishing { source: TungsteniteError },
     ParsingUrl { source: UrlParseError, url: String },
@@ -144,6 +145,7 @@ impl Error for ProcessError {
 }
 
 #[derive(Debug)]
+#[non_exhaustive]
 enum ReceivingEventError {
     /// Provided authorization token is invalid.
     AuthorizationInvalid { shard_id: u64, token: String },

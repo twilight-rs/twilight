@@ -7,6 +7,7 @@ use twilight_model::{guild::PartialGuild, id::GuildId};
 
 /// The error created when the current guilds can not be retrieved as configured.
 #[derive(Clone, Debug)]
+#[non_exhaustive]
 pub enum GetCurrentUserGuildsError {
     /// The maximum number of guilds to retrieve is 0 or more than 100.
     LimitInvalid {

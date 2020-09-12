@@ -12,6 +12,7 @@ use twilight_model::{
 
 /// The error returned when the guild can not be updated as configured.
 #[derive(Clone, Debug)]
+#[non_exhaustive]
 pub enum UpdateGuildError {
     /// The name length is either fewer than 2 UTF-16 characters or more than 100 UTF-16
     /// characters.

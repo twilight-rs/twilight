@@ -4,6 +4,7 @@ use twilight_model::gateway::event::EventType;
 
 bitflags! {
     /// Bitflags representing all of the possible types of events.
+    #[non_exhaustive]
     pub struct EventTypeFlags: u64 {
         /// User has been banned from a guild.
         const BAN_ADD = 1;

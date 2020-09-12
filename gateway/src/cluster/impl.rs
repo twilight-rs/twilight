@@ -22,6 +22,7 @@ use twilight_model::gateway::event::Event;
 
 /// Sending a command to a shard failed.
 #[derive(Debug)]
+#[non_exhaustive]
 pub enum ClusterCommandError {
     /// The shard exists, but sending the provided value failed.
     Sending {
@@ -57,6 +58,7 @@ impl Error for ClusterCommandError {
 
 /// Starting a cluster failed.
 #[derive(Debug)]
+#[non_exhaustive]
 pub enum ClusterStartError {
     /// Retrieving the bot's gateway information via the HTTP API failed.
     ///

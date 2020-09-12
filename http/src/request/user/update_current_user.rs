@@ -7,6 +7,7 @@ use twilight_model::user::User;
 
 /// The error created when the user can not be updated as configured.
 #[derive(Clone, Debug)]
+#[non_exhaustive]
 pub enum UpdateCurrentUserError {
     /// The length of the username is either fewer than 2 UTF-16 characters or more than 32 UTF-16
     /// characters.

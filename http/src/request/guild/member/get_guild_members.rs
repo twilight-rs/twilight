@@ -20,6 +20,7 @@ use simd_json::value::OwnedValue as Value;
 
 /// The error created when the members can not be fetched as configured.
 #[derive(Clone, Debug)]
+#[non_exhaustive]
 pub enum GetGuildMembersError {
     /// The limit is either 0 or more than 1000.
     LimitInvalid {

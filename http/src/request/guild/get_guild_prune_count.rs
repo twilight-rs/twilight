@@ -10,6 +10,7 @@ use twilight_model::{
 
 /// The error created when the guild prune count can not be requested as configured.
 #[derive(Clone, Debug)]
+#[non_exhaustive]
 pub enum GetGuildPruneCountError {
     /// The number of days is 0.
     DaysInvalid,

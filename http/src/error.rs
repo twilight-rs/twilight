@@ -17,6 +17,7 @@ use simd_json::Error as JsonError;
 pub type Result<T, E = Error> = StdResult<T, E>;
 
 #[derive(Debug)]
+#[non_exhaustive]
 pub enum UrlError {
     UrlParsing { source: UrlParseError },
     IdParsing { source: ParseIntError },
@@ -58,6 +59,7 @@ impl From<ParseIntError> for UrlError {
 }
 
 #[derive(Debug)]
+#[non_exhaustive]
 pub enum Error {
     BuildingClient {
         source: ReqwestError,

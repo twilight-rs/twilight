@@ -3,6 +3,7 @@ use reqwest::header::{HeaderMap, HeaderValue};
 use std::convert::TryFrom;
 
 #[derive(Clone, Debug)]
+#[non_exhaustive]
 pub enum RatelimitHeaders {
     GlobalLimited {
         reset_after: u64,

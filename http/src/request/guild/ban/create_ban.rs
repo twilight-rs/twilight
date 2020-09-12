@@ -7,6 +7,7 @@ use twilight_model::id::{GuildId, UserId};
 
 /// The error created when the ban can not be created as configured.
 #[derive(Clone, Debug)]
+#[non_exhaustive]
 pub enum CreateBanError {
     /// The number of days' worth of messages to delete is greater than 7.
     DeleteMessageDaysInvalid {

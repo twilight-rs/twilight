@@ -10,6 +10,7 @@ use twilight_model::{
 
 /// The error created if the reactions can not be retrieved as configured.
 #[derive(Clone, Debug)]
+#[non_exhaustive]
 pub enum GetReactionsError {
     /// The number of reactions to retrieve must be between 1 and 100, inclusive.
     LimitInvalid {

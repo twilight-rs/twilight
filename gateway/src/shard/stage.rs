@@ -20,6 +20,7 @@ use std::{
 ///
 /// [`Stage`]: enum.Stage.html
 #[derive(Clone, Debug)]
+#[non_exhaustive]
 pub enum StageConversionError {
     /// The integer isn't one that maps to a stage. For example, 7 might not map
     /// to a Stage variant.
@@ -43,6 +44,7 @@ impl Error for StageConversionError {}
 ///
 /// [`Shard`]: ../struct.Shard.html
 #[derive(Clone, Copy, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
+#[non_exhaustive]
 #[repr(u8)]
 pub enum Stage {
     /// Indicator that a shard is now fully connected to the gateway.
