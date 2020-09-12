@@ -159,10 +159,15 @@ impl Inflater {
     /// Shrink the capacity of the compressed buffer and payload buffer if the
     /// payload buffer length is less than 25% of its capacity.
     fn shrink_if_too_large(&mut self) {
+        if self.countdown_to_resize != u8::MIN {
+            return;
+        }
+
         // Only shrink capacity if it is less than 4 times the size. Doing it
         // all the time will cause performance issues. So, if it's greater,
         // don't do anything.
-        if self.countdown_to_resize != u8::MIN || self.buffer.len() < self.buffer.capacity() / 4 {
+        if self.buffer.len() < self.buffer.capacity() / 4 {
+            self.countdown_to_resize = u8::MAX;
             return;
         }
 
