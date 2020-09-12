@@ -56,6 +56,12 @@ jobs:
             additional: --features rustls
             rustflags: '-C target-cpu=native'
           - package: gateway
+            features: rustls
+            additional: --features stock-zlib
+          - package: gateway
+            features: native
+            additional: --features stock-zlib
+          - package: gateway
             features: simd-json
             additional: --features rustls,stock-zlib
             rustflags: '-C target-cpu=native'
