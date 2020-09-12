@@ -6,101 +6,104 @@
 
 ![project logo][logo]
 
-`twilight` is a powerful asynchronous, flexible, and scalable ecosystem of
-Rust libraries for the Discord API.
+`twilight` is a powerful, flexible, and scalable ecosystem of Rust libraries
+for the Discord API.
 
 The ecosystem of first-class crates includes `twilight-cache-inmemory`,
 `twilight-command-parser`, `twilight-gateway`, `twilight-http`,
 `twilight-model`, and more. These are explained in detail below.
 
-The main `twilight` crate is a "skeleton crate": it includes all of the
-non-vendor-specific crates in the `twilight` ecosystem.
+The main `twilight` crate is purely an advertisement crate: it has *no*
+functionality. Please use the individual crates listed below instead!
 
 ## Installation
 
 Twilight requires the latest stable Rust version.
 
-Add this to your `Cargo.toml`'s `[dependencies]` section:
+We recommend that most users start out with these crates added to your
+`Cargo.toml`'s `[dependencies]` section:
 
 ```toml
-twilight = { branch = "trunk", git = "https://github.com/twilight-rs/twilight.git" }
+twilight-cache-inmemory = { branch = "trunk", git = "https://github.com/twilight-rs/twilight.git" }
+twilight-gateway = { branch = "trunk", git = "https://github.com/twilight-rs/twilight.git" }
+twilight-http = { branch = "trunk", git = "https://github.com/twilight-rs/twilight.git" }
+twilight-model = { branch = "trunk", git = "https://github.com/twilight-rs/twilight.git" }
 ```
+
+If you need any other functionality that Twilight provides, you can just add
+that dependency in.
 
 ## Core Crates
 
 These are essential crates that most users will use together for a full
 development experience. You may not need all of these - such as
-`twilight-cache` - but they are often used together to accomplish most of
-what you need.
+`twilight-command-parser` - but they are often used together to accomplish
+most of what you need.
 
-### `twilight-model`
+### [`twilight-model`]
 
-`twilight-model` is a set of models defining structures, enums, and bitflags
-for the entirety of the Discord API. It is split into a number of
-sub-modules, such as `gateway` for containing the WebSocket gateway types,
-`guild` for containing types owned by guilds (servers), `voice` containing
-the types used by the Voice WebSocket API, and more.
+Models defining structures, enums, and bitflags for the entirety of the
+Discord API. It is split into a number of sub-modules, such as `gateway` for
+containing the WebSocket gateway types, `guild` for containing types owned
+by guilds (servers), `voice` containing the types used by the Voice
+WebSocket API, and more.
 
 These are all in a single crate so that you can use `gateway` models without
 depending on `twilight-gateway`. One use case is if you write your own WebSocket
 gateway implementation.
 
-### `twilight-cache-inmemory`
+### [`twilight-cache-inmemory`]
 
-`twilight-cache-inmemory` is an in-process-memory based cache. It's
-responsible for holding information about things like guilds, channels, role
-information, voice states, and any other data that comes from Discord.
+In-process-memory based cache over objects received from the gateway. It's
+responsible for holding and managing information about things like guilds,
+channels, role information, voice states, and any other events that come
+from Discord.
 
-### `twilight-gateway`
+### [`twilight-gateway`]
 
-`twilight-gateway` is an implementation of Discord's sharding gateway sessions.
-This is responsible for receiving stateful events in real-time from Discord
-and sending *some* stateful information.
+Implementation of Discord's sharding gateway sessions. This is responsible
+for receiving stateful events in real-time from Discord and sending *some*
+stateful information.
 
-### `twilight-command-parser`
+### [`twilight-command-parser`]
 
-`twilight-command-parser` is a crate for parsing commands out of messages
-received over the gateway. It finds messages commanding your bot and parses
-the arguments out.
+Helpful crate for parsing commands out of messages received over the gateway. It finds messages commanding your bot and parses the arguments out.
 
-### `twilight-http`
+### [`twilight-http`]
 
-`twilight-http` is an HTTP client supporting all of the Discord REST API. It is
-based on `hyper`. It meets Discord's ratelimiting requirements and supports
-proxying.
+HTTP client supporting all of the Discord REST API. It is based on `hyper`.
+It meets Discord's ratelimiting requirements and supports proxying.
 
-### `twilight-standby`
+### [`twilight-standby`]
 
-`twilight-standby` is an event processor that allows for tasks to wait for an
-event to come in. This is useful, for example, when you have a reaction menu
-and want to wait for a reaction to it to come in.
+Event processor that allows for tasks to wait for an event to come in. This
+is useful, for example, when you have a reaction menu and want to wait for a
+specific reaction on it to come in.
 
 ## Additional Crates
 
 These are crates that are officially supported by Twilight, but aren't
-considered core crates due to being vendor-specific or non-essential for most
-users.
+considered core crates due to being vendor-specific or non-essential for
+most users.
 
-### `twilight-embed-builder`
+### [`twilight-embed-builder`]
 
-[`twilight-embed-builder`] is a utility crate for creating and validating
-message embeds, to be used when creating or updating messages.
+Utility crate for creating and validating message embeds, to be used when creating or updating messages.
 
-### `twilight-lavalink`
+### [`twilight-lavalink`]
 
-[`twilight-lavalink`] is a client for [Lavalink] as part of the twilight
-ecosystem.
+Client for [Lavalink] as part of the twilight ecosystem.
 
 It includes support for managing multiple nodes, a player manager for
 conveniently using players to send events and retrieve information for each
 guild, and an HTTP module for creating requests using the [`http`] crate and
 providing models to deserialize their responses.
 
-### `twilight-mention`
+### [`twilight-mention`]
 
-[`twilight-mention`] is a utility crate for creating display formatters for
-various model types that format mentions. For example, it can create
-formatters for mentioning a channel or emoji, or pinging a role or user.
+Create display formatters for various model types that format mentions. For
+example, it can create formatters for mentioning a channel or emoji, or
+pinging a role or user.
 
 ## Examples
 
@@ -184,10 +187,11 @@ async fn handle_event(
 
 ## Note about tracing
 
-When using tracing you won't, by default, see logs from any libraries that use the
-`log` crate. You can add that back by using the [`tracing-log`] crate and
-initializing it like this:
-```rust,ignore
+When using the `tracing` crate you won't, by default, see logs from any
+libraries that use the `log` crate. You can add that back by using the
+[`tracing-log`] crate and initializing it like this:
+
+```rust
 tracing_log::LogTracer::init()?;
 ```
 
@@ -207,9 +211,15 @@ All first-party crates are licensed under [ISC][LICENSE.md]
 [license link]: https://github.com/twilight-rs/twilight/blob/trunk/LICENSE.md
 [logo]: https://raw.githubusercontent.com/twilight-rs/twilight/trunk/logo.png
 [rust badge]: https://img.shields.io/badge/rust-stable-93450a.svg?style=for-the-badge&logo=rust
-[`twilight-embed-builder`]: https://github.com/twilight-rs/twilight/tree/trunk/utils/embed-builder
-[`twilight-lavalink`]: https://github.com/twilight-rs/twilight/tree/trunk/lavalink
-[`twilight-mention`]: https://github.com/twilight-rs/twilight/tree/trunk/utils/mention
 [`tracing-log`]: https://github.com/tokio-rs/tracing/tree/master/tracing-log
+[`twilight-cache-inmemory`]: https://twilight.rs/chapter_1_crates/section_4_cache_inmemory.html
+[`twilight-command-parser`]: https://twilight.rs/chapter_1_crates/section_5_command_parser.html
+[`twilight-embed-builder`]: https://twilight.rs/chapter_1_crates/section_8_first_party/section_1_embed_builder.html
+[`twilight-gateway`]: https://twilight.rs/chapter_1_crates/section_3_gateway.html
+[`twilight-http`]: https://twilight.rs/chapter_1_crates/section_2_http.html
+[`twilight-lavalink`]: https://twilight.rs/chapter_1_crates/section_8_first_party/section_3_lavalink.html
+[`twilight-mention`]: https://twilight.rs/chapter_1_crates/section_8_first_party/section_2_mention.html
+[`twilight-model`]: https://twilight.rs/chapter_1_crates/section_1_model.html
+[`twilight-standby`]: https://twilight.rs/chapter_1_crates/section_6_standby.html
 
 <!-- cargo-sync-readme end -->

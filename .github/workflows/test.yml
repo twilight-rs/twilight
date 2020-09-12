@@ -44,7 +44,6 @@ jobs:
         package:
           - http
           - gateway
-          - twilight
           - lavalink
         features:
           - native
@@ -52,13 +51,6 @@ jobs:
           - simd-json
 
         include:
-          - package: twilight
-            additional: --features all
-          - package: twilight
-            features: simd-json
-            additional: --features all,rustls
-            rustflags: '-C target-cpu=native'
-
           - package: http
             features: simd-json
             additional: --features rustls
