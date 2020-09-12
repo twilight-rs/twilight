@@ -13,3 +13,5 @@ tracing = { default-features = false, features = ["std", "attributes"], version 
 
 [dev-dependencies]
 static_assertions = { default-features = false, version = "1" }
+tokio = { default-features = false, features = ["macros", "rt-core"], version = "0.2" }
+twilight-gateway = { path = "../../gateway" }

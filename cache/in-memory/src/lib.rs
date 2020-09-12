@@ -1,3 +1,60 @@
+//! # twilight-cache-inmemory
+//!
+//! [![discord badge][]][discord link] [![github badge][]][github link] [![license badge][]][license link] ![rust badge]
+//!
+//! `twilight-cache-inmemory` is an in-process-memory cache for the
+//! [`twilight-rs`] ecosystem. It's responsible for processing events and
+//! caching things like guilds, channels, users, and voice states.
+//!
+//! ## Installation
+//!
+//! Add the following to your `Cargo.toml`:
+//!
+//! ```toml
+//! twilight-cache-inmemory = { branch = "trunk", git = "https://github.com/twilight-rs/twilight" }
+//! ```
+//!
+//! ## Examples
+//!
+//! Update a cache with events that come in through the gateway:
+//!
+//! ```rust,no_run
+//! use std::env;
+//! use tokio::stream::StreamExt;
+//! use twilight_cache_inmemory::InMemoryCache;
+//! use twilight_gateway::Shard;
+//!
+//! # #[tokio::main] async fn main() -> Result<(), Box<dyn std::error::Error>> {
+//! let token = env::var("DISCORD_TOKEN")?;
+//! let mut shard = Shard::new(token);
+//! shard.start().await?;
+//!
+//! // Create a cache, caching up to 10 messages per channel:
+//! let cache = InMemoryCache::builder().message_cache_size(10).build();
+//!
+//! let mut events = shard.events();
+//!
+//! while let Some(event) = events.next().await {
+//!     // Update the cache with the event.
+//!     cache.update(&event);
+//! }
+//! # Ok(()) }
+//! ```
+//!
+//! ## License
+//!
+//! All first-party crates are licensed under [ISC][LICENSE.md]
+//!
+//! [LICENSE.md]: https://github.com/twilight-rs/twilight/blob/trunk/LICENSE.md
+//! [discord badge]: https://img.shields.io/discord/745809834183753828?color=%237289DA&label=discord%20server&logo=discord&style=for-the-badge
+//! [discord link]: https://discord.gg/7jj8n7D
+//! [docs:discord:sharding]: https://discord.com/developers/docs/topics/gateway#sharding
+//! [github badge]: https://img.shields.io/badge/github-twilight-6f42c1.svg?style=for-the-badge&logo=github
+//! [github link]: https://github.com/twilight-rs/twilight
+//! [license badge]: https://img.shields.io/badge/license-ISC-blue.svg?style=for-the-badge&logo=pastebin
+//! [license link]: https://github.com/twilight-rs/twilight/blob/trunk/LICENSE.md
+//! [rust badge]: https://img.shields.io/badge/rust-stable-93450a.svg?style=for-the-badge&logo=rust
+
 pub mod model;
 
 mod builder;
@@ -112,35 +169,28 @@ struct InMemoryCacheRef {
 /// This is an implementation of a cache designed to be used by only the
 /// current process.
 ///
-/// # Public Immutability
+/// # Design and Performance
 ///
 /// The defining characteristic of this cache is that returned types (such as a
-/// guild or user) do not use locking for access. Although the internals of the
-/// cache use asynchronous locking for mutability, the returned types themselves
-/// are immutable. If a user is retrieved from the cache, an `Arc<User>` is
-/// returned. If a reference to that user is held but the cache updates the
-/// user, the reference held by you will be outdated, but still exist.
+/// guild or user) do not use locking for access. The internals of the cache use
+/// a lock-free concurrent map for mutability and the returned types themselves
+/// are Arcs. If a user is retrieved from the cache, an `Arc<User>` is returned.
+/// If a reference to that user is held but the cache updates the user, the
+/// reference held by you will be outdated, but still exist.
 ///
 /// The intended use is that data is held outside the cache for only as long
-/// as necessary, where the state of the value at that time doesn't need to be
-/// up-to-date.
+/// as necessary, where the state of the value at that point time doesn't need
+/// to be up-to-date. If you need to ensure you always have the most up-to-date
+/// "version" of a cached resource, then you can re-retrieve it whenever you use
+/// it: retrieval operations are extremely cheap.
 ///
-/// Say you're deleting some of the guilds of a channel. You'll probably need
-/// the guild to do that, so you retrieve it from the cache. You can then use
-/// the guild to update all of the channels, because for most use cases you
-/// don't need the guild to be up-to-date in real time, you only need its state
-/// at that *point in time*. If you need the guild to always be up-to-date
-/// between operations, the intent is that you keep getting it from the cache.
-///
-/// Getting something from the cache is cheap and has low contention, so public
-/// immutability is preferred over using mutexes, read-write locks, or other
-/// smart atomic updating cells. Refer to the crate-level documentation for
-/// a list of known first-party and third-party cache implementations.
-///
-/// # Caveats
-///
-/// - the "last message id" field of channels will *not* be kept up to date as
-/// - messages come in.
+/// For example, say you're deleting some of the guilds of a channel. You'll
+/// probably need the guild to do that, so you retrieve it from the cache. You
+/// can then use the guild to update all of the channels, because for most use
+/// cases you don't need the guild to be up-to-date in real time, you only need
+/// its state at that *point in time* or maybe across the lifetime of an
+/// operation. If you need the guild to always be up-to-date between operations,
+/// then the intent is that you keep getting it from the cache.
 #[derive(Clone, Debug, Default)]
 pub struct InMemoryCache(Arc<InMemoryCacheRef>);
 
