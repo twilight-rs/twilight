@@ -3,7 +3,7 @@ use twilight_model::id::{ChannelId, MessageId};
 
 /// Create a reaction in a [`ChannelId`] on a [`MessageId`].
 ///
-/// The reaction must be a variant of [`CreateReactionType`].
+/// The reaction must be a variant of [`RequestReactionType`].
 ///
 /// # Examples
 /// ```rust,no_run
@@ -28,7 +28,7 @@ use twilight_model::id::{ChannelId, MessageId};
 ///
 /// [`ChannelId`]: ../../../../twilight_model/id/struct.ChannelId.html
 /// [`MessageId`]: ../../../../twilight_model/id/struct.MessageId.html
-/// [`CreateReactionType`]: enum.CreateReactionType.html
+/// [`RequestReactionType`]: enum.RequestReactionType.html
 pub struct CreateReaction<'a> {
     channel_id: ChannelId,
     emoji: String,
