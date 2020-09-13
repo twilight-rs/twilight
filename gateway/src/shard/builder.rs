@@ -141,8 +141,8 @@ impl ShardBuilder {
     /// Set the gateway intents.
     ///
     /// Default is Discord's default.
-    pub fn intents(mut self, intents: Option<Intents>) -> Self {
-        self.0.intents = intents;
+    pub fn intents(mut self, intents: Intents) -> Self {
+        self.0.intents.replace(intents);
 
         self
     }

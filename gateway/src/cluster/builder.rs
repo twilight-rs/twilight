@@ -225,7 +225,7 @@ impl ClusterBuilder {
     /// Refer to the shard's [`ShardBuilder::intents`] for more information.
     ///
     /// [`ShardBuilder::intents`]: ../shard/struct.ShardBuilder.html#method.intents
-    pub fn intents(mut self, intents: Option<Intents>) -> Self {
+    pub fn intents(mut self, intents: Intents) -> Self {
         self.1 = self.1.intents(intents);
 
         self
