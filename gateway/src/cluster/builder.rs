@@ -135,7 +135,7 @@ impl<T: RangeBounds<u64>> TryFrom<(T, u64)> for ShardScheme {
 ///
 /// let intents = Intents::GUILD_MESSAGES;
 /// let cluster = Cluster::builder(token)
-///     .intents(Some(intents))
+///     .intents(intents)
 ///     .large_threshold(100)?
 ///     .build()
 ///     .await?;
