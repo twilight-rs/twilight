@@ -24,7 +24,9 @@ patricia_tree = "0.2"
 [[bench]]
 name = "prefix"
 harness = false
+path = "benches/prefix.rs"
 
 [[bench]]
 name = "commands"
 harness = false
+path = "benches/commands.rs"
