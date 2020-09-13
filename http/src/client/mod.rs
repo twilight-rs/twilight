@@ -1083,7 +1083,7 @@ impl Client {
 
     /// Create a reaction in a [`ChannelId`] on a [`MessageId`].
     ///
-    /// The reaction must be a variant of [`CreateReactionType`].
+    /// The reaction must be a variant of [`RequestReactionType`].
     ///
     /// # Examples
     /// ```rust,no_run
@@ -1108,7 +1108,7 @@ impl Client {
     ///
     /// [`ChannelId`]: ../../twilight_model/id/struct.ChannelId.html
     /// [`MessageId`]: ../../twilight_model/id/struct.MessageId.html
-    /// [`CreateReactionType`]: ../request/channel/reaction/enum.CreateReactionType.html
+    /// [`RequestReactionType`]: ../request/channel/reaction/enum.RequestReactionType.html
     pub fn create_reaction(
         &self,
         channel_id: ChannelId,
