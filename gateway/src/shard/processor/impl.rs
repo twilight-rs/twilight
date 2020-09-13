@@ -38,6 +38,7 @@ use twilight_model::gateway::{
     payload::{
         identify::{Identify, IdentifyInfo, IdentifyProperties},
         resume::Resume,
+        Ready,
     },
     Intents, OpCode,
 };
@@ -220,14 +221,8 @@ impl Display for ReceivingEventError {
 impl Error for ReceivingEventError {}
 
 #[derive(Deserialize)]
-struct ReadyMinimal<'a> {
-    #[serde(borrow)]
-    d: ReadyMinimalInner<'a>,
-}
-
-#[derive(Deserialize)]
-struct ReadyMinimalInner<'a> {
-    session_id: &'a str,
+struct ReadyMinimal {
+    d: Ready,
 }
 
 /// Runs in the background and processes incoming events, and then broadcasts
@@ -333,6 +328,13 @@ impl ShardProcessor {
             };
 
             if let Err(source) = self.process().await {
+                tracing::warn!(
+                    shard_id = self.config.shard()[0],
+                    shard_total = self.config.shard()[1],
+                    "processing incoming event failed: {:?}",
+                    source,
+                );
+
                 if source.fatal() {
                     tracing::debug!("error processing event; reconnecting");
 
@@ -420,8 +422,18 @@ impl ShardProcessor {
 
                     emitter.event(Event::from(gateway_event));
                 }
+
+                return Ok(());
             } else if event_type.as_deref() == Some("READY") {
-                self.process_ready()?;
+                let ready = json::from_slice::<ReadyMinimal>(self.inflater.buffer_mut()).map_err(
+                    |source| ProcessError::ParsingPayload {
+                        source: GatewayEventParsingError::Deserializing { source },
+                    },
+                )?;
+                self.process_ready(&ready.d);
+                emitter.event(Event::Ready(Box::new(ready.d)));
+
+                return Ok(());
             }
 
             self.session.set_seq(seq);
@@ -443,26 +455,17 @@ impl ShardProcessor {
             })
     }
 
-    fn process_ready(&mut self) -> Result<(), ProcessError> {
+    fn process_ready(&mut self, ready: &Ready) {
         #[cfg(feature = "metrics")]
         metrics::counter!("GatewayEvent", 1, "GatewayEvent" => "Dispatch");
 
-        let ready =
-            json::from_slice::<ReadyMinimal<'_>>(self.inflater.buffer_mut()).map_err(|source| {
-                ProcessError::ParsingPayload {
-                    source: GatewayEventParsingError::Deserializing { source },
-                }
-            })?;
-
         self.session.set_stage(Stage::Connected);
-        self.session.set_id(ready.d.session_id.to_owned());
+        self.session.set_id(ready.session_id.clone());
 
         self.emitter.event(Event::ShardConnected(Connected {
             heartbeat_interval: self.session.heartbeat_interval(),
             shard_id: self.config.shard()[0],
         }));
-
-        Ok(())
     }
 
     fn process_resumed(&self, seq: u64) {
