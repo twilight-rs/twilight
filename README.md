@@ -126,7 +126,7 @@ async fn main() -> Result<(), Box<dyn Error + Send + Sync>> {
     let cluster = Cluster::builder(&token)
         .shard_scheme(scheme)
         // Use intents to only receive guild message events.
-        .intents(Some(Intents::GUILD_MESSAGES))
+        .intents(Intents::GUILD_MESSAGES)
         .build()
         .await?;
 
