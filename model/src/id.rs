@@ -1,9 +1,38 @@
+//! Type-safe IDs for each resource to avoid mixing the IDs of resources like
+//! channels and guilds.
+//!
+//! # serde
+//!
+//! These IDs support deserializing from both integers and strings and serialize
+//! into strings.
+
 pub(crate) mod string {
     use serde::{
-        de::{Deserialize, Deserializer, Error as DeError},
+        de::{Deserializer, Error as DeError, Visitor},
         ser::Serializer,
     };
-    use std::{fmt::Display, str::FromStr};
+    use std::{
+        fmt::{Display, Formatter, Result as FmtResult},
+        marker::PhantomData,
+    };
+
+    struct IdVisitor<T: From<u64>>(PhantomData<T>);
+
+    impl<'de, T: From<u64>> Visitor<'de> for IdVisitor<T> {
+        type Value = T;
+
+        fn expecting(&self, f: &mut Formatter<'_>) -> FmtResult {
+            f.write_str("string or integer snowflake")
+        }
+
+        fn visit_u64<E: DeError>(self, value: u64) -> Result<Self::Value, E> {
+            Ok(T::from(value))
+        }
+
+        fn visit_str<E: DeError>(self, value: &str) -> Result<Self::Value, E> {
+            value.parse().map(T::from).map_err(DeError::custom)
+        }
+    }
 
     pub fn serialize<T: Display, S: Serializer>(
         value: &T,
@@ -12,15 +41,10 @@ pub(crate) mod string {
         serializer.collect_str(value)
     }
 
-    pub fn deserialize<'de, T, D>(deserializer: D) -> Result<T, D::Error>
-    where
-        T: FromStr,
-        T::Err: Display,
-        D: Deserializer<'de>,
-    {
-        String::deserialize(deserializer)?
-            .parse()
-            .map_err(DeError::custom)
+    pub fn deserialize<'de, T: From<u64>, D: Deserializer<'de>>(
+        deserializer: D,
+    ) -> Result<T, D::Error> {
+        deserializer.deserialize_any(IdVisitor(PhantomData))
     }
 }
 
@@ -239,6 +263,7 @@ mod tests {
     };
     use serde_test::Token;
 
+    #[allow(clippy::too_many_lines)]
     #[test]
     fn test_id_deser() {
         serde_test::assert_tokens(
@@ -250,6 +275,15 @@ mod tests {
                 Token::Str("114941315417899012"),
             ],
         );
+        serde_test::assert_de_tokens(
+            &ApplicationId(114_941_315_417_899_012),
+            &[
+                Token::NewtypeStruct {
+                    name: "ApplicationId",
+                },
+                Token::U64(114_941_315_417_899_012),
+            ],
+        );
         serde_test::assert_tokens(
             &AttachmentId(114_941_315_417_899_012),
             &[
@@ -257,6 +291,15 @@ mod tests {
                     name: "AttachmentId",
                 },
                 Token::Str("114941315417899012"),
+            ],
+        );
+        serde_test::assert_de_tokens(
+            &AttachmentId(114_941_315_417_899_012),
+            &[
+                Token::NewtypeStruct {
+                    name: "AttachmentId",
+                },
+                Token::U64(114_941_315_417_899_012),
             ],
         );
         serde_test::assert_tokens(
@@ -268,11 +311,27 @@ mod tests {
                 Token::Str("114941315417899012"),
             ],
         );
+        serde_test::assert_de_tokens(
+            &AuditLogEntryId(114_941_315_417_899_012),
+            &[
+                Token::NewtypeStruct {
+                    name: "AuditLogEntryId",
+                },
+                Token::U64(114_941_315_417_899_012),
+            ],
+        );
         serde_test::assert_tokens(
             &ChannelId(114_941_315_417_899_012),
             &[
                 Token::NewtypeStruct { name: "ChannelId" },
                 Token::Str("114941315417899012"),
+            ],
+        );
+        serde_test::assert_de_tokens(
+            &ChannelId(114_941_315_417_899_012),
+            &[
+                Token::NewtypeStruct { name: "ChannelId" },
+                Token::U64(114_941_315_417_899_012),
             ],
         );
         serde_test::assert_tokens(
@@ -282,6 +341,13 @@ mod tests {
                 Token::Str("114941315417899012"),
             ],
         );
+        serde_test::assert_de_tokens(
+            &EmojiId(114_941_315_417_899_012),
+            &[
+                Token::NewtypeStruct { name: "EmojiId" },
+                Token::U64(114_941_315_417_899_012),
+            ],
+        );
         serde_test::assert_tokens(
             &GenericId(114_941_315_417_899_012),
             &[
@@ -289,11 +355,25 @@ mod tests {
                 Token::Str("114941315417899012"),
             ],
         );
+        serde_test::assert_de_tokens(
+            &GenericId(114_941_315_417_899_012),
+            &[
+                Token::NewtypeStruct { name: "GenericId" },
+                Token::U64(114_941_315_417_899_012),
+            ],
+        );
         serde_test::assert_tokens(
             &GuildId(114_941_315_417_899_012),
             &[
                 Token::NewtypeStruct { name: "GuildId" },
                 Token::Str("114941315417899012"),
+            ],
+        );
+        serde_test::assert_de_tokens(
+            &GuildId(114_941_315_417_899_012),
+            &[
+                Token::NewtypeStruct { name: "GuildId" },
+                Token::U64(114_941_315_417_899_012),
             ],
         );
         serde_test::assert_tokens(
@@ -305,11 +385,27 @@ mod tests {
                 Token::Str("114941315417899012"),
             ],
         );
+        serde_test::assert_de_tokens(
+            &IntegrationId(114_941_315_417_899_012),
+            &[
+                Token::NewtypeStruct {
+                    name: "IntegrationId",
+                },
+                Token::U64(114_941_315_417_899_012),
+            ],
+        );
         serde_test::assert_tokens(
             &MessageId(114_941_315_417_899_012),
             &[
                 Token::NewtypeStruct { name: "MessageId" },
                 Token::Str("114941315417899012"),
+            ],
+        );
+        serde_test::assert_de_tokens(
+            &MessageId(114_941_315_417_899_012),
+            &[
+                Token::NewtypeStruct { name: "MessageId" },
+                Token::U64(114_941_315_417_899_012),
             ],
         );
         serde_test::assert_tokens(
@@ -319,6 +415,13 @@ mod tests {
                 Token::Str("114941315417899012"),
             ],
         );
+        serde_test::assert_de_tokens(
+            &RoleId(114_941_315_417_899_012),
+            &[
+                Token::NewtypeStruct { name: "RoleId" },
+                Token::U64(114_941_315_417_899_012),
+            ],
+        );
         serde_test::assert_tokens(
             &UserId(114_941_315_417_899_012),
             &[
@@ -326,11 +429,25 @@ mod tests {
                 Token::Str("114941315417899012"),
             ],
         );
+        serde_test::assert_de_tokens(
+            &UserId(114_941_315_417_899_012),
+            &[
+                Token::NewtypeStruct { name: "UserId" },
+                Token::U64(114_941_315_417_899_012),
+            ],
+        );
         serde_test::assert_tokens(
             &WebhookId(114_941_315_417_899_012),
             &[
                 Token::NewtypeStruct { name: "WebhookId" },
                 Token::Str("114941315417899012"),
+            ],
+        );
+        serde_test::assert_de_tokens(
+            &WebhookId(114_941_315_417_899_012),
+            &[
+                Token::NewtypeStruct { name: "WebhookId" },
+                Token::U64(114_941_315_417_899_012),
             ],
         );
     }
