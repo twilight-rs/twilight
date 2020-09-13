@@ -211,8 +211,7 @@ impl FromStr for Path {
             ["users", _, "guilds"] => UsersIdGuilds,
             ["users", _, "guilds", _] => UsersIdGuildsId,
             ["voice", "regions"] => VoiceRegions,
-            ["webhooks", id] => WebhooksId(id.parse()?),
-            ["webhooks", id, _] => WebhooksId(id.parse()?),
+            ["webhooks", id] | ["webhooks", id, _] => WebhooksId(id.parse()?),
             _ => return Err(PathParseError::NoMatch),
         })
     }
