@@ -8,14 +8,6 @@
 [`twilight-rs`] ecosystem. It's responsible for processing events and
 caching things like guilds, channels, users, and voice states.
 
-## Installation
-
-Add the following to your `Cargo.toml`:
-
-```toml
-twilight-cache-inmemory = { branch = "trunk", git = "https://github.com/twilight-rs/twilight" }
-```
-
 ## Examples
 
 Update a cache with events that come in through the gateway:

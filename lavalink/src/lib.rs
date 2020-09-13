@@ -35,7 +35,7 @@
 //!
 //! ```toml
 //! [dependencies]
-//! twilight-lavalink = { branch = "trunk", default-features = false, features = ["native"], git = "https://github.com/twilight-rs/twilight" }
+//! twilight-lavalink = { default-features = false, features = ["native"], version = "0.1" }
 //! ```
 //!
 //! #### `rustls`

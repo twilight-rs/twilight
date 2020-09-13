@@ -9,15 +9,6 @@
 //! names and prefixes. The parser parses out commands matching an available
 //! command and prefix and provides the command arguments to you.
 //!
-//! # Installation
-//!
-//! Add the following to your Cargo.toml:
-//!
-//! ```toml
-//! [dependencies]
-//! twilight-command-parser = "0.1"
-//! ```
-//!
 //! ### Examples
 //!
 //! A simple parser for a bot with one prefix (`"!"`) and two commands: `"echo"`

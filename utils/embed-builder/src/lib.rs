@@ -6,15 +6,6 @@
 //! ecosystem to create a message embed, useful when creating or updating
 //! messages.
 //!
-//! ## Installation
-//!
-//! Add the following to your `Cargo.toml`:
-//!
-//! ```toml
-//! [dependencies]
-//! twilight-embed-builder = { branch = "trunk", git = "https://github.com/twilight-rs/twilight" }
-//! ```
-//!
 //! ## Examples
 //!
 //! Build a simple embed:
