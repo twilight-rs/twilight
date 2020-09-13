@@ -30,3 +30,4 @@ serde_test = { default-features = false, version = "1" }
 [[bench]]
 name = "deserialization"
 harness = false
+path = "benches/deserialization.rs"
