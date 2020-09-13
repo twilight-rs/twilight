@@ -33,7 +33,7 @@
 //!
 //! ```toml
 //! [dependencies]
-//! twilight-http = { branch = "trunk", default-features = false, features = ["rustls", "simd-json"], git = "https://github.com/twilight-rs/twilight" }
+//! twilight-http = { default-features = false, features = ["rustls", "simd-json"], version = "0.1" }
 //! ```
 //!
 //! ### TLS
@@ -50,7 +50,7 @@
 //!
 //! ```toml
 //! [dependencies]
-//! twilight-http = { branch = "trunk", default-features = false, features = ["native"], git = "https://github.com/twilight-rs/twilight" }
+//! twilight-http = { default-features = false, features = ["native"], version = "0.1" }
 //! ```
 //!
 //! #### `rustls`
