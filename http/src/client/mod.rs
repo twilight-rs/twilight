@@ -24,7 +24,6 @@ use std::{
     sync::Arc,
 };
 use twilight_model::{
-    channel::ReactionType,
     guild::Permissions,
     id::{ChannelId, EmojiId, GuildId, IntegrationId, MessageId, RoleId, UserId, WebhookId},
 };
@@ -1080,13 +1079,12 @@ impl Client {
 
     /// Create a reaction in a [`ChannelId`] on a [`MessageId`].
     ///
-    /// The reaction must be a variant of [`ReactionType`].
+    /// The reaction must be a variant of [`RequestReactionType`].
     ///
     /// # Examples
     /// ```rust,no_run
-    /// # use twilight_http::Client;
+    /// # use twilight_http::{Client, request::channel::reaction::RequestReactionType};
     /// # use twilight_model::{
-    /// #     channel::ReactionType,
     /// #     id::{ChannelId, MessageId},
     /// # };
     /// #
@@ -1096,7 +1094,7 @@ impl Client {
     /// #
     /// let channel_id = ChannelId(123);
     /// let message_id = MessageId(456);
-    /// let emoji = ReactionType::Unicode { name: String::from("🌃") };
+    /// let emoji = RequestReactionType::Unicode { name: String::from("🌃") };
     ///
     /// let reaction = client
     ///     .create_reaction(channel_id, message_id, emoji)
@@ -1106,12 +1104,12 @@ impl Client {
     ///
     /// [`ChannelId`]: ../../twilight_model/id/struct.ChannelId.html
     /// [`MessageId`]: ../../twilight_model/id/struct.MessageId.html
-    /// [`ReactionType`]: ../../twilight_model/channel/enum.ReactionType.html
+    /// [`RequestReactionType`]: ../request/channel/reaction/enum.RequestReactionType.html
     pub fn create_reaction(
         &self,
         channel_id: ChannelId,
         message_id: MessageId,
-        emoji: ReactionType,
+        emoji: RequestReactionType,
     ) -> CreateReaction<'_> {
         CreateReaction::new(self, channel_id, message_id, emoji)
     }
@@ -1121,7 +1119,7 @@ impl Client {
         &self,
         channel_id: ChannelId,
         message_id: MessageId,
-        emoji: ReactionType,
+        emoji: RequestReactionType,
     ) -> DeleteReaction<'_> {
         DeleteReaction::new(self, channel_id, message_id, emoji, "@me")
     }
@@ -1131,7 +1129,7 @@ impl Client {
         &self,
         channel_id: ChannelId,
         message_id: MessageId,
-        emoji: ReactionType,
+        emoji: RequestReactionType,
         user_id: UserId,
     ) -> DeleteReaction<'_> {
         DeleteReaction::new(self, channel_id, message_id, emoji, user_id.to_string())
@@ -1142,7 +1140,7 @@ impl Client {
         &self,
         channel_id: ChannelId,
         message_id: MessageId,
-        emoji: ReactionType,
+        emoji: RequestReactionType,
     ) -> DeleteAllReaction<'_> {
         DeleteAllReaction::new(self, channel_id, message_id, emoji)
     }
@@ -1569,6 +1567,7 @@ fn parse_webhook_url(
 mod tests {
     use super::{parse_webhook_url, WebhookId};
     use std::error::Error;
+
     #[test]
     fn parse_webhook_id() -> Result<(), Box<dyn Error>> {
         assert_eq!(

@@ -1,8 +1,5 @@
 use crate::request::prelude::*;
-use twilight_model::{
-    channel::ReactionType,
-    id::{ChannelId, MessageId},
-};
+use twilight_model::id::{ChannelId, MessageId};
 
 /// Remove all reactions of a specified emoji from a message.
 pub struct DeleteAllReaction<'a> {
@@ -18,7 +15,7 @@ impl<'a> DeleteAllReaction<'a> {
         http: &'a Client,
         channel_id: ChannelId,
         message_id: MessageId,
-        emoji: ReactionType,
+        emoji: RequestReactionType,
     ) -> Self {
         Self {
             channel_id,
