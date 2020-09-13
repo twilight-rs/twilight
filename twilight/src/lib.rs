@@ -214,10 +214,10 @@
 //! [`tracing-log`]: https://github.com/tokio-rs/tracing/tree/master/tracing-log
 //! [`twilight-cache-inmemory`]: https://twilight.rs/chapter_1_crates/section_4_cache_inmemory.html
 //! [`twilight-command-parser`]: https://twilight.rs/chapter_1_crates/section_5_command_parser.html
-//! [`twilight-embed-builder`]: https://twilight.rs/chapter_1_crates/section_8_first_party/section_1_embed_builder.html
+//! [`twilight-embed-builder`]: https://twilight.rs/chapter_1_crates/section_7_first_party/section_1_embed_builder.html
 //! [`twilight-gateway`]: https://twilight.rs/chapter_1_crates/section_3_gateway.html
 //! [`twilight-http`]: https://twilight.rs/chapter_1_crates/section_2_http.html
-//! [`twilight-lavalink`]: https://twilight.rs/chapter_1_crates/section_8_first_party/section_3_lavalink.html
-//! [`twilight-mention`]: https://twilight.rs/chapter_1_crates/section_8_first_party/section_2_mention.html
+//! [`twilight-lavalink`]: https://twilight.rs/chapter_1_crates/section_7_first_party/section_3_lavalink.html
+//! [`twilight-mention`]: https://twilight.rs/chapter_1_crates/section_7_first_party/section_2_mention.html
 //! [`twilight-model`]: https://twilight.rs/chapter_1_crates/section_1_model.html
 //! [`twilight-standby`]: https://twilight.rs/chapter_1_crates/section_6_standby.html
