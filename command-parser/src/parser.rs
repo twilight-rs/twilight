@@ -169,6 +169,12 @@ impl<'a, T: Into<CommandParserConfig<'a>>> From<T> for Parser<'a> {
 #[cfg(test)]
 mod tests {
     use crate::{Command, CommandParserConfig, Parser};
+    use static_assertions::{assert_fields, assert_impl_all};
+    use std::fmt::Debug;
+
+    assert_fields!(Command<'_>: arguments, name, prefix);
+    assert_impl_all!(Command<'_>: Clone, Debug, Send, Sync);
+    assert_impl_all!(Parser<'_>: Clone, Debug, Send, Sync);
 
     fn simple_config() -> Parser<'static> {
         let mut config = CommandParserConfig::new();

@@ -233,7 +233,15 @@ impl<'a> ExactSizeIterator for PrefixesMut<'a> {}
 
 #[cfg(test)]
 mod tests {
-    use super::CommandParserConfig;
+    use super::{CommandParserConfig, Commands, CommandsMut, Prefixes, PrefixesMut};
+    use static_assertions::assert_impl_all;
+    use std::fmt::Debug;
+
+    assert_impl_all!(CommandParserConfig<'_>: Clone, Debug, Default, Send, Sync);
+    assert_impl_all!(CommandsMut<'_>: ExactSizeIterator, Iterator, Send, Sync);
+    assert_impl_all!(Commands<'_>: ExactSizeIterator, Iterator, Send, Sync);
+    assert_impl_all!(PrefixesMut<'_>: ExactSizeIterator, Iterator, Send, Sync);
+    assert_impl_all!(Prefixes<'_>: ExactSizeIterator, Iterator, Send, Sync);
 
     #[test]
     fn test_getters() {
