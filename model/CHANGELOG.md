@@ -6,7 +6,7 @@ Changelog for `twilight-model`.
 
 ### Fixes
 
-- Handle webhooks with tokens in path parsing ([#499] - [@vivian])
+- support deserializing IDs from integers ([#499] - [@vivian])
 
 ## [0.1.0] - 2020-09-13
 
