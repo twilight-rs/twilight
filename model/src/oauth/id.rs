@@ -1,3 +1,12 @@
+//! IDs for OAuth teams.
+//!
+//! # serde
+//!
+//! Like all of the IDs in the primary [`id`] crate, these IDs support
+//! deserializing from both integers and strings and serialize into strings.
+//!
+//! [`id`]: ../id
+
 use serde::{Deserialize, Serialize};
 use std::fmt::{Display, Formatter, Result as FmtResult};
 
@@ -33,11 +42,25 @@ mod tests {
                 Token::Str("114941315417899012"),
             ],
         );
+        serde_test::assert_de_tokens(
+            &SkuId(114_941_315_417_899_012),
+            &[
+                Token::NewtypeStruct { name: "SkuId" },
+                Token::U64(114_941_315_417_899_012),
+            ],
+        );
         serde_test::assert_tokens(
             &TeamId(114_941_315_417_899_012),
             &[
                 Token::NewtypeStruct { name: "TeamId" },
                 Token::Str("114941315417899012"),
+            ],
+        );
+        serde_test::assert_de_tokens(
+            &TeamId(114_941_315_417_899_012),
+            &[
+                Token::NewtypeStruct { name: "TeamId" },
+                Token::U64(114_941_315_417_899_012),
             ],
         );
     }
