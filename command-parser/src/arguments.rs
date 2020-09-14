@@ -127,6 +127,10 @@ impl<'a> Iterator for Arguments<'a> {
 #[cfg(test)]
 mod tests {
     use super::Arguments;
+    use static_assertions::assert_impl_all;
+    use std::fmt::Debug;
+
+    assert_impl_all!(Arguments<'_>: Clone, Debug, From<&'static str>, Iterator, Send, Sync);
 
     #[test]
     fn test_as_str() {

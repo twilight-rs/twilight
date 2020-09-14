@@ -23,3 +23,22 @@ impl PartialEq<str> for CaseSensitivity {
         }
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::CaseSensitivity;
+    use static_assertions::assert_impl_all;
+    use std::{fmt::Debug, hash::Hash};
+
+    assert_impl_all!(
+        CaseSensitivity: AsRef<str>,
+        Clone,
+        Debug,
+        Eq,
+        Hash,
+        PartialEq,
+        PartialEq<str>,
+        Send,
+        Sync
+    );
+}
