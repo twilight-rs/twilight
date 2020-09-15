@@ -44,6 +44,12 @@ pub struct Presence {
     pub user: UserOrId,
 }
 
+impl Key<'_, UserId> for Presence {
+    fn key(&self) -> UserId {
+        self.user.key()
+    }
+}
+
 #[derive(Clone, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
 #[serde(untagged)]
 pub enum UserOrId {
@@ -51,9 +57,9 @@ pub enum UserOrId {
     UserId { id: UserId },
 }
 
-impl Key<'_, UserId> for Presence {
+impl Key<'_, UserId> for UserOrId {
     fn key(&self) -> UserId {
-        match self.user {
+        match *self {
             UserOrId::User(ref u) => u.id,
             UserOrId::UserId { id } => id,
         }
