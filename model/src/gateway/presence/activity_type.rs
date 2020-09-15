@@ -10,6 +10,7 @@ pub enum ActivityType {
     Listening = 2,
     Watching = 3,
     Custom = 4,
+    Competing = 5,
 }
 
 impl Default for ActivityType {
@@ -35,5 +36,6 @@ mod tests {
         serde_test::assert_tokens(&ActivityType::Listening, &[Token::U8(2)]);
         serde_test::assert_tokens(&ActivityType::Watching, &[Token::U8(3)]);
         serde_test::assert_tokens(&ActivityType::Custom, &[Token::U8(4)]);
+        serde_test::assert_tokens(&ActivityType::Competing, &[Token::U8(5)]);
     }
 }
