@@ -268,3 +268,17 @@ impl<T: Into<String>> From<T> for ShardBuilder {
         Self::new(token.into())
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::{LargeThresholdError, ShardBuilder, ShardIdError};
+    use static_assertions::{assert_fields, assert_impl_all};
+    use std::{error::Error, fmt::Debug};
+
+    assert_fields!(LargeThresholdError::TooFew: value);
+    assert_fields!(LargeThresholdError::TooMany: value);
+    assert_impl_all!(LargeThresholdError: Debug, Error, Send, Sync);
+    assert_impl_all!(ShardBuilder: Clone, Debug, From<String>, Send, Sync);
+    assert_fields!(ShardIdError::IdTooLarge: id, total);
+    assert_impl_all!(ShardIdError: Debug, Error, Send, Sync);
+}

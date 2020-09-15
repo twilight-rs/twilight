@@ -62,3 +62,12 @@ impl Stream for Events {
         self.rx.poll_next_unpin(cx)
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::Events;
+    use futures_util::stream::Stream;
+    use static_assertions::assert_impl_all;
+
+    assert_impl_all!(Events: Send, Stream, Sync);
+}

@@ -420,3 +420,17 @@ impl Cluster {
         Some(shard)
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::{Cluster, ClusterCommandError, ClusterStartError};
+    use static_assertions::{assert_fields, assert_impl_all};
+    use std::{error::Error, fmt::Debug};
+
+    assert_fields!(ClusterCommandError::Sending: source);
+    assert_fields!(ClusterCommandError::ShardNonexistent: id);
+    assert_impl_all!(ClusterCommandError: Debug, Error, Send, Sync);
+    assert_fields!(ClusterStartError::RetrievingGatewayInfo: source);
+    assert_impl_all!(ClusterStartError: Debug, Error, Send, Sync);
+    assert_impl_all!(Cluster: Clone, Debug, Send, Sync);
+}

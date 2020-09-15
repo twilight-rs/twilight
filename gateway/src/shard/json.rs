@@ -122,3 +122,13 @@ pub fn parse_gateway_event(
             GatewayEventParsingError::Deserializing { source }
         })
 }
+
+#[cfg(test)]
+mod tests {
+    use super::GatewayEventParsingError;
+    use static_assertions::{assert_fields, assert_impl_all};
+    use std::{error::Error, fmt::Debug};
+
+    assert_fields!(GatewayEventParsingError::Deserializing: source);
+    assert_impl_all!(GatewayEventParsingError: Debug, Error, Send, Sync);
+}

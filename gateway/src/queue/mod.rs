@@ -147,3 +147,14 @@ impl Queue for LocalQueue {
         })
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::{LocalQueue, Queue};
+    use static_assertions::{assert_impl_all, assert_obj_safe};
+    use std::fmt::Debug;
+
+    assert_impl_all!(LocalQueue: Clone, Debug, Queue, Send, Sync);
+    assert_impl_all!(dyn Queue: Debug, Send, Sync);
+    assert_obj_safe!(Queue);
+}

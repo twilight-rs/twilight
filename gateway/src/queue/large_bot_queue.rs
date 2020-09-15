@@ -95,3 +95,12 @@ impl Queue for LargeBotQueue {
         })
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::{LargeBotQueue, Queue};
+    use static_assertions::assert_impl_all;
+    use std::fmt::Debug;
+
+    assert_impl_all!(LargeBotQueue: Debug, Queue, Send, Sync);
+}

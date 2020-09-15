@@ -60,3 +60,12 @@ impl Config {
         &self.token
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::Config;
+    use static_assertions::assert_impl_all;
+    use std::fmt::Debug;
+
+    assert_impl_all!(Config: Clone, Debug, Send, Sync);
+}

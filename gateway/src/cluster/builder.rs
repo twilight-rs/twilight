@@ -318,8 +318,29 @@ impl<T: Into<String>> From<T> for ClusterBuilder {
 
 #[cfg(test)]
 mod tests {
-    use super::ShardScheme;
-    use std::{convert::TryFrom, error::Error};
+    use super::{ClusterBuilder, ShardScheme, ShardSchemeRangeError};
+    use static_assertions::{assert_fields, assert_impl_all};
+    use std::{
+        convert::TryFrom,
+        error::Error,
+        fmt::{Debug, Display},
+        hash::Hash,
+    };
+
+    assert_fields!(ShardSchemeRangeError::IdTooLarge: end, start, total);
+    assert_fields!(ShardScheme::Range: from, to, total);
+    assert_impl_all!(ClusterBuilder: Debug, From<String>, Send, Sync);
+    assert_impl_all!(ShardSchemeRangeError: Debug, Display, Error, Send, Sync);
+    assert_impl_all!(
+        ShardScheme: Clone,
+        Debug,
+        Default,
+        Eq,
+        Hash,
+        PartialEq,
+        Send,
+        Sync
+    );
 
     #[test]
     fn test_shard_scheme() -> Result<(), Box<dyn Error>> {

@@ -40,6 +40,7 @@ simd-json = { default-features = false, features = ["serde_impl", "swar-number-p
 
 [dev-dependencies]
 futures = { default-features = false, version = "0.3" }
+static_assertions = { default-features = false, version = "1" }
 tokio = { default-features = false, features = ["rt-core", "macros"], version = "0.2" }
 
 [features]
