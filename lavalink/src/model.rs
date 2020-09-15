@@ -655,135 +655,220 @@ mod tests {
     };
     use serde::{Deserialize, Serialize};
     use serde_test::Token;
-    use static_assertions::assert_impl_all;
+    use static_assertions::{assert_fields, assert_impl_all};
     use std::fmt::Debug;
+    use twilight_model::id::GuildId;
 
+    assert_fields!(Destroy: guild_id, op);
     assert_impl_all!(
         Destroy: Clone,
         Debug,
         Deserialize<'static>,
         Eq,
+        From<GuildId>,
         PartialEq,
-        Serialize
+        Send,
+        Serialize,
+        Sync,
     );
+    assert_fields!(EqualizerBand: band, gain);
     assert_impl_all!(
         EqualizerBand: Clone,
         Debug,
         Deserialize<'static>,
+        From<(i64, f64)>,
         PartialEq,
-        Serialize
+        Send,
+        Serialize,
+        Sync,
     );
+    assert_fields!(Equalizer: bands, guild_id, op);
     assert_impl_all!(
         Equalizer: Clone,
         Debug,
         Deserialize<'static>,
+        From<(GuildId, Vec<EqualizerBand>)>,
         PartialEq,
-        Serialize
+        Send,
+        Serialize,
+        Sync,
     );
     assert_impl_all!(
         IncomingEvent: Clone,
         Debug,
         Deserialize<'static>,
+        From<PlayerUpdate>,
+        From<Stats>,
         PartialEq,
-        Serialize
+        Send,
+        Serialize,
+        Sync,
     );
     assert_impl_all!(
         OutgoingEvent: Clone,
         Debug,
         Deserialize<'static>,
+        From<Destroy>,
+        From<Equalizer>,
+        From<Pause>,
+        From<Play>,
+        From<Seek>,
+        From<Stop>,
+        From<VoiceUpdate>,
+        From<Volume>,
         PartialEq,
-        Serialize
+        Send,
+        Serialize,
+        Sync,
     );
+    assert_fields!(Pause: guild_id, op, pause);
     assert_impl_all!(
         Pause: Clone,
         Debug,
         Deserialize<'static>,
         Eq,
+        From<(GuildId, bool)>,
         PartialEq,
-        Serialize
+        Send,
+        Serialize,
+        Sync,
     );
+    assert_fields!(PlayerUpdateState: position, time);
     assert_impl_all!(
         PlayerUpdateState: Clone,
         Debug,
         Deserialize<'static>,
         Eq,
         PartialEq,
-        Serialize
+        Send,
+        Serialize,
+        Sync,
     );
+    assert_fields!(PlayerUpdate: guild_id, op, state);
     assert_impl_all!(
         PlayerUpdate: Clone,
         Debug,
         Deserialize<'static>,
         Eq,
         PartialEq,
-        Serialize
+        Send,
+        Serialize,
+        Sync,
     );
+    assert_fields!(Play: end_time, guild_id, no_replace, op, start_time, track);
     assert_impl_all!(
         Play: Clone,
         Debug,
         Deserialize<'static>,
         Eq,
+        From<(GuildId, String)>,
+        From<(GuildId, String, Option<u64>)>,
+        From<(GuildId, String, u64)>,
+        From<(GuildId, String, Option<u64>, Option<u64>)>,
+        From<(GuildId, String, Option<u64>, u64)>,
+        From<(GuildId, String, u64, Option<u64>)>,
+        From<(GuildId, String, u64, u64)>,
+        From<(GuildId, String, Option<u64>, Option<u64>, bool)>,
+        From<(GuildId, String, Option<u64>, u64, bool)>,
+        From<(GuildId, String, u64, Option<u64>, bool)>,
+        From<(GuildId, String, u64, u64, bool)>,
         PartialEq,
-        Serialize
+        Send,
+        Serialize,
+        Sync,
     );
+    assert_fields!(Seek: guild_id, op, position);
     assert_impl_all!(
         Seek: Clone,
         Debug,
         Deserialize<'static>,
         Eq,
+        From<(GuildId, i64)>,
         PartialEq,
-        Serialize
+        Send,
+        Serialize,
+        Sync,
     );
+    assert_fields!(SlimVoiceServerUpdate: endpoint, guild_id, token);
     assert_impl_all!(
         SlimVoiceServerUpdate: Clone,
         Debug,
         Deserialize<'static>,
         Eq,
         PartialEq,
-        Serialize
+        Send,
+        Serialize,
+        Sync,
+    );
+    assert_fields!(
+        Stats: cpu,
+        frames,
+        memory,
+        players,
+        playing_players,
+        op,
+        uptime
     );
     assert_impl_all!(
         Stats: Clone,
         Debug,
         Deserialize<'static>,
         PartialEq,
-        Serialize
+        Send,
+        Serialize,
+        Sync,
     );
+    assert_fields!(StatsCpu: cores, lavalink_load, system_load);
     assert_impl_all!(
         StatsCpu: Clone,
         Debug,
         Deserialize<'static>,
         PartialEq,
-        Serialize
+        Send,
+        Serialize,
+        Sync,
     );
+    assert_fields!(StatsFrames: deficit, nulled, sent);
     assert_impl_all!(
         StatsFrames: Clone,
         Debug,
         Deserialize<'static>,
         PartialEq,
-        Serialize
+        Send,
+        Serialize,
+        Sync,
     );
+    assert_fields!(StatsMemory: allocated, free, reservable, used);
     assert_impl_all!(
         StatsMemory: Clone,
         Debug,
         Deserialize<'static>,
         PartialEq,
-        Serialize
+        Send,
+        Serialize,
+        Sync,
     );
+    assert_fields!(Stop: guild_id, op);
     assert_impl_all!(
         Stop: Clone,
         Debug,
         Deserialize<'static>,
         Eq,
+        From<GuildId>,
         PartialEq,
-        Serialize
+        Send,
+        Serialize,
+        Sync,
     );
+    assert_fields!(TrackEnd: guild_id, kind, op, reason, track);
     assert_impl_all!(
         TrackEnd: Clone,
         Debug,
         Deserialize<'static>,
         PartialEq,
-        Serialize
+        Send,
+        Serialize,
+        Sync,
     );
     assert_impl_all!(
         TrackEventType: Clone,
@@ -791,30 +876,42 @@ mod tests {
         Debug,
         Deserialize<'static>,
         PartialEq,
-        Serialize
+        Send,
+        Serialize,
+        Sync,
     );
+    assert_fields!(TrackStart: guild_id, kind, op, track);
     assert_impl_all!(
         TrackStart: Clone,
         Debug,
         Deserialize<'static>,
         PartialEq,
-        Serialize
+        Send,
+        Serialize,
+        Sync,
     );
+    assert_fields!(VoiceUpdate: event, guild_id, op, session_id);
     assert_impl_all!(
         VoiceUpdate: Clone,
         Debug,
         Deserialize<'static>,
         Eq,
+        From<(GuildId, String, SlimVoiceServerUpdate)>,
         PartialEq,
-        Serialize
+        Send,
+        Serialize,
+        Sync,
     );
+    assert_fields!(Volume: guild_id, op, volume);
     assert_impl_all!(
         Volume: Clone,
         Debug,
         Deserialize<'static>,
         Eq,
         PartialEq,
-        Serialize
+        Send,
+        Serialize,
+        Sync,
     );
 
     #[test]

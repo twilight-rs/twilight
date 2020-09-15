@@ -567,12 +567,24 @@ async fn backoff(
 
 #[cfg(test)]
 mod tests {
-    use super::{Node, NodeConfig, NodeError, NodeRef};
-    use static_assertions::assert_impl_all;
-    use std::fmt::Debug;
+    use super::{Node, NodeConfig, NodeError, Resume};
+    use static_assertions::{assert_fields, assert_impl_all};
+    use std::{error::Error, fmt::Debug};
 
+    assert_fields!(
+        NodeConfig: address,
+        authorization,
+        resume,
+        shard_count,
+        user_id
+    );
     assert_impl_all!(NodeConfig: Clone, Debug, Send, Sync);
-    assert_impl_all!(NodeError: Debug, Send, Sync);
-    assert_impl_all!(NodeRef: Debug, Send, Sync);
+    assert_fields!(NodeError::BuildingConnectionRequest: source);
+    assert_fields!(NodeError::Connecting: source);
+    assert_fields!(NodeError::SerializingMessage: message, source);
+    assert_fields!(NodeError::Unauthorized: address, authorization);
+    assert_impl_all!(NodeError: Debug, Error, Send, Sync);
     assert_impl_all!(Node: Clone, Debug, Send, Sync);
+    assert_fields!(Resume: timeout);
+    assert_impl_all!(Resume: Clone, Debug, Default, Eq, PartialEq, Send, Sync);
 }

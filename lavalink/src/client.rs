@@ -374,12 +374,12 @@ impl Lavalink {
 
 #[cfg(test)]
 mod tests {
-    use super::{ClientError, Lavalink, LavalinkRef, VoiceStateHalf};
-    use static_assertions::assert_impl_all;
-    use std::fmt::Debug;
+    use super::{ClientError, Lavalink, VoiceStateHalf};
+    use static_assertions::{assert_fields, assert_impl_all};
+    use std::{error::Error, fmt::Debug};
 
-    assert_impl_all!(ClientError: Clone, Debug, PartialEq);
-    assert_impl_all!(LavalinkRef: Debug, Default);
-    assert_impl_all!(Lavalink: Clone, Debug);
-    assert_impl_all!(VoiceStateHalf: Debug);
+    assert_fields!(ClientError::SendingVoiceUpdate: source);
+    assert_impl_all!(ClientError: Clone, Debug, Error, PartialEq, Send, Sync);
+    assert_impl_all!(Lavalink: Clone, Debug, Send, Sync);
+    assert_impl_all!(VoiceStateHalf: Debug, Send, Sync);
 }

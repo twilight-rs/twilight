@@ -302,21 +302,25 @@ pub fn unmark_failed_address(
 #[cfg(test)]
 mod tests {
     use super::{
-        FailingAddress, IpBlock, IpBlockType, NanoIpDetails, NanoIpRoutePlanner, RotatingIpDetails,
-        RotatingIpRoutePlanner, RotatingNanoIpDetails, RotatingNanoIpRoutePlanner, RoutePlanner,
-        RoutePlannerType,
+        FailingAddress, IpBlock, IpBlockType, LoadType, LoadedTracks, NanoIpDetails,
+        NanoIpRoutePlanner, PlaylistInfo, RotatingIpDetails, RotatingIpRoutePlanner,
+        RotatingNanoIpDetails, RotatingNanoIpRoutePlanner, RoutePlanner, RoutePlannerType, Track,
+        TrackInfo,
     };
     use serde::{Deserialize, Serialize};
-    use static_assertions::assert_impl_all;
+    use static_assertions::{assert_fields, assert_impl_all};
     use std::fmt::Debug;
 
+    assert_fields!(FailingAddress: address, failing_timestamp, failing_time);
     assert_impl_all!(
         FailingAddress: Clone,
         Debug,
         Deserialize<'static>,
         Eq,
         PartialEq,
-        Serialize
+        Send,
+        Serialize,
+        Sync,
     );
     assert_impl_all!(
         IpBlockType: Clone,
@@ -324,15 +328,46 @@ mod tests {
         Deserialize<'static>,
         Eq,
         PartialEq,
-        Serialize
+        Send,
+        Serialize,
+        Sync,
     );
+    assert_fields!(IpBlock: kind, size);
     assert_impl_all!(
         IpBlock: Clone,
         Debug,
         Deserialize<'static>,
         Eq,
         PartialEq,
-        Serialize
+        Send,
+        Serialize,
+        Sync,
+    );
+    assert_impl_all!(
+        LoadType: Clone,
+        Debug,
+        Deserialize<'static>,
+        Eq,
+        PartialEq,
+        Send,
+        Serialize,
+        Sync,
+    );
+    assert_fields!(LoadedTracks: load_type, playlist_info, tracks);
+    assert_impl_all!(
+        LoadedTracks: Clone,
+        Debug,
+        Deserialize<'static>,
+        Eq,
+        PartialEq,
+        Send,
+        Serialize,
+        Sync,
+    );
+    assert_fields!(
+        NanoIpDetails: current_address_index,
+        failing_addresses,
+        ip_block
     );
     assert_impl_all!(
         NanoIpDetails: Clone,
@@ -340,15 +375,38 @@ mod tests {
         Deserialize<'static>,
         Eq,
         PartialEq,
-        Serialize
+        Send,
+        Serialize,
+        Sync,
     );
+    assert_fields!(NanoIpRoutePlanner: class, details);
     assert_impl_all!(
         NanoIpRoutePlanner: Clone,
         Debug,
         Deserialize<'static>,
         Eq,
         PartialEq,
-        Serialize
+        Send,
+        Serialize,
+        Sync,
+    );
+    assert_fields!(PlaylistInfo: name, selected_track);
+    assert_impl_all!(
+        PlaylistInfo: Clone,
+        Debug,
+        Deserialize<'static>,
+        Eq,
+        PartialEq,
+        Send,
+        Serialize,
+        Sync,
+    );
+    assert_fields!(
+        RotatingIpDetails: current_address,
+        failing_addresses,
+        ip_block,
+        ip_index,
+        rotate_index
     );
     assert_impl_all!(
         RotatingIpDetails: Clone,
@@ -356,15 +414,26 @@ mod tests {
         Deserialize<'static>,
         Eq,
         PartialEq,
-        Serialize
+        Send,
+        Serialize,
+        Sync,
     );
+    assert_fields!(RotatingIpRoutePlanner: class, details);
     assert_impl_all!(
         RotatingIpRoutePlanner: Clone,
         Debug,
         Deserialize<'static>,
         Eq,
         PartialEq,
-        Serialize
+        Send,
+        Serialize,
+        Sync,
+    );
+    assert_fields!(
+        RotatingNanoIpDetails: block_index,
+        current_address_index,
+        failing_addresses,
+        ip_block
     );
     assert_impl_all!(
         RotatingNanoIpDetails: Clone,
@@ -372,15 +441,20 @@ mod tests {
         Deserialize<'static>,
         Eq,
         PartialEq,
-        Serialize
+        Send,
+        Serialize,
+        Sync,
     );
+    assert_fields!(RotatingNanoIpRoutePlanner: class, details);
     assert_impl_all!(
         RotatingNanoIpRoutePlanner: Clone,
         Debug,
         Deserialize<'static>,
         Eq,
         PartialEq,
-        Serialize
+        Send,
+        Serialize,
+        Sync,
     );
     assert_impl_all!(
         RoutePlannerType: Clone,
@@ -388,7 +462,9 @@ mod tests {
         Deserialize<'static>,
         Eq,
         PartialEq,
-        Serialize
+        Send,
+        Serialize,
+        Sync,
     );
     assert_impl_all!(
         RoutePlanner: Clone,
@@ -396,6 +472,39 @@ mod tests {
         Deserialize<'static>,
         Eq,
         PartialEq,
-        Serialize
+        Send,
+        Serialize,
+        Sync,
+    );
+    assert_fields!(
+        TrackInfo: author,
+        identifier,
+        is_seekable,
+        is_stream,
+        length,
+        position,
+        title,
+        uri
+    );
+    assert_impl_all!(
+        TrackInfo: Clone,
+        Debug,
+        Deserialize<'static>,
+        Eq,
+        PartialEq,
+        Send,
+        Serialize,
+        Sync
+    );
+    assert_fields!(Track: info, track);
+    assert_impl_all!(
+        Track: Clone,
+        Debug,
+        Deserialize<'static>,
+        Eq,
+        PartialEq,
+        Send,
+        Serialize,
+        Sync
     );
 }
