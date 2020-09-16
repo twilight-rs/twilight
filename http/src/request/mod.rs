@@ -69,12 +69,13 @@ pub mod user;
 
 mod get_gateway;
 mod get_gateway_authed;
+mod get_user_application;
 mod get_voice_regions;
 mod validate;
 
 pub use self::{
     get_gateway::GetGateway, get_gateway_authed::GetGatewayAuthed,
-    get_voice_regions::GetVoiceRegions,
+    get_user_application::GetUserApplicationInfo, get_voice_regions::GetVoiceRegions,
 };
 
 use crate::{
