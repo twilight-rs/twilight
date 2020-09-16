@@ -11,11 +11,21 @@ pub use self::{
     get_reactions::GetReactions,
 };
 use std::fmt::Write;
-use twilight_model::id::EmojiId;
+use twilight_model::{channel::ReactionType, id::EmojiId};
 
+#[derive(Eq, PartialEq)]
 pub enum RequestReactionType {
-    Unicode { name: String },
     Custom { id: EmojiId, name: Option<String> },
+    Unicode { name: String },
+}
+
+impl From<ReactionType> for RequestReactionType {
+    fn from(other: ReactionType) -> Self {
+        match other {
+            ReactionType::Custom { id, name, .. } => Self::Custom { id, name },
+            ReactionType::Unicode { name } => Self::Unicode { name },
+        }
+    }
 }
 
 fn format_emoji(emoji: RequestReactionType) -> String {
