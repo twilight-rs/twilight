@@ -11,7 +11,7 @@ use crate::{
         channel::message::allowed_mentions::AllowedMentions,
         guild::{create_guild::CreateGuildError, create_guild_channel::CreateGuildChannelError},
         prelude::*,
-        Request,
+        GetUserApplicationInfo, Request,
     },
 };
 use bytes::Bytes;
@@ -424,6 +424,11 @@ impl Client {
     /// Get information about the current user.
     pub fn current_user(&self) -> GetCurrentUser<'_> {
         GetCurrentUser::new(self)
+    }
+
+    /// Get information about the current bot application.
+    pub fn current_user_application(&self) -> GetUserApplicationInfo<'_> {
+        GetUserApplicationInfo::new(self)
     }
 
     /// Update the current user.
