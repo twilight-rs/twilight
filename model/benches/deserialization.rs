@@ -151,7 +151,7 @@ fn reaction() {
             }
         },
         "message_id": "3",
-        "user_id": "4",
+        "user_id": "4"
     }"#;
 
     serde_json::from_str::<Reaction>(input).unwrap();
