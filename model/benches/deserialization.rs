@@ -151,7 +151,7 @@ fn reaction() {
             }
         },
         "message_id": "3",
-        "user_id": "4",
+        "user_id": "4"
     }"#;
 
     serde_json::from_str::<Reaction>(input).unwrap();
@@ -184,11 +184,11 @@ fn typing_start() {
 
 fn criterion_benchmark(c: &mut Criterion) {
     c.bench_function("gateway event role delete", |b| {
-        b.iter(gateway_event_role_delete())
+        b.iter(gateway_event_role_delete)
     });
-    c.bench_function("member chunk", |b| b.iter(member_chunk()));
-    c.bench_function("reaction", |b| b.iter(reaction()));
-    c.bench_function("typing start", |b| b.iter(typing_start()));
+    c.bench_function("member chunk", |b| b.iter(member_chunk));
+    c.bench_function("reaction", |b| b.iter(reaction));
+    c.bench_function("typing start", |b| b.iter(typing_start));
 }
 
 criterion_group!(benches, criterion_benchmark);
