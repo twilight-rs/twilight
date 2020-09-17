@@ -3,7 +3,6 @@ mod builder;
 pub use self::builder::ClientBuilder;
 pub use reqwest::Proxy;
 
-use crate::request::GetUserApplicationInfo;
 use crate::{
     api_error::{ApiError, ErrorCode},
     error::{Error, Result, UrlError},
@@ -12,6 +11,7 @@ use crate::{
         channel::message::allowed_mentions::AllowedMentions,
         guild::{create_guild::CreateGuildError, create_guild_channel::CreateGuildChannelError},
         prelude::*,
+        GetUserApplicationInfo,
         Request,
     },
 };
