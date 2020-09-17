@@ -26,6 +26,7 @@ use std::{
     fmt::{Display, Formatter, Result as FmtResult},
     str::{self, Utf8Error},
     sync::{atomic::Ordering, Arc},
+    time::Duration,
 };
 use tokio::sync::watch::{
     channel as watch_channel, Receiver as WatchReceiver, Sender as WatchSender,
@@ -761,7 +762,17 @@ impl ShardProcessor {
     async fn reconnect(&mut self) {
         tracing::info!("reconnection started");
 
+        let mut wait = Duration::from_secs(1);
+
         loop {
+            tracing::debug!(
+                shard_id = self.config.shard()[0],
+                shard_total = self.config.shard()[1],
+                wait_in_seconds = wait.as_secs(),
+                "waiting before attempting a reconnect",
+            );
+            tokio::time::delay_for(wait).await;
+
             // Await allowance when doing a full reconnect.
             self.config.queue.request(self.config.shard()).await;
 
@@ -773,6 +784,10 @@ impl ShardProcessor {
                 Ok(s) => s,
                 Err(why) => {
                     tracing::warn!("reconnecting failed: {:?}", why);
+
+                    if wait < Duration::from_secs(128) {
+                        wait *= 2;
+                    }
 
                     continue;
                 }
