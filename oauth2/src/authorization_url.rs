@@ -64,6 +64,20 @@ impl<'a> AuthorizationUrlBuilder<'a> {
         self.build_with_response_type(ResponseType::Token)
     }
 
+    /// Build the authorization URL as a webhook authorization.
+    ///
+    /// This will set the scope to [`WebhookIncoming`], and can be used to have
+    /// the user create and authorize a webhook. Refer to
+    /// [`webhook_token_exchange`] for more information.
+    ///
+    /// [`WebhookIncoming`]: ../enum.Scope.html#variant.WebhookIncoming
+    /// [`webhook_token_exchange`]: ../request/webhook_token_exchange/index.html
+    pub fn webhook(&mut self) -> String {
+        self.scopes(&[Scope::WebhookIncoming]);
+
+        self.build_with_response_type(ResponseType::Code)
+    }
+
     fn build_with_response_type(&self, response_type: ResponseType) -> String {
         let mut url = Client::BASE_AUTHORIZATION_URL.to_owned();
         url.push('?');
@@ -371,5 +385,17 @@ mod tests {
             &client_id=1\
             &redirect_uri=https%3A%2F%2Fexample.com%2F";
         assert_eq!(expected, builder.implicit_grant());
+    }
+
+    #[test]
+    fn test_webhook() {
+        let client = Client::new(ApplicationId(1), "a", &["https://example.com/"]).unwrap();
+        let mut builder = client.authorization_url("https://example.com/").unwrap();
+        let expected = "https://discord.com/api/oauth2/authorize?\
+            response_type=code\
+            &client_id=1\
+            &scope=webhook.incoming\
+            &redirect_uri=https%3A%2F%2Fexample.com%2F";
+        assert_eq!(expected, builder.webhook());
     }
 }
