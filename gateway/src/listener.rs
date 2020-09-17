@@ -101,7 +101,12 @@ impl<T> Default for Listeners<T> {
 
 #[cfg(test)]
 mod tests {
-    use super::{EventTypeFlags, Listeners};
+    use super::{EventTypeFlags, Listener, Listeners};
+    use static_assertions::assert_impl_all;
+    use std::fmt::Debug;
+
+    assert_impl_all!(Listeners<()>: Clone, Debug, Default, Send, Sync);
+    assert_impl_all!(Listener<()>: Debug, Send, Sync);
 
     #[test]
     fn test_total_event_types() {

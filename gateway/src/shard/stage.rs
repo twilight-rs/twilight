@@ -98,7 +98,29 @@ impl TryFrom<u8> for Stage {
 #[cfg(test)]
 mod tests {
     use super::Stage;
-    use std::{convert::TryFrom, error::Error};
+    use static_assertions::assert_impl_all;
+    use std::{
+        convert::TryFrom,
+        error::Error,
+        fmt::{Debug, Display},
+        hash::Hash,
+    };
+
+    assert_impl_all!(
+        Stage: Clone,
+        Copy,
+        Debug,
+        Default,
+        Display,
+        Eq,
+        Hash,
+        Ord,
+        PartialEq,
+        PartialOrd,
+        Send,
+        Sync,
+        TryFrom<u8>,
+    );
 
     #[test]
     fn test_conversion() -> Result<(), Box<dyn Error>> {

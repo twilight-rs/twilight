@@ -59,3 +59,13 @@ impl Sink<Message> for &ShardSink {
         Poll::Ready(Ok(()))
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::{Message, ShardSink};
+    use futures_util::sink::Sink;
+    use static_assertions::assert_impl_all;
+    use std::fmt::Debug;
+
+    assert_impl_all!(ShardSink: Clone, Debug, Send, Sink<Message>, Sync);
+}

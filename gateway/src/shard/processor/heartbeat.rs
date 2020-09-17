@@ -237,3 +237,12 @@ impl Heartbeater {
         }
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::Latency;
+    use static_assertions::assert_impl_all;
+    use std::fmt::Debug;
+
+    assert_impl_all!(Latency: Clone, Debug, Send, Sync);
+}

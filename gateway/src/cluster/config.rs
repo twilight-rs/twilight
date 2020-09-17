@@ -54,3 +54,12 @@ impl Config {
         &self.queue
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::Config;
+    use static_assertions::assert_impl_all;
+    use std::fmt::Debug;
+
+    assert_impl_all!(Config: Debug, Send, Sync);
+}

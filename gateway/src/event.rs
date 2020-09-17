@@ -206,3 +206,23 @@ impl Default for EventTypeFlags {
         flags
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::{EventType, EventTypeFlags};
+    use static_assertions::assert_impl_all;
+    use std::{convert::TryFrom, fmt::Debug, hash::Hash};
+
+    assert_impl_all!(
+        EventTypeFlags: Copy,
+        Clone,
+        Debug,
+        Eq,
+        From<EventType>,
+        Hash,
+        PartialEq,
+        Send,
+        Sync,
+        TryFrom<(u8, Option<&'static str>)>
+    );
+}

@@ -600,3 +600,40 @@ impl Shard {
         Ok(Arc::clone(&session.borrow()))
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::{
+        CommandError, ConnectingError, Information, ResumeSession, SessionInactiveError, Shard,
+        ShardStartError,
+    };
+    use static_assertions::{assert_fields, assert_impl_all};
+    use std::{error::Error, fmt::Debug};
+
+    assert_fields!(CommandError::Sending: source);
+    assert_fields!(CommandError::Serializing: source);
+    assert_fields!(CommandError::SessionInactive: source);
+    assert_impl_all!(CommandError: Debug, Error, Send, Sync);
+    assert_impl_all!(Information: Clone, Debug, Send, Sync);
+    assert_impl_all!(ResumeSession: Clone, Debug, Send, Sync);
+    assert_impl_all!(
+        SessionInactiveError: Clone,
+        Debug,
+        Error,
+        Eq,
+        PartialEq,
+        Send,
+        Sync
+    );
+    assert_fields!(ShardStartError::Establishing: source);
+    assert_fields!(ShardStartError::ParsingGatewayUrl: source, url);
+    assert_fields!(ShardStartError::RetrievingGatewayUrl: source);
+    assert_impl_all!(
+        ShardStartError: Debug,
+        Error,
+        From<ConnectingError>,
+        Send,
+        Sync
+    );
+    assert_impl_all!(Shard: Clone, Debug, Send, Sync);
+}
