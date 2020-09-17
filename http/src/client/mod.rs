@@ -11,8 +11,7 @@ use crate::{
         channel::message::allowed_mentions::AllowedMentions,
         guild::{create_guild::CreateGuildError, create_guild_channel::CreateGuildChannelError},
         prelude::*,
-        GetUserApplicationInfo,
-        Request,
+        GetUserApplicationInfo, Request,
     },
 };
 use bytes::Bytes;
