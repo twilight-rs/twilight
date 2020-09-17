@@ -90,10 +90,6 @@ fn criterion_benchmark(c: &mut Criterion) {
     c.bench_function("c: hashset", |b| {
         let set = HashSet::from_iter(commands.iter().map(|e| Cow::from(*e)));
 
-        for e in commands.iter() {
-            set.insert(Cow::from(*e));
-        }
-
         b.iter(|| {
             for command in commands.iter() {
                 hashset(&set, command);
@@ -112,7 +108,7 @@ fn criterion_benchmark(c: &mut Criterion) {
     });
 
     c.bench_function("c: patricia_tree", |b| {
-        let mut set = PatriciaSet::from_iter(commands.iter());
+        let set = PatriciaSet::from_iter(commands.iter());
 
         b.iter(|| {
             for command in commands.iter() {
