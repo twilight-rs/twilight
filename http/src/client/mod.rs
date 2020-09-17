@@ -427,6 +427,7 @@ impl Client {
         GetCurrentUser::new(self)
     }
 
+    /// Get information about the current bot application.
     pub fn current_user_application(&self) -> GetUserApplicationInfo<'_> {
         GetUserApplicationInfo::new(self)
     }
