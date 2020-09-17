@@ -49,10 +49,26 @@ impl<'a> AuthorizationUrlBuilder<'a> {
     }
 
     pub fn build(&self) -> String {
+        self.build_with_response_type(ResponseType::Code)
+    }
+
+    /// Build the authorization URL into an implicit grant URL.
+    ///
+    /// Contrasted from [`build`], this will contain URI fragments after a hash
+    /// (`#`) instead of query parameters. Please refer to the
+    /// [Discord documentation] for more information.
+    ///
+    /// [`build`]: #method.build
+    /// [Discord documentation]: https://discord.com/developers/docs/topics/oauth2#implicit-grant
+    pub fn implicit_grant(&self) -> String {
+        self.build_with_response_type(ResponseType::Token)
+    }
+
+    fn build_with_response_type(&self, response_type: ResponseType) -> String {
         let mut url = Client::BASE_AUTHORIZATION_URL.to_owned();
         url.push('?');
         url.push_str("response_type=");
-        url.push_str(ResponseType::Code.name());
+        url.push_str(response_type.name());
         url.push_str("&client_id=");
         write!(url, "{}", self.client.client_id().0).expect("client id write can't error");
 
@@ -344,5 +360,16 @@ mod tests {
             perms.bits()
         );
         assert_eq!(expected, builder.build());
+    }
+
+    #[test]
+    fn test_implicit_grant() {
+        let client = Client::new(ApplicationId(1), "a", &["https://example.com/"]).unwrap();
+        let builder = client.authorization_url("https://example.com/").unwrap();
+        let expected = "https://discord.com/api/oauth2/authorize?\
+            response_type=token\
+            &client_id=1\
+            &redirect_uri=https%3A%2F%2Fexample.com%2F";
+        assert_eq!(expected, builder.implicit_grant());
     }
 }
