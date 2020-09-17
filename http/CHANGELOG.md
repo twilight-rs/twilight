@@ -9,7 +9,7 @@ Changelog for `twilight-http`.
 - Impl Eq, PartialEq, From for RequestReactionType ([#507] - [@7596ff])
 - Support `/oauth2/applications/@me` endpoint ([#510] - [@AEnterprise])
 
-## [0.1.1] - 2020-09-14
+## [0.1.1] - 2020-09-15
 
 ### Fixes
 

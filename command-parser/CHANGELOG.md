@@ -2,7 +2,7 @@
 
 Changelog for `twilight-command-parser`.
 
-## [0.1.1] - 2020-09-14
+## [0.1.1] - 2020-09-17
 
 ### Fixes
 

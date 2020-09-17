@@ -8,9 +8,9 @@ Changelog for `twilight-model`.
 
 - Implement `serde_mappable_seq::Key` for UserOrId ([#509] - [@coadler])
 
-### Fixed
+### Fixes
 
-- Fix compilation of benchmarks ([#510] - [@Erk-])
+- Fix compilation of benchmarks ([#511] - [@Erk-])
 
 ## [0.1.1] - 2020-09-14
 
@@ -26,7 +26,7 @@ Initial release.
 [@Erk-]: https://github.com/Erk-
 [@vivian]: https://github.com/vivian
 
-[#510]: https://github.com/twilight-rs/twilight/pull/510
+[#511]: https://github.com/twilight-rs/twilight/pull/511
 [#509]: https://github.com/twilight-rs/twilight/pull/509
 [#499]: https://github.com/twilight-rs/twilight/pull/499
 
