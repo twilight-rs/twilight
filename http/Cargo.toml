@@ -9,7 +9,7 @@ include = ["src/**/*.rs", "Cargo.toml"]
 keywords = ["discord", "discord-api", "twilight"]
 license = "ISC"
 name = "twilight-http"
-publish = true
+publish = false
 readme = "README.md"
 repository = "https://github.com/twilight-rs/twilight.git"
 version = "0.1.2"
@@ -18,7 +18,7 @@ version = "0.1.2"
 bytes = { default-features = false, version = "0.5" }
 futures-channel = { default-features = false, version = "0.3" }
 futures-util = { default-features = false, features = ["std"], version = "0.3" }
-twilight-model = { default-features = false, version = "0.1" }
+twilight-model = { default-features = false, path = "../model" }
 tracing = { default-features = false, features = ["std", "attributes"], version = "0.1" }
 reqwest = { default-features = false, version = "0.10" }
 serde = { default-features = false, features = ["derive"], version = "1" }
