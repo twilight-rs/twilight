@@ -1,11 +1,15 @@
 use serde::{Deserialize, Serialize};
 
+/// Type of approved grant.
 #[derive(Clone, Copy, Debug, Deserialize, Eq, PartialEq, Serialize)]
 #[non_exhaustive]
 #[serde(rename_all = "snake_case")]
 pub enum GrantType {
+    /// Authorization code.
     AuthorizationCode,
+    /// Client credentials.
     ClientCredentials,
+    /// Refresh token.
     RefreshToken,
 }
 

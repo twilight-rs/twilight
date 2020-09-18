@@ -1,10 +1,14 @@
 use serde::{Deserialize, Serialize};
 
+/// Whether to prompt the user again when they have already authorized the
+/// application.
 #[derive(Clone, Copy, Debug, Deserialize, Eq, PartialEq, Serialize)]
 #[non_exhaustive]
 #[serde(rename_all = "snake_case")]
 pub enum Prompt {
+    /// Always ask the user for consent.
     Consent,
+    /// Don't ask the user for consent.
     None,
 }
 

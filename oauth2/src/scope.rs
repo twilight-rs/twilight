@@ -1,39 +1,81 @@
 use serde::{Deserialize, Serialize};
 
+/// OAuth 2 scopes that must be requested for access to different resources.
 #[derive(Clone, Copy, Debug, Deserialize, Eq, PartialEq, Serialize)]
 #[non_exhaustive]
 #[serde(rename_all = "snake_case")]
 pub enum Scope {
+    /// Fetch data from the user's "Now Playing/Recently Played" list.
+    ///
+    /// This is only available to allowlisted applications.
     #[serde(rename = "activities.read")]
     ActivitiesRead,
+    /// Update the user's activity.
+    ///
+    /// This is only available to allowlisted applications.
     #[serde(rename = "activities.write")]
     ActivitiesWrite,
+    /// Read build data for a user's applications.
     #[serde(rename = "applications.builds.read")]
     ApplicationsBuildsRead,
+    /// Upload/update builds for a user's applications.
+    ///
+    /// This is only available to allowlisted applications.
     #[serde(rename = "applications.builds.upload")]
     ApplicationsBuildsUpload,
+    /// Read entitlements for a user's applications.
     #[serde(rename = "applications.entitlements")]
     ApplicationsEntitlements,
+    /// Read and update store data for a user's applications.
+    ///
+    /// This includes things like SKUs, store listings, achievements, etc.
     #[serde(rename = "applications.store.update")]
     ApplicationsStoreUpdate,
+    /// Put the bot in the user's selected guild, or a provided guild by ID.
     Bot,
+    /// Read linked third-party account connections.
     Connections,
+    /// Read the user's email address.
     Email,
+    /// Add users to group DMs.
     #[serde(rename = "gdm.join")]
     GdmJoin,
+    /// Retrieve basic information about a user's guilds.
     Guilds,
+    /// Add users to guilds.
     #[serde(rename = "guilds.join")]
     GuildsJoin,
+    /// Retrieve basic user information without an email address.
     Identify,
+    /// Read messages from all client channels.
+    ///
+    /// For non-local RPC server API access, this will be restricted to channels
+    /// and guilds the application creates.
     #[serde(rename = "messages.read")]
     MessagesRead,
+    /// Read a user's friends and implicit relationships.
+    ///
+    /// This is only available to allowlisted applications.
     #[serde(rename = "relationships.read")]
     RelationshipsRead,
+    /// Control a user's local Discord client via local RPC API access.
+    ///
+    /// This is only available to allowlisted applications.
     Rpc,
+    /// Access the API as the local user via local RPC API access.
+    ///
+    /// This is only available to allowlisted applications.
     #[serde(rename = "rpc.api")]
     RpcApi,
+    /// Receive notifications pushed out to a user via local RPC API access.
+    ///
+    /// This is only available to allowlisted applications.
     #[serde(rename = "rpc.notifications.read")]
     RpcNotificationsRead,
+    /// Generate a webhook for a selected guild and channel.
+    ///
+    /// The webhook is returned in the OAuth token response for authorization
+    /// code grants.
     #[serde(rename = "webhook.incoming")]
     WebhookIncoming,
 }

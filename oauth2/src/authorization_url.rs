@@ -7,15 +7,34 @@ use std::fmt::Write;
 use twilight_model::{guild::Permissions, id::GuildId};
 use url::Url;
 
+/// Type of response to give after authorization approval.
 #[derive(Clone, Copy, Debug, Deserialize, Eq, PartialEq, Serialize)]
 #[non_exhaustive]
 #[serde(rename_all = "snake_case")]
 pub enum ResponseType {
+    /// Provide a code response.
+    ///
+    /// This will contain an authorization code in the query parameters of the
+    /// URI that the user is redirected to.
     Code,
+    /// Provide a token response.
+    ///
+    /// This will contain an access token in the query fragment of the URI that
+    /// the user is redirected to.
     Token,
 }
 
 impl ResponseType {
+    /// Name of the response type.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use twilight_oauth2::authorization_url::ResponseType;
+    ///
+    /// assert_eq!("code", ResponseType::Code);
+    /// assert_eq!("token", ResponseType::Token);
+    /// ```
     pub fn name(self) -> &'static str {
         match self {
             Self::Code => "code",
@@ -79,7 +98,7 @@ impl<'a> AuthorizationUrlBuilder<'a> {
     }
 
     fn build_with_response_type(&self, response_type: ResponseType) -> String {
-        let mut url = Client::BASE_AUTHORIZATION_URL.to_owned();
+        let mut url = Client::BASE_URI.to_owned();
         url.push('?');
         url.push_str("response_type=");
         url.push_str(response_type.name());
@@ -191,7 +210,7 @@ impl<'a> BotAuthorizationUrlBuilder<'a> {
 
     /// Build a bot authorization URL.
     pub fn build(&self) -> String {
-        let mut url = Client::BASE_AUTHORIZATION_URL.to_owned();
+        let mut url = Client::BASE_URI.to_owned();
         url.push_str("?client_id=");
         let _ = write!(url, "{}", self.client.client_id().0);
 
@@ -266,15 +285,25 @@ impl<'a> BotAuthorizationUrlBuilder<'a> {
 
     /// Set the Redirect URI to redirect the user to.
     ///
-    /// This will only be used if you configure [`scopes`] other than the
+    /// This will only be used if you [configure scopes] other than the
     /// [`Bot`] scope.
     ///
+    /// # Errors
+    ///
+    /// Returns [`RedirectUriInvalidError::Invalid`] if the provided redirect
+    /// URI isn't a valid URL.
+    ///
+    /// Returns [`RedirectUriInvalidError::Unconfigured`] if the provided
+    /// redirect URI isn't in the client's list of URIs.
+    ///
     /// [`Bot`]: enum.Scope.html#variant.Bot
-    /// [`scopes`]: #method.scopes
+    /// [`RedirectUriInvalidError::Invalid`]: ../client/enum.RedirectUriInvalidError.html#variant.Invalid
+    /// [`RedirectUriInvalidError::Unconfigured`]: ../client/enum.RedirectUriInvalidError.html#variant.Unconfigured
+    /// [configure scopes]: #method.scopes
     pub fn redirect_uri(
         &mut self,
         redirect_uri: &'a str,
-    ) -> Result<&mut Self, RedirectUriInvalidError> {
+    ) -> Result<&mut Self, RedirectUriInvalidError<'_>> {
         let url = self.client.redirect_uri(redirect_uri)?;
 
         self.redirect_uri.replace(url);

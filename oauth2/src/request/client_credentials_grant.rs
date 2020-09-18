@@ -8,17 +8,30 @@ use twilight_model::id::ApplicationId;
 #[derive(Clone, Debug, Eq, PartialEq, Serialize)]
 #[non_exhaustive]
 pub struct ClientCredentialsGrantRequestBody<'a> {
+    /// ID of the application that was authorized.
     pub client_id: ApplicationId,
+    /// Secret of the application that was authorized.
     pub client_secret: &'a str,
+    /// Type of grant approval.
     pub grant_type: GrantType,
+    /// List of scopes that the user granted.
+    ///
+    /// This is space-delimited.
     pub scope: String,
 }
 
 #[derive(Clone, Debug, Eq, PartialEq, Serialize)]
 #[non_exhaustive]
 pub struct ClientCredentialsGrantRequest<'a> {
+    /// Body to send.
     pub body: ClientCredentialsGrantRequestBody<'a>,
+    /// Headers to send.
     pub headers: &'static [(&'static str, &'static str)],
+    /// Base of the URL.
+    ///
+    /// Use the [`url`] method for the full URL with query parameters.
+    ///
+    /// [`url`]: #method.url
     pub url_base: &'static str,
 }
 

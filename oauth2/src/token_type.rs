@@ -1,9 +1,11 @@
 use serde::{Deserialize, Serialize};
 
+/// Type of token.
 #[derive(Clone, Copy, Debug, Deserialize, Eq, PartialEq, Serialize)]
 #[non_exhaustive]
 #[serde(rename_all = "PascalCase")]
 pub enum TokenType {
+    /// Bearer token.
     Bearer,
 }
 

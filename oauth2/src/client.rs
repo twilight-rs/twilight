@@ -13,10 +13,21 @@ use std::{
 use twilight_model::id::ApplicationId;
 use url::{ParseError, Url};
 
+/// Creating a client failed due to misconfiguration.
+///
+/// This is returned from [`Client::new`].
+///
+/// [`Client::new`]: struct.Client.html#method.new
 #[derive(Clone, Debug, Eq, PartialEq)]
 #[non_exhaustive]
 pub enum CreateClientError<'a> {
-    RedirectUriInvalid { source: ParseError, uri: &'a str },
+    /// Redirect URI is not a valid URL.
+    RedirectUriInvalid {
+        /// Reason for the error.
+        source: ParseError,
+        /// Provided URI.
+        uri: &'a str,
+    },
 }
 
 impl Display for CreateClientError<'_> {
@@ -63,8 +74,17 @@ pub struct Client {
 }
 
 impl Client {
-    pub const BASE_AUTHORIZATION_URL: &'static str = "https://discord.com/api/oauth2/authorize";
+    /// Base URI to Discord's OAuth2 API.
+    pub const BASE_URI: &'static str = "https://discord.com/api/oauth2/authorize";
 
+    /// Create a new client with application information.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`CreateClientError::RedirectUriInvalid`] if any of the provided
+    /// redirect URIs are invalid URLs.
+    ///
+    /// [`CreateClientError::RedirectUriInvalid`]: enum.CreateClientError.html#variant.RedirectUriInvalid
     pub fn new<'a>(
         client_id: ApplicationId,
         client_secret: impl Into<String>,
@@ -113,10 +133,26 @@ impl Client {
         BotAuthorizationUrlBuilder::new(self)
     }
 
+    /// Create a new Authorization URL builder.
+    ///
+    /// The provided redirect URI is what the user will be redirected to after
+    /// authorization. It must be in the client's list of configured redirect
+    /// URIs.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`RedirectUriInvalidError::Invalid`] if the provided redirect
+    /// URI isn't a valid URL.
+    ///
+    /// Returns [`RedirectUriInvalidError::Unconfigured`] if the provided
+    /// redirect URI isn't in the client's list of URIs.
+    ///
+    /// [`RedirectUriInvalidError::Invalid`]: enum.RedirectUriInvalidError.html#variant.Invalid
+    /// [`RedirectUriInvalidError::Unconfigured`]: enum.RedirectUriInvalidError.html#variant.Unconfigured
     pub fn authorization_url<'a>(
         &'a self,
         redirect_uri: &'a str,
-    ) -> Result<AuthorizationUrlBuilder<'a>, RedirectUriInvalidError> {
+    ) -> Result<AuthorizationUrlBuilder<'a>, RedirectUriInvalidError<'a>> {
         AuthorizationUrlBuilder::new(self, redirect_uri)
     }
 
@@ -164,13 +200,11 @@ impl Client {
             uri: redirect_uri,
         })?;
 
-        let redirect_uri = self
+        self
             .redirect_uris()
             .iter()
             .find(|uri| **uri == url)
-            .ok_or_else(|| RedirectUriInvalidError::Unconfigured { uri: url })?;
-
-        Ok(redirect_uri)
+            .ok_or_else(|| RedirectUriInvalidError::Unconfigured { uri: url })
     }
 }
 
