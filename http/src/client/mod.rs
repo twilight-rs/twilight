@@ -1398,12 +1398,9 @@ impl Client {
 
                 builder = builder.body(Body::from(bytes));
                 builder = builder.header("content-length", len);
-            } else {
-                builder = builder.header("content-length", 0);
+                let content_type = HeaderValue::from_static("application/json");
+                builder = builder.header("Content-Type", content_type);
             }
-
-            let content_type = HeaderValue::from_static("application/json");
-            builder = builder.header("Content-Type", content_type);
         }
 
         let precision = HeaderValue::from_static("millisecond");
