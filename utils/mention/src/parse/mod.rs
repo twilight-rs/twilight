@@ -25,8 +25,8 @@
 //! use twilight_model::id::UserId;
 //!
 //! let mut iter = UserId::iter("these <@123> are <#456> mentions <@789>");
-//! assert_eq!(Some(UserId(123)), iter.next());
-//! assert_eq!(Some(UserId(789)), iter.next());
+//! assert!(matches!(iter.next(), Some((UserId(123), _, _))));
+//! assert!(matches!(iter.next(), Some((UserId(789), _, _))));
 //! assert!(iter.next().is_none());
 //! ```
 
