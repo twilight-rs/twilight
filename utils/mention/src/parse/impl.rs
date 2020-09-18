@@ -14,6 +14,7 @@ pub trait ParseMention: private::Sealed {
     /// the name and ID (in `<:name:12>`, the first part is `name` and the
     /// second is `12`).
     const PARTS: usize = 1;
+
     /// The leading sigil of the mention after the leading arrow (`<`).
     ///
     /// In a channel mention, the sigil is `#`.

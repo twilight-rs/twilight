@@ -80,9 +80,7 @@ impl<'a, T: ParseMention + std::fmt::Debug> Iterator for MentionIter<'a, T> {
             };
             let buf = self.buf.get(start..=end)?;
 
-            let res = T::parse(buf);
-
-            if let Ok(id) = res {
+            if let Ok(id) = T::parse(buf) {
                 return Some((id, start, end));
             }
         }
@@ -96,15 +94,15 @@ mod tests {
     use std::fmt::Debug;
     use twilight_model::id::{ChannelId, EmojiId, RoleId, UserId};
 
-    assert_impl_all!(MentionIter<'static, ChannelId>: Clone, Debug, Iterator, Send, Sync);
-    assert_impl_all!(MentionIter<'static, EmojiId>: Clone, Debug, Iterator, Send, Sync);
-    assert_impl_all!(MentionIter<'static, RoleId>: Clone, Debug, Iterator, Send, Sync);
-    assert_impl_all!(MentionIter<'static, UserId>: Clone, Debug, Iterator, Send, Sync);
+    assert_impl_all!(MentionIter<'_, ChannelId>: Clone, Debug, Iterator, Send, Sync);
+    assert_impl_all!(MentionIter<'_, EmojiId>: Clone, Debug, Iterator, Send, Sync);
+    assert_impl_all!(MentionIter<'_, RoleId>: Clone, Debug, Iterator, Send, Sync);
+    assert_impl_all!(MentionIter<'_, UserId>: Clone, Debug, Iterator, Send, Sync);
     assert_obj_safe!(
-        MentionIter<'static, ChannelId>,
-        MentionIter<'static, EmojiId>,
-        MentionIter<'static, RoleId>,
-        MentionIter<'static, UserId>,
+        MentionIter<'_, ChannelId>,
+        MentionIter<'_, EmojiId>,
+        MentionIter<'_, RoleId>,
+        MentionIter<'_, UserId>,
     );
 
     #[test]

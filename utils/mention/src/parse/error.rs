@@ -115,7 +115,7 @@ mod tests {
     assert_fields!(ParseMentionError::LeadingArrow: found);
     assert_fields!(ParseMentionError::Sigil: expected, found);
     assert_fields!(ParseMentionError::TrailingArrow: found);
-    assert_impl_all!(ParseMentionError<'static>: Clone, Debug, Error, Eq, PartialEq, Send, Sync);
+    assert_impl_all!(ParseMentionError<'_>: Clone, Debug, Error, Eq, PartialEq, Send, Sync);
 
     #[test]
     fn test_display() {
