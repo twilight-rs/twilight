@@ -62,16 +62,26 @@ impl<'a, T: ParseMention + std::fmt::Debug> Iterator for MentionIter<'a, T> {
         // We want to take care of our input and make sure we're working with
         // chars here and not just individual bytes. We also want to not use
         // consuming methods of the iterator, so this will get a little weird.
-        'outer: loop {
+        loop {
             let start = match self.chars.next()? {
                 (idx, '<') => idx,
                 _ => continue,
             };
 
-            for ch in T::SIGIL.chars() {
-                if self.chars.next()?.1 != ch {
-                    continue 'outer;
+            let mut found = false;
+
+            for sigil in T::SIGILS {
+                if self.chars.as_str().starts_with(sigil) {
+                    found = true;
+
+                    for _ in 0..sigil.chars().count() {
+                        self.chars.next();
+                    }
                 }
+            }
+
+            if !found {
+                continue;
             }
 
             let end = match self.chars.find(|c| c.1 == '>') {

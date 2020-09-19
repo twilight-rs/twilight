@@ -34,8 +34,8 @@ pub enum ParseMentionError<'a> {
     ///
     /// Users, for example, have the sigil `@`.
     Sigil {
-        /// Sigil that is expected for the mention type.
-        expected: &'a str,
+        /// Possible sigils that were expected for the mention type.
+        expected: &'a [&'a str],
         /// Character that was instead found where the sigil should be.
         found: Option<char>,
     },
@@ -68,11 +68,17 @@ impl Display for ParseMentionError<'_> {
                 expected, found,
             )),
             Self::Sigil { expected, found } => {
-                f.write_fmt(format_args!(
-                    "expected to find a mention sigil ('{}') but instead ",
-                    expected,
-                ))?;
-                f.write_str("found ")?;
+                f.write_str("expected to find a mention sigil (")?;
+
+                for (idx, sigil) in expected.iter().enumerate() {
+                    f.write_fmt(format_args!("'{}'", sigil))?;
+
+                    if idx < expected.len() - 1 {
+                        f.write_str(", ")?;
+                    }
+                }
+
+                f.write_str(") but instead found ")?;
 
                 if let Some(c) = found {
                     f.write_fmt(format_args!("'{}'", c))
@@ -144,7 +150,7 @@ mod tests {
         assert_eq!(
             expected,
             ParseMentionError::Sigil {
-                expected: "@",
+                expected: &["@"],
                 found: Some('#')
             }
             .to_string(),
@@ -154,7 +160,27 @@ mod tests {
         assert_eq!(
             expected,
             ParseMentionError::Sigil {
-                expected: "@",
+                expected: &["@"],
+                found: None
+            }
+            .to_string(),
+        );
+
+        expected = "expected to find a mention sigil ('@!', '@') but instead found '#'";
+        assert_eq!(
+            expected,
+            ParseMentionError::Sigil {
+                expected: &["@!", "@"],
+                found: Some('#'),
+            }
+            .to_string(),
+        );
+
+        expected = "expected to find a mention sigil ('@!', '@') but instead found nothing";
+        assert_eq!(
+            expected,
+            ParseMentionError::Sigil {
+                expected: &["@!", "@"],
                 found: None
             }
             .to_string(),

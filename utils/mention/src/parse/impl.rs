@@ -1,4 +1,5 @@
 use super::{MentionIter, ParseMentionError};
+use std::str::Chars;
 use twilight_model::id::{ChannelId, EmojiId, RoleId, UserId};
 
 /// Parse mentions out of buffers.
@@ -15,10 +16,11 @@ pub trait ParseMention: private::Sealed {
     /// second is `12`).
     const PARTS: usize = 1;
 
-    /// The leading sigil of the mention after the leading arrow (`<`).
+    /// Leading sigil(s) of the mention after the leading arrow (`<`).
     ///
-    /// In a channel mention, the sigil is `#`.
-    const SIGIL: &'static str;
+    /// In a channel mention, the sigil is `#`. In the case of a user mention,
+    /// the sigil may be either `@` or `@!`.
+    const SIGILS: &'static [&'static str];
 
     /// Parse a mention out of a buffer.
     ///
@@ -73,47 +75,50 @@ pub trait ParseMention: private::Sealed {
 }
 
 impl ParseMention for ChannelId {
-    const SIGIL: &'static str = "#";
+    const SIGILS: &'static [&'static str] = &["#"];
 
     fn parse(buf: &str) -> Result<Self, ParseMentionError<'_>>
     where
         Self: Sized,
     {
-        parse_id(buf, Self::SIGIL, Self::PARTS).map(ChannelId)
+        parse_id(buf, Self::SIGILS, Self::PARTS).map(ChannelId)
     }
 }
 
 impl ParseMention for EmojiId {
     const PARTS: usize = 2;
-    const SIGIL: &'static str = ":";
+    const SIGILS: &'static [&'static str] = &[":"];
 
     fn parse(buf: &str) -> Result<Self, ParseMentionError<'_>>
     where
         Self: Sized,
     {
-        parse_id(buf, Self::SIGIL, Self::PARTS).map(EmojiId)
+        parse_id(buf, Self::SIGILS, Self::PARTS).map(EmojiId)
     }
 }
 
 impl ParseMention for RoleId {
-    const SIGIL: &'static str = "@&";
+    const SIGILS: &'static [&'static str] = &["@&"];
 
     fn parse(buf: &str) -> Result<Self, ParseMentionError<'_>>
     where
         Self: Sized,
     {
-        parse_id(buf, Self::SIGIL, Self::PARTS).map(RoleId)
+        parse_id(buf, Self::SIGILS, Self::PARTS).map(RoleId)
     }
 }
 
 impl ParseMention for UserId {
-    const SIGIL: &'static str = "@";
+    /// Sigils for User ID mentions.
+    ///
+    /// Unlike other IDs, user IDs have two possible sigils: `@!` and `@`.
+    const SIGILS: &'static [&'static str] = &["@!", "@"];
 
     fn parse(buf: &str) -> Result<Self, ParseMentionError<'_>>
     where
         Self: Sized,
     {
-        parse_id(buf, Self::SIGIL, Self::PARTS).map(UserId)
+        parse_id(buf, Self::SIGILS, Self::PARTS).map(UserId)
     }
 }
 
@@ -131,7 +136,11 @@ impl ParseMention for UserId {
 /// [`ParseMentionError::LeadingArrow`]: enum.ParseMentionError.html#variant.LeadingArrow
 /// [`ParseMentionError::Sigil`]: enum.ParseMentionError.html#variant.Sigil
 /// [`ParseMentionError::TrailingArrow`]: enum.ParseMentionError.html#variant.TrailingArrow
-fn parse_id<'a>(buf: &'a str, sigil: &'a str, parts: usize) -> Result<u64, ParseMentionError<'a>> {
+fn parse_id<'a>(
+    buf: &'a str,
+    sigils: &'a [&'a str],
+    parts: usize,
+) -> Result<u64, ParseMentionError<'a>> {
     let mut chars = buf.chars();
 
     let c = chars.next();
@@ -140,36 +149,30 @@ fn parse_id<'a>(buf: &'a str, sigil: &'a str, parts: usize) -> Result<u64, Parse
         return Err(ParseMentionError::LeadingArrow { found: c });
     }
 
-    for ch in sigil.chars() {
-        let c = chars.next();
+    let sigil_found = sigils.iter().any(|sigil| {
+        if chars.as_str().starts_with(sigil) {
+            for _ in 0..sigil.chars().count() {
+                chars.next();
+            }
 
-        if c.map_or(true, |c| c != ch) {
-            return Err(ParseMentionError::Sigil {
-                expected: sigil,
-                found: c,
-            });
+            return true;
         }
+
+        false
+    });
+
+    if !sigil_found {
+        return Err(ParseMentionError::Sigil {
+            expected: sigils,
+            found: chars.next(),
+        });
     }
 
-    if parts == 2 {
-        // Don't use `Iterator::skip_while` so we can mutate `chars` in-place;
-        // `skip_while` is consuming.
-        let mut found = false;
-
-        while let Some(c) = chars.next() {
-            if c == ':' {
-                found = true;
-
-                break;
-            }
-        }
-
-        if !found {
-            return Err(ParseMentionError::PartMissing {
-                found: 1,
-                expected: 2,
-            });
-        }
+    if parts == 2 && !emoji_sigil_present(&mut chars) {
+        return Err(ParseMentionError::PartMissing {
+            found: 1,
+            expected: 2,
+        });
     }
 
     let remaining = chars
@@ -184,6 +187,18 @@ fn parse_id<'a>(buf: &'a str, sigil: &'a str, parts: usize) -> Result<u64, Parse
             found: remaining,
             source,
         })
+}
+
+// Don't use `Iterator::skip_while` so we can mutate `chars` in-place;
+// `skip_while` is consuming.
+fn emoji_sigil_present(chars: &mut Chars<'_>) -> bool {
+    for c in chars {
+        if c == ':' {
+            return true;
+        }
+    }
+
+    false
 }
 
 /// Rust doesn't allow leaking private implementations, but if we make the trait
@@ -221,10 +236,10 @@ mod tests {
 
     #[test]
     fn test_sigils() {
-        assert_eq!("#", ChannelId::SIGIL);
-        assert_eq!(":", EmojiId::SIGIL);
-        assert_eq!("@&", RoleId::SIGIL);
-        assert_eq!("@", UserId::SIGIL);
+        assert_eq!(&["#"], ChannelId::SIGILS);
+        assert_eq!(&[":"], EmojiId::SIGILS);
+        assert_eq!(&["@&"], RoleId::SIGILS);
+        assert_eq!(&["@!", "@"], UserId::SIGILS);
     }
 
     #[test]
@@ -232,7 +247,7 @@ mod tests {
         assert_eq!(ChannelId(123), ChannelId::parse("<#123>").unwrap());
         assert_eq!(
             ParseMentionError::Sigil {
-                expected: "#",
+                expected: &["#"],
                 found: Some('@'),
             },
             ChannelId::parse("<@123>").unwrap_err(),
@@ -244,7 +259,7 @@ mod tests {
         assert_eq!(EmojiId(123), EmojiId::parse("<:name:123>").unwrap());
         assert_eq!(
             ParseMentionError::Sigil {
-                expected: ":",
+                expected: &[":"],
                 found: Some('@'),
             },
             EmojiId::parse("<@123>").unwrap_err(),
@@ -256,8 +271,8 @@ mod tests {
         assert_eq!(RoleId(123), RoleId::parse("<@&123>").unwrap());
         assert_eq!(
             ParseMentionError::Sigil {
-                expected: "@&",
-                found: Some('1'),
+                expected: &["@&"],
+                found: Some('@'),
             },
             RoleId::parse("<@123>").unwrap_err(),
         );
@@ -279,24 +294,24 @@ mod tests {
     fn test_parse_id_wrong_sigil() {
         assert_eq!(
             ParseMentionError::Sigil {
-                expected: "@",
+                expected: &["@"],
                 found: Some('#'),
             },
-            super::parse_id("<#123>", "@", 1).unwrap_err(),
+            super::parse_id("<#123>", &["@"], 1).unwrap_err(),
         );
         assert_eq!(
             ParseMentionError::Sigil {
-                expected: "#",
+                expected: &["#"],
                 found: None,
             },
-            super::parse_id("<", "#", 1).unwrap_err(),
+            super::parse_id("<", &["#"], 1).unwrap_err(),
         );
         assert_eq!(
             ParseMentionError::Sigil {
-                expected: "#",
+                expected: &["#"],
                 found: None,
             },
-            super::parse_id("<", "#", 2).unwrap_err(),
+            super::parse_id("<", &["#"], 2).unwrap_err(),
         );
     }
 }
