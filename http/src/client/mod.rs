@@ -1392,19 +1392,13 @@ impl Client {
 
         if let Some(form) = form {
             builder = builder.multipart(form);
-        } else {
-            if let Some(bytes) = body {
-                let len = bytes.len();
-
-                builder = builder.body(Body::from(bytes));
-                builder = builder.header("content-length", len);
-            } else {
-                builder = builder.header("content-length", 0);
-            }
-
+        } else if let Some(bytes) = body {
+            let len = bytes.len();
+            builder = builder.body(Body::from(bytes));
+            builder = builder.header("content-length", len);
             let content_type = HeaderValue::from_static("application/json");
             builder = builder.header("Content-Type", content_type);
-        }
+        };
 
         let precision = HeaderValue::from_static("millisecond");
         let user_agent = HeaderValue::from_static(concat!(
