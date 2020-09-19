@@ -200,8 +200,7 @@ impl Client {
             uri: redirect_uri,
         })?;
 
-        self
-            .redirect_uris()
+        self.redirect_uris()
             .iter()
             .find(|uri| **uri == url)
             .ok_or_else(|| RedirectUriInvalidError::Unconfigured { uri: url })

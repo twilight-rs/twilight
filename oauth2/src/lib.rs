@@ -25,7 +25,11 @@
     unused,
     warnings
 )]
-#![allow(clippy::doc_markdown, clippy::module_name_repetitions, clippy::must_use_candidate)]
+#![allow(
+    clippy::doc_markdown,
+    clippy::module_name_repetitions,
+    clippy::must_use_candidate
+)]
 
 pub mod authorization_url;
 pub mod client;
