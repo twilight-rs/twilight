@@ -613,10 +613,10 @@ impl ShardProcessor {
     ///
     /// # Errors
     ///
-    /// Returns [`Error::AuthorizationInvalid`] if the provided authorization
+    /// Returns [`ReceivingEventError::AuthorizationInvalid`] if the provided authorization
     /// is invalid.
     ///
-    /// [`Error::AuthorizationInvalid`]: ../../error/enum.Error.html#variant.AuthorizationInvalid
+    /// [`ReceivingEventError::AuthorizationInvalid`]: enum.ReceivingEventError.html#variant.AuthorizationInvalid
     async fn next_payload(&mut self) -> Result<(), ReceivingEventError> {
         self.inflater.clear();
 

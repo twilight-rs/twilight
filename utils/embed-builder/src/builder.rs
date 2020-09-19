@@ -313,16 +313,16 @@ impl EmbedBuilder {
     ///
     /// # Errors
     ///
-    /// Returns [`EmbedError::NotRgb`] if the provided color is not a valid
+    /// Returns [`EmbedColorError::NotRgb`] if the provided color is not a valid
     /// RGB integer. Refer to [`COLOR_MAXIMUM`] to know what the maximum
     /// accepted value is.
     ///
-    /// Returns [`EmbedError::Zero`] if the provided color is 0, which is not
+    /// Returns [`EmbedColorError::Zero`] if the provided color is 0, which is not
     /// an acceptable value.
     ///
     /// [`COLOR_MAXIMUM`]: #const.COLOR_MAXIMUM
-    /// [`EmbedError::NotRgb`]: enum.EmbedColorError.html#variant.NotRgb
-    /// [`EmbedError::Zero`]: enum.EmbedColorError.html#variant.Zero
+    /// [`EmbedColorError::NotRgb`]: enum.EmbedColorError.html#variant.NotRgb
+    /// [`EmbedColorError::Zero`]: enum.EmbedColorError.html#variant.Zero
     pub fn color(mut self, color: u32) -> Result<Self, EmbedColorError> {
         if color == 0 {
             return Err(EmbedColorError::Zero);
@@ -354,11 +354,11 @@ impl EmbedBuilder {
     ///
     /// # Errors
     ///
-    /// Returns [`EmbedDescriptionError::DescriptionTooLong`] if the provided
+    /// Returns [`EmbedDescriptionError::TooLong`] if the provided
     /// description is longer than the maximum number of code points.
     ///
     /// [`DESCRIPTION_LENGTH_LIMIT`]: #const.DESCRIPTION_LENGTH_LIMIT
-    /// [`EmbedDescriptionError::DescriptionTooLong`]: enum.EmbedDescriptionError.html#variant.DescriptionTooLong
+    /// [`EmbedDescriptionError::TooLong`]: enum.EmbedDescriptionError.html#variant.TooLong
     pub fn description(
         self,
         description: impl Into<String>,

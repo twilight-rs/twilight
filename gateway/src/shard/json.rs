@@ -46,14 +46,14 @@ impl Error for GatewayEventParsingError {
 ///
 /// # Errors
 ///
-/// Returns [`Error::PayloadInvalid`] if the payload wasn't a valid
+/// Returns [`GatewayEventParsingError::PayloadInvalid`] if the payload wasn't a valid
 /// `GatewayEvent` data structure.
 ///
-/// Returns [`Error::PayloadSerialization`] if the payload failed to
+/// Returns [`GatewayEventParsingError::Deserializing`] if the payload failed to
 /// deserialize.
 ///
-/// [`Error::PayloadInvalid`]: ../enum.Error.html#variant.PayloadInvalid
-/// [`Error::PayloadSerialization`]: ../enum.Error.html#variant.PayloadSerialization
+/// [`GatewayEventParsingError::PayloadInvalid`]: enum.GatewayEventParsingError.html#variant.PayloadInvalid
+/// [`GatewayEventParsingError::Deserializing`]: enum.GatewayEventParsingError.html#variant.Deserializing
 #[cfg(not(feature = "simd-json"))]
 #[allow(dead_code)]
 pub fn parse_gateway_event(
@@ -82,14 +82,14 @@ pub fn parse_gateway_event(
 ///
 /// # Errors
 ///
-/// Returns [`Error::PayloadInvalid`] if the payload wasn't a valid
+/// Returns [`GatewayEventParsingError::PayloadInvalid`] if the payload wasn't a valid
 /// `GatewayEvent` data structure.
 ///
-/// Returns [`Error::PayloadSerialization`] if the payload failed to
+/// Returns [`GatewayEventParsingError::Deserializing`] if the payload failed to
 /// deserialize.
 ///
-/// [`Error::PayloadInvalid`]: ../enum.Error.html#variant.PayloadInvalid
-/// [`Error::PayloadSerialization`]: ../enum.Error.html#variant.PayloadSerialization
+/// [`GatewayEventParsingError::PayloadInvalid`]: enum.GatewayEventParsingError.html#variant.PayloadInvalid
+/// [`GatewayEventParsingError::Deserializing`]: enum.GatewayEventParsingError.html#variant.Deserializing
 #[allow(unsafe_code)]
 #[cfg(feature = "simd-json")]
 #[allow(dead_code)]

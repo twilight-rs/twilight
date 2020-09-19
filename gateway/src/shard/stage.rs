@@ -1,12 +1,12 @@
 //! Utilities for knowing and parsing the current connection stage of a shard.
 //!
 //! Included is the [`Stage`], which is an enum representing the connection
-//! stage with variants such as [`Connecting`] or [`Disconnected`].
+//! stage with variants such as [`Connected`] or [`Disconnected`].
 //!
 //! The [`Stage`] also has some parsing capability, so an error type for
 //! conversion reasons is included.
 //!
-//! [`Connecting`]: enum.Stage.html#variant.Connecting
+//! [`Connected`]: enum.Stage.html#variant.Connected
 //! [`Disconnected`]: enum.Stage.html#variant.Disconnected
 //! [`Stage`]: enum.Stage.html
 

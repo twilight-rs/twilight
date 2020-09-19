@@ -214,11 +214,11 @@ impl<'a> UpdateChannel<'a> {
     ///
     /// # Errors
     ///
-    /// Returns [`UpdateGuildChannel::TopicInvalid`] if the topic length is
+    /// Returns [`UpdateChannelError::TopicInvalid`] if the topic length is
     /// too long.
     ///
     /// [the discord docs]: https://discordapp.com/developers/docs/resources/channel#channel-object-channel-structure
-    /// [`UpdateGuildChannel::TopicInvalid`]: enum.UpdateChannelError.html#variant.TopicInvalid
+    /// [`UpdateChannelError::TopicInvalid`]: enum.UpdateChannelError.html#variant.TopicInvalid
     pub fn topic(self, topic: impl Into<String>) -> Result<Self, UpdateChannelError> {
         self._topic(topic.into())
     }
