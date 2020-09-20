@@ -18,6 +18,11 @@ version = "0.1.1"
 tokio = { default-features = false, features = ["macros", "rt-core"], version = "0.2" }
 tracing-log = { default-features = false, features = ["log-tracer", "std"], version = "0.1" }
 twilight-cache-inmemory = { default-features = false, path = "../cache/in-memory" }
+twilight-command-parser = { path = "../command-parser" }
+twilight-embed-builder = { default-features = false, path = "../utils/embed-builder" }
 twilight-gateway = { default-features = false, features = ["rustls"], path = "../gateway" }
 twilight-http = { default-features = false, features = ["rustls"], path = "../http" }
+twilight-lavalink = { path = "../lavalink" }
+twilight-mention = { default-features = false, path = "../utils/mention" }
 twilight-model = { path = "../model" }
+twilight-standby = { path = "../standby" }
