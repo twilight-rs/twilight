@@ -1077,7 +1077,7 @@ impl Client {
         &self,
         channel_id: ChannelId,
         message_id: MessageId,
-        emoji: impl Into<String>,
+        emoji: RequestReactionType,
     ) -> GetReactions<'_> {
         GetReactions::new(self, channel_id, message_id, emoji)
     }
