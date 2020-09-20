@@ -15,7 +15,7 @@ use crate::{
     },
 };
 use bytes::Bytes;
-use reqwest::{header::HeaderValue, Body, Client as ReqwestClient, Response, StatusCode};
+use reqwest::{header::HeaderValue, Body, Client as ReqwestClient, Method, Response, StatusCode};
 use serde::de::DeserializeOwned;
 use std::{
     convert::TryFrom,
@@ -1398,7 +1398,9 @@ impl Client {
             builder = builder.header("content-length", len);
             let content_type = HeaderValue::from_static("application/json");
             builder = builder.header("Content-Type", content_type);
-        };
+        } else if method == Method::PUT || method == Method::POST || method == Method::PATCH {
+            builder = builder.header("content-length", 0);
+        }
 
         let precision = HeaderValue::from_static("millisecond");
         let user_agent = HeaderValue::from_static(concat!(
