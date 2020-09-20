@@ -54,11 +54,11 @@ impl<'a> GetReactions<'a> {
         http: &'a Client,
         channel_id: ChannelId,
         message_id: MessageId,
-        emoji: impl Into<String>,
+        emoji: RequestReactionType,
     ) -> Self {
         Self {
             channel_id,
-            emoji: emoji.into(),
+            emoji: super::format_emoji(emoji),
             fields: GetReactionsFields::default(),
             fut: None,
             http,
