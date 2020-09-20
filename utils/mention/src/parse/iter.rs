@@ -99,18 +99,23 @@ impl<'a, T: ParseMention + std::fmt::Debug> Iterator for MentionIter<'a, T> {
 
 #[cfg(test)]
 mod tests {
-    use super::{super::ParseMention, MentionIter};
+    use super::{
+        super::{MentionType, ParseMention},
+        MentionIter,
+    };
     use static_assertions::{assert_impl_all, assert_obj_safe};
     use std::fmt::Debug;
     use twilight_model::id::{ChannelId, EmojiId, RoleId, UserId};
 
     assert_impl_all!(MentionIter<'_, ChannelId>: Clone, Debug, Iterator, Send, Sync);
     assert_impl_all!(MentionIter<'_, EmojiId>: Clone, Debug, Iterator, Send, Sync);
+    assert_impl_all!(MentionIter<'_, MentionType>: Clone, Debug, Iterator, Send, Sync);
     assert_impl_all!(MentionIter<'_, RoleId>: Clone, Debug, Iterator, Send, Sync);
     assert_impl_all!(MentionIter<'_, UserId>: Clone, Debug, Iterator, Send, Sync);
     assert_obj_safe!(
         MentionIter<'_, ChannelId>,
         MentionIter<'_, EmojiId>,
+        MentionIter<'_, MentionType>,
         MentionIter<'_, RoleId>,
         MentionIter<'_, UserId>,
     );
@@ -139,6 +144,17 @@ mod tests {
         let mut iter = EmojiId::iter("some <:name:123> emojis <:emoji:456>");
         assert_eq!(EmojiId(123), iter.next().unwrap().0);
         assert_eq!(EmojiId(456), iter.next().unwrap().0);
+        assert!(iter.next().is_none());
+    }
+
+    #[test]
+    fn test_iter_mention_type() {
+        let mut iter = MentionType::iter("<#12><:name:34><@&56><@!78><@90>");
+        assert_eq!(MentionType::Channel(ChannelId(12)), iter.next().unwrap().0);
+        assert_eq!(MentionType::Emoji(EmojiId(34)), iter.next().unwrap().0);
+        assert_eq!(MentionType::Role(RoleId(56)), iter.next().unwrap().0);
+        assert_eq!(MentionType::User(UserId(78)), iter.next().unwrap().0);
+        assert_eq!(MentionType::User(UserId(90)), iter.next().unwrap().0);
         assert!(iter.next().is_none());
     }
 

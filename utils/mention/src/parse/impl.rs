@@ -1,4 +1,4 @@
-use super::{MentionIter, ParseMentionError};
+use super::{MentionIter, MentionType, ParseMentionError};
 use std::str::Chars;
 use twilight_model::id::{ChannelId, EmojiId, RoleId, UserId};
 
@@ -81,7 +81,7 @@ impl ParseMention for ChannelId {
     where
         Self: Sized,
     {
-        parse_id(buf, Self::SIGILS, Self::PARTS).map(ChannelId)
+        parse_id(buf, Self::SIGILS).map(|(id, _)| ChannelId(id))
     }
 }
 
@@ -93,7 +93,47 @@ impl ParseMention for EmojiId {
     where
         Self: Sized,
     {
-        parse_id(buf, Self::SIGILS, Self::PARTS).map(EmojiId)
+        parse_id(buf, Self::SIGILS).map(|(id, _)| EmojiId(id))
+    }
+}
+
+impl ParseMention for MentionType {
+    /// Sigils for any type of mention.
+    ///
+    /// Contains all of the sigils of every other type of mention.
+    const SIGILS: &'static [&'static str] = &["#", ":", "@&", "@!", "@"];
+
+    fn parse(buf: &str) -> Result<Self, ParseMentionError<'_>>
+    where
+        Self: Sized,
+    {
+        let (id, found) = parse_id(buf, Self::SIGILS)?;
+
+        for sigil in ChannelId::SIGILS {
+            if *sigil == found {
+                return Ok(MentionType::Channel(ChannelId(id)));
+            }
+        }
+
+        for sigil in EmojiId::SIGILS {
+            if *sigil == found {
+                return Ok(MentionType::Emoji(EmojiId(id)));
+            }
+        }
+
+        for sigil in RoleId::SIGILS {
+            if *sigil == found {
+                return Ok(MentionType::Role(RoleId(id)));
+            }
+        }
+
+        for sigil in UserId::SIGILS {
+            if *sigil == found {
+                return Ok(MentionType::User(UserId(id)));
+            }
+        }
+
+        unreachable!("mention type must have been found");
     }
 }
 
@@ -104,7 +144,7 @@ impl ParseMention for RoleId {
     where
         Self: Sized,
     {
-        parse_id(buf, Self::SIGILS, Self::PARTS).map(RoleId)
+        parse_id(buf, Self::SIGILS).map(|(id, _)| RoleId(id))
     }
 }
 
@@ -118,7 +158,7 @@ impl ParseMention for UserId {
     where
         Self: Sized,
     {
-        parse_id(buf, Self::SIGILS, Self::PARTS).map(UserId)
+        parse_id(buf, Self::SIGILS).map(|(id, _)| UserId(id))
     }
 }
 
@@ -139,8 +179,7 @@ impl ParseMention for UserId {
 fn parse_id<'a>(
     buf: &'a str,
     sigils: &'a [&'a str],
-    parts: usize,
-) -> Result<u64, ParseMentionError<'a>> {
+) -> Result<(u64, &'a str), ParseMentionError<'a>> {
     let mut chars = buf.chars();
 
     let c = chars.next();
@@ -149,8 +188,8 @@ fn parse_id<'a>(
         return Err(ParseMentionError::LeadingArrow { found: c });
     }
 
-    let sigil_found = sigils.iter().any(|sigil| {
-        if chars.as_str().starts_with(sigil) {
+    let maybe_sigil = sigils.iter().find(|sigil| {
+        if chars.as_str().starts_with(*sigil) {
             for _ in 0..sigil.chars().count() {
                 chars.next();
             }
@@ -161,14 +200,16 @@ fn parse_id<'a>(
         false
     });
 
-    if !sigil_found {
+    let sigil = if let Some(sigil) = maybe_sigil {
+        *sigil
+    } else {
         return Err(ParseMentionError::Sigil {
             expected: sigils,
             found: chars.next(),
         });
-    }
+    };
 
-    if parts == 2 && !emoji_sigil_present(&mut chars) {
+    if sigil == ":" && !emoji_sigil_present(&mut chars) {
         return Err(ParseMentionError::PartMissing {
             found: 1,
             expected: 2,
@@ -183,6 +224,7 @@ fn parse_id<'a>(
 
     remaining
         .parse()
+        .map(|id| (id, sigil))
         .map_err(|source| ParseMentionError::IdNotU64 {
             found: remaining,
             source,
@@ -209,28 +251,36 @@ fn emoji_sigil_present(chars: &mut Chars<'_>) -> bool {
 ///
 /// <https://rust-lang.github.io/api-guidelines/future-proofing.html>
 mod private {
+    use super::super::MentionType;
     use twilight_model::id::{ChannelId, EmojiId, RoleId, UserId};
 
     pub trait Sealed {}
 
     impl Sealed for ChannelId {}
     impl Sealed for EmojiId {}
+    impl Sealed for MentionType {}
     impl Sealed for RoleId {}
     impl Sealed for UserId {}
 }
 
 #[cfg(test)]
 mod tests {
-    use super::{super::ParseMentionError, private::Sealed, ParseMention};
+    use super::{
+        super::{MentionType, ParseMentionError},
+        private::Sealed,
+        ParseMention,
+    };
     use static_assertions::{assert_impl_all, const_assert_eq};
     use twilight_model::id::{ChannelId, EmojiId, RoleId, UserId};
 
     assert_impl_all!(ChannelId: ParseMention, Sealed);
     assert_impl_all!(EmojiId: ParseMention, Sealed);
+    assert_impl_all!(MentionType: ParseMention, Sealed);
     assert_impl_all!(RoleId: ParseMention, Sealed);
     assert_impl_all!(UserId: ParseMention, Sealed);
     const_assert_eq!(1, ChannelId::PARTS);
     const_assert_eq!(2, EmojiId::PARTS);
+    const_assert_eq!(1, MentionType::PARTS);
     const_assert_eq!(1, RoleId::PARTS);
     const_assert_eq!(1, UserId::PARTS);
 
@@ -238,6 +288,7 @@ mod tests {
     fn test_sigils() {
         assert_eq!(&["#"], ChannelId::SIGILS);
         assert_eq!(&[":"], EmojiId::SIGILS);
+        assert_eq!(&["#", ":", "@&", "@!", "@"], MentionType::SIGILS);
         assert_eq!(&["@&"], RoleId::SIGILS);
         assert_eq!(&["@!", "@"], UserId::SIGILS);
     }
@@ -263,6 +314,33 @@ mod tests {
                 found: Some('@'),
             },
             EmojiId::parse("<@123>").unwrap_err(),
+        );
+    }
+
+    #[test]
+    fn test_parse_mention_type() {
+        assert_eq!(
+            MentionType::Channel(ChannelId(123)),
+            MentionType::parse("<#123>").unwrap()
+        );
+        assert_eq!(
+            MentionType::Emoji(EmojiId(123)),
+            MentionType::parse("<:name:123>").unwrap()
+        );
+        assert_eq!(
+            MentionType::Role(RoleId(123)),
+            MentionType::parse("<@&123>").unwrap()
+        );
+        assert_eq!(
+            MentionType::User(UserId(123)),
+            MentionType::parse("<@123>").unwrap()
+        );
+        assert_eq!(
+            ParseMentionError::Sigil {
+                expected: &["#", ":", "@&", "@!", "@"],
+                found: Some(';'),
+            },
+            MentionType::parse("<;123>").unwrap_err(),
         );
     }
 
@@ -297,21 +375,21 @@ mod tests {
                 expected: &["@"],
                 found: Some('#'),
             },
-            super::parse_id("<#123>", &["@"], 1).unwrap_err(),
+            super::parse_id("<#123>", &["@"]).unwrap_err(),
         );
         assert_eq!(
             ParseMentionError::Sigil {
                 expected: &["#"],
                 found: None,
             },
-            super::parse_id("<", &["#"], 1).unwrap_err(),
+            super::parse_id("<", &["#"]).unwrap_err(),
         );
         assert_eq!(
             ParseMentionError::Sigil {
                 expected: &["#"],
                 found: None,
             },
-            super::parse_id("<", &["#"], 2).unwrap_err(),
+            super::parse_id("<", &["#"]).unwrap_err(),
         );
     }
 }
