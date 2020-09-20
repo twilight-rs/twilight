@@ -15,7 +15,7 @@ use crate::{
     },
 };
 use bytes::Bytes;
-use reqwest::{header::HeaderValue, Body, Client as ReqwestClient, Response, StatusCode, Method};
+use reqwest::{header::HeaderValue, Body, Client as ReqwestClient, Method, Response, StatusCode};
 use serde::de::DeserializeOwned;
 use std::{
     convert::TryFrom,
@@ -686,7 +686,7 @@ impl Client {
     pub fn update_guild_channel_positions(
         &self,
         guild_id: GuildId,
-        channel_positions: impl Iterator<Item = (ChannelId, u64)>,
+        channel_positions: impl Iterator<Item=(ChannelId, u64)>,
     ) -> UpdateGuildChannelPositions<'_> {
         UpdateGuildChannelPositions::new(self, guild_id, channel_positions)
     }
@@ -1215,7 +1215,7 @@ impl Client {
     pub fn update_role_positions(
         &self,
         guild_id: GuildId,
-        roles: impl Iterator<Item = (RoleId, u64)>,
+        roles: impl Iterator<Item=(RoleId, u64)>,
     ) -> UpdateRolePositions<'_> {
         UpdateRolePositions::new(self, guild_id, roles)
     }
@@ -1392,27 +1392,23 @@ impl Client {
 
         if let Some(form) = form {
             builder = builder.multipart(form);
-        } else {
-            if let Some(bytes) = body {
-                let len = bytes.len();
-
-                builder = builder.body(Body::from(bytes));
-                builder = builder.header("content-length", len);
-                let content_type = HeaderValue::from_static("application/json");
-                builder = builder.header("Content-Type", content_type);
-            } else if method == Method::PUT || method == Method::POST || method == Method::PATCH {
-                builder = builder.header("content-length", 0);
-            }
-
+        } else if let Some(bytes) = body {
+            let len = bytes.len();
+            builder = builder.body(Body::from(bytes));
+            builder = builder.header("content-length", len);
+            let content_type = HeaderValue::from_static("application/json");
+            builder = builder.header("Content-Type", content_type);
+        } else if method == Method::PUT || method == Method::POST || method == Method::PATCH {
+            builder = builder.header("content-length", 0);
         }
 
         let precision = HeaderValue::from_static("millisecond");
         let user_agent = HeaderValue::from_static(concat!(
-            "DiscordBot (",
-            env!("CARGO_PKG_HOMEPAGE"),
-            ", ",
-            env!("CARGO_PKG_VERSION"),
-            ") Twilight-rs",
+        "DiscordBot (",
+        env!("CARGO_PKG_HOMEPAGE"),
+        ", ",
+        env!("CARGO_PKG_VERSION"),
+        ") Twilight-rs",
         ));
         builder = builder.header("X-RateLimit-Precision", precision);
         builder = builder.header("User-Agent", user_agent);
@@ -1427,7 +1423,7 @@ impl Client {
                 return builder
                     .send()
                     .await
-                    .map_err(|source| Error::RequestError { source })
+                    .map_err(|source| Error::RequestError { source });
             }
         };
 
