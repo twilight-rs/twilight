@@ -6,7 +6,7 @@ Changelog for `twilight-http`.
 
 ### Fixes
 
-- Take `CreateReactionType` in  ([#520] - [@7596ff])
+- Take `RequestReactionType` in `Client::reactions` ([#520] - [@7596ff])
 - Set `content-length` header for `PATCH`, `POST`, and `PUT` methods ([#519] - [@AEnterprise])
 - Fix typos in documentation links ([#515] - [@nickelc])
 
