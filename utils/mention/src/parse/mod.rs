@@ -3,8 +3,12 @@
 //! Included is a trait over select IDs that can be mentioned and an iterator
 //! to lazily parse mentions.
 //!
-//! Additionally, there is [`MentionType`]: it's an enum wrapping all possible
-//! types of mentions and works just like the individual IDs.
+//! There is also the [`MentionType`]: it's an enum wrapping all possible types
+//! of mentions and works just like the individual IDs.
+//!
+//! While the syntax of mentions will be validated and the IDs within them
+//! parsed, they won't be validated as being proper snowflakes or as real IDs in
+//! use.
 //!
 //! # Examples
 //!

@@ -4,6 +4,10 @@ use twilight_model::id::{ChannelId, EmojiId, RoleId, UserId};
 
 /// Parse mentions out of buffers.
 ///
+/// While the syntax of mentions will be validated and the IDs within them
+/// parsed, they won't be validated as being proper snowflakes or as real IDs in
+/// use.
+///
 /// **Note** that this trait is sealed and is not meant to be manually
 /// implemented.
 pub trait ParseMention: private::Sealed {
