@@ -27,10 +27,10 @@ impl<'a> CommandParserConfig<'a> {
 
     /// Returns an iterator of mutable references to the commands.
     ///
-    /// Use the [`command`] and [`remove_command`] methods for an easier way to
+    /// Use the [`add_command`] and [`remove_command`] methods for an easier way to
     /// manage commands.
     ///
-    /// [`command`]: #method.command
+    /// [`add_command`]: #method.add_command
     /// [`remove_command`]: #method.remove_command
     pub fn commands_mut(&mut self) -> CommandsMut<'_> {
         CommandsMut {

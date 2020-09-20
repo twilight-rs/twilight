@@ -65,14 +65,14 @@ impl ImageSource {
     ///
     /// # Errors
     ///
-    /// Returns [`ImageSourceUrlError::ExtensionEmpty`] if an extension exists
+    /// Returns [`ImageSourceAttachmentError::ExtensionEmpty`] if an extension exists
     /// but is empty.
     ///
-    /// Returns [`ImageSourceUrlError::ExtensionMissing`] if an extension is
+    /// Returns [`ImageSourceAttachmentError::ExtensionMissing`] if an extension is
     /// missing.
     ///
-    /// [`ImageSourceUrlError::ExtensionEmpty`]: enum.ImageSourceUrlError.html#variant.ExtensionEmpty
-    /// [`ImageSourceUrlError::ExtensionMissing`]: enum.ImageSourceUrlError.html#variant.ExtensionMissing
+    /// [`ImageSourceAttachmentError::ExtensionEmpty`]: enum.ImageSourceAttachmentError.html#variant.ExtensionEmpty
+    /// [`ImageSourceAttachmentError::ExtensionMissing`]: enum.ImageSourceAttachmentError.html#variant.ExtensionMissing
     pub fn attachment(filename: impl AsRef<str>) -> Result<Self, ImageSourceAttachmentError> {
         Self::_attachment(filename.as_ref())
     }

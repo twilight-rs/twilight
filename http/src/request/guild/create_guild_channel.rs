@@ -191,11 +191,11 @@ impl<'a> CreateGuildChannel<'a> {
     ///
     /// # Errors
     ///
-    /// Returns [`GetGuildPruneCountError::RateLimitPerUserInvalid`] if the amount is greater than
+    /// Returns [`CreateGuildChannelError::RateLimitPerUserInvalid`] if the amount is greater than
     /// 21600.
     ///
     /// [the discord docs]: https://discordapp.com/developers/docs/resources/channel#channel-object-channel-structure
-    /// [`GetGuildPruneCountError::RateLimitPerUserInvalid`]: ../get_guild_prune_count/enum.GetGuildPruneCountError.html#variant.RateLimitPerUserInvalid
+    /// [`CreateGuildChannelError::RateLimitPerUserInvalid`]: enum.CreateGuildChannelError.html#variant.RateLimitPerUserInvalid
     pub fn rate_limit_per_user(
         mut self,
         rate_limit_per_user: u64,

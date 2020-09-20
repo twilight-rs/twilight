@@ -365,7 +365,7 @@ impl Client {
     ///
     /// # Errors
     ///
-    /// Returns [`GetChannelMessages::LimitInvalid`] if the amount is less than 1 or greater than 100.
+    /// Returns [`GetChannelMessagesError::LimitInvalid`] if the amount is less than 1 or greater than 100.
     ///
     /// [`ChannelId`]: ../../twilight_model/id/struct.ChannelId.html
     /// [`after`]: ../request/channel/message/get_channel_messages/struct.GetChannelMessages.html#method.after
@@ -373,7 +373,7 @@ impl Client {
     /// [`before`]: ../request/channel/message/get_channel_messages/struct.GetChannelMessages.html#method.before
     /// [`GetChannelMessagesConfigured`]: ../request/channel/message/get_channel_messages_configured/struct.GetChannelMessagesConfigured.html
     /// [`limit`]: ../request/channel/message/get_channel_messages/struct.GetChannelMessages.html#method.limit
-    /// [`GetChannelMessages::LimitInvalid`]: ../request/channel/message/get_channel_messages/enum.GetChannelMessagesError.html#variant.LimitInvalid
+    /// [`GetChannelMessagesError::LimitInvalid`]: ../request/channel/message/get_channel_messages/enum.GetChannelMessagesError.html#variant.LimitInvalid
     pub fn channel_messages(&self, channel_id: ChannelId) -> GetChannelMessages<'_> {
         GetChannelMessages::new(self, channel_id)
     }
