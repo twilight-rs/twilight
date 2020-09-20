@@ -7,15 +7,6 @@ use twilight_model::id::{ChannelId, EmojiId, RoleId, UserId};
 /// **Note** that this trait is sealed and is not meant to be manually
 /// implemented.
 pub trait ParseMention: private::Sealed {
-    /// The number of "parts" in the mention.
-    ///
-    /// A part is defined as sections split by a `:`. For most mentions, like
-    /// user or channel mentions, there is only one part: the ID (in `<@12>`,
-    /// the only part is `12`). An exception is emojis, which have two parts:
-    /// the name and ID (in `<:name:12>`, the first part is `name` and the
-    /// second is `12`).
-    const PARTS: usize = 1;
-
     /// Leading sigil(s) of the mention after the leading arrow (`<`).
     ///
     /// In a channel mention, the sigil is `#`. In the case of a user mention,
@@ -86,7 +77,6 @@ impl ParseMention for ChannelId {
 }
 
 impl ParseMention for EmojiId {
-    const PARTS: usize = 2;
     const SIGILS: &'static [&'static str] = &[":"];
 
     fn parse(buf: &str) -> Result<Self, ParseMentionError<'_>>
@@ -270,7 +260,7 @@ mod tests {
         private::Sealed,
         ParseMention,
     };
-    use static_assertions::{assert_impl_all, const_assert_eq};
+    use static_assertions::assert_impl_all;
     use twilight_model::id::{ChannelId, EmojiId, RoleId, UserId};
 
     assert_impl_all!(ChannelId: ParseMention, Sealed);
@@ -278,11 +268,6 @@ mod tests {
     assert_impl_all!(MentionType: ParseMention, Sealed);
     assert_impl_all!(RoleId: ParseMention, Sealed);
     assert_impl_all!(UserId: ParseMention, Sealed);
-    const_assert_eq!(1, ChannelId::PARTS);
-    const_assert_eq!(2, EmojiId::PARTS);
-    const_assert_eq!(1, MentionType::PARTS);
-    const_assert_eq!(1, RoleId::PARTS);
-    const_assert_eq!(1, UserId::PARTS);
 
     #[test]
     fn test_sigils() {
