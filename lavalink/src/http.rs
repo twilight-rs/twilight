@@ -70,7 +70,7 @@ pub struct PlaylistInfo {
     /// The name of the playlist, if available.
     pub name: Option<String>,
     /// The selected track, if one was selected.
-    pub selected_track: Option<String>,
+    pub selected_track: Option<u64>,
 }
 
 /// Possible track results for a query.
