@@ -1,7 +1,7 @@
 [package]
 authors = ["Twilight Contributors"]
 categories = []
-description = "Create and parse mentions for resources in the Twilight ecosystem."
+description = "Utilities for working with mentions in the Twilight ecosystem."
 documentation = "https://docs.rs/twilight-mention"
 edition = "2018"
 homepage = "https://twilight.rs/chapter_1_crates/section_8_first_party/section_2_mention.html"
