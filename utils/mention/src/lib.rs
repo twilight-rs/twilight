@@ -3,7 +3,7 @@
 //! [![discord badge][]][discord link] [![github badge][]][github link] [![license badge][]][license link] ![rust badge]
 //!
 //! `twilight-mention` is a utility crate for the Discord [`twilight-rs`]
-//! ecosystem to mention its model types.
+//! ecosystem to mention its model types and parse those mentions.
 //!
 //! With this library, you can create mentions for various types, such as users,
 //! emojis, roles, members, or channels.
