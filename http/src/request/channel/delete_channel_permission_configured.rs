@@ -23,6 +23,8 @@ impl<'a> DeleteChannelPermissionConfigured<'a> {
         }
     }
 
+    #[deprecated(note = "you've used the request's reason method which is deprecated; \
+                please import the request::AuditLogReason trait")]
     /// Attach an audit log reason to this request.
     pub fn reason(mut self, reason: impl Into<String>) -> Self {
         self.reason.replace(reason.into());
@@ -50,6 +52,15 @@ impl<'a> DeleteChannelPermissionConfigured<'a> {
         self.fut.replace(Box::pin(self.http.verify(request)));
 
         Ok(())
+    }
+}
+
+impl<'a> AuditLogReason for DeleteChannelPermissionConfigured<'a> {
+    fn reason(mut self, reason: impl Into<String>) -> Result<Self, AuditLogReasonError> {
+        let reason = AuditLogReasonError::validate(reason.into())?;
+        self.reason.replace(reason);
+
+        Ok(self)
     }
 }
 

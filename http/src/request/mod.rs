@@ -67,6 +67,7 @@ pub mod guild;
 pub mod prelude;
 pub mod user;
 
+mod audit_reason;
 mod get_gateway;
 mod get_gateway_authed;
 mod get_user_application;
@@ -74,8 +75,11 @@ mod get_voice_regions;
 mod validate;
 
 pub use self::{
-    get_gateway::GetGateway, get_gateway_authed::GetGatewayAuthed,
-    get_user_application::GetUserApplicationInfo, get_voice_regions::GetVoiceRegions,
+    audit_reason::{AuditLogReason, AuditLogReasonError},
+    get_gateway::GetGateway,
+    get_gateway_authed::GetGatewayAuthed,
+    get_user_application::GetUserApplicationInfo,
+    get_voice_regions::GetVoiceRegions,
 };
 
 use crate::{
