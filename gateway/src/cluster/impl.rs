@@ -249,6 +249,17 @@ impl Cluster {
             .cloned()
     }
 
+    /// Return a list of all the shards.
+    pub fn shards(&self) -> Vec<Shard> {
+        self.0
+            .shards
+            .lock()
+            .expect("shards poisned")
+            .values()
+            .cloned()
+            .collect()
+    }
+
     /// Return information about all shards.
     ///
     /// # Examples
