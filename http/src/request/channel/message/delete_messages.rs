@@ -78,8 +78,8 @@ impl<'a> DeleteMessages<'a> {
 
 impl<'a> AuditLogReason for DeleteMessages<'a> {
     fn reason(mut self, reason: impl Into<String>) -> Result<Self, AuditLogReasonError> {
-        let reason = AuditLogReasonError::validate(reason.into())?;
-        self.reason.replace(reason);
+        self.reason
+            .replace(AuditLogReasonError::validate(reason.into())?);
 
         Ok(self)
     }
