@@ -97,8 +97,10 @@ impl<'a> CreateBan<'a> {
         Ok(self)
     }
 
-    #[deprecated(note = "you've used the request's reason method which is deprecated; \
-                please import the request::AuditLogReason trait")]
+    #[deprecated(
+        since = "0.1.5",
+        note = "please prefer the request::AuditLogReason trait"
+    )]
     /// Attach an audit log reason to this request.
     pub fn reason(mut self, reason: impl Into<String>) -> Self {
         self.fields.reason.replace(reason.into());
