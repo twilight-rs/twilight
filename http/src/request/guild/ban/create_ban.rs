@@ -124,8 +124,9 @@ impl<'a> CreateBan<'a> {
 
 impl<'a> AuditLogReason for CreateBan<'a> {
     fn reason(mut self, reason: impl Into<String>) -> Result<Self, AuditLogReasonError> {
-        let reason = AuditLogReasonError::validate(reason.into())?;
-        self.fields.reason.replace(reason);
+        self.fields
+            .reason
+            .replace(AuditLogReasonError::validate(reason.into())?);
 
         Ok(self)
     }
