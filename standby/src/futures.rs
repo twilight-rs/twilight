@@ -67,9 +67,9 @@ impl Future for WaitForGuildEventFuture {
     }
 }
 
-/// The stream returned from [`Standby::wait_for_guild_event_stream`].
+/// The stream returned from [`Standby::wait_for_stream`].
 ///
-/// [`Standby::wait_for_guild_event_stream`]: struct.Standby.html#method.wait_for_guild_event_stream
+/// [`Standby::wait_for_stream`]: struct.Standby.html#method.wait_for_stream
 #[derive(Debug)]
 #[must_use = "streams do nothing unless you poll them"]
 pub struct WaitForGuildEventStream {
