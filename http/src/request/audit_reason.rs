@@ -1,4 +1,7 @@
-use std::fmt::{Display, Formatter, Result as FmtResult};
+use std::{
+    error::Error,
+    fmt::{Display, Formatter, Result as FmtResult},
+};
 
 pub trait AuditLogReason: private::Sealed {
     fn reason(self, reason: impl Into<String>) -> Result<Self, AuditLogReasonError>
@@ -45,7 +48,7 @@ mod private {
 }
 
 impl AuditLogReasonError {
-    /// The maximum audit log reason length in codepoints.
+    /// The maximum audit log reason length in UTF-16 codepoints.
     pub const AUDIT_REASON_LENGTH: usize = 512;
 
     pub(crate) fn validate(reason: String) -> Result<String, AuditLogReasonError> {
@@ -77,12 +80,14 @@ impl Display for AuditLogReasonError {
     }
 }
 
-impl std::error::Error for AuditLogReasonError {}
+impl Error for AuditLogReasonError {}
 
 #[cfg(test)]
 mod test {
     use crate::request::prelude::*;
-    use static_assertions::assert_impl_all;
+    use static_assertions::{assert_impl_all, assert_obj_safe};
+
+    assert_obj_safe!(AuditLogReason);
 
     assert_impl_all!(CreateInvite<'_>: AuditLogReason);
     assert_impl_all!(DeleteInvite<'_>: AuditLogReason);
