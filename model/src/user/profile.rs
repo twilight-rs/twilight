@@ -9,6 +9,14 @@ pub struct UserProfile {
     pub avatar: Option<String>,
     #[serde(default)]
     pub bot: bool,
+    /// Discriminator used to differentiate people with the same username.
+    ///
+    /// # serde
+    ///
+    /// The discriminator field can be deserialized from either a string or an
+    /// integer. The field will always serialize into a string due to that being
+    /// the type Discord's API uses.
+    #[serde(with = "super::discriminator")]
     pub discriminator: String,
     pub email: Option<String>,
     pub flags: Option<UserFlags>,
@@ -26,6 +34,46 @@ mod tests {
     use super::{PremiumType, UserFlags, UserId, UserProfile};
     use serde_test::Token;
 
+    fn user_tokens(discriminator_token: Token) -> Vec<Token> {
+        vec![
+            Token::Struct {
+                name: "UserProfile",
+                len: 11,
+            },
+            Token::Str("avatar"),
+            Token::Some,
+            Token::Str("hash"),
+            Token::Str("bot"),
+            Token::Bool(false),
+            Token::Str("discriminator"),
+            discriminator_token,
+            Token::Str("email"),
+            Token::Some,
+            Token::Str("email@example.com"),
+            Token::Str("flags"),
+            Token::Some,
+            Token::U64(131_072),
+            Token::Str("id"),
+            Token::NewtypeStruct { name: "UserId" },
+            Token::Str("1"),
+            Token::Str("locale"),
+            Token::Some,
+            Token::Str("en-us"),
+            Token::Str("mfa_enabled"),
+            Token::Some,
+            Token::Bool(true),
+            Token::Str("username"),
+            Token::Str("user name"),
+            Token::Str("premium_type"),
+            Token::Some,
+            Token::U8(2),
+            Token::Str("verified"),
+            Token::Some,
+            Token::Bool(true),
+            Token::StructEnd,
+        ]
+    }
+
     #[test]
     fn test_user_profile() {
         let value = UserProfile {
@@ -42,45 +90,13 @@ mod tests {
             verified: Some(true),
         };
 
-        serde_test::assert_tokens(
-            &value,
-            &[
-                Token::Struct {
-                    name: "UserProfile",
-                    len: 11,
-                },
-                Token::Str("avatar"),
-                Token::Some,
-                Token::Str("hash"),
-                Token::Str("bot"),
-                Token::Bool(false),
-                Token::Str("discriminator"),
-                Token::Str("0004"),
-                Token::Str("email"),
-                Token::Some,
-                Token::Str("email@example.com"),
-                Token::Str("flags"),
-                Token::Some,
-                Token::U64(131_072),
-                Token::Str("id"),
-                Token::NewtypeStruct { name: "UserId" },
-                Token::Str("1"),
-                Token::Str("locale"),
-                Token::Some,
-                Token::Str("en-us"),
-                Token::Str("mfa_enabled"),
-                Token::Some,
-                Token::Bool(true),
-                Token::Str("username"),
-                Token::Str("user name"),
-                Token::Str("premium_type"),
-                Token::Some,
-                Token::U8(2),
-                Token::Str("verified"),
-                Token::Some,
-                Token::Bool(true),
-                Token::StructEnd,
-            ],
-        );
+        // Deserializing a user profile with a string discriminator (which
+        // Discord provides)
+        serde_test::assert_tokens(&value, &user_tokens(Token::Str("0004")));
+
+        // Deserializing a user profile with an integer discriminator. Userland
+        // code may have this due to being a more compact memory representation
+        // of a discriminator.
+        serde_test::assert_de_tokens(&value, &user_tokens(Token::U64(4)));
     }
 }
