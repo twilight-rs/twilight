@@ -2,6 +2,12 @@
 
 Changelog for `twilight-model`.
 
+## [0.1.3] - 2020-09-25
+
+### Added
+
+- Support deserializing user discriminators from integers ([#526] - [@vivian])
+
 ## [0.1.2] - 2020-09-17
 
 ### Added
@@ -26,10 +32,12 @@ Initial release.
 [@Erk-]: https://github.com/Erk-
 [@vivian]: https://github.com/vivian
 
+[#526]: https://github.com/twilight-rs/twilight/pull/526
 [#511]: https://github.com/twilight-rs/twilight/pull/511
 [#509]: https://github.com/twilight-rs/twilight/pull/509
 [#499]: https://github.com/twilight-rs/twilight/pull/499
 
+[0.1.3]: https://github.com/twilight-rs/twilight/releases/tag/model-v0.1.3
 [0.1.2]: https://github.com/twilight-rs/twilight/releases/tag/model-v0.1.2
 [0.1.1]: https://github.com/twilight-rs/twilight/releases/tag/model-v0.1.1
 [0.1.0]: https://github.com/twilight-rs/twilight/releases/tag/v0.1.0
