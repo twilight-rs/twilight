@@ -276,7 +276,7 @@ impl InMemoryCache {
 
     /// Gets the set of channels in a guild.
     ///
-    /// This is a O(m) where m is the amount of guilds in the channel.
+    /// This is a O(m) where m is the amount of channels in the guild.
     pub fn guild_channels(&self, guild_id: GuildId) -> Option<HashSet<ChannelId>> {
         self.0
             .guild_channels
