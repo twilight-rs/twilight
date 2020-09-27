@@ -274,6 +274,16 @@ impl InMemoryCache {
         self.0.guilds.get(&guild_id).map(|r| Arc::clone(r.value()))
     }
 
+    /// Gets the set of channels in a guild.
+    ///
+    /// This is a O(m) where m is the amount of guilds in the channel.
+    pub fn guild_channels(&self, guild_id: GuildId) -> Option<HashSet<ChannelId>> {
+        self.0
+            .guild_channels
+            .get(&guild_id)
+            .map(|r| r.value().clone())
+    }
+
     /// Gets a member by guild ID and user ID.
     ///
     /// This is an O(1) operation.
