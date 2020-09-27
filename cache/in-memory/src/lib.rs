@@ -322,10 +322,7 @@ impl InMemoryCache {
     ///
     /// This is a O(m) operation, where m is the amount of roles in the guild.
     pub fn guild_roles(&self, guild_id: GuildId) -> Option<HashSet<RoleId>> {
-        self.0
-            .guild_members
-            .get(&guild_id)
-            .map(|r| r.value().clone())
+        self.0.guild_roles.get(&guild_id).map(|r| r.value().clone())
     }
 
     /// Gets a member by guild ID and user ID.
