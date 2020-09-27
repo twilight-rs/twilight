@@ -48,6 +48,7 @@ pub(crate) mod string {
     }
 }
 
+use super::snowflake::Snowflake;
 use serde::{Deserialize, Serialize};
 use std::fmt::{Display, Formatter, Result as FmtResult};
 
@@ -68,6 +69,12 @@ impl From<u64> for ApplicationId {
     }
 }
 
+impl Snowflake for ApplicationId {
+    fn id(&self) -> u64 {
+        self.0
+    }
+}
+
 #[derive(
     Clone, Copy, Debug, Default, Deserialize, Eq, Hash, Ord, PartialEq, PartialOrd, Serialize,
 )]
@@ -82,6 +89,12 @@ impl Display for AttachmentId {
 impl From<u64> for AttachmentId {
     fn from(id: u64) -> Self {
         AttachmentId(id)
+    }
+}
+
+impl Snowflake for AttachmentId {
+    fn id(&self) -> u64 {
+        self.0
     }
 }
 
@@ -102,6 +115,12 @@ impl From<u64> for AuditLogEntryId {
     }
 }
 
+impl Snowflake for AuditLogEntryId {
+    fn id(&self) -> u64 {
+        self.0
+    }
+}
+
 #[derive(
     Clone, Copy, Debug, Default, Deserialize, Eq, Hash, Ord, PartialEq, PartialOrd, Serialize,
 )]
@@ -116,6 +135,12 @@ impl Display for ChannelId {
 impl From<u64> for ChannelId {
     fn from(id: u64) -> Self {
         ChannelId(id)
+    }
+}
+
+impl Snowflake for ChannelId {
+    fn id(&self) -> u64 {
+        self.0
     }
 }
 
@@ -136,6 +161,12 @@ impl From<u64> for EmojiId {
     }
 }
 
+impl Snowflake for EmojiId {
+    fn id(&self) -> u64 {
+        self.0
+    }
+}
+
 #[derive(
     Clone, Copy, Debug, Default, Deserialize, Eq, Hash, Ord, PartialEq, PartialOrd, Serialize,
 )]
@@ -150,6 +181,12 @@ impl Display for GenericId {
 impl From<u64> for GenericId {
     fn from(id: u64) -> Self {
         GenericId(id)
+    }
+}
+
+impl Snowflake for GenericId {
+    fn id(&self) -> u64 {
+        self.0
     }
 }
 
@@ -170,6 +207,12 @@ impl From<u64> for GuildId {
     }
 }
 
+impl Snowflake for GuildId {
+    fn id(&self) -> u64 {
+        self.0
+    }
+}
+
 #[derive(
     Clone, Copy, Debug, Default, Deserialize, Eq, Hash, Ord, PartialEq, PartialOrd, Serialize,
 )]
@@ -184,6 +227,12 @@ impl Display for IntegrationId {
 impl From<u64> for IntegrationId {
     fn from(id: u64) -> Self {
         IntegrationId(id)
+    }
+}
+
+impl Snowflake for IntegrationId {
+    fn id(&self) -> u64 {
+        self.0
     }
 }
 
@@ -204,6 +253,12 @@ impl From<u64> for MessageId {
     }
 }
 
+impl Snowflake for MessageId {
+    fn id(&self) -> u64 {
+        self.0
+    }
+}
+
 #[derive(
     Clone, Copy, Debug, Default, Deserialize, Eq, Hash, Ord, PartialEq, PartialOrd, Serialize,
 )]
@@ -218,6 +273,12 @@ impl Display for RoleId {
 impl From<u64> for RoleId {
     fn from(id: u64) -> Self {
         RoleId(id)
+    }
+}
+
+impl Snowflake for RoleId {
+    fn id(&self) -> u64 {
+        self.0
     }
 }
 
@@ -238,6 +299,12 @@ impl From<u64> for UserId {
     }
 }
 
+impl Snowflake for UserId {
+    fn id(&self) -> u64 {
+        self.0
+    }
+}
+
 #[derive(
     Clone, Copy, Debug, Default, Deserialize, Eq, Hash, Ord, PartialEq, PartialOrd, Serialize,
 )]
@@ -252,6 +319,12 @@ impl Display for WebhookId {
 impl From<u64> for WebhookId {
     fn from(id: u64) -> Self {
         WebhookId(id)
+    }
+}
+
+impl Snowflake for WebhookId {
+    fn id(&self) -> u64 {
+        self.0
     }
 }
 
