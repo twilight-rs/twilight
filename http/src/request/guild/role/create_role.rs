@@ -93,6 +93,10 @@ impl<'a> CreateRole<'a> {
         self
     }
 
+    #[deprecated(
+        since = "0.1.5",
+        note = "please prefer the request::AuditLogReason trait"
+    )]
     /// Attach an audit log reason to this request.
     pub fn reason(mut self, reason: impl Into<String>) -> Self {
         self.reason.replace(reason.into());
@@ -122,6 +126,15 @@ impl<'a> CreateRole<'a> {
         self.fut.replace(Box::pin(self.http.request(request)));
 
         Ok(())
+    }
+}
+
+impl<'a> AuditLogReason for CreateRole<'a> {
+    fn reason(mut self, reason: impl Into<String>) -> Result<Self, AuditLogReasonError> {
+        self.reason
+            .replace(AuditLogReasonError::validate(reason.into())?);
+
+        Ok(self)
     }
 }
 

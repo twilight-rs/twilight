@@ -1,0 +1,123 @@
+use std::{
+    error::Error,
+    fmt::{Display, Formatter, Result as FmtResult},
+};
+
+pub trait AuditLogReason: private::Sealed {
+    fn reason(self, reason: impl Into<String>) -> Result<Self, AuditLogReasonError>
+    where
+        Self: Sized;
+}
+
+mod private {
+    use crate::request::prelude::*;
+
+    /// Sealed stops crates other crates implementing the trait.
+    pub trait Sealed {}
+    impl<'a> Sealed for CreateInvite<'a> {}
+    impl<'a> Sealed for DeleteInvite<'a> {}
+    impl<'a> Sealed for DeleteMessage<'a> {}
+    impl<'a> Sealed for DeleteMessages<'a> {}
+    impl<'a> Sealed for UpdateChannel<'a> {}
+    impl<'a> Sealed for CreateWebhook<'a> {}
+    impl<'a> Sealed for DeleteWebhook<'a> {}
+    impl<'a> Sealed for UpdateWebhook<'a> {}
+    impl<'a> Sealed for CreatePin<'a> {}
+    impl<'a> Sealed for DeleteChannel<'a> {}
+    impl<'a> Sealed for DeleteChannelPermissionConfigured<'a> {}
+    impl<'a> Sealed for DeletePin<'a> {}
+    impl<'a> Sealed for UpdateChannelPermissionConfigured<'a> {}
+    impl<'a> Sealed for CreateBan<'a> {}
+    impl<'a> Sealed for DeleteBan<'a> {}
+    impl<'a> Sealed for CreateGuildChannel<'a> {}
+    impl<'a> Sealed for CreateGuildPrune<'a> {}
+    impl<'a> Sealed for CreateEmoji<'a> {}
+    impl<'a> Sealed for DeleteEmoji<'a> {}
+    impl<'a> Sealed for UpdateEmoji<'a> {}
+    impl<'a> Sealed for CreateGuildIntegration<'a> {}
+    impl<'a> Sealed for DeleteGuildIntegration<'a> {}
+    impl<'a> Sealed for UpdateGuildIntegration<'a> {}
+    impl<'a> Sealed for UpdateGuildMember<'a> {}
+    impl<'a> Sealed for AddRoleToMember<'a> {}
+    impl<'a> Sealed for RemoveMember<'a> {}
+    impl<'a> Sealed for RemoveRoleFromMember<'a> {}
+    impl<'a> Sealed for CreateRole<'a> {}
+    impl<'a> Sealed for DeleteRole<'a> {}
+    impl<'a> Sealed for UpdateRole<'a> {}
+    impl<'a> Sealed for UpdateGuild<'a> {}
+}
+
+impl AuditLogReasonError {
+    /// The maximum audit log reason length in UTF-16 codepoints.
+    pub const AUDIT_REASON_LENGTH: usize = 512;
+
+    pub(crate) fn validate(reason: String) -> Result<String, AuditLogReasonError> {
+        if reason.chars().count() <= Self::AUDIT_REASON_LENGTH {
+            Ok(reason)
+        } else {
+            Err(AuditLogReasonError::TooLarge { reason })
+        }
+    }
+}
+
+/// The error created when a reason can not be used as configured.
+#[derive(Clone, Debug)]
+pub enum AuditLogReasonError {
+    /// Returned when the reason is over 512 UTF-16 characters.
+    TooLarge { reason: String },
+}
+
+impl Display for AuditLogReasonError {
+    fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
+        match self {
+            Self::TooLarge { reason } => write!(
+                f,
+                "the audit log reason is {} characters long, but the max is {}",
+                reason.chars().count(),
+                Self::AUDIT_REASON_LENGTH
+            ),
+        }
+    }
+}
+
+impl Error for AuditLogReasonError {}
+
+#[cfg(test)]
+mod test {
+    use crate::request::prelude::*;
+    use static_assertions::{assert_impl_all, assert_obj_safe};
+
+    assert_obj_safe!(AuditLogReason);
+
+    assert_impl_all!(CreateInvite<'_>: AuditLogReason);
+    assert_impl_all!(DeleteInvite<'_>: AuditLogReason);
+    assert_impl_all!(DeleteMessage<'_>: AuditLogReason);
+    assert_impl_all!(DeleteMessages<'_>: AuditLogReason);
+    assert_impl_all!(UpdateChannel<'_>: AuditLogReason);
+    assert_impl_all!(CreateWebhook<'_>: AuditLogReason);
+    assert_impl_all!(DeleteWebhook<'_>: AuditLogReason);
+    assert_impl_all!(UpdateWebhook<'_>: AuditLogReason);
+    assert_impl_all!(CreatePin<'_>: AuditLogReason);
+    assert_impl_all!(DeleteChannel<'_>: AuditLogReason);
+    assert_impl_all!(DeleteChannelPermissionConfigured<'_>: AuditLogReason);
+    assert_impl_all!(DeletePin<'_>: AuditLogReason);
+    assert_impl_all!(UpdateChannelPermissionConfigured<'_>: AuditLogReason);
+    assert_impl_all!(CreateBan<'_>: AuditLogReason);
+    assert_impl_all!(DeleteBan<'_>: AuditLogReason);
+    assert_impl_all!(CreateGuildChannel<'_>: AuditLogReason);
+    assert_impl_all!(CreateGuildPrune<'_>: AuditLogReason);
+    assert_impl_all!(CreateEmoji<'_>: AuditLogReason);
+    assert_impl_all!(DeleteEmoji<'_>: AuditLogReason);
+    assert_impl_all!(UpdateEmoji<'_>: AuditLogReason);
+    assert_impl_all!(CreateGuildIntegration<'_>: AuditLogReason);
+    assert_impl_all!(DeleteGuildIntegration<'_>: AuditLogReason);
+    assert_impl_all!(UpdateGuildIntegration<'_>: AuditLogReason);
+    assert_impl_all!(UpdateGuildMember<'_>: AuditLogReason);
+    assert_impl_all!(AddRoleToMember<'_>: AuditLogReason);
+    assert_impl_all!(RemoveMember<'_>: AuditLogReason);
+    assert_impl_all!(RemoveRoleFromMember<'_>: AuditLogReason);
+    assert_impl_all!(CreateRole<'_>: AuditLogReason);
+    assert_impl_all!(DeleteRole<'_>: AuditLogReason);
+    assert_impl_all!(UpdateRole<'_>: AuditLogReason);
+    assert_impl_all!(UpdateGuild<'_>: AuditLogReason);
+}
