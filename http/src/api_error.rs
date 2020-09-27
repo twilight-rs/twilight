@@ -485,12 +485,15 @@ impl Display for MessageApiError {
 pub enum MessageApiErrorEmbedField {
     /// Something was wrong with the provided fields.
     Fields,
+    /// The provided timestamp wasn't a valid RFC3339 string.
+    Timestamp,
 }
 
 impl Display for MessageApiErrorEmbedField {
     fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
         f.write_str(match self {
             Self::Fields => "fields",
+            Self::Timestamp => "timestamp",
         })
     }
 }
@@ -549,7 +552,13 @@ mod tests {
     #[test]
     fn test_api_error_message() {
         let expected = ApiError::Message(MessageApiError {
-            embed: Some([MessageApiErrorEmbedField::Fields].to_vec()),
+            embed: Some(
+                [
+                    MessageApiErrorEmbedField::Fields,
+                    MessageApiErrorEmbedField::Timestamp,
+                ]
+                .to_vec(),
+            ),
         });
 
         serde_test::assert_tokens(
@@ -561,10 +570,14 @@ mod tests {
                 },
                 Token::Str("embed"),
                 Token::Some,
-                Token::Seq { len: Some(1) },
+                Token::Seq { len: Some(2) },
                 Token::UnitVariant {
                     name: "MessageApiErrorEmbedField",
                     variant: "fields",
+                },
+                Token::UnitVariant {
+                    name: "MessageApiErrorEmbedField",
+                    variant: "timestamp",
                 },
                 Token::SeqEnd,
                 Token::StructEnd,
