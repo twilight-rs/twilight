@@ -485,12 +485,15 @@ impl Display for MessageApiError {
 pub enum MessageApiErrorEmbedField {
     /// Something was wrong with the provided fields.
     Fields,
+    /// The provided timestamp wasn't a valid RFC3339 string.
+    Timestamp,
 }
 
 impl Display for MessageApiErrorEmbedField {
     fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
         f.write_str(match self {
             Self::Fields => "fields",
+            Self::Timestamp => "timestamp",
         })
     }
 }
