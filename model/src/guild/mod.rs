@@ -65,8 +65,6 @@ pub struct Guild {
     pub default_message_notifications: DefaultMessageNotificationLevel,
     pub description: Option<String>,
     pub discovery_splash: Option<String>,
-    pub embed_channel_id: Option<ChannelId>,
-    pub embed_enabled: Option<bool>,
     #[serde(with = "serde_mappable_seq")]
     pub emojis: HashMap<EmojiId, Emoji>,
     pub explicit_content_filter: ExplicitContentFilter,
@@ -129,8 +127,6 @@ impl<'de> Deserialize<'de> for Guild {
             DefaultMessageNotifications,
             Description,
             DiscoverySplash,
-            EmbedChannelId,
-            EmbedEnabled,
             Emojis,
             ExplicitContentFilter,
             Features,
@@ -189,8 +185,6 @@ impl<'de> Deserialize<'de> for Guild {
                 let mut default_message_notifications = None;
                 let mut description = None::<Option<_>>;
                 let mut discovery_splash = None::<Option<_>>;
-                let mut embed_channel_id = None::<Option<_>>;
-                let mut embed_enabled = None::<Option<_>>;
                 let mut emojis = None;
                 let mut explicit_content_filter = None;
                 let mut features = None;
@@ -322,20 +316,6 @@ impl<'de> Deserialize<'de> for Guild {
                             }
 
                             discovery_splash = Some(map.next_value()?);
-                        }
-                        Field::EmbedChannelId => {
-                            if embed_channel_id.is_some() {
-                                return Err(DeError::duplicate_field("embed_channel_id"));
-                            }
-
-                            embed_channel_id = Some(map.next_value()?);
-                        }
-                        Field::EmbedEnabled => {
-                            if embed_enabled.is_some() {
-                                return Err(DeError::duplicate_field("embed_enabled"));
-                            }
-
-                            embed_enabled = Some(map.next_value()?);
                         }
                         Field::Emojis => {
                             if emojis.is_some() {
@@ -610,8 +590,6 @@ impl<'de> Deserialize<'de> for Guild {
                 let mut channels = channels.unwrap_or_default();
                 let description = description.unwrap_or_default();
                 let discovery_splash = discovery_splash.unwrap_or_default();
-                let embed_channel_id = embed_channel_id.unwrap_or_default();
-                let embed_enabled = embed_enabled.unwrap_or_default();
                 let emojis = emojis.unwrap_or_default();
                 let icon = icon.unwrap_or_default();
                 let large = large.unwrap_or_default();
@@ -647,8 +625,6 @@ impl<'de> Deserialize<'de> for Guild {
                     ?default_message_notifications,
                     ?description,
                     ?discovery_splash,
-                    ?embed_channel_id,
-                    ?embed_enabled,
                     ?emojis,
                     ?explicit_content_filter,
                     ?features,
@@ -726,8 +702,6 @@ impl<'de> Deserialize<'de> for Guild {
                     default_message_notifications,
                     description,
                     discovery_splash,
-                    embed_channel_id,
-                    embed_enabled,
                     emojis,
                     explicit_content_filter,
                     features,
@@ -777,8 +751,6 @@ impl<'de> Deserialize<'de> for Guild {
             "default_message_notifications",
             "description",
             "discovery_splash",
-            "embed_channel_id",
-            "embed_enabled",
             "emojis",
             "explicit_content_filter",
             "features",
@@ -842,8 +814,6 @@ mod tests {
             default_message_notifications: DefaultMessageNotificationLevel::Mentions,
             description: Some("a description".to_owned()),
             discovery_splash: Some("discovery splash hash".to_owned()),
-            embed_channel_id: Some(ChannelId(4)),
-            embed_enabled: Some(true),
             emojis: HashMap::new(),
             explicit_content_filter: ExplicitContentFilter::MembersWithoutRole,
             features: vec!["a feature".to_owned()],
@@ -919,13 +889,6 @@ mod tests {
                 Token::Str("discovery_splash"),
                 Token::Some,
                 Token::Str("discovery splash hash"),
-                Token::Str("embed_channel_id"),
-                Token::Some,
-                Token::NewtypeStruct { name: "ChannelId" },
-                Token::Str("4"),
-                Token::Str("embed_enabled"),
-                Token::Some,
-                Token::Bool(true),
                 Token::Str("emojis"),
                 Token::Seq { len: Some(0) },
                 Token::SeqEnd,

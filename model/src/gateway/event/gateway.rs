@@ -559,8 +559,6 @@ mod tests {
     "default_message_notifications": 0,
     "description": null,
     "discovery_splash": null,
-    "embed_channel_id": null,
-    "embed_enabled": false,
     "emojis": [
       {
         "animated": false,
@@ -633,8 +631,6 @@ mod tests {
     "default_message_notifications": 0,
     "description": null,
     "discovery_splash": null,
-    "embed_channel_id": null,
-    "embed_enabled": true,
     "emojis": [
       {
         "animated": false,
