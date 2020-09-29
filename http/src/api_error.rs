@@ -514,7 +514,7 @@ impl Display for RatelimitedApiError {
             f.write_str("global ")?;
         }
 
-        write!(f, "ratelimited for {}ms", self.retry_after)
+        write!(f, "ratelimited for {}s", self.retry_after)
     }
 }
 
