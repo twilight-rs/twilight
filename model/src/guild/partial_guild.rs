@@ -102,7 +102,7 @@ mod tests {
             &[
                 Token::Struct {
                     name: "PartialGuild",
-                    len: 35,
+                    len: 33,
                 },
                 Token::Str("id"),
                 Token::NewtypeStruct { name: "GuildId" },
