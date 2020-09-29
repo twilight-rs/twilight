@@ -1375,7 +1375,7 @@ impl Client {
         } = request;
 
         let protocol = if self.state.use_http { "http" } else { "https" };
-        let url = format!("{}://discord.com/api/v6/{}", protocol, path);
+        let url = format!("{}://discord.com/api/v8/{}", protocol, path);
 
         tracing::debug!("URL: {:?}", url);
 
