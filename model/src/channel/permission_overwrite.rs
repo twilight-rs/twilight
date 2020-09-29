@@ -23,9 +23,7 @@ pub enum PermissionOverwriteType {
 
 #[derive(Deserialize)]
 struct PermissionOverwriteData {
-    #[serde(rename = "allow_new")]
     allow: Permissions,
-    #[serde(rename = "deny_new")]
     deny: Permissions,
     id: String,
     #[serde(rename = "type")]
@@ -73,8 +71,8 @@ impl Serialize for PermissionOverwrite {
     fn serialize<S: Serializer>(&self, serializer: S) -> Result<S::Ok, S::Error> {
         let mut state = serializer.serialize_struct("PermissionOverwrite", 4)?;
 
-        state.serialize_field("allow_new", &self.allow)?;
-        state.serialize_field("deny_new", &self.deny)?;
+        state.serialize_field("allow", &self.allow)?;
+        state.serialize_field("deny", &self.deny)?;
 
         match &self.kind {
             PermissionOverwriteType::Member(id) => {
@@ -108,8 +106,8 @@ mod tests {
         //
         // <https://github.com/serde-rs/serde/issues/1281>
         let input = r#"{
-  "allow_new": "1",
-  "deny_new": "2",
+  "allow": "1",
+  "deny": "2",
   "id": "12345678",
   "type": "member"
 }"#;
