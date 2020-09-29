@@ -597,8 +597,7 @@ mod tests {
         "managed": false,
         "mentionable": false,
         "name": "@everyone",
-        "permissions": 104193601,
-        "permissions_new": "104193601",
+        "permissions": "104193601",
         "position": 0
       }
     ],
@@ -669,8 +668,7 @@ mod tests {
         "managed": false,
         "mentionable": false,
         "name": "@everyone",
-        "permissions": 104324673,
-        "permissions_new": "104324673",
+        "permissions": "104324673",
         "position": 0
       }
     ],
