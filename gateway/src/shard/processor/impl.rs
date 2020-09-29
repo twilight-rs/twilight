@@ -262,7 +262,7 @@ impl ShardProcessor {
 
         let properties = IdentifyProperties::new("twilight.rs", "twilight.rs", OS, "", "");
 
-        url.push_str("?v=6&compress=zlib-stream");
+        url.push_str("?v=8&compress=zlib-stream");
 
         let emitter = Emitter::new(listeners);
         emitter.event(Event::ShardConnecting(Connecting {
