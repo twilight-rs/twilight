@@ -43,7 +43,12 @@ impl UpdateStatusInfo {
         Self::_new(activities.into(), afk, since.into(), status.into())
     }
 
-    fn _new(activities: Option<Vec<Activity>>, afk: bool, since: Option<u64>, status: Status) -> Self {
+    fn _new(
+        activities: Option<Vec<Activity>>,
+        afk: bool,
+        since: Option<u64>,
+        status: Status,
+    ) -> Self {
         Self {
             activities,
             afk,
