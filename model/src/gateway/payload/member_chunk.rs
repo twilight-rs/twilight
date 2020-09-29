@@ -275,7 +275,6 @@ mod tests {
                 "client_status": {
                     "web": "online",
                 },
-                "game": null,
                 "guild_id": "1",
                 "status": "online",
                 "user": {
@@ -286,7 +285,6 @@ mod tests {
                 "client_status": {
                     "web": "online",
                 },
-                "game": null,
                 "guild_id": "1",
                 "status": "online",
                 "user": {
@@ -297,7 +295,6 @@ mod tests {
                 "client_status": {
                     "desktop": "dnd",
                 },
-                "game": null,
                 "guild_id": "1",
                 "status": "dnd",
                 "user": {
