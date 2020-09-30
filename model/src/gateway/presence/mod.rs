@@ -38,7 +38,6 @@ pub struct Presence {
     pub activities: Vec<Activity>,
     pub client_status: ClientStatus,
     pub guild_id: GuildId,
-    pub nick: Option<String>,
     pub status: Status,
     pub user: UserOrId,
 }
@@ -93,7 +92,6 @@ impl<'de> Visitor<'de> for PresenceVisitor {
             activities: presence.activities,
             client_status: presence.client_status,
             guild_id: presence.guild_id.unwrap_or(self.0),
-            nick: presence.nick,
             status: presence.status,
             user: presence.user,
         })
@@ -209,7 +207,6 @@ mod tests {
                 web: None,
             },
             guild_id: GuildId(2),
-            nick: None,
             status: Status::Online,
             user: UserOrId::UserId { id: UserId(1) },
         };
@@ -315,7 +312,6 @@ mod tests {
                     web: None,
                 },
                 guild_id: GuildId(2),
-                nick: None,
                 status: Status::Online,
                 user: UserOrId::UserId { id: UserId(1) },
             },
