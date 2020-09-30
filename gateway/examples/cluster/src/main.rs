@@ -1,4 +1,4 @@
-use twilight_gateway::cluster::{Cluster, ShardScheme};
+use twilight_gateway::{cluster::{Cluster, ShardScheme}, Intents};
 
 use futures::StreamExt;
 use std::{env, error::Error};
@@ -11,7 +11,10 @@ async fn main() -> Result<(), Box<dyn Error + Send + Sync>> {
     // This is also the default.
     let scheme = ShardScheme::Auto;
 
-    let cluster = Cluster::builder(env::var("DISCORD_TOKEN")?)
+    let intents = Intents::GUILD_MESSAGES
+        | Intents::GUILD_MESSAGE_REACTIONS
+        | Intents::GUILD_MESSAGE_TYPING;
+    let cluster = Cluster::builder(env::var("DISCORD_TOKEN")?, intents)
         .shard_scheme(scheme)
         .build()
         .await?;

@@ -1,7 +1,7 @@
 use futures::StreamExt;
 use metrics_runtime::{exporters::LogExporter, observers::JsonBuilder, Receiver};
 use std::{env, error::Error, time::Duration};
-use twilight_gateway::Cluster;
+use twilight_gateway::{Cluster, Intents};
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn Error + Send + Sync>> {
@@ -25,7 +25,8 @@ async fn main() -> Result<(), Box<dyn Error + Send + Sync>> {
     // Initialize the tracing subscriber.
     tracing_subscriber::fmt::init();
 
-    let cluster = Cluster::new(env::var("DISCORD_TOKEN")?).await?;
+    let intents = Intents::GUILD_BANS | Intents::GUILD_EMOJIS | Intents::GUILD_MESSAGES;
+    let cluster = Cluster::new(env::var("DISCORD_TOKEN")?, intents).await?;
     println!("Created cluster");
 
     cluster.up().await;
