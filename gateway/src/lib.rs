@@ -115,6 +115,7 @@ mod event;
 mod listener;
 
 pub use self::event::EventTypeFlags;
+pub use twilight_model::gateway::Intents;
 
 #[doc(no_inline)]
 pub use self::{

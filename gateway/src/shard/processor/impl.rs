@@ -164,7 +164,7 @@ enum ReceivingEventError {
     /// The intents are provided.
     IntentsDisallowed {
         /// The configured intents for the shard.
-        intents: Option<Intents>,
+        intents: Intents,
         /// The ID of the shard.
         shard_id: u64,
     },
@@ -173,7 +173,7 @@ enum ReceivingEventError {
     /// The intents are provided.
     IntentsInvalid {
         /// Configured intents for the shard.
-        intents: Option<Intents>,
+        intents: Intents,
         /// ID of the shard.
         shard_id: u64,
     },
@@ -702,13 +702,13 @@ impl ShardProcessor {
                 }
                 CloseCode::Library(4013) => {
                     return Err(ReceivingEventError::IntentsInvalid {
-                        intents: self.config.intents().copied(),
+                        intents: self.config.intents(),
                         shard_id: self.config.shard()[0],
                     });
                 }
                 CloseCode::Library(4014) => {
                     return Err(ReceivingEventError::IntentsDisallowed {
-                        intents: self.config.intents().copied(),
+                        intents: self.config.intents(),
                         shard_id: self.config.shard()[0],
                     });
                 }
@@ -743,7 +743,7 @@ impl ShardProcessor {
         let identify = Identify::new(IdentifyInfo {
             compression: false,
             large_threshold: self.config.large_threshold(),
-            intents: self.config.intents().copied(),
+            intents: self.config.intents(),
             properties: self.properties.clone(),
             shard: Some(self.config.shard()),
             presence: self.config.presence().cloned(),

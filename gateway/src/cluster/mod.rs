@@ -7,14 +7,15 @@
 //! disconnected, and when new message commands come in:
 //!
 //! ```no_run
-//! use twilight_gateway::{Cluster, Event};
+//! use twilight_gateway::{Cluster, Event, Intents};
 //! use futures::StreamExt;
 //! use std::env;
 //!
 //! #[tokio::main]
 //! async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
 //!     let token = env::var("DISCORD_TOKEN")?;
-//!     let cluster = Cluster::new(token).await?;
+//!     let intents = Intents::GUILD_BANS | Intents::GUILD_EMOJIS | Intents::GUILD_MESSAGES;
+//!     let cluster = Cluster::new(token, intents).await?;
 //!
 //!     cluster.up().await;
 //!

@@ -78,12 +78,12 @@ impl Error for ShardIdError {}
 ///
 /// ```rust,no_run
 /// use std::env;
-/// use twilight_gateway::Shard;
+/// use twilight_gateway::{Intents, Shard};
 ///
 /// # fn main() -> Result<(), Box<dyn std::error::Error>> {
 /// let token = env::var("DISCORD_TOKEN")?;
 ///
-/// let shard = Shard::builder(token)
+/// let shard = Shard::builder(token, Intents::GUILD_MESSAGE_REACTIONS)
 ///     .large_threshold(100)?
 ///     .shard(5, 10)?
 ///     .build();
@@ -101,18 +101,18 @@ impl ShardBuilder {
     /// Create a new builder to configure and construct a shard.
     ///
     /// Refer to each method to learn their default values.
-    pub fn new(token: impl Into<String>) -> Self {
-        Self::_new(token.into())
+    pub fn new(token: impl Into<String>, intents: Intents) -> Self {
+        Self::_new(token.into(), intents)
     }
 
-    fn _new(mut token: String) -> Self {
+    fn _new(mut token: String, intents: Intents) -> Self {
         if !token.starts_with("Bot ") {
             token.insert_str(0, "Bot ");
         }
 
         Self(Config {
             http_client: HttpClient::new(token.clone()),
-            intents: None,
+            intents,
             large_threshold: 250,
             presence: None,
             queue: Arc::new(Box::new(LocalQueue::new())),
@@ -134,15 +134,6 @@ impl ShardBuilder {
     /// Default is a new, unconfigured instance of an HTTP client.
     pub fn http_client(mut self, http_client: HttpClient) -> Self {
         self.0.http_client = http_client;
-
-        self
-    }
-
-    /// Set the gateway intents.
-    ///
-    /// Default is Discord's default.
-    pub fn intents(mut self, intents: Intents) -> Self {
-        self.0.intents.replace(intents);
 
         self
     }
@@ -233,13 +224,13 @@ impl ShardBuilder {
     /// a total of 19 shards:
     ///
     /// ```no_run
-    /// use twilight_gateway::Shard;
+    /// use twilight_gateway::{Intents, Shard};
     /// use std::env;
     ///
     /// # fn main() -> Result<(), Box<dyn std::error::Error>> {
     /// let token = env::var("DISCORD_TOKEN")?;
     ///
-    /// let shard = Shard::builder(token).shard(18, 19)?.build();
+    /// let shard = Shard::builder(token, Intents::empty()).shard(18, 19)?.build();
     /// # Ok(()) }
     /// ```
     ///
@@ -263,22 +254,29 @@ impl ShardBuilder {
     }
 }
 
-impl<T: Into<String>> From<T> for ShardBuilder {
-    fn from(token: T) -> Self {
-        Self::new(token.into())
+impl<T: Into<String>> From<(T, Intents)> for ShardBuilder {
+    fn from((token, intents): (T, Intents)) -> Self {
+        Self::new(token, intents)
     }
 }
 
 #[cfg(test)]
 mod tests {
     use super::{LargeThresholdError, ShardBuilder, ShardIdError};
+    use crate::Intents;
     use static_assertions::{assert_fields, assert_impl_all};
     use std::{error::Error, fmt::Debug};
 
     assert_fields!(LargeThresholdError::TooFew: value);
     assert_fields!(LargeThresholdError::TooMany: value);
     assert_impl_all!(LargeThresholdError: Debug, Error, Send, Sync);
-    assert_impl_all!(ShardBuilder: Clone, Debug, From<String>, Send, Sync);
+    assert_impl_all!(
+        ShardBuilder: Clone,
+        Debug,
+        From<(String, Intents)>,
+        Send,
+        Sync
+    );
     assert_fields!(ShardIdError::IdTooLarge: id, total);
     assert_impl_all!(ShardIdError: Debug, Error, Send, Sync);
 }

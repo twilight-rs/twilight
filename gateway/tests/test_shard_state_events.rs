@@ -1,11 +1,11 @@
 use futures::stream::StreamExt;
 use std::{env, error::Error};
-use twilight_gateway::{Event, Shard};
+use twilight_gateway::{Event, Intents, Shard};
 
 fn shard() -> Result<Shard, Box<dyn Error>> {
     let token = env::var("DISCORD_TOKEN")?;
 
-    Ok(Shard::new(token))
+    Ok(Shard::new(token, Intents::empty()))
 }
 
 #[ignore]
