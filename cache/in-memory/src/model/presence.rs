@@ -8,7 +8,6 @@ use twilight_model::{
 pub struct CachedPresence {
     pub activities: Vec<Activity>,
     pub client_status: ClientStatus,
-    pub game: Option<Activity>,
     pub guild_id: GuildId,
     pub status: Status,
     pub user_id: UserId,
@@ -19,14 +18,12 @@ impl PartialEq<Presence> for CachedPresence {
         (
             &self.activities,
             &self.client_status,
-            &self.game,
             self.guild_id,
             self.status,
             self.user_id,
         ) == (
             &other.activities,
             &other.client_status,
-            &other.game,
             other.guild_id,
             other.status,
             presence_user_id(&other.user),
@@ -39,7 +36,6 @@ impl From<&'_ Presence> for CachedPresence {
         Self {
             activities: presence.activities.clone(),
             client_status: presence.client_status.clone(),
-            game: presence.game.clone(),
             guild_id: presence.guild_id,
             status: presence.status,
             user_id: presence_user_id(&presence.user),
