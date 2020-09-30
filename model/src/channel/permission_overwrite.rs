@@ -7,6 +7,7 @@ use serde::{
     ser::SerializeStruct,
     Deserialize, Serialize, Serializer,
 };
+use serde_repr::{Deserialize_repr, Serialize_repr};
 
 #[derive(Clone, Debug, Eq, Hash, PartialEq)]
 pub struct PermissionOverwrite {
@@ -30,11 +31,12 @@ struct PermissionOverwriteData {
     kind: PermissionOverwriteTypeName,
 }
 
-#[derive(Debug, Deserialize, Serialize)]
+#[derive(Debug, Deserialize_repr, Serialize_repr)]
+#[repr(u8)]
 #[serde(rename_all = "snake_case")]
 enum PermissionOverwriteTypeName {
-    Member,
-    Role,
+    Member = 1,
+    Role = 0,
 }
 
 impl<'de> Deserialize<'de> for PermissionOverwrite {
@@ -77,11 +79,11 @@ impl Serialize for PermissionOverwrite {
         match &self.kind {
             PermissionOverwriteType::Member(id) => {
                 state.serialize_field("id", &id)?;
-                state.serialize_field("type", "member")?;
+                state.serialize_field("type", &1)?;
             }
             PermissionOverwriteType::Role(id) => {
                 state.serialize_field("id", &id)?;
-                state.serialize_field("type", "role")?;
+                state.serialize_field("type", &0)?;
             }
         }
 
@@ -109,7 +111,7 @@ mod tests {
   "allow": "1",
   "deny": "2",
   "id": "12345678",
-  "type": "member"
+  "type": 1
 }"#;
 
         assert_eq!(
