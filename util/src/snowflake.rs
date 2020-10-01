@@ -37,7 +37,7 @@ pub trait Snowflake {
     ///
     /// let id = UserId(105484726235607040);
     /// let dur = Duration::milliseconds(id.timestamp());
-    /// // Or use seconds, at the cost of precision loss.
+    /// // Or use seconds, at the cost of lost precision.
     /// let ts = OffsetDateTime::from_unix_timestamp_nanos(dur.whole_nanoseconds());
     ///
     /// assert_eq!("2015-10-19T01:58:38+00:00", ts.format(Format::Rfc3339));
@@ -49,14 +49,14 @@ pub trait Snowflake {
         ((self.id() >> 22) + DISCORD_EPOCH) as i64
     }
 
-    /// The internal worker id that generated the Snowflake.
+    /// The id of the internal worker that generated the Snowflake.
     ///
     /// 5 bits
     fn worker_id(&self) -> u8 {
         ((self.id() & 0x3E0000) >> 17) as u8
     }
 
-    /// The internal process id that generated the Snowflake.
+    /// The id of the internal process that generated the Snowflake.
     ///
     /// 5 bits
     fn process_id(&self) -> u8 {
