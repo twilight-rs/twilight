@@ -104,33 +104,55 @@ impl_snowflake!(
 #[cfg(test)]
 mod tests {
     use super::Snowflake;
+    use static_assertions::assert_impl_all;
     use twilight_model::id::{
         AttachmentId, AuditLogEntryId, ChannelId, EmojiId, GenericId, GuildId, IntegrationId,
         MessageId, RoleId, UserId, WebhookId,
     };
 
-    const ID: u64 = 105484726235607040;
+    assert_impl_all!(AttachmentId: Snowflake);
+    assert_impl_all!(AuditLogEntryId: Snowflake);
+    assert_impl_all!(ChannelId: Snowflake);
+    assert_impl_all!(EmojiId: Snowflake);
+    assert_impl_all!(GenericId: Snowflake);
+    assert_impl_all!(GuildId: Snowflake);
+    assert_impl_all!(IntegrationId: Snowflake);
+    assert_impl_all!(MessageId: Snowflake);
+    assert_impl_all!(RoleId: Snowflake);
+    assert_impl_all!(UserId: Snowflake);
+    assert_impl_all!(WebhookId: Snowflake);
+
+    const ID: u64 = 61189081970774016;
 
     #[test]
     fn test_timestamp() {
         let expected: i64 = 1445219918546;
+        let id = GenericId(ID);
 
-        let ids: Vec<Box<dyn Snowflake>> = vec![
-            Box::new(AttachmentId(ID)),
-            Box::new(AuditLogEntryId(ID)),
-            Box::new(ChannelId(ID)),
-            Box::new(EmojiId(ID)),
-            Box::new(GenericId(ID)),
-            Box::new(GuildId(ID)),
-            Box::new(IntegrationId(ID)),
-            Box::new(MessageId(ID)),
-            Box::new(RoleId(ID)),
-            Box::new(UserId(ID)),
-            Box::new(WebhookId(ID)),
-        ];
+        assert_eq!(expected, id.timestamp())
+    }
 
-        for id in ids {
-            assert_eq!(expected, id.timestamp())
-        }
+    #[test]
+    fn test_worker_id() {
+        let expected: u8 = 0;
+        let id = GenericId(ID);
+
+        assert_eq!(expected, id.worker_id())
+    }
+
+    #[test]
+    fn test_process_id() {
+        let expected: u8 = 11;
+        let id = GenericId(ID);
+
+        assert_eq!(expected, id.process_id())
+    }
+
+    #[test]
+    fn test_increment() {
+        let expected: u16 = 0;
+        let id = GenericId(ID);
+
+        assert_eq!(expected, id.increment())
     }
 }
