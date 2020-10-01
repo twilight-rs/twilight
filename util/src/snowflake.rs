@@ -60,7 +60,7 @@ pub trait Snowflake {
     ///
     /// 5 bits
     fn process_id(&self) -> u8 {
-        ((&self.id() & 0x1F000) >> 12) as u8
+        ((self.id() & 0x1F000) >> 12) as u8
     }
 
     /// The increment of the Snowflake. For every id that is generated on a process, this number is
@@ -68,7 +68,7 @@ pub trait Snowflake {
     ///
     /// 12 bits
     fn increment(&self) -> u16 {
-        (&self.id() & 0xFFF) as u16
+        (self.id() & 0xFFF) as u16
     }
 }
 
