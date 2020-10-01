@@ -4,7 +4,7 @@
 
 [![discord badge][]][discord link] [![github badge][]][github link] [![license badge][]][license link] ![rust badge]
 
-`twilight-utils` is a set of utility types and functions for the [`twilight-rs`] ecosystem to
+`twilight-util` is a set of utility types and functions for the [`twilight-rs`] ecosystem to
 augment or enhance default functionality.
 
 ## Features
@@ -13,7 +13,6 @@ augment or enhance default functionality.
 
 Allows the use of the `Snowflake` trait, which provides methods for the extraction of
 structured information from [Discord snowflakes].
-
 
 [`twilight-rs`]: https://github.com/twilight-rs/twilight
 [discord badge]: https://img.shields.io/discord/745809834183753828?color=%237289DA&label=discord%20server&logo=discord&style=for-the-badge
