@@ -15,7 +15,6 @@ repository = "https://github.com/twilight-rs/twilight.git"
 version = "0.1.0"
 
 [features]
-
 default = []
 snowflake = ["twilight-model"]
 full = ["snowflake"]
