@@ -146,7 +146,7 @@ impl Snowflake for WebhookId {
 #[cfg(test)]
 mod tests {
     use super::Snowflake;
-    use static_assertions::assert_impl_all;
+    use static_assertions::{assert_impl_all, assert_obj_safe};
     use twilight_model::id::{
         AttachmentId, AuditLogEntryId, ChannelId, EmojiId, GenericId, GuildId, IntegrationId,
         MessageId, RoleId, UserId, WebhookId,
@@ -163,6 +163,8 @@ mod tests {
     assert_impl_all!(RoleId: Snowflake);
     assert_impl_all!(UserId: Snowflake);
     assert_impl_all!(WebhookId: Snowflake);
+
+    assert_obj_safe!(Snowflake);
 
     const ID: u64 = 61189081970774016;
 
