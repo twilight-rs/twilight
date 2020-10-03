@@ -13,7 +13,7 @@ impl<'a> GetUserApplicationInfo<'a> {
 
     fn start(&mut self) -> Result<()> {
         self.fut.replace(Box::pin(
-            self.http.request(Request::from(Route::GetGatewayBot)),
+            self.http.request(Request::from(Route::GetCurrentUserApplicationInfo)),
         ));
 
         Ok(())
