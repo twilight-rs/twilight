@@ -166,36 +166,34 @@ mod tests {
 
     assert_obj_safe!(Snowflake);
 
-    const ID: u64 = 61189081970774016;
-
     #[test]
     fn test_timestamp() {
         let expected: i64 = 1445219918546;
-        let id = GenericId(ID);
+        let id = GenericId(105484726235607040);
 
         assert_eq!(expected, id.timestamp())
     }
 
     #[test]
     fn test_worker_id() {
-        let expected: u8 = 0;
-        let id = GenericId(ID);
+        let expected: u8 = 8;
+        let id = GenericId(762022344856174632);
 
         assert_eq!(expected, id.worker_id())
     }
 
     #[test]
     fn test_process_id() {
-        let expected: u8 = 11;
-        let id = GenericId(ID);
+        let expected: u8 = 1;
+        let id = GenericId(61189081970774016);
 
         assert_eq!(expected, id.process_id())
     }
 
     #[test]
     fn test_increment() {
-        let expected: u16 = 0;
-        let id = GenericId(ID);
+        let expected: u16 = 40;
+        let id = GenericId(762022344856174632);
 
         assert_eq!(expected, id.increment())
     }
