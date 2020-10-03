@@ -72,34 +72,76 @@ pub trait Snowflake {
     }
 }
 
-macro_rules! impl_snowflake {
-    ($($t: ty),* $(,)?) => ($(
-        impl Snowflake for $t {
-            fn id(&self) -> u64 {
-                self.0
-            }
-        }
-    )*);
-}
-
 use twilight_model::id::{
     AttachmentId, AuditLogEntryId, ChannelId, EmojiId, GenericId, GuildId, IntegrationId,
     MessageId, RoleId, UserId, WebhookId,
 };
 
-impl_snowflake!(
-    AttachmentId,
-    AuditLogEntryId,
-    ChannelId,
-    EmojiId,
-    GenericId,
-    GuildId,
-    IntegrationId,
-    MessageId,
-    RoleId,
-    UserId,
-    WebhookId,
-);
+impl Snowflake for AttachmentId {
+    fn id(&self) -> u64 {
+        self.0
+    }
+}
+
+impl Snowflake for AuditLogEntryId {
+    fn id(&self) -> u64 {
+        self.0
+    }
+}
+
+impl Snowflake for ChannelId {
+    fn id(&self) -> u64 {
+        self.0
+    }
+}
+
+impl Snowflake for EmojiId {
+    fn id(&self) -> u64 {
+        self.0
+    }
+}
+
+impl Snowflake for GenericId {
+    fn id(&self) -> u64 {
+        self.0
+    }
+}
+
+impl Snowflake for GuildId {
+    fn id(&self) -> u64 {
+        self.0
+    }
+}
+
+impl Snowflake for IntegrationId {
+    fn id(&self) -> u64 {
+        self.0
+    }
+}
+
+impl Snowflake for MessageId {
+    fn id(&self) -> u64 {
+        self.0
+    }
+}
+
+impl Snowflake for RoleId {
+    fn id(&self) -> u64 {
+        self.0
+    }
+}
+
+impl Snowflake for UserId {
+    fn id(&self) -> u64 {
+        self.0
+    }
+}
+
+impl Snowflake for WebhookId {
+    fn id(&self) -> u64 {
+        self.0
+    }
+}
 
 #[cfg(test)]
 mod tests {
