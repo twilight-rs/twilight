@@ -274,6 +274,57 @@ impl InMemoryCache {
         self.0.guilds.get(&guild_id).map(|r| Arc::clone(r.value()))
     }
 
+    /// Gets the set of channels in a guild.
+    ///
+    /// This is a O(m) operation, where m is the amount of channels in the guild.
+    pub fn guild_channels(&self, guild_id: GuildId) -> Option<HashSet<ChannelId>> {
+        self.0
+            .guild_channels
+            .get(&guild_id)
+            .map(|r| r.value().clone())
+    }
+
+    /// Gets the set of emojis in a guild.
+    ///
+    /// This is a O(m) operation, where m is the amount of emojis in the guild.
+    pub fn guild_emojis(&self, guild_id: GuildId) -> Option<HashSet<EmojiId>> {
+        self.0
+            .guild_emojis
+            .get(&guild_id)
+            .map(|r| r.value().clone())
+    }
+
+    /// Gets the set of members in a guild.
+    ///
+    /// This list may be incomplete if not all members have been cached.
+    ///
+    /// This is a O(m) operation, where m is the amount of members in the guild.
+    pub fn guild_members(&self, guild_id: GuildId) -> Option<HashSet<UserId>> {
+        self.0
+            .guild_members
+            .get(&guild_id)
+            .map(|r| r.value().clone())
+    }
+
+    /// Gets the set of presences in a guild.
+    ///
+    /// This list may be incomplete if not all members have been cached.
+    ///
+    /// This is a O(m) operation, where m is the amount of members in the guild.
+    pub fn guild_presences(&self, guild_id: GuildId) -> Option<HashSet<UserId>> {
+        self.0
+            .guild_presences
+            .get(&guild_id)
+            .map(|r| r.value().clone())
+    }
+
+    /// Gets the set of roles in a guild.
+    ///
+    /// This is a O(m) operation, where m is the amount of roles in the guild.
+    pub fn guild_roles(&self, guild_id: GuildId) -> Option<HashSet<RoleId>> {
+        self.0.guild_roles.get(&guild_id).map(|r| r.value().clone())
+    }
+
     /// Gets a member by guild ID and user ID.
     ///
     /// This is an O(1) operation.
