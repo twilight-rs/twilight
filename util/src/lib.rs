@@ -35,9 +35,4 @@
 )]
 
 #[cfg(feature = "snowflake")]
-#[allow(
-    clippy::unreadable_literal,
-    clippy::cast_possible_truncation,
-    clippy::cast_possible_wrap
-)]
 pub mod snowflake;
