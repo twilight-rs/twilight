@@ -9,7 +9,7 @@ pub trait Snowflake {
 
     /// The Unix epoch of the Snowflake in milliseconds, indicating when it was generated.
     ///
-    /// 22 bits
+    /// Derived from bits 22..63 of the id.
     ///
     /// # Examples
     ///
@@ -51,14 +51,14 @@ pub trait Snowflake {
 
     /// The id of the internal worker that generated the Snowflake.
     ///
-    /// 5 bits
+    /// Derived from bits 17..21 of the id.
     fn worker_id(&self) -> u8 {
         ((self.id() & 0x3E0000) >> 17) as u8
     }
 
     /// The id of the internal process that generated the Snowflake.
     ///
-    /// 5 bits
+    /// Derived from bits 12..16 of the id.
     fn process_id(&self) -> u8 {
         ((self.id() & 0x1F000) >> 12) as u8
     }
@@ -66,7 +66,7 @@ pub trait Snowflake {
     /// The increment of the Snowflake. For every id that is generated on a process, this number is
     /// incremented.
     ///
-    /// 12 bits
+    /// Derived from bits 0..11 of the id.
     fn increment(&self) -> u16 {
         (self.id() & 0xFFF) as u16
     }
