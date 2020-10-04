@@ -19,6 +19,9 @@ default = []
 snowflake = ["twilight-model"]
 full = ["snowflake"]
 
+[package.metadata.docs.rs]
+all-features = true
+
 [dependencies]
 twilight-model = { path = "../model", default-features = false, optional = true }
 

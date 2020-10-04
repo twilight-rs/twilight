@@ -31,7 +31,9 @@ jobs:
       - name: Build docs
         env:
           RUSTDOCFLAGS: -D broken_intra_doc_links
-        run: cargo doc --no-deps
+        run: |
+          cargo doc --workspace --no-deps
+          cargo doc -p twilight-util --no-deps --all-features
 
   sync-readme:
     name: Sync readme
