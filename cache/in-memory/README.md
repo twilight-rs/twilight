@@ -16,10 +16,10 @@ Update a cache with events that come in through the gateway:
 use std::env;
 use tokio::stream::StreamExt;
 use twilight_cache_inmemory::InMemoryCache;
-use twilight_gateway::Shard;
+use twilight_gateway::{Intents, Shard};
 
 let token = env::var("DISCORD_TOKEN")?;
-let mut shard = Shard::new(token);
+let mut shard = Shard::new(token, Intents::GUILD_MESSAGES);
 shard.start().await?;
 
 // Create a cache, caching up to 10 messages per channel:
