@@ -86,7 +86,6 @@ pub struct Guild {
     pub name: String,
     pub owner_id: UserId,
     pub owner: Option<bool>,
-    #[serde(rename = "permissions")]
     pub permissions: Option<Permissions>,
     pub preferred_locale: String,
     pub premium_subscription_count: Option<u64>,
@@ -144,7 +143,6 @@ impl<'de> Deserialize<'de> for Guild {
             Name,
             OwnerId,
             Owner,
-            #[serde(rename = "permissions")]
             Permissions,
             PreferredLocale,
             PremiumSubscriptionCount,

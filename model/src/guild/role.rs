@@ -17,7 +17,6 @@ pub struct Role {
     pub managed: bool,
     pub mentionable: bool,
     pub name: String,
-    #[serde(rename = "permissions")]
     pub permissions: Permissions,
     pub position: i64,
 }
