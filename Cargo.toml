@@ -2,6 +2,7 @@
 members = [
     "cache/in-memory",
     "command-parser",
+    "embed-builder",
     "gateway",
     "gateway/examples/cluster",
     "gateway/examples/intents",
@@ -14,9 +15,9 @@ members = [
     "http/examples/proxy",
     "lavalink",
     "lavalink/examples/basic-lavalink-bot",
+    "mention",
     "model",
     "standby",
     "twilight",
-    "utils/embed-builder",
-    "utils/mention",
+    "util",
 ]
