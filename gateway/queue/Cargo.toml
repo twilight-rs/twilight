@@ -23,3 +23,8 @@ twilight-http = { path = "../../http", default-features = false }
 
 [dev-dependencies]
 static_assertions = { default-features = false, version = "1" }
+
+[features]
+default = ["rustls"]
+native = ["twilight-http/native"]
+rustls = ["twilight-http/rustls"]
