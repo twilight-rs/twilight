@@ -122,7 +122,7 @@ pub use self::{
     shard::{Config as ShardConfig, Shard},
 };
 #[doc(no_inline)]
-pub use twilight_gateway_queue::{LargeBotQueue, LocalQueue, Queue};
+pub use twilight_gateway_queue as queue;
 #[doc(no_inline)]
 pub use twilight_model::gateway::event::{Event, EventType};
 

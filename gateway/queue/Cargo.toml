@@ -19,7 +19,7 @@ futures-channel = { default-features = false, features = ["sink"], version = "0.
 futures-util = { default-features = false, features = ["std"], version = "0.3" }
 tokio = { default-features = false, features = ["net", "rt-core", "sync"], version = "0.2" }
 tracing = { default-features = false, features = ["std", "attributes"], version = "0.1" }
-twilight-http = { path = "../http", default-features = false }
+twilight-http = { path = "../../http", default-features = false }
 
 [dev-dependencies]
 static_assertions = { default-features = false, version = "1" }

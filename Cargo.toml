@@ -9,6 +9,7 @@ members = [
     "gateway/examples/metrics",
     "gateway/examples/request-members",
     "gateway/examples/shard",
+    "gateway/queue",
     "http",
     "http/examples/allowed-mentions",
     "http/examples/get-message",
@@ -20,5 +21,4 @@ members = [
     "standby",
     "twilight",
     "util",
-    "gateway-queue",
 ]
