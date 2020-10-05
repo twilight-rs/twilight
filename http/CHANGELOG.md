@@ -2,6 +2,12 @@
 
 Changelog for `twilight-http`.
 
+## [0.1.6] - 2020-10-05
+
+### Fixes
+
+- Use correct route for `GetUserApplicationInfo` request ([#534] - [@Erk-])
+
 ## [0.1.5] - 2020-09-27
 
 ### Added
@@ -49,6 +55,7 @@ Initial release.
 [@Erk-]: https://github.com/Erk-
 [@nickelc]: https://github.com/nickelc
 
+[#534]: https://github.com/twilight-rs/twilight/pull/534
 [#529]: https://github.com/twilight-rs/twilight/pull/529
 [#522]: https://github.com/twilight-rs/twilight/pull/522
 [#520]: https://github.com/twilight-rs/twilight/pull/520
@@ -59,6 +66,7 @@ Initial release.
 [#507]: https://github.com/twilight-rs/twilight/pull/507
 [#495]: https://github.com/twilight-rs/twilight/pull/495
 
+[0.1.6]: https://github.com/twilight-rs/twilight/releases/tag/http-v0.1.6
 [0.1.5]: https://github.com/twilight-rs/twilight/releases/tag/http-v0.1.5
 [0.1.4]: https://github.com/twilight-rs/twilight/releases/tag/http-v0.1.4
 [0.1.3]: https://github.com/twilight-rs/twilight/releases/tag/http-v0.1.3
