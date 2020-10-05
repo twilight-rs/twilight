@@ -20,4 +20,5 @@ members = [
     "standby",
     "twilight",
     "util",
+    "gateway-queue",
 ]

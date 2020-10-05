@@ -1,10 +1,10 @@
 use super::{config::Config, Shard};
-use crate::queue::{LocalQueue, Queue};
 use std::{
     error::Error,
     fmt::{Display, Formatter, Result as FmtResult},
     sync::Arc,
 };
+use twilight_gateway_queue::{LocalQueue, Queue};
 use twilight_http::Client as HttpClient;
 use twilight_model::gateway::{payload::update_status::UpdateStatusInfo, Intents};
 

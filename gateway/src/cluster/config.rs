@@ -1,9 +1,7 @@
 use super::builder::ShardScheme;
-use crate::{
-    queue::Queue,
-    shard::{Config as ShardConfig, ResumeSession},
-};
+use crate::shard::{Config as ShardConfig, ResumeSession};
 use std::{collections::HashMap, sync::Arc};
+use twilight_gateway_queue::Queue;
 use twilight_http::Client;
 
 /// Built configuration for a [`Cluster`].

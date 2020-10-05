@@ -2,10 +2,7 @@ use super::{
     config::Config as ClusterConfig,
     r#impl::{Cluster, ClusterStartError},
 };
-use crate::{
-    queue::{LocalQueue, Queue},
-    shard::{LargeThresholdError, ResumeSession, ShardBuilder},
-};
+use crate::shard::{LargeThresholdError, ResumeSession, ShardBuilder};
 use std::{
     collections::HashMap,
     convert::TryFrom,
@@ -14,6 +11,7 @@ use std::{
     ops::{Bound, RangeBounds},
     sync::Arc,
 };
+use twilight_gateway_queue::{LocalQueue, Queue};
 use twilight_http::Client;
 use twilight_model::gateway::{payload::update_status::UpdateStatusInfo, Intents};
 

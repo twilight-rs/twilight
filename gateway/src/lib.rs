@@ -109,7 +109,6 @@
 #![allow(clippy::module_name_repetitions, clippy::must_use_candidate)]
 
 pub mod cluster;
-pub mod queue;
 pub mod shard;
 
 mod event;
@@ -122,6 +121,8 @@ pub use self::{
     cluster::{Cluster, Config as ClusterConfig},
     shard::{Config as ShardConfig, Shard},
 };
+#[doc(no_inline)]
+pub use twilight_gateway_queue::{LargeBotQueue, LocalQueue, Queue};
 #[doc(no_inline)]
 pub use twilight_model::gateway::event::{Event, EventType};
 
