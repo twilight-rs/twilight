@@ -2,7 +2,7 @@
 authors = ["Twilight Contributors"]
 categories = []
 description = "Miscellaneous utilities for Twilight."
-documentation = "https://docs.rs/twilight-utils"
+documentation = "https://docs.rs/twilight-util"
 edition = "2018"
 homepage = "https://twilight.rs"
 include = ["src/**/*.rs", "Cargo.toml"]
