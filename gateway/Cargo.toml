@@ -17,6 +17,7 @@ version = "0.1.2"
 [dependencies]
 async-tungstenite = { default-features = false, features = ["tokio-runtime"], version = "0.8" }
 bitflags = { default-features = false, version = "1" }
+twilight-gateway-queue = { default-features = false, path = "./queue" }
 twilight-http = { default-features = false, path = "../http" }
 twilight-model = { default-features = false, path = "../model" }
 futures-channel = { default-features = false, features = ["sink"], version = "0.3" }
@@ -45,8 +46,8 @@ tokio = { default-features = false, features = ["rt-core", "macros"], version = 
 
 [features]
 default = ["rustls", "stock-zlib"]
-native = ["twilight-http/native", "async-tungstenite/tokio-native-tls"]
-rustls = ["twilight-http/rustls", "async-tungstenite/async-tls"]
+native = ["twilight-http/native", "twilight-gateway-queue/native", "async-tungstenite/tokio-native-tls"]
+rustls = ["twilight-http/rustls", "twilight-gateway-queue/rustls", "async-tungstenite/async-tls"]
 simd-zlib = ["flate2/zlib-ng-compat"]
 # if the `zlib` feature is enabled anywhere in the dependency tree it will
 # always use stock zlib instead of zlib-ng.
