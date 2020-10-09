@@ -692,8 +692,9 @@ impl InMemoryCache {
 
     fn cache_role(&self, guild_id: GuildId, role: Role) -> Arc<Role> {
         // Insert the role into the guild_roles map
-        self.0.guild_roles
-            .entry(&guild_id)
+        self.0
+            .guild_roles
+            .entry(guild_id)
             .or_default()
             .insert(role.id);
 
@@ -856,7 +857,7 @@ mod tests {
         gateway::payload::{MemberRemove, RoleDelete},
         guild::{
             DefaultMessageNotificationLevel, ExplicitContentFilter, Guild, MfaLevel, Permissions,
-            PremiumTier, SystemChannelFlags, VerificationLevel,
+            PremiumTier, Role, SystemChannelFlags, VerificationLevel,
         },
         id::{ChannelId, GuildId, RoleId, UserId},
         user::{CurrentUser, User},
@@ -873,6 +874,19 @@ mod tests {
             mfa_enabled: true,
             name: "test".to_owned(),
             verified: true,
+        }
+    }
+
+    fn role(id: RoleId) -> Role {
+        Role {
+            color: 0,
+            hoist: false,
+            id,
+            managed: false,
+            mentionable: false,
+            name: "test".to_owned(),
+            permissions: Permissions::empty(),
+            position: 0,
         }
     }
 
@@ -1133,5 +1147,52 @@ mod tests {
 
         // Returns None if the channel does not exist.
         assert!(cache.voice_channel_states(ChannelId(0)).is_none());
+    }
+
+    #[test]
+    fn test_cache_role() {
+        let cache = InMemoryCache::new();
+
+        // The role ids for the guild with id 1
+        let guild_1_role_ids = vec![RoleId(1), RoleId(2), RoleId(3), RoleId(4), RoleId(5)];
+        // Map the role ids to a test role
+        let guild_1_roles = guild_1_role_ids
+            .iter()
+            .map(|id| role(*id))
+            .collect::<Vec<_>>();
+        // Cache all the roles using cache role
+        for role in guild_1_roles.clone() {
+            cache.cache_role(GuildId(1), role);
+        }
+
+        // The role ids for the guild with id 2
+        let guild_2_role_ids = vec![RoleId(10), RoleId(20), RoleId(30), RoleId(40), RoleId(50)];
+        // Map the role ids to a test role
+        let guild_2_roles = guild_2_role_ids
+            .iter()
+            .map(|id| role(*id))
+            .collect::<Vec<_>>();
+        // Cache all the roles using cache roles
+        cache.cache_roles(GuildId(2), guild_2_roles.clone());
+
+        // Check the cached role ids for guild with id 1
+        {
+            let cached_roles = cache.guild_roles(GuildId(1)).unwrap();
+            assert_eq!(cached_roles.len(), guild_1_role_ids.len());
+            assert!(guild_1_role_ids.iter().all(|id| cached_roles.contains(id)));
+        }
+
+        // Check the cached role ids for guild with id 2
+        {
+            let cached_roles = cache.guild_roles(GuildId(2)).unwrap();
+            assert_eq!(cached_roles.len(), guild_2_role_ids.len());
+            assert!(guild_2_role_ids.iter().all(|id| cached_roles.contains(id)));
+        }
+
+        // Check that all ids are in the global id cache and that they are the same as the role that was cached
+        assert!(guild_1_roles
+            .into_iter()
+            .chain(guild_2_roles)
+            .all(|role| *cache.role(role.id).expect("Role missing from cache") == role));
     }
 }
