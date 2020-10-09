@@ -692,13 +692,10 @@ impl InMemoryCache {
 
     fn cache_role(&self, guild_id: GuildId, role: Role) -> Arc<Role> {
         // Insert the role into the guild_roles map
-        if let Some(mut g) = self.0.guild_roles.get_mut(&guild_id) {
-            g.insert(role.id);
-        } else {
-            let mut set = HashSet::new();
-            set.insert(role.id);
-            self.0.guild_roles.insert(guild_id, set);
-        }
+        self.0.guild_roles
+            .entry(&guild_id)
+            .or_default()
+            .insert(role.id);
 
         // Insert the role into the all roles map
         upsert_guild_item(&self.0.roles, guild_id, role.id, role)
