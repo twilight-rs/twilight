@@ -79,11 +79,11 @@ impl Serialize for PermissionOverwrite {
         match &self.kind {
             PermissionOverwriteType::Member(id) => {
                 state.serialize_field("id", &id)?;
-                state.serialize_field("type", &1)?;
+                state.serialize_field("type", &(PermissionOverwriteTypeName::Member as u8))?;
             }
             PermissionOverwriteType::Role(id) => {
                 state.serialize_field("id", &id)?;
-                state.serialize_field("type", &0)?;
+                state.serialize_field("type", &(PermissionOverwriteTypeName::Role as u8))?;
             }
         }
 
