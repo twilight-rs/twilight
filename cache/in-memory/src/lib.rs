@@ -883,6 +883,20 @@ mod tests {
         }
     }
 
+    fn member(id: UserId, guild_id: GuildId) -> Member {
+        Member {
+            deaf: false,
+            guild_id,
+            hoisted_role: None,
+            joined_at: None,
+            mute: false,
+            nick: None,
+            premium_since: None,
+            roles: Vec::new(),
+            user: user(id),
+        }
+    }
+
     fn role(id: RoleId) -> Role {
         Role {
             color: 0,
@@ -893,20 +907,6 @@ mod tests {
             name: "test".to_owned(),
             permissions: Permissions::empty(),
             position: 0,
-        }
-    }
-
-    fn member(id: UserId, guild_id: GuildId) -> Member {
-        Member {
-            deaf: false,
-            guild_id,
-            hoisted_role: None,
-            joined_at: None,
-            mute: false,
-            nick: None,
-            premium_since: None,
-            roles: vec![],
-            user: user(id),
         }
     }
 
@@ -1180,7 +1180,8 @@ mod tests {
             // Map the role ids to a test role
             let guild_1_roles = guild_1_role_ids
                 .iter()
-                .map(|id| role(*id))
+                .copied()
+                .map(role)
                 .collect::<Vec<_>>();
             // Cache all the roles using cache role
             for role in guild_1_roles.clone() {
@@ -1205,7 +1206,8 @@ mod tests {
             // Map the role ids to a test role
             let guild_2_roles = guild_2_role_ids
                 .iter()
-                .map(|id| role(*id))
+                .copied()
+                .map(role)
                 .collect::<Vec<_>>();
             // Cache all the roles using cache roles
             cache.cache_roles(GuildId(2), guild_2_roles.clone());
@@ -1231,8 +1233,10 @@ mod tests {
             let guild_1_user_ids = (1..=10).map(UserId).collect::<Vec<_>>();
             let guild_1_members = guild_1_user_ids
                 .iter()
-                .map(|id| member(*id, GuildId(1)))
+                .copied()
+                .map(|id| member(id, GuildId(1)))
                 .collect::<Vec<_>>();
+
             for member in guild_1_members {
                 cache.cache_member(GuildId(1), member);
             }
@@ -1256,7 +1260,8 @@ mod tests {
             let guild_2_user_ids = (1..=10).map(UserId).collect::<Vec<_>>();
             let guild_2_members = guild_2_user_ids
                 .iter()
-                .map(|id| member(*id, GuildId(2)))
+                .copied()
+                .map(|id| member(id, GuildId(2)))
                 .collect::<Vec<_>>();
             cache.cache_members(GuildId(2), guild_2_members);
 
@@ -1268,7 +1273,8 @@ mod tests {
             // Check for the cached members
             assert!(guild_2_user_ids
                 .iter()
-                .all(|id| cache.member(GuildId(1), *id).is_some()));
+                .copied()
+                .all(|id| cache.member(GuildId(1), id).is_some()));
 
             // Check for the cached users
             assert!(guild_2_user_ids.iter().all(|id| cache.user(*id).is_some()));
