@@ -592,7 +592,8 @@ impl InMemoryCache {
     }
 
     fn cache_member(&self, guild_id: GuildId, member: Member) -> Arc<CachedMember> {
-        let id = (guild_id, member.user.id);
+        let member_id = member.user.id;
+        let id = (guild_id, member_id);
         match self.0.members.get(&id) {
             Some(m) if **m == member => return Arc::clone(&m),
             Some(_) | None => {}
@@ -610,6 +611,11 @@ impl InMemoryCache {
             user,
         });
         self.0.members.insert(id, Arc::clone(&cached));
+        self.0
+            .guild_members
+            .entry(guild_id)
+            .or_default()
+            .insert(member_id);
         cached
     }
 
@@ -856,8 +862,8 @@ mod tests {
         channel::{ChannelType, GuildChannel, TextChannel},
         gateway::payload::{MemberRemove, RoleDelete},
         guild::{
-            DefaultMessageNotificationLevel, ExplicitContentFilter, Guild, MfaLevel, Permissions,
-            PremiumTier, Role, SystemChannelFlags, VerificationLevel,
+            DefaultMessageNotificationLevel, ExplicitContentFilter, Guild, Member, MfaLevel,
+            Permissions, PremiumTier, Role, SystemChannelFlags, VerificationLevel,
         },
         id::{ChannelId, GuildId, RoleId, UserId},
         user::{CurrentUser, User},
@@ -887,6 +893,20 @@ mod tests {
             name: "test".to_owned(),
             permissions: Permissions::empty(),
             position: 0,
+        }
+    }
+
+    fn member(id: UserId, guild_id: GuildId) -> Member {
+        Member {
+            deaf: false,
+            guild_id,
+            hoisted_role: None,
+            joined_at: None,
+            mute: false,
+            nick: None,
+            premium_since: None,
+            roles: vec![],
+            user: user(id),
         }
     }
 
@@ -1153,46 +1173,105 @@ mod tests {
     fn test_cache_role() {
         let cache = InMemoryCache::new();
 
-        // The role ids for the guild with id 1
-        let guild_1_role_ids = vec![RoleId(1), RoleId(2), RoleId(3), RoleId(4), RoleId(5)];
-        // Map the role ids to a test role
-        let guild_1_roles = guild_1_role_ids
-            .iter()
-            .map(|id| role(*id))
-            .collect::<Vec<_>>();
-        // Cache all the roles using cache role
-        for role in guild_1_roles.clone() {
-            cache.cache_role(GuildId(1), role);
-        }
-
-        // The role ids for the guild with id 2
-        let guild_2_role_ids = vec![RoleId(10), RoleId(20), RoleId(30), RoleId(40), RoleId(50)];
-        // Map the role ids to a test role
-        let guild_2_roles = guild_2_role_ids
-            .iter()
-            .map(|id| role(*id))
-            .collect::<Vec<_>>();
-        // Cache all the roles using cache roles
-        cache.cache_roles(GuildId(2), guild_2_roles.clone());
-
-        // Check the cached role ids for guild with id 1
+        // Single inserts
         {
+            // The role ids for the guild with id 1
+            let guild_1_role_ids = (1..=10).map(RoleId).collect::<Vec<_>>();
+            // Map the role ids to a test role
+            let guild_1_roles = guild_1_role_ids
+                .iter()
+                .map(|id| role(*id))
+                .collect::<Vec<_>>();
+            // Cache all the roles using cache role
+            for role in guild_1_roles.clone() {
+                cache.cache_role(GuildId(1), role);
+            }
+
+            // Check for the cached guild role ids
             let cached_roles = cache.guild_roles(GuildId(1)).unwrap();
             assert_eq!(cached_roles.len(), guild_1_role_ids.len());
             assert!(guild_1_role_ids.iter().all(|id| cached_roles.contains(id)));
+
+            // Check for the cached role
+            assert!(guild_1_roles
+                .into_iter()
+                .all(|role| *cache.role(role.id).expect("Role missing from cache") == role))
         }
 
-        // Check the cached role ids for guild with id 2
+        // Bulk inserts
         {
+            // The role ids for the guild with id 2
+            let guild_2_role_ids = (101..=110).map(RoleId).collect::<Vec<_>>();
+            // Map the role ids to a test role
+            let guild_2_roles = guild_2_role_ids
+                .iter()
+                .map(|id| role(*id))
+                .collect::<Vec<_>>();
+            // Cache all the roles using cache roles
+            cache.cache_roles(GuildId(2), guild_2_roles.clone());
+
+            // Check for the cached guild role ids
             let cached_roles = cache.guild_roles(GuildId(2)).unwrap();
             assert_eq!(cached_roles.len(), guild_2_role_ids.len());
             assert!(guild_2_role_ids.iter().all(|id| cached_roles.contains(id)));
+
+            // Check for the cached role
+            assert!(guild_2_roles
+                .into_iter()
+                .all(|role| *cache.role(role.id).expect("Role missing from cache") == role))
+        }
+    }
+
+    #[test]
+    fn test_cache_guild_member() {
+        let cache = InMemoryCache::new();
+
+        // Single inserts
+        {
+            let guild_1_user_ids = (1..=10).map(UserId).collect::<Vec<_>>();
+            let guild_1_members = guild_1_user_ids
+                .iter()
+                .map(|id| member(*id, GuildId(1)))
+                .collect::<Vec<_>>();
+            for member in guild_1_members {
+                cache.cache_member(GuildId(1), member);
+            }
+
+            // Check for the cached guild members ids
+            let cached_roles = cache.guild_members(GuildId(1)).unwrap();
+            assert_eq!(cached_roles.len(), guild_1_user_ids.len());
+            assert!(guild_1_user_ids.iter().all(|id| cached_roles.contains(id)));
+
+            // Check for the cached members
+            assert!(guild_1_user_ids
+                .iter()
+                .all(|id| cache.member(GuildId(1), *id).is_some()));
+
+            // Check for the cached users
+            assert!(guild_1_user_ids.iter().all(|id| cache.user(*id).is_some()));
         }
 
-        // Check that all ids are in the global id cache and that they are the same as the role that was cached
-        assert!(guild_1_roles
-            .into_iter()
-            .chain(guild_2_roles)
-            .all(|role| *cache.role(role.id).expect("Role missing from cache") == role));
+        // Bulk inserts
+        {
+            let guild_2_user_ids = (1..=10).map(UserId).collect::<Vec<_>>();
+            let guild_2_members = guild_2_user_ids
+                .iter()
+                .map(|id| member(*id, GuildId(2)))
+                .collect::<Vec<_>>();
+            cache.cache_members(GuildId(2), guild_2_members);
+
+            // Check for the cached guild members ids
+            let cached_roles = cache.guild_members(GuildId(1)).unwrap();
+            assert_eq!(cached_roles.len(), guild_2_user_ids.len());
+            assert!(guild_2_user_ids.iter().all(|id| cached_roles.contains(id)));
+
+            // Check for the cached members
+            assert!(guild_2_user_ids
+                .iter()
+                .all(|id| cache.member(GuildId(1), *id).is_some()));
+
+            // Check for the cached users
+            assert!(guild_2_user_ids.iter().all(|id| cache.user(*id).is_some()));
+        }
     }
 }
