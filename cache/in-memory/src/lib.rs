@@ -47,6 +47,8 @@
 //! [license link]: https://github.com/twilight-rs/twilight/blob/trunk/LICENSE.md
 //! [rust badge]: https://img.shields.io/badge/rust-stable-93450a.svg?style=for-the-badge&logo=rust
 
+#![deny(missing_docs)]
+
 pub mod model;
 
 mod builder;

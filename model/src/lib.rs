@@ -42,7 +42,8 @@
     nonstandard_style,
     rust_2018_idioms,
     unused,
-    warnings
+    warnings,
+    missing_docs
 )]
 #![allow(clippy::module_name_repetitions, clippy::must_use_candidate)]
 
