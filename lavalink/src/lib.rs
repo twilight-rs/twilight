@@ -60,7 +60,7 @@
 //!     net::SocketAddr,
 //!     str::FromStr,
 //! };
-//! use twilight_gateway::{Event, Shard};
+//! use twilight_gateway::{Event, Intents, Shard};
 //! use twilight_http::Client as HttpClient;
 //! use twilight_lavalink::{http::LoadedTracks, model::Play, Lavalink};
 //! use twilight_model::{
@@ -81,7 +81,8 @@
 //!     let lavalink = Lavalink::new(user_id, shard_count);
 //!     lavalink.add(lavalink_host, lavalink_auth).await?;
 //!
-//!     let mut shard = Shard::new(token);
+//!     let intents = Intents::GUILD_MESSAGES | Intents::GUILD_VOICE_STATES;
+//!     let mut shard = Shard::new(token, intents);
 //!     shard.start().await?;
 //!
 //!     let mut events = shard.events();

@@ -61,7 +61,7 @@
 //! ```rust,no_run
 //! use futures_util::StreamExt;
 //! use std::{env, error::Error};
-//! use twilight_gateway::{Event, Shard};
+//! use twilight_gateway::{Event, Intents, Shard};
 //! use twilight_model::{
 //!     channel::Message,
 //!     gateway::payload::ReactionAdd,
@@ -72,7 +72,8 @@
 //! #[tokio::main]
 //! async fn main() -> Result<(), Box<dyn Error>> {
 //!     // Start a shard connected to the gateway to receive events.
-//!     let mut shard = Shard::new(env::var("DISCORD_TOKEN")?);
+//!     let intents = Intents::GUILD_MESSAGES | Intents::GUILD_MESSAGE_REACTIONS;
+//!     let mut shard = Shard::new(env::var("DISCORD_TOKEN")?, intents);
 //!     let mut events = shard.events();
 //!     shard.start().await?;
 //!

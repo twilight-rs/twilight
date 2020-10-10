@@ -37,9 +37,7 @@ pub struct Presence {
     #[serde(default)]
     pub activities: Vec<Activity>,
     pub client_status: ClientStatus,
-    pub game: Option<Activity>,
     pub guild_id: GuildId,
-    pub nick: Option<String>,
     pub status: Status,
     pub user: UserOrId,
 }
@@ -71,7 +69,6 @@ pub struct PresenceIntermediary {
     #[serde(default)]
     pub activities: Vec<Activity>,
     pub client_status: ClientStatus,
-    pub game: Option<Activity>,
     pub guild_id: Option<GuildId>,
     pub nick: Option<String>,
     pub status: Status,
@@ -94,9 +91,7 @@ impl<'de> Visitor<'de> for PresenceVisitor {
         Ok(Presence {
             activities: presence.activities,
             client_status: presence.client_status,
-            game: presence.game,
             guild_id: presence.guild_id.unwrap_or(self.0),
-            nick: presence.nick,
             status: presence.status,
             user: presence.user,
         })
@@ -205,15 +200,13 @@ mod tests {
             url: None,
         };
         let value = Presence {
-            activities: vec![activity.clone()],
+            activities: vec![activity],
             client_status: ClientStatus {
                 desktop: Some(Status::Online),
                 mobile: None,
                 web: None,
             },
-            game: Some(activity),
             guild_id: GuildId(2),
-            nick: None,
             status: Status::Online,
             user: UserOrId::UserId { id: UserId(1) },
         };
@@ -240,36 +233,6 @@ mod tests {
                 Token::Enum { name: "Status" },
                 Token::Str("online"),
                 Token::Unit,
-                Token::Str("game"),
-                Token::Some,
-                Token::Struct {
-                    name: "Activity",
-                    len: 4,
-                },
-                Token::Str("type"),
-                Token::U8(4),
-                Token::Str("name"),
-                Token::Str("foo"),
-                Token::Str("id"),
-                Token::Some,
-                Token::Str("aaaaaaaaaaaaaaaa"),
-                Token::Str("emoji"),
-                Token::Some,
-                Token::Struct {
-                    name: "ActivityEmoji",
-                    len: 3,
-                },
-                Token::Str("name"),
-                Token::Str("Test"),
-                Token::Str("id"),
-                Token::None,
-                Token::Str("animated"),
-                Token::None,
-                Token::StructEnd,
-                Token::Str("created_at"),
-                Token::Some,
-                Token::U64(1_571_048_061_237),
-                Token::StructEnd,
                 Token::Str("client_status"),
                 Token::Struct {
                     name: "ClientStatus",
@@ -332,7 +295,6 @@ mod tests {
                 "id": "1"
             },
             "status": "online",
-            "game": null,
             "client_status": {
                 "desktop": "online"
             },
@@ -349,9 +311,7 @@ mod tests {
                     mobile: None,
                     web: None,
                 },
-                game: None,
                 guild_id: GuildId(2),
-                nick: None,
                 status: Status::Online,
                 user: UserOrId::UserId { id: UserId(1) },
             },

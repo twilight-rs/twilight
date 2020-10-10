@@ -120,20 +120,17 @@ impl<T: RangeBounds<u64>> TryFrom<(T, u64)> for ShardScheme {
 ///
 /// # Examples
 ///
-/// Create a cluster with only the `GUILD_MESSAGES` [`intents`] with a
+/// Create a cluster with only the `GUILD_MESSAGES` intents with a
 /// [`large_threshold`] of 100.
 ///
 /// ```rust,no_run
 /// use std::env;
-/// use twilight_gateway::Cluster;
-/// use twilight_model::gateway::Intents;
+/// use twilight_gateway::{Cluster, Intents};
 ///
 /// # #[tokio::main] async fn main() -> Result<(), Box<dyn std::error::Error>> {
 /// let token = env::var("DISCORD_TOKEN")?;
 ///
-/// let intents = Intents::GUILD_MESSAGES;
-/// let cluster = Cluster::builder(token)
-///     .intents(intents)
+/// let cluster = Cluster::builder(token, Intents::GUILD_MESSAGES)
 ///     .large_threshold(100)?
 ///     .build()
 ///     .await?;
@@ -141,18 +138,17 @@ impl<T: RangeBounds<u64>> TryFrom<(T, u64)> for ShardScheme {
 /// ```
 ///
 /// [`Cluster`]: ./struct.Cluster.html
-/// [`intents`]: #method.intents
 /// [`large_threshold`]: #method.large_threshold
 #[derive(Debug)]
 pub struct ClusterBuilder(ClusterConfig, ShardBuilder);
 
 impl ClusterBuilder {
     /// Create a new builder to construct and configure a cluster.
-    pub fn new(token: impl Into<String>) -> Self {
-        Self::_new(token.into())
+    pub fn new(token: impl Into<String>, intents: Intents) -> Self {
+        Self::_new(token.into(), intents)
     }
 
-    fn _new(mut token: String) -> Self {
+    fn _new(mut token: String, intents: Intents) -> Self {
         if !token.starts_with("Bot ") {
             token.insert_str(0, "Bot ");
         }
@@ -160,12 +156,12 @@ impl ClusterBuilder {
         Self(
             ClusterConfig {
                 http_client: Client::new(token.clone()),
-                shard_config: ShardBuilder::new(token.clone()).0,
+                shard_config: ShardBuilder::new(token.clone(), intents).0,
                 shard_scheme: ShardScheme::Auto,
                 queue: Arc::new(Box::new(LocalQueue::new())),
                 resume_sessions: HashMap::new(),
             },
-            ShardBuilder::new(token),
+            ShardBuilder::new(token, intents),
         )
     }
 
@@ -218,17 +214,6 @@ impl ClusterBuilder {
         Ok(self)
     }
 
-    /// Sets the intents to use when identifying with the gateway.
-    ///
-    /// Refer to the shard's [`ShardBuilder::intents`] for more information.
-    ///
-    /// [`ShardBuilder::intents`]: ../shard/struct.ShardBuilder.html#method.intents
-    pub fn intents(mut self, intents: Intents) -> Self {
-        self.1 = self.1.intents(intents);
-
-        self
-    }
-
     /// Set the presence to use when identifying with the gateway.
     ///
     /// Refer to the shard's [`ShardBuilder::presence`] for more information.
@@ -255,7 +240,7 @@ impl ClusterBuilder {
     /// Configure a cluster to manage shards 0-9 out of 20 shards total:
     ///
     /// ```no_run
-    /// use twilight_gateway::cluster::{Cluster, ShardScheme};
+    /// use twilight_gateway::{cluster::{Cluster, ShardScheme}, Intents};
     /// use std::{
     ///     convert::TryFrom,
     ///     env,
@@ -265,7 +250,10 @@ impl ClusterBuilder {
     /// let token = env::var("DISCORD_TOKEN")?;
     /// let scheme = ShardScheme::try_from((0..=9, 20))?;
     ///
-    /// let cluster = Cluster::builder(token).shard_scheme(scheme).build().await?;
+    /// let cluster = Cluster::builder(token, Intents::GUILD_MESSAGES)
+    ///     .shard_scheme(scheme)
+    ///     .build()
+    ///     .await?;
     /// # Ok(()) }
     /// ```
     ///
@@ -308,15 +296,16 @@ impl ClusterBuilder {
     }
 }
 
-impl<T: Into<String>> From<T> for ClusterBuilder {
-    fn from(token: T) -> Self {
-        Self::new(token)
+impl<T: Into<String>> From<(T, Intents)> for ClusterBuilder {
+    fn from((token, intents): (T, Intents)) -> Self {
+        Self::new(token, intents)
     }
 }
 
 #[cfg(test)]
 mod tests {
     use super::{ClusterBuilder, ShardScheme, ShardSchemeRangeError};
+    use crate::Intents;
     use static_assertions::{assert_fields, assert_impl_all};
     use std::{
         convert::TryFrom,
@@ -327,7 +316,7 @@ mod tests {
 
     assert_fields!(ShardSchemeRangeError::IdTooLarge: end, start, total);
     assert_fields!(ShardScheme::Range: from, to, total);
-    assert_impl_all!(ClusterBuilder: Debug, From<String>, Send, Sync);
+    assert_impl_all!(ClusterBuilder: Debug, From<(String, Intents)>, Send, Sync);
     assert_impl_all!(ShardSchemeRangeError: Debug, Display, Error, Send, Sync);
     assert_impl_all!(
         ShardScheme: Clone,

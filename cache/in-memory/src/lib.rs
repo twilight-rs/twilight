@@ -14,11 +14,11 @@
 //! use std::env;
 //! use tokio::stream::StreamExt;
 //! use twilight_cache_inmemory::InMemoryCache;
-//! use twilight_gateway::Shard;
+//! use twilight_gateway::{Intents, Shard};
 //!
 //! # #[tokio::main] async fn main() -> Result<(), Box<dyn std::error::Error>> {
 //! let token = env::var("DISCORD_TOKEN")?;
-//! let mut shard = Shard::new(token);
+//! let mut shard = Shard::new(token, Intents::GUILD_MESSAGES);
 //! shard.start().await?;
 //!
 //! // Create a cache, caching up to 10 messages per channel:
@@ -556,8 +556,6 @@ impl InMemoryCache {
             default_message_notifications: guild.default_message_notifications,
             description: guild.description,
             discovery_splash: guild.discovery_splash,
-            embed_channel_id: guild.embed_channel_id,
-            embed_enabled: guild.embed_enabled,
             explicit_content_filter: guild.explicit_content_filter,
             features: guild.features,
             icon: guild.icon,
@@ -946,8 +944,6 @@ mod tests {
             default_message_notifications: DefaultMessageNotificationLevel::Mentions,
             description: None,
             discovery_splash: None,
-            embed_channel_id: None,
-            embed_enabled: None,
             emojis: HashMap::new(),
             explicit_content_filter: ExplicitContentFilter::AllMembers,
             features: vec![],

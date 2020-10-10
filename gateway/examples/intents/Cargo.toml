@@ -6,7 +6,6 @@ version = "0.1.0"
 
 [dependencies]
 twilight-gateway = { path = "../.." }
-twilight-model = { path = "../../../model" }
 futures = "0.3"
 tracing-subscriber = "0.2"
 tokio = "0.2"

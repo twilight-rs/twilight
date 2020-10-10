@@ -1,6 +1,6 @@
 use crate::{
     gateway::presence::{Activity, ClientStatus, Status, UserOrId},
-    id::{GuildId, RoleId},
+    id::GuildId,
 };
 use serde::{Deserialize, Serialize};
 
@@ -11,9 +11,6 @@ pub struct PresenceUpdate {
     pub client_status: ClientStatus,
     pub game: Option<Activity>,
     pub guild_id: GuildId,
-    pub nick: Option<String>,
-    pub premium_since: Option<String>,
-    pub roles: Option<Vec<RoleId>>,
     pub status: Status,
     pub user: UserOrId,
 }

@@ -97,7 +97,6 @@ fn member_chunk() {
             "client_status": {
                 "web": "online"
             },
-            "game": null,
             "status": "online",
             "user": {
                 "id": "2"
@@ -107,7 +106,6 @@ fn member_chunk() {
             "client_status": {
                 "web": "online"
             },
-            "game": null,
             "status": "online",
             "user": {
                 "id": "3"
@@ -117,7 +115,6 @@ fn member_chunk() {
             "client_status": {
                 "desktop": "dnd"
             },
-            "game": null,
             "status": "dnd",
             "user": {
                 "id": "5"

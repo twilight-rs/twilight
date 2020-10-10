@@ -1,7 +1,7 @@
 use futures::StreamExt;
 use reqwest::Client as ReqwestClient;
 use std::{convert::TryInto, env, error::Error, future::Future, net::SocketAddr, str::FromStr};
-use twilight_gateway::{Event, Shard};
+use twilight_gateway::{Event, Intents, Shard};
 use twilight_http::Client as HttpClient;
 use twilight_lavalink::{
     http::LoadedTracks,
@@ -47,7 +47,8 @@ async fn main() -> Result<(), Box<dyn Error + Send + Sync + 'static>> {
         let lavalink = Lavalink::new(user_id, shard_count);
         lavalink.add(lavalink_host, lavalink_auth).await?;
 
-        let mut shard = Shard::new(token);
+        let intents = Intents::GUILD_MESSAGES | Intents::GUILD_VOICE_STATES;
+        let mut shard = Shard::new(token, intents);
         shard.start().await?;
 
         State {

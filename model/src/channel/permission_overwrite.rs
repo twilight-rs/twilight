@@ -7,6 +7,7 @@ use serde::{
     ser::SerializeStruct,
     Deserialize, Serialize, Serializer,
 };
+use serde_repr::{Deserialize_repr, Serialize_repr};
 
 #[derive(Clone, Debug, Eq, Hash, PartialEq)]
 pub struct PermissionOverwrite {
@@ -23,20 +24,19 @@ pub enum PermissionOverwriteType {
 
 #[derive(Deserialize)]
 struct PermissionOverwriteData {
-    #[serde(rename = "allow_new")]
     allow: Permissions,
-    #[serde(rename = "deny_new")]
     deny: Permissions,
     id: String,
     #[serde(rename = "type")]
     kind: PermissionOverwriteTypeName,
 }
 
-#[derive(Debug, Deserialize, Serialize)]
+#[derive(Debug, Deserialize_repr, Serialize_repr)]
+#[repr(u8)]
 #[serde(rename_all = "snake_case")]
 enum PermissionOverwriteTypeName {
-    Member,
-    Role,
+    Member = 1,
+    Role = 0,
 }
 
 impl<'de> Deserialize<'de> for PermissionOverwrite {
@@ -73,17 +73,17 @@ impl Serialize for PermissionOverwrite {
     fn serialize<S: Serializer>(&self, serializer: S) -> Result<S::Ok, S::Error> {
         let mut state = serializer.serialize_struct("PermissionOverwrite", 4)?;
 
-        state.serialize_field("allow_new", &self.allow)?;
-        state.serialize_field("deny_new", &self.deny)?;
+        state.serialize_field("allow", &self.allow)?;
+        state.serialize_field("deny", &self.deny)?;
 
         match &self.kind {
             PermissionOverwriteType::Member(id) => {
                 state.serialize_field("id", &id)?;
-                state.serialize_field("type", "member")?;
+                state.serialize_field("type", &(PermissionOverwriteTypeName::Member as u8))?;
             }
             PermissionOverwriteType::Role(id) => {
                 state.serialize_field("id", &id)?;
-                state.serialize_field("type", "role")?;
+                state.serialize_field("type", &(PermissionOverwriteTypeName::Role as u8))?;
             }
         }
 
@@ -108,10 +108,10 @@ mod tests {
         //
         // <https://github.com/serde-rs/serde/issues/1281>
         let input = r#"{
-  "allow_new": "1",
-  "deny_new": "2",
+  "allow": "1",
+  "deny": "2",
   "id": "12345678",
-  "type": "member"
+  "type": 1
 }"#;
 
         assert_eq!(

@@ -17,8 +17,6 @@ pub struct CachedGuild {
     pub default_message_notifications: DefaultMessageNotificationLevel,
     pub description: Option<String>,
     pub discovery_splash: Option<String>,
-    pub embed_channel_id: Option<ChannelId>,
-    pub embed_enabled: Option<bool>,
     pub explicit_content_filter: ExplicitContentFilter,
     pub features: Vec<String>,
     pub icon: Option<String>,

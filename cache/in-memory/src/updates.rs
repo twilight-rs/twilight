@@ -263,8 +263,6 @@ impl UpdateCache for GuildUpdate {
         guild.banner = g.banner.clone();
         guild.default_message_notifications = g.default_message_notifications;
         guild.description = g.description.clone();
-        guild.embed_channel_id = g.embed_channel_id;
-        guild.embed_enabled.replace(g.embed_enabled);
         guild.features = g.features.clone();
         guild.icon = g.icon.clone();
         guild.max_members = g.max_members;
@@ -477,9 +475,7 @@ impl UpdateCache for PresenceUpdate {
         let presence = Presence {
             activities: self.activities.clone(),
             client_status: self.client_status.clone(),
-            game: self.game.clone(),
             guild_id: self.guild_id,
-            nick: self.nick.clone(),
             status: self.status,
             user: self.user.clone(),
         };

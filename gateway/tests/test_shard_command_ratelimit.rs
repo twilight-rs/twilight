@@ -3,13 +3,16 @@ use std::{
     env,
     time::{Duration, Instant},
 };
-use twilight_gateway::{Event, Shard};
-use twilight_model::{gateway::payload::RequestGuildMembers, id::GuildId};
+use twilight_gateway::{Event, Intents, Shard};
+use twilight_model::gateway::{
+    payload::UpdateStatus,
+    presence::{Activity, ActivityType, Status},
+};
 
 fn shard() -> Shard {
     let token = env::var("DISCORD_TOKEN").unwrap();
 
-    Shard::new(token)
+    Shard::new(token, Intents::empty())
 }
 
 #[ignore]
@@ -38,7 +41,28 @@ async fn test_shard_command_ratelimit() {
     assert!(matches!(events.next().await.unwrap(), Event::Ready(_)));
 
     // now that we're connected we can test sending
-    let payload = RequestGuildMembers::builder(GuildId(1)).query("", None);
+    let payload = UpdateStatus::new(
+        vec![Activity {
+            application_id: None,
+            assets: None,
+            created_at: None,
+            details: None,
+            emoji: None,
+            flags: None,
+            id: None,
+            instance: None,
+            kind: ActivityType::Playing,
+            name: "test".to_owned(),
+            party: None,
+            secrets: None,
+            state: None,
+            timestamps: None,
+            url: None,
+        }],
+        false,
+        Some(1),
+        Status::DoNotDisturb,
+    );
     let now = Instant::now();
     shard.command(&payload).await.unwrap();
     assert!(now.elapsed() < Duration::from_millis(500));

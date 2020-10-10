@@ -1375,7 +1375,7 @@ impl Client {
         } = request;
 
         let protocol = if self.state.use_http { "http" } else { "https" };
-        let url = format!("{}://discord.com/api/v6/{}", protocol, path);
+        let url = format!("{}://discord.com/api/v8/{}", protocol, path);
 
         tracing::debug!("URL: {:?}", url);
 
@@ -1402,7 +1402,6 @@ impl Client {
             builder = builder.header("content-length", 0);
         }
 
-        let precision = HeaderValue::from_static("millisecond");
         let user_agent = HeaderValue::from_static(concat!(
             "DiscordBot (",
             env!("CARGO_PKG_HOMEPAGE"),
@@ -1410,7 +1409,6 @@ impl Client {
             env!("CARGO_PKG_VERSION"),
             ") Twilight-rs",
         ));
-        builder = builder.header("X-RateLimit-Precision", precision);
         builder = builder.header("User-Agent", user_agent);
 
         if let Some(req_headers) = req_headers {

@@ -1,6 +1,6 @@
 use futures::StreamExt;
 use std::{env, error::Error};
-use twilight_gateway::{Event, Shard};
+use twilight_gateway::{Event, Intents, Shard};
 use twilight_model::{
     gateway::payload::RequestGuildMembers,
     id::{GuildId, UserId},
@@ -13,7 +13,7 @@ async fn main() -> Result<(), Box<dyn Error>> {
     tracing_subscriber::fmt::init();
 
     // to interact with the gateway we first need to connect to it (with a shard or cluster)
-    let mut shard = Shard::new(env::var("DISCORD_TOKEN")?);
+    let mut shard = Shard::new(env::var("DISCORD_TOKEN")?, Intents::GUILD_MEMBERS);
     shard.start().await?;
     println!("Created shard");
 

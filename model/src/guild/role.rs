@@ -17,7 +17,6 @@ pub struct Role {
     pub managed: bool,
     pub mentionable: bool,
     pub name: String,
-    #[serde(rename = "permissions_new")]
     pub permissions: Permissions,
     pub position: i64,
 }
@@ -104,7 +103,7 @@ mod tests {
                 Token::Bool(true),
                 Token::Str("name"),
                 Token::Str("test"),
-                Token::Str("permissions_new"),
+                Token::Str("permissions"),
                 Token::Str("8"),
                 Token::Str("position"),
                 Token::I64(12),

@@ -4,7 +4,7 @@ use super::{
 };
 use crate::{
     shard::{CommandError, Information, ResumeSession, Shard},
-    EventTypeFlags,
+    EventTypeFlags, Intents,
 };
 use futures_util::{
     future,
@@ -122,8 +122,11 @@ impl Cluster {
     ///
     /// [`ClusterStartError::RetrievingGatewayInfo`]: enum.ClusterStartError.html#variant.RetrievingGatewayInfo
     /// [`builder`]: #method.builder
-    pub async fn new(token: impl Into<String>) -> Result<Self, ClusterStartError> {
-        Self::builder(token).build().await
+    pub async fn new(
+        token: impl Into<String>,
+        intents: Intents,
+    ) -> Result<Self, ClusterStartError> {
+        Self::builder(token, intents).build().await
     }
 
     pub(super) async fn new_with_config(mut config: Config) -> Result<Self, ClusterStartError> {
@@ -172,8 +175,8 @@ impl Cluster {
     }
 
     /// Create a builder to configure and construct a cluster.
-    pub fn builder(token: impl Into<String>) -> ClusterBuilder {
-        ClusterBuilder::new(token)
+    pub fn builder(token: impl Into<String>, intents: Intents) -> ClusterBuilder {
+        ClusterBuilder::new(token, intents)
     }
 
     /// Return an immutable reference to the configuration of this cluster.
@@ -189,7 +192,7 @@ impl Cluster {
     /// Bring up a cluster, starting shards all 10 shards that a bot uses:
     ///
     /// ```no_run
-    /// use twilight_gateway::cluster::{Cluster, ShardScheme};
+    /// use twilight_gateway::{cluster::{Cluster, ShardScheme}, Intents};
     /// use std::{
     ///     convert::TryFrom,
     ///     env,
@@ -199,7 +202,10 @@ impl Cluster {
     /// # async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
     /// let token = env::var("DISCORD_TOKEN")?;
     /// let scheme = ShardScheme::try_from((0..=9, 10))?;
-    /// let cluster = Cluster::builder(token).shard_scheme(scheme).build().await?;
+    /// let cluster = Cluster::builder(token, Intents::GUILD_MESSAGES)
+    ///     .shard_scheme(scheme)
+    ///     .build()
+    ///     .await?;
     ///
     /// // Finally, bring up the cluster.
     /// cluster.up().await;
@@ -267,12 +273,12 @@ impl Cluster {
     /// After waiting a minute, print the ID, latency, and stage of each shard:
     ///
     /// ```no_run
-    /// use twilight_gateway::cluster::Cluster;
+    /// use twilight_gateway::{Cluster, Intents};
     /// use std::{env, time::Duration};
     ///
     /// # #[tokio::main]
     /// # async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
-    /// let cluster = Cluster::new(env::var("DISCORD_TOKEN")?).await?;
+    /// let cluster = Cluster::new(env::var("DISCORD_TOKEN")?, Intents::empty()).await?;
     /// cluster.up().await;
     ///
     /// tokio::time::delay_for(Duration::from_secs(60)).await;
@@ -373,13 +379,13 @@ impl Cluster {
     /// updated:
     ///
     /// ```no_run
-    /// use twilight_gateway::{Cluster, EventTypeFlags, Event};
+    /// use twilight_gateway::{Cluster, EventTypeFlags, Event, Intents};
     /// use futures::StreamExt;
     /// use std::env;
     ///
     /// # #[tokio::main]
     /// # async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
-    /// let cluster = Cluster::new(env::var("DISCORD_TOKEN")?).await?;
+    /// let cluster = Cluster::new(env::var("DISCORD_TOKEN")?, Intents::GUILD_MESSAGES).await?;
     /// cluster.up().await;
     ///
     /// let types = EventTypeFlags::MESSAGE_CREATE
