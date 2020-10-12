@@ -21,6 +21,7 @@ impl<'a> GetGuildIntegrations<'a> {
 
     /// Sets if you want to receive bot and OAuth2 webhook integrations,
     /// otherwise it will only include Twitch and YouTube.
+    #[allow(clippy::doc_markdown)]
     pub fn include_applications(mut self, include: bool) -> Self {
         self.include_applications = include;
 
