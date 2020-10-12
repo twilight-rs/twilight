@@ -57,7 +57,7 @@ mod tests {
                 Token::Bool(false),
                 Token::Str("name"),
                 Token::Str("a role"),
-                Token::Str("permissions_new"),
+                Token::Str("permissions"),
                 Token::Str("2048"),
                 Token::Str("position"),
                 Token::I64(12),

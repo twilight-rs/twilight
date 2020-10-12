@@ -121,10 +121,9 @@
 //!     // shards as is suggested by Discord.
 //!     let scheme = ShardScheme::Auto;
 //!
-//!     let cluster = Cluster::builder(&token)
+//!     // Use intents to only receive guild message events.
+//!     let cluster = Cluster::builder(&token, Intents::GUILD_MESSAGES)
 //!         .shard_scheme(scheme)
-//!         // Use intents to only receive guild message events.
-//!         .intents(Intents::GUILD_MESSAGES)
 //!         .build()
 //!         .await?;
 //!

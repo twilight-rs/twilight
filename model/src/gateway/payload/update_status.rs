@@ -12,13 +12,13 @@ pub struct UpdateStatus {
 
 impl UpdateStatus {
     pub fn new(
+        activities: impl Into<Option<Vec<Activity>>>,
         afk: bool,
-        game: impl Into<Option<Activity>>,
         since: impl Into<Option<u64>>,
         status: impl Into<Status>,
     ) -> Self {
         Self {
-            d: UpdateStatusInfo::new(afk, game, since, status),
+            d: UpdateStatusInfo::new(activities, afk, since, status),
             op: OpCode::StatusUpdate,
         }
     }
@@ -26,26 +26,32 @@ impl UpdateStatus {
 
 #[derive(Clone, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
 pub struct UpdateStatusInfo {
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub activities: Option<Vec<Activity>>,
     pub afk: bool,
-    pub game: Option<Activity>,
     pub since: Option<u64>,
     pub status: Status,
 }
 
 impl UpdateStatusInfo {
     pub fn new(
+        activities: impl Into<Option<Vec<Activity>>>,
         afk: bool,
-        game: impl Into<Option<Activity>>,
         since: impl Into<Option<u64>>,
         status: impl Into<Status>,
     ) -> Self {
-        Self::_new(afk, game.into(), since.into(), status.into())
+        Self::_new(activities.into(), afk, since.into(), status.into())
     }
 
-    fn _new(afk: bool, game: Option<Activity>, since: Option<u64>, status: Status) -> Self {
+    fn _new(
+        activities: Option<Vec<Activity>>,
+        afk: bool,
+        since: Option<u64>,
+        status: Status,
+    ) -> Self {
         Self {
+            activities,
             afk,
-            game,
             since,
             status,
         }

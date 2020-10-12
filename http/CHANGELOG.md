@@ -2,6 +2,17 @@
 
 Changelog for `twilight-http`.
 
+## [0.2.0-beta.0] - 2020-10-10
+
+This beta version of major version 0.2 of the crate includes changes needed to
+support version 8 of the Discord HTTP API.
+
+### Changes
+
+All changes in this version are from PR [#532].
+
+- Now depends on `twilight-model` 0.2
+
 ## [0.1.6] - 2020-10-05
 
 ### Fixes
@@ -56,6 +67,7 @@ Initial release.
 [@nickelc]: https://github.com/nickelc
 
 [#534]: https://github.com/twilight-rs/twilight/pull/534
+[#532]: https://github.com/twilight-rs/twilight/pull/532
 [#529]: https://github.com/twilight-rs/twilight/pull/529
 [#522]: https://github.com/twilight-rs/twilight/pull/522
 [#520]: https://github.com/twilight-rs/twilight/pull/520
@@ -66,6 +78,7 @@ Initial release.
 [#507]: https://github.com/twilight-rs/twilight/pull/507
 [#495]: https://github.com/twilight-rs/twilight/pull/495
 
+[0.2.0-beta.0]: https://github.com/twilight-rs/twilight/releases/tag/http-v0.2.0-beta.0
 [0.1.6]: https://github.com/twilight-rs/twilight/releases/tag/http-v0.1.6
 [0.1.5]: https://github.com/twilight-rs/twilight/releases/tag/http-v0.1.5
 [0.1.4]: https://github.com/twilight-rs/twilight/releases/tag/http-v0.1.4

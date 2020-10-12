@@ -18,9 +18,6 @@ pub struct PartialGuild {
     pub default_message_notifications: DefaultMessageNotificationLevel,
     pub description: Option<String>,
     pub discovery_splash: Option<String>,
-    pub embed_channel_id: Option<ChannelId>,
-    #[serde(default)]
-    pub embed_enabled: bool,
     #[serde(with = "serde_mappable_seq")]
     pub emojis: HashMap<EmojiId, Emoji>,
     pub explicit_content_filter: ExplicitContentFilter,
@@ -33,7 +30,6 @@ pub struct PartialGuild {
     pub name: String,
     pub owner_id: UserId,
     pub owner: Option<bool>,
-    #[serde(rename = "permissions_new")]
     pub permissions: Option<Permissions>,
     pub preferred_locale: String,
     pub premium_subscription_count: Option<u64>,
@@ -73,8 +69,6 @@ mod tests {
             default_message_notifications: DefaultMessageNotificationLevel::Mentions,
             description: Some("a description".to_owned()),
             discovery_splash: Some("discovery splash hash".to_owned()),
-            embed_channel_id: Some(ChannelId(4)),
-            embed_enabled: true,
             emojis: HashMap::new(),
             explicit_content_filter: ExplicitContentFilter::MembersWithoutRole,
             features: vec!["a feature".to_owned()],
@@ -107,7 +101,7 @@ mod tests {
             &[
                 Token::Struct {
                     name: "PartialGuild",
-                    len: 35,
+                    len: 33,
                 },
                 Token::Str("id"),
                 Token::NewtypeStruct { name: "GuildId" },
@@ -135,12 +129,6 @@ mod tests {
                 Token::Str("discovery_splash"),
                 Token::Some,
                 Token::Str("discovery splash hash"),
-                Token::Str("embed_channel_id"),
-                Token::Some,
-                Token::NewtypeStruct { name: "ChannelId" },
-                Token::Str("4"),
-                Token::Str("embed_enabled"),
-                Token::Bool(true),
                 Token::Str("emojis"),
                 Token::Seq { len: Some(0) },
                 Token::SeqEnd,
@@ -172,7 +160,7 @@ mod tests {
                 Token::Str("owner"),
                 Token::Some,
                 Token::Bool(false),
-                Token::Str("permissions_new"),
+                Token::Str("permissions"),
                 Token::Some,
                 Token::Str("2048"),
                 Token::Str("preferred_locale"),

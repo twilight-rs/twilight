@@ -7,7 +7,7 @@ use super::{
     sink::ShardSink,
     stage::Stage,
 };
-use crate::{listener::Listeners, EventTypeFlags};
+use crate::{listener::Listeners, EventTypeFlags, Intents};
 use async_tungstenite::tungstenite::{
     protocol::{frame::coding::CloseCode, CloseFrame},
     Error as TungsteniteError, Message,
@@ -224,13 +224,13 @@ struct ShardRef {
 /// ```no_run
 /// use futures::stream::StreamExt;
 /// use std::env;
-/// use twilight_gateway::{EventTypeFlags, Event, Shard};
+/// use twilight_gateway::{EventTypeFlags, Event, Intents, Shard};
 ///
 /// # #[tokio::main] async fn main() -> Result<(), Box<dyn std::error::Error>> {
 /// // Use the value of the "DISCORD_TOKEN" environment variable as the bot's
 /// // token. Of course, you may pass this into your program however you want.
 /// let token = env::var("DISCORD_TOKEN")?;
-/// let mut shard = Shard::new(token);
+/// let mut shard = Shard::new(token, Intents::GUILD_MESSAGES);
 ///
 /// // Start the shard.
 /// shard.start().await?;
@@ -270,7 +270,7 @@ impl Shard {
     /// current connection stage:
     ///
     /// ```no_run
-    /// use twilight_gateway::Shard;
+    /// use twilight_gateway::{Intents, Shard};
     /// use std::{env, time::Duration};
     /// use tokio::time as tokio_time;
     ///
@@ -278,7 +278,8 @@ impl Shard {
     /// # async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
     /// let token = env::var("DISCORD_TOKEN")?;
     ///
-    /// let mut shard = Shard::new(token);
+    /// let intents = Intents::GUILD_MESSAGES | Intents::GUILD_MESSAGE_TYPING;
+    /// let mut shard = Shard::new(token, intents);
     /// shard.start().await?;
     ///
     /// tokio_time::delay_for(Duration::from_secs(1)).await;
@@ -289,8 +290,8 @@ impl Shard {
     /// ```
     ///
     /// [`start`]: #method.start
-    pub fn new(token: impl Into<String>) -> Self {
-        Self::builder(token).build()
+    pub fn new(token: impl Into<String>, intents: Intents) -> Self {
+        Self::builder(token, intents).build()
     }
 
     pub(crate) fn new_with_config(config: Config) -> Self {
@@ -307,8 +308,8 @@ impl Shard {
     /// Create a builder to configure and construct a shard.
     ///
     /// Refer to the builder for more information.
-    pub fn builder(token: impl Into<String>) -> ShardBuilder {
-        ShardBuilder::new(token)
+    pub fn builder(token: impl Into<String>, intents: Intents) -> ShardBuilder {
+        ShardBuilder::new(token, intents)
     }
 
     /// Return an immutable reference to the configuration used for this client.
@@ -400,13 +401,13 @@ impl Shard {
     /// and [`Event::ShardDisconnected`] events:
     ///
     /// ```no_run
-    /// use twilight_gateway::{EventTypeFlags, Event, Shard};
+    /// use twilight_gateway::{EventTypeFlags, Event, Intents, Shard};
     /// use futures::StreamExt;
     /// use std::env;
     ///
     /// # #[tokio::main]
     /// # async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
-    /// let mut shard = Shard::new(env::var("DISCORD_TOKEN")?);
+    /// let mut shard = Shard::new(env::var("DISCORD_TOKEN")?, Intents::empty());
     /// shard.start().await?;
     ///
     /// let event_types = EventTypeFlags::SHARD_CONNECTED | EventTypeFlags::SHARD_DISCONNECTED;

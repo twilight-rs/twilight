@@ -559,8 +559,6 @@ mod tests {
     "default_message_notifications": 0,
     "description": null,
     "discovery_splash": null,
-    "embed_channel_id": null,
-    "embed_enabled": false,
     "emojis": [
       {
         "animated": false,
@@ -597,8 +595,7 @@ mod tests {
         "managed": false,
         "mentionable": false,
         "name": "@everyone",
-        "permissions": 104193601,
-        "permissions_new": "104193601",
+        "permissions": "104193601",
         "position": 0
       }
     ],
@@ -634,8 +631,6 @@ mod tests {
     "default_message_notifications": 0,
     "description": null,
     "discovery_splash": null,
-    "embed_channel_id": null,
-    "embed_enabled": true,
     "emojis": [
       {
         "animated": false,
@@ -669,8 +664,7 @@ mod tests {
         "managed": false,
         "mentionable": false,
         "name": "@everyone",
-        "permissions": 104324673,
-        "permissions_new": "104324673",
+        "permissions": "104324673",
         "position": 0
       }
     ],

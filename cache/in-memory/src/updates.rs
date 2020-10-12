@@ -467,9 +467,7 @@ impl UpdateCache for PresenceUpdate {
         let presence = Presence {
             activities: self.activities.clone(),
             client_status: self.client_status.clone(),
-            game: self.game.clone(),
             guild_id: self.guild_id,
-            nick: self.nick.clone(),
             status: self.status,
             user: self.user.clone(),
         };
