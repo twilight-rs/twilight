@@ -252,8 +252,6 @@ impl UpdateCache for GuildUpdate {
             guild.banner = self.banner.clone();
             guild.default_message_notifications = self.default_message_notifications;
             guild.description = self.description.clone();
-            guild.embed_channel_id = self.embed_channel_id;
-            guild.embed_enabled.replace(self.embed_enabled);
             guild.features = self.features.clone();
             guild.icon = self.icon.clone();
             guild.max_members = self.max_members;
@@ -720,8 +718,6 @@ mod tests {
             default_message_notifications: DefaultMessageNotificationLevel::Mentions,
             description: None,
             discovery_splash: None,
-            embed_channel_id: None,
-            embed_enabled: None,
             emojis: HashMap::new(),
             explicit_content_filter: ExplicitContentFilter::None,
             features: Vec::new(),
@@ -769,8 +765,6 @@ mod tests {
             default_message_notifications: guild.default_message_notifications,
             description: guild.description,
             discovery_splash: guild.discovery_splash,
-            embed_channel_id: guild.embed_channel_id,
-            embed_enabled: false,
             emojis: guild.emojis,
             explicit_content_filter: guild.explicit_content_filter,
             features: guild.features,
