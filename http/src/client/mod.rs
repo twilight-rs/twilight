@@ -142,6 +142,11 @@ impl Client {
         self.state.default_allowed_mentions.clone()
     }
 
+    /// Get the Ratelimiter used by the client internally.
+    pub fn ratelimiter(&self) -> Option<Ratelimiter> {
+        self.state.ratelimiter.clone()
+    }
+
     /// Add a role to a member in a guild.
     ///
     /// # Examples
