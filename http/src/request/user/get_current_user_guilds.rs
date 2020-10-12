@@ -3,7 +3,7 @@ use std::{
     error::Error,
     fmt::{Display, Formatter, Result as FmtResult},
 };
-use twilight_model::{guild::PartialGuild, id::GuildId};
+use twilight_model::{guild::CurrentUserGuild, id::GuildId};
 
 /// The error created when the current guilds can not be retrieved as configured.
 #[derive(Clone, Debug)]
@@ -58,7 +58,7 @@ struct GetCurrentUserGuildsFields {
 /// ```
 pub struct GetCurrentUserGuilds<'a> {
     fields: GetCurrentUserGuildsFields,
-    fut: Option<Pending<'a, Vec<PartialGuild>>>,
+    fut: Option<Pending<'a, Vec<CurrentUserGuild>>>,
     http: &'a Client,
 }
 
@@ -123,4 +123,4 @@ impl<'a> GetCurrentUserGuilds<'a> {
     }
 }
 
-poll_req!(GetCurrentUserGuilds<'_>, Vec<PartialGuild>);
+poll_req!(GetCurrentUserGuilds<'_>, Vec<CurrentUserGuild>);

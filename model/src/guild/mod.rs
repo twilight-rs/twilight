@@ -2,6 +2,7 @@ pub mod audit_log;
 pub mod member;
 
 mod ban;
+mod current_user_guild;
 mod default_message_notification_level;
 mod emoji;
 mod explicit_content_filter;
@@ -24,7 +25,8 @@ mod verification_level;
 mod widget;
 
 pub use self::{
-    ban::Ban, default_message_notification_level::DefaultMessageNotificationLevel, emoji::Emoji,
+    ban::Ban, current_user_guild::CurrentUserGuild,
+    default_message_notification_level::DefaultMessageNotificationLevel, emoji::Emoji,
     explicit_content_filter::ExplicitContentFilter, info::GuildInfo, integration::GuildIntegration,
     integration_account::IntegrationAccount,
     integration_expire_behavior::IntegrationExpireBehavior, member::Member, mfa_level::MfaLevel,
