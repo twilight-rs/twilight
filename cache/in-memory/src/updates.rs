@@ -245,47 +245,37 @@ impl UpdateCache for GuildUpdate {
             return;
         }
 
-        let mut guild = match cache
-            .0
-            .guilds
-            .get_mut(&self.0.id)
-            .map(|r| Arc::clone(r.value()))
-        {
-            Some(guild) => guild,
-            None => return,
+        if let Some(mut guild) = cache.0.guilds.get_mut(&self.0.id) {
+            let mut guild = Arc::make_mut(&mut guild);
+            guild.afk_channel_id = self.afk_channel_id;
+            guild.afk_timeout = self.afk_timeout;
+            guild.banner = self.banner.clone();
+            guild.default_message_notifications = self.default_message_notifications;
+            guild.description = self.description.clone();
+            guild.embed_channel_id = self.embed_channel_id;
+            guild.embed_enabled.replace(self.embed_enabled);
+            guild.features = self.features.clone();
+            guild.icon = self.icon.clone();
+            guild.max_members = self.max_members;
+            guild.max_presences = Some(self.max_presences.unwrap_or(25000));
+            guild.mfa_level = self.mfa_level;
+            guild.name = self.name.clone();
+            guild.owner = self.owner;
+            guild.owner_id = self.owner_id;
+            guild.permissions = self.permissions;
+            guild.preferred_locale = self.preferred_locale.clone();
+            guild.premium_tier = self.premium_tier;
+            guild
+                .premium_subscription_count
+                .replace(self.premium_subscription_count.unwrap_or_default());
+            guild.region = self.region.clone();
+            guild.splash = self.splash.clone();
+            guild.system_channel_id = self.system_channel_id;
+            guild.verification_level = self.verification_level;
+            guild.vanity_url_code = self.vanity_url_code.clone();
+            guild.widget_channel_id = self.widget_channel_id;
+            guild.widget_enabled = self.widget_enabled;
         };
-
-        let g = &self.0;
-
-        let mut guild = Arc::make_mut(&mut guild);
-        guild.afk_channel_id = g.afk_channel_id;
-        guild.afk_timeout = g.afk_timeout;
-        guild.banner = g.banner.clone();
-        guild.default_message_notifications = g.default_message_notifications;
-        guild.description = g.description.clone();
-        guild.embed_channel_id = g.embed_channel_id;
-        guild.embed_enabled.replace(g.embed_enabled);
-        guild.features = g.features.clone();
-        guild.icon = g.icon.clone();
-        guild.max_members = g.max_members;
-        guild.max_presences = Some(g.max_presences.unwrap_or(25000));
-        guild.mfa_level = g.mfa_level;
-        guild.name = g.name.clone();
-        guild.owner = g.owner;
-        guild.owner_id = g.owner_id;
-        guild.permissions = g.permissions;
-        guild.preferred_locale = g.preferred_locale.clone();
-        guild.premium_tier = g.premium_tier;
-        guild
-            .premium_subscription_count
-            .replace(g.premium_subscription_count.unwrap_or_default());
-        guild.region = g.region.clone();
-        guild.splash = g.splash.clone();
-        guild.system_channel_id = g.system_channel_id;
-        guild.verification_level = g.verification_level;
-        guild.vanity_url_code = g.vanity_url_code.clone();
-        guild.widget_channel_id = g.widget_channel_id;
-        guild.widget_enabled = g.widget_enabled;
     }
 }
 
@@ -681,9 +671,18 @@ impl UpdateCache for WebhooksUpdate {}
 #[cfg(test)]
 mod tests {
     use super::*;
+    use std::collections::HashMap;
     use twilight_model::{
         channel::{ChannelType, GuildChannel, TextChannel},
         gateway::payload::ChannelDelete,
+        guild::DefaultMessageNotificationLevel,
+        guild::ExplicitContentFilter,
+        guild::Guild,
+        guild::MfaLevel,
+        guild::PartialGuild,
+        guild::PremiumTier,
+        guild::SystemChannelFlags,
+        guild::VerificationLevel,
         id::{ChannelId, GuildId, UserId},
         voice::VoiceState,
     };
@@ -707,6 +706,105 @@ mod tests {
         });
 
         (guild_id, channel_id, channel)
+    }
+
+    #[test]
+    fn test_guild_update() {
+        let cache = InMemoryCache::new();
+        let guild = Guild {
+            afk_channel_id: None,
+            afk_timeout: 0,
+            application_id: None,
+            approximate_member_count: None,
+            approximate_presence_count: None,
+            banner: None,
+            channels: HashMap::new(),
+            default_message_notifications: DefaultMessageNotificationLevel::Mentions,
+            description: None,
+            discovery_splash: None,
+            embed_channel_id: None,
+            embed_enabled: None,
+            emojis: HashMap::new(),
+            explicit_content_filter: ExplicitContentFilter::None,
+            features: Vec::new(),
+            icon: None,
+            id: GuildId(1),
+            joined_at: None,
+            large: false,
+            lazy: None,
+            max_members: None,
+            max_presences: None,
+            max_video_channel_users: None,
+            member_count: None,
+            members: HashMap::new(),
+            mfa_level: MfaLevel::None,
+            name: "test".to_owned(),
+            owner_id: UserId(1),
+            owner: None,
+            permissions: None,
+            preferred_locale: "en_us".to_owned(),
+            premium_subscription_count: None,
+            premium_tier: PremiumTier::None,
+            presences: HashMap::new(),
+            region: "us".to_owned(),
+            roles: HashMap::new(),
+            rules_channel_id: None,
+            splash: None,
+            system_channel_flags: SystemChannelFlags::empty(),
+            system_channel_id: None,
+            unavailable: false,
+            vanity_url_code: None,
+            verification_level: VerificationLevel::VeryHigh,
+            voice_states: HashMap::new(),
+            widget_channel_id: None,
+            widget_enabled: None,
+        };
+
+        cache.update(&GuildCreate(guild.clone()));
+
+        let mutation = PartialGuild {
+            id: guild.id,
+            afk_channel_id: guild.afk_channel_id,
+            afk_timeout: guild.afk_timeout,
+            application_id: guild.application_id,
+            banner: guild.banner,
+            default_message_notifications: guild.default_message_notifications,
+            description: guild.description,
+            discovery_splash: guild.discovery_splash,
+            embed_channel_id: guild.embed_channel_id,
+            embed_enabled: false,
+            emojis: guild.emojis,
+            explicit_content_filter: guild.explicit_content_filter,
+            features: guild.features,
+            icon: guild.icon,
+            max_members: guild.max_members,
+            max_presences: guild.max_presences,
+            member_count: guild.member_count,
+            mfa_level: guild.mfa_level,
+            name: "test2222".to_owned(),
+            owner_id: UserId(2),
+            owner: guild.owner,
+            permissions: guild.permissions,
+            preferred_locale: guild.preferred_locale,
+            premium_subscription_count: guild.premium_subscription_count,
+            premium_tier: guild.premium_tier,
+            region: guild.region,
+            roles: guild.roles,
+            rules_channel_id: guild.rules_channel_id,
+            splash: guild.splash,
+            system_channel_flags: guild.system_channel_flags,
+            system_channel_id: guild.system_channel_id,
+            verification_level: guild.verification_level,
+            vanity_url_code: guild.vanity_url_code,
+            widget_channel_id: guild.widget_channel_id,
+            widget_enabled: guild.widget_enabled,
+        };
+
+        cache.update(&GuildUpdate(mutation.clone()));
+
+        assert_eq!(cache.guild(guild.id).unwrap().name, mutation.name);
+        assert_eq!(cache.guild(guild.id).unwrap().owner_id, mutation.owner_id);
+        assert_eq!(cache.guild(guild.id).unwrap().id, mutation.id);
     }
 
     #[test]
