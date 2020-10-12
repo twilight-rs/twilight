@@ -27,11 +27,11 @@ mod tests {
     fn test_unavailable_guild() {
         // The example partial guild from the discord docs
         let value = CurrentUserGuild {
-            id: GuildId(80351110224678912),
+            id: GuildId(80_351_110_224_678_912),
             name: "1337 Krew".to_owned(),
             icon: Some("8342729096ea3675442027381ff50dfe".to_owned()),
             owner: true,
-            permissions: Permissions::from_bits_truncate(36953089),
+            permissions: Permissions::from_bits_truncate(36_953_089),
         };
 
         serde_test::assert_tokens(
