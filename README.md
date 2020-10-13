@@ -105,6 +105,18 @@ Create display formatters for various model types that format mentions. For
 example, it can create formatters for mentioning a channel or emoji, or
 pinging a role or user.
 
+### [`twilight-util`]
+
+Utility crate that adds utilities to the twilight ecosystem that do not fit
+in any other crate. Currently, it contains a trait to make extracting data
+from Discord identifiers (Snowflakes) easier.
+
+### [`twilight-gateway-queue`]
+
+A trait and some implementations that are used by the gateway to ratelimit
+identify calls. Developers should prefer to use the re-exports of these crates
+through the gateway.
+
 ## Examples
 
 ```rust,no_run
@@ -214,11 +226,13 @@ All first-party crates are licensed under [ISC][LICENSE.md]
 [`twilight-cache-inmemory`]: https://twilight.rs/chapter_1_crates/section_4_cache_inmemory.html
 [`twilight-command-parser`]: https://twilight.rs/chapter_1_crates/section_5_command_parser.html
 [`twilight-embed-builder`]: https://twilight.rs/chapter_1_crates/section_7_first_party/section_1_embed_builder.html
+[`twilight-gateway-queue`]: https://twilight.rs/chapter_1_crates/section_7_first_party/section_5_gateway_queue.html
 [`twilight-gateway`]: https://twilight.rs/chapter_1_crates/section_3_gateway.html
 [`twilight-http`]: https://twilight.rs/chapter_1_crates/section_2_http.html
 [`twilight-lavalink`]: https://twilight.rs/chapter_1_crates/section_7_first_party/section_3_lavalink.html
 [`twilight-mention`]: https://twilight.rs/chapter_1_crates/section_7_first_party/section_2_mention.html
 [`twilight-model`]: https://twilight.rs/chapter_1_crates/section_1_model.html
 [`twilight-standby`]: https://twilight.rs/chapter_1_crates/section_6_standby.html
+[`twilight-util`]: https://twilight.rs/chapter_1_crates/section_7_first_party/section_4_util.html
 
 <!-- cargo-sync-readme end -->
