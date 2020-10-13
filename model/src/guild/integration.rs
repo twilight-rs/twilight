@@ -1,4 +1,4 @@
-use super::{IntegrationAccount, IntegrationExpireBehavior};
+use super::{IntegrationAccount, IntegrationApplication, IntegrationExpireBehavior};
 use crate::{
     id::{IntegrationId, RoleId},
     user::User,
@@ -9,6 +9,7 @@ use serde_mappable_seq::Key;
 #[derive(Clone, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
 pub struct GuildIntegration {
     pub account: IntegrationAccount,
+    pub application: Option<IntegrationApplication>,
     pub enable_emoticons: Option<bool>,
     pub enabled: bool,
     pub expire_behavior: IntegrationExpireBehavior,
@@ -17,7 +18,9 @@ pub struct GuildIntegration {
     #[serde(rename = "type")]
     pub kind: String,
     pub name: String,
+    pub revoked: bool,
     pub role_id: RoleId,
+    pub subscriber_count: u64,
     pub synced_at: String,
     pub syncing: bool,
     pub user: User,
@@ -45,6 +48,7 @@ mod tests {
                 id: "abcd".to_owned(),
                 name: "account name".to_owned(),
             },
+            application: None,
             enable_emoticons: Some(true),
             enabled: true,
             expire_behavior: IntegrationExpireBehavior::Kick,
@@ -52,7 +56,9 @@ mod tests {
             id: IntegrationId(2),
             kind: "a".to_owned(),
             name: "integration name".to_owned(),
+            revoked: false,
             role_id: RoleId(3),
+            subscriber_count: 1337,
             synced_at: "timestamp".to_owned(),
             syncing: false,
             user: User {
@@ -77,7 +83,7 @@ mod tests {
             &[
                 Token::Struct {
                     name: "GuildIntegration",
-                    len: 12,
+                    len: 15,
                 },
                 Token::Str("account"),
                 Token::Struct {
@@ -89,6 +95,8 @@ mod tests {
                 Token::Str("name"),
                 Token::Str("account name"),
                 Token::StructEnd,
+                Token::Str("application"),
+                Token::None,
                 Token::Str("enable_emoticons"),
                 Token::Some,
                 Token::Bool(true),
@@ -107,9 +115,13 @@ mod tests {
                 Token::Str("a"),
                 Token::Str("name"),
                 Token::Str("integration name"),
+                Token::Str("revoked"),
+                Token::Bool(false),
                 Token::Str("role_id"),
                 Token::NewtypeStruct { name: "RoleId" },
                 Token::Str("3"),
+                Token::Str("subscriber_count"),
+                Token::U64(1337),
                 Token::Str("synced_at"),
                 Token::Str("timestamp"),
                 Token::Str("syncing"),
