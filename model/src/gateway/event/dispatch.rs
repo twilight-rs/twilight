@@ -29,6 +29,9 @@ pub enum DispatchEvent {
     GuildEmojisUpdate(GuildEmojisUpdate),
     GuildIntegrationsUpdate(GuildIntegrationsUpdate),
     GuildUpdate(Box<GuildUpdate>),
+    IntegrationCreate(IntegrationCreate),
+    IntegrationDelete(IntegrationDelete),
+    IntegrationUpdate(IntegrationUpdate),
     InviteCreate(Box<InviteCreate>),
     InviteDelete(InviteDelete),
     MemberAdd(Box<MemberAdd>),
@@ -74,6 +77,9 @@ impl DispatchEvent {
             Self::GuildEmojisUpdate(_) => EventType::GuildEmojisUpdate,
             Self::GuildIntegrationsUpdate(_) => EventType::GuildIntegrationsUpdate,
             Self::GuildUpdate(_) => EventType::GuildUpdate,
+            Self::IntegrationCreate(_) => EventType::IntegrationCreate,
+            Self::IntegrationDelete(_) => EventType::IntegrationDelete,
+            Self::IntegrationUpdate(_) => EventType::IntegrationUpdate,
             Self::InviteCreate(_) => EventType::InviteCreate,
             Self::InviteDelete(_) => EventType::InviteDelete,
             Self::MemberAdd(_) => EventType::MemberAdd,
@@ -230,6 +236,15 @@ impl<'de, 'a> DeserializeSeed<'de> for DispatchEventWithTypeDeserializer<'a> {
             }
             "GUILD_UPDATE" => {
                 DispatchEvent::GuildUpdate(Box::new(GuildUpdate::deserialize(deserializer)?))
+            }
+            "INTEGRATION_CREATE" => {
+                DispatchEvent::IntegrationCreate(IntegrationCreate::deserialize(deserializer)?)
+            }
+            "INTEGRATION_DELETE" => {
+                DispatchEvent::IntegrationDelete(IntegrationDelete::deserialize(deserializer)?)
+            }
+            "INTEGRATION_UPDATE" => {
+                DispatchEvent::IntegrationUpdate(IntegrationUpdate::deserialize(deserializer)?)
             }
             "INVITE_CREATE" => {
                 DispatchEvent::InviteCreate(Box::new(InviteCreate::deserialize(deserializer)?))
