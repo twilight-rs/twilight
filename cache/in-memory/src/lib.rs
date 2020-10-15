@@ -747,7 +747,7 @@ impl InMemoryCache {
                     .voice_state_channels
                     .get_mut(&channel_id)
                     .map(|mut channel_voice_states| {
-                        channel_voice_states.remove(dbg!(&(guild_id, user_id)));
+                        channel_voice_states.remove(&(guild_id, user_id));
 
                         channel_voice_states.is_empty()
                     })
