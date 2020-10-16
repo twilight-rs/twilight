@@ -739,9 +739,7 @@ impl InMemoryCache {
 
         // Check if the user is switching channels in the same guild (ie. they already have a voice state entry)
         if let Some(voice_state) = self.0.voice_states.get(&(guild_id, user_id)) {
-            // If the previous voice state existed
             if let Some(channel_id) = voice_state.channel_id {
-                // Remove the mapping if it already exists and check if the voice states are empty
                 let remove_channel_mapping = self
                     .0
                     .voice_state_channels
@@ -753,7 +751,6 @@ impl InMemoryCache {
                     })
                     .unwrap_or_default();
 
-                // Remove the channel mapping if it is empty
                 if remove_channel_mapping {
                     self.0.voice_state_channels.remove(&channel_id);
                 }
@@ -763,7 +760,6 @@ impl InMemoryCache {
         // Check if the voice channel_id does not exist, signifying that the user has left
         if vs.channel_id.is_none() {
             {
-                // Check if the user was the last in the guild after removing them from the guild
                 let remove_guild = self
                     .0
                     .voice_state_guilds
@@ -775,37 +771,29 @@ impl InMemoryCache {
                     })
                     .unwrap_or_default();
 
-                // If the above is true, remove the whole guild from voice_state_guilds
                 if remove_guild {
                     self.0.voice_state_guilds.remove(&guild_id);
                 }
             }
 
-            // Remove the voice state from the global voice states
             let (_, state) = self.0.voice_states.remove(&(guild_id, user_id))?;
 
-            // Return the previous state, we are done here
             return Some(state);
         }
 
-        // Create an arc to the new voice state
         let state = Arc::new(vs);
 
-        // Insert the new voice state into the voice states
         self.0
             .voice_states
             .insert((guild_id, user_id), Arc::clone(&state));
 
-        // Insert the user id into the guild mapping
         self.0
             .voice_state_guilds
             .entry(guild_id)
             .or_default()
             .insert(user_id);
 
-        // If the channel id exists
         if let Some(channel_id) = state.channel_id {
-            // Insert the user id and guild id into the channel mapping
             self.0
                 .voice_state_channels
                 .entry(channel_id)
@@ -813,7 +801,6 @@ impl InMemoryCache {
                 .insert((guild_id, user_id));
         }
 
-        // Return the new, cached state
         Some(state)
     }
 
