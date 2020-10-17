@@ -2,6 +2,16 @@
 
 Changelog for `twilight-cache-inmemory`.
 
+## [0.1.2] - 2020-10-17
+
+### Fixes
+
+Correctly maintain relation sets for guilds. For example, the set of the IDs of
+roles within a guild was not being inserted into with new role
+IDs ([#540] - [@DusterTheFirst])
+
+Correctly update guilds in `GuildUpdate` events ([#553] - [@DusterTheFirst])
+
 ## [0.1.1] - 2020-10-05
 
 ### Added
@@ -12,9 +22,13 @@ Changelog for `twilight-cache-inmemory`.
 
 Initial release.
 
+[@DusterTheFirst]: https://github.com/DusterTheFirst
 [@Erk-]: https://github.com/Erk-
 
+[#553]: https://github.com/twilight-rs/twilight/pull/553
+[#540]: https://github.com/twilight-rs/twilight/pull/540
 [#528]: https://github.com/twilight-rs/twilight/pull/528
 
+[0.1.2]: https://github.com/twilight-rs/twilight/releases/tag/cache-in-memory-v0.1.2
 [0.1.1]: https://github.com/twilight-rs/twilight/releases/tag/cache-in-memory-v0.1.1
 [0.1.0]: https://github.com/twilight-rs/twilight/releases/tag/v0.1.0
