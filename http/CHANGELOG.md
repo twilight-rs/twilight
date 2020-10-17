@@ -2,6 +2,13 @@
 
 Changelog for `twilight-http`.
 
+## [0.2.0-beta.1] - 2020-10-17
+
+### Additions
+
+Implement [Application Integrations][0.2.0-beta.1:app integrations]
+([#549] - [@Erk-])
+
 ## [0.2.0-beta.0] - 2020-10-10
 
 This beta version of major version 0.2 of the crate includes changes needed to
@@ -66,6 +73,7 @@ Initial release.
 [@Erk-]: https://github.com/Erk-
 [@nickelc]: https://github.com/nickelc
 
+[#549]: https://github.com/twilight-rs/twilight/pull/549
 [#534]: https://github.com/twilight-rs/twilight/pull/534
 [#532]: https://github.com/twilight-rs/twilight/pull/532
 [#529]: https://github.com/twilight-rs/twilight/pull/529
@@ -78,6 +86,10 @@ Initial release.
 [#507]: https://github.com/twilight-rs/twilight/pull/507
 [#495]: https://github.com/twilight-rs/twilight/pull/495
 
+
+[0.2.0-beta.1:app integrations]: https://github.com/discord/discord-api-docs/commit/a926694e2f8605848bda6b57d21c8817559e5cec
+
+[0.2.0-beta.1]: https://github.com/twilight-rs/twilight/releases/tag/http-v0.2.0-beta.1
 [0.2.0-beta.0]: https://github.com/twilight-rs/twilight/releases/tag/http-v0.2.0-beta.0
 [0.1.6]: https://github.com/twilight-rs/twilight/releases/tag/http-v0.1.6
 [0.1.5]: https://github.com/twilight-rs/twilight/releases/tag/http-v0.1.5
