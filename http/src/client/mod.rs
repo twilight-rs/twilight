@@ -143,6 +143,11 @@ impl Client {
     }
 
     /// Get the Ratelimiter used by the client internally.
+    ///
+    /// This will return `None` only if ratelimit handling
+    /// has been explicitly disabled in the [`ClientBuilder`].
+    ///
+    /// [`ClientBuilder`]: struct.ClientBuilder.html
     pub fn ratelimiter(&self) -> Option<Ratelimiter> {
         self.state.ratelimiter.clone()
     }
