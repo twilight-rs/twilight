@@ -2,6 +2,11 @@
 
 Changelog for `twilight-lavalink`.
 
+## [0.2.0-beta.0] - 2020-10-10
+
+This major version bump of the Lavalink client is done to match all of the other
+crates in the ecosystem receiving a major version bump. There are no changes.
+
 ## [0.1.1] - 2020-09-20
 
 ### Fixes
@@ -16,5 +21,6 @@ Initial release.
 
 [#518]: https://github.com/twilight-rs/twilight/pull/518
 
+[0.2.0-beta.0]: https://github.com/twilight-rs/twilight/releases/tag/lavalink-v0.2.0-beta.0
 [0.1.1]: https://github.com/twilight-rs/twilight/releases/tag/lavalink-v0.1.1
 [0.1.0]: https://github.com/twilight-rs/twilight/releases/tag/v0.1.0
