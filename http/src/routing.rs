@@ -70,6 +70,8 @@ pub enum Path {
     ChannelsIdMessagesBulkDelete(u64),
     /// Operating on an individual channel's message.
     ChannelsIdMessagesId(Method, u64),
+    /// Crossposting an individual channel's message.
+    ChannelsIdMessagesIdCrosspost(u64),
     /// Operating on an individual channel's message's reactions.
     ChannelsIdMessagesIdReactions(u64),
     /// Operating on an individual channel's message's reactions while
@@ -85,6 +87,8 @@ pub enum Path {
     ChannelsIdTyping(u64),
     /// Operating on a channel's webhooks.
     ChannelsIdWebhooks(u64),
+    /// Operating on a channel's followers
+    ChannelsIdFollowers(u64),
     /// Operating with the gateway information.
     Gateway,
     /// Operating with the gateway information tailored to the current user.
@@ -162,12 +166,16 @@ impl FromStr for Path {
 
         Ok(match parts.as_slice() {
             ["channels", id] => ChannelsId(id.parse()?),
+            ["channels", id, "followers"] => ChannelsIdFollowers(id.parse()?),
             ["channels", id, "invites"] => ChannelsIdInvites(id.parse()?),
             ["channels", id, "messages"] => ChannelsIdMessages(id.parse()?),
             ["channels", id, "messages", _] => {
                 return Err(PathParseError::MessageIdWithoutMethod {
                     channel_id: id.parse()?,
                 });
+            }
+            ["channels", id, "messages", _, "crosspost"] => {
+                ChannelsIdMessagesIdCrosspost(id.parse()?)
             }
             ["channels", id, "messages", _, "reactions"] => {
                 ChannelsIdMessagesIdReactions(id.parse()?)
@@ -325,6 +333,13 @@ pub enum Route {
         /// The ID of the channel.
         channel_id: u64,
     },
+    /// Route information to crosspost a message to following guilds.
+    CrosspostMessage {
+        /// The ID of the channel.
+        channel_id: u64,
+        /// The ID of the message.
+        message_id: u64,
+    },
     /// Route information to delete a ban on a user in a guild.
     DeleteBan {
         /// The ID of the guild.
@@ -431,6 +446,11 @@ pub enum Route {
         wait: Option<bool>,
         /// The ID of the webhook.
         webhook_id: u64,
+    },
+    /// Route information to follow a news channel.
+    FollowNewsChannel {
+        /// The ID of the channel to follow.
+        channel_id: u64,
     },
     /// Route information to get a paginated list of audit logs in a guild.
     GetAuditLogs {
@@ -911,6 +931,14 @@ impl Route {
                 Path::ChannelsIdWebhooks(channel_id),
                 format!("channels/{}/webhooks", channel_id).into(),
             ),
+            Self::CrosspostMessage {
+                channel_id,
+                message_id,
+            } => (
+                Method::POST,
+                Path::ChannelsIdMessagesIdCrosspost(channel_id),
+                format!("channels/{}/messages/{}/crosspost", channel_id, message_id).into(),
+            ),
             Self::DeleteBan { guild_id, user_id } => (
                 Method::DELETE,
                 Path::GuildsIdBansUserId(guild_id),
@@ -1028,6 +1056,11 @@ impl Route {
 
                 (Method::POST, Path::WebhooksId(webhook_id), path.into())
             }
+            Self::FollowNewsChannel { channel_id } => (
+                Method::POST,
+                Path::ChannelsIdFollowers(channel_id),
+                format!("channels/{}/followers", channel_id).into(),
+            ),
             Self::GetAuditLogs {
                 action_type,
                 before,
