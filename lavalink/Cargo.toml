@@ -15,7 +15,7 @@ repository = "https://github.com/twilight-rs/twilight.git"
 version = "0.2.0-beta.0"
 
 [dependencies]
-async-tungstenite = { default-features = false, features = ["tokio-runtime"], version = "0.8" }
+async-tungstenite = { default-features = false, features = ["tokio-runtime"], version = "0.9.3" }
 dashmap = { default-features = false, version = "3" }
 futures-channel = { default-features = false, features = ["std"], version = "0.3" }
 futures-util = { default-features = false, features = ["bilock", "std", "unstable"], version = "0.3" }
@@ -38,4 +38,4 @@ twilight-http = { path = "../http" }
 default = ["http-support", "rustls"]
 http-support = ["http", "percent-encoding"]
 native = ["async-tungstenite/tokio-native-tls"]
-rustls = ["async-tungstenite/async-tls"]
+rustls = ["async-tungstenite/tokio-rustls"]
