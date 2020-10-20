@@ -1,6 +1,15 @@
 use crate::id::{ChannelId, WebhookId};
 use serde::{Deserialize, Serialize};
 
+/// An object indicating that following a news channel
+/// was successful.
+///
+/// It contains the [`ChannelId`] that is being followed
+/// and the [`WebhookId`] that was created in the
+/// target channel.
+///
+/// [`ChannelId`]: ../id/struct.ChannelId.html
+/// [`WebhookId`]: ../id/struct.WebhookId.html
 #[derive(Clone, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
 pub struct FollowedChannel {
     pub channel_id: ChannelId,
