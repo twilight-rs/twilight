@@ -511,6 +511,12 @@ impl InMemoryCache {
             },
         );
 
+        self.0
+            .guild_emojis
+            .entry(guild_id)
+            .or_default()
+            .insert(emoji.id);
+
         cached
     }
 
@@ -1424,7 +1430,7 @@ mod tests {
 
         // Bulk inserts
         {
-            let guild_2_emoji_ids = (10..=20).map(EmojiId).collect::<Vec<_>>();
+            let guild_2_emoji_ids = (11..=20).map(EmojiId).collect::<Vec<_>>();
             let guild_2_emojis = guild_2_emoji_ids
                 .iter()
                 .copied()
