@@ -6,10 +6,12 @@ used.
 
 # Pull Requests
 
-Pull requests should be named with the format `crate: short description of change`, and should use
-lower case letters. Always make a pull request from a new branch, that is named similarly, but with
-only a few words: `crate-short-description`. If adding a feature or enhancement, use the term `add`
-or something sufficiently similar. If fixing a bug, use the term `fix`, or something sufficiently
+Pull requests must be named with the format `crate: short description of change`, and should use
+lower case letters. If the change spans more than one crate, separate the crate names with a comma
+and a space: `crate1, crate2: short description of change`. Always make a pull request from a new
+branch, that is named similarly, but with only a few words: `crate-short-description`, or
+`crate1-crate2-short-description`. If adding a feature or enhancement, use the term `add` or
+something sufficiently similar. If fixing a bug, use the term `fix`, or something sufficiently
 similar. Avoid force-pushing to a pull request branch, as this erases review comment history.
 
 # Labeling
@@ -23,8 +25,8 @@ correctness.
 
 # Merging
 
-Pull requests require two approvals before merging. They must be merged with the name format `crate:
-short description of change`, and they should use lower case letters. The only possible merge option
-is squash and merge. Add the headers `Approved-by`, `Merged-by`, and `Signed-off-by` (the author of
-the pull request) to the end of the merge description. These headers must contain data in the format
-`Name <email@example.com>`, unless that data is not present.
+Pull requests require two approvals before merging. They must be merged with the same name as the
+pull request, and as such must follow the naming rules for pull requests. The only possible merge
+option is squash and merge. Add the headers `Approved-by`, `Merged-by`, and `Signed-off-by` (the
+author of the pull request) to the end of the merge description. These headers must contain data in
+the format `Name <email@example.com>`, unless that data is not present.
