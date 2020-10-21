@@ -16,11 +16,11 @@ similar. Avoid force-pushing to a pull request branch, as this erases review com
 
 # Labeling
 
-If you can, you must label your issues and pull requests appropriately. This includes adding a label
-for each applicable crate, or if the issue/change is project-wide, using `c-all`. `feature`s are new
-additions, and they are distinct from `enhancement`s, which are improvements on existing features.
-`bugfix`es are self-evident. Any change relating to documentation must use the `docs` label. The
-`discord api` label is used for changes that must be verified against the Discord API for
+If you are able, you must label your issues and pull requests appropriately. This includes adding a
+label for each applicable crate, or if the issue/change is project-wide, using `c-all`. `feature`s
+are new additions, and they are distinct from `enhancement`s, which are improvements on existing
+features.  `bugfix`es are self-evident. Any change relating to documentation must use the `docs`
+label. The `discord api` label is used for changes that must be verified against the Discord API for
 correctness.
 
 # Merging
