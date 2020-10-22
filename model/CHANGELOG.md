@@ -2,6 +2,13 @@
 
 Changelog for `twilight-model`.
 
+## [0.2.0-beta.2] - 2020-10-22
+
+### Additions
+
+Add the `channel::FollowedChannel` struct to include support for the Followed
+Channels API feature ([#556] - [@Gelbpunkt]).
+
 ## [0.2.0-beta.1] - 2020-10-17
 
 ### Additions
@@ -74,8 +81,10 @@ Initial release.
 
 [@coadler]: https://github.com/coadler
 [@Erk-]: https://github.com/Erk-
+[@Gelbpunkt]: https://github.com/Gelbpunkt
 [@vivian]: https://github.com/vivian
 
+[#556]: https://github.com/twilight-rs/twilight/pull/556
 [#549]: https://github.com/twilight-rs/twilight/pull/549
 [#532]: https://github.com/twilight-rs/twilight/pull/532
 [#526]: https://github.com/twilight-rs/twilight/pull/526
@@ -85,6 +94,7 @@ Initial release.
 
 [0.2.0-beta.1:app integrations]: https://github.com/discord/discord-api-docs/commit/a926694e2f8605848bda6b57d21c8817559e5cec
 
+[0.2.0-beta.2]: https://github.com/twilight-rs/twilight/releases/tag/model-v0.2.0-beta.2
 [0.2.0-beta.1]: https://github.com/twilight-rs/twilight/releases/tag/model-v0.2.0-beta.1
 [0.2.0-beta.0]: https://github.com/twilight-rs/twilight/releases/tag/model-v0.2.0-beta.0
 [0.1.3]: https://github.com/twilight-rs/twilight/releases/tag/model-v0.1.3
