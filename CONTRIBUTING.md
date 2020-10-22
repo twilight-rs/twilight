@@ -8,11 +8,11 @@ used.
 
 Pull requests must be named with the format `crate: short description of change`, and should use
 lower case letters. If the change spans more than one crate, separate the crate names with a comma
-and a space: `crate1, crate2: short description of change`. Always make a pull request from a new
-branch, that is named similarly, but with only a few words: `crate-short-description`, or
-`crate1-crate2-short-description`. If adding a feature or enhancement, use the term `add` or
-something sufficiently similar. If fixing a bug, use the term `fix`, or something sufficiently
-similar. Avoid force-pushing to a pull request branch, as this erases review comment history.
+and a space: `crate1, crate2: short description of change`. Pull requests must be made from a new
+branch. If a PR is made from the `trunk` branch, it will be denied. If adding a feature or
+enhancement, use the term `add` or something sufficiently similar. If fixing a bug, use the term
+`fix`, or something sufficiently similar. Avoid force-pushing to a pull request branch, as this
+erases review comment history.
 
 # Labeling
 
