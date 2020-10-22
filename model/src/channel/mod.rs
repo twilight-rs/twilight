@@ -6,6 +6,7 @@ mod attachment;
 mod category_channel;
 mod channel_mention;
 mod channel_type;
+mod followed_channel;
 mod group;
 mod private_channel;
 mod reaction;
@@ -17,9 +18,10 @@ mod webhook_type;
 
 pub use self::{
     attachment::Attachment, category_channel::CategoryChannel, channel_mention::ChannelMention,
-    channel_type::ChannelType, group::Group, message::Message, private_channel::PrivateChannel,
-    reaction::Reaction, reaction_type::ReactionType, text_channel::TextChannel,
-    voice_channel::VoiceChannel, webhook::Webhook, webhook_type::WebhookType,
+    channel_type::ChannelType, followed_channel::FollowedChannel, group::Group, message::Message,
+    private_channel::PrivateChannel, reaction::Reaction, reaction_type::ReactionType,
+    text_channel::TextChannel, voice_channel::VoiceChannel, webhook::Webhook,
+    webhook_type::WebhookType,
 };
 
 use crate::id::{ChannelId, GuildId, MessageId};

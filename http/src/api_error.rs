@@ -87,6 +87,8 @@ pub enum ErrorCode {
     FeatureTemporarilyDisabled,
     /// The user is banned from this guild
     UserBannedFromGuild,
+    /// This message has already been crossposted
+    MessageAlreadyCrossposted,
     /// Missing access
     Missingaccess,
     /// Invalid account type
@@ -188,6 +190,7 @@ impl ErrorCode {
             Self::RequestEntityTooLarge => 40005,
             Self::FeatureTemporarilyDisabled => 40006,
             Self::UserBannedFromGuild => 40007,
+            Self::MessageAlreadyCrossposted => 40033,
             Self::Missingaccess => 50001,
             Self::InvalidAccountType => 50002,
             Self::InvalidDMChannelAction => 50003,
@@ -262,6 +265,7 @@ impl From<u64> for ErrorCode {
             40005 => Self::RequestEntityTooLarge,
             40006 => Self::FeatureTemporarilyDisabled,
             40007 => Self::UserBannedFromGuild,
+            40033 => Self::MessageAlreadyCrossposted,
             50001 => Self::Missingaccess,
             50002 => Self::InvalidAccountType,
             50003 => Self::InvalidDMChannelAction,
@@ -336,6 +340,7 @@ impl Display for ErrorCode {
             Self::RequestEntityTooLarge => f.write_str("Request entity too large. Try sending something smaller in size"),
             Self::FeatureTemporarilyDisabled => f.write_str("This feature has been temporarily disabled server-side"),
             Self::UserBannedFromGuild => f.write_str("The user is banned from this guild"),
+            Self::MessageAlreadyCrossposted => f.write_str("This message has already been crossposted"),
             Self::Missingaccess => f.write_str("Missing access"),
             Self::InvalidAccountType => f.write_str("Invalid account type"),
             Self::InvalidDMChannelAction => f.write_str("Cannot execute action on a DM channel"),
