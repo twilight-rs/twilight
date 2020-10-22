@@ -874,9 +874,8 @@ mod tests {
     use twilight_model::{
         channel::{ChannelType, GuildChannel, TextChannel},
         gateway::payload::{MemberRemove, RoleDelete},
-        guild::Emoji,
         guild::{
-            DefaultMessageNotificationLevel, ExplicitContentFilter, Guild, Member, MfaLevel,
+            DefaultMessageNotificationLevel, Emoji, ExplicitContentFilter, Guild, Member, MfaLevel,
             Permissions, PremiumTier, Role, SystemChannelFlags, VerificationLevel,
         },
         id::{ChannelId, EmojiId, GuildId, RoleId, UserId},
@@ -1413,17 +1412,17 @@ mod tests {
                 cache.cache_emoji(GuildId(1), emoji);
             }
 
-            // Check for the emoji in the global cache
             for id in guild_1_emoji_ids.iter().cloned() {
                 let global_emoji = cache.emoji(id);
                 assert!(global_emoji.is_some());
             }
 
-            // Check for the emoji in the per-guild cache
+            // Ensure the emoji has been added to the per-guild lookup map to prevent
+            // issues like #551 from returning
             let guild_emojis = cache.guild_emojis(GuildId(1));
-
             assert!(guild_emojis.is_some());
             let guild_emojis = guild_emojis.unwrap();
+
             assert_eq!(guild_1_emoji_ids.len(), guild_emojis.len());
             assert!(guild_1_emoji_ids.iter().all(|id| guild_emojis.contains(id)));
         }
@@ -1438,13 +1437,11 @@ mod tests {
                 .collect::<Vec<_>>();
             cache.cache_emojis(GuildId(2), guild_2_emojis);
 
-            // Check for the emoji in the global cache
             for id in guild_2_emoji_ids.iter().cloned() {
                 let global_emoji = cache.emoji(id);
                 assert!(global_emoji.is_some());
             }
 
-            // Check for the emoji in the per-guild cache
             let guild_emojis = cache.guild_emojis(GuildId(2));
 
             assert!(guild_emojis.is_some());
