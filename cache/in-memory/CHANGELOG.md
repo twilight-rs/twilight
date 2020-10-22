@@ -2,9 +2,16 @@
 
 Changelog for `twilight-cache-inmemory`.
 
+## [0.2.0-beta.2] - 2020-10-22
+
+### Fixes
+
+Fix voice state map retaining user states, causing false duplicate voice states
+for a single user ([#555] - [@DusterTheFirst]).
+
 ## [0.2.0-beta.1] - 2020-10-17
 
-Fixes
+### Fixes
 
 Correctly maintain relation sets for guilds. For example, the set of
 the IDs of roles within a guild was not being inserted into with new
@@ -41,11 +48,13 @@ Initial release.
 [@DusterTheFirst]: https://github.com/DusterTheFirst
 [@Erk-]: https://github.com/Erk-
 
+[#555]: https://github.com/twilight-rs/twilight/pull/555
 [#553]: https://github.com/twilight-rs/twilight/pull/553
 [#540]: https://github.com/twilight-rs/twilight/pull/540
 [#532]: https://github.com/twilight-rs/twilight/pull/532
 [#528]: https://github.com/twilight-rs/twilight/pull/528
 
+[0.2.0-beta.2]: https://github.com/twilight-rs/twilight/releases/tag/cache-in-memory-v0.2.0-beta.2
 [0.2.0-beta.1]: https://github.com/twilight-rs/twilight/releases/tag/cache-in-memory-v0.2.0-beta.1
 [0.2.0-beta.0]: https://github.com/twilight-rs/twilight/releases/tag/cache-in-memory-v0.2.0-beta.0
 [0.1.1]: https://github.com/twilight-rs/twilight/releases/tag/cache-in-memory-v0.1.1
