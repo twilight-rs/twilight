@@ -327,6 +327,20 @@ impl Client {
         UpdateChannel::new(self, channel_id)
     }
 
+    /// Follows a news channel by [`ChannelId`].
+    ///
+    /// The type returned is [`FollowedChannel`].
+    ///
+    /// [`ChannelId`]: ../../twilight_model/id/struct.ChannelId.html
+    /// [`FollowedChannel`]: ../../twilight_model/channel/followed_channel.html#struct.FollowedChannel
+    pub fn follow_news_channel(
+        &self,
+        channel_id: ChannelId,
+        webhook_channel_id: ChannelId,
+    ) -> FollowNewsChannel<'_> {
+        FollowNewsChannel::new(self, channel_id, webhook_channel_id)
+    }
+
     /// Get the invites for a guild channel.
     ///
     /// This method only works if the channel is of type `GuildChannel`.
@@ -1052,6 +1066,18 @@ impl Client {
         message_id: MessageId,
     ) -> UpdateMessage<'_> {
         UpdateMessage::new(self, channel_id, message_id)
+    }
+
+    /// Crosspost a message by [`ChannelId`] and [`MessageId`].
+    ///
+    /// [`ChannelId`]: ../../twilight_model/id/struct.ChannelId.html
+    /// [`MessageId`]: ../../twilight_model/id/struct.MessageId.html
+    pub fn crosspost_message(
+        &self,
+        channel_id: ChannelId,
+        message_id: MessageId,
+    ) -> CrosspostMessage<'_> {
+        CrosspostMessage::new(self, channel_id, message_id)
     }
 
     /// Get the pins of a channel.
