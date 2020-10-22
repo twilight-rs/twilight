@@ -2,7 +2,20 @@
 
 Issues have three types: bug, feature request, and support. When reporting a bug, you must include
 the operating system used, any relevant information about the tech stack, and the feature flags
-used. 
+used. Feature request issues should answer these questions: 
+
+```
+## What would you like implemented? What do you want that Twilight lacks?
+
+## What use case does this request address? This should be more than a single project's use case.
+
+## Are you willing to help towards contributing this feature?
+
+## Is there any other information that we should know?
+```
+
+Before making a support issue or bug report, be sure to consider joining the
+[Discord](https://discord.gg/7jj8n7D) and bringing up your topic in the #support channel.
 
 # Pull Requests
 
