@@ -2,6 +2,34 @@
 
 Changelog for `twilight-http`.
 
+## [0.1.7] - 2020-10-22
+
+### Additions
+
+Add support for the Followed Channels API feature ([#556] - [@Gelbpunkt]):
+
+- `api_error::ErrorCode::MessageAlreadyCrossposted` error type (40033)
+- `Client::follow_news_channel` method to follow a news channel accompanied by
+  its `request::channel::follow_news_channel` request
+- `Client::crosspost_message` method to crosspost a message accompanied by its
+  `request::channel::message::crosspost_message` request
+- `routing::Path::ChannelsIdMessagesIdCrosspost` API path variant to crosspost a
+  channel message
+- `routing::Path::ChannelsIdFollowers` API path variant to operate on a news
+  channel's followers
+- `routing::Route::CrosspostMessage` to retrieve the route to crosspost a
+  channel message
+- `routing::Route::FollowNewsChannel` to retrieve the route to follow a channel
+  message
+
+### Fixes
+
+The Future output type of the
+`request::user::get_current_user_guilds::GetCurrentUserGuilds` request has been
+changed from `PartialGuild` to a new, slimmed down partial guild struct when
+listing the current user's guilds. This is a breaking change, but due to being
+a bugfix is included in a patch version ([#550] - [@DusterTheFirst]).
+
 ## [0.1.6] - 2020-10-05
 
 ### Fixes
@@ -52,9 +80,13 @@ Initial release.
 [@7596ff]: https://github.com/7596ff
 [@AEnterprise]: https://github.com/AEnterprise
 [@coadler]: https://github.com/coadler
+[@DusterTheFirst]: https://github.com/DusterTheFirst
 [@Erk-]: https://github.com/Erk-
+[@Gelbpunkt]: https://github.com/Gelbpunkt
 [@nickelc]: https://github.com/nickelc
 
+[#556]: https://github.com/twilight-rs/twilight/pull/556
+[#550]: https://github.com/twilight-rs/twilight/pull/550
 [#534]: https://github.com/twilight-rs/twilight/pull/534
 [#529]: https://github.com/twilight-rs/twilight/pull/529
 [#522]: https://github.com/twilight-rs/twilight/pull/522
@@ -66,6 +98,7 @@ Initial release.
 [#507]: https://github.com/twilight-rs/twilight/pull/507
 [#495]: https://github.com/twilight-rs/twilight/pull/495
 
+[0.1.7]: https://github.com/twilight-rs/twilight/releases/tag/http-v0.1.7
 [0.1.6]: https://github.com/twilight-rs/twilight/releases/tag/http-v0.1.6
 [0.1.5]: https://github.com/twilight-rs/twilight/releases/tag/http-v0.1.5
 [0.1.4]: https://github.com/twilight-rs/twilight/releases/tag/http-v0.1.4
