@@ -89,7 +89,7 @@ impl ClientBuilder {
     /// The proxy and timeout settings in the reqwest client will be overridden by
     /// those in this builder.
     ///
-    /// The default client is a RusTLS-backed client.
+    /// The default client uses Rustls as its TLS backend.
     pub fn reqwest_client(mut self, client: ReqwestClientBuilder) -> Self {
         self.reqwest_client.replace(client);
 
