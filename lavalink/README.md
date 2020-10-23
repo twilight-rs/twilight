@@ -42,7 +42,7 @@ twilight-lavalink = { default-features = false, features = ["native"], version =
 
 #### `rustls`
 
-The `rustls` feature enables [`async-tungstenite`]'s `async-tls` feature, which
+The `rustls` feature enables [`async-tungstenite`]'s `tokio-rustls` feature, which
 use [`rustls`] as the TLS backend.
 
 This is enabled by default.
