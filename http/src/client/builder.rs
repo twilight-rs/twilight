@@ -4,10 +4,10 @@ use crate::{
     ratelimiting::Ratelimiter,
     request::channel::message::allowed_mentions::AllowedMentions,
 };
-use reqwest::{Client as ReqwestClient, ClientBuilder as ReqwestClientBuilder, Proxy};
+use reqwest::{ClientBuilder as ReqwestClientBuilder, Proxy};
 use std::{sync::Arc, time::Duration};
 
-#[derive(Clone, Debug)]
+#[derive(Debug)]
 /// A builder for [`Client`].
 ///
 /// [`Client`]: struct.Client.html
@@ -16,7 +16,7 @@ pub struct ClientBuilder {
     pub(crate) proxy: Option<Proxy>,
     pub(crate) proxy_http: bool,
     pub(crate) ratelimiter: Option<Ratelimiter>,
-    pub(crate) reqwest_client: Option<ReqwestClient>,
+    pub(crate) reqwest_client: Option<ReqwestClientBuilder>,
     pub(crate) timeout: Duration,
     pub(crate) token: Option<String>,
 }
@@ -37,7 +37,9 @@ impl ClientBuilder {
     ///
     /// [`Client`]: struct.Client.html
     pub fn build(self) -> Result<Client> {
-        let mut builder = ReqwestClientBuilder::new().timeout(self.timeout);
+        let mut builder = self.reqwest_client
+            .unwrap_or_else(|| ReqwestClientBuilder::new())
+            .timeout(self.timeout);
 
         if let Some(proxy) = self.proxy {
             builder = builder.proxy(proxy)
@@ -82,13 +84,13 @@ impl ClientBuilder {
         self
     }
 
-    /// Set the reqwest client to use.
+    /// Set a pre-configured reqwest client builder to build off of
     ///
-    /// All of the settings in the client will be overwritten by the settings
-    /// in this configuration, if specified.
+    /// The proxy and timeout settings in the reqwest client will be overridden by
+    /// those in this builder
     ///
     /// The default client is a RusTLS-backed client.
-    pub fn reqwest_client(mut self, client: ReqwestClient) -> Self {
+    pub fn reqwest_client(mut self, client: ReqwestClientBuilder) -> Self {
         self.reqwest_client.replace(client);
 
         self
