@@ -37,8 +37,9 @@ impl ClientBuilder {
     ///
     /// [`Client`]: struct.Client.html
     pub fn build(self) -> Result<Client> {
-        let mut builder = self.reqwest_client
-            .unwrap_or_else(|| ReqwestClientBuilder::new())
+        let mut builder = self
+            .reqwest_client
+            .unwrap_or_else(ReqwestClientBuilder::new)
             .timeout(self.timeout);
 
         if let Some(proxy) = self.proxy {
