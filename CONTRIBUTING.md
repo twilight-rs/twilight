@@ -2,17 +2,11 @@
 
 Issues have three types: bug, feature request, and support. When reporting a bug, you must include
 the operating system used, any relevant information about the tech stack, and the feature flags
-used. Feature request issues should answer these questions: 
-
-```
-- What would you like implemented? What do you want that Twilight lacks?
-- What use case does this request address? This should be more than a single project's use case.
-- Are you willing to help towards contributing this feature?
-- Is there any other information that we should know?
-```
-
-Before making a support issue or bug report, be sure to consider joining the
-[Discord](https://discord.gg/7jj8n7D) and bringing up your topic in the #support channel.
+used, as specified in the issue template. Feature requests also have an issue template, containing
+questions that should be answered in the issue. We aim for 100% coverage of the Discord API; we will
+wait until a new feature is supported in the [Discord API documentation] before adding its support
+to Twilight. Before making an issue, be sure to consider joining the [Twilight Discord] and bringing
+up your topic in the `#support` channel.
 
 # Pull Requests
 
@@ -28,7 +22,9 @@ Contributors should add tests and documentation that reflects their changes.
 
 ## Tests
 
-// TODO
+Contributors should write tests to ensure soundness in present and future code. Alongside regular
+test, when `model` structs are involved, you can use `serde_test`. To ensure structs implement the
+correct traits, use `static_assertions`.
 
 ## Documentation
 
@@ -75,5 +71,12 @@ correctness.
 
 # Merging
 
-Pull requests require two approvals before merging. The commit must be named with the format
-`{pr name} (#{pr number})`. The only possible merge option is squash and merge.
+Pull requests require two approvals before merging. The only possible merge option is squash and
+merge. The commit must be named with the format `{pr name} (#{pr number})`. When merging, add
+headers to the commit message that show who approved, merge, and authored the commit. The header
+`Signed-off-by` is used to specify the author. Refer to [this example commit] for proper formatting.
+Contributors can use the `-s` flag on `git commit` to automatically sign off their commits.
+
+[Discord API documentation]: https://github.com/discord/discord-api-docs
+[Twilight Discord]: https://discord.gg/7jj8n7D
+[this example commit]: https://github.com/twilight-rs/twilight/commit/bbab4a39769eac9f7f2d3878184f518a95645966
