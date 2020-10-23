@@ -65,7 +65,7 @@
 //!
 //! #### `rustls`
 //!
-//! The `rustls` feature enables [`async-tungstenite`]'s `async-tls` feature and
+//! The `rustls` feature enables [`async-tungstenite`]'s `tokio-rustls` feature and
 //! [`twilight-http`]'s `rustls` feature, which use [`rustls`] as the TLS backend.
 //!
 //! This is enabled by default.
