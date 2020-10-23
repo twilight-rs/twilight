@@ -84,7 +84,7 @@ impl ClientBuilder {
         self
     }
 
-    /// Set a pre-configured reqwest client builder to build off of
+    /// Set a pre-configured reqwest client builder to build off of.
     ///
     /// The proxy and timeout settings in the reqwest client will be overridden by
     /// those in this builder
