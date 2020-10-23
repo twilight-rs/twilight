@@ -486,10 +486,12 @@ impl InMemoryCache {
             Some(e) if *e.data == emoji => return Arc::clone(&e.data),
             Some(_) | None => {}
         }
+
         let user = match emoji.user {
             Some(u) => Some(self.cache_user(u, guild_id)),
             None => None,
         };
+
         let cached = Arc::new(CachedEmoji {
             id: emoji.id,
             animated: emoji.animated,
@@ -500,6 +502,7 @@ impl InMemoryCache {
             user,
             available: emoji.available,
         });
+
         self.0.emojis.insert(
             cached.id,
             GuildItem {
@@ -507,6 +510,13 @@ impl InMemoryCache {
                 guild_id,
             },
         );
+
+        self.0
+            .guild_emojis
+            .entry(guild_id)
+            .or_default()
+            .insert(emoji.id);
+
         cached
     }
 
@@ -865,10 +875,10 @@ mod tests {
         channel::{ChannelType, GuildChannel, TextChannel},
         gateway::payload::{MemberRemove, RoleDelete},
         guild::{
-            DefaultMessageNotificationLevel, ExplicitContentFilter, Guild, Member, MfaLevel,
+            DefaultMessageNotificationLevel, Emoji, ExplicitContentFilter, Guild, Member, MfaLevel,
             Permissions, PremiumTier, Role, SystemChannelFlags, VerificationLevel,
         },
-        id::{ChannelId, GuildId, RoleId, UserId},
+        id::{ChannelId, EmojiId, GuildId, RoleId, UserId},
         user::{CurrentUser, User},
         voice::VoiceState,
     };
@@ -883,6 +893,19 @@ mod tests {
             mfa_enabled: true,
             name: "test".to_owned(),
             verified: true,
+        }
+    }
+
+    fn emoji(id: EmojiId, user: Option<User>) -> Emoji {
+        Emoji {
+            animated: false,
+            available: true,
+            id,
+            managed: false,
+            name: "test".to_owned(),
+            require_colons: true,
+            roles: Vec::new(),
+            user,
         }
     }
 
@@ -1359,6 +1382,72 @@ mod tests {
 
             // Check for the cached users
             assert!(guild_2_user_ids.iter().all(|id| cache.user(*id).is_some()));
+        }
+    }
+
+    #[test]
+    fn test_cache_emoji() {
+        let cache = InMemoryCache::new();
+
+        // The user to do some of the inserts
+        fn user_mod(id: EmojiId) -> Option<User> {
+            if id.0 % 2 == 0 {
+                // Only use user for half
+                Some(user(UserId(1)))
+            } else {
+                None
+            }
+        }
+
+        // Single inserts
+        {
+            let guild_1_emoji_ids = (1..=10).map(EmojiId).collect::<Vec<_>>();
+            let guild_1_emoji = guild_1_emoji_ids
+                .iter()
+                .copied()
+                .map(|id| emoji(id, user_mod(id)))
+                .collect::<Vec<_>>();
+
+            for emoji in guild_1_emoji {
+                cache.cache_emoji(GuildId(1), emoji);
+            }
+
+            for id in guild_1_emoji_ids.iter().cloned() {
+                let global_emoji = cache.emoji(id);
+                assert!(global_emoji.is_some());
+            }
+
+            // Ensure the emoji has been added to the per-guild lookup map to prevent
+            // issues like #551 from returning
+            let guild_emojis = cache.guild_emojis(GuildId(1));
+            assert!(guild_emojis.is_some());
+            let guild_emojis = guild_emojis.unwrap();
+
+            assert_eq!(guild_1_emoji_ids.len(), guild_emojis.len());
+            assert!(guild_1_emoji_ids.iter().all(|id| guild_emojis.contains(id)));
+        }
+
+        // Bulk inserts
+        {
+            let guild_2_emoji_ids = (11..=20).map(EmojiId).collect::<Vec<_>>();
+            let guild_2_emojis = guild_2_emoji_ids
+                .iter()
+                .copied()
+                .map(|id| emoji(id, user_mod(id)))
+                .collect::<Vec<_>>();
+            cache.cache_emojis(GuildId(2), guild_2_emojis);
+
+            for id in guild_2_emoji_ids.iter().cloned() {
+                let global_emoji = cache.emoji(id);
+                assert!(global_emoji.is_some());
+            }
+
+            let guild_emojis = cache.guild_emojis(GuildId(2));
+
+            assert!(guild_emojis.is_some());
+            let guild_emojis = guild_emojis.unwrap();
+            assert_eq!(guild_2_emoji_ids.len(), guild_emojis.len());
+            assert!(guild_2_emoji_ids.iter().all(|id| guild_emojis.contains(id)));
         }
     }
 }
