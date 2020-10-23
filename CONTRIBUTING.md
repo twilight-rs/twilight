@@ -74,8 +74,9 @@ correctness.
 Pull requests require two approvals before merging. The only possible merge option is squash and
 merge. The commit must be named with the format `{pr name} (#{pr number})`. When merging, add
 headers to the commit message that show who approved, merge, and authored the commit. The header
-`Signed-off-by` is used to specify the author. Refer to [this example commit] for proper formatting.
-Contributors can use the `-s` flag on `git commit` to automatically sign off their commits.
+`Signed-off-by` is used to specify the commit author. Refer to [this example commit] for proper
+formatting.  Contributors can use the `-s` flag on `git commit` to automatically sign off their
+commits.
 
 [Discord API documentation]: https://github.com/discord/discord-api-docs
 [Twilight Discord]: https://discord.gg/7jj8n7D
