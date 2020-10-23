@@ -2,6 +2,14 @@
 
 Changelog for `twilight-gateway`.
 
+## [0.2.0-beta.1] - 2020-10-23
+
+### Enhancements
+
+Update `async-tungstenite` from ^0.8 to ^0.9.3, switching the RusTLS feature
+selection from `async-tungstenite/async-tls` to `async-tungstenite/tokio-rustls`
+to reduce dependency count ([#548] - [@nickelc]).
+
 ## [0.2.0-beta.0] - 2020-10-10
 
 This beta version of major version 0.2 of the crate includes changes needed to
@@ -58,12 +66,14 @@ Initial release.
 [@nickelc]: https://github.com/nickelc
 [@vivian]: https://github.com/vivian
 
+[#548]: https://github.com/twilight-rs/twilight/pull/548
 [#537]: https://github.com/twilight-rs/twilight/pull/537
 [#532]: https://github.com/twilight-rs/twilight/pull/532
 [#521]: https://github.com/twilight-rs/twilight/pull/521
 [#515]: https://github.com/twilight-rs/twilight/pull/515
 [#512]: https://github.com/twilight-rs/twilight/pull/512
 
+[0.2.0-beta.1]: https://github.com/twilight-rs/twilight/releases/tag/gateway-v0.2.0-beta.1
 [0.2.0-beta.0]: https://github.com/twilight-rs/twilight/releases/tag/gateway-v0.2.0-beta.0
 [0.1.3]: https://github.com/twilight-rs/twilight/releases/tag/gateway-v0.1.3
 [0.1.2]: https://github.com/twilight-rs/twilight/releases/tag/gateway-v0.1.2
