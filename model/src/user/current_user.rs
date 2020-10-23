@@ -20,7 +20,7 @@ pub struct CurrentUser {
     pub mfa_enabled: bool,
     #[serde(rename = "username")]
     pub name: String,
-    pub verified: bool,
+    pub verified: Option<bool>,
 }
 
 #[cfg(test)]
