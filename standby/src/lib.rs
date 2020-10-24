@@ -1015,6 +1015,8 @@ mod tests {
                 verified: false,
                 premium_type: None,
                 public_flags: None,
+                flags: None,
+                locale: None,
             },
             version: 6,
         };

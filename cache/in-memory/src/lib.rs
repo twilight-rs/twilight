@@ -895,6 +895,8 @@ mod tests {
             verified: true,
             premium_type: None,
             public_flags: None,
+            flags: None,
+            locale: None,
         }
     }
 
