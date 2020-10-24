@@ -22,9 +22,43 @@ Contributors should add tests and documentation that reflects their changes.
 
 ## Tests
 
-Contributors should write tests to ensure soundness in present and future code. Alongside regular
-test, when `model` structs are involved, you can use `serde_test`. To ensure structs implement the
-correct traits, use `static_assertions`.
+Feature and bugfix commits must always include unit tests to ensure the correctness of the relevant
+feature and prevent breakage. Enhancements to existing features without tests should include new
+unit tests, especially when the implementation of something is being modified.
+
+Public API types must be tested with the [`static_assertions`] crate.  `static_assertion`'s
+`assert_fields`, `assert_impl_all`, and `assert_obj_safe` functionality are notable. Asserting the
+implementation of `Send` and `Sync` are of particular importance.
+
+An example of assertions on an Enum may look like this:
+
+```rust
+#[derive(Clone, Copy, Debug)]
+pub enum PublicEnumType {
+    Foo {
+        bar: u64,
+    },
+    Baz {
+        qux: i64,
+        quz: bool,
+    },
+}
+
+#[cfg(test)]
+mod tests {
+    use super::PublicEnumType;
+    use static_assertions::{assert_fields, assert_impl_all};
+
+    assert_fields!(PublicEnumType::Foo: bar);
+    assert_fields!(PublicEnumType::Baz: qux, quz);
+    assert_impl_all!(PublicEnumType: Clone, Copy, Debug, Send, Sync);
+}
+```
+
+Tests should be concise and non-repetitive: a function doesn't need to be tested with different
+inputs multiple times if variance in the input doesn't affect the functionality. The logic of a code
+path only needs to be uniquely tested once; testing the same conditions multiple times has no
+benefit.
 
 ## Documentation
 
@@ -60,6 +94,9 @@ impl Structy {
 }
 ```
 
+Examples of other documentation can be found throughout the project. There isn't an exact standard,
+but changes that are needed will be requested, on a path towards eventual consistency.
+
 # Labeling
 
 If you are able, you must label your issues and pull requests appropriately. This includes adding a
@@ -73,10 +110,10 @@ correctness.
 
 Pull requests require two approvals before merging. The only possible merge option is squash and
 merge. The commit must be named with the format `{pr name} (#{pr number})`. When merging, add
-headers to the commit message that show who approved, merge, and authored the commit. The header
-`Signed-off-by` is used to specify the commit author. Refer to [this example commit] for proper
-formatting.  Contributors can use the `-s` flag on `git commit` to automatically sign off their
-commits.
+headers to the commit message that show who approved, merge, and authored the commit. The
+`Approved-by` and `Merged-by` headers are self-evident. The header `Signed-off-by` is used to
+specify the commit author. Refer to [this example commit] for proper formatting.  Contributors can
+use the `-s` flag on `git commit` to automatically sign off their commits.
 
 [Discord API documentation]: https://github.com/discord/discord-api-docs
 [Twilight Discord]: https://discord.gg/7jj8n7D
