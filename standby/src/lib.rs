@@ -1013,6 +1013,8 @@ mod tests {
                 mfa_enabled: true,
                 name: "twilight".to_owned(),
                 verified: false,
+                premium_type: None,
+                public_flags: None,
             },
             version: 6,
         };

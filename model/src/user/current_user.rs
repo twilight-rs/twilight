@@ -1,3 +1,4 @@
+use super::{PremiumType, UserFlags};
 use crate::id::UserId;
 use serde::{Deserialize, Serialize};
 
@@ -20,19 +21,23 @@ pub struct CurrentUser {
     pub mfa_enabled: bool,
     #[serde(rename = "username")]
     pub name: String,
+    /// Type of Nitro subscription on a user's account
+    pub premium_type: Option<PremiumType>,
+    /// Public flags on a user's account
+    pub public_flags: Option<UserFlags>,
     pub verified: bool,
 }
 
 #[cfg(test)]
 mod tests {
-    use super::{CurrentUser, UserId};
+    use super::{CurrentUser, PremiumType, UserFlags, UserId};
     use serde_test::Token;
 
     fn user_tokens(discriminator_token: Token) -> Vec<Token> {
         vec![
             Token::Struct {
                 name: "CurrentUser",
-                len: 8,
+                len: 10,
             },
             Token::Str("avatar"),
             Token::Some,
@@ -50,6 +55,12 @@ mod tests {
             Token::Bool(true),
             Token::Str("username"),
             Token::Str("test name"),
+            Token::Str("premium_type"),
+            Token::Some,
+            Token::U8(1),
+            Token::Str("public_flags"),
+            Token::Some,
+            Token::U64(1),
             Token::Str("verified"),
             Token::Bool(true),
             Token::StructEnd,
@@ -67,6 +78,8 @@ mod tests {
             mfa_enabled: true,
             name: "test name".to_owned(),
             verified: true,
+            premium_type: Some(PremiumType::NitroClassic),
+            public_flags: Some(UserFlags::DISCORD_EMPLOYEE),
         };
 
         // Deserializing a current user with a string discriminator (which
