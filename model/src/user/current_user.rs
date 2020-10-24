@@ -4,10 +4,10 @@ use serde::{Deserialize, Serialize};
 
 #[derive(Clone, Default, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
 pub struct CurrentUser {
-    /// User's avatar hash
+    /// User's avatar hash.
     ///
     /// To retrieve the url to the avatar, you can follow [Discord's documentation] on
-    /// Image formatting
+    /// Image formatting.
     ///
     /// [Discord's documentation]: https://discord.com/developers/docs/reference#image-formatting
     pub avatar: Option<String>,
@@ -23,22 +23,22 @@ pub struct CurrentUser {
     /// the type Discord's API uses.
     #[serde(with = "super::discriminator")]
     pub discriminator: String,
-    /// User's email address associated to the account
+    /// User's email address associated to the account.
     ///
     /// Requires the `email` oauth scope. See [Discord's documentation] for
-    /// more information
+    /// more information.
     ///
     /// [Discord's documentation]: https://discord.com/developers/docs/resources/user#user-object-user-structure
     pub email: Option<String>,
-    /// All flags on a user's account
+    /// All flags on a user's account.
     pub flags: Option<UserFlags>,
-    /// User's id
+    /// User's id.
     pub id: UserId,
     /// User's chosen language option.
     pub locale: Option<String>,
-    /// Whether the user has two factor enabled on their account
+    /// Whether the user has two factor enabled on their account.
     pub mfa_enabled: bool,
-    /// User's username, not unique across the platform
+    /// User's username, not unique across the platform.
     #[serde(rename = "username")]
     pub name: String,
     /// Type of Nitro subscription on a user's account.
