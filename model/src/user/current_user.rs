@@ -20,6 +20,12 @@ pub struct CurrentUser {
     pub mfa_enabled: bool,
     #[serde(rename = "username")]
     pub name: String,
+    /// Whether the email on this account has been verified.
+    ///
+    /// Requires the `email` oauth scope. See [Discord's documentation] for
+    /// more information.
+    ///
+    /// [Discord's documentation]: https://discord.com/developers/docs/resources/user#user-object-user-structure
     pub verified: Option<bool>,
 }
 
