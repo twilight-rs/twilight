@@ -1012,7 +1012,7 @@ mod tests {
                 id: UserId(1),
                 mfa_enabled: true,
                 name: "twilight".to_owned(),
-                verified: false,
+                verified: Some(false),
             },
             version: 6,
         };

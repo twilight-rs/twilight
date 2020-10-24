@@ -51,6 +51,7 @@ mod tests {
             Token::Str("username"),
             Token::Str("test name"),
             Token::Str("verified"),
+            Token::Some,
             Token::Bool(true),
             Token::StructEnd,
         ]
@@ -66,7 +67,7 @@ mod tests {
             id: UserId(1),
             mfa_enabled: true,
             name: "test name".to_owned(),
-            verified: true,
+            verified: Some(true),
         };
 
         // Deserializing a current user with a string discriminator (which
