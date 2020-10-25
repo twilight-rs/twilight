@@ -12,7 +12,7 @@ use twilight_model::gateway::{payload::update_status::UpdateStatusInfo, Intents}
 #[derive(Clone, Debug)]
 pub struct Config {
     pub(crate) gateway_url: Option<String>,
-    pub(super) http_client: Client,
+    pub(crate) http_client: Client,
     pub(super) intents: Intents,
     pub(super) large_threshold: u64,
     pub(super) presence: Option<UpdateStatusInfo>,

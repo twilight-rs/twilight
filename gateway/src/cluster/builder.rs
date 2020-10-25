@@ -180,7 +180,7 @@ impl ClusterBuilder {
     /// [`ClusterStartError::RetrievingGatewayInfo`]: enum.ClusterStartError.html#variant.RetrievingGatewayInfo
     pub async fn build(mut self) -> Result<Cluster, ClusterStartError> {
         if self.0.shard_config.gateway_url.is_none() {
-            let gateway_url = self
+            let gateway_url = (self.1)
                 .0
                 .http_client
                 .gateway()
@@ -188,12 +188,20 @@ impl ClusterBuilder {
                 .await
                 .ok()
                 .map(|s| s.url);
-            self.0.shard_config = (self.1).gateway_url(gateway_url).0;
-        } else {
-            self.0.shard_config = (self.1).0;
+
+            self = self.gateway_url(gateway_url);
         }
 
+        self.0.shard_config = (self.1).0;
+
         Cluster::new_with_config(self.0).await
+    }
+
+    /// Set the URL that will be used to connect to the gateway.
+    pub fn gateway_url(mut self, gateway_url: Option<String>) -> Self {
+        self.1 = self.1.gateway_url(gateway_url);
+
+        self
     }
 
     /// Set the `twilight_http` Client used by the cluster and the shards it
