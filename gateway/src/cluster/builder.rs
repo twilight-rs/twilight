@@ -153,10 +153,15 @@ impl ClusterBuilder {
             token.insert_str(0, "Bot ");
         }
 
+        let http_client = Client::new(token.clone());
+
+        let shard_config =
+            ShardBuilder::new(token.clone(), intents).http_client(http_client.clone());
+
         Self(
             ClusterConfig {
-                http_client: Client::new(token.clone()),
-                shard_config: ShardBuilder::new(token.clone(), intents).0,
+                http_client,
+                shard_config: shard_config.0,
                 shard_scheme: ShardScheme::Auto,
                 queue: Arc::new(Box::new(LocalQueue::new())),
                 resume_sessions: HashMap::new(),
@@ -174,7 +179,19 @@ impl ClusterBuilder {
     ///
     /// [`ClusterStartError::RetrievingGatewayInfo`]: enum.ClusterStartError.html#variant.RetrievingGatewayInfo
     pub async fn build(mut self) -> Result<Cluster, ClusterStartError> {
-        self.0.shard_config = (self.1).0;
+        if self.0.shard_config.gateway_url.is_none() {
+            let gateway_url = self
+                .0
+                .http_client
+                .gateway()
+                .authed()
+                .await
+                .ok()
+                .map(|s| s.url);
+            self.0.shard_config = (self.1).gateway_url(gateway_url).0;
+        } else {
+            self.0.shard_config = (self.1).0;
+        }
 
         Cluster::new_with_config(self.0).await
     }
@@ -293,12 +310,6 @@ impl ClusterBuilder {
     pub fn resume_sessions(mut self, resume_sessions: HashMap<u64, ResumeSession>) -> Self {
         self.0.resume_sessions = resume_sessions;
         self
-    }
-}
-
-impl<T: Into<String>> From<(T, Intents)> for ClusterBuilder {
-    fn from((token, intents): (T, Intents)) -> Self {
-        Self::new(token, intents)
     }
 }
 
