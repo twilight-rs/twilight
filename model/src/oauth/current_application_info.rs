@@ -1,5 +1,5 @@
 use crate::{
-    id::{GuildId, UserId},
+    id::{ApplicationId, GuildId},
     oauth::{id::SkuId, team::Team},
     user::User,
 };
@@ -13,7 +13,7 @@ pub struct CurrentApplicationInfo {
     pub description: String,
     pub guild_id: Option<GuildId>,
     pub icon: Option<String>,
-    pub id: UserId,
+    pub id: ApplicationId,
     pub name: String,
     pub owner: User,
     pub primary_sku_id: Option<SkuId>,
@@ -27,8 +27,8 @@ pub struct CurrentApplicationInfo {
 
 #[cfg(test)]
 mod tests {
-    use super::{CurrentApplicationInfo, GuildId, SkuId, Team, User, UserId};
-    use crate::oauth::id::TeamId;
+    use super::{CurrentApplicationInfo, GuildId, SkuId, Team, User};
+    use crate::{id::ApplicationId, oauth::id::TeamId, id::UserId};
     use serde_test::Token;
 
     #[allow(clippy::too_many_lines)]
@@ -41,7 +41,7 @@ mod tests {
             description: "a pretty cool application".to_owned(),
             guild_id: Some(GuildId(1)),
             icon: Some("icon hash".to_owned()),
-            id: UserId(2),
+            id: ApplicationId(2),
             name: "cool application".to_owned(),
             owner: User {
                 avatar: None,
@@ -95,7 +95,7 @@ mod tests {
                 Token::Some,
                 Token::Str("icon hash"),
                 Token::Str("id"),
-                Token::NewtypeStruct { name: "UserId" },
+                Token::NewtypeStruct { name: "ApplicationId" },
                 Token::Str("2"),
                 Token::Str("name"),
                 Token::Str("cool application"),
