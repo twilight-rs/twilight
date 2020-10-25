@@ -28,7 +28,7 @@ pub struct CurrentApplicationInfo {
 #[cfg(test)]
 mod tests {
     use super::{CurrentApplicationInfo, GuildId, SkuId, Team, User};
-    use crate::{id::ApplicationId, oauth::id::TeamId, id::UserId};
+    use crate::{id::ApplicationId, id::UserId, oauth::id::TeamId};
     use serde_test::Token;
 
     #[allow(clippy::too_many_lines)]
@@ -95,7 +95,9 @@ mod tests {
                 Token::Some,
                 Token::Str("icon hash"),
                 Token::Str("id"),
-                Token::NewtypeStruct { name: "ApplicationId" },
+                Token::NewtypeStruct {
+                    name: "ApplicationId",
+                },
                 Token::Str("2"),
                 Token::Str("name"),
                 Token::Str("cool application"),
