@@ -1,10 +1,11 @@
-use unicode_segmentation::UnicodeSegmentation;
+use std::fmt;
+use unicode_segmentation::{UnicodeSegmentation, GraphemeIndices};
 
 /// An iterator over command arguments.
-#[derive(Clone, Debug)]
+#[derive(Clone)]
 pub struct Arguments<'a> {
     buf: &'a str,
-    indices: Vec<usize>,
+    indices: GraphemeIndices<'a>,
     idx: usize,
 }
 
@@ -66,9 +67,19 @@ impl<'a> From<&'a str> for Arguments<'a> {
     fn from(buf: &'a str) -> Self {
         Self {
             buf: buf.trim(),
-            indices: buf.trim().grapheme_indices(true).map(|ch| ch.0).collect::<Vec<usize>>(),
+            indices: buf.trim().grapheme_indices(true),
             idx: 0,
         }
+    }
+}
+
+impl<'a> fmt::Debug for Arguments<'a> {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        f
+            .debug_struct("Arguments")
+            .field("buf", &self.buf)
+            .field("idx", &self.idx)
+            .finish()
     }
 }
 
@@ -77,51 +88,46 @@ impl<'a> Iterator for Arguments<'a> {
 
     // todo: clean this up
     fn next(&mut self) -> Option<Self::Item> {
-        if self.idx > self.indices.len() {
+        if self.idx > self.buf.len() {
             return None;
         }
 
-        let mut idx = self.idx;
+        let mut start_idx = self.idx;
         let mut quoted = false;
         let mut started = false;
 
-        if let Some(r#"""#) = self.indices.get(idx).and_then(|i| self.buf.get(*i..=*i)) {
-            idx += 1;
-            quoted = true;
-            started = true;
-            self.idx += 1;
-        }
-
-        while let Some(i) = self.indices.get(idx) {
+        while let Some((i, ch)) = self.indices.next() {
             if quoted {
-                if let Some(r#"""#) = self.buf.get(*i..=*i) {
-                    let v = self.indices.get(self.idx).and_then(|start| self.buf.get(*start..*i));
-                    self.idx = idx + 1;
+                if ch == r#"""# {
+                    let v = self.buf.get(start_idx..i);
+                    self.idx = i + 1;
 
                     return v.map(str::trim);
                 }
-            } else if let Some(" ") = self.buf.get(*i..=*i) {
+            } else if ch == " " {
                 if started {
-                    let v = self.indices.get(self.idx).and_then(|start| self.buf.get(*start..*i));
-                    self.idx = idx + 1;
+                    let v = self.buf.get(start_idx..i);
+                    self.idx = i + 1;
 
                     return v.map(str::trim);
                 } else {
-                    self.idx += 1;
-                    idx += 1;
-
+                    self.idx = i;
+                    start_idx = i;
+                    started = true;
                     continue;
                 }
+            } else if ch == r#"""# {
+                start_idx = i + 1;
+                quoted = true;
             }
 
-            idx += 1;
+            self.idx = i;
             started = true;
         }
 
-        let idx = self.idx;
         self.idx = usize::max_value();
 
-        match self.indices.get(idx).and_then(|start| self.buf.get(*start..)) {
+        match self.buf.get(start_idx..) {
             Some("") | None => None,
             Some(v) => Some(v.trim()),
         }
@@ -208,9 +214,10 @@ mod tests {
 
     #[test]
     fn test_quoted_emote() {
-        let mut args = Arguments::new(r#"omg "😕 - 😟"#);
+        let mut args = Arguments::new(r#"omg "😕 - 😟" kewl"#);
         assert_eq!(Some("omg"), args.next());
         assert_eq!(Some("😕 - 😟"), args.next());
+        assert_eq!(Some("kewl"), args.next());
         assert_eq!(None, args.next());
     }
 }
