@@ -33,6 +33,8 @@
     unused,
     warnings
 )]
+#![cfg_attr(docsrs, feature(doc_cfg))]
 
 #[cfg(feature = "snowflake")]
+#[cfg_attr(docsrs, doc(cfg(feature = "snowflake")))]
 pub mod snowflake;
