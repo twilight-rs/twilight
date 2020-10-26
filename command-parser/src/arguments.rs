@@ -1,7 +1,10 @@
+use unicode_segmentation::UnicodeSegmentation;
+
 /// An iterator over command arguments.
 #[derive(Clone, Debug)]
 pub struct Arguments<'a> {
     buf: &'a str,
+    indices: Vec<usize>,
     idx: usize,
 }
 
@@ -63,6 +66,7 @@ impl<'a> From<&'a str> for Arguments<'a> {
     fn from(buf: &'a str) -> Self {
         Self {
             buf: buf.trim(),
+            indices: buf.trim().grapheme_indices(true).map(|ch| ch.0).collect::<Vec<usize>>(),
             idx: 0,
         }
     }
@@ -73,7 +77,7 @@ impl<'a> Iterator for Arguments<'a> {
 
     // todo: clean this up
     fn next(&mut self) -> Option<Self::Item> {
-        if self.idx > self.buf.len() {
+        if self.idx > self.indices.len() {
             return None;
         }
 
@@ -81,24 +85,24 @@ impl<'a> Iterator for Arguments<'a> {
         let mut quoted = false;
         let mut started = false;
 
-        if let Some(r#"""#) = self.buf.get(idx..=idx) {
+        if let Some(r#"""#) = self.indices.get(idx).and_then(|i| self.buf.get(*i..=*i)) {
             idx += 1;
             quoted = true;
             started = true;
             self.idx += 1;
         }
 
-        while let Some(ch) = self.buf.get(idx..=idx) {
+        while let Some(i) = self.indices.get(idx) {
             if quoted {
-                if ch == r#"""# {
-                    let v = self.buf.get(self.idx..idx);
+                if let Some(r#"""#) = self.buf.get(*i..=*i) {
+                    let v = self.indices.get(self.idx).and_then(|start| self.buf.get(*start..*i));
                     self.idx = idx + 1;
 
                     return v.map(str::trim);
                 }
-            } else if ch == " " {
+            } else if let Some(" ") = self.buf.get(*i..=*i) {
                 if started {
-                    let v = self.buf.get(self.idx..idx);
+                    let v = self.indices.get(self.idx).and_then(|start| self.buf.get(*start..*i));
                     self.idx = idx + 1;
 
                     return v.map(str::trim);
@@ -117,7 +121,7 @@ impl<'a> Iterator for Arguments<'a> {
         let idx = self.idx;
         self.idx = usize::max_value();
 
-        match self.buf.get(idx..) {
+        match self.indices.get(idx).and_then(|start| self.buf.get(*start..)) {
             Some("") | None => None,
             Some(v) => Some(v.trim()),
         }
@@ -161,6 +165,52 @@ mod tests {
         let mut args = Arguments::new(r#""kind of weird""but okay"#);
         assert_eq!(Some("kind of weird"), args.next());
         assert_eq!(Some("but okay"), args.next());
+        assert_eq!(None, args.next());
+    }
+
+    #[test]
+    fn test_unicode_chars_1() {
+        let mut args = Arguments::new("𝓒𝓢𝓐 nice try");
+        assert_eq!(Some("𝓒𝓢𝓐"), args.next());
+        assert_eq!(Some("nice"), args.next());
+        assert_eq!(Some("try"), args.next());
+        assert_eq!(None, args.next());
+    }
+
+    #[test]
+    fn test_unicode_chars_2() {
+        let mut args = Arguments::new("Saighdiúr réalta what even");
+        assert_eq!(Some("Saighdiúr"), args.next());
+        assert_eq!(Some("réalta"), args.next());
+        assert_eq!(Some("what"), args.next());
+        assert_eq!(Some("even"), args.next());
+        assert_eq!(None, args.next());
+    }
+
+    #[test]
+    fn test_quoted_unicode_chars() {
+        let mut args = Arguments::new(r#""𝓒𝓢𝓐 | CSA" amazing try"#);
+        assert_eq!(Some("𝓒𝓢𝓐 | CSA"), args.next());
+        assert_eq!(Some("amazing"), args.next());
+        assert_eq!(Some("try"), args.next());
+        assert_eq!(None, args.next());
+    }
+
+    #[test]
+    fn test_emote() {
+        let mut args = Arguments::new("why an emote 🙃");
+        assert_eq!(Some("why"), args.next());
+        assert_eq!(Some("an"), args.next());
+        assert_eq!(Some("emote"), args.next());
+        assert_eq!(Some("🙃"), args.next());
+        assert_eq!(None, args.next());
+    }
+
+    #[test]
+    fn test_quoted_emote() {
+        let mut args = Arguments::new(r#"omg "😕 - 😟"#);
+        assert_eq!(Some("omg"), args.next());
+        assert_eq!(Some("😕 - 😟"), args.next());
         assert_eq!(None, args.next());
     }
 }
