@@ -29,9 +29,7 @@ jobs:
           key: ${{ runner.os }}-test-rustc-${{ steps.toolchain.outputs.rustc_hash }}-${{ hashFiles('**/Cargo.lock') }}
 
       - name: Run cargo test
-        uses: actions-rs/cargo@v1
-        with:
-          command: test
+        run: cargo test
 
   test-features:
     name: Test ${{ matrix.package }} feat. ${{ matrix.features }}
