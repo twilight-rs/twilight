@@ -190,9 +190,6 @@ pub struct InMemoryCache(Arc<InMemoryCacheRef>);
 impl InMemoryCache {
     /// Creates a new, empty cache.
     ///
-    /// If you need to customize the cache, use the `From<InMemoryConfig>`
-    /// implementation.
-    ///
     /// # Examples
     ///
     /// Creating a new `InMemoryCache` with a custom configuration, limiting
@@ -893,6 +890,10 @@ mod tests {
             mfa_enabled: true,
             name: "test".to_owned(),
             verified: Some(true),
+            premium_type: None,
+            public_flags: None,
+            flags: None,
+            locale: None,
         }
     }
 
