@@ -890,6 +890,10 @@ mod tests {
             mfa_enabled: true,
             name: "test".to_owned(),
             verified: true,
+            premium_type: None,
+            public_flags: None,
+            flags: None,
+            locale: None,
         }
     }
 
