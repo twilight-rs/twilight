@@ -11,7 +11,7 @@ pub struct CurrentUser {
     ///
     /// [Discord's documentation]: https://discord.com/developers/docs/reference#image-formatting
     pub avatar: Option<String>,
-    /// Whether the user belongs to an OAuth2 application
+    /// Whether the user belongs to an OAuth2 application.
     #[serde(default)]
     pub bot: bool,
     /// Discriminator used to differentiate people with the same username.
