@@ -142,6 +142,16 @@ impl Client {
         self.state.default_allowed_mentions.clone()
     }
 
+    /// Get the Ratelimiter used by the client internally.
+    ///
+    /// This will return `None` only if ratelimit handling
+    /// has been explicitly disabled in the [`ClientBuilder`].
+    ///
+    /// [`ClientBuilder`]: struct.ClientBuilder.html
+    pub fn ratelimiter(&self) -> Option<Ratelimiter> {
+        self.state.ratelimiter.clone()
+    }
+
     /// Add a role to a member in a guild.
     ///
     /// # Examples

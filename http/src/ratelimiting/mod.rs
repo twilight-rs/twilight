@@ -9,7 +9,7 @@ pub use self::{
 };
 
 use crate::routing::Path;
-use bucket::{Bucket, BucketQueueTask};
+use bucket::{Bucket, BucketQueueTask, TimeRemaining};
 use futures_channel::oneshot::{self, Receiver, Sender};
 use futures_util::lock::Mutex;
 use std::{
@@ -18,6 +18,7 @@ use std::{
         atomic::{AtomicBool, Ordering},
         Arc,
     },
+    time::Duration,
 };
 
 /// Global lock. We use a pair to avoid actually locking the mutex every check.
@@ -75,6 +76,19 @@ impl Ratelimiter {
         }
 
         rx
+    }
+
+    /// Provide an estimate for the time left until a path can be used
+    /// without being ratelimited.
+    ///
+    /// This method is not guaranteed to be accurate and may return
+    /// None if either no ratelimit is known or buckets are remaining.
+    pub async fn time_until_available(&self, path: &Path) -> Option<Duration> {
+        let buckets = self.buckets.lock().await;
+        match buckets.get(path)?.time_remaining().await {
+            TimeRemaining::Finished | TimeRemaining::NotStarted => None,
+            TimeRemaining::Some(duration) => Some(duration),
+        }
     }
 
     async fn entry(
