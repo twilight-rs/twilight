@@ -111,6 +111,7 @@ impl ShardBuilder {
         }
 
         Self(Config {
+            gateway_url: None,
             http_client: HttpClient::new(token.clone()),
             intents: None,
             large_threshold: 250,
@@ -126,6 +127,13 @@ impl ShardBuilder {
     /// Consume the builder, constructing a shard.
     pub fn build(self) -> Shard {
         Shard::new_with_config(self.0)
+    }
+
+    /// Set the URL used for connecting to Discord's gateway
+    pub fn gateway_url(mut self, gateway_url: Option<String>) -> Self {
+        self.0.gateway_url = gateway_url;
+
+        self
     }
 
     /// Set the HTTP client to be used by the shard for getting gateway

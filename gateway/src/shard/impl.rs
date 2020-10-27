@@ -334,15 +334,18 @@ impl Shard {
     /// [`ShardStartError::ParsingGatewayUrl`]: enum.ShardStartError.html#variant.ParsingGatewayUrl
     /// [`ShardStartError::RetrievingGatewayUrl`]: enum.ShardStartError.html#variant.RetrievingGatewayUrl
     pub async fn start(&mut self) -> Result<(), ShardStartError> {
-        let url = self
-            .0
-            .config
-            .http_client()
-            .gateway()
-            .authed()
-            .await
-            .map_err(|source| ShardStartError::RetrievingGatewayUrl { source })?
-            .url;
+        let url = if let Some(u) = self.0.config.gateway_url.clone() {
+            u
+        } else {
+            self.0
+                .config
+                .http_client()
+                .gateway()
+                .authed()
+                .await
+                .map_err(|source| ShardStartError::RetrievingGatewayUrl { source })?
+                .url
+        };
 
         let config = Arc::clone(&self.0.config);
         let listeners = self.0.listeners.clone();

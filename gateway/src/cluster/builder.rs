@@ -157,10 +157,14 @@ impl ClusterBuilder {
             token.insert_str(0, "Bot ");
         }
 
+        let http_client = Client::new(token.clone());
+
+        let shard_config = ShardBuilder::new(token.clone()).http_client(http_client.clone());
+
         Self(
             ClusterConfig {
-                http_client: Client::new(token.clone()),
-                shard_config: ShardBuilder::new(token.clone()).0,
+                http_client,
+                shard_config: shard_config.0,
                 shard_scheme: ShardScheme::Auto,
                 queue: Arc::new(Box::new(LocalQueue::new())),
                 resume_sessions: HashMap::new(),
@@ -178,9 +182,29 @@ impl ClusterBuilder {
     ///
     /// [`ClusterStartError::RetrievingGatewayInfo`]: enum.ClusterStartError.html#variant.RetrievingGatewayInfo
     pub async fn build(mut self) -> Result<Cluster, ClusterStartError> {
+        if self.0.shard_config.gateway_url.is_none() {
+            let gateway_url = (self.1)
+                .0
+                .http_client
+                .gateway()
+                .authed()
+                .await
+                .ok()
+                .map(|s| s.url);
+
+            self = self.gateway_url(gateway_url);
+        }
+
         self.0.shard_config = (self.1).0;
 
         Cluster::new_with_config(self.0).await
+    }
+
+    /// Set the URL that will be used to connect to the gateway.
+    pub fn gateway_url(mut self, gateway_url: Option<String>) -> Self {
+        self.1 = self.1.gateway_url(gateway_url);
+
+        self
     }
 
     /// Set the `twilight_http` Client used by the cluster and the shards it

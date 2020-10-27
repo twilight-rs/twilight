@@ -11,7 +11,8 @@ use twilight_model::gateway::{payload::update_status::UpdateStatusInfo, Intents}
 /// [`Shard::builder`]: struct.Shard.html#method.builder
 #[derive(Clone, Debug)]
 pub struct Config {
-    pub(super) http_client: Client,
+    pub(crate) gateway_url: Option<String>,
+    pub(crate) http_client: Client,
     pub(super) intents: Option<Intents>,
     pub(super) large_threshold: u64,
     pub(super) presence: Option<UpdateStatusInfo>,
@@ -23,6 +24,11 @@ pub struct Config {
 }
 
 impl Config {
+    /// Return an immutable reference to the url used to connect to the gateway.
+    pub fn gateway_url(&self) -> Option<&str> {
+        self.gateway_url.as_deref()
+    }
+
     /// Return an immutable reference to the `twilight_http` client to be used
     /// by the shard.
     pub fn http_client(&self) -> &Client {
