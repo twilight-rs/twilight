@@ -1,5 +1,5 @@
 use std::fmt;
-use unicode_segmentation::{UnicodeSegmentation, GraphemeIndices};
+use unicode_segmentation::{GraphemeIndices, UnicodeSegmentation};
 
 /// An iterator over command arguments.
 #[derive(Clone)]
@@ -75,8 +75,7 @@ impl<'a> From<&'a str> for Arguments<'a> {
 
 impl<'a> fmt::Debug for Arguments<'a> {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        f
-            .debug_struct("Arguments")
+        f.debug_struct("Arguments")
             .field("buf", &self.buf)
             .field("idx", &self.idx)
             .finish()
@@ -134,6 +133,7 @@ impl<'a> Iterator for Arguments<'a> {
     }
 }
 
+#[allow(clippy::non_ascii_literal)]
 #[cfg(test)]
 mod tests {
     use super::Arguments;
