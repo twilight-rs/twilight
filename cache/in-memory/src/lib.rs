@@ -889,7 +889,7 @@ mod tests {
             id: UserId(id),
             mfa_enabled: true,
             name: "test".to_owned(),
-            verified: true,
+            verified: Some(true),
             premium_type: None,
             public_flags: None,
             flags: None,

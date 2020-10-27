@@ -45,7 +45,13 @@ pub struct CurrentUser {
     pub premium_type: Option<PremiumType>,
     /// Public flags on a user's account.
     pub public_flags: Option<UserFlags>,
-    pub verified: bool,
+    /// Whether the email on this account has been verified.
+    ///
+    /// Requires the `email` oauth scope. See [Discord's documentation] for
+    /// more information.
+    ///
+    /// [Discord's documentation]: https://discord.com/developers/docs/resources/user#user-object-user-structure
+    pub verified: Option<bool>,
 }
 
 #[cfg(test)]
@@ -87,6 +93,7 @@ mod tests {
             Token::Some,
             Token::U64(1),
             Token::Str("verified"),
+            Token::Some,
             Token::Bool(true),
             Token::StructEnd,
         ]
@@ -102,7 +109,7 @@ mod tests {
             id: UserId(1),
             mfa_enabled: true,
             name: "test name".to_owned(),
-            verified: true,
+            verified: Some(true),
             premium_type: Some(PremiumType::NitroClassic),
             public_flags: Some(UserFlags::DISCORD_EMPLOYEE),
             flags: None,
