@@ -190,9 +190,6 @@ pub struct InMemoryCache(Arc<InMemoryCacheRef>);
 impl InMemoryCache {
     /// Creates a new, empty cache.
     ///
-    /// If you need to customize the cache, use the `From<InMemoryConfig>`
-    /// implementation.
-    ///
     /// # Examples
     ///
     /// Creating a new `InMemoryCache` with a custom configuration, limiting
