@@ -54,6 +54,8 @@ pub struct CurrentUserGuild {
     /// Permissions of the current user in the guild. This excludes channels'
     /// permission overwrites.
     pub permissions: Permissions,
+    /// List of enabled guild features.
+    pub features: Vec<String>,
 }
 
 /// Returns a list of guilds for the current user.
@@ -164,6 +166,7 @@ mod tests {
             icon: Some("8342729096ea3675442027381ff50dfe".to_owned()),
             owner: true,
             permissions: Permissions::from_bits_truncate(36_953_089),
+            features: vec!["a feature".to_owned()],
         };
 
         serde_test::assert_tokens(
@@ -171,7 +174,7 @@ mod tests {
             &[
                 Token::Struct {
                     name: "CurrentUserGuild",
-                    len: 5,
+                    len: 6,
                 },
                 Token::Str("id"),
                 Token::NewtypeStruct { name: "GuildId" },
@@ -185,6 +188,10 @@ mod tests {
                 Token::Bool(true),
                 Token::Str("permissions"),
                 Token::Str("36953089"),
+                Token::Str("features"),
+                Token::Seq { len: Some(1) },
+                Token::Str("a feature"),
+                Token::SeqEnd,
                 Token::StructEnd,
             ],
         );
