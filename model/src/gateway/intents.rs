@@ -7,9 +7,10 @@ use serde::{
 bitflags! {
     /// Gateway intents.
     ///
-    /// Developers must specify intents when connecting to the gateway. The intents specified
-    /// correspond with the events received. To specify multiple intents, create a union using the
-    /// `|` operator. See [the discord docs] for more information.
+    /// Developers must specify intents when connecting to the gateway. The
+    /// intents specified correspond with the events received. To specify
+    /// multiple intents, create a union using the `|` operator. See [the
+    /// discord docs] for more information.
     ///
     /// [the discord docs]: https://discord.com/developers/docs/topics/gateway#gateway-intents
     pub struct Intents: u64 {
@@ -149,8 +150,8 @@ bitflags! {
         ///  - [`MESSAGE_DELETE`]
         ///  - [`MESSAGE_DELETE_BULK`]
         ///
-        /// This is different from the [`GUILD_MESSAGES`] intent in that the bot will receive
-        /// message events from locations other than guilds.
+        /// This is different from the [`GUILD_MESSAGES`] intent in that the bot
+        /// will receive message events from locations other than guilds.
         ///
         /// [`MESSAGE_CREATE`]: ./event/enum.Event.html#variant.MessageCreate
         /// [`MESSAGE_UPDATE`]: ./event/enum.Event.html#variant.MessageUpdate
@@ -166,8 +167,9 @@ bitflags! {
         ///  - [`MESSAGE_REACTION_REMOVE_ALL`]
         ///  - [`MESSAGE_REACTION_REMOVE_EMOJI`]
         ///
-        /// This is different from the [`GUILD_MESSAGE_REACTIONS`] event in that the bot will
-        /// receive message reaction events from locations other than guilds.
+        /// This is different from the [`GUILD_MESSAGE_REACTIONS`] event in that
+        /// the bot will receive message reaction events from locations other
+        /// than guilds.
         ///
         /// [`MESSAGE_REACTION_ADD`]: ./event/enum.Event.html#variant.ReactionAdd
         /// [`MESSAGE_REACTION_REMOVE`]: ./event/enum.Event.html#variant.ReactionRemove
@@ -180,8 +182,9 @@ bitflags! {
         /// Event(s) received:
         ///  - [`TYPING_START`]
         ///
-        /// This is different from the [`GUILD_MESSAGE_TYPING`] intent in that the bot will receive
-        /// typing start events from locations other than guilds.
+        /// This is different from the [`GUILD_MESSAGE_TYPING`] intent in that
+        /// the bot will receive typing start events from locations other than
+        /// guilds.
         ///
         /// [`TYPING_START`]: ./event/enum.Event.html#variant.TypingStart
         /// [`GUILD_MESSAGE_TYPING`]: #associatedconstant.GUILD_MESSAGE_TYPING

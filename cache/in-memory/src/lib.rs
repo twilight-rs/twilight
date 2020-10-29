@@ -284,8 +284,8 @@ impl InMemoryCache {
 
     /// Gets the set of channels in a guild.
     ///
-    /// This is a O(m) operation, where m is the amount of channels in the guild. This requires the
-    /// [`GUILDS`] intent.
+    /// This is a O(m) operation, where m is the amount of channels in the
+    /// guild. This requires the [`GUILDS`] intent.
     ///
     /// [`GUILDS`]: ../twilight_model/gateway/struct.Intents.html#associatedconstant.GUILDS
     pub fn guild_channels(&self, guild_id: GuildId) -> Option<HashSet<ChannelId>> {
@@ -297,9 +297,9 @@ impl InMemoryCache {
 
     /// Gets the set of emojis in a guild.
     ///
-    /// This is a O(m) operation, where m is the amount of emojis in the guild. This requires the
-    /// [`GUILDS`] intent for the initial set of emojis, and further requires the [`GUILD_EMOJIS`]
-    /// intent for updates.
+    /// This is a O(m) operation, where m is the amount of emojis in the guild.
+    /// This requires the [`GUILDS`] intent for the initial set of emojis, and
+    /// further requires the [`GUILD_EMOJIS`] intent for updates.
     ///
     /// [`GUILDS`]: ../twilight_model/gateway/struct.Intents.html#associatedconstant.GUILDS
     /// [`GUILD_EMOJIS`]: ../twilight_model/gateway/struct.Intents.html#associatedconstant.GUILD_EMOJIS
@@ -314,8 +314,8 @@ impl InMemoryCache {
     ///
     /// This list may be incomplete if not all members have been cached.
     ///
-    /// This is a O(m) operation, where m is the amount of members in the guild. This requires the
-    /// [`GUILD_MEMBERS`] intent.
+    /// This is a O(m) operation, where m is the amount of members in the guild.
+    /// This requires the [`GUILD_MEMBERS`] intent.
     ///
     /// [`GUILD_MEMBERS`]: ../twilight_model/gateway/struct.Intents.html#associatedconstant.GUILD_MEMBERS
     pub fn guild_members(&self, guild_id: GuildId) -> Option<HashSet<UserId>> {
@@ -329,8 +329,8 @@ impl InMemoryCache {
     ///
     /// This list may be incomplete if not all members have been cached.
     ///
-    /// This is a O(m) operation, where m is the amount of members in the guild. This requires the
-    /// [`GUILD_PRESENCES`] intent.
+    /// This is a O(m) operation, where m is the amount of members in the guild.
+    /// This requires the [`GUILD_PRESENCES`] intent.
     ///
     /// [`GUILD_PRESENCES`]: ../twilight_model/gateway/struct.Intents.html#associatedconstant.GUILD_PRESENCES
     pub fn guild_presences(&self, guild_id: GuildId) -> Option<HashSet<UserId>> {
@@ -342,8 +342,8 @@ impl InMemoryCache {
 
     /// Gets the set of roles in a guild.
     ///
-    /// This is a O(m) operation, where m is the amount of roles in the guild. This requires the
-    /// [`GUILDS`] intent.
+    /// This is a O(m) operation, where m is the amount of roles in the guild.
+    /// This requires the [`GUILDS`] intent.
     ///
     /// [`GUILDS`]: ../twilight_model/gateway/struct.Intents.html#associatedconstant.GUILDS
     pub fn guild_roles(&self, guild_id: GuildId) -> Option<HashSet<RoleId>> {
@@ -364,8 +364,8 @@ impl InMemoryCache {
 
     /// Gets a message by channel ID and message ID.
     ///
-    /// This is an O(log n) operation. This requires one or both of the [`GUILD_MESSAGES`] or
-    /// [`DIRECT_MESSAGES`] intents.
+    /// This is an O(log n) operation. This requires one or both of the
+    /// [`GUILD_MESSAGES`] or [`DIRECT_MESSAGES`] intents.
     ///
     /// [`GUILD_MESSAGES`]: ../twilight_model/gateway/struct.Intents.html#associatedconstant.GUILD_MESSAGES
     /// [`DIRECT_MESSAGES`]: ../twilight_model/gateway/struct.Intents.html#associatedconstant.DIRECT_MESSAGES
@@ -426,7 +426,8 @@ impl InMemoryCache {
 
     /// Gets the voice states within a voice channel.
     ///
-    /// This requires both the [`GUILDS`] and [`GUILD_VOICE_STATES`] intents for updates.
+    /// This requires both the [`GUILDS`] and [`GUILD_VOICE_STATES`] intents for
+    /// updates.
     ///
     /// [`GUILDS`]: ../twilight_model/gateway/struct.Intents.html#associatedconstant.GUILDS
     /// [`GUILD_VOICE_STATES`]: ../twilight_model/gateway/struct.Intents.html#associatedconstant.GUILD_VOICE_STATES
@@ -443,8 +444,8 @@ impl InMemoryCache {
 
     /// Gets a voice state by user ID and Guild ID.
     ///
-    /// This is an O(1) operation. This requires the [`GUILDS`] and [`GUILD_VOICE_STATES`] intents
-    /// for updates.
+    /// This is an O(1) operation. This requires the [`GUILDS`] and
+    /// [`GUILD_VOICE_STATES`] intents for updates.
     ///
     /// [`GUILDS`]: ../twilight_model/gateway/struct.Intents.html#associatedconstant.GUILDS
     /// [`GUILD_VOICE_STATES`]: ../twilight_model/gateway/struct.Intents.html#associatedconstant.GUILD_VOICE_STATES
