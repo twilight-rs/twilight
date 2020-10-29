@@ -1,7 +1,11 @@
+use std::fmt::{Debug, Formatter, Result as FmtResult};
+use unicode_segmentation::{GraphemeIndices, UnicodeSegmentation};
+
 /// An iterator over command arguments.
-#[derive(Clone, Debug)]
+#[derive(Clone)]
 pub struct Arguments<'a> {
     buf: &'a str,
+    indices: GraphemeIndices<'a>,
     idx: usize,
 }
 
@@ -63,8 +67,18 @@ impl<'a> From<&'a str> for Arguments<'a> {
     fn from(buf: &'a str) -> Self {
         Self {
             buf: buf.trim(),
+            indices: buf.trim().grapheme_indices(true),
             idx: 0,
         }
+    }
+}
+
+impl<'a> Debug for Arguments<'a> {
+    fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
+        f.debug_struct("Arguments")
+            .field("buf", &self.buf)
+            .field("idx", &self.idx)
+            .finish()
     }
 }
 
@@ -77,53 +91,49 @@ impl<'a> Iterator for Arguments<'a> {
             return None;
         }
 
-        let mut idx = self.idx;
+        let mut start_idx = self.idx;
         let mut quoted = false;
         let mut started = false;
 
-        if let Some(r#"""#) = self.buf.get(idx..=idx) {
-            idx += 1;
-            quoted = true;
-            started = true;
-            self.idx += 1;
-        }
-
-        while let Some(ch) = self.buf.get(idx..=idx) {
+        while let Some((i, ch)) = self.indices.next() {
             if quoted {
                 if ch == r#"""# {
-                    let v = self.buf.get(self.idx..idx);
-                    self.idx = idx + 1;
+                    let v = self.buf.get(start_idx..i);
+                    self.idx = i + 1;
 
                     return v.map(str::trim);
                 }
             } else if ch == " " {
                 if started {
-                    let v = self.buf.get(self.idx..idx);
-                    self.idx = idx + 1;
+                    let v = self.buf.get(start_idx..i);
+                    self.idx = i + 1;
 
                     return v.map(str::trim);
                 } else {
-                    self.idx += 1;
-                    idx += 1;
-
+                    self.idx = i;
+                    start_idx = i;
+                    started = true;
                     continue;
                 }
+            } else if ch == r#"""# {
+                start_idx = i + 1;
+                quoted = true;
             }
 
-            idx += 1;
+            self.idx = i;
             started = true;
         }
 
-        let idx = self.idx;
         self.idx = usize::max_value();
 
-        match self.buf.get(idx..) {
+        match self.buf.get(start_idx..) {
             Some("") | None => None,
             Some(v) => Some(v.trim()),
         }
     }
 }
 
+#[allow(clippy::non_ascii_literal)]
 #[cfg(test)]
 mod tests {
     use super::Arguments;
@@ -161,6 +171,53 @@ mod tests {
         let mut args = Arguments::new(r#""kind of weird""but okay"#);
         assert_eq!(Some("kind of weird"), args.next());
         assert_eq!(Some("but okay"), args.next());
+        assert_eq!(None, args.next());
+    }
+
+    #[test]
+    fn test_unicode_chars_1() {
+        let mut args = Arguments::new("𝓒𝓢𝓐 nice try");
+        assert_eq!(Some("𝓒𝓢𝓐"), args.next());
+        assert_eq!(Some("nice"), args.next());
+        assert_eq!(Some("try"), args.next());
+        assert_eq!(None, args.next());
+    }
+
+    #[test]
+    fn test_unicode_chars_2() {
+        let mut args = Arguments::new("Saighdiúr réalta what even");
+        assert_eq!(Some("Saighdiúr"), args.next());
+        assert_eq!(Some("réalta"), args.next());
+        assert_eq!(Some("what"), args.next());
+        assert_eq!(Some("even"), args.next());
+        assert_eq!(None, args.next());
+    }
+
+    #[test]
+    fn test_quoted_unicode_chars() {
+        let mut args = Arguments::new(r#""𝓒𝓢𝓐 | CSA" amazing try"#);
+        assert_eq!(Some("𝓒𝓢𝓐 | CSA"), args.next());
+        assert_eq!(Some("amazing"), args.next());
+        assert_eq!(Some("try"), args.next());
+        assert_eq!(None, args.next());
+    }
+
+    #[test]
+    fn test_emote() {
+        let mut args = Arguments::new("why an emote 🙃");
+        assert_eq!(Some("why"), args.next());
+        assert_eq!(Some("an"), args.next());
+        assert_eq!(Some("emote"), args.next());
+        assert_eq!(Some("🙃"), args.next());
+        assert_eq!(None, args.next());
+    }
+
+    #[test]
+    fn test_quoted_emote() {
+        let mut args = Arguments::new(r#"omg "😕 - 😟" kewl"#);
+        assert_eq!(Some("omg"), args.next());
+        assert_eq!(Some("😕 - 😟"), args.next());
+        assert_eq!(Some("kewl"), args.next());
         assert_eq!(None, args.next());
     }
 }
