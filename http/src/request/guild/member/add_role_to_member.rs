@@ -8,7 +8,7 @@ use twilight_model::id::{GuildId, RoleId, UserId};
 /// In guild `1`, add role `2` to user `3`, for the reason `"test"`:
 ///
 /// ```rust,no_run
-/// use twilight_http::Client;
+/// use twilight_http::{request::AuditLogReason, Client};
 /// use twilight_model::id::{GuildId, RoleId, UserId};
 ///
 /// # #[tokio::main]
@@ -19,7 +19,7 @@ use twilight_model::id::{GuildId, RoleId, UserId};
 /// let role_id = RoleId(2);
 /// let user_id = UserId(3);
 ///
-/// client.add_role(guild_id, user_id, role_id).reason("test").await?;
+/// client.add_role(guild_id, user_id, role_id).reason("test")?.await?;
 /// # Ok(()) }
 /// ```
 pub struct AddRoleToMember<'a> {
@@ -46,17 +46,6 @@ impl<'a> AddRoleToMember<'a> {
             user_id: user_id.into(),
             reason: None,
         }
-    }
-
-    #[deprecated(
-        since = "0.1.5",
-        note = "please prefer the request::AuditLogReason trait"
-    )]
-    /// Attach an audit log reason to this request.
-    pub fn reason(mut self, reason: impl Into<String>) -> Self {
-        self.reason.replace(reason.into());
-
-        self
     }
 
     fn start(&mut self) -> Result<()> {

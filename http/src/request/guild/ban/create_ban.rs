@@ -43,7 +43,7 @@ struct CreateBanFields {
 /// 1 day's worth of messages, for the reason `"memes"`:
 ///
 /// ```rust,no_run
-/// use twilight_http::Client;
+/// use twilight_http::{request::AuditLogReason, Client};
 /// use twilight_model::id::{GuildId, UserId};
 ///
 /// # #[tokio::main]
@@ -54,7 +54,7 @@ struct CreateBanFields {
 /// let user_id = UserId(200);
 /// client.create_ban(guild_id, user_id)
 ///     .delete_message_days(1)?
-///     .reason("memes")
+///     .reason("memes")?
 ///     .await?;
 /// # Ok(()) }
 /// ```
@@ -95,17 +95,6 @@ impl<'a> CreateBan<'a> {
         self.fields.delete_message_days.replace(days);
 
         Ok(self)
-    }
-
-    #[deprecated(
-        since = "0.1.5",
-        note = "please prefer the request::AuditLogReason trait"
-    )]
-    /// Attach an audit log reason to this request.
-    pub fn reason(mut self, reason: impl Into<String>) -> Self {
-        self.fields.reason.replace(reason.into());
-
-        self
     }
 
     fn start(&mut self) -> Result<()> {
