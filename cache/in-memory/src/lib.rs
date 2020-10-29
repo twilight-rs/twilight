@@ -359,7 +359,7 @@ impl InMemoryCache {
 
     /// Gets a message by channel ID and message ID.
     ///
-    /// This is an O(log n) operation. This requires one or both of the [`GUILD_MESSAGES`] and
+    /// This is an O(log n) operation. This requires one or both of the [`GUILD_MESSAGES`] or
     /// [`DIRECT_MESSAGES`] intents.
     ///
     /// [`GUILD_MESSAGES`]: ../twilight_model/gateway/struct.Intents.html#associatedconstant.GUILD_MESSAGES
