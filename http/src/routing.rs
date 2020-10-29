@@ -533,8 +533,6 @@ pub enum Route {
     GetGuildIntegrations {
         /// The ID of the guild.
         guild_id: u64,
-        /// Whether to include applications.
-        include_applications: bool,
     },
     /// Route information to get a guild's invites.
     GetGuildInvites {
@@ -1150,16 +1148,11 @@ impl Route {
                 Path::GuildsIdWidget(guild_id),
                 format!("guilds/{}/widget", guild_id).into(),
             ),
-            Self::GetGuildIntegrations {
-                guild_id,
-                include_applications,
-            } => (Method::GET, Path::GuildsIdIntegrations(guild_id), {
-                if include_applications {
-                    format!("guilds/{}/integrations?include_applications=true", guild_id).into()
-                } else {
+            Self::GetGuildIntegrations { guild_id } => {
+                (Method::GET, Path::GuildsIdIntegrations(guild_id), {
                     format!("guilds/{}/integrations", guild_id).into()
-                }
-            }),
+                })
+            }
             Self::GetGuildInvites { guild_id } => (
                 Method::GET,
                 Path::GuildsIdInvites(guild_id),
