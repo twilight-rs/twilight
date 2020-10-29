@@ -66,6 +66,9 @@ jobs:
           - package: lavalink
             additional: --features http-support
 
+          - package: util
+            features: full
+
         exclude:
           - package: lavalink
             features: simd-json
