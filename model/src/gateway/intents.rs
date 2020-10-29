@@ -8,14 +8,14 @@ bitflags! {
     /// Gateway intents.
     ///
     /// Developers must specify intents when connecting to the gateway. The intents specified
-    /// correspond with the events recieved. To specify multiple intents, create a union using the
+    /// correspond with the events received. To specify multiple intents, create a union using the
     /// `|` operator. See [the discord docs] for more information.
     ///
     /// [the discord docs]: https://discord.com/developers/docs/topics/gateway#gateway-intents
     pub struct Intents: u64 {
         /// Guilds intent.
         ///
-        /// Event(s) recieved:
+        /// Event(s) received:
         ///  - [`GUILD_CREATE`]
         ///  - [`GUILD_UPDATE`]
         ///  - [`GUILD_DELETE`]
@@ -40,9 +40,9 @@ bitflags! {
         const GUILDS = 1;
         /// Guild members intent.
         ///
-        /// This intent is priveleged. See [`the discord docs`] for more information.
+        /// This intent is privileged. See [`the discord docs`] for more information.
         ///
-        /// Event(s) recieved:
+        /// Event(s) received:
         ///  - [`GUILD_MEMBER_ADD`]
         ///  - [`GUILD_MEMBER_UPDATE`]
         ///  - [`GUILD_MEMBER_REMOVE`]
@@ -54,7 +54,7 @@ bitflags! {
         const GUILD_MEMBERS = 1 << 1;
         /// Guild bans intent.
         ///
-        /// Event(s) recieved:
+        /// Event(s) received:
         ///  - [`GUILD_BAN_ADD`]
         ///  - [`GUILD_BAN_REMOVE`]
         ///
@@ -63,28 +63,28 @@ bitflags! {
         const GUILD_BANS = 1 << 2;
         /// Guild emojis intent.
         ///
-        /// Event(s) recieved:
+        /// Event(s) received:
         ///  - [`GUILD_EMOJIS_UPDATE`]
         ///
         /// [`GUILD_EMOJIS_UPDATE`]: ./event/enum.Event.html#variant.GuildEmojisUpdate
         const GUILD_EMOJIS = 1 << 3;
         /// Guild integrations intent.
         ///
-        /// Event(s) recieved:
+        /// Event(s) received:
         ///  - [`GUILD_INTEGRATIONS_UPDATE`]
         ///
         /// [`GUILD_INTEGRATIONS_UPDATE`]: ./event/enum.Event.html#variant.GuildIntegrationsUpdate
         const GUILD_INTEGRATIONS = 1 << 4;
         /// Guild webhooks intent.
         ///
-        /// Event(s) recieved:
+        /// Event(s) received:
         ///  - [`WEBHOOKS_UPDATE`]
         ///
         /// [`WEBHOOKS_UPDATE`]: ./event/enum.Event.html#variant.WebhooksUpdate
         const GUILD_WEBHOOKS = 1 << 5;
         /// Guild invites intent.
         ///
-        /// Event(s) recieved:
+        /// Event(s) received:
         ///  - [`INVITE_CREATE`]
         ///  - [`INVITE_DELETE`]
         ///
@@ -93,16 +93,16 @@ bitflags! {
         const GUILD_INVITES = 1 << 6;
         /// Guild voice states intent.
         ///
-        /// Event(s) recieved:
+        /// Event(s) received:
         ///  - [`VOICE_STATE_UPDATE`]
         ///
         /// [`VOICE_STATE_UPDATE`]: ./event/enum.Event.html#variant.VoiceStateUpdate
         const GUILD_VOICE_STATES = 1 << 7;
         /// Guild presences intent.
         ///
-        /// This intent is priveleged. See [`the discord docs`] for more information.
+        /// This intent is privileged. See [`the discord docs`] for more information.
         ///
-        /// Event(s) recieved:
+        /// Event(s) received:
         ///  - [`PRESENCE_UPDATE`]
         ///
         /// [the discord docs]: https://discord.com/developers/docs/topics/gateway#privileged-intents
@@ -110,7 +110,7 @@ bitflags! {
         const GUILD_PRESENCES = 1 << 8;
         /// Guild messages intent.
         ///
-        /// Event(s) recieved:
+        /// Event(s) received:
         ///  - [`MESSAGE_CREATE`]
         ///  - [`MESSAGE_UPDATE`]
         ///  - [`MESSAGE_DELETE`]
@@ -123,7 +123,7 @@ bitflags! {
         const GUILD_MESSAGES = 1 << 9;
         /// Guild message reactions intent.
         ///
-        /// Event(s) recieved:
+        /// Event(s) received:
         ///  - [`MESSAGE_REACTION_ADD`]
         ///  - [`MESSAGE_REACTION_REMOVE`]
         ///  - [`MESSAGE_REACTION_REMOVE_ALL`]
@@ -136,21 +136,21 @@ bitflags! {
         const GUILD_MESSAGE_REACTIONS = 1 << 10;
         /// Guild message typing intent.
         ///
-        /// Event(s) recieved:
+        /// Event(s) received:
         ///  - [`TYPING_START`]
         ///
         /// [`TYPING_START`]: ./event/enum.Event.html#variant.TypingStart
         const GUILD_MESSAGE_TYPING = 1 << 11;
         /// Direct messages intent.
         ///
-        /// Event(s) recieved:
+        /// Event(s) received:
         ///  - [`MESSAGE_CREATE`]
         ///  - [`MESSAGE_UPDATE`]
         ///  - [`MESSAGE_DELETE`]
         ///  - [`MESSAGE_DELETE_BULK`]
         ///
-        /// This is different from the [`GUILD_MESSAGES`] intent in that the bot will recieve
-        /// non-guild message events.
+        /// This is different from the [`GUILD_MESSAGES`] intent in that the bot will receive
+        /// message events from locations other than guilds.
         ///
         /// [`MESSAGE_CREATE`]: ./event/enum.Event.html#variant.MessageCreate
         /// [`MESSAGE_UPDATE`]: ./event/enum.Event.html#variant.MessageUpdate
@@ -160,14 +160,14 @@ bitflags! {
         const DIRECT_MESSAGES = 1 << 12;
         /// Direct message reactions intent.
         ///
-        /// Event(s) recieved:
+        /// Event(s) received:
         ///  - [`MESSAGE_REACTION_ADD`]
         ///  - [`MESSAGE_REACTION_REMOVE`]
         ///  - [`MESSAGE_REACTION_REMOVE_ALL`]
         ///  - [`MESSAGE_REACTION_REMOVE_EMOJI`]
         ///
         /// This is different from the [`GUILD_MESSAGE_REACTIONS`] event in that the bot will
-        /// recieve non-guild message reaction events.
+        /// receive message reaction events from locations other than guilds.
         ///
         /// [`MESSAGE_REACTION_ADD`]: ./event/enum.Event.html#variant.ReactionAdd
         /// [`MESSAGE_REACTION_REMOVE`]: ./event/enum.Event.html#variant.ReactionRemove
@@ -177,11 +177,11 @@ bitflags! {
         const DIRECT_MESSAGE_REACTIONS = 1 << 13;
         /// Direct message typing intent.
         ///
-        /// Event(s) recieved:
+        /// Event(s) received:
         ///  - [`TYPING_START`]
         ///
-        /// This is different from the [`GUILD_MESSAGE_TYPING`] intent in that the bot will recieve
-        /// non-guild typing start events.
+        /// This is different from the [`GUILD_MESSAGE_TYPING`] intent in that the bot will receive
+        /// typing start events from locations other than guilds.
         ///
         /// [`TYPING_START`]: ./event/enum.Event.html#variant.TypingStart
         /// [`GUILD_MESSAGE_TYPING`]: #associatedconstant.GUILD_MESSAGE_TYPING
