@@ -1,4 +1,4 @@
-use std::fmt;
+use std::fmt::{Debug, Formatter, Result as FmtResult};
 use unicode_segmentation::{GraphemeIndices, UnicodeSegmentation};
 
 /// An iterator over command arguments.
@@ -73,8 +73,8 @@ impl<'a> From<&'a str> for Arguments<'a> {
     }
 }
 
-impl<'a> fmt::Debug for Arguments<'a> {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+impl<'a> Debug for Arguments<'a> {
+    fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
         f.debug_struct("Arguments")
             .field("buf", &self.buf)
             .field("idx", &self.idx)
