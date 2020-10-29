@@ -161,6 +161,9 @@ struct InMemoryCacheRef {
 /// This is an implementation of a cache designed to be used by only the
 /// current process.
 ///
+/// Events will only be processed if they are properly expressed with
+/// [`Intents`]; refer to function-level documentation for more details.
+///
 /// # Design and Performance
 ///
 /// The defining characteristic of this cache is that returned types (such as a
@@ -183,6 +186,8 @@ struct InMemoryCacheRef {
 /// its state at that *point in time* or maybe across the lifetime of an
 /// operation. If you need the guild to always be up-to-date between operations,
 /// then the intent is that you keep getting it from the cache.
+///
+/// [`Intents`]: ../twilight_model/gateway/struct.Intents.html
 #[derive(Clone, Debug, Default)]
 pub struct InMemoryCache(Arc<InMemoryCacheRef>);
 
@@ -421,8 +426,7 @@ impl InMemoryCache {
 
     /// Gets the voice states within a voice channel.
     ///
-    /// This requires the [`GUILDS`] intent for the initial set of voice states, and further
-    /// requires the [`GUILD_VOICE_STATES`] intent for updates.
+    /// This requires both the [`GUILDS`] and [`GUILD_VOICE_STATES`] intents for updates.
     ///
     /// [`GUILDS`]: ../twilight_model/gateway/struct.Intents.html#associatedconstant.GUILDS
     /// [`GUILD_VOICE_STATES`]: ../twilight_model/gateway/struct.Intents.html#associatedconstant.GUILD_VOICE_STATES
@@ -439,9 +443,8 @@ impl InMemoryCache {
 
     /// Gets a voice state by user ID and Guild ID.
     ///
-    /// This is an O(1) operation. This requires the [`GUILDS`] intent for the
-    /// initial set of voice states, and further requires the [`GUILD_VOICE_STATES`] intent for
-    /// updates.
+    /// This is an O(1) operation. This requires the [`GUILDS`] and [`GUILD_VOICE_STATES`] intents
+    /// for updates.
     ///
     /// [`GUILDS`]: ../twilight_model/gateway/struct.Intents.html#associatedconstant.GUILDS
     /// [`GUILD_VOICE_STATES`]: ../twilight_model/gateway/struct.Intents.html#associatedconstant.GUILD_VOICE_STATES
