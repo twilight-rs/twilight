@@ -77,17 +77,6 @@ impl<'a> UpdateRole<'a> {
         self
     }
 
-    #[deprecated(
-        since = "0.1.5",
-        note = "please prefer the request::AuditLogReason trait"
-    )]
-    /// Attach an audit log reason to this request.
-    pub fn reason(mut self, reason: impl Into<String>) -> Self {
-        self.reason.replace(reason.into());
-
-        self
-    }
-
     fn start(&mut self) -> Result<()> {
         let request = if let Some(reason) = &self.reason {
             let headers = audit_header(&reason)?;

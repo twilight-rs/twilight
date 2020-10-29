@@ -159,7 +159,7 @@ impl Client {
     /// In guild `1`, add role `2` to user `3`, for the reason `"test"`:
     ///
     /// ```rust,no_run
-    /// # use twilight_http::Client;
+    /// # use twilight_http::{request::AuditLogReason, Client};
     /// use twilight_model::id::{GuildId, RoleId, UserId};
     /// #
     /// # #[tokio::main]
@@ -170,7 +170,7 @@ impl Client {
     /// let role_id = RoleId(2);
     /// let user_id = UserId(3);
     ///
-    /// client.add_role(guild_id, user_id, role_id).reason("test").await?;
+    /// client.add_role(guild_id, user_id, role_id).reason("test")?.await?;
     /// # Ok(()) }
     /// ```
     pub fn add_role(
@@ -243,7 +243,7 @@ impl Client {
     /// 1 day's worth of messages, for the reason `"memes"`:
     ///
     /// ```rust,no_run
-    /// # use twilight_http::Client;
+    /// # use twilight_http::{request::AuditLogReason, Client};
     /// use twilight_model::id::{GuildId, UserId};
     /// #
     /// # #[tokio::main]
@@ -254,7 +254,7 @@ impl Client {
     /// let user_id = UserId(200);
     /// client.create_ban(guild_id, user_id)
     ///     .delete_message_days(1)?
-    ///     .reason("memes")
+    ///     .reason("memes")?
     ///     .await?;
     /// # Ok(()) }
     /// ```
