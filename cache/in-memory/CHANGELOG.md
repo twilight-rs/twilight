@@ -2,6 +2,30 @@
 
 Changelog for `twilight-cache-inmemory`.
 
+## [0.2.0] - 2020-10-30
+
+### Fixes
+
+Correctly maintain relation sets for guilds. For example, the set of
+the IDs of roles within a guild was not being inserted into with new
+role IDs ([#540] - [@DusterTheFirst]).
+
+Fix voice state map retaining user states, causing false duplicate voice states
+for a single user ([#555] - [@DusterTheFirst]).
+
+Properly track guilds' lists of their emojis ([#557] - [@DusterTheFirst]).
+
+### Changes
+
+The following model fields have been removed ([#532] - [@vivian]):
+- `model::CachedGuild::{embed_channel_id, embed_enabled}`
+- `model::CachedPresence::nick`
+
+### Enhancements
+
+Remove old and removed method of cache building in
+documentation ([#576] - [@nickelc]).
+
 ## [0.2.0-beta.2] - 2020-10-22
 
 ### Fixes
@@ -47,13 +71,18 @@ Initial release.
 
 [@DusterTheFirst]: https://github.com/DusterTheFirst
 [@Erk-]: https://github.com/Erk-
+[@nickelc]: https://github.com/nickelc
+[@vivian]: https://github.com/vivian
 
+[#576]: https://github.com/twilight-rs/twilight/pull/576
+[#557]: https://github.com/twilight-rs/twilight/pull/557
 [#555]: https://github.com/twilight-rs/twilight/pull/555
 [#553]: https://github.com/twilight-rs/twilight/pull/553
 [#540]: https://github.com/twilight-rs/twilight/pull/540
 [#532]: https://github.com/twilight-rs/twilight/pull/532
 [#528]: https://github.com/twilight-rs/twilight/pull/528
 
+[0.2.0]: https://github.com/twilight-rs/twilight/releases/tag/cache-in-memory-v0.2.0
 [0.2.0-beta.2]: https://github.com/twilight-rs/twilight/releases/tag/cache-in-memory-v0.2.0-beta.2
 [0.2.0-beta.1]: https://github.com/twilight-rs/twilight/releases/tag/cache-in-memory-v0.2.0-beta.1
 [0.2.0-beta.0]: https://github.com/twilight-rs/twilight/releases/tag/cache-in-memory-v0.2.0-beta.0
