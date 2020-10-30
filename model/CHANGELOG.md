@@ -2,6 +2,60 @@
 
 Changelog for `twilight-model`.
 
+## [0.2.0] - 2020-10-30
+
+This version of the crate includes changes needed to support version 8 of the
+Discord Gateway and HTTP APIs.
+
+### Additions
+
+Implement [Application Integrations][0.2.0-beta.1:app integrations]
+([#549], [#579] - [@Erk-]). This adds the
+`guild::GuildIntegration::{application, revoked, subscriber_count}`
+fields and `guild::IntegrationApplication` type.
+
+Add the `channel::FollowedChannel` struct to include support for the Followed
+Channels API feature ([#556] - [@Gelbpunkt]).
+
+Add the fields `flags`, `locale`, `premium_type`, and `public_flags` to
+`user::CurrentUser` ([#565] - [@DusterTheFirst]).
+
+### Changes
+
+The following fields have been removed:
+- `gateway::presence::Presence::{game, nick}`
+- `gateway::payload::PresenceUpdate::{nick, premium_since, roles}`
+- `guild::Guild::{embed_channel_id, embed_enabled}`
+- `guild::PartialGuild::{embed_channel_id, embed_enabled}`
+
+To match the removal of the `gateway::presence::Presence::game` field, the
+`gateway::payload::update_status_info::UpdateStatus::new` method now takes a
+list of activities instead of a single activity.
+
+To match the gateway's required intent changes, the following intent-related
+fields are now non-optional:
+- `gateway::payload::identify::IdentifyInfo::intents`
+
+The following fields no longer (de)serialize with the `_new` suffix:
+- `channel::permission_overwrite::PermissionOverwrite::{allow, deny}`
+
+This means that `PermissionOverwrite::allow` (de)serializes to/from "allow" and
+and `PermissionOverwrite::deny` (de)serializes to/from "deny".
+
+Similarly, the following permissions fields now (de)serialize to/from
+"permissions" instead of "permissions_new":
+- `guild::Guild::permissions`
+- `guild::PartialGuild::permissions`
+- `guild::Role::permissions`
+
+([#532] - [@vivian])
+
+Make `user::CurrentUser::verified` optional to support OAuth 2.0 Bearer requests
+without the `email` scope ([#564] - [@DusterTheFirst]).
+
+Correct `oauth::CurrentApplicationInfo::id`'s type from a `UserId` to an
+`ApplicationId` ([#569] - [@DusterTheFirst]).
+
 ## [0.2.0-beta.2] - 2020-10-22
 
 ### Additions
@@ -80,10 +134,15 @@ Similarly, the following permissions fields now (de)serialize to/from
 Initial release.
 
 [@coadler]: https://github.com/coadler
+[@DusterTheFirst]: https://github.com/DusterTheFirst
 [@Erk-]: https://github.com/Erk-
 [@Gelbpunkt]: https://github.com/Gelbpunkt
 [@vivian]: https://github.com/vivian
 
+[#579]: https://github.com/twilight-rs/twilight/pull/579
+[#569]: https://github.com/twilight-rs/twilight/pull/569
+[#565]: https://github.com/twilight-rs/twilight/pull/565
+[#564]: https://github.com/twilight-rs/twilight/pull/564
 [#556]: https://github.com/twilight-rs/twilight/pull/556
 [#549]: https://github.com/twilight-rs/twilight/pull/549
 [#532]: https://github.com/twilight-rs/twilight/pull/532
@@ -94,6 +153,7 @@ Initial release.
 
 [0.2.0-beta.1:app integrations]: https://github.com/discord/discord-api-docs/commit/a926694e2f8605848bda6b57d21c8817559e5cec
 
+[0.2.0]: https://github.com/twilight-rs/twilight/releases/tag/model-v0.2.0
 [0.2.0-beta.2]: https://github.com/twilight-rs/twilight/releases/tag/model-v0.2.0-beta.2
 [0.2.0-beta.1]: https://github.com/twilight-rs/twilight/releases/tag/model-v0.2.0-beta.1
 [0.2.0-beta.0]: https://github.com/twilight-rs/twilight/releases/tag/model-v0.2.0-beta.0
