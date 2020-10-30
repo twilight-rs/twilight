@@ -2,6 +2,52 @@
 
 Changelog for `twilight-http`.
 
+## [0.2.0] - 2020-10-30
+
+This major version of the crate primarily includes changes needed to support
+version 8 of the Discord HTTP API.
+
+### Additions
+
+Implement [Application Integrations][0.2.0-beta.1:app integrations]
+([#549], [#579] - [@Erk-])
+
+Add support for the Followed Channels API feature ([#556] - [@Gelbpunkt]):
+
+- `api_error::ErrorCode::MessageAlreadyCrossposted` error type (40033)
+- `Client::follow_news_channel` method to follow a news channel accompanied by
+  its `request::channel::follow_news_channel` request
+- `Client::crosspost_message` method to crosspost a message accompanied by its
+  `request::channel::message::crosspost_message` request
+- `routing::Path::ChannelsIdMessagesIdCrosspost` API path variant to crosspost a
+  channel message
+- `routing::Path::ChannelsIdFollowers` API path variant to operate on a news
+  channel's followers
+- `routing::Route::CrosspostMessage` to retrieve the route to crosspost a
+  channel message
+- `routing::Route::FollowNewsChannel` to retrieve the route to follow a channel
+  message
+
+Add `Client::ratelimiter` to retrieve the active ratelimiter and add remaining
+time estimation for buckets to the
+Ratelimiter (`Ratelimiter::time_until_available`) ([#547] - [@Gelbpunkt]).
+
+### Fixes
+
+The Future output type of the
+`request::user::get_current_user_guilds::GetCurrentUserGuilds` request has been
+changed from `PartialGuild` to a new, slimmed down partial guild struct when
+listing the current user's
+guilds ([#550] - [@DusterTheFirst], [#567] - [@chamburr]).
+
+Use the configured Reqwest client in the
+`ClientBuilder` ([#563] - [@DusterTheFirst]).
+
+### Changes
+
+Remove the deprecated request `reason` methods in favor of the
+`request::AuditLogReason` trait ([#581] - [@vivian]).
+
 ## [0.2.0-beta.2] - 2020-10-22
 
 ### Additions
@@ -96,15 +142,21 @@ Initial release.
 
 [@7596ff]: https://github.com/7596ff
 [@AEnterprise]: https://github.com/AEnterprise
+[@chamburr]: https://github.com/chamburr
 [@coadler]: https://github.com/coadler
 [@DusterTheFirst]: https://github.com/DusterTheFirst
 [@Erk-]: https://github.com/Erk-
 [@Gelbpunkt]: https://github.com/Gelbpunkt
 [@nickelc]: https://github.com/nickelc
+[@vivian]: https://github.com/vivian
 
+[#581]: https://github.com/twilight-rs/twilight/pull/581
+[#579]: https://github.com/twilight-rs/twilight/pull/579
+[#567]: https://github.com/twilight-rs/twilight/pull/567
 [#556]: https://github.com/twilight-rs/twilight/pull/556
 [#550]: https://github.com/twilight-rs/twilight/pull/550
 [#549]: https://github.com/twilight-rs/twilight/pull/549
+[#547]: https://github.com/twilight-rs/twilight/pull/547
 [#534]: https://github.com/twilight-rs/twilight/pull/534
 [#532]: https://github.com/twilight-rs/twilight/pull/532
 [#529]: https://github.com/twilight-rs/twilight/pull/529
@@ -120,6 +172,7 @@ Initial release.
 
 [0.2.0-beta.1:app integrations]: https://github.com/discord/discord-api-docs/commit/a926694e2f8605848bda6b57d21c8817559e5cec
 
+[0.2.0]: https://github.com/twilight-rs/twilight/releases/tag/http-v0.2.0
 [0.2.0-beta.2]: https://github.com/twilight-rs/twilight/releases/tag/http-v0.2.0-beta.2
 [0.2.0-beta.1]: https://github.com/twilight-rs/twilight/releases/tag/http-v0.2.0-beta.1
 [0.2.0-beta.0]: https://github.com/twilight-rs/twilight/releases/tag/http-v0.2.0-beta.0
