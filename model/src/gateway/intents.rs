@@ -41,7 +41,7 @@ bitflags! {
         const GUILDS = 1;
         /// Guild members intent.
         ///
-        /// This intent is privileged. See [`the discord docs`] for more information.
+        /// This intent is privileged. See [the discord docs] for more information.
         ///
         /// Event(s) received:
         ///  - [`GUILD_MEMBER_ADD`]
@@ -101,7 +101,7 @@ bitflags! {
         const GUILD_VOICE_STATES = 1 << 7;
         /// Guild presences intent.
         ///
-        /// This intent is privileged. See [`the discord docs`] for more information.
+        /// This intent is privileged. See [the discord docs] for more information.
         ///
         /// Event(s) received:
         ///  - [`PRESENCE_UPDATE`]
