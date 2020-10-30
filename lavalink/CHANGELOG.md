@@ -2,6 +2,18 @@
 
 Changelog for `twilight-lavalink`.
 
+## [0.2.0] - 2020-10-30
+
+This major version bump of the Lavalink client is primarily done to match all of
+the other crates in the ecosystem receiving a major version bump. There are no
+significant API changes.
+
+### Enhancements
+
+Update `async-tungstenite` from ^0.8 to ^0.9.3, switching the RusTLS feature
+selection from `async-tungstenite/async-tls` to `async-tungstenite/tokio-rustls`
+to reduce dependency count ([#548], [#560] - [@nickelc]).
+
 ## [0.2.0-beta.1] - 2020-10-23
 
 ### Enhancements
@@ -28,9 +40,11 @@ Initial release.
 [@MOZGIII]: https://github.com/MOZGIII
 [@nickelc]: https://github.com/nickelc
 
+[#560]: https://github.com/twilight-rs/twilight/pull/560
 [#548]: https://github.com/twilight-rs/twilight/pull/548
 [#518]: https://github.com/twilight-rs/twilight/pull/518
 
+[0.2.0]: https://github.com/twilight-rs/twilight/releases/tag/lavalink-v0.2.0
 [0.2.0-beta.1]: https://github.com/twilight-rs/twilight/releases/tag/lavalink-v0.2.0-beta.1
 [0.2.0-beta.0]: https://github.com/twilight-rs/twilight/releases/tag/lavalink-v0.2.0-beta.0
 [0.1.1]: https://github.com/twilight-rs/twilight/releases/tag/lavalink-v0.1.1
