@@ -131,6 +131,10 @@ impl<'a> Parser<'a> {
 
         idx += command.len();
 
+        // Advance from the amount of whitespace that was between the prefix and
+        // the command name.
+        idx += command_buf.len() - command_buf.trim_start().len();
+
         Some(Command {
             arguments: Arguments::new(buf.get(idx..)?),
             name: command,
@@ -290,5 +294,23 @@ mod tests {
 
         assert_eq!("=", command.prefix);
         assert_eq!("echo", command.name);
+    }
+
+    #[test]
+    fn test_prefix_mention() {
+        let mut config = CommandParserConfig::new();
+        config.add_prefix("foo");
+        config.add_command("dump", false);
+        let parser = Parser::new(config);
+
+        let Command {
+            mut arguments,
+            name,
+            prefix,
+        } = parser.parse("foo dump test").unwrap();
+        assert_eq!("foo", prefix);
+        assert_eq!("dump", name);
+        assert_eq!(Some("test"), arguments.next());
+        assert!(arguments.next().is_none());
     }
 }
