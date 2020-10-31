@@ -1,4 +1,4 @@
-use super::{Event, EventConversionError};
+use super::{CloseCode, Event, EventConversionError};
 use serde::{Deserialize, Serialize};
 use std::convert::TryFrom;
 
@@ -25,7 +25,7 @@ pub struct Connecting {
 #[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
 pub struct Disconnected {
     /// The code for the disconnect if not initiated by the host, if any.
-    pub code: Option<u16>,
+    pub code: Option<CloseCode>,
     /// The reason for the disconnect if not initiated by the host, if any.
     pub reason: Option<String>,
     /// The ID of the shard that's now disconnected.
@@ -109,8 +109,8 @@ impl TryFrom<Event> for ShardEvent {
 #[cfg(test)]
 mod tests {
     use super::{
-        Connected, Connecting, Disconnected, Event, Identifying, Payload, Reconnecting, Resuming,
-        ShardEvent,
+        CloseCode, Connected, Connecting, Disconnected, Event, Identifying, Payload, Reconnecting,
+        Resuming, ShardEvent,
     };
     use serde_test::Token;
     use std::convert::TryInto;
@@ -164,7 +164,7 @@ mod tests {
     #[test]
     fn test_disconnected() {
         let value = Disconnected {
-            code: Some(4_000),
+            code: Some(CloseCode::UnknownError),
             reason: Some("the reason".to_owned()),
             shard_id: 4,
         };
@@ -295,7 +295,7 @@ mod tests {
         ));
 
         let disconnected = Event::ShardDisconnected(Disconnected {
-            code: Some(4_000),
+            code: Some(CloseCode::UnknownError),
             reason: None,
             shard_id: 4,
         });

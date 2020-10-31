@@ -1,5 +1,9 @@
 pub(crate) mod voice_state;
 
+mod close_code;
+mod opcode;
 mod voice_region;
 
-pub use self::{voice_region::VoiceRegion, voice_state::VoiceState};
+pub use self::{
+    close_code::CloseCode, opcode::OpCode, voice_region::VoiceRegion, voice_state::VoiceState,
+};
