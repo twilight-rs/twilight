@@ -41,7 +41,7 @@
 //!
 //! ```toml
 //! [dependencies]
-//! twilight-gateway = { default-features = false, features = ["rustls", "simd-json"], version = "0.1" }
+//! twilight-gateway = { default-features = false, features = ["rustls", "simd-json"], version = "0.2" }
 //! ```
 //!
 //! ### TLS
@@ -60,7 +60,7 @@
 //!
 //! ```toml
 //! [dependencies]
-//! twilight-gateway = { default-features = false, features = ["native"], version = "0.1" }
+//! twilight-gateway = { default-features = false, features = ["native"], version = "0.2" }
 //! ```
 //!
 //! #### `rustls`

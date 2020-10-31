@@ -37,7 +37,7 @@ To enable `native`, do something like this in your `Cargo.toml`:
 
 ```toml
 [dependencies]
-twilight-lavalink = { default-features = false, features = ["native"], version = "0.1" }
+twilight-lavalink = { default-features = false, features = ["native"], version = "0.2" }
 ```
 
 #### `rustls`
