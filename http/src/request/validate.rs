@@ -284,6 +284,10 @@ pub fn get_guild_members_limit(value: u64) -> bool {
     value > 0 && value <= 1000
 }
 
+pub fn search_guild_members_limit(value: u64) -> bool {
+    value > 0 && value <= 100
+}
+
 pub fn get_reactions_limit(value: u64) -> bool {
     // <https://discordapp.com/developers/docs/resources/channel#get-reactions-query-string-params>
     value > 0 && value <= 100

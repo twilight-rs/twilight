@@ -816,6 +816,37 @@ impl Client {
         GetGuildMembers::new(self, guild_id)
     }
 
+    /// Search the members of a specific guild by a query. Requires the [`GUILD_MEMBERS`] intent.
+    ///
+    /// The upper limit to this request is 100. Discord defaults the limit to 1.
+    ///
+    /// # Examples
+    ///
+    /// Get the first 10 members of guild `100` matching `Wumpus`:
+    ///
+    /// ```rust,no_run
+    /// use twilight_http::Client;
+    /// use twilight_model::id::GuildId;
+    ///
+    /// # #[tokio::main]
+    /// # async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
+    /// let client = Client::new("my token");
+    ///
+    /// let guild_id = GuildId(100);
+    /// let members = client.search_guild_members(guild_id, String::from("Wumpus")).limit(10)?.await?;
+    /// # Ok(()) }
+    /// ```
+    ///
+    /// # Errors
+    ///
+    /// Returns [`SearchGuildMembersError::LimitInvalid`] if the limit is invalid.
+    ///
+    /// [`GUILD_MEMBERS`]: ../../twilight_model/gateway/struct.Intents.html#associatedconstant.GUILD_MEMBERS
+    /// [`SearchGuildMembersError::LimitInvalid`]: ../request/guild/member/search_guild_members/enum.SearchGuildMembersError.html#variant.LimitInvalid
+    pub fn search_guild_members(&self, guild_id: GuildId, query: String) -> SearchGuildMembers<'_> {
+        SearchGuildMembers::new(self, guild_id, query)
+    }
+
     /// Get a member of a guild, by their id.
     pub fn guild_member(&self, guild_id: GuildId, user_id: UserId) -> GetMember<'_> {
         GetMember::new(self, guild_id, user_id)

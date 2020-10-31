@@ -113,6 +113,7 @@ pub enum Path {
     GuildsIdMembersId(u64),
     GuildsIdMembersIdRolesId(u64),
     GuildsIdMembersMeNick(u64),
+    GuildsIdMembersSearch(u64),
     GuildsIdPreview(u64),
     GuildsIdPrune(u64),
     GuildsIdRegions(u64),
@@ -203,6 +204,7 @@ impl FromStr for Path {
             ["guilds", id, "integrations", _, "sync"] => GuildsIdIntegrationsIdSync(id.parse()?),
             ["guilds", id, "invites"] => GuildsIdInvites(id.parse()?),
             ["guilds", id, "members"] => GuildsIdMembers(id.parse()?),
+            ["guilds", id, "members", "search"] => GuildsIdMembersSearch(id.parse()?),
             ["guilds", id, "members", _] => GuildsIdMembersId(id.parse()?),
             ["guilds", id, "members", _, "roles", _] => GuildsIdMembersIdRolesId(id.parse()?),
             ["guilds", id, "members", "@me", "nick"] => GuildsIdMembersMeNick(id.parse()?),
@@ -700,6 +702,15 @@ pub enum Route {
         role_id: u64,
         /// The ID of the user.
         user_id: u64,
+    },
+    /// Route information to search for members in a guild.
+    SearchGuildMembers {
+        /// The ID of the guild.
+        guild_id: u64,
+        /// The upper limit of members to query.
+        limit: Option<u64>,
+        /// The query to search by.
+        query: String,
     },
     /// Route information to sync a guild's integration.
     SyncGuildIntegration {
@@ -1389,6 +1400,23 @@ impl Route {
                 Path::GuildsIdMembersIdRolesId(guild_id),
                 format!("guilds/{}/members/{}/roles/{}", guild_id, user_id, role_id).into(),
             ),
+            Self::SearchGuildMembers {
+                guild_id,
+                limit,
+                query,
+            } => {
+                let mut path = format!("guilds/{}/members/search?query={}", guild_id, query);
+
+                if let Some(limit) = limit {
+                    let _ = write!(path, "&limit={}", limit);
+                }
+
+                (
+                    Method::GET,
+                    Path::GuildsIdMembersSearch(guild_id),
+                    path.into(),
+                )
+            }
             Self::SyncGuildIntegration {
                 guild_id,
                 integration_id,
