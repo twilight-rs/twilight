@@ -161,6 +161,9 @@ struct InMemoryCacheRef {
 /// This is an implementation of a cache designed to be used by only the
 /// current process.
 ///
+/// Events will only be processed if they are properly expressed with
+/// [`Intents`]; refer to function-level documentation for more details.
+///
 /// # Design and Performance
 ///
 /// The defining characteristic of this cache is that returned types (such as a
@@ -183,6 +186,8 @@ struct InMemoryCacheRef {
 /// its state at that *point in time* or maybe across the lifetime of an
 /// operation. If you need the guild to always be up-to-date between operations,
 /// then the intent is that you keep getting it from the cache.
+///
+/// [`Intents`]: ../twilight_model/gateway/struct.Intents.html
 #[derive(Clone, Debug, Default)]
 pub struct InMemoryCache(Arc<InMemoryCacheRef>);
 
@@ -228,7 +233,9 @@ impl InMemoryCache {
 
     /// Gets a channel by ID.
     ///
-    /// This is an O(1) operation.
+    /// This is an O(1) operation. This requires the [`GUILDS`] intent.
+    ///
+    /// [`GUILDS`]: ../twilight_model/gateway/struct.Intents.html#associatedconstant.GUILDS
     pub fn guild_channel(&self, channel_id: ChannelId) -> Option<Arc<GuildChannel>> {
         self.0
             .channels_guild
@@ -249,7 +256,9 @@ impl InMemoryCache {
 
     /// Gets an emoji by ID.
     ///
-    /// This is an O(1) operation.
+    /// This is an O(1) operation. This requires the [`GUILD_EMOJIS`] intent.
+    ///
+    /// [`GUILD_EMOJIS`]: ../twilight_model/gateway/struct.Intents.html#associatedconstant.GUILD_EMOJIS
     pub fn emoji(&self, emoji_id: EmojiId) -> Option<Arc<CachedEmoji>> {
         self.0.emojis.get(&emoji_id).map(|x| Arc::clone(&x.data))
     }
@@ -266,14 +275,19 @@ impl InMemoryCache {
 
     /// Gets a guild by ID.
     ///
-    /// This is an O(1) operation.
+    /// This is an O(1) operation. This requires the [`GUILDS`] intent.
+    ///
+    /// [`GUILDS`]: ../twilight_model/gateway/struct.Intents.html#associatedconstant.GUILDS
     pub fn guild(&self, guild_id: GuildId) -> Option<Arc<CachedGuild>> {
         self.0.guilds.get(&guild_id).map(|r| Arc::clone(r.value()))
     }
 
     /// Gets the set of channels in a guild.
     ///
-    /// This is a O(m) operation, where m is the amount of channels in the guild.
+    /// This is a O(m) operation, where m is the amount of channels in the
+    /// guild. This requires the [`GUILDS`] intent.
+    ///
+    /// [`GUILDS`]: ../twilight_model/gateway/struct.Intents.html#associatedconstant.GUILDS
     pub fn guild_channels(&self, guild_id: GuildId) -> Option<HashSet<ChannelId>> {
         self.0
             .guild_channels
@@ -284,6 +298,10 @@ impl InMemoryCache {
     /// Gets the set of emojis in a guild.
     ///
     /// This is a O(m) operation, where m is the amount of emojis in the guild.
+    /// This requires both the [`GUILDS`] and [`GUILD_EMOJIS`] intents.
+    ///
+    /// [`GUILDS`]: ../twilight_model/gateway/struct.Intents.html#associatedconstant.GUILDS
+    /// [`GUILD_EMOJIS`]: ../twilight_model/gateway/struct.Intents.html#associatedconstant.GUILD_EMOJIS
     pub fn guild_emojis(&self, guild_id: GuildId) -> Option<HashSet<EmojiId>> {
         self.0
             .guild_emojis
@@ -296,6 +314,9 @@ impl InMemoryCache {
     /// This list may be incomplete if not all members have been cached.
     ///
     /// This is a O(m) operation, where m is the amount of members in the guild.
+    /// This requires the [`GUILD_MEMBERS`] intent.
+    ///
+    /// [`GUILD_MEMBERS`]: ../twilight_model/gateway/struct.Intents.html#associatedconstant.GUILD_MEMBERS
     pub fn guild_members(&self, guild_id: GuildId) -> Option<HashSet<UserId>> {
         self.0
             .guild_members
@@ -308,6 +329,9 @@ impl InMemoryCache {
     /// This list may be incomplete if not all members have been cached.
     ///
     /// This is a O(m) operation, where m is the amount of members in the guild.
+    /// This requires the [`GUILD_PRESENCES`] intent.
+    ///
+    /// [`GUILD_PRESENCES`]: ../twilight_model/gateway/struct.Intents.html#associatedconstant.GUILD_PRESENCES
     pub fn guild_presences(&self, guild_id: GuildId) -> Option<HashSet<UserId>> {
         self.0
             .guild_presences
@@ -318,13 +342,18 @@ impl InMemoryCache {
     /// Gets the set of roles in a guild.
     ///
     /// This is a O(m) operation, where m is the amount of roles in the guild.
+    /// This requires the [`GUILDS`] intent.
+    ///
+    /// [`GUILDS`]: ../twilight_model/gateway/struct.Intents.html#associatedconstant.GUILDS
     pub fn guild_roles(&self, guild_id: GuildId) -> Option<HashSet<RoleId>> {
         self.0.guild_roles.get(&guild_id).map(|r| r.value().clone())
     }
 
     /// Gets a member by guild ID and user ID.
     ///
-    /// This is an O(1) operation.
+    /// This is an O(1) operation. This requires the [`GUILD_MEMBERS`] intent.
+    ///
+    /// [`GUILD_MEMBERS`]: ../twilight_model/gateway/struct.Intents.html#associatedconstant.GUILD_MEMBERS
     pub fn member(&self, guild_id: GuildId, user_id: UserId) -> Option<Arc<CachedMember>> {
         self.0
             .members
@@ -334,7 +363,11 @@ impl InMemoryCache {
 
     /// Gets a message by channel ID and message ID.
     ///
-    /// This is an O(log n) operation.
+    /// This is an O(log n) operation. This requires one or both of the
+    /// [`GUILD_MESSAGES`] or [`DIRECT_MESSAGES`] intents.
+    ///
+    /// [`GUILD_MESSAGES`]: ../twilight_model/gateway/struct.Intents.html#associatedconstant.GUILD_MESSAGES
+    /// [`DIRECT_MESSAGES`]: ../twilight_model/gateway/struct.Intents.html#associatedconstant.DIRECT_MESSAGES
     pub fn message(
         &self,
         channel_id: ChannelId,
@@ -347,7 +380,9 @@ impl InMemoryCache {
 
     /// Gets a presence by, optionally, guild ID, and user ID.
     ///
-    /// This is an O(1) operation.
+    /// This is an O(1) operation. This requires the [`GUILD_PRESENCES`] intent.
+    ///
+    /// [`GUILD_PRESENCES`]: ../twilight_model/gateway/struct.Intents.html#associatedconstant.GUILD_PRESENCES
     pub fn presence(&self, guild_id: GuildId, user_id: UserId) -> Option<Arc<CachedPresence>> {
         self.0
             .presences
@@ -357,7 +392,9 @@ impl InMemoryCache {
 
     /// Gets a private channel by ID.
     ///
-    /// This is an O(1) operation.
+    /// This is an O(1) operation. This requires the [`DIRECT_MESSAGES`] intent.
+    ///
+    /// [`DIRECT_MESSAGES`]: ../twilight_model/gateway/struct.Intents.html#associatedconstant.DIRECT_MESSAGES
     pub fn private_channel(&self, channel_id: ChannelId) -> Option<Arc<PrivateChannel>> {
         self.0
             .channels_private
@@ -367,7 +404,9 @@ impl InMemoryCache {
 
     /// Gets a role by ID.
     ///
-    /// This is an O(1) operation.
+    /// This is an O(1) operation. This requires the [`GUILDS`] intent.
+    ///
+    /// [`GUILDS`]: ../twilight_model/gateway/struct.Intents.html#associatedconstant.GUILDS
     pub fn role(&self, role_id: RoleId) -> Option<Arc<Role>> {
         self.0
             .roles
@@ -377,12 +416,19 @@ impl InMemoryCache {
 
     /// Gets a user by ID.
     ///
-    /// This is an O(1) operation.
+    /// This is an O(1) operation. This requires the [`GUILD_MEMBERS`] intent.
+    ///
+    /// [`GUILD_MEMBERS`]: ../twilight_model/gateway/struct.Intents.html#associatedconstant.GUILD_MEMBERS
     pub fn user(&self, user_id: UserId) -> Option<Arc<User>> {
         self.0.users.get(&user_id).map(|r| Arc::clone(&r.0))
     }
 
     /// Gets the voice states within a voice channel.
+    ///
+    /// This requires both the [`GUILDS`] and [`GUILD_VOICE_STATES`] intents.
+    ///
+    /// [`GUILDS`]: ../twilight_model/gateway/struct.Intents.html#associatedconstant.GUILDS
+    /// [`GUILD_VOICE_STATES`]: ../twilight_model/gateway/struct.Intents.html#associatedconstant.GUILD_VOICE_STATES
     pub fn voice_channel_states(&self, channel_id: ChannelId) -> Option<Vec<Arc<VoiceState>>> {
         let user_ids = self.0.voice_state_channels.get(&channel_id)?;
 
@@ -396,7 +442,11 @@ impl InMemoryCache {
 
     /// Gets a voice state by user ID and Guild ID.
     ///
-    /// This is an O(1) operation.
+    /// This is an O(1) operation. This requires both the [`GUILDS`] and
+    /// [`GUILD_VOICE_STATES`] intents.
+    ///
+    /// [`GUILDS`]: ../twilight_model/gateway/struct.Intents.html#associatedconstant.GUILDS
+    /// [`GUILD_VOICE_STATES`]: ../twilight_model/gateway/struct.Intents.html#associatedconstant.GUILD_VOICE_STATES
     pub fn voice_state(&self, user_id: UserId, guild_id: GuildId) -> Option<Arc<VoiceState>> {
         self.0
             .voice_states
