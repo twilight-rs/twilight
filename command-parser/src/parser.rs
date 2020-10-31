@@ -311,5 +311,6 @@ mod tests {
         assert_eq!("foo", prefix);
         assert_eq!("dump", name);
         assert_eq!(Some("test"), arguments.next());
+        assert!(arguments.next().is_none());
     }
 }
