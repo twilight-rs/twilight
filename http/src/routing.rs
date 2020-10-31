@@ -705,11 +705,11 @@ pub enum Route {
     },
     /// Route information to search for members in a guild.
     SearchGuildMembers {
-        /// The ID of the guild.
+        /// ID of the guild to search in.
         guild_id: u64,
-        /// The upper limit of members to query.
+        /// Upper limit of members to query for.
         limit: Option<u64>,
-        /// The query to search by.
+        /// Query to search by.
         query: String,
     },
     /// Route information to sync a guild's integration.
