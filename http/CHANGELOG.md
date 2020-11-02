@@ -2,6 +2,11 @@
 
 Changelog for `twilight-http`.
 
+## [0.2.1] - 2020-11-02
+
+Update the installation instructions to note version 0.2 instead of
+version 0.1 ([#588] - [@vivian]).
+
 ## [0.2.0] - 2020-10-30
 
 This major version of the crate primarily includes changes needed to support
@@ -150,6 +155,7 @@ Initial release.
 [@nickelc]: https://github.com/nickelc
 [@vivian]: https://github.com/vivian
 
+[#588]: https://github.com/twilight-rs/twilight/pull/588
 [#581]: https://github.com/twilight-rs/twilight/pull/581
 [#579]: https://github.com/twilight-rs/twilight/pull/579
 [#567]: https://github.com/twilight-rs/twilight/pull/567
@@ -172,6 +178,7 @@ Initial release.
 
 [0.2.0-beta.1:app integrations]: https://github.com/discord/discord-api-docs/commit/a926694e2f8605848bda6b57d21c8817559e5cec
 
+[0.2.1]: https://github.com/twilight-rs/twilight/releases/tag/http-v0.2.1
 [0.2.0]: https://github.com/twilight-rs/twilight/releases/tag/http-v0.2.0
 [0.2.0-beta.2]: https://github.com/twilight-rs/twilight/releases/tag/http-v0.2.0-beta.2
 [0.2.0-beta.1]: https://github.com/twilight-rs/twilight/releases/tag/http-v0.2.0-beta.1
