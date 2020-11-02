@@ -2,6 +2,11 @@
 
 Changelog for `twilight-command-parser`.
 
+## [0.2.2] - 2020-11-02
+
+Remove the `unicode-segmentation` dependency due to the functionality used from
+it also being in the stdlib ([#585] - [@vivian]).
+
 ## [0.2.1] - 2020-10-31
 
 ### Fixes
@@ -47,11 +52,13 @@ Initial release.
 [@nickelc]: https://github.com/nickelc
 [@vivian]: https://github.com/vivian
 
+[#585]: https://github.com/twilight-rs/twilight/pull/585
 [#584]: https://github.com/twilight-rs/twilight/pull/584
 [#575]: https://github.com/twilight-rs/twilight/pull/575
 [#515]: https://github.com/twilight-rs/twilight/pull/515
 [#511]: https://github.com/twilight-rs/twilight/pull/511
 
+[0.2.2]: https://github.com/twilight-rs/twilight/releases/tag/command-parser-v0.2.2
 [0.2.1]: https://github.com/twilight-rs/twilight/releases/tag/command-parser-v0.2.1
 [0.2.0]: https://github.com/twilight-rs/twilight/releases/tag/command-parser-v0.2.0
 [0.2.0-beta.0]: https://github.com/twilight-rs/twilight/releases/tag/command-parser-v0.2.0-beta.0
