@@ -2,6 +2,11 @@
 
 Changelog for `twilight-gateway`.
 
+## [0.2.1] - 2020-11-02
+
+Update the installation instructions to note version 0.2 instead of version
+0.1 ([#588] - [@vivian]).
+
 ## [0.2.0] - 2020-10-30
 
 This major version of the crate primarily includes changes needed to support
@@ -102,6 +107,7 @@ Initial release.
 [@nickelc]: https://github.com/nickelc
 [@vivian]: https://github.com/vivian
 
+[#588]: https://github.com/twilight-rs/twilight/pull/588
 [#568]: https://github.com/twilight-rs/twilight/pull/568
 [#560]: https://github.com/twilight-rs/twilight/pull/560
 [#548]: https://github.com/twilight-rs/twilight/pull/548
@@ -111,6 +117,7 @@ Initial release.
 [#515]: https://github.com/twilight-rs/twilight/pull/515
 [#512]: https://github.com/twilight-rs/twilight/pull/512
 
+[0.2.1]: https://github.com/twilight-rs/twilight/releases/tag/gateway-v0.2.1
 [0.2.0]: https://github.com/twilight-rs/twilight/releases/tag/gateway-v0.2.0
 [0.2.0-beta.1]: https://github.com/twilight-rs/twilight/releases/tag/gateway-v0.2.0-beta.1
 [0.2.0-beta.0]: https://github.com/twilight-rs/twilight/releases/tag/gateway-v0.2.0-beta.0
