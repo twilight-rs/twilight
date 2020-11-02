@@ -7,6 +7,7 @@ use crate::{
     error::{Error, Result, UrlError},
     ratelimiting::{RatelimitHeaders, Ratelimiter},
     request::{
+        applications::{CreateGuildCommand, GetGuildCommands},
         channel::message::allowed_mentions::AllowedMentions,
         guild::{create_guild::CreateGuildError, create_guild_channel::CreateGuildChannelError},
         prelude::*,
@@ -14,6 +15,8 @@ use crate::{
     },
     API_VERSION,
 };
+use twilight_model::id::ApplicationId;
+
 use bytes::Bytes;
 use hyper::{
     body::{self, Buf},
@@ -120,6 +123,37 @@ pub struct Client {
 }
 
 impl Client {
+    /* New Stuff Start */
+    pub fn create_guild_command(
+        &self,
+        application_id: ApplicationId,
+        guild_id: GuildId,
+        name: impl Into<String>,
+        description: impl Into<String>,
+    ) -> CreateGuildCommand<'_> {
+        CreateGuildCommand::new(
+            &self,
+            application_id,
+            guild_id,
+            name.into(),
+            description.into(),
+        )
+    }
+
+    pub fn get_guild_commands(
+        &self,
+        application_id: ApplicationId,
+        guild_id: GuildId,
+    ) -> GetGuildCommands<'_> {
+        GetGuildCommands::new(
+            &self,
+            application_id,
+            guild_id,
+        )
+    }
+
+    /* New Stuff End   */
+
     /// Create a new `hyper-rustls` or `hyper-tls` backed client with a token.
     #[cfg_attr(docsrs, doc(cfg(any(feature = "hyper-rustls", feature = "hyper-tls"))))]
     pub fn new(token: impl Into<String>) -> Self {

@@ -11,6 +11,7 @@ bitflags! {
         const SUPPRESS_EMBEDS = 1 << 2;
         const SOURCE_MESSAGE_DELETED = 1 << 3;
         const URGENT = 1 << 4;
+        const EPHEMERAL = 1 << 6;
     }
 }
 
@@ -41,5 +42,6 @@ mod tests {
         serde_test::assert_tokens(&MessageFlags::SUPPRESS_EMBEDS, &[Token::U64(1 << 2)]);
         serde_test::assert_tokens(&MessageFlags::SOURCE_MESSAGE_DELETED, &[Token::U64(1 << 3)]);
         serde_test::assert_tokens(&MessageFlags::URGENT, &[Token::U64(1 << 4)]);
+        serde_test::assert_tokens(&MessageFlags::EPHEMERAL, &[Token::U64(1 << 6)]);        
     }
 }

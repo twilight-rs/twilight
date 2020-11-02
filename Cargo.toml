@@ -18,6 +18,7 @@ members = [
     "lavalink/examples/basic-lavalink-bot",
     "mention",
     "model",
+    "slash",
     "standby",
     "twilight",
     "util",

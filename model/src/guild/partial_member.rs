@@ -1,4 +1,4 @@
-use crate::id::RoleId;
+use crate::{id::RoleId, user::User, guild::Permissions};
 use serde::{Deserialize, Serialize};
 
 #[derive(Clone, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
@@ -9,7 +9,9 @@ pub struct PartialMember {
     pub nick: Option<String>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub premium_since: Option<String>,
+    pub permissions: Option<Permissions>,
     pub roles: Vec<RoleId>,
+    pub user: Option<User>
 }
 
 #[cfg(test)]
