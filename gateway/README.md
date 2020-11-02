@@ -43,7 +43,7 @@ you can also use this environment variable `RUSTFLAGS="-C target-cpu=native"`.
 
 ```toml
 [dependencies]
-twilight-gateway = { default-features = false, features = ["rustls", "simd-json"], version = "0.1" }
+twilight-gateway = { default-features = false, features = ["rustls", "simd-json"], version = "0.2" }
 ```
 
 ### TLS
@@ -62,7 +62,7 @@ To enable `native`, do something like this in your `Cargo.toml`:
 
 ```toml
 [dependencies]
-twilight-gateway = { default-features = false, features = ["native"], version = "0.1" }
+twilight-gateway = { default-features = false, features = ["native"], version = "0.2" }
 ```
 
 #### `rustls`
