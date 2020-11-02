@@ -16,7 +16,6 @@ version = "0.1.2"
 
 [dependencies]
 unicase = { default-features = false, version = "2" }
-unicode-segmentation = "1"
 
 [dev-dependencies]
 criterion = "0.3"
