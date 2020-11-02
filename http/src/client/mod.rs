@@ -6,7 +6,12 @@ use crate::{
     api_error::{ApiError, ErrorCode},
     error::{Error, Result},
     ratelimiting::{RatelimitHeaders, Ratelimiter},
+    request::applications::InteractionCallback,
     request::{
+        applications::{
+            CreateGlobalCommand, CreateGuildCommand, DeleteGlobalCommand, DeleteGuildCommand,
+            GetGlobalCommands, GetGuildCommands, UpdateGlobalCommand, UpdateGuildCommand,
+        },
         channel::allowed_mentions::AllowedMentions,
         guild::{create_guild::CreateGuildError, create_guild_channel::CreateGuildChannelError},
         prelude::*,
@@ -14,6 +19,7 @@ use crate::{
     },
     API_VERSION,
 };
+
 use bytes::Bytes;
 use hyper::{
     body::{self, Buf},
@@ -33,9 +39,14 @@ use std::{
     time::Duration,
 };
 use tokio::time;
+
 use twilight_model::{
+    applications::InteractionResponse,
     guild::Permissions,
-    id::{ChannelId, EmojiId, GuildId, IntegrationId, MessageId, RoleId, UserId, WebhookId},
+    id::{
+        ApplicationId, ChannelId, CommandId, EmojiId, GuildId, IntegrationId, InteractionId,
+        MessageId, RoleId, UserId, WebhookId,
+    },
 };
 
 #[cfg(feature = "hyper-rustls")]
@@ -139,6 +150,166 @@ pub struct Client {
 }
 
 impl Client {
+    /* New Stuff Start */
+    pub fn interaction_callback(
+        &self,
+        interaction_id: InteractionId,
+        interaction_token: impl Into<String>,
+        response: InteractionResponse,
+    ) -> InteractionCallback<'_> {
+        InteractionCallback::new(&self, interaction_id, interaction_token.into(), response)
+    }
+
+    pub fn update_interaction_original(
+        &self,
+        application_id: ApplicationId,
+        interaction_token: impl Into<String>,
+    ) -> UpdateWebhookMessage<'_> {
+        UpdateWebhookMessage::new_interaction(self, application_id, interaction_token)
+    }
+
+    pub fn delete_interaction_original(
+        &self,
+        application_id: ApplicationId,
+        interaction_token: impl Into<String>,
+    ) -> DeleteWebhookMessage<'_> {
+        DeleteWebhookMessage::new_interaction(self, application_id, interaction_token)
+    }
+
+    pub fn create_interaction_followup(
+        &self,
+        application_id: ApplicationId,
+        interaction_token: impl Into<String>,
+    ) -> ExecuteWebhook<'_> {
+        // Use the application_id as the WebhookId as that is the only difference
+        // between this method and execute_webhook.
+        ExecuteWebhook::new(self, WebhookId(application_id.0), interaction_token)
+    }
+
+    pub fn update_interaction_followup(
+        &self,
+        application_id: ApplicationId,
+        interaction_token: impl Into<String>,
+        message_id: MessageId,
+    ) -> UpdateWebhookMessage<'_> {
+        // Use application_id as webhook_id for same reason as
+        // given in create_interaction_followup.
+        UpdateWebhookMessage::new(
+            self,
+            WebhookId(application_id.0),
+            interaction_token,
+            message_id,
+        )
+    }
+
+    pub fn delete_interaction_followup(
+        &self,
+        application_id: ApplicationId,
+        interaction_token: impl Into<String>,
+        message_id: MessageId,
+    ) -> DeleteWebhookMessage<'_> {
+        // Use application_id as webhook_id for same reason as
+        // given in create_interaction_followup.
+        DeleteWebhookMessage::new(
+            self,
+            WebhookId(application_id.0),
+            interaction_token,
+            message_id,
+        )
+    }
+
+    pub fn create_guild_command(
+        &self,
+        application_id: ApplicationId,
+        guild_id: GuildId,
+        name: impl Into<String>,
+        description: impl Into<String>,
+    ) -> CreateGuildCommand<'_> {
+        CreateGuildCommand::new(
+            &self,
+            application_id,
+            guild_id,
+            name.into(),
+            description.into(),
+        )
+    }
+
+    pub fn get_guild_commands(
+        &self,
+        application_id: ApplicationId,
+        guild_id: GuildId,
+    ) -> GetGuildCommands<'_> {
+        GetGuildCommands::new(&self, application_id, guild_id)
+    }
+
+    pub fn update_guild_command(
+        &self,
+        application_id: ApplicationId,
+        guild_id: GuildId,
+        command_id: CommandId,
+        // TODO: ↓↓ Should probably be optional and therefore not here
+        name: impl Into<String>,
+        description: impl Into<String>,
+    ) -> UpdateGuildCommand<'_> {
+        UpdateGuildCommand::new(
+            &self,
+            application_id,
+            guild_id,
+            command_id,
+            name.into(),
+            description.into(),
+        )
+    }
+
+    pub fn delete_guild_command(
+        &self,
+        application_id: ApplicationId,
+        guild_id: GuildId,
+        command_id: CommandId,
+    ) -> DeleteGuildCommand<'_> {
+        DeleteGuildCommand::new(&self, application_id, guild_id, command_id)
+    }
+
+    pub fn create_global_command(
+        &self,
+        application_id: ApplicationId,
+        name: impl Into<String>,
+        description: impl Into<String>,
+    ) -> CreateGlobalCommand<'_> {
+        CreateGlobalCommand::new(&self, application_id, name.into(), description.into())
+    }
+
+    pub fn get_global_commands(&self, application_id: ApplicationId) -> GetGlobalCommands<'_> {
+        GetGlobalCommands::new(&self, application_id)
+    }
+
+    pub fn update_global_command(
+        &self,
+        application_id: ApplicationId,
+        command_id: CommandId,
+        // TODO: ↓↓ Should probably be optional and therefore not here
+        name: impl Into<String>,
+        description: impl Into<String>,
+    ) -> UpdateGlobalCommand<'_> {
+        UpdateGlobalCommand::new(
+            &self,
+            application_id,
+            command_id,
+            name.into(),
+            description.into(),
+        )
+    }
+
+    pub fn delete_global_command(
+        &self,
+        application_id: ApplicationId,
+        command_id: CommandId,
+    ) -> DeleteGlobalCommand<'_> {
+        DeleteGlobalCommand::new(&self, application_id, command_id)
+    }
+
+    /* New Stuff End   */
+
     /// Create a new `hyper-rustls` or `hyper-tls` backed client with a token.
     #[cfg_attr(docsrs, doc(cfg(any(feature = "hyper-rustls", feature = "hyper-tls"))))]
     pub fn new(token: impl Into<String>) -> Self {

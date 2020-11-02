@@ -59,6 +59,8 @@ pub enum Event {
     GuildIntegrationsUpdate(GuildIntegrationsUpdate),
     /// A guild was updated.
     GuildUpdate(Box<GuildUpdate>),
+    /// A interaction was started by a user
+    InteractionCreate(InteractionCreate),
     /// A invite was made.
     InviteCreate(Box<InviteCreate>),
     /// A invite was deleted.
@@ -155,6 +157,7 @@ impl Event {
             Self::GuildEmojisUpdate(_) => EventType::GuildEmojisUpdate,
             Self::GuildIntegrationsUpdate(_) => EventType::GuildIntegrationsUpdate,
             Self::GuildUpdate(_) => EventType::GuildUpdate,
+            Self::InteractionCreate(_) => EventType::InteractionCreate,
             Self::InviteCreate(_) => EventType::InviteCreate,
             Self::InviteDelete(_) => EventType::InviteDelete,
             Self::MemberAdd(_) => EventType::MemberAdd,
@@ -207,6 +210,7 @@ impl From<Box<DispatchEvent>> for Event {
             DispatchEvent::GuildDelete(v) => Self::GuildDelete(v),
             DispatchEvent::GuildEmojisUpdate(v) => Self::GuildEmojisUpdate(v),
             DispatchEvent::GuildIntegrationsUpdate(v) => Self::GuildIntegrationsUpdate(v),
+            DispatchEvent::InteractionCreate(v) => Self::InteractionCreate(v),
             DispatchEvent::InviteCreate(v) => Self::InviteCreate(v),
             DispatchEvent::InviteDelete(v) => Self::InviteDelete(v),
             DispatchEvent::MemberAdd(v) => Self::MemberAdd(v),

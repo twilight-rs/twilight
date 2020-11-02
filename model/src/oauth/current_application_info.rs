@@ -1,7 +1,7 @@
 use crate::{
     id::{ApplicationId, GuildId},
     oauth::{id::SkuId, team::Team},
-    user::User,
+    user::{User, UserFlags},
 };
 use serde::{Deserialize, Serialize};
 
@@ -11,6 +11,7 @@ pub struct CurrentApplicationInfo {
     pub bot_require_code_grant: bool,
     pub cover_image: Option<String>,
     pub description: String,
+    pub flags: Option<UserFlags>,
     pub guild_id: Option<GuildId>,
     pub icon: Option<String>,
     pub id: ApplicationId,
@@ -28,7 +29,11 @@ pub struct CurrentApplicationInfo {
 #[cfg(test)]
 mod tests {
     use super::{CurrentApplicationInfo, GuildId, SkuId, Team, User};
-    use crate::{id::ApplicationId, id::UserId, oauth::id::TeamId};
+    use crate::{
+        id::{ApplicationId, UserId},
+        oauth::id::TeamId,
+        user::UserFlags,
+    };
     use serde_test::Token;
 
     #[allow(clippy::too_many_lines)]
@@ -39,6 +44,7 @@ mod tests {
             bot_require_code_grant: false,
             cover_image: Some("cover image hash".to_owned()),
             description: "a pretty cool application".to_owned(),
+            flags: Some(UserFlags::empty()),
             guild_id: Some(GuildId(1)),
             icon: Some("icon hash".to_owned()),
             id: ApplicationId(2),
@@ -76,7 +82,7 @@ mod tests {
             &[
                 Token::Struct {
                     name: "CurrentApplicationInfo",
-                    len: 15,
+                    len: 16,
                 },
                 Token::Str("bot_public"),
                 Token::Bool(true),
@@ -87,6 +93,9 @@ mod tests {
                 Token::Str("cover image hash"),
                 Token::Str("description"),
                 Token::Str("a pretty cool application"),
+                Token::Str("flags"),
+                Token::Some,
+                Token::U64(0),
                 Token::Str("guild_id"),
                 Token::Some,
                 Token::NewtypeStruct { name: "GuildId" },

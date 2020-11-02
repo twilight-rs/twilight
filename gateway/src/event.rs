@@ -47,6 +47,8 @@ bitflags! {
         const INVITE_CREATE = 1 << 46;
         /// Invite for a channel has been deleted.
         const INVITE_DELETE = 1 << 47;
+        /// A user used a interaction registrered with the bot
+        const INTERACTION_CREATE = 1 << 50;
         /// Member has been added to a guild.
         const MEMBER_ADD = 1 << 15;
         /// Member has been removed from a guild.
@@ -140,6 +142,7 @@ impl From<EventType> for EventTypeFlags {
             EventType::GuildEmojisUpdate => EventTypeFlags::GUILD_EMOJIS_UPDATE,
             EventType::GuildIntegrationsUpdate => EventTypeFlags::GUILD_INTEGRATIONS_UPDATE,
             EventType::GuildUpdate => EventTypeFlags::GUILD_UPDATE,
+            EventType::InteractionCreate => EventTypeFlags::INTERACTION_CREATE,
             EventType::InviteCreate => EventTypeFlags::INVITE_CREATE,
             EventType::InviteDelete => EventTypeFlags::INVITE_DELETE,
             EventType::MemberAdd => EventTypeFlags::MEMBER_ADD,

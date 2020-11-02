@@ -4,7 +4,7 @@ use crate::{
     request::{self, AuditLogReason, AuditLogReasonError, Pending, Request},
     routing::Route,
 };
-use twilight_model::id::{MessageId, WebhookId};
+use twilight_model::id::{ApplicationId, MessageId, WebhookId};
 
 /// Delete a message created by a webhook.
 ///
@@ -27,10 +27,8 @@ use twilight_model::id::{MessageId, WebhookId};
 pub struct DeleteWebhookMessage<'a> {
     fut: Option<Pending<'a, ()>>,
     http: &'a Client,
-    message_id: MessageId,
     reason: Option<String>,
-    token: String,
-    webhook_id: WebhookId,
+    route: Route,
 }
 
 impl<'a> DeleteWebhookMessage<'a> {
@@ -43,19 +41,34 @@ impl<'a> DeleteWebhookMessage<'a> {
         Self {
             fut: None,
             http,
-            message_id,
+            route: Route::DeleteWebhookMessage {
+                message_id: message_id.0,
+                token: token.into(),
+                webhook_id: webhook_id.0,
+            },
             reason: None,
-            token: token.into(),
-            webhook_id,
+        }
+    }
+
+    ///
+    pub(crate) fn new_interaction(
+        http: &'a Client,
+        application_id: ApplicationId,
+        interaction_token: impl Into<String>,
+    ) -> Self {
+        Self {
+            fut: None,
+            http,
+            route: Route::DeleteInteractionOriginal {
+                application_id: application_id.0,
+                interaction_token: interaction_token.into(),
+            },
+            reason: None,
         }
     }
 
     fn request(&self) -> Result<Request> {
-        let route = Route::DeleteWebhookMessage {
-            message_id: self.message_id.0,
-            token: self.token.clone(),
-            webhook_id: self.webhook_id.0,
-        };
+        let route = self.route.clone();
 
         Ok(if let Some(reason) = &self.reason {
             let headers = request::audit_header(&reason)?;

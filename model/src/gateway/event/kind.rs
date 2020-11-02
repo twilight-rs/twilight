@@ -26,6 +26,7 @@ pub enum EventType {
     GuildUpdate,
     InviteCreate,
     InviteDelete,
+    InteractionCreate,
     #[serde(rename = "GUILD_MEMBER_ADD")]
     MemberAdd,
     #[serde(rename = "GUILD_MEMBER_REMOVE")]
@@ -88,6 +89,7 @@ impl EventType {
             Self::GuildUpdate => Some("GUILD_UPDATE"),
             Self::InviteCreate => Some("INVITE_CREATE"),
             Self::InviteDelete => Some("INVITE_DELETE"),
+            Self::InteractionCreate => Some("INTERACTION_CREATE"),
             Self::MemberAdd => Some("GUILD_MEMBER_ADD"),
             Self::MemberRemove => Some("GUILD_MEMBER_REMOVE"),
             Self::MemberUpdate => Some("GUILD_MEMBER_UPDATE"),
@@ -148,6 +150,7 @@ impl<'a> TryFrom<&'a str> for EventType {
             "GUILD_UPDATE" => Ok(Self::GuildUpdate),
             "INVITE_CREATE" => Ok(Self::InviteCreate),
             "INVITE_DELETE" => Ok(Self::InviteDelete),
+            "INTERACTION_CREATE" => Ok(Self::InteractionCreate),
             "GUILD_MEMBER_ADD" => Ok(Self::MemberAdd),
             "GUILD_MEMBER_REMOVE" => Ok(Self::MemberRemove),
             "GUILD_MEMBER_UPDATE" => Ok(Self::MemberUpdate),
@@ -220,6 +223,7 @@ mod tests {
         assert_variant(EventType::GuildUpdate, "GUILD_UPDATE");
         assert_variant(EventType::InviteCreate, "INVITE_CREATE");
         assert_variant(EventType::InviteDelete, "INVITE_DELETE");
+        assert_variant(EventType::InteractionCreate, "INTERACTION_CREATE");
         assert_variant(EventType::MemberAdd, "GUILD_MEMBER_ADD");
         assert_variant(EventType::MemberRemove, "GUILD_MEMBER_REMOVE");
         assert_variant(EventType::MemberUpdate, "GUILD_MEMBER_UPDATE");

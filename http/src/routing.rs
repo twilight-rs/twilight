@@ -133,6 +133,18 @@ pub enum Path {
     WebhooksIdTokenMessageId(u64),
     /// Operating on a webhook.
     WebhooksId(u64),
+
+    /* New Paths
+     * Have to figure out what the major parameters are
+     */
+    InteractionCallback(u64),
+    /* Global */
+    ApplicationCommand(u64),
+    ApplicationCommandId(u64),
+
+    /* Guild */
+    ApplicationGuildCommand(u64),
+    ApplicationGuildCommandId(u64),
 }
 
 impl FromStr for Path {
@@ -222,6 +234,20 @@ impl FromStr for Path {
             ["users", _, "guilds", _] => UsersIdGuildsId,
             ["voice", "regions"] => VoiceRegions,
             ["webhooks", id] | ["webhooks", id, _] => WebhooksId(id.parse()?),
+
+            /* New Stuff */
+            /*
+            ApplicationCommand(u64),
+            ApplicationCommandId(u64),
+             */
+            ["interactions", iid, _it, "callback"] => InteractionCallback(iid.parse()?),
+            ["applications", id, "commands"] => ApplicationCommand(id.parse()?),
+            ["applications", id, "commands", _] => ApplicationCommandId(id.parse()?),
+            ["applications", id, "guilds", _, "commands"] => ApplicationGuildCommand(id.parse()?),
+            ["applications", id, "guilds", _, "commands", _] => {
+                ApplicationGuildCommandId(id.parse()?)
+            }
+
             _ => return Err(PathParseError::NoMatch),
         })
     }
@@ -810,6 +836,55 @@ pub enum Route {
         token: Option<String>,
         /// The ID of the webhook.
         webhook_id: u64,
+    },
+
+    /* New Stuff */
+    InteractionCallback {
+        interaction_id: u64,
+        interaction_token: String,
+    },
+    UpdateInteractionOriginal {
+        application_id: u64,
+        interaction_token: String,
+    },
+    DeleteInteractionOriginal {
+        application_id: u64,
+        interaction_token: String,
+    },
+    /* Global commands */
+    CreateGlobalCommand {
+        application_id: u64,
+    },
+    DeleteGlobalCommand {
+        application_id: u64,
+        command_id: u64,
+    },
+    GetGlobalCommands {
+        application_id: u64,
+    },
+    UpdateGlobalCommand {
+        application_id: u64,
+        command_id: u64,
+    },
+
+    /* Guild commands */
+    CreateGuildCommand {
+        application_id: u64,
+        guild_id: u64,
+    },
+    DeleteGuildCommand {
+        application_id: u64,
+        command_id: u64,
+        guild_id: u64,
+    },
+    GetGuildCommands {
+        application_id: u64,
+        guild_id: u64,
+    },
+    UpdateGuildCommand {
+        application_id: u64,
+        command_id: u64,
+        guild_id: u64,
     },
 }
 
@@ -1522,6 +1597,122 @@ impl Route {
 
                 (Method::PATCH, Path::WebhooksId(webhook_id), path.into())
             }
+
+            /* New Stuff */
+            Self::InteractionCallback {
+                interaction_id,
+                interaction_token,
+            } => (
+                Method::POST,
+                Path::InteractionCallback(interaction_id),
+                format!(
+                    "interactions/{}/{}/callback",
+                    interaction_id, interaction_token
+                )
+                .into(),
+            ),
+            Self::UpdateInteractionOriginal {
+                application_id,
+                interaction_token,
+            } => (
+                Method::PATCH,
+                Path::WebhooksIdTokenMessageId(application_id),
+                format!(
+                    "webhooks/{}/{}/messages/@original",
+                    application_id, interaction_token
+                )
+                .into(),
+            ),
+            Self::DeleteInteractionOriginal {
+                application_id,
+                interaction_token,
+            } => (
+                Method::DELETE,
+                Path::WebhooksIdTokenMessageId(application_id),
+                format!(
+                    "webhooks/{}/{}/messages/@original",
+                    application_id, interaction_token
+                )
+                .into(),
+            ),
+            /* Global commands */
+            Self::CreateGlobalCommand { application_id } => (
+                Method::POST,
+                Path::ApplicationCommand(application_id),
+                format!("applications/{}/commands", application_id).into(),
+            ),
+            Self::DeleteGlobalCommand {
+                application_id,
+                command_id,
+            } => (
+                Method::DELETE,
+                Path::ApplicationCommandId(application_id),
+                format!("applications/{}/commands/{}", application_id, command_id).into(),
+            ),
+            Self::GetGlobalCommands { application_id } => (
+                Method::GET,
+                Path::ApplicationCommand(application_id),
+                format!("applications/{}/commands", application_id).into(),
+            ),
+            Self::UpdateGlobalCommand {
+                application_id,
+                command_id,
+            } => (
+                Method::PATCH,
+                Path::ApplicationCommandId(application_id),
+                format!("applications/{}/commands/{}", application_id, command_id).into(),
+            ),
+            /* Guild commands */
+            Self::CreateGuildCommand {
+                application_id,
+                guild_id,
+            } => (
+                Method::POST,
+                Path::ApplicationGuildCommand(application_id),
+                format!(
+                    "applications/{}/guilds/{}/commands",
+                    application_id, guild_id
+                )
+                .into(),
+            ),
+            Self::DeleteGuildCommand {
+                application_id,
+                command_id,
+                guild_id,
+            } => (
+                Method::DELETE,
+                Path::ApplicationGuildCommand(application_id),
+                format!(
+                    "applications/{}/guilds/{}/commands/{}",
+                    application_id, guild_id, command_id
+                )
+                .into(),
+            ),
+            Self::GetGuildCommands {
+                application_id,
+                guild_id,
+            } => (
+                Method::GET,
+                Path::ApplicationGuildCommand(application_id),
+                format!(
+                    "applications/{}/guilds/{}/commands",
+                    application_id, guild_id
+                )
+                .into(),
+            ),
+            Self::UpdateGuildCommand {
+                application_id,
+                command_id,
+                guild_id,
+            } => (
+                Method::PATCH,
+                Path::ApplicationGuildCommand(application_id),
+                format!(
+                    "applications/{}/guilds/{}/commands/{}",
+                    application_id, guild_id, command_id
+                )
+                .into(),
+            ),
         }
     }
 }

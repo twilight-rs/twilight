@@ -26,6 +26,8 @@ pub enum MessageType {
     GuildDiscoveryGracePeriodFinalWarning = 17,
     /// Message is an inline reply.
     Reply = 19,
+    /// Message is a command
+    ApplicationCommand = 20,
     GuildInviteReminder = 22,
 }
 
@@ -52,6 +54,7 @@ impl TryFrom<u8> for MessageType {
             16 => MessageType::GuildDiscoveryGracePeriodInitialWarning,
             17 => MessageType::GuildDiscoveryGracePeriodFinalWarning,
             19 => MessageType::Reply,
+            20 => MessageType::ApplicationCommand,
             22 => MessageType::GuildInviteReminder,
             _ => return Err(ConversionError::MessageType(value)),
         };
@@ -92,7 +95,9 @@ mod tests {
             &[Token::U8(17)],
         );
         serde_test::assert_tokens(&MessageType::Reply, &[Token::U8(19)]);
+        serde_test::assert_tokens(&MessageType::ApplicationCommand, &[Token::U8(20)]);
         serde_test::assert_tokens(&MessageType::GuildInviteReminder, &[Token::U8(22)]);
+
     }
 
     #[test]
@@ -157,6 +162,10 @@ mod tests {
             MessageType::GuildDiscoveryGracePeriodFinalWarning
         );
         assert_eq!(MessageType::try_from(19).unwrap(), MessageType::Reply);
+        assert_eq!(
+            MessageType::try_from(20).unwrap(),
+            MessageType::ApplicationCommand
+        );
         assert_eq!(
             MessageType::try_from(22).unwrap(),
             MessageType::GuildInviteReminder

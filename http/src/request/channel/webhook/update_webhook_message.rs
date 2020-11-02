@@ -18,7 +18,7 @@ use std::{
 };
 use twilight_model::{
     channel::embed::Embed,
-    id::{MessageId, WebhookId},
+    id::{ApplicationId, MessageId, WebhookId},
 };
 
 /// A webhook's message can not be updated as configured.
@@ -120,10 +120,8 @@ pub struct UpdateWebhookMessage<'a> {
     fields: UpdateWebhookMessageFields,
     fut: Option<Pending<'a, ()>>,
     http: &'a Client,
-    message_id: MessageId,
     reason: Option<String>,
-    token: String,
-    webhook_id: WebhookId,
+    route: Route,
 }
 
 impl<'a> UpdateWebhookMessage<'a> {
@@ -143,10 +141,32 @@ impl<'a> UpdateWebhookMessage<'a> {
             },
             fut: None,
             http,
-            message_id,
             reason: None,
-            token: token.into(),
-            webhook_id,
+            route: Route::UpdateWebhookMessage {
+                message_id: message_id.0,
+                token: token.into(),
+                webhook_id: webhook_id.0,
+            },
+        }
+    }
+
+    pub(crate) fn new_interaction(
+        http: &'a Client,
+        application_id: ApplicationId,
+        interaction_token: impl Into<String>,
+    ) -> Self {
+        Self {
+            fields: UpdateWebhookMessageFields {
+                allowed_mentions: http.default_allowed_mentions(),
+                ..UpdateWebhookMessageFields::default()
+            },
+            fut: None,
+            http,
+            reason: None,
+            route: Route::UpdateInteractionOriginal {
+                application_id: application_id.0,
+                interaction_token: interaction_token.into(),
+            },
         }
     }
 
@@ -256,11 +276,7 @@ impl<'a> UpdateWebhookMessage<'a> {
 
     fn request(&self) -> Result<Request> {
         let body = crate::json_to_vec(&self.fields)?;
-        let route = Route::UpdateWebhookMessage {
-            message_id: self.message_id.0,
-            token: self.token.clone(),
-            webhook_id: self.webhook_id.0,
-        };
+        let route = self.route.clone();
 
         Ok(if let Some(reason) = &self.reason {
             let headers = request::audit_header(&reason)?;
