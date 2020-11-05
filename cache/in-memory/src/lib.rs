@@ -69,7 +69,7 @@ use std::{
 use twilight_model::{
     channel::{Group, GuildChannel, PrivateChannel},
     gateway::presence::{Presence, UserOrId},
-    guild::{Emoji, Guild, Member, Role},
+    guild::{Emoji, Guild, Member, PartialMember, Role},
     id::{ChannelId, EmojiId, GuildId, MessageId, RoleId, UserId},
     user::{CurrentUser, User},
     voice::VoiceState,
@@ -674,6 +674,38 @@ impl InMemoryCache {
         cached
     }
 
+    fn cache_ref_partial_member(
+        &self,
+        guild_id: GuildId,
+        member: &PartialMember,
+        user: Arc<User>,
+    ) -> Arc<CachedMember> {
+        let member_id = user.id;
+        let id = (guild_id, member_id);
+        match self.0.members.get(&id) {
+            Some(m) if **m == member => return Arc::clone(&m),
+            Some(_) | None => {}
+        }
+
+        let cached = Arc::new(CachedMember {
+            deaf: member.deaf,
+            guild_id,
+            joined_at: member.joined_at.to_owned(),
+            mute: member.mute,
+            nick: member.nick.to_owned(),
+            premium_since: None,
+            roles: member.roles.to_owned(),
+            user,
+        });
+        self.0.members.insert(id, Arc::clone(&cached));
+        self.0
+            .guild_members
+            .entry(guild_id)
+            .or_default()
+            .insert(member_id);
+        cached
+    }
+
     fn cache_members(
         &self,
         guild_id: GuildId,
@@ -775,6 +807,29 @@ impl InMemoryCache {
         let user = Arc::new(user);
         let mut guild_id_set = BTreeSet::new();
         guild_id_set.insert(guild_id);
+        self.0
+            .users
+            .insert(user.id, (Arc::clone(&user), guild_id_set));
+
+        user
+    }
+
+    fn cache_ref_user(&self, user: &User, guild_id: Option<GuildId>) -> Arc<User> {
+        match self.0.users.get_mut(&user.id) {
+            Some(mut u) if &*u.0 == user => {
+                if let Some(guild_id) = guild_id {
+                    u.1.insert(guild_id);
+                }
+
+                return Arc::clone(&u.value().0);
+            }
+            Some(_) | None => {}
+        }
+        let user = Arc::new(user.to_owned());
+        let mut guild_id_set = BTreeSet::new();
+        if let Some(guild_id) = guild_id {
+            guild_id_set.insert(guild_id);
+        }
         self.0
             .users
             .insert(user.id, (Arc::clone(&user), guild_id_set));

@@ -1,7 +1,7 @@
 use serde::Serialize;
 use std::sync::Arc;
 use twilight_model::{
-    guild::Member,
+    guild::{Member, PartialMember},
     id::{GuildId, RoleId},
     user::User,
 };
@@ -33,6 +33,24 @@ impl PartialEq<Member> for CachedMember {
             other.mute,
             &other.nick,
             other.premium_since.as_ref(),
+            &other.roles,
+        )
+    }
+}
+
+impl PartialEq<&PartialMember> for CachedMember {
+    fn eq(&self, other: &&PartialMember) -> bool {
+        (
+            self.deaf,
+            self.joined_at.as_ref(),
+            self.mute,
+            &self.nick,
+            &self.roles,
+        ) == (
+            other.deaf,
+            other.joined_at.as_ref(),
+            other.mute,
+            &other.nick,
             &other.roles,
         )
     }

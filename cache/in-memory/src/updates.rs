@@ -374,6 +374,11 @@ impl UpdateCache for MessageCreate {
         }
 
         channel.insert(self.0.id, Arc::new(From::from(self.0.clone())));
+
+        let user = cache.cache_ref_user(&self.author, self.guild_id);
+        if let (Some(member), Some(guild_id)) = (&self.member, self.guild_id) {
+            cache.cache_ref_partial_member(guild_id, member, user);
+        }
     }
 }
 
@@ -853,5 +858,83 @@ mod tests {
             token: None,
             user_id: UserId(1),
         }));
+    }
+
+    #[test]
+    fn test_message_create() {
+        use twilight_model::{
+            channel::{
+                message::{MessageFlags, MessageType},
+                Message,
+            },
+            guild::PartialMember,
+            id::MessageId,
+            user::User,
+        };
+
+        let cache = InMemoryCache::builder()
+            .event_types(crate::config::EventType::MESSAGE_CREATE)
+            .message_cache_size(1)
+            .build();
+        let msg = Message {
+            activity: None,
+            application: None,
+            attachments: Vec::new(),
+            author: User {
+                avatar: Some("".to_owned()),
+                bot: false,
+                discriminator: "0001".to_owned(),
+                email: None,
+                flags: None,
+                id: UserId(3),
+                locale: None,
+                mfa_enabled: None,
+                name: "test".to_owned(),
+                premium_type: None,
+                public_flags: None,
+                system: None,
+                verified: None,
+            },
+            channel_id: ChannelId(2),
+            content: "ping".to_owned(),
+            edited_timestamp: None,
+            embeds: Vec::new(),
+            flags: Some(MessageFlags::empty()),
+            guild_id: Some(GuildId(1)),
+            id: MessageId(4),
+            kind: MessageType::Regular,
+            member: Some(PartialMember {
+                deaf: false,
+                joined_at: None,
+                mute: false,
+                nick: Some("member nick".to_owned()),
+                roles: Vec::new(),
+            }),
+            mention_channels: Vec::new(),
+            mention_everyone: false,
+            mention_roles: Vec::new(),
+            mentions: HashMap::new(),
+            pinned: false,
+            reactions: Vec::new(),
+            reference: None,
+            timestamp: "".to_owned(),
+            tts: false,
+            webhook_id: None,
+        };
+
+        cache.update(&MessageCreate(msg));
+
+        {
+            let entry = cache.0.users.get(&UserId(3)).unwrap();
+            assert_eq!(entry.value().1.len(), 1);
+        }
+        assert_eq!(
+            cache.member(GuildId(1), UserId(3)).unwrap().user.name,
+            "test"
+        );
+        {
+            let entry = cache.0.messages.get(&ChannelId(2)).unwrap();
+            assert_eq!(entry.value().len(), 1);
+        }
     }
 }
