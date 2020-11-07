@@ -1,5 +1,9 @@
 use serde_repr::{Deserialize_repr, Serialize_repr};
 use std::convert::TryFrom;
+use std::{
+    error::Error,
+    fmt::{Display, Formatter, Result as FmtResult},
+};
 
 /// Gateway close event codes.
 #[derive(
@@ -38,8 +42,31 @@ pub enum CloseCode {
     DisallowedIntents = 4014,
 }
 
+#[derive(Debug, PartialEq)]
+pub struct CloseCodeConversionError {
+    code: u16,
+}
+
+impl CloseCodeConversionError {
+    fn new(code: u16) -> Self {
+        Self { code }
+    }
+
+    pub fn code(&self) -> u16 {
+        self.code
+    }
+}
+
+impl Display for CloseCodeConversionError {
+    fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
+        f.write_fmt(format_args!("{} isn't a valid close code", self.code))
+    }
+}
+
+impl Error for CloseCodeConversionError {}
+
 impl TryFrom<u16> for CloseCode {
-    type Error = u16;
+    type Error = CloseCodeConversionError;
 
     fn try_from(value: u16) -> Result<Self, Self::Error> {
         let close_code = match value {
@@ -57,7 +84,7 @@ impl TryFrom<u16> for CloseCode {
             4012 => CloseCode::InvalidApiVersion,
             4013 => CloseCode::InvalidIntents,
             4014 => CloseCode::DisallowedIntents,
-            _ => return Err(value),
+            _ => return Err(CloseCodeConversionError::new(value)),
         };
 
         Ok(close_code)
@@ -131,6 +158,6 @@ mod tests {
             CloseCode::try_from(4014).unwrap(),
             CloseCode::DisallowedIntents
         );
-        assert_eq!(CloseCode::try_from(5000).unwrap_err(), 5000);
+        assert!(CloseCode::try_from(5000).is_err());
     }
 }

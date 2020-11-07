@@ -9,5 +9,8 @@ mod opcode;
 mod session_start_limit;
 
 pub use self::{
-    close_code::CloseCode, intents::Intents, opcode::OpCode, session_start_limit::SessionStartLimit,
+    close_code::{CloseCode, CloseCodeConversionError},
+    intents::Intents,
+    opcode::OpCode,
+    session_start_limit::SessionStartLimit,
 };
