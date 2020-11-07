@@ -672,6 +672,7 @@ impl UpdateCache for WebhooksUpdate {}
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::config::EventType;
     use std::collections::HashMap;
     use twilight_model::{
         channel::{ChannelType, GuildChannel, TextChannel},
@@ -873,7 +874,7 @@ mod tests {
         };
 
         let cache = InMemoryCache::builder()
-            .event_types(crate::config::EventType::MESSAGE_CREATE)
+            .event_types(EventType::MESSAGE_CREATE)
             .message_cache_size(1)
             .build();
         let msg = Message {
@@ -917,7 +918,7 @@ mod tests {
             pinned: false,
             reactions: Vec::new(),
             reference: None,
-            timestamp: "".to_owned(),
+            timestamp: String::new(),
             tts: false,
             webhook_id: None,
         };
