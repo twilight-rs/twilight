@@ -34,7 +34,7 @@ pub enum CloseCode {
     InvalidApiVersion = 4012,
     /// An invalid intent was sent.
     InvalidIntents = 4013,
-    /// A disallowed intent was sent, may need whitelisting.
+    /// A disallowed intent was sent, may need allowlisting.
     DisallowedIntents = 4014,
 }
 
