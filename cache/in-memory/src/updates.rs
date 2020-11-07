@@ -376,6 +376,7 @@ impl UpdateCache for MessageCreate {
         channel.insert(self.0.id, Arc::new(From::from(self.0.clone())));
 
         let user = cache.cache_user(Cow::Borrowed(&self.author), self.guild_id);
+
         if let (Some(member), Some(guild_id)) = (&self.member, self.guild_id) {
             cache.cache_borrowed_partial_member(guild_id, member, user);
         }
