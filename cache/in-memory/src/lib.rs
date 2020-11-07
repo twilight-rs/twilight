@@ -62,6 +62,7 @@ pub use self::{
 use self::model::*;
 use dashmap::{mapref::entry::Entry, DashMap, DashSet};
 use std::{
+    borrow::Cow,
     collections::{BTreeMap, BTreeSet, HashSet},
     hash::Hash,
     sync::{Arc, Mutex},
@@ -535,7 +536,7 @@ impl InMemoryCache {
         }
 
         let user = match emoji.user {
-            Some(u) => Some(self.cache_user(u, guild_id)),
+            Some(u) => Some(self.cache_user(Cow::Owned(u), Some(guild_id))),
             None => None,
         };
 
@@ -654,7 +655,7 @@ impl InMemoryCache {
             Some(_) | None => {}
         }
 
-        let user = self.cache_user(member.user, guild_id);
+        let user = self.cache_user(Cow::Owned(member.user), Some(guild_id));
         let cached = Arc::new(CachedMember {
             deaf: member.deaf,
             guild_id,
@@ -674,18 +675,23 @@ impl InMemoryCache {
         cached
     }
 
-    fn cache_ref_partial_member(
+    fn cache_borrowed_partial_member(
         &self,
         guild_id: GuildId,
         member: &PartialMember,
         user: Arc<User>,
     ) -> Arc<CachedMember> {
-        let member_id = user.id;
-        let id = (guild_id, member_id);
+        let id = (guild_id, user.id);
         match self.0.members.get(&id) {
             Some(m) if **m == member => return Arc::clone(&m),
             Some(_) | None => {}
         }
+
+        self.0
+            .guild_members
+            .entry(guild_id)
+            .or_default()
+            .insert(user.id);
 
         let cached = Arc::new(CachedMember {
             deaf: member.deaf,
@@ -698,11 +704,6 @@ impl InMemoryCache {
             user,
         });
         self.0.members.insert(id, Arc::clone(&cached));
-        self.0
-            .guild_members
-            .entry(guild_id)
-            .or_default()
-            .insert(member_id);
         cached
     }
 
@@ -795,28 +796,9 @@ impl InMemoryCache {
         upsert_guild_item(&self.0.roles, guild_id, role.id, role)
     }
 
-    fn cache_user(&self, user: User, guild_id: GuildId) -> Arc<User> {
+    fn cache_user(&self, user: Cow<User>, guild_id: Option<GuildId>) -> Arc<User> {
         match self.0.users.get_mut(&user.id) {
-            Some(mut u) if *u.0 == user => {
-                u.1.insert(guild_id);
-
-                return Arc::clone(&u.value().0);
-            }
-            Some(_) | None => {}
-        }
-        let user = Arc::new(user);
-        let mut guild_id_set = BTreeSet::new();
-        guild_id_set.insert(guild_id);
-        self.0
-            .users
-            .insert(user.id, (Arc::clone(&user), guild_id_set));
-
-        user
-    }
-
-    fn cache_ref_user(&self, user: &User, guild_id: Option<GuildId>) -> Arc<User> {
-        match self.0.users.get_mut(&user.id) {
-            Some(mut u) if &*u.0 == user => {
+            Some(mut u) if *u.0 == *user => {
                 if let Some(guild_id) = guild_id {
                     u.1.insert(guild_id);
                 }
@@ -825,14 +807,14 @@ impl InMemoryCache {
             }
             Some(_) | None => {}
         }
-        let user = Arc::new(user.to_owned());
-        let mut guild_id_set = BTreeSet::new();
+        let user = Arc::new(user.into_owned());
         if let Some(guild_id) = guild_id {
+            let mut guild_id_set = BTreeSet::new();
             guild_id_set.insert(guild_id);
+            self.0
+                .users
+                .insert(user.id, (Arc::clone(&user), guild_id_set));
         }
-        self.0
-            .users
-            .insert(user.id, (Arc::clone(&user), guild_id_set));
 
         user
     }
@@ -972,7 +954,7 @@ fn presence_user_id(presence: &Presence) -> UserId {
 #[cfg(test)]
 mod tests {
     use crate::InMemoryCache;
-    use std::collections::HashMap;
+    use std::{borrow::Cow, collections::HashMap};
     use twilight_model::{
         channel::{ChannelType, GuildChannel, TextChannel},
         gateway::payload::{MemberRemove, RoleDelete},
@@ -1190,7 +1172,7 @@ mod tests {
     fn test_cache_user_guild_state() {
         let user_id = UserId(2);
         let cache = InMemoryCache::new();
-        cache.cache_user(user(user_id), GuildId(1));
+        cache.cache_user(Cow::Owned(user(user_id)), Some(GuildId(1)));
 
         // Test the guild's ID is the only one in the user's set of guilds.
         {
@@ -1200,7 +1182,7 @@ mod tests {
         }
 
         // Test that a second guild will cause 2 in the set.
-        cache.cache_user(user(user_id), GuildId(3));
+        cache.cache_user(Cow::Owned(user(user_id)), Some(GuildId(3)));
 
         {
             let user = cache.0.users.get(&user_id).unwrap();

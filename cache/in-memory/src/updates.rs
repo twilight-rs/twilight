@@ -1,6 +1,6 @@
 use super::{config::EventType, InMemoryCache};
 use dashmap::DashMap;
-use std::{collections::HashSet, hash::Hash, ops::Deref, sync::Arc};
+use std::{borrow::Cow, collections::HashSet, hash::Hash, ops::Deref, sync::Arc};
 use twilight_model::{
     channel::{message::MessageReaction, Channel, GuildChannel},
     gateway::{event::Event, payload::*, presence::Presence},
@@ -375,9 +375,9 @@ impl UpdateCache for MessageCreate {
 
         channel.insert(self.0.id, Arc::new(From::from(self.0.clone())));
 
-        let user = cache.cache_ref_user(&self.author, self.guild_id);
+        let user = cache.cache_user(Cow::Borrowed(&self.author), self.guild_id);
         if let (Some(member), Some(guild_id)) = (&self.member, self.guild_id) {
-            cache.cache_ref_partial_member(guild_id, member, user);
+            cache.cache_borrowed_partial_member(guild_id, member, user);
         }
     }
 }
@@ -842,7 +842,7 @@ mod tests {
     #[test]
     fn test_voice_states_with_no_cached_guilds() {
         let cache = InMemoryCache::builder()
-            .event_types(crate::config::EventType::VOICE_STATE_UPDATE)
+            .event_types(EventType::VOICE_STATE_UPDATE)
             .build();
 
         cache.update(&VoiceStateUpdate(VoiceState {

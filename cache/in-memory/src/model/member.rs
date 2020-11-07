@@ -55,3 +55,96 @@ impl PartialEq<&PartialMember> for CachedMember {
         )
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::CachedMember;
+    use std::sync::Arc;
+    use twilight_model::{
+        guild::{Member, PartialMember},
+        id::{GuildId, RoleId, UserId},
+        user::User,
+    };
+
+    #[test]
+    fn test_eq_member() {
+        let user = User {
+            avatar: None,
+            bot: false,
+            discriminator: "0001".to_owned(),
+            email: None,
+            flags: None,
+            id: UserId(1),
+            locale: None,
+            mfa_enabled: None,
+            name: "bar".to_owned(),
+            premium_type: None,
+            public_flags: None,
+            system: None,
+            verified: None,
+        };
+
+        let member = Member {
+            deaf: false,
+            guild_id: GuildId(3),
+            hoisted_role: Some(RoleId(4)),
+            joined_at: None,
+            mute: true,
+            nick: Some("member nick".to_owned()),
+            premium_since: None,
+            roles: vec![],
+            user: user.clone(),
+        };
+        let cached = CachedMember {
+            deaf: false,
+            guild_id: GuildId(3),
+            joined_at: None,
+            mute: true,
+            nick: Some("member nick".to_owned()),
+            premium_since: None,
+            roles: vec![],
+            user: Arc::new(user),
+        };
+
+        assert_eq!(cached, member);
+    }
+
+    #[test]
+    fn test_eq_partial_member() {
+        let user = User {
+            avatar: None,
+            bot: false,
+            discriminator: "0001".to_owned(),
+            email: None,
+            flags: None,
+            id: UserId(1),
+            locale: None,
+            mfa_enabled: None,
+            name: "bar".to_owned(),
+            premium_type: None,
+            public_flags: None,
+            system: None,
+            verified: None,
+        };
+
+        let member = PartialMember {
+            deaf: false,
+            joined_at: None,
+            mute: true,
+            nick: Some("member nick".to_owned()),
+            roles: vec![],
+        };
+        let cached = CachedMember {
+            deaf: false,
+            guild_id: GuildId(3),
+            joined_at: None,
+            mute: true,
+            nick: Some("member nick".to_owned()),
+            premium_since: None,
+            roles: vec![],
+            user: Arc::new(user),
+        };
+
+        assert_eq!(cached, &member);
+    }
+}
