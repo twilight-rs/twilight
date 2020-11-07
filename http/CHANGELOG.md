@@ -2,6 +2,22 @@
 
 Changelog for `twilight-http`.
 
+## [0.1.8] - 2020-11-07
+
+This release includes a few bugfixes. While v0.1 will be maintained until the
+deprecation of version 6 of the Discord API, we recommend upgrading to v0.2.
+
+### Additions
+
+Add `Client::ratelimiter` to retrieve the active ratelimiter and add remaining
+time estimation for buckets to the
+Ratelimiter (`Ratelimiter::time_until_available`) ([#547] - [@Gelbpunkt]).
+
+### Fixes
+
+Use the configured Reqwest client in the
+`ClientBuilder` ([#563] - [@DusterTheFirst]).
+
 ## [0.1.7] - 2020-10-22
 
 ### Additions
@@ -85,8 +101,10 @@ Initial release.
 [@Gelbpunkt]: https://github.com/Gelbpunkt
 [@nickelc]: https://github.com/nickelc
 
+[#563]: https://github.com/twilight-rs/twilight/pull/563
 [#556]: https://github.com/twilight-rs/twilight/pull/556
 [#550]: https://github.com/twilight-rs/twilight/pull/550
+[#547]: https://github.com/twilight-rs/twilight/pull/547
 [#534]: https://github.com/twilight-rs/twilight/pull/534
 [#529]: https://github.com/twilight-rs/twilight/pull/529
 [#522]: https://github.com/twilight-rs/twilight/pull/522
@@ -98,6 +116,7 @@ Initial release.
 [#507]: https://github.com/twilight-rs/twilight/pull/507
 [#495]: https://github.com/twilight-rs/twilight/pull/495
 
+[0.1.8]: https://github.com/twilight-rs/twilight/releases/tag/http-v0.1.8
 [0.1.7]: https://github.com/twilight-rs/twilight/releases/tag/http-v0.1.7
 [0.1.6]: https://github.com/twilight-rs/twilight/releases/tag/http-v0.1.6
 [0.1.5]: https://github.com/twilight-rs/twilight/releases/tag/http-v0.1.5
