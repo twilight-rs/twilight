@@ -3,12 +3,10 @@
 pub mod gateway;
 pub mod shard;
 
-mod close_code;
 mod dispatch;
 mod kind;
 
 pub use self::{
-    close_code::CloseCode,
     dispatch::{DispatchEvent, DispatchEventWithTypeDeserializer},
     gateway::{GatewayEvent, GatewayEventDeserializer, GatewayEventDeserializerOwned},
     kind::EventType,

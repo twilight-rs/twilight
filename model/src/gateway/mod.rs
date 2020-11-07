@@ -1,3 +1,4 @@
+pub mod close_code;
 pub mod connection_info;
 pub mod event;
 pub mod payload;

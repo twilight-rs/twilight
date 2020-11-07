@@ -6,16 +6,27 @@ use serde_repr::{Deserialize_repr, Serialize_repr};
 )]
 #[repr(u8)]
 pub enum OpCode {
+    /// Start a voice websocket connection.
     Identify = 0,
+    /// Select the protocol to use.
     SelectProtocol = 1,
+    /// Received to indicate completion of handshake.
     Ready = 2,
+    /// Fired periodically to keep connection alive.
     Heartbeat = 3,
+    /// Received to indicate session description.
     SessionDescription = 4,
+    /// Sent and received to indicate speaking status.
     Speaking = 5,
+    /// Received in response to a heartbeat.
     HeartbeatAck = 6,
+    /// Resume a previously disconnected session.
     Resume = 7,
+    /// Received after connecting, contains heartbeat interval.
     Hello = 8,
+    /// Received to indicate a successful resume.
     Resumed = 9,
+    /// Received to indicate someone was disconnected.
     ClientDisconnect = 13,
 }
 
