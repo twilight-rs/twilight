@@ -704,6 +704,7 @@ impl InMemoryCache {
             user,
         });
         self.0.members.insert(id, Arc::clone(&cached));
+
         cached
     }
 
