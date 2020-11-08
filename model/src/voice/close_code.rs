@@ -14,6 +14,8 @@ use std::{
 pub enum CloseCode {
     /// An invalid opcode was sent.
     UnknownOpcode = 4001,
+    /// An invalid payload was sent.
+    DecodeError = 4002,
     /// A payload was sent prior to identifying.
     NotAuthenticated = 4003,
     /// An invalid token was sent when identifying.
@@ -65,6 +67,7 @@ impl TryFrom<u16> for CloseCode {
     fn try_from(value: u16) -> Result<Self, Self::Error> {
         let close_code = match value {
             4001 => CloseCode::UnknownOpcode,
+            4002 => CloseCode::DecodeError,
             4003 => CloseCode::NotAuthenticated,
             4004 => CloseCode::AuthenticationFailed,
             4005 => CloseCode::AlreadyAuthenticated,
@@ -91,6 +94,7 @@ mod tests {
     #[test]
     fn test_variants() {
         serde_test::assert_tokens(&CloseCode::UnknownOpcode, &[Token::U16(4001)]);
+        serde_test::assert_tokens(&CloseCode::DecodeError, &[Token::U16(4002)]);
         serde_test::assert_tokens(&CloseCode::NotAuthenticated, &[Token::U16(4003)]);
         serde_test::assert_tokens(&CloseCode::AuthenticationFailed, &[Token::U16(4004)]);
         serde_test::assert_tokens(&CloseCode::AlreadyAuthenticated, &[Token::U16(4005)]);
@@ -105,6 +109,7 @@ mod tests {
     #[test]
     fn test_conversion() {
         assert_eq!(CloseCode::try_from(4001).unwrap(), CloseCode::UnknownOpcode);
+        assert_eq!(CloseCode::try_from(4002).unwrap(), CloseCode::DecodeError);
         assert_eq!(
             CloseCode::try_from(4003).unwrap(),
             CloseCode::NotAuthenticated
