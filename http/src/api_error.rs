@@ -59,6 +59,8 @@ pub enum ErrorCode {
     BotsCannotUseEndpoint,
     /// Only bots can use this endpoint
     OnlyBotsCanUseEndpoint,
+    /// Message cannot be edited due to announcement rate limits
+    AnnouncementRateLimitReached,
     /// Maximum number of guilds reached (100)
     MaximumGuildsReached,
     /// Maximum number of friends reached (1000)
@@ -127,8 +129,12 @@ pub enum ErrorCode {
     InviteCodeInvalidOrTaken,
     /// Cannot execute action on a system message
     InvalidActionOnSystemMessage,
+    /// Cannot execute action on this channel type
+    CannotExecuteActionOnChannelType,
     /// Invalid OAuth2 access token provided
     InvalidOAuthAccessToken,
+    /// Invalid recipient(s)
+    InvalidRecipient,
     /// A message provided was too old to bulk delete
     MessageTooOldToBulkDelete,
     /// Invalid form body (returned for both application/json and multipart/form-data bodies), or invalid Content-Type provided
@@ -176,6 +182,7 @@ impl ErrorCode {
             Self::UnknownRedistributable => 10036,
             Self::BotsCannotUseEndpoint => 20001,
             Self::OnlyBotsCanUseEndpoint => 20002,
+            Self::AnnouncementRateLimitReached => 20022,
             Self::MaximumGuildsReached => 30001,
             Self::MaximumFriendsReached => 30002,
             Self::MaximumPinsReached => 30003,
@@ -210,7 +217,9 @@ impl ErrorCode {
             Self::MessagePinnedInWrongChannel => 50019,
             Self::InviteCodeInvalidOrTaken => 50020,
             Self::InvalidActionOnSystemMessage => 50021,
+            Self::CannotExecuteActionOnChannelType => 50024,
             Self::InvalidOAuthAccessToken => 50025,
+            Self::InvalidRecipient => 50033,
             Self::MessageTooOldToBulkDelete => 50034,
             Self::InvalidFormBodyOrContentType => 50035,
             Self::InviteAcceptedToGuildBotNotIn => 50036,
@@ -251,6 +260,7 @@ impl From<u64> for ErrorCode {
             10036 => Self::UnknownRedistributable,
             20001 => Self::BotsCannotUseEndpoint,
             20002 => Self::OnlyBotsCanUseEndpoint,
+            20022 => Self::AnnouncementRateLimitReached,
             30001 => Self::MaximumGuildsReached,
             30002 => Self::MaximumFriendsReached,
             30003 => Self::MaximumPinsReached,
@@ -285,7 +295,9 @@ impl From<u64> for ErrorCode {
             50019 => Self::MessagePinnedInWrongChannel,
             50020 => Self::InviteCodeInvalidOrTaken,
             50021 => Self::InvalidActionOnSystemMessage,
+            50024 => Self::CannotExecuteActionOnChannelType,
             50025 => Self::InvalidOAuthAccessToken,
+            50033 => Self::InvalidRecipient,
             50034 => Self::MessageTooOldToBulkDelete,
             50035 => Self::InvalidFormBodyOrContentType,
             50036 => Self::InviteAcceptedToGuildBotNotIn,
@@ -326,6 +338,7 @@ impl Display for ErrorCode {
             Self::UnknownRedistributable => f.write_str("Unknown redistributable"),
             Self::BotsCannotUseEndpoint => f.write_str("Bots cannot use this endpoint"),
             Self::OnlyBotsCanUseEndpoint => f.write_str("Only bots can use this endpoint"),
+            Self::AnnouncementRateLimitReached => f.write_str("Message cannot be edited due to announcement rate limits"),
             Self::MaximumGuildsReached => f.write_str("Maximum number of guilds reached (100)"),
             Self::MaximumFriendsReached => f.write_str("Maximum number of friends reached (1000)"),
             Self::MaximumPinsReached => f.write_str("Maximum number of pins reached for the channel (50)"),
@@ -360,7 +373,9 @@ impl Display for ErrorCode {
             Self::MessagePinnedInWrongChannel => f.write_str("A message can only be pinned to the channel it was sent in"),
             Self::InviteCodeInvalidOrTaken => f.write_str("Invite code was either invalid or taken"),
             Self::InvalidActionOnSystemMessage => f.write_str("Cannot execute action on a system message"),
+            Self::CannotExecuteActionOnChannelType => f.write_str("Cannot execute action on channel type"),
             Self::InvalidOAuthAccessToken => f.write_str("Invalid OAuth2 access token provided"),
+            Self::InvalidRecipient => f.write_str("Invalid recipient(s)"),
             Self::MessageTooOldToBulkDelete => f.write_str("A message provided was too old to bulk delete"),
             Self::InvalidFormBodyOrContentType => f.write_str("Invalid form body (returned for both application/json and multipart/form-data bodies), or invalid Content-Type provided"),
             Self::InviteAcceptedToGuildBotNotIn => f.write_str("An invite was accepted to a guild the application's bot is not in"),
