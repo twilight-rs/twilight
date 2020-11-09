@@ -1423,7 +1423,7 @@ impl Client {
     ///
     /// [`Error::Unauthorized`]: ../enum.Error.html#variant.Unauthorized
     pub async fn raw(&self, request: Request) -> Result<Response> {
-        if !self.state.token_invalid.load(Ordering::Relaxed) {
+        if self.state.token_invalid.load(Ordering::Relaxed) {
             return Err(Error::Unauthorized);
         }
 
