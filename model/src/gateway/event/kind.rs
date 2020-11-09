@@ -1,5 +1,92 @@
 use serde::{Deserialize, Serialize};
-use std::convert::TryFrom;
+use std::{
+    convert::TryFrom,
+    error::Error,
+    fmt::{Display, Formatter, Result as FmtResult},
+};
+
+/// Converting into an [`EventType`] failed.
+///
+/// This occurs only when the source input string doesn't map to an event type's
+/// string representation.
+///
+/// [`EventType`]: enum.EventType.html
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub struct EventTypeConversionError<'a> {
+    event_type: &'a str,
+}
+
+impl<'a> EventTypeConversionError<'a> {
+    /// Retrieve an immutable reference to the event type that couldn't be
+    /// parsed.
+    pub fn event_type_ref(&self) -> &str {
+        &self.event_type
+    }
+
+    /// Consume the error, returning the immutable reference to the event type.
+    pub fn into_event_type(self) -> &'a str {
+        self.event_type
+    }
+
+    /// Consume the error, internally allocating a `String` from the borrowed
+    /// input event type.
+    pub fn into_owned(self) -> EventTypeConversionErrorOwned {
+        EventTypeConversionErrorOwned {
+            event_type: self.event_type.to_owned(),
+        }
+    }
+}
+
+impl Display for EventTypeConversionError<'_> {
+    fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
+        f.write_fmt(format_args!(
+            "input string ('{}') doesn't map to an event type variant",
+            self.event_type,
+        ))
+    }
+}
+
+impl Error for EventTypeConversionError<'_> {}
+
+/// Converting into an [`EventType`] failed.
+///
+/// This occurs only when the source input string doesn't map to an event type's
+/// string representation.
+///
+/// This is an owned version of [`EventTypeConversionError`].
+///
+/// [`EventTypeConversionError`]: struct.EventTypeConversionError.html
+/// [`EventType`]: enum.EventType.html
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub struct EventTypeConversionErrorOwned {
+    event_type: String,
+}
+
+impl EventTypeConversionErrorOwned {
+    /// Retrieve an immutable reference to the event type that couldn't be
+    /// parsed.
+    pub fn event_type_ref(&self) -> &str {
+        &self.event_type
+    }
+
+    /// Consume the error, returning the event type.
+    pub fn into_event_type(self) -> String {
+        self.event_type
+    }
+}
+
+impl Display for EventTypeConversionErrorOwned {
+    fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
+        Display::fmt(
+            &EventTypeConversionError {
+                event_type: self.event_type_ref(),
+            },
+            f,
+        )
+    }
+}
+
+impl Error for EventTypeConversionErrorOwned {}
 
 /// The type of an event.
 #[derive(Clone, Copy, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
@@ -130,7 +217,7 @@ impl EventType {
 }
 
 impl<'a> TryFrom<&'a str> for EventType {
-    type Error = &'a str;
+    type Error = EventTypeConversionError<'a>;
 
     fn try_from(event_type: &'a str) -> Result<Self, Self::Error> {
         match event_type {
@@ -173,15 +260,28 @@ impl<'a> TryFrom<&'a str> for EventType {
             "VOICE_SERVER_UPDATE" => Ok(Self::VoiceServerUpdate),
             "VOICE_STATE_UPDATE" => Ok(Self::VoiceStateUpdate),
             "WEBHOOKS_UPDATE" => Ok(Self::WebhooksUpdate),
-            _ => Err(event_type),
+            _ => Err(EventTypeConversionError { event_type }),
         }
     }
 }
 
 #[cfg(test)]
 mod tests {
-    use super::EventType;
+    use super::{EventType, EventTypeConversionError, EventTypeConversionErrorOwned};
     use serde_test::Token;
+    use static_assertions::assert_impl_all;
+    use std::{error::Error, fmt::Debug};
+
+    assert_impl_all!(
+        EventTypeConversionErrorOwned: Clone,
+        Debug,
+        Eq,
+        Error,
+        PartialEq,
+        Send,
+        Sync
+    );
+    assert_impl_all!(EventTypeConversionError<'_>: Clone, Debug, Eq, Error, PartialEq, Send, Sync);
 
     fn assert_variant(kind: EventType, name: &'static str) {
         serde_test::assert_tokens(
@@ -255,5 +355,52 @@ mod tests {
         assert_variant(EventType::VoiceServerUpdate, "VOICE_SERVER_UPDATE");
         assert_variant(EventType::VoiceStateUpdate, "VOICE_STATE_UPDATE");
         assert_variant(EventType::WebhooksUpdate, "WEBHOOKS_UPDATE");
+    }
+
+    #[test]
+    fn test_error_display() {
+        let event_type = "USER_DELETE";
+        let expected = format!(
+            "input string ('{}') doesn't map to an event type variant",
+            event_type,
+        );
+
+        assert_eq!(
+            expected,
+            EventTypeConversionErrorOwned {
+                event_type: event_type.to_owned(),
+            }
+            .to_string()
+        );
+        assert_eq!(
+            expected,
+            EventTypeConversionError { event_type }.to_string()
+        );
+    }
+
+    #[test]
+    fn test_error_methods() {
+        let event_type = "USER_DELETE";
+
+        assert_eq!(
+            event_type,
+            EventTypeConversionError { event_type }.event_type_ref()
+        );
+        assert_eq!(
+            event_type,
+            EventTypeConversionError { event_type }.into_event_type()
+        );
+        assert_eq!(
+            event_type,
+            EventTypeConversionError { event_type }
+                .into_owned()
+                .event_type_ref()
+        );
+        assert_eq!(
+            event_type,
+            EventTypeConversionError { event_type }
+                .into_owned()
+                .into_event_type()
+        );
     }
 }

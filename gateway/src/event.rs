@@ -189,7 +189,8 @@ impl<'a> TryFrom<(u8, Option<&'a str>)> for EventTypeFlags {
             (10, _) => Ok(EventTypeFlags::GATEWAY_HELLO),
             (11, _) => Ok(EventTypeFlags::GATEWAY_HEARTBEAT_ACK),
             (_, Some(event_type)) => {
-                let flag = EventType::try_from(event_type).map_err(|kind| (op, Some(kind)))?;
+                let flag = EventType::try_from(event_type)
+                    .map_err(|kind| (op, Some(kind.into_event_type())))?;
 
                 Ok(Self::from(flag))
             }

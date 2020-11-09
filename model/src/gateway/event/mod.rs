@@ -9,7 +9,7 @@ mod kind;
 pub use self::{
     dispatch::{DispatchEvent, DispatchEventWithTypeDeserializer},
     gateway::{GatewayEvent, GatewayEventDeserializer, GatewayEventDeserializerOwned},
-    kind::EventType,
+    kind::{EventType, EventTypeConversionError, EventTypeConversionErrorOwned},
 };
 
 use self::shard::*;
