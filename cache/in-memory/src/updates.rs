@@ -1,6 +1,6 @@
 use super::{config::EventType, InMemoryCache};
 use dashmap::DashMap;
-use std::{collections::HashSet, hash::Hash, ops::Deref, sync::Arc};
+use std::{borrow::Cow, collections::HashSet, hash::Hash, ops::Deref, sync::Arc};
 use twilight_model::{
     channel::{message::MessageReaction, Channel, GuildChannel},
     gateway::{event::Event, payload::*, presence::Presence},
@@ -374,6 +374,12 @@ impl UpdateCache for MessageCreate {
         }
 
         channel.insert(self.0.id, Arc::new(From::from(self.0.clone())));
+
+        let user = cache.cache_user(Cow::Borrowed(&self.author), self.guild_id);
+
+        if let (Some(member), Some(guild_id)) = (&self.member, self.guild_id) {
+            cache.cache_borrowed_partial_member(guild_id, member, user);
+        }
     }
 }
 
@@ -667,6 +673,7 @@ impl UpdateCache for WebhooksUpdate {}
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::config::EventType;
     use std::collections::HashMap;
     use twilight_model::{
         channel::{ChannelType, GuildChannel, TextChannel},
@@ -836,7 +843,7 @@ mod tests {
     #[test]
     fn test_voice_states_with_no_cached_guilds() {
         let cache = InMemoryCache::builder()
-            .event_types(crate::config::EventType::VOICE_STATE_UPDATE)
+            .event_types(EventType::VOICE_STATE_UPDATE)
             .build();
 
         cache.update(&VoiceStateUpdate(VoiceState {
@@ -853,5 +860,83 @@ mod tests {
             token: None,
             user_id: UserId(1),
         }));
+    }
+
+    #[test]
+    fn test_message_create() {
+        use twilight_model::{
+            channel::{
+                message::{MessageFlags, MessageType},
+                Message,
+            },
+            guild::PartialMember,
+            id::MessageId,
+            user::User,
+        };
+
+        let cache = InMemoryCache::builder()
+            .event_types(EventType::MESSAGE_CREATE)
+            .message_cache_size(1)
+            .build();
+        let msg = Message {
+            activity: None,
+            application: None,
+            attachments: Vec::new(),
+            author: User {
+                avatar: Some("".to_owned()),
+                bot: false,
+                discriminator: "0001".to_owned(),
+                email: None,
+                flags: None,
+                id: UserId(3),
+                locale: None,
+                mfa_enabled: None,
+                name: "test".to_owned(),
+                premium_type: None,
+                public_flags: None,
+                system: None,
+                verified: None,
+            },
+            channel_id: ChannelId(2),
+            content: "ping".to_owned(),
+            edited_timestamp: None,
+            embeds: Vec::new(),
+            flags: Some(MessageFlags::empty()),
+            guild_id: Some(GuildId(1)),
+            id: MessageId(4),
+            kind: MessageType::Regular,
+            member: Some(PartialMember {
+                deaf: false,
+                joined_at: None,
+                mute: false,
+                nick: Some("member nick".to_owned()),
+                roles: Vec::new(),
+            }),
+            mention_channels: Vec::new(),
+            mention_everyone: false,
+            mention_roles: Vec::new(),
+            mentions: HashMap::new(),
+            pinned: false,
+            reactions: Vec::new(),
+            reference: None,
+            timestamp: String::new(),
+            tts: false,
+            webhook_id: None,
+        };
+
+        cache.update(&MessageCreate(msg));
+
+        {
+            let entry = cache.0.users.get(&UserId(3)).unwrap();
+            assert_eq!(entry.value().1.len(), 1);
+        }
+        assert_eq!(
+            cache.member(GuildId(1), UserId(3)).unwrap().user.name,
+            "test"
+        );
+        {
+            let entry = cache.0.messages.get(&ChannelId(2)).unwrap();
+            assert_eq!(entry.value().len(), 1);
+        }
     }
 }
