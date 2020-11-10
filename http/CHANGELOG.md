@@ -2,6 +2,24 @@
 
 Changelog for `twilight-http`.
 
+## [0.2.2] - 2020-11-11
+
+### Additions
+
+Handle service unavailability (503) errors, returning a new error variant when
+encountered ([#592] - [@vivian]).
+
+Support 3 new HTTP error codes ([#594] - [@vivian]):
+
+- 20022: This message cannot be edited due to announcement rate limits
+- 50024: Cannot execute action on this channel type
+- 50033: Invalid Recipient(s)
+
+Take note of invalid tokens, short-circuiting attempts to execute in the
+future. This will cause the client to return an `Unauthorized` error variant
+when an Unauthorized (401) status code is encountered in order to prevent API
+bans ([#597] - [@vivian]).
+
 ## [0.2.1] - 2020-11-02
 
 Update the installation instructions to note version 0.2 instead of
@@ -155,6 +173,9 @@ Initial release.
 [@nickelc]: https://github.com/nickelc
 [@vivian]: https://github.com/vivian
 
+[#597]: https://github.com/twilight-rs/twilight/pull/597
+[#594]: https://github.com/twilight-rs/twilight/pull/594
+[#592]: https://github.com/twilight-rs/twilight/pull/592
 [#588]: https://github.com/twilight-rs/twilight/pull/588
 [#581]: https://github.com/twilight-rs/twilight/pull/581
 [#579]: https://github.com/twilight-rs/twilight/pull/579
@@ -178,6 +199,7 @@ Initial release.
 
 [0.2.0-beta.1:app integrations]: https://github.com/discord/discord-api-docs/commit/a926694e2f8605848bda6b57d21c8817559e5cec
 
+[0.2.2]: https://github.com/twilight-rs/twilight/releases/tag/http-v0.2.2
 [0.2.1]: https://github.com/twilight-rs/twilight/releases/tag/http-v0.2.1
 [0.2.0]: https://github.com/twilight-rs/twilight/releases/tag/http-v0.2.0
 [0.2.0-beta.2]: https://github.com/twilight-rs/twilight/releases/tag/http-v0.2.0-beta.2
