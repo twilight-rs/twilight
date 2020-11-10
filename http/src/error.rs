@@ -105,6 +105,11 @@ pub enum Error {
     ServiceUnavailable {
         response: Response,
     },
+    /// Token in use has become revoked or is otherwise invalid.
+    ///
+    /// This can occur if a bot token is invalidated or an access token expires
+    /// or is revoked. Recreate the client to configure a new token.
+    Unauthorized,
 }
 
 impl From<FmtError> for Error {
@@ -154,6 +159,7 @@ impl Display for Error {
             Self::ServiceUnavailable { .. } => {
                 f.write_str("api may be temporarily unavailable (received a 503)")
             }
+            Self::Unauthorized => f.write_str("token in use is invalid, expired, or is revoked"),
         }
     }
 }
@@ -170,7 +176,7 @@ impl StdError for Error {
             Self::BuildingClient { source }
             | Self::ChunkingResponse { source }
             | Self::RequestError { source } => Some(source),
-            Self::Response { .. } | Self::ServiceUnavailable { .. } => None,
+            Self::Response { .. } | Self::ServiceUnavailable { .. } | Self::Unauthorized => None,
         }
     }
 }
