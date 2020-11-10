@@ -1525,15 +1525,16 @@ impl Client {
             return Ok(resp);
         }
 
-        if status == StatusCode::IM_A_TEAPOT {
-            tracing::warn!(
+        match status {
+            StatusCode::IM_A_TEAPOT => tracing::warn!(
                 "discord's api now runs off of teapots -- proceed to panic: {:?}",
                 resp,
-            );
-        }
-
-        if status == StatusCode::TOO_MANY_REQUESTS {
-            tracing::warn!("429 response: {:?}", resp);
+            ),
+            StatusCode::TOO_MANY_REQUESTS => tracing::warn!("429 response: {:?}", resp),
+            StatusCode::SERVICE_UNAVAILABLE => {
+                return Err(Error::ServiceUnavailable { response: resp })
+            }
+            _ => {}
         }
 
         let bytes = resp
