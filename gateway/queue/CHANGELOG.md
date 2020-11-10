@@ -2,6 +2,12 @@
 
 Changelog for `twilight-gateway-queue`.
 
+## [0.2.1] - 2020-11-11
+
+### Enhancements
+
+Remove broken cross-crate links ([#595] - [@vivian]).
+
 ## [0.2.0] - 2020-10-30
 
 This major version bump of the Gateway Queue crate is done to match all of the
@@ -18,6 +24,11 @@ changes.
 
 Initial release.
 
+[@vivian]: https://github.com/vivian
+
+[#595]: https://github.com/twilight-rs/twilight/pull/595
+
+[0.2.1]: https://github.com/twilight-rs/twilight/releases/tag/gateway-queue-v0.2.1
 [0.2.0]: https://github.com/twilight-rs/twilight/releases/tag/gateway-queue-v0.2.0
 [0.2.0-beta.0]: https://github.com/twilight-rs/twilight/releases/tag/gateway-queue-v0.2.0-beta.0
 [0.1.0]: https://github.com/twilight-rs/twilight/releases/tag/gateway-queue-v0.1.0
