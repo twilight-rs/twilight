@@ -1,6 +1,6 @@
 use crate::{api_error::ApiError, ratelimiting::RatelimitError};
 use futures_channel::oneshot::Canceled;
-use reqwest::{header::InvalidHeaderValue, Error as ReqwestError, StatusCode};
+use reqwest::{header::InvalidHeaderValue, Error as ReqwestError, Response, StatusCode};
 use std::{
     error::Error as StdError,
     fmt::{Display, Error as FmtError, Formatter, Result as FmtResult},
@@ -98,6 +98,13 @@ pub enum Error {
         error: ApiError,
         status: StatusCode,
     },
+    /// API service is unavailable. Consider re-sending the request at a
+    /// later time.
+    ///
+    /// This may occur during Discord API stability incidents.
+    ServiceUnavailable {
+        response: Response,
+    },
 }
 
 impl From<FmtError> for Error {
@@ -144,6 +151,9 @@ impl Display for Error {
                 "Response error: status code {}, error: {}",
                 status, error
             ),
+            Self::ServiceUnavailable { .. } => {
+                f.write_str("api may be temporarily unavailable (received a 503)")
+            }
         }
     }
 }
@@ -160,7 +170,7 @@ impl StdError for Error {
             Self::BuildingClient { source }
             | Self::ChunkingResponse { source }
             | Self::RequestError { source } => Some(source),
-            Self::Response { .. } => None,
+            Self::Response { .. } | Self::ServiceUnavailable { .. } => None,
         }
     }
 }
