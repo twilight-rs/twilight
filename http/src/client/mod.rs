@@ -21,7 +21,10 @@ use std::{
     convert::TryFrom,
     fmt::{Debug, Formatter, Result as FmtResult},
     result::Result as StdResult,
-    sync::Arc,
+    sync::{
+        atomic::{AtomicBool, Ordering},
+        Arc,
+    },
 };
 use twilight_model::{
     guild::Permissions,
@@ -32,6 +35,7 @@ use url::Url;
 struct State {
     http: ReqwestClient,
     ratelimiter: Option<Ratelimiter>,
+    token_invalid: AtomicBool,
     token: Option<String>,
     use_http: bool,
     pub(crate) default_allowed_mentions: Option<AllowedMentions>,
@@ -52,6 +56,14 @@ impl Debug for State {
 ///
 /// Almost all of the client methods require authentication, and as such, the client must be
 /// supplied with a Discord Token. Get yours [here].
+///
+/// # Unauthorized behavior
+///
+/// When the client encounters an Unauthorized response it will take note that
+/// the configured token is invalid. This may occur when the token has been
+/// revoked or expired. When this happens, you must create a new client with the
+/// new token. The client will no longer execute requests in order to
+/// prevent API bans and will always return [`Error::Unauthorized`].
 ///
 /// # Examples
 ///
@@ -84,6 +96,7 @@ impl Debug for State {
 ///
 /// [here]: https://discord.com/developers/applications
 /// [`ClientBuilder`]: struct.ClientBuilder.html
+/// [`Error::Unauthorized`]: ../enum.Error.html#variant.Unauthorized
 #[derive(Clone, Debug)]
 pub struct Client {
     state: Arc<State>,
@@ -111,6 +124,7 @@ impl Client {
             state: Arc::new(State {
                 http: ReqwestClient::new(),
                 ratelimiter: Some(Ratelimiter::new()),
+                token_invalid: AtomicBool::new(false),
                 token: Some(token),
                 use_http: false,
                 default_allowed_mentions: None,
@@ -1400,7 +1414,19 @@ impl Client {
         Ok(self.execute_webhook(id, token.ok_or(UrlError::SegmentMissing)?))
     }
 
+    /// Execute a request, returning the response.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`Error::Unauthorized`] if the configured token has become
+    /// invalid due to expiration, revokation, etc.
+    ///
+    /// [`Error::Unauthorized`]: ../enum.Error.html#variant.Unauthorized
     pub async fn raw(&self, request: Request) -> Result<Response> {
+        if self.state.token_invalid.load(Ordering::Relaxed) {
+            return Err(Error::Unauthorized);
+        }
+
         let Request {
             body,
             form,
@@ -1471,6 +1497,13 @@ impl Client {
             .await
             .map_err(|source| Error::RequestError { source })?;
 
+        // If the API sent back an Unauthorized response, then the client's
+        // configured token is permanently invalid and future requests must be
+        // ignored to avoid API bans.
+        if resp.status() == StatusCode::UNAUTHORIZED {
+            self.state.token_invalid.store(true, Ordering::Relaxed);
+        }
+
         match RatelimitHeaders::try_from(resp.headers()) {
             Ok(v) => {
                 let _ = tx.send(Some(v));
@@ -1485,6 +1518,14 @@ impl Client {
         Ok(resp)
     }
 
+    /// Execute a request, chunking and deserializing the response.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`Error::Unauthorized`] if the configured token has become
+    /// invalid due to expiration, revokation, etc.
+    ///
+    /// [`Error::Unauthorized`]: ../enum.Error.html#variant.Unauthorized
     pub async fn request<T: DeserializeOwned>(&self, request: Request) -> Result<T> {
         let resp = self.make_request(request).await?;
 
@@ -1511,6 +1552,16 @@ impl Client {
             .map_err(|source| Error::ChunkingResponse { source })
     }
 
+    /// Execute a request, checking only that the response was a success.
+    ///
+    /// This will not chunk and deserialize the body of the response.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`Error::Unauthorized`] if the configured token has become
+    /// invalid due to expiration, revokation, etc.
+    ///
+    /// [`Error::Unauthorized`]: ../enum.Error.html#variant.Unauthorized
     pub async fn verify(&self, request: Request) -> Result<()> {
         self.make_request(request).await?;
 
@@ -1570,6 +1621,7 @@ impl From<ReqwestClient> for Client {
             state: Arc::new(State {
                 http: reqwest_client,
                 ratelimiter: Some(Ratelimiter::new()),
+                token_invalid: AtomicBool::new(false),
                 token: None,
                 use_http: false,
                 default_allowed_mentions: None,

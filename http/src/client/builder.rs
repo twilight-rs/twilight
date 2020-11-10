@@ -5,7 +5,10 @@ use crate::{
     request::channel::message::allowed_mentions::AllowedMentions,
 };
 use reqwest::{ClientBuilder as ReqwestClientBuilder, Proxy};
-use std::{sync::Arc, time::Duration};
+use std::{
+    sync::{atomic::AtomicBool, Arc},
+    time::Duration,
+};
 
 #[derive(Debug)]
 /// A builder for [`Client`].
@@ -52,6 +55,7 @@ impl ClientBuilder {
                     .build()
                     .map_err(|source| Error::BuildingClient { source })?,
                 ratelimiter: self.ratelimiter,
+                token_invalid: AtomicBool::new(false),
                 token: self.token,
                 use_http: self.proxy_http,
                 default_allowed_mentions: self.default_allowed_mentions,
