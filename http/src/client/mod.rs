@@ -3,17 +3,12 @@ mod builder;
 pub use self::builder::ClientBuilder;
 pub use reqwest::Proxy;
 
-use crate::{
-    api_error::{ApiError, ErrorCode},
-    error::{Error, Result, UrlError},
-    ratelimiting::{RatelimitHeaders, Ratelimiter},
-    request::{
-        channel::message::allowed_mentions::AllowedMentions,
-        guild::{create_guild::CreateGuildError, create_guild_channel::CreateGuildChannelError},
-        prelude::*,
-        GetUserApplicationInfo, Request,
-    },
-};
+use crate::{api_error::{ApiError, ErrorCode}, error::{Error, Result, UrlError}, ratelimiting::{RatelimitHeaders, Ratelimiter}, request::{
+    channel::message::allowed_mentions::AllowedMentions,
+    guild::{create_guild::CreateGuildError, create_guild_channel::CreateGuildChannelError},
+    prelude::*,
+    GetUserApplicationInfo, Request,
+}, API_VERSION};
 use bytes::Bytes;
 use reqwest::{header::HeaderValue, Body, Client as ReqwestClient, Method, Response, StatusCode};
 use serde::de::DeserializeOwned;
@@ -1411,8 +1406,7 @@ impl Client {
         } = request;
 
         let protocol = if self.state.use_http { "http" } else { "https" };
-        let url = format!("{}://discord.com/api/v8/{}", protocol, path);
-
+        let url = format!("{}://discord.com/api/v{}/{}", protocol, API_VERSION, path);
         tracing::debug!("URL: {:?}", url);
 
         let mut builder = self.state.http.request(method.clone(), &url);

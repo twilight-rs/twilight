@@ -96,6 +96,9 @@ pub mod ratelimiting;
 pub mod request;
 pub mod routing;
 
+/// The discord api version used by this crate
+pub const API_VERSION: u8 = 8;
+
 pub use crate::{
     client::Client,
     error::{Error, Result},
