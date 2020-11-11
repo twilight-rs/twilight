@@ -491,9 +491,9 @@ impl InMemoryCache {
         guild_id: GuildId,
         guild_channels: impl IntoIterator<Item = GuildChannel>,
     ) {
-        guild_channels.into_iter().for_each(|channel| {
+        for channel in guild_channels {
             self.cache_guild_channel(guild_id, channel);
-        })
+        }
     }
 
     fn cache_guild_channel(
@@ -563,9 +563,9 @@ impl InMemoryCache {
     }
 
     fn cache_emojis(&self, guild_id: GuildId, emojis: impl IntoIterator<Item = Emoji>) {
-        emojis.into_iter().for_each(|emoji| {
+        for emoji in emojis {
             self.cache_emoji(guild_id, emoji);
-        })
+        }
     }
 
     fn cache_group(&self, group: Group) -> Arc<Group> {
@@ -699,9 +699,9 @@ impl InMemoryCache {
     }
 
     fn cache_presences(&self, guild_id: GuildId, presences: impl IntoIterator<Item = Presence>) {
-        presences.into_iter().for_each(|presence| {
+        for presence in presences {
             self.cache_presence(guild_id, presence);
-        })
+        }
     }
 
     fn cache_presence(&self, guild_id: GuildId, presence: Presence) -> Arc<CachedPresence> {
@@ -733,9 +733,9 @@ impl InMemoryCache {
     }
 
     fn cache_roles(&self, guild_id: GuildId, roles: impl IntoIterator<Item = Role>) {
-        roles.into_iter().for_each(|role| {
+        for role in roles {
             self.cache_role(guild_id, role);
-        })
+        }
     }
 
     fn cache_role(&self, guild_id: GuildId, role: Role) -> Arc<Role> {
@@ -774,9 +774,9 @@ impl InMemoryCache {
     }
 
     fn cache_voice_states(&self, voice_states: impl IntoIterator<Item = VoiceState>) {
-        voice_states.into_iter().for_each(|voice_state| {
+        for voice_state in voice_states {
             self.cache_voice_state(voice_state);
-        })
+        }
     }
 
     fn cache_voice_state(&self, vs: VoiceState) -> Option<Arc<VoiceState>> {
