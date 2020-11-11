@@ -490,16 +490,10 @@ impl InMemoryCache {
         &self,
         guild_id: GuildId,
         guild_channels: impl IntoIterator<Item = GuildChannel>,
-    ) -> HashSet<ChannelId> {
-        guild_channels
-            .into_iter()
-            .map(|channel| {
-                let id = channel.id();
-                self.cache_guild_channel(guild_id, channel);
-
-                id
-            })
-            .collect()
+    ) {
+        for channel in guild_channels {
+            self.cache_guild_channel(guild_id, channel);
+        }
     }
 
     fn cache_guild_channel(
@@ -568,20 +562,10 @@ impl InMemoryCache {
         cached
     }
 
-    fn cache_emojis(
-        &self,
-        guild_id: GuildId,
-        emojis: impl IntoIterator<Item = Emoji>,
-    ) -> HashSet<EmojiId> {
-        emojis
-            .into_iter()
-            .map(|emoji| {
-                let id = emoji.id;
-                self.cache_emoji(guild_id, emoji);
-
-                id
-            })
-            .collect()
+    fn cache_emojis(&self, guild_id: GuildId, emojis: impl IntoIterator<Item = Emoji>) {
+        for emoji in emojis {
+            self.cache_emoji(guild_id, emoji);
+        }
     }
 
     fn cache_group(&self, group: Group) -> Arc<Group> {
@@ -708,36 +692,16 @@ impl InMemoryCache {
         cached
     }
 
-    fn cache_members(
-        &self,
-        guild_id: GuildId,
-        members: impl IntoIterator<Item = Member>,
-    ) -> HashSet<UserId> {
-        members
-            .into_iter()
-            .map(|member| {
-                let id = member.user.id;
-                self.cache_member(guild_id, member);
-
-                id
-            })
-            .collect()
+    fn cache_members(&self, guild_id: GuildId, members: impl IntoIterator<Item = Member>) {
+        for member in members {
+            self.cache_member(guild_id, member);
+        }
     }
 
-    fn cache_presences(
-        &self,
-        guild_id: GuildId,
-        presences: impl IntoIterator<Item = Presence>,
-    ) -> HashSet<UserId> {
-        presences
-            .into_iter()
-            .map(|presence| {
-                let id = presence_user_id(&presence);
-                self.cache_presence(guild_id, presence);
-
-                id
-            })
-            .collect()
+    fn cache_presences(&self, guild_id: GuildId, presences: impl IntoIterator<Item = Presence>) {
+        for presence in presences {
+            self.cache_presence(guild_id, presence);
+        }
     }
 
     fn cache_presence(&self, guild_id: GuildId, presence: Presence) -> Arc<CachedPresence> {
@@ -768,21 +732,10 @@ impl InMemoryCache {
         }
     }
 
-    fn cache_roles(
-        &self,
-        guild_id: GuildId,
-        roles: impl IntoIterator<Item = Role>,
-    ) -> HashSet<RoleId> {
-        roles
-            .into_iter()
-            .map(|role| {
-                let id = role.id;
-
-                self.cache_role(guild_id, role);
-
-                id
-            })
-            .collect()
+    fn cache_roles(&self, guild_id: GuildId, roles: impl IntoIterator<Item = Role>) {
+        for role in roles {
+            self.cache_role(guild_id, role);
+        }
     }
 
     fn cache_role(&self, guild_id: GuildId, role: Role) -> Arc<Role> {
@@ -820,19 +773,10 @@ impl InMemoryCache {
         user
     }
 
-    fn cache_voice_states(
-        &self,
-        voice_states: impl IntoIterator<Item = VoiceState>,
-    ) -> HashSet<UserId> {
-        voice_states
-            .into_iter()
-            .map(|voice_state| {
-                let id = voice_state.user_id;
-                self.cache_voice_state(voice_state);
-
-                id
-            })
-            .collect()
+    fn cache_voice_states(&self, voice_states: impl IntoIterator<Item = VoiceState>) {
+        for voice_state in voice_states {
+            self.cache_voice_state(voice_state);
+        }
     }
 
     fn cache_voice_state(&self, vs: VoiceState) -> Option<Arc<VoiceState>> {
