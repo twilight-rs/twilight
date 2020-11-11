@@ -1,4 +1,5 @@
 use crate::request::prelude::*;
+use futures_util::future::TryFutureExt;
 use twilight_model::{
     channel::{embed::Embed, Message},
     id::WebhookId,
@@ -132,14 +133,24 @@ impl<'a> ExecuteWebhook<'a> {
     }
 
     fn start(&mut self) -> Result<()> {
-        self.fut.replace(Box::pin(self.http.request(Request::from((
+        let request = Request::from((
             crate::json_to_vec(&self.fields)?,
             Route::ExecuteWebhook {
                 token: self.token.to_owned(),
                 wait: self.fields.wait,
                 webhook_id: self.webhook_id.0,
             },
-        )))));
+        ));
+
+        match self.fields.wait {
+            Some(true) => {
+                self.fut.replace(Box::pin(self.http.request(request)));
+            }
+            _ => {
+                self.fut
+                    .replace(Box::pin(self.http.verify(request).map_ok(|_| None)));
+            }
+        }
 
         Ok(())
     }
