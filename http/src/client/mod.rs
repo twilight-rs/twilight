@@ -13,6 +13,7 @@ use crate::{
         prelude::*,
         GetUserApplicationInfo, Request,
     },
+    API_VERSION,
 };
 use bytes::Bytes;
 use reqwest::{header::HeaderValue, Body, Client as ReqwestClient, Method, Response, StatusCode};
@@ -1437,8 +1438,7 @@ impl Client {
         } = request;
 
         let protocol = if self.state.use_http { "http" } else { "https" };
-        let url = format!("{}://discord.com/api/v8/{}", protocol, path);
-
+        let url = format!("{}://discord.com/api/v{}/{}", protocol, API_VERSION, path);
         tracing::debug!("URL: {:?}", url);
 
         let mut builder = self.state.http.request(method.clone(), &url);
