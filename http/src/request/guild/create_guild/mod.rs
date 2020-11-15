@@ -88,7 +88,6 @@ pub struct RoleFields {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub mentionable: Option<bool>,
     pub name: String,
-    #[serde(rename = "permissions_new")]
     #[serde(skip_serializing_if = "Option::is_none")]
     pub permissions: Option<Permissions>,
     #[serde(skip_serializing_if = "Option::is_none")]
