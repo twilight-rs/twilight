@@ -339,25 +339,25 @@ impl<'a> CreateGuild<'a> {
             return Err(CreateGuildError::TooManyChannels { channels });
         }
 
-        let afk_channel_id = channels
-            .iter()
-            .find(|ch| match ch {
-                GuildChannelFields::Voice(vch) => vch.afk_channel,
-                _ => false,
-            })
-            .map(GuildChannelFields::id);
+        let afk_channel_id = channels.iter().find_map(|ch| {
+            if let GuildChannelFields::Voice(vch) = ch {
+                Some(vch.id)
+            } else {
+                None
+            }
+        });
 
         if let Some(afk_channel_id) = afk_channel_id {
             self.fields.afk_channel_id.replace(afk_channel_id);
         }
 
-        let system_channel_id = channels
-            .iter()
-            .find(|ch| match ch {
-                GuildChannelFields::Text(tch) => tch.system_channel,
-                _ => false,
-            })
-            .map(GuildChannelFields::id);
+        let system_channel_id = channels.iter().find_map(|ch| {
+            if let GuildChannelFields::Text(tch) = ch {
+                Some(tch.id)
+            } else {
+                None
+            }
+        });
 
         if let Some(system_channel_id) = system_channel_id {
             self.fields.system_channel_id.replace(system_channel_id);
