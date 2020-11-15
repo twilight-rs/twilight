@@ -665,6 +665,10 @@ impl UpdateCache for VoiceStateUpdate {
         }
 
         cache.cache_voice_state(self.0.clone());
+
+        if let (Some(guild_id), Some(member)) = (self.0.guild_id, &self.0.member) {
+            cache.cache_member(guild_id, member.clone());
+        }
     }
 }
 
