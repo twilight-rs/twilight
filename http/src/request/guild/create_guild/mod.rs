@@ -341,7 +341,11 @@ impl<'a> CreateGuild<'a> {
 
         let afk_channel_id = channels.iter().find_map(|ch| {
             if let GuildChannelFields::Voice(vch) = ch {
-                Some(vch.id)
+                if vch.afk_channel {
+                    Some(vch.id)
+                } else {
+                    None
+                }
             } else {
                 None
             }
@@ -353,7 +357,11 @@ impl<'a> CreateGuild<'a> {
 
         let system_channel_id = channels.iter().find_map(|ch| {
             if let GuildChannelFields::Text(tch) = ch {
-                Some(tch.id)
+                if tch.system_channel {
+                    Some(tch.id)
+                } else {
+                    None
+                }
             } else {
                 None
             }
