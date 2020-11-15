@@ -1,14 +1,13 @@
-use crate::channel::ChannelType;
-use crate::id::ChannelId;
+use crate::{channel::ChannelType, id::ChannelId};
 use serde::{Deserialize, Serialize};
 
 #[derive(Clone, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
 pub struct InviteChannel {
-    /// ID of the channel
+    /// ID of the channel.
     pub id: ChannelId,
-    /// Name of the channel
+    /// Name of the channel.
     pub name: Option<String>,
-    /// Type of the channel
+    /// Type of the channel.
     #[serde(rename = "type")]
     pub kind: ChannelType,
 }
