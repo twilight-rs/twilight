@@ -565,6 +565,13 @@ impl CategoryFieldsBuilder {
 
         self
     }
+
+    /// Set the category's permission overwrites.
+    pub fn permission_overwrites(mut self, overwrites: Vec<PermissionOverwrite>) -> Self {
+        self.fields.permission_overwrites.replace(overwrites);
+
+        self
+    }
 }
 
 /// A builder for a list of channels.
