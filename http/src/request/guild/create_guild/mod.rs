@@ -272,8 +272,10 @@ impl<'a> CreateGuild<'a> {
         self
     }
 
-    /// Set the AFK channel. Inactive voice users will be moved to this channel.
-    /// Refer to [the discord docs] for more information.
+    /// Set the AFK channel.
+    ///
+    /// Inactive voice users will be moved to this channel. Refer to [the
+    /// discord docs] for more information.
     ///
     /// [the discord docs]: https://discord.com/developers/docs/resources/guild#create-guild
     pub fn afk_channel(mut self, channel: ChannelId) -> Self {
@@ -282,8 +284,10 @@ impl<'a> CreateGuild<'a> {
         self
     }
 
-    /// Set the AFK timeout. The amount of time until a user is considered AFK.
-    /// Refer to [the discord docs] for more information.
+    /// Set the AFK timeout.
+    ///
+    /// The amount of time until a user is considered AFK. Refer to [the discord
+    /// docs] for more information.
     ///
     /// [the discord docs]: https://discord.com/developers/docs/resources/guild#create-guild
     pub fn afk_timeout(mut self, timeout: u64) -> Self {
@@ -374,8 +378,9 @@ impl<'a> CreateGuild<'a> {
         Ok(self)
     }
 
-    /// Set the default message notification level. Refer to [the discord docs] for more
-    /// information.
+    /// Set the default message notification level.
+    ///
+    /// Refer to [the discord docs] for more information.
     ///
     /// [the discord docs]: https://discord.com/developers/docs/resources/guild#create-guild
     pub fn default_message_notifications(
@@ -432,8 +437,9 @@ impl<'a> CreateGuild<'a> {
         self
     }
 
-    /// Specify the voice server region for the guild. Refer to [the discord docs] for more
-    /// information.
+    /// Specify the voice server region for the guild.
+    ///
+    /// Refer to [the discord docs] for more information.
     ///
     /// [the discord docs]: https://discord.com/developers/docs/resources/voice#voice-region-object
     pub fn region(mut self, region: impl Into<String>) -> Self {
@@ -481,8 +487,9 @@ impl<'a> CreateGuild<'a> {
         Ok(self)
     }
 
-    /// Set the system notification channel. Discord will announce certain events here, such as
-    /// a new user joining
+    /// Set the system notification channel.
+    ///
+    /// Discord will announce certain events here, such as a new user joining.
     /// Refer to [the discord docs] for more information.
     ///
     /// [the discord docs]: https://discord.com/developers/docs/resources/guild#create-guild

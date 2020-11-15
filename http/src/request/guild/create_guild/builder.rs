@@ -286,8 +286,12 @@ impl TextFieldsBuilder {
         Ok(self)
     }
 
-    /// Mark the channel as the guild's system channel. Discord will announce certain events in this
-    /// channel, such as users joining.
+    /// Mark the channel as the guild's system channel.
+    ///
+    /// Discord will announce certain events here, such as a new user joining.
+    /// Refer to [the discord docs] for more information.
+    ///
+    /// [the discord docs]: https://discord.com/developers/docs/resources/guild#create-guild
     pub fn system_channel(mut self) -> Self {
         self.0.system_channel = true;
 
