@@ -245,6 +245,7 @@ impl TextFieldsBuilder {
             permission_overwrites: None,
             parent_id: None,
             rate_limit_per_user: None,
+            system_channel: false,
             topic: None,
         }))
     }
@@ -283,6 +284,14 @@ impl TextFieldsBuilder {
         self.0.rate_limit_per_user.replace(limit);
 
         Ok(self)
+    }
+
+    /// Mark the channel as the guild's system channel. Discord will announce certain events in this
+    /// channel, such as users joining.
+    pub fn system_channel(mut self) -> Self {
+        self.0.system_channel = true;
+
+        self
     }
 
     /// Set the channel's topic.
@@ -386,6 +395,7 @@ impl VoiceFieldsBuilder {
             id: ChannelId(1),
             kind: ChannelType::GuildVoice,
             name,
+            afk_channel: false,
             permission_overwrites: None,
             parent_id: None,
             user_limit: None,
@@ -395,6 +405,13 @@ impl VoiceFieldsBuilder {
     /// Build the voice fields.
     pub fn build(self) -> VoiceFields {
         self.0
+    }
+
+    /// Mark the channel as the guild's AFK channel.
+    pub fn afk_channel(mut self) -> Self {
+        self.0.afk_channel = true;
+
+        self
     }
 
     /// Set the voice channel's bitrate.
@@ -508,11 +525,21 @@ impl CategoryFieldsBuilder {
     }
 
     pub(super) fn build(mut self, id: ChannelId) -> Vec<GuildChannelFields> {
+        let mut next_id = id.0 + 1;
+
         for channel in &mut self.channels {
             match channel {
-                GuildChannelFields::Text(t) => t.parent_id.replace(id),
-                GuildChannelFields::Voice(v) => v.parent_id.replace(id),
-                GuildChannelFields::Category(_) => None,
+                GuildChannelFields::Text(t) => {
+                    t.parent_id.replace(id);
+                    t.id = ChannelId(next_id);
+                    next_id += 1;
+                }
+                GuildChannelFields::Voice(v) => {
+                    v.parent_id.replace(id);
+                    v.id = ChannelId(next_id);
+                    next_id += 1;
+                }
+                GuildChannelFields::Category(_) => {}
             };
         }
 
@@ -558,26 +585,33 @@ impl GuildChannelFieldsBuilder {
 
     /// Add a text channel to the builder.
     pub fn add_text(mut self, channel: impl Into<TextFields>) -> Self {
-        self.0.push(GuildChannelFields::Text(channel.into()));
+        let mut channel_fields = channel.into();
+
+        let last_id = self.0.last().map_or(ChannelId(0), GuildChannelFields::id);
+
+        channel_fields.id = ChannelId(last_id.0 + 1);
+
+        self.0.push(GuildChannelFields::Text(channel_fields));
 
         self
     }
 
     /// Add a voice channel to the builder.
     pub fn add_voice(mut self, channel: impl Into<VoiceFields>) -> Self {
-        self.0.push(GuildChannelFields::Voice(channel.into()));
+        let mut channel_fields = channel.into();
+
+        let last_id = self.0.last().map_or(ChannelId(0), GuildChannelFields::id);
+
+        channel_fields.id = ChannelId(last_id.0 + 1);
+
+        self.0.push(GuildChannelFields::Voice(channel_fields));
 
         self
     }
 
     /// Add a category channel builder, and all its children to the builder.
     pub fn add_category_builder(mut self, channel: CategoryFieldsBuilder) -> Self {
-        let last_id = self
-            .0
-            .iter()
-            .rev()
-            .find(|c| matches!(c, GuildChannelFields::Category(_)))
-            .map_or(ChannelId(1), |c| c.to_owned().id());
+        let last_id = self.0.last().map_or(ChannelId(0), GuildChannelFields::id);
 
         let mut channels = channel.build(ChannelId(last_id.0 + 1));
 
@@ -674,6 +708,7 @@ mod tests {
                 id: ChannelId(1),
                 kind: ChannelType::GuildVoice,
                 name: String::from("voicename"),
+                afk_channel: false,
                 permission_overwrites: Some(vec![PermissionOverwrite {
                     allow: perms(),
                     deny: Permissions::empty(),
@@ -721,6 +756,7 @@ mod tests {
                 }]),
                 parent_id: None,
                 rate_limit_per_user: Some(4_000),
+                system_channel: false,
                 topic: Some(String::from("a topic")),
             }
         );
@@ -749,13 +785,13 @@ mod tests {
             channels.build(),
             vec![
                 GuildChannelFields::Category(CategoryFields {
-                    id: ChannelId(2),
+                    id: ChannelId(1),
                     kind: ChannelType::GuildCategory,
                     name: String::from("category"),
                     permission_overwrites: None,
                 }),
                 GuildChannelFields::Text(TextFields {
-                    id: ChannelId(1),
+                    id: ChannelId(2),
                     kind: ChannelType::GuildText,
                     name: String::from("textname"),
                     nsfw: Some(true),
@@ -766,15 +802,17 @@ mod tests {
                         deny: Permissions::empty(),
                         kind: PermissionOverwriteType::Role(RoleId(2)),
                     }]),
-                    parent_id: Some(ChannelId(2)),
+                    parent_id: Some(ChannelId(1)),
                     rate_limit_per_user: Some(4_000),
+                    system_channel: false,
                     topic: Some(String::from("a topic")),
                 }),
                 GuildChannelFields::Voice(VoiceFields {
                     bitrate: Some(96_000),
-                    id: ChannelId(1),
+                    id: ChannelId(3),
                     kind: ChannelType::GuildVoice,
                     name: String::from("voicename"),
+                    afk_channel: false,
                     permission_overwrites: Some(vec![PermissionOverwrite {
                         allow: Permissions::CONNECT
                             | Permissions::SPEAK
@@ -782,7 +820,7 @@ mod tests {
                         deny: Permissions::empty(),
                         kind: PermissionOverwriteType::Role(RoleId(2)),
                     }]),
-                    parent_id: Some(ChannelId(2)),
+                    parent_id: Some(ChannelId(1)),
                     user_limit: Some(40),
                 }),
             ]
@@ -812,13 +850,15 @@ mod tests {
                     }]),
                     parent_id: None,
                     rate_limit_per_user: Some(4_000),
+                    system_channel: false,
                     topic: Some(String::from("a topic")),
                 }),
                 GuildChannelFields::Voice(VoiceFields {
                     bitrate: Some(96_000),
-                    id: ChannelId(1),
+                    id: ChannelId(2),
                     kind: ChannelType::GuildVoice,
                     name: String::from("voicename"),
+                    afk_channel: false,
                     permission_overwrites: Some(vec![PermissionOverwrite {
                         allow: Permissions::CONNECT
                             | Permissions::SPEAK

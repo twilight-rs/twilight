@@ -57,6 +57,10 @@ impl Error for CreateGuildError {}
 #[derive(Serialize)]
 struct CreateGuildFields {
     #[serde(skip_serializing_if = "Option::is_none")]
+    afk_channel_id: Option<ChannelId>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    afk_timeout: Option<u64>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     channels: Option<Vec<GuildChannelFields>>,
     #[serde(skip_serializing_if = "Option::is_none")]
     default_message_notifications: Option<DefaultMessageNotificationLevel>,
@@ -70,13 +74,9 @@ struct CreateGuildFields {
     #[serde(skip_serializing_if = "Option::is_none")]
     roles: Option<Vec<RoleFields>>,
     #[serde(skip_serializing_if = "Option::is_none")]
-    verification_level: Option<VerificationLevel>,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    afk_channel_id: Option<ChannelId>,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    afk_timeout: Option<u64>,
-    #[serde(skip_serializing_if = "Option::is_none")]
     system_channel_id: Option<ChannelId>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    verification_level: Option<VerificationLevel>,
 }
 
 /// Role fields sent to Discord.
@@ -129,7 +129,7 @@ pub enum GuildChannelFields {
 }
 
 impl GuildChannelFields {
-    pub fn id(self) -> ChannelId {
+    pub fn id(&self) -> ChannelId {
         match self {
             Self::Category(c) => c.id,
             Self::Text(t) => t.id,
@@ -172,6 +172,8 @@ pub struct TextFields {
     pub parent_id: Option<ChannelId>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub rate_limit_per_user: Option<u64>,
+    #[serde(skip)]
+    pub system_channel: bool,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub topic: Option<String>,
 }
@@ -195,6 +197,8 @@ pub struct VoiceFields {
     #[serde(rename = "type")]
     pub kind: ChannelType,
     pub name: String,
+    #[serde(skip)]
+    pub afk_channel: bool,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub permission_overwrites: Option<Vec<PermissionOverwrite>>,
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -237,6 +241,8 @@ impl<'a> CreateGuild<'a> {
 
         Ok(Self {
             fields: CreateGuildFields {
+                afk_channel_id: None,
+                afk_timeout: None,
                 channels: None,
                 default_message_notifications: None,
                 explicit_content_filter: None,
@@ -244,10 +250,8 @@ impl<'a> CreateGuild<'a> {
                 name,
                 region: None,
                 roles: None,
-                verification_level: None,
-                afk_channel_id: None,
-                afk_timeout: None,
                 system_channel_id: None,
+                verification_level: None,
             },
             fut: None,
             http,
@@ -264,6 +268,26 @@ impl<'a> CreateGuild<'a> {
         if let Some(roles) = self.fields.roles.as_mut() {
             roles.push(role.into());
         }
+
+        self
+    }
+
+    /// Set the AFK channel. Inactive voice users will be moved to this channel.
+    /// Refer to [the discord docs] for more information.
+    ///
+    /// [the discord docs]: https://discord.com/developers/docs/resources/guild#create-guild
+    pub fn afk_channel(mut self, channel: ChannelId) -> Self {
+        self.fields.afk_channel_id.replace(channel);
+
+        self
+    }
+
+    /// Set the AFK timeout. The amount of time until a user is considered AFK.
+    /// Refer to [the discord docs] for more information.
+    ///
+    /// [the discord docs]: https://discord.com/developers/docs/resources/guild#create-guild
+    pub fn afk_timeout(mut self, timeout: u64) -> Self {
+        self.fields.afk_timeout.replace(timeout);
 
         self
     }
@@ -313,6 +337,30 @@ impl<'a> CreateGuild<'a> {
         // <https://discordapp.com/developers/docs/topics/opcodes-and-status-codes#json>
         if channels.len() > 500 {
             return Err(CreateGuildError::TooManyChannels { channels });
+        }
+
+        let afk_channel_id = channels
+            .iter()
+            .find(|ch| match ch {
+                GuildChannelFields::Voice(vch) => vch.afk_channel,
+                _ => false,
+            })
+            .map(GuildChannelFields::id);
+
+        if let Some(afk_channel_id) = afk_channel_id {
+            self.fields.afk_channel_id.replace(afk_channel_id);
+        }
+
+        let system_channel_id = channels
+            .iter()
+            .find(|ch| match ch {
+                GuildChannelFields::Text(tch) => tch.system_channel,
+                _ => false,
+            })
+            .map(GuildChannelFields::id);
+
+        if let Some(system_channel_id) = system_channel_id {
+            self.fields.system_channel_id.replace(system_channel_id);
         }
 
         self.fields.channels.replace(channels);
@@ -425,26 +473,6 @@ impl<'a> CreateGuild<'a> {
         self.fields.roles.replace(roles);
 
         Ok(self)
-    }
-
-    /// Set the AFK channel. Inactive voice users will be moved to this channel.
-    /// Refer to [the discord docs] for more information.
-    ///
-    /// [the discord docs]: https://discord.com/developers/docs/resources/guild#create-guild
-    pub fn afk_channel(mut self, channel: ChannelId) -> Self {
-        self.fields.afk_channel_id.replace(channel);
-
-        self
-    }
-
-    /// Set the AFK timeout. The amount of time until a user is considered AFK.
-    /// Refer to [the discord docs] for more information.
-    ///
-    /// [the discord docs]: https://discord.com/developers/docs/resources/guild#create-guild
-    pub fn afk_timeout(mut self, timeout: u64) -> Self {
-        self.fields.afk_timeout.replace(timeout);
-
-        self
     }
 
     /// Set the system notification channel. Discord will announce certain events here, such as
