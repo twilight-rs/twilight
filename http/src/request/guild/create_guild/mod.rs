@@ -71,6 +71,12 @@ struct CreateGuildFields {
     roles: Option<Vec<RoleFields>>,
     #[serde(skip_serializing_if = "Option::is_none")]
     verification_level: Option<VerificationLevel>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    afk_channel_id: Option<ChannelId>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    afk_timeout: Option<u64>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    system_channel_id: Option<ChannelId>,
 }
 
 /// Role fields sent to Discord.
@@ -239,6 +245,9 @@ impl<'a> CreateGuild<'a> {
                 region: None,
                 roles: None,
                 verification_level: None,
+                afk_channel_id: None,
+                afk_timeout: None,
+                system_channel_id: None,
             },
             fut: None,
             http,
@@ -416,6 +425,37 @@ impl<'a> CreateGuild<'a> {
         self.fields.roles.replace(roles);
 
         Ok(self)
+    }
+
+    /// Set the AFK channel. Inactive voice users will be moved to this channel.
+    /// Refer to [the discord docs] for more information.
+    ///
+    /// [the discord docs]: https://discord.com/developers/docs/resources/guild#create-guild
+    pub fn afk_channel(mut self, channel: ChannelId) -> Self {
+        self.fields.afk_channel_id.replace(channel);
+
+        self
+    }
+
+    /// Set the AFK timeout. The amount of time until a user is considered AFK.
+    /// Refer to [the discord docs] for more information.
+    ///
+    /// [the discord docs]: https://discord.com/developers/docs/resources/guild#create-guild
+    pub fn afk_timeout(mut self, timeout: u64) -> Self {
+        self.fields.afk_timeout.replace(timeout);
+
+        self
+    }
+
+    /// Set the system notification channel. Discord will announce certain events here, such as
+    /// a new user joining
+    /// Refer to [the discord docs] for more information.
+    ///
+    /// [the discord docs]: https://discord.com/developers/docs/resources/guild#create-guild
+    pub fn system_channel(mut self, channel: ChannelId) -> Self {
+        self.fields.system_channel_id.replace(channel);
+
+        self
     }
 
     fn start(&mut self) -> Result<()> {
