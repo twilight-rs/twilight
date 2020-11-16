@@ -2,7 +2,7 @@ use super::{config::EventType, InMemoryCache};
 use dashmap::DashMap;
 use std::{borrow::Cow, collections::HashSet, hash::Hash, ops::Deref, sync::Arc};
 use twilight_model::{
-    channel::{message::MessageReaction, Channel, GuildChannel},
+    channel::{message::MessageReaction, Channel, GuildChannel, ReactionType},
     gateway::{event::Event, payload::*, presence::Presence},
     guild::GuildStatus,
     id::GuildId,
@@ -56,7 +56,7 @@ impl UpdateCache for Event {
             ReactionAdd(v) => c.update(v.deref()),
             ReactionRemove(v) => c.update(v.deref()),
             ReactionRemoveAll(v) => c.update(v),
-            ReactionRemoveEmoji(_) => {}
+            ReactionRemoveEmoji(v) => c.update(v),
             Ready(v) => c.update(v.deref()),
             Resumed => {}
             RoleCreate(v) => c.update(v),
@@ -568,6 +568,51 @@ impl UpdateCache for ReactionRemoveAll {
 
         let msg = Arc::make_mut(&mut message);
         msg.reactions.clear();
+    }
+}
+
+impl UpdateCache for ReactionRemoveEmoji {
+    fn update(&self, cache: &InMemoryCache) {
+        if !guard(cache, EventType::REACTION_REMOVE_EMOJI) {
+            return;
+        }
+
+        let mut channel = cache.0.messages.entry(self.channel_id).or_default();
+
+        let mut message = match channel.get_mut(&self.message_id) {
+            Some(message) => message,
+            None => return,
+        };
+
+        let msg = Arc::make_mut(&mut message);
+        let index = msg
+            .reactions
+            .iter()
+            .enumerate()
+            .find_map(|(i, r)| match &r.emoji {
+                ReactionType::Unicode { name, .. } => {
+                    if *name == self.emoji.name {
+                        Some(i)
+                    } else {
+                        None
+                    }
+                }
+                ReactionType::Custom { name, .. } => {
+                    if let Some(name) = name {
+                        if *name == self.emoji.name {
+                            Some(i)
+                        } else {
+                            None
+                        }
+                    } else {
+                        None
+                    }
+                }
+            });
+
+        if let Some(index) = index {
+            msg.reactions.remove(index);
+        }
     }
 }
 
