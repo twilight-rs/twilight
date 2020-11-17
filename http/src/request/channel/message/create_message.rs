@@ -218,12 +218,11 @@ impl<'a> CreateMessage<'a> {
 
     /// Specify the ID of another message to create a reply to.
     pub fn reply(mut self, other: MessageId) -> Self {
-        let reference = MessageReference {
+        self.fields.message_reference.replace(MessageReference {
             channel_id: Some(self.channel_id),
             guild_id: None,
             message_id: Some(other),
-        };
-        self.fields.message_reference.replace(reference);
+        });
 
         self
     }
