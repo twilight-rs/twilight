@@ -22,6 +22,7 @@ pub enum MessageType {
     ChannelFollowAdd = 12,
     GuildDiscoveryDisqualified = 14,
     GuildDiscoveryRequalified = 15,
+    Reply = 19,
 }
 
 impl TryFrom<u8> for MessageType {

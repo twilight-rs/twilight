@@ -3,7 +3,7 @@ use serde::{Deserialize, Serialize};
 
 #[derive(Clone, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
 pub struct MessageReference {
-    pub channel_id: ChannelId,
+    pub channel_id: Option<ChannelId>,
     pub guild_id: Option<GuildId>,
     pub message_id: Option<MessageId>,
 }

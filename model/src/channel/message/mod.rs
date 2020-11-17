@@ -48,8 +48,13 @@ pub struct Message {
     pub pinned: bool,
     #[serde(default)]
     pub reactions: Vec<MessageReaction>,
+    /// Reference data sent with crossposted messages and replies.
     #[serde(rename = "message_reference")]
     pub reference: Option<MessageReference>,
+    /// The message associated with the [reference].
+    ///
+    /// [reference]: #structfield.reference
+    pub referenced_message: Option<Box<Message>>,
     /// Stickers within the message.
     #[serde(default)]
     pub stickers: Vec<Sticker>,

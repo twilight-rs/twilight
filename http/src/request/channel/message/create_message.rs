@@ -10,8 +10,8 @@ use std::{
     fmt::{Display, Formatter, Result as FmtResult},
 };
 use twilight_model::{
-    channel::{embed::Embed, Message},
-    id::ChannelId,
+    channel::{embed::Embed, message::MessageReference, Message},
+    id::{ChannelId, MessageId},
 };
 
 /// The error created when a messsage can not be created as configured.
@@ -64,6 +64,8 @@ pub(crate) struct CreateMessageFields {
     tts: Option<bool>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub(crate) allowed_mentions: Option<AllowedMentions>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    message_reference: Option<MessageReference>,
 }
 
 /// Send a message to a channel.
@@ -210,6 +212,18 @@ impl<'a> CreateMessage<'a> {
     /// Specify true if the message is TTS.
     pub fn tts(mut self, tts: bool) -> Self {
         self.fields.tts.replace(tts);
+
+        self
+    }
+
+    /// Specify the id of another message to create a reply
+    pub fn reply(mut self, other: MessageId) -> Self {
+        let reference = MessageReference {
+            channel_id: Some(self.channel_id),
+            guild_id: None,
+            message_id: Some(other),
+        };
+        self.fields.message_reference.replace(reference);
 
         self
     }
