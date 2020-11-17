@@ -131,6 +131,7 @@ mod tests {
                 preview_asset: None,
                 tags: Some("foo,bar,baz".to_owned()),
             }],
+            referenced_message: None,
             timestamp: "2020-02-02T02:02:02.020000+00:00".to_owned(),
             tts: false,
             webhook_id: None,
@@ -141,7 +142,7 @@ mod tests {
             &[
                 Token::Struct {
                     name: "Message",
-                    len: 24,
+                    len: 25,
                 },
                 Token::Str("activity"),
                 Token::None,
@@ -273,6 +274,8 @@ mod tests {
                 Token::Str("foo,bar,baz"),
                 Token::StructEnd,
                 Token::SeqEnd,
+                Token::Str("referenced_message"),
+                Token::None,
                 Token::Str("timestamp"),
                 Token::Str("2020-02-02T02:02:02.020000+00:00"),
                 Token::Str("tts"),
