@@ -1,17 +1,21 @@
+mod channel;
 mod guild;
 mod metadata;
 mod target_user_type;
 
-pub use self::{guild::InviteGuild, metadata::InviteMetadata, target_user_type::TargetUserType};
+pub use self::{
+    channel::InviteChannel, guild::InviteGuild, metadata::InviteMetadata,
+    target_user_type::TargetUserType,
+};
 
-use super::{channel::Channel, user::User};
+use super::user::User;
 use serde::{Deserialize, Serialize};
 
 #[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
 pub struct Invite {
     pub approximate_member_count: Option<u64>,
     pub approximate_presence_count: Option<u64>,
-    pub channel: Channel,
+    pub channel: InviteChannel,
     pub code: String,
     pub guild: Option<InviteGuild>,
     pub inviter: Option<User>,
@@ -21,11 +25,8 @@ pub struct Invite {
 
 #[cfg(test)]
 mod tests {
-    use super::{Channel, Invite, TargetUserType};
-    use crate::{
-        channel::{ChannelType, Group},
-        id::{ChannelId, UserId},
-    };
+    use super::{Invite, InviteChannel, TargetUserType};
+    use crate::{channel::ChannelType, id::ChannelId};
     use serde_test::Token;
 
     #[test]
@@ -33,17 +34,11 @@ mod tests {
         let value = Invite {
             approximate_member_count: Some(31),
             approximate_presence_count: Some(7),
-            channel: Channel::Group(Group {
-                application_id: None,
-                icon: None,
+            channel: InviteChannel {
                 id: ChannelId(2),
                 kind: ChannelType::Group,
-                last_message_id: None,
-                last_pin_timestamp: None,
                 name: None,
-                owner_id: UserId(3),
-                recipients: Vec::new(),
-            }),
+            },
             code: "uniquecode".to_owned(),
             guild: None,
             inviter: None,
@@ -66,30 +61,16 @@ mod tests {
                 Token::U64(7),
                 Token::Str("channel"),
                 Token::Struct {
-                    name: "Group",
-                    len: 9,
+                    name: "InviteChannel",
+                    len: 3,
                 },
-                Token::Str("application_id"),
-                Token::None,
-                Token::Str("icon"),
-                Token::None,
                 Token::Str("id"),
                 Token::NewtypeStruct { name: "ChannelId" },
                 Token::Str("2"),
-                Token::Str("type"),
-                Token::U8(3),
-                Token::Str("last_message_id"),
-                Token::None,
-                Token::Str("last_pin_timestamp"),
-                Token::None,
                 Token::Str("name"),
                 Token::None,
-                Token::Str("owner_id"),
-                Token::NewtypeStruct { name: "UserId" },
-                Token::Str("3"),
-                Token::Str("recipients"),
-                Token::Seq { len: Some(0) },
-                Token::SeqEnd,
+                Token::Str("type"),
+                Token::U8(3),
                 Token::StructEnd,
                 Token::Str("code"),
                 Token::Str("uniquecode"),
