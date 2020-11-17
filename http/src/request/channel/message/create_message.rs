@@ -216,7 +216,7 @@ impl<'a> CreateMessage<'a> {
         self
     }
 
-    /// Specify the id of another message to create a reply
+    /// Specify the ID of another message to create a reply to.
     pub fn reply(mut self, other: MessageId) -> Self {
         let reference = MessageReference {
             channel_id: Some(self.channel_id),
