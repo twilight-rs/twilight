@@ -135,7 +135,9 @@ impl<'a> Default for AllowedMentionsBuilder<'a, Unspecified, Unspecified, Unspec
 }
 
 impl<'a, E, U, R> AllowedMentionsBuilder<'a, E, U, R> {
-    /// Whether to mention users getting replied to, the default is false.
+    /// Whether to mention the user being replied to.
+    ///
+    /// Defaults to false.
     pub fn replied_user(self, reply: bool) -> AllowedMentionsBuilder<'a, E, U, R> {
         AllowedMentionsBuilder {
             create_message: self.create_message,
