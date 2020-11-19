@@ -838,6 +838,15 @@ impl Client {
         GetMember::new(self, guild_id, user_id)
     }
 
+    pub fn add_guild_member(
+        &self,
+        guild_id: GuildId,
+        user_id: UserId,
+        access_token: impl Into<String>,
+    ) -> AddGuildMember<'_> {
+        AddGuildMember::new(self, guild_id, user_id, access_token)
+    }
+
     /// Kick a member from a guild.
     pub fn remove_guild_member(&self, guild_id: GuildId, user_id: UserId) -> RemoveMember<'_> {
         RemoveMember::new(self, guild_id, user_id)
