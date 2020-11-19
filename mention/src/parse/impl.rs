@@ -214,7 +214,7 @@ fn parse_id<'a>(
         .as_str()
         .find('>')
         .and_then(|idx| chars.as_str().get(..idx))
-        .ok_or_else(|| ParseMentionError::TrailingArrow { found: None })?;
+        .ok_or(ParseMentionError::TrailingArrow { found: None })?;
 
     remaining
         .parse()
