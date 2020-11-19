@@ -8,7 +8,7 @@ use twilight_model::gateway::{payload::update_status::UpdateStatusInfo, Intents}
 ///
 /// Use [`Shard::builder`] to start creating a configured shard.
 ///
-/// [`Shard::builder`]: struct.Shard.html#method.builder
+/// [`Shard::builder`]: super::Shard::builder
 #[derive(Clone, Debug)]
 pub struct Config {
     pub(crate) gateway_url: Option<String>,

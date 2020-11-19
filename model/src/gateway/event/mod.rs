@@ -21,10 +21,6 @@ use std::fmt::{Debug, Display, Formatter, Result as FmtResult};
 ///
 /// This brings together all of the types of [`DispatchEvent`]s,
 /// [`GatewayEvent`]s, and [`ShardEvent`]s.
-///
-/// [`DispatchEvent`]: enum.DispatchEvent.html
-/// [`GatewayEvent`]: gateway/enum.GatewayEvent.html
-/// [`ShardEvent`]: shard/enum.ShardEvent.html
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub enum Event {
     /// A user was banned from a guild.

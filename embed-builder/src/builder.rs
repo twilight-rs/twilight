@@ -13,8 +13,6 @@ use twilight_model::channel::embed::{
 /// Error building an embed.
 ///
 /// This is returned from [`EmbedBuilder::build`].
-///
-/// [`EmbedBuilder::build`]: struct.EmbedBuilder.html#method.build
 #[derive(Clone, Debug, Eq, PartialEq)]
 #[non_exhaustive]
 pub enum EmbedBuildError {
@@ -22,8 +20,6 @@ pub enum EmbedBuildError {
     ///
     /// Refer to [`EmbedBuilder::EMBED_LENGTH_LIMIT`] for more information about
     /// what goes into this limit.
-    ///
-    /// [`EmbedBuilder::EMBED_LENGTH_LIMIT`]: struct.EmbedBuilder.html#const.EMBED_LENGTH_LIMIT
     ContentTooLarge {
         /// The total length of the embed.
         length: usize,
@@ -32,8 +28,6 @@ pub enum EmbedBuildError {
     ///
     /// Refer to [`EmbedBuilder::EMBED_FIELD_LIMIT`] for more information about
     /// what the limit is.
-    ///
-    /// [`EmbedBuilder::EMBED_FIELD_LIMIT`]: struct.EmbedBuilder.html#const.EMBED_FIELD_LIMIT
     TooManyFields {
         /// The provided fields.
         fields: Vec<EmbedField>,
@@ -54,8 +48,6 @@ impl Error for EmbedBuildError {}
 /// Error working with an embed builder.
 ///
 /// This is returned from [`EmbedBuilder::color`].
-///
-/// [`EmbedBuilder::color`]: struct.EmbedBuilder.html#method.color
 #[derive(Clone, Debug, Eq, PartialEq)]
 #[non_exhaustive]
 pub enum EmbedColorError {
@@ -83,8 +75,6 @@ impl Error for EmbedColorError {}
 /// Error adding a description to an embed builder.
 ///
 /// This is returned from [`EmbedBuilder::description`].
-///
-/// [`EmbedBuilder::description`]: struct.EmbedBuilder.html#method.description
 #[derive(Clone, Debug, Eq, PartialEq)]
 #[non_exhaustive]
 pub enum EmbedDescriptionError {
@@ -115,8 +105,6 @@ impl Error for EmbedDescriptionError {}
 /// Error adding a title to an embed builder.
 ///
 /// This is returned from [`EmbedBuilder::title`].
-///
-/// [`EmbedBuilder::title`]: struct.EmbedBuilder.html#method.title
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub enum EmbedTitleError {
     /// Title is empty.
@@ -149,7 +137,7 @@ impl Error for EmbedTitleError {}
 ///
 /// Refer to the [crate-level documentation] for examples.
 ///
-/// [crate-level documentation]: ../index.html
+/// [crate-level documentation]: crate
 #[allow(clippy::module_name_repetitions)]
 #[derive(Clone, Debug, Eq, PartialEq)]
 #[must_use = "must be built into an embed"]
@@ -160,21 +148,21 @@ impl EmbedBuilder {
     ///
     /// This is used by [`color`].
     ///
-    /// [`color`]: #method.color
+    /// [`color`]: Self::color
     pub const COLOR_MAXIMUM: u32 = 0xff_ff_ff;
 
     /// The maximum number of UTF-16 code points that can be in a description.
     ///
     /// This is used by [`description`].
     ///
-    /// [`description`]: #method.description
+    /// [`description`]: Self::description
     pub const DESCRIPTION_LENGTH_LIMIT: usize = 2048;
 
     /// The maximum number of fields that can be in an embed.
     ///
     /// This is used by [`build`].
     ///
-    /// [`build`]: #method.build
+    /// [`build`]: Self::build
     pub const EMBED_FIELD_LIMIT: usize = 25;
 
     /// The maximum total textual length of the embed in UTF-16 code points.
@@ -184,14 +172,14 @@ impl EmbedBuilder {
     ///
     /// This is used by [`build`].
     ///
-    /// [`build`]: #method.build
+    /// [`build`]: Self::build
     pub const EMBED_LENGTH_LIMIT: usize = 6000;
 
     /// The maximum number of UTF-16 code points that can be in a title.
     ///
     /// This is used by [`title`].
     ///
-    /// [`title`]: #method.title
+    /// [`title`]: Self::title
     pub const TITLE_LENGTH_LIMIT: usize = 256;
 
     /// Create a new default embed builder.
@@ -201,8 +189,8 @@ impl EmbedBuilder {
     ///
     /// This is equivalent to the [default implementation].
     ///
-    /// [crate-level documentation]: ../index.html
-    /// [default implementation]: #impl-Default
+    /// [crate-level documentation]: crate
+    /// [default implementation]: Self::default
     pub fn new() -> Self {
         Self::default()
     }
@@ -218,9 +206,8 @@ impl EmbedBuilder {
     /// Returns [`EmbedBuildError::TooManyFields`] if there are too many fields
     /// in the embed. Refer to [`EMBED_FIELD_LIMIT`] for the limit value.
     ///
-    /// [`EMBED_FIELD_LIMIT`]: #const.EMBED_FIELD_LIMIT
-    /// [`EMBED_LENGTH_LIMIT`]: #const.EMBED_LENGTH_LIMIT
-    /// [`EmbedBuildError::TooManyFields`]: enum.EmbedBuildError.html#variant.TooManyFields
+    /// [`EMBED_FIELD_LIMIT`]: Self::EMBED_FIELD_LIMIT
+    /// [`EMBED_LENGTH_LIMIT`]: Self::EMBED_LENGTH_LIMIT
     #[must_use = "should be used as part of something like a message"]
     pub fn build(self) -> Result<Embed, EmbedBuildError> {
         if self.0.fields.len() > Self::EMBED_FIELD_LIMIT {
@@ -320,9 +307,7 @@ impl EmbedBuilder {
     /// Returns [`EmbedColorError::Zero`] if the provided color is 0, which is not
     /// an acceptable value.
     ///
-    /// [`COLOR_MAXIMUM`]: #const.COLOR_MAXIMUM
-    /// [`EmbedColorError::NotRgb`]: enum.EmbedColorError.html#variant.NotRgb
-    /// [`EmbedColorError::Zero`]: enum.EmbedColorError.html#variant.Zero
+    /// [`COLOR_MAXIMUM`]: Self::COLOR_MAXIMUM
     pub fn color(mut self, color: u32) -> Result<Self, EmbedColorError> {
         if color == 0 {
             return Err(EmbedColorError::Zero);
@@ -357,8 +342,7 @@ impl EmbedBuilder {
     /// Returns [`EmbedDescriptionError::TooLong`] if the provided
     /// description is longer than the maximum number of code points.
     ///
-    /// [`DESCRIPTION_LENGTH_LIMIT`]: #const.DESCRIPTION_LENGTH_LIMIT
-    /// [`EmbedDescriptionError::TooLong`]: enum.EmbedDescriptionError.html#variant.TooLong
+    /// [`DESCRIPTION_LENGTH_LIMIT`]: Self::DESCRIPTION_LENGTH_LIMIT
     pub fn description(
         self,
         description: impl Into<String>,
@@ -522,9 +506,7 @@ impl EmbedBuilder {
     /// Returns [`EmbedTitleError::TooLong`] if the provided title is longer
     /// than the limit defined at [`TITLE_LENGTH_LIMIT`].
     ///
-    /// [`TITLE_LENGTH_LIMIT`]: #const.TITLE_LENGTH_LIMIT
-    /// [`EmbedTitleError::Empty`]: enum.EmbedTitleError.html#variant.Empty
-    /// [`EmbedTitleError::TooLong`]: enum.EmbedTitleError.html#variant.TooLong
+    /// [`TITLE_LENGTH_LIMIT`]: Self::TITLE_LENGTH_LIMIT
     pub fn title(self, title: impl Into<String>) -> Result<Self, EmbedTitleError> {
         self._title(title.into())
     }
@@ -601,8 +583,6 @@ impl TryFrom<EmbedBuilder> for Embed {
     /// Convert an embed builder into an embed.
     ///
     /// This is equivalent to calling [`EmbedBuilder::build`].
-    ///
-    /// [`EmbedBuilder::build`]: #method.build
     fn try_from(builder: EmbedBuilder) -> Result<Self, Self::Error> {
         builder.build()
     }

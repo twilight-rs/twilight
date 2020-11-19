@@ -177,8 +177,6 @@ impl<'a> UpdateGuild<'a> {
     ///
     /// Returns [`UpdateGuildError::NameInvalid`] if the name length is too
     /// short or too long.
-    ///
-    /// [`UpdateGuildError::NameInvalid`]: enum.UpdateGuildError.html#variant.NameInvalid
     pub fn name(self, name: impl Into<String>) -> Result<Self, UpdateGuildError> {
         self._name(name.into())
     }

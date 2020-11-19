@@ -80,8 +80,6 @@ impl<'a> CreateGuildPrune<'a> {
     /// # Errors
     ///
     /// Returns [`CreateGuildPruneError::DaysInvalid`] if the number of days is 0.
-    ///
-    /// [`CreateGuildPruneError::DaysInvalid`]: enum.CreateGuildPruneError.html#variant.DaysInvalid
     pub fn days(mut self, days: u64) -> Result<Self, CreateGuildPruneError> {
         if !validate::guild_prune_days(days) {
             return Err(CreateGuildPruneError::DaysInvalid);

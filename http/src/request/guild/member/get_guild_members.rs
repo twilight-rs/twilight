@@ -72,8 +72,6 @@ struct GetGuildMembersFields {
 /// # Errors
 ///
 /// Returns [`GetGuildMembersError::LimitInvalid`] if the limit is invalid.
-///
-/// [`GetGuildMembersError::LimitInvalid`]: enum.GetGuildMembersError.html#variant.LimitInvalid
 pub struct GetGuildMembers<'a> {
     fields: GetGuildMembersFields,
     fut: Option<Pending<'a, Bytes>>,
@@ -106,8 +104,6 @@ impl<'a> GetGuildMembers<'a> {
     ///
     /// Returns [`GetGuildMembersError::LimitInvalid`] if the limit is 0 or
     /// greater than 1000.
-    ///
-    /// [`GetGuildMembersError::LimitInvalid`]: enum.GetGuildMembersError.html#variant.LimitInvalid
     pub fn limit(mut self, limit: u64) -> Result<Self, GetGuildMembersError> {
         if !validate::get_guild_members_limit(limit) {
             return Err(GetGuildMembersError::LimitInvalid { limit });

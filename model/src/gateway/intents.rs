@@ -28,16 +28,16 @@ bitflags! {
         ///  - [`CHANNEL_DELETE`]
         ///  - [`CHANNEL_PINS_UPDATE`]
         ///
-        /// [`GUILD_CREATE`]: ./event/enum.Event.html#variant.GuildCreate
-        /// [`GUILD_UPDATE`]: ./event/enum.Event.html#variant.GuildUpdate
-        /// [`GUILD_DELETE`]: ./event/enum.Event.html#variant.GuildDelete
-        /// [`GUILD_ROLE_CREATE`]: ./event/enum.Event.html#variant.RoleCreate
-        /// [`GUILD_ROLE_UPDATE`]: ./event/enum.Event.html#variant.RoleUpdate
-        /// [`GUILD_ROLE_DELETE`]: ./event/enum.Event.html#variant.RoleDelete
-        /// [`CHANNEL_CREATE`]: ./event/enum.Event.html#variant.ChannelCreate
-        /// [`CHANNEL_UPDATE`]: ./event/enum.Event.html#variant.ChannelUpdate
-        /// [`CHANNEL_DELETE`]: ./event/enum.Event.html#variant.ChannelDelete
-        /// [`CHANNEL_PINS_UPDATE`]: ./event/enum.Event.html#variant.ChannelPinsUpdate
+        /// [`GUILD_CREATE`]: super::event::Event::GuildCreate
+        /// [`GUILD_UPDATE`]: super::event::Event::GuildUpdate
+        /// [`GUILD_DELETE`]: super::event::Event::GuildDelete
+        /// [`GUILD_ROLE_CREATE`]: super::event::Event::RoleCreate
+        /// [`GUILD_ROLE_UPDATE`]: super::event::Event::RoleUpdate
+        /// [`GUILD_ROLE_DELETE`]: super::event::Event::RoleDelete
+        /// [`CHANNEL_CREATE`]: super::event::Event::ChannelCreate
+        /// [`CHANNEL_UPDATE`]: super::event::Event::ChannelUpdate
+        /// [`CHANNEL_DELETE`]: super::event::Event::ChannelDelete
+        /// [`CHANNEL_PINS_UPDATE`]: super::event::Event::ChannelPinsUpdate
         const GUILDS = 1;
         /// Guild members intent.
         ///
@@ -49,9 +49,9 @@ bitflags! {
         ///  - [`GUILD_MEMBER_REMOVE`]
         ///
         /// [the discord docs]: https://discord.com/developers/docs/topics/gateway#privileged-intents
-        /// [`GUILD_MEMBER_ADD`]: ./event/enum.Event.html#variant.MemberAdd
-        /// [`GUILD_MEMBER_UPDATE`]: ./event/enum.Event.html#variant.MemberUpdate
-        /// [`GUILD_MEMBER_REMOVE`]: ./event/enum.Event.html#variant.MemberRemove
+        /// [`GUILD_MEMBER_ADD`]: super::event::Event::MemberAdd
+        /// [`GUILD_MEMBER_UPDATE`]: super::event::Event::MemberUpdate
+        /// [`GUILD_MEMBER_REMOVE`]: super::event::Event::MemberRemove
         const GUILD_MEMBERS = 1 << 1;
         /// Guild bans intent.
         ///
@@ -59,29 +59,29 @@ bitflags! {
         ///  - [`GUILD_BAN_ADD`]
         ///  - [`GUILD_BAN_REMOVE`]
         ///
-        /// [`GUILD_BAN_ADD`]: ./event/enum.Event.html#variant.BanAdd
-        /// [`GUILD_BAN_REMOVE`]: ./event/enum.Event.html#variant.BanRemove
+        /// [`GUILD_BAN_ADD`]: super::event::Event::BanAdd
+        /// [`GUILD_BAN_REMOVE`]: super::event::Event::BanRemove
         const GUILD_BANS = 1 << 2;
         /// Guild emojis intent.
         ///
         /// Event(s) received:
         ///  - [`GUILD_EMOJIS_UPDATE`]
         ///
-        /// [`GUILD_EMOJIS_UPDATE`]: ./event/enum.Event.html#variant.GuildEmojisUpdate
+        /// [`GUILD_EMOJIS_UPDATE`]: super::event::Event::GuildEmojisUpdate
         const GUILD_EMOJIS = 1 << 3;
         /// Guild integrations intent.
         ///
         /// Event(s) received:
         ///  - [`GUILD_INTEGRATIONS_UPDATE`]
         ///
-        /// [`GUILD_INTEGRATIONS_UPDATE`]: ./event/enum.Event.html#variant.GuildIntegrationsUpdate
+        /// [`GUILD_INTEGRATIONS_UPDATE`]: super::event::Event::GuildIntegrationsUpdate
         const GUILD_INTEGRATIONS = 1 << 4;
         /// Guild webhooks intent.
         ///
         /// Event(s) received:
         ///  - [`WEBHOOKS_UPDATE`]
         ///
-        /// [`WEBHOOKS_UPDATE`]: ./event/enum.Event.html#variant.WebhooksUpdate
+        /// [`WEBHOOKS_UPDATE`]: super::event::Event::WebhooksUpdate
         const GUILD_WEBHOOKS = 1 << 5;
         /// Guild invites intent.
         ///
@@ -89,15 +89,15 @@ bitflags! {
         ///  - [`INVITE_CREATE`]
         ///  - [`INVITE_DELETE`]
         ///
-        /// [`INVITE_CREATE`]: ./event/enum.Event.html#variant.InviteCreate
-        /// [`INVITE_DELETE`]: ./event/enum.Event.html#variant.InviteDelete
+        /// [`INVITE_CREATE`]: super::event::Event::InviteCreate
+        /// [`INVITE_DELETE`]: super::event::Event::InviteDelete
         const GUILD_INVITES = 1 << 6;
         /// Guild voice states intent.
         ///
         /// Event(s) received:
         ///  - [`VOICE_STATE_UPDATE`]
         ///
-        /// [`VOICE_STATE_UPDATE`]: ./event/enum.Event.html#variant.VoiceStateUpdate
+        /// [`VOICE_STATE_UPDATE`]: super::event::Event::VoiceStateUpdate
         const GUILD_VOICE_STATES = 1 << 7;
         /// Guild presences intent.
         ///
@@ -107,7 +107,7 @@ bitflags! {
         ///  - [`PRESENCE_UPDATE`]
         ///
         /// [the discord docs]: https://discord.com/developers/docs/topics/gateway#privileged-intents
-        /// [`PRESENCE_UPDATE`]: ./event/enum.Event.html#variant.PresenceUpdate
+        /// [`PRESENCE_UPDATE`]: super::event::Event::PresenceUpdate
         const GUILD_PRESENCES = 1 << 8;
         /// Guild messages intent.
         ///
@@ -117,10 +117,10 @@ bitflags! {
         ///  - [`MESSAGE_DELETE`]
         ///  - [`MESSAGE_DELETE_BULK`]
         ///
-        /// [`MESSAGE_CREATE`]: ./event/enum.Event.html#variant.MessageCreate
-        /// [`MESSAGE_UPDATE`]: ./event/enum.Event.html#variant.MessageUpdate
-        /// [`MESSAGE_DELETE`]: ./event/enum.Event.html#variant.MessageDelete
-        /// [`MESSAGE_DELETE_BULK`]: ./event/enum.Event.html#variant.MessageDeleteBulk
+        /// [`MESSAGE_CREATE`]: super::event::Event::MessageCreate
+        /// [`MESSAGE_UPDATE`]: super::event::Event::MessageUpdate
+        /// [`MESSAGE_DELETE`]: super::event::Event::MessageDelete
+        /// [`MESSAGE_DELETE_BULK`]: super::event::Event::MessageDeleteBulk
         const GUILD_MESSAGES = 1 << 9;
         /// Guild message reactions intent.
         ///
@@ -130,17 +130,17 @@ bitflags! {
         ///  - [`MESSAGE_REACTION_REMOVE_ALL`]
         ///  - [`MESSAGE_REACTION_REMOVE_EMOJI`]
         ///
-        /// [`MESSAGE_REACTION_ADD`]: ./event/enum.Event.html#variant.ReactionAdd
-        /// [`MESSAGE_REACTION_REMOVE`]: ./event/enum.Event.html#variant.ReactionRemove
-        /// [`MESSAGE_REACTION_REMOVE_ALL`]: ./event/enum.Event.html#variant.ReactionRemoveAll
-        /// [`MESSAGE_REACTION_REMOVE_EMOJI`]: ./event/enum.Event.html#variant.ReactionRemoveEmoji
+        /// [`MESSAGE_REACTION_ADD`]: super::event::Event::ReactionAdd
+        /// [`MESSAGE_REACTION_REMOVE`]: super::event::Event::ReactionRemove
+        /// [`MESSAGE_REACTION_REMOVE_ALL`]: super::event::Event::ReactionRemoveAll
+        /// [`MESSAGE_REACTION_REMOVE_EMOJI`]: super::event::Event::ReactionRemoveEmoji
         const GUILD_MESSAGE_REACTIONS = 1 << 10;
         /// Guild message typing intent.
         ///
         /// Event(s) received:
         ///  - [`TYPING_START`]
         ///
-        /// [`TYPING_START`]: ./event/enum.Event.html#variant.TypingStart
+        /// [`TYPING_START`]: super::event::Event::TypingStart
         const GUILD_MESSAGE_TYPING = 1 << 11;
         /// Direct messages intent.
         ///
@@ -153,11 +153,11 @@ bitflags! {
         /// This is different from the [`GUILD_MESSAGES`] intent in that the bot
         /// will receive message events from locations other than guilds.
         ///
-        /// [`MESSAGE_CREATE`]: ./event/enum.Event.html#variant.MessageCreate
-        /// [`MESSAGE_UPDATE`]: ./event/enum.Event.html#variant.MessageUpdate
-        /// [`MESSAGE_DELETE`]: ./event/enum.Event.html#variant.MessageDelete
-        /// [`MESSAGE_DELETE_BULK`]: ./event/enum.Event.html#variant.MessageDeleteBulk
-        /// [`GUILD_MESSAGES`]: #associatedconstant.GUILD_MESSAGES
+        /// [`MESSAGE_CREATE`]: super::event::Event::MessageCreate
+        /// [`MESSAGE_UPDATE`]: super::event::Event::MessageUpdate
+        /// [`MESSAGE_DELETE`]: super::event::Event::MessageDelete
+        /// [`MESSAGE_DELETE_BULK`]: super::event::Event::MessageDeleteBulk
+        /// [`GUILD_MESSAGES`]: Self::GUILD_MESSAGES
         const DIRECT_MESSAGES = 1 << 12;
         /// Direct message reactions intent.
         ///
@@ -171,11 +171,11 @@ bitflags! {
         /// the bot will receive message reaction events from locations other
         /// than guilds.
         ///
-        /// [`MESSAGE_REACTION_ADD`]: ./event/enum.Event.html#variant.ReactionAdd
-        /// [`MESSAGE_REACTION_REMOVE`]: ./event/enum.Event.html#variant.ReactionRemove
-        /// [`MESSAGE_REACTION_REMOVE_ALL`]: ./event/enum.Event.html#variant.ReactionRemoveAll
-        /// [`MESSAGE_REACTION_REMOVE_EMOJI`]: ./event/enum.Event.html#variant.ReactionRemoveEmoji
-        /// [`GUILD_MESSAGE_REACTIONS`]: #associatedconstant.GUILD_MESSAGE_REACTIONS
+        /// [`MESSAGE_REACTION_ADD`]: super::event::Event::ReactionAdd
+        /// [`MESSAGE_REACTION_REMOVE`]: super::event::Event::ReactionRemove
+        /// [`MESSAGE_REACTION_REMOVE_ALL`]: super::event::Event::ReactionRemoveAll
+        /// [`MESSAGE_REACTION_REMOVE_EMOJI`]: super::event::Event::ReactionRemoveEmoji
+        /// [`GUILD_MESSAGE_REACTIONS`]: Self::GUILD_MESSAGE_REACTIONS
         const DIRECT_MESSAGE_REACTIONS = 1 << 13;
         /// Direct message typing intent.
         ///
@@ -186,8 +186,8 @@ bitflags! {
         /// the bot will receive typing start events from locations other than
         /// guilds.
         ///
-        /// [`TYPING_START`]: ./event/enum.Event.html#variant.TypingStart
-        /// [`GUILD_MESSAGE_TYPING`]: #associatedconstant.GUILD_MESSAGE_TYPING
+        /// [`TYPING_START`]: super::event::Event::TypingStart
+        /// [`GUILD_MESSAGE_TYPING`]: Self::GUILD_MESSAGE_TYPING
         const DIRECT_MESSAGE_TYPING = 1 << 14;
     }
 }

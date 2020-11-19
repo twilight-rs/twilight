@@ -41,6 +41,7 @@
     future_incompatible,
     nonstandard_style,
     rust_2018_idioms,
+    broken_intra_doc_links,
     unused,
     warnings
 )]

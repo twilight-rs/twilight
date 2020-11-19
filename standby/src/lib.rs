@@ -112,13 +112,6 @@
 //!
 //! For more examples, check out each of the methods on [`Standby`].
 //!
-//! [`Standby`]: struct.Standby.html
-//! [`Standby::process`]: struct.Standby.html#method.process
-//! [`Standby::wait_for`]: struct.Standby.html#method.wait_for
-//! [`Standby::wait_for_event`]: struct.Standby.html#method.wait_for_event
-//! [`Standby::wait_for_message`]: struct.Standby.html#method.wait_for_message
-//! [`Standby::wait_for_message_stream`]: struct.Standby.html#method.wait_for_message_stream
-//! [`Standby::wait_for_reaction`]: struct.Standby.html#method.wait_for_reaction
 //! [discord badge]: https://img.shields.io/discord/745809834183753828?color=%237289DA&label=discord%20server&logo=discord&style=for-the-badge
 //! [discord link]: https://discord.gg/7jj8n7D
 //! [github badge]: https://img.shields.io/badge/github-twilight-6f42c1.svg?style=for-the-badge&logo=github
@@ -126,6 +119,8 @@
 //! [license badge]: https://img.shields.io/badge/license-ISC-blue.svg?style=for-the-badge&logo=pastebin
 //! [license link]: https://github.com/twilight-rs/twilight/blob/trunk/LICENSE.md
 //! [rust badge]: https://img.shields.io/badge/rust-stable-93450a.svg?style=for-the-badge&logo=rust
+
+#![deny(rust_2018_idioms, broken_intra_doc_links, unused, warnings)]
 
 mod futures;
 
@@ -256,8 +251,7 @@ impl Standby {
     /// # Ok(()) }
     /// ```
     ///
-    /// [`Standby`]: struct.Standby.html
-    /// [`wait_for_stream`]: #method.wait_for_stream
+    /// [`wait_for_stream`]: Self::wait_for_stream
     pub fn wait_for<F: Fn(&Event) -> bool + Send + Sync + 'static>(
         &self,
         guild_id: GuildId,
@@ -311,8 +305,7 @@ impl Standby {
     /// # Ok(()) }
     /// ```
     ///
-    /// [`Standby`]: struct.Standby.html
-    /// [`wait_for`]: #method.wait_for
+    /// [`wait_for`]: Self::wait_for
     pub fn wait_for_stream<F: Fn(&Event) -> bool + Send + Sync + 'static>(
         &self,
         guild_id: GuildId,
@@ -362,8 +355,7 @@ impl Standby {
     /// # Ok(()) }
     /// ```
     ///
-    /// [`Standby`]: struct.Standby.html
-    /// [`wait_for_event_stream`]: #method.wait_for_event_stream
+    /// [`wait_for_event_stream`]: Self::wait_for_event_stream
     pub fn wait_for_event<F: Fn(&Event) -> bool + Send + Sync + 'static>(
         &self,
         check: impl Into<Box<F>>,
@@ -418,8 +410,7 @@ impl Standby {
     /// # Ok(()) }
     /// ```
     ///
-    /// [`Standby`]: struct.Standby.html
-    /// [`wait_for_event`]: #method.wait_for_event
+    /// [`wait_for_event`]: Self::wait_for_event
     pub fn wait_for_event_stream<F: Fn(&Event) -> bool + Send + Sync + 'static>(
         &self,
         check: impl Into<Box<F>>,
@@ -465,8 +456,7 @@ impl Standby {
     /// # Ok(()) }
     /// ```
     ///
-    /// [`Standby`]: struct.Standby.html
-    /// [`wait_for_message_stream`]: #method.wait_for_message_stream
+    /// [`wait_for_message_stream`]: Self::wait_for_message_stream
     pub fn wait_for_message<F: Fn(&MessageCreate) -> bool + Send + Sync + 'static>(
         &self,
         channel_id: ChannelId,
@@ -516,8 +506,7 @@ impl Standby {
     /// # Ok(()) }
     /// ```
     ///
-    /// [`Standby`]: struct.Standby.html
-    /// [`wait_for_message`]: #method.wait_for_message
+    /// [`wait_for_message`]: Self::wait_for_message
     pub fn wait_for_message_stream<F: Fn(&MessageCreate) -> bool + Send + Sync + 'static>(
         &self,
         channel_id: ChannelId,
@@ -562,8 +551,7 @@ impl Standby {
     /// # Ok(()) }
     /// ```
     ///
-    /// [`Standby`]: struct.Standby.html
-    /// [`wait_for_reaction_stream`]: #method.wait_for_reaction_stream
+    /// [`wait_for_reaction_stream`]: Self::wait_for_reaction_stream
     pub fn wait_for_reaction<F: Fn(&ReactionAdd) -> bool + Send + Sync + 'static>(
         &self,
         message_id: MessageId,
@@ -616,8 +604,7 @@ impl Standby {
     /// # Ok(()) }
     /// ```
     ///
-    /// [`Standby`]: struct.Standby.html
-    /// [`wait_for_reaction`]: #method.wait_for_reaction
+    /// [`wait_for_reaction`]: Self::wait_for_reaction
     pub fn wait_for_reaction_stream<F: Fn(&ReactionAdd) -> bool + Send + Sync + 'static>(
         &self,
         message_id: MessageId,

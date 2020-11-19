@@ -95,8 +95,6 @@ impl<'a> GetAuditLog<'a> {
     ///
     /// Returns [`GetAuditLogError::LimitInvalid`] if the `limit` is 0 or
     /// greater than 100.
-    ///
-    /// [`GetAuditLogError::LimitInvalid`]: enum.GetAuditLogError.html#variant.LimitInvalid
     pub fn limit(mut self, limit: u64) -> Result<Self, GetAuditLogError> {
         if !validate::get_audit_log_limit(limit) {
             return Err(GetAuditLogError::LimitInvalid { limit });

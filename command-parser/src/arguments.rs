@@ -39,8 +39,6 @@ impl<'a> Arguments<'a> {
     /// }
     /// # else { panic!("Not command match"); }
     /// ```
-    ///
-    /// [`std::str::Chars::as_str`]: https://doc.rust-lang.org/std/str/struct.Chars.html#method.as_str
     pub fn as_str(&self) -> &str {
         self.buf
     }

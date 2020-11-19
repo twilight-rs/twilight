@@ -20,7 +20,7 @@ pub enum EmbedValidationError {
     /// The embed author's name is larger than
     /// [the maximum][`AUTHOR_NAME_LENGTH`].
     ///
-    /// [`AUTHOR_NAME_LENGTH`]: #const.AUTHOR_NAME_LENGTH
+    /// [`AUTHOR_NAME_LENGTH`]: Self::AUTHOR_NAME_LENGTH
     AuthorNameTooLarge {
         /// The number of codepoints that were provided.
         chars: usize,
@@ -28,7 +28,7 @@ pub enum EmbedValidationError {
     /// The embed description is larger than
     /// [the maximum][`DESCRIPTION_LENGTH`].
     ///
-    /// [`DESCRIPTION_LENGTH`]: #const.DESCRIPTION_LENGTH
+    /// [`DESCRIPTION_LENGTH`]: Self::DESCRIPTION_LENGTH
     DescriptionTooLarge {
         /// The number of codepoints that were provided.
         chars: usize,
@@ -37,35 +37,35 @@ pub enum EmbedValidationError {
     /// footer, field names and values, and title - is larger than
     /// [the maximum][`EMBED_TOTAL_LENGTH`].
     ///
-    /// [`EMBED_TOTAL_LENGTH`]: #const.EMBED_TOTAL_LENGTH
+    /// [`EMBED_TOTAL_LENGTH`]: Self::EMBED_TOTAL_LENGTH
     EmbedTooLarge {
         /// The number of codepoints that were provided.
         chars: usize,
     },
     /// A field's name is larger than [the maximum][`FIELD_NAME_LENGTH`].
     ///
-    /// [`FIELD_NAME_LENGTH`]: #const.FIELD_NAME_LENGTH
+    /// [`FIELD_NAME_LENGTH`]: Self::FIELD_NAME_LENGTH
     FieldNameTooLarge {
         /// The number of codepoints that were provided.
         chars: usize,
     },
     /// A field's value is larger than [the maximum][`FIELD_VALUE_LENGTH`].
     ///
-    /// [`FIELD_VALUE_LENGTH`]: #const.FIELD_VALUE_LENGTH
+    /// [`FIELD_VALUE_LENGTH`]: Self::FIELD_VALUE_LENGTH
     FieldValueTooLarge {
         /// The number of codepoints that were provided.
         chars: usize,
     },
     /// The footer text is larger than [the maximum][`FOOTER_TEXT_LENGTH`].
     ///
-    /// [`FOOTER_TEXT_LENGTH`]: #const.FOOTER_TEXT_LENGTH
+    /// [`FOOTER_TEXT_LENGTH`]: Self::FOOTER_TEXT_LENGTH
     FooterTextTooLarge {
         /// The number of codepoints that were provided.
         chars: usize,
     },
     /// The title is larger than [the maximum][`TITLE_LENGTH`].
     ///
-    /// [`TITLE_LENGTH`]: #const.TITLE_LENGTH
+    /// [`TITLE_LENGTH`]: Self::TITLE_LENGTH
     TitleTooLarge {
         /// The number of codepoints that were provided.
         chars: usize,
@@ -73,7 +73,7 @@ pub enum EmbedValidationError {
     /// There are more than [the maximum][`FIELD_COUNT`] number of fields in the
     /// embed.
     ///
-    /// [`FIELD_COUNT`]: #const.FIELD_COUNT
+    /// [`FIELD_COUNT`]: Self::FIELD_COUNT
     TooManyFields {
         /// The number of fields that were provided.
         amount: usize,

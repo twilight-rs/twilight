@@ -184,7 +184,7 @@ impl Information {
     ///
     /// For example, once a shard is fully booted then it will be [`Connected`].
     ///
-    /// [`Connected`]: stage/enum.Stage.html#variant.Connected
+    /// [`Connected`]: Stage::Connected
     pub fn stage(&self) -> Stage {
         self.stage
     }
@@ -253,8 +253,8 @@ struct ShardRef {
 /// # Ok(()) }
 /// ```
 ///
-/// [`events`]: #method.events
-/// [`queue`]: ../queue/index.html
+/// [`events`]: Self::events
+/// [`queue`]: crate::queue
 /// [docs:shards]: https://discord.com/developers/docs/topics/gateway#sharding
 #[derive(Clone, Debug)]
 pub struct Shard(Arc<ShardRef>);
@@ -289,7 +289,7 @@ impl Shard {
     /// # Ok(()) }
     /// ```
     ///
-    /// [`start`]: #method.start
+    /// [`start`]: Self::start
     pub fn new(token: impl Into<String>, intents: Intents) -> Self {
         Self::builder(token, intents).build()
     }
@@ -330,10 +330,6 @@ impl Shard {
     ///
     /// Returns [`ShardStartError::RetrievingGatewayUrl`] if the gateway URL
     /// couldn't be retrieved from the HTTP API.
-    ///
-    /// [`ShardStartError::Establishing`]: enum.ShardStartError.html#variant.Establishing
-    /// [`ShardStartError::ParsingGatewayUrl`]: enum.ShardStartError.html#variant.ParsingGatewayUrl
-    /// [`ShardStartError::RetrievingGatewayUrl`]: enum.ShardStartError.html#variant.RetrievingGatewayUrl
     pub async fn start(&mut self) -> Result<(), ShardStartError> {
         let url = if let Some(u) = self.0.config.gateway_url.clone() {
             u
@@ -385,9 +381,9 @@ impl Shard {
     /// All event types except for [`EventType::ShardPayload`] are enabled. If
     /// you need to enable it, consider calling [`some_events`] instead.
     ///
-    /// [`EventType::ShardPayload`]: ../../twilight_model/gateway/event/enum.EventType.html#variant.ShardPayload
+    /// [`EventType::ShardPayload`]: ::twilight_model::gateway::event::EventType::ShardPayload
     /// [`futures::stream::Stream`]: https://docs.rs/futures/*/futures/stream/trait.Stream.html
-    /// [`some_events`]: #method.some_events
+    /// [`some_events`]: Self::some_events
     pub fn events(&self) -> Events {
         self.some_events(EventTypeFlags::default())
     }
@@ -427,8 +423,6 @@ impl Shard {
     /// # Ok(()) }
     /// ```
     ///
-    /// [`Event::ShardConnected`]: ../../twilight_model/gateway/event/enum.Event.html#variant.ShardConnected
-    /// [`Event::ShardDisconnected`]: ../../twilight_model/gateway/event/enum.Event.html#variant.ShardDisconnected
     /// [`futures::stream::Stream`]: https://docs.rs/futures/*/futures/stream/trait.Stream.html
     pub fn some_events(&self, event_types: EventTypeFlags) -> Events {
         let rx = self.0.listeners.add(event_types);
@@ -442,8 +436,6 @@ impl Shard {
     /// # Errors
     ///
     /// Returns a [`SessionInactiveError`] if the shard's session is inactive.
-    ///
-    /// [`SessionInactiveError`]: struct.SessionInactiveError.html
     pub fn info(&self) -> Result<Information, SessionInactiveError> {
         let session = self.session()?;
 
@@ -466,8 +458,6 @@ impl Shard {
     /// # Errors
     ///
     /// Returns a [`SessionInactiveError`] if the shard's session is inactive.
-    ///
-    /// [`SessionInactiveError`]: struct.SessionInactiveError.html
     pub fn sink(&self) -> Result<ShardSink, SessionInactiveError> {
         let session = self.session()?;
 
@@ -486,10 +476,6 @@ impl Shard {
     ///
     /// Returns [`CommandError::SessionInactive`] if the shard has not been
     /// started.
-    ///
-    /// [`CommandError::Sending`]: enum.CommandError.html#variant.Sending
-    /// [`CommandError::Serializing`]: enum.CommandError.html#variant.Serializing
-    /// [`CommandError::SessionInactive`]: enum.CommandError.html#variant.SessionInactive
     pub async fn command(&self, value: &impl serde::Serialize) -> Result<(), CommandError> {
         let json = json::to_vec(value).map_err(|source| CommandError::Serializing { source })?;
         self.command_raw(json).await
@@ -510,10 +496,7 @@ impl Shard {
     /// Returns [`CommandError::SessionInactive`] if the shard has not been
     /// started.
     ///
-    /// [`command`]: #method.command
-    /// [`CommandError::Sending`]: enum.CommandError.html#variant.Sending
-    /// [`CommandError::Serializing`]: enum.CommandError.html#variant.Serializing
-    /// [`CommandError::SessionInactive`]: enum.CommandError.html#variant.SessionInactive
+    /// [`command`]: Self::command
     pub async fn command_raw(&self, value: Vec<u8>) -> Result<(), CommandError> {
         let session = self
             .session()
@@ -558,7 +541,7 @@ impl Shard {
     /// will be resumable by using the provided session resume information
     /// to [`ClusterBuilder::resume_sessions`].
     ///
-    /// [`ClusterBuilder::resume_sessions`]: ../cluster/struct.ClusterBuilder.html#method.resume_sessions
+    /// [`ClusterBuilder::resume_sessions`]: crate::cluster::ClusterBuilder::resume_sessions
     pub fn shutdown_resumable(&self) -> (u64, Option<ResumeSession>) {
         self.0.listeners.remove_all();
 
@@ -596,8 +579,6 @@ impl Shard {
     /// # Errors
     ///
     /// Returns a [`SessionInactiveError`] if the shard's session is inactive.
-    ///
-    /// [`SessionInactiveError`]: struct.SessionInactiveError.html
     fn session(&self) -> Result<Arc<Session>, SessionInactiveError> {
         let session = self.0.session.get().ok_or(SessionInactiveError)?;
 

@@ -26,7 +26,7 @@ struct GetInviteFields {
 /// # Ok(()) }
 /// ```
 ///
-/// [`with_counts`]: #method.with_counts
+/// [`with_counts`]: Self::with_counts
 pub struct GetInvite<'a> {
     code: String,
     fields: GetInviteFields,

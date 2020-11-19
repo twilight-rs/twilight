@@ -70,9 +70,6 @@ impl ImageSource {
     ///
     /// Returns [`ImageSourceAttachmentError::ExtensionMissing`] if an extension is
     /// missing.
-    ///
-    /// [`ImageSourceAttachmentError::ExtensionEmpty`]: enum.ImageSourceAttachmentError.html#variant.ExtensionEmpty
-    /// [`ImageSourceAttachmentError::ExtensionMissing`]: enum.ImageSourceAttachmentError.html#variant.ExtensionMissing
     pub fn attachment(filename: impl AsRef<str>) -> Result<Self, ImageSourceAttachmentError> {
         Self::_attachment(filename.as_ref())
     }
@@ -104,8 +101,6 @@ impl ImageSource {
     /// # Errors
     ///
     /// Returns [`ImageSourceUrlError::ProtocolUnsupported`] if the URL's protocol is unsupported.
-    ///
-    /// [`ImageSourceUrlError::ProtocolUnsupported`]: enum.ImageSourceUrlError.html#variant.ProtocolUnsupported
     pub fn url(url: impl Into<String>) -> Result<Self, ImageSourceUrlError> {
         Self::_url(url.into())
     }

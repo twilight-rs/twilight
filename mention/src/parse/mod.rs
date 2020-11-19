@@ -81,8 +81,6 @@ use twilight_model::id::{ChannelId, EmojiId, RoleId, UserId};
 /// assert!(matches!(iter.next(), Some((MentionType::User(UserId(78)), _, _))));
 /// assert!(iter.next().is_none());
 /// ```
-///
-/// [`ParseMention`]: trait.ParseMention.html
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 #[non_exhaustive]
 pub enum MentionType {

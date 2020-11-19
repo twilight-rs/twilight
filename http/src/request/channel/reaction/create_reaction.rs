@@ -25,10 +25,6 @@ use twilight_model::id::{ChannelId, MessageId};
 ///     .await?;
 /// # Ok(()) }
 /// ```
-///
-/// [`ChannelId`]: ../../../../twilight_model/id/struct.ChannelId.html
-/// [`MessageId`]: ../../../../twilight_model/id/struct.MessageId.html
-/// [`RequestReactionType`]: enum.RequestReactionType.html
 pub struct CreateReaction<'a> {
     channel_id: ChannelId,
     emoji: String,

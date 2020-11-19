@@ -96,8 +96,6 @@ impl Debug for State {
 /// `client`.
 ///
 /// [here]: https://discord.com/developers/applications
-/// [`ClientBuilder`]: struct.ClientBuilder.html
-/// [`Error::Unauthorized`]: ../enum.Error.html#variant.Unauthorized
 #[derive(Clone, Debug)]
 pub struct Client {
     state: Arc<State>,
@@ -108,7 +106,7 @@ impl Client {
     ///
     /// If you want to customize the client, use [`builder`].
     ///
-    /// [`builder`]: #method.builder
+    /// [`builder`]: Self::builder
     pub fn new(token: impl Into<String>) -> Self {
         let mut token = token.into();
 
@@ -152,7 +150,7 @@ impl Client {
     ///
     /// Refer to [`allowed_mentions`] for more information.
     ///
-    /// [`allowed_mentions`]: ../request/channel/message/allowed_mentions/index.html
+    /// [`allowed_mentions`]: crate::request::channel::message::allowed_mentions
     pub fn default_allowed_mentions(&self) -> Option<AllowedMentions> {
         self.state.default_allowed_mentions.clone()
     }
@@ -161,8 +159,6 @@ impl Client {
     ///
     /// This will return `None` only if ratelimit handling
     /// has been explicitly disabled in the [`ClientBuilder`].
-    ///
-    /// [`ClientBuilder`]: struct.ClientBuilder.html
     pub fn ratelimiter(&self) -> Option<Ratelimiter> {
         self.state.ratelimiter.clone()
     }
@@ -345,9 +341,9 @@ impl Client {
     /// Returns a [`UpdateChannelError::TopicInvalid`] when the length of the topic is more than
     /// 1024 UTF-16 characters.
     ///
-    /// [`UpdateChannelError::NameInvalid`]: ../request/channel/update_channel/enum.UpdateChannelError.html#variant.NameInvalid
-    /// [`UpdateChannelError::RateLimitPerUserInvalid`]: ../request/channel/update_channel/enum.UpdateChannelError.html#variant.RateLimitPerUserInvalid
-    /// [`UpdateChannelError::TopicInvalid`]: ../request/channel/update_channel/enum.UpdateChannelError.html#variant.TopicInvalid
+    /// [`UpdateChannelError::NameInvalid`]: crate::request::channel::update_channel::UpdateChannelError::NameInvalid
+    /// [`UpdateChannelError::RateLimitPerUserInvalid`]: crate::request::channel::update_channel::UpdateChannelError::RateLimitPerUserInvalid
+    /// [`UpdateChannelError::TopicInvalid`]: crate::request::channel::update_channel::UpdateChannelError::TopicInvalid
     pub fn update_channel(&self, channel_id: ChannelId) -> UpdateChannel<'_> {
         UpdateChannel::new(self, channel_id)
     }
@@ -356,8 +352,7 @@ impl Client {
     ///
     /// The type returned is [`FollowedChannel`].
     ///
-    /// [`ChannelId`]: ../../twilight_model/id/struct.ChannelId.html
-    /// [`FollowedChannel`]: ../../twilight_model/channel/followed_channel.html#struct.FollowedChannel
+    /// [`FollowedChannel`]: ::twilight_model::channel::FollowedChannel
     pub fn follow_news_channel(
         &self,
         channel_id: ChannelId,
@@ -406,13 +401,12 @@ impl Client {
     ///
     /// Returns [`GetChannelMessagesError::LimitInvalid`] if the amount is less than 1 or greater than 100.
     ///
-    /// [`ChannelId`]: ../../twilight_model/id/struct.ChannelId.html
-    /// [`after`]: ../request/channel/message/get_channel_messages/struct.GetChannelMessages.html#method.after
-    /// [`around`]: ../request/channel/message/get_channel_messages/struct.GetChannelMessages.html#method.around
-    /// [`before`]: ../request/channel/message/get_channel_messages/struct.GetChannelMessages.html#method.before
-    /// [`GetChannelMessagesConfigured`]: ../request/channel/message/get_channel_messages_configured/struct.GetChannelMessagesConfigured.html
-    /// [`limit`]: ../request/channel/message/get_channel_messages/struct.GetChannelMessages.html#method.limit
-    /// [`GetChannelMessagesError::LimitInvalid`]: ../request/channel/message/get_channel_messages/enum.GetChannelMessagesError.html#variant.LimitInvalid
+    /// [`after`]: GetChannelMessages::after
+    /// [`around`]: GetChannelMessages::around
+    /// [`before`]: GetChannelMessages::before
+    /// [`GetChannelMessagesConfigured`]: crate::request::channel::message::GetChannelMessagesConfigured
+    /// [`limit`]: GetChannelMessages::limit
+    /// [`GetChannelMessagesError::LimitInvalid`]: crate::request::channel::message::get_channel_messages::GetChannelMessagesError::LimitInvalid
     pub fn channel_messages(&self, channel_id: ChannelId) -> GetChannelMessages<'_> {
         GetChannelMessages::new(self, channel_id)
     }
@@ -515,7 +509,7 @@ impl Client {
     /// Returns [`GetCurrentUserGuildsError::LimitInvalid`] if the amount is greater
     /// than 100.
     ///
-    /// [`GetCurrentUserGuildsError::LimitInvalid`]: ../request/user/get_current_user_guilds/enum.GetCurrentUserGuildsError.html#variant.LimitInvalid
+    /// [`GetCurrentUserGuildsError::LimitInvalid`]: crate::request::user::get_current_user_guilds::GetCurrentUserGuildsError::LimitInvalid
     pub fn current_user_guilds(&self) -> GetCurrentUserGuilds<'_> {
         GetCurrentUserGuilds::new(self)
     }
@@ -659,7 +653,7 @@ impl Client {
     ///
     /// Returns [`CreateGuildError::NameInvalid`] if the name length is too short or too long.
     ///
-    /// [`CreateGuildError::NameInvalid`]: ../request/guild/create_guild/enum.CreateGuildError.html#variant.NameInvalid
+    /// [`CreateGuildError::NameInvalid`]: crate::request::guild::create_guild::CreateGuildError::NameInvalid
     pub fn create_guild(
         &self,
         name: impl Into<String>,
@@ -708,9 +702,9 @@ impl Client {
     /// than
     /// 1024 UTF-16 characters.
     ///
-    /// [`CreateGuildChannelError::NameInvalid`]: ../request/guild/create_guild_channel/enum.CreateGuildChannelError.html#variant.NameInvalid
-    /// [`CreateGuildChannelError::RateLimitPerUserInvalid`]: ../request/guild/create_guild_channel/enum.CreateGuildChannelError.html#variant.RateLimitPerUserInvalid
-    /// [`CreateGuildChannelError::TopicInvalid`]: ../request/guild/create_guild_channel/enum.CreateGuildChannelError.html#variant.TopicInvalid
+    /// [`CreateGuildChannelError::NameInvalid`]: crate::request::guild::create_guild_channel::CreateGuildChannelError::NameInvalid
+    /// [`CreateGuildChannelError::RateLimitPerUserInvalid`]: crate::request::guild::create_guild_channel::CreateGuildChannelError::RateLimitPerUserInvalid
+    /// [`CreateGuildChannelError::TopicInvalid`]: crate::request::guild::create_guild_channel::CreateGuildChannelError::TopicInvalid
     pub fn create_guild_channel(
         &self,
         guild_id: GuildId,
@@ -826,7 +820,7 @@ impl Client {
     ///
     /// Returns [`GetGuildMembersError::LimitInvalid`] if the limit is invalid.
     ///
-    /// [`GetGuildMembersError::LimitInvalid`]: ../request/guild/member/get_guild_members/enum.GetGuildMembersError.html#variant.LimitInvalid
+    /// [`GetGuildMembersError::LimitInvalid`]: crate::request::guild::member::get_guild_members::GetGuildMembersError::LimitInvalid
     pub fn guild_members(&self, guild_id: GuildId) -> GetGuildMembers<'_> {
         GetGuildMembers::new(self, guild_id)
     }
@@ -850,7 +844,7 @@ impl Client {
     /// Returns [`UpdateGuildMemberError::NicknameInvalid`] if the nickname length is too short or too
     /// long.
     ///
-    /// [`UpdateGuildMemberError::NicknameInvalid`]: ../request/guild/member/update_guild_member/enum.UpdateGuildMemberError.html#variant.NicknameInvalid
+    /// [`UpdateGuildMemberError::NicknameInvalid`]: crate::request::guild::member::update_guild_member::UpdateGuildMemberError::NicknameInvalid
     ///
     /// [the discord docs]: https://discord.com/developers/docs/resources/guild#modify-guild-member
     pub fn update_guild_member(&self, guild_id: GuildId, user_id: UserId) -> UpdateGuildMember<'_> {
@@ -934,7 +928,7 @@ impl Client {
     /// # Ok(()) }
     /// ```
     ///
-    /// [`with_counts`]: ../request/channel/invite/struct.GetInvite.html#method.with_counts
+    /// [`with_counts`]: crate::request::channel::invite::GetInvite::with_counts
     pub fn invite(&self, code: impl Into<String>) -> GetInvite<'_> {
         GetInvite::new(self, code)
     }
@@ -968,9 +962,6 @@ impl Client {
     }
 
     /// Get a message by [`ChannelId`] and [`MessageId`].
-    ///
-    /// [`ChannelId`]: ../../twilight_model/id/struct.ChannelId.html
-    /// [`MessageId`]: ../../twilight_model/id/struct.MessageId.html
     pub fn message(&self, channel_id: ChannelId, message_id: MessageId) -> GetMessage<'_> {
         GetMessage::new(self, channel_id, message_id)
     }
@@ -1004,21 +995,17 @@ impl Client {
     /// The method [`embed`] returns [`CreateMessageError::EmbedTooLarge`] if the length of the
     /// embed is over 6000 characters.
     ///
-    /// [`content`]:
-    /// ../request/channel/message/create_message/struct.CreateMessage.html#method.content
-    /// [`embed`]: ../request/channel/message/create_message/struct.CreateMessage.html#method.embed
+    /// [`content`]: crate::request::channel::message::create_message::CreateMessage::content
+    /// [`embed`]: crate::request::channel::message::create_message::CreateMessage::embed
     /// [`CreateMessageError::ContentInvalid`]:
-    /// ../request/channel/message/create_message/enum.CreateMessageError.html#variant.ContentInvalid
+    /// crate::request::channel::message::create_message::CreateMessageError::ContentInvalid
     /// [`CreateMessageError::EmbedTooLarge`]:
-    /// ../request/channel/message/create_message/enum.CreateMessageError.html#variant.EmbedTooLarge
+    /// crate::request::channel::message::create_message::CreateMessageError::EmbedTooLarge
     pub fn create_message(&self, channel_id: ChannelId) -> CreateMessage<'_> {
         CreateMessage::new(self, channel_id)
     }
 
     /// Delete a message by [`ChannelId`] and [`MessageId`].
-    ///
-    /// [`ChannelId`]: ../../twilight_model/id/struct.ChannelId.html
-    /// [`MessageId`]: ../../twilight_model/id/struct.MessageId.html
     pub fn delete_message(
         &self,
         channel_id: ChannelId,
@@ -1033,8 +1020,6 @@ impl Client {
     /// still count towards the lower and upper limits. This method will not delete messages older
     /// than two weeks. Refer to [the discord docs] for more information.
     ///
-    /// [`ChannelId`]: ../../twilight_model/id/struct.ChannelId.html
-    /// [`MessageId`]: ../../twilight_model/id/struct.MessageId.html
     /// [the discord docs]: https://discord.com/developers/docs/resources/channel#bulk-delete-messages
     pub fn delete_messages(
         &self,
@@ -1082,9 +1067,7 @@ impl Client {
     /// # Ok(()) }
     /// ```
     ///
-    /// [`ChannelId`]: ../../twilight_model/id/struct.ChannelId.html
-    /// [`MessageId`]: ../../twilight_model/id/struct.MessageId.html
-    /// [embed]: #method.embed
+    /// [embed]: Self::embed
     pub fn update_message(
         &self,
         channel_id: ChannelId,
@@ -1094,9 +1077,6 @@ impl Client {
     }
 
     /// Crosspost a message by [`ChannelId`] and [`MessageId`].
-    ///
-    /// [`ChannelId`]: ../../twilight_model/id/struct.ChannelId.html
-    /// [`MessageId`]: ../../twilight_model/id/struct.MessageId.html
     pub fn crosspost_message(
         &self,
         channel_id: ChannelId,
@@ -1157,10 +1137,6 @@ impl Client {
     ///     .await?;
     /// # Ok(()) }
     /// ```
-    ///
-    /// [`ChannelId`]: ../../twilight_model/id/struct.ChannelId.html
-    /// [`MessageId`]: ../../twilight_model/id/struct.MessageId.html
-    /// [`RequestReactionType`]: ../request/channel/reaction/enum.RequestReactionType.html
     pub fn create_reaction(
         &self,
         channel_id: ChannelId,
@@ -1322,8 +1298,6 @@ impl Client {
     /// # Errors
     ///
     /// Returns [`UrlError::SegmentMissing`] if the URL can not be parsed.
-    ///
-    /// [`UrlError::SegmentMissing`]: ../error/enum.UrlError.html#variant.SegmentMissing
     pub fn delete_webhook_from_url(&self, url: impl AsRef<str>) -> Result<DeleteWebhook<'_>> {
         let (id, _) = parse_webhook_url(url)?;
         Ok(self.delete_webhook(id))
@@ -1339,8 +1313,6 @@ impl Client {
     /// # Errors
     ///
     /// Returns [`UrlError::SegmentMissing`] if the URL can not be parsed.
-    ///
-    /// [`UrlError::SegmentMissing`]: ../error/enum.UrlError.html#variant.SegmentMissing
     pub fn update_webhook_from_url(&self, url: impl AsRef<str>) -> Result<UpdateWebhook<'_>> {
         let (id, _) = parse_webhook_url(url)?;
         Ok(self.update_webhook(id))
@@ -1360,8 +1332,6 @@ impl Client {
     /// # Errors
     ///
     /// Returns [`UrlError::SegmentMissing`] if the URL can not be parsed.
-    ///
-    /// [`UrlError::SegmentMissing`]: ../error/enum.UrlError.html#variant.SegmentMissing
     pub fn update_webhook_with_token_from_url(
         &self,
         url: impl AsRef<str>,
@@ -1392,9 +1362,9 @@ impl Client {
     /// # Ok(()) }
     /// ```
     ///
-    /// [`content`]: ../request/channel/webhook/struct.ExecuteWebhook.html#method.content
-    /// [`embeds`]: ../request/channel/webhook/struct.ExecuteWebhook.html#method.embeds
-    /// [`file`]: ../request/channel/webhook/struct.ExecuteWebhook.html#method.file
+    /// [`content`]: crate::request::channel::webhook::ExecuteWebhook::content
+    /// [`embeds`]: crate::request::channel::webhook::ExecuteWebhook::embeds
+    /// [`file`]: crate::request::channel::webhook::ExecuteWebhook::file
     pub fn execute_webhook(
         &self,
         webhook_id: WebhookId,
@@ -1408,8 +1378,6 @@ impl Client {
     /// # Errors
     ///
     /// Returns [`UrlError::SegmentMissing`] if the URL can not be parsed.
-    ///
-    /// [`UrlError::SegmentMissing`]: ../error/enum.UrlError.html#variant.SegmentMissing
     pub fn execute_webhook_from_url(&self, url: impl AsRef<str>) -> Result<ExecuteWebhook<'_>> {
         let (id, token) = parse_webhook_url(url)?;
         Ok(self.execute_webhook(id, token.ok_or(UrlError::SegmentMissing)?))
@@ -1421,8 +1389,6 @@ impl Client {
     ///
     /// Returns [`Error::Unauthorized`] if the configured token has become
     /// invalid due to expiration, revokation, etc.
-    ///
-    /// [`Error::Unauthorized`]: ../enum.Error.html#variant.Unauthorized
     pub async fn raw(&self, request: Request) -> Result<Response> {
         if self.state.token_invalid.load(Ordering::Relaxed) {
             return Err(Error::Unauthorized);
@@ -1524,8 +1490,6 @@ impl Client {
     ///
     /// Returns [`Error::Unauthorized`] if the configured token has become
     /// invalid due to expiration, revokation, etc.
-    ///
-    /// [`Error::Unauthorized`]: ../enum.Error.html#variant.Unauthorized
     pub async fn request<T: DeserializeOwned>(&self, request: Request) -> Result<T> {
         let resp = self.make_request(request).await?;
 
@@ -1560,8 +1524,6 @@ impl Client {
     ///
     /// Returns [`Error::Unauthorized`] if the configured token has become
     /// invalid due to expiration, revokation, etc.
-    ///
-    /// [`Error::Unauthorized`]: ../enum.Error.html#variant.Unauthorized
     pub async fn verify(&self, request: Request) -> Result<()> {
         self.make_request(request).await?;
 

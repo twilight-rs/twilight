@@ -46,7 +46,7 @@ impl Error for ShardSchemeRangeError {}
 ///
 /// By default this is [`Auto`].
 ///
-/// [`Auto`]: #variant.Auto
+/// [`Auto`]: ShardScheme::Auto
 #[derive(Clone, Debug, Eq, Hash, PartialEq)]
 #[non_exhaustive]
 pub enum ShardScheme {
@@ -137,8 +137,7 @@ impl<T: RangeBounds<u64>> TryFrom<(T, u64)> for ShardScheme {
 /// # Ok(()) }
 /// ```
 ///
-/// [`Cluster`]: ./struct.Cluster.html
-/// [`large_threshold`]: #method.large_threshold
+/// [`large_threshold`]: Self::large_threshold
 #[derive(Debug)]
 pub struct ClusterBuilder(ClusterConfig, ShardBuilder);
 
@@ -176,8 +175,6 @@ impl ClusterBuilder {
     ///
     /// Returns [`ClusterStartError::RetrievingGatewayInfo`] if there was an
     /// HTTP error Retrieving the gateway information.
-    ///
-    /// [`ClusterStartError::RetrievingGatewayInfo`]: enum.ClusterStartError.html#variant.RetrievingGatewayInfo
     pub async fn build(mut self) -> Result<Cluster, ClusterStartError> {
         if self.0.shard_config.gateway_url.is_none() {
             let gateway_url = (self.1)
@@ -229,10 +226,6 @@ impl ClusterBuilder {
     ///
     /// Returns [`LargeThresholdError::TooMany`] if the provided value is above
     /// 250.
-    ///
-    /// [`LargeThresholdError::TooFew`]: ../shard/enum.LargeThresholdError.html#variant.TooFew
-    /// [`LargeThresholdError::TooMany`]: ../shard/enum.LargeThresholdError.html#variant.TooMany
-    /// [`ShardBuilder::large_treshold`]: ../shard/ShardBuilder.html#method.large_threshold
     pub fn large_threshold(mut self, large_threshold: u64) -> Result<Self, LargeThresholdError> {
         self.1 = self.1.large_threshold(large_threshold)?;
 
@@ -242,8 +235,6 @@ impl ClusterBuilder {
     /// Set the presence to use when identifying with the gateway.
     ///
     /// Refer to the shard's [`ShardBuilder::presence`] for more information.
-    ///
-    /// [`ShardBuilder::presence`]: ../shard/struct.ShardBuilder.html#method.presence
     pub fn presence(mut self, presence: UpdateStatusInfo) -> Self {
         self.1 = self.1.presence(presence);
 
@@ -281,9 +272,6 @@ impl ClusterBuilder {
     ///     .await?;
     /// # Ok(()) }
     /// ```
-    ///
-    /// [`ShardScheme::Auto`]: enum.ShardScheme.html#variant.Auto
-    /// [`ShardScheme::Range`]: enum.ShardScheme.html#variant.Range
     pub fn shard_scheme(mut self, scheme: ShardScheme) -> Self {
         self.0.shard_scheme = scheme;
 
@@ -297,7 +285,7 @@ impl ClusterBuilder {
     ///
     /// Refer to the [`queue`] module for more information.
     ///
-    /// [`queue`]: ../queue/index.html
+    /// [`queue`]: crate::queue
     pub fn queue(mut self, queue: Arc<Box<dyn Queue>>) -> Self {
         self.0.queue = Arc::clone(&queue);
         self.1 = self.1.queue(queue);
@@ -313,8 +301,6 @@ impl ClusterBuilder {
     /// Note that this does not guarantee all or any of the shards will be able
     /// to resume. If their sessions are invalid they will have to re-identify
     /// to initialize a new session.
-    ///
-    /// [`Cluster::down_resumable`]: struct.Cluster.html#method.down_resumable
     pub fn resume_sessions(mut self, resume_sessions: HashMap<u64, ResumeSession>) -> Self {
         self.0.resume_sessions = resume_sessions;
         self

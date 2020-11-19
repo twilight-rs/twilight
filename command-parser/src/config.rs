@@ -5,7 +5,7 @@ use crate::CaseSensitivity;
 
 /// Configuration for a [`Parser`].
 ///
-/// [`Parser`]: struct.Parser.html
+/// [`Parser`]: crate::Parser
 #[derive(Clone, Debug, Default)]
 pub struct CommandParserConfig<'a> {
     pub(crate) commands: Vec<CaseSensitivity>,
@@ -30,8 +30,8 @@ impl<'a> CommandParserConfig<'a> {
     /// Use the [`add_command`] and [`remove_command`] methods for an easier way to
     /// manage commands.
     ///
-    /// [`add_command`]: #method.add_command
-    /// [`remove_command`]: #method.remove_command
+    /// [`add_command`]: Self::add_command
+    /// [`remove_command`]: Self::remove_command
     pub fn commands_mut(&mut self) -> CommandsMut<'_> {
         CommandsMut {
             iter: self.commands.iter_mut(),
@@ -43,8 +43,8 @@ impl<'a> CommandParserConfig<'a> {
     /// Use the [`add_prefix`] and [`remove_prefix`] methods for an easier way
     /// to manage prefixes.
     ///
-    /// [`add_prefix`]: #method.add_prefix
-    /// [`remove_prefix`]: #method.remove_prefix
+    /// [`add_prefix`]: Self::add_prefix
+    /// [`remove_prefix`]: Self::remove_prefix
     pub fn prefixes(&self) -> Prefixes<'_> {
         Prefixes {
             iter: self.prefixes.iter(),
@@ -71,8 +71,6 @@ impl<'a> CommandParserConfig<'a> {
     /// config.add_command("ping", true);
     /// assert_eq!(1, config.commands().len());
     /// ```
-    ///
-    /// [`CommandBuilder`]: struct.CommandBuilder.html
     pub fn add_command(&mut self, name: impl Into<String>, case_sensitive: bool) -> bool {
         self._add_command(name.into(), case_sensitive)
     }

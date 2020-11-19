@@ -497,8 +497,7 @@ impl Display for MessageApiError {
 
 /// Field within a [`MessageApiError`] [embed] list.
 ///
-/// [`MessageApiError`]: struct.MessageApiError.html
-/// [embed]: struct.MessageApiError.html#structfield.embed
+/// [embed]: MessageApiError::embed
 #[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
 #[non_exhaustive]
 #[serde(rename_all = "snake_case")]

@@ -45,10 +45,6 @@ pub trait ParseMention: private::Sealed {
     ///
     /// Returns [`ParseMentionError::TrailingArrow`] if the trailing arrow is
     /// not present after the ID.
-    ///
-    /// [`ParseMentionError::LeadingArrow`]: enum.ParseMentionError.html#variant.LeadingArrow
-    /// [`ParseMentionError::Sigil`]: enum.ParseMentionError.html#variant.Sigil
-    /// [`ParseMentionError::TrailingArrow`]: enum.ParseMentionError.html#variant.TrailingArrow
     fn parse(buf: &str) -> Result<Self, ParseMentionError<'_>>
     where
         Self: Sized;
@@ -59,7 +55,7 @@ pub trait ParseMention: private::Sealed {
     /// a mention is encountered but did not successfully parse, such as a `<`
     /// but with no trailing mention sigil.
     ///
-    /// [`parse`]: #tymethod.parse
+    /// [`parse`]: Self::parse
     #[must_use = "you must use the iterator to lazily parse mentions"]
     fn iter(buf: &str) -> MentionIter<'_, Self>
     where
@@ -166,10 +162,6 @@ impl ParseMention for UserId {
 ///
 /// Returns [`ParseMentionError::TrailingArrow`] if the trailing arrow is not
 /// present after the ID.
-///
-/// [`ParseMentionError::LeadingArrow`]: enum.ParseMentionError.html#variant.LeadingArrow
-/// [`ParseMentionError::Sigil`]: enum.ParseMentionError.html#variant.Sigil
-/// [`ParseMentionError::TrailingArrow`]: enum.ParseMentionError.html#variant.TrailingArrow
 fn parse_id<'a>(
     buf: &'a str,
     sigils: &'a [&'a str],

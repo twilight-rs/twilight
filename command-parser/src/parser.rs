@@ -52,9 +52,6 @@ pub struct Command<'a> {
 ///     }
 /// }
 /// ```
-///
-/// [`Command`]: struct.Command.html
-/// [`Parser::config_mut`]: #method.config_mut
 #[derive(Clone, Debug)]
 pub struct Parser<'a> {
     config: CommandParserConfig<'a>,
@@ -87,8 +84,6 @@ impl<'a> Parser<'a> {
     /// If a matching prefix or command weren't found, then `None` is returned.
     ///
     /// Refer to the struct-level documentation on how to use this.
-    ///
-    /// [`Command`]: struct.Command.html
     pub fn parse(&'a self, buf: &'a str) -> Option<Command<'a>> {
         let prefix = self.find_prefix(buf)?;
         self.parse_with_prefix(prefix, buf)
@@ -118,8 +113,6 @@ impl<'a> Parser<'a> {
     /// # Some(())
     /// # }
     /// ```
-    ///
-    /// [`Command`]: struct.Command.html
     pub fn parse_with_prefix(&'a self, prefix: &'a str, buf: &'a str) -> Option<Command<'a>> {
         if !buf.starts_with(prefix) {
             return None;

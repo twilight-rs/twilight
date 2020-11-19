@@ -45,7 +45,7 @@ impl RoleFieldsBuilder {
     ///
     /// This is used by [`color`].
     ///
-    /// [`color`]: #method.color
+    /// [`color`]: Self::color
     pub const COLOR_MAXIMUM: u32 = 0xff_ff_ff;
 
     const ROLE_ID: RoleId = RoleId(1);
@@ -75,8 +75,6 @@ impl RoleFieldsBuilder {
     /// # Errors
     ///
     /// Returns [`RoleFieldsError::ColorNotRgb`] if the color is not valid RGB.
-    ///
-    /// [`RoleFieldsError::ColorNotRgb`]: enum.RoleFieldsError.html#variant.ColorNotRgb
     pub fn color(mut self, color: u32) -> Result<Self, RoleFieldsError> {
         if color > Self::COLOR_MAXIMUM {
             return Err(RoleFieldsError::ColorNotRgb { color });
@@ -99,8 +97,6 @@ impl RoleFieldsBuilder {
     /// # Errors
     ///
     /// Returns [`RoleFieldsError::IdInvalid`] if the id is set to 1.
-    ///
-    /// [`RoleFieldsError::IdInvalid`]: enum.RoleFieldsError.html#variant.IdInvalid
     pub fn id(mut self, id: RoleId) -> Result<Self, RoleFieldsError> {
         if id == Self::ROLE_ID {
             return Err(RoleFieldsError::IdInvalid);
@@ -190,28 +186,28 @@ impl TextFieldsBuilder {
     ///
     /// This is used by [`new`].
     ///
-    /// [`new`]: #method.new
+    /// [`new`]: Self::new
     pub const MIN_NAME_LENGTH: usize = 2;
 
     /// The maximum number of UTF-16 code points that can be in a channel name.
     ///
     /// This is used by [`new`].
     ///
-    /// [`new`]: #method.new
+    /// [`new`]: Self::new
     pub const MAX_NAME_LENGTH: usize = 100;
 
     /// The maximum length of a rate limit.
     ///
     /// This is used by [`rate_limit_per_user`].
     ///
-    /// [`rate_limit_per_user`]: #method.rate_limit_per_user
+    /// [`rate_limit_per_user`]: Self::rate_limit_per_user
     pub const MAX_RATE_LIMIT: u64 = 21600;
 
     /// The maximum number of UTF-16 code points that can be in a channel topic.
     ///
     /// This is used by [`topic`].
     ///
-    /// [`topic`]: #method.topic
+    /// [`topic`]: Self::topic
     pub const MAX_TOPIC_LENGTH: usize = 1024;
 
     /// Create a new text fields builder.
@@ -221,9 +217,6 @@ impl TextFieldsBuilder {
     /// Returns [`TextFieldsError::NameTooShort`] if the name is too short.
     ///
     /// Returns [`TextFieldsError::NameTooLong`] if the name is too long.
-    ///
-    /// [`TextFieldsError::NameTooShort`]: enum.TextFieldsError.html#variant.NameTooShort
-    /// [`TextFieldsError::NameTooLong`]: enum.TextFieldsError.html#variant.NameTooLong
     pub fn new(name: impl Into<String>) -> Result<Self, TextFieldsError> {
         Self::_new(name.into())
     }
@@ -273,8 +266,6 @@ impl TextFieldsBuilder {
     /// # Errors
     ///
     /// Returns [`TextFieldsError::RateLimitInvalid`] if the rate limit is invalid.
-    ///
-    /// [`TextFieldsError::RateLimitInvalid`]: enum.TextFieldsError.html#variant.RateLimitInvalid
     pub fn rate_limit_per_user(mut self, limit: u64) -> Result<Self, TextFieldsError> {
         if limit > Self::MAX_RATE_LIMIT {
             return Err(TextFieldsError::RateLimitInvalid { limit });
@@ -290,8 +281,6 @@ impl TextFieldsBuilder {
     /// # Errors
     ///
     /// Returns [`TextFieldsError::TopicTooLong`] if the topic is too long.
-    ///
-    /// [`TextFieldsError::TopicTooLong`]: enum.TextFieldsError.html#variant.TopicTooLong
     pub fn topic(self, topic: impl Into<String>) -> Result<Self, TextFieldsError> {
         self._topic(topic.into())
     }
@@ -348,14 +337,14 @@ impl VoiceFieldsBuilder {
     ///
     /// This is used by [`new`].
     ///
-    /// [`new`]: #method.new
+    /// [`new`]: Self::new
     pub const MIN_NAME_LENGTH: usize = 2;
 
     /// The maximum number of UTF-16 code points that can be in a channel name.
     ///
     /// This is used by [`new`].
     ///
-    /// [`new`]: #method.new
+    /// [`new`]: Self::new
     pub const MAX_NAME_LENGTH: usize = 100;
 
     /// Create a new voice fields builder.
@@ -365,9 +354,6 @@ impl VoiceFieldsBuilder {
     /// Returns [`VoiceFieldsError::NameTooShort`] if the name is too short.
     ///
     /// Returns [`VoiceFieldsError::NameTooLong`] if the name is too long.
-    ///
-    /// [`VoiceFieldsError::NameTooShort`]: enum.VoiceFieldsError.html#variant.NameTooShort
-    /// [`VoiceFieldsError::NameTooLong`]: enum.VoiceFieldsError.html#variant.NameTooLong
     pub fn new(name: impl Into<String>) -> Result<Self, VoiceFieldsError> {
         Self::_new(name.into())
     }
@@ -463,14 +449,14 @@ impl CategoryFieldsBuilder {
     ///
     /// This is used by [`new`].
     ///
-    /// [`new`]: #method.new
+    /// [`new`]: Self::new
     pub const MIN_NAME_LENGTH: usize = 2;
 
     /// The maximum number of UTF-16 code points that can be in a channel name.
     ///
     /// This is used by [`new`].
     ///
-    /// [`new`]: #method.new
+    /// [`new`]: Self::new
     pub const MAX_NAME_LENGTH: usize = 100;
 
     /// Create a new category fields builder.
@@ -480,9 +466,6 @@ impl CategoryFieldsBuilder {
     /// Returns [`CategoryFieldsError::NameTooShort`] if the name is too short.
     ///
     /// Returns [`CategoryFieldsError::NameTooLong`] if the name is too long.
-    ///
-    /// [`CategoryFieldsError::NameTooShort`]: enum.CategoryFieldsError.html#variant.NameTooShort
-    /// [`CategoryFieldsError::NameTooLong`]: enum.CategoryFieldsError.html#variant.NameTooLong
     pub fn new(name: impl Into<String>) -> Result<Self, CategoryFieldsError> {
         Self::_new(name.into())
     }

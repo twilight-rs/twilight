@@ -8,8 +8,6 @@ struct FollowNewsChannelFields {
 }
 
 /// Follow a news channel by [`ChannelId`]s.
-///
-/// [`ChannelId`]: ../../../twilight_model/id/struct.ChannelId.html
 pub struct FollowNewsChannel<'a> {
     channel_id: ChannelId,
     fields: FollowNewsChannelFields,

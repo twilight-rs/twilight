@@ -124,7 +124,6 @@ impl<'a> GetCurrentUserGuilds<'a> {
     /// Returns [`GetCurrentUserGuildsError::LimitInvalid`] if the amount is greater
     /// than 100.
     ///
-    /// [`GetCurrentUserGuildsError::LimitInvalid`]: enum.GetCurrentUserGuildsError.html#variant.LimitInvalid
     /// [the discord docs]: https://discordapp.com/developers/docs/resources/user#get-current-user-guilds-query-string-params
     pub fn limit(mut self, limit: u64) -> Result<Self, GetCurrentUserGuildsError> {
         if !validate::get_current_user_guilds_limit(limit) {
