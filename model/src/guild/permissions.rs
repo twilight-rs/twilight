@@ -54,8 +54,8 @@ impl<'de> Visitor<'de> for PermissionsVisitor {
         Ok(Permissions::from_bits_truncate(v))
     }
 
-    #[allow(clippy::map_err_ignore)]
     fn visit_str<E: DeError>(self, v: &str) -> Result<Self::Value, E> {
+        #[allow(clippy::map_err_ignore)]
         let num = v
             .parse()
             .map_err(|_| DeError::custom("permissions is not valid bitflags"))?;
