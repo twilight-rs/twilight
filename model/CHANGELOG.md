@@ -2,6 +2,13 @@
 
 Changelog for `twilight-model`.
 
+## [0.2.2] - 2020-11-20
+
+### Fixes
+
+Create a new trimmed down channel type for embedded use in invites
+([#601] - [@sam-kirby]).
+
 ## [0.2.1] - 2020-11-11
 
 ### Additions
@@ -148,8 +155,10 @@ Initial release.
 [@DusterTheFirst]: https://github.com/DusterTheFirst
 [@Erk-]: https://github.com/Erk-
 [@Gelbpunkt]: https://github.com/Gelbpunkt
+[@sam-kirby]: https://github.com/sam-kirby
 [@vivian]: https://github.com/vivian
 
+[#601]: https://github.com/twilight-rs/twilight/pull/601
 [#586]: https://github.com/twilight-rs/twilight/pull/586
 [#579]: https://github.com/twilight-rs/twilight/pull/579
 [#569]: https://github.com/twilight-rs/twilight/pull/569
@@ -165,6 +174,7 @@ Initial release.
 
 [0.2.0-beta.1:app integrations]: https://github.com/discord/discord-api-docs/commit/a926694e2f8605848bda6b57d21c8817559e5cec
 
+[0.2.2]: https://github.com/twilight-rs/twilight/releases/tag/model-v0.2.2
 [0.2.1]: https://github.com/twilight-rs/twilight/releases/tag/model-v0.2.1
 [0.2.0]: https://github.com/twilight-rs/twilight/releases/tag/model-v0.2.0
 [0.2.0-beta.2]: https://github.com/twilight-rs/twilight/releases/tag/model-v0.2.0-beta.2
