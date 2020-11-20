@@ -2,6 +2,21 @@
 
 Changelog for `twilight-http`.
 
+## [0.2.3] - 2020-11-20
+
+### Additions
+
+Add an `API_VERSION` constant to the root of the library, which is the version
+of the Discord HTTP API in use ([#598] - [@AEnterprise]).
+
+### Fixes
+
+Properly handle optional messages in the Execute Webhook request when `wait`
+is `false` ([#599] - [@Erk-]).
+
+Serialize guild creation role permissions to the correct field name
+"permissions" instead of "permissions_new" ([#602] - [@sam-kirby]).
+
 ## [0.2.2] - 2020-11-11
 
 ### Additions
@@ -171,8 +186,12 @@ Initial release.
 [@Erk-]: https://github.com/Erk-
 [@Gelbpunkt]: https://github.com/Gelbpunkt
 [@nickelc]: https://github.com/nickelc
+[@sam-kirby]: https://github.com/sam-kirby
 [@vivian]: https://github.com/vivian
 
+[#602]: https://github.com/twilight-rs/twilight/pull/602
+[#599]: https://github.com/twilight-rs/twilight/pull/599
+[#598]: https://github.com/twilight-rs/twilight/pull/598
 [#597]: https://github.com/twilight-rs/twilight/pull/597
 [#594]: https://github.com/twilight-rs/twilight/pull/594
 [#592]: https://github.com/twilight-rs/twilight/pull/592
@@ -199,6 +218,7 @@ Initial release.
 
 [0.2.0-beta.1:app integrations]: https://github.com/discord/discord-api-docs/commit/a926694e2f8605848bda6b57d21c8817559e5cec
 
+[0.2.3]: https://github.com/twilight-rs/twilight/releases/tag/http-v0.2.3
 [0.2.2]: https://github.com/twilight-rs/twilight/releases/tag/http-v0.2.2
 [0.2.1]: https://github.com/twilight-rs/twilight/releases/tag/http-v0.2.1
 [0.2.0]: https://github.com/twilight-rs/twilight/releases/tag/http-v0.2.0
