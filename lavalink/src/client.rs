@@ -82,6 +82,11 @@ struct LavalinkRef {
 /// information about the active playing information of a guild and allows you to send events to the
 /// connected node, such as [`Play`] events.
 ///
+/// # Cloning
+///
+/// The client internally wraps its data within an Arc. This means that the
+/// client can be cloned and passed around tasks and threads cheaply.
+///
 /// [`Play`]: ../model/outgoing/struct.Play.html
 /// [`player`]: #method.player
 /// [`process`]: #method.process
