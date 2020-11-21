@@ -11,9 +11,9 @@ mod reference;
 pub use self::{
     activity::MessageActivity, activity_type::MessageActivityType, application::MessageApplication,
     flags::MessageFlags, kind::MessageType, reaction::MessageReaction, reference::MessageReference,
+    sticker::Sticker,
 };
 
-use self::sticker::Sticker;
 use crate::{
     channel::{embed::Embed, Attachment, ChannelMention},
     guild::PartialMember,
