@@ -58,6 +58,11 @@ impl Debug for State {
 /// Almost all of the client methods require authentication, and as such, the client must be
 /// supplied with a Discord Token. Get yours [here].
 ///
+/// # Cloning
+///
+/// The client internally wraps its data within an Arc. This means that the
+/// client can be cloned and passed around tasks and threads cheaply.
+///
 /// # Unauthorized behavior
 ///
 /// When the client encounters an Unauthorized response it will take note that

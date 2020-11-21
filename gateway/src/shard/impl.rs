@@ -217,6 +217,11 @@ struct ShardRef {
 /// sessions with the ratelimit. Refer to Discord's [documentation][docs:shards]
 /// on shards to have a better understanding of what they are.
 ///
+/// # Cloning
+///
+/// The shard internally wraps its data within an Arc. This means that the shard
+/// can be cloned and passed around tasks and threads cheaply.
+///
 /// # Examples
 ///
 /// Create and start a shard and print new and deleted messages:

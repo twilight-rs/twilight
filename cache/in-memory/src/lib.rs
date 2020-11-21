@@ -167,6 +167,11 @@ struct InMemoryCacheRef {
 /// Events will only be processed if they are properly expressed with
 /// [`Intents`]; refer to function-level documentation for more details.
 ///
+/// # Cloning
+///
+/// The cache internally wraps its data within an Arc. This means that the cache
+/// can be cloned and passed around tasks and threads cheaply.
+///
 /// # Design and Performance
 ///
 /// The defining characteristic of this cache is that returned types (such as a

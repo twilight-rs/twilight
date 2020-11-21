@@ -104,6 +104,11 @@ struct ClusterRef {
 /// The Cluster can be cloned and will point to the same cluster, so you can
 /// pass it around as needed.
 ///
+/// # Cloning
+///
+/// The cluster internally wraps its data within an Arc. This means that the
+/// cluster can be cloned and passed around tasks and threads cheaply.
+///
 /// # Examples
 ///
 /// Refer to the module-level documentation for examples.
