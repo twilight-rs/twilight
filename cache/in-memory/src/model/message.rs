@@ -3,8 +3,8 @@ use twilight_model::{
     channel::{
         embed::Embed,
         message::{
-            sticker::Sticker, Message, MessageActivity, MessageApplication, MessageFlags,
-            MessageReaction, MessageReference, MessageType,
+            Message, MessageActivity, MessageApplication, MessageFlags, MessageReaction,
+            MessageReference, MessageType, Sticker,
         },
         Attachment, ChannelMention,
     },
