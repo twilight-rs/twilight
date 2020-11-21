@@ -1,3 +1,5 @@
+pub mod sticker;
+
 mod activity;
 mod activity_type;
 mod application;
@@ -17,6 +19,7 @@ use crate::{
     id::{ChannelId, GuildId, MessageId, RoleId, UserId, WebhookId},
     user::User,
 };
+use self::sticker::Sticker;
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 
@@ -47,6 +50,8 @@ pub struct Message {
     pub reactions: Vec<MessageReaction>,
     #[serde(rename = "message_reference")]
     pub reference: Option<MessageReference>,
+    /// Stickers within the message.
+    pub stickers: Vec<Sticker>,
     pub timestamp: String,
     pub tts: bool,
     pub webhook_id: Option<WebhookId>,
@@ -54,7 +59,7 @@ pub struct Message {
 
 #[cfg(test)]
 mod tests {
-    use super::{Message, MessageFlags, MessageType};
+    use super::{sticker::{StickerFormatType, StickerId, StickerPackId, Sticker}, Message, MessageFlags, MessageType};
     use crate::{
         guild::PartialMember,
         id::{ChannelId, GuildId, MessageId, UserId},
@@ -107,6 +112,16 @@ mod tests {
             pinned: false,
             reactions: Vec::new(),
             reference: None,
+            stickers: vec![Sticker {
+                asset: "foo1".to_owned(),
+                description: "foo2".to_owned(),
+                format_type: StickerFormatType::Png,
+                id: StickerId(1),
+                name: "sticker name".to_owned(),
+                pack_id: StickerPackId(2),
+                preview_asset: None,
+                tags: Some("foo,bar,baz".to_owned()),
+            }],
             timestamp: "2020-02-02T02:02:02.020000+00:00".to_owned(),
             tts: false,
             webhook_id: None,
@@ -117,7 +132,7 @@ mod tests {
             &[
                 Token::Struct {
                     name: "Message",
-                    len: 23,
+                    len: 24,
                 },
                 Token::Str("activity"),
                 Token::None,
@@ -220,6 +235,34 @@ mod tests {
                 Token::SeqEnd,
                 Token::Str("message_reference"),
                 Token::None,
+                Token::Str("stickers"),
+                Token::Seq { len: Some(1) },
+
+                Token::Struct {
+                    name: "Sticker",
+                    len: 8,
+                },
+                Token::Str("asset"),
+                Token::Str("foo1"),
+                Token::Str("description"),
+                Token::Str("foo2"),
+                Token::Str("format_type"),
+                Token::U8(1),
+                Token::Str("id"),
+                Token::NewtypeStruct { name: "StickerId" },
+                Token::Str("1"),
+                Token::Str("name"),
+                Token::Str("sticker name"),
+                Token::Str("pack_id"),
+                Token::NewtypeStruct { name: "StickerPackId" },
+                Token::Str("2"),
+                Token::Str("preview_asset"),
+                Token::None,
+                Token::Str("tags"),
+                Token::Some,
+                Token::Str("foo,bar,baz"),
+                Token::StructEnd,
+                Token::SeqEnd,
                 Token::Str("timestamp"),
                 Token::Str("2020-02-02T02:02:02.020000+00:00"),
                 Token::Str("tts"),
