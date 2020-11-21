@@ -7,7 +7,10 @@
 mod id;
 mod kind;
 
-pub use self::{id::{StickerId, StickerPackId}, kind::{StickerFormatTypeConversionError, StickerFormatType}};
+pub use self::{
+    id::{StickerId, StickerPackId},
+    kind::{StickerFormatType, StickerFormatTypeConversionError},
+};
 
 use serde::{Deserialize, Serialize};
 
@@ -34,7 +37,7 @@ pub struct Sticker {
 
 #[cfg(test)]
 mod tests {
-    use super::{StickerFormatType, StickerId, StickerPackId, Sticker};
+    use super::{Sticker, StickerFormatType, StickerId, StickerPackId};
     use serde_test::Token;
 
     #[test]
@@ -69,7 +72,9 @@ mod tests {
                 Token::Str("name"),
                 Token::Str("sticker name"),
                 Token::Str("pack_id"),
-                Token::NewtypeStruct { name: "StickerPackId" },
+                Token::NewtypeStruct {
+                    name: "StickerPackId",
+                },
                 Token::Str("2"),
                 Token::Str("preview_asset"),
                 Token::None,

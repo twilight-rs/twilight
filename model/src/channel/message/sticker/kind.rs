@@ -1,5 +1,9 @@
 use serde_repr::{Deserialize_repr, Serialize_repr};
-use std::{convert::TryFrom, error::Error, fmt::{Display, Formatter, Result as FmtResult}};
+use std::{
+    convert::TryFrom,
+    error::Error,
+    fmt::{Display, Formatter, Result as FmtResult},
+};
 
 /// Format type of a [Sticker][`super::Sticker`].
 #[derive(
@@ -69,8 +73,14 @@ mod tests {
 
     #[test]
     fn test_conversions() {
-        assert_eq!(StickerFormatType::try_from(1).unwrap(), StickerFormatType::Png);
-        assert_eq!(StickerFormatType::try_from(2).unwrap(), StickerFormatType::Apng);
+        assert_eq!(
+            StickerFormatType::try_from(1).unwrap(),
+            StickerFormatType::Png
+        );
+        assert_eq!(
+            StickerFormatType::try_from(2).unwrap(),
+            StickerFormatType::Apng
+        );
         assert_eq!(
             StickerFormatType::try_from(3).unwrap(),
             StickerFormatType::Lottie

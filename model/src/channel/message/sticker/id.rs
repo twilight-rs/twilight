@@ -57,14 +57,18 @@ mod tests {
         serde_test::assert_tokens(
             &StickerPackId(114_941_315_417_899_012),
             &[
-                Token::NewtypeStruct { name: "StickerPackId" },
+                Token::NewtypeStruct {
+                    name: "StickerPackId",
+                },
                 Token::Str("114941315417899012"),
             ],
         );
         serde_test::assert_de_tokens(
             &StickerPackId(114_941_315_417_899_012),
             &[
-                Token::NewtypeStruct { name: "StickerPackId" },
+                Token::NewtypeStruct {
+                    name: "StickerPackId",
+                },
                 Token::U64(114_941_315_417_899_012),
             ],
         );

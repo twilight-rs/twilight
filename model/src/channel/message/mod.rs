@@ -13,13 +13,13 @@ pub use self::{
     flags::MessageFlags, kind::MessageType, reaction::MessageReaction, reference::MessageReference,
 };
 
+use self::sticker::Sticker;
 use crate::{
     channel::{embed::Embed, Attachment, ChannelMention},
     guild::PartialMember,
     id::{ChannelId, GuildId, MessageId, RoleId, UserId, WebhookId},
     user::User,
 };
-use self::sticker::Sticker;
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 
@@ -59,7 +59,10 @@ pub struct Message {
 
 #[cfg(test)]
 mod tests {
-    use super::{sticker::{StickerFormatType, StickerId, StickerPackId, Sticker}, Message, MessageFlags, MessageType};
+    use super::{
+        sticker::{Sticker, StickerFormatType, StickerId, StickerPackId},
+        Message, MessageFlags, MessageType,
+    };
     use crate::{
         guild::PartialMember,
         id::{ChannelId, GuildId, MessageId, UserId},
@@ -237,7 +240,6 @@ mod tests {
                 Token::None,
                 Token::Str("stickers"),
                 Token::Seq { len: Some(1) },
-
                 Token::Struct {
                     name: "Sticker",
                     len: 8,
@@ -254,7 +256,9 @@ mod tests {
                 Token::Str("name"),
                 Token::Str("sticker name"),
                 Token::Str("pack_id"),
-                Token::NewtypeStruct { name: "StickerPackId" },
+                Token::NewtypeStruct {
+                    name: "StickerPackId",
+                },
                 Token::Str("2"),
                 Token::Str("preview_asset"),
                 Token::None,

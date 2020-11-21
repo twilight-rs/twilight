@@ -918,6 +918,7 @@ mod tests {
             pinned: false,
             reactions: Vec::new(),
             reference: None,
+            stickers: Vec::new(),
             timestamp: String::new(),
             tts: false,
             webhook_id: None,

@@ -3,8 +3,8 @@ use twilight_model::{
     channel::{
         embed::Embed,
         message::{
-            Message, MessageActivity, MessageApplication, MessageFlags, MessageReaction,
-            MessageReference, MessageType,
+            sticker::Sticker, Message, MessageActivity, MessageApplication, MessageFlags,
+            MessageReaction, MessageReference, MessageType,
         },
         Attachment, ChannelMention,
     },
@@ -34,6 +34,7 @@ pub struct CachedMessage {
     pub pinned: bool,
     pub reactions: Vec<MessageReaction>,
     pub reference: Option<MessageReference>,
+    pub stickers: Vec<Sticker>,
     pub timestamp: String,
     pub tts: bool,
     pub webhook_id: Option<WebhookId>,
@@ -62,6 +63,7 @@ impl From<Message> for CachedMessage {
             pinned: msg.pinned,
             reactions: msg.reactions,
             reference: msg.reference,
+            stickers: msg.stickers,
             timestamp: msg.timestamp,
             tts: msg.tts,
             webhook_id: msg.webhook_id,
