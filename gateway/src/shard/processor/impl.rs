@@ -412,7 +412,7 @@ impl ShardProcessor {
                 return Ok(());
             }
 
-            let seq = seq.ok_or_else(|| ProcessError::SequenceMissing)?;
+            let seq = seq.ok_or(ProcessError::SequenceMissing)?;
 
             if event_type.as_deref() == Some("RESUMED") {
                 self.process_resumed(seq);

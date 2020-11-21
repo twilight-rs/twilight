@@ -47,6 +47,8 @@
 //! [license link]: https://github.com/twilight-rs/twilight/blob/trunk/LICENSE.md
 //! [rust badge]: https://img.shields.io/badge/rust-stable-93450a.svg?style=for-the-badge&logo=rust
 
+#![deny(rust_2018_idioms, unused, warnings)]
+
 pub mod model;
 
 mod builder;
@@ -750,7 +752,7 @@ impl InMemoryCache {
         upsert_guild_item(&self.0.roles, guild_id, role.id, role)
     }
 
-    fn cache_user(&self, user: Cow<User>, guild_id: Option<GuildId>) -> Arc<User> {
+    fn cache_user(&self, user: Cow<'_, User>, guild_id: Option<GuildId>) -> Arc<User> {
         match self.0.users.get_mut(&user.id) {
             Some(mut u) if *u.0 == *user => {
                 if let Some(guild_id) = guild_id {

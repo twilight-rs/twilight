@@ -34,7 +34,7 @@ fn format_emoji(emoji: RequestReactionType) -> String {
             let mut emoji = String::new();
             match name {
                 Some(name) => emoji.push_str(name.as_ref()),
-                None => emoji.push_str("e"),
+                None => emoji.push('e'),
             }
             let _ = write!(emoji, ":{}", id);
             emoji
