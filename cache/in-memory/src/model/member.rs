@@ -45,12 +45,14 @@ impl PartialEq<&PartialMember> for CachedMember {
             self.joined_at.as_ref(),
             self.mute,
             &self.nick,
+            &self.premium_since,
             &self.roles,
         ) == (
             other.deaf,
             other.joined_at.as_ref(),
             other.mute,
             &other.nick,
+            &other.premium_since,
             &other.roles,
         )
     }
@@ -121,6 +123,7 @@ mod tests {
             joined_at: None,
             mute: true,
             nick: Some("member nick".to_owned()),
+            premium_since: None,
             roles: Vec::new(),
         };
 

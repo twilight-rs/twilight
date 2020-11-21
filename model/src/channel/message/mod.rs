@@ -3,12 +3,14 @@ mod activity_type;
 mod application;
 mod flags;
 mod kind;
+mod mention;
 mod reaction;
 mod reference;
 
 pub use self::{
     activity::MessageActivity, activity_type::MessageActivityType, application::MessageApplication,
-    flags::MessageFlags, kind::MessageType, reaction::MessageReaction, reference::MessageReference,
+    flags::MessageFlags, kind::MessageType, mention::Mention, reaction::MessageReaction,
+    reference::MessageReference,
 };
 
 use crate::{
@@ -41,7 +43,7 @@ pub struct Message {
     pub mention_everyone: bool,
     pub mention_roles: Vec<RoleId>,
     #[serde(with = "serde_mappable_seq")]
-    pub mentions: HashMap<UserId, User>,
+    pub mentions: HashMap<UserId, Mention>,
     pub pinned: bool,
     #[serde(default)]
     pub reactions: Vec<MessageReaction>,
@@ -98,6 +100,7 @@ mod tests {
                 joined_at: Some("2020-01-01T00:00:00.000000+00:00".to_owned()),
                 mute: false,
                 nick: Some("member nick".to_owned()),
+                premium_since: None,
                 roles: Vec::new(),
             }),
             mention_channels: Vec::new(),
@@ -186,7 +189,7 @@ mod tests {
                 Token::Some,
                 Token::Struct {
                     name: "PartialMember",
-                    len: 5,
+                    len: 6,
                 },
                 Token::Str("deaf"),
                 Token::Bool(false),
@@ -198,6 +201,8 @@ mod tests {
                 Token::Str("nick"),
                 Token::Some,
                 Token::Str("member nick"),
+                Token::Str("premium_since"),
+                Token::None,
                 Token::Str("roles"),
                 Token::Seq { len: Some(0) },
                 Token::SeqEnd,
