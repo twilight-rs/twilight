@@ -7,9 +7,9 @@
 //! `twilight` is a powerful, flexible, and scalable ecosystem of Rust libraries
 //! for the Discord API.
 //!
-//! The ecosystem of first-class crates includes `twilight-cache-inmemory`,
-//! `twilight-command-parser`, `twilight-gateway`, `twilight-http`,
-//! `twilight-model`, and more. These are explained in detail below.
+//! The ecosystem of first-class crates includes [`twilight-cache-inmemory`],
+//! [`twilight-command-parser`], [`twilight-gateway`], [`twilight-http`],
+//! [`twilight-model`], and more. These are explained in detail below.
 //!
 //! The main `twilight` crate is purely an advertisement crate: it has *no*
 //! functionality. Please use the individual crates listed below instead!
@@ -35,7 +35,7 @@
 //!
 //! These are essential crates that most users will use together for a full
 //! development experience. You may not need all of these - such as
-//! `twilight-command-parser` - but they are often used together to accomplish
+//! [`twilight-command-parser`] - but they are often used together to accomplish
 //! most of what you need.
 //!
 //! ### [`twilight-model`]
@@ -47,8 +47,8 @@
 //! WebSocket API, and more.
 //!
 //! These are all in a single crate so that you can use `gateway` models without
-//! depending on `twilight-gateway`. One use case is if you write your own WebSocket
-//! gateway implementation.
+//! depending on [`twilight-gateway`]. One use case is if you write your own
+//! WebSocket gateway implementation.
 //!
 //! ### [`twilight-cache-inmemory`]
 //!
@@ -65,7 +65,8 @@
 //!
 //! ### [`twilight-command-parser`]
 //!
-//! Helpful crate for parsing commands out of messages received over the gateway. It finds messages commanding your bot and parses the arguments out.
+//! Helpful crate for parsing commands out of messages received over the
+//! gateway. It finds messages commanding your bot and parses the arguments out.
 //!
 //! ### [`twilight-http`]
 //!
@@ -86,7 +87,8 @@
 //!
 //! ### [`twilight-embed-builder`]
 //!
-//! Utility crate for creating and validating message embeds, to be used when creating or updating messages.
+//! Utility crate for creating and validating message embeds, to be used when
+//! creating or updating messages.
 //!
 //! ### [`twilight-lavalink`]
 //!
@@ -112,8 +114,8 @@
 //! ### [`twilight-gateway-queue`]
 //!
 //! A trait and some implementations that are used by the gateway to ratelimit
-//! identify calls. Developers should prefer to use the re-exports of these crates
-//! through the gateway.
+//! identify calls. Developers should prefer to use the re-exports of these
+//! crates through the gateway.
 //!
 //! ## Examples
 //!
