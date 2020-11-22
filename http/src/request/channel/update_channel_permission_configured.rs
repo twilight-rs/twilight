@@ -24,13 +24,12 @@ pub struct UpdateChannelPermissionConfigured<'a> {
 }
 
 impl<'a> UpdateChannelPermissionConfigured<'a> {
-    #[allow(unreachable_code, unused)]
     pub(crate) fn new(
         http: &'a Client,
         channel_id: ChannelId,
         allow: Permissions,
         deny: Permissions,
-        target: PermissionOverwriteType,
+        target: &PermissionOverwriteType,
     ) -> Self {
         let (name, target_id) = match target {
             PermissionOverwriteType::Member(user_id) => {
@@ -115,7 +114,7 @@ mod tests {
             ChannelId(1),
             Permissions::empty(),
             Permissions::SEND_MESSAGES,
-            PermissionOverwriteType::Member(UserId(2)),
+            &PermissionOverwriteType::Member(UserId(2)),
         );
         let actual = builder.request().expect("failed to create request");
 

@@ -55,15 +55,15 @@ impl<'a> UpdateChannelPermission<'a> {
 
     /// Specify this override to be for a member.
     pub fn member(self, user_id: impl Into<UserId>) -> UpdateChannelPermissionConfigured<'a> {
-        self.configure(PermissionOverwriteType::Member(user_id.into()))
+        self.configure(&PermissionOverwriteType::Member(user_id.into()))
     }
 
     /// Specify this override to be for a role.
     pub fn role(self, role_id: impl Into<RoleId>) -> UpdateChannelPermissionConfigured<'a> {
-        self.configure(PermissionOverwriteType::Role(role_id.into()))
+        self.configure(&PermissionOverwriteType::Role(role_id.into()))
     }
 
-    fn configure(self, target: PermissionOverwriteType) -> UpdateChannelPermissionConfigured<'a> {
+    fn configure(self, target: &PermissionOverwriteType) -> UpdateChannelPermissionConfigured<'a> {
         UpdateChannelPermissionConfigured::new(
             self.http,
             self.channel_id,
