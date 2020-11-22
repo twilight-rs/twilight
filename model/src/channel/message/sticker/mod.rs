@@ -32,6 +32,7 @@ pub struct Sticker {
     /// Hash of the preview asset, if it has one.
     pub preview_asset: Option<String>,
     /// CSV list of tags the sticker is assigned to, if any.
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub tags: Option<String>,
 }
 
