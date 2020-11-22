@@ -31,10 +31,10 @@ struct PermissionOverwriteData {
     kind: PermissionOverwriteTypeName,
 }
 
-#[derive(Debug, Deserialize_repr, Serialize_repr)]
+#[derive(Clone, Debug, Deserialize_repr, Eq, Hash, PartialEq, Serialize_repr)]
 #[repr(u8)]
 #[serde(rename_all = "snake_case")]
-enum PermissionOverwriteTypeName {
+pub enum PermissionOverwriteTypeName {
     Member = 1,
     Role = 0,
 }
@@ -93,8 +93,11 @@ impl Serialize for PermissionOverwrite {
 
 #[cfg(test)]
 mod tests {
-    use super::{PermissionOverwrite, PermissionOverwriteType, Permissions};
+    use super::{
+        PermissionOverwrite, PermissionOverwriteType, PermissionOverwriteTypeName, Permissions,
+    };
     use crate::id::UserId;
+    use serde_test::Token;
 
     #[test]
     fn test_overwrite() {
@@ -119,5 +122,11 @@ mod tests {
             overwrite
         );
         assert_eq!(serde_json::to_string_pretty(&overwrite).unwrap(), input);
+    }
+
+    #[test]
+    fn test_overwrite_type_name() {
+        serde_test::assert_tokens(&PermissionOverwriteTypeName::Member, &[Token::U8(1)]);
+        serde_test::assert_tokens(&PermissionOverwriteTypeName::Role, &[Token::U8(0)]);
     }
 }
