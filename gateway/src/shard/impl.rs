@@ -151,6 +151,7 @@ impl From<ConnectingError> for ShardStartError {
 pub struct Information {
     id: u64,
     latency: Latency,
+    session_id: Option<String>,
     seq: u64,
     stage: Stage,
 }
@@ -167,6 +168,11 @@ impl Information {
     /// information for the 5 most recent heartbeats.
     pub fn latency(&self) -> &Latency {
         &self.latency
+    }
+
+    /// Return the session ID of the connection.
+    pub fn session_id(&self) -> Option<String> {
+        self.session_id.clone()
     }
 
     /// Current sequence of the connection.
@@ -455,6 +461,7 @@ impl Shard {
         Ok(Information {
             id: self.config().shard()[0],
             latency: session.heartbeats.latency(),
+            session_id: session.id(),
             seq: session.seq(),
             stage: session.stage(),
         })
