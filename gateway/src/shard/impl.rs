@@ -170,9 +170,9 @@ impl Information {
         &self.latency
     }
 
-    /// Return the session ID of the connection.
-    pub fn session_id(&self) -> Option<String> {
-        self.session_id.clone()
+    /// Return an immutable reference to the session ID of the shard.
+    pub fn session_id(&self) -> Option<&str> {
+        self.session_id.as_deref()
     }
 
     /// Current sequence of the connection.
