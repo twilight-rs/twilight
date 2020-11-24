@@ -56,6 +56,21 @@ pub enum ShardScheme {
     /// For example, if Discord recommends 10 shards, then all 10 shards will be
     /// started.
     Auto,
+    /// Star a single bucket for very large bot sharding
+    Bucket {
+        /// The shard id of the first shard to start, this should be less than the concurrency.
+        /// If you for example have a concurrency of 16 and the bucket id is 0, it will start:
+        /// shard 0, 16, 32, 48 and so on.
+        bucket_id: u64,
+        /// The amount of concurrency allowed by discord, this is given by the [`max_concurrency`]
+        /// field on [`SessionStartLimit`].
+        ///
+        /// [`max_concurrency`]: ::twilight_model::gateway::SessionStartLimit.max_concurrency
+        /// [`SessionStartLimit`]: ::twilight_model::gateway::SessionStartLimit
+        concurrency: u64,
+        /// The total amount of shards to start, not only in this bucket but the complete total.
+        total: u64,
+    },
     /// Specifies to start a range of shards.
     ///
     /// # Examples

@@ -135,7 +135,7 @@ impl Cluster {
     }
 
     pub(super) async fn new_with_config(mut config: Config) -> Result<Self, ClusterStartError> {
-        let [from, to, total] = match config.shard_scheme() {
+        let [from, to, step, total] = match config.shard_scheme() {
             ShardScheme::Auto => {
                 let http = config.http_client();
 
@@ -145,9 +145,12 @@ impl Cluster {
                     .await
                     .map_err(|source| ClusterStartError::RetrievingGatewayInfo { source })?;
 
-                [0, gateway.shards - 1, gateway.shards]
+                [0, gateway.shards - 1, 1, gateway.shards]
             }
-            ShardScheme::Range { from, to, total } => [*from, *to, *total],
+            ShardScheme::Bucket { bucket_id, concurrency, total } => {
+                [*bucket_id, *total, *concurrency, *total]
+            }
+            ShardScheme::Range { from, to, total } => [*from, *to, 1, *total],
         };
 
         #[cfg(feature = "metrics")]
@@ -157,7 +160,7 @@ impl Cluster {
             metrics::gauge!("Cluster-Shard-Count", total.try_into().unwrap_or(-1));
         }
 
-        let shards = (from..=to)
+        let shards = (from..=to).step_by(step as usize)
             .map(|idx| {
                 let mut shard_config = config.shard_config().clone();
                 shard_config.shard = [idx, total];
