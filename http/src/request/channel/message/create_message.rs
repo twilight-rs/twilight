@@ -193,7 +193,6 @@ impl<'a> CreateMessage<'a> {
         Ok(self)
     }
 
-
     /// Attach a nonce to the message, for optimistic message sending.
     pub fn nonce(mut self, nonce: u64) -> Self {
         self.fields.nonce.replace(nonce);
