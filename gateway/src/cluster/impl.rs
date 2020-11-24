@@ -147,9 +147,11 @@ impl Cluster {
 
                 [0, gateway.shards - 1, 1, gateway.shards]
             }
-            ShardScheme::Bucket { bucket_id, concurrency, total } => {
-                [*bucket_id, *total, *concurrency, *total]
-            }
+            ShardScheme::Bucket {
+                bucket_id,
+                concurrency,
+                total,
+            } => [*bucket_id, *total, *concurrency, *total],
             ShardScheme::Range { from, to, total } => [*from, *to, 1, *total],
         };
 
@@ -160,7 +162,8 @@ impl Cluster {
             metrics::gauge!("Cluster-Shard-Count", total.try_into().unwrap_or(-1));
         }
 
-        let shards = (from..=to).step_by(step as usize)
+        let shards = (from..=to)
+            .step_by(step as usize)
             .map(|idx| {
                 let mut shard_config = config.shard_config().clone();
                 shard_config.shard = [idx, total];
