@@ -22,7 +22,7 @@ pub enum MessageType {
     ChannelFollowAdd = 12,
     GuildDiscoveryDisqualified = 14,
     GuildDiscoveryRequalified = 15,
-    /// Message is a inline reply
+    /// Message is an inline reply
     Reply = 19,
 }
 
