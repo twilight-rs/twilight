@@ -2,6 +2,17 @@
 
 Changelog for `twilight-gateway`.
 
+## [0.2.2] - 2020-11-24
+
+### Additions
+
+Add the shard's session ID to the information provided about shards
+(`Shard::info`) ([#612] - [@chamburr]).
+
+### Enhancements
+
+Clarify the cloning behavior of the `Cluster` and `Shard` ([#607] - [@vivian]).
+
 ## [0.2.1] - 2020-11-02
 
 Update the installation instructions to note version 0.2 instead of version
@@ -101,12 +112,15 @@ pulling in all of the gateway when creating shard queue brokers ([#537] - [@Gelb
 
 Initial release.
 
+[@chamburr]: https://github.com/chamburr
 [@dvtkrlbs]: https://github.com/dvtkrlbs
 [@Erk-]: https://github.com/Erk-
 [@Gelbpunkt]: https://github.com/Gelbpunkt
 [@nickelc]: https://github.com/nickelc
 [@vivian]: https://github.com/vivian
 
+[#612]: https://github.com/twilight-rs/twilight/pull/612
+[#607]: https://github.com/twilight-rs/twilight/pull/607
 [#588]: https://github.com/twilight-rs/twilight/pull/588
 [#568]: https://github.com/twilight-rs/twilight/pull/568
 [#560]: https://github.com/twilight-rs/twilight/pull/560
@@ -117,6 +131,7 @@ Initial release.
 [#515]: https://github.com/twilight-rs/twilight/pull/515
 [#512]: https://github.com/twilight-rs/twilight/pull/512
 
+[0.2.2]: https://github.com/twilight-rs/twilight/releases/tag/gateway-v0.2.2
 [0.2.1]: https://github.com/twilight-rs/twilight/releases/tag/gateway-v0.2.1
 [0.2.0]: https://github.com/twilight-rs/twilight/releases/tag/gateway-v0.2.0
 [0.2.0-beta.1]: https://github.com/twilight-rs/twilight/releases/tag/gateway-v0.2.0-beta.1
