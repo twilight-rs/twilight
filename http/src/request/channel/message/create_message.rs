@@ -110,6 +110,36 @@ impl<'a> CreateMessage<'a> {
         }
     }
 
+    /// Return a new [`AllowedMentionsBuilder`].
+    ///
+    /// [`AllowedMentionsBuilder`]: ../allowed_mentions/struct.AllowedMentionsBuilder.html
+    pub fn allowed_mentions(
+        self,
+    ) -> AllowedMentionsBuilder<'a, Unspecified, Unspecified, Unspecified> {
+        AllowedMentionsBuilder::for_builder(self)
+    }
+
+    /// Attach a new file to the message.
+    ///
+    /// The file is raw binary data. It can be an image, or any other kind of file.
+    pub fn attachment(mut self, name: impl Into<String>, file: impl Into<Body>) -> Self {
+        self.attachments.insert(name.into(), file.into());
+
+        self
+    }
+
+    /// Insert multiple attachments into the message.
+    pub fn attachments<N: Into<String>, F: Into<Body>>(
+        mut self,
+        attachments: impl IntoIterator<Item = (N, F)>,
+    ) -> Self {
+        for (name, file) in attachments {
+            self = self.attachment(name, file);
+        }
+
+        self
+    }
+
     /// Set the content of the message.
     ///
     /// The maximum length is 2000 UTF-16 characters.
@@ -163,35 +193,6 @@ impl<'a> CreateMessage<'a> {
         Ok(self)
     }
 
-    /// Return a new [`AllowedMentionsBuilder`].
-    ///
-    /// [`AllowedMentionsBuilder`]: ../allowed_mentions/struct.AllowedMentionsBuilder.html
-    pub fn allowed_mentions(
-        self,
-    ) -> AllowedMentionsBuilder<'a, Unspecified, Unspecified, Unspecified> {
-        AllowedMentionsBuilder::for_builder(self)
-    }
-
-    /// Attach a new file to the message.
-    ///
-    /// The file is raw binary data. It can be an image, or any other kind of file.
-    pub fn attachment(mut self, name: impl Into<String>, file: impl Into<Body>) -> Self {
-        self.attachments.insert(name.into(), file.into());
-
-        self
-    }
-
-    /// Insert multiple attachments into the message.
-    pub fn attachments<N: Into<String>, F: Into<Body>>(
-        mut self,
-        attachments: impl IntoIterator<Item = (N, F)>,
-    ) -> Self {
-        for (name, file) in attachments {
-            self = self.attachment(name, file);
-        }
-
-        self
-    }
 
     /// Attach a nonce to the message, for optimistic message sending.
     pub fn nonce(mut self, nonce: u64) -> Self {
@@ -209,20 +210,23 @@ impl<'a> CreateMessage<'a> {
         self
     }
 
-    /// Specify true if the message is TTS.
-    pub fn tts(mut self, tts: bool) -> Self {
-        self.fields.tts.replace(tts);
-
-        self
-    }
-
     /// Specify the ID of another message to create a reply to.
     pub fn reply(mut self, other: MessageId) -> Self {
         self.fields.message_reference.replace(MessageReference {
+            // This struct only needs the message_id, but as we also have
+            // access to the channel_id we send that, as it will be verified
+            // by Discord.
             channel_id: Some(self.channel_id),
             guild_id: None,
             message_id: Some(other),
         });
+
+        self
+    }
+
+    /// Specify true if the message is TTS.
+    pub fn tts(mut self, tts: bool) -> Self {
+        self.fields.tts.replace(tts);
 
         self
     }
