@@ -1,6 +1,6 @@
 use crate::request::prelude::*;
 use twilight_model::{
-    channel::permission_overwrite::{PermissionOverwriteType, PermissionOverwriteTypeName},
+    channel::permission_overwrite::{PermissionOverwriteTargetType, PermissionOverwriteType},
     guild::Permissions,
     id::ChannelId,
 };
@@ -10,7 +10,7 @@ struct UpdateChannelPermissionConfiguredFields {
     allow: Permissions,
     deny: Permissions,
     #[serde(rename = "type")]
-    kind: PermissionOverwriteTypeName,
+    kind: PermissionOverwriteTargetType,
 }
 
 /// Created when either `member` or `role` is called on a `DeleteChannelPermission` struct.
@@ -33,10 +33,10 @@ impl<'a> UpdateChannelPermissionConfigured<'a> {
     ) -> Self {
         let (name, target_id) = match target {
             PermissionOverwriteType::Member(user_id) => {
-                (PermissionOverwriteTypeName::Member, user_id.0)
+                (PermissionOverwriteTargetType::Member, user_id.0)
             }
             PermissionOverwriteType::Role(role_id) => {
-                (PermissionOverwriteTypeName::Role, role_id.0)
+                (PermissionOverwriteTargetType::Role, role_id.0)
             }
         };
 
@@ -101,7 +101,7 @@ mod tests {
     use super::{UpdateChannelPermissionConfigured, UpdateChannelPermissionConfiguredFields};
     use crate::{request::Request, routing::Route, Client};
     use twilight_model::{
-        channel::permission_overwrite::{PermissionOverwriteType, PermissionOverwriteTypeName},
+        channel::permission_overwrite::{PermissionOverwriteType, PermissionOverwriteTargetType},
         guild::Permissions,
         id::{ChannelId, UserId},
     };
@@ -121,7 +121,7 @@ mod tests {
         let body = crate::json_to_vec(&UpdateChannelPermissionConfiguredFields {
             allow: Permissions::empty(),
             deny: Permissions::SEND_MESSAGES,
-            kind: PermissionOverwriteTypeName::Member,
+            kind: PermissionOverwriteTargetType::Member,
         })
         .expect("failed to serialize payload");
         let route = Route::UpdatePermissionOverwrite {
