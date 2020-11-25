@@ -31,11 +31,14 @@ struct PermissionOverwriteData {
     kind: PermissionOverwriteTypeName,
 }
 
+/// Type of a permission overwrite target.
 #[derive(Clone, Debug, Deserialize_repr, Eq, Hash, PartialEq, Serialize_repr)]
 #[repr(u8)]
 #[serde(rename_all = "snake_case")]
 pub enum PermissionOverwriteTypeName {
+    /// Permission overwrite targets an individual member.
     Member = 1,
+    /// Permission overwrite targets an individual role.
     Role = 0,
 }
 
