@@ -1,6 +1,7 @@
 use super::{super::json, session::SessionSendError};
 use async_tungstenite::tungstenite::Message as TungsteniteMessage;
 use futures_channel::mpsc::UnboundedSender;
+use serde::{Deserialize, Serialize};
 use std::{
     collections::VecDeque,
     convert::TryInto,
@@ -18,12 +19,14 @@ use twilight_model::gateway::payload::Heartbeat;
 ///
 /// [`Shard`]: struct.Shard.html
 /// [`Shard::info`]: struct.Shard.html#method.info
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, Deserialize, Serialize)]
 pub struct Latency {
     average: Option<Duration>,
     heartbeats: u32,
     recent: VecDeque<Duration>,
+    #[serde(skip)]
     received: Option<Instant>,
+    #[serde(skip)]
     sent: Option<Instant>,
 }
 
