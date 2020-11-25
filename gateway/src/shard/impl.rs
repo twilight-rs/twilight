@@ -147,7 +147,7 @@ impl From<ConnectingError> for ShardStartError {
 
 /// Information about a shard, including its latency, current session sequence,
 /// and connection stage.
-#[derive(Clone, Debug)]
+#[derive(Serialize, Deserialize, Clone, Debug)]
 pub struct Information {
     id: u64,
     latency: Latency,
