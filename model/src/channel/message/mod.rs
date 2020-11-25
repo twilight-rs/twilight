@@ -51,6 +51,7 @@ pub struct Message {
     #[serde(rename = "message_reference")]
     pub reference: Option<MessageReference>,
     /// Stickers within the message.
+    #[serde(default)]
     pub stickers: Vec<Sticker>,
     pub timestamp: String,
     pub tts: bool,
