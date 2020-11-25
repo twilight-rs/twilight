@@ -2,6 +2,18 @@
 
 Changelog for `twilight-gateway`.
 
+## [0.2.3] - 2020-11-25
+
+### Additions
+
+Add `Deserialize, Serialize` to the shard information, shard latency, and
+connection stage types ([#621] - [@tbnritzdoge]).
+
+### Fixes
+
+Properly use the configured gateway URL in the cluster builder
+([#618] - [@chamburr]).
+
 ## [0.2.2] - 2020-11-24
 
 ### Additions
@@ -117,8 +129,11 @@ Initial release.
 [@Erk-]: https://github.com/Erk-
 [@Gelbpunkt]: https://github.com/Gelbpunkt
 [@nickelc]: https://github.com/nickelc
+[@tbnritzdoge]: https://github.com/tbnritzdoge
 [@vivian]: https://github.com/vivian
 
+[#618]: https://github.com/twilight-rs/twilight/pull/618
+[#621]: https://github.com/twilight-rs/twilight/pull/621
 [#612]: https://github.com/twilight-rs/twilight/pull/612
 [#607]: https://github.com/twilight-rs/twilight/pull/607
 [#588]: https://github.com/twilight-rs/twilight/pull/588
@@ -131,6 +146,7 @@ Initial release.
 [#515]: https://github.com/twilight-rs/twilight/pull/515
 [#512]: https://github.com/twilight-rs/twilight/pull/512
 
+[0.2.3]: https://github.com/twilight-rs/twilight/releases/tag/gateway-v0.2.3
 [0.2.2]: https://github.com/twilight-rs/twilight/releases/tag/gateway-v0.2.2
 [0.2.1]: https://github.com/twilight-rs/twilight/releases/tag/gateway-v0.2.1
 [0.2.0]: https://github.com/twilight-rs/twilight/releases/tag/gateway-v0.2.0
