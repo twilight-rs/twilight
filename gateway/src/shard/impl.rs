@@ -18,6 +18,7 @@ use futures_util::{
     stream::StreamExt,
 };
 use once_cell::sync::OnceCell;
+use serde::{Deserialize, Serialize};
 use std::{
     borrow::Cow,
     error::Error,
@@ -147,7 +148,7 @@ impl From<ConnectingError> for ShardStartError {
 
 /// Information about a shard, including its latency, current session sequence,
 /// and connection stage.
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, Deserialize, Serialize)]
 pub struct Information {
     id: u64,
     latency: Latency,
