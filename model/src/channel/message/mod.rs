@@ -245,6 +245,8 @@ mod tests {
                 Token::SeqEnd,
                 Token::Str("message_reference"),
                 Token::None,
+                Token::Str("referenced_message"),
+                Token::None,
                 Token::Str("stickers"),
                 Token::Seq { len: Some(1) },
                 Token::Struct {
@@ -274,8 +276,6 @@ mod tests {
                 Token::Str("foo,bar,baz"),
                 Token::StructEnd,
                 Token::SeqEnd,
-                Token::Str("referenced_message"),
-                Token::None,
                 Token::Str("timestamp"),
                 Token::Str("2020-02-02T02:02:02.020000+00:00"),
                 Token::Str("tts"),
