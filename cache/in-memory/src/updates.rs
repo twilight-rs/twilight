@@ -778,6 +778,7 @@ mod tests {
                 joined_at: None,
                 mute: false,
                 nick: Some("member nick".to_owned()),
+                premium_since: None,
                 roles: Vec::new(),
             }),
             mention_channels: Vec::new(),
