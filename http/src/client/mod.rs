@@ -1452,12 +1452,12 @@ impl Client {
         let mut builder = self.state.http.request(method.clone(), &url);
 
         if let Some(ref token) = self.state.token {
-            let value = HeaderValue::from_str(&token)
-                .map_err(|source| Error::CreatingHeader {
-                    #[allow(clippy::borrow_interior_mutable_const)]
-                    name: AUTHORIZATION.to_string(),
-                    source,
-                })?;
+            let value = HeaderValue::from_str(&token).map_err(|source| {
+                #[allow(clippy::borrow_interior_mutable_const)]
+                let name = AUTHORIZATION.to_string();
+
+                Error::CreatingHeader { name, source }
+            })?;
 
             builder = builder.header(AUTHORIZATION, value);
         }
