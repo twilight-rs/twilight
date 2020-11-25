@@ -24,6 +24,9 @@ use std::{
     fmt::{Display, Formatter, Result as FmtResult},
     sync::{atomic::Ordering, Arc},
 };
+use serde::{
+    Deserialize, Serialize,
+};
 use tokio::sync::watch::Receiver as WatchReceiver;
 use twilight_http::Error as HttpError;
 use twilight_model::gateway::event::Event;
@@ -147,7 +150,7 @@ impl From<ConnectingError> for ShardStartError {
 
 /// Information about a shard, including its latency, current session sequence,
 /// and connection stage.
-#[derive(Clone, Debug, Deserialize, Serialize)]
+#[derive(Serialize, Deserialize, Clone, Debug)]
 pub struct Information {
     id: u64,
     latency: Latency,
