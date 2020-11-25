@@ -44,7 +44,7 @@ impl Error for StageConversionError {}
 /// The current connection stage of a [`Shard`].
 ///
 /// [`Shard`]: ../struct.Shard.html
-#[derive(Serialize, Deserialize, Clone, Copy, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
+#[derive(Clone, Copy, Debug, Deserialize, Eq, Hash, Ord, PartialEq, PartialOrd, Serialize)]
 #[non_exhaustive]
 #[repr(u8)]
 pub enum Stage {
