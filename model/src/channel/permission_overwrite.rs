@@ -97,7 +97,7 @@ impl Serialize for PermissionOverwrite {
 #[cfg(test)]
 mod tests {
     use super::{
-        PermissionOverwrite, PermissionOverwriteType, PermissionOverwriteTargetType, Permissions,
+        PermissionOverwrite, PermissionOverwriteTargetType, PermissionOverwriteType, Permissions,
     };
     use crate::id::UserId;
     use serde_test::Token;

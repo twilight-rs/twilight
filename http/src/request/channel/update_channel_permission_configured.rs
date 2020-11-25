@@ -101,7 +101,7 @@ mod tests {
     use super::{UpdateChannelPermissionConfigured, UpdateChannelPermissionConfiguredFields};
     use crate::{request::Request, routing::Route, Client};
     use twilight_model::{
-        channel::permission_overwrite::{PermissionOverwriteType, PermissionOverwriteTargetType},
+        channel::permission_overwrite::{PermissionOverwriteTargetType, PermissionOverwriteType},
         guild::Permissions,
         id::{ChannelId, UserId},
     };
