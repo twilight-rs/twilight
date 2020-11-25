@@ -16,7 +16,7 @@ use crate::id::UserId;
 use serde::{Deserialize, Serialize};
 use serde_mappable_seq::Key;
 
-mod discriminator {
+pub(crate) mod discriminator {
     use serde::{
         de::{Deserializer, Error as DeError, Visitor},
         ser::Serializer,
