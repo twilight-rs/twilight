@@ -10,6 +10,7 @@
 //! [`Disconnected`]: enum.Stage.html#variant.Disconnected
 //! [`Stage`]: enum.Stage.html
 
+use serde::{Deserialize, Serialize};
 use std::{
     convert::TryFrom,
     error::Error,
@@ -43,7 +44,7 @@ impl Error for StageConversionError {}
 /// The current connection stage of a [`Shard`].
 ///
 /// [`Shard`]: ../struct.Shard.html
-#[derive(Clone, Copy, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
+#[derive(Serialize, Deserialize, Clone, Copy, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
 #[non_exhaustive]
 #[repr(u8)]
 pub enum Stage {

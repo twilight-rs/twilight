@@ -18,14 +18,12 @@ use futures_util::{
     stream::StreamExt,
 };
 use once_cell::sync::OnceCell;
+use serde::{Deserialize, Serialize};
 use std::{
     borrow::Cow,
     error::Error,
     fmt::{Display, Formatter, Result as FmtResult},
     sync::{atomic::Ordering, Arc},
-};
-use serde::{
-    Deserialize, Serialize,
 };
 use tokio::sync::watch::Receiver as WatchReceiver;
 use twilight_http::Error as HttpError;
