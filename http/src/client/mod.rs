@@ -16,7 +16,10 @@ use crate::{
     API_VERSION,
 };
 use bytes::Bytes;
-use reqwest::{header::HeaderValue, Body, Client as ReqwestClient, Method, Response, StatusCode};
+use reqwest::{
+    header::{HeaderValue, AUTHORIZATION, CONTENT_LENGTH, CONTENT_TYPE, USER_AGENT},
+    Body, Client as ReqwestClient, Method, Response, StatusCode,
+};
 use serde::de::DeserializeOwned;
 use std::{
     convert::TryFrom,
@@ -1449,12 +1452,14 @@ impl Client {
         let mut builder = self.state.http.request(method.clone(), &url);
 
         if let Some(ref token) = self.state.token {
-            let value = HeaderValue::from_str(&token).map_err(|source| Error::CreatingHeader {
-                name: "Authroization".to_owned(),
-                source,
+            let value = HeaderValue::from_str(&token).map_err(|source| {
+                #[allow(clippy::borrow_interior_mutable_const)]
+                let name = AUTHORIZATION.to_string();
+
+                Error::CreatingHeader { name, source }
             })?;
 
-            builder = builder.header("Authorization", value);
+            builder = builder.header(AUTHORIZATION, value);
         }
 
         if let Some(form) = form {
@@ -1462,11 +1467,11 @@ impl Client {
         } else if let Some(bytes) = body {
             let len = bytes.len();
             builder = builder.body(Body::from(bytes));
-            builder = builder.header("content-length", len);
+            builder = builder.header(CONTENT_LENGTH, len);
             let content_type = HeaderValue::from_static("application/json");
-            builder = builder.header("Content-Type", content_type);
+            builder = builder.header(CONTENT_TYPE, content_type);
         } else if method == Method::PUT || method == Method::POST || method == Method::PATCH {
-            builder = builder.header("content-length", 0);
+            builder = builder.header(CONTENT_LENGTH, 0);
         }
 
         let user_agent = HeaderValue::from_static(concat!(
@@ -1476,7 +1481,7 @@ impl Client {
             env!("CARGO_PKG_VERSION"),
             ") Twilight-rs",
         ));
-        builder = builder.header("User-Agent", user_agent);
+        builder = builder.header(USER_AGENT, user_agent);
 
         if let Some(req_headers) = req_headers {
             builder = builder.headers(req_headers);
