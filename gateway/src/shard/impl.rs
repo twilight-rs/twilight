@@ -197,7 +197,7 @@ impl Information {
     }
 }
 /// Details to resume a gateway session.
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, Deserialize, Serialize)]
 pub struct ResumeSession {
     /// ID of the session being resumed.
     pub session_id: String,
