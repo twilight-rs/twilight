@@ -2,6 +2,13 @@
 
 Changelog for `twilight-gateway`.
 
+## [0.2.4] - 2020-11-28
+
+### Additions
+
+Add serde `Deserialize` and `Serialize` derives to `shard::ResumeSession`
+([#623] - [@tbnritzdoge]).
+
 ## [0.2.3] - 2020-11-25
 
 ### Additions
@@ -132,8 +139,9 @@ Initial release.
 [@tbnritzdoge]: https://github.com/tbnritzdoge
 [@vivian]: https://github.com/vivian
 
-[#618]: https://github.com/twilight-rs/twilight/pull/618
+[#623]: https://github.com/twilight-rs/twilight/pull/623
 [#621]: https://github.com/twilight-rs/twilight/pull/621
+[#618]: https://github.com/twilight-rs/twilight/pull/618
 [#612]: https://github.com/twilight-rs/twilight/pull/612
 [#607]: https://github.com/twilight-rs/twilight/pull/607
 [#588]: https://github.com/twilight-rs/twilight/pull/588
@@ -146,6 +154,7 @@ Initial release.
 [#515]: https://github.com/twilight-rs/twilight/pull/515
 [#512]: https://github.com/twilight-rs/twilight/pull/512
 
+[0.2.4]: https://github.com/twilight-rs/twilight/releases/tag/gateway-v0.2.4
 [0.2.3]: https://github.com/twilight-rs/twilight/releases/tag/gateway-v0.2.3
 [0.2.2]: https://github.com/twilight-rs/twilight/releases/tag/gateway-v0.2.2
 [0.2.1]: https://github.com/twilight-rs/twilight/releases/tag/gateway-v0.2.1
