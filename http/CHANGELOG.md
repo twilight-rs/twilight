@@ -2,6 +2,48 @@
 
 Changelog for `twilight-http`.
 
+## [0.1.9] - 2020-11-28
+
+While v0.1 will be maintained until the deprecation of version 6 of the Discord
+API, we recommend upgrading to v0.2.
+
+### Additions
+
+Handle service unavailability (503) errors, returning a new error variant when
+encountered ([#592] - [@vivian]).
+
+Support 3 new HTTP error codes ([#594] - [@vivian]):
+
+- 20022: This message cannot be edited due to announcement rate limits
+- 50024: Cannot execute action on this channel type
+- 50033: Invalid Recipient(s)
+
+Take note of invalid tokens, short-circuiting attempts to execute in the
+future. This will cause the client to return an `Unauthorized` error variant
+when an Unauthorized (401) status code is encountered in order to prevent API
+bans ([#597] - [@vivian]).
+
+Add an `API_VERSION` constant to the root of the library, which is the version
+of the Discord HTTP API in use ([#598] - [@AEnterprise]).
+
+Support Message Stickers by adding HTTP error code variant 50'081 "Invalid
+Sticker Sent" ([#608] - [@vivian]).
+
+### Fixes
+
+Properly handle optional messages in the Execute Webhook request when `wait`
+is `false` ([#599] - [@Erk-]).
+
+Serialize guild creation role permissions to the correct field name
+"permissions" instead of "permissions_new" ([#602] - [@sam-kirby]).
+
+Use Reqwest's header name constants, which fixes the name of a hardcoded header
+in an error ([#620] - [@vivian]).
+
+### Enhancements
+
+Clarify the cloning behavior of the `Client` ([#607] - [@vivian]).
+
 ## [0.1.8] - 2020-11-07
 
 This release includes a few bugfixes. While v0.1 will be maintained until the
@@ -100,7 +142,17 @@ Initial release.
 [@Erk-]: https://github.com/Erk-
 [@Gelbpunkt]: https://github.com/Gelbpunkt
 [@nickelc]: https://github.com/nickelc
+[@sam-kirby]: https://github.com/sam-kirby
+[@vivian]: https://github.com/vivian
 
+[#620]: https://github.com/twilight-rs/twilight/pull/620
+[#607]: https://github.com/twilight-rs/twilight/pull/607
+[#602]: https://github.com/twilight-rs/twilight/pull/602
+[#599]: https://github.com/twilight-rs/twilight/pull/599
+[#598]: https://github.com/twilight-rs/twilight/pull/598
+[#597]: https://github.com/twilight-rs/twilight/pull/597
+[#594]: https://github.com/twilight-rs/twilight/pull/594
+[#592]: https://github.com/twilight-rs/twilight/pull/592
 [#563]: https://github.com/twilight-rs/twilight/pull/563
 [#556]: https://github.com/twilight-rs/twilight/pull/556
 [#550]: https://github.com/twilight-rs/twilight/pull/550
