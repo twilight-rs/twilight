@@ -2,6 +2,26 @@
 
 Changelog for `twilight-model`.
 
+## [0.1.6] - 2020-11-28
+
+While v0.1 will be maintained until the deprecation of version 6 of the Discord
+API, we recommend upgrading to v0.2.
+
+### Additions
+
+Support the Message Stickers feature ([#608], [#622] - [@chamburr], [@vivian]).
+
+Add gateway and voice close codes and voice opcodes ([#586] - [@chamburr]).
+
+### Enhancements
+
+Document gateway opcode variants ([#586] - [@chamburr]).
+
+### Fixes
+
+Create a new trimmed down channel type for embedded use in invites
+([#601] - [@sam-kirby]).
+
 ## [0.1.5] - 2020-11-07
 
 This release includes a few bugfixes. While v0.1 will be maintained until the
@@ -45,11 +65,17 @@ Channels API feature ([#556] - [@Gelbpunkt]).
 Initial release.
 
 [@7596ff]: https://github.com/7596ff
+[@chamburr]: https://github.com/chamburr
 [@coadler]: https://github.com/coadler
 [@Erk-]: https://github.com/Erk-
 [@Gelbpunkt]: https://github.com/Gelbpunkt
+[@sam-kirby]: https://github.com/sam-kirby
 [@vivian]: https://github.com/vivian
 
+[#622]: https://github.com/twilight-rs/twilight/pull/622
+[#608]: https://github.com/twilight-rs/twilight/pull/608
+[#601]: https://github.com/twilight-rs/twilight/pull/601
+[#586]: https://github.com/twilight-rs/twilight/pull/586
 [#582]: https://github.com/twilight-rs/twilight/pull/582
 [#556]: https://github.com/twilight-rs/twilight/pull/556
 [#526]: https://github.com/twilight-rs/twilight/pull/526
