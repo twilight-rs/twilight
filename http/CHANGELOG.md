@@ -34,8 +34,6 @@ Sticker Sent" ([#608] - [@vivian]).
 Properly handle optional messages in the Execute Webhook request when `wait`
 is `false` ([#599] - [@Erk-]).
 
-Serialize guild creation role permissions to the correct field name
-"permissions" instead of "permissions_new" ([#602] - [@sam-kirby]).
 
 Use Reqwest's header name constants, which fixes the name of a hardcoded header
 in an error ([#620] - [@vivian]).
@@ -142,12 +140,10 @@ Initial release.
 [@Erk-]: https://github.com/Erk-
 [@Gelbpunkt]: https://github.com/Gelbpunkt
 [@nickelc]: https://github.com/nickelc
-[@sam-kirby]: https://github.com/sam-kirby
 [@vivian]: https://github.com/vivian
 
 [#620]: https://github.com/twilight-rs/twilight/pull/620
 [#607]: https://github.com/twilight-rs/twilight/pull/607
-[#602]: https://github.com/twilight-rs/twilight/pull/602
 [#599]: https://github.com/twilight-rs/twilight/pull/599
 [#598]: https://github.com/twilight-rs/twilight/pull/598
 [#597]: https://github.com/twilight-rs/twilight/pull/597
