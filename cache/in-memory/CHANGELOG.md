@@ -2,6 +2,19 @@
 
 Changelog for `twilight-cache-inmemory`.
 
+## [0.1.5] - 2020-11-28
+
+While v0.1 will be maintained until the deprecation of version 6 of the Discord
+API, we recommend upgrading to v0.2.
+
+### Additions
+
+Cache members and users received from new messages ([#590] - [@MaxOhn]).
+
+### Enhancements
+
+Don't create useless HashSets in internal functions ([#591] - [@MaxOhn]).
+
 ## [0.1.4] - 2020-11-07
 
 This release includes a few bugfixes. While v0.1 will be maintained until the
@@ -49,8 +62,11 @@ Initial release.
 [@7596ff]: https://github.com/7596ff
 [@DusterTheFirst]: https://github.com/DusterTheFirst
 [@Erk-]: https://github.com/Erk-
+[@MaxOhn]: https://github.com/MaxOhn
 [@nickelc]: https://github.com/nickelc
 
+[#591]: https://github.com/twilight-rs/twilight/pull/591
+[#590]: https://github.com/twilight-rs/twilight/pull/590
 [#582]: https://github.com/twilight-rs/twilight/pull/582
 [#576]: https://github.com/twilight-rs/twilight/pull/576
 [#557]: https://github.com/twilight-rs/twilight/pull/557
@@ -59,6 +75,7 @@ Initial release.
 [#540]: https://github.com/twilight-rs/twilight/pull/540
 [#528]: https://github.com/twilight-rs/twilight/pull/528
 
+[0.1.5]: https://github.com/twilight-rs/twilight/releases/tag/cache-in-memory-v0.1.5
 [0.1.4]: https://github.com/twilight-rs/twilight/releases/tag/cache-in-memory-v0.1.4
 [0.1.3]: https://github.com/twilight-rs/twilight/releases/tag/cache-in-memory-v0.1.3
 [0.1.2]: https://github.com/twilight-rs/twilight/releases/tag/cache-in-memory-v0.1.2
