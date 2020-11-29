@@ -2,6 +2,27 @@
 
 Changelog for `twilight-model`.
 
+## [0.2.4] - 2020-11-29
+
+### Additions
+
+Expose `channel::permission_overwrite::PermissionOverwriteTargetType`, which is
+a repr enum mapping the "role" and "member" variants to their integer values
+([#614] - [@vivian]).
+
+Add message type variant `Reply` mapping to a value of 19. Additionally, add
+`Message::referenced_message`, containing the message replied to, if any
+([#604] - [@Erk-]).
+
+### Fixes
+
+Correct the name of `IdentityInfo::compression` to `compress`
+([#624] - [@chamburr]).
+
+### Changes
+
+`MessageReference::channel_id` is now optional ([#604] - [@Erk-]).
+
 ## [0.2.3] - 2020-11-25
 
 ### Additions
@@ -164,8 +185,11 @@ Initial release.
 [@sam-kirby]: https://github.com/sam-kirby
 [@vivian]: https://github.com/vivian
 
+[#624]: https://github.com/twilight-rs/twilight/pull/624
 [#622]: https://github.com/twilight-rs/twilight/pull/622
+[#614]: https://github.com/twilight-rs/twilight/pull/614
 [#608]: https://github.com/twilight-rs/twilight/pull/608
+[#604]: https://github.com/twilight-rs/twilight/pull/604
 [#601]: https://github.com/twilight-rs/twilight/pull/601
 [#586]: https://github.com/twilight-rs/twilight/pull/586
 [#579]: https://github.com/twilight-rs/twilight/pull/579
@@ -182,6 +206,7 @@ Initial release.
 
 [0.2.0-beta.1:app integrations]: https://github.com/discord/discord-api-docs/commit/a926694e2f8605848bda6b57d21c8817559e5cec
 
+[0.2.4]: https://github.com/twilight-rs/twilight/releases/tag/model-v0.2.4
 [0.2.3]: https://github.com/twilight-rs/twilight/releases/tag/model-v0.2.3
 [0.2.2]: https://github.com/twilight-rs/twilight/releases/tag/model-v0.2.2
 [0.2.1]: https://github.com/twilight-rs/twilight/releases/tag/model-v0.2.1
