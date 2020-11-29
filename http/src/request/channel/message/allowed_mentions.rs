@@ -34,6 +34,7 @@ pub struct AllowedMentions {
     parse: Vec<ParseTypes>,
     users: Option<Vec<UserId>>,
     roles: Option<Vec<RoleId>>,
+    replied_user: bool,
 }
 
 pub trait VisitAllowedMentionsEveryone: Sized {
@@ -101,6 +102,7 @@ pub struct AllowedMentionsBuilder<'a, E, U, R> {
     e: E,
     u: U,
     r: R,
+    reply: bool,
 }
 
 impl<'a> AllowedMentionsBuilder<'a, Unspecified, Unspecified, Unspecified> {
@@ -110,6 +112,7 @@ impl<'a> AllowedMentionsBuilder<'a, Unspecified, Unspecified, Unspecified> {
             e: Unspecified,
             u: Unspecified,
             r: Unspecified,
+            reply: false,
         }
     }
 
@@ -120,6 +123,7 @@ impl<'a> AllowedMentionsBuilder<'a, Unspecified, Unspecified, Unspecified> {
             e: Unspecified,
             u: Unspecified,
             r: Unspecified,
+            reply: false,
         }
     }
 }
@@ -127,6 +131,21 @@ impl<'a> AllowedMentionsBuilder<'a, Unspecified, Unspecified, Unspecified> {
 impl<'a> Default for AllowedMentionsBuilder<'a, Unspecified, Unspecified, Unspecified> {
     fn default() -> Self {
         Self::new()
+    }
+}
+
+impl<'a, E, U, R> AllowedMentionsBuilder<'a, E, U, R> {
+    /// Whether to mention the user being replied to.
+    ///
+    /// Defaults to false.
+    pub fn replied_user(self, reply: bool) -> AllowedMentionsBuilder<'a, E, U, R> {
+        AllowedMentionsBuilder {
+            create_message: self.create_message,
+            e: self.e,
+            u: self.u,
+            r: self.r,
+            reply,
+        }
     }
 }
 
@@ -138,6 +157,7 @@ impl<'a, U, R> AllowedMentionsBuilder<'a, Unspecified, U, R> {
             e: Parsed,
             u: self.u,
             r: self.r,
+            reply: self.reply,
         }
     }
 }
@@ -150,6 +170,7 @@ impl<'a, E, R> AllowedMentionsBuilder<'a, E, Unspecified, R> {
             e: self.e,
             u: Parsed,
             r: self.r,
+            reply: self.reply,
         }
     }
 
@@ -164,6 +185,7 @@ impl<'a, E, R> AllowedMentionsBuilder<'a, E, Unspecified, R> {
             e: self.e,
             u: ExplicitUser(vec),
             r: self.r,
+            reply: self.reply,
         }
     }
 }
@@ -176,6 +198,7 @@ impl<'a, E, U> AllowedMentionsBuilder<'a, E, U, Unspecified> {
             e: self.e,
             u: self.u,
             r: Parsed,
+            reply: self.reply,
         }
     }
 
@@ -190,6 +213,7 @@ impl<'a, E, U> AllowedMentionsBuilder<'a, E, U, Unspecified> {
             e: self.e,
             u: self.u,
             r: ExplicitRole(vec),
+            reply: self.reply,
         }
     }
 }
@@ -206,6 +230,7 @@ impl<'a, E, U> AllowedMentionsBuilder<'a, E, U, ExplicitRole> {
             e: self.e,
             u: self.u,
             r: self.r,
+            reply: self.reply,
         }
     }
 }
@@ -222,6 +247,7 @@ impl<'a, E, R> AllowedMentionsBuilder<'a, E, ExplicitUser, R> {
             e: self.e,
             u: self.u,
             r: self.r,
+            reply: self.reply,
         }
     }
 }
@@ -243,6 +269,7 @@ impl<
                 self.e.visit(&mut m);
                 self.u.visit(&mut m);
                 self.r.visit(&mut m);
+                m.replied_user = self.reply;
                 builder.fields.allowed_mentions.replace(m);
                 builder
             }
@@ -262,6 +289,7 @@ impl<
         self.e.visit(&mut m);
         self.u.visit(&mut m);
         self.r.visit(&mut m);
+        m.replied_user = self.reply;
         m
     }
 }

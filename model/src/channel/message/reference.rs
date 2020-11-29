@@ -3,7 +3,7 @@ use serde::{Deserialize, Serialize};
 
 #[derive(Clone, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
 pub struct MessageReference {
-    pub channel_id: ChannelId,
+    pub channel_id: Option<ChannelId>,
     pub guild_id: Option<GuildId>,
     pub message_id: Option<MessageId>,
 }
@@ -16,7 +16,7 @@ mod tests {
     #[test]
     fn test_minimal() {
         let value = MessageReference {
-            channel_id: ChannelId(1),
+            channel_id: Some(ChannelId(1)),
             guild_id: None,
             message_id: None,
         };
@@ -29,6 +29,7 @@ mod tests {
                     len: 3,
                 },
                 Token::Str("channel_id"),
+                Token::Some,
                 Token::NewtypeStruct { name: "ChannelId" },
                 Token::Str("1"),
                 Token::Str("guild_id"),
@@ -43,7 +44,7 @@ mod tests {
     #[test]
     fn test_complete() {
         let value = MessageReference {
-            channel_id: ChannelId(1),
+            channel_id: Some(ChannelId(1)),
             guild_id: Some(GuildId(2)),
             message_id: Some(MessageId(3)),
         };
@@ -56,6 +57,7 @@ mod tests {
                     len: 3,
                 },
                 Token::Str("channel_id"),
+                Token::Some,
                 Token::NewtypeStruct { name: "ChannelId" },
                 Token::Str("1"),
                 Token::Str("guild_id"),

@@ -10,8 +10,8 @@ use std::{
     fmt::{Display, Formatter, Result as FmtResult},
 };
 use twilight_model::{
-    channel::{embed::Embed, Message},
-    id::ChannelId,
+    channel::{embed::Embed, message::MessageReference, Message},
+    id::{ChannelId, MessageId},
 };
 
 /// The error created when a messsage can not be created as configured.
@@ -57,13 +57,15 @@ pub(crate) struct CreateMessageFields {
     #[serde(skip_serializing_if = "Option::is_none")]
     embed: Option<Embed>,
     #[serde(skip_serializing_if = "Option::is_none")]
+    message_reference: Option<MessageReference>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     nonce: Option<u64>,
     #[serde(skip_serializing_if = "Option::is_none")]
     payload_json: Option<Vec<u8>>,
     #[serde(skip_serializing_if = "Option::is_none")]
-    tts: Option<bool>,
-    #[serde(skip_serializing_if = "Option::is_none")]
     pub(crate) allowed_mentions: Option<AllowedMentions>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    tts: Option<bool>,
 }
 
 /// Send a message to a channel.
@@ -106,6 +108,36 @@ impl<'a> CreateMessage<'a> {
             fut: None,
             http,
         }
+    }
+
+    /// Return a new [`AllowedMentionsBuilder`].
+    ///
+    /// [`AllowedMentionsBuilder`]: ../allowed_mentions/struct.AllowedMentionsBuilder.html
+    pub fn allowed_mentions(
+        self,
+    ) -> AllowedMentionsBuilder<'a, Unspecified, Unspecified, Unspecified> {
+        AllowedMentionsBuilder::for_builder(self)
+    }
+
+    /// Attach a new file to the message.
+    ///
+    /// The file is raw binary data. It can be an image, or any other kind of file.
+    pub fn attachment(mut self, name: impl Into<String>, file: impl Into<Body>) -> Self {
+        self.attachments.insert(name.into(), file.into());
+
+        self
+    }
+
+    /// Insert multiple attachments into the message.
+    pub fn attachments<N: Into<String>, F: Into<Body>>(
+        mut self,
+        attachments: impl IntoIterator<Item = (N, F)>,
+    ) -> Self {
+        for (name, file) in attachments {
+            self = self.attachment(name, file);
+        }
+
+        self
     }
 
     /// Set the content of the message.
@@ -161,36 +193,6 @@ impl<'a> CreateMessage<'a> {
         Ok(self)
     }
 
-    /// Return a new [`AllowedMentionsBuilder`].
-    ///
-    /// [`AllowedMentionsBuilder`]: ../allowed_mentions/struct.AllowedMentionsBuilder.html
-    pub fn allowed_mentions(
-        self,
-    ) -> AllowedMentionsBuilder<'a, Unspecified, Unspecified, Unspecified> {
-        AllowedMentionsBuilder::for_builder(self)
-    }
-
-    /// Attach a new file to the message.
-    ///
-    /// The file is raw binary data. It can be an image, or any other kind of file.
-    pub fn attachment(mut self, name: impl Into<String>, file: impl Into<Body>) -> Self {
-        self.attachments.insert(name.into(), file.into());
-
-        self
-    }
-
-    /// Insert multiple attachments into the message.
-    pub fn attachments<N: Into<String>, F: Into<Body>>(
-        mut self,
-        attachments: impl IntoIterator<Item = (N, F)>,
-    ) -> Self {
-        for (name, file) in attachments {
-            self = self.attachment(name, file);
-        }
-
-        self
-    }
-
     /// Attach a nonce to the message, for optimistic message sending.
     pub fn nonce(mut self, nonce: u64) -> Self {
         self.fields.nonce.replace(nonce);
@@ -203,6 +205,20 @@ impl<'a> CreateMessage<'a> {
     /// [Discord Docs/Create Message]: https://discord.com/developers/docs/resources/channel#create-message-params
     pub fn payload_json(mut self, payload_json: impl Into<Vec<u8>>) -> Self {
         self.fields.payload_json.replace(payload_json.into());
+
+        self
+    }
+
+    /// Specify the ID of another message to create a reply to.
+    pub fn reply(mut self, other: MessageId) -> Self {
+        self.fields.message_reference.replace(MessageReference {
+            // This struct only needs the message_id, but as we also have
+            // access to the channel_id we send that, as it will be verified
+            // by Discord.
+            channel_id: Some(self.channel_id),
+            guild_id: None,
+            message_id: Some(other),
+        });
 
         self
     }

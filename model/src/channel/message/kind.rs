@@ -22,6 +22,8 @@ pub enum MessageType {
     ChannelFollowAdd = 12,
     GuildDiscoveryDisqualified = 14,
     GuildDiscoveryRequalified = 15,
+    /// Message is an inline reply.
+    Reply = 19,
 }
 
 impl TryFrom<u8> for MessageType {
@@ -44,6 +46,7 @@ impl TryFrom<u8> for MessageType {
             12 => MessageType::ChannelFollowAdd,
             14 => MessageType::GuildDiscoveryDisqualified,
             15 => MessageType::GuildDiscoveryRequalified,
+            19 => MessageType::Reply,
             _ => return Err(ConversionError::MessageType(value)),
         };
 
@@ -74,6 +77,7 @@ mod tests {
         serde_test::assert_tokens(&MessageType::ChannelFollowAdd, &[Token::U8(12)]);
         serde_test::assert_tokens(&MessageType::GuildDiscoveryDisqualified, &[Token::U8(14)]);
         serde_test::assert_tokens(&MessageType::GuildDiscoveryRequalified, &[Token::U8(15)]);
+        serde_test::assert_tokens(&MessageType::Reply, &[Token::U8(19)]);
     }
 
     #[test]
@@ -129,6 +133,7 @@ mod tests {
             MessageType::try_from(15).unwrap(),
             MessageType::GuildDiscoveryRequalified
         );
+        assert_eq!(MessageType::try_from(19).unwrap(), MessageType::Reply);
         assert_eq!(
             MessageType::try_from(250).unwrap_err(),
             ConversionError::MessageType(250)
