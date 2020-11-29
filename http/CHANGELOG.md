@@ -2,6 +2,19 @@
 
 Changelog for `twilight-http`.
 
+## [0.2.5] - 2020-11-29
+
+### Additions
+
+Support inline replies by adding `AllowedMentionsBuilder::replied_user` to
+determine whether to mention the user being replied to and
+`CreateMessage::reply` to specify the message to reply to ([#604] - [@Erk-]).
+
+### Fixes
+
+Use integers instead of strings for target types in the
+`UpdateChannelPermission` request ([#614] - [@vivian]).
+
 ## [0.2.4] - 2020-11-25
 
 ### Additions
@@ -206,8 +219,10 @@ Initial release.
 [@vivian]: https://github.com/vivian
 
 [#620]: https://github.com/twilight-rs/twilight/pull/620
+[#614]: https://github.com/twilight-rs/twilight/pull/614
 [#608]: https://github.com/twilight-rs/twilight/pull/608
 [#607]: https://github.com/twilight-rs/twilight/pull/607
+[#604]: https://github.com/twilight-rs/twilight/pull/604
 [#602]: https://github.com/twilight-rs/twilight/pull/602
 [#599]: https://github.com/twilight-rs/twilight/pull/599
 [#598]: https://github.com/twilight-rs/twilight/pull/598
