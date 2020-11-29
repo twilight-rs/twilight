@@ -2,6 +2,14 @@
 
 Changelog for `twilight-gateway`.
 
+## [0.2.5] - 2020-11-29
+
+### Misc.
+
+Use the renamed
+`twilight_model::gateway::payload::identify::IdentityInfo::compress` model
+field ([#624] - [@chamburr]).
+
 ## [0.2.4] - 2020-11-28
 
 ### Additions
@@ -139,6 +147,7 @@ Initial release.
 [@tbnritzdoge]: https://github.com/tbnritzdoge
 [@vivian]: https://github.com/vivian
 
+[#624]: https://github.com/twilight-rs/twilight/pull/624
 [#623]: https://github.com/twilight-rs/twilight/pull/623
 [#621]: https://github.com/twilight-rs/twilight/pull/621
 [#618]: https://github.com/twilight-rs/twilight/pull/618
@@ -154,6 +163,7 @@ Initial release.
 [#515]: https://github.com/twilight-rs/twilight/pull/515
 [#512]: https://github.com/twilight-rs/twilight/pull/512
 
+[0.2.5]: https://github.com/twilight-rs/twilight/releases/tag/gateway-v0.2.5
 [0.2.4]: https://github.com/twilight-rs/twilight/releases/tag/gateway-v0.2.4
 [0.2.3]: https://github.com/twilight-rs/twilight/releases/tag/gateway-v0.2.3
 [0.2.2]: https://github.com/twilight-rs/twilight/releases/tag/gateway-v0.2.2
