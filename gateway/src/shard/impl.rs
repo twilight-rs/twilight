@@ -399,6 +399,7 @@ impl Shard {
                 code: code.into(),
                 reason: "".into(),
             }));
+            session.stop_heartbeater();
 
             Ok(())
         } else {
