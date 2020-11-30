@@ -1,13 +1,15 @@
 mod connection;
 mod connection_visibility;
 mod current_user;
+mod current_user_guild;
 mod flags;
 mod premium_type;
 mod profile;
 
 pub use self::{
     connection::Connection, connection_visibility::ConnectionVisibility, current_user::CurrentUser,
-    flags::UserFlags, premium_type::PremiumType, profile::UserProfile,
+    current_user_guild::CurrentUserGuild, flags::UserFlags, premium_type::PremiumType,
+    profile::UserProfile,
 };
 
 use crate::id::UserId;
