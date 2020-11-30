@@ -380,6 +380,32 @@ impl Shard {
         Ok(())
     }
 
+    /// Send a close code to Discord causing a resume or a reconnect.
+    ///
+    /// # Recommended clothes codes
+    ///
+    /// | Re-identify | Resume |
+    /// | ----------- | ------ |
+    /// |        1000 |   1012 |
+    ///
+    /// # Errors
+    ///
+    /// Returns a [`SessionInactiveError`] if the shard's session is inactive.
+    ///
+    /// [`SessionInactiveError`]: struct.SessionInactiveError.html
+    pub fn send_close_code(&self, code: u16) -> Result<(), CommandError> {
+        if let Ok(session) = self.session() {
+            let _ = session.close(Some(CloseFrame {
+                code: code.into(),
+                reason: "".into(),
+            }));
+
+            Ok(())
+        } else {
+            Err(CommandError::SessionInactive { source: SessionInactiveError })
+        }
+    }
+
     /// Create a new stream of events from the shard.
     ///
     /// There can be multiple streams of events. All events will be broadcast to

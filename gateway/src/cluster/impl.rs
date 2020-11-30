@@ -358,6 +358,28 @@ impl Cluster {
             .map_err(|source| ClusterCommandError::Sending { source })
     }
 
+    /// Send a close code to Discord causing a resume or a reconnect.
+    ///
+    /// # Recommended clothes codes
+    ///
+    /// | Re-identify | Resume |
+    /// | ----------- | ------ |
+    /// |        1000 |   1012 |
+    ///
+    /// # Errors
+    ///
+    /// Returns a [`SessionInactiveError`] if the shard's session is inactive.
+    ///
+    /// [`SessionInactiveError`]: struct.SessionInactiveError.html
+    pub fn send_close_code(&self, id: u64, code: u16) -> Result<(), ClusterCommandError> {
+        let shard = self
+            .shard(id)
+            .ok_or(ClusterCommandError::ShardNonexistent { id })?;
+
+        shard.
+            send_close_code(code).map_err(|source| ClusterCommandError::Sending { source })
+    }
+    
     /// Return a stream of events from all shards managed by this Cluster.
     ///
     /// Each item in the stream contains both the shard's ID and the event
