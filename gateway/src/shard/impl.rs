@@ -382,7 +382,7 @@ impl Shard {
 
     /// Send a close code to Discord causing a resume or a reconnect.
     ///
-    /// # Recommended clothes codes
+    /// # Recommended close codes
     ///
     /// | Re-identify | Resume |
     /// | ----------- | ------ |
