@@ -376,10 +376,11 @@ impl Cluster {
             .shard(id)
             .ok_or(ClusterCommandError::ShardNonexistent { id })?;
 
-        shard.
-            send_close_code(code).map_err(|source| ClusterCommandError::Sending { source })
+        shard
+            .send_close_code(code)
+            .map_err(|source| ClusterCommandError::Sending { source })
     }
-    
+
     /// Return a stream of events from all shards managed by this Cluster.
     ///
     /// Each item in the stream contains both the shard's ID and the event

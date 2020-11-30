@@ -402,7 +402,9 @@ impl Shard {
 
             Ok(())
         } else {
-            Err(CommandError::SessionInactive { source: SessionInactiveError })
+            Err(CommandError::SessionInactive {
+                source: SessionInactiveError,
+            })
         }
     }
 
