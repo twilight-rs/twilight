@@ -39,7 +39,7 @@ struct AddGuildMemberFields {
 
 pub struct AddGuildMember<'a> {
     fields: AddGuildMemberFields,
-    fut: Option<Pending<'a, Option<Member>>>,
+    fut: Option<PendingOption<'a>>,
     guild_id: GuildId,
     http: &'a Client,
     user_id: UserId,
@@ -114,10 +114,10 @@ impl<'a> AddGuildMember<'a> {
             },
         ));
 
-        self.fut.replace(Box::pin(self.http.request(request)));
+        self.fut.replace(Box::pin(self.http.request_bytes(request)));
 
         Ok(())
     }
 }
 
-poll_req!(AddGuildMember<'_>, Option<Member>);
+poll_req!(opt, AddGuildMember<'_>, Member);
