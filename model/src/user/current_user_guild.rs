@@ -4,7 +4,8 @@ use serde::{Deserialize, Serialize};
 
 /// Information about a guild the current user is in.
 ///
-/// This is a partial guild used for the `Get Current User Guilds` endpoint. Refer to the [Discord documentation] for more information.
+/// This is a partial guild used for the `Get Current User Guilds` endpoint.
+/// Refer to the [Discord documentation] for more information.
 ///
 /// [Discord documentation]: https://discord.com/developers/docs/resources/user#get-current-user-guilds-example-partial-guild
 #[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
