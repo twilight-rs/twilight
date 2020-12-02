@@ -368,7 +368,11 @@ impl Cluster {
     ///
     /// # Errors
     ///
-    /// Returns a [`SessionInactiveError`] if the shard's session is inactive.
+    /// Returns [`ClusterCommandError::Sending`] if the shard exists, but
+    /// sending the close code failed.
+    ///
+    /// Returns a [`ClusterCommandError::ShardNonexistent`] if the provided shard
+    /// ID does not exist in the cluster.
     ///
     /// [`SessionInactiveError`]: struct.SessionInactiveError.html
     pub fn send_close_code(&self, id: u64, code: u16) -> Result<(), ClusterCommandError> {

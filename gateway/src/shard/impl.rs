@@ -390,7 +390,8 @@ impl Shard {
     ///
     /// # Errors
     ///
-    /// Returns a [`SessionInactiveError`] if the shard's session is inactive.
+    /// Returns a [`CommandError::SessionInactive`] if the shard's
+    /// session is inactive.
     ///
     /// [`SessionInactiveError`]: struct.SessionInactiveError.html
     pub fn send_close_code(&self, code: u16) -> Result<(), CommandError> {
