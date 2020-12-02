@@ -1,6 +1,7 @@
 use super::UpdateChannelPermissionConfigured;
 use crate::request::prelude::*;
 use twilight_model::{
+    channel::permission_overwrite::PermissionOverwriteType,
     guild::Permissions,
     id::{ChannelId, RoleId, UserId},
 };
@@ -54,26 +55,21 @@ impl<'a> UpdateChannelPermission<'a> {
 
     /// Specify this override to be for a member.
     pub fn member(self, user_id: impl Into<UserId>) -> UpdateChannelPermissionConfigured<'a> {
-        self.configure("member", user_id.into().0)
+        self.configure(&PermissionOverwriteType::Member(user_id.into()))
     }
 
     /// Specify this override to be for a role.
     pub fn role(self, role_id: impl Into<RoleId>) -> UpdateChannelPermissionConfigured<'a> {
-        self.configure("role", role_id.into().0)
+        self.configure(&PermissionOverwriteType::Role(role_id.into()))
     }
 
-    fn configure(
-        self,
-        kind: impl Into<String>,
-        target_id: u64,
-    ) -> UpdateChannelPermissionConfigured<'a> {
+    fn configure(self, target: &PermissionOverwriteType) -> UpdateChannelPermissionConfigured<'a> {
         UpdateChannelPermissionConfigured::new(
             self.http,
             self.channel_id,
             self.allow,
             self.deny,
-            kind,
-            target_id,
+            target,
         )
     }
 }

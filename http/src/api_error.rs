@@ -143,6 +143,8 @@ pub enum ErrorCode {
     InviteAcceptedToGuildBotNotIn,
     /// Invalid API version provided
     InvalidApiVersion,
+    /// Invalid sticker sent
+    InvalidStickerSent,
     /// Reaction was blocked
     ReactionBlocked,
     /// API resource is currently overloaded. Try again a little later
@@ -224,6 +226,7 @@ impl ErrorCode {
             Self::InvalidFormBodyOrContentType => 50035,
             Self::InviteAcceptedToGuildBotNotIn => 50036,
             Self::InvalidApiVersion => 50041,
+            Self::InvalidStickerSent => 50081,
             Self::ReactionBlocked => 90001,
             Self::ApiResourceOverloaded => 130_000,
             Self::Other(other) => *other,
@@ -302,6 +305,7 @@ impl From<u64> for ErrorCode {
             50035 => Self::InvalidFormBodyOrContentType,
             50036 => Self::InviteAcceptedToGuildBotNotIn,
             50041 => Self::InvalidApiVersion,
+            50081 => Self::InvalidStickerSent,
             90001 => Self::ReactionBlocked,
             130_000 => Self::ApiResourceOverloaded,
             other => Self::Other(other),
@@ -380,6 +384,7 @@ impl Display for ErrorCode {
             Self::InvalidFormBodyOrContentType => f.write_str("Invalid form body (returned for both application/json and multipart/form-data bodies), or invalid Content-Type provided"),
             Self::InviteAcceptedToGuildBotNotIn => f.write_str("An invite was accepted to a guild the application's bot is not in"),
             Self::InvalidApiVersion => f.write_str("Invalid API version provided"),
+            Self::InvalidStickerSent => f.write_str("Invalid sticker sent"),
             Self::ReactionBlocked => f.write_str("Reaction was blocked"),
             Self::ApiResourceOverloaded => f.write_str("API resource is currently overloaded. Try again a little later"),
             Self::Other(number) => write!(f, "An error code Twilight doesn't have registered: {}", number),

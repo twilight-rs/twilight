@@ -1,3 +1,5 @@
+pub mod sticker;
+
 mod activity;
 mod activity_type;
 mod application;
@@ -9,6 +11,7 @@ mod reference;
 pub use self::{
     activity::MessageActivity, activity_type::MessageActivityType, application::MessageApplication,
     flags::MessageFlags, kind::MessageType, reaction::MessageReaction, reference::MessageReference,
+    sticker::Sticker,
 };
 
 use crate::{
@@ -45,8 +48,16 @@ pub struct Message {
     pub pinned: bool,
     #[serde(default)]
     pub reactions: Vec<MessageReaction>,
+    /// Reference data sent with crossposted messages and replies.
     #[serde(rename = "message_reference")]
     pub reference: Option<MessageReference>,
+    /// The message associated with the [reference].
+    ///
+    /// [reference]: #structfield.reference
+    pub referenced_message: Option<Box<Message>>,
+    /// Stickers within the message.
+    #[serde(default)]
+    pub stickers: Vec<Sticker>,
     pub timestamp: String,
     pub tts: bool,
     pub webhook_id: Option<WebhookId>,
@@ -54,7 +65,10 @@ pub struct Message {
 
 #[cfg(test)]
 mod tests {
-    use super::{Message, MessageFlags, MessageType};
+    use super::{
+        sticker::{Sticker, StickerFormatType, StickerId, StickerPackId},
+        Message, MessageFlags, MessageType,
+    };
     use crate::{
         guild::PartialMember,
         id::{ChannelId, GuildId, MessageId, UserId},
@@ -107,6 +121,17 @@ mod tests {
             pinned: false,
             reactions: Vec::new(),
             reference: None,
+            stickers: vec![Sticker {
+                asset: "foo1".to_owned(),
+                description: "foo2".to_owned(),
+                format_type: StickerFormatType::Png,
+                id: StickerId(1),
+                name: "sticker name".to_owned(),
+                pack_id: StickerPackId(2),
+                preview_asset: None,
+                tags: Some("foo,bar,baz".to_owned()),
+            }],
+            referenced_message: None,
             timestamp: "2020-02-02T02:02:02.020000+00:00".to_owned(),
             tts: false,
             webhook_id: None,
@@ -117,7 +142,7 @@ mod tests {
             &[
                 Token::Struct {
                     name: "Message",
-                    len: 23,
+                    len: 25,
                 },
                 Token::Str("activity"),
                 Token::None,
@@ -220,6 +245,37 @@ mod tests {
                 Token::SeqEnd,
                 Token::Str("message_reference"),
                 Token::None,
+                Token::Str("referenced_message"),
+                Token::None,
+                Token::Str("stickers"),
+                Token::Seq { len: Some(1) },
+                Token::Struct {
+                    name: "Sticker",
+                    len: 8,
+                },
+                Token::Str("asset"),
+                Token::Str("foo1"),
+                Token::Str("description"),
+                Token::Str("foo2"),
+                Token::Str("format_type"),
+                Token::U8(1),
+                Token::Str("id"),
+                Token::NewtypeStruct { name: "StickerId" },
+                Token::Str("1"),
+                Token::Str("name"),
+                Token::Str("sticker name"),
+                Token::Str("pack_id"),
+                Token::NewtypeStruct {
+                    name: "StickerPackId",
+                },
+                Token::Str("2"),
+                Token::Str("preview_asset"),
+                Token::None,
+                Token::Str("tags"),
+                Token::Some,
+                Token::Str("foo,bar,baz"),
+                Token::StructEnd,
+                Token::SeqEnd,
                 Token::Str("timestamp"),
                 Token::Str("2020-02-02T02:02:02.020000+00:00"),
                 Token::Str("tts"),

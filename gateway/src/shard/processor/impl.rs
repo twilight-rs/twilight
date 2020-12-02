@@ -739,7 +739,7 @@ impl ShardProcessor {
         self.session.set_stage(Stage::Identifying);
 
         let identify = Identify::new(IdentifyInfo {
-            compression: false,
+            compress: false,
             large_threshold: self.config.large_threshold(),
             intents: self.config.intents(),
             properties: self.properties.clone(),

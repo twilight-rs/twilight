@@ -18,6 +18,7 @@ use futures_util::{
     stream::StreamExt,
 };
 use once_cell::sync::OnceCell;
+use serde::{Deserialize, Serialize};
 use std::{
     borrow::Cow,
     error::Error,
@@ -147,10 +148,11 @@ impl From<ConnectingError> for ShardStartError {
 
 /// Information about a shard, including its latency, current session sequence,
 /// and connection stage.
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, Deserialize, Serialize)]
 pub struct Information {
     id: u64,
     latency: Latency,
+    session_id: Option<String>,
     seq: u64,
     stage: Stage,
 }
@@ -167,6 +169,11 @@ impl Information {
     /// information for the 5 most recent heartbeats.
     pub fn latency(&self) -> &Latency {
         &self.latency
+    }
+
+    /// Return an immutable reference to the session ID of the shard.
+    pub fn session_id(&self) -> Option<&str> {
+        self.session_id.as_deref()
     }
 
     /// Current sequence of the connection.
@@ -190,7 +197,7 @@ impl Information {
     }
 }
 /// Details to resume a gateway session.
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, Deserialize, Serialize)]
 pub struct ResumeSession {
     /// ID of the session being resumed.
     pub session_id: String,
@@ -216,6 +223,11 @@ struct ShardRef {
 /// Shards will [go through a queue][`queue`] to initialize new ratelimited
 /// sessions with the ratelimit. Refer to Discord's [documentation][docs:shards]
 /// on shards to have a better understanding of what they are.
+///
+/// # Cloning
+///
+/// The shard internally wraps its data within an Arc. This means that the shard
+/// can be cloned and passed around tasks and threads cheaply.
 ///
 /// # Examples
 ///
@@ -442,6 +454,7 @@ impl Shard {
         Ok(Information {
             id: self.config().shard()[0],
             latency: session.heartbeats.latency(),
+            session_id: session.id(),
             seq: session.seq(),
             stage: session.stage(),
         })

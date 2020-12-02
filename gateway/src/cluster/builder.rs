@@ -176,7 +176,7 @@ impl ClusterBuilder {
     /// Returns [`ClusterStartError::RetrievingGatewayInfo`] if there was an
     /// HTTP error Retrieving the gateway information.
     pub async fn build(mut self) -> Result<Cluster, ClusterStartError> {
-        if self.0.shard_config.gateway_url.is_none() {
+        if (self.1).0.gateway_url.is_none() {
             let gateway_url = (self.1)
                 .0
                 .http_client

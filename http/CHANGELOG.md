@@ -2,6 +2,35 @@
 
 Changelog for `twilight-http`.
 
+## [0.2.5] - 2020-11-29
+
+### Additions
+
+Support inline replies by adding `AllowedMentionsBuilder::replied_user` to
+determine whether to mention the user being replied to and
+`CreateMessage::reply` to specify the message to reply to ([#604] - [@Erk-]).
+
+### Fixes
+
+Use integers instead of strings for target types in the
+`UpdateChannelPermission` request ([#614] - [@vivian]).
+
+## [0.2.4] - 2020-11-25
+
+### Additions
+
+Support Message Stickers by adding HTTP error code variant 50'081 "Invalid
+Sticker Sent" ([#608] - [@vivian]).
+
+### Fixes
+
+Use Reqwest's header name constants, which fixes the name of a hardcoded header
+in an error ([#620] - [@vivian]).
+
+### Enhancements
+
+Clarify the cloning behavior of the `Client` ([#607] - [@vivian]).
+
 ## [0.2.3] - 2020-11-20
 
 ### Additions
@@ -189,6 +218,11 @@ Initial release.
 [@sam-kirby]: https://github.com/sam-kirby
 [@vivian]: https://github.com/vivian
 
+[#620]: https://github.com/twilight-rs/twilight/pull/620
+[#614]: https://github.com/twilight-rs/twilight/pull/614
+[#608]: https://github.com/twilight-rs/twilight/pull/608
+[#607]: https://github.com/twilight-rs/twilight/pull/607
+[#604]: https://github.com/twilight-rs/twilight/pull/604
 [#602]: https://github.com/twilight-rs/twilight/pull/602
 [#599]: https://github.com/twilight-rs/twilight/pull/599
 [#598]: https://github.com/twilight-rs/twilight/pull/598
@@ -218,6 +252,7 @@ Initial release.
 
 [0.2.0-beta.1:app integrations]: https://github.com/discord/discord-api-docs/commit/a926694e2f8605848bda6b57d21c8817559e5cec
 
+[0.2.4]: https://github.com/twilight-rs/twilight/releases/tag/http-v0.2.4
 [0.2.3]: https://github.com/twilight-rs/twilight/releases/tag/http-v0.2.3
 [0.2.2]: https://github.com/twilight-rs/twilight/releases/tag/http-v0.2.2
 [0.2.1]: https://github.com/twilight-rs/twilight/releases/tag/http-v0.2.1

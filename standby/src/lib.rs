@@ -191,6 +191,11 @@ struct StandbyRef {
 /// tasks to wait for an event.
 ///
 /// Refer to the crate-level documentation for more information.
+///
+/// # Cloning
+///
+/// Standby internally wraps its data within an Arc. This means that standby can
+/// be cloned and passed around tasks and threads cheaply.
 #[derive(Clone, Debug, Default)]
 pub struct Standby(Arc<StandbyRef>);
 
@@ -905,6 +910,8 @@ mod tests {
             pinned: false,
             reactions: Vec::new(),
             reference: None,
+            stickers: Vec::new(),
+            referenced_message: None,
             timestamp: String::new(),
             tts: false,
             webhook_id: None,

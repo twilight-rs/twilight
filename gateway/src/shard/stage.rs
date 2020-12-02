@@ -9,6 +9,7 @@
 //! [`Connected`]: Stage::Connected
 //! [`Disconnected`]: Stage::Disconnected
 
+use serde::{Deserialize, Serialize};
 use std::{
     convert::TryFrom,
     error::Error,
@@ -40,7 +41,7 @@ impl Error for StageConversionError {}
 /// The current connection stage of a [`Shard`].
 ///
 /// [`Shard`]: super::Shard
-#[derive(Clone, Copy, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
+#[derive(Clone, Copy, Debug, Deserialize, Eq, Hash, Ord, PartialEq, PartialOrd, Serialize)]
 #[non_exhaustive]
 #[repr(u8)]
 pub enum Stage {

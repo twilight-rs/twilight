@@ -2,6 +2,44 @@
 
 Changelog for `twilight-gateway`.
 
+## [0.2.5] - 2020-11-29
+
+### Misc.
+
+Use the renamed
+`twilight_model::gateway::payload::identify::IdentityInfo::compress` model
+field ([#624] - [@chamburr]).
+
+## [0.2.4] - 2020-11-28
+
+### Additions
+
+Add serde `Deserialize` and `Serialize` derives to `shard::ResumeSession`
+([#623] - [@tbnritzdoge]).
+
+## [0.2.3] - 2020-11-25
+
+### Additions
+
+Add `Deserialize, Serialize` to the shard information, shard latency, and
+connection stage types ([#621] - [@tbnritzdoge]).
+
+### Fixes
+
+Properly use the configured gateway URL in the cluster builder
+([#618] - [@chamburr]).
+
+## [0.2.2] - 2020-11-24
+
+### Additions
+
+Add the shard's session ID to the information provided about shards
+(`Shard::info`) ([#612] - [@chamburr]).
+
+### Enhancements
+
+Clarify the cloning behavior of the `Cluster` and `Shard` ([#607] - [@vivian]).
+
 ## [0.2.1] - 2020-11-02
 
 Update the installation instructions to note version 0.2 instead of version
@@ -101,12 +139,20 @@ pulling in all of the gateway when creating shard queue brokers ([#537] - [@Gelb
 
 Initial release.
 
+[@chamburr]: https://github.com/chamburr
 [@dvtkrlbs]: https://github.com/dvtkrlbs
 [@Erk-]: https://github.com/Erk-
 [@Gelbpunkt]: https://github.com/Gelbpunkt
 [@nickelc]: https://github.com/nickelc
+[@tbnritzdoge]: https://github.com/tbnritzdoge
 [@vivian]: https://github.com/vivian
 
+[#624]: https://github.com/twilight-rs/twilight/pull/624
+[#623]: https://github.com/twilight-rs/twilight/pull/623
+[#621]: https://github.com/twilight-rs/twilight/pull/621
+[#618]: https://github.com/twilight-rs/twilight/pull/618
+[#612]: https://github.com/twilight-rs/twilight/pull/612
+[#607]: https://github.com/twilight-rs/twilight/pull/607
 [#588]: https://github.com/twilight-rs/twilight/pull/588
 [#568]: https://github.com/twilight-rs/twilight/pull/568
 [#560]: https://github.com/twilight-rs/twilight/pull/560
@@ -117,6 +163,10 @@ Initial release.
 [#515]: https://github.com/twilight-rs/twilight/pull/515
 [#512]: https://github.com/twilight-rs/twilight/pull/512
 
+[0.2.5]: https://github.com/twilight-rs/twilight/releases/tag/gateway-v0.2.5
+[0.2.4]: https://github.com/twilight-rs/twilight/releases/tag/gateway-v0.2.4
+[0.2.3]: https://github.com/twilight-rs/twilight/releases/tag/gateway-v0.2.3
+[0.2.2]: https://github.com/twilight-rs/twilight/releases/tag/gateway-v0.2.2
 [0.2.1]: https://github.com/twilight-rs/twilight/releases/tag/gateway-v0.2.1
 [0.2.0]: https://github.com/twilight-rs/twilight/releases/tag/gateway-v0.2.0
 [0.2.0-beta.1]: https://github.com/twilight-rs/twilight/releases/tag/gateway-v0.2.0-beta.1
