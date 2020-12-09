@@ -3,33 +3,29 @@ use twilight_model::applications::Command;
 use twilight_model::applications::CommandOption;
 use twilight_model::id::*;
 
-pub struct UpdateGuildCommand<'a> {
+pub struct CreateGlobalCommand<'a> {
     command: Command,
     application_id: ApplicationId,
-    guild_id: GuildId,
     fut: Option<Pending<'a, ()>>,
     http: &'a Client,
 }
 
-impl<'a> UpdateGuildCommand<'a> {
+impl<'a> CreateGlobalCommand<'a> {
     pub(crate) fn new(
         http: &'a Client,
         application_id: ApplicationId,
-        guild_id: GuildId,
-        command_id: CommandId,
         name: String,
         description: String,
     ) -> Self {
         Self {
             command: Command {
                 application_id,
-                command_id: Some(command_id),
+                command_id: None,
                 name,
                 description,
                 options: vec![],
             },
             application_id,
-            guild_id,
             fut: None,
             http,
         }
@@ -44,16 +40,8 @@ impl<'a> UpdateGuildCommand<'a> {
     fn start(&mut self) -> Result<()> {
         let req = Request::from((
             crate::json_to_vec(&self.command)?,
-            Route::UpdateGuildCommand {
+            Route::CreateGlobalCommand {
                 application_id: self.application_id.0,
-                // This unwrap is safe to do as the command_id will
-                // always be filled when you initialize the
-                // struct. And it is not possible to change it.
-                //
-                // TODO: REVIEW-QUESTION: Would it be better to have
-                // another command_id outside of the command struct?
-                command_id: self.command.command_id.unwrap().0,
-                guild_id: self.guild_id.0,
             },
         ));
         self.fut.replace(Box::pin(self.http.verify(req)));
@@ -62,4 +50,4 @@ impl<'a> UpdateGuildCommand<'a> {
     }
 }
 
-poll_req!(UpdateGuildCommand<'_>, ());
+poll_req!(CreateGlobalCommand<'_>, ());
