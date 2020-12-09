@@ -1,7 +1,7 @@
 use futures::future;
 use std::{env, error::Error};
 use twilight_http::Client;
-use twilight_model::id::*;
+use twilight_model::id::ChannelId;
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn Error + Send + Sync>> {
@@ -9,13 +9,18 @@ async fn main() -> Result<(), Box<dyn Error + Send + Sync>> {
     tracing_subscriber::fmt::init();
 
     let client = Client::new(env::var("DISCORD_TOKEN")?);
-    let guild_id = GuildId(771785232151478302);
+    let channel_id = ChannelId(381_926_291_785_383_946);
+
+    future::join_all((1u8..=10).map(|x| {
+        client
+            .create_message(channel_id)
+            .content(format!("Ping #{}", x))
+            .expect("content not a valid length")
+    }))
+    .await;
 
     let me = client.current_user().await?;
     println!("Current user: {}#{}", me.name, me.discriminator);
 
-    let commands = client.get_guild_commands(407532991313739776.into(), guild_id).await?;
-    println!("Commands: {:#?}", commands);
-    
     Ok(())
 }
