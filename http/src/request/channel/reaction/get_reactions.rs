@@ -88,8 +88,6 @@ impl<'a> GetReactions<'a> {
     /// # Errors
     ///
     /// Returns [`GetReactionsError::LimitInvalid`] if the amount is greater than 100.
-    ///
-    /// [`GetReactionsError::LimitInvalid`]: enum.GetReactionsError.html#variant.LimitInvalid
     pub fn limit(mut self, limit: u64) -> Result<Self, GetReactionsError> {
         if !validate::get_reactions_limit(limit) {
             return Err(GetReactionsError::LimitInvalid { limit });

@@ -18,8 +18,6 @@ pub enum PathParseError {
     },
     /// When parsing into a [`Path::ChannelsIdMessagesId`] variant, the method
     /// must also be specified via its `TryFrom` impl.
-    ///
-    /// [`Path::ChannelsIdMessageId`]: enum.Path.html#variant.ChannelsIdMessagesId
     MessageIdWithoutMethod {
         /// The ID of the channel.
         channel_id: u64,

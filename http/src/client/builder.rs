@@ -12,8 +12,6 @@ use std::{
 
 #[derive(Debug)]
 /// A builder for [`Client`].
-///
-/// [`Client`]: struct.Client.html
 pub struct ClientBuilder {
     pub(crate) default_allowed_mentions: Option<AllowedMentions>,
     pub(crate) proxy: Option<Proxy>,
@@ -26,8 +24,6 @@ pub struct ClientBuilder {
 
 impl ClientBuilder {
     /// Create a new builder to create a [`Client`].
-    ///
-    /// [`Client`]: struct.Client.html
     pub fn new() -> Self {
         Self::default()
     }
@@ -37,8 +33,6 @@ impl ClientBuilder {
     /// # Errors
     ///
     /// Errors if `reqwest` fails to build the client.
-    ///
-    /// [`Client`]: struct.Client.html
     pub fn build(self) -> Result<Client> {
         let mut builder = self
             .reqwest_client
@@ -107,9 +101,7 @@ impl ClientBuilder {
     /// before making a request.
     ///
     /// If this method is not called at all then a default ratelimiter will be
-    /// created by `ClientBuilder::build`.
-    ///
-    /// [`ClientBuilder::build`]: #method.build
+    /// created by [`ClientBuilder::build`].
     pub fn ratelimiter(mut self, ratelimiter: impl Into<Option<Ratelimiter>>) -> Self {
         self.ratelimiter = ratelimiter.into();
 

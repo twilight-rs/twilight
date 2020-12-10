@@ -47,9 +47,9 @@ struct ExecuteWebhookFields {
 /// # Ok(()) }
 /// ```
 ///
-/// [`content`]: #method.content
-/// [`embeds`]: #method.embeds
-/// [`file`]: #method.file
+/// [`content`]: Self::content
+/// [`embeds`]: Self::embeds
+/// [`file`]: Self::file
 pub struct ExecuteWebhook<'a> {
     fields: ExecuteWebhookFields,
     fut: Option<Pending<'a, Option<Message>>>,

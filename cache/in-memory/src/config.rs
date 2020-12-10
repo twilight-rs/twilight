@@ -42,7 +42,7 @@ bitflags! {
 
 /// Configuration for an [`InMemoryCache`].
 ///
-/// [`InMemoryCache`]: struct.InMemoryCache.html
+/// [`InMemoryCache`]: crate::InMemoryCache
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct Config {
     pub(super) event_types: EventType,

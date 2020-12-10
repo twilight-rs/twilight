@@ -10,8 +10,6 @@ use twilight_model::channel::embed::EmbedFooter;
 /// Error creating an embed footer.
 ///
 /// This is returned from [`EmbedFooterBuilder::new`].
-///
-/// [`EmbedFooterBuilder::new`]: struct.EmbedFooterBuilder.html#method.new
 #[derive(Clone, Debug, Eq, PartialEq)]
 #[non_exhaustive]
 pub enum EmbedFooterTextError {
@@ -43,7 +41,7 @@ impl Error for EmbedFooterTextError {}
 ///
 /// This can be passed into [`EmbedBuilder::footer`].
 ///
-/// [`EmbedBuilder::footer`]: ../builder/struct.EmbedBuilder.html#method.footer
+/// [`EmbedBuilder::footer`]: crate::EmbedBuilder::footer
 #[derive(Clone, Debug, Eq, PartialEq)]
 #[must_use = "must be built into an embed footer"]
 pub struct EmbedFooterBuilder(EmbedFooter);
@@ -65,9 +63,7 @@ impl EmbedFooterBuilder {
     /// Returns [`EmbedFooterTextError::TooLong`] if the provided text is
     /// longer than the limit defined at [`TEXT_LENGTH_LIMIT`].
     ///
-    /// [`TEXT_LENGTH_LIMIT`]: #const.TEXT_LENGTH_LIMIT
-    /// [`EmbedFooterTextError::Empty`]: enum.EmbedFooterTextError.html#variant.Empty
-    /// [`EmbedFooterTextError::TooLong`]: enum.EmbedFooterTextError.html#variant.TooLong
+    /// [`TEXT_LENGTH_LIMIT`]: Self::TEXT_LENGTH_LIMIT
     pub fn new(text: impl Into<String>) -> Result<Self, EmbedFooterTextError> {
         Self::_new(text.into())
     }
@@ -121,8 +117,6 @@ impl From<EmbedFooterBuilder> for EmbedFooter {
     /// Convert an embed footer builder into an embed footer.
     ///
     /// This is equivalent to calling [`EmbedFooterBuilder::build`].
-    ///
-    /// [`EmbedFooterBuilder::build`]: #method.build
     fn from(builder: EmbedFooterBuilder) -> Self {
         builder.build()
     }

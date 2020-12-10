@@ -17,8 +17,8 @@ use twilight_model::gateway::payload::Heartbeat;
 ///
 /// This is obtained through [`Shard::info`].
 ///
-/// [`Shard`]: struct.Shard.html
-/// [`Shard::info`]: struct.Shard.html#method.info
+/// [`Shard`]: crate::shard::Shard
+/// [`Shard::info`]: crate::shard::Shard::info
 #[derive(Clone, Debug, Deserialize, Serialize)]
 pub struct Latency {
     average: Option<Duration>,

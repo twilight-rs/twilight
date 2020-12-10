@@ -10,8 +10,6 @@ use twilight_model::channel::embed::EmbedAuthor;
 /// Error setting an embed author's name.
 ///
 /// This is returned from [`EmbedAuthorBuilder::name`].
-///
-/// [`EmbedAuthorBuilder::name`]: struct.EmbedAuthorBuilder.html#method.name
 #[derive(Clone, Debug, Eq, PartialEq)]
 #[non_exhaustive]
 pub enum EmbedAuthorNameError {
@@ -43,7 +41,7 @@ impl Error for EmbedAuthorNameError {}
 ///
 /// This can be passed into [`EmbedBuilder::author`].
 ///
-/// [`EmbedBuilder::author`]: ../builder/struct.EmbedBuilder.html#method.author
+/// [`EmbedBuilder::author`]: crate::EmbedBuilder::author
 #[derive(Clone, Debug, Eq, PartialEq)]
 #[must_use = "must be built into an embed author"]
 pub struct EmbedAuthorBuilder(EmbedAuthor);
@@ -53,7 +51,7 @@ impl EmbedAuthorBuilder {
     ///
     /// This is used by [`name`].
     ///
-    /// [`name`]: #method.name
+    /// [`name`]: Self::name
     pub const NAME_LENGTH_LIMIT: usize = 256;
 
     /// Create a new default embed author builder.
@@ -86,9 +84,7 @@ impl EmbedAuthorBuilder {
     /// Returns [`EmbedAuthorNameError::TooLong`] if the provided name is longer
     /// than the maximum number of code points.
     ///
-    /// [`NAME_LENGTH_LIMIT`]: #const.NAME_LENGTH_LIMIT
-    /// [`EmbedAuthorNameError::Empty`]: enum.EmbedAuthorNameError.html#variant.Empty
-    /// [`EmbedAuthorNameError::TooLong`]: enum.EmbedAuthorNameError.html#variant.TooLong
+    /// [`NAME_LENGTH_LIMIT`]: Self::NAME_LENGTH_LIMIT
     pub fn name(self, name: impl Into<String>) -> Result<Self, EmbedAuthorNameError> {
         self._name(name.into())
     }
@@ -134,8 +130,6 @@ impl From<EmbedAuthorBuilder> for EmbedAuthor {
     /// Convert an embed author builder into an embed author.
     ///
     /// This is equivalent to calling [`EmbedAuthorBuilder::build`].
-    ///
-    /// [`EmbedAuthorBuilder::build`]: #method.build
     fn from(builder: EmbedAuthorBuilder) -> Self {
         builder.build()
     }

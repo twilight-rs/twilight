@@ -10,7 +10,7 @@ use std::{
 ///
 /// You get this via [`Shard::sink`].
 ///
-/// [`Shard::sink`]: struct.Shard.html#method.sink
+/// [`Shard::sink`]: super::Shard::sink
 #[derive(Clone, Debug)]
 pub struct ShardSink(pub(super) UnboundedSender<Message>);
 

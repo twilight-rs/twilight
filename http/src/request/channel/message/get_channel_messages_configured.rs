@@ -36,7 +36,7 @@ struct GetChannelMessagesConfiguredFields {
 /// This struct is returned when one of `after`, `around`, or `before` is specified in
 /// [`GetChannelMessages`].
 ///
-/// [`GetChannelMessages`]: ../get_channel_messages/struct.GetChannelMessages.html
+/// [`GetChannelMessages`]: super::GetChannelMessages
 // nb: after, around, and before are mutually exclusive, so we use this
 // "configured" request to utilize the type system to prevent these from being
 // set in combination.
@@ -78,8 +78,6 @@ impl<'a> GetChannelMessagesConfigured<'a> {
     ///
     /// Returns [`GetChannelMessagesConfiguredError::LimitInvalid`] if the
     /// amount is greater than 21600.
-    ///
-    /// [`GetChannelMessagesConfiguredError::LimitInvalid`]: enum.GetChannelMessagesConfiguredError.html#variant.LimitInvalid
     pub fn limit(mut self, limit: u64) -> Result<Self, GetChannelMessagesConfiguredError> {
         if !validate::get_channel_messages_limit(limit) {
             return Err(GetChannelMessagesConfiguredError::LimitInvalid { limit });

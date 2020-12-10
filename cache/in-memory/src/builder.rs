@@ -4,15 +4,11 @@ use super::{
 };
 
 /// Builder to configure and construct an [`InMemoryCache`].
-///
-/// [`InMemoryCache`]: struct.InMemoryCache.html
 #[derive(Clone, Debug, Default, Eq, PartialEq)]
 pub struct InMemoryCacheBuilder(Config);
 
 impl InMemoryCacheBuilder {
     /// Creates a builder to configure and construct an [`InMemoryCache`].
-    ///
-    /// [`InMemoryCache`]: struct.InMemoryCache.html
     pub fn new() -> Self {
         Self::default()
     }

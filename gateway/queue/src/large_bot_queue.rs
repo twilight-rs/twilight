@@ -15,7 +15,7 @@ use tokio::time::delay_for;
 /// then refer to the [module-level] documentation.
 ///
 /// [Sharding for Very Large Bots]: https://discord.com/developers/docs/topics/gateway#sharding-for-very-large-bots
-/// [module-level]: ./index.html
+/// [module-level]: crate
 #[derive(Debug)]
 pub struct LargeBotQueue {
     buckets: Vec<UnboundedSender<Sender<()>>>,

@@ -5,10 +5,9 @@
 //! use those players to do things like [send events] or [read the position] of
 //! the active audio.
 //!
-//! [`PlayerManager`]: struct.PlayerManager.html
-//! [players]: struct.Player.html
-//! [send events]: struct.Player.html#method.send
-//! [read the position]: struct.Player.html#method.position
+//! [players]: Player
+//! [send events]: Player::send
+//! [read the position]: Player::position
 
 use crate::{model::*, node::Node};
 use dashmap::{
@@ -114,8 +113,8 @@ impl Player {
     /// # Ok(()) }
     /// ```
     ///
-    /// [`Pause`]: ../model/outgoing/struct.Pause.html
-    /// [`Play`]: ../model/outgoing/struct.Play.html
+    /// [`Pause`]: crate::model::outgoing::Pause
+    /// [`Play`]: crate::model::outgoing::Play
     pub fn send(&self, event: impl Into<OutgoingEvent>) -> Result<(), TrySendError<OutgoingEvent>> {
         self._send(event.into())
     }

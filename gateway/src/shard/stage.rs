@@ -6,9 +6,8 @@
 //! The [`Stage`] also has some parsing capability, so an error type for
 //! conversion reasons is included.
 //!
-//! [`Connected`]: enum.Stage.html#variant.Connected
-//! [`Disconnected`]: enum.Stage.html#variant.Disconnected
-//! [`Stage`]: enum.Stage.html
+//! [`Connected`]: Stage::Connected
+//! [`Disconnected`]: Stage::Disconnected
 
 use serde::{Deserialize, Serialize};
 use std::{
@@ -18,8 +17,6 @@ use std::{
 };
 
 /// Reason for a failure while parsing a value into a [`Stage`].
-///
-/// [`Stage`]: enum.Stage.html
 #[derive(Clone, Debug)]
 #[non_exhaustive]
 pub enum StageConversionError {
@@ -43,7 +40,7 @@ impl Error for StageConversionError {}
 
 /// The current connection stage of a [`Shard`].
 ///
-/// [`Shard`]: ../struct.Shard.html
+/// [`Shard`]: super::Shard
 #[derive(Clone, Copy, Debug, Deserialize, Eq, Hash, Ord, PartialEq, PartialOrd, Serialize)]
 #[non_exhaustive]
 #[repr(u8)]

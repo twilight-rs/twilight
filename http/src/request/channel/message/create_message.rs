@@ -111,8 +111,6 @@ impl<'a> CreateMessage<'a> {
     }
 
     /// Return a new [`AllowedMentionsBuilder`].
-    ///
-    /// [`AllowedMentionsBuilder`]: ../allowed_mentions/struct.AllowedMentionsBuilder.html
     pub fn allowed_mentions(
         self,
     ) -> AllowedMentionsBuilder<'a, Unspecified, Unspecified, Unspecified> {
@@ -148,8 +146,6 @@ impl<'a> CreateMessage<'a> {
     ///
     /// Returns [`CreateMessageError::ContentInvalid`] if the content length is
     /// too long.
-    ///
-    /// [`CreateMessageError::ContentInvalid`]: enum.CreateMessageError.html#variant.ContentInvalid
     pub fn content(self, content: impl Into<String>) -> Result<Self, CreateMessageError> {
         self._content(content.into())
     }
@@ -178,8 +174,7 @@ impl<'a> CreateMessage<'a> {
     /// Returns [`CreateMessageError::EmbedTooLarge`] if the embed is too large.
     ///
     /// [the discord docs]: https://discord.com/developers/docs/resources/channel#embed-limits
-    /// [`EmbedBuilder`]: ../../../../../twilight_embed_builder/builder/struct.EmbedBuilder.html
-    /// [`CreateMessageError::EmbedTooLarge`]: enum.CreateMessageError.html#variant.EmbedTooLarge
+    /// [`EmbedBuilder`]: https://docs.rs/twilight-embed-builder/*/twilight_embed_builder
     pub fn embed(mut self, embed: Embed) -> Result<Self, CreateMessageError> {
         if let Err(source) = validate::embed(&embed) {
             return Err(CreateMessageError::EmbedTooLarge {

@@ -98,9 +98,6 @@ impl Session {
     /// Returns [`SessionSendError::Sending`] when the receiving channel has hung
     /// up. This will only happen when the shard has either not started or has
     /// already shutdown.
-    ///
-    /// [`SessionSendError::Serializing`]: enum.SessionSendError.html#variant.Serializing
-    /// [`SessionSendError::Sending`]: enum.SessionSendError.html#variant.Sending
     pub fn send(&self, payload: impl Serialize) -> Result<(), SessionSendError> {
         let bytes =
             json::to_vec(&payload).map_err(|source| SessionSendError::Serializing { source })?;

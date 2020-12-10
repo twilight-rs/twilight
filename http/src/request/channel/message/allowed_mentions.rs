@@ -260,8 +260,6 @@ impl<
     > AllowedMentionsBuilder<'a, E, U, R>
 {
     /// Return a [`CreateMessage`] struct with the specified `allowed_mentions`.
-    ///
-    /// [`CreateMessage`]: ../create_message/struct.CreateMessage.html
     pub fn build(self) -> CreateMessage<'a> {
         match self.create_message {
             Some(mut builder) => {
@@ -279,10 +277,9 @@ impl<
         }
     }
 
-    /// Build a raw [`AllowedMentions`] for use in [`ClientBuilder#default_allowed_mentions`].
+    /// Build a raw [`AllowedMentions`] for use in [`ClientBuilder::default_allowed_mentions`].
     ///
-    /// [`AllowedMentions`]: ./struct.AllowedMentions.html
-    /// [`ClientBuilder#default_allowed_mentions`]: ../../../../client/struct.ClientBuilder.html#method.default_allowed_mentions
+    /// [`ClientBuilder::default_allowed_mentions`]: crate::client::ClientBuilder::default_allowed_mentions
     pub fn build_solo(self) -> AllowedMentions {
         let mut m = AllowedMentions::default();
 

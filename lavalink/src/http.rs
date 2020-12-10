@@ -35,7 +35,7 @@ pub struct Track {
     pub info: TrackInfo,
     /// The base64 track string that you use in the [`Play`] event.
     ///
-    /// [`Play`]: ../model/outgoing/struct.Play.html
+    /// [`Play`]: crate::model::outgoing::Play
     pub track: String,
 }
 
@@ -155,8 +155,6 @@ pub struct NanoIpRoutePlanner {
     /// The type of planner that is currently active.
     ///
     /// For this planner, thsi is always [`RoutePlannerType::NanoIp`]
-    ///
-    /// [`RoutePlannerType::NanoIp`]: enum.RoutePlannerType.html#variant.NanoIp
     pub class: RoutePlannerType,
     /// The details of the currently active Nano IP route planner.
     pub details: NanoIpDetails,
@@ -183,8 +181,6 @@ pub struct RotatingIpRoutePlanner {
     /// The type of planner that is currently active.
     ///
     /// For this planner, thsi is always [`RoutePlannerType::RotatingIp`]
-    ///
-    /// [`RoutePlannerType::RotatingIp`]: enum.RoutePlannerType.html#variant.RotatingIp
     pub class: RoutePlannerType,
     /// The details of the currently active rotating IP route planner.
     pub details: RotatingIpDetails,
@@ -215,8 +211,6 @@ pub struct RotatingNanoIpRoutePlanner {
     /// The type of planner that is currently active.
     ///
     /// For this planner, thsi is always [`RoutePlannerType::RotatingNanoIp`]
-    ///
-    /// [`RoutePlannerType::RotatingNanoIp`]: enum.RoutePlannerType.html#variant.RotatingNanoIp
     pub class: RoutePlannerType,
     /// The details of the currently active rotating nano IP route planner.
     pub details: RotatingNanoIpDetails,
@@ -241,8 +235,6 @@ pub struct RotatingNanoIpDetails {
 ///
 /// The response will include a body which can be deserialized into a
 /// [`LoadedTracks`].
-///
-/// [`LoadedTracks`]: struct.LoadedTracks.html
 pub fn load_track(
     address: SocketAddr,
     identifier: impl AsRef<str>,
@@ -264,8 +256,6 @@ pub fn load_track(
 ///
 /// The response will include a body which can be deserialized into a
 /// [`RoutePlanner`].
-///
-/// [`RoutePlanner`]: enum.RoutePlanner.html
 pub fn get_route_planner(
     address: SocketAddr,
     authorization: impl AsRef<str>,

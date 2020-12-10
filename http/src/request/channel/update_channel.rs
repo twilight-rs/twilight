@@ -87,10 +87,6 @@ struct UpdateChannelFields {
 ///
 /// Returns a [`UpdateChannelError::TopicInvalid`] when the length of the topic is more than
 /// 1024 UTF-16 characters.
-///
-/// [`UpdateChannelError::NameInvalid`]: enum.UpdateChannelError.html#variant.NameInvalid
-/// [`UpdateChannelError::RateLimitPerUserInvalid`]: enum.UpdateChannelError.html#variant.RateLimitPerUserInvalid
-/// [`UpdateChannelError::TopicInvalid`]: enum.UpdateChannelError.html#variant.TopicInvalid
 pub struct UpdateChannel<'a> {
     channel_id: ChannelId,
     fields: UpdateChannelFields,
@@ -126,8 +122,6 @@ impl<'a> UpdateChannel<'a> {
     ///
     /// Returns [`UpdateChannelError::NameInvalid`] if the name length is
     /// too short or too long.
-    ///
-    /// [`UpdateChannelError::NameInvalid`]: enum.UpdateChannelError.html#variant.NameInvalid
     pub fn name(self, name: impl Into<String>) -> Result<Self, UpdateChannelError> {
         self._name(name.into())
     }
@@ -191,7 +185,6 @@ impl<'a> UpdateChannel<'a> {
     /// Returns [`UpdateChannelError::RateLimitPerUserInvalid`] if the amount is greater than
     /// 21600.
     ///
-    /// [`UpdateChannelError::RateLimitPerUserInvalid`]: enum.UpdateChannelError.html#variant.RateLimitPerUserInvalid
     /// [the discord docs]: https://discordapp.com/developers/docs/resources/channel#channel-object-channel-structure>
     pub fn rate_limit_per_user(
         mut self,
@@ -218,7 +211,6 @@ impl<'a> UpdateChannel<'a> {
     /// too long.
     ///
     /// [the discord docs]: https://discordapp.com/developers/docs/resources/channel#channel-object-channel-structure
-    /// [`UpdateChannelError::TopicInvalid`]: enum.UpdateChannelError.html#variant.TopicInvalid
     pub fn topic(self, topic: impl Into<String>) -> Result<Self, UpdateChannelError> {
         self._topic(topic.into())
     }

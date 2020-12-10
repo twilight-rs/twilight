@@ -30,8 +30,6 @@
 //! all so a [`Queue`] trait is provided that shards can use to make requests to
 //! create sessions.
 //!
-//! [`LargeBotQueue`]: struct.LargeBotQueue.html
-//! [`LocalQueue`]: struct.LocalQueue.html
 //! [Sharding for Very Large Bots]: https://discord.com/developers/docs/topics/gateway#sharding-for-very-large-bots
 
 mod day_limiter;
@@ -55,7 +53,7 @@ use tokio::time::delay_for;
 /// cluster setup. Refer to the [module-level] documentation for more
 /// information.
 ///
-/// [module-level]: ./index.html
+/// [module-level]: crate
 pub trait Queue: Debug + Send + Sync {
     /// A shard has requested the ability to request a session initialization
     /// with the gateway.
@@ -89,8 +87,6 @@ pub trait Queue: Debug + Send + Sync {
 /// If you can't use this, look into an alternative implementation of the
 /// [`Queue`], such as the [`gateway-queue`] broker.
 ///
-/// [`LargeBotQueue`]: ./struct.LargeBotQueue.html
-/// [`Queue`]: trait.Queue.html
 /// [`gateway-queue`]: https://github.com/twilight-rs/gateway-queue
 #[derive(Clone, Debug)]
 pub struct LocalQueue(UnboundedSender<Sender<()>>);

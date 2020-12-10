@@ -87,9 +87,9 @@ struct LavalinkRef {
 /// The client internally wraps its data within an Arc. This means that the
 /// client can be cloned and passed around tasks and threads cheaply.
 ///
-/// [`Play`]: ../model/outgoing/struct.Play.html
-/// [`player`]: #method.player
-/// [`process`]: #method.process
+/// [`Play`]: crate::model::outgoing::Play
+/// [`player`]: Self::player
+/// [`process`]: Self::process
 #[derive(Clone, Debug)]
 pub struct Lavalink(Arc<LavalinkRef>);
 
@@ -103,8 +103,8 @@ impl Lavalink {
     /// See also [`new_with_resume`], which allows you to specify session resume
     /// capability.
     ///
-    /// [`add`]: #method.add
-    /// [`new_with_resume`]: #method.new_with_resume
+    /// [`add`]: Self::add
+    /// [`new_with_resume`]: Self::new_with_resume
     pub fn new(user_id: UserId, shard_count: u64) -> Self {
         Self::_new_with_resume(user_id, shard_count, None)
     }
@@ -114,8 +114,8 @@ impl Lavalink {
     /// Provide `None` for the `resume` parameter to disable session resume
     /// capability. See the [`Resume`] documentation for defaults.
     ///
-    /// [`Resume`]: ../node/struct.Resume.html
-    /// [`new`]: #method.new
+    /// [`Resume`]: crate::node::Resume
+    /// [`new`]: Self::new
     pub fn new_with_resume(
         user_id: UserId,
         shard_count: u64,
@@ -155,8 +155,7 @@ impl Lavalink {
     /// Returns [`ClientError::NodesUnconfigured`] if no nodes have been added
     /// to the client when attempting to retrieve a guild's player.
     ///
-    /// [`ClientError::NodesUnconfigured`]: enum.ClientError.html#variant.NodesUnconfigured
-    /// [crate documentation]: ../index.html#examples
+    /// [crate documentation]: crate#examples
     pub async fn process(&self, event: &Event) -> Result<(), ClientError> {
         tracing::trace!("processing event: {:?}", event);
 
@@ -309,8 +308,7 @@ impl Lavalink {
     /// Returns [`ClientError::NodesUnconfigured`] if there are no configured
     /// nodes available in the client.
     ///
-    /// [`ClientError::NodesUnconfigured`]: enum.ClientError.html#variant.NodesUnconfigured
-    /// [`Node::penalty`]: ../node/struct.Node.html#method.penalty
+    /// [`Node::penalty`]: crate::node::Node::penalty
     pub async fn best(&self) -> Result<Node, ClientError> {
         let mut lowest = i32::MAX;
         let mut best = None;
@@ -343,9 +341,8 @@ impl Lavalink {
     /// Returns [`ClientError::NodesUnconfigured`] if no node has been
     /// configured via [`add`].
     ///
-    /// [`ClientError::NodesUnconfigured`]: enum.ClientError.html#variant.NodesUnconfigured
-    /// [`PlayerManager::get`]: ../player/struct.PlayerManager.html#method.get
-    /// [`add`]: #method.add
+    /// [`PlayerManager::get`]: crate::player::PlayerManager::get
+    /// [`add`]: Self::add
     pub async fn player(&self, guild_id: GuildId) -> Result<Ref<'_, GuildId, Player>, ClientError> {
         if let Some(player) = self.players().get(&guild_id) {
             return Ok(player);

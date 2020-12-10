@@ -66,7 +66,7 @@ pub enum ClusterStartError {
     /// number of recommended number of shards to start fails, which can happen
     /// due to something like a network or response parsing issue.
     ///
-    /// [automatic sharding]: enum.ShardScheme.html#variant.Auto
+    /// [automatic sharding]: ShardScheme::Auto
     RetrievingGatewayInfo {
         /// Reason for the error.
         source: HttpError,
@@ -125,8 +125,7 @@ impl Cluster {
     /// Returns [`ClusterStartError::RetrievingGatewayInfo`] if there was an
     /// HTTP error Retrieving the gateway information.
     ///
-    /// [`ClusterStartError::RetrievingGatewayInfo`]: enum.ClusterStartError.html#variant.RetrievingGatewayInfo
-    /// [`builder`]: #method.builder
+    /// [`builder`]: Self::builder
     pub async fn new(
         token: impl Into<String>,
         intents: Intents,
@@ -317,9 +316,6 @@ impl Cluster {
     ///
     /// Returns [`ClusterCommandError::ShardNonexistent`] if the provided shard
     /// ID does not exist in the cluster.
-    ///
-    /// [`ClusterCommandError::Sending`]: enum.ClusterCommandError.html#variant.Sending
-    /// [`ClusterCommandError::ShardNonexistent`]: enum.ClusterCommandError.html#variant.ShardNonexistent
     pub async fn command(
         &self,
         id: u64,
@@ -344,9 +340,6 @@ impl Cluster {
     ///
     /// Returns [`ClusterCommandError::ShardNonexistent`] if the provided shard
     /// ID does not exist in the cluster.
-    ///
-    /// [`ClusterCommandError::Sending`]: enum.ClusterCommandError.html#variant.Sending
-    /// [`ClusterCommandError::ShardNonexistent`]: enum.ClusterCommandError.html#variant.ShardNonexistent
     pub async fn command_raw(&self, id: u64, value: Vec<u8>) -> Result<(), ClusterCommandError> {
         let shard = self
             .shard(id)
@@ -370,7 +363,7 @@ impl Cluster {
     /// categories of events, but using [`some_events`] will filter it further
     /// on the client side.
     ///
-    /// [`some_events`]: #method.some_events
+    /// [`some_events`]: Self::some_events
     pub fn events<'a>(&'a self) -> impl Stream<Item = (u64, Event)> + 'a {
         self.some_events(EventTypeFlags::default())
     }
@@ -410,7 +403,7 @@ impl Cluster {
     /// # Ok(()) }
     /// ```
     ///
-    /// [`events`]: #method.events
+    /// [`events`]: Self::events
     pub fn some_events<'a>(
         &'a self,
         types: EventTypeFlags,

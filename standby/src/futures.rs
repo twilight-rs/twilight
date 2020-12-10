@@ -18,7 +18,7 @@ use twilight_model::gateway::{
 
 /// The future returned from [`Standby::wait_for_event`].
 ///
-/// [`Standby::wait_for_event`]: struct.Standby.html#method.wait_for_event
+/// [`Standby::wait_for_event`]: crate::Standby::wait_for_event
 #[derive(Debug)]
 #[must_use = "futures do nothing unless you `.await` or poll them"]
 pub struct WaitForEventFuture {
@@ -35,7 +35,7 @@ impl Future for WaitForEventFuture {
 
 /// The stream returned from [`Standby::wait_for_event_stream`].
 ///
-/// [`Standby::wait_for_event_stream`]: struct.Standby.html#method.wait_for_event_stream
+/// [`Standby::wait_for_event_stream`]: crate::Standby::wait_for_event_stream
 #[derive(Debug)]
 #[must_use = "streams do nothing unless you poll them"]
 pub struct WaitForEventStream {
@@ -52,7 +52,7 @@ impl Stream for WaitForEventStream {
 
 /// The future returned from [`Standby::wait_for`].
 ///
-/// [`Standby::wait_for`]: struct.Standby.html#method.wait_for
+/// [`Standby::wait_for`]: crate::Standby::wait_for
 #[derive(Debug)]
 #[must_use = "futures do nothing unless you `.await` or poll them"]
 pub struct WaitForGuildEventFuture {
@@ -69,7 +69,7 @@ impl Future for WaitForGuildEventFuture {
 
 /// The stream returned from [`Standby::wait_for_stream`].
 ///
-/// [`Standby::wait_for_stream`]: struct.Standby.html#method.wait_for_stream
+/// [`Standby::wait_for_stream`]: crate::Standby::wait_for_stream
 #[derive(Debug)]
 #[must_use = "streams do nothing unless you poll them"]
 pub struct WaitForGuildEventStream {
@@ -86,7 +86,7 @@ impl Stream for WaitForGuildEventStream {
 
 /// The future returned from [`Standby::wait_for_message`].
 ///
-/// [`Standby::wait_for_message`]: struct.Standby.html#method.wait_for_message
+/// [`Standby::wait_for_message`]: crate::Standby::wait_for_message
 #[derive(Debug)]
 #[must_use = "futures do nothing unless you `.await` or poll them"]
 pub struct WaitForMessageFuture {
@@ -103,7 +103,7 @@ impl Future for WaitForMessageFuture {
 
 /// The stream returned from [`Standby::wait_for_message_stream`].
 ///
-/// [`Standby::wait_for_message_stream`]: struct.Standby.html#method.wait_for_message_stream
+/// [`Standby::wait_for_message_stream`]: crate::Standby::wait_for_message_stream
 #[derive(Debug)]
 #[must_use = "streams do nothing unless you poll them"]
 pub struct WaitForMessageStream {
@@ -120,7 +120,7 @@ impl Stream for WaitForMessageStream {
 
 /// The future returned from [`Standby::wait_for_reaction`].
 ///
-/// [`Standby::wait_for_reaction`]: struct.Standby.html#method.wait_for_reaction
+/// [`Standby::wait_for_reaction`]: crate::Standby::wait_for_reaction
 #[derive(Debug)]
 #[must_use = "futures do nothing unless you `.await` or poll them"]
 pub struct WaitForReactionFuture {
@@ -137,7 +137,7 @@ impl Future for WaitForReactionFuture {
 
 /// The stream returned from [`Standby::wait_for_reaction_stream`].
 ///
-/// [`Standby::wait_for_reaction_stream`]: struct.Standby.html#method.wait_for_reaction_stream
+/// [`Standby::wait_for_reaction_stream`]: crate::Standby::wait_for_reaction_stream
 #[derive(Debug)]
 #[must_use = "streams do nothing unless you poll them"]
 pub struct WaitForReactionStream {
