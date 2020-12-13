@@ -137,7 +137,7 @@ pub enum Path {
     /* New Paths
      * Have to figure out what the major parameters are
      */
-
+    InteractionsCallback(u64),
     /* Global */
     ApplicationCommand(u64),
     ApplicationCommandId(u64),
@@ -240,6 +240,7 @@ impl FromStr for Path {
             ApplicationCommand(u64),
             ApplicationCommandId(u64),
              */
+            ["interactions", iid, _it, "callback"] => InteractionsCallback(iid.parse()?),
             ["applications", id, "commands"] => ApplicationCommand(id.parse()?),
             ["applications", id, "commands", _] => ApplicationCommandId(id.parse()?),
             ["applications", id, "guilds", _, "commands"] => ApplicationGuildCommand(id.parse()?),
@@ -836,6 +837,10 @@ pub enum Route {
     },
 
     /* New Stuff */
+    InteractionsCallback {
+        interaction_id: u64,
+        interaction_token: String,
+    },
     /* Global commands */
     CreateGlobalCommand {
         application_id: u64,
@@ -1579,6 +1584,14 @@ impl Route {
             }
 
             /* New Stuff */
+            Self::InteractionsCallback {
+                interaction_id,
+                interaction_token,
+            } => (
+                Method::POST,
+                Path::InteractionsCallback(interaction_id),
+                format!("interactions/{}/{}/callback", interaction_id, interaction_token).into(),
+            ),
             /* Global commands */
             Self::CreateGlobalCommand { application_id } => (
                 Method::POST,
