@@ -20,7 +20,9 @@ pub struct CommandOption {
     pub kind: OptionType,
     pub name: String,
     pub description: String,
+    #[serde(default)]
     pub default: bool,
+    #[serde(default)]
     pub required: bool,
     pub choices: Vec<CommandOptionChoice>,
     pub options: Vec<CommandOption>,
