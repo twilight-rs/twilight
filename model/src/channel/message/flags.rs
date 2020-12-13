@@ -42,6 +42,6 @@ mod tests {
         serde_test::assert_tokens(&MessageFlags::SUPPRESS_EMBEDS, &[Token::U64(1 << 2)]);
         serde_test::assert_tokens(&MessageFlags::SOURCE_MESSAGE_DELETED, &[Token::U64(1 << 3)]);
         serde_test::assert_tokens(&MessageFlags::URGENT, &[Token::U64(1 << 4)]);
-        serde_test::assert_tokens(&MessageFlags::EPHEMERAL, &[Token::U64(1 << 6)]);        
+        serde_test::assert_tokens(&MessageFlags::EPHEMERAL, &[Token::U64(1 << 6)]);
     }
 }

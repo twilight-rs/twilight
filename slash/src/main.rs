@@ -4,7 +4,7 @@ use hex::FromHex;
 use once_cell::sync::Lazy;
 use std::future::Future;
 use twilight_model::applications::{
-    CommandCallbackData, Interaction, InteractionResponse, InteractionResponseType, InteractionType
+    CommandCallbackData, Interaction, InteractionResponse, InteractionResponseType, InteractionType,
 };
 use twilight_model::channel::message::MessageFlags;
 
@@ -14,13 +14,8 @@ use hyper::{Body, Method, Request, Response, Server};
 type GenericError = Box<dyn std::error::Error + Send + Sync>;
 
 static PUB_KEY: Lazy<PublicKey> = Lazy::new(|| {
-    PublicKey::from_bytes(
-        &<[u8; PUBLIC_KEY_LENGTH] as FromHex>::from_hex(
-            "BLOBSVED",
-        )
-        .unwrap(),
-    )
-    .unwrap()
+    PublicKey::from_bytes(&<[u8; PUBLIC_KEY_LENGTH] as FromHex>::from_hex("BLOBSVED").unwrap())
+        .unwrap()
 });
 
 async fn interaction_handler<F>(
@@ -48,7 +43,10 @@ where
     if let Err(_) = PUB_KEY.verify(&whole_body.bytes(), &signature) {
         return Ok(Response::builder().status(403).body(Body::empty())?);
     }
-    println!("{}", String::from_utf8(whole_body.bytes().to_vec()).unwrap());
+    println!(
+        "{}",
+        String::from_utf8(whole_body.bytes().to_vec()).unwrap()
+    );
     let interaction = serde_json::from_slice::<Interaction>(whole_body.bytes())?;
 
     if let InteractionType::Ping = interaction.kind {
@@ -58,10 +56,10 @@ where
         };
 
         let json = serde_json::to_vec(&response)?;
-        
+
         return Ok(Response::builder().status(200).body(json.into())?);
     }
-    
+
     let response = f(interaction).await?;
 
     let res_status = match response.kind {
@@ -106,8 +104,6 @@ async fn vroom(_: Interaction) -> Result<InteractionResponse, GenericError> {
         }),
     })
 }
-
-
 
 #[tokio::main]
 async fn main() -> Result<(), GenericError> {

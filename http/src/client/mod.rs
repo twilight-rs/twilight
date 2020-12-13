@@ -7,7 +7,10 @@ use crate::{
     error::{Error, Result, UrlError},
     ratelimiting::{RatelimitHeaders, Ratelimiter},
     request::{
-        applications::{CreateGuildCommand, GetGuildCommands, UpdateGuildCommand, DeleteGuildCommand, CreateGlobalCommand, GetGlobalCommands, UpdateGlobalCommand, DeleteGlobalCommand},
+        applications::{
+            CreateGlobalCommand, CreateGuildCommand, DeleteGlobalCommand, DeleteGuildCommand,
+            GetGlobalCommands, GetGuildCommands, UpdateGlobalCommand, UpdateGuildCommand,
+        },
         channel::message::allowed_mentions::AllowedMentions,
         guild::{create_guild::CreateGuildError, create_guild_channel::CreateGuildChannelError},
         prelude::*,
@@ -145,11 +148,7 @@ impl Client {
         application_id: ApplicationId,
         guild_id: GuildId,
     ) -> GetGuildCommands<'_> {
-        GetGuildCommands::new(
-            &self,
-            application_id,
-            guild_id,
-        )
+        GetGuildCommands::new(&self, application_id, guild_id)
     }
 
     pub fn update_guild_command(
@@ -177,12 +176,7 @@ impl Client {
         guild_id: GuildId,
         command_id: CommandId,
     ) -> DeleteGuildCommand<'_> {
-        DeleteGuildCommand::new(
-            &self,
-            application_id,
-            guild_id,
-            command_id,
-        )
+        DeleteGuildCommand::new(&self, application_id, guild_id, command_id)
     }
 
     pub fn create_global_command(
@@ -191,22 +185,11 @@ impl Client {
         name: impl Into<String>,
         description: impl Into<String>,
     ) -> CreateGlobalCommand<'_> {
-        CreateGlobalCommand::new(
-            &self,
-            application_id,
-            name.into(),
-            description.into(),
-        )
+        CreateGlobalCommand::new(&self, application_id, name.into(), description.into())
     }
 
-    pub fn get_global_commands(
-        &self,
-        application_id: ApplicationId,
-    ) -> GetGlobalCommands<'_> {
-        GetGlobalCommands::new(
-            &self,
-            application_id,
-        )
+    pub fn get_global_commands(&self, application_id: ApplicationId) -> GetGlobalCommands<'_> {
+        GetGlobalCommands::new(&self, application_id)
     }
 
     pub fn update_global_command(
@@ -231,11 +214,7 @@ impl Client {
         application_id: ApplicationId,
         command_id: CommandId,
     ) -> DeleteGlobalCommand<'_> {
-        DeleteGlobalCommand::new(
-            &self,
-            application_id,
-            command_id,
-        )
+        DeleteGlobalCommand::new(&self, application_id, command_id)
     }
 
     /* New Stuff End   */

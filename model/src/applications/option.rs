@@ -17,16 +17,14 @@ use serde_repr::{Deserialize_repr, Serialize_repr};
 #[derive(Clone, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
 pub struct CommandOption {
     #[serde(rename = "type")]
-    kind: OptionType,
-    name: String,
-    description: String,
-    default: bool,
-    required: bool,
-    choices: Vec<CommandOptionChoice>,
-    options: Vec<CommandOption>,
+    pub kind: OptionType,
+    pub name: String,
+    pub description: String,
+    pub default: bool,
+    pub required: bool,
+    pub choices: Vec<CommandOptionChoice>,
+    pub options: Vec<CommandOption>,
 }
-
-
 
 /*
 | Name              | Value |

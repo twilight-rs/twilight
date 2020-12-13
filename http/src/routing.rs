@@ -242,9 +242,7 @@ impl FromStr for Path {
              */
             ["applications", id, "commands"] => ApplicationCommand(id.parse()?),
             ["applications", id, "commands", _] => ApplicationCommandId(id.parse()?),
-            ["applications", id, "guilds", _, "commands"] => {
-                ApplicationGuildCommand(id.parse()?)
-            }
+            ["applications", id, "guilds", _, "commands"] => ApplicationGuildCommand(id.parse()?),
             ["applications", id, "guilds", _, "commands", _] => {
                 ApplicationGuildCommandId(id.parse()?)
             }
@@ -844,7 +842,7 @@ pub enum Route {
     },
     DeleteGlobalCommand {
         application_id: u64,
-        command_id: u64,        
+        command_id: u64,
     },
     GetGlobalCommands {
         application_id: u64,
@@ -853,7 +851,7 @@ pub enum Route {
         application_id: u64,
         command_id: u64,
     },
-    
+
     /* Guild commands */
     CreateGuildCommand {
         application_id: u64,
@@ -861,7 +859,7 @@ pub enum Route {
     },
     DeleteGuildCommand {
         application_id: u64,
-        command_id: u64,        
+        command_id: u64,
         guild_id: u64,
     },
     GetGuildCommands {
@@ -1582,16 +1580,10 @@ impl Route {
 
             /* New Stuff */
             /* Global commands */
-            Self::CreateGlobalCommand {
-                application_id,
-            } => (
+            Self::CreateGlobalCommand { application_id } => (
                 Method::POST,
                 Path::ApplicationCommand(application_id),
-                format!(
-                    "applications/{}/commands",
-                    application_id
-                )
-                .into(),
+                format!("applications/{}/commands", application_id).into(),
             ),
             Self::DeleteGlobalCommand {
                 application_id,
@@ -1599,22 +1591,12 @@ impl Route {
             } => (
                 Method::DELETE,
                 Path::ApplicationCommandId(application_id),
-                format!(
-                    "applications/{}/commands/{}",
-                    application_id, command_id
-                )
-                .into(),
+                format!("applications/{}/commands/{}", application_id, command_id).into(),
             ),
-            Self::GetGlobalCommands {
-                application_id,
-            } => (
+            Self::GetGlobalCommands { application_id } => (
                 Method::GET,
                 Path::ApplicationCommand(application_id),
-                format!(
-                    "applications/{}/commands",
-                    application_id
-                )
-                .into(),
+                format!("applications/{}/commands", application_id).into(),
             ),
             Self::UpdateGlobalCommand {
                 application_id,
@@ -1622,12 +1604,8 @@ impl Route {
             } => (
                 Method::PATCH,
                 Path::ApplicationCommandId(application_id),
-                format!(
-                    "applications/{}/commands/{}",
-                    application_id, command_id
-                )
-                .into(),
-            ),            
+                format!("applications/{}/commands/{}", application_id, command_id).into(),
+            ),
             /* Guild commands */
             Self::CreateGuildCommand {
                 application_id,
@@ -1644,7 +1622,7 @@ impl Route {
             Self::DeleteGuildCommand {
                 application_id,
                 command_id,
-                guild_id
+                guild_id,
             } => (
                 Method::DELETE,
                 Path::ApplicationGuildCommand(application_id),

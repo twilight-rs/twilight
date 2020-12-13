@@ -41,6 +41,7 @@ impl UpdateCache for Event {
             GuildEmojisUpdate(v) => c.update(v),
             GuildIntegrationsUpdate(v) => c.update(v),
             GuildUpdate(v) => c.update(v.deref()),
+            InteractionCreate(_) => {}
             InviteCreate(_) => {}
             InviteDelete(_) => {}
             MemberAdd(v) => c.update(v.deref()),
@@ -1119,7 +1120,9 @@ mod tests {
                 mute: false,
                 nick: Some("member nick".to_owned()),
                 premium_since: None,
+                permissions: None,
                 roles: Vec::new(),
+                user: None,
             }),
             mention_channels: Vec::new(),
             mention_everyone: false,

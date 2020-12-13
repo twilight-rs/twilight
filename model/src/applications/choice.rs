@@ -10,13 +10,6 @@ use serde::{Deserialize, Serialize};
 #[serde(untagged)]
 #[derive(Clone, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
 pub enum CommandOptionChoice {
-    String {
-        name: String,
-        value: String,
-    },
-    Int {
-        name: String,
-        value: i64,
-    },
+    String { name: String, value: String },
+    Int { name: String, value: i64 },
 }
-

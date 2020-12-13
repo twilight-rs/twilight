@@ -10,11 +10,7 @@ pub struct GetGuildCommands<'a> {
 }
 
 impl<'a> GetGuildCommands<'a> {
-    pub(crate) fn new(
-        http: &'a Client,
-        application_id: ApplicationId,
-        guild_id: GuildId,
-    ) -> Self {
+    pub(crate) fn new(http: &'a Client, application_id: ApplicationId, guild_id: GuildId) -> Self {
         Self {
             application_id,
             guild_id,
@@ -24,12 +20,10 @@ impl<'a> GetGuildCommands<'a> {
     }
 
     fn start(&mut self) -> Result<()> {
-        let req = Request::from(
-            Route::GetGuildCommands {
-                application_id: self.application_id.0,
-                guild_id: self.guild_id.0,
-            },
-        );
+        let req = Request::from(Route::GetGuildCommands {
+            application_id: self.application_id.0,
+            guild_id: self.guild_id.0,
+        });
         self.fut.replace(Box::pin(self.http.request(req)));
 
         Ok(())
