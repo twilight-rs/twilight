@@ -24,7 +24,9 @@ pub struct CommandOption {
     pub default: bool,
     #[serde(default)]
     pub required: bool,
+    #[serde(default)]
     pub choices: Vec<CommandOptionChoice>,
+    #[serde(default)]
     pub options: Vec<CommandOption>,
 }
 
