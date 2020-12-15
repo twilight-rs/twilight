@@ -17,7 +17,7 @@ use serde_repr::{Deserialize_repr, Serialize_repr};
 #[derive(Clone, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
 pub struct CommandOption {
     #[serde(rename = "type")]
-    pub kind: OptionType,
+    pub kind: CommandOptionType,
     pub name: String,
     pub description: String,
     #[serde(default)]
@@ -46,7 +46,7 @@ pub struct CommandOption {
     Clone, Copy, Debug, Deserialize_repr, Eq, Hash, Ord, PartialEq, PartialOrd, Serialize_repr,
 )]
 #[repr(u8)]
-pub enum OptionType {
+pub enum CommandOptionType {
     SubCommand = 1,
     SubCommandGroup = 2,
     String = 3,
