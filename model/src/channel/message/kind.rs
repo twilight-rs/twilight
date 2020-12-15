@@ -138,7 +138,10 @@ mod tests {
             MessageType::GuildDiscoveryRequalified
         );
         assert_eq!(MessageType::try_from(19).unwrap(), MessageType::Reply);
-        assert_eq!(MessageType::try_from(20).unwrap(), MessageType::ApplicationCommand);
+        assert_eq!(
+            MessageType::try_from(20).unwrap(),
+            MessageType::ApplicationCommand
+        );
         assert_eq!(
             MessageType::try_from(250).unwrap_err(),
             ConversionError::MessageType(250)

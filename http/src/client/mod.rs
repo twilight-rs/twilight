@@ -6,6 +6,7 @@ use crate::{
     api_error::{ApiError, ErrorCode},
     error::{Error, Result, UrlError},
     ratelimiting::{RatelimitHeaders, Ratelimiter},
+    request::applications::InteractionsCallback,
     request::{
         applications::{
             CreateGlobalCommand, CreateGuildCommand, DeleteGlobalCommand, DeleteGuildCommand,
@@ -16,7 +17,6 @@ use crate::{
         prelude::*,
         GetUserApplicationInfo, Request,
     },
-    request::applications::InteractionsCallback,
     API_VERSION,
 };
 use twilight_model::id::{ApplicationId, CommandId};
@@ -43,7 +43,10 @@ use tokio::time;
 use twilight_model::{
     applications::InteractionResponse,
     guild::Permissions,
-    id::{ChannelId, EmojiId, GuildId, IntegrationId, InteractionId, MessageId, RoleId, UserId, WebhookId},
+    id::{
+        ChannelId, EmojiId, GuildId, IntegrationId, InteractionId, MessageId, RoleId, UserId,
+        WebhookId,
+    },
 };
 
 #[cfg(feature = "hyper-rustls")]
@@ -135,14 +138,9 @@ impl Client {
         interaction_token: impl Into<String>,
         response: InteractionResponse,
     ) -> InteractionsCallback<'_> {
-        InteractionsCallback::new(
-            &self,
-            interaction_id,
-            interaction_token.into(),
-            response,
-        )
+        InteractionsCallback::new(&self, interaction_id, interaction_token.into(), response)
     }
-    
+
     pub fn create_guild_command(
         &self,
         application_id: ApplicationId,

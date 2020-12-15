@@ -867,10 +867,10 @@ mod tests {
         },
         gateway::{
             event::{Event, EventType},
-            payload::{MessageCreate, ReactionAdd, Ready, RoleDelete},
+            payload::{MessageCreate, PartialApplication, ReactionAdd, Ready, RoleDelete},
         },
-        id::{ChannelId, GuildId, MessageId, RoleId, UserId},
-        user::{CurrentUser, User},
+        id::{ApplicationId, ChannelId, GuildId, MessageId, RoleId, UserId},
+        user::{CurrentUser, User, UserFlags},
     };
 
     assert_impl_all!(Standby: Clone, Debug, Default, Send, Sync);
@@ -996,6 +996,10 @@ mod tests {
     #[tokio::test]
     async fn test_wait_for_event() {
         let ready = Ready {
+            application: PartialApplication {
+                flags: UserFlags::empty(),
+                id: ApplicationId(0),
+            },
             guilds: HashMap::new(),
             session_id: String::new(),
             shard: Some([5, 7]),

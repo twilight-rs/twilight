@@ -1590,7 +1590,11 @@ impl Route {
             } => (
                 Method::POST,
                 Path::InteractionsCallback(interaction_id),
-                format!("interactions/{}/{}/callback", interaction_id, interaction_token).into(),
+                format!(
+                    "interactions/{}/{}/callback",
+                    interaction_id, interaction_token
+                )
+                .into(),
             ),
             /* Global commands */
             Self::CreateGlobalCommand { application_id } => (

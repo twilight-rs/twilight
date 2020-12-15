@@ -1,9 +1,20 @@
-use crate::{guild::GuildStatus, id::GuildId, user::CurrentUser};
+use crate::{
+    guild::GuildStatus,
+    id::{ApplicationId, GuildId},
+    user::{CurrentUser, UserFlags},
+};
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 
 #[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
+pub struct PartialApplication {
+    pub flags: UserFlags,
+    pub id: ApplicationId,
+}
+
+#[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
 pub struct Ready {
+    pub application: PartialApplication,
     #[serde(with = "serde_mappable_seq")]
     pub guilds: HashMap<GuildId, GuildStatus>,
     pub session_id: String,
