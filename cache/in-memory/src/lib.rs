@@ -973,6 +973,7 @@ mod tests {
             name: "test".to_owned(),
             permissions: Permissions::empty(),
             position: 0,
+            tags: None,
         }
     }
 
