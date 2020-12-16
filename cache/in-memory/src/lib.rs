@@ -129,6 +129,8 @@ fn upsert_item<K: Eq + Hash, V: PartialEq>(map: &DashMap<K, Arc<V>>, k: K, v: V)
     }
 }
 
+// When adding a field here, be sure to add it to `InMemoryCache::clear` if
+// necessary.
 #[derive(Debug, Default)]
 struct InMemoryCacheRef {
     config: Arc<Config>,
@@ -462,21 +464,34 @@ impl InMemoryCache {
             .map(|r| Arc::clone(r.value()))
     }
 
-    /// Clears the entire state of the Cache. This is equal to creating a new
-    /// empty Cache.
+    /// Clear the state of the Cache.
+    ///
+    /// This is equal to creating a new empty cache.
     pub fn clear(&self) {
         self.0.channels_guild.clear();
+        self.0.channels_private.clear();
         self.0
             .current_user
             .lock()
             .expect("current user poisoned")
             .take();
         self.0.emojis.clear();
+        self.0.groups.clear();
         self.0.guilds.clear();
+        self.0.guild_channels.clear();
+        self.0.guild_emojis.clear();
+        self.0.guild_members.clear();
+        self.0.guild_presences.clear();
+        self.0.guild_roles.clear();
+        self.0.members.clear();
+        self.0.messages.clear();
         self.0.presences.clear();
         self.0.roles.clear();
+        self.0.unavailable_guilds.clear();
         self.0.users.clear();
+        self.0.voice_state_channels.clear();
         self.0.voice_state_guilds.clear();
+        self.0.voice_states.clear();
     }
 
     fn cache_current_user(&self, mut current_user: CurrentUser) {
@@ -1489,5 +1504,15 @@ mod tests {
             assert_eq!(guild_2_emoji_ids.len(), guild_emojis.len());
             assert!(guild_2_emoji_ids.iter().all(|id| guild_emojis.contains(id)));
         }
+    }
+
+    #[test]
+    fn test_clear() {
+        let cache = InMemoryCache::new();
+        cache.cache_emoji(GuildId(1), emoji(EmojiId(3), None));
+        cache.cache_member(GuildId(2), member(UserId(4), GuildId(2)));
+        cache.clear();
+        assert!(cache.0.emojis.is_empty());
+        assert!(cache.0.members.is_empty());
     }
 }
