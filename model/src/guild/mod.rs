@@ -17,8 +17,8 @@ mod permissions;
 mod premium_tier;
 mod preview;
 mod prune;
-mod role_tags;
 mod role;
+mod role_tags;
 mod status;
 mod system_channel_flags;
 mod unavailable_guild;
@@ -31,8 +31,8 @@ pub use self::{
     integration_account::IntegrationAccount, integration_application::IntegrationApplication,
     integration_expire_behavior::IntegrationExpireBehavior, member::Member, mfa_level::MfaLevel,
     partial_guild::PartialGuild, partial_member::PartialMember, permissions::Permissions,
-    premium_tier::PremiumTier, preview::GuildPreview, prune::GuildPrune, role_tags::RoleTags, role::Role,
-    status::GuildStatus, system_channel_flags::SystemChannelFlags,
+    premium_tier::PremiumTier, preview::GuildPreview, prune::GuildPrune, role::Role,
+    role_tags::RoleTags, status::GuildStatus, system_channel_flags::SystemChannelFlags,
     unavailable_guild::UnavailableGuild, verification_level::VerificationLevel,
     widget::GuildWidget,
 };

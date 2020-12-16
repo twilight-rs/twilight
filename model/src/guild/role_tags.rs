@@ -1,7 +1,7 @@
 use crate::id::{IntegrationId, UserId};
 use serde::{Deserialize, Serialize};
 
-/// The RoleTags' `premium_subscriber` field is tricky. It's an optional null.
+/// The role tags' `premium_subscriber` field is tricky. It's an optional null.
 ///
 /// If the field is present, then the value is null, meaning that the role is a
 /// premium subscriber. If the field is not present, it means that the role is
@@ -27,20 +27,20 @@ mod premium_subscriber {
         }
     }
 
-    pub fn serialize<S: Serializer>(
-        _: &bool,
-        serializer: S,
-    ) -> Result<S::Ok, S::Error> {
+    // Clippy will say this bool can be taken by value, but we need it to be
+    // passed by reference because that's what serde does.
+    #[allow(clippy::trivially_copy_pass_by_ref)]
+    pub fn serialize<S: Serializer>(_: &bool, serializer: S) -> Result<S::Ok, S::Error> {
         serializer.serialize_none()
     }
 
-    pub fn deserialize<'de, D: Deserializer<'de>>(
-        deserializer: D,
-    ) -> Result<bool, D::Error> {
+    pub fn deserialize<'de, D: Deserializer<'de>>(deserializer: D) -> Result<bool, D::Error> {
         deserializer.deserialize_option(PremiumSubscriberVisitor)
     }
 }
 
+// Clippy situation is the same as above.
+#[allow(clippy::trivially_copy_pass_by_ref)]
 fn is_false(value: &bool) -> bool {
     !value
 }
@@ -86,7 +86,9 @@ mod tests {
                 Token::Str("1"),
                 Token::Str("integration_id"),
                 Token::Some,
-                Token::NewtypeStruct { name: "IntegrationId" },
+                Token::NewtypeStruct {
+                    name: "IntegrationId",
+                },
                 Token::Str("2"),
                 Token::Str("premium_subscriber"),
                 Token::None,
@@ -95,7 +97,7 @@ mod tests {
         );
     }
 
-    /// Test that if all fields are None and premium_subscriber is false, then
+    /// Test that if all fields are None and `premium_subscriber` is false, then
     /// serialize back into the source payload (where all fields are not
     /// present).
     #[test]
