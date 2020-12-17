@@ -1,4 +1,3 @@
-use super::OptionType;
 use serde::{Deserialize, Serialize};
 
 /*
@@ -17,9 +16,24 @@ use serde::{Deserialize, Serialize};
  * | value?   | OptionType                                       |
  * | options? | array of ApplicationCommandInteractionDataOption |
  */
+
 #[derive(Clone, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
-pub struct InteractionDataOption {
-    pub name: String,
-    pub value: Option<OptionType>,
-    pub options: Vec<InteractionDataOption>,
+#[serde(untagged)]
+pub enum InteractionDataOption {
+    String {
+        name: String,
+        value: String,
+    },
+    Integer {
+        name: String,
+        value: i64,
+    },
+    Boolean {
+        name: String,
+        value: bool,
+    },
+    Subcommand {
+        name: String,
+        options: Vec<InteractionDataOption>,
+    },
 }
