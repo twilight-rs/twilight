@@ -2,9 +2,11 @@ use serde::{Deserialize, Serialize};
 
 #[derive(Clone, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
 pub struct ActivitySecrets {
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub join: Option<String>,
-    #[serde(rename = "match")]
+    #[serde(rename = "match", skip_serializing_if = "Option::is_none")]
     pub match_: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub spectate: Option<String>,
 }
 

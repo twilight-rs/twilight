@@ -23,15 +23,21 @@ pub struct PartialGuild {
     pub explicit_content_filter: ExplicitContentFilter,
     pub features: Vec<String>,
     pub icon: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub max_members: Option<u64>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub max_presences: Option<u64>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub member_count: Option<u64>,
     pub mfa_level: MfaLevel,
     pub name: String,
     pub owner_id: UserId,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub owner: Option<bool>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub permissions: Option<Permissions>,
     pub preferred_locale: String,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub premium_subscription_count: Option<u64>,
     pub premium_tier: PremiumTier,
     pub region: String,
@@ -43,7 +49,9 @@ pub struct PartialGuild {
     pub system_channel_id: Option<ChannelId>,
     pub verification_level: VerificationLevel,
     pub vanity_url_code: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub widget_channel_id: Option<ChannelId>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub widget_enabled: Option<bool>,
 }
 

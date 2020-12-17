@@ -4,6 +4,7 @@ use serde::{Deserialize, Serialize};
 
 #[derive(Clone, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
 pub struct IntegrationApplication {
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub bot: Option<User>,
     pub description: String,
     pub icon: Option<String>,
@@ -15,13 +16,30 @@ pub struct IntegrationApplication {
 #[cfg(test)]
 mod tests {
     use super::IntegrationApplication;
-    use crate::id::ApplicationId;
+    use crate::{
+        id::{ApplicationId, UserId},
+        user::User,
+    };
     use serde_test::Token;
 
     #[test]
     fn test_integration_account() {
         let value = IntegrationApplication {
-            bot: None,
+            bot: Some(User {
+                avatar: None,
+                bot: false,
+                discriminator: "0001".to_owned(),
+                email: None,
+                flags: None,
+                id: UserId(2),
+                locale: None,
+                mfa_enabled: None,
+                name: "test".to_owned(),
+                premium_type: None,
+                public_flags: None,
+                system: None,
+                verified: None,
+            }),
             description: "Friendship is Magic".to_string(),
             icon: None,
             id: ApplicationId(123),
@@ -37,7 +55,23 @@ mod tests {
                     len: 6,
                 },
                 Token::Str("bot"),
+                Token::Some,
+                Token::Struct {
+                    name: "User",
+                    len: 5,
+                },
+                Token::Str("avatar"),
                 Token::None,
+                Token::Str("bot"),
+                Token::Bool(false),
+                Token::Str("discriminator"),
+                Token::Str("0001"),
+                Token::Str("id"),
+                Token::NewtypeStruct { name: "UserId" },
+                Token::Str("2"),
+                Token::Str("username"),
+                Token::Str("test"),
+                Token::StructEnd,
                 Token::Str("description"),
                 Token::Str("Friendship is Magic"),
                 Token::Str("icon"),

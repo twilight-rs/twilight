@@ -1010,7 +1010,6 @@ mod tests {
             self_stream: false,
             session_id: "a".to_owned(),
             suppress: false,
-            token: None,
             user_id,
         }
     }
@@ -1062,7 +1061,7 @@ mod tests {
             features: vec![],
             icon: None,
             joined_at: Some("".to_owned()),
-            large: false,
+            large: Some(false),
             lazy: Some(true),
             max_members: Some(50),
             max_presences: Some(100),

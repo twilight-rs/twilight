@@ -29,12 +29,15 @@ pub struct CurrentUser {
     /// more information.
     ///
     /// [Discord's documentation]: https://discord.com/developers/docs/resources/user#user-object-user-structure
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub email: Option<String>,
     /// All flags on a user's account.
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub flags: Option<UserFlags>,
     /// User's id.
     pub id: UserId,
     /// User's chosen language option.
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub locale: Option<String>,
     /// Whether the user has two factor enabled on their account.
     pub mfa_enabled: bool,
@@ -42,8 +45,10 @@ pub struct CurrentUser {
     #[serde(rename = "username")]
     pub name: String,
     /// Type of Nitro subscription on a user's account.
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub premium_type: Option<PremiumType>,
     /// Public flags on a user's account.
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub public_flags: Option<UserFlags>,
     /// Whether the email on this account has been verified.
     ///
@@ -51,6 +56,7 @@ pub struct CurrentUser {
     /// more information.
     ///
     /// [Discord's documentation]: https://discord.com/developers/docs/resources/user#user-object-user-structure
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub verified: Option<bool>,
 }
 
@@ -73,9 +79,11 @@ mod tests {
             Token::Str("discriminator"),
             discriminator_token,
             Token::Str("email"),
-            Token::None,
+            Token::Some,
+            Token::Str("test@example.com"),
             Token::Str("flags"),
-            Token::None,
+            Token::Some,
+            Token::U64(1),
             Token::Str("id"),
             Token::NewtypeStruct { name: "UserId" },
             Token::Str("1"),
@@ -105,14 +113,14 @@ mod tests {
             avatar: Some("avatar hash".to_owned()),
             bot: true,
             discriminator: "9999".to_owned(),
-            email: None,
+            email: Some("test@example.com".to_owned()),
             id: UserId(1),
             mfa_enabled: true,
             name: "test name".to_owned(),
             verified: Some(true),
             premium_type: Some(PremiumType::NitroClassic),
             public_flags: Some(UserFlags::DISCORD_EMPLOYEE),
-            flags: None,
+            flags: Some(UserFlags::DISCORD_EMPLOYEE),
             locale: Some("test locale".to_owned()),
         };
 

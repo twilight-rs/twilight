@@ -5,6 +5,7 @@ use serde::{Deserialize, Serialize};
 pub struct MessageActivity {
     #[serde(rename = "type")]
     pub kind: MessageActivityType,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub party_id: Option<String>,
 }
 
@@ -17,7 +18,7 @@ mod tests {
     fn test_message_activity() {
         let value = MessageActivity {
             kind: MessageActivityType::Join,
-            party_id: None,
+            party_id: Some("test".to_owned()),
         };
 
         serde_test::assert_tokens(
@@ -30,7 +31,8 @@ mod tests {
                 Token::Str("type"),
                 Token::U8(1),
                 Token::Str("party_id"),
-                Token::None,
+                Token::Some,
+                Token::Str("test"),
                 Token::StructEnd,
             ],
         );

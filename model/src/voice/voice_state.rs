@@ -19,7 +19,9 @@ use std::{
 pub struct VoiceState {
     pub channel_id: Option<ChannelId>,
     pub deaf: bool,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub guild_id: Option<GuildId>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub member: Option<Member>,
     pub mute: bool,
     pub self_deaf: bool,
@@ -29,7 +31,6 @@ pub struct VoiceState {
     pub self_stream: bool,
     pub session_id: String,
     pub suppress: bool,
-    pub token: Option<String>,
     pub user_id: UserId,
 }
 
@@ -52,7 +53,6 @@ enum Field {
     SelfStream,
     SessionId,
     Suppress,
-    Token,
     UserId,
 }
 
@@ -77,7 +77,6 @@ impl<'de> Visitor<'de> for VoiceStateVisitor {
         let mut self_stream = None;
         let mut session_id = None;
         let mut suppress = None;
-        let mut token = None;
         let mut user_id = None;
 
         let span = tracing::trace_span!("deserializing voice state");
@@ -177,13 +176,6 @@ impl<'de> Visitor<'de> for VoiceStateVisitor {
 
                     suppress = Some(map.next_value()?);
                 }
-                Field::Token => {
-                    if token.is_some() {
-                        return Err(DeError::duplicate_field("token"));
-                    }
-
-                    token = map.next_value()?;
-                }
                 Field::UserId => {
                     if user_id.is_some() {
                         return Err(DeError::duplicate_field("user_id"));
@@ -232,7 +224,6 @@ impl<'de> Visitor<'de> for VoiceStateVisitor {
             self_stream,
             session_id,
             suppress,
-            token,
             user_id,
         })
     }
@@ -251,7 +242,6 @@ impl<'de> Deserialize<'de> for VoiceState {
             "self_stream",
             "session_id",
             "suppress",
-            "token",
             "user_id",
         ];
 
@@ -294,7 +284,8 @@ impl<'de> DeserializeSeed<'de> for VoiceStateMapDeserializer {
 
 #[cfg(test)]
 mod tests {
-    use super::{ChannelId, GuildId, UserId, VoiceState};
+    use super::{ChannelId, GuildId, Member, UserId, VoiceState};
+    use crate::{id::RoleId, user::User};
     use serde_test::Token;
 
     #[test]
@@ -303,14 +294,37 @@ mod tests {
             channel_id: Some(ChannelId(1)),
             deaf: false,
             guild_id: Some(GuildId(2)),
-            member: None,
+            member: Some(Member {
+                deaf: false,
+                guild_id: GuildId(2),
+                hoisted_role: Some(RoleId(2)),
+                joined_at: Some("timestamp".to_owned()),
+                mute: true,
+                nick: Some("twilight".to_owned()),
+                premium_since: Some("timestamp".to_owned()),
+                roles: Vec::new(),
+                user: User {
+                    avatar: None,
+                    bot: false,
+                    discriminator: "0001".to_owned(),
+                    email: None,
+                    flags: None,
+                    id: UserId(3),
+                    locale: None,
+                    mfa_enabled: None,
+                    name: "twilight".to_owned(),
+                    premium_type: None,
+                    public_flags: None,
+                    system: None,
+                    verified: None,
+                },
+            }),
             mute: true,
             self_deaf: false,
             self_mute: true,
             self_stream: false,
             session_id: "a".to_owned(),
             suppress: true,
-            token: None,
             user_id: UserId(3),
         };
 
@@ -319,7 +333,7 @@ mod tests {
             &[
                 Token::Struct {
                     name: "VoiceState",
-                    len: 12,
+                    len: 11,
                 },
                 Token::Str("channel_id"),
                 Token::Some,
@@ -332,7 +346,52 @@ mod tests {
                 Token::NewtypeStruct { name: "GuildId" },
                 Token::Str("2"),
                 Token::Str("member"),
+                Token::Some,
+                Token::Struct {
+                    name: "Member",
+                    len: 9,
+                },
+                Token::Str("deaf"),
+                Token::Bool(false),
+                Token::Str("guild_id"),
+                Token::NewtypeStruct { name: "GuildId" },
+                Token::Str("2"),
+                Token::Str("hoisted_role"),
+                Token::Some,
+                Token::NewtypeStruct { name: "RoleId" },
+                Token::Str("2"),
+                Token::Str("joined_at"),
+                Token::Some,
+                Token::Str("timestamp"),
+                Token::Str("mute"),
+                Token::Bool(true),
+                Token::Str("nick"),
+                Token::Some,
+                Token::Str("twilight"),
+                Token::Str("premium_since"),
+                Token::Some,
+                Token::Str("timestamp"),
+                Token::Str("roles"),
+                Token::Seq { len: Some(0) },
+                Token::SeqEnd,
+                Token::Str("user"),
+                Token::Struct {
+                    name: "User",
+                    len: 5,
+                },
+                Token::Str("avatar"),
                 Token::None,
+                Token::Str("bot"),
+                Token::Bool(false),
+                Token::Str("discriminator"),
+                Token::Str("0001"),
+                Token::Str("id"),
+                Token::NewtypeStruct { name: "UserId" },
+                Token::Str("3"),
+                Token::Str("username"),
+                Token::Str("twilight"),
+                Token::StructEnd,
+                Token::StructEnd,
                 Token::Str("mute"),
                 Token::Bool(true),
                 Token::Str("self_deaf"),
@@ -345,8 +404,6 @@ mod tests {
                 Token::Str("a"),
                 Token::Str("suppress"),
                 Token::Bool(true),
-                Token::Str("token"),
-                Token::None,
                 Token::Str("user_id"),
                 Token::NewtypeStruct { name: "UserId" },
                 Token::Str("3"),

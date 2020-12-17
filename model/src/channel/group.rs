@@ -7,13 +7,17 @@ use serde::{Deserialize, Serialize};
 
 #[derive(Clone, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
 pub struct Group {
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub application_id: Option<ApplicationId>,
     pub icon: Option<String>,
     pub id: ChannelId,
     #[serde(rename = "type")]
     pub kind: ChannelType,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub last_message_id: Option<MessageId>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub last_pin_timestamp: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub name: Option<String>,
     pub owner_id: UserId,
     pub recipients: Vec<User>,
@@ -32,7 +36,7 @@ mod tests {
             id: ChannelId(2),
             kind: ChannelType::Group,
             last_message_id: Some(MessageId(3)),
-            last_pin_timestamp: None,
+            last_pin_timestamp: Some("123".to_owned()),
             name: Some("a group".to_owned()),
             owner_id: UserId(4),
             recipients: Vec::new(),
@@ -64,7 +68,8 @@ mod tests {
                 Token::NewtypeStruct { name: "MessageId" },
                 Token::Str("3"),
                 Token::Str("last_pin_timestamp"),
-                Token::None,
+                Token::Some,
+                Token::Str("123"),
                 Token::Str("name"),
                 Token::Some,
                 Token::Str("a group"),

@@ -25,7 +25,9 @@ use std::collections::HashMap;
 
 #[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
 pub struct Message {
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub activity: Option<MessageActivity>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub application: Option<MessageApplication>,
     pub attachments: Vec<Attachment>,
     pub author: User,
@@ -33,33 +35,38 @@ pub struct Message {
     pub content: String,
     pub edited_timestamp: Option<String>,
     pub embeds: Vec<Embed>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub flags: Option<MessageFlags>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub guild_id: Option<GuildId>,
     pub id: MessageId,
     #[serde(rename = "type")]
     pub kind: MessageType,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub member: Option<PartialMember>,
-    #[serde(default)]
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
     pub mention_channels: Vec<ChannelMention>,
     pub mention_everyone: bool,
     pub mention_roles: Vec<RoleId>,
     #[serde(with = "serde_mappable_seq")]
     pub mentions: HashMap<UserId, User>,
     pub pinned: bool,
-    #[serde(default)]
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
     pub reactions: Vec<MessageReaction>,
     /// Reference data sent with crossposted messages and replies.
-    #[serde(rename = "message_reference")]
+    #[serde(rename = "message_reference", skip_serializing_if = "Option::is_none")]
     pub reference: Option<MessageReference>,
     /// The message associated with the [reference].
     ///
     /// [reference]: #structfield.reference
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub referenced_message: Option<Box<Message>>,
     /// Stickers within the message.
     #[serde(default)]
     pub stickers: Vec<Sticker>,
     pub timestamp: String,
     pub tts: bool,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub webhook_id: Option<WebhookId>,
 }
 
@@ -71,7 +78,7 @@ mod tests {
     };
     use crate::{
         guild::PartialMember,
-        id::{ChannelId, GuildId, MessageId, UserId},
+        id::{ChannelId, GuildId, MessageId, UserId, WebhookId},
         user::User,
     };
     use serde_test::Token;
@@ -101,7 +108,7 @@ mod tests {
             },
             channel_id: ChannelId(2),
             content: "ping".to_owned(),
-            edited_timestamp: None,
+            edited_timestamp: Some("123".to_owned()),
             embeds: Vec::new(),
             flags: Some(MessageFlags::empty()),
             guild_id: Some(GuildId(1)),
@@ -134,7 +141,7 @@ mod tests {
             referenced_message: None,
             timestamp: "2020-02-02T02:02:02.020000+00:00".to_owned(),
             tts: false,
-            webhook_id: None,
+            webhook_id: Some(WebhookId(1)),
         };
 
         serde_test::assert_tokens(
@@ -142,19 +149,15 @@ mod tests {
             &[
                 Token::Struct {
                     name: "Message",
-                    len: 25,
+                    len: 19,
                 },
-                Token::Str("activity"),
-                Token::None,
-                Token::Str("application"),
-                Token::None,
                 Token::Str("attachments"),
                 Token::Seq { len: Some(0) },
                 Token::SeqEnd,
                 Token::Str("author"),
                 Token::Struct {
                     name: "User",
-                    len: 13,
+                    len: 5,
                 },
                 Token::Str("avatar"),
                 Token::Some,
@@ -163,27 +166,11 @@ mod tests {
                 Token::Bool(false),
                 Token::Str("discriminator"),
                 Token::Str("0001"),
-                Token::Str("email"),
-                Token::None,
-                Token::Str("flags"),
-                Token::None,
                 Token::Str("id"),
                 Token::NewtypeStruct { name: "UserId" },
                 Token::Str("3"),
-                Token::Str("locale"),
-                Token::None,
-                Token::Str("mfa_enabled"),
-                Token::None,
                 Token::Str("username"),
                 Token::Str("test"),
-                Token::Str("premium_type"),
-                Token::None,
-                Token::Str("public_flags"),
-                Token::None,
-                Token::Str("system"),
-                Token::None,
-                Token::Str("verified"),
-                Token::None,
                 Token::StructEnd,
                 Token::Str("channel_id"),
                 Token::NewtypeStruct { name: "ChannelId" },
@@ -191,7 +178,8 @@ mod tests {
                 Token::Str("content"),
                 Token::Str("ping"),
                 Token::Str("edited_timestamp"),
-                Token::None,
+                Token::Some,
+                Token::Str("123"),
                 Token::Str("embeds"),
                 Token::Seq { len: Some(0) },
                 Token::SeqEnd,
@@ -227,9 +215,6 @@ mod tests {
                 Token::Seq { len: Some(0) },
                 Token::SeqEnd,
                 Token::StructEnd,
-                Token::Str("mention_channels"),
-                Token::Seq { len: Some(0) },
-                Token::SeqEnd,
                 Token::Str("mention_everyone"),
                 Token::Bool(false),
                 Token::Str("mention_roles"),
@@ -240,13 +225,6 @@ mod tests {
                 Token::SeqEnd,
                 Token::Str("pinned"),
                 Token::Bool(false),
-                Token::Str("reactions"),
-                Token::Seq { len: Some(0) },
-                Token::SeqEnd,
-                Token::Str("message_reference"),
-                Token::None,
-                Token::Str("referenced_message"),
-                Token::None,
                 Token::Str("stickers"),
                 Token::Seq { len: Some(1) },
                 Token::Struct {
@@ -281,7 +259,9 @@ mod tests {
                 Token::Str("tts"),
                 Token::Bool(false),
                 Token::Str("webhook_id"),
-                Token::None,
+                Token::Some,
+                Token::NewtypeStruct { name: "WebhookId" },
+                Token::Str("1"),
                 Token::StructEnd,
             ],
         );

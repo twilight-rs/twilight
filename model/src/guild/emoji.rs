@@ -28,8 +28,9 @@ pub struct Emoji {
     pub name: String,
     #[serde(default)]
     pub require_colons: bool,
-    #[serde(default)]
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
     pub roles: Vec<RoleId>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub user: Option<User>,
 }
 
@@ -80,7 +81,7 @@ impl<'de> DeserializeSeed<'de> for EmojiMapDeserializer {
 #[cfg(test)]
 mod tests {
     use super::{Emoji, EmojiId, User};
-    use crate::id::UserId;
+    use crate::id::{RoleId, UserId};
     use serde_test::Token;
 
     #[test]
@@ -92,7 +93,7 @@ mod tests {
             managed: false,
             name: "test".to_owned(),
             require_colons: true,
-            roles: Vec::new(),
+            roles: vec![RoleId(1)],
             user: Some(User {
                 avatar: None,
                 bot: false,
@@ -131,13 +132,15 @@ mod tests {
                 Token::Str("require_colons"),
                 Token::Bool(true),
                 Token::Str("roles"),
-                Token::Seq { len: Some(0) },
+                Token::Seq { len: Some(1) },
+                Token::NewtypeStruct { name: "RoleId" },
+                Token::Str("1"),
                 Token::SeqEnd,
                 Token::Str("user"),
                 Token::Some,
                 Token::Struct {
                     name: "User",
-                    len: 13,
+                    len: 5,
                 },
                 Token::Str("avatar"),
                 Token::None,
@@ -145,27 +148,11 @@ mod tests {
                 Token::Bool(false),
                 Token::Str("discriminator"),
                 Token::Str("0001"),
-                Token::Str("email"),
-                Token::None,
-                Token::Str("flags"),
-                Token::None,
                 Token::Str("id"),
                 Token::NewtypeStruct { name: "UserId" },
                 Token::Str("1"),
-                Token::Str("locale"),
-                Token::None,
-                Token::Str("mfa_enabled"),
-                Token::None,
                 Token::Str("username"),
                 Token::Str("test"),
-                Token::Str("premium_type"),
-                Token::None,
-                Token::Str("public_flags"),
-                Token::None,
-                Token::Str("system"),
-                Token::None,
-                Token::Str("verified"),
-                Token::None,
                 Token::StructEnd,
                 Token::StructEnd,
             ],

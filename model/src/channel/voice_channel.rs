@@ -7,14 +7,17 @@ use serde::{Deserialize, Serialize};
 #[derive(Clone, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
 pub struct VoiceChannel {
     pub bitrate: u64,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub guild_id: Option<GuildId>,
     pub id: ChannelId,
     #[serde(rename = "type")]
     pub kind: ChannelType,
     pub name: String,
     pub permission_overwrites: Vec<PermissionOverwrite>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub parent_id: Option<ChannelId>,
     pub position: i64,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub user_limit: Option<u64>,
 }
 
@@ -32,7 +35,7 @@ mod tests {
             kind: ChannelType::GuildVoice,
             name: "foo".to_owned(),
             permission_overwrites: Vec::new(),
-            parent_id: None,
+            parent_id: Some(ChannelId(1)),
             position: 3,
             user_limit: Some(7),
         };
@@ -61,7 +64,9 @@ mod tests {
                 Token::Seq { len: Some(0) },
                 Token::SeqEnd,
                 Token::Str("parent_id"),
-                Token::None,
+                Token::Some,
+                Token::NewtypeStruct { name: "ChannelId" },
+                Token::Str("1"),
                 Token::Str("position"),
                 Token::I64(3),
                 Token::Str("user_limit"),

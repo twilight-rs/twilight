@@ -15,7 +15,6 @@ pub struct CachedVoiceState {
     pub self_stream: bool,
     pub session_id: String,
     pub suppress: bool,
-    pub token: Option<String>,
     pub user_id: UserId,
 }
 
@@ -30,7 +29,6 @@ impl PartialEq<VoiceState> for CachedVoiceState {
             && self.self_stream == other.self_stream
             && self.session_id == other.session_id
             && self.suppress == other.suppress
-            && self.token == other.token
             && self.user_id == other.user_id
     }
 }

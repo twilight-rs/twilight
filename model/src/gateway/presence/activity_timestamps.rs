@@ -2,7 +2,9 @@ use serde::{Deserialize, Serialize};
 
 #[derive(Clone, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
 pub struct ActivityTimestamps {
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub end: Option<u64>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub start: Option<u64>,
 }
 
@@ -23,12 +25,8 @@ mod tests {
             &[
                 Token::Struct {
                     name: "ActivityTimestamps",
-                    len: 2,
+                    len: 0,
                 },
-                Token::Str("end"),
-                Token::None,
-                Token::Str("start"),
-                Token::None,
                 Token::StructEnd,
             ],
         );
@@ -46,13 +44,11 @@ mod tests {
             &[
                 Token::Struct {
                     name: "ActivityTimestamps",
-                    len: 2,
+                    len: 1,
                 },
                 Token::Str("end"),
                 Token::Some,
                 Token::U64(1),
-                Token::Str("start"),
-                Token::None,
                 Token::StructEnd,
             ],
         );
@@ -70,10 +66,8 @@ mod tests {
             &[
                 Token::Struct {
                     name: "ActivityTimestamps",
-                    len: 2,
+                    len: 1,
                 },
-                Token::Str("end"),
-                Token::None,
                 Token::Str("start"),
                 Token::Some,
                 Token::U64(1),

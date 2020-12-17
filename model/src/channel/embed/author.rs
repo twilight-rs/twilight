@@ -2,9 +2,13 @@ use serde::{Deserialize, Serialize};
 
 #[derive(Clone, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
 pub struct EmbedAuthor {
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub icon_url: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub name: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub proxy_icon_url: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub url: Option<String>,
 }
 
@@ -18,7 +22,7 @@ mod tests {
         let value = EmbedAuthor {
             icon_url: Some("https://example.com/1.png".to_owned()),
             name: Some("test".to_owned()),
-            proxy_icon_url: None,
+            proxy_icon_url: Some("https://example.com".to_owned()),
             url: Some("https://example.com".to_owned()),
         };
 
@@ -36,7 +40,8 @@ mod tests {
                 Token::Some,
                 Token::Str("test"),
                 Token::Str("proxy_icon_url"),
-                Token::None,
+                Token::Some,
+                Token::Str("https://example.com"),
                 Token::Str("url"),
                 Token::Some,
                 Token::Str("https://example.com"),

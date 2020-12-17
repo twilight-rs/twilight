@@ -9,20 +9,30 @@ use serde_mappable_seq::Key;
 #[derive(Clone, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
 pub struct GuildIntegration {
     pub account: IntegrationAccount,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub application: Option<IntegrationApplication>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub enable_emoticons: Option<bool>,
     pub enabled: bool,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub expire_behavior: Option<IntegrationExpireBehavior>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub expire_grace_period: Option<u64>,
     pub id: IntegrationId,
     #[serde(rename = "type")]
     pub kind: String,
     pub name: String,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub revoked: Option<bool>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub role_id: Option<RoleId>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub subscriber_count: Option<u64>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub synced_at: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub syncing: Option<bool>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub user: Option<User>,
 }
 
@@ -35,9 +45,10 @@ impl Key<'_, IntegrationId> for GuildIntegration {
 #[cfg(test)]
 mod tests {
     use super::{
-        GuildIntegration, IntegrationAccount, IntegrationExpireBehavior, IntegrationId, User,
+        GuildIntegration, IntegrationAccount, IntegrationApplication, IntegrationExpireBehavior,
+        IntegrationId, User,
     };
-    use crate::id::{RoleId, UserId};
+    use crate::id::{ApplicationId, RoleId, UserId};
     use serde_test::Token;
 
     #[allow(clippy::too_many_lines)]
@@ -48,7 +59,14 @@ mod tests {
                 id: "abcd".to_owned(),
                 name: "account name".to_owned(),
             },
-            application: None,
+            application: Some(IntegrationApplication {
+                bot: None,
+                description: "Friendship is Magic".to_string(),
+                icon: None,
+                id: ApplicationId(123),
+                name: "Twilight".to_string(),
+                summary: "A cool pony".to_string(),
+            }),
             enable_emoticons: Some(true),
             enabled: true,
             expire_behavior: Some(IntegrationExpireBehavior::Kick),
@@ -96,7 +114,25 @@ mod tests {
                 Token::Str("account name"),
                 Token::StructEnd,
                 Token::Str("application"),
+                Token::Some,
+                Token::Struct {
+                    name: "IntegrationApplication",
+                    len: 5,
+                },
+                Token::Str("description"),
+                Token::Str("Friendship is Magic"),
+                Token::Str("icon"),
                 Token::None,
+                Token::Str("id"),
+                Token::NewtypeStruct {
+                    name: "ApplicationId",
+                },
+                Token::Str("123"),
+                Token::Str("name"),
+                Token::Str("Twilight"),
+                Token::Str("summary"),
+                Token::Str("A cool pony"),
+                Token::StructEnd,
                 Token::Str("enable_emoticons"),
                 Token::Some,
                 Token::Bool(true),
@@ -137,7 +173,7 @@ mod tests {
                 Token::Some,
                 Token::Struct {
                     name: "User",
-                    len: 13,
+                    len: 5,
                 },
                 Token::Str("avatar"),
                 Token::Some,
@@ -146,27 +182,11 @@ mod tests {
                 Token::Bool(true),
                 Token::Str("discriminator"),
                 Token::Str("1000"),
-                Token::Str("email"),
-                Token::None,
-                Token::Str("flags"),
-                Token::None,
                 Token::Str("id"),
                 Token::NewtypeStruct { name: "UserId" },
                 Token::Str("4"),
-                Token::Str("locale"),
-                Token::None,
-                Token::Str("mfa_enabled"),
-                Token::None,
                 Token::Str("username"),
                 Token::Str("user"),
-                Token::Str("premium_type"),
-                Token::None,
-                Token::Str("public_flags"),
-                Token::None,
-                Token::Str("system"),
-                Token::None,
-                Token::Str("verified"),
-                Token::None,
                 Token::StructEnd,
                 Token::StructEnd,
             ],

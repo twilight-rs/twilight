@@ -64,16 +64,24 @@ pub struct User {
     /// the type Discord's API uses.
     #[serde(with = "discriminator")]
     pub discriminator: String,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub email: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub flags: Option<UserFlags>,
     pub id: UserId,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub locale: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub mfa_enabled: Option<bool>,
     #[serde(rename = "username")]
     pub name: String,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub premium_type: Option<PremiumType>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub public_flags: Option<UserFlags>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub system: Option<bool>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub verified: Option<bool>,
 }
 
@@ -125,7 +133,8 @@ mod tests {
             Token::Some,
             Token::U64(131_584),
             Token::Str("system"),
-            Token::None,
+            Token::Some,
+            Token::Bool(true),
             Token::Str("verified"),
             Token::Some,
             Token::Bool(true),
@@ -147,7 +156,7 @@ mod tests {
             name: "test".to_owned(),
             premium_type: Some(PremiumType::Nitro),
             public_flags: Some(UserFlags::EARLY_SUPPORTER | UserFlags::VERIFIED_BOT_DEVELOPER),
-            system: None,
+            system: Some(true),
             verified: Some(true),
         };
 

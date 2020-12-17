@@ -2,8 +2,10 @@ use serde::{Deserialize, Serialize};
 
 #[derive(Clone, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
 pub struct ActivityEmoji {
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub animated: Option<bool>,
     pub name: String,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub id: Option<String>,
 }
 
@@ -17,7 +19,7 @@ mod tests {
         let value = ActivityEmoji {
             animated: Some(false),
             name: "a".to_owned(),
-            id: None,
+            id: Some("123".to_owned()),
         };
 
         serde_test::assert_tokens(
@@ -33,7 +35,8 @@ mod tests {
                 Token::Str("name"),
                 Token::Str("a"),
                 Token::Str("id"),
-                Token::None,
+                Token::Some,
+                Token::Str("123"),
                 Token::StructEnd,
             ],
         );
