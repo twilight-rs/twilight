@@ -46,6 +46,8 @@ fn is_false(value: &bool) -> bool {
 }
 
 /// Tags that a [`Role`] has.
+///
+/// [`Role`]: super::Role
 #[derive(Clone, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
 pub struct RoleTags {
     /// ID of the bot the role belongs to.
