@@ -7,8 +7,8 @@ use serde::{Deserialize, Serialize};
 #[derive(Clone, Debug, Deserialize, Serialize)]
 pub struct AuditLogEntry {
     pub action_type: AuditLogEvent,
-    #[serde(default, skip_serializing_if = "Vec::is_empty")]
-    pub changes: Vec<AuditLogChange>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub changes: Option<Vec<AuditLogChange>>,
     pub id: AuditLogEntryId,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub options: Option<AuditLogOptionalEntryInfo>,
