@@ -2,6 +2,20 @@
 
 Changelog for `twilight-http`.
 
+## [0.2.6] - 2020-12-18
+
+The MSRV is now set to Rust 1.48.
+
+### Enhancements
+
+The `request::user::get_current_user_guilds::CurrentUserGuild` type has been
+moved to `twilight_model::user::CurrentUserGuild`. A re-export has been left
+in its place ([#625] - [@AsianIntel]).
+
+### Misc.
+
+Replace documentation links with intra-doc links ([#524] - [@nickelc]).
+
 ## [0.2.5] - 2020-11-29
 
 ### Additions
@@ -209,6 +223,7 @@ Initial release.
 
 [@7596ff]: https://github.com/7596ff
 [@AEnterprise]: https://github.com/AEnterprise
+[@AsianIntel]: https://github.com/AsianIntel
 [@chamburr]: https://github.com/chamburr
 [@coadler]: https://github.com/coadler
 [@DusterTheFirst]: https://github.com/DusterTheFirst
@@ -218,6 +233,7 @@ Initial release.
 [@sam-kirby]: https://github.com/sam-kirby
 [@vivian]: https://github.com/vivian
 
+[#625]: https://github.com/twilight-rs/twilight/pull/625
 [#620]: https://github.com/twilight-rs/twilight/pull/620
 [#614]: https://github.com/twilight-rs/twilight/pull/614
 [#608]: https://github.com/twilight-rs/twilight/pull/608
@@ -240,6 +256,7 @@ Initial release.
 [#534]: https://github.com/twilight-rs/twilight/pull/534
 [#532]: https://github.com/twilight-rs/twilight/pull/532
 [#529]: https://github.com/twilight-rs/twilight/pull/529
+[#524]: https://github.com/twilight-rs/twilight/pull/524
 [#522]: https://github.com/twilight-rs/twilight/pull/522
 [#520]: https://github.com/twilight-rs/twilight/pull/520
 [#519]: https://github.com/twilight-rs/twilight/pull/519
@@ -252,6 +269,8 @@ Initial release.
 
 [0.2.0-beta.1:app integrations]: https://github.com/discord/discord-api-docs/commit/a926694e2f8605848bda6b57d21c8817559e5cec
 
+[0.2.6]: https://github.com/twilight-rs/twilight/releases/tag/http-v0.2.6
+[0.2.5]: https://github.com/twilight-rs/twilight/releases/tag/http-v0.2.5
 [0.2.4]: https://github.com/twilight-rs/twilight/releases/tag/http-v0.2.4
 [0.2.3]: https://github.com/twilight-rs/twilight/releases/tag/http-v0.2.3
 [0.2.2]: https://github.com/twilight-rs/twilight/releases/tag/http-v0.2.2
