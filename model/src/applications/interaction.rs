@@ -1,8 +1,7 @@
 use super::{InteractionData, InteractionType};
 use crate::guild::PartialMember;
 use crate::id::*;
-use serde::{Deserialize, Serialize};
-
+use serde::{self, Deserialize, Deserializer, Serialize};
 use std::fmt::{Formatter, Result as FmtResult};
 use std::{
     convert::{TryFrom, TryInto},
@@ -23,11 +22,18 @@ use std::{
  * | token          | string                            |
  */
 
-#[derive(Clone, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
+#[derive(Clone, Debug, Eq, Hash, PartialEq, Serialize)]
 #[serde(untagged)]
 pub enum Interaction {
     WithGuildId(GuildInteraction),
     Global(BaseInteraction),
+}
+
+impl<'de> Deserialize<'de> for Interaction {
+    fn deserialize<D: Deserializer<'de>>(deserializer: D) -> Result<Self, D::Error> {
+        let envelope = InteractionEnvelope::deserialize(deserializer)?;
+        envelope.try_into().map_err(de::Error::custom)
+    }
 }
 
 #[derive(Clone, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
@@ -75,8 +81,10 @@ impl<'a> TryFrom<InteractionEnvelope> for Interaction {
 }
 
 /// Raw incoming payload from gateway/http.
+///
+/// Only used internally.
 #[derive(Clone, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
-pub struct InteractionEnvelope {
+struct InteractionEnvelope {
     pub id: InteractionId,
     #[serde(rename = "type")]
     pub kind: u8,
@@ -89,7 +97,7 @@ pub struct InteractionEnvelope {
 }
 
 #[derive(Debug)]
-pub enum InteractionEnvelopeParseError {
+enum InteractionEnvelopeParseError {
     DecodeError(Box<dyn std::error::Error>),
     MissingData,
     UnknownType(u8),

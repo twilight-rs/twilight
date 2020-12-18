@@ -14,8 +14,7 @@ pub use choice::*;
 pub use command::*;
 pub use command_callback_data::CommandCallbackData;
 pub use interaction::{
-    BaseInteraction, GuildInteraction, Interaction, InteractionEnvelope,
-    InteractionEnvelopeParseError,
+    BaseInteraction, GuildInteraction, Interaction
 };
 pub use interaction_data::InteractionData;
 pub use interaction_data_option::InteractionDataOption;
