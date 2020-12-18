@@ -82,6 +82,15 @@ one of them has to be enabled. If both are enabled it will use `stock-zlib`
 Enabling **only** `simd-zlib` will make the library use [`zlib-ng`] which is a modern
 fork of zlib that is faster and more effective, but it needs `cmake` to compile.
 
+### Metrics
+
+The `metrics` feature provides metrics information via the `metrics` crate.
+Some of the metrics logged are counters about received event counts and
+their types and gauges about the capacity and efficiency of the inflater of
+each shard.
+
+This is disabled by default.
+
 [`async-tungstenite`]: https://crates.io/crates/async-tungstenite
 [`native-tls`]: https://crates.io/crates/native-tls
 [`rustls`]: https://crates.io/crates/rustls
