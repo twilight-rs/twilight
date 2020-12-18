@@ -355,6 +355,7 @@ mod tests {
         );
     }
 
+    #[allow(clippy::too_many_lines)]
     #[test]
     fn test_voice_state_complete() {
         let value = VoiceState {

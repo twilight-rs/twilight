@@ -98,8 +98,9 @@ mod tests {
         );
     }
 
+    #[allow(clippy::too_many_lines)]
     #[test]
-    fn test_embed_full() {
+    fn test_embed_complete() {
         let value = Embed {
             author: Some(EmbedAuthor {
                 icon_url: Some("https://example.com/1.png".to_owned()),
