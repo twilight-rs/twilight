@@ -23,12 +23,58 @@ pub struct Webhook {
 
 #[cfg(test)]
 mod tests {
-    use super::{ChannelId, GuildId, Webhook, WebhookId, WebhookType};
-    use crate::{id::UserId, user::User};
+    use super::{ChannelId, GuildId, User, Webhook, WebhookId, WebhookType};
+    use crate::id::UserId;
     use serde_test::Token;
 
     #[test]
     fn test_webhook() {
+        let value = Webhook {
+            avatar: Some("avatar".to_owned()),
+            channel_id: ChannelId(1),
+            guild_id: Some(GuildId(2)),
+            id: WebhookId(3),
+            kind: WebhookType::Incoming,
+            name: Some("a webhook".to_owned()),
+            token: Some("a token".to_owned()),
+            user: None,
+        };
+
+        serde_test::assert_tokens(
+            &value,
+            &[
+                Token::Struct {
+                    name: "Webhook",
+                    len: 7,
+                },
+                Token::Str("avatar"),
+                Token::Some,
+                Token::Str("avatar"),
+                Token::Str("channel_id"),
+                Token::NewtypeStruct { name: "ChannelId" },
+                Token::Str("1"),
+                Token::Str("guild_id"),
+                Token::Some,
+                Token::NewtypeStruct { name: "GuildId" },
+                Token::Str("2"),
+                Token::Str("id"),
+                Token::NewtypeStruct { name: "WebhookId" },
+                Token::Str("3"),
+                Token::Str("type"),
+                Token::U8(1),
+                Token::Str("name"),
+                Token::Some,
+                Token::Str("a webhook"),
+                Token::Str("token"),
+                Token::Some,
+                Token::Str("a token"),
+                Token::StructEnd,
+            ],
+        );
+    }
+
+    #[test]
+    fn test_webhook_complete() {
         let value = Webhook {
             avatar: Some("avatar".to_owned()),
             channel_id: ChannelId(1),

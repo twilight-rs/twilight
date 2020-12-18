@@ -731,7 +731,7 @@ mod tests {
             icon: None,
             id: GuildId(1),
             joined_at: None,
-            large: None,
+            large: false,
             lazy: None,
             max_members: None,
             max_presences: None,
@@ -857,6 +857,7 @@ mod tests {
             self_stream: false,
             session_id: "38fj3jfkh3pfho3prh2".to_string(),
             suppress: false,
+            token: None,
             user_id: UserId(1),
         }));
     }

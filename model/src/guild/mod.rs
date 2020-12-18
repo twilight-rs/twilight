@@ -76,8 +76,7 @@ pub struct Guild {
     pub id: GuildId,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub joined_at: Option<String>,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub large: Option<bool>,
+    pub large: bool,
     // Not documented so I marked it as optional.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub lazy: Option<bool>,
@@ -832,7 +831,7 @@ mod tests {
             icon: Some("icon hash".to_owned()),
             id: GuildId(1),
             joined_at: Some("timestamp".to_owned()),
-            large: Some(true),
+            large: true,
             lazy: Some(true),
             max_members: Some(25_000),
             max_presences: Some(10_000),
@@ -920,7 +919,6 @@ mod tests {
                 Token::Some,
                 Token::Str("timestamp"),
                 Token::Str("large"),
-                Token::Some,
                 Token::Bool(true),
                 Token::Str("lazy"),
                 Token::Some,

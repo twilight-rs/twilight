@@ -54,6 +54,53 @@ mod tests {
     #[test]
     fn test_embed() {
         let value = Embed {
+            author: None,
+            color: Some(123),
+            description: Some("a description".to_owned()),
+            fields: Vec::new(),
+            footer: None,
+            image: None,
+            kind: "rich".to_owned(),
+            provider: None,
+            thumbnail: None,
+            timestamp: Some("a timestamp".to_owned()),
+            title: Some("a title".to_owned()),
+            url: Some("https://example.com".to_owned()),
+            video: None,
+        };
+
+        serde_test::assert_tokens(
+            &value,
+            &[
+                Token::Struct {
+                    name: "Embed",
+                    len: 6,
+                },
+                Token::Str("color"),
+                Token::Some,
+                Token::U32(123),
+                Token::Str("description"),
+                Token::Some,
+                Token::Str("a description"),
+                Token::Str("type"),
+                Token::Str("rich"),
+                Token::Str("timestamp"),
+                Token::Some,
+                Token::Str("a timestamp"),
+                Token::Str("title"),
+                Token::Some,
+                Token::Str("a title"),
+                Token::Str("url"),
+                Token::Some,
+                Token::Str("https://example.com"),
+                Token::StructEnd,
+            ],
+        );
+    }
+
+    #[test]
+    fn test_embed_full() {
+        let value = Embed {
             author: Some(EmbedAuthor {
                 icon_url: Some("https://example.com/1.png".to_owned()),
                 name: Some("test".to_owned()),

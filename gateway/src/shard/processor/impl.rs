@@ -184,8 +184,8 @@ impl ReceivingEventError {
         matches!(
             self,
             ReceivingEventError::AuthorizationInvalid { .. }
-                | ReceivingEventError::IntentsDisallowed { .. }
-                | ReceivingEventError::IntentsInvalid { .. }
+            | ReceivingEventError::IntentsDisallowed { .. }
+            | ReceivingEventError::IntentsInvalid { .. }
         )
     }
 

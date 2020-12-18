@@ -19,6 +19,31 @@ mod tests {
         let value = ActivityEmoji {
             animated: Some(false),
             name: "a".to_owned(),
+            id: None,
+        };
+
+        serde_test::assert_tokens(
+            &value,
+            &[
+                Token::Struct {
+                    name: "ActivityEmoji",
+                    len: 2,
+                },
+                Token::Str("animated"),
+                Token::Some,
+                Token::Bool(false),
+                Token::Str("name"),
+                Token::Str("a"),
+                Token::StructEnd,
+            ],
+        );
+    }
+
+    #[test]
+    fn test_activity_emoji_complete() {
+        let value = ActivityEmoji {
+            animated: Some(false),
+            name: "a".to_owned(),
             id: Some("123".to_owned()),
         };
 

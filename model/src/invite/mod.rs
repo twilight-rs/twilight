@@ -50,6 +50,57 @@ mod tests {
                 name: None,
             },
             code: "uniquecode".to_owned(),
+            guild: None,
+            inviter: None,
+            target_user_type: Some(TargetUserType::Stream),
+            target_user: None,
+        };
+
+        serde_test::assert_tokens(
+            &value,
+            &[
+                Token::Struct {
+                    name: "Invite",
+                    len: 5,
+                },
+                Token::Str("approximate_member_count"),
+                Token::Some,
+                Token::U64(31),
+                Token::Str("approximate_presence_count"),
+                Token::Some,
+                Token::U64(7),
+                Token::Str("channel"),
+                Token::Struct {
+                    name: "InviteChannel",
+                    len: 2,
+                },
+                Token::Str("id"),
+                Token::NewtypeStruct { name: "ChannelId" },
+                Token::Str("2"),
+                Token::Str("type"),
+                Token::U8(3),
+                Token::StructEnd,
+                Token::Str("code"),
+                Token::Str("uniquecode"),
+                Token::Str("target_user_type"),
+                Token::Some,
+                Token::U8(1),
+                Token::StructEnd,
+            ],
+        );
+    }
+
+    #[test]
+    fn test_invite_complete() {
+        let value = Invite {
+            approximate_member_count: Some(31),
+            approximate_presence_count: Some(7),
+            channel: InviteChannel {
+                id: ChannelId(2),
+                kind: ChannelType::Group,
+                name: None,
+            },
+            code: "uniquecode".to_owned(),
             guild: Some(InviteGuild {
                 banner: Some("banner hash".to_owned()),
                 description: Some("a description".to_owned()),

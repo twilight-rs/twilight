@@ -15,15 +15,48 @@ pub struct IntegrationApplication {
 
 #[cfg(test)]
 mod tests {
-    use super::IntegrationApplication;
-    use crate::{
-        id::{ApplicationId, UserId},
-        user::User,
-    };
+    use super::{IntegrationApplication, User};
+    use crate::id::{ApplicationId, UserId};
     use serde_test::Token;
 
     #[test]
     fn test_integration_account() {
+        let value = IntegrationApplication {
+            bot: None,
+            description: "Friendship is Magic".to_string(),
+            icon: None,
+            id: ApplicationId(123),
+            name: "Twilight".to_string(),
+            summary: "A cool pony".to_string(),
+        };
+
+        serde_test::assert_tokens(
+            &value,
+            &[
+                Token::Struct {
+                    name: "IntegrationApplication",
+                    len: 5,
+                },
+                Token::Str("description"),
+                Token::Str("Friendship is Magic"),
+                Token::Str("icon"),
+                Token::None,
+                Token::Str("id"),
+                Token::NewtypeStruct {
+                    name: "ApplicationId",
+                },
+                Token::Str("123"),
+                Token::Str("name"),
+                Token::Str("Twilight"),
+                Token::Str("summary"),
+                Token::Str("A cool pony"),
+                Token::StructEnd,
+            ],
+        );
+    }
+
+    #[test]
+    fn test_integration_account_complete() {
         let value = IntegrationApplication {
             bot: Some(User {
                 avatar: None,

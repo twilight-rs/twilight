@@ -69,6 +69,42 @@ mod tests {
         vec![
             Token::Struct {
                 name: "CurrentUser",
+                len: 10,
+            },
+            Token::Str("avatar"),
+            Token::Some,
+            Token::Str("avatar hash"),
+            Token::Str("bot"),
+            Token::Bool(true),
+            Token::Str("discriminator"),
+            discriminator_token,
+            Token::Str("id"),
+            Token::NewtypeStruct { name: "UserId" },
+            Token::Str("1"),
+            Token::Str("locale"),
+            Token::Some,
+            Token::Str("test locale"),
+            Token::Str("mfa_enabled"),
+            Token::Bool(true),
+            Token::Str("username"),
+            Token::Str("test name"),
+            Token::Str("premium_type"),
+            Token::Some,
+            Token::U8(1),
+            Token::Str("public_flags"),
+            Token::Some,
+            Token::U64(1),
+            Token::Str("verified"),
+            Token::Some,
+            Token::Bool(true),
+            Token::StructEnd,
+        ]
+    }
+
+    fn user_tokens_complete(discriminator_token: Token) -> Vec<Token> {
+        vec![
+            Token::Struct {
+                name: "CurrentUser",
                 len: 12,
             },
             Token::Str("avatar"),
@@ -113,6 +149,33 @@ mod tests {
             avatar: Some("avatar hash".to_owned()),
             bot: true,
             discriminator: "9999".to_owned(),
+            email: None,
+            id: UserId(1),
+            mfa_enabled: true,
+            name: "test name".to_owned(),
+            verified: Some(true),
+            premium_type: Some(PremiumType::NitroClassic),
+            public_flags: Some(UserFlags::DISCORD_EMPLOYEE),
+            flags: None,
+            locale: Some("test locale".to_owned()),
+        };
+
+        // Deserializing a current user with a string discriminator (which
+        // Discord provides)
+        serde_test::assert_tokens(&value, &user_tokens(Token::Str("9999")));
+
+        // Deserializing a current user with an integer discriminator. Userland
+        // code may have this due to being a more compact memory representation
+        // of a discriminator.
+        serde_test::assert_de_tokens(&value, &user_tokens(Token::U64(9999)));
+    }
+
+    #[test]
+    fn test_current_user_complete() {
+        let value = CurrentUser {
+            avatar: Some("avatar hash".to_owned()),
+            bot: true,
+            discriminator: "9999".to_owned(),
             email: Some("test@example.com".to_owned()),
             id: UserId(1),
             mfa_enabled: true,
@@ -126,11 +189,11 @@ mod tests {
 
         // Deserializing a current user with a string discriminator (which
         // Discord provides)
-        serde_test::assert_tokens(&value, &user_tokens(Token::Str("9999")));
+        serde_test::assert_tokens(&value, &user_tokens_complete(Token::Str("9999")));
 
         // Deserializing a current user with an integer discriminator. Userland
         // code may have this due to being a more compact memory representation
         // of a discriminator.
-        serde_test::assert_de_tokens(&value, &user_tokens(Token::U64(9999)));
+        serde_test::assert_de_tokens(&value, &user_tokens_complete(Token::U64(9999)));
     }
 }

@@ -100,6 +100,49 @@ mod tests {
         vec![
             Token::Struct {
                 name: "User",
+                len: 12,
+            },
+            Token::Str("avatar"),
+            Token::Some,
+            Token::Str("aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"),
+            Token::Str("bot"),
+            Token::Bool(false),
+            Token::Str("discriminator"),
+            discriminator_token,
+            Token::Str("email"),
+            Token::Some,
+            Token::Str("address@example.com"),
+            Token::Str("flags"),
+            Token::Some,
+            Token::U64(131_584),
+            Token::Str("id"),
+            Token::NewtypeStruct { name: "UserId" },
+            Token::Str("1"),
+            Token::Str("locale"),
+            Token::Some,
+            Token::Str("en-us"),
+            Token::Str("mfa_enabled"),
+            Token::Some,
+            Token::Bool(true),
+            Token::Str("username"),
+            Token::Str("test"),
+            Token::Str("premium_type"),
+            Token::Some,
+            Token::U8(2),
+            Token::Str("public_flags"),
+            Token::Some,
+            Token::U64(131_584),
+            Token::Str("verified"),
+            Token::Some,
+            Token::Bool(true),
+            Token::StructEnd,
+        ]
+    }
+
+    fn user_tokens_complete(discriminator_token: Token) -> Vec<Token> {
+        vec![
+            Token::Struct {
+                name: "User",
                 len: 13,
             },
             Token::Str("avatar"),
@@ -156,7 +199,7 @@ mod tests {
             name: "test".to_owned(),
             premium_type: Some(PremiumType::Nitro),
             public_flags: Some(UserFlags::EARLY_SUPPORTER | UserFlags::VERIFIED_BOT_DEVELOPER),
-            system: Some(true),
+            system: None,
             verified: Some(true),
         };
 
@@ -168,5 +211,33 @@ mod tests {
         // may have this due to being a more compact memory representation of a
         // discriminator.
         serde_test::assert_de_tokens(&value, &user_tokens(Token::U64(1)));
+    }
+
+    #[test]
+    fn test_user_complete() {
+        let value = User {
+            avatar: Some("aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa".to_owned()),
+            bot: false,
+            discriminator: "0001".to_owned(),
+            email: Some("address@example.com".to_owned()),
+            flags: Some(UserFlags::EARLY_SUPPORTER | UserFlags::VERIFIED_BOT_DEVELOPER),
+            id: UserId(1),
+            locale: Some("en-us".to_owned()),
+            mfa_enabled: Some(true),
+            name: "test".to_owned(),
+            premium_type: Some(PremiumType::Nitro),
+            public_flags: Some(UserFlags::EARLY_SUPPORTER | UserFlags::VERIFIED_BOT_DEVELOPER),
+            system: Some(true),
+            verified: Some(true),
+        };
+
+        // Deserializing a user with a string discriminator (which Discord
+        // provides)
+        serde_test::assert_tokens(&value, &user_tokens_complete(Token::Str("0001")));
+
+        // Deserializing a user with an integer discriminator. Userland code
+        // may have this due to being a more compact memory representation of a
+        // discriminator.
+        serde_test::assert_de_tokens(&value, &user_tokens_complete(Token::U64(1)));
     }
 }

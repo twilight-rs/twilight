@@ -18,6 +18,27 @@ mod tests {
     fn test_message_activity() {
         let value = MessageActivity {
             kind: MessageActivityType::Join,
+            party_id: None,
+        };
+
+        serde_test::assert_tokens(
+            &value,
+            &[
+                Token::Struct {
+                    name: "MessageActivity",
+                    len: 1,
+                },
+                Token::Str("type"),
+                Token::U8(1),
+                Token::StructEnd,
+            ],
+        );
+    }
+
+    #[test]
+    fn test_message_activity_complete() {
+        let value = MessageActivity {
+            kind: MessageActivityType::Join,
             party_id: Some("test".to_owned()),
         };
 
