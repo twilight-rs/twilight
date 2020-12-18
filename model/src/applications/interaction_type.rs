@@ -1,12 +1,7 @@
-use serde::{
-    de::{value, IntoDeserializer},
-    Deserialize,
-};
 use serde_repr::{Deserialize_repr, Serialize_repr};
 
-use super::InteractionEnvelopeParseError;
-
 use std::convert::TryFrom;
+use std::fmt::{Display, Formatter, Result as FmtResult};
 
 /*
  * # InteractionType
@@ -27,11 +22,29 @@ pub enum InteractionType {
     ApplicationCommand = 2,
 }
 
+#[derive(Debug)]
+pub struct UnknownInteractionTypeError {
+    value: u8,
+}
+
+impl Display for UnknownInteractionTypeError {
+    fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
+        write!(f, "Got unknown interaction type: {}", self.value)
+    }    
+}
+
 impl TryFrom<u8> for InteractionType {
-    type Error = InteractionEnvelopeParseError;
+    type Error = UnknownInteractionTypeError;
 
     fn try_from(i: u8) -> Result<Self, Self::Error> {
-        Self::deserialize(i.into_deserializer())
-            .map_err(|_: value::Error| InteractionEnvelopeParseError::UnknownType(i))
+        match i {
+            1 => Ok(Self::Ping),
+            2 => Ok(Self::ApplicationCommand),
+            n => {
+                Err(UnknownInteractionTypeError {
+                    value: n,
+                })
+            },
+        }
     }
 }

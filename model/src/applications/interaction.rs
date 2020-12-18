@@ -32,7 +32,7 @@ pub enum Interaction {
 impl<'de> Deserialize<'de> for Interaction {
     fn deserialize<D: Deserializer<'de>>(deserializer: D) -> Result<Self, D::Error> {
         let envelope = InteractionEnvelope::deserialize(deserializer)?;
-        envelope.try_into().map_err(de::Error::custom)
+        envelope.try_into().map_err(serde::de::Error::custom)
     }
 }
 
@@ -61,7 +61,7 @@ impl<'a> TryFrom<InteractionEnvelope> for Interaction {
         let data = envelope.data()?;
         let base_interaction = BaseInteraction {
             id: envelope.id,
-            kind: envelope.kind.try_into()?,
+            kind: envelope.kind,
             token: envelope.token,
         };
 
@@ -87,7 +87,7 @@ impl<'a> TryFrom<InteractionEnvelope> for Interaction {
 struct InteractionEnvelope {
     pub id: InteractionId,
     #[serde(rename = "type")]
-    pub kind: u8,
+    pub kind: InteractionType,
     pub guild_id: Option<GuildId>,
     pub channel_id: Option<ChannelId>,
     pub member: Option<PartialMember>,
@@ -98,9 +98,7 @@ struct InteractionEnvelope {
 
 #[derive(Debug)]
 enum InteractionEnvelopeParseError {
-    DecodeError(Box<dyn std::error::Error>),
     MissingData,
-    UnknownType(u8),
     DataMismatch {
         wanted: InteractionData,
         got: InteractionData,
@@ -110,9 +108,7 @@ enum InteractionEnvelopeParseError {
 impl Display for InteractionEnvelopeParseError {
     fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
         match self {
-            Self::DecodeError(why) => write!(f, "decode interaction: {}", why),
             Self::MissingData => f.write_str("the data field was not present"),
-            Self::UnknownType(kind) => write!(f, "unknown interaction type: {}", kind),
             Self::DataMismatch { wanted, got } => write!(
                 f,
                 "invalid data enum: wanted {} got {}",
@@ -127,11 +123,7 @@ impl std::error::Error for InteractionEnvelopeParseError {}
 
 impl InteractionEnvelope {
     pub fn data(&mut self) -> Result<InteractionData, InteractionEnvelopeParseError> {
-        match self
-            .kind
-            .try_into()
-            .map_err(|_| InteractionEnvelopeParseError::UnknownType(self.kind))?
-        {
+        match self.kind {
             InteractionType::Ping => Ok(InteractionData::Ping),
             InteractionType::ApplicationCommand => {
                 let data = self
