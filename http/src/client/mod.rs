@@ -1391,6 +1391,56 @@ impl Client {
         Ok(self.execute_webhook(id, token.ok_or(UrlError::SegmentMissing)?))
     }
 
+    /// Update a message executed by a webhook.
+    ///
+    /// # Examples
+    ///
+    /// ```no_run
+    /// # use twilight_http::Client;
+    /// use twilight_model::id::{MessageId, WebhookId};
+    ///
+    /// # #[tokio::main]
+    /// # async fn main() -> Result<(), Box<dyn std::error::Error>> {
+    /// # let client = Client::new("token");
+    /// client.update_webhook_message(WebhookId(1), "token here", MessageId(2))
+    ///     .content(Some("new message content".to_owned()))?
+    ///     .await?;
+    /// # Ok(()) }
+    /// ```
+    pub fn update_webhook_message(
+        &self,
+        webhook_id: WebhookId,
+        token: impl Into<String>,
+        message_id: MessageId,
+    ) -> UpdateWebhookMessage<'_> {
+        UpdateWebhookMessage::new(self, webhook_id, token, message_id)
+    }
+
+    /// Delete a message executed by a webhook.
+    ///
+    /// # Examples
+    ///
+    /// ```no_run
+    /// # use twilight_http::Client;
+    /// use twilight_model::id::{MessageId, WebhookId};
+    ///
+    /// # #[tokio::main]
+    /// # async fn main() -> Result<(), Box<dyn std::error::Error>> {
+    /// # let client = Client::new("token");
+    /// client
+    ///     .delete_webhook_message(WebhookId(1), "token here", MessageId(2))
+    ///     .await?;
+    /// # Ok(()) }
+    /// ```
+    pub fn delete_webhook_message(
+        &self,
+        webhook_id: WebhookId,
+        token: impl Into<String>,
+        message_id: MessageId,
+    ) -> DeleteWebhookMessage<'_> {
+        DeleteWebhookMessage::new(self, webhook_id, token, message_id)
+    }
+
     /// Execute a request, returning the response.
     ///
     /// # Errors
