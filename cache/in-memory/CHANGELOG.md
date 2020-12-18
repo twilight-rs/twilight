@@ -2,6 +2,19 @@
 
 Changelog for `twilight-cache-inmemory`.
 
+## [0.2.4] - 2020-12-18
+
+The MSRV is now set to Rust 1.48.
+
+### Fixes
+
+Update `InMemoryCache::clear` to actually clear all fields, as it was only
+clearing some ([#639] - [@vivian]).
+
+### Misc.
+
+Replace documentation links with intra-doc links ([#524] - [@nickelc]).
+
 ## [0.2.3] - 2020-11-29
 
 ### Misc.
@@ -96,6 +109,7 @@ Initial release.
 [@nickelc]: https://github.com/nickelc
 [@vivian]: https://github.com/vivian
 
+[#639]: https://github.com/twilight-rs/twilight/pull/639
 [#624]: https://github.com/twilight-rs/twilight/pull/624
 [#591]: https://github.com/twilight-rs/twilight/pull/591
 [#590]: https://github.com/twilight-rs/twilight/pull/590
@@ -106,7 +120,9 @@ Initial release.
 [#540]: https://github.com/twilight-rs/twilight/pull/540
 [#532]: https://github.com/twilight-rs/twilight/pull/532
 [#528]: https://github.com/twilight-rs/twilight/pull/528
+[#524]: https://github.com/twilight-rs/twilight/pull/524
 
+[0.2.4]: https://github.com/twilight-rs/twilight/releases/tag/cache-in-memory-v0.2.4
 [0.2.3]: https://github.com/twilight-rs/twilight/releases/tag/cache-in-memory-v0.2.3
 [0.2.2]: https://github.com/twilight-rs/twilight/releases/tag/cache-in-memory-v0.2.2
 [0.2.1]: https://github.com/twilight-rs/twilight/releases/tag/cache-in-memory-v0.2.1
