@@ -2,6 +2,20 @@
 
 Changelog for `twilight-model`.
 
+## [0.2.5] - 2020-12-18
+
+The MSRV is now set to Rust 1.48.
+
+### Enhancements
+
+The `request::user::get_current_user_guilds::CurrentUserGuild` type has been
+moved to `twilight_model::user::CurrentUserGuild`. A re-export has been left
+in its place ([#625] - [@AsianIntel]).
+
+### Misc.
+
+Replace documentation links with intra-doc links ([#524] - [@nickelc]).
+
 ## [0.2.4] - 2020-11-29
 
 ### Additions
@@ -177,14 +191,17 @@ Similarly, the following permissions fields now (de)serialize to/from
 
 Initial release.
 
+[@AsianIntel]: https://github.com/AsianIntel
 [@chamburr]: https://github.com/chamburr
 [@coadler]: https://github.com/coadler
 [@DusterTheFirst]: https://github.com/DusterTheFirst
 [@Erk-]: https://github.com/Erk-
 [@Gelbpunkt]: https://github.com/Gelbpunkt
+[@nickelc]: https://github.com/nickelc
 [@sam-kirby]: https://github.com/sam-kirby
 [@vivian]: https://github.com/vivian
 
+[#625]: https://github.com/twilight-rs/twilight/pull/625
 [#624]: https://github.com/twilight-rs/twilight/pull/624
 [#622]: https://github.com/twilight-rs/twilight/pull/622
 [#614]: https://github.com/twilight-rs/twilight/pull/614
@@ -200,12 +217,14 @@ Initial release.
 [#549]: https://github.com/twilight-rs/twilight/pull/549
 [#532]: https://github.com/twilight-rs/twilight/pull/532
 [#526]: https://github.com/twilight-rs/twilight/pull/526
+[#524]: https://github.com/twilight-rs/twilight/pull/524
 [#511]: https://github.com/twilight-rs/twilight/pull/511
 [#509]: https://github.com/twilight-rs/twilight/pull/509
 [#499]: https://github.com/twilight-rs/twilight/pull/499
 
 [0.2.0-beta.1:app integrations]: https://github.com/discord/discord-api-docs/commit/a926694e2f8605848bda6b57d21c8817559e5cec
 
+[0.2.5]: https://github.com/twilight-rs/twilight/releases/tag/model-v0.2.5
 [0.2.4]: https://github.com/twilight-rs/twilight/releases/tag/model-v0.2.4
 [0.2.3]: https://github.com/twilight-rs/twilight/releases/tag/model-v0.2.3
 [0.2.2]: https://github.com/twilight-rs/twilight/releases/tag/model-v0.2.2
