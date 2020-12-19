@@ -1,3 +1,4 @@
+use super::RoleTags;
 use crate::{guild::Permissions, id::RoleId};
 use serde::{
     de::{DeserializeSeed, Deserializer, SeqAccess, Visitor},
@@ -19,6 +20,9 @@ pub struct Role {
     pub name: String,
     pub permissions: Permissions,
     pub position: i64,
+    /// Tags about the role.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub tags: Option<RoleTags>,
 }
 
 impl Key<'_, RoleId> for Role {
@@ -81,6 +85,7 @@ mod tests {
             name: "test".to_owned(),
             permissions: Permissions::ADMINISTRATOR,
             position: 12,
+            tags: None,
         };
 
         serde_test::assert_tokens(

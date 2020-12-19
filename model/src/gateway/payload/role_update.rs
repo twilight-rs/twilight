@@ -26,6 +26,7 @@ mod tests {
                 name: "a role".to_owned(),
                 permissions: Permissions::SEND_MESSAGES,
                 position: 12,
+                tags: None,
             },
         };
 
