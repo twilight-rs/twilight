@@ -2,6 +2,15 @@
 
 Changelog for `twilight-model`.
 
+## [0.2.6] - 2020-12-19
+
+### Additions
+
+Support [Role Tags] ([#638] - [@vivian]).
+
+[#638]: https://github.com/twilight-rs/twilight/pull/638
+[Role Tags]: https://github.com/discord/discord-api-docs/commit/7113ceebd549cdf62f286ee57d4ea69af21031e5
+
 ## [0.2.5] - 2020-12-18
 
 The MSRV is now set to Rust 1.48.
