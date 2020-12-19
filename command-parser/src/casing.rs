@@ -1,8 +1,12 @@
 use unicase::UniCase;
 
+/// Case sensitivity of a command.
 #[derive(Clone, Debug, Eq, Hash, PartialEq)]
 pub enum CaseSensitivity {
+    /// A case-insensitive command. "ping" and "Ping" are equivalent.
     Insensitive(UniCase<String>),
+    /// A case-sensitive command. "ping" and "Ping" are distinguished from each
+    /// other.
     Sensitive(String),
 }
 

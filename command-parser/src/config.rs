@@ -1,3 +1,18 @@
+//! Configuration for a [`Parser`].
+//!
+//! Provided are methods for [adding commands][`add_command`] and
+//! [removing them][`remove_command`], as well as
+//! [adding prefixes][`add_prefix`] and [removing prefixes][`remove_prefix`].
+//! You can also [iterate over commands][`commands`] and [prefixes][`prefixes`].
+//!
+//! [`Parser`]: super::Parser
+//! [`add_command`]: CommandParserConfig::add_command
+//! [`add_prefix`]: CommandParserConfig::add_prefix
+//! [`commands`]: CommandParserConfig::commands
+//! [`prefixes`]: CommandParserConfig::prefixes
+//! [`remove_command`]: CommandParserConfig::remove_command
+//! [`remove_prefix`]: CommandParserConfig::remove_prefix
+
 use std::borrow::Cow;
 use std::slice::{Iter, IterMut};
 
@@ -157,6 +172,7 @@ impl<'a> CommandParserConfig<'a> {
     }
 }
 
+/// Iterator over the parser configuration's immutably borrowed commands.
 pub struct Commands<'a> {
     iter: Iter<'a, CaseSensitivity>,
 }
@@ -175,6 +191,7 @@ impl<'a> Iterator for Commands<'a> {
 
 impl<'a> ExactSizeIterator for Commands<'a> {}
 
+/// Iterator over the parser configuration's mutably borrowed commands.
 pub struct CommandsMut<'a> {
     iter: IterMut<'a, CaseSensitivity>,
 }
@@ -193,6 +210,7 @@ impl<'a> Iterator for CommandsMut<'a> {
 
 impl<'a> ExactSizeIterator for CommandsMut<'a> {}
 
+/// Iterator over the parser configuration's immutably borrowed prefixes.
 pub struct Prefixes<'a> {
     iter: Iter<'a, Cow<'a, str>>,
 }
@@ -211,6 +229,7 @@ impl<'a> Iterator for Prefixes<'a> {
 
 impl<'a> ExactSizeIterator for Prefixes<'a> {}
 
+/// Iterator over the parser configuration's mutably borrowed prefixes.
 pub struct PrefixesMut<'a> {
     iter: IterMut<'a, Cow<'a, str>>,
 }
