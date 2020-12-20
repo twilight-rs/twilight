@@ -6,7 +6,7 @@ use crate::{
     api_error::{ApiError, ErrorCode},
     error::{Error, Result, UrlError},
     ratelimiting::{RatelimitHeaders, Ratelimiter},
-    request::applications::InteractionsCallback,
+    request::applications::InteractionCallback,
     request::{
         applications::{
             CreateGlobalCommand, CreateGuildCommand, DeleteGlobalCommand, DeleteGuildCommand,
@@ -132,13 +132,13 @@ pub struct Client {
 
 impl Client {
     /* New Stuff Start */
-    pub fn interactions_callback(
+    pub fn interaction_callback(
         &self,
         interaction_id: InteractionId,
         interaction_token: impl Into<String>,
         response: InteractionResponse,
-    ) -> InteractionsCallback<'_> {
-        InteractionsCallback::new(&self, interaction_id, interaction_token.into(), response)
+    ) -> InteractionCallback<'_> {
+        InteractionCallback::new(&self, interaction_id, interaction_token.into(), response)
     }
 
     pub fn create_guild_command(

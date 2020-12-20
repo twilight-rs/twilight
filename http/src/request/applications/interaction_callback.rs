@@ -2,7 +2,7 @@ use crate::request::prelude::*;
 use twilight_model::applications::InteractionResponse;
 use twilight_model::id::*;
 
-pub struct InteractionsCallback<'a> {
+pub struct InteractionCallback<'a> {
     interaction_id: InteractionId,
     interaction_token: String,
     response: InteractionResponse,
@@ -10,7 +10,7 @@ pub struct InteractionsCallback<'a> {
     http: &'a Client,
 }
 
-impl<'a> InteractionsCallback<'a> {
+impl<'a> InteractionCallback<'a> {
     pub(crate) fn new(
         http: &'a Client,
         interaction_id: InteractionId,
@@ -29,7 +29,7 @@ impl<'a> InteractionsCallback<'a> {
     fn start(&mut self) -> Result<()> {
         let req = Request::from((
             crate::json_to_vec(&self.response)?,
-            Route::InteractionsCallback {
+            Route::InteractionCallback {
                 interaction_id: self.interaction_id.0,
                 interaction_token: self.interaction_token.clone(),
             },
@@ -40,4 +40,4 @@ impl<'a> InteractionsCallback<'a> {
     }
 }
 
-poll_req!(InteractionsCallback<'_>, ());
+poll_req!(InteractionCallback<'_>, ());
