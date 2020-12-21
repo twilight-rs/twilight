@@ -152,6 +152,8 @@ impl ClusterBuilder {
             token.insert_str(0, "Bot ");
         }
 
+        let token = token.into_boxed_str();
+
         let http_client = Client::new(token.clone());
 
         let shard_config =

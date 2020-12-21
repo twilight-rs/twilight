@@ -152,7 +152,7 @@ impl From<ConnectingError> for ShardStartError {
 pub struct Information {
     id: u64,
     latency: Latency,
-    session_id: Option<String>,
+    session_id: Option<Box<str>>,
     seq: u64,
     stage: Stage,
 }
@@ -344,7 +344,7 @@ impl Shard {
     /// couldn't be retrieved from the HTTP API.
     pub async fn start(&mut self) -> Result<(), ShardStartError> {
         let url = if let Some(u) = self.0.config.gateway_url.clone() {
-            u
+            u.into_string()
         } else {
             self.0
                 .config
@@ -580,7 +580,7 @@ impl Shard {
         session.stop_heartbeater();
 
         let data = session_id.map(|id| ResumeSession {
-            session_id: id,
+            session_id: id.into_string(),
             sequence,
         });
 
