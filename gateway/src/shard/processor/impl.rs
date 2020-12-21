@@ -461,7 +461,8 @@ impl ShardProcessor {
         metrics::counter!("GatewayEvent", 1, "GatewayEvent" => "Dispatch");
 
         self.session.set_stage(Stage::Connected);
-        self.session.set_id(ready.session_id.clone().into_boxed_str());
+        self.session
+            .set_id(ready.session_id.clone().into_boxed_str());
 
         self.emitter.event(Event::ShardConnected(Connected {
             heartbeat_interval: self.session.heartbeat_interval(),
