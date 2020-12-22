@@ -11,7 +11,7 @@ pub struct CurrentApplicationInfo {
     pub bot_require_code_grant: bool,
     pub cover_image: Option<String>,
     pub description: String,
-    pub flags: UserFlags,
+    pub flags: Option<UserFlags>,
     pub guild_id: Option<GuildId>,
     pub icon: Option<String>,
     pub id: ApplicationId,
@@ -29,7 +29,7 @@ pub struct CurrentApplicationInfo {
 #[cfg(test)]
 mod tests {
     use super::{CurrentApplicationInfo, GuildId, SkuId, Team, User};
-    use crate::{id::ApplicationId, id::UserId, oauth::id::TeamId};
+    use crate::{id::{ApplicationId, UserId}, oauth::id::TeamId, user::UserFlags};
     use serde_test::Token;
 
     #[allow(clippy::too_many_lines)]
@@ -40,7 +40,7 @@ mod tests {
             bot_require_code_grant: false,
             cover_image: Some("cover image hash".to_owned()),
             description: "a pretty cool application".to_owned(),
-            flags: crate::user::UserFlags::empty(),
+            flags: Some(UserFlags::empty()),
             guild_id: Some(GuildId(1)),
             icon: Some("icon hash".to_owned()),
             id: ApplicationId(2),
@@ -90,6 +90,7 @@ mod tests {
                 Token::Str("description"),
                 Token::Str("a pretty cool application"),
                 Token::Str("flags"),
+                Token::Some,
                 Token::U64(0),
                 Token::Str("guild_id"),
                 Token::Some,
