@@ -1,7 +1,7 @@
 use crate::{
     id::{ApplicationId, GuildId},
     oauth::{id::SkuId, team::Team},
-    user::{User, UserFlags},
+    user::User,
 };
 use serde::{Deserialize, Serialize};
 
@@ -11,7 +11,6 @@ pub struct CurrentApplicationInfo {
     pub bot_require_code_grant: bool,
     pub cover_image: Option<String>,
     pub description: String,
-    pub flags: UserFlags,
     pub guild_id: Option<GuildId>,
     pub icon: Option<String>,
     pub id: ApplicationId,
@@ -40,7 +39,6 @@ mod tests {
             bot_require_code_grant: false,
             cover_image: Some("cover image hash".to_owned()),
             description: "a pretty cool application".to_owned(),
-            flags: crate::user::UserFlags::empty(),
             guild_id: Some(GuildId(1)),
             icon: Some("icon hash".to_owned()),
             id: ApplicationId(2),
@@ -78,7 +76,7 @@ mod tests {
             &[
                 Token::Struct {
                     name: "CurrentApplicationInfo",
-                    len: 16,
+                    len: 15,
                 },
                 Token::Str("bot_public"),
                 Token::Bool(true),
@@ -89,8 +87,6 @@ mod tests {
                 Token::Str("cover image hash"),
                 Token::Str("description"),
                 Token::Str("a pretty cool application"),
-                Token::Str("flags"),
-                Token::U64(0),
                 Token::Str("guild_id"),
                 Token::Some,
                 Token::NewtypeStruct { name: "GuildId" },
