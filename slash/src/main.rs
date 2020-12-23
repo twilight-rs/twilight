@@ -2,13 +2,11 @@ use bytes::Buf;
 use ed25519_dalek::{PublicKey, Signature, Verifier, PUBLIC_KEY_LENGTH};
 use hex::FromHex;
 use once_cell::sync::Lazy;
-use std::convert::TryInto;
 use std::future::Future;
 use twilight_model::applications::{
-    CommandCallbackData, GuildInteraction, Interaction, InteractionData, InteractionEnvelope,
-    InteractionEnvelopeParseError, InteractionResponse, InteractionResponseType, InteractionType,
+    CommandCallbackData, GuildInteraction, Interaction, InteractionData,
+    InteractionResponse, InteractionResponseType, InteractionType,
 };
-use twilight_model::channel::message::MessageFlags;
 
 use hyper::service::{make_service_fn, service_fn};
 use hyper::{http::StatusCode, Body, Method, Request, Response, Server};
@@ -71,17 +69,7 @@ where
         String::from_utf8(whole_body.bytes().to_vec()).unwrap()
     );
 
-    let interaction = match serde_json::from_slice::<InteractionEnvelope>(whole_body.bytes())
-        .map_err(|e| InteractionEnvelopeParseError::DecodeError(Box::new(e)))
-        .and_then(|i| i.try_into())
-    {
-        Ok(i) => i,
-        Err(_) => {
-            return Ok(Response::builder()
-                .status(StatusCode::BAD_REQUEST)
-                .body(Body::empty())?);
-        }
-    };
+    let interaction = serde_json::from_slice::<Interaction>(whole_body.bytes())?;
 
     match interaction {
         Interaction::Global(i) if i.kind == InteractionType::Ping => {

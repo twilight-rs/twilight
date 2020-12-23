@@ -1,12 +1,12 @@
-use crate::applications::Interaction;
+use crate::applications::GuildInteraction;
 use serde::{Deserialize, Serialize};
 use std::ops::{Deref, DerefMut};
 
 #[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
-pub struct InteractionCreate(pub Interaction);
+pub struct InteractionCreate(pub GuildInteraction);
 
 impl Deref for InteractionCreate {
-    type Target = Interaction;
+    type Target = GuildInteraction;
 
     fn deref(&self) -> &Self::Target {
         &self.0

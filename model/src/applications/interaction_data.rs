@@ -17,7 +17,7 @@ use serde::{Deserialize, Serialize};
 #[serde(untagged)]
 pub enum InteractionData {
     Ping,
-    ApplicationCommand(ApplicationCommandInteractionData),
+    ApplicationCommand(CommandInteractionData),
 }
 
 impl InteractionData {
@@ -30,7 +30,7 @@ impl InteractionData {
 }
 
 #[derive(Clone, Debug, Deserialize, Eq, Hash, PartialEq, Serialize, Default)]
-pub struct ApplicationCommandInteractionData {
+pub struct CommandInteractionData {
     pub id: CommandId,
     pub name: String,
     #[serde(default)]
