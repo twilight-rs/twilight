@@ -236,8 +236,8 @@ pub struct ShardProcessor {
     pub rx: UnboundedReceiver<Message>,
     pub session: Arc<Session>,
     inflater: Inflater,
-    url: String,
-    resume: Option<(u64, String)>,
+    url: Box<str>,
+    resume: Option<(u64, Box<str>)>,
     wtx: WatchSender<Arc<Session>>,
 }
 
@@ -292,7 +292,7 @@ impl ShardProcessor {
             rx,
             session,
             inflater: Inflater::new(shard_id),
-            url,
+            url: url.into_boxed_str(),
             resume: None,
             wtx,
         };
@@ -461,7 +461,8 @@ impl ShardProcessor {
         metrics::counter!("GatewayEvent", 1, "GatewayEvent" => "Dispatch");
 
         self.session.set_stage(Stage::Connected);
-        self.session.set_id(ready.session_id.clone());
+        self.session
+            .set_id(ready.session_id.clone().into_boxed_str());
 
         self.emitter.event(Event::ShardConnected(Connected {
             heartbeat_interval: self.session.heartbeat_interval(),
@@ -530,7 +531,7 @@ impl ShardProcessor {
             // it is some.
             let (seq, id) = self.resume.take().unwrap();
             tracing::debug!("resuming with sequence {}, session id {}", seq, id);
-            let payload = Resume::new(seq, &id, self.config.token());
+            let payload = Resume::new(seq, id.clone().into_string(), self.config.token());
 
             // Set id so it is correct for next resume.
             self.session.set_id(id);
@@ -797,7 +798,7 @@ impl ShardProcessor {
         }
 
         self.emitter.event(Event::ShardConnecting(Connecting {
-            gateway: self.url.clone(),
+            gateway: self.url.clone().into_string(),
             shard_id: self.config.shard()[0],
         }));
     }

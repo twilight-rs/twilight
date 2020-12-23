@@ -40,7 +40,7 @@ struct State {
     http: ReqwestClient,
     ratelimiter: Option<Ratelimiter>,
     token_invalid: AtomicBool,
-    token: Option<String>,
+    token: Option<Box<str>>,
     use_http: bool,
     pub(crate) default_allowed_mentions: Option<AllowedMentions>,
 }
@@ -132,7 +132,7 @@ impl Client {
                 http: ReqwestClient::new(),
                 ratelimiter: Some(Ratelimiter::new()),
                 token_invalid: AtomicBool::new(false),
-                token: Some(token),
+                token: Some(token.into_boxed_str()),
                 use_http: false,
                 default_allowed_mentions: None,
             }),
@@ -151,7 +151,7 @@ impl Client {
     /// If the initial token provided is not prefixed with `Bot `, it will be, and this method
     /// reflects that.
     pub fn token(&self) -> Option<&str> {
-        self.state.token.as_ref().map(AsRef::as_ref)
+        self.state.token.as_deref()
     }
 
     /// Get the default allowed mentions for sent messages.

@@ -113,7 +113,7 @@ impl ShardBuilder {
             presence: None,
             queue: Arc::new(Box::new(LocalQueue::new())),
             shard: [0, 1],
-            token,
+            token: token.into_boxed_str(),
             session_id: None,
             sequence: None,
         })
@@ -126,7 +126,7 @@ impl ShardBuilder {
 
     /// Set the URL used for connecting to Discord's gateway
     pub fn gateway_url(mut self, gateway_url: Option<String>) -> Self {
-        self.0.gateway_url = gateway_url;
+        self.0.gateway_url = gateway_url.map(String::into_boxed_str);
 
         self
     }
