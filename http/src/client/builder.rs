@@ -19,7 +19,7 @@ pub struct ClientBuilder {
     pub(crate) ratelimiter: Option<Ratelimiter>,
     pub(crate) reqwest_client: Option<ReqwestClientBuilder>,
     pub(crate) timeout: Duration,
-    pub(crate) token: Option<String>,
+    pub(crate) token: Option<Box<str>>,
 }
 
 impl ClientBuilder {
@@ -130,7 +130,7 @@ impl ClientBuilder {
             token.insert_str(0, "Bot ");
         }
 
-        self.token.replace(token);
+        self.token.replace(token.into_boxed_str());
 
         self
     }

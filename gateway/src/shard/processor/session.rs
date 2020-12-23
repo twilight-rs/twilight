@@ -63,7 +63,7 @@ pub struct Session {
     pub heartbeater_handle: Arc<MutexSync<Option<AbortHandle>>>,
     pub heartbeats: Arc<Heartbeats>,
     pub heartbeat_interval: AtomicU64,
-    pub id: MutexSync<Option<String>>,
+    pub id: MutexSync<Option<Box<str>>>,
     pub seq: Arc<AtomicU64>,
     pub stage: AtomicU8,
     pub tx: UnboundedSender<TungsteniteMessage>,
@@ -150,15 +150,11 @@ impl Session {
         self.send(Heartbeat::new(self.seq()))
     }
 
-    pub fn id(&self) -> Option<String> {
+    pub fn id(&self) -> Option<Box<str>> {
         self.id.lock().expect("id poisoned").clone()
     }
 
-    pub fn set_id(&self, new_id: impl Into<String>) {
-        self._set_id(new_id.into())
-    }
-
-    fn _set_id(&self, new_id: String) {
+    pub fn set_id(&self, new_id: Box<str>) {
         self.id.lock().expect("id poisoned").replace(new_id);
     }
 
