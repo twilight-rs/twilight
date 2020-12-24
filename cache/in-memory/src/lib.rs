@@ -715,7 +715,7 @@ impl InMemoryCache {
             .entry(guild_id)
             .or_default()
             .insert(user.id);
-        
+
         let cached = Arc::new(CachedMember {
             deaf: member.deaf,
             guild_id,
