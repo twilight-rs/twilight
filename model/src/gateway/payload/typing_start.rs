@@ -169,6 +169,7 @@ mod tests {
                 joined_at: Some("2020-01-01T00:00:00.000000+00:00".to_owned()),
                 mute: false,
                 nick: Some("typing".to_owned()),
+                pending: false,
                 premium_since: None,
                 roles: vec![RoleId(4)],
                 user: User {
@@ -209,7 +210,7 @@ mod tests {
                 Token::Some,
                 Token::Struct {
                     name: "Member",
-                    len: 8,
+                    len: 9,
                 },
                 Token::Str("deaf"),
                 Token::Bool(false),
@@ -228,6 +229,8 @@ mod tests {
                 Token::Str("nick"),
                 Token::Some,
                 Token::Str("typing"),
+                Token::Str("pending"),
+                Token::Bool(false),
                 Token::Str("roles"),
                 Token::Seq { len: Some(1) },
                 Token::NewtypeStruct { name: "RoleId" },

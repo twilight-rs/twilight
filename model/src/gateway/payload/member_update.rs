@@ -9,6 +9,7 @@ pub struct MemberUpdate {
     pub guild_id: GuildId,
     pub joined_at: String,
     pub nick: Option<String>,
+    pub pending: bool,
     pub premium_since: Option<String>,
     pub roles: Vec<RoleId>,
     pub user: User,
@@ -40,6 +41,7 @@ mod tests {
             },
             roles: vec![],
             premium_since: None,
+            pending: false,
             nick: Some("Twilight".to_string()),
             joined_at: "2017-02-27T22:21:50.121000+00:00".to_string(),
             guild_id: 1_234.into(),
@@ -50,7 +52,7 @@ mod tests {
             &[
                 Token::Struct {
                     name: "MemberUpdate",
-                    len: 6,
+                    len: 7,
                 },
                 Token::Str("guild_id"),
                 Token::NewtypeStruct { name: "GuildId" },
@@ -60,6 +62,8 @@ mod tests {
                 Token::Str("nick"),
                 Token::Some,
                 Token::Str("Twilight"),
+                Token::Str("pending"),
+                Token::Bool(false),
                 Token::Str("premium_since"),
                 Token::None,
                 Token::Str("roles"),
