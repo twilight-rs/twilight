@@ -110,9 +110,7 @@ impl<'a> AddGuildMember<'a> {
 
     fn _nick(mut self, nick: String) -> Result<Self, AddGuildMemberError> {
         if !validate::nickname(&nick) {
-            return Err(AddGuildMemberError::NicknameInvalid {
-                nickname: nick,
-            });
+            return Err(AddGuildMemberError::NicknameInvalid { nickname: nick });
         }
 
         self.fields.nick.replace(nick);
