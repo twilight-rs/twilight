@@ -244,6 +244,7 @@ impl TryFrom<(Method, &str)> for Path {
 #[derive(Clone, Debug)]
 #[non_exhaustive]
 pub enum Route {
+    /// Route information to add a user to a guild.
     AddGuildMember {
         guild_id: u64,
         user_id: u64,
