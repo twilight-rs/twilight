@@ -13,13 +13,13 @@ use twilight_model::{
 #[non_exhaustive]
 pub enum AddGuildMemberError {
     // The nickname is either empty or the length is more than 32 UTF-16 characters.
-    NickNameInvalid { nickname: String },
+    NicknameInvalid { nickname: String },
 }
 
 impl Display for AddGuildMemberError {
     fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
         match self {
-            Self::NickNameInvalid { .. } => f.write_str("the nickname length is invalid"),
+            Self::NicknameInvalid { .. } => f.write_str("the nickname length is invalid"),
         }
     }
 }
@@ -110,8 +110,8 @@ impl<'a> AddGuildMember<'a> {
 
     fn _nick(mut self, nick: String) -> Result<Self, AddGuildMemberError> {
         if !validate::nickname(&nick) {
-            return Err(AddGuildMemberError::NickNameInvalid {
-                nickname: nick.to_owned(),
+            return Err(AddGuildMemberError::NicknameInvalid {
+                nickname: nick,
             });
         }
 
