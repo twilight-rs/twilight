@@ -36,7 +36,7 @@ macro_rules! poll_req {
                         let bytes = match fut.as_mut().poll(cx) {
                             Poll::Ready(Ok(bytes)) => bytes,
                             Poll::Ready(Err(crate::Error::Response { status, .. }))
-                                if status == reqwest::StatusCode::NOT_FOUND || status == reqwest::StatusCode::NO_CONTENT =>
+                                if status == reqwest::StatusCode::NOT_FOUND =>
                             {
                                 return Poll::Ready(Ok(None));
                             }
