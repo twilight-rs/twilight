@@ -1,7 +1,7 @@
+pub mod add_guild_member;
 pub mod get_guild_members;
 pub mod update_guild_member;
 
-mod add_guild_member;
 mod add_role_to_member;
 mod get_member;
 mod remove_member;
