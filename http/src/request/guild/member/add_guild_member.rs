@@ -140,4 +140,42 @@ impl<'a> AddGuildMember<'a> {
     }
 }
 
-poll_req!(opt, AddGuildMember<'_>, PartialMember);
+// poll_req!(opt, AddGuildMember<'_>, PartialMember);
+
+impl std::future::Future for AddGuildMember<'_> {
+    type Output = crate::error::Result<Option<PartialMember>>;
+
+    fn poll(
+        mut self: std::pin::Pin<&mut Self>,
+        cx: &mut std::task::Context<'_>,
+    ) -> std::task::Poll<Self::Output> {
+        use crate::json_from_slice;
+        use std::task::Poll;
+
+        loop {
+            if let Some(fut) = self.as_mut().fut.as_mut() {
+                let bytes = match fut.as_mut().poll(cx) {
+                    Poll::Ready(Ok(bytes)) => bytes,
+                    Poll::Ready(Err(why)) => return Poll::Ready(Err(why)),
+                    std::task::Poll::Pending => return Poll::Pending,
+                };
+
+                let mut bytes = bytes.as_ref().to_vec();
+                if bytes.is_empty() {
+                    return Poll::Ready(Ok(None));
+                }
+
+                return Poll::Ready(json_from_slice(&mut bytes).map(Some).map_err(|source| {
+                    crate::Error::Parsing {
+                        body: bytes.to_vec(),
+                        source,
+                    }
+                }));
+            }
+
+            if let Err(why) = self.as_mut().start() {
+                return Poll::Ready(Err(why));
+            }
+        }
+    }
+}
