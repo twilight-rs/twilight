@@ -57,6 +57,7 @@
     clippy::all,
     clippy::pedantic,
     future_incompatible,
+    missing_docs,
     nonstandard_style,
     rust_2018_idioms,
     unused,
@@ -64,9 +65,10 @@
 )]
 #![allow(clippy::module_name_repetitions, clippy::must_use_candidate)]
 
+pub mod config;
+
 mod arguments;
 mod casing;
-mod config;
 mod parser;
 
 pub use self::{
