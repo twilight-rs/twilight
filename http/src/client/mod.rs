@@ -838,6 +838,11 @@ impl Client {
         GetMember::new(self, guild_id, user_id)
     }
 
+    /// Add a user to the guild.
+    ///
+    /// You must have an [access token] for this user with the `guilds.join` scope.
+    ///
+    /// [access token]: https://discord.com/developers/docs/topics/oauth2
     pub fn add_guild_member(
         &self,
         guild_id: GuildId,

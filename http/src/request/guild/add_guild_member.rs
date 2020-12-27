@@ -8,9 +8,11 @@ use twilight_model::{
     id::{GuildId, RoleId, UserId},
 };
 
+/// The error created when the member cannot be added as configured.
 #[derive(Clone, Debug)]
 #[non_exhaustive]
 pub enum AddGuildMemberError {
+    // The nickname is either empty or the length is more than 32 UTF-16 characters.
     NickNameInvalid { nickname: String },
 }
 
@@ -45,6 +47,16 @@ pub struct AddGuildMember<'a> {
     user_id: UserId,
 }
 
+/// Adds a user to a guild.
+///
+/// An access token for the user with `guilds.join` scope is required. All other fields are
+/// optional. Refer to [the discord docs] for more information.
+///
+/// # Errors
+///
+/// Returns [`AddGuildMemberError::NicknameInvalid`] if the nickname is too short or too long.
+///
+/// [the discord docs]: https://discord.com/developers/docs/resources/guild#add-guild-member
 impl<'a> AddGuildMember<'a> {
     pub(crate) fn new(
         http: &'a Client,
@@ -71,18 +83,27 @@ impl<'a> AddGuildMember<'a> {
         }
     }
 
+    /// If true, the new member will be unable to hear audio when connected to a voice channel.
     pub fn deaf(mut self, deaf: bool) -> Self {
         self.fields.deaf.replace(deaf);
 
         self
     }
 
+    /// If true, the new member will be unable to speak in voice channels.
     pub fn mute(mut self, mute: bool) -> Self {
         self.fields.mute.replace(mute);
 
         self
     }
 
+    /// Set the user's initial nickname.
+    ///
+    /// The minimum length is 1 UTF-16 character and the maximum is 32 UTF-16 characters.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`AddGuildMemberError::NicknameInvalid`] if the nickname is too short or too long.
     pub fn nick(self, nick: impl Into<String>) -> Result<Self, AddGuildMemberError> {
         self._nick(nick.into())
     }
@@ -99,6 +120,7 @@ impl<'a> AddGuildMember<'a> {
         Ok(self)
     }
 
+    /// The list of roles to assign the new member.
     pub fn roles(mut self, roles: Vec<RoleId>) -> Self {
         self.fields.roles.replace(roles);
 
