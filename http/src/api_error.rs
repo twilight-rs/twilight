@@ -522,12 +522,15 @@ impl Display for MessageApiErrorEmbedField {
     }
 }
 
-#[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
+#[derive(Clone, Debug, Deserialize, Serialize)]
 #[non_exhaustive]
 pub struct RatelimitedApiError {
+    /// Whether the ratelimit is a global ratelimit.
     pub global: bool,
+    /// Human readable message provided by the API.
     pub message: String,
-    pub retry_after: u64,
+    /// Amount of time to wait before retrying.
+    pub retry_after: f64,
 }
 
 impl Display for RatelimitedApiError {
@@ -539,6 +542,14 @@ impl Display for RatelimitedApiError {
         }
 
         write!(f, "ratelimited for {}s", self.retry_after)
+    }
+}
+
+impl Eq for RatelimitedApiError {}
+
+impl PartialEq for RatelimitedApiError {
+    fn eq(&self, other: &Self) -> bool {
+        self.global == other.global && self.message == other.message
     }
 }
 
@@ -614,7 +625,7 @@ mod tests {
         let expected = RatelimitedApiError {
             global: true,
             message: "You are being rate limited.".to_owned(),
-            retry_after: 6457,
+            retry_after: 6.457,
         };
 
         serde_test::assert_tokens(
@@ -629,7 +640,7 @@ mod tests {
                 Token::Str("message"),
                 Token::Str("You are being rate limited."),
                 Token::Str("retry_after"),
-                Token::U64(6457),
+                Token::F64(6.457),
                 Token::StructEnd,
             ],
         );
