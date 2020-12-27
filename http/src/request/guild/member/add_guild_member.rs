@@ -4,7 +4,7 @@ use std::{
     fmt::{Display, Formatter, Result as FmtResult},
 };
 use twilight_model::{
-    guild::Member,
+    guild::PartialMember,
     id::{GuildId, RoleId, UserId},
 };
 
@@ -142,4 +142,4 @@ impl<'a> AddGuildMember<'a> {
     }
 }
 
-poll_req!(opt, AddGuildMember<'_>, Member);
+poll_req!(opt, AddGuildMember<'_>, PartialMember);
