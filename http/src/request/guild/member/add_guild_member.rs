@@ -12,7 +12,7 @@ use twilight_model::{
 #[derive(Clone, Debug)]
 #[non_exhaustive]
 pub enum AddGuildMemberError {
-    // The nickname is either empty or the length is more than 32 UTF-16 characters.
+    /// The nickname is either empty or the length is more than 32 UTF-16 characters.
     NicknameInvalid { nickname: String },
 }
 
