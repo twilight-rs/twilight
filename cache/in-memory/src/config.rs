@@ -121,6 +121,7 @@ mod tests {
         assert_eq!(1 << 30, EventType::VOICE_SERVER_UPDATE.bits());
         assert_eq!(1 << 31, EventType::VOICE_STATE_UPDATE.bits());
         assert_eq!(1 << 32, EventType::WEBHOOKS_UPDATE.bits());
+        assert_eq!(1 << 33, EventType::REACTION_REMOVE_EMOJI.bits());
     }
 
     #[test]
