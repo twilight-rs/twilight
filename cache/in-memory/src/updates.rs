@@ -1197,7 +1197,7 @@ mod tests {
                 id: None,
                 name: "😀".to_owned(),
             },
-            guild_id: Some(GuildId(1)),
+            guild_id: GuildId(1),
             message_id: MessageId(4),
         });
 
