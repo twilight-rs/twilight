@@ -824,7 +824,7 @@ fn event_guild_id(event: &Event) -> Option<GuildId> {
         Event::ReactionAdd(e) => e.guild_id,
         Event::ReactionRemove(e) => e.guild_id,
         Event::ReactionRemoveAll(e) => e.guild_id,
-        Event::ReactionRemoveEmoji(e) => Some(e.guild_id),
+        Event::ReactionRemoveEmoji(e) => e.guild_id,
         Event::Ready(_) => None,
         Event::Resumed => None,
         Event::RoleCreate(e) => Some(e.guild_id),
