@@ -885,7 +885,9 @@ mod tests {
 
         cache.update(&reaction);
 
-        reaction.emoji = ReactionType::Unicode{ name: "🗺️".to_owned() };
+        reaction.emoji = ReactionType::Unicode {
+            name: "🗺️".to_owned(),
+        };
 
         cache.update(&reaction);
 
@@ -1134,7 +1136,7 @@ mod tests {
 
         let world_react = msg.reactions.iter().find(|r| match &r.emoji {
             ReactionType::Unicode { name } => name == "🗺️",
-            _ => false
+            _ => false,
         });
         let smiley_react = msg.reactions.iter().find(|r| match &r.emoji {
             ReactionType::Unicode { name } => name == "😀",
@@ -1154,7 +1156,9 @@ mod tests {
         let cache = cache_with_message_and_reactions();
         cache.update(&ReactionRemove(Reaction {
             channel_id: ChannelId(2),
-            emoji: ReactionType::Unicode{ name: "😀".to_owned() },
+            emoji: ReactionType::Unicode {
+                name: "😀".to_owned(),
+            },
             guild_id: Some(GuildId(1)),
             member: None,
             message_id: MessageId(4),
@@ -1167,7 +1171,7 @@ mod tests {
 
         let world_react = msg.reactions.iter().find(|r| match &r.emoji {
             ReactionType::Unicode { name } => name == "🗺️",
-            _ => false
+            _ => false,
         });
         let smiley_react = msg.reactions.iter().find(|r| match &r.emoji {
             ReactionType::Unicode { name } => name == "😀",
@@ -1182,10 +1186,12 @@ mod tests {
 
     #[test]
     fn test_reaction_remove_emoji() {
-        use twilight_model::{gateway::payload::reaction_remove_emoji::PartialEmoji, id::MessageId};
+        use twilight_model::{
+            gateway::payload::reaction_remove_emoji::PartialEmoji, id::MessageId,
+        };
 
         let cache = cache_with_message_and_reactions();
-        cache.update(&ReactionRemoveEmoji{
+        cache.update(&ReactionRemoveEmoji {
             channel_id: ChannelId(2),
             emoji: PartialEmoji {
                 id: None,
@@ -1201,7 +1207,7 @@ mod tests {
 
         let world_react = msg.reactions.iter().find(|r| match &r.emoji {
             ReactionType::Unicode { name } => name == "🗺️",
-            _ => false
+            _ => false,
         });
         let smiley_react = msg.reactions.iter().find(|r| match &r.emoji {
             ReactionType::Unicode { name } => name == "😀",
@@ -1218,7 +1224,7 @@ mod tests {
         use twilight_model::id::MessageId;
 
         let cache = cache_with_message_and_reactions();
-        cache.update(&ReactionRemoveAll{
+        cache.update(&ReactionRemoveAll {
             channel_id: ChannelId(2),
             message_id: MessageId(4),
             guild_id: Some(GuildId(1)),
