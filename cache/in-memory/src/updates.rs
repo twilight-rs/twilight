@@ -367,6 +367,7 @@ impl UpdateCache for MemberUpdate {
         member.nick = self.nick.clone();
         member.roles = self.roles.clone();
         member.joined_at.replace(self.joined_at.clone());
+        member.pending = self.pending;
     }
 }
 
