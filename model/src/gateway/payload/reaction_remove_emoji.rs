@@ -5,7 +5,7 @@ use serde::{Deserialize, Serialize};
 pub struct ReactionRemoveEmoji {
     pub channel_id: ChannelId,
     pub emoji: PartialEmoji,
-    pub guild_id: Option<GuildId>,
+    pub guild_id: GuildId,
     pub message_id: MessageId,
 }
 
