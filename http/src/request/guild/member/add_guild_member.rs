@@ -15,7 +15,8 @@ use twilight_model::{
 #[derive(Clone, Debug)]
 #[non_exhaustive]
 pub enum AddGuildMemberError {
-    /// Nickname is either empty or the length is more than 32 UTF-16 characters.
+    /// Nickname is either empty or the length is more than 32 UTF-16
+    /// characters.
     NicknameInvalid { nickname: String },
 }
 
@@ -52,12 +53,13 @@ pub struct AddGuildMember<'a> {
 
 /// Add a user to a guild.
 ///
-/// An access token for the user with `guilds.join` scope is required. All other fields are
-/// optional. Refer to [the discord docs] for more information.
+/// An access token for the user with `guilds.join` scope is required. All other
+/// fields are optional. Refer to [the discord docs] for more information.
 ///
 /// # Errors
 ///
-/// Returns [`AddGuildMemberError::NicknameInvalid`] if the nickname is too short or too long.
+/// Returns [`AddGuildMemberError::NicknameInvalid`] if the nickname is too
+/// short or too long.
 ///
 /// [the discord docs]: https://discord.com/developers/docs/resources/guild#add-guild-member
 impl<'a> AddGuildMember<'a> {
@@ -86,7 +88,8 @@ impl<'a> AddGuildMember<'a> {
         }
     }
 
-    /// Whether the new member will be unable to hear audio when connected to a voice channel.
+    /// Whether the new member will be unable to hear audio when connected to a
+    /// voice channel.
     pub fn deaf(mut self, deaf: bool) -> Self {
         self.fields.deaf.replace(deaf);
 
@@ -102,11 +105,13 @@ impl<'a> AddGuildMember<'a> {
 
     /// Set the user's initial nickname.
     ///
-    /// The minimum length is 1 UTF-16 character and the maximum is 32 UTF-16 characters.
+    /// The minimum length is 1 UTF-16 character and the maximum is 32 UTF-16
+    /// characters.
     ///
     /// # Errors
     ///
-    /// Returns [`AddGuildMemberError::NicknameInvalid`] if the nickname is too short or too long.
+    /// Returns [`AddGuildMemberError::NicknameInvalid`] if the nickname is too
+    /// short or too long.
     pub fn nick(self, nick: impl Into<String>) -> Result<Self, AddGuildMemberError> {
         self._nick(nick.into())
     }

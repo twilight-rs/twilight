@@ -840,7 +840,8 @@ impl Client {
 
     /// Add a user to the guild.
     ///
-    /// You must have an [access token] for this user with the `guilds.join` scope.
+    /// You must have an [access token] for this user with the `guilds.join`
+    /// scope.
     ///
     /// [access token]: https://discord.com/developers/docs/topics/oauth2
     pub fn add_guild_member(
