@@ -2,6 +2,13 @@
 
 Changelog for `twilight-http`.
 
+## [0.2.7] - 2020-12-29
+
+### Fixes
+
+Specify a minimum `twilight-model` dependency version of `^0.2.5` instead of
+`^0.2`.
+
 ## [0.2.6] - 2020-12-18
 
 The MSRV is now set to Rust 1.48.
@@ -269,6 +276,7 @@ Initial release.
 
 [0.2.0-beta.1:app integrations]: https://github.com/discord/discord-api-docs/commit/a926694e2f8605848bda6b57d21c8817559e5cec
 
+[0.2.7]: https://github.com/twilight-rs/twilight/releases/tag/http-v0.2.6
 [0.2.6]: https://github.com/twilight-rs/twilight/releases/tag/http-v0.2.6
 [0.2.5]: https://github.com/twilight-rs/twilight/releases/tag/http-v0.2.5
 [0.2.4]: https://github.com/twilight-rs/twilight/releases/tag/http-v0.2.4
