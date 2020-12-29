@@ -146,10 +146,7 @@ impl<'a> AddGuildMember<'a> {
 impl Future for AddGuildMember<'_> {
     type Output = Result<Option<PartialMember>>;
 
-    fn poll(
-        mut self: Pin<&mut Self>,
-        cx: &mut Context<'_>,
-    ) -> Poll<Self::Output> {
+    fn poll(mut self: Pin<&mut Self>, cx: &mut Context<'_>) -> Poll<Self::Output> {
         loop {
             if let Some(fut) = self.as_mut().fut.as_mut() {
                 let bytes = match fut.as_mut().poll(cx) {
@@ -164,12 +161,12 @@ impl Future for AddGuildMember<'_> {
                     return Poll::Ready(Ok(None));
                 }
 
-                return Poll::Ready(crate::json_from_slice(&mut bytes).map(Some).map_err(|source| {
-                    crate::Error::Parsing {
+                return Poll::Ready(crate::json_from_slice(&mut bytes).map(Some).map_err(
+                    |source| crate::Error::Parsing {
                         body: bytes,
                         source,
-                    }
-                }));
+                    },
+                ));
             }
 
             if let Err(why) = self.as_mut().start() {
