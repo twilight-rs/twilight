@@ -9,6 +9,14 @@ Changelog for `twilight-http`.
 Specify a minimum `twilight-model` dependency version of `^0.2.5` instead of
 `^0.2`.
 
+Make `api_error::RatelimitedApiError::retry_after` an `f64` instead of a `u64`.
+This allows the value to be correctly parsed ([#644] - [@vivian]).
+
+### Enhancements
+
+Use `Box<str>` instead of `String` internally in order to reduce struct size
+([#647] - [@vivian]).
+
 ## [0.2.6] - 2020-12-18
 
 The MSRV is now set to Rust 1.48.
@@ -240,6 +248,8 @@ Initial release.
 [@sam-kirby]: https://github.com/sam-kirby
 [@vivian]: https://github.com/vivian
 
+[#647]: https://github.com/twilight-rs/twilight/pull/647
+[#644]: https://github.com/twilight-rs/twilight/pull/644
 [#625]: https://github.com/twilight-rs/twilight/pull/625
 [#620]: https://github.com/twilight-rs/twilight/pull/620
 [#614]: https://github.com/twilight-rs/twilight/pull/614
