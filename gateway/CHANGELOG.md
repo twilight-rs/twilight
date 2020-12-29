@@ -2,6 +2,13 @@
 
 Changelog for `twilight-gateway`.
 
+## [0.2.6] - 2020-12-29
+
+### Fixes
+
+Specify a minimum `twilight-model` dependency version of `^0.2.4` instead of
+`^0.2`.
+
 ## [0.2.5] - 2020-11-29
 
 ### Misc.
@@ -163,6 +170,7 @@ Initial release.
 [#515]: https://github.com/twilight-rs/twilight/pull/515
 [#512]: https://github.com/twilight-rs/twilight/pull/512
 
+[0.2.6]: https://github.com/twilight-rs/twilight/releases/tag/gateway-v0.2.6
 [0.2.5]: https://github.com/twilight-rs/twilight/releases/tag/gateway-v0.2.5
 [0.2.4]: https://github.com/twilight-rs/twilight/releases/tag/gateway-v0.2.4
 [0.2.3]: https://github.com/twilight-rs/twilight/releases/tag/gateway-v0.2.3
