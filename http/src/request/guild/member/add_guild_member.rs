@@ -2,24 +2,27 @@ use crate::request::prelude::*;
 use std::{
     error::Error,
     fmt::{Display, Formatter, Result as FmtResult},
+    future::Future,
+    pin::Pin,
+    task::{Context, Poll},
 };
 use twilight_model::{
     guild::PartialMember,
     id::{GuildId, RoleId, UserId},
 };
 
-/// The error created when the member cannot be added as configured.
+/// Member cannot be added as configured.
 #[derive(Clone, Debug)]
 #[non_exhaustive]
 pub enum AddGuildMemberError {
-    /// The nickname is either empty or the length is more than 32 UTF-16 characters.
+    /// Nickname is either empty or the length is more than 32 UTF-16 characters.
     NicknameInvalid { nickname: String },
 }
 
 impl Display for AddGuildMemberError {
     fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
         match self {
-            Self::NicknameInvalid { .. } => f.write_str("the nickname length is invalid"),
+            Self::NicknameInvalid { .. } => f.write_str("nickname length is invalid"),
         }
     }
 }
@@ -47,7 +50,7 @@ pub struct AddGuildMember<'a> {
     user_id: UserId,
 }
 
-/// Adds a user to a guild.
+/// Add a user to a guild.
 ///
 /// An access token for the user with `guilds.join` scope is required. All other fields are
 /// optional. Refer to [the discord docs] for more information.
@@ -118,7 +121,7 @@ impl<'a> AddGuildMember<'a> {
         Ok(self)
     }
 
-    /// The list of roles to assign the new member.
+    /// List of roles to assign the new member.
     pub fn roles(mut self, roles: Vec<RoleId>) -> Self {
         self.fields.roles.replace(roles);
 
@@ -140,16 +143,13 @@ impl<'a> AddGuildMember<'a> {
     }
 }
 
-impl std::future::Future for AddGuildMember<'_> {
-    type Output = crate::error::Result<Option<PartialMember>>;
+impl Future for AddGuildMember<'_> {
+    type Output = Result<Option<PartialMember>>;
 
     fn poll(
-        mut self: std::pin::Pin<&mut Self>,
-        cx: &mut std::task::Context<'_>,
-    ) -> std::task::Poll<Self::Output> {
-        use crate::json_from_slice;
-        use std::task::Poll;
-
+        mut self: Pin<&mut Self>,
+        cx: &mut Context<'_>,
+    ) -> Poll<Self::Output> {
         loop {
             if let Some(fut) = self.as_mut().fut.as_mut() {
                 let bytes = match fut.as_mut().poll(cx) {
@@ -163,7 +163,7 @@ impl std::future::Future for AddGuildMember<'_> {
                     return Poll::Ready(Ok(None));
                 }
 
-                return Poll::Ready(json_from_slice(&mut bytes).map(Some).map_err(|source| {
+                return Poll::Ready(crate::json_from_slice(&mut bytes).map(Some).map_err(|source| {
                     crate::Error::Parsing {
                         body: bytes,
                         source,
