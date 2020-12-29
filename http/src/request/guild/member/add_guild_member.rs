@@ -159,6 +159,7 @@ impl Future for AddGuildMember<'_> {
                 };
 
                 let mut bytes = bytes.as_ref().to_vec();
+
                 if bytes.is_empty() {
                     return Poll::Ready(Ok(None));
                 }
