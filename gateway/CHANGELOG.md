@@ -9,6 +9,13 @@ Changelog for `twilight-gateway`.
 Specify a minimum `twilight-model` dependency version of `^0.2.4` instead of
 `^0.2`.
 
+### Enhancements
+
+Use `Box<str>` instead of `String` internally in order to reduce struct size
+([#647] - [@vivian]).
+
+Document the `metrics` feature ([#642] - [@vivian]).
+
 ## [0.2.5] - 2020-11-29
 
 ### Misc.
@@ -154,6 +161,8 @@ Initial release.
 [@tbnritzdoge]: https://github.com/tbnritzdoge
 [@vivian]: https://github.com/vivian
 
+[#647]: https://github.com/twilight-rs/twilight/pull/647
+[#642]: https://github.com/twilight-rs/twilight/pull/642
 [#624]: https://github.com/twilight-rs/twilight/pull/624
 [#623]: https://github.com/twilight-rs/twilight/pull/623
 [#621]: https://github.com/twilight-rs/twilight/pull/621
