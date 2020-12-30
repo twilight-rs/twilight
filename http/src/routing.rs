@@ -1064,7 +1064,7 @@ impl Route {
                 limit,
                 user_id,
             } => {
-                let mut path = format!("guilds/{}/audit-logs", guild_id);
+                let mut path = format!("guilds/{}/audit-logs?", guild_id);
 
                 if let Some(action_type) = action_type {
                     let _ = write!(path, "action_type={}", action_type);
