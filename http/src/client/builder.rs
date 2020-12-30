@@ -91,8 +91,8 @@ impl ClientBuilder {
     /// ```
     ///
     /// [twilight's HTTP proxy server]: https://github.com/twilight-rs/http-proxy
-    pub fn proxy(mut self, proxy_url: impl Into<Box<str>>, use_http: bool) -> Self {
-        self.proxy.replace(proxy_url.into());
+    pub fn proxy(mut self, proxy_url: impl Into<String>, use_http: bool) -> Self {
+        self.proxy.replace(proxy_url.into().into_boxed_str());
         self.use_http = use_http;
 
         self
