@@ -584,30 +584,13 @@ impl UpdateCache for ReactionRemoveEmoji {
             None => return,
         };
 
-        let index = message
-            .reactions
-            .iter()
-            .enumerate()
-            .find_map(|(i, r)| match &r.emoji {
-                ReactionType::Unicode { name, .. } => {
-                    if *name == self.emoji.name {
-                        Some(i)
-                    } else {
-                        None
-                    }
-                }
-                ReactionType::Custom { name, .. } => {
-                    if let Some(name) = name {
-                        if *name == self.emoji.name {
-                            Some(i)
-                        } else {
-                            None
-                        }
-                    } else {
-                        None
-                    }
-                }
-            });
+        let index = message.reactions.iter().position(|r| {
+            matches!(&r.emoji,
+                    ReactionType::Unicode { name, .. }
+                    | ReactionType::Custom { name: Some(name), .. }
+                    if *name == self.emoji.name
+            )
+        });
 
         if let Some(index) = index {
             let msg = Arc::make_mut(&mut message);
