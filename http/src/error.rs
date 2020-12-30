@@ -171,8 +171,7 @@ impl StdError for Error {
             Self::Url { source } => Some(source),
             Self::Ratelimiting { source } => Some(source),
             Self::RequestCanceled { source } => Some(source),
-            Self::ChunkingResponse { source }
-            | Self::RequestError { source } => Some(source),
+            Self::ChunkingResponse { source } | Self::RequestError { source } => Some(source),
             Self::RequestTimedOut { source } => Some(source),
             Self::Response { .. } | Self::ServiceUnavailable { .. } | Self::Unauthorized => None,
         }
