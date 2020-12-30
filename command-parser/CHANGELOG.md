@@ -2,6 +2,15 @@
 
 Changelog for `twilight-command-parser`.
 
+## [0.2.3] - 2020-12-30
+
+### Enhancements
+
+Export the `config` module's iterators to allow them to be documented by rustdoc
+([#646] - [@vivian]).
+
+[#646]: https://github.com/twilight-rs/twilight/pull/646
+
 ## [0.2.2] - 2020-11-02
 
 Remove the `unicode-segmentation` dependency due to the functionality used from
