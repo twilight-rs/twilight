@@ -586,7 +586,7 @@ impl UpdateCache for ReactionRemoveEmoji {
 
         let index = message.reactions.iter().position(|r| {
             matches!(&r.emoji,
-                    ReactionType::Unicode { name, .. }
+                ReactionType::Unicode { name, .. }
                     | ReactionType::Custom { name: Some(name), .. }
                     if *name == self.emoji.name
             )
