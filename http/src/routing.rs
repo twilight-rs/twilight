@@ -129,6 +129,8 @@ pub enum Path {
     UsersIdGuildsId,
     /// Operating on the voice regions available to the current user.
     VoiceRegions,
+    /// Operating on a message created by a webhook.
+    WebhooksIdTokenMessageId(u64),
     /// Operating on a webhook.
     WebhooksId(u64),
 }
@@ -428,6 +430,12 @@ pub enum Route {
         guild_id: u64,
         /// The ID of the role.
         role_id: u64,
+    },
+    /// Route information to delete a message created by a webhook.
+    DeleteWebhookMessage {
+        message_id: u64,
+        token: String,
+        webhook_id: u64,
     },
     /// Route information to delete a webhook.
     DeleteWebhook {
@@ -788,6 +796,12 @@ pub enum Route {
         /// The ID of the guild.
         guild_id: u64,
     },
+    /// Route information to update a message created by a webhook.
+    UpdateWebhookMessage {
+        message_id: u64,
+        token: String,
+        webhook_id: u64,
+    },
     /// Route information to update a webhook.
     UpdateWebhook {
         /// The token of the webhook.
@@ -1028,6 +1042,15 @@ impl Route {
                 Method::DELETE,
                 Path::GuildsIdRolesId(guild_id),
                 format!("guilds/{}/roles/{}", guild_id, role_id).into(),
+            ),
+            Self::DeleteWebhookMessage {
+                message_id,
+                token,
+                webhook_id,
+            } => (
+                Method::DELETE,
+                Path::WebhooksIdTokenMessageId(webhook_id),
+                format!("webhooks/{}/{}/messages/{}", webhook_id, token, message_id).into(),
             ),
             Self::DeleteWebhook { token, webhook_id } => {
                 let mut path = format!("webhooks/{}", webhook_id);
@@ -1472,6 +1495,15 @@ impl Route {
                 Method::PATCH,
                 Path::GuildsIdRolesId(guild_id),
                 format!("guilds/{}/roles", guild_id).into(),
+            ),
+            Self::UpdateWebhookMessage {
+                message_id,
+                token,
+                webhook_id,
+            } => (
+                Method::PATCH,
+                Path::WebhooksIdTokenMessageId(webhook_id),
+                format!("webhooks/{}/{}/messages/{}", webhook_id, token, message_id).into(),
             ),
             Self::UpdateWebhook { token, webhook_id } => {
                 let mut path = format!("webhooks/{}", webhook_id);
