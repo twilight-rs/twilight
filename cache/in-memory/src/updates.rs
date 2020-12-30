@@ -704,17 +704,17 @@ mod tests {
     use crate::config::EventType;
     use std::collections::HashMap;
     use twilight_model::{
-        channel::{ChannelType, GuildChannel, TextChannel},
-        gateway::payload::ChannelDelete,
-        guild::DefaultMessageNotificationLevel,
-        guild::ExplicitContentFilter,
-        guild::Guild,
-        guild::MfaLevel,
-        guild::PartialGuild,
-        guild::PremiumTier,
-        guild::SystemChannelFlags,
-        guild::VerificationLevel,
-        id::{ChannelId, GuildId, UserId},
+        channel::{
+            message::{MessageFlags, MessageType},
+            ChannelType, GuildChannel, Message, Reaction, TextChannel,
+        },
+        gateway::payload::{reaction_remove_emoji::PartialEmoji, ChannelDelete},
+        guild::{
+            DefaultMessageNotificationLevel, ExplicitContentFilter, Guild, Member, MfaLevel,
+            PartialGuild, PartialMember, PremiumTier, SystemChannelFlags, VerificationLevel,
+        },
+        id::{ChannelId, GuildId, MessageId, UserId},
+        user::User,
         voice::VoiceState,
     };
 
@@ -740,16 +740,6 @@ mod tests {
     }
 
     fn cache_with_message_and_reactions() -> InMemoryCache {
-        use twilight_model::{
-            channel::{
-                message::{MessageFlags, MessageType},
-                Message, Reaction,
-            },
-            guild::{Member, PartialMember},
-            id::MessageId,
-            user::User,
-        };
-
         let cache = InMemoryCache::new();
 
         let msg = Message {
@@ -1030,16 +1020,6 @@ mod tests {
 
     #[test]
     fn test_message_create() {
-        use twilight_model::{
-            channel::{
-                message::{MessageFlags, MessageType},
-                Message,
-            },
-            guild::PartialMember,
-            id::MessageId,
-            user::User,
-        };
-
         let cache = InMemoryCache::builder()
             .event_types(EventType::MESSAGE_CREATE)
             .message_cache_size(1)
@@ -1110,8 +1090,6 @@ mod tests {
 
     #[test]
     fn test_reaction_add() {
-        use twilight_model::id::MessageId;
-
         let cache = cache_with_message_and_reactions();
         let msg = cache.message(ChannelId(2), MessageId(4)).unwrap();
 
@@ -1134,8 +1112,6 @@ mod tests {
 
     #[test]
     fn test_reaction_remove() {
-        use twilight_model::{channel::Reaction, id::MessageId};
-
         let cache = cache_with_message_and_reactions();
         cache.update(&ReactionRemove(Reaction {
             channel_id: ChannelId(2),
@@ -1169,10 +1145,6 @@ mod tests {
 
     #[test]
     fn test_reaction_remove_emoji() {
-        use twilight_model::{
-            gateway::payload::reaction_remove_emoji::PartialEmoji, id::MessageId,
-        };
-
         let cache = cache_with_message_and_reactions();
         cache.update(&ReactionRemoveEmoji {
             channel_id: ChannelId(2),
@@ -1204,8 +1176,6 @@ mod tests {
 
     #[test]
     fn test_reaction_remove_all() {
-        use twilight_model::id::MessageId;
-
         let cache = cache_with_message_and_reactions();
         cache.update(&ReactionRemoveAll {
             channel_id: ChannelId(2),
