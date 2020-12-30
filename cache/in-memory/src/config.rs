@@ -41,12 +41,12 @@ impl Config {
     pub fn message_cache_size_mut(&mut self) -> &mut usize {
         &mut self.message_cache_size
     }
-    /// Returns an immutable reference to the event types enabled.
+    /// Returns an immutable reference to the resource types enabled.
     pub fn resource_types(&self) -> ResourceType {
         self.resource_types
     }
 
-    /// Returns a mutable reference to the event types enabled.
+    /// Returns a mutable reference to the resource types enabled.
     pub fn resource_types_mut(&mut self) -> &mut ResourceType {
         &mut self.resource_types
     }
