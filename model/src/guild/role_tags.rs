@@ -25,6 +25,13 @@ mod premium_subscriber {
         fn visit_none<E: DeError>(self) -> Result<Self::Value, E> {
             Ok(true)
         }
+
+        // `visit_none` is used by `serde_json` when a present `null` value is
+        // encountered, but other implementations - such as `simd_json` - may
+        // use `visit_unit` instead.
+        fn visit_unit<E: DeError>(self) -> Result<Self::Value, E> {
+            Ok(true)
+        }
     }
 
     // Clippy will say this bool can be taken by value, but we need it to be
