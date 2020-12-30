@@ -2,6 +2,15 @@
 
 Changelog for `twilight-model`.
 
+## [0.2.7] - 2020-12-30
+
+### Fixes
+
+Add a `serde` `Visitor::visit_unit` implementation for `RoleTags` to fix
+deserialization with `simd-json` ([#648] - [@vivian]).
+
+[#648]: https://github.com/twilight-rs/twilight/pull/648
+
 ## [0.2.6] - 2020-12-19
 
 ### Additions
@@ -233,6 +242,8 @@ Initial release.
 
 [0.2.0-beta.1:app integrations]: https://github.com/discord/discord-api-docs/commit/a926694e2f8605848bda6b57d21c8817559e5cec
 
+[0.2.7]: https://github.com/twilight-rs/twilight/releases/tag/model-v0.2.7
+[0.2.6]: https://github.com/twilight-rs/twilight/releases/tag/model-v0.2.6
 [0.2.5]: https://github.com/twilight-rs/twilight/releases/tag/model-v0.2.5
 [0.2.4]: https://github.com/twilight-rs/twilight/releases/tag/model-v0.2.4
 [0.2.3]: https://github.com/twilight-rs/twilight/releases/tag/model-v0.2.3
