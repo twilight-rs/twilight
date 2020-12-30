@@ -40,7 +40,7 @@ use twilight_model::{
 
 #[cfg(feature = "hyper-rustls")]
 type HttpsConnector<T> = hyper_rustls::HttpsConnector<T>;
-#[cfg(feature = "hyper-tls")]
+#[cfg(all(feature = "hyper-tls", not(feature = "hyper-rustls")))]
 type HttpsConnector<T> = hyper_tls::HttpsConnector<T>;
 
 struct State {
@@ -131,7 +131,7 @@ impl Client {
 
     /// Create a new `hyper-rustls` or `hyper-tls` backed client with a token.
     #[cfg_attr(docsrs, doc(cfg(any(feature = "hyper-rustls", feature = "hyper-tls"))))]
-    #[cfg(feature = "hyper-tls")]
+    #[cfg(all(feature = "hyper-tls", not(feature = "hyper-rustls")))]
     pub fn new(token: impl Into<String>) -> Self {
         Self::with_connector(token, hyper_tls::HttpsConnector::new())
     }
