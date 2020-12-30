@@ -1,9 +1,5 @@
 use super::allowed_mentions::{AllowedMentions, AllowedMentionsBuilder, Unspecified};
-use crate::request::prelude::*;
-use reqwest::{
-    multipart::{Form, Part},
-    Body,
-};
+use crate::request::{multipart::Form, prelude::*};
 use std::{
     collections::HashMap,
     error::Error,
@@ -89,7 +85,7 @@ pub(crate) struct CreateMessageFields {
 /// # Ok(()) }
 /// ```
 pub struct CreateMessage<'a> {
-    attachments: HashMap<String, Body>,
+    attachments: HashMap<String, Vec<u8>>,
     channel_id: ChannelId,
     pub(crate) fields: CreateMessageFields,
     fut: Option<Pending<'a, Message>>,
@@ -120,14 +116,14 @@ impl<'a> CreateMessage<'a> {
     /// Attach a new file to the message.
     ///
     /// The file is raw binary data. It can be an image, or any other kind of file.
-    pub fn attachment(mut self, name: impl Into<String>, file: impl Into<Body>) -> Self {
+    pub fn attachment(mut self, name: impl Into<String>, file: impl Into<Vec<u8>>) -> Self {
         self.attachments.insert(name.into(), file.into());
 
         self
     }
 
     /// Insert multiple attachments into the message.
-    pub fn attachments<N: Into<String>, F: Into<Body>>(
+    pub fn attachments<N: Into<String>, F: Into<Vec<u8>>>(
         mut self,
         attachments: impl IntoIterator<Item = (N, F)>,
     ) -> Self {
@@ -235,17 +231,17 @@ impl<'a> CreateMessage<'a> {
                     },
                 ))
             } else {
-                let mut form = Form::new();
+                let mut multipart = Form::new();
 
                 for (index, (name, file)) in self.attachments.drain().enumerate() {
-                    form = form.part(format!("{}", index), Part::stream(file).file_name(name));
+                    multipart.file(format!("{}", index).as_bytes(), name.as_bytes(), &file);
                 }
 
                 let body = crate::json_to_vec(&self.fields)?;
-                form = form.part("payload_json", Part::bytes(body));
+                multipart.part(b"payload_json", &body);
 
                 Request::from((
-                    form,
+                    multipart,
                     Route::CreateMessage {
                         channel_id: self.channel_id.0,
                     },

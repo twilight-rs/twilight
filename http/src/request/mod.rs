@@ -36,7 +36,7 @@ macro_rules! poll_req {
                         let bytes = match fut.as_mut().poll(cx) {
                             Poll::Ready(Ok(bytes)) => bytes,
                             Poll::Ready(Err(crate::Error::Response { status, .. }))
-                                if status == reqwest::StatusCode::NOT_FOUND =>
+                                if status == hyper::StatusCode::NOT_FOUND =>
                             {
                                 return Poll::Ready(Ok(None));
                             }
@@ -72,6 +72,7 @@ mod get_gateway;
 mod get_gateway_authed;
 mod get_user_application;
 mod get_voice_regions;
+mod multipart;
 mod validate;
 
 pub use self::{
@@ -82,17 +83,17 @@ pub use self::{
     get_voice_regions::GetVoiceRegions,
 };
 
+use self::multipart::Form;
 use crate::{
     error::{Error, Result},
     routing::{Path, Route},
 };
 use bytes::Bytes;
-use percent_encoding::{utf8_percent_encode, NON_ALPHANUMERIC};
-use reqwest::{
+use hyper::{
     header::{HeaderMap, HeaderName, HeaderValue},
-    multipart::Form,
     Method,
 };
+use percent_encoding::{utf8_percent_encode, NON_ALPHANUMERIC};
 
 use std::{borrow::Cow, future::Future, pin::Pin};
 
