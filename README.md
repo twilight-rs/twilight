@@ -124,7 +124,7 @@ crates through the gateway.
 ```rust,no_run
 use std::{env, error::Error};
 use futures::stream::StreamExt;
-use twilight_cache_inmemory::{EventType, InMemoryCache};
+use twilight_cache_inmemory::{InMemoryCache, ResourceType};
 use twilight_gateway::{cluster::{Cluster, ShardScheme}, Event};
 use twilight_http::Client as HttpClient;
 use twilight_model::gateway::Intents;
@@ -157,12 +157,7 @@ async fn main() -> Result<(), Box<dyn Error + Send + Sync>> {
     // Since we only care about new messages, make the cache only
     // cache new messages.
     let cache = InMemoryCache::builder()
-        .event_types(
-            EventType::MESSAGE_CREATE
-                | EventType::MESSAGE_DELETE
-                | EventType::MESSAGE_DELETE_BULK
-                | EventType::MESSAGE_UPDATE,
-        )
+        .resource_types(ResourceType::MESSAGE)
         .build();
 
     let mut events = cluster.events();
