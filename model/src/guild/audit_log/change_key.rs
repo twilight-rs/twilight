@@ -1,6 +1,7 @@
 use serde::{Deserialize, Serialize};
 
 #[derive(Clone, Debug, Deserialize, Eq, Hash, Ord, PartialEq, PartialOrd, Serialize)]
+#[non_exhaustive]
 #[serde(rename_all = "snake_case")]
 pub enum AuditLogChangeKey {
     AfkChannelId,
