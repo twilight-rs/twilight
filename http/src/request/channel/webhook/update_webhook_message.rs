@@ -120,10 +120,8 @@ pub struct UpdateWebhookMessage<'a> {
     fields: UpdateWebhookMessageFields,
     fut: Option<Pending<'a, ()>>,
     http: &'a Client,
-    message_id: MessageId,
     reason: Option<String>,
-    token: String,
-    webhook_id: WebhookId,
+    route: Route,
 }
 
 impl<'a> UpdateWebhookMessage<'a> {
@@ -143,10 +141,12 @@ impl<'a> UpdateWebhookMessage<'a> {
             },
             fut: None,
             http,
-            message_id,
             reason: None,
-            token: token.into(),
-            webhook_id,
+            route: Route::UpdateWebhookMessage {
+                message_id: message_id.0,
+                token: token.into(),
+                webhook_id: webhook_id.0,
+            },
         }
     }
 
@@ -254,13 +254,17 @@ impl<'a> UpdateWebhookMessage<'a> {
         Ok(self)
     }
 
+
+    /// Set the ratelimiting route to use in the request.
+    pub(crate) fn route(mut self, route: Route) -> Self {
+        self.route = route;
+
+        self
+    }
+
     fn request(&self) -> Result<Request> {
         let body = crate::json_to_vec(&self.fields)?;
-        let route = Route::UpdateWebhookMessage {
-            message_id: self.message_id.0,
-            token: self.token.clone(),
-            webhook_id: self.webhook_id.0,
-        };
+        let route = self.route.clone();
 
         Ok(if let Some(reason) = &self.reason {
             let headers = request::audit_header(&reason)?;
