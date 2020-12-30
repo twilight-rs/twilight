@@ -166,7 +166,7 @@ impl Inflater {
         // Only shrink capacity if it is less than 4 times the size. Doing it
         // all the time will cause performance issues. So, if it's greater,
         // don't do anything.
-        if self.buffer.len() < self.buffer.capacity() / 4 {
+        if self.buffer.len() > self.buffer.capacity() / 4 {
             self.countdown_to_resize = u8::MAX;
             return;
         }
