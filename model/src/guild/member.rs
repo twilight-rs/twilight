@@ -1,5 +1,5 @@
 use crate::{
-    id::{GuildId, RoleId, UserId},
+    id::{GuildId, RoleId},
     user::User,
 };
 
@@ -10,11 +10,7 @@ use serde::{
     },
     Deserialize, Serialize,
 };
-use serde_mappable_seq::Key;
-use std::{
-    collections::HashMap,
-    fmt::{Formatter, Result as FmtResult},
-};
+use std::fmt::{Formatter, Result as FmtResult};
 
 #[derive(Clone, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
 pub struct Member {
@@ -28,12 +24,6 @@ pub struct Member {
     pub premium_since: Option<String>,
     pub roles: Vec<RoleId>,
     pub user: User,
-}
-
-impl Key<'_, UserId> for Member {
-    fn key(&self) -> UserId {
-        self.user.id
-    }
 }
 
 // Used in the guild deserializer.
@@ -138,9 +128,9 @@ impl<'de> Visitor<'de> for OptionalMemberVisitor {
 }
 
 #[derive(Clone, Debug, Eq, PartialEq)]
-pub struct MemberMapDeserializer(GuildId);
+pub struct MemberListDeserializer(GuildId);
 
-impl MemberMapDeserializer {
+impl MemberListDeserializer {
     /// Create a new deserializer for a map of members when you know the
     /// Guild ID but the payload probably doesn't contain it.
     pub fn new(guild_id: GuildId) -> Self {
@@ -148,33 +138,31 @@ impl MemberMapDeserializer {
     }
 }
 
-struct MemberMapVisitor(GuildId);
+struct MemberListVisitor(GuildId);
 
-impl<'de> Visitor<'de> for MemberMapVisitor {
-    type Value = HashMap<UserId, Member>;
+impl<'de> Visitor<'de> for MemberListVisitor {
+    type Value = Vec<Member>;
 
     fn expecting(&self, f: &mut Formatter<'_>) -> FmtResult {
         f.write_str("a sequence of members")
     }
 
     fn visit_seq<S: SeqAccess<'de>>(self, mut seq: S) -> Result<Self::Value, S::Error> {
-        let mut map = seq
-            .size_hint()
-            .map_or_else(HashMap::new, HashMap::with_capacity);
+        let mut list = seq.size_hint().map_or_else(Vec::new, Vec::with_capacity);
 
         while let Some(member) = seq.next_element_seed(MemberDeserializer(self.0))? {
-            map.insert(member.user.id, member);
+            list.push(member);
         }
 
-        Ok(map)
+        Ok(list)
     }
 }
 
-impl<'de> DeserializeSeed<'de> for MemberMapDeserializer {
-    type Value = HashMap<UserId, Member>;
+impl<'de> DeserializeSeed<'de> for MemberListDeserializer {
+    type Value = Vec<Member>;
 
     fn deserialize<D: Deserializer<'de>>(self, deserializer: D) -> Result<Self::Value, D::Error> {
-        deserializer.deserialize_any(MemberMapVisitor(self.0))
+        deserializer.deserialize_any(MemberListVisitor(self.0))
     }
 }
 

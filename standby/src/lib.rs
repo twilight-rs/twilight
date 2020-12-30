@@ -858,7 +858,7 @@ mod tests {
     use super::Standby;
     use futures_util::StreamExt;
     use static_assertions::assert_impl_all;
-    use std::{collections::HashMap, fmt::Debug};
+    use std::fmt::Debug;
     use twilight_model::{
         channel::{
             message::{Message, MessageType},
@@ -906,7 +906,7 @@ mod tests {
             mention_channels: Vec::new(),
             mention_everyone: false,
             mention_roles: Vec::new(),
-            mentions: HashMap::new(),
+            mentions: Vec::new(),
             pinned: false,
             reactions: Vec::new(),
             reference: None,
@@ -995,7 +995,7 @@ mod tests {
     #[tokio::test]
     async fn test_wait_for_event() {
         let ready = Ready {
-            guilds: HashMap::new(),
+            guilds: Vec::new(),
             session_id: String::new(),
             shard: Some([5, 7]),
             user: CurrentUser {

@@ -26,11 +26,7 @@ use serde::{
     },
     Deserialize, Serialize,
 };
-use serde_mappable_seq::Key;
-use std::{
-    collections::HashMap,
-    fmt::{Formatter, Result as FmtResult},
-};
+use std::fmt::{Formatter, Result as FmtResult};
 
 #[derive(Clone, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
 pub struct Presence {
@@ -42,26 +38,11 @@ pub struct Presence {
     pub user: UserOrId,
 }
 
-impl Key<'_, UserId> for Presence {
-    fn key(&self) -> UserId {
-        self.user.key()
-    }
-}
-
 #[derive(Clone, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
 #[serde(untagged)]
 pub enum UserOrId {
     User(User),
     UserId { id: UserId },
-}
-
-impl Key<'_, UserId> for UserOrId {
-    fn key(&self) -> UserId {
-        match *self {
-            UserOrId::User(ref u) => u.id,
-            UserOrId::UserId { id } => id,
-        }
-    }
 }
 
 #[derive(Clone, Debug, Deserialize, Eq, Hash, PartialEq)]
@@ -118,9 +99,9 @@ impl<'de> DeserializeSeed<'de> for PresenceDeserializer {
 }
 
 #[derive(Clone, Debug, Eq, PartialEq)]
-pub struct PresenceMapDeserializer(GuildId);
+pub struct PresenceListDeserializer(GuildId);
 
-impl PresenceMapDeserializer {
+impl PresenceListDeserializer {
     /// Create a new deserializer for a map of presences when you know the
     /// Guild ID but the payload probably doesn't contain it.
     pub fn new(guild_id: GuildId) -> Self {
@@ -128,52 +109,44 @@ impl PresenceMapDeserializer {
     }
 }
 
-struct PresenceMapDeserializerVisitor(GuildId);
+struct PresenceListDeserializerVisitor(GuildId);
 
-impl<'de> Visitor<'de> for PresenceMapDeserializerVisitor {
-    type Value = HashMap<UserId, Presence>;
+impl<'de> Visitor<'de> for PresenceListDeserializerVisitor {
+    type Value = Vec<Presence>;
 
     fn expecting(&self, f: &mut Formatter<'_>) -> FmtResult {
         f.write_str("a sequence of presences")
     }
 
     fn visit_seq<S: SeqAccess<'de>>(self, mut seq: S) -> Result<Self::Value, S::Error> {
-        let mut map = seq
-            .size_hint()
-            .map_or_else(HashMap::new, HashMap::with_capacity);
+        let mut list = seq.size_hint().map_or_else(Vec::new, Vec::with_capacity);
 
         while let Some(presence) = seq.next_element_seed(PresenceDeserializer(self.0))? {
-            let user_id = match presence.user {
-                UserOrId::User(ref user) => user.id,
-                UserOrId::UserId { id } => id,
-            };
-
-            map.insert(user_id, presence);
+            list.push(presence);
         }
 
-        Ok(map)
+        Ok(list)
     }
 }
 
-impl<'de> DeserializeSeed<'de> for PresenceMapDeserializer {
-    type Value = HashMap<UserId, Presence>;
+impl<'de> DeserializeSeed<'de> for PresenceListDeserializer {
+    type Value = Vec<Presence>;
 
     fn deserialize<D: Deserializer<'de>>(self, deserializer: D) -> Result<Self::Value, D::Error> {
-        deserializer.deserialize_any(PresenceMapDeserializerVisitor(self.0))
+        deserializer.deserialize_any(PresenceListDeserializerVisitor(self.0))
     }
 }
 
 #[cfg(test)]
 mod tests {
     use super::{
-        Activity, ActivityEmoji, ActivityType, ClientStatus, Presence, PresenceMapDeserializer,
+        Activity, ActivityEmoji, ActivityType, ClientStatus, Presence, PresenceListDeserializer,
         Status, UserOrId,
     };
     use crate::id::{GuildId, UserId};
     use serde::de::DeserializeSeed;
     use serde_json::Deserializer;
     use serde_test::Token;
-    use std::collections::HashMap;
 
     #[test]
     #[allow(clippy::too_many_lines)]
@@ -301,24 +274,21 @@ mod tests {
             "activities": []
         }]"#;
 
-        let mut expected = HashMap::new();
-        expected.insert(
-            UserId(1),
-            Presence {
-                activities: vec![],
-                client_status: ClientStatus {
-                    desktop: Some(Status::Online),
-                    mobile: None,
-                    web: None,
-                },
-                guild_id: GuildId(2),
-                status: Status::Online,
-                user: UserOrId::UserId { id: UserId(1) },
+        let mut expected = Vec::new();
+        expected.push(Presence {
+            activities: vec![],
+            client_status: ClientStatus {
+                desktop: Some(Status::Online),
+                mobile: None,
+                web: None,
             },
-        );
+            guild_id: GuildId(2),
+            status: Status::Online,
+            user: UserOrId::UserId { id: UserId(1) },
+        });
 
         let mut json_deserializer = Deserializer::from_str(input);
-        let deserializer = PresenceMapDeserializer::new(GuildId(2));
+        let deserializer = PresenceListDeserializer::new(GuildId(2));
         let actual = deserializer.deserialize(&mut json_deserializer).unwrap();
 
         assert_eq!(actual, expected);

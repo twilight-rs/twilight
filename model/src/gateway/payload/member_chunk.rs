@@ -1,29 +1,25 @@
 use crate::{
-    gateway::presence::{Presence, PresenceMapDeserializer},
-    guild::member::{Member, MemberMapDeserializer},
+    gateway::presence::{Presence, PresenceListDeserializer},
+    guild::member::{Member, MemberListDeserializer},
     id::{GuildId, UserId},
 };
 use serde::{
     de::{Deserializer, Error as DeError, IgnoredAny, MapAccess, Visitor},
     Deserialize, Serialize,
 };
-use std::{
-    collections::HashMap,
-    fmt::{Formatter, Result as FmtResult},
-};
+use std::fmt::{Formatter, Result as FmtResult};
 
 #[derive(Clone, Debug, Eq, PartialEq, Serialize)]
 pub struct MemberChunk {
     pub chunk_count: u32,
     pub chunk_index: u32,
     pub guild_id: GuildId,
-    #[serde(with = "serde_mappable_seq")]
-    pub members: HashMap<UserId, Member>,
+    pub members: Vec<Member>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub nonce: Option<String>,
     pub not_found: Vec<UserId>,
-    #[serde(with = "serde_mappable_seq", default)]
-    pub presences: HashMap<UserId, Presence>,
+    #[serde(default)]
+    pub presences: Vec<Presence>,
 }
 
 #[derive(Debug, Deserialize)]
@@ -111,7 +107,7 @@ impl<'de> Visitor<'de> for MemberChunkVisitor {
                     // Since the guild ID may not be deserialised yet we'll use
                     // a temporary placeholder value and update it with the real
                     // guild ID after all the fields have been deserialised.
-                    let deserializer = MemberMapDeserializer::new(GuildId(0));
+                    let deserializer = MemberListDeserializer::new(GuildId(0));
 
                     members = Some(map.next_value_seed(deserializer)?);
                 }
@@ -134,7 +130,7 @@ impl<'de> Visitor<'de> for MemberChunkVisitor {
                         return Err(DeError::duplicate_field("presences"));
                     }
 
-                    let deserializer = PresenceMapDeserializer::new(GuildId(0));
+                    let deserializer = PresenceListDeserializer::new(GuildId(0));
 
                     presences = Some(map.next_value_seed(deserializer)?);
                 }
@@ -157,11 +153,11 @@ impl<'de> Visitor<'de> for MemberChunkVisitor {
             ?presences,
         );
 
-        for member in members.values_mut() {
+        for member in &mut members {
             member.guild_id = guild_id;
         }
 
-        for presence in presences.values_mut() {
+        for presence in &mut presences {
             presence.guild_id = guild_id;
         }
 
@@ -202,7 +198,6 @@ mod tests {
         id::{GuildId, RoleId, UserId},
         user::{User, UserFlags},
     };
-    use std::collections::HashMap;
 
     #[allow(clippy::too_many_lines)]
     #[test]
@@ -308,168 +303,147 @@ mod tests {
             chunk_index: 0,
             guild_id: GuildId(1),
             members: {
-                let mut members = HashMap::new();
-                members.insert(
-                    UserId(2),
-                    Member {
-                        deaf: false,
-                        guild_id: GuildId(1),
-                        hoisted_role: Some(RoleId(6)),
-                        joined_at: Some("2020-04-04T04:04:04.000000+00:00".to_owned()),
-                        mute: false,
-                        nick: Some("chunk".to_owned()),
-                        premium_since: None,
-                        roles: vec![RoleId(6), RoleId(7)],
-                        user: User {
-                            id: UserId(2),
-                            avatar: Some("dddddddddddddddddddddddddddddddd".to_owned()),
-                            bot: true,
-                            discriminator: "0001".to_owned(),
-                            name: "test".to_owned(),
-                            mfa_enabled: None,
-                            locale: None,
-                            verified: None,
-                            email: None,
-                            flags: None,
-                            premium_type: None,
-                            system: None,
-                            public_flags: None,
-                        },
+                let mut members = Vec::new();
+                members.push(Member {
+                    deaf: false,
+                    guild_id: GuildId(1),
+                    hoisted_role: Some(RoleId(6)),
+                    joined_at: Some("2020-04-04T04:04:04.000000+00:00".to_owned()),
+                    mute: false,
+                    nick: Some("chunk".to_owned()),
+                    premium_since: None,
+                    roles: vec![RoleId(6), RoleId(7)],
+                    user: User {
+                        id: UserId(2),
+                        avatar: Some("dddddddddddddddddddddddddddddddd".to_owned()),
+                        bot: true,
+                        discriminator: "0001".to_owned(),
+                        name: "test".to_owned(),
+                        mfa_enabled: None,
+                        locale: None,
+                        verified: None,
+                        email: None,
+                        flags: None,
+                        premium_type: None,
+                        system: None,
+                        public_flags: None,
                     },
-                );
-                members.insert(
-                    UserId(3),
-                    Member {
-                        deaf: false,
-                        guild_id: GuildId(1),
-                        hoisted_role: Some(RoleId(6)),
-                        joined_at: Some("2020-04-04T04:04:04.000000+00:00".to_owned()),
-                        mute: false,
-                        nick: Some("chunk".to_owned()),
-                        premium_since: None,
-                        roles: vec![RoleId(6)],
-                        user: User {
-                            id: UserId(3),
-                            avatar: Some("cccccccccccccccccccccccccccccccc".to_owned()),
-                            bot: true,
-                            discriminator: "0001".to_owned(),
-                            name: "test".to_owned(),
-                            mfa_enabled: None,
-                            locale: None,
-                            verified: None,
-                            email: None,
-                            flags: None,
-                            premium_type: None,
-                            system: None,
-                            public_flags: None,
-                        },
+                });
+                members.push(Member {
+                    deaf: false,
+                    guild_id: GuildId(1),
+                    hoisted_role: Some(RoleId(6)),
+                    joined_at: Some("2020-04-04T04:04:04.000000+00:00".to_owned()),
+                    mute: false,
+                    nick: Some("chunk".to_owned()),
+                    premium_since: None,
+                    roles: vec![RoleId(6)],
+                    user: User {
+                        id: UserId(3),
+                        avatar: Some("cccccccccccccccccccccccccccccccc".to_owned()),
+                        bot: true,
+                        discriminator: "0001".to_owned(),
+                        name: "test".to_owned(),
+                        mfa_enabled: None,
+                        locale: None,
+                        verified: None,
+                        email: None,
+                        flags: None,
+                        premium_type: None,
+                        system: None,
+                        public_flags: None,
                     },
-                );
-                members.insert(
-                    UserId(5),
-                    Member {
-                        deaf: false,
-                        guild_id: GuildId(1),
-                        hoisted_role: Some(RoleId(6)),
-                        joined_at: Some("2020-04-04T04:04:04.000000+00:00".to_owned()),
-                        mute: false,
-                        nick: Some("chunk".to_owned()),
-                        premium_since: None,
-                        roles: vec![RoleId(6)],
-                        user: User {
-                            id: UserId(5),
-                            avatar: Some("aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa".to_owned()),
-                            bot: false,
-                            discriminator: "0001".to_owned(),
-                            name: "test".to_owned(),
-                            mfa_enabled: None,
-                            locale: None,
-                            verified: None,
-                            email: None,
-                            flags: None,
-                            premium_type: None,
-                            system: None,
-                            public_flags: Some(UserFlags::VERIFIED_BOT_DEVELOPER),
-                        },
+                });
+                members.push(Member {
+                    deaf: false,
+                    guild_id: GuildId(1),
+                    hoisted_role: Some(RoleId(6)),
+                    joined_at: Some("2020-04-04T04:04:04.000000+00:00".to_owned()),
+                    mute: false,
+                    nick: Some("chunk".to_owned()),
+                    premium_since: None,
+                    roles: vec![RoleId(6)],
+                    user: User {
+                        id: UserId(5),
+                        avatar: Some("aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa".to_owned()),
+                        bot: false,
+                        discriminator: "0001".to_owned(),
+                        name: "test".to_owned(),
+                        mfa_enabled: None,
+                        locale: None,
+                        verified: None,
+                        email: None,
+                        flags: None,
+                        premium_type: None,
+                        system: None,
+                        public_flags: Some(UserFlags::VERIFIED_BOT_DEVELOPER),
                     },
-                );
-                members.insert(
-                    UserId(6),
-                    Member {
-                        deaf: false,
-                        guild_id: GuildId(1),
-                        hoisted_role: Some(RoleId(6)),
-                        joined_at: Some("2020-04-04T04:04:04.000000+00:00".to_owned()),
-                        mute: false,
-                        nick: Some("chunk".to_owned()),
-                        premium_since: None,
-                        roles: vec![RoleId(6)],
-                        user: User {
-                            id: UserId(6),
-                            avatar: Some("bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb".to_owned()),
-                            bot: false,
-                            discriminator: "0001".to_owned(),
-                            name: "test".to_owned(),
-                            mfa_enabled: None,
-                            locale: None,
-                            verified: None,
-                            email: None,
-                            flags: None,
-                            premium_type: None,
-                            system: None,
-                            public_flags: None,
-                        },
+                });
+                members.push(Member {
+                    deaf: false,
+                    guild_id: GuildId(1),
+                    hoisted_role: Some(RoleId(6)),
+                    joined_at: Some("2020-04-04T04:04:04.000000+00:00".to_owned()),
+                    mute: false,
+                    nick: Some("chunk".to_owned()),
+                    premium_since: None,
+                    roles: vec![RoleId(6)],
+                    user: User {
+                        id: UserId(6),
+                        avatar: Some("bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb".to_owned()),
+                        bot: false,
+                        discriminator: "0001".to_owned(),
+                        name: "test".to_owned(),
+                        mfa_enabled: None,
+                        locale: None,
+                        verified: None,
+                        email: None,
+                        flags: None,
+                        premium_type: None,
+                        system: None,
+                        public_flags: None,
                     },
-                );
+                });
 
                 members
             },
             nonce: None,
             not_found: Vec::new(),
             presences: {
-                let mut presences = HashMap::new();
-                presences.insert(
-                    UserId(2),
-                    Presence {
-                        activities: Vec::new(),
-                        client_status: ClientStatus {
-                            desktop: None,
-                            mobile: None,
-                            web: Some(Status::Online),
-                        },
-                        guild_id: GuildId(1),
-                        status: Status::Online,
-                        user: UserOrId::UserId { id: UserId(2) },
+                let mut presences = Vec::new();
+                presences.push(Presence {
+                    activities: Vec::new(),
+                    client_status: ClientStatus {
+                        desktop: None,
+                        mobile: None,
+                        web: Some(Status::Online),
                     },
-                );
-                presences.insert(
-                    UserId(3),
-                    Presence {
-                        activities: Vec::new(),
-                        client_status: ClientStatus {
-                            desktop: None,
-                            mobile: None,
-                            web: Some(Status::Online),
-                        },
-                        guild_id: GuildId(1),
-                        status: Status::Online,
-                        user: UserOrId::UserId { id: UserId(3) },
+                    guild_id: GuildId(1),
+                    status: Status::Online,
+                    user: UserOrId::UserId { id: UserId(2) },
+                });
+                presences.push(Presence {
+                    activities: Vec::new(),
+                    client_status: ClientStatus {
+                        desktop: None,
+                        mobile: None,
+                        web: Some(Status::Online),
                     },
-                );
-                presences.insert(
-                    UserId(5),
-                    Presence {
-                        activities: Vec::new(),
-                        client_status: ClientStatus {
-                            desktop: Some(Status::DoNotDisturb),
-                            mobile: None,
-                            web: None,
-                        },
-                        guild_id: GuildId(1),
-                        status: Status::DoNotDisturb,
-                        user: UserOrId::UserId { id: UserId(5) },
+                    guild_id: GuildId(1),
+                    status: Status::Online,
+                    user: UserOrId::UserId { id: UserId(3) },
+                });
+                presences.push(Presence {
+                    activities: Vec::new(),
+                    client_status: ClientStatus {
+                        desktop: Some(Status::DoNotDisturb),
+                        mobile: None,
+                        web: None,
                     },
-                );
+                    guild_id: GuildId(1),
+                    status: Status::DoNotDisturb,
+                    user: UserOrId::UserId { id: UserId(5) },
+                });
 
                 presences
             },
@@ -482,12 +456,12 @@ mod tests {
         assert_eq!(expected.nonce, actual.nonce);
         assert_eq!(expected.not_found, actual.not_found);
 
-        for member in actual.members.values() {
-            assert!(expected.members.values().any(|m| m == member));
+        for member in &actual.members {
+            assert!(expected.members.iter().any(|m| m == member));
         }
 
-        for presences in actual.presences.values() {
-            assert!(expected.presences.values().any(|p| p == presences));
+        for presences in &actual.presences {
+            assert!(expected.presences.iter().any(|p| p == presences));
         }
     }
 }

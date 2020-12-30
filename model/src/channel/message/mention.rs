@@ -4,7 +4,6 @@ use crate::{
     user::{self, UserFlags},
 };
 use serde::{Deserialize, Serialize};
-use serde_mappable_seq::Key;
 
 /// Mention of a user in a message.
 #[derive(Clone, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
@@ -32,12 +31,6 @@ pub struct Mention {
     pub name: String,
     /// Public flags on the user's account.
     pub public_flags: UserFlags,
-}
-
-impl Key<'_, UserId> for Mention {
-    fn key(&self) -> UserId {
-        self.id
-    }
 }
 
 #[cfg(test)]
