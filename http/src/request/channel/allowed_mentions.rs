@@ -1,4 +1,4 @@
-use super::CreateMessage;
+use super::message::CreateMessage;
 use twilight_model::id::{RoleId, UserId};
 
 /// Whether or not the section will be parsed.
