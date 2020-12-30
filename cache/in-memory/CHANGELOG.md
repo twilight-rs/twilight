@@ -2,6 +2,14 @@
 
 Changelog for `twilight-cache-inmemory`.
 
+## [0.2.5] - 2020-12-30
+
+### Additions
+
+Cache members from voice state updates ([#651] - [@sam-kirby]).
+
+[#651]: https://github.com/twilight-rs/twilight/pull/651
+
 ## [0.2.4] - 2020-12-18
 
 The MSRV is now set to Rust 1.48.
@@ -107,6 +115,7 @@ Initial release.
 [@Erk-]: https://github.com/Erk-
 [@MaxOhn]: https://github.com/MaxOhn
 [@nickelc]: https://github.com/nickelc
+[@sam-kirby]: https://github.com/sam-kirby
 [@vivian]: https://github.com/vivian
 
 [#639]: https://github.com/twilight-rs/twilight/pull/639
