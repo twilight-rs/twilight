@@ -1095,14 +1095,14 @@ mod tests {
 
         assert_eq!(msg.reactions.len(), 2);
 
-        let world_react = msg.reactions.iter().find(|r| match &r.emoji {
-            ReactionType::Unicode { name } => name == "🗺️",
-            _ => false,
-        });
-        let smiley_react = msg.reactions.iter().find(|r| match &r.emoji {
-            ReactionType::Unicode { name } => name == "😀",
-            _ => false,
-        });
+        let world_react = msg
+            .reactions
+            .iter()
+            .find(|&r| matches!(&r.emoji, ReactionType::Unicode {name} if name == "🗺️"));
+        let smiley_react = msg
+            .reactions
+            .iter()
+            .find(|&r| matches!(&r.emoji, ReactionType::Unicode {name} if name == "😀"));
 
         assert!(world_react.is_some());
         assert_eq!(world_react.unwrap().count, 1);
@@ -1128,14 +1128,14 @@ mod tests {
 
         assert_eq!(msg.reactions.len(), 2);
 
-        let world_react = msg.reactions.iter().find(|r| match &r.emoji {
-            ReactionType::Unicode { name } => name == "🗺️",
-            _ => false,
-        });
-        let smiley_react = msg.reactions.iter().find(|r| match &r.emoji {
-            ReactionType::Unicode { name } => name == "😀",
-            _ => false,
-        });
+        let world_react = msg
+            .reactions
+            .iter()
+            .find(|&r| matches!(&r.emoji, ReactionType::Unicode {name} if name == "🗺️"));
+        let smiley_react = msg
+            .reactions
+            .iter()
+            .find(|&r| matches!(&r.emoji, ReactionType::Unicode {name} if name == "😀"));
 
         assert!(world_react.is_some());
         assert_eq!(world_react.unwrap().count, 1);
@@ -1160,14 +1160,14 @@ mod tests {
 
         assert_eq!(msg.reactions.len(), 1);
 
-        let world_react = msg.reactions.iter().find(|r| match &r.emoji {
-            ReactionType::Unicode { name } => name == "🗺️",
-            _ => false,
-        });
-        let smiley_react = msg.reactions.iter().find(|r| match &r.emoji {
-            ReactionType::Unicode { name } => name == "😀",
-            _ => false,
-        });
+        let world_react = msg
+            .reactions
+            .iter()
+            .find(|&r| matches!(&r.emoji, ReactionType::Unicode {name} if name == "🗺️"));
+        let smiley_react = msg
+            .reactions
+            .iter()
+            .find(|&r| matches!(&r.emoji, ReactionType::Unicode {name} if name == "😀"));
 
         assert!(world_react.is_some());
         assert_eq!(world_react.unwrap().count, 1);
