@@ -8,7 +8,9 @@ use serde::{Deserialize, Serialize};
 #[derive(Clone, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
 pub struct PrivateChannel {
     pub id: ChannelId,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub last_message_id: Option<MessageId>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub last_pin_timestamp: Option<String>,
     #[serde(rename = "type")]
     pub kind: ChannelType,

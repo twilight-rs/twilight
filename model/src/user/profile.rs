@@ -18,14 +18,20 @@ pub struct UserProfile {
     /// the type Discord's API uses.
     #[serde(with = "super::discriminator")]
     pub discriminator: String,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub email: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub flags: Option<UserFlags>,
     pub id: UserId,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub locale: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub mfa_enabled: Option<bool>,
     #[serde(rename = "username")]
     pub name: String,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub premium_type: Option<PremiumType>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub verified: Option<bool>,
 }
 

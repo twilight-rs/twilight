@@ -2,7 +2,9 @@ use serde::{Deserialize, Serialize};
 
 #[derive(Clone, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
 pub struct EmbedFooter {
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub icon_url: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub proxy_icon_url: Option<String>,
     pub text: String,
 }
@@ -53,12 +55,8 @@ mod tests {
             &[
                 Token::Struct {
                     name: "EmbedFooter",
-                    len: 3,
+                    len: 1,
                 },
-                Token::Str("icon_url"),
-                Token::None,
-                Token::Str("proxy_icon_url"),
-                Token::None,
                 Token::Str("text"),
                 Token::Str("a footer"),
                 Token::StructEnd,

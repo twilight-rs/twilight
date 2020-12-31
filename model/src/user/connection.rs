@@ -12,6 +12,7 @@ pub struct Connection {
     #[serde(rename = "type")]
     pub kind: String,
     pub name: String,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub revoked: Option<bool>,
     pub show_activity: bool,
     pub verified: bool,

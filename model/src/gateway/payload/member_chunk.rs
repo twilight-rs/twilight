@@ -19,7 +19,7 @@ pub struct MemberChunk {
     pub guild_id: GuildId,
     #[serde(with = "serde_mappable_seq")]
     pub members: HashMap<UserId, Member>,
-    #[serde(default)]
+    #[serde(default, skip_serializing_if = "Option::is_none")]
     pub nonce: Option<String>,
     pub not_found: Vec<UserId>,
     #[serde(with = "serde_mappable_seq", default)]

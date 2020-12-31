@@ -3,8 +3,11 @@ use serde::{Deserialize, Serialize};
 
 #[derive(Clone, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
 pub struct MessageReference {
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub channel_id: Option<ChannelId>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub guild_id: Option<GuildId>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub message_id: Option<MessageId>,
 }
 
@@ -26,16 +29,12 @@ mod tests {
             &[
                 Token::Struct {
                     name: "MessageReference",
-                    len: 3,
+                    len: 1,
                 },
                 Token::Str("channel_id"),
                 Token::Some,
                 Token::NewtypeStruct { name: "ChannelId" },
                 Token::Str("1"),
-                Token::Str("guild_id"),
-                Token::None,
-                Token::Str("message_id"),
-                Token::None,
                 Token::StructEnd,
             ],
         );

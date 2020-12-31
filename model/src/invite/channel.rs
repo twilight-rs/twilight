@@ -6,6 +6,7 @@ pub struct InviteChannel {
     /// ID of the channel.
     pub id: ChannelId,
     /// Name of the channel.
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub name: Option<String>,
     /// Type of the channel.
     #[serde(rename = "type")]

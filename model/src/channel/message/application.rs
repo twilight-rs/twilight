@@ -3,6 +3,7 @@ use serde::{Deserialize, Serialize};
 
 #[derive(Clone, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
 pub struct MessageApplication {
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub cover_image: Option<String>,
     pub description: String,
     pub icon: Option<String>,
