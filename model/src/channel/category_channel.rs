@@ -6,6 +6,7 @@ use serde::{Deserialize, Serialize};
 
 #[derive(Clone, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
 pub struct CategoryChannel {
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub guild_id: Option<GuildId>,
     pub id: ChannelId,
     #[serde(rename = "type")]

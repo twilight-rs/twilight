@@ -5,5 +5,6 @@ use serde::{Deserialize, Serialize};
 pub struct ReactionRemoveAll {
     pub channel_id: ChannelId,
     pub message_id: MessageId,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub guild_id: Option<GuildId>,
 }

@@ -59,7 +59,9 @@ pub struct Guild {
     pub afk_channel_id: Option<ChannelId>,
     pub afk_timeout: u64,
     pub application_id: Option<ApplicationId>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub approximate_member_count: Option<u64>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub approximate_presence_count: Option<u64>,
     pub banner: Option<String>,
     #[serde(default, with = "serde_mappable_seq")]
@@ -73,23 +75,31 @@ pub struct Guild {
     pub features: Vec<String>,
     pub icon: Option<String>,
     pub id: GuildId,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub joined_at: Option<String>,
-    #[serde(default)]
     pub large: bool,
     // Not documented so I marked it as optional.
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub lazy: Option<bool>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub max_members: Option<u64>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub max_presences: Option<u64>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub max_video_channel_users: Option<u64>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub member_count: Option<u64>,
     #[serde(default, with = "serde_mappable_seq")]
     pub members: HashMap<UserId, Member>,
     pub mfa_level: MfaLevel,
     pub name: String,
     pub owner_id: UserId,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub owner: Option<bool>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub permissions: Option<Permissions>,
     pub preferred_locale: String,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub premium_subscription_count: Option<u64>,
     #[serde(default)]
     pub premium_tier: PremiumTier,
@@ -108,7 +118,9 @@ pub struct Guild {
     pub verification_level: VerificationLevel,
     #[serde(default, with = "serde_mappable_seq")]
     pub voice_states: HashMap<UserId, VoiceState>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub widget_channel_id: Option<ChannelId>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub widget_enabled: Option<bool>,
 }
 

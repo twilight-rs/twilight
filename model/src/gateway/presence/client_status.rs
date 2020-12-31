@@ -3,8 +3,11 @@ use serde::{Deserialize, Serialize};
 
 #[derive(Clone, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
 pub struct ClientStatus {
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub desktop: Option<Status>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub mobile: Option<Status>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub web: Option<Status>,
 }
 
