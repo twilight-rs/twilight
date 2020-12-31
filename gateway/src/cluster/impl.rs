@@ -404,10 +404,7 @@ impl Cluster {
     /// ```
     ///
     /// [`events`]: Self::events
-    pub fn some_events(
-        &self,
-        types: EventTypeFlags,
-    ) -> impl Stream<Item = (u64, Event)> {
+    pub fn some_events(&self, types: EventTypeFlags) -> impl Stream<Item = (u64, Event)> {
         let shards = self.0.shards.lock().expect("shards poisoned").clone();
         let stream = shards
             .into_iter()
