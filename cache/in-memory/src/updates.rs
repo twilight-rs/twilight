@@ -2,7 +2,7 @@ use super::{config::EventType, InMemoryCache};
 use dashmap::DashMap;
 use std::{borrow::Cow, collections::HashSet, hash::Hash, ops::Deref, sync::Arc};
 use twilight_model::{
-    channel::{message::MessageReaction, Channel, GuildChannel},
+    channel::{message::MessageReaction, Channel, GuildChannel, ReactionType},
     gateway::{event::Event, payload::*, presence::Presence},
     guild::GuildStatus,
     id::GuildId,
@@ -56,7 +56,7 @@ impl UpdateCache for Event {
             ReactionAdd(v) => c.update(v.deref()),
             ReactionRemove(v) => c.update(v.deref()),
             ReactionRemoveAll(v) => c.update(v),
-            ReactionRemoveEmoji(_) => {}
+            ReactionRemoveEmoji(v) => c.update(v),
             Ready(v) => c.update(v.deref()),
             Resumed => {}
             RoleCreate(v) => c.update(v),
@@ -573,6 +573,34 @@ impl UpdateCache for ReactionRemoveAll {
     }
 }
 
+impl UpdateCache for ReactionRemoveEmoji {
+    fn update(&self, cache: &InMemoryCache) {
+        if !guard(cache, EventType::REACTION_REMOVE_EMOJI) {
+            return;
+        }
+
+        let mut channel = cache.0.messages.entry(self.channel_id).or_default();
+
+        let mut message = match channel.get_mut(&self.message_id) {
+            Some(message) => message,
+            None => return,
+        };
+
+        let index = message.reactions.iter().position(|r| {
+            matches!(&r.emoji,
+                ReactionType::Unicode { name, .. }
+                    | ReactionType::Custom { name: Some(name), .. }
+                    if *name == self.emoji.name
+            )
+        });
+
+        if let Some(index) = index {
+            let msg = Arc::make_mut(&mut message);
+            msg.reactions.remove(index);
+        }
+    }
+}
+
 impl UpdateCache for Ready {
     fn update(&self, cache: &InMemoryCache) {
         if !guard(cache, EventType::READY) {
@@ -678,17 +706,17 @@ mod tests {
     use crate::config::EventType;
     use std::collections::HashMap;
     use twilight_model::{
-        channel::{ChannelType, GuildChannel, TextChannel},
-        gateway::payload::ChannelDelete,
-        guild::DefaultMessageNotificationLevel,
-        guild::ExplicitContentFilter,
-        guild::Guild,
-        guild::MfaLevel,
-        guild::PartialGuild,
-        guild::PremiumTier,
-        guild::SystemChannelFlags,
-        guild::VerificationLevel,
-        id::{ChannelId, GuildId, UserId},
+        channel::{
+            message::{MessageFlags, MessageType},
+            ChannelType, GuildChannel, Message, Reaction, TextChannel,
+        },
+        gateway::payload::{reaction_remove_emoji::PartialEmoji, ChannelDelete},
+        guild::{
+            DefaultMessageNotificationLevel, ExplicitContentFilter, Guild, Member, MfaLevel,
+            PartialGuild, PartialMember, PremiumTier, SystemChannelFlags, VerificationLevel,
+        },
+        id::{ChannelId, GuildId, MessageId, UserId},
+        user::User,
         voice::VoiceState,
     };
 
@@ -711,6 +739,134 @@ mod tests {
         });
 
         (guild_id, channel_id, channel)
+    }
+
+    fn cache_with_message_and_reactions() -> InMemoryCache {
+        let cache = InMemoryCache::new();
+
+        let msg = Message {
+            activity: None,
+            application: None,
+            attachments: Vec::new(),
+            author: User {
+                avatar: Some("".to_owned()),
+                bot: false,
+                discriminator: "0001".to_owned(),
+                email: None,
+                flags: None,
+                id: UserId(3),
+                locale: None,
+                mfa_enabled: None,
+                name: "test".to_owned(),
+                premium_type: None,
+                public_flags: None,
+                system: None,
+                verified: None,
+            },
+            channel_id: ChannelId(2),
+            content: "ping".to_owned(),
+            edited_timestamp: None,
+            embeds: Vec::new(),
+            flags: Some(MessageFlags::empty()),
+            guild_id: Some(GuildId(1)),
+            id: MessageId(4),
+            kind: MessageType::Regular,
+            member: Some(PartialMember {
+                deaf: false,
+                joined_at: None,
+                mute: false,
+                nick: Some("member nick".to_owned()),
+                roles: Vec::new(),
+            }),
+            mention_channels: Vec::new(),
+            mention_everyone: false,
+            mention_roles: Vec::new(),
+            mentions: HashMap::new(),
+            pinned: false,
+            reactions: Vec::new(),
+            reference: None,
+            stickers: Vec::new(),
+            referenced_message: None,
+            timestamp: String::new(),
+            tts: false,
+            webhook_id: None,
+        };
+
+        cache.update(&MessageCreate(msg));
+
+        let mut reaction = ReactionAdd(Reaction {
+            channel_id: ChannelId(2),
+            emoji: ReactionType::Unicode {
+                name: "😀".to_owned(),
+            },
+            guild_id: Some(GuildId(1)),
+            member: Some(Member {
+                deaf: false,
+                guild_id: GuildId(1),
+                hoisted_role: None,
+                joined_at: None,
+                mute: false,
+                nick: Some("member nick".to_owned()),
+                premium_since: None,
+                roles: Vec::new(),
+                user: User {
+                    avatar: Some("".to_owned()),
+                    bot: false,
+                    discriminator: "0001".to_owned(),
+                    email: None,
+                    flags: None,
+                    id: UserId(3),
+                    locale: None,
+                    mfa_enabled: None,
+                    name: "test".to_owned(),
+                    premium_type: None,
+                    public_flags: None,
+                    system: None,
+                    verified: None,
+                },
+            }),
+            message_id: MessageId(4),
+            user_id: UserId(3),
+        });
+
+        cache.update(&reaction);
+
+        reaction.member.replace(Member {
+            deaf: false,
+            guild_id: GuildId(1),
+            hoisted_role: None,
+            joined_at: None,
+            mute: false,
+            nick: None,
+            premium_since: None,
+            roles: Vec::new(),
+            user: User {
+                avatar: Some("".to_owned()),
+                bot: false,
+                discriminator: "0002".to_owned(),
+                email: None,
+                flags: None,
+                id: UserId(5),
+                locale: None,
+                mfa_enabled: None,
+                name: "test".to_owned(),
+                premium_type: None,
+                public_flags: None,
+                system: None,
+                verified: None,
+            },
+        });
+        reaction.user_id = UserId(5);
+
+        cache.update(&reaction);
+
+        reaction.emoji = ReactionType::Unicode {
+            name: "🗺️".to_owned(),
+        };
+
+        cache.update(&reaction);
+
+        cache
     }
 
     #[test]
@@ -870,16 +1026,6 @@ mod tests {
 
     #[test]
     fn test_message_create() {
-        use twilight_model::{
-            channel::{
-                message::{MessageFlags, MessageType},
-                Message,
-            },
-            guild::PartialMember,
-            id::MessageId,
-            user::User,
-        };
-
         let cache = InMemoryCache::builder()
             .event_types(EventType::MESSAGE_CREATE)
             .message_cache_size(1)
@@ -945,5 +1091,105 @@ mod tests {
             let entry = cache.0.messages.get(&ChannelId(2)).unwrap();
             assert_eq!(entry.value().len(), 1);
         }
+    }
+
+    #[test]
+    fn test_reaction_add() {
+        let cache = cache_with_message_and_reactions();
+        let msg = cache.message(ChannelId(2), MessageId(4)).unwrap();
+
+        assert_eq!(msg.reactions.len(), 2);
+
+        let world_react = msg
+            .reactions
+            .iter()
+            .find(|&r| matches!(&r.emoji, ReactionType::Unicode {name} if name == "🗺️"));
+        let smiley_react = msg
+            .reactions
+            .iter()
+            .find(|&r| matches!(&r.emoji, ReactionType::Unicode {name} if name == "😀"));
+
+        assert!(world_react.is_some());
+        assert_eq!(world_react.unwrap().count, 1);
+        assert!(smiley_react.is_some());
+        assert_eq!(smiley_react.unwrap().count, 2);
+    }
+
+    #[test]
+    fn test_reaction_remove() {
+        let cache = cache_with_message_and_reactions();
+        cache.update(&ReactionRemove(Reaction {
+            channel_id: ChannelId(2),
+            emoji: ReactionType::Unicode {
+                name: "😀".to_owned(),
+            },
+            guild_id: Some(GuildId(1)),
+            member: None,
+            message_id: MessageId(4),
+            user_id: UserId(5),
+        }));
+
+        let msg = cache.message(ChannelId(2), MessageId(4)).unwrap();
+
+        assert_eq!(msg.reactions.len(), 2);
+
+        let world_react = msg
+            .reactions
+            .iter()
+            .find(|&r| matches!(&r.emoji, ReactionType::Unicode {name} if name == "🗺️"));
+        let smiley_react = msg
+            .reactions
+            .iter()
+            .find(|&r| matches!(&r.emoji, ReactionType::Unicode {name} if name == "😀"));
+
+        assert!(world_react.is_some());
+        assert_eq!(world_react.unwrap().count, 1);
+        assert!(smiley_react.is_some());
+        assert_eq!(smiley_react.unwrap().count, 1);
+    }
+
+    #[test]
+    fn test_reaction_remove_emoji() {
+        let cache = cache_with_message_and_reactions();
+        cache.update(&ReactionRemoveEmoji {
+            channel_id: ChannelId(2),
+            emoji: PartialEmoji {
+                id: None,
+                name: "😀".to_owned(),
+            },
+            guild_id: GuildId(1),
+            message_id: MessageId(4),
+        });
+
+        let msg = cache.message(ChannelId(2), MessageId(4)).unwrap();
+
+        assert_eq!(msg.reactions.len(), 1);
+
+        let world_react = msg
+            .reactions
+            .iter()
+            .find(|&r| matches!(&r.emoji, ReactionType::Unicode {name} if name == "🗺️"));
+        let smiley_react = msg
+            .reactions
+            .iter()
+            .find(|&r| matches!(&r.emoji, ReactionType::Unicode {name} if name == "😀"));
+
+        assert!(world_react.is_some());
+        assert_eq!(world_react.unwrap().count, 1);
+        assert!(smiley_react.is_none());
+    }
+
+    #[test]
+    fn test_reaction_remove_all() {
+        let cache = cache_with_message_and_reactions();
+        cache.update(&ReactionRemoveAll {
+            channel_id: ChannelId(2),
+            message_id: MessageId(4),
+            guild_id: Some(GuildId(1)),
+        });
+
+        let msg = cache.message(ChannelId(2), MessageId(4)).unwrap();
+
+        assert_eq!(msg.reactions.len(), 0);
     }
 }
