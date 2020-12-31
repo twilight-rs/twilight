@@ -27,6 +27,7 @@ bitflags! {
         const REACTION_ADD = 1 << 20;
         const REACTION_REMOVE = 1 << 21;
         const REACTION_REMOVE_ALL = 1 << 22;
+        const REACTION_REMOVE_EMOJI = 1 << 33;
         const READY = 1 << 23;
         const ROLE_CREATE = 1 << 24;
         const ROLE_DELETE = 1 << 25;
@@ -120,6 +121,7 @@ mod tests {
         assert_eq!(1 << 30, EventType::VOICE_SERVER_UPDATE.bits());
         assert_eq!(1 << 31, EventType::VOICE_STATE_UPDATE.bits());
         assert_eq!(1 << 32, EventType::WEBHOOKS_UPDATE.bits());
+        assert_eq!(1 << 33, EventType::REACTION_REMOVE_EMOJI.bits());
     }
 
     #[test]
