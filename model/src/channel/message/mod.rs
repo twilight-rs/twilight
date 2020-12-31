@@ -310,6 +310,7 @@ mod tests {
                 joined_at: Some("2020-01-01T00:00:00.000000+00:00".to_owned()),
                 mute: false,
                 nick: Some("member nick".to_owned()),
+                premium_since: None,
                 roles: Vec::new(),
             }),
             mention_channels: vec![ChannelMention {
@@ -436,7 +437,7 @@ mod tests {
                 Token::Some,
                 Token::Struct {
                     name: "PartialMember",
-                    len: 6,
+                    len: 5,
                 },
                 Token::Str("deaf"),
                 Token::Bool(false),
@@ -448,8 +449,6 @@ mod tests {
                 Token::Str("nick"),
                 Token::Some,
                 Token::Str("member nick"),
-                Token::Str("premium_since"),
-                Token::None,
                 Token::Str("roles"),
                 Token::Seq { len: Some(0) },
                 Token::SeqEnd,

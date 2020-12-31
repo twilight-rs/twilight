@@ -7,6 +7,7 @@ pub struct PartialMember {
     pub joined_at: Option<String>,
     pub mute: bool,
     pub nick: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub premium_since: Option<String>,
     pub roles: Vec<RoleId>,
 }
@@ -32,7 +33,7 @@ mod tests {
             &[
                 Token::Struct {
                     name: "PartialMember",
-                    len: 6,
+                    len: 5,
                 },
                 Token::Str("deaf"),
                 Token::Bool(false),
@@ -44,8 +45,6 @@ mod tests {
                 Token::Str("nick"),
                 Token::Some,
                 Token::Str("a nickname"),
-                Token::Str("premium_since"),
-                Token::None,
                 Token::Str("roles"),
                 Token::Seq { len: Some(1) },
                 Token::NewtypeStruct { name: "RoleId" },
