@@ -364,7 +364,7 @@ impl Cluster {
     /// on the client side.
     ///
     /// [`some_events`]: Self::some_events
-    pub fn events<'a>(&'a self) -> impl Stream<Item = (u64, Event)> + 'a {
+    pub fn events(&self) -> impl Stream<Item = (u64, Event)> {
         self.some_events(EventTypeFlags::default())
     }
 
@@ -404,15 +404,14 @@ impl Cluster {
     /// ```
     ///
     /// [`events`]: Self::events
-    pub fn some_events<'a>(
-        &'a self,
-        types: EventTypeFlags,
-    ) -> impl Stream<Item = (u64, Event)> + 'a {
+    pub fn some_events(&self, types: EventTypeFlags) -> impl Stream<Item = (u64, Event)> {
         let shards = self.0.shards.lock().expect("shards poisoned").clone();
         let stream = shards
             .into_iter()
             .map(|(id, shard)| shard.some_events(types).map(move |e| (id, e)));
 
+        // Clippy recommends using bad code here.
+        #[allow(clippy::from_iter_instead_of_collect)]
         SelectAll::from_iter(stream)
     }
 

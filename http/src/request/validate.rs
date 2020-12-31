@@ -176,7 +176,7 @@ fn _channel_name(value: &str) -> bool {
     let len = value.chars().count();
 
     // <https://discordapp.com/developers/docs/resources/channel#channel-object-channel-structure>
-    len >= 2 && len <= 100
+    (2..=100).contains(&len)
 }
 
 pub fn content_limit(value: impl AsRef<str>) -> bool {
@@ -266,27 +266,27 @@ pub fn embed(embed: &Embed) -> Result<(), EmbedValidationError> {
 
 pub fn get_audit_log_limit(value: u64) -> bool {
     // <https://discordapp.com/developers/docs/resources/audit-log#get-guild-audit-log-query-string-parameters>
-    value > 0 && value <= 100
+    (1..=100).contains(&value)
 }
 
 pub fn get_channel_messages_limit(value: u64) -> bool {
     // <https://discordapp.com/developers/docs/resources/channel#get-channel-messages-query-string-params>
-    value > 0 && value <= 100
+    (1..=100).contains(&value)
 }
 
 pub fn get_current_user_guilds_limit(value: u64) -> bool {
     // <https://discordapp.com/developers/docs/resources/user#get-current-user-guilds-query-string-params>
-    value > 0 && value <= 100
+    (1..=100).contains(&value)
 }
 
 pub fn get_guild_members_limit(value: u64) -> bool {
     // <https://discordapp.com/developers/docs/resources/guild#list-guild-members-query-string-params>
-    value > 0 && value <= 1000
+    (1..=1000).contains(&value)
 }
 
 pub fn get_reactions_limit(value: u64) -> bool {
     // <https://discordapp.com/developers/docs/resources/channel#get-reactions-query-string-params>
-    value > 0 && value <= 100
+    (1..=100).contains(&value)
 }
 
 pub fn guild_name(value: impl AsRef<str>) -> bool {
@@ -297,7 +297,7 @@ fn _guild_name(value: &str) -> bool {
     let len = value.chars().count();
 
     // <https://discordapp.com/developers/docs/resources/guild#guild-object-guild-structure>
-    len >= 2 && len <= 100
+    (2..=100).contains(&len)
 }
 
 pub fn guild_prune_days(value: u64) -> bool {
@@ -313,7 +313,7 @@ fn _nickname(value: &str) -> bool {
     let len = value.chars().count();
 
     // <https://discordapp.com/developers/docs/resources/user#usernames-and-nicknames>
-    len > 0 && len <= 32
+    (1..=32).contains(&len)
 }
 
 pub fn username(value: impl AsRef<str>) -> bool {
@@ -324,7 +324,7 @@ pub fn username(value: impl AsRef<str>) -> bool {
 fn _username(value: &str) -> bool {
     let len = value.chars().count();
 
-    len >= 2 && len <= 32
+    (2..=32).contains(&len)
 }
 
 #[cfg(test)]
