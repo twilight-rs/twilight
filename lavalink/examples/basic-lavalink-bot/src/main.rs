@@ -310,7 +310,7 @@ async fn volume(msg: Message, state: State) -> Result<(), Box<dyn Error + Send +
     let guild_id = msg.guild_id.unwrap();
     let volume = msg.content.parse::<i64>()?;
 
-    if volume > 1000 || volume < 0 {
+    if !(0..=1000).contains(&volume) {
         state
             .http
             .create_message(msg.channel_id)
