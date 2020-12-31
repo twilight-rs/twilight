@@ -176,7 +176,7 @@ fn _channel_name(value: &str) -> bool {
     let len = value.chars().count();
 
     // <https://discordapp.com/developers/docs/resources/channel#channel-object-channel-structure>
-    len >= 2 && len <= 100
+    (2..=100).contains(&len)
 }
 
 pub fn content_limit(value: impl AsRef<str>) -> bool {
