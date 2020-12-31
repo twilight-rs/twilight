@@ -123,7 +123,7 @@ mod tests {
                 Token::Some,
                 Token::Struct {
                     name: "PartialMember",
-                    len: 6,
+                    len: 5,
                 },
                 Token::Str("deaf"),
                 Token::Bool(false),
@@ -134,8 +134,6 @@ mod tests {
                 Token::Str("nick"),
                 Token::Some,
                 Token::Str("bar"),
-                Token::Str("premium_since"),
-                Token::None,
                 Token::Str("roles"),
                 Token::Seq { len: Some(0) },
                 Token::SeqEnd,
