@@ -1,5 +1,5 @@
 use flate2::{Decompress, DecompressError, FlushDecompress};
-use std::{convert::TryInto, mem};
+use std::{convert::TryInto, mem, time::Instant};
 
 const ZLIB_SUFFIX: [u8; 4] = [0x00, 0x00, 0xff, 0xff];
 const INTERNAL_BUFFER_SIZE: usize = 32 * 1024;
@@ -10,7 +10,7 @@ pub struct Inflater {
     compressed: Vec<u8>,
     internal_buffer: Vec<u8>,
     buffer: Vec<u8>,
-    countdown_to_resize: u8,
+    last_resize: Instant,
     shard: [u64; 2],
 }
 
@@ -20,9 +20,9 @@ impl Inflater {
         Self {
             buffer: Vec::with_capacity(INTERNAL_BUFFER_SIZE),
             compressed: Vec::new(),
-            countdown_to_resize: u8::max_value(),
             decompress: Decompress::new(true),
             internal_buffer: Vec::with_capacity(INTERNAL_BUFFER_SIZE),
+            last_resize: Instant::now(),
             shard,
         }
     }
@@ -125,9 +125,7 @@ impl Inflater {
     /// capacity will be shrunk to the length.
     #[tracing::instrument(level = "trace")]
     pub fn clear(&mut self) {
-        self.countdown_to_resize -= 1;
-
-        self.shrink_if_too_large();
+        self.shrink();
 
         self.compressed.clear();
         self.internal_buffer.clear();
@@ -156,18 +154,10 @@ impl Inflater {
         );
     }
 
-    /// Shrink the capacity of the compressed buffer and payload buffer if the
-    /// payload buffer length is less than 25% of its capacity.
-    fn shrink_if_too_large(&mut self) {
-        if self.countdown_to_resize != u8::MIN {
-            return;
-        }
-
-        // Only shrink capacity if it is less than 4 times the size. Doing it
-        // all the time will cause performance issues. So, if it's greater,
-        // don't do anything.
-        if self.buffer.len() < self.buffer.capacity() / 4 {
-            self.countdown_to_resize = u8::MAX;
+    /// Shrink the capacity of the compressed buffer and payload buffer if at
+    /// least 60 seconds have passed since the last shrink.
+    fn shrink(&mut self) {
+        if self.last_resize.elapsed().as_secs() < 60 {
             return;
         }
 
@@ -187,6 +177,6 @@ impl Inflater {
             "buffer capacity",
         );
 
-        self.countdown_to_resize = u8::MAX;
+        self.last_resize = Instant::now();
     }
 }
