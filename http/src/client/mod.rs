@@ -122,21 +122,12 @@ pub struct Client {
 impl Client {
     /// Create a new `hyper-rustls` or `hyper-tls` backed client with a token.
     #[cfg_attr(docsrs, doc(cfg(any(feature = "hyper-rustls", feature = "hyper-tls"))))]
-    #[cfg(feature = "hyper-rustls")]
     pub fn new(token: impl Into<String>) -> Self {
+        #[cfg(feature = "hyper-rustls")]
         let connector = hyper_rustls::HttpsConnector::new();
+        #[cfg(all(feature = "hyper-tls", not(feature = "hyper-rustls")))]
+        let connector = hyper_tls::HttpsConnector::new();
 
-        Self::with_connector(token, connector)
-    }
-
-    /// Create a new `hyper-rustls` or `hyper-tls` backed client with a token.
-    #[cfg_attr(docsrs, doc(cfg(any(feature = "hyper-rustls", feature = "hyper-tls"))))]
-    #[cfg(all(feature = "hyper-tls", not(feature = "hyper-rustls")))]
-    pub fn new(token: impl Into<String>) -> Self {
-        Self::with_connector(token, hyper_tls::HttpsConnector::new())
-    }
-
-    fn with_connector(token: impl Into<String>, connector: HttpsConnector<HttpConnector>) -> Self {
         let mut token = token.into();
 
         let is_bot = token.starts_with("Bot ");
