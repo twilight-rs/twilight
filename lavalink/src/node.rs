@@ -551,7 +551,7 @@ async fn backoff(
                     seconds,
                     config.address,
                 );
-                tokio_time::delay_for(Duration::from_secs(seconds)).await;
+                tokio_time::sleep(Duration::from_secs(seconds)).await;
 
                 seconds *= 2;
 

@@ -770,7 +770,7 @@ impl ShardProcessor {
                 wait_in_seconds = wait.as_secs(),
                 "waiting before attempting a reconnect",
             );
-            tokio::time::delay_for(wait).await;
+            tokio::time::sleep(wait).await;
 
             // Await allowance when doing a full reconnect.
             self.config.queue.request(self.config.shard()).await;
@@ -861,7 +861,7 @@ impl ShardProcessor {
         self.rx = rx;
         self.session = Arc::new(Session::new(tx));
 
-        if let Err(why) = self.wtx.broadcast(Arc::clone(&self.session)) {
+        if let Err(why) = self.wtx.send(Arc::clone(&self.session)) {
             tracing::error!("failed to broadcast new session: {:?}", why);
         }
 

@@ -294,7 +294,7 @@ impl Shard {
     /// let mut shard = Shard::new(token, intents);
     /// shard.start().await?;
     ///
-    /// tokio_time::delay_for(Duration::from_secs(1)).await;
+    /// tokio_time::sleep(Duration::from_secs(1)).await;
     ///
     /// let info = shard.info()?;
     /// println!("Shard stage: {}", info.stage());

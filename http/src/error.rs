@@ -10,7 +10,7 @@ use std::{
     num::ParseIntError,
     result::Result as StdResult,
 };
-use tokio::time::Elapsed;
+use tokio::time::error::Elapsed;
 
 #[cfg(not(feature = "simd-json"))]
 use serde_json::Error as JsonError;

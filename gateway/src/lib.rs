@@ -117,6 +117,10 @@
     warnings
 )]
 #![allow(clippy::module_name_repetitions, clippy::must_use_candidate)]
+// Required due to `futures_util::select!`.
+//
+// <https://github.com/rust-lang/futures-rs/issues/1917>
+#![recursion_limit = "256"]
 
 pub mod cluster;
 pub mod shard;

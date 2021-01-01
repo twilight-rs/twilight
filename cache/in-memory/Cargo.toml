@@ -22,6 +22,7 @@ twilight-model = { default-features = false, path = "../../model" }
 tracing = { default-features = false, features = ["std", "attributes"], version = "0.1" }
 
 [dev-dependencies]
+futures = { default-features = false, version = "0.3" }
 static_assertions = { default-features = false, version = "1" }
-tokio = { default-features = false, features = ["macros", "rt-core"], version = "0.2" }
+tokio = { default-features = false, features = ["macros", "rt-multi-thread"], version = "1.0" }
 twilight-gateway = { path = "../../gateway" }

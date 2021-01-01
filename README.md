@@ -123,7 +123,7 @@ crates through the gateway.
 
 ```rust,no_run
 use std::{env, error::Error};
-use tokio::stream::StreamExt;
+use futures::stream::StreamExt;
 use twilight_cache_inmemory::{EventType, InMemoryCache};
 use twilight_gateway::{cluster::{Cluster, ShardScheme}, Event};
 use twilight_http::Client as HttpClient;

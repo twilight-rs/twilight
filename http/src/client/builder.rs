@@ -30,7 +30,7 @@ impl ClientBuilder {
     pub fn build(self) -> Client {
         let http = self.hyper_client.unwrap_or_else(|| {
             #[cfg(feature = "hyper-rustls")]
-            let connector = hyper_rustls::HttpsConnector::new();
+            let connector = hyper_rustls::HttpsConnector::with_native_roots();
             #[cfg(all(feature = "hyper-tls", not(feature = "hyper-rustls")))]
             let connector = hyper_tls::HttpsConnector::new();
 
