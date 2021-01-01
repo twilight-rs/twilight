@@ -19,7 +19,7 @@ use twilight_model::id::{GuildId, RoleId, UserId};
 /// let role_id = RoleId(2);
 /// let user_id = UserId(3);
 ///
-/// client.add_role(guild_id, user_id, role_id).reason("test")?.await?;
+/// client.add_guild_member_role(guild_id, user_id, role_id).reason("test")?.await?;
 /// # Ok(()) }
 /// ```
 pub struct AddRoleToMember<'a> {
