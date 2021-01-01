@@ -1,6 +1,9 @@
 use futures::StreamExt;
-use reqwest::Client as ReqwestClient;
-use std::{convert::TryInto, env, error::Error, future::Future, net::SocketAddr, str::FromStr};
+use hyper::{
+    client::{Client as HyperClient, HttpConnector},
+    Body, Request,
+};
+use std::{env, error::Error, future::Future, net::SocketAddr, str::FromStr};
 use twilight_gateway::{Event, Intents, Shard};
 use twilight_http::Client as HttpClient;
 use twilight_lavalink::{
@@ -15,7 +18,7 @@ use twilight_standby::Standby;
 struct State {
     http: HttpClient,
     lavalink: Lavalink,
-    reqwest: ReqwestClient,
+    hyper: HyperClient<HttpConnector>,
     shard: Shard,
     standby: Standby,
 }
@@ -54,7 +57,7 @@ async fn main() -> Result<(), Box<dyn Error + Send + Sync + 'static>> {
         State {
             http,
             lavalink,
-            reqwest: ReqwestClient::new(),
+            hyper: HyperClient::new(),
             shard,
             standby: Standby::new(),
         }
@@ -179,14 +182,17 @@ async fn play(msg: Message, state: State) -> Result<(), Box<dyn Error + Send + S
     let guild_id = msg.guild_id.unwrap();
 
     let player = state.lavalink.player(guild_id).await.unwrap();
-    let req = twilight_lavalink::http::load_track(
+    let (parts, body) = twilight_lavalink::http::load_track(
         player.node().config().address,
         &msg.content,
         &player.node().config().authorization,
     )?
-    .try_into()?;
-    let res = state.reqwest.execute(req).await?;
-    let loaded = res.json::<LoadedTracks>().await?;
+    .into_parts();
+    let req = Request::from_parts(parts, Body::from(body));
+    let res = state.hyper.request(req).await?;
+    let response_bytes = hyper::body::to_bytes(res.into_body()).await?;
+
+    let loaded = serde_json::from_slice::<LoadedTracks>(&response_bytes)?;
 
     if let Some(track) = loaded.tracks.first() {
         player.send(Play::from((guild_id, &track.track)))?;

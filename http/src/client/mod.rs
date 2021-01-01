@@ -1,7 +1,6 @@
 mod builder;
 
 pub use self::builder::ClientBuilder;
-pub use reqwest::Proxy;
 
 use crate::{
     api_error::{ApiError, ErrorCode},
@@ -16,9 +15,11 @@ use crate::{
     API_VERSION,
 };
 use bytes::Bytes;
-use reqwest::{
+use hyper::{
+    body::{self, Buf},
+    client::{Client as HyperClient, HttpConnector},
     header::{HeaderValue, AUTHORIZATION, CONTENT_LENGTH, CONTENT_TYPE, USER_AGENT},
-    Body, Client as ReqwestClient, Method, Response, StatusCode,
+    Body, Method, Response, StatusCode,
 };
 use serde::de::DeserializeOwned;
 use std::{
@@ -29,16 +30,24 @@ use std::{
         atomic::{AtomicBool, Ordering},
         Arc,
     },
+    time::Duration,
 };
+use tokio::time;
 use twilight_model::{
     guild::Permissions,
     id::{ChannelId, EmojiId, GuildId, IntegrationId, MessageId, RoleId, UserId, WebhookId},
 };
-use url::Url;
+
+#[cfg(feature = "hyper-rustls")]
+type HttpsConnector<T> = hyper_rustls::HttpsConnector<T>;
+#[cfg(all(feature = "hyper-tls", not(feature = "hyper-rustls")))]
+type HttpsConnector<T> = hyper_tls::HttpsConnector<T>;
 
 struct State {
-    http: ReqwestClient,
+    http: HyperClient<HttpsConnector<HttpConnector>, Body>,
+    proxy: Option<Box<str>>,
     ratelimiter: Option<Ratelimiter>,
+    timeout: Duration,
     token_invalid: AtomicBool,
     token: Option<Box<str>>,
     use_http: bool,
@@ -48,7 +57,8 @@ struct State {
 impl Debug for State {
     fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
         f.debug_struct("State")
-            .field("http", &"Reqwest HTTP client")
+            .field("http", &self.http)
+            .field("proxy", &self.proxy)
             .field("ratelimiter", &self.ratelimiter)
             .field("token", &self.token)
             .field("use_http", &self.use_http)
@@ -96,7 +106,7 @@ impl Debug for State {
 /// let client = Client::builder()
 ///     .token("my token")
 ///     .timeout(Duration::from_secs(5))
-///     .build()?;
+///     .build();
 /// # Ok(()) }
 /// ```
 ///
@@ -110,12 +120,14 @@ pub struct Client {
 }
 
 impl Client {
-    /// Create a new client with a token.
-    ///
-    /// If you want to customize the client, use [`builder`].
-    ///
-    /// [`builder`]: Self::builder
+    /// Create a new `hyper-rustls` or `hyper-tls` backed client with a token.
+    #[cfg_attr(docsrs, doc(cfg(any(feature = "hyper-rustls", feature = "hyper-tls"))))]
     pub fn new(token: impl Into<String>) -> Self {
+        #[cfg(feature = "hyper-rustls")]
+        let connector = hyper_rustls::HttpsConnector::new();
+        #[cfg(all(feature = "hyper-tls", not(feature = "hyper-rustls")))]
+        let connector = hyper_tls::HttpsConnector::new();
+
         let mut token = token.into();
 
         let is_bot = token.starts_with("Bot ");
@@ -129,8 +141,10 @@ impl Client {
 
         Self {
             state: Arc::new(State {
-                http: ReqwestClient::new(),
+                http: HyperClient::builder().build(connector),
+                proxy: None,
                 ratelimiter: Some(Ratelimiter::new()),
+                timeout: Duration::from_secs(10),
                 token_invalid: AtomicBool::new(false),
                 token: Some(token.into_boxed_str()),
                 use_http: false,
@@ -1447,7 +1461,7 @@ impl Client {
     ///
     /// Returns [`Error::Unauthorized`] if the configured token has become
     /// invalid due to expiration, revokation, etc.
-    pub async fn raw(&self, request: Request) -> Result<Response> {
+    pub async fn raw(&self, request: Request) -> Result<Response<Body>> {
         if self.state.token_invalid.load(Ordering::Relaxed) {
             return Err(Error::Unauthorized);
         }
@@ -1462,10 +1476,12 @@ impl Client {
         } = request;
 
         let protocol = if self.state.use_http { "http" } else { "https" };
-        let url = format!("{}://discord.com/api/v{}/{}", protocol, API_VERSION, path);
+        let host = self.state.proxy.as_deref().unwrap_or("discord.com");
+
+        let url = format!("{}://{}/api/v{}/{}", protocol, host, API_VERSION, path);
         tracing::debug!("URL: {:?}", url);
 
-        let mut builder = self.state.http.request(method.clone(), &url);
+        let mut builder = hyper::Request::builder().method(method.clone()).uri(&url);
 
         if let Some(ref token) = self.state.token {
             let value = HeaderValue::from_str(&token).map_err(|source| {
@@ -1478,18 +1494,6 @@ impl Client {
             builder = builder.header(AUTHORIZATION, value);
         }
 
-        if let Some(form) = form {
-            builder = builder.multipart(form);
-        } else if let Some(bytes) = body {
-            let len = bytes.len();
-            builder = builder.body(Body::from(bytes));
-            builder = builder.header(CONTENT_LENGTH, len);
-            let content_type = HeaderValue::from_static("application/json");
-            builder = builder.header(CONTENT_TYPE, content_type);
-        } else if method == Method::PUT || method == Method::POST || method == Method::PATCH {
-            builder = builder.header(CONTENT_LENGTH, 0);
-        }
-
         let user_agent = HeaderValue::from_static(concat!(
             "DiscordBot (",
             env!("CARGO_PKG_HOMEPAGE"),
@@ -1500,15 +1504,51 @@ impl Client {
         builder = builder.header(USER_AGENT, user_agent);
 
         if let Some(req_headers) = req_headers {
-            builder = builder.headers(req_headers);
+            for (maybe_name, value) in req_headers {
+                if let Some(name) = maybe_name {
+                    builder = builder.header(name, value);
+                }
+            }
         }
+
+        let req = if let Some(form) = form {
+            builder = builder.header(CONTENT_TYPE, form.content_type());
+            let form_bytes = form.build();
+            builder = builder.header(CONTENT_LENGTH, form_bytes.len());
+
+            builder
+                .body(Body::from(form_bytes))
+                .map_err(|source| Error::BuildingRequest { source })?
+        } else if let Some(bytes) = body {
+            let len = bytes.len();
+            builder = builder.header(CONTENT_LENGTH, len);
+            let content_type = HeaderValue::from_static("application/json");
+            builder = builder.header(CONTENT_TYPE, content_type);
+
+            builder
+                .body(Body::from(bytes))
+                .map_err(|source| Error::BuildingRequest { source })?
+        } else if method == Method::PUT || method == Method::POST || method == Method::PATCH {
+            builder = builder.header(CONTENT_LENGTH, 0);
+
+            builder
+                .body(Body::empty())
+                .map_err(|source| Error::BuildingRequest { source })?
+        } else {
+            builder
+                .body(Body::empty())
+                .map_err(|source| Error::BuildingRequest { source })?
+        };
+
+        let inner = self.state.http.request(req);
+        let fut = time::timeout(self.state.timeout, inner);
 
         let ratelimiter = match self.state.ratelimiter.as_ref() {
             Some(ratelimiter) => ratelimiter,
             None => {
-                return builder
-                    .send()
+                return fut
                     .await
+                    .map_err(|source| Error::RequestTimedOut { source })?
                     .map_err(|source| Error::RequestError { source })
             }
         };
@@ -1518,9 +1558,9 @@ impl Client {
             .await
             .map_err(|source| Error::RequestCanceled { source })?;
 
-        let resp = builder
-            .send()
+        let resp = fut
             .await
+            .map_err(|source| Error::RequestTimedOut { source })?
             .map_err(|source| Error::RequestError { source })?;
 
         // If the API sent back an Unauthorized response, then the client's
@@ -1553,17 +1593,16 @@ impl Client {
     pub async fn request<T: DeserializeOwned>(&self, request: Request) -> Result<T> {
         let resp = self.make_request(request).await?;
 
-        let bytes = resp
-            .bytes()
+        let mut buf = body::aggregate(resp.into_body())
             .await
             .map_err(|source| Error::ChunkingResponse { source })?;
 
-        let mut bytes_b = bytes.as_ref().to_vec();
+        let mut bytes = buf.to_bytes().to_vec();
 
-        let result = crate::json_from_slice(&mut bytes_b);
+        let result = crate::json_from_slice(&mut bytes);
 
         result.map_err(|source| Error::Parsing {
-            body: (*bytes).to_vec(),
+            body: bytes.to_vec(),
             source,
         })
     }
@@ -1571,9 +1610,11 @@ impl Client {
     pub(crate) async fn request_bytes(&self, request: Request) -> Result<Bytes> {
         let resp = self.make_request(request).await?;
 
-        resp.bytes()
+        let mut buf = hyper::body::aggregate(resp.into_body())
             .await
-            .map_err(|source| Error::ChunkingResponse { source })
+            .map_err(|source| Error::ChunkingResponse { source })?;
+
+        Ok(buf.to_bytes())
     }
 
     /// Execute a request, checking only that the response was a success.
@@ -1590,7 +1631,7 @@ impl Client {
         Ok(())
     }
 
-    async fn make_request(&self, request: Request) -> Result<Response> {
+    async fn make_request(&self, request: Request) -> Result<Response<Body>> {
         let resp = self.raw(request).await?;
         let status = resp.status();
 
@@ -1610,16 +1651,15 @@ impl Client {
             _ => {}
         }
 
-        let bytes = resp
-            .bytes()
+        let mut buf = hyper::body::aggregate(resp.into_body())
             .await
             .map_err(|source| Error::ChunkingResponse { source })?;
 
-        let mut bytes_b = bytes.as_ref().to_vec();
+        let mut bytes = buf.to_bytes().as_ref().to_vec();
 
         let error =
-            crate::json_from_slice::<ApiError>(&mut bytes_b).map_err(|source| Error::Parsing {
-                body: bytes.to_vec(),
+            crate::json_from_slice::<ApiError>(&mut bytes).map_err(|source| Error::Parsing {
+                body: bytes.clone(),
                 source,
             })?;
 
@@ -1630,19 +1670,21 @@ impl Client {
         }
 
         Err(Error::Response {
-            body: bytes.as_ref().to_vec(),
+            body: bytes,
             error,
             status,
         })
     }
 }
 
-impl From<ReqwestClient> for Client {
-    fn from(reqwest_client: ReqwestClient) -> Self {
+impl From<HyperClient<HttpsConnector<HttpConnector>>> for Client {
+    fn from(hyper_client: HyperClient<HttpsConnector<HttpConnector>>) -> Self {
         Self {
             state: Arc::new(State {
-                http: reqwest_client,
+                http: hyper_client,
+                proxy: None,
                 ratelimiter: Some(Ratelimiter::new()),
+                timeout: Duration::from_secs(10),
                 token_invalid: AtomicBool::new(false),
                 token: None,
                 use_http: false,
@@ -1656,8 +1698,14 @@ impl From<ReqwestClient> for Client {
 fn parse_webhook_url(
     url: impl AsRef<str>,
 ) -> std::result::Result<(WebhookId, Option<String>), UrlError> {
-    let url = Url::parse(url.as_ref())?;
-    let mut segments = url.path_segments().ok_or(UrlError::SegmentMissing)?;
+    let url = url.as_ref();
+
+    let mut segments = {
+        let mut iter = url.split(".com/");
+        iter.next().ok_or(UrlError::SegmentMissing)?;
+
+        iter.next().ok_or(UrlError::SegmentMissing)?.split('/')
+    };
 
     segments
         .next()

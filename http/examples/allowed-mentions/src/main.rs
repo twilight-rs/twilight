@@ -12,7 +12,7 @@ async fn main() -> Result<(), Box<dyn Error + Send + Sync>> {
         .token(env::var("DISCORD_TOKEN")?)
         //add an empty allowed mentions, this will prevent any and all pings
         .default_allowed_mentions(AllowedMentionsBuilder::new().build_solo())
-        .build()?;
+        .build();
     let channel_id = ChannelId(381_926_291_785_383_946);
     let user_id = UserId(77_469_400_222_932_992);
 
