@@ -15,7 +15,7 @@ repository = "https://github.com/twilight-rs/twilight.git"
 version = "0.2.1"
 
 [dependencies]
-dashmap = { default-features = false, version = "3" }
+dashmap = { default-features = false, version = "4.0" }
 futures-channel = { default-features = false, features = ["std"], version = "0.3" }
 futures-util = { default-features = false, features = ["std"], version = "0.3" }
 tracing = { default-features = false, features = ["std", "attributes"], version = "0.1" }

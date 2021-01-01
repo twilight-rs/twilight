@@ -16,7 +16,7 @@ version = "0.2.5"
 
 [dependencies]
 bitflags = { default-features = false, version = "1" }
-dashmap = { default-features = false, version = "3" }
+dashmap = { default-features = false, version = "4.0" }
 serde = { default-features = false, features = ["derive", "rc"], version = "1" }
 twilight-model = { default-features = false, path = "../../model" }
 tracing = { default-features = false, features = ["std", "attributes"], version = "0.1" }

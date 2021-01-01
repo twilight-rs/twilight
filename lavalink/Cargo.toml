@@ -16,7 +16,7 @@ version = "0.2.1"
 
 [dependencies]
 async-tungstenite = { default-features = false, features = ["tokio-runtime"], version = "0.9.3" }
-dashmap = { default-features = false, version = "3" }
+dashmap = { default-features = false, version = "4.0" }
 futures-channel = { default-features = false, features = ["std"], version = "0.3" }
 futures-util = { default-features = false, features = ["bilock", "std", "unstable"], version = "0.3" }
 http = { default-features = false, optional = true, version = "0.2" }
