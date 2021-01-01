@@ -192,7 +192,7 @@ impl Client {
     /// client.add_role(guild_id, user_id, role_id).reason("test")?.await?;
     /// # Ok(()) }
     /// ```
-    pub fn add_role(
+    pub fn add_guild_member_role(
         &self,
         guild_id: GuildId,
         user_id: UserId,
