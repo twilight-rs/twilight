@@ -1,4 +1,4 @@
-use reqwest::header::ToStrError;
+use hyper::header::ToStrError;
 use std::{
     error::Error as StdError,
     fmt::{Display, Formatter, Result as FmtResult},

@@ -1,5 +1,5 @@
 use super::error::{RatelimitError, RatelimitResult};
-use reqwest::header::{HeaderMap, HeaderValue};
+use hyper::header::{HeaderMap, HeaderValue};
 use std::convert::TryFrom;
 
 #[derive(Clone, Debug)]

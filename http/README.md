@@ -40,12 +40,12 @@ twilight-http = { default-features = false, features = ["rustls", "simd-json"], 
 
 ### TLS
 
-`twilight-http` has features to enable [`reqwest`]'s TLS features. These
+`twilight-http` has features to enable [`hyper`]'s TLS features. These
 features are mutually exclusive. `rustls` is enabled by default.
 
 #### `native`
 
-The `native` feature enables [`reqwest`]'s `default-tls`
+The `native` feature enables [`hyper`]'s `default-tls`
 feature, which is mostly equivalent to using [`native-tls`].
 
 To enable `native`, do something like this in your `Cargo.toml`:
@@ -57,13 +57,13 @@ twilight-http = { default-features = false, features = ["native"], version = "0.
 
 #### `rustls`
 
-The `rustls` feature enables [`reqwest`]'s `rustls` feature, which uses
+The `rustls` feature enables [`hyper`]'s `rustls` feature, which uses
 [`rustls`] as the TLS backend.
 
 This is enabled by default.
 
 [`native-tls`]: https://crates.io/crates/native-tls
-[`reqwest`]: https://crates.io/crates/reqwest
+[`hyper`]: https://crates.io/crates/hyper
 [`rustls`]: https://crates.io/crates/rustls
 [`serde_json`]: https://crates.io/crates/serde_json
 [`simd-json`]: https://crates.io/crates/simd-json
