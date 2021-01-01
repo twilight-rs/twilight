@@ -1,6 +1,7 @@
 use serde::{Deserialize, Serialize};
 
 #[derive(Clone, Debug, Deserialize, Eq, Hash, Ord, PartialEq, PartialOrd, Serialize)]
+#[non_exhaustive]
 #[serde(rename_all = "snake_case")]
 pub enum AuditLogChangeKey {
     AfkChannelId,
@@ -15,6 +16,9 @@ pub enum AuditLogChangeKey {
     Deaf,
     DefaultMessageNotifications,
     Deny,
+    EnableEmoticons,
+    ExpireBehavior,
+    ExpireGracePeriod,
     ExplicitContentFilter,
     Hoist,
     IconHash,
@@ -33,12 +37,14 @@ pub enum AuditLogChangeKey {
     Permissions,
     Position,
     PruneDeleteDays,
+    RateLimitPerUser,
     #[serde(rename = "$add")]
     RoleAdded,
     #[serde(rename = "$remove")]
     RoleRemoved,
     Region,
     SplashHash,
+    SystemChannelId,
     Temporary,
     Topic,
     Type,
