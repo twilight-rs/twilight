@@ -849,6 +849,8 @@ impl Client {
     /// Returns [`AddGuildMemberError::NicknameInvalid`] if the nickname is too
     /// short or too long.
     ///
+    /// [`AddGuildMemberError::NickNameInvalid`]: crate::request::guild::member::add_guild_member::AddGuildMemberError::NicknameInvalid
+    ///
     /// [the discord docs]: https://discord.com/developers/docs/resources/guild#add-guild-member
     pub fn add_guild_member(
         &self,
