@@ -19,6 +19,7 @@
 //! [information about itself]: Shard::info
 //! [new messages]: ::twilight_model::gateway::event::Event::MessageCreate
 
+pub mod raw_message;
 pub mod stage;
 
 mod builder;
