@@ -15,15 +15,15 @@ repository = "https://github.com/twilight-rs/twilight.git"
 version = "0.2.8"
 
 [dependencies]
-bytes = { default-features = false, version = "0.5" }
+bytes = { default-features = false, version = "1.0" }
 rand = { default-features = false, features = ["std_rng", "std"], version = "0.8" }
 futures-channel = { default-features = false, version = "0.3" }
 futures-util = { default-features = false, features = ["std"], version = "0.3" }
-hyper = { default-features = false, features = ["runtime"], version = "0.13" }
-hyper-rustls = { default-features = false, features = ["native-tokio"], optional = true, version = "0.21" }
-hyper-tls = { default-features = false, optional = true, version = "0.4" }
+hyper = { default-features = false, features = ["client", "http1", "http2", "runtime"], version = "0.14" }
+hyper-rustls = { default-features = false, features = ["native-tokio"], optional = true, version = "0.22" }
+hyper-tls = { default-features = false, optional = true, version = "0.5" }
 percent-encoding = { default-features = false, version = "2" }
-tokio = { default-features = false, features = ["time"], version = "0.2" }
+tokio = { default-features = false, features = ["time"], version = "1.0" }
 tracing = { default-features = false, features = ["std", "attributes"], version = "0.1" }
 twilight-model = { default-features = false, path = "../model" }
 serde = { default-features = false, features = ["derive"], version = "1" }
@@ -41,5 +41,5 @@ rustls = ["hyper-rustls"]
 [dev-dependencies]
 serde_test = { default-features = false, version = "1" }
 static_assertions = { default-features = false, version = "1.1.0" }
-tokio = { default-features = false, features = ["macros", "rt-core"], version = "0.2" }
 twilight-embed-builder = { default-features = false, path = "../embed-builder" }
+tokio = { default-features = false, features = ["macros", "rt-multi-thread"], version = "1.0" }

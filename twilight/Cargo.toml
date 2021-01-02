@@ -15,7 +15,8 @@ readme = "../README.md"
 version = "0.2.2"
 
 [dev-dependencies]
-tokio = { default-features = false, features = ["macros", "rt-core"], version = "0.2" }
+futures = { default-features = false, version = "0.3" }
+tokio = { default-features = false, features = ["macros", "rt-multi-thread"], version = "1.0" }
 tracing-log = { default-features = false, features = ["log-tracer", "std"], version = "0.1" }
 twilight-cache-inmemory = { default-features = false, path = "../cache/in-memory" }
 twilight-command-parser = { path = "../command-parser" }

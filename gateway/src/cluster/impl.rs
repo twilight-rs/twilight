@@ -285,7 +285,7 @@ impl Cluster {
     /// let cluster = Cluster::new(env::var("DISCORD_TOKEN")?, Intents::empty()).await?;
     /// cluster.up().await;
     ///
-    /// tokio::time::delay_for(Duration::from_secs(60)).await;
+    /// tokio::time::sleep(Duration::from_secs(60)).await;
     ///
     /// for (shard_id, info) in cluster.info() {
     ///     println!(

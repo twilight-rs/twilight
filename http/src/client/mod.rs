@@ -124,7 +124,7 @@ impl Client {
     #[cfg_attr(docsrs, doc(cfg(any(feature = "hyper-rustls", feature = "hyper-tls"))))]
     pub fn new(token: impl Into<String>) -> Self {
         #[cfg(feature = "hyper-rustls")]
-        let connector = hyper_rustls::HttpsConnector::new();
+        let connector = hyper_rustls::HttpsConnector::with_native_roots();
         #[cfg(all(feature = "hyper-tls", not(feature = "hyper-rustls")))]
         let connector = hyper_tls::HttpsConnector::new();
 
@@ -1597,7 +1597,8 @@ impl Client {
             .await
             .map_err(|source| Error::ChunkingResponse { source })?;
 
-        let mut bytes = buf.to_bytes().to_vec();
+        let mut bytes = vec![0; buf.remaining()];
+        buf.copy_to_slice(&mut bytes);
 
         let result = crate::json_from_slice(&mut bytes);
 
@@ -1610,11 +1611,9 @@ impl Client {
     pub(crate) async fn request_bytes(&self, request: Request) -> Result<Bytes> {
         let resp = self.make_request(request).await?;
 
-        let mut buf = hyper::body::aggregate(resp.into_body())
+        hyper::body::to_bytes(resp.into_body())
             .await
-            .map_err(|source| Error::ChunkingResponse { source })?;
-
-        Ok(buf.to_bytes())
+            .map_err(|source| Error::ChunkingResponse { source })
     }
 
     /// Execute a request, checking only that the response was a success.
@@ -1655,7 +1654,8 @@ impl Client {
             .await
             .map_err(|source| Error::ChunkingResponse { source })?;
 
-        let mut bytes = buf.to_bytes().as_ref().to_vec();
+        let mut bytes = vec![0; buf.remaining()];
+        buf.copy_to_slice(&mut bytes);
 
         let error =
             crate::json_from_slice::<ApiError>(&mut bytes).map_err(|source| Error::Parsing {

@@ -15,7 +15,7 @@ repository = "https://github.com/twilight-rs/twilight.git"
 version = "0.2.2"
 
 [dependencies]
-async-tungstenite = { default-features = false, features = ["tokio-runtime"], version = "0.9.3" }
+async-tungstenite = { default-features = false, features = ["tokio-runtime"], version = "0.11" }
 dashmap = { default-features = false, version = "4.0" }
 futures-channel = { default-features = false, features = ["std"], version = "0.3" }
 futures-util = { default-features = false, features = ["bilock", "std", "unstable"], version = "0.3" }
@@ -24,13 +24,13 @@ tracing = { default-features = false, features = ["std", "attributes"], version 
 percent-encoding = { default-features = false, optional = true, version = "2" }
 serde = { default-features = false, features = ["derive", "std"], version = "1" }
 serde_json = { default-features = false, version = "1" }
-tokio = { default-features = false, features = ["net", "rt-core", "time"], version = "0.2" }
+tokio = { default-features = false, features = ["net", "rt", "time"], version = "1.0" }
 twilight-model = { default-features = false, path = "../model" }
 
 [dev-dependencies]
 serde_test = { default-features = false, version = "1" }
 static_assertions = { default-features = false, version = "1" }
-tokio = { default-features = false, features = ["macros", "rt-core"], version = "0.2" }
+tokio = { default-features = false, features = ["macros", "rt-multi-thread"], version = "1.0" }
 twilight-gateway = { path = "../gateway" }
 twilight-http = { path = "../http" }
 

@@ -44,7 +44,7 @@ use futures_channel::{
 };
 use futures_util::{sink::SinkExt, stream::StreamExt};
 use std::{fmt::Debug, future::Future, pin::Pin, time::Duration};
-use tokio::time::delay_for;
+use tokio::time::sleep;
 
 /// Queue for shards to request the ability to initialize new sessions with the
 /// gateway.
@@ -114,7 +114,7 @@ async fn waiter(mut rx: UnboundedReceiver<Sender<()>>) {
         if let Err(err) = req.send(()) {
             tracing::warn!("skipping, send failed: {:?}", err);
         }
-        delay_for(DUR).await;
+        sleep(DUR).await;
     }
 }
 

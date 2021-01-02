@@ -15,18 +15,19 @@ repository = "https://github.com/twilight-rs/twilight.git"
 version = "0.2.7"
 
 [dependencies]
-async-tungstenite = { default-features = false, features = ["tokio-runtime"], version = "0.9.3" }
+async-tungstenite = { default-features = false, features = ["tokio-runtime"], version = "0.11" }
 bitflags = { default-features = false, version = "1" }
 twilight-gateway-queue = { default-features = false, path = "./queue" }
 twilight-http = { default-features = false, path = "../http" }
 twilight-model = { default-features = false, path = "../model" }
 futures-channel = { default-features = false, features = ["sink"], version = "0.3" }
-futures-util = { default-features = false, features = ["std"], version = "0.3" }
+futures-timer = { default-features = false, version = "3.0" }
+futures-util = { default-features = false, features = ["async-await-macro", "std"], version = "0.3" }
 tracing = { default-features = false, features = ["std", "attributes"], version = "0.1" }
 once_cell = { default-features = false, features = ["std"], version = "1" }
 serde = { default-features = false, features = ["derive"], version = "1" }
 serde_json = { default-features = false, version = "1" }
-tokio = { default-features = false, features = ["net", "rt-core", "sync"], version = "0.2" }
+tokio = { default-features = false, features = ["net", "rt", "sync"], version = "1.0" }
 url = { default-features = false, version = "2" }
 # The default backend for flate2; miniz-oxide, works differently
 # from the C-backed backend zlib, When you give it the sync argument
@@ -42,7 +43,7 @@ simd-json = { default-features = false, features = ["serde_impl", "swar-number-p
 [dev-dependencies]
 futures = { default-features = false, version = "0.3" }
 static_assertions = { default-features = false, version = "1" }
-tokio = { default-features = false, features = ["rt-core", "macros"], version = "0.2" }
+tokio = { default-features = false, features = ["macros", "rt-multi-thread"], version = "1.0" }
 
 [features]
 default = ["rustls", "stock-zlib"]
