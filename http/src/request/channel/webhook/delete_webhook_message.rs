@@ -4,7 +4,7 @@ use crate::{
     request::{self, AuditLogReason, AuditLogReasonError, Pending, Request},
     routing::Route,
 };
-use twilight_model::id::{MessageId, WebhookId};
+use twilight_model::id::{ApplicationId, MessageId, WebhookId};
 
 /// Delete a message created by a webhook.
 ///
@@ -50,13 +50,23 @@ impl<'a> DeleteWebhookMessage<'a> {
         }
     }
 
-    /// Set the ratelimiting route to use in the request.
-    pub(crate) fn route(mut self, route: Route) -> Self {
-        self.route = route;
-
-        self
+    /// 
+    pub(crate) fn new_interaction(
+        http: &'a Client,
+        application_id: ApplicationId,
+        interaction_token: impl Into<String>,
+    ) -> Self {
+        Self {
+            fut: None,
+            http,
+            route: Route::DeleteInteractionOriginal {
+                application_id: application_id.0,
+                interaction_token: interaction_token.into(),
+            },
+            reason: None,
+        }
     }
-
+    
     fn request(&self) -> Result<Request> {
         let route = self.route.clone();
 

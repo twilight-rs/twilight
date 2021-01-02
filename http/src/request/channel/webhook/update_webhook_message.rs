@@ -18,7 +18,7 @@ use std::{
 };
 use twilight_model::{
     channel::embed::Embed,
-    id::{MessageId, WebhookId},
+    id::{ApplicationId, MessageId, WebhookId},
 };
 
 /// A webhook's message can not be updated as configured.
@@ -150,6 +150,26 @@ impl<'a> UpdateWebhookMessage<'a> {
         }
     }
 
+    pub(crate) fn new_interaction(
+        http: &'a Client,
+        application_id: ApplicationId,
+        interaction_token: impl Into<String>,
+    ) -> Self {
+        Self {
+            fields: UpdateWebhookMessageFields {
+                allowed_mentions: http.default_allowed_mentions(),
+                ..UpdateWebhookMessageFields::default()
+            },
+            fut: None,
+            http,
+            reason: None,
+            route: Route::UpdateInteractionOriginal {
+                application_id: application_id.0,
+                interaction_token: interaction_token.into(),
+            },
+        }
+    }
+
     /// Set the allowed mentions in the message.
     pub fn allowed_mentions(mut self, allowed: AllowedMentions) -> Self {
         self.fields.allowed_mentions.replace(allowed);
@@ -252,14 +272,6 @@ impl<'a> UpdateWebhookMessage<'a> {
         self.fields.embeds.replace(embeds);
 
         Ok(self)
-    }
-
-
-    /// Set the ratelimiting route to use in the request.
-    pub(crate) fn route(mut self, route: Route) -> Self {
-        self.route = route;
-
-        self
     }
 
     fn request(&self) -> Result<Request> {

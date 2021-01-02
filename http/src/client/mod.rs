@@ -19,7 +19,6 @@ use crate::{
     },
     API_VERSION,
 };
-use twilight_model::id::{ApplicationId, CommandId};
 
 use bytes::Bytes;
 use hyper::{
@@ -40,10 +39,12 @@ use std::{
     time::Duration,
 };
 use tokio::time;
+
 use twilight_model::{
     applications::InteractionResponse,
     guild::Permissions,
     id::{
+        ApplicationId, CommandId, 
         ChannelId, EmojiId, GuildId, IntegrationId, InteractionId, MessageId, RoleId, UserId,
         WebhookId,
     },
@@ -139,6 +140,54 @@ impl Client {
         response: InteractionResponse,
     ) -> InteractionCallback<'_> {
         InteractionCallback::new(&self, interaction_id, interaction_token.into(), response)
+    }
+
+    pub fn update_interaction_original(
+        &self,
+        application_id: ApplicationId,
+        interaction_token: impl Into<String>,
+    ) -> UpdateWebhookMessage<'_> {
+        UpdateWebhookMessage::new_interaction(self, application_id, interaction_token)
+    }
+
+    pub fn delete_interaction_original(
+        &self,
+        application_id: ApplicationId,
+        interaction_token: impl Into<String>,
+    ) -> DeleteWebhookMessage<'_> {
+        DeleteWebhookMessage::new_interaction(self, application_id, interaction_token)
+    }
+    
+    pub fn create_interaction_followup(
+        &self,
+        application_id: ApplicationId,
+        interaction_token: impl Into<String>,
+    ) -> ExecuteWebhook<'_> {
+        // Use the application_id as the WebhookId as that is the only difference
+        // between this method and execute_webhook.
+        ExecuteWebhook::new(self, WebhookId(application_id.0), interaction_token)
+    }
+
+    pub fn update_interaction_followup(
+        &self,
+        application_id: ApplicationId,
+        interaction_token: impl Into<String>,
+        message_id: MessageId,
+    ) -> UpdateWebhookMessage<'_> {
+        // Use application_id as webhook_id for same reason as
+        // given in create_interaction_followup.
+        UpdateWebhookMessage::new(self, WebhookId(application_id.0), interaction_token, message_id)
+    }
+
+    pub fn delete_interaction_followup(
+        &self,
+        application_id: ApplicationId,
+        interaction_token: impl Into<String>,
+        message_id: MessageId,
+    ) -> DeleteWebhookMessage<'_> {
+        // Use application_id as webhook_id for same reason as
+        // given in create_interaction_followup.
+        DeleteWebhookMessage::new(self, WebhookId(application_id.0), interaction_token, message_id)
     }
 
     pub fn create_guild_command(

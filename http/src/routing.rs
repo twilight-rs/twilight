@@ -841,6 +841,14 @@ pub enum Route {
         interaction_id: u64,
         interaction_token: String,
     },
+    UpdateInteractionOriginal {
+        application_id: u64,
+        interaction_token: String,
+    },
+    DeleteInteractionOriginal {
+        application_id: u64,
+        interaction_token: String,
+    },
     /* Global commands */
     CreateGlobalCommand {
         application_id: u64,
@@ -1595,6 +1603,22 @@ impl Route {
                     interaction_id, interaction_token
                 )
                 .into(),
+            ),
+            Self::UpdateInteractionOriginal {
+                application_id,
+                interaction_token,
+            } => (
+                Method::PATCH,
+                Path::WebhooksIdTokenMessageId(application_id),
+                format!("webhooks/{}/{}/messages/@original", application_id, interaction_token).into(),
+            ),
+            Self::DeleteInteractionOriginal {
+                application_id,
+                interaction_token,
+            } => (
+                Method::DELETE,
+                Path::WebhooksIdTokenMessageId(application_id),
+                format!("webhooks/{}/{}/messages/@original", application_id, interaction_token).into(),
             ),
             /* Global commands */
             Self::CreateGlobalCommand { application_id } => (
