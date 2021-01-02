@@ -145,7 +145,7 @@ impl InteractionEnvelope {
 
 #[cfg(test)]
 mod test {
-    use crate::applications::interaction_data::ApplicationCommandInteractionData;
+    use crate::applications::interaction_data::CommandInteractionData;
     use crate::applications::*;
     use crate::guild::PartialMember;
     use crate::guild::Permissions;
@@ -190,7 +190,7 @@ mod test {
 }"#;
 
         let expected = Interaction::WithGuildId(GuildInteraction {
-            data: InteractionData::ApplicationCommand(ApplicationCommandInteractionData {
+            data: InteractionData::ApplicationCommand(CommandInteractionData {
                 options: vec![InteractionDataOption::String {
                     name: "cardname".to_string(),
                     value: "The Gitrog Monster".to_string(),
@@ -218,6 +218,7 @@ mod test {
                 }),
                 roles: vec![539082325061836999.into()],
                 permissions: Permissions::from_bits(2147483647),
+                premium_since: None,
                 nick: None,
                 mute: false,
                 joined_at: Some("2017-03-13T19:19:14.040000+00:00".to_string()),
