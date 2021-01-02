@@ -4,8 +4,8 @@ use hex::FromHex;
 use once_cell::sync::Lazy;
 use std::future::Future;
 use twilight_model::applications::{
-    CommandCallbackData, GuildInteraction, Interaction, InteractionData,
-    InteractionResponse, InteractionResponseType, InteractionType,
+    CommandCallbackData, GuildInteraction, Interaction, InteractionData, InteractionResponse,
+    InteractionResponseType, InteractionType,
 };
 
 use hyper::service::{make_service_fn, service_fn};

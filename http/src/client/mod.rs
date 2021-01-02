@@ -44,9 +44,8 @@ use twilight_model::{
     applications::InteractionResponse,
     guild::Permissions,
     id::{
-        ApplicationId, CommandId, 
-        ChannelId, EmojiId, GuildId, IntegrationId, InteractionId, MessageId, RoleId, UserId,
-        WebhookId,
+        ApplicationId, ChannelId, CommandId, EmojiId, GuildId, IntegrationId, InteractionId,
+        MessageId, RoleId, UserId, WebhookId,
     },
 };
 
@@ -157,7 +156,7 @@ impl Client {
     ) -> DeleteWebhookMessage<'_> {
         DeleteWebhookMessage::new_interaction(self, application_id, interaction_token)
     }
-    
+
     pub fn create_interaction_followup(
         &self,
         application_id: ApplicationId,
@@ -176,7 +175,12 @@ impl Client {
     ) -> UpdateWebhookMessage<'_> {
         // Use application_id as webhook_id for same reason as
         // given in create_interaction_followup.
-        UpdateWebhookMessage::new(self, WebhookId(application_id.0), interaction_token, message_id)
+        UpdateWebhookMessage::new(
+            self,
+            WebhookId(application_id.0),
+            interaction_token,
+            message_id,
+        )
     }
 
     pub fn delete_interaction_followup(
@@ -187,7 +191,12 @@ impl Client {
     ) -> DeleteWebhookMessage<'_> {
         // Use application_id as webhook_id for same reason as
         // given in create_interaction_followup.
-        DeleteWebhookMessage::new(self, WebhookId(application_id.0), interaction_token, message_id)
+        DeleteWebhookMessage::new(
+            self,
+            WebhookId(application_id.0),
+            interaction_token,
+            message_id,
+        )
     }
 
     pub fn create_guild_command(

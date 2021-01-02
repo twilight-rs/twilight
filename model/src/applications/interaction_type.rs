@@ -30,7 +30,7 @@ pub struct UnknownInteractionTypeError {
 impl Display for UnknownInteractionTypeError {
     fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
         write!(f, "Got unknown interaction type: {}", self.value)
-    }    
+    }
 }
 
 impl TryFrom<u8> for InteractionType {
@@ -40,11 +40,7 @@ impl TryFrom<u8> for InteractionType {
         match i {
             1 => Ok(Self::Ping),
             2 => Ok(Self::ApplicationCommand),
-            n => {
-                Err(UnknownInteractionTypeError {
-                    value: n,
-                })
-            },
+            n => Err(UnknownInteractionTypeError { value: n }),
         }
     }
 }

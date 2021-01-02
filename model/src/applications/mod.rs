@@ -13,9 +13,7 @@ mod option;
 pub use choice::*;
 pub use command::*;
 pub use command_callback_data::CommandCallbackData;
-pub use interaction::{
-    BaseInteraction, GuildInteraction, Interaction
-};
+pub use interaction::{BaseInteraction, GuildInteraction, Interaction};
 pub use interaction_data::{CommandInteractionData, InteractionData};
 pub use interaction_data_option::InteractionDataOption;
 pub use interaction_option_type::OptionType;

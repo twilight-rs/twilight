@@ -145,13 +145,13 @@ impl InteractionEnvelope {
 
 #[cfg(test)]
 mod test {
-    use crate::applications::*;
-    use crate::user::User;
-    use crate::guild::Permissions;
-    use crate::user::UserFlags;
-    use crate::guild::PartialMember;
     use crate::applications::interaction_data::ApplicationCommandInteractionData;
+    use crate::applications::*;
+    use crate::guild::PartialMember;
+    use crate::guild::Permissions;
     use crate::id::*;
+    use crate::user::User;
+    use crate::user::UserFlags;
 
     #[test]
     fn test_interaction() {
@@ -221,13 +221,13 @@ mod test {
                 nick: None,
                 mute: false,
                 joined_at: Some("2017-03-13T19:19:14.040000+00:00".to_string()),
-                deaf: false
+                deaf: false,
             },
             interaction: BaseInteraction {
                 id: 786008729715212338.into(),
                 kind: InteractionType::ApplicationCommand,
                 token: "A_UNIQUE_TOKEN".to_string(),
-            }
+            },
         });
 
         let actual = serde_json::from_str::<Interaction>(&json).unwrap();

@@ -1610,7 +1610,11 @@ impl Route {
             } => (
                 Method::PATCH,
                 Path::WebhooksIdTokenMessageId(application_id),
-                format!("webhooks/{}/{}/messages/@original", application_id, interaction_token).into(),
+                format!(
+                    "webhooks/{}/{}/messages/@original",
+                    application_id, interaction_token
+                )
+                .into(),
             ),
             Self::DeleteInteractionOriginal {
                 application_id,
@@ -1618,7 +1622,11 @@ impl Route {
             } => (
                 Method::DELETE,
                 Path::WebhooksIdTokenMessageId(application_id),
-                format!("webhooks/{}/{}/messages/@original", application_id, interaction_token).into(),
+                format!(
+                    "webhooks/{}/{}/messages/@original",
+                    application_id, interaction_token
+                )
+                .into(),
             ),
             /* Global commands */
             Self::CreateGlobalCommand { application_id } => (

@@ -50,7 +50,7 @@ impl<'a> DeleteWebhookMessage<'a> {
         }
     }
 
-    /// 
+    ///
     pub(crate) fn new_interaction(
         http: &'a Client,
         application_id: ApplicationId,
@@ -66,7 +66,7 @@ impl<'a> DeleteWebhookMessage<'a> {
             reason: None,
         }
     }
-    
+
     fn request(&self) -> Result<Request> {
         let route = self.route.clone();
 

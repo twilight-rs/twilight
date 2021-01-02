@@ -29,7 +29,11 @@ pub struct CurrentApplicationInfo {
 #[cfg(test)]
 mod tests {
     use super::{CurrentApplicationInfo, GuildId, SkuId, Team, User};
-    use crate::{id::{ApplicationId, UserId}, oauth::id::TeamId, user::UserFlags};
+    use crate::{
+        id::{ApplicationId, UserId},
+        oauth::id::TeamId,
+        user::UserFlags,
+    };
     use serde_test::Token;
 
     #[allow(clippy::too_many_lines)]
