@@ -1,4 +1,5 @@
-use async_tungstenite::tungstenite::Message;
+use super::raw_message::Message;
+use async_tungstenite::tungstenite::Message as TungsteniteMessage;
 use futures_channel::mpsc::{SendError, TrySendError, UnboundedSender};
 use futures_util::sink::Sink;
 use std::{
@@ -12,7 +13,7 @@ use std::{
 ///
 /// [`Shard::sink`]: super::Shard::sink
 #[derive(Clone, Debug)]
-pub struct ShardSink(pub(super) UnboundedSender<Message>);
+pub struct ShardSink(pub(super) UnboundedSender<TungsteniteMessage>);
 
 impl Sink<Message> for ShardSink {
     type Error = SendError;
@@ -22,7 +23,7 @@ impl Sink<Message> for ShardSink {
     }
 
     fn start_send(mut self: Pin<&mut Self>, msg: Message) -> Result<(), Self::Error> {
-        self.0.start_send(msg)
+        self.0.start_send(msg.into_tungstenite())
     }
 
     fn poll_flush(self: Pin<&mut Self>, _: &mut Context<'_>) -> Poll<Result<(), Self::Error>> {
@@ -45,7 +46,7 @@ impl Sink<Message> for &ShardSink {
 
     fn start_send(self: Pin<&mut Self>, msg: Message) -> Result<(), Self::Error> {
         self.0
-            .unbounded_send(msg)
+            .unbounded_send(msg.into_tungstenite())
             .map_err(TrySendError::into_send_error)
     }
 
