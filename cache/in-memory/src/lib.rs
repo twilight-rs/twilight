@@ -12,7 +12,7 @@
 //!
 //! ```rust,no_run
 //! use std::env;
-//! use tokio::stream::StreamExt;
+//! use futures::stream::StreamExt;
 //! use twilight_cache_inmemory::InMemoryCache;
 //! use twilight_gateway::{Intents, Shard};
 //!

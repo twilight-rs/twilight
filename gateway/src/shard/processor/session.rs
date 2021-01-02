@@ -1,13 +1,13 @@
 use super::{
     super::{json, stage::Stage},
     heartbeat::{Heartbeater, Heartbeats},
+    throttle::Throttle,
 };
 use async_tungstenite::tungstenite::{protocol::CloseFrame, Message as TungsteniteMessage};
 use futures_channel::mpsc::{TrySendError, UnboundedSender};
 use futures_util::{
     future::{self, AbortHandle},
     lock::Mutex,
-    stream::{self, Repeat},
 };
 use serde::ser::Serialize;
 use std::{
@@ -20,7 +20,6 @@ use std::{
     },
     time::Duration,
 };
-use tokio::time::{self as tokio_time, Throttle};
 use twilight_model::gateway::payload::Heartbeat;
 
 #[cfg(not(feature = "simd-json"))]
@@ -67,7 +66,7 @@ pub struct Session {
     pub seq: Arc<AtomicU64>,
     pub stage: AtomicU8,
     pub tx: UnboundedSender<TungsteniteMessage>,
-    pub ratelimit: Mutex<Throttle<Repeat<()>>>,
+    pub ratelimit: Mutex<Throttle>,
 }
 
 impl Session {
@@ -81,10 +80,7 @@ impl Session {
             stage: AtomicU8::new(Stage::default() as u8),
             tx,
             // 520 instead of 500 to make sure that it can heartbeat.
-            ratelimit: Mutex::new(tokio_time::throttle(
-                Duration::from_millis(520),
-                stream::repeat(()),
-            )),
+            ratelimit: Mutex::new(Throttle::new(Duration::from_millis(520))),
         }
     }
 

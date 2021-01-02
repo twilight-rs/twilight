@@ -1,13 +1,9 @@
 use super::super::ShardStream;
 use async_tungstenite::tungstenite::Message;
 use futures_channel::mpsc::{self, UnboundedReceiver, UnboundedSender};
-use futures_util::{
-    future::{self, Either},
-    sink::SinkExt,
-    stream::StreamExt,
-};
+use futures_timer::Delay;
+use futures_util::{future::FutureExt, sink::SinkExt, stream::StreamExt};
 use std::time::Duration;
-use tokio::time::timeout;
 
 pub struct SocketForwarder {
     rx: UnboundedReceiver<Message>,
@@ -38,43 +34,57 @@ impl SocketForwarder {
     pub async fn run(mut self) {
         tracing::debug!("starting driving loop");
 
+        // This seems to come from the `if let` in the macro and may be a false
+        // positive.
+        #[allow(clippy::mut_mut)]
         loop {
-            match future::select(self.rx.next(), timeout(Self::TIMEOUT, self.stream.next())).await {
-                Either::Left((Some(msg), _)) => {
-                    tracing::trace!("sending message: {}", msg);
-                    if let Err(err) = self.stream.send(msg).await {
-                        tracing::warn!("sending failed: {}", err);
-                        break;
-                    }
-                }
-                Either::Left((None, _)) => {
-                    tracing::debug!("rx stream ended, closing socket");
-                    let _ = self.stream.close(None).await;
+            let mut rx = self.rx.next();
+            let mut stream = self.stream.next().fuse();
+            let mut timeout = Delay::new(Self::TIMEOUT).fuse();
 
-                    break;
-                }
-                Either::Right((Ok(Some(Ok(msg))), _)) => {
-                    if self.tx.unbounded_send(msg).is_err() {
+            futures_util::select! {
+                maybe_msg = rx => {
+                    if let Some(msg) = maybe_msg {
+                        tracing::trace!("sending message: {}", msg);
+
+                        if let Err(err) = self.stream.send(msg).await {
+                            tracing::warn!("sending failed: {}", err);
+                            break;
+                        }
+                    } else {
+                        tracing::debug!("rx stream ended, closing socket");
+                        let _ = self.stream.close(None).await;
+
                         break;
                     }
-                }
-                Either::Right((Ok(Some(Err(err))), _)) => {
-                    tracing::warn!("socket errored, closing tx: {}", err);
+                },
+                try_msg = stream => {
+                    match try_msg {
+                        Some(Ok(msg)) => {
+                            if self.tx.unbounded_send(msg).is_err() {
+                                break;
+                            }
+                        },
+                        Some(Err(err)) => {
+                            tracing::warn!("socket errored, closing tx: {}", err);
+                            self.tx.close_channel();
+                            break;
+                        },
+                        None => {
+                            tracing::debug!("socket ended, closing tx");
+                            self.tx.close_channel();
+                            break;
+                        }
+                    }
+                },
+                _ = timeout => {
+                    tracing::warn!("socket timed out, closing tx");
                     self.tx.close_channel();
                     break;
                 }
-                Either::Right((Ok(None), _)) => {
-                    tracing::debug!("socket ended, closing tx");
-                    self.tx.close_channel();
-                    break;
-                }
-                Either::Right((Err(why), _)) => {
-                    tracing::warn!("socket errored, closing tx: {}", why);
-                    self.tx.close_channel();
-                    break;
-                }
-            }
+            };
         }
+
         tracing::debug!("Leaving loop");
     }
 }

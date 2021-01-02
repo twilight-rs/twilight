@@ -80,7 +80,7 @@ impl DayLimiter {
             lock.current += 1;
         } else {
             let wait = lock.last_check + lock.next_reset;
-            time::delay_until(wait).await;
+            time::sleep_until(wait).await;
             if let Ok(info) = lock.http.gateway().authed().await {
                 let last_check = Instant::now();
                 let next_reset = Duration::from_millis(info.session_start_limit.remaining);

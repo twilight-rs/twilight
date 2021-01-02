@@ -14,7 +14,7 @@ Update a cache with events that come in through the gateway:
 
 ```rust,no_run
 use std::env;
-use tokio::stream::StreamExt;
+use futures::stream::StreamExt;
 use twilight_cache_inmemory::InMemoryCache;
 use twilight_gateway::{Intents, Shard};
 
