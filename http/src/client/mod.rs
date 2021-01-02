@@ -185,36 +185,6 @@ impl Client {
         self.state.ratelimiter.clone()
     }
 
-    /// Add a role to a member in a guild.
-    ///
-    /// # Examples
-    ///
-    /// In guild `1`, add role `2` to user `3`, for the reason `"test"`:
-    ///
-    /// ```rust,no_run
-    /// # use twilight_http::{request::AuditLogReason, Client};
-    /// use twilight_model::id::{GuildId, RoleId, UserId};
-    /// #
-    /// # #[tokio::main]
-    /// # async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
-    /// # let client = Client::new("my token");
-    /// #
-    /// let guild_id = GuildId(1);
-    /// let role_id = RoleId(2);
-    /// let user_id = UserId(3);
-    ///
-    /// client.add_role(guild_id, user_id, role_id).reason("test")?.await?;
-    /// # Ok(()) }
-    /// ```
-    pub fn add_role(
-        &self,
-        guild_id: GuildId,
-        user_id: UserId,
-        role_id: RoleId,
-    ) -> AddRoleToMember<'_> {
-        AddRoleToMember::new(self, guild_id, user_id, role_id)
-    }
-
     /// Get the audit log for a guild.
     ///
     /// # Examples
@@ -873,6 +843,27 @@ impl Client {
         UpdateGuildMember::new(self, guild_id, user_id)
     }
 
+    /// Add a role to a member in a guild.
+    ///
+    /// # Examples
+    ///
+    /// In guild `1`, add role `2` to user `3`, for the reason `"test"`:
+    ///
+    /// ```rust,no_run
+    /// # use twilight_http::{request::AuditLogReason, Client};
+    /// use twilight_model::id::{GuildId, RoleId, UserId};
+    /// #
+    /// # #[tokio::main]
+    /// # async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
+    /// # let client = Client::new("my token");
+    /// #
+    /// let guild_id = GuildId(1);
+    /// let role_id = RoleId(2);
+    /// let user_id = UserId(3);
+    ///
+    /// client.add_guild_member_role(guild_id, user_id, role_id).reason("test")?.await?;
+    /// # Ok(()) }
+    /// ```
     pub fn add_guild_member_role(
         &self,
         guild_id: GuildId,
