@@ -4,7 +4,7 @@ pub use self::builder::ClientBuilder;
 
 use crate::{
     api_error::{ApiError, ErrorCode},
-    error::{Error, Result, UrlError},
+    error::{Error, Result},
     ratelimiting::{RatelimitHeaders, Ratelimiter},
     request::{
         channel::message::allowed_mentions::AllowedMentions,
@@ -1306,29 +1306,9 @@ impl Client {
         DeleteWebhook::new(self, id)
     }
 
-    /// Delete a webhook by its URL.
-    ///
-    /// # Errors
-    ///
-    /// Returns [`UrlError::SegmentMissing`] if the URL can not be parsed.
-    pub fn delete_webhook_from_url(&self, url: impl AsRef<str>) -> Result<DeleteWebhook<'_>> {
-        let (id, _) = parse_webhook_url(url)?;
-        Ok(self.delete_webhook(id))
-    }
-
     /// Update a webhook by ID.
     pub fn update_webhook(&self, webhook_id: WebhookId) -> UpdateWebhook<'_> {
         UpdateWebhook::new(self, webhook_id)
-    }
-
-    /// Update a webhook by its URL.
-    ///
-    /// # Errors
-    ///
-    /// Returns [`UrlError::SegmentMissing`] if the URL can not be parsed.
-    pub fn update_webhook_from_url(&self, url: impl AsRef<str>) -> Result<UpdateWebhook<'_>> {
-        let (id, _) = parse_webhook_url(url)?;
-        Ok(self.update_webhook(id))
     }
 
     /// Update a webhook, with a token, by ID.
@@ -1338,19 +1318,6 @@ impl Client {
         token: impl Into<String>,
     ) -> UpdateWebhookWithToken<'_> {
         UpdateWebhookWithToken::new(self, webhook_id, token)
-    }
-
-    /// Update a webhook, with a token, by its URL.
-    ///
-    /// # Errors
-    ///
-    /// Returns [`UrlError::SegmentMissing`] if the URL can not be parsed.
-    pub fn update_webhook_with_token_from_url(
-        &self,
-        url: impl AsRef<str>,
-    ) -> Result<UpdateWebhookWithToken<'_>> {
-        let (id, token) = parse_webhook_url(url)?;
-        Ok(self.update_webhook_with_token(id, token.ok_or(UrlError::SegmentMissing)?))
     }
 
     /// Executes a webhook, sending a message to its channel.
@@ -1384,16 +1351,6 @@ impl Client {
         token: impl Into<String>,
     ) -> ExecuteWebhook<'_> {
         ExecuteWebhook::new(self, webhook_id, token)
-    }
-
-    /// Execute a webhook by its URL.
-    ///
-    /// # Errors
-    ///
-    /// Returns [`UrlError::SegmentMissing`] if the URL can not be parsed.
-    pub fn execute_webhook_from_url(&self, url: impl AsRef<str>) -> Result<ExecuteWebhook<'_>> {
-        let (id, token) = parse_webhook_url(url)?;
-        Ok(self.execute_webhook(id, token.ok_or(UrlError::SegmentMissing)?))
     }
 
     /// Update a message executed by a webhook.
@@ -1682,65 +1639,5 @@ impl From<HyperClient<HttpsConnector<HttpConnector>>> for Client {
                 default_allowed_mentions: None,
             }),
         }
-    }
-}
-
-/// Parse the webhook ID and token, if it exists in the string.
-fn parse_webhook_url(
-    url: impl AsRef<str>,
-) -> std::result::Result<(WebhookId, Option<String>), UrlError> {
-    let url = url.as_ref();
-
-    let mut segments = {
-        let mut iter = url.split(".com/");
-        iter.next().ok_or(UrlError::SegmentMissing)?;
-
-        iter.next().ok_or(UrlError::SegmentMissing)?.split('/')
-    };
-
-    segments
-        .next()
-        .filter(|s| s == &"api")
-        .ok_or(UrlError::SegmentMissing)?;
-    segments
-        .next()
-        .filter(|s| s == &"webhooks")
-        .ok_or(UrlError::SegmentMissing)?;
-    let id = segments.next().ok_or(UrlError::SegmentMissing)?;
-    let token = segments.next();
-
-    Ok((WebhookId(id.parse()?), token.map(String::from)))
-}
-
-#[cfg(test)]
-mod tests {
-    use super::{parse_webhook_url, WebhookId};
-    use std::error::Error;
-
-    #[test]
-    fn parse_webhook_id() -> Result<(), Box<dyn Error>> {
-        assert_eq!(
-            parse_webhook_url("https://discord.com/api/webhooks/123")?,
-            (WebhookId(123), None)
-        );
-        assert!(parse_webhook_url("https://discord.com/foo/bar/456").is_err());
-        assert!(parse_webhook_url("https://discord.com/api/webhooks/").is_err());
-
-        Ok(())
-    }
-
-    #[test]
-    fn parse_webhook_token() -> Result<(), Box<dyn Error>> {
-        assert_eq!(
-            parse_webhook_url("https://discord.com/api/webhooks/456/token")?,
-            (WebhookId(456), Some("token".into()))
-        );
-
-        assert_eq!(
-            parse_webhook_url("https://discord.com/api/webhooks/456/token/slack")?,
-            (WebhookId(456), Some("token".into()))
-        );
-
-        Ok(())
     }
 }

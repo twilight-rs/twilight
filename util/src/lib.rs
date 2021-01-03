@@ -35,6 +35,10 @@
 )]
 #![cfg_attr(docsrs, feature(doc_cfg))]
 
+#[cfg(feature = "link")]
+#[cfg_attr(docsrs, doc(cfg(feature = "link")))]
+pub mod link;
+
 #[cfg(feature = "snowflake")]
 #[cfg_attr(docsrs, doc(cfg(feature = "snowflake")))]
 pub mod snowflake;
