@@ -7,7 +7,6 @@ use hyper::{
 use std::{
     error::Error as StdError,
     fmt::{Display, Error as FmtError, Formatter, Result as FmtResult},
-    num::ParseIntError,
     result::Result as StdResult,
 };
 use tokio::time::error::Elapsed;
@@ -18,39 +17,6 @@ use serde_json::Error as JsonError;
 use simd_json::Error as JsonError;
 
 pub type Result<T, E = Error> = StdResult<T, E>;
-
-#[derive(Debug)]
-#[non_exhaustive]
-pub enum UrlError {
-    IdParsing { source: ParseIntError },
-    SegmentMissing,
-}
-
-impl Display for UrlError {
-    fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
-        match self {
-            Self::IdParsing { source, .. } => {
-                write!(f, "Url path segment wasn't a valid ID: {}", source)
-            }
-            Self::SegmentMissing => f.write_str("Url was missing a required path segment"),
-        }
-    }
-}
-
-impl StdError for UrlError {
-    fn source(&self) -> Option<&(dyn StdError + 'static)> {
-        match self {
-            Self::IdParsing { source, .. } => Some(source),
-            Self::SegmentMissing => None,
-        }
-    }
-}
-
-impl From<ParseIntError> for UrlError {
-    fn from(source: ParseIntError) -> Self {
-        Self::IdParsing { source }
-    }
-}
 
 #[derive(Debug)]
 #[non_exhaustive]
@@ -74,9 +40,6 @@ pub enum Error {
     Parsing {
         body: Vec<u8>,
         source: JsonError,
-    },
-    Url {
-        source: UrlError,
     },
     Ratelimiting {
         source: RatelimitError,
@@ -122,12 +85,6 @@ impl From<JsonError> for Error {
     }
 }
 
-impl From<UrlError> for Error {
-    fn from(source: UrlError) -> Self {
-        Self::Url { source }
-    }
-}
-
 impl Display for Error {
     fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
         match self {
@@ -141,7 +98,6 @@ impl Display for Error {
             Self::Parsing { body, .. } => {
                 write!(f, "Response body couldn't be deserialized: {:?}", body)
             }
-            Self::Url { source, .. } => write!(f, "{}", source),
             Self::Ratelimiting { .. } => f.write_str("Ratelimiting failure"),
             Self::RequestCanceled { .. } => {
                 f.write_str("Request was canceled either before or while being sent")
@@ -168,7 +124,6 @@ impl StdError for Error {
             Self::CreatingHeader { source, .. } => Some(source),
             Self::Formatting { source } => Some(source),
             Self::Json { source } | Self::Parsing { source, .. } => Some(source),
-            Self::Url { source } => Some(source),
             Self::Ratelimiting { source } => Some(source),
             Self::RequestCanceled { source } => Some(source),
             Self::ChunkingResponse { source } | Self::RequestError { source } => Some(source),
