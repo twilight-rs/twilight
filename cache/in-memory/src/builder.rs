@@ -1,5 +1,5 @@
 use super::{
-    config::{Config, EventType},
+    config::{Config, ResourceType},
     InMemoryCache,
 };
 
@@ -18,11 +18,11 @@ impl InMemoryCacheBuilder {
         InMemoryCache::new_with_config(self.0)
     }
 
-    /// Sets the list of event types for the cache to handle.
+    /// Sets the list of resource types for the cache to handle.
     ///
     /// Defaults to all types.
-    pub fn event_types(mut self, event_types: EventType) -> Self {
-        self.0.event_types = event_types;
+    pub fn resource_types(mut self, resource_types: ResourceType) -> Self {
+        self.0.resource_types = resource_types;
 
         self
     }

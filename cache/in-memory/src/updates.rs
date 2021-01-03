@@ -1,4 +1,4 @@
-use super::{config::EventType, InMemoryCache};
+use super::{config::ResourceType, InMemoryCache};
 use dashmap::DashMap;
 use std::{borrow::Cow, collections::HashSet, hash::Hash, ops::Deref, sync::Arc};
 use twilight_model::{
@@ -7,10 +7,6 @@ use twilight_model::{
     guild::GuildStatus,
     id::GuildId,
 };
-
-fn guard(this: &InMemoryCache, event_type: EventType) -> bool {
-    this.0.config.event_types().contains(event_type)
-}
 
 pub trait UpdateCache {
     // Allow this for presentation purposes in documentation.
@@ -85,7 +81,7 @@ impl UpdateCache for BanRemove {}
 
 impl UpdateCache for ChannelCreate {
     fn update(&self, cache: &InMemoryCache) {
-        if !guard(cache, EventType::CHANNEL_CREATE) {
+        if !cache.wants(ResourceType::CHANNEL) {
             return;
         }
 
@@ -107,7 +103,7 @@ impl UpdateCache for ChannelCreate {
 
 impl UpdateCache for ChannelDelete {
     fn update(&self, cache: &InMemoryCache) {
-        if !guard(cache, EventType::CHANNEL_DELETE) {
+        if !cache.wants(ResourceType::CHANNEL) {
             return;
         }
 
@@ -127,7 +123,7 @@ impl UpdateCache for ChannelDelete {
 
 impl UpdateCache for ChannelPinsUpdate {
     fn update(&self, cache: &InMemoryCache) {
-        if !guard(cache, EventType::CHANNEL_PINS_UPDATE) {
+        if !cache.wants(ResourceType::CHANNEL) {
             return;
         }
 
@@ -155,7 +151,7 @@ impl UpdateCache for ChannelPinsUpdate {
 
 impl UpdateCache for ChannelUpdate {
     fn update(&self, cache: &InMemoryCache) {
-        if !guard(cache, EventType::CHANNEL_UPDATE) {
+        if !cache.wants(ResourceType::CHANNEL) {
             return;
         }
 
@@ -177,7 +173,7 @@ impl UpdateCache for ChannelUpdate {
 
 impl UpdateCache for GuildCreate {
     fn update(&self, cache: &InMemoryCache) {
-        if !guard(cache, EventType::GUILD_CREATE) {
+        if !cache.wants(ResourceType::GUILD) {
             return;
         }
 
@@ -199,7 +195,7 @@ impl UpdateCache for GuildDelete {
             }
         }
 
-        if !guard(cache, EventType::GUILD_DELETE) {
+        if !cache.wants(ResourceType::GUILD) {
             return;
         }
 
@@ -207,21 +203,36 @@ impl UpdateCache for GuildDelete {
 
         cache.0.guilds.remove(&id);
 
-        remove_ids(&cache.0.guild_channels, &cache.0.channels_guild, id);
-        remove_ids(&cache.0.guild_emojis, &cache.0.emojis, id);
-        remove_ids(&cache.0.guild_roles, &cache.0.roles, id);
-        // Clear out a guilds voice states when a guild leaves
-        cache.0.voice_state_guilds.remove(&id);
+        if cache.wants(ResourceType::CHANNEL) {
+            remove_ids(&cache.0.guild_channels, &cache.0.channels_guild, id);
+        }
 
-        if let Some((_, ids)) = cache.0.guild_members.remove(&id) {
-            for user_id in ids {
-                cache.0.members.remove(&(id, user_id));
+        if cache.wants(ResourceType::EMOJI) {
+            remove_ids(&cache.0.guild_emojis, &cache.0.emojis, id);
+        }
+
+        if cache.wants(ResourceType::ROLE) {
+            remove_ids(&cache.0.guild_roles, &cache.0.roles, id);
+        }
+
+        if cache.wants(ResourceType::VOICE_STATE) {
+            // Clear out a guilds voice states when a guild leaves
+            cache.0.voice_state_guilds.remove(&id);
+        }
+
+        if cache.wants(ResourceType::MEMBER) {
+            if let Some((_, ids)) = cache.0.guild_members.remove(&id) {
+                for user_id in ids {
+                    cache.0.members.remove(&(id, user_id));
+                }
             }
         }
 
-        if let Some((_, ids)) = cache.0.guild_presences.remove(&id) {
-            for user_id in ids {
-                cache.0.presences.remove(&(id, user_id));
+        if cache.wants(ResourceType::PRESENCE) {
+            if let Some((_, ids)) = cache.0.guild_presences.remove(&id) {
+                for user_id in ids {
+                    cache.0.presences.remove(&(id, user_id));
+                }
             }
         }
     }
@@ -229,7 +240,7 @@ impl UpdateCache for GuildDelete {
 
 impl UpdateCache for GuildEmojisUpdate {
     fn update(&self, cache: &InMemoryCache) {
-        if !guard(cache, EventType::GUILD_EMOJIS_UPDATE) {
+        if !cache.wants(ResourceType::EMOJI) {
             return;
         }
 
@@ -241,7 +252,7 @@ impl UpdateCache for GuildIntegrationsUpdate {}
 
 impl UpdateCache for GuildUpdate {
     fn update(&self, cache: &InMemoryCache) {
-        if !guard(cache, EventType::GUILD_UPDATE) {
+        if !cache.wants(ResourceType::GUILD) {
             return;
         }
 
@@ -279,7 +290,7 @@ impl UpdateCache for GuildUpdate {
 
 impl UpdateCache for MemberAdd {
     fn update(&self, cache: &InMemoryCache) {
-        if !guard(cache, EventType::MEMBER_ADD) {
+        if !cache.wants(ResourceType::MEMBER) {
             return;
         }
 
@@ -296,7 +307,7 @@ impl UpdateCache for MemberAdd {
 
 impl UpdateCache for MemberChunk {
     fn update(&self, cache: &InMemoryCache) {
-        if !guard(cache, EventType::MEMBER_CHUNK) {
+        if !cache.wants(ResourceType::MEMBER) {
             return;
         }
 
@@ -312,7 +323,7 @@ impl UpdateCache for MemberChunk {
 
 impl UpdateCache for MemberRemove {
     fn update(&self, cache: &InMemoryCache) {
-        if !guard(cache, EventType::MEMBER_REMOVE) {
+        if !cache.wants(ResourceType::MEMBER) {
             return;
         }
 
@@ -343,7 +354,7 @@ impl UpdateCache for MemberRemove {
 
 impl UpdateCache for MemberUpdate {
     fn update(&self, cache: &InMemoryCache) {
-        if !guard(cache, EventType::MEMBER_UPDATE) {
+        if !cache.wants(ResourceType::MEMBER) {
             return;
         }
 
@@ -361,7 +372,7 @@ impl UpdateCache for MemberUpdate {
 
 impl UpdateCache for MessageCreate {
     fn update(&self, cache: &InMemoryCache) {
-        if !guard(cache, EventType::MESSAGE_CREATE) {
+        if !cache.wants(ResourceType::MESSAGE) {
             return;
         }
 
@@ -385,7 +396,7 @@ impl UpdateCache for MessageCreate {
 
 impl UpdateCache for MessageDelete {
     fn update(&self, cache: &InMemoryCache) {
-        if !guard(cache, EventType::MESSAGE_DELETE) {
+        if !cache.wants(ResourceType::MESSAGE) {
             return;
         }
 
@@ -396,7 +407,7 @@ impl UpdateCache for MessageDelete {
 
 impl UpdateCache for MessageDeleteBulk {
     fn update(&self, cache: &InMemoryCache) {
-        if !guard(cache, EventType::MESSAGE_DELETE_BULK) {
+        if !cache.wants(ResourceType::MESSAGE) {
             return;
         }
 
@@ -410,7 +421,7 @@ impl UpdateCache for MessageDeleteBulk {
 
 impl UpdateCache for MessageUpdate {
     fn update(&self, cache: &InMemoryCache) {
-        if !guard(cache, EventType::MESSAGE_UPDATE) {
+        if !cache.wants(ResourceType::MESSAGE) {
             return;
         }
 
@@ -464,7 +475,7 @@ impl UpdateCache for MessageUpdate {
 
 impl UpdateCache for PresenceUpdate {
     fn update(&self, cache: &InMemoryCache) {
-        if !guard(cache, EventType::PRESENCE_UPDATE) {
+        if !cache.wants(ResourceType::PRESENCE) {
             return;
         }
 
@@ -482,7 +493,7 @@ impl UpdateCache for PresenceUpdate {
 
 impl UpdateCache for ReactionAdd {
     fn update(&self, cache: &InMemoryCache) {
-        if !guard(cache, EventType::REACTION_ADD) {
+        if !cache.wants(ResourceType::REACTION) {
             return;
         }
 
@@ -522,7 +533,7 @@ impl UpdateCache for ReactionAdd {
 
 impl UpdateCache for ReactionRemove {
     fn update(&self, cache: &InMemoryCache) {
-        if !guard(cache, EventType::REACTION_REMOVE) {
+        if !cache.wants(ResourceType::REACTION) {
             return;
         }
 
@@ -555,7 +566,7 @@ impl UpdateCache for ReactionRemove {
 
 impl UpdateCache for ReactionRemoveAll {
     fn update(&self, cache: &InMemoryCache) {
-        if !guard(cache, EventType::REACTION_REMOVE_ALL) {
+        if !cache.wants(ResourceType::REACTION) {
             return;
         }
 
@@ -573,7 +584,7 @@ impl UpdateCache for ReactionRemoveAll {
 
 impl UpdateCache for ReactionRemoveEmoji {
     fn update(&self, cache: &InMemoryCache) {
-        if !guard(cache, EventType::REACTION_REMOVE_EMOJI) {
+        if !cache.wants(ResourceType::REACTION) {
             return;
         }
 
@@ -601,19 +612,19 @@ impl UpdateCache for ReactionRemoveEmoji {
 
 impl UpdateCache for Ready {
     fn update(&self, cache: &InMemoryCache) {
-        if !guard(cache, EventType::READY) {
-            return;
+        if cache.wants(ResourceType::USER_CURRENT) {
+            cache.cache_current_user(self.user.clone());
         }
 
-        cache.cache_current_user(self.user.clone());
-
-        for status in self.guilds.values() {
-            match status {
-                GuildStatus::Offline(u) => {
-                    cache.unavailable_guild(u.id);
-                }
-                GuildStatus::Online(g) => {
-                    cache.cache_guild(g.clone());
+        if cache.wants(ResourceType::GUILD) {
+            for status in self.guilds.values() {
+                match status {
+                    GuildStatus::Offline(u) => {
+                        cache.unavailable_guild(u.id);
+                    }
+                    GuildStatus::Online(g) => {
+                        cache.cache_guild(g.clone());
+                    }
                 }
             }
         }
@@ -622,7 +633,7 @@ impl UpdateCache for Ready {
 
 impl UpdateCache for RoleCreate {
     fn update(&self, cache: &InMemoryCache) {
-        if !guard(cache, EventType::ROLE_CREATE) {
+        if !cache.wants(ResourceType::ROLE) {
             return;
         }
 
@@ -637,7 +648,7 @@ impl UpdateCache for RoleCreate {
 
 impl UpdateCache for RoleDelete {
     fn update(&self, cache: &InMemoryCache) {
-        if !guard(cache, EventType::ROLE_DELETE) {
+        if !cache.wants(ResourceType::ROLE) {
             return;
         }
 
@@ -647,7 +658,7 @@ impl UpdateCache for RoleDelete {
 
 impl UpdateCache for RoleUpdate {
     fn update(&self, cache: &InMemoryCache) {
-        if !guard(cache, EventType::ROLE_UPDATE) {
+        if !cache.wants(ResourceType::ROLE) {
             return;
         }
 
@@ -659,7 +670,7 @@ impl UpdateCache for TypingStart {}
 
 impl UpdateCache for UnavailableGuild {
     fn update(&self, cache: &InMemoryCache) {
-        if !guard(cache, EventType::UNAVAILABLE_GUILD) {
+        if !cache.wants(ResourceType::GUILD) {
             return;
         }
 
@@ -670,7 +681,7 @@ impl UpdateCache for UnavailableGuild {
 
 impl UpdateCache for UserUpdate {
     fn update(&self, cache: &InMemoryCache) {
-        if !guard(cache, EventType::USER_UPDATE) {
+        if !cache.wants(ResourceType::USER_CURRENT) {
             return;
         }
 
@@ -679,16 +690,12 @@ impl UpdateCache for UserUpdate {
 }
 
 impl UpdateCache for VoiceServerUpdate {
-    fn update(&self, cache: &InMemoryCache) {
-        if !guard(cache, EventType::VOICE_SERVER_UPDATE) {
-            return;
-        }
-    }
+    fn update(&self, _: &InMemoryCache) {}
 }
 
 impl UpdateCache for VoiceStateUpdate {
     fn update(&self, cache: &InMemoryCache) {
-        if !guard(cache, EventType::VOICE_STATE_UPDATE) {
+        if !cache.wants(ResourceType::VOICE_STATE) {
             return;
         }
 
@@ -705,7 +712,7 @@ impl UpdateCache for WebhooksUpdate {}
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::config::EventType;
+    use crate::config::ResourceType;
     use std::collections::HashMap;
     use twilight_model::{
         channel::{
@@ -1004,7 +1011,7 @@ mod tests {
     #[test]
     fn test_voice_states_with_no_cached_guilds() {
         let cache = InMemoryCache::builder()
-            .event_types(EventType::VOICE_STATE_UPDATE)
+            .resource_types(ResourceType::VOICE_STATE)
             .build();
 
         cache.update(&VoiceStateUpdate(VoiceState {
@@ -1084,7 +1091,7 @@ mod tests {
     #[test]
     fn test_message_create() {
         let cache = InMemoryCache::builder()
-            .event_types(EventType::MESSAGE_CREATE)
+            .resource_types(ResourceType::MESSAGE)
             .message_cache_size(1)
             .build();
         let msg = Message {

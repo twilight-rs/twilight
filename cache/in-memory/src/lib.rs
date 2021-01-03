@@ -57,7 +57,7 @@ mod updates;
 
 pub use self::{
     builder::InMemoryCacheBuilder,
-    config::{Config, EventType},
+    config::{Config, ResourceType},
     updates::UpdateCache,
 };
 
@@ -595,21 +595,37 @@ impl InMemoryCache {
     }
 
     fn cache_guild(&self, guild: Guild) {
-        // The map and set creation needs to occur first, so caching states and objects
-        // always has a place to put them.
-        self.0.guild_channels.insert(guild.id, HashSet::new());
-        self.0.guild_emojis.insert(guild.id, HashSet::new());
-        self.0.guild_members.insert(guild.id, HashSet::new());
-        self.0.guild_presences.insert(guild.id, HashSet::new());
-        self.0.guild_roles.insert(guild.id, HashSet::new());
-        self.0.voice_state_guilds.insert(guild.id, HashSet::new());
+        // The map and set creation needs to occur first, so caching states and
+        // objects always has a place to put them.
+        if self.wants(ResourceType::CHANNEL) {
+            self.0.guild_channels.insert(guild.id, HashSet::new());
+            self.cache_guild_channels(guild.id, guild.channels.into_iter().map(|(_, v)| v));
+        }
 
-        self.cache_guild_channels(guild.id, guild.channels.into_iter().map(|(_, v)| v));
-        self.cache_emojis(guild.id, guild.emojis.into_iter().map(|(_, v)| v));
-        self.cache_members(guild.id, guild.members.into_iter().map(|(_, v)| v));
-        self.cache_presences(guild.id, guild.presences.into_iter().map(|(_, v)| v));
-        self.cache_roles(guild.id, guild.roles.into_iter().map(|(_, v)| v));
-        self.cache_voice_states(guild.voice_states.into_iter().map(|(_, v)| v));
+        if self.wants(ResourceType::EMOJI) {
+            self.0.guild_emojis.insert(guild.id, HashSet::new());
+            self.cache_emojis(guild.id, guild.emojis.into_iter().map(|(_, v)| v));
+        }
+
+        if self.wants(ResourceType::MEMBER) {
+            self.0.guild_members.insert(guild.id, HashSet::new());
+            self.cache_members(guild.id, guild.members.into_iter().map(|(_, v)| v));
+        }
+
+        if self.wants(ResourceType::PRESENCE) {
+            self.0.guild_presences.insert(guild.id, HashSet::new());
+            self.cache_presences(guild.id, guild.presences.into_iter().map(|(_, v)| v));
+        }
+
+        if self.wants(ResourceType::ROLE) {
+            self.0.guild_roles.insert(guild.id, HashSet::new());
+            self.cache_roles(guild.id, guild.roles.into_iter().map(|(_, v)| v));
+        }
+
+        if self.wants(ResourceType::VOICE_STATE) {
+            self.0.voice_state_guilds.insert(guild.id, HashSet::new());
+            self.cache_voice_states(guild.voice_states.into_iter().map(|(_, v)| v));
+        }
 
         let guild = CachedGuild {
             id: guild.id,
@@ -908,6 +924,12 @@ impl InMemoryCache {
         }
 
         Some(role.data)
+    }
+
+    /// Determine whether the configured cache wants a specific resource to be
+    /// processed.
+    fn wants(&self, resource_type: ResourceType) -> bool {
+        self.0.config.resource_types().contains(resource_type)
     }
 }
 
