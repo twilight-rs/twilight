@@ -5,7 +5,7 @@ use crate::{
     error::Result,
     request::{
         self,
-        channel::message::allowed_mentions::AllowedMentions,
+        channel::allowed_mentions::AllowedMentions,
         validate::{self, EmbedValidationError},
         AuditLogReason, AuditLogReasonError, Pending, Request,
     },
@@ -100,7 +100,7 @@ struct UpdateWebhookMessageFields {
 ///
 /// ```no_run
 /// # use twilight_http::Client;
-/// use twilight_http::request::channel::message::allowed_mentions::AllowedMentions;
+/// use twilight_http::request::channel::allowed_mentions::AllowedMentions;
 /// use twilight_model::id::{MessageId, WebhookId};
 ///
 /// # #[tokio::main]

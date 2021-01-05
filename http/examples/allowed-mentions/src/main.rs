@@ -1,5 +1,5 @@
 use std::{env, error::Error};
-use twilight_http::{request::channel::message::allowed_mentions::AllowedMentionsBuilder, Client};
+use twilight_http::{request::channel::allowed_mentions::AllowedMentionsBuilder, Client};
 use twilight_model::id::{ChannelId, UserId};
 
 #[tokio::main]

@@ -7,7 +7,7 @@ use crate::{
     error::{Error, Result},
     ratelimiting::{RatelimitHeaders, Ratelimiter},
     request::{
-        channel::message::allowed_mentions::AllowedMentions,
+        channel::allowed_mentions::AllowedMentions,
         guild::{create_guild::CreateGuildError, create_guild_channel::CreateGuildChannelError},
         prelude::*,
         GetUserApplicationInfo, Request,

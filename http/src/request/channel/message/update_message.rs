@@ -1,4 +1,4 @@
-use crate::request::{channel::message::allowed_mentions::AllowedMentions, prelude::*};
+use crate::request::{channel::allowed_mentions::AllowedMentions, prelude::*};
 use std::{
     error::Error,
     fmt::{Display, Formatter, Result as FmtResult},

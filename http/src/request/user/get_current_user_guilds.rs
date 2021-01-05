@@ -3,8 +3,7 @@ use std::{
     error::Error,
     fmt::{Display, Formatter, Result as FmtResult},
 };
-use twilight_model::id::GuildId;
-pub use twilight_model::user::CurrentUserGuild;
+use twilight_model::{id::GuildId, user::CurrentUserGuild};
 
 /// The error created when the current guilds can not be retrieved as configured.
 #[derive(Clone, Debug)]
