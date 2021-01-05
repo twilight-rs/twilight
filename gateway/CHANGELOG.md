@@ -2,6 +2,18 @@
 
 Changelog for `twilight-gateway`.
 
+## [0.2.7] - 2021-01-05
+
+### Enhancements
+
+Shrink the internal inflater buffer every minute instead of shrinking when the
+capacity is 4 times the length on periodic checks ([#661] - [@chamburr]).
+
+Upgrade `dashmap` from version 3 to 4.0 ([#666] - [@vivian]).
+
+[#666]: https://github.com/twilight-rs/twilight/pull/666
+[#661]: https://github.com/twilight-rs/twilight/pull/661
+
 ## [0.2.6] - 2020-12-29
 
 ### Fixes
@@ -179,6 +191,7 @@ Initial release.
 [#515]: https://github.com/twilight-rs/twilight/pull/515
 [#512]: https://github.com/twilight-rs/twilight/pull/512
 
+[0.2.7]: https://github.com/twilight-rs/twilight/releases/tag/gateway-v0.2.7
 [0.2.6]: https://github.com/twilight-rs/twilight/releases/tag/gateway-v0.2.6
 [0.2.5]: https://github.com/twilight-rs/twilight/releases/tag/gateway-v0.2.5
 [0.2.4]: https://github.com/twilight-rs/twilight/releases/tag/gateway-v0.2.4
