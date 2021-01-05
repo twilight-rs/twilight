@@ -7,7 +7,7 @@ use crate::{
     error::{Error, Result},
     ratelimiting::{RatelimitHeaders, Ratelimiter},
     request::{
-        channel::message::allowed_mentions::AllowedMentions,
+        channel::allowed_mentions::AllowedMentions,
         guild::{create_guild::CreateGuildError, create_guild_channel::CreateGuildChannelError},
         prelude::*,
         GetUserApplicationInfo, Request,
@@ -172,7 +172,7 @@ impl Client {
     ///
     /// Refer to [`allowed_mentions`] for more information.
     ///
-    /// [`allowed_mentions`]: crate::request::channel::message::allowed_mentions
+    /// [`allowed_mentions`]: crate::request::channel::allowed_mentions
     pub fn default_allowed_mentions(&self) -> Option<AllowedMentions> {
         self.state.default_allowed_mentions.clone()
     }

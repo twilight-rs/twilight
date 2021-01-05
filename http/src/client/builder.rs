@@ -1,7 +1,5 @@
 use super::{Client, HttpsConnector, State};
-use crate::{
-    ratelimiting::Ratelimiter, request::channel::message::allowed_mentions::AllowedMentions,
-};
+use crate::{ratelimiting::Ratelimiter, request::channel::allowed_mentions::AllowedMentions};
 use hyper::client::{Client as HyperClient, HttpConnector};
 use std::{
     sync::{atomic::AtomicBool, Arc},

@@ -88,7 +88,7 @@ impl VisitAllowedMentionsRoles for ExplicitRole {
 /// # Example
 ///
 /// ```rust,no_run
-/// use twilight_http::request::channel::message::allowed_mentions::AllowedMentionsBuilder;
+/// use twilight_http::request::channel::allowed_mentions::AllowedMentionsBuilder;
 /// # #[tokio::main]
 /// # async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
 /// let mut allowed_mentions = AllowedMentionsBuilder::new()

@@ -1,4 +1,4 @@
-use super::allowed_mentions::{AllowedMentions, AllowedMentionsBuilder, Unspecified};
+use super::super::allowed_mentions::{AllowedMentions, AllowedMentionsBuilder, Unspecified};
 use crate::request::{multipart::Form, prelude::*};
 use std::{
     collections::HashMap,

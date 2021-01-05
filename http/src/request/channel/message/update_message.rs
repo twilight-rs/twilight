@@ -1,4 +1,4 @@
-use crate::request::{channel::message::allowed_mentions::AllowedMentions, prelude::*};
+use crate::request::{channel::allowed_mentions::AllowedMentions, prelude::*};
 use std::{
     error::Error,
     fmt::{Display, Formatter, Result as FmtResult},
@@ -197,7 +197,7 @@ impl<'a> UpdateMessage<'a> {
     ///
     /// Use the [`build_solo`] method to get a [`AllowedMentions`] structure.
     ///
-    /// [`build_solo`]: super::allowed_mentions::AllowedMentionsBuilder::build_solo
+    /// [`build_solo`]: super::super::allowed_mentions::AllowedMentionsBuilder::build_solo
     pub fn allowed_mentions(mut self, allowed: AllowedMentions) -> Self {
         self.fields.allowed_mentions.replace(allowed);
 
