@@ -14,7 +14,6 @@ pub use self::{
 
 use crate::id::UserId;
 use serde::{Deserialize, Serialize};
-use serde_mappable_seq::Key;
 
 pub(crate) mod discriminator {
     use serde::{
@@ -83,12 +82,6 @@ pub struct User {
     pub system: Option<bool>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub verified: Option<bool>,
-}
-
-impl Key<'_, UserId> for User {
-    fn key(&self) -> UserId {
-        self.id
-    }
 }
 
 #[cfg(test)]

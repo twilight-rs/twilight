@@ -1,9 +1,5 @@
-use crate::{
-    guild::{Guild, UnavailableGuild},
-    id::GuildId,
-};
+use crate::guild::{Guild, UnavailableGuild};
 use serde::{Deserialize, Serialize};
-use serde_mappable_seq::Key;
 
 #[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
 #[serde(untagged)]
@@ -12,18 +8,10 @@ pub enum GuildStatus {
     Offline(UnavailableGuild),
 }
 
-impl Key<'_, GuildId> for GuildStatus {
-    fn key(&self) -> GuildId {
-        match self {
-            Self::Online(g) => g.id,
-            Self::Offline(u) => u.id,
-        }
-    }
-}
-
 #[cfg(test)]
 mod tests {
-    use super::{GuildId, GuildStatus, UnavailableGuild};
+    use super::{GuildStatus, UnavailableGuild};
+    use crate::id::GuildId;
     use serde_test::Token;
 
     // Notably, the important thing to test is that it's untagged.

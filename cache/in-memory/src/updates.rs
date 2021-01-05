@@ -244,7 +244,7 @@ impl UpdateCache for GuildEmojisUpdate {
             return;
         }
 
-        cache.cache_emojis(self.guild_id, self.emojis.values().cloned());
+        cache.cache_emojis(self.guild_id, self.emojis.clone());
     }
 }
 
@@ -315,9 +315,9 @@ impl UpdateCache for MemberChunk {
             return;
         }
 
-        cache.cache_members(self.guild_id, self.members.values().cloned());
+        cache.cache_members(self.guild_id, self.members.clone());
         let mut guild = cache.0.guild_members.entry(self.guild_id).or_default();
-        guild.extend(self.members.keys());
+        guild.extend(self.members.iter().map(|member| member.user.id));
     }
 }
 
@@ -617,7 +617,7 @@ impl UpdateCache for Ready {
         }
 
         if cache.wants(ResourceType::GUILD) {
-            for status in self.guilds.values() {
+            for status in &self.guilds {
                 match status {
                     GuildStatus::Offline(u) => {
                         cache.unavailable_guild(u.id);
@@ -713,7 +713,6 @@ impl UpdateCache for WebhooksUpdate {}
 mod tests {
     use super::*;
     use crate::config::ResourceType;
-    use std::collections::HashMap;
     use twilight_model::{
         channel::{
             message::{MessageFlags, MessageType},
@@ -791,7 +790,7 @@ mod tests {
             mention_channels: Vec::new(),
             mention_everyone: false,
             mention_roles: Vec::new(),
-            mentions: HashMap::new(),
+            mentions: Vec::new(),
             pinned: false,
             reactions: Vec::new(),
             reference: None,
@@ -889,11 +888,11 @@ mod tests {
             approximate_member_count: None,
             approximate_presence_count: None,
             banner: None,
-            channels: HashMap::new(),
+            channels: Vec::new(),
             default_message_notifications: DefaultMessageNotificationLevel::Mentions,
             description: None,
             discovery_splash: None,
-            emojis: HashMap::new(),
+            emojis: Vec::new(),
             explicit_content_filter: ExplicitContentFilter::None,
             features: Vec::new(),
             icon: None,
@@ -905,7 +904,7 @@ mod tests {
             max_presences: None,
             max_video_channel_users: None,
             member_count: None,
-            members: HashMap::new(),
+            members: Vec::new(),
             mfa_level: MfaLevel::None,
             name: "test".to_owned(),
             owner_id: UserId(1),
@@ -914,9 +913,9 @@ mod tests {
             preferred_locale: "en_us".to_owned(),
             premium_subscription_count: None,
             premium_tier: PremiumTier::None,
-            presences: HashMap::new(),
+            presences: Vec::new(),
             region: "us".to_owned(),
-            roles: HashMap::new(),
+            roles: Vec::new(),
             rules_channel_id: None,
             splash: None,
             system_channel_flags: SystemChannelFlags::empty(),
@@ -924,7 +923,7 @@ mod tests {
             unavailable: false,
             vanity_url_code: None,
             verification_level: VerificationLevel::VeryHigh,
-            voice_states: HashMap::new(),
+            voice_states: Vec::new(),
             widget_channel_id: None,
             widget_enabled: None,
         };
@@ -1132,7 +1131,7 @@ mod tests {
             mention_channels: Vec::new(),
             mention_everyone: false,
             mention_roles: Vec::new(),
-            mentions: HashMap::new(),
+            mentions: Vec::new(),
             pinned: false,
             reactions: Vec::new(),
             reference: None,

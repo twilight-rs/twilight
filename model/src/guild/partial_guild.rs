@@ -3,10 +3,9 @@ use crate::{
         DefaultMessageNotificationLevel, Emoji, ExplicitContentFilter, MfaLevel, Permissions,
         PremiumTier, Role, SystemChannelFlags, VerificationLevel,
     },
-    id::{ApplicationId, ChannelId, EmojiId, GuildId, RoleId, UserId},
+    id::{ApplicationId, ChannelId, GuildId, UserId},
 };
 use serde::{Deserialize, Serialize};
-use std::collections::HashMap;
 
 #[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
 pub struct PartialGuild {
@@ -18,8 +17,7 @@ pub struct PartialGuild {
     pub default_message_notifications: DefaultMessageNotificationLevel,
     pub description: Option<String>,
     pub discovery_splash: Option<String>,
-    #[serde(with = "serde_mappable_seq")]
-    pub emojis: HashMap<EmojiId, Emoji>,
+    pub emojis: Vec<Emoji>,
     pub explicit_content_filter: ExplicitContentFilter,
     pub features: Vec<String>,
     pub icon: Option<String>,
@@ -41,8 +39,7 @@ pub struct PartialGuild {
     pub premium_subscription_count: Option<u64>,
     pub premium_tier: PremiumTier,
     pub region: String,
-    #[serde(with = "serde_mappable_seq")]
-    pub roles: HashMap<RoleId, Role>,
+    pub roles: Vec<Role>,
     pub rules_channel_id: Option<ChannelId>,
     pub splash: Option<String>,
     pub system_channel_flags: SystemChannelFlags,
@@ -63,7 +60,6 @@ mod tests {
         VerificationLevel,
     };
     use serde_test::Token;
-    use std::collections::HashMap;
 
     #[allow(clippy::too_many_lines)]
     #[test]
@@ -77,7 +73,7 @@ mod tests {
             default_message_notifications: DefaultMessageNotificationLevel::Mentions,
             description: Some("a description".to_owned()),
             discovery_splash: Some("discovery splash hash".to_owned()),
-            emojis: HashMap::new(),
+            emojis: Vec::new(),
             explicit_content_filter: ExplicitContentFilter::MembersWithoutRole,
             features: vec!["a feature".to_owned()],
             icon: Some("icon hash".to_owned()),
@@ -93,7 +89,7 @@ mod tests {
             premium_subscription_count: Some(3),
             premium_tier: PremiumTier::Tier1,
             region: "us-west".to_owned(),
-            roles: HashMap::new(),
+            roles: Vec::new(),
             rules_channel_id: Some(ChannelId(6)),
             splash: Some("splash hash".to_owned()),
             system_channel_flags: SystemChannelFlags::SUPPRESS_PREMIUM_SUBSCRIPTIONS,

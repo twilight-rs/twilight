@@ -1,13 +1,8 @@
-use crate::{
-    guild::Emoji,
-    id::{EmojiId, GuildId},
-};
+use crate::{guild::Emoji, id::GuildId};
 use serde::{Deserialize, Serialize};
-use std::collections::HashMap;
 
 #[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
 pub struct GuildEmojisUpdate {
-    #[serde(with = "serde_mappable_seq")]
-    pub emojis: HashMap<EmojiId, Emoji>,
+    pub emojis: Vec<Emoji>,
     pub guild_id: GuildId,
 }
