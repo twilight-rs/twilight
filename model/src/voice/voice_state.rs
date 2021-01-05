@@ -3,16 +3,10 @@ use crate::{
     id::{ChannelId, GuildId, UserId},
 };
 use serde::{
-    de::{
-        DeserializeSeed, Deserializer, Error as DeError, IgnoredAny, MapAccess, SeqAccess, Visitor,
-    },
+    de::{Deserializer, Error as DeError, IgnoredAny, MapAccess, Visitor},
     Deserialize, Serialize,
 };
-use serde_mappable_seq::Key;
-use std::{
-    collections::HashMap,
-    fmt::{Formatter, Result as FmtResult},
-};
+use std::fmt::{Formatter, Result as FmtResult};
 
 #[allow(clippy::struct_excessive_bools)]
 #[derive(Clone, Debug, Eq, Hash, PartialEq, Serialize)]
@@ -34,12 +28,6 @@ pub struct VoiceState {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub token: Option<String>,
     pub user_id: UserId,
-}
-
-impl Key<'_, UserId> for VoiceState {
-    fn key(&self) -> UserId {
-        self.user_id
-    }
 }
 
 #[derive(Debug, Deserialize)]
@@ -259,39 +247,6 @@ impl<'de> Deserialize<'de> for VoiceState {
         ];
 
         deserializer.deserialize_struct("VoiceState", FIELDS, VoiceStateVisitor)
-    }
-}
-
-#[derive(Clone, Debug, Eq, PartialEq)]
-pub(crate) struct VoiceStateMapDeserializer;
-
-struct VoiceStateMapVisitor;
-
-impl<'de> Visitor<'de> for VoiceStateMapVisitor {
-    type Value = HashMap<UserId, VoiceState>;
-
-    fn expecting(&self, f: &mut Formatter<'_>) -> FmtResult {
-        f.write_str("a sequence of voice states")
-    }
-
-    fn visit_seq<S: SeqAccess<'de>>(self, mut seq: S) -> Result<Self::Value, S::Error> {
-        let mut map = seq
-            .size_hint()
-            .map_or_else(HashMap::new, HashMap::with_capacity);
-
-        while let Some(voice_state) = seq.next_element::<VoiceState>()? {
-            map.insert(voice_state.user_id, voice_state);
-        }
-
-        Ok(map)
-    }
-}
-
-impl<'de> DeserializeSeed<'de> for VoiceStateMapDeserializer {
-    type Value = HashMap<UserId, VoiceState>;
-
-    fn deserialize<D: Deserializer<'de>>(self, deserializer: D) -> Result<Self::Value, D::Error> {
-        deserializer.deserialize_seq(VoiceStateMapVisitor)
     }
 }
 

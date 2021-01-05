@@ -1,14 +1,13 @@
-use crate::{guild::GuildIntegration, id::IntegrationId, user::ConnectionVisibility};
+use crate::{guild::GuildIntegration, user::ConnectionVisibility};
 use serde::{Deserialize, Serialize};
-use std::collections::HashMap;
 
 #[allow(clippy::struct_excessive_bools)]
 #[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
 pub struct Connection {
     pub friend_sync: bool,
     pub id: String,
-    #[serde(with = "serde_mappable_seq", default)]
-    pub integrations: HashMap<IntegrationId, GuildIntegration>,
+    #[serde(default)]
+    pub integrations: Vec<GuildIntegration>,
     #[serde(rename = "type")]
     pub kind: String,
     pub name: String,
@@ -23,14 +22,13 @@ pub struct Connection {
 mod tests {
     use super::{Connection, ConnectionVisibility};
     use serde_test::Token;
-    use std::collections::HashMap;
 
     #[test]
     fn test_connection() {
         let value = Connection {
             friend_sync: true,
             id: "connection id".to_owned(),
-            integrations: HashMap::new(),
+            integrations: Vec::new(),
             kind: "integration type".to_owned(),
             name: "integration name".to_owned(),
             revoked: Some(false),

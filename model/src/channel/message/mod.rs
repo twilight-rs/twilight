@@ -18,11 +18,10 @@ pub use self::{
 use crate::{
     channel::{embed::Embed, Attachment, ChannelMention},
     guild::PartialMember,
-    id::{ChannelId, GuildId, MessageId, RoleId, UserId, WebhookId},
+    id::{ChannelId, GuildId, MessageId, RoleId, WebhookId},
     user::User,
 };
 use serde::{Deserialize, Serialize};
-use std::collections::HashMap;
 
 #[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
 pub struct Message {
@@ -49,8 +48,7 @@ pub struct Message {
     pub mention_channels: Vec<ChannelMention>,
     pub mention_everyone: bool,
     pub mention_roles: Vec<RoleId>,
-    #[serde(with = "serde_mappable_seq")]
-    pub mentions: HashMap<UserId, Mention>,
+    pub mentions: Vec<Mention>,
     pub pinned: bool,
     #[serde(default, skip_serializing_if = "Vec::is_empty")]
     pub reactions: Vec<MessageReaction>,
@@ -85,7 +83,6 @@ mod tests {
         user::User,
     };
     use serde_test::Token;
-    use std::collections::HashMap;
 
     #[allow(clippy::too_many_lines)]
     #[test]
@@ -128,7 +125,7 @@ mod tests {
             mention_channels: Vec::new(),
             mention_everyone: false,
             mention_roles: Vec::new(),
-            mentions: HashMap::new(),
+            mentions: Vec::new(),
             pinned: false,
             reactions: Vec::new(),
             reference: None,
@@ -321,7 +318,7 @@ mod tests {
             }],
             mention_everyone: false,
             mention_roles: Vec::new(),
-            mentions: HashMap::new(),
+            mentions: Vec::new(),
             pinned: false,
             reactions: vec![MessageReaction {
                 count: 7,

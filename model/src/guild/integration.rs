@@ -4,7 +4,6 @@ use crate::{
     user::User,
 };
 use serde::{Deserialize, Serialize};
-use serde_mappable_seq::Key;
 
 #[derive(Clone, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
 pub struct GuildIntegration {
@@ -34,12 +33,6 @@ pub struct GuildIntegration {
     pub syncing: Option<bool>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub user: Option<User>,
-}
-
-impl Key<'_, IntegrationId> for GuildIntegration {
-    fn key(&self) -> IntegrationId {
-        self.id
-    }
 }
 
 #[cfg(test)]

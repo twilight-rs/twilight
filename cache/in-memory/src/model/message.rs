@@ -59,7 +59,7 @@ impl From<Message> for CachedMessage {
             mention_channels: msg.mention_channels,
             mention_everyone: msg.mention_everyone,
             mention_roles: msg.mention_roles,
-            mentions: msg.mentions.keys().copied().collect(),
+            mentions: msg.mentions.iter().map(|mention| mention.id).collect(),
             pinned: msg.pinned,
             reactions: msg.reactions,
             reference: msg.reference,

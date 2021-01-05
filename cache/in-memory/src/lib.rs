@@ -599,32 +599,32 @@ impl InMemoryCache {
         // objects always has a place to put them.
         if self.wants(ResourceType::CHANNEL) {
             self.0.guild_channels.insert(guild.id, HashSet::new());
-            self.cache_guild_channels(guild.id, guild.channels.into_iter().map(|(_, v)| v));
+            self.cache_guild_channels(guild.id, guild.channels);
         }
 
         if self.wants(ResourceType::EMOJI) {
             self.0.guild_emojis.insert(guild.id, HashSet::new());
-            self.cache_emojis(guild.id, guild.emojis.into_iter().map(|(_, v)| v));
+            self.cache_emojis(guild.id, guild.emojis);
         }
 
         if self.wants(ResourceType::MEMBER) {
             self.0.guild_members.insert(guild.id, HashSet::new());
-            self.cache_members(guild.id, guild.members.into_iter().map(|(_, v)| v));
+            self.cache_members(guild.id, guild.members);
         }
 
         if self.wants(ResourceType::PRESENCE) {
             self.0.guild_presences.insert(guild.id, HashSet::new());
-            self.cache_presences(guild.id, guild.presences.into_iter().map(|(_, v)| v));
+            self.cache_presences(guild.id, guild.presences);
         }
 
         if self.wants(ResourceType::ROLE) {
             self.0.guild_roles.insert(guild.id, HashSet::new());
-            self.cache_roles(guild.id, guild.roles.into_iter().map(|(_, v)| v));
+            self.cache_roles(guild.id, guild.roles);
         }
 
         if self.wants(ResourceType::VOICE_STATE) {
             self.0.voice_state_guilds.insert(guild.id, HashSet::new());
-            self.cache_voice_states(guild.voice_states.into_iter().map(|(_, v)| v));
+            self.cache_voice_states(guild.voice_states);
         }
 
         let guild = CachedGuild {
@@ -943,7 +943,7 @@ fn presence_user_id(presence: &Presence) -> UserId {
 #[cfg(test)]
 mod tests {
     use crate::InMemoryCache;
-    use std::{borrow::Cow, collections::HashMap};
+    use std::borrow::Cow;
     use twilight_model::{
         channel::{ChannelType, GuildChannel, TextChannel},
         gateway::payload::{MemberRemove, RoleDelete},
@@ -1066,24 +1066,21 @@ mod tests {
 
     #[test]
     fn test_guild_create_channels_have_guild_ids() {
-        let mut channels = HashMap::new();
-        channels.insert(
-            ChannelId(111),
-            GuildChannel::Text(TextChannel {
-                id: ChannelId(111),
-                guild_id: None,
-                kind: ChannelType::GuildText,
-                last_message_id: None,
-                last_pin_timestamp: None,
-                name: "guild channel with no guild id".to_owned(),
-                nsfw: true,
-                permission_overwrites: Vec::new(),
-                parent_id: None,
-                position: 1,
-                rate_limit_per_user: None,
-                topic: None,
-            }),
-        );
+        let mut channels = Vec::new();
+        channels.push(GuildChannel::Text(TextChannel {
+            id: ChannelId(111),
+            guild_id: None,
+            kind: ChannelType::GuildText,
+            last_message_id: None,
+            last_pin_timestamp: None,
+            name: "guild channel with no guild id".to_owned(),
+            nsfw: true,
+            permission_overwrites: Vec::new(),
+            parent_id: None,
+            position: 1,
+            rate_limit_per_user: None,
+            topic: None,
+        }));
 
         let guild = Guild {
             id: GuildId(123),
@@ -1095,7 +1092,7 @@ mod tests {
             default_message_notifications: DefaultMessageNotificationLevel::Mentions,
             description: None,
             discovery_splash: None,
-            emojis: HashMap::new(),
+            emojis: Vec::new(),
             explicit_content_filter: ExplicitContentFilter::AllMembers,
             features: vec![],
             icon: None,
@@ -1105,7 +1102,7 @@ mod tests {
             max_members: Some(50),
             max_presences: Some(100),
             member_count: Some(25),
-            members: HashMap::new(),
+            members: Vec::new(),
             mfa_level: MfaLevel::Elevated,
             name: "this is a guild".to_owned(),
             owner: Some(false),
@@ -1114,16 +1111,16 @@ mod tests {
             preferred_locale: "en-GB".to_owned(),
             premium_subscription_count: Some(0),
             premium_tier: PremiumTier::None,
-            presences: HashMap::new(),
+            presences: Vec::new(),
             region: "us-east".to_owned(),
-            roles: HashMap::new(),
+            roles: Vec::new(),
             splash: None,
             system_channel_id: None,
             system_channel_flags: SystemChannelFlags::SUPPRESS_JOIN_NOTIFICATIONS,
             rules_channel_id: None,
             unavailable: false,
             verification_level: VerificationLevel::VeryHigh,
-            voice_states: HashMap::new(),
+            voice_states: Vec::new(),
             vanity_url_code: None,
             widget_channel_id: None,
             widget_enabled: None,
