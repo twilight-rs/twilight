@@ -2,6 +2,18 @@
 
 Changelog for `twilight-model`.
 
+## [0.2.8] - 2021-01-05
+
+### Fixes
+
+Skip serializing fields when the source field is undefined when None
+([#641] - [@chamburr]).
+
+Make the `AuditLog` fields public ([#662] - [@jazevedo620]).
+
+[#662]: https://github.com/twilight-rs/twilight/pull/662
+[#641]: https://github.com/twilight-rs/twilight/pull/641
+
 ## [0.2.7] - 2020-12-30
 
 ### Fixes
@@ -215,6 +227,7 @@ Initial release.
 [@DusterTheFirst]: https://github.com/DusterTheFirst
 [@Erk-]: https://github.com/Erk-
 [@Gelbpunkt]: https://github.com/Gelbpunkt
+[@jazevedo620]: https://github.com/jazevedo620
 [@nickelc]: https://github.com/nickelc
 [@sam-kirby]: https://github.com/sam-kirby
 [@vivian]: https://github.com/vivian
@@ -242,6 +255,7 @@ Initial release.
 
 [0.2.0-beta.1:app integrations]: https://github.com/discord/discord-api-docs/commit/a926694e2f8605848bda6b57d21c8817559e5cec
 
+[0.2.8]: https://github.com/twilight-rs/twilight/releases/tag/model-v0.2.8
 [0.2.7]: https://github.com/twilight-rs/twilight/releases/tag/model-v0.2.7
 [0.2.6]: https://github.com/twilight-rs/twilight/releases/tag/model-v0.2.6
 [0.2.5]: https://github.com/twilight-rs/twilight/releases/tag/model-v0.2.5
