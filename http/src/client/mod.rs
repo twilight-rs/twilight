@@ -172,7 +172,7 @@ impl Client {
     ///
     /// Refer to [`allowed_mentions`] for more information.
     ///
-    /// [`allowed_mentions`]: crate::request::channel::message::allowed_mentions
+    /// [`allowed_mentions`]: crate::request::channel::allowed_mentions
     pub fn default_allowed_mentions(&self) -> Option<AllowedMentions> {
         self.state.default_allowed_mentions.clone()
     }
