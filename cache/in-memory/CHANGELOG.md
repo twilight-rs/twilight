@@ -2,6 +2,20 @@
 
 Changelog for `twilight-cache-inmemory`.
 
+## [0.2.6] - 2021-01-05
+
+### Fixes
+
+Update cached message's reactions when a Reaction Remove Emoji event is
+processed ([#652] - [@sam-kirby]).
+
+### Enhancements
+
+Upgrade `dashmap` from version 3 to 4.0 ([#666] - [@vivian]).
+
+[#666]: https://github.com/twilight-rs/twilight/pull/666
+[#652]: https://github.com/twilight-rs/twilight/pull/652
+
 ## [0.2.5] - 2020-12-30
 
 ### Additions
@@ -131,6 +145,8 @@ Initial release.
 [#528]: https://github.com/twilight-rs/twilight/pull/528
 [#524]: https://github.com/twilight-rs/twilight/pull/524
 
+[0.2.6]: https://github.com/twilight-rs/twilight/releases/tag/cache-in-memory-v0.2.6
+[0.2.5]: https://github.com/twilight-rs/twilight/releases/tag/cache-in-memory-v0.2.5
 [0.2.4]: https://github.com/twilight-rs/twilight/releases/tag/cache-in-memory-v0.2.4
 [0.2.3]: https://github.com/twilight-rs/twilight/releases/tag/cache-in-memory-v0.2.3
 [0.2.2]: https://github.com/twilight-rs/twilight/releases/tag/cache-in-memory-v0.2.2
