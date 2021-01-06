@@ -46,8 +46,8 @@ impl Serialize for CommandOption {
         S: Serializer,
     {
         let base = match self {
-            CommandOption::SubCommand(d) | CommandOption::SubCommandGroup(d) => d.base.clone(),
-            CommandOption::String(d) | CommandOption::Integer(d) => d.base.clone(),
+            CommandOption::SubCommand(d) | CommandOption::SubCommandGroup(d) => d.base(),
+            CommandOption::String(d) | CommandOption::Integer(d) => d.base(),
             CommandOption::Boolean(d)
             | CommandOption::User(d)
             | CommandOption::Channel(d)
@@ -80,24 +80,26 @@ impl Serialize for CommandOption {
 impl From<CommandOptionEnvelope> for CommandOption {
     fn from(mut envelope: CommandOptionEnvelope) -> Self {
         match envelope.kind {
-            CommandOptionType::SubCommand => CommandOption::SubCommand(OptionsCommandOptionData {
-                options: envelope.options.take().unwrap_or_default(),
-                base: envelope.into(),
-            }),
-            CommandOptionType::SubCommandGroup => {
-                CommandOption::SubCommandGroup(OptionsCommandOptionData {
-                    options: envelope.options.take().unwrap_or_default(),
-                    base: envelope.into(),
-                })
+            CommandOptionType::SubCommand => {
+                CommandOption::SubCommand(OptionsCommandOptionData::from((
+                    envelope.options.take().unwrap_or_default(),
+                    envelope.into(),
+                )))
             }
-            CommandOptionType::String => CommandOption::String(ChoiceCommandOptionData {
-                choices: envelope.choices.take().unwrap_or_default(),
-                base: envelope.into(),
-            }),
-            CommandOptionType::Integer => CommandOption::Integer(ChoiceCommandOptionData {
-                choices: envelope.choices.take().unwrap_or_default(),
-                base: envelope.into(),
-            }),
+            CommandOptionType::SubCommandGroup => {
+                CommandOption::SubCommandGroup(OptionsCommandOptionData::from((
+                    envelope.options.take().unwrap_or_default(),
+                    envelope.into(),
+                )))
+            }
+            CommandOptionType::String => CommandOption::String(ChoiceCommandOptionData::from((
+                envelope.choices.take().unwrap_or_default(),
+                envelope.into(),
+            ))),
+            CommandOptionType::Integer => CommandOption::Integer(ChoiceCommandOptionData::from((
+                envelope.choices.take().unwrap_or_default(),
+                envelope.into(),
+            ))),
             CommandOptionType::Boolean => CommandOption::Boolean(envelope.into()),
             CommandOptionType::User => CommandOption::User(envelope.into()),
             CommandOptionType::Channel => CommandOption::Channel(envelope.into()),
@@ -141,23 +143,103 @@ impl From<CommandOptionEnvelope> for BaseCommandOptionData {
 
 #[derive(Clone, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
 pub struct OptionsCommandOptionData {
-    #[serde(flatten)]
-    pub base: BaseCommandOptionData,
+    /// The name of the option. It must be 32 characters or less.
+    pub name: String,
+    /// A description of the option. It must be 100 characters or less.
+    pub description: String,
+    /// The first required option that you wish the user to complete. Only one
+    /// CommandOption may be default per command.
+    ///
+    /// For example, given a simple kick command:
+    ///     `/kick @user [reason]`
+    /// You would make the `@user` option default, as it's the first thing you
+    /// would like the user to complete.
+    ///
+    /// NOTE: THIS IS CURRENTLY BROKEN. IT ALWAYS ERRORS WHEN SET.
+    #[serde(default)]
+    pub default: bool,
+    /// Whether or not the option is required to be completed by a user.
+    #[serde(default)]
+    pub required: bool,
+
     /// Used for specifying the nested options in a SubCommand or
     /// SubCommandGroup.
     #[serde(default)]
     pub options: Vec<CommandOption>,
 }
 
+impl From<(Vec<CommandOption>, BaseCommandOptionData)> for OptionsCommandOptionData {
+    fn from(opt: (Vec<CommandOption>, BaseCommandOptionData)) -> Self {
+        Self {
+            name: opt.1.name,
+            description: opt.1.description,
+            default: opt.1.default,
+            required: opt.1.required,
+            options: opt.0,
+        }
+    }
+}
+
+impl OptionsCommandOptionData {
+    fn base(&self) -> BaseCommandOptionData {
+        BaseCommandOptionData {
+            name: self.name.clone(),
+            description: self.description.clone(),
+            default: self.default,
+            required: self.required,
+        }
+    }
+}
+
 #[derive(Clone, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
 pub struct ChoiceCommandOptionData {
-    #[serde(flatten)]
-    pub base: BaseCommandOptionData,
+    /// The name of the option. It must be 32 characters or less.
+    pub name: String,
+    /// A description of the option. It must be 100 characters or less.
+    pub description: String,
+    /// The first required option that you wish the user to complete. Only one
+    /// CommandOption may be default per command.
+    ///
+    /// For example, given a simple kick command:
+    ///     `/kick @user [reason]`
+    /// You would make the `@user` option default, as it's the first thing you
+    /// would like the user to complete.
+    ///
+    /// NOTE: THIS IS CURRENTLY BROKEN. IT ALWAYS ERRORS WHEN SET.
+    #[serde(default)]
+    pub default: bool,
+    /// Whether or not the option is required to be completed by a user.
+    #[serde(default)]
+    pub required: bool,
+
     /// Predetermined choices may be defined for a user to select. When
     /// completing this option, the user is prompted with a selector of all
     /// available choices.
     #[serde(default)]
     pub choices: Vec<CommandOptionChoice>,
+}
+
+impl From<(Vec<CommandOptionChoice>, BaseCommandOptionData)> for ChoiceCommandOptionData {
+    fn from(opt: (Vec<CommandOptionChoice>, BaseCommandOptionData)) -> Self {
+        Self {
+            name: opt.1.name,
+            description: opt.1.description,
+            default: opt.1.default,
+            required: opt.1.required,
+            choices: opt.0,
+        }
+    }
+}
+
+impl ChoiceCommandOptionData {
+    fn base(&self) -> BaseCommandOptionData {
+        BaseCommandOptionData {
+            name: self.name.clone(),
+            description: self.description.clone(),
+            default: self.default,
+            required: self.required,
+        }
+    }
 }
 
 /// Specifies an option that a user must choose from in a dropdown.
