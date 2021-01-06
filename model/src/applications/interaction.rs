@@ -2,13 +2,10 @@ use super::{InteractionData, InteractionType};
 use crate::guild::PartialMember;
 use crate::id::*;
 use serde::{self, Deserialize, Deserializer, Serialize};
-use std::fmt::{Formatter, Result as FmtResult};
-use std::{
-    convert::{TryFrom, TryInto},
-    fmt::Display,
-};
+use std::convert::{TryFrom, TryInto};
+use std::fmt::{Display, Formatter, Result as FmtResult};
 
-/// Interaction is the payload received when a user executes an interaction.
+/// The payload received when a user executes an interaction.
 #[derive(Clone, Debug, Eq, Hash, PartialEq, Serialize)]
 #[serde(untagged)]
 pub enum Interaction {

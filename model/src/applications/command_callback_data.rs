@@ -1,4 +1,5 @@
 use crate::channel::embed::Embed;
+
 use serde::{Deserialize, Serialize};
 
 /// CommandCallbackData is the extra data sent when responding to an Interaction
