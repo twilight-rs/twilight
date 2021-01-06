@@ -20,6 +20,7 @@ impl<'de> Deserialize<'de> for Interaction {
     }
 }
 
+/// Common fields between different [`Interaction`](crate::applications::Interaction) types.
 #[derive(Clone, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
 pub struct BaseInteraction {
     pub id: InteractionId,
@@ -28,8 +29,7 @@ pub struct BaseInteraction {
     pub token: String,
 }
 
-/// GuildInteraction is the payload received when an interaction is received from
-/// a guild.
+/// The payload received when an interaction originated from a guild.
 #[derive(Clone, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
 pub struct GuildInteraction {
     /// The guild the interaction was triggered from.
@@ -69,8 +69,8 @@ impl<'a> TryFrom<InteractionEnvelope> for Interaction {
     }
 }
 
-/// InteractionEnvelope is the raw interaction payload received from Discord. It
-/// is checked and parsed into an Interaction.
+/// The raw interaction payload received from Discord. It is checked and parsed
+/// into an Interaction.
 ///
 /// Only used internally.
 #[derive(Clone, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
@@ -88,7 +88,7 @@ struct InteractionEnvelope {
 
 #[derive(Debug)]
 enum InteractionEnvelopeParseError {
-    MissingData,
+    MissingData(InteractionType),
     DataMismatch {
         wanted: InteractionData,
         got: InteractionData,
@@ -98,7 +98,9 @@ enum InteractionEnvelopeParseError {
 impl Display for InteractionEnvelopeParseError {
     fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
         match self {
-            Self::MissingData => f.write_str("the data field was not present"),
+            Self::MissingData(kind) => {
+                write!(f, "data not present, but required for {}", kind.name())
+            }
             Self::DataMismatch { wanted, got } => write!(
                 f,
                 "invalid data enum: wanted {} got {}",
@@ -119,7 +121,7 @@ impl InteractionEnvelope {
                 let data = self
                     .data
                     .take()
-                    .ok_or(InteractionEnvelopeParseError::MissingData)?;
+                    .ok_or(InteractionEnvelopeParseError::MissingData(self.kind))?;
 
                 match data {
                     InteractionData::ApplicationCommand(_) => Ok(data),

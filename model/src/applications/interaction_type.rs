@@ -13,6 +13,15 @@ pub enum InteractionType {
     ApplicationCommand = 2,
 }
 
+impl InteractionType {
+    pub fn name(&self) -> &'static str {
+        match self {
+            InteractionType::Ping => "Ping",
+            InteractionType::ApplicationCommand => "ApplicationCommand",
+        }
+    }
+}
+
 #[derive(Debug)]
 pub struct UnknownInteractionTypeError {
     value: u8,

@@ -5,7 +5,7 @@ use super::CommandCallbackData;
 use serde::{Deserialize, Deserializer, Serialize, Serializer};
 use serde_repr::{Deserialize_repr, Serialize_repr};
 
-/// InteractionResponse is the payload for responding to an interaction.
+/// The payload used for responding to an interaction.
 #[derive(Clone, Debug, Eq, Hash, PartialEq)]
 pub enum InteractionResponse {
     /// Used when responding to an interaction of type Ping.
@@ -99,11 +99,9 @@ enum InteractionResponseEnvelopeParseError {
 impl Display for InteractionResponseEnvelopeParseError {
     fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
         match self {
-            Self::MissingData(kind) => write!(
-                f,
-                "data field not present, but required for {}",
-                kind.name()
-            ),
+            Self::MissingData(kind) => {
+                write!(f, "data not present, but required for {}", kind.name())
+            }
         }
     }
 }
