@@ -21,11 +21,11 @@ pub enum InteractionResponse {
     /// Responds to an interaction with a message showing the original command.
     ChannelMessageWithSource(CommandCallbackData),
     /// Acknowledges an interaction, showing the original command.
-    ACKWithSource,
+    AckWithSource,
 }
 
 impl InteractionResponse {
-    fn kind(&self) -> InteractionResponseType {
+    pub fn kind(&self) -> InteractionResponseType {
         match self {
             InteractionResponse::Pong => InteractionResponseType::Pong,
             InteractionResponse::Acknowledge => InteractionResponseType::Acknowledge,
@@ -33,17 +33,20 @@ impl InteractionResponse {
             InteractionResponse::ChannelMessageWithSource(_) => {
                 InteractionResponseType::ChannelMessageWithSource
             }
-            InteractionResponse::ACKWithSource => InteractionResponseType::ACKWithSource,
+            InteractionResponse::AckWithSource => InteractionResponseType::AckWithSource,
         }
     }
 
+    // data is intentionally not exported because it's highly likely that
+    // CommandCallbackData will not be the only additional data contained in a
+    // response.
     fn data(&self) -> Option<&CommandCallbackData> {
         match self {
             InteractionResponse::Pong => None,
             InteractionResponse::Acknowledge => None,
             InteractionResponse::ChannelMessage(d) => Some(d),
             InteractionResponse::ChannelMessageWithSource(d) => Some(d),
-            InteractionResponse::ACKWithSource => None,
+            InteractionResponse::AckWithSource => None,
         }
     }
 }
@@ -88,7 +91,7 @@ impl<'a> TryFrom<InteractionResponseEnvelope> for InteractionResponse {
                     InteractionResponseEnvelopeParseError::MissingData(envelope.kind),
                 )?)
             }
-            InteractionResponseType::ACKWithSource => InteractionResponse::ACKWithSource,
+            InteractionResponseType::AckWithSource => InteractionResponse::AckWithSource,
         };
 
         Ok(i)
@@ -124,22 +127,22 @@ struct InteractionResponseEnvelope {
     Clone, Copy, Debug, Deserialize_repr, Eq, Hash, Ord, PartialEq, PartialOrd, Serialize_repr,
 )]
 #[repr(u8)]
-enum InteractionResponseType {
+pub enum InteractionResponseType {
     Pong = 1,
     Acknowledge = 2,
     ChannelMessage = 3,
     ChannelMessageWithSource = 4,
-    ACKWithSource = 5,
+    AckWithSource = 5,
 }
 
 impl InteractionResponseType {
-    fn name(&self) -> &'static str {
+    pub fn name(&self) -> &'static str {
         match self {
             InteractionResponseType::Pong => "Pong",
             InteractionResponseType::Acknowledge => "Acknowledge",
             InteractionResponseType::ChannelMessage => "ChannelMessage",
             InteractionResponseType::ChannelMessageWithSource => "ChannelMessageWithSource",
-            InteractionResponseType::ACKWithSource => "ACKWithSource",
+            InteractionResponseType::AckWithSource => "AckWithSource",
         }
     }
 }

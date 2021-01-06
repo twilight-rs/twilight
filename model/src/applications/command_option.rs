@@ -1,14 +1,113 @@
-use serde::{Deserialize, Serialize};
+use std::convert::From;
+
+use serde::{Deserialize, Deserializer, Serialize, Serializer};
 use serde_repr::{Deserialize_repr, Serialize_repr};
 
-/// CommandOption is an option that can be supplied to an ApplicationCommand, or
-/// nested under another CommandOption of type SubCommand or SubCommandGroup.
-///
-/// Choices and options are mutually exclusive.
+/// An option for a [`Command`](crate::applications::Command).
+#[derive(Clone, Debug, Eq, Hash, PartialEq)]
+pub enum CommandOption {
+    SubCommand(OptionsCommandOptionData),
+    SubCommandGroup(OptionsCommandOptionData),
+    String(ChoiceCommandOptionData),
+    Integer(ChoiceCommandOptionData),
+    Boolean(BaseCommandOptionData),
+    User(BaseCommandOptionData),
+    Channel(BaseCommandOptionData),
+    Role(BaseCommandOptionData),
+}
+
+impl CommandOption {
+    pub fn kind(&self) -> CommandOptionType {
+        match self {
+            CommandOption::SubCommand(_) => CommandOptionType::SubCommand,
+            CommandOption::SubCommandGroup(_) => CommandOptionType::SubCommandGroup,
+            CommandOption::String(_) => CommandOptionType::String,
+            CommandOption::Integer(_) => CommandOptionType::Integer,
+            CommandOption::Boolean(_) => CommandOptionType::Boolean,
+            CommandOption::User(_) => CommandOptionType::User,
+            CommandOption::Channel(_) => CommandOptionType::Channel,
+            CommandOption::Role(_) => CommandOptionType::Role,
+        }
+    }
+}
+
+impl<'de> Deserialize<'de> for CommandOption {
+    fn deserialize<D>(deserializer: D) -> Result<CommandOption, D::Error>
+    where
+        D: Deserializer<'de>,
+    {
+        Ok(CommandOptionEnvelope::deserialize(deserializer)?.into())
+    }
+}
+
+impl Serialize for CommandOption {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: Serializer,
+    {
+        let base = match self {
+            CommandOption::SubCommand(d) | CommandOption::SubCommandGroup(d) => d.base.clone(),
+            CommandOption::String(d) | CommandOption::Integer(d) => d.base.clone(),
+            CommandOption::Boolean(d)
+            | CommandOption::User(d)
+            | CommandOption::Channel(d)
+            | CommandOption::Role(d) => d.clone(),
+        };
+        let choices = match self {
+            CommandOption::String(d) | CommandOption::Integer(d) => Some(d.choices.clone()),
+            _ => None,
+        };
+        let options = match self {
+            CommandOption::SubCommand(d) | CommandOption::SubCommandGroup(d) => {
+                Some(d.options.clone())
+            }
+            _ => None,
+        };
+
+        CommandOptionEnvelope {
+            kind: self.kind(),
+            name: base.name,
+            description: base.description,
+            default: base.default,
+            required: base.required,
+            choices,
+            options,
+        }
+        .serialize(serializer)
+    }
+}
+
+impl From<CommandOptionEnvelope> for CommandOption {
+    fn from(mut envelope: CommandOptionEnvelope) -> Self {
+        match envelope.kind {
+            CommandOptionType::SubCommand => CommandOption::SubCommand(OptionsCommandOptionData {
+                options: envelope.options.take().unwrap_or_default(),
+                base: envelope.into(),
+            }),
+            CommandOptionType::SubCommandGroup => {
+                CommandOption::SubCommandGroup(OptionsCommandOptionData {
+                    options: envelope.options.take().unwrap_or_default(),
+                    base: envelope.into(),
+                })
+            }
+            CommandOptionType::String => CommandOption::String(ChoiceCommandOptionData {
+                choices: envelope.choices.take().unwrap_or_default(),
+                base: envelope.into(),
+            }),
+            CommandOptionType::Integer => CommandOption::Integer(ChoiceCommandOptionData {
+                choices: envelope.choices.take().unwrap_or_default(),
+                base: envelope.into(),
+            }),
+            CommandOptionType::Boolean => CommandOption::Boolean(envelope.into()),
+            CommandOptionType::User => CommandOption::User(envelope.into()),
+            CommandOptionType::Channel => CommandOption::Channel(envelope.into()),
+            CommandOptionType::Role => CommandOption::Role(envelope.into()),
+        }
+    }
+}
+
 #[derive(Clone, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
-pub struct CommandOption {
-    #[serde(rename = "type")]
-    pub kind: CommandOptionType,
+pub struct BaseCommandOptionData {
     /// The name of the option. It must be 32 characters or less.
     pub name: String,
     /// A description of the option. It must be 100 characters or less.
@@ -27,15 +126,70 @@ pub struct CommandOption {
     /// Whether or not the option is required to be completed by a user.
     #[serde(default)]
     pub required: bool,
-    /// If the CommandOption is of type String or Int, predetermined choices may
-    /// be defined for a user to select. When completing this option, the user is
-    /// prompted with a selector of all available choices.
-    #[serde(default)]
-    pub choices: Vec<CommandOptionChoice>,
-    /// If the CommandOption is of type SubCommand or SubCommandGroup, the nested
-    /// options are supplied here.
+}
+
+impl From<CommandOptionEnvelope> for BaseCommandOptionData {
+    fn from(envelope: CommandOptionEnvelope) -> Self {
+        Self {
+            name: envelope.name,
+            description: envelope.description,
+            default: envelope.default,
+            required: envelope.required,
+        }
+    }
+}
+
+#[derive(Clone, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
+pub struct OptionsCommandOptionData {
+    #[serde(flatten)]
+    pub base: BaseCommandOptionData,
+    /// Used for specifying the nested options in a SubCommand or
+    /// SubCommandGroup.
     #[serde(default)]
     pub options: Vec<CommandOption>,
+}
+
+#[derive(Clone, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
+pub struct ChoiceCommandOptionData {
+    #[serde(flatten)]
+    pub base: BaseCommandOptionData,
+    /// Predetermined choices may be defined for a user to select. When
+    /// completing this option, the user is prompted with a selector of all
+    /// available choices.
+    #[serde(default)]
+    pub choices: Vec<CommandOptionChoice>,
+}
+
+/// Specifies an option that a user must choose from in a dropdown.
+///
+/// Refer to [the discord docs] for more information.
+///
+/// [the discord docs]: https://discord.com/developers/docs/interactions/slash-commands#applicationcommandoptionchoice
+#[serde(untagged)]
+#[derive(Clone, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
+pub enum CommandOptionChoice {
+    String { name: String, value: String },
+    Int { name: String, value: i64 },
+}
+
+/// CommandOption is an option that can be supplied to an ApplicationCommand, or
+/// nested under another CommandOption of type SubCommand or SubCommandGroup.
+///
+/// Choices and options are mutually exclusive.
+#[derive(Clone, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
+struct CommandOptionEnvelope {
+    #[serde(rename = "type")]
+    pub kind: CommandOptionType,
+    pub name: String,
+    pub description: String,
+    #[serde(default)]
+    pub default: bool,
+    #[serde(default)]
+    pub required: bool,
+    #[serde(default)]
+    pub choices: Option<Vec<CommandOptionChoice>>,
+    #[serde(default)]
+    pub options: Option<Vec<CommandOption>>,
 }
 
 /// CommandOptionType specifies the type of a CommandOption.
@@ -52,16 +206,4 @@ pub enum CommandOptionType {
     User = 6,
     Channel = 7,
     Role = 8,
-}
-
-/// Specifies an option that a user must choose from in a dropdown.
-///
-/// Refer to [the discord docs] for more information.
-///
-/// [the discord docs]: https://discord.com/developers/docs/interactions/slash-commands#applicationcommandoptionchoice
-#[serde(untagged)]
-#[derive(Clone, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
-pub enum CommandOptionChoice {
-    String { name: String, value: String },
-    Int { name: String, value: i64 },
 }
