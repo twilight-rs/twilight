@@ -21,7 +21,7 @@ pub enum InteractionResponse {
     /// Responds to an interaction with a message showing the original command.
     ChannelMessageWithSource(CommandCallbackData),
     /// Acknowledges an interaction, showing the original command.
-    AckWithSource,
+    ACKWithSource,
 }
 
 impl InteractionResponse {
@@ -33,7 +33,7 @@ impl InteractionResponse {
             InteractionResponse::ChannelMessageWithSource(_) => {
                 InteractionResponseType::ChannelMessageWithSource
             }
-            InteractionResponse::AckWithSource => InteractionResponseType::ACKWithSource,
+            InteractionResponse::ACKWithSource => InteractionResponseType::ACKWithSource,
         }
     }
 
@@ -43,7 +43,7 @@ impl InteractionResponse {
             InteractionResponse::Acknowledge => None,
             InteractionResponse::ChannelMessage(d) => Some(d),
             InteractionResponse::ChannelMessageWithSource(d) => Some(d),
-            InteractionResponse::AckWithSource => None,
+            InteractionResponse::ACKWithSource => None,
         }
     }
 }
@@ -88,7 +88,7 @@ impl<'a> TryFrom<InteractionResponseEnvelope> for InteractionResponse {
                     InteractionResponseEnvelopeParseError::MissingData(envelope.kind),
                 )?)
             }
-            InteractionResponseType::ACKWithSource => InteractionResponse::AckWithSource,
+            InteractionResponseType::ACKWithSource => InteractionResponse::ACKWithSource,
         };
 
         Ok(i)
