@@ -5,7 +5,7 @@ use once_cell::sync::Lazy;
 use std::future::Future;
 use twilight_model::applications::{
     CommandCallbackData, GuildInteraction, Interaction, InteractionData, InteractionResponse,
-    InteractionResponseType, InteractionType,
+    InteractionType,
 };
 
 use hyper::service::{make_service_fn, service_fn};
@@ -73,10 +73,7 @@ where
 
     match interaction {
         Interaction::Global(i) if i.kind == InteractionType::Ping => {
-            let response = InteractionResponse {
-                kind: InteractionResponseType::Pong,
-                data: None,
-            };
+            let response = InteractionResponse::Pong;
 
             let json = serde_json::to_vec(&response)?;
 
@@ -84,11 +81,11 @@ where
                 .status(StatusCode::OK)
                 .body(json.into())?)
         }
-        Interaction::WithGuildId(i) => {
+        Interaction::Guild(i) => {
             let response = f(i).await?;
 
-            let res_status = match response.kind {
-                InteractionResponseType::Acknowledge => StatusCode::ACCEPTED,
+            let res_status = match response {
+                InteractionResponse::Acknowledge => StatusCode::ACCEPTED,
                 _ => StatusCode::OK,
             };
 
@@ -114,27 +111,23 @@ async fn handler(i: GuildInteraction) -> Result<InteractionResponse, GenericErro
 }
 
 async fn debug(i: GuildInteraction) -> Result<InteractionResponse, GenericError> {
-    Ok(InteractionResponse {
-        kind: InteractionResponseType::ChannelMessageWithSource,
-        data: Some(CommandCallbackData {
+    Ok(InteractionResponse::ChannelMessageWithSource(
+        CommandCallbackData {
             tts: None,
             content: format!("```rust\n{:?}\n```", i),
-            embeds: vec![],
-            // flags: MessageFlags::empty(),
-        }),
-    })
+            embeds: Default::default(),
+        },
+    ))
 }
 
 async fn vroom(_: GuildInteraction) -> Result<InteractionResponse, GenericError> {
-    Ok(InteractionResponse {
-        kind: InteractionResponseType::ChannelMessageWithSource,
-        data: Some(CommandCallbackData {
+    Ok(InteractionResponse::ChannelMessageWithSource(
+        CommandCallbackData {
             tts: None,
-            content: "Vroom vroom".to_string(),
-            embeds: vec![],
-            // flags: MessageFlags::empty(),
-        }),
-    })
+            content: "Vroom vroom".to_owned(),
+            embeds: Default::default(),
+        },
+    ))
 }
 
 #[tokio::main]
