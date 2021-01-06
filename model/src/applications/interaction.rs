@@ -6,11 +6,17 @@ use std::convert::{TryFrom, TryInto};
 use std::fmt::{Display, Formatter, Result as FmtResult};
 
 /// The payload received when a user executes an interaction.
+///
+/// Refer to [the discord docs] for more information.
+///
+/// [the discord docs]: https://discord.com/developers/docs/interactions/slash-commands#interaction
 #[derive(Clone, Debug, Eq, Hash, PartialEq, Serialize)]
 #[serde(untagged)]
 pub enum Interaction {
-    Guild(GuildInteraction),
+    /// Global interactions do not originate from a guild.
     Global(BaseInteraction),
+    /// Guild interactions originate from within a guild.
+    Guild(GuildInteraction),
 }
 
 impl<'de> Deserialize<'de> for Interaction {
@@ -70,7 +76,7 @@ impl<'a> TryFrom<InteractionEnvelope> for Interaction {
 }
 
 /// The raw interaction payload received from Discord. It is checked and parsed
-/// into an Interaction.
+/// into an [`Interaction`](crate::applications::Interaction).
 ///
 /// Only used internally.
 #[derive(Clone, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
@@ -137,7 +143,7 @@ impl InteractionEnvelope {
 
 #[cfg(test)]
 mod test {
-    use crate::applications::interaction_data::CommandInteractionData;
+    use crate::applications::CommandData;
     use crate::applications::*;
     use crate::guild::PartialMember;
     use crate::guild::Permissions;
@@ -182,8 +188,8 @@ mod test {
 }"#;
 
         let expected = Interaction::Guild(GuildInteraction {
-            data: InteractionData::ApplicationCommand(CommandInteractionData {
-                options: vec![InteractionDataOption::String {
+            data: InteractionData::ApplicationCommand(CommandData {
+                options: vec![CommandDataOption::String {
                     name: "cardname".to_string(),
                     value: "The Gitrog Monster".to_string(),
                 }],

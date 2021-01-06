@@ -1,12 +1,10 @@
 use serde::{Deserialize, Serialize};
 
-/*
-| Field  | Type          | Description               |
-|--------|---------------|---------------------------|
-| name\* | string        | name of the valid choice  |
-| value  | string or int | value of the valid choice |
-*/
-
+/// Specifies an option that a user must choose from in a dropdown.
+///
+/// Refer to [the discord docs] for more information.
+///
+/// [the discord docs]: https://discord.com/developers/docs/interactions/slash-commands#applicationcommandoptionchoice
 #[serde(untagged)]
 #[derive(Clone, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
 pub enum CommandOptionChoice {

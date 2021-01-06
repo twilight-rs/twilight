@@ -21,8 +21,8 @@ impl<'a> CreateGuildCommand<'a> {
     ) -> Self {
         Self {
             command: Command {
+                id: None,
                 application_id,
-                command_id: None,
                 name,
                 description,
                 options: vec![],

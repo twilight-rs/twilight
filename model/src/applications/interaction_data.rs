@@ -1,14 +1,15 @@
-use super::InteractionDataOption;
-use crate::id::CommandId;
+use super::command::CommandData;
 use serde::{Deserialize, Serialize};
 
-/// InteractionData is an enum containing extra data corresponding to which
-/// interaction type was received.
+/// An enum containing extra data corresponding to which interaction type was
+/// received.
+///
+/// There is no direct doc equivalent.
 #[derive(Clone, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
 #[serde(untagged)]
 pub enum InteractionData {
     Ping,
-    ApplicationCommand(CommandInteractionData),
+    ApplicationCommand(CommandData),
 }
 
 impl InteractionData {
@@ -18,14 +19,4 @@ impl InteractionData {
             InteractionData::ApplicationCommand(_) => "ApplicationCommand",
         }
     }
-}
-
-/// CommandInteractionData is the data received when an ApplicationCommand
-/// interaction is executed.
-#[derive(Clone, Debug, Deserialize, Eq, Hash, PartialEq, Serialize, Default)]
-pub struct CommandInteractionData {
-    pub id: CommandId,
-    pub name: String,
-    #[serde(default)]
-    pub options: Vec<InteractionDataOption>,
 }

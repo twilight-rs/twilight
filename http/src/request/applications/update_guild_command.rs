@@ -22,8 +22,8 @@ impl<'a> UpdateGuildCommand<'a> {
     ) -> Self {
         Self {
             command: Command {
+                id: Some(command_id),
                 application_id,
-                command_id: Some(command_id),
                 name,
                 description,
                 options: vec![],
@@ -52,7 +52,7 @@ impl<'a> UpdateGuildCommand<'a> {
                 //
                 // TODO: REVIEW-QUESTION: Would it be better to have
                 // another command_id outside of the command struct?
-                command_id: self.command.command_id.unwrap().0,
+                command_id: self.command.id.unwrap().0,
                 guild_id: self.guild_id.0,
             },
         ));

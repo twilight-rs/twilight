@@ -6,6 +6,10 @@ use serde::{Deserialize, Deserializer, Serialize, Serializer};
 use serde_repr::{Deserialize_repr, Serialize_repr};
 
 /// The payload used for responding to an interaction.
+///
+/// Refer to [the discord docs] for more information.
+///
+/// [the discord docs]: https://discord.com/developers/docs/interactions/slash-commands#interaction-response
 #[derive(Clone, Debug, Eq, Hash, PartialEq)]
 pub enum InteractionResponse {
     /// Used when responding to an interaction of type Ping.

@@ -2,8 +2,9 @@ use crate::channel::embed::Embed;
 
 use serde::{Deserialize, Serialize};
 
-/// CommandCallbackData is the extra data sent when responding to an Interaction
-/// of type ApplicationCommand when intending to send a message in the response.
+/// Optional extra data sent when responding with an
+/// [`Interaction`](crate::applications::Interaction) of type ApplicationCommand
+/// when intending to send a message in the response.
 #[derive(Clone, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
 pub struct CommandCallbackData {
     pub tts: Option<bool>,

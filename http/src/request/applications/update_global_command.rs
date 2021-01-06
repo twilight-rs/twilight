@@ -20,8 +20,8 @@ impl<'a> UpdateGlobalCommand<'a> {
     ) -> Self {
         Self {
             command: Command {
+                id: Some(command_id),
                 application_id,
-                command_id: Some(command_id),
                 name,
                 description,
                 options: vec![],
@@ -46,7 +46,7 @@ impl<'a> UpdateGlobalCommand<'a> {
                 // TODO: Figure out if this is how we want to do it,
                 // similar to the same question in the update guild
                 // command file.
-                command_id: self.command.command_id.unwrap().0,
+                command_id: self.command.id.unwrap().0,
             },
         ));
         self.fut.replace(Box::pin(self.http.verify(req)));

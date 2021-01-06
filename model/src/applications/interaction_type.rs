@@ -3,7 +3,11 @@ use serde_repr::{Deserialize_repr, Serialize_repr};
 use std::convert::TryFrom;
 use std::fmt::{Display, Formatter, Result as FmtResult};
 
-/// InteractionType denotes the types of possible interactions.
+/// Denotes the type integers of possible interactions.
+///
+/// Refer to [the discord docs] for more information.
+///
+/// [the discord docs]: https://discord.com/developers/docs/interactions/slash-commands#interaction-interactiontype
 #[derive(
     Clone, Copy, Debug, Deserialize_repr, Eq, Hash, Ord, PartialEq, PartialOrd, Serialize_repr,
 )]
@@ -29,7 +33,7 @@ pub struct UnknownInteractionTypeError {
 
 impl Display for UnknownInteractionTypeError {
     fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
-        write!(f, "Got unknown interaction type: {}", self.value)
+        write!(f, "unknown interaction type: {}", self.value)
     }
 }
 
