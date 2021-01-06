@@ -2,17 +2,8 @@ use super::InteractionDataOption;
 use crate::id::CommandId;
 use serde::{Deserialize, Serialize};
 
-/*
- * # ApplicationCommandInteractionData
- *
- * | Field   | Type                                             | Description                       |
- * |---------|--------------------------------------------------|-----------------------------------|
- * | id      | snowflake                                        | the ID of the invoked command     |
- * | name    | string                                           | the name of the invoked command   |
- * | options | array of ApplicationCommandInteractionDataOption | the params + values from the user |
- */
-
-/// Interactions have a common data field with unique information based on the InteractionType
+/// InteractionData is an enum containing extra data corresponding to which
+/// interaction type was received.
 #[derive(Clone, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
 #[serde(untagged)]
 pub enum InteractionData {
@@ -29,6 +20,8 @@ impl InteractionData {
     }
 }
 
+/// CommandInteractionData is the data received when an ApplicationCommand
+/// interaction is executed.
 #[derive(Clone, Debug, Deserialize, Eq, Hash, PartialEq, Serialize, Default)]
 pub struct CommandInteractionData {
     pub id: CommandId,

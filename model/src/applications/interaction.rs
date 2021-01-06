@@ -8,24 +8,11 @@ use std::{
     fmt::Display,
 };
 
-/*
- * # Interaction
- *
- * | Field          | Type                              |
- * |----------------|-----------------------------------|
- * | id             | snowflake                         |
- * | type           | InteractionType                   |
- * | data?\*        | ApplicationCommandInteractionData |
- * | guild_id       | snowflake                         |
- * | channel_id     | snowflake                         |
- * | member         | GuildMember                       |
- * | token          | string                            |
- */
-
+/// Interaction is the payload received when a user executes an interaction.
 #[derive(Clone, Debug, Eq, Hash, PartialEq, Serialize)]
 #[serde(untagged)]
 pub enum Interaction {
-    WithGuildId(GuildInteraction),
+    Guild(GuildInteraction),
     Global(BaseInteraction),
 }
 
@@ -44,12 +31,19 @@ pub struct BaseInteraction {
     pub token: String,
 }
 
+/// GuildInteraction is the payload received when an interaction is received from
+/// a guild.
 #[derive(Clone, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
 pub struct GuildInteraction {
-    pub data: InteractionData,
+    /// The guild the interaction was triggered from.
     pub guild_id: GuildId,
+    /// The channel the interaction was triggered from.
     pub channel_id: ChannelId,
+    /// The member that triggered the interaction.
     pub member: PartialMember,
+    /// The data corresponding to the InteractionType.
+    pub data: InteractionData,
+    /// Common interaction fields.
     #[serde(flatten)]
     pub interaction: BaseInteraction,
 }
@@ -67,20 +61,19 @@ impl<'a> TryFrom<InteractionEnvelope> for Interaction {
 
         match data {
             InteractionData::Ping => Ok(Interaction::Global(base_interaction)),
-            InteractionData::ApplicationCommand(cmd) => {
-                Ok(Interaction::WithGuildId(GuildInteraction {
-                    guild_id: envelope.guild_id.unwrap(),
-                    channel_id: envelope.channel_id.unwrap(),
-                    member: envelope.member.unwrap(),
-                    data: InteractionData::ApplicationCommand(cmd),
-                    interaction: base_interaction,
-                }))
-            }
+            InteractionData::ApplicationCommand(cmd) => Ok(Interaction::Guild(GuildInteraction {
+                guild_id: envelope.guild_id.unwrap(),
+                channel_id: envelope.channel_id.unwrap(),
+                member: envelope.member.unwrap(),
+                data: InteractionData::ApplicationCommand(cmd),
+                interaction: base_interaction,
+            })),
         }
     }
 }
 
-/// Raw incoming payload from gateway/http.
+/// InteractionEnvelope is the raw interaction payload received from Discord. It
+/// is checked and parsed into an Interaction.
 ///
 /// Only used internally.
 #[derive(Clone, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
@@ -189,7 +182,7 @@ mod test {
     "channel_id": "645027906669510667"
 }"#;
 
-        let expected = Interaction::WithGuildId(GuildInteraction {
+        let expected = Interaction::Guild(GuildInteraction {
             data: InteractionData::ApplicationCommand(CommandInteractionData {
                 options: vec![InteractionDataOption::String {
                     name: "cardname".to_string(),

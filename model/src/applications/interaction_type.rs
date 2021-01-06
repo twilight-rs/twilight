@@ -3,16 +3,7 @@ use serde_repr::{Deserialize_repr, Serialize_repr};
 use std::convert::TryFrom;
 use std::fmt::{Display, Formatter, Result as FmtResult};
 
-/*
- * # InteractionType
- *
- * | Name               | Value |
- * |--------------------|-------|
- * | Ping               | 1     |
- * | ApplicationCommand | 2     |
- */
-
-/// Types of interactions available
+/// InteractionType denotes the types of possible interactions.
 #[derive(
     Clone, Copy, Debug, Deserialize_repr, Eq, Hash, Ord, PartialEq, PartialOrd, Serialize_repr,
 )]
