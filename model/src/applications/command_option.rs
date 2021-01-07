@@ -289,3 +289,18 @@ pub enum CommandOptionType {
     Channel = 7,
     Role = 8,
 }
+
+impl CommandOptionType {
+    pub fn name(&self) -> &'static str {
+        match self {
+            CommandOptionType::SubCommand => "SubCommand",
+            CommandOptionType::SubCommandGroup => "SubCommandGroup",
+            CommandOptionType::String => "String",
+            CommandOptionType::Integer => "Integer",
+            CommandOptionType::Boolean => "Boolean",
+            CommandOptionType::User => "User",
+            CommandOptionType::Channel => "Channel",
+            CommandOptionType::Role => "Role",
+        }
+    }
+}

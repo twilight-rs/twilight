@@ -58,8 +58,19 @@ pub enum CommandDataOption {
         name: String,
         value: bool,
     },
-    Subcommand {
+    SubCommand {
         name: String,
         options: Vec<CommandDataOption>,
     },
+}
+
+impl CommandDataOption {
+    pub fn kind(&self) -> &'static str {
+        match self {
+            CommandDataOption::String { .. } => "String",
+            CommandDataOption::Integer { .. } => "Integer",
+            CommandDataOption::Boolean { .. } => "Boolean",
+            CommandDataOption::SubCommand { .. } => "SubCommand",
+        }
+    }
 }
