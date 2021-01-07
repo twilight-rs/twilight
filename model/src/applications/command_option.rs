@@ -108,7 +108,7 @@ impl From<CommandOptionEnvelope> for CommandOption {
     }
 }
 
-#[derive(Clone, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
+#[derive(Clone, Debug, Default, Deserialize, Eq, Hash, PartialEq, Serialize)]
 pub struct BaseCommandOptionData {
     /// The name of the option. It must be 32 characters or less.
     pub name: String,
@@ -141,7 +141,7 @@ impl From<CommandOptionEnvelope> for BaseCommandOptionData {
     }
 }
 
-#[derive(Clone, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
+#[derive(Clone, Debug, Default, Deserialize, Eq, Hash, PartialEq, Serialize)]
 pub struct OptionsCommandOptionData {
     /// The name of the option. It must be 32 characters or less.
     pub name: String,
@@ -191,7 +191,7 @@ impl OptionsCommandOptionData {
     }
 }
 
-#[derive(Clone, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
+#[derive(Clone, Debug, Default, Deserialize, Eq, Hash, PartialEq, Serialize)]
 pub struct ChoiceCommandOptionData {
     /// The name of the option. It must be 32 characters or less.
     pub name: String,

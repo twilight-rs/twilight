@@ -9,7 +9,10 @@ mod interaction_type;
 
 pub use command::{Command, CommandData, CommandDataOption};
 pub use command_callback_data::CommandCallbackData;
-pub use command_option::{CommandOption, CommandOptionChoice, CommandOptionType};
+pub use command_option::{
+    BaseCommandOptionData, ChoiceCommandOptionData, CommandOption, CommandOptionChoice,
+    CommandOptionType, OptionsCommandOptionData,
+};
 pub use interaction::{BaseInteraction, GuildInteraction, Interaction};
 pub use interaction_data::InteractionData;
 pub use interaction_option_type::OptionType;
