@@ -24,10 +24,10 @@ We recommend that most users start out with these crates added to your
 `Cargo.toml`'s `[dependencies]` section:
 
 ```toml
-twilight-cache-inmemory = "0.2"
-twilight-gateway = "0.2"
-twilight-http = "0.2"
-twilight-model = "0.2"
+twilight-cache-inmemory = "0.3"
+twilight-gateway = "0.3"
+twilight-http = "0.3"
+twilight-model = "0.3"
 ```
 
 If you need any other functionality that Twilight provides, you can just add
