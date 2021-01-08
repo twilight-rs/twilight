@@ -822,6 +822,29 @@ impl Client {
         GetMember::new(self, guild_id, user_id)
     }
 
+    /// Add a user to a guild.
+    ///
+    /// An access token for the user with `guilds.join` scope is required. All
+    /// other fields are optional. Refer to [the discord docs] for more
+    /// information.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`AddGuildMemberError::NicknameInvalid`] if the nickname is too
+    /// short or too long.
+    ///
+    /// [`AddGuildMemberError::NickNameInvalid`]: crate::request::guild::member::add_guild_member::AddGuildMemberError::NicknameInvalid
+    ///
+    /// [the discord docs]: https://discord.com/developers/docs/resources/guild#add-guild-member
+    pub fn add_guild_member(
+        &self,
+        guild_id: GuildId,
+        user_id: UserId,
+        access_token: impl Into<String>,
+    ) -> AddGuildMember<'_> {
+        AddGuildMember::new(self, guild_id, user_id, access_token)
+    }
+
     /// Kick a member from a guild.
     pub fn remove_guild_member(&self, guild_id: GuildId, user_id: UserId) -> RemoveMember<'_> {
         RemoveMember::new(self, guild_id, user_id)
