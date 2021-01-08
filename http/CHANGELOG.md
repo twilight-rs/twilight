@@ -2,6 +2,79 @@
 
 Changelog for `twilight-http`.
 
+## [0.3.0] - 2021-01-08
+
+Version 0.3 has been released with the primary intent to switch from `reqwest`
+to the lighter `hyper` as the HTTP client and upgrade to Tokio 1.0.
+
+### Upgrade Path
+
+`client::Client`'s `delete_webhook_from_url`, `execute_webhook_from_url`,
+`update_webhook_from_url`, and `update_webhook_with_token_from_url` methods have
+been removed. Instead, use the `twilight-util` crate's new
+`link::webhook::parse` functionality to parse webhook IDs and tokens out of
+URLs. Then, pass the webhook ID and token to the method variants without
+`_from_url`; for example, `client::Client::execute_webhook`.
+
+`client::Client::add_role` has been removed because it was a duplicate method.
+Instead use `client::Client::add_guild_member_role`.
+
+When attaching files to a message, pass in the bytes of the attachment instead
+of `reqwest`'s `Body` type.
+
+If supplying an HTTP client to `twilight-http`, pass a `hyper` client instead of
+a `reqwest` client and use `client::ClientBuilder::hyper_client` instead of
+`reqwest_client`.
+
+Instead of using `client::ClientBuilder::proxy` to pass a `reqwest` proxy, use
+it to pass a string of the URL of the proxy. This is now specifically noted to
+be used with applications like Twilight's `http-proxy` instead of connecting to
+a proxy, which can be configured with a manual `hyper` client.
+
+`error::UrlError`'s `UrlParsing` variant has been removed as it can no longer
+occur. `error::Error`'s `BuildingClient` has been removed as building clients
+can no longer fail. All Weqwest errors are now `hyper` errors.
+
+A couple of re-exports have been removed. Use
+`twilight_model::user::CurrentUserGuild` instead of
+`request::user::get_current_user_guilds::CurrentUserGuild`. Additionally, use
+`request::channel::allowed_mentions` instead of
+`request::channel::message::allowed_mentions`.
+
+### Changes
+
+Remove old re-exports that were deprecated in v0.2 ([#673] - [@vivian]).
+
+Upgrade from `tokio` v0.2 to v1 ([#664] - [@vivian]).
+
+`reqwest` has been switched out for `hyper` 0.14. With this comes some API
+breakage:
+
+- `client::ClientBuilder::build` no longer returns a `Result`
+- `client::ClientBuilder::reqwest_client` has been renamed to `hyper_client`
+- `client::ClientBuilder::{proxy_http, proxy}` have been combined into `proxy`
+- `client::Client::raw` now returns a `hyper` response instead of a `reqwest`
+response
+- `error::Error::BuildingClient` has been removed
+- `error::Error::{ChunkingResponse, RequestError}` now include `hyper` source
+errors instead of `reqwest` ones
+- `request::channel::message::CreateMessage::attachment{,s}` now takes
+`impl Into<Vec<u8>>` instead of `impl Into<reqwest::Body>`
+
+([#657] - [@vivian], [#670] - [@Gelbpunkt]).
+
+Remove `client::Client::add_role` ([#669] - [@vivian]).
+
+Remove webhook URL variant client methods and move webhook URL parsing to
+`twilight-util` ([#658] - [@vivian]).
+
+[#673]: https://github.com/twilight-rs/twilight/pull/673
+[#670]: https://github.com/twilight-rs/twilight/pull/670
+[#669]: https://github.com/twilight-rs/twilight/pull/669
+[#664]: https://github.com/twilight-rs/twilight/pull/664
+[#658]: https://github.com/twilight-rs/twilight/pull/658
+[#657]: https://github.com/twilight-rs/twilight/pull/657
+
 ## [0.2.8] - 2021-01-05
 
 ### Additions
@@ -300,6 +373,7 @@ Initial release.
 
 [0.2.0-beta.1:app integrations]: https://github.com/discord/discord-api-docs/commit/a926694e2f8605848bda6b57d21c8817559e5cec
 
+[0.3.0]: https://github.com/twilight-rs/twilight/releases/tag/http-v0.3.0
 [0.2.8]: https://github.com/twilight-rs/twilight/releases/tag/http-v0.2.8
 [0.2.7]: https://github.com/twilight-rs/twilight/releases/tag/http-v0.2.7
 [0.2.6]: https://github.com/twilight-rs/twilight/releases/tag/http-v0.2.6
