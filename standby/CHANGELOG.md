@@ -2,6 +2,11 @@
 
 Changelog for `twilight-standby`.
 
+## [0.3.0] - 2021-01-08
+
+This major version bump of the Standby crate is done to match all of the other
+crates in the ecosystem receiving a major version bump. There are no changes.
+
 ## [0.2.2] - 2021-01-05
 
 ### Enhancements
@@ -45,6 +50,7 @@ Initial release.
 [#624]: https://github.com/twilight-rs/twilight/pull/624
 [#523]: https://github.com/twilight-rs/twilight/pull/523
 
+[0.3.0]: https://github.com/twilight-rs/twilight/releases/tag/standby-v0.3.0
 [0.2.2]: https://github.com/twilight-rs/twilight/releases/tag/standby-v0.2.2
 [0.2.1]: https://github.com/twilight-rs/twilight/releases/tag/standby-v0.2.1
 [0.2.0]: https://github.com/twilight-rs/twilight/releases/tag/standby-v0.2.0
