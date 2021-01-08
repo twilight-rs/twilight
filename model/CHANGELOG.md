@@ -2,6 +2,61 @@
 
 Changelog for `twilight-model`.
 
+## [0.3.0] - 2021-01-08
+
+### Upgrade Path
+
+`channel::Message::mentions` now contains `channel::message::Mention`s instead
+of `User`s, which is like a `User` but with an additional partial `member` field
+([#609] - [@vivian]).
+
+The following fields are now Vecs instead of HashMaps:
+
+- `channel::Message::mentions`
+- `gateway::payload::GuildEmojisUpdate::emojis`
+- `gateway::payload::MemberChunk::members`
+- `gateway::payload::MemberChunk::presences`
+- `gateway::payload::Ready::guilds`
+- `guild::Guild::channels`
+- `guild::Guild::emojis`
+- `guild::Guild::members`
+- `guild::Guild::presences`
+- `guild::Guild::roles`
+- `guild::Guild::voice_states`
+- `guild::PartialGuild::emojis`
+- `guild::PartialGuild::roles`
+- `user::Connection::integrations`
+
+([#659] - [@vivian]).
+
+### Additions
+
+`guild::PartialMember` now contains an optional `premium_since` field
+([#609] - [@vivian]).
+
+`guild::audit_log::AuditLogChangeKey` contains new variants:
+
+- `EnableEmoticons`
+- `ExpireBehavior`
+- `ExpireGracePeriod`
+- `RateLimitPerUser`
+- `SystemChannelId`
+
+([#663] - [@jazevedo620]).
+
+### Changes
+
+`channel::Message`'s `mentions` now contains a sequence of `Mention`s, which are
+users with partial member information in them when available
+([#609] - [@vivian]).
+
+`guild::audit_log::AuditLogChangeKey` is now non-exhaustive
+([#663] - [@jazevedo620]).
+
+[#663]: https://github.com/twilight-rs/twilight/pull/663
+[#659]: https://github.com/twilight-rs/twilight/pull/659
+[#609]: https://github.com/twilight-rs/twilight/pull/609
+
 ## [0.2.8] - 2021-01-05
 
 ### Fixes
@@ -255,6 +310,7 @@ Initial release.
 
 [0.2.0-beta.1:app integrations]: https://github.com/discord/discord-api-docs/commit/a926694e2f8605848bda6b57d21c8817559e5cec
 
+[0.3.0]: https://github.com/twilight-rs/twilight/releases/tag/model-v0.3.0
 [0.2.8]: https://github.com/twilight-rs/twilight/releases/tag/model-v0.2.8
 [0.2.7]: https://github.com/twilight-rs/twilight/releases/tag/model-v0.2.7
 [0.2.6]: https://github.com/twilight-rs/twilight/releases/tag/model-v0.2.6
