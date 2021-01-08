@@ -2,6 +2,25 @@
 
 Changelog for `twilight-cache-inmemory`.
 
+## [0.3.0] - 2021-01-08
+
+### Upgrade Path
+
+Instead of specifying individual events to process via `config::EventType`,
+specify individual resources to process. For example, previously enabling the
+`EventType::MESSAGE_CREATE` and `EventType::MESSAGE_DELETE` event types were
+intended to cache the messages, members, and users within these message events.
+Now `ResourceType::MESSAGE` can be specified to cache the messages from all
+message events, but not the users and members. This avoids an inconsistent cache
+and not enabling all of a grouping of an event type was typically an error.
+
+### Changes
+
+Replace `config::EventType` with a simpler and less error prone
+`config::ResourceType` ([#660] - [@vivian]).
+
+[#660]: https://github.com/twilight-rs/twilight/pull/660
+
 ## [0.2.6] - 2021-01-05
 
 ### Fixes
@@ -145,6 +164,7 @@ Initial release.
 [#528]: https://github.com/twilight-rs/twilight/pull/528
 [#524]: https://github.com/twilight-rs/twilight/pull/524
 
+[0.3.0]: https://github.com/twilight-rs/twilight/releases/tag/cache-in-memory-v0.3.0
 [0.2.6]: https://github.com/twilight-rs/twilight/releases/tag/cache-in-memory-v0.2.6
 [0.2.5]: https://github.com/twilight-rs/twilight/releases/tag/cache-in-memory-v0.2.5
 [0.2.4]: https://github.com/twilight-rs/twilight/releases/tag/cache-in-memory-v0.2.4
