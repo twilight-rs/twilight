@@ -2,6 +2,12 @@
 
 Changelog for `twilight-command-parser`.
 
+## [0.3.0] - 2021-01-08
+
+This major version bump of the Command Parser crate is done to match all of the
+other crates in the ecosystem receiving a major version bump. There are no
+changes.
+
 ## [0.2.3] - 2020-12-30
 
 ### Enhancements
@@ -67,6 +73,7 @@ Initial release.
 [#515]: https://github.com/twilight-rs/twilight/pull/515
 [#511]: https://github.com/twilight-rs/twilight/pull/511
 
+[0.3.0]: https://github.com/twilight-rs/twilight/releases/tag/command-parser-v0.3.0
 [0.2.2]: https://github.com/twilight-rs/twilight/releases/tag/command-parser-v0.2.2
 [0.2.1]: https://github.com/twilight-rs/twilight/releases/tag/command-parser-v0.2.1
 [0.2.0]: https://github.com/twilight-rs/twilight/releases/tag/command-parser-v0.2.0
