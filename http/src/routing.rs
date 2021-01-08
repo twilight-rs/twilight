@@ -244,6 +244,8 @@ impl TryFrom<(Method, &str)> for Path {
 #[derive(Clone, Debug)]
 #[non_exhaustive]
 pub enum Route {
+    /// Route information to add a user to a guild.
+    AddGuildMember { guild_id: u64, user_id: u64 },
     /// Route information to add a role to guild member.
     AddMemberRole {
         /// The ID of the guild.
@@ -822,6 +824,11 @@ impl Route {
     #[allow(clippy::cognitive_complexity, clippy::too_many_lines)]
     pub fn into_parts(self) -> (Method, Path, Cow<'static, str>) {
         match self {
+            Self::AddGuildMember { guild_id, user_id } => (
+                Method::PUT,
+                Path::GuildsIdMembersId(guild_id),
+                format!("guilds/{}/members/{}", guild_id, user_id).into(),
+            ),
             Self::AddMemberRole {
                 guild_id,
                 role_id,
