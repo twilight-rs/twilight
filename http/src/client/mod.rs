@@ -18,7 +18,7 @@ use bytes::Bytes;
 use hyper::{
     body::{self, Buf},
     client::{Client as HyperClient, HttpConnector},
-    header::{HeaderValue, AUTHORIZATION, CONTENT_LENGTH, CONTENT_TYPE, USER_AGENT},
+    header::{HeaderValue, AUTHORIZATION, CONTENT_LENGTH, CONTENT_TYPE, USER_AGENT, HeaderMap},
     Body, Method, Response, StatusCode,
 };
 use serde::de::DeserializeOwned;
@@ -45,6 +45,7 @@ type HttpsConnector<T> = hyper_tls::HttpsConnector<T>;
 
 struct State {
     http: HyperClient<HttpsConnector<HttpConnector>, Body>,
+    default_headers: Option<HeaderMap>,
     proxy: Option<Box<str>>,
     ratelimiter: Option<Ratelimiter>,
     timeout: Duration,
@@ -58,6 +59,7 @@ impl Debug for State {
     fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
         f.debug_struct("State")
             .field("http", &self.http)
+            .field("default_headers", &self.default_headers)
             .field("proxy", &self.proxy)
             .field("ratelimiter", &self.ratelimiter)
             .field("token", &self.token)
@@ -142,6 +144,7 @@ impl Client {
         Self {
             state: Arc::new(State {
                 http: HyperClient::builder().build(connector),
+                default_headers: None,
                 proxy: None,
                 ratelimiter: Some(Ratelimiter::new()),
                 timeout: Duration::from_secs(10),
@@ -1668,6 +1671,7 @@ impl From<HyperClient<HttpsConnector<HttpConnector>>> for Client {
         Self {
             state: Arc::new(State {
                 http: hyper_client,
+                default_headers: None,
                 proxy: None,
                 ratelimiter: Some(Ratelimiter::new()),
                 timeout: Duration::from_secs(10),
