@@ -1,6 +1,9 @@
 use super::{Client, HttpsConnector, State};
 use crate::{ratelimiting::Ratelimiter, request::channel::allowed_mentions::AllowedMentions};
-use hyper::{client::{Client as HyperClient, HttpConnector}, header::HeaderMap};
+use hyper::{
+    client::{Client as HyperClient, HttpConnector},
+    header::HeaderMap,
+};
 use std::{
     sync::{atomic::AtomicBool, Arc},
     time::Duration,
@@ -159,7 +162,7 @@ impl Default for ClientBuilder {
         Self {
             default_allowed_mentions: None,
             hyper_client: None,
-            default_headers: None, 
+            default_headers: None,
             proxy: None,
             ratelimiter: Some(Ratelimiter::new()),
             timeout: Duration::from_secs(10),

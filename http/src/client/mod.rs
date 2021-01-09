@@ -18,7 +18,7 @@ use bytes::Bytes;
 use hyper::{
     body::{self, Buf},
     client::{Client as HyperClient, HttpConnector},
-    header::{HeaderValue, AUTHORIZATION, CONTENT_LENGTH, CONTENT_TYPE, USER_AGENT, HeaderMap},
+    header::{HeaderMap, HeaderValue, AUTHORIZATION, CONTENT_LENGTH, CONTENT_TYPE, USER_AGENT},
     Body, Method, Response, StatusCode,
 };
 use serde::de::DeserializeOwned;
