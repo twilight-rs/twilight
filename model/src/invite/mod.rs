@@ -126,7 +126,7 @@ mod tests {
                             channel_id: ChannelId(123),
                             description: "channel description".to_owned(),
                             emoji_id: None,
-                            emoji_name: Some("🍒".to_owned()),
+                            emoji_name: Some("\u{1f352}".to_owned()),
                         },
                         WelcomeScreenChannel {
                             channel_id: ChannelId(456),
@@ -252,7 +252,7 @@ mod tests {
                 Token::None,
                 Token::Str("emoji_name"),
                 Token::Some,
-                Token::Str("🍒"),
+                Token::Str("\u{1f352}"),
                 Token::StructEnd,
                 Token::Struct {
                     name: "WelcomeScreenChannel",
