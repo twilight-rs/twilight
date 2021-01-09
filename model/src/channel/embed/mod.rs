@@ -142,6 +142,7 @@ mod tests {
             url: Some("https://example.com".to_owned()),
             video: Some(EmbedVideo {
                 height: Some(1440),
+                proxy_url: Some("https://proxy.cdn.example.com/1-hash.mp4".to_owned()),
                 url: Some("https://cdn.example.com/1-hash.mp4".to_owned()),
                 width: Some(2560),
             }),
@@ -274,11 +275,14 @@ mod tests {
                 Token::Some,
                 Token::Struct {
                     name: "EmbedVideo",
-                    len: 3,
+                    len: 4,
                 },
                 Token::Str("height"),
                 Token::Some,
                 Token::U64(1440),
+                Token::Str("proxy_url"),
+                Token::Some,
+                Token::Str("https://proxy.cdn.example.com/1-hash.mp4"),
                 Token::Str("url"),
                 Token::Some,
                 Token::Str("https://cdn.example.com/1-hash.mp4"),
