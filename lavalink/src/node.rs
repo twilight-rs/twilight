@@ -532,7 +532,7 @@ async fn backoff(
             Err(source) => {
                 tracing::warn!("failed to connect to node {}: {:?}", source, config.address);
 
-                if matches!(source, TungsteniteError::Http(status) if status == StatusCode::UNAUTHORIZED)
+                if matches!(source, TungsteniteError::Http(ref resp) if resp.status() == StatusCode::UNAUTHORIZED)
                 {
                     return Err(NodeError::Unauthorized {
                         address: config.address,
