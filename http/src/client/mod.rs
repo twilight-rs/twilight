@@ -1491,6 +1491,12 @@ impl Client {
             }
         }
 
+        if let Some(default_headers) = &self.state.default_headers {
+            for (name, value) in default_headers {
+                builder = builder.header(name, value);
+            }
+        }
+
         let req = if let Some(form) = form {
             let content_type = HeaderValue::try_from(form.content_type());
             let form_bytes = form.build();
