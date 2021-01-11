@@ -271,7 +271,10 @@ impl TryFrom<(Method, &str)> for Path {
 #[non_exhaustive]
 pub enum Route {
     /// Route information to add a user to a guild.
-    AddGuildMember { guild_id: u64, user_id: u64 },
+    AddGuildMember {
+        guild_id: u64,
+        user_id: u64,
+    },
     /// Route information to add a role to guild member.
     AddMemberRole {
         /// The ID of the guild.
