@@ -4,13 +4,14 @@ use super::{
     event::Events,
     json,
     processor::{ConnectingError, Latency, Session, ShardProcessor},
+    raw_message::Message,
     sink::ShardSink,
     stage::Stage,
 };
 use crate::{listener::Listeners, EventTypeFlags, Intents};
 use async_tungstenite::tungstenite::{
-    protocol::{frame::coding::CloseCode, CloseFrame},
-    Error as TungsteniteError, Message,
+    protocol::{frame::coding::CloseCode, CloseFrame as TungsteniteCloseFrame},
+    Error as TungsteniteError, Message as TungsteniteMessage,
 };
 use futures_channel::mpsc::TrySendError;
 use futures_util::{
@@ -43,7 +44,7 @@ pub enum CommandError {
     /// shutdown shard.
     Sending {
         /// Reason for the error.
-        source: TrySendError<Message>,
+        source: TrySendError<TungsteniteMessage>,
     },
     /// Serializing the payload as JSON failed.
     Serializing {
@@ -55,6 +56,15 @@ pub enum CommandError {
         /// Reason for the error.
         source: SessionInactiveError,
     },
+}
+
+impl CommandError {
+    pub(crate) fn from_send(error: SendError) -> Self {
+        match error {
+            SendError::Sending { source } => Self::Sending { source },
+            SendError::SessionInactive { source } => Self::SessionInactive { source },
+        }
+    }
 }
 
 impl Display for CommandError {
@@ -142,6 +152,41 @@ impl From<ConnectingError> for ShardStartError {
         match error {
             ConnectingError::Establishing { source } => Self::Establishing { source },
             ConnectingError::ParsingUrl { source, url } => Self::ParsingGatewayUrl { source, url },
+        }
+    }
+}
+
+/// Starting a shard and connecting to the gateway failed.
+#[derive(Debug)]
+#[non_exhaustive]
+pub enum SendError {
+    /// Sending the payload over the WebSocket failed. This is indicative of a
+    /// shard that isn't properly running.
+    Sending {
+        /// Reason for the error.
+        source: TrySendError<TungsteniteMessage>,
+    },
+    /// Shard's session is inactive because the shard hasn't been started.
+    SessionInactive {
+        /// Reason for the error.
+        source: SessionInactiveError,
+    },
+}
+
+impl Display for SendError {
+    fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
+        match self {
+            Self::Sending { .. } => f.write_str("sending the message over the websocket failed"),
+            Self::SessionInactive { .. } => f.write_str("shard hasn't been started"),
+        }
+    }
+}
+
+impl Error for SendError {
+    fn source(&self) -> Option<&(dyn Error + 'static)> {
+        match self {
+            Self::Sending { source } => Some(source),
+            Self::SessionInactive { source } => Some(source),
         }
     }
 }
@@ -491,7 +536,77 @@ impl Shard {
     /// started.
     pub async fn command(&self, value: &impl serde::Serialize) -> Result<(), CommandError> {
         let json = json::to_vec(value).map_err(|source| CommandError::Serializing { source })?;
-        self.command_raw(json).await
+
+        self.send(Message::Binary(json))
+            .await
+            .map_err(CommandError::from_send)
+    }
+
+    /// Send a raw websocket message.
+    ///
+    /// # Examples
+    ///
+    /// Send a ping message:
+    ///
+    /// ```no_run
+    /// # #[tokio::main] async fn main() -> Result<(), Box<dyn std::error::Error>> {
+    /// use std::env;
+    /// use twilight_gateway::{shard::{raw_message::Message, Shard}, Intents};
+    ///
+    /// let token = env::var("DISCORD_TOKEN")?;
+    /// let mut shard = Shard::new(token, Intents::GUILDS);
+    /// shard.start().await?;
+    ///
+    /// shard.send(Message::Ping(Vec::new())).await?;
+    /// # Ok(()) }
+    /// ```
+    ///
+    /// Send a normal close (you may prefer to use [`shutdown`]):
+    ///
+    /// ```no_run
+    /// # #[tokio::main] async fn main() -> Result<(), Box<dyn std::error::Error>> {
+    /// use std::{borrow::Cow, env};
+    /// use twilight_gateway::{
+    ///     shard::{
+    ///         raw_message::{CloseFrame, Message},
+    ///         Shard,
+    ///     },
+    ///     Intents,
+    /// };
+    ///
+    /// let token = env::var("DISCORD_TOKEN")?;
+    /// let mut shard = Shard::new(token, Intents::GUILDS);
+    /// shard.start().await?;
+    ///
+    /// let close = CloseFrame::from((1000, ""));
+    /// let message = Message::Close(Some(close));
+    /// shard.send(message).await?;
+    /// # Ok(()) }
+    /// ```
+    ///
+    /// # Errors
+    ///
+    /// Returns a [`SendError::Sending`] if there is an issue with sending via
+    /// the shard's session. This may occur when the shard is between sessions.
+    ///
+    /// Returns [`SendError::SessionInactive`] when the shard has not been
+    /// started.
+    ///
+    /// [`shutdown`]: Self::shutdown
+    pub async fn send(&self, message: Message) -> Result<(), SendError> {
+        if let Ok(session) = self.session() {
+            // Tick ratelimiter.
+            session.ratelimit.lock().await.next().await;
+
+            session
+                .tx
+                .unbounded_send(message.into_tungstenite())
+                .map_err(|source| SendError::Sending { source })
+        } else {
+            Err(SendError::SessionInactive {
+                source: SessionInactiveError,
+            })
+        }
     }
 
     /// Send a raw command over the gateway.
@@ -510,19 +625,11 @@ impl Shard {
     /// started.
     ///
     /// [`command`]: Self::command
+    #[deprecated(note = "Use `send` which is more versatile", since = "0.3.0")]
     pub async fn command_raw(&self, value: Vec<u8>) -> Result<(), CommandError> {
-        let session = self
-            .session()
-            .map_err(|source| CommandError::SessionInactive { source })?;
-        let message = Message::Binary(value);
-
-        // Tick ratelimiter.
-        session.ratelimit.lock().await.next().await;
-
-        session
-            .tx
-            .unbounded_send(message)
-            .map_err(|source| CommandError::Sending { source })
+        self.send(Message::Binary(value))
+            .await
+            .map_err(CommandError::from_send)
     }
 
     /// Shut down the shard.
@@ -539,7 +646,7 @@ impl Shard {
 
         if let Ok(session) = self.session() {
             // Since we're shutting down now, we don't care if it sends or not.
-            let _ = session.close(Some(CloseFrame {
+            let _ = session.close(Some(TungsteniteCloseFrame {
                 code: CloseCode::Normal,
                 reason: "".into(),
             }));
@@ -569,7 +676,7 @@ impl Shard {
             Err(_) => return (shard_id, None),
         };
 
-        let _ = session.close(Some(CloseFrame {
+        let _ = session.close(Some(TungsteniteCloseFrame {
             code: CloseCode::Restart,
             reason: Cow::from("Closing in a resumable way"),
         }));
@@ -602,8 +709,8 @@ impl Shard {
 #[cfg(test)]
 mod tests {
     use super::{
-        CommandError, ConnectingError, Information, ResumeSession, SessionInactiveError, Shard,
-        ShardStartError,
+        CommandError, ConnectingError, Information, ResumeSession, SendError, SessionInactiveError,
+        Shard, ShardStartError,
     };
     use static_assertions::{assert_fields, assert_impl_all};
     use std::{error::Error, fmt::Debug};
@@ -623,6 +730,9 @@ mod tests {
         Send,
         Sync
     );
+    assert_fields!(SendError::Sending: source);
+    assert_fields!(SendError::SessionInactive: source);
+    assert_impl_all!(SendError: Debug, Error, Send, Sync);
     assert_fields!(ShardStartError::Establishing: source);
     assert_fields!(ShardStartError::ParsingGatewayUrl: source, url);
     assert_fields!(ShardStartError::RetrievingGatewayUrl: source);
