@@ -30,7 +30,16 @@ impl ClientBuilder {
             #[cfg(feature = "hyper-rustls")]
             let connector = hyper_rustls::HttpsConnector::with_native_roots();
             #[cfg(all(feature = "hyper-tls", not(feature = "hyper-rustls")))]
-            let connector = hyper_tls::HttpsConnector::new();
+            let connector = {
+                // Workaround for https://github.com/hyperium/hyper-tls/pull/85
+                let tls = native_tls::TlsConnector::builder()
+                    .request_alpns(&["h2", "http/1.1"])
+                    .build()
+                    .expect("TlsConnector::new() failure");
+                let mut http_conn = HttpConnector::new();
+                http_conn.enforce_http(false);
+                hyper_tls::HttpsConnector::from((http_conn, tls.into()))
+            };
 
             hyper::client::Builder::default().build(connector)
         });
