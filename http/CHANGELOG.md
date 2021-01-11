@@ -2,6 +2,22 @@
 
 Changelog for `twilight-http`.
 
+## [0.3.1] - 2021-01-11
+
+This release fixes the `native` feature and adds support for the
+"Add Guild Member" endpoint.
+
+### Additions
+
+Implement the "Add Guild Member" endpoint ([#653] - [@sam-kirby]).
+
+### Fixes
+
+Manually send ALPN headers to fix the `native` feature ([#683] - [@Gelbpunkt]).
+
+[#683]: https://github.com/twilight-rs/twilight/pull/683
+[#653]: https://github.com/twilight-rs/twilight/pull/653
+
 ## [0.3.0] - 2021-01-08
 
 Version 0.3 has been released with the primary intent to switch from `reqwest`
