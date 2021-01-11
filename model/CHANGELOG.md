@@ -2,6 +2,14 @@
 
 Changelog for `twilight-model`.
 
+## [0.3.1] - 2021-01-11
+
+### Additions
+
+Add the `proxy_url` field to `EmbedVideo` ([#767] - [@7596ff]).
+
+[#676]: https://github.com/twilight-rs/twilight/pull/676
+
 ## [0.3.0] - 2021-01-08
 
 ### Upgrade Path
@@ -276,6 +284,7 @@ Similarly, the following permissions fields now (de)serialize to/from
 
 Initial release.
 
+[@7596ff]: https://github.com/7596ff
 [@AsianIntel]: https://github.com/AsianIntel
 [@chamburr]: https://github.com/chamburr
 [@coadler]: https://github.com/coadler
