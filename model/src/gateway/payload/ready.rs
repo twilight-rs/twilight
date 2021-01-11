@@ -1,6 +1,6 @@
 use crate::{
     guild::GuildStatus,
-    id::{ApplicationId, GuildId},
+    id::ApplicationId,
     user::{CurrentUser, UserFlags},
 };
 use serde::{Deserialize, Serialize};

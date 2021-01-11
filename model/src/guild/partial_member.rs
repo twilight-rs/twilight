@@ -37,7 +37,7 @@ mod tests {
             &[
                 Token::Struct {
                     name: "PartialMember",
-                    len: 5,
+                    len: 7,
                 },
                 Token::Str("deaf"),
                 Token::Bool(false),
