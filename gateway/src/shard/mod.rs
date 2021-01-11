@@ -36,7 +36,8 @@ pub use self::{
     event::Events,
     processor::heartbeat::Latency,
     r#impl::{
-        CommandError, Information, ResumeSession, SessionInactiveError, Shard, ShardStartError,
+        CommandError, Information, ResumeSession, SendError, SessionInactiveError, Shard,
+        ShardStartError,
     },
     sink::ShardSink,
     stage::Stage,
