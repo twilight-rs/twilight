@@ -2,6 +2,15 @@
 
 Changelog for `twilight-gateway`.
 
+## [0.3.1] - 2021-01-11
+
+### Additions
+
+Support sending raw WebSocket messages via `Cluster::send` and `Shard::send`
+([#679] - [@vivian]).
+
+[#679]: https://github.com/twilight-rs/twilight/pull/679
+
 ## [0.3.0] - 2021-01-08
 
 Version 0.3 has been released with the primary intent to upgrade to Tokio 1.0.
