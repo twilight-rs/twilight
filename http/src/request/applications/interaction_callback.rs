@@ -2,6 +2,7 @@ use crate::request::prelude::*;
 use twilight_model::applications::InteractionResponse;
 use twilight_model::id::*;
 
+/// Respond to an interaction, by ID and token.
 pub struct InteractionCallback<'a> {
     interaction_id: InteractionId,
     interaction_token: String,

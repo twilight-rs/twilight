@@ -3,6 +3,13 @@ use twilight_model::applications::Command;
 use twilight_model::applications::CommandOption;
 use twilight_model::id::*;
 
+
+/// Edit a global command, by ID.
+///
+/// You must specify a name and description. See [the discord docs] for more
+/// information.
+///
+/// [the discord docs]: https://discord.com/developers/docs/interactions/slash-commands#edit-global-application-command
 pub struct UpdateGlobalCommand<'a> {
     command: Command,
     application_id: ApplicationId,
@@ -32,6 +39,7 @@ impl<'a> UpdateGlobalCommand<'a> {
         }
     }
 
+    /// Add a command option.
     pub fn push_command_option(mut self, option: CommandOption) -> Self {
         self.command.options.push(option);
 

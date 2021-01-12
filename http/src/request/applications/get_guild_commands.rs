@@ -2,6 +2,7 @@ use crate::request::prelude::*;
 use twilight_model::applications::Command;
 use twilight_model::id::{ApplicationId, GuildId};
 
+/// Fetch all commands for a guild, by ID.
 pub struct GetGuildCommands<'a> {
     application_id: ApplicationId,
     guild_id: GuildId,

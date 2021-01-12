@@ -1,6 +1,7 @@
 use crate::request::prelude::*;
 use twilight_model::id::*;
 
+/// Delete a global command, by ID.
 pub struct DeleteGlobalCommand<'a> {
     application_id: ApplicationId,
     command_id: CommandId,

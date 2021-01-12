@@ -151,6 +151,7 @@ pub struct Client {
 
 impl Client {
     /* New Stuff Start */
+    /// Respond to an interaction, by ID and token.
     pub fn interaction_callback(
         &self,
         interaction_id: InteractionId,
@@ -160,6 +161,9 @@ impl Client {
         InteractionCallback::new(&self, interaction_id, interaction_token.into(), response)
     }
 
+    /// Edit the original message, by its token.
+    ///
+    /// Functions the same as [`update_webhook_message`].
     pub fn update_interaction_original(
         &self,
         application_id: ApplicationId,
@@ -168,6 +172,7 @@ impl Client {
         UpdateWebhookMessage::new_interaction(self, application_id, interaction_token)
     }
 
+    /// Delete the original message, by its token.
     pub fn delete_interaction_original(
         &self,
         application_id: ApplicationId,
@@ -176,6 +181,9 @@ impl Client {
         DeleteWebhookMessage::new_interaction(self, application_id, interaction_token)
     }
 
+    /// Create a followup message, by an interaction token.
+    ///
+    /// Functions the same as [`execute_webhook`].
     pub fn create_interaction_followup(
         &self,
         application_id: ApplicationId,
@@ -186,6 +194,9 @@ impl Client {
         ExecuteWebhook::new(self, WebhookId(application_id.0), interaction_token)
     }
 
+    /// Edit a followup message, by an interaction token.
+    ///
+    /// Functions the same as [`update_webhook_message`].
     pub fn update_interaction_followup(
         &self,
         application_id: ApplicationId,
@@ -202,6 +213,7 @@ impl Client {
         )
     }
 
+    /// Delete a followup message by interaction token and the message's ID.
     pub fn delete_interaction_followup(
         &self,
         application_id: ApplicationId,
@@ -218,6 +230,15 @@ impl Client {
         )
     }
 
+    /// Create a new command in a guild.
+    ///
+    /// The name must be between 3 and 32 characters in length, and the
+    /// description must be between 1 and 100 characters in length. Creating a
+    /// guild command with the same name as an already-existing guild command in
+    /// the same guild will overwrite the old command. See [the discord docs]
+    /// for more information.
+    ///
+    /// [the discord docs]: https://discord.com/developers/docs/interactions/slash-commands#create-guild-application-command
     pub fn create_guild_command(
         &self,
         application_id: ApplicationId,
@@ -234,6 +255,7 @@ impl Client {
         )
     }
 
+    /// Fetch all commands for a guild, by ID.
     pub fn get_guild_commands(
         &self,
         application_id: ApplicationId,
@@ -242,6 +264,12 @@ impl Client {
         GetGuildCommands::new(&self, application_id, guild_id)
     }
 
+    /// Edit a command in a guild, by ID.
+    ///
+    /// You must specify a name and description. See [the discord docs] for more
+    /// information.
+    ///
+    /// [the discord docs]: https://discord.com/developers/docs/interactions/slash-commands#edit-guild-application-command
     pub fn update_guild_command(
         &self,
         application_id: ApplicationId,
@@ -261,6 +289,7 @@ impl Client {
         )
     }
 
+    /// Delete a command in a guild, by ID.
     pub fn delete_guild_command(
         &self,
         application_id: ApplicationId,
@@ -270,6 +299,14 @@ impl Client {
         DeleteGuildCommand::new(&self, application_id, guild_id, command_id)
     }
 
+    /// Create a new global command.
+    ///
+    /// The name must be between 3 and 32 characters in length, and the
+    /// description must be between 1 and 100 characters in length. Creating a
+    /// command with the same name as an already-existing global command will
+    /// overwwrite the old command. See [the discord docs] for more information.
+    ///
+    /// [the discord docs]: https://discord.com/developers/docs/interactions/slash-commands#create-global-application-command
     pub fn create_global_command(
         &self,
         application_id: ApplicationId,
@@ -279,10 +316,17 @@ impl Client {
         CreateGlobalCommand::new(&self, application_id, name.into(), description.into())
     }
 
+    /// Fetch all global commands for your app.
     pub fn get_global_commands(&self, application_id: ApplicationId) -> GetGlobalCommands<'_> {
         GetGlobalCommands::new(&self, application_id)
     }
 
+    /// Edit a global command, by ID.
+    ///
+    /// You must specify a name and description. See [the discord docs] for more
+    /// information.
+    ///
+    /// [the discord docs]: https://discord.com/developers/docs/interactions/slash-commands#edit-global-application-command
     pub fn update_global_command(
         &self,
         application_id: ApplicationId,
@@ -300,6 +344,7 @@ impl Client {
         )
     }
 
+    /// Delete a global command, by ID.
     pub fn delete_global_command(
         &self,
         application_id: ApplicationId,
