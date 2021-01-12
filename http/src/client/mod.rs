@@ -164,6 +164,8 @@ impl Client {
     /// Edit the original message, by its token.
     ///
     /// Functions the same as [`update_webhook_message`].
+    ///
+    /// [`update_webhook_message`]: Client::update_webhook_message
     pub fn update_interaction_original(
         &self,
         application_id: ApplicationId,
@@ -184,6 +186,8 @@ impl Client {
     /// Create a followup message, by an interaction token.
     ///
     /// Functions the same as [`execute_webhook`].
+    ///
+    /// [`execute_webhook`]: Client::execute_webhook
     pub fn create_interaction_followup(
         &self,
         application_id: ApplicationId,
@@ -197,6 +201,8 @@ impl Client {
     /// Edit a followup message, by an interaction token.
     ///
     /// Functions the same as [`update_webhook_message`].
+    ///
+    /// [`update_webhook_message`]: Client::update_webhook_message
     pub fn update_interaction_followup(
         &self,
         application_id: ApplicationId,
