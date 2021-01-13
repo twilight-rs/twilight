@@ -80,12 +80,11 @@ mod tests {
     use twilight_model::id::{ChannelId, MessageId};
 
     #[test]
-    #[allow(clippy::non_ascii_literal)]
     fn test_request() {
         let client = Client::new("foo");
 
         let emoji = RequestReactionType::Unicode {
-            name: String::from("🌃"),
+            name: String::from("\u{1f303}"),
         };
 
         let builder = CreateReaction::new(&client, ChannelId(123), MessageId(456), emoji);
@@ -93,7 +92,7 @@ mod tests {
 
         let request = Request::from(Route::CreateReaction {
             channel_id: 123,
-            emoji: utf8_percent_encode("🌃", NON_ALPHANUMERIC).to_string(),
+            emoji: utf8_percent_encode("\u{1f303}", NON_ALPHANUMERIC).to_string(),
             message_id: 456,
         });
 
