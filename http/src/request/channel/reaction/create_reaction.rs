@@ -80,6 +80,7 @@ mod tests {
     use twilight_model::id::{ChannelId, MessageId};
 
     #[test]
+    #[allow(clippy::non_ascii_literal)]
     fn test_request() {
         let client = Client::new("foo");
 
