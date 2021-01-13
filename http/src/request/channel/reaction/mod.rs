@@ -10,6 +10,7 @@ pub use self::{
     delete_all_reactions::DeleteAllReactions, delete_reaction::DeleteReaction,
     get_reactions::GetReactions,
 };
+use percent_encoding::{utf8_percent_encode, NON_ALPHANUMERIC};
 use std::fmt::Write;
 use twilight_model::{channel::ReactionType, id::EmojiId};
 
@@ -39,6 +40,8 @@ fn format_emoji(emoji: RequestReactionType) -> String {
             let _ = write!(emoji, ":{}", id);
             emoji
         }
-        RequestReactionType::Unicode { name } => name,
+        RequestReactionType::Unicode { name } => {
+            utf8_percent_encode(&name, NON_ALPHANUMERIC).to_string()
+        }
     }
 }
