@@ -1432,6 +1432,7 @@ impl Client {
     ///
     /// Returns [`Error::Unauthorized`] if the configured token has become
     /// invalid due to expiration, revokation, etc.
+    #[allow(clippy::too_many_lines)]
     pub async fn raw(&self, request: Request) -> Result<Response<Body>> {
         if self.state.token_invalid.load(Ordering::Relaxed) {
             return Err(Error::Unauthorized);
