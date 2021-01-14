@@ -1462,7 +1462,9 @@ impl Client {
                 Error::CreatingHeader { name, source }
             })?;
 
-            builder = builder.header(AUTHORIZATION, value);
+            builder
+                .headers_mut()
+                .and_then(|headers| headers.insert(AUTHORIZATION, value));
         }
 
         let user_agent = HeaderValue::from_static(concat!(
@@ -1472,35 +1474,47 @@ impl Client {
             env!("CARGO_PKG_VERSION"),
             ") Twilight-rs",
         ));
-        builder = builder.header(USER_AGENT, user_agent);
+        builder
+            .headers_mut()
+            .and_then(|headers| headers.insert(USER_AGENT, user_agent));
 
-        if let Some(req_headers) = req_headers {
+        if let (Some(req_headers), Some(headers)) = (req_headers, builder.headers_mut()) {
             for (maybe_name, value) in req_headers {
                 if let Some(name) = maybe_name {
-                    builder = builder.header(name, value);
+                    headers.insert(name, value);
                 }
             }
         }
 
         let req = if let Some(form) = form {
-            builder = builder.header(CONTENT_TYPE, form.content_type());
+            let content_type = HeaderValue::try_from(form.content_type());
+            if let (Ok(content_type), Some(headers)) = (content_type, builder.headers_mut()) {
+                headers.insert(CONTENT_TYPE, content_type);
+            }
             let form_bytes = form.build();
-            builder = builder.header(CONTENT_LENGTH, form_bytes.len());
+            builder
+                .headers_mut()
+                .and_then(|headers| headers.insert(CONTENT_LENGTH, form_bytes.len().into()));
 
             builder
                 .body(Body::from(form_bytes))
                 .map_err(|source| Error::BuildingRequest { source })?
         } else if let Some(bytes) = body {
             let len = bytes.len();
-            builder = builder.header(CONTENT_LENGTH, len);
-            let content_type = HeaderValue::from_static("application/json");
-            builder = builder.header(CONTENT_TYPE, content_type);
+
+            if let Some(headers) = builder.headers_mut() {
+                headers.insert(CONTENT_LENGTH, len.into());
+                let content_type = HeaderValue::from_static("application/json");
+                headers.insert(CONTENT_TYPE, content_type);
+            }
 
             builder
                 .body(Body::from(bytes))
                 .map_err(|source| Error::BuildingRequest { source })?
         } else if method == Method::PUT || method == Method::POST || method == Method::PATCH {
-            builder = builder.header(CONTENT_LENGTH, 0);
+            builder
+                .headers_mut()
+                .and_then(|headers| headers.insert(CONTENT_LENGTH, 0.into()));
 
             builder
                 .body(Body::empty())
