@@ -1463,9 +1463,9 @@ impl Client {
                 Error::CreatingHeader { name, source }
             })?;
 
-            builder
-                .headers_mut()
-                .and_then(|headers| headers.insert(AUTHORIZATION, value));
+            if let Some(headers) = builder.headers_mut() {
+                headers.insert(AUTHORIZATION, value);
+            }
         }
 
         let user_agent = HeaderValue::from_static(concat!(
@@ -1475,28 +1475,28 @@ impl Client {
             env!("CARGO_PKG_VERSION"),
             ") Twilight-rs",
         ));
-        builder
-            .headers_mut()
-            .and_then(|headers| headers.insert(USER_AGENT, user_agent));
 
-        if let (Some(req_headers), Some(headers)) = (req_headers, builder.headers_mut()) {
-            for (maybe_name, value) in req_headers {
-                if let Some(name) = maybe_name {
-                    headers.insert(name, value);
+        if let Some(headers) = builder.headers_mut() {
+            headers.insert(USER_AGENT, user_agent);
+
+            if let Some(req_headers) = req_headers {
+                for (maybe_name, value) in req_headers {
+                    if let Some(name) = maybe_name {
+                        headers.insert(name, value);
+                    }
                 }
             }
         }
 
         let req = if let Some(form) = form {
             let content_type = HeaderValue::try_from(form.content_type());
-            if let (Ok(content_type), Some(headers)) = (content_type, builder.headers_mut()) {
-                headers.insert(CONTENT_TYPE, content_type);
-            }
             let form_bytes = form.build();
-            builder
-                .headers_mut()
-                .and_then(|headers| headers.insert(CONTENT_LENGTH, form_bytes.len().into()));
-
+            if let Some(headers) = builder.headers_mut() {
+                if let Ok(content_type) = content_type {
+                    headers.insert(CONTENT_TYPE, content_type);
+                }
+                headers.insert(CONTENT_LENGTH, form_bytes.len().into());
+            };
             builder
                 .body(Body::from(form_bytes))
                 .map_err(|source| Error::BuildingRequest { source })?
@@ -1513,9 +1513,9 @@ impl Client {
                 .body(Body::from(bytes))
                 .map_err(|source| Error::BuildingRequest { source })?
         } else if method == Method::PUT || method == Method::POST || method == Method::PATCH {
-            builder
-                .headers_mut()
-                .and_then(|headers| headers.insert(CONTENT_LENGTH, 0.into()));
+            if let Some(headers) = builder.headers_mut() {
+                headers.insert(CONTENT_LENGTH, 0.into());
+            }
 
             builder
                 .body(Body::empty())
