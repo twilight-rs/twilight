@@ -9,6 +9,9 @@ pub struct MemberUpdate {
     pub guild_id: GuildId,
     pub joined_at: String,
     pub nick: Option<String>,
+    /// Represents whether the user has not yet passed the guild's [Membership Screening] Requirements
+    ///
+    /// [Membership Screening]: https://support.discord.com/hc/en-us/articles/1500000466882
     pub pending: bool,
     pub premium_since: Option<String>,
     pub roles: Vec<RoleId>,

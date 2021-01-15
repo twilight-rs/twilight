@@ -20,6 +20,9 @@ pub struct Member {
     pub joined_at: Option<String>,
     pub mute: bool,
     pub nick: Option<String>,
+    /// Represents whether the user has not yet passed the guild's [Membership Screening] Requirements
+    ///
+    /// [Membership Screening]: https://support.discord.com/hc/en-us/articles/1500000466882
     pub pending: bool,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub premium_since: Option<String>,
