@@ -16,10 +16,10 @@ Build a simple embed:
 use twilight_embed_builder::{EmbedBuilder, EmbedFieldBuilder};
 
 let embed = EmbedBuilder::new()
-    .description("Here's a list of reasons why Twilight is the best pony:")?
-    .field(EmbedFieldBuilder::new("Wings", "She has wings.")?.inline())
-    .field(EmbedFieldBuilder::new("Horn", "She can do magic, and she's really good at it.")?.inline())
-    .build();
+    .description("Here's a list of reasons why Twilight is the best pony:")
+    .field(EmbedFieldBuilder::new("Wings", "She has wings.").inline())
+    .field(EmbedFieldBuilder::new("Horn", "She can do magic, and she's really good at it.").inline())
+    .build()?;
 ```
 
 Build an embed with an image:
@@ -28,9 +28,9 @@ Build an embed with an image:
 use twilight_embed_builder::{EmbedBuilder, ImageSource};
 
 let embed = EmbedBuilder::new()
-    .description("Here's a cool image of Twilight Sparkle")?
+    .description("Here's a cool image of Twilight Sparkle")
     .image(ImageSource::attachment("bestpony.png")?)
-    .build();
+    .build()?;
 
 ```
 

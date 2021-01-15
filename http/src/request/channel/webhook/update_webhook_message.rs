@@ -209,8 +209,8 @@ impl<'a> UpdateWebhookMessage<'a> {
     /// # #[tokio::main] async fn main() -> Result<(), Box<dyn std::error::Error>> {
     /// # let client = Client::new("token");
     /// let embed = EmbedBuilder::new()
-    ///     .description("Powerful, flexible, and scalable ecosystem of Rust libraries for the Discord API.")?
-    ///     .title("Twilight")?
+    ///     .description("Powerful, flexible, and scalable ecosystem of Rust libraries for the Discord API.")
+    ///     .title("Twilight")
     ///     .url("https://twilight.rs")
     ///     .build()?;
     ///
