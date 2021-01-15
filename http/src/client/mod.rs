@@ -1432,6 +1432,7 @@ impl Client {
     ///
     /// Returns [`Error::Unauthorized`] if the configured token has become
     /// invalid due to expiration, revokation, etc.
+    #[allow(clippy::too_many_lines)]
     pub async fn raw(&self, request: Request) -> Result<Response<Body>> {
         if self.state.token_invalid.load(Ordering::Relaxed) {
             return Err(Error::Unauthorized);
@@ -1462,7 +1463,9 @@ impl Client {
                 Error::CreatingHeader { name, source }
             })?;
 
-            builder = builder.header(AUTHORIZATION, value);
+            if let Some(headers) = builder.headers_mut() {
+                headers.insert(AUTHORIZATION, value);
+            }
         }
 
         let user_agent = HeaderValue::from_static(concat!(
@@ -1472,35 +1475,47 @@ impl Client {
             env!("CARGO_PKG_VERSION"),
             ") Twilight-rs",
         ));
-        builder = builder.header(USER_AGENT, user_agent);
 
-        if let Some(req_headers) = req_headers {
-            for (maybe_name, value) in req_headers {
-                if let Some(name) = maybe_name {
-                    builder = builder.header(name, value);
+        if let Some(headers) = builder.headers_mut() {
+            headers.insert(USER_AGENT, user_agent);
+
+            if let Some(req_headers) = req_headers {
+                for (maybe_name, value) in req_headers {
+                    if let Some(name) = maybe_name {
+                        headers.insert(name, value);
+                    }
                 }
             }
         }
 
         let req = if let Some(form) = form {
-            builder = builder.header(CONTENT_TYPE, form.content_type());
+            let content_type = HeaderValue::try_from(form.content_type());
             let form_bytes = form.build();
-            builder = builder.header(CONTENT_LENGTH, form_bytes.len());
-
+            if let Some(headers) = builder.headers_mut() {
+                if let Ok(content_type) = content_type {
+                    headers.insert(CONTENT_TYPE, content_type);
+                }
+                headers.insert(CONTENT_LENGTH, form_bytes.len().into());
+            };
             builder
                 .body(Body::from(form_bytes))
                 .map_err(|source| Error::BuildingRequest { source })?
         } else if let Some(bytes) = body {
             let len = bytes.len();
-            builder = builder.header(CONTENT_LENGTH, len);
-            let content_type = HeaderValue::from_static("application/json");
-            builder = builder.header(CONTENT_TYPE, content_type);
+
+            if let Some(headers) = builder.headers_mut() {
+                headers.insert(CONTENT_LENGTH, len.into());
+                let content_type = HeaderValue::from_static("application/json");
+                headers.insert(CONTENT_TYPE, content_type);
+            }
 
             builder
                 .body(Body::from(bytes))
                 .map_err(|source| Error::BuildingRequest { source })?
         } else if method == Method::PUT || method == Method::POST || method == Method::PATCH {
-            builder = builder.header(CONTENT_LENGTH, 0);
+            if let Some(headers) = builder.headers_mut() {
+                headers.insert(CONTENT_LENGTH, 0.into());
+            }
 
             builder
                 .body(Body::empty())
