@@ -11,13 +11,13 @@ pub struct WelcomeScreen {
 
 #[derive(Clone, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
 pub struct WelcomeScreenChannel {
-    /// Id of the channel.
+    /// ID of the channel.
     pub channel_id: ChannelId,
     /// Description of the channel.
     pub description: String,
-    /// The emoji id, if the emoji is custom.
+    /// ID of the emoji if the emoji is custom.
     pub emoji_id: Option<EmojiId>,
-    /// The emoji name if it is custom, or the unicode character.
+    /// Emoji's name if it is custom, or the unicode character.
     pub emoji_name: Option<String>,
 }
 
