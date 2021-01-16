@@ -1492,7 +1492,7 @@ impl Client {
         }
 
         if let (Some(default_headers), Some(headers)) =
-            (&self.state.default_headers, builder.headers_mut())
+            (&self.state.default_headers, &mut builder.headers_mut())
         {
             for (name, value) in default_headers {
                 headers.insert(name, HeaderValue::from(value));
