@@ -1491,9 +1491,11 @@ impl Client {
             }
         }
 
-        if let Some(default_headers) = &self.state.default_headers {
+        if let (Some(default_headers), Some(headers)) =
+            (&self.state.default_headers, builder.headers_mut())
+        {
             for (name, value) in default_headers {
-                builder = builder.header(name, value);
+                headers.insert(name, HeaderValue::from(value));
             }
         }
 
