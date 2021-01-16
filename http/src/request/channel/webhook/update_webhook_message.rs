@@ -5,6 +5,7 @@ use crate::{
     error::Result,
     request::{
         self,
+        applications::InteractionError,
         channel::allowed_mentions::AllowedMentions,
         validate::{self, EmbedValidationError},
         AuditLogReason, AuditLogReasonError, Pending, Request,
@@ -152,10 +153,12 @@ impl<'a> UpdateWebhookMessage<'a> {
 
     pub(crate) fn new_interaction(
         http: &'a Client,
-        application_id: ApplicationId,
+        application_id: Option<ApplicationId>,
         interaction_token: impl Into<String>,
-    ) -> Self {
-        Self {
+    ) -> Result<Self, InteractionError> {
+        let application_id = application_id.ok_or(InteractionError::ApplicationIdNotPresent)?;
+
+        Ok(Self {
             fields: UpdateWebhookMessageFields {
                 allowed_mentions: http.default_allowed_mentions(),
                 ..UpdateWebhookMessageFields::default()
@@ -167,7 +170,7 @@ impl<'a> UpdateWebhookMessage<'a> {
                 application_id: application_id.0,
                 interaction_token: interaction_token.into(),
             },
-        }
+        })
     }
 
     /// Set the allowed mentions in the message.

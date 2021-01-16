@@ -1,7 +1,9 @@
 use crate::{
     client::Client,
     error::Result,
-    request::{self, AuditLogReason, AuditLogReasonError, Pending, Request},
+    request::{
+        self, applications::InteractionError, AuditLogReason, AuditLogReasonError, Pending, Request,
+    },
     routing::Route,
 };
 use twilight_model::id::{ApplicationId, MessageId, WebhookId};
@@ -53,10 +55,12 @@ impl<'a> DeleteWebhookMessage<'a> {
     ///
     pub(crate) fn new_interaction(
         http: &'a Client,
-        application_id: ApplicationId,
+        application_id: Option<ApplicationId>,
         interaction_token: impl Into<String>,
-    ) -> Self {
-        Self {
+    ) -> Result<Self, InteractionError> {
+        let application_id = application_id.ok_or(InteractionError::ApplicationIdNotPresent)?;
+
+        Ok(Self {
             fut: None,
             http,
             route: Route::DeleteInteractionOriginal {
@@ -64,7 +68,7 @@ impl<'a> DeleteWebhookMessage<'a> {
                 interaction_token: interaction_token.into(),
             },
             reason: None,
-        }
+        })
     }
 
     fn request(&self) -> Result<Request> {

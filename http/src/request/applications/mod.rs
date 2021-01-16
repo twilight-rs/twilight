@@ -1,3 +1,8 @@
+use std::{
+    error::Error,
+    fmt::{Display, Formatter, Result as FmtResult},
+};
+
 mod create_guild_command;
 mod delete_guild_command;
 mod get_guild_commands;
@@ -21,3 +26,19 @@ pub use get_global_commands::GetGlobalCommands;
 pub use update_global_command::UpdateGlobalCommand;
 
 pub use interaction_callback::InteractionCallback;
+
+#[derive(Debug)]
+#[non_exhaustive]
+pub enum InteractionError {
+    ApplicationIdNotPresent,
+}
+
+impl Display for InteractionError {
+    fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
+        match self {
+            Self::ApplicationIdNotPresent => f.write_str("application id not present"),
+        }
+    }
+}
+
+impl Error for InteractionError {}

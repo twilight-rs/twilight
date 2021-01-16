@@ -10,7 +10,8 @@ use crate::{
     request::{
         applications::{
             CreateGlobalCommand, CreateGuildCommand, DeleteGlobalCommand, DeleteGuildCommand,
-            GetGlobalCommands, GetGuildCommands, UpdateGlobalCommand, UpdateGuildCommand,
+            GetGlobalCommands, GetGuildCommands, InteractionError, UpdateGlobalCommand,
+            UpdateGuildCommand,
         },
         channel::allowed_mentions::AllowedMentions,
         guild::{create_guild::CreateGuildError, create_guild_channel::CreateGuildChannelError},
@@ -33,7 +34,7 @@ use std::{
     fmt::{Debug, Formatter, Result as FmtResult},
     result::Result as StdResult,
     sync::{
-        atomic::{AtomicBool, Ordering},
+        atomic::{AtomicBool, AtomicU64, Ordering},
         Arc,
     },
     time::Duration,
@@ -63,6 +64,7 @@ struct State {
     token_invalid: AtomicBool,
     token: Option<Box<str>>,
     use_http: bool,
+    pub(crate) application_id: AtomicU64,
     pub(crate) default_allowed_mentions: Option<AllowedMentions>,
 }
 
@@ -168,19 +170,17 @@ impl Client {
     /// [`update_webhook_message`]: Client::update_webhook_message
     pub fn update_interaction_original(
         &self,
-        application_id: ApplicationId,
         interaction_token: impl Into<String>,
-    ) -> UpdateWebhookMessage<'_> {
-        UpdateWebhookMessage::new_interaction(self, application_id, interaction_token)
+    ) -> Result<UpdateWebhookMessage<'_>, InteractionError> {
+        UpdateWebhookMessage::new_interaction(self, self.application_id(), interaction_token)
     }
 
     /// Delete the original message, by its token.
     pub fn delete_interaction_original(
         &self,
-        application_id: ApplicationId,
         interaction_token: impl Into<String>,
-    ) -> DeleteWebhookMessage<'_> {
-        DeleteWebhookMessage::new_interaction(self, application_id, interaction_token)
+    ) -> Result<DeleteWebhookMessage<'_>, InteractionError> {
+        DeleteWebhookMessage::new_interaction(self, self.application_id(), interaction_token)
     }
 
     /// Create a followup message, by an interaction token.
@@ -190,12 +190,19 @@ impl Client {
     /// [`execute_webhook`]: Client::execute_webhook
     pub fn create_interaction_followup(
         &self,
-        application_id: ApplicationId,
         interaction_token: impl Into<String>,
-    ) -> ExecuteWebhook<'_> {
+    ) -> Result<ExecuteWebhook<'_>, InteractionError> {
         // Use the application_id as the WebhookId as that is the only difference
         // between this method and execute_webhook.
-        ExecuteWebhook::new(self, WebhookId(application_id.0), interaction_token)
+        let application_id = self
+            .application_id()
+            .ok_or(InteractionError::ApplicationIdNotPresent)?;
+
+        Ok(ExecuteWebhook::new(
+            self,
+            WebhookId(application_id.0),
+            interaction_token,
+        ))
     }
 
     /// Edit a followup message, by an interaction token.
@@ -205,35 +212,41 @@ impl Client {
     /// [`update_webhook_message`]: Client::update_webhook_message
     pub fn update_interaction_followup(
         &self,
-        application_id: ApplicationId,
         interaction_token: impl Into<String>,
         message_id: MessageId,
-    ) -> UpdateWebhookMessage<'_> {
+    ) -> Result<UpdateWebhookMessage<'_>, InteractionError> {
         // Use application_id as webhook_id for same reason as
         // given in create_interaction_followup.
-        UpdateWebhookMessage::new(
+        let application_id = self
+            .application_id()
+            .ok_or(InteractionError::ApplicationIdNotPresent)?;
+
+        Ok(UpdateWebhookMessage::new(
             self,
             WebhookId(application_id.0),
             interaction_token,
             message_id,
-        )
+        ))
     }
 
     /// Delete a followup message by interaction token and the message's ID.
     pub fn delete_interaction_followup(
         &self,
-        application_id: ApplicationId,
         interaction_token: impl Into<String>,
         message_id: MessageId,
-    ) -> DeleteWebhookMessage<'_> {
+    ) -> Result<DeleteWebhookMessage<'_>, InteractionError> {
         // Use application_id as webhook_id for same reason as
         // given in create_interaction_followup.
-        DeleteWebhookMessage::new(
+        let application_id = self
+            .application_id()
+            .ok_or(InteractionError::ApplicationIdNotPresent)?;
+
+        Ok(DeleteWebhookMessage::new(
             self,
             WebhookId(application_id.0),
             interaction_token,
             message_id,
-        )
+        ))
     }
 
     /// Create a new command in a guild.
@@ -247,14 +260,13 @@ impl Client {
     /// [the discord docs]: https://discord.com/developers/docs/interactions/slash-commands#create-guild-application-command
     pub fn create_guild_command(
         &self,
-        application_id: ApplicationId,
         guild_id: GuildId,
         name: impl Into<String>,
         description: impl Into<String>,
-    ) -> CreateGuildCommand<'_> {
+    ) -> Result<CreateGuildCommand<'_>, InteractionError> {
         CreateGuildCommand::new(
             &self,
-            application_id,
+            self.application_id(),
             guild_id,
             name.into(),
             description.into(),
@@ -264,10 +276,9 @@ impl Client {
     /// Fetch all commands for a guild, by ID.
     pub fn get_guild_commands(
         &self,
-        application_id: ApplicationId,
         guild_id: GuildId,
-    ) -> GetGuildCommands<'_> {
-        GetGuildCommands::new(&self, application_id, guild_id)
+    ) -> Result<GetGuildCommands<'_>, InteractionError> {
+        GetGuildCommands::new(&self, self.application_id(), guild_id)
     }
 
     /// Edit a command in a guild, by ID.
@@ -278,16 +289,15 @@ impl Client {
     /// [the discord docs]: https://discord.com/developers/docs/interactions/slash-commands#edit-guild-application-command
     pub fn update_guild_command(
         &self,
-        application_id: ApplicationId,
         guild_id: GuildId,
         command_id: CommandId,
         // TODO: ↓↓ Should probably be optional and therefore not here
         name: impl Into<String>,
         description: impl Into<String>,
-    ) -> UpdateGuildCommand<'_> {
+    ) -> Result<UpdateGuildCommand<'_>, InteractionError> {
         UpdateGuildCommand::new(
             &self,
-            application_id,
+            self.application_id(),
             guild_id,
             command_id,
             name.into(),
@@ -298,11 +308,10 @@ impl Client {
     /// Delete a command in a guild, by ID.
     pub fn delete_guild_command(
         &self,
-        application_id: ApplicationId,
         guild_id: GuildId,
         command_id: CommandId,
-    ) -> DeleteGuildCommand<'_> {
-        DeleteGuildCommand::new(&self, application_id, guild_id, command_id)
+    ) -> Result<DeleteGuildCommand<'_>, InteractionError> {
+        DeleteGuildCommand::new(&self, self.application_id(), guild_id, command_id)
     }
 
     /// Create a new global command.
@@ -315,16 +324,20 @@ impl Client {
     /// [the discord docs]: https://discord.com/developers/docs/interactions/slash-commands#create-global-application-command
     pub fn create_global_command(
         &self,
-        application_id: ApplicationId,
         name: impl Into<String>,
         description: impl Into<String>,
-    ) -> CreateGlobalCommand<'_> {
-        CreateGlobalCommand::new(&self, application_id, name.into(), description.into())
+    ) -> Result<CreateGlobalCommand<'_>, InteractionError> {
+        CreateGlobalCommand::new(
+            &self,
+            self.application_id(),
+            name.into(),
+            description.into(),
+        )
     }
 
     /// Fetch all global commands for your app.
-    pub fn get_global_commands(&self, application_id: ApplicationId) -> GetGlobalCommands<'_> {
-        GetGlobalCommands::new(&self, application_id)
+    pub fn get_global_commands(&self) -> Result<GetGlobalCommands<'_>, InteractionError> {
+        GetGlobalCommands::new(&self, self.application_id())
     }
 
     /// Edit a global command, by ID.
@@ -335,15 +348,14 @@ impl Client {
     /// [the discord docs]: https://discord.com/developers/docs/interactions/slash-commands#edit-global-application-command
     pub fn update_global_command(
         &self,
-        application_id: ApplicationId,
         command_id: CommandId,
         // TODO: ↓↓ Should probably be optional and therefore not here
         name: impl Into<String>,
         description: impl Into<String>,
-    ) -> UpdateGlobalCommand<'_> {
+    ) -> Result<UpdateGlobalCommand<'_>, InteractionError> {
         UpdateGlobalCommand::new(
             &self,
-            application_id,
+            self.application_id(),
             command_id,
             name.into(),
             description.into(),
@@ -353,10 +365,9 @@ impl Client {
     /// Delete a global command, by ID.
     pub fn delete_global_command(
         &self,
-        application_id: ApplicationId,
         command_id: CommandId,
-    ) -> DeleteGlobalCommand<'_> {
-        DeleteGlobalCommand::new(&self, application_id, command_id)
+    ) -> Result<DeleteGlobalCommand<'_>, InteractionError> {
+        DeleteGlobalCommand::new(&self, self.application_id(), command_id)
     }
 
     /* New Stuff End   */
@@ -364,7 +375,35 @@ impl Client {
     /// Create a new `hyper-rustls` or `hyper-tls` backed client with a token.
     #[cfg_attr(docsrs, doc(cfg(any(feature = "hyper-rustls", feature = "hyper-tls"))))]
     pub fn new(token: impl Into<String>) -> Self {
-        ClientBuilder::default().token(token).build()
+        #[cfg(feature = "hyper-rustls")]
+        let connector = hyper_rustls::HttpsConnector::with_native_roots();
+        #[cfg(all(feature = "hyper-tls", not(feature = "hyper-rustls")))]
+        let connector = hyper_tls::HttpsConnector::new();
+
+        let mut token = token.into();
+
+        let is_bot = token.starts_with("Bot ");
+        let is_bearer = token.starts_with("Bearer ");
+
+        // Make sure it is either a bot or bearer token, and assume it's a bot
+        // token if no prefix is given
+        if !is_bot && !is_bearer {
+            token.insert_str(0, "Bot ");
+        }
+
+        Self {
+            state: Arc::new(State {
+                http: HyperClient::builder().build(connector),
+                proxy: None,
+                ratelimiter: Some(Ratelimiter::new()),
+                timeout: Duration::from_secs(10),
+                token_invalid: AtomicBool::new(false),
+                token: Some(token.into_boxed_str()),
+                use_http: false,
+                application_id: AtomicU64::default(),
+                default_allowed_mentions: None,
+            }),
+        }
     }
 
     /// Create a new builder to create a client.
@@ -380,6 +419,30 @@ impl Client {
     /// reflects that.
     pub fn token(&self) -> Option<&str> {
         self.state.token.as_deref()
+    }
+
+    /// Retrieve the [`ApplicationId`] used by interaction methods.
+    pub fn application_id(&self) -> Option<ApplicationId> {
+        let id = self.state.application_id.load(Ordering::Relaxed);
+
+        if id != 0 {
+            return Some(ApplicationId(id));
+        }
+
+        None
+    }
+
+    /// Set a new [`ApplicationId`] after building the client.
+    ///
+    /// Returns the previous ID, if there was one.
+    pub fn set_application_id(&self, application_id: ApplicationId) -> Option<ApplicationId> {
+        let prev = self.state.application_id.swap(application_id.0, Ordering::Relaxed);
+
+        if prev != 0 {
+            return Some(ApplicationId(prev));
+        }
+
+        None
     }
 
     /// Get the default allowed mentions for sent messages.
@@ -1895,6 +1958,7 @@ impl From<HyperClient<HttpsConnector<HttpConnector>>> for Client {
                 token_invalid: AtomicBool::new(false),
                 token: None,
                 use_http: false,
+                application_id: AtomicU64::default(),
                 default_allowed_mentions: None,
             }),
         }
