@@ -23,8 +23,8 @@ impl EmbedFieldBuilder {
     /// Refer to [`EmbedBuilder::FIELD_VALUE_LENGTH_LIMIT`] for the maximum
     /// number of UTF-16 code poitns that can be in a field value.
     ///
-    /// [`EmbedBuilder::FIELD_NAME_LENGTH_LIMIT`]: struct.EmbedBuilder.html#associatedconstant.FIELD_NAME_LENGTH_LIMIT
-    /// [`EmbedBuilder::FIELD_VALUE_LENGTH_LIMIT`]: struct.EmbedBuilder.html#associatedconstant.FIELD_VALUE_LENGTH_LIMIT
+    /// [`EmbedBuilder::FIELD_NAME_LENGTH_LIMIT`]: crate::EmbedBuilder::FIELD_NAME_LENGTH_LIMIT
+    /// [`EmbedBuilder::FIELD_VALUE_LENGTH_LIMIT`]: crate::EmbedBuilder::FIELD_VALUE_LENGTH_LIMIT
     pub fn new(name: impl Into<String>, value: impl Into<String>) -> Self {
         Self::_new(name.into(), value.into())
     }

@@ -18,9 +18,7 @@ impl EmbedFooterBuilder {
     /// Refer to [`EmbedBuilder::FOOTER_TEXT_LENGTH_LIMIT`] for the maximum
     /// number of UTF-16 code points that can be in a footer's text.
     ///
-    /// # Errors
-    ///
-    /// [`EmbedBuilder::FOOTER_TEXT_LENGTH_LIMIT`]: struct.EmbedBuilder.html#associatedconstant.FOOTER_TEXT_LENGTH_LIMIT
+    /// [`EmbedBuilder::FOOTER_TEXT_LENGTH_LIMIT`]: crate::EmbedBuilder::FOOTER_TEXT_LENGTH_LIMIT
     pub fn new(text: impl Into<String>) -> Self {
         Self::_new(text.into())
     }

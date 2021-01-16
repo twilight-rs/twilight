@@ -103,8 +103,6 @@ pub enum EmbedError {
     ///
     /// Refer to [`EmbedBuilder::EMBED_LENGTH_LIMIT`] for more information about
     /// what goes into this limit.
-    ///
-    /// [`EmbedBuilder::EMBED_LENGTH_LIMIT`]: struct.EmbedBuilder.html#associatedconstant.EMBED_LENGTH_LIMIT
     TotalContentTooLarge {
         /// The total length of the embed.
         length: usize,
@@ -113,8 +111,6 @@ pub enum EmbedError {
     ///
     /// Refer to [`EmbedBuilder::EMBED_FIELD_LIMIT`] for more information about
     /// what the limit is.
-    ///
-    /// [`EmbedBuilder::EMBED_FIELD_LIMIT`]: struct.EmbedBuilder.html#associatedconstant.EMBED_FIELD_LIMIT
     TooManyFields {
         /// The provided fields.
         fields: Vec<EmbedField>,
@@ -257,31 +253,15 @@ impl EmbedBuilder {
     /// the embed is too large. Refer to [`EMBED_LENGTH_LIMIT`] for the limit
     /// value and what counts towards it.
     ///
-    /// [`AUTHOR_NAME_LENGTH_LIMIT`]: #associatedconstant.AUTHOR_NAME_LENGTH_LIMIT
-    /// [`COLOR_MAXIMUM`]: #associatedconstant.COLOR_MAXIMUM
-    /// [`DESCRIPTION_LENGTH_LIMIT`]: #associatedconstant.DESCRIPTION_LENGTH_LIMIT
-    /// [`EMBED_FIELD_LIMIT`]: #associatedconstant.EMBED_FIELD_LIMIT
-    /// [`EMBED_LENGTH_LIMIT`]: #associatedconstant.EMBED_LENGTH_LIMIT
-    /// [`FIELD_NAME_LENGTH_LIMIT`]: #associatedconstant.FIELD_NAME_LENGTH_LIMIT
-    /// [`FIELD_VALUE_LENGTH_LIMIT`]: #associatedconstant.FIELD_VALUE_LENGTH_LIMIT
-    /// [`FOOTER_TEXT_LENGTH_LIMIT`]: #associatedconstant.FOOTER_TEXT_LENGTH_LIMIT
-    /// [`TITLE_LENGTH_LIMIT`]: #associatedconstant.TITLE_LENGTH_LIMIT
-    /// [`EmbedError::AuthorNameEmpty`]: enum.EmbedError.html#variant.AuthorNameEmpty
-    /// [`EmbedError::AuthorNameTooLong`]: enum.EmbedError.html#variant.AuthorNameTooLong
-    /// [`EmbedError::ColorNotRgb`]: enum.EmbedError.html#variant.ColorNotRgb
-    /// [`EmbedError::ColorZero`]: enum.EmbedError.html#variant.ColorZero
-    /// [`EmbedError::DescriptionEmpty`]: enum.EmbedError.html#variant.DescriptionEmpty
-    /// [`EmbedError::DescriptionTooLong`]: enum.EmbedError.html#variant.DescriptionTooLong
-    /// [`EmbedError::FieldNameEmpty`]: enum.EmbedError.html#variant.FieldNameEmpty
-    /// [`EmbedError::FieldNameTooLong`]: enum.EmbedError.html#variant.FieldNameTooLong
-    /// [`EmbedError::FieldValueEmpty`]: enum.EmbedError.html#variant.FieldValueEmpty
-    /// [`EmbedError::FieldValueTooLong`]: enum.EmbedError.html#variant.FieldValueTooLong
-    /// [`EmbedError::FooterTextEmpty`]: enum.EmbedError.html#variant.FooterTextEmpty
-    /// [`EmbedError::FooterTextTooLong`]: enum.EmbedError.html#variant.FooterTextTooLong
-    /// [`EmbedError::TitleEmpty`]: enum.EmbedError.html#variant.TitleEmpty
-    /// [`EmbedError::TitleTooLong`]: enum.EmbedError.html#variant.TitleTooLong
-    /// [`EmbedError::TooManyFields`]: enum.EmbedError.html#variant.TooManyFields
-    /// [`EmbedError::TotalContentTooLarge`]: enum.EmbedError.html#variant.TotalContentTooLarge
+    /// [`AUTHOR_NAME_LENGTH_LIMIT`]: Self::AUTHOR_NAME_LENGTH_LIMIT
+    /// [`COLOR_MAXIMUM`]: Self::COLOR_MAXIMUM
+    /// [`DESCRIPTION_LENGTH_LIMIT`]: Self::DESCRIPTION_LENGTH_LIMIT
+    /// [`EMBED_FIELD_LIMIT`]: Self::EMBED_FIELD_LIMIT
+    /// [`EMBED_LENGTH_LIMIT`]: Self::EMBED_LENGTH_LIMIT
+    /// [`FIELD_NAME_LENGTH_LIMIT`]: Self::FIELD_NAME_LENGTH_LIMIT
+    /// [`FIELD_VALUE_LENGTH_LIMIT`]: Self::FIELD_VALUE_LENGTH_LIMIT
+    /// [`FOOTER_TEXT_LENGTH_LIMIT`]: Self::FOOTER_TEXT_LENGTH_LIMIT
+    /// [`TITLE_LENGTH_LIMIT`]: Self::TITLE_LENGTH_LIMIT
     #[must_use = "should be used as part of something like a message"]
     pub fn build(mut self) -> Result<Embed, EmbedError> {
         if self.0.fields.len() > Self::EMBED_FIELD_LIMIT {
@@ -452,9 +432,7 @@ impl EmbedBuilder {
     /// # Ok(()) }
     /// ```
     ///
-    /// # Errors
-    ///
-    /// [`COLOR_MAXIMUM`]: #associatedconstant.COLOR_MAXIMUM
+    /// [`COLOR_MAXIMUM`]: Self::COLOR_MAXIMUM
     pub fn color(mut self, color: u32) -> Self {
         self.0.color.replace(color);
 
@@ -476,7 +454,7 @@ impl EmbedBuilder {
     /// # Ok(()) }
     /// ```
     ///
-    /// [`DESCRIPTION_LENGTH_LIMIT`]: #associatedconstant.DESCRIPTION_LENGTH_LIMIT
+    /// [`DESCRIPTION_LENGTH_LIMIT`]: Self::DESCRIPTION_LENGTH_LIMIT
     pub fn description(self, description: impl Into<String>) -> Self {
         self._description(description.into())
     }
@@ -622,7 +600,7 @@ impl EmbedBuilder {
     /// # Ok(()) }
     /// ```
     ///
-    /// [`TITLE_LENGTH_LIMIT`]: #associatedconstant.TITLE_LENGTH_LIMIT
+    /// [`TITLE_LENGTH_LIMIT`]: Self::TITLE_LENGTH_LIMIT
     pub fn title(self, title: impl Into<String>) -> Self {
         self._title(title.into())
     }

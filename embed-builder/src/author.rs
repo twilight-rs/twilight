@@ -36,7 +36,7 @@ impl EmbedAuthorBuilder {
     /// Refer to [`EmbedBuilder::AUTHOR_NAME_LENGTH_LIMIT`] for the maximum
     /// number of UTF-16 code points that can be in an author name.
     ///
-    /// [`EmbedBuilder::AUTHOR_NAME_LENGTH_LIMIT`]: struct.EmbedBuilder.html#associatedconstant.AUTHOR_NAME_LENGTH_LIMIT
+    /// [`EmbedBuilder::AUTHOR_NAME_LENGTH_LIMIT`]: crate::EmbedBuilder::AUTHOR_NAME_LENGTH_LIMIT
     pub fn name(self, name: impl Into<String>) -> Self {
         self._name(name.into())
     }
