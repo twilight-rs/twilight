@@ -131,7 +131,7 @@ impl ClientBuilder {
 
         self
     }
-    
+
     /// Set a group headers which are sent in every request.
     pub fn default_headers(mut self, headers: HeaderMap) -> Self {
         self.default_headers.replace(headers);
