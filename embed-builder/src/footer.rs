@@ -72,7 +72,7 @@ impl From<EmbedFooterBuilder> for EmbedFooter {
 #[cfg(test)]
 mod tests {
     use super::EmbedFooterBuilder;
-    use crate::{EmbedBuilder, EmbedError, ImageSource};
+    use crate::{EmbedBuilder, EmbedErrorType, ImageSource};
     use static_assertions::assert_impl_all;
     use std::fmt::Debug;
     use twilight_model::channel::embed::EmbedFooter;
@@ -83,14 +83,14 @@ mod tests {
     #[test]
     fn test_text() {
         assert!(matches!(
-            EmbedBuilder::new().footer(EmbedFooterBuilder::new("")).build().unwrap_err(),
-            EmbedError::FooterTextEmpty { text }
+            EmbedBuilder::new().footer(EmbedFooterBuilder::new("")).build().unwrap_err().kind(),
+            EmbedErrorType::FooterTextEmpty { text }
             if text.is_empty()
         ));
         let too_long_len = EmbedBuilder::FOOTER_TEXT_LENGTH_LIMIT + 1;
         assert!(matches!(
-            EmbedBuilder::new().footer(EmbedFooterBuilder::new("a".repeat(too_long_len))).build().unwrap_err(),
-            EmbedError::FooterTextTooLong { text }
+            EmbedBuilder::new().footer(EmbedFooterBuilder::new("a".repeat(too_long_len))).build().unwrap_err().kind(),
+            EmbedErrorType::FooterTextTooLong { text }
             if text.len() == too_long_len
         ));
 

@@ -114,7 +114,7 @@ impl<'a> CreateInvite<'a> {
         let request = if let Some(reason) = &self.reason {
             let headers = audit_header(&reason)?;
             Request::from((
-                crate::json_to_vec(&self.fields)?,
+                crate::json_to_vec(&self.fields).map_err(HttpError::json)?,
                 headers,
                 Route::CreateInvite {
                     channel_id: self.channel_id.0,
@@ -122,7 +122,7 @@ impl<'a> CreateInvite<'a> {
             ))
         } else {
             Request::from((
-                crate::json_to_vec(&self.fields)?,
+                crate::json_to_vec(&self.fields).map_err(HttpError::json)?,
                 Route::CreateInvite {
                     channel_id: self.channel_id.0,
                 },

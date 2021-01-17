@@ -4,7 +4,7 @@ pub use self::builder::ClientBuilder;
 
 use crate::{
     api_error::{ApiError, ErrorCode},
-    error::{Error, Result},
+    error::{Error, ErrorType, Result},
     ratelimiting::{RatelimitHeaders, Ratelimiter},
     request::{
         channel::allowed_mentions::AllowedMentions,
@@ -1422,12 +1422,15 @@ impl Client {
     ///
     /// # Errors
     ///
-    /// Returns [`Error::Unauthorized`] if the configured token has become
-    /// invalid due to expiration, revokation, etc.
+    /// Returns an [`ErrorType::Unauthorized`] error type if the configured
+    /// token has become invalid due to expiration, revokation, etc.
     #[allow(clippy::too_many_lines)]
     pub async fn raw(&self, request: Request) -> Result<Response<Body>> {
         if self.state.token_invalid.load(Ordering::Relaxed) {
-            return Err(Error::Unauthorized);
+            return Err(Error {
+                cause: None,
+                kind: ErrorType::Unauthorized,
+            });
         }
 
         let Request {
@@ -1452,7 +1455,10 @@ impl Client {
                 #[allow(clippy::borrow_interior_mutable_const)]
                 let name = AUTHORIZATION.to_string();
 
-                Error::CreatingHeader { name, source }
+                Error {
+                    cause: Some(Box::new(source)),
+                    kind: ErrorType::CreatingHeader { name },
+                }
             })?;
 
             if let Some(headers) = builder.headers_mut() {
@@ -1499,7 +1505,10 @@ impl Client {
             };
             builder
                 .body(Body::from(form_bytes))
-                .map_err(|source| Error::BuildingRequest { source })?
+                .map_err(|source| Error {
+                    cause: Some(Box::new(source)),
+                    kind: ErrorType::BuildingRequest,
+                })?
         } else if let Some(bytes) = body {
             let len = bytes.len();
 
@@ -1509,21 +1518,24 @@ impl Client {
                 headers.insert(CONTENT_TYPE, content_type);
             }
 
-            builder
-                .body(Body::from(bytes))
-                .map_err(|source| Error::BuildingRequest { source })?
+            builder.body(Body::from(bytes)).map_err(|source| Error {
+                cause: Some(Box::new(source)),
+                kind: ErrorType::BuildingRequest,
+            })?
         } else if method == Method::PUT || method == Method::POST || method == Method::PATCH {
             if let Some(headers) = builder.headers_mut() {
                 headers.insert(CONTENT_LENGTH, 0.into());
             }
 
-            builder
-                .body(Body::empty())
-                .map_err(|source| Error::BuildingRequest { source })?
+            builder.body(Body::empty()).map_err(|source| Error {
+                cause: Some(Box::new(source)),
+                kind: ErrorType::BuildingRequest,
+            })?
         } else {
-            builder
-                .body(Body::empty())
-                .map_err(|source| Error::BuildingRequest { source })?
+            builder.body(Body::empty()).map_err(|source| Error {
+                cause: Some(Box::new(source)),
+                kind: ErrorType::BuildingRequest,
+            })?
         };
 
         let inner = self.state.http.request(req);
@@ -1534,20 +1546,33 @@ impl Client {
             None => {
                 return fut
                     .await
-                    .map_err(|source| Error::RequestTimedOut { source })?
-                    .map_err(|source| Error::RequestError { source })
+                    .map_err(|source| Error {
+                        cause: Some(Box::new(source)),
+                        kind: ErrorType::RequestTimedOut,
+                    })?
+                    .map_err(|source| Error {
+                        cause: Some(Box::new(source)),
+                        kind: ErrorType::RequestError,
+                    });
             }
         };
 
         let rx = ratelimiter.get(bucket).await;
-        let tx = rx
-            .await
-            .map_err(|source| Error::RequestCanceled { source })?;
+        let tx = rx.await.map_err(|source| Error {
+            cause: Some(Box::new(source)),
+            kind: ErrorType::RequestCanceled,
+        })?;
 
         let resp = fut
             .await
-            .map_err(|source| Error::RequestTimedOut { source })?
-            .map_err(|source| Error::RequestError { source })?;
+            .map_err(|source| Error {
+                cause: Some(Box::new(source)),
+                kind: ErrorType::RequestTimedOut,
+            })?
+            .map_err(|source| Error {
+                cause: Some(Box::new(source)),
+                kind: ErrorType::RequestError,
+            })?;
 
         // If the API sent back an Unauthorized response, then the client's
         // configured token is permanently invalid and future requests must be
@@ -1574,23 +1599,28 @@ impl Client {
     ///
     /// # Errors
     ///
-    /// Returns [`Error::Unauthorized`] if the configured token has become
-    /// invalid due to expiration, revokation, etc.
+    /// Returns an [`ErrorType::Unauthorized`] error type if the configured
+    /// token has become invalid due to expiration, revokation, etc.
     pub async fn request<T: DeserializeOwned>(&self, request: Request) -> Result<T> {
         let resp = self.make_request(request).await?;
 
         let mut buf = body::aggregate(resp.into_body())
             .await
-            .map_err(|source| Error::ChunkingResponse { source })?;
+            .map_err(|source| Error {
+                cause: Some(Box::new(source)),
+                kind: ErrorType::ChunkingResponse,
+            })?;
 
         let mut bytes = vec![0; buf.remaining()];
         buf.copy_to_slice(&mut bytes);
 
         let result = crate::json_from_slice(&mut bytes);
 
-        result.map_err(|source| Error::Parsing {
-            body: bytes.to_vec(),
-            source,
+        result.map_err(|source| Error {
+            cause: Some(Box::new(source)),
+            kind: ErrorType::Parsing {
+                body: bytes.to_vec(),
+            },
         })
     }
 
@@ -1599,7 +1629,10 @@ impl Client {
 
         hyper::body::to_bytes(resp.into_body())
             .await
-            .map_err(|source| Error::ChunkingResponse { source })
+            .map_err(|source| Error {
+                cause: Some(Box::new(source)),
+                kind: ErrorType::ChunkingResponse,
+            })
     }
 
     /// Execute a request, checking only that the response was a success.
@@ -1608,8 +1641,8 @@ impl Client {
     ///
     /// # Errors
     ///
-    /// Returns [`Error::Unauthorized`] if the configured token has become
-    /// invalid due to expiration, revokation, etc.
+    /// Returns an [`ErrorType::Unauthorized`] error type if the configured
+    /// token has become invalid due to expiration, revokation, etc.
     pub async fn verify(&self, request: Request) -> Result<()> {
         self.make_request(request).await?;
 
@@ -1631,23 +1664,30 @@ impl Client {
             ),
             StatusCode::TOO_MANY_REQUESTS => tracing::warn!("429 response: {:?}", resp),
             StatusCode::SERVICE_UNAVAILABLE => {
-                return Err(Error::ServiceUnavailable { response: resp })
+                return Err(Error {
+                    cause: None,
+                    kind: ErrorType::ServiceUnavailable { response: resp },
+                });
             }
             _ => {}
         }
 
         let mut buf = hyper::body::aggregate(resp.into_body())
             .await
-            .map_err(|source| Error::ChunkingResponse { source })?;
+            .map_err(|source| Error {
+                cause: Some(Box::new(source)),
+                kind: ErrorType::ChunkingResponse,
+            })?;
 
         let mut bytes = vec![0; buf.remaining()];
         buf.copy_to_slice(&mut bytes);
 
-        let error =
-            crate::json_from_slice::<ApiError>(&mut bytes).map_err(|source| Error::Parsing {
+        let error = crate::json_from_slice::<ApiError>(&mut bytes).map_err(|source| Error {
+            cause: Some(Box::new(source)),
+            kind: ErrorType::Parsing {
                 body: bytes.clone(),
-                source,
-            })?;
+            },
+        })?;
 
         if let ApiError::General(ref general) = error {
             if let ErrorCode::Other(num) = general.code {
@@ -1655,10 +1695,13 @@ impl Client {
             }
         }
 
-        Err(Error::Response {
-            body: bytes,
-            error,
-            status,
+        Err(Error {
+            cause: None,
+            kind: ErrorType::Response {
+                body: bytes,
+                error,
+                status,
+            },
         })
     }
 }

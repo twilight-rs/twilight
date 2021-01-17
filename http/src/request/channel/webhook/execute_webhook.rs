@@ -134,7 +134,7 @@ impl<'a> ExecuteWebhook<'a> {
 
     fn start(&mut self) -> Result<()> {
         let request = Request::from((
-            crate::json_to_vec(&self.fields)?,
+            crate::json_to_vec(&self.fields).map_err(HttpError::json)?,
             Route::ExecuteWebhook {
                 token: self.token.to_owned(),
                 wait: self.fields.wait,

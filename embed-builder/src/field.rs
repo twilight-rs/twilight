@@ -75,7 +75,7 @@ impl From<EmbedFieldBuilder> for EmbedField {
 #[cfg(test)]
 mod tests {
     use super::EmbedFieldBuilder;
-    use crate::{EmbedBuilder, EmbedError};
+    use crate::{EmbedBuilder, EmbedErrorType};
     use static_assertions::assert_impl_all;
     use std::fmt::Debug;
     use twilight_model::channel::embed::EmbedField;
@@ -86,23 +86,23 @@ mod tests {
     #[test]
     fn test_new_errors() {
         assert!(matches!(
-            EmbedBuilder::new().field(EmbedFieldBuilder::new("", "a")).build().unwrap_err(),
-            EmbedError::FieldNameEmpty { name, value }
+            EmbedBuilder::new().field(EmbedFieldBuilder::new("", "a")).build().unwrap_err().kind(),
+            EmbedErrorType::FieldNameEmpty { name, value }
             if name.is_empty() && value.len() == 1
         ));
         assert!(matches!(
-            EmbedBuilder::new().field(EmbedFieldBuilder::new("a".repeat(257), "a")).build().unwrap_err(),
-            EmbedError::FieldNameTooLong { name, value }
+            EmbedBuilder::new().field(EmbedFieldBuilder::new("a".repeat(257), "a")).build().unwrap_err().kind(),
+            EmbedErrorType::FieldNameTooLong { name, value }
             if name.len() == 257 && value.len() == 1
         ));
         assert!(matches!(
-            EmbedBuilder::new().field(EmbedFieldBuilder::new("a", "")).build().unwrap_err(),
-            EmbedError::FieldValueEmpty { name, value }
+            EmbedBuilder::new().field(EmbedFieldBuilder::new("a", "")).build().unwrap_err().kind(),
+            EmbedErrorType::FieldValueEmpty { name, value }
             if name.len() == 1 && value.is_empty()
         ));
         assert!(matches!(
-            EmbedBuilder::new().field(EmbedFieldBuilder::new("a", "a".repeat(1025))).build().unwrap_err(),
-            EmbedError::FieldValueTooLong { name, value }
+            EmbedBuilder::new().field(EmbedFieldBuilder::new("a", "a".repeat(1025))).build().unwrap_err().kind(),
+            EmbedErrorType::FieldValueTooLong { name, value }
             if name.len() == 1 && value.len() == 1025
         ));
     }

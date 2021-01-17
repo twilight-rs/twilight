@@ -67,7 +67,7 @@ mod image_source;
 
 pub use self::{
     author::EmbedAuthorBuilder,
-    builder::{EmbedBuilder, EmbedError},
+    builder::{EmbedBuilder, EmbedError, EmbedErrorType},
     field::EmbedFieldBuilder,
     footer::EmbedFooterBuilder,
     image_source::{ImageSource, ImageSourceAttachmentError, ImageSourceUrlError},

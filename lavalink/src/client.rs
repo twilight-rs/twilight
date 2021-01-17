@@ -1,12 +1,12 @@
 //! Client to manage nodes and players.
 
 use crate::{
-    model::{IncomingEvent, OutgoingEvent, VoiceUpdate},
+    model::{IncomingEvent, VoiceUpdate},
     node::{Node, NodeConfig, NodeError, Resume},
     player::{Player, PlayerManager},
 };
 use dashmap::DashMap;
-use futures_channel::mpsc::{TrySendError, UnboundedReceiver};
+use futures_channel::mpsc::UnboundedReceiver;
 use std::{
     error::Error,
     fmt::{Display, Formatter, Result as FmtResult},
@@ -22,35 +22,52 @@ use twilight_model::{
 };
 
 /// An error that can occur while interacting with the client.
-#[derive(Clone, Debug, PartialEq)]
-#[non_exhaustive]
-pub enum ClientError {
-    /// A node isn't configured, so the operation isn't possible to fulfill.
-    NodesUnconfigured,
-    /// Sending a voice update event to the node failed because the node's
-    /// connection was shutdown.
-    SendingVoiceUpdate {
-        /// The source of the error.
-        source: TrySendError<OutgoingEvent>,
-    },
+#[derive(Debug)]
+pub struct ClientError {
+    cause: Option<Box<dyn Error + Send + Sync>>,
+    kind: ClientErrorType,
+}
+
+impl ClientError {
+    /// Immutable reference to the type of error that occurred.
+    pub fn kind(&self) -> &ClientErrorType {
+        &self.kind
+    }
+
+    /// Consume the error, returning the source error if there is any.
+    pub fn into_cause(self) -> Option<Box<dyn Error + Send + Sync>> {
+        self.cause
+    }
 }
 
 impl Display for ClientError {
     fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
-        match self {
-            Self::NodesUnconfigured => f.write_str("no node has been configured"),
-            Self::SendingVoiceUpdate { .. } => f.write_str("couldn't send voice update to node"),
+        match &self.kind {
+            ClientErrorType::NodesUnconfigured => f.write_str("no node has been configured"),
+            ClientErrorType::SendingVoiceUpdate => {
+                f.write_str("couldn't send voice update to node")
+            }
         }
     }
 }
 
 impl Error for ClientError {
     fn source(&self) -> Option<&(dyn Error + 'static)> {
-        match self {
-            Self::NodesUnconfigured => None,
-            Self::SendingVoiceUpdate { source } => Some(source),
-        }
+        self.cause
+            .as_ref()
+            .map(|cause| &**cause as &(dyn Error + 'static))
     }
+}
+
+/// Type of [`ClientError`] that occurred.
+#[derive(Debug)]
+#[non_exhaustive]
+pub enum ClientErrorType {
+    /// A node isn't configured, so the operation isn't possible to fulfill.
+    NodesUnconfigured,
+    /// Sending a voice update event to the node failed because the node's
+    /// connection was shutdown.
+    SendingVoiceUpdate,
 }
 
 #[derive(Debug)]
@@ -152,8 +169,9 @@ impl Lavalink {
     ///
     /// # Errors
     ///
-    /// Returns [`ClientError::NodesUnconfigured`] if no nodes have been added
-    /// to the client when attempting to retrieve a guild's player.
+    /// Returns a [`ClientErrorType::NodesUnconfigured`] error type if no nodes
+    /// have been added to the client when attempting to retrieve a guild's
+    /// player.
     ///
     /// [crate documentation]: crate#examples
     pub async fn process(&self, event: &Event) -> Result<(), ClientError> {
@@ -259,9 +277,10 @@ impl Lavalink {
         tracing::debug!("getting player for guild {}", guild_id);
         let player = self.player(guild_id).await?;
         tracing::debug!("sending voice update for guild {}: {:?}", guild_id, update);
-        player
-            .send(update)
-            .map_err(|source| ClientError::SendingVoiceUpdate { source })?;
+        player.send(update).map_err(|source| ClientError {
+            cause: Some(Box::new(source)),
+            kind: ClientErrorType::SendingVoiceUpdate,
+        })?;
         tracing::debug!("sent voice update for guild {}", guild_id);
 
         Ok(())
@@ -305,8 +324,8 @@ impl Lavalink {
     ///
     /// # Errors
     ///
-    /// Returns [`ClientError::NodesUnconfigured`] if there are no configured
-    /// nodes available in the client.
+    /// Returns a [`ClientErrorType::NodesUnconfigured`] error type if there are
+    /// no configured nodes available in the client.
     ///
     /// [`Node::penalty`]: crate::node::Node::penalty
     pub async fn best(&self) -> Result<Node, ClientError> {
@@ -322,7 +341,10 @@ impl Lavalink {
             }
         }
 
-        best.ok_or(ClientError::NodesUnconfigured)
+        best.ok_or(ClientError {
+            cause: None,
+            kind: ClientErrorType::NodesUnconfigured,
+        })
     }
 
     /// Retrieve an immutable reference to the player manager.
@@ -338,8 +360,8 @@ impl Lavalink {
     ///
     /// # Errors
     ///
-    /// Returns [`ClientError::NodesUnconfigured`] if no node has been
-    /// configured via [`add`].
+    /// Returns a [`ClientError`] with a [`ClientErrorType::NodesUnconfigured`]
+    /// type if no node has been configured via [`add`].
     ///
     /// [`PlayerManager::get`]: crate::player::PlayerManager::get
     /// [`add`]: Self::add
@@ -376,12 +398,12 @@ impl Lavalink {
 
 #[cfg(test)]
 mod tests {
-    use super::{ClientError, Lavalink, VoiceStateHalf};
-    use static_assertions::{assert_fields, assert_impl_all};
+    use super::{ClientError, ClientErrorType, Lavalink, VoiceStateHalf};
+    use static_assertions::assert_impl_all;
     use std::{error::Error, fmt::Debug};
 
-    assert_fields!(ClientError::SendingVoiceUpdate: source);
-    assert_impl_all!(ClientError: Clone, Debug, Error, PartialEq, Send, Sync);
+    assert_impl_all!(ClientErrorType: Debug, Send, Sync);
+    assert_impl_all!(ClientError: Error, Send, Sync);
     assert_impl_all!(Lavalink: Clone, Debug, Send, Sync);
     assert_impl_all!(VoiceStateHalf: Debug, Send, Sync);
 }
