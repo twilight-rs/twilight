@@ -62,5 +62,5 @@ mod r#impl;
 pub use self::{
     builder::{ClusterBuilder, ShardScheme, ShardSchemeRangeError},
     config::Config,
-    r#impl::{Cluster, ClusterCommandError, ClusterStartError},
+    r#impl::{Cluster, ClusterCommandError, ClusterSendError, ClusterStartError},
 };
