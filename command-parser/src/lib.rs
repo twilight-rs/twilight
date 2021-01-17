@@ -73,7 +73,6 @@ mod parser;
 
 pub use self::{
     arguments::Arguments,
-    casing::CaseSensitivity,
     config::CommandParserConfig,
     parser::{Command, Parser},
 };
