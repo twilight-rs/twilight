@@ -1,41 +1,7 @@
 //! Create embed authors.
 
 use super::image_source::ImageSource;
-use std::{
-    error::Error,
-    fmt::{Display, Formatter, Result as FmtResult},
-};
 use twilight_model::channel::embed::EmbedAuthor;
-
-/// Error setting an embed author's name.
-///
-/// This is returned from [`EmbedAuthorBuilder::name`].
-#[derive(Clone, Debug, Eq, PartialEq)]
-#[non_exhaustive]
-pub enum EmbedAuthorNameError {
-    /// Name is empty.
-    Empty {
-        /// Provided name. Although empty, the same owned allocation is
-        /// included.
-        name: String,
-    },
-    /// Name is longer than 256 UTF-16 code points.
-    TooLong {
-        /// Provided name.
-        name: String,
-    },
-}
-
-impl Display for EmbedAuthorNameError {
-    fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
-        match self {
-            Self::Empty { .. } => f.write_str("the author name is empty"),
-            Self::TooLong { .. } => f.write_str("the author name is too long"),
-        }
-    }
-}
-
-impl Error for EmbedAuthorNameError {}
 
 /// Create an embed author with a builder.
 ///
@@ -47,13 +13,6 @@ impl Error for EmbedAuthorNameError {}
 pub struct EmbedAuthorBuilder(EmbedAuthor);
 
 impl EmbedAuthorBuilder {
-    /// The maximum number of UTF-16 code points that can be in an author name.
-    ///
-    /// This is used by [`name`].
-    ///
-    /// [`name`]: Self::name
-    pub const NAME_LENGTH_LIMIT: usize = 256;
-
     /// Create a new default embed author builder.
     pub fn new() -> Self {
         Self::default()
@@ -74,33 +33,18 @@ impl EmbedAuthorBuilder {
 
     /// The author's name.
     ///
-    /// Refer to [`NAME_LENGTH_LIMIT`] for the maximum number of UTF-16
-    /// code points that can be in a description.
+    /// Refer to [`EmbedBuilder::AUTHOR_NAME_LENGTH_LIMIT`] for the maximum
+    /// number of UTF-16 code points that can be in an author name.
     ///
-    /// # Errors
-    ///
-    /// Returns [`EmbedAuthorNameError::Empty`] if the provided name is empty.
-    ///
-    /// Returns [`EmbedAuthorNameError::TooLong`] if the provided name is longer
-    /// than the maximum number of code points.
-    ///
-    /// [`NAME_LENGTH_LIMIT`]: Self::NAME_LENGTH_LIMIT
-    pub fn name(self, name: impl Into<String>) -> Result<Self, EmbedAuthorNameError> {
+    /// [`EmbedBuilder::AUTHOR_NAME_LENGTH_LIMIT`]: crate::EmbedBuilder::AUTHOR_NAME_LENGTH_LIMIT
+    pub fn name(self, name: impl Into<String>) -> Self {
         self._name(name.into())
     }
 
-    fn _name(mut self, name: String) -> Result<Self, EmbedAuthorNameError> {
-        if name.is_empty() {
-            return Err(EmbedAuthorNameError::Empty { name });
-        }
-
-        if name.chars().count() > Self::NAME_LENGTH_LIMIT {
-            return Err(EmbedAuthorNameError::TooLong { name });
-        }
-
+    fn _name(mut self, name: String) -> Self {
         self.0.name.replace(name);
 
-        Ok(self)
+        self
     }
 
     /// The author's url.
@@ -137,23 +81,12 @@ impl From<EmbedAuthorBuilder> for EmbedAuthor {
 
 #[cfg(test)]
 mod tests {
-    use super::{EmbedAuthorBuilder, EmbedAuthorNameError};
-    use crate::ImageSource;
-    use static_assertions::{assert_fields, assert_impl_all, const_assert};
-    use std::{error::Error, fmt::Debug};
+    use super::EmbedAuthorBuilder;
+    use crate::{EmbedBuilder, EmbedError, ImageSource};
+    use static_assertions::assert_impl_all;
+    use std::fmt::Debug;
     use twilight_model::channel::embed::EmbedAuthor;
 
-    assert_impl_all!(
-        EmbedAuthorNameError: Clone,
-        Debug,
-        Error,
-        Eq,
-        PartialEq,
-        Send,
-        Sync
-    );
-    assert_fields!(EmbedAuthorNameError::Empty: name);
-    assert_fields!(EmbedAuthorNameError::TooLong: name);
     assert_impl_all!(
         EmbedAuthorBuilder: Clone,
         Debug,
@@ -163,7 +96,6 @@ mod tests {
         Send,
         Sync
     );
-    const_assert!(EmbedAuthorBuilder::NAME_LENGTH_LIMIT == 256);
     assert_impl_all!(EmbedAuthor: From<EmbedAuthorBuilder>);
 
     #[test]
@@ -181,23 +113,27 @@ mod tests {
 
     #[test]
     fn test_name_empty() {
-        assert!(matches!(
-            EmbedAuthorBuilder::new().name(""),
-            Err(EmbedAuthorNameError::Empty { .. })
+        let builder = EmbedBuilder::new().author(EmbedAuthorBuilder::new().name(""));
+
+        assert!(matches!(builder.build().unwrap_err(),
+            EmbedError::AuthorNameEmpty { .. }
         ));
     }
 
     #[test]
     fn test_name_too_long() {
-        assert!(EmbedAuthorBuilder::new().name("a".repeat(256)).is_ok());
+        let builder = EmbedBuilder::new().author(EmbedAuthorBuilder::new().name("a".repeat(256)));
+        assert!(builder.build().is_ok());
+
+        let builder = EmbedBuilder::new().author(EmbedAuthorBuilder::new().name("a".repeat(257)));
         assert!(matches!(
-            EmbedAuthorBuilder::new().name("a".repeat(257)),
-            Err(EmbedAuthorNameError::TooLong { .. })
+            builder.build().unwrap_err(),
+            EmbedError::AuthorNameTooLong { .. }
         ));
     }
 
     #[test]
-    fn test_builder() -> Result<(), Box<dyn Error>> {
+    fn test_builder() {
         let expected = EmbedAuthor {
             icon_url: Some("https://example.com/1.png".to_owned()),
             name: Some("an author".to_owned()),
@@ -205,15 +141,13 @@ mod tests {
             url: Some("https://example.com".to_owned()),
         };
 
-        let source = ImageSource::url("https://example.com/1.png")?;
+        let source = ImageSource::url("https://example.com/1.png").unwrap();
         let actual = EmbedAuthorBuilder::new()
             .icon_url(source)
-            .name("an author")?
+            .name("an author")
             .url("https://example.com")
             .build();
 
         assert_eq!(actual, expected);
-
-        Ok(())
     }
 }

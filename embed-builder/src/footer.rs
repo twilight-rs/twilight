@@ -1,41 +1,7 @@
 //! Create embed footers.
 
 use super::image_source::ImageSource;
-use std::{
-    error::Error,
-    fmt::{Display, Formatter, Result as FmtResult},
-};
 use twilight_model::channel::embed::EmbedFooter;
-
-/// Error creating an embed footer.
-///
-/// This is returned from [`EmbedFooterBuilder::new`].
-#[derive(Clone, Debug, Eq, PartialEq)]
-#[non_exhaustive]
-pub enum EmbedFooterTextError {
-    /// Text is empty.
-    Empty {
-        /// Provided text. Although empty, the same owned allocation is
-        /// included.
-        text: String,
-    },
-    /// Text is longer than 2048 UTF-16 code points.
-    TooLong {
-        /// Provided text.
-        text: String,
-    },
-}
-
-impl Display for EmbedFooterTextError {
-    fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
-        match self {
-            Self::Empty { .. } => f.write_str("the footer text is empty"),
-            Self::TooLong { .. } => f.write_str("the footer text is too long"),
-        }
-    }
-}
-
-impl Error for EmbedFooterTextError {}
 
 /// Create an embed footer with a builder.
 ///
@@ -47,41 +13,22 @@ impl Error for EmbedFooterTextError {}
 pub struct EmbedFooterBuilder(EmbedFooter);
 
 impl EmbedFooterBuilder {
-    /// The maximum number of UTF-16 code points that can be in a footer's text.
-    pub const TEXT_LENGTH_LIMIT: usize = 2048;
-
     /// Create a new default embed footer builder.
     ///
-    /// Refer to [`TEXT_LENGTH_LIMIT`] for the maximum number of UTF-16 code
-    /// points that can be in a footer's text.
+    /// Refer to [`EmbedBuilder::FOOTER_TEXT_LENGTH_LIMIT`] for the maximum
+    /// number of UTF-16 code points that can be in a footer's text.
     ///
-    /// # Errors
-    ///
-    /// Returns [`EmbedFooterTextError::Empty`] if the provided text is
-    /// empty.
-    ///
-    /// Returns [`EmbedFooterTextError::TooLong`] if the provided text is
-    /// longer than the limit defined at [`TEXT_LENGTH_LIMIT`].
-    ///
-    /// [`TEXT_LENGTH_LIMIT`]: Self::TEXT_LENGTH_LIMIT
-    pub fn new(text: impl Into<String>) -> Result<Self, EmbedFooterTextError> {
+    /// [`EmbedBuilder::FOOTER_TEXT_LENGTH_LIMIT`]: crate::EmbedBuilder::FOOTER_TEXT_LENGTH_LIMIT
+    pub fn new(text: impl Into<String>) -> Self {
         Self::_new(text.into())
     }
 
-    fn _new(text: String) -> Result<Self, EmbedFooterTextError> {
-        if text.is_empty() {
-            return Err(EmbedFooterTextError::Empty { text });
-        }
-
-        if text.chars().count() > Self::TEXT_LENGTH_LIMIT {
-            return Err(EmbedFooterTextError::TooLong { text });
-        }
-
-        Ok(Self(EmbedFooter {
+    fn _new(text: String) -> Self {
+        Self(EmbedFooter {
             icon_url: None,
             proxy_icon_url: None,
             text,
-        }))
+        })
     }
 
     /// Build into an embed footer.
@@ -101,7 +48,7 @@ impl EmbedFooterBuilder {
     ///
     /// # fn main() -> Result<(), Box<dyn std::error::Error>> {
     /// let icon_url = ImageSource::url("https://raw.githubusercontent.com/twilight-rs/twilight/trunk/logo.png")?;
-    /// let footer = EmbedFooterBuilder::new("Twilight")?
+    /// let footer = EmbedFooterBuilder::new("Twilight")
     ///     .icon_url(icon_url)
     ///     .build();
     /// # Ok(()) }
@@ -124,38 +71,26 @@ impl From<EmbedFooterBuilder> for EmbedFooter {
 
 #[cfg(test)]
 mod tests {
-    use super::{EmbedFooterBuilder, EmbedFooterTextError};
-    use crate::ImageSource;
-    use static_assertions::{assert_fields, assert_impl_all, const_assert};
-    use std::{error::Error, fmt::Debug};
+    use super::EmbedFooterBuilder;
+    use crate::{EmbedBuilder, EmbedError, ImageSource};
+    use static_assertions::assert_impl_all;
+    use std::fmt::Debug;
     use twilight_model::channel::embed::EmbedFooter;
 
-    assert_impl_all!(
-        EmbedFooterTextError: Clone,
-        Debug,
-        Error,
-        Eq,
-        PartialEq,
-        Send,
-        Sync
-    );
-    assert_fields!(EmbedFooterTextError::Empty: text);
-    assert_fields!(EmbedFooterTextError::TooLong: text);
     assert_impl_all!(EmbedFooterBuilder: Clone, Debug, Eq, PartialEq, Send, Sync);
-    const_assert!(EmbedFooterBuilder::TEXT_LENGTH_LIMIT == 2048);
     assert_impl_all!(EmbedFooter: From<EmbedFooterBuilder>);
 
     #[test]
-    fn test_text() -> Result<(), Box<dyn Error>> {
+    fn test_text() {
         assert!(matches!(
-            EmbedFooterBuilder::new("").unwrap_err(),
-            EmbedFooterTextError::Empty { text }
+            EmbedBuilder::new().footer(EmbedFooterBuilder::new("")).build().unwrap_err(),
+            EmbedError::FooterTextEmpty { text }
             if text.is_empty()
         ));
-        let too_long_len = EmbedFooterBuilder::TEXT_LENGTH_LIMIT + 1;
+        let too_long_len = EmbedBuilder::FOOTER_TEXT_LENGTH_LIMIT + 1;
         assert!(matches!(
-            EmbedFooterBuilder::new("a".repeat(too_long_len)).unwrap_err(),
-            EmbedFooterTextError::TooLong { text }
+            EmbedBuilder::new().footer(EmbedFooterBuilder::new("a".repeat(too_long_len))).build().unwrap_err(),
+            EmbedError::FooterTextTooLong { text }
             if text.len() == too_long_len
         ));
 
@@ -164,23 +99,19 @@ mod tests {
             proxy_icon_url: None,
             text: "a footer".to_owned(),
         };
-        let actual = EmbedFooterBuilder::new("a footer")?.build();
+        let actual = EmbedFooterBuilder::new("a footer").build();
         assert_eq!(actual, expected);
-
-        Ok(())
     }
 
     #[test]
-    fn test_builder() -> Result<(), Box<dyn Error>> {
+    fn test_builder() {
         let expected = EmbedFooter {
             icon_url: Some("https://example.com/1.png".to_owned()),
             proxy_icon_url: None,
             text: "a footer".to_owned(),
         };
-        let image = ImageSource::url("https://example.com/1.png")?;
-        let actual = EmbedFooterBuilder::new("a footer")?.icon_url(image).build();
+        let image = ImageSource::url("https://example.com/1.png").unwrap();
+        let actual = EmbedFooterBuilder::new("a footer").icon_url(image).build();
         assert_eq!(actual, expected);
-
-        Ok(())
     }
 }
