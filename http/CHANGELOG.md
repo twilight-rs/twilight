@@ -2,6 +2,21 @@
 
 Changelog for `twilight-http`.
 
+## [0.3.2] - 2021-01-18
+
+### Fixes
+
+Set the correct HTTPS connector in `Client::new` ([#689] - [@Gelbpunkt]).
+
+Fix setting duplicate headers ([#686] - [@Gelbpunkt]).
+
+Percent-encode emojis in URIs, fixing routes like `CreateEmoji`
+([#685] - [@sam-kirby]).
+
+[#689]: https://github.com/twilight-rs/twilight/pull/689
+[#686]: https://github.com/twilight-rs/twilight/pull/686
+[#685]: https://github.com/twilight-rs/twilight/pull/685
+
 ## [0.3.1] - 2021-01-11
 
 This release fixes the `native` feature and adds support for the
@@ -389,6 +404,8 @@ Initial release.
 
 [0.2.0-beta.1:app integrations]: https://github.com/discord/discord-api-docs/commit/a926694e2f8605848bda6b57d21c8817559e5cec
 
+[0.3.2]: https://github.com/twilight-rs/twilight/releases/tag/http-v0.3.2
+[0.3.1]: https://github.com/twilight-rs/twilight/releases/tag/http-v0.3.1
 [0.3.0]: https://github.com/twilight-rs/twilight/releases/tag/http-v0.3.0
 [0.2.8]: https://github.com/twilight-rs/twilight/releases/tag/http-v0.2.8
 [0.2.7]: https://github.com/twilight-rs/twilight/releases/tag/http-v0.2.7
