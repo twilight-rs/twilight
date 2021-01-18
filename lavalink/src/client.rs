@@ -5,7 +5,7 @@ use crate::{
     node::{Node, NodeConfig, NodeError, Resume},
     player::{Player, PlayerManager},
 };
-use dashmap::{mapref::one::Ref, DashMap};
+use dashmap::DashMap;
 use futures_channel::mpsc::{TrySendError, UnboundedReceiver};
 use std::{
     error::Error,
@@ -343,14 +343,14 @@ impl Lavalink {
     ///
     /// [`PlayerManager::get`]: crate::player::PlayerManager::get
     /// [`add`]: Self::add
-    pub async fn player(&self, guild_id: GuildId) -> Result<Ref<'_, GuildId, Player>, ClientError> {
+    pub async fn player(&self, guild_id: GuildId) -> Result<Player, ClientError> {
         if let Some(player) = self.players().get(&guild_id) {
             return Ok(player);
         }
 
         let node = self.best().await?;
 
-        Ok(self.players().get_or_insert(guild_id, node).downgrade())
+        Ok(self.players().get_or_insert(guild_id, node))
     }
 
     /// Clear out the map of guild states/updates for a shard that are waiting
