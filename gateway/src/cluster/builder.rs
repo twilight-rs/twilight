@@ -214,6 +214,8 @@ impl ClusterBuilder {
     ///
     /// Returns a [`ClusterStartErrorType::RetrievingGatewayInfo`] error type if
     /// there was an HTTP error Retrieving the gateway information.
+    ///
+    /// [`ClusterStartErrorType::RetrievingGatewayInfo`]: super::ClusterStartErrorType::RetrievingGatewayInfo
     pub async fn build(mut self) -> Result<Cluster, ClusterStartError> {
         if (self.1).0.gateway_url.is_none() {
             let gateway_url = (self.1)
@@ -265,6 +267,9 @@ impl ClusterBuilder {
     ///
     /// Returns a [`LargeThresholdErrorType::TooMany`] error type if the
     /// provided value is above 250.
+    ///
+    /// [`LargeThresholdErrorType::TooFew`]: crate::shard::LargeThresholdErrorType::TooFew
+    /// [`LargeThresholdErrorType::TooMany`]: crate::shard::LargeThresholdErrorType::TooMany
     pub fn large_threshold(mut self, large_threshold: u64) -> Result<Self, LargeThresholdError> {
         self.1 = self.1.large_threshold(large_threshold)?;
 

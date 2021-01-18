@@ -31,13 +31,15 @@ mod processor;
 mod sink;
 
 pub use self::{
-    builder::{LargeThresholdError, ShardBuilder, ShardIdError},
+    builder::{
+        LargeThresholdError, LargeThresholdErrorType, ShardBuilder, ShardIdError, ShardIdErrorType,
+    },
     config::Config,
     event::Events,
     processor::heartbeat::Latency,
     r#impl::{
-        CommandError, Information, ResumeSession, SendError, SessionInactiveError, Shard,
-        ShardStartError,
+        CommandError, CommandErrorType, Information, ResumeSession, SendError, SendErrorType,
+        SessionInactiveError, Shard, ShardStartError, ShardStartErrorType,
     },
     sink::ShardSink,
     stage::Stage,

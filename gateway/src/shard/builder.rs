@@ -115,6 +115,7 @@ impl Display for ShardIdError {
 
 impl Error for ShardIdError {}
 
+/// Type of [`ShardIdError`] that occurred.
 #[derive(Debug)]
 pub enum ShardIdErrorType {
     /// Provided shard ID is higher than provided total shard count.

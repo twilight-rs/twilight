@@ -237,54 +237,54 @@ impl EmbedBuilder {
     ///
     /// # Errors
     ///
-    /// Returns an [`EmbedError::AuthorNameEmpty`] error type if the provided
-    /// name is empty.
+    /// Returns an [`EmbedErrorType::AuthorNameEmpty`] error type if the
+    /// provided name is empty.
     ///
-    /// Returns an [`EmbedError::AuthorNameTooLong`] error type if the provided
-    /// name is longer than [`AUTHOR_NAME_LENGTH_LIMIT`].
+    /// Returns an [`EmbedErrorType::AuthorNameTooLong`] error type if the
+    /// provided name is longer than [`AUTHOR_NAME_LENGTH_LIMIT`].
     ///
-    /// Returns an [`EmbedError::ColorNotRgb`] error type if the provided color
-    /// is not a valid RGB integer. Refer to [`COLOR_MAXIMUM`] to know what the
-    /// maximum accepted value is.
+    /// Returns an [`EmbedErrorType::ColorNotRgb`] error type if the provided
+    /// color is not a valid RGB integer. Refer to [`COLOR_MAXIMUM`] to know
+    /// what the maximum accepted value is.
     ///
-    /// Returns an [`EmbedError::ColorZero`] error type if the provided color is
-    /// 0, which is not an acceptable value.
+    /// Returns an [`EmbedErrorType::ColorZero`] error type if the provided
+    /// color is 0, which is not an acceptable value.
     ///
-    /// Returns an [`EmbedError::DescriptionEmpty`] error type if a provided
+    /// Returns an [`EmbedErrorType::DescriptionEmpty`] error type if a provided
     /// description is empty.
     ///
-    /// Returns an [`EmbedError::DescriptionTooLong`] error type if a provided
-    /// description is longer than [`DESCRIPTION_LENGTH_LIMIT`].
+    /// Returns an [`EmbedErrorType::DescriptionTooLong`] error type if a
+    /// provided description is longer than [`DESCRIPTION_LENGTH_LIMIT`].
     ///
-    /// Returns an [`EmbedError::FieldNameEmpty`] error type if a provided field
-    /// name is empty.
+    /// Returns an [`EmbedErrorType::FieldNameEmpty`] error type if a provided
+    /// field name is empty.
     ///
-    /// Returns an [`EmbedError::FieldNameTooLong`] error type if a provided
+    /// Returns an [`EmbedErrorType::FieldNameTooLong`] error type if a provided
     /// field name is longer than [`FIELD_NAME_LENGTH_LIMIT`].
     ///
-    /// Returns an [`EmbedError::FieldValueEmpty`] error type if a provided
+    /// Returns an [`EmbedErrorType::FieldValueEmpty`] error type if a provided
     /// field value is empty.
     ///
-    /// Returns an [`EmbedError::FieldValueTooLong`] error type if a provided
-    /// field value is longer than [`FIELD_VALUE_LENGTH_LIMIT`].
+    /// Returns an [`EmbedErrorType::FieldValueTooLong`] error type if a
+    /// provided field value is longer than [`FIELD_VALUE_LENGTH_LIMIT`].
     ///
-    /// Returns an [`EmbedError::FooterTextEmpty`] error type if the provided
-    /// text is empty.
+    /// Returns an [`EmbedErrorType::FooterTextEmpty`] error type if the
+    /// provided text is empty.
     ///
-    /// Returns an [`EmbedError::FooterTextTooLong`] error type if the provided
-    /// text is longer than the limit defined at [`FOOTER_TEXT_LENGTH_LIMIT`].
+    /// Returns an [`EmbedErrorType::FooterTextTooLong`] error type if the
+    /// provided text is longer than the limit defined at [`FOOTER_TEXT_LENGTH_LIMIT`].
     ///
-    /// Returns an [`EmbedError::TitleEmpty`] error type if the provided title
-    /// is empty.
+    /// Returns an [`EmbedErrorType::TitleEmpty`] error type if the provided
+    /// title is empty.
     ///
-    /// Returns an [`EmbedError::TitleTooLong`] error type if the provided text
-    /// is longer than the limit defined at [`TITLE_LENGTH_LIMIT`].
+    /// Returns an [`EmbedErrorType::TitleTooLong`] error type if the provided
+    /// text is longer than the limit defined at [`TITLE_LENGTH_LIMIT`].
     ///
-    /// Returns an [`EmbedError::TooManyFields`] error type if there are too
+    /// Returns an [`EmbedErrorType::TooManyFields`] error type if there are too
     /// many fields in the embed. Refer to [`EMBED_FIELD_LIMIT`] for the limit
     /// value.
     ///
-    /// Returns an [`EmbedError::TotalContentTooLarge`] error type if the
+    /// Returns an [`EmbedErrorType::TotalContentTooLarge`] error type if the
     /// textual content of the embed is too large. Refer to
     /// [`EMBED_LENGTH_LIMIT`] for the limit value and what counts towards it.
     ///

@@ -49,7 +49,7 @@ impl Display for UpdateCurrentUserError {
 
 impl Error for UpdateCurrentUserError {}
 
-/// Type of [`UpdateCurrentUserEror`] that occurred.
+/// Type of [`UpdateCurrentUserError`] that occurred.
 #[derive(Debug)]
 #[non_exhaustive]
 pub enum UpdateCurrentUserErrorType {

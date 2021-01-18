@@ -53,6 +53,7 @@ impl Display for ImageSourceAttachmentError {
 
 impl Error for ImageSourceAttachmentError {}
 
+/// Type of [`ImageSourceAttachmentError`] that occurred.
 #[allow(clippy::module_name_repetitions)]
 #[derive(Debug)]
 #[non_exhaustive]
@@ -108,6 +109,7 @@ impl Display for ImageSourceUrlError {
 
 impl Error for ImageSourceUrlError {}
 
+/// Type of [`ImageSourceUrlError`] that occurred.
 #[allow(clippy::module_name_repetitions)]
 #[derive(Debug)]
 #[non_exhaustive]

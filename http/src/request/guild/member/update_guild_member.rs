@@ -77,11 +77,6 @@ struct UpdateGuildMemberFields {
 ///
 /// All fields are optional. Refer to [the discord docs] for more information.
 ///
-/// # Errors
-///
-/// Returns [`UpdateGuildMemberError::NicknameInvalid`] if the nickname length is too short or too
-/// long.
-///
 /// [the discord docs]: https://discord.com/developers/docs/resources/guild#modify-guild-member
 pub struct UpdateGuildMember<'a> {
     fields: UpdateGuildMemberFields,

@@ -104,17 +104,6 @@ struct UpdateChannelFields {
 ///
 /// All fields are optional. The minimum length of the name is 2 UTF-16 characters and the maximum
 /// is 100 UTF-16 characters.
-///
-/// # Errors
-///
-/// Returns a [`UpdateChannelError::NameInvalid`] when the length of the name is either fewer than
-/// 2 UTF-16 characters or more than 100 UTF-16 characters.
-///
-/// Returns a [`UpdateChannelError::RateLimitPerUserInvalid`] when the seconds of the rate limit per
-/// user is more than 21600.
-///
-/// Returns a [`UpdateChannelError::TopicInvalid`] when the length of the topic is more than
-/// 1024 UTF-16 characters.
 pub struct UpdateChannel<'a> {
     channel_id: ChannelId,
     fields: UpdateChannelFields,

@@ -101,7 +101,7 @@ impl Debug for State {
 /// the configured token is invalid. This may occur when the token has been
 /// revoked or expired. When this happens, you must create a new client with the
 /// new token. The client will no longer execute requests in order to
-/// prevent API bans and will always return [`Error::Unauthorized`].
+/// prevent API bans and will always return [`ErrorType::Unauthorized`].
 ///
 /// # Examples
 ///
@@ -313,21 +313,6 @@ impl Client {
     ///
     /// All fields are optional. The minimum length of the name is 2 UTF-16 characters and the
     /// maximum is 100 UTF-16 characters.
-    ///
-    /// # Errors
-    ///
-    /// Returns a [`UpdateChannelError::NameInvalid`] when the length of the name is either fewer
-    /// than 2 UTF-16 characters or more than 100 UTF-16 characters.
-    ///
-    /// Returns a [`UpdateChannelError::RateLimitPerUserInvalid`] when the seconds of the rate limit
-    /// per user is more than 21600.
-    ///
-    /// Returns a [`UpdateChannelError::TopicInvalid`] when the length of the topic is more than
-    /// 1024 UTF-16 characters.
-    ///
-    /// [`UpdateChannelError::NameInvalid`]: crate::request::channel::update_channel::UpdateChannelError::NameInvalid
-    /// [`UpdateChannelError::RateLimitPerUserInvalid`]: crate::request::channel::update_channel::UpdateChannelError::RateLimitPerUserInvalid
-    /// [`UpdateChannelError::TopicInvalid`]: crate::request::channel::update_channel::UpdateChannelError::TopicInvalid
     pub fn update_channel(&self, channel_id: ChannelId) -> UpdateChannel<'_> {
         UpdateChannel::new(self, channel_id)
     }
@@ -383,14 +368,15 @@ impl Client {
     ///
     /// # Errors
     ///
-    /// Returns [`GetChannelMessagesError::LimitInvalid`] if the amount is less than 1 or greater than 100.
+    /// Returns a [`GetChannelMessagesErrorType::LimitInvalid`] error type if
+    /// the amount is less than 1 or greater than 100.
     ///
     /// [`after`]: GetChannelMessages::after
     /// [`around`]: GetChannelMessages::around
     /// [`before`]: GetChannelMessages::before
     /// [`GetChannelMessagesConfigured`]: crate::request::channel::message::GetChannelMessagesConfigured
     /// [`limit`]: GetChannelMessages::limit
-    /// [`GetChannelMessagesError::LimitInvalid`]: crate::request::channel::message::get_channel_messages::GetChannelMessagesError::LimitInvalid
+    /// [`GetChannelMessagesErrorType::LimitInvalid`]: crate::request::channel::message::get_channel_messages::GetChannelMessagesErrorType::LimitInvalid
     pub fn channel_messages(&self, channel_id: ChannelId) -> GetChannelMessages<'_> {
         GetChannelMessages::new(self, channel_id)
     }
@@ -487,13 +473,6 @@ impl Client {
     ///     .await?;
     /// # Ok(()) }
     /// ```
-    ///
-    /// # Errors
-    ///
-    /// Returns [`GetCurrentUserGuildsError::LimitInvalid`] if the amount is greater
-    /// than 100.
-    ///
-    /// [`GetCurrentUserGuildsError::LimitInvalid`]: crate::request::user::get_current_user_guilds::GetCurrentUserGuildsError::LimitInvalid
     pub fn current_user_guilds(&self) -> GetCurrentUserGuilds<'_> {
         GetCurrentUserGuilds::new(self)
     }
@@ -635,9 +614,10 @@ impl Client {
     ///
     /// # Errors
     ///
-    /// Returns [`CreateGuildError::NameInvalid`] if the name length is too short or too long.
+    /// Returns a [`CreateGuildErrorType::NameInvalid`] error type if the name
+    /// length is too short or too long.
     ///
-    /// [`CreateGuildError::NameInvalid`]: crate::request::guild::create_guild::CreateGuildError::NameInvalid
+    /// [`CreateGuildErrorType::NameInvalid`]: crate::request::guild::create_guild::CreateGuildErrorType::NameInvalid
     pub fn create_guild(
         &self,
         name: impl Into<String>,
@@ -676,19 +656,18 @@ impl Client {
     ///
     /// # Errors
     ///
-    /// Returns a [`CreateGuildChannelError::NameInvalid`] when the length of the name is either
-    /// fewer than 2 UTF-16 characters or more than 100 UTF-16 characters.
+    /// Returns a [`CreateGuildChannelErrorType::NameInvalid`] error type when
+    /// the length of the name is either fewer than 2 UTF-16 characters or more than 100 UTF-16 characters.
     ///
-    /// Returns a [`CreateGuildChannelError::RateLimitPerUserInvalid`] when the seconds of the rate
-    /// limit per user is more than 21600.
+    /// Returns a [`CreateGuildChannelErrorType::RateLimitPerUserInvalid`] error
+    /// type when the seconds of the rate limit per user is more than 21600.
     ///
-    /// Returns a [`CreateGuildChannelError::TopicInvalid`] when the length of the topic is more
-    /// than
-    /// 1024 UTF-16 characters.
+    /// Returns a [`CreateGuildChannelErrorType::TopicInvalid`] error type when
+    /// the length of the topic is more than 1024 UTF-16 characters.
     ///
-    /// [`CreateGuildChannelError::NameInvalid`]: crate::request::guild::create_guild_channel::CreateGuildChannelError::NameInvalid
-    /// [`CreateGuildChannelError::RateLimitPerUserInvalid`]: crate::request::guild::create_guild_channel::CreateGuildChannelError::RateLimitPerUserInvalid
-    /// [`CreateGuildChannelError::TopicInvalid`]: crate::request::guild::create_guild_channel::CreateGuildChannelError::TopicInvalid
+    /// [`CreateGuildChannelErrorType::NameInvalid`]: crate::request::guild::create_guild_channel::CreateGuildChannelErrorType::NameInvalid
+    /// [`CreateGuildChannelErrorType::RateLimitPerUserInvalid`]: crate::request::guild::create_guild_channel::CreateGuildChannelErrorType::RateLimitPerUserInvalid
+    /// [`CreateGuildChannelErrorType::TopicInvalid`]: crate::request::guild::create_guild_channel::CreateGuildChannelErrorType::TopicInvalid
     pub fn create_guild_channel(
         &self,
         guild_id: GuildId,
@@ -802,9 +781,10 @@ impl Client {
     ///
     /// # Errors
     ///
-    /// Returns [`GetGuildMembersError::LimitInvalid`] if the limit is invalid.
+    /// Returns a [`GetGuildMembersErrorType::LimitInvalid`] error type if the
+    /// limit is invalid.
     ///
-    /// [`GetGuildMembersError::LimitInvalid`]: crate::request::guild::member::get_guild_members::GetGuildMembersError::LimitInvalid
+    /// [`GetGuildMembersErrorType::LimitInvalid`]: crate::request::guild::member::get_guild_members::GetGuildMembersErrorType::LimitInvalid
     pub fn guild_members(&self, guild_id: GuildId) -> GetGuildMembers<'_> {
         GetGuildMembers::new(self, guild_id)
     }
@@ -822,10 +802,10 @@ impl Client {
     ///
     /// # Errors
     ///
-    /// Returns [`AddGuildMemberError::NicknameInvalid`] if the nickname is too
-    /// short or too long.
+    /// Returns [`AddGuildMemberErrorType::NicknameInvalid`] if the nickname is
+    /// too short or too long.
     ///
-    /// [`AddGuildMemberError::NickNameInvalid`]: crate::request::guild::member::add_guild_member::AddGuildMemberError::NicknameInvalid
+    /// [`AddGuildMemberErrorType::NickNameInvalid`]: crate::request::guild::member::add_guild_member::AddGuildMemberErrorType::NicknameInvalid
     ///
     /// [the discord docs]: https://discord.com/developers/docs/resources/guild#add-guild-member
     pub fn add_guild_member(
@@ -848,10 +828,10 @@ impl Client {
     ///
     /// # Errors
     ///
-    /// Returns [`UpdateGuildMemberError::NicknameInvalid`] if the nickname length is too short or too
+    /// Returns [`UpdateGuildMemberErrorType::NicknameInvalid`] if the nickname length is too short or too
     /// long.
     ///
-    /// [`UpdateGuildMemberError::NicknameInvalid`]: crate::request::guild::member::update_guild_member::UpdateGuildMemberError::NicknameInvalid
+    /// [`UpdateGuildMemberErrorType::NicknameInvalid`]: crate::request::guild::member::update_guild_member::UpdateGuildMemberErrorType::NicknameInvalid
     ///
     /// [the discord docs]: https://discord.com/developers/docs/resources/guild#modify-guild-member
     pub fn update_guild_member(&self, guild_id: GuildId, user_id: UserId) -> UpdateGuildMember<'_> {
@@ -1017,18 +997,20 @@ impl Client {
     ///
     /// # Errors
     ///
-    /// The method [`content`] returns [`CreateMessageError::ContentInvalid`] if the content is
-    /// over 2000 UTF-16 characters.
+    /// The method [`content`] returns
+    /// [`CreateMessageErrorType::ContentInvalid`] if the content is over 2000
+    /// UTF-16 characters.
     ///
-    /// The method [`embed`] returns [`CreateMessageError::EmbedTooLarge`] if the length of the
-    /// embed is over 6000 characters.
+    /// The method [`embed`] returns
+    /// [`CreateMessageErrorType::EmbedTooLarge`] if the length of the embed
+    /// is over 6000 characters.
     ///
     /// [`content`]: crate::request::channel::message::create_message::CreateMessage::content
     /// [`embed`]: crate::request::channel::message::create_message::CreateMessage::embed
-    /// [`CreateMessageError::ContentInvalid`]:
-    /// crate::request::channel::message::create_message::CreateMessageError::ContentInvalid
-    /// [`CreateMessageError::EmbedTooLarge`]:
-    /// crate::request::channel::message::create_message::CreateMessageError::EmbedTooLarge
+    /// [`CreateMessageErrorType::ContentInvalid`]:
+    /// crate::request::channel::message::create_message::CreateMessageErrorType::ContentInvalid
+    /// [`CreateMessageErrorType::EmbedTooLarge`]:
+    /// crate::request::channel::message::create_message::CreateMessageErrorType::EmbedTooLarge
     pub fn create_message(&self, channel_id: ChannelId) -> CreateMessage<'_> {
         CreateMessage::new(self, channel_id)
     }

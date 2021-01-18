@@ -100,10 +100,6 @@ struct GetGuildMembersFields {
 /// let members = client.guild_members(guild_id).after(user_id).await?;
 /// # Ok(()) }
 /// ```
-///
-/// # Errors
-///
-/// Returns [`GetGuildMembersError::LimitInvalid`] if the limit is invalid.
 pub struct GetGuildMembers<'a> {
     fields: GetGuildMembersFields,
     fut: Option<Pending<'a, Bytes>>,
