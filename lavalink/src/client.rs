@@ -38,6 +38,12 @@ impl ClientError {
     pub fn into_source(self) -> Option<Box<dyn Error + Send + Sync>> {
         self.source
     }
+
+    /// Consume the error, returning the owned error type and the source error.
+    #[must_use = "consuming the error into its parts has no effect if left unused"]
+    pub fn into_parts(self) -> (ClientErrorType, Option<Box<dyn Error + Send + Sync>>) {
+        (self.kind, self.source)
+    }
 }
 
 impl Display for ClientError {
