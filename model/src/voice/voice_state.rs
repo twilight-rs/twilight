@@ -369,6 +369,7 @@ mod tests {
                 joined_at: Some("timestamp".to_owned()),
                 mute: true,
                 nick: Some("twilight".to_owned()),
+                pending: false,
                 premium_since: Some("timestamp".to_owned()),
                 roles: Vec::new(),
                 user: User {
@@ -418,7 +419,7 @@ mod tests {
                 Token::Some,
                 Token::Struct {
                     name: "Member",
-                    len: 9,
+                    len: 10,
                 },
                 Token::Str("deaf"),
                 Token::Bool(false),
@@ -437,6 +438,8 @@ mod tests {
                 Token::Str("nick"),
                 Token::Some,
                 Token::Str("twilight"),
+                Token::Str("pending"),
+                Token::Bool(false),
                 Token::Str("premium_since"),
                 Token::Some,
                 Token::Str("timestamp"),

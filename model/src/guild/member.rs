@@ -24,6 +24,9 @@ pub struct Member {
     pub joined_at: Option<String>,
     pub mute: bool,
     pub nick: Option<String>,
+    /// Whether the user has yet to pass the guild's [Membership Screening]
+    /// requirements.
+    pub pending: bool,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub premium_since: Option<String>,
     pub roles: Vec<RoleId>,
@@ -44,6 +47,8 @@ pub(crate) struct MemberIntermediary {
     pub joined_at: Option<String>,
     pub mute: bool,
     pub nick: Option<String>,
+    #[serde(default)]
+    pub pending: bool,
     pub premium_since: Option<String>,
     pub roles: Vec<RoleId>,
     pub user: User,
@@ -93,6 +98,7 @@ impl<'de> Visitor<'de> for MemberVisitor {
             joined_at: member.joined_at,
             mute: member.mute,
             nick: member.nick,
+            pending: member.pending,
             premium_since: member.premium_since,
             roles: member.roles,
             user: member.user,
@@ -196,6 +202,7 @@ mod tests {
             joined_at: Some("timestamp".to_owned()),
             mute: true,
             nick: Some("twilight".to_owned()),
+            pending: false,
             premium_since: Some("timestamp".to_owned()),
             roles: Vec::new(),
             user: User {
@@ -220,7 +227,7 @@ mod tests {
             &[
                 Token::Struct {
                     name: "Member",
-                    len: 9,
+                    len: 10,
                 },
                 Token::Str("deaf"),
                 Token::Bool(false),
@@ -239,6 +246,8 @@ mod tests {
                 Token::Str("nick"),
                 Token::Some,
                 Token::Str("twilight"),
+                Token::Str("pending"),
+                Token::Bool(false),
                 Token::Str("premium_since"),
                 Token::Some,
                 Token::Str("timestamp"),
