@@ -2,6 +2,14 @@
 
 Changelog for `twilight-http`.
 
+## [0.2.9] - 2021-01-19
+
+### Additions
+
+Implement the "Add Guild Member" endpoint ([#653] - [@sam-kirby]).
+
+[#653]: https://github.com/twilight-rs/twilight/pull/653
+
 ## [0.2.8] - 2021-01-05
 
 ### Additions
@@ -300,6 +308,7 @@ Initial release.
 
 [0.2.0-beta.1:app integrations]: https://github.com/discord/discord-api-docs/commit/a926694e2f8605848bda6b57d21c8817559e5cec
 
+[0.2.9]: https://github.com/twilight-rs/twilight/releases/tag/http-v0.2.9
 [0.2.8]: https://github.com/twilight-rs/twilight/releases/tag/http-v0.2.8
 [0.2.7]: https://github.com/twilight-rs/twilight/releases/tag/http-v0.2.7
 [0.2.6]: https://github.com/twilight-rs/twilight/releases/tag/http-v0.2.6
