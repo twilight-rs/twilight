@@ -13,7 +13,7 @@ pub struct CreateBanError {
 
 impl CreateBanError {
     /// Immutable reference to the type of error that occurred.
-    #[must_use = "consuming the error and retrieving the type has no effect if left unused"]
+    #[must_use = "retrieving the type has no effect if left unused"]
     pub fn kind(&self) -> &CreateBanErrorType {
         &self.kind
     }

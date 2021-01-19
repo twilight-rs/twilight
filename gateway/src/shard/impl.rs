@@ -36,7 +36,7 @@ pub struct CommandError {
 
 impl CommandError {
     /// Immutable reference to the type of error that occurred.
-    #[must_use = "consuming the error and retrieving the type has no effect if left unused"]
+    #[must_use = "retrieving the type has no effect if left unused"]
     pub fn kind(&self) -> &CommandErrorType {
         &self.kind
     }
@@ -127,7 +127,7 @@ pub struct SendError {
 
 impl SendError {
     /// Immutable reference to the type of error that occurred.
-    #[must_use = "consuming the error and retrieving the type has no effect if left unused"]
+    #[must_use = "retrieving the type has no effect if left unused"]
     pub fn kind(&self) -> &SendErrorType {
         &self.kind
     }
@@ -184,7 +184,7 @@ pub struct ShardStartError {
 
 impl ShardStartError {
     /// Immutable reference to the type of error that occurred.
-    #[must_use = "consuming the error and retrieving the type has no effect if left unused"]
+    #[must_use = "retrieving the type has no effect if left unused"]
     pub fn kind(&self) -> &ShardStartErrorType {
         &self.kind
     }
