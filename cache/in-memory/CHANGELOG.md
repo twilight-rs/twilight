@@ -2,6 +2,14 @@
 
 Changelog for `twilight-cache-inmemory`.
 
+## [0.2.7] - 2021-01-19
+
+### Additions
+
+Support the member pending feature ([#654] - [@AsianIntel]).
+
+[#654]: https://github.com/twilight-rs/twilight/pull/654
+
 ## [0.2.6] - 2021-01-05
 
 ### Fixes
@@ -124,6 +132,7 @@ The crate now depends on version 0.2 of `twilight-model`.
 
 Initial release.
 
+[@AsianIntel]: https://github.com/AsianIntel
 [@chamburr]: https://github.com/chamburr
 [@DusterTheFirst]: https://github.com/DusterTheFirst
 [@Erk-]: https://github.com/Erk-
@@ -145,6 +154,7 @@ Initial release.
 [#528]: https://github.com/twilight-rs/twilight/pull/528
 [#524]: https://github.com/twilight-rs/twilight/pull/524
 
+[0.2.7]: https://github.com/twilight-rs/twilight/releases/tag/cache-in-memory-v0.2.7
 [0.2.6]: https://github.com/twilight-rs/twilight/releases/tag/cache-in-memory-v0.2.6
 [0.2.5]: https://github.com/twilight-rs/twilight/releases/tag/cache-in-memory-v0.2.5
 [0.2.4]: https://github.com/twilight-rs/twilight/releases/tag/cache-in-memory-v0.2.4
