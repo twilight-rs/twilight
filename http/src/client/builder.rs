@@ -1,6 +1,9 @@
 use super::{Client, HttpsConnector, State};
 use crate::{ratelimiting::Ratelimiter, request::channel::allowed_mentions::AllowedMentions};
-use hyper::client::{Client as HyperClient, HttpConnector};
+use hyper::{
+    client::{Client as HyperClient, HttpConnector},
+    header::HeaderMap,
+};
 use std::{
     sync::{atomic::AtomicBool, Arc},
     time::Duration,
@@ -13,6 +16,7 @@ pub struct ClientBuilder {
     pub(crate) proxy: Option<Box<str>>,
     pub(crate) ratelimiter: Option<Ratelimiter>,
     pub(crate) hyper_client: Option<HyperClient<HttpsConnector<HttpConnector>>>,
+    pub(crate) default_headers: Option<HeaderMap>,
     pub(crate) timeout: Duration,
     pub(crate) token: Option<Box<str>>,
     pub(crate) use_http: bool,
@@ -47,6 +51,7 @@ impl ClientBuilder {
         Client {
             state: Arc::new(State {
                 http,
+                default_headers: self.default_headers,
                 proxy: self.proxy,
                 ratelimiter: self.ratelimiter,
                 timeout: self.timeout,
@@ -127,6 +132,13 @@ impl ClientBuilder {
         self
     }
 
+    /// Set a group headers which are sent in every request.
+    pub fn default_headers(mut self, headers: HeaderMap) -> Self {
+        self.default_headers.replace(headers);
+
+        self
+    }
+
     /// Set the token to use for HTTP requests.
     pub fn token(mut self, token: impl Into<String>) -> Self {
         let mut token = token.into();
@@ -151,6 +163,7 @@ impl Default for ClientBuilder {
         Self {
             default_allowed_mentions: None,
             hyper_client: None,
+            default_headers: None,
             proxy: None,
             ratelimiter: Some(Ratelimiter::new()),
             timeout: Duration::from_secs(10),
