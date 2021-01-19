@@ -2,10 +2,14 @@ mod channel;
 mod guild;
 mod metadata;
 mod target_user_type;
+mod welcome_screen;
 
 pub use self::{
-    channel::InviteChannel, guild::InviteGuild, metadata::InviteMetadata,
+    channel::InviteChannel,
+    guild::InviteGuild,
+    metadata::InviteMetadata,
     target_user_type::TargetUserType,
+    welcome_screen::{WelcomeScreen, WelcomeScreenChannel},
 };
 
 use super::user::User;
@@ -31,11 +35,14 @@ pub struct Invite {
 
 #[cfg(test)]
 mod tests {
-    use super::{Invite, InviteChannel, InviteGuild, TargetUserType, User};
+    use super::{
+        welcome_screen::WelcomeScreenChannel, Invite, InviteChannel, InviteGuild, TargetUserType,
+        User, WelcomeScreen,
+    };
     use crate::{
         channel::ChannelType,
         guild::VerificationLevel,
-        id::{ChannelId, GuildId, UserId},
+        id::{ChannelId, EmojiId, GuildId, UserId},
     };
     use serde_test::Token;
 
@@ -112,6 +119,23 @@ mod tests {
                 splash: Some("splash hash".to_owned()),
                 vanity_url_code: Some("twilight".to_owned()),
                 verification_level: VerificationLevel::Medium,
+                welcome_screen: Some(WelcomeScreen {
+                    description: Some("welcome description".to_owned()),
+                    welcome_channels: vec![
+                        WelcomeScreenChannel {
+                            channel_id: ChannelId(123),
+                            description: "channel description".to_owned(),
+                            emoji_id: None,
+                            emoji_name: Some("\u{1f352}".to_owned()),
+                        },
+                        WelcomeScreenChannel {
+                            channel_id: ChannelId(456),
+                            description: "custom description".to_owned(),
+                            emoji_id: Some(EmojiId(789)),
+                            emoji_name: Some("custom_name".to_owned()),
+                        },
+                    ],
+                }),
             }),
             inviter: Some(User {
                 avatar: None,
@@ -176,7 +200,7 @@ mod tests {
                 Token::Some,
                 Token::Struct {
                     name: "InviteGuild",
-                    len: 9,
+                    len: 10,
                 },
                 Token::Str("banner"),
                 Token::Some,
@@ -204,6 +228,51 @@ mod tests {
                 Token::Str("twilight"),
                 Token::Str("verification_level"),
                 Token::U8(2),
+                Token::Str("welcome_screen"),
+                Token::Some,
+                Token::Struct {
+                    name: "WelcomeScreen",
+                    len: 2,
+                },
+                Token::Str("description"),
+                Token::Some,
+                Token::Str("welcome description"),
+                Token::Str("welcome_channels"),
+                Token::Seq { len: Some(2) },
+                Token::Struct {
+                    name: "WelcomeScreenChannel",
+                    len: 4,
+                },
+                Token::Str("channel_id"),
+                Token::NewtypeStruct { name: "ChannelId" },
+                Token::Str("123"),
+                Token::Str("description"),
+                Token::Str("channel description"),
+                Token::Str("emoji_id"),
+                Token::None,
+                Token::Str("emoji_name"),
+                Token::Some,
+                Token::Str("\u{1f352}"),
+                Token::StructEnd,
+                Token::Struct {
+                    name: "WelcomeScreenChannel",
+                    len: 4,
+                },
+                Token::Str("channel_id"),
+                Token::NewtypeStruct { name: "ChannelId" },
+                Token::Str("456"),
+                Token::Str("description"),
+                Token::Str("custom description"),
+                Token::Str("emoji_id"),
+                Token::Some,
+                Token::NewtypeStruct { name: "EmojiId" },
+                Token::Str("789"),
+                Token::Str("emoji_name"),
+                Token::Some,
+                Token::Str("custom_name"),
+                Token::StructEnd,
+                Token::SeqEnd,
+                Token::StructEnd,
                 Token::StructEnd,
                 Token::Str("inviter"),
                 Token::Some,
