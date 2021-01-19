@@ -22,8 +22,8 @@ use twilight_model::gateway::event::Event;
 /// Sending a command to a shard failed.
 #[derive(Debug)]
 pub struct ClusterCommandError {
-    cause: Option<Box<dyn Error + Send + Sync>>,
     kind: ClusterCommandErrorType,
+    source: Option<Box<dyn Error + Send + Sync>>,
 }
 
 impl ClusterCommandError {
@@ -34,9 +34,9 @@ impl ClusterCommandError {
     }
 
     /// Consume the error, returning the source error if there is any.
-    #[must_use = "consuming the error and retrieving the cause has no effect if left unused"]
-    pub fn into_cause(self) -> Option<Box<dyn Error + Send + Sync>> {
-        self.cause
+    #[must_use = "consuming the error and retrieving the source has no effect if left unused"]
+    pub fn into_source(self) -> Option<Box<dyn Error + Send + Sync>> {
+        self.source
     }
 
     /// Consume the error, returning the owned error type and the source error.
@@ -47,19 +47,19 @@ impl ClusterCommandError {
         ClusterCommandErrorType,
         Option<Box<dyn Error + Send + Sync>>,
     ) {
-        (self.kind, self.cause)
+        (self.kind, self.source)
     }
 
     fn from_send(error: ClusterSendError) -> Self {
-        let (kind, cause) = error.into_parts();
+        let (kind, source) = error.into_parts();
 
         match kind {
             ClusterSendErrorType::Sending => Self {
-                cause,
+                source,
                 kind: ClusterCommandErrorType::Sending,
             },
             ClusterSendErrorType::ShardNonexistent { id } => Self {
-                cause,
+                source,
                 kind: ClusterCommandErrorType::ShardNonexistent { id },
             },
         }
@@ -81,9 +81,9 @@ impl Display for ClusterCommandError {
 
 impl Error for ClusterCommandError {
     fn source(&self) -> Option<&(dyn Error + 'static)> {
-        self.cause
+        self.source
             .as_ref()
-            .map(|cause| &**cause as &(dyn Error + 'static))
+            .map(|source| &**source as &(dyn Error + 'static))
     }
 }
 
@@ -103,8 +103,8 @@ pub enum ClusterCommandErrorType {
 /// Sending a raw websocket message via a shard failed.
 #[derive(Debug)]
 pub struct ClusterSendError {
-    cause: Option<Box<dyn Error + Send + Sync>>,
     kind: ClusterSendErrorType,
+    source: Option<Box<dyn Error + Send + Sync>>,
 }
 
 impl ClusterSendError {
@@ -116,15 +116,15 @@ impl ClusterSendError {
 
     /// Consume the error, returning the source error if there is any.
     #[allow(clippy::unused_self)]
-    #[must_use = "consuming the error and retrieving the cause has no effect if left unused"]
-    pub fn into_cause(self) -> Option<Box<dyn Error + Send + Sync>> {
-        self.cause
+    #[must_use = "consuming the error and retrieving the source has no effect if left unused"]
+    pub fn into_source(self) -> Option<Box<dyn Error + Send + Sync>> {
+        self.source
     }
 
     /// Consume the error, returning the owned error type and the source error.
     #[must_use = "consuming the error into its parts has no effect if left unused"]
     pub fn into_parts(self) -> (ClusterSendErrorType, Option<Box<dyn Error + Send + Sync>>) {
-        (self.kind, self.cause)
+        (self.kind, self.source)
     }
 }
 
@@ -141,9 +141,9 @@ impl Display for ClusterSendError {
 
 impl Error for ClusterSendError {
     fn source(&self) -> Option<&(dyn Error + 'static)> {
-        self.cause
+        self.source
             .as_ref()
-            .map(|cause| &**cause as &(dyn Error + 'static))
+            .map(|source| &**source as &(dyn Error + 'static))
     }
 }
 
@@ -163,8 +163,8 @@ pub enum ClusterSendErrorType {
 /// Starting a cluster failed.
 #[derive(Debug)]
 pub struct ClusterStartError {
-    cause: Option<Box<dyn Error + Send + Sync>>,
     kind: ClusterStartErrorType,
+    source: Option<Box<dyn Error + Send + Sync>>,
 }
 
 impl ClusterStartError {
@@ -175,15 +175,15 @@ impl ClusterStartError {
     }
 
     /// Consume the error, returning the source error if there is any.
-    #[must_use = "consuming the error and retrieving the cause has no effect if left unused"]
-    pub fn into_cause(self) -> Option<Box<dyn Error + Send + Sync>> {
-        self.cause
+    #[must_use = "consuming the error and retrieving the source has no effect if left unused"]
+    pub fn into_source(self) -> Option<Box<dyn Error + Send + Sync>> {
+        self.source
     }
 
     /// Consume the error, returning the owned error type and the source error.
     #[must_use = "consuming the error into its parts has no effect if left unused"]
     pub fn into_parts(self) -> (ClusterStartErrorType, Option<Box<dyn Error + Send + Sync>>) {
-        (self.kind, self.cause)
+        (self.kind, self.source)
     }
 }
 
@@ -199,9 +199,9 @@ impl Display for ClusterStartError {
 
 impl Error for ClusterStartError {
     fn source(&self) -> Option<&(dyn Error + 'static)> {
-        self.cause
+        self.source
             .as_ref()
-            .map(|cause| &**cause as &(dyn Error + 'static))
+            .map(|source| &**source as &(dyn Error + 'static))
     }
 }
 
@@ -271,8 +271,8 @@ impl Cluster {
                         .authed()
                         .await
                         .map_err(|source| ClusterStartError {
-                            cause: Some(Box::new(source)),
                             kind: ClusterStartErrorType::RetrievingGatewayInfo,
+                            source: Some(Box::new(source)),
                         })?;
 
                 [0, gateway.shards - 1, gateway.shards]
@@ -453,16 +453,16 @@ impl Cluster {
         value: &impl serde::Serialize,
     ) -> Result<(), ClusterCommandError> {
         let shard = self.shard(id).ok_or(ClusterCommandError {
-            cause: None,
             kind: ClusterCommandErrorType::ShardNonexistent { id },
+            source: None,
         })?;
 
         shard
             .command(value)
             .await
             .map_err(|source| ClusterCommandError {
-                cause: Some(Box::new(source)),
                 kind: ClusterCommandErrorType::Sending,
+                source: Some(Box::new(source)),
             })
     }
 
@@ -519,16 +519,16 @@ impl Cluster {
     /// [`SessionInactiveError`]: struct.SessionInactiveError.html
     pub async fn send(&self, id: u64, message: Message) -> Result<(), ClusterSendError> {
         let shard = self.shard(id).ok_or(ClusterSendError {
-            cause: None,
             kind: ClusterSendErrorType::ShardNonexistent { id },
+            source: None,
         })?;
 
         shard
             .send(message)
             .await
             .map_err(|source| ClusterSendError {
-                cause: Some(Box::new(source)),
                 kind: ClusterSendErrorType::Sending,
+                source: Some(Box::new(source)),
             })
     }
 

@@ -9,13 +9,13 @@ use twilight_model::gateway::event::{shard::Payload, Event};
 
 #[derive(Debug)]
 pub struct EmitJsonError {
-    cause: Option<Box<dyn Error + Send + Sync>>,
     kind: EmitJsonErrorType,
+    source: Option<Box<dyn Error + Send + Sync>>,
 }
 
 impl EmitJsonError {
     pub fn into_parts(self) -> (EmitJsonErrorType, Option<Box<dyn Error + Send + Sync>>) {
-        (self.kind, self.cause)
+        (self.kind, self.source)
     }
 }
 
@@ -33,9 +33,9 @@ impl Display for EmitJsonError {
 
 impl Error for EmitJsonError {
     fn source(&self) -> Option<&(dyn Error + 'static)> {
-        self.cause
+        self.source
             .as_ref()
-            .map(|cause| &**cause as &(dyn Error + 'static))
+            .map(|source| &**source as &(dyn Error + 'static))
     }
 }
 
@@ -137,11 +137,11 @@ impl Emitter {
     ) -> Result<(), EmitJsonError> {
         let flag = EventTypeFlags::try_from((op, event_type)).map_err(|(op, event_type)| {
             EmitJsonError {
-                cause: None,
                 kind: EmitJsonErrorType::EventTypeUnknown {
                     event_type: event_type.map(ToOwned::to_owned),
                     op,
                 },
+                source: None,
             }
         })?;
 
@@ -152,8 +152,8 @@ impl Emitter {
         let gateway_event =
             json::parse_gateway_event(op, seq, event_type, json).map_err(|source| {
                 EmitJsonError {
-                    cause: Some(Box::new(source)),
                     kind: EmitJsonErrorType::Parsing,
+                    source: Some(Box::new(source)),
                 }
             })?;
         self.event(Event::from(gateway_event));

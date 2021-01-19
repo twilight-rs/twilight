@@ -11,8 +11,8 @@ use tokio::{
 /// Creating a day limiter queue failed.
 #[derive(Debug)]
 pub struct DayLimiterError {
-    cause: Option<Box<dyn Error + Send + Sync>>,
     kind: DayLimiterErrorType,
+    source: Option<Box<dyn Error + Send + Sync>>,
 }
 
 impl Display for DayLimiterError {
@@ -27,9 +27,9 @@ impl Display for DayLimiterError {
 
 impl Error for DayLimiterError {
     fn source(&self) -> Option<&(dyn Error + 'static)> {
-        self.cause
+        self.source
             .as_ref()
-            .map(|cause| &**cause as &(dyn Error + 'static))
+            .map(|source| &**source as &(dyn Error + 'static))
     }
 }
 
@@ -61,8 +61,8 @@ impl DayLimiter {
             .authed()
             .await
             .map_err(|source| DayLimiterError {
-                cause: Some(Box::new(source)),
                 kind: DayLimiterErrorType::RetrievingSessionAvailability,
+                source: Some(Box::new(source)),
             })?;
 
         let last_check = Instant::now();

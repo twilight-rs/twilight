@@ -9,7 +9,7 @@ pub type RatelimitResult<T> = StdResult<T, RatelimitError>;
 
 #[derive(Debug)]
 pub struct RatelimitError {
-    pub(super) cause: Option<Box<dyn Error + Send + Sync>>,
+    pub(super) source: Option<Box<dyn Error + Send + Sync>>,
     pub(super) kind: RatelimitErrorType,
 }
 
@@ -21,28 +21,28 @@ impl RatelimitError {
     }
 
     /// Consume the error, returning the source error if there is any.
-    #[must_use = "consuming the error and retrieving the cause has no effect if left unused"]
-    pub fn into_cause(self) -> Option<Box<dyn Error + Send + Sync>> {
-        self.cause
+    #[must_use = "consuming the error and retrieving the source has no effect if left unused"]
+    pub fn into_source(self) -> Option<Box<dyn Error + Send + Sync>> {
+        self.source
     }
 
     /// Consume the error, returning the owned error type and the source error.
     #[must_use = "consuming the error into its parts has no effect if left unused"]
     pub fn into_parts(self) -> (RatelimitErrorType, Option<Box<dyn Error + Send + Sync>>) {
-        (self.kind, self.cause)
+        (self.kind, self.source)
     }
 
     pub(super) fn header_missing(name: &'static str) -> Self {
         Self {
-            cause: None,
             kind: RatelimitErrorType::HeaderMissing { name },
+            source: None,
         }
     }
 
     pub(super) fn header_not_utf8(name: &'static str, value: Vec<u8>, source: ToStrError) -> Self {
         Self {
-            cause: Some(Box::new(source)),
             kind: RatelimitErrorType::HeaderNotUtf8 { name, value },
+            source: Some(Box::new(source)),
         }
     }
 }
@@ -78,9 +78,9 @@ impl Display for RatelimitError {
 
 impl Error for RatelimitError {
     fn source(&self) -> Option<&(dyn Error + 'static)> {
-        self.cause
+        self.source
             .as_ref()
-            .map(|cause| &**cause as &(dyn Error + 'static))
+            .map(|source| &**source as &(dyn Error + 'static))
     }
 }
 

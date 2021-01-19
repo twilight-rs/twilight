@@ -22,8 +22,8 @@ use twilight_model::{
 /// A webhook's message can not be updated as configured.
 #[derive(Debug)]
 pub struct UpdateWebhookMessageError {
-    cause: Option<Box<dyn Error + Send + Sync>>,
     kind: UpdateWebhookMessageErrorType,
+    source: Option<Box<dyn Error + Send + Sync>>,
 }
 
 impl UpdateWebhookMessageError {
@@ -34,9 +34,9 @@ impl UpdateWebhookMessageError {
     }
 
     /// Consume the error, returning the source error if there is any.
-    #[must_use = "consuming the error and retrieving the cause has no effect if left unused"]
-    pub fn into_cause(self) -> Option<Box<dyn Error + Send + Sync>> {
-        self.cause
+    #[must_use = "consuming the error and retrieving the source has no effect if left unused"]
+    pub fn into_source(self) -> Option<Box<dyn Error + Send + Sync>> {
+        self.source
     }
 
     /// Consume the error, returning the owned error type and the source error.
@@ -47,7 +47,7 @@ impl UpdateWebhookMessageError {
         UpdateWebhookMessageErrorType,
         Option<Box<dyn Error + Send + Sync>>,
     ) {
-        (self.kind, self.cause)
+        (self.kind, self.source)
     }
 }
 
@@ -70,9 +70,9 @@ impl Display for UpdateWebhookMessageError {
 
 impl Error for UpdateWebhookMessageError {
     fn source(&self) -> Option<&(dyn Error + 'static)> {
-        self.cause
+        self.source
             .as_ref()
-            .map(|cause| &**cause as &(dyn Error + 'static))
+            .map(|source| &**source as &(dyn Error + 'static))
     }
 }
 
@@ -205,10 +205,10 @@ impl<'a> UpdateWebhookMessage<'a> {
         if let Some(content_ref) = content.as_ref() {
             if !validate::content_limit(content_ref) {
                 return Err(UpdateWebhookMessageError {
-                    cause: None,
                     kind: UpdateWebhookMessageErrorType::ContentInvalid {
                         content: content.expect("content is known to be some"),
                     },
+                    source: None,
                 });
             }
         }
@@ -268,21 +268,21 @@ impl<'a> UpdateWebhookMessage<'a> {
         if let Some(embeds_present) = embeds.as_deref() {
             if embeds_present.len() > Self::EMBED_COUNT_LIMIT {
                 return Err(UpdateWebhookMessageError {
-                    cause: None,
                     kind: UpdateWebhookMessageErrorType::TooManyEmbeds {
                         embeds: embeds.expect("embeds are known to be present"),
                     },
+                    source: None,
                 });
             }
 
             for (idx, embed) in embeds_present.iter().enumerate() {
                 if let Err(source) = validate::embed(&embed) {
                     return Err(UpdateWebhookMessageError {
-                        cause: Some(Box::new(source)),
                         kind: UpdateWebhookMessageErrorType::EmbedTooLarge {
                             embeds: embeds.expect("embeds are known to be present"),
                             index: idx,
                         },
+                        source: Some(Box::new(source)),
                     });
                 }
             }

@@ -47,15 +47,15 @@ use url::Url;
 /// Connecting to the gateway failed.
 #[derive(Debug)]
 pub struct ConnectingError {
-    cause: Option<Box<dyn Error + Send + Sync>>,
     kind: ConnectingErrorType,
+    source: Option<Box<dyn Error + Send + Sync>>,
 }
 
 impl ConnectingError {
     /// Consume the error, returning the owned error type and the source error.
     #[must_use = "consuming the error into its parts has no effect if left unused"]
     pub fn into_parts(self) -> (ConnectingErrorType, Option<Box<dyn Error + Send + Sync>>) {
-        (self.kind, self.cause)
+        (self.kind, self.source)
     }
 }
 
@@ -72,9 +72,9 @@ impl Display for ConnectingError {
 
 impl Error for ConnectingError {
     fn source(&self) -> Option<&(dyn Error + 'static)> {
-        self.cause
+        self.source
             .as_ref()
-            .map(|cause| &**cause as &(dyn Error + 'static))
+            .map(|source| &**source as &(dyn Error + 'static))
     }
 }
 
@@ -88,8 +88,8 @@ pub enum ConnectingErrorType {
 
 #[derive(Debug)]
 struct ProcessError {
-    cause: Option<Box<dyn Error + Send + Sync>>,
     kind: ProcessErrorType,
+    source: Option<Box<dyn Error + Send + Sync>>,
 }
 
 impl ProcessError {
@@ -118,9 +118,9 @@ impl Display for ProcessError {
 
 impl Error for ProcessError {
     fn source(&self) -> Option<&(dyn Error + 'static)> {
-        self.cause
+        self.source
             .as_ref()
-            .map(|cause| &**cause as &(dyn Error + 'static))
+            .map(|source| &**source as &(dyn Error + 'static))
     }
 }
 
@@ -151,8 +151,8 @@ enum ProcessErrorType {
 
 #[derive(Debug)]
 struct ReceivingEventError {
-    cause: Option<Box<dyn Error + Send + Sync>>,
     kind: ReceivingEventErrorType,
+    source: Option<Box<dyn Error + Send + Sync>>,
 }
 
 impl ReceivingEventError {
@@ -204,9 +204,9 @@ impl Display for ReceivingEventError {
 
 impl Error for ReceivingEventError {
     fn source(&self) -> Option<&(dyn Error + 'static)> {
-        self.cause
+        self.source
             .as_ref()
-            .map(|cause| &**cause as &(dyn Error + 'static))
+            .map(|source| &**source as &(dyn Error + 'static))
     }
 }
 
@@ -367,8 +367,8 @@ impl ShardProcessor {
         let (op, seq, event_type) = {
             let json =
                 str::from_utf8_mut(self.inflater.buffer_mut()).map_err(|source| ProcessError {
-                    cause: Some(Box::new(source)),
                     kind: ProcessErrorType::PayloadNotUtf8,
+                    source: Some(Box::new(source)),
                 })?;
 
             tracing::trace!(%json, "Received JSON");
@@ -395,11 +395,11 @@ impl ShardProcessor {
                     );
 
                     return Err(ProcessError {
-                        cause: Some(Box::new(GatewayEventParsingError {
-                            cause: None,
-                            kind: GatewayEventParsingErrorType::PayloadInvalid,
-                        })),
                         kind: ProcessErrorType::ParsingPayload,
+                        source: Some(Box::new(GatewayEventParsingError {
+                            kind: GatewayEventParsingErrorType::PayloadInvalid,
+                            source: None,
+                        })),
                     });
                 };
 
@@ -423,8 +423,8 @@ impl ShardProcessor {
                 } else {
                     json::parse_gateway_event(op, seq, event_type.as_deref(), json).map_err(
                         |source| ProcessError {
-                            cause: Some(Box::new(source)),
                             kind: ProcessErrorType::ParsingPayload,
+                            source: Some(Box::new(source)),
                         },
                     )?
                 };
@@ -440,8 +440,8 @@ impl ShardProcessor {
             }
 
             let seq = seq.ok_or(ProcessError {
-                cause: None,
                 kind: ProcessErrorType::SequenceMissing,
+                source: None,
             })?;
 
             if event_type.as_deref() == Some("RESUMED") {
@@ -458,11 +458,11 @@ impl ShardProcessor {
             } else if event_type.as_deref() == Some("READY") {
                 let ready = json::from_slice::<ReadyMinimal>(self.inflater.buffer_mut()).map_err(
                     |source| ProcessError {
-                        cause: Some(Box::new(GatewayEventParsingError {
-                            cause: Some(Box::new(source)),
-                            kind: GatewayEventParsingErrorType::Deserializing,
-                        })),
                         kind: ProcessErrorType::ParsingPayload,
+                        source: Some(Box::new(GatewayEventParsingError {
+                            kind: GatewayEventParsingErrorType::Deserializing,
+                            source: Some(Box::new(source)),
+                        })),
                     },
                 )?;
                 self.process_ready(&ready.d);
@@ -483,7 +483,7 @@ impl ShardProcessor {
         self.emitter
             .json(op, Some(seq), event_type.as_deref(), json)
             .map_err(|source| {
-                let (kind, cause) = source.into_parts();
+                let (kind, source) = source.into_parts();
 
                 let new_kind = match kind {
                     EmitJsonErrorType::Parsing => ProcessErrorType::ParsingPayload,
@@ -493,8 +493,8 @@ impl ShardProcessor {
                 };
 
                 ProcessError {
-                    cause,
                     kind: new_kind,
+                    source,
                 }
             })
     }
@@ -585,8 +585,8 @@ impl ShardProcessor {
             }
 
             self.send(payload).await.map_err(|source| ProcessError {
-                cause: Some(Box::new(source)),
                 kind: ProcessErrorType::SessionSend,
+                source: Some(Box::new(source)),
             })?;
         } else {
             self.session.set_stage(Stage::Identifying);
@@ -597,7 +597,7 @@ impl ShardProcessor {
             }
 
             self.identify().await.map_err(|source| ProcessError {
-                cause: Some(Box::new(source)),
+                source: Some(Box::new(source)),
                 kind: ProcessErrorType::SessionSend,
             })?;
         }
@@ -633,7 +633,7 @@ impl ShardProcessor {
         self.session
             .close(Some(frame))
             .map_err(|source| ProcessError {
-                cause: Some(Box::new(source)),
+                source: Some(Box::new(source)),
                 kind: ProcessErrorType::SendingClose,
             })?;
         self.resume().await;
@@ -671,8 +671,8 @@ impl ShardProcessor {
             // Returns None when the socket forwarder has ended, meaning the
             // connection was dropped.
             let mut msg = self.rx.next().await.ok_or(ReceivingEventError {
-                cause: None,
                 kind: ReceivingEventErrorType::EventStreamEnded,
+                source: None,
             })?;
 
             if self.handle_message(&mut msg).await? {
@@ -708,8 +708,8 @@ impl ShardProcessor {
                     Ok(None) => return Ok(false),
                     Err(source) => {
                         return Err(ReceivingEventError {
-                            cause: Some(Box::new(source)),
                             kind: ReceivingEventErrorType::Decompressing,
+                            source: Some(Box::new(source)),
                         })
                     }
                 };
@@ -747,29 +747,29 @@ impl ShardProcessor {
             match close_frame.code {
                 CloseCode::Library(4004) => {
                     return Err(ReceivingEventError {
-                        cause: None,
                         kind: ReceivingEventErrorType::AuthorizationInvalid {
                             shard_id: self.config.shard()[0],
                             token: self.config.token().to_owned(),
                         },
+                        source: None,
                     });
                 }
                 CloseCode::Library(4013) => {
                     return Err(ReceivingEventError {
-                        cause: None,
                         kind: ReceivingEventErrorType::IntentsInvalid {
                             intents: self.config.intents(),
                             shard_id: self.config.shard()[0],
                         },
+                        source: None,
                     });
                 }
                 CloseCode::Library(4014) => {
                     return Err(ReceivingEventError {
-                        cause: None,
                         kind: ReceivingEventErrorType::IntentsDisallowed {
                             intents: self.config.intents(),
                             shard_id: self.config.shard()[0],
                         },
+                        source: None,
                     });
                 }
                 _ => {}
@@ -783,17 +783,17 @@ impl ShardProcessor {
 
     async fn connect(url: &str) -> Result<ShardStream, ConnectingError> {
         let url = Url::parse(url).map_err(|source| ConnectingError {
-            cause: Some(Box::new(source)),
             kind: ConnectingErrorType::ParsingUrl {
                 url: url.to_owned(),
             },
+            source: Some(Box::new(source)),
         })?;
 
         let (stream, _) = async_tungstenite::tokio::connect_async(url)
             .await
             .map_err(|source| ConnectingError {
-                cause: Some(Box::new(source)),
                 kind: ConnectingErrorType::Establishing,
+                source: Some(Box::new(source)),
             })?;
 
         tracing::debug!("Shook hands with remote");

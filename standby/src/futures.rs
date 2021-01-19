@@ -25,7 +25,7 @@ pub struct Canceled(ChannelCanceled);
 impl Canceled {
     /// Consume the error, returning the source error if there is any.
     #[allow(clippy::must_use_candidate)]
-    pub fn into_cause(self) -> Option<Box<dyn Error + Send + Sync>> {
+    pub fn into_source(self) -> Option<Box<dyn Error + Send + Sync>> {
         Some(Box::new(self.0))
     }
 }

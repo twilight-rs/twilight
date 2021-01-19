@@ -48,8 +48,8 @@ use twilight_model::id::UserId;
 /// its event loop.
 #[derive(Debug)]
 pub struct NodeError {
-    cause: Option<Box<dyn Error + Send + Sync>>,
     kind: NodeErrorType,
+    source: Option<Box<dyn Error + Send + Sync>>,
 }
 
 impl NodeError {
@@ -60,15 +60,15 @@ impl NodeError {
     }
 
     /// Consume the error, returning the source error if there is any.
-    #[must_use = "consuming the error and retrieving the cause has no effect if left unused"]
-    pub fn into_cause(self) -> Option<Box<dyn Error + Send + Sync>> {
-        self.cause
+    #[must_use = "consuming the error and retrieving the source has no effect if left unused"]
+    pub fn into_source(self) -> Option<Box<dyn Error + Send + Sync>> {
+        self.source
     }
 
     /// Consume the error, returning the owned error type and the source error.
     #[must_use = "consuming the error into its parts has no effect if left unused"]
     pub fn into_parts(self) -> (NodeErrorType, Option<Box<dyn Error + Send + Sync>>) {
-        (self.kind, self.cause)
+        (self.kind, self.source)
     }
 }
 
@@ -93,9 +93,9 @@ impl Display for NodeError {
 
 impl Error for NodeError {
     fn source(&self) -> Option<&(dyn Error + 'static)> {
-        self.cause
+        self.source
             .as_ref()
-            .map(|cause| &**cause as &(dyn Error + 'static))
+            .map(|source| &**source as &(dyn Error + 'static))
     }
 }
 
@@ -389,8 +389,8 @@ impl Connection {
                     );
 
                     let payload = serde_json::to_string(&outgoing).map_err(|source| NodeError {
-                        cause: Some(Box::new(source)),
                         kind: NodeErrorType::SerializingMessage { message: outgoing },
+                        source: Some(Box::new(source)),
                     })?;
                     let msg = Message::Text(payload);
                     self.connection.send(msg).await.unwrap();
@@ -499,8 +499,8 @@ fn connect_request(state: &NodeConfig) -> Result<Request<()>, NodeError> {
     }
 
     builder.body(()).map_err(|source| NodeError {
-        cause: Some(Box::new(source)),
         kind: NodeErrorType::BuildingConnectionRequest,
+        source: Some(Box::new(source)),
     })
 }
 
@@ -549,11 +549,11 @@ async fn backoff(
                 if matches!(source, TungsteniteError::Http(ref resp) if resp.status() == StatusCode::UNAUTHORIZED)
                 {
                     return Err(NodeError {
-                        cause: None,
                         kind: NodeErrorType::Unauthorized {
                             address: config.address,
                             authorization: config.authorization.to_owned(),
                         },
+                        source: None,
                     });
                 }
 
@@ -561,8 +561,8 @@ async fn backoff(
                     tracing::debug!("no longer trying to connect to node {}", config.address);
 
                     return Err(NodeError {
-                        cause: Some(Box::new(source)),
                         kind: NodeErrorType::Connecting,
+                        source: Some(Box::new(source)),
                     });
                 }
 

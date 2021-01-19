@@ -232,16 +232,16 @@ impl Heartbeater {
             let seq = self.seq.load(Ordering::Acquire);
             let heartbeat = Heartbeat::new(seq);
             let bytes = json::to_vec(&heartbeat).map_err(|source| SessionSendError {
-                cause: Some(Box::new(source)),
                 kind: SessionSendErrorType::Serializing,
+                source: Some(Box::new(source)),
             })?;
 
             tracing::debug!(seq, "sending heartbeat");
             self.tx
                 .unbounded_send(TungsteniteMessage::Binary(bytes))
                 .map_err(|source| SessionSendError {
-                    cause: Some(Box::new(source)),
                     kind: SessionSendErrorType::Sending,
+                    source: Some(Box::new(source)),
                 })?;
             tracing::debug!(seq, "sent heartbeat");
             self.heartbeats.send();

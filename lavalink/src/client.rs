@@ -24,8 +24,8 @@ use twilight_model::{
 /// An error that can occur while interacting with the client.
 #[derive(Debug)]
 pub struct ClientError {
-    cause: Option<Box<dyn Error + Send + Sync>>,
     kind: ClientErrorType,
+    source: Option<Box<dyn Error + Send + Sync>>,
 }
 
 impl ClientError {
@@ -35,8 +35,8 @@ impl ClientError {
     }
 
     /// Consume the error, returning the source error if there is any.
-    pub fn into_cause(self) -> Option<Box<dyn Error + Send + Sync>> {
-        self.cause
+    pub fn into_source(self) -> Option<Box<dyn Error + Send + Sync>> {
+        self.source
     }
 }
 
@@ -53,9 +53,9 @@ impl Display for ClientError {
 
 impl Error for ClientError {
     fn source(&self) -> Option<&(dyn Error + 'static)> {
-        self.cause
+        self.source
             .as_ref()
-            .map(|cause| &**cause as &(dyn Error + 'static))
+            .map(|source| &**source as &(dyn Error + 'static))
     }
 }
 
@@ -278,8 +278,8 @@ impl Lavalink {
         let player = self.player(guild_id).await?;
         tracing::debug!("sending voice update for guild {}: {:?}", guild_id, update);
         player.send(update).map_err(|source| ClientError {
-            cause: Some(Box::new(source)),
             kind: ClientErrorType::SendingVoiceUpdate,
+            source: Some(Box::new(source)),
         })?;
         tracing::debug!("sent voice update for guild {}", guild_id);
 
@@ -342,8 +342,8 @@ impl Lavalink {
         }
 
         best.ok_or(ClientError {
-            cause: None,
             kind: ClientErrorType::NodesUnconfigured,
+            source: None,
         })
     }
 

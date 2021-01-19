@@ -172,8 +172,8 @@ fn parse_id<'a>(
 
     if c.map_or(true, |c| c != '<') {
         return Err(ParseMentionError {
-            cause: None,
             kind: ParseMentionErrorType::LeadingArrow { found: c },
+            source: None,
         });
     }
 
@@ -193,21 +193,21 @@ fn parse_id<'a>(
         *sigil
     } else {
         return Err(ParseMentionError {
-            cause: None,
             kind: ParseMentionErrorType::Sigil {
                 expected: sigils,
                 found: chars.next(),
             },
+            source: None,
         });
     };
 
     if sigil == ":" && !emoji_sigil_present(&mut chars) {
         return Err(ParseMentionError {
-            cause: None,
             kind: ParseMentionErrorType::PartMissing {
                 found: 1,
                 expected: 2,
             },
+            source: None,
         });
     }
 
@@ -216,16 +216,16 @@ fn parse_id<'a>(
         .find('>')
         .and_then(|idx| chars.as_str().get(..idx))
         .ok_or(ParseMentionError {
-            cause: None,
             kind: ParseMentionErrorType::TrailingArrow { found: None },
+            source: None,
         })?;
 
     remaining
         .parse()
         .map(|id| (id, sigil))
         .map_err(|source| ParseMentionError {
-            cause: Some(Box::new(source)),
             kind: ParseMentionErrorType::IdNotU64 { found: remaining },
+            source: Some(Box::new(source)),
         })
 }
 

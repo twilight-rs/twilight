@@ -15,8 +15,8 @@ use twilight_model::id::WebhookId;
 #[allow(clippy::module_name_repetitions)]
 #[derive(Debug)]
 pub struct WebhookParseError {
-    cause: Option<Box<dyn Error + Send + Sync>>,
     kind: WebhookParseErrorType,
+    source: Option<Box<dyn Error + Send + Sync>>,
 }
 
 impl WebhookParseError {
@@ -27,15 +27,15 @@ impl WebhookParseError {
     }
 
     /// Consume the error, returning the source error if there is any.
-    #[must_use = "consuming the error and retrieving the cause has no effect if left unused"]
-    pub fn into_cause(self) -> Option<Box<dyn Error + Send + Sync>> {
-        self.cause
+    #[must_use = "consuming the error and retrieving the source has no effect if left unused"]
+    pub fn into_source(self) -> Option<Box<dyn Error + Send + Sync>> {
+        self.source
     }
 
     /// Consume the error, returning the owned error type and the source error.
     #[must_use = "consuming the error into its parts has no effect if left unused"]
     pub fn into_parts(self) -> (WebhookParseErrorType, Option<Box<dyn Error + Send + Sync>>) {
-        (self.kind, self.cause)
+        (self.kind, self.source)
     }
 }
 
@@ -54,9 +54,9 @@ impl Display for WebhookParseError {
 
 impl Error for WebhookParseError {
     fn source(&self) -> Option<&(dyn Error + 'static)> {
-        self.cause
+        self.source
             .as_ref()
-            .map(|cause| &**cause as &(dyn Error + 'static))
+            .map(|source| &**source as &(dyn Error + 'static))
     }
 }
 
@@ -121,29 +121,29 @@ pub fn parse(url: &str) -> Result<(WebhookId, Option<&str>), WebhookParseError> 
     let mut segments = {
         let mut start = url.split("discord.com/api/webhooks/");
         let path = start.nth(1).ok_or(WebhookParseError {
-            cause: None,
             kind: WebhookParseErrorType::SegmentMissing,
+            source: None,
         })?;
 
         path.split('/')
     };
 
     let id_segment = segments.next().ok_or(WebhookParseError {
-        cause: None,
         kind: WebhookParseErrorType::SegmentMissing,
+        source: None,
     })?;
 
     // If we don't have this check it'll return `IdInvalid`, which isn't right.
     if id_segment.is_empty() {
         return Err(WebhookParseError {
-            cause: None,
             kind: WebhookParseErrorType::SegmentMissing,
+            source: None,
         });
     }
 
     let id = id_segment.parse().map_err(|source| WebhookParseError {
-        cause: Some(Box::new(source)),
         kind: WebhookParseErrorType::IdInvalid,
+        source: Some(Box::new(source)),
     })?;
     let mut token = segments.next();
 

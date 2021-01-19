@@ -29,8 +29,8 @@ impl AddGuildMemberError {
 
     /// Consume the error, returning the source error if there is any.
     #[allow(clippy::unused_self)]
-    #[must_use = "consuming the error and retrieving the cause has no effect if left unused"]
-    pub fn into_cause(self) -> Option<Box<dyn Error + Send + Sync>> {
+    #[must_use = "consuming the error and retrieving the source has no effect if left unused"]
+    pub fn into_source(self) -> Option<Box<dyn Error + Send + Sync>> {
         None
     }
 
@@ -201,8 +201,8 @@ impl Future for AddGuildMember<'_> {
 
                 return Poll::Ready(crate::json_from_slice(&mut bytes).map(Some).map_err(
                     |source| HttpError {
-                        cause: Some(Box::new(source)),
                         kind: ErrorType::Parsing { body: bytes },
+                        source: Some(Box::new(source)),
                     },
                 ));
             }

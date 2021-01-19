@@ -59,8 +59,8 @@ impl Future for GetMember<'_> {
                 let bytes = match fut.as_mut().poll(cx) {
                     Poll::Ready(Ok(bytes)) => bytes,
                     Poll::Ready(Err(Error {
-                        cause: None,
                         kind: ErrorType::Response { status, .. },
+                        source: None,
                     })) if status == StatusCode::NOT_FOUND => {
                         return Poll::Ready(Ok(None));
                     }

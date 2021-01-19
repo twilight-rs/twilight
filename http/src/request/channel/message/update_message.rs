@@ -11,8 +11,8 @@ use twilight_model::{
 /// The error created when a message can not be updated as configured.
 #[derive(Debug)]
 pub struct UpdateMessageError {
-    cause: Option<Box<dyn Error + Send + Sync>>,
     kind: UpdateMessageErrorType,
+    source: Option<Box<dyn Error + Send + Sync>>,
 }
 
 impl UpdateMessageError {
@@ -23,15 +23,15 @@ impl UpdateMessageError {
     }
 
     /// Consume the error, returning the source error if there is any.
-    #[must_use = "consuming the error and retrieving the cause has no effect if left unused"]
-    pub fn into_cause(self) -> Option<Box<dyn Error + Send + Sync>> {
-        self.cause
+    #[must_use = "consuming the error and retrieving the source has no effect if left unused"]
+    pub fn into_source(self) -> Option<Box<dyn Error + Send + Sync>> {
+        self.source
     }
 
     /// Consume the error, returning the owned error type and the source error.
     #[must_use = "consuming the error into its parts has no effect if left unused"]
     pub fn into_parts(self) -> (UpdateMessageErrorType, Option<Box<dyn Error + Send + Sync>>) {
-        (self.kind, self.cause)
+        (self.kind, self.source)
     }
 }
 
@@ -50,9 +50,9 @@ impl Display for UpdateMessageError {
 
 impl Error for UpdateMessageError {
     fn source(&self) -> Option<&(dyn Error + 'static)> {
-        self.cause
+        self.source
             .as_ref()
-            .map(|cause| &**cause as &(dyn Error + 'static))
+            .map(|source| &**source as &(dyn Error + 'static))
     }
 }
 
@@ -172,10 +172,10 @@ impl<'a> UpdateMessage<'a> {
         if let Some(content_ref) = content.as_ref() {
             if !validate::content_limit(content_ref) {
                 return Err(UpdateMessageError {
-                    cause: None,
                     kind: UpdateMessageErrorType::ContentInvalid {
                         content: content.expect("content is known to be some"),
                     },
+                    source: None,
                 });
             }
         }
@@ -199,10 +199,10 @@ impl<'a> UpdateMessage<'a> {
         if let Some(embed_ref) = embed.as_ref() {
             if let Err(source) = validate::embed(&embed_ref) {
                 return Err(UpdateMessageError {
-                    cause: Some(Box::new(source)),
                     kind: UpdateMessageErrorType::EmbedTooLarge {
                         embed: Box::new(embed.expect("embed is known to be some")),
                     },
+                    source: Some(Box::new(source)),
                 });
             }
         }

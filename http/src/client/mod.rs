@@ -1410,8 +1410,8 @@ impl Client {
     pub async fn raw(&self, request: Request) -> Result<Response<Body>> {
         if self.state.token_invalid.load(Ordering::Relaxed) {
             return Err(Error {
-                cause: None,
                 kind: ErrorType::Unauthorized,
+                source: None,
             });
         }
 
@@ -1438,8 +1438,8 @@ impl Client {
                 let name = AUTHORIZATION.to_string();
 
                 Error {
-                    cause: Some(Box::new(source)),
                     kind: ErrorType::CreatingHeader { name },
+                    source: Some(Box::new(source)),
                 }
             })?;
 
@@ -1488,8 +1488,8 @@ impl Client {
             builder
                 .body(Body::from(form_bytes))
                 .map_err(|source| Error {
-                    cause: Some(Box::new(source)),
                     kind: ErrorType::BuildingRequest,
+                    source: Some(Box::new(source)),
                 })?
         } else if let Some(bytes) = body {
             let len = bytes.len();
@@ -1501,8 +1501,8 @@ impl Client {
             }
 
             builder.body(Body::from(bytes)).map_err(|source| Error {
-                cause: Some(Box::new(source)),
                 kind: ErrorType::BuildingRequest,
+                source: Some(Box::new(source)),
             })?
         } else if method == Method::PUT || method == Method::POST || method == Method::PATCH {
             if let Some(headers) = builder.headers_mut() {
@@ -1510,13 +1510,13 @@ impl Client {
             }
 
             builder.body(Body::empty()).map_err(|source| Error {
-                cause: Some(Box::new(source)),
                 kind: ErrorType::BuildingRequest,
+                source: Some(Box::new(source)),
             })?
         } else {
             builder.body(Body::empty()).map_err(|source| Error {
-                cause: Some(Box::new(source)),
                 kind: ErrorType::BuildingRequest,
+                source: Some(Box::new(source)),
             })?
         };
 
@@ -1529,31 +1529,31 @@ impl Client {
                 return fut
                     .await
                     .map_err(|source| Error {
-                        cause: Some(Box::new(source)),
                         kind: ErrorType::RequestTimedOut,
+                        source: Some(Box::new(source)),
                     })?
                     .map_err(|source| Error {
-                        cause: Some(Box::new(source)),
                         kind: ErrorType::RequestError,
+                        source: Some(Box::new(source)),
                     });
             }
         };
 
         let rx = ratelimiter.get(bucket).await;
         let tx = rx.await.map_err(|source| Error {
-            cause: Some(Box::new(source)),
             kind: ErrorType::RequestCanceled,
+            source: Some(Box::new(source)),
         })?;
 
         let resp = fut
             .await
             .map_err(|source| Error {
-                cause: Some(Box::new(source)),
                 kind: ErrorType::RequestTimedOut,
+                source: Some(Box::new(source)),
             })?
             .map_err(|source| Error {
-                cause: Some(Box::new(source)),
                 kind: ErrorType::RequestError,
+                source: Some(Box::new(source)),
             })?;
 
         // If the API sent back an Unauthorized response, then the client's
@@ -1589,8 +1589,8 @@ impl Client {
         let mut buf = body::aggregate(resp.into_body())
             .await
             .map_err(|source| Error {
-                cause: Some(Box::new(source)),
                 kind: ErrorType::ChunkingResponse,
+                source: Some(Box::new(source)),
             })?;
 
         let mut bytes = vec![0; buf.remaining()];
@@ -1599,10 +1599,10 @@ impl Client {
         let result = crate::json_from_slice(&mut bytes);
 
         result.map_err(|source| Error {
-            cause: Some(Box::new(source)),
             kind: ErrorType::Parsing {
                 body: bytes.to_vec(),
             },
+            source: Some(Box::new(source)),
         })
     }
 
@@ -1612,8 +1612,8 @@ impl Client {
         hyper::body::to_bytes(resp.into_body())
             .await
             .map_err(|source| Error {
-                cause: Some(Box::new(source)),
                 kind: ErrorType::ChunkingResponse,
+                source: Some(Box::new(source)),
             })
     }
 
@@ -1647,8 +1647,8 @@ impl Client {
             StatusCode::TOO_MANY_REQUESTS => tracing::warn!("429 response: {:?}", resp),
             StatusCode::SERVICE_UNAVAILABLE => {
                 return Err(Error {
-                    cause: None,
                     kind: ErrorType::ServiceUnavailable { response: resp },
+                    source: None,
                 });
             }
             _ => {}
@@ -1657,18 +1657,18 @@ impl Client {
         let mut buf = hyper::body::aggregate(resp.into_body())
             .await
             .map_err(|source| Error {
-                cause: Some(Box::new(source)),
                 kind: ErrorType::ChunkingResponse,
+                source: Some(Box::new(source)),
             })?;
 
         let mut bytes = vec![0; buf.remaining()];
         buf.copy_to_slice(&mut bytes);
 
         let error = crate::json_from_slice::<ApiError>(&mut bytes).map_err(|source| Error {
-            cause: Some(Box::new(source)),
             kind: ErrorType::Parsing {
                 body: bytes.clone(),
             },
+            source: Some(Box::new(source)),
         })?;
 
         if let ApiError::General(ref general) = error {
@@ -1678,12 +1678,12 @@ impl Client {
         }
 
         Err(Error {
-            cause: None,
             kind: ErrorType::Response {
                 body: bytes,
                 error,
                 status,
             },
+            source: None,
         })
     }
 }

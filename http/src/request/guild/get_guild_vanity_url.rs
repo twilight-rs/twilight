@@ -53,8 +53,8 @@ impl Future for GetGuildVanityUrl<'_> {
                 let bytes = match fut.as_mut().poll(cx) {
                     Poll::Ready(Ok(bytes)) => bytes,
                     Poll::Ready(Err(Error {
-                        cause: None,
                         kind: ErrorType::Response { status, .. },
+                        source: None,
                     })) if status == StatusCode::NOT_FOUND => {
                         return Poll::Ready(Ok(None));
                     }
@@ -65,10 +65,10 @@ impl Future for GetGuildVanityUrl<'_> {
                 let mut bytes = bytes.as_ref().to_vec();
                 let vanity_url =
                     crate::json_from_slice::<VanityUrl>(&mut bytes).map_err(|source| Error {
-                        cause: Some(Box::new(source)),
                         kind: ErrorType::Parsing {
                             body: bytes.to_vec(),
                         },
+                        source: Some(Box::new(source)),
                     })?;
 
                 return Poll::Ready(Ok(Some(vanity_url.code)));

@@ -116,11 +116,11 @@ fn header_bool(map: &HeaderMap<HeaderValue>, name: &'static str) -> RatelimitRes
     })?;
 
     let end = text.parse().map_err(|source| RatelimitError {
-        cause: Some(Box::new(source)),
         kind: RatelimitErrorType::ParsingBoolText {
             name,
             text: text.to_owned(),
         },
+        source: Some(Box::new(source)),
     })?;
 
     Ok(end)
@@ -136,11 +136,11 @@ fn header_float(map: &HeaderMap<HeaderValue>, name: &'static str) -> RatelimitRe
     })?;
 
     let end = text.parse().map_err(|source| RatelimitError {
-        cause: Some(Box::new(source)),
         kind: RatelimitErrorType::ParsingFloatText {
             name,
             text: text.to_owned(),
         },
+        source: Some(Box::new(source)),
     })?;
 
     Ok(end)
@@ -156,11 +156,11 @@ fn header_int(map: &HeaderMap<HeaderValue>, name: &'static str) -> RatelimitResu
     })?;
 
     let end = text.parse().map_err(|source| RatelimitError {
-        cause: Some(Box::new(source)),
         kind: RatelimitErrorType::ParsingIntText {
             name,
             text: text.to_owned(),
         },
+        source: Some(Box::new(source)),
     })?;
 
     Ok(end)

@@ -13,8 +13,8 @@ use twilight_model::{
 /// The error created when a messsage can not be created as configured.
 #[derive(Debug)]
 pub struct CreateMessageError {
-    cause: Option<Box<dyn Error + Send + Sync>>,
     kind: CreateMessageErrorType,
+    source: Option<Box<dyn Error + Send + Sync>>,
 }
 
 impl CreateMessageError {
@@ -25,15 +25,15 @@ impl CreateMessageError {
     }
 
     /// Consume the error, returning the source error if there is any.
-    #[must_use = "consuming the error and retrieving the cause has no effect if left unused"]
-    pub fn into_cause(self) -> Option<Box<dyn Error + Send + Sync>> {
-        self.cause
+    #[must_use = "consuming the error and retrieving the source has no effect if left unused"]
+    pub fn into_source(self) -> Option<Box<dyn Error + Send + Sync>> {
+        self.source
     }
 
     /// Consume the error, returning the owned error type and the source error.
     #[must_use = "consuming the error into its parts has no effect if left unused"]
     pub fn into_parts(self) -> (CreateMessageErrorType, Option<Box<dyn Error + Send + Sync>>) {
-        (self.kind, self.cause)
+        (self.kind, self.source)
     }
 }
 
@@ -52,9 +52,9 @@ impl Display for CreateMessageError {
 
 impl Error for CreateMessageError {
     fn source(&self) -> Option<&(dyn Error + 'static)> {
-        self.cause
+        self.source
             .as_ref()
-            .map(|cause| &**cause as &(dyn Error + 'static))
+            .map(|source| &**source as &(dyn Error + 'static))
     }
 }
 
@@ -177,8 +177,8 @@ impl<'a> CreateMessage<'a> {
     fn _content(mut self, content: String) -> Result<Self, CreateMessageError> {
         if !validate::content_limit(&content) {
             return Err(CreateMessageError {
-                cause: None,
                 kind: CreateMessageErrorType::ContentInvalid { content },
+                source: None,
             });
         }
 
@@ -206,10 +206,10 @@ impl<'a> CreateMessage<'a> {
     pub fn embed(mut self, embed: Embed) -> Result<Self, CreateMessageError> {
         if let Err(source) = validate::embed(&embed) {
             return Err(CreateMessageError {
-                cause: Some(Box::new(source)),
                 kind: CreateMessageErrorType::EmbedTooLarge {
                     embed: Box::new(embed),
                 },
+                source: Some(Box::new(source)),
             });
         }
 

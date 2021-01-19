@@ -47,10 +47,10 @@ macro_rules! poll_req {
                         let mut bytes = bytes.as_ref().to_vec();
                         return Poll::Ready(json_from_slice(&mut bytes).map(Some).map_err(
                             |source| crate::Error {
-                                cause: Some(Box::new(source)),
                                 kind: crate::error::ErrorType::Parsing {
                                     body: bytes.to_vec(),
                                 },
+                                source: Some(Box::new(source)),
                             },
                         ));
                     }
@@ -123,10 +123,10 @@ pub(crate) fn audit_header(reason: &str) -> Result<HeaderMap<HeaderValue>> {
     let mut headers = HeaderMap::new();
     let encoded_reason = utf8_percent_encode(reason, NON_ALPHANUMERIC).to_string();
     let header_value = HeaderValue::from_str(&encoded_reason).map_err(|e| Error {
-        cause: Some(Box::new(e)),
         kind: ErrorType::CreatingHeader {
             name: encoded_reason.clone(),
         },
+        source: Some(Box::new(e)),
     })?;
 
     headers.insert(header_name, header_value);

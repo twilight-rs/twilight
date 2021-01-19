@@ -24,7 +24,7 @@ use twilight_model::gateway::payload::Heartbeat;
 
 #[derive(Debug)]
 pub struct SessionSendError {
-    pub(super) cause: Option<Box<dyn Error + Send + Sync>>,
+    pub(super) source: Option<Box<dyn Error + Send + Sync>>,
     pub(super) kind: SessionSendErrorType,
 }
 
@@ -46,9 +46,9 @@ impl Display for SessionSendError {
 
 impl Error for SessionSendError {
     fn source(&self) -> Option<&(dyn Error + 'static)> {
-        self.cause
+        self.source
             .as_ref()
-            .map(|cause| &**cause as &(dyn Error + 'static))
+            .map(|source| &**source as &(dyn Error + 'static))
     }
 }
 
@@ -100,15 +100,15 @@ impl Session {
     /// either not started or has already shutdown.
     pub fn send(&self, payload: impl Serialize) -> Result<(), SessionSendError> {
         let bytes = json::to_vec(&payload).map_err(|source| SessionSendError {
-            cause: Some(Box::new(source)),
             kind: SessionSendErrorType::Serializing,
+            source: Some(Box::new(source)),
         })?;
 
         self.tx
             .unbounded_send(TungsteniteMessage::Binary(bytes))
             .map_err(|source| SessionSendError {
-                cause: Some(Box::new(source)),
                 kind: SessionSendErrorType::Sending,
+                source: Some(Box::new(source)),
             })?;
 
         Ok(())

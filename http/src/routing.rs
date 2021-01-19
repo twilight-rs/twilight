@@ -9,8 +9,8 @@ use std::{
 
 #[derive(Debug)]
 pub struct PathParseError {
-    cause: Option<Box<dyn Error + Send + Sync>>,
     kind: PathParseErrorType,
+    source: Option<Box<dyn Error + Send + Sync>>,
 }
 
 impl PathParseError {
@@ -21,15 +21,15 @@ impl PathParseError {
     }
 
     /// Consume the error, returning the source error if there is any.
-    #[must_use = "consuming the error and retrieving the cause has no effect if left unused"]
-    pub fn into_cause(self) -> Option<Box<dyn Error + Send + Sync>> {
-        self.cause
+    #[must_use = "consuming the error and retrieving the source has no effect if left unused"]
+    pub fn into_source(self) -> Option<Box<dyn Error + Send + Sync>> {
+        self.source
     }
 
     /// Consume the error, returning the owned error type and the source error.
     #[must_use = "consuming the error into its parts has no effect if left unused"]
     pub fn into_parts(self) -> (PathParseErrorType, Option<Box<dyn Error + Send + Sync>>) {
-        (self.kind, self.cause)
+        (self.kind, self.source)
     }
 }
 
@@ -49,9 +49,9 @@ impl Display for PathParseError {
 
 impl Error for PathParseError {
     fn source(&self) -> Option<&(dyn Error + 'static)> {
-        self.cause
+        self.source
             .as_ref()
-            .map(|cause| &**cause as &(dyn Error + 'static))
+            .map(|source| &**source as &(dyn Error + 'static))
     }
 }
 
@@ -179,8 +179,8 @@ impl FromStr for Path {
 
         fn parse_id(id: &str) -> Result<u64, PathParseError> {
             id.parse().map_err(|source| PathParseError {
-                cause: Some(Box::new(source)),
                 kind: PathParseErrorType::IntegerParsing,
+                source: Some(Box::new(source)),
             })
         }
 
@@ -195,10 +195,10 @@ impl FromStr for Path {
             ["channels", id, "messages"] => ChannelsIdMessages(parse_id(id)?),
             ["channels", id, "messages", _] => {
                 return Err(PathParseError {
-                    cause: None,
                     kind: PathParseErrorType::MessageIdWithoutMethod {
                         channel_id: parse_id(id)?,
                     },
+                    source: None,
                 });
             }
             ["channels", id, "messages", _, "crosspost"] => {
@@ -251,8 +251,8 @@ impl FromStr for Path {
             ["webhooks", id] | ["webhooks", id, _] => WebhooksId(parse_id(id)?),
             _ => {
                 return Err(PathParseError {
-                    cause: None,
                     kind: PathParseErrorType::NoMatch,
+                    source: None,
                 })
             }
         })

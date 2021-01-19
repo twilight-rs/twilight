@@ -6,8 +6,8 @@ use std::{
 /// Parsing a mention failed due to invalid syntax.
 #[derive(Debug)]
 pub struct ParseMentionError<'a> {
-    pub(super) cause: Option<Box<dyn Error + Send + Sync>>,
     pub(super) kind: ParseMentionErrorType<'a>,
+    pub(super) source: Option<Box<dyn Error + Send + Sync>>,
 }
 
 impl<'a> ParseMentionError<'a> {
@@ -18,9 +18,9 @@ impl<'a> ParseMentionError<'a> {
     }
 
     /// Consume the error, returning the source error if there is any.
-    #[must_use = "consuming the error and retrieving the cause has no effect if left unused"]
-    pub fn into_cause(self) -> Option<Box<dyn Error + Send + Sync>> {
-        self.cause
+    #[must_use = "consuming the error and retrieving the source has no effect if left unused"]
+    pub fn into_source(self) -> Option<Box<dyn Error + Send + Sync>> {
+        self.source
     }
 
     /// Consume the error, returning the owned error type and the source error.
@@ -31,7 +31,7 @@ impl<'a> ParseMentionError<'a> {
         ParseMentionErrorType<'a>,
         Option<Box<dyn Error + Send + Sync>>,
     ) {
-        (self.kind, self.cause)
+        (self.kind, self.source)
     }
 }
 
@@ -90,9 +90,9 @@ impl Display for ParseMentionError<'_> {
 
 impl Error for ParseMentionError<'_> {
     fn source(&self) -> Option<&(dyn Error + 'static)> {
-        self.cause
+        self.source
             .as_ref()
-            .map(|cause| &**cause as &(dyn Error + 'static))
+            .map(|source| &**source as &(dyn Error + 'static))
     }
 }
 
@@ -156,8 +156,8 @@ mod tests {
         assert_eq!(
             expected,
             ParseMentionError {
-                cause: Some(Box::new("abcd".parse::<u64>().unwrap_err())),
-                kind: ParseMentionErrorType::IdNotU64 { found: "abcd" }
+                kind: ParseMentionErrorType::IdNotU64 { found: "abcd" },
+                source: Some(Box::new("abcd".parse::<u64>().unwrap_err())),
             }
             .to_string(),
         );
@@ -165,8 +165,8 @@ mod tests {
         assert_eq!(
             expected,
             ParseMentionError {
-                cause: None,
-                kind: ParseMentionErrorType::LeadingArrow { found: Some('a') }
+                kind: ParseMentionErrorType::LeadingArrow { found: Some('a') },
+                source: None,
             }
             .to_string(),
         );
@@ -175,8 +175,8 @@ mod tests {
         assert_eq!(
             expected,
             ParseMentionError {
-                cause: None,
-                kind: ParseMentionErrorType::LeadingArrow { found: None }
+                kind: ParseMentionErrorType::LeadingArrow { found: None },
+                source: None,
             }
             .to_string(),
         );
@@ -185,11 +185,11 @@ mod tests {
         assert_eq!(
             expected,
             ParseMentionError {
-                cause: None,
                 kind: ParseMentionErrorType::Sigil {
                     expected: &["@"],
                     found: Some('#')
-                }
+                },
+                source: None,
             }
             .to_string(),
         );
@@ -198,11 +198,11 @@ mod tests {
         assert_eq!(
             expected,
             ParseMentionError {
-                cause: None,
                 kind: ParseMentionErrorType::Sigil {
                     expected: &["@"],
                     found: None
-                }
+                },
+                source: None,
             }
             .to_string(),
         );
@@ -211,11 +211,11 @@ mod tests {
         assert_eq!(
             expected,
             ParseMentionError {
-                cause: None,
                 kind: ParseMentionErrorType::Sigil {
                     expected: &["@!", "@"],
                     found: Some('#'),
-                }
+                },
+                source: None,
             }
             .to_string(),
         );
@@ -224,11 +224,11 @@ mod tests {
         assert_eq!(
             expected,
             ParseMentionError {
-                cause: None,
                 kind: ParseMentionErrorType::Sigil {
                     expected: &["@!", "@"],
                     found: None
-                }
+                },
+                source: None,
             }
             .to_string(),
         );
@@ -237,8 +237,8 @@ mod tests {
         assert_eq!(
             expected,
             ParseMentionError {
-                cause: None,
-                kind: ParseMentionErrorType::TrailingArrow { found: Some('a') }
+                kind: ParseMentionErrorType::TrailingArrow { found: Some('a') },
+                source: None,
             }
             .to_string(),
         );
@@ -247,8 +247,8 @@ mod tests {
         assert_eq!(
             expected,
             ParseMentionError {
-                cause: None,
-                kind: ParseMentionErrorType::TrailingArrow { found: None }
+                kind: ParseMentionErrorType::TrailingArrow { found: None },
+                source: None,
             }
             .to_string(),
         );

@@ -52,8 +52,8 @@ impl EmbedValidationError {
 
     /// Consume the error, returning the source error if there is any.
     #[allow(clippy::unused_self)]
-    #[must_use = "consuming the error and retrieving the cause has no effect if left unused"]
-    pub fn into_cause(self) -> Option<Box<dyn Error + Send + Sync>> {
+    #[must_use = "consuming the error and retrieving the source has no effect if left unused"]
+    pub fn into_source(self) -> Option<Box<dyn Error + Send + Sync>> {
         None
     }
 

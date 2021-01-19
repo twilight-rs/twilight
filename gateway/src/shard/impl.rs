@@ -30,8 +30,8 @@ use twilight_model::gateway::event::Event;
 /// Sending a command failed.
 #[derive(Debug)]
 pub struct CommandError {
-    cause: Option<Box<dyn Error + Send + Sync>>,
     kind: CommandErrorType,
+    source: Option<Box<dyn Error + Send + Sync>>,
 }
 
 impl CommandError {
@@ -42,9 +42,9 @@ impl CommandError {
     }
 
     /// Consume the error, returning the source error if there is any.
-    #[must_use = "consuming the error and retrieving the cause has no effect if left unused"]
-    pub fn into_cause(self) -> Option<Box<dyn Error + Send + Sync>> {
-        self.cause
+    #[must_use = "consuming the error and retrieving the source has no effect if left unused"]
+    pub fn into_source(self) -> Option<Box<dyn Error + Send + Sync>> {
+        self.source
     }
 
     /// Consume the error, returning the owned error type and the source error.
@@ -56,7 +56,7 @@ impl CommandError {
 
 impl CommandError {
     pub(crate) fn from_send(error: SendError) -> Self {
-        let (kind, cause) = error.into_parts();
+        let (kind, source) = error.into_parts();
 
         let new_kind = match kind {
             SendErrorType::Sending => CommandErrorType::Sending,
@@ -64,8 +64,8 @@ impl CommandError {
         };
 
         Self {
-            cause,
             kind: new_kind,
+            source,
         }
     }
 }
@@ -84,9 +84,9 @@ impl Display for CommandError {
 
 impl Error for CommandError {
     fn source(&self) -> Option<&(dyn Error + 'static)> {
-        self.cause
+        self.source
             .as_ref()
-            .map(|cause| &**cause as &(dyn Error + 'static))
+            .map(|source| &**source as &(dyn Error + 'static))
     }
 }
 
@@ -121,8 +121,8 @@ impl Error for SessionInactiveError {}
 /// Starting a shard and connecting to the gateway failed.
 #[derive(Debug)]
 pub struct SendError {
-    cause: Option<Box<dyn Error + Send + Sync>>,
     kind: SendErrorType,
+    source: Option<Box<dyn Error + Send + Sync>>,
 }
 
 impl SendError {
@@ -133,9 +133,9 @@ impl SendError {
     }
 
     /// Consume the error, returning the source error if there is any.
-    #[must_use = "consuming the error and retrieving the cause has no effect if left unused"]
-    pub fn into_cause(self) -> Option<Box<dyn Error + Send + Sync>> {
-        self.cause
+    #[must_use = "consuming the error and retrieving the source has no effect if left unused"]
+    pub fn into_source(self) -> Option<Box<dyn Error + Send + Sync>> {
+        self.source
     }
 
     /// Consume the error, returning the owned error type and the source error.
@@ -158,9 +158,9 @@ impl Display for SendError {
 
 impl Error for SendError {
     fn source(&self) -> Option<&(dyn Error + 'static)> {
-        self.cause
+        self.source
             .as_ref()
-            .map(|cause| &**cause as &(dyn Error + 'static))
+            .map(|source| &**source as &(dyn Error + 'static))
     }
 }
 
@@ -178,8 +178,8 @@ pub enum SendErrorType {
 /// Starting a shard and connecting to the gateway failed.
 #[derive(Debug)]
 pub struct ShardStartError {
-    cause: Option<Box<dyn Error + Send + Sync>>,
     kind: ShardStartErrorType,
+    source: Option<Box<dyn Error + Send + Sync>>,
 }
 
 impl ShardStartError {
@@ -190,9 +190,9 @@ impl ShardStartError {
     }
 
     /// Consume the error, returning the source error if there is any.
-    #[must_use = "consuming the error and retrieving the cause has no effect if left unused"]
-    pub fn into_cause(self) -> Option<Box<dyn Error + Send + Sync>> {
-        self.cause
+    #[must_use = "consuming the error and retrieving the source has no effect if left unused"]
+    pub fn into_source(self) -> Option<Box<dyn Error + Send + Sync>> {
+        self.source
     }
 
     /// Consume the error, returning the owned error type and the source error.
@@ -218,9 +218,9 @@ impl Display for ShardStartError {
 
 impl Error for ShardStartError {
     fn source(&self) -> Option<&(dyn Error + 'static)> {
-        self.cause
+        self.source
             .as_ref()
-            .map(|cause| &**cause as &(dyn Error + 'static))
+            .map(|source| &**source as &(dyn Error + 'static))
     }
 }
 
@@ -448,7 +448,7 @@ impl Shard {
                 .authed()
                 .await
                 .map_err(|source| ShardStartError {
-                    cause: Some(Box::new(source)),
+                    source: Some(Box::new(source)),
                     kind: ShardStartErrorType::RetrievingGatewayUrl,
                 })?
                 .url
@@ -460,7 +460,7 @@ impl Shard {
             ShardProcessor::new(config, url, listeners)
                 .await
                 .map_err(|source| {
-                    let (kind, cause) = source.into_parts();
+                    let (kind, source) = source.into_parts();
 
                     let new_kind = match kind {
                         ConnectingErrorType::Establishing => ShardStartErrorType::Establishing,
@@ -470,7 +470,7 @@ impl Shard {
                     };
 
                     ShardStartError {
-                        cause,
+                        source,
                         kind: new_kind,
                     }
                 })?;
@@ -605,7 +605,7 @@ impl Shard {
     /// has not been started.
     pub async fn command(&self, value: &impl serde::Serialize) -> Result<(), CommandError> {
         let json = json::to_vec(value).map_err(|source| CommandError {
-            cause: Some(Box::new(source)),
+            source: Some(Box::new(source)),
             kind: CommandErrorType::Serializing,
         })?;
 
@@ -675,12 +675,12 @@ impl Shard {
                 .tx
                 .unbounded_send(message.into_tungstenite())
                 .map_err(|source| SendError {
-                    cause: Some(Box::new(source)),
+                    source: Some(Box::new(source)),
                     kind: SendErrorType::Sending,
                 })
         } else {
             Err(SendError {
-                cause: Some(Box::new(SessionInactiveError)),
+                source: Some(Box::new(SessionInactiveError)),
                 kind: SendErrorType::SessionInactive,
             })
         }

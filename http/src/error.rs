@@ -15,7 +15,7 @@ pub type Result<T, E = Error> = StdResult<T, E>;
 
 #[derive(Debug)]
 pub struct Error {
-    pub(super) cause: Option<Box<dyn StdError + Send + Sync>>,
+    pub(super) source: Option<Box<dyn StdError + Send + Sync>>,
     pub(super) kind: ErrorType,
 }
 
@@ -27,21 +27,21 @@ impl Error {
     }
 
     /// Consume the error, returning the source error if there is any.
-    #[must_use = "consuming the error and retrieving the cause has no effect if left unused"]
-    pub fn into_cause(self) -> Option<Box<dyn StdError + Send + Sync>> {
-        self.cause
+    #[must_use = "consuming the error and retrieving the source has no effect if left unused"]
+    pub fn into_source(self) -> Option<Box<dyn StdError + Send + Sync>> {
+        self.source
     }
 
     /// Consume the error, returning the owned error type and the source error.
     #[must_use = "consuming the error into its parts has no effect if left unused"]
     pub fn into_parts(self) -> (ErrorType, Option<Box<dyn StdError + Send + Sync>>) {
-        (self.kind, self.cause)
+        (self.kind, self.source)
     }
 
     pub(super) fn json(source: JsonError) -> Self {
         Self {
-            cause: Some(Box::new(source)),
             kind: ErrorType::Json,
+            source: Some(Box::new(source)),
         }
     }
 }
@@ -82,9 +82,9 @@ impl Display for Error {
 
 impl StdError for Error {
     fn source(&self) -> Option<&(dyn StdError + 'static)> {
-        self.cause
+        self.source
             .as_ref()
-            .map(|cause| &**cause as &(dyn StdError + 'static))
+            .map(|source| &**source as &(dyn StdError + 'static))
     }
 }
 

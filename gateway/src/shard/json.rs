@@ -11,7 +11,7 @@ use twilight_model::gateway::event::GatewayEvent;
 
 #[derive(Debug)]
 pub struct GatewayEventParsingError {
-    pub(super) cause: Option<Box<dyn Error + Send + Sync>>,
+    pub(super) source: Option<Box<dyn Error + Send + Sync>>,
     pub(super) kind: GatewayEventParsingErrorType,
 }
 
@@ -30,9 +30,9 @@ impl Display for GatewayEventParsingError {
 
 impl Error for GatewayEventParsingError {
     fn source(&self) -> Option<&(dyn Error + 'static)> {
-        self.cause
+        self.source
             .as_ref()
-            .map(|cause| &**cause as &(dyn Error + 'static))
+            .map(|source| &**source as &(dyn Error + 'static))
     }
 }
 
@@ -80,8 +80,8 @@ pub fn parse_gateway_event(
             tracing::debug!("invalid JSON: {}", json);
 
             GatewayEventParsingError {
-                cause: Some(Box::new(source)),
                 kind: GatewayEventParsingErrorType::Deserializing,
+                source: Some(Box::new(source)),
             }
         })
 }
@@ -118,8 +118,8 @@ pub fn parse_gateway_event(
 
     let mut json_deserializer =
         Deserializer::from_slice(json_bytes).map_err(|_| GatewayEventParsingError {
-            cause: None,
             kind: GatewayEventParsingErrorType::PayloadInvalid,
+            source: None,
         })?;
 
     gateway_deserializer
@@ -128,8 +128,8 @@ pub fn parse_gateway_event(
             tracing::debug!("invalid JSON: {}", json);
 
             GatewayEventParsingError {
-                cause: Some(Box::new(source)),
                 kind: GatewayEventParsingErrorType::Deserializing,
+                source: Some(Box::new(source)),
             }
         })
 }
