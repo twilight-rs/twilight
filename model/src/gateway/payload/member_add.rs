@@ -37,6 +37,7 @@ mod tests {
             joined_at: None,
             mute: false,
             nick: None,
+            pending: true,
             premium_since: None,
             roles: vec![],
             user: User {
@@ -62,7 +63,7 @@ mod tests {
                 Token::NewtypeStruct { name: "MemberAdd" },
                 Token::Struct {
                     name: "Member",
-                    len: 8,
+                    len: 9,
                 },
                 Token::Str("deaf"),
                 Token::Bool(false),
@@ -77,6 +78,8 @@ mod tests {
                 Token::Bool(false),
                 Token::Str("nick"),
                 Token::None,
+                Token::Str("pending"),
+                Token::Bool(true),
                 Token::Str("roles"),
                 Token::Seq { len: Some(0) },
                 Token::SeqEnd,

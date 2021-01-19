@@ -28,6 +28,7 @@ mod tests {
                 joined_at: None,
                 mute: false,
                 nick: None,
+                pending: false,
                 premium_since: None,
                 roles: vec![RoleId(4)],
                 user: User {
@@ -78,7 +79,7 @@ mod tests {
                 Token::Some,
                 Token::Struct {
                     name: "Member",
-                    len: 8,
+                    len: 9,
                 },
                 Token::Str("deaf"),
                 Token::Bool(false),
@@ -95,6 +96,8 @@ mod tests {
                 Token::Bool(false),
                 Token::Str("nick"),
                 Token::None,
+                Token::Str("pending"),
+                Token::Bool(false),
                 Token::Str("roles"),
                 Token::Seq { len: Some(1) },
                 Token::NewtypeStruct { name: "RoleId" },
@@ -152,6 +155,7 @@ mod tests {
                 joined_at: Some("2016-12-08T18:41:21.954000+00:00".to_string()),
                 mute: false,
                 nick: Some("Twilight".to_string()),
+                pending: false,
                 premium_since: None,
                 roles: vec![RoleId(123), RoleId(124)],
                 user: User {
@@ -206,7 +210,7 @@ mod tests {
                 Token::Some,
                 Token::Struct {
                     name: "Member",
-                    len: 8,
+                    len: 9,
                 },
                 Token::Str("deaf"),
                 Token::Bool(false),
@@ -222,6 +226,8 @@ mod tests {
                 Token::Str("nick"),
                 Token::Some,
                 Token::Str("Twilight"),
+                Token::Str("pending"),
+                Token::Bool(false),
                 Token::Str("roles"),
                 Token::Seq { len: Some(2) },
                 Token::NewtypeStruct { name: "RoleId" },
