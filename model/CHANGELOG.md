@@ -2,6 +2,17 @@
 
 Changelog for `twilight-model`.
 
+## [0.1.7] - 2021-01-19
+
+Version 0.1 will only receive bugfixes until the deprecation of Discord gateway
+version 6. We recommend upgrading.
+
+### Fixes
+
+Make the `AuditLog` fields public ([#662] - [@jazevedo620]).
+
+[#662]: https://github.com/twilight-rs/twilight/pull/662
+
 ## [0.1.6] - 2020-11-28
 
 While v0.1 will be maintained until the deprecation of version 6 of the Discord
@@ -69,6 +80,7 @@ Initial release.
 [@coadler]: https://github.com/coadler
 [@Erk-]: https://github.com/Erk-
 [@Gelbpunkt]: https://github.com/Gelbpunkt
+[@jazevedo620]: https://github.com/jazevedo620
 [@sam-kirby]: https://github.com/sam-kirby
 [@vivian]: https://github.com/vivian
 
@@ -83,6 +95,8 @@ Initial release.
 [#509]: https://github.com/twilight-rs/twilight/pull/509
 [#499]: https://github.com/twilight-rs/twilight/pull/499
 
+[0.1.7]: https://github.com/twilight-rs/twilight/releases/tag/model-v0.1.7
+[0.1.6]: https://github.com/twilight-rs/twilight/releases/tag/model-v0.1.6
 [0.1.5]: https://github.com/twilight-rs/twilight/releases/tag/model-v0.1.5
 [0.1.4]: https://github.com/twilight-rs/twilight/releases/tag/model-v0.1.4
 [0.1.3]: https://github.com/twilight-rs/twilight/releases/tag/model-v0.1.3
