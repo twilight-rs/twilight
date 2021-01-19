@@ -2,6 +2,17 @@
 
 Changelog for `twilight-http`.
 
+## [0.1.10] - 2021-01-19
+
+Version 0.1 will only receive bugfixes until the deprecation of Discord gateway
+version 6. We recommend upgrading.
+
+### Fixes
+
+Properly construct `Route::GetAuditLogs` path string ([#662] - [@jazevedo620]).
+
+[#662]: https://github.com/twilight-rs/twilight/pull/662
+
 ## [0.1.9] - 2020-11-28
 
 While v0.1 will be maintained until the deprecation of version 6 of the Discord
@@ -139,6 +150,7 @@ Initial release.
 [@DusterTheFirst]: https://github.com/DusterTheFirst
 [@Erk-]: https://github.com/Erk-
 [@Gelbpunkt]: https://github.com/Gelbpunkt
+[@jazevedo620]: https://github.com/jazevedo620
 [@nickelc]: https://github.com/nickelc
 [@vivian]: https://github.com/vivian
 
@@ -164,6 +176,8 @@ Initial release.
 [#507]: https://github.com/twilight-rs/twilight/pull/507
 [#495]: https://github.com/twilight-rs/twilight/pull/495
 
+[0.1.10]: https://github.com/twilight-rs/twilight/releases/tag/http-v0.1.10
+[0.1.9]: https://github.com/twilight-rs/twilight/releases/tag/http-v0.1.9
 [0.1.8]: https://github.com/twilight-rs/twilight/releases/tag/http-v0.1.8
 [0.1.7]: https://github.com/twilight-rs/twilight/releases/tag/http-v0.1.7
 [0.1.6]: https://github.com/twilight-rs/twilight/releases/tag/http-v0.1.6
