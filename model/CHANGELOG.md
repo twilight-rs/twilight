@@ -2,6 +2,18 @@
 
 Changelog for `twilight-model`.
 
+## [0.3.2] - 2021-01-19
+
+### Additions
+
+Support invite welcome screens ([#677] - [@7596ff]).
+
+Support the member pending feature ([#654] - [@AsianIntel]).
+
+[#677]: https://github.com/twilight-rs/twilight/pull/677
+[#676]: https://github.com/twilight-rs/twilight/pull/676
+[#654]: https://github.com/twilight-rs/twilight/pull/654
+
 ## [0.3.1] - 2021-01-11
 
 ### Additions
@@ -319,6 +331,8 @@ Initial release.
 
 [0.2.0-beta.1:app integrations]: https://github.com/discord/discord-api-docs/commit/a926694e2f8605848bda6b57d21c8817559e5cec
 
+[0.3.2]: https://github.com/twilight-rs/twilight/releases/tag/model-v0.3.2
+[0.3.1]: https://github.com/twilight-rs/twilight/releases/tag/model-v0.3.1
 [0.3.0]: https://github.com/twilight-rs/twilight/releases/tag/model-v0.3.0
 [0.2.8]: https://github.com/twilight-rs/twilight/releases/tag/model-v0.2.8
 [0.2.7]: https://github.com/twilight-rs/twilight/releases/tag/model-v0.2.7
