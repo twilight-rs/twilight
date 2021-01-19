@@ -60,7 +60,7 @@ impl Future for GetMember<'_> {
                     Poll::Ready(Ok(bytes)) => bytes,
                     Poll::Ready(Err(Error {
                         kind: ErrorType::Response { status, .. },
-                        source: None,
+                        ..
                     })) if status == StatusCode::NOT_FOUND => {
                         return Poll::Ready(Ok(None));
                     }
