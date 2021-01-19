@@ -2,6 +2,22 @@
 
 Changelog for `twilight-cache-inmemory`.
 
+## [0.1.6] - 2021-01-19
+
+Version 0.1 will only receive bugfixes until the deprecation of Discord gateway
+version 6. We recommend upgrading.
+
+### Fixes
+
+Update cached message's reactions when a Reaction Remove Emoji event is
+processed ([#652] - [@sam-kirby]).
+
+Update `InMemoryCache::clear` to actually clear all fields, as it was only
+clearing some ([#639] - [@vivian]).
+
+[#652]: https://github.com/twilight-rs/twilight/pull/652
+[#639]: https://github.com/twilight-rs/twilight/pull/639
+
 ## [0.1.5] - 2020-11-28
 
 While v0.1 will be maintained until the deprecation of version 6 of the Discord
@@ -64,6 +80,8 @@ Initial release.
 [@Erk-]: https://github.com/Erk-
 [@MaxOhn]: https://github.com/MaxOhn
 [@nickelc]: https://github.com/nickelc
+[@sam-kirby]: https://github.com/sam-kirby
+[@vivian]: https://github.com/vivian
 
 [#591]: https://github.com/twilight-rs/twilight/pull/591
 [#590]: https://github.com/twilight-rs/twilight/pull/590
@@ -75,6 +93,7 @@ Initial release.
 [#540]: https://github.com/twilight-rs/twilight/pull/540
 [#528]: https://github.com/twilight-rs/twilight/pull/528
 
+[0.1.6]: https://github.com/twilight-rs/twilight/releases/tag/cache-in-memory-v0.1.6
 [0.1.5]: https://github.com/twilight-rs/twilight/releases/tag/cache-in-memory-v0.1.5
 [0.1.4]: https://github.com/twilight-rs/twilight/releases/tag/cache-in-memory-v0.1.4
 [0.1.3]: https://github.com/twilight-rs/twilight/releases/tag/cache-in-memory-v0.1.3
