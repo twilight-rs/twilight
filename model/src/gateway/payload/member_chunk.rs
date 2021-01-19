@@ -212,6 +212,7 @@ mod tests {
                 "joined_at": "2020-04-04T04:04:04.000000+00:00",
                 "mute": false,
                 "nick": "chunk",
+                "pending": true,
                 "roles": ["6"],
                 "user": {
                     "avatar": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
@@ -311,6 +312,7 @@ mod tests {
                     joined_at: Some("2020-04-04T04:04:04.000000+00:00".to_owned()),
                     mute: false,
                     nick: Some("chunk".to_owned()),
+                    pending: false,
                     premium_since: None,
                     roles: vec![RoleId(6), RoleId(7)],
                     user: User {
@@ -336,6 +338,7 @@ mod tests {
                     joined_at: Some("2020-04-04T04:04:04.000000+00:00".to_owned()),
                     mute: false,
                     nick: Some("chunk".to_owned()),
+                    pending: false,
                     premium_since: None,
                     roles: vec![RoleId(6)],
                     user: User {
@@ -361,6 +364,7 @@ mod tests {
                     joined_at: Some("2020-04-04T04:04:04.000000+00:00".to_owned()),
                     mute: false,
                     nick: Some("chunk".to_owned()),
+                    pending: true,
                     premium_since: None,
                     roles: vec![RoleId(6)],
                     user: User {
@@ -386,6 +390,7 @@ mod tests {
                     joined_at: Some("2020-04-04T04:04:04.000000+00:00".to_owned()),
                     mute: false,
                     nick: Some("chunk".to_owned()),
+                    pending: false,
                     premium_since: None,
                     roles: vec![RoleId(6)],
                     user: User {
