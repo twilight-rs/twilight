@@ -766,7 +766,7 @@ mod tests {
     assert_fields!(EmbedErrorType::FieldNameTooLong: name, value);
     assert_fields!(EmbedErrorType::FieldValueEmpty: name, value);
     assert_fields!(EmbedErrorType::FieldValueTooLong: name, value);
-    assert_impl_all!(EmbedError: Debug, Send, Sync);
+    assert_impl_all!(EmbedError: Error, Send, Sync);
     const_assert!(EmbedBuilder::AUTHOR_NAME_LENGTH_LIMIT == 256);
     const_assert!(EmbedBuilder::COLOR_MAXIMUM == 0xff_ff_ff);
     const_assert!(EmbedBuilder::DESCRIPTION_LENGTH_LIMIT == 2048);
