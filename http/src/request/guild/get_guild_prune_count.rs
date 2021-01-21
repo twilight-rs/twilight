@@ -92,3 +92,20 @@ impl<'a> GetGuildPruneCount<'a> {
 }
 
 poll_req!(GetGuildPruneCount<'_>, GuildPrune);
+
+#[cfg(test)]
+mod test {
+    use super::GetGuildPruneCount;
+    use crate::Client;
+    use twilight_model::id::GuildId;
+
+    #[test]
+    fn test_days() {
+        let client = Client::new("");
+        let mut count = GetGuildPruneCount::new(&client, GuildId(0));
+
+        assert!(count.days(0).is_err());
+        assert!(count.days(1).is_ok());
+        assert!(count.days(u64::max_value()).is_ok());
+    }
+}
