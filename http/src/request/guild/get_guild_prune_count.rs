@@ -101,11 +101,15 @@ mod test {
 
     #[test]
     fn test_days() {
-        let client = Client::new("");
-        let mut count = GetGuildPruneCount::new(&client, GuildId(0));
+        fn days_valid(days: u64) -> bool {
+            let client = Client::new("");
+            let count = GetGuildPruneCount::new(&client, GuildId(0));
+            let days_result = count.days(days);
+            days_result.is_ok()
+        }
 
-        assert!(count.days(0).is_err());
-        assert!(count.days(1).is_ok());
-        assert!(count.days(u64::max_value()).is_ok());
+        assert!(!days_valid(0));
+        assert!(days_valid(1));
+        assert!(days_valid(u64::max_value()));
     }
 }
