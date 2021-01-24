@@ -136,42 +136,42 @@ impl Player {
         &self.0.node
     }
 
-    /// Return a copy of the player's channel ID.
+    /// Return the player's channel ID.
     pub fn channel_id(&self) -> Option<ChannelId> {
         self.0.channel_id.as_ref().copied()
     }
 
-    /// Return an copy of the player's guild ID.
+    /// Return the player's guild ID.
     pub fn guild_id(&self) -> GuildId {
         self.0.guild_id
     }
 
-    /// Return a copy of whether the player is paused.
+    /// Return whether the player is paused.
     pub fn paused(&self) -> bool {
         self.0.paused.load(Ordering::Acquire)
     }
 
-    /// Return a copy of the player's position.
+    /// Return the player's position.
     pub fn position(&self) -> i64 {
         self.0.position.load(Ordering::Relaxed)
     }
 
-    /// Return a mmutable reference to the player's channel ID.
+    /// Set the player's position.
     pub(crate) fn set_position(&self, position: i64) {
         self.0.position.store(position, Ordering::Release)
     }
 
-    /// Return a copy of the player's time.
+    /// Return the player's time.
     pub fn time(&mut self) -> i64 {
         self.0.time.load(Ordering::Relaxed)
     }
 
-    /// Return a mutable reference to the player's channel ID.
+    /// Set the player's time.
     pub(crate) fn set_time(&self, time: i64) {
         self.0.time.store(time, Ordering::Release)
     }
 
-    /// Return a copy of the player's volume.
+    /// Return the player's volume.
     pub fn volume(&self) -> u16 {
         self.0.volume.load(Ordering::Relaxed)
     }
