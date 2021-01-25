@@ -26,6 +26,7 @@ pub struct IdentifyInfo {
     pub properties: IdentifyProperties,
     pub shard: Option<[u64; 2]>,
     pub token: String,
+    pub v: u64,
 }
 
 #[derive(Clone, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]

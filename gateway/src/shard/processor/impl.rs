@@ -242,6 +242,9 @@ pub struct ShardProcessor {
 }
 
 impl ShardProcessor {
+    /// Gateway version to use in the URL to connect to the gateway.
+    const GATEWAY_VERSION: u64 = 6;
+
     pub async fn new(
         config: Arc<Config>,
         mut url: String,
@@ -744,6 +747,7 @@ impl ShardProcessor {
             shard: Some(self.config.shard()),
             presence: self.config.presence().cloned(),
             token: self.config.token().to_owned(),
+            v: Self::GATEWAY_VERSION,
         });
         self.emitter.event(Event::ShardIdentifying(Identifying {
             shard_id: self.config.shard()[0],
