@@ -73,8 +73,8 @@ impl Debug for State {
 ///
 /// # OAuth
 ///
-/// To use Bearer tokens with the client, prefix the token with `"Bearer "`,
-/// including the space at the end:
+/// To use Bearer tokens prefix the token with `"Bearer "`, including the space
+/// at the end like so:
 ///
 /// ```no_run
 /// # fn main() -> Result<(), Box<dyn std::error::Error>> {
