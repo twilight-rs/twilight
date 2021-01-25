@@ -2,6 +2,20 @@
 
 Changelog for `twilight-http`.
 
+## [0.3.4] - 2021-01-25
+
+### Fixes
+
+Fix the check in the `request::guild::GetGuildPruneCount::days` method
+([#696] - [@Silvea12]).
+
+### Documentation
+
+Add a note about using bearer tokens with the client ([#697] - [@vivian]).
+
+[#697]: https://github.com/twilight-rs/twilight/pull/697
+[#696]: https://github.com/twilight-rs/twilight/pull/696
+
 ## [0.3.3] - 2021-01-19
 
 ### Additions
@@ -374,6 +388,7 @@ Initial release.
 [@jazevedo620]: https://github.com/jazevedo620
 [@nickelc]: https://github.com/nickelc
 [@sam-kirby]: https://github.com/sam-kirby
+[@Silvea12]: https://github.com/Silvea12
 [@tbnritzdoge]: https://github.com/tbnritzdoge
 [@vivian]: https://github.com/vivian
 
@@ -414,6 +429,7 @@ Initial release.
 
 [0.2.0-beta.1:app integrations]: https://github.com/discord/discord-api-docs/commit/a926694e2f8605848bda6b57d21c8817559e5cec
 
+[0.3.4]: https://github.com/twilight-rs/twilight/releases/tag/http-v0.3.4
 [0.3.3]: https://github.com/twilight-rs/twilight/releases/tag/http-v0.3.3
 [0.3.2]: https://github.com/twilight-rs/twilight/releases/tag/http-v0.3.2
 [0.3.1]: https://github.com/twilight-rs/twilight/releases/tag/http-v0.3.1
