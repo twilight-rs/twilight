@@ -71,6 +71,23 @@ impl Debug for State {
 /// Almost all of the client methods require authentication, and as such, the client must be
 /// supplied with a Discord Token. Get yours [here].
 ///
+/// # OAuth
+///
+/// To use Bearer tokens with the client, prefix the token with `"Bearer "`,
+/// including the space at the end:
+///
+/// ```no_run
+/// # fn main() -> Result<(), Box<dyn std::error::Error>> {
+/// use std::env;
+/// use twilight_http::Client;
+///
+/// let bearer = env::var("BEARER_TOKEN")?;
+/// let token = format!("Bearer {}", bearer);
+///
+/// let client = Client::new(token);
+/// # Ok(()) }
+/// ```
+///
 /// # Cloning
 ///
 /// The client internally wraps its data within an Arc. This means that the
