@@ -375,35 +375,7 @@ impl Client {
     /// Create a new `hyper-rustls` or `hyper-tls` backed client with a token.
     #[cfg_attr(docsrs, doc(cfg(any(feature = "hyper-rustls", feature = "hyper-tls"))))]
     pub fn new(token: impl Into<String>) -> Self {
-        #[cfg(feature = "hyper-rustls")]
-        let connector = hyper_rustls::HttpsConnector::with_native_roots();
-        #[cfg(all(feature = "hyper-tls", not(feature = "hyper-rustls")))]
-        let connector = hyper_tls::HttpsConnector::new();
-
-        let mut token = token.into();
-
-        let is_bot = token.starts_with("Bot ");
-        let is_bearer = token.starts_with("Bearer ");
-
-        // Make sure it is either a bot or bearer token, and assume it's a bot
-        // token if no prefix is given
-        if !is_bot && !is_bearer {
-            token.insert_str(0, "Bot ");
-        }
-
-        Self {
-            state: Arc::new(State {
-                http: HyperClient::builder().build(connector),
-                proxy: None,
-                ratelimiter: Some(Ratelimiter::new()),
-                timeout: Duration::from_secs(10),
-                token_invalid: AtomicBool::new(false),
-                token: Some(token.into_boxed_str()),
-                use_http: false,
-                application_id: AtomicU64::default(),
-                default_allowed_mentions: None,
-            }),
-        }
+        ClientBuilder::default().token(token).build()
     }
 
     /// Create a new builder to create a client.
