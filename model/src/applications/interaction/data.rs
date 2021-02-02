@@ -72,4 +72,13 @@ impl CommandDataOption {
             CommandDataOption::SubCommand { .. } => "SubCommand",
         }
     }
+
+    pub fn name(&self) -> &str {
+        match self {
+            Self::String { name, .. }
+            | Self::Integer { name, .. }
+            | Self::Boolean { name, .. }
+            | Self::SubCommand { name, .. } => name
+        }
+    }
 }
