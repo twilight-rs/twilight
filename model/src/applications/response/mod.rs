@@ -137,7 +137,7 @@ pub enum InteractionResponseType {
 }
 
 impl InteractionResponseType {
-    pub fn name(self) -> &'static str {
+    pub fn kind(self) -> &'static str {
         match self {
             InteractionResponseType::Pong => "Pong",
             InteractionResponseType::Acknowledge => "Acknowledge",

@@ -18,7 +18,7 @@ pub enum InteractionType {
 }
 
 impl InteractionType {
-    pub fn name(self) -> &'static str {
+    pub fn kind(self) -> &'static str {
         match self {
             InteractionType::Ping => "Ping",
             InteractionType::ApplicationCommand => "ApplicationCommand",

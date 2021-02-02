@@ -317,7 +317,7 @@ pub enum CommandOptionType {
 }
 
 impl CommandOptionType {
-    pub fn name(self) -> &'static str {
+    pub fn kind(self) -> &'static str {
         match self {
             CommandOptionType::SubCommand => "SubCommand",
             CommandOptionType::SubCommandGroup => "SubCommandGroup",

@@ -12,7 +12,7 @@ pub enum InteractionData {
 }
 
 impl InteractionData {
-    pub fn name(&self) -> &'static str {
+    pub fn kind(&self) -> &'static str {
         match self {
             InteractionData::Ping => "Ping",
             InteractionData::ApplicationCommand(_) => "ApplicationCommand",
@@ -78,7 +78,7 @@ impl CommandDataOption {
             Self::String { name, .. }
             | Self::Integer { name, .. }
             | Self::Boolean { name, .. }
-            | Self::SubCommand { name, .. } => name
+            | Self::SubCommand { name, .. } => name,
         }
     }
 }
