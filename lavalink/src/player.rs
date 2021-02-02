@@ -10,15 +10,12 @@
 //! [read the position]: Player::position
 
 use crate::{model::*, node::Node};
-use dashmap::{
-    mapref::one::{Ref, RefMut},
-    DashMap,
-};
+use dashmap::DashMap;
 use futures_channel::mpsc::TrySendError;
 use std::{
     fmt::Debug,
     sync::{
-        atomic::{AtomicBool, Ordering},
+        atomic::{AtomicBool, AtomicI64, AtomicU16, Ordering},
         Arc,
     },
 };
@@ -40,52 +37,53 @@ impl PlayerManager {
     }
 
     /// Return an immutable reference to a player by guild ID.
-    pub fn get(&self, guild_id: &GuildId) -> Option<Ref<'_, GuildId, Player>> {
-        self.players.get(guild_id)
-    }
-
-    /// Return a mutable reference to a player by guild ID.
-    pub(crate) fn get_mut(&self, guild_id: &GuildId) -> Option<RefMut<'_, GuildId, Player>> {
-        self.players.get_mut(guild_id)
+    pub fn get(&self, guild_id: &GuildId) -> Option<Player> {
+        // Clippy recommends removing the `map` call, which is just wrong.
+        #[allow(clippy::map_clone)]
+        self.players.get(guild_id).map(|player| player.clone())
     }
 
     /// Return a mutable reference to a player by guild ID or insert a new
     /// player linked to a given node.
-    pub fn get_or_insert(&self, guild_id: GuildId, node: Node) -> RefMut<'_, GuildId, Player> {
+    pub fn get_or_insert(&self, guild_id: GuildId, node: Node) -> Player {
         self.players
             .entry(guild_id)
             .or_insert_with(|| Player::new(guild_id, node))
+            .clone()
     }
+}
+
+#[derive(Debug)]
+struct PlayerRef {
+    channel_id: Option<ChannelId>,
+    guild_id: GuildId,
+    node: Node,
+    paused: AtomicBool,
+    playing: Option<()>,
+    position: AtomicI64,
+    time: AtomicI64,
+    volume: AtomicU16,
 }
 
 /// A player for a guild connected to a node.
 ///
 /// This can be used to send events over a node and to read the details of a
 /// player for a guild.
-#[derive(Debug)]
-pub struct Player {
-    channel_id: Option<ChannelId>,
-    guild_id: GuildId,
-    node: Node,
-    paused: AtomicBool,
-    playing: Option<()>,
-    position: i64,
-    time: i64,
-    volume: u16,
-}
+#[derive(Clone, Debug)]
+pub struct Player(Arc<PlayerRef>);
 
 impl Player {
     pub(crate) fn new(guild_id: GuildId, node: Node) -> Self {
-        Self {
+        Self(Arc::new(PlayerRef {
             channel_id: None,
             guild_id,
             node,
             paused: AtomicBool::new(false),
             playing: None,
-            position: 0,
-            time: 0,
-            volume: 0,
-        }
+            position: AtomicI64::new(0),
+            time: AtomicI64::new(0),
+            volume: AtomicU16::new(0),
+        }))
     }
 
     /// Send an event to the player's node.
@@ -122,60 +120,60 @@ impl Player {
     fn _send(&self, event: OutgoingEvent) -> Result<(), TrySendError<OutgoingEvent>> {
         tracing::debug!(
             "sending event on guild player {}: {:?}",
-            self.guild_id,
+            self.0.guild_id,
             event
         );
 
         if let OutgoingEvent::Pause(ref event) = event {
-            self.paused.store(event.pause, Ordering::Release);
+            self.0.paused.store(event.pause, Ordering::Release);
         }
 
-        self.node.send(event)
+        self.0.node.send(event)
     }
 
     /// Return an immutable reference to the node linked to the player.
     pub fn node(&self) -> &Node {
-        &self.node
+        &self.0.node
     }
 
-    /// Return a copy of the player's channel ID.
+    /// Return the player's channel ID.
     pub fn channel_id(&self) -> Option<ChannelId> {
-        self.channel_id.as_ref().copied()
+        self.0.channel_id.as_ref().copied()
     }
 
-    /// Return an copy of the player's guild ID.
+    /// Return the player's guild ID.
     pub fn guild_id(&self) -> GuildId {
-        self.guild_id
+        self.0.guild_id
     }
 
-    /// Return a copy of whether the player is paused.
+    /// Return whether the player is paused.
     pub fn paused(&self) -> bool {
-        self.paused.load(Ordering::Acquire)
+        self.0.paused.load(Ordering::Acquire)
     }
 
-    /// Return a copy of the player's position.
+    /// Return the player's position.
     pub fn position(&self) -> i64 {
-        self.position
+        self.0.position.load(Ordering::Relaxed)
     }
 
-    /// Return a mmutable reference to the player's channel ID.
-    pub(crate) fn position_mut(&mut self) -> &mut i64 {
-        &mut self.position
+    /// Set the player's position.
+    pub(crate) fn set_position(&self, position: i64) {
+        self.0.position.store(position, Ordering::Release)
     }
 
-    /// Return a copy of the player's time.
-    pub fn time_ref(&mut self) -> i64 {
-        self.time
+    /// Return the player's time.
+    pub fn time(&mut self) -> i64 {
+        self.0.time.load(Ordering::Relaxed)
     }
 
-    /// Return a mutable reference to the player's channel ID.
-    pub(crate) fn time_mut(&mut self) -> &mut i64 {
-        &mut self.time
+    /// Set the player's time.
+    pub(crate) fn set_time(&self, time: i64) {
+        self.0.time.store(time, Ordering::Release)
     }
 
-    /// Return a copy of the player's volume.
-    pub fn volume_ref(&self) -> u16 {
-        self.volume
+    /// Return the player's volume.
+    pub fn volume(&self) -> u16 {
+        self.0.volume.load(Ordering::Relaxed)
     }
 }
 

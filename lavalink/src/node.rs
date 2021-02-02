@@ -449,7 +449,7 @@ impl Connection {
     }
 
     async fn player_update(&self, update: &PlayerUpdate) -> Result<(), NodeError> {
-        let mut player = match self.players.get_mut(&update.guild_id) {
+        let player = match self.players.get(&update.guild_id) {
             Some(player) => player,
             None => {
                 tracing::warn!(
@@ -462,8 +462,8 @@ impl Connection {
             }
         };
 
-        *player.value_mut().position_mut() = update.state.position;
-        *player.value_mut().time_mut() = update.state.time;
+        player.set_position(update.state.position);
+        player.set_time(update.state.time);
 
         Ok(())
     }
