@@ -1,4 +1,5 @@
 use super::{InteractionData, InteractionType};
+use super::command::CommandData;
 use crate::guild::PartialMember;
 use crate::id::*;
 use serde::{self, Deserialize, Deserializer, Serialize};
@@ -12,11 +13,21 @@ use std::fmt::{Display, Formatter, Result as FmtResult};
 /// [the discord docs]: https://discord.com/developers/docs/interactions/slash-commands#interaction
 #[derive(Clone, Debug, Eq, Hash, PartialEq, Serialize)]
 #[serde(untagged)]
+#[non_exhaustive]
 pub enum Interaction {
     /// Global interactions do not originate from a guild.
-    Global(BaseInteraction),
+    Ping(PingInner),
     /// Guild interactions originate from within a guild.
-    Guild(GuildInteraction),
+    ApplicationCommand(ApplicationCommandInner),
+}
+
+impl Interaction {
+    pub fn guild_id(&self) -> Option<GuildId> {
+        match self {
+            Interaction::Ping(_pi) => None,
+            Interaction::ApplicationCommand(aci) => Some(aci.guild_id),
+        }
+    }
 }
 
 impl<'de> Deserialize<'de> for Interaction {
@@ -27,17 +38,20 @@ impl<'de> Deserialize<'de> for Interaction {
 }
 
 /// Common fields between different [`Interaction`](crate::applications::Interaction) types.
-#[derive(Clone, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
-pub struct BaseInteraction {
+#[derive(Clone, Debug, Eq, Hash, PartialEq, Serialize)]
+pub struct PingInner {
+    /// The id of the interaction
     pub id: InteractionId,
     #[serde(rename = "type")]
+    /// The kind of the interaction
     pub kind: InteractionType,
+    /// The token of the interaction
     pub token: String,
 }
 
-/// The payload received when an interaction originated from a guild.
-#[derive(Clone, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
-pub struct GuildInteraction {
+/// The payload received weived when an interaction originated from a guild.
+#[derive(Clone, Debug, Eq, Hash, PartialEq, Serialize)]
+pub struct ApplicationCommandInner {
     /// The guild the interaction was triggered from.
     pub guild_id: GuildId,
     /// The channel the interaction was triggered from.
@@ -45,32 +59,64 @@ pub struct GuildInteraction {
     /// The member that triggered the interaction.
     pub member: PartialMember,
     /// The data corresponding to the InteractionType.
-    pub data: InteractionData,
-    /// Common interaction fields.
-    #[serde(flatten)]
-    pub interaction: BaseInteraction,
+    pub command_data: CommandData,
+    /// The id of the interaction
+    pub id: InteractionId,
+    #[serde(rename = "type")]
+    /// The kind of the interaction
+    pub kind: InteractionType,
+    /// The token of the interaction
+    pub token: String,
 }
 
 impl<'a> TryFrom<InteractionEnvelope> for Interaction {
     type Error = InteractionEnvelopeParseError;
 
-    fn try_from(mut envelope: InteractionEnvelope) -> Result<Self, Self::Error> {
-        let data = envelope.data()?;
-        let base_interaction = BaseInteraction {
-            id: envelope.id,
-            kind: envelope.kind,
-            token: envelope.token,
-        };
-
-        match data {
-            InteractionData::Ping => Ok(Interaction::Global(base_interaction)),
-            InteractionData::ApplicationCommand(cmd) => Ok(Interaction::Guild(GuildInteraction {
-                guild_id: envelope.guild_id.unwrap(),
-                channel_id: envelope.channel_id.unwrap(),
-                member: envelope.member.unwrap(),
-                data: InteractionData::ApplicationCommand(cmd),
-                interaction: base_interaction,
-            })),
+    fn try_from(envelope: InteractionEnvelope) -> Result<Self, Self::Error> {
+        match envelope.kind {
+            InteractionType::Ping => {
+                let ping_inner = PingInner {
+                    id: envelope.id,
+                    kind: envelope.kind,
+                    token: envelope.token,
+                };
+                Ok(Interaction::Ping(ping_inner))
+            }
+            InteractionType::ApplicationCommand => {
+                let guild_id = match envelope.guild_id {
+                    Some(id) => id,
+                    None => return Err(Self::Error::MissingField("guild_id")),
+                };
+                let channel_id = match envelope.channel_id {
+                    Some(id) => id,
+                    None => return Err(Self::Error::MissingField("channel_id")),
+                };
+                let member = match envelope.member {
+                    Some(m) => m,
+                    None => return Err(Self::Error::MissingField("member")),
+                };
+                let command_data = match envelope.data {
+                    Some(InteractionData::ApplicationCommand(cmd)) => cmd,
+                    Some(_) => {
+                        return Err(Self::Error::DataMismatch {
+                            wanted: "command_data",
+                            got: "other kind of data",
+                        });
+                    }
+                    None => return Err(Self::Error::MissingField("data")),
+                };    
+                
+                let app_com_inner = ApplicationCommandInner {
+                    guild_id,
+                    channel_id,
+                    member,
+                    command_data,
+                    id: envelope.id,
+                    kind: envelope.kind,
+                    token: envelope.token,
+                };
+                Ok(Interaction::ApplicationCommand(app_com_inner))
+            }
         }
     }
 }
@@ -81,65 +127,44 @@ impl<'a> TryFrom<InteractionEnvelope> for Interaction {
 /// Only used internally.
 #[derive(Clone, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
 struct InteractionEnvelope {
-    pub id: InteractionId,
+    id: InteractionId,
     #[serde(rename = "type")]
-    pub kind: InteractionType,
-    pub guild_id: Option<GuildId>,
-    pub channel_id: Option<ChannelId>,
-    pub member: Option<PartialMember>,
-    pub token: String,
-
+    kind: InteractionType,
+    guild_id: Option<GuildId>,
+    channel_id: Option<ChannelId>,
+    member: Option<PartialMember>,
+    token: String,
     data: Option<InteractionData>,
 }
 
 #[derive(Debug)]
 enum InteractionEnvelopeParseError {
-    MissingData(InteractionType),
     DataMismatch {
-        wanted: InteractionData,
-        got: InteractionData,
+        wanted: &'static str,
+        got:    &'static str,
     },
+    MissingField(&'static str),
 }
 
 impl Display for InteractionEnvelopeParseError {
     fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
         match self {
-            Self::MissingData(kind) => {
-                write!(f, "data not present, but required for {}", kind.name())
-            }
             Self::DataMismatch { wanted, got } => write!(
                 f,
-                "invalid data enum: wanted {} got {}",
-                wanted.name(),
-                got.name()
+                "invalid data: wanted {} got {}",
+                wanted,
+                got
             ),
+            Self::MissingField(s) => write!(
+                f,
+                "The field {} was missing",
+                s),
         }
     }
 }
 
 impl std::error::Error for InteractionEnvelopeParseError {}
 
-impl InteractionEnvelope {
-    pub fn data(&mut self) -> Result<InteractionData, InteractionEnvelopeParseError> {
-        match self.kind {
-            InteractionType::Ping => Ok(InteractionData::Ping),
-            InteractionType::ApplicationCommand => {
-                let data = self
-                    .data
-                    .take()
-                    .ok_or(InteractionEnvelopeParseError::MissingData(self.kind))?;
-
-                match data {
-                    InteractionData::ApplicationCommand(_) => Ok(data),
-                    _ => Err(InteractionEnvelopeParseError::DataMismatch {
-                        got: data,
-                        wanted: InteractionData::ApplicationCommand(Default::default()),
-                    }),
-                }
-            }
-        }
-    }
-}
 
 #[cfg(test)]
 mod test {

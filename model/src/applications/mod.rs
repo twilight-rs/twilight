@@ -13,7 +13,7 @@ pub use command_option::{
     BaseCommandOptionData, ChoiceCommandOptionData, CommandOption, CommandOptionChoice,
     CommandOptionType, OptionsCommandOptionData,
 };
-pub use interaction::{BaseInteraction, GuildInteraction, Interaction};
+pub use interaction::Interaction;
 pub use interaction_data::InteractionData;
 pub use interaction_option_type::OptionType;
 pub use interaction_response::InteractionResponse;

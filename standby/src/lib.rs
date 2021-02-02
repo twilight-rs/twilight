@@ -809,7 +809,7 @@ fn event_guild_id(event: &Event) -> Option<GuildId> {
         Event::GuildEmojisUpdate(e) => Some(e.guild_id),
         Event::GuildIntegrationsUpdate(e) => Some(e.guild_id),
         Event::GuildUpdate(e) => Some(e.id),
-        Event::InteractionCreate(e) => Some(e.guild_id),
+        Event::InteractionCreate(e) => e.guild_id(),
         Event::InviteCreate(e) => Some(e.guild_id),
         Event::InviteDelete(e) => Some(e.guild_id),
         Event::MemberAdd(e) => Some(e.guild_id),
