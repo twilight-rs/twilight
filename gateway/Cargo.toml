@@ -46,7 +46,7 @@ static_assertions = { default-features = false, version = "1" }
 tokio = { default-features = false, features = ["macros", "rt-multi-thread"], version = "1.0" }
 
 [features]
-default = ["rustls"]
+default = ["compression", "rustls", "flate2/zlib"]
 compression = ["flate2"]
 native = ["twilight-http/native", "twilight-gateway-queue/native", "async-tungstenite/tokio-native-tls"]
 rustls = ["twilight-http/rustls", "twilight-gateway-queue/rustls", "async-tungstenite/tokio-rustls"]
