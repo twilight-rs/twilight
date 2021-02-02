@@ -1,7 +1,7 @@
 use crate::applications::command::CommandData;
 use serde::{Deserialize, Serialize};
 
-/// Used during deserializing to contain the different data types. 
+/// Used during deserializing to contain the different data types.
 ///
 /// There is no direct doc equivalent.
 #[derive(Clone, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]

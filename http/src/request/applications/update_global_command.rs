@@ -1,7 +1,9 @@
 use super::InteractionError;
 use crate::request::prelude::*;
-use twilight_model::applications::command::{Command, CommandOption};
-use twilight_model::id::*;
+use twilight_model::{
+    applications::command::{Command, CommandOption},
+    id::{ApplicationId, CommandId},
+};
 
 /// Edit a global command, by ID.
 ///

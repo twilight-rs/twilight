@@ -1,6 +1,6 @@
 use super::InteractionError;
 use crate::request::prelude::*;
-use twilight_model::id::*;
+use twilight_model::id::{ApplicationId, CommandId};
 
 /// Delete a global command, by ID.
 pub struct DeleteGlobalCommand<'a> {

@@ -27,9 +27,9 @@ use std::{
 #[serde(untagged)]
 #[non_exhaustive]
 pub enum Interaction {
-    ///
+    /// Ping variant.
     Ping(PingInner),
-    /// Guild interactions originate from within a guild.
+    /// Application command variant.
     ApplicationCommand(ApplicationCommandInner),
 }
 
@@ -181,7 +181,10 @@ impl std::error::Error for InteractionEnvelopeParseError {}
 mod test {
     use super::ApplicationCommandInner;
     use crate::{
-        applications::{CommandData, CommandDataOption, Interaction, InteractionType},
+        applications::{
+            command::{CommandData, CommandDataOption},
+            interaction::{Interaction, InteractionType},
+        },
         guild::{PartialMember, Permissions},
         id::UserId,
         user::{User, UserFlags},

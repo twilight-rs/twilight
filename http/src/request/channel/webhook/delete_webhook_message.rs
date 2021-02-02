@@ -52,7 +52,6 @@ impl<'a> DeleteWebhookMessage<'a> {
         }
     }
 
-    ///
     pub(crate) fn new_interaction(
         http: &'a Client,
         application_id: Option<ApplicationId>,

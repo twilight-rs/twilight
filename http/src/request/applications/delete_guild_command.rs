@@ -1,6 +1,6 @@
 use super::InteractionError;
 use crate::request::prelude::*;
-use twilight_model::id::*;
+use twilight_model::id::{ApplicationId, CommandId, GuildId};
 
 pub struct DeleteGuildCommand<'a> {
     application_id: ApplicationId,

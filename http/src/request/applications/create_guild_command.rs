@@ -1,7 +1,9 @@
 use super::InteractionError;
 use crate::request::prelude::*;
-use twilight_model::applications::command::{Command, CommandOption};
-use twilight_model::id::*;
+use twilight_model::{
+    applications::command::{Command, CommandOption},
+    id::{ApplicationId, GuildId},
+};
 
 /// Create a new command in a guild.
 ///
