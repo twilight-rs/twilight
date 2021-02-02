@@ -109,7 +109,7 @@ impl Display for InteractionResponseEnvelopeParseError {
     fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
         match self {
             Self::MissingData(kind) => {
-                write!(f, "data not present, but required for {}", kind.name())
+                write!(f, "data not present, but required for {}", kind.kind())
             }
         }
     }
