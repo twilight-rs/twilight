@@ -1,6 +1,6 @@
 use super::InteractionError;
 use crate::request::prelude::*;
-use twilight_model::applications::Command;
+use twilight_model::applications::command::Command;
 use twilight_model::id::{ApplicationId, GuildId};
 
 /// Fetch all commands for a guild, by ID.

@@ -1,6 +1,6 @@
 use std::{env, error::Error};
 use twilight_http::Client;
-use twilight_model::applications::{BaseCommandOptionData, CommandOption};
+use twilight_model::applications::command::{BaseCommandOptionData, CommandOption};
 use twilight_model::id::{ApplicationId, GuildId};
 
 #[tokio::main]

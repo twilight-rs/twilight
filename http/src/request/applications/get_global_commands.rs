@@ -1,6 +1,6 @@
 use super::InteractionError;
 use crate::request::prelude::*;
-use twilight_model::applications::Command;
+use twilight_model::applications::command::Command;
 use twilight_model::id::ApplicationId;
 
 /// Fetch all global commands for your app.

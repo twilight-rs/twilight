@@ -1,5 +1,5 @@
 use crate::request::prelude::*;
-use twilight_model::applications::InteractionResponse;
+use twilight_model::applications::interaction::InteractionResponse;
 use twilight_model::id::*;
 
 /// Respond to an interaction, by ID and token.
