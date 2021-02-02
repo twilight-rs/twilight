@@ -1,21 +1,33 @@
-use super::command::CommandData;
-use super::{InteractionData, InteractionType};
-use crate::guild::PartialMember;
-use crate::id::*;
-use serde::{self, Deserialize, Deserializer, Serialize};
-use std::convert::{TryFrom, TryInto};
-use std::fmt::{Display, Formatter, Result as FmtResult};
+mod data;
+mod kind;
+mod response;
 
-/// The payload received when a user executes an interaction.
+pub use data::InteractionData;
+pub use kind::InteractionType;
+pub use response::{InteractionResponse, InteractionResponseType};
+
+use super::command::CommandData;
+use crate::{
+    guild::PartialMember,
+    id::{ChannelId, GuildId, InteractionId},
+};
+use serde::{self, Deserialize, Deserializer, Serialize};
+use std::{
+    convert::{TryFrom, TryInto},
+    fmt::{Display, Formatter, Result as FmtResult},
+};
+
+/// Payload received when a user executes an interaction.
 ///
-/// Refer to [the discord docs] for more information.
+/// Each variant corresponds to `InteractionType` in the discord docs. Refer to
+/// [the discord docs] for more information.
 ///
 /// [the discord docs]: https://discord.com/developers/docs/interactions/slash-commands#interaction
 #[derive(Clone, Debug, Eq, Hash, PartialEq, Serialize)]
 #[serde(untagged)]
 #[non_exhaustive]
 pub enum Interaction {
-    /// Global interactions do not originate from a guild.
+    ///
     Ping(PingInner),
     /// Guild interactions originate from within a guild.
     ApplicationCommand(ApplicationCommandInner),
@@ -24,8 +36,8 @@ pub enum Interaction {
 impl Interaction {
     pub fn guild_id(&self) -> Option<GuildId> {
         match self {
-            Interaction::Ping(_pi) => None,
-            Interaction::ApplicationCommand(aci) => Some(aci.guild_id),
+            Interaction::Ping(_) => None,
+            Interaction::ApplicationCommand(inner) => Some(inner.guild_id),
         }
     }
 }
@@ -37,7 +49,9 @@ impl<'de> Deserialize<'de> for Interaction {
     }
 }
 
-/// Common fields between different [`Interaction`](crate::applications::Interaction) types.
+/// Data present in an [`Interaction`] of type [`Ping`].
+///
+/// [`Ping`]: Interaction::Ping
 #[derive(Clone, Debug, Eq, Hash, PartialEq, Serialize)]
 pub struct PingInner {
     /// The id of the interaction
@@ -49,7 +63,9 @@ pub struct PingInner {
     pub token: String,
 }
 
-/// The payload received weived when an interaction originated from a guild.
+/// Data present in an [`Interaction`] of type [`ApplicationCommand`].
+///
+/// [`ApplicationCommand`]: Interaction::ApplicationCommand
 #[derive(Clone, Debug, Eq, Hash, PartialEq, Serialize)]
 pub struct ApplicationCommandInner {
     /// The guild the interaction was triggered from.
@@ -80,6 +96,7 @@ impl<'a> TryFrom<InteractionEnvelope> for Interaction {
                     kind: envelope.kind,
                     token: envelope.token,
                 };
+
                 Ok(Interaction::Ping(ping_inner))
             }
             InteractionType::ApplicationCommand => {
@@ -87,14 +104,17 @@ impl<'a> TryFrom<InteractionEnvelope> for Interaction {
                     Some(id) => id,
                     None => return Err(Self::Error::MissingField("guild_id")),
                 };
+
                 let channel_id = match envelope.channel_id {
                     Some(id) => id,
                     None => return Err(Self::Error::MissingField("channel_id")),
                 };
+
                 let member = match envelope.member {
                     Some(m) => m,
                     None => return Err(Self::Error::MissingField("member")),
                 };
+
                 let command_data = match envelope.data {
                     Some(InteractionData::ApplicationCommand(cmd)) => cmd,
                     Some(_) => {
@@ -106,7 +126,7 @@ impl<'a> TryFrom<InteractionEnvelope> for Interaction {
                     None => return Err(Self::Error::MissingField("data")),
                 };
 
-                let app_com_inner = ApplicationCommandInner {
+                Ok(Interaction::ApplicationCommand(ApplicationCommandInner {
                     guild_id,
                     channel_id,
                     member,
@@ -114,27 +134,25 @@ impl<'a> TryFrom<InteractionEnvelope> for Interaction {
                     id: envelope.id,
                     kind: envelope.kind,
                     token: envelope.token,
-                };
-                Ok(Interaction::ApplicationCommand(app_com_inner))
+                }))
             }
         }
     }
 }
 
-/// The raw interaction payload received from Discord. It is checked and parsed
-/// into an [`Interaction`](crate::applications::Interaction).
+/// Raw interaction payload received from Discord.
 ///
-/// Only used internally.
+/// It is checked and parsed into an [`Interaction`].  Only used internally.
 #[derive(Clone, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
 struct InteractionEnvelope {
     id: InteractionId,
     #[serde(rename = "type")]
     kind: InteractionType,
+    data: Option<InteractionData>,
     guild_id: Option<GuildId>,
     channel_id: Option<ChannelId>,
     member: Option<PartialMember>,
     token: String,
-    data: Option<InteractionData>,
 }
 
 #[derive(Debug)]
@@ -161,13 +179,13 @@ impl std::error::Error for InteractionEnvelopeParseError {}
 
 #[cfg(test)]
 mod test {
-    use crate::applications::CommandData;
-    use crate::applications::*;
-    use crate::guild::PartialMember;
-    use crate::guild::Permissions;
-    use crate::id::*;
-    use crate::user::User;
-    use crate::user::UserFlags;
+    use super::ApplicationCommandInner;
+    use crate::{
+        applications::{CommandData, CommandDataOption, Interaction, InteractionType},
+        guild::{PartialMember, Permissions},
+        id::UserId,
+        user::{User, UserFlags},
+    };
 
     #[test]
     fn test_interaction() {
@@ -205,15 +223,7 @@ mod test {
     "channel_id": "645027906669510667"
 }"#;
 
-        let expected = Interaction::Guild(GuildInteraction {
-            data: InteractionData::ApplicationCommand(CommandData {
-                options: vec![CommandDataOption::String {
-                    name: "cardname".to_string(),
-                    value: "The Gitrog Monster".to_string(),
-                }],
-                name: "cardsearch".to_string(),
-                id: 771825006014889984.into(),
-            }),
+        let expected = Interaction::ApplicationCommand(ApplicationCommandInner {
             guild_id: 290926798626357999.into(),
             channel_id: 645027906669510667.into(),
             member: PartialMember {
@@ -240,11 +250,17 @@ mod test {
                 joined_at: Some("2017-03-13T19:19:14.040000+00:00".to_string()),
                 deaf: false,
             },
-            interaction: BaseInteraction {
-                id: 786008729715212338.into(),
-                kind: InteractionType::ApplicationCommand,
-                token: "A_UNIQUE_TOKEN".to_string(),
+            command_data: CommandData {
+                options: vec![CommandDataOption::String {
+                    name: "cardname".to_string(),
+                    value: "The Gitrog Monster".to_string(),
+                }],
+                name: "cardsearch".to_string(),
+                id: 771825006014889984.into(),
             },
+            id: 786008729715212338.into(),
+            kind: InteractionType::ApplicationCommand,
+            token: "A_UNIQUE_TOKEN".to_string(),
         });
 
         let actual = serde_json::from_str::<Interaction>(&json).unwrap();

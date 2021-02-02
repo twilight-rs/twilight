@@ -3,7 +3,16 @@ use std::convert::From;
 use serde::{Deserialize, Deserializer, Serialize, Serializer};
 use serde_repr::{Deserialize_repr, Serialize_repr};
 
-/// An option for a [`Command`](crate::applications::Command).
+/// Option for a [`Command`].
+///
+/// It can also be nested under another [`CommandOption`] of type [`SubCommand`]
+/// or [`SubCommandGroup`].
+///
+/// Choices and options are mutually exclusive.
+///
+/// [`Command`]: super::Command
+/// [`SubCommand`]: CommandOption::SubCommand
+/// [`SubCommandGroup`]: CommandOption::SubCommandGroup
 #[derive(Clone, Debug, Eq, Hash, PartialEq)]
 pub enum CommandOption {
     SubCommand(OptionsCommandOptionData),
@@ -108,14 +117,22 @@ impl From<CommandOptionEnvelope> for CommandOption {
     }
 }
 
+/// Data supplied to a [`CommandOption`] of type [`Boolean`], [`User`],
+/// [`Channel`], or [`Role`].
+///
+/// [`Boolean`]: CommandOption::Boolean
+/// [`User`]: CommandOption::User
+/// [`Channel`]: CommandOption::Channel
+/// [`Role`]: CommandOption::Role
 #[derive(Clone, Debug, Default, Deserialize, Eq, Hash, PartialEq, Serialize)]
 pub struct BaseCommandOptionData {
-    /// The name of the option. It must be 32 characters or less.
+    /// Name of the option. It must be 32 characters or less.
     pub name: String,
-    /// A description of the option. It must be 100 characters or less.
+    /// Description of the option. It must be 100 characters or less.
     pub description: String,
-    /// The first required option that you wish the user to complete. Only one
-    /// CommandOption may be default per command.
+    /// First required option that you wish the user to complete.
+    ///
+    /// Only one CommandOption may be default per command.
     ///
     /// For example, given a simple kick command:
     ///     `/kick @user [reason]`
@@ -125,7 +142,7 @@ pub struct BaseCommandOptionData {
     /// NOTE: THIS IS CURRENTLY BROKEN. IT ALWAYS ERRORS WHEN SET.
     #[serde(default)]
     pub default: bool,
-    /// Whether or not the option is required to be completed by a user.
+    /// Whether the option is required to be completed by a user.
     #[serde(default)]
     pub required: bool,
 }
@@ -141,14 +158,20 @@ impl From<CommandOptionEnvelope> for BaseCommandOptionData {
     }
 }
 
+/// Data supplied to a [`CommandOption`] of type [`SubCommand`] or
+/// [`SubCommandGroup`].
+///
+/// [`SubCommand`]: CommandOption::SubCommand
+/// [`SubCommandGroup`]: CommandOption::SubCommandGroup
 #[derive(Clone, Debug, Default, Deserialize, Eq, Hash, PartialEq, Serialize)]
 pub struct OptionsCommandOptionData {
-    /// The name of the option. It must be 32 characters or less.
+    /// Name of the option. It must be 32 characters or less.
     pub name: String,
-    /// A description of the option. It must be 100 characters or less.
+    /// Description of the option. It must be 100 characters or less.
     pub description: String,
-    /// The first required option that you wish the user to complete. Only one
-    /// CommandOption may be default per command.
+    /// First required option that you wish the user to complete.
+    ///
+    /// Only one CommandOption may be default per command.
     ///
     /// For example, given a simple kick command:
     ///     `/kick @user [reason]`
@@ -158,12 +181,14 @@ pub struct OptionsCommandOptionData {
     /// NOTE: THIS IS CURRENTLY BROKEN. IT ALWAYS ERRORS WHEN SET.
     #[serde(default)]
     pub default: bool,
-    /// Whether or not the option is required to be completed by a user.
+    /// Whether the option is required to be completed by a user.
     #[serde(default)]
     pub required: bool,
-
-    /// Used for specifying the nested options in a SubCommand or
-    /// SubCommandGroup.
+    /// Used for specifying the nested options in a [`SubCommand`] or
+    /// [`SubCommandGroup`].
+    ///
+    /// [`SubCommand`]: CommandOptionType::SubCommand
+    /// [`SubCommandGroup`]: CommandOptionType::SubCommandGroup
     #[serde(default)]
     pub options: Vec<CommandOption>,
 }
@@ -191,14 +216,19 @@ impl OptionsCommandOptionData {
     }
 }
 
+/// Data supplied to a [`CommandOption`] of type [`String`] or [`Integer`].
+///
+/// [`String`]: CommandOption::String
+/// [`Integer`]: CommandOption::Integer
 #[derive(Clone, Debug, Default, Deserialize, Eq, Hash, PartialEq, Serialize)]
 pub struct ChoiceCommandOptionData {
-    /// The name of the option. It must be 32 characters or less.
+    /// Name of the option. It must be 32 characters or less.
     pub name: String,
-    /// A description of the option. It must be 100 characters or less.
+    /// Description of the option. It must be 100 characters or less.
     pub description: String,
-    /// The first required option that you wish the user to complete. Only one
-    /// CommandOption may be default per command.
+    /// First required option that you wish the user to complete.
+    ///
+    /// Only one CommandOption may be default per command.
     ///
     /// For example, given a simple kick command:
     ///     `/kick @user [reason]`
@@ -211,9 +241,9 @@ pub struct ChoiceCommandOptionData {
     /// Whether or not the option is required to be completed by a user.
     #[serde(default)]
     pub required: bool,
-
-    /// Predetermined choices may be defined for a user to select. When
-    /// completing this option, the user is prompted with a selector of all
+    /// Predetermined choices may be defined for a user to select.
+    ///
+    /// When completing this option, the user is prompted with a selector of all
     /// available choices.
     #[serde(default)]
     pub choices: Vec<CommandOptionChoice>,
@@ -254,10 +284,6 @@ pub enum CommandOptionChoice {
     Int { name: String, value: i64 },
 }
 
-/// CommandOption is an option that can be supplied to an ApplicationCommand, or
-/// nested under another CommandOption of type SubCommand or SubCommandGroup.
-///
-/// Choices and options are mutually exclusive.
 #[derive(Clone, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
 struct CommandOptionEnvelope {
     #[serde(rename = "type")]

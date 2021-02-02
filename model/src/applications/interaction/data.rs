@@ -1,8 +1,7 @@
-use super::command::CommandData;
+use crate::applications::command::CommandData;
 use serde::{Deserialize, Serialize};
 
-/// An enum containing extra data corresponding to which interaction type was
-/// received.
+/// Used during deserializing to contain the different data types. 
 ///
 /// There is no direct doc equivalent.
 #[derive(Clone, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]

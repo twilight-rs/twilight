@@ -1,11 +1,11 @@
 use std::convert::{TryFrom, TryInto};
 use std::fmt::{Display, Formatter, Result as FmtResult};
 
-use super::CommandCallbackData;
+use crate::applications::command::CommandCallbackData;
 use serde::{Deserialize, Deserializer, Serialize, Serializer};
 use serde_repr::{Deserialize_repr, Serialize_repr};
 
-/// The payload used for responding to an interaction.
+/// Payload used for responding to an interaction.
 ///
 /// Refer to [the discord docs] for more information.
 ///

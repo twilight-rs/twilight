@@ -1,4 +1,12 @@
-use crate::applications::CommandOption;
+mod callback_data;
+mod option;
+
+pub use callback_data::CommandCallbackData;
+pub use option::{
+    BaseCommandOptionData, ChoiceCommandOptionData, CommandOption, CommandOptionChoice,
+    CommandOptionType, OptionsCommandOptionData,
+};
+
 use crate::id::{ApplicationId, CommandId};
 use serde::{Deserialize, Serialize};
 
@@ -22,10 +30,11 @@ pub struct Command {
     pub options: Vec<CommandOption>,
 }
 
-/// The data received when an ApplicationCommand interaction is executed.
+/// Data received when an [`ApplicationCommand`] interaction is executed.
 ///
 /// Refer to [the discord docs] for more information.
 ///
+/// [`ApplicationCommand`]: crate::applications::interaction::Interaction::ApplicationCommand
 /// [the discord docs]: https://discord.com/developers/docs/interactions/slash-commands#interaction-applicationcommandinteractiondata
 #[derive(Clone, Debug, Deserialize, Eq, Hash, PartialEq, Serialize, Default)]
 pub struct CommandData {
@@ -35,7 +44,7 @@ pub struct CommandData {
     pub options: Vec<CommandDataOption>,
 }
 
-/// The data received when a user fills in a command option.
+/// Data received when a user fills in a command option.
 ///
 /// Note: user, channel, and role option types will be returned as a String
 /// option here.
