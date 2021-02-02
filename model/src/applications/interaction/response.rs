@@ -68,7 +68,7 @@ impl Serialize for InteractionResponse {
     {
         InteractionResponseEnvelope {
             kind: self.kind(),
-            data: self.data().cloned()
+            data: self.data().cloned(),
         }
         .serialize(serializer)
     }
