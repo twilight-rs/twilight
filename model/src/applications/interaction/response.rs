@@ -42,11 +42,11 @@ impl InteractionResponse {
     // response.
     fn data(&self) -> Option<&CommandCallbackData> {
         match self {
-            InteractionResponse::Pong => None,
-            InteractionResponse::Acknowledge => None,
-            InteractionResponse::ChannelMessage(d) => Some(d),
-            InteractionResponse::ChannelMessageWithSource(d) => Some(d),
-            InteractionResponse::AckWithSource => None,
+            InteractionResponse::ChannelMessage(d)
+            | InteractionResponse::ChannelMessageWithSource(d) => Some(d),
+            InteractionResponse::Pong
+            | InteractionResponse::Acknowledge
+            | InteractionResponse::AckWithSource => None,
         }
     }
 }
@@ -68,7 +68,7 @@ impl Serialize for InteractionResponse {
     {
         InteractionResponseEnvelope {
             kind: self.kind(),
-            data: self.data().map(|d| d.clone()),
+            data: self.data().cloned()
         }
         .serialize(serializer)
     }
@@ -113,8 +113,7 @@ impl Display for InteractionResponseEnvelopeParseError {
     }
 }
 
-/// InteractionResponseEnvelope is the raw payload sent when responding to an
-/// interaction.
+/// Raw payload sent when responding to an interaction.
 #[derive(Clone, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
 struct InteractionResponseEnvelope {
     #[serde(rename = "type")]
@@ -136,7 +135,7 @@ pub enum InteractionResponseType {
 }
 
 impl InteractionResponseType {
-    pub fn name(&self) -> &'static str {
+    pub fn name(self) -> &'static str {
         match self {
             InteractionResponseType::Pong => "Pong",
             InteractionResponseType::Acknowledge => "Acknowledge",

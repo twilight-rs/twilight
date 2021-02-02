@@ -300,7 +300,7 @@ struct CommandOptionEnvelope {
     pub options: Option<Vec<CommandOption>>,
 }
 
-/// CommandOptionType specifies the type of a CommandOption.
+/// Type of a [`CommandOption`].
 #[derive(
     Clone, Copy, Debug, Deserialize_repr, Eq, Hash, Ord, PartialEq, PartialOrd, Serialize_repr,
 )]
@@ -317,7 +317,7 @@ pub enum CommandOptionType {
 }
 
 impl CommandOptionType {
-    pub fn name(&self) -> &'static str {
+    pub fn name(self) -> &'static str {
         match self {
             CommandOptionType::SubCommand => "SubCommand",
             CommandOptionType::SubCommandGroup => "SubCommandGroup",

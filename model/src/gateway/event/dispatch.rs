@@ -27,7 +27,7 @@ pub enum DispatchEvent {
     GuildEmojisUpdate(GuildEmojisUpdate),
     GuildIntegrationsUpdate(GuildIntegrationsUpdate),
     GuildUpdate(Box<GuildUpdate>),
-    InteractionCreate(InteractionCreate),
+    InteractionCreate(Box<InteractionCreate>),
     InviteCreate(Box<InviteCreate>),
     InviteDelete(InviteDelete),
     MemberAdd(Box<MemberAdd>),
@@ -230,9 +230,9 @@ impl<'de, 'a> DeserializeSeed<'de> for DispatchEventWithTypeDeserializer<'a> {
             "GUILD_UPDATE" => {
                 DispatchEvent::GuildUpdate(Box::new(GuildUpdate::deserialize(deserializer)?))
             }
-            "INTERACTION_CREATE" => {
-                DispatchEvent::InteractionCreate(InteractionCreate::deserialize(deserializer)?)
-            }
+            "INTERACTION_CREATE" => DispatchEvent::InteractionCreate(Box::new(
+                InteractionCreate::deserialize(deserializer)?,
+            )),
             "INVITE_CREATE" => {
                 DispatchEvent::InviteCreate(Box::new(InviteCreate::deserialize(deserializer)?))
             }

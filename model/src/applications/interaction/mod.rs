@@ -28,9 +28,9 @@ use std::{
 #[non_exhaustive]
 pub enum Interaction {
     /// Ping variant.
-    Ping(PingInner),
+    Ping(Box<PingInner>),
     /// Application command variant.
-    ApplicationCommand(ApplicationCommandInner),
+    ApplicationCommand(Box<ApplicationCommandInner>),
 }
 
 impl Interaction {
@@ -90,15 +90,11 @@ impl<'a> TryFrom<InteractionEnvelope> for Interaction {
 
     fn try_from(envelope: InteractionEnvelope) -> Result<Self, Self::Error> {
         match envelope.kind {
-            InteractionType::Ping => {
-                let ping_inner = PingInner {
-                    id: envelope.id,
-                    kind: envelope.kind,
-                    token: envelope.token,
-                };
-
-                Ok(Interaction::Ping(ping_inner))
-            }
+            InteractionType::Ping => Ok(Interaction::Ping(Box::new(PingInner {
+                id: envelope.id,
+                kind: envelope.kind,
+                token: envelope.token,
+            }))),
             InteractionType::ApplicationCommand => {
                 let guild_id = match envelope.guild_id {
                     Some(id) => id,
@@ -126,15 +122,17 @@ impl<'a> TryFrom<InteractionEnvelope> for Interaction {
                     None => return Err(Self::Error::MissingField("data")),
                 };
 
-                Ok(Interaction::ApplicationCommand(ApplicationCommandInner {
-                    guild_id,
-                    channel_id,
-                    member,
-                    command_data,
-                    id: envelope.id,
-                    kind: envelope.kind,
-                    token: envelope.token,
-                }))
+                Ok(Interaction::ApplicationCommand(Box::new(
+                    ApplicationCommandInner {
+                        guild_id,
+                        channel_id,
+                        member,
+                        command_data,
+                        id: envelope.id,
+                        kind: envelope.kind,
+                        token: envelope.token,
+                    },
+                )))
             }
         }
     }
@@ -197,45 +195,45 @@ mod test {
     "token": "A_UNIQUE_TOKEN",
     "member": {
         "user": {
-            "id": "53908232506183680",
+            "id": "100",
             "username": "Mason",
-            "avatar": "a_d5efa99b3eeaa7dd43acca82f5692432",
+            "avatar": "avatar string",
             "discriminator": "1337",
             "public_flags": 131141
         },
-        "roles": ["539082325061836999"],
+        "roles": ["400"],
         "premium_since": null,
         "permissions": "2147483647",
         "pending": false,
         "nick": null,
         "mute": false,
-        "joined_at": "2017-03-13T19:19:14.040000+00:00",
+        "joined_at": "2017-03-13T10:10:10.040000+00:00",
         "is_pending": false,
         "deaf": false
     },
-    "id": "786008729715212338",
-    "guild_id": "290926798626357999",
+    "id": "200",
+    "guild_id": "300",
     "data": {
         "options": [{
             "name": "cardname",
             "value": "The Gitrog Monster"
         }],
         "name": "cardsearch",
-        "id": "771825006014889984"
+        "id": "500"
     },
-    "channel_id": "645027906669510667"
+    "channel_id": "600"
 }"#;
 
-        let expected = Interaction::ApplicationCommand(ApplicationCommandInner {
-            guild_id: 290926798626357999.into(),
-            channel_id: 645027906669510667.into(),
+        let expected = Interaction::ApplicationCommand(Box::new(ApplicationCommandInner {
+            guild_id: 300.into(),
+            channel_id: 600.into(),
             member: PartialMember {
                 user: Some(User {
-                    id: UserId(53908232506183680),
+                    id: UserId(100),
                     name: "Mason".to_string(),
-                    avatar: Some("a_d5efa99b3eeaa7dd43acca82f5692432".to_string()),
+                    avatar: Some("avatar string".to_string()),
                     discriminator: 1337.to_string(),
-                    public_flags: UserFlags::from_bits(131141),
+                    public_flags: UserFlags::from_bits(131_141),
                     bot: false,
                     email: None,
                     flags: None,
@@ -245,12 +243,12 @@ mod test {
                     system: None,
                     verified: None,
                 }),
-                roles: vec![539082325061836999.into()],
-                permissions: Permissions::from_bits(2147483647),
+                roles: vec![400.into()],
+                permissions: Permissions::from_bits(2_147_483_647),
                 premium_since: None,
                 nick: None,
                 mute: false,
-                joined_at: Some("2017-03-13T19:19:14.040000+00:00".to_string()),
+                joined_at: Some("2017-03-13T10:10:10.040000+00:00".to_string()),
                 deaf: false,
             },
             command_data: CommandData {
@@ -259,12 +257,12 @@ mod test {
                     value: "The Gitrog Monster".to_string(),
                 }],
                 name: "cardsearch".to_string(),
-                id: 771825006014889984.into(),
+                id: 500.into(),
             },
-            id: 786008729715212338.into(),
+            id: 200.into(),
             kind: InteractionType::ApplicationCommand,
             token: "A_UNIQUE_TOKEN".to_string(),
-        });
+        }));
 
         let actual = serde_json::from_str::<Interaction>(&json).unwrap();
 

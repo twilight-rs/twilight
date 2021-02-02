@@ -60,7 +60,7 @@ pub enum Event {
     /// A guild was updated.
     GuildUpdate(Box<GuildUpdate>),
     /// A interaction was started by a user
-    InteractionCreate(InteractionCreate),
+    InteractionCreate(Box<InteractionCreate>),
     /// A invite was made.
     InviteCreate(Box<InviteCreate>),
     /// A invite was deleted.
