@@ -1,12 +1,9 @@
 mod data;
 mod kind;
-mod response;
 
-pub use data::InteractionData;
+pub use data::{CommandData, CommandDataOption, InteractionData};
 pub use kind::InteractionType;
-pub use response::{InteractionResponse, InteractionResponseType};
 
-use super::command::CommandData;
 use crate::{
     guild::PartialMember,
     id::{ChannelId, GuildId, InteractionId},
@@ -179,9 +176,9 @@ impl std::error::Error for InteractionEnvelopeParseError {}
 mod test {
     use super::ApplicationCommandInner;
     use crate::{
-        applications::{
-            command::{CommandData, CommandDataOption},
-            interaction::{Interaction, InteractionType},
+        applications::interaction::{
+            data::{CommandData, CommandDataOption},
+            Interaction, InteractionType,
         },
         guild::{PartialMember, Permissions},
         id::UserId,

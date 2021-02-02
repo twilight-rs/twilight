@@ -42,7 +42,7 @@ use std::{
 use tokio::time;
 
 use twilight_model::{
-    applications::interaction::InteractionResponse,
+    applications::response::InteractionResponse,
     guild::Permissions,
     id::{
         ApplicationId, ChannelId, CommandId, EmojiId, GuildId, IntegrationId, InteractionId,

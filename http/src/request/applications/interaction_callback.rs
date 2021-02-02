@@ -1,5 +1,5 @@
 use crate::request::prelude::*;
-use twilight_model::{applications::interaction::InteractionResponse, id::InteractionId};
+use twilight_model::{applications::response::InteractionResponse, id::InteractionId};
 
 /// Respond to an interaction, by ID and token.
 pub struct InteractionCallback<'a> {
