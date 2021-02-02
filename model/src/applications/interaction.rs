@@ -1,5 +1,5 @@
-use super::{InteractionData, InteractionType};
 use super::command::CommandData;
+use super::{InteractionData, InteractionType};
 use crate::guild::PartialMember;
 use crate::id::*;
 use serde::{self, Deserialize, Deserializer, Serialize};
@@ -104,8 +104,8 @@ impl<'a> TryFrom<InteractionEnvelope> for Interaction {
                         });
                     }
                     None => return Err(Self::Error::MissingField("data")),
-                };    
-                
+                };
+
                 let app_com_inner = ApplicationCommandInner {
                     guild_id,
                     channel_id,
@@ -141,7 +141,7 @@ struct InteractionEnvelope {
 enum InteractionEnvelopeParseError {
     DataMismatch {
         wanted: &'static str,
-        got:    &'static str,
+        got: &'static str,
     },
     MissingField(&'static str),
 }
@@ -149,22 +149,15 @@ enum InteractionEnvelopeParseError {
 impl Display for InteractionEnvelopeParseError {
     fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
         match self {
-            Self::DataMismatch { wanted, got } => write!(
-                f,
-                "invalid data: wanted {} got {}",
-                wanted,
-                got
-            ),
-            Self::MissingField(s) => write!(
-                f,
-                "The field {} was missing",
-                s),
+            Self::DataMismatch { wanted, got } => {
+                write!(f, "invalid data: wanted {} got {}", wanted, got)
+            }
+            Self::MissingField(s) => write!(f, "The field {} was missing", s),
         }
     }
 }
 
 impl std::error::Error for InteractionEnvelopeParseError {}
-
 
 #[cfg(test)]
 mod test {

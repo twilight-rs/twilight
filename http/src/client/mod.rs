@@ -408,7 +408,10 @@ impl Client {
     ///
     /// Returns the previous ID, if there was one.
     pub fn set_application_id(&self, application_id: ApplicationId) -> Option<ApplicationId> {
-        let prev = self.state.application_id.swap(application_id.0, Ordering::Relaxed);
+        let prev = self
+            .state
+            .application_id
+            .swap(application_id.0, Ordering::Relaxed);
 
         if prev != 0 {
             return Some(ApplicationId(prev));
