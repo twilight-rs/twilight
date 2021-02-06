@@ -584,7 +584,25 @@ impl InMemoryCache {
         cached
     }
 
-    fn cache_emojis(&self, guild_id: GuildId, emojis: impl IntoIterator<Item = Emoji>) {
+    fn cache_emojis(&self, guild_id: GuildId, emojis: Vec<Emoji>) {
+        if let Some(mut guild_emojis) = self.0.guild_emojis.get_mut(&guild_id) {
+            let incoming: Vec<EmojiId> = emojis.iter().map(|e| e.id).collect();
+
+            let removal_filter: Vec<EmojiId> = guild_emojis
+                .iter()
+                .copied()
+                .filter(|e| !incoming.contains(e))
+                .collect();
+
+            for to_remove in &removal_filter {
+                guild_emojis.remove(to_remove);
+            }
+
+            for to_remove in &removal_filter {
+                self.0.emojis.remove(to_remove);
+            }
+        }
+
         for emoji in emojis {
             self.cache_emoji(guild_id, emoji);
         }
@@ -948,7 +966,7 @@ mod tests {
     use std::borrow::Cow;
     use twilight_model::{
         channel::{ChannelType, GuildChannel, TextChannel},
-        gateway::payload::{MemberRemove, RoleDelete},
+        gateway::payload::{GuildEmojisUpdate, MemberRemove, RoleDelete},
         guild::{
             DefaultMessageNotificationLevel, Emoji, ExplicitContentFilter, Guild, Member, MfaLevel,
             Permissions, PremiumTier, Role, SystemChannelFlags, VerificationLevel,
@@ -1537,5 +1555,61 @@ mod tests {
         cache.clear();
         assert!(cache.0.emojis.is_empty());
         assert!(cache.0.members.is_empty());
+    }
+
+    #[test]
+    fn test_emoji_removal() {
+        let cache = InMemoryCache::new();
+
+        let guild_id = GuildId(1);
+
+        let emote = emoji(EmojiId(1), None);
+        let emote_2 = emoji(EmojiId(2), None);
+        let emote_3 = emoji(EmojiId(3), None);
+
+        cache.cache_emoji(guild_id, emote.clone());
+        cache.cache_emoji(guild_id, emote_2.clone());
+        cache.cache_emoji(guild_id, emote_3.clone());
+
+        cache.update(&GuildEmojisUpdate {
+            emojis: vec![emote.clone(), emote_3.clone()],
+            guild_id,
+        });
+
+        assert_eq!(cache.0.emojis.len(), 2);
+        assert_eq!(cache.0.guild_emojis.get(&guild_id).unwrap().len(), 2);
+        assert!(cache.emoji(emote.id).is_some());
+        assert!(cache.emoji(emote_2.id).is_none());
+        assert!(cache.emoji(emote_3.id).is_some());
+
+        cache.update(&GuildEmojisUpdate {
+            emojis: vec![emote.clone()],
+            guild_id,
+        });
+
+        assert_eq!(cache.0.emojis.len(), 1);
+        assert_eq!(cache.0.guild_emojis.get(&guild_id).unwrap().len(), 1);
+        assert!(cache.emoji(emote.id).is_some());
+        assert!(cache.emoji(emote_2.id).is_none());
+
+        let emote_4 = emoji(EmojiId(4), None);
+
+        cache.update(&GuildEmojisUpdate {
+            emojis: vec![emote_4.clone()],
+            guild_id,
+        });
+
+        assert_eq!(cache.0.emojis.len(), 1);
+        assert_eq!(cache.0.guild_emojis.get(&guild_id).unwrap().len(), 1);
+        assert!(cache.emoji(emote_4.id).is_some());
+        assert!(cache.emoji(emote.id).is_none());
+
+        cache.update(&GuildEmojisUpdate {
+            emojis: vec![],
+            guild_id,
+        });
+
+        assert!(cache.0.emojis.is_empty());
+        assert!(cache.0.guild_emojis.get(&guild_id).unwrap().is_empty());
     }
 }
