@@ -254,7 +254,7 @@ impl<'a> CreateMessage<'a> {
 
     /// Specify the ID of another message to create a reply to.
     pub fn reply(mut self, other: MessageId) -> Self {
-        let channel_id = self.channel_id.clone();
+        let channel_id = self.channel_id;
 
         self.fields.message_reference = Some(self.fields.message_reference.map_or_else(
             || MessageReference {
