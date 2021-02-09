@@ -82,7 +82,7 @@ impl From<EmbedAuthorBuilder> for EmbedAuthor {
 #[cfg(test)]
 mod tests {
     use super::EmbedAuthorBuilder;
-    use crate::{EmbedBuilder, EmbedError, ImageSource};
+    use crate::{EmbedBuilder, EmbedErrorType, ImageSource};
     use static_assertions::assert_impl_all;
     use std::fmt::Debug;
     use twilight_model::channel::embed::EmbedAuthor;
@@ -115,8 +115,8 @@ mod tests {
     fn test_name_empty() {
         let builder = EmbedBuilder::new().author(EmbedAuthorBuilder::new().name(""));
 
-        assert!(matches!(builder.build().unwrap_err(),
-            EmbedError::AuthorNameEmpty { .. }
+        assert!(matches!(builder.build().unwrap_err().kind(),
+            EmbedErrorType::AuthorNameEmpty { .. }
         ));
     }
 
@@ -127,8 +127,8 @@ mod tests {
 
         let builder = EmbedBuilder::new().author(EmbedAuthorBuilder::new().name("a".repeat(257)));
         assert!(matches!(
-            builder.build().unwrap_err(),
-            EmbedError::AuthorNameTooLong { .. }
+            builder.build().unwrap_err().kind(),
+            EmbedErrorType::AuthorNameTooLong { .. }
         ));
     }
 

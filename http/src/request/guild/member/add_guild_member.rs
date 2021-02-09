@@ -1,4 +1,7 @@
-use crate::request::prelude::*;
+use crate::{
+    error::{Error as HttpError, ErrorType},
+    request::prelude::*,
+};
 use std::{
     error::Error,
     fmt::{Display, Formatter, Result as FmtResult},
@@ -12,23 +15,56 @@ use twilight_model::{
 };
 
 /// Member cannot be added as configured.
-#[derive(Clone, Debug)]
-#[non_exhaustive]
-pub enum AddGuildMemberError {
-    /// Nickname is either empty or the length is more than 32 UTF-16
-    /// characters.
-    NicknameInvalid { nickname: String },
+#[derive(Debug)]
+pub struct AddGuildMemberError {
+    kind: AddGuildMemberErrorType,
+}
+
+impl AddGuildMemberError {
+    /// Immutable reference to the type of error that occurred.
+    #[must_use = "retrieving the type has no effect if left unused"]
+    pub fn kind(&self) -> &AddGuildMemberErrorType {
+        &self.kind
+    }
+
+    /// Consume the error, returning the source error if there is any.
+    #[allow(clippy::unused_self)]
+    #[must_use = "consuming the error and retrieving the source has no effect if left unused"]
+    pub fn into_source(self) -> Option<Box<dyn Error + Send + Sync>> {
+        None
+    }
+
+    /// Consume the error, returning the owned error type and the source error.
+    #[must_use = "consuming the error into its parts has no effect if left unused"]
+    pub fn into_parts(
+        self,
+    ) -> (
+        AddGuildMemberErrorType,
+        Option<Box<dyn Error + Send + Sync>>,
+    ) {
+        (self.kind, None)
+    }
 }
 
 impl Display for AddGuildMemberError {
     fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
-        match self {
-            Self::NicknameInvalid { .. } => f.write_str("nickname length is invalid"),
+        match &self.kind {
+            AddGuildMemberErrorType::NicknameInvalid { .. } => {
+                f.write_str("nickname length is invalid")
+            }
         }
     }
 }
 
 impl Error for AddGuildMemberError {}
+
+#[derive(Debug)]
+#[non_exhaustive]
+pub enum AddGuildMemberErrorType {
+    /// Nickname is either empty or the length is more than 32 UTF-16
+    /// characters.
+    NicknameInvalid { nickname: String },
+}
 
 #[derive(Serialize)]
 struct AddGuildMemberFields {
@@ -55,11 +91,6 @@ pub struct AddGuildMember<'a> {
 ///
 /// An access token for the user with `guilds.join` scope is required. All other
 /// fields are optional. Refer to [the discord docs] for more information.
-///
-/// # Errors
-///
-/// Returns [`AddGuildMemberError::NicknameInvalid`] if the nickname is too
-/// short or too long.
 ///
 /// [the discord docs]: https://discord.com/developers/docs/resources/guild#add-guild-member
 impl<'a> AddGuildMember<'a> {
@@ -110,15 +141,17 @@ impl<'a> AddGuildMember<'a> {
     ///
     /// # Errors
     ///
-    /// Returns [`AddGuildMemberError::NicknameInvalid`] if the nickname is too
-    /// short or too long.
+    /// Returns an [`AddGuildMemberErrorType::NicknameInvalid`] error type if
+    /// the nickname is too short or too long.
     pub fn nick(self, nick: impl Into<String>) -> Result<Self, AddGuildMemberError> {
         self._nick(nick.into())
     }
 
     fn _nick(mut self, nick: String) -> Result<Self, AddGuildMemberError> {
         if !validate::nickname(&nick) {
-            return Err(AddGuildMemberError::NicknameInvalid { nickname: nick });
+            return Err(AddGuildMemberError {
+                kind: AddGuildMemberErrorType::NicknameInvalid { nickname: nick },
+            });
         }
 
         self.fields.nick.replace(nick);
@@ -135,7 +168,7 @@ impl<'a> AddGuildMember<'a> {
 
     fn start(&mut self) -> Result<()> {
         let request = Request::from((
-            crate::json_to_vec(&self.fields)?,
+            crate::json_to_vec(&self.fields).map_err(HttpError::json)?,
             Route::AddGuildMember {
                 guild_id: self.guild_id.0,
                 user_id: self.user_id.0,
@@ -167,9 +200,9 @@ impl Future for AddGuildMember<'_> {
                 }
 
                 return Poll::Ready(crate::json_from_slice(&mut bytes).map(Some).map_err(
-                    |source| crate::Error::Parsing {
-                        body: bytes,
-                        source,
+                    |source| HttpError {
+                        kind: ErrorType::Parsing { body: bytes },
+                        source: Some(Box::new(source)),
                     },
                 ));
             }

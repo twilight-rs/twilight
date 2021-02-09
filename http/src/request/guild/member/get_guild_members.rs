@@ -19,25 +19,57 @@ use serde_json::Value;
 use simd_json::value::OwnedValue as Value;
 
 /// The error created when the members can not be fetched as configured.
-#[derive(Clone, Debug)]
+#[derive(Debug)]
+pub struct GetGuildMembersError {
+    kind: GetGuildMembersErrorType,
+}
+
+impl GetGuildMembersError {
+    /// Immutable reference to the type of error that occurred.
+    #[must_use = "retrieving the type has no effect if left unused"]
+    pub fn kind(&self) -> &GetGuildMembersErrorType {
+        &self.kind
+    }
+
+    /// Consume the error, returning the source error if there is any.
+    #[allow(clippy::unused_self)]
+    #[must_use = "consuming the error and retrieving the source has no effect if left unused"]
+    pub fn into_source(self) -> Option<Box<dyn Error + Send + Sync>> {
+        None
+    }
+
+    /// Consume the error, returning the owned error type and the source error.
+    #[must_use = "consuming the error into its parts has no effect if left unused"]
+    pub fn into_parts(
+        self,
+    ) -> (
+        GetGuildMembersErrorType,
+        Option<Box<dyn Error + Send + Sync>>,
+    ) {
+        (self.kind, None)
+    }
+}
+
+impl Display for GetGuildMembersError {
+    fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
+        match &self.kind {
+            GetGuildMembersErrorType::LimitInvalid { .. } => f.write_str("the limit is invalid"),
+        }
+    }
+}
+
+impl Error for GetGuildMembersError {}
+
+/// Type of [`GetGuildMembersError`] that occurred.
+#[derive(Debug)]
 #[non_exhaustive]
-pub enum GetGuildMembersError {
+pub enum GetGuildMembersErrorType {
     /// The limit is either 0 or more than 1000.
     LimitInvalid {
         /// Provided limit.
         limit: u64,
     },
 }
-
-impl Display for GetGuildMembersError {
-    fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
-        match self {
-            Self::LimitInvalid { .. } => f.write_str("the limit is invalid"),
-        }
-    }
-}
-
-impl Error for GetGuildMembersError {}
 
 #[derive(Default)]
 struct GetGuildMembersFields {
@@ -68,10 +100,6 @@ struct GetGuildMembersFields {
 /// let members = client.guild_members(guild_id).after(user_id).await?;
 /// # Ok(()) }
 /// ```
-///
-/// # Errors
-///
-/// Returns [`GetGuildMembersError::LimitInvalid`] if the limit is invalid.
 pub struct GetGuildMembers<'a> {
     fields: GetGuildMembersFields,
     fut: Option<Pending<'a, Bytes>>,
@@ -102,11 +130,13 @@ impl<'a> GetGuildMembers<'a> {
     ///
     /// # Errors
     ///
-    /// Returns [`GetGuildMembersError::LimitInvalid`] if the limit is 0 or
-    /// greater than 1000.
+    /// Returns a [`GetGuildMembersErrorType::LimitInvalid`] error type if the
+    /// limit is 0 or greater than 1000.
     pub fn limit(mut self, limit: u64) -> Result<Self, GetGuildMembersError> {
         if !validate::get_guild_members_limit(limit) {
-            return Err(GetGuildMembersError::LimitInvalid { limit });
+            return Err(GetGuildMembersError {
+                kind: GetGuildMembersErrorType::LimitInvalid { limit },
+            });
         }
 
         self.fields.limit.replace(limit);
@@ -152,11 +182,16 @@ impl Future for GetGuildMembers<'_> {
                 let mut members = Vec::new();
 
                 let mut bytes = bytes.as_ref().to_vec();
-                let values = crate::json_from_slice::<Vec<Value>>(&mut bytes)?;
+                let values =
+                    crate::json_from_slice::<Vec<Value>>(&mut bytes).map_err(HttpError::json)?;
 
                 for value in values {
                     let member_deserializer = MemberDeserializer::new(self.guild_id);
-                    members.push(member_deserializer.deserialize(value)?);
+                    members.push(
+                        member_deserializer
+                            .deserialize(value)
+                            .map_err(HttpError::json)?,
+                    );
                 }
 
                 Poll::Ready(Ok(members))

@@ -1,4 +1,7 @@
-use crate::{request::prelude::*, Error};
+use crate::{
+    error::{Error, ErrorType},
+    request::prelude::*,
+};
 use hyper::StatusCode;
 use serde::Deserialize;
 use std::{
@@ -49,9 +52,10 @@ impl Future for GetGuildVanityUrl<'_> {
             if let Some(fut) = self.as_mut().fut.as_mut() {
                 let bytes = match fut.as_mut().poll(cx) {
                     Poll::Ready(Ok(bytes)) => bytes,
-                    Poll::Ready(Err(crate::Error::Response { status, .. }))
-                        if status == StatusCode::NOT_FOUND =>
-                    {
+                    Poll::Ready(Err(Error {
+                        kind: ErrorType::Response { status, .. },
+                        source: None,
+                    })) if status == StatusCode::NOT_FOUND => {
                         return Poll::Ready(Ok(None));
                     }
                     Poll::Ready(Err(why)) => return Poll::Ready(Err(why)),
@@ -60,11 +64,11 @@ impl Future for GetGuildVanityUrl<'_> {
 
                 let mut bytes = bytes.as_ref().to_vec();
                 let vanity_url =
-                    crate::json_from_slice::<VanityUrl>(&mut bytes).map_err(|source| {
-                        Error::Parsing {
+                    crate::json_from_slice::<VanityUrl>(&mut bytes).map_err(|source| Error {
+                        kind: ErrorType::Parsing {
                             body: bytes.to_vec(),
-                            source,
-                        }
+                        },
+                        source: Some(Box::new(source)),
                     })?;
 
                 return Poll::Ready(Ok(Some(vanity_url.code)));

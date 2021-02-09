@@ -12,7 +12,55 @@ use twilight_model::gateway::{payload::update_status::UpdateStatusInfo, Intents}
 ///
 /// Returned by [`ShardBuilder::large_threshold`].
 #[derive(Debug)]
-pub enum LargeThresholdError {
+pub struct LargeThresholdError {
+    kind: LargeThresholdErrorType,
+}
+
+impl LargeThresholdError {
+    /// Immutable reference to the type of error that occurred.
+    #[must_use = "retrieving the type has no effect if left unused"]
+    pub fn kind(&self) -> &LargeThresholdErrorType {
+        &self.kind
+    }
+
+    /// Consume the error, returning the source error if there is any.
+    #[allow(clippy::unused_self)]
+    #[must_use = "consuming the error and retrieving the source has no effect if left unused"]
+    pub fn into_source(self) -> Option<Box<dyn Error + Send + Sync>> {
+        None
+    }
+
+    /// Consume the error, returning the owned error type and the source error.
+    #[must_use = "consuming the error into its parts has no effect if left unused"]
+    pub fn into_parts(
+        self,
+    ) -> (
+        LargeThresholdErrorType,
+        Option<Box<dyn Error + Send + Sync>>,
+    ) {
+        (self.kind, None)
+    }
+}
+
+impl Display for LargeThresholdError {
+    fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
+        match &self.kind {
+            LargeThresholdErrorType::TooFew { .. } => {
+                f.write_str("provided large threshold value is fewer than 50")
+            }
+            LargeThresholdErrorType::TooMany { .. } => {
+                f.write_str("provided large threshold value is more than 250")
+            }
+        }
+    }
+}
+
+impl Error for LargeThresholdError {}
+
+/// Type of [`LargeThresholdError`] that occurred.
+#[derive(Debug)]
+#[non_exhaustive]
+pub enum LargeThresholdErrorType {
     /// Provided large threshold value is too few in number.
     TooFew {
         /// Provided value.
@@ -25,35 +73,39 @@ pub enum LargeThresholdError {
     },
 }
 
-impl Display for LargeThresholdError {
-    fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
-        match self {
-            Self::TooFew { .. } => f.write_str("provided large threshold value is fewer than 50"),
-            Self::TooMany { .. } => f.write_str("provided large threshold value is more than 250"),
-        }
-    }
-}
-
-impl Error for LargeThresholdError {}
-
 /// Shard ID configuration is invalid.
 ///
 /// Returned by [`ShardBuilder::shard`].
 #[derive(Debug)]
-pub enum ShardIdError {
-    /// Provided shard ID is higher than provided total shard count.
-    IdTooLarge {
-        /// Shard ID.
-        id: u64,
-        /// Total shard count.
-        total: u64,
-    },
+pub struct ShardIdError {
+    kind: ShardIdErrorType,
+}
+
+impl ShardIdError {
+    /// Immutable reference to the type of error that occurred.
+    #[must_use = "retrieving the type has no effect if left unused"]
+    pub fn kind(&self) -> &ShardIdErrorType {
+        &self.kind
+    }
+
+    /// Consume the error, returning the source error if there is any.
+    #[allow(clippy::unused_self)]
+    #[must_use = "consuming the error and retrieving the source has no effect if left unused"]
+    pub fn into_source(self) -> Option<Box<dyn Error + Send + Sync>> {
+        None
+    }
+
+    /// Consume the error, returning the owned error type and the source error.
+    #[must_use = "consuming the error into its parts has no effect if left unused"]
+    pub fn into_parts(self) -> (ShardIdErrorType, Option<Box<dyn Error + Send + Sync>>) {
+        (self.kind, None)
+    }
 }
 
 impl Display for ShardIdError {
     fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
-        match self {
-            Self::IdTooLarge { id, total } => f.write_fmt(format_args!(
+        match &self.kind {
+            ShardIdErrorType::IdTooLarge { id, total } => f.write_fmt(format_args!(
                 "provided shard ID {} is larger than the total {}",
                 id, total,
             )),
@@ -62,6 +114,18 @@ impl Display for ShardIdError {
 }
 
 impl Error for ShardIdError {}
+
+/// Type of [`ShardIdError`] that occurred.
+#[derive(Debug)]
+pub enum ShardIdErrorType {
+    /// Provided shard ID is higher than provided total shard count.
+    IdTooLarge {
+        /// Shard ID.
+        id: u64,
+        /// Total shard count.
+        total: u64,
+    },
+}
 
 /// Builder to configure and construct a shard.
 ///
@@ -154,22 +218,26 @@ impl ShardBuilder {
     ///
     /// # Errors
     ///
-    /// Returns [`LargeThresholdError::TooFew`] if the provided value is below
-    /// 50.
+    /// Returns a [`LargeThresholdErrorType::TooFew`] error type if the provided
+    /// value is below 50.
     ///
-    /// Returns [`LargeThresholdError::TooMany`] if the provided value is above
-    /// 250.
+    /// Returns a [`LargeThresholdErrorType::TooMany`] error type if the
+    /// provided value is above 250.
     pub fn large_threshold(mut self, large_threshold: u64) -> Result<Self, LargeThresholdError> {
         match large_threshold {
             0..=49 => {
-                return Err(LargeThresholdError::TooFew {
-                    value: large_threshold,
+                return Err(LargeThresholdError {
+                    kind: LargeThresholdErrorType::TooFew {
+                        value: large_threshold,
+                    },
                 })
             }
             50..=250 => {}
             251..=u64::MAX => {
-                return Err(LargeThresholdError::TooMany {
-                    value: large_threshold,
+                return Err(LargeThresholdError {
+                    kind: LargeThresholdErrorType::TooMany {
+                        value: large_threshold,
+                    },
                 })
             }
         }
@@ -236,13 +304,15 @@ impl ShardBuilder {
     ///
     /// # Errors
     ///
-    /// Returns [`ShardIdError::IdTooLarge`] if the shard ID to connect as is
-    /// larger than the total.
+    /// Returns a [`ShardIdErrorType::IdTooLarge`] error type if the shard ID to
+    /// connect as is larger than the total.
     pub fn shard(mut self, shard_id: u64, shard_total: u64) -> Result<Self, ShardIdError> {
         if shard_id >= shard_total {
-            return Err(ShardIdError::IdTooLarge {
-                id: shard_id,
-                total: shard_total,
+            return Err(ShardIdError {
+                kind: ShardIdErrorType::IdTooLarge {
+                    id: shard_id,
+                    total: shard_total,
+                },
             });
         }
 
@@ -260,14 +330,17 @@ impl<T: Into<String>> From<(T, Intents)> for ShardBuilder {
 
 #[cfg(test)]
 mod tests {
-    use super::{LargeThresholdError, ShardBuilder, ShardIdError};
+    use super::{
+        LargeThresholdError, LargeThresholdErrorType, ShardBuilder, ShardIdError, ShardIdErrorType,
+    };
     use crate::Intents;
     use static_assertions::{assert_fields, assert_impl_all};
     use std::{error::Error, fmt::Debug};
 
-    assert_fields!(LargeThresholdError::TooFew: value);
-    assert_fields!(LargeThresholdError::TooMany: value);
-    assert_impl_all!(LargeThresholdError: Debug, Error, Send, Sync);
+    assert_impl_all!(LargeThresholdErrorType: Debug, Send, Sync);
+    assert_fields!(LargeThresholdErrorType::TooFew: value);
+    assert_fields!(LargeThresholdErrorType::TooMany: value);
+    assert_impl_all!(LargeThresholdError: Error, Send, Sync);
     assert_impl_all!(
         ShardBuilder: Clone,
         Debug,
@@ -275,6 +348,7 @@ mod tests {
         Send,
         Sync
     );
-    assert_fields!(ShardIdError::IdTooLarge: id, total);
-    assert_impl_all!(ShardIdError: Debug, Error, Send, Sync);
+    assert_impl_all!(ShardIdErrorType: Debug, Send, Sync);
+    assert_fields!(ShardIdErrorType::IdTooLarge: id, total);
+    assert_impl_all!(ShardIdError: Error, Send, Sync);
 }

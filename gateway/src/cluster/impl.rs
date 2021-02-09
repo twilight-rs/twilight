@@ -3,7 +3,7 @@ use super::{
     config::Config,
 };
 use crate::{
-    shard::{raw_message::Message, CommandError, Information, ResumeSession, SendError, Shard},
+    shard::{raw_message::Message, Information, ResumeSession, Shard},
     EventTypeFlags, Intents,
 };
 use futures_util::{
@@ -17,41 +17,62 @@ use std::{
     iter::FromIterator,
     sync::{Arc, Mutex},
 };
-use twilight_http::Error as HttpError;
 use twilight_model::gateway::event::Event;
 
 /// Sending a command to a shard failed.
 #[derive(Debug)]
-#[non_exhaustive]
-pub enum ClusterCommandError {
-    /// The shard exists, but sending the provided value failed.
-    Sending {
-        /// Reason for the error.
-        source: CommandError,
-    },
-    /// Provided shard ID does not exist.
-    ShardNonexistent {
-        /// Provided shard ID.
-        id: u64,
-    },
+pub struct ClusterCommandError {
+    kind: ClusterCommandErrorType,
+    source: Option<Box<dyn Error + Send + Sync>>,
 }
 
 impl ClusterCommandError {
+    /// Immutable reference to the type of error that occurred.
+    #[must_use = "retrieving the type has no effect if left unused"]
+    pub fn kind(&self) -> &ClusterCommandErrorType {
+        &self.kind
+    }
+
+    /// Consume the error, returning the source error if there is any.
+    #[must_use = "consuming the error and retrieving the source has no effect if left unused"]
+    pub fn into_source(self) -> Option<Box<dyn Error + Send + Sync>> {
+        self.source
+    }
+
+    /// Consume the error, returning the owned error type and the source error.
+    #[must_use = "consuming the error into its parts has no effect if left unused"]
+    pub fn into_parts(
+        self,
+    ) -> (
+        ClusterCommandErrorType,
+        Option<Box<dyn Error + Send + Sync>>,
+    ) {
+        (self.kind, self.source)
+    }
+
     fn from_send(error: ClusterSendError) -> Self {
-        match error {
-            ClusterSendError::Sending { source } => Self::Sending {
-                source: CommandError::from_send(source),
+        let (kind, source) = error.into_parts();
+
+        match kind {
+            ClusterSendErrorType::Sending => Self {
+                source,
+                kind: ClusterCommandErrorType::Sending,
             },
-            ClusterSendError::ShardNonexistent { id } => Self::ShardNonexistent { id },
+            ClusterSendErrorType::ShardNonexistent { id } => Self {
+                source,
+                kind: ClusterCommandErrorType::ShardNonexistent { id },
+            },
         }
     }
 }
 
 impl Display for ClusterCommandError {
     fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
-        match self {
-            Self::Sending { source } => Display::fmt(source, f),
-            Self::ShardNonexistent { id } => {
+        match &self.kind {
+            ClusterCommandErrorType::Sending => {
+                f.write_str("sending the message over the websocket failed")
+            }
+            ClusterCommandErrorType::ShardNonexistent { id } => {
                 f.write_fmt(format_args!("shard {} does not exist", id,))
             }
         }
@@ -60,22 +81,18 @@ impl Display for ClusterCommandError {
 
 impl Error for ClusterCommandError {
     fn source(&self) -> Option<&(dyn Error + 'static)> {
-        match self {
-            Self::Sending { source } => Some(source),
-            Self::ShardNonexistent { .. } => None,
-        }
+        self.source
+            .as_ref()
+            .map(|source| &**source as &(dyn Error + 'static))
     }
 }
 
-/// Sending a raw websocket message via a shard failed.
+/// Type of [`ClusterCommandError`] that occurred.
 #[derive(Debug)]
 #[non_exhaustive]
-pub enum ClusterSendError {
+pub enum ClusterCommandErrorType {
     /// The shard exists, but sending the provided value failed.
-    Sending {
-        /// Reason for the error.
-        source: SendError,
-    },
+    Sending,
     /// Provided shard ID does not exist.
     ShardNonexistent {
         /// Provided shard ID.
@@ -83,11 +100,39 @@ pub enum ClusterSendError {
     },
 }
 
+/// Sending a raw websocket message via a shard failed.
+#[derive(Debug)]
+pub struct ClusterSendError {
+    kind: ClusterSendErrorType,
+    source: Option<Box<dyn Error + Send + Sync>>,
+}
+
+impl ClusterSendError {
+    /// Immutable reference to the type of error that occurred.
+    #[must_use = "retrieving the type has no effect if left unused"]
+    pub fn kind(&self) -> &ClusterSendErrorType {
+        &self.kind
+    }
+
+    /// Consume the error, returning the source error if there is any.
+    #[allow(clippy::unused_self)]
+    #[must_use = "consuming the error and retrieving the source has no effect if left unused"]
+    pub fn into_source(self) -> Option<Box<dyn Error + Send + Sync>> {
+        self.source
+    }
+
+    /// Consume the error, returning the owned error type and the source error.
+    #[must_use = "consuming the error into its parts has no effect if left unused"]
+    pub fn into_parts(self) -> (ClusterSendErrorType, Option<Box<dyn Error + Send + Sync>>) {
+        (self.kind, self.source)
+    }
+}
+
 impl Display for ClusterSendError {
     fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
-        match self {
-            Self::Sending { source } => Display::fmt(source, f),
-            Self::ShardNonexistent { id } => {
+        match &self.kind {
+            ClusterSendErrorType::Sending => f.write_str("failed to send message over websocket"),
+            ClusterSendErrorType::ShardNonexistent { id } => {
                 f.write_fmt(format_args!("shard {} does not exist", id))
             }
         }
@@ -96,34 +141,56 @@ impl Display for ClusterSendError {
 
 impl Error for ClusterSendError {
     fn source(&self) -> Option<&(dyn Error + 'static)> {
-        match self {
-            Self::Sending { source } => Some(source),
-            Self::ShardNonexistent { .. } => None,
-        }
+        self.source
+            .as_ref()
+            .map(|source| &**source as &(dyn Error + 'static))
     }
+}
+
+/// Type of [`ClusterSendError`] that occurred.
+#[derive(Debug)]
+#[non_exhaustive]
+pub enum ClusterSendErrorType {
+    /// The shard exists, but sending the provided value failed.
+    Sending,
+    /// Provided shard ID does not exist.
+    ShardNonexistent {
+        /// Provided shard ID.
+        id: u64,
+    },
 }
 
 /// Starting a cluster failed.
 #[derive(Debug)]
-#[non_exhaustive]
-pub enum ClusterStartError {
-    /// Retrieving the bot's gateway information via the HTTP API failed.
-    ///
-    /// This can occur when using [automatic sharding] and retrieval of the
-    /// number of recommended number of shards to start fails, which can happen
-    /// due to something like a network or response parsing issue.
-    ///
-    /// [automatic sharding]: ShardScheme::Auto
-    RetrievingGatewayInfo {
-        /// Reason for the error.
-        source: HttpError,
-    },
+pub struct ClusterStartError {
+    kind: ClusterStartErrorType,
+    source: Option<Box<dyn Error + Send + Sync>>,
+}
+
+impl ClusterStartError {
+    /// Immutable reference to the type of error that occurred.
+    #[must_use = "retrieving the type has no effect if left unused"]
+    pub fn kind(&self) -> &ClusterStartErrorType {
+        &self.kind
+    }
+
+    /// Consume the error, returning the source error if there is any.
+    #[must_use = "consuming the error and retrieving the source has no effect if left unused"]
+    pub fn into_source(self) -> Option<Box<dyn Error + Send + Sync>> {
+        self.source
+    }
+
+    /// Consume the error, returning the owned error type and the source error.
+    #[must_use = "consuming the error into its parts has no effect if left unused"]
+    pub fn into_parts(self) -> (ClusterStartErrorType, Option<Box<dyn Error + Send + Sync>>) {
+        (self.kind, self.source)
+    }
 }
 
 impl Display for ClusterStartError {
     fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
-        match self {
-            Self::RetrievingGatewayInfo { .. } => {
+        match &self.kind {
+            ClusterStartErrorType::RetrievingGatewayInfo { .. } => {
                 f.write_str("getting the bot's gateway info failed")
             }
         }
@@ -132,10 +199,24 @@ impl Display for ClusterStartError {
 
 impl Error for ClusterStartError {
     fn source(&self) -> Option<&(dyn Error + 'static)> {
-        match self {
-            Self::RetrievingGatewayInfo { source } => Some(source),
-        }
+        self.source
+            .as_ref()
+            .map(|source| &**source as &(dyn Error + 'static))
     }
+}
+
+/// Type of [`ClusterStartErrorType`] that occurred.
+#[derive(Debug)]
+#[non_exhaustive]
+pub enum ClusterStartErrorType {
+    /// Retrieving the bot's gateway information via the HTTP API failed.
+    ///
+    /// This can occur when using [automatic sharding] and retrieval of the
+    /// number of recommended number of shards to start fails, which can happen
+    /// due to something like a network or response parsing issue.
+    ///
+    /// [automatic sharding]: ShardScheme::Auto
+    RetrievingGatewayInfo,
 }
 
 #[derive(Debug)]
@@ -169,8 +250,8 @@ impl Cluster {
     ///
     /// # Errors
     ///
-    /// Returns [`ClusterStartError::RetrievingGatewayInfo`] if there was an
-    /// HTTP error Retrieving the gateway information.
+    /// Returns a [`ClusterStartErrorType::RetrievingGatewayInfo`] error type if
+    /// there was an HTTP error Retrieving the gateway information.
     ///
     /// [`builder`]: Self::builder
     pub async fn new(
@@ -185,11 +266,14 @@ impl Cluster {
             ShardScheme::Auto => {
                 let http = config.http_client();
 
-                let gateway = http
-                    .gateway()
-                    .authed()
-                    .await
-                    .map_err(|source| ClusterStartError::RetrievingGatewayInfo { source })?;
+                let gateway =
+                    http.gateway()
+                        .authed()
+                        .await
+                        .map_err(|source| ClusterStartError {
+                            kind: ClusterStartErrorType::RetrievingGatewayInfo,
+                            source: Some(Box::new(source)),
+                        })?;
 
                 [0, gateway.shards - 1, gateway.shards]
             }
@@ -358,35 +442,39 @@ impl Cluster {
     ///
     /// # Errors
     ///
-    /// Returns [`ClusterCommandError::Sending`] if the shard exists, but
-    /// sending it failed.
+    /// Returns a [`ClusterCommandErrorType::Sending`] error type if the shard
+    /// exists, but sending it failed.
     ///
-    /// Returns [`ClusterCommandError::ShardNonexistent`] if the provided shard
-    /// ID does not exist in the cluster.
+    /// Returns a [`ClusterCommandErrorType::ShardNonexistent`] error type if
+    /// the provided shard ID does not exist in the cluster.
     pub async fn command(
         &self,
         id: u64,
         value: &impl serde::Serialize,
     ) -> Result<(), ClusterCommandError> {
-        let shard = self
-            .shard(id)
-            .ok_or(ClusterCommandError::ShardNonexistent { id })?;
+        let shard = self.shard(id).ok_or(ClusterCommandError {
+            kind: ClusterCommandErrorType::ShardNonexistent { id },
+            source: None,
+        })?;
 
         shard
             .command(value)
             .await
-            .map_err(|source| ClusterCommandError::Sending { source })
+            .map_err(|source| ClusterCommandError {
+                kind: ClusterCommandErrorType::Sending,
+                source: Some(Box::new(source)),
+            })
     }
 
     /// Send a raw command to the specified shard.
     ///
     /// # Errors
     ///
-    /// Returns [`ClusterCommandError::Sending`] if the shard exists, but
-    /// sending it failed.
+    /// Returns a [`ClusterCommandErrorType::Sending`] error type if the shard
+    /// exists, but sending it failed.
     ///
-    /// Returns [`ClusterCommandError::ShardNonexistent`] if the provided shard
-    /// ID does not exist in the cluster.
+    /// Returns a [`ClusterCommandErrorType::ShardNonexistent`] error type if
+    /// the provided shard ID does not exist in the cluster.
     #[deprecated(note = "Use `send` which is more versatile", since = "0.3.0")]
     pub async fn command_raw(&self, id: u64, value: Vec<u8>) -> Result<(), ClusterCommandError> {
         self.send(id, Message::Binary(value))
@@ -422,22 +510,26 @@ impl Cluster {
     ///
     /// # Errors
     ///
-    /// Returns [`ClusterCommandError::Sending`] if the shard exists, but
-    /// sending the close code failed.
+    /// Returns [`ClusterCommandErrorType::Sending`] error type if the shard
+    /// exists, but sending the close code failed.
     ///
-    /// Returns a [`ClusterCommandError::ShardNonexistent`] if the provided shard
-    /// ID does not exist in the cluster.
+    /// Returns a [`ClusterCommandErrorType::ShardNonexistent`] error type if
+    /// the provided shard ID does not exist in the cluster.
     ///
     /// [`SessionInactiveError`]: struct.SessionInactiveError.html
     pub async fn send(&self, id: u64, message: Message) -> Result<(), ClusterSendError> {
-        let shard = self
-            .shard(id)
-            .ok_or(ClusterSendError::ShardNonexistent { id })?;
+        let shard = self.shard(id).ok_or(ClusterSendError {
+            kind: ClusterSendErrorType::ShardNonexistent { id },
+            source: None,
+        })?;
 
         shard
             .send(message)
             .await
-            .map_err(|source| ClusterSendError::Sending { source })
+            .map_err(|source| ClusterSendError {
+                kind: ClusterSendErrorType::Sending,
+                source: Some(Box::new(source)),
+            })
     }
 
     /// Return a stream of events from all shards managed by this Cluster.
@@ -526,17 +618,20 @@ impl Cluster {
 
 #[cfg(test)]
 mod tests {
-    use super::{Cluster, ClusterCommandError, ClusterSendError, ClusterStartError};
+    use super::{
+        Cluster, ClusterCommandError, ClusterCommandErrorType, ClusterSendError,
+        ClusterSendErrorType, ClusterStartError, ClusterStartErrorType,
+    };
     use static_assertions::{assert_fields, assert_impl_all};
     use std::{error::Error, fmt::Debug};
 
-    assert_fields!(ClusterCommandError::Sending: source);
-    assert_fields!(ClusterCommandError::ShardNonexistent: id);
-    assert_impl_all!(ClusterCommandError: Debug, Error, Send, Sync);
-    assert_fields!(ClusterSendError::Sending: source);
-    assert_fields!(ClusterSendError::ShardNonexistent: id);
-    assert_impl_all!(ClusterSendError: Debug, Error, Send, Sync);
-    assert_fields!(ClusterStartError::RetrievingGatewayInfo: source);
-    assert_impl_all!(ClusterStartError: Debug, Error, Send, Sync);
+    assert_impl_all!(ClusterCommandErrorType: Debug, Send, Sync);
+    assert_fields!(ClusterCommandErrorType::ShardNonexistent: id);
+    assert_impl_all!(ClusterCommandError: Error, Send, Sync);
+    assert_impl_all!(ClusterSendErrorType: Debug, Send, Sync);
+    assert_fields!(ClusterSendErrorType::ShardNonexistent: id);
+    assert_impl_all!(ClusterSendError: Error, Send, Sync);
+    assert_impl_all!(ClusterStartErrorType: Debug, Send, Sync);
+    assert_impl_all!(ClusterStartError: Error, Send, Sync);
     assert_impl_all!(Cluster: Clone, Debug, Send, Sync);
 }

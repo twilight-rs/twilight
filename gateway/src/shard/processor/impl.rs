@@ -1,22 +1,21 @@
 use super::{
     super::{
         config::Config,
-        json::{self, GatewayEventParsingError},
+        json::{self, GatewayEventParsingError, GatewayEventParsingErrorType},
         stage::Stage,
         ShardStream,
     },
-    emitter::{EmitJsonError, Emitter},
+    emitter::{EmitJsonErrorType, Emitter},
     inflater::Inflater,
-    session::{Session, SessionSendError},
+    session::{Session, SessionSendError, SessionSendErrorType},
     socket_forwarder::SocketForwarder,
 };
 use crate::{event::EventTypeFlags, listener::Listeners};
 use async_tungstenite::tungstenite::{
     protocol::{frame::coding::CloseCode, CloseFrame},
-    Error as TungsteniteError, Message,
+    Message,
 };
-use flate2::DecompressError;
-use futures_channel::mpsc::{TrySendError, UnboundedReceiver};
+use futures_channel::mpsc::UnboundedReceiver;
 use futures_util::stream::StreamExt;
 use serde::{Deserialize, Serialize};
 use std::{
@@ -24,7 +23,7 @@ use std::{
     env::consts::OS,
     error::Error,
     fmt::{Display, Formatter, Result as FmtResult},
-    str::{self, Utf8Error},
+    str,
     sync::{atomic::Ordering, Arc},
     time::Duration,
 };
@@ -43,39 +42,91 @@ use twilight_model::gateway::{
     },
     Intents, OpCode,
 };
-use url::{ParseError as UrlParseError, Url};
+use url::Url;
 
 /// Connecting to the gateway failed.
 #[derive(Debug)]
-#[non_exhaustive]
-pub enum ConnectingError {
-    Establishing { source: TungsteniteError },
-    ParsingUrl { source: UrlParseError, url: String },
+pub struct ConnectingError {
+    kind: ConnectingErrorType,
+    source: Option<Box<dyn Error + Send + Sync>>,
+}
+
+impl ConnectingError {
+    /// Consume the error, returning the owned error type and the source error.
+    #[must_use = "consuming the error into its parts has no effect if left unused"]
+    pub fn into_parts(self) -> (ConnectingErrorType, Option<Box<dyn Error + Send + Sync>>) {
+        (self.kind, self.source)
+    }
 }
 
 impl Display for ConnectingError {
     fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
-        match self {
-            Self::Establishing { source } => Display::fmt(source, f),
-            Self::ParsingUrl { source, url } => f.write_fmt(format_args!(
-                "the gateway url `{}` is invalid: {}",
-                url, source,
-            )),
+        match &self.kind {
+            ConnectingErrorType::Establishing => f.write_str("failed to establish the connection"),
+            ConnectingErrorType::ParsingUrl { url } => {
+                f.write_fmt(format_args!("the gateway url `{}` is invalid", url,))
+            }
         }
     }
 }
 
 impl Error for ConnectingError {
     fn source(&self) -> Option<&(dyn Error + 'static)> {
-        match self {
-            Self::Establishing { source } => Some(source),
-            Self::ParsingUrl { source, .. } => Some(source),
+        self.source
+            .as_ref()
+            .map(|source| &**source as &(dyn Error + 'static))
+    }
+}
+
+/// Type of [`ConnectingError`] that occurred.
+#[derive(Debug)]
+#[non_exhaustive]
+pub enum ConnectingErrorType {
+    Establishing,
+    ParsingUrl { url: String },
+}
+
+#[derive(Debug)]
+struct ProcessError {
+    kind: ProcessErrorType,
+    source: Option<Box<dyn Error + Send + Sync>>,
+}
+
+impl ProcessError {
+    fn fatal(&self) -> bool {
+        matches!(self.kind, ProcessErrorType::SendingClose { .. } | ProcessErrorType::SessionSend { .. })
+    }
+}
+
+impl Display for ProcessError {
+    fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
+        match &self.kind {
+            ProcessErrorType::EventTypeUnknown { event_type, op } => f.write_fmt(format_args!(
+                "provided event type ({:?})/op ({}) pair is unknown",
+                event_type, op,
+            )),
+            ProcessErrorType::ParsingPayload => f.write_str("payload could not be parsed as json"),
+            ProcessErrorType::PayloadNotUtf8 { .. } => {
+                f.write_str("the payload from Discord wasn't UTF-8 valid")
+            }
+            ProcessErrorType::SendingClose => f.write_str("couldn't send close message"),
+            ProcessErrorType::SequenceMissing => f.write_str("sequence missing from payload"),
+            ProcessErrorType::SessionSend => f.write_str("shard hasn't been started"),
         }
     }
 }
 
+impl Error for ProcessError {
+    fn source(&self) -> Option<&(dyn Error + 'static)> {
+        self.source
+            .as_ref()
+            .map(|source| &**source as &(dyn Error + 'static))
+    }
+}
+
+/// Type of [`ProcessError`] that occurred.
 #[derive(Debug)]
-enum ProcessError {
+enum ProcessErrorType {
     /// Provided event type and/or opcode combination doesn't match a known
     /// event type flag.
     EventTypeUnknown {
@@ -85,77 +136,87 @@ enum ProcessError {
         op: u8,
     },
     /// There was an error parsing a GatewayEvent payload.
-    ParsingPayload {
-        /// Reason for the error.
-        source: GatewayEventParsingError,
-    },
+    ParsingPayload,
     /// The binary payload received from Discord wasn't validly encoded as
     /// UTF-8.
-    PayloadNotUtf8 {
-        /// Source error when converting to a UTF-8 valid string.
-        source: Utf8Error,
-    },
+    PayloadNotUtf8,
     /// A close message tried to be sent but the receiving half was dropped.
     /// This typically means that the shard is shutdown.
-    SendingClose {
-        /// Reason for the error.
-        source: TrySendError<Message>,
-    },
+    SendingClose,
     /// The sequence was missing from the payload.
     SequenceMissing,
     /// Sending a message over the session was unsuccessful.
-    SessionSend {
-        /// Reason for the error.
-        source: SessionSendError,
-    },
-}
-
-impl ProcessError {
-    fn fatal(&self) -> bool {
-        matches!(self, Self::SendingClose { .. } | Self::SessionSend { .. })
-    }
-}
-
-impl Display for ProcessError {
-    fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
-        match self {
-            Self::EventTypeUnknown { event_type, op } => f.write_fmt(format_args!(
-                "provided event type ({:?})/op ({}) pair is unknown",
-                event_type, op,
-            )),
-            Self::ParsingPayload { source } => Display::fmt(source, f),
-            Self::PayloadNotUtf8 { .. } => {
-                f.write_str("the payload from Discord wasn't UTF-8 valid")
-            }
-            Self::SendingClose { source } => Display::fmt(source, f),
-            Self::SequenceMissing => f.write_str("sequence missing from payload"),
-            Self::SessionSend { source } => Display::fmt(source, f),
-        }
-    }
-}
-
-impl Error for ProcessError {
-    fn source(&self) -> Option<&(dyn Error + 'static)> {
-        match self {
-            Self::ParsingPayload { source } => Some(source),
-            Self::PayloadNotUtf8 { source } => Some(source),
-            Self::SendingClose { source } => Some(source),
-            Self::SessionSend { source } => Some(source),
-            Self::EventTypeUnknown { .. } | Self::SequenceMissing => None,
-        }
-    }
+    SessionSend,
 }
 
 #[derive(Debug)]
-#[non_exhaustive]
-enum ReceivingEventError {
+struct ReceivingEventError {
+    kind: ReceivingEventErrorType,
+    source: Option<Box<dyn Error + Send + Sync>>,
+}
+
+impl ReceivingEventError {
+    fn fatal(&self) -> bool {
+        matches!(
+            self.kind,
+            ReceivingEventErrorType::AuthorizationInvalid { .. }
+            | ReceivingEventErrorType::IntentsDisallowed { .. }
+            | ReceivingEventErrorType::IntentsInvalid { .. }
+        )
+    }
+
+    fn reconnectable(&self) -> bool {
+        matches!(self.kind, ReceivingEventErrorType::Decompressing)
+    }
+
+    fn resumable(&self) -> bool {
+        matches!(self.kind, ReceivingEventErrorType::EventStreamEnded)
+    }
+}
+
+impl Display for ReceivingEventError {
+    fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
+        match &self.kind {
+            ReceivingEventErrorType::AuthorizationInvalid { shard_id, .. } => f.write_fmt(
+                format_args!("the authorization token for shard {} is invalid", shard_id),
+            ),
+            ReceivingEventErrorType::Decompressing => {
+                f.write_str("a frame could not be decompressed")
+            }
+            ReceivingEventErrorType::IntentsDisallowed { intents, shard_id } => {
+                f.write_fmt(format_args!(
+                    "at least one of the intents ({:?}) for shard {} are disallowed",
+                    intents, shard_id
+                ))
+            }
+            ReceivingEventErrorType::IntentsInvalid { intents, shard_id } => {
+                f.write_fmt(format_args!(
+                    "at least one of the intents ({:?}) for shard {} are invalid",
+                    intents, shard_id
+                ))
+            }
+            ReceivingEventErrorType::EventStreamEnded => {
+                f.write_str("event stream from gateway ended")
+            }
+        }
+    }
+}
+
+impl Error for ReceivingEventError {
+    fn source(&self) -> Option<&(dyn Error + 'static)> {
+        self.source
+            .as_ref()
+            .map(|source| &**source as &(dyn Error + 'static))
+    }
+}
+
+/// Type of [`ReceivingEventError`] that occurred.
+#[derive(Debug)]
+enum ReceivingEventErrorType {
     /// Provided authorization token is invalid.
     AuthorizationInvalid { shard_id: u64, token: String },
     /// Decompressing a frame from Discord failed.
-    Decompressing {
-        /// Reason for the error.
-        source: DecompressError,
-    },
+    Decompressing,
     /// The event stream has ended, this is recoverable by resuming.
     EventStreamEnded,
     /// Current user isn't allowed to use at least one of the configured
@@ -178,48 +239,6 @@ enum ReceivingEventError {
         shard_id: u64,
     },
 }
-
-impl ReceivingEventError {
-    fn fatal(&self) -> bool {
-        matches!(
-            self,
-            ReceivingEventError::AuthorizationInvalid { .. }
-                | ReceivingEventError::IntentsDisallowed { .. }
-                | ReceivingEventError::IntentsInvalid { .. }
-        )
-    }
-
-    fn reconnectable(&self) -> bool {
-        matches!(self, ReceivingEventError::Decompressing { .. })
-    }
-
-    fn resumable(&self) -> bool {
-        matches!(self, ReceivingEventError::EventStreamEnded)
-    }
-}
-
-impl Display for ReceivingEventError {
-    fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
-        match self {
-            Self::AuthorizationInvalid { shard_id, .. } => f.write_fmt(format_args!(
-                "the authorization token for shard {} is invalid",
-                shard_id
-            )),
-            Self::Decompressing { .. } => f.write_str("a frame could not be decompressed"),
-            Self::IntentsDisallowed { intents, shard_id } => f.write_fmt(format_args!(
-                "at least one of the intents ({:?}) for shard {} are disallowed",
-                intents, shard_id
-            )),
-            Self::IntentsInvalid { intents, shard_id } => f.write_fmt(format_args!(
-                "at least one of the intents ({:?}) for shard {} are invalid",
-                intents, shard_id
-            )),
-            Self::EventStreamEnded => f.write_str("event stream from gateway ended"),
-        }
-    }
-}
-
-impl Error for ReceivingEventError {}
 
 #[derive(Deserialize)]
 struct ReadyMinimal {
@@ -346,8 +365,11 @@ impl ShardProcessor {
 
     async fn process(&mut self) -> Result<(), ProcessError> {
         let (op, seq, event_type) = {
-            let json = str::from_utf8_mut(self.inflater.buffer_mut())
-                .map_err(|source| ProcessError::PayloadNotUtf8 { source })?;
+            let json =
+                str::from_utf8_mut(self.inflater.buffer_mut()).map_err(|source| ProcessError {
+                    kind: ProcessErrorType::PayloadNotUtf8,
+                    source: Some(Box::new(source)),
+                })?;
 
             tracing::trace!(%json, "Received JSON");
             let emitter = self.emitter.clone();
@@ -372,8 +394,12 @@ impl ShardProcessor {
                         "received payload without opcode",
                     );
 
-                    return Err(ProcessError::ParsingPayload {
-                        source: GatewayEventParsingError::PayloadInvalid,
+                    return Err(ProcessError {
+                        kind: ProcessErrorType::ParsingPayload,
+                        source: Some(Box::new(GatewayEventParsingError {
+                            kind: GatewayEventParsingErrorType::PayloadInvalid,
+                            source: None,
+                        })),
                     });
                 };
 
@@ -395,8 +421,12 @@ impl ShardProcessor {
                 } else if op == OpCode::Reconnect as u8 {
                     GatewayEvent::Reconnect
                 } else {
-                    json::parse_gateway_event(op, seq, event_type.as_deref(), json)
-                        .map_err(|source| ProcessError::ParsingPayload { source })?
+                    json::parse_gateway_event(op, seq, event_type.as_deref(), json).map_err(
+                        |source| ProcessError {
+                            kind: ProcessErrorType::ParsingPayload,
+                            source: Some(Box::new(source)),
+                        },
+                    )?
                 };
 
                 self.process_gateway_event(&gateway_event).await?;
@@ -409,7 +439,10 @@ impl ShardProcessor {
                 return Ok(());
             }
 
-            let seq = seq.ok_or(ProcessError::SequenceMissing)?;
+            let seq = seq.ok_or(ProcessError {
+                kind: ProcessErrorType::SequenceMissing,
+                source: None,
+            })?;
 
             if event_type.as_deref() == Some("RESUMED") {
                 self.process_resumed(seq);
@@ -424,8 +457,12 @@ impl ShardProcessor {
                 return Ok(());
             } else if event_type.as_deref() == Some("READY") {
                 let ready = json::from_slice::<ReadyMinimal>(self.inflater.buffer_mut()).map_err(
-                    |source| ProcessError::ParsingPayload {
-                        source: GatewayEventParsingError::Deserializing { source },
+                    |source| ProcessError {
+                        kind: ProcessErrorType::ParsingPayload,
+                        source: Some(Box::new(GatewayEventParsingError {
+                            kind: GatewayEventParsingErrorType::Deserializing,
+                            source: Some(Box::new(source)),
+                        })),
                     },
                 )?;
                 self.process_ready(&ready.d);
@@ -445,10 +482,19 @@ impl ShardProcessor {
 
         self.emitter
             .json(op, Some(seq), event_type.as_deref(), json)
-            .map_err(|source| match source {
-                EmitJsonError::Parsing { source } => ProcessError::ParsingPayload { source },
-                EmitJsonError::EventTypeUnknown { event_type, op } => {
-                    ProcessError::EventTypeUnknown { event_type, op }
+            .map_err(|source| {
+                let (kind, source) = source.into_parts();
+
+                let new_kind = match kind {
+                    EmitJsonErrorType::Parsing => ProcessErrorType::ParsingPayload,
+                    EmitJsonErrorType::EventTypeUnknown { event_type, op } => {
+                        ProcessErrorType::EventTypeUnknown { event_type, op }
+                    }
+                };
+
+                ProcessError {
+                    kind: new_kind,
+                    source,
                 }
             })
     }
@@ -538,9 +584,10 @@ impl ShardProcessor {
                 self.session.start_heartbeater();
             }
 
-            self.send(payload)
-                .await
-                .map_err(|source| ProcessError::SessionSend { source })?;
+            self.send(payload).await.map_err(|source| ProcessError {
+                kind: ProcessErrorType::SessionSend,
+                source: Some(Box::new(source)),
+            })?;
         } else {
             self.session.set_stage(Stage::Identifying);
 
@@ -549,9 +596,10 @@ impl ShardProcessor {
                 self.session.start_heartbeater();
             }
 
-            self.identify()
-                .await
-                .map_err(|source| ProcessError::SessionSend { source })?;
+            self.identify().await.map_err(|source| ProcessError {
+                source: Some(Box::new(source)),
+                kind: ProcessErrorType::SessionSend,
+            })?;
         }
 
         Ok(())
@@ -584,7 +632,10 @@ impl ShardProcessor {
         };
         self.session
             .close(Some(frame))
-            .map_err(|source| ProcessError::SendingClose { source })?;
+            .map_err(|source| ProcessError {
+                source: Some(Box::new(source)),
+                kind: ProcessErrorType::SendingClose,
+            })?;
         self.resume().await;
 
         Ok(())
@@ -594,7 +645,7 @@ impl ShardProcessor {
         if let Err(source) = self.session.send(payload) {
             tracing::warn!("sending message failed: {:?}", source);
 
-            if matches!(source, SessionSendError::Sending { .. }) {
+            if matches!(source.kind(), SessionSendErrorType::Sending { .. }) {
                 self.reconnect().await;
             }
 
@@ -619,11 +670,10 @@ impl ShardProcessor {
         loop {
             // Returns None when the socket forwarder has ended, meaning the
             // connection was dropped.
-            let mut msg = self
-                .rx
-                .next()
-                .await
-                .ok_or(ReceivingEventError::EventStreamEnded)?;
+            let mut msg = self.rx.next().await.ok_or(ReceivingEventError {
+                kind: ReceivingEventErrorType::EventStreamEnded,
+                source: None,
+            })?;
 
             if self.handle_message(&mut msg).await? {
                 return Ok(());
@@ -656,7 +706,12 @@ impl ShardProcessor {
                 let bytes = match self.inflater.msg() {
                     Ok(Some(bytes)) => bytes,
                     Ok(None) => return Ok(false),
-                    Err(source) => return Err(ReceivingEventError::Decompressing { source }),
+                    Err(source) => {
+                        return Err(ReceivingEventError {
+                            kind: ReceivingEventErrorType::Decompressing,
+                            source: Some(Box::new(source)),
+                        })
+                    }
                 };
 
                 self.emitter.bytes(bytes);
@@ -691,21 +746,30 @@ impl ShardProcessor {
         if let Some(close_frame) = close_frame {
             match close_frame.code {
                 CloseCode::Library(4004) => {
-                    return Err(ReceivingEventError::AuthorizationInvalid {
-                        shard_id: self.config.shard()[0],
-                        token: self.config.token().to_owned(),
+                    return Err(ReceivingEventError {
+                        kind: ReceivingEventErrorType::AuthorizationInvalid {
+                            shard_id: self.config.shard()[0],
+                            token: self.config.token().to_owned(),
+                        },
+                        source: None,
                     });
                 }
                 CloseCode::Library(4013) => {
-                    return Err(ReceivingEventError::IntentsInvalid {
-                        intents: self.config.intents(),
-                        shard_id: self.config.shard()[0],
+                    return Err(ReceivingEventError {
+                        kind: ReceivingEventErrorType::IntentsInvalid {
+                            intents: self.config.intents(),
+                            shard_id: self.config.shard()[0],
+                        },
+                        source: None,
                     });
                 }
                 CloseCode::Library(4014) => {
-                    return Err(ReceivingEventError::IntentsDisallowed {
-                        intents: self.config.intents(),
-                        shard_id: self.config.shard()[0],
+                    return Err(ReceivingEventError {
+                        kind: ReceivingEventErrorType::IntentsDisallowed {
+                            intents: self.config.intents(),
+                            shard_id: self.config.shard()[0],
+                        },
+                        source: None,
                     });
                 }
                 _ => {}
@@ -718,14 +782,19 @@ impl ShardProcessor {
     }
 
     async fn connect(url: &str) -> Result<ShardStream, ConnectingError> {
-        let url = Url::parse(url).map_err(|source| ConnectingError::ParsingUrl {
-            source,
-            url: url.to_owned(),
+        let url = Url::parse(url).map_err(|source| ConnectingError {
+            kind: ConnectingErrorType::ParsingUrl {
+                url: url.to_owned(),
+            },
+            source: Some(Box::new(source)),
         })?;
 
         let (stream, _) = async_tungstenite::tokio::connect_async(url)
             .await
-            .map_err(|source| ConnectingError::Establishing { source })?;
+            .map_err(|source| ConnectingError {
+                kind: ConnectingErrorType::Establishing,
+                source: Some(Box::new(source)),
+            })?;
 
         tracing::debug!("Shook hands with remote");
 

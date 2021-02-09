@@ -41,7 +41,11 @@ mod error;
 mod r#impl;
 mod iter;
 
-pub use self::{error::ParseMentionError, iter::MentionIter, r#impl::ParseMention};
+pub use self::{
+    error::{ParseMentionError, ParseMentionErrorType},
+    iter::MentionIter,
+    r#impl::ParseMention,
+};
 
 use std::fmt::{Display, Formatter, Result as FmtResult};
 use twilight_model::id::{ChannelId, EmojiId, RoleId, UserId};

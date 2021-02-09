@@ -35,8 +35,8 @@ macro_rules! poll_req {
                     if let Some(fut) = self.as_mut().fut.as_mut() {
                         let bytes = match fut.as_mut().poll(cx) {
                             Poll::Ready(Ok(bytes)) => bytes,
-                            Poll::Ready(Err(crate::Error::Response { status, .. }))
-                                if status == hyper::StatusCode::NOT_FOUND =>
+                            Poll::Ready(Err(e))
+                                if matches!(e.kind, crate::error::ErrorType::Response { status, .. } if status == hyper::StatusCode::NOT_FOUND) =>
                             {
                                 return Poll::Ready(Ok(None));
                             }
@@ -46,9 +46,11 @@ macro_rules! poll_req {
 
                         let mut bytes = bytes.as_ref().to_vec();
                         return Poll::Ready(json_from_slice(&mut bytes).map(Some).map_err(
-                            |source| crate::Error::Parsing {
-                                body: bytes.to_vec(),
-                                source,
+                            |source| crate::Error {
+                                kind: crate::error::ErrorType::Parsing {
+                                    body: bytes.to_vec(),
+                                },
+                                source: Some(Box::new(source)),
                             },
                         ));
                     }
@@ -85,7 +87,7 @@ pub use self::{
 
 use self::multipart::Form;
 use crate::{
-    error::{Error, Result},
+    error::{Error, ErrorType, Result},
     routing::{Path, Route},
 };
 use bytes::Bytes;
@@ -120,11 +122,12 @@ pub(crate) fn audit_header(reason: &str) -> Result<HeaderMap<HeaderValue>> {
     let header_name = HeaderName::from_static("x-audit-log-reason");
     let mut headers = HeaderMap::new();
     let encoded_reason = utf8_percent_encode(reason, NON_ALPHANUMERIC).to_string();
-    let header_value =
-        HeaderValue::from_str(&encoded_reason).map_err(|e| Error::CreatingHeader {
+    let header_value = HeaderValue::from_str(&encoded_reason).map_err(|e| Error {
+        kind: ErrorType::CreatingHeader {
             name: encoded_reason.clone(),
-            source: e,
-        })?;
+        },
+        source: Some(Box::new(e)),
+    })?;
 
     headers.insert(header_name, header_value);
 

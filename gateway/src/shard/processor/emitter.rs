@@ -1,4 +1,4 @@
-use super::super::json::{self, GatewayEventParsingError};
+use super::super::json;
 use crate::{listener::Listeners, EventTypeFlags};
 use std::{
     convert::TryFrom,
@@ -8,7 +8,41 @@ use std::{
 use twilight_model::gateway::event::{shard::Payload, Event};
 
 #[derive(Debug)]
-pub enum EmitJsonError {
+pub struct EmitJsonError {
+    kind: EmitJsonErrorType,
+    source: Option<Box<dyn Error + Send + Sync>>,
+}
+
+impl EmitJsonError {
+    pub fn into_parts(self) -> (EmitJsonErrorType, Option<Box<dyn Error + Send + Sync>>) {
+        (self.kind, self.source)
+    }
+}
+
+impl Display for EmitJsonError {
+    fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
+        match &self.kind {
+            EmitJsonErrorType::EventTypeUnknown { event_type, op } => f.write_fmt(format_args!(
+                "provided event type ({:?})/op ({}) pair is unknown",
+                event_type, op,
+            )),
+            EmitJsonErrorType::Parsing => f.write_str("parsing a gateway event failed"),
+        }
+    }
+}
+
+impl Error for EmitJsonError {
+    fn source(&self) -> Option<&(dyn Error + 'static)> {
+        self.source
+            .as_ref()
+            .map(|source| &**source as &(dyn Error + 'static))
+    }
+}
+
+/// Type of [`EmitJsonError`] that occurred.
+#[derive(Debug)]
+#[non_exhaustive]
+pub enum EmitJsonErrorType {
     /// Provided event type and/or opcode combination doesn't match a known
     /// event type flag.
     EventTypeUnknown {
@@ -18,31 +52,7 @@ pub enum EmitJsonError {
         op: u8,
     },
     /// Parsing a a gateway event failed.
-    Parsing {
-        /// Reason for the error.
-        source: GatewayEventParsingError,
-    },
-}
-
-impl Display for EmitJsonError {
-    fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
-        match self {
-            Self::EventTypeUnknown { event_type, op } => f.write_fmt(format_args!(
-                "provided event type ({:?})/op ({}) pair is unknown",
-                event_type, op,
-            )),
-            Self::Parsing { source } => Display::fmt(source, f),
-        }
-    }
-}
-
-impl Error for EmitJsonError {
-    fn source(&self) -> Option<&(dyn Error + 'static)> {
-        match self {
-            Self::EventTypeUnknown { .. } => None,
-            Self::Parsing { source } => Some(source),
-        }
-    }
+    Parsing,
 }
 
 /// Emitter over a map of listeners with some useful things on top to abstract
@@ -126,9 +136,12 @@ impl Emitter {
         json: &mut str,
     ) -> Result<(), EmitJsonError> {
         let flag = EventTypeFlags::try_from((op, event_type)).map_err(|(op, event_type)| {
-            EmitJsonError::EventTypeUnknown {
-                event_type: event_type.map(ToOwned::to_owned),
-                op,
+            EmitJsonError {
+                kind: EmitJsonErrorType::EventTypeUnknown {
+                    event_type: event_type.map(ToOwned::to_owned),
+                    op,
+                },
+                source: None,
             }
         })?;
 
@@ -136,8 +149,13 @@ impl Emitter {
             return Ok(());
         }
 
-        let gateway_event = json::parse_gateway_event(op, seq, event_type, json)
-            .map_err(|source| EmitJsonError::Parsing { source })?;
+        let gateway_event =
+            json::parse_gateway_event(op, seq, event_type, json).map_err(|source| {
+                EmitJsonError {
+                    kind: EmitJsonErrorType::Parsing,
+                    source: Some(Box::new(source)),
+                }
+            })?;
         self.event(Event::from(gateway_event));
 
         Ok(())

@@ -1024,7 +1024,7 @@ mod tests {
         assert!(!standby.0.events.is_empty());
         standby.process(&event);
 
-        assert_eq!(Ok(event), wait.await);
+        assert_eq!(event, wait.await.unwrap());
         assert!(standby.0.events.is_empty());
     }
 
@@ -1052,7 +1052,7 @@ mod tests {
         });
         standby.process(&event);
 
-        assert_eq!(Ok(MessageId(3)), wait.await.map(|msg| msg.id));
+        assert_eq!(MessageId(3), wait.await.map(|msg| msg.id).unwrap());
         assert!(standby.0.messages.is_empty());
     }
 
@@ -1082,7 +1082,10 @@ mod tests {
 
         standby.process(&event);
 
-        assert_eq!(Ok(UserId(3)), wait.await.map(|reaction| reaction.user_id));
+        assert_eq!(
+            UserId(3),
+            wait.await.map(|reaction| reaction.user_id).unwrap()
+        );
         assert!(standby.0.reactions.is_empty());
     }
 
@@ -1110,7 +1113,7 @@ mod tests {
         standby.process(&Event::PresencesReplace);
         standby.process(&Event::Resumed);
 
-        assert_eq!(Ok(Event::Resumed), wait.await);
+        assert_eq!(Event::Resumed, wait.await.unwrap());
     }
 
     /// Test that generic event handlers will be given the opportunity to

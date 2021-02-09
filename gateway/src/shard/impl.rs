@@ -3,17 +3,15 @@ use super::{
     config::Config,
     event::Events,
     json,
-    processor::{ConnectingError, Latency, Session, ShardProcessor},
+    processor::{ConnectingErrorType, Latency, Session, ShardProcessor},
     raw_message::Message,
     sink::ShardSink,
     stage::Stage,
 };
 use crate::{listener::Listeners, EventTypeFlags, Intents};
-use async_tungstenite::tungstenite::{
-    protocol::{frame::coding::CloseCode, CloseFrame as TungsteniteCloseFrame},
-    Error as TungsteniteError, Message as TungsteniteMessage,
+use async_tungstenite::tungstenite::protocol::{
+    frame::coding::CloseCode, CloseFrame as TungsteniteCloseFrame,
 };
-use futures_channel::mpsc::TrySendError;
 use futures_util::{
     future::{self, AbortHandle},
     stream::StreamExt,
@@ -27,66 +25,88 @@ use std::{
     sync::{atomic::Ordering, Arc},
 };
 use tokio::sync::watch::Receiver as WatchReceiver;
-use twilight_http::Error as HttpError;
 use twilight_model::gateway::event::Event;
-use url::ParseError as UrlParseError;
-
-#[cfg(not(feature = "simd-json"))]
-use serde_json::Error as JsonError;
-#[cfg(feature = "simd-json")]
-use simd_json::Error as JsonError;
 
 /// Sending a command failed.
 #[derive(Debug)]
-#[non_exhaustive]
-pub enum CommandError {
-    /// Sending the payload over the WebSocket failed. This is indicative of a
-    /// shutdown shard.
-    Sending {
-        /// Reason for the error.
-        source: TrySendError<TungsteniteMessage>,
-    },
-    /// Serializing the payload as JSON failed.
-    Serializing {
-        /// Reason for the error.
-        source: JsonError,
-    },
-    /// Shard's session is inactive because the shard hasn't been started.
-    SessionInactive {
-        /// Reason for the error.
-        source: SessionInactiveError,
-    },
+pub struct CommandError {
+    kind: CommandErrorType,
+    source: Option<Box<dyn Error + Send + Sync>>,
+}
+
+impl CommandError {
+    /// Immutable reference to the type of error that occurred.
+    #[must_use = "retrieving the type has no effect if left unused"]
+    pub fn kind(&self) -> &CommandErrorType {
+        &self.kind
+    }
+
+    /// Consume the error, returning the source error if there is any.
+    #[must_use = "consuming the error and retrieving the source has no effect if left unused"]
+    pub fn into_source(self) -> Option<Box<dyn Error + Send + Sync>> {
+        self.source
+    }
+
+    /// Consume the error, returning the owned error type and the source error.
+    #[must_use = "consuming the error into its parts has no effect if left unused"]
+    pub fn into_parts(self) -> (CommandErrorType, Option<Box<dyn Error + Send + Sync>>) {
+        (self.kind, None)
+    }
 }
 
 impl CommandError {
     pub(crate) fn from_send(error: SendError) -> Self {
-        match error {
-            SendError::Sending { source } => Self::Sending { source },
-            SendError::SessionInactive { source } => Self::SessionInactive { source },
+        let (kind, source) = error.into_parts();
+
+        let new_kind = match kind {
+            SendErrorType::Sending => CommandErrorType::Sending,
+            SendErrorType::SessionInactive => CommandErrorType::SessionInactive,
+        };
+
+        Self {
+            kind: new_kind,
+            source,
         }
     }
 }
 
 impl Display for CommandError {
     fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
-        f.write_str("the shard session is inactive and has not been started")
+        match &self.kind {
+            CommandErrorType::Sending => {
+                f.write_str("sending the message over the websocket failed")
+            }
+            CommandErrorType::Serializing => f.write_str("serializing the value as json failed"),
+            CommandErrorType::SessionInactive => Display::fmt(&SessionInactiveError, f),
+        }
     }
 }
 
 impl Error for CommandError {
     fn source(&self) -> Option<&(dyn Error + 'static)> {
-        match self {
-            Self::Sending { source } => Some(source),
-            Self::Serializing { source } => Some(source),
-            Self::SessionInactive { source } => Some(source),
-        }
+        self.source
+            .as_ref()
+            .map(|source| &**source as &(dyn Error + 'static))
     }
+}
+
+/// Type of [`CommandError`] that occurred.
+#[derive(Debug)]
+#[non_exhaustive]
+pub enum CommandErrorType {
+    /// Sending the payload over the WebSocket failed. This is indicative of a
+    /// shutdown shard.
+    Sending,
+    /// Serializing the payload as JSON failed.
+    Serializing,
+    /// Shard's session is inactive because the shard hasn't been started.
+    SessionInactive,
 }
 
 /// Shard's session is inactive.
 ///
 /// This means that the shard has not yet been started.
-#[derive(Clone, Debug, Eq, PartialEq)]
+#[derive(Debug)]
 #[non_exhaustive]
 pub struct SessionInactiveError;
 
@@ -100,37 +120,96 @@ impl Error for SessionInactiveError {}
 
 /// Starting a shard and connecting to the gateway failed.
 #[derive(Debug)]
+pub struct SendError {
+    kind: SendErrorType,
+    source: Option<Box<dyn Error + Send + Sync>>,
+}
+
+impl SendError {
+    /// Immutable reference to the type of error that occurred.
+    #[must_use = "retrieving the type has no effect if left unused"]
+    pub fn kind(&self) -> &SendErrorType {
+        &self.kind
+    }
+
+    /// Consume the error, returning the source error if there is any.
+    #[must_use = "consuming the error and retrieving the source has no effect if left unused"]
+    pub fn into_source(self) -> Option<Box<dyn Error + Send + Sync>> {
+        self.source
+    }
+
+    /// Consume the error, returning the owned error type and the source error.
+    #[must_use = "consuming the error into its parts has no effect if left unused"]
+    pub fn into_parts(self) -> (SendErrorType, Option<Box<dyn Error + Send + Sync>>) {
+        (self.kind, None)
+    }
+}
+
+impl Display for SendError {
+    fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
+        match &self.kind {
+            SendErrorType::Sending { .. } => {
+                f.write_str("sending the message over the websocket failed")
+            }
+            SendErrorType::SessionInactive { .. } => f.write_str("shard hasn't been started"),
+        }
+    }
+}
+
+impl Error for SendError {
+    fn source(&self) -> Option<&(dyn Error + 'static)> {
+        self.source
+            .as_ref()
+            .map(|source| &**source as &(dyn Error + 'static))
+    }
+}
+
+/// Type of [`SendError`] that occurred.
+#[derive(Debug)]
 #[non_exhaustive]
-pub enum ShardStartError {
-    /// Establishing a connection to the gateway failed.
-    Establishing {
-        /// Reason for the error.
-        source: TungsteniteError,
-    },
-    /// Parsing the gateway URL provided by Discord to connect to the gateway
-    /// failed due to an invalid URL.
-    ParsingGatewayUrl {
-        /// Reason for the error.
-        source: UrlParseError,
-        /// URL that couldn't be parsed.
-        url: String,
-    },
-    /// Retrieving the gateway URL via the Twilight HTTP client failed.
-    RetrievingGatewayUrl {
-        /// The reason for the error.
-        source: HttpError,
-    },
+pub enum SendErrorType {
+    /// Sending the payload over the WebSocket failed. This is indicative of a
+    /// shard that isn't properly running.
+    Sending,
+    /// Shard's session is inactive because the shard hasn't been started.
+    SessionInactive,
+}
+
+/// Starting a shard and connecting to the gateway failed.
+#[derive(Debug)]
+pub struct ShardStartError {
+    kind: ShardStartErrorType,
+    source: Option<Box<dyn Error + Send + Sync>>,
+}
+
+impl ShardStartError {
+    /// Immutable reference to the type of error that occurred.
+    #[must_use = "retrieving the type has no effect if left unused"]
+    pub fn kind(&self) -> &ShardStartErrorType {
+        &self.kind
+    }
+
+    /// Consume the error, returning the source error if there is any.
+    #[must_use = "consuming the error and retrieving the source has no effect if left unused"]
+    pub fn into_source(self) -> Option<Box<dyn Error + Send + Sync>> {
+        self.source
+    }
+
+    /// Consume the error, returning the owned error type and the source error.
+    #[must_use = "consuming the error into its parts has no effect if left unused"]
+    pub fn into_parts(self) -> (ShardStartErrorType, Option<Box<dyn Error + Send + Sync>>) {
+        (self.kind, None)
+    }
 }
 
 impl Display for ShardStartError {
     fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
-        match self {
-            Self::Establishing { source } => Display::fmt(source, f),
-            Self::ParsingGatewayUrl { source, url } => f.write_fmt(format_args!(
-                "the gateway url `{}` is invalid: {}",
-                url, source,
-            )),
-            Self::RetrievingGatewayUrl { .. } => {
+        match &self.kind {
+            ShardStartErrorType::Establishing => f.write_str("establishing the connection failed"),
+            ShardStartErrorType::ParsingGatewayUrl { url } => {
+                f.write_fmt(format_args!("the gateway url `{}` is invalid", url,))
+            }
+            ShardStartErrorType::RetrievingGatewayUrl => {
                 f.write_str("retrieving the gateway URL via HTTP failed")
             }
         }
@@ -139,56 +218,26 @@ impl Display for ShardStartError {
 
 impl Error for ShardStartError {
     fn source(&self) -> Option<&(dyn Error + 'static)> {
-        match self {
-            Self::Establishing { source } => Some(source),
-            Self::ParsingGatewayUrl { source, .. } => Some(source),
-            Self::RetrievingGatewayUrl { source } => Some(source),
-        }
+        self.source
+            .as_ref()
+            .map(|source| &**source as &(dyn Error + 'static))
     }
 }
 
-impl From<ConnectingError> for ShardStartError {
-    fn from(error: ConnectingError) -> Self {
-        match error {
-            ConnectingError::Establishing { source } => Self::Establishing { source },
-            ConnectingError::ParsingUrl { source, url } => Self::ParsingGatewayUrl { source, url },
-        }
-    }
-}
-
-/// Starting a shard and connecting to the gateway failed.
+/// Type of [`ShardStartError`] that occurred.
 #[derive(Debug)]
 #[non_exhaustive]
-pub enum SendError {
-    /// Sending the payload over the WebSocket failed. This is indicative of a
-    /// shard that isn't properly running.
-    Sending {
-        /// Reason for the error.
-        source: TrySendError<TungsteniteMessage>,
+pub enum ShardStartErrorType {
+    /// Establishing a connection to the gateway failed.
+    Establishing,
+    /// Parsing the gateway URL provided by Discord to connect to the gateway
+    /// failed due to an invalid URL.
+    ParsingGatewayUrl {
+        /// URL that couldn't be parsed.
+        url: String,
     },
-    /// Shard's session is inactive because the shard hasn't been started.
-    SessionInactive {
-        /// Reason for the error.
-        source: SessionInactiveError,
-    },
-}
-
-impl Display for SendError {
-    fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
-        match self {
-            Self::Sending { .. } => f.write_str("sending the message over the websocket failed"),
-            Self::SessionInactive { .. } => f.write_str("shard hasn't been started"),
-        }
-    }
-}
-
-impl Error for SendError {
-    fn source(&self) -> Option<&(dyn Error + 'static)> {
-        match self {
-            Self::Sending { source } => Some(source),
-            Self::SessionInactive { source } => Some(source),
-        }
-    }
+    /// Retrieving the gateway URL via the Twilight HTTP client failed.
+    RetrievingGatewayUrl,
 }
 
 /// Information about a shard, including its latency, current session sequence,
@@ -241,6 +290,7 @@ impl Information {
         self.stage
     }
 }
+
 /// Details to resume a gateway session.
 #[derive(Clone, Debug, Deserialize, Serialize)]
 pub struct ResumeSession {
@@ -379,14 +429,14 @@ impl Shard {
     ///
     /// # Errors
     ///
-    /// Returns [`ShardStartError::Establishing`] if establishing a connection
-    /// to the gateway failed.
+    /// Returns a [`ShardStartErrorType::Establishing`] error type if
+    /// establishing a connection to the gateway failed.
     ///
-    /// Returns [`ShardStartError::ParsingGatewayUrl`] if the gateway URL
-    /// couldn't be parsed.
+    /// Returns a [`ShardStartErrorType::ParsingGatewayUrl`] error type if the
+    /// gateway URL couldn't be parsed.
     ///
-    /// Returns [`ShardStartError::RetrievingGatewayUrl`] if the gateway URL
-    /// couldn't be retrieved from the HTTP API.
+    /// Returns a [`ShardStartErrorType::RetrievingGatewayUrl`] error type if
+    /// the gateway URL couldn't be retrieved from the HTTP API.
     pub async fn start(&mut self) -> Result<(), ShardStartError> {
         let url = if let Some(u) = self.0.config.gateway_url.clone() {
             u.into_string()
@@ -397,15 +447,33 @@ impl Shard {
                 .gateway()
                 .authed()
                 .await
-                .map_err(|source| ShardStartError::RetrievingGatewayUrl { source })?
+                .map_err(|source| ShardStartError {
+                    source: Some(Box::new(source)),
+                    kind: ShardStartErrorType::RetrievingGatewayUrl,
+                })?
                 .url
         };
 
         let config = Arc::clone(&self.0.config);
         let listeners = self.0.listeners.clone();
-        let (processor, wrx) = ShardProcessor::new(config, url, listeners)
-            .await
-            .map_err(ShardStartError::from)?;
+        let (processor, wrx) =
+            ShardProcessor::new(config, url, listeners)
+                .await
+                .map_err(|source| {
+                    let (kind, source) = source.into_parts();
+
+                    let new_kind = match kind {
+                        ConnectingErrorType::Establishing => ShardStartErrorType::Establishing,
+                        ConnectingErrorType::ParsingUrl { url } => {
+                            ShardStartErrorType::ParsingGatewayUrl { url }
+                        }
+                    };
+
+                    ShardStartError {
+                        source,
+                        kind: new_kind,
+                    }
+                })?;
         let (fut, handle) = future::abortable(processor.run());
 
         tokio::spawn(async move {
@@ -526,16 +594,20 @@ impl Shard {
     ///
     /// # Errors
     ///
-    /// Returns [`CommandError::Sending`] if the message could not be sent
-    /// over the websocket. This indicates the shard is currently restarting.
+    /// Returns a [`CommandErrorType::Sending`] error type if the message could
+    /// not be sent over the websocket. This indicates the shard is currently
+    /// restarting.
     ///
-    /// Returns [`CommandError::Serializing`] if the provided value failed to
-    /// serialize into JSON.
+    /// Returns a [`CommandErrorType::Serializing`] error type if the provided
+    /// value failed to serialize into JSON.
     ///
-    /// Returns [`CommandError::SessionInactive`] if the shard has not been
-    /// started.
+    /// Returns a [`CommandErrorType::SessionInactive`] error type if the shard
+    /// has not been started.
     pub async fn command(&self, value: &impl serde::Serialize) -> Result<(), CommandError> {
-        let json = json::to_vec(value).map_err(|source| CommandError::Serializing { source })?;
+        let json = json::to_vec(value).map_err(|source| CommandError {
+            source: Some(Box::new(source)),
+            kind: CommandErrorType::Serializing,
+        })?;
 
         self.send(Message::Binary(json))
             .await
@@ -586,11 +658,12 @@ impl Shard {
     ///
     /// # Errors
     ///
-    /// Returns a [`SendError::Sending`] if there is an issue with sending via
-    /// the shard's session. This may occur when the shard is between sessions.
+    /// Returns a [`SendErrorType::Sending`] error type if there is an issue
+    /// with sending via the shard's session. This may occur when the shard is
+    /// between sessions.
     ///
-    /// Returns [`SendError::SessionInactive`] when the shard has not been
-    /// started.
+    /// Returns [`SendErrorType::SessionInactive`] error type when the shard has
+    /// not been started.
     ///
     /// [`shutdown`]: Self::shutdown
     pub async fn send(&self, message: Message) -> Result<(), SendError> {
@@ -601,28 +674,34 @@ impl Shard {
             session
                 .tx
                 .unbounded_send(message.into_tungstenite())
-                .map_err(|source| SendError::Sending { source })
+                .map_err(|source| SendError {
+                    source: Some(Box::new(source)),
+                    kind: SendErrorType::Sending,
+                })
         } else {
-            Err(SendError::SessionInactive {
-                source: SessionInactiveError,
+            Err(SendError {
+                source: Some(Box::new(SessionInactiveError)),
+                kind: SendErrorType::SessionInactive,
             })
         }
     }
 
     /// Send a raw command over the gateway.
     ///
-    /// This method should be used with caution, [`command`] should be preferred.
+    /// This method should be used with caution, [`command`] should be
+    /// preferred.
     ///
     /// # Errors
     ///
-    /// Returns [`CommandError::Sending`] if the message could not be sent
-    /// over the websocket. This indicates the shard is currently restarting.
+    /// Returns a [`CommandErrorType::Sending`] error type if the message could
+    /// not be sent over the websocket. This indicates the shard is currently
+    /// restarting.
     ///
-    /// Returns [`CommandError::Serializing`] if the provided value failed to
-    /// serialize into JSON.
+    /// Returns a [`CommandErrorType::Serializing`] error type if the provided
+    /// value failed to serialize into JSON.
     ///
-    /// Returns [`CommandError::SessionInactive`] if the shard has not been
-    /// started.
+    /// Returns a [`CommandErrorType::SessionInactive`] error type if the shard
+    /// has not been started.
     ///
     /// [`command`]: Self::command
     #[deprecated(note = "Use `send` which is more versatile", since = "0.3.0")]
@@ -709,39 +788,21 @@ impl Shard {
 #[cfg(test)]
 mod tests {
     use super::{
-        CommandError, ConnectingError, Information, ResumeSession, SendError, SessionInactiveError,
-        Shard, ShardStartError,
+        CommandError, CommandErrorType, Information, ResumeSession, SendError, SendErrorType,
+        SessionInactiveError, Shard, ShardStartError, ShardStartErrorType,
     };
     use static_assertions::{assert_fields, assert_impl_all};
     use std::{error::Error, fmt::Debug};
 
-    assert_fields!(CommandError::Sending: source);
-    assert_fields!(CommandError::Serializing: source);
-    assert_fields!(CommandError::SessionInactive: source);
-    assert_impl_all!(CommandError: Debug, Error, Send, Sync);
+    assert_impl_all!(CommandErrorType: Debug, Send, Sync);
+    assert_impl_all!(CommandError: Error, Send, Sync);
     assert_impl_all!(Information: Clone, Debug, Send, Sync);
     assert_impl_all!(ResumeSession: Clone, Debug, Send, Sync);
-    assert_impl_all!(
-        SessionInactiveError: Clone,
-        Debug,
-        Error,
-        Eq,
-        PartialEq,
-        Send,
-        Sync
-    );
-    assert_fields!(SendError::Sending: source);
-    assert_fields!(SendError::SessionInactive: source);
-    assert_impl_all!(SendError: Debug, Error, Send, Sync);
-    assert_fields!(ShardStartError::Establishing: source);
-    assert_fields!(ShardStartError::ParsingGatewayUrl: source, url);
-    assert_fields!(ShardStartError::RetrievingGatewayUrl: source);
-    assert_impl_all!(
-        ShardStartError: Debug,
-        Error,
-        From<ConnectingError>,
-        Send,
-        Sync
-    );
+    assert_impl_all!(SendErrorType: Debug, Send, Sync);
+    assert_impl_all!(SendError: Error, Send, Sync);
+    assert_impl_all!(SessionInactiveError: Error, Send, Sync);
+    assert_fields!(ShardStartErrorType::ParsingGatewayUrl: url);
+    assert_impl_all!(ShardStartErrorType: Debug, Send, Sync);
+    assert_impl_all!(ShardStartError: Error, Send, Sync);
     assert_impl_all!(Shard: Clone, Debug, Send, Sync);
 }

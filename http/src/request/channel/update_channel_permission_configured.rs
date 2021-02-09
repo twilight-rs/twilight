@@ -58,7 +58,7 @@ impl<'a> UpdateChannelPermissionConfigured<'a> {
         Ok(if let Some(reason) = &self.reason {
             let headers = audit_header(&reason)?;
             Request::from((
-                crate::json_to_vec(&self.fields)?,
+                crate::json_to_vec(&self.fields).map_err(HttpError::json)?,
                 headers,
                 Route::UpdatePermissionOverwrite {
                     channel_id: self.channel_id.0,
@@ -67,7 +67,7 @@ impl<'a> UpdateChannelPermissionConfigured<'a> {
             ))
         } else {
             Request::from((
-                crate::json_to_vec(&self.fields)?,
+                crate::json_to_vec(&self.fields).map_err(HttpError::json)?,
                 Route::UpdatePermissionOverwrite {
                     channel_id: self.channel_id.0,
                     target_id: self.target_id,

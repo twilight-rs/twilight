@@ -1,4 +1,4 @@
-use super::error::{RatelimitError, RatelimitResult};
+use super::error::{RatelimitError, RatelimitErrorType, RatelimitResult};
 use hyper::header::{HeaderMap, HeaderValue};
 use std::convert::TryFrom;
 
@@ -109,23 +109,19 @@ fn parse_map(map: &HeaderMap<HeaderValue>) -> RatelimitResult<RatelimitHeaders> 
 fn header_bool(map: &HeaderMap<HeaderValue>, name: &'static str) -> RatelimitResult<bool> {
     let value = map
         .get(name)
-        .ok_or(RatelimitError::HeaderMissing { name })?;
+        .ok_or_else(|| RatelimitError::header_missing(name))?;
 
-    let text = value
-        .to_str()
-        .map_err(|source| RatelimitError::HeaderNotUtf8 {
-            name,
-            source,
-            value: value.as_bytes().to_owned(),
-        })?;
+    let text = value.to_str().map_err(|source| {
+        RatelimitError::header_not_utf8(name, value.as_bytes().to_owned(), source)
+    })?;
 
-    let end = text
-        .parse()
-        .map_err(|source| RatelimitError::ParsingBoolText {
+    let end = text.parse().map_err(|source| RatelimitError {
+        kind: RatelimitErrorType::ParsingBoolText {
             name,
-            source,
             text: text.to_owned(),
-        })?;
+        },
+        source: Some(Box::new(source)),
+    })?;
 
     Ok(end)
 }
@@ -133,23 +129,19 @@ fn header_bool(map: &HeaderMap<HeaderValue>, name: &'static str) -> RatelimitRes
 fn header_float(map: &HeaderMap<HeaderValue>, name: &'static str) -> RatelimitResult<f64> {
     let value = map
         .get(name)
-        .ok_or(RatelimitError::HeaderMissing { name })?;
+        .ok_or_else(|| RatelimitError::header_missing(name))?;
 
-    let text = value
-        .to_str()
-        .map_err(|source| RatelimitError::HeaderNotUtf8 {
-            name,
-            source,
-            value: value.as_bytes().to_owned(),
-        })?;
+    let text = value.to_str().map_err(|source| {
+        RatelimitError::header_not_utf8(name, value.as_bytes().to_owned(), source)
+    })?;
 
-    let end = text
-        .parse()
-        .map_err(|source| RatelimitError::ParsingFloatText {
+    let end = text.parse().map_err(|source| RatelimitError {
+        kind: RatelimitErrorType::ParsingFloatText {
             name,
-            source,
             text: text.to_owned(),
-        })?;
+        },
+        source: Some(Box::new(source)),
+    })?;
 
     Ok(end)
 }
@@ -157,23 +149,19 @@ fn header_float(map: &HeaderMap<HeaderValue>, name: &'static str) -> RatelimitRe
 fn header_int(map: &HeaderMap<HeaderValue>, name: &'static str) -> RatelimitResult<u64> {
     let value = map
         .get(name)
-        .ok_or(RatelimitError::HeaderMissing { name })?;
+        .ok_or_else(|| RatelimitError::header_missing(name))?;
 
-    let text = value
-        .to_str()
-        .map_err(|source| RatelimitError::HeaderNotUtf8 {
-            name,
-            source,
-            value: value.as_bytes().to_owned(),
-        })?;
+    let text = value.to_str().map_err(|source| {
+        RatelimitError::header_not_utf8(name, value.as_bytes().to_owned(), source)
+    })?;
 
-    let end = text
-        .parse()
-        .map_err(|source| RatelimitError::ParsingIntText {
+    let end = text.parse().map_err(|source| RatelimitError {
+        kind: RatelimitErrorType::ParsingIntText {
             name,
-            source,
             text: text.to_owned(),
-        })?;
+        },
+        source: Some(Box::new(source)),
+    })?;
 
     Ok(end)
 }
@@ -181,15 +169,11 @@ fn header_int(map: &HeaderMap<HeaderValue>, name: &'static str) -> RatelimitResu
 fn header_str<'a>(map: &'a HeaderMap<HeaderValue>, name: &'static str) -> RatelimitResult<&'a str> {
     let value = map
         .get(name)
-        .ok_or(RatelimitError::HeaderMissing { name })?;
+        .ok_or_else(|| RatelimitError::header_missing(name))?;
 
-    let text = value
-        .to_str()
-        .map_err(|source| RatelimitError::HeaderNotUtf8 {
-            name,
-            source,
-            value: value.as_bytes().to_owned(),
-        })?;
+    let text = value.to_str().map_err(|source| {
+        RatelimitError::header_not_utf8(name, value.as_bytes().to_owned(), source)
+    })?;
 
     Ok(text)
 }

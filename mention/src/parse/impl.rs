@@ -1,4 +1,4 @@
-use super::{MentionIter, MentionType, ParseMentionError};
+use super::{MentionIter, MentionType, ParseMentionError, ParseMentionErrorType};
 use std::str::Chars;
 use twilight_model::id::{ChannelId, EmojiId, RoleId, UserId};
 
@@ -37,14 +37,14 @@ pub trait ParseMention: private::Sealed {
     ///
     /// # Errors
     ///
-    /// Returns [`ParseMentionError::LeadingArrow`] if the leading arrow is not
-    /// present.
+    /// Returns a [`ParseMentionErrorType::LeadingArrow`] error type if the
+    /// leading arrow is not present.
     ///
-    /// Returns [`ParseMentionError::Sigil`] if the mention type's sigil is not
-    /// present after the leading arrow.
+    /// Returns a [`ParseMentionErrorType::Sigil`] error type if the mention
+    /// type's sigil is not present after the leading arrow.
     ///
-    /// Returns [`ParseMentionError::TrailingArrow`] if the trailing arrow is
-    /// not present after the ID.
+    /// Returns a [`ParseMentionErrorType::TrailingArrow`] error type if the
+    /// trailing arrow is not present after the ID.
     fn parse(buf: &str) -> Result<Self, ParseMentionError<'_>>
     where
         Self: Sized;
@@ -171,7 +171,10 @@ fn parse_id<'a>(
     let c = chars.next();
 
     if c.map_or(true, |c| c != '<') {
-        return Err(ParseMentionError::LeadingArrow { found: c });
+        return Err(ParseMentionError {
+            kind: ParseMentionErrorType::LeadingArrow { found: c },
+            source: None,
+        });
     }
 
     let maybe_sigil = sigils.iter().find(|sigil| {
@@ -189,16 +192,22 @@ fn parse_id<'a>(
     let sigil = if let Some(sigil) = maybe_sigil {
         *sigil
     } else {
-        return Err(ParseMentionError::Sigil {
-            expected: sigils,
-            found: chars.next(),
+        return Err(ParseMentionError {
+            kind: ParseMentionErrorType::Sigil {
+                expected: sigils,
+                found: chars.next(),
+            },
+            source: None,
         });
     };
 
     if sigil == ":" && !emoji_sigil_present(&mut chars) {
-        return Err(ParseMentionError::PartMissing {
-            found: 1,
-            expected: 2,
+        return Err(ParseMentionError {
+            kind: ParseMentionErrorType::PartMissing {
+                found: 1,
+                expected: 2,
+            },
+            source: None,
         });
     }
 
@@ -206,14 +215,17 @@ fn parse_id<'a>(
         .as_str()
         .find('>')
         .and_then(|idx| chars.as_str().get(..idx))
-        .ok_or(ParseMentionError::TrailingArrow { found: None })?;
+        .ok_or(ParseMentionError {
+            kind: ParseMentionErrorType::TrailingArrow { found: None },
+            source: None,
+        })?;
 
     remaining
         .parse()
         .map(|id| (id, sigil))
-        .map_err(|source| ParseMentionError::IdNotU64 {
-            found: remaining,
-            source,
+        .map_err(|source| ParseMentionError {
+            kind: ParseMentionErrorType::IdNotU64 { found: remaining },
+            source: Some(Box::new(source)),
         })
 }
 
@@ -252,7 +264,7 @@ mod private {
 #[cfg(test)]
 mod tests {
     use super::{
-        super::{MentionType, ParseMentionError},
+        super::{MentionType, ParseMentionErrorType},
         private::Sealed,
         ParseMention,
     };
@@ -278,11 +290,11 @@ mod tests {
     fn test_parse_channel_id() {
         assert_eq!(ChannelId(123), ChannelId::parse("<#123>").unwrap());
         assert_eq!(
-            ParseMentionError::Sigil {
+            &ParseMentionErrorType::Sigil {
                 expected: &["#"],
                 found: Some('@'),
             },
-            ChannelId::parse("<@123>").unwrap_err(),
+            ChannelId::parse("<@123>").unwrap_err().kind(),
         );
     }
 
@@ -290,11 +302,11 @@ mod tests {
     fn test_parse_emoji_id() {
         assert_eq!(EmojiId(123), EmojiId::parse("<:name:123>").unwrap());
         assert_eq!(
-            ParseMentionError::Sigil {
+            &ParseMentionErrorType::Sigil {
                 expected: &[":"],
                 found: Some('@'),
             },
-            EmojiId::parse("<@123>").unwrap_err(),
+            EmojiId::parse("<@123>").unwrap_err().kind(),
         );
     }
 
@@ -317,11 +329,11 @@ mod tests {
             MentionType::parse("<@123>").unwrap()
         );
         assert_eq!(
-            ParseMentionError::Sigil {
+            &ParseMentionErrorType::Sigil {
                 expected: &["#", ":", "@&", "@!", "@"],
                 found: Some(';'),
             },
-            MentionType::parse("<;123>").unwrap_err(),
+            MentionType::parse("<;123>").unwrap_err().kind(),
         );
     }
 
@@ -329,11 +341,11 @@ mod tests {
     fn test_parse_role_id() {
         assert_eq!(RoleId(123), RoleId::parse("<@&123>").unwrap());
         assert_eq!(
-            ParseMentionError::Sigil {
+            &ParseMentionErrorType::Sigil {
                 expected: &["@&"],
                 found: Some('@'),
             },
-            RoleId::parse("<@123>").unwrap_err(),
+            RoleId::parse("<@123>").unwrap_err().kind(),
         );
     }
 
@@ -341,36 +353,33 @@ mod tests {
     fn test_parse_user_id() {
         assert_eq!(UserId(123), UserId::parse("<@123>").unwrap());
         assert_eq!(
-            ParseMentionError::IdNotU64 {
-                found: "&123",
-                source: "&123".parse::<u64>().unwrap_err(),
-            },
-            UserId::parse("<@&123>").unwrap_err(),
+            &ParseMentionErrorType::IdNotU64 { found: "&123" },
+            UserId::parse("<@&123>").unwrap_err().kind(),
         );
     }
 
     #[test]
     fn test_parse_id_wrong_sigil() {
         assert_eq!(
-            ParseMentionError::Sigil {
+            &ParseMentionErrorType::Sigil {
                 expected: &["@"],
                 found: Some('#'),
             },
-            super::parse_id("<#123>", &["@"]).unwrap_err(),
+            super::parse_id("<#123>", &["@"]).unwrap_err().kind(),
         );
         assert_eq!(
-            ParseMentionError::Sigil {
+            &ParseMentionErrorType::Sigil {
                 expected: &["#"],
                 found: None,
             },
-            super::parse_id("<", &["#"]).unwrap_err(),
+            super::parse_id("<", &["#"]).unwrap_err().kind(),
         );
         assert_eq!(
-            ParseMentionError::Sigil {
+            &ParseMentionErrorType::Sigil {
                 expected: &["#"],
                 found: None,
             },
-            super::parse_id("<", &["#"]).unwrap_err(),
+            super::parse_id("<", &["#"]).unwrap_err().kind(),
         );
     }
 }

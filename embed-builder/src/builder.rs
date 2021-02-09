@@ -14,9 +14,69 @@ use twilight_model::channel::embed::{
 /// Error building an embed.
 ///
 /// This is returned from [`EmbedBuilder::build`].
-#[derive(Clone, Debug, Eq, PartialEq)]
+#[derive(Debug)]
+pub struct EmbedError {
+    kind: EmbedErrorType,
+}
+
+impl EmbedError {
+    /// Immutable reference to the type of error that occurred.
+    #[must_use = "retrieving the type has no effect if left unused"]
+    pub fn kind(&self) -> &EmbedErrorType {
+        &self.kind
+    }
+
+    /// Consume the error, returning the source error if there is any.
+    #[allow(clippy::unused_self)]
+    #[must_use = "consuming the error and retrieving the source has no effect if left unused"]
+    pub fn into_source(self) -> Option<Box<dyn Error + Send + Sync>> {
+        None
+    }
+
+    /// Consume the error, returning the owned error type and the source error.
+    #[must_use = "consuming the error into its parts has no effect if left unused"]
+    pub fn into_parts(self) -> (EmbedErrorType, Option<Box<dyn Error + Send + Sync>>) {
+        (self.kind, None)
+    }
+}
+
+impl Display for EmbedError {
+    fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
+        match &self.kind {
+            EmbedErrorType::AuthorNameEmpty { .. } => f.write_str("the author name is empty"),
+            EmbedErrorType::AuthorNameTooLong { .. } => f.write_str("the author name is too long"),
+            EmbedErrorType::ColorNotRgb { color } => {
+                f.write_fmt(format_args!("the color {} is invalid", color))
+            }
+            EmbedErrorType::ColorZero => {
+                f.write_str("the given color value is 0, which is not acceptable")
+            }
+            EmbedErrorType::DescriptionEmpty { .. } => f.write_str("the description is empty"),
+            EmbedErrorType::DescriptionTooLong { .. } => f.write_str("the description is too long"),
+            EmbedErrorType::FieldNameEmpty { .. } => f.write_str("the field name is empty"),
+            EmbedErrorType::FieldNameTooLong { .. } => f.write_str("the field name is too long"),
+            EmbedErrorType::FieldValueEmpty { .. } => f.write_str("the field value is empty"),
+            EmbedErrorType::FieldValueTooLong { .. } => f.write_str("the field value is too long"),
+            EmbedErrorType::FooterTextEmpty { .. } => f.write_str("the footer text is empty"),
+            EmbedErrorType::FooterTextTooLong { .. } => f.write_str("the footer text is too long"),
+            EmbedErrorType::TitleEmpty { .. } => f.write_str("the title is empty"),
+            EmbedErrorType::TitleTooLong { .. } => f.write_str("the title is too long"),
+            EmbedErrorType::TotalContentTooLarge { .. } => {
+                f.write_str("the total content of the embed is too large")
+            }
+            EmbedErrorType::TooManyFields { .. } => {
+                f.write_str("more than 25 fields were provided")
+            }
+        }
+    }
+}
+
+impl Error for EmbedError {}
+
+/// Type of [`EmbedError`] that occurred.
+#[derive(Debug)]
 #[non_exhaustive]
-pub enum EmbedError {
+pub enum EmbedErrorType {
     /// Name is empty.
     AuthorNameEmpty {
         /// Provided name. Although empty, the same owned allocation is
@@ -117,35 +177,6 @@ pub enum EmbedError {
     },
 }
 
-impl Display for EmbedError {
-    fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
-        match self {
-            Self::AuthorNameEmpty { .. } => f.write_str("the author name is empty"),
-            Self::AuthorNameTooLong { .. } => f.write_str("the author name is too long"),
-            Self::ColorNotRgb { color } => {
-                f.write_fmt(format_args!("the color {} is invalid", color))
-            }
-            Self::ColorZero => f.write_str("the given color value is 0, which is not acceptable"),
-            Self::DescriptionEmpty { .. } => f.write_str("the description is empty"),
-            Self::DescriptionTooLong { .. } => f.write_str("the description is too long"),
-            Self::FieldNameEmpty { .. } => f.write_str("the field name is empty"),
-            Self::FieldNameTooLong { .. } => f.write_str("the field name is too long"),
-            Self::FieldValueEmpty { .. } => f.write_str("the field value is empty"),
-            Self::FieldValueTooLong { .. } => f.write_str("the field value is too long"),
-            Self::FooterTextEmpty { .. } => f.write_str("the footer text is empty"),
-            Self::FooterTextTooLong { .. } => f.write_str("the footer text is too long"),
-            Self::TitleEmpty { .. } => f.write_str("the title is empty"),
-            Self::TitleTooLong { .. } => f.write_str("the title is too long"),
-            Self::TotalContentTooLarge { .. } => {
-                f.write_str("the total content of the embed is too large")
-            }
-            Self::TooManyFields { .. } => f.write_str("more than 25 fields were provided"),
-        }
-    }
-}
-
-impl Error for EmbedError {}
-
 /// Create an embed with a builder.
 ///
 /// # Examples
@@ -206,52 +237,56 @@ impl EmbedBuilder {
     ///
     /// # Errors
     ///
-    /// Returns [`EmbedError::AuthorNameEmpty`] if the provided name is empty.
+    /// Returns an [`EmbedErrorType::AuthorNameEmpty`] error type if the
+    /// provided name is empty.
     ///
-    /// Returns [`EmbedError::AuthorNameTooLong`] if the provided name is longer
-    /// than [`AUTHOR_NAME_LENGTH_LIMIT`].
+    /// Returns an [`EmbedErrorType::AuthorNameTooLong`] error type if the
+    /// provided name is longer than [`AUTHOR_NAME_LENGTH_LIMIT`].
     ///
-    /// Returns [`EmbedError::ColorNotRgb`] if the provided color is not a valid
-    /// RGB integer. Refer to [`COLOR_MAXIMUM`] to know what the maximum
-    /// accepted value is.
+    /// Returns an [`EmbedErrorType::ColorNotRgb`] error type if the provided
+    /// color is not a valid RGB integer. Refer to [`COLOR_MAXIMUM`] to know
+    /// what the maximum accepted value is.
     ///
-    /// Returns [`EmbedError::ColorZero`] if the provided color is 0, which is
-    /// not an acceptable value.
+    /// Returns an [`EmbedErrorType::ColorZero`] error type if the provided
+    /// color is 0, which is not an acceptable value.
     ///
-    /// Returns [`EmbedError::DescriptionEmpty`] if a provided description is
-    /// empty.
+    /// Returns an [`EmbedErrorType::DescriptionEmpty`] error type if a provided
+    /// description is empty.
     ///
-    /// Returns [`EmbedError::DescriptionTooLong`] if a provided description is
-    /// longer than [`DESCRIPTION_LENGTH_LIMIT`].
+    /// Returns an [`EmbedErrorType::DescriptionTooLong`] error type if a
+    /// provided description is longer than [`DESCRIPTION_LENGTH_LIMIT`].
     ///
-    /// Returns [`EmbedError::FieldNameEmpty`] if a provided field name is
-    /// empty.
+    /// Returns an [`EmbedErrorType::FieldNameEmpty`] error type if a provided
+    /// field name is empty.
     ///
-    /// Returns [`EmbedError::FieldNameTooLong`] if a provided field name is
-    /// longer than [`FIELD_NAME_LENGTH_LIMIT`].
+    /// Returns an [`EmbedErrorType::FieldNameTooLong`] error type if a provided
+    /// field name is longer than [`FIELD_NAME_LENGTH_LIMIT`].
     ///
-    /// Returns [`EmbedError::FieldValueEmpty`] if a provided field value is
-    /// empty.
+    /// Returns an [`EmbedErrorType::FieldValueEmpty`] error type if a provided
+    /// field value is empty.
     ///
-    /// Returns [`EmbedError::FieldValueTooLong`] if a provided field value is
-    /// longer than [`FIELD_VALUE_LENGTH_LIMIT`].
+    /// Returns an [`EmbedErrorType::FieldValueTooLong`] error type if a
+    /// provided field value is longer than [`FIELD_VALUE_LENGTH_LIMIT`].
     ///
-    /// Returns [`EmbedError::FooterTextEmpty`] if the provided text is empty.
+    /// Returns an [`EmbedErrorType::FooterTextEmpty`] error type if the
+    /// provided text is empty.
     ///
-    /// Returns [`EmbedError::FooterTextTooLong`] if the provided text is longer
-    /// than the limit defined at [`FOOTER_TEXT_LENGTH_LIMIT`].
+    /// Returns an [`EmbedErrorType::FooterTextTooLong`] error type if the
+    /// provided text is longer than the limit defined at [`FOOTER_TEXT_LENGTH_LIMIT`].
     ///
-    /// Returns [`EmbedError::TitleEmpty`] if the provided title is empty.
+    /// Returns an [`EmbedErrorType::TitleEmpty`] error type if the provided
+    /// title is empty.
     ///
-    /// Returns [`EmbedError::TitleTooLong`] if the provided text is longer
-    /// than the limit defined at [`TITLE_LENGTH_LIMIT`].
+    /// Returns an [`EmbedErrorType::TitleTooLong`] error type if the provided
+    /// text is longer than the limit defined at [`TITLE_LENGTH_LIMIT`].
     ///
-    /// Returns [`EmbedError::TooManyFields`] if there are too many fields
-    /// in the embed. Refer to [`EMBED_FIELD_LIMIT`] for the limit value.
+    /// Returns an [`EmbedErrorType::TooManyFields`] error type if there are too
+    /// many fields in the embed. Refer to [`EMBED_FIELD_LIMIT`] for the limit
+    /// value.
     ///
-    /// Returns [`EmbedError::TotalContentTooLarge`] if the textual content of
-    /// the embed is too large. Refer to [`EMBED_LENGTH_LIMIT`] for the limit
-    /// value and what counts towards it.
+    /// Returns an [`EmbedErrorType::TotalContentTooLarge`] error type if the
+    /// textual content of the embed is too large. Refer to
+    /// [`EMBED_LENGTH_LIMIT`] for the limit value and what counts towards it.
     ///
     /// [`AUTHOR_NAME_LENGTH_LIMIT`]: Self::AUTHOR_NAME_LENGTH_LIMIT
     /// [`COLOR_MAXIMUM`]: Self::COLOR_MAXIMUM
@@ -262,21 +297,28 @@ impl EmbedBuilder {
     /// [`FIELD_VALUE_LENGTH_LIMIT`]: Self::FIELD_VALUE_LENGTH_LIMIT
     /// [`FOOTER_TEXT_LENGTH_LIMIT`]: Self::FOOTER_TEXT_LENGTH_LIMIT
     /// [`TITLE_LENGTH_LIMIT`]: Self::TITLE_LENGTH_LIMIT
+    #[allow(clippy::clippy::too_many_lines)]
     #[must_use = "should be used as part of something like a message"]
     pub fn build(mut self) -> Result<Embed, EmbedError> {
         if self.0.fields.len() > Self::EMBED_FIELD_LIMIT {
-            return Err(EmbedError::TooManyFields {
-                fields: self.0.fields,
+            return Err(EmbedError {
+                kind: EmbedErrorType::TooManyFields {
+                    fields: self.0.fields,
+                },
             });
         }
 
         if let Some(color) = self.0.color {
             if color == 0 {
-                return Err(EmbedError::ColorZero);
+                return Err(EmbedError {
+                    kind: EmbedErrorType::ColorZero,
+                });
             }
 
             if color > Self::COLOR_MAXIMUM {
-                return Err(EmbedError::ColorNotRgb { color });
+                return Err(EmbedError {
+                    kind: EmbedErrorType::ColorNotRgb { color },
+                });
             }
         }
 
@@ -285,11 +327,15 @@ impl EmbedBuilder {
         if let Some(mut author) = self.0.author.take() {
             if let Some(name) = author.name.take() {
                 if name.is_empty() {
-                    return Err(EmbedError::AuthorNameEmpty { name });
+                    return Err(EmbedError {
+                        kind: EmbedErrorType::AuthorNameEmpty { name },
+                    });
                 }
 
                 if name.chars().count() > Self::AUTHOR_NAME_LENGTH_LIMIT {
-                    return Err(EmbedError::AuthorNameTooLong { name });
+                    return Err(EmbedError {
+                        kind: EmbedErrorType::AuthorNameTooLong { name },
+                    });
                 }
 
                 total += name.chars().count();
@@ -301,11 +347,15 @@ impl EmbedBuilder {
 
         if let Some(description) = self.0.description.take() {
             if description.is_empty() {
-                return Err(EmbedError::DescriptionEmpty { description });
+                return Err(EmbedError {
+                    kind: EmbedErrorType::DescriptionEmpty { description },
+                });
             }
 
             if description.chars().count() > Self::DESCRIPTION_LENGTH_LIMIT {
-                return Err(EmbedError::DescriptionTooLong { description });
+                return Err(EmbedError {
+                    kind: EmbedErrorType::DescriptionTooLong { description },
+                });
             }
 
             total += description.chars().count();
@@ -314,11 +364,15 @@ impl EmbedBuilder {
 
         if let Some(footer) = self.0.footer.take() {
             if footer.text.is_empty() {
-                return Err(EmbedError::FooterTextEmpty { text: footer.text });
+                return Err(EmbedError {
+                    kind: EmbedErrorType::FooterTextEmpty { text: footer.text },
+                });
             }
 
             if footer.text.chars().count() > Self::FOOTER_TEXT_LENGTH_LIMIT {
-                return Err(EmbedError::FooterTextTooLong { text: footer.text });
+                return Err(EmbedError {
+                    kind: EmbedErrorType::FooterTextTooLong { text: footer.text },
+                });
             }
 
             total += footer.text.chars().count();
@@ -331,30 +385,38 @@ impl EmbedBuilder {
 
             for field in fields {
                 if field.name.is_empty() {
-                    return Err(EmbedError::FieldNameEmpty {
-                        name: field.name,
-                        value: field.value,
+                    return Err(EmbedError {
+                        kind: EmbedErrorType::FieldNameEmpty {
+                            name: field.name,
+                            value: field.value,
+                        },
                     });
                 }
 
                 if field.name.chars().count() > Self::FIELD_NAME_LENGTH_LIMIT {
-                    return Err(EmbedError::FieldNameTooLong {
-                        name: field.name,
-                        value: field.value,
+                    return Err(EmbedError {
+                        kind: EmbedErrorType::FieldNameTooLong {
+                            name: field.name,
+                            value: field.value,
+                        },
                     });
                 }
 
                 if field.value.is_empty() {
-                    return Err(EmbedError::FieldValueEmpty {
-                        name: field.name,
-                        value: field.value,
+                    return Err(EmbedError {
+                        kind: EmbedErrorType::FieldValueEmpty {
+                            name: field.name,
+                            value: field.value,
+                        },
                     });
                 }
 
                 if field.value.chars().count() > Self::FIELD_VALUE_LENGTH_LIMIT {
-                    return Err(EmbedError::FieldValueTooLong {
-                        name: field.name,
-                        value: field.value,
+                    return Err(EmbedError {
+                        kind: EmbedErrorType::FieldValueTooLong {
+                            name: field.name,
+                            value: field.value,
+                        },
                     });
                 }
 
@@ -365,11 +427,15 @@ impl EmbedBuilder {
 
         if let Some(title) = self.0.title.take() {
             if title.is_empty() {
-                return Err(EmbedError::TitleEmpty { title });
+                return Err(EmbedError {
+                    kind: EmbedErrorType::TitleEmpty { title },
+                });
             }
 
             if title.chars().count() > Self::TITLE_LENGTH_LIMIT {
-                return Err(EmbedError::TitleTooLong { title });
+                return Err(EmbedError {
+                    kind: EmbedErrorType::TitleTooLong { title },
+                });
             }
 
             total += title.chars().count();
@@ -377,7 +443,9 @@ impl EmbedBuilder {
         }
 
         if total > Self::EMBED_LENGTH_LIMIT {
-            return Err(EmbedError::TotalContentTooLarge { length: total });
+            return Err(EmbedError {
+                kind: EmbedErrorType::TotalContentTooLarge { length: total },
+            });
         }
 
         Ok(self.0)
@@ -676,28 +744,29 @@ impl TryFrom<EmbedBuilder> for Embed {
 
 #[cfg(test)]
 mod tests {
-    use super::{EmbedBuilder, EmbedError};
+    use super::{EmbedBuilder, EmbedError, EmbedErrorType};
     use crate::{field::EmbedFieldBuilder, footer::EmbedFooterBuilder, image_source::ImageSource};
     use static_assertions::{assert_fields, assert_impl_all, const_assert};
     use std::{convert::TryFrom, error::Error, fmt::Debug};
     use twilight_model::channel::embed::{Embed, EmbedField, EmbedFooter};
 
-    assert_impl_all!(EmbedError: Clone, Debug, Error, Eq, PartialEq, Send, Sync);
-    assert_fields!(EmbedError::AuthorNameEmpty: name);
-    assert_fields!(EmbedError::AuthorNameTooLong: name);
-    assert_fields!(EmbedError::TooManyFields: fields);
-    assert_fields!(EmbedError::ColorNotRgb: color);
-    assert_fields!(EmbedError::DescriptionEmpty: description);
-    assert_fields!(EmbedError::DescriptionTooLong: description);
-    assert_fields!(EmbedError::FooterTextEmpty: text);
-    assert_fields!(EmbedError::FooterTextTooLong: text);
-    assert_fields!(EmbedError::TitleEmpty: title);
-    assert_fields!(EmbedError::TitleTooLong: title);
-    assert_fields!(EmbedError::TotalContentTooLarge: length);
-    assert_fields!(EmbedError::FieldNameEmpty: name, value);
-    assert_fields!(EmbedError::FieldNameTooLong: name, value);
-    assert_fields!(EmbedError::FieldValueEmpty: name, value);
-    assert_fields!(EmbedError::FieldValueTooLong: name, value);
+    assert_impl_all!(EmbedErrorType: Debug, Send, Sync);
+    assert_fields!(EmbedErrorType::AuthorNameEmpty: name);
+    assert_fields!(EmbedErrorType::AuthorNameTooLong: name);
+    assert_fields!(EmbedErrorType::TooManyFields: fields);
+    assert_fields!(EmbedErrorType::ColorNotRgb: color);
+    assert_fields!(EmbedErrorType::DescriptionEmpty: description);
+    assert_fields!(EmbedErrorType::DescriptionTooLong: description);
+    assert_fields!(EmbedErrorType::FooterTextEmpty: text);
+    assert_fields!(EmbedErrorType::FooterTextTooLong: text);
+    assert_fields!(EmbedErrorType::TitleEmpty: title);
+    assert_fields!(EmbedErrorType::TitleTooLong: title);
+    assert_fields!(EmbedErrorType::TotalContentTooLarge: length);
+    assert_fields!(EmbedErrorType::FieldNameEmpty: name, value);
+    assert_fields!(EmbedErrorType::FieldNameTooLong: name, value);
+    assert_fields!(EmbedErrorType::FieldValueEmpty: name, value);
+    assert_fields!(EmbedErrorType::FieldValueTooLong: name, value);
+    assert_impl_all!(EmbedError: Error, Send, Sync);
     const_assert!(EmbedBuilder::AUTHOR_NAME_LENGTH_LIMIT == 256);
     const_assert!(EmbedBuilder::COLOR_MAXIMUM == 0xff_ff_ff);
     const_assert!(EmbedBuilder::DESCRIPTION_LENGTH_LIMIT == 2048);
@@ -712,13 +781,13 @@ mod tests {
     #[test]
     fn test_color_error() -> Result<(), Box<dyn Error>> {
         assert!(matches!(
-            EmbedBuilder::new().color(0).build().unwrap_err(),
-            EmbedError::ColorZero
+            EmbedBuilder::new().color(0).build().unwrap_err().kind(),
+            EmbedErrorType::ColorZero
         ));
         assert!(matches!(
-            EmbedBuilder::new().color(u32::MAX).build().unwrap_err(),
-            EmbedError::ColorNotRgb { color }
-            if color == u32::MAX
+            EmbedBuilder::new().color(u32::MAX).build().unwrap_err().kind(),
+            EmbedErrorType::ColorNotRgb { color }
+            if *color == u32::MAX
         ));
 
         Ok(())
@@ -727,14 +796,14 @@ mod tests {
     #[test]
     fn test_description_error() {
         assert!(matches!(
-            EmbedBuilder::new().description("").build().unwrap_err(),
-            EmbedError::DescriptionEmpty { description }
+            EmbedBuilder::new().description("").build().unwrap_err().kind(),
+            EmbedErrorType::DescriptionEmpty { description }
             if description.is_empty()
         ));
         let description_too_long = EmbedBuilder::DESCRIPTION_LENGTH_LIMIT + 1;
         assert!(matches!(
-            EmbedBuilder::new().description("a".repeat(description_too_long)).build().unwrap_err(),
-            EmbedError::DescriptionTooLong { description }
+            EmbedBuilder::new().description("a".repeat(description_too_long)).build().unwrap_err().kind(),
+            EmbedErrorType::DescriptionTooLong { description }
             if description.len() == description_too_long
         ));
     }
@@ -742,14 +811,14 @@ mod tests {
     #[test]
     fn test_title_error() {
         assert!(matches!(
-            EmbedBuilder::new().title("").build().unwrap_err(),
-            EmbedError::TitleEmpty { title }
+            EmbedBuilder::new().title("").build().unwrap_err().kind(),
+            EmbedErrorType::TitleEmpty { title }
             if title.is_empty()
         ));
         let title_too_long = EmbedBuilder::TITLE_LENGTH_LIMIT + 1;
         assert!(matches!(
-            EmbedBuilder::new().title("a".repeat(title_too_long)).build().unwrap_err(),
-            EmbedError::TitleTooLong { title }
+            EmbedBuilder::new().title("a".repeat(title_too_long)).build().unwrap_err().kind(),
+            EmbedErrorType::TitleTooLong { title }
             if title.len() == title_too_long
         ));
     }
