@@ -17,7 +17,7 @@ use std::{
     fmt::{Display, Formatter, Result as FmtResult},
 };
 use twilight_model::{
-    channel::embed::Embed,
+    channel::{embed::Embed, Message},
     id::{MessageId, WebhookId},
 };
 
@@ -118,7 +118,7 @@ struct UpdateWebhookMessageFields {
 /// [`DeleteWebhookMessage`]: super::DeleteWebhookMessage
 pub struct UpdateWebhookMessage<'a> {
     fields: UpdateWebhookMessageFields,
-    fut: Option<Pending<'a, ()>>,
+    fut: Option<Pending<'a, Message>>,
     http: &'a Client,
     message_id: MessageId,
     reason: Option<String>,
@@ -272,7 +272,7 @@ impl<'a> UpdateWebhookMessage<'a> {
 
     fn start(&mut self) -> Result<()> {
         let request = self.request()?;
-        self.fut.replace(Box::pin(self.http.verify(request)));
+        self.fut.replace(Box::pin(self.http.request(request)));
 
         Ok(())
     }
@@ -287,7 +287,7 @@ impl<'a> AuditLogReason for UpdateWebhookMessage<'a> {
     }
 }
 
-poll_req!(UpdateWebhookMessage<'_>, ());
+poll_req!(UpdateWebhookMessage<'_>, Message);
 
 #[cfg(test)]
 mod tests {
