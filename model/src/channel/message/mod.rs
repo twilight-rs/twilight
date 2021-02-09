@@ -331,6 +331,7 @@ mod tests {
                 channel_id: Some(ChannelId(1)),
                 guild_id: None,
                 message_id: None,
+                fail_if_not_exists: None,
             }),
             stickers: vec![Sticker {
                 asset: "foo1".to_owned(),
