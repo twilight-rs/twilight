@@ -1,4 +1,7 @@
-use crate::request::prelude::*;
+use crate::{
+    error::{Error, ErrorType},
+    request::prelude::*,
+};
 use hyper::StatusCode;
 use serde::de::DeserializeSeed;
 use std::{
@@ -55,9 +58,10 @@ impl Future for GetMember<'_> {
             if let Some(fut) = self.as_mut().fut.as_mut() {
                 let bytes = match fut.as_mut().poll(cx) {
                     Poll::Ready(Ok(bytes)) => bytes,
-                    Poll::Ready(Err(crate::Error::Response { status, .. }))
-                        if status == StatusCode::NOT_FOUND =>
-                    {
+                    Poll::Ready(Err(Error {
+                        kind: ErrorType::Response { status, .. },
+                        ..
+                    })) if status == StatusCode::NOT_FOUND => {
                         return Poll::Ready(Ok(None));
                     }
                     Poll::Ready(Err(why)) => return Poll::Ready(Err(why)),
@@ -65,10 +69,12 @@ impl Future for GetMember<'_> {
                 };
 
                 let mut bytes = bytes.as_ref().to_vec();
-                let value = crate::json_from_slice::<Value>(&mut bytes)?;
+                let value = crate::json_from_slice::<Value>(&mut bytes).map_err(HttpError::json)?;
 
                 let member_deserializer = MemberDeserializer::new(self.guild_id);
-                let member = member_deserializer.deserialize(value)?;
+                let member = member_deserializer
+                    .deserialize(value)
+                    .map_err(HttpError::json)?;
 
                 return Poll::Ready(Ok(Some(member)));
             }

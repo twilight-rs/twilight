@@ -22,37 +22,41 @@ use std::{
 };
 use twilight_model::gateway::payload::Heartbeat;
 
-#[cfg(not(feature = "simd-json"))]
-use serde_json::Error as JsonError;
-#[cfg(feature = "simd-json")]
-use simd_json::Error as JsonError;
-
 #[derive(Debug)]
-pub enum SessionSendError {
-    Sending {
-        source: TrySendError<TungsteniteMessage>,
-    },
-    Serializing {
-        source: JsonError,
-    },
+pub struct SessionSendError {
+    pub(super) source: Option<Box<dyn Error + Send + Sync>>,
+    pub(super) kind: SessionSendErrorType,
+}
+
+impl SessionSendError {
+    /// Immutable reference to the type of error that occurred.
+    pub fn kind(&self) -> &SessionSendErrorType {
+        &self.kind
+    }
 }
 
 impl Display for SessionSendError {
     fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
-        match self {
-            Self::Serializing { source } => Display::fmt(source, f),
-            Self::Sending { source } => Display::fmt(source, f),
+        match &self.kind {
+            SessionSendErrorType::Serializing => f.write_str("failed to serialize payload as json"),
+            SessionSendErrorType::Sending => f.write_str("failed to send message over websocket"),
         }
     }
 }
 
 impl Error for SessionSendError {
     fn source(&self) -> Option<&(dyn Error + 'static)> {
-        match self {
-            Self::Sending { source } => Some(source),
-            Self::Serializing { source } => Some(source),
-        }
+        self.source
+            .as_ref()
+            .map(|source| &**source as &(dyn Error + 'static))
     }
+}
+
+/// Type of [`SessionSendError`] that occurred.
+#[derive(Debug)]
+pub enum SessionSendErrorType {
+    Sending,
+    Serializing,
 }
 
 #[derive(Debug)]
@@ -88,19 +92,24 @@ impl Session {
     ///
     /// # Errors
     ///
-    /// Returns [`SessionSendError::Serializing`] when there is an error
-    /// serializing the payload into an acceptable format.
+    /// Returns a [`SessionSendErrorType::Serializing`] error type when there is
+    /// an error serializing the payload into an acceptable format.
     ///
-    /// Returns [`SessionSendError::Sending`] when the receiving channel has hung
-    /// up. This will only happen when the shard has either not started or has
-    /// already shutdown.
+    /// Returns a [`SessionSendErrorType::Sending`] error type when the
+    /// receiving channel has hung up. This will only happen when the shard has
+    /// either not started or has already shutdown.
     pub fn send(&self, payload: impl Serialize) -> Result<(), SessionSendError> {
-        let bytes =
-            json::to_vec(&payload).map_err(|source| SessionSendError::Serializing { source })?;
+        let bytes = json::to_vec(&payload).map_err(|source| SessionSendError {
+            kind: SessionSendErrorType::Serializing,
+            source: Some(Box::new(source)),
+        })?;
 
         self.tx
             .unbounded_send(TungsteniteMessage::Binary(bytes))
-            .map_err(|source| SessionSendError::Sending { source })?;
+            .map_err(|source| SessionSendError {
+                kind: SessionSendErrorType::Sending,
+                source: Some(Box::new(source)),
+            })?;
 
         Ok(())
     }

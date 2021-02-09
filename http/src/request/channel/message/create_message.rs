@@ -11,9 +11,57 @@ use twilight_model::{
 };
 
 /// The error created when a messsage can not be created as configured.
-#[derive(Clone, Debug)]
+#[derive(Debug)]
+pub struct CreateMessageError {
+    kind: CreateMessageErrorType,
+    source: Option<Box<dyn Error + Send + Sync>>,
+}
+
+impl CreateMessageError {
+    /// Immutable reference to the type of error that occurred.
+    #[must_use = "retrieving the type has no effect if left unused"]
+    pub fn kind(&self) -> &CreateMessageErrorType {
+        &self.kind
+    }
+
+    /// Consume the error, returning the source error if there is any.
+    #[must_use = "consuming the error and retrieving the source has no effect if left unused"]
+    pub fn into_source(self) -> Option<Box<dyn Error + Send + Sync>> {
+        self.source
+    }
+
+    /// Consume the error, returning the owned error type and the source error.
+    #[must_use = "consuming the error into its parts has no effect if left unused"]
+    pub fn into_parts(self) -> (CreateMessageErrorType, Option<Box<dyn Error + Send + Sync>>) {
+        (self.kind, self.source)
+    }
+}
+
+impl Display for CreateMessageError {
+    fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
+        match &self.kind {
+            CreateMessageErrorType::ContentInvalid { .. } => {
+                f.write_str("the message content is invalid")
+            }
+            CreateMessageErrorType::EmbedTooLarge { .. } => {
+                f.write_str("the embed's contents are too long")
+            }
+        }
+    }
+}
+
+impl Error for CreateMessageError {
+    fn source(&self) -> Option<&(dyn Error + 'static)> {
+        self.source
+            .as_ref()
+            .map(|source| &**source as &(dyn Error + 'static))
+    }
+}
+
+/// Type of [`CreateMessageError`] that occurred.
+#[derive(Debug)]
 #[non_exhaustive]
-pub enum CreateMessageError {
+pub enum CreateMessageErrorType {
     /// Returned when the content is over 2000 UTF-16 characters.
     ContentInvalid {
         /// Provided content.
@@ -23,27 +71,7 @@ pub enum CreateMessageError {
     EmbedTooLarge {
         /// Provided embed.
         embed: Box<Embed>,
-        /// The source of the error.
-        source: EmbedValidationError,
     },
-}
-
-impl Display for CreateMessageError {
-    fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
-        match self {
-            Self::ContentInvalid { .. } => f.write_str("the message content is invalid"),
-            Self::EmbedTooLarge { .. } => f.write_str("the embed's contents are too long"),
-        }
-    }
-}
-
-impl Error for CreateMessageError {
-    fn source(&self) -> Option<&(dyn Error + 'static)> {
-        match self {
-            Self::ContentInvalid { .. } => None,
-            Self::EmbedTooLarge { source, .. } => Some(source),
-        }
-    }
 }
 
 #[derive(Default, Serialize)]
@@ -140,15 +168,18 @@ impl<'a> CreateMessage<'a> {
     ///
     /// # Errors
     ///
-    /// Returns [`CreateMessageError::ContentInvalid`] if the content length is
-    /// too long.
+    /// Returns a [`CreateMessageErrorType::ContentInvalid`] error type if the
+    /// content length is too long.
     pub fn content(self, content: impl Into<String>) -> Result<Self, CreateMessageError> {
         self._content(content.into())
     }
 
     fn _content(mut self, content: String) -> Result<Self, CreateMessageError> {
         if !validate::content_limit(&content) {
-            return Err(CreateMessageError::ContentInvalid { content });
+            return Err(CreateMessageError {
+                kind: CreateMessageErrorType::ContentInvalid { content },
+                source: None,
+            });
         }
 
         self.fields.content.replace(content);
@@ -167,15 +198,18 @@ impl<'a> CreateMessage<'a> {
     ///
     /// # Errors
     ///
-    /// Returns [`CreateMessageError::EmbedTooLarge`] if the embed is too large.
+    /// Returns a [`CreateMessageErrorType::EmbedTooLarge`] error type if the
+    /// embed is too large.
     ///
     /// [the discord docs]: https://discord.com/developers/docs/resources/channel#embed-limits
     /// [`EmbedBuilder`]: https://docs.rs/twilight-embed-builder/*/twilight_embed_builder
     pub fn embed(mut self, embed: Embed) -> Result<Self, CreateMessageError> {
         if let Err(source) = validate::embed(&embed) {
-            return Err(CreateMessageError::EmbedTooLarge {
-                embed: Box::new(embed),
-                source,
+            return Err(CreateMessageError {
+                kind: CreateMessageErrorType::EmbedTooLarge {
+                    embed: Box::new(embed),
+                },
+                source: Some(Box::new(source)),
             });
         }
 
@@ -225,7 +259,7 @@ impl<'a> CreateMessage<'a> {
         self.fut.replace(Box::pin(self.http.request(
             if self.attachments.is_empty() {
                 Request::from((
-                    crate::json_to_vec(&self.fields)?,
+                    crate::json_to_vec(&self.fields).map_err(HttpError::json)?,
                     Route::CreateMessage {
                         channel_id: self.channel_id.0,
                     },
@@ -237,7 +271,7 @@ impl<'a> CreateMessage<'a> {
                     multipart.file(format!("{}", index).as_bytes(), name.as_bytes(), &file);
                 }
 
-                let body = crate::json_to_vec(&self.fields)?;
+                let body = crate::json_to_vec(&self.fields).map_err(HttpError::json)?;
                 multipart.part(b"payload_json", &body);
 
                 Request::from((

@@ -9,6 +9,6 @@ mod throttle;
 
 pub use self::{
     heartbeat::Latency,
-    r#impl::{ConnectingError, ShardProcessor},
+    r#impl::{ConnectingError, ConnectingErrorType, ShardProcessor},
     session::Session,
 };

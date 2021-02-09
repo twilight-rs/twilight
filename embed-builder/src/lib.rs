@@ -58,17 +58,17 @@
     unused,
     warnings
 )]
+pub mod image_source;
 
 mod author;
 mod builder;
 mod field;
 mod footer;
-mod image_source;
 
 pub use self::{
     author::EmbedAuthorBuilder,
-    builder::{EmbedBuilder, EmbedError},
+    builder::{EmbedBuilder, EmbedError, EmbedErrorType},
     field::EmbedFieldBuilder,
     footer::EmbedFooterBuilder,
-    image_source::{ImageSource, ImageSourceAttachmentError, ImageSourceUrlError},
+    image_source::ImageSource,
 };

@@ -9,9 +9,41 @@ use twilight_model::{
 };
 
 /// Returned when the channel can not be created as configured.
-#[derive(Clone, Debug)]
+#[derive(Debug)]
+pub struct CreateGuildChannelError {
+    kind: CreateGuildChannelErrorType,
+}
+
+impl CreateGuildChannelError {
+    /// Immutable reference to the type of error that occurred.
+    #[must_use = "retrieving the type has no effect if left unused"]
+    pub fn kind(&self) -> &CreateGuildChannelErrorType {
+        &self.kind
+    }
+
+    /// Consume the error, returning the source error if there is any.
+    #[allow(clippy::unused_self)]
+    #[must_use = "consuming the error and retrieving the source has no effect if left unused"]
+    pub fn into_source(self) -> Option<Box<dyn Error + Send + Sync>> {
+        None
+    }
+
+    /// Consume the error, returning the owned error type and the source error.
+    #[must_use = "consuming the error into its parts has no effect if left unused"]
+    pub fn into_parts(
+        self,
+    ) -> (
+        CreateGuildChannelErrorType,
+        Option<Box<dyn Error + Send + Sync>>,
+    ) {
+        (self.kind, None)
+    }
+}
+
+/// Type of [`CreateGuildChannelError`] that occurred.
+#[derive(Debug)]
 #[non_exhaustive]
-pub enum CreateGuildChannelError {
+pub enum CreateGuildChannelErrorType {
     /// The length of the name is either fewer than 2 UTF-16 characters or
     /// more than 100 UTF-16 characters.
     NameInvalid {
@@ -32,12 +64,14 @@ pub enum CreateGuildChannelError {
 
 impl Display for CreateGuildChannelError {
     fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
-        match self {
-            Self::NameInvalid { .. } => f.write_str("the length of the name is invalid"),
-            Self::RateLimitPerUserInvalid { .. } => {
+        match &self.kind {
+            CreateGuildChannelErrorType::NameInvalid { .. } => {
+                f.write_str("the length of the name is invalid")
+            }
+            CreateGuildChannelErrorType::RateLimitPerUserInvalid { .. } => {
                 f.write_str("the rate limit per user is invalid")
             }
-            Self::TopicInvalid { .. } => f.write_str("the topic is invalid"),
+            CreateGuildChannelErrorType::TopicInvalid { .. } => f.write_str("the topic is invalid"),
         }
     }
 }
@@ -71,17 +105,6 @@ struct CreateGuildChannelFields {
 ///
 /// All fields are optional except for name. The minimum length of the name is 2 UTF-16 characters
 /// and the maximum is 100 UTF-16 characters.
-///
-/// # Errors
-///
-/// Returns a [`CreateGuildChannelError::NameInvalid`] when the length of the name is either fewer
-/// than 2 UTF-16 characters or more than 100 UTF-16 characters.
-///
-/// Returns a [`CreateGuildChannelError::RateLimitPerUserInvalid`] when the seconds of the rate
-/// limit per user is more than 21600.
-///
-/// Returns a [`CreateGuildChannelError::TopicInvalid`] when the length of the topic is more than
-/// 1024 UTF-16 characters.
 pub struct CreateGuildChannel<'a> {
     fields: CreateGuildChannelFields,
     fut: Option<Pending<'a, GuildChannel>>,
@@ -105,7 +128,9 @@ impl<'a> CreateGuildChannel<'a> {
         name: String,
     ) -> Result<Self, CreateGuildChannelError> {
         if !validate::channel_name(&name) {
-            return Err(CreateGuildChannelError::NameInvalid { name });
+            return Err(CreateGuildChannelError {
+                kind: CreateGuildChannelErrorType::NameInvalid { name },
+            });
         }
 
         Ok(Self {
@@ -187,8 +212,8 @@ impl<'a> CreateGuildChannel<'a> {
     ///
     /// # Errors
     ///
-    /// Returns [`CreateGuildChannelError::RateLimitPerUserInvalid`] if the amount is greater than
-    /// 21600.
+    /// Returns a [`CreateGuildChannelErrorType::RateLimitPerUserInvalid`] error
+    /// type if the amount is greater than 21600.
     ///
     /// [the discord docs]: https://discordapp.com/developers/docs/resources/channel#channel-object-channel-structure
     pub fn rate_limit_per_user(
@@ -196,8 +221,10 @@ impl<'a> CreateGuildChannel<'a> {
         rate_limit_per_user: u64,
     ) -> Result<Self, CreateGuildChannelError> {
         if rate_limit_per_user > 21600 {
-            return Err(CreateGuildChannelError::RateLimitPerUserInvalid {
-                rate_limit_per_user,
+            return Err(CreateGuildChannelError {
+                kind: CreateGuildChannelErrorType::RateLimitPerUserInvalid {
+                    rate_limit_per_user,
+                },
             });
         }
 
@@ -212,8 +239,8 @@ impl<'a> CreateGuildChannel<'a> {
     ///
     /// # Errors
     ///
-    /// Returns [`CreateGuildChannelError::TopicInvalid`] if the topic length is
-    /// too long.
+    /// Returns a [`CreateGuildChannelErrorType::TopicInvalid`] error type if
+    /// the topic length is too long.
     ///
     /// [the discord docs]: https://discordapp.com/developers/docs/resources/channel#channel-object-channel-structure
     pub fn topic(self, topic: impl Into<String>) -> Result<Self, CreateGuildChannelError> {
@@ -222,7 +249,9 @@ impl<'a> CreateGuildChannel<'a> {
 
     fn _topic(mut self, topic: String) -> Result<Self, CreateGuildChannelError> {
         if topic.chars().count() > 1024 {
-            return Err(CreateGuildChannelError::TopicInvalid { topic });
+            return Err(CreateGuildChannelError {
+                kind: CreateGuildChannelErrorType::TopicInvalid { topic },
+            });
         }
 
         self.fields.topic.replace(topic);
@@ -246,7 +275,7 @@ impl<'a> CreateGuildChannel<'a> {
         let request = if let Some(reason) = &self.reason {
             let headers = audit_header(&reason)?;
             Request::from((
-                crate::json_to_vec(&self.fields)?,
+                crate::json_to_vec(&self.fields).map_err(HttpError::json)?,
                 headers,
                 Route::CreateChannel {
                     guild_id: self.guild_id.0,
@@ -254,7 +283,7 @@ impl<'a> CreateGuildChannel<'a> {
             ))
         } else {
             Request::from((
-                crate::json_to_vec(&self.fields)?,
+                crate::json_to_vec(&self.fields).map_err(HttpError::json)?,
                 Route::CreateChannel {
                     guild_id: self.guild_id.0,
                 },

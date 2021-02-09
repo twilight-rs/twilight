@@ -1,12 +1,14 @@
 use futures_channel::{
     mpsc::UnboundedReceiver as MpscReceiver,
-    oneshot::{Canceled, Receiver},
+    oneshot::{Canceled as ChannelCanceled, Receiver},
 };
 use futures_util::{
     future::FutureExt,
     stream::{Stream, StreamExt},
 };
 use std::{
+    error::Error,
+    fmt::{Display, Formatter, Result as FmtResult},
     future::Future,
     pin::Pin,
     task::{Context, Poll},
@@ -15,6 +17,30 @@ use twilight_model::gateway::{
     event::Event,
     payload::{MessageCreate, ReactionAdd},
 };
+
+/// Future canceled due to Standby being dropped.
+#[derive(Debug)]
+pub struct Canceled(ChannelCanceled);
+
+impl Canceled {
+    /// Consume the error, returning the source error if there is any.
+    #[allow(clippy::must_use_candidate)]
+    pub fn into_source(self) -> Option<Box<dyn Error + Send + Sync>> {
+        Some(Box::new(self.0))
+    }
+}
+
+impl Display for Canceled {
+    fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
+        Display::fmt(&self.0, f)
+    }
+}
+
+impl Error for Canceled {
+    fn source(&self) -> Option<&(dyn Error + 'static)> {
+        Some(&self.0)
+    }
+}
 
 /// The future returned from [`Standby::wait_for_event`].
 ///
@@ -29,7 +55,7 @@ impl Future for WaitForEventFuture {
     type Output = Result<Event, Canceled>;
 
     fn poll(mut self: Pin<&mut Self>, cx: &mut Context<'_>) -> Poll<Self::Output> {
-        self.rx.poll_unpin(cx)
+        self.rx.poll_unpin(cx).map_err(Canceled)
     }
 }
 
@@ -63,7 +89,7 @@ impl Future for WaitForGuildEventFuture {
     type Output = Result<Event, Canceled>;
 
     fn poll(mut self: Pin<&mut Self>, cx: &mut Context<'_>) -> Poll<Self::Output> {
-        self.rx.poll_unpin(cx)
+        self.rx.poll_unpin(cx).map_err(Canceled)
     }
 }
 
@@ -97,7 +123,7 @@ impl Future for WaitForMessageFuture {
     type Output = Result<MessageCreate, Canceled>;
 
     fn poll(mut self: Pin<&mut Self>, cx: &mut Context<'_>) -> Poll<Self::Output> {
-        self.rx.poll_unpin(cx)
+        self.rx.poll_unpin(cx).map_err(Canceled)
     }
 }
 
@@ -131,7 +157,7 @@ impl Future for WaitForReactionFuture {
     type Output = Result<ReactionAdd, Canceled>;
 
     fn poll(mut self: Pin<&mut Self>, cx: &mut Context<'_>) -> Poll<Self::Output> {
-        self.rx.poll_unpin(cx)
+        self.rx.poll_unpin(cx).map_err(Canceled)
     }
 }
 

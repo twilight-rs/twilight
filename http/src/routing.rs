@@ -2,20 +2,64 @@ use hyper::Method;
 use std::{
     borrow::Cow,
     convert::TryFrom,
-    error::Error as StdError,
+    error::Error,
     fmt::{Display, Formatter, Result as FmtResult, Write},
-    num::ParseIntError,
     str::FromStr,
 };
 
-#[derive(Clone, Debug, Eq, PartialEq)]
+#[derive(Debug)]
+pub struct PathParseError {
+    kind: PathParseErrorType,
+    source: Option<Box<dyn Error + Send + Sync>>,
+}
+
+impl PathParseError {
+    /// Immutable reference to the type of error that occurred.
+    #[must_use = "retrieving the type has no effect if left unused"]
+    pub fn kind(&self) -> &PathParseErrorType {
+        &self.kind
+    }
+
+    /// Consume the error, returning the source error if there is any.
+    #[must_use = "consuming the error and retrieving the source has no effect if left unused"]
+    pub fn into_source(self) -> Option<Box<dyn Error + Send + Sync>> {
+        self.source
+    }
+
+    /// Consume the error, returning the owned error type and the source error.
+    #[must_use = "consuming the error into its parts has no effect if left unused"]
+    pub fn into_parts(self) -> (PathParseErrorType, Option<Box<dyn Error + Send + Sync>>) {
+        (self.kind, self.source)
+    }
+}
+
+impl Display for PathParseError {
+    fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
+        match &self.kind {
+            PathParseErrorType::IntegerParsing { .. } => {
+                f.write_str("An ID in a segment was invalid")
+            }
+            PathParseErrorType::MessageIdWithoutMethod { .. } => {
+                f.write_str("A message path was detected but the method wasn't given")
+            }
+            PathParseErrorType::NoMatch => f.write_str("There was no matched path"),
+        }
+    }
+}
+
+impl Error for PathParseError {
+    fn source(&self) -> Option<&(dyn Error + 'static)> {
+        self.source
+            .as_ref()
+            .map(|source| &**source as &(dyn Error + 'static))
+    }
+}
+
+#[derive(Debug)]
 #[non_exhaustive]
-pub enum PathParseError {
+pub enum PathParseErrorType {
     /// The ID couldn't be parsed as an integer.
-    IntegerParsing {
-        /// Additional information about the parsing failure.
-        source: ParseIntError,
-    },
+    IntegerParsing,
     /// When parsing into a [`Path::ChannelsIdMessagesId`] variant, the method
     /// must also be specified via its `TryFrom` impl.
     MessageIdWithoutMethod {
@@ -24,33 +68,6 @@ pub enum PathParseError {
     },
     /// A static path for the provided path string wasn't found.
     NoMatch,
-}
-
-impl From<ParseIntError> for PathParseError {
-    fn from(source: ParseIntError) -> Self {
-        Self::IntegerParsing { source }
-    }
-}
-
-impl Display for PathParseError {
-    fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
-        match self {
-            Self::IntegerParsing { .. } => f.write_str("An ID in a segment was invalid"),
-            Self::MessageIdWithoutMethod { .. } => {
-                f.write_str("A message path was detected but the method wasn't given")
-            }
-            Self::NoMatch => f.write_str("There was no matched path"),
-        }
-    }
-}
-
-impl StdError for PathParseError {
-    fn source(&self) -> Option<&(dyn StdError + 'static)> {
-        match self {
-            Self::IntegerParsing { source } => Some(source),
-            Self::MessageIdWithoutMethod { .. } | Self::NoMatch => None,
-        }
-    }
 }
 
 /// An enum representing a path, most useful for ratelimiting implementations.
@@ -160,59 +177,69 @@ impl FromStr for Path {
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         use Path::*;
 
+        fn parse_id(id: &str) -> Result<u64, PathParseError> {
+            id.parse().map_err(|source| PathParseError {
+                kind: PathParseErrorType::IntegerParsing,
+                source: Some(Box::new(source)),
+            })
+        }
+
         let skip = usize::from(s.starts_with('/'));
 
         let parts = s.split('/').skip(skip).collect::<Vec<&str>>();
 
         Ok(match parts.as_slice() {
-            ["channels", id] => ChannelsId(id.parse()?),
-            ["channels", id, "followers"] => ChannelsIdFollowers(id.parse()?),
-            ["channels", id, "invites"] => ChannelsIdInvites(id.parse()?),
-            ["channels", id, "messages"] => ChannelsIdMessages(id.parse()?),
+            ["channels", id] => ChannelsId(parse_id(id)?),
+            ["channels", id, "followers"] => ChannelsIdFollowers(parse_id(id)?),
+            ["channels", id, "invites"] => ChannelsIdInvites(parse_id(id)?),
+            ["channels", id, "messages"] => ChannelsIdMessages(parse_id(id)?),
             ["channels", id, "messages", _] => {
-                return Err(PathParseError::MessageIdWithoutMethod {
-                    channel_id: id.parse()?,
+                return Err(PathParseError {
+                    kind: PathParseErrorType::MessageIdWithoutMethod {
+                        channel_id: parse_id(id)?,
+                    },
+                    source: None,
                 });
             }
             ["channels", id, "messages", _, "crosspost"] => {
-                ChannelsIdMessagesIdCrosspost(id.parse()?)
+                ChannelsIdMessagesIdCrosspost(parse_id(id)?)
             }
             ["channels", id, "messages", _, "reactions"] => {
-                ChannelsIdMessagesIdReactions(id.parse()?)
+                ChannelsIdMessagesIdReactions(parse_id(id)?)
             }
             ["channels", id, "messages", _, "reactions", _, _] => {
-                ChannelsIdMessagesIdReactionsUserIdType(id.parse()?)
+                ChannelsIdMessagesIdReactionsUserIdType(parse_id(id)?)
             }
-            ["channels", id, "permissions", _] => ChannelsIdPermissionsOverwriteId(id.parse()?),
-            ["channels", id, "pins"] => ChannelsIdPins(id.parse()?),
-            ["channels", id, "pins", _] => ChannelsIdPinsMessageId(id.parse()?),
-            ["channels", id, "typing"] => ChannelsIdTyping(id.parse()?),
-            ["channels", id, "webhooks"] => ChannelsIdWebhooks(id.parse()?),
+            ["channels", id, "permissions", _] => ChannelsIdPermissionsOverwriteId(parse_id(id)?),
+            ["channels", id, "pins"] => ChannelsIdPins(parse_id(id)?),
+            ["channels", id, "pins", _] => ChannelsIdPinsMessageId(parse_id(id)?),
+            ["channels", id, "typing"] => ChannelsIdTyping(parse_id(id)?),
+            ["channels", id, "webhooks"] => ChannelsIdWebhooks(parse_id(id)?),
             ["gateway"] => Gateway,
             ["gateway", "bot"] => GatewayBot,
             ["guilds"] => Guilds,
-            ["guilds", id] => GuildsId(id.parse()?),
-            ["guilds", id, "bans"] => GuildsIdBans(id.parse()?),
-            ["guilds", id, "bans", _] => GuildsIdBansUserId(id.parse()?),
-            ["guilds", id, "channels"] => GuildsIdChannels(id.parse()?),
-            ["guilds", id, "widget"] => GuildsIdWidget(id.parse()?),
-            ["guilds", id, "emojis"] => GuildsIdEmojis(id.parse()?),
-            ["guilds", id, "emojis", _] => GuildsIdEmojisId(id.parse()?),
-            ["guilds", id, "integrations"] => GuildsIdIntegrations(id.parse()?),
-            ["guilds", id, "integrations", _] => GuildsIdIntegrationsId(id.parse()?),
-            ["guilds", id, "integrations", _, "sync"] => GuildsIdIntegrationsIdSync(id.parse()?),
-            ["guilds", id, "invites"] => GuildsIdInvites(id.parse()?),
-            ["guilds", id, "members"] => GuildsIdMembers(id.parse()?),
-            ["guilds", id, "members", _] => GuildsIdMembersId(id.parse()?),
-            ["guilds", id, "members", _, "roles", _] => GuildsIdMembersIdRolesId(id.parse()?),
-            ["guilds", id, "members", "@me", "nick"] => GuildsIdMembersMeNick(id.parse()?),
-            ["guilds", id, "preview"] => GuildsIdPreview(id.parse()?),
-            ["guilds", id, "prune"] => GuildsIdPrune(id.parse()?),
-            ["guilds", id, "regions"] => GuildsIdRegions(id.parse()?),
-            ["guilds", id, "roles"] => GuildsIdRoles(id.parse()?),
-            ["guilds", id, "roles", _] => GuildsIdRolesId(id.parse()?),
-            ["guilds", id, "vanity-url"] => GuildsIdVanityUrl(id.parse()?),
-            ["guilds", id, "webhooks"] => GuildsIdWebhooks(id.parse()?),
+            ["guilds", id] => GuildsId(parse_id(id)?),
+            ["guilds", id, "bans"] => GuildsIdBans(parse_id(id)?),
+            ["guilds", id, "bans", _] => GuildsIdBansUserId(parse_id(id)?),
+            ["guilds", id, "channels"] => GuildsIdChannels(parse_id(id)?),
+            ["guilds", id, "widget"] => GuildsIdWidget(parse_id(id)?),
+            ["guilds", id, "emojis"] => GuildsIdEmojis(parse_id(id)?),
+            ["guilds", id, "emojis", _] => GuildsIdEmojisId(parse_id(id)?),
+            ["guilds", id, "integrations"] => GuildsIdIntegrations(parse_id(id)?),
+            ["guilds", id, "integrations", _] => GuildsIdIntegrationsId(parse_id(id)?),
+            ["guilds", id, "integrations", _, "sync"] => GuildsIdIntegrationsIdSync(parse_id(id)?),
+            ["guilds", id, "invites"] => GuildsIdInvites(parse_id(id)?),
+            ["guilds", id, "members"] => GuildsIdMembers(parse_id(id)?),
+            ["guilds", id, "members", _] => GuildsIdMembersId(parse_id(id)?),
+            ["guilds", id, "members", _, "roles", _] => GuildsIdMembersIdRolesId(parse_id(id)?),
+            ["guilds", id, "members", "@me", "nick"] => GuildsIdMembersMeNick(parse_id(id)?),
+            ["guilds", id, "preview"] => GuildsIdPreview(parse_id(id)?),
+            ["guilds", id, "prune"] => GuildsIdPrune(parse_id(id)?),
+            ["guilds", id, "regions"] => GuildsIdRegions(parse_id(id)?),
+            ["guilds", id, "roles"] => GuildsIdRoles(parse_id(id)?),
+            ["guilds", id, "roles", _] => GuildsIdRolesId(parse_id(id)?),
+            ["guilds", id, "vanity-url"] => GuildsIdVanityUrl(parse_id(id)?),
+            ["guilds", id, "webhooks"] => GuildsIdWebhooks(parse_id(id)?),
             ["invites", _] => InvitesCode,
             ["oauth2", "applications", "@me"] => OauthApplicationsMe,
             ["users", _] => UsersId,
@@ -221,8 +248,13 @@ impl FromStr for Path {
             ["users", _, "guilds"] => UsersIdGuilds,
             ["users", _, "guilds", _] => UsersIdGuildsId,
             ["voice", "regions"] => VoiceRegions,
-            ["webhooks", id] | ["webhooks", id, _] => WebhooksId(id.parse()?),
-            _ => return Err(PathParseError::NoMatch),
+            ["webhooks", id] | ["webhooks", id, _] => WebhooksId(parse_id(id)?),
+            _ => {
+                return Err(PathParseError {
+                    kind: PathParseErrorType::NoMatch,
+                    source: None,
+                })
+            }
         })
     }
 }
@@ -233,10 +265,13 @@ impl TryFrom<(Method, &str)> for Path {
     fn try_from((method, s): (Method, &str)) -> Result<Self, Self::Error> {
         match Self::from_str(s) {
             Ok(v) => Ok(v),
-            Err(PathParseError::MessageIdWithoutMethod { channel_id }) => {
-                Ok(Self::ChannelsIdMessagesId(method, channel_id))
+            Err(why) => {
+                if let PathParseErrorType::MessageIdWithoutMethod { channel_id } = why.kind() {
+                    Ok(Self::ChannelsIdMessagesId(method, *channel_id))
+                } else {
+                    Err(why)
+                }
             }
-            Err(why) => Err(why),
         }
     }
 }
@@ -1528,7 +1563,7 @@ impl Route {
 
 #[cfg(test)]
 mod tests {
-    use super::{Path, PathParseError};
+    use super::{Path, PathParseErrorType};
     use hyper::Method;
     use std::{convert::TryFrom, error::Error, str::FromStr};
 
@@ -1551,10 +1586,12 @@ mod tests {
 
     #[test]
     fn test_path_message_id() -> Result<(), Box<dyn Error>> {
-        assert_eq!(
-            PathParseError::MessageIdWithoutMethod { channel_id: 123 },
-            Path::from_str("channels/123/messages/456").unwrap_err()
-        );
+        assert!(matches!(
+            Path::from_str("channels/123/messages/456")
+                .unwrap_err()
+                .kind(),
+            PathParseErrorType::MessageIdWithoutMethod { channel_id: 123 },
+        ));
         assert_eq!(
             Path::ChannelsIdMessagesId(Method::GET, 123),
             Path::try_from((Method::GET, "/channels/123/messages/456"))?,

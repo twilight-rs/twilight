@@ -57,22 +57,49 @@ impl AuditLogReasonError {
         if reason.chars().count() <= Self::AUDIT_REASON_LENGTH {
             Ok(reason)
         } else {
-            Err(AuditLogReasonError::TooLarge { reason })
+            Err(AuditLogReasonError {
+                kind: AuditLogReasonErrorType::TooLarge { reason },
+            })
         }
     }
 }
 
 /// The error created when a reason can not be used as configured.
-#[derive(Clone, Debug)]
-pub enum AuditLogReasonError {
-    /// Returned when the reason is over 512 UTF-16 characters.
-    TooLarge { reason: String },
+#[derive(Debug)]
+pub struct AuditLogReasonError {
+    kind: AuditLogReasonErrorType,
+}
+
+impl AuditLogReasonError {
+    /// Immutable reference to the type of error that occurred.
+    #[must_use = "retrieving the type has no effect if left unused"]
+    pub fn kind(&self) -> &AuditLogReasonErrorType {
+        &self.kind
+    }
+
+    /// Consume the error, returning the source error if there is any.
+    #[allow(clippy::unused_self)]
+    #[must_use = "consuming the error and retrieving the source has no effect if left unused"]
+    pub fn into_source(self) -> Option<Box<dyn Error + Send + Sync>> {
+        None
+    }
+
+    /// Consume the error, returning the owned error type and the source error.
+    #[must_use = "consuming the error into its parts has no effect if left unused"]
+    pub fn into_parts(
+        self,
+    ) -> (
+        AuditLogReasonErrorType,
+        Option<Box<dyn Error + Send + Sync>>,
+    ) {
+        (self.kind, None)
+    }
 }
 
 impl Display for AuditLogReasonError {
     fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
-        match self {
-            Self::TooLarge { reason } => write!(
+        match &self.kind {
+            AuditLogReasonErrorType::TooLarge { reason } => write!(
                 f,
                 "the audit log reason is {} characters long, but the max is {}",
                 reason.chars().count(),
@@ -83,6 +110,14 @@ impl Display for AuditLogReasonError {
 }
 
 impl Error for AuditLogReasonError {}
+
+/// Type of [`AuditLogReasonError`] that occurred.
+#[derive(Debug)]
+#[non_exhaustive]
+pub enum AuditLogReasonErrorType {
+    /// Returned when the reason is over 512 UTF-16 characters.
+    TooLarge { reason: String },
+}
 
 #[cfg(test)]
 mod test {

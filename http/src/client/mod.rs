@@ -4,7 +4,7 @@ pub use self::builder::ClientBuilder;
 
 use crate::{
     api_error::{ApiError, ErrorCode},
-    error::{Error, Result},
+    error::{Error, ErrorType, Result},
     ratelimiting::{RatelimitHeaders, Ratelimiter},
     request::{
         channel::allowed_mentions::AllowedMentions,
@@ -101,7 +101,7 @@ impl Debug for State {
 /// the configured token is invalid. This may occur when the token has been
 /// revoked or expired. When this happens, you must create a new client with the
 /// new token. The client will no longer execute requests in order to
-/// prevent API bans and will always return [`Error::Unauthorized`].
+/// prevent API bans and will always return [`ErrorType::Unauthorized`].
 ///
 /// # Examples
 ///
@@ -313,21 +313,6 @@ impl Client {
     ///
     /// All fields are optional. The minimum length of the name is 2 UTF-16 characters and the
     /// maximum is 100 UTF-16 characters.
-    ///
-    /// # Errors
-    ///
-    /// Returns a [`UpdateChannelError::NameInvalid`] when the length of the name is either fewer
-    /// than 2 UTF-16 characters or more than 100 UTF-16 characters.
-    ///
-    /// Returns a [`UpdateChannelError::RateLimitPerUserInvalid`] when the seconds of the rate limit
-    /// per user is more than 21600.
-    ///
-    /// Returns a [`UpdateChannelError::TopicInvalid`] when the length of the topic is more than
-    /// 1024 UTF-16 characters.
-    ///
-    /// [`UpdateChannelError::NameInvalid`]: crate::request::channel::update_channel::UpdateChannelError::NameInvalid
-    /// [`UpdateChannelError::RateLimitPerUserInvalid`]: crate::request::channel::update_channel::UpdateChannelError::RateLimitPerUserInvalid
-    /// [`UpdateChannelError::TopicInvalid`]: crate::request::channel::update_channel::UpdateChannelError::TopicInvalid
     pub fn update_channel(&self, channel_id: ChannelId) -> UpdateChannel<'_> {
         UpdateChannel::new(self, channel_id)
     }
@@ -383,14 +368,15 @@ impl Client {
     ///
     /// # Errors
     ///
-    /// Returns [`GetChannelMessagesError::LimitInvalid`] if the amount is less than 1 or greater than 100.
+    /// Returns a [`GetChannelMessagesErrorType::LimitInvalid`] error type if
+    /// the amount is less than 1 or greater than 100.
     ///
     /// [`after`]: GetChannelMessages::after
     /// [`around`]: GetChannelMessages::around
     /// [`before`]: GetChannelMessages::before
     /// [`GetChannelMessagesConfigured`]: crate::request::channel::message::GetChannelMessagesConfigured
     /// [`limit`]: GetChannelMessages::limit
-    /// [`GetChannelMessagesError::LimitInvalid`]: crate::request::channel::message::get_channel_messages::GetChannelMessagesError::LimitInvalid
+    /// [`GetChannelMessagesErrorType::LimitInvalid`]: crate::request::channel::message::get_channel_messages::GetChannelMessagesErrorType::LimitInvalid
     pub fn channel_messages(&self, channel_id: ChannelId) -> GetChannelMessages<'_> {
         GetChannelMessages::new(self, channel_id)
     }
@@ -487,13 +473,6 @@ impl Client {
     ///     .await?;
     /// # Ok(()) }
     /// ```
-    ///
-    /// # Errors
-    ///
-    /// Returns [`GetCurrentUserGuildsError::LimitInvalid`] if the amount is greater
-    /// than 100.
-    ///
-    /// [`GetCurrentUserGuildsError::LimitInvalid`]: crate::request::user::get_current_user_guilds::GetCurrentUserGuildsError::LimitInvalid
     pub fn current_user_guilds(&self) -> GetCurrentUserGuilds<'_> {
         GetCurrentUserGuilds::new(self)
     }
@@ -635,9 +614,10 @@ impl Client {
     ///
     /// # Errors
     ///
-    /// Returns [`CreateGuildError::NameInvalid`] if the name length is too short or too long.
+    /// Returns a [`CreateGuildErrorType::NameInvalid`] error type if the name
+    /// length is too short or too long.
     ///
-    /// [`CreateGuildError::NameInvalid`]: crate::request::guild::create_guild::CreateGuildError::NameInvalid
+    /// [`CreateGuildErrorType::NameInvalid`]: crate::request::guild::create_guild::CreateGuildErrorType::NameInvalid
     pub fn create_guild(
         &self,
         name: impl Into<String>,
@@ -676,19 +656,18 @@ impl Client {
     ///
     /// # Errors
     ///
-    /// Returns a [`CreateGuildChannelError::NameInvalid`] when the length of the name is either
-    /// fewer than 2 UTF-16 characters or more than 100 UTF-16 characters.
+    /// Returns a [`CreateGuildChannelErrorType::NameInvalid`] error type when
+    /// the length of the name is either fewer than 2 UTF-16 characters or more than 100 UTF-16 characters.
     ///
-    /// Returns a [`CreateGuildChannelError::RateLimitPerUserInvalid`] when the seconds of the rate
-    /// limit per user is more than 21600.
+    /// Returns a [`CreateGuildChannelErrorType::RateLimitPerUserInvalid`] error
+    /// type when the seconds of the rate limit per user is more than 21600.
     ///
-    /// Returns a [`CreateGuildChannelError::TopicInvalid`] when the length of the topic is more
-    /// than
-    /// 1024 UTF-16 characters.
+    /// Returns a [`CreateGuildChannelErrorType::TopicInvalid`] error type when
+    /// the length of the topic is more than 1024 UTF-16 characters.
     ///
-    /// [`CreateGuildChannelError::NameInvalid`]: crate::request::guild::create_guild_channel::CreateGuildChannelError::NameInvalid
-    /// [`CreateGuildChannelError::RateLimitPerUserInvalid`]: crate::request::guild::create_guild_channel::CreateGuildChannelError::RateLimitPerUserInvalid
-    /// [`CreateGuildChannelError::TopicInvalid`]: crate::request::guild::create_guild_channel::CreateGuildChannelError::TopicInvalid
+    /// [`CreateGuildChannelErrorType::NameInvalid`]: crate::request::guild::create_guild_channel::CreateGuildChannelErrorType::NameInvalid
+    /// [`CreateGuildChannelErrorType::RateLimitPerUserInvalid`]: crate::request::guild::create_guild_channel::CreateGuildChannelErrorType::RateLimitPerUserInvalid
+    /// [`CreateGuildChannelErrorType::TopicInvalid`]: crate::request::guild::create_guild_channel::CreateGuildChannelErrorType::TopicInvalid
     pub fn create_guild_channel(
         &self,
         guild_id: GuildId,
@@ -802,9 +781,10 @@ impl Client {
     ///
     /// # Errors
     ///
-    /// Returns [`GetGuildMembersError::LimitInvalid`] if the limit is invalid.
+    /// Returns a [`GetGuildMembersErrorType::LimitInvalid`] error type if the
+    /// limit is invalid.
     ///
-    /// [`GetGuildMembersError::LimitInvalid`]: crate::request::guild::member::get_guild_members::GetGuildMembersError::LimitInvalid
+    /// [`GetGuildMembersErrorType::LimitInvalid`]: crate::request::guild::member::get_guild_members::GetGuildMembersErrorType::LimitInvalid
     pub fn guild_members(&self, guild_id: GuildId) -> GetGuildMembers<'_> {
         GetGuildMembers::new(self, guild_id)
     }
@@ -822,10 +802,10 @@ impl Client {
     ///
     /// # Errors
     ///
-    /// Returns [`AddGuildMemberError::NicknameInvalid`] if the nickname is too
-    /// short or too long.
+    /// Returns [`AddGuildMemberErrorType::NicknameInvalid`] if the nickname is
+    /// too short or too long.
     ///
-    /// [`AddGuildMemberError::NickNameInvalid`]: crate::request::guild::member::add_guild_member::AddGuildMemberError::NicknameInvalid
+    /// [`AddGuildMemberErrorType::NickNameInvalid`]: crate::request::guild::member::add_guild_member::AddGuildMemberErrorType::NicknameInvalid
     ///
     /// [the discord docs]: https://discord.com/developers/docs/resources/guild#add-guild-member
     pub fn add_guild_member(
@@ -848,10 +828,10 @@ impl Client {
     ///
     /// # Errors
     ///
-    /// Returns [`UpdateGuildMemberError::NicknameInvalid`] if the nickname length is too short or too
+    /// Returns [`UpdateGuildMemberErrorType::NicknameInvalid`] if the nickname length is too short or too
     /// long.
     ///
-    /// [`UpdateGuildMemberError::NicknameInvalid`]: crate::request::guild::member::update_guild_member::UpdateGuildMemberError::NicknameInvalid
+    /// [`UpdateGuildMemberErrorType::NicknameInvalid`]: crate::request::guild::member::update_guild_member::UpdateGuildMemberErrorType::NicknameInvalid
     ///
     /// [the discord docs]: https://discord.com/developers/docs/resources/guild#modify-guild-member
     pub fn update_guild_member(&self, guild_id: GuildId, user_id: UserId) -> UpdateGuildMember<'_> {
@@ -1017,18 +997,20 @@ impl Client {
     ///
     /// # Errors
     ///
-    /// The method [`content`] returns [`CreateMessageError::ContentInvalid`] if the content is
-    /// over 2000 UTF-16 characters.
+    /// The method [`content`] returns
+    /// [`CreateMessageErrorType::ContentInvalid`] if the content is over 2000
+    /// UTF-16 characters.
     ///
-    /// The method [`embed`] returns [`CreateMessageError::EmbedTooLarge`] if the length of the
-    /// embed is over 6000 characters.
+    /// The method [`embed`] returns
+    /// [`CreateMessageErrorType::EmbedTooLarge`] if the length of the embed
+    /// is over 6000 characters.
     ///
     /// [`content`]: crate::request::channel::message::create_message::CreateMessage::content
     /// [`embed`]: crate::request::channel::message::create_message::CreateMessage::embed
-    /// [`CreateMessageError::ContentInvalid`]:
-    /// crate::request::channel::message::create_message::CreateMessageError::ContentInvalid
-    /// [`CreateMessageError::EmbedTooLarge`]:
-    /// crate::request::channel::message::create_message::CreateMessageError::EmbedTooLarge
+    /// [`CreateMessageErrorType::ContentInvalid`]:
+    /// crate::request::channel::message::create_message::CreateMessageErrorType::ContentInvalid
+    /// [`CreateMessageErrorType::EmbedTooLarge`]:
+    /// crate::request::channel::message::create_message::CreateMessageErrorType::EmbedTooLarge
     pub fn create_message(&self, channel_id: ChannelId) -> CreateMessage<'_> {
         CreateMessage::new(self, channel_id)
     }
@@ -1422,12 +1404,15 @@ impl Client {
     ///
     /// # Errors
     ///
-    /// Returns [`Error::Unauthorized`] if the configured token has become
-    /// invalid due to expiration, revokation, etc.
+    /// Returns an [`ErrorType::Unauthorized`] error type if the configured
+    /// token has become invalid due to expiration, revokation, etc.
     #[allow(clippy::too_many_lines)]
     pub async fn raw(&self, request: Request) -> Result<Response<Body>> {
         if self.state.token_invalid.load(Ordering::Relaxed) {
-            return Err(Error::Unauthorized);
+            return Err(Error {
+                kind: ErrorType::Unauthorized,
+                source: None,
+            });
         }
 
         let Request {
@@ -1452,7 +1437,10 @@ impl Client {
                 #[allow(clippy::borrow_interior_mutable_const)]
                 let name = AUTHORIZATION.to_string();
 
-                Error::CreatingHeader { name, source }
+                Error {
+                    kind: ErrorType::CreatingHeader { name },
+                    source: Some(Box::new(source)),
+                }
             })?;
 
             if let Some(headers) = builder.headers_mut() {
@@ -1499,7 +1487,10 @@ impl Client {
             };
             builder
                 .body(Body::from(form_bytes))
-                .map_err(|source| Error::BuildingRequest { source })?
+                .map_err(|source| Error {
+                    kind: ErrorType::BuildingRequest,
+                    source: Some(Box::new(source)),
+                })?
         } else if let Some(bytes) = body {
             let len = bytes.len();
 
@@ -1509,21 +1500,24 @@ impl Client {
                 headers.insert(CONTENT_TYPE, content_type);
             }
 
-            builder
-                .body(Body::from(bytes))
-                .map_err(|source| Error::BuildingRequest { source })?
+            builder.body(Body::from(bytes)).map_err(|source| Error {
+                kind: ErrorType::BuildingRequest,
+                source: Some(Box::new(source)),
+            })?
         } else if method == Method::PUT || method == Method::POST || method == Method::PATCH {
             if let Some(headers) = builder.headers_mut() {
                 headers.insert(CONTENT_LENGTH, 0.into());
             }
 
-            builder
-                .body(Body::empty())
-                .map_err(|source| Error::BuildingRequest { source })?
+            builder.body(Body::empty()).map_err(|source| Error {
+                kind: ErrorType::BuildingRequest,
+                source: Some(Box::new(source)),
+            })?
         } else {
-            builder
-                .body(Body::empty())
-                .map_err(|source| Error::BuildingRequest { source })?
+            builder.body(Body::empty()).map_err(|source| Error {
+                kind: ErrorType::BuildingRequest,
+                source: Some(Box::new(source)),
+            })?
         };
 
         let inner = self.state.http.request(req);
@@ -1534,20 +1528,33 @@ impl Client {
             None => {
                 return fut
                     .await
-                    .map_err(|source| Error::RequestTimedOut { source })?
-                    .map_err(|source| Error::RequestError { source })
+                    .map_err(|source| Error {
+                        kind: ErrorType::RequestTimedOut,
+                        source: Some(Box::new(source)),
+                    })?
+                    .map_err(|source| Error {
+                        kind: ErrorType::RequestError,
+                        source: Some(Box::new(source)),
+                    });
             }
         };
 
         let rx = ratelimiter.get(bucket).await;
-        let tx = rx
-            .await
-            .map_err(|source| Error::RequestCanceled { source })?;
+        let tx = rx.await.map_err(|source| Error {
+            kind: ErrorType::RequestCanceled,
+            source: Some(Box::new(source)),
+        })?;
 
         let resp = fut
             .await
-            .map_err(|source| Error::RequestTimedOut { source })?
-            .map_err(|source| Error::RequestError { source })?;
+            .map_err(|source| Error {
+                kind: ErrorType::RequestTimedOut,
+                source: Some(Box::new(source)),
+            })?
+            .map_err(|source| Error {
+                kind: ErrorType::RequestError,
+                source: Some(Box::new(source)),
+            })?;
 
         // If the API sent back an Unauthorized response, then the client's
         // configured token is permanently invalid and future requests must be
@@ -1574,23 +1581,28 @@ impl Client {
     ///
     /// # Errors
     ///
-    /// Returns [`Error::Unauthorized`] if the configured token has become
-    /// invalid due to expiration, revokation, etc.
+    /// Returns an [`ErrorType::Unauthorized`] error type if the configured
+    /// token has become invalid due to expiration, revokation, etc.
     pub async fn request<T: DeserializeOwned>(&self, request: Request) -> Result<T> {
         let resp = self.make_request(request).await?;
 
         let mut buf = body::aggregate(resp.into_body())
             .await
-            .map_err(|source| Error::ChunkingResponse { source })?;
+            .map_err(|source| Error {
+                kind: ErrorType::ChunkingResponse,
+                source: Some(Box::new(source)),
+            })?;
 
         let mut bytes = vec![0; buf.remaining()];
         buf.copy_to_slice(&mut bytes);
 
         let result = crate::json_from_slice(&mut bytes);
 
-        result.map_err(|source| Error::Parsing {
-            body: bytes.to_vec(),
-            source,
+        result.map_err(|source| Error {
+            kind: ErrorType::Parsing {
+                body: bytes.to_vec(),
+            },
+            source: Some(Box::new(source)),
         })
     }
 
@@ -1599,7 +1611,10 @@ impl Client {
 
         hyper::body::to_bytes(resp.into_body())
             .await
-            .map_err(|source| Error::ChunkingResponse { source })
+            .map_err(|source| Error {
+                kind: ErrorType::ChunkingResponse,
+                source: Some(Box::new(source)),
+            })
     }
 
     /// Execute a request, checking only that the response was a success.
@@ -1608,8 +1623,8 @@ impl Client {
     ///
     /// # Errors
     ///
-    /// Returns [`Error::Unauthorized`] if the configured token has become
-    /// invalid due to expiration, revokation, etc.
+    /// Returns an [`ErrorType::Unauthorized`] error type if the configured
+    /// token has become invalid due to expiration, revokation, etc.
     pub async fn verify(&self, request: Request) -> Result<()> {
         self.make_request(request).await?;
 
@@ -1631,23 +1646,30 @@ impl Client {
             ),
             StatusCode::TOO_MANY_REQUESTS => tracing::warn!("429 response: {:?}", resp),
             StatusCode::SERVICE_UNAVAILABLE => {
-                return Err(Error::ServiceUnavailable { response: resp })
+                return Err(Error {
+                    kind: ErrorType::ServiceUnavailable { response: resp },
+                    source: None,
+                });
             }
             _ => {}
         }
 
         let mut buf = hyper::body::aggregate(resp.into_body())
             .await
-            .map_err(|source| Error::ChunkingResponse { source })?;
+            .map_err(|source| Error {
+                kind: ErrorType::ChunkingResponse,
+                source: Some(Box::new(source)),
+            })?;
 
         let mut bytes = vec![0; buf.remaining()];
         buf.copy_to_slice(&mut bytes);
 
-        let error =
-            crate::json_from_slice::<ApiError>(&mut bytes).map_err(|source| Error::Parsing {
+        let error = crate::json_from_slice::<ApiError>(&mut bytes).map_err(|source| Error {
+            kind: ErrorType::Parsing {
                 body: bytes.clone(),
-                source,
-            })?;
+            },
+            source: Some(Box::new(source)),
+        })?;
 
         if let ApiError::General(ref general) = error {
             if let ErrorCode::Other(num) = general.code {
@@ -1655,10 +1677,13 @@ impl Client {
             }
         }
 
-        Err(Error::Response {
-            body: bytes,
-            error,
-            status,
+        Err(Error {
+            kind: ErrorType::Response {
+                body: bytes,
+                error,
+                status,
+            },
+            source: None,
         })
     }
 }

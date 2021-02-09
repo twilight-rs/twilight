@@ -8,5 +8,9 @@ pub use super::{
     guild::{ban::*, emoji::*, integration::*, member::*, role::*, *},
     user::*,
 };
-pub(super) use crate::{client::Client, error::Result, routing::Route};
+pub(super) use crate::{
+    client::Client,
+    error::{Error as HttpError, Result},
+    routing::Route,
+};
 pub(super) use serde::Serialize;

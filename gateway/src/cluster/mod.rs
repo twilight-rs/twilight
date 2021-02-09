@@ -60,7 +60,10 @@ mod config;
 mod r#impl;
 
 pub use self::{
-    builder::{ClusterBuilder, ShardScheme, ShardSchemeRangeError},
+    builder::{ClusterBuilder, ShardScheme, ShardSchemeRangeError, ShardSchemeRangeErrorType},
     config::Config,
-    r#impl::{Cluster, ClusterCommandError, ClusterSendError, ClusterStartError},
+    r#impl::{
+        Cluster, ClusterCommandError, ClusterCommandErrorType, ClusterStartError,
+        ClusterStartErrorType,
+    },
 };

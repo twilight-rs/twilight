@@ -6,20 +6,36 @@ use std::{
 use twilight_model::id::{GuildId, UserId};
 
 /// The error created when the ban can not be created as configured.
-#[derive(Clone, Debug)]
-#[non_exhaustive]
-pub enum CreateBanError {
-    /// The number of days' worth of messages to delete is greater than 7.
-    DeleteMessageDaysInvalid {
-        /// Provided number of days' worth of messages to delete.
-        days: u64,
-    },
+#[derive(Debug)]
+pub struct CreateBanError {
+    kind: CreateBanErrorType,
+}
+
+impl CreateBanError {
+    /// Immutable reference to the type of error that occurred.
+    #[must_use = "retrieving the type has no effect if left unused"]
+    pub fn kind(&self) -> &CreateBanErrorType {
+        &self.kind
+    }
+
+    /// Consume the error, returning the source error if there is any.
+    #[allow(clippy::unused_self)]
+    #[must_use = "consuming the error and retrieving the source has no effect if left unused"]
+    pub fn into_source(self) -> Option<Box<dyn Error + Send + Sync>> {
+        None
+    }
+
+    /// Consume the error, returning the owned error type and the source error.
+    #[must_use = "consuming the error into its parts has no effect if left unused"]
+    pub fn into_parts(self) -> (CreateBanErrorType, Option<Box<dyn Error + Send + Sync>>) {
+        (self.kind, None)
+    }
 }
 
 impl Display for CreateBanError {
     fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
-        match self {
-            Self::DeleteMessageDaysInvalid { .. } => {
+        match &self.kind {
+            CreateBanErrorType::DeleteMessageDaysInvalid { .. } => {
                 f.write_str("the number of days' worth of messages to delete is invalid")
             }
         }
@@ -27,6 +43,17 @@ impl Display for CreateBanError {
 }
 
 impl Error for CreateBanError {}
+
+/// Type of [`CreateBanError`] that occurred.
+#[derive(Debug)]
+#[non_exhaustive]
+pub enum CreateBanErrorType {
+    /// The number of days' worth of messages to delete is greater than 7.
+    DeleteMessageDaysInvalid {
+        /// Provided number of days' worth of messages to delete.
+        days: u64,
+    },
+}
 
 #[derive(Default)]
 struct CreateBanFields {
@@ -83,11 +110,13 @@ impl<'a> CreateBan<'a> {
     ///
     /// # Errors
     ///
-    /// Returns [`CreateBanError::DeleteMessageDaysInvalid`] if the number of days
-    /// is greater than 7.
+    /// Returns a [`CreateBanErrorType::DeleteMessageDaysInvalid`] error type if
+    /// the number of days is greater than 7.
     pub fn delete_message_days(mut self, days: u64) -> Result<Self, CreateBanError> {
         if !validate::ban_delete_message_days(days) {
-            return Err(CreateBanError::DeleteMessageDaysInvalid { days });
+            return Err(CreateBanError {
+                kind: CreateBanErrorType::DeleteMessageDaysInvalid { days },
+            });
         }
 
         self.fields.delete_message_days.replace(days);

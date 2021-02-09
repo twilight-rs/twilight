@@ -14,9 +14,122 @@ use twilight_model::channel::embed::Embed;
 /// Referenced values are used from [the Discord docs][docs].
 ///
 /// [docs]: https://discord.com/developers/docs/resources/channel#embed-limits
-#[derive(Clone, Debug)]
+#[derive(Debug)]
+pub struct EmbedValidationError {
+    kind: EmbedValidationErrorType,
+}
+
+impl EmbedValidationError {
+    /// The maximum embed author name length in codepoints.
+    pub const AUTHOR_NAME_LENGTH: usize = 256;
+
+    /// The maximum embed description length in codepoints.
+    pub const DESCRIPTION_LENGTH: usize = 2048;
+
+    /// The maximum combined embed length in codepoints.
+    pub const EMBED_TOTAL_LENGTH: usize = 6000;
+
+    /// The maximum number of fields in an embed.
+    pub const FIELD_COUNT: usize = 25;
+
+    /// The maximum length of an embed field name in codepoints.
+    pub const FIELD_NAME_LENGTH: usize = 256;
+
+    /// The maximum length of an embed field value in codepoints.
+    pub const FIELD_VALUE_LENGTH: usize = 1024;
+
+    /// The maximum embed footer length in codepoints.
+    pub const FOOTER_TEXT_LENGTH: usize = 2048;
+
+    /// The maximum embed title length in codepoints.
+    pub const TITLE_LENGTH: usize = 256;
+
+    /// Immutable reference to the type of error that occurred.
+    #[must_use = "retrieving the type has no effect if left unused"]
+    pub fn kind(&self) -> &EmbedValidationErrorType {
+        &self.kind
+    }
+
+    /// Consume the error, returning the source error if there is any.
+    #[allow(clippy::unused_self)]
+    #[must_use = "consuming the error and retrieving the source has no effect if left unused"]
+    pub fn into_source(self) -> Option<Box<dyn Error + Send + Sync>> {
+        None
+    }
+
+    /// Consume the error, returning the owned error type and the source error.
+    #[must_use = "consuming the error into its parts has no effect if left unused"]
+    pub fn into_parts(
+        self,
+    ) -> (
+        EmbedValidationErrorType,
+        Option<Box<dyn Error + Send + Sync>>,
+    ) {
+        (self.kind, None)
+    }
+}
+
+impl Display for EmbedValidationError {
+    fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
+        match &self.kind {
+            EmbedValidationErrorType::AuthorNameTooLarge { chars } => write!(
+                f,
+                "the author name is {} characters long, but the max is {}",
+                chars,
+                Self::AUTHOR_NAME_LENGTH
+            ),
+            EmbedValidationErrorType::DescriptionTooLarge { chars } => write!(
+                f,
+                "the description is {} characters long, but the max is {}",
+                chars,
+                Self::DESCRIPTION_LENGTH
+            ),
+            EmbedValidationErrorType::EmbedTooLarge { chars } => write!(
+                f,
+                "the combined total length of the embed is {} characters long, but the max is {}",
+                chars,
+                Self::EMBED_TOTAL_LENGTH
+            ),
+            EmbedValidationErrorType::FieldNameTooLarge { chars } => write!(
+                f,
+                "a field name is {} characters long, but the max is {}",
+                chars,
+                Self::FIELD_NAME_LENGTH
+            ),
+            EmbedValidationErrorType::FieldValueTooLarge { chars } => write!(
+                f,
+                "a field value is {} characters long, but the max is {}",
+                chars,
+                Self::FIELD_VALUE_LENGTH
+            ),
+            EmbedValidationErrorType::FooterTextTooLarge { chars } => write!(
+                f,
+                "the footer's text is {} characters long, but the max is {}",
+                chars,
+                Self::FOOTER_TEXT_LENGTH
+            ),
+            EmbedValidationErrorType::TitleTooLarge { chars } => write!(
+                f,
+                "the title's length is {} characters long, but the max is {}",
+                chars,
+                Self::TITLE_LENGTH
+            ),
+            EmbedValidationErrorType::TooManyFields { amount } => write!(
+                f,
+                "there are {} fields, but the maximum amount is {}",
+                amount,
+                Self::FIELD_COUNT
+            ),
+        }
+    }
+}
+
+impl Error for EmbedValidationError {}
+
+/// Type of [`EmbedValidationError`] that occurred.
+#[derive(Debug)]
 #[non_exhaustive]
-pub enum EmbedValidationError {
+pub enum EmbedValidationErrorType {
     /// The embed author's name is larger than
     /// [the maximum][`AUTHOR_NAME_LENGTH`].
     ///
@@ -80,89 +193,6 @@ pub enum EmbedValidationError {
     },
 }
 
-impl EmbedValidationError {
-    /// The maximum embed author name length in codepoints.
-    pub const AUTHOR_NAME_LENGTH: usize = 256;
-
-    /// The maximum embed description length in codepoints.
-    pub const DESCRIPTION_LENGTH: usize = 2048;
-
-    /// The maximum combined embed length in codepoints.
-    pub const EMBED_TOTAL_LENGTH: usize = 6000;
-
-    /// The maximum number of fields in an embed.
-    pub const FIELD_COUNT: usize = 25;
-
-    /// The maximum length of an embed field name in codepoints.
-    pub const FIELD_NAME_LENGTH: usize = 256;
-
-    /// The maximum length of an embed field value in codepoints.
-    pub const FIELD_VALUE_LENGTH: usize = 1024;
-
-    /// The maximum embed footer length in codepoints.
-    pub const FOOTER_TEXT_LENGTH: usize = 2048;
-
-    /// The maximum embed title length in codepoints.
-    pub const TITLE_LENGTH: usize = 256;
-}
-
-impl Display for EmbedValidationError {
-    fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
-        match self {
-            Self::AuthorNameTooLarge { chars } => write!(
-                f,
-                "the author name is {} characters long, but the max is {}",
-                chars,
-                Self::AUTHOR_NAME_LENGTH
-            ),
-            Self::DescriptionTooLarge { chars } => write!(
-                f,
-                "the description is {} characters long, but the max is {}",
-                chars,
-                Self::DESCRIPTION_LENGTH
-            ),
-            Self::EmbedTooLarge { chars } => write!(
-                f,
-                "the combined total length of the embed is {} characters long, but the max is {}",
-                chars,
-                Self::EMBED_TOTAL_LENGTH
-            ),
-            Self::FieldNameTooLarge { chars } => write!(
-                f,
-                "a field name is {} characters long, but the max is {}",
-                chars,
-                Self::FIELD_NAME_LENGTH
-            ),
-            Self::FieldValueTooLarge { chars } => write!(
-                f,
-                "a field value is {} characters long, but the max is {}",
-                chars,
-                Self::FIELD_VALUE_LENGTH
-            ),
-            Self::FooterTextTooLarge { chars } => write!(
-                f,
-                "the footer's text is {} characters long, but the max is {}",
-                chars,
-                Self::FOOTER_TEXT_LENGTH
-            ),
-            Self::TitleTooLarge { chars } => write!(
-                f,
-                "the title's length is {} characters long, but the max is {}",
-                chars,
-                Self::TITLE_LENGTH
-            ),
-            Self::TooManyFields { amount } => write!(
-                f,
-                "there are {} fields, but the maximum amount is {}",
-                amount,
-                Self::FIELD_COUNT
-            ),
-        }
-    }
-}
-
-impl Error for EmbedValidationError {}
-
 pub fn ban_delete_message_days(value: u64) -> bool {
     // <https://discordapp.com/developers/docs/resources/guild#create-guild-ban-query-string-params>
     value <= 7
@@ -192,8 +222,10 @@ pub fn embed(embed: &Embed) -> Result<(), EmbedValidationError> {
     let mut total = 0;
 
     if embed.fields.len() > EmbedValidationError::FIELD_COUNT {
-        return Err(EmbedValidationError::TooManyFields {
-            amount: embed.fields.len(),
+        return Err(EmbedValidationError {
+            kind: EmbedValidationErrorType::TooManyFields {
+                amount: embed.fields.len(),
+            },
         });
     }
 
@@ -205,7 +237,9 @@ pub fn embed(embed: &Embed) -> Result<(), EmbedValidationError> {
         let chars = name.chars().count();
 
         if chars > EmbedValidationError::AUTHOR_NAME_LENGTH {
-            return Err(EmbedValidationError::AuthorNameTooLarge { chars });
+            return Err(EmbedValidationError {
+                kind: EmbedValidationErrorType::AuthorNameTooLarge { chars },
+            });
         }
 
         total += chars;
@@ -215,7 +249,9 @@ pub fn embed(embed: &Embed) -> Result<(), EmbedValidationError> {
         let chars = description.chars().count();
 
         if chars > EmbedValidationError::DESCRIPTION_LENGTH {
-            return Err(EmbedValidationError::DescriptionTooLarge { chars });
+            return Err(EmbedValidationError {
+                kind: EmbedValidationErrorType::DescriptionTooLarge { chars },
+            });
         }
 
         total += chars;
@@ -225,7 +261,9 @@ pub fn embed(embed: &Embed) -> Result<(), EmbedValidationError> {
         let chars = footer.text.chars().count();
 
         if chars > EmbedValidationError::FOOTER_TEXT_LENGTH {
-            return Err(EmbedValidationError::FooterTextTooLarge { chars });
+            return Err(EmbedValidationError {
+                kind: EmbedValidationErrorType::FooterTextTooLarge { chars },
+            });
         }
 
         total += chars;
@@ -235,13 +273,17 @@ pub fn embed(embed: &Embed) -> Result<(), EmbedValidationError> {
         let name_chars = field.name.chars().count();
 
         if name_chars > EmbedValidationError::FIELD_NAME_LENGTH {
-            return Err(EmbedValidationError::FieldNameTooLarge { chars: name_chars });
+            return Err(EmbedValidationError {
+                kind: EmbedValidationErrorType::FieldNameTooLarge { chars: name_chars },
+            });
         }
 
         let value_chars = field.value.chars().count();
 
         if value_chars > EmbedValidationError::FIELD_VALUE_LENGTH {
-            return Err(EmbedValidationError::FieldValueTooLarge { chars: value_chars });
+            return Err(EmbedValidationError {
+                kind: EmbedValidationErrorType::FieldValueTooLarge { chars: value_chars },
+            });
         }
 
         total += name_chars + value_chars;
@@ -251,14 +293,18 @@ pub fn embed(embed: &Embed) -> Result<(), EmbedValidationError> {
         let chars = title.chars().count();
 
         if chars > EmbedValidationError::TITLE_LENGTH {
-            return Err(EmbedValidationError::TitleTooLarge { chars });
+            return Err(EmbedValidationError {
+                kind: EmbedValidationErrorType::TitleTooLarge { chars },
+            });
         }
 
         total += chars;
     }
 
     if total > EmbedValidationError::EMBED_TOTAL_LENGTH {
-        return Err(EmbedValidationError::EmbedTooLarge { chars: total });
+        return Err(EmbedValidationError {
+            kind: EmbedValidationErrorType::EmbedTooLarge { chars: total },
+        });
     }
 
     Ok(())
@@ -423,8 +469,8 @@ mod tests {
             url: None,
         });
         assert!(matches!(
-            super::embed(&embed),
-            Err(EmbedValidationError::AuthorNameTooLarge { chars: 257 })
+            super::embed(&embed).unwrap_err().kind(),
+            EmbedValidationErrorType::AuthorNameTooLarge { chars: 257 }
         ));
     }
 
@@ -436,8 +482,8 @@ mod tests {
 
         embed.description.replace(str::repeat("a", 2049));
         assert!(matches!(
-            super::embed(&embed),
-            Err(EmbedValidationError::DescriptionTooLarge { chars: 2049 })
+            super::embed(&embed).unwrap_err().kind(),
+            EmbedValidationErrorType::DescriptionTooLarge { chars: 2049 }
         ));
     }
 
@@ -454,8 +500,8 @@ mod tests {
         }
 
         assert!(matches!(
-            super::embed(&embed),
-            Err(EmbedValidationError::TooManyFields { amount: 26 })
+            super::embed(&embed).unwrap_err().kind(),
+            EmbedValidationErrorType::TooManyFields { amount: 26 }
         ));
     }
 
@@ -475,8 +521,8 @@ mod tests {
             value: "a".to_owned(),
         });
         assert!(matches!(
-            super::embed(&embed),
-            Err(EmbedValidationError::FieldNameTooLarge { chars: 257 })
+            super::embed(&embed).unwrap_err().kind(),
+            EmbedValidationErrorType::FieldNameTooLarge { chars: 257 }
         ));
     }
 
@@ -496,8 +542,8 @@ mod tests {
             value: str::repeat("a", 1025),
         });
         assert!(matches!(
-            super::embed(&embed),
-            Err(EmbedValidationError::FieldValueTooLarge { chars: 1025 })
+            super::embed(&embed).unwrap_err().kind(),
+            EmbedValidationErrorType::FieldValueTooLarge { chars: 1025 }
         ));
     }
 
@@ -517,8 +563,8 @@ mod tests {
             text: str::repeat("a", 2049),
         });
         assert!(matches!(
-            super::embed(&embed),
-            Err(EmbedValidationError::FooterTextTooLarge { chars: 2049 })
+            super::embed(&embed).unwrap_err().kind(),
+            EmbedValidationErrorType::FooterTextTooLarge { chars: 2049 }
         ));
     }
 
@@ -530,8 +576,8 @@ mod tests {
 
         embed.title.replace(str::repeat("a", 257));
         assert!(matches!(
-            super::embed(&embed),
-            Err(EmbedValidationError::TitleTooLarge { chars: 257 })
+            super::embed(&embed).unwrap_err().kind(),
+            EmbedValidationErrorType::TitleTooLarge { chars: 257 }
         ));
     }
 
@@ -559,8 +605,8 @@ mod tests {
         });
 
         assert!(matches!(
-            super::embed(&embed),
-            Err(EmbedValidationError::EmbedTooLarge { chars: 6304 })
+            super::embed(&embed).unwrap_err().kind(),
+            EmbedValidationErrorType::EmbedTooLarge { chars: 6304 }
         ));
     }
 

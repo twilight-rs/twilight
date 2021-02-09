@@ -44,7 +44,7 @@ impl<'a> CreateGuildIntegration<'a> {
         let request = if let Some(reason) = &self.reason {
             let headers = audit_header(&reason)?;
             Request::from((
-                crate::json_to_vec(&self.fields)?,
+                crate::json_to_vec(&self.fields).map_err(HttpError::json)?,
                 headers,
                 Route::CreateGuildIntegration {
                     guild_id: self.guild_id.0,
@@ -52,7 +52,7 @@ impl<'a> CreateGuildIntegration<'a> {
             ))
         } else {
             Request::from((
-                crate::json_to_vec(&self.fields)?,
+                crate::json_to_vec(&self.fields).map_err(HttpError::json)?,
                 Route::CreateGuildIntegration {
                     guild_id: self.guild_id.0,
                 },

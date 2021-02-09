@@ -81,7 +81,7 @@ impl<'a> UpdateRole<'a> {
         let request = if let Some(reason) = &self.reason {
             let headers = audit_header(&reason)?;
             Request::from((
-                crate::json_to_vec(&self.fields)?,
+                crate::json_to_vec(&self.fields).map_err(HttpError::json)?,
                 headers,
                 Route::UpdateRole {
                     guild_id: self.guild_id.0,
@@ -90,7 +90,7 @@ impl<'a> UpdateRole<'a> {
             ))
         } else {
             Request::from((
-                crate::json_to_vec(&self.fields)?,
+                crate::json_to_vec(&self.fields).map_err(HttpError::json)?,
                 Route::UpdateRole {
                     guild_id: self.guild_id.0,
                     role_id: self.role_id.0,

@@ -7,23 +7,18 @@ use tokio::{
     sync::Mutex,
     time::{self, Instant},
 };
-use twilight_http::Error as HttpError;
 
 /// Creating a day limiter queue failed.
 #[derive(Debug)]
-pub enum DayLimiterError {
-    /// Retrieving the bot's available gateway session initiation information
-    /// via the HTTP API failed.
-    RetrievingSessionAvailability {
-        /// Reason for the error.
-        source: HttpError,
-    },
+pub struct DayLimiterError {
+    kind: DayLimiterErrorType,
+    source: Option<Box<dyn Error + Send + Sync>>,
 }
 
 impl Display for DayLimiterError {
     fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
-        match self {
-            Self::RetrievingSessionAvailability { .. } => {
+        match &self.kind {
+            DayLimiterErrorType::RetrievingSessionAvailability { .. } => {
                 f.write_str("retrieving the bot's gateway session availability failed")
             }
         }
@@ -32,10 +27,19 @@ impl Display for DayLimiterError {
 
 impl Error for DayLimiterError {
     fn source(&self) -> Option<&(dyn Error + 'static)> {
-        match self {
-            Self::RetrievingSessionAvailability { source } => Some(source),
-        }
+        self.source
+            .as_ref()
+            .map(|source| &**source as &(dyn Error + 'static))
     }
+}
+
+/// Type of [`DayLimiterError`] that occurred.
+#[derive(Debug)]
+#[non_exhaustive]
+pub enum DayLimiterErrorType {
+    /// Retrieving the bot's available gateway session initiation information
+    /// via the HTTP API failed.
+    RetrievingSessionAvailability,
 }
 
 #[derive(Debug)]
@@ -56,7 +60,10 @@ impl DayLimiter {
             .gateway()
             .authed()
             .await
-            .map_err(|source| DayLimiterError::RetrievingSessionAvailability { source })?;
+            .map_err(|source| DayLimiterError {
+                kind: DayLimiterErrorType::RetrievingSessionAvailability,
+                source: Some(Box::new(source)),
+            })?;
 
         let last_check = Instant::now();
 

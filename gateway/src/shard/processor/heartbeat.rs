@@ -1,4 +1,7 @@
-use super::{super::json, session::SessionSendError};
+use super::{
+    super::json,
+    session::{SessionSendError, SessionSendErrorType},
+};
 use async_tungstenite::tungstenite::Message as TungsteniteMessage;
 use futures_channel::mpsc::UnboundedSender;
 use serde::{Deserialize, Serialize};
@@ -228,13 +231,18 @@ impl Heartbeater {
 
             let seq = self.seq.load(Ordering::Acquire);
             let heartbeat = Heartbeat::new(seq);
-            let bytes = json::to_vec(&heartbeat)
-                .map_err(|source| SessionSendError::Serializing { source })?;
+            let bytes = json::to_vec(&heartbeat).map_err(|source| SessionSendError {
+                kind: SessionSendErrorType::Serializing,
+                source: Some(Box::new(source)),
+            })?;
 
             tracing::debug!(seq, "sending heartbeat");
             self.tx
                 .unbounded_send(TungsteniteMessage::Binary(bytes))
-                .map_err(|source| SessionSendError::Sending { source })?;
+                .map_err(|source| SessionSendError {
+                    kind: SessionSendErrorType::Sending,
+                    source: Some(Box::new(source)),
+                })?;
             tracing::debug!(seq, "sent heartbeat");
             self.heartbeats.send();
         }

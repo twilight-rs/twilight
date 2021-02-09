@@ -33,8 +33,7 @@ use futures_util::{
     sink::SinkExt,
     stream::StreamExt,
 };
-use http::{header::HeaderName, Error as HttpError, Request, Response, StatusCode};
-use serde_json::Error as JsonError;
+use http::{header::HeaderName, Request, Response, StatusCode};
 use std::{
     error::Error,
     fmt::{Display, Formatter, Result as FmtResult},
@@ -48,45 +47,42 @@ use twilight_model::id::UserId;
 /// An error occurred while either initializing a connection or while running
 /// its event loop.
 #[derive(Debug)]
-#[non_exhaustive]
-pub enum NodeError {
-    /// Building the HTTP request to initialize a connection failed.
-    BuildingConnectionRequest {
-        /// The source of the error from the `http` crate.
-        source: HttpError,
-    },
-    /// Connecting to the Lavalink server failed after several backoff attempts.
-    Connecting {
-        /// The source of the error from the `tungstenite` crate.
-        source: TungsteniteError,
-    },
-    /// Serializing a JSON message to be sent to a Lavalink node failed.
-    SerializingMessage {
-        /// The message that couldn't be serialized.
-        message: OutgoingEvent,
-        /// The source of the error from the `serde_json` crate.
-        source: JsonError,
-    },
-    /// The given authorization for the node is incorrect.
-    Unauthorized {
-        /// The address of the node that failed to authorize.
-        address: SocketAddr,
-        /// The authorization used to connect to the node.
-        authorization: String,
-    },
+pub struct NodeError {
+    kind: NodeErrorType,
+    source: Option<Box<dyn Error + Send + Sync>>,
+}
+
+impl NodeError {
+    /// Immutable reference to the type of error that occurred.
+    #[must_use = "retrieving the type has no effect if left unused"]
+    pub fn kind(&self) -> &NodeErrorType {
+        &self.kind
+    }
+
+    /// Consume the error, returning the source error if there is any.
+    #[must_use = "consuming the error and retrieving the source has no effect if left unused"]
+    pub fn into_source(self) -> Option<Box<dyn Error + Send + Sync>> {
+        self.source
+    }
+
+    /// Consume the error, returning the owned error type and the source error.
+    #[must_use = "consuming the error into its parts has no effect if left unused"]
+    pub fn into_parts(self) -> (NodeErrorType, Option<Box<dyn Error + Send + Sync>>) {
+        (self.kind, self.source)
+    }
 }
 
 impl Display for NodeError {
     fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
-        match self {
-            Self::BuildingConnectionRequest { .. } => {
+        match &self.kind {
+            NodeErrorType::BuildingConnectionRequest { .. } => {
                 f.write_str("failed to build connection request")
             }
-            Self::Connecting { .. } => f.write_str("Failed to connect to the node"),
-            Self::SerializingMessage { .. } => {
+            NodeErrorType::Connecting { .. } => f.write_str("Failed to connect to the node"),
+            NodeErrorType::SerializingMessage { .. } => {
                 f.write_str("failed to serialize outgoing message as json")
             }
-            Self::Unauthorized { address, .. } => write!(
+            NodeErrorType::Unauthorized { address, .. } => write!(
                 f,
                 "the authorization used to connect to node {} is invalid",
                 address
@@ -97,13 +93,32 @@ impl Display for NodeError {
 
 impl Error for NodeError {
     fn source(&self) -> Option<&(dyn Error + 'static)> {
-        match self {
-            Self::BuildingConnectionRequest { source } => Some(source),
-            Self::Connecting { source } => Some(source),
-            Self::SerializingMessage { source, .. } => Some(source),
-            Self::Unauthorized { .. } => None,
-        }
+        self.source
+            .as_ref()
+            .map(|source| &**source as &(dyn Error + 'static))
     }
+}
+
+/// Type of [`NodeError`] that occurred.
+#[derive(Debug)]
+#[non_exhaustive]
+pub enum NodeErrorType {
+    /// Building the HTTP request to initialize a connection failed.
+    BuildingConnectionRequest,
+    /// Connecting to the Lavalink server failed after several backoff attempts.
+    Connecting,
+    /// Serializing a JSON message to be sent to a Lavalink node failed.
+    SerializingMessage {
+        /// The message that couldn't be serialized.
+        message: OutgoingEvent,
+    },
+    /// The given authorization for the node is incorrect.
+    Unauthorized {
+        /// The address of the node that failed to authorize.
+        address: SocketAddr,
+        /// The authorization used to connect to the node.
+        authorization: String,
+    },
 }
 
 /// The configuration that a [`Node`] uses to connect to a Lavalink server.
@@ -373,11 +388,9 @@ impl Connection {
                         outgoing
                     );
 
-                    let payload = serde_json::to_string(&outgoing).map_err(|source| {
-                        NodeError::SerializingMessage {
-                            message: outgoing,
-                            source,
-                        }
+                    let payload = serde_json::to_string(&outgoing).map_err(|source| NodeError {
+                        kind: NodeErrorType::SerializingMessage { message: outgoing },
+                        source: Some(Box::new(source)),
                     })?;
                     let msg = Message::Text(payload);
                     self.connection.send(msg).await.unwrap();
@@ -485,9 +498,10 @@ fn connect_request(state: &NodeConfig) -> Result<Request<()>, NodeError> {
         builder = builder.header("Resume-Key", state.address.to_string());
     }
 
-    builder
-        .body(())
-        .map_err(|source| NodeError::BuildingConnectionRequest { source })
+    builder.body(()).map_err(|source| NodeError {
+        kind: NodeErrorType::BuildingConnectionRequest,
+        source: Some(Box::new(source)),
+    })
 }
 
 async fn reconnect(config: &NodeConfig) -> Result<WebSocketStream<ConnectStream>, NodeError> {
@@ -534,16 +548,22 @@ async fn backoff(
 
                 if matches!(source, TungsteniteError::Http(ref resp) if resp.status() == StatusCode::UNAUTHORIZED)
                 {
-                    return Err(NodeError::Unauthorized {
-                        address: config.address,
-                        authorization: config.authorization.to_owned(),
+                    return Err(NodeError {
+                        kind: NodeErrorType::Unauthorized {
+                            address: config.address,
+                            authorization: config.authorization.to_owned(),
+                        },
+                        source: None,
                     });
                 }
 
                 if seconds > 64 {
                     tracing::debug!("no longer trying to connect to node {}", config.address);
 
-                    return Err(NodeError::Connecting { source });
+                    return Err(NodeError {
+                        kind: NodeErrorType::Connecting,
+                        source: Some(Box::new(source)),
+                    });
                 }
 
                 tracing::debug!(
@@ -563,7 +583,7 @@ async fn backoff(
 
 #[cfg(test)]
 mod tests {
-    use super::{Node, NodeConfig, NodeError, Resume};
+    use super::{Node, NodeConfig, NodeError, NodeErrorType, Resume};
     use static_assertions::{assert_fields, assert_impl_all};
     use std::{error::Error, fmt::Debug};
 
@@ -575,11 +595,10 @@ mod tests {
         user_id
     );
     assert_impl_all!(NodeConfig: Clone, Debug, Send, Sync);
-    assert_fields!(NodeError::BuildingConnectionRequest: source);
-    assert_fields!(NodeError::Connecting: source);
-    assert_fields!(NodeError::SerializingMessage: message, source);
-    assert_fields!(NodeError::Unauthorized: address, authorization);
-    assert_impl_all!(NodeError: Debug, Error, Send, Sync);
+    assert_fields!(NodeErrorType::SerializingMessage: message);
+    assert_fields!(NodeErrorType::Unauthorized: address, authorization);
+    assert_impl_all!(NodeErrorType: Debug, Send, Sync);
+    assert_impl_all!(NodeError: Error, Send, Sync);
     assert_impl_all!(Node: Clone, Debug, Send, Sync);
     assert_fields!(Resume: timeout);
     assert_impl_all!(Resume: Clone, Debug, Default, Eq, PartialEq, Send, Sync);

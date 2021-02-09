@@ -9,9 +9,51 @@ use twilight_model::{
 };
 
 /// Returned when the channel can not be updated as configured.
-#[derive(Clone, Debug)]
+#[derive(Debug)]
+pub struct UpdateChannelError {
+    kind: UpdateChannelErrorType,
+}
+
+impl UpdateChannelError {
+    /// Immutable reference to the type of error that occurred.
+    #[must_use = "retrieving the type has no effect if left unused"]
+    pub fn kind(&self) -> &UpdateChannelErrorType {
+        &self.kind
+    }
+
+    /// Consume the error, returning the source error if there is any.
+    #[allow(clippy::unused_self)]
+    #[must_use = "consuming the error and retrieving the source has no effect if left unused"]
+    pub fn into_source(self) -> Option<Box<dyn Error + Send + Sync>> {
+        None
+    }
+
+    /// Consume the error, returning the owned error type and the source error.
+    #[must_use = "consuming the error into its parts has no effect if left unused"]
+    pub fn into_parts(self) -> (UpdateChannelErrorType, Option<Box<dyn Error + Send + Sync>>) {
+        (self.kind, None)
+    }
+}
+
+impl Display for UpdateChannelError {
+    fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
+        match &self.kind {
+            UpdateChannelErrorType::NameInvalid { .. } => {
+                f.write_str("the length of the name is invalid")
+            }
+            UpdateChannelErrorType::RateLimitPerUserInvalid { .. } => {
+                f.write_str("the rate limit per user is invalid")
+            }
+            UpdateChannelErrorType::TopicInvalid { .. } => f.write_str("the topic is invalid"),
+        }
+    }
+}
+
+impl Error for UpdateChannelError {}
+
+#[derive(Debug)]
 #[non_exhaustive]
-pub enum UpdateChannelError {
+pub enum UpdateChannelErrorType {
     /// The length of the name is either fewer than 2 UTF-16 characters or
     /// more than 100 UTF-16 characters.
     NameInvalid {
@@ -29,20 +71,6 @@ pub enum UpdateChannelError {
         topic: String,
     },
 }
-
-impl Display for UpdateChannelError {
-    fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
-        match self {
-            Self::NameInvalid { .. } => f.write_str("the length of the name is invalid"),
-            Self::RateLimitPerUserInvalid { .. } => {
-                f.write_str("the rate limit per user is invalid")
-            }
-            Self::TopicInvalid { .. } => f.write_str("the topic is invalid"),
-        }
-    }
-}
-
-impl Error for UpdateChannelError {}
 
 // The Discord API doesn't require the `name` and `kind` fields to be present,
 // but it does require them to be non-null.
@@ -76,17 +104,6 @@ struct UpdateChannelFields {
 ///
 /// All fields are optional. The minimum length of the name is 2 UTF-16 characters and the maximum
 /// is 100 UTF-16 characters.
-///
-/// # Errors
-///
-/// Returns a [`UpdateChannelError::NameInvalid`] when the length of the name is either fewer than
-/// 2 UTF-16 characters or more than 100 UTF-16 characters.
-///
-/// Returns a [`UpdateChannelError::RateLimitPerUserInvalid`] when the seconds of the rate limit per
-/// user is more than 21600.
-///
-/// Returns a [`UpdateChannelError::TopicInvalid`] when the length of the topic is more than
-/// 1024 UTF-16 characters.
 pub struct UpdateChannel<'a> {
     channel_id: ChannelId,
     fields: UpdateChannelFields,
@@ -120,15 +137,17 @@ impl<'a> UpdateChannel<'a> {
     ///
     /// # Errors
     ///
-    /// Returns [`UpdateChannelError::NameInvalid`] if the name length is
-    /// too short or too long.
+    /// Returns an [`UpdateChannelErrorType::NameInvalid`] error type if the name
+    /// length is too short or too long.
     pub fn name(self, name: impl Into<String>) -> Result<Self, UpdateChannelError> {
         self._name(name.into())
     }
 
     fn _name(mut self, name: String) -> Result<Self, UpdateChannelError> {
         if !validate::channel_name(&name) {
-            return Err(UpdateChannelError::NameInvalid { name });
+            return Err(UpdateChannelError {
+                kind: UpdateChannelErrorType::NameInvalid { name },
+            });
         }
 
         self.fields.name.replace(name);
@@ -182,8 +201,8 @@ impl<'a> UpdateChannel<'a> {
     ///
     /// # Errors
     ///
-    /// Returns [`UpdateChannelError::RateLimitPerUserInvalid`] if the amount is greater than
-    /// 21600.
+    /// Returns an [`UpdateChannelErrorType::RateLimitPerUserInvalid`] error
+    /// type if the amount is greater than 21600.
     ///
     /// [the discord docs]: https://discordapp.com/developers/docs/resources/channel#channel-object-channel-structure>
     pub fn rate_limit_per_user(
@@ -191,8 +210,10 @@ impl<'a> UpdateChannel<'a> {
         rate_limit_per_user: u64,
     ) -> Result<Self, UpdateChannelError> {
         if rate_limit_per_user > 21600 {
-            return Err(UpdateChannelError::RateLimitPerUserInvalid {
-                rate_limit_per_user,
+            return Err(UpdateChannelError {
+                kind: UpdateChannelErrorType::RateLimitPerUserInvalid {
+                    rate_limit_per_user,
+                },
             });
         }
 
@@ -207,8 +228,8 @@ impl<'a> UpdateChannel<'a> {
     ///
     /// # Errors
     ///
-    /// Returns [`UpdateChannelError::TopicInvalid`] if the topic length is
-    /// too long.
+    /// Returns an [`UpdateChannelErrorType::TopicInvalid`] error type if the topic
+    /// length is too long.
     ///
     /// [the discord docs]: https://discordapp.com/developers/docs/resources/channel#channel-object-channel-structure
     pub fn topic(self, topic: impl Into<String>) -> Result<Self, UpdateChannelError> {
@@ -217,7 +238,9 @@ impl<'a> UpdateChannel<'a> {
 
     fn _topic(mut self, topic: String) -> Result<Self, UpdateChannelError> {
         if topic.chars().count() > 1024 {
-            return Err(UpdateChannelError::TopicInvalid { topic });
+            return Err(UpdateChannelError {
+                kind: UpdateChannelErrorType::TopicInvalid { topic },
+            });
         }
 
         self.fields.topic.replace(topic);
@@ -254,7 +277,7 @@ impl<'a> UpdateChannel<'a> {
         let request = if let Some(reason) = &self.reason {
             let headers = audit_header(&reason)?;
             Request::from((
-                crate::json_to_vec(&self.fields)?,
+                crate::json_to_vec(&self.fields).map_err(HttpError::json)?,
                 headers,
                 Route::UpdateChannel {
                     channel_id: self.channel_id.0,
@@ -262,7 +285,7 @@ impl<'a> UpdateChannel<'a> {
             ))
         } else {
             Request::from((
-                crate::json_to_vec(&self.fields)?,
+                crate::json_to_vec(&self.fields).map_err(HttpError::json)?,
                 Route::UpdateChannel {
                     channel_id: self.channel_id.0,
                 },

@@ -2,12 +2,10 @@
 
 use crate::{
     client::Client,
-    error::Result,
+    error::{Error as HttpError, Result},
     request::{
-        self,
-        channel::allowed_mentions::AllowedMentions,
-        validate::{self, EmbedValidationError},
-        AuditLogReason, AuditLogReasonError, Pending, Request,
+        self, channel::allowed_mentions::AllowedMentions, validate, AuditLogReason,
+        AuditLogReasonError, Pending, Request,
     },
     routing::Route,
 };
@@ -22,9 +20,66 @@ use twilight_model::{
 };
 
 /// A webhook's message can not be updated as configured.
-#[derive(Clone, Debug)]
+#[derive(Debug)]
+pub struct UpdateWebhookMessageError {
+    kind: UpdateWebhookMessageErrorType,
+    source: Option<Box<dyn Error + Send + Sync>>,
+}
+
+impl UpdateWebhookMessageError {
+    /// Immutable reference to the type of error that occurred.
+    #[must_use = "retrieving the type has no effect if left unused"]
+    pub fn kind(&self) -> &UpdateWebhookMessageErrorType {
+        &self.kind
+    }
+
+    /// Consume the error, returning the source error if there is any.
+    #[must_use = "consuming the error and retrieving the source has no effect if left unused"]
+    pub fn into_source(self) -> Option<Box<dyn Error + Send + Sync>> {
+        self.source
+    }
+
+    /// Consume the error, returning the owned error type and the source error.
+    #[must_use = "consuming the error into its parts has no effect if left unused"]
+    pub fn into_parts(
+        self,
+    ) -> (
+        UpdateWebhookMessageErrorType,
+        Option<Box<dyn Error + Send + Sync>>,
+    ) {
+        (self.kind, self.source)
+    }
+}
+
+impl Display for UpdateWebhookMessageError {
+    fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
+        match &self.kind {
+            UpdateWebhookMessageErrorType::ContentInvalid { .. } => {
+                f.write_str("message content is invalid")
+            }
+            UpdateWebhookMessageErrorType::EmbedTooLarge { .. } => {
+                f.write_str("length of one of the embeds is too large")
+            }
+            UpdateWebhookMessageErrorType::TooManyEmbeds { embeds } => f.write_fmt(format_args!(
+                "{} embeds were provided, but only 10 may be provided",
+                embeds.len()
+            )),
+        }
+    }
+}
+
+impl Error for UpdateWebhookMessageError {
+    fn source(&self) -> Option<&(dyn Error + 'static)> {
+        self.source
+            .as_ref()
+            .map(|source| &**source as &(dyn Error + 'static))
+    }
+}
+
+/// Type of [`UpdateWebhookMessageError`] that occurred.
+#[derive(Debug)]
 #[non_exhaustive]
-pub enum UpdateWebhookMessageError {
+pub enum UpdateWebhookMessageErrorType {
     /// Content is over 2000 UTF-16 characters.
     ContentInvalid {
         /// Provided content.
@@ -40,8 +95,6 @@ pub enum UpdateWebhookMessageError {
         ///
         /// [`embeds`]: Self::EmbedTooLarge.embeds
         index: usize,
-        /// Source of the error.
-        source: EmbedValidationError,
     },
     /// Too many embeds were provided.
     ///
@@ -50,28 +103,6 @@ pub enum UpdateWebhookMessageError {
         /// Provided embeds.
         embeds: Vec<Embed>,
     },
-}
-
-impl Display for UpdateWebhookMessageError {
-    fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
-        match self {
-            Self::ContentInvalid { .. } => f.write_str("message content is invalid"),
-            Self::EmbedTooLarge { .. } => f.write_str("length of one of the embeds is too large"),
-            Self::TooManyEmbeds { embeds } => f.write_fmt(format_args!(
-                "{} embeds were provided, but only 10 may be provided",
-                embeds.len()
-            )),
-        }
-    }
-}
-
-impl Error for UpdateWebhookMessageError {
-    fn source(&self) -> Option<&(dyn Error + 'static)> {
-        match self {
-            Self::EmbedTooLarge { source, .. } => Some(source),
-            Self::ContentInvalid { .. } | Self::TooManyEmbeds { .. } => None,
-        }
-    }
 }
 
 #[derive(Default, Serialize)]
@@ -168,13 +199,16 @@ impl<'a> UpdateWebhookMessage<'a> {
     ///
     /// # Errors
     ///
-    /// Returns [`UpdateWebhookMessageError::ContentInvalid`] if the content
-    /// length is too long.
+    /// Returns an [`UpdateWebhookMessageErrorType::ContentInvalid`] error type if
+    /// the content length is too long.
     pub fn content(mut self, content: Option<String>) -> Result<Self, UpdateWebhookMessageError> {
         if let Some(content_ref) = content.as_ref() {
             if !validate::content_limit(content_ref) {
-                return Err(UpdateWebhookMessageError::ContentInvalid {
-                    content: content.expect("content is known to be some"),
+                return Err(UpdateWebhookMessageError {
+                    kind: UpdateWebhookMessageErrorType::ContentInvalid {
+                        content: content.expect("content is known to be some"),
+                    },
+                    source: None,
                 });
             }
         }
@@ -222,28 +256,33 @@ impl<'a> UpdateWebhookMessage<'a> {
     ///
     /// # Errors
     ///
-    /// Returns [`UpdateWebhookMessageError::EmbedTooLarge`] if one of the
-    /// embeds are too large.
+    /// Returns an [`UpdateWebhookMessageErrorType::EmbedTooLarge`] error type
+    /// if one of the embeds are too large.
     ///
-    /// Returns [`UpdateWebhookMessageError::TooManyEmbeds`] if more than 10
-    /// embeds are provided.
+    /// Returns an [`UpdateWebhookMessageErrorType::TooManyEmbeds`] error type
+    /// if more than 10 embeds are provided.
     ///
     /// [the discord docs]: https://discord.com/developers/docs/resources/channel#embed-limits
     /// [`EMBED_COUNT_LIMIT`]: Self::EMBED_COUNT_LIMIT
     pub fn embeds(mut self, embeds: Option<Vec<Embed>>) -> Result<Self, UpdateWebhookMessageError> {
         if let Some(embeds_present) = embeds.as_deref() {
             if embeds_present.len() > Self::EMBED_COUNT_LIMIT {
-                return Err(UpdateWebhookMessageError::TooManyEmbeds {
-                    embeds: embeds.expect("embeds are known to be present"),
+                return Err(UpdateWebhookMessageError {
+                    kind: UpdateWebhookMessageErrorType::TooManyEmbeds {
+                        embeds: embeds.expect("embeds are known to be present"),
+                    },
+                    source: None,
                 });
             }
 
             for (idx, embed) in embeds_present.iter().enumerate() {
                 if let Err(source) = validate::embed(&embed) {
-                    return Err(UpdateWebhookMessageError::EmbedTooLarge {
-                        embeds: embeds.expect("embeds are known to be present"),
-                        index: idx,
-                        source,
+                    return Err(UpdateWebhookMessageError {
+                        kind: UpdateWebhookMessageErrorType::EmbedTooLarge {
+                            embeds: embeds.expect("embeds are known to be present"),
+                            index: idx,
+                        },
+                        source: Some(Box::new(source)),
                     });
                 }
             }
@@ -255,7 +294,7 @@ impl<'a> UpdateWebhookMessage<'a> {
     }
 
     fn request(&self) -> Result<Request> {
-        let body = crate::json_to_vec(&self.fields)?;
+        let body = crate::json_to_vec(&self.fields).map_err(HttpError::json)?;
         let route = Route::UpdateWebhookMessage {
             message_id: self.message_id.0,
             token: self.token.clone(),

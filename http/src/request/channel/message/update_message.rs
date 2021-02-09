@@ -9,9 +9,57 @@ use twilight_model::{
 };
 
 /// The error created when a message can not be updated as configured.
-#[derive(Clone, Debug)]
+#[derive(Debug)]
+pub struct UpdateMessageError {
+    kind: UpdateMessageErrorType,
+    source: Option<Box<dyn Error + Send + Sync>>,
+}
+
+impl UpdateMessageError {
+    /// Immutable reference to the type of error that occurred.
+    #[must_use = "retrieving the type has no effect if left unused"]
+    pub fn kind(&self) -> &UpdateMessageErrorType {
+        &self.kind
+    }
+
+    /// Consume the error, returning the source error if there is any.
+    #[must_use = "consuming the error and retrieving the source has no effect if left unused"]
+    pub fn into_source(self) -> Option<Box<dyn Error + Send + Sync>> {
+        self.source
+    }
+
+    /// Consume the error, returning the owned error type and the source error.
+    #[must_use = "consuming the error into its parts has no effect if left unused"]
+    pub fn into_parts(self) -> (UpdateMessageErrorType, Option<Box<dyn Error + Send + Sync>>) {
+        (self.kind, self.source)
+    }
+}
+
+impl Display for UpdateMessageError {
+    fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
+        match &self.kind {
+            UpdateMessageErrorType::ContentInvalid { .. } => {
+                f.write_str("the message content is invalid")
+            }
+            UpdateMessageErrorType::EmbedTooLarge { .. } => {
+                f.write_str("the embed's contents are too long")
+            }
+        }
+    }
+}
+
+impl Error for UpdateMessageError {
+    fn source(&self) -> Option<&(dyn Error + 'static)> {
+        self.source
+            .as_ref()
+            .map(|source| &**source as &(dyn Error + 'static))
+    }
+}
+
+/// Type of [`UpdateMessageError`] that occurred.
+#[derive(Debug)]
 #[non_exhaustive]
-pub enum UpdateMessageError {
+pub enum UpdateMessageErrorType {
     /// Returned when the content is over 2000 UTF-16 characters.
     ContentInvalid {
         /// Provided content.
@@ -21,27 +69,7 @@ pub enum UpdateMessageError {
     EmbedTooLarge {
         /// Provided embed.
         embed: Box<Embed>,
-        /// The source of the error.
-        source: EmbedValidationError,
     },
-}
-
-impl Display for UpdateMessageError {
-    fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
-        match self {
-            Self::ContentInvalid { .. } => f.write_str("the message content is invalid"),
-            Self::EmbedTooLarge { .. } => f.write_str("the embed's contents are too long"),
-        }
-    }
-}
-
-impl Error for UpdateMessageError {
-    fn source(&self) -> Option<&(dyn Error + 'static)> {
-        match self {
-            Self::ContentInvalid { .. } => None,
-            Self::EmbedTooLarge { source, .. } => Some(source),
-        }
-    }
 }
 
 #[derive(Default, Serialize)]
@@ -134,8 +162,8 @@ impl<'a> UpdateMessage<'a> {
     ///
     /// # Errors
     ///
-    /// Returns [`UpdateMessageError::ContentInvalid`] if the content length is
-    /// too long.
+    /// Returns an [`UpdateMessageErrorType::ContentInvalid`] error type if the
+    /// content length is too long.
     pub fn content(self, content: impl Into<Option<String>>) -> Result<Self, UpdateMessageError> {
         self._content(content.into())
     }
@@ -143,8 +171,11 @@ impl<'a> UpdateMessage<'a> {
     fn _content(mut self, content: Option<String>) -> Result<Self, UpdateMessageError> {
         if let Some(content_ref) = content.as_ref() {
             if !validate::content_limit(content_ref) {
-                return Err(UpdateMessageError::ContentInvalid {
-                    content: content.expect("content is known to be some"),
+                return Err(UpdateMessageError {
+                    kind: UpdateMessageErrorType::ContentInvalid {
+                        content: content.expect("content is known to be some"),
+                    },
+                    source: None,
                 });
             }
         }
@@ -167,9 +198,11 @@ impl<'a> UpdateMessage<'a> {
     fn _embed(mut self, embed: Option<Embed>) -> Result<Self, UpdateMessageError> {
         if let Some(embed_ref) = embed.as_ref() {
             if let Err(source) = validate::embed(&embed_ref) {
-                return Err(UpdateMessageError::EmbedTooLarge {
-                    embed: Box::new(embed.expect("embed is known to be some")),
-                    source,
+                return Err(UpdateMessageError {
+                    kind: UpdateMessageErrorType::EmbedTooLarge {
+                        embed: Box::new(embed.expect("embed is known to be some")),
+                    },
+                    source: Some(Box::new(source)),
                 });
             }
         }
@@ -206,7 +239,7 @@ impl<'a> UpdateMessage<'a> {
 
     fn start(&mut self) -> Result<()> {
         self.fut.replace(Box::pin(self.http.request(Request::from((
-            crate::json_to_vec(&self.fields)?,
+            crate::json_to_vec(&self.fields).map_err(HttpError::json)?,
             Route::UpdateMessage {
                 channel_id: self.channel_id.0,
                 message_id: self.message_id.0,

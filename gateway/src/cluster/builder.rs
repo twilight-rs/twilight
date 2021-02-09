@@ -17,7 +17,55 @@ use twilight_model::gateway::{payload::update_status::UpdateStatusInfo, Intents}
 
 /// Starting a cluster failed.
 #[derive(Debug)]
-pub enum ShardSchemeRangeError {
+pub struct ShardSchemeRangeError {
+    kind: ShardSchemeRangeErrorType,
+}
+
+impl ShardSchemeRangeError {
+    /// Immutable reference to the type of error that occurred.
+    #[must_use = "retrieving the type has no effect if left unused"]
+    pub fn kind(&self) -> &ShardSchemeRangeErrorType {
+        &self.kind
+    }
+
+    /// Consume the error, returning the source error if there is any.
+    #[allow(clippy::unused_self)]
+    #[must_use = "consuming the error and retrieving the source has no effect if left unused"]
+    pub fn into_source(self) -> Option<Box<dyn Error + Send + Sync>> {
+        None
+    }
+
+    /// Consume the error, returning the owned error type and the source error.
+    #[must_use = "consuming the error into its parts has no effect if left unused"]
+    pub fn into_parts(
+        self,
+    ) -> (
+        ShardSchemeRangeErrorType,
+        Option<Box<dyn Error + Send + Sync>>,
+    ) {
+        (self.kind, None)
+    }
+}
+
+impl Display for ShardSchemeRangeError {
+    fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
+        match &self.kind {
+            ShardSchemeRangeErrorType::IdTooLarge { end, start, total } => {
+                f.write_fmt(format_args!(
+                    "The shard ID range {}-{}/{} is larger than the total",
+                    start, end, total
+                ))
+            }
+        }
+    }
+}
+
+impl Error for ShardSchemeRangeError {}
+
+/// Type of [`ShardSchemeRangeError`] that occurred.
+#[derive(Debug)]
+#[non_exhaustive]
+pub enum ShardSchemeRangeErrorType {
     /// Start of the shard range was greater than the end or total.
     IdTooLarge {
         /// Last shard in the range to manage.
@@ -28,19 +76,6 @@ pub enum ShardSchemeRangeError {
         total: u64,
     },
 }
-
-impl Display for ShardSchemeRangeError {
-    fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
-        match self {
-            Self::IdTooLarge { end, start, total } => f.write_fmt(format_args!(
-                "The shard ID range {}-{}/{} is larger than the total",
-                start, end, total
-            )),
-        }
-    }
-}
-
-impl Error for ShardSchemeRangeError {}
 
 /// The method of sharding to use.
 ///
@@ -105,7 +140,9 @@ impl<T: RangeBounds<u64>> TryFrom<(T, u64)> for ShardScheme {
         };
 
         if start > end {
-            return Err(ShardSchemeRangeError::IdTooLarge { end, start, total });
+            return Err(ShardSchemeRangeError {
+                kind: ShardSchemeRangeErrorType::IdTooLarge { end, start, total },
+            });
         }
 
         Ok(Self::Range {
@@ -175,8 +212,10 @@ impl ClusterBuilder {
     ///
     /// # Errors
     ///
-    /// Returns [`ClusterStartError::RetrievingGatewayInfo`] if there was an
-    /// HTTP error Retrieving the gateway information.
+    /// Returns a [`ClusterStartErrorType::RetrievingGatewayInfo`] error type if
+    /// there was an HTTP error Retrieving the gateway information.
+    ///
+    /// [`ClusterStartErrorType::RetrievingGatewayInfo`]: super::ClusterStartErrorType::RetrievingGatewayInfo
     pub async fn build(mut self) -> Result<Cluster, ClusterStartError> {
         if (self.1).0.gateway_url.is_none() {
             let gateway_url = (self.1)
@@ -223,11 +262,14 @@ impl ClusterBuilder {
     ///
     /// # Errors
     ///
-    /// Returns [`LargeThresholdError::TooFew`] if the provided value is below
-    /// 50.
+    /// Returns a [`LargeThresholdErrorType::TooFew`] error type if the provided
+    /// value is below 50.
     ///
-    /// Returns [`LargeThresholdError::TooMany`] if the provided value is above
-    /// 250.
+    /// Returns a [`LargeThresholdErrorType::TooMany`] error type if the
+    /// provided value is above 250.
+    ///
+    /// [`LargeThresholdErrorType::TooFew`]: crate::shard::LargeThresholdErrorType::TooFew
+    /// [`LargeThresholdErrorType::TooMany`]: crate::shard::LargeThresholdErrorType::TooMany
     pub fn large_threshold(mut self, large_threshold: u64) -> Result<Self, LargeThresholdError> {
         self.1 = self.1.large_threshold(large_threshold)?;
 
@@ -317,7 +359,7 @@ impl<T: Into<String>> From<(T, Intents)> for ClusterBuilder {
 
 #[cfg(test)]
 mod tests {
-    use super::{ClusterBuilder, ShardScheme, ShardSchemeRangeError};
+    use super::{ClusterBuilder, ShardScheme, ShardSchemeRangeError, ShardSchemeRangeErrorType};
     use crate::Intents;
     use static_assertions::{assert_fields, assert_impl_all};
     use std::{
@@ -327,7 +369,8 @@ mod tests {
         hash::Hash,
     };
 
-    assert_fields!(ShardSchemeRangeError::IdTooLarge: end, start, total);
+    assert_fields!(ShardSchemeRangeErrorType::IdTooLarge: end, start, total);
+    assert_impl_all!(ShardSchemeRangeError: Debug, Send, Sync);
     assert_fields!(ShardScheme::Range: from, to, total);
     assert_impl_all!(ClusterBuilder: Debug, From<(String, Intents)>, Send, Sync);
     assert_impl_all!(ShardSchemeRangeError: Debug, Display, Error, Send, Sync);
