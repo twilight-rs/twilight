@@ -94,7 +94,10 @@ struct ProcessError {
 
 impl ProcessError {
     fn fatal(&self) -> bool {
-        matches!(self.kind, ProcessErrorType::SendingClose { .. } | ProcessErrorType::SessionSend { .. })
+        matches!(
+            self.kind,
+            ProcessErrorType::SendingClose { .. } | ProcessErrorType::SessionSend { .. }
+        )
     }
 }
 
@@ -160,8 +163,8 @@ impl ReceivingEventError {
         matches!(
             self.kind,
             ReceivingEventErrorType::AuthorizationInvalid { .. }
-            | ReceivingEventErrorType::IntentsDisallowed { .. }
-            | ReceivingEventErrorType::IntentsInvalid { .. }
+                | ReceivingEventErrorType::IntentsDisallowed { .. }
+                | ReceivingEventErrorType::IntentsInvalid { .. }
         )
     }
 

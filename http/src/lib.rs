@@ -87,7 +87,8 @@
     clippy::module_name_repetitions,
     clippy::pub_enum_variant_names,
     clippy::must_use_candidate,
-    clippy::missing_errors_doc
+    clippy::missing_errors_doc,
+    clippy::unnecessary_wraps
 )]
 #![cfg_attr(docsrs, feature(doc_cfg))]
 

@@ -115,7 +115,8 @@ mod tests {
     fn test_name_empty() {
         let builder = EmbedBuilder::new().author(EmbedAuthorBuilder::new().name(""));
 
-        assert!(matches!(builder.build().unwrap_err().kind(),
+        assert!(matches!(
+            builder.build().unwrap_err().kind(),
             EmbedErrorType::AuthorNameEmpty { .. }
         ));
     }

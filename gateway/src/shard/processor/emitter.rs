@@ -209,7 +209,7 @@ mod tests {
     #[test]
     fn test_event_removes_closed_channels() {
         let listeners = Listeners::default();
-        let _ = listeners.add(EventTypeFlags::default());
+        listeners.add(EventTypeFlags::default());
         let emitter = Emitter::new(listeners);
         emitter.event(Event::GatewayReconnect);
         assert!(emitter.listeners.all().is_empty());
