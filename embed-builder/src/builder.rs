@@ -658,7 +658,7 @@ mod tests {
     assert_impl_all!(Embed: TryFrom<EmbedBuilder>);
 
     #[test]
-    fn test_color_error() -> Result<(), Box<dyn Error>> {
+    fn test_color_error() {
         assert!(matches!(
             EmbedBuilder::new().color(0).unwrap_err(),
             EmbedColorError::Zero
@@ -668,8 +668,6 @@ mod tests {
             EmbedColorError::NotRgb { color }
             if color == u32::MAX
         ));
-
-        Ok(())
     }
 
     #[test]
