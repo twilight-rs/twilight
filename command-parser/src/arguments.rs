@@ -109,12 +109,11 @@ impl<'a> Iterator for Arguments<'a> {
                     self.idx = i + 1;
 
                     return v.map(str::trim);
-                } else {
-                    self.idx = i;
-                    start_idx = i;
-                    started = true;
-                    continue;
                 }
+                self.idx = i;
+                start_idx = i;
+                started = true;
+                continue;
             } else if ch == '"' {
                 start_idx = i + 1;
                 quoted = true;
