@@ -87,7 +87,7 @@ impl<'a> GetGuildPruneCount<'a> {
     /// Set the number of days that a user must be inactive before being
     /// able to be pruned.
     ///
-    /// The number of days must be greater than 0.
+    /// The number of days must be greater than 0, and less than or equal to 30.
     ///
     /// # Errors
     ///
@@ -146,6 +146,6 @@ mod test {
 
         assert!(!days_valid(0));
         assert!(days_valid(1));
-        assert!(days_valid(u64::max_value()));
+        assert!(!days_valid(u64::max_value()));
     }
 }
