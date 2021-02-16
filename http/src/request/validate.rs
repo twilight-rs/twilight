@@ -302,7 +302,7 @@ fn _guild_name(value: &str) -> bool {
 
 pub fn guild_prune_days(value: u64) -> bool {
     // <https://discordapp.com/developers/docs/resources/guild#get-guild-prune-count-query-string-params>
-    value > 0
+    value > 0 && value <= 30
 }
 
 pub fn nickname(value: impl AsRef<str>) -> bool {
@@ -623,7 +623,9 @@ mod tests {
     fn test_guild_prune_days() {
         assert!(!guild_prune_days(0));
         assert!(guild_prune_days(1));
-        assert!(guild_prune_days(100));
+        assert!(guild_prune_days(30));
+        assert!(!guild_prune_days(31));
+        assert!(!guild_prune_days(100));
     }
 
     #[test]
