@@ -133,6 +133,8 @@ pub enum ErrorCode {
     CannotExecuteActionOnChannelType,
     /// Invalid OAuth2 access token provided
     InvalidOAuthAccessToken,
+    /// Invalid webhook token provided
+    InvalidWebhookToken,
     /// Invalid recipient(s)
     InvalidRecipient,
     /// A message provided was too old to bulk delete
@@ -221,6 +223,7 @@ impl ErrorCode {
             Self::InvalidActionOnSystemMessage => 50021,
             Self::CannotExecuteActionOnChannelType => 50024,
             Self::InvalidOAuthAccessToken => 50025,
+            Self::InvalidWebhookToken => 50027,
             Self::InvalidRecipient => 50033,
             Self::MessageTooOldToBulkDelete => 50034,
             Self::InvalidFormBodyOrContentType => 50035,
@@ -300,6 +303,7 @@ impl From<u64> for ErrorCode {
             50021 => Self::InvalidActionOnSystemMessage,
             50024 => Self::CannotExecuteActionOnChannelType,
             50025 => Self::InvalidOAuthAccessToken,
+            50027 => Self::InvalidWebhookToken,
             50033 => Self::InvalidRecipient,
             50034 => Self::MessageTooOldToBulkDelete,
             50035 => Self::InvalidFormBodyOrContentType,
@@ -379,6 +383,7 @@ impl Display for ErrorCode {
             Self::InvalidActionOnSystemMessage => f.write_str("Cannot execute action on a system message"),
             Self::CannotExecuteActionOnChannelType => f.write_str("Cannot execute action on channel type"),
             Self::InvalidOAuthAccessToken => f.write_str("Invalid OAuth2 access token provided"),
+            Self::InvalidWebhookToken => f.write_str("Invalid webhook token provided."),
             Self::InvalidRecipient => f.write_str("Invalid recipient(s)"),
             Self::MessageTooOldToBulkDelete => f.write_str("A message provided was too old to bulk delete"),
             Self::InvalidFormBodyOrContentType => f.write_str("Invalid form body (returned for both application/json and multipart/form-data bodies), or invalid Content-Type provided"),
