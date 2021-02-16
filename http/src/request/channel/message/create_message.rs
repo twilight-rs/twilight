@@ -218,6 +218,24 @@ impl<'a> CreateMessage<'a> {
         Ok(self)
     }
 
+    /// Whether to fail sending if the reply no longer exists.
+    pub fn fail_if_not_exists(mut self) -> Self {
+        self.fields.message_reference = Some(self.fields.message_reference.map_or_else(
+            || MessageReference {
+                channel_id: None,
+                guild_id: None,
+                message_id: None,
+                fail_if_not_exists: Some(true),
+            },
+            |message_reference| MessageReference {
+                fail_if_not_exists: Some(true),
+                ..message_reference
+            },
+        ));
+
+        self
+    }
+
     /// Attach a nonce to the message, for optimistic message sending.
     pub fn nonce(mut self, nonce: u64) -> Self {
         self.fields.nonce.replace(nonce);
@@ -236,14 +254,21 @@ impl<'a> CreateMessage<'a> {
 
     /// Specify the ID of another message to create a reply to.
     pub fn reply(mut self, other: MessageId) -> Self {
-        self.fields.message_reference.replace(MessageReference {
-            // This struct only needs the message_id, but as we also have
-            // access to the channel_id we send that, as it will be verified
-            // by Discord.
-            channel_id: Some(self.channel_id),
-            guild_id: None,
-            message_id: Some(other),
-        });
+        let channel_id = self.channel_id;
+
+        self.fields.message_reference = Some(self.fields.message_reference.map_or_else(
+            || MessageReference {
+                channel_id: Some(channel_id),
+                guild_id: None,
+                message_id: Some(other),
+                fail_if_not_exists: None,
+            },
+            |message_reference| MessageReference {
+                channel_id: Some(channel_id),
+                message_id: Some(other),
+                ..message_reference
+            },
+        ));
 
         self
     }
