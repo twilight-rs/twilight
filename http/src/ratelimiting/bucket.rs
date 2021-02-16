@@ -118,7 +118,7 @@ pub struct BucketQueue {
 
 impl BucketQueue {
     pub fn push(&self, tx: Sender<Sender<Option<RatelimitHeaders>>>) {
-        let _ = self.tx.unbounded_send(tx);
+        let _sent = self.tx.unbounded_send(tx);
     }
 
     pub async fn pop(
@@ -182,7 +182,7 @@ impl BucketQueueTask {
                 self.global.0.lock().await;
             }
 
-            let _ = queue_tx.send(tx);
+            let _sent = queue_tx.send(tx);
 
             tracing::debug!(parent: &span, "starting to wait for response headers",);
 
