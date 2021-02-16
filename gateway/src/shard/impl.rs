@@ -484,7 +484,7 @@ impl Shard {
 
         // We know that these haven't been set, so we can ignore the result.
         let _ = self.0.processor_handle.set(handle);
-        let _ = self.0.session.set(wrx);
+        let _session = self.0.session.set(wrx);
 
         Ok(())
     }

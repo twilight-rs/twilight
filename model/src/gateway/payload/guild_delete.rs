@@ -9,6 +9,7 @@ pub struct GuildDelete {
     pub unavailable: bool,
 }
 
+#[allow(clippy::unnecessary_wraps)]
 fn nullable_unavailable<'de, D: Deserializer<'de>>(deserializer: D) -> Result<bool, D::Error> {
     Ok(Deserialize::deserialize(deserializer).unwrap_or_default())
 }

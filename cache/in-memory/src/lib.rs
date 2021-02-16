@@ -1163,7 +1163,7 @@ mod tests {
             GuildChannel::Text(ref c) => {
                 assert_eq!(Some(GuildId(123)), c.guild_id);
             }
-            _ => assert!(false, "{:?}", channel),
+            _ => panic!("{:?}", channel),
         }
     }
 

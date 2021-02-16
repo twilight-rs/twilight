@@ -78,7 +78,7 @@ fn criterion_benchmark(c: &mut Criterion) {
     ];
 
     c.bench_function("c: btreeset", |b| {
-        let set = BTreeSet::from_iter(commands.iter().map(|e| Cow::from(*e)));
+        let set = commands.iter().map(|e| Cow::from(*e)).collect();
 
         b.iter(|| {
             for command in commands.iter() {
@@ -88,7 +88,7 @@ fn criterion_benchmark(c: &mut Criterion) {
     });
 
     c.bench_function("c: hashset", |b| {
-        let set = HashSet::from_iter(commands.iter().map(|e| Cow::from(*e)));
+        let set = commands.iter().map(|e| Cow::from(*e)).collect();
 
         b.iter(|| {
             for command in commands.iter() {
