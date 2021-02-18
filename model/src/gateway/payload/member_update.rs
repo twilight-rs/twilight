@@ -12,7 +12,8 @@ pub struct MemberUpdate {
     /// Whether the user has yet to pass the guild's [Membership Screening]
     /// requirements.
     ///
-    /// Note: This field is still under refactoring by discord. For more info, check this [issue] & [pull request] for more info.
+    /// Note: This field is still under refactoring by discord. For more info,
+    /// check this [issue] & [pull request] for more info.
     ///
     /// [Membership Screening]: https://support.discord.com/hc/en-us/articles/1500000466882
     /// [issue]: https://github.com/discord/discord-api-docs/issues/2567
