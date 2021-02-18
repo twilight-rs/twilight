@@ -277,8 +277,8 @@ impl ChoiceCommandOptionData {
 /// Refer to [the discord docs] for more information.
 ///
 /// [the discord docs]: https://discord.com/developers/docs/interactions/slash-commands#applicationcommandoptionchoice
-#[serde(untagged)]
 #[derive(Clone, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
+#[serde(untagged)]
 pub enum CommandOptionChoice {
     String { name: String, value: String },
     Int { name: String, value: i64 },

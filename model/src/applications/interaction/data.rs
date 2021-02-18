@@ -59,6 +59,7 @@ pub enum CommandDataOption {
     },
     SubCommand {
         name: String,
+        #[serde(default)]
         options: Vec<CommandDataOption>,
     },
 }
