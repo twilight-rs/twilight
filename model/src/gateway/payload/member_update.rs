@@ -13,7 +13,7 @@ pub struct MemberUpdate {
     /// requirements.
     ///
     /// Note: This field is still under refactoring by Discord. For more info,
-    /// check this [issue] and [pull request] for more info.
+    /// check this [issue] and [pull request].
     ///
     /// [Membership Screening]: https://support.discord.com/hc/en-us/articles/1500000466882
     /// [issue]: https://github.com/discord/discord-api-docs/issues/2567
