@@ -145,5 +145,11 @@ pub use twilight_gateway_queue as queue;
 #[doc(no_inline)]
 pub use twilight_model::gateway::event::{Event, EventType};
 
-#[cfg(not(any(feature = "native", feature = "rustls")))]
-compile_error!("Either the `native` or `rustls` feature must be enabled");
+#[cfg(not(any(
+    feature = "native",
+    feature = "rustls-native-roots",
+    feature = "rustls-webpki-roots"
+)))]
+compile_error!(
+    "Either the `native`, `rustls-native-roots` or `rustls-webpki-roots` feature must be enabled."
+);

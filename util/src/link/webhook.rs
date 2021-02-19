@@ -225,7 +225,9 @@ mod tests {
         ));
         // ID segment isn't an integer.
         assert!(matches!(
-            super::parse("https://discord.com/api/webhooks/notaninteger").unwrap_err().kind(),
+            super::parse("https://discord.com/api/webhooks/notaninteger")
+                .unwrap_err()
+                .kind(),
             &WebhookParseErrorType::IdInvalid { .. },
         ));
     }

@@ -31,19 +31,16 @@ impl ClientBuilder {
     /// Build the [`Client`].
     pub fn build(self) -> Client {
         let http = self.hyper_client.unwrap_or_else(|| {
-            #[cfg(feature = "hyper-rustls")]
+            #[cfg(feature = "rustls-native-roots")]
             let connector = hyper_rustls::HttpsConnector::with_native_roots();
-            #[cfg(all(feature = "hyper-tls", not(feature = "hyper-rustls")))]
-            let connector = {
-                // Workaround for https://github.com/hyperium/hyper-tls/pull/85
-                let tls = native_tls::TlsConnector::builder()
-                    .request_alpns(&["h2", "http/1.1"])
-                    .build()
-                    .expect("TlsConnector::new() failure");
-                let mut http_conn = HttpConnector::new();
-                http_conn.enforce_http(false);
-                hyper_tls::HttpsConnector::from((http_conn, tls.into()))
-            };
+            #[cfg(all(feature = "rustls-webpki-roots", not(feature = "rustls-native-roots")))]
+            let connector = hyper_rustls::HttpsConnector::with_webpki_roots();
+            #[cfg(all(
+                feature = "hyper-tls",
+                not(feature = "rustls-native-roots"),
+                not(feature = "rustls-webpki-roots")
+            ))]
+            let connector = hyper_tls::HttpsConnector::new();
 
             hyper::client::Builder::default().build(connector)
         });

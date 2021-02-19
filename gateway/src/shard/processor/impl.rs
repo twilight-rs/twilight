@@ -95,7 +95,10 @@ struct ProcessError {
 
 impl ProcessError {
     fn fatal(&self) -> bool {
-        matches!(self.kind, ProcessErrorType::SendingClose { .. } | ProcessErrorType::SessionSend { .. })
+        matches!(
+            self.kind,
+            ProcessErrorType::SendingClose { .. } | ProcessErrorType::SessionSend { .. }
+        )
     }
 }
 
@@ -161,8 +164,8 @@ impl ReceivingEventError {
         matches!(
             self.kind,
             ReceivingEventErrorType::AuthorizationInvalid { .. }
-            | ReceivingEventErrorType::IntentsDisallowed { .. }
-            | ReceivingEventErrorType::IntentsInvalid { .. }
+                | ReceivingEventErrorType::IntentsDisallowed { .. }
+                | ReceivingEventErrorType::IntentsInvalid { .. }
         )
     }
 
@@ -498,15 +501,14 @@ impl ShardProcessor {
                 #[cfg(not(feature = "compression"))]
                 let buf_ref = self.buffer.as_mut_slice();
 
-                let ready = json::from_slice::<ReadyMinimal>(buf_ref).map_err(
-                    |source| ProcessError {
+                let ready =
+                    json::from_slice::<ReadyMinimal>(buf_ref).map_err(|source| ProcessError {
                         kind: ProcessErrorType::ParsingPayload,
                         source: Some(Box::new(GatewayEventParsingError {
                             kind: GatewayEventParsingErrorType::Deserializing,
                             source: Some(Box::new(source)),
                         })),
-                    },
-                )?;
+                    })?;
 
                 self.process_ready(&ready.d);
                 emitter.event(Event::Ready(Box::new(ready.d)));

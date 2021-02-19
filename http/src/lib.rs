@@ -124,5 +124,11 @@ pub(crate) use serde_json::to_vec as json_to_vec;
 #[cfg(feature = "simd-json")]
 pub(crate) use simd_json::to_vec as json_to_vec;
 
-#[cfg(not(any(feature = "native", feature = "rustls")))]
-compile_error!("Either the `native` or `rustls` feature must be enabled.");
+#[cfg(not(any(
+    feature = "native",
+    feature = "rustls-native-roots",
+    feature = "rustls-webpki-roots"
+)))]
+compile_error!(
+    "Either the `native`, `rustls-native-roots` or `rustls-webpki-roots` feature must be enabled."
+);

@@ -27,4 +27,6 @@ static_assertions = { default-features = false, version = "1" }
 [features]
 default = ["rustls"]
 native = ["twilight-http/native"]
-rustls = ["twilight-http/rustls"]
+rustls = ["rustls-native-roots"]
+rustls-native-roots = ["twilight-http/rustls-native-roots"]
+rustls-webpki-roots = ["twilight-http/rustls-webpki-roots"]
