@@ -128,7 +128,7 @@ impl Error for EmbedValidationError {}
 
 /// Type of [`EmbedValidationError`] that occurred.
 #[derive(Debug)]
-#[non_exhaustive]
+#[cfg_attr(feature = "non_exhaustive", non_exhaustive)]
 pub enum EmbedValidationErrorType {
     /// The embed author's name is larger than
     /// [the maximum][`AUTHOR_NAME_LENGTH`].
