@@ -5,7 +5,7 @@ use serde::{
 use std::fmt::{Display, Formatter, Result as FmtResult};
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
-#[non_exhaustive]
+#[cfg_attr(feature = "non_exhaustive", non_exhaustive)]
 pub enum ErrorCode {
     /// General error (such as a malformed request body, amongst other things)
     GeneralError,
@@ -436,7 +436,7 @@ impl Serialize for ErrorCode {
 }
 
 #[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
-#[non_exhaustive]
+#[cfg_attr(feature = "non_exhaustive", non_exhaustive)]
 #[serde(untagged)]
 pub enum ApiError {
     General(GeneralApiError),
@@ -456,7 +456,7 @@ impl Display for ApiError {
 }
 
 #[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
-#[non_exhaustive]
+#[cfg_attr(feature = "non_exhaustive", non_exhaustive)]
 pub struct GeneralApiError {
     pub code: ErrorCode,
     pub message: String,
@@ -475,7 +475,7 @@ impl Display for GeneralApiError {
 /// Sending a message failed because the provided fields contained invalid
 /// input.
 #[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
-#[non_exhaustive]
+#[cfg_attr(feature = "non_exhaustive", non_exhaustive)]
 pub struct MessageApiError {
     /// Fields within a provided embed were invalid.
     pub embed: Option<Vec<MessageApiErrorEmbedField>>,
@@ -509,7 +509,7 @@ impl Display for MessageApiError {
 ///
 /// [embed]: MessageApiError::embed
 #[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
-#[non_exhaustive]
+#[cfg_attr(feature = "non_exhaustive", non_exhaustive)]
 #[serde(rename_all = "snake_case")]
 pub enum MessageApiErrorEmbedField {
     /// Something was wrong with the provided fields.
@@ -528,7 +528,7 @@ impl Display for MessageApiErrorEmbedField {
 }
 
 #[derive(Clone, Debug, Deserialize, Serialize)]
-#[non_exhaustive]
+#[cfg_attr(feature = "non_exhaustive", non_exhaustive)]
 pub struct RatelimitedApiError {
     /// Whether the ratelimit is a global ratelimit.
     pub global: bool,
