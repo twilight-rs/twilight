@@ -9,7 +9,7 @@ use std::{
 #[derive(
     Clone, Copy, Debug, Deserialize_repr, Eq, Hash, PartialEq, PartialOrd, Ord, Serialize_repr,
 )]
-#[non_exhaustive]
+#[cfg_attr(feature = "non_exhaustive", non_exhaustive)]
 #[repr(u16)]
 pub enum CloseCode {
     /// An unknown error occurred.
