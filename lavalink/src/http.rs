@@ -11,7 +11,7 @@ use std::net::{IpAddr, SocketAddr};
 
 /// The type of search result given.
 #[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
-#[cfgattr(feature = "non_exhaustive", non_exhaustive)]
+#[cfg_attr(feature = "non_exhaustive", non_exhaustive)]
 #[serde(rename_all = "SCREAMING_SNAKE_CASE")]
 pub enum LoadType {
     /// Loading the results failed.
@@ -28,7 +28,7 @@ pub enum LoadType {
 
 /// A track within a search result.
 #[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
-#[cfgattr(feature = "non_exhaustive", non_exhaustive)]
+#[cfg_attr(feature = "non_exhaustive", non_exhaustive)]
 #[serde(rename_all = "camelCase")]
 pub struct Track {
     /// Details about a track, such as the author and title.
@@ -41,7 +41,7 @@ pub struct Track {
 
 /// Additional information about a track, such as the author.
 #[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
-#[non_exhaustive]
+#[cfg_attr(feature = "non_exhaustive", non_exhaustive)]
 #[serde(rename_all = "camelCase")]
 pub struct TrackInfo {
     /// The name of the author, if provided.
@@ -64,7 +64,7 @@ pub struct TrackInfo {
 
 /// Information about a playlist from a search result.
 #[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
-#[cfgattr(feature = "non_exhaustive", non_exhaustive)]
+#[cfg_attr(feature = "non_exhaustive", non_exhaustive)]
 #[serde(rename_all = "camelCase")]
 pub struct PlaylistInfo {
     /// The name of the playlist, if available.
@@ -75,7 +75,7 @@ pub struct PlaylistInfo {
 
 /// Possible track results for a query.
 #[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
-#[cfgattr(feature = "non_exhaustive", non_exhaustive)]
+#[cfg_attr(feature = "non_exhaustive", non_exhaustive)]
 #[serde(rename_all = "camelCase")]
 pub struct LoadedTracks {
     /// The type of search result, such as a list of tracks or a playlist.
@@ -88,7 +88,7 @@ pub struct LoadedTracks {
 
 /// A failing IP address within the planner.
 #[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
-#[cfgattr(feature = "non_exhaustive", non_exhaustive)]
+#[cfg_attr(feature = "non_exhaustive", non_exhaustive)]
 #[serde(rename_all = "camelCase")]
 pub struct FailingAddress {
     /// The IP address.
@@ -101,7 +101,7 @@ pub struct FailingAddress {
 
 /// The IP version in use by the block.
 #[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
-#[cfgattr(feature = "non_exhaustive", non_exhaustive)]
+#[cfg_attr(feature = "non_exhaustive", non_exhaustive)]
 pub enum IpBlockType {
     /// An IPv4 block type.
     #[serde(rename = "Inet4Address")]
@@ -113,7 +113,7 @@ pub enum IpBlockType {
 
 /// A block of IP addresses.
 #[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
-#[cfgattr(feature = "non_exhaustive", non_exhaustive)]
+#[cfg_attr(feature = "non_exhaustive", non_exhaustive)]
 pub struct IpBlock {
     /// The IP version of the IP block.
     pub kind: IpBlockType,
@@ -123,7 +123,7 @@ pub struct IpBlock {
 
 /// The type of route planner in use.
 #[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
-#[cfgattr(feature = "non_exhaustive", non_exhaustive)]
+#[cfg_attr(feature = "non_exhaustive", non_exhaustive)]
 #[serde(rename_all = "PascalCase")]
 pub enum RoutePlannerType {
     /// A Nano IP route planner.
@@ -136,7 +136,7 @@ pub enum RoutePlannerType {
 
 /// The route planner in use.
 #[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
-#[cfgattr(feature = "non_exhaustive", non_exhaustive)]
+#[cfg_attr(feature = "non_exhaustive", non_exhaustive)]
 #[serde(untagged)]
 pub enum RoutePlanner {
     /// Information about a Nano IP route planner.
@@ -149,7 +149,7 @@ pub enum RoutePlanner {
 
 /// A Nano IP planner.
 #[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
-#[cfgattr(feature = "non_exhaustive", non_exhaustive)]
+#[cfg_attr(feature = "non_exhaustive", non_exhaustive)]
 #[serde(rename_all = "camelCase")]
 pub struct NanoIpRoutePlanner {
     /// The type of planner that is currently active.
@@ -162,7 +162,7 @@ pub struct NanoIpRoutePlanner {
 
 /// Information about a Nano IP planner.
 #[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
-#[cfgattr(feature = "non_exhaustive", non_exhaustive)]
+#[cfg_attr(feature = "non_exhaustive", non_exhaustive)]
 #[serde(rename_all = "camelCase")]
 pub struct NanoIpDetails {
     /// The active offset within the IP block.
@@ -175,7 +175,7 @@ pub struct NanoIpDetails {
 
 /// A Rotating IP planner.
 #[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
-#[cfgattr(feature = "non_exhaustive", non_exhaustive)]
+#[cfg_attr(feature = "non_exhaustive", non_exhaustive)]
 #[serde(rename_all = "camelCase")]
 pub struct RotatingIpRoutePlanner {
     /// The type of planner that is currently active.
@@ -188,7 +188,7 @@ pub struct RotatingIpRoutePlanner {
 
 /// Information about a Rotating IP planner.
 #[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
-#[cfgattr(feature = "non_exhaustive", non_exhaustive)]
+#[cfg_attr(feature = "non_exhaustive", non_exhaustive)]
 #[serde(rename_all = "camelCase")]
 pub struct RotatingIpDetails {
     /// The currently used IP address.
@@ -205,7 +205,7 @@ pub struct RotatingIpDetails {
 
 /// A Rotating Nano IP planner.
 #[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
-#[cfgattr(feature = "non_exhaustive", non_exhaustive)]
+#[cfg_attr(feature = "non_exhaustive", non_exhaustive)]
 #[serde(rename_all = "camelCase")]
 pub struct RotatingNanoIpRoutePlanner {
     /// The type of planner that is currently active.
@@ -218,7 +218,7 @@ pub struct RotatingNanoIpRoutePlanner {
 
 /// Information about a Rotating Nano IP planner.
 #[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
-#[cfgattr(feature = "non_exhaustive", non_exhaustive)]
+#[cfg_attr(feature = "non_exhaustive", non_exhaustive)]
 #[serde(rename_all = "camelCase")]
 pub struct RotatingNanoIpDetails {
     /// The block IPs that are chosen.
