@@ -3,7 +3,7 @@ use hyper::header::{HeaderMap, HeaderValue};
 use std::convert::TryFrom;
 
 #[derive(Clone, Debug)]
-#[non_exhaustive]
+#[cfg_attr(feature = "non_exhaustive", non_exhaustive)]
 pub enum RatelimitHeaders {
     GlobalLimited {
         reset_after: u64,
