@@ -101,7 +101,7 @@ impl Error for NodeError {
 
 /// Type of [`NodeError`] that occurred.
 #[derive(Debug)]
-#[non_exhaustive]
+#[cfg_attr(feature = "non_exhaustive", non_exhaustive)]
 pub enum NodeErrorType {
     /// Building the HTTP request to initialize a connection failed.
     BuildingConnectionRequest,
@@ -123,7 +123,7 @@ pub enum NodeErrorType {
 
 /// The configuration that a [`Node`] uses to connect to a Lavalink server.
 #[derive(Clone, Debug, Eq, PartialEq)]
-#[non_exhaustive]
+#[cfg_attr(feature = "non_exhaustive", non_exhaustive)]
 pub struct NodeConfig {
     /// The address of the node.
     pub address: SocketAddr,
@@ -141,7 +141,7 @@ pub struct NodeConfig {
 
 /// Configuration for a session which can be resumed.
 #[derive(Clone, Debug, Eq, PartialEq)]
-#[non_exhaustive]
+#[cfg_attr(feature = "non_exhaustive", non_exhaustive)]
 pub struct Resume {
     /// The number of seconds that the Lavalink server will allow the session to
     /// be resumed for after a disconnect.
