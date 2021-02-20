@@ -46,9 +46,10 @@ static_assertions = { default-features = false, version = "1" }
 tokio = { default-features = false, features = ["macros", "rt-multi-thread"], version = "1.0" }
 
 [features]
-default = ["compression", "rustls", "flate2/zlib"]
+default = ["compression", "rustls", "flate2/zlib", "non_exhaustive"]
 compression = ["flate2"]
 native = ["twilight-http/native", "twilight-gateway-queue/native", "async-tungstenite/tokio-native-tls"]
+non_exhaustive = []
 rustls = ["twilight-http/rustls", "twilight-gateway-queue/rustls", "async-tungstenite/tokio-rustls"]
 simd-zlib = ["compression", "flate2/zlib-ng-compat"]
 # if the `zlib` feature is enabled anywhere in the dependency tree it will
