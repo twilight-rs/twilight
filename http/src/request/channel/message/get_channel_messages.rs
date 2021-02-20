@@ -53,7 +53,7 @@ impl Error for GetChannelMessagesError {}
 
 /// Type of [`GetChannelMessagesError`] that occurred.
 #[derive(Debug)]
-#[non_exhaustive]
+#[cfg_attr(feature = "non_exhaustive", non_exhaustive)]
 pub enum GetChannelMessagesErrorType {
     /// The maximum number of messages to retrieve is either 0 or more than 100.
     LimitInvalid {
