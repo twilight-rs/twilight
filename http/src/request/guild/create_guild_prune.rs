@@ -54,7 +54,7 @@ impl Error for CreateGuildPruneError {}
 
 /// Type of [`CreateGuildPruneError`] that occurred.
 #[derive(Debug)]
-#[non_exhaustive]
+#[cfg_attr(feature = "non_exhaustive", non_exhaustive)]
 pub enum CreateGuildPruneErrorType {
     /// The number of days is 0.
     DaysInvalid,
