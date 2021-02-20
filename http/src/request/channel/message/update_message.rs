@@ -58,7 +58,7 @@ impl Error for UpdateMessageError {
 
 /// Type of [`UpdateMessageError`] that occurred.
 #[derive(Debug)]
-#[non_exhaustive]
+#[cfg_attr(feature = "non_exhaustive", non_exhaustive)]
 pub enum UpdateMessageErrorType {
     /// Returned when the content is over 2000 UTF-16 characters.
     ContentInvalid {
