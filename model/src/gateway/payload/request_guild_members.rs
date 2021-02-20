@@ -58,7 +58,7 @@ impl Error for UserIdsError {}
 
 /// Type of [`UserIdsError`] that occurred.
 #[derive(Debug)]
-#[non_exhaustive]
+#[cfg_attr(feature = "non_exhaustive", non_exhaustive)]
 pub enum UserIdsErrorType {
     /// More than 100 user IDs were provided.
     TooMany {
