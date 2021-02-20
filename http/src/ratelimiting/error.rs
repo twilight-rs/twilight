@@ -85,7 +85,7 @@ impl Error for RatelimitError {
 }
 
 #[derive(Debug)]
-#[non_exhaustive]
+#[cfg_attr(feature = "non_exhaustive", non_exhaustive)]
 pub enum RatelimitErrorType {
     NoHeaders,
     HeaderMissing { name: &'static str },
