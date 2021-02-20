@@ -51,7 +51,7 @@ impl Error for UpdateCurrentUserError {}
 
 /// Type of [`UpdateCurrentUserError`] that occurred.
 #[derive(Debug)]
-#[non_exhaustive]
+#[cfg_attr(feature = "non_exhaustive", non_exhaustive)]
 pub enum UpdateCurrentUserErrorType {
     /// The length of the username is either fewer than 2 UTF-16 characters or more than 32 UTF-16
     /// characters.
