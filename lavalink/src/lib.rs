@@ -45,6 +45,17 @@
 //!
 //! This is enabled by default.
 //!
+//! ### Type System Attributes
+//!
+//! #### `non_exhaustive`
+//!
+//! The `non_exhaustive` feature enables the `enum`s, `struct`s and `enum` variants to
+//! have a `#[non_exhaustive]` attribute, indicating that new variants or properties
+//! can be added in the future.
+//!
+//! This is enabled by default.
+//!
+//!
 //! ## Examples
 //!
 //! Create a [client], add a [node], and give events to the client to [process]
