@@ -53,7 +53,7 @@ impl Error for RoleFieldsError {}
 
 /// Type of [`RoleFieldsError`] that occurred.
 #[derive(Debug)]
-#[non_exhaustive]
+#[cfg_attr(feature = "non_exhaustive", non_exhaustive)]
 pub enum RoleFieldsErrorType {
     /// Color was larger than a valid RGB hexadecimal value.
     ColorNotRgb {
@@ -214,7 +214,7 @@ impl Error for TextFieldsError {}
 
 /// Type of [`TextFieldsError`] that occurred.
 #[derive(Debug)]
-#[non_exhaustive]
+#[cfg_attr(feature = "non_exhaustive", non_exhaustive)]
 pub enum TextFieldsErrorType {
     /// The name is too short.
     NameTooShort {
@@ -414,7 +414,7 @@ impl Error for VoiceFieldsError {}
 
 /// Type of [`VoiceFieldsError`] that occurred.
 #[derive(Debug)]
-#[non_exhaustive]
+#[cfg_attr(feature = "non_exhaustive", non_exhaustive)]
 pub enum VoiceFieldsErrorType {
     /// The name is too short.
     NameTooShort {
@@ -561,7 +561,7 @@ impl Error for CategoryFieldsError {}
 
 /// Type of [`CategoryFieldsError`] that occurred.
 #[derive(Debug)]
-#[non_exhaustive]
+#[cfg_attr(feature = "non_exhaustive", non_exhaustive)]
 pub enum CategoryFieldsErrorType {
     /// The name is too short.
     NameTooShort {
