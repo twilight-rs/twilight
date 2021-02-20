@@ -22,6 +22,10 @@ criterion = "0.3"
 patricia_tree = "0.3"
 static_assertions = { default-features = false, version = "1" }
 
+[features]
+default = ["non_exhaustive"]
+non_exhaustive = []
+
 [[bench]]
 name = "prefix"
 harness = false
