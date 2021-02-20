@@ -5,7 +5,7 @@ use serde::{Deserialize, Serialize};
 
 /// The type of event that something is.
 #[derive(Clone, Copy, Debug, Deserialize, Eq, PartialEq, Serialize)]
-#[non_exhaustive]
+#[cfgattr(feature = "non_exhaustive", non_exhaustive)]
 #[serde(rename_all = "camelCase")]
 pub enum Opcode {
     /// Destroy a player from a node.
@@ -41,7 +41,7 @@ pub mod outgoing {
 
     /// An outgoing event to send to Lavalink.
     #[derive(Clone, Debug, Deserialize, PartialEq, Serialize)]
-    #[non_exhaustive]
+    #[cfg_attr(feature = "non_exhaustive", non_exhaustive)]
     #[serde(untagged)]
     pub enum OutgoingEvent {
         /// Destroy a player for a guild.
