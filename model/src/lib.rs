@@ -21,6 +21,18 @@
 //! resource category. These types may be directly returned by, built on top of,
 //! or extended by other crates.
 //!
+//! ## Features
+//!
+//! ### Type System Attributes
+//!
+//! #### `non_exhaustive`
+//!
+//! The `non_exhaustive` feature enables the `enum`s, `struct`s and `enum` variants to
+//! have a `#[non_exhaustive]` attribute, indicating that new variants or properties
+//! can be added in the future.
+//!
+//! This is enabled by default.
+//!
 //! ## License
 //!
 //! [ISC][LICENSE.md]
