@@ -51,7 +51,7 @@ impl Error for UpdateGuildMemberError {}
 
 /// Type of [`UpdateGuildMemberError`] that occurred.
 #[derive(Debug)]
-#[non_exhaustive]
+#[cfg_attr(feature = "non_exhaustive", non_exhaustive)]
 pub enum UpdateGuildMemberErrorType {
     /// The nickname is either empty or the length is more than 32 UTF-16 characters.
     NicknameInvalid { nickname: String },
