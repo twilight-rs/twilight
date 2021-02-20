@@ -5,7 +5,7 @@ use serde::{Deserialize, Serialize};
 
 /// The type of event that something is.
 #[derive(Clone, Copy, Debug, Deserialize, Eq, PartialEq, Serialize)]
-#[non_exhaustive]
+#[cfg_attr(feature = "non_exhaustive", non_exhaustive)]
 #[serde(rename_all = "camelCase")]
 pub enum Opcode {
     /// Destroy a player from a node.
@@ -41,7 +41,7 @@ pub mod outgoing {
 
     /// An outgoing event to send to Lavalink.
     #[derive(Clone, Debug, Deserialize, PartialEq, Serialize)]
-    #[non_exhaustive]
+    #[cfg_attr(feature = "non_exhaustive", non_exhaustive)]
     #[serde(untagged)]
     pub enum OutgoingEvent {
         /// Destroy a player for a guild.
@@ -112,7 +112,7 @@ pub mod outgoing {
 
     /// Destroy a player from a node.
     #[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
-    #[non_exhaustive]
+    #[cfg_attr(feature = "non_exhaustive", non_exhaustive)]
     #[serde(rename_all = "camelCase")]
     pub struct Destroy {
         /// The guild ID of the player.
@@ -142,7 +142,7 @@ pub mod outgoing {
 
     /// Equalize a player.
     #[derive(Clone, Debug, Deserialize, PartialEq, Serialize)]
-    #[non_exhaustive]
+    #[cfg_attr(feature = "non_exhaustive", non_exhaustive)]
     #[serde(rename_all = "camelCase")]
     pub struct Equalizer {
         /// The bands to use as part of the equalizer.
@@ -172,7 +172,7 @@ pub mod outgoing {
 
     /// A band of the equalizer event.
     #[derive(Clone, Debug, Deserialize, PartialEq, Serialize)]
-    #[non_exhaustive]
+    #[cfg_attr(feature = "non_exhaustive", non_exhaustive)]
     #[serde(rename_all = "camelCase")]
     pub struct EqualizerBand {
         /// The band.
@@ -196,7 +196,7 @@ pub mod outgoing {
 
     /// Pause or unpause a player.
     #[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
-    #[non_exhaustive]
+    #[cfg_attr(feature = "non_exhaustive", non_exhaustive)]
     #[serde(rename_all = "camelCase")]
     pub struct Pause {
         /// The guild ID of the player.
@@ -230,7 +230,7 @@ pub mod outgoing {
 
     /// Play a track, optionally specifying to not skip the current track.
     #[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
-    #[non_exhaustive]
+    #[cfg_attr(feature = "non_exhaustive", non_exhaustive)]
     #[serde(rename_all = "camelCase")]
     pub struct Play {
         /// The position in milliseconds to end the track.
@@ -311,7 +311,7 @@ pub mod outgoing {
 
     /// Seek a player's active track to a new position.
     #[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
-    #[non_exhaustive]
+    #[cfg_attr(feature = "non_exhaustive", non_exhaustive)]
     #[serde(rename_all = "camelCase")]
     pub struct Seek {
         /// The guild ID of the player.
@@ -341,7 +341,7 @@ pub mod outgoing {
 
     /// Stop a player.
     #[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
-    #[non_exhaustive]
+    #[cfg_attr(feature = "non_exhaustive", non_exhaustive)]
     #[serde(rename_all = "camelCase")]
     pub struct Stop {
         /// The opcode of the event.
@@ -368,7 +368,7 @@ pub mod outgoing {
 
     /// A combined voice server and voice state update.
     #[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
-    #[non_exhaustive]
+    #[cfg_attr(feature = "non_exhaustive", non_exhaustive)]
     #[serde(rename_all = "camelCase")]
     pub struct VoiceUpdate {
         /// The inner event being forwarded to a node.
@@ -405,7 +405,7 @@ pub mod outgoing {
 
     /// A slimmed version of a twilight voice server update.
     #[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
-    #[non_exhaustive]
+    #[cfg_attr(feature = "non_exhaustive", non_exhaustive)]
     #[serde(rename_all = "snake_case")]
     pub struct SlimVoiceServerUpdate {
         /// The endpoint of the Discord voice server.
@@ -429,7 +429,7 @@ pub mod outgoing {
 
     /// Set the volume of a player.
     #[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
-    #[non_exhaustive]
+    #[cfg_attr(feature = "non_exhaustive", non_exhaustive)]
     #[serde(rename_all = "camelCase")]
     pub struct Volume {
         /// The guild ID of the player.
@@ -467,7 +467,7 @@ pub mod incoming {
 
     /// An incoming event from a Lavalink node.
     #[derive(Clone, Debug, Deserialize, PartialEq, Serialize)]
-    #[non_exhaustive]
+    #[cfg_attr(feature = "non_exhaustive", non_exhaustive)]
     #[serde(untagged)]
     pub enum IncomingEvent {
         /// An update about the information of a player.
@@ -494,7 +494,7 @@ pub mod incoming {
 
     /// An update about the information of a player.
     #[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
-    #[non_exhaustive]
+    #[cfg_attr(feature = "non_exhaustive", non_exhaustive)]
     #[serde(rename_all = "camelCase")]
     pub struct PlayerUpdate {
         /// The guild ID of the player.
@@ -507,7 +507,7 @@ pub mod incoming {
 
     /// New statistics about a node and its host.
     #[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
-    #[non_exhaustive]
+    #[cfg_attr(feature = "non_exhaustive", non_exhaustive)]
     #[serde(rename_all = "camelCase")]
     pub struct PlayerUpdateState {
         /// The new position of the player.
@@ -518,7 +518,7 @@ pub mod incoming {
 
     /// Statistics about a node and its host.
     #[derive(Clone, Debug, Deserialize, PartialEq, Serialize)]
-    #[non_exhaustive]
+    #[cfg_attr(feature = "non_exhaustive", non_exhaustive)]
     #[serde(rename_all = "camelCase")]
     pub struct Stats {
         /// CPU information about the node's host.
@@ -541,7 +541,7 @@ pub mod incoming {
 
     /// CPU information about a node and its host.
     #[derive(Clone, Debug, Deserialize, PartialEq, Serialize)]
-    #[non_exhaustive]
+    #[cfg_attr(feature = "non_exhaustive", non_exhaustive)]
     #[serde(rename_all = "camelCase")]
     pub struct StatsCpu {
         /// The number of CPU cores.
@@ -554,7 +554,7 @@ pub mod incoming {
 
     /// CPU information about a node and its host.
     #[derive(Clone, Debug, Deserialize, PartialEq, Serialize)]
-    #[non_exhaustive]
+    #[cfg_attr(feature = "non_exhaustive", non_exhaustive)]
     #[serde(rename_all = "camelCase")]
     pub struct StatsFrames {
         /// The number of CPU cores.
@@ -567,7 +567,7 @@ pub mod incoming {
 
     /// Memory information about a node and its host.
     #[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
-    #[non_exhaustive]
+    #[cfg_attr(feature = "non_exhaustive", non_exhaustive)]
     #[serde(rename_all = "camelCase")]
     pub struct StatsMemory {
         /// The number of bytes allocated.
@@ -582,7 +582,7 @@ pub mod incoming {
 
     /// The type of track event that was received.
     #[derive(Clone, Copy, Debug, Deserialize, Eq, PartialEq, Serialize)]
-    #[non_exhaustive]
+    #[cfg_attr(feature = "non_exhaustive", non_exhaustive)]
     pub enum TrackEventType {
         /// A track for a player ended.
         #[serde(rename = "TrackEndEvent")]
@@ -594,7 +594,7 @@ pub mod incoming {
 
     /// A track ended.
     #[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
-    #[non_exhaustive]
+    #[cfg_attr(feature = "non_exhaustive", non_exhaustive)]
     #[serde(rename_all = "camelCase")]
     pub struct TrackEnd {
         /// The guild ID of the player.
@@ -614,7 +614,7 @@ pub mod incoming {
 
     /// A track started.
     #[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
-    #[non_exhaustive]
+    #[cfg_attr(feature = "non_exhaustive", non_exhaustive)]
     #[serde(rename_all = "camelCase")]
     pub struct TrackStart {
         /// The guild ID of the player.
