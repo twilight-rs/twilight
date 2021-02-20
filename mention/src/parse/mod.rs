@@ -86,7 +86,7 @@ use twilight_model::id::{ChannelId, EmojiId, RoleId, UserId};
 /// assert!(iter.next().is_none());
 /// ```
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
-#[non_exhaustive]
+#[cfg_attr(feature = "non_exhaustive", non_exhaustive)]
 pub enum MentionType {
     /// Channel mention.
     Channel(ChannelId),
