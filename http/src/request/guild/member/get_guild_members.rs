@@ -62,7 +62,7 @@ impl Error for GetGuildMembersError {}
 
 /// Type of [`GetGuildMembersError`] that occurred.
 #[derive(Debug)]
-#[non_exhaustive]
+#[cfg_attr(feature = "non_exhaustive", non_exhaustive)]
 pub enum GetGuildMembersErrorType {
     /// The limit is either 0 or more than 1000.
     LimitInvalid {
