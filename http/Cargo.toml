@@ -35,8 +35,9 @@ serde_repr = { default-features = false, version = "0.1" }
 simd-json = { default-features = false, features = ["serde_impl", "swar-number-parsing"], optional = true, version = "0.3" }
 
 [features]
-default = ["rustls"]
+default = ["rustls", "non_exhaustive"]
 native = ["hyper-tls", "native-tls"]
+non_exhaustive = []
 rustls = ["hyper-rustls"]
 
 [dev-dependencies]
