@@ -51,7 +51,7 @@ impl Error for GetCurrentUserGuildsError {}
 
 /// Type of [`GetCurrentUserGuildsError`] that occurred.
 #[derive(Debug)]
-#[non_exhaustive]
+#[cfg_attr(feature = "non_exhaustive", non_exhaustive)]
 pub enum GetCurrentUserGuildsErrorType {
     /// The maximum number of guilds to retrieve is 0 or more than 100.
     LimitInvalid {
