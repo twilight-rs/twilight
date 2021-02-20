@@ -67,7 +67,7 @@ impl Error for ClientError {
 
 /// Type of [`ClientError`] that occurred.
 #[derive(Debug)]
-#[non_exhaustive]
+#[cfg_attr(feature = "non_exhaustive", non_exhaustive)]
 pub enum ClientErrorType {
     /// A node isn't configured, so the operation isn't possible to fulfill.
     NodesUnconfigured,
