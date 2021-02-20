@@ -19,7 +19,7 @@ pub struct Unspecified;
 
 /// Parse types.
 #[derive(Clone, Debug, Eq, Hash, PartialEq, serde::Deserialize, serde::Serialize)]
-#[non_exhaustive]
+#[cfg_attr(feature = "non_exhaustive", non_exhaustive)]
 #[serde(rename_all = "lowercase")]
 pub enum ParseTypes {
     Users,
