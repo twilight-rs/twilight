@@ -54,7 +54,7 @@ impl Error for GetGuildPruneCountError {}
 
 /// Type of [`GetGuildPruneCountError`] that occurred.
 #[derive(Debug)]
-#[non_exhaustive]
+#[cfg_attr(feature = "non_exhaustive", non_exhaustive)]
 pub enum GetGuildPruneCountErrorType {
     /// The number of days is 0.
     DaysInvalid,
