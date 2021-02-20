@@ -61,7 +61,7 @@ impl Error for CreateGuildError {}
 
 /// Type of [`CreateGuildError`] that occurred.
 #[derive(Debug)]
-#[non_exhaustive]
+#[cfg_attr(feature = "non_exhaustive", non_exhaustive)]
 pub enum CreateGuildErrorType {
     /// The name of the guild is either fewer than 2 UTF-16 characters or more than 100 UTF-16
     /// characters.
@@ -136,7 +136,7 @@ impl From<RoleFieldsBuilder> for RoleFields {
 ///
 /// Use [`GuildChannelFieldsBuilder`] to build one.
 #[derive(Clone, Debug, Eq, PartialEq, Serialize)]
-#[non_exhaustive]
+#[cfg_attr(feature = "non_exhaustive", non_exhaustive)]
 #[serde(untagged)]
 pub enum GuildChannelFields {
     Category(CategoryFields),
