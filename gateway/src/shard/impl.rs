@@ -92,7 +92,7 @@ impl Error for CommandError {
 
 /// Type of [`CommandError`] that occurred.
 #[derive(Debug)]
-#[non_exhaustive]
+#[cfg_attr(feature = "non_exhaustive", non_exhaustive)]
 pub enum CommandErrorType {
     /// Sending the payload over the WebSocket failed. This is indicative of a
     /// shutdown shard.
@@ -107,7 +107,7 @@ pub enum CommandErrorType {
 ///
 /// This means that the shard has not yet been started.
 #[derive(Debug)]
-#[non_exhaustive]
+#[cfg_attr(feature = "non_exhaustive", non_exhaustive)]
 pub struct SessionInactiveError;
 
 impl Display for SessionInactiveError {
@@ -166,7 +166,7 @@ impl Error for SendError {
 
 /// Type of [`SendError`] that occurred.
 #[derive(Debug)]
-#[non_exhaustive]
+#[cfg_attr(feature = "non_exhaustive", non_exhaustive)]
 pub enum SendErrorType {
     /// Sending the payload over the WebSocket failed. This is indicative of a
     /// shard that isn't properly running.
@@ -226,7 +226,7 @@ impl Error for ShardStartError {
 
 /// Type of [`ShardStartError`] that occurred.
 #[derive(Debug)]
-#[non_exhaustive]
+#[cfg_attr(feature = "non_exhaustive", non_exhaustive)]
 pub enum ShardStartErrorType {
     /// Establishing a connection to the gateway failed.
     Establishing,
