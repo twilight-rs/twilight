@@ -89,7 +89,7 @@ impl Error for ClusterCommandError {
 
 /// Type of [`ClusterCommandError`] that occurred.
 #[derive(Debug)]
-#[non_exhaustive]
+#[cfg_attr(feature = "non_exhaustive", non_exhaustive)]
 pub enum ClusterCommandErrorType {
     /// The shard exists, but sending the provided value failed.
     Sending,
@@ -149,7 +149,7 @@ impl Error for ClusterSendError {
 
 /// Type of [`ClusterSendError`] that occurred.
 #[derive(Debug)]
-#[non_exhaustive]
+#[cfg_attr(feature = "non_exhaustive", non_exhaustive)]
 pub enum ClusterSendErrorType {
     /// The shard exists, but sending the provided value failed.
     Sending,
@@ -207,7 +207,7 @@ impl Error for ClusterStartError {
 
 /// Type of [`ClusterStartErrorType`] that occurred.
 #[derive(Debug)]
-#[non_exhaustive]
+#[cfg_attr(feature = "non_exhaustive", non_exhaustive)]
 pub enum ClusterStartErrorType {
     /// Retrieving the bot's gateway information via the HTTP API failed.
     ///
