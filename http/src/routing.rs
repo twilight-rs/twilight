@@ -56,7 +56,7 @@ impl Error for PathParseError {
 }
 
 #[derive(Debug)]
-#[non_exhaustive]
+#[cfg_attr(feature = "non_exhaustive", non_exhaustive)]
 pub enum PathParseErrorType {
     /// The ID couldn't be parsed as an integer.
     IntegerParsing,
@@ -73,7 +73,7 @@ pub enum PathParseErrorType {
 /// An enum representing a path, most useful for ratelimiting implementations.
 // If adding to this enum, be sure to add to the `TryFrom` impl.
 #[derive(Clone, Debug, Eq, Hash, PartialEq)]
-#[non_exhaustive]
+#[cfg_attr(feature = "non_exhaustive", non_exhaustive)]
 pub enum Path {
     /// Operating on a channel.
     ChannelsId(u64),
@@ -277,7 +277,7 @@ impl TryFrom<(Method, &str)> for Path {
 }
 
 #[derive(Clone, Debug)]
-#[non_exhaustive]
+#[cfg_attr(feature = "non_exhaustive", non_exhaustive)]
 pub enum Route {
     /// Route information to add a user to a guild.
     AddGuildMember { guild_id: u64, user_id: u64 },
