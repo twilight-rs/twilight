@@ -38,5 +38,5 @@ twilight-http = { path = "../http" }
 default = ["http-support", "rustls", "non_exhaustive"]
 http-support = ["http", "percent-encoding"]
 native = ["async-tungstenite/tokio-native-tls"]
-rustls = ["async-tungstenite/tokio-rustls"]
 non_exhaustive = []
+rustls = ["async-tungstenite/tokio-rustls"]
