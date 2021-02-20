@@ -78,7 +78,7 @@ impl Error for UpdateWebhookMessageError {
 
 /// Type of [`UpdateWebhookMessageError`] that occurred.
 #[derive(Debug)]
-#[non_exhaustive]
+#[cfg_attr(feature = "non_exhaustive", non_exhaustive)]
 pub enum UpdateWebhookMessageErrorType {
     /// Content is over 2000 UTF-16 characters.
     ContentInvalid {
