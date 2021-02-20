@@ -44,6 +44,18 @@
 //! }
 //! ```
 //!
+//! ## Features
+//!
+//! ### Type System Attributes
+//!
+//! #### `non_exhaustive`
+//!
+//! The `non_exhaustive` feature enables the `enum`s, `struct`s and `enum` variants to
+//! have a `#[non_exhaustive]` attribute, indicating that new variants or properties
+//! can be added in the future.
+//!
+//! This is enabled by default.
+//!
 //! [discord badge]: https://img.shields.io/discord/745809834183753828?color=%237289DA&label=discord%20server&logo=discord&style=for-the-badge
 //! [discord link]: https://discord.gg/7jj8n7D
 //! [github badge]: https://img.shields.io/badge/github-twilight-6f42c1.svg?style=for-the-badge&logo=github
