@@ -68,6 +68,8 @@
 //! have a `#[non_exhaustive]` attribute, indicating that new variants or properties
 //! can be added in the future.
 //!
+//! This is enabled by default.
+//!
 //! [`native-tls`]: https://crates.io/crates/native-tls
 //! [`hyper`]: https://crates.io/crates/hyper
 //! [`rustls`]: https://crates.io/crates/rustls
