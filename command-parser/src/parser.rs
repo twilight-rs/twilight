@@ -2,7 +2,7 @@ use crate::{Arguments, CommandParserConfig};
 
 /// Indicator that a command was used.
 #[derive(Clone, Debug)]
-#[non_exhaustive]
+#[cfg_attr(feature = "non_exhaustive", non_exhaustive)]
 pub struct Command<'a> {
     /// A lazy iterator of command arguments. Refer to its documentation on
     /// how to use it.
