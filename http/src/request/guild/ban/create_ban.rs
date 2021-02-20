@@ -46,7 +46,7 @@ impl Error for CreateBanError {}
 
 /// Type of [`CreateBanError`] that occurred.
 #[derive(Debug)]
-#[non_exhaustive]
+#[cfg_attr(feature = "non_exhaustive", non_exhaustive)]
 pub enum CreateBanErrorType {
     /// The number of days' worth of messages to delete is greater than 7.
     DeleteMessageDaysInvalid {
