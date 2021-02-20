@@ -64,7 +64,7 @@ impl Error for ShardSchemeRangeError {}
 
 /// Type of [`ShardSchemeRangeError`] that occurred.
 #[derive(Debug)]
-#[non_exhaustive]
+#[cfg_attr(feature = "non_exhaustive", non_exhaustive)]
 pub enum ShardSchemeRangeErrorType {
     /// Start of the shard range was greater than the end or total.
     IdTooLarge {
@@ -83,7 +83,7 @@ pub enum ShardSchemeRangeErrorType {
 ///
 /// [`Auto`]: ShardScheme::Auto
 #[derive(Clone, Debug, Eq, Hash, PartialEq)]
-#[non_exhaustive]
+#[cfg_attr(feature = "non_exhaustive", non_exhaustive)]
 pub enum ShardScheme {
     /// Specifies to retrieve the amount of shards recommended by Discord and
     /// then start all of them.
