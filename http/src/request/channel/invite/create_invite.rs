@@ -51,7 +51,7 @@ pub struct CreateInvite<'a> {
 #[derive(Debug)]
 /// The error returned when an invite cannot be created.
 pub enum CreateInviteError {
-    /// The error is returned if `max_age` is greater than 86400.
+    /// The error is returned if `max_age` is greater than 604800.
     MaxAgeInvalid(String),
     /// The error is returned if `max_use` is greater than 100.
     MaxUseInvalid(String),
@@ -73,10 +73,10 @@ impl<'a> CreateInvite<'a> {
     /// If no age is specified, Discord sets the age to 86400 seconds, or 24 hours.
     /// Set to 0 to never expire.
     pub fn max_age(mut self, max_age: u64) -> Result<Self, CreateInviteError> {
-        if max_age > 604800 {
-            return Err(CreateInviteError::MaxAgeInvalid(format!(
-                "max_age should be between 0 and 604800."
-            )));
+        if max_age > 604_800 {
+            return Err(CreateInviteError::MaxAgeInvalid(
+                "max_age should be between 0 and 604800.".to_string(),
+            ));
         }
         self.fields.max_age.replace(max_age);
 
@@ -88,9 +88,9 @@ impl<'a> CreateInvite<'a> {
     /// Discord defaults this to 0, or infinite.
     pub fn max_uses(mut self, max_uses: u64) -> Result<Self, CreateInviteError> {
         if max_uses > 100 {
-            return Err(CreateInviteError::MaxUseInvalid(format!(
-                "max_uses should be between 0 and 100."
-            )));
+            return Err(CreateInviteError::MaxUseInvalid(
+                "max_uses should be between 0 and 100.".to_string(),
+            ));
         }
         self.fields.max_uses.replace(max_uses);
 
