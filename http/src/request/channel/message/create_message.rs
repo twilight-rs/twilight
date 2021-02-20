@@ -60,7 +60,7 @@ impl Error for CreateMessageError {
 
 /// Type of [`CreateMessageError`] that occurred.
 #[derive(Debug)]
-#[non_exhaustive]
+#[cfg_attr(feature = "non_exhaustive", non_exhaustive)]
 pub enum CreateMessageErrorType {
     /// Returned when the content is over 2000 UTF-16 characters.
     ContentInvalid {
