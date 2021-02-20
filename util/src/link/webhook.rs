@@ -63,7 +63,7 @@ impl Error for WebhookParseError {
 /// Type of [`WebhookParseError`] that occurred.
 #[allow(clippy::module_name_repetitions)]
 #[derive(Debug)]
-#[non_exhaustive]
+#[cfg_attr(feature = "non_exhaustive", non_exhaustive)]
 pub enum WebhookParseErrorType {
     /// ID segment in the URL path is not an integer.
     IdInvalid,
