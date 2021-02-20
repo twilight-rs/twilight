@@ -52,7 +52,7 @@ impl Display for UpdateChannelError {
 impl Error for UpdateChannelError {}
 
 #[derive(Debug)]
-#[non_exhaustive]
+#[cfg_attr(feature = "non_exhaustive", non_exhaustive)]
 pub enum UpdateChannelErrorType {
     /// The length of the name is either fewer than 2 UTF-16 characters or
     /// more than 100 UTF-16 characters.
