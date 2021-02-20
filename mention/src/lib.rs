@@ -20,6 +20,18 @@
 //! let message = format!("Hey there, {}!", user_id.mention());
 //! ```
 //!
+//! ## Features
+//!
+//! ### Type System Attributes
+//!
+//! #### `non_exhaustive`
+//!
+//! The `non_exhaustive` feature enables the `enum`s, `struct`s and `enum` variants to
+//! have a `#[non_exhaustive]` attribute, indicating that new variants or properties
+//! can be added in the future.
+//!
+//! This is enabled by default.
+//!
 //! [`twilight-rs`]: https://github.com/twilight-rs/twilight
 //! [discord badge]: https://img.shields.io/discord/745809834183753828?color=%237289DA&label=discord%20server&logo=discord&style=for-the-badge
 //! [discord link]: https://discord.gg/7jj8n7D
