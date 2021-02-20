@@ -8,7 +8,7 @@ use std::{
 /// Error creating an embed field.
 #[allow(clippy::module_name_repetitions)]
 #[derive(Clone, Debug, Eq, PartialEq)]
-#[non_exhaustive]
+#[cfg_attr(feature = "non_exhaustive", non_exhaustive)]
 pub enum ImageSourceAttachmentError {
     /// An extension is present in the provided filename but it is empty.
     ExtensionEmpty,
@@ -30,7 +30,7 @@ impl Error for ImageSourceAttachmentError {}
 /// Error creating an embed field.
 #[allow(clippy::module_name_repetitions)]
 #[derive(Clone, Debug, Eq, PartialEq)]
-#[non_exhaustive]
+#[cfg_attr(feature = "non_exhaustive", non_exhaustive)]
 pub enum ImageSourceUrlError {
     /// The Protocol of the URL is unsupported by the Discord REST API.
     ///
@@ -55,7 +55,7 @@ impl Error for ImageSourceUrlError {}
 
 /// Image sourcing for embed images.
 #[derive(Clone, Debug, Eq, PartialEq)]
-#[non_exhaustive]
+#[cfg_attr(feature = "non_exhaustive", non_exhaustive)]
 pub struct ImageSource(pub(crate) String);
 
 impl ImageSource {
