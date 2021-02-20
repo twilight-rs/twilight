@@ -26,6 +26,10 @@ criterion = "0.3"
 serde_json = { default-features = false, features = ["alloc"], version = "1" }
 serde_test = { default-features = false, version = "1" }
 
+[features]
+default = ["non_exhaustive"]
+non_exhaustive = []
+
 [[bench]]
 name = "deserialization"
 harness = false
