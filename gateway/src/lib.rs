@@ -93,6 +93,17 @@
 //!
 //! This is disabled by default.
 //!
+//! ### Type System Attributes
+//!
+//! #### `non_exhaustive`
+//!
+//! The `non_exhaustive` feature enables the `enum`s, `struct`s and `enum` variants to
+//! have a `#[non_exhaustive]` attribute, indicating that new variants or properties
+//! can be added in the future.
+//!
+//! This is enabled by default.
+//!
+//!
 //! [`async-tungstenite`]: https://crates.io/crates/async-tungstenite
 //! [`native-tls`]: https://crates.io/crates/native-tls
 //! [`rustls`]: https://crates.io/crates/rustls
