@@ -35,7 +35,8 @@ twilight-gateway = { path = "../gateway" }
 twilight-http = { path = "../http" }
 
 [features]
-default = ["http-support", "rustls"]
+default = ["http-support", "rustls", "non_exhaustive"]
 http-support = ["http", "percent-encoding"]
 native = ["async-tungstenite/tokio-native-tls"]
 rustls = ["async-tungstenite/tokio-rustls"]
+non_exhaustive = []
