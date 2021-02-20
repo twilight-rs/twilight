@@ -49,7 +49,7 @@ impl Error for UpdateGuildError {}
 
 /// Type of [`UpdateGuildError`] that occurred.
 #[derive(Debug)]
-#[non_exhaustive]
+#[cfg_attr(feature = "non_exhaustive", non_exhaustive)]
 pub enum UpdateGuildErrorType {
     /// The name length is either fewer than 2 UTF-16 characters or more than 100 UTF-16
     /// characters.
