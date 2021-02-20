@@ -59,7 +59,7 @@ impl Display for AddGuildMemberError {
 impl Error for AddGuildMemberError {}
 
 #[derive(Debug)]
-#[non_exhaustive]
+#[cfg_attr(feature = "non_exhaustive", non_exhaustive)]
 pub enum AddGuildMemberErrorType {
     /// Nickname is either empty or the length is more than 32 UTF-16
     /// characters.
