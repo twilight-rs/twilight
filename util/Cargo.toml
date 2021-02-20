@@ -15,10 +15,11 @@ repository = "https://github.com/twilight-rs/twilight.git"
 version = "0.3.0"
 
 [features]
-default = []
+default = ["non_exhaustive"]
 link = ["twilight-model"]
 snowflake = ["twilight-model"]
 full = ["link", "snowflake"]
+non_exhaustive = []
 
 [package.metadata.docs.rs]
 all-features = true
