@@ -62,7 +62,7 @@ impl Error for StageConversionError {}
 
 /// Type of [`StageConversionError`] that occurred.
 #[derive(Debug)]
-#[non_exhaustive]
+#[cfg_attr(feature = "non_exhaustive", non_exhaustive)]
 pub enum StageConversionErrorType {
     /// The integer isn't one that maps to a stage. For example, 7 might not map
     /// to a Stage variant.
@@ -76,7 +76,7 @@ pub enum StageConversionErrorType {
 ///
 /// [`Shard`]: super::Shard
 #[derive(Clone, Copy, Debug, Deserialize, Eq, Hash, Ord, PartialEq, PartialOrd, Serialize)]
-#[non_exhaustive]
+#[cfg_attr(feature = "non_exhaustive", non_exhaustive)]
 #[repr(u8)]
 pub enum Stage {
     /// Indicator that a shard is now fully connected to the gateway.
