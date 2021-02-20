@@ -89,7 +89,7 @@ impl StdError for Error {
 }
 
 #[derive(Debug)]
-#[non_exhaustive]
+#[cfg_attr(feature = "non_exhaustive", non_exhaustive)]
 /// Type of [`Error`] that occurred.
 pub enum ErrorType {
     BuildingRequest,
