@@ -36,6 +36,7 @@ struct CreateInviteFields {
 /// let invite = client
 ///     .create_invite(channel_id)
 ///     .max_uses(3)
+///     .expect("invalid max_uses")
 ///     .await?;
 /// # Ok(()) }
 /// ```
@@ -45,6 +46,15 @@ pub struct CreateInvite<'a> {
     fut: Option<Pending<'a, Invite>>,
     http: &'a Client,
     reason: Option<String>,
+}
+
+#[derive(Debug)]
+/// The error returned when an invite cannot be created.
+pub enum CreateInviteError {
+    /// The error is returned if `max_age` is greater than 86400.
+    MaxAgeInvalid(String),
+    /// The error is returned if `max_use` is greater than 100.
+    MaxUseInvalid(String),
 }
 
 impl<'a> CreateInvite<'a> {
@@ -62,19 +72,29 @@ impl<'a> CreateInvite<'a> {
     ///
     /// If no age is specified, Discord sets the age to 86400 seconds, or 24 hours.
     /// Set to 0 to never expire.
-    pub fn max_age(mut self, max_age: u64) -> Self {
+    pub fn max_age(mut self, max_age: u64) -> Result<Self, CreateInviteError> {
+        if max_age > 604800 {
+            return Err(CreateInviteError::MaxAgeInvalid(format!(
+                "max_age should be between 0 and 604800."
+            )));
+        }
         self.fields.max_age.replace(max_age);
 
-        self
+        Ok(self)
     }
 
     /// Set the maximum uses for an invite, or 0 for infinite.
     ///
     /// Discord defaults this to 0, or infinite.
-    pub fn max_uses(mut self, max_uses: u64) -> Self {
+    pub fn max_uses(mut self, max_uses: u64) -> Result<Self, CreateInviteError> {
+        if max_uses > 100 {
+            return Err(CreateInviteError::MaxUseInvalid(format!(
+                "max_uses should be between 0 and 100."
+            )));
+        }
         self.fields.max_uses.replace(max_uses);
 
-        self
+        Ok(self)
     }
 
     /// Specify true if the invite should grant temporary membership. Defaults to false.

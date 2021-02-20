@@ -977,6 +977,7 @@ impl Client {
     /// let invite = client
     ///     .create_invite(channel_id)
     ///     .max_uses(3)
+    ///     .expect("invalid max_uses")
     ///     .await?;
     /// # Ok(()) }
     /// ```
