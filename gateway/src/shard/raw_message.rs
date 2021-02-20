@@ -16,7 +16,7 @@ use std::borrow::Cow;
 ///
 /// A close frame can be constructed via its `From` implementations.
 #[derive(Clone, Debug, Eq, PartialEq)]
-#[non_exhaustive]
+#[cfg_attr(feature = "non_exhaustive", non_exhaustive)]
 pub struct CloseFrame<'a> {
     /// Reason for the close.
     pub code: u16,
@@ -47,7 +47,7 @@ impl<'a, T: Into<Cow<'a, str>>> From<(u16, T)> for CloseFrame<'a> {
 
 /// Message to send over the connection to the remote.
 #[derive(Clone, Debug, Eq, PartialEq)]
-#[non_exhaustive]
+#[cfg_attr(feature = "non_exhaustive", non_exhaustive)]
 pub enum Message {
     /// Binary websocket message.
     Binary(Vec<u8>),
