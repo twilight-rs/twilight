@@ -75,7 +75,7 @@ impl Error for EmbedError {}
 
 /// Type of [`EmbedError`] that occurred.
 #[derive(Debug)]
-#[non_exhaustive]
+#[cfg_attr(feature = "non_exhaustive", non_exhaustive)]
 pub enum EmbedErrorType {
     /// Name is empty.
     AuthorNameEmpty {
