@@ -47,7 +47,7 @@ impl Error for GetReactionsError {}
 
 /// Type of [`GetReactionsError`] that occurred.
 #[derive(Debug)]
-#[non_exhaustive]
+#[cfg_attr(feature = "non_exhaustive", non_exhaustive)]
 pub enum GetReactionsErrorType {
     /// The number of reactions to retrieve must be between 1 and 100, inclusive.
     LimitInvalid {
