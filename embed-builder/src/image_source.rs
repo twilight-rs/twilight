@@ -56,7 +56,7 @@ impl Error for ImageSourceAttachmentError {}
 /// Type of [`ImageSourceAttachmentError`] that occurred.
 #[allow(clippy::module_name_repetitions)]
 #[derive(Debug)]
-#[non_exhaustive]
+#[cfg_attr(feature = "non_exhaustive", non_exhaustive)]
 pub enum ImageSourceAttachmentErrorType {
     /// An extension is present in the provided filename but it is empty.
     ExtensionEmpty,
@@ -112,7 +112,7 @@ impl Error for ImageSourceUrlError {}
 /// Type of [`ImageSourceUrlError`] that occurred.
 #[allow(clippy::module_name_repetitions)]
 #[derive(Debug)]
-#[non_exhaustive]
+#[cfg_attr(feature = "non_exhaustive", non_exhaustive)]
 pub enum ImageSourceUrlErrorType {
     /// The Protocol of the URL is unsupported by the Discord REST API.
     ///
@@ -125,7 +125,7 @@ pub enum ImageSourceUrlErrorType {
 
 /// Image sourcing for embed images.
 #[derive(Clone, Debug, Eq, PartialEq)]
-#[non_exhaustive]
+#[cfg_attr(feature = "non_exhaustive", non_exhaustive)]
 pub struct ImageSource(pub(crate) String);
 
 impl ImageSource {
