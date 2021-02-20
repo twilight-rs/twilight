@@ -19,3 +19,7 @@ twilight-model = { default-features = false, path = "../model" }
 
 [dev-dependencies]
 static_assertions = { default-features = false, version = "1" }
+
+[features]
+default = ["non_exhaustive"]
+non_exhaustive = []
