@@ -385,6 +385,7 @@ impl ShardProcessor {
         self.emitter.into_listeners().remove_all();
     }
 
+    #[allow(clippy::too_many_lines)]
     async fn process(&mut self) -> Result<(), ProcessError> {
         let (op, seq, event_type) = {
             #[cfg(feature = "compression")]
