@@ -19,10 +19,9 @@ bytes = { default-features = false, version = "1.0" }
 rand = { default-features = false, features = ["std_rng", "std"], version = "0.8" }
 futures-channel = { default-features = false, version = "0.3" }
 futures-util = { default-features = false, features = ["std"], version = "0.3" }
-hyper = { default-features = false, features = ["client", "http2", "runtime"], version = "0.14" }
-hyper-rustls = { default-features = false, features = ["native-tokio"], optional = true, version = "0.22" }
+hyper = { default-features = false, features = ["client", "http1", "http2", "runtime"], version = "0.14" }
+hyper-rustls = { default-features = false, optional = true, version = "0.22" }
 hyper-tls = { default-features = false, optional = true, version = "0.5" }
-native-tls = { default-features = false, features = ["alpn"], optional = true, version = "0.2.7" }
 percent-encoding = { default-features = false, version = "2" }
 tokio = { default-features = false, features = ["time"], version = "1.0" }
 tracing = { default-features = false, features = ["std", "attributes"], version = "0.1" }
@@ -36,8 +35,10 @@ simd-json = { default-features = false, features = ["serde_impl", "swar-number-p
 
 [features]
 default = ["rustls"]
-native = ["hyper-tls", "native-tls"]
-rustls = ["hyper-rustls"]
+native = ["hyper-tls"]
+rustls = ["rustls-native-roots"]
+rustls-native-roots = ["hyper-rustls/native-tokio"]
+rustls-webpki-roots = ["hyper-rustls/webpki-tokio"]
 
 [dev-dependencies]
 serde_test = { default-features = false, version = "1" }
