@@ -263,7 +263,7 @@ impl Node {
     }
 
     /// Retrieve an immutable reference to the player manager used by the node.
-    pub fn players(&self) -> &PlayerManager {
+    pub async fn players(&self) -> &PlayerManager {
         &self.0.players
     }
 
