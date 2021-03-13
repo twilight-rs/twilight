@@ -176,9 +176,9 @@ impl Lavalink {
                 }
 
                 // Update player if it exists and update the connected channel ID.
-                e.0.guild_id
-                 .and_then(|id| self.0.players.get(&id))
-                 .map(|kv| kv.value().set_channel_id(e.0.channel_id));
+                if let Some(kv) = e.0.guild_id.and_then(|id| self.0.players.get(&id)) {
+                    kv.value().set_channel_id(e.0.channel_id);
+                }
 
                 (e.0.guild_id, VoiceStateHalf::State(e.clone()))
             }

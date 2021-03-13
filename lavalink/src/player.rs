@@ -59,7 +59,7 @@ impl PlayerManager {
 
     /// Destroys a player on the remote node and removes it from the PlayerManager.
     /// Returns an error if the associated node no longer is connected.
-    pub fn destroy(&self, guild_id: GuildId) -> Result<(),  TrySendError<OutgoingEvent>> {
+    pub fn destroy(&self, guild_id: GuildId) -> Result<(), TrySendError<OutgoingEvent>> {
         if let Some(node) = self.get(&guild_id).map(|kv| kv.value().node().clone()) {
             node.send(OutgoingEvent::from(Destroy::new(guild_id)))?;
             self.players.remove(&guild_id);
@@ -135,11 +135,11 @@ impl Player {
         );
 
         match event {
-            OutgoingEvent::Pause(ref evt) =>
-                self.paused.store(evt.pause, Ordering::Release),
-            OutgoingEvent::Volume(ref evt) =>
-                self.volume.store(evt.volume as u16, Ordering::Release),
-            _ => {},
+            OutgoingEvent::Pause(ref evt) => self.paused.store(evt.pause, Ordering::Release),
+            OutgoingEvent::Volume(ref evt) => {
+                self.volume.store(evt.volume as u16, Ordering::Release)
+            }
+            _ => {}
         }
 
         self.node.send(event)
@@ -162,7 +162,10 @@ impl Player {
 
     /// Sets the channel ID the player is currently connected to.
     pub(crate) fn set_channel_id(&self, channel_id: Option<ChannelId>) {
-        self.channel_id.store(channel_id.map(|id| id.0).unwrap_or(0_u64), Ordering::Release);
+        self.channel_id.store(
+            channel_id.map(|id| id.0).unwrap_or(0_u64),
+            Ordering::Release,
+        );
     }
 
     /// Return an copy of the player's guild ID.
