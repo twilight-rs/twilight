@@ -2,6 +2,20 @@
 
 Changelog for `twilight-lavalink`.
 
+## [0.3.1] - 2021-03-14
+
+### Additions
+
+`PlayerManager::destroy` destroys a player on the remote node ([#728] - [@james7132]).
+
+### Fixes
+
+Correctly update a player's channel ID on `VoiceStateUpdate` ([#728] - [@james7132]).
+
+Store volume in `Player` ([#728] - [@james7132]).
+
+[#728]: https://github.com/twilight-rs/twilight/pull/728
+
 ## [0.3.0] - 2021-01-08
 
 Version 0.3 has been released with the primary intent to upgrade to Tokio 1.0.
@@ -61,6 +75,7 @@ crates in the ecosystem receiving a major version bump. There are no changes.
 Initial release.
 
 [@MOZGIII]: https://github.com/MOZGIII
+[@james7132]: https://github.com/james7132
 [@nickelc]: https://github.com/nickelc
 [@vivian]: https://github.com/vivian
 
@@ -69,6 +84,7 @@ Initial release.
 [#548]: https://github.com/twilight-rs/twilight/pull/548
 [#518]: https://github.com/twilight-rs/twilight/pull/518
 
+[0.3.1]: https://github.com/twilight-rs/twilight/releases/tag/lavalink-v0.3.1
 [0.3.0]: https://github.com/twilight-rs/twilight/releases/tag/lavalink-v0.3.0
 [0.2.2]: https://github.com/twilight-rs/twilight/releases/tag/lavalink-v0.2.2
 [0.2.1]: https://github.com/twilight-rs/twilight/releases/tag/lavalink-v0.2.1
