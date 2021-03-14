@@ -18,7 +18,7 @@ use futures_channel::mpsc::TrySendError;
 use std::{
     fmt::Debug,
     sync::{
-        atomic::{AtomicBool, Ordering},
+        atomic::{AtomicBool, AtomicU16, AtomicU64, Ordering},
         Arc,
     },
 };
@@ -56,6 +56,18 @@ impl PlayerManager {
             .entry(guild_id)
             .or_insert_with(|| Player::new(guild_id, node))
     }
+
+    /// Destroy a player on the remote node and remove it from the [`PlayerManager`].
+    ///
+    /// Returns an error if the associated node no longer is connected.
+    pub fn destroy(&self, guild_id: GuildId) -> Result<(), TrySendError<OutgoingEvent>> {
+        if let Some(node) = self.get(&guild_id).map(|kv| kv.value().node().clone()) {
+            node.send(OutgoingEvent::from(Destroy::new(guild_id)))?;
+            self.players.remove(&guild_id);
+        }
+
+        Ok(())
+    }
 }
 
 /// A player for a guild connected to a node.
@@ -64,27 +76,25 @@ impl PlayerManager {
 /// player for a guild.
 #[derive(Debug)]
 pub struct Player {
-    channel_id: Option<ChannelId>,
+    channel_id: AtomicU64,
     guild_id: GuildId,
     node: Node,
     paused: AtomicBool,
-    playing: Option<()>,
     position: i64,
     time: i64,
-    volume: u16,
+    volume: AtomicU16,
 }
 
 impl Player {
     pub(crate) fn new(guild_id: GuildId, node: Node) -> Self {
         Self {
-            channel_id: None,
+            channel_id: AtomicU64::new(0),
             guild_id,
             node,
             paused: AtomicBool::new(false),
-            playing: None,
             position: 0,
             time: 0,
-            volume: 0,
+            volume: AtomicU16::new(100),
         }
     }
 
@@ -126,8 +136,12 @@ impl Player {
             event
         );
 
-        if let OutgoingEvent::Pause(ref event) = event {
-            self.paused.store(event.pause, Ordering::Release);
+        match event {
+            OutgoingEvent::Pause(ref event) => self.paused.store(event.pause, Ordering::Release),
+            OutgoingEvent::Volume(ref event) => {
+                self.volume.store(event.volume as u16, Ordering::Release)
+            }
+            _ => {}
         }
 
         self.node.send(event)
@@ -140,7 +154,21 @@ impl Player {
 
     /// Return a copy of the player's channel ID.
     pub fn channel_id(&self) -> Option<ChannelId> {
-        self.channel_id.as_ref().copied()
+        let channel_id = self.channel_id.load(Ordering::Acquire);
+
+        if channel_id == 0 {
+            None
+        } else {
+            Some(ChannelId(channel_id))
+        }
+    }
+
+    /// Sets the channel ID the player is currently connected to.
+    pub(crate) fn set_channel_id(&self, channel_id: Option<ChannelId>) {
+        self.channel_id.store(
+            channel_id.map(|id| id.0).unwrap_or(0_u64),
+            Ordering::Release,
+        );
     }
 
     /// Return an copy of the player's guild ID.
@@ -164,7 +192,7 @@ impl Player {
     }
 
     /// Return a copy of the player's time.
-    pub fn time_ref(&mut self) -> i64 {
+    pub fn time_ref(&self) -> i64 {
         self.time
     }
 
@@ -175,7 +203,7 @@ impl Player {
 
     /// Return a copy of the player's volume.
     pub fn volume_ref(&self) -> u16 {
-        self.volume
+        self.volume.load(Ordering::Acquire)
     }
 }
 
