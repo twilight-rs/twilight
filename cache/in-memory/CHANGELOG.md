@@ -2,6 +2,14 @@
 
 Changelog for `twilight-cache-inmemory`.
 
+## [0.3.2] - 2021-03-14
+
+### Fixes
+
+Removed emojis are now deleted ([#702] - [@BlackHoleFox]).
+
+[#702]: https://github.com/twilight-rs/twilight/pull/702
+
 ## [0.3.1] - 2021-01-19
 
 ### Additions
@@ -152,6 +160,7 @@ The crate now depends on version 0.2 of `twilight-model`.
 Initial release.
 
 [@AsianIntel]: https://github.com/AsianIntel
+[@BlackHoleFox]: https://github.com/BlackHoleFox
 [@chamburr]: https://github.com/chamburr
 [@DusterTheFirst]: https://github.com/DusterTheFirst
 [@Erk-]: https://github.com/Erk-
