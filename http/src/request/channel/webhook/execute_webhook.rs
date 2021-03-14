@@ -1,4 +1,7 @@
-use crate::request::prelude::*;
+use crate::request::{
+    channel::allowed_mentions::{AllowedMentions, AllowedMentionsBuilder, Unspecified},
+    prelude::*,
+};
 use futures_util::future::TryFutureExt;
 use twilight_model::{
     channel::{embed::Embed, Message},
@@ -6,7 +9,7 @@ use twilight_model::{
 };
 
 #[derive(Default, Serialize)]
-struct ExecuteWebhookFields {
+pub(crate) struct ExecuteWebhookFields {
     #[serde(skip_serializing_if = "Option::is_none")]
     avatar_url: Option<String>,
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -23,6 +26,8 @@ struct ExecuteWebhookFields {
     username: Option<String>,
     #[serde(skip_serializing_if = "Option::is_none")]
     wait: Option<bool>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub(crate) allowed_mentions: Option<AllowedMentions>,
 }
 
 /// Executes a webhook, sending a message to its channel.
@@ -51,7 +56,7 @@ struct ExecuteWebhookFields {
 /// [`embeds`]: Self::embeds
 /// [`file`]: Self::file
 pub struct ExecuteWebhook<'a> {
-    fields: ExecuteWebhookFields,
+    pub(crate) fields: ExecuteWebhookFields,
     fut: Option<Pending<'a, Option<Message>>>,
     http: &'a Client,
     token: String,
@@ -67,6 +72,13 @@ impl<'a> ExecuteWebhook<'a> {
             token: token.into(),
             webhook_id,
         }
+    }
+
+    /// Return a new [`AllowedMentionsBuilder`].
+    pub fn allowed_mentions(
+        self,
+    ) -> AllowedMentionsBuilder<'a, Unspecified, Unspecified, Unspecified> {
+        AllowedMentionsBuilder::for_webhook(self)
     }
 
     /// The URL of the avatar of the webhook.
