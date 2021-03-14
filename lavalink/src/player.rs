@@ -57,13 +57,15 @@ impl PlayerManager {
             .or_insert_with(|| Player::new(guild_id, node))
     }
 
-    /// Destroys a player on the remote node and removes it from the PlayerManager.
+    /// Destroy a player on the remote node and remove it from the [`PlayerManager`].
+    ///
     /// Returns an error if the associated node no longer is connected.
     pub fn destroy(&self, guild_id: GuildId) -> Result<(), TrySendError<OutgoingEvent>> {
         if let Some(node) = self.get(&guild_id).map(|kv| kv.value().node().clone()) {
             node.send(OutgoingEvent::from(Destroy::new(guild_id)))?;
             self.players.remove(&guild_id);
         }
+
         Ok(())
     }
 }
@@ -74,24 +76,24 @@ impl PlayerManager {
 /// player for a guild.
 #[derive(Debug)]
 pub struct Player {
-    guild_id: GuildId,
     channel_id: AtomicU64,
+    guild_id: GuildId,
     node: Node,
+    paused: AtomicBool,
     position: i64,
     time: i64,
-    paused: AtomicBool,
     volume: AtomicU16,
 }
 
 impl Player {
     pub(crate) fn new(guild_id: GuildId, node: Node) -> Self {
         Self {
-            guild_id,
             channel_id: AtomicU64::new(0),
+            guild_id,
             node,
+            paused: AtomicBool::new(false),
             position: 0,
             time: 0,
-            paused: AtomicBool::new(false),
             volume: AtomicU16::new(100),
         }
     }
@@ -135,9 +137,9 @@ impl Player {
         );
 
         match event {
-            OutgoingEvent::Pause(ref evt) => self.paused.store(evt.pause, Ordering::Release),
-            OutgoingEvent::Volume(ref evt) => {
-                self.volume.store(evt.volume as u16, Ordering::Release)
+            OutgoingEvent::Pause(ref event) => self.paused.store(event.pause, Ordering::Release),
+            OutgoingEvent::Volume(ref event) => {
+                self.volume.store(event.volume as u16, Ordering::Release)
             }
             _ => {}
         }
@@ -153,6 +155,7 @@ impl Player {
     /// Return a copy of the player's channel ID.
     pub fn channel_id(&self) -> Option<ChannelId> {
         let channel_id = self.channel_id.load(Ordering::Acquire);
+
         if channel_id == 0 {
             None
         } else {
