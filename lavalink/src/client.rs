@@ -230,7 +230,7 @@ impl Lavalink {
                 );
                 return Ok(());
             }
-            _ => return Ok(()),
+            (None, None) => return Ok(()),
         };
 
         tracing::debug!("getting player for guild {}", guild_id);
