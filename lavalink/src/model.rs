@@ -650,14 +650,14 @@ pub mod incoming {
         /// True if Discord closed the connection, false if Lavalink closed it.
         pub by_remote: bool,
         /// The reason the connection was closed.
-        pub reason: String
+        pub reason: String,
     }
 }
 
 pub use self::{
     incoming::{
         IncomingEvent, PlayerUpdate, PlayerUpdateState, Stats, StatsCpu, StatsFrames, StatsMemory,
-        TrackEnd, TrackEventType, TrackStart, WebsocketClosed
+        TrackEnd, TrackEventType, TrackStart, WebsocketClosed,
     },
     outgoing::{
         Destroy, Equalizer, EqualizerBand, OutgoingEvent, Pause, Play, Seek, SlimVoiceServerUpdate,
@@ -670,7 +670,7 @@ mod tests {
     use super::{
         incoming::{
             IncomingEvent, PlayerUpdate, PlayerUpdateState, Stats, StatsCpu, StatsFrames,
-            StatsMemory, TrackEnd, TrackEventType, TrackStart, WebsocketClosed
+            StatsMemory, TrackEnd, TrackEventType, TrackStart, WebsocketClosed,
         },
         outgoing::{
             Destroy, Equalizer, EqualizerBand, OutgoingEvent, Pause, Play, Seek,
