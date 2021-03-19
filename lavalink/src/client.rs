@@ -1,7 +1,7 @@
 //! Client to manage nodes and players.
 
 use crate::{
-    model::{IncomingEvent, OutgoingEvent, VoiceUpdate, SlimVoiceServerUpdate},
+    model::{IncomingEvent, OutgoingEvent, SlimVoiceServerUpdate, VoiceUpdate},
     node::{Node, NodeConfig, NodeError, Resume},
     player::{Player, PlayerManager},
 };
@@ -14,7 +14,7 @@ use std::{
     sync::Arc,
 };
 use twilight_model::{
-    gateway:: event::Event,
+    gateway::event::Event,
     id::{GuildId, UserId},
 };
 
@@ -162,7 +162,9 @@ impl Lavalink {
             }
             Event::VoiceServerUpdate(e) => {
                 if let Some(guild_id) = e.guild_id {
-                    self.0.server_updates.insert(guild_id, From::from(e.clone()));
+                    self.0
+                        .server_updates
+                        .insert(guild_id, From::from(e.clone()));
                     guild_id
                 } else {
                     tracing::trace!("event has no guild ID: {:?}", e);
@@ -197,37 +199,39 @@ impl Lavalink {
             event
         );
 
-        let server = self.0.server_updates.get(&guild_id);
-        let session = self.0.sessions.get(&guild_id);
-        let update = match (server, session) {
-            (Some(server), Some(session)) => {
-                let server = server.value();
-                let session = session.value();
-                tracing::debug!(
-                    "got both halves for {}: {:?}; Session ID: {:?}",
-                    guild_id,
-                    server,
-                    session,
-                );
-                VoiceUpdate::new(guild_id, session, server.clone())
+        let update = {
+            let server = self.0.server_updates.get(&guild_id);
+            let session = self.0.sessions.get(&guild_id);
+            match (server, session) {
+                (Some(server), Some(session)) => {
+                    let server = server.value();
+                    let session = session.value();
+                    tracing::debug!(
+                        "got both halves for {}: {:?}; Session ID: {:?}",
+                        guild_id,
+                        server,
+                        session,
+                    );
+                    VoiceUpdate::new(guild_id, session, server.clone())
+                }
+                (Some(server), None) => {
+                    tracing::debug!(
+                        "guild {} is now waiting for other half; got: {:?}",
+                        guild_id,
+                        server.value()
+                    );
+                    return Ok(());
+                }
+                (None, Some(session)) => {
+                    tracing::debug!(
+                        "guild {} is now waiting for other half; got session ID: {:?}",
+                        guild_id,
+                        session.value()
+                    );
+                    return Ok(());
+                }
+                (None, None) => return Ok(()),
             }
-            (Some(server), None) => {
-                tracing::debug!(
-                    "guild {} is now waiting for other half; got: {:?}",
-                    guild_id,
-                    server.value()
-                );
-                return Ok(());
-            }
-            (None, Some(session)) => {
-                tracing::debug!(
-                    "guild {} is now waiting for other half; got session ID: {:?}",
-                    guild_id,
-                    session.value()
-                );
-                return Ok(());
-            }
-            (None, None) => return Ok(()),
         };
 
         tracing::debug!("getting player for guild {}", guild_id);
