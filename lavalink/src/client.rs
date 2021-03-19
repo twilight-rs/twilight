@@ -1,7 +1,7 @@
 //! Client to manage nodes and players.
 
 use crate::{
-    model::{IncomingEvent, OutgoingEvent, VoiceUpdate},
+    model::{IncomingEvent, OutgoingEvent, VoiceUpdate, SlimVoiceServerUpdate},
     node::{Node, NodeConfig, NodeError, Resume},
     player::{Player, PlayerManager},
 };
@@ -14,10 +14,7 @@ use std::{
     sync::Arc,
 };
 use twilight_model::{
-    gateway::{
-        event::Event,
-        payload::{VoiceServerUpdate, VoiceStateUpdate},
-    },
+    gateway:: event::Event,
     id::{GuildId, UserId},
 };
 
@@ -61,8 +58,8 @@ struct LavalinkRef {
     resume: Option<Resume>,
     shard_count: u64,
     user_id: UserId,
-    server_updates: DashMap<GuildId, VoiceServerUpdate>,
-    state_updates: DashMap<GuildId, Box<VoiceStateUpdate>>,
+    server_updates: DashMap<GuildId, SlimVoiceServerUpdate>,
+    sessions: DashMap<GuildId, String>,
 }
 
 /// The lavalink client that manages nodes, players, and processes events from
@@ -128,7 +125,7 @@ impl Lavalink {
             shard_count,
             user_id,
             server_updates: DashMap::new(),
-            state_updates: DashMap::new(),
+            sessions: DashMap::new(),
         }))
     }
 
@@ -165,7 +162,7 @@ impl Lavalink {
             }
             Event::VoiceServerUpdate(e) => {
                 if let Some(guild_id) = e.guild_id {
-                    self.0.server_updates.insert(guild_id, e.clone());
+                    self.0.server_updates.insert(guild_id, From::from(e.clone()));
                     guild_id
                 } else {
                     tracing::trace!("event has no guild ID: {:?}", e);
@@ -181,9 +178,9 @@ impl Lavalink {
 
                 if let Some(guild_id) = e.0.guild_id {
                     if e.0.channel_id.is_none() {
-                        self.0.state_updates.remove(&guild_id);
+                        self.0.sessions.remove(&guild_id);
                     } else {
-                        self.0.state_updates.insert(guild_id, e.clone());
+                        self.0.sessions.insert(guild_id, e.0.session_id.clone());
                     }
                     guild_id
                 } else {
@@ -201,18 +198,18 @@ impl Lavalink {
         );
 
         let server = self.0.server_updates.get(&guild_id);
-        let state = self.0.state_updates.get(&guild_id);
-        let update = match (server, state) {
-            (Some(server), Some(state)) => {
+        let session = self.0.sessions.get(&guild_id);
+        let update = match (server, session) {
+            (Some(server), Some(session)) => {
                 let server = server.value();
-                let state = state.value();
+                let session = session.value();
                 tracing::debug!(
-                    "got both halves for {}: {:?}; {:?}",
+                    "got both halves for {}: {:?}; Session ID: {:?}",
                     guild_id,
                     server,
-                    state,
+                    session,
                 );
-                VoiceUpdate::new(guild_id, &state.0.session_id, From::from(server.clone()))
+                VoiceUpdate::new(guild_id, session, server.clone())
             }
             (Some(server), None) => {
                 tracing::debug!(
@@ -222,11 +219,11 @@ impl Lavalink {
                 );
                 return Ok(());
             }
-            (None, Some(state)) => {
+            (None, Some(session)) => {
                 tracing::debug!(
-                    "guild {} is now waiting for other half; got: {:?}",
+                    "guild {} is now waiting for other half; got session ID: {:?}",
                     guild_id,
-                    state.value()
+                    session.value()
                 );
                 return Ok(());
             }
@@ -345,7 +342,7 @@ impl Lavalink {
             .server_updates
             .retain(|k, _| (k.0 >> 22) % shard_count != shard_id);
         self.0
-            .state_updates
+            .sessions
             .retain(|k, _| (k.0 >> 22) % shard_count != shard_id);
     }
 }
