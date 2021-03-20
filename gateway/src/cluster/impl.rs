@@ -270,9 +270,7 @@ impl Cluster {
 
         #[cfg(feature = "metrics")]
         {
-            use std::convert::TryInto;
-
-            metrics::gauge!("Cluster-Shard-Count", total.try_into().unwrap_or(-1));
+            metrics::gauge!("Cluster-Shard-Count", total as f64);
         }
 
         let shards = iter
