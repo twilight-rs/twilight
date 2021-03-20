@@ -894,7 +894,6 @@ mod tests {
             id: GuildId(1),
             joined_at: None,
             large: false,
-            lazy: None,
             max_members: None,
             max_presences: None,
             max_video_channel_users: None,
