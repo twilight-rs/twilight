@@ -164,7 +164,7 @@ impl Lavalink {
                 if let Some(guild_id) = e.guild_id {
                     self.0
                         .server_updates
-                        .insert(guild_id, From::from(e.clone()));
+                        .insert(guild_id, e.clone().into());
                     guild_id
                 } else {
                     tracing::trace!("event has no guild ID: {:?}", e);
