@@ -592,7 +592,7 @@ pub mod incoming {
         /// A track for a player started.
         #[serde(rename = "TrackStartEvent")]
         Start,
-        /// A track for a player started.
+        /// The voice websocket connection to Discord has been closed.
         #[serde(rename = "WebSocketClosedEvent")]
         WebsocketClosed,
     }
@@ -638,18 +638,18 @@ pub mod incoming {
     #[non_exhaustive]
     #[serde(rename_all = "camelCase")]
     pub struct WebsocketClosed {
-        /// The guild ID of the player.
+        /// Guild ID of the associated player.
         pub guild_id: GuildId,
-        /// The type of track event.
+        /// Type of track event.
         #[serde(rename = "type")]
         pub kind: TrackEventType,
-        /// The opcode of the event.
+        /// Lavalink websocket opcode of the event.
         pub op: Opcode,
-        /// The Discord websocket opcode
+        /// Discord websocket opcode that closed the connection.
         pub code: u64,
         /// True if Discord closed the connection, false if Lavalink closed it.
         pub by_remote: bool,
-        /// The reason the connection was closed.
+        /// Reason the connection was closed.
         pub reason: String,
     }
 }
