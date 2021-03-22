@@ -807,7 +807,7 @@ impl ShardProcessor {
 
         let config = WebSocketConfig {
             max_frame_size: None,
-            ..Default::default()
+            ..WebSocketConfig::default()
         };
 
         let (stream, _) = connect_async_with_config(url, Some(config))
