@@ -16,26 +16,22 @@ use std::fmt::{Display, Formatter, Result as FmtResult};
 pub enum InteractionResponse {
     /// Used when responding to an interaction of type Ping.
     Pong,
-    /// Acknowledges an interaction without sending a message.
-    Acknowledge,
-    /// Responds to an interaction with a regular message.
-    ChannelMessage(CommandCallbackData),
     /// Responds to an interaction with a message showing the original command.
     ChannelMessageWithSource(CommandCallbackData),
     /// Acknowledges an interaction, showing the original command.
-    AckWithSource,
+    DeferredChannelMessageWithSource,
 }
 
 impl InteractionResponse {
     pub fn kind(&self) -> InteractionResponseType {
         match self {
             InteractionResponse::Pong => InteractionResponseType::Pong,
-            InteractionResponse::Acknowledge => InteractionResponseType::Acknowledge,
-            InteractionResponse::ChannelMessage(_) => InteractionResponseType::ChannelMessage,
             InteractionResponse::ChannelMessageWithSource(_) => {
                 InteractionResponseType::ChannelMessageWithSource
             }
-            InteractionResponse::AckWithSource => InteractionResponseType::AckWithSource,
+            InteractionResponse::DeferredChannelMessageWithSource
+ => InteractionResponseType::DeferredChannelMessageWithSource
+,
         }
     }
 
@@ -44,11 +40,9 @@ impl InteractionResponse {
     // response.
     fn data(&self) -> Option<&CommandCallbackData> {
         match self {
-            InteractionResponse::ChannelMessage(d)
-            | InteractionResponse::ChannelMessageWithSource(d) => Some(d),
+            InteractionResponse::ChannelMessageWithSource(d) => Some(d),
             InteractionResponse::Pong
-            | InteractionResponse::Acknowledge
-            | InteractionResponse::AckWithSource => None,
+                | InteractionResponse::DeferredChannelMessageWithSource => None,
         }
     }
 }
@@ -82,18 +76,14 @@ impl<'a> TryFrom<InteractionResponseEnvelope> for InteractionResponse {
     fn try_from(envelope: InteractionResponseEnvelope) -> Result<Self, Self::Error> {
         let i = match envelope.kind {
             InteractionResponseType::Pong => InteractionResponse::Pong,
-            InteractionResponseType::Acknowledge => InteractionResponse::Acknowledge,
-            InteractionResponseType::ChannelMessage => {
-                InteractionResponse::ChannelMessage(envelope.data.ok_or(
-                    InteractionResponseEnvelopeParseError::MissingData(envelope.kind),
-                )?)
-            }
             InteractionResponseType::ChannelMessageWithSource => {
                 InteractionResponse::ChannelMessageWithSource(envelope.data.ok_or(
                     InteractionResponseEnvelopeParseError::MissingData(envelope.kind),
                 )?)
             }
-            InteractionResponseType::AckWithSource => InteractionResponse::AckWithSource,
+            InteractionResponseType::DeferredChannelMessageWithSource
+ => InteractionResponse::DeferredChannelMessageWithSource
+,
         };
 
         Ok(i)
@@ -130,20 +120,18 @@ struct InteractionResponseEnvelope {
 #[repr(u8)]
 pub enum InteractionResponseType {
     Pong = 1,
-    Acknowledge = 2,
-    ChannelMessage = 3,
     ChannelMessageWithSource = 4,
-    AckWithSource = 5,
+    DeferredChannelMessageWithSource = 5,
 }
 
 impl InteractionResponseType {
     pub fn kind(self) -> &'static str {
         match self {
             InteractionResponseType::Pong => "Pong",
-            InteractionResponseType::Acknowledge => "Acknowledge",
-            InteractionResponseType::ChannelMessage => "ChannelMessage",
             InteractionResponseType::ChannelMessageWithSource => "ChannelMessageWithSource",
-            InteractionResponseType::AckWithSource => "AckWithSource",
+            InteractionResponseType::DeferredChannelMessageWithSource
+ => "DeferredChannelMessageWithSource
+",
         }
     }
 }
