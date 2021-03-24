@@ -1583,7 +1583,10 @@ impl Route {
                 Path::GuildsIdRolesId(guild_id),
                 format!("guilds/{}/roles", guild_id).into(),
             ),
-            Self::UpdateTemplate { guild_id, template_code } => (
+            Self::UpdateTemplate {
+                guild_id,
+                template_code,
+            } => (
                 Method::PATCH,
                 Path::GuildsIdTemplatesCode(guild_id),
                 format!("guilds/{}/templates/{}", guild_id, template_code).into(),
