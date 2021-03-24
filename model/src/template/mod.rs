@@ -4,7 +4,10 @@ mod role;
 pub use guild::TemplateGuild;
 pub use role::TemplateRole;
 
-use crate::{id::{GuildId, UserId}, user::User};
+use crate::{
+    id::{GuildId, UserId},
+    user::User,
+};
 use serde::{Deserialize, Serialize};
 
 #[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
