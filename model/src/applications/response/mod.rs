@@ -29,9 +29,9 @@ impl InteractionResponse {
             InteractionResponse::ChannelMessageWithSource(_) => {
                 InteractionResponseType::ChannelMessageWithSource
             }
-            InteractionResponse::DeferredChannelMessageWithSource
- => InteractionResponseType::DeferredChannelMessageWithSource
-,
+            InteractionResponse::DeferredChannelMessageWithSource => {
+                InteractionResponseType::DeferredChannelMessageWithSource
+            }
         }
     }
 
@@ -41,8 +41,9 @@ impl InteractionResponse {
     fn data(&self) -> Option<&CommandCallbackData> {
         match self {
             InteractionResponse::ChannelMessageWithSource(d) => Some(d),
-            InteractionResponse::Pong
-                | InteractionResponse::DeferredChannelMessageWithSource => None,
+            InteractionResponse::Pong | InteractionResponse::DeferredChannelMessageWithSource => {
+                None
+            }
         }
     }
 }
@@ -81,9 +82,9 @@ impl<'a> TryFrom<InteractionResponseEnvelope> for InteractionResponse {
                     InteractionResponseEnvelopeParseError::MissingData(envelope.kind),
                 )?)
             }
-            InteractionResponseType::DeferredChannelMessageWithSource
- => InteractionResponse::DeferredChannelMessageWithSource
-,
+            InteractionResponseType::DeferredChannelMessageWithSource => {
+                InteractionResponse::DeferredChannelMessageWithSource
+            }
         };
 
         Ok(i)
@@ -129,9 +130,10 @@ impl InteractionResponseType {
         match self {
             InteractionResponseType::Pong => "Pong",
             InteractionResponseType::ChannelMessageWithSource => "ChannelMessageWithSource",
-            InteractionResponseType::DeferredChannelMessageWithSource
- => "DeferredChannelMessageWithSource
-",
+            InteractionResponseType::DeferredChannelMessageWithSource => {
+                "DeferredChannelMessageWithSource
+"
+            }
         }
     }
 }
