@@ -10,8 +10,8 @@ use crate::{
     request::{
         applications::{
             CreateGlobalCommand, CreateGuildCommand, DeleteGlobalCommand, DeleteGuildCommand,
-            GetGlobalCommands, GetGuildCommands, InteractionError, UpdateGlobalCommand,
-            UpdateGuildCommand,
+            GetGlobalCommands, GetGuildCommands, InteractionError, SetGlobalCommands,
+            SetGuildCommands, UpdateGlobalCommand, UpdateGuildCommand,
         },
         channel::allowed_mentions::AllowedMentions,
         guild::{create_guild::CreateGuildError, create_guild_channel::CreateGuildChannelError},
@@ -42,7 +42,7 @@ use std::{
 use tokio::time;
 
 use twilight_model::{
-    applications::response::InteractionResponse,
+    applications::{command::Command, response::InteractionResponse},
     guild::Permissions,
     id::{
         ApplicationId, ChannelId, CommandId, EmojiId, GuildId, IntegrationId, InteractionId,
@@ -314,6 +314,15 @@ impl Client {
         DeleteGuildCommand::new(&self, self.application_id(), guild_id, command_id)
     }
 
+    /// Set commands in a guild
+    pub fn set_guild_commands(
+        &self,
+        guild_id: GuildId,
+        commands: Vec<Command>,
+    ) -> Result<SetGuildCommands<'_>, InteractionError> {
+        SetGuildCommands::new(&self, self.application_id(), guild_id, commands)
+    }
+
     /// Create a new global command.
     ///
     /// The name must be between 3 and 32 characters in length, and the
@@ -368,6 +377,14 @@ impl Client {
         command_id: CommandId,
     ) -> Result<DeleteGlobalCommand<'_>, InteractionError> {
         DeleteGlobalCommand::new(&self, self.application_id(), command_id)
+    }
+
+    /// Set commands globally
+    pub fn set_global_commands(
+        &self,
+        commands: Vec<Command>,
+    ) -> Result<SetGlobalCommands<'_>, InteractionError> {
+        SetGlobalCommands::new(&self, self.application_id(), commands)
     }
 
     /* New Stuff End   */

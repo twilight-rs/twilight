@@ -33,7 +33,7 @@ impl<'a> UpdateGuildCommand<'a> {
         Ok(Self {
             command: Command {
                 id: Some(command_id),
-                application_id,
+                application_id: Some(application_id),
                 name,
                 description,
                 options: vec![],

@@ -34,7 +34,7 @@ impl<'a> CreateGuildCommand<'a> {
         Ok(Self {
             command: Command {
                 id: None,
-                application_id,
+                application_id: Some(application_id),
                 name,
                 description,
                 options: vec![],

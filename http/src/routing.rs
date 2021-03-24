@@ -862,12 +862,15 @@ pub enum Route {
         application_id: u64,
         command_id: u64,
     },
-    GetGlobalCommands {
-        application_id: u64,
-    },
     UpdateGlobalCommand {
         application_id: u64,
         command_id: u64,
+    },
+    GetGlobalCommands {
+        application_id: u64,
+    },
+    SetGlobalCommands {
+        application_id: u64,
     },
 
     /* Guild commands */
@@ -880,13 +883,17 @@ pub enum Route {
         command_id: u64,
         guild_id: u64,
     },
+    UpdateGuildCommand {
+        application_id: u64,
+        command_id: u64,
+        guild_id: u64,
+    },
     GetGuildCommands {
         application_id: u64,
         guild_id: u64,
     },
-    UpdateGuildCommand {
+    SetGuildCommands {
         application_id: u64,
-        command_id: u64,
         guild_id: u64,
     },
 }
@@ -1664,6 +1671,23 @@ impl Route {
                 Method::PATCH,
                 Path::ApplicationCommandId(application_id),
                 format!("applications/{}/commands/{}", application_id, command_id).into(),
+            ),
+            Self::SetGlobalCommands { application_id } => (
+                Method::PUT,
+                Path::ApplicationCommand(application_id),
+                format!("applications/{}/commands", application_id).into(),
+            ),
+            Self::SetGuildCommands {
+                application_id,
+                guild_id,
+            } => (
+                Method::PUT,
+                Path::ApplicationGuildCommand(application_id),
+                format!(
+                    "applications/{}/guilds/{}/commands",
+                    application_id, guild_id
+                )
+                .into(),
             ),
             /* Guild commands */
             Self::CreateGuildCommand {

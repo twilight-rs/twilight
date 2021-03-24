@@ -21,7 +21,8 @@ pub struct Command {
      */
     #[serde(skip_serializing_if = "Option::is_none")]
     pub id: Option<CommandId>,
-    pub application_id: ApplicationId,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub application_id: Option<ApplicationId>,
     pub name: String,
     pub description: String,
     #[serde(default)]
