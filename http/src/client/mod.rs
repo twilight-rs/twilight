@@ -1470,14 +1470,13 @@ impl Client {
 
         if let Some(headers) = builder.headers_mut() {
             if let Some(form) = &form {
-                let content_type = HeaderValue::try_from(form.content_type());
-                if let Ok(content_type) = content_type {
+                if let Ok(content_type) = HeaderValue::try_from(form.content_type()) {
                     headers.insert(CONTENT_TYPE, content_type);
                 }
             } else if let Some(bytes) = &body {
                 let len = bytes.len();
-
                 headers.insert(CONTENT_LENGTH, len.into());
+
                 let content_type = HeaderValue::from_static("application/json");
                 headers.insert(CONTENT_TYPE, content_type);
             }
