@@ -1468,6 +1468,45 @@ impl Client {
             ") Twilight-rs",
         ));
 
+        if let (Some(default_headers), Some(headers)) =
+            (&self.state.default_headers, &mut builder.headers_mut())
+        {
+            for (name, value) in default_headers {
+                headers.insert(name, HeaderValue::from(value));
+            }
+        }
+
+        let body = if let Some(form) = form {
+            let content_type = HeaderValue::try_from(form.content_type());
+            let form_bytes = form.build();
+            if let Some(headers) = builder.headers_mut() {
+                if let Ok(content_type) = content_type {
+                    headers.insert(CONTENT_TYPE, content_type);
+                }
+                headers.insert(CONTENT_LENGTH, form_bytes.len().into());
+            };
+
+            Body::from(form_bytes)
+        } else if let Some(bytes) = body {
+            let len = bytes.len();
+
+            if let Some(headers) = builder.headers_mut() {
+                headers.insert(CONTENT_LENGTH, len.into());
+                let content_type = HeaderValue::from_static("application/json");
+                headers.insert(CONTENT_TYPE, content_type);
+            }
+
+            Body::from(bytes)
+        } else if method == Method::PUT || method == Method::POST || method == Method::PATCH {
+            if let Some(headers) = builder.headers_mut() {
+                headers.insert(CONTENT_LENGTH, 0.into());
+            }
+
+            Body::empty()
+        } else {
+            Body::empty()
+        };
+
         if let Some(headers) = builder.headers_mut() {
             headers.insert(USER_AGENT, user_agent);
 
@@ -1480,51 +1519,7 @@ impl Client {
             }
         }
 
-        if let (Some(default_headers), Some(headers)) =
-            (&self.state.default_headers, &mut builder.headers_mut())
-        {
-            for (name, value) in default_headers {
-                headers.insert(name, HeaderValue::from(value));
-            }
-        }
-
-        let req = if let Some(form) = form {
-            let content_type = HeaderValue::try_from(form.content_type());
-            let form_bytes = form.build();
-            if let Some(headers) = builder.headers_mut() {
-                if let Ok(content_type) = content_type {
-                    headers.insert(CONTENT_TYPE, content_type);
-                }
-                headers.insert(CONTENT_LENGTH, form_bytes.len().into());
-            };
-            builder
-                .body(Body::from(form_bytes))
-                .map_err(|source| Error::BuildingRequest { source })?
-        } else if let Some(bytes) = body {
-            let len = bytes.len();
-
-            if let Some(headers) = builder.headers_mut() {
-                headers.insert(CONTENT_LENGTH, len.into());
-                let content_type = HeaderValue::from_static("application/json");
-                headers.insert(CONTENT_TYPE, content_type);
-            }
-
-            builder
-                .body(Body::from(bytes))
-                .map_err(|source| Error::BuildingRequest { source })?
-        } else if method == Method::PUT || method == Method::POST || method == Method::PATCH {
-            if let Some(headers) = builder.headers_mut() {
-                headers.insert(CONTENT_LENGTH, 0.into());
-            }
-
-            builder
-                .body(Body::empty())
-                .map_err(|source| Error::BuildingRequest { source })?
-        } else {
-            builder
-                .body(Body::empty())
-                .map_err(|source| Error::BuildingRequest { source })?
-        };
+        let req = builder.body(body).map_err(|source| Error::BuildingRequest { source })?;
 
         let inner = self.state.http.request(req);
         let fut = time::timeout(self.state.timeout, inner);
