@@ -35,19 +35,19 @@ jobs:
           token: ${{ secrets.GITHUB_TOKEN }}
           args: --workspace --tests
 
-  clippy-nightly:
-    name: Clippy (nightly)
+  clippy-beta:
+    name: Clippy (beta)
     runs-on: ubuntu-latest
 
     steps:
       - name: Checkout sources
         uses: actions/checkout@v2
 
-      - name: Install nightly toolchain
+      - name: Install beta toolchain
         id: toolchain
         uses: actions-rs/toolchain@v1
         with:
-          toolchain: nightly
+          toolchain: beta
           components: clippy
           profile: minimal
           override: true
