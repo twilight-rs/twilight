@@ -48,7 +48,7 @@ pub mod fmt;
 pub mod parse;
 
 #[doc(no_inline)]
-pub use fmt::{Mention, MentionFormat};
+pub use fmt::Mention;
 
 #[doc(no_inline)]
 pub use parse::ParseMention;
