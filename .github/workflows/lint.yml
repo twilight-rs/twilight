@@ -35,6 +35,38 @@ jobs:
           token: ${{ secrets.GITHUB_TOKEN }}
           args: --workspace --tests
 
+  clippy-beta:
+    name: Clippy (beta)
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout sources
+        uses: actions/checkout@v2
+
+      - name: Install beta toolchain
+        id: toolchain
+        uses: actions-rs/toolchain@v1
+        with:
+          toolchain: beta
+          components: clippy
+          profile: minimal
+          override: true
+
+      - name: Setup cache
+        uses: actions/cache@v2
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+            target
+          key: ${{ runner.os }}-clippy-rustc-${{ steps.toolchain.outputs.rustc_hash }}-${{ hashFiles('**/Cargo.lock') }}
+
+      - name: Run clippy
+        uses: actions-rs/clippy-check@v1
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          args: --workspace --tests
+
   rustfmt:
     name: Format
     runs-on: ubuntu-latest

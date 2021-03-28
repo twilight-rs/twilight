@@ -1087,8 +1087,7 @@ mod tests {
 
     #[test]
     fn test_guild_create_channels_have_guild_ids() {
-        let mut channels = Vec::new();
-        channels.push(GuildChannel::Text(TextChannel {
+        let channels = Vec::from([GuildChannel::Text(TextChannel {
             id: ChannelId(111),
             guild_id: None,
             kind: ChannelType::GuildText,
@@ -1101,7 +1100,7 @@ mod tests {
             position: 1,
             rate_limit_per_user: None,
             topic: None,
-        }));
+        })]);
 
         let guild = Guild {
             id: GuildId(123),

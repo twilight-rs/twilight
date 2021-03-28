@@ -42,6 +42,7 @@ pub enum ErrorCode {
     /// Unknown ban
     UnknownBan,
     /// Unknown SKU
+    #[allow(clippy::upper_case_acronyms)]
     UnknownSKU,
     /// Unknown Store Listing
     UnknownStoreListing,
@@ -96,6 +97,7 @@ pub enum ErrorCode {
     /// Invalid account type
     InvalidAccountType,
     /// Cannot execute action on a DM channel
+    #[allow(clippy::upper_case_acronyms)]
     InvalidDMChannelAction,
     /// Guild widget disabled
     GuildWidgetDisabled,
