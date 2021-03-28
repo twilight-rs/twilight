@@ -1597,18 +1597,8 @@ impl Client {
         &self,
         guild_id: GuildId,
         command_id: CommandId,
-        // TODO: ↓↓ Should probably be optional and therefore not here
-        name: impl Into<String>,
-        description: impl Into<String>,
     ) -> Result<UpdateGuildCommand<'_>, InteractionError> {
-        UpdateGuildCommand::new(
-            &self,
-            self.application_id(),
-            guild_id,
-            command_id,
-            name.into(),
-            description.into(),
-        )
+        UpdateGuildCommand::new(&self, self.application_id(), guild_id, command_id)
     }
 
     /// Delete a command in a guild, by ID.
@@ -1664,17 +1654,8 @@ impl Client {
     pub fn update_global_command(
         &self,
         command_id: CommandId,
-        // TODO: ↓↓ Should probably be optional and therefore not here
-        name: impl Into<String>,
-        description: impl Into<String>,
     ) -> Result<UpdateGlobalCommand<'_>, InteractionError> {
-        UpdateGlobalCommand::new(
-            &self,
-            self.application_id(),
-            command_id,
-            name.into(),
-            description.into(),
-        )
+        UpdateGlobalCommand::new(&self, self.application_id(), command_id)
     }
 
     /// Delete a global command, by ID.
