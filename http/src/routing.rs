@@ -58,6 +58,14 @@ impl StdError for PathParseError {
 #[derive(Clone, Debug, Eq, Hash, PartialEq)]
 #[non_exhaustive]
 pub enum Path {
+    /// Operating on global commands
+    ApplicationCommand(u64),
+    /// Operating on a specific command
+    ApplicationCommandId(u64),
+    /// Operating on commands in a guild
+    ApplicationGuildCommand(u64),
+    /// Operating on a specific command in a guild
+    ApplicationGuildCommandId(u64),
     /// Operating on a channel.
     ChannelsId(u64),
     /// Operating on a channel's invites.
@@ -119,6 +127,8 @@ pub enum Path {
     GuildsIdVanityUrl(u64),
     GuildsIdWebhooks(u64),
     InvitesCode,
+    /// Callback on a interaction.
+    InteractionCallback(u64),
     UsersId,
     OauthApplicationsMe,
     UsersIdConnections,
@@ -133,18 +143,6 @@ pub enum Path {
     WebhooksIdTokenMessageId(u64),
     /// Operating on a webhook.
     WebhooksId(u64),
-
-    /* New Paths
-     * Have to figure out what the major parameters are
-     */
-    InteractionCallback(u64),
-    /* Global */
-    ApplicationCommand(u64),
-    ApplicationCommandId(u64),
-
-    /* Guild */
-    ApplicationGuildCommand(u64),
-    ApplicationGuildCommandId(u64),
 }
 
 impl FromStr for Path {
@@ -177,6 +175,12 @@ impl FromStr for Path {
         let parts = s.split('/').skip(skip).collect::<Vec<&str>>();
 
         Ok(match parts.as_slice() {
+            ["applications", id, "commands"] => ApplicationCommand(id.parse()?),
+            ["applications", id, "commands", _] => ApplicationCommandId(id.parse()?),
+            ["applications", id, "guilds", _, "commands"] => ApplicationGuildCommand(id.parse()?),
+            ["applications", id, "guilds", _, "commands", _] => {
+                ApplicationGuildCommandId(id.parse()?)
+            }
             ["channels", id] => ChannelsId(id.parse()?),
             ["channels", id, "followers"] => ChannelsIdFollowers(id.parse()?),
             ["channels", id, "invites"] => ChannelsIdInvites(id.parse()?),
@@ -226,6 +230,7 @@ impl FromStr for Path {
             ["guilds", id, "vanity-url"] => GuildsIdVanityUrl(id.parse()?),
             ["guilds", id, "webhooks"] => GuildsIdWebhooks(id.parse()?),
             ["invites", _] => InvitesCode,
+            ["interactions", iid, _it, "callback"] => InteractionCallback(iid.parse()?),
             ["oauth2", "applications", "@me"] => OauthApplicationsMe,
             ["users", _] => UsersId,
             ["users", _, "connections"] => UsersIdConnections,
@@ -234,20 +239,6 @@ impl FromStr for Path {
             ["users", _, "guilds", _] => UsersIdGuildsId,
             ["voice", "regions"] => VoiceRegions,
             ["webhooks", id] | ["webhooks", id, _] => WebhooksId(id.parse()?),
-
-            /* New Stuff */
-            /*
-            ApplicationCommand(u64),
-            ApplicationCommandId(u64),
-             */
-            ["interactions", iid, _it, "callback"] => InteractionCallback(iid.parse()?),
-            ["applications", id, "commands"] => ApplicationCommand(id.parse()?),
-            ["applications", id, "commands", _] => ApplicationCommandId(id.parse()?),
-            ["applications", id, "guilds", _, "commands"] => ApplicationGuildCommand(id.parse()?),
-            ["applications", id, "guilds", _, "commands", _] => {
-                ApplicationGuildCommandId(id.parse()?)
-            }
-
             _ => return Err(PathParseError::NoMatch),
         })
     }
@@ -272,7 +263,9 @@ impl TryFrom<(Method, &str)> for Path {
 pub enum Route {
     /// Route information to add a user to a guild.
     AddGuildMember {
+        /// The ID of the guild.
         guild_id: u64,
+        /// The ID of the user.
         user_id: u64,
     },
     /// Route information to add a role to guild member.
@@ -306,8 +299,20 @@ pub enum Route {
         /// The ID of the guild.
         guild_id: u64,
     },
+    /// Route information to create a global command.
+    CreateGlobalCommand {
+        /// The ID of the owner application.
+        application_id: u64,
+    },
     /// Route information to create a guild.
     CreateGuild,
+    /// Route information to create a guild command.
+    CreateGuildCommand {
+        /// The ID of the owner application.
+        application_id: u64,
+        /// The ID of the guild.
+        guild_id: u64,
+    },
     /// Route information to create a guild's integration.
     CreateGuildIntegration {
         /// The ID of the guild.
@@ -390,8 +395,24 @@ pub enum Route {
         /// The ID of the guild.
         guild_id: u64,
     },
+    /// Route information to delete a global command.
+    DeleteGlobalCommand {
+        /// The ID of the owner application
+        application_id: u64,
+        /// The ID of the command
+        command_id: u64,
+    },
     /// Route information to delete a guild.
     DeleteGuild {
+        /// The ID of the guild.
+        guild_id: u64,
+    },
+    /// Route information to delete a guild command.
+    DeleteGuildCommand {
+        /// The ID of the owner application.
+        application_id: u64,
+        /// The ID of the command.
+        command_id: u64,
         /// The ID of the guild.
         guild_id: u64,
     },
@@ -406,6 +427,13 @@ pub enum Route {
     DeleteInvite {
         /// The unique invite code.
         code: String,
+    },
+    /// Route information to delete the original interaction response.
+    DeleteInteractionOriginal {
+        /// The ID of the owner application
+        application_id: u64,
+        /// The token of the interaction.
+        interaction_token: String,
     },
     /// Route information to delete a channel's message.
     DeleteMessage {
@@ -553,6 +581,11 @@ pub enum Route {
     /// Route information to get gateway information tailored to the current
     /// user.
     GetGatewayBot,
+    /// Route information to get global commands.
+    GetGlobalCommands {
+        /// The ID of the owner application.
+        application_id: u64,
+    },
     /// Route information to get a guild.
     GetGuild {
         /// The ID of the guild.
@@ -560,6 +593,13 @@ pub enum Route {
         /// Whether to include approximate member and presence counts for the
         /// guild.
         with_counts: bool,
+    },
+    /// Route information to get guild commands.
+    GetGuildCommands {
+        /// The ID of the owner application.
+        application_id: u64,
+        /// The ID of the guild.
+        guild_id: u64,
     },
     /// Route information to get a guild's widget.
     GetGuildWidget {
@@ -710,6 +750,13 @@ pub enum Route {
         /// The ID of the webhook.
         webhook_id: u64,
     },
+    /// Route information to callback of a interaction.
+    InteractionCallback {
+        /// The ID of the interaction.
+        interaction_id: u64,
+        /// The token for the interaction.
+        interaction_token: String,
+    },
     /// Route information to leave the guild.
     LeaveGuild {
         /// The ID of the guild.
@@ -737,6 +784,18 @@ pub enum Route {
         role_id: u64,
         /// The ID of the user.
         user_id: u64,
+    },
+    /// Route information to set global commands.
+    SetGlobalCommands {
+        /// The ID of the owner application.
+        application_id: u64,
+    },
+    /// Route information to set guild commands.
+    SetGuildCommands {
+        /// The ID of the owner application.
+        application_id: u64,
+        /// The ID
+        guild_id: u64,
     },
     /// Route information to sync a guild's integration.
     SyncGuildIntegration {
@@ -766,6 +825,13 @@ pub enum Route {
         /// The ID of the guild.
         guild_id: u64,
     },
+    /// Route information to update a global command.
+    UpdateGlobalCommand {
+        /// The ID of the owner application.
+        application_id: u64,
+        /// The ID of the command.
+        command_id: u64,
+    },
     /// Route information to update a guild.
     UpdateGuild {
         /// The ID of the guild.
@@ -773,6 +839,15 @@ pub enum Route {
     },
     /// Route information to update a guild channel.
     UpdateGuildChannels {
+        /// The ID of the guild.
+        guild_id: u64,
+    },
+    /// Route information to update a guild command.
+    UpdateGuildCommand {
+        /// The ID of the owner application.
+        application_id: u64,
+        /// The ID of the command.
+        command_id: u64,
         /// The ID of the guild.
         guild_id: u64,
     },
@@ -787,6 +862,13 @@ pub enum Route {
         guild_id: u64,
         /// The ID of the integration.
         integration_id: u64,
+    },
+    /// Update the original interaction response.
+    UpdateInteractionOriginal {
+        /// The ID of the owner application.
+        application_id: u64,
+        /// The token for the interaction.
+        interaction_token: String,
     },
     /// Route information to update a member.
     UpdateMember {
@@ -839,62 +921,6 @@ pub enum Route {
         token: Option<String>,
         /// The ID of the webhook.
         webhook_id: u64,
-    },
-
-    /* New Stuff */
-    InteractionCallback {
-        interaction_id: u64,
-        interaction_token: String,
-    },
-    UpdateInteractionOriginal {
-        application_id: u64,
-        interaction_token: String,
-    },
-    DeleteInteractionOriginal {
-        application_id: u64,
-        interaction_token: String,
-    },
-    /* Global commands */
-    CreateGlobalCommand {
-        application_id: u64,
-    },
-    DeleteGlobalCommand {
-        application_id: u64,
-        command_id: u64,
-    },
-    UpdateGlobalCommand {
-        application_id: u64,
-        command_id: u64,
-    },
-    GetGlobalCommands {
-        application_id: u64,
-    },
-    SetGlobalCommands {
-        application_id: u64,
-    },
-
-    /* Guild commands */
-    CreateGuildCommand {
-        application_id: u64,
-        guild_id: u64,
-    },
-    DeleteGuildCommand {
-        application_id: u64,
-        command_id: u64,
-        guild_id: u64,
-    },
-    UpdateGuildCommand {
-        application_id: u64,
-        command_id: u64,
-        guild_id: u64,
-    },
-    GetGuildCommands {
-        application_id: u64,
-        guild_id: u64,
-    },
-    SetGuildCommands {
-        application_id: u64,
-        guild_id: u64,
     },
 }
 
@@ -954,7 +980,24 @@ impl Route {
                 Path::GuildsIdEmojis(guild_id),
                 format!("guilds/{}/emojis", guild_id).into(),
             ),
+            Self::CreateGlobalCommand { application_id } => (
+                Method::POST,
+                Path::ApplicationCommand(application_id),
+                format!("applications/{}/commands", application_id).into(),
+            ),
             Self::CreateGuild => (Method::POST, Path::Guilds, "guilds".into()),
+            Self::CreateGuildCommand {
+                application_id,
+                guild_id,
+            } => (
+                Method::POST,
+                Path::ApplicationGuildCommand(application_id),
+                format!(
+                    "applications/{}/guilds/{}/commands",
+                    application_id, guild_id
+                )
+                .into(),
+            ),
             Self::CreateGuildIntegration { guild_id } => (
                 Method::POST,
                 Path::GuildsIdIntegrationsId(guild_id),
@@ -1056,10 +1099,31 @@ impl Route {
                 Path::GuildsIdEmojisId(guild_id),
                 format!("guilds/{}/emojis/{}", guild_id, emoji_id).into(),
             ),
+            Self::DeleteGlobalCommand {
+                application_id,
+                command_id,
+            } => (
+                Method::DELETE,
+                Path::ApplicationCommandId(application_id),
+                format!("applications/{}/commands/{}", application_id, command_id).into(),
+            ),
             Self::DeleteGuild { guild_id } => (
                 Method::DELETE,
                 Path::GuildsId(guild_id),
                 format!("guilds/{}", guild_id).into(),
+            ),
+            Self::DeleteGuildCommand {
+                application_id,
+                command_id,
+                guild_id,
+            } => (
+                Method::DELETE,
+                Path::ApplicationGuildCommand(application_id),
+                format!(
+                    "applications/{}/guilds/{}/commands/{}",
+                    application_id, guild_id, command_id
+                )
+                .into(),
             ),
             Self::DeleteGuildIntegration {
                 guild_id,
@@ -1073,6 +1137,18 @@ impl Route {
                 Method::DELETE,
                 Path::InvitesCode,
                 format!("invites/{}", code).into(),
+            ),
+            Self::DeleteInteractionOriginal {
+                application_id,
+                interaction_token,
+            } => (
+                Method::DELETE,
+                Path::WebhooksIdTokenMessageId(application_id),
+                format!(
+                    "webhooks/{}/{}/messages/@original",
+                    application_id, interaction_token
+                )
+                .into(),
             ),
             Self::DeleteMessageReactions {
                 channel_id,
@@ -1246,6 +1322,11 @@ impl Route {
                 format!("guilds/{}/emojis", guild_id).into(),
             ),
             Self::GetGateway => (Method::GET, Path::Gateway, "gateway".into()),
+            Self::GetGlobalCommands { application_id } => (
+                Method::GET,
+                Path::ApplicationCommand(application_id),
+                format!("applications/{}/commands", application_id).into(),
+            ),
             Self::GetGuild {
                 guild_id,
                 with_counts,
@@ -1256,6 +1337,18 @@ impl Route {
                 }
                 (Method::GET, Path::GuildsId(guild_id), path.into())
             }
+            Self::GetGuildCommands {
+                application_id,
+                guild_id,
+            } => (
+                Method::GET,
+                Path::ApplicationGuildCommand(application_id),
+                format!(
+                    "applications/{}/guilds/{}/commands",
+                    application_id, guild_id
+                )
+                .into(),
+            ),
             Self::GetGuildWidget { guild_id } => (
                 Method::GET,
                 Path::GuildsIdWidget(guild_id),
@@ -1475,6 +1568,18 @@ impl Route {
 
                 (Method::GET, Path::WebhooksId(webhook_id), path.into())
             }
+            Self::InteractionCallback {
+                interaction_id,
+                interaction_token,
+            } => (
+                Method::POST,
+                Path::InteractionCallback(interaction_id),
+                format!(
+                    "interactions/{}/{}/callback",
+                    interaction_id, interaction_token
+                )
+                .into(),
+            ),
             Self::LeaveGuild { guild_id } => (
                 Method::DELETE,
                 Path::UsersIdGuildsId,
@@ -1501,6 +1606,23 @@ impl Route {
                 Method::DELETE,
                 Path::GuildsIdMembersIdRolesId(guild_id),
                 format!("guilds/{}/members/{}/roles/{}", guild_id, user_id, role_id).into(),
+            ),
+            Self::SetGlobalCommands { application_id } => (
+                Method::PUT,
+                Path::ApplicationCommand(application_id),
+                format!("applications/{}/commands", application_id).into(),
+            ),
+            Self::SetGuildCommands {
+                application_id,
+                guild_id,
+            } => (
+                Method::PUT,
+                Path::ApplicationGuildCommand(application_id),
+                format!(
+                    "applications/{}/guilds/{}/commands",
+                    application_id, guild_id
+                )
+                .into(),
             ),
             Self::SyncGuildIntegration {
                 guild_id,
@@ -1529,6 +1651,14 @@ impl Route {
                 Path::GuildsIdEmojisId(guild_id),
                 format!("guilds/{}/emojis/{}", guild_id, emoji_id).into(),
             ),
+            Self::UpdateGlobalCommand {
+                application_id,
+                command_id,
+            } => (
+                Method::PATCH,
+                Path::ApplicationCommandId(application_id),
+                format!("applications/{}/commands/{}", application_id, command_id).into(),
+            ),
             Self::UpdateGuild { guild_id } => (
                 Method::PATCH,
                 Path::GuildsId(guild_id),
@@ -1538,6 +1668,19 @@ impl Route {
                 Method::PATCH,
                 Path::GuildsIdChannels(guild_id),
                 format!("guilds/{}/channels", guild_id).into(),
+            ),
+            Self::UpdateGuildCommand {
+                application_id,
+                command_id,
+                guild_id,
+            } => (
+                Method::PATCH,
+                Path::ApplicationGuildCommand(application_id),
+                format!(
+                    "applications/{}/guilds/{}/commands/{}",
+                    application_id, guild_id, command_id
+                )
+                .into(),
             ),
             Self::UpdateGuildWidget { guild_id } => (
                 Method::PATCH,
@@ -1551,6 +1694,18 @@ impl Route {
                 Method::PATCH,
                 Path::GuildsIdIntegrationsId(guild_id),
                 format!("guilds/{}/integrations/{}", guild_id, integration_id,).into(),
+            ),
+            Self::UpdateInteractionOriginal {
+                application_id,
+                interaction_token,
+            } => (
+                Method::PATCH,
+                Path::WebhooksIdTokenMessageId(application_id),
+                format!(
+                    "webhooks/{}/{}/messages/@original",
+                    application_id, interaction_token
+                )
+                .into(),
             ),
             Self::UpdateMember { guild_id, user_id } => (
                 Method::PATCH,
@@ -1607,139 +1762,6 @@ impl Route {
 
                 (Method::PATCH, Path::WebhooksId(webhook_id), path.into())
             }
-
-            /* New Stuff */
-            Self::InteractionCallback {
-                interaction_id,
-                interaction_token,
-            } => (
-                Method::POST,
-                Path::InteractionCallback(interaction_id),
-                format!(
-                    "interactions/{}/{}/callback",
-                    interaction_id, interaction_token
-                )
-                .into(),
-            ),
-            Self::UpdateInteractionOriginal {
-                application_id,
-                interaction_token,
-            } => (
-                Method::PATCH,
-                Path::WebhooksIdTokenMessageId(application_id),
-                format!(
-                    "webhooks/{}/{}/messages/@original",
-                    application_id, interaction_token
-                )
-                .into(),
-            ),
-            Self::DeleteInteractionOriginal {
-                application_id,
-                interaction_token,
-            } => (
-                Method::DELETE,
-                Path::WebhooksIdTokenMessageId(application_id),
-                format!(
-                    "webhooks/{}/{}/messages/@original",
-                    application_id, interaction_token
-                )
-                .into(),
-            ),
-            /* Global commands */
-            Self::CreateGlobalCommand { application_id } => (
-                Method::POST,
-                Path::ApplicationCommand(application_id),
-                format!("applications/{}/commands", application_id).into(),
-            ),
-            Self::DeleteGlobalCommand {
-                application_id,
-                command_id,
-            } => (
-                Method::DELETE,
-                Path::ApplicationCommandId(application_id),
-                format!("applications/{}/commands/{}", application_id, command_id).into(),
-            ),
-            Self::GetGlobalCommands { application_id } => (
-                Method::GET,
-                Path::ApplicationCommand(application_id),
-                format!("applications/{}/commands", application_id).into(),
-            ),
-            Self::UpdateGlobalCommand {
-                application_id,
-                command_id,
-            } => (
-                Method::PATCH,
-                Path::ApplicationCommandId(application_id),
-                format!("applications/{}/commands/{}", application_id, command_id).into(),
-            ),
-            Self::SetGlobalCommands { application_id } => (
-                Method::PUT,
-                Path::ApplicationCommand(application_id),
-                format!("applications/{}/commands", application_id).into(),
-            ),
-            Self::SetGuildCommands {
-                application_id,
-                guild_id,
-            } => (
-                Method::PUT,
-                Path::ApplicationGuildCommand(application_id),
-                format!(
-                    "applications/{}/guilds/{}/commands",
-                    application_id, guild_id
-                )
-                .into(),
-            ),
-            /* Guild commands */
-            Self::CreateGuildCommand {
-                application_id,
-                guild_id,
-            } => (
-                Method::POST,
-                Path::ApplicationGuildCommand(application_id),
-                format!(
-                    "applications/{}/guilds/{}/commands",
-                    application_id, guild_id
-                )
-                .into(),
-            ),
-            Self::DeleteGuildCommand {
-                application_id,
-                command_id,
-                guild_id,
-            } => (
-                Method::DELETE,
-                Path::ApplicationGuildCommand(application_id),
-                format!(
-                    "applications/{}/guilds/{}/commands/{}",
-                    application_id, guild_id, command_id
-                )
-                .into(),
-            ),
-            Self::GetGuildCommands {
-                application_id,
-                guild_id,
-            } => (
-                Method::GET,
-                Path::ApplicationGuildCommand(application_id),
-                format!(
-                    "applications/{}/guilds/{}/commands",
-                    application_id, guild_id
-                )
-                .into(),
-            ),
-            Self::UpdateGuildCommand {
-                application_id,
-                command_id,
-                guild_id,
-            } => (
-                Method::PATCH,
-                Path::ApplicationGuildCommand(application_id),
-                format!(
-                    "applications/{}/guilds/{}/commands/{}",
-                    application_id, guild_id, command_id
-                )
-                .into(),
-            ),
         }
     }
 }
