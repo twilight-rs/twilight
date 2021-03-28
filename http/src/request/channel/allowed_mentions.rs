@@ -282,6 +282,10 @@ impl<
     > AllowedMentionsBuilder<'a, E, U, R>
 {
     /// Return a [`CreateMessage`] struct with the specified `allowed_mentions`.
+    ///
+    /// # Panics
+    ///
+    /// Panics when no message builder was provided.
     pub fn build(self) -> CreateMessage<'a> {
         match self.create_message {
             Some(mut builder) => {
@@ -300,6 +304,10 @@ impl<
     }
 
     /// Return a [`ExecuteWebhook`] struct with the specified `allowed_mentions`.
+    ///
+    /// # Panics
+    ///
+    /// Panics when no message builder was provided.
     pub fn build_webhook(self) -> ExecuteWebhook<'a> {
         match self.execute_webhook {
             Some(mut builder) => {
