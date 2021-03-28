@@ -40,13 +40,6 @@ struct UpdateTemplateFields {
 }
 
 /// Update the template's metadata, by ID and code.
-///
-/// # Errors
-///
-/// Returns [`UpdateTemplateError::NameInvalid`] when the name is invalid.
-///
-/// Returns [`UpdateTemplateError::DescriptionTooLarge`] when the description is
-/// too large.
 pub struct UpdateTemplate<'a> {
     fields: UpdateTemplateFields,
     fut: Option<Pending<'a, Template>>,
@@ -80,6 +73,11 @@ impl<'a> UpdateTemplate<'a> {
     /// Set the description.
     ///
     /// This must be at most 120 characters in length.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`UpdateTemplateError::DescriptionTooLarge`] when the
+    /// description is too large.
     pub fn description(self, description: impl Into<String>) -> Result<Self, UpdateTemplateError> {
         self._description(description.into())
     }
@@ -97,6 +95,10 @@ impl<'a> UpdateTemplate<'a> {
     /// Set the name.
     ///
     /// This must be at least 1, and at most 100 characters in length.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`UpdateTemplateError::NameInvalid`] when the name is invalid.
     pub fn name(self, name: impl Into<String>) -> Result<Self, UpdateTemplateError> {
         self._name(name.into())
     }
