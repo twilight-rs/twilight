@@ -48,9 +48,6 @@ struct CreateTemplateFields {
 /// # Errors
 ///
 /// Returns [`CreateTemplateError::NameInvalid`] when the name is invalid.
-///
-/// Returns [`CreateTemplateError::DescriptionTooLarge`] when the description is
-/// too large.
 pub struct CreateTemplate<'a> {
     fields: CreateTemplateFields,
     fut: Option<Pending<'a, Template>>,
@@ -90,6 +87,11 @@ impl<'a> CreateTemplate<'a> {
     /// Set the template's description.
     ///
     /// This must be less than or equal to 120 characters in length.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`CreateTemplateError::DescriptionTooLarge`] when the
+    /// description is too large.
     pub fn description(self, description: impl Into<String>) -> Result<Self, CreateTemplateError> {
         self._description(description.into())
     }

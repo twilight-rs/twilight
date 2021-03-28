@@ -1302,11 +1302,7 @@ impl Client {
     ///
     /// Returns [`CreateTemplateError::NameInvalid`] when the name is invalid.
     ///
-    /// Returns [`CreateTemplateError::DescriptionTooLarge`] when the
-    /// description is too large.
-    ///
     /// [`CreateTemplateError::NameInvalid`]: crate::request::template::create_template::CreateTemplateError::NameInvalid
-    /// [`CreateTemplateError::DescriptionTooLarge`]: crate::request::template::create_template::CreateTemplateError::DescriptionTooLarge
     pub fn create_template(
         &self,
         guild_id: GuildId,
@@ -1344,16 +1340,6 @@ impl Client {
     }
 
     /// Update the template's metadata, by ID and code.
-    ///
-    /// # Errors
-    ///
-    /// Returns [`UpdateTemplateError::NameInvalid`] when the name is invalid.
-    ///
-    /// Returns [`UpdateTemplateError::DescriptionTooLarge`] when the
-    /// description is too large.
-    ///
-    /// [`UpdateTemplateError::NameInvalid`]: crate::request::template::update_template::UpdateTemplateError::NameInvalid
-    /// [`UpdateTemplateError::DescriptionTooLarge`]: crate::request::template::update_template::UpdateTemplateError::DescriptionTooLarge
     pub fn update_template(
         &self,
         guild_id: GuildId,

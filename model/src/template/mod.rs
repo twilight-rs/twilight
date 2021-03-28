@@ -14,9 +14,12 @@ use serde::{Deserialize, Serialize};
 pub struct Template {
     pub code: String,
     pub created_at: String,
+    /// User object of who created this template.
     pub creator: User,
+    /// ID of the user who created this template.
     pub creator_id: UserId,
     pub description: Option<String>,
+    /// Whether the template has unsynced changes.
     pub is_dirty: Option<bool>,
     pub name: String,
     pub serialized_source_guild: TemplateGuild,
