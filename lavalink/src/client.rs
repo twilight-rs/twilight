@@ -177,6 +177,11 @@ impl Lavalink {
                 }
 
                 if let Some(guild_id) = e.0.guild_id {
+                    // Update player if it exists and update the connected channel ID.
+                    if let Some(kv) = self.0.players.get(&guild_id) {
+                        kv.value().set_channel_id(e.0.channel_id);
+                    }
+
                     if e.0.channel_id.is_none() {
                         self.0.sessions.remove(&guild_id);
                     } else {
