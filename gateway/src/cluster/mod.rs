@@ -54,13 +54,45 @@
 //!     }
 //! }
 //! ```
+//!
+//! Start bucket 1 of a very large bot with 320 shards and a maximum concurrency
+//! of 16:
+//!
+//! ```no_run
+//! use twilight_gateway::{cluster::ShardScheme, Cluster, Event, Intents};
+//! use futures::StreamExt;
+//! use std::{convert::TryFrom, env};
+//!
+//! #[tokio::main]
+//! async fn main() -> Result<(), Box<dyn std::error::Error>> {
+//!     let token = env::var("DISCORD_TOKEN")?;
+//!     let intents = Intents::GUILD_MESSAGES;
+//!     let scheme = ShardScheme::try_from((1, 16, 320))?;
+//!     let cluster = Cluster::builder(token, intents).shard_scheme(scheme).build().await?;
+//!
+//!     cluster.up().await;
+//!
+//!     let mut events = cluster.events();
+//!
+//!     while let Some((shard_id, event)) = events.next().await {
+//!         println!("got event type {:?}", event.kind());
+//!     }
+//!
+//!     println!("Cluster is now shutdown");
+//!
+//!     Ok(())
+//! }
+//! ```
+
+pub mod scheme;
 
 mod builder;
 mod config;
 mod r#impl;
 
 pub use self::{
-    builder::{ClusterBuilder, ShardScheme, ShardSchemeRangeError},
+    builder::ClusterBuilder,
     config::Config,
     r#impl::{Cluster, ClusterCommandError, ClusterSendError, ClusterStartError},
+    scheme::{ShardScheme, ShardSchemeRangeError},
 };
