@@ -185,7 +185,7 @@ impl FromStr for Path {
                 ChannelsIdMessagesIdCrosspost(id.parse()?)
             }
             ["channels", id, "messages", _, "reactions"]
-            | ["channels", id, "messages", _, "reactions", _]=> {
+            | ["channels", id, "messages", _, "reactions", _] => {
                 ChannelsIdMessagesIdReactions(id.parse()?)
             }
             ["channels", id, "messages", _, "reactions", _, _] => {
