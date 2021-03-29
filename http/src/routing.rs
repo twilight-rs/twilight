@@ -194,7 +194,7 @@ impl FromStr for Path {
             ["channels", id, "pins"] => ChannelsIdPins(id.parse()?),
             ["channels", id, "pins", _] => ChannelsIdPinsMessageId(id.parse()?),
             ["channels", id, "recipients"] | ["channels", id, "recipients", _] => {
-                ChannelsIdRecipients(id.parse()?
+                ChannelsIdRecipients(id.parse()?)
             }
             ["channels", id, "typing"] => ChannelsIdTyping(id.parse()?),
             ["channels", id, "webhooks"] | ["channels", id, "webhooks", _] => {
