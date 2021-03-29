@@ -173,7 +173,7 @@ impl FromStr for Path {
             ["channels", id, "messages"] => ChannelsIdMessages(id.parse()?),
             ["channels", id, "messages", "bulk-delete"] => {
                 ChannelsIdMessagesBulkDelete(id.parse()?)
-            },
+            }
             ["channels", id, "messages", _] => {
                 // can not map to path without method since they have different ratelimits
                 return Err(PathParseError::MessageIdWithoutMethod {
@@ -185,7 +185,7 @@ impl FromStr for Path {
             }
             ["channels", id, "messages", _, "reactions"] | ["channels", id, "messages", _, "reactions", _]=> {
                 ChannelsIdMessagesIdReactions(id.parse()?)
-            },
+            }
             ["channels", id, "messages", _, "reactions", _, _] => {
                 ChannelsIdMessagesIdReactionsUserIdType(id.parse()?)
             }
@@ -194,11 +194,11 @@ impl FromStr for Path {
             ["channels", id, "pins", _] => ChannelsIdPinsMessageId(id.parse()?),
             ["channels", id, "recipients"] | ["channels", id, "recipients", _] => {
                 ChannelsIdRecipients(id.parse()?)
-            },
+            }
             ["channels", id, "typing"] => ChannelsIdTyping(id.parse()?),
             ["channels", id, "webhooks"] | ["channels", id, "webhooks", _] => {
                 ChannelsIdWebhooks(id.parse()?)
-            },
+            }
             ["gateway"] => Gateway,
             ["gateway", "bot"] => GatewayBot,
             ["guilds"] => Guilds,
