@@ -132,7 +132,8 @@ pub enum Path {
     /// Operating on the voice regions available to the current user.
     VoiceRegions,
     /// Operating on a message created by a webhook.
-    WebhooksIdTokenMessagesId(u64),
+    // TODO: rename to `WebhooksIdTokenMessagesId` for consistency
+    WebhooksIdTokenMessageId(u64),
     /// Operating on a webhook.
     WebhooksId(u64),
 }
@@ -193,7 +194,7 @@ impl FromStr for Path {
             ["channels", id, "pins"] => ChannelsIdPins(id.parse()?),
             ["channels", id, "pins", _] => ChannelsIdPinsMessageId(id.parse()?),
             ["channels", id, "recipients"] | ["channels", id, "recipients", _] => {
-                ChannelsIdRecipients(id.parse()?)
+                ChannelsIdRecipients(id.parse()?
             }
             ["channels", id, "typing"] => ChannelsIdTyping(id.parse()?),
             ["channels", id, "webhooks"] | ["channels", id, "webhooks", _] => {
@@ -234,7 +235,7 @@ impl FromStr for Path {
             ["users", _, "guilds", _] => UsersIdGuildsId,
             ["voice", "regions"] => VoiceRegions,
             ["webhooks", id] | ["webhooks", id, _] => WebhooksId(id.parse()?),
-            ["webhooks", id, _, "messages", _] => WebhooksIdTokenMessagesId(id.parse()?),
+            ["webhooks", id, _, "messages", _] => WebhooksIdTokenMessageId(id.parse()?),
             _ => return Err(PathParseError::NoMatch),
         })
     }
@@ -1069,7 +1070,7 @@ impl Route {
                 webhook_id,
             } => (
                 Method::DELETE,
-                Path::WebhooksIdTokenMessagesId(webhook_id),
+                Path::WebhooksIdTokenMessageId(webhook_id),
                 format!("webhooks/{}/{}/messages/{}", webhook_id, token, message_id).into(),
             ),
             Self::DeleteWebhook { token, webhook_id } => {
@@ -1522,7 +1523,7 @@ impl Route {
                 webhook_id,
             } => (
                 Method::PATCH,
-                Path::WebhooksIdTokenMessagesId(webhook_id),
+                Path::WebhooksIdTokenMessageId(webhook_id),
                 format!("webhooks/{}/{}/messages/{}", webhook_id, token, message_id).into(),
             ),
             Self::UpdateWebhook { token, webhook_id } => {
