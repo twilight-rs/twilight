@@ -4,10 +4,7 @@ mod kind;
 pub use data::{CommandData, CommandDataOption, InteractionData};
 pub use kind::InteractionType;
 
-use crate::{
-    guild::PartialMember,
-    id::{ChannelId, GuildId, InteractionId},
-};
+use crate::{guild::PartialMember, id::{ChannelId, GuildId, InteractionId}, user::User};
 use serde::{self, Deserialize, Deserializer, Serialize};
 use std::{
     convert::{TryFrom, TryInto},
@@ -34,7 +31,7 @@ impl Interaction {
     pub fn guild_id(&self) -> Option<GuildId> {
         match self {
             Interaction::Ping(_) => None,
-            Interaction::ApplicationCommand(inner) => Some(inner.guild_id),
+            Interaction::ApplicationCommand(inner) => inner.guild_id,
         }
     }
 }
@@ -66,11 +63,13 @@ pub struct PingInner {
 #[derive(Clone, Debug, Eq, Hash, PartialEq, Serialize)]
 pub struct ApplicationCommandInner {
     /// The guild the interaction was triggered from.
-    pub guild_id: GuildId,
+    pub guild_id: Option<GuildId>,
     /// The channel the interaction was triggered from.
     pub channel_id: ChannelId,
     /// The member that triggered the interaction.
-    pub member: PartialMember,
+    pub member: Option<PartialMember>,
+    /// The user that triggered the interaction.
+    pub user: Option<User>,
     /// The data corresponding to the InteractionType.
     pub command_data: CommandData,
     /// The id of the interaction
@@ -93,20 +92,16 @@ impl<'a> TryFrom<InteractionEnvelope> for Interaction {
                 token: envelope.token,
             }))),
             InteractionType::ApplicationCommand => {
-                let guild_id = match envelope.guild_id {
-                    Some(id) => id,
-                    None => return Err(Self::Error::MissingField("guild_id")),
-                };
+                let guild_id = envelope.guild_id;
 
                 let channel_id = match envelope.channel_id {
                     Some(id) => id,
                     None => return Err(Self::Error::MissingField("channel_id")),
                 };
 
-                let member = match envelope.member {
-                    Some(m) => m,
-                    None => return Err(Self::Error::MissingField("member")),
-                };
+                let member = envelope.member;
+
+                let user = envelope.user;
 
                 let command_data = match envelope.data {
                     Some(InteractionData::ApplicationCommand(cmd)) => cmd,
@@ -124,6 +119,7 @@ impl<'a> TryFrom<InteractionEnvelope> for Interaction {
                         guild_id,
                         channel_id,
                         member,
+                        user,
                         command_data,
                         id: envelope.id,
                         kind: envelope.kind,
@@ -147,6 +143,7 @@ struct InteractionEnvelope {
     guild_id: Option<GuildId>,
     channel_id: Option<ChannelId>,
     member: Option<PartialMember>,
+    user: Option<User>,
     token: String,
 }
 
@@ -224,7 +221,7 @@ mod test {
         let expected = Interaction::ApplicationCommand(Box::new(ApplicationCommandInner {
             guild_id: 300.into(),
             channel_id: 600.into(),
-            member: PartialMember {
+            member: Some(PartialMember {
                 user: Some(User {
                     id: UserId(100),
                     name: "Mason".to_string(),
@@ -247,7 +244,8 @@ mod test {
                 mute: false,
                 joined_at: Some("2017-03-13T10:10:10.040000+00:00".to_string()),
                 deaf: false,
-            },
+            }),
+            user: None,
             command_data: CommandData {
                 options: vec![CommandDataOption::String {
                     name: "cardname".to_string(),
