@@ -5,11 +5,10 @@ use twilight_model::{
     id::{ApplicationId, GuildId},
 };
 
-/// Set commands in a guild
+/// Set a guild's commands.
 ///
-/// This will set the commands availible in a guild to a list of commands,
-/// this method is idempotent which means it can be used every time the bot
-/// starts without any issues with ratelimits if there are no changes.
+/// This method is idempotent: it can be used on every start, without being
+/// ratelimited if there aren't changes to the commands.
 pub struct SetGuildCommands<'a> {
     commands: Vec<Command>,
     application_id: ApplicationId,

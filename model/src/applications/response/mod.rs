@@ -131,8 +131,7 @@ impl InteractionResponseType {
             InteractionResponseType::Pong => "Pong",
             InteractionResponseType::ChannelMessageWithSource => "ChannelMessageWithSource",
             InteractionResponseType::DeferredChannelMessageWithSource => {
-                "DeferredChannelMessageWithSource
-"
+                "DeferredChannelMessageWithSource"
             }
         }
     }

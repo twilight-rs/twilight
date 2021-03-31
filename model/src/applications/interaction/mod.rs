@@ -4,7 +4,11 @@ mod kind;
 pub use data::{CommandData, CommandDataOption, InteractionData};
 pub use kind::InteractionType;
 
-use crate::{guild::PartialMember, id::{ChannelId, GuildId, InteractionId}, user::User};
+use crate::{
+    guild::PartialMember,
+    id::{ChannelId, GuildId, InteractionId},
+    user::User,
+};
 use serde::{self, Deserialize, Deserializer, Serialize};
 use std::{
     convert::{TryFrom, TryInto},
@@ -92,16 +96,10 @@ impl<'a> TryFrom<InteractionEnvelope> for Interaction {
                 token: envelope.token,
             }))),
             InteractionType::ApplicationCommand => {
-                let guild_id = envelope.guild_id;
-
                 let channel_id = match envelope.channel_id {
                     Some(id) => id,
                     None => return Err(Self::Error::MissingField("channel_id")),
                 };
-
-                let member = envelope.member;
-
-                let user = envelope.user;
 
                 let command_data = match envelope.data {
                     Some(InteractionData::ApplicationCommand(cmd)) => cmd,
@@ -116,10 +114,10 @@ impl<'a> TryFrom<InteractionEnvelope> for Interaction {
 
                 Ok(Interaction::ApplicationCommand(Box::new(
                     ApplicationCommandInner {
-                        guild_id,
+                        guild_id: envelope.guild_id,
                         channel_id,
-                        member,
-                        user,
+                        member: envelope.member,
+                        user: envelope.user,
                         command_data,
                         id: envelope.id,
                         kind: envelope.kind,
@@ -219,7 +217,7 @@ mod test {
 }"#;
 
         let expected = Interaction::ApplicationCommand(Box::new(ApplicationCommandInner {
-            guild_id: 300.into(),
+            guild_id: Some(300.into()),
             channel_id: 600.into(),
             member: Some(PartialMember {
                 user: Some(User {

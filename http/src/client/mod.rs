@@ -1458,7 +1458,6 @@ impl Client {
         DeleteWebhookMessage::new(self, webhook_id, token, message_id)
     }
 
-    // ** Interaction Section Begin **
     /// Respond to an interaction, by ID and token.
     pub fn interaction_callback(
         &self,
@@ -1610,7 +1609,10 @@ impl Client {
         DeleteGuildCommand::new(&self, self.application_id(), guild_id, command_id)
     }
 
-    /// Set commands in a guild
+    /// Set a guild's commands.
+    ///
+    /// This method is idempotent: it can be used on every start, without being
+    /// ratelimited if there aren't changes to the commands.
     pub fn set_guild_commands(
         &self,
         guild_id: GuildId,
@@ -1666,14 +1668,16 @@ impl Client {
         DeleteGlobalCommand::new(&self, self.application_id(), command_id)
     }
 
-    /// Set commands globally
+    /// Set global commands.
+    ///
+    /// This method is idempotent: it can be used on every start, without being
+    /// ratelimited if there aren't changes to the commands.
     pub fn set_global_commands(
         &self,
         commands: Vec<Command>,
     ) -> Result<SetGlobalCommands<'_>, InteractionError> {
         SetGlobalCommands::new(&self, self.application_id(), commands)
     }
-    // ** Interaction Section End **
 
     /// Execute a request, returning the response.
     ///

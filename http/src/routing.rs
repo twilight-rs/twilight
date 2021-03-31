@@ -58,13 +58,13 @@ impl StdError for PathParseError {
 #[derive(Clone, Debug, Eq, Hash, PartialEq)]
 #[non_exhaustive]
 pub enum Path {
-    /// Operating on global commands
+    /// Operating on global commands.
     ApplicationCommand(u64),
-    /// Operating on a specific command
+    /// Operating on a specific command.
     ApplicationCommandId(u64),
-    /// Operating on commands in a guild
+    /// Operating on commands in a guild.
     ApplicationGuildCommand(u64),
-    /// Operating on a specific command in a guild
+    /// Operating on a specific command in a guild.
     ApplicationGuildCommandId(u64),
     /// Operating on a channel.
     ChannelsId(u64),
@@ -127,7 +127,7 @@ pub enum Path {
     GuildsIdVanityUrl(u64),
     GuildsIdWebhooks(u64),
     InvitesCode,
-    /// Callback on a interaction.
+    /// Operating on an interaction's callback.
     InteractionCallback(u64),
     UsersId,
     OauthApplicationsMe,
@@ -230,7 +230,7 @@ impl FromStr for Path {
             ["guilds", id, "vanity-url"] => GuildsIdVanityUrl(id.parse()?),
             ["guilds", id, "webhooks"] => GuildsIdWebhooks(id.parse()?),
             ["invites", _] => InvitesCode,
-            ["interactions", iid, _it, "callback"] => InteractionCallback(iid.parse()?),
+            ["interactions", id, _, "callback"] => InteractionCallback(id.parse()?),
             ["oauth2", "applications", "@me"] => OauthApplicationsMe,
             ["users", _] => UsersId,
             ["users", _, "connections"] => UsersIdConnections,
@@ -794,7 +794,7 @@ pub enum Route {
     SetGuildCommands {
         /// The ID of the owner application.
         application_id: u64,
-        /// The ID
+        /// The ID of the guild.
         guild_id: u64,
     },
     /// Route information to sync a guild's integration.

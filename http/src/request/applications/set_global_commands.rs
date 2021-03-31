@@ -2,11 +2,10 @@ use super::InteractionError;
 use crate::request::prelude::*;
 use twilight_model::{applications::command::Command, id::ApplicationId};
 
-/// Set commands globally
+/// Set global commands.
 ///
-/// This will set the commands availible globally to a list of commands,
-/// this method is idempotent which means it can be used every time the bot
-/// starts without any issues with ratelimits if there are no changes.
+/// This method is idempotent: it can be used on every start, without being
+/// ratelimited if there aren't changes to the commands.
 pub struct SetGlobalCommands<'a> {
     commands: Vec<Command>,
     application_id: ApplicationId,
