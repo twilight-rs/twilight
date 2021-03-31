@@ -148,7 +148,7 @@ impl<'a> ExecuteWebhook<'a> {
         let request = Request::from((
             crate::json_to_vec(&self.fields)?,
             Route::ExecuteWebhook {
-                token: self.token.to_owned(),
+                token: self.token.clone(),
                 wait: self.fields.wait,
                 webhook_id: self.webhook_id.0,
             },

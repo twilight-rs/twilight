@@ -18,9 +18,9 @@ pub struct TextChannel {
     pub name: String,
     #[serde(default)]
     pub nsfw: bool,
-    pub permission_overwrites: Vec<PermissionOverwrite>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub parent_id: Option<ChannelId>,
+    pub permission_overwrites: Vec<PermissionOverwrite>,
     pub position: i64,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub rate_limit_per_user: Option<u64>,
@@ -130,13 +130,13 @@ mod tests {
                 Token::Str("foo"),
                 Token::Str("nsfw"),
                 Token::Bool(true),
-                Token::Str("permission_overwrites"),
-                Token::Seq { len: Some(0) },
-                Token::SeqEnd,
                 Token::Str("parent_id"),
                 Token::Some,
                 Token::NewtypeStruct { name: "ChannelId" },
                 Token::Str("4"),
+                Token::Str("permission_overwrites"),
+                Token::Seq { len: Some(0) },
+                Token::SeqEnd,
                 Token::Str("position"),
                 Token::I64(3),
                 Token::Str("rate_limit_per_user"),

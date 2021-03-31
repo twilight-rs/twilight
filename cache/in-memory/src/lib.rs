@@ -551,10 +551,9 @@ impl InMemoryCache {
             Some(_) | None => {}
         }
 
-        let user = match emoji.user {
-            Some(u) => Some(self.cache_user(Cow::Owned(u), Some(guild_id))),
-            None => None,
-        };
+        let user = emoji
+            .user
+            .map(|u| self.cache_user(Cow::Owned(u), Some(guild_id)));
 
         let cached = Arc::new(CachedEmoji {
             id: emoji.id,

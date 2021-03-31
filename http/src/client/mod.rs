@@ -1556,12 +1556,12 @@ impl Client {
 
         match RatelimitHeaders::try_from(resp.headers()) {
             Ok(v) => {
-                let _ = tx.send(Some(v));
+                let _res = tx.send(Some(v));
             }
             Err(why) => {
                 tracing::warn!("header parsing failed: {:?}; {:?}", why, resp);
 
-                let _ = tx.send(None);
+                let _res = tx.send(None);
             }
         }
 
@@ -1587,7 +1587,7 @@ impl Client {
         let result = crate::json_from_slice(&mut bytes);
 
         result.map_err(|source| Error::Parsing {
-            body: bytes.to_vec(),
+            body: bytes,
             source,
         })
     }

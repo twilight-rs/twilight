@@ -94,7 +94,7 @@ struct UpdateWebhookMessageFields {
 ///
 /// # Examples
 ///
-/// Update a webhook's message by setting the content to "test <@3>" -
+/// Update a webhook's message by setting the content to `test <@3>` -
 /// attempting to mention user ID 3 - and specifying that only that the user may
 /// not be mentioned.
 ///

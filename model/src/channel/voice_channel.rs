@@ -13,9 +13,9 @@ pub struct VoiceChannel {
     #[serde(rename = "type")]
     pub kind: ChannelType,
     pub name: String,
-    pub permission_overwrites: Vec<PermissionOverwrite>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub parent_id: Option<ChannelId>,
+    pub permission_overwrites: Vec<PermissionOverwrite>,
     pub position: i64,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub user_limit: Option<u64>,
@@ -107,13 +107,13 @@ mod tests {
                 Token::U8(2),
                 Token::Str("name"),
                 Token::Str("foo"),
-                Token::Str("permission_overwrites"),
-                Token::Seq { len: Some(0) },
-                Token::SeqEnd,
                 Token::Str("parent_id"),
                 Token::Some,
                 Token::NewtypeStruct { name: "ChannelId" },
                 Token::Str("3"),
+                Token::Str("permission_overwrites"),
+                Token::Seq { len: Some(0) },
+                Token::SeqEnd,
                 Token::Str("position"),
                 Token::I64(3),
                 Token::Str("user_limit"),

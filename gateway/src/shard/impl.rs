@@ -415,7 +415,7 @@ impl Shard {
         });
 
         // We know that these haven't been set, so we can ignore the result.
-        let _ = self.0.processor_handle.set(handle);
+        let _res = self.0.processor_handle.set(handle);
         let _session = self.0.session.set(wrx);
 
         Ok(())
@@ -646,7 +646,7 @@ impl Shard {
 
         if let Ok(session) = self.session() {
             // Since we're shutting down now, we don't care if it sends or not.
-            let _ = session.close(Some(TungsteniteCloseFrame {
+            let _res = session.close(Some(TungsteniteCloseFrame {
                 code: CloseCode::Normal,
                 reason: "".into(),
             }));
@@ -676,7 +676,7 @@ impl Shard {
             Err(_) => return (shard_id, None),
         };
 
-        let _ = session.close(Some(TungsteniteCloseFrame {
+        let _res = session.close(Some(TungsteniteCloseFrame {
             code: CloseCode::Restart,
             reason: Cow::from("Closing in a resumable way"),
         }));
