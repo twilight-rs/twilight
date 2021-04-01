@@ -75,21 +75,22 @@ mod tests {
 
     #[test]
     fn test_voice_channel_complete() {
-        let value = VoiceChannel {
-            id: ChannelId(1),
-            bitrate: 124_000,
-            guild_id: Some(GuildId(2)),
-            kind: ChannelType::GuildVoice,
-            name: "foo".to_owned(),
-            permission_overwrites: Vec::new(),
-            parent_id: Some(ChannelId(3)),
-            position: 3,
-            user_limit: Some(7),
-        };
+        fn channel(kind: ChannelType) -> VoiceChannel {
+            VoiceChannel {
+                id: ChannelId(1),
+                bitrate: 124_000,
+                guild_id: Some(GuildId(2)),
+                kind,
+                name: "foo".to_owned(),
+                permission_overwrites: Vec::new(),
+                parent_id: Some(ChannelId(3)),
+                position: 3,
+                user_limit: Some(7),
+            }
+        }
 
-        serde_test::assert_tokens(
-            &value,
-            &[
+        fn tokens(kind: ChannelType) -> [Token; 27] {
+            [
                 Token::Struct {
                     name: "VoiceChannel",
                     len: 9,
@@ -104,7 +105,7 @@ mod tests {
                 Token::NewtypeStruct { name: "ChannelId" },
                 Token::Str("1"),
                 Token::Str("type"),
-                Token::U8(2),
+                Token::U8(kind as u8),
                 Token::Str("name"),
                 Token::Str("foo"),
                 Token::Str("parent_id"),
@@ -120,7 +121,16 @@ mod tests {
                 Token::Some,
                 Token::U64(7),
                 Token::StructEnd,
-            ],
+            ]
+        }
+
+        serde_test::assert_tokens(
+            &channel(ChannelType::GuildVoice),
+            &tokens(ChannelType::GuildVoice),
+        );
+        serde_test::assert_tokens(
+            &channel(ChannelType::GuildStageVoice),
+            &tokens(ChannelType::GuildStageVoice),
         );
     }
 }
