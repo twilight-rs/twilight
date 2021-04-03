@@ -706,20 +706,6 @@ impl Client {
         GetGuildIntegrations::new(self, guild_id)
     }
 
-    /// Create a guild integration from the current user to the guild.
-    ///
-    /// Refer to [the discord docs] for more information.
-    ///
-    /// [the discord docs]: https://discord.com/developers/docs/resources/guild#create-guild-integration
-    pub fn create_guild_integration(
-        &self,
-        guild_id: GuildId,
-        integration_id: IntegrationId,
-        kind: impl Into<String>,
-    ) -> CreateGuildIntegration<'_> {
-        CreateGuildIntegration::new(self, guild_id, integration_id, kind)
-    }
-
     /// Delete an integration for a guild, by the integration's id.
     pub fn delete_guild_integration(
         &self,
@@ -727,28 +713,6 @@ impl Client {
         integration_id: IntegrationId,
     ) -> DeleteGuildIntegration<'_> {
         DeleteGuildIntegration::new(self, guild_id, integration_id)
-    }
-
-    /// Update a guild's integration, by its id.
-    ///
-    /// Refer to [the discord docs] for more information.
-    ///
-    /// [the discord docs]: https://discord.com/developers/docs/resources/guild#modify-guild-integrationb
-    pub fn update_guild_integration(
-        &self,
-        guild_id: GuildId,
-        integration_id: IntegrationId,
-    ) -> UpdateGuildIntegration<'_> {
-        UpdateGuildIntegration::new(self, guild_id, integration_id)
-    }
-
-    /// Synchronize a guild's integration by its id.
-    pub fn sync_guild_integration(
-        &self,
-        guild_id: GuildId,
-        integration_id: IntegrationId,
-    ) -> SyncGuildIntegration<'_> {
-        SyncGuildIntegration::new(self, guild_id, integration_id)
     }
 
     /// Get information about the invites of a guild.
