@@ -330,7 +330,7 @@ impl<'de> Visitor<'de> for GuildChannelVisitor {
                     position,
                 })
             }
-            ChannelType::GuildVoice => {
+            ChannelType::GuildVoice | ChannelType::GuildStageVoice => {
                 let bitrate = bitrate.ok_or_else(|| DeError::missing_field("bitrate"))?;
                 let user_limit = user_limit.ok_or_else(|| DeError::missing_field("user_limit"))?;
 
