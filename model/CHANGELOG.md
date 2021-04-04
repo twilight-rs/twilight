@@ -2,6 +2,14 @@
 
 Changelog for `twilight-model`.
 
+## [0.3.4] - 2021-04-04
+
+### Additions
+
+Support stage voice channel types ([#748] - [@vivian]).
+
+[#748]: https://github.com/twilight-rs/twilight/pull/748
+
 ## [0.3.3] - 2021-03-14
 
 ### Additions
@@ -348,6 +356,7 @@ Initial release.
 
 [0.2.0-beta.1:app integrations]: https://github.com/discord/discord-api-docs/commit/a926694e2f8605848bda6b57d21c8817559e5cec
 
+[0.3.4]: https://github.com/twilight-rs/twilight/releases/tag/model-v0.3.4
 [0.3.3]: https://github.com/twilight-rs/twilight/releases/tag/model-v0.3.3
 [0.3.2]: https://github.com/twilight-rs/twilight/releases/tag/model-v0.3.2
 [0.3.1]: https://github.com/twilight-rs/twilight/releases/tag/model-v0.3.1
