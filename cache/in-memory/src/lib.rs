@@ -385,7 +385,10 @@ impl InMemoryCache {
     ) -> Option<Arc<CachedMessage>> {
         let channel = self.0.messages.get(&channel_id)?;
 
-        channel.iter().find(|msg| msg.id == message_id).map(Arc::clone)
+        channel
+            .iter()
+            .find(|msg| msg.id == message_id)
+            .map(Arc::clone)
     }
 
     /// Gets a presence by, optionally, guild ID, and user ID.
