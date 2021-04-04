@@ -59,7 +59,7 @@ struct LavalinkRef {
     shard_count: u64,
     user_id: UserId,
     server_updates: DashMap<GuildId, SlimVoiceServerUpdate>,
-    sessions: DashMap<GuildId, String>,
+    sessions: DashMap<GuildId, Box<str>>,
 }
 
 /// The lavalink client that manages nodes, players, and processes events from
@@ -185,7 +185,7 @@ impl Lavalink {
                     if e.0.channel_id.is_none() {
                         self.0.sessions.remove(&guild_id);
                     } else {
-                        self.0.sessions.insert(guild_id, e.0.session_id.clone());
+                        self.0.sessions.insert(guild_id, e.0.session_id.clone().into_boxed_str());
                     }
                     guild_id
                 } else {
@@ -215,7 +215,7 @@ impl Lavalink {
                         server,
                         session,
                     );
-                    VoiceUpdate::new(guild_id, session, server.clone())
+                    VoiceUpdate::new(guild_id, session.as_ref(), server.clone())
                 }
                 (Some(server), None) => {
                     tracing::debug!(
