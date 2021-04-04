@@ -185,7 +185,9 @@ impl Lavalink {
                     if e.0.channel_id.is_none() {
                         self.0.sessions.remove(&guild_id);
                     } else {
-                        self.0.sessions.insert(guild_id, e.0.session_id.clone().into_boxed_str());
+                        self.0
+                            .sessions
+                            .insert(guild_id, e.0.session_id.clone().into_boxed_str());
                     }
                     guild_id
                 } else {
