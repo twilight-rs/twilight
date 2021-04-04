@@ -1,7 +1,7 @@
 //! Client to manage nodes and players.
 
 use crate::{
-    model::{IncomingEvent, OutgoingEvent, VoiceUpdate},
+    model::{IncomingEvent, OutgoingEvent, SlimVoiceServerUpdate, VoiceUpdate},
     node::{Node, NodeConfig, NodeError, Resume},
     player::{Player, PlayerManager},
 };
@@ -14,10 +14,7 @@ use std::{
     sync::Arc,
 };
 use twilight_model::{
-    gateway::{
-        event::Event,
-        payload::{VoiceServerUpdate, VoiceStateUpdate},
-    },
+    gateway::event::Event,
     id::{GuildId, UserId},
 };
 
@@ -53,12 +50,6 @@ impl Error for ClientError {
     }
 }
 
-#[derive(Debug)]
-enum VoiceStateHalf {
-    Server(VoiceServerUpdate),
-    State(Box<VoiceStateUpdate>),
-}
-
 #[derive(Debug, Default)]
 struct LavalinkRef {
     guilds: DashMap<GuildId, SocketAddr>,
@@ -67,7 +58,8 @@ struct LavalinkRef {
     resume: Option<Resume>,
     shard_count: u64,
     user_id: UserId,
-    waiting: DashMap<GuildId, VoiceStateHalf>,
+    server_updates: DashMap<GuildId, SlimVoiceServerUpdate>,
+    sessions: DashMap<GuildId, Box<str>>,
 }
 
 /// The lavalink client that manages nodes, players, and processes events from
@@ -132,7 +124,8 @@ impl Lavalink {
             resume,
             shard_count,
             user_id,
-            waiting: DashMap::new(),
+            server_updates: DashMap::new(),
+            sessions: DashMap::new(),
         }))
     }
 
@@ -159,7 +152,7 @@ impl Lavalink {
     pub async fn process(&self, event: &Event) -> Result<(), ClientError> {
         tracing::trace!("processing event: {:?}", event);
 
-        let (guild_id, half) = match event {
+        let guild_id = match event {
             Event::Ready(e) => {
                 let shard_id = e.shard.map_or(0, |[id, _]| id);
 
@@ -167,7 +160,15 @@ impl Lavalink {
 
                 return Ok(());
             }
-            Event::VoiceServerUpdate(e) => (e.guild_id, VoiceStateHalf::Server(e.clone())),
+            Event::VoiceServerUpdate(e) => {
+                if let Some(guild_id) = e.guild_id {
+                    self.0.server_updates.insert(guild_id, e.clone().into());
+                    guild_id
+                } else {
+                    tracing::trace!("event has no guild ID: {:?}", e);
+                    return Ok(());
+                }
+            }
             Event::VoiceStateUpdate(e) => {
                 if e.0.user_id != self.0.user_id {
                     tracing::trace!("got voice state update from another user");
@@ -175,12 +176,24 @@ impl Lavalink {
                     return Ok(());
                 }
 
-                // Update player if it exists and update the connected channel ID.
-                if let Some(kv) = e.0.guild_id.and_then(|id| self.0.players.get(&id)) {
-                    kv.value().set_channel_id(e.0.channel_id);
-                }
+                if let Some(guild_id) = e.0.guild_id {
+                    // Update player if it exists and update the connected channel ID.
+                    if let Some(kv) = self.0.players.get(&guild_id) {
+                        kv.value().set_channel_id(e.0.channel_id);
+                    }
 
-                (e.0.guild_id, VoiceStateHalf::State(e.clone()))
+                    if e.0.channel_id.is_none() {
+                        self.0.sessions.remove(&guild_id);
+                    } else {
+                        self.0
+                            .sessions
+                            .insert(guild_id, e.0.session_id.clone().into_boxed_str());
+                    }
+                    guild_id
+                } else {
+                    tracing::trace!("event has no guild ID: {:?}", e);
+                    return Ok(());
+                }
             }
             _ => return Ok(()),
         };
@@ -188,78 +201,43 @@ impl Lavalink {
         tracing::debug!(
             "got voice server/state update for {:?}: {:?}",
             guild_id,
-            half
+            event
         );
 
-        let guild_id = match guild_id {
-            Some(guild_id) => guild_id,
-            None => {
-                tracing::trace!("event has no guild ID: {:?}", event);
-
-                return Ok(());
-            }
-        };
-
         let update = {
-            let existing_half = match self.0.waiting.get(&guild_id) {
-                Some(existing_half) => existing_half,
-                None => {
+            let server = self.0.server_updates.get(&guild_id);
+            let session = self.0.sessions.get(&guild_id);
+            match (server, session) {
+                (Some(server), Some(session)) => {
+                    let server = server.value();
+                    let session = session.value();
+                    tracing::debug!(
+                        "got both halves for {}: {:?}; Session ID: {:?}",
+                        guild_id,
+                        server,
+                        session,
+                    );
+                    VoiceUpdate::new(guild_id, session.as_ref(), server.clone())
+                }
+                (Some(server), None) => {
                     tracing::debug!(
                         "guild {} is now waiting for other half; got: {:?}",
                         guild_id,
-                        half
+                        server.value()
                     );
-                    self.0.waiting.insert(guild_id, half);
-
                     return Ok(());
                 }
-            };
-            tracing::debug!(
-                "got both halves for {}: {:?}; {:?}",
-                guild_id,
-                half,
-                existing_half.value()
-            );
-
-            match (existing_half.value(), half) {
-                (VoiceStateHalf::Server(_), VoiceStateHalf::Server(server)) => {
-                    // We got the same half twice... weird, but let's just replace
-                    // the existing one.
+                (None, Some(session)) => {
                     tracing::debug!(
-                        "got the same server half twice for guild {}: {:?}",
+                        "guild {} is now waiting for other half; got session ID: {:?}",
                         guild_id,
-                        server
+                        session.value()
                     );
-                    self.0
-                        .waiting
-                        .insert(guild_id, VoiceStateHalf::Server(server));
-
                     return Ok(());
                 }
-                (VoiceStateHalf::Server(ref server), VoiceStateHalf::State(ref state)) => {
-                    VoiceUpdate::new(guild_id, &state.0.session_id, From::from(server.clone()))
-                }
-                (VoiceStateHalf::State(_), VoiceStateHalf::State(state)) => {
-                    // Just like above, we got the same half twice...
-                    tracing::debug!(
-                        "got the same state half twice for guild {}: {:?}",
-                        guild_id,
-                        state
-                    );
-                    self.0
-                        .waiting
-                        .insert(guild_id, VoiceStateHalf::State(state));
-
-                    return Ok(());
-                }
-                (VoiceStateHalf::State(ref state), VoiceStateHalf::Server(ref server)) => {
-                    VoiceUpdate::new(guild_id, &state.0.session_id, From::from(server.clone()))
-                }
+                (None, None) => return Ok(()),
             }
         };
-
-        tracing::debug!("removing guild {} from waiting list", guild_id);
-        self.0.waiting.remove(&guild_id);
 
         tracing::debug!("getting player for guild {}", guild_id);
         let player = self.player(guild_id).await?;
@@ -369,24 +347,22 @@ impl Lavalink {
     fn clear_shard_states(&self, shard_id: u64) {
         let shard_count = self.0.shard_count;
 
-        for r in self.0.waiting.iter() {
-            let guild_id = r.key();
-
-            if (guild_id.0 >> 22) % shard_count == shard_id {
-                self.0.waiting.remove(guild_id);
-            }
-        }
+        self.0
+            .server_updates
+            .retain(|k, _| (k.0 >> 22) % shard_count != shard_id);
+        self.0
+            .sessions
+            .retain(|k, _| (k.0 >> 22) % shard_count != shard_id);
     }
 }
 
 #[cfg(test)]
 mod tests {
-    use super::{ClientError, Lavalink, VoiceStateHalf};
+    use super::{ClientError, Lavalink};
     use static_assertions::{assert_fields, assert_impl_all};
     use std::{error::Error, fmt::Debug};
 
     assert_fields!(ClientError::SendingVoiceUpdate: source);
     assert_impl_all!(ClientError: Clone, Debug, Error, PartialEq, Send, Sync);
     assert_impl_all!(Lavalink: Clone, Debug, Send, Sync);
-    assert_impl_all!(VoiceStateHalf: Debug, Send, Sync);
 }
