@@ -380,12 +380,10 @@ impl UpdateCache for MessageCreate {
         let mut channel = cache.0.messages.entry(self.0.channel_id).or_default();
 
         if channel.len() > cache.0.config.message_cache_size() {
-            if let Some(k) = channel.iter().next_back().map(|x| *x.0) {
-                channel.remove(&k);
-            }
+            channel.pop_back();
         }
 
-        channel.insert(self.0.id, Arc::new(From::from(self.0.clone())));
+        channel.push_front(Arc::new(From::from(self.0.clone())));
 
         let user = cache.cache_user(Cow::Borrowed(&self.author), self.guild_id);
 
@@ -402,7 +400,10 @@ impl UpdateCache for MessageDelete {
         }
 
         let mut channel = cache.0.messages.entry(self.channel_id).or_default();
-        channel.remove(&self.id);
+
+        if let Some(idx) = channel.iter().position(|msg| msg.id == self.id) {
+            channel.remove(idx);
+        }
     }
 }
 
@@ -415,7 +416,9 @@ impl UpdateCache for MessageDeleteBulk {
         let mut channel = cache.0.messages.entry(self.channel_id).or_default();
 
         for id in &self.ids {
-            channel.remove(id);
+            if let Some(idx) = channel.iter().position(|msg| &msg.id == id) {
+                channel.remove(idx);
+            }
         }
     }
 }
@@ -428,7 +431,7 @@ impl UpdateCache for MessageUpdate {
 
         let mut channel = cache.0.messages.entry(self.channel_id).or_default();
 
-        if let Some(mut message) = channel.get_mut(&self.id) {
+        if let Some(mut message) = channel.iter_mut().find(|msg| msg.id == self.id) {
             let mut msg = Arc::make_mut(&mut message);
 
             if let Some(attachments) = &self.attachments {
@@ -500,7 +503,7 @@ impl UpdateCache for ReactionAdd {
 
         let mut channel = cache.0.messages.entry(self.0.channel_id).or_default();
 
-        let mut message = match channel.get_mut(&self.0.message_id) {
+        let mut message = match channel.iter_mut().find(|msg| msg.id == self.0.message_id) {
             Some(message) => message,
             None => return,
         };
@@ -540,7 +543,7 @@ impl UpdateCache for ReactionRemove {
 
         let mut channel = cache.0.messages.entry(self.0.channel_id).or_default();
 
-        let mut message = match channel.get_mut(&self.0.message_id) {
+        let mut message = match channel.iter_mut().find(|msg| msg.id == self.0.message_id) {
             Some(message) => message,
             None => return,
         };
@@ -573,7 +576,7 @@ impl UpdateCache for ReactionRemoveAll {
 
         let mut channel = cache.0.messages.entry(self.channel_id).or_default();
 
-        let mut message = match channel.get_mut(&self.message_id) {
+        let mut message = match channel.iter_mut().find(|msg| msg.id == self.message_id) {
             Some(message) => message,
             None => return,
         };
@@ -591,7 +594,7 @@ impl UpdateCache for ReactionRemoveEmoji {
 
         let mut channel = cache.0.messages.entry(self.channel_id).or_default();
 
-        let mut message = match channel.get_mut(&self.message_id) {
+        let mut message = match channel.iter_mut().find(|msg| msg.id == self.message_id) {
             Some(message) => message,
             None => return,
         };
