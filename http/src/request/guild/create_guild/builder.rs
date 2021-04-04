@@ -560,7 +560,7 @@ impl GuildChannelFieldsBuilder {
             .iter()
             .rev()
             .find(|c| matches!(c, GuildChannelFields::Category(_)))
-            .map_or(ChannelId(1), |c| c.to_owned().id());
+            .map_or(ChannelId(1), |c| c.clone().id());
 
         let mut channels = channel.build(ChannelId(last_id.0 + 1));
 

@@ -322,8 +322,8 @@ impl<'de> Visitor<'de> for GuildChannelVisitor {
                 tracing::trace!("handling category channel");
 
                 GuildChannel::Category(CategoryChannel {
-                    id,
                     guild_id,
+                    id,
                     kind,
                     name,
                     permission_overwrites,
@@ -337,13 +337,13 @@ impl<'de> Visitor<'de> for GuildChannelVisitor {
                 tracing::trace!(%bitrate, ?user_limit, "handling voice channel");
 
                 GuildChannel::Voice(VoiceChannel {
-                    id,
                     bitrate,
                     guild_id,
+                    id,
                     kind,
                     name,
-                    permission_overwrites,
                     parent_id,
+                    permission_overwrites,
                     position,
                     user_limit,
                 })
@@ -361,15 +361,15 @@ impl<'de> Visitor<'de> for GuildChannelVisitor {
                 );
 
                 GuildChannel::Text(TextChannel {
-                    id,
                     guild_id,
+                    id,
                     kind,
                     last_message_id,
                     last_pin_timestamp,
                     name,
                     nsfw,
-                    permission_overwrites,
                     parent_id,
+                    permission_overwrites,
                     position,
                     rate_limit_per_user,
                     topic,

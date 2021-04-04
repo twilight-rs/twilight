@@ -134,7 +134,7 @@ impl Inflater {
 
     /// Reset the state of the inflater back to its default state.
     pub fn reset(&mut self) {
-        let _ = mem::replace(self, Self::new(self.shard));
+        let _old_inflater = mem::replace(self, Self::new(self.shard));
     }
 
     /// Log metrics about the inflater.

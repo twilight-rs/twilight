@@ -104,7 +104,7 @@ impl<'a> GetReactions<'a> {
                 after: self.fields.after.map(|x| x.0),
                 before: self.fields.before.map(|x| x.0),
                 channel_id: self.channel_id.0,
-                emoji: self.emoji.to_owned(),
+                emoji: self.emoji.clone(),
                 limit: self.fields.limit,
                 message_id: self.message_id.0,
             },
