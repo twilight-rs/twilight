@@ -12,7 +12,7 @@ name = "twilight-gateway"
 publish = false
 readme = "README.md"
 repository = "https://github.com/twilight-rs/twilight.git"
-version = "0.3.3"
+version = "0.3.4"
 
 [dependencies]
 async-tungstenite = { default-features = false, features = ["tokio-runtime"], version = "0.11" }

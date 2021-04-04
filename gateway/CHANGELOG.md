@@ -2,7 +2,23 @@
 
 Changelog for `twilight-gateway`.
 
+## [0.3.4] - 2021-04-04
+
+### Additions
+
+Support bucket shard schemes for very large bots ([#698] - [@vivian]).
+
+[#698]: https://github.com/twilight-rs/twilight/pull/698
+
+### Fixes
+
+Remove frame size limits ([#730] - [@Erk-]).
+
+[#730]: https://github.com/twilight-rs/twilight/pull/730
+
 ## [0.3.3] - 2021-03-14
+
+### Enhancements
 
 Compression is now optional ([#700] - [@Erk-]).
 
@@ -236,6 +252,7 @@ Initial release.
 [#515]: https://github.com/twilight-rs/twilight/pull/515
 [#512]: https://github.com/twilight-rs/twilight/pull/512
 
+[0.3.4]: https://github.com/twilight-rs/twilight/releases/tag/gateway-v0.3.4
 [0.3.3]: https://github.com/twilight-rs/twilight/releases/tag/gateway-v0.3.3
 [0.3.2]: https://github.com/twilight-rs/twilight/releases/tag/gateway-v0.3.2
 [0.3.1]: https://github.com/twilight-rs/twilight/releases/tag/gateway-v0.3.1
