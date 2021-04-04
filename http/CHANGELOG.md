@@ -2,6 +2,14 @@
 
 Changelog for `twilight-http`.
 
+## [0.3.6] - 2021-04-04
+
+### Fixes
+
+Set request & default headers after content headers ([#737] - [@AsianIntel]).
+
+[#737]: https://github.com/twilight-rs/twilight/pull/737
+
 ## [0.3.5] - 2021-03-14
 
 ### Additions
@@ -437,6 +445,7 @@ Initial release.
 
 [0.2.0-beta.1:app integrations]: https://github.com/discord/discord-api-docs/commit/a926694e2f8605848bda6b57d21c8817559e5cec
 
+[0.3.6]: https://github.com/twilight-rs/twilight/releases/tag/http-v0.3.6
 [0.3.5]: https://github.com/twilight-rs/twilight/releases/tag/http-v0.3.5
 [0.3.4]: https://github.com/twilight-rs/twilight/releases/tag/http-v0.3.4
 [0.3.3]: https://github.com/twilight-rs/twilight/releases/tag/http-v0.3.3
