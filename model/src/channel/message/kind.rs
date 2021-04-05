@@ -22,6 +22,8 @@ pub enum MessageType {
     ChannelFollowAdd = 12,
     GuildDiscoveryDisqualified = 14,
     GuildDiscoveryRequalified = 15,
+    GuildDiscoveryGracePeriodInitialWarning = 16,
+    GuildDiscoveryGracePeriodFinalWarning = 17,
     /// Message is an inline reply.
     Reply = 19,
 }
@@ -46,6 +48,8 @@ impl TryFrom<u8> for MessageType {
             12 => MessageType::ChannelFollowAdd,
             14 => MessageType::GuildDiscoveryDisqualified,
             15 => MessageType::GuildDiscoveryRequalified,
+            16 => MessageType::GuildDiscoveryGracePeriodInitialWarning,
+            17 => MessageType::GuildDiscoveryGracePeriodFinalWarning,
             19 => MessageType::Reply,
             _ => return Err(ConversionError::MessageType(value)),
         };
@@ -77,6 +81,14 @@ mod tests {
         serde_test::assert_tokens(&MessageType::ChannelFollowAdd, &[Token::U8(12)]);
         serde_test::assert_tokens(&MessageType::GuildDiscoveryDisqualified, &[Token::U8(14)]);
         serde_test::assert_tokens(&MessageType::GuildDiscoveryRequalified, &[Token::U8(15)]);
+        serde_test::assert_tokens(
+            &MessageType::GuildDiscoveryGracePeriodInitialWarning,
+            &[Token::U8(16)],
+        );
+        serde_test::assert_tokens(
+            &MessageType::GuildDiscoveryGracePeriodFinalWarning,
+            &[Token::U8(17)],
+        );
         serde_test::assert_tokens(&MessageType::Reply, &[Token::U8(19)]);
     }
 
@@ -132,6 +144,14 @@ mod tests {
         assert_eq!(
             MessageType::try_from(15).unwrap(),
             MessageType::GuildDiscoveryRequalified
+        );
+        assert_eq!(
+            MessageType::try_from(16).unwrap(),
+            MessageType::GuildDiscoveryGracePeriodInitialWarning
+        );
+        assert_eq!(
+            MessageType::try_from(17).unwrap(),
+            MessageType::GuildDiscoveryGracePeriodFinalWarning
         );
         assert_eq!(MessageType::try_from(19).unwrap(), MessageType::Reply);
         assert_eq!(
