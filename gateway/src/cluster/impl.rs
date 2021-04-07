@@ -1,7 +1,4 @@
-use super::{
-    builder::{ClusterBuilder, ShardScheme},
-    config::Config,
-};
+use super::{builder::ClusterBuilder, config::Config, scheme::ShardScheme};
 use crate::{
     shard::{raw_message::Message, CommandError, Information, ResumeSession, SendError, Shard},
     EventTypeFlags, Intents,
@@ -17,7 +14,7 @@ use std::{
     iter::FromIterator,
     sync::{Arc, Mutex},
 };
-use twilight_http::Error as HttpError;
+use twilight_http::{Client as HttpClient, Error as HttpError};
 use twilight_model::gateway::event::Event;
 
 /// Sending a command to a shard failed.
@@ -181,20 +178,13 @@ impl Cluster {
     }
 
     pub(super) async fn new_with_config(mut config: Config) -> Result<Self, ClusterStartError> {
-        let [from, to, total] = match config.shard_scheme() {
-            ShardScheme::Auto => {
-                let http = config.http_client();
-
-                let gateway = http
-                    .gateway()
-                    .authed()
-                    .await
-                    .map_err(|source| ClusterStartError::RetrievingGatewayInfo { source })?;
-
-                [0, gateway.shards - 1, gateway.shards]
-            }
-            ShardScheme::Range { from, to, total } => [*from, *to, *total],
+        let scheme = match config.shard_scheme() {
+            ShardScheme::Auto => Self::retrieve_shard_count(&config.http_client).await?,
+            other => other.clone(),
         };
+
+        let iter = scheme.iter().expect("shard scheme is not auto");
+        let total = scheme.total().expect("shard scheme is not auto");
 
         #[cfg(feature = "metrics")]
         {
@@ -203,7 +193,7 @@ impl Cluster {
             metrics::gauge!("Cluster-Shard-Count", total.try_into().unwrap_or(-1));
         }
 
-        let shards = (from..=to)
+        let shards = iter
             .map(|idx| {
                 let mut shard_config = config.shard_config().clone();
                 shard_config.shard = [idx, total];
@@ -219,10 +209,27 @@ impl Cluster {
 
         Ok(Self(Arc::new(ClusterRef {
             config,
-            shard_from: from,
-            shard_to: to,
+            shard_from: scheme.from().expect("shard scheme is not auto"),
+            shard_to: scheme.to().expect("shard scheme is not auto"),
             shards: Mutex::new(shards),
         })))
+    }
+
+    /// Retrieve the recommended number of shards from the HTTP API.
+    ///
+    /// The returned shard scheme is a [`ShardScheme::Range`].
+    async fn retrieve_shard_count(http: &HttpClient) -> Result<ShardScheme, ClusterStartError> {
+        let gateway = http
+            .gateway()
+            .authed()
+            .await
+            .map_err(|source| ClusterStartError::RetrievingGatewayInfo { source })?;
+
+        Ok(ShardScheme::Range {
+            from: 0,
+            to: gateway.shards - 1,
+            total: gateway.shards,
+        })
     }
 
     /// Create a builder to configure and construct a cluster.

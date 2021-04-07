@@ -53,7 +53,7 @@ impl SocketForwarder {
                         }
                     } else {
                         tracing::debug!("rx stream ended, closing socket");
-                        let _ = self.stream.close(None).await;
+                        let _res = self.stream.close(None).await;
 
                         break;
                     }
