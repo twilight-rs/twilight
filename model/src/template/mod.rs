@@ -46,6 +46,7 @@ mod tests {
     use serde_test::Token;
 
     #[test]
+    #[allow(clippy::too_many_lines)]
     fn test_template() {
         let raw = r#"{
     "code": "code",
@@ -207,6 +208,7 @@ mod tests {
                         last_pin_timestamp: None,
                         name: "general".into(),
                         nsfw: false,
+                        parent_id: Some(ChannelId(1)),
                         permission_overwrites: vec![
                             PermissionOverwrite {
                                 allow: Permissions::from_bits(0).unwrap(),
@@ -219,7 +221,6 @@ mod tests {
                                 kind: PermissionOverwriteType::Role(RoleId(2)),
                             },
                         ],
-                        parent_id: Some(ChannelId(1)),
                         position: 0,
                         rate_limit_per_user: Some(0),
                         topic: None,
@@ -238,8 +239,8 @@ mod tests {
                         id: ChannelId(4),
                         kind: ChannelType::GuildVoice,
                         name: "General".into(),
-                        permission_overwrites: vec![],
                         parent_id: Some(ChannelId(3)),
+                        permission_overwrites: vec![],
                         position: 0,
                         user_limit: Some(0),
                     }),
@@ -393,6 +394,10 @@ mod tests {
                 Token::Str("general"),
                 Token::Str("nsfw"),
                 Token::Bool(false),
+                Token::Str("parent_id"),
+                Token::Some,
+                Token::NewtypeStruct { name: "ChannelId" },
+                Token::Str("1"),
                 Token::Str("permission_overwrites"),
                 Token::Seq { len: Some(2) },
                 Token::Struct {
@@ -422,10 +427,6 @@ mod tests {
                 Token::U8(0),
                 Token::StructEnd,
                 Token::SeqEnd,
-                Token::Str("parent_id"),
-                Token::Some,
-                Token::NewtypeStruct { name: "ChannelId" },
-                Token::Str("1"),
                 Token::Str("position"),
                 Token::I64(0),
                 Token::Str("rate_limit_per_user"),
@@ -462,13 +463,13 @@ mod tests {
                 Token::U8(2),
                 Token::Str("name"),
                 Token::Str("General"),
-                Token::Str("permission_overwrites"),
-                Token::Seq { len: Some(0) },
-                Token::SeqEnd,
                 Token::Str("parent_id"),
                 Token::Some,
                 Token::NewtypeStruct { name: "ChannelId" },
                 Token::Str("3"),
+                Token::Str("permission_overwrites"),
+                Token::Seq { len: Some(0) },
+                Token::SeqEnd,
                 Token::Str("position"),
                 Token::I64(0),
                 Token::Str("user_limit"),
