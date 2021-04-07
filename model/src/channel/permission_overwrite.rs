@@ -101,18 +101,18 @@ impl<'de> Deserialize<'de> for PermissionOverwrite {
 
 impl Serialize for PermissionOverwrite {
     fn serialize<S: Serializer>(&self, serializer: S) -> Result<S::Ok, S::Error> {
-        let mut state = serializer.serialize_struct("PermissionOverwrite", 4)?;
+        let mut state = serializer.serialize_struct("PermissionOverwriteData", 4)?;
 
         state.serialize_field("allow", &self.allow)?;
         state.serialize_field("deny", &self.deny)?;
 
         match &self.kind {
             PermissionOverwriteType::Member(id) => {
-                state.serialize_field("id", &id)?;
+                state.serialize_field("id", &id.0.to_string())?;
                 state.serialize_field("type", &(PermissionOverwriteTargetType::Member as u8))?;
             }
             PermissionOverwriteType::Role(id) => {
-                state.serialize_field("id", &id)?;
+                state.serialize_field("id", &id.0.to_string())?;
                 state.serialize_field("type", &(PermissionOverwriteTargetType::Role as u8))?;
             }
         }
@@ -157,33 +157,40 @@ mod tests {
     #[test]
     fn test_blank_overwrite() {
         // Test integer deser used in guild templates.
-        let blank_overwrite = PermissionOverwrite {
-            allow: Permissions::CREATE_INVITE,
-            deny: Permissions::KICK_MEMBERS,
-            kind: PermissionOverwriteType::Member(UserId(0)),
-        };
-
-        let input = r#"{
+        let raw = r#"{
   "allow": "1",
   "deny": "2",
   "id": 0,
   "type": 1
 }"#;
 
-        let output = r#"{
-  "allow": "1",
-  "deny": "2",
-  "id": "0",
-  "type": 1
-}"#;
+        let value = PermissionOverwrite {
+            allow: Permissions::CREATE_INVITE,
+            deny: Permissions::KICK_MEMBERS,
+            kind: PermissionOverwriteType::Member(UserId(0)),
+        };
 
-        assert_eq!(
-            serde_json::from_str::<PermissionOverwrite>(input).unwrap(),
-            blank_overwrite
-        );
-        assert_eq!(
-            serde_json::to_string_pretty(&blank_overwrite).unwrap(),
-            output
+        let deserialized = serde_json::from_str::<PermissionOverwrite>(raw).unwrap();
+
+        assert_eq!(deserialized, value);
+
+        serde_test::assert_tokens(
+            &value,
+            &[
+                Token::Struct {
+                    name: "PermissionOverwriteData",
+                    len: 4,
+                },
+                Token::Str("allow"),
+                Token::Str("1"),
+                Token::Str("deny"),
+                Token::Str("2"),
+                Token::Str("id"),
+                Token::Str("0"),
+                Token::Str("type"),
+                Token::U8(1),
+                Token::StructEnd,
+            ],
         );
     }
 

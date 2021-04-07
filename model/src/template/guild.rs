@@ -19,6 +19,7 @@ pub struct TemplateGuild {
     pub explicit_content_filter: ExplicitContentFilter,
     pub icon_hash: Option<String>,
     pub name: String,
+    pub preferred_locale: String,
     pub region: String,
     pub roles: Vec<TemplateRole>,
     pub system_channel_flags: SystemChannelFlags,
