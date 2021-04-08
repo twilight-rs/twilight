@@ -67,14 +67,11 @@ struct GetChannelMessagesFields {
 ///
 /// Returns [`GetChannelMessagesError::LimitInvalid`] if the amount is less than 1 or greater than 100.
 ///
-/// [`ChannelId`]: ../../../../../twilight_model/id/struct.ChannelId.html
-/// [`after`]: #method.after
-/// [`around`]: #method.around
-/// [`before`]: #method.before
-/// [`GetChannelMessagesConfigured`]:
-/// ../get_channel_messages_configured/struct.GetChannelMessagesConfigured.html
-/// [`limit`]: #method.limit
-/// [`GetChannelMessagesError::LimitInvalid`]: enum.GetChannelMessagesError.html#variant.LimitInvalid
+/// [`after`]: Self::after
+/// [`around`]: Self::around
+/// [`before`]: Self::before
+/// [`GetChannelMessagesConfigured`]: super::GetChannelMessagesConfigured
+/// [`limit`]: Self::limit
 pub struct GetChannelMessages<'a> {
     channel_id: ChannelId,
     fields: GetChannelMessagesFields,
@@ -133,8 +130,6 @@ impl<'a> GetChannelMessages<'a> {
     ///
     /// Returns [`GetChannelMessagesError::LimitInvalid`] if the amount is less than 1 or greater than
     /// 100.
-    ///
-    /// [`GetChannelMessagesError::LimitInvalid`]: enum.GetChannelMessagesError.html#variant.LimitInvalid
     pub fn limit(mut self, limit: u64) -> Result<Self, GetChannelMessagesError> {
         if !validate::get_channel_messages_limit(limit) {
             return Err(GetChannelMessagesError::LimitInvalid { limit });

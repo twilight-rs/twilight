@@ -18,6 +18,7 @@ mod premium_tier;
 mod preview;
 mod prune;
 mod role;
+mod role_tags;
 mod status;
 mod system_channel_flags;
 mod unavailable_guild;
@@ -31,72 +32,77 @@ pub use self::{
     integration_expire_behavior::IntegrationExpireBehavior, member::Member, mfa_level::MfaLevel,
     partial_guild::PartialGuild, partial_member::PartialMember, permissions::Permissions,
     premium_tier::PremiumTier, preview::GuildPreview, prune::GuildPrune, role::Role,
-    status::GuildStatus, system_channel_flags::SystemChannelFlags,
+    role_tags::RoleTags, status::GuildStatus, system_channel_flags::SystemChannelFlags,
     unavailable_guild::UnavailableGuild, verification_level::VerificationLevel,
     widget::GuildWidget,
 };
 
-use self::{member::MemberMapDeserializer, role::RoleMapDeserializer};
+use self::member::MemberListDeserializer;
+use super::gateway::presence::PresenceListDeserializer;
 use crate::{
-    channel::{GuildChannel, GuildChannelMapDeserializer},
-    gateway::presence::{Presence, PresenceMapDeserializer},
-    guild::emoji::EmojiMapDeserializer,
-    id::{ApplicationId, ChannelId, EmojiId, GuildId, RoleId, UserId},
-    voice::voice_state::{VoiceState, VoiceStateMapDeserializer},
+    channel::GuildChannel,
+    gateway::presence::Presence,
+    id::{ApplicationId, ChannelId, GuildId, UserId},
+    voice::voice_state::VoiceState,
 };
 use serde::{
     de::{Deserializer, Error as DeError, IgnoredAny, MapAccess, Visitor},
     Deserialize, Serialize,
 };
-use std::{
-    collections::HashMap,
-    fmt::{Formatter, Result as FmtResult},
-};
+use std::fmt::{Formatter, Result as FmtResult};
 
 #[derive(Clone, Debug, Eq, PartialEq, Serialize)]
 pub struct Guild {
     pub afk_channel_id: Option<ChannelId>,
     pub afk_timeout: u64,
     pub application_id: Option<ApplicationId>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub approximate_member_count: Option<u64>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub approximate_presence_count: Option<u64>,
     pub banner: Option<String>,
-    #[serde(default, with = "serde_mappable_seq")]
-    pub channels: HashMap<ChannelId, GuildChannel>,
+    #[serde(default)]
+    pub channels: Vec<GuildChannel>,
     pub default_message_notifications: DefaultMessageNotificationLevel,
     pub description: Option<String>,
     pub discovery_splash: Option<String>,
-    #[serde(with = "serde_mappable_seq")]
-    pub emojis: HashMap<EmojiId, Emoji>,
+    pub emojis: Vec<Emoji>,
     pub explicit_content_filter: ExplicitContentFilter,
     pub features: Vec<String>,
     pub icon: Option<String>,
     pub id: GuildId,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub joined_at: Option<String>,
-    #[serde(default)]
     pub large: bool,
     // Not documented so I marked it as optional.
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub lazy: Option<bool>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub max_members: Option<u64>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub max_presences: Option<u64>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub max_video_channel_users: Option<u64>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub member_count: Option<u64>,
-    #[serde(default, with = "serde_mappable_seq")]
-    pub members: HashMap<UserId, Member>,
+    #[serde(default)]
+    pub members: Vec<Member>,
     pub mfa_level: MfaLevel,
     pub name: String,
     pub owner_id: UserId,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub owner: Option<bool>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub permissions: Option<Permissions>,
     pub preferred_locale: String,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub premium_subscription_count: Option<u64>,
     #[serde(default)]
     pub premium_tier: PremiumTier,
-    #[serde(default, with = "serde_mappable_seq")]
-    pub presences: HashMap<UserId, Presence>,
+    #[serde(default)]
+    pub presences: Vec<Presence>,
     pub region: String,
-    #[serde(with = "serde_mappable_seq")]
-    pub roles: HashMap<RoleId, Role>,
+    pub roles: Vec<Role>,
     pub rules_channel_id: Option<ChannelId>,
     pub splash: Option<String>,
     pub system_channel_flags: SystemChannelFlags,
@@ -105,9 +111,11 @@ pub struct Guild {
     pub unavailable: bool,
     pub vanity_url_code: Option<String>,
     pub verification_level: VerificationLevel,
-    #[serde(default, with = "serde_mappable_seq")]
-    pub voice_states: HashMap<UserId, VoiceState>,
+    #[serde(default)]
+    pub voice_states: Vec<VoiceState>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub widget_channel_id: Option<ChannelId>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub widget_enabled: Option<bool>,
 }
 
@@ -180,7 +188,7 @@ impl<'de> Deserialize<'de> for Guild {
                 let mut approximate_member_count = None::<Option<_>>;
                 let mut approximate_presence_count = None::<Option<_>>;
                 let mut banner = None::<Option<_>>;
-                let mut channels = None;
+                let mut channels = None::<Vec<GuildChannel>>;
                 let mut default_message_notifications = None;
                 let mut description = None::<Option<_>>;
                 let mut discovery_splash = None::<Option<_>>;
@@ -214,7 +222,7 @@ impl<'de> Deserialize<'de> for Guild {
                 let mut rules_channel_id = None::<Option<_>>;
                 let mut unavailable = None;
                 let mut verification_level = None;
-                let mut voice_states = None;
+                let mut voice_states = None::<Vec<VoiceState>>;
                 let mut vanity_url_code = None::<Option<_>>;
                 let mut widget_channel_id = None::<Option<_>>;
                 let mut widget_enabled = None::<Option<_>>;
@@ -291,7 +299,7 @@ impl<'de> Deserialize<'de> for Guild {
                                 return Err(DeError::duplicate_field("channels"));
                             }
 
-                            channels = Some(map.next_value_seed(GuildChannelMapDeserializer)?);
+                            channels = Some(map.next_value()?);
                         }
                         Field::DefaultMessageNotifications => {
                             if default_message_notifications.is_some() {
@@ -321,7 +329,7 @@ impl<'de> Deserialize<'de> for Guild {
                                 return Err(DeError::duplicate_field("emojis"));
                             }
 
-                            emojis = Some(map.next_value_seed(EmojiMapDeserializer)?);
+                            emojis = Some(map.next_value()?);
                         }
                         Field::ExplicitContentFilter => {
                             if explicit_content_filter.is_some() {
@@ -405,7 +413,7 @@ impl<'de> Deserialize<'de> for Guild {
                                 return Err(DeError::duplicate_field("members"));
                             }
 
-                            let deserializer = MemberMapDeserializer::new(GuildId(0));
+                            let deserializer = MemberListDeserializer::new(GuildId(0));
 
                             members = Some(map.next_value_seed(deserializer)?);
                         }
@@ -470,7 +478,7 @@ impl<'de> Deserialize<'de> for Guild {
                                 return Err(DeError::duplicate_field("presences"));
                             }
 
-                            let deserializer = PresenceMapDeserializer::new(GuildId(0));
+                            let deserializer = PresenceListDeserializer::new(GuildId(0));
 
                             presences = Some(map.next_value_seed(deserializer)?);
                         }
@@ -486,7 +494,7 @@ impl<'de> Deserialize<'de> for Guild {
                                 return Err(DeError::duplicate_field("roles"));
                             }
 
-                            roles = Some(map.next_value_seed(RoleMapDeserializer)?);
+                            roles = Some(map.next_value()?);
                         }
                         Field::Splash => {
                             if splash.is_some() {
@@ -535,7 +543,7 @@ impl<'de> Deserialize<'de> for Guild {
                                 return Err(DeError::duplicate_field("voice_states"));
                             }
 
-                            voice_states = Some(map.next_value_seed(VoiceStateMapDeserializer)?);
+                            voice_states = Some(map.next_value()?);
                         }
                         Field::VanityUrlCode => {
                             if vanity_url_code.is_some() {
@@ -664,7 +672,7 @@ impl<'de> Deserialize<'de> for Guild {
                     ?verification_level,
                 );
 
-                for channel in channels.values_mut() {
+                for channel in &mut channels {
                     match channel {
                         GuildChannel::Category(c) => {
                             c.guild_id.replace(id);
@@ -678,15 +686,15 @@ impl<'de> Deserialize<'de> for Guild {
                     }
                 }
 
-                for member in members.values_mut() {
+                for member in &mut members {
                     member.guild_id = id;
                 }
 
-                for presence in presences.values_mut() {
+                for presence in &mut presences {
                     presence.guild_id = id;
                 }
 
-                for voice_state in voice_states.values_mut() {
+                for voice_state in &mut voice_states {
                     voice_state.guild_id.replace(id);
                 }
 
@@ -716,8 +724,8 @@ impl<'de> Deserialize<'de> for Guild {
                     members,
                     mfa_level,
                     name,
-                    owner,
                     owner_id,
+                    owner,
                     permissions,
                     preferred_locale,
                     premium_subscription_count,
@@ -725,14 +733,14 @@ impl<'de> Deserialize<'de> for Guild {
                     presences,
                     region,
                     roles,
-                    splash,
-                    system_channel_id,
-                    system_channel_flags,
                     rules_channel_id,
+                    splash,
+                    system_channel_flags,
+                    system_channel_id,
                     unavailable,
+                    vanity_url_code,
                     verification_level,
                     voice_states,
-                    vanity_url_code,
                     widget_channel_id,
                     widget_enabled,
                 })
@@ -797,7 +805,6 @@ mod tests {
         GuildId, MfaLevel, Permissions, PremiumTier, SystemChannelFlags, UserId, VerificationLevel,
     };
     use serde_test::Token;
-    use std::collections::HashMap;
 
     #[allow(clippy::too_many_lines)]
     #[test]
@@ -809,11 +816,11 @@ mod tests {
             approximate_member_count: Some(1_200),
             approximate_presence_count: Some(900),
             banner: Some("banner hash".to_owned()),
-            channels: HashMap::new(),
+            channels: Vec::new(),
             default_message_notifications: DefaultMessageNotificationLevel::Mentions,
             description: Some("a description".to_owned()),
             discovery_splash: Some("discovery splash hash".to_owned()),
-            emojis: HashMap::new(),
+            emojis: Vec::new(),
             explicit_content_filter: ExplicitContentFilter::MembersWithoutRole,
             features: vec!["a feature".to_owned()],
             icon: Some("icon hash".to_owned()),
@@ -825,7 +832,7 @@ mod tests {
             max_presences: Some(10_000),
             max_video_channel_users: Some(10),
             member_count: Some(12_000),
-            members: HashMap::new(),
+            members: Vec::new(),
             mfa_level: MfaLevel::Elevated,
             name: "the name".to_owned(),
             owner_id: UserId(5),
@@ -834,9 +841,9 @@ mod tests {
             preferred_locale: "en-us".to_owned(),
             premium_subscription_count: Some(3),
             premium_tier: PremiumTier::Tier1,
-            presences: HashMap::new(),
+            presences: Vec::new(),
             region: "us-west".to_owned(),
-            roles: HashMap::new(),
+            roles: Vec::new(),
             rules_channel_id: Some(ChannelId(6)),
             splash: Some("splash hash".to_owned()),
             system_channel_flags: SystemChannelFlags::SUPPRESS_PREMIUM_SUBSCRIPTIONS,
@@ -844,7 +851,7 @@ mod tests {
             unavailable: false,
             vanity_url_code: Some("twilight".to_owned()),
             verification_level: VerificationLevel::Medium,
-            voice_states: HashMap::new(),
+            voice_states: Vec::new(),
             widget_channel_id: Some(ChannelId(8)),
             widget_enabled: Some(true),
         };

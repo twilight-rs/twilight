@@ -9,6 +9,17 @@ pub struct MemberUpdate {
     pub guild_id: GuildId,
     pub joined_at: String,
     pub nick: Option<String>,
+    /// Whether the user has yet to pass the guild's [Membership Screening]
+    /// requirements.
+    ///
+    /// Note: This field is still under refactoring by Discord. For more info,
+    /// check this [issue] and [pull request].
+    ///
+    /// [Membership Screening]: https://support.discord.com/hc/en-us/articles/1500000466882
+    /// [issue]: https://github.com/discord/discord-api-docs/issues/2567
+    /// [pull request]: https://github.com/discord/discord-api-docs/pull/2547
+    #[serde(default)]
+    pub pending: bool,
     pub premium_since: Option<String>,
     pub roles: Vec<RoleId>,
     pub user: User,
@@ -40,6 +51,7 @@ mod tests {
             },
             roles: vec![],
             premium_since: None,
+            pending: false,
             nick: Some("Twilight".to_string()),
             joined_at: "2017-02-27T22:21:50.121000+00:00".to_string(),
             guild_id: 1_234.into(),
@@ -50,7 +62,7 @@ mod tests {
             &[
                 Token::Struct {
                     name: "MemberUpdate",
-                    len: 6,
+                    len: 7,
                 },
                 Token::Str("guild_id"),
                 Token::NewtypeStruct { name: "GuildId" },
@@ -60,6 +72,8 @@ mod tests {
                 Token::Str("nick"),
                 Token::Some,
                 Token::Str("Twilight"),
+                Token::Str("pending"),
+                Token::Bool(false),
                 Token::Str("premium_since"),
                 Token::None,
                 Token::Str("roles"),
@@ -68,7 +82,7 @@ mod tests {
                 Token::Str("user"),
                 Token::Struct {
                     name: "User",
-                    len: 13,
+                    len: 5,
                 },
                 Token::Str("avatar"),
                 Token::Some,
@@ -77,27 +91,11 @@ mod tests {
                 Token::Bool(false),
                 Token::Str("discriminator"),
                 Token::Str("1234"),
-                Token::Str("email"),
-                Token::None,
-                Token::Str("flags"),
-                Token::None,
                 Token::Str("id"),
                 Token::NewtypeStruct { name: "UserId" },
                 Token::Str("424242"),
-                Token::Str("locale"),
-                Token::None,
-                Token::Str("mfa_enabled"),
-                Token::None,
                 Token::Str("username"),
                 Token::Str("Twilight Sparkle"),
-                Token::Str("premium_type"),
-                Token::None,
-                Token::Str("public_flags"),
-                Token::None,
-                Token::Str("system"),
-                Token::None,
-                Token::Str("verified"),
-                Token::None,
                 Token::StructEnd,
                 Token::StructEnd,
             ],

@@ -1,5 +1,5 @@
 use crate::{
-    id::{GuildId, RoleId, UserId},
+    id::{GuildId, RoleId},
     user::User,
 };
 
@@ -10,11 +10,7 @@ use serde::{
     },
     Deserialize, Serialize,
 };
-use serde_mappable_seq::Key;
-use std::{
-    collections::HashMap,
-    fmt::{Formatter, Result as FmtResult},
-};
+use std::fmt::{Formatter, Result as FmtResult};
 
 #[derive(Clone, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
 pub struct Member {
@@ -24,15 +20,13 @@ pub struct Member {
     pub joined_at: Option<String>,
     pub mute: bool,
     pub nick: Option<String>,
+    /// Whether the user has yet to pass the guild's [Membership Screening]
+    /// requirements.
+    pub pending: bool,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub premium_since: Option<String>,
     pub roles: Vec<RoleId>,
     pub user: User,
-}
-
-impl Key<'_, UserId> for Member {
-    fn key(&self) -> UserId {
-        self.user.id
-    }
 }
 
 // Used in the guild deserializer.
@@ -43,6 +37,8 @@ pub(crate) struct MemberIntermediary {
     pub joined_at: Option<String>,
     pub mute: bool,
     pub nick: Option<String>,
+    #[serde(default)]
+    pub pending: bool,
     pub premium_since: Option<String>,
     pub roles: Vec<RoleId>,
     pub user: User,
@@ -92,6 +88,7 @@ impl<'de> Visitor<'de> for MemberVisitor {
             joined_at: member.joined_at,
             mute: member.mute,
             nick: member.nick,
+            pending: member.pending,
             premium_since: member.premium_since,
             roles: member.roles,
             user: member.user,
@@ -137,9 +134,9 @@ impl<'de> Visitor<'de> for OptionalMemberVisitor {
 }
 
 #[derive(Clone, Debug, Eq, PartialEq)]
-pub struct MemberMapDeserializer(GuildId);
+pub struct MemberListDeserializer(GuildId);
 
-impl MemberMapDeserializer {
+impl MemberListDeserializer {
     /// Create a new deserializer for a map of members when you know the
     /// Guild ID but the payload probably doesn't contain it.
     pub fn new(guild_id: GuildId) -> Self {
@@ -147,33 +144,31 @@ impl MemberMapDeserializer {
     }
 }
 
-struct MemberMapVisitor(GuildId);
+struct MemberListVisitor(GuildId);
 
-impl<'de> Visitor<'de> for MemberMapVisitor {
-    type Value = HashMap<UserId, Member>;
+impl<'de> Visitor<'de> for MemberListVisitor {
+    type Value = Vec<Member>;
 
     fn expecting(&self, f: &mut Formatter<'_>) -> FmtResult {
         f.write_str("a sequence of members")
     }
 
     fn visit_seq<S: SeqAccess<'de>>(self, mut seq: S) -> Result<Self::Value, S::Error> {
-        let mut map = seq
-            .size_hint()
-            .map_or_else(HashMap::new, HashMap::with_capacity);
+        let mut list = seq.size_hint().map_or_else(Vec::new, Vec::with_capacity);
 
         while let Some(member) = seq.next_element_seed(MemberDeserializer(self.0))? {
-            map.insert(member.user.id, member);
+            list.push(member);
         }
 
-        Ok(map)
+        Ok(list)
     }
 }
 
-impl<'de> DeserializeSeed<'de> for MemberMapDeserializer {
-    type Value = HashMap<UserId, Member>;
+impl<'de> DeserializeSeed<'de> for MemberListDeserializer {
+    type Value = Vec<Member>;
 
     fn deserialize<D: Deserializer<'de>>(self, deserializer: D) -> Result<Self::Value, D::Error> {
-        deserializer.deserialize_any(MemberMapVisitor(self.0))
+        deserializer.deserialize_any(MemberListVisitor(self.0))
     }
 }
 
@@ -195,6 +190,7 @@ mod tests {
             joined_at: Some("timestamp".to_owned()),
             mute: true,
             nick: Some("twilight".to_owned()),
+            pending: false,
             premium_since: Some("timestamp".to_owned()),
             roles: Vec::new(),
             user: User {
@@ -219,7 +215,7 @@ mod tests {
             &[
                 Token::Struct {
                     name: "Member",
-                    len: 9,
+                    len: 10,
                 },
                 Token::Str("deaf"),
                 Token::Bool(false),
@@ -238,6 +234,8 @@ mod tests {
                 Token::Str("nick"),
                 Token::Some,
                 Token::Str("twilight"),
+                Token::Str("pending"),
+                Token::Bool(false),
                 Token::Str("premium_since"),
                 Token::Some,
                 Token::Str("timestamp"),
@@ -247,7 +245,7 @@ mod tests {
                 Token::Str("user"),
                 Token::Struct {
                     name: "User",
-                    len: 13,
+                    len: 5,
                 },
                 Token::Str("avatar"),
                 Token::None,
@@ -255,27 +253,11 @@ mod tests {
                 Token::Bool(false),
                 Token::Str("discriminator"),
                 Token::Str("0001"),
-                Token::Str("email"),
-                Token::None,
-                Token::Str("flags"),
-                Token::None,
                 Token::Str("id"),
                 Token::NewtypeStruct { name: "UserId" },
                 Token::Str("3"),
-                Token::Str("locale"),
-                Token::None,
-                Token::Str("mfa_enabled"),
-                Token::None,
                 Token::Str("username"),
                 Token::Str("twilight"),
-                Token::Str("premium_type"),
-                Token::None,
-                Token::Str("public_flags"),
-                Token::None,
-                Token::Str("system"),
-                Token::None,
-                Token::Str("verified"),
-                Token::None,
                 Token::StructEnd,
                 Token::StructEnd,
             ],

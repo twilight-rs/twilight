@@ -82,10 +82,6 @@ struct CreateGuildChannelFields {
 ///
 /// Returns a [`CreateGuildChannelError::TopicInvalid`] when the length of the topic is more than
 /// 1024 UTF-16 characters.
-///
-/// [`CreateGuildChannelError::NameInvalid`]: enum.CreateGuildChannelError.html#variant.NameInvalid
-/// [`CreateGuildChannelError::RateLimitPerUserInvalid`]: enum.CreateGuildChannelError.html#variant.RateLimitPerUserInvalid
-/// [`CreateGuildChannelError::TopicInvalid`]: enum.CreateGuildChannelError.html#variant.TopicInvalid
 pub struct CreateGuildChannel<'a> {
     fields: CreateGuildChannelFields,
     fut: Option<Pending<'a, GuildChannel>>,
@@ -195,7 +191,6 @@ impl<'a> CreateGuildChannel<'a> {
     /// 21600.
     ///
     /// [the discord docs]: https://discordapp.com/developers/docs/resources/channel#channel-object-channel-structure
-    /// [`CreateGuildChannelError::RateLimitPerUserInvalid`]: enum.CreateGuildChannelError.html#variant.RateLimitPerUserInvalid
     pub fn rate_limit_per_user(
         mut self,
         rate_limit_per_user: u64,
@@ -221,7 +216,6 @@ impl<'a> CreateGuildChannel<'a> {
     /// too long.
     ///
     /// [the discord docs]: https://discordapp.com/developers/docs/resources/channel#channel-object-channel-structure
-    /// [`CreateGuildChannelError::TopicInvalid`]: enum.CreateGuildChannelError.html#variant.TopicInvalid
     pub fn topic(self, topic: impl Into<String>) -> Result<Self, CreateGuildChannelError> {
         self._topic(topic.into())
     }

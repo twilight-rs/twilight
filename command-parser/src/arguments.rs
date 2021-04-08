@@ -1,11 +1,13 @@
-use std::fmt::{Debug, Formatter, Result as FmtResult};
-use unicode_segmentation::{GraphemeIndices, UnicodeSegmentation};
+use std::{
+    fmt::{Debug, Formatter, Result as FmtResult},
+    str::CharIndices,
+};
 
 /// An iterator over command arguments.
 #[derive(Clone)]
 pub struct Arguments<'a> {
     buf: &'a str,
-    indices: GraphemeIndices<'a>,
+    indices: CharIndices<'a>,
     idx: usize,
 }
 
@@ -37,8 +39,6 @@ impl<'a> Arguments<'a> {
     /// }
     /// # else { panic!("Not command match"); }
     /// ```
-    ///
-    /// [`std::str::Chars::as_str`]: https://doc.rust-lang.org/std/str/struct.Chars.html#method.as_str
     pub fn as_str(&self) -> &str {
         self.buf
     }
@@ -67,7 +67,7 @@ impl<'a> From<&'a str> for Arguments<'a> {
     fn from(buf: &'a str) -> Self {
         Self {
             buf: buf.trim(),
-            indices: buf.trim().grapheme_indices(true),
+            indices: buf.trim().char_indices(),
             idx: 0,
         }
     }
@@ -97,25 +97,24 @@ impl<'a> Iterator for Arguments<'a> {
 
         while let Some((i, ch)) = self.indices.next() {
             if quoted {
-                if ch == r#"""# {
+                if ch == '"' {
                     let v = self.buf.get(start_idx..i);
                     self.idx = i + 1;
 
                     return v.map(str::trim);
                 }
-            } else if ch == " " {
+            } else if ch == ' ' {
                 if started {
                     let v = self.buf.get(start_idx..i);
                     self.idx = i + 1;
 
                     return v.map(str::trim);
-                } else {
-                    self.idx = i;
-                    start_idx = i;
-                    started = true;
-                    continue;
                 }
-            } else if ch == r#"""# {
+                self.idx = i;
+                start_idx = i;
+                started = true;
+                continue;
+            } else if ch == '"' {
                 start_idx = i + 1;
                 quoted = true;
             }

@@ -26,16 +26,10 @@ pub use self::{
 
 use crate::id::{ChannelId, GuildId, MessageId};
 use serde::{
-    de::{
-        DeserializeSeed, Deserializer, Error as DeError, IgnoredAny, MapAccess, SeqAccess, Visitor,
-    },
+    de::{Deserializer, Error as DeError, IgnoredAny, MapAccess, Visitor},
     Deserialize, Serialize,
 };
-use serde_mappable_seq::Key;
-use std::{
-    collections::HashMap,
-    fmt::{self, Formatter, Result as FmtResult},
-};
+use std::fmt::{self, Formatter, Result as FmtResult};
 
 #[derive(Copy, Clone, Debug, Eq, PartialEq)]
 pub enum ConversionError {
@@ -117,16 +111,6 @@ impl GuildChannel {
             Self::Category(category) => category.name.as_ref(),
             Self::Text(text) => text.name.as_ref(),
             Self::Voice(voice) => voice.name.as_ref(),
-        }
-    }
-}
-
-impl Key<'_, ChannelId> for GuildChannel {
-    fn key(&self) -> ChannelId {
-        match self {
-            Self::Category(c) => c.id,
-            Self::Text(c) => c.id,
-            Self::Voice(c) => c.id,
         }
     }
 }
@@ -338,28 +322,28 @@ impl<'de> Visitor<'de> for GuildChannelVisitor {
                 tracing::trace!("handling category channel");
 
                 GuildChannel::Category(CategoryChannel {
-                    id,
                     guild_id,
+                    id,
                     kind,
                     name,
                     permission_overwrites,
                     position,
                 })
             }
-            ChannelType::GuildVoice => {
+            ChannelType::GuildVoice | ChannelType::GuildStageVoice => {
                 let bitrate = bitrate.ok_or_else(|| DeError::missing_field("bitrate"))?;
                 let user_limit = user_limit.ok_or_else(|| DeError::missing_field("user_limit"))?;
 
                 tracing::trace!(%bitrate, ?user_limit, "handling voice channel");
 
                 GuildChannel::Voice(VoiceChannel {
-                    id,
                     bitrate,
                     guild_id,
+                    id,
                     kind,
                     name,
-                    permission_overwrites,
                     parent_id,
+                    permission_overwrites,
                     position,
                     user_limit,
                 })
@@ -377,15 +361,15 @@ impl<'de> Visitor<'de> for GuildChannelVisitor {
                 );
 
                 GuildChannel::Text(TextChannel {
-                    id,
                     guild_id,
+                    id,
                     kind,
                     last_message_id,
                     last_pin_timestamp,
                     name,
                     nsfw,
-                    permission_overwrites,
                     parent_id,
+                    permission_overwrites,
                     position,
                     rate_limit_per_user,
                     topic,
@@ -399,45 +383,6 @@ impl<'de> Visitor<'de> for GuildChannelVisitor {
 impl<'de> Deserialize<'de> for GuildChannel {
     fn deserialize<D: Deserializer<'de>>(deserializer: D) -> Result<Self, D::Error> {
         deserializer.deserialize_map(GuildChannelVisitor)
-    }
-}
-
-#[derive(Clone, Debug, Eq, PartialEq)]
-pub(crate) struct GuildChannelMapDeserializer;
-
-struct GuildChannelMapVisitor;
-
-impl<'de> Visitor<'de> for GuildChannelMapVisitor {
-    type Value = HashMap<ChannelId, GuildChannel>;
-
-    fn expecting(&self, f: &mut Formatter<'_>) -> FmtResult {
-        f.write_str("a sequence of guild channels")
-    }
-
-    fn visit_seq<S: SeqAccess<'de>>(self, mut seq: S) -> Result<Self::Value, S::Error> {
-        let mut map = seq
-            .size_hint()
-            .map_or_else(HashMap::new, HashMap::with_capacity);
-
-        let span = tracing::trace_span!("adding elements to guild channel map");
-        let _span_enter = span.enter();
-
-        while let Some(channel) = seq.next_element::<GuildChannel>()? {
-            let id = channel.id();
-            tracing::trace!(%id, ?channel);
-
-            map.insert(channel.id(), channel);
-        }
-
-        Ok(map)
-    }
-}
-
-impl<'de> DeserializeSeed<'de> for GuildChannelMapDeserializer {
-    type Value = HashMap<ChannelId, GuildChannel>;
-
-    fn deserialize<D: Deserializer<'de>>(self, deserializer: D) -> Result<Self::Value, D::Error> {
-        deserializer.deserialize_seq(GuildChannelMapVisitor)
     }
 }
 

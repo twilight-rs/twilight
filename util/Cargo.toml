@@ -12,12 +12,13 @@ name = "twilight-util"
 publish = false
 readme = "README.md"
 repository = "https://github.com/twilight-rs/twilight.git"
-version = "0.2.0"
+version = "0.3.0"
 
 [features]
 default = []
+link = ["twilight-model"]
 snowflake = ["twilight-model"]
-full = ["snowflake"]
+full = ["link", "snowflake"]
 
 [package.metadata.docs.rs]
 all-features = true

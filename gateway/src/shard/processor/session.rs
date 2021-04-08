@@ -1,13 +1,13 @@
 use super::{
     super::{json, stage::Stage},
     heartbeat::{Heartbeater, Heartbeats},
+    throttle::Throttle,
 };
 use async_tungstenite::tungstenite::{protocol::CloseFrame, Message as TungsteniteMessage};
 use futures_channel::mpsc::{TrySendError, UnboundedSender};
 use futures_util::{
     future::{self, AbortHandle},
     lock::Mutex,
-    stream::{self, Repeat},
 };
 use serde::ser::Serialize;
 use std::{
@@ -20,7 +20,6 @@ use std::{
     },
     time::Duration,
 };
-use tokio::time::{self as tokio_time, Throttle};
 use twilight_model::gateway::payload::Heartbeat;
 
 #[cfg(not(feature = "simd-json"))]
@@ -63,11 +62,11 @@ pub struct Session {
     pub heartbeater_handle: Arc<MutexSync<Option<AbortHandle>>>,
     pub heartbeats: Arc<Heartbeats>,
     pub heartbeat_interval: AtomicU64,
-    pub id: MutexSync<Option<String>>,
+    pub id: MutexSync<Option<Box<str>>>,
     pub seq: Arc<AtomicU64>,
     pub stage: AtomicU8,
     pub tx: UnboundedSender<TungsteniteMessage>,
-    pub ratelimit: Mutex<Throttle<Repeat<()>>>,
+    pub ratelimit: Mutex<Throttle>,
 }
 
 impl Session {
@@ -81,10 +80,7 @@ impl Session {
             stage: AtomicU8::new(Stage::default() as u8),
             tx,
             // 520 instead of 500 to make sure that it can heartbeat.
-            ratelimit: Mutex::new(tokio_time::throttle(
-                Duration::from_millis(520),
-                stream::repeat(()),
-            )),
+            ratelimit: Mutex::new(Throttle::new(Duration::from_millis(520))),
         }
     }
 
@@ -98,9 +94,6 @@ impl Session {
     /// Returns [`SessionSendError::Sending`] when the receiving channel has hung
     /// up. This will only happen when the shard has either not started or has
     /// already shutdown.
-    ///
-    /// [`SessionSendError::Serializing`]: enum.SessionSendError.html#variant.Serializing
-    /// [`SessionSendError::Sending`]: enum.SessionSendError.html#variant.Sending
     pub fn send(&self, payload: impl Serialize) -> Result<(), SessionSendError> {
         let bytes =
             json::to_vec(&payload).map_err(|source| SessionSendError::Serializing { source })?;
@@ -153,15 +146,11 @@ impl Session {
         self.send(Heartbeat::new(self.seq()))
     }
 
-    pub fn id(&self) -> Option<String> {
+    pub fn id(&self) -> Option<Box<str>> {
         self.id.lock().expect("id poisoned").clone()
     }
 
-    pub fn set_id(&self, new_id: impl Into<String>) {
-        self._set_id(new_id.into())
-    }
-
-    fn _set_id(&self, new_id: String) {
+    pub fn set_id(&self, new_id: Box<str>) {
         self.id.lock().expect("id poisoned").replace(new_id);
     }
 

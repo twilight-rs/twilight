@@ -41,7 +41,7 @@
 //!
 //! ```toml
 //! [dependencies]
-//! twilight-gateway = { default-features = false, features = ["rustls", "simd-json"], version = "0.1" }
+//! twilight-gateway = { default-features = false, features = ["rustls", "simd-json"], version = "0.2" }
 //! ```
 //!
 //! ### TLS
@@ -60,7 +60,7 @@
 //!
 //! ```toml
 //! [dependencies]
-//! twilight-gateway = { default-features = false, features = ["native"], version = "0.1" }
+//! twilight-gateway = { default-features = false, features = ["native"], version = "0.2" }
 //! ```
 //!
 //! #### `rustls`
@@ -72,6 +72,10 @@
 //!
 //! ### zlib
 //!
+//! zlib is enabled with the feature `compression` and one of the two `zlib` features
+//! described below. Enabling any of the two features below will also enable
+//! `compression`. `compression` is enabled by default.
+//!
 //! There are 2 zlib features `stock-zlib` and `simd-zlib` for the library to work
 //! one of them has to be enabled. If both are enabled it will use `stock-zlib`
 //!
@@ -79,6 +83,15 @@
 //!
 //! Enabling **only** `simd-zlib` will make the library use [`zlib-ng`] which is a modern
 //! fork of zlib that is faster and more effective, but it needs `cmake` to compile.
+//!
+//! ### Metrics
+//!
+//! The `metrics` feature provides metrics information via the `metrics` crate.
+//! Some of the metrics logged are counters about received event counts and
+//! their types and gauges about the capacity and efficiency of the inflater of
+//! each shard.
+//!
+//! This is disabled by default.
 //!
 //! [`async-tungstenite`]: https://crates.io/crates/async-tungstenite
 //! [`native-tls`]: https://crates.io/crates/native-tls
@@ -94,7 +107,7 @@
 //! [github link]: https://github.com/twilight-rs/twilight
 //! [license badge]: https://img.shields.io/badge/license-ISC-blue.svg?style=for-the-badge&logo=pastebin
 //! [license link]: https://github.com/twilight-rs/twilight/blob/trunk/LICENSE.md
-//! [rust badge]: https://img.shields.io/badge/rust-stable-93450a.svg?style=for-the-badge&logo=rust
+//! [rust badge]: https://img.shields.io/badge/rust-1.48+-93450a.svg?style=for-the-badge&logo=rust
 
 #![deny(
     clippy::all,
@@ -103,10 +116,15 @@
     missing_docs,
     nonstandard_style,
     rust_2018_idioms,
+    broken_intra_doc_links,
     unused,
     warnings
 )]
 #![allow(clippy::module_name_repetitions, clippy::must_use_candidate)]
+// Required due to `futures_util::select!`.
+//
+// <https://github.com/rust-lang/futures-rs/issues/1917>
+#![recursion_limit = "256"]
 
 pub mod cluster;
 pub mod shard;

@@ -7,25 +7,25 @@
 //! `twilight` is a powerful, flexible, and scalable ecosystem of Rust libraries
 //! for the Discord API.
 //!
-//! The ecosystem of first-class crates includes `twilight-cache-inmemory`,
-//! `twilight-command-parser`, `twilight-gateway`, `twilight-http`,
-//! `twilight-model`, and more. These are explained in detail below.
+//! The ecosystem of first-class crates includes [`twilight-cache-inmemory`],
+//! [`twilight-command-parser`], [`twilight-gateway`], [`twilight-http`],
+//! [`twilight-model`], and more. These are explained in detail below.
 //!
 //! The main `twilight` crate is purely an advertisement crate: it has *no*
 //! functionality. Please use the individual crates listed below instead!
 //!
 //! ## Installation
 //!
-//! Twilight requires the latest stable Rust version.
+//! Twilight supports a MSRV of Rust 1.48+.
 //!
 //! We recommend that most users start out with these crates added to your
 //! `Cargo.toml`'s `[dependencies]` section:
 //!
 //! ```toml
-//! twilight-cache-inmemory = "0.1"
-//! twilight-gateway = "0.1"
-//! twilight-http = "0.1"
-//! twilight-model = "0.1"
+//! twilight-cache-inmemory = "0.3"
+//! twilight-gateway = "0.3"
+//! twilight-http = "0.3"
+//! twilight-model = "0.3"
 //! ```
 //!
 //! If you need any other functionality that Twilight provides, you can just add
@@ -35,7 +35,7 @@
 //!
 //! These are essential crates that most users will use together for a full
 //! development experience. You may not need all of these - such as
-//! `twilight-command-parser` - but they are often used together to accomplish
+//! [`twilight-command-parser`] - but they are often used together to accomplish
 //! most of what you need.
 //!
 //! ### [`twilight-model`]
@@ -47,8 +47,8 @@
 //! WebSocket API, and more.
 //!
 //! These are all in a single crate so that you can use `gateway` models without
-//! depending on `twilight-gateway`. One use case is if you write your own WebSocket
-//! gateway implementation.
+//! depending on [`twilight-gateway`]. One use case is if you write your own
+//! WebSocket gateway implementation.
 //!
 //! ### [`twilight-cache-inmemory`]
 //!
@@ -65,7 +65,8 @@
 //!
 //! ### [`twilight-command-parser`]
 //!
-//! Helpful crate for parsing commands out of messages received over the gateway. It finds messages commanding your bot and parses the arguments out.
+//! Helpful crate for parsing commands out of messages received over the
+//! gateway. It finds messages commanding your bot and parses the arguments out.
 //!
 //! ### [`twilight-http`]
 //!
@@ -86,7 +87,8 @@
 //!
 //! ### [`twilight-embed-builder`]
 //!
-//! Utility crate for creating and validating message embeds, to be used when creating or updating messages.
+//! Utility crate for creating and validating message embeds, to be used when
+//! creating or updating messages.
 //!
 //! ### [`twilight-lavalink`]
 //!
@@ -112,15 +114,15 @@
 //! ### [`twilight-gateway-queue`]
 //!
 //! A trait and some implementations that are used by the gateway to ratelimit
-//! identify calls. Developers should prefer to use the re-exports of these crates
-//! through the gateway.
+//! identify calls. Developers should prefer to use the re-exports of these
+//! crates through the gateway.
 //!
 //! ## Examples
 //!
 //! ```rust,no_run
 //! use std::{env, error::Error};
-//! use tokio::stream::StreamExt;
-//! use twilight_cache_inmemory::{EventType, InMemoryCache};
+//! use futures::stream::StreamExt;
+//! use twilight_cache_inmemory::{InMemoryCache, ResourceType};
 //! use twilight_gateway::{cluster::{Cluster, ShardScheme}, Event};
 //! use twilight_http::Client as HttpClient;
 //! use twilight_model::gateway::Intents;
@@ -153,12 +155,7 @@
 //!     // Since we only care about new messages, make the cache only
 //!     // cache new messages.
 //!     let cache = InMemoryCache::builder()
-//!         .event_types(
-//!             EventType::MESSAGE_CREATE
-//!                 | EventType::MESSAGE_DELETE
-//!                 | EventType::MESSAGE_DELETE_BULK
-//!                 | EventType::MESSAGE_UPDATE,
-//!         )
+//!         .resource_types(ResourceType::MESSAGE)
 //!         .build();
 //!
 //!     let mut events = cluster.events();
@@ -221,7 +218,7 @@
 //! [license badge]: https://img.shields.io/badge/license-ISC-blue.svg?style=for-the-badge&logo=pastebin
 //! [license link]: https://github.com/twilight-rs/twilight/blob/trunk/LICENSE.md
 //! [logo]: https://raw.githubusercontent.com/twilight-rs/twilight/trunk/logo.png
-//! [rust badge]: https://img.shields.io/badge/rust-stable-93450a.svg?style=for-the-badge&logo=rust
+//! [rust badge]: https://img.shields.io/badge/rust-1.48+-93450a.svg?style=for-the-badge&logo=rust
 //! [`tracing-log`]: https://github.com/tokio-rs/tracing/tree/master/tracing-log
 //! [`twilight-cache-inmemory`]: https://twilight.rs/chapter_1_crates/section_4_cache_inmemory.html
 //! [`twilight-command-parser`]: https://twilight.rs/chapter_1_crates/section_5_command_parser.html

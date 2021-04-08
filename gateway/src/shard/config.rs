@@ -8,18 +8,18 @@ use twilight_model::gateway::{payload::update_status::UpdateStatusInfo, Intents}
 ///
 /// Use [`Shard::builder`] to start creating a configured shard.
 ///
-/// [`Shard::builder`]: struct.Shard.html#method.builder
+/// [`Shard::builder`]: super::Shard::builder
 #[derive(Clone, Debug)]
 pub struct Config {
-    pub(crate) gateway_url: Option<String>,
+    pub(crate) gateway_url: Option<Box<str>>,
     pub(crate) http_client: Client,
     pub(super) intents: Intents,
     pub(super) large_threshold: u64,
     pub(super) presence: Option<UpdateStatusInfo>,
     pub(super) queue: Arc<Box<dyn Queue>>,
     pub(crate) shard: [u64; 2],
-    pub(super) token: String,
-    pub(crate) session_id: Option<String>,
+    pub(super) token: Box<str>,
+    pub(crate) session_id: Option<Box<str>>,
     pub(crate) sequence: Option<u64>,
 }
 

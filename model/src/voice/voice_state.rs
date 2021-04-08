@@ -3,23 +3,19 @@ use crate::{
     id::{ChannelId, GuildId, UserId},
 };
 use serde::{
-    de::{
-        DeserializeSeed, Deserializer, Error as DeError, IgnoredAny, MapAccess, SeqAccess, Visitor,
-    },
+    de::{Deserializer, Error as DeError, IgnoredAny, MapAccess, Visitor},
     Deserialize, Serialize,
 };
-use serde_mappable_seq::Key;
-use std::{
-    collections::HashMap,
-    fmt::{Formatter, Result as FmtResult},
-};
+use std::fmt::{Formatter, Result as FmtResult};
 
 #[allow(clippy::struct_excessive_bools)]
 #[derive(Clone, Debug, Eq, Hash, PartialEq, Serialize)]
 pub struct VoiceState {
     pub channel_id: Option<ChannelId>,
     pub deaf: bool,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub guild_id: Option<GuildId>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub member: Option<Member>,
     pub mute: bool,
     pub self_deaf: bool,
@@ -29,14 +25,9 @@ pub struct VoiceState {
     pub self_stream: bool,
     pub session_id: String,
     pub suppress: bool,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub token: Option<String>,
     pub user_id: UserId,
-}
-
-impl Key<'_, UserId> for VoiceState {
-    fn key(&self) -> UserId {
-        self.user_id
-    }
 }
 
 #[derive(Debug, Deserialize)]
@@ -259,42 +250,10 @@ impl<'de> Deserialize<'de> for VoiceState {
     }
 }
 
-#[derive(Clone, Debug, Eq, PartialEq)]
-pub(crate) struct VoiceStateMapDeserializer;
-
-struct VoiceStateMapVisitor;
-
-impl<'de> Visitor<'de> for VoiceStateMapVisitor {
-    type Value = HashMap<UserId, VoiceState>;
-
-    fn expecting(&self, f: &mut Formatter<'_>) -> FmtResult {
-        f.write_str("a sequence of voice states")
-    }
-
-    fn visit_seq<S: SeqAccess<'de>>(self, mut seq: S) -> Result<Self::Value, S::Error> {
-        let mut map = seq
-            .size_hint()
-            .map_or_else(HashMap::new, HashMap::with_capacity);
-
-        while let Some(voice_state) = seq.next_element::<VoiceState>()? {
-            map.insert(voice_state.user_id, voice_state);
-        }
-
-        Ok(map)
-    }
-}
-
-impl<'de> DeserializeSeed<'de> for VoiceStateMapDeserializer {
-    type Value = HashMap<UserId, VoiceState>;
-
-    fn deserialize<D: Deserializer<'de>>(self, deserializer: D) -> Result<Self::Value, D::Error> {
-        deserializer.deserialize_seq(VoiceStateMapVisitor)
-    }
-}
-
 #[cfg(test)]
 mod tests {
-    use super::{ChannelId, GuildId, UserId, VoiceState};
+    use super::{ChannelId, GuildId, Member, UserId, VoiceState};
+    use crate::{id::RoleId, user::User};
     use serde_test::Token;
 
     #[test]
@@ -319,6 +278,86 @@ mod tests {
             &[
                 Token::Struct {
                     name: "VoiceState",
+                    len: 10,
+                },
+                Token::Str("channel_id"),
+                Token::Some,
+                Token::NewtypeStruct { name: "ChannelId" },
+                Token::Str("1"),
+                Token::Str("deaf"),
+                Token::Bool(false),
+                Token::Str("guild_id"),
+                Token::Some,
+                Token::NewtypeStruct { name: "GuildId" },
+                Token::Str("2"),
+                Token::Str("mute"),
+                Token::Bool(true),
+                Token::Str("self_deaf"),
+                Token::Bool(false),
+                Token::Str("self_mute"),
+                Token::Bool(true),
+                Token::Str("self_stream"),
+                Token::Bool(false),
+                Token::Str("session_id"),
+                Token::Str("a"),
+                Token::Str("suppress"),
+                Token::Bool(true),
+                Token::Str("user_id"),
+                Token::NewtypeStruct { name: "UserId" },
+                Token::Str("3"),
+                Token::StructEnd,
+            ],
+        );
+    }
+
+    #[allow(clippy::too_many_lines)]
+    #[test]
+    fn test_voice_state_complete() {
+        let value = VoiceState {
+            channel_id: Some(ChannelId(1)),
+            deaf: false,
+            guild_id: Some(GuildId(2)),
+            member: Some(Member {
+                deaf: false,
+                guild_id: GuildId(2),
+                hoisted_role: Some(RoleId(2)),
+                joined_at: Some("timestamp".to_owned()),
+                mute: true,
+                nick: Some("twilight".to_owned()),
+                pending: false,
+                premium_since: Some("timestamp".to_owned()),
+                roles: Vec::new(),
+                user: User {
+                    avatar: None,
+                    bot: false,
+                    discriminator: "0001".to_owned(),
+                    email: None,
+                    flags: None,
+                    id: UserId(3),
+                    locale: None,
+                    mfa_enabled: None,
+                    name: "twilight".to_owned(),
+                    premium_type: None,
+                    public_flags: None,
+                    system: None,
+                    verified: None,
+                },
+            }),
+            mute: true,
+            self_deaf: false,
+            self_mute: true,
+            self_stream: false,
+            session_id: "a".to_owned(),
+            suppress: true,
+            token: Some("abc".to_owned()),
+            user_id: UserId(3),
+        };
+
+        serde_test::assert_tokens(
+            &value,
+            &[
+                Token::Struct {
+                    name: "VoiceState",
                     len: 12,
                 },
                 Token::Str("channel_id"),
@@ -332,7 +371,54 @@ mod tests {
                 Token::NewtypeStruct { name: "GuildId" },
                 Token::Str("2"),
                 Token::Str("member"),
+                Token::Some,
+                Token::Struct {
+                    name: "Member",
+                    len: 10,
+                },
+                Token::Str("deaf"),
+                Token::Bool(false),
+                Token::Str("guild_id"),
+                Token::NewtypeStruct { name: "GuildId" },
+                Token::Str("2"),
+                Token::Str("hoisted_role"),
+                Token::Some,
+                Token::NewtypeStruct { name: "RoleId" },
+                Token::Str("2"),
+                Token::Str("joined_at"),
+                Token::Some,
+                Token::Str("timestamp"),
+                Token::Str("mute"),
+                Token::Bool(true),
+                Token::Str("nick"),
+                Token::Some,
+                Token::Str("twilight"),
+                Token::Str("pending"),
+                Token::Bool(false),
+                Token::Str("premium_since"),
+                Token::Some,
+                Token::Str("timestamp"),
+                Token::Str("roles"),
+                Token::Seq { len: Some(0) },
+                Token::SeqEnd,
+                Token::Str("user"),
+                Token::Struct {
+                    name: "User",
+                    len: 5,
+                },
+                Token::Str("avatar"),
                 Token::None,
+                Token::Str("bot"),
+                Token::Bool(false),
+                Token::Str("discriminator"),
+                Token::Str("0001"),
+                Token::Str("id"),
+                Token::NewtypeStruct { name: "UserId" },
+                Token::Str("3"),
+                Token::Str("username"),
+                Token::Str("twilight"),
+                Token::StructEnd,
+                Token::StructEnd,
                 Token::Str("mute"),
                 Token::Bool(true),
                 Token::Str("self_deaf"),
@@ -346,7 +432,8 @@ mod tests {
                 Token::Str("suppress"),
                 Token::Bool(true),
                 Token::Str("token"),
-                Token::None,
+                Token::Some,
+                Token::Str("abc"),
                 Token::Str("user_id"),
                 Token::NewtypeStruct { name: "UserId" },
                 Token::Str("3"),

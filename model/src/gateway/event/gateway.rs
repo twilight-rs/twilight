@@ -61,8 +61,6 @@ struct Hello {
 ///
 /// You should use this if you're using a mutable deserialization library
 /// like `simd-json`.
-///
-/// [`GatewayEventDeserializer`]: struct.GatewayEventDeserializer.html
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct GatewayEventDeserializerOwned {
     event_type: Option<String>,
@@ -128,8 +126,6 @@ impl GatewayEventDeserializerOwned {
 ///
 /// You should use this if you're using an immutable deserialization library
 /// like `serde_json`.
-///
-/// [`GatewayEventDeserializerOwned`]: struct.GatewayEventDeserializerOwned.html
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct GatewayEventDeserializer<'a> {
     event_type: Option<&'a str>,

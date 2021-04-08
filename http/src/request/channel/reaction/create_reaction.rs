@@ -25,10 +25,6 @@ use twilight_model::id::{ChannelId, MessageId};
 ///     .await?;
 /// # Ok(()) }
 /// ```
-///
-/// [`ChannelId`]: ../../../../twilight_model/id/struct.ChannelId.html
-/// [`MessageId`]: ../../../../twilight_model/id/struct.MessageId.html
-/// [`RequestReactionType`]: enum.RequestReactionType.html
 pub struct CreateReaction<'a> {
     channel_id: ChannelId,
     emoji: String,
@@ -53,17 +49,53 @@ impl<'a> CreateReaction<'a> {
         }
     }
 
+    fn request(&self) -> Request {
+        Request::from(Route::CreateReaction {
+            channel_id: self.channel_id.0,
+            emoji: self.emoji.clone(),
+            message_id: self.message_id.0,
+        })
+    }
+
     fn start(&mut self) -> Result<()> {
-        self.fut.replace(Box::pin(self.http.verify(Request::from(
-            Route::CreateReaction {
-                channel_id: self.channel_id.0,
-                emoji: self.emoji.clone(),
-                message_id: self.message_id.0,
-            },
-        ))));
+        let request = self.request();
+
+        self.fut.replace(Box::pin(self.http.verify(request)));
 
         Ok(())
     }
 }
 
 poll_req!(CreateReaction<'_>, ());
+
+#[cfg(test)]
+mod tests {
+    use super::CreateReaction;
+    use crate::{
+        request::{channel::reaction::RequestReactionType, Request},
+        routing::Route,
+        Client,
+    };
+    use percent_encoding::{utf8_percent_encode, NON_ALPHANUMERIC};
+    use twilight_model::id::{ChannelId, MessageId};
+
+    #[test]
+    fn test_request() {
+        let client = Client::new("foo");
+
+        let emoji = RequestReactionType::Unicode {
+            name: String::from("\u{1f303}"),
+        };
+
+        let builder = CreateReaction::new(&client, ChannelId(123), MessageId(456), emoji);
+        let actual = builder.request();
+
+        let expected = Request::from(Route::CreateReaction {
+            channel_id: 123,
+            emoji: utf8_percent_encode("\u{1f303}", NON_ALPHANUMERIC).to_string(),
+            message_id: 456,
+        });
+
+        assert_eq!(actual.path_str, expected.path_str);
+    }
+}

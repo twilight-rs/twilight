@@ -20,7 +20,7 @@ pub enum EmbedValidationError {
     /// The embed author's name is larger than
     /// [the maximum][`AUTHOR_NAME_LENGTH`].
     ///
-    /// [`AUTHOR_NAME_LENGTH`]: #const.AUTHOR_NAME_LENGTH
+    /// [`AUTHOR_NAME_LENGTH`]: Self::AUTHOR_NAME_LENGTH
     AuthorNameTooLarge {
         /// The number of codepoints that were provided.
         chars: usize,
@@ -28,7 +28,7 @@ pub enum EmbedValidationError {
     /// The embed description is larger than
     /// [the maximum][`DESCRIPTION_LENGTH`].
     ///
-    /// [`DESCRIPTION_LENGTH`]: #const.DESCRIPTION_LENGTH
+    /// [`DESCRIPTION_LENGTH`]: Self::DESCRIPTION_LENGTH
     DescriptionTooLarge {
         /// The number of codepoints that were provided.
         chars: usize,
@@ -37,35 +37,35 @@ pub enum EmbedValidationError {
     /// footer, field names and values, and title - is larger than
     /// [the maximum][`EMBED_TOTAL_LENGTH`].
     ///
-    /// [`EMBED_TOTAL_LENGTH`]: #const.EMBED_TOTAL_LENGTH
+    /// [`EMBED_TOTAL_LENGTH`]: Self::EMBED_TOTAL_LENGTH
     EmbedTooLarge {
         /// The number of codepoints that were provided.
         chars: usize,
     },
     /// A field's name is larger than [the maximum][`FIELD_NAME_LENGTH`].
     ///
-    /// [`FIELD_NAME_LENGTH`]: #const.FIELD_NAME_LENGTH
+    /// [`FIELD_NAME_LENGTH`]: Self::FIELD_NAME_LENGTH
     FieldNameTooLarge {
         /// The number of codepoints that were provided.
         chars: usize,
     },
     /// A field's value is larger than [the maximum][`FIELD_VALUE_LENGTH`].
     ///
-    /// [`FIELD_VALUE_LENGTH`]: #const.FIELD_VALUE_LENGTH
+    /// [`FIELD_VALUE_LENGTH`]: Self::FIELD_VALUE_LENGTH
     FieldValueTooLarge {
         /// The number of codepoints that were provided.
         chars: usize,
     },
     /// The footer text is larger than [the maximum][`FOOTER_TEXT_LENGTH`].
     ///
-    /// [`FOOTER_TEXT_LENGTH`]: #const.FOOTER_TEXT_LENGTH
+    /// [`FOOTER_TEXT_LENGTH`]: Self::FOOTER_TEXT_LENGTH
     FooterTextTooLarge {
         /// The number of codepoints that were provided.
         chars: usize,
     },
     /// The title is larger than [the maximum][`TITLE_LENGTH`].
     ///
-    /// [`TITLE_LENGTH`]: #const.TITLE_LENGTH
+    /// [`TITLE_LENGTH`]: Self::TITLE_LENGTH
     TitleTooLarge {
         /// The number of codepoints that were provided.
         chars: usize,
@@ -73,7 +73,7 @@ pub enum EmbedValidationError {
     /// There are more than [the maximum][`FIELD_COUNT`] number of fields in the
     /// embed.
     ///
-    /// [`FIELD_COUNT`]: #const.FIELD_COUNT
+    /// [`FIELD_COUNT`]: Self::FIELD_COUNT
     TooManyFields {
         /// The number of fields that were provided.
         amount: usize,
@@ -176,7 +176,7 @@ fn _channel_name(value: &str) -> bool {
     let len = value.chars().count();
 
     // <https://discordapp.com/developers/docs/resources/channel#channel-object-channel-structure>
-    len >= 2 && len <= 100
+    (2..=100).contains(&len)
 }
 
 pub fn content_limit(value: impl AsRef<str>) -> bool {
@@ -266,22 +266,22 @@ pub fn embed(embed: &Embed) -> Result<(), EmbedValidationError> {
 
 pub fn get_audit_log_limit(value: u64) -> bool {
     // <https://discordapp.com/developers/docs/resources/audit-log#get-guild-audit-log-query-string-parameters>
-    value > 0 && value <= 100
+    (1..=100).contains(&value)
 }
 
 pub fn get_channel_messages_limit(value: u64) -> bool {
     // <https://discordapp.com/developers/docs/resources/channel#get-channel-messages-query-string-params>
-    value > 0 && value <= 100
+    (1..=100).contains(&value)
 }
 
 pub fn get_current_user_guilds_limit(value: u64) -> bool {
     // <https://discordapp.com/developers/docs/resources/user#get-current-user-guilds-query-string-params>
-    value > 0 && value <= 100
+    (1..=100).contains(&value)
 }
 
 pub fn get_guild_members_limit(value: u64) -> bool {
     // <https://discordapp.com/developers/docs/resources/guild#list-guild-members-query-string-params>
-    value > 0 && value <= 1000
+    (1..=1000).contains(&value)
 }
 
 pub fn search_guild_members_limit(value: u64) -> bool {
@@ -290,7 +290,7 @@ pub fn search_guild_members_limit(value: u64) -> bool {
 
 pub fn get_reactions_limit(value: u64) -> bool {
     // <https://discordapp.com/developers/docs/resources/channel#get-reactions-query-string-params>
-    value > 0 && value <= 100
+    (1..=100).contains(&value)
 }
 
 pub fn guild_name(value: impl AsRef<str>) -> bool {
@@ -301,12 +301,12 @@ fn _guild_name(value: &str) -> bool {
     let len = value.chars().count();
 
     // <https://discordapp.com/developers/docs/resources/guild#guild-object-guild-structure>
-    len >= 2 && len <= 100
+    (2..=100).contains(&len)
 }
 
 pub fn guild_prune_days(value: u64) -> bool {
     // <https://discordapp.com/developers/docs/resources/guild#get-guild-prune-count-query-string-params>
-    value > 0
+    value > 0 && value <= 30
 }
 
 pub fn nickname(value: impl AsRef<str>) -> bool {
@@ -317,7 +317,7 @@ fn _nickname(value: &str) -> bool {
     let len = value.chars().count();
 
     // <https://discordapp.com/developers/docs/resources/user#usernames-and-nicknames>
-    len > 0 && len <= 32
+    (1..=32).contains(&len)
 }
 
 pub fn username(value: impl AsRef<str>) -> bool {
@@ -328,7 +328,7 @@ pub fn username(value: impl AsRef<str>) -> bool {
 fn _username(value: &str) -> bool {
     let len = value.chars().count();
 
-    len >= 2 && len <= 32
+    (2..=32).contains(&len)
 }
 
 #[cfg(test)]
@@ -627,7 +627,9 @@ mod tests {
     fn test_guild_prune_days() {
         assert!(!guild_prune_days(0));
         assert!(guild_prune_days(1));
-        assert!(guild_prune_days(100));
+        assert!(guild_prune_days(30));
+        assert!(!guild_prune_days(31));
+        assert!(!guild_prune_days(100));
     }
 
     #[test]

@@ -85,8 +85,6 @@ impl<'a> CreateBan<'a> {
     ///
     /// Returns [`CreateBanError::DeleteMessageDaysInvalid`] if the number of days
     /// is greater than 7.
-    ///
-    /// [`CreateBanError::DeleteMessageDaysInvalid`]: enum.CreateBanError.html#variant.DeleteMessageDaysInvalid
     pub fn delete_message_days(mut self, days: u64) -> Result<Self, CreateBanError> {
         if !validate::ban_delete_message_days(days) {
             return Err(CreateBanError::DeleteMessageDaysInvalid { days });

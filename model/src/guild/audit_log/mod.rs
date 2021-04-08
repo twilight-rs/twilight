@@ -16,8 +16,8 @@ use serde::{Deserialize, Serialize};
 
 #[derive(Clone, Debug, Deserialize, Serialize)]
 pub struct AuditLog {
-    audit_log_entries: Vec<AuditLogEntry>,
-    integrations: Vec<PartialGuildIntegration>,
-    users: Vec<User>,
-    webhooks: Vec<Webhook>,
+    pub audit_log_entries: Vec<AuditLogEntry>,
+    pub integrations: Vec<PartialGuildIntegration>,
+    pub users: Vec<User>,
+    pub webhooks: Vec<Webhook>,
 }

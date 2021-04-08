@@ -15,8 +15,7 @@
 //! yourself. For that reason, you should almost always use the `Lavalink`
 //! client which does all of this for you.
 //!
-//! [`Lavalink`]: ../client/struct.Lavalink.html
-//! [`PlayerManager`]: ../player/struct.PlayerManager.html
+//! [`Lavalink`]: crate::client::Lavalink
 
 use crate::{
     model::{IncomingEvent, Opcode, OutgoingEvent, PlayerUpdate, Stats, StatsCpu, StatsMemory},
@@ -108,8 +107,6 @@ impl Error for NodeError {
 }
 
 /// The configuration that a [`Node`] uses to connect to a Lavalink server.
-///
-/// [`Node`]: struct.Node.html
 #[derive(Clone, Debug, Eq, PartialEq)]
 #[non_exhaustive]
 pub struct NodeConfig {
@@ -159,8 +156,7 @@ impl NodeConfig {
     /// If adding a node through the [`Lavalink`] client then you don't need to
     /// do this yourself.
     ///
-    /// [`Lavalink`]: ../client/struct.Lavalink.html
-    /// [`Node::connect`]: struct.Node.html#method.connect
+    /// [`Lavalink`]: crate::client::Lavalink
     pub fn new(
         user_id: UserId,
         shard_count: u64,
@@ -207,7 +203,7 @@ struct NodeRef {
 ///
 /// Please refer to the [module] documentation.
 ///
-/// [module]: index.html
+/// [module]: crate
 #[derive(Clone, Debug)]
 pub struct Node(Arc<NodeRef>);
 
@@ -219,8 +215,8 @@ impl Node {
     /// information about directly creating and using nodes. You are encouraged
     /// to use the [`Lavalink`] client instead.
     ///
-    /// [`Lavalink`]: ../client/struct.Lavalink.html
-    /// [module]: index.html
+    /// [`Lavalink`]: crate::client::Lavalink
+    /// [module]: crate
     pub async fn connect(
         config: NodeConfig,
         players: PlayerManager,
@@ -555,7 +551,7 @@ async fn backoff(
                     seconds,
                     config.address,
                 );
-                tokio_time::delay_for(Duration::from_secs(seconds)).await;
+                tokio_time::sleep(Duration::from_secs(seconds)).await;
 
                 seconds *= 2;
 

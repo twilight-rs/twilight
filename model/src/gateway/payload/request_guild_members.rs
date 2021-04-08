@@ -11,8 +11,6 @@ use std::{
 /// Provided IDs is invalid for the request.
 ///
 /// Returned by [`RequestGuildMembersBuilder::user_ids`].
-///
-/// [`RequestGuildMembersBuilder::user_ids`]: struct.RequestGuildMembersBuilder.html#method.user_ids
 #[derive(Clone, Debug)]
 #[non_exhaustive]
 pub enum UserIdsError {
@@ -47,8 +45,6 @@ impl RequestGuildMembers {
     ///
     /// This is an alias to [`RequestGuildMembersBuilder::new`]. Refer to its
     /// documentation for more information.
-    ///
-    /// [`RequestGuildMembersBuilder::new`]: struct.RequestGuildMembersBuilder.html#method.new
     pub fn builder(guild_id: GuildId) -> RequestGuildMembersBuilder {
         RequestGuildMembersBuilder::new(guild_id)
     }
@@ -63,8 +59,6 @@ pub struct RequestGuildMembersBuilder {
 impl RequestGuildMembersBuilder {
     /// Create a new builder to configure and construct a
     /// [`RequestGuildMembers`].
-    ///
-    /// [`RequestGuildMembers`]: struct.RequestGuildMembers.html
     pub fn new(guild_id: GuildId) -> Self {
         Self {
             guild_id,

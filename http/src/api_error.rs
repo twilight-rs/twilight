@@ -42,6 +42,7 @@ pub enum ErrorCode {
     /// Unknown ban
     UnknownBan,
     /// Unknown SKU
+    #[allow(clippy::upper_case_acronyms)]
     UnknownSKU,
     /// Unknown Store Listing
     UnknownStoreListing,
@@ -59,6 +60,8 @@ pub enum ErrorCode {
     BotsCannotUseEndpoint,
     /// Only bots can use this endpoint
     OnlyBotsCanUseEndpoint,
+    /// Message cannot be edited due to announcement rate limits
+    AnnouncementRateLimitReached,
     /// Maximum number of guilds reached (100)
     MaximumGuildsReached,
     /// Maximum number of friends reached (1000)
@@ -94,6 +97,7 @@ pub enum ErrorCode {
     /// Invalid account type
     InvalidAccountType,
     /// Cannot execute action on a DM channel
+    #[allow(clippy::upper_case_acronyms)]
     InvalidDMChannelAction,
     /// Guild widget disabled
     GuildWidgetDisabled,
@@ -127,8 +131,14 @@ pub enum ErrorCode {
     InviteCodeInvalidOrTaken,
     /// Cannot execute action on a system message
     InvalidActionOnSystemMessage,
+    /// Cannot execute action on this channel type
+    CannotExecuteActionOnChannelType,
     /// Invalid OAuth2 access token provided
     InvalidOAuthAccessToken,
+    /// Invalid webhook token provided
+    InvalidWebhookToken,
+    /// Invalid recipient(s)
+    InvalidRecipient,
     /// A message provided was too old to bulk delete
     MessageTooOldToBulkDelete,
     /// Invalid form body (returned for both application/json and multipart/form-data bodies), or invalid Content-Type provided
@@ -137,6 +147,8 @@ pub enum ErrorCode {
     InviteAcceptedToGuildBotNotIn,
     /// Invalid API version provided
     InvalidApiVersion,
+    /// Invalid sticker sent
+    InvalidStickerSent,
     /// Reaction was blocked
     ReactionBlocked,
     /// API resource is currently overloaded. Try again a little later
@@ -176,6 +188,7 @@ impl ErrorCode {
             Self::UnknownRedistributable => 10036,
             Self::BotsCannotUseEndpoint => 20001,
             Self::OnlyBotsCanUseEndpoint => 20002,
+            Self::AnnouncementRateLimitReached => 20022,
             Self::MaximumGuildsReached => 30001,
             Self::MaximumFriendsReached => 30002,
             Self::MaximumPinsReached => 30003,
@@ -210,11 +223,15 @@ impl ErrorCode {
             Self::MessagePinnedInWrongChannel => 50019,
             Self::InviteCodeInvalidOrTaken => 50020,
             Self::InvalidActionOnSystemMessage => 50021,
+            Self::CannotExecuteActionOnChannelType => 50024,
             Self::InvalidOAuthAccessToken => 50025,
+            Self::InvalidWebhookToken => 50027,
+            Self::InvalidRecipient => 50033,
             Self::MessageTooOldToBulkDelete => 50034,
             Self::InvalidFormBodyOrContentType => 50035,
             Self::InviteAcceptedToGuildBotNotIn => 50036,
             Self::InvalidApiVersion => 50041,
+            Self::InvalidStickerSent => 50081,
             Self::ReactionBlocked => 90001,
             Self::ApiResourceOverloaded => 130_000,
             Self::Other(other) => *other,
@@ -251,6 +268,7 @@ impl From<u64> for ErrorCode {
             10036 => Self::UnknownRedistributable,
             20001 => Self::BotsCannotUseEndpoint,
             20002 => Self::OnlyBotsCanUseEndpoint,
+            20022 => Self::AnnouncementRateLimitReached,
             30001 => Self::MaximumGuildsReached,
             30002 => Self::MaximumFriendsReached,
             30003 => Self::MaximumPinsReached,
@@ -285,11 +303,15 @@ impl From<u64> for ErrorCode {
             50019 => Self::MessagePinnedInWrongChannel,
             50020 => Self::InviteCodeInvalidOrTaken,
             50021 => Self::InvalidActionOnSystemMessage,
+            50024 => Self::CannotExecuteActionOnChannelType,
             50025 => Self::InvalidOAuthAccessToken,
+            50027 => Self::InvalidWebhookToken,
+            50033 => Self::InvalidRecipient,
             50034 => Self::MessageTooOldToBulkDelete,
             50035 => Self::InvalidFormBodyOrContentType,
             50036 => Self::InviteAcceptedToGuildBotNotIn,
             50041 => Self::InvalidApiVersion,
+            50081 => Self::InvalidStickerSent,
             90001 => Self::ReactionBlocked,
             130_000 => Self::ApiResourceOverloaded,
             other => Self::Other(other),
@@ -326,6 +348,7 @@ impl Display for ErrorCode {
             Self::UnknownRedistributable => f.write_str("Unknown redistributable"),
             Self::BotsCannotUseEndpoint => f.write_str("Bots cannot use this endpoint"),
             Self::OnlyBotsCanUseEndpoint => f.write_str("Only bots can use this endpoint"),
+            Self::AnnouncementRateLimitReached => f.write_str("Message cannot be edited due to announcement rate limits"),
             Self::MaximumGuildsReached => f.write_str("Maximum number of guilds reached (100)"),
             Self::MaximumFriendsReached => f.write_str("Maximum number of friends reached (1000)"),
             Self::MaximumPinsReached => f.write_str("Maximum number of pins reached for the channel (50)"),
@@ -360,11 +383,15 @@ impl Display for ErrorCode {
             Self::MessagePinnedInWrongChannel => f.write_str("A message can only be pinned to the channel it was sent in"),
             Self::InviteCodeInvalidOrTaken => f.write_str("Invite code was either invalid or taken"),
             Self::InvalidActionOnSystemMessage => f.write_str("Cannot execute action on a system message"),
+            Self::CannotExecuteActionOnChannelType => f.write_str("Cannot execute action on channel type"),
             Self::InvalidOAuthAccessToken => f.write_str("Invalid OAuth2 access token provided"),
+            Self::InvalidWebhookToken => f.write_str("Invalid webhook token provided."),
+            Self::InvalidRecipient => f.write_str("Invalid recipient(s)"),
             Self::MessageTooOldToBulkDelete => f.write_str("A message provided was too old to bulk delete"),
             Self::InvalidFormBodyOrContentType => f.write_str("Invalid form body (returned for both application/json and multipart/form-data bodies), or invalid Content-Type provided"),
             Self::InviteAcceptedToGuildBotNotIn => f.write_str("An invite was accepted to a guild the application's bot is not in"),
             Self::InvalidApiVersion => f.write_str("Invalid API version provided"),
+            Self::InvalidStickerSent => f.write_str("Invalid sticker sent"),
             Self::ReactionBlocked => f.write_str("Reaction was blocked"),
             Self::ApiResourceOverloaded => f.write_str("API resource is currently overloaded. Try again a little later"),
             Self::Other(number) => write!(f, "An error code Twilight doesn't have registered: {}", number),
@@ -482,8 +509,7 @@ impl Display for MessageApiError {
 
 /// Field within a [`MessageApiError`] [embed] list.
 ///
-/// [`MessageApiError`]: struct.MessageApiError.html
-/// [embed]: struct.MessageApiError.html#structfield.embed
+/// [embed]: MessageApiError::embed
 #[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
 #[non_exhaustive]
 #[serde(rename_all = "snake_case")]
@@ -503,12 +529,15 @@ impl Display for MessageApiErrorEmbedField {
     }
 }
 
-#[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
+#[derive(Clone, Debug, Deserialize, Serialize)]
 #[non_exhaustive]
 pub struct RatelimitedApiError {
+    /// Whether the ratelimit is a global ratelimit.
     pub global: bool,
+    /// Human readable message provided by the API.
     pub message: String,
-    pub retry_after: u64,
+    /// Amount of time to wait before retrying.
+    pub retry_after: f64,
 }
 
 impl Display for RatelimitedApiError {
@@ -520,6 +549,14 @@ impl Display for RatelimitedApiError {
         }
 
         write!(f, "ratelimited for {}s", self.retry_after)
+    }
+}
+
+impl Eq for RatelimitedApiError {}
+
+impl PartialEq for RatelimitedApiError {
+    fn eq(&self, other: &Self) -> bool {
+        self.global == other.global && self.message == other.message
     }
 }
 
@@ -595,7 +632,7 @@ mod tests {
         let expected = RatelimitedApiError {
             global: true,
             message: "You are being rate limited.".to_owned(),
-            retry_after: 6457,
+            retry_after: 6.457,
         };
 
         serde_test::assert_tokens(
@@ -610,7 +647,7 @@ mod tests {
                 Token::Str("message"),
                 Token::Str("You are being rate limited."),
                 Token::Str("retry_after"),
-                Token::U64(6457),
+                Token::F64(6.457),
                 Token::StructEnd,
             ],
         );

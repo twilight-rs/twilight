@@ -11,8 +11,6 @@ use twilight_model::gateway::{payload::update_status::UpdateStatusInfo, Intents}
 /// Large threshold configuration is invalid.
 ///
 /// Returned by [`ShardBuilder::large_threshold`].
-///
-/// [`ShardBuilder::large_threshold`]: struct.ShardBuilder.html#method.large_threshold
 #[derive(Debug)]
 pub enum LargeThresholdError {
     /// Provided large threshold value is too few in number.
@@ -41,8 +39,6 @@ impl Error for LargeThresholdError {}
 /// Shard ID configuration is invalid.
 ///
 /// Returned by [`ShardBuilder::shard`].
-///
-/// [`ShardBuilder::shard`]: struct.ShardBuilder.html#method.shard
 #[derive(Debug)]
 pub enum ShardIdError {
     /// Provided shard ID is higher than provided total shard count.
@@ -90,10 +86,9 @@ impl Error for ShardIdError {}
 /// # Ok(()) }
 /// ```
 ///
-/// [`ShardBuilder::new`]: #method.new
-/// [`Shard`]: struct.Shard.html
-/// [`large_threshold`]: #method.large_threshold
-/// [`shard`]: #method.shard
+/// [`ShardBuilder::new`]: Self::new
+/// [`large_threshold`]: Self::large_threshold
+/// [`shard`]: Self::shard
 #[derive(Clone, Debug)]
 pub struct ShardBuilder(pub(crate) Config);
 
@@ -118,7 +113,7 @@ impl ShardBuilder {
             presence: None,
             queue: Arc::new(Box::new(LocalQueue::new())),
             shard: [0, 1],
-            token,
+            token: token.into_boxed_str(),
             session_id: None,
             sequence: None,
         })
@@ -131,7 +126,7 @@ impl ShardBuilder {
 
     /// Set the URL used for connecting to Discord's gateway
     pub fn gateway_url(mut self, gateway_url: Option<String>) -> Self {
-        self.0.gateway_url = gateway_url;
+        self.0.gateway_url = gateway_url.map(String::into_boxed_str);
 
         self
     }
@@ -164,9 +159,6 @@ impl ShardBuilder {
     ///
     /// Returns [`LargeThresholdError::TooMany`] if the provided value is above
     /// 250.
-    ///
-    /// [`LargeThresholdError::TooFew`]: enum.LargeThresholdError.html#variant.TooFew
-    /// [`LargeThresholdError::TooMany`]: enum.LargeThresholdError.html#variant.TooMany
     pub fn large_threshold(mut self, large_threshold: u64) -> Result<Self, LargeThresholdError> {
         match large_threshold {
             0..=49 => {
@@ -206,8 +198,8 @@ impl ShardBuilder {
     /// The default value is a queue used only by this shard, or a queue used by
     /// all shards when ran by a [`Cluster`].
     ///
-    /// [`Cluster`]: ../cluster/struct.Cluster.html
-    /// [`queue`]: ../queue/index.html
+    /// [`Cluster`]: crate::cluster::Cluster
+    /// [`queue`]: crate::queue
     pub fn queue(mut self, queue: Arc<Box<dyn Queue>>) -> Self {
         self.0.queue = queue;
 
@@ -246,8 +238,6 @@ impl ShardBuilder {
     ///
     /// Returns [`ShardIdError::IdTooLarge`] if the shard ID to connect as is
     /// larger than the total.
-    ///
-    /// [`ShardIdError::IdTooLarge`]: enum.ShardIdError.html#variant.IdTooLarge
     pub fn shard(mut self, shard_id: u64, shard_total: u64) -> Result<Self, ShardIdError> {
         if shard_id >= shard_total {
             return Err(ShardIdError::IdTooLarge {

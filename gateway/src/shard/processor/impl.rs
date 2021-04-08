@@ -1,3 +1,5 @@
+#[cfg(feature = "compression")]
+use super::inflater::Inflater;
 use super::{
     super::{
         config::Config,
@@ -6,7 +8,6 @@ use super::{
         ShardStream,
     },
     emitter::{EmitJsonError, Emitter},
-    inflater::Inflater,
     session::{Session, SessionSendError},
     socket_forwarder::SocketForwarder,
 };
@@ -15,6 +16,7 @@ use async_tungstenite::tungstenite::{
     protocol::{frame::coding::CloseCode, CloseFrame},
     Error as TungsteniteError, Message,
 };
+#[cfg(feature = "compression")]
 use flate2::DecompressError;
 use futures_channel::mpsc::{TrySendError, UnboundedReceiver};
 use futures_util::stream::StreamExt;
@@ -151,6 +153,7 @@ impl Error for ProcessError {
 enum ReceivingEventError {
     /// Provided authorization token is invalid.
     AuthorizationInvalid { shard_id: u64, token: String },
+    #[cfg(feature = "compression")]
     /// Decompressing a frame from Discord failed.
     Decompressing {
         /// Reason for the error.
@@ -184,13 +187,20 @@ impl ReceivingEventError {
         matches!(
             self,
             ReceivingEventError::AuthorizationInvalid { .. }
-            | ReceivingEventError::IntentsDisallowed { .. }
-            | ReceivingEventError::IntentsInvalid { .. }
+                | ReceivingEventError::IntentsDisallowed { .. }
+                | ReceivingEventError::IntentsInvalid { .. }
         )
     }
 
     fn reconnectable(&self) -> bool {
-        matches!(self, ReceivingEventError::Decompressing { .. })
+        #[cfg(feature = "compression")]
+        {
+            matches!(self, ReceivingEventError::Decompressing { .. })
+        }
+        #[cfg(not(feature = "compression"))]
+        {
+            false
+        }
     }
 
     fn resumable(&self) -> bool {
@@ -205,6 +215,7 @@ impl Display for ReceivingEventError {
                 "the authorization token for shard {} is invalid",
                 shard_id
             )),
+            #[cfg(feature = "compression")]
             Self::Decompressing { .. } => f.write_str("a frame could not be decompressed"),
             Self::IntentsDisallowed { intents, shard_id } => f.write_fmt(format_args!(
                 "at least one of the intents ({:?}) for shard {} are disallowed",
@@ -235,9 +246,12 @@ pub struct ShardProcessor {
     pub properties: IdentifyProperties,
     pub rx: UnboundedReceiver<Message>,
     pub session: Arc<Session>,
+    #[cfg(feature = "compression")]
     inflater: Inflater,
-    url: String,
-    resume: Option<(u64, String)>,
+    #[cfg(not(feature = "compression"))]
+    buffer: Vec<u8>,
+    url: Box<str>,
+    resume: Option<(u64, Box<str>)>,
     wtx: WatchSender<Arc<Session>>,
 }
 
@@ -262,7 +276,10 @@ impl ShardProcessor {
 
         let properties = IdentifyProperties::new("twilight.rs", "twilight.rs", OS, "", "");
 
+        #[cfg(feature = "compression")]
         url.push_str("?v=8&compress=zlib-stream");
+        #[cfg(not(feature = "compression"))]
+        url.push_str("?v=8");
 
         let emitter = Emitter::new(listeners);
         emitter.event(Event::ShardConnecting(Connecting {
@@ -291,8 +308,11 @@ impl ShardProcessor {
             properties,
             rx,
             session,
+            #[cfg(feature = "compression")]
             inflater: Inflater::new(shard_id),
-            url,
+            #[cfg(not(feature = "compression"))]
+            buffer: Vec::new(),
+            url: url.into_boxed_str(),
             resume: None,
             wtx,
         };
@@ -349,7 +369,12 @@ impl ShardProcessor {
 
     async fn process(&mut self) -> Result<(), ProcessError> {
         let (op, seq, event_type) = {
+            #[cfg(feature = "compression")]
             let json = str::from_utf8_mut(self.inflater.buffer_mut())
+                .map_err(|source| ProcessError::PayloadNotUtf8 { source })?;
+
+            #[cfg(not(feature = "compression"))]
+            let json = str::from_utf8_mut(self.buffer.as_mut_slice())
                 .map_err(|source| ProcessError::PayloadNotUtf8 { source })?;
 
             tracing::trace!(%json, "Received JSON");
@@ -366,8 +391,18 @@ impl ShardProcessor {
                     // should be a good trade-off either way.
                     (op, seq, event_type.map(ToOwned::to_owned))
                 } else {
+                    #[cfg(feature = "compression")]
                     tracing::warn!(
                         json = ?self.inflater.buffer_ref(),
+                        shard_id = self.config.shard()[0],
+                        shard_total = self.config.shard()[1],
+                        seq = self.session.seq(),
+                        stage = ?self.session.stage(),
+                        "received payload without opcode",
+                    );
+                    #[cfg(not(feature = "compression"))]
+                    tracing::warn!(
+                        json = ?self.buffer,
                         shard_id = self.config.shard()[0],
                         shard_total = self.config.shard()[1],
                         seq = self.session.seq(),
@@ -412,7 +447,7 @@ impl ShardProcessor {
                 return Ok(());
             }
 
-            let seq = seq.ok_or_else(|| ProcessError::SequenceMissing)?;
+            let seq = seq.ok_or(ProcessError::SequenceMissing)?;
 
             if event_type.as_deref() == Some("RESUMED") {
                 self.process_resumed(seq);
@@ -426,11 +461,17 @@ impl ShardProcessor {
 
                 return Ok(());
             } else if event_type.as_deref() == Some("READY") {
-                let ready = json::from_slice::<ReadyMinimal>(self.inflater.buffer_mut()).map_err(
-                    |source| ProcessError::ParsingPayload {
+                #[cfg(feature = "compression")]
+                let buf_ref = self.inflater.buffer_mut();
+                #[cfg(not(feature = "compression"))]
+                let buf_ref = self.buffer.as_mut_slice();
+
+                let ready = json::from_slice::<ReadyMinimal>(buf_ref).map_err(|source| {
+                    ProcessError::ParsingPayload {
                         source: GatewayEventParsingError::Deserializing { source },
-                    },
-                )?;
+                    }
+                })?;
+
                 self.process_ready(&ready.d);
                 emitter.event(Event::Ready(Box::new(ready.d)));
 
@@ -444,7 +485,10 @@ impl ShardProcessor {
 
         // We already know from earlier that the payload is valid UTF-8, so we
         // can skip having to re-validate here since it hasn't been mutated.
+        #[cfg(feature = "compression")]
         let json = unsafe { str::from_utf8_unchecked_mut(self.inflater.buffer_mut()) };
+        #[cfg(not(feature = "compression"))]
+        let json = unsafe { str::from_utf8_unchecked_mut(self.buffer.as_mut_slice()) };
 
         self.emitter
             .json(op, Some(seq), event_type.as_deref(), json)
@@ -461,7 +505,8 @@ impl ShardProcessor {
         metrics::counter!("GatewayEvent", 1, "GatewayEvent" => "Dispatch");
 
         self.session.set_stage(Stage::Connected);
-        self.session.set_id(ready.session_id.clone());
+        self.session
+            .set_id(ready.session_id.clone().into_boxed_str());
 
         self.emitter.event(Event::ShardConnected(Connected {
             heartbeat_interval: self.session.heartbeat_interval(),
@@ -530,7 +575,7 @@ impl ShardProcessor {
             // it is some.
             let (seq, id) = self.resume.take().unwrap();
             tracing::debug!("resuming with sequence {}, session id {}", seq, id);
-            let payload = Resume::new(seq, &id, self.config.token());
+            let payload = Resume::new(seq, id.clone().into_string(), self.config.token());
 
             // Set id so it is correct for next resume.
             self.session.set_id(id);
@@ -615,10 +660,11 @@ impl ShardProcessor {
     ///
     /// Returns [`ReceivingEventError::AuthorizationInvalid`] if the provided authorization
     /// is invalid.
-    ///
-    /// [`ReceivingEventError::AuthorizationInvalid`]: enum.ReceivingEventError.html#variant.AuthorizationInvalid
     async fn next_payload(&mut self) -> Result<(), ReceivingEventError> {
+        #[cfg(feature = "compression")]
         self.inflater.clear();
+        #[cfg(not(feature = "compression"))]
+        self.buffer.clear();
 
         loop {
             // Returns None when the socket forwarder has ended, meaning the
@@ -654,27 +700,55 @@ impl ShardProcessor {
         msg: &'a mut Message,
     ) -> Result<bool, ReceivingEventError> {
         match msg {
+            #[allow(unused_variables)]
             Message::Binary(bin) => {
-                self.inflater.extend(&bin[..]);
+                #[cfg(feature = "compression")]
+                {
+                    self.inflater.extend(&bin[..]);
 
-                let bytes = match self.inflater.msg() {
-                    Ok(Some(bytes)) => bytes,
-                    Ok(None) => return Ok(false),
-                    Err(source) => return Err(ReceivingEventError::Decompressing { source }),
-                };
+                    let bytes = match self.inflater.msg() {
+                        Ok(Some(bytes)) => bytes,
+                        Ok(None) => return Ok(false),
+                        Err(source) => return Err(ReceivingEventError::Decompressing { source }),
+                    };
 
-                self.emitter.bytes(bytes);
+                    self.emitter.bytes(bytes);
 
-                Ok(true)
+                    Ok(true)
+                }
+                #[cfg(not(feature = "compression"))]
+                {
+                    /* Intentionally left empty as Discord should
+                     * not send binary payloads when not using compression
+                     */
+                    Ok(false)
+                }
             }
             Message::Close(close_frame) => {
                 self.handle_close(close_frame.as_ref()).await?;
 
                 Ok(false)
             }
+            #[allow(unused_variables)]
+            Message::Text(json) => {
+                #[cfg(feature = "compression")]
+                {
+                    /* Empty intentionally as discord does not
+                     * send text when comppresion is enabled
+                     */
+                    Ok(false)
+                }
+                #[cfg(not(feature = "compression"))]
+                {
+                    self.emitter.bytes(json.as_bytes());
+                    self.buffer.extend_from_slice(json.as_bytes());
+
+                    Ok(true)
+                }
+            }
             // Discord doesn't appear to send Text messages, so we can ignore
             // these.
-            Message::Ping(_) | Message::Pong(_) | Message::Text(_) => Ok(false),
+            Message::Ping(_) | Message::Pong(_) => Ok(false),
         }
     }
 
@@ -722,12 +796,21 @@ impl ShardProcessor {
     }
 
     async fn connect(url: &str) -> Result<ShardStream, ConnectingError> {
+        use async_tungstenite::{
+            tokio::connect_async_with_config, tungstenite::protocol::WebSocketConfig,
+        };
+
         let url = Url::parse(url).map_err(|source| ConnectingError::ParsingUrl {
             source,
             url: url.to_owned(),
         })?;
 
-        let (stream, _) = async_tungstenite::tokio::connect_async(url)
+        let config = WebSocketConfig {
+            max_frame_size: None,
+            ..WebSocketConfig::default()
+        };
+
+        let (stream, _) = connect_async_with_config(url, Some(config))
             .await
             .map_err(|source| ConnectingError::Establishing { source })?;
 
@@ -741,7 +824,7 @@ impl ShardProcessor {
         self.session.set_stage(Stage::Identifying);
 
         let identify = Identify::new(IdentifyInfo {
-            compression: false,
+            compress: false,
             large_threshold: self.config.large_threshold(),
             intents: self.config.intents(),
             properties: self.properties.clone(),
@@ -771,7 +854,7 @@ impl ShardProcessor {
                 wait_in_seconds = wait.as_secs(),
                 "waiting before attempting a reconnect",
             );
-            tokio::time::delay_for(wait).await;
+            tokio::time::sleep(wait).await;
 
             // Await allowance when doing a full reconnect.
             self.config.queue.request(self.config.shard()).await;
@@ -799,7 +882,7 @@ impl ShardProcessor {
         }
 
         self.emitter.event(Event::ShardConnecting(Connecting {
-            gateway: self.url.clone(),
+            gateway: self.url.clone().into_string(),
             shard_id: self.config.shard()[0],
         }));
     }
@@ -862,11 +945,14 @@ impl ShardProcessor {
         self.rx = rx;
         self.session = Arc::new(Session::new(tx));
 
-        if let Err(why) = self.wtx.broadcast(Arc::clone(&self.session)) {
+        if let Err(why) = self.wtx.send(Arc::clone(&self.session)) {
             tracing::error!("failed to broadcast new session: {:?}", why);
         }
 
         self.session.set_stage(stage);
+        #[cfg(feature = "compression")]
         self.inflater.reset();
+        #[cfg(not(feature = "compression"))]
+        self.buffer.clear();
     }
 }

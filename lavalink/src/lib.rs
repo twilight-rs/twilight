@@ -35,7 +35,7 @@
 //!
 //! ```toml
 //! [dependencies]
-//! twilight-lavalink = { default-features = false, features = ["native"], version = "0.1" }
+//! twilight-lavalink = { default-features = false, features = ["native"], version = "0.2" }
 //! ```
 //!
 //! #### `rustls`
@@ -95,21 +95,20 @@
 //! }
 //! ```
 //!
-//! [`Lavalink::process`]: client/struct.Lavalink.html#method.process
 //! [Lavalink]: https://github.com/Frederikam/Lavalink
 //! [`async-tungstenite`]: https://crates.io/crates/async-tungstenite
 //! [`http`]: https://crates.io/crates/http
 //! [`rustls`]: https://crates.io/crates/rustls
-//! [client]: client/struct.Lavalink.html
+//! [client]: Lavalink
 //! [discord badge]: https://img.shields.io/discord/745809834183753828?color=%237289DA&label=discord%20server&logo=discord&style=for-the-badge
 //! [discord link]: https://discord.gg/7jj8n7D
 //! [github badge]: https://img.shields.io/badge/github-twilight-6f42c1.svg?style=for-the-badge&logo=github
 //! [github link]: https://github.com/twilight-rs/twilight
 //! [license badge]: https://img.shields.io/badge/license-ISC-blue.svg?style=for-the-badge&logo=pastebin
 //! [license link]: https://github.com/twilight-rs/twilight/blob/trunk/LICENSE.md
-//! [node]: node/struct.Node.html
-//! [process]: client/struct.Lavalink.html#method.process
-//! [rust badge]: https://img.shields.io/badge/rust-stable-93450a.svg?style=for-the-badge&logo=rust
+//! [node]: Node
+//! [process]: Lavalink::process
+//! [rust badge]: https://img.shields.io/badge/rust-1.48+-93450a.svg?style=for-the-badge&logo=rust
 
 #![deny(
     clippy::all,
@@ -117,6 +116,7 @@
     missing_docs,
     nonstandard_style,
     rust_2018_idioms,
+    broken_intra_doc_links,
     unused,
     warnings
 )]

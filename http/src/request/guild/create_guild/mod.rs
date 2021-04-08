@@ -76,8 +76,6 @@ struct CreateGuildFields {
 /// Role fields sent to Discord.
 ///
 /// Use [`RoleFieldsBuilder`] to build one.
-///
-/// [`RoleFieldsBuilder`]: struct.RoleFieldsBuilder.html
 #[derive(Clone, Debug, Eq, PartialEq, Serialize)]
 pub struct RoleFields {
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -88,7 +86,6 @@ pub struct RoleFields {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub mentionable: Option<bool>,
     pub name: String,
-    #[serde(rename = "permissions_new")]
     #[serde(skip_serializing_if = "Option::is_none")]
     pub permissions: Option<Permissions>,
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -99,10 +96,6 @@ impl From<RoleFieldsBuilder> for RoleFields {
     /// Convert a [`RoleFieldsBuilder`] into a [`RoleFields`].
     ///
     /// This is equivalent to calling [`RoleFieldsBuilder::build`].
-    ///
-    /// [`RoleFieldsBuilder`]: struct.RoleFieldsBuilder.html
-    /// [`RoleFields`]: struct.RoleFields.html
-    /// [`RoleFieldsBuilder::build`]: struct.RoleFieldsBuilder.html#method.build
     fn from(builder: RoleFieldsBuilder) -> Self {
         builder.build()
     }
@@ -111,8 +104,6 @@ impl From<RoleFieldsBuilder> for RoleFields {
 /// Variants of channel fields sent to Discord.
 ///
 /// Use [`GuildChannelFieldsBuilder`] to build one.
-///
-/// [`GuildChannelFieldsBuilder`]: struct.GuildChannelFieldsBuilder.html
 #[derive(Clone, Debug, Eq, PartialEq, Serialize)]
 #[non_exhaustive]
 #[serde(untagged)]
@@ -135,8 +126,6 @@ impl GuildChannelFields {
 /// Category channel fields sent to Discord.
 ///
 /// Use [`CategoryFieldsBuilder`] to build one.
-///
-/// [`CategoryFieldsBuilder`]: struct.CategoryFieldsBuilder.html
 #[derive(Clone, Debug, Eq, PartialEq, Serialize)]
 pub struct CategoryFields {
     pub id: ChannelId,
@@ -150,8 +139,6 @@ pub struct CategoryFields {
 /// Text channel fields sent to Discord.
 ///
 /// Use [`TextFieldsBuilder`] to build one.
-///
-/// [`TextFieldsBuilder`]: struct.TextFieldsBuilder.html
 #[derive(Clone, Debug, Eq, PartialEq, Serialize)]
 pub struct TextFields {
     pub id: ChannelId,
@@ -179,8 +166,6 @@ impl From<TextFieldsBuilder> for TextFields {
 /// Voice channel fields sent to Discord.
 ///
 /// Use [`VoiceFieldsBuilder`] to build one.
-///
-/// [`VoiceFieldsBuilder`]: struct.VoiceFieldsBuilder.html
 #[derive(Clone, Debug, Eq, PartialEq, Serialize)]
 pub struct VoiceFields {
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -211,8 +196,6 @@ impl From<VoiceFieldsBuilder> for VoiceFields {
 /// # Errors
 ///
 /// Returns [`CreateGuildError::NameInvalid`] if the name length is too short or too long.
-///
-/// [`CreateGuildError::NameInvalid`]: enum.CreateGuildError.html#variant.NameInvalid
 pub struct CreateGuild<'a> {
     fields: CreateGuildFields,
     fut: Option<Pending<'a, PartialGuild>>,
@@ -297,8 +280,6 @@ impl<'a> CreateGuild<'a> {
     /// # Errors
     ///
     /// Returns [`CreateGuildError::TooManyChannels`] if the number of channels is over 500.
-    ///
-    /// [`CreateGuildError::TooManyChannels`]: enum.CreateGuildError.html#variant.TooManyChannels
     pub fn channels(mut self, channels: Vec<GuildChannelFields>) -> Result<Self, CreateGuildError> {
         // Error 30013
         // <https://discordapp.com/developers/docs/topics/opcodes-and-status-codes#json>
@@ -357,7 +338,7 @@ impl<'a> CreateGuild<'a> {
     /// first position. Discord understands the first role in the list to override @everyone.
     /// If there are roles, this replaces the first role in the position.
     ///
-    /// [`roles`]: #method.roles
+    /// [`roles`]: Self::roles
     pub fn override_everyone(mut self, everyone: impl Into<RoleFields>) -> Self {
         if let Some(roles) = self.fields.roles.as_mut() {
             roles.remove(0);
@@ -399,8 +380,6 @@ impl<'a> CreateGuild<'a> {
     ///
     /// Returns [`CreateGuildError::TooManyRoles`] if the number of roles is
     /// over 250.
-    ///
-    /// [`CreateGuildError::TooManyRoles`]: enum.CreateGuildError.html#variant.TooManyRoles
     pub fn roles(mut self, mut roles: Vec<RoleFields>) -> Result<Self, CreateGuildError> {
         if roles.len() > 250 {
             return Err(CreateGuildError::TooManyRoles { roles });

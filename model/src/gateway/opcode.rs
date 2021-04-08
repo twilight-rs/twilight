@@ -1,21 +1,34 @@
 use serde_repr::{Deserialize_repr, Serialize_repr};
 
+/// Gateway opcodes.
 #[derive(
     Clone, Copy, Debug, Deserialize_repr, Eq, Hash, PartialEq, PartialOrd, Ord, Serialize_repr,
 )]
 #[repr(u8)]
 pub enum OpCode {
+    /// An event was received.
     Event = 0,
+    /// Fired periodically to keep connection alive.
     Heartbeat = 1,
+    /// Start a new session.
     Identify = 2,
+    /// Update the client's presence information.
     StatusUpdate = 3,
+    /// Join, leave or move between voice channels.
     VoiceStateUpdate = 4,
+    /// Voice ping checking. This opcode is deprecated.
     VoiceServerPing = 5,
+    /// Resume a previously disconnected session.
     Resume = 6,
+    /// Received to indicate a reconnect is required.
     Reconnect = 7,
+    /// Request a list of members for a guild.
     RequestGuildMembers = 8,
+    /// Received when the session is invalidated.
     InvalidSession = 9,
+    /// Received after connecting, contains heartbeat interval.
     Hello = 10,
+    /// Received in response to a heartbeat.
     HeartbeatAck = 11,
 }
 

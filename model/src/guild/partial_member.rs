@@ -7,6 +7,8 @@ pub struct PartialMember {
     pub joined_at: Option<String>,
     pub mute: bool,
     pub nick: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub premium_since: Option<String>,
     pub roles: Vec<RoleId>,
 }
 
@@ -22,6 +24,7 @@ mod tests {
             joined_at: Some("timestamp".to_owned()),
             mute: true,
             nick: Some("a nickname".to_owned()),
+            premium_since: None,
             roles: vec![RoleId(1)],
         };
 

@@ -3,8 +3,11 @@ use serde::{Deserialize, Serialize};
 
 #[derive(Clone, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
 pub struct MessageReference {
-    pub channel_id: ChannelId,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub channel_id: Option<ChannelId>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub guild_id: Option<GuildId>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub message_id: Option<MessageId>,
 }
 
@@ -16,7 +19,7 @@ mod tests {
     #[test]
     fn test_minimal() {
         let value = MessageReference {
-            channel_id: ChannelId(1),
+            channel_id: Some(ChannelId(1)),
             guild_id: None,
             message_id: None,
         };
@@ -26,15 +29,12 @@ mod tests {
             &[
                 Token::Struct {
                     name: "MessageReference",
-                    len: 3,
+                    len: 1,
                 },
                 Token::Str("channel_id"),
+                Token::Some,
                 Token::NewtypeStruct { name: "ChannelId" },
                 Token::Str("1"),
-                Token::Str("guild_id"),
-                Token::None,
-                Token::Str("message_id"),
-                Token::None,
                 Token::StructEnd,
             ],
         );
@@ -43,7 +43,7 @@ mod tests {
     #[test]
     fn test_complete() {
         let value = MessageReference {
-            channel_id: ChannelId(1),
+            channel_id: Some(ChannelId(1)),
             guild_id: Some(GuildId(2)),
             message_id: Some(MessageId(3)),
         };
@@ -56,6 +56,7 @@ mod tests {
                     len: 3,
                 },
                 Token::Str("channel_id"),
+                Token::Some,
                 Token::NewtypeStruct { name: "ChannelId" },
                 Token::Str("1"),
                 Token::Str("guild_id"),

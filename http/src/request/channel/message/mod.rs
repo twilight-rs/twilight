@@ -1,4 +1,3 @@
-pub mod allowed_mentions;
 pub mod create_message;
 pub mod crosspost_message;
 pub mod get_channel_messages;

@@ -26,7 +26,6 @@ impl UpdateStatus {
 
 #[derive(Clone, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
 pub struct UpdateStatusInfo {
-    #[serde(skip_serializing_if = "Option::is_none")]
     pub activities: Option<Vec<Activity>>,
     pub afk: bool,
     pub since: Option<u64>,

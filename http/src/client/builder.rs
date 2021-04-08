@@ -1,62 +1,66 @@
-use super::{Client, State};
-use crate::{
-    error::{Error, Result},
-    ratelimiting::Ratelimiter,
-    request::channel::message::allowed_mentions::AllowedMentions,
+use super::{Client, HttpsConnector, State};
+use crate::{ratelimiting::Ratelimiter, request::channel::allowed_mentions::AllowedMentions};
+use hyper::{
+    client::{Client as HyperClient, HttpConnector},
+    header::HeaderMap,
 };
-use reqwest::{ClientBuilder as ReqwestClientBuilder, Proxy};
-use std::{sync::Arc, time::Duration};
+use std::{
+    sync::{atomic::AtomicBool, Arc},
+    time::Duration,
+};
 
 #[derive(Debug)]
 /// A builder for [`Client`].
-///
-/// [`Client`]: struct.Client.html
 pub struct ClientBuilder {
     pub(crate) default_allowed_mentions: Option<AllowedMentions>,
-    pub(crate) proxy: Option<Proxy>,
-    pub(crate) proxy_http: bool,
+    pub(crate) proxy: Option<Box<str>>,
     pub(crate) ratelimiter: Option<Ratelimiter>,
-    pub(crate) reqwest_client: Option<ReqwestClientBuilder>,
+    pub(crate) hyper_client: Option<HyperClient<HttpsConnector<HttpConnector>>>,
+    pub(crate) default_headers: Option<HeaderMap>,
     pub(crate) timeout: Duration,
-    pub(crate) token: Option<String>,
+    pub(crate) token: Option<Box<str>>,
+    pub(crate) use_http: bool,
 }
 
 impl ClientBuilder {
     /// Create a new builder to create a [`Client`].
-    ///
-    /// [`Client`]: struct.Client.html
     pub fn new() -> Self {
         Self::default()
     }
 
     /// Build the [`Client`].
-    ///
-    /// # Errors
-    ///
-    /// Errors if `reqwest` fails to build the client.
-    ///
-    /// [`Client`]: struct.Client.html
-    pub fn build(self) -> Result<Client> {
-        let mut builder = self
-            .reqwest_client
-            .unwrap_or_else(ReqwestClientBuilder::new)
-            .timeout(self.timeout);
-
-        if let Some(proxy) = self.proxy {
-            builder = builder.proxy(proxy)
-        }
-
-        Ok(Client {
-            state: Arc::new(State {
-                http: builder
+    pub fn build(self) -> Client {
+        let http = self.hyper_client.unwrap_or_else(|| {
+            #[cfg(feature = "hyper-rustls")]
+            let connector = hyper_rustls::HttpsConnector::with_native_roots();
+            #[cfg(all(feature = "hyper-tls", not(feature = "hyper-rustls")))]
+            let connector = {
+                // Workaround for https://github.com/hyperium/hyper-tls/pull/85
+                let tls = native_tls::TlsConnector::builder()
+                    .request_alpns(&["h2", "http/1.1"])
                     .build()
-                    .map_err(|source| Error::BuildingClient { source })?,
+                    .expect("TlsConnector::new() failure");
+                let mut http_conn = HttpConnector::new();
+                http_conn.enforce_http(false);
+                hyper_tls::HttpsConnector::from((http_conn, tls.into()))
+            };
+
+            hyper::client::Builder::default().build(connector)
+        });
+
+        Client {
+            state: Arc::new(State {
+                http,
+                default_headers: self.default_headers,
+                proxy: self.proxy,
                 ratelimiter: self.ratelimiter,
+                timeout: self.timeout,
+                token_invalid: AtomicBool::new(false),
                 token: self.token,
-                use_http: self.proxy_http,
                 default_allowed_mentions: self.default_allowed_mentions,
+                use_http: self.use_http,
             }),
-        })
+        }
     }
 
     /// Set the default allowed mentions setting to use on all messages sent through the HTTP
@@ -67,32 +71,41 @@ impl ClientBuilder {
         self
     }
 
-    /// Sets the proxy to use for all HTTP requests.
+    /// Set a pre-configured Hyper client builder to build off of.
     ///
-    /// This accepts a `reqwest::Proxy`.
-    pub fn proxy(mut self, proxy: Proxy) -> Self {
-        self.proxy.replace(proxy);
-
-        self
-    }
-
-    /// Set whether to proxy over HTTP.
-    ///
-    /// The default is `false`.
-    pub fn proxy_http(mut self, proxy_http: bool) -> Self {
-        self.proxy_http = proxy_http;
-
-        self
-    }
-
-    /// Set a pre-configured reqwest client builder to build off of.
-    ///
-    /// The proxy and timeout settings in the reqwest client will be overridden by
+    /// The proxy and timeout settings in the Hyper client will be overridden by
     /// those in this builder.
     ///
     /// The default client uses Rustls as its TLS backend.
-    pub fn reqwest_client(mut self, client: ReqwestClientBuilder) -> Self {
-        self.reqwest_client.replace(client);
+    pub fn hyper_client(mut self, client: HyperClient<HttpsConnector<HttpConnector>>) -> Self {
+        self.hyper_client.replace(client);
+
+        self
+    }
+
+    /// Set the proxy to use for all HTTP(S) requests.
+    ///
+    /// **Note** that this isn't currently a traditional proxy, but is for
+    /// working with something like [twilight's HTTP proxy server].
+    ///
+    /// # Examples
+    ///
+    /// Set the proxy to `twilight_http_proxy.internal`:
+    ///
+    /// ```rust
+    /// use twilight_http::Client;
+    ///
+    /// # fn main() -> Result<(), Box<dyn std::error::Error>> {
+    /// let client = Client::builder()
+    ///     .proxy("twilight_http_proxy.internal", true)
+    ///     .build();
+    /// # Ok(()) }
+    /// ```
+    ///
+    /// [twilight's HTTP proxy server]: https://github.com/twilight-rs/http-proxy
+    pub fn proxy(mut self, proxy_url: impl Into<String>, use_http: bool) -> Self {
+        self.proxy.replace(proxy_url.into().into_boxed_str());
+        self.use_http = use_http;
 
         self
     }
@@ -103,9 +116,7 @@ impl ClientBuilder {
     /// before making a request.
     ///
     /// If this method is not called at all then a default ratelimiter will be
-    /// created by `ClientBuilder::build`.
-    ///
-    /// [`ClientBuilder::build`]: #method.build
+    /// created by [`ClientBuilder::build`].
     pub fn ratelimiter(mut self, ratelimiter: impl Into<Option<Ratelimiter>>) -> Self {
         self.ratelimiter = ratelimiter.into();
 
@@ -117,6 +128,13 @@ impl ClientBuilder {
     /// The default is 10 seconds.
     pub fn timeout(mut self, duration: Duration) -> Self {
         self.timeout = duration;
+
+        self
+    }
+
+    /// Set a group headers which are sent in every request.
+    pub fn default_headers(mut self, headers: HeaderMap) -> Self {
+        self.default_headers.replace(headers);
 
         self
     }
@@ -134,7 +152,7 @@ impl ClientBuilder {
             token.insert_str(0, "Bot ");
         }
 
-        self.token.replace(token);
+        self.token.replace(token.into_boxed_str());
 
         self
     }
@@ -144,12 +162,13 @@ impl Default for ClientBuilder {
     fn default() -> Self {
         Self {
             default_allowed_mentions: None,
+            hyper_client: None,
+            default_headers: None,
             proxy: None,
-            proxy_http: false,
-            reqwest_client: None,
             ratelimiter: Some(Ratelimiter::new()),
             timeout: Duration::from_secs(10),
             token: None,
+            use_http: false,
         }
     }
 }

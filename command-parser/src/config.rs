@@ -1,3 +1,18 @@
+//! Configuration for a [`Parser`].
+//!
+//! Provided are methods for [adding commands][`add_command`] and
+//! [removing them][`remove_command`], as well as
+//! [adding prefixes][`add_prefix`] and [removing prefixes][`remove_prefix`].
+//! You can also [iterate over commands][`commands`] and [prefixes][`prefixes`].
+//!
+//! [`Parser`]: super::Parser
+//! [`add_command`]: CommandParserConfig::add_command
+//! [`add_prefix`]: CommandParserConfig::add_prefix
+//! [`commands`]: CommandParserConfig::commands
+//! [`prefixes`]: CommandParserConfig::prefixes
+//! [`remove_command`]: CommandParserConfig::remove_command
+//! [`remove_prefix`]: CommandParserConfig::remove_prefix
+
 use std::borrow::Cow;
 use std::slice::{Iter, IterMut};
 
@@ -5,7 +20,7 @@ use crate::CaseSensitivity;
 
 /// Configuration for a [`Parser`].
 ///
-/// [`Parser`]: struct.Parser.html
+/// [`Parser`]: crate::Parser
 #[derive(Clone, Debug, Default)]
 pub struct CommandParserConfig<'a> {
     pub(crate) commands: Vec<CaseSensitivity>,
@@ -30,8 +45,8 @@ impl<'a> CommandParserConfig<'a> {
     /// Use the [`add_command`] and [`remove_command`] methods for an easier way to
     /// manage commands.
     ///
-    /// [`add_command`]: #method.add_command
-    /// [`remove_command`]: #method.remove_command
+    /// [`add_command`]: Self::add_command
+    /// [`remove_command`]: Self::remove_command
     pub fn commands_mut(&mut self) -> CommandsMut<'_> {
         CommandsMut {
             iter: self.commands.iter_mut(),
@@ -43,8 +58,8 @@ impl<'a> CommandParserConfig<'a> {
     /// Use the [`add_prefix`] and [`remove_prefix`] methods for an easier way
     /// to manage prefixes.
     ///
-    /// [`add_prefix`]: #method.add_prefix
-    /// [`remove_prefix`]: #method.remove_prefix
+    /// [`add_prefix`]: Self::add_prefix
+    /// [`remove_prefix`]: Self::remove_prefix
     pub fn prefixes(&self) -> Prefixes<'_> {
         Prefixes {
             iter: self.prefixes.iter(),
@@ -71,8 +86,6 @@ impl<'a> CommandParserConfig<'a> {
     /// config.add_command("ping", true);
     /// assert_eq!(1, config.commands().len());
     /// ```
-    ///
-    /// [`CommandBuilder`]: struct.CommandBuilder.html
     pub fn add_command(&mut self, name: impl Into<String>, case_sensitive: bool) -> bool {
         self._add_command(name.into(), case_sensitive)
     }
@@ -159,6 +172,7 @@ impl<'a> CommandParserConfig<'a> {
     }
 }
 
+/// Iterator over the parser configuration's immutably borrowed commands.
 pub struct Commands<'a> {
     iter: Iter<'a, CaseSensitivity>,
 }
@@ -177,6 +191,7 @@ impl<'a> Iterator for Commands<'a> {
 
 impl<'a> ExactSizeIterator for Commands<'a> {}
 
+/// Iterator over the parser configuration's mutably borrowed commands.
 pub struct CommandsMut<'a> {
     iter: IterMut<'a, CaseSensitivity>,
 }
@@ -195,6 +210,7 @@ impl<'a> Iterator for CommandsMut<'a> {
 
 impl<'a> ExactSizeIterator for CommandsMut<'a> {}
 
+/// Iterator over the parser configuration's immutably borrowed prefixes.
 pub struct Prefixes<'a> {
     iter: Iter<'a, Cow<'a, str>>,
 }
@@ -213,6 +229,7 @@ impl<'a> Iterator for Prefixes<'a> {
 
 impl<'a> ExactSizeIterator for Prefixes<'a> {}
 
+/// Iterator over the parser configuration's mutably borrowed prefixes.
 pub struct PrefixesMut<'a> {
     iter: IterMut<'a, Cow<'a, str>>,
 }

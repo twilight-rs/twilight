@@ -20,6 +20,7 @@ mod private {
     impl<'a> Sealed for DeleteMessages<'a> {}
     impl<'a> Sealed for UpdateChannel<'a> {}
     impl<'a> Sealed for CreateWebhook<'a> {}
+    impl Sealed for DeleteWebhookMessage<'_> {}
     impl<'a> Sealed for DeleteWebhook<'a> {}
     impl<'a> Sealed for UpdateWebhook<'a> {}
     impl<'a> Sealed for CreatePin<'a> {}
@@ -45,6 +46,7 @@ mod private {
     impl<'a> Sealed for DeleteRole<'a> {}
     impl<'a> Sealed for UpdateRole<'a> {}
     impl<'a> Sealed for UpdateGuild<'a> {}
+    impl Sealed for UpdateWebhookMessage<'_> {}
 }
 
 impl AuditLogReasonError {

@@ -1,6 +1,6 @@
 use futures::future;
 use std::error::Error;
-use twilight_http::client::{Client, Proxy};
+use twilight_http::Client;
 use twilight_model::id::ChannelId;
 
 #[tokio::main]
@@ -9,10 +9,9 @@ async fn main() -> Result<(), Box<dyn Error + Send + Sync>> {
     tracing_subscriber::fmt::init();
 
     let client = Client::builder()
-        .proxy(Proxy::all("http://localhost:3000")?)
-        .proxy_http(true)
+        .proxy("localhost:3000", true)
         .ratelimiter(None)
-        .build()?;
+        .build();
     let channel_id = ChannelId(620_980_184_606_048_278);
 
     future::join_all((1u8..=10).map(|x| {

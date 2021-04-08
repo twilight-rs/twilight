@@ -9,8 +9,6 @@ use twilight_model::channel::embed::EmbedField;
 /// Error creating an embed field.
 ///
 /// This is returned from [`EmbedFieldBuilder::new`].
-///
-/// [`EmbedFieldBuilder::new`]: struct.EmbedFieldBuilder.html#method.new
 #[derive(Clone, Debug, Eq, PartialEq)]
 #[non_exhaustive]
 pub enum EmbedFieldError {
@@ -65,8 +63,8 @@ impl Error for EmbedFieldError {}
 ///
 /// Fields are not inlined by default. Use [`inline`] to inline a field.
 ///
-/// [`EmbedBuilder::field`]: ../builder/struct.EmbedBuilder.html#method.field
-/// [`inline`]: #method.inline
+/// [`EmbedBuilder::field`]: crate::EmbedBuilder::field
+/// [`inline`]: Self::inline
 #[derive(Clone, Debug, Eq, PartialEq)]
 #[must_use = "must be built into an embed field"]
 pub struct EmbedFieldBuilder(EmbedField);
@@ -76,14 +74,14 @@ impl EmbedFieldBuilder {
     ///
     /// This is used by [`new`].
     ///
-    /// [`new`]: #method.new
+    /// [`new`]: Self::new
     pub const NAME_LENGTH_LIMIT: usize = 256;
 
     /// The maximum number of UTF-16 code points that can be in a field value.
     ///
     /// This is used by [`new`].
     ///
-    /// [`new`]: #method.new
+    /// [`new`]: Self::new
     pub const VALUE_LENGTH_LIMIT: usize = 1024;
 
     /// Create a new default embed field builder.
@@ -104,11 +102,6 @@ impl EmbedFieldBuilder {
     ///
     /// Returns [`EmbedFieldError::ValueTooLong`] if the provided value
     /// is longer than 1024 UTF-16 code points.
-    ///
-    /// [`EmbedFieldError::NameEmpty`]: enum.EmbedFieldError.html#variant.NameEmpty
-    /// [`EmbedFieldError::NameTooLong`]: enum.EmbedFieldError.html#variant.NameTooLong
-    /// [`EmbedFieldError::ValueEmpty`]: enum.EmbedFieldError.html#variant.ValueEmpty
-    /// [`EmbedFieldError::ValueTooLong`]: enum.EmbedFieldError.html#variant.ValueTooLong
     pub fn new(name: impl Into<String>, value: impl Into<String>) -> Result<Self, EmbedFieldError> {
         Self::_new(name.into(), value.into())
     }
@@ -169,8 +162,6 @@ impl From<EmbedFieldBuilder> for EmbedField {
     /// Convert an embed field builder into an embed field.
     ///
     /// This is equivalent to calling [`EmbedFieldBuilder::build`].
-    ///
-    /// [`EmbedFieldBuilder::build`]: #method.build
     fn from(builder: EmbedFieldBuilder) -> Self {
         builder.build()
     }

@@ -2,6 +2,9 @@ name: Test
 
 on: [push, pull_request]
 
+env:
+  minrust: 1.48.0
+
 jobs:
   test:
     name: Test
@@ -100,3 +103,31 @@ jobs:
           RUSTFLAGS: ${{ matrix.rustflags }}
         run: |
           cargo test --no-default-features --features ${{ matrix.features }} ${{ matrix.additional }}
+
+  MSRV:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout sources
+        uses: actions/checkout@v2
+
+      - name: Install toolchain (${{ env.minrust }})
+        id: tc
+        uses: actions-rs/toolchain@v1
+        with:
+          toolchain: ${{ env.minrust }}
+          profile: minimal
+          override: true
+
+      - name: Setup cache
+        uses: actions/cache@v2
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+            target
+          key: ${{ runner.os }}-msrv-${{ steps.tc.outputs.rustc_hash }}-${{ hashFiles('**/Cargo.lock') }}
+
+      - run: cargo check --examples --tests --all-features
+        env:
+          RUSTFLAGS: '-C target-cpu=native'

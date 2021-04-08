@@ -14,7 +14,7 @@ Update a cache with events that come in through the gateway:
 
 ```rust,no_run
 use std::env;
-use tokio::stream::StreamExt;
+use futures::stream::StreamExt;
 use twilight_cache_inmemory::InMemoryCache;
 use twilight_gateway::{Intents, Shard};
 
@@ -45,6 +45,6 @@ All first-party crates are licensed under [ISC][LICENSE.md]
 [github link]: https://github.com/twilight-rs/twilight
 [license badge]: https://img.shields.io/badge/license-ISC-blue.svg?style=for-the-badge&logo=pastebin
 [license link]: https://github.com/twilight-rs/twilight/blob/trunk/LICENSE.md
-[rust badge]: https://img.shields.io/badge/rust-stable-93450a.svg?style=for-the-badge&logo=rust
+[rust badge]: https://img.shields.io/badge/rust-1.48+-93450a.svg?style=for-the-badge&logo=rust
 
 <!-- cargo-sync-readme end -->

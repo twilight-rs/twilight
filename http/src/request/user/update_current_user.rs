@@ -76,8 +76,6 @@ impl<'a> UpdateCurrentUser<'a> {
     ///
     /// Returns [`UpdateCurrentUserError::UsernameInvalid`] if the username length is too short or
     /// too long.
-    ///
-    /// [`UpdateCurrentUserError::UsernameInvalid`]: enum.UpdateCurrentUserError.html#variant.UsernameInvalid
     pub fn username(self, username: impl Into<String>) -> Result<Self, UpdateCurrentUserError> {
         self._username(username.into())
     }

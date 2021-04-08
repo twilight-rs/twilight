@@ -12,7 +12,7 @@ use twilight_model::{
 #[derive(Clone, Debug)]
 #[non_exhaustive]
 pub enum GetGuildPruneCountError {
-    /// The number of days is 0.
+    /// The number of days is 0 or greater than 30.
     DaysInvalid,
 }
 
@@ -53,16 +53,14 @@ impl<'a> GetGuildPruneCount<'a> {
     /// Set the number of days that a user must be inactive before being
     /// able to be pruned.
     ///
-    /// The number of days must be greater than 0.
+    /// The number of days must be greater than 0, and less than or equal to 30.
     ///
     /// # Errors
     ///
     /// Returns [`GetGuildPruneCountError::DaysInvalid`] if the number of days
     /// is 0.
-    ///
-    /// [`GetGuildPruneCountError::DaysInvalid`]: enum.GetGuildPruneCountError.html#variant.DaysInvalid
     pub fn days(mut self, days: u64) -> Result<Self, GetGuildPruneCountError> {
-        if validate::guild_prune_days(days) {
+        if !validate::guild_prune_days(days) {
             return Err(GetGuildPruneCountError::DaysInvalid);
         }
 
@@ -94,3 +92,24 @@ impl<'a> GetGuildPruneCount<'a> {
 }
 
 poll_req!(GetGuildPruneCount<'_>, GuildPrune);
+
+#[cfg(test)]
+mod test {
+    use super::GetGuildPruneCount;
+    use crate::Client;
+    use twilight_model::id::GuildId;
+
+    #[test]
+    fn test_days() {
+        fn days_valid(days: u64) -> bool {
+            let client = Client::new("");
+            let count = GetGuildPruneCount::new(&client, GuildId(0));
+            let days_result = count.days(days);
+            days_result.is_ok()
+        }
+
+        assert!(!days_valid(0));
+        assert!(days_valid(1));
+        assert!(!days_valid(u64::max_value()));
+    }
+}

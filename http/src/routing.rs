@@ -1,4 +1,4 @@
-use reqwest::Method;
+use hyper::Method;
 use std::{
     borrow::Cow,
     convert::TryFrom,
@@ -18,8 +18,6 @@ pub enum PathParseError {
     },
     /// When parsing into a [`Path::ChannelsIdMessagesId`] variant, the method
     /// must also be specified via its `TryFrom` impl.
-    ///
-    /// [`Path::ChannelsIdMessageId`]: enum.Path.html#variant.ChannelsIdMessagesId
     MessageIdWithoutMethod {
         /// The ID of the channel.
         channel_id: u64,
@@ -132,6 +130,8 @@ pub enum Path {
     UsersIdGuildsId,
     /// Operating on the voice regions available to the current user.
     VoiceRegions,
+    /// Operating on a message created by a webhook.
+    WebhooksIdTokenMessageId(u64),
     /// Operating on a webhook.
     WebhooksId(u64),
 }
@@ -246,6 +246,8 @@ impl TryFrom<(Method, &str)> for Path {
 #[derive(Clone, Debug)]
 #[non_exhaustive]
 pub enum Route {
+    /// Route information to add a user to a guild.
+    AddGuildMember { guild_id: u64, user_id: u64 },
     /// Route information to add a role to guild member.
     AddMemberRole {
         /// The ID of the guild.
@@ -432,6 +434,12 @@ pub enum Route {
         guild_id: u64,
         /// The ID of the role.
         role_id: u64,
+    },
+    /// Route information to delete a message created by a webhook.
+    DeleteWebhookMessage {
+        message_id: u64,
+        token: String,
+        webhook_id: u64,
     },
     /// Route information to delete a webhook.
     DeleteWebhook {
@@ -801,6 +809,12 @@ pub enum Route {
         /// The ID of the guild.
         guild_id: u64,
     },
+    /// Route information to update a message created by a webhook.
+    UpdateWebhookMessage {
+        message_id: u64,
+        token: String,
+        webhook_id: u64,
+    },
     /// Route information to update a webhook.
     UpdateWebhook {
         /// The token of the webhook.
@@ -821,6 +835,11 @@ impl Route {
     #[allow(clippy::cognitive_complexity, clippy::too_many_lines)]
     pub fn into_parts(self) -> (Method, Path, Cow<'static, str>) {
         match self {
+            Self::AddGuildMember { guild_id, user_id } => (
+                Method::PUT,
+                Path::GuildsIdMembersId(guild_id),
+                format!("guilds/{}/members/{}", guild_id, user_id).into(),
+            ),
             Self::AddMemberRole {
                 guild_id,
                 role_id,
@@ -1042,6 +1061,15 @@ impl Route {
                 Path::GuildsIdRolesId(guild_id),
                 format!("guilds/{}/roles/{}", guild_id, role_id).into(),
             ),
+            Self::DeleteWebhookMessage {
+                message_id,
+                token,
+                webhook_id,
+            } => (
+                Method::DELETE,
+                Path::WebhooksIdTokenMessageId(webhook_id),
+                format!("webhooks/{}/{}/messages/{}", webhook_id, token, message_id).into(),
+            ),
             Self::DeleteWebhook { token, webhook_id } => {
                 let mut path = format!("webhooks/{}", webhook_id);
 
@@ -1077,7 +1105,7 @@ impl Route {
                 limit,
                 user_id,
             } => {
-                let mut path = format!("guilds/{}/audit-logs", guild_id);
+                let mut path = format!("guilds/{}/audit-logs?", guild_id);
 
                 if let Some(action_type) = action_type {
                     let _ = write!(path, "action_type={}", action_type);
@@ -1503,6 +1531,15 @@ impl Route {
                 Path::GuildsIdRolesId(guild_id),
                 format!("guilds/{}/roles", guild_id).into(),
             ),
+            Self::UpdateWebhookMessage {
+                message_id,
+                token,
+                webhook_id,
+            } => (
+                Method::PATCH,
+                Path::WebhooksIdTokenMessageId(webhook_id),
+                format!("webhooks/{}/{}/messages/{}", webhook_id, token, message_id).into(),
+            ),
             Self::UpdateWebhook { token, webhook_id } => {
                 let mut path = format!("webhooks/{}", webhook_id);
 
@@ -1520,7 +1557,7 @@ impl Route {
 #[cfg(test)]
 mod tests {
     use super::{Path, PathParseError};
-    use reqwest::Method;
+    use hyper::Method;
     use std::{convert::TryFrom, error::Error, str::FromStr};
 
     #[test]

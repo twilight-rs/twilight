@@ -1,6 +1,7 @@
 use super::{super::json, session::SessionSendError};
 use async_tungstenite::tungstenite::Message as TungsteniteMessage;
 use futures_channel::mpsc::UnboundedSender;
+use serde::{Deserialize, Serialize};
 use std::{
     collections::VecDeque,
     convert::TryInto,
@@ -16,14 +17,16 @@ use twilight_model::gateway::payload::Heartbeat;
 ///
 /// This is obtained through [`Shard::info`].
 ///
-/// [`Shard`]: struct.Shard.html
-/// [`Shard::info`]: struct.Shard.html#method.info
-#[derive(Clone, Debug)]
+/// [`Shard`]: crate::shard::Shard
+/// [`Shard::info`]: crate::shard::Shard::info
+#[derive(Clone, Debug, Deserialize, Serialize)]
 pub struct Latency {
     average: Option<Duration>,
     heartbeats: u32,
     recent: VecDeque<Duration>,
+    #[serde(skip)]
     received: Option<Instant>,
+    #[serde(skip)]
     sent: Option<Instant>,
 }
 
@@ -206,7 +209,7 @@ impl Heartbeater {
         let mut last = true;
 
         loop {
-            tokio::time::delay_for(duration).await;
+            tokio::time::sleep(duration).await;
 
             // Check if a heartbeat acknowledgement was received.
             //

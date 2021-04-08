@@ -13,7 +13,7 @@ use std::{
     },
     time::{Duration, Instant},
 };
-use tokio::time::{delay_for, timeout};
+use tokio::time::{sleep, timeout};
 
 #[derive(Clone, Debug)]
 pub enum TimeRemaining {
@@ -118,7 +118,7 @@ pub struct BucketQueue {
 
 impl BucketQueue {
     pub fn push(&self, tx: Sender<Sender<Option<RatelimitHeaders>>>) {
-        let _ = self.tx.unbounded_send(tx);
+        let _sent = self.tx.unbounded_send(tx);
     }
 
     pub async fn pop(
@@ -182,7 +182,7 @@ impl BucketQueueTask {
                 self.global.0.lock().await;
             }
 
-            let _ = queue_tx.send(tx);
+            let _sent = queue_tx.send(tx);
 
             tracing::debug!(parent: &span, "starting to wait for response headers",);
 
@@ -234,7 +234,7 @@ impl BucketQueueTask {
         tracing::debug!(path=?self.path, "request got global ratelimited");
         self.global.lock();
         let lock = self.global.0.lock().await;
-        delay_for(Duration::from_millis(wait)).await;
+        sleep(Duration::from_millis(wait)).await;
         self.global.unlock();
 
         drop(lock);
@@ -275,7 +275,7 @@ impl BucketQueueTask {
             "waiting for ratelimit to pass",
         );
 
-        delay_for(wait).await;
+        sleep(wait).await;
 
         tracing::debug!(parent: &span, "done waiting for ratelimit to pass");
 

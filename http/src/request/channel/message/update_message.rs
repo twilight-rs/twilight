@@ -1,4 +1,4 @@
-use crate::request::{channel::message::allowed_mentions::AllowedMentions, prelude::*};
+use crate::request::{channel::allowed_mentions::AllowedMentions, prelude::*};
 use std::{
     error::Error,
     fmt::{Display, Formatter, Result as FmtResult},
@@ -104,9 +104,6 @@ struct UpdateMessageFields {
 ///     .await?;
 /// # Ok(()) }
 /// ```
-///
-/// [`ChannelId`]: ../../../../../twilight_model/id/struct.ChannelId.html
-/// [`MessageId`]: ../../../../../twilight_model/id/struct.MessageId.html
 pub struct UpdateMessage<'a> {
     channel_id: ChannelId,
     fields: UpdateMessageFields,
@@ -139,8 +136,6 @@ impl<'a> UpdateMessage<'a> {
     ///
     /// Returns [`UpdateMessageError::ContentInvalid`] if the content length is
     /// too long.
-    ///
-    /// [`UpdateMessageError::ContentInvalid`]: enum.UpdateMessageError.html#variant.ContentInvalid
     pub fn content(self, content: impl Into<Option<String>>) -> Result<Self, UpdateMessageError> {
         self._content(content.into())
     }
@@ -202,8 +197,7 @@ impl<'a> UpdateMessage<'a> {
     ///
     /// Use the [`build_solo`] method to get a [`AllowedMentions`] structure.
     ///
-    /// [`build_solo`]: ../allowed_mentions/struct.AllowedMentionsBuilder.html#method.build_solo
-    /// [`AllowedMentions`]: ../allowed_mentions/struct.AllowedMentions.html
+    /// [`build_solo`]: super::super::allowed_mentions::AllowedMentionsBuilder::build_solo
     pub fn allowed_mentions(mut self, allowed: AllowedMentions) -> Self {
         self.fields.allowed_mentions.replace(allowed);
 

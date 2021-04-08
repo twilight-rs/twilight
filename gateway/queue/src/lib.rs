@@ -18,8 +18,8 @@
 //! single-process [Sharding for Very Large Bots] through the use of bucket
 //! releasing.
 //!
-//! By default, the [`Cluster`] and [`Shard`]s use the [`LocalQueue`]. You can
-//! override this in the [`ClusterBuilder::queue`] and [`ShardBuilder::queue`]
+//! By default, the gateway's `Cluster` and `Shard`s use the [`LocalQueue`]. You
+//! can override this in the `ClusterBuilder::queue` and `ShardBuilder::queue`
 //! configuration methods.
 //!
 //! # Advanced use cases
@@ -30,12 +30,6 @@
 //! all so a [`Queue`] trait is provided that shards can use to make requests to
 //! create sessions.
 //!
-//! [`ClusterBuilder::queue`]: ../cluster/struct.ClusterBuilder.html#method.queue
-//! [`Cluster`]: ../cluster/struct.Cluster.html
-//! [`LargeBotQueue`]: struct.LargeBotQueue.html
-//! [`LocalQueue`]: struct.LocalQueue.html
-//! [`ShardBuilder::queue`]: ../shard/struct.ShardBuilder.html#method.queue
-//! [`Shard`]: ../shard/struct.Shard.html
 //! [Sharding for Very Large Bots]: https://discord.com/developers/docs/topics/gateway#sharding-for-very-large-bots
 
 mod day_limiter;
@@ -50,7 +44,7 @@ use futures_channel::{
 };
 use futures_util::{sink::SinkExt, stream::StreamExt};
 use std::{fmt::Debug, future::Future, pin::Pin, time::Duration};
-use tokio::time::delay_for;
+use tokio::time::sleep;
 
 /// Queue for shards to request the ability to initialize new sessions with the
 /// gateway.
@@ -59,7 +53,7 @@ use tokio::time::delay_for;
 /// cluster setup. Refer to the [module-level] documentation for more
 /// information.
 ///
-/// [module-level]: ./index.html
+/// [module-level]: crate
 pub trait Queue: Debug + Send + Sync {
     /// A shard has requested the ability to request a session initialization
     /// with the gateway.
@@ -70,13 +64,13 @@ pub trait Queue: Debug + Send + Sync {
 }
 
 /// A local, in-process implementation of a [`Queue`] which manages the
-/// connection attempts of one or more [`Shard`]s.
+/// connection attempts of one or more shards.
 ///
 /// The queue will take incoming requests and then queue them, releasing one of
 /// the requests every 6 seconds. The queue is necessary because there's a
 /// ratelimit on how often shards can initiate sessions.
 ///
-/// You usually won't need to handle this yourself, because the [`Cluster`] will
+/// You usually won't need to handle this yourself, because the `Cluster` will
 /// do that for you when managing multiple shards.
 ///
 /// # When not to use this
@@ -93,10 +87,6 @@ pub trait Queue: Debug + Send + Sync {
 /// If you can't use this, look into an alternative implementation of the
 /// [`Queue`], such as the [`gateway-queue`] broker.
 ///
-/// [`LargeBotQueue`]: ./struct.LargeBotQueue.html
-/// [`Cluster`]: ../cluster/struct.Cluster.html
-/// [`Queue`]: trait.Queue.html
-/// [`Shard`]: ../shard/struct.Shard.html
 /// [`gateway-queue`]: https://github.com/twilight-rs/gateway-queue
 #[derive(Clone, Debug)]
 pub struct LocalQueue(UnboundedSender<Sender<()>>);
@@ -124,7 +114,7 @@ async fn waiter(mut rx: UnboundedReceiver<Sender<()>>) {
         if let Err(err) = req.send(()) {
             tracing::warn!("skipping, send failed: {:?}", err);
         }
-        delay_for(DUR).await;
+        sleep(DUR).await;
     }
 }
 

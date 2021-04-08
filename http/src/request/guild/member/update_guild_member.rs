@@ -48,8 +48,6 @@ struct UpdateGuildMemberFields {
 /// Returns [`UpdateGuildMemberError::NicknameInvalid`] if the nickname length is too short or too
 /// long.
 ///
-/// [`UpdateGuildMemberError::NicknameInvalid`]: enum.UpdateGuildMemberError.html#variant.NicknameInvalid
-///
 /// [the discord docs]: https://discord.com/developers/docs/resources/guild#modify-guild-member
 pub struct UpdateGuildMember<'a> {
     fields: UpdateGuildMemberFields,
@@ -101,22 +99,20 @@ impl<'a> UpdateGuildMember<'a> {
     ///
     /// Returns [`UpdateGuildMemberError::NicknameInvalid`] if the nickname length is too short or
     /// too long.
-    ///
-    /// [`UpdateGuildMemberError::NicknameInvalid`]: enum.UpdateGuildMemberError.html#variant.NicknameInvalid
     pub fn nick(self, nick: impl Into<Option<String>>) -> Result<Self, UpdateGuildMemberError> {
         self._nick(nick.into())
     }
 
     fn _nick(mut self, nick: Option<String>) -> Result<Self, UpdateGuildMemberError> {
-        if let Some(nick) = nick.as_ref() {
+        if let Some(nick) = nick {
             if !validate::nickname(&nick) {
-                return Err(UpdateGuildMemberError::NicknameInvalid {
-                    nickname: nick.to_owned(),
-                });
+                return Err(UpdateGuildMemberError::NicknameInvalid { nickname: nick });
             }
-        }
 
-        self.fields.nick.replace(nick);
+            self.fields.nick.replace(Some(nick));
+        } else {
+            self.fields.nick = None;
+        }
 
         Ok(self)
     }

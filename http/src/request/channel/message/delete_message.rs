@@ -2,9 +2,6 @@ use crate::request::prelude::*;
 use twilight_model::id::{ChannelId, MessageId};
 
 /// Delete a message by [`ChannelId`] and [`MessageId`].
-///
-/// [`ChannelId`]: ../../../../twilight_model/id/struct.ChannelId.html
-/// [`MessageId`]: ../../../../twilight_model/id/struct.MessageId.html
 pub struct DeleteMessage<'a> {
     channel_id: ChannelId,
     fut: Option<Pending<'a, ()>>,

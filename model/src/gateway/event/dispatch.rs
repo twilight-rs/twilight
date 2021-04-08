@@ -10,8 +10,6 @@ use std::convert::TryFrom;
 ///
 /// You can deserialize into a `DispatchEvent` via
 /// [`DispatchEventWithTypeDeserializer`].
-///
-/// [`DispatchEventWithTypeDeserializer`]: struct.DispatchEventWithTypeDeserializer.html
 // **NOTE**: When adding a variant, be sure to add it to the DeserializeSeed
 // implementation.
 #[derive(Clone, Debug, Eq, PartialEq, Serialize)]
@@ -158,8 +156,6 @@ impl TryFrom<Event> for DispatchEvent {
 /// Deserialize into a [`DispatchEvent`] by knowing its event name.
 ///
 /// An event name is something like `"CHANNEL_CREATE"` or `"GUILD_MEMBER_ADD"`.
-///
-/// [`DispatchEvent`]: enum.DispatchEvent.html
 #[derive(PartialEq, Eq)]
 pub struct DispatchEventWithTypeDeserializer<'a>(&'a str);
 

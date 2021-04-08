@@ -5,7 +5,7 @@ use futures_channel::{
 };
 use futures_util::{sink::SinkExt, stream::StreamExt};
 use std::{fmt::Debug, future::Future, pin::Pin, time::Duration};
-use tokio::time::delay_for;
+use tokio::time::sleep;
 
 /// Queue built for single-process clusters that require identifying via
 /// [Sharding for Very Large Bots].
@@ -15,7 +15,7 @@ use tokio::time::delay_for;
 /// then refer to the [module-level] documentation.
 ///
 /// [Sharding for Very Large Bots]: https://discord.com/developers/docs/topics/gateway#sharding-for-very-large-bots
-/// [module-level]: ./index.html
+/// [module-level]: crate
 #[derive(Debug)]
 pub struct LargeBotQueue {
     buckets: Vec<UnboundedSender<Sender<()>>>,
@@ -69,7 +69,7 @@ async fn waiter(mut rx: UnboundedReceiver<Sender<()>>) {
         if let Err(err) = req.send(()) {
             tracing::warn!("skipping, send failed with: {:?}", err);
         }
-        delay_for(DUR).await;
+        sleep(DUR).await;
     }
 }
 

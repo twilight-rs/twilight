@@ -12,16 +12,14 @@
 //! Shards are configurable through the [`ShardBuilder`], which provides a clean
 //! interface for correctly configuring a shard.
 //!
-//! [`ShardBuilder`]: struct.ShardBuilder.html
-//! [`Event`]: ../../twilight_model/gateway/event/enum.Event.html
-//! [`Shard`]: struct.Shard.html
-//! [`Stage`]: stage/enum.Stage.html
-//! [`Disconnected`]: stage/enum.Stage.html#variant.Disconnected
-//! [`Resuming`]: stage/enum.Stage.html#variant.Resuming
-//! [channel deletions]: ../../twilight_model/gateway/event/enum.Event.html#variant.ChannelDelete
-//! [information about itself]: struct.Shard.html#method.info
-//! [new messages]: ../../twilight_model/gateway/event/enum.Event.html#variant.MessageCreate
+//! [`Event`]: ::twilight_model::gateway::event::Event
+//! [`Disconnected`]: Stage::Disconnected
+//! [`Resuming`]: Stage::Resuming
+//! [channel deletions]: ::twilight_model::gateway::event::Event::ChannelDelete
+//! [information about itself]: Shard::info
+//! [new messages]: ::twilight_model::gateway::event::Event::MessageCreate
 
+pub mod raw_message;
 pub mod stage;
 
 mod builder;
@@ -38,7 +36,8 @@ pub use self::{
     event::Events,
     processor::heartbeat::Latency,
     r#impl::{
-        CommandError, Information, ResumeSession, SessionInactiveError, Shard, ShardStartError,
+        CommandError, Information, ResumeSession, SendError, SessionInactiveError, Shard,
+        ShardStartError,
     },
     sink::ShardSink,
     stage::Stage,

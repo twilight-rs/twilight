@@ -88,8 +88,6 @@ impl<'a> GetReactions<'a> {
     /// # Errors
     ///
     /// Returns [`GetReactionsError::LimitInvalid`] if the amount is greater than 100.
-    ///
-    /// [`GetReactionsError::LimitInvalid`]: enum.GetReactionsError.html#variant.LimitInvalid
     pub fn limit(mut self, limit: u64) -> Result<Self, GetReactionsError> {
         if !validate::get_reactions_limit(limit) {
             return Err(GetReactionsError::LimitInvalid { limit });
@@ -106,7 +104,7 @@ impl<'a> GetReactions<'a> {
                 after: self.fields.after.map(|x| x.0),
                 before: self.fields.before.map(|x| x.0),
                 channel_id: self.channel_id.0,
-                emoji: self.emoji.to_owned(),
+                emoji: self.emoji.clone(),
                 limit: self.fields.limit,
                 message_id: self.message_id.0,
             },

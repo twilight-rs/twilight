@@ -12,16 +12,17 @@ name = "twilight-cache-inmemory"
 publish = false
 repository = "https://github.com/twilight-rs/twilight"
 readme = "README.md"
-version = "0.2.0"
+version = "0.3.4"
 
 [dependencies]
 bitflags = { default-features = false, version = "1" }
-dashmap = { default-features = false, version = "3" }
+dashmap = { default-features = false, version = "4.0" }
 serde = { default-features = false, features = ["derive", "rc"], version = "1" }
 twilight-model = { default-features = false, path = "../../model" }
 tracing = { default-features = false, features = ["std", "attributes"], version = "0.1" }
 
 [dev-dependencies]
+futures = { default-features = false, version = "0.3" }
 static_assertions = { default-features = false, version = "1" }
-tokio = { default-features = false, features = ["macros", "rt-core"], version = "0.2" }
+tokio = { default-features = false, features = ["macros", "rt-multi-thread"], version = "1.0" }
 twilight-gateway = { path = "../../gateway" }

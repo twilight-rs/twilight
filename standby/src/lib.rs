@@ -112,20 +112,15 @@
 //!
 //! For more examples, check out each of the methods on [`Standby`].
 //!
-//! [`Standby`]: struct.Standby.html
-//! [`Standby::process`]: struct.Standby.html#method.process
-//! [`Standby::wait_for`]: struct.Standby.html#method.wait_for
-//! [`Standby::wait_for_event`]: struct.Standby.html#method.wait_for_event
-//! [`Standby::wait_for_message`]: struct.Standby.html#method.wait_for_message
-//! [`Standby::wait_for_message_stream`]: struct.Standby.html#method.wait_for_message_stream
-//! [`Standby::wait_for_reaction`]: struct.Standby.html#method.wait_for_reaction
 //! [discord badge]: https://img.shields.io/discord/745809834183753828?color=%237289DA&label=discord%20server&logo=discord&style=for-the-badge
 //! [discord link]: https://discord.gg/7jj8n7D
 //! [github badge]: https://img.shields.io/badge/github-twilight-6f42c1.svg?style=for-the-badge&logo=github
 //! [github link]: https://github.com/twilight-rs/twilight
 //! [license badge]: https://img.shields.io/badge/license-ISC-blue.svg?style=for-the-badge&logo=pastebin
 //! [license link]: https://github.com/twilight-rs/twilight/blob/trunk/LICENSE.md
-//! [rust badge]: https://img.shields.io/badge/rust-stable-93450a.svg?style=for-the-badge&logo=rust
+//! [rust badge]: https://img.shields.io/badge/rust-1.48+-93450a.svg?style=for-the-badge&logo=rust
+
+#![deny(rust_2018_idioms, broken_intra_doc_links, unused, warnings)]
 
 mod futures;
 
@@ -196,6 +191,11 @@ struct StandbyRef {
 /// tasks to wait for an event.
 ///
 /// Refer to the crate-level documentation for more information.
+///
+/// # Cloning
+///
+/// Standby internally wraps its data within an Arc. This means that standby can
+/// be cloned and passed around tasks and threads cheaply.
 #[derive(Clone, Debug, Default)]
 pub struct Standby(Arc<StandbyRef>);
 
@@ -256,8 +256,7 @@ impl Standby {
     /// # Ok(()) }
     /// ```
     ///
-    /// [`Standby`]: struct.Standby.html
-    /// [`wait_for_stream`]: #method.wait_for_stream
+    /// [`wait_for_stream`]: Self::wait_for_stream
     pub fn wait_for<F: Fn(&Event) -> bool + Send + Sync + 'static>(
         &self,
         guild_id: GuildId,
@@ -311,8 +310,7 @@ impl Standby {
     /// # Ok(()) }
     /// ```
     ///
-    /// [`Standby`]: struct.Standby.html
-    /// [`wait_for`]: #method.wait_for
+    /// [`wait_for`]: Self::wait_for
     pub fn wait_for_stream<F: Fn(&Event) -> bool + Send + Sync + 'static>(
         &self,
         guild_id: GuildId,
@@ -362,8 +360,7 @@ impl Standby {
     /// # Ok(()) }
     /// ```
     ///
-    /// [`Standby`]: struct.Standby.html
-    /// [`wait_for_event_stream`]: #method.wait_for_event_stream
+    /// [`wait_for_event_stream`]: Self::wait_for_event_stream
     pub fn wait_for_event<F: Fn(&Event) -> bool + Send + Sync + 'static>(
         &self,
         check: impl Into<Box<F>>,
@@ -418,8 +415,7 @@ impl Standby {
     /// # Ok(()) }
     /// ```
     ///
-    /// [`Standby`]: struct.Standby.html
-    /// [`wait_for_event`]: #method.wait_for_event
+    /// [`wait_for_event`]: Self::wait_for_event
     pub fn wait_for_event_stream<F: Fn(&Event) -> bool + Send + Sync + 'static>(
         &self,
         check: impl Into<Box<F>>,
@@ -465,8 +461,7 @@ impl Standby {
     /// # Ok(()) }
     /// ```
     ///
-    /// [`Standby`]: struct.Standby.html
-    /// [`wait_for_message_stream`]: #method.wait_for_message_stream
+    /// [`wait_for_message_stream`]: Self::wait_for_message_stream
     pub fn wait_for_message<F: Fn(&MessageCreate) -> bool + Send + Sync + 'static>(
         &self,
         channel_id: ChannelId,
@@ -516,8 +511,7 @@ impl Standby {
     /// # Ok(()) }
     /// ```
     ///
-    /// [`Standby`]: struct.Standby.html
-    /// [`wait_for_message`]: #method.wait_for_message
+    /// [`wait_for_message`]: Self::wait_for_message
     pub fn wait_for_message_stream<F: Fn(&MessageCreate) -> bool + Send + Sync + 'static>(
         &self,
         channel_id: ChannelId,
@@ -562,8 +556,7 @@ impl Standby {
     /// # Ok(()) }
     /// ```
     ///
-    /// [`Standby`]: struct.Standby.html
-    /// [`wait_for_reaction_stream`]: #method.wait_for_reaction_stream
+    /// [`wait_for_reaction_stream`]: Self::wait_for_reaction_stream
     pub fn wait_for_reaction<F: Fn(&ReactionAdd) -> bool + Send + Sync + 'static>(
         &self,
         message_id: MessageId,
@@ -616,8 +609,7 @@ impl Standby {
     /// # Ok(()) }
     /// ```
     ///
-    /// [`Standby`]: struct.Standby.html
-    /// [`wait_for_reaction`]: #method.wait_for_reaction
+    /// [`wait_for_reaction`]: Self::wait_for_reaction
     pub fn wait_for_reaction_stream<F: Fn(&ReactionAdd) -> bool + Send + Sync + 'static>(
         &self,
         message_id: MessageId,
@@ -866,7 +858,7 @@ mod tests {
     use super::Standby;
     use futures_util::StreamExt;
     use static_assertions::assert_impl_all;
-    use std::{collections::HashMap, fmt::Debug};
+    use std::fmt::Debug;
     use twilight_model::{
         channel::{
             message::{Message, MessageType},
@@ -914,10 +906,12 @@ mod tests {
             mention_channels: Vec::new(),
             mention_everyone: false,
             mention_roles: Vec::new(),
-            mentions: HashMap::new(),
+            mentions: Vec::new(),
             pinned: false,
             reactions: Vec::new(),
             reference: None,
+            stickers: Vec::new(),
+            referenced_message: None,
             timestamp: String::new(),
             tts: false,
             webhook_id: None,
@@ -1001,7 +995,7 @@ mod tests {
     #[tokio::test]
     async fn test_wait_for_event() {
         let ready = Ready {
-            guilds: HashMap::new(),
+            guilds: Vec::new(),
             session_id: String::new(),
             shard: Some([5, 7]),
             user: CurrentUser {
