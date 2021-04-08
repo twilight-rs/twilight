@@ -285,7 +285,7 @@ pub fn get_guild_members_limit(value: u64) -> bool {
 }
 
 pub fn search_guild_members_limit(value: u64) -> bool {
-    value > 0 && value <= 100
+    value > 0 && value <= 1000
 }
 
 pub fn get_reactions_limit(value: u64) -> bool {

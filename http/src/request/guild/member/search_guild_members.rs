@@ -22,7 +22,7 @@ use simd_json::value::OwnedValue as Value;
 #[derive(Clone, Debug)]
 #[non_exhaustive]
 pub enum SearchGuildMembersError {
-    /// The limit is either 0 or more than 100.
+    /// The limit is either 0 or more than 1000.
     LimitInvalid {
         /// Provided limit.
         limit: u64,
@@ -40,7 +40,7 @@ impl Display for SearchGuildMembersError {
 impl Error for SearchGuildMembersError {}
 
 struct SearchGuildMembersFields {
-    query: Option<String>,
+    query: String,
     limit: Option<u64>,
 }
 
@@ -69,8 +69,7 @@ struct SearchGuildMembersFields {
 ///
 /// Returns [`SearchGuildMembersError::LimitInvalid`] if the limit is invalid.
 ///
-/// [`GUILD_MEMBERS`]: ../../../../twilight_model/gateway/struct.Intents.html#associatedconstant.GUILD_MEMBERS
-/// [`SearchGuildMembersError::LimitInvalid`]: enum.SearchGuildMembersError.html#variant.LimitInvalid
+/// [`GUILD_MEMBERS`]: twilight_model::gateway::Intents#GUILD_MEMBERS
 pub struct SearchGuildMembers<'a> {
     fields: SearchGuildMembersFields,
     fut: Option<Pending<'a, Bytes>>,
@@ -81,10 +80,7 @@ pub struct SearchGuildMembers<'a> {
 impl<'a> SearchGuildMembers<'a> {
     pub(crate) fn new(http: &'a Client, guild_id: GuildId, query: String) -> Self {
         Self {
-            fields: SearchGuildMembersFields {
-                query: Some(query),
-                limit: None,
-            },
+            fields: SearchGuildMembersFields { query, limit: None },
             fut: None,
             guild_id,
             http,
@@ -99,8 +95,6 @@ impl<'a> SearchGuildMembers<'a> {
     ///
     /// Returns [`SearchGuildMembersError::LimitInvalid`] if the limit is 0 or
     /// greater than 1000.
-    ///
-    /// [`SearchGuildMembersError::LimitInvalid`]: enum.GetGuildMembersError.html#variant.LimitInvalid
     pub fn limit(mut self, limit: u64) -> Result<Self, SearchGuildMembersError> {
         // Using get_guild_members_limit here as the limits are the same
         // and this endpoint is not officially documented yet.
@@ -114,13 +108,12 @@ impl<'a> SearchGuildMembers<'a> {
     }
 
     fn start(&mut self) -> Result<()> {
-        let query = self.fields.query.take();
         self.fut
             .replace(Box::pin(self.http.request_bytes(Request::from(
                 Route::SearchGuildMembers {
                     guild_id: self.guild_id.0,
                     limit: self.fields.limit,
-                    query: query.unwrap(), // The user cannot set this to None so it's safe
+                    query: self.fields.query.clone(),
                 },
             ))));
 
