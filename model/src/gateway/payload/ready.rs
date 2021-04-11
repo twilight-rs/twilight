@@ -24,7 +24,7 @@ mod tests {
 
     #[test]
     fn test_ready() {
-        let mut guilds = vec![
+        let guilds = vec![
             UnavailableGuild {
                 id: GuildId(1),
                 unavailable: true,
