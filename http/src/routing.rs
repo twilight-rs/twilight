@@ -147,7 +147,7 @@ pub enum Path {
     /// Operating on the voice regions available to the current user.
     VoiceRegions,
     /// Operating on a message created by a webhook.
-    WebhooksIdTokenMessageId(u64),
+    WebhooksIdTokenMessagesId(u64),
     /// Operating on a webhook.
     WebhooksId(u64),
 }
