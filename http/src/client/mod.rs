@@ -1598,7 +1598,7 @@ impl Client {
 
         result.map_err(|source| Error {
             kind: ErrorType::Parsing {
-                body: bytes.to_vec(),
+                body: bytes.clone(),
             },
             source: Some(Box::new(source)),
         })
