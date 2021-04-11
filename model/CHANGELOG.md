@@ -2,6 +2,30 @@
 
 Changelog for `twilight-model`.
 
+## [0.3.4] - 2021-04-04
+
+### Additions
+
+Support stage voice channel types ([#748] - [@vivian]).
+
+[#748]: https://github.com/twilight-rs/twilight/pull/748
+
+## [0.3.3] - 2021-03-14
+
+### Additions
+
+Add more audit log keys ([#709] - [@7596ff]).
+
+### Fixes
+
+Add a `#[serde(default)]` on `MemberUpdate::pending` ([#713] - [@AsianIntel] & [@Gelbpunkt]).
+
+Don't omit sending activities field if `None` ([#725] - [@kotx]).
+
+[#709]: https://github.com/twilight-rs/twilight/pull/709
+[#713]: https://github.com/twilight-rs/twilight/pull/713
+[#725]: https://github.com/twilight-rs/twilight/pull/725
+
 ## [0.3.2] - 2021-01-19
 
 ### Additions
@@ -298,12 +322,13 @@ Initial release.
 
 [@7596ff]: https://github.com/7596ff
 [@AsianIntel]: https://github.com/AsianIntel
-[@chamburr]: https://github.com/chamburr
-[@coadler]: https://github.com/coadler
 [@DusterTheFirst]: https://github.com/DusterTheFirst
 [@Erk-]: https://github.com/Erk-
 [@Gelbpunkt]: https://github.com/Gelbpunkt
+[@chamburr]: https://github.com/chamburr
+[@coadler]: https://github.com/coadler
 [@jazevedo620]: https://github.com/jazevedo620
+[@kotx]: https://github.com/kotx
 [@nickelc]: https://github.com/nickelc
 [@sam-kirby]: https://github.com/sam-kirby
 [@vivian]: https://github.com/vivian
@@ -331,6 +356,8 @@ Initial release.
 
 [0.2.0-beta.1:app integrations]: https://github.com/discord/discord-api-docs/commit/a926694e2f8605848bda6b57d21c8817559e5cec
 
+[0.3.4]: https://github.com/twilight-rs/twilight/releases/tag/model-v0.3.4
+[0.3.3]: https://github.com/twilight-rs/twilight/releases/tag/model-v0.3.3
 [0.3.2]: https://github.com/twilight-rs/twilight/releases/tag/model-v0.3.2
 [0.3.1]: https://github.com/twilight-rs/twilight/releases/tag/model-v0.3.1
 [0.3.0]: https://github.com/twilight-rs/twilight/releases/tag/model-v0.3.0

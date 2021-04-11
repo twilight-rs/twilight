@@ -1,4 +1,4 @@
-use super::builder::ShardScheme;
+use super::scheme::ShardScheme;
 use crate::shard::{Config as ShardConfig, ResumeSession};
 use std::{collections::HashMap, sync::Arc};
 use twilight_gateway_queue::Queue;

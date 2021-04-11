@@ -274,8 +274,7 @@ mod tests {
             "activities": []
         }]"#;
 
-        let mut expected = Vec::new();
-        expected.push(Presence {
+        let expected = Vec::from([Presence {
             activities: vec![],
             client_status: ClientStatus {
                 desktop: Some(Status::Online),
@@ -285,7 +284,7 @@ mod tests {
             guild_id: GuildId(2),
             status: Status::Online,
             user: UserOrId::UserId { id: UserId(1) },
-        });
+        }]);
 
         let mut json_deserializer = Deserializer::from_str(input);
         let deserializer = PresenceListDeserializer::new(GuildId(2));

@@ -2,6 +2,18 @@
 
 Changelog for `twilight-cache-inmemory`.
 
+## [0.3.4] - 2021-03-14
+
+This release fixes an accidental double bump of the previous number, and aligns everything.
+
+## [0.3.2] - 2021-03-14
+
+### Fixes
+
+Removed emojis are now deleted ([#702] - [@BlackHoleFox]).
+
+[#702]: https://github.com/twilight-rs/twilight/pull/702
+
 ## [0.3.1] - 2021-01-19
 
 ### Additions
@@ -152,6 +164,7 @@ The crate now depends on version 0.2 of `twilight-model`.
 Initial release.
 
 [@AsianIntel]: https://github.com/AsianIntel
+[@BlackHoleFox]: https://github.com/BlackHoleFox
 [@chamburr]: https://github.com/chamburr
 [@DusterTheFirst]: https://github.com/DusterTheFirst
 [@Erk-]: https://github.com/Erk-
@@ -173,6 +186,8 @@ Initial release.
 [#528]: https://github.com/twilight-rs/twilight/pull/528
 [#524]: https://github.com/twilight-rs/twilight/pull/524
 
+[0.3.4]: https://github.com/twilight-rs/twilight/releases/tag/cache-in-memory-v0.3.4
+[0.3.2]: https://github.com/twilight-rs/twilight/releases/tag/cache-in-memory-v0.3.2
 [0.3.1]: https://github.com/twilight-rs/twilight/releases/tag/cache-in-memory-v0.3.1
 [0.3.0]: https://github.com/twilight-rs/twilight/releases/tag/cache-in-memory-v0.3.0
 [0.2.6]: https://github.com/twilight-rs/twilight/releases/tag/cache-in-memory-v0.2.6

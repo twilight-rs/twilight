@@ -862,6 +862,10 @@ impl ShardProcessor {
     }
 
     async fn connect(url: &str) -> Result<ShardStream, ConnectingError> {
+        use async_tungstenite::{
+            tokio::connect_async_with_config, tungstenite::protocol::WebSocketConfig,
+        };
+
         let url = Url::parse(url).map_err(|source| ConnectingError {
             kind: ConnectingErrorType::ParsingUrl {
                 url: url.to_owned(),
@@ -869,7 +873,12 @@ impl ShardProcessor {
             source: Some(Box::new(source)),
         })?;
 
-        let (stream, _) = async_tungstenite::tokio::connect_async(url)
+        let config = WebSocketConfig {
+            max_frame_size: None,
+            ..WebSocketConfig::default()
+        };
+
+        let (stream, _) = connect_async_with_config(url, Some(config))
             .await
             .map_err(|source| ConnectingError {
                 kind: ConnectingErrorType::Establishing,

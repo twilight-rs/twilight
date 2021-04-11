@@ -12,7 +12,7 @@ name = "twilight-lavalink"
 publish = false
 readme = "README.md"
 repository = "https://github.com/twilight-rs/twilight.git"
-version = "0.3.0"
+version = "0.3.1"
 
 [dependencies]
 async-tungstenite = { default-features = false, features = ["tokio-runtime"], version = "0.13" }
@@ -23,7 +23,7 @@ http = { default-features = false, optional = true, version = "0.2" }
 tracing = { default-features = false, features = ["std", "attributes"], version = "0.1" }
 percent-encoding = { default-features = false, optional = true, version = "2" }
 serde = { default-features = false, features = ["derive", "std"], version = "1" }
-serde_json = { default-features = false, version = "1" }
+serde_json = { default-features = false, features = ["alloc"], version = "1" }
 tokio = { default-features = false, features = ["net", "rt", "time"], version = "1.0" }
 twilight-model = { default-features = false, path = "../model" }
 
