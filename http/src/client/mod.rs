@@ -956,7 +956,7 @@ impl Client {
     /// let channel_id = ChannelId(123);
     /// let invite = client
     ///     .create_invite(channel_id)
-    ///     .max_uses(3)
+    ///     .max_uses(3)?
     ///     .await?;
     /// # Ok(()) }
     /// ```
