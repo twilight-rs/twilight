@@ -81,7 +81,7 @@ impl<'a> SearchGuildMembers<'a> {
     pub(crate) fn new(http: &'a Client, guild_id: GuildId, query: impl Into<String>) -> Self {
         Self::_new(http, guild_id, query.into())
     }
-    
+
     fn _new(http: &'a Client, guild_id: GuildId, query: String) -> Self {
         Self {
             fields: SearchGuildMembersFields { query, limit: None },

@@ -836,7 +836,11 @@ impl Client {
     ///
     /// [`GUILD_MEMBERS`]: ../../twilight_model/gateway/struct.Intents.html#associatedconstant.GUILD_MEMBERS
     /// [`SearchGuildMembersError::LimitInvalid`]: ../request/guild/member/search_guild_members/enum.SearchGuildMembersError.html#variant.LimitInvalid
-    pub fn search_guild_members(&self, guild_id: GuildId, query: String) -> SearchGuildMembers<'_> {
+    pub fn search_guild_members(
+        &self,
+        guild_id: GuildId,
+        query: impl Into<String>,
+    ) -> SearchGuildMembers<'_> {
         SearchGuildMembers::new(self, guild_id, query)
     }
 
