@@ -252,3 +252,35 @@ impl<'a> AuditLogReason for CreateInvite<'a> {
 }
 
 poll_req!(CreateInvite<'_>, Invite);
+
+#[cfg(test)]
+mod tests {
+    use super::CreateInvite;
+    use crate::Client;
+    use std::error::Error;
+    use twilight_model::id::ChannelId;
+
+    #[test]
+    fn test_max_age() -> Result<(), Box<dyn Error>> {
+        let client = Client::new("foo");
+        let mut builder = CreateInvite::new(&client, ChannelId(1)).max_age(0)?;
+        assert_eq!(Some(0), builder.fields.max_age);
+        builder = builder.max_age(604_800)?;
+        assert_eq!(Some(604_800), builder.fields.max_age);
+        assert!(builder.max_age(604_801).is_err());
+
+        Ok(())
+    }
+
+    #[test]
+    fn test_max_uses() -> Result<(), Box<dyn Error>> {
+        let client = Client::new("foo");
+        let mut builder = CreateInvite::new(&client, ChannelId(1)).max_uses(0)?;
+        assert_eq!(Some(0), builder.fields.max_uses);
+        builder = builder.max_uses(100)?;
+        assert_eq!(Some(100), builder.fields.max_uses);
+        assert!(builder.max_uses(101).is_err());
+
+        Ok(())
+    }
+}
