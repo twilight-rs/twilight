@@ -133,7 +133,7 @@ impl<'a> UpdateGuildMember<'a> {
     }
 
     fn _nick(mut self, nick: Option<String>) -> Result<Self, UpdateGuildMemberError> {
-        if let Some(nick) = nick.as_ref() {
+        if let Some(nick) = nick {
             if !validate::nickname(&nick) {
                 return Err(UpdateGuildMemberError {
                     kind: UpdateGuildMemberErrorType::NicknameInvalid {
@@ -141,9 +141,11 @@ impl<'a> UpdateGuildMember<'a> {
                     },
                 });
             }
-        }
 
-        self.fields.nick.replace(nick);
+            self.fields.nick.replace(Some(nick));
+        } else {
+            self.fields.nick = None;
+        }
 
         Ok(self)
     }

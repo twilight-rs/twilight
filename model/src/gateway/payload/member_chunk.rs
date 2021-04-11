@@ -303,9 +303,8 @@ mod tests {
             chunk_count: 1,
             chunk_index: 0,
             guild_id: GuildId(1),
-            members: {
-                let mut members = Vec::new();
-                members.push(Member {
+            members: Vec::from([
+                Member {
                     deaf: false,
                     guild_id: GuildId(1),
                     hoisted_role: Some(RoleId(6)),
@@ -330,8 +329,8 @@ mod tests {
                         system: None,
                         public_flags: None,
                     },
-                });
-                members.push(Member {
+                },
+                Member {
                     deaf: false,
                     guild_id: GuildId(1),
                     hoisted_role: Some(RoleId(6)),
@@ -356,8 +355,8 @@ mod tests {
                         system: None,
                         public_flags: None,
                     },
-                });
-                members.push(Member {
+                },
+                Member {
                     deaf: false,
                     guild_id: GuildId(1),
                     hoisted_role: Some(RoleId(6)),
@@ -382,8 +381,8 @@ mod tests {
                         system: None,
                         public_flags: Some(UserFlags::VERIFIED_BOT_DEVELOPER),
                     },
-                });
-                members.push(Member {
+                },
+                Member {
                     deaf: false,
                     guild_id: GuildId(1),
                     hoisted_role: Some(RoleId(6)),
@@ -408,15 +407,12 @@ mod tests {
                         system: None,
                         public_flags: None,
                     },
-                });
-
-                members
-            },
+                },
+            ]),
             nonce: None,
             not_found: Vec::new(),
-            presences: {
-                let mut presences = Vec::new();
-                presences.push(Presence {
+            presences: Vec::from([
+                Presence {
                     activities: Vec::new(),
                     client_status: ClientStatus {
                         desktop: None,
@@ -426,8 +422,8 @@ mod tests {
                     guild_id: GuildId(1),
                     status: Status::Online,
                     user: UserOrId::UserId { id: UserId(2) },
-                });
-                presences.push(Presence {
+                },
+                Presence {
                     activities: Vec::new(),
                     client_status: ClientStatus {
                         desktop: None,
@@ -437,8 +433,8 @@ mod tests {
                     guild_id: GuildId(1),
                     status: Status::Online,
                     user: UserOrId::UserId { id: UserId(3) },
-                });
-                presences.push(Presence {
+                },
+                Presence {
                     activities: Vec::new(),
                     client_status: ClientStatus {
                         desktop: Some(Status::DoNotDisturb),
@@ -448,10 +444,8 @@ mod tests {
                     guild_id: GuildId(1),
                     status: Status::DoNotDisturb,
                     user: UserOrId::UserId { id: UserId(5) },
-                });
-
-                presences
-            },
+                },
+            ]),
         };
 
         let actual = serde_json::from_value::<MemberChunk>(input).unwrap();

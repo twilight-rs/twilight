@@ -1,4 +1,4 @@
-use super::message::CreateMessage;
+use super::{message::CreateMessage, webhook::ExecuteWebhook};
 use twilight_model::id::{RoleId, UserId};
 
 /// Whether or not the section will be parsed.
@@ -99,6 +99,7 @@ impl VisitAllowedMentionsRoles for ExplicitRole {
 /// ```
 pub struct AllowedMentionsBuilder<'a, E, U, R> {
     create_message: Option<CreateMessage<'a>>,
+    execute_webhook: Option<ExecuteWebhook<'a>>,
     e: E,
     u: U,
     r: R,
@@ -109,6 +110,18 @@ impl<'a> AllowedMentionsBuilder<'a, Unspecified, Unspecified, Unspecified> {
     pub(crate) fn for_builder(create_message: CreateMessage<'a>) -> Self {
         Self {
             create_message: Some(create_message),
+            execute_webhook: None,
+            e: Unspecified,
+            u: Unspecified,
+            r: Unspecified,
+            reply: false,
+        }
+    }
+
+    pub(crate) fn for_webhook(execute_webhook: ExecuteWebhook<'a>) -> Self {
+        Self {
+            create_message: None,
+            execute_webhook: Some(execute_webhook),
             e: Unspecified,
             u: Unspecified,
             r: Unspecified,
@@ -120,6 +133,7 @@ impl<'a> AllowedMentionsBuilder<'a, Unspecified, Unspecified, Unspecified> {
     pub fn new() -> Self {
         Self {
             create_message: None,
+            execute_webhook: None,
             e: Unspecified,
             u: Unspecified,
             r: Unspecified,
@@ -141,6 +155,7 @@ impl<'a, E, U, R> AllowedMentionsBuilder<'a, E, U, R> {
     pub fn replied_user(self, reply: bool) -> AllowedMentionsBuilder<'a, E, U, R> {
         AllowedMentionsBuilder {
             create_message: self.create_message,
+            execute_webhook: self.execute_webhook,
             e: self.e,
             u: self.u,
             r: self.r,
@@ -154,6 +169,7 @@ impl<'a, U, R> AllowedMentionsBuilder<'a, Unspecified, U, R> {
     pub fn parse_everyone(self) -> AllowedMentionsBuilder<'a, Parsed, U, R> {
         AllowedMentionsBuilder {
             create_message: self.create_message,
+            execute_webhook: self.execute_webhook,
             e: Parsed,
             u: self.u,
             r: self.r,
@@ -167,6 +183,7 @@ impl<'a, E, R> AllowedMentionsBuilder<'a, E, Unspecified, R> {
     pub fn parse_users(self) -> AllowedMentionsBuilder<'a, E, Parsed, R> {
         AllowedMentionsBuilder {
             create_message: self.create_message,
+            execute_webhook: self.execute_webhook,
             e: self.e,
             u: Parsed,
             r: self.r,
@@ -182,6 +199,7 @@ impl<'a, E, R> AllowedMentionsBuilder<'a, E, Unspecified, R> {
         let vec = u.into_iter().collect::<Vec<_>>();
         AllowedMentionsBuilder {
             create_message: self.create_message,
+            execute_webhook: self.execute_webhook,
             e: self.e,
             u: ExplicitUser(vec),
             r: self.r,
@@ -195,6 +213,7 @@ impl<'a, E, U> AllowedMentionsBuilder<'a, E, U, Unspecified> {
     pub fn parse_roles(self) -> AllowedMentionsBuilder<'a, E, U, Parsed> {
         AllowedMentionsBuilder {
             create_message: self.create_message,
+            execute_webhook: self.execute_webhook,
             e: self.e,
             u: self.u,
             r: Parsed,
@@ -210,6 +229,7 @@ impl<'a, E, U> AllowedMentionsBuilder<'a, E, U, Unspecified> {
         let vec = r.into_iter().collect::<Vec<_>>();
         AllowedMentionsBuilder {
             create_message: self.create_message,
+            execute_webhook: self.execute_webhook,
             e: self.e,
             u: self.u,
             r: ExplicitRole(vec),
@@ -227,6 +247,7 @@ impl<'a, E, U> AllowedMentionsBuilder<'a, E, U, ExplicitRole> {
         self.r.0.extend(r);
         AllowedMentionsBuilder {
             create_message: self.create_message,
+            execute_webhook: self.execute_webhook,
             e: self.e,
             u: self.u,
             r: self.r,
@@ -244,6 +265,7 @@ impl<'a, E, R> AllowedMentionsBuilder<'a, E, ExplicitUser, R> {
         self.u.0.extend(u);
         AllowedMentionsBuilder {
             create_message: self.create_message,
+            execute_webhook: self.execute_webhook,
             e: self.e,
             u: self.u,
             r: self.r,
@@ -260,8 +282,34 @@ impl<
     > AllowedMentionsBuilder<'a, E, U, R>
 {
     /// Return a [`CreateMessage`] struct with the specified `allowed_mentions`.
+    ///
+    /// # Panics
+    ///
+    /// Panics when no message builder was provided.
     pub fn build(self) -> CreateMessage<'a> {
         match self.create_message {
+            Some(mut builder) => {
+                let mut m = AllowedMentions::default();
+                self.e.visit(&mut m);
+                self.u.visit(&mut m);
+                self.r.visit(&mut m);
+                m.replied_user = self.reply;
+                builder.fields.allowed_mentions.replace(m);
+                builder
+            }
+            None => panic!(
+                "Tried to build to a messagebuilder but none was provided during construction"
+            ),
+        }
+    }
+
+    /// Return a [`ExecuteWebhook`] struct with the specified `allowed_mentions`.
+    ///
+    /// # Panics
+    ///
+    /// Panics when no message builder was provided.
+    pub fn build_webhook(self) -> ExecuteWebhook<'a> {
+        match self.execute_webhook {
             Some(mut builder) => {
                 let mut m = AllowedMentions::default();
                 self.e.visit(&mut m);
