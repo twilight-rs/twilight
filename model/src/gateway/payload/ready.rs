@@ -24,15 +24,16 @@ mod tests {
 
     #[test]
     fn test_ready() {
-        let mut guilds = Vec::new();
-        guilds.push(UnavailableGuild {
-            id: GuildId(1),
-            unavailable: true,
-        });
-        guilds.push(UnavailableGuild {
-            id: GuildId(2),
-            unavailable: true,
-        });
+        let mut guilds = vec![
+            UnavailableGuild {
+                id: GuildId(1),
+                unavailable: true,
+            },
+            UnavailableGuild {
+                id: GuildId(2),
+                unavailable: true,
+            },
+        ];
 
         let ready = Ready {
             guilds,

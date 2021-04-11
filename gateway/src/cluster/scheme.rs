@@ -334,7 +334,7 @@ impl<T: RangeBounds<u64>> TryFrom<(T, u64)> for ShardScheme {
 ///
 /// # Errors
 ///
-/// Returns [`ShardSchemeRangeError::BucketTooLarge`] if the provided bucket ID
+/// Returns [`ShardSchemeRangeErrorType::BucketTooLarge`] if the provided bucket ID
 /// is larger than the total number of buckets (`total / concurrency`).
 impl TryFrom<(u64, u64, u64)> for ShardScheme {
     type Error = ShardSchemeRangeError;
