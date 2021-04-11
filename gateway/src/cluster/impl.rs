@@ -1,6 +1,6 @@
 use super::{builder::ClusterBuilder, config::Config, scheme::ShardScheme};
 use crate::{
-    shard::{raw_message::Message, CommandError, Information, ResumeSession, SendError, Shard},
+    shard::{raw_message::Message, Information, ResumeSession, Shard},
     EventTypeFlags, Intents,
 };
 use futures_util::{
@@ -487,9 +487,7 @@ impl Cluster {
     pub async fn command_raw(&self, id: u64, value: Vec<u8>) -> Result<(), ClusterCommandError> {
         self.send(id, Message::Binary(value))
             .await
-            .map_err(ClusterCommandErrorType {
-                kind: ClusterCommandErrorType::from_send,
-            })
+            .map_err(ClusterCommandError::from_send)
     }
 
     /// Send a raw websocket message.

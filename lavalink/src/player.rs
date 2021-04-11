@@ -57,7 +57,9 @@ impl PlayerManager {
     /// Returns an error if the associated node no longer is connected.
     pub fn destroy(&self, guild_id: GuildId) -> Result<(), TrySendError<OutgoingEvent>> {
         if let Some(player) = self.get(&guild_id) {
-            player.node().send(OutgoingEvent::from(Destroy::new(guild_id)))?;
+            player
+                .node()
+                .send(OutgoingEvent::from(Destroy::new(guild_id)))?;
             self.players.remove(&guild_id);
         }
 

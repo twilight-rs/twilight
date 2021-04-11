@@ -362,12 +362,12 @@ impl TryFrom<(u64, u64, u64)> for ShardScheme {
 
 #[cfg(test)]
 mod tests {
-    use super::{ShardScheme, ShardSchemeIter, ShardSchemeRangeError};
+    use super::{ShardScheme, ShardSchemeIter, ShardSchemeRangeError, ShardSchemeRangeErrorType};
     use static_assertions::{assert_fields, assert_impl_all};
     use std::{convert::TryFrom, error::Error, fmt::Debug, hash::Hash};
 
     assert_impl_all!(ShardSchemeIter: Clone, Debug, Send, Sync);
-    assert_fields!(ShardSchemeRangeError::IdTooLarge: end, start, total);
+    assert_fields!(ShardSchemeRangeErrorType::IdTooLarge: end, start, total);
     assert_impl_all!(ShardSchemeRangeError: Error, Send, Sync);
     assert_fields!(ShardScheme::Range: from, to, total);
     assert_impl_all!(
@@ -489,7 +489,8 @@ mod tests {
     fn test_scheme_bucket_larger_than_concurrency() {
         assert!(matches!(
             ShardScheme::try_from((25, 16, 320)).unwrap_err(),
-            ShardSchemeRangeError::BucketTooLarge { bucket_id, concurrency, total }
+            ShardSchemeRangeError {
+                kind: ShardSchemeRangeErrorType::BucketTooLarge { bucket_id, concurrency, total }}
             if bucket_id == 25 && concurrency == 16 && total == 320
         ));
     }

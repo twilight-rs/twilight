@@ -136,9 +136,7 @@ impl<'a> UpdateGuildMember<'a> {
         if let Some(nick) = nick {
             if !validate::nickname(&nick) {
                 return Err(UpdateGuildMemberError {
-                    kind: UpdateGuildMemberErrorType::NicknameInvalid {
-                        nickname: nick.to_owned(),
-                    },
+                    kind: UpdateGuildMemberErrorType::NicknameInvalid { nickname: nick },
                 });
             }
 
