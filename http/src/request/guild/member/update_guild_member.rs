@@ -1,7 +1,6 @@
 use crate::request::prelude::*;
 use bytes::Bytes;
 use serde::de::DeserializeSeed;
-use serde_json::Deserializer as JsonDeserializer;
 use std::{
     error::Error,
     fmt::{Display, Formatter, Result as FmtResult},
@@ -13,6 +12,11 @@ use twilight_model::{
     guild::member::{Member, MemberDeserializer},
     id::{ChannelId, GuildId, RoleId, UserId},
 };
+
+#[cfg(not(feature = "simd-json"))]
+pub(crate) use serde_json::Deserializer as JsonDeserializer;
+#[cfg(feature = "simd-json")]
+use simd_json::Deserializer as JsonDeserializer;
 
 /// The error created when the member can not be updated as configured.
 #[derive(Debug)]
