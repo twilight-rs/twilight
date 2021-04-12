@@ -1,9 +1,18 @@
 use crate::request::prelude::*;
+use bytes::Bytes;
+use serde::de::DeserializeSeed;
+use serde_json::Deserializer as JsonDeserializer;
 use std::{
     error::Error,
     fmt::{Display, Formatter, Result as FmtResult},
+    future::Future,
+    pin::Pin,
+    task::{Context, Poll},
 };
-use twilight_model::id::{ChannelId, GuildId, RoleId, UserId};
+use twilight_model::{
+    guild::member::{Member, MemberDeserializer},
+    id::{ChannelId, GuildId, RoleId, UserId},
+};
 
 /// The error created when the member can not be updated as configured.
 #[derive(Debug)]
@@ -80,7 +89,7 @@ struct UpdateGuildMemberFields {
 /// [the discord docs]: https://discord.com/developers/docs/resources/guild#modify-guild-member
 pub struct UpdateGuildMember<'a> {
     fields: UpdateGuildMemberFields,
-    fut: Option<Pending<'a, ()>>,
+    fut: Option<Pending<'a, Bytes>>,
     guild_id: GuildId,
     http: &'a Client,
     user_id: UserId,
@@ -155,8 +164,8 @@ impl<'a> UpdateGuildMember<'a> {
         self
     }
 
-    fn start(&mut self) -> Result<()> {
-        let request = if let Some(reason) = &self.reason {
+    fn request(&self) -> Result<Request> {
+        Ok(if let Some(reason) = &self.reason {
             let headers = audit_header(&reason)?;
             Request::from((
                 crate::json_to_vec(&self.fields).map_err(HttpError::json)?,
@@ -174,9 +183,12 @@ impl<'a> UpdateGuildMember<'a> {
                     user_id: self.user_id.0,
                 },
             ))
-        };
+        })
+    }
 
-        self.fut.replace(Box::pin(self.http.verify(request)));
+    fn start(&mut self) -> Result<()> {
+        let request = self.request()?;
+        self.fut.replace(Box::pin(self.http.request_bytes(request)));
 
         Ok(())
     }
@@ -191,4 +203,66 @@ impl<'a> AuditLogReason for UpdateGuildMember<'a> {
     }
 }
 
-poll_req!(UpdateGuildMember<'_>, ());
+impl Future for UpdateGuildMember<'_> {
+    type Output = Result<Member>;
+
+    fn poll(mut self: Pin<&mut Self>, cx: &mut Context<'_>) -> Poll<Self::Output> {
+        loop {
+            if let Some(fut) = self.as_mut().fut.as_mut() {
+                let bytes = match fut.as_mut().poll(cx) {
+                    Poll::Ready(Ok(bytes)) => bytes,
+                    Poll::Ready(Err(why)) => return Poll::Ready(Err(why)),
+                    Poll::Pending => return Poll::Pending,
+                };
+
+                let mut deserializer = JsonDeserializer::from_slice(bytes.as_ref());
+                let member = MemberDeserializer::new(self.guild_id)
+                    .deserialize(&mut deserializer)
+                    .map_err(HttpError::json)?;
+
+                return Poll::Ready(Ok(member));
+            }
+
+            if let Err(why) = self.as_mut().start() {
+                return Poll::Ready(Err(why));
+            }
+        }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::{UpdateGuildMember, UpdateGuildMemberFields};
+    use crate::{request::Request, routing::Route, Client};
+    use std::error::Error;
+    use twilight_model::id::{GuildId, UserId};
+
+    #[test]
+    fn test_request() -> Result<(), Box<dyn Error>> {
+        let client = Client::new("foo");
+        let guild_id = GuildId(1);
+        let user_id = UserId(2);
+        let builder = UpdateGuildMember::new(&client, guild_id, user_id)
+            .deaf(true)
+            .mute(true);
+        let actual = builder.request()?;
+
+        let body = crate::json_to_vec(&UpdateGuildMemberFields {
+            channel_id: None,
+            deaf: Some(true),
+            mute: Some(true),
+            nick: None,
+            roles: None,
+        })?;
+        let route = Route::UpdateMember {
+            guild_id: guild_id.0,
+            user_id: user_id.0,
+        };
+        let expected = Request::from((body, route));
+
+        assert_eq!(actual.body, expected.body);
+        assert_eq!(actual.path, expected.path);
+
+        Ok(())
+    }
+}
