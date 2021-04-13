@@ -499,7 +499,9 @@ impl Connection {
 impl Drop for Connection {
     fn drop(&mut self) {
         // Cleanup local players associated with the node
-        self.players.players.retain(|_, v| v.node().config() != &self.config);
+        self.players
+            .players
+            .retain(|_, v| v.node().config() != &self.config);
     }
 }
 
