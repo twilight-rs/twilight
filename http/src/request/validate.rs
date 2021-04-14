@@ -351,6 +351,16 @@ pub fn guild_prune_days(value: u64) -> bool {
     value > 0 && value <= 30
 }
 
+pub fn invite_max_age(value: u64) -> bool {
+    // <https://discord.com/developers/docs/resources/channel#create-channel-invite-json-params>
+    value <= 604_800
+}
+
+pub fn invite_max_uses(value: u64) -> bool {
+    // <https://discord.com/developers/docs/resources/channel#create-channel-invite-json-params>
+    value <= 100
+}
+
 pub fn nickname(value: impl AsRef<str>) -> bool {
     _nickname(value.as_ref())
 }
@@ -672,6 +682,21 @@ mod tests {
         assert!(guild_prune_days(30));
         assert!(!guild_prune_days(31));
         assert!(!guild_prune_days(100));
+    }
+
+    #[test]
+    fn test_invite_max_age() {
+        assert!(invite_max_age(0));
+        assert!(invite_max_age(86_400));
+        assert!(invite_max_age(604_800));
+        assert!(!invite_max_age(604_801));
+    }
+
+    #[test]
+    fn test_invite_max_uses() {
+        assert!(invite_max_uses(0));
+        assert!(invite_max_uses(100));
+        assert!(!invite_max_uses(101));
     }
 
     #[test]
