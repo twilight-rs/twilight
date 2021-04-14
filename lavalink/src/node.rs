@@ -286,6 +286,8 @@ impl Node {
     ///
     /// Using [`Lavalink::disconnect`] is advised over directly calling this, as it will also
     /// removing the node from the manager.
+    ///
+    /// [`Lavalink::disconnect`]: crate::client::Lavalink::disconnect
     pub fn close(&self) {
         self.sender().close_channel();
     }
