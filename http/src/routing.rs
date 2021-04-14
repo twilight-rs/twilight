@@ -147,7 +147,7 @@ pub enum Path {
     /// Operating on the voice regions available to the current user.
     VoiceRegions,
     /// Operating on a message created by a webhook.
-    WebhooksIdTokenMessageId(u64),
+    WebhooksIdTokenMessagesId(u64),
     /// Operating on a webhook.
     WebhooksId(u64),
 }
@@ -1091,7 +1091,7 @@ impl Route {
                 webhook_id,
             } => (
                 Method::DELETE,
-                Path::WebhooksIdTokenMessageId(webhook_id),
+                Path::WebhooksIdTokenMessagesId(webhook_id),
                 format!("webhooks/{}/{}/messages/{}", webhook_id, token, message_id).into(),
             ),
             Self::DeleteWebhook { token, webhook_id } => {
@@ -1544,7 +1544,7 @@ impl Route {
                 webhook_id,
             } => (
                 Method::PATCH,
-                Path::WebhooksIdTokenMessageId(webhook_id),
+                Path::WebhooksIdTokenMessagesId(webhook_id),
                 format!("webhooks/{}/{}/messages/{}", webhook_id, token, message_id).into(),
             ),
             Self::UpdateWebhook { token, webhook_id } => {
