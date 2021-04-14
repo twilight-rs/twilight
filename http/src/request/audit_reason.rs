@@ -35,9 +35,7 @@ mod private {
     impl<'a> Sealed for CreateEmoji<'a> {}
     impl<'a> Sealed for DeleteEmoji<'a> {}
     impl<'a> Sealed for UpdateEmoji<'a> {}
-    impl<'a> Sealed for CreateGuildIntegration<'a> {}
     impl<'a> Sealed for DeleteGuildIntegration<'a> {}
-    impl<'a> Sealed for UpdateGuildIntegration<'a> {}
     impl<'a> Sealed for UpdateGuildMember<'a> {}
     impl<'a> Sealed for AddRoleToMember<'a> {}
     impl<'a> Sealed for RemoveMember<'a> {}
@@ -146,9 +144,7 @@ mod test {
     assert_impl_all!(CreateEmoji<'_>: AuditLogReason);
     assert_impl_all!(DeleteEmoji<'_>: AuditLogReason);
     assert_impl_all!(UpdateEmoji<'_>: AuditLogReason);
-    assert_impl_all!(CreateGuildIntegration<'_>: AuditLogReason);
     assert_impl_all!(DeleteGuildIntegration<'_>: AuditLogReason);
-    assert_impl_all!(UpdateGuildIntegration<'_>: AuditLogReason);
     assert_impl_all!(UpdateGuildMember<'_>: AuditLogReason);
     assert_impl_all!(AddRoleToMember<'_>: AuditLogReason);
     assert_impl_all!(RemoveMember<'_>: AuditLogReason);
