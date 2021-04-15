@@ -7,7 +7,6 @@ use crate::{
     error::{Error, ErrorType, Result},
     ratelimiting::{RatelimitHeaders, Ratelimiter},
     request::{
-        channel::allowed_mentions::AllowedMentions,
         guild::{create_guild::CreateGuildError, create_guild_channel::CreateGuildChannelError},
         prelude::*,
         GetUserApplicationInfo, Request,
@@ -34,6 +33,7 @@ use std::{
 };
 use tokio::time;
 use twilight_model::{
+    channel::message::allowed_mentions::AllowedMentions,
     guild::Permissions,
     id::{ChannelId, EmojiId, GuildId, IntegrationId, MessageId, RoleId, UserId, WebhookId},
 };

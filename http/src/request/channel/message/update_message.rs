@@ -1,10 +1,10 @@
-use crate::request::{channel::allowed_mentions::AllowedMentions, prelude::*};
+use crate::request::{prelude::*};
 use std::{
     error::Error,
     fmt::{Display, Formatter, Result as FmtResult},
 };
 use twilight_model::{
-    channel::{embed::Embed, message::MessageFlags, Message},
+    channel::{embed::Embed, message::{AllowedMentions, MessageFlags}, Message},
     id::{ChannelId, MessageId},
 };
 
@@ -226,11 +226,7 @@ impl<'a> UpdateMessage<'a> {
         self
     }
 
-    /// Set the allowed mentions in the message.
-    ///
-    /// Use the [`build_solo`] method to get a [`AllowedMentions`] structure.
-    ///
-    /// [`build_solo`]: super::super::allowed_mentions::AllowedMentionsBuilder::build_solo
+    /// Set the [`AllowedMentions`] in the message.
     pub fn allowed_mentions(mut self, allowed: AllowedMentions) -> Self {
         self.fields.allowed_mentions.replace(allowed);
 

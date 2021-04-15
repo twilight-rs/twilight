@@ -3,10 +3,7 @@
 use crate::{
     client::Client,
     error::{Error as HttpError, Result},
-    request::{
-        self, channel::allowed_mentions::AllowedMentions, validate, AuditLogReason,
-        AuditLogReasonError, Pending, Request,
-    },
+    request::{self, validate, AuditLogReason, AuditLogReasonError, Pending, Request},
     routing::Route,
 };
 use serde::Serialize;
@@ -15,7 +12,7 @@ use std::{
     fmt::{Display, Formatter, Result as FmtResult},
 };
 use twilight_model::{
-    channel::embed::Embed,
+    channel::{embed::Embed, message::AllowedMentions},
     id::{MessageId, WebhookId},
 };
 
