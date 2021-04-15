@@ -90,3 +90,52 @@ impl AllowedMentionsBuilder {
         self.0
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::{
+        super::{AllowedMentions, ParseTypes},
+        AllowedMentionsBuilder,
+    };
+    use crate::id::{RoleId, UserId};
+
+    #[test]
+    fn test_max_mentioned() {
+        let value = AllowedMentionsBuilder::new()
+            .everyone()
+            .replied_user()
+            .users()
+            .roles()
+            .build();
+
+        assert_eq!(
+            value,
+            AllowedMentions {
+                parse: vec![ParseTypes::Everyone, ParseTypes::Users, ParseTypes::Roles],
+                users: vec![],
+                roles: vec![],
+                replied_user: true
+            },
+        );
+    }
+
+    #[test]
+    fn test_validation() {
+        let value = AllowedMentionsBuilder::new()
+            .users()
+            .user_ids(vec![UserId(100), UserId(200)])
+            .roles()
+            .role_ids(vec![RoleId(300)])
+            .build();
+
+        assert_eq!(
+            value,
+            AllowedMentions {
+                parse: vec![],
+                users: vec![UserId(100), UserId(200)],
+                roles: vec![RoleId(300)],
+                replied_user: false,
+            },
+        );
+    }
+}
