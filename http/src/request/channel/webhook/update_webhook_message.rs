@@ -128,8 +128,10 @@ struct UpdateWebhookMessageFields {
 ///
 /// ```no_run
 /// # use twilight_http::Client;
-/// use twilight_http::request::channel::allowed_mentions::AllowedMentions;
-/// use twilight_model::id::{MessageId, WebhookId};
+/// use twilight_model::{
+///     channel::message::AllowedMentions,
+///     id::{MessageId, WebhookId}
+/// };
 ///
 /// # #[tokio::main]
 /// # async fn main() -> Result<(), Box<dyn std::error::Error>> {

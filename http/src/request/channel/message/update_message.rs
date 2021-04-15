@@ -1,10 +1,14 @@
-use crate::request::{prelude::*};
+use crate::request::prelude::*;
 use std::{
     error::Error,
     fmt::{Display, Formatter, Result as FmtResult},
 };
 use twilight_model::{
-    channel::{embed::Embed, message::{AllowedMentions, MessageFlags}, Message},
+    channel::{
+        embed::Embed,
+        message::{AllowedMentions, MessageFlags},
+        Message,
+    },
     id::{ChannelId, MessageId},
 };
 
