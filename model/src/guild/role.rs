@@ -1,6 +1,7 @@
 use super::RoleTags;
 use crate::{guild::Permissions, id::RoleId};
 use serde::{Deserialize, Serialize};
+use std::cmp::{Ord, Ordering, PartialOrd};
 
 #[derive(Clone, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
 pub struct Role {
@@ -17,10 +18,29 @@ pub struct Role {
     pub tags: Option<RoleTags>,
 }
 
+impl Ord for Role {
+    /// Roles are ordered primarily by position. Discord does not provide guarentees that role
+    /// positions are unique, positive, or contiguous. In the case of equal positions, order is
+    /// based on the roles' IDs instead.
+    fn cmp(&self, other: &Self) -> Ordering {
+        match self.position.cmp(&other.position) {
+            Ordering::Equal => self.id.0.cmp(&other.id.0),
+            ordering => ordering,
+        }
+    }
+}
+
+impl PartialOrd for Role {
+    fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
+        Some(self.cmp(other))
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::{Permissions, Role, RoleId};
     use serde_test::Token;
+    use std::cmp::Ordering;
 
     #[test]
     fn test_role() {
@@ -63,5 +83,77 @@ mod tests {
                 Token::StructEnd,
             ],
         );
+    }
+
+    #[test]
+    fn test_role_ordering() {
+        let role_a = Role {
+            color: 0,
+            hoist: true,
+            id: RoleId(123),
+            managed: false,
+            mentionable: true,
+            name: "test".to_owned(),
+            permissions: Permissions::ADMINISTRATOR,
+            position: 12,
+            tags: None,
+        };
+
+        let role_b = Role {
+            color: 0,
+            hoist: true,
+            id: RoleId(456),
+            managed: false,
+            mentionable: true,
+            name: "test".to_owned(),
+            permissions: Permissions::ADMINISTRATOR,
+            position: 120,
+            tags: None,
+        };
+
+        assert_eq!(Ordering::Less, role_a.cmp(&role_b));
+        assert_eq!(Ordering::Greater, role_b.cmp(&role_a));
+        assert_eq!(Ordering::Equal, role_a.cmp(&role_a));
+        assert_eq!(Ordering::Equal, role_b.cmp(&role_b));
+        assert_eq!(Some(Ordering::Less), role_a.partial_cmp(&role_b));
+        assert_eq!(Some(Ordering::Greater), role_b.partial_cmp(&role_a));
+        assert_eq!(Some(Ordering::Equal), role_a.partial_cmp(&role_a));
+        assert_eq!(Some(Ordering::Equal), role_b.partial_cmp(&role_b));
+    }
+
+    #[test]
+    fn test_role_ordering_equal_position() {
+        let role_a = Role {
+            color: 0,
+            hoist: true,
+            id: RoleId(123),
+            managed: false,
+            mentionable: true,
+            name: "test".to_owned(),
+            permissions: Permissions::ADMINISTRATOR,
+            position: 12,
+            tags: None,
+        };
+
+        let role_b = Role {
+            color: 0,
+            hoist: true,
+            id: RoleId(456),
+            managed: false,
+            mentionable: true,
+            name: "test".to_owned(),
+            permissions: Permissions::ADMINISTRATOR,
+            position: 12,
+            tags: None,
+        };
+
+        assert_eq!(Ordering::Less, role_a.cmp(&role_b));
+        assert_eq!(Ordering::Greater, role_b.cmp(&role_a));
+        assert_eq!(Ordering::Equal, role_a.cmp(&role_a));
+        assert_eq!(Ordering::Equal, role_b.cmp(&role_b));
+        assert_eq!(Some(Ordering::Less), role_a.partial_cmp(&role_b));
+        assert_eq!(Some(Ordering::Greater), role_b.partial_cmp(&role_a));
+        assert_eq!(Some(Ordering::Equal), role_a.partial_cmp(&role_a));
+        assert_eq!(Some(Ordering::Equal), role_b.partial_cmp(&role_b));
     }
 }
