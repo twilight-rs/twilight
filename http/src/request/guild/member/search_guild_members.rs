@@ -46,7 +46,7 @@ struct SearchGuildMembersFields {
 
 /// Search the members of a specific guild by a query. Requires the [`GUILD_MEMBERS`] intent.
 ///
-/// The upper limit to this request is 100. Discord defaults the limit to 1.
+/// The upper limit to this request is 1000. Discord defaults the limit to 1.
 ///
 /// # Examples
 ///
