@@ -3,6 +3,10 @@ use serde::{Deserialize, Serialize};
 
 #[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
 pub struct Attachment {
+    /// Attachment's [media type].
+    ///
+    /// [media type]: https://en.wikipedia.org/wiki/Media_type
+    pub content_type: Option<String>,
     pub filename: String,
     pub height: Option<u64>,
     pub id: AttachmentId,
@@ -21,6 +25,7 @@ mod tests {
     #[test]
     fn test_attachment() {
         let value = Attachment {
+            content_type: Some("image/png".to_owned()),
             filename: "a.png".to_owned(),
             height: Some(184),
             id: AttachmentId(700_000_000_000_000_000),
@@ -35,8 +40,11 @@ mod tests {
             &[
                 Token::Struct {
                     name: "Attachment",
-                    len: 7,
+                    len: 8,
                 },
+                Token::Str("content_type"),
+                Token::Some,
+                Token::Str("image/png"),
                 Token::Str("filename"),
                 Token::Str("a.png"),
                 Token::Str("height"),
