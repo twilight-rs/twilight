@@ -7,7 +7,9 @@ use serde::{Deserialize, Serialize};
 #[derive(Clone, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
 pub struct MemberUpdate {
     pub guild_id: GuildId,
+    pub deaf: Option<bool>,
     pub joined_at: String,
+    pub mute: Option<bool>,
     pub nick: Option<String>,
     /// Whether the user has yet to pass the guild's [Membership Screening]
     /// requirements.
@@ -55,6 +57,8 @@ mod tests {
             nick: Some("Twilight".to_string()),
             joined_at: "2017-02-27T22:21:50.121000+00:00".to_string(),
             guild_id: 1_234.into(),
+            deaf: Some(false),
+            mute: Some(false),
         };
 
         serde_test::assert_tokens(
@@ -62,13 +66,19 @@ mod tests {
             &[
                 Token::Struct {
                     name: "MemberUpdate",
-                    len: 7,
+                    len: 9,
                 },
                 Token::Str("guild_id"),
                 Token::NewtypeStruct { name: "GuildId" },
                 Token::Str("1234"),
+                Token::Str("deaf"),
+                Token::Some,
+                Token::Bool(false),
                 Token::Str("joined_at"),
                 Token::Str("2017-02-27T22:21:50.121000+00:00"),
+                Token::Str("mute"),
+                Token::Some,
+                Token::Bool(false),
                 Token::Str("nick"),
                 Token::Some,
                 Token::Str("Twilight"),
