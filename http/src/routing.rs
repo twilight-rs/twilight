@@ -117,6 +117,7 @@ pub enum Path {
     GuildsIdRoles(u64),
     GuildsIdRolesId(u64),
     GuildsIdVanityUrl(u64),
+    GuildsIdWelcomeScreen(u64),
     GuildsIdWebhooks(u64),
     InvitesCode,
     UsersId,
@@ -212,6 +213,7 @@ impl FromStr for Path {
             ["guilds", id, "roles"] => GuildsIdRoles(id.parse()?),
             ["guilds", id, "roles", _] => GuildsIdRolesId(id.parse()?),
             ["guilds", id, "vanity-url"] => GuildsIdVanityUrl(id.parse()?),
+            ["guilds", id, "welcome-screen"] => GuildsIdWelcomeScreen(id.parse()?),
             ["guilds", id, "webhooks"] => GuildsIdWebhooks(id.parse()?),
             ["invites", _] => InvitesCode,
             ["oauth2", "applications", "@me"] => OauthApplicationsMe,
@@ -592,6 +594,11 @@ pub enum Route {
         /// The ID of the guild.
         guild_id: u64,
     },
+    /// Route information to get a guild's welcome screen.
+    GetGuildWelcomeScreen {
+        /// ID of the guild.
+        guild_id: u64,
+    },
     /// Route information to get a guild's webhooks.
     GetGuildWebhooks {
         /// The ID of the guild.
@@ -758,6 +765,11 @@ pub enum Route {
         guild_id: u64,
         /// The ID of the integration.
         integration_id: u64,
+    },
+    /// Route information to update a guild's welcome screen.
+    UpdateGuildWelcomeScreen {
+        /// ID of the guild.
+        guild_id: u64,
     },
     /// Route information to update a member.
     UpdateMember {
@@ -1253,6 +1265,11 @@ impl Route {
                 Path::GuildsIdRegions(guild_id),
                 format!("guilds/{}/regions", guild_id).into(),
             ),
+            Self::GetGuildWelcomeScreen { guild_id } => (
+                Method::GET,
+                Path::GuildsIdWelcomeScreen(guild_id),
+                format!("guilds/{}/welcome-screen", guild_id).into(),
+            ),
             Self::GetGuildWebhooks { guild_id } => (
                 Method::GET,
                 Path::GuildsIdWebhooks(guild_id),
@@ -1466,6 +1483,11 @@ impl Route {
                 Method::PATCH,
                 Path::GuildsIdIntegrationsId(guild_id),
                 format!("guilds/{}/integrations/{}", guild_id, integration_id,).into(),
+            ),
+            Self::UpdateGuildWelcomeScreen { guild_id } => (
+                Method::PATCH,
+                Path::GuildsIdWelcomeScreen(guild_id),
+                format!("guilds/{}/welcome-screen", guild_id).into(),
             ),
             Self::UpdateMember { guild_id, user_id } => (
                 Method::PATCH,
