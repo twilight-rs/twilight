@@ -1394,7 +1394,9 @@ impl Client {
         let url = format!("{}://{}/api/v{}/{}", protocol, host, API_VERSION, path);
         tracing::debug!("URL: {:?}", url);
 
-        let mut builder = hyper::Request::builder().method(method.into_hyper()).uri(&url);
+        let mut builder = hyper::Request::builder()
+            .method(method.into_hyper())
+            .uri(&url);
 
         if let Some(ref token) = self.state.token {
             let value = HeaderValue::from_str(&token).map_err(|source| {

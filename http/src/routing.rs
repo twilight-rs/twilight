@@ -1564,7 +1564,7 @@ impl Route {
 #[cfg(test)]
 mod tests {
     use super::{Path, PathParseErrorType};
-    use hyper::Method;
+    use crate::request::Method;
     use std::{convert::TryFrom, error::Error, str::FromStr};
 
     #[test]
