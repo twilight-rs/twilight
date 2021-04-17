@@ -23,10 +23,7 @@ impl Ord for Role {
     /// positions are unique, positive, or contiguous. In the case of equal positions, order is
     /// based on the roles' IDs instead.
     fn cmp(&self, other: &Self) -> Ordering {
-        match self.position.cmp(&other.position) {
-            Ordering::Equal => self.id.0.cmp(&other.id.0),
-            ordering => ordering,
-        }
+        self.position.cmp(&other.position).then(self.id.0.cmp(&other.id.0))
     }
 }
 
