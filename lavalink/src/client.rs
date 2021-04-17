@@ -1,12 +1,11 @@
 //! Client to manage nodes and players.
 
 use crate::{
-    model::{IncomingEvent, SlimVoiceServerUpdate, VoiceUpdate},
-    node::{Node, NodeConfig, NodeError, Resume},
+    model::{SlimVoiceServerUpdate, VoiceUpdate},
+    node::{IncomingEvents, Node, NodeConfig, NodeError, Resume},
     player::{Player, PlayerManager},
 };
 use dashmap::DashMap;
-use futures_channel::mpsc::UnboundedReceiver;
 use std::{
     error::Error,
     fmt::{Display, Formatter, Result as FmtResult},
@@ -283,7 +282,7 @@ impl Lavalink {
         &self,
         address: SocketAddr,
         authorization: impl Into<String>,
-    ) -> Result<(Node, UnboundedReceiver<IncomingEvent>), NodeError> {
+    ) -> Result<(Node, IncomingEvents), NodeError> {
         let config = NodeConfig {
             address,
             authorization: authorization.into(),
