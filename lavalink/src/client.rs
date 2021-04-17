@@ -315,7 +315,7 @@ impl Lavalink {
     /// Use [`Lavalink::remove`] if detatching a node from a Lavalink instance
     /// is required without closing the underlying connection.
     ///
-    /// Returns true if the node has been removed and disconnected.
+    /// Returns whether the node has been removed and disconnected.
     pub fn disconnect(&self, address: SocketAddr) -> bool {
         if let Some((_, node)) = self.0.nodes.remove(&address) {
             node.close();
@@ -326,7 +326,7 @@ impl Lavalink {
     }
 
     /// Determine the "best" node for new players according to available nodes'
-    /// penalty scores. Disconnected nodes are will not be considered.
+    /// penalty scores. Disconnected nodes will not be considered.
     ///
     /// Refer to [`Node::penalty`] for how this is calculated.
     ///
