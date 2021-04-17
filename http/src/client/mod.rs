@@ -1649,21 +1649,3 @@ impl Client {
         })
     }
 }
-
-impl From<HyperClient<HttpsConnector<HttpConnector>>> for Client {
-    fn from(hyper_client: HyperClient<HttpsConnector<HttpConnector>>) -> Self {
-        Self {
-            state: Arc::new(State {
-                http: hyper_client,
-                default_headers: None,
-                proxy: None,
-                ratelimiter: Some(Ratelimiter::new()),
-                timeout: Duration::from_secs(10),
-                token_invalid: AtomicBool::new(false),
-                token: None,
-                use_http: false,
-                default_allowed_mentions: None,
-            }),
-        }
-    }
-}
