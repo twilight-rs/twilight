@@ -326,7 +326,7 @@ impl Lavalink {
     }
 
     /// Determine the "best" node for new players according to available nodes'
-    /// penalty scores. Disconnected nodes are will not be considered.
+    /// penalty scores. Disconnected nodes will not be considered.
     ///
     /// Refer to [`Node::penalty`] for how this is calculated.
     ///

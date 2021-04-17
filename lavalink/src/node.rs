@@ -282,7 +282,7 @@ impl Node {
         &self.0.players
     }
 
-    /// Closes the connection with the node. All future calls to `[Node::send]` will fail.
+    /// Closes the connection with the node. All future calls to [`Node::send`] will fail.
     ///
     /// Using [`Lavalink::disconnect`] is advised over directly calling this, as it will also
     /// removing the node from the manager.
@@ -501,7 +501,7 @@ impl Drop for Connection {
         // Cleanup local players associated with the node
         self.players
             .players
-            .retain(|_, v| v.node().config() != &self.config);
+            .retain(|_, v| v.node().config().address != self.config.address);
     }
 }
 
