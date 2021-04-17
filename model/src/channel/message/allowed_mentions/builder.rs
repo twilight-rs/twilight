@@ -35,7 +35,8 @@ impl AllowedMentionsBuilder {
 
     /// Allow parsing of specific [`RoleId`]s.
     ///
-    /// Note: If called, this will override the effect of [`roles`].
+    /// [`roles`] and this method are mutually exclusive. The builder will favor
+    /// specific role ids.
     ///
     /// [`roles`]: Self::roles
     pub fn role_ids(mut self, role_ids: impl IntoIterator<Item = RoleId>) -> Self {
@@ -53,7 +54,8 @@ impl AllowedMentionsBuilder {
 
     /// Allow parsing of  specific [`UserId`]s.
     ///
-    /// Note: If called, this will override the effect of [`users`].
+    /// [`users`] and this method are mutually exclusive. The builder will favor
+    /// specific user ids.
     ///
     /// [`users`]: Self::users
     pub fn user_ids(mut self, user_ids: impl IntoIterator<Item = UserId>) -> Self {

@@ -1,4 +1,7 @@
-use crate::{id::{RoleId, UserId}, util::is_false};
+use crate::{
+    id::{RoleId, UserId},
+    util::is_false,
+};
 use serde::{Deserialize, Serialize};
 
 mod builder;

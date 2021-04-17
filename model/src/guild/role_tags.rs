@@ -1,4 +1,7 @@
-use crate::{id::{IntegrationId, UserId}, util::is_false};
+use crate::{
+    id::{IntegrationId, UserId},
+    util::is_false,
+};
 use serde::{Deserialize, Serialize};
 
 /// The role tags' `premium_subscriber` field is tricky. It's an optional null.
