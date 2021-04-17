@@ -56,6 +56,8 @@ pub enum ErrorCode {
     UnknownBranch,
     /// Unknown redistributable
     UnknownRedistributable,
+    /// Unknown interaction
+    UnknownInteraction,
     /// Bots cannot use this endpoint
     BotsCannotUseEndpoint,
     /// Only bots can use this endpoint
@@ -186,6 +188,7 @@ impl ErrorCode {
             Self::UnknownLobby => 10031,
             Self::UnknownBranch => 10032,
             Self::UnknownRedistributable => 10036,
+            Self::UnknownInteraction => 10062,
             Self::BotsCannotUseEndpoint => 20001,
             Self::OnlyBotsCanUseEndpoint => 20002,
             Self::AnnouncementRateLimitReached => 20022,
@@ -266,6 +269,7 @@ impl From<u64> for ErrorCode {
             10031 => Self::UnknownLobby,
             10032 => Self::UnknownBranch,
             10036 => Self::UnknownRedistributable,
+            10062 => Self::UnknownInteraction,
             20001 => Self::BotsCannotUseEndpoint,
             20002 => Self::OnlyBotsCanUseEndpoint,
             20022 => Self::AnnouncementRateLimitReached,
@@ -346,6 +350,7 @@ impl Display for ErrorCode {
             Self::UnknownLobby => f.write_str("Unknown lobby"),
             Self::UnknownBranch => f.write_str("Unknown branch"),
             Self::UnknownRedistributable => f.write_str("Unknown redistributable"),
+            Self::UnknownInteraction => f.write_str("Unknown interaction"),
             Self::BotsCannotUseEndpoint => f.write_str("Bots cannot use this endpoint"),
             Self::OnlyBotsCanUseEndpoint => f.write_str("Only bots can use this endpoint"),
             Self::AnnouncementRateLimitReached => f.write_str("Message cannot be edited due to announcement rate limits"),
