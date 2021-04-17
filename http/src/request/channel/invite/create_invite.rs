@@ -107,7 +107,7 @@ impl<'a> CreateInvite<'a> {
 
     /// Set the target user for this invite.
     #[deprecated(since = "0.3.7", note = "Use `target_user_id` instead")]
-    pub fn target_user(mut self, target_user_id: UserId) -> Self {
+    pub fn target_user(self, target_user_id: UserId) -> Self {
         self.target_user_id(target_user_id)
     }
 
