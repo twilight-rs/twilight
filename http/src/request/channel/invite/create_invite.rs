@@ -14,7 +14,7 @@ struct CreateInviteFields {
     temporary: Option<bool>,
     #[serde(skip_serializing_if = "Option::is_none")]
     unique: Option<bool>,
-    #[serde(skip_serializing_if = "Option::is_none")]
+    #[serde(rename = "target_user_id", skip_serializing_if = "Option::is_none")]
     target_user: Option<String>,
     #[serde(skip_serializing_if = "Option::is_none")]
     target_user_type: Option<TargetUserType>,
