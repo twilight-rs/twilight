@@ -15,5 +15,5 @@ pub struct AuditLogEntry {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub reason: Option<String>,
     pub target_id: Option<String>,
-    pub user_id: UserId,
+    pub user_id: Option<UserId>,
 }
