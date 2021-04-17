@@ -93,14 +93,53 @@ use crate::{
 use bytes::Bytes;
 use hyper::{
     header::{HeaderMap, HeaderName, HeaderValue},
-    Method,
+    Method as HyperMethod,
 };
 use percent_encoding::{utf8_percent_encode, NON_ALPHANUMERIC};
-
 use std::{borrow::Cow, future::Future, pin::Pin};
 
 type Pending<'a, T> = Pin<Box<dyn Future<Output = Result<T>> + Send + 'a>>;
 type PendingOption<'a> = Pin<Box<dyn Future<Output = Result<Bytes>> + Send + 'a>>;
+
+/// Request method.
+#[derive(Clone, Copy, Debug, Eq, Hash, PartialEq)]
+#[non_exhaustive]
+pub enum Method {
+    /// CONNECT method.
+    Connect,
+    /// DELETE method.
+    Delete,
+    /// GET method.
+    Get,
+    /// HEAD method.
+    Head,
+    /// OPTIONS method.
+    Options,
+    /// PATCH method.
+    Patch,
+    /// POST method.
+    Post,
+    /// PUT method.
+    Put,
+    /// TRACE method.
+    Trace,
+}
+
+impl Method {
+    pub(crate) fn into_hyper(self) -> HyperMethod {
+        match self {
+            Self::Connect => HyperMethod::CONNECT,
+            Self::Delete => HyperMethod::DELETE,
+            Self::Get => HyperMethod::GET,
+            Self::Head => HyperMethod::HEAD,
+            Self::Options => HyperMethod::OPTIONS,
+            Self::Patch => HyperMethod::PATCH,
+            Self::Post => HyperMethod::POST,
+            Self::Put => HyperMethod::PUT,
+            Self::Trace => HyperMethod::TRACE,
+        }
+    }
+}
 
 #[derive(Debug)]
 pub struct Request {
