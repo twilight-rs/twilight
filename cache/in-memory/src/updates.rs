@@ -269,6 +269,7 @@ impl UpdateCache for GuildUpdate {
             guild.max_presences = Some(self.max_presences.unwrap_or(25000));
             guild.mfa_level = self.mfa_level;
             guild.name = self.name.clone();
+            guild.nsfw = self.nsfw;
             guild.owner = self.owner;
             guild.owner_id = self.owner_id;
             guild.permissions = self.permissions;
@@ -913,6 +914,7 @@ mod tests {
             members: Vec::new(),
             mfa_level: MfaLevel::None,
             name: "test".to_owned(),
+            nsfw: false,
             owner_id: UserId(1),
             owner: None,
             permissions: None,
@@ -954,6 +956,7 @@ mod tests {
             member_count: guild.member_count,
             mfa_level: guild.mfa_level,
             name: "test2222".to_owned(),
+            nsfw: guild.nsfw,
             owner_id: UserId(2),
             owner: guild.owner,
             permissions: guild.permissions,
