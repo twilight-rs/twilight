@@ -17,6 +17,11 @@ pub struct VoiceChannel {
     pub parent_id: Option<ChannelId>,
     pub permission_overwrites: Vec<PermissionOverwrite>,
     pub position: i64,
+    /// ID of the voice channel's region.
+    ///
+    /// Automatic when not present.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub rtc_region: Option<String>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub user_limit: Option<u64>,
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -39,6 +44,7 @@ mod tests {
             permission_overwrites: Vec::new(),
             parent_id: None,
             position: 3,
+            rtc_region: None,
             user_limit: Some(7),
             video_quality_mode: None,
         };
@@ -88,6 +94,7 @@ mod tests {
                 permission_overwrites: Vec::new(),
                 parent_id: Some(ChannelId(3)),
                 position: 3,
+                rtc_region: Some("a".to_owned()),
                 user_limit: Some(7),
                 video_quality_mode: Some(VideoQualityMode::Auto),
             }
@@ -121,6 +128,9 @@ mod tests {
                 Token::SeqEnd,
                 Token::Str("position"),
                 Token::I64(3),
+                Token::Str("rtc_region"),
+                Token::Some,
+                Token::Str("a"),
                 Token::Str("user_limit"),
                 Token::Some,
                 Token::U64(7),

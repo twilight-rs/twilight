@@ -355,6 +355,7 @@ impl<'de> Visitor<'de> for GuildChannelVisitor {
                     parent_id,
                     permission_overwrites,
                     position,
+                    rtc_region: None,
                     user_limit,
                     video_quality_mode,
                 })
@@ -460,6 +461,7 @@ mod tests {
             permission_overwrites: Vec::new(),
             parent_id: None,
             position: 2,
+            rtc_region: None,
             user_limit: None,
             video_quality_mode: None,
         }
