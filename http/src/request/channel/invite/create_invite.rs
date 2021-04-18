@@ -15,7 +15,7 @@ struct CreateInviteFields {
     #[serde(skip_serializing_if = "Option::is_none")]
     unique: Option<bool>,
     #[serde(skip_serializing_if = "Option::is_none")]
-    target_user: Option<String>,
+    target_user_id: Option<String>,
     #[serde(skip_serializing_if = "Option::is_none")]
     target_user_type: Option<TargetUserType>,
 }
@@ -97,10 +97,18 @@ impl<'a> CreateInvite<'a> {
     }
 
     /// Set the target user for this invite.
-    pub fn target_user(mut self, target_user: UserId) -> Self {
-        self.fields.target_user.replace(target_user.0.to_string());
+    pub fn target_user_id(mut self, target_user_id: UserId) -> Self {
+        self.fields
+            .target_user_id
+            .replace(target_user_id.0.to_string());
 
         self
+    }
+
+    /// Set the target user for this invite.
+    #[deprecated(since = "0.3.7", note = "Use `target_user_id` instead")]
+    pub fn target_user(self, target_user_id: UserId) -> Self {
+        self.target_user_id(target_user_id)
     }
 
     /// Set the target user type for this invite.
