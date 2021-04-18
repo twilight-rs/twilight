@@ -486,11 +486,6 @@ impl Client {
         UpdateCurrentUserNick::new(self, guild_id, nick)
     }
 
-    /// Get a list of the current user's private channels.
-    pub fn current_user_private_channels(&self) -> GetCurrentUserPrivateChannels<'_> {
-        GetCurrentUserPrivateChannels::new(self)
-    }
-
     /// Get the emojis for a guild, by the guild's id.
     ///
     /// # Examples
