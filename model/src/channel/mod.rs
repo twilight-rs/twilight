@@ -12,6 +12,7 @@ mod private_channel;
 mod reaction;
 mod reaction_type;
 mod text_channel;
+mod video_quality_mode;
 mod voice_channel;
 mod webhook;
 mod webhook_type;
@@ -20,8 +21,8 @@ pub use self::{
     attachment::Attachment, category_channel::CategoryChannel, channel_mention::ChannelMention,
     channel_type::ChannelType, followed_channel::FollowedChannel, group::Group, message::Message,
     private_channel::PrivateChannel, reaction::Reaction, reaction_type::ReactionType,
-    text_channel::TextChannel, voice_channel::VoiceChannel, webhook::Webhook,
-    webhook_type::WebhookType,
+    text_channel::TextChannel, video_quality_mode::VideoQualityMode, voice_channel::VoiceChannel,
+    webhook::Webhook, webhook_type::WebhookType,
 };
 
 use crate::id::{ChannelId, GuildId, MessageId};
@@ -132,6 +133,7 @@ enum GuildChannelField {
     Topic,
     Type,
     UserLimit,
+    VideoQualityMode,
 }
 
 struct GuildChannelVisitor;
@@ -167,6 +169,7 @@ impl<'de> Visitor<'de> for GuildChannelVisitor {
         let mut rate_limit_per_user = None;
         let mut topic: Option<Option<String>> = None;
         let mut user_limit = None;
+        let mut video_quality_mode = None;
 
         let span = tracing::trace_span!("deserializing guild channel");
         let _span_enter = span.enter();
@@ -291,6 +294,13 @@ impl<'de> Visitor<'de> for GuildChannelVisitor {
 
                     user_limit = Some(map.next_value()?);
                 }
+                GuildChannelField::VideoQualityMode => {
+                    if video_quality_mode.is_some() {
+                        return Err(DeError::duplicate_field("video_quality_mode"));
+                    }
+
+                    video_quality_mode = Some(map.next_value()?);
+                }
             }
         }
 
@@ -346,6 +356,7 @@ impl<'de> Visitor<'de> for GuildChannelVisitor {
                     permission_overwrites,
                     position,
                     user_limit,
+                    video_quality_mode,
                 })
             }
             ChannelType::GuildNews | ChannelType::GuildStore | ChannelType::GuildText => {
@@ -450,6 +461,7 @@ mod tests {
             parent_id: None,
             position: 2,
             user_limit: None,
+            video_quality_mode: None,
         }
     }
 
