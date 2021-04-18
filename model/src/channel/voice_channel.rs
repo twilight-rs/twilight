@@ -100,11 +100,11 @@ mod tests {
             }
         }
 
-        fn tokens(kind: ChannelType) -> [Token; 30] {
+        fn tokens(kind: ChannelType) -> [Token; 33] {
             [
                 Token::Struct {
                     name: "VoiceChannel",
-                    len: 10,
+                    len: 11,
                 },
                 Token::Str("bitrate"),
                 Token::U64(124_000),
