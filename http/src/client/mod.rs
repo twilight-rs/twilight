@@ -809,7 +809,7 @@ impl Client {
         GetGuildMembers::new(self, guild_id)
     }
 
-    /// Search the members of a specific guild by a query. Requires the [`GUILD_MEMBERS`] intent.
+    /// Search the members of a specific guild by a query.
     ///
     /// The upper limit to this request is 1000. Discord defaults the limit to 1.
     ///
