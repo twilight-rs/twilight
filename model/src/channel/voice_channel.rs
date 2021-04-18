@@ -1,5 +1,5 @@
 use crate::{
-    channel::{permission_overwrite::PermissionOverwrite, ChannelType},
+    channel::{permission_overwrite::PermissionOverwrite, ChannelType, VideoQualityMode},
     id::{ChannelId, GuildId},
 };
 use serde::{Deserialize, Serialize};
@@ -17,13 +17,20 @@ pub struct VoiceChannel {
     pub parent_id: Option<ChannelId>,
     pub permission_overwrites: Vec<PermissionOverwrite>,
     pub position: i64,
+    /// ID of the voice channel's region.
+    ///
+    /// Automatic when not present.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub rtc_region: Option<String>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub user_limit: Option<u64>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub video_quality_mode: Option<VideoQualityMode>,
 }
 
 #[cfg(test)]
 mod tests {
-    use super::{ChannelId, ChannelType, GuildId, VoiceChannel};
+    use super::{ChannelId, ChannelType, GuildId, VideoQualityMode, VoiceChannel};
     use serde_test::Token;
 
     #[test]
@@ -37,7 +44,9 @@ mod tests {
             permission_overwrites: Vec::new(),
             parent_id: None,
             position: 3,
+            rtc_region: None,
             user_limit: Some(7),
+            video_quality_mode: None,
         };
 
         serde_test::assert_tokens(
@@ -85,15 +94,17 @@ mod tests {
                 permission_overwrites: Vec::new(),
                 parent_id: Some(ChannelId(3)),
                 position: 3,
+                rtc_region: Some("a".to_owned()),
                 user_limit: Some(7),
+                video_quality_mode: Some(VideoQualityMode::Auto),
             }
         }
 
-        fn tokens(kind: ChannelType) -> [Token; 27] {
+        fn tokens(kind: ChannelType) -> [Token; 33] {
             [
                 Token::Struct {
                     name: "VoiceChannel",
-                    len: 9,
+                    len: 11,
                 },
                 Token::Str("bitrate"),
                 Token::U64(124_000),
@@ -117,9 +128,15 @@ mod tests {
                 Token::SeqEnd,
                 Token::Str("position"),
                 Token::I64(3),
+                Token::Str("rtc_region"),
+                Token::Some,
+                Token::Str("a"),
                 Token::Str("user_limit"),
                 Token::Some,
                 Token::U64(7),
+                Token::Str("video_quality_mode"),
+                Token::Some,
+                Token::U8(1),
                 Token::StructEnd,
             ]
         }

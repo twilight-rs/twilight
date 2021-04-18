@@ -98,6 +98,8 @@ pub enum Path {
     ChannelsIdPins(u64),
     /// Operating on a channel's individual pinned message.
     ChannelsIdPinsMessageId(u64),
+    /// Operating on a group DM's recipients.
+    ChannelsIdRecipients(u64),
     /// Operating on a channel's typing indicator.
     ChannelsIdTyping(u64),
     /// Operating on a channel's webhooks.
@@ -193,7 +195,11 @@ impl FromStr for Path {
             ["channels", id, "followers"] => ChannelsIdFollowers(parse_id(id)?),
             ["channels", id, "invites"] => ChannelsIdInvites(parse_id(id)?),
             ["channels", id, "messages"] => ChannelsIdMessages(parse_id(id)?),
+            ["channels", id, "messages", "bulk-delete"] => {
+                ChannelsIdMessagesBulkDelete(parse_id(id)?)
+            }
             ["channels", id, "messages", _] => {
+                // can not map to path without method since they have different ratelimits
                 return Err(PathParseError {
                     kind: PathParseErrorType::MessageIdWithoutMethod {
                         channel_id: parse_id(id)?,
@@ -204,7 +210,8 @@ impl FromStr for Path {
             ["channels", id, "messages", _, "crosspost"] => {
                 ChannelsIdMessagesIdCrosspost(parse_id(id)?)
             }
-            ["channels", id, "messages", _, "reactions"] => {
+            ["channels", id, "messages", _, "reactions"]
+            | ["channels", id, "messages", _, "reactions", _] => {
                 ChannelsIdMessagesIdReactions(parse_id(id)?)
             }
             ["channels", id, "messages", _, "reactions", _, _] => {
@@ -213,16 +220,24 @@ impl FromStr for Path {
             ["channels", id, "permissions", _] => ChannelsIdPermissionsOverwriteId(parse_id(id)?),
             ["channels", id, "pins"] => ChannelsIdPins(parse_id(id)?),
             ["channels", id, "pins", _] => ChannelsIdPinsMessageId(parse_id(id)?),
+            ["channels", id, "recipients"] | ["channels", id, "recipients", _] => {
+                ChannelsIdRecipients(parse_id(id)?)
+            }
             ["channels", id, "typing"] => ChannelsIdTyping(parse_id(id)?),
-            ["channels", id, "webhooks"] => ChannelsIdWebhooks(parse_id(id)?),
+            ["channels", id, "webhooks"] | ["channels", id, "webhooks", _] => {
+                ChannelsIdWebhooks(parse_id(id)?)
+            }
             ["gateway"] => Gateway,
             ["gateway", "bot"] => GatewayBot,
             ["guilds"] => Guilds,
             ["guilds", id] => GuildsId(parse_id(id)?),
+            ["guilds", id, "audit-logs"] => GuildsIdAuditLogs(parse_id(id)?),
             ["guilds", id, "bans"] => GuildsIdBans(parse_id(id)?),
             ["guilds", id, "bans", _] => GuildsIdBansUserId(parse_id(id)?),
             ["guilds", id, "channels"] => GuildsIdChannels(parse_id(id)?),
-            ["guilds", id, "widget"] => GuildsIdWidget(parse_id(id)?),
+            ["guilds", id, "widget"] | ["guilds", id, "widget.json"] => {
+                GuildsIdWidget(parse_id(id)?)
+            }
             ["guilds", id, "emojis"] => GuildsIdEmojis(parse_id(id)?),
             ["guilds", id, "emojis", _] => GuildsIdEmojisId(parse_id(id)?),
             ["guilds", id, "integrations"] => GuildsIdIntegrations(parse_id(id)?),
@@ -249,6 +264,7 @@ impl FromStr for Path {
             ["users", _, "guilds", _] => UsersIdGuildsId,
             ["voice", "regions"] => VoiceRegions,
             ["webhooks", id] | ["webhooks", id, _] => WebhooksId(parse_id(id)?),
+            ["webhooks", id, _, "messages", _] => WebhooksIdTokenMessagesId(parse_id(id)?),
             _ => {
                 return Err(PathParseError {
                     kind: PathParseErrorType::NoMatch,

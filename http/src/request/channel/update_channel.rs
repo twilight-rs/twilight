@@ -4,7 +4,7 @@ use std::{
     fmt::{Display, Formatter, Result as FmtResult},
 };
 use twilight_model::{
-    channel::{permission_overwrite::PermissionOverwrite, Channel, ChannelType},
+    channel::{permission_overwrite::PermissionOverwrite, Channel, ChannelType, VideoQualityMode},
     id::ChannelId,
 };
 
@@ -95,6 +95,8 @@ struct UpdateChannelFields {
     topic: Option<String>,
     #[serde(skip_serializing_if = "Option::is_none")]
     user_limit: Option<u64>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    video_quality_mode: Option<VideoQualityMode>,
     #[serde(rename = "type")]
     #[serde(skip_serializing_if = "Option::is_none")]
     kind: Option<ChannelType>,
@@ -256,6 +258,13 @@ impl<'a> UpdateChannel<'a> {
     /// [the discord docs]: https://discord.com/developers/docs/resources/channel#modify-channel-json-params
     pub fn user_limit(mut self, user_limit: u64) -> Self {
         self.fields.user_limit.replace(user_limit);
+
+        self
+    }
+
+    /// Set the [`VideoQualityMode`] for the voice channel.
+    pub fn video_quality_mode(mut self, video_quality_mode: VideoQualityMode) -> Self {
+        self.fields.video_quality_mode.replace(video_quality_mode);
 
         self
     }

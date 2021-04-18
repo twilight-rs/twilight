@@ -2,6 +2,14 @@
 
 Changelog for `twilight-lavalink`.
 
+## [0.3.2] - 2021-04-12
+
+### Fixes
+
+Fix a deadlock, correctly disconnect from channels ([#733] - [@james7132]).
+
+[#733]: https://github.com/twilight-rs/twilight/pull/733
+
 ## [0.3.1] - 2021-03-14
 
 ### Additions
@@ -84,6 +92,7 @@ Initial release.
 [#548]: https://github.com/twilight-rs/twilight/pull/548
 [#518]: https://github.com/twilight-rs/twilight/pull/518
 
+[0.3.2]: https://github.com/twilight-rs/twilight/releases/tag/lavalink-v0.3.2
 [0.3.1]: https://github.com/twilight-rs/twilight/releases/tag/lavalink-v0.3.1
 [0.3.0]: https://github.com/twilight-rs/twilight/releases/tag/lavalink-v0.3.0
 [0.2.2]: https://github.com/twilight-rs/twilight/releases/tag/lavalink-v0.2.2
