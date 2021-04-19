@@ -18,8 +18,10 @@ use std::{
     },
     time::Duration,
 };
-use tokio::sync::oneshot::{self, Receiver, Sender};
-use tokio::sync::Mutex;
+use tokio::sync::{
+    oneshot::{self, Receiver, Sender},
+    Mutex,
+};
 
 /// Global lock. We use a pair to avoid actually locking the mutex every check.
 /// This allows futures to only wait on the global lock when a global ratelimit

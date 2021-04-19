@@ -39,11 +39,13 @@ pub use large_bot_queue::LargeBotQueue;
 
 use day_limiter::DayLimiter;
 use std::{fmt::Debug, future::Future, pin::Pin, time::Duration};
-use tokio::sync::{
-    mpsc::{unbounded_channel, UnboundedReceiver, UnboundedSender},
-    oneshot::{self, Sender},
+use tokio::{
+    sync::{
+        mpsc::{unbounded_channel, UnboundedReceiver, UnboundedSender},
+        oneshot::{self, Sender},
+    },
+    time::sleep,
 };
-use tokio::time::sleep;
 
 /// Queue for shards to request the ability to initialize new sessions with the
 /// gateway.

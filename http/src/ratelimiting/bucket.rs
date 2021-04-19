@@ -8,12 +8,14 @@ use std::{
     },
     time::{Duration, Instant},
 };
-use tokio::sync::Mutex;
-use tokio::sync::{
-    mpsc::{self, UnboundedReceiver, UnboundedSender},
-    oneshot::{self, Sender},
+use tokio::{
+    sync::{
+        mpsc::{self, UnboundedReceiver, UnboundedSender},
+        oneshot::{self, Sender},
+        Mutex,
+    },
+    time::{sleep, timeout},
 };
-use tokio::time::{sleep, timeout};
 
 #[derive(Clone, Debug)]
 pub enum TimeRemaining {

@@ -1,10 +1,12 @@
 use super::{DayLimiter, Queue};
 use std::{fmt::Debug, future::Future, pin::Pin, time::Duration};
-use tokio::sync::{
-    mpsc::{unbounded_channel, UnboundedReceiver, UnboundedSender},
-    oneshot::{self, Sender},
+use tokio::{
+    sync::{
+        mpsc::{unbounded_channel, UnboundedReceiver, UnboundedSender},
+        oneshot::{self, Sender},
+    },
+    time::sleep,
 };
-use tokio::time::sleep;
 
 /// Queue built for single-process clusters that require identifying via
 /// [Sharding for Very Large Bots].
