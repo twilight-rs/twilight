@@ -193,7 +193,7 @@ impl Emitter {
 mod tests {
     use super::Emitter;
     use crate::{listener::Listeners, Event, EventTypeFlags};
-    use tokio::time::{Duration, timeout};
+    use tokio::time::{timeout, Duration};
 
     #[tokio::test]
     async fn test_bytes_send() {
@@ -229,7 +229,11 @@ mod tests {
         assert!(rx2.recv().await.is_some());
 
         // now check that they didn't send the event twice
-        assert!(timeout(Duration::from_millis(10), rx1.recv()).await.is_err());
-        assert!(timeout(Duration::from_millis(10), rx2.recv()).await.is_err());
+        assert!(timeout(Duration::from_millis(10), rx1.recv())
+            .await
+            .is_err());
+        assert!(timeout(Duration::from_millis(10), rx2.recv())
+            .await
+            .is_err());
     }
 }
