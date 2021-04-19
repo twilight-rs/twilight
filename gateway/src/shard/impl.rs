@@ -472,7 +472,7 @@ impl Shard {
                 })?;
 
         let handle = tokio::spawn(async move {
-            let _ = processor.run().await;
+            processor.run().await;
 
             tracing::debug!("shard processor future ended");
         });
