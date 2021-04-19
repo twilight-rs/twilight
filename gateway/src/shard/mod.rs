@@ -28,7 +28,6 @@ mod event;
 mod r#impl;
 mod json;
 mod processor;
-mod sink;
 
 pub use self::{
     builder::{
@@ -41,10 +40,10 @@ pub use self::{
         CommandError, CommandErrorType, Information, ResumeSession, SendError, SendErrorType,
         SessionInactiveError, Shard, ShardStartError, ShardStartErrorType,
     },
-    sink::ShardSink,
     stage::Stage,
 };
 
-use async_tungstenite::{tokio::ConnectStream, WebSocketStream};
+use tokio::net::TcpStream;
+use tokio_tungstenite::{MaybeTlsStream, WebSocketStream};
 
-type ShardStream = WebSocketStream<ConnectStream>;
+type ShardStream = WebSocketStream<MaybeTlsStream<TcpStream>>;

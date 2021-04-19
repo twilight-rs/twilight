@@ -130,16 +130,16 @@ pub use futures::{
 };
 
 use dashmap::DashMap;
-use futures_channel::{
-    mpsc::{self, UnboundedSender as MpscSender},
-    oneshot::{self, Sender as OneshotSender},
-};
 use std::{
     fmt::{Debug, Formatter, Result as FmtResult},
     sync::{
         atomic::{AtomicU64, Ordering},
         Arc,
     },
+};
+use tokio::sync::{
+    mpsc::{self, UnboundedSender as MpscSender},
+    oneshot::{self, Sender as OneshotSender},
 };
 use twilight_model::{
     channel::Channel,
@@ -159,7 +159,7 @@ impl<E> Sender<E> {
     fn is_closed(&self) -> bool {
         match self {
             Self::Mpsc(sender) => sender.is_closed(),
-            Self::Oneshot(sender) => sender.is_canceled(),
+            Self::Oneshot(sender) => sender.is_closed(),
         }
     }
 }
@@ -317,7 +317,7 @@ impl Standby {
         check: impl Into<Box<F>>,
     ) -> WaitForGuildEventStream {
         tracing::trace!(%guild_id, "waiting for event in guild");
-        let (tx, rx) = mpsc::unbounded();
+        let (tx, rx) = mpsc::unbounded_channel();
 
         {
             let mut guild = self.0.guilds.entry(guild_id).or_default();
@@ -421,7 +421,7 @@ impl Standby {
         check: impl Into<Box<F>>,
     ) -> WaitForEventStream {
         tracing::trace!("waiting for event");
-        let (tx, rx) = mpsc::unbounded();
+        let (tx, rx) = mpsc::unbounded_channel();
 
         {
             self.0.events.insert(
@@ -518,7 +518,7 @@ impl Standby {
         check: impl Into<Box<F>>,
     ) -> WaitForMessageStream {
         tracing::trace!(%channel_id, "waiting for message in channel");
-        let (tx, rx) = mpsc::unbounded();
+        let (tx, rx) = mpsc::unbounded_channel();
 
         {
             let mut guild = self.0.messages.entry(channel_id).or_default();
@@ -616,7 +616,7 @@ impl Standby {
         check: impl Into<Box<F>>,
     ) -> WaitForReactionStream {
         tracing::trace!(%message_id, "waiting for reaction on message");
-        let (tx, rx) = mpsc::unbounded();
+        let (tx, rx) = mpsc::unbounded_channel();
 
         {
             let mut guild = self.0.reactions.entry(message_id).or_default();
@@ -776,7 +776,7 @@ impl Standby {
                 true
             }
             Sender::Mpsc(tx) => {
-                if tx.unbounded_send(event.clone()).is_ok() {
+                if tx.send(event.clone()).is_ok() {
                     tracing::trace!("bystander is a stream, retaining in map");
 
                     bystander.sender.replace(Sender::Mpsc(tx));

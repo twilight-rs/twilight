@@ -1,17 +1,14 @@
-use futures_channel::{
-    mpsc::UnboundedReceiver as MpscReceiver,
-    oneshot::{Canceled as ChannelCanceled, Receiver},
-};
-use futures_util::{
-    future::FutureExt,
-    stream::{Stream, StreamExt},
-};
+use futures_util::{future::FutureExt, stream::Stream};
 use std::{
     error::Error,
     fmt::{Display, Formatter, Result as FmtResult},
     future::Future,
     pin::Pin,
     task::{Context, Poll},
+};
+use tokio::sync::{
+    mpsc::UnboundedReceiver as MpscReceiver,
+    oneshot::{error::RecvError, Receiver},
 };
 use twilight_model::gateway::{
     event::Event,
@@ -20,7 +17,7 @@ use twilight_model::gateway::{
 
 /// Future canceled due to Standby being dropped.
 #[derive(Debug)]
-pub struct Canceled(ChannelCanceled);
+pub struct Canceled(RecvError);
 
 impl Canceled {
     /// Consume the error, returning the source error if there is any.
@@ -72,7 +69,7 @@ impl Stream for WaitForEventStream {
     type Item = Event;
 
     fn poll_next(mut self: Pin<&mut Self>, cx: &mut Context<'_>) -> Poll<Option<Self::Item>> {
-        self.rx.poll_next_unpin(cx)
+        self.rx.poll_recv(cx)
     }
 }
 
@@ -106,7 +103,7 @@ impl Stream for WaitForGuildEventStream {
     type Item = Event;
 
     fn poll_next(mut self: Pin<&mut Self>, cx: &mut Context<'_>) -> Poll<Option<Self::Item>> {
-        self.rx.poll_next_unpin(cx)
+        self.rx.poll_recv(cx)
     }
 }
 
@@ -140,7 +137,7 @@ impl Stream for WaitForMessageStream {
     type Item = MessageCreate;
 
     fn poll_next(mut self: Pin<&mut Self>, cx: &mut Context<'_>) -> Poll<Option<Self::Item>> {
-        self.rx.poll_next_unpin(cx)
+        self.rx.poll_recv(cx)
     }
 }
 
@@ -174,7 +171,7 @@ impl Stream for WaitForReactionStream {
     type Item = ReactionAdd;
 
     fn poll_next(mut self: Pin<&mut Self>, cx: &mut Context<'_>) -> Poll<Option<Self::Item>> {
-        self.rx.poll_next_unpin(cx)
+        self.rx.poll_recv(cx)
     }
 }
 

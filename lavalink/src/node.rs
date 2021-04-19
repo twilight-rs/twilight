@@ -21,18 +21,7 @@ use crate::{
     model::{IncomingEvent, Opcode, OutgoingEvent, PlayerUpdate, Stats, StatsCpu, StatsMemory},
     player::PlayerManager,
 };
-use async_tungstenite::{
-    tokio::ConnectStream,
-    tungstenite::{Error as TungsteniteError, Message},
-    WebSocketStream,
-};
-use futures_channel::mpsc::{self, TrySendError, UnboundedReceiver, UnboundedSender};
-use futures_util::{
-    future::{self, Either},
-    lock::BiLock,
-    sink::SinkExt,
-    stream::StreamExt,
-};
+use futures_util::{lock::BiLock, sink::SinkExt, stream::StreamExt};
 use http::{header::HeaderName, Request, Response, StatusCode};
 use std::{
     error::Error,
@@ -41,7 +30,13 @@ use std::{
     sync::Arc,
     time::Duration,
 };
+use tokio::net::TcpStream;
+use tokio::sync::mpsc::{self, error::SendError, UnboundedReceiver, UnboundedSender};
 use tokio::time as tokio_time;
+use tokio_tungstenite::{
+    tungstenite::{Error as TungsteniteError, Message},
+    MaybeTlsStream, WebSocketStream,
+};
 use twilight_model::id::UserId;
 
 /// An error occurred while either initializing a connection or while running
@@ -286,8 +281,8 @@ impl Node {
     ///
     /// Note that sending player events through the node's sender won't update
     /// player states, such as whether it's paused.
-    pub fn send(&self, event: OutgoingEvent) -> Result<(), TrySendError<OutgoingEvent>> {
-        self.sender().unbounded_send(event)
+    pub fn send(&self, event: OutgoingEvent) -> Result<(), SendError<OutgoingEvent>> {
+        self.sender().send(event)
     }
 
     /// Retrieve a unique sender to send events to the Lavalink server.
@@ -329,7 +324,7 @@ impl Node {
 
 struct Connection {
     config: NodeConfig,
-    connection: WebSocketStream<ConnectStream>,
+    connection: WebSocketStream<MaybeTlsStream<TcpStream>>,
     node_from: UnboundedReceiver<OutgoingEvent>,
     node_to: UnboundedSender<IncomingEvent>,
     players: PlayerManager,
@@ -351,8 +346,8 @@ impl Connection {
     > {
         let connection = reconnect(&config).await?;
 
-        let (to_node, from_lavalink) = mpsc::unbounded();
-        let (to_lavalink, from_node) = mpsc::unbounded();
+        let (to_node, from_lavalink) = mpsc::unbounded_channel();
+        let (to_lavalink, from_node) = mpsc::unbounded_channel();
 
         Ok((
             Self {
@@ -370,35 +365,34 @@ impl Connection {
 
     async fn run(mut self) -> Result<(), NodeError> {
         loop {
-            let from_lavalink = self.connection.next();
-            let to_lavalink = self.node_from.next();
-
-            match future::select(from_lavalink, to_lavalink).await {
-                Either::Left((Some(Ok(incoming)), _)) => {
-                    self.incoming(incoming).await?;
+            tokio::select! {
+                incoming = self.connection.next() => {
+                    if let Some(Ok(incoming)) = incoming {
+                        self.incoming(incoming).await?;
+                    } else {
+                        tracing::debug!("connection to {} closed, reconnecting", self.config.address);
+                        self.connection = reconnect(&self.config).await?;
+                    }
                 }
-                Either::Left((_, _)) => {
-                    tracing::debug!("connection to {} closed, reconnecting", self.config.address);
-                    self.connection = reconnect(&self.config).await?;
-                }
-                Either::Right((Some(outgoing), _)) => {
-                    tracing::debug!(
-                        "forwarding event to {}: {:?}",
-                        self.config.address,
-                        outgoing
-                    );
+                outgoing = self.node_from.recv() => {
+                    if let Some(outgoing) = outgoing {
+                        tracing::debug!(
+                            "forwarding event to {}: {:?}",
+                            self.config.address,
+                            outgoing
+                        );
 
-                    let payload = serde_json::to_string(&outgoing).map_err(|source| NodeError {
-                        kind: NodeErrorType::SerializingMessage { message: outgoing },
-                        source: Some(Box::new(source)),
-                    })?;
-                    let msg = Message::Text(payload);
-                    self.connection.send(msg).await.unwrap();
-                }
-                Either::Right((_, _)) => {
-                    tracing::debug!("node {} closed, ending connection", self.config.address);
+                        let payload = serde_json::to_string(&outgoing).map_err(|source| NodeError {
+                            kind: NodeErrorType::SerializingMessage { message: outgoing },
+                            source: Some(Box::new(source)),
+                        })?;
+                        let msg = Message::Text(payload);
+                        self.connection.send(msg).await.unwrap();
+                    } else {
+                        tracing::debug!("node {} closed, ending connection", self.config.address);
 
-                    break;
+                        break;
+                    }
                 }
             }
         }
@@ -455,7 +449,7 @@ impl Connection {
         // It's fine if the rx end dropped, often users don't need to care about
         // these events.
         if !self.node_to.is_closed() {
-            let _ = self.node_to.unbounded_send(event);
+            let _ = self.node_to.send(event);
         }
 
         Ok(true)
@@ -504,7 +498,9 @@ fn connect_request(state: &NodeConfig) -> Result<Request<()>, NodeError> {
     })
 }
 
-async fn reconnect(config: &NodeConfig) -> Result<WebSocketStream<ConnectStream>, NodeError> {
+async fn reconnect(
+    config: &NodeConfig,
+) -> Result<WebSocketStream<MaybeTlsStream<TcpStream>>, NodeError> {
     let (mut stream, res) = backoff(config).await?;
 
     let headers = res.headers();
@@ -535,13 +531,13 @@ async fn reconnect(config: &NodeConfig) -> Result<WebSocketStream<ConnectStream>
 
 async fn backoff(
     config: &NodeConfig,
-) -> Result<(WebSocketStream<ConnectStream>, Response<()>), NodeError> {
+) -> Result<(WebSocketStream<MaybeTlsStream<TcpStream>>, Response<()>), NodeError> {
     let mut seconds = 1;
 
     loop {
         let req = connect_request(config)?;
 
-        match async_tungstenite::tokio::connect_async(req).await {
+        match tokio_tungstenite::connect_async(req).await {
             Ok((stream, res)) => return Ok((stream, res)),
             Err(source) => {
                 tracing::warn!("failed to connect to node {}: {:?}", source, config.address);

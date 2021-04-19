@@ -2,8 +2,6 @@ use super::{
     super::json,
     session::{SessionSendError, SessionSendErrorType},
 };
-use async_tungstenite::tungstenite::Message as TungsteniteMessage;
-use futures_channel::mpsc::UnboundedSender;
 use serde::{Deserialize, Serialize};
 use std::{
     collections::VecDeque,
@@ -14,6 +12,8 @@ use std::{
     },
     time::{Duration, Instant},
 };
+use tokio::sync::mpsc::UnboundedSender;
+use tokio_tungstenite::tungstenite::Message as TungsteniteMessage;
 use twilight_model::gateway::payload::Heartbeat;
 
 /// Information about the latency of a [`Shard`]'s websocket connection.
@@ -238,7 +238,7 @@ impl Heartbeater {
 
             tracing::debug!(seq, "sending heartbeat");
             self.tx
-                .unbounded_send(TungsteniteMessage::Binary(bytes))
+                .send(TungsteniteMessage::Binary(bytes))
                 .map_err(|source| SessionSendError {
                     kind: SessionSendErrorType::Sending,
                     source: Some(Box::new(source)),

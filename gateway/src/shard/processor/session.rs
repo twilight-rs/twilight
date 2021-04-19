@@ -3,8 +3,6 @@ use super::{
     heartbeat::{Heartbeater, Heartbeats},
     throttle::Throttle,
 };
-use async_tungstenite::tungstenite::{protocol::CloseFrame, Message as TungsteniteMessage};
-use futures_channel::mpsc::{TrySendError, UnboundedSender};
 use futures_util::{
     future::{self, AbortHandle},
     lock::Mutex,
@@ -20,6 +18,8 @@ use std::{
     },
     time::Duration,
 };
+use tokio::sync::mpsc::{error::SendError, UnboundedSender};
+use tokio_tungstenite::tungstenite::{protocol::CloseFrame, Message as TungsteniteMessage};
 use twilight_model::gateway::payload::Heartbeat;
 
 #[derive(Debug)]
@@ -105,7 +105,7 @@ impl Session {
         })?;
 
         self.tx
-            .unbounded_send(TungsteniteMessage::Binary(bytes))
+            .send(TungsteniteMessage::Binary(bytes))
             .map_err(|source| SessionSendError {
                 kind: SessionSendErrorType::Sending,
                 source: Some(Box::new(source)),
@@ -117,9 +117,8 @@ impl Session {
     pub fn close(
         &self,
         close_frame: Option<CloseFrame<'static>>,
-    ) -> Result<(), TrySendError<TungsteniteMessage>> {
-        self.tx
-            .unbounded_send(TungsteniteMessage::Close(close_frame))
+    ) -> Result<(), SendError<TungsteniteMessage>> {
+        self.tx.send(TungsteniteMessage::Close(close_frame))
     }
 
     pub fn heartbeat_interval(&self) -> u64 {

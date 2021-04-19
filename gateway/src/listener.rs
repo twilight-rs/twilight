@@ -1,10 +1,10 @@
 use crate::EventTypeFlags;
 use dashmap::DashMap;
-use futures_channel::mpsc::{self, UnboundedReceiver, UnboundedSender};
 use std::sync::{
     atomic::{AtomicU64, Ordering},
     Arc,
 };
+use tokio::sync::mpsc::{self, UnboundedReceiver, UnboundedSender};
 
 #[derive(Debug)]
 pub struct Listener<T> {
@@ -46,7 +46,7 @@ pub struct Listeners<T>(Arc<ListenersRef<T>>);
 impl<T> Listeners<T> {
     pub fn add(&self, events: EventTypeFlags) -> UnboundedReceiver<T> {
         let id = self.0.id.fetch_add(1, Ordering::Release) + 1;
-        let (tx, rx) = mpsc::unbounded();
+        let (tx, rx) = mpsc::unbounded_channel();
 
         self.0.listeners.insert(id, Listener { events, tx });
         self.recalculate_event_types();

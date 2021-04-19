@@ -15,13 +15,11 @@ repository = "https://github.com/twilight-rs/twilight.git"
 version = "0.3.4"
 
 [dependencies]
-async-tungstenite = { default-features = false, features = ["tokio-runtime"], version = "0.13" }
+tokio-tungstenite = { default-features = false, features = ["connect"], version = "0.14" }
 bitflags = { default-features = false, version = "1" }
 twilight-gateway-queue = { default-features = false, path = "./queue" }
 twilight-http = { default-features = false, path = "../http" }
 twilight-model = { default-features = false, path = "../model" }
-futures-channel = { default-features = false, features = ["sink"], version = "0.3" }
-futures-timer = { default-features = false, version = "3.0" }
 futures-util = { default-features = false, features = ["async-await-macro", "std"], version = "0.3" }
 tracing = { default-features = false, features = ["std", "attributes"], version = "0.1" }
 once_cell = { default-features = false, features = ["std"], version = "1" }
@@ -48,10 +46,10 @@ tokio = { default-features = false, features = ["macros", "rt-multi-thread"], ve
 [features]
 default = ["compression", "rustls", "flate2/zlib"]
 compression = ["flate2"]
-native = ["twilight-http/native", "twilight-gateway-queue/native", "async-tungstenite/tokio-native-tls"]
+native = ["twilight-http/native", "twilight-gateway-queue/native", "tokio-tungstenite/native-tls"]
 rustls = ["rustls-native-roots"]
-rustls-native-roots = ["twilight-http/rustls-native-roots", "twilight-gateway-queue/rustls-native-roots", "async-tungstenite/tokio-rustls"]
-rustls-webpki-roots = ["twilight-http/rustls-webpki-roots", "twilight-gateway-queue/rustls-webpki-roots", "async-tungstenite/tokio-rustls"]
+rustls-native-roots = ["twilight-http/rustls-native-roots", "twilight-gateway-queue/rustls-native-roots", "tokio-tungstenite/rustls-tls"]
+rustls-webpki-roots = ["twilight-http/rustls-webpki-roots", "twilight-gateway-queue/rustls-webpki-roots", "tokio-tungstenite/rustls-tls"]
 simd-zlib = ["compression", "flate2/zlib-ng-compat"]
 # if the `zlib` feature is enabled anywhere in the dependency tree it will
 # always use stock zlib instead of zlib-ng.

@@ -17,7 +17,6 @@ version = "0.3.6"
 [dependencies]
 bytes = { default-features = false, version = "1.0" }
 rand = { default-features = false, features = ["std_rng", "std"], version = "0.8" }
-futures-channel = { default-features = false, version = "0.3" }
 futures-util = { default-features = false, features = ["std"], version = "0.3" }
 hyper = { default-features = false, features = ["client", "http1", "http2", "runtime"], version = "0.14" }
 hyper-rustls = { default-features = false, optional = true, version = "0.22" }

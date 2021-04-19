@@ -6,13 +6,13 @@ use crate::{
     player::{Player, PlayerManager},
 };
 use dashmap::DashMap;
-use futures_channel::mpsc::UnboundedReceiver;
 use std::{
     error::Error,
     fmt::{Display, Formatter, Result as FmtResult},
     net::SocketAddr,
     sync::Arc,
 };
+use tokio::sync::mpsc::UnboundedReceiver;
 use twilight_model::{
     gateway::event::Event,
     id::{GuildId, UserId},

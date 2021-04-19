@@ -184,7 +184,7 @@ impl Emitter {
                 return !listener.tx.is_closed();
             }
 
-            listener.tx.unbounded_send(f(idx)).is_ok()
+            listener.tx.send(f(idx)).is_ok()
         });
     }
 }

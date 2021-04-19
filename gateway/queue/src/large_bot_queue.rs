@@ -1,10 +1,9 @@
 use super::{DayLimiter, Queue};
-use futures_channel::{
-    mpsc::{unbounded, UnboundedReceiver, UnboundedSender},
+use std::{fmt::Debug, future::Future, pin::Pin, time::Duration};
+use tokio::sync::{
+    mpsc::{unbounded_channel, UnboundedReceiver, UnboundedSender},
     oneshot::{self, Sender},
 };
-use futures_util::{sink::SinkExt, stream::StreamExt};
-use std::{fmt::Debug, future::Future, pin::Pin, time::Duration};
 use tokio::time::sleep;
 
 /// Queue built for single-process clusters that require identifying via
@@ -30,7 +29,7 @@ impl LargeBotQueue {
     pub async fn new(buckets: usize, http: &twilight_http::Client) -> Self {
         let mut queues = Vec::with_capacity(buckets);
         for _ in 0..buckets {
-            let (tx, rx) = unbounded();
+            let (tx, rx) = unbounded_channel();
 
             tokio::spawn(waiter(rx));
 
@@ -65,7 +64,7 @@ impl LargeBotQueue {
 
 async fn waiter(mut rx: UnboundedReceiver<Sender<()>>) {
     const DUR: Duration = Duration::from_secs(6);
-    while let Some(req) = rx.next().await {
+    while let Some(req) = rx.recv().await {
         if let Err(err) = req.send(()) {
             tracing::warn!("skipping, send failed with: {:?}", err);
         }
@@ -84,7 +83,7 @@ impl Queue for LargeBotQueue {
 
         Box::pin(async move {
             self.limiter.get().await;
-            if let Err(err) = self.buckets[bucket].clone().send(tx).await {
+            if let Err(err) = self.buckets[bucket].clone().send(tx) {
                 tracing::warn!("skipping, send failed with: {:?}", err);
                 return;
             }

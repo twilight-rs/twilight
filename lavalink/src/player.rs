@@ -11,7 +11,6 @@
 
 use crate::{model::*, node::Node};
 use dashmap::DashMap;
-use futures_channel::mpsc::TrySendError;
 use std::{
     fmt::Debug,
     sync::{
@@ -19,6 +18,7 @@ use std::{
         Arc,
     },
 };
+use tokio::sync::mpsc::error::SendError;
 use twilight_model::id::{ChannelId, GuildId};
 
 /// Retrieve and create players for guilds.
@@ -55,7 +55,7 @@ impl PlayerManager {
     /// Destroy a player on the remote node and remove it from the [`PlayerManager`].
     ///
     /// Returns an error if the associated node no longer is connected.
-    pub fn destroy(&self, guild_id: GuildId) -> Result<(), TrySendError<OutgoingEvent>> {
+    pub fn destroy(&self, guild_id: GuildId) -> Result<(), SendError<OutgoingEvent>> {
         if let Some(player) = self.get(&guild_id) {
             player
                 .node()
@@ -125,11 +125,11 @@ impl Player {
     ///
     /// [`Pause`]: crate::model::outgoing::Pause
     /// [`Play`]: crate::model::outgoing::Play
-    pub fn send(&self, event: impl Into<OutgoingEvent>) -> Result<(), TrySendError<OutgoingEvent>> {
+    pub fn send(&self, event: impl Into<OutgoingEvent>) -> Result<(), SendError<OutgoingEvent>> {
         self._send(event.into())
     }
 
-    fn _send(&self, event: OutgoingEvent) -> Result<(), TrySendError<OutgoingEvent>> {
+    fn _send(&self, event: OutgoingEvent) -> Result<(), SendError<OutgoingEvent>> {
         tracing::debug!(
             "sending event on guild player {}: {:?}",
             self.0.guild_id,

@@ -12,12 +12,6 @@ use super::{
     socket_forwarder::SocketForwarder,
 };
 use crate::{event::EventTypeFlags, listener::Listeners};
-use async_tungstenite::tungstenite::{
-    protocol::{frame::coding::CloseCode, CloseFrame},
-    Message,
-};
-use futures_channel::mpsc::UnboundedReceiver;
-use futures_util::stream::StreamExt;
 use serde::{Deserialize, Serialize};
 use std::{
     borrow::Cow,
@@ -28,8 +22,13 @@ use std::{
     sync::{atomic::Ordering, Arc},
     time::Duration,
 };
+use tokio::sync::mpsc::UnboundedReceiver;
 use tokio::sync::watch::{
     channel as watch_channel, Receiver as WatchReceiver, Sender as WatchSender,
+};
+use tokio_tungstenite::tungstenite::{
+    protocol::{frame::coding::CloseCode, CloseFrame},
+    Message,
 };
 use twilight_model::gateway::{
     event::{
@@ -722,7 +721,7 @@ impl ShardProcessor {
         loop {
             // Returns None when the socket forwarder has ended, meaning the
             // connection was dropped.
-            let mut msg = self.rx.next().await.ok_or(ReceivingEventError {
+            let mut msg = self.rx.recv().await.ok_or(ReceivingEventError {
                 kind: ReceivingEventErrorType::EventStreamEnded,
                 source: None,
             })?;
@@ -862,8 +861,8 @@ impl ShardProcessor {
     }
 
     async fn connect(url: &str) -> Result<ShardStream, ConnectingError> {
-        use async_tungstenite::{
-            tokio::connect_async_with_config, tungstenite::protocol::WebSocketConfig,
+        use tokio_tungstenite::{
+            connect_async_with_config, tungstenite::protocol::WebSocketConfig,
         };
 
         let url = Url::parse(url).map_err(|source| ConnectingError {
