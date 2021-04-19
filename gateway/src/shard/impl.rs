@@ -8,10 +8,7 @@ use super::{
     stage::Stage,
 };
 use crate::{listener::Listeners, EventTypeFlags, Intents};
-use futures_util::{
-    future::{self, AbortHandle},
-    stream::StreamExt,
-};
+use futures_util::stream::StreamExt;
 use once_cell::sync::OnceCell;
 use serde::{Deserialize, Serialize};
 use std::{
@@ -20,7 +17,7 @@ use std::{
     fmt::{Display, Formatter, Result as FmtResult},
     sync::{atomic::Ordering, Arc},
 };
-use tokio::sync::watch::Receiver as WatchReceiver;
+use tokio::{sync::watch::Receiver as WatchReceiver, task::JoinHandle};
 use tokio_tungstenite::tungstenite::protocol::{
     frame::coding::CloseCode, CloseFrame as TungsteniteCloseFrame,
 };
@@ -303,7 +300,7 @@ pub struct ResumeSession {
 struct ShardRef {
     config: Arc<Config>,
     listeners: Listeners<Event>,
-    processor_handle: OnceCell<AbortHandle>,
+    processor_handle: OnceCell<JoinHandle<()>>,
     session: OnceCell<WatchReceiver<Arc<Session>>>,
 }
 
@@ -473,10 +470,9 @@ impl Shard {
                         kind: new_kind,
                     }
                 })?;
-        let (fut, handle) = future::abortable(processor.run());
 
-        tokio::spawn(async move {
-            let _ = fut.await;
+        let handle = tokio::spawn(async move {
+            let _ = processor.run().await;
 
             tracing::debug!("shard processor future ended");
         });

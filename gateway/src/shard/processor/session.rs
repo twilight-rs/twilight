@@ -3,10 +3,6 @@ use super::{
     heartbeat::{Heartbeater, Heartbeats},
     throttle::Throttle,
 };
-use futures_util::{
-    future::{self, AbortHandle},
-    lock::Mutex,
-};
 use serde::ser::Serialize;
 use std::{
     convert::TryFrom,
@@ -18,7 +14,13 @@ use std::{
     },
     time::Duration,
 };
-use tokio::sync::mpsc::{error::SendError, UnboundedSender};
+use tokio::{
+    sync::{
+        mpsc::{error::SendError, UnboundedSender},
+        Mutex,
+    },
+    task::JoinHandle,
+};
 use tokio_tungstenite::tungstenite::{protocol::CloseFrame, Message as TungsteniteMessage};
 use twilight_model::gateway::payload::Heartbeat;
 
@@ -63,7 +65,7 @@ pub enum SessionSendErrorType {
 pub struct Session {
     // Needs to be Arc so it can be cloned in the `Drop` impl when spawned on
     // the runtime.
-    pub heartbeater_handle: Arc<MutexSync<Option<AbortHandle>>>,
+    pub heartbeater_handle: Arc<MutexSync<Option<JoinHandle<()>>>>,
     pub heartbeats: Arc<Heartbeats>,
     pub heartbeat_interval: AtomicU64,
     pub id: MutexSync<Option<Box<str>>>,
@@ -179,9 +181,7 @@ impl Session {
         let heartbeats = Arc::clone(&self.heartbeats);
 
         let heartbeater = Heartbeater::new(heartbeats, interval, seq, self.tx.clone()).run();
-        let (fut, handle) = future::abortable(heartbeater);
-
-        tokio::spawn(fut);
+        let handle = tokio::spawn(heartbeater);
 
         if let Some(old) = self
             .heartbeater_handle

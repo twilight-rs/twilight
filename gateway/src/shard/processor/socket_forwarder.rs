@@ -1,8 +1,10 @@
 use super::super::ShardStream;
 use futures_util::{future::FutureExt, sink::SinkExt, stream::StreamExt};
 use std::time::Duration;
-use tokio::sync::mpsc::{self, UnboundedReceiver, UnboundedSender};
-use tokio::time::sleep;
+use tokio::{
+    sync::mpsc::{self, UnboundedReceiver, UnboundedSender},
+    time::sleep,
+};
 use tokio_tungstenite::tungstenite::Message;
 
 pub struct SocketForwarder {
@@ -38,11 +40,10 @@ impl SocketForwarder {
         // positive.
         #[allow(clippy::mut_mut)]
         loop {
-            let mut stream = self.stream.next().fuse();
             let timeout = sleep(Self::TIMEOUT).fuse();
             tokio::pin!(timeout);
 
-            futures_util::select! {
+            tokio::select! {
                 maybe_msg = self.rx.recv().fuse() => {
                     if let Some(msg) = maybe_msg {
                         tracing::trace!("sending message: {}", msg);
@@ -58,7 +59,7 @@ impl SocketForwarder {
                         break;
                     }
                 },
-                try_msg = stream => {
+                try_msg = self.stream.next().fuse() => {
                     match try_msg {
                         Some(Ok(msg)) => {
                             if self.tx.send(msg).is_err() {

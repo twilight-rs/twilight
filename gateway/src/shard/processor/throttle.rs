@@ -6,6 +6,7 @@ use std::{
 };
 use tokio::time::{sleep, Instant, Sleep};
 
+#[derive(Debug)]
 pub struct Throttle {
     delay: Pin<Box<Sleep>>,
     duration: Duration,

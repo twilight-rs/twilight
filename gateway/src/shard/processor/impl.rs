@@ -22,9 +22,9 @@ use std::{
     sync::{atomic::Ordering, Arc},
     time::Duration,
 };
-use tokio::sync::mpsc::UnboundedReceiver;
-use tokio::sync::watch::{
-    channel as watch_channel, Receiver as WatchReceiver, Sender as WatchSender,
+use tokio::sync::{
+    mpsc::UnboundedReceiver,
+    watch::{channel as watch_channel, Receiver as WatchReceiver, Sender as WatchSender},
 };
 use tokio_tungstenite::tungstenite::{
     protocol::{frame::coding::CloseCode, CloseFrame},
