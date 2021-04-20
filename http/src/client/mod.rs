@@ -839,7 +839,7 @@ impl Client {
     /// let client = Client::new(env::var("DISCORD_TOKEN")?);
     /// let member = client.update_guild_member(GuildId(1), UserId(2))
     ///     .mute(true)
-    ///     .nick(Some("pinky pie".to_owned()))?
+    ///     .nick(Some("pinkie pie".to_owned()))?
     ///     .await?;
     ///
     /// println!("user {} now has the nickname '{:?}'", member.user.id, member.nick);
