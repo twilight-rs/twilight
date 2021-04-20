@@ -6,6 +6,10 @@ pub use super::{
     get_gateway_authed::GetGatewayAuthed,
     get_voice_regions::GetVoiceRegions,
     guild::{ban::*, emoji::*, integration::*, member::*, role::*, *},
+    template::{
+        create_guild_from_template::CreateGuildFromTemplateError,
+        create_template::CreateTemplateError, *,
+    },
     user::*,
 };
 pub(super) use crate::{client::Client, error::Result, routing::Route};

@@ -278,7 +278,7 @@ impl<'de> Visitor<'de> for GuildChannelVisitor {
                         return Err(DeError::duplicate_field("rate_limit_per_user"));
                     }
 
-                    rate_limit_per_user = Some(map.next_value()?);
+                    rate_limit_per_user = map.next_value::<Option<u64>>()?;
                 }
                 GuildChannelField::Topic => {
                     if topic.is_some() {
