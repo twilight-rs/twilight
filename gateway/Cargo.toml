@@ -20,7 +20,7 @@ bitflags = { default-features = false, version = "1" }
 twilight-gateway-queue = { default-features = false, path = "./queue" }
 twilight-http = { default-features = false, path = "../http" }
 twilight-model = { default-features = false, path = "../model" }
-futures-util = { default-features = false, features = ["async-await-macro", "std"], version = "0.3" }
+futures-util = { default-features = false, features = ["std"], version = "0.3" }
 tracing = { default-features = false, features = ["std", "attributes"], version = "0.1" }
 once_cell = { default-features = false, features = ["std"], version = "1" }
 serde = { default-features = false, features = ["derive"], version = "1" }
