@@ -6,6 +6,7 @@ use std::convert::TryFrom;
 #[non_exhaustive]
 pub enum RatelimitHeaders {
     GlobalLimited {
+        /// Number of seconds until the global ratelimit resets.
         reset_after: u64,
     },
     None,
@@ -16,7 +17,7 @@ pub enum RatelimitHeaders {
         remaining: u64,
         // when the bucket resets in unix ms
         reset: u64,
-        // how long until it resets in ms
+        /// Number of seconds until the bucket resets.
         reset_after: u64,
     },
 }
