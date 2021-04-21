@@ -269,6 +269,7 @@ impl UpdateCache for GuildUpdate {
             guild.max_presences = Some(self.max_presences.unwrap_or(25000));
             guild.mfa_level = self.mfa_level;
             guild.name = self.name.clone();
+            guild.nsfw = self.nsfw;
             guild.owner = self.owner;
             guild.owner_id = self.owner_id;
             guild.permissions = self.permissions;
@@ -380,12 +381,10 @@ impl UpdateCache for MessageCreate {
         let mut channel = cache.0.messages.entry(self.0.channel_id).or_default();
 
         if channel.len() > cache.0.config.message_cache_size() {
-            if let Some(k) = channel.iter().next_back().map(|x| *x.0) {
-                channel.remove(&k);
-            }
+            channel.pop_back();
         }
 
-        channel.insert(self.0.id, Arc::new(From::from(self.0.clone())));
+        channel.push_front(Arc::new(From::from(self.0.clone())));
 
         let user = cache.cache_user(Cow::Borrowed(&self.author), self.guild_id);
 
@@ -402,7 +401,10 @@ impl UpdateCache for MessageDelete {
         }
 
         let mut channel = cache.0.messages.entry(self.channel_id).or_default();
-        channel.remove(&self.id);
+
+        if let Some(idx) = channel.iter().position(|msg| msg.id == self.id) {
+            channel.remove(idx);
+        }
     }
 }
 
@@ -415,7 +417,9 @@ impl UpdateCache for MessageDeleteBulk {
         let mut channel = cache.0.messages.entry(self.channel_id).or_default();
 
         for id in &self.ids {
-            channel.remove(id);
+            if let Some(idx) = channel.iter().position(|msg| &msg.id == id) {
+                channel.remove(idx);
+            }
         }
     }
 }
@@ -428,7 +432,7 @@ impl UpdateCache for MessageUpdate {
 
         let mut channel = cache.0.messages.entry(self.channel_id).or_default();
 
-        if let Some(mut message) = channel.get_mut(&self.id) {
+        if let Some(mut message) = channel.iter_mut().find(|msg| msg.id == self.id) {
             let mut msg = Arc::make_mut(&mut message);
 
             if let Some(attachments) = &self.attachments {
@@ -500,7 +504,7 @@ impl UpdateCache for ReactionAdd {
 
         let mut channel = cache.0.messages.entry(self.0.channel_id).or_default();
 
-        let mut message = match channel.get_mut(&self.0.message_id) {
+        let mut message = match channel.iter_mut().find(|msg| msg.id == self.0.message_id) {
             Some(message) => message,
             None => return,
         };
@@ -540,7 +544,7 @@ impl UpdateCache for ReactionRemove {
 
         let mut channel = cache.0.messages.entry(self.0.channel_id).or_default();
 
-        let mut message = match channel.get_mut(&self.0.message_id) {
+        let mut message = match channel.iter_mut().find(|msg| msg.id == self.0.message_id) {
             Some(message) => message,
             None => return,
         };
@@ -573,7 +577,7 @@ impl UpdateCache for ReactionRemoveAll {
 
         let mut channel = cache.0.messages.entry(self.channel_id).or_default();
 
-        let mut message = match channel.get_mut(&self.message_id) {
+        let mut message = match channel.iter_mut().find(|msg| msg.id == self.message_id) {
             Some(message) => message,
             None => return,
         };
@@ -591,7 +595,7 @@ impl UpdateCache for ReactionRemoveEmoji {
 
         let mut channel = cache.0.messages.entry(self.channel_id).or_default();
 
-        let mut message = match channel.get_mut(&self.message_id) {
+        let mut message = match channel.iter_mut().find(|msg| msg.id == self.message_id) {
             Some(message) => message,
             None => return,
         };
@@ -910,6 +914,7 @@ mod tests {
             members: Vec::new(),
             mfa_level: MfaLevel::None,
             name: "test".to_owned(),
+            nsfw: false,
             owner_id: UserId(1),
             owner: None,
             permissions: None,
@@ -951,6 +956,7 @@ mod tests {
             member_count: guild.member_count,
             mfa_level: guild.mfa_level,
             name: "test2222".to_owned(),
+            nsfw: guild.nsfw,
             owner_id: UserId(2),
             owner: guild.owner,
             permissions: guild.permissions,

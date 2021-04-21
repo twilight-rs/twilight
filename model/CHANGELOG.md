@@ -2,6 +2,17 @@
 
 Changelog for `twilight-model`.
 
+## [0.3.5] - 2021-04-12
+
+### Additions
+
+Support guild discovery grace period message types ([#750] - [@7596ff]).
+
+Support guild invite reminder message type ([#753] - [@tbnritzdoge]).
+
+[#753]: https://github.com/twilight-rs/twilight/pull/753
+[#750]: https://github.com/twilight-rs/twilight/pull/750
+
 ## [0.3.4] - 2021-04-04
 
 ### Additions
@@ -331,6 +342,7 @@ Initial release.
 [@kotx]: https://github.com/kotx
 [@nickelc]: https://github.com/nickelc
 [@sam-kirby]: https://github.com/sam-kirby
+[@tbnritzdoge]: https://github.com/tbnritzdoge
 [@vivian]: https://github.com/vivian
 
 [#625]: https://github.com/twilight-rs/twilight/pull/625
@@ -356,6 +368,7 @@ Initial release.
 
 [0.2.0-beta.1:app integrations]: https://github.com/discord/discord-api-docs/commit/a926694e2f8605848bda6b57d21c8817559e5cec
 
+[0.3.5]: https://github.com/twilight-rs/twilight/releases/tag/model-v0.3.5
 [0.3.4]: https://github.com/twilight-rs/twilight/releases/tag/model-v0.3.4
 [0.3.3]: https://github.com/twilight-rs/twilight/releases/tag/model-v0.3.3
 [0.3.2]: https://github.com/twilight-rs/twilight/releases/tag/model-v0.3.2

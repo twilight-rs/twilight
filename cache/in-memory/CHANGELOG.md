@@ -2,6 +2,15 @@
 
 Changelog for `twilight-cache-inmemory`.
 
+## [0.3.5] - 2021-04-12
+
+### Enhancements
+
+Use a `VecDeque` instead of a `BTreeMap` to store messages, resulting in faster
+performance ([#749] - [@MaxOhn]).
+
+[#749]: https://github.com/twilight-rs/twilight/pull/749
+
 ## [0.3.4] - 2021-03-14
 
 This release fixes an accidental double bump of the previous number, and aligns everything.
@@ -186,6 +195,7 @@ Initial release.
 [#528]: https://github.com/twilight-rs/twilight/pull/528
 [#524]: https://github.com/twilight-rs/twilight/pull/524
 
+[0.3.5]: https://github.com/twilight-rs/twilight/releases/tag/cache-in-memory-v0.3.5
 [0.3.4]: https://github.com/twilight-rs/twilight/releases/tag/cache-in-memory-v0.3.4
 [0.3.2]: https://github.com/twilight-rs/twilight/releases/tag/cache-in-memory-v0.3.2
 [0.3.1]: https://github.com/twilight-rs/twilight/releases/tag/cache-in-memory-v0.3.1

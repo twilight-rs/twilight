@@ -15,7 +15,6 @@ bitflags! {
         const HOUSE_BALANCE = 1 << 8;
         const EARLY_SUPPORTER = 1 << 9;
         const TEAM_USER = 1 << 10;
-        const SYSTEM = 1 << 12;
         const BUG_HUNTER_LEVEL_2 = 1 << 14;
         const VERIFIED_BOT = 1 << 16;
         const VERIFIED_BOT_DEVELOPER = 1 << 17;
@@ -53,7 +52,6 @@ mod tests {
         serde_test::assert_tokens(&UserFlags::HOUSE_BALANCE, &[Token::U64(1 << 8)]);
         serde_test::assert_tokens(&UserFlags::EARLY_SUPPORTER, &[Token::U64(1 << 9)]);
         serde_test::assert_tokens(&UserFlags::TEAM_USER, &[Token::U64(1 << 10)]);
-        serde_test::assert_tokens(&UserFlags::SYSTEM, &[Token::U64(1 << 12)]);
         serde_test::assert_tokens(&UserFlags::BUG_HUNTER_LEVEL_2, &[Token::U64(1 << 14)]);
         serde_test::assert_tokens(&UserFlags::VERIFIED_BOT, &[Token::U64(1 << 16)]);
         serde_test::assert_tokens(&UserFlags::VERIFIED_BOT_DEVELOPER, &[Token::U64(1 << 17)]);

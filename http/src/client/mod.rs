@@ -809,6 +809,41 @@ impl Client {
         GetGuildMembers::new(self, guild_id)
     }
 
+    /// Search the members of a specific guild by a query.
+    ///
+    /// The upper limit to this request is 1000. Discord defaults the limit to 1.
+    ///
+    /// # Examples
+    ///
+    /// Get the first 10 members of guild `100` matching `Wumpus`:
+    ///
+    /// ```rust,no_run
+    /// use twilight_http::Client;
+    /// use twilight_model::id::GuildId;
+    ///
+    /// # #[tokio::main]
+    /// # async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
+    /// let client = Client::new("my token");
+    ///
+    /// let guild_id = GuildId(100);
+    /// let members = client.search_guild_members(guild_id, String::from("Wumpus")).limit(10)?.await?;
+    /// # Ok(()) }
+    /// ```
+    ///
+    /// # Errors
+    ///
+    /// Returns [`SearchGuildMembersError::LimitInvalid`] if the limit is invalid.
+    ///
+    /// [`GUILD_MEMBERS`]: ../../twilight_model/gateway/struct.Intents.html#associatedconstant.GUILD_MEMBERS
+    /// [`SearchGuildMembersError::LimitInvalid`]: ../request/guild/member/search_guild_members/enum.SearchGuildMembersError.html#variant.LimitInvalid
+    pub fn search_guild_members(
+        &self,
+        guild_id: GuildId,
+        query: impl Into<String>,
+    ) -> SearchGuildMembers<'_> {
+        SearchGuildMembers::new(self, guild_id, query)
+    }
+
     /// Get a member of a guild, by their id.
     pub fn guild_member(&self, guild_id: GuildId, user_id: UserId) -> GetMember<'_> {
         GetMember::new(self, guild_id, user_id)
@@ -1283,6 +1318,79 @@ impl Client {
         roles: impl Iterator<Item = (RoleId, u64)>,
     ) -> UpdateRolePositions<'_> {
         UpdateRolePositions::new(self, guild_id, roles)
+    }
+
+    /// Create a new guild based on a template.
+    ///
+    /// This endpoint can only be used by bots in less than 10 guilds.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`CreateGuildFromTemplateError::NameInvalid`] when the name is
+    /// invalid.
+    ///
+    /// [`CreateGuildFromTemplateError::NameInvalid`]: crate::request::template::create_guild_from_template::CreateGuildFromTemplateError::NameInvalid
+    pub fn create_guild_from_template(
+        &self,
+        template_code: impl Into<String>,
+        name: impl Into<String>,
+    ) -> StdResult<CreateGuildFromTemplate<'_>, CreateGuildFromTemplateError> {
+        CreateGuildFromTemplate::new(self, template_code, name)
+    }
+
+    /// Create a template from the current state of the guild.
+    ///
+    /// Requires the `MANAGE_GUILD` permission. The name must be at least 1 and
+    /// at most 100 characters in length.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`CreateTemplateError::NameInvalid`] when the name is invalid.
+    ///
+    /// [`CreateTemplateError::NameInvalid`]: crate::request::template::create_template::CreateTemplateError::NameInvalid
+    pub fn create_template(
+        &self,
+        guild_id: GuildId,
+        name: impl Into<String>,
+    ) -> StdResult<CreateTemplate<'_>, CreateTemplateError> {
+        CreateTemplate::new(self, guild_id, name)
+    }
+
+    /// Delete a template by ID and code.
+    pub fn delete_template(
+        &self,
+        guild_id: GuildId,
+        template_code: impl Into<String>,
+    ) -> DeleteTemplate<'_> {
+        DeleteTemplate::new(self, guild_id, template_code)
+    }
+
+    /// Get a template by its code.
+    pub fn get_template(&self, template_code: impl Into<String>) -> GetTemplate<'_> {
+        GetTemplate::new(self, template_code)
+    }
+
+    /// Get a list of templates in a guild, by ID.
+    pub fn get_templates(&self, guild_id: GuildId) -> GetTemplates<'_> {
+        GetTemplates::new(self, guild_id)
+    }
+
+    /// Sync a template to the current state of the guild, by ID and code.
+    pub fn sync_template(
+        &self,
+        guild_id: GuildId,
+        template_code: impl Into<String>,
+    ) -> SyncTemplate<'_> {
+        SyncTemplate::new(self, guild_id, template_code)
+    }
+
+    /// Update the template's metadata, by ID and code.
+    pub fn update_template(
+        &self,
+        guild_id: GuildId,
+        template_code: impl Into<String>,
+    ) -> UpdateTemplate<'_> {
+        UpdateTemplate::new(self, guild_id, template_code)
     }
 
     /// Get a user's information by id.

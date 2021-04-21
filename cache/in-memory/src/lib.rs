@@ -65,7 +65,7 @@ use self::model::*;
 use dashmap::{mapref::entry::Entry, DashMap, DashSet};
 use std::{
     borrow::Cow,
-    collections::{BTreeMap, BTreeSet, HashSet},
+    collections::{BTreeSet, HashSet, VecDeque},
     hash::Hash,
     sync::{Arc, Mutex},
 };
@@ -147,7 +147,7 @@ struct InMemoryCacheRef {
     guild_presences: DashMap<GuildId, HashSet<UserId>>,
     guild_roles: DashMap<GuildId, HashSet<RoleId>>,
     members: DashMap<(GuildId, UserId), Arc<CachedMember>>,
-    messages: DashMap<ChannelId, BTreeMap<MessageId, Arc<CachedMessage>>>,
+    messages: DashMap<ChannelId, VecDeque<Arc<CachedMessage>>>,
     presences: DashMap<(GuildId, UserId), Arc<CachedPresence>>,
     roles: DashMap<RoleId, GuildItem<Role>>,
     unavailable_guilds: DashSet<GuildId>,
@@ -373,7 +373,7 @@ impl InMemoryCache {
 
     /// Gets a message by channel ID and message ID.
     ///
-    /// This is an O(log n) operation. This requires one or both of the
+    /// This is an O(n) operation. This requires one or both of the
     /// [`GUILD_MESSAGES`] or [`DIRECT_MESSAGES`] intents.
     ///
     /// [`GUILD_MESSAGES`]: ::twilight_model::gateway::Intents::GUILD_MESSAGES
@@ -385,7 +385,10 @@ impl InMemoryCache {
     ) -> Option<Arc<CachedMessage>> {
         let channel = self.0.messages.get(&channel_id)?;
 
-        channel.get(&message_id).cloned()
+        channel
+            .iter()
+            .find(|msg| msg.id == message_id)
+            .map(Arc::clone)
     }
 
     /// Gets a presence by, optionally, guild ID, and user ID.
@@ -664,6 +667,7 @@ impl InMemoryCache {
             member_count: guild.member_count,
             mfa_level: guild.mfa_level,
             name: guild.name,
+            nsfw: guild.nsfw,
             owner: guild.owner,
             owner_id: guild.owner_id,
             permissions: guild.permissions,
@@ -1124,6 +1128,7 @@ mod tests {
             members: Vec::new(),
             mfa_level: MfaLevel::Elevated,
             name: "this is a guild".to_owned(),
+            nsfw: false,
             owner: Some(false),
             owner_id: UserId(456),
             permissions: Some(Permissions::SEND_MESSAGES),
