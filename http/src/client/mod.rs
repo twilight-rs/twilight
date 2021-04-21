@@ -785,6 +785,26 @@ impl Client {
     ///
     /// All fields are optional. Refer to [the discord docs] for more information.
     ///
+    /// # Examples
+    ///
+    /// Update a member's nickname to "pinky pie" and server mute them:
+    ///
+    /// ```rust,no_run
+    /// use std::env;
+    /// use twilight_http::Client;
+    /// use twilight_model::id::{GuildId, UserId};
+    ///
+    /// # #[tokio::main] async fn main() -> Result<(), Box<dyn std::error::Error>> {
+    /// let client = Client::new(env::var("DISCORD_TOKEN")?);
+    /// let member = client.update_guild_member(GuildId(1), UserId(2))
+    ///     .mute(true)
+    ///     .nick(Some("pinkie pie".to_owned()))?
+    ///     .await?;
+    ///
+    /// println!("user {} now has the nickname '{:?}'", member.user.id, member.nick);
+    /// # Ok(()) }
+    /// ```
+    ///
     /// # Errors
     ///
     /// Returns [`UpdateGuildMemberErrorType::NicknameInvalid`] if the nickname length is too short or too
