@@ -81,6 +81,8 @@ pub enum Path {
     ChannelsIdPins(u64),
     /// Operating on a channel's individual pinned message.
     ChannelsIdPinsMessageId(u64),
+    /// Operating on a group DM's recipients.
+    ChannelsIdRecipients(u64),
     /// Operating on a channel's typing indicator.
     ChannelsIdTyping(u64),
     /// Operating on a channel's webhooks.
@@ -117,6 +119,8 @@ pub enum Path {
     GuildsIdRegions(u64),
     GuildsIdRoles(u64),
     GuildsIdRolesId(u64),
+    GuildsIdTemplates(u64),
+    GuildsIdTemplatesCode(u64),
     GuildsIdVanityUrl(u64),
     GuildsIdWebhooks(u64),
     InvitesCode,
@@ -170,7 +174,11 @@ impl FromStr for Path {
             ["channels", id, "followers"] => ChannelsIdFollowers(id.parse()?),
             ["channels", id, "invites"] => ChannelsIdInvites(id.parse()?),
             ["channels", id, "messages"] => ChannelsIdMessages(id.parse()?),
+            ["channels", id, "messages", "bulk-delete"] => {
+                ChannelsIdMessagesBulkDelete(id.parse()?)
+            }
             ["channels", id, "messages", _] => {
+                // can not map to path without method since they have different ratelimits
                 return Err(PathParseError::MessageIdWithoutMethod {
                     channel_id: id.parse()?,
                 });
@@ -178,7 +186,8 @@ impl FromStr for Path {
             ["channels", id, "messages", _, "crosspost"] => {
                 ChannelsIdMessagesIdCrosspost(id.parse()?)
             }
-            ["channels", id, "messages", _, "reactions"] => {
+            ["channels", id, "messages", _, "reactions"]
+            | ["channels", id, "messages", _, "reactions", _] => {
                 ChannelsIdMessagesIdReactions(id.parse()?)
             }
             ["channels", id, "messages", _, "reactions", _, _] => {
@@ -187,16 +196,22 @@ impl FromStr for Path {
             ["channels", id, "permissions", _] => ChannelsIdPermissionsOverwriteId(id.parse()?),
             ["channels", id, "pins"] => ChannelsIdPins(id.parse()?),
             ["channels", id, "pins", _] => ChannelsIdPinsMessageId(id.parse()?),
+            ["channels", id, "recipients"] | ["channels", id, "recipients", _] => {
+                ChannelsIdRecipients(id.parse()?)
+            }
             ["channels", id, "typing"] => ChannelsIdTyping(id.parse()?),
-            ["channels", id, "webhooks"] => ChannelsIdWebhooks(id.parse()?),
+            ["channels", id, "webhooks"] | ["channels", id, "webhooks", _] => {
+                ChannelsIdWebhooks(id.parse()?)
+            }
             ["gateway"] => Gateway,
             ["gateway", "bot"] => GatewayBot,
             ["guilds"] => Guilds,
             ["guilds", id] => GuildsId(id.parse()?),
+            ["guilds", id, "audit-logs"] => GuildsIdAuditLogs(id.parse()?),
             ["guilds", id, "bans"] => GuildsIdBans(id.parse()?),
             ["guilds", id, "bans", _] => GuildsIdBansUserId(id.parse()?),
             ["guilds", id, "channels"] => GuildsIdChannels(id.parse()?),
-            ["guilds", id, "widget"] => GuildsIdWidget(id.parse()?),
+            ["guilds", id, "widget"] | ["guilds", id, "widget.json"] => GuildsIdWidget(id.parse()?),
             ["guilds", id, "emojis"] => GuildsIdEmojis(id.parse()?),
             ["guilds", id, "emojis", _] => GuildsIdEmojisId(id.parse()?),
             ["guilds", id, "integrations"] => GuildsIdIntegrations(id.parse()?),
@@ -213,6 +228,8 @@ impl FromStr for Path {
             ["guilds", id, "regions"] => GuildsIdRegions(id.parse()?),
             ["guilds", id, "roles"] => GuildsIdRoles(id.parse()?),
             ["guilds", id, "roles", _] => GuildsIdRolesId(id.parse()?),
+            ["guilds", id, "templates"] => GuildsIdTemplates(id.parse()?),
+            ["guilds", id, "templates", _] => GuildsIdTemplatesCode(id.parse()?),
             ["guilds", id, "vanity-url"] => GuildsIdVanityUrl(id.parse()?),
             ["guilds", id, "webhooks"] => GuildsIdWebhooks(id.parse()?),
             ["invites", _] => InvitesCode,
@@ -224,6 +241,7 @@ impl FromStr for Path {
             ["users", _, "guilds", _] => UsersIdGuildsId,
             ["voice", "regions"] => VoiceRegions,
             ["webhooks", id] | ["webhooks", id, _] => WebhooksId(id.parse()?),
+            ["webhooks", id, _, "messages", _] => WebhooksIdTokenMessageId(id.parse()?),
             _ => return Err(PathParseError::NoMatch),
         })
     }
@@ -281,6 +299,11 @@ pub enum Route {
     },
     /// Route information to create a guild.
     CreateGuild,
+    /// Route information to create a guild from a template.
+    CreateGuildFromTemplate {
+        /// Code of the template.
+        template_code: String,
+    },
     /// Route information to create a guild's integration.
     CreateGuildIntegration {
         /// The ID of the guild.
@@ -324,6 +347,11 @@ pub enum Route {
     },
     /// Route information to create a role in a guild.
     CreateRole {
+        /// The ID of the guild.
+        guild_id: u64,
+    },
+    /// Route information to create a guild template.
+    CreateTemplate {
         /// The ID of the guild.
         guild_id: u64,
     },
@@ -434,6 +462,13 @@ pub enum Route {
         guild_id: u64,
         /// The ID of the role.
         role_id: u64,
+    },
+    /// Route information to delete a guild template.
+    DeleteTemplate {
+        /// The ID of the guild.
+        guild_id: u64,
+        /// The target template code.
+        template_code: String,
     },
     /// Route information to delete a message created by a webhook.
     DeleteWebhookMessage {
@@ -663,6 +698,16 @@ pub enum Route {
         /// The ID of the message.
         message_id: u64,
     },
+    /// Route information to get a template.
+    GetTemplate {
+        /// The template code.
+        template_code: String,
+    },
+    /// Route information to get a list of templates from a guild.
+    GetTemplates {
+        /// The ID of the guild.
+        guild_id: u64,
+    },
     /// Route information to get the current user.
     GetUser {
         /// The ID of the target user. This can be `@me` to specify the current
@@ -726,6 +771,13 @@ pub enum Route {
         guild_id: u64,
         /// The ID of the integration.
         integration_id: u64,
+    },
+    /// Route information to sync a template.
+    SyncTemplate {
+        /// The ID of the guild.
+        guild_id: u64,
+        /// The template code.
+        template_code: String,
     },
     /// Route information to unpin a message from a channel.
     UnpinMessage {
@@ -809,6 +861,13 @@ pub enum Route {
         /// The ID of the guild.
         guild_id: u64,
     },
+    /// Route information to update a template.
+    UpdateTemplate {
+        /// The ID of the guild.
+        guild_id: u64,
+        /// The template code.
+        template_code: String,
+    },
     /// Route information to update a message created by a webhook.
     UpdateWebhookMessage {
         message_id: u64,
@@ -881,6 +940,11 @@ impl Route {
                 format!("guilds/{}/emojis", guild_id).into(),
             ),
             Self::CreateGuild => (Method::POST, Path::Guilds, "guilds".into()),
+            Self::CreateGuildFromTemplate { template_code } => (
+                Method::POST,
+                Path::Guilds,
+                format!("guilds/templates/{}", template_code).into(),
+            ),
             Self::CreateGuildIntegration { guild_id } => (
                 Method::POST,
                 Path::GuildsIdIntegrationsId(guild_id),
@@ -948,6 +1012,11 @@ impl Route {
                 Method::POST,
                 Path::GuildsIdRoles(guild_id),
                 format!("guilds/{}/roles", guild_id).into(),
+            ),
+            Self::CreateTemplate { guild_id } => (
+                Method::POST,
+                Path::GuildsIdTemplates(guild_id),
+                format!("guilds/{}/templates", guild_id).into(),
             ),
             Self::CreateTypingTrigger { channel_id } => (
                 Method::POST,
@@ -1060,6 +1129,14 @@ impl Route {
                 Method::DELETE,
                 Path::GuildsIdRolesId(guild_id),
                 format!("guilds/{}/roles/{}", guild_id, role_id).into(),
+            ),
+            Self::DeleteTemplate {
+                guild_id,
+                template_code,
+            } => (
+                Method::DELETE,
+                Path::GuildsIdTemplatesCode(guild_id),
+                format!("guilds/{}/templates/{}", guild_id, template_code).into(),
             ),
             Self::DeleteWebhookMessage {
                 message_id,
@@ -1375,6 +1452,16 @@ impl Route {
                     path.into(),
                 )
             }
+            Self::GetTemplate { template_code } => (
+                Method::GET,
+                Path::Guilds,
+                format!("guilds/templates/{}", template_code).into(),
+            ),
+            Self::GetTemplates { guild_id } => (
+                Method::GET,
+                Path::GuildsIdTemplates(guild_id),
+                format!("guilds/{}/templates", guild_id).into(),
+            ),
             Self::GetUserConnections => (
                 Method::GET,
                 Path::UsersIdConnections,
@@ -1453,6 +1540,14 @@ impl Route {
                 Path::GuildsIdIntegrationsIdSync(guild_id),
                 format!("guilds/{}/integrations/{}/sync", guild_id, integration_id).into(),
             ),
+            Self::SyncTemplate {
+                guild_id,
+                template_code,
+            } => (
+                Method::PUT,
+                Path::GuildsIdTemplatesCode(guild_id),
+                format!("guilds/{}/templates/{}", guild_id, template_code).into(),
+            ),
             Self::UnpinMessage {
                 channel_id,
                 message_id,
@@ -1530,6 +1625,14 @@ impl Route {
                 Method::PATCH,
                 Path::GuildsIdRolesId(guild_id),
                 format!("guilds/{}/roles", guild_id).into(),
+            ),
+            Self::UpdateTemplate {
+                guild_id,
+                template_code,
+            } => (
+                Method::PATCH,
+                Path::GuildsIdTemplatesCode(guild_id),
+                format!("guilds/{}/templates/{}", guild_id, template_code).into(),
             ),
             Self::UpdateWebhookMessage {
                 message_id,

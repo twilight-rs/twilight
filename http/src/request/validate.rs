@@ -331,6 +331,28 @@ fn _username(value: &str) -> bool {
     (2..=32).contains(&len)
 }
 
+pub fn template_name(value: impl AsRef<str>) -> bool {
+    _template_name(value.as_ref())
+}
+
+fn _template_name(value: &str) -> bool {
+    let len = value.chars().count();
+
+    // <https://discord.com/developers/docs/resources/template#create-guild-template-json-params>
+    (1..=100).contains(&len)
+}
+
+pub fn template_description(value: impl AsRef<str>) -> bool {
+    _template_name(value.as_ref())
+}
+
+fn _template_description(value: &str) -> bool {
+    let len = value.chars().count();
+
+    // <https://discord.com/developers/docs/resources/template#create-guild-template-json-params>
+    (0..=120).contains(&len)
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;

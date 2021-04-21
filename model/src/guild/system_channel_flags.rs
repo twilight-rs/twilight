@@ -8,6 +8,7 @@ bitflags! {
     pub struct SystemChannelFlags: u64 {
         const SUPPRESS_JOIN_NOTIFICATIONS = 1;
         const SUPPRESS_PREMIUM_SUBSCRIPTIONS = 1 << 1;
+        const SUPPRESS_GUILD_REMINDER_NOTIFICATIONS = 1 << 2;
     }
 }
 
@@ -40,6 +41,10 @@ mod tests {
         serde_test::assert_tokens(
             &SystemChannelFlags::SUPPRESS_PREMIUM_SUBSCRIPTIONS,
             &[Token::U64(1 << 1)],
+        );
+        serde_test::assert_tokens(
+            &SystemChannelFlags::SUPPRESS_GUILD_REMINDER_NOTIFICATIONS,
+            &[Token::U64(1 << 2)],
         );
     }
 }

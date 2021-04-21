@@ -29,6 +29,7 @@ pub struct PartialGuild {
     pub member_count: Option<u64>,
     pub mfa_level: MfaLevel,
     pub name: String,
+    pub nsfw: bool,
     pub owner_id: UserId,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub owner: Option<bool>,
@@ -82,6 +83,7 @@ mod tests {
             member_count: Some(12_000),
             mfa_level: MfaLevel::Elevated,
             name: "the name".to_owned(),
+            nsfw: false,
             owner_id: UserId(5),
             owner: Some(false),
             permissions: Some(Permissions::SEND_MESSAGES),
@@ -105,7 +107,7 @@ mod tests {
             &[
                 Token::Struct {
                     name: "PartialGuild",
-                    len: 33,
+                    len: 34,
                 },
                 Token::Str("id"),
                 Token::NewtypeStruct { name: "GuildId" },
@@ -158,6 +160,8 @@ mod tests {
                 Token::U8(1),
                 Token::Str("name"),
                 Token::Str("the name"),
+                Token::Str("nsfw"),
+                Token::Bool(false),
                 Token::Str("owner_id"),
                 Token::NewtypeStruct { name: "UserId" },
                 Token::Str("5"),

@@ -29,8 +29,6 @@ pub struct Sticker {
     pub name: String,
     /// Unique ID of the pack the sticker is in.
     pub pack_id: StickerPackId,
-    /// Hash of the preview asset, if it has one.
-    pub preview_asset: Option<String>,
     /// CSV list of tags the sticker is assigned to, if any.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub tags: Option<String>,
@@ -50,7 +48,6 @@ mod tests {
             id: StickerId(1),
             name: "sticker name".to_owned(),
             pack_id: StickerPackId(2),
-            preview_asset: None,
             tags: Some("foo,bar,baz".to_owned()),
         };
 
@@ -59,7 +56,7 @@ mod tests {
             &[
                 Token::Struct {
                     name: "Sticker",
-                    len: 8,
+                    len: 7,
                 },
                 Token::Str("asset"),
                 Token::Str("foo1"),
@@ -77,8 +74,6 @@ mod tests {
                     name: "StickerPackId",
                 },
                 Token::Str("2"),
-                Token::Str("preview_asset"),
-                Token::None,
                 Token::Str("tags"),
                 Token::Some,
                 Token::Str("foo,bar,baz"),
