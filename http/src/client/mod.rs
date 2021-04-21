@@ -482,11 +482,6 @@ impl Client {
         UpdateCurrentUserNick::new(self, guild_id, nick)
     }
 
-    /// Get a list of the current user's private channels.
-    pub fn current_user_private_channels(&self) -> GetCurrentUserPrivateChannels<'_> {
-        GetCurrentUserPrivateChannels::new(self)
-    }
-
     /// Get the emojis for a guild, by the guild's id.
     ///
     /// # Examples
@@ -785,6 +780,26 @@ impl Client {
     /// Update a guild member.
     ///
     /// All fields are optional. Refer to [the discord docs] for more information.
+    ///
+    /// # Examples
+    ///
+    /// Update a member's nickname to "pinky pie" and server mute them:
+    ///
+    /// ```rust,no_run
+    /// use std::env;
+    /// use twilight_http::Client;
+    /// use twilight_model::id::{GuildId, UserId};
+    ///
+    /// # #[tokio::main] async fn main() -> Result<(), Box<dyn std::error::Error>> {
+    /// let client = Client::new(env::var("DISCORD_TOKEN")?);
+    /// let member = client.update_guild_member(GuildId(1), UserId(2))
+    ///     .mute(true)
+    ///     .nick(Some("pinkie pie".to_owned()))?
+    ///     .await?;
+    ///
+    /// println!("user {} now has the nickname '{:?}'", member.user.id, member.nick);
+    /// # Ok(()) }
+    /// ```
     ///
     /// # Errors
     ///
@@ -1643,23 +1658,5 @@ impl Client {
             },
             source: None,
         })
-    }
-}
-
-impl From<HyperClient<HttpsConnector<HttpConnector>>> for Client {
-    fn from(hyper_client: HyperClient<HttpsConnector<HttpConnector>>) -> Self {
-        Self {
-            state: Arc::new(State {
-                http: hyper_client,
-                default_headers: None,
-                proxy: None,
-                ratelimiter: Some(Ratelimiter::new()),
-                timeout: Duration::from_secs(10),
-                token_invalid: AtomicBool::new(false),
-                token: None,
-                use_http: false,
-                default_allowed_mentions: None,
-            }),
-        }
     }
 }
