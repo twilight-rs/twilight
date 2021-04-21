@@ -2,6 +2,53 @@
 
 Changelog for `twilight-http`.
 
+## [0.3.7] - 2021-04-22
+
+### Upgrade Path
+
+`CreateInvite::target_user` is deprecated, use `CreateInvite::target_user_id`.
+
+### Additions
+
+Add HTTP error code 60003, "Two factor is required for this operation"
+([#770] - [@vivian]).
+
+Add HTTP error code 10062, "Unknown interaction." ([#780] - [@vivian]).
+
+Support searching the members of a guild via HTTP ([#587] - [@Gelbpunkt]).
+
+Support guild templates via the following request handlers:
+
+- `CreateGuildFromTemplate`
+- `CreateTemplate`
+- `DeleteTemplate`
+- `GetTemplates`
+- `GetTemplate`
+- `SyncTemplate`
+- `UpdateTemplate`
+
+([#736] - [@7596ff]).
+
+### Fixes
+
+Add missing route mappings for Path parsing ([#743] - [@AEnterprise]).
+
+Deprecate `CreateInvite::target_user`, add `CreateInvite::target_user_id` to
+match the corrected field name when creating an invite ([#771] - [@vivian]).
+
+Correctly parse global ratelimit headers ([#766] - [@vivian]).
+
+Fix how long to sleep when encountering a global ratelimit ([#787] - [@vivian]).
+
+[#787]: https://github.com/twilight-rs/twilight/pull/787
+[#780]: https://github.com/twilight-rs/twilight/pull/780
+[#771]: https://github.com/twilight-rs/twilight/pull/771
+[#770]: https://github.com/twilight-rs/twilight/pull/770
+[#766]: https://github.com/twilight-rs/twilight/pull/766
+[#743]: https://github.com/twilight-rs/twilight/pull/743
+[#736]: https://github.com/twilight-rs/twilight/pull/736
+[#587]: https://github.com/twilight-rs/twilight/pull/587
+
 ## [0.3.6] - 2021-04-04
 
 ### Fixes
