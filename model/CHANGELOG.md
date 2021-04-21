@@ -2,6 +2,52 @@
 
 Changelog for `twilight-model`.
 
+## [0.3.6] - 2021-04-22
+
+### Upgrade Path
+
+Handle the newly optional `AuditLogEntry::user_id` and
+`Attachment::{height, width}` fields.
+
+Don't use the `SYSTEM` user flag variant or the `Sticker::preview_asset` field.
+
+### Additions
+
+Support `VoiceChannel::video_quality_mode` to denote the streamed quality mode
+([#778] - [@vivian]).
+
+Support `VoiceChannel::rtc_region` ([#779] - [@vivian]).
+
+Support `Guild::nsfw` ([#775] - [@7596ff]).
+
+Support `Attachment::content_type` ([#773] - [@7596ff]).
+
+Support guild templates via the `template` module ([#736] - [@7596ff]).
+
+### Fixes
+
+`AuditLogEntry::user_id` is now wrapped in an `Option` due to a Discord API
+change ([#769] - [@vivian]).
+
+`Attachment::height` and `Attachment::width` are now wrapped in an `Option` due
+to a Discord API change ([#776] - [@7596ff]).
+
+Remove the `UserFlag::SYSTEM` variant due to a Discord API change
+([#777] - [@7596ff]).
+
+Remove the `Sticker::preview_asset` field due to a Discord API change
+([#781] - [@7596ff]).
+
+[#781]: https://github.com/twilight-rs/twilight/pull/781
+[#779]: https://github.com/twilight-rs/twilight/pull/779
+[#778]: https://github.com/twilight-rs/twilight/pull/778
+[#777]: https://github.com/twilight-rs/twilight/pull/777
+[#776]: https://github.com/twilight-rs/twilight/pull/776
+[#775]: https://github.com/twilight-rs/twilight/pull/775
+[#773]: https://github.com/twilight-rs/twilight/pull/773
+[#769]: https://github.com/twilight-rs/twilight/pull/769
+[#736]: https://github.com/twilight-rs/twilight/pull/736
+
 ## [0.3.5] - 2021-04-12
 
 ### Additions
