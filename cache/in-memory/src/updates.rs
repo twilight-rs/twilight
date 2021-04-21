@@ -365,6 +365,8 @@ impl UpdateCache for MemberUpdate {
         };
         let mut member = Arc::make_mut(&mut member);
 
+        member.deaf = self.deaf.unwrap_or(member.deaf);
+        member.mute = self.mute.unwrap_or(member.mute);
         member.nick = self.nick.clone();
         member.roles = self.roles.clone();
         member.joined_at.replace(self.joined_at.clone());
