@@ -269,6 +269,7 @@ impl Cluster {
         let total = scheme.total().expect("shard scheme is not auto");
 
         #[cfg(feature = "metrics")]
+        #[allow(clippy::cast_precision_loss)]
         {
             metrics::gauge!("Cluster-Shard-Count", total as f64);
         }
