@@ -273,3 +273,22 @@ impl From<(Vec<u8>, HeaderMap<HeaderValue>, Route)> for Request {
         }
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::Method;
+    use hyper::Method as HyperMethod;
+    use static_assertions::assert_impl_all;
+    use std::fmt::Debug;
+
+    assert_impl_all!(Method: Clone, Copy, Debug, Eq, PartialEq);
+
+    #[test]
+    fn test_method_conversions() {
+        assert_eq!(HyperMethod::DELETE, Method::Delete.into_hyper());
+        assert_eq!(HyperMethod::GET, Method::Get.into_hyper());
+        assert_eq!(HyperMethod::PATCH, Method::Patch.into_hyper());
+        assert_eq!(HyperMethod::POST, Method::Post.into_hyper());
+        assert_eq!(HyperMethod::PUT, Method::Put.into_hyper());
+    }
+}
