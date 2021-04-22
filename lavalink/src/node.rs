@@ -199,23 +199,6 @@ pub struct NodeSender {
 }
 
 impl NodeSender {
-    /// Check if the channel is ready to receive a message.
-    ///
-    /// # Errors
-    ///
-    /// Returns a [`NodeSenderErrorType::Sending`] error type if node is no
-    /// longer connected.
-    pub fn poll_ready(&self, _cx: &mut Context<'_>) -> Poll<Result<(), NodeSenderError>> {
-        if !self.inner.is_closed() {
-            Poll::Ready(Ok(()))
-        } else {
-            Poll::Ready(Err(NodeSenderError {
-                kind: NodeSenderErrorType::Sending,
-                source: None,
-            }))
-        }
-    }
-
     /// Returns whether this channel is closed without needing a context.
     pub fn is_closed(&self) -> bool {
         self.inner.is_closed()
