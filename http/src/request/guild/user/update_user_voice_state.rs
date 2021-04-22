@@ -45,12 +45,14 @@ impl<'a> UpdateUserVoiceState<'a> {
     ///
     /// # Caveats
     ///
-    /// - You must have the `MUTE_MEMBERS` permission to use [`suppress`].
+    /// - You must have the [`MUTE_MEMBERS`] permission to use this method.
     /// - When unsuppressed, non-bot users will have their
     /// `request_to_speak_timestamp` set to the current time. Bot users will
     /// not.
     /// - When suppressed, the user will have their `request_to_speak_timestamp`
     /// removed.
+    ///
+    /// [`MUTE_MEMBERS`]: twilight_model::guild::permissions::MUTE_MEMBERS
     pub fn suppress(mut self) -> Self {
         self.fields.suppress.replace(true);
 
