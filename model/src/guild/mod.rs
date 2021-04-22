@@ -691,7 +691,7 @@ impl<'de> Deserialize<'de> for Guild {
                         GuildChannel::Text(c) => {
                             c.guild_id.replace(id);
                         }
-                        GuildChannel::Voice(c) => {
+                        GuildChannel::Voice(c) | GuildChannel::Stage(c) => {
                             c.guild_id.replace(id);
                         }
                     }

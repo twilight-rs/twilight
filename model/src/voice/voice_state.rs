@@ -28,6 +28,7 @@ pub struct VoiceState {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub token: Option<String>,
     pub user_id: UserId,
+    pub request_to_speak_timestamp: Option<String>,
 }
 
 #[derive(Debug, Deserialize)]
@@ -45,6 +46,7 @@ enum Field {
     Suppress,
     Token,
     UserId,
+    RequestToSpeakTimestamp,
 }
 
 struct VoiceStateVisitor;
@@ -70,6 +72,7 @@ impl<'de> Visitor<'de> for VoiceStateVisitor {
         let mut suppress = None;
         let mut token = None;
         let mut user_id = None;
+        let mut request_to_speak_timestamp = None;
 
         let span = tracing::trace_span!("deserializing voice state");
         let _span_enter = span.enter();
@@ -182,6 +185,13 @@ impl<'de> Visitor<'de> for VoiceStateVisitor {
 
                     user_id = Some(map.next_value()?);
                 }
+                Field::RequestToSpeakTimestamp => {
+                    if request_to_speak_timestamp.is_some() {
+                        return Err(DeError::duplicate_field("request_to_speak_timestamp"));
+                    }
+
+                    request_to_speak_timestamp = map.next_value()?;
+                }
             }
         }
 
@@ -225,6 +235,7 @@ impl<'de> Visitor<'de> for VoiceStateVisitor {
             suppress,
             token,
             user_id,
+            request_to_speak_timestamp,
         })
     }
 }
@@ -244,6 +255,7 @@ impl<'de> Deserialize<'de> for VoiceState {
             "suppress",
             "token",
             "user_id",
+            "request_to_speak_timestamp",
         ];
 
         deserializer.deserialize_struct("VoiceState", FIELDS, VoiceStateVisitor)
@@ -271,6 +283,7 @@ mod tests {
             suppress: true,
             token: None,
             user_id: UserId(3),
+            request_to_speak_timestamp: None,
         };
 
         serde_test::assert_tokens(
@@ -278,7 +291,7 @@ mod tests {
             &[
                 Token::Struct {
                     name: "VoiceState",
-                    len: 10,
+                    len: 11,
                 },
                 Token::Str("channel_id"),
                 Token::Some,
@@ -305,6 +318,8 @@ mod tests {
                 Token::Str("user_id"),
                 Token::NewtypeStruct { name: "UserId" },
                 Token::Str("3"),
+                Token::Str("request_to_speak_timestamp"),
+                Token::None,
                 Token::StructEnd,
             ],
         );
@@ -351,6 +366,7 @@ mod tests {
             suppress: true,
             token: Some("abc".to_owned()),
             user_id: UserId(3),
+            request_to_speak_timestamp: Some("2021-04-21T22:16:50+0000".to_owned()),
         };
 
         serde_test::assert_tokens(
@@ -358,7 +374,7 @@ mod tests {
             &[
                 Token::Struct {
                     name: "VoiceState",
-                    len: 12,
+                    len: 13,
                 },
                 Token::Str("channel_id"),
                 Token::Some,
@@ -437,6 +453,9 @@ mod tests {
                 Token::Str("user_id"),
                 Token::NewtypeStruct { name: "UserId" },
                 Token::Str("3"),
+                Token::Str("request_to_speak_timestamp"),
+                Token::Some,
+                Token::Str("2021-04-21T22:16:50+0000"),
                 Token::StructEnd,
             ],
         );
