@@ -15,6 +15,10 @@ struct UpdateGuildWelcomeScreenFields {
 }
 
 /// Update the guild's welcome screen.
+///
+/// Requires the [`MANAGE_GUILD`] permission.
+///
+/// [`MANAGE_GUILD`]: twilight_model::guild::Permissions::MANAGE_GUILD
 pub struct UpdateGuildWelcomeScreen<'a> {
     fields: UpdateGuildWelcomeScreenFields,
     fut: Option<Pending<'a, WelcomeScreen>>,

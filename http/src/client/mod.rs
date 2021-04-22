@@ -977,6 +977,10 @@ impl Client {
     }
 
     /// Update the guild's welcome screen.
+    ///
+    /// Requires the [`MANAGE_GUILD`] permission.
+    ///
+    /// [`MANAGE_GUILD`]: twilight_model::guild::Permissions::MANAGE_GUILD
     pub fn update_guild_welcome_screen(&self, guild_id: GuildId) -> UpdateGuildWelcomeScreen<'_> {
         UpdateGuildWelcomeScreen::new(self, guild_id)
     }
