@@ -52,7 +52,7 @@ impl<'a> UpdateUserVoiceState<'a> {
     /// - When suppressed, the user will have their `request_to_speak_timestamp`
     /// removed.
     ///
-    /// [`MUTE_MEMBERS`]: twilight_model::guild::permissions::MUTE_MEMBERS
+    /// [`MUTE_MEMBERS`]: twilight_model::guild::Permissions::MUTE_MEMBERS
     pub fn suppress(mut self) -> Self {
         self.fields.suppress.replace(true);
 
