@@ -7,7 +7,6 @@ use crate::{
     error::{Error, ErrorType, Result},
     ratelimiting::{RatelimitHeaders, Ratelimiter},
     request::{
-        channel::allowed_mentions::AllowedMentions,
         guild::{create_guild::CreateGuildError, create_guild_channel::CreateGuildChannelError},
         prelude::*,
         GetUserApplicationInfo, Request,
@@ -34,6 +33,7 @@ use std::{
 };
 use tokio::time;
 use twilight_model::{
+    channel::message::allowed_mentions::AllowedMentions,
     guild::Permissions,
     id::{ChannelId, EmojiId, GuildId, IntegrationId, MessageId, RoleId, UserId, WebhookId},
 };
@@ -160,11 +160,7 @@ impl Client {
         self.state.token.as_deref()
     }
 
-    /// Get the default allowed mentions for sent messages.
-    ///
-    /// Refer to [`allowed_mentions`] for more information.
-    ///
-    /// [`allowed_mentions`]: crate::request::channel::allowed_mentions
+    /// Get the default [`AllowedMentions`] for sent messages.
     pub fn default_allowed_mentions(&self) -> Option<AllowedMentions> {
         self.state.default_allowed_mentions.clone()
     }
@@ -784,6 +780,26 @@ impl Client {
     /// Update a guild member.
     ///
     /// All fields are optional. Refer to [the discord docs] for more information.
+    ///
+    /// # Examples
+    ///
+    /// Update a member's nickname to "pinky pie" and server mute them:
+    ///
+    /// ```rust,no_run
+    /// use std::env;
+    /// use twilight_http::Client;
+    /// use twilight_model::id::{GuildId, UserId};
+    ///
+    /// # #[tokio::main] async fn main() -> Result<(), Box<dyn std::error::Error>> {
+    /// let client = Client::new(env::var("DISCORD_TOKEN")?);
+    /// let member = client.update_guild_member(GuildId(1), UserId(2))
+    ///     .mute(true)
+    ///     .nick(Some("pinkie pie".to_owned()))?
+    ///     .await?;
+    ///
+    /// println!("user {} now has the nickname '{:?}'", member.user.id, member.nick);
+    /// # Ok(()) }
+    /// ```
     ///
     /// # Errors
     ///
@@ -1642,23 +1658,5 @@ impl Client {
             },
             source: None,
         })
-    }
-}
-
-impl From<HyperClient<HttpsConnector<HttpConnector>>> for Client {
-    fn from(hyper_client: HyperClient<HttpsConnector<HttpConnector>>) -> Self {
-        Self {
-            state: Arc::new(State {
-                http: hyper_client,
-                default_headers: None,
-                proxy: None,
-                ratelimiter: Some(Ratelimiter::new()),
-                timeout: Duration::from_secs(10),
-                token_invalid: AtomicBool::new(false),
-                token: None,
-                use_http: false,
-                default_allowed_mentions: None,
-            }),
-        }
     }
 }

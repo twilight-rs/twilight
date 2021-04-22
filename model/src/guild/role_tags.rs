@@ -1,4 +1,7 @@
-use crate::id::{IntegrationId, UserId};
+use crate::{
+    id::{IntegrationId, UserId},
+    util::is_false,
+};
 use serde::{Deserialize, Serialize};
 
 /// The role tags' `premium_subscriber` field is tricky. It's an optional null.
@@ -44,12 +47,6 @@ mod premium_subscriber {
     pub fn deserialize<'de, D: Deserializer<'de>>(deserializer: D) -> Result<bool, D::Error> {
         deserializer.deserialize_option(PremiumSubscriberVisitor)
     }
-}
-
-// Clippy situation is the same as above.
-#[allow(clippy::trivially_copy_pass_by_ref)]
-fn is_false(value: &bool) -> bool {
-    !value
 }
 
 /// Tags that a [`Role`] has.

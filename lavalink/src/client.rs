@@ -1,12 +1,11 @@
 //! Client to manage nodes and players.
 
 use crate::{
-    model::{IncomingEvent, SlimVoiceServerUpdate, VoiceUpdate},
-    node::{Node, NodeConfig, NodeError, Resume},
+    model::{SlimVoiceServerUpdate, VoiceUpdate},
+    node::{IncomingEvents, Node, NodeConfig, NodeError, Resume},
     player::{Player, PlayerManager},
 };
 use dashmap::DashMap;
-use futures_channel::mpsc::UnboundedReceiver;
 use std::{
     error::Error,
     fmt::{Display, Formatter, Result as FmtResult},
@@ -283,7 +282,7 @@ impl Lavalink {
         &self,
         address: SocketAddr,
         authorization: impl Into<String>,
-    ) -> Result<(Node, UnboundedReceiver<IncomingEvent>), NodeError> {
+    ) -> Result<(Node, IncomingEvents), NodeError> {
         let config = NodeConfig {
             address,
             authorization: authorization.into(),
@@ -301,20 +300,39 @@ impl Lavalink {
     /// Remove a node from the list of nodes being managed by the Lavalink
     /// client.
     ///
+    /// This does not disconnect the node. A separate call to [`Node::close`]
+    /// is needed, or use [`Lavalink::disconnect`] instead.
+    ///
     /// The node is returned if it existed.
     pub async fn remove(&self, address: SocketAddr) -> Option<(SocketAddr, Node)> {
         self.0.nodes.remove(&address)
     }
 
+    /// Remove a node from the list of nodes being managed by the Lavalink
+    /// client and terminates the connection.
+    ///
+    /// Use [`Lavalink::remove`] if detatching a node from a Lavalink instance
+    /// is required without closing the underlying connection.
+    ///
+    /// Returns whether the node has been removed and disconnected.
+    pub fn disconnect(&self, address: SocketAddr) -> bool {
+        if let Some((_, node)) = self.0.nodes.remove(&address) {
+            node.close();
+            true
+        } else {
+            false
+        }
+    }
+
     /// Determine the "best" node for new players according to available nodes'
-    /// penalty scores.
+    /// penalty scores. Disconnected nodes will not be considered.
     ///
     /// Refer to [`Node::penalty`] for how this is calculated.
     ///
     /// # Errors
     ///
     /// Returns a [`ClientErrorType::NodesUnconfigured`] error type if there are
-    /// no configured nodes available in the client.
+    /// no connected nodes available in the client.
     ///
     /// [`Node::penalty`]: crate::node::Node::penalty
     pub async fn best(&self) -> Result<Node, ClientError> {
@@ -322,6 +340,10 @@ impl Lavalink {
         let mut best = None;
 
         for node in self.0.nodes.iter() {
+            if node.sender().is_closed() {
+                continue;
+            }
+
             let penalty = node.value().penalty().await;
 
             if penalty < lowest {

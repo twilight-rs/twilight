@@ -269,10 +269,9 @@ impl Cluster {
         let total = scheme.total().expect("shard scheme is not auto");
 
         #[cfg(feature = "metrics")]
+        #[allow(clippy::cast_precision_loss)]
         {
-            use std::convert::TryInto;
-
-            metrics::gauge!("Cluster-Shard-Count", total.try_into().unwrap_or(-1));
+            metrics::gauge!("Cluster-Shard-Count", total as f64);
         }
 
         let shards = iter
