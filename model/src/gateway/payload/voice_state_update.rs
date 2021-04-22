@@ -55,6 +55,7 @@ mod tests {
             suppress: false,
             token: None,
             user_id: UserId(1),
+            request_to_speak_timestamp: None,
         });
 
         serde_test::assert_tokens(
@@ -65,7 +66,7 @@ mod tests {
                 },
                 Token::Struct {
                     name: "VoiceState",
-                    len: 11,
+                    len: 12,
                 },
                 Token::Str("channel_id"),
                 Token::None,
@@ -136,6 +137,8 @@ mod tests {
                 Token::Str("user_id"),
                 Token::NewtypeStruct { name: "UserId" },
                 Token::Str("1"),
+                Token::Str("request_to_speak_timestamp"),
+                Token::None,
                 Token::StructEnd,
             ],
         );
@@ -182,6 +185,7 @@ mod tests {
             suppress: false,
             token: None,
             user_id: UserId(123_213),
+            request_to_speak_timestamp: Some("2021-04-21T22:16:50+0000".to_owned()),
         });
 
         // Token stream here's `Member` has no `guild_id`, which deserialiser
@@ -269,6 +273,9 @@ mod tests {
                 Token::Str("user_id"),
                 Token::NewtypeStruct { name: "UserId" },
                 Token::Str("123213"),
+                Token::Str("request_to_speak_timestamp"),
+                Token::Some,
+                Token::Str("2021-04-21T22:16:50+0000"),
                 Token::StructEnd,
             ],
         );

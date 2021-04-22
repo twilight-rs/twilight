@@ -1037,6 +1037,7 @@ mod tests {
             suppress: false,
             token: None,
             user_id: UserId(1),
+            request_to_speak_timestamp: Some("2021-04-21T22:16:50+0000".to_owned()),
         }));
     }
 
@@ -1084,6 +1085,7 @@ mod tests {
             suppress: false,
             token: None,
             user_id: UserId(3),
+            request_to_speak_timestamp: Some("2021-04-21T22:16:50+0000".to_owned()),
         });
 
         cache.update(&mutation);
