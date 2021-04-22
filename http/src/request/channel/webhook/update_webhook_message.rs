@@ -84,6 +84,10 @@ struct UpdateWebhookMessageFields {
     #[allow(clippy::option_option)]
     #[serde(skip_serializing_if = "Option::is_none")]
     embeds: Option<Option<Vec<Embed>>>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    file: Option<Vec<u8>>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    payload_json: Option<Vec<u8>>,
 }
 
 /// Update a message created by a webhook.
@@ -254,6 +258,22 @@ impl<'a> UpdateWebhookMessage<'a> {
         Ok(self)
     }
 
+    /// Attach a file to the webhook.
+    pub fn file(mut self, file: impl Into<Vec<u8>>) -> Self {
+        self.fields.file.replace(file.into());
+
+        self
+    }
+
+    /// JSON encoded body of any additional request fields. See [Discord Docs/Create Message]
+    ///
+    /// [Discord Docs/Create Message]: https://discord.com/developers/docs/resources/channel#create-message-params
+    pub fn payload_json(mut self, payload_json: impl Into<Vec<u8>>) -> Self {
+        self.fields.payload_json.replace(payload_json.into());
+
+        self
+    }
+
     fn request(&self) -> Result<Request> {
         let body = crate::json_to_vec(&self.fields)?;
         let route = Route::UpdateWebhookMessage {
@@ -313,6 +333,8 @@ mod tests {
             allowed_mentions: None,
             content: Some(Some("test".to_owned())),
             embeds: None,
+            file: None,
+            payload_json: None,
         })
         .expect("failed to serialize fields");
         let route = Route::UpdateWebhookMessage {
