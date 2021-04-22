@@ -7,7 +7,6 @@ use crate::{
     error::{Error, ErrorType, Result},
     ratelimiting::{RatelimitHeaders, Ratelimiter},
     request::{
-        channel::allowed_mentions::AllowedMentions,
         guild::{create_guild::CreateGuildError, create_guild_channel::CreateGuildChannelError},
         prelude::*,
         GetUserApplicationInfo, Request,
@@ -34,6 +33,7 @@ use std::{
 };
 use tokio::time;
 use twilight_model::{
+    channel::message::allowed_mentions::AllowedMentions,
     guild::Permissions,
     id::{ChannelId, EmojiId, GuildId, IntegrationId, MessageId, RoleId, UserId, WebhookId},
 };
@@ -160,11 +160,7 @@ impl Client {
         self.state.token.as_deref()
     }
 
-    /// Get the default allowed mentions for sent messages.
-    ///
-    /// Refer to [`allowed_mentions`] for more information.
-    ///
-    /// [`allowed_mentions`]: crate::request::channel::allowed_mentions
+    /// Get the default [`AllowedMentions`] for sent messages.
     pub fn default_allowed_mentions(&self) -> Option<AllowedMentions> {
         self.state.default_allowed_mentions.clone()
     }

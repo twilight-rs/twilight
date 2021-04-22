@@ -1,10 +1,11 @@
 use super::{Client, State};
-use crate::{ratelimiting::Ratelimiter, request::channel::allowed_mentions::AllowedMentions};
+use crate::ratelimiting::Ratelimiter;
 use hyper::header::HeaderMap;
 use std::{
     sync::{atomic::AtomicBool, Arc},
     time::Duration,
 };
+use twilight_model::channel::message::allowed_mentions::AllowedMentions;
 
 #[derive(Debug)]
 /// A builder for [`Client`].

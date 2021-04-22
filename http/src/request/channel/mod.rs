@@ -1,4 +1,3 @@
-pub mod allowed_mentions;
 pub mod invite;
 pub mod message;
 pub mod reaction;

@@ -3,10 +3,7 @@
 use crate::{
     client::Client,
     error::{Error as HttpError, Result},
-    request::{
-        self, channel::allowed_mentions::AllowedMentions, validate, AuditLogReason,
-        AuditLogReasonError, Pending, Request,
-    },
+    request::{self, validate, AuditLogReason, AuditLogReasonError, Pending, Request},
     routing::Route,
 };
 use serde::Serialize;
@@ -15,7 +12,7 @@ use std::{
     fmt::{Display, Formatter, Result as FmtResult},
 };
 use twilight_model::{
-    channel::embed::Embed,
+    channel::{embed::Embed, message::AllowedMentions},
     id::{MessageId, WebhookId},
 };
 
@@ -131,8 +128,10 @@ struct UpdateWebhookMessageFields {
 ///
 /// ```no_run
 /// # use twilight_http::Client;
-/// use twilight_http::request::channel::allowed_mentions::AllowedMentions;
-/// use twilight_model::id::{MessageId, WebhookId};
+/// use twilight_model::{
+///     channel::message::AllowedMentions,
+///     id::{MessageId, WebhookId}
+/// };
 ///
 /// # #[tokio::main]
 /// # async fn main() -> Result<(), Box<dyn std::error::Error>> {
