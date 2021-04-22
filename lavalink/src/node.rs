@@ -426,6 +426,16 @@ impl Node {
         &self.0.players
     }
 
+    /// Closes the connection with the node. All future calls to [`Node::send`] will fail.
+    ///
+    /// Using [`Lavalink::disconnect`] is advised over directly calling this, as it will also
+    /// removing the node from the manager.
+    ///
+    /// [`Lavalink::disconnect`]: crate::client::Lavalink::disconnect
+    pub fn close(&self) {
+        self.sender().close_channel();
+    }
+
     /// Retrieve an immutable reference to the node's configuration.
     ///
     /// Note that sending player events through the node's sender won't update
@@ -636,6 +646,15 @@ impl Connection {
         *self.stats.lock().await = stats.clone();
 
         Ok(())
+    }
+}
+
+impl Drop for Connection {
+    fn drop(&mut self) {
+        // Cleanup local players associated with the node
+        self.players
+            .players
+            .retain(|_, v| v.node().config().address != self.config.address);
     }
 }
 
