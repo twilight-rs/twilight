@@ -1,10 +1,7 @@
-use crate::request::{
-    channel::allowed_mentions::{AllowedMentions, AllowedMentionsBuilder, Unspecified},
-    prelude::*,
-};
+use crate::request::prelude::*;
 use futures_util::future::TryFutureExt;
 use twilight_model::{
-    channel::{embed::Embed, Message},
+    channel::{embed::Embed, message::AllowedMentions, Message},
     id::WebhookId,
 };
 
@@ -74,11 +71,11 @@ impl<'a> ExecuteWebhook<'a> {
         }
     }
 
-    /// Return a new [`AllowedMentionsBuilder`].
-    pub fn allowed_mentions(
-        self,
-    ) -> AllowedMentionsBuilder<'a, Unspecified, Unspecified, Unspecified> {
-        AllowedMentionsBuilder::for_webhook(self)
+    /// Specify the [`AllowedMentions`] for the webhook message.
+    pub fn allowed_mentions(mut self, allowed_mentions: AllowedMentions) -> Self {
+        self.fields.allowed_mentions.replace(allowed_mentions);
+
+        self
     }
 
     /// The URL of the avatar of the webhook.

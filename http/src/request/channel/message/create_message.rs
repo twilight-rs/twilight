@@ -1,4 +1,3 @@
-use super::super::allowed_mentions::{AllowedMentions, AllowedMentionsBuilder, Unspecified};
 use crate::request::{multipart::Form, prelude::*};
 use std::{
     collections::HashMap,
@@ -6,7 +5,11 @@ use std::{
     fmt::{Display, Formatter, Result as FmtResult},
 };
 use twilight_model::{
-    channel::{embed::Embed, message::MessageReference, Message},
+    channel::{
+        embed::Embed,
+        message::{AllowedMentions, MessageReference},
+        Message,
+    },
     id::{ChannelId, MessageId},
 };
 
@@ -134,11 +137,11 @@ impl<'a> CreateMessage<'a> {
         }
     }
 
-    /// Return a new [`AllowedMentionsBuilder`].
-    pub fn allowed_mentions(
-        self,
-    ) -> AllowedMentionsBuilder<'a, Unspecified, Unspecified, Unspecified> {
-        AllowedMentionsBuilder::for_builder(self)
+    /// Specify the [`AllowedMentions`] for the message.
+    pub fn allowed_mentions(mut self, allowed_mentions: AllowedMentions) -> Self {
+        self.fields.allowed_mentions.replace(allowed_mentions);
+
+        self
     }
 
     /// Attach a new file to the message.

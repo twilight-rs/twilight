@@ -9,7 +9,10 @@
 //! [send events]: Player::send
 //! [read the position]: Player::position
 
-use crate::{model::*, node::Node};
+use crate::{
+    model::*,
+    node::{Node, NodeSenderError},
+};
 use dashmap::DashMap;
 use std::{
     fmt::Debug,
@@ -18,7 +21,6 @@ use std::{
         Arc,
     },
 };
-use tokio::sync::mpsc::error::SendError;
 use twilight_model::id::{ChannelId, GuildId};
 
 /// Retrieve and create players for guilds.
@@ -54,8 +56,13 @@ impl PlayerManager {
 
     /// Destroy a player on the remote node and remove it from the [`PlayerManager`].
     ///
-    /// Returns an error if the associated node no longer is connected.
-    pub fn destroy(&self, guild_id: GuildId) -> Result<(), SendError<OutgoingEvent>> {
+    /// # Errors
+    ///
+    /// Returns a [`NodeSenderErrorType::Sending`] error type if node is no
+    /// longer connected.
+    ///
+    /// [`NodeSenderErrorType::Sending`]: crate::node::NodeSenderErrorType::Sending
+    pub fn destroy(&self, guild_id: GuildId) -> Result<(), NodeSenderError> {
         if let Some(player) = self.get(&guild_id) {
             player
                 .node()
@@ -123,13 +130,19 @@ impl Player {
     /// # Ok(()) }
     /// ```
     ///
+    /// # Errors
+    ///
+    /// Returns a [`NodeSenderErrorType::Sending`] error type if node is no
+    /// longer connected.
+    ///
+    /// [`NodeSenderErrorType::Sending`]: crate::node::NodeSenderErrorType::Sending
     /// [`Pause`]: crate::model::outgoing::Pause
     /// [`Play`]: crate::model::outgoing::Play
-    pub fn send(&self, event: impl Into<OutgoingEvent>) -> Result<(), SendError<OutgoingEvent>> {
+    pub fn send(&self, event: impl Into<OutgoingEvent>) -> Result<(), NodeSenderError> {
         self._send(event.into())
     }
 
-    fn _send(&self, event: OutgoingEvent) -> Result<(), SendError<OutgoingEvent>> {
+    fn _send(&self, event: OutgoingEvent) -> Result<(), NodeSenderError> {
         tracing::debug!(
             "sending event on guild player {}: {:?}",
             self.0.guild_id,

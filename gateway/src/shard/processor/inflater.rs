@@ -139,18 +139,19 @@ impl Inflater {
 
     /// Log metrics about the inflater.
     #[cfg(feature = "metrics")]
+    #[allow(clippy::cast_precision_loss)]
     fn inflater_metrics(&self) {
         metrics::gauge!(
             format!("Inflater-Capacity-{}", self.shard[0]),
-            self.buffer.capacity().try_into().unwrap_or(-1)
+            self.buffer.capacity() as f64
         );
         metrics::gauge!(
             format!("Inflater-In-{}", self.shard[0]),
-            self.decompress.total_in().try_into().unwrap_or(-1)
+            self.decompress.total_in() as f64
         );
         metrics::gauge!(
             format!("Inflater-Out-{}", self.shard[0]),
-            self.decompress.total_out().try_into().unwrap_or(-1)
+            self.decompress.total_out() as f64
         );
     }
 

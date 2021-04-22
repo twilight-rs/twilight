@@ -21,18 +21,26 @@ use crate::{
     model::{IncomingEvent, Opcode, OutgoingEvent, PlayerUpdate, Stats, StatsCpu, StatsMemory},
     player::PlayerManager,
 };
-use futures_util::{lock::BiLock, sink::SinkExt, stream::StreamExt};
+use futures_util::{
+    lock::BiLock,
+    sink::SinkExt,
+    stream::{Stream, StreamExt},
+};
 use http::{header::HeaderName, Request, Response, StatusCode};
 use std::{
     error::Error,
     fmt::{Display, Formatter, Result as FmtResult},
     net::SocketAddr,
+    pin::Pin,
     sync::Arc,
+    task::{Context, Poll},
     time::Duration,
 };
-use tokio::net::TcpStream;
-use tokio::sync::mpsc::{self, error::SendError, UnboundedReceiver, UnboundedSender};
-use tokio::time as tokio_time;
+use tokio::{
+    net::TcpStream,
+    sync::mpsc::{self, UnboundedReceiver, UnboundedSender},
+    time as tokio_time,
+};
 use tokio_tungstenite::{
     tungstenite::{Error as TungsteniteError, Message},
     MaybeTlsStream, WebSocketStream,
@@ -114,6 +122,121 @@ pub enum NodeErrorType {
         /// The authorization used to connect to the node.
         authorization: String,
     },
+}
+
+/// An error that can occur while sending an event over a node.
+#[derive(Debug)]
+pub struct NodeSenderError {
+    kind: NodeSenderErrorType,
+    source: Option<Box<dyn Error + Send + Sync>>,
+}
+
+impl NodeSenderError {
+    /// Immutable reference to the type of error that occurred.
+    pub fn kind(&self) -> &NodeSenderErrorType {
+        &self.kind
+    }
+
+    /// Consume the error, returning the source error if there is any.
+    pub fn into_source(self) -> Option<Box<dyn Error + Send + Sync>> {
+        self.source
+    }
+
+    /// Consume the error, returning the owned error type and the source error.
+    #[must_use = "consuming the error into its parts has no effect if left unused"]
+    pub fn into_parts(self) -> (NodeSenderErrorType, Option<Box<dyn Error + Send + Sync>>) {
+        (self.kind, self.source)
+    }
+}
+
+impl Display for NodeSenderError {
+    fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
+        match &self.kind {
+            NodeSenderErrorType::Sending => f.write_str("failed to send over channel"),
+        }
+    }
+}
+
+impl Error for NodeSenderError {
+    fn source(&self) -> Option<&(dyn Error + 'static)> {
+        self.source
+            .as_ref()
+            .map(|source| &**source as &(dyn Error + 'static))
+    }
+}
+
+/// Type of [`NodeSenderError`] that occurred.
+#[derive(Debug)]
+#[non_exhaustive]
+pub enum NodeSenderErrorType {
+    /// Error occured while sending over the channel.
+    Sending,
+}
+
+/// Stream of incoming events from a node.
+pub struct IncomingEvents {
+    inner: UnboundedReceiver<IncomingEvent>,
+}
+
+impl IncomingEvents {
+    /// Closes the receiving half of a channel without dropping it.
+    pub fn close(&mut self) {
+        self.inner.close();
+    }
+}
+
+impl Stream for IncomingEvents {
+    type Item = IncomingEvent;
+
+    fn poll_next(mut self: Pin<&mut Self>, cx: &mut Context<'_>) -> Poll<Option<Self::Item>> {
+        self.inner.poll_recv(cx)
+    }
+}
+
+/// Send outgoing events to the associated node.
+pub struct NodeSender {
+    inner: UnboundedSender<OutgoingEvent>,
+}
+
+impl NodeSender {
+    /// Check if the channel is ready to receive a message.
+    ///
+    /// # Errors
+    ///
+    /// Returns a [`NodeSenderErrorType::Sending`] error type if node is no
+    /// longer connected.
+    pub fn poll_ready(&self, _cx: &mut Context<'_>) -> Poll<Result<(), NodeSenderError>> {
+        if !self.inner.is_closed() {
+            Poll::Ready(Ok(()))
+        } else {
+            Poll::Ready(Err(NodeSenderError {
+                kind: NodeSenderErrorType::Sending,
+                source: None,
+            }))
+        }
+    }
+
+    /// Returns whether this channel is closed without needing a context.
+    pub fn is_closed(&self) -> bool {
+        self.inner.is_closed()
+    }
+
+    /// Sends a message along this channel.
+    ///
+    /// This is an unbounded sender, so this function differs from `Sink::send`
+    /// by ensuring the return type reflects that the channel is always ready to
+    /// receive messages.
+    ///
+    /// # Errors
+    ///
+    /// Returns a [`NodeSenderErrorType::Sending`] error type if node is no
+    /// longer connected.
+    pub fn send(&self, msg: OutgoingEvent) -> Result<(), NodeSenderError> {
+        self.inner.send(msg).map_err(|source| NodeSenderError {
+            kind: NodeSenderErrorType::Sending,
+            source: Some(Box::new(source)),
+        })
+    }
 }
 
 /// The configuration that a [`Node`] uses to connect to a Lavalink server.
@@ -230,7 +353,7 @@ impl Node {
     pub async fn connect(
         config: NodeConfig,
         players: PlayerManager,
-    ) -> Result<(Self, UnboundedReceiver<IncomingEvent>), NodeError> {
+    ) -> Result<(Self, IncomingEvents), NodeError> {
         let (bilock_left, bilock_right) = BiLock::new(Stats {
             cpu: StatsCpu {
                 cores: 0,
@@ -263,7 +386,7 @@ impl Node {
                 players,
                 stats: bilock_left,
             })),
-            lavalink_rx,
+            IncomingEvents { inner: lavalink_rx },
         ))
     }
 
@@ -281,7 +404,12 @@ impl Node {
     ///
     /// Note that sending player events through the node's sender won't update
     /// player states, such as whether it's paused.
-    pub fn send(&self, event: OutgoingEvent) -> Result<(), SendError<OutgoingEvent>> {
+    ///
+    /// # Errors
+    ///
+    /// Returns a [`NodeSenderErrorType::Sending`] error type if node is no
+    /// longer connected.
+    pub fn send(&self, event: OutgoingEvent) -> Result<(), NodeSenderError> {
         self.sender().send(event)
     }
 
@@ -289,8 +417,10 @@ impl Node {
     ///
     /// Note that sending player events through the node's sender won't update
     /// player states, such as whether it's paused.
-    pub fn sender(&self) -> UnboundedSender<OutgoingEvent> {
-        self.0.lavalink_tx.clone()
+    pub fn sender(&self) -> NodeSender {
+        NodeSender {
+            inner: self.0.lavalink_tx.clone(),
+        }
     }
 
     /// Retrieve a copy of the node's stats.
@@ -479,6 +609,15 @@ impl Connection {
         *self.stats.lock().await = stats.clone();
 
         Ok(())
+    }
+}
+
+impl Drop for Connection {
+    fn drop(&mut self) {
+        // Cleanup local players associated with the node
+        self.players
+            .players
+            .retain(|_, v| v.node().config().address != self.config.address);
     }
 }
 
