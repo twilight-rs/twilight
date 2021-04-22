@@ -300,8 +300,8 @@ impl Lavalink {
     /// Remove a node from the list of nodes being managed by the Lavalink
     /// client.
     ///
-    /// This does not disconnect the node. A separate call to [`Node::close`]
-    /// is needed, or use [`Lavalink::disconnect`] instead.
+    /// This does not disconnect the node. Use [`Lavalink::disconnect`] instead.
+    /// or drop all [`Node`]s.
     ///
     /// The node is returned if it existed.
     pub async fn remove(&self, address: SocketAddr) -> Option<(SocketAddr, Node)> {
