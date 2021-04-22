@@ -11,13 +11,6 @@ struct UpdateCurrentUserVoiceStateFields {
 }
 
 /// Update the current user's voice state.
-///
-/// All paramaters are optional.
-///
-/// # Caveats
-///
-/// - `channel_id` must currently point to a stage channel.
-/// - Current user must have already joined `channel_id`.
 pub struct UpdateCurrentUserVoiceState<'a> {
     fields: UpdateCurrentUserVoiceStateFields,
     fut: Option<Pending<'a, ()>>,
