@@ -536,6 +536,9 @@ impl InMemoryCache {
             GuildChannel::Voice(ref mut c) => {
                 c.guild_id.replace(guild_id);
             }
+            GuildChannel::Stage(ref mut c) => {
+                c.guild_id.replace(guild_id);
+            }
         }
 
         let id = channel.id();
@@ -1074,6 +1077,7 @@ mod tests {
             suppress: false,
             token: None,
             user_id,
+            request_to_speak_timestamp: Some("2021-04-21T22:16:50+0000".to_owned()),
         }
     }
 
