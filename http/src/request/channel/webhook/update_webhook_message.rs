@@ -258,7 +258,7 @@ impl<'a> UpdateWebhookMessage<'a> {
         Ok(self)
     }
 
-    /// Attach a file to the webhook.
+    /// Edit a file previously sent by the webhook.
     pub fn file(mut self, file: impl Into<Vec<u8>>) -> Self {
         self.fields.file.replace(file.into());
 
