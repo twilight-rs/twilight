@@ -456,6 +456,22 @@ impl Client {
         UpdateCurrentUser::new(self)
     }
 
+    /// Update the current user's voice state.
+    ///
+    /// All paramaters are optional.
+    ///
+    /// # Caveats
+    ///
+    /// - `channel_id` must currently point to a stage channel.
+    /// - Current user must have already joined `channel_id`.
+    pub fn update_current_user_voice_state(
+        &self,
+        guild_id: GuildId,
+        channel_id: ChannelId,
+    ) -> UpdateCurrentUserVoiceState<'_> {
+        UpdateCurrentUserVoiceState::new(self, guild_id, channel_id)
+    }
+
     /// Get the current user's connections.
     ///
     /// Requires the `connections` `OAuth2` scope.
@@ -1386,6 +1402,21 @@ impl Client {
     /// Get a user's information by id.
     pub fn user(&self, user_id: UserId) -> GetUser<'_> {
         GetUser::new(self, user_id.to_string())
+    }
+
+    /// Update another user's voice state.
+    ///
+    /// # Caveats
+    ///
+    /// - `channel_id` must currently point to a stage channel.
+    /// - User must already have joined `channel_id`.
+    pub fn update_user_voice_state(
+        &self,
+        guild_id: GuildId,
+        user_id: UserId,
+        channel_id: ChannelId,
+    ) -> UpdateUserVoiceState<'_> {
+        UpdateUserVoiceState::new(self, guild_id, user_id, channel_id)
     }
 
     /// Get a list of voice regions that can be used when creating a guild.

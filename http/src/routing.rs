@@ -122,6 +122,7 @@ pub enum Path {
     GuildsIdTemplates(u64),
     GuildsIdTemplatesCode(u64),
     GuildsIdVanityUrl(u64),
+    GuildsIdVoiceStates(u64),
     GuildsIdWebhooks(u64),
     InvitesCode,
     UsersId,
@@ -231,6 +232,7 @@ impl FromStr for Path {
             ["guilds", id, "templates"] => GuildsIdTemplates(id.parse()?),
             ["guilds", id, "templates", _] => GuildsIdTemplatesCode(id.parse()?),
             ["guilds", id, "vanity-url"] => GuildsIdVanityUrl(id.parse()?),
+            ["guilds", id, "voice-states", _] => GuildsIdVoiceStates(id.parse()?),
             ["guilds", id, "webhooks"] => GuildsIdWebhooks(id.parse()?),
             ["invites", _] => InvitesCode,
             ["oauth2", "applications", "@me"] => OauthApplicationsMe,
@@ -793,6 +795,11 @@ pub enum Route {
     },
     /// Route information to update the current user.
     UpdateCurrentUser,
+    /// Route information to update the current user's voice state.
+    UpdateCurrentUserVoiceState {
+        /// ID of the guild.
+        guild_id: u64,
+    },
     /// Route information to update an emoji.
     UpdateEmoji {
         /// The ID of the emoji.
@@ -867,6 +874,13 @@ pub enum Route {
         guild_id: u64,
         /// The template code.
         template_code: String,
+    },
+    /// Route information to update a user's voice state.
+    UpdateUserVoiceState {
+        /// ID of the guild.
+        guild_id: u64,
+        /// ID of the user.
+        user_id: u64,
     },
     /// Route information to update a message created by a webhook.
     UpdateWebhookMessage {
@@ -1562,6 +1576,11 @@ impl Route {
                 format!("channels/{}", channel_id).into(),
             ),
             Self::UpdateCurrentUser => (Method::PATCH, Path::UsersId, "users/@me".into()),
+            Self::UpdateCurrentUserVoiceState { guild_id } => (
+                Method::PATCH,
+                Path::GuildsIdVoiceStates(guild_id),
+                format!("guilds/{}/voice-states/@me", guild_id).into(),
+            ),
             Self::UpdateEmoji { emoji_id, guild_id } => (
                 Method::PATCH,
                 Path::GuildsIdEmojisId(guild_id),
@@ -1633,6 +1652,11 @@ impl Route {
                 Method::PATCH,
                 Path::GuildsIdTemplatesCode(guild_id),
                 format!("guilds/{}/templates/{}", guild_id, template_code).into(),
+            ),
+            Self::UpdateUserVoiceState { guild_id, user_id } => (
+                Method::PATCH,
+                Path::GuildsIdVoiceStates(guild_id),
+                format!("guilds/{}/voice-states/{}", guild_id, user_id).into(),
             ),
             Self::UpdateWebhookMessage {
                 message_id,
