@@ -32,7 +32,7 @@ serde_json = { default-features = false, features = ["alloc"], version = "1" }
 serde_repr = { default-features = false, version = "0.1" }
 
 # optional
-simd-json = { default-features = false, features = ["serde_impl", "swar-number-parsing"], optional = true, version = "0.3" }
+simd-json = { default-features = false, features = ["serde_impl", "swar-number-parsing"], optional = true, version = "0.4" }
 
 [features]
 default = ["rustls"]
