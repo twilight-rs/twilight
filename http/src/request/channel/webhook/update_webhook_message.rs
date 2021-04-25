@@ -7,12 +7,13 @@ use crate::{
         self,
         channel::allowed_mentions::AllowedMentions,
         validate::{self, EmbedValidationError},
-        AuditLogReason, AuditLogReasonError, Pending, Request,
+        AuditLogReason, AuditLogReasonError, Form, Pending, Request,
     },
     routing::Route,
 };
 use serde::Serialize;
 use std::{
+    collections::HashMap,
     error::Error,
     fmt::{Display, Formatter, Result as FmtResult},
 };
@@ -85,8 +86,6 @@ struct UpdateWebhookMessageFields {
     #[serde(skip_serializing_if = "Option::is_none")]
     embeds: Option<Option<Vec<Embed>>>,
     #[serde(skip_serializing_if = "Option::is_none")]
-    file: Option<Vec<u8>>,
-    #[serde(skip_serializing_if = "Option::is_none")]
     payload_json: Option<Vec<u8>>,
 }
 
@@ -121,6 +120,7 @@ struct UpdateWebhookMessageFields {
 ///
 /// [`DeleteWebhookMessage`]: super::DeleteWebhookMessage
 pub struct UpdateWebhookMessage<'a> {
+    attachments: HashMap<String, Vec<u8>>,
     fields: UpdateWebhookMessageFields,
     fut: Option<Pending<'a, ()>>,
     http: &'a Client,
@@ -141,6 +141,7 @@ impl<'a> UpdateWebhookMessage<'a> {
         message_id: MessageId,
     ) -> Self {
         Self {
+            attachments: HashMap::new(),
             fields: UpdateWebhookMessageFields {
                 allowed_mentions: http.default_allowed_mentions(),
                 ..UpdateWebhookMessageFields::default()
@@ -259,8 +260,20 @@ impl<'a> UpdateWebhookMessage<'a> {
     }
 
     /// Edit a file previously sent by the webhook.
-    pub fn file(mut self, file: impl Into<Vec<u8>>) -> Self {
-        self.fields.file.replace(file.into());
+    pub fn attachment(mut self, name: impl Into<String>, file: impl Into<Vec<u8>>) -> Self {
+        self.attachments.insert(name.into(), file.into());
+
+        self
+    }
+
+    /// Insert multiple attachments into the message.
+    pub fn attachments<N: Into<String>, F: Into<Vec<u8>>>(
+        mut self,
+        attachments: impl IntoIterator<Item = (N, F)>,
+    ) -> Self {
+        for (name, file) in attachments {
+            self = self.attachment(name, file);
+        }
 
         self
     }
@@ -274,24 +287,46 @@ impl<'a> UpdateWebhookMessage<'a> {
         self
     }
 
-    fn request(&self) -> Result<Request> {
-        let body = crate::json_to_vec(&self.fields)?;
-        let route = Route::UpdateWebhookMessage {
-            message_id: self.message_id.0,
-            token: self.token.clone(),
-            webhook_id: self.webhook_id.0,
+    fn start(&mut self) -> Result<()> {
+        let request = if self.attachments.is_empty() {
+            let body = crate::json_to_vec(&self.fields)?;
+
+            let route = Route::UpdateWebhookMessage {
+                message_id: self.message_id.0,
+                token: self.token.clone(),
+                webhook_id: self.webhook_id.0,
+            };
+
+            if let Some(reason) = &self.reason {
+                let headers = request::audit_header(&reason)?;
+                Request::from((body, headers, route))
+            } else {
+                Request::from((body, route))
+            }
+        } else {
+            let mut multipart = Form::new();
+
+            for (index, (name, file)) in self.attachments.drain().enumerate() {
+                multipart.file(format!("{}", index).as_bytes(), name.as_bytes(), &file);
+            }
+
+            let body = crate::json_to_vec(&self.fields)?;
+            multipart.part(b"payload_json", &body);
+
+            let route = Route::UpdateWebhookMessage {
+                message_id: self.message_id.0,
+                token: self.token.clone(),
+                webhook_id: self.webhook_id.0,
+            };
+
+            if let Some(reason) = &self.reason {
+                let headers = request::audit_header(&reason)?;
+                Request::from((multipart, headers, route))
+            } else {
+                Request::from((multipart, route))
+            }
         };
 
-        Ok(if let Some(reason) = &self.reason {
-            let headers = request::audit_header(&reason)?;
-            Request::from((body, headers, route))
-        } else {
-            Request::from((body, route))
-        })
-    }
-
-    fn start(&mut self) -> Result<()> {
-        let request = self.request()?;
         self.fut.replace(Box::pin(self.http.verify(request)));
 
         Ok(())
@@ -333,7 +368,6 @@ mod tests {
             allowed_mentions: None,
             content: Some(Some("test".to_owned())),
             embeds: None,
-            file: None,
             payload_json: None,
         })
         .expect("failed to serialize fields");
