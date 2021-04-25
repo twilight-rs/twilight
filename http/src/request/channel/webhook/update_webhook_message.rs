@@ -287,8 +287,8 @@ impl<'a> UpdateWebhookMessage<'a> {
         self
     }
 
-    fn start(&mut self) -> Result<()> {
-        let request = if self.attachments.is_empty() {
+    fn request(&mut self) -> Result<Request> {
+        if self.attachments.is_empty() {
             let body = crate::json_to_vec(&self.fields)?;
 
             let route = Route::UpdateWebhookMessage {
@@ -299,9 +299,9 @@ impl<'a> UpdateWebhookMessage<'a> {
 
             if let Some(reason) = &self.reason {
                 let headers = request::audit_header(&reason)?;
-                Request::from((body, headers, route))
+                Ok(Request::from((body, headers, route)))
             } else {
-                Request::from((body, route))
+                Ok(Request::from((body, route)))
             }
         } else {
             let mut multipart = Form::new();
@@ -321,12 +321,15 @@ impl<'a> UpdateWebhookMessage<'a> {
 
             if let Some(reason) = &self.reason {
                 let headers = request::audit_header(&reason)?;
-                Request::from((multipart, headers, route))
+                Ok(Request::from((multipart, headers, route)))
             } else {
-                Request::from((multipart, route))
+                Ok(Request::from((multipart, route)))
             }
-        };
+        }
+    }
 
+    fn start(&mut self) -> Result<()> {
+        let request = self.request()?;
         self.fut.replace(Box::pin(self.http.verify(request)));
 
         Ok(())
@@ -357,7 +360,7 @@ mod tests {
     #[test]
     fn test_request() {
         let client = Client::new("token");
-        let builder = UpdateWebhookMessage::new(&client, WebhookId(1), "token", MessageId(2))
+        let mut builder = UpdateWebhookMessage::new(&client, WebhookId(1), "token", MessageId(2))
             .content(Some("test".to_owned()))
             .expect("'test' content couldn't be set")
             .reason("reason")
