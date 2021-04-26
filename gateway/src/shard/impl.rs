@@ -5,17 +5,10 @@ use super::{
     json,
     processor::{ConnectingErrorType, Latency, Session, ShardProcessor},
     raw_message::Message,
-    sink::ShardSink,
     stage::Stage,
 };
 use crate::{listener::Listeners, EventTypeFlags, Intents};
-use async_tungstenite::tungstenite::protocol::{
-    frame::coding::CloseCode, CloseFrame as TungsteniteCloseFrame,
-};
-use futures_util::{
-    future::{self, AbortHandle},
-    stream::StreamExt,
-};
+use futures_util::stream::StreamExt;
 use once_cell::sync::OnceCell;
 use serde::{Deserialize, Serialize};
 use std::{
@@ -24,7 +17,10 @@ use std::{
     fmt::{Display, Formatter, Result as FmtResult},
     sync::{atomic::Ordering, Arc},
 };
-use tokio::sync::watch::Receiver as WatchReceiver;
+use tokio::{sync::watch::Receiver as WatchReceiver, task::JoinHandle};
+use tokio_tungstenite::tungstenite::protocol::{
+    frame::coding::CloseCode, CloseFrame as TungsteniteCloseFrame,
+};
 use twilight_model::gateway::event::Event;
 
 /// Sending a command failed.
@@ -304,7 +300,7 @@ pub struct ResumeSession {
 struct ShardRef {
     config: Arc<Config>,
     listeners: Listeners<Event>,
-    processor_handle: OnceCell<AbortHandle>,
+    processor_handle: OnceCell<JoinHandle<()>>,
     session: OnceCell<WatchReceiver<Arc<Session>>>,
 }
 
@@ -474,10 +470,9 @@ impl Shard {
                         kind: new_kind,
                     }
                 })?;
-        let (fut, handle) = future::abortable(processor.run());
 
-        tokio::spawn(async move {
-            let _ = fut.await;
+        let handle = tokio::spawn(async move {
+            processor.run().await;
 
             tracing::debug!("shard processor future ended");
         });
@@ -573,23 +568,6 @@ impl Shard {
         })
     }
 
-    /// Retrieve an interface implementing the `Sink` trait which can be used to
-    /// send messages.
-    ///
-    /// This sink is only valid for the current websocket connection. If the
-    /// shard's session is invalidated, or network connectivity is lost, or
-    /// anything else happens that causes a need to create a new connection,
-    /// then the sink will be invalidated.
-    ///
-    /// # Errors
-    ///
-    /// Returns a [`SessionInactiveError`] if the shard's session is inactive.
-    pub fn sink(&self) -> Result<ShardSink, SessionInactiveError> {
-        let session = self.session()?;
-
-        Ok(ShardSink(session.tx.clone()))
-    }
-
     /// Send a command over the gateway.
     ///
     /// # Errors
@@ -673,7 +651,7 @@ impl Shard {
 
             session
                 .tx
-                .unbounded_send(message.into_tungstenite())
+                .send(message.into_tungstenite())
                 .map_err(|source| SendError {
                     source: Some(Box::new(source)),
                     kind: SendErrorType::Sending,

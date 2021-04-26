@@ -38,13 +38,14 @@ mod large_bot_queue;
 pub use large_bot_queue::LargeBotQueue;
 
 use day_limiter::DayLimiter;
-use futures_channel::{
-    mpsc::{unbounded, UnboundedReceiver, UnboundedSender},
-    oneshot::{self, Sender},
-};
-use futures_util::{sink::SinkExt, stream::StreamExt};
 use std::{fmt::Debug, future::Future, pin::Pin, time::Duration};
-use tokio::time::sleep;
+use tokio::{
+    sync::{
+        mpsc::{unbounded_channel, UnboundedReceiver, UnboundedSender},
+        oneshot::{self, Sender},
+    },
+    time::sleep,
+};
 
 /// Queue for shards to request the ability to initialize new sessions with the
 /// gateway.
@@ -100,7 +101,7 @@ impl Default for LocalQueue {
 impl LocalQueue {
     /// Creates a new local queue.
     pub fn new() -> Self {
-        let (tx, rx) = unbounded();
+        let (tx, rx) = unbounded_channel();
 
         tokio::spawn(waiter(rx));
 
@@ -110,7 +111,7 @@ impl LocalQueue {
 
 async fn waiter(mut rx: UnboundedReceiver<Sender<()>>) {
     const DUR: Duration = Duration::from_secs(6);
-    while let Some(req) = rx.next().await {
+    while let Some(req) = rx.recv().await {
         if let Err(err) = req.send(()) {
             tracing::warn!("skipping, send failed: {:?}", err);
         }
@@ -126,7 +127,7 @@ impl Queue for LocalQueue {
         Box::pin(async move {
             let (tx, rx) = oneshot::channel();
 
-            if let Err(err) = self.0.clone().send(tx).await {
+            if let Err(err) = self.0.clone().send(tx) {
                 tracing::warn!("skipping, send failed: {:?}", err);
                 return;
             }

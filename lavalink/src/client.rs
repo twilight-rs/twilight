@@ -300,8 +300,8 @@ impl Lavalink {
     /// Remove a node from the list of nodes being managed by the Lavalink
     /// client.
     ///
-    /// This does not disconnect the node. A separate call to [`Node::close`]
-    /// is needed, or use [`Lavalink::disconnect`] instead.
+    /// This does not disconnect the node. Use [`Lavalink::disconnect`] instead.
+    /// or drop all [`Node`]s.
     ///
     /// The node is returned if it existed.
     pub async fn remove(&self, address: SocketAddr) -> Option<(SocketAddr, Node)> {
@@ -316,12 +316,7 @@ impl Lavalink {
     ///
     /// Returns whether the node has been removed and disconnected.
     pub fn disconnect(&self, address: SocketAddr) -> bool {
-        if let Some((_, node)) = self.0.nodes.remove(&address) {
-            node.close();
-            true
-        } else {
-            false
-        }
+        self.0.nodes.remove(&address).is_some()
     }
 
     /// Determine the "best" node for new players according to available nodes'

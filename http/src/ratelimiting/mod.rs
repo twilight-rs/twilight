@@ -10,8 +10,6 @@ pub use self::{
 
 use crate::routing::Path;
 use bucket::{Bucket, BucketQueueTask, TimeRemaining};
-use futures_channel::oneshot::{self, Receiver, Sender};
-use futures_util::lock::Mutex;
 use std::{
     collections::hash_map::{Entry, HashMap},
     sync::{
@@ -19,6 +17,10 @@ use std::{
         Arc,
     },
     time::Duration,
+};
+use tokio::sync::{
+    oneshot::{self, Receiver, Sender},
+    Mutex,
 };
 
 /// Global lock. We use a pair to avoid actually locking the mutex every check.

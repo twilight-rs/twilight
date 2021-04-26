@@ -184,7 +184,7 @@ impl Emitter {
                 return !listener.tx.is_closed();
             }
 
-            listener.tx.unbounded_send(f(idx)).is_ok()
+            listener.tx.send(f(idx)).is_ok()
         });
     }
 }
@@ -193,17 +193,18 @@ impl Emitter {
 mod tests {
     use super::Emitter;
     use crate::{listener::Listeners, Event, EventTypeFlags};
+    use tokio::time::{timeout, Duration};
 
-    #[test]
-    fn test_bytes_send() {
+    #[tokio::test]
+    async fn test_bytes_send() {
         let listeners = Listeners::default();
         let mut rx = listeners.add(EventTypeFlags::SHARD_PAYLOAD);
         let emitter = Emitter::new(listeners);
         emitter.bytes(&[1]);
         assert_eq!(1, emitter.listeners.len());
 
-        assert!(matches!(rx.try_next(), Ok(Some(_))));
-        assert!(rx.try_next().is_err());
+        assert!(rx.recv().await.is_some());
+        assert!(timeout(Duration::from_millis(10), rx.recv()).await.is_err());
     }
 
     #[test]
@@ -215,8 +216,8 @@ mod tests {
         assert!(emitter.listeners.all().is_empty());
     }
 
-    #[test]
-    fn test_event_sends_to_rxs() {
+    #[tokio::test]
+    async fn test_event_sends_to_rxs() {
         let listeners = Listeners::default();
         let mut rx1 = listeners.add(EventTypeFlags::default());
         let mut rx2 = listeners.add(EventTypeFlags::default());
@@ -224,11 +225,15 @@ mod tests {
         emitter.event(Event::GatewayReconnect);
         assert_eq!(2, emitter.listeners.len());
 
-        assert!(matches!(rx1.try_next(), Ok(Some(_))));
-        assert!(matches!(rx2.try_next(), Ok(Some(_))));
+        assert!(rx1.recv().await.is_some());
+        assert!(rx2.recv().await.is_some());
 
         // now check that they didn't send the event twice
-        assert!(rx1.try_next().is_err());
-        assert!(rx2.try_next().is_err());
+        assert!(timeout(Duration::from_millis(10), rx1.recv())
+            .await
+            .is_err());
+        assert!(timeout(Duration::from_millis(10), rx2.recv())
+            .await
+            .is_err());
     }
 }

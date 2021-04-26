@@ -21,14 +21,7 @@ use crate::{
     model::{IncomingEvent, Opcode, OutgoingEvent, PlayerUpdate, Stats, StatsCpu, StatsMemory},
     player::PlayerManager,
 };
-use async_tungstenite::{
-    tokio::ConnectStream,
-    tungstenite::{Error as TungsteniteError, Message},
-    WebSocketStream,
-};
-use futures_channel::mpsc::{self, UnboundedReceiver, UnboundedSender};
 use futures_util::{
-    future::{self, Either},
     lock::BiLock,
     sink::SinkExt,
     stream::{Stream, StreamExt},
@@ -43,7 +36,15 @@ use std::{
     task::{Context, Poll},
     time::Duration,
 };
-use tokio::time as tokio_time;
+use tokio::{
+    net::TcpStream,
+    sync::mpsc::{self, UnboundedReceiver, UnboundedSender},
+    time as tokio_time,
+};
+use tokio_tungstenite::{
+    tungstenite::{Error as TungsteniteError, Message},
+    MaybeTlsStream, WebSocketStream,
+};
 use twilight_model::id::UserId;
 
 /// An error occurred while either initializing a connection or while running
@@ -188,7 +189,7 @@ impl Stream for IncomingEvents {
     type Item = IncomingEvent;
 
     fn poll_next(mut self: Pin<&mut Self>, cx: &mut Context<'_>) -> Poll<Option<Self::Item>> {
-        self.inner.poll_next_unpin(cx)
+        self.inner.poll_recv(cx)
     }
 }
 
@@ -198,51 +199,9 @@ pub struct NodeSender {
 }
 
 impl NodeSender {
-    /// Check if the channel is ready to receive a message.
-    ///
-    /// # Errors
-    ///
-    /// Returns a [`NodeSenderErrorType::Sending`] error type if node is no
-    /// longer connected.
-    pub fn poll_ready(&self, cx: &mut Context<'_>) -> Poll<Result<(), NodeSenderError>> {
-        self.inner.poll_ready(cx).map_err(|source| NodeSenderError {
-            kind: NodeSenderErrorType::Sending,
-            source: Some(Box::new(source)),
-        })
-    }
-
     /// Returns whether this channel is closed without needing a context.
     pub fn is_closed(&self) -> bool {
         self.inner.is_closed()
-    }
-
-    /// Closes this channel from the sender side, preventing any new messages.
-    pub fn close_channel(&self) {
-        self.inner.close_channel();
-    }
-
-    /// Disconnects this sender from the channel, closing it if there are no
-    /// more senders left.
-    pub fn disconnect(&mut self) {
-        self.inner.disconnect();
-    }
-
-    /// Send a message on the channel.
-    ///
-    /// This method should only be called after `poll_ready` has been used to
-    /// verify that the channel is ready to receive a message.
-    ///
-    /// # Errors
-    ///
-    /// Returns a [`NodeSenderErrorType::Sending`] error type if node is no
-    /// longer connected.
-    pub fn start_send(&mut self, msg: OutgoingEvent) -> Result<(), NodeSenderError> {
-        self.inner
-            .start_send(msg)
-            .map_err(|source| NodeSenderError {
-                kind: NodeSenderErrorType::Sending,
-                source: Some(Box::new(source)),
-            })
     }
 
     /// Sends a message along this channel.
@@ -255,13 +214,11 @@ impl NodeSender {
     ///
     /// Returns a [`NodeSenderErrorType::Sending`] error type if node is no
     /// longer connected.
-    pub fn unbounded_send(&self, msg: OutgoingEvent) -> Result<(), NodeSenderError> {
-        self.inner
-            .unbounded_send(msg)
-            .map_err(|source| NodeSenderError {
-                kind: NodeSenderErrorType::Sending,
-                source: Some(Box::new(source)),
-            })
+    pub fn send(&self, msg: OutgoingEvent) -> Result<(), NodeSenderError> {
+        self.inner.send(msg).map_err(|source| NodeSenderError {
+            kind: NodeSenderErrorType::Sending,
+            source: Some(Box::new(source)),
+        })
     }
 }
 
@@ -426,16 +383,6 @@ impl Node {
         &self.0.players
     }
 
-    /// Closes the connection with the node. All future calls to [`Node::send`] will fail.
-    ///
-    /// Using [`Lavalink::disconnect`] is advised over directly calling this, as it will also
-    /// removing the node from the manager.
-    ///
-    /// [`Lavalink::disconnect`]: crate::client::Lavalink::disconnect
-    pub fn close(&self) {
-        self.sender().close_channel();
-    }
-
     /// Retrieve an immutable reference to the node's configuration.
     ///
     /// Note that sending player events through the node's sender won't update
@@ -446,7 +393,7 @@ impl Node {
     /// Returns a [`NodeSenderErrorType::Sending`] error type if node is no
     /// longer connected.
     pub fn send(&self, event: OutgoingEvent) -> Result<(), NodeSenderError> {
-        self.sender().unbounded_send(event)
+        self.sender().send(event)
     }
 
     /// Retrieve a unique sender to send events to the Lavalink server.
@@ -490,7 +437,7 @@ impl Node {
 
 struct Connection {
     config: NodeConfig,
-    connection: WebSocketStream<ConnectStream>,
+    connection: WebSocketStream<MaybeTlsStream<TcpStream>>,
     node_from: UnboundedReceiver<OutgoingEvent>,
     node_to: UnboundedSender<IncomingEvent>,
     players: PlayerManager,
@@ -512,8 +459,8 @@ impl Connection {
     > {
         let connection = reconnect(&config).await?;
 
-        let (to_node, from_lavalink) = mpsc::unbounded();
-        let (to_lavalink, from_node) = mpsc::unbounded();
+        let (to_node, from_lavalink) = mpsc::unbounded_channel();
+        let (to_lavalink, from_node) = mpsc::unbounded_channel();
 
         Ok((
             Self {
@@ -531,35 +478,34 @@ impl Connection {
 
     async fn run(mut self) -> Result<(), NodeError> {
         loop {
-            let from_lavalink = self.connection.next();
-            let to_lavalink = self.node_from.next();
-
-            match future::select(from_lavalink, to_lavalink).await {
-                Either::Left((Some(Ok(incoming)), _)) => {
-                    self.incoming(incoming).await?;
+            tokio::select! {
+                incoming = self.connection.next() => {
+                    if let Some(Ok(incoming)) = incoming {
+                        self.incoming(incoming).await?;
+                    } else {
+                        tracing::debug!("connection to {} closed, reconnecting", self.config.address);
+                        self.connection = reconnect(&self.config).await?;
+                    }
                 }
-                Either::Left((_, _)) => {
-                    tracing::debug!("connection to {} closed, reconnecting", self.config.address);
-                    self.connection = reconnect(&self.config).await?;
-                }
-                Either::Right((Some(outgoing), _)) => {
-                    tracing::debug!(
-                        "forwarding event to {}: {:?}",
-                        self.config.address,
-                        outgoing
-                    );
+                outgoing = self.node_from.recv() => {
+                    if let Some(outgoing) = outgoing {
+                        tracing::debug!(
+                            "forwarding event to {}: {:?}",
+                            self.config.address,
+                            outgoing
+                        );
 
-                    let payload = serde_json::to_string(&outgoing).map_err(|source| NodeError {
-                        kind: NodeErrorType::SerializingMessage { message: outgoing },
-                        source: Some(Box::new(source)),
-                    })?;
-                    let msg = Message::Text(payload);
-                    self.connection.send(msg).await.unwrap();
-                }
-                Either::Right((_, _)) => {
-                    tracing::debug!("node {} closed, ending connection", self.config.address);
+                        let payload = serde_json::to_string(&outgoing).map_err(|source| NodeError {
+                            kind: NodeErrorType::SerializingMessage { message: outgoing },
+                            source: Some(Box::new(source)),
+                        })?;
+                        let msg = Message::Text(payload);
+                        self.connection.send(msg).await.unwrap();
+                    } else {
+                        tracing::debug!("node {} closed, ending connection", self.config.address);
 
-                    break;
+                        break;
+                    }
                 }
             }
         }
@@ -616,7 +562,7 @@ impl Connection {
         // It's fine if the rx end dropped, often users don't need to care about
         // these events.
         if !self.node_to.is_closed() {
-            let _ = self.node_to.unbounded_send(event);
+            let _ = self.node_to.send(event);
         }
 
         Ok(true)
@@ -674,7 +620,9 @@ fn connect_request(state: &NodeConfig) -> Result<Request<()>, NodeError> {
     })
 }
 
-async fn reconnect(config: &NodeConfig) -> Result<WebSocketStream<ConnectStream>, NodeError> {
+async fn reconnect(
+    config: &NodeConfig,
+) -> Result<WebSocketStream<MaybeTlsStream<TcpStream>>, NodeError> {
     let (mut stream, res) = backoff(config).await?;
 
     let headers = res.headers();
@@ -705,13 +653,13 @@ async fn reconnect(config: &NodeConfig) -> Result<WebSocketStream<ConnectStream>
 
 async fn backoff(
     config: &NodeConfig,
-) -> Result<(WebSocketStream<ConnectStream>, Response<()>), NodeError> {
+) -> Result<(WebSocketStream<MaybeTlsStream<TcpStream>>, Response<()>), NodeError> {
     let mut seconds = 1;
 
     loop {
         let req = connect_request(config)?;
 
-        match async_tungstenite::tokio::connect_async(req).await {
+        match tokio_tungstenite::connect_async(req).await {
             Ok((stream, res)) => return Ok((stream, res)),
             Err(source) => {
                 tracing::warn!("failed to connect to node {}: {:?}", source, config.address);

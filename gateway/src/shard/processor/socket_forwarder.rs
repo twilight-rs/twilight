@@ -1,9 +1,11 @@
 use super::super::ShardStream;
-use async_tungstenite::tungstenite::Message;
-use futures_channel::mpsc::{self, UnboundedReceiver, UnboundedSender};
-use futures_timer::Delay;
 use futures_util::{future::FutureExt, sink::SinkExt, stream::StreamExt};
 use std::time::Duration;
+use tokio::{
+    sync::mpsc::{self, UnboundedReceiver, UnboundedSender},
+    time::sleep,
+};
+use tokio_tungstenite::tungstenite::Message;
 
 pub struct SocketForwarder {
     rx: UnboundedReceiver<Message>,
@@ -17,8 +19,8 @@ impl SocketForwarder {
     pub fn new(
         stream: ShardStream,
     ) -> (Self, UnboundedReceiver<Message>, UnboundedSender<Message>) {
-        let (to_user, from_forwarder) = mpsc::unbounded();
-        let (to_forwarder, from_user) = mpsc::unbounded();
+        let (to_user, from_forwarder) = mpsc::unbounded_channel();
+        let (to_forwarder, from_user) = mpsc::unbounded_channel();
 
         (
             Self {
@@ -38,12 +40,11 @@ impl SocketForwarder {
         // positive.
         #[allow(clippy::mut_mut)]
         loop {
-            let mut rx = self.rx.next();
-            let mut stream = self.stream.next().fuse();
-            let mut timeout = Delay::new(Self::TIMEOUT).fuse();
+            let timeout = sleep(Self::TIMEOUT).fuse();
+            tokio::pin!(timeout);
 
-            futures_util::select! {
-                maybe_msg = rx => {
+            tokio::select! {
+                maybe_msg = self.rx.recv().fuse() => {
                     if let Some(msg) = maybe_msg {
                         tracing::trace!("sending message: {}", msg);
 
@@ -58,28 +59,25 @@ impl SocketForwarder {
                         break;
                     }
                 },
-                try_msg = stream => {
+                try_msg = self.stream.next().fuse() => {
                     match try_msg {
                         Some(Ok(msg)) => {
-                            if self.tx.unbounded_send(msg).is_err() {
+                            if self.tx.send(msg).is_err() {
                                 break;
                             }
                         },
                         Some(Err(err)) => {
-                            tracing::warn!("socket errored, closing tx: {}", err);
-                            self.tx.close_channel();
+                            tracing::warn!("socket errored: {}", err);
                             break;
                         },
                         None => {
-                            tracing::debug!("socket ended, closing tx");
-                            self.tx.close_channel();
+                            tracing::debug!("socket ended");
                             break;
                         }
                     }
                 },
                 _ = timeout => {
-                    tracing::warn!("socket timed out, closing tx");
-                    self.tx.close_channel();
+                    tracing::warn!("socket timed out");
                     break;
                 }
             };
