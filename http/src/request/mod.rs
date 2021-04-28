@@ -93,14 +93,41 @@ use crate::{
 use bytes::Bytes;
 use hyper::{
     header::{HeaderMap, HeaderName, HeaderValue},
-    Method,
+    Method as HyperMethod,
 };
 use percent_encoding::{utf8_percent_encode, NON_ALPHANUMERIC};
-
 use std::{borrow::Cow, future::Future, pin::Pin};
 
 type Pending<'a, T> = Pin<Box<dyn Future<Output = Result<T>> + Send + 'a>>;
 type PendingOption<'a> = Pin<Box<dyn Future<Output = Result<Bytes>> + Send + 'a>>;
+
+/// Request method.
+#[derive(Clone, Copy, Debug, Eq, Hash, PartialEq)]
+#[non_exhaustive]
+pub enum Method {
+    /// DELETE method.
+    Delete,
+    /// GET method.
+    Get,
+    /// PATCH method.
+    Patch,
+    /// POST method.
+    Post,
+    /// PUT method.
+    Put,
+}
+
+impl Method {
+    pub(crate) fn into_hyper(self) -> HyperMethod {
+        match self {
+            Self::Delete => HyperMethod::DELETE,
+            Self::Get => HyperMethod::GET,
+            Self::Patch => HyperMethod::PATCH,
+            Self::Post => HyperMethod::POST,
+            Self::Put => HyperMethod::PUT,
+        }
+    }
+}
 
 #[derive(Debug)]
 pub struct Request {
@@ -244,5 +271,24 @@ impl From<(Vec<u8>, HeaderMap<HeaderValue>, Route)> for Request {
             path,
             path_str,
         }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::Method;
+    use hyper::Method as HyperMethod;
+    use static_assertions::assert_impl_all;
+    use std::fmt::Debug;
+
+    assert_impl_all!(Method: Clone, Copy, Debug, Eq, PartialEq);
+
+    #[test]
+    fn test_method_conversions() {
+        assert_eq!(HyperMethod::DELETE, Method::Delete.into_hyper());
+        assert_eq!(HyperMethod::GET, Method::Get.into_hyper());
+        assert_eq!(HyperMethod::PATCH, Method::Patch.into_hyper());
+        assert_eq!(HyperMethod::POST, Method::Post.into_hyper());
+        assert_eq!(HyperMethod::PUT, Method::Put.into_hyper());
     }
 }

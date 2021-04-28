@@ -9,7 +9,7 @@ use crate::{
     request::{
         guild::{create_guild::CreateGuildError, create_guild_channel::CreateGuildChannelError},
         prelude::*,
-        GetUserApplicationInfo, Request,
+        GetUserApplicationInfo, Method, Request,
     },
     API_VERSION,
 };
@@ -18,7 +18,7 @@ use hyper::{
     body::{self, Buf},
     client::{Client as HyperClient, HttpConnector},
     header::{HeaderMap, HeaderValue, AUTHORIZATION, CONTENT_LENGTH, CONTENT_TYPE, USER_AGENT},
-    Body, Method, Response, StatusCode,
+    Body, Response, StatusCode,
 };
 use serde::de::DeserializeOwned;
 use std::{
@@ -1405,7 +1405,9 @@ impl Client {
         let url = format!("{}://{}/api/v{}/{}", protocol, host, API_VERSION, path);
         tracing::debug!("URL: {:?}", url);
 
-        let mut builder = hyper::Request::builder().method(method.clone()).uri(&url);
+        let mut builder = hyper::Request::builder()
+            .method(method.into_hyper())
+            .uri(&url);
 
         if let Some(ref token) = self.state.token {
             let value = HeaderValue::from_str(&token).map_err(|source| {
@@ -1477,7 +1479,7 @@ impl Client {
                 kind: ErrorType::BuildingRequest,
                 source: Some(Box::new(source)),
             })?
-        } else if method == Method::PUT || method == Method::POST || method == Method::PATCH {
+        } else if method == Method::Put || method == Method::Post || method == Method::Patch {
             if let Some(headers) = builder.headers_mut() {
                 headers.insert(CONTENT_LENGTH, 0.into());
             }
