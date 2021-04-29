@@ -158,7 +158,7 @@ pub enum ErrorCode {
     /// Invalid API version provided
     InvalidApiVersion,
     /// Cannot delete a channel required for Community guilds
-    CummunityGuildRequired,
+    CommunityGuildRequired,
     /// Invalid sticker sent
     InvalidStickerSent,
     /// Two factor is required for this operation.
@@ -250,7 +250,7 @@ impl ErrorCode {
             Self::InvalidFormBodyOrContentType => 50035,
             Self::InviteAcceptedToGuildBotNotIn => 50036,
             Self::InvalidApiVersion => 50041,
-            Self::CummunityGuildRequired => 50074,
+            Self::CommunityGuildRequired => 50074,
             Self::InvalidStickerSent => 50081,
             Self::TwoFactorRequired => 60003,
             Self::ReactionBlocked => 90001,
@@ -337,7 +337,7 @@ impl From<u64> for ErrorCode {
             50035 => Self::InvalidFormBodyOrContentType,
             50036 => Self::InviteAcceptedToGuildBotNotIn,
             50041 => Self::InvalidApiVersion,
-            50074 => Self::CummunityGuildRequired,
+            50074 => Self::CommunityGuildRequired,
             50081 => Self::InvalidStickerSent,
             60003 => Self::TwoFactorRequired,
             90001 => Self::ReactionBlocked,
@@ -424,7 +424,7 @@ impl Display for ErrorCode {
             Self::InvalidFormBodyOrContentType => f.write_str("Invalid form body (returned for both application/json and multipart/form-data bodies), or invalid Content-Type provided"),
             Self::InviteAcceptedToGuildBotNotIn => f.write_str("An invite was accepted to a guild the application's bot is not in"),
             Self::InvalidApiVersion => f.write_str("Invalid API version provided"),
-            Self::CummunityGuildRequired => f.write_str("Cannot delete a channel required for Community guilds"),
+            Self::CommunityGuildRequired => f.write_str("Cannot delete a channel required for Community guilds"),
             Self::InvalidStickerSent => f.write_str("Invalid sticker sent"),
             Self::TwoFactorRequired => f.write_str("Two factor is required for this operation"),
             Self::ReactionBlocked => f.write_str("Reaction was blocked"),
