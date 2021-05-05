@@ -233,11 +233,8 @@ impl FromStr for Path {
             ["guilds", id, "templates"] => GuildsIdTemplates(id.parse()?),
             ["guilds", id, "templates", _] => GuildsIdTemplatesCode(id.parse()?),
             ["guilds", id, "vanity-url"] => GuildsIdVanityUrl(id.parse()?),
-<<<<<<< HEAD
             ["guilds", id, "voice-states", _] => GuildsIdVoiceStates(id.parse()?),
-=======
             ["guilds", id, "welcome-screen"] => GuildsIdWelcomeScreen(id.parse()?),
->>>>>>> trunk
             ["guilds", id, "webhooks"] => GuildsIdWebhooks(id.parse()?),
             ["invites", _] => InvitesCode,
             ["oauth2", "applications", "@me"] => OauthApplicationsMe,
