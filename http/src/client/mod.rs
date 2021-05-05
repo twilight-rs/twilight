@@ -987,6 +987,20 @@ impl Client {
         GetGuildWebhooks::new(self, guild_id)
     }
 
+    /// Get the guild's welcome screen.
+    pub fn guild_welcome_screen(&self, guild_id: GuildId) -> GetGuildWelcomeScreen<'_> {
+        GetGuildWelcomeScreen::new(self, guild_id)
+    }
+
+    /// Update the guild's welcome screen.
+    ///
+    /// Requires the [`MANAGE_GUILD`] permission.
+    ///
+    /// [`MANAGE_GUILD`]: twilight_model::guild::Permissions::MANAGE_GUILD
+    pub fn update_guild_welcome_screen(&self, guild_id: GuildId) -> UpdateGuildWelcomeScreen<'_> {
+        UpdateGuildWelcomeScreen::new(self, guild_id)
+    }
+
     /// Get information about an invite by its code.
     ///
     /// If [`with_counts`] is called, the returned invite will contain approximate member counts.

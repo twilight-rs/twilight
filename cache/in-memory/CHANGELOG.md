@@ -2,6 +2,17 @@
 
 Changelog for `twilight-cache-inmemory`.
 
+## [0.3.6] - 2021-04-27
+
+### Additions
+
+Support the `MemberUpdate::{deaf, mute}` fields ([#774] - [@7596ff]).
+
+Support guild stage channels ([#793] - [@james7132]).
+
+[#793]: https://github.com/twilight-rs/twilight/pull/793
+[#774]: https://github.com/twilight-rs/twilight/pull/774
+
 ## [0.3.5] - 2021-04-12
 
 ### Enhancements
@@ -172,11 +183,13 @@ The crate now depends on version 0.2 of `twilight-model`.
 
 Initial release.
 
+[@7596ff]: https://github.com/7596ff
 [@AsianIntel]: https://github.com/AsianIntel
 [@BlackHoleFox]: https://github.com/BlackHoleFox
 [@chamburr]: https://github.com/chamburr
 [@DusterTheFirst]: https://github.com/DusterTheFirst
 [@Erk-]: https://github.com/Erk-
+[@james7132]: https://github.com/james7132
 [@MaxOhn]: https://github.com/MaxOhn
 [@nickelc]: https://github.com/nickelc
 [@sam-kirby]: https://github.com/sam-kirby
@@ -195,6 +208,7 @@ Initial release.
 [#528]: https://github.com/twilight-rs/twilight/pull/528
 [#524]: https://github.com/twilight-rs/twilight/pull/524
 
+[0.3.6]: https://github.com/twilight-rs/twilight/releases/tag/cache-in-memory-v0.3.6
 [0.3.5]: https://github.com/twilight-rs/twilight/releases/tag/cache-in-memory-v0.3.5
 [0.3.4]: https://github.com/twilight-rs/twilight/releases/tag/cache-in-memory-v0.3.4
 [0.3.2]: https://github.com/twilight-rs/twilight/releases/tag/cache-in-memory-v0.3.2
