@@ -162,6 +162,25 @@ impl<'a> UpdateWebhookMessage<'a> {
         self
     }
 
+    /// Insert a file into the message previously sent by the webhook.
+    pub fn attachment(mut self, name: impl Into<String>, file: impl Into<Vec<u8>>) -> Self {
+        self.attachments.insert(name.into(), file.into());
+
+        self
+    }
+
+    /// Insert multiple attachments into the message.
+    pub fn attachments<N: Into<String>, F: Into<Vec<u8>>>(
+        mut self,
+        attachments: impl IntoIterator<Item = (N, F)>,
+    ) -> Self {
+        for (name, file) in attachments {
+            self = self.attachment(name, file);
+        }
+
+        self
+    }
+
     /// Set the content of the message.
     ///
     /// Pass `None` if you want to remove the message content.
@@ -257,25 +276,6 @@ impl<'a> UpdateWebhookMessage<'a> {
         self.fields.embeds.replace(embeds);
 
         Ok(self)
-    }
-
-    /// Insert a file into the message previously sent by the webhook.
-    pub fn attachment(mut self, name: impl Into<String>, file: impl Into<Vec<u8>>) -> Self {
-        self.attachments.insert(name.into(), file.into());
-
-        self
-    }
-
-    /// Insert multiple attachments into the message.
-    pub fn attachments<N: Into<String>, F: Into<Vec<u8>>>(
-        mut self,
-        attachments: impl IntoIterator<Item = (N, F)>,
-    ) -> Self {
-        for (name, file) in attachments {
-            self = self.attachment(name, file);
-        }
-
-        self
     }
 
     /// JSON encoded body of any additional request fields. See [Discord Docs/Create Message]
