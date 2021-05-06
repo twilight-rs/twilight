@@ -4,7 +4,7 @@ use std::{
     fmt::{Display, Formatter, Result as FmtResult},
 };
 use twilight_model::{
-    channel::{embed::Embed, message::MessageFlags, Message},
+    channel::{embed::Embed, message::MessageFlags, Attachment, Message},
     id::{ChannelId, MessageId},
 };
 
@@ -48,6 +48,8 @@ impl Error for UpdateMessageError {
 struct UpdateMessageFields {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub(crate) allowed_mentions: Option<AllowedMentions>,
+    #[serde(skip_serializing_if = "Vec::is_empty")]
+    pub attachments: Vec<Attachment>,
     // We don't serialize if this is Option::None, to avoid overwriting the
     // field without meaning to.
     //
@@ -121,6 +123,28 @@ impl<'a> UpdateMessage<'a> {
             http,
             message_id,
         }
+    }
+
+    /// Specify an attachment to keep.
+    ///
+    /// If called, all unspecified attachments will be removed from the message.
+    /// If not called, all attachments will be kept.
+    pub fn attachment(mut self, attachment: Attachment) -> Self {
+        self.fields.attachments.push(attachment);
+
+        self
+    }
+
+    /// Specify multiple attachments to keep.
+    ///
+    /// If called, all unspecified attachments will be removed from the message.
+    /// If not called, all attachments will be kept.
+    pub fn attachments(mut self, attachments: impl IntoIterator<Item = Attachment>) -> Self {
+        self.fields
+            .attachments
+            .extend(attachments.into_iter().collect::<Vec<Attachment>>());
+
+        self
     }
 
     /// Set the content of the message.

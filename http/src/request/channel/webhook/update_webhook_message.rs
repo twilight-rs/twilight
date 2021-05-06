@@ -18,7 +18,7 @@ use std::{
     fmt::{Display, Formatter, Result as FmtResult},
 };
 use twilight_model::{
-    channel::embed::Embed,
+    channel::{embed::Embed, Attachment},
     id::{MessageId, WebhookId},
 };
 
@@ -79,6 +79,8 @@ impl Error for UpdateWebhookMessageError {
 struct UpdateWebhookMessageFields {
     #[serde(skip_serializing_if = "Option::is_none")]
     allowed_mentions: Option<AllowedMentions>,
+    #[serde(skip_serializing_if = "Vec::is_empty")]
+    attachments: Vec<Attachment>,
     #[allow(clippy::option_option)]
     #[serde(skip_serializing_if = "Option::is_none")]
     content: Option<Option<String>>,
@@ -120,8 +122,8 @@ struct UpdateWebhookMessageFields {
 ///
 /// [`DeleteWebhookMessage`]: super::DeleteWebhookMessage
 pub struct UpdateWebhookMessage<'a> {
-    attachments: HashMap<String, Vec<u8>>,
     fields: UpdateWebhookMessageFields,
+    files: HashMap<String, Vec<u8>>,
     fut: Option<Pending<'a, ()>>,
     http: &'a Client,
     message_id: MessageId,
@@ -141,11 +143,11 @@ impl<'a> UpdateWebhookMessage<'a> {
         message_id: MessageId,
     ) -> Self {
         Self {
-            attachments: HashMap::new(),
             fields: UpdateWebhookMessageFields {
                 allowed_mentions: http.default_allowed_mentions(),
                 ..UpdateWebhookMessageFields::default()
             },
+            files: HashMap::new(),
             fut: None,
             http,
             message_id,
@@ -162,21 +164,24 @@ impl<'a> UpdateWebhookMessage<'a> {
         self
     }
 
-    /// Insert a file into the message previously sent by the webhook.
-    pub fn attachment(mut self, name: impl Into<String>, file: impl Into<Vec<u8>>) -> Self {
-        self.attachments.insert(name.into(), file.into());
+    /// Specify an attachment to keep.
+    ///
+    /// If called, all unspecified attachments will be removed from the message.
+    /// If not called, all attachments will be kept.
+    pub fn attachment(mut self, attachment: Attachment) -> Self {
+        self.fields.attachments.push(attachment);
 
         self
     }
 
-    /// Insert multiple attachments into the message.
-    pub fn attachments<N: Into<String>, F: Into<Vec<u8>>>(
-        mut self,
-        attachments: impl IntoIterator<Item = (N, F)>,
-    ) -> Self {
-        for (name, file) in attachments {
-            self = self.attachment(name, file);
-        }
+    /// Specify multiple attachments to keep.
+    ///
+    /// If called, all unspecified attachments will be removed from the message.
+    /// If not called, all attachments will be kept.
+    pub fn attachments(mut self, attachments: impl IntoIterator<Item = Attachment>) -> Self {
+        self.fields
+            .attachments
+            .extend(attachments.into_iter().collect::<Vec<Attachment>>());
 
         self
     }
@@ -278,8 +283,33 @@ impl<'a> UpdateWebhookMessage<'a> {
         Ok(self)
     }
 
-    /// JSON encoded body of any additional request fields. See [Discord Docs/Create Message]
+    /// Attach a file to the webhook.
     ///
+    /// This method is repeatable.
+    pub fn file(mut self, name: impl Into<String>, file: impl Into<Vec<u8>>) -> Self {
+        self.files.insert(name.into(), file.into());
+
+        self
+    }
+
+    /// Attach multiple files to the webhook.
+    pub fn files<N: Into<String>, F: Into<Vec<u8>>>(
+        mut self,
+        attachments: impl IntoIterator<Item = (N, F)>,
+    ) -> Self {
+        for (name, file) in attachments {
+            self = self.file(name, file);
+        }
+
+        self
+    }
+
+    /// JSON encoded body of any additional request fields.
+    ///
+    /// If this method is called, all other fields are ignored, except for
+    /// [`file`]. See [Discord Docs/Create Message].
+    ///
+    /// [`file`]: Self::file
     /// [Discord Docs/Create Message]: https://discord.com/developers/docs/resources/channel#create-message-params
     pub fn payload_json(mut self, payload_json: impl Into<Vec<u8>>) -> Self {
         self.fields.payload_json.replace(payload_json.into());
@@ -288,7 +318,7 @@ impl<'a> UpdateWebhookMessage<'a> {
     }
 
     fn request(&mut self) -> Result<Request> {
-        if self.attachments.is_empty() {
+        if self.files.is_empty() {
             let body = crate::json_to_vec(&self.fields)?;
 
             let route = Route::UpdateWebhookMessage {
@@ -306,7 +336,7 @@ impl<'a> UpdateWebhookMessage<'a> {
         } else {
             let mut multipart = Form::new();
 
-            for (index, (name, file)) in self.attachments.drain().enumerate() {
+            for (index, (name, file)) in self.files.drain().enumerate() {
                 multipart.file(format!("{}", index).as_bytes(), name.as_bytes(), &file);
             }
 
@@ -369,6 +399,7 @@ mod tests {
 
         let body = crate::json_to_vec(&UpdateWebhookMessageFields {
             allowed_mentions: None,
+            attachments: Vec::new(),
             content: Some(Some("test".to_owned())),
             embeds: None,
             payload_json: None,

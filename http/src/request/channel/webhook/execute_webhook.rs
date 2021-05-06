@@ -1,8 +1,10 @@
 use crate::request::{
     channel::allowed_mentions::{AllowedMentions, AllowedMentionsBuilder, Unspecified},
     prelude::*,
+    Form,
 };
 use futures_util::future::TryFutureExt;
+use std::collections::HashMap;
 use twilight_model::{
     channel::{embed::Embed, Message},
     id::WebhookId,
@@ -16,8 +18,6 @@ pub(crate) struct ExecuteWebhookFields {
     content: Option<String>,
     #[serde(skip_serializing_if = "Option::is_none")]
     embeds: Option<Vec<Embed>>,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    file: Option<Vec<u8>>,
     #[serde(skip_serializing_if = "Option::is_none")]
     payload_json: Option<Vec<u8>>,
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -57,6 +57,7 @@ pub(crate) struct ExecuteWebhookFields {
 /// [`file`]: Self::file
 pub struct ExecuteWebhook<'a> {
     pub(crate) fields: ExecuteWebhookFields,
+    files: HashMap<String, Vec<u8>>,
     fut: Option<Pending<'a, Option<Message>>>,
     http: &'a Client,
     token: String,
@@ -67,6 +68,7 @@ impl<'a> ExecuteWebhook<'a> {
     pub(crate) fn new(http: &'a Client, webhook_id: WebhookId, token: impl Into<String>) -> Self {
         Self {
             fields: ExecuteWebhookFields::default(),
+            files: HashMap::new(),
             fut: None,
             http,
             token: token.into(),
@@ -105,13 +107,30 @@ impl<'a> ExecuteWebhook<'a> {
     }
 
     /// Attach a file to the webhook.
-    pub fn file(mut self, file: impl Into<Vec<u8>>) -> Self {
-        self.fields.file.replace(file.into());
+    ///
+    /// This method is repeatable.
+    pub fn file(mut self, name: impl Into<String>, file: impl Into<Vec<u8>>) -> Self {
+        self.files.insert(name.into(), file.into());
 
         self
     }
 
-    /// JSON encoded body of any additional request fields. See [Discord Docs/Create Message]
+    /// Attach multiple files to the webhook.
+    pub fn files<N: Into<String>, F: Into<Vec<u8>>>(
+        mut self,
+        attachments: impl IntoIterator<Item = (N, F)>,
+    ) -> Self {
+        for (name, file) in attachments {
+            self = self.file(name, file);
+        }
+
+        self
+    }
+
+    /// JSON encoded body of any additional request fields.
+    ///
+    /// If this method is called, all other fields are ignored, except for
+    /// [`file`]. See [Discord Docs/Create Message].
     ///
     /// [Discord Docs/Create Message]: https://discord.com/developers/docs/resources/channel#create-message-params
     pub fn payload_json(mut self, payload_json: impl Into<Vec<u8>>) -> Self {
@@ -145,14 +164,37 @@ impl<'a> ExecuteWebhook<'a> {
     }
 
     fn start(&mut self) -> Result<()> {
-        let request = Request::from((
-            crate::json_to_vec(&self.fields)?,
-            Route::ExecuteWebhook {
+        let request = if self.files.is_empty() && self.fields.payload_json.is_none() {
+            Request::from((
+                crate::json_to_vec(&self.fields)?,
+                Route::ExecuteWebhook {
+                    token: self.token.clone(),
+                    wait: self.fields.wait,
+                    webhook_id: self.webhook_id.0,
+                },
+            ))
+        } else {
+            let mut multipart = Form::new();
+
+            for (index, (name, file)) in self.files.drain().enumerate() {
+                multipart.file(format!("{}", index).as_bytes(), name.as_bytes(), &file);
+            }
+
+            if let Some(payload_json) = &self.fields.payload_json {
+                multipart.payload_json(&payload_json);
+            } else {
+                let body = crate::json_to_vec(&self.fields)?;
+                multipart.payload_json(&body);
+            }
+
+            let route = Route::ExecuteWebhook {
                 token: self.token.clone(),
                 wait: self.fields.wait,
                 webhook_id: self.webhook_id.0,
-            },
-        ));
+            };
+
+            Request::from((multipart, route))
+        };
 
         match self.fields.wait {
             Some(true) => {
