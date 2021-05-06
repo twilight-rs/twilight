@@ -56,6 +56,8 @@ pub enum ErrorCode {
     UnknownBranch,
     /// Unknown redistributable
     UnknownRedistributable,
+    /// Unknown guild template
+    UnknownGuildTemplate,
     /// Unknown interaction
     UnknownInteraction,
     /// Bots cannot use this endpoint
@@ -64,6 +66,8 @@ pub enum ErrorCode {
     OnlyBotsCanUseEndpoint,
     /// Message cannot be edited due to announcement rate limits
     AnnouncementRateLimitReached,
+    /// The channel you are writing has hit the write rate limit
+    ChannelRateLimitReached,
     /// Maximum number of guilds reached (100)
     MaximumGuildsReached,
     /// Maximum number of friends reached (1000)
@@ -82,6 +86,10 @@ pub enum ErrorCode {
     MaximumAttachmentsReached,
     /// Maximum number of invites reached (1000)
     MaximumInvitesReached,
+    /// Guild already has a template
+    GuildTemplateAlreadyExist,
+    /// Maximum number of bans for non-guild members have been exceeded
+    MaximumNonGuildBansReached,
     /// Unauthorized. Provide a valid token and try again
     Unauthorized,
     /// You need to verify your account in order to perform this action
@@ -149,6 +157,8 @@ pub enum ErrorCode {
     InviteAcceptedToGuildBotNotIn,
     /// Invalid API version provided
     InvalidApiVersion,
+    /// Cannot delete a channel required for Community guilds
+    CommunityGuildRequired,
     /// Invalid sticker sent
     InvalidStickerSent,
     /// Two factor is required for this operation.
@@ -190,10 +200,12 @@ impl ErrorCode {
             Self::UnknownLobby => 10031,
             Self::UnknownBranch => 10032,
             Self::UnknownRedistributable => 10036,
+            Self::UnknownGuildTemplate => 10057,
             Self::UnknownInteraction => 10062,
             Self::BotsCannotUseEndpoint => 20001,
             Self::OnlyBotsCanUseEndpoint => 20002,
             Self::AnnouncementRateLimitReached => 20022,
+            Self::ChannelRateLimitReached => 20028,
             Self::MaximumGuildsReached => 30001,
             Self::MaximumFriendsReached => 30002,
             Self::MaximumPinsReached => 30003,
@@ -203,6 +215,8 @@ impl ErrorCode {
             Self::MaximumGuildChannelsReached => 30013,
             Self::MaximumAttachmentsReached => 30015,
             Self::MaximumInvitesReached => 30016,
+            Self::GuildTemplateAlreadyExist => 30031,
+            Self::MaximumNonGuildBansReached => 30035,
             Self::Unauthorized => 40001,
             Self::AccountNeedsVerification => 40002,
             Self::RequestEntityTooLarge => 40005,
@@ -236,6 +250,7 @@ impl ErrorCode {
             Self::InvalidFormBodyOrContentType => 50035,
             Self::InviteAcceptedToGuildBotNotIn => 50036,
             Self::InvalidApiVersion => 50041,
+            Self::CommunityGuildRequired => 50074,
             Self::InvalidStickerSent => 50081,
             Self::TwoFactorRequired => 60003,
             Self::ReactionBlocked => 90001,
@@ -272,10 +287,12 @@ impl From<u64> for ErrorCode {
             10031 => Self::UnknownLobby,
             10032 => Self::UnknownBranch,
             10036 => Self::UnknownRedistributable,
+            10057 => Self::UnknownGuildTemplate,
             10062 => Self::UnknownInteraction,
             20001 => Self::BotsCannotUseEndpoint,
             20002 => Self::OnlyBotsCanUseEndpoint,
             20022 => Self::AnnouncementRateLimitReached,
+            20028 => Self::ChannelRateLimitReached,
             30001 => Self::MaximumGuildsReached,
             30002 => Self::MaximumFriendsReached,
             30003 => Self::MaximumPinsReached,
@@ -285,6 +302,8 @@ impl From<u64> for ErrorCode {
             30013 => Self::MaximumGuildChannelsReached,
             30015 => Self::MaximumAttachmentsReached,
             30016 => Self::MaximumInvitesReached,
+            30031 => Self::GuildTemplateAlreadyExist,
+            30035 => Self::MaximumNonGuildBansReached,
             40001 => Self::Unauthorized,
             40002 => Self::AccountNeedsVerification,
             40005 => Self::RequestEntityTooLarge,
@@ -318,6 +337,7 @@ impl From<u64> for ErrorCode {
             50035 => Self::InvalidFormBodyOrContentType,
             50036 => Self::InviteAcceptedToGuildBotNotIn,
             50041 => Self::InvalidApiVersion,
+            50074 => Self::CommunityGuildRequired,
             50081 => Self::InvalidStickerSent,
             60003 => Self::TwoFactorRequired,
             90001 => Self::ReactionBlocked,
@@ -354,10 +374,12 @@ impl Display for ErrorCode {
             Self::UnknownLobby => f.write_str("Unknown lobby"),
             Self::UnknownBranch => f.write_str("Unknown branch"),
             Self::UnknownRedistributable => f.write_str("Unknown redistributable"),
+            Self::UnknownGuildTemplate => f.write_str("Unknown guild template"),
             Self::UnknownInteraction => f.write_str("Unknown interaction"),
             Self::BotsCannotUseEndpoint => f.write_str("Bots cannot use this endpoint"),
             Self::OnlyBotsCanUseEndpoint => f.write_str("Only bots can use this endpoint"),
             Self::AnnouncementRateLimitReached => f.write_str("Message cannot be edited due to announcement rate limits"),
+            Self::ChannelRateLimitReached => f.write_str("The channel you are writing has hit the write rate limit"),
             Self::MaximumGuildsReached => f.write_str("Maximum number of guilds reached (100)"),
             Self::MaximumFriendsReached => f.write_str("Maximum number of friends reached (1000)"),
             Self::MaximumPinsReached => f.write_str("Maximum number of pins reached for the channel (50)"),
@@ -367,6 +389,8 @@ impl Display for ErrorCode {
             Self::MaximumGuildChannelsReached => f.write_str("Maximum number of guild channels reached (500)"),
             Self::MaximumAttachmentsReached => f.write_str("Maximum number of attachments in a message reached (10)"),
             Self::MaximumInvitesReached => f.write_str("Maximum number of invites reached (1000)"),
+            Self::GuildTemplateAlreadyExist => f.write_str("Guild already has a template"),
+            Self::MaximumNonGuildBansReached => f.write_str("Maximum number of bans for non-guild members have been exceeded"),
             Self::Unauthorized => f.write_str("Unauthorized. Provide a valid token and try again"),
             Self::AccountNeedsVerification => f.write_str("You need to verify your account in order to perform this action"),
             Self::RequestEntityTooLarge => f.write_str("Request entity too large. Try sending something smaller in size"),
@@ -400,6 +424,7 @@ impl Display for ErrorCode {
             Self::InvalidFormBodyOrContentType => f.write_str("Invalid form body (returned for both application/json and multipart/form-data bodies), or invalid Content-Type provided"),
             Self::InviteAcceptedToGuildBotNotIn => f.write_str("An invite was accepted to a guild the application's bot is not in"),
             Self::InvalidApiVersion => f.write_str("Invalid API version provided"),
+            Self::CommunityGuildRequired => f.write_str("Cannot delete a channel required for Community guilds"),
             Self::InvalidStickerSent => f.write_str("Invalid sticker sent"),
             Self::TwoFactorRequired => f.write_str("Two factor is required for this operation"),
             Self::ReactionBlocked => f.write_str("Reaction was blocked"),

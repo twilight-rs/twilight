@@ -2,6 +2,15 @@
 
 Changelog for `twilight-http`.
 
+## [0.3.8] - 2021-04-27
+
+### Additions
+
+Support the "Get Guild Welcome Screen" and "Update Guild Welcome Screen"
+endpoints ([#792] - [@7596ff]).
+
+[#792]: https://github.com/twilight-rs/twilight/pull/792
+
 ## [0.3.7] - 2021-04-22
 
 ### Upgrade Path
@@ -492,6 +501,7 @@ Initial release.
 
 [0.2.0-beta.1:app integrations]: https://github.com/discord/discord-api-docs/commit/a926694e2f8605848bda6b57d21c8817559e5cec
 
+[0.3.8]: https://github.com/twilight-rs/twilight/releases/tag/http-v0.3.8
 [0.3.6]: https://github.com/twilight-rs/twilight/releases/tag/http-v0.3.6
 [0.3.5]: https://github.com/twilight-rs/twilight/releases/tag/http-v0.3.5
 [0.3.4]: https://github.com/twilight-rs/twilight/releases/tag/http-v0.3.4

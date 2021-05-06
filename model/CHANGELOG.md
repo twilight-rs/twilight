@@ -2,6 +2,21 @@
 
 Changelog for `twilight-model`.
 
+## [0.3.7] - 2021-04-27
+
+### Additions
+
+Support the `MemberUpdate::{deaf, mute}` fields ([#774] - [@7596ff]).
+
+Support guild stage channels, add `REQUEST_TO_SPEAK` permission
+([#793] - [@james7132]).
+
+Support the `USE_SLASH_COMMANDS` permission ([#794] - [@james7132]).
+
+[#794]: https://github.com/twilight-rs/twilight/pull/794
+[#793]: https://github.com/twilight-rs/twilight/pull/793
+[#774]: https://github.com/twilight-rs/twilight/pull/774
+
 ## [0.3.6] - 2021-04-22
 
 ### Upgrade Path
@@ -384,6 +399,7 @@ Initial release.
 [@Gelbpunkt]: https://github.com/Gelbpunkt
 [@chamburr]: https://github.com/chamburr
 [@coadler]: https://github.com/coadler
+[@james7132]: https://github.com/james7132
 [@jazevedo620]: https://github.com/jazevedo620
 [@kotx]: https://github.com/kotx
 [@nickelc]: https://github.com/nickelc
@@ -414,6 +430,7 @@ Initial release.
 
 [0.2.0-beta.1:app integrations]: https://github.com/discord/discord-api-docs/commit/a926694e2f8605848bda6b57d21c8817559e5cec
 
+[0.3.7]: https://github.com/twilight-rs/twilight/releases/tag/model-v0.3.7
 [0.3.5]: https://github.com/twilight-rs/twilight/releases/tag/model-v0.3.5
 [0.3.4]: https://github.com/twilight-rs/twilight/releases/tag/model-v0.3.4
 [0.3.3]: https://github.com/twilight-rs/twilight/releases/tag/model-v0.3.3
