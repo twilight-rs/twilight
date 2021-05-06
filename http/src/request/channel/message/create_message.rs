@@ -115,13 +115,13 @@ impl<'a> CreateMessage<'a> {
     /// Attach a new file to the message.
     ///
     /// The file is raw binary data. It can be an image, or any other kind of file.
-    #[deprecated(since = "0.3.8", note = "use file instead")]
+    #[deprecated(since = "0.3.9", note = "use file instead")]
     pub fn attachment(self, name: impl Into<String>, file: impl Into<Vec<u8>>) -> Self {
         Self::file(self, name, file)
     }
 
     /// Insert multiple attachments into the message.
-    #[deprecated(since = "0.3.8", note = "use files instead")]
+    #[deprecated(since = "0.3.9", note = "use files instead")]
     pub fn attachments<N: Into<String>, F: Into<Vec<u8>>>(
         self,
         attachments: impl IntoIterator<Item = (N, F)>,
