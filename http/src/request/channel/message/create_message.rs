@@ -1,7 +1,6 @@
 use super::super::allowed_mentions::{AllowedMentions, AllowedMentionsBuilder, Unspecified};
 use crate::request::{multipart::Form, prelude::*};
 use std::{
-    collections::HashMap,
     error::Error,
     fmt::{Display, Formatter, Result as FmtResult},
 };
@@ -87,7 +86,7 @@ pub(crate) struct CreateMessageFields {
 pub struct CreateMessage<'a> {
     channel_id: ChannelId,
     pub(crate) fields: CreateMessageFields,
-    files: HashMap<String, Vec<u8>>,
+    files: Vec<(String, Vec<u8>)>,
     fut: Option<Pending<'a, Message>>,
     http: &'a Client,
 }
@@ -100,7 +99,7 @@ impl<'a> CreateMessage<'a> {
                 allowed_mentions: http.default_allowed_mentions(),
                 ..CreateMessageFields::default()
             },
-            files: HashMap::new(),
+            files: Vec::new(),
             fut: None,
             http,
         }
@@ -184,7 +183,7 @@ impl<'a> CreateMessage<'a> {
     ///
     /// The file is raw binary data. It can be an image, or any other kind of file.
     pub fn file(mut self, name: impl Into<String>, file: impl Into<Vec<u8>>) -> Self {
-        self.files.insert(name.into(), file.into());
+        self.files.push((name.into(), file.into()));
 
         self
     }
@@ -254,7 +253,7 @@ impl<'a> CreateMessage<'a> {
             } else {
                 let mut multipart = Form::new();
 
-                for (index, (name, file)) in self.files.drain().enumerate() {
+                for (index, (name, file)) in self.files.drain(..).enumerate() {
                     multipart.file(format!("{}", index).as_bytes(), name.as_bytes(), &file);
                 }
 

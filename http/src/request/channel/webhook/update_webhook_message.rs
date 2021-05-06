@@ -13,7 +13,6 @@ use crate::{
 };
 use serde::Serialize;
 use std::{
-    collections::HashMap,
     error::Error,
     fmt::{Display, Formatter, Result as FmtResult},
 };
@@ -123,7 +122,7 @@ struct UpdateWebhookMessageFields {
 /// [`DeleteWebhookMessage`]: super::DeleteWebhookMessage
 pub struct UpdateWebhookMessage<'a> {
     fields: UpdateWebhookMessageFields,
-    files: HashMap<String, Vec<u8>>,
+    files: Vec<(String, Vec<u8>)>,
     fut: Option<Pending<'a, ()>>,
     http: &'a Client,
     message_id: MessageId,
@@ -147,7 +146,7 @@ impl<'a> UpdateWebhookMessage<'a> {
                 allowed_mentions: http.default_allowed_mentions(),
                 ..UpdateWebhookMessageFields::default()
             },
-            files: HashMap::new(),
+            files: Vec::new(),
             fut: None,
             http,
             message_id,
@@ -287,7 +286,7 @@ impl<'a> UpdateWebhookMessage<'a> {
     ///
     /// This method is repeatable.
     pub fn file(mut self, name: impl Into<String>, file: impl Into<Vec<u8>>) -> Self {
-        self.files.insert(name.into(), file.into());
+        self.files.push((name.into(), file.into()));
 
         self
     }
@@ -336,7 +335,7 @@ impl<'a> UpdateWebhookMessage<'a> {
         } else {
             let mut multipart = Form::new();
 
-            for (index, (name, file)) in self.files.drain().enumerate() {
+            for (index, (name, file)) in self.files.drain(..).enumerate() {
                 multipart.file(format!("{}", index).as_bytes(), name.as_bytes(), &file);
             }
 

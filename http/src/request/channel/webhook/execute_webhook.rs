@@ -4,7 +4,6 @@ use crate::request::{
     Form,
 };
 use futures_util::future::TryFutureExt;
-use std::collections::HashMap;
 use twilight_model::{
     channel::{embed::Embed, Message},
     id::WebhookId,
@@ -57,7 +56,7 @@ pub(crate) struct ExecuteWebhookFields {
 /// [`file`]: Self::file
 pub struct ExecuteWebhook<'a> {
     pub(crate) fields: ExecuteWebhookFields,
-    files: HashMap<String, Vec<u8>>,
+    files: Vec<(String, Vec<u8>)>,
     fut: Option<Pending<'a, Option<Message>>>,
     http: &'a Client,
     token: String,
@@ -68,7 +67,7 @@ impl<'a> ExecuteWebhook<'a> {
     pub(crate) fn new(http: &'a Client, webhook_id: WebhookId, token: impl Into<String>) -> Self {
         Self {
             fields: ExecuteWebhookFields::default(),
-            files: HashMap::new(),
+            files: Vec::new(),
             fut: None,
             http,
             token: token.into(),
@@ -110,7 +109,7 @@ impl<'a> ExecuteWebhook<'a> {
     ///
     /// This method is repeatable.
     pub fn file(mut self, name: impl Into<String>, file: impl Into<Vec<u8>>) -> Self {
-        self.files.insert(name.into(), file.into());
+        self.files.push((name.into(), file.into()));
 
         self
     }
@@ -176,7 +175,7 @@ impl<'a> ExecuteWebhook<'a> {
         } else {
             let mut multipart = Form::new();
 
-            for (index, (name, file)) in self.files.drain().enumerate() {
+            for (index, (name, file)) in self.files.drain(..).enumerate() {
                 multipart.file(format!("{}", index).as_bytes(), name.as_bytes(), &file);
             }
 
