@@ -1,4 +1,5 @@
 use hyper::Method;
+use percent_encoding::{utf8_percent_encode, NON_ALPHANUMERIC};
 use std::{
     borrow::Cow,
     convert::TryFrom,
@@ -936,7 +937,8 @@ impl Route {
                 }
 
                 if let Some(reason) = reason {
-                    let _ = write!(path, "reason={}", reason);
+                    let encoded_reason = utf8_percent_encode(reason).to_string();
+                    let _ = write!(path, "reason={}", encoded_reason);
                 }
 
                 (Method::PUT, Path::GuildsIdBansUserId(guild_id), path.into())
