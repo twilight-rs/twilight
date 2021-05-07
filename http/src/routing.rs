@@ -937,7 +937,7 @@ impl Route {
                 }
 
                 if let Some(reason) = reason {
-                    let encoded_reason = utf8_percent_encode(reason).to_string();
+                    let encoded_reason = utf8_percent_encode(&reason, NON_ALPHANUMERIC).to_string();
                     let _ = write!(path, "reason={}", encoded_reason);
                 }
 
