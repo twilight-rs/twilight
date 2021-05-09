@@ -28,8 +28,8 @@ Hide the `unicase` dependency by offering alternatives in the API:
 
 ([#692] - [@vivian]).
 
-[#763]: https://github.com/twilight-rs/twilight/pull/692
 [#692]: https://github.com/twilight-rs/twilight/pull/763
+[#763]: https://github.com/twilight-rs/twilight/pull/692
 
 ## [0.3.0] - 2021-01-08
 

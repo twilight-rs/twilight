@@ -18,12 +18,12 @@ error occurred.
 
 ### Additions
 
-Add `rustls-webki-roots` feature to use WebPKI roots for RusTLS
+Add `rustls-webpki-roots` feature to use WebPKI roots for `rustls`
 ([#720] - [@Gelbpunkt]).
 
 ### Enhancements
 
-Update `simd-json` to 0.4 ([#786] - [@Gekbpunkt]).
+Update `simd-json` to 0.4 ([#786] - [@Gelbpunkt]).
 
 Update `metrics` to v0.14 ([#789] - [@james7132]).
 

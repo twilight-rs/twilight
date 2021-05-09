@@ -40,6 +40,18 @@ error occurred.
 When specifying a method in a custom request use `request::Method` instead of
 `hyper`'s.
 
+The Allowed Mentions API has been reworked and moved to `twilight-model`. Use it
+like so:
+
+```rust
+use twilight_model::channel::message::AllowedMentions;
+
+let allowed_mentions = AllowedMentions::builder()
+    .replied_user()
+    .user_ids(user_ids)
+    .build();
+```
+
 ### Additions
 
 Support `CreateMessage::fail_if_not_exists` which will fail creating the message
