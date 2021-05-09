@@ -3,26 +3,34 @@ pub mod message;
 pub mod permission_overwrite;
 
 mod attachment;
+mod auto_archive_duration;
 mod category_channel;
 mod channel_mention;
 mod channel_type;
 mod followed_channel;
 mod group;
+mod news_thread;
 mod private_channel;
+mod private_thread;
+mod public_thread;
 mod reaction;
 mod reaction_type;
 mod text_channel;
+mod thread_member;
+mod thread_metadata;
 mod video_quality_mode;
 mod voice_channel;
 mod webhook;
 mod webhook_type;
 
 pub use self::{
-    attachment::Attachment, category_channel::CategoryChannel, channel_mention::ChannelMention,
-    channel_type::ChannelType, followed_channel::FollowedChannel, group::Group, message::Message,
-    private_channel::PrivateChannel, reaction::Reaction, reaction_type::ReactionType,
-    text_channel::TextChannel, video_quality_mode::VideoQualityMode, voice_channel::VoiceChannel,
-    webhook::Webhook, webhook_type::WebhookType,
+    attachment::Attachment, auto_archive_duration::AutoArchiveDuration,
+    category_channel::CategoryChannel, channel_mention::ChannelMention, channel_type::ChannelType,
+    followed_channel::FollowedChannel, group::Group, news_thread::NewsThread, message::Message,
+    private_channel::PrivateChannel, private_thread::PrivateThread, public_thread::PublicThread,
+    reaction::Reaction, reaction_type::ReactionType, text_channel::TextChannel,
+    thread_metadata::ThreadMetadata, video_quality_mode::VideoQualityMode,
+    voice_channel::VoiceChannel, webhook::Webhook, webhook_type::WebhookType,
 };
 
 use crate::id::{ChannelId, GuildId, MessageId};
@@ -83,6 +91,9 @@ impl Channel {
 #[serde(untagged)]
 pub enum GuildChannel {
     Category(CategoryChannel),
+    NewsThread(NewsThread),
+    PrivateThread(PrivateThread),
+    PublicThread(PublicThread),
     Text(TextChannel),
     Voice(VoiceChannel),
     Stage(VoiceChannel),
@@ -93,6 +104,9 @@ impl GuildChannel {
     pub fn guild_id(&self) -> Option<GuildId> {
         match self {
             Self::Category(category) => category.guild_id,
+            Self::NewsThread(thread) => thread.guild_id,
+            Self::PrivateThread(thread) => thread.guild_id,
+            Self::PublicThread(thread) => thread.guild_id,
             Self::Text(text) => text.guild_id,
             Self::Voice(voice) => voice.guild_id,
             Self::Stage(stage) => stage.guild_id,
@@ -103,6 +117,9 @@ impl GuildChannel {
     pub fn id(&self) -> ChannelId {
         match self {
             Self::Category(category) => category.id,
+            Self::NewsThread(thread) => thread.id,
+            Self::PrivateThread(thread) => thread.id,
+            Self::PublicThread(thread) => thread.id,
             Self::Text(text) => text.id,
             Self::Voice(voice) => voice.id,
             Self::Stage(stage) => stage.id,
@@ -113,6 +130,9 @@ impl GuildChannel {
     pub fn name(&self) -> &str {
         match self {
             Self::Category(category) => category.name.as_ref(),
+            Self::NewsThread(thread) => thread.name.as_ref(),
+            Self::PrivateThread(thread) => thread.name.as_ref(),
+            Self::PublicThread(thread) => thread.name.as_ref(),
             Self::Text(text) => text.name.as_ref(),
             Self::Voice(voice) => voice.name.as_ref(),
             Self::Stage(stage) => stage.name.as_ref(),
@@ -661,7 +681,7 @@ mod tests {
                 "position": 3,
                 "type": 4,
             }))
-            .unwrap()
+                .unwrap()
         );
     }
 
@@ -697,7 +717,7 @@ mod tests {
                 "topic": "a news channel",
                 "type": ChannelType::GuildNews,
             }))
-            .unwrap()
+                .unwrap()
         );
     }
 
@@ -731,7 +751,7 @@ mod tests {
                 "topic": "a store channel",
                 "type": ChannelType::GuildStore,
             }))
-            .unwrap()
+                .unwrap()
         );
     }
 }

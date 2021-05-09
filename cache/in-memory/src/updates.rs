@@ -804,6 +804,7 @@ mod tests {
             stickers: Vec::new(),
             referenced_message: None,
             timestamp: String::new(),
+            thread: None,
             tts: false,
             webhook_id: None,
         };
@@ -930,6 +931,7 @@ mod tests {
             splash: None,
             system_channel_flags: SystemChannelFlags::empty(),
             system_channel_id: None,
+            threads: Vec::new(),
             unavailable: false,
             vanity_url_code: None,
             verification_level: VerificationLevel::VeryHigh,
@@ -1152,6 +1154,7 @@ mod tests {
             stickers: Vec::new(),
             referenced_message: None,
             timestamp: String::new(),
+            thread: None,
             tts: false,
             webhook_id: None,
         };

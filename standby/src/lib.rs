@@ -913,6 +913,7 @@ mod tests {
             stickers: Vec::new(),
             referenced_message: None,
             timestamp: String::new(),
+            thread: None,
             tts: false,
             webhook_id: None,
         }

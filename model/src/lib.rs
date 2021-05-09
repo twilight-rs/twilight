@@ -56,3 +56,5 @@ pub mod oauth;
 pub mod template;
 pub mod user;
 pub mod voice;
+
+mod visitor;

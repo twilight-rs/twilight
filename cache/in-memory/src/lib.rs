@@ -530,6 +530,15 @@ impl InMemoryCache {
             GuildChannel::Category(ref mut c) => {
                 c.guild_id.replace(guild_id);
             }
+            GuildChannel::NewsThread(ref mut c) => {
+                c.guild_id.replace(guild_id);
+            }
+            GuildChannel::PrivateThread(ref mut c) => {
+                c.guild_id.replace(guild_id);
+            }
+            GuildChannel::PublicThread(ref mut c) => {
+                c.guild_id.replace(guild_id);
+            }
             GuildChannel::Text(ref mut c) => {
                 c.guild_id.replace(guild_id);
             }
@@ -623,6 +632,7 @@ impl InMemoryCache {
         if self.wants(ResourceType::CHANNEL) {
             self.0.guild_channels.insert(guild.id, HashSet::new());
             self.cache_guild_channels(guild.id, guild.channels);
+            self.cache_guild_channels(guild.id, guild.threads);
         }
 
         if self.wants(ResourceType::EMOJI) {
@@ -971,7 +981,10 @@ mod tests {
     use crate::InMemoryCache;
     use std::borrow::Cow;
     use twilight_model::{
-        channel::{ChannelType, GuildChannel, TextChannel},
+        channel::{
+            AutoArchiveDuration, ChannelType, GuildChannel, PublicThread, TextChannel,
+            ThreadMetadata,
+        },
         gateway::payload::{GuildEmojisUpdate, MemberRemove, RoleDelete},
         guild::{
             DefaultMessageNotificationLevel, Emoji, ExplicitContentFilter, Guild, Member, MfaLevel,
@@ -1109,6 +1122,26 @@ mod tests {
             topic: None,
         })]);
 
+        let threads = Vec::from([GuildChannel::PublicThread(PublicThread {
+            id: ChannelId(222),
+            guild_id: None,
+            kind: ChannelType::GuildPublicThread,
+            last_message_id: None,
+            message_count: 0,
+            name: "guild thread with no guild id".to_owned(),
+            owner_id: None,
+            parent_id: None,
+            rate_limit_per_user: None,
+            member_count: 0,
+            thread_metadata: ThreadMetadata {
+                archived: false,
+                archiver_id: None,
+                auto_archive_duration: AutoArchiveDuration::Hour,
+                archive_timestamp: "".to_string(),
+                locked: false
+            }
+        })]);
+
         let guild = Guild {
             id: GuildId(123),
             afk_channel_id: None,
@@ -1146,6 +1179,7 @@ mod tests {
             system_channel_id: None,
             system_channel_flags: SystemChannelFlags::SUPPRESS_JOIN_NOTIFICATIONS,
             rules_channel_id: None,
+            threads,
             unavailable: false,
             verification_level: VerificationLevel::VeryHigh,
             voice_states: Vec::new(),
@@ -1161,6 +1195,7 @@ mod tests {
         cache.cache_guild(guild);
 
         let channel = cache.guild_channel(ChannelId(111)).unwrap();
+        let thread = cache.guild_channel(ChannelId(222)).unwrap();
 
         // The channel was given to the cache without a guild ID, but because
         // it's part of a guild create, the cache can automatically attach the
@@ -1168,6 +1203,13 @@ mod tests {
         // correct value.
         match *channel {
             GuildChannel::Text(ref c) => {
+                assert_eq!(Some(GuildId(123)), c.guild_id);
+            }
+            _ => panic!("{:?}", channel),
+        }
+
+        match *thread {
+            GuildChannel::PublicThread(ref c) => {
                 assert_eq!(Some(GuildId(123)), c.guild_id);
             }
             _ => panic!("{:?}", channel),
