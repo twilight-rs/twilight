@@ -10,7 +10,61 @@ use std::{
 
 /// Starting a cluster failed.
 #[derive(Debug)]
-pub enum ShardSchemeRangeError {
+pub struct ShardSchemeRangeError {
+    kind: ShardSchemeRangeErrorType,
+}
+
+impl ShardSchemeRangeError {
+    /// Immutable reference to the type of error that occurred.
+    #[must_use = "retrieving the type has no effect if left unused"]
+    pub fn kind(&self) -> &ShardSchemeRangeErrorType {
+        &self.kind
+    }
+
+    /// Consume the error, returning the source error if there is any.
+    #[allow(clippy::unused_self)]
+    #[must_use = "consuming the error and retrieving the source has no effect if left unused"]
+    pub fn into_source(self) -> Option<Box<dyn Error + Send + Sync>> {
+        None
+    }
+
+    /// Consume the error, returning the owned error type and the source error.
+    #[must_use = "consuming the error into its parts has no effect if left unused"]
+    pub fn into_parts(
+        self,
+    ) -> (
+        ShardSchemeRangeErrorType,
+        Option<Box<dyn Error + Send + Sync>>,
+    ) {
+        (self.kind, None)
+    }
+}
+
+impl Display for ShardSchemeRangeError {
+    fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
+        match &self.kind {
+            ShardSchemeRangeErrorType::BucketTooLarge {
+                bucket_id,
+                concurrency,
+                ..
+            } => f.write_fmt(format_args!(
+                "bucket ID {} is larger than maximum concurrency ({})",
+                bucket_id, concurrency
+            )),
+            ShardSchemeRangeErrorType::IdTooLarge { end, start, total } => {
+                f.write_fmt(format_args!(
+                    "The shard ID range {}-{}/{} is larger than the total",
+                    start, end, total
+                ))
+            }
+        }
+    }
+}
+
+/// Starting a cluster failed.
+#[derive(Debug)]
+#[non_exhaustive]
+pub enum ShardSchemeRangeErrorType {
     /// Bucket ID is larger than the maximum concurrency.
     BucketTooLarge {
         /// ID of the bucket.
@@ -29,25 +83,6 @@ pub enum ShardSchemeRangeError {
         /// Total number of shards used by the bot.
         total: u64,
     },
-}
-
-impl Display for ShardSchemeRangeError {
-    fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
-        match self {
-            Self::BucketTooLarge {
-                bucket_id,
-                concurrency,
-                ..
-            } => f.write_fmt(format_args!(
-                "bucket ID {} is larger than maximum concurrency ({})",
-                bucket_id, concurrency
-            )),
-            Self::IdTooLarge { end, start, total } => f.write_fmt(format_args!(
-                "The shard ID range {}-{}/{} is larger than the total",
-                start, end, total
-            )),
-        }
-    }
 }
 
 impl Error for ShardSchemeRangeError {}
@@ -265,7 +300,9 @@ impl<T: RangeBounds<u64>> TryFrom<(T, u64)> for ShardScheme {
         };
 
         if start > end {
-            return Err(ShardSchemeRangeError::IdTooLarge { end, start, total });
+            return Err(ShardSchemeRangeError {
+                kind: ShardSchemeRangeErrorType::IdTooLarge { end, start, total },
+            });
         }
 
         Ok(Self::Range {
@@ -297,7 +334,7 @@ impl<T: RangeBounds<u64>> TryFrom<(T, u64)> for ShardScheme {
 ///
 /// # Errors
 ///
-/// Returns [`ShardSchemeRangeError::BucketTooLarge`] if the provided bucket ID
+/// Returns [`ShardSchemeRangeErrorType::BucketTooLarge`] if the provided bucket ID
 /// is larger than the total number of buckets (`total / concurrency`).
 impl TryFrom<(u64, u64, u64)> for ShardScheme {
     type Error = ShardSchemeRangeError;
@@ -306,10 +343,12 @@ impl TryFrom<(u64, u64, u64)> for ShardScheme {
         let buckets = total / concurrency;
 
         if bucket_id >= buckets {
-            return Err(ShardSchemeRangeError::BucketTooLarge {
-                bucket_id,
-                concurrency,
-                total,
+            return Err(ShardSchemeRangeError {
+                kind: ShardSchemeRangeErrorType::BucketTooLarge {
+                    bucket_id,
+                    concurrency,
+                    total,
+                },
             });
         }
 
@@ -323,12 +362,12 @@ impl TryFrom<(u64, u64, u64)> for ShardScheme {
 
 #[cfg(test)]
 mod tests {
-    use super::{ShardScheme, ShardSchemeIter, ShardSchemeRangeError};
+    use super::{ShardScheme, ShardSchemeIter, ShardSchemeRangeError, ShardSchemeRangeErrorType};
     use static_assertions::{assert_fields, assert_impl_all};
     use std::{convert::TryFrom, error::Error, fmt::Debug, hash::Hash};
 
     assert_impl_all!(ShardSchemeIter: Clone, Debug, Send, Sync);
-    assert_fields!(ShardSchemeRangeError::IdTooLarge: end, start, total);
+    assert_fields!(ShardSchemeRangeErrorType::IdTooLarge: end, start, total);
     assert_impl_all!(ShardSchemeRangeError: Error, Send, Sync);
     assert_fields!(ShardScheme::Range: from, to, total);
     assert_impl_all!(
@@ -450,7 +489,8 @@ mod tests {
     fn test_scheme_bucket_larger_than_concurrency() {
         assert!(matches!(
             ShardScheme::try_from((25, 16, 320)).unwrap_err(),
-            ShardSchemeRangeError::BucketTooLarge { bucket_id, concurrency, total }
+            ShardSchemeRangeError {
+                kind: ShardSchemeRangeErrorType::BucketTooLarge { bucket_id, concurrency, total }}
             if bucket_id == 25 && concurrency == 16 && total == 320
         ));
     }

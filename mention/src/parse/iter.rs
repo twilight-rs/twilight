@@ -51,7 +51,7 @@ impl<'a, T> MentionIter<'a, T> {
     }
 }
 
-impl<'a, T: ParseMention + std::fmt::Debug> Iterator for MentionIter<'a, T> {
+impl<'a, T: ParseMention> Iterator for MentionIter<'a, T> {
     /// Found mention followed by the start and ending indexes in the source
     /// string returned by [`as_str`].
     ///

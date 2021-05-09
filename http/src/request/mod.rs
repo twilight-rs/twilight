@@ -35,8 +35,8 @@ macro_rules! poll_req {
                     if let Some(fut) = self.as_mut().fut.as_mut() {
                         let bytes = match fut.as_mut().poll(cx) {
                             Poll::Ready(Ok(bytes)) => bytes,
-                            Poll::Ready(Err(crate::Error::Response { status, .. }))
-                                if status == hyper::StatusCode::NOT_FOUND =>
+                            Poll::Ready(Err(e))
+                                if matches!(e.kind, crate::error::ErrorType::Response { status, .. } if status == hyper::StatusCode::NOT_FOUND) =>
                             {
                                 return Poll::Ready(Ok(None));
                             }
@@ -46,9 +46,11 @@ macro_rules! poll_req {
 
                         let mut bytes = bytes.as_ref().to_vec();
                         return Poll::Ready(json_from_slice(&mut bytes).map(Some).map_err(
-                            |source| crate::Error::Parsing {
-                                body: bytes.to_vec(),
-                                source,
+                            |source| crate::Error {
+                                kind: crate::error::ErrorType::Parsing {
+                                    body: bytes.to_vec(),
+                                },
+                                source: Some(Box::new(source)),
                             },
                         ));
                     }
@@ -86,20 +88,47 @@ pub use self::{
 
 use self::multipart::Form;
 use crate::{
-    error::{Error, Result},
+    error::{Error, ErrorType, Result},
     routing::{Path, Route},
 };
 use bytes::Bytes;
 use hyper::{
     header::{HeaderMap, HeaderName, HeaderValue},
-    Method,
+    Method as HyperMethod,
 };
 use percent_encoding::{utf8_percent_encode, NON_ALPHANUMERIC};
-
 use std::{borrow::Cow, future::Future, pin::Pin};
 
 type Pending<'a, T> = Pin<Box<dyn Future<Output = Result<T>> + Send + 'a>>;
 type PendingOption<'a> = Pin<Box<dyn Future<Output = Result<Bytes>> + Send + 'a>>;
+
+/// Request method.
+#[derive(Clone, Copy, Debug, Eq, Hash, PartialEq)]
+#[non_exhaustive]
+pub enum Method {
+    /// DELETE method.
+    Delete,
+    /// GET method.
+    Get,
+    /// PATCH method.
+    Patch,
+    /// POST method.
+    Post,
+    /// PUT method.
+    Put,
+}
+
+impl Method {
+    pub(crate) fn into_hyper(self) -> HyperMethod {
+        match self {
+            Self::Delete => HyperMethod::DELETE,
+            Self::Get => HyperMethod::GET,
+            Self::Patch => HyperMethod::PATCH,
+            Self::Post => HyperMethod::POST,
+            Self::Put => HyperMethod::PUT,
+        }
+    }
+}
 
 #[derive(Debug)]
 pub struct Request {
@@ -121,11 +150,12 @@ pub(crate) fn audit_header(reason: &str) -> Result<HeaderMap<HeaderValue>> {
     let header_name = HeaderName::from_static("x-audit-log-reason");
     let mut headers = HeaderMap::new();
     let encoded_reason = utf8_percent_encode(reason, NON_ALPHANUMERIC).to_string();
-    let header_value =
-        HeaderValue::from_str(&encoded_reason).map_err(|e| Error::CreatingHeader {
+    let header_value = HeaderValue::from_str(&encoded_reason).map_err(|e| Error {
+        kind: ErrorType::CreatingHeader {
             name: encoded_reason.clone(),
-            source: e,
-        })?;
+        },
+        source: Some(Box::new(e)),
+    })?;
 
     headers.insert(header_name, header_value);
 
@@ -242,5 +272,24 @@ impl From<(Vec<u8>, HeaderMap<HeaderValue>, Route)> for Request {
             path,
             path_str,
         }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::Method;
+    use hyper::Method as HyperMethod;
+    use static_assertions::assert_impl_all;
+    use std::fmt::Debug;
+
+    assert_impl_all!(Method: Clone, Copy, Debug, Eq, PartialEq);
+
+    #[test]
+    fn test_method_conversions() {
+        assert_eq!(HyperMethod::DELETE, Method::Delete.into_hyper());
+        assert_eq!(HyperMethod::GET, Method::Get.into_hyper());
+        assert_eq!(HyperMethod::PATCH, Method::Patch.into_hyper());
+        assert_eq!(HyperMethod::POST, Method::Post.into_hyper());
+        assert_eq!(HyperMethod::PUT, Method::Put.into_hyper());
     }
 }

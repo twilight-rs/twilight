@@ -17,9 +17,53 @@ use std::{
 };
 
 /// Reason for a failure while parsing a value into a [`Stage`].
-#[derive(Clone, Debug)]
+#[derive(Debug)]
+pub struct StageConversionError {
+    kind: StageConversionErrorType,
+}
+
+impl StageConversionError {
+    /// Immutable reference to the type of error that occurred.
+    #[must_use = "retrieving the type has no effect if left unused"]
+    pub fn kind(&self) -> &StageConversionErrorType {
+        &self.kind
+    }
+
+    /// Consume the error, returning the source error if there is any.
+    #[allow(clippy::unused_self)]
+    #[must_use = "consuming the error and retrieving the source has no effect if left unused"]
+    pub fn into_source(self) -> Option<Box<dyn Error + Send + Sync>> {
+        None
+    }
+
+    /// Consume the error, returning the owned error type and the source error.
+    #[must_use = "consuming the error into its parts has no effect if left unused"]
+    pub fn into_parts(
+        self,
+    ) -> (
+        StageConversionErrorType,
+        Option<Box<dyn Error + Send + Sync>>,
+    ) {
+        (self.kind, None)
+    }
+}
+
+impl Display for StageConversionError {
+    fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
+        match &self.kind {
+            StageConversionErrorType::InvalidInteger { value } => {
+                write!(f, "The integer {} is invalid", value)
+            }
+        }
+    }
+}
+
+impl Error for StageConversionError {}
+
+/// Type of [`StageConversionError`] that occurred.
+#[derive(Debug)]
 #[non_exhaustive]
-pub enum StageConversionError {
+pub enum StageConversionErrorType {
     /// The integer isn't one that maps to a stage. For example, 7 might not map
     /// to a Stage variant.
     InvalidInteger {
@@ -27,16 +71,6 @@ pub enum StageConversionError {
         value: u8,
     },
 }
-
-impl Display for StageConversionError {
-    fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
-        match self {
-            Self::InvalidInteger { value } => write!(f, "The integer {} is invalid", value),
-        }
-    }
-}
-
-impl Error for StageConversionError {}
 
 /// The current connection stage of a [`Shard`].
 ///
@@ -88,7 +122,11 @@ impl TryFrom<u8> for Stage {
             2 => Self::Handshaking,
             3 => Self::Identifying,
             4 => Self::Resuming,
-            other => return Err(StageConversionError::InvalidInteger { value: other }),
+            other => {
+                return Err(StageConversionError {
+                    kind: StageConversionErrorType::InvalidInteger { value: other },
+                })
+            }
         })
     }
 }

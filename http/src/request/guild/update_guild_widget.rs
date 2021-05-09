@@ -47,7 +47,7 @@ impl<'a> UpdateGuildWidget<'a> {
 
     fn start(&mut self) -> Result<()> {
         self.fut.replace(Box::pin(self.http.request(Request::from((
-            crate::json_to_vec(&self.fields)?,
+            crate::json_to_vec(&self.fields).map_err(HttpError::json)?,
             Route::UpdateGuildWidget {
                 guild_id: self.guild_id.0,
             },

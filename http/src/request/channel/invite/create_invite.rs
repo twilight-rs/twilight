@@ -1,8 +1,66 @@
 use crate::request::prelude::*;
+use std::{
+    error::Error,
+    fmt::{Display, Formatter, Result as FmtResult},
+};
 use twilight_model::{
     id::{ChannelId, UserId},
     invite::{Invite, TargetUserType},
 };
+
+/// Error created when an invite can not be created as configured.
+#[derive(Debug)]
+pub struct CreateInviteError {
+    kind: CreateInviteErrorType,
+}
+
+impl CreateInviteError {
+    /// Immutable reference to the type of error that occurred.
+    #[must_use = "retrieving the type has no effect if left unused"]
+    pub fn kind(&self) -> &CreateInviteErrorType {
+        &self.kind
+    }
+
+    /// Consume the error, returning the source error if there is any.
+    #[allow(clippy::unused_self)]
+    #[must_use = "consuming the error and retrieving the source has no effect if left unused"]
+    pub fn into_source(self) -> Option<Box<dyn Error + Send + Sync>> {
+        None
+    }
+
+    /// Consume the error, returning the owned error type and the source error.
+    #[must_use = "consuming the error into its parts has no effect if left unused"]
+    pub fn into_parts(self) -> (CreateInviteErrorType, Option<Box<dyn Error + Send + Sync>>) {
+        (self.kind, None)
+    }
+}
+
+impl Display for CreateInviteError {
+    fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
+        match &self.kind {
+            CreateInviteErrorType::MaxAgeTooOld { .. } => f.write_str("max age is too long"),
+            CreateInviteErrorType::MaxUsesTooLarge { .. } => f.write_str("max uses is too many"),
+        }
+    }
+}
+
+impl Error for CreateInviteError {}
+
+/// Type of [`CreateInviteError`] that occurred.
+#[derive(Debug)]
+#[non_exhaustive]
+pub enum CreateInviteErrorType {
+    /// Configured maximum age is over 604800.
+    MaxAgeTooOld {
+        /// Provided maximum age.
+        provided: u64,
+    },
+    /// Configured maximum uses is over 100.
+    MaxUsesTooLarge {
+        /// Provided maximum uses.
+        provided: u64,
+    },
+}
 
 #[derive(Default, Serialize)]
 struct CreateInviteFields {
@@ -35,7 +93,7 @@ struct CreateInviteFields {
 /// let channel_id = ChannelId(123);
 /// let invite = client
 ///     .create_invite(channel_id)
-///     .max_uses(3)
+///     .max_uses(3)?
 ///     .await?;
 /// # Ok(()) }
 /// ```
@@ -62,19 +120,68 @@ impl<'a> CreateInvite<'a> {
     ///
     /// If no age is specified, Discord sets the age to 86400 seconds, or 24 hours.
     /// Set to 0 to never expire.
-    pub fn max_age(mut self, max_age: u64) -> Self {
+    ///
+    /// # Examples
+    ///
+    /// Create an invite for a channel with a maximum of 1 use and an age of 1
+    /// hour:
+    ///
+    /// ```rust,no_run
+    /// use std::env;
+    /// use twilight_http::Client;
+    /// use twilight_model::id::ChannelId;
+    ///
+    /// # #[tokio::main]
+    /// # async fn main() -> Result<(), Box<dyn std::error::Error>> {
+    /// let client = Client::new(env::var("DISCORD_TOKEN")?);
+    /// let invite = client.create_invite(ChannelId(1)).max_age(60 * 60)?.await?;
+    ///
+    /// println!("invite code: {}", invite.code);
+    /// # Ok(()) }
+    /// ```
+    pub fn max_age(mut self, max_age: u64) -> Result<Self, CreateInviteError> {
+        if !validate::invite_max_age(max_age) {
+            return Err(CreateInviteError {
+                kind: CreateInviteErrorType::MaxAgeTooOld { provided: max_age },
+            });
+        }
+
         self.fields.max_age.replace(max_age);
 
-        self
+        Ok(self)
     }
 
     /// Set the maximum uses for an invite, or 0 for infinite.
     ///
     /// Discord defaults this to 0, or infinite.
-    pub fn max_uses(mut self, max_uses: u64) -> Self {
+    ///
+    /// # Examples
+    ///
+    /// Create an invite for a channel with a maximum of 5 uses:
+    ///
+    /// ```rust,no_run
+    /// use std::env;
+    /// use twilight_http::Client;
+    /// use twilight_model::id::ChannelId;
+    ///
+    /// # #[tokio::main]
+    /// # async fn main() -> Result<(), Box<dyn std::error::Error>> {
+    /// let client = Client::new(env::var("DISCORD_TOKEN")?);
+    /// let invite = client.create_invite(ChannelId(1)).max_uses(5)?.await?;
+    ///
+    /// println!("invite code: {}", invite.code);
+    /// # Ok(()) }
+    /// ```
+    pub fn max_uses(mut self, max_uses: u64) -> Result<Self, CreateInviteError> {
+        if !validate::invite_max_uses(max_uses) {
+            return Err(CreateInviteError {
+                kind: CreateInviteErrorType::MaxUsesTooLarge { provided: max_uses },
+            });
+        }
+
         self.fields.max_uses.replace(max_uses);
 
-        self
+        Ok(self)
     }
 
     /// Specify true if the invite should grant temporary membership. Defaults to false.
@@ -122,7 +229,7 @@ impl<'a> CreateInvite<'a> {
         let request = if let Some(reason) = &self.reason {
             let headers = audit_header(&reason)?;
             Request::from((
-                crate::json_to_vec(&self.fields)?,
+                crate::json_to_vec(&self.fields).map_err(HttpError::json)?,
                 headers,
                 Route::CreateInvite {
                     channel_id: self.channel_id.0,
@@ -130,7 +237,7 @@ impl<'a> CreateInvite<'a> {
             ))
         } else {
             Request::from((
-                crate::json_to_vec(&self.fields)?,
+                crate::json_to_vec(&self.fields).map_err(HttpError::json)?,
                 Route::CreateInvite {
                     channel_id: self.channel_id.0,
                 },
@@ -153,3 +260,35 @@ impl<'a> AuditLogReason for CreateInvite<'a> {
 }
 
 poll_req!(CreateInvite<'_>, Invite);
+
+#[cfg(test)]
+mod tests {
+    use super::CreateInvite;
+    use crate::Client;
+    use std::error::Error;
+    use twilight_model::id::ChannelId;
+
+    #[test]
+    fn test_max_age() -> Result<(), Box<dyn Error>> {
+        let client = Client::new("foo");
+        let mut builder = CreateInvite::new(&client, ChannelId(1)).max_age(0)?;
+        assert_eq!(Some(0), builder.fields.max_age);
+        builder = builder.max_age(604_800)?;
+        assert_eq!(Some(604_800), builder.fields.max_age);
+        assert!(builder.max_age(604_801).is_err());
+
+        Ok(())
+    }
+
+    #[test]
+    fn test_max_uses() -> Result<(), Box<dyn Error>> {
+        let client = Client::new("foo");
+        let mut builder = CreateInvite::new(&client, ChannelId(1)).max_uses(0)?;
+        assert_eq!(Some(0), builder.fields.max_uses);
+        builder = builder.max_uses(100)?;
+        assert_eq!(Some(100), builder.fields.max_uses);
+        assert!(builder.max_uses(101).is_err());
+
+        Ok(())
+    }
+}

@@ -9,6 +9,8 @@ pub struct MessageReference {
     pub guild_id: Option<GuildId>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub message_id: Option<MessageId>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub fail_if_not_exists: Option<bool>,
 }
 
 #[cfg(test)]
@@ -22,6 +24,7 @@ mod tests {
             channel_id: Some(ChannelId(1)),
             guild_id: None,
             message_id: None,
+            fail_if_not_exists: None,
         };
 
         serde_test::assert_tokens(
@@ -46,6 +49,7 @@ mod tests {
             channel_id: Some(ChannelId(1)),
             guild_id: Some(GuildId(2)),
             message_id: Some(MessageId(3)),
+            fail_if_not_exists: Some(false),
         };
 
         serde_test::assert_tokens(
@@ -53,7 +57,7 @@ mod tests {
             &[
                 Token::Struct {
                     name: "MessageReference",
-                    len: 3,
+                    len: 4,
                 },
                 Token::Str("channel_id"),
                 Token::Some,
@@ -67,6 +71,9 @@ mod tests {
                 Token::Some,
                 Token::NewtypeStruct { name: "MessageId" },
                 Token::Str("3"),
+                Token::Str("fail_if_not_exists"),
+                Token::Some,
+                Token::Bool(false),
                 Token::StructEnd,
             ],
         );

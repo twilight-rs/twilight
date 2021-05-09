@@ -11,9 +11,46 @@ use twilight_model::{
 };
 
 /// The error returned when the guild can not be updated as configured.
-#[derive(Clone, Debug)]
+#[derive(Debug)]
+pub struct UpdateGuildError {
+    kind: UpdateGuildErrorType,
+}
+
+impl UpdateGuildError {
+    /// Immutable reference to the type of error that occurred.
+    #[must_use = "retrieving the type has no effect if left unused"]
+    pub fn kind(&self) -> &UpdateGuildErrorType {
+        &self.kind
+    }
+
+    /// Consume the error, returning the source error if there is any.
+    #[allow(clippy::unused_self)]
+    #[must_use = "consuming the error and retrieving the source has no effect if left unused"]
+    pub fn into_source(self) -> Option<Box<dyn Error + Send + Sync>> {
+        None
+    }
+
+    /// Consume the error, returning the owned error type and the source error.
+    #[must_use = "consuming the error into its parts has no effect if left unused"]
+    pub fn into_parts(self) -> (UpdateGuildErrorType, Option<Box<dyn Error + Send + Sync>>) {
+        (self.kind, None)
+    }
+}
+
+impl Display for UpdateGuildError {
+    fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
+        match &self.kind {
+            UpdateGuildErrorType::NameInvalid { .. } => f.write_str("the name's length is invalid"),
+        }
+    }
+}
+
+impl Error for UpdateGuildError {}
+
+/// Type of [`UpdateGuildError`] that occurred.
+#[derive(Debug)]
 #[non_exhaustive]
-pub enum UpdateGuildError {
+pub enum UpdateGuildErrorType {
     /// The name length is either fewer than 2 UTF-16 characters or more than 100 UTF-16
     /// characters.
     NameInvalid {
@@ -21,16 +58,6 @@ pub enum UpdateGuildError {
         name: String,
     },
 }
-
-impl Display for UpdateGuildError {
-    fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
-        match self {
-            Self::NameInvalid { .. } => f.write_str("the name's length is invalid"),
-        }
-    }
-}
-
-impl Error for UpdateGuildError {}
 
 #[derive(Default, Serialize)]
 struct UpdateGuildFields {
@@ -173,17 +200,19 @@ impl<'a> UpdateGuild<'a> {
     /// The minimum length is 2 UTF-16 characters and the maximum is 100 UTF-16
     /// characters.
     ///
-    /// # Erroors
+    /// # Errors
     ///
-    /// Returns [`UpdateGuildError::NameInvalid`] if the name length is too
-    /// short or too long.
+    /// Returns an [`UpdateGuildErrorType::NameInvalid`] error type if the name
+    /// length is too short or too long.
     pub fn name(self, name: impl Into<String>) -> Result<Self, UpdateGuildError> {
         self._name(name.into())
     }
 
     fn _name(mut self, name: String) -> Result<Self, UpdateGuildError> {
         if !validate::guild_name(&name) {
-            return Err(UpdateGuildError::NameInvalid { name });
+            return Err(UpdateGuildError {
+                kind: UpdateGuildErrorType::NameInvalid { name },
+            });
         }
 
         self.fields.name.replace(name);
@@ -284,7 +313,7 @@ impl<'a> UpdateGuild<'a> {
         let request = if let Some(reason) = &self.reason {
             let headers = audit_header(&reason)?;
             Request::from((
-                crate::json_to_vec(&self.fields)?,
+                crate::json_to_vec(&self.fields).map_err(HttpError::json)?,
                 headers,
                 Route::UpdateGuild {
                     guild_id: self.guild_id.0,
@@ -292,7 +321,7 @@ impl<'a> UpdateGuild<'a> {
             ))
         } else {
             Request::from((
-                crate::json_to_vec(&self.fields)?,
+                crate::json_to_vec(&self.fields).map_err(HttpError::json)?,
                 Route::UpdateGuild {
                     guild_id: self.guild_id.0,
                 },

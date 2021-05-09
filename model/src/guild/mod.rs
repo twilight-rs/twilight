@@ -19,7 +19,6 @@ mod preview;
 mod prune;
 mod role;
 mod role_tags;
-mod status;
 mod system_channel_flags;
 mod unavailable_guild;
 mod verification_level;
@@ -32,7 +31,7 @@ pub use self::{
     integration_expire_behavior::IntegrationExpireBehavior, member::Member, mfa_level::MfaLevel,
     partial_guild::PartialGuild, partial_member::PartialMember, permissions::Permissions,
     premium_tier::PremiumTier, preview::GuildPreview, prune::GuildPrune, role::Role,
-    role_tags::RoleTags, status::GuildStatus, system_channel_flags::SystemChannelFlags,
+    role_tags::RoleTags, system_channel_flags::SystemChannelFlags,
     unavailable_guild::UnavailableGuild, verification_level::VerificationLevel,
     widget::GuildWidget,
 };
@@ -74,9 +73,6 @@ pub struct Guild {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub joined_at: Option<String>,
     pub large: bool,
-    // Not documented so I marked it as optional.
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub lazy: Option<bool>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub max_members: Option<u64>,
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -145,7 +141,6 @@ impl<'de> Deserialize<'de> for Guild {
             Id,
             JoinedAt,
             Large,
-            Lazy,
             MaxMembers,
             MaxPresences,
             MaxVideoChannelUsers,
@@ -204,7 +199,6 @@ impl<'de> Deserialize<'de> for Guild {
                 let mut id = None;
                 let mut joined_at = None::<Option<_>>;
                 let mut large = None;
-                let mut lazy = None::<Option<_>>;
                 let mut max_members = None::<Option<_>>;
                 let mut max_presences = None::<Option<_>>;
                 let mut max_video_channel_users = None::<Option<_>>;
@@ -379,13 +373,6 @@ impl<'de> Deserialize<'de> for Guild {
                             }
 
                             large = Some(map.next_value()?);
-                        }
-                        Field::Lazy => {
-                            if lazy.is_some() {
-                                return Err(DeError::duplicate_field("lazy"));
-                            }
-
-                            lazy = Some(map.next_value()?);
                         }
                         Field::MaxMembers => {
                             if max_members.is_some() {
@@ -622,7 +609,6 @@ impl<'de> Deserialize<'de> for Guild {
                 let icon = icon.unwrap_or_default();
                 let large = large.unwrap_or_default();
                 let joined_at = joined_at.unwrap_or_default();
-                let lazy = lazy.unwrap_or_default();
                 let max_members = max_members.unwrap_or_default();
                 let max_presences = max_presences.unwrap_or_default();
                 let max_video_channel_users = max_video_channel_users.unwrap_or_default();
@@ -661,7 +647,6 @@ impl<'de> Deserialize<'de> for Guild {
                     ?icon,
                     %id,
                     ?large,
-                    ?lazy,
                     ?joined_at,
                     ?max_members,
                     ?max_presences,
@@ -765,7 +750,6 @@ impl<'de> Deserialize<'de> for Guild {
                     id,
                     joined_at,
                     large,
-                    lazy,
                     max_members,
                     max_presences,
                     max_video_channel_users,
@@ -816,7 +800,6 @@ impl<'de> Deserialize<'de> for Guild {
             "id",
             "joined_at",
             "large",
-            "lazy",
             "max_members",
             "max_presences",
             "max_video_channel_users",
@@ -880,7 +863,6 @@ mod tests {
             id: GuildId(1),
             joined_at: Some("timestamp".to_owned()),
             large: true,
-            lazy: Some(true),
             max_members: Some(25_000),
             max_presences: Some(10_000),
             max_video_channel_users: Some(10),
@@ -916,7 +898,7 @@ mod tests {
             &[
                 Token::Struct {
                     name: "Guild",
-                    len: 46,
+                    len: 45,
                 },
                 Token::Str("afk_channel_id"),
                 Token::Some,
@@ -969,9 +951,6 @@ mod tests {
                 Token::Some,
                 Token::Str("timestamp"),
                 Token::Str("large"),
-                Token::Bool(true),
-                Token::Str("lazy"),
-                Token::Some,
                 Token::Bool(true),
                 Token::Str("max_members"),
                 Token::Some,

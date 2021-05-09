@@ -14,7 +14,11 @@ pub struct Arguments<'a> {
 impl<'a> Arguments<'a> {
     /// Returns a new iterator of arguments from a buffer.
     pub fn new(buf: &'a str) -> Self {
-        Self::from(buf)
+        Self {
+            buf: buf.trim(),
+            indices: buf.trim().char_indices(),
+            idx: 0,
+        }
     }
 
     /// Returns a view of the underlying buffer of arguments.
@@ -60,16 +64,6 @@ impl<'a> Arguments<'a> {
     /// ```
     pub fn into_remainder(self) -> Option<&'a str> {
         self.buf.get(self.idx..)
-    }
-}
-
-impl<'a> From<&'a str> for Arguments<'a> {
-    fn from(buf: &'a str) -> Self {
-        Self {
-            buf: buf.trim(),
-            indices: buf.trim().char_indices(),
-            idx: 0,
-        }
     }
 }
 
@@ -139,11 +133,11 @@ mod tests {
     use static_assertions::assert_impl_all;
     use std::fmt::Debug;
 
-    assert_impl_all!(Arguments<'_>: Clone, Debug, From<&'static str>, Iterator, Send, Sync);
+    assert_impl_all!(Arguments<'_>: Clone, Debug, Iterator, Send, Sync);
 
     #[test]
     fn test_as_str() {
-        let args = Arguments::from("foo bar baz");
+        let args = Arguments::new("foo bar baz");
         assert_eq!("foo bar baz", args.as_str());
     }
 

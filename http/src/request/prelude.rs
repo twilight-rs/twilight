@@ -12,5 +12,9 @@ pub use super::{
     },
     user::*,
 };
-pub(super) use crate::{client::Client, error::Result, routing::Route};
+pub(super) use crate::{
+    client::Client,
+    error::{Error as HttpError, Result},
+    routing::Route,
+};
 pub(super) use serde::Serialize;

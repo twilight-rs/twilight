@@ -10,11 +10,26 @@ pub enum CaseSensitivity {
     Sensitive(String),
 }
 
+impl CaseSensitivity {
+    pub fn is_sensitive(&self) -> bool {
+        matches!(self, Self::Sensitive(_))
+    }
+}
+
 impl AsRef<str> for CaseSensitivity {
     fn as_ref(&self) -> &str {
         match self {
             Self::Insensitive(u) => u.as_str(),
             Self::Sensitive(s) => s.as_str(),
+        }
+    }
+}
+
+impl AsMut<str> for CaseSensitivity {
+    fn as_mut(&mut self) -> &mut str {
+        match self {
+            Self::Insensitive(u) => u.as_mut_str(),
+            Self::Sensitive(s) => s.as_mut_str(),
         }
     }
 }

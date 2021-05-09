@@ -11,20 +11,42 @@ use std::{
 /// Provided IDs is invalid for the request.
 ///
 /// Returned by [`RequestGuildMembersBuilder::user_ids`].
-#[derive(Clone, Debug)]
-#[non_exhaustive]
-pub enum UserIdsError {
-    /// More than 100 user IDs were provided.
-    TooMany {
-        /// Provided list of user IDs.
-        ids: Vec<UserId>,
-    },
+#[derive(Debug)]
+pub struct UserIdsError {
+    kind: UserIdsErrorType,
+}
+
+impl UserIdsError {
+    /// Immutable reference to the type of error that occurred.
+    #[must_use = "retrieving the type has no effect if left unused"]
+    pub fn kind(&self) -> &UserIdsErrorType {
+        &self.kind
+    }
+
+    /// Consume the error, returning the source error if there is any.
+    #[allow(clippy::unused_self)]
+    #[must_use = "consuming the error and retrieving the source has no effect if left unused"]
+    pub fn into_source(self) -> Option<Box<dyn Error + Send + Sync>> {
+        None
+    }
+
+    /// Consume the error, returning the owned error type and the source error.
+    #[must_use = "consuming the error into its parts has no effect if left unused"]
+    pub fn into_parts(self) -> (UserIdsErrorType, Option<Box<dyn Error + Send + Sync>>) {
+        (self.kind, None)
+    }
+
+    fn too_many(ids: Vec<UserId>) -> Self {
+        Self {
+            kind: UserIdsErrorType::TooMany { ids },
+        }
+    }
 }
 
 impl Display for UserIdsError {
     fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
-        match self {
-            Self::TooMany { ids } => f.write_fmt(format_args!(
+        match &self.kind {
+            UserIdsErrorType::TooMany { ids } => f.write_fmt(format_args!(
                 "{} user IDs were provided when only a maximum of 100 is allowed",
                 ids.len(),
             )),
@@ -33,6 +55,17 @@ impl Display for UserIdsError {
 }
 
 impl Error for UserIdsError {}
+
+/// Type of [`UserIdsError`] that occurred.
+#[derive(Debug)]
+#[non_exhaustive]
+pub enum UserIdsErrorType {
+    /// More than 100 user IDs were provided.
+    TooMany {
+        /// Provided list of user IDs.
+        ids: Vec<UserId>,
+    },
+}
 
 #[derive(Clone, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
 pub struct RequestGuildMembers {
@@ -193,8 +226,8 @@ impl RequestGuildMembersBuilder {
     ///
     /// # Errors
     ///
-    /// Returns [`UserIdsError::TooMany`] if more than 100 user IDs were
-    /// provided.
+    /// Returns a [`UserIdsErrorType::TooMany`] error type if more than 100 user
+    /// IDs were provided.
     pub fn user_ids(
         self,
         user_ids: impl Into<Vec<UserId>>,
@@ -204,7 +237,7 @@ impl RequestGuildMembersBuilder {
 
     fn _user_ids(self, user_ids: Vec<UserId>) -> Result<RequestGuildMembers, UserIdsError> {
         if user_ids.len() > 100 {
-            return Err(UserIdsError::TooMany { ids: user_ids });
+            return Err(UserIdsError::too_many(user_ids));
         }
 
         Ok(RequestGuildMembers {

@@ -14,12 +14,12 @@
 //! [`Shard::some_events`]: super::Shard::some_events
 
 use crate::EventTypeFlags;
-use futures_channel::mpsc::UnboundedReceiver;
-use futures_util::stream::{Stream, StreamExt};
+use futures_util::stream::Stream;
 use std::{
     pin::Pin,
     task::{Context, Poll},
 };
+use tokio::sync::mpsc::UnboundedReceiver;
 use twilight_model::gateway::event::Event;
 
 /// A stream of events from a [`Shard`].
@@ -58,7 +58,7 @@ impl Stream for Events {
     type Item = Event;
 
     fn poll_next(mut self: Pin<&mut Self>, cx: &mut Context<'_>) -> Poll<Option<Self::Item>> {
-        self.rx.poll_next_unpin(cx)
+        self.rx.poll_recv(cx)
     }
 }
 

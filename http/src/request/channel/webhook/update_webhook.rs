@@ -69,7 +69,7 @@ impl<'a> UpdateWebhook<'a> {
         let request = if let Some(reason) = &self.reason {
             let headers = audit_header(&reason)?;
             Request::from((
-                crate::json_to_vec(&self.fields)?,
+                crate::json_to_vec(&self.fields).map_err(HttpError::json)?,
                 headers,
                 Route::UpdateWebhook {
                     token: None,
@@ -78,7 +78,7 @@ impl<'a> UpdateWebhook<'a> {
             ))
         } else {
             Request::from((
-                crate::json_to_vec(&self.fields)?,
+                crate::json_to_vec(&self.fields).map_err(HttpError::json)?,
                 Route::UpdateWebhook {
                     token: None,
                     webhook_id: self.webhook_id.0,

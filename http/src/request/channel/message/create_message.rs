@@ -1,4 +1,3 @@
-use super::super::allowed_mentions::{AllowedMentions, AllowedMentionsBuilder, Unspecified};
 use crate::request::{multipart::Form, prelude::*};
 use std::{
     collections::HashMap,
@@ -6,14 +5,66 @@ use std::{
     fmt::{Display, Formatter, Result as FmtResult},
 };
 use twilight_model::{
-    channel::{embed::Embed, message::MessageReference, Message},
+    channel::{
+        embed::Embed,
+        message::{AllowedMentions, MessageReference},
+        Message,
+    },
     id::{ChannelId, MessageId},
 };
 
 /// The error created when a messsage can not be created as configured.
-#[derive(Clone, Debug)]
+#[derive(Debug)]
+pub struct CreateMessageError {
+    kind: CreateMessageErrorType,
+    source: Option<Box<dyn Error + Send + Sync>>,
+}
+
+impl CreateMessageError {
+    /// Immutable reference to the type of error that occurred.
+    #[must_use = "retrieving the type has no effect if left unused"]
+    pub fn kind(&self) -> &CreateMessageErrorType {
+        &self.kind
+    }
+
+    /// Consume the error, returning the source error if there is any.
+    #[must_use = "consuming the error and retrieving the source has no effect if left unused"]
+    pub fn into_source(self) -> Option<Box<dyn Error + Send + Sync>> {
+        self.source
+    }
+
+    /// Consume the error, returning the owned error type and the source error.
+    #[must_use = "consuming the error into its parts has no effect if left unused"]
+    pub fn into_parts(self) -> (CreateMessageErrorType, Option<Box<dyn Error + Send + Sync>>) {
+        (self.kind, self.source)
+    }
+}
+
+impl Display for CreateMessageError {
+    fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
+        match &self.kind {
+            CreateMessageErrorType::ContentInvalid { .. } => {
+                f.write_str("the message content is invalid")
+            }
+            CreateMessageErrorType::EmbedTooLarge { .. } => {
+                f.write_str("the embed's contents are too long")
+            }
+        }
+    }
+}
+
+impl Error for CreateMessageError {
+    fn source(&self) -> Option<&(dyn Error + 'static)> {
+        self.source
+            .as_ref()
+            .map(|source| &**source as &(dyn Error + 'static))
+    }
+}
+
+/// Type of [`CreateMessageError`] that occurred.
+#[derive(Debug)]
 #[non_exhaustive]
-pub enum CreateMessageError {
+pub enum CreateMessageErrorType {
     /// Returned when the content is over 2000 UTF-16 characters.
     ContentInvalid {
         /// Provided content.
@@ -23,27 +74,7 @@ pub enum CreateMessageError {
     EmbedTooLarge {
         /// Provided embed.
         embed: Box<Embed>,
-        /// The source of the error.
-        source: EmbedValidationError,
     },
-}
-
-impl Display for CreateMessageError {
-    fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
-        match self {
-            Self::ContentInvalid { .. } => f.write_str("the message content is invalid"),
-            Self::EmbedTooLarge { .. } => f.write_str("the embed's contents are too long"),
-        }
-    }
-}
-
-impl Error for CreateMessageError {
-    fn source(&self) -> Option<&(dyn Error + 'static)> {
-        match self {
-            Self::ContentInvalid { .. } => None,
-            Self::EmbedTooLarge { source, .. } => Some(source),
-        }
-    }
 }
 
 #[derive(Default, Serialize)]
@@ -106,11 +137,11 @@ impl<'a> CreateMessage<'a> {
         }
     }
 
-    /// Return a new [`AllowedMentionsBuilder`].
-    pub fn allowed_mentions(
-        self,
-    ) -> AllowedMentionsBuilder<'a, Unspecified, Unspecified, Unspecified> {
-        AllowedMentionsBuilder::for_builder(self)
+    /// Specify the [`AllowedMentions`] for the message.
+    pub fn allowed_mentions(mut self, allowed_mentions: AllowedMentions) -> Self {
+        self.fields.allowed_mentions.replace(allowed_mentions);
+
+        self
     }
 
     /// Attach a new file to the message.
@@ -140,15 +171,18 @@ impl<'a> CreateMessage<'a> {
     ///
     /// # Errors
     ///
-    /// Returns [`CreateMessageError::ContentInvalid`] if the content length is
-    /// too long.
+    /// Returns a [`CreateMessageErrorType::ContentInvalid`] error type if the
+    /// content length is too long.
     pub fn content(self, content: impl Into<String>) -> Result<Self, CreateMessageError> {
         self._content(content.into())
     }
 
     fn _content(mut self, content: String) -> Result<Self, CreateMessageError> {
         if !validate::content_limit(&content) {
-            return Err(CreateMessageError::ContentInvalid { content });
+            return Err(CreateMessageError {
+                kind: CreateMessageErrorType::ContentInvalid { content },
+                source: None,
+            });
         }
 
         self.fields.content.replace(content);
@@ -167,21 +201,42 @@ impl<'a> CreateMessage<'a> {
     ///
     /// # Errors
     ///
-    /// Returns [`CreateMessageError::EmbedTooLarge`] if the embed is too large.
+    /// Returns a [`CreateMessageErrorType::EmbedTooLarge`] error type if the
+    /// embed is too large.
     ///
     /// [the discord docs]: https://discord.com/developers/docs/resources/channel#embed-limits
     /// [`EmbedBuilder`]: https://docs.rs/twilight-embed-builder/*/twilight_embed_builder
     pub fn embed(mut self, embed: Embed) -> Result<Self, CreateMessageError> {
         if let Err(source) = validate::embed(&embed) {
-            return Err(CreateMessageError::EmbedTooLarge {
-                embed: Box::new(embed),
-                source,
+            return Err(CreateMessageError {
+                kind: CreateMessageErrorType::EmbedTooLarge {
+                    embed: Box::new(embed),
+                },
+                source: Some(Box::new(source)),
             });
         }
 
         self.fields.embed.replace(embed);
 
         Ok(self)
+    }
+
+    /// Whether to fail sending if the reply no longer exists.
+    pub fn fail_if_not_exists(mut self) -> Self {
+        self.fields.message_reference = Some(self.fields.message_reference.map_or_else(
+            || MessageReference {
+                channel_id: None,
+                guild_id: None,
+                message_id: None,
+                fail_if_not_exists: Some(true),
+            },
+            |message_reference| MessageReference {
+                fail_if_not_exists: Some(true),
+                ..message_reference
+            },
+        ));
+
+        self
     }
 
     /// Attach a nonce to the message, for optimistic message sending.
@@ -202,14 +257,21 @@ impl<'a> CreateMessage<'a> {
 
     /// Specify the ID of another message to create a reply to.
     pub fn reply(mut self, other: MessageId) -> Self {
-        self.fields.message_reference.replace(MessageReference {
-            // This struct only needs the message_id, but as we also have
-            // access to the channel_id we send that, as it will be verified
-            // by Discord.
-            channel_id: Some(self.channel_id),
-            guild_id: None,
-            message_id: Some(other),
-        });
+        let channel_id = self.channel_id;
+
+        self.fields.message_reference = Some(self.fields.message_reference.map_or_else(
+            || MessageReference {
+                channel_id: Some(channel_id),
+                guild_id: None,
+                message_id: Some(other),
+                fail_if_not_exists: None,
+            },
+            |message_reference| MessageReference {
+                channel_id: Some(channel_id),
+                message_id: Some(other),
+                ..message_reference
+            },
+        ));
 
         self
     }
@@ -225,7 +287,7 @@ impl<'a> CreateMessage<'a> {
         self.fut.replace(Box::pin(self.http.request(
             if self.attachments.is_empty() {
                 Request::from((
-                    crate::json_to_vec(&self.fields)?,
+                    crate::json_to_vec(&self.fields).map_err(HttpError::json)?,
                     Route::CreateMessage {
                         channel_id: self.channel_id.0,
                     },
@@ -237,7 +299,7 @@ impl<'a> CreateMessage<'a> {
                     multipart.file(format!("{}", index).as_bytes(), name.as_bytes(), &file);
                 }
 
-                let body = crate::json_to_vec(&self.fields)?;
+                let body = crate::json_to_vec(&self.fields).map_err(HttpError::json)?;
                 multipart.part(b"payload_json", &body);
 
                 Request::from((

@@ -1,5 +1,9 @@
 use crate::{
-    channel::{embed::Embed, message::MessageType, Attachment},
+    channel::{
+        embed::Embed,
+        message::{Mention, MessageType},
+        Attachment,
+    },
     id::{ChannelId, GuildId, MessageId, RoleId},
     user::User,
 };
@@ -27,7 +31,7 @@ pub struct MessageUpdate {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub mention_roles: Option<Vec<RoleId>>,
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub mentions: Option<Vec<User>>,
+    pub mentions: Option<Vec<Mention>>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub pinned: Option<bool>,
     #[serde(skip_serializing_if = "Option::is_none")]

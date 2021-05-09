@@ -17,9 +17,52 @@ mod builder;
 pub use self::builder::*;
 
 /// The error returned when the guild can not be created as configured.
-#[derive(Clone, Debug)]
+#[derive(Debug)]
+pub struct CreateGuildError {
+    kind: CreateGuildErrorType,
+}
+
+impl CreateGuildError {
+    /// Immutable reference to the type of error that occurred.
+    #[must_use = "retrieving the type has no effect if left unused"]
+    pub fn kind(&self) -> &CreateGuildErrorType {
+        &self.kind
+    }
+
+    /// Consume the error, returning the source error if there is any.
+    #[allow(clippy::unused_self)]
+    #[must_use = "consuming the error and retrieving the source has no effect if left unused"]
+    pub fn into_source(self) -> Option<Box<dyn Error + Send + Sync>> {
+        None
+    }
+
+    /// Consume the error, returning the owned error type and the source error.
+    #[must_use = "consuming the error into its parts has no effect if left unused"]
+    pub fn into_parts(self) -> (CreateGuildErrorType, Option<Box<dyn Error + Send + Sync>>) {
+        (self.kind, None)
+    }
+}
+
+impl Display for CreateGuildError {
+    fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
+        match &self.kind {
+            CreateGuildErrorType::NameInvalid { .. } => f.write_str("the guild name is invalid"),
+            CreateGuildErrorType::TooManyChannels { .. } => {
+                f.write_str("too many channels were provided")
+            }
+            CreateGuildErrorType::TooManyRoles { .. } => {
+                f.write_str("too many roles were provided")
+            }
+        }
+    }
+}
+
+impl Error for CreateGuildError {}
+
+/// Type of [`CreateGuildError`] that occurred.
+#[derive(Debug)]
 #[non_exhaustive]
-pub enum CreateGuildError {
+pub enum CreateGuildErrorType {
     /// The name of the guild is either fewer than 2 UTF-16 characters or more than 100 UTF-16
     /// characters.
     NameInvalid {
@@ -41,18 +84,6 @@ pub enum CreateGuildError {
         roles: Vec<RoleFields>,
     },
 }
-
-impl Display for CreateGuildError {
-    fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
-        match self {
-            Self::NameInvalid { .. } => f.write_str("the guild name is invalid"),
-            Self::TooManyChannels { .. } => f.write_str("too many channels were provided"),
-            Self::TooManyRoles { .. } => f.write_str("too many roles were provided"),
-        }
-    }
-}
-
-impl Error for CreateGuildError {}
 
 #[derive(Serialize)]
 struct CreateGuildFields {
@@ -192,10 +223,6 @@ impl From<VoiceFieldsBuilder> for VoiceFields {
 ///
 /// The minimum length of the name is 2 UTF-16 characters and the maximum is 100 UTF-16 characters.
 /// This endpoint can only be used by bots in less than 10 guilds.
-///
-/// # Errors
-///
-/// Returns [`CreateGuildError::NameInvalid`] if the name length is too short or too long.
 pub struct CreateGuild<'a> {
     fields: CreateGuildFields,
     fut: Option<Pending<'a, PartialGuild>>,
@@ -209,7 +236,9 @@ impl<'a> CreateGuild<'a> {
 
     fn _new(http: &'a Client, name: String) -> Result<Self, CreateGuildError> {
         if !validate::guild_name(&name) {
-            return Err(CreateGuildError::NameInvalid { name });
+            return Err(CreateGuildError {
+                kind: CreateGuildErrorType::NameInvalid { name },
+            });
         }
 
         Ok(Self {
@@ -279,12 +308,15 @@ impl<'a> CreateGuild<'a> {
     ///
     /// # Errors
     ///
-    /// Returns [`CreateGuildError::TooManyChannels`] if the number of channels is over 500.
+    /// Returns a [`CreateGuildErrorType::TooManyChannels`] error type if the
+    /// number of channels is over 500.
     pub fn channels(mut self, channels: Vec<GuildChannelFields>) -> Result<Self, CreateGuildError> {
         // Error 30013
         // <https://discordapp.com/developers/docs/topics/opcodes-and-status-codes#json>
         if channels.len() > 500 {
-            return Err(CreateGuildError::TooManyChannels { channels });
+            return Err(CreateGuildError {
+                kind: CreateGuildErrorType::TooManyChannels { channels },
+            });
         }
 
         self.fields.channels.replace(channels);
@@ -378,11 +410,13 @@ impl<'a> CreateGuild<'a> {
     ///
     /// # Errors
     ///
-    /// Returns [`CreateGuildError::TooManyRoles`] if the number of roles is
-    /// over 250.
+    /// Returns a [`CreateGuildErrorType::TooManyRoles`] error type if the
+    /// number of roles is over 250.
     pub fn roles(mut self, mut roles: Vec<RoleFields>) -> Result<Self, CreateGuildError> {
         if roles.len() > 250 {
-            return Err(CreateGuildError::TooManyRoles { roles });
+            return Err(CreateGuildError {
+                kind: CreateGuildErrorType::TooManyRoles { roles },
+            });
         }
 
         if let Some(prev_roles) = self.fields.roles.as_mut() {
@@ -399,7 +433,7 @@ impl<'a> CreateGuild<'a> {
 
     fn start(&mut self) -> Result<()> {
         self.fut.replace(Box::pin(self.http.request(Request::from((
-            crate::json_to_vec(&self.fields)?,
+            crate::json_to_vec(&self.fields).map_err(HttpError::json)?,
             Route::CreateGuild,
         )))));
 

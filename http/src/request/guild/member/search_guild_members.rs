@@ -141,11 +141,16 @@ impl Future for SearchGuildMembers<'_> {
                 let mut members = Vec::new();
 
                 let mut bytes = bytes.as_ref().to_vec();
-                let values = crate::json_from_slice::<Vec<Value>>(&mut bytes)?;
+                let values =
+                    crate::json_from_slice::<Vec<Value>>(&mut bytes).map_err(HttpError::json)?;
 
                 for value in values {
                     let member_deserializer = MemberDeserializer::new(self.guild_id);
-                    members.push(member_deserializer.deserialize(value)?);
+                    members.push(
+                        member_deserializer
+                            .deserialize(value)
+                            .map_err(HttpError::json)?,
+                    );
                 }
 
                 Poll::Ready(Ok(members))

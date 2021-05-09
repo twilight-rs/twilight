@@ -1,10 +1,5 @@
 use super::{headers::RatelimitHeaders, GlobalLockPair};
 use crate::routing::Path;
-use futures_channel::{
-    mpsc::{self, UnboundedReceiver, UnboundedSender},
-    oneshot::{self, Sender},
-};
-use futures_util::{lock::Mutex, stream::StreamExt};
 use std::{
     collections::HashMap,
     sync::{
@@ -13,7 +8,14 @@ use std::{
     },
     time::{Duration, Instant},
 };
-use tokio::time::{sleep, timeout};
+use tokio::{
+    sync::{
+        mpsc::{self, UnboundedReceiver, UnboundedSender},
+        oneshot::{self, Sender},
+        Mutex,
+    },
+    time::{sleep, timeout},
+};
 
 #[derive(Clone, Debug)]
 pub enum TimeRemaining {
@@ -118,7 +120,7 @@ pub struct BucketQueue {
 
 impl BucketQueue {
     pub fn push(&self, tx: Sender<Sender<Option<RatelimitHeaders>>>) {
-        let _sent = self.tx.unbounded_send(tx);
+        let _sent = self.tx.send(tx);
     }
 
     pub async fn pop(
@@ -127,10 +129,7 @@ impl BucketQueue {
     ) -> Option<Sender<Sender<Option<RatelimitHeaders>>>> {
         let mut rx = self.rx.lock().await;
 
-        match timeout(timeout_duration, StreamExt::next(&mut *rx))
-            .await
-            .ok()
-        {
+        match timeout(timeout_duration, rx.recv()).await.ok() {
             Some(x) => x,
             None => None,
         }
@@ -139,7 +138,7 @@ impl BucketQueue {
 
 impl Default for BucketQueue {
     fn default() -> Self {
-        let (tx, rx) = mpsc::unbounded();
+        let (tx, rx) = mpsc::unbounded_channel();
 
         Self {
             rx: Mutex::new(rx),

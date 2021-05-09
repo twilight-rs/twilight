@@ -1,6 +1,7 @@
 use super::RoleTags;
 use crate::{guild::Permissions, id::RoleId};
 use serde::{Deserialize, Serialize};
+use std::cmp::{Ord, Ordering, PartialOrd};
 
 #[derive(Clone, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
 pub struct Role {
@@ -15,6 +16,100 @@ pub struct Role {
     /// Tags about the role.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub tags: Option<RoleTags>,
+}
+
+impl Ord for Role {
+    /// Compare two roles to each other using their position and ID.
+    ///
+    /// Roles are primarily ordered by their position in descending order. For example,
+    /// a role with a position of 17 is considered a higher role than one with a
+    /// position of 12.
+    ///
+    /// Discord does not guarantee that role positions are positive, unique, or contiguous. When
+    /// two or more roles have the same position then the order is based on the roles' IDs in
+    /// ascending order. For example, given two roles with positions of 10 then a role
+    /// with an ID of 1 would be considered a higher role than one with an ID of 20.
+    ///
+    /// ### Examples
+    ///
+    /// Compare the position of two roles:
+    ///
+    /// ```rust
+    /// # use twilight_model::{guild::{Permissions, Role}, id::RoleId};
+    /// # use std::cmp::Ordering;
+    /// let role_a = Role {
+    ///     id: RoleId(123),
+    ///     position: 12,
+    ///#    color: 0,
+    ///#    hoist: true,
+    ///#    managed: false,
+    ///#    mentionable: true,
+    ///#    name: "test".to_owned(),
+    ///#    permissions: Permissions::ADMINISTRATOR,
+    ///#    tags: None,
+    ///     // ...
+    /// };
+    /// let role_b = Role {
+    ///     id: RoleId(456),
+    ///     position: 13,
+    ///#    color: 0,
+    ///#    hoist: true,
+    ///#    managed: false,
+    ///#    mentionable: true,
+    ///#    name: "test".to_owned(),
+    ///#    permissions: Permissions::ADMINISTRATOR,
+    ///#    tags: None,
+    ///     // ...
+    /// };
+    /// assert_eq!(Ordering::Less, role_a.cmp(&role_b));
+    /// assert_eq!(Ordering::Greater, role_b.cmp(&role_a));
+    /// assert_eq!(Ordering::Equal, role_a.cmp(&role_a));
+    /// assert_eq!(Ordering::Equal, role_b.cmp(&role_b));
+    /// ```
+    ///
+    /// Compare the position of two roles with the same position:
+    ///
+    /// ```rust
+    /// # use twilight_model::{guild::{Permissions, Role}, id::RoleId};
+    /// # use std::cmp::Ordering;
+    /// let role_a = Role {
+    ///     id: RoleId(123),
+    ///     position: 12,
+    ///#    color: 0,
+    ///#    hoist: true,
+    ///#    managed: false,
+    ///#    mentionable: true,
+    ///#    name: "test".to_owned(),
+    ///#    permissions: Permissions::ADMINISTRATOR,
+    ///#    tags: None,
+    /// };
+    /// let role_b = Role {
+    ///     id: RoleId(456),
+    ///     position: 12,
+    ///#    color: 0,
+    ///#    hoist: true,
+    ///#    managed: false,
+    ///#    mentionable: true,
+    ///#    name: "test".to_owned(),
+    ///#    permissions: Permissions::ADMINISTRATOR,
+    ///#    tags: None,
+    /// };
+    /// assert_eq!(Ordering::Less, role_a.cmp(&role_b));
+    /// assert_eq!(Ordering::Greater, role_b.cmp(&role_a));
+    /// assert_eq!(Ordering::Equal, role_a.cmp(&role_a));
+    /// assert_eq!(Ordering::Equal, role_b.cmp(&role_b));
+    /// ```
+    fn cmp(&self, other: &Self) -> Ordering {
+        self.position
+            .cmp(&other.position)
+            .then(self.id.0.cmp(&other.id.0))
+    }
+}
+
+impl PartialOrd for Role {
+    fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
+        Some(self.cmp(other))
+    }
 }
 
 #[cfg(test)]
