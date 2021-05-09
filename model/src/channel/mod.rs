@@ -29,8 +29,9 @@ pub use self::{
     followed_channel::FollowedChannel, group::Group, news_thread::NewsThread, message::Message,
     private_channel::PrivateChannel, private_thread::PrivateThread, public_thread::PublicThread,
     reaction::Reaction, reaction_type::ReactionType, text_channel::TextChannel,
-    thread_metadata::ThreadMetadata, video_quality_mode::VideoQualityMode,
-    voice_channel::VoiceChannel, webhook::Webhook, webhook_type::WebhookType,
+    thread_member::ThreadMember, thread_metadata::ThreadMetadata,
+    video_quality_mode::VideoQualityMode, voice_channel::VoiceChannel, webhook::Webhook,
+    webhook_type::WebhookType,
 };
 
 use crate::id::{ChannelId, GuildId, MessageId};

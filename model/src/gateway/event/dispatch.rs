@@ -48,6 +48,12 @@ pub enum DispatchEvent {
     RoleCreate(RoleCreate),
     RoleDelete(RoleDelete),
     RoleUpdate(RoleUpdate),
+    ThreadCreate(ThreadCreate),
+    ThreadUpdate(ThreadUpdate),
+    ThreadDelete(ThreadDelete),
+    ThreadListSync(ThreadListSync),
+    ThreadMemberUpdate(ThreadMemberUpdate),
+    ThreadMembersUpdate(ThreadMembersUpdate),
     TypingStart(Box<TypingStart>),
     UnavailableGuild(UnavailableGuild),
     UserUpdate(UserUpdate),
@@ -93,6 +99,12 @@ impl DispatchEvent {
             Self::RoleCreate(_) => EventType::RoleCreate,
             Self::RoleDelete(_) => EventType::RoleDelete,
             Self::RoleUpdate(_) => EventType::RoleUpdate,
+            Self::ThreadCreate(_) => EventType::ThreadCreate,
+            Self::ThreadUpdate(_) => EventType::ThreadUpdate,
+            Self::ThreadDelete(_) => EventType::ThreadDelete,
+            Self::ThreadListSync(_) => EventType::ThreadListSync,
+            Self::ThreadMemberUpdate(_) => EventType::ThreadMemberUpdate,
+            Self::ThreadMembersUpdate(_) => EventType::ThreadMembersUpdate,
             Self::TypingStart(_) => EventType::TypingStart,
             Self::UnavailableGuild(_) => EventType::UnavailableGuild,
             Self::UserUpdate(_) => EventType::UserUpdate,
@@ -141,6 +153,12 @@ impl TryFrom<Event> for DispatchEvent {
             Event::RoleCreate(v) => Self::RoleCreate(v),
             Event::RoleDelete(v) => Self::RoleDelete(v),
             Event::RoleUpdate(v) => Self::RoleUpdate(v),
+            Event::ThreadCreate(v) => Self::ThreadCreate(v),
+            Event::ThreadUpdate(v) => Self::ThreadUpdate(v),
+            Event::ThreadDelete(v) => Self::ThreadDelete(v),
+            Event::ThreadListSync(v) => Self::ThreadListSync(v),
+            Event::ThreadMemberUpdate(v) => Self::ThreadMemberUpdate(v),
+            Event::ThreadMembersUpdate(v) => Self::ThreadMembersUpdate(v),
             Event::TypingStart(v) => Self::TypingStart(v),
             Event::UnavailableGuild(v) => Self::UnavailableGuild(v),
             Event::UserUpdate(v) => Self::UserUpdate(v),
@@ -270,6 +288,24 @@ impl<'de, 'a> DeserializeSeed<'de> for DispatchEventWithTypeDeserializer<'a> {
                 deserializer.deserialize_ignored_any(IgnoredAny)?;
 
                 DispatchEvent::Resumed
+            }
+            "THREAD_CREATE" => {
+                DispatchEvent::ThreadCreate(ThreadCreate::deserialize(deserializer)?)
+            }
+            "THREAD_UPDATE" => {
+                DispatchEvent::ThreadUpdate(ThreadUpdate::deserialize(deserializer)?)
+            }
+            "THREAD_DELETE" => {
+                DispatchEvent::ThreadDelete(ThreadDelete::deserialize(deserializer)?)
+            }
+            "THREAD_LIST_SYNC" => {
+                DispatchEvent::ThreadListSync(ThreadListSync::deserialize(deserializer)?)
+            }
+            "THREAD_MEMBER_UPDATE" => {
+                DispatchEvent::ThreadMemberUpdate(ThreadMemberUpdate::deserialize(deserializer)?)
+            }
+            "THREAD_MEMBERS_UPDATE" => {
+                DispatchEvent::ThreadMembersUpdate(ThreadMembersUpdate::deserialize(deserializer)?)
             }
             "TYPING_START" => {
                 DispatchEvent::TypingStart(Box::new(TypingStart::deserialize(deserializer)?))

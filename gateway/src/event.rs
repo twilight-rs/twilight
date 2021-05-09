@@ -105,18 +105,31 @@ bitflags! {
         const SHARD_RECONNECTING = 1 << 37;
         /// Shard is resuming a session with the gateway.
         const SHARD_RESUMING = 1 << 38;
+        /// Sent when a thread is created, relevant to the current user,
+        /// or when the current user is added to a thread.
+        const THREAD_CREATE = 1 << 39;
+        /// Sent when a thread is updated.
+        const THREAD_UPDATE = 1 << 40;
+        /// Sent when a thread relevant to the current user is deleted.
+        const THREAD_DELETE = 1 << 41;
+        /// Sent when the current user gains access to a channel.
+        const THREAD_LIST_SYNC = 1 << 42;
+        /// Sent when the thread member object for the current user is updated.
+        const THREAD_MEMBER_UPDATE = 1 << 43;
+        /// Sent when anyone is added to or removed from a thread.
+        const THREAD_MEMBERS_UPDATE = 1 << 44;
         /// User has begun typing in a channel.
-        const TYPING_START = 1 << 39;
+        const TYPING_START = 1 << 45;
         /// Guild is unavailable, potentially due to an outage.
-        const UNAVAILABLE_GUILD = 1 << 40;
+        const UNAVAILABLE_GUILD = 1 << 46;
         /// Current user's profile has been updated.
-        const USER_UPDATE = 1 << 41;
+        const USER_UPDATE = 1 << 47;
         /// Voice server has provided an update with voice session details.
-        const VOICE_SERVER_UPDATE = 1 << 42;
+        const VOICE_SERVER_UPDATE = 1 << 48;
         /// User's state in a voice channel has been updated.
-        const VOICE_STATE_UPDATE = 1 << 43;
+        const VOICE_STATE_UPDATE = 1 << 49;
         /// Webhook in a guild has been updated.
-        const WEBHOOKS_UPDATE = 1 << 44;
+        const WEBHOOKS_UPDATE = 1 << 50;
     }
 }
 
@@ -168,6 +181,12 @@ impl From<EventType> for EventTypeFlags {
             EventType::ShardReconnecting => EventTypeFlags::SHARD_RECONNECTING,
             EventType::ShardPayload => EventTypeFlags::SHARD_PAYLOAD,
             EventType::ShardResuming => EventTypeFlags::SHARD_RESUMING,
+            EventType::ThreadCreate => EventTypeFlags::THREAD_CREATE,
+            EventType::ThreadUpdate => EventTypeFlags::THREAD_UPDATE,
+            EventType::ThreadDelete => EventTypeFlags::THREAD_DELETE,
+            EventType::ThreadListSync => EventTypeFlags::THREAD_LIST_SYNC,
+            EventType::ThreadMemberUpdate => EventTypeFlags::THREAD_MEMBER_UPDATE,
+            EventType::ThreadMembersUpdate => EventTypeFlags::THREAD_MEMBERS_UPDATE,
             EventType::TypingStart => EventTypeFlags::TYPING_START,
             EventType::UnavailableGuild => EventTypeFlags::UNAVAILABLE_GUILD,
             EventType::UserUpdate => EventTypeFlags::USER_UPDATE,

@@ -63,6 +63,12 @@ pub enum EventType {
     ShardReconnecting,
     ShardPayload,
     ShardResuming,
+    ThreadCreate,
+    ThreadUpdate,
+    ThreadDelete,
+    ThreadListSync,
+    ThreadMemberUpdate,
+    ThreadMembersUpdate,
     TypingStart,
     UnavailableGuild,
     UserUpdate,
@@ -107,6 +113,12 @@ impl EventType {
             Self::RoleCreate => Some("GUILD_ROLE_CREATE"),
             Self::RoleDelete => Some("GUILD_ROLE_DELETE"),
             Self::RoleUpdate => Some("GUILD_ROLE_UPDATE"),
+            Self::ThreadCreate => Some("THREAD_CREATE"),
+            Self::ThreadUpdate => Some("THREAD_UPDATE"),
+            Self::ThreadDelete => Some("THREAD_DELETE"),
+            Self::ThreadListSync => Some("THREAD_LIST_SYNC"),
+            Self::ThreadMemberUpdate => Some("THREAD_MEMBER_UPDATE"),
+            Self::ThreadMembersUpdate => Some("THREAD_MEMBERS_UPDATE"),
             Self::TypingStart => Some("TYPING_START"),
             Self::UnavailableGuild => Some("UNAVAILABLE_GUILD"),
             Self::UserUpdate => Some("USER_UPDATE"),
@@ -167,6 +179,12 @@ impl<'a> TryFrom<&'a str> for EventType {
             "GUILD_ROLE_CREATE" => Ok(Self::RoleCreate),
             "GUILD_ROLE_DELETE" => Ok(Self::RoleDelete),
             "GUILD_ROLE_UPDATE" => Ok(Self::RoleUpdate),
+            "THREAD_CREATE" => Ok(Self::ThreadCreate),
+            "THREAD_UPDATE" => Ok(Self::ThreadUpdate),
+            "THREAD_DELETE" => Ok(Self::ThreadDelete),
+            "THREAD_LIST_SYNC" => Ok(Self::ThreadListSync),
+            "THREAD_MEMBER_UPDATE" => Ok(Self::ThreadMemberUpdate),
+            "THREAD_MEMBERS_UPDATE" => Ok(Self::ThreadMembersUpdate),
             "TYPING_START" => Ok(Self::TypingStart),
             "UNAVAILABLE_GUILD" => Ok(Self::UnavailableGuild),
             "USER_UPDATE" => Ok(Self::UserUpdate),
@@ -249,6 +267,12 @@ mod tests {
         assert_variant(EventType::ShardPayload, "SHARD_PAYLOAD");
         assert_variant(EventType::ShardReconnecting, "SHARD_RECONNECTING");
         assert_variant(EventType::ShardResuming, "SHARD_RESUMING");
+        assert_variant(EventType::ThreadCreate, "THREAD_CREATE");
+        assert_variant(EventType::ThreadUpdate, "THREAD_UPDATE");
+        assert_variant(EventType::ThreadDelete, "THREAD_DELETE");
+        assert_variant(EventType::ThreadListSync, "THREAD_LIST_SYNC");
+        assert_variant(EventType::ThreadMemberUpdate, "THREAD_MEMBER_UPDATE");
+        assert_variant(EventType::ThreadMembersUpdate, "THREAD_MEMBERS_UPDATE");
         assert_variant(EventType::TypingStart, "TYPING_START");
         assert_variant(EventType::UnavailableGuild, "UNAVAILABLE_GUILD");
         assert_variant(EventType::UserUpdate, "USER_UPDATE");
