@@ -2,6 +2,23 @@
 
 Changelog for `twilight-http`.
 
+## [0.3.9] - 2021-05-09
+
+### Additions
+
+Support the Update Current User Voice State and Update User Voice State
+stage channel routes ([#795] - [@7596ff]).
+
+Support error codes 10057, 20028, 30031, 30035, and 50074 ([#800] - [@Erk-]).
+
+### Fixes
+
+Percent-encode reasons when creating a member ban ([#803] - [@Erk-]).
+
+[#803]: https://github.com/twilight-rs/twilight/pull/803
+[#800]: https://github.com/twilight-rs/twilight/pull/800
+[#795]: https://github.com/twilight-rs/twilight/pull/795
+
 ## [0.3.8] - 2021-04-27
 
 ### Additions
@@ -501,6 +518,7 @@ Initial release.
 
 [0.2.0-beta.1:app integrations]: https://github.com/discord/discord-api-docs/commit/a926694e2f8605848bda6b57d21c8817559e5cec
 
+[0.3.9]: https://github.com/twilight-rs/twilight/releases/tag/http-v0.3.9
 [0.3.8]: https://github.com/twilight-rs/twilight/releases/tag/http-v0.3.8
 [0.3.6]: https://github.com/twilight-rs/twilight/releases/tag/http-v0.3.6
 [0.3.5]: https://github.com/twilight-rs/twilight/releases/tag/http-v0.3.5
