@@ -2,6 +2,35 @@
 
 Changelog for `twilight-command-parser`.
 
+## [0.4.0] - 2021-05-??
+
+### Upgrade Path
+
+The MSRV is now Rust 1.49.
+
+Create an `Arguments` instance via `Arguments::new` instead of using the `From`
+implementation.
+
+When checking if a command is case-sensitive use
+`CaseSensitivity::is_sensitive`.
+
+### Changes
+
+Remove `From<&str>` implementation for `Arguments` ([#763] - [@vivian]).
+
+Hide the `unicase` dependency by offering alternatives in the API:
+
+- Add `CaseSensitivity::is_sensitive` to check if the command is case-sensitive
+- Implement `AsMut<str>` for `CaseSensitivity`
+- `Commands` now iterates over `(&str, bool)` instead of `&CaseSensitivity`
+- `CommandsMut` now iterates over `(&mut str, bool)` instead of
+`&mut CaseSensitivity`
+
+([#692] - [@vivian]).
+
+[#763]: https://github.com/twilight-rs/twilight/pull/692
+[#692]: https://github.com/twilight-rs/twilight/pull/763
+
 ## [0.3.0] - 2021-01-08
 
 This major version bump of the Command Parser crate is done to match all of the
@@ -73,6 +102,7 @@ Initial release.
 [#515]: https://github.com/twilight-rs/twilight/pull/515
 [#511]: https://github.com/twilight-rs/twilight/pull/511
 
+[0.4.0]: https://github.com/twilight-rs/twilight/releases/tag/command-parser-0.4.0
 [0.3.0]: https://github.com/twilight-rs/twilight/releases/tag/command-parser-v0.3.0
 [0.2.2]: https://github.com/twilight-rs/twilight/releases/tag/command-parser-v0.2.2
 [0.2.1]: https://github.com/twilight-rs/twilight/releases/tag/command-parser-v0.2.1

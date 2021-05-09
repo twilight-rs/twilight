@@ -2,6 +2,62 @@
 
 Changelog for `twilight-lavalink`.
 
+## [0.4.0] - 2021-05-??
+
+### Upgrade Path
+
+The MSRV is now Rust 1.49.
+
+`Lavalink::player`, `PlayerManager::get`, and `PlayerManager::get_or_insert` now
+return `Player`s instead of `DashMap` references.
+
+`Player` has had some methods renamed:
+
+- `position_mut` has been renamed to `set_position` and accepts an `i64`
+- `time_ref` has been renamed to `time`
+- `time_mut` has been renamed to `set_time` and accepts an `i64`
+- `volume_ref` has been renamed to `volume`
+
+`Node::players` is no longer an async method.
+
+Errors are no longer enums and don't expose their concrete underlying error
+source. You can access the underlying error via the implemented
+`std::error::Error::source` method or the `into_parts` or `into_source` methods
+on each error struct, which will return a boxed `std::error::Error`. To access
+the reason for the error use the `kind` or `into_parts` method on error structs;
+the returned error type is an enum with variants for each potential reason the
+error occurred.
+
+### Additions
+
+Add `WebsocketClosed` incoming event ([#734] - [@james7132]).
+
+Add `Lavalink::disconnect` to disconnect from a given node, `Node::close` to
+close the connection to a node ([#742] - [@james7132]).
+
+### Enhancements
+
+The `futures-channel` dependency has been removed while the `async-tungstenite`
+dependency has been switched out for `tokio-tungstenite` to decrease the
+dependency tree ([#785] - [@Gelbpunkt]).
+
+### Changes
+
+Simplify player API by not exposing DashMap references and returning Players
+instead ([#693] - [@vivian]).
+
+Remove unnecessary `async` qualifier from `Node::players`
+([#731] - [@james7132]).
+
+`Node::drop` now removes the node from the Lavalink client
+([#742] - [@james7132]).
+
+[#785]: https://github.com/twilight-rs/twilight/pull/785
+[#742]: https://github.com/twilight-rs/twilight/pull/742
+[#734]: https://github.com/twilight-rs/twilight/pull/734
+[#731]: https://github.com/twilight-rs/twilight/pull/731
+[#693]: https://github.com/twilight-rs/twilight/pull/693
+
 ## [0.3.2] - 2021-04-12
 
 ### Fixes
@@ -82,6 +138,7 @@ crates in the ecosystem receiving a major version bump. There are no changes.
 
 Initial release.
 
+[@Gelbpunkt]: https://github.com/Gelbpunkt
 [@MOZGIII]: https://github.com/MOZGIII
 [@james7132]: https://github.com/james7132
 [@nickelc]: https://github.com/nickelc
@@ -92,6 +149,7 @@ Initial release.
 [#548]: https://github.com/twilight-rs/twilight/pull/548
 [#518]: https://github.com/twilight-rs/twilight/pull/518
 
+[0.4.0]: https://github.com/twilight-rs/twilight/releases/tag/lavalink-0.4.0
 [0.3.2]: https://github.com/twilight-rs/twilight/releases/tag/lavalink-v0.3.2
 [0.3.1]: https://github.com/twilight-rs/twilight/releases/tag/lavalink-v0.3.1
 [0.3.0]: https://github.com/twilight-rs/twilight/releases/tag/lavalink-v0.3.0

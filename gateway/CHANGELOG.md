@@ -2,6 +2,40 @@
 
 Changelog for `twilight-gateway`.
 
+## [0.4.0] - 2021-05-??
+
+### Upgrade Path
+
+The MSRV is now Rust 1.49.
+
+Errors are no longer enums and don't expose their concrete underlying error
+source. You can access the underlying error via the implemented
+`std::error::Error::source` method or the `into_parts` or `into_source` methods
+on each error struct, which will return a boxed `std::error::Error`. To access
+the reason for the error use the `kind` or `into_parts` method on error structs;
+the returned error type is an enum with variants for each potential reason the
+error occurred.
+
+### Additions
+
+Add `rustls-webki-roots` feature to use WebPKI roots for RusTLS
+([#720] - [@Gelbpunkt]).
+
+### Enhancements
+
+Update `simd-json` to 0.4 ([#786] - [@Gekbpunkt]).
+
+Update `metrics` to v0.14 ([#789] - [@james7132]).
+
+The `futures-channel` and `futures-timer` dependencies have been removed while
+the `async-tungstenite` dependency has been switched out for `tokio-tungstenite`
+to decrease the dependency tree ([#785] - [@Gelbpunkt]).
+
+[#789]: https://github.com/twilight-rs/twilight/pull/789
+[#786]: https://github.com/twilight-rs/twilight/pull/786
+[#785]: https://github.com/twilight-rs/twilight/pull/785
+[#720]: https://github.com/twilight-rs/twilight/pull/720
+
 ## [0.3.4] - 2021-04-04
 
 ### Additions
@@ -230,6 +264,7 @@ Initial release.
 [@dvtkrlbs]: https://github.com/dvtkrlbs
 [@Erk-]: https://github.com/Erk-
 [@Gelbpunkt]: https://github.com/Gelbpunkt
+[@james7132]: https://github.com/james7132
 [@nickelc]: https://github.com/nickelc
 [@tbnritzdoge]: https://github.com/tbnritzdoge
 [@vivian]: https://github.com/vivian
@@ -252,6 +287,7 @@ Initial release.
 [#515]: https://github.com/twilight-rs/twilight/pull/515
 [#512]: https://github.com/twilight-rs/twilight/pull/512
 
+[0.4.0]: https://github.com/twilight-rs/twilight/releases/tag/gateway-0.4.0
 [0.3.4]: https://github.com/twilight-rs/twilight/releases/tag/gateway-v0.3.4
 [0.3.3]: https://github.com/twilight-rs/twilight/releases/tag/gateway-v0.3.3
 [0.3.2]: https://github.com/twilight-rs/twilight/releases/tag/gateway-v0.3.2
