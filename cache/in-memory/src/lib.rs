@@ -536,6 +536,9 @@ impl InMemoryCache {
             GuildChannel::Voice(ref mut c) => {
                 c.guild_id.replace(guild_id);
             }
+            GuildChannel::Stage(ref mut c) => {
+                c.guild_id.replace(guild_id);
+            }
         }
 
         let id = channel.id();
@@ -666,6 +669,7 @@ impl InMemoryCache {
             member_count: guild.member_count,
             mfa_level: guild.mfa_level,
             name: guild.name,
+            nsfw: guild.nsfw,
             owner: guild.owner,
             owner_id: guild.owner_id,
             permissions: guild.permissions,
@@ -1072,6 +1076,7 @@ mod tests {
             suppress: false,
             token: None,
             user_id,
+            request_to_speak_timestamp: Some("2021-04-21T22:16:50+0000".to_owned()),
         }
     }
 
@@ -1125,6 +1130,7 @@ mod tests {
             members: Vec::new(),
             mfa_level: MfaLevel::Elevated,
             name: "this is a guild".to_owned(),
+            nsfw: false,
             owner: Some(false),
             owner_id: UserId(456),
             permissions: Some(Permissions::SEND_MESSAGES),

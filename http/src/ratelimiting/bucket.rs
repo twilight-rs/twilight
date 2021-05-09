@@ -205,7 +205,7 @@ impl BucketQueueTask {
     async fn handle_headers(&self, headers: &RatelimitHeaders) {
         let ratelimits = match headers {
             RatelimitHeaders::GlobalLimited { reset_after } => {
-                self.lock_global(*reset_after).await;
+                self.lock_global(Duration::from_secs(*reset_after)).await;
 
                 None
             }
@@ -218,7 +218,7 @@ impl BucketQueueTask {
                 ..
             } => {
                 if *global {
-                    self.lock_global(*reset_after).await;
+                    self.lock_global(Duration::from_secs(*reset_after)).await;
                 }
 
                 Some((*limit, *remaining, *reset_after))
@@ -229,11 +229,11 @@ impl BucketQueueTask {
         self.bucket.update(ratelimits).await;
     }
 
-    async fn lock_global(&self, wait: u64) {
+    async fn lock_global(&self, wait: Duration) {
         tracing::debug!(path=?self.path, "request got global ratelimited");
         self.global.lock();
         let lock = self.global.0.lock().await;
-        sleep(Duration::from_millis(wait)).await;
+        sleep(wait).await;
         self.global.unlock();
 
         drop(lock);

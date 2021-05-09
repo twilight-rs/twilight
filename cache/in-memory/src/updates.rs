@@ -268,6 +268,7 @@ impl UpdateCache for GuildUpdate {
             guild.max_presences = Some(self.max_presences.unwrap_or(25000));
             guild.mfa_level = self.mfa_level;
             guild.name = self.name.clone();
+            guild.nsfw = self.nsfw;
             guild.owner = self.owner;
             guild.owner_id = self.owner_id;
             guild.permissions = self.permissions;
@@ -363,6 +364,8 @@ impl UpdateCache for MemberUpdate {
         };
         let mut member = Arc::make_mut(&mut member);
 
+        member.deaf = self.deaf.unwrap_or(member.deaf);
+        member.mute = self.mute.unwrap_or(member.mute);
         member.nick = self.nick.clone();
         member.roles = self.roles.clone();
         member.joined_at.replace(self.joined_at.clone());
@@ -904,6 +907,7 @@ mod tests {
             members: Vec::new(),
             mfa_level: MfaLevel::None,
             name: "test".to_owned(),
+            nsfw: false,
             owner_id: UserId(1),
             owner: None,
             permissions: None,
@@ -945,6 +949,7 @@ mod tests {
             member_count: guild.member_count,
             mfa_level: guild.mfa_level,
             name: "test2222".to_owned(),
+            nsfw: guild.nsfw,
             owner_id: UserId(2),
             owner: guild.owner,
             permissions: guild.permissions,
@@ -1023,6 +1028,7 @@ mod tests {
             suppress: false,
             token: None,
             user_id: UserId(1),
+            request_to_speak_timestamp: Some("2021-04-21T22:16:50+0000".to_owned()),
         }));
     }
 
@@ -1070,6 +1076,7 @@ mod tests {
             suppress: false,
             token: None,
             user_id: UserId(3),
+            request_to_speak_timestamp: Some("2021-04-21T22:16:50+0000".to_owned()),
         });
 
         cache.update(&mutation);

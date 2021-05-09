@@ -67,6 +67,7 @@ macro_rules! poll_req {
 pub mod channel;
 pub mod guild;
 pub mod prelude;
+pub mod template;
 pub mod user;
 
 mod audit_reason;

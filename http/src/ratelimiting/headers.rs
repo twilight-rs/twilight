@@ -6,6 +6,7 @@ use std::convert::TryFrom;
 #[non_exhaustive]
 pub enum RatelimitHeaders {
     GlobalLimited {
+        /// Number of seconds until the global ratelimit resets.
         reset_after: u64,
     },
     None,
@@ -16,7 +17,7 @@ pub enum RatelimitHeaders {
         remaining: u64,
         // when the bucket resets in unix ms
         reset: u64,
-        // how long until it resets in ms
+        /// Number of seconds until the bucket resets.
         reset_after: u64,
     },
 }
@@ -83,10 +84,17 @@ impl TryFrom<&'_ HeaderMap<HeaderValue>> for RatelimitHeaders {
 
 #[allow(clippy::cast_possible_truncation)]
 fn parse_map(map: &HeaderMap<HeaderValue>) -> RatelimitResult<RatelimitHeaders> {
+    if let Ok(true) = header_bool(map, "x-ratelimit-global") {
+        let retry_after = header_int(map, "retry-after")?;
+
+        return Ok(RatelimitHeaders::GlobalLimited {
+            reset_after: retry_after,
+        });
+    }
+
     let bucket = header_str(map, "x-ratelimit-bucket")
         .ok()
         .map(ToOwned::to_owned);
-    let global = header_bool(map, "x-ratelimit-global").unwrap_or(false);
     let limit = header_int(map, "x-ratelimit-limit")?;
     let remaining = header_int(map, "x-ratelimit-remaining")?;
     let reset = header_float(map, "x-ratelimit-reset")?;
@@ -98,7 +106,7 @@ fn parse_map(map: &HeaderMap<HeaderValue>) -> RatelimitResult<RatelimitHeaders> 
 
     Ok(RatelimitHeaders::Present {
         bucket,
-        global,
+        global: false,
         limit,
         remaining,
         reset,
@@ -176,4 +184,35 @@ fn header_str<'a>(map: &'a HeaderMap<HeaderValue>, name: &'static str) -> Rateli
     })?;
 
     Ok(text)
+}
+
+#[cfg(test)]
+mod tests {
+    use super::RatelimitHeaders;
+    use hyper::header::{HeaderMap, HeaderName, HeaderValue};
+    use std::{convert::TryFrom, error::Error};
+
+    #[test]
+    fn test_global() -> Result<(), Box<dyn Error>> {
+        let map = {
+            let mut map = HeaderMap::new();
+            map.insert(
+                HeaderName::from_static("x-ratelimit-global"),
+                HeaderValue::from_static("true"),
+            );
+            map.insert(
+                HeaderName::from_static("retry-after"),
+                HeaderValue::from_static("65"),
+            );
+
+            map
+        };
+
+        let headers = RatelimitHeaders::try_from(&map)?;
+        assert!(
+            matches!(headers, RatelimitHeaders::GlobalLimited { reset_after } if reset_after == 65)
+        );
+
+        Ok(())
+    }
 }

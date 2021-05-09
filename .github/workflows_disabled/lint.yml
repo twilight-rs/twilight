@@ -1,21 +1,21 @@
-name: Lint
+name: Lint (Beta)
 
 on: [push, pull_request]
 
 jobs:
-  clippy:
-    name: Clippy
+  clippy-beta:
+    name: Clippy (beta)
     runs-on: ubuntu-latest
 
     steps:
       - name: Checkout sources
         uses: actions/checkout@v2
 
-      - name: Install stable toolchain
+      - name: Install beta toolchain
         id: toolchain
         uses: actions-rs/toolchain@v1
         with:
-          toolchain: stable
+          toolchain: beta
           components: clippy
           profile: minimal
           override: true
@@ -35,21 +35,3 @@ jobs:
           token: ${{ secrets.GITHUB_TOKEN }}
           args: --workspace --tests
 
-  rustfmt:
-    name: Format
-    runs-on: ubuntu-latest
-
-    steps:
-      - name: Checkout sources
-        uses: actions/checkout@v2
-
-      - name: Install stable toolchain
-        uses: actions-rs/toolchain@v1
-        with:
-          toolchain: stable
-          components: rustfmt
-          profile: minimal
-          override: true
-
-      - name: Run cargo fmt
-        run: cargo fmt --all -- --check

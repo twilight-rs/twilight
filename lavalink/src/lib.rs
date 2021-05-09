@@ -95,7 +95,7 @@
 //! }
 //! ```
 //!
-//! [Lavalink]: https://github.com/Frederikam/Lavalink
+//! [Lavalink]: https://github.com/freyacodes/Lavalink
 //! [`async-tungstenite`]: https://crates.io/crates/async-tungstenite
 //! [`http`]: https://crates.io/crates/http
 //! [`rustls`]: https://crates.io/crates/rustls

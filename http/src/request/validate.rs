@@ -330,6 +330,10 @@ pub fn get_guild_members_limit(value: u64) -> bool {
     (1..=1000).contains(&value)
 }
 
+pub fn search_guild_members_limit(value: u64) -> bool {
+    value > 0 && value <= 1000
+}
+
 pub fn get_reactions_limit(value: u64) -> bool {
     // <https://discordapp.com/developers/docs/resources/channel#get-reactions-query-string-params>
     (1..=100).contains(&value)
@@ -381,6 +385,28 @@ fn _username(value: &str) -> bool {
     let len = value.chars().count();
 
     (2..=32).contains(&len)
+}
+
+pub fn template_name(value: impl AsRef<str>) -> bool {
+    _template_name(value.as_ref())
+}
+
+fn _template_name(value: &str) -> bool {
+    let len = value.chars().count();
+
+    // <https://discord.com/developers/docs/resources/template#create-guild-template-json-params>
+    (1..=100).contains(&len)
+}
+
+pub fn template_description(value: impl AsRef<str>) -> bool {
+    _template_name(value.as_ref())
+}
+
+fn _template_description(value: &str) -> bool {
+    let len = value.chars().count();
+
+    // <https://discord.com/developers/docs/resources/template#create-guild-template-json-params>
+    (0..=120).contains(&len)
 }
 
 #[cfg(test)]

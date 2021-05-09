@@ -2,6 +2,67 @@
 
 Changelog for `twilight-model`.
 
+## [0.3.7] - 2021-04-27
+
+### Additions
+
+Support the `MemberUpdate::{deaf, mute}` fields ([#774] - [@7596ff]).
+
+Support guild stage channels, add `REQUEST_TO_SPEAK` permission
+([#793] - [@james7132]).
+
+Support the `USE_SLASH_COMMANDS` permission ([#794] - [@james7132]).
+
+[#794]: https://github.com/twilight-rs/twilight/pull/794
+[#793]: https://github.com/twilight-rs/twilight/pull/793
+[#774]: https://github.com/twilight-rs/twilight/pull/774
+
+## [0.3.6] - 2021-04-22
+
+### Upgrade Path
+
+Handle the newly optional `AuditLogEntry::user_id` and
+`Attachment::{height, width}` fields.
+
+Don't use the `SYSTEM` user flag variant or the `Sticker::preview_asset` field.
+
+### Additions
+
+Support `VoiceChannel::video_quality_mode` to denote the streamed quality mode
+([#778] - [@vivian]).
+
+Support `VoiceChannel::rtc_region` ([#779] - [@vivian]).
+
+Support `Guild::nsfw` ([#775] - [@7596ff]).
+
+Support `Attachment::content_type` ([#773] - [@7596ff]).
+
+Support guild templates via the `template` module ([#736] - [@7596ff]).
+
+### Fixes
+
+`AuditLogEntry::user_id` is now wrapped in an `Option` due to a Discord API
+change ([#769] - [@vivian]).
+
+`Attachment::height` and `Attachment::width` are now wrapped in an `Option` due
+to a Discord API change ([#776] - [@7596ff]).
+
+Remove the `UserFlag::SYSTEM` variant due to a Discord API change
+([#777] - [@7596ff]).
+
+Remove the `Sticker::preview_asset` field due to a Discord API change
+([#781] - [@7596ff]).
+
+[#781]: https://github.com/twilight-rs/twilight/pull/781
+[#779]: https://github.com/twilight-rs/twilight/pull/779
+[#778]: https://github.com/twilight-rs/twilight/pull/778
+[#777]: https://github.com/twilight-rs/twilight/pull/777
+[#776]: https://github.com/twilight-rs/twilight/pull/776
+[#775]: https://github.com/twilight-rs/twilight/pull/775
+[#773]: https://github.com/twilight-rs/twilight/pull/773
+[#769]: https://github.com/twilight-rs/twilight/pull/769
+[#736]: https://github.com/twilight-rs/twilight/pull/736
+
 ## [0.3.5] - 2021-04-12
 
 ### Additions
@@ -338,6 +399,7 @@ Initial release.
 [@Gelbpunkt]: https://github.com/Gelbpunkt
 [@chamburr]: https://github.com/chamburr
 [@coadler]: https://github.com/coadler
+[@james7132]: https://github.com/james7132
 [@jazevedo620]: https://github.com/jazevedo620
 [@kotx]: https://github.com/kotx
 [@nickelc]: https://github.com/nickelc
@@ -368,6 +430,7 @@ Initial release.
 
 [0.2.0-beta.1:app integrations]: https://github.com/discord/discord-api-docs/commit/a926694e2f8605848bda6b57d21c8817559e5cec
 
+[0.3.7]: https://github.com/twilight-rs/twilight/releases/tag/model-v0.3.7
 [0.3.5]: https://github.com/twilight-rs/twilight/releases/tag/model-v0.3.5
 [0.3.4]: https://github.com/twilight-rs/twilight/releases/tag/model-v0.3.4
 [0.3.3]: https://github.com/twilight-rs/twilight/releases/tag/model-v0.3.3

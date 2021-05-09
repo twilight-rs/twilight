@@ -237,7 +237,7 @@ pub mod outgoing {
         ///
         /// This currently [does nothing] as of this writing.
         ///
-        /// [does nothing]: https://github.com/Frederikam/Lavalink/issues/179
+        /// [does nothing]: https://github.com/freyacodes/Lavalink/issues/179
         #[serde(skip_serializing_if = "Option::is_none")]
         pub end_time: Option<u64>,
         /// The guild ID of the player.

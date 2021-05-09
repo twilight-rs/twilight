@@ -208,7 +208,7 @@ tracing_log::LogTracer::init()?;
 All first-party crates are licensed under [ISC][LICENSE.md]
 
 [LICENSE.md]: https://github.com/twilight-rs/twilight/blob/trunk/LICENSE.md
-[Lavalink]: https://github.com/Frederikam/Lavalink
+[Lavalink]: https://github.com/freyacodes/Lavalink
 [`http`]: https://crates.io/crates/http
 [discord badge]: https://img.shields.io/discord/745809834183753828?color=%237289DA&label=discord%20server&logo=discord&style=for-the-badge
 [discord link]: https://discord.gg/7jj8n7D

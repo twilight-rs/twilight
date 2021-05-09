@@ -85,6 +85,7 @@ pub struct Guild {
     pub members: Vec<Member>,
     pub mfa_level: MfaLevel,
     pub name: String,
+    pub nsfw: bool,
     pub owner_id: UserId,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub owner: Option<bool>,
@@ -145,6 +146,7 @@ impl<'de> Deserialize<'de> for Guild {
             Members,
             MfaLevel,
             Name,
+            Nsfw,
             OwnerId,
             Owner,
             Permissions,
@@ -201,6 +203,7 @@ impl<'de> Deserialize<'de> for Guild {
                 let mut members = None;
                 let mut mfa_level = None;
                 let mut name = None;
+                let mut nsfw = None;
                 let mut owner = None::<Option<_>>;
                 let mut owner_id = None;
                 let mut permissions = None::<Option<_>>;
@@ -418,6 +421,13 @@ impl<'de> Deserialize<'de> for Guild {
 
                             name = Some(map.next_value()?);
                         }
+                        Field::Nsfw => {
+                            if nsfw.is_some() {
+                                return Err(DeError::duplicate_field("nsfw"));
+                            }
+
+                            nsfw = Some(map.next_value()?);
+                        }
                         Field::Owner => {
                             if owner.is_some() {
                                 return Err(DeError::duplicate_field("owner"));
@@ -593,6 +603,7 @@ impl<'de> Deserialize<'de> for Guild {
                 let max_video_channel_users = max_video_channel_users.unwrap_or_default();
                 let member_count = member_count.unwrap_or_default();
                 let mut members = members.unwrap_or_default();
+                let nsfw = nsfw.unwrap_or_default();
                 let owner = owner.unwrap_or_default();
                 let permissions = permissions.unwrap_or_default();
                 let premium_subscription_count = premium_subscription_count.unwrap_or_default();
@@ -665,7 +676,7 @@ impl<'de> Deserialize<'de> for Guild {
                         GuildChannel::Text(c) => {
                             c.guild_id.replace(id);
                         }
-                        GuildChannel::Voice(c) => {
+                        GuildChannel::Voice(c) | GuildChannel::Stage(c) => {
                             c.guild_id.replace(id);
                         }
                     }
@@ -708,6 +719,7 @@ impl<'de> Deserialize<'de> for Guild {
                     members,
                     mfa_level,
                     name,
+                    nsfw,
                     owner_id,
                     owner,
                     permissions,
@@ -756,6 +768,7 @@ impl<'de> Deserialize<'de> for Guild {
             "members",
             "mfa_level",
             "name",
+            "nsfw",
             "owner",
             "owner_id",
             "permissions",
@@ -817,6 +830,7 @@ mod tests {
             members: Vec::new(),
             mfa_level: MfaLevel::Elevated,
             name: "the name".to_owned(),
+            nsfw: false,
             owner_id: UserId(5),
             owner: Some(false),
             permissions: Some(Permissions::SEND_MESSAGES),
@@ -843,7 +857,7 @@ mod tests {
             &[
                 Token::Struct {
                     name: "Guild",
-                    len: 43,
+                    len: 44,
                 },
                 Token::Str("afk_channel_id"),
                 Token::Some,
@@ -916,6 +930,8 @@ mod tests {
                 Token::U8(1),
                 Token::Str("name"),
                 Token::Str("the name"),
+                Token::Str("nsfw"),
+                Token::Bool(false),
                 Token::Str("owner_id"),
                 Token::NewtypeStruct { name: "UserId" },
                 Token::Str("5"),

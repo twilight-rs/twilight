@@ -27,6 +27,7 @@ pub struct CachedGuild {
     pub member_count: Option<u64>,
     pub mfa_level: MfaLevel,
     pub name: String,
+    pub nsfw: bool,
     pub owner: Option<bool>,
     pub owner_id: UserId,
     pub permissions: Option<Permissions>,

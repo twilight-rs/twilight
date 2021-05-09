@@ -38,6 +38,8 @@ bitflags! {
         const MANAGE_ROLES = 0x1000_0000;
         const MANAGE_WEBHOOKS = 0x2000_0000;
         const MANAGE_EMOJIS = 0x4000_0000;
+        const USE_SLASH_COMMANDS = 0x8000_0000;
+        const REQUEST_TO_SPEAK = 0x10000_0000;
     }
 }
 
