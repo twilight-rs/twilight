@@ -6,7 +6,7 @@ pub struct ThreadMember {
     pub id: ChannelId,
     pub user_id: UserId,
     pub join_timestamp: String,
-    pub flags: usize, // Values currently unknown and undocumented
+    pub flags: u64, // Values currently unknown and undocumented
 }
 
 #[cfg(test)]

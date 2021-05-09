@@ -1,6 +1,6 @@
 use serde::{Deserialize, Serialize};
 use crate::id::{GuildId, ChannelId, MessageId, UserId};
-use crate::channel::{ChannelType, ThreadMetadata};
+use crate::channel::{ChannelType, ThreadMember, ThreadMetadata};
 
 #[derive(Clone, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
 pub struct PublicThread {
@@ -17,12 +17,13 @@ pub struct PublicThread {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub last_message_id: Option<MessageId>,
     pub message_count: u8,
-    // Max value of 50
+    /// Max value of 50.
     pub member_count: u8,
-    // Max value of 50
+    /// Max value of 50.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub rate_limit_per_user: Option<u64>,
     pub thread_metadata: ThreadMetadata,
+    pub member: ThreadMember,
 }
 
 #[cfg(test)]
@@ -30,10 +31,9 @@ mod tests {
     use super::PublicThread;
     use serde_test::Token;
     use crate::{
-        channel::{AutoArchiveDuration, ThreadMetadata},
+        channel::{AutoArchiveDuration, ChannelType, ThreadMember, ThreadMetadata},
         id::{ChannelId, GuildId, MessageId, UserId},
     };
-    use crate::channel::ChannelType;
 
     #[test]
     fn test_public_thread() {
@@ -55,6 +55,12 @@ mod tests {
                 archive_timestamp: "123".to_string(),
                 locked: true,
             },
+            member: ThreadMember {
+                id: ChannelId(10),
+                user_id: UserId(11),
+                join_timestamp: "456".to_owned(),
+                flags: 12
+            },
         };
 
         serde_test::assert_tokens(
@@ -62,7 +68,7 @@ mod tests {
             &[
                 Token::Struct {
                     name: "PublicThread",
-                    len: 11,
+                    len: 12,
                 },
                 Token::Str("id"),
                 Token::NewtypeStruct { name: "ChannelId" },
@@ -111,6 +117,22 @@ mod tests {
                 Token::Str("123"),
                 Token::Str("locked"),
                 Token::Bool(true),
+                Token::StructEnd,
+                Token::Str("member"),
+                Token::Struct {
+                    name: "ThreadMember",
+                    len: 4,
+                },
+                Token::Str("id"),
+                Token::NewtypeStruct { name: "ChannelId" },
+                Token::Str("10"),
+                Token::Str("user_id"),
+                Token::NewtypeStruct { name: "UserId" },
+                Token::Str("11"),
+                Token::Str("join_timestamp"),
+                Token::Str("456"),
+                Token::Str("flags"),
+                Token::U64(12),
                 Token::StructEnd,
                 Token::StructEnd,
             ],

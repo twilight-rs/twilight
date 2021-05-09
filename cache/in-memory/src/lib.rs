@@ -994,6 +994,7 @@ mod tests {
         user::{CurrentUser, User},
         voice::VoiceState,
     };
+    use twilight_model::channel::ThreadMember;
 
     fn current_user(id: u64) -> CurrentUser {
         CurrentUser {
@@ -1139,6 +1140,12 @@ mod tests {
                 auto_archive_duration: AutoArchiveDuration::Hour,
                 archive_timestamp: "".to_string(),
                 locked: false
+            },
+            member: ThreadMember {
+                id: ChannelId(1),
+                user_id: UserId(2),
+                join_timestamp: "".to_string(),
+                flags: 0
             }
         })]);
 
