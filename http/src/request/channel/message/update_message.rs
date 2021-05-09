@@ -125,7 +125,7 @@ impl<'a> UpdateMessage<'a> {
         }
     }
 
-    /// Specify an attachment to keep.
+    /// Specify an attachment already present in the target message to keep.
     ///
     /// If called, all unspecified attachments will be removed from the message.
     /// If not called, all attachments will be kept.
@@ -135,7 +135,7 @@ impl<'a> UpdateMessage<'a> {
         self
     }
 
-    /// Specify multiple attachments to keep.
+    /// Specify multiple attachments already present in the target message to keep.
     ///
     /// If called, all unspecified attachments will be removed from the message.
     /// If not called, all attachments will be kept.

@@ -131,6 +131,52 @@ impl<'a> ExecuteWebhook<'a> {
     /// If this method is called, all other fields are ignored, except for
     /// [`file`]. See [Discord Docs/Create Message].
     ///
+    /// # Examples
+    ///
+    /// Without [`payload_json`]:
+    ///
+    /// ```rust,no_run
+    /// use twilight_embed_builder::EmbedBuilder;
+    /// # use twilight_http::Client;
+    /// use twilight_http::request::channel::allowed_mentions::AllowedMentions;
+    /// use twilight_model::id::{MessageId, WebhookId};
+    ///
+    /// # #[tokio::main]
+    /// # async fn main() -> Result<(), Box<dyn std::error::Error>> {
+    /// # let client = Client::new("token");
+    /// let message = client.execute_webhook(WebhookId(1), "token here")
+    ///     .content("some content")
+    ///     .embeds(vec![EmbedBuilder::new().title("title")?.build()?])
+    ///     .wait(true)
+    ///     .await?
+    ///     .unwrap();
+    ///
+    /// assert_eq!(message.content, "some content");
+    /// # Ok(()) }
+    /// ```
+    ///
+    /// With [`payload_json`]:
+    ///
+    /// ```rust,no_run
+    /// # use twilight_http::Client;
+    /// use twilight_http::request::channel::allowed_mentions::AllowedMentions;
+    /// use twilight_model::id::{MessageId, WebhookId};
+    ///
+    /// # #[tokio::main]
+    /// # async fn main() -> Result<(), Box<dyn std::error::Error>> {
+    /// # let client = Client::new("token");
+    /// let message = client.execute_webhook(WebhookId(1), "token here")
+    ///     .content("some content")
+    ///     .payload_json(r#"{ "content": "other content", "embeds": [ { "title": "title" } ] }"#)
+    ///     .wait(true)
+    ///     .await?
+    ///     .unwrap();
+    ///
+    /// assert_eq!(message.content, "other content");
+    /// # Ok(()) }
+    /// ```
+    ///
+    /// [`payload_json`]: Self::payload_json
     /// [Discord Docs/Create Message]: https://discord.com/developers/docs/resources/channel#create-message-params
     pub fn payload_json(mut self, payload_json: impl Into<Vec<u8>>) -> Self {
         self.fields.payload_json.replace(payload_json.into());
