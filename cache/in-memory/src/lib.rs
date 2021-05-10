@@ -53,11 +53,13 @@ pub mod model;
 
 mod builder;
 mod config;
+mod stats;
 mod updates;
 
 pub use self::{
     builder::InMemoryCacheBuilder,
     config::{Config, ResourceType},
+    stats::InMemoryCacheStats,
     updates::UpdateCache,
 };
 
@@ -234,6 +236,25 @@ impl InMemoryCache {
     /// Returns a copy of the config cache.
     pub fn config(&self) -> Config {
         (*self.0.config).clone()
+    }
+
+    /// Create an interface for retrieving statistics about the cache.
+    ///
+    /// # Examples
+    ///
+    /// Print the number of guilds in a cache:
+    ///
+    /// ```
+    /// use twilight_cache_inmemory::InMemoryCache;
+    ///
+    /// let cache = InMemoryCache::new();
+    ///
+    /// // later on...
+    /// let guilds = cache.stats().guilds();
+    /// println!("guild count: {}", guilds);
+    /// ```
+    pub const fn stats(&self) -> InMemoryCacheStats<'_> {
+        InMemoryCacheStats::new(self)
     }
 
     /// Update the cache with an event from the gateway.
