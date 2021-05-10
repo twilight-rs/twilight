@@ -4,16 +4,13 @@ use serde::{
     ser::{Serialize, Serializer},
 };
 
-
 #[derive(Clone, Copy, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
 pub enum AutoArchiveDuration {
     Hour,
     Day,
     ThreeDays,
     Week,
-    Unknown {
-        value: u16,
-    },
+    Unknown { value: u16 },
 }
 
 impl AutoArchiveDuration {
@@ -51,7 +48,9 @@ impl From<u16> for AutoArchiveDuration {
 
 impl<'de> Deserialize<'de> for AutoArchiveDuration {
     fn deserialize<D: Deserializer<'de>>(deserializer: D) -> Result<Self, D::Error> {
-        deserializer.deserialize_u16(U16EnumVisitor::new("auto archive duration")).map(u16::into)
+        deserializer
+            .deserialize_u16(U16EnumVisitor::new("auto archive duration"))
+            .map(u16::into)
     }
 }
 

@@ -715,12 +715,12 @@ impl UpdateCache for ThreadListSync {
             return;
         }
 
-        let threads: Vec<GuildChannel> = self.threads.iter()
-            .filter_map(|c| {
-                match &c {
-                    Channel::Guild(c) => Some(c.clone()),
-                    _ => None
-                }
+        let threads: Vec<GuildChannel> = self
+            .threads
+            .iter()
+            .filter_map(|c| match &c {
+                Channel::Guild(c) => Some(c.clone()),
+                _ => None,
             })
             .collect();
 

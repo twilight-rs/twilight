@@ -1,5 +1,5 @@
-use serde::{Deserialize, Serialize};
 use crate::id::{ChannelId, UserId};
+use serde::{Deserialize, Serialize};
 
 #[derive(Clone, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
 pub struct ThreadMember {
@@ -32,14 +32,10 @@ mod tests {
                     len: 4,
                 },
                 Token::Str("id"),
-                Token::NewtypeStruct {
-                    name: "ChannelId",
-                },
+                Token::NewtypeStruct { name: "ChannelId" },
                 Token::Str("1"),
                 Token::Str("user_id"),
-                Token::NewtypeStruct {
-                    name: "UserId",
-                },
+                Token::NewtypeStruct { name: "UserId" },
                 Token::Str("2"),
                 Token::Str("join_timestamp"),
                 Token::Str("123"),

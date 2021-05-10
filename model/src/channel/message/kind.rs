@@ -165,10 +165,19 @@ mod tests {
             MessageType::try_from(17).unwrap(),
             MessageType::GuildDiscoveryGracePeriodFinalWarning
         );
-        assert_eq!(MessageType::try_from(18).unwrap(), MessageType::ThreadCreated);
+        assert_eq!(
+            MessageType::try_from(18).unwrap(),
+            MessageType::ThreadCreated
+        );
         assert_eq!(MessageType::try_from(19).unwrap(), MessageType::Reply);
-        assert_eq!(MessageType::try_from(20).unwrap(), MessageType::ApplicationCommand);
-        assert_eq!(MessageType::try_from(21).unwrap(), MessageType::ThreadStarterMessage);
+        assert_eq!(
+            MessageType::try_from(20).unwrap(),
+            MessageType::ApplicationCommand
+        );
+        assert_eq!(
+            MessageType::try_from(21).unwrap(),
+            MessageType::ThreadStarterMessage
+        );
         assert_eq!(
             MessageType::try_from(22).unwrap(),
             MessageType::GuildInviteReminder

@@ -26,7 +26,7 @@ mod webhook_type;
 pub use self::{
     attachment::Attachment, auto_archive_duration::AutoArchiveDuration,
     category_channel::CategoryChannel, channel_mention::ChannelMention, channel_type::ChannelType,
-    followed_channel::FollowedChannel, group::Group, news_thread::NewsThread, message::Message,
+    followed_channel::FollowedChannel, group::Group, message::Message, news_thread::NewsThread,
     private_channel::PrivateChannel, private_thread::PrivateThread, public_thread::PublicThread,
     reaction::Reaction, reaction_type::ReactionType, text_channel::TextChannel,
     thread_member::ThreadMember, thread_metadata::ThreadMetadata,
@@ -682,7 +682,7 @@ mod tests {
                 "position": 3,
                 "type": 4,
             }))
-                .unwrap()
+            .unwrap()
         );
     }
 
@@ -718,7 +718,7 @@ mod tests {
                 "topic": "a news channel",
                 "type": ChannelType::GuildNews,
             }))
-                .unwrap()
+            .unwrap()
         );
     }
 
@@ -752,7 +752,7 @@ mod tests {
                 "topic": "a store channel",
                 "type": ChannelType::GuildStore,
             }))
-                .unwrap()
+            .unwrap()
         );
     }
 }

@@ -1,9 +1,6 @@
 use serde::{Deserialize, Serialize};
 
-use crate::{
-    channel::AutoArchiveDuration,
-    id::UserId,
-};
+use crate::{channel::AutoArchiveDuration, id::UserId};
 
 #[derive(Clone, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
 pub struct ThreadMetadata {
@@ -19,10 +16,7 @@ pub struct ThreadMetadata {
 #[cfg(test)]
 mod tests {
     use super::ThreadMetadata;
-    use crate::{
-        channel::AutoArchiveDuration,
-        id::UserId,
-    };
+    use crate::{channel::AutoArchiveDuration, id::UserId};
     use serde_test::Token;
 
     #[test]
@@ -46,9 +40,7 @@ mod tests {
                 Token::Bool(true),
                 Token::Str("archiver_id"),
                 Token::Some,
-                Token::NewtypeStruct {
-                    name: "UserId",
-                },
+                Token::NewtypeStruct { name: "UserId" },
                 Token::Str("1"),
                 Token::Str("auto_archive_duration"),
                 Token::U16(1440),

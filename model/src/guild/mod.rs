@@ -724,7 +724,11 @@ impl<'de> Deserialize<'de> for Guild {
                             c.guild_id.replace(id);
                         }
 
-                        _ => return Err(DeError::custom("non-thread channel found in threads field"))
+                        _ => {
+                            return Err(DeError::custom(
+                                "non-thread channel found in threads field",
+                            ))
+                        }
                     }
                 }
 

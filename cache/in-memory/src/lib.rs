@@ -979,6 +979,7 @@ fn presence_user_id(presence: &Presence) -> UserId {
 mod tests {
     use crate::InMemoryCache;
     use std::borrow::Cow;
+    use twilight_model::channel::ThreadMember;
     use twilight_model::{
         channel::{
             AutoArchiveDuration, ChannelType, GuildChannel, PublicThread, TextChannel,
@@ -993,7 +994,6 @@ mod tests {
         user::{CurrentUser, User},
         voice::VoiceState,
     };
-    use twilight_model::channel::ThreadMember;
 
     fn current_user(id: u64) -> CurrentUser {
         CurrentUser {
@@ -1138,14 +1138,14 @@ mod tests {
                 archiver_id: None,
                 auto_archive_duration: AutoArchiveDuration::Hour,
                 archive_timestamp: "".to_string(),
-                locked: false
+                locked: false,
             },
             member: ThreadMember {
                 id: ChannelId(1),
                 user_id: UserId(2),
                 join_timestamp: "".to_string(),
-                flags: 0
-            }
+                flags: 0,
+            },
         })]);
 
         let guild = Guild {

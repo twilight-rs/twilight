@@ -1,8 +1,8 @@
-use serde::{Deserialize, Serialize};
-use crate::id::{GuildId, ChannelId, MessageId, UserId};
 use crate::channel::{
     permission_overwrite::PermissionOverwrite, ChannelType, ThreadMember, ThreadMetadata,
 };
+use crate::id::{ChannelId, GuildId, MessageId, UserId};
+use serde::{Deserialize, Serialize};
 
 #[derive(Clone, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
 pub struct PrivateThread {
@@ -32,11 +32,11 @@ pub struct PrivateThread {
 #[cfg(test)]
 mod tests {
     use super::PrivateThread;
-    use serde_test::Token;
     use crate::{
         channel::{AutoArchiveDuration, ChannelType, ThreadMember, ThreadMetadata},
         id::{ChannelId, GuildId, MessageId, UserId},
     };
+    use serde_test::Token;
 
     #[test]
     fn test_public_thread() {
@@ -63,7 +63,7 @@ mod tests {
                 id: ChannelId(10),
                 user_id: UserId(11),
                 join_timestamp: "456".to_owned(),
-                flags: 12
+                flags: 12,
             },
         };
 
