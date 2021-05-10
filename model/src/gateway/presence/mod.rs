@@ -1,6 +1,7 @@
+pub mod activity_button;
+
 mod activity;
 mod activity_assets;
-mod activity_button;
 mod activity_emoji;
 mod activity_flags;
 mod activity_party;
