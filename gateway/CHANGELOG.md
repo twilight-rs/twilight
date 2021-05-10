@@ -287,7 +287,7 @@ Initial release.
 [#515]: https://github.com/twilight-rs/twilight/pull/515
 [#512]: https://github.com/twilight-rs/twilight/pull/512
 
-[0.4.0]: https://github.com/twilight-rs/twilight/releases/tag/gateway-v0.4.0
+[0.4.0]: https://github.com/twilight-rs/twilight/releases/tag/gateway-0.4.0
 [0.3.4]: https://github.com/twilight-rs/twilight/releases/tag/gateway-v0.3.4
 [0.3.3]: https://github.com/twilight-rs/twilight/releases/tag/gateway-v0.3.3
 [0.3.2]: https://github.com/twilight-rs/twilight/releases/tag/gateway-v0.3.2

@@ -49,7 +49,7 @@ Initial release.
 
 [@vivian]: https://github.com/vivian
 
-[0.4.0]: https://github.com/twilight-rs/twilight/releases/tag/util-v0.4.0
+[0.4.0]: https://github.com/twilight-rs/twilight/releases/tag/util-0.4.0
 [0.3.0]: https://github.com/twilight-rs/twilight/releases/tag/util-v0.3.0
 [0.2.0]: https://github.com/twilight-rs/twilight/releases/tag/util-v0.2.0
 [0.2.0-beta.0]: https://github.com/twilight-rs/twilight/releases/tag/util-v0.2.0-beta.0

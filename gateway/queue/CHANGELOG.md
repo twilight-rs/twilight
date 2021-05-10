@@ -55,7 +55,7 @@ Initial release.
 
 [#595]: https://github.com/twilight-rs/twilight/pull/595
 
-[0.4.0]: https://github.com/twilight-rs/twilight/releases/tag/gateway-queue-v0.4.0
+[0.4.0]: https://github.com/twilight-rs/twilight/releases/tag/gateway-queue-0.4.0
 [0.3.0]: https://github.com/twilight-rs/twilight/releases/tag/gateway-queue-v0.3.0
 [0.2.1]: https://github.com/twilight-rs/twilight/releases/tag/gateway-queue-v0.2.1
 [0.2.0]: https://github.com/twilight-rs/twilight/releases/tag/gateway-queue-v0.2.0

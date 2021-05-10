@@ -71,7 +71,7 @@ crates in the ecosystem receiving a major version bump. There are no changes.
 
 Initial release.
 
-[0.4.0]: https://github.com/twilight-rs/twilight/releases/tag/embed-builder-v0.4.0
+[0.4.0]: https://github.com/twilight-rs/twilight/releases/tag/embed-builder-0.4.0
 [0.3.0]: https://github.com/twilight-rs/twilight/releases/tag/v0.3.0
 [0.2.0]: https://github.com/twilight-rs/twilight/releases/tag/v0.2.0
 [0.1.0]: https://github.com/twilight-rs/twilight/releases/tag/v0.1.0

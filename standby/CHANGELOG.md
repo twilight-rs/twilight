@@ -74,7 +74,7 @@ Initial release.
 [#624]: https://github.com/twilight-rs/twilight/pull/624
 [#523]: https://github.com/twilight-rs/twilight/pull/523
 
-[0.4.0]: https://github.com/twilight-rs/twilight/releases/tag/standby-v0.4.0
+[0.4.0]: https://github.com/twilight-rs/twilight/releases/tag/standby-0.4.0
 [0.3.0]: https://github.com/twilight-rs/twilight/releases/tag/standby-v0.3.0
 [0.2.2]: https://github.com/twilight-rs/twilight/releases/tag/standby-v0.2.2
 [0.2.1]: https://github.com/twilight-rs/twilight/releases/tag/standby-v0.2.1

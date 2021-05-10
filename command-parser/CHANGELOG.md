@@ -102,7 +102,7 @@ Initial release.
 [#515]: https://github.com/twilight-rs/twilight/pull/515
 [#511]: https://github.com/twilight-rs/twilight/pull/511
 
-[0.4.0]: https://github.com/twilight-rs/twilight/releases/tag/command-parser-v0.4.0
+[0.4.0]: https://github.com/twilight-rs/twilight/releases/tag/command-parser-0.4.0
 [0.3.0]: https://github.com/twilight-rs/twilight/releases/tag/command-parser-v0.3.0
 [0.2.2]: https://github.com/twilight-rs/twilight/releases/tag/command-parser-v0.2.2
 [0.2.1]: https://github.com/twilight-rs/twilight/releases/tag/command-parser-v0.2.1
