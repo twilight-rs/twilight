@@ -46,6 +46,12 @@ impl From<u16> for AutoArchiveDuration {
     }
 }
 
+impl From<AutoArchiveDuration> for std::time::Duration {
+    fn from(value: AutoArchiveDuration) -> Self {
+        Self::from_secs(u64::from(value.number()) * 60)
+    }
+}
+
 impl<'de> Deserialize<'de> for AutoArchiveDuration {
     fn deserialize<D: Deserializer<'de>>(deserializer: D) -> Result<Self, D::Error> {
         deserializer
@@ -64,6 +70,7 @@ impl Serialize for AutoArchiveDuration {
 mod tests {
     use super::AutoArchiveDuration;
     use serde_test::Token;
+    use std::time::Duration;
 
     const MAP: &[(AutoArchiveDuration, u16)] = &[
         (AutoArchiveDuration::Hour, 60),
@@ -87,5 +94,13 @@ mod tests {
             AutoArchiveDuration::Unknown { value: 250 },
             AutoArchiveDuration::from(250)
         );
+    }
+
+    #[test]
+    fn test_std_time_duration() {
+        for (kind, _) in MAP {
+            let std_duration = Duration::from(*kind);
+            assert_eq!(u64::from(kind.number()) * 60, std_duration.as_secs());
+        }
     }
 }
