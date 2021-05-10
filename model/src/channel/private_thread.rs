@@ -39,7 +39,8 @@ mod tests {
     use serde_test::Token;
 
     #[test]
-    fn test_public_thread() {
+    #[allow(clippy::too_many_lines)]
+    fn test_private_thread() {
         let value = PrivateThread {
             id: ChannelId(1),
             guild_id: Some(GuildId(2)),
