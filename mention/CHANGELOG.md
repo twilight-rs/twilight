@@ -62,7 +62,7 @@ Initial release.
 
 [#513]: https://github.com/twilight-rs/twilight/pull/513
 
-[0.4.0]: https://github.com/twilight-rs/twilight/releases/tag/mention-0.4.0
+[0.4.0]: https://github.com/twilight-rs/twilight/releases/tag/mention-v0.4.0
 [0.3.0]: https://github.com/twilight-rs/twilight/releases/tag/mention-v0.3.0
 [0.2.0]: https://github.com/twilight-rs/twilight/releases/tag/mention-v0.2.0
 [0.2.0-beta.0]: https://github.com/twilight-rs/twilight/releases/tag/mention-v0.2.0-beta.0

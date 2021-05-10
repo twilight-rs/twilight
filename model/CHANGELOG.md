@@ -475,7 +475,7 @@ Initial release.
 
 [0.2.0-beta.1:app integrations]: https://github.com/discord/discord-api-docs/commit/a926694e2f8605848bda6b57d21c8817559e5cec
 
-[0.4.0]: https://github.com/twilight-rs/twilight/releases/tag/model-0.4.0
+[0.4.0]: https://github.com/twilight-rs/twilight/releases/tag/model-v0.4.0
 [0.3.7]: https://github.com/twilight-rs/twilight/releases/tag/model-v0.3.7
 [0.3.5]: https://github.com/twilight-rs/twilight/releases/tag/model-v0.3.5
 [0.3.4]: https://github.com/twilight-rs/twilight/releases/tag/model-v0.3.4
