@@ -8,7 +8,7 @@ use serde::{Deserialize, Serialize};
 pub struct ThreadMembersUpdate {
     pub id: ChannelId,
     pub guild_id: GuildId,
-    /// Capped at 50.
+    /// Max value of 50.
     pub member_count: u8,
     #[serde(default)]
     pub added_members: Vec<ThreadMember>,
