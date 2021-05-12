@@ -107,29 +107,29 @@ bitflags! {
         const SHARD_RESUMING = 1 << 38;
         /// Sent when a thread is created, relevant to the current user,
         /// or when the current user is added to a thread.
-        const THREAD_CREATE = 1 << 39;
+        const THREAD_CREATE = 1 << 50;
         /// Sent when a thread is updated.
-        const THREAD_UPDATE = 1 << 40;
+        const THREAD_UPDATE = 1 << 51;
         /// Sent when a thread relevant to the current user is deleted.
-        const THREAD_DELETE = 1 << 41;
+        const THREAD_DELETE = 1 << 52;
         /// Sent when the current user gains access to a channel.
-        const THREAD_LIST_SYNC = 1 << 42;
+        const THREAD_LIST_SYNC = 1 << 53;
         /// Sent when the thread member object for the current user is updated.
-        const THREAD_MEMBER_UPDATE = 1 << 43;
+        const THREAD_MEMBER_UPDATE = 1 << 54;
         /// Sent when anyone is added to or removed from a thread.
-        const THREAD_MEMBERS_UPDATE = 1 << 44;
+        const THREAD_MEMBERS_UPDATE = 1 << 55;
         /// User has begun typing in a channel.
-        const TYPING_START = 1 << 45;
+        const TYPING_START = 1 << 39;
         /// Guild is unavailable, potentially due to an outage.
-        const UNAVAILABLE_GUILD = 1 << 46;
+        const UNAVAILABLE_GUILD = 1 << 40;
         /// Current user's profile has been updated.
-        const USER_UPDATE = 1 << 47;
+        const USER_UPDATE = 1 << 41;
         /// Voice server has provided an update with voice session details.
-        const VOICE_SERVER_UPDATE = 1 << 48;
+        const VOICE_SERVER_UPDATE = 1 << 42;
         /// User's state in a voice channel has been updated.
-        const VOICE_STATE_UPDATE = 1 << 49;
+        const VOICE_STATE_UPDATE = 1 << 43;
         /// Webhook in a guild has been updated.
-        const WEBHOOKS_UPDATE = 1 << 50;
+        const WEBHOOKS_UPDATE = 1 << 44;
     }
 }
 

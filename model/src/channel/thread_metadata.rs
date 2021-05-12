@@ -2,6 +2,8 @@ use serde::{Deserialize, Serialize};
 
 use crate::{channel::AutoArchiveDuration, id::UserId};
 
+/// The thread metadata object contains a number of thread-specific channel fields
+/// that are not needed by other channel types.
 #[derive(Clone, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
 pub struct ThreadMetadata {
     pub archived: bool,

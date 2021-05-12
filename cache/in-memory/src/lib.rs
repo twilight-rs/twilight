@@ -979,11 +979,10 @@ fn presence_user_id(presence: &Presence) -> UserId {
 mod tests {
     use crate::InMemoryCache;
     use std::borrow::Cow;
-    use twilight_model::channel::ThreadMember;
     use twilight_model::{
         channel::{
             AutoArchiveDuration, ChannelType, GuildChannel, PublicThread, TextChannel,
-            ThreadMetadata,
+            ThreadMember, ThreadMetadata,
         },
         gateway::payload::{GuildEmojisUpdate, MemberRemove, RoleDelete},
         guild::{
