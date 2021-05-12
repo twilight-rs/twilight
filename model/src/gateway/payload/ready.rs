@@ -25,6 +25,7 @@ mod tests {
     use serde_test::Token;
 
     #[test]
+    #[allow(clippy::too_many_lines)]
     fn test_ready() {
         let guilds = vec![
             UnavailableGuild {
