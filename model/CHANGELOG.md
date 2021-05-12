@@ -2,7 +2,7 @@
 
 Changelog for `twilight-model`.
 
-## [0.4.0] - 2021-05-??
+## [0.4.0] - 2021-05-12
 
 ### Upgrade Path
 

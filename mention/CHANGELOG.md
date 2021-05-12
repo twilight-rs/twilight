@@ -2,7 +2,7 @@
 
 Changelog for `twilight-mention`.
 
-## [0.4.0] - 2020-05-??
+## [0.4.0] - 2020-05-12
 
 ### Upgrade Path
 

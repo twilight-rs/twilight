@@ -2,7 +2,7 @@
 
 Changelog for `twilight`.
 
-## [0.4.0] - 2021-05-??
+## [0.4.0] - 2021-05-12
 
 The advertisement crate has been updated to bump development
 dependencies.
