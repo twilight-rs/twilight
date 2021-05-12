@@ -1,0 +1,124 @@
+use crate::id::{ApplicationId, CommandId, GuildId, RoleId, UserId};
+use serde::{
+    de::{Deserializer, Error as DeError},
+    ser::{SerializeStruct, Serializer},
+    Deserialize, Serialize,
+};
+use serde_repr::{Deserialize_repr, Serialize_repr};
+
+#[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
+pub struct GuildCommandPermissions {
+    pub application_id: ApplicationId,
+    pub guild_id: GuildId,
+    pub id: CommandId,
+    pub permissions: Vec<CommandPermissions>,
+}
+
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub struct CommandPermissions {
+    id: CommandPermissionsType,
+    permission: bool,
+}
+
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub enum CommandPermissionsType {
+    Role(RoleId),
+    User(UserId),
+}
+
+#[derive(Deserialize)]
+struct CommandPermissionsData {
+    id: String,
+    #[serde(rename = "type")]
+    kind: CommandPermissionsDataType,
+    permission: bool,
+}
+
+#[derive(Clone, Debug, Deserialize_repr, Eq, PartialEq, Serialize_repr)]
+#[repr(u8)]
+enum CommandPermissionsDataType {
+    Role = 1,
+    User = 2,
+}
+
+impl<'de> Deserialize<'de> for CommandPermissions {
+    fn deserialize<D: Deserializer<'de>>(deserializer: D) -> Result<Self, D::Error> {
+        let data = CommandPermissionsData::deserialize(deserializer)?;
+
+        let span = tracing::trace_span!("deserializing command permission");
+        let _span_enter = span.enter();
+
+        let id = match data.kind {
+            CommandPermissionsDataType::Role => {
+                let id = RoleId(data.id.parse().map_err(DeError::custom)?);
+                tracing::trace!(id = %id.0, kind = ?data.kind);
+
+                CommandPermissionsType::Role(id)
+            }
+            CommandPermissionsDataType::User => {
+                let id = UserId(data.id.parse().map_err(DeError::custom)?);
+                tracing::trace!(id = %id.0, kind = ?data.kind);
+
+                CommandPermissionsType::User(id)
+            }
+        };
+
+        Ok(Self {
+            id,
+            permission: data.permission,
+        })
+    }
+}
+
+impl Serialize for CommandPermissions {
+    fn serialize<S: Serializer>(&self, serializer: S) -> Result<S::Ok, S::Error> {
+        let mut state = serializer.serialize_struct("CommandPermissionsData", 3)?;
+
+        match &self.id {
+            CommandPermissionsType::Role(id) => {
+                state.serialize_field("id", &id.to_string())?;
+                state.serialize_field("type", &(CommandPermissionsDataType::Role as u8))?;
+            }
+            CommandPermissionsType::User(id) => {
+                state.serialize_field("id", &id.to_string())?;
+                state.serialize_field("type", &(CommandPermissionsDataType::User as u8))?;
+            }
+        };
+
+        state.serialize_field("permission", &self.permission)?;
+
+        state.end()
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::{CommandPermissions, CommandPermissionsType};
+    use crate::id::RoleId;
+    use serde_test::Token;
+
+    #[test]
+    fn test_command_permissions() {
+        let value = CommandPermissions {
+            id: CommandPermissionsType::Role(RoleId(100)),
+            permission: true,
+        };
+
+        serde_test::assert_tokens(
+            &value,
+            &[
+                Token::Struct {
+                    name: "CommandPermissionsData",
+                    len: 3,
+                },
+                Token::Str("id"),
+                Token::Str("100"),
+                Token::Str("type"),
+                Token::U8(1),
+                Token::Str("permission"),
+                Token::Bool(true),
+                Token::StructEnd,
+            ],
+        );
+    }
+}

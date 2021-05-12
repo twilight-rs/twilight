@@ -1,8 +1,9 @@
-use crate::{guild::UnavailableGuild, user::CurrentUser};
+use crate::{guild::UnavailableGuild, oauth::PartialApplication, user::CurrentUser};
 use serde::{Deserialize, Serialize};
 
 #[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
 pub struct Ready {
+    pub application: PartialApplication,
     pub guilds: Vec<UnavailableGuild>,
     pub session_id: String,
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -17,8 +18,9 @@ mod tests {
     use super::Ready;
     use crate::{
         guild::UnavailableGuild,
-        id::{GuildId, UserId},
-        user::CurrentUser,
+        id::{ApplicationId, GuildId, UserId},
+        oauth::PartialApplication,
+        user::{CurrentUser, UserFlags},
     };
     use serde_test::Token;
 
@@ -36,6 +38,10 @@ mod tests {
         ];
 
         let ready = Ready {
+            application: PartialApplication {
+                flags: UserFlags::empty(),
+                id: ApplicationId(100),
+            },
             guilds,
             session_id: "foo".to_owned(),
             shard: Some([4, 7]),
@@ -61,8 +67,21 @@ mod tests {
             &[
                 Token::Struct {
                     name: "Ready",
-                    len: 5,
+                    len: 6,
                 },
+                Token::Str("application"),
+                Token::Struct {
+                    name: "PartialApplication",
+                    len: 2,
+                },
+                Token::Str("flags"),
+                Token::U64(0),
+                Token::Str("id"),
+                Token::NewtypeStruct {
+                    name: "ApplicationId",
+                },
+                Token::Str("100"),
+                Token::StructEnd,
                 Token::Str("guilds"),
                 Token::Seq { len: Some(2) },
                 Token::Struct {

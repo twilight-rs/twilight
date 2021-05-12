@@ -5,6 +5,7 @@ mod activity;
 mod activity_type;
 mod application;
 mod flags;
+mod interaction;
 mod kind;
 mod mention;
 mod reaction;
@@ -13,14 +14,14 @@ mod reference;
 pub use self::{
     activity::MessageActivity, activity_type::MessageActivityType,
     allowed_mentions::AllowedMentions, application::MessageApplication, flags::MessageFlags,
-    kind::MessageType, mention::Mention, reaction::MessageReaction, reference::MessageReference,
-    sticker::Sticker,
+    interaction::MessageInteraction, kind::MessageType, mention::Mention,
+    reaction::MessageReaction, reference::MessageReference, sticker::Sticker,
 };
 
 use crate::{
     channel::{embed::Embed, Attachment, ChannelMention},
     guild::PartialMember,
-    id::{ChannelId, GuildId, MessageId, RoleId, WebhookId},
+    id::{ApplicationId, ChannelId, GuildId, MessageId, RoleId, WebhookId},
     user::User,
 };
 use serde::{Deserialize, Serialize};
@@ -31,6 +32,10 @@ pub struct Message {
     pub activity: Option<MessageActivity>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub application: Option<MessageApplication>,
+    /// Associated application's ID.
+    ///
+    /// Sent if the message is a response to an Interaction.
+    pub application_id: Option<ApplicationId>,
     pub attachments: Vec<Attachment>,
     pub author: User,
     pub channel_id: ChannelId,
@@ -42,6 +47,8 @@ pub struct Message {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub guild_id: Option<GuildId>,
     pub id: MessageId,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub interaction: Option<MessageInteraction>,
     #[serde(rename = "type")]
     pub kind: MessageType,
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -115,14 +122,17 @@ mod tests {
             flags: Some(MessageFlags::empty()),
             guild_id: Some(GuildId(1)),
             id: MessageId(4),
+            interaction: None,
             kind: MessageType::Regular,
             member: Some(PartialMember {
                 deaf: false,
                 joined_at: Some("2020-01-01T00:00:00.000000+00:00".to_owned()),
                 mute: false,
                 nick: Some("member nick".to_owned()),
+                permissions: None,
                 premium_since: None,
                 roles: Vec::new(),
+                user: None,
             }),
             mention_channels: Vec::new(),
             mention_everyone: false,
@@ -200,7 +210,7 @@ mod tests {
                 Token::Some,
                 Token::Struct {
                     name: "PartialMember",
-                    len: 5,
+                    len: 7,
                 },
                 Token::Str("deaf"),
                 Token::Bool(false),
@@ -212,9 +222,13 @@ mod tests {
                 Token::Str("nick"),
                 Token::Some,
                 Token::Str("member nick"),
+                Token::Str("permissions"),
+                Token::None,
                 Token::Str("roles"),
                 Token::Seq { len: Some(0) },
                 Token::SeqEnd,
+                Token::Str("user"),
+                Token::None,
                 Token::StructEnd,
                 Token::Str("mention_everyone"),
                 Token::Bool(false),
@@ -300,14 +314,17 @@ mod tests {
             flags: Some(MessageFlags::empty()),
             guild_id: Some(GuildId(1)),
             id: MessageId(4),
+            interaction: None,
             kind: MessageType::Regular,
             member: Some(PartialMember {
                 deaf: false,
                 joined_at: Some("2020-01-01T00:00:00.000000+00:00".to_owned()),
                 mute: false,
                 nick: Some("member nick".to_owned()),
+                permissions: None,
                 premium_since: None,
                 roles: Vec::new(),
+                user: None,
             }),
             mention_channels: vec![ChannelMention {
                 guild_id: GuildId(1),
@@ -433,7 +450,7 @@ mod tests {
                 Token::Some,
                 Token::Struct {
                     name: "PartialMember",
-                    len: 5,
+                    len: 7,
                 },
                 Token::Str("deaf"),
                 Token::Bool(false),
@@ -445,9 +462,13 @@ mod tests {
                 Token::Str("nick"),
                 Token::Some,
                 Token::Str("member nick"),
+                Token::Str("permissions"),
+                Token::None,
                 Token::Str("roles"),
                 Token::Seq { len: Some(0) },
                 Token::SeqEnd,
+                Token::Str("user"),
+                Token::None,
                 Token::StructEnd,
                 Token::Str("mention_channels"),
                 Token::Seq { len: Some(1) },
