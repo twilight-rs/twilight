@@ -217,7 +217,7 @@ All first-party crates are licensed under [ISC][LICENSE.md]
 [github link]: https://github.com/twilight-rs/twilight
 [license badge]: https://img.shields.io/badge/license-ISC-blue.svg?style=for-the-badge&logo=pastebin
 [license link]: https://github.com/twilight-rs/twilight/blob/mainLICENSE.md
-[logo]: https://raw.githubusercontent.com/twilight-rs/twilight/mainlogo.png
+[logo]: https://raw.githubusercontent.com/twilight-rs/twilight/main/logo.png
 [rust badge]: https://img.shields.io/badge/rust-1.49+-93450a.svg?style=for-the-badge&logo=rust
 [`tracing-log`]: https://github.com/tokio-rs/tracing/tree/master/tracing-log
 [`twilight-cache-inmemory`]: https://twilight.rs/chapter_1_crates/section_4_cache_inmemory.html
