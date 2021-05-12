@@ -35,6 +35,7 @@ pub struct Message {
     /// Associated application's ID.
     ///
     /// Sent if the message is a response to an Interaction.
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub application_id: Option<ApplicationId>,
     pub attachments: Vec<Attachment>,
     pub author: User,
@@ -99,6 +100,7 @@ mod tests {
         let value = Message {
             activity: None,
             application: None,
+            application_id: None,
             attachments: Vec::new(),
             author: User {
                 avatar: Some("aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa".to_owned()),
@@ -291,6 +293,7 @@ mod tests {
                 id: ApplicationId(1),
                 name: "application".to_owned(),
             }),
+            application_id: Some(ApplicationId(1)),
             attachments: Vec::new(),
             author: User {
                 avatar: Some("aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa".to_owned()),
@@ -369,7 +372,7 @@ mod tests {
             &[
                 Token::Struct {
                     name: "Message",
-                    len: 24,
+                    len: 25,
                 },
                 Token::Str("activity"),
                 Token::Some,
@@ -402,6 +405,12 @@ mod tests {
                 Token::Str("name"),
                 Token::Str("application"),
                 Token::StructEnd,
+                Token::Str("application_id"),
+                Token::Some,
+                Token::NewtypeStruct {
+                    name: "ApplicationId",
+                },
+                Token::Str("1"),
                 Token::Str("attachments"),
                 Token::Seq { len: Some(0) },
                 Token::SeqEnd,

@@ -881,6 +881,7 @@ mod tests {
             id: MessageId(3),
             activity: None,
             application: None,
+            application_id: None,
             attachments: Vec::new(),
             author: User {
                 avatar: None,

@@ -755,6 +755,7 @@ mod tests {
         let msg = Message {
             activity: None,
             application: None,
+            application_id: None,
             attachments: Vec::new(),
             author: User {
                 avatar: Some("".to_owned()),
@@ -1105,6 +1106,7 @@ mod tests {
         let msg = Message {
             activity: None,
             application: None,
+            application_id: None,
             attachments: Vec::new(),
             author: User {
                 avatar: Some("".to_owned()),

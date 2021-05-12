@@ -31,9 +31,9 @@ use std::{
 #[non_exhaustive]
 pub enum Interaction {
     /// Ping variant.
-    Ping(InteractionPing),
+    Ping(Box<InteractionPing>),
     /// Application command variant.
-    ApplicationCommand(InteractionApplicationCommand),
+    ApplicationCommand(Box<InteractionApplicationCommand>),
 }
 
 impl Interaction {
@@ -99,12 +99,12 @@ impl<'a> TryFrom<InteractionEnvelope> for Interaction {
 
     fn try_from(envelope: InteractionEnvelope) -> Result<Self, Self::Error> {
         match envelope.kind {
-            InteractionType::Ping => Ok(Interaction::Ping(InteractionPing {
+            InteractionType::Ping => Ok(Interaction::Ping(Box::new(InteractionPing {
                 application_id: envelope.application_id,
                 id: envelope.id,
                 kind: envelope.kind,
                 token: envelope.token,
-            })),
+            }))),
             InteractionType::ApplicationCommand => {
                 let channel_id = match envelope.channel_id {
                     Some(id) => id,
@@ -122,7 +122,7 @@ impl<'a> TryFrom<InteractionEnvelope> for Interaction {
                     None => return Err(Self::Error::MissingField("data")),
                 };
 
-                Ok(Interaction::ApplicationCommand(
+                Ok(Interaction::ApplicationCommand(Box::new(
                     InteractionApplicationCommand {
                         application_id: envelope.application_id,
                         channel_id,
@@ -134,7 +134,7 @@ impl<'a> TryFrom<InteractionEnvelope> for Interaction {
                         token: envelope.token,
                         user: envelope.user,
                     },
-                ))
+                )))
             }
         }
     }
@@ -229,7 +229,7 @@ mod test {
     "channel_id": "600"
 }"#;
 
-        let expected = Interaction::ApplicationCommand(InteractionApplicationCommand {
+        let expected = Interaction::ApplicationCommand(Box::new(InteractionApplicationCommand {
             application_id: 700.into(),
             channel_id: 600.into(),
             command_data: CommandData {
@@ -270,7 +270,7 @@ mod test {
             }),
             token: "A_UNIQUE_TOKEN".to_string(),
             user: None,
-        });
+        }));
 
         let actual = serde_json::from_str::<Interaction>(&json).unwrap();
 
