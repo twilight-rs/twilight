@@ -12,7 +12,7 @@ name = "twilight"
 publish = false
 repository = "https://github.com/twilight-rs/twilight"
 readme = "../README.md"
-version = "0.3.0"
+version = "0.4.0"
 
 [dev-dependencies]
 futures = { default-features = false, version = "0.3" }

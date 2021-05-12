@@ -2,6 +2,102 @@
 
 Changelog for `twilight-http`.
 
+## [0.4.0] - 2021-05-12
+
+### Upgrade Path
+
+The MSRV is now Rust 1.49.
+
+Remove calls to:
+
+- `Client::create_guild_integration`
+- `Client::current_user_private_channels`
+- `Client::delete_guild_integration`
+- `Client::sync_guild_integration`
+
+Remove references to:
+
+- `request::guild::integration`
+- `request::user::GetCurrentUserPrivateChannels`
+
+Replace references to `Path::WebhooksIdTokenMessageId` with
+`Path::WebhooksIdTokenMessagesId`.
+
+`CreateInvite::{max_age, max_uses}` now return validation errors, so the results
+returned from them need to be handled.
+
+Don't re-use `hyper` clients via the builder. If you need to configure the
+underlying `hyper` client please create an issue with the reason why.
+
+Errors are no longer enums and don't expose their concrete underlying error
+source. You can access the underlying error via the implemented
+`std::error::Error::source` method or the `into_parts` or `into_source` methods
+on each error struct, which will return a boxed `std::error::Error`. To access
+the reason for the error use the `kind` or `into_parts` method on error structs;
+the returned error type is an enum with variants for each potential reason the
+error occurred.
+
+When specifying a method in a custom request use `request::Method` instead of
+`hyper`'s.
+
+The Allowed Mentions API has been reworked and moved to `twilight-model`. Use it
+like so:
+
+```rust
+use twilight_model::channel::message::AllowedMentions;
+
+let allowed_mentions = AllowedMentions::builder()
+    .replied_user()
+    .user_ids(user_ids)
+    .build();
+```
+
+### Additions
+
+Support `CreateMessage::fail_if_not_exists` which will fail creating the message
+if the referenced message does not exist ([#708] - [@7596ff]).
+
+### Enhancements
+
+Update `simd-json` to 0.4 ([#786] - [@Gekbpunkt]).
+
+The `futures-channel` dependency has been removed ([#785] - [@Gelbpunkt]).
+
+### Changes
+
+Remove support for guild integration calls, which are blocked for bots due to a
+Discord API change ([#751] - [@vivian]).
+
+Rename `Path::WebhooksIdTokenMessageId` to `Path::WebhooksIdTokenMessagesId`
+([#755] - [@vivian]).
+
+Return validation errors for `CreateInvite::max_age` and
+`CreateInvite::max_uses` ([#757] - [@vivian]).
+
+Remove ability to get current user's DM channels ([#782] - [@vivian]).
+
+Remove `ClientBuilder::hyper_client` and `From<HyperClient> for Client` which
+were available to re-use `hyper` clients ([#768] - [@vivian]).
+
+Return updated copy of member when updating a member ([#758] - [@vivian]).
+
+The `request::channel::message::allowed_mentions` API has been reworked and
+moved to the `twilight-model` crate ([#760] - [@7596ff]).
+
+Add custom method enum type for use rather than `hyper`'s ([#767] - [@vivian]).
+
+[#786]: https://github.com/twilight-rs/twilight/pull/786
+[#785]: https://github.com/twilight-rs/twilight/pull/785
+[#782]: https://github.com/twilight-rs/twilight/pull/782
+[#768]: https://github.com/twilight-rs/twilight/pull/768
+[#767]: https://github.com/twilight-rs/twilight/pull/767
+[#760]: https://github.com/twilight-rs/twilight/pull/760
+[#758]: https://github.com/twilight-rs/twilight/pull/758
+[#757]: https://github.com/twilight-rs/twilight/pull/757
+[#755]: https://github.com/twilight-rs/twilight/pull/755
+[#751]: https://github.com/twilight-rs/twilight/pull/751
+[#708]: https://github.com/twilight-rs/twilight/pull/708
+
 ## [0.3.9] - 2021-05-09
 
 ### Additions
@@ -518,6 +614,7 @@ Initial release.
 
 [0.2.0-beta.1:app integrations]: https://github.com/discord/discord-api-docs/commit/a926694e2f8605848bda6b57d21c8817559e5cec
 
+[0.4.0]: https://github.com/twilight-rs/twilight/releases/tag/http-0.4.0
 [0.3.9]: https://github.com/twilight-rs/twilight/releases/tag/http-v0.3.9
 [0.3.8]: https://github.com/twilight-rs/twilight/releases/tag/http-v0.3.8
 [0.3.6]: https://github.com/twilight-rs/twilight/releases/tag/http-v0.3.6
