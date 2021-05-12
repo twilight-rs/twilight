@@ -60,6 +60,10 @@ pub enum ErrorCode {
     UnknownGuildTemplate,
     /// Unknown interaction
     UnknownInteraction,
+    /// Unknown application command
+    UnknownApplicationCommand,
+    /// Unknown application command permissions
+    UnknownApplicationCommandPermissions,
     /// Bots cannot use this endpoint
     BotsCannotUseEndpoint,
     /// Only bots can use this endpoint
@@ -102,6 +106,8 @@ pub enum ErrorCode {
     UserBannedFromGuild,
     /// This message has already been crossposted
     MessageAlreadyCrossposted,
+    /// An application command with that name already exists
+    CommandNameAlreadyExists,
     /// Missing access
     Missingaccess,
     /// Invalid account type
@@ -202,6 +208,8 @@ impl ErrorCode {
             Self::UnknownRedistributable => 10036,
             Self::UnknownGuildTemplate => 10057,
             Self::UnknownInteraction => 10062,
+            Self::UnknownApplicationCommand => 10063,
+            Self::UnknownApplicationCommandPermissions => 10066,
             Self::BotsCannotUseEndpoint => 20001,
             Self::OnlyBotsCanUseEndpoint => 20002,
             Self::AnnouncementRateLimitReached => 20022,
@@ -223,6 +231,7 @@ impl ErrorCode {
             Self::FeatureTemporarilyDisabled => 40006,
             Self::UserBannedFromGuild => 40007,
             Self::MessageAlreadyCrossposted => 40033,
+            Self::CommandNameAlreadyExists => 40041,
             Self::Missingaccess => 50001,
             Self::InvalidAccountType => 50002,
             Self::InvalidDMChannelAction => 50003,
@@ -289,6 +298,8 @@ impl From<u64> for ErrorCode {
             10036 => Self::UnknownRedistributable,
             10057 => Self::UnknownGuildTemplate,
             10062 => Self::UnknownInteraction,
+            10063 => Self::UnknownApplicationCommand,
+            10066 => Self::UnknownApplicationCommandPermissions,
             20001 => Self::BotsCannotUseEndpoint,
             20002 => Self::OnlyBotsCanUseEndpoint,
             20022 => Self::AnnouncementRateLimitReached,
@@ -310,6 +321,7 @@ impl From<u64> for ErrorCode {
             40006 => Self::FeatureTemporarilyDisabled,
             40007 => Self::UserBannedFromGuild,
             40033 => Self::MessageAlreadyCrossposted,
+            40041 => Self::CommandNameAlreadyExists,
             50001 => Self::Missingaccess,
             50002 => Self::InvalidAccountType,
             50003 => Self::InvalidDMChannelAction,
@@ -376,6 +388,8 @@ impl Display for ErrorCode {
             Self::UnknownRedistributable => f.write_str("Unknown redistributable"),
             Self::UnknownGuildTemplate => f.write_str("Unknown guild template"),
             Self::UnknownInteraction => f.write_str("Unknown interaction"),
+            Self::UnknownApplicationCommand => f.write_str("Unknown application command"),
+            Self::UnknownApplicationCommandPermissions => f.write_str("Unknown application command permissions"),
             Self::BotsCannotUseEndpoint => f.write_str("Bots cannot use this endpoint"),
             Self::OnlyBotsCanUseEndpoint => f.write_str("Only bots can use this endpoint"),
             Self::AnnouncementRateLimitReached => f.write_str("Message cannot be edited due to announcement rate limits"),
@@ -397,6 +411,7 @@ impl Display for ErrorCode {
             Self::FeatureTemporarilyDisabled => f.write_str("This feature has been temporarily disabled server-side"),
             Self::UserBannedFromGuild => f.write_str("The user is banned from this guild"),
             Self::MessageAlreadyCrossposted => f.write_str("This message has already been crossposted"),
+            Self::CommandNameAlreadyExists => f.write_str("An application command with that name already exists"),
             Self::Missingaccess => f.write_str("Missing access"),
             Self::InvalidAccountType => f.write_str("Invalid account type"),
             Self::InvalidDMChannelAction => f.write_str("Cannot execute action on a DM channel"),
