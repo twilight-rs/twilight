@@ -1,9 +1,5 @@
-use crate::id::{ApplicationId, CommandId, GuildId, RoleId, UserId};
-use serde::{
-    de::{Deserializer, Error as DeError},
-    ser::{SerializeStruct, Serializer},
-    Deserialize, Serialize,
-};
+use crate::id::{ApplicationId, CommandId, GenericId, GuildId, RoleId, UserId};
+use serde::{de::Deserializer, ser::Serializer, Deserialize, Serialize};
 use serde_repr::{Deserialize_repr, Serialize_repr};
 
 #[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
@@ -26,9 +22,9 @@ pub enum CommandPermissionsType {
     User(UserId),
 }
 
-#[derive(Deserialize)]
+#[derive(Deserialize, Serialize)]
 struct CommandPermissionsData {
-    id: String,
+    id: GenericId,
     #[serde(rename = "type")]
     kind: CommandPermissionsDataType,
     permission: bool,
@@ -50,13 +46,13 @@ impl<'de> Deserialize<'de> for CommandPermissions {
 
         let id = match data.kind {
             CommandPermissionsDataType::Role => {
-                let id = RoleId(data.id.parse().map_err(DeError::custom)?);
+                let id = RoleId(data.id.0);
                 tracing::trace!(id = %id.0, kind = ?data.kind);
 
                 CommandPermissionsType::Role(id)
             }
             CommandPermissionsDataType::User => {
-                let id = UserId(data.id.parse().map_err(DeError::custom)?);
+                let id = UserId(data.id.0);
                 tracing::trace!(id = %id.0, kind = ?data.kind);
 
                 CommandPermissionsType::User(id)
@@ -72,22 +68,19 @@ impl<'de> Deserialize<'de> for CommandPermissions {
 
 impl Serialize for CommandPermissions {
     fn serialize<S: Serializer>(&self, serializer: S) -> Result<S::Ok, S::Error> {
-        let mut state = serializer.serialize_struct("CommandPermissionsData", 3)?;
-
-        match &self.id {
-            CommandPermissionsType::Role(id) => {
-                state.serialize_field("id", &id.to_string())?;
-                state.serialize_field("type", &(CommandPermissionsDataType::Role as u8))?;
-            }
-            CommandPermissionsType::User(id) => {
-                state.serialize_field("id", &id.to_string())?;
-                state.serialize_field("type", &(CommandPermissionsDataType::User as u8))?;
-            }
+        let data = CommandPermissionsData {
+            id: match self.id {
+                CommandPermissionsType::Role(role_id) => GenericId(role_id.0),
+                CommandPermissionsType::User(user_id) => GenericId(user_id.0),
+            },
+            kind: match self.id {
+                CommandPermissionsType::Role(_) => CommandPermissionsDataType::Role,
+                CommandPermissionsType::User(_) => CommandPermissionsDataType::User,
+            },
+            permission: self.permission,
         };
 
-        state.serialize_field("permission", &self.permission)?;
-
-        state.end()
+        data.serialize(serializer)
     }
 }
 
@@ -112,6 +105,7 @@ mod tests {
                     len: 3,
                 },
                 Token::Str("id"),
+                Token::NewtypeStruct { name: "GenericId" },
                 Token::Str("100"),
                 Token::Str("type"),
                 Token::U8(1),
