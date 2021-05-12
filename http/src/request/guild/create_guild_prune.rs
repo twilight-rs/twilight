@@ -9,22 +9,56 @@ use twilight_model::{
 };
 
 /// The error created when the guild prune can not be created as configured.
-#[derive(Clone, Debug)]
-#[non_exhaustive]
-pub enum CreateGuildPruneError {
-    /// The number of days is 0.
-    DaysInvalid,
+#[derive(Debug)]
+pub struct CreateGuildPruneError {
+    kind: CreateGuildPruneErrorType,
+}
+
+impl CreateGuildPruneError {
+    /// Immutable reference to the type of error that occurred.
+    #[must_use = "retrieving the type has no effect if left unused"]
+    pub fn kind(&self) -> &CreateGuildPruneErrorType {
+        &self.kind
+    }
+
+    /// Consume the error, returning the source error if there is any.
+    #[allow(clippy::unused_self)]
+    #[must_use = "consuming the error and retrieving the source has no effect if left unused"]
+    pub fn into_source(self) -> Option<Box<dyn Error + Send + Sync>> {
+        None
+    }
+
+    /// Consume the error, returning the owned error type and the source error.
+    #[must_use = "consuming the error into its parts has no effect if left unused"]
+    pub fn into_parts(
+        self,
+    ) -> (
+        CreateGuildPruneErrorType,
+        Option<Box<dyn Error + Send + Sync>>,
+    ) {
+        (self.kind, None)
+    }
 }
 
 impl Display for CreateGuildPruneError {
     fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
-        match self {
-            Self::DaysInvalid { .. } => f.write_str("the number of days is invalid"),
+        match &self.kind {
+            CreateGuildPruneErrorType::DaysInvalid { .. } => {
+                f.write_str("the number of days is invalid")
+            }
         }
     }
 }
 
 impl Error for CreateGuildPruneError {}
+
+/// Type of [`CreateGuildPruneError`] that occurred.
+#[derive(Debug)]
+#[non_exhaustive]
+pub enum CreateGuildPruneErrorType {
+    /// The number of days is 0.
+    DaysInvalid,
+}
 
 #[derive(Default)]
 struct CreateGuildPruneFields {
@@ -79,10 +113,13 @@ impl<'a> CreateGuildPrune<'a> {
     ///
     /// # Errors
     ///
-    /// Returns [`CreateGuildPruneError::DaysInvalid`] if the number of days is 0.
+    /// Returns a [`CreateGuildPruneErrorType::DaysInvalid`] error type if the
+    /// number of days is 0.
     pub fn days(mut self, days: u64) -> Result<Self, CreateGuildPruneError> {
         if !validate::guild_prune_days(days) {
-            return Err(CreateGuildPruneError::DaysInvalid);
+            return Err(CreateGuildPruneError {
+                kind: CreateGuildPruneErrorType::DaysInvalid,
+            });
         }
 
         self.fields.days.replace(days);

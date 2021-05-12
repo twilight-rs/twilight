@@ -22,7 +22,6 @@ pub struct CachedGuild {
     pub icon: Option<String>,
     pub joined_at: Option<String>,
     pub large: bool,
-    pub lazy: Option<bool>,
     pub max_members: Option<u64>,
     pub max_presences: Option<u64>,
     pub member_count: Option<u64>,

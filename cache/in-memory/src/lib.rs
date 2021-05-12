@@ -45,7 +45,7 @@
 //! [github link]: https://github.com/twilight-rs/twilight
 //! [license badge]: https://img.shields.io/badge/license-ISC-blue.svg?style=for-the-badge&logo=pastebin
 //! [license link]: https://github.com/twilight-rs/twilight/blob/trunk/LICENSE.md
-//! [rust badge]: https://img.shields.io/badge/rust-1.48+-93450a.svg?style=for-the-badge&logo=rust
+//! [rust badge]: https://img.shields.io/badge/rust-1.49+-93450a.svg?style=for-the-badge&logo=rust
 
 #![deny(rust_2018_idioms, broken_intra_doc_links, unused, warnings)]
 
@@ -664,7 +664,6 @@ impl InMemoryCache {
             icon: guild.icon,
             joined_at: guild.joined_at,
             large: guild.large,
-            lazy: guild.lazy,
             max_members: guild.max_members,
             max_presences: guild.max_presences,
             member_count: guild.member_count,
@@ -1125,7 +1124,6 @@ mod tests {
             icon: None,
             joined_at: Some("".to_owned()),
             large: false,
-            lazy: Some(true),
             max_members: Some(50),
             max_presences: Some(100),
             member_count: Some(25),

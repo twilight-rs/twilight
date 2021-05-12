@@ -1,12 +1,11 @@
 //! Client to manage nodes and players.
 
 use crate::{
-    model::{IncomingEvent, OutgoingEvent, SlimVoiceServerUpdate, VoiceUpdate},
-    node::{Node, NodeConfig, NodeError, Resume},
+    model::{SlimVoiceServerUpdate, VoiceUpdate},
+    node::{IncomingEvents, Node, NodeConfig, NodeError, Resume},
     player::{Player, PlayerManager},
 };
-use dashmap::{mapref::one::Ref, DashMap};
-use futures_channel::mpsc::{TrySendError, UnboundedReceiver};
+use dashmap::DashMap;
 use std::{
     error::Error,
     fmt::{Display, Formatter, Result as FmtResult},
@@ -19,35 +18,58 @@ use twilight_model::{
 };
 
 /// An error that can occur while interacting with the client.
-#[derive(Clone, Debug, PartialEq)]
-#[non_exhaustive]
-pub enum ClientError {
-    /// A node isn't configured, so the operation isn't possible to fulfill.
-    NodesUnconfigured,
-    /// Sending a voice update event to the node failed because the node's
-    /// connection was shutdown.
-    SendingVoiceUpdate {
-        /// The source of the error.
-        source: TrySendError<OutgoingEvent>,
-    },
+#[derive(Debug)]
+pub struct ClientError {
+    kind: ClientErrorType,
+    source: Option<Box<dyn Error + Send + Sync>>,
+}
+
+impl ClientError {
+    /// Immutable reference to the type of error that occurred.
+    pub fn kind(&self) -> &ClientErrorType {
+        &self.kind
+    }
+
+    /// Consume the error, returning the source error if there is any.
+    pub fn into_source(self) -> Option<Box<dyn Error + Send + Sync>> {
+        self.source
+    }
+
+    /// Consume the error, returning the owned error type and the source error.
+    #[must_use = "consuming the error into its parts has no effect if left unused"]
+    pub fn into_parts(self) -> (ClientErrorType, Option<Box<dyn Error + Send + Sync>>) {
+        (self.kind, self.source)
+    }
 }
 
 impl Display for ClientError {
     fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
-        match self {
-            Self::NodesUnconfigured => f.write_str("no node has been configured"),
-            Self::SendingVoiceUpdate { .. } => f.write_str("couldn't send voice update to node"),
+        match &self.kind {
+            ClientErrorType::NodesUnconfigured => f.write_str("no node has been configured"),
+            ClientErrorType::SendingVoiceUpdate => {
+                f.write_str("couldn't send voice update to node")
+            }
         }
     }
 }
 
 impl Error for ClientError {
     fn source(&self) -> Option<&(dyn Error + 'static)> {
-        match self {
-            Self::NodesUnconfigured => None,
-            Self::SendingVoiceUpdate { source } => Some(source),
-        }
+        self.source
+            .as_ref()
+            .map(|source| &**source as &(dyn Error + 'static))
     }
+}
+
+/// Type of [`ClientError`] that occurred.
+#[derive(Debug)]
+#[non_exhaustive]
+pub enum ClientErrorType {
+    /// A node isn't configured, so the operation isn't possible to fulfill.
+    NodesUnconfigured,
+    /// Sending a voice update event to the node failed because the node's
+    /// connection was shutdown.
+    SendingVoiceUpdate,
 }
 
 #[derive(Debug, Default)]
@@ -145,8 +167,9 @@ impl Lavalink {
     ///
     /// # Errors
     ///
-    /// Returns [`ClientError::NodesUnconfigured`] if no nodes have been added
-    /// to the client when attempting to retrieve a guild's player.
+    /// Returns a [`ClientErrorType::NodesUnconfigured`] error type if no nodes
+    /// have been added to the client when attempting to retrieve a guild's
+    /// player.
     ///
     /// [crate documentation]: crate#examples
     pub async fn process(&self, event: &Event) -> Result<(), ClientError> {
@@ -178,8 +201,8 @@ impl Lavalink {
 
                 if let Some(guild_id) = e.0.guild_id {
                     // Update player if it exists and update the connected channel ID.
-                    if let Some(kv) = self.0.players.get(&guild_id) {
-                        kv.value().set_channel_id(e.0.channel_id);
+                    if let Some(player) = self.0.players.get(&guild_id) {
+                        player.set_channel_id(e.0.channel_id);
                     }
 
                     if e.0.channel_id.is_none() {
@@ -242,9 +265,10 @@ impl Lavalink {
         tracing::debug!("getting player for guild {}", guild_id);
         let player = self.player(guild_id).await?;
         tracing::debug!("sending voice update for guild {}: {:?}", guild_id, update);
-        player
-            .send(update)
-            .map_err(|source| ClientError::SendingVoiceUpdate { source })?;
+        player.send(update).map_err(|source| ClientError {
+            kind: ClientErrorType::SendingVoiceUpdate,
+            source: Some(Box::new(source)),
+        })?;
         tracing::debug!("sent voice update for guild {}", guild_id);
 
         Ok(())
@@ -258,7 +282,7 @@ impl Lavalink {
         &self,
         address: SocketAddr,
         authorization: impl Into<String>,
-    ) -> Result<(Node, UnboundedReceiver<IncomingEvent>), NodeError> {
+    ) -> Result<(Node, IncomingEvents), NodeError> {
         let config = NodeConfig {
             address,
             authorization: authorization.into(),
@@ -276,20 +300,34 @@ impl Lavalink {
     /// Remove a node from the list of nodes being managed by the Lavalink
     /// client.
     ///
+    /// This does not disconnect the node. Use [`Lavalink::disconnect`] instead.
+    /// or drop all [`Node`]s.
+    ///
     /// The node is returned if it existed.
     pub async fn remove(&self, address: SocketAddr) -> Option<(SocketAddr, Node)> {
         self.0.nodes.remove(&address)
     }
 
+    /// Remove a node from the list of nodes being managed by the Lavalink
+    /// client and terminates the connection.
+    ///
+    /// Use [`Lavalink::remove`] if detatching a node from a Lavalink instance
+    /// is required without closing the underlying connection.
+    ///
+    /// Returns whether the node has been removed and disconnected.
+    pub fn disconnect(&self, address: SocketAddr) -> bool {
+        self.0.nodes.remove(&address).is_some()
+    }
+
     /// Determine the "best" node for new players according to available nodes'
-    /// penalty scores.
+    /// penalty scores. Disconnected nodes will not be considered.
     ///
     /// Refer to [`Node::penalty`] for how this is calculated.
     ///
     /// # Errors
     ///
-    /// Returns [`ClientError::NodesUnconfigured`] if there are no configured
-    /// nodes available in the client.
+    /// Returns a [`ClientErrorType::NodesUnconfigured`] error type if there are
+    /// no connected nodes available in the client.
     ///
     /// [`Node::penalty`]: crate::node::Node::penalty
     pub async fn best(&self) -> Result<Node, ClientError> {
@@ -297,6 +335,10 @@ impl Lavalink {
         let mut best = None;
 
         for node in self.0.nodes.iter() {
+            if node.sender().is_closed() {
+                continue;
+            }
+
             let penalty = node.value().penalty().await;
 
             if penalty < lowest {
@@ -305,7 +347,10 @@ impl Lavalink {
             }
         }
 
-        best.ok_or(ClientError::NodesUnconfigured)
+        best.ok_or(ClientError {
+            kind: ClientErrorType::NodesUnconfigured,
+            source: None,
+        })
     }
 
     /// Retrieve an immutable reference to the player manager.
@@ -321,19 +366,19 @@ impl Lavalink {
     ///
     /// # Errors
     ///
-    /// Returns [`ClientError::NodesUnconfigured`] if no node has been
-    /// configured via [`add`].
+    /// Returns a [`ClientError`] with a [`ClientErrorType::NodesUnconfigured`]
+    /// type if no node has been configured via [`add`].
     ///
     /// [`PlayerManager::get`]: crate::player::PlayerManager::get
     /// [`add`]: Self::add
-    pub async fn player(&self, guild_id: GuildId) -> Result<Ref<'_, GuildId, Player>, ClientError> {
+    pub async fn player(&self, guild_id: GuildId) -> Result<Player, ClientError> {
         if let Some(player) = self.players().get(&guild_id) {
             return Ok(player);
         }
 
         let node = self.best().await?;
 
-        Ok(self.players().get_or_insert(guild_id, node).downgrade())
+        Ok(self.players().get_or_insert(guild_id, node))
     }
 
     /// Clear out the map of guild states/updates for a shard that are waiting
@@ -358,11 +403,11 @@ impl Lavalink {
 
 #[cfg(test)]
 mod tests {
-    use super::{ClientError, Lavalink};
-    use static_assertions::{assert_fields, assert_impl_all};
+    use super::{ClientError, ClientErrorType, Lavalink};
+    use static_assertions::assert_impl_all;
     use std::{error::Error, fmt::Debug};
 
-    assert_fields!(ClientError::SendingVoiceUpdate: source);
-    assert_impl_all!(ClientError: Clone, Debug, Error, PartialEq, Send, Sync);
+    assert_impl_all!(ClientErrorType: Debug, Send, Sync);
+    assert_impl_all!(ClientError: Error, Send, Sync);
     assert_impl_all!(Lavalink: Clone, Debug, Send, Sync);
 }

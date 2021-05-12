@@ -15,10 +15,10 @@
 //!
 //! # fn main() -> Result<(), Box<dyn std::error::Error>> {
 //! let embed = EmbedBuilder::new()
-//!     .description("Here's a list of reasons why Twilight is the best pony:")?
-//!     .field(EmbedFieldBuilder::new("Wings", "She has wings.")?.inline())
-//!     .field(EmbedFieldBuilder::new("Horn", "She can do magic, and she's really good at it.")?.inline())
-//!     .build();
+//!     .description("Here's a list of reasons why Twilight is the best pony:")
+//!     .field(EmbedFieldBuilder::new("Wings", "She has wings.").inline())
+//!     .field(EmbedFieldBuilder::new("Horn", "She can do magic, and she's really good at it.").inline())
+//!     .build()?;
 //! # Ok(()) }
 //! ```
 //!
@@ -29,9 +29,9 @@
 //!
 //! # fn main() -> Result<(), Box<dyn std::error::Error>> {
 //! let embed = EmbedBuilder::new()
-//!     .description("Here's a cool image of Twilight Sparkle")?
+//!     .description("Here's a cool image of Twilight Sparkle")
 //!     .image(ImageSource::attachment("bestpony.png")?)
-//!     .build();
+//!     .build()?;
 //!
 //! # Ok(()) }
 //! ```
@@ -43,7 +43,7 @@
 //! [github link]: https://github.com/twilight-rs/twilight
 //! [license badge]: https://img.shields.io/badge/license-ISC-blue.svg?style=for-the-badge&logo=pastebin
 //! [license link]: https://github.com/twilight-rs/twilight/blob/trunk/LICENSE.md
-//! [rust badge]: https://img.shields.io/badge/rust-1.48+-93450a.svg?style=for-the-badge&logo=rust
+//! [rust badge]: https://img.shields.io/badge/rust-1.49+-93450a.svg?style=for-the-badge&logo=rust
 //! [the discord docs]: https://discord.com/developers/docs/resources/channel#create-message-using-attachments-within-embeds
 
 #![deny(
@@ -58,19 +58,17 @@
     unused,
     warnings
 )]
-
-pub mod author;
-pub mod builder;
-pub mod field;
-pub mod footer;
 pub mod image_source;
 
+mod author;
+mod builder;
+mod field;
+mod footer;
+
 pub use self::{
-    author::{EmbedAuthorBuilder, EmbedAuthorNameError},
-    builder::{
-        EmbedBuildError, EmbedBuilder, EmbedColorError, EmbedDescriptionError, EmbedTitleError,
-    },
-    field::{EmbedFieldBuilder, EmbedFieldError},
-    footer::{EmbedFooterBuilder, EmbedFooterTextError},
-    image_source::{ImageSource, ImageSourceAttachmentError, ImageSourceUrlError},
+    author::EmbedAuthorBuilder,
+    builder::{EmbedBuilder, EmbedError, EmbedErrorType},
+    field::EmbedFieldBuilder,
+    footer::EmbedFooterBuilder,
+    image_source::ImageSource,
 };

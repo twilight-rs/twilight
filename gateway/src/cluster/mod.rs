@@ -93,6 +93,9 @@ mod r#impl;
 pub use self::{
     builder::ClusterBuilder,
     config::Config,
-    r#impl::{Cluster, ClusterCommandError, ClusterSendError, ClusterStartError},
-    scheme::{ShardScheme, ShardSchemeRangeError},
+    r#impl::{
+        Cluster, ClusterCommandError, ClusterCommandErrorType, ClusterStartError,
+        ClusterStartErrorType,
+    },
+    scheme::{ShardScheme, ShardSchemeRangeError, ShardSchemeRangeErrorType},
 };

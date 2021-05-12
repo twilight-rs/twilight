@@ -1,18 +1,109 @@
 use std::{
     error::Error,
     fmt::{Display, Formatter, Result as FmtResult},
-    num::ParseIntError,
 };
 
 /// Parsing a mention failed due to invalid syntax.
-#[derive(Clone, Debug, Eq, PartialEq)]
-pub enum ParseMentionError<'a> {
+#[derive(Debug)]
+pub struct ParseMentionError<'a> {
+    pub(super) kind: ParseMentionErrorType<'a>,
+    pub(super) source: Option<Box<dyn Error + Send + Sync>>,
+}
+
+impl<'a> ParseMentionError<'a> {
+    /// Immutable reference to the type of error that occurred.
+    #[must_use = "retrieving the type has no effect if left unused"]
+    pub fn kind(&self) -> &ParseMentionErrorType<'_> {
+        &self.kind
+    }
+
+    /// Consume the error, returning the source error if there is any.
+    #[must_use = "consuming the error and retrieving the source has no effect if left unused"]
+    pub fn into_source(self) -> Option<Box<dyn Error + Send + Sync>> {
+        self.source
+    }
+
+    /// Consume the error, returning the owned error type and the source error.
+    #[must_use = "consuming the error into its parts has no effect if left unused"]
+    pub fn into_parts(
+        self,
+    ) -> (
+        ParseMentionErrorType<'a>,
+        Option<Box<dyn Error + Send + Sync>>,
+    ) {
+        (self.kind, self.source)
+    }
+}
+
+impl Display for ParseMentionError<'_> {
+    fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
+        match &self.kind {
+            ParseMentionErrorType::IdNotU64 { found, .. } => f.write_fmt(format_args!(
+                "id portion ('{}') of mention is not a u64",
+                found,
+            )),
+            ParseMentionErrorType::LeadingArrow { found } => {
+                f.write_str("expected to find a leading arrow ('<') but instead ")?;
+
+                if let Some(c) = found {
+                    f.write_fmt(format_args!("found '{}'", c))
+                } else {
+                    f.write_str("found nothing")
+                }
+            }
+            ParseMentionErrorType::PartMissing { expected, found } => f.write_fmt(format_args!(
+                "
+                    expected {} parts but only found {}",
+                expected, found,
+            )),
+            ParseMentionErrorType::Sigil { expected, found } => {
+                f.write_str("expected to find a mention sigil (")?;
+
+                for (idx, sigil) in expected.iter().enumerate() {
+                    f.write_fmt(format_args!("'{}'", sigil))?;
+
+                    if idx < expected.len() - 1 {
+                        f.write_str(", ")?;
+                    }
+                }
+
+                f.write_str(") but instead found ")?;
+
+                if let Some(c) = found {
+                    f.write_fmt(format_args!("'{}'", c))
+                } else {
+                    f.write_str("nothing")
+                }
+            }
+            ParseMentionErrorType::TrailingArrow { found } => {
+                f.write_str("expected to find a trailing arrow ('>') but instead ")?;
+
+                if let Some(c) = found {
+                    f.write_fmt(format_args!("found '{}'", c))
+                } else {
+                    f.write_str("found nothing")
+                }
+            }
+        }
+    }
+}
+
+impl Error for ParseMentionError<'_> {
+    fn source(&self) -> Option<&(dyn Error + 'static)> {
+        self.source
+            .as_ref()
+            .map(|source| &**source as &(dyn Error + 'static))
+    }
+}
+
+/// Type of [`ParseMentionError`] that occurred.
+#[derive(Debug, Eq, PartialEq)]
+#[non_exhaustive]
+pub enum ParseMentionErrorType<'a> {
     /// ID portion of the mention isn't a u64.
     IdNotU64 {
         /// String that could not be parsed into a u64.
         found: &'a str,
-        /// Reason for the error.
-        source: ParseIntError,
     },
     /// Leading arrow (`<`) is not present.
     LeadingArrow {
@@ -46,112 +137,59 @@ pub enum ParseMentionError<'a> {
     },
 }
 
-impl Display for ParseMentionError<'_> {
-    fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
-        match self {
-            Self::IdNotU64 { found, .. } => f.write_fmt(format_args!(
-                "id portion ('{}') of mention is not a u64",
-                found,
-            )),
-            Self::LeadingArrow { found } => {
-                f.write_str("expected to find a leading arrow ('<') but instead ")?;
-
-                if let Some(c) = found {
-                    f.write_fmt(format_args!("found '{}'", c))
-                } else {
-                    f.write_str("found nothing")
-                }
-            }
-            Self::PartMissing { expected, found } => f.write_fmt(format_args!(
-                "
-                    expected {} parts but only found {}",
-                expected, found,
-            )),
-            Self::Sigil { expected, found } => {
-                f.write_str("expected to find a mention sigil (")?;
-
-                for (idx, sigil) in expected.iter().enumerate() {
-                    f.write_fmt(format_args!("'{}'", sigil))?;
-
-                    if idx < expected.len() - 1 {
-                        f.write_str(", ")?;
-                    }
-                }
-
-                f.write_str(") but instead found ")?;
-
-                if let Some(c) = found {
-                    f.write_fmt(format_args!("'{}'", c))
-                } else {
-                    f.write_str("nothing")
-                }
-            }
-            Self::TrailingArrow { found } => {
-                f.write_str("expected to find a trailing arrow ('>') but instead ")?;
-
-                if let Some(c) = found {
-                    f.write_fmt(format_args!("found '{}'", c))
-                } else {
-                    f.write_str("found nothing")
-                }
-            }
-        }
-    }
-}
-
-impl Error for ParseMentionError<'_> {
-    fn source(&self) -> Option<&(dyn Error + 'static)> {
-        match self {
-            Self::IdNotU64 { source, .. } => Some(source),
-            Self::LeadingArrow { .. }
-            | Self::PartMissing { .. }
-            | Self::Sigil { .. }
-            | Self::TrailingArrow { .. } => None,
-        }
-    }
-}
-
 #[cfg(test)]
 mod tests {
-    use super::ParseMentionError;
+    use super::{ParseMentionError, ParseMentionErrorType};
     use static_assertions::{assert_fields, assert_impl_all};
     use std::{error::Error, fmt::Debug};
 
-    assert_fields!(ParseMentionError::IdNotU64: found, source);
-    assert_fields!(ParseMentionError::LeadingArrow: found);
-    assert_fields!(ParseMentionError::Sigil: expected, found);
-    assert_fields!(ParseMentionError::TrailingArrow: found);
-    assert_impl_all!(ParseMentionError<'_>: Clone, Debug, Error, Eq, PartialEq, Send, Sync);
+    assert_fields!(ParseMentionErrorType::IdNotU64: found);
+    assert_fields!(ParseMentionErrorType::LeadingArrow: found);
+    assert_fields!(ParseMentionErrorType::Sigil: expected, found);
+    assert_fields!(ParseMentionErrorType::TrailingArrow: found);
+    assert_impl_all!(ParseMentionErrorType<'_>: Debug, Send, Sync);
+    assert_impl_all!(ParseMentionError<'_>: Debug, Error, Send, Sync);
 
     #[test]
     fn test_display() {
         let mut expected = "id portion ('abcd') of mention is not a u64";
         assert_eq!(
             expected,
-            ParseMentionError::IdNotU64 {
-                found: "abcd",
-                source: "abcd".parse::<u64>().unwrap_err(),
+            ParseMentionError {
+                kind: ParseMentionErrorType::IdNotU64 { found: "abcd" },
+                source: Some(Box::new("abcd".parse::<u64>().unwrap_err())),
             }
             .to_string(),
         );
         expected = "expected to find a leading arrow ('<') but instead found 'a'";
         assert_eq!(
             expected,
-            ParseMentionError::LeadingArrow { found: Some('a') }.to_string(),
+            ParseMentionError {
+                kind: ParseMentionErrorType::LeadingArrow { found: Some('a') },
+                source: None,
+            }
+            .to_string(),
         );
 
         expected = "expected to find a leading arrow ('<') but instead found nothing";
         assert_eq!(
             expected,
-            ParseMentionError::LeadingArrow { found: None }.to_string(),
+            ParseMentionError {
+                kind: ParseMentionErrorType::LeadingArrow { found: None },
+                source: None,
+            }
+            .to_string(),
         );
 
         expected = "expected to find a mention sigil ('@') but instead found '#'";
         assert_eq!(
             expected,
-            ParseMentionError::Sigil {
-                expected: &["@"],
-                found: Some('#')
+            ParseMentionError {
+                kind: ParseMentionErrorType::Sigil {
+                    expected: &["@"],
+                    found: Some('#')
+                },
+                source: None,
             }
             .to_string(),
         );
@@ -159,9 +197,12 @@ mod tests {
         expected = "expected to find a mention sigil ('@') but instead found nothing";
         assert_eq!(
             expected,
-            ParseMentionError::Sigil {
-                expected: &["@"],
-                found: None
+            ParseMentionError {
+                kind: ParseMentionErrorType::Sigil {
+                    expected: &["@"],
+                    found: None
+                },
+                source: None,
             }
             .to_string(),
         );
@@ -169,9 +210,12 @@ mod tests {
         expected = "expected to find a mention sigil ('@!', '@') but instead found '#'";
         assert_eq!(
             expected,
-            ParseMentionError::Sigil {
-                expected: &["@!", "@"],
-                found: Some('#'),
+            ParseMentionError {
+                kind: ParseMentionErrorType::Sigil {
+                    expected: &["@!", "@"],
+                    found: Some('#'),
+                },
+                source: None,
             }
             .to_string(),
         );
@@ -179,9 +223,12 @@ mod tests {
         expected = "expected to find a mention sigil ('@!', '@') but instead found nothing";
         assert_eq!(
             expected,
-            ParseMentionError::Sigil {
-                expected: &["@!", "@"],
-                found: None
+            ParseMentionError {
+                kind: ParseMentionErrorType::Sigil {
+                    expected: &["@!", "@"],
+                    found: None
+                },
+                source: None,
             }
             .to_string(),
         );
@@ -189,13 +236,21 @@ mod tests {
         expected = "expected to find a trailing arrow ('>') but instead found 'a'";
         assert_eq!(
             expected,
-            ParseMentionError::TrailingArrow { found: Some('a') }.to_string(),
+            ParseMentionError {
+                kind: ParseMentionErrorType::TrailingArrow { found: Some('a') },
+                source: None,
+            }
+            .to_string(),
         );
 
         expected = "expected to find a trailing arrow ('>') but instead found nothing";
         assert_eq!(
             expected,
-            ParseMentionError::TrailingArrow { found: None }.to_string(),
+            ParseMentionError {
+                kind: ParseMentionErrorType::TrailingArrow { found: None },
+                source: None,
+            }
+            .to_string(),
         );
     }
 }

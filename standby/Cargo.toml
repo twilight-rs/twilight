@@ -12,13 +12,13 @@ name = "twilight-standby"
 publish = false
 readme = "README.md"
 repository = "https://github.com/twilight-rs/twilight.git"
-version = "0.3.0"
+version = "0.4.0"
 
 [dependencies]
 dashmap = { default-features = false, version = "4.0" }
-futures-channel = { default-features = false, features = ["std"], version = "0.3" }
 futures-util = { default-features = false, features = ["std"], version = "0.3" }
 tracing = { default-features = false, features = ["std", "attributes"], version = "0.1" }
+tokio = { default-features = false, features = ["sync"], version = "1.0" }
 twilight-model = { default-features = false, path = "../model" }
 
 [dev-dependencies]

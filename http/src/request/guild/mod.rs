@@ -9,6 +9,7 @@ pub mod integration;
 pub mod member;
 pub mod role;
 pub mod update_guild;
+pub mod user;
 
 mod delete_guild;
 mod get_guild;

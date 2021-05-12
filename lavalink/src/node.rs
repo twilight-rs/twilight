@@ -21,72 +21,71 @@ use crate::{
     model::{IncomingEvent, Opcode, OutgoingEvent, PlayerUpdate, Stats, StatsCpu, StatsMemory},
     player::PlayerManager,
 };
-use async_tungstenite::{
-    tokio::ConnectStream,
-    tungstenite::{Error as TungsteniteError, Message},
-    WebSocketStream,
-};
-use futures_channel::mpsc::{self, TrySendError, UnboundedReceiver, UnboundedSender};
 use futures_util::{
-    future::{self, Either},
     lock::BiLock,
     sink::SinkExt,
-    stream::StreamExt,
+    stream::{Stream, StreamExt},
 };
-use http::{header::HeaderName, Error as HttpError, Request, Response, StatusCode};
-use serde_json::Error as JsonError;
+use http::{header::HeaderName, Request, Response, StatusCode};
 use std::{
     error::Error,
     fmt::{Display, Formatter, Result as FmtResult},
     net::SocketAddr,
+    pin::Pin,
     sync::Arc,
+    task::{Context, Poll},
     time::Duration,
 };
-use tokio::time as tokio_time;
+use tokio::{
+    net::TcpStream,
+    sync::mpsc::{self, UnboundedReceiver, UnboundedSender},
+    time as tokio_time,
+};
+use tokio_tungstenite::{
+    tungstenite::{Error as TungsteniteError, Message},
+    MaybeTlsStream, WebSocketStream,
+};
 use twilight_model::id::UserId;
 
 /// An error occurred while either initializing a connection or while running
 /// its event loop.
 #[derive(Debug)]
-#[non_exhaustive]
-pub enum NodeError {
-    /// Building the HTTP request to initialize a connection failed.
-    BuildingConnectionRequest {
-        /// The source of the error from the `http` crate.
-        source: HttpError,
-    },
-    /// Connecting to the Lavalink server failed after several backoff attempts.
-    Connecting {
-        /// The source of the error from the `tungstenite` crate.
-        source: TungsteniteError,
-    },
-    /// Serializing a JSON message to be sent to a Lavalink node failed.
-    SerializingMessage {
-        /// The message that couldn't be serialized.
-        message: OutgoingEvent,
-        /// The source of the error from the `serde_json` crate.
-        source: JsonError,
-    },
-    /// The given authorization for the node is incorrect.
-    Unauthorized {
-        /// The address of the node that failed to authorize.
-        address: SocketAddr,
-        /// The authorization used to connect to the node.
-        authorization: String,
-    },
+pub struct NodeError {
+    kind: NodeErrorType,
+    source: Option<Box<dyn Error + Send + Sync>>,
+}
+
+impl NodeError {
+    /// Immutable reference to the type of error that occurred.
+    #[must_use = "retrieving the type has no effect if left unused"]
+    pub fn kind(&self) -> &NodeErrorType {
+        &self.kind
+    }
+
+    /// Consume the error, returning the source error if there is any.
+    #[must_use = "consuming the error and retrieving the source has no effect if left unused"]
+    pub fn into_source(self) -> Option<Box<dyn Error + Send + Sync>> {
+        self.source
+    }
+
+    /// Consume the error, returning the owned error type and the source error.
+    #[must_use = "consuming the error into its parts has no effect if left unused"]
+    pub fn into_parts(self) -> (NodeErrorType, Option<Box<dyn Error + Send + Sync>>) {
+        (self.kind, self.source)
+    }
 }
 
 impl Display for NodeError {
     fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
-        match self {
-            Self::BuildingConnectionRequest { .. } => {
+        match &self.kind {
+            NodeErrorType::BuildingConnectionRequest { .. } => {
                 f.write_str("failed to build connection request")
             }
-            Self::Connecting { .. } => f.write_str("Failed to connect to the node"),
-            Self::SerializingMessage { .. } => {
+            NodeErrorType::Connecting { .. } => f.write_str("Failed to connect to the node"),
+            NodeErrorType::SerializingMessage { .. } => {
                 f.write_str("failed to serialize outgoing message as json")
             }
-            Self::Unauthorized { address, .. } => write!(
+            NodeErrorType::Unauthorized { address, .. } => write!(
                 f,
                 "the authorization used to connect to node {} is invalid",
                 address
@@ -97,12 +96,129 @@ impl Display for NodeError {
 
 impl Error for NodeError {
     fn source(&self) -> Option<&(dyn Error + 'static)> {
-        match self {
-            Self::BuildingConnectionRequest { source } => Some(source),
-            Self::Connecting { source } => Some(source),
-            Self::SerializingMessage { source, .. } => Some(source),
-            Self::Unauthorized { .. } => None,
+        self.source
+            .as_ref()
+            .map(|source| &**source as &(dyn Error + 'static))
+    }
+}
+
+/// Type of [`NodeError`] that occurred.
+#[derive(Debug)]
+#[non_exhaustive]
+pub enum NodeErrorType {
+    /// Building the HTTP request to initialize a connection failed.
+    BuildingConnectionRequest,
+    /// Connecting to the Lavalink server failed after several backoff attempts.
+    Connecting,
+    /// Serializing a JSON message to be sent to a Lavalink node failed.
+    SerializingMessage {
+        /// The message that couldn't be serialized.
+        message: OutgoingEvent,
+    },
+    /// The given authorization for the node is incorrect.
+    Unauthorized {
+        /// The address of the node that failed to authorize.
+        address: SocketAddr,
+        /// The authorization used to connect to the node.
+        authorization: String,
+    },
+}
+
+/// An error that can occur while sending an event over a node.
+#[derive(Debug)]
+pub struct NodeSenderError {
+    kind: NodeSenderErrorType,
+    source: Option<Box<dyn Error + Send + Sync>>,
+}
+
+impl NodeSenderError {
+    /// Immutable reference to the type of error that occurred.
+    pub fn kind(&self) -> &NodeSenderErrorType {
+        &self.kind
+    }
+
+    /// Consume the error, returning the source error if there is any.
+    pub fn into_source(self) -> Option<Box<dyn Error + Send + Sync>> {
+        self.source
+    }
+
+    /// Consume the error, returning the owned error type and the source error.
+    #[must_use = "consuming the error into its parts has no effect if left unused"]
+    pub fn into_parts(self) -> (NodeSenderErrorType, Option<Box<dyn Error + Send + Sync>>) {
+        (self.kind, self.source)
+    }
+}
+
+impl Display for NodeSenderError {
+    fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
+        match &self.kind {
+            NodeSenderErrorType::Sending => f.write_str("failed to send over channel"),
         }
+    }
+}
+
+impl Error for NodeSenderError {
+    fn source(&self) -> Option<&(dyn Error + 'static)> {
+        self.source
+            .as_ref()
+            .map(|source| &**source as &(dyn Error + 'static))
+    }
+}
+
+/// Type of [`NodeSenderError`] that occurred.
+#[derive(Debug)]
+#[non_exhaustive]
+pub enum NodeSenderErrorType {
+    /// Error occured while sending over the channel.
+    Sending,
+}
+
+/// Stream of incoming events from a node.
+pub struct IncomingEvents {
+    inner: UnboundedReceiver<IncomingEvent>,
+}
+
+impl IncomingEvents {
+    /// Closes the receiving half of a channel without dropping it.
+    pub fn close(&mut self) {
+        self.inner.close();
+    }
+}
+
+impl Stream for IncomingEvents {
+    type Item = IncomingEvent;
+
+    fn poll_next(mut self: Pin<&mut Self>, cx: &mut Context<'_>) -> Poll<Option<Self::Item>> {
+        self.inner.poll_recv(cx)
+    }
+}
+
+/// Send outgoing events to the associated node.
+pub struct NodeSender {
+    inner: UnboundedSender<OutgoingEvent>,
+}
+
+impl NodeSender {
+    /// Returns whether this channel is closed without needing a context.
+    pub fn is_closed(&self) -> bool {
+        self.inner.is_closed()
+    }
+
+    /// Sends a message along this channel.
+    ///
+    /// This is an unbounded sender, so this function differs from `Sink::send`
+    /// by ensuring the return type reflects that the channel is always ready to
+    /// receive messages.
+    ///
+    /// # Errors
+    ///
+    /// Returns a [`NodeSenderErrorType::Sending`] error type if node is no
+    /// longer connected.
+    pub fn send(&self, msg: OutgoingEvent) -> Result<(), NodeSenderError> {
+        self.inner.send(msg).map_err(|source| NodeSenderError {
+            kind: NodeSenderErrorType::Sending,
+            source: Some(Box::new(source)),
+        })
     }
 }
 
@@ -220,7 +336,7 @@ impl Node {
     pub async fn connect(
         config: NodeConfig,
         players: PlayerManager,
-    ) -> Result<(Self, UnboundedReceiver<IncomingEvent>), NodeError> {
+    ) -> Result<(Self, IncomingEvents), NodeError> {
         let (bilock_left, bilock_right) = BiLock::new(Stats {
             cpu: StatsCpu {
                 cores: 0,
@@ -253,7 +369,7 @@ impl Node {
                 players,
                 stats: bilock_left,
             })),
-            lavalink_rx,
+            IncomingEvents { inner: lavalink_rx },
         ))
     }
 
@@ -263,7 +379,7 @@ impl Node {
     }
 
     /// Retrieve an immutable reference to the player manager used by the node.
-    pub async fn players(&self) -> &PlayerManager {
+    pub fn players(&self) -> &PlayerManager {
         &self.0.players
     }
 
@@ -271,16 +387,23 @@ impl Node {
     ///
     /// Note that sending player events through the node's sender won't update
     /// player states, such as whether it's paused.
-    pub fn send(&self, event: OutgoingEvent) -> Result<(), TrySendError<OutgoingEvent>> {
-        self.sender().unbounded_send(event)
+    ///
+    /// # Errors
+    ///
+    /// Returns a [`NodeSenderErrorType::Sending`] error type if node is no
+    /// longer connected.
+    pub fn send(&self, event: OutgoingEvent) -> Result<(), NodeSenderError> {
+        self.sender().send(event)
     }
 
     /// Retrieve a unique sender to send events to the Lavalink server.
     ///
     /// Note that sending player events through the node's sender won't update
     /// player states, such as whether it's paused.
-    pub fn sender(&self) -> UnboundedSender<OutgoingEvent> {
-        self.0.lavalink_tx.clone()
+    pub fn sender(&self) -> NodeSender {
+        NodeSender {
+            inner: self.0.lavalink_tx.clone(),
+        }
     }
 
     /// Retrieve a copy of the node's stats.
@@ -314,7 +437,7 @@ impl Node {
 
 struct Connection {
     config: NodeConfig,
-    connection: WebSocketStream<ConnectStream>,
+    connection: WebSocketStream<MaybeTlsStream<TcpStream>>,
     node_from: UnboundedReceiver<OutgoingEvent>,
     node_to: UnboundedSender<IncomingEvent>,
     players: PlayerManager,
@@ -336,8 +459,8 @@ impl Connection {
     > {
         let connection = reconnect(&config).await?;
 
-        let (to_node, from_lavalink) = mpsc::unbounded();
-        let (to_lavalink, from_node) = mpsc::unbounded();
+        let (to_node, from_lavalink) = mpsc::unbounded_channel();
+        let (to_lavalink, from_node) = mpsc::unbounded_channel();
 
         Ok((
             Self {
@@ -355,37 +478,34 @@ impl Connection {
 
     async fn run(mut self) -> Result<(), NodeError> {
         loop {
-            let from_lavalink = self.connection.next();
-            let to_lavalink = self.node_from.next();
-
-            match future::select(from_lavalink, to_lavalink).await {
-                Either::Left((Some(Ok(incoming)), _)) => {
-                    self.incoming(incoming).await?;
+            tokio::select! {
+                incoming = self.connection.next() => {
+                    if let Some(Ok(incoming)) = incoming {
+                        self.incoming(incoming).await?;
+                    } else {
+                        tracing::debug!("connection to {} closed, reconnecting", self.config.address);
+                        self.connection = reconnect(&self.config).await?;
+                    }
                 }
-                Either::Left((_, _)) => {
-                    tracing::debug!("connection to {} closed, reconnecting", self.config.address);
-                    self.connection = reconnect(&self.config).await?;
-                }
-                Either::Right((Some(outgoing), _)) => {
-                    tracing::debug!(
-                        "forwarding event to {}: {:?}",
-                        self.config.address,
-                        outgoing
-                    );
+                outgoing = self.node_from.recv() => {
+                    if let Some(outgoing) = outgoing {
+                        tracing::debug!(
+                            "forwarding event to {}: {:?}",
+                            self.config.address,
+                            outgoing
+                        );
 
-                    let payload = serde_json::to_string(&outgoing).map_err(|source| {
-                        NodeError::SerializingMessage {
-                            message: outgoing,
-                            source,
-                        }
-                    })?;
-                    let msg = Message::Text(payload);
-                    self.connection.send(msg).await.unwrap();
-                }
-                Either::Right((_, _)) => {
-                    tracing::debug!("node {} closed, ending connection", self.config.address);
+                        let payload = serde_json::to_string(&outgoing).map_err(|source| NodeError {
+                            kind: NodeErrorType::SerializingMessage { message: outgoing },
+                            source: Some(Box::new(source)),
+                        })?;
+                        let msg = Message::Text(payload);
+                        self.connection.send(msg).await.unwrap();
+                    } else {
+                        tracing::debug!("node {} closed, ending connection", self.config.address);
 
-                    break;
+                        break;
+                    }
                 }
             }
         }
@@ -442,14 +562,14 @@ impl Connection {
         // It's fine if the rx end dropped, often users don't need to care about
         // these events.
         if !self.node_to.is_closed() {
-            let _ = self.node_to.unbounded_send(event);
+            let _ = self.node_to.send(event);
         }
 
         Ok(true)
     }
 
     async fn player_update(&self, update: &PlayerUpdate) -> Result<(), NodeError> {
-        let mut player = match self.players.get_mut(&update.guild_id) {
+        let player = match self.players.get(&update.guild_id) {
             Some(player) => player,
             None => {
                 tracing::warn!(
@@ -462,8 +582,8 @@ impl Connection {
             }
         };
 
-        *player.value_mut().position_mut() = update.state.position;
-        *player.value_mut().time_mut() = update.state.time;
+        player.set_position(update.state.position);
+        player.set_time(update.state.time);
 
         Ok(())
     }
@@ -472,6 +592,15 @@ impl Connection {
         *self.stats.lock().await = stats.clone();
 
         Ok(())
+    }
+}
+
+impl Drop for Connection {
+    fn drop(&mut self) {
+        // Cleanup local players associated with the node
+        self.players
+            .players
+            .retain(|_, v| v.node().config().address != self.config.address);
     }
 }
 
@@ -485,12 +614,15 @@ fn connect_request(state: &NodeConfig) -> Result<Request<()>, NodeError> {
         builder = builder.header("Resume-Key", state.address.to_string());
     }
 
-    builder
-        .body(())
-        .map_err(|source| NodeError::BuildingConnectionRequest { source })
+    builder.body(()).map_err(|source| NodeError {
+        kind: NodeErrorType::BuildingConnectionRequest,
+        source: Some(Box::new(source)),
+    })
 }
 
-async fn reconnect(config: &NodeConfig) -> Result<WebSocketStream<ConnectStream>, NodeError> {
+async fn reconnect(
+    config: &NodeConfig,
+) -> Result<WebSocketStream<MaybeTlsStream<TcpStream>>, NodeError> {
     let (mut stream, res) = backoff(config).await?;
 
     let headers = res.headers();
@@ -521,29 +653,35 @@ async fn reconnect(config: &NodeConfig) -> Result<WebSocketStream<ConnectStream>
 
 async fn backoff(
     config: &NodeConfig,
-) -> Result<(WebSocketStream<ConnectStream>, Response<()>), NodeError> {
+) -> Result<(WebSocketStream<MaybeTlsStream<TcpStream>>, Response<()>), NodeError> {
     let mut seconds = 1;
 
     loop {
         let req = connect_request(config)?;
 
-        match async_tungstenite::tokio::connect_async(req).await {
+        match tokio_tungstenite::connect_async(req).await {
             Ok((stream, res)) => return Ok((stream, res)),
             Err(source) => {
                 tracing::warn!("failed to connect to node {}: {:?}", source, config.address);
 
-                if matches!(source, TungsteniteError::Http(status) if status == StatusCode::UNAUTHORIZED)
+                if matches!(source, TungsteniteError::Http(ref resp) if resp.status() == StatusCode::UNAUTHORIZED)
                 {
-                    return Err(NodeError::Unauthorized {
-                        address: config.address,
-                        authorization: config.authorization.to_owned(),
+                    return Err(NodeError {
+                        kind: NodeErrorType::Unauthorized {
+                            address: config.address,
+                            authorization: config.authorization.to_owned(),
+                        },
+                        source: None,
                     });
                 }
 
                 if seconds > 64 {
                     tracing::debug!("no longer trying to connect to node {}", config.address);
 
-                    return Err(NodeError::Connecting { source });
+                    return Err(NodeError {
+                        kind: NodeErrorType::Connecting,
+                        source: Some(Box::new(source)),
+                    });
                 }
 
                 tracing::debug!(
@@ -563,7 +701,7 @@ async fn backoff(
 
 #[cfg(test)]
 mod tests {
-    use super::{Node, NodeConfig, NodeError, Resume};
+    use super::{Node, NodeConfig, NodeError, NodeErrorType, Resume};
     use static_assertions::{assert_fields, assert_impl_all};
     use std::{error::Error, fmt::Debug};
 
@@ -575,11 +713,10 @@ mod tests {
         user_id
     );
     assert_impl_all!(NodeConfig: Clone, Debug, Send, Sync);
-    assert_fields!(NodeError::BuildingConnectionRequest: source);
-    assert_fields!(NodeError::Connecting: source);
-    assert_fields!(NodeError::SerializingMessage: message, source);
-    assert_fields!(NodeError::Unauthorized: address, authorization);
-    assert_impl_all!(NodeError: Debug, Error, Send, Sync);
+    assert_fields!(NodeErrorType::SerializingMessage: message);
+    assert_fields!(NodeErrorType::Unauthorized: address, authorization);
+    assert_impl_all!(NodeErrorType: Debug, Send, Sync);
+    assert_impl_all!(NodeError: Error, Send, Sync);
     assert_impl_all!(Node: Clone, Debug, Send, Sync);
     assert_fields!(Resume: timeout);
     assert_impl_all!(Resume: Clone, Debug, Default, Eq, PartialEq, Send, Sync);

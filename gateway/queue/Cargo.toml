@@ -12,11 +12,9 @@ name = "twilight-gateway-queue"
 publish = false
 readme = "README.md"
 repository = "https://github.com/twilight-rs/twilight.git"
-version = "0.3.0"
+version = "0.4.0"
 
 [dependencies]
-futures-channel = { default-features = false, features = ["sink"], version = "0.3" }
-futures-util = { default-features = false, features = ["std", "sink"], version = "0.3" }
 tokio = { default-features = false, features = ["net", "rt-multi-thread", "sync"], version = "1.0" }
 tracing = { default-features = false, features = ["std", "attributes"], version = "0.1" }
 twilight-http = { path = "../../http", default-features = false }
@@ -27,4 +25,6 @@ static_assertions = { default-features = false, version = "1" }
 [features]
 default = ["rustls"]
 native = ["twilight-http/native"]
-rustls = ["twilight-http/rustls"]
+rustls = ["rustls-native-roots"]
+rustls-native-roots = ["twilight-http/rustls-native-roots"]
+rustls-webpki-roots = ["twilight-http/rustls-webpki-roots"]

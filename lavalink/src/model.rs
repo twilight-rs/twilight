@@ -478,6 +478,8 @@ pub mod incoming {
         TrackEnd(TrackEnd),
         /// A track started.
         TrackStart(TrackStart),
+        /// The voice websocket connection was closed.
+        WeboscketClosed(WebsocketClosed),
     }
 
     impl From<PlayerUpdate> for IncomingEvent {
@@ -590,6 +592,9 @@ pub mod incoming {
         /// A track for a player started.
         #[serde(rename = "TrackStartEvent")]
         Start,
+        /// The voice websocket connection to Discord has been closed.
+        #[serde(rename = "WebSocketClosedEvent")]
+        WebsocketClosed,
     }
 
     /// A track ended.
@@ -627,12 +632,32 @@ pub mod incoming {
         /// The base64 track that was affected.
         pub track: String,
     }
+
+    /// The voice websocket connection to Discord has been closed.
+    #[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
+    #[non_exhaustive]
+    #[serde(rename_all = "camelCase")]
+    pub struct WebsocketClosed {
+        /// Guild ID of the associated player.
+        pub guild_id: GuildId,
+        /// Type of track event.
+        #[serde(rename = "type")]
+        pub kind: TrackEventType,
+        /// Lavalink websocket opcode of the event.
+        pub op: Opcode,
+        /// Discord websocket opcode that closed the connection.
+        pub code: u64,
+        /// True if Discord closed the connection, false if Lavalink closed it.
+        pub by_remote: bool,
+        /// Reason the connection was closed.
+        pub reason: String,
+    }
 }
 
 pub use self::{
     incoming::{
         IncomingEvent, PlayerUpdate, PlayerUpdateState, Stats, StatsCpu, StatsFrames, StatsMemory,
-        TrackEnd, TrackEventType, TrackStart,
+        TrackEnd, TrackEventType, TrackStart, WebsocketClosed,
     },
     outgoing::{
         Destroy, Equalizer, EqualizerBand, OutgoingEvent, Pause, Play, Seek, SlimVoiceServerUpdate,
@@ -645,7 +670,7 @@ mod tests {
     use super::{
         incoming::{
             IncomingEvent, PlayerUpdate, PlayerUpdateState, Stats, StatsCpu, StatsFrames,
-            StatsMemory, TrackEnd, TrackEventType, TrackStart,
+            StatsMemory, TrackEnd, TrackEventType, TrackStart, WebsocketClosed,
         },
         outgoing::{
             Destroy, Equalizer, EqualizerBand, OutgoingEvent, Pause, Play, Seek,
@@ -883,6 +908,16 @@ mod tests {
     assert_fields!(TrackStart: guild_id, kind, op, track);
     assert_impl_all!(
         TrackStart: Clone,
+        Debug,
+        Deserialize<'static>,
+        PartialEq,
+        Send,
+        Serialize,
+        Sync,
+    );
+    assert_fields!(WebsocketClosed: guild_id, kind, op, code, reason, by_remote);
+    assert_impl_all!(
+        WebsocketClosed: Clone,
         Debug,
         Deserialize<'static>,
         PartialEq,

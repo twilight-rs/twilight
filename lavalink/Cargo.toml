@@ -12,12 +12,11 @@ name = "twilight-lavalink"
 publish = false
 readme = "README.md"
 repository = "https://github.com/twilight-rs/twilight.git"
-version = "0.3.2"
+version = "0.4.0"
 
 [dependencies]
-async-tungstenite = { default-features = false, features = ["tokio-runtime"], version = "0.11" }
+tokio-tungstenite = { default-features = false, features = ["connect"], version = "0.14" }
 dashmap = { default-features = false, version = "4.0" }
-futures-channel = { default-features = false, features = ["std"], version = "0.3" }
 futures-util = { default-features = false, features = ["bilock", "std", "unstable"], version = "0.3" }
 http = { default-features = false, optional = true, version = "0.2" }
 tracing = { default-features = false, features = ["std", "attributes"], version = "0.1" }
@@ -37,5 +36,5 @@ twilight-http = { path = "../http" }
 [features]
 default = ["http-support", "rustls"]
 http-support = ["http", "percent-encoding"]
-native = ["async-tungstenite/tokio-native-tls"]
-rustls = ["async-tungstenite/tokio-rustls"]
+native = ["tokio-tungstenite/native-tls"]
+rustls = ["tokio-tungstenite/rustls-tls"]

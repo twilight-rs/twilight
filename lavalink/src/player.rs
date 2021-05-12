@@ -9,16 +9,15 @@
 //! [send events]: Player::send
 //! [read the position]: Player::position
 
-use crate::{model::*, node::Node};
-use dashmap::{
-    mapref::one::{Ref, RefMut},
-    DashMap,
+use crate::{
+    model::*,
+    node::{Node, NodeSenderError},
 };
-use futures_channel::mpsc::TrySendError;
+use dashmap::DashMap;
 use std::{
     fmt::Debug,
     sync::{
-        atomic::{AtomicBool, AtomicU16, AtomicU64, Ordering},
+        atomic::{AtomicBool, AtomicI64, AtomicU16, AtomicU64, Ordering},
         Arc,
     },
 };
@@ -40,29 +39,34 @@ impl PlayerManager {
     }
 
     /// Return an immutable reference to a player by guild ID.
-    pub fn get(&self, guild_id: &GuildId) -> Option<Ref<'_, GuildId, Player>> {
-        self.players.get(guild_id)
-    }
-
-    /// Return a mutable reference to a player by guild ID.
-    pub(crate) fn get_mut(&self, guild_id: &GuildId) -> Option<RefMut<'_, GuildId, Player>> {
-        self.players.get_mut(guild_id)
+    pub fn get(&self, guild_id: &GuildId) -> Option<Player> {
+        // Clippy recommends removing the `map` call, which is just wrong.
+        #[allow(clippy::map_clone)]
+        self.players.get(guild_id).map(|player| player.clone())
     }
 
     /// Return a mutable reference to a player by guild ID or insert a new
     /// player linked to a given node.
-    pub fn get_or_insert(&self, guild_id: GuildId, node: Node) -> RefMut<'_, GuildId, Player> {
+    pub fn get_or_insert(&self, guild_id: GuildId, node: Node) -> Player {
         self.players
             .entry(guild_id)
             .or_insert_with(|| Player::new(guild_id, node))
+            .clone()
     }
 
     /// Destroy a player on the remote node and remove it from the [`PlayerManager`].
     ///
-    /// Returns an error if the associated node no longer is connected.
-    pub fn destroy(&self, guild_id: GuildId) -> Result<(), TrySendError<OutgoingEvent>> {
-        if let Some(node) = self.get(&guild_id).map(|kv| kv.value().node().clone()) {
-            node.send(OutgoingEvent::from(Destroy::new(guild_id)))?;
+    /// # Errors
+    ///
+    /// Returns a [`NodeSenderErrorType::Sending`] error type if node is no
+    /// longer connected.
+    ///
+    /// [`NodeSenderErrorType::Sending`]: crate::node::NodeSenderErrorType::Sending
+    pub fn destroy(&self, guild_id: GuildId) -> Result<(), NodeSenderError> {
+        if let Some(player) = self.get(&guild_id) {
+            player
+                .node()
+                .send(OutgoingEvent::from(Destroy::new(guild_id)))?;
             self.players.remove(&guild_id);
         }
 
@@ -70,32 +74,35 @@ impl PlayerManager {
     }
 }
 
-/// A player for a guild connected to a node.
-///
-/// This can be used to send events over a node and to read the details of a
-/// player for a guild.
 #[derive(Debug)]
-pub struct Player {
+struct PlayerRef {
     channel_id: AtomicU64,
     guild_id: GuildId,
     node: Node,
     paused: AtomicBool,
-    position: i64,
-    time: i64,
+    position: AtomicI64,
+    time: AtomicI64,
     volume: AtomicU16,
 }
 
+/// A player for a guild connected to a node.
+///
+/// This can be used to send events over a node and to read the details of a
+/// player for a guild.
+#[derive(Clone, Debug)]
+pub struct Player(Arc<PlayerRef>);
+
 impl Player {
     pub(crate) fn new(guild_id: GuildId, node: Node) -> Self {
-        Self {
+        Self(Arc::new(PlayerRef {
             channel_id: AtomicU64::new(0),
             guild_id,
             node,
             paused: AtomicBool::new(false),
-            position: 0,
-            time: 0,
+            position: AtomicI64::new(0),
+            time: AtomicI64::new(0),
             volume: AtomicU16::new(100),
-        }
+        }))
     }
 
     /// Send an event to the player's node.
@@ -123,38 +130,44 @@ impl Player {
     /// # Ok(()) }
     /// ```
     ///
+    /// # Errors
+    ///
+    /// Returns a [`NodeSenderErrorType::Sending`] error type if node is no
+    /// longer connected.
+    ///
+    /// [`NodeSenderErrorType::Sending`]: crate::node::NodeSenderErrorType::Sending
     /// [`Pause`]: crate::model::outgoing::Pause
     /// [`Play`]: crate::model::outgoing::Play
-    pub fn send(&self, event: impl Into<OutgoingEvent>) -> Result<(), TrySendError<OutgoingEvent>> {
+    pub fn send(&self, event: impl Into<OutgoingEvent>) -> Result<(), NodeSenderError> {
         self._send(event.into())
     }
 
-    fn _send(&self, event: OutgoingEvent) -> Result<(), TrySendError<OutgoingEvent>> {
+    fn _send(&self, event: OutgoingEvent) -> Result<(), NodeSenderError> {
         tracing::debug!(
             "sending event on guild player {}: {:?}",
-            self.guild_id,
+            self.0.guild_id,
             event
         );
 
         match event {
-            OutgoingEvent::Pause(ref event) => self.paused.store(event.pause, Ordering::Release),
+            OutgoingEvent::Pause(ref event) => self.0.paused.store(event.pause, Ordering::Release),
             OutgoingEvent::Volume(ref event) => {
-                self.volume.store(event.volume as u16, Ordering::Release)
+                self.0.volume.store(event.volume as u16, Ordering::Release)
             }
             _ => {}
         }
 
-        self.node.send(event)
+        self.0.node.send(event)
     }
 
     /// Return an immutable reference to the node linked to the player.
     pub fn node(&self) -> &Node {
-        &self.node
+        &self.0.node
     }
 
-    /// Return a copy of the player's channel ID.
+    /// Return the player's channel ID.
     pub fn channel_id(&self) -> Option<ChannelId> {
-        let channel_id = self.channel_id.load(Ordering::Acquire);
+        let channel_id = self.0.channel_id.load(Ordering::Acquire);
 
         if channel_id == 0 {
             None
@@ -165,45 +178,45 @@ impl Player {
 
     /// Sets the channel ID the player is currently connected to.
     pub(crate) fn set_channel_id(&self, channel_id: Option<ChannelId>) {
-        self.channel_id.store(
+        self.0.channel_id.store(
             channel_id.map(|id| id.0).unwrap_or(0_u64),
             Ordering::Release,
         );
     }
 
-    /// Return an copy of the player's guild ID.
+    /// Return the player's guild ID.
     pub fn guild_id(&self) -> GuildId {
-        self.guild_id
+        self.0.guild_id
     }
 
-    /// Return a copy of whether the player is paused.
+    /// Return whether the player is paused.
     pub fn paused(&self) -> bool {
-        self.paused.load(Ordering::Acquire)
+        self.0.paused.load(Ordering::Acquire)
     }
 
-    /// Return a copy of the player's position.
+    /// Return the player's position.
     pub fn position(&self) -> i64 {
-        self.position
+        self.0.position.load(Ordering::Relaxed)
     }
 
-    /// Return a mmutable reference to the player's channel ID.
-    pub(crate) fn position_mut(&mut self) -> &mut i64 {
-        &mut self.position
+    /// Set the player's position.
+    pub(crate) fn set_position(&self, position: i64) {
+        self.0.position.store(position, Ordering::Release)
     }
 
-    /// Return a copy of the player's time.
-    pub fn time_ref(&self) -> i64 {
-        self.time
+    /// Return the player's time.
+    pub fn time(&mut self) -> i64 {
+        self.0.time.load(Ordering::Relaxed)
     }
 
-    /// Return a mutable reference to the player's channel ID.
-    pub(crate) fn time_mut(&mut self) -> &mut i64 {
-        &mut self.time
+    /// Set the player's time.
+    pub(crate) fn set_time(&self, time: i64) {
+        self.0.time.store(time, Ordering::Release)
     }
 
-    /// Return a copy of the player's volume.
-    pub fn volume_ref(&self) -> u16 {
-        self.volume.load(Ordering::Acquire)
+    /// Return the player's volume.
+    pub fn volume(&self) -> u16 {
+        self.0.volume.load(Ordering::Relaxed)
     }
 }
 

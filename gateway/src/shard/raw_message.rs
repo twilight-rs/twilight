@@ -6,11 +6,11 @@
 //! input will not be checked and will be passed directly to the underlying
 //! websocket library.
 
-use async_tungstenite::tungstenite::{
+use std::borrow::Cow;
+use tokio_tungstenite::tungstenite::{
     protocol::{frame::coding::CloseCode, CloseFrame as TungsteniteCloseFrame},
     Message as TungsteniteMessage,
 };
-use std::borrow::Cow;
 
 /// Information about a close message, if any.
 ///

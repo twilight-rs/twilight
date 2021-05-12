@@ -13,10 +13,9 @@
 //! [`remove_command`]: CommandParserConfig::remove_command
 //! [`remove_prefix`]: CommandParserConfig::remove_prefix
 
+use super::casing::CaseSensitivity;
 use std::borrow::Cow;
 use std::slice::{Iter, IterMut};
-
-use crate::CaseSensitivity;
 
 /// Configuration for a [`Parser`].
 ///
@@ -178,10 +177,12 @@ pub struct Commands<'a> {
 }
 
 impl<'a> Iterator for Commands<'a> {
-    type Item = &'a CaseSensitivity;
+    type Item = (&'a str, bool);
 
     fn next(&mut self) -> Option<Self::Item> {
-        self.iter.next()
+        self.iter
+            .next()
+            .map(|casing| (casing.as_ref(), casing.is_sensitive()))
     }
 
     fn size_hint(&self) -> (usize, Option<usize>) {
@@ -197,10 +198,13 @@ pub struct CommandsMut<'a> {
 }
 
 impl<'a> Iterator for CommandsMut<'a> {
-    type Item = &'a mut CaseSensitivity;
+    type Item = (&'a mut str, bool);
 
     fn next(&mut self) -> Option<Self::Item> {
-        self.iter.next()
+        let casing = self.iter.next()?;
+        let is_sensitive = casing.is_sensitive();
+
+        Some((casing.as_mut(), is_sensitive))
     }
 
     fn size_hint(&self) -> (usize, Option<usize>) {

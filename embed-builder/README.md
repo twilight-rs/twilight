@@ -16,10 +16,10 @@ Build a simple embed:
 use twilight_embed_builder::{EmbedBuilder, EmbedFieldBuilder};
 
 let embed = EmbedBuilder::new()
-    .description("Here's a list of reasons why Twilight is the best pony:")?
-    .field(EmbedFieldBuilder::new("Wings", "She has wings.")?.inline())
-    .field(EmbedFieldBuilder::new("Horn", "She can do magic, and she's really good at it.")?.inline())
-    .build();
+    .description("Here's a list of reasons why Twilight is the best pony:")
+    .field(EmbedFieldBuilder::new("Wings", "She has wings.").inline())
+    .field(EmbedFieldBuilder::new("Horn", "She can do magic, and she's really good at it.").inline())
+    .build()?;
 ```
 
 Build an embed with an image:
@@ -28,9 +28,9 @@ Build an embed with an image:
 use twilight_embed_builder::{EmbedBuilder, ImageSource};
 
 let embed = EmbedBuilder::new()
-    .description("Here's a cool image of Twilight Sparkle")?
+    .description("Here's a cool image of Twilight Sparkle")
     .image(ImageSource::attachment("bestpony.png")?)
-    .build();
+    .build()?;
 
 ```
 
@@ -41,7 +41,7 @@ let embed = EmbedBuilder::new()
 [github link]: https://github.com/twilight-rs/twilight
 [license badge]: https://img.shields.io/badge/license-ISC-blue.svg?style=for-the-badge&logo=pastebin
 [license link]: https://github.com/twilight-rs/twilight/blob/trunk/LICENSE.md
-[rust badge]: https://img.shields.io/badge/rust-1.48+-93450a.svg?style=for-the-badge&logo=rust
+[rust badge]: https://img.shields.io/badge/rust-1.49+-93450a.svg?style=for-the-badge&logo=rust
 [the discord docs]: https://discord.com/developers/docs/resources/channel#create-message-using-attachments-within-embeds
 
 <!-- cargo-sync-readme end -->

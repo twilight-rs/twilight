@@ -1,11 +1,7 @@
-use crate::request::{
-    channel::allowed_mentions::{AllowedMentions, AllowedMentionsBuilder, Unspecified},
-    prelude::*,
-    Form,
-};
+use crate::request::{prelude::*, Form};
 use futures_util::future::TryFutureExt;
 use twilight_model::{
-    channel::{embed::Embed, Message},
+    channel::{embed::Embed, message::AllowedMentions, Message},
     id::WebhookId,
 };
 
@@ -75,11 +71,11 @@ impl<'a> ExecuteWebhook<'a> {
         }
     }
 
-    /// Return a new [`AllowedMentionsBuilder`].
-    pub fn allowed_mentions(
-        self,
-    ) -> AllowedMentionsBuilder<'a, Unspecified, Unspecified, Unspecified> {
-        AllowedMentionsBuilder::for_webhook(self)
+    /// Specify the [`AllowedMentions`] for the webhook message.
+    pub fn allowed_mentions(mut self, allowed_mentions: AllowedMentions) -> Self {
+        self.fields.allowed_mentions.replace(allowed_mentions);
+
+        self
     }
 
     /// The URL of the avatar of the webhook.
@@ -138,7 +134,6 @@ impl<'a> ExecuteWebhook<'a> {
     /// ```rust,no_run
     /// use twilight_embed_builder::EmbedBuilder;
     /// # use twilight_http::Client;
-    /// use twilight_http::request::channel::allowed_mentions::AllowedMentions;
     /// use twilight_model::id::{MessageId, WebhookId};
     ///
     /// # #[tokio::main]
@@ -146,7 +141,7 @@ impl<'a> ExecuteWebhook<'a> {
     /// # let client = Client::new("token");
     /// let message = client.execute_webhook(WebhookId(1), "token here")
     ///     .content("some content")
-    ///     .embeds(vec![EmbedBuilder::new().title("title")?.build()?])
+    ///     .embeds(vec![EmbedBuilder::new().title("title").build()?])
     ///     .wait(true)
     ///     .await?
     ///     .unwrap();
@@ -159,7 +154,6 @@ impl<'a> ExecuteWebhook<'a> {
     ///
     /// ```rust,no_run
     /// # use twilight_http::Client;
-    /// use twilight_http::request::channel::allowed_mentions::AllowedMentions;
     /// use twilight_model::id::{MessageId, WebhookId};
     ///
     /// # #[tokio::main]
@@ -211,7 +205,7 @@ impl<'a> ExecuteWebhook<'a> {
     fn start(&mut self) -> Result<()> {
         let request = if self.files.is_empty() && self.fields.payload_json.is_none() {
             Request::from((
-                crate::json_to_vec(&self.fields)?,
+                crate::json_to_vec(&self.fields).map_err(HttpError::json)?,
                 Route::ExecuteWebhook {
                     token: self.token.clone(),
                     wait: self.fields.wait,
@@ -228,7 +222,7 @@ impl<'a> ExecuteWebhook<'a> {
             if let Some(payload_json) = &self.fields.payload_json {
                 multipart.payload_json(&payload_json);
             } else {
-                let body = crate::json_to_vec(&self.fields)?;
+                let body = crate::json_to_vec(&self.fields).map_err(HttpError::json)?;
                 multipart.payload_json(&body);
             }
 

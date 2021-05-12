@@ -52,7 +52,7 @@ impl<'a> UpdateEmoji<'a> {
         let request = if let Some(reason) = &self.reason {
             let headers = audit_header(&reason)?;
             Request::from((
-                crate::json_to_vec(&self.fields)?,
+                crate::json_to_vec(&self.fields).map_err(HttpError::json)?,
                 headers,
                 Route::UpdateEmoji {
                     emoji_id: self.emoji_id.0,
@@ -61,7 +61,7 @@ impl<'a> UpdateEmoji<'a> {
             ))
         } else {
             Request::from((
-                crate::json_to_vec(&self.fields)?,
+                crate::json_to_vec(&self.fields).map_err(HttpError::json)?,
                 Route::UpdateEmoji {
                     emoji_id: self.emoji_id.0,
                     guild_id: self.guild_id.0,

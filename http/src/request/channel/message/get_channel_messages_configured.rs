@@ -9,25 +9,59 @@ use twilight_model::{
 };
 
 /// The error returned if the request can not be created as configured.
-#[derive(Clone, Debug)]
+#[derive(Debug)]
+pub struct GetChannelMessagesConfiguredError {
+    kind: GetChannelMessagesConfiguredErrorType,
+}
+
+impl GetChannelMessagesConfiguredError {
+    /// Immutable reference to the type of error that occurred.
+    #[must_use = "retrieving the type has no effect if left unused"]
+    pub fn kind(&self) -> &GetChannelMessagesConfiguredErrorType {
+        &self.kind
+    }
+
+    /// Consume the error, returning the source error if there is any.
+    #[allow(clippy::unused_self)]
+    #[must_use = "consuming the error and retrieving the source has no effect if left unused"]
+    pub fn into_source(self) -> Option<Box<dyn Error + Send + Sync>> {
+        None
+    }
+
+    /// Consume the error, returning the owned error type and the source error.
+    #[must_use = "consuming the error into its parts has no effect if left unused"]
+    pub fn into_parts(
+        self,
+    ) -> (
+        GetChannelMessagesConfiguredErrorType,
+        Option<Box<dyn Error + Send + Sync>>,
+    ) {
+        (self.kind, None)
+    }
+}
+
+impl Display for GetChannelMessagesConfiguredError {
+    fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
+        match &self.kind {
+            GetChannelMessagesConfiguredErrorType::LimitInvalid { .. } => {
+                f.write_str("the limit is invalid")
+            }
+        }
+    }
+}
+
+impl Error for GetChannelMessagesConfiguredError {}
+
+/// Type of [`GetChannelMessagesConfiguredError`] that occurred.
+#[derive(Debug)]
 #[non_exhaustive]
-pub enum GetChannelMessagesConfiguredError {
+pub enum GetChannelMessagesConfiguredErrorType {
     /// The maximum number of messages to retrieve is either 0 or more than 100.
     LimitInvalid {
         /// Provided maximum number of messages to retrieve.
         limit: u64,
     },
 }
-
-impl Display for GetChannelMessagesConfiguredError {
-    fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
-        match self {
-            Self::LimitInvalid { .. } => f.write_str("the limit is invalid"),
-        }
-    }
-}
-
-impl Error for GetChannelMessagesConfiguredError {}
 
 struct GetChannelMessagesConfiguredFields {
     limit: Option<u64>,
@@ -76,11 +110,13 @@ impl<'a> GetChannelMessagesConfigured<'a> {
     ///
     /// # Errors
     ///
-    /// Returns [`GetChannelMessagesConfiguredError::LimitInvalid`] if the
-    /// amount is greater than 21600.
+    /// Returns a [`GetChannelMessagesConfiguredErrorType::LimitInvalid`] error
+    /// type if the amount is greater than 21600.
     pub fn limit(mut self, limit: u64) -> Result<Self, GetChannelMessagesConfiguredError> {
         if !validate::get_channel_messages_limit(limit) {
-            return Err(GetChannelMessagesConfiguredError::LimitInvalid { limit });
+            return Err(GetChannelMessagesConfiguredError {
+                kind: GetChannelMessagesConfiguredErrorType::LimitInvalid { limit },
+            });
         }
 
         self.fields.limit.replace(limit);

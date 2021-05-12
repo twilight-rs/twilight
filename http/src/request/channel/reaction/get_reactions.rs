@@ -9,25 +9,52 @@ use twilight_model::{
 };
 
 /// The error created if the reactions can not be retrieved as configured.
-#[derive(Clone, Debug)]
+#[derive(Debug)]
+pub struct GetReactionsError {
+    kind: GetReactionsErrorType,
+}
+
+impl GetReactionsError {
+    /// Immutable reference to the type of error that occurred.
+    #[must_use = "retrieving the type has no effect if left unused"]
+    pub fn kind(&self) -> &GetReactionsErrorType {
+        &self.kind
+    }
+
+    /// Consume the error, returning the source error if there is any.
+    #[allow(clippy::unused_self)]
+    #[must_use = "consuming the error and retrieving the source has no effect if left unused"]
+    pub fn into_source(self) -> Option<Box<dyn Error + Send + Sync>> {
+        None
+    }
+
+    /// Consume the error, returning the owned error type and the source error.
+    #[must_use = "consuming the error into its parts has no effect if left unused"]
+    pub fn into_parts(self) -> (GetReactionsErrorType, Option<Box<dyn Error + Send + Sync>>) {
+        (self.kind, None)
+    }
+}
+
+impl Display for GetReactionsError {
+    fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
+        match &self.kind {
+            GetReactionsErrorType::LimitInvalid { .. } => f.write_str("the limit is invalid"),
+        }
+    }
+}
+
+impl Error for GetReactionsError {}
+
+/// Type of [`GetReactionsError`] that occurred.
+#[derive(Debug)]
 #[non_exhaustive]
-pub enum GetReactionsError {
+pub enum GetReactionsErrorType {
     /// The number of reactions to retrieve must be between 1 and 100, inclusive.
     LimitInvalid {
         /// The provided maximum number of reactions to get.
         limit: u64,
     },
 }
-
-impl Display for GetReactionsError {
-    fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
-        match self {
-            Self::LimitInvalid { .. } => f.write_str("the limit is invalid"),
-        }
-    }
-}
-
-impl Error for GetReactionsError {}
 
 #[derive(Default)]
 struct GetReactionsFields {
@@ -87,10 +114,13 @@ impl<'a> GetReactions<'a> {
     ///
     /// # Errors
     ///
-    /// Returns [`GetReactionsError::LimitInvalid`] if the amount is greater than 100.
+    /// Returns a [`GetReactionsErrorType::LimitInvalid`] error type if the
+    /// amount is greater than 100.
     pub fn limit(mut self, limit: u64) -> Result<Self, GetReactionsError> {
         if !validate::get_reactions_limit(limit) {
-            return Err(GetReactionsError::LimitInvalid { limit });
+            return Err(GetReactionsError {
+                kind: GetReactionsErrorType::LimitInvalid { limit },
+            });
         }
 
         self.fields.limit.replace(limit);

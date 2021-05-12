@@ -10,9 +10,51 @@ use twilight_model::{
 };
 
 /// Error building role fields.
-#[derive(Clone, Debug, Eq, PartialEq)]
+#[derive(Debug)]
+pub struct RoleFieldsError {
+    kind: RoleFieldsErrorType,
+}
+
+impl RoleFieldsError {
+    /// Immutable reference to the type of error that occurred.
+    #[must_use = "retrieving the type has no effect if left unused"]
+    pub fn kind(&self) -> &RoleFieldsErrorType {
+        &self.kind
+    }
+
+    /// Consume the error, returning the source error if there is any.
+    #[allow(clippy::unused_self)]
+    #[must_use = "consuming the error and retrieving the source has no effect if left unused"]
+    pub fn into_source(self) -> Option<Box<dyn Error + Send + Sync>> {
+        None
+    }
+
+    /// Consume the error, returning the owned error type and the source error.
+    #[must_use = "consuming the error into its parts has no effect if left unused"]
+    pub fn into_parts(self) -> (RoleFieldsErrorType, Option<Box<dyn Error + Send + Sync>>) {
+        (self.kind, None)
+    }
+}
+
+impl Display for RoleFieldsError {
+    fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
+        match &self.kind {
+            RoleFieldsErrorType::ColorNotRgb { color } => {
+                f.write_fmt(format_args!("the color {} is invalid", color))
+            }
+            RoleFieldsErrorType::IdInvalid => {
+                f.write_str("the given id value is 1, which is not acceptable")
+            }
+        }
+    }
+}
+
+impl Error for RoleFieldsError {}
+
+/// Type of [`RoleFieldsError`] that occurred.
+#[derive(Debug)]
 #[non_exhaustive]
-pub enum RoleFieldsError {
+pub enum RoleFieldsErrorType {
     /// Color was larger than a valid RGB hexadecimal value.
     ColorNotRgb {
         /// Provided color hex value.
@@ -21,19 +63,6 @@ pub enum RoleFieldsError {
     /// Invalid id for builders.
     IdInvalid,
 }
-
-impl Display for RoleFieldsError {
-    fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
-        match self {
-            Self::ColorNotRgb { color } => {
-                f.write_fmt(format_args!("the color {} is invalid", color))
-            }
-            Self::IdInvalid => f.write_str("the given id value is 1, which is not acceptable"),
-        }
-    }
-}
-
-impl Error for RoleFieldsError {}
 
 /// A builder for role fields.
 #[derive(Clone, Debug, Eq, PartialEq)]
@@ -74,10 +103,13 @@ impl RoleFieldsBuilder {
     ///
     /// # Errors
     ///
-    /// Returns [`RoleFieldsError::ColorNotRgb`] if the color is not valid RGB.
+    /// Returns a [`RoleFieldsErrorType::ColorNotRgb`] error type if the color
+    /// is not valid RGB.
     pub fn color(mut self, color: u32) -> Result<Self, RoleFieldsError> {
         if color > Self::COLOR_MAXIMUM {
-            return Err(RoleFieldsError::ColorNotRgb { color });
+            return Err(RoleFieldsError {
+                kind: RoleFieldsErrorType::ColorNotRgb { color },
+            });
         }
 
         self.0.color.replace(color);
@@ -96,10 +128,13 @@ impl RoleFieldsBuilder {
     ///
     /// # Errors
     ///
-    /// Returns [`RoleFieldsError::IdInvalid`] if the id is set to 1.
+    /// Returns a [`RoleFieldsErrorType::IdInvalid`] error type if the ID is set
+    /// to 1.
     pub fn id(mut self, id: RoleId) -> Result<Self, RoleFieldsError> {
         if id == Self::ROLE_ID {
-            return Err(RoleFieldsError::IdInvalid);
+            return Err(RoleFieldsError {
+                kind: RoleFieldsErrorType::IdInvalid,
+            });
         }
 
         self.0.id = id;
@@ -130,9 +165,57 @@ impl RoleFieldsBuilder {
 }
 
 /// Error building text fields.
-#[derive(Clone, Debug, Eq, PartialEq)]
+#[derive(Debug)]
+pub struct TextFieldsError {
+    kind: TextFieldsErrorType,
+}
+
+impl TextFieldsError {
+    /// Immutable reference to the type of error that occurred.
+    #[must_use = "retrieving the type has no effect if left unused"]
+    pub fn kind(&self) -> &TextFieldsErrorType {
+        &self.kind
+    }
+
+    /// Consume the error, returning the source error if there is any.
+    #[allow(clippy::unused_self)]
+    #[must_use = "consuming the error and retrieving the source has no effect if left unused"]
+    pub fn into_source(self) -> Option<Box<dyn Error + Send + Sync>> {
+        None
+    }
+
+    /// Consume the error, returning the owned error type and the source error.
+    #[must_use = "consuming the error into its parts has no effect if left unused"]
+    pub fn into_parts(self) -> (TextFieldsErrorType, Option<Box<dyn Error + Send + Sync>>) {
+        (self.kind, None)
+    }
+}
+
+impl Display for TextFieldsError {
+    fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
+        match &self.kind {
+            TextFieldsErrorType::NameTooShort { name } => {
+                f.write_fmt(format_args!("the name is too short: {}", name.len()))
+            }
+            TextFieldsErrorType::NameTooLong { name } => {
+                f.write_fmt(format_args!("the name is too long: {}", name.len()))
+            }
+            TextFieldsErrorType::RateLimitInvalid { limit } => {
+                f.write_fmt(format_args!("the rate limit {} is invalid", limit))
+            }
+            TextFieldsErrorType::TopicTooLong { topic } => {
+                f.write_fmt(format_args!("the topic is too long: {}", topic.len()))
+            }
+        }
+    }
+}
+
+impl Error for TextFieldsError {}
+
+/// Type of [`TextFieldsError`] that occurred.
+#[derive(Debug)]
 #[non_exhaustive]
-pub enum TextFieldsError {
+pub enum TextFieldsErrorType {
     /// The name is too short.
     NameTooShort {
         /// The invalid name.
@@ -154,27 +237,6 @@ pub enum TextFieldsError {
         topic: String,
     },
 }
-
-impl Display for TextFieldsError {
-    fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
-        match self {
-            Self::NameTooShort { name } => {
-                f.write_fmt(format_args!("the name is too short: {}", name.len()))
-            }
-            Self::NameTooLong { name } => {
-                f.write_fmt(format_args!("the name is too long: {}", name.len()))
-            }
-            Self::RateLimitInvalid { limit } => {
-                f.write_fmt(format_args!("the rate limit {} is invalid", limit))
-            }
-            Self::TopicTooLong { topic } => {
-                f.write_fmt(format_args!("the topic is too long: {}", topic.len()))
-            }
-        }
-    }
-}
-
-impl Error for TextFieldsError {}
 
 /// A builder for text fields.
 #[derive(Clone, Debug, Eq, PartialEq)]
@@ -214,20 +276,26 @@ impl TextFieldsBuilder {
     ///
     /// # Errors
     ///
-    /// Returns [`TextFieldsError::NameTooShort`] if the name is too short.
+    /// Returns a [`TextFieldsErrorType::NameTooShort`] error type if the name
+    /// is too short.
     ///
-    /// Returns [`TextFieldsError::NameTooLong`] if the name is too long.
+    /// Returns a [`TextFieldsErrorType::NameTooLong`] error type if the name is
+    /// too long.
     pub fn new(name: impl Into<String>) -> Result<Self, TextFieldsError> {
         Self::_new(name.into())
     }
 
     fn _new(name: String) -> Result<Self, TextFieldsError> {
         if name.len() < Self::MIN_NAME_LENGTH {
-            return Err(TextFieldsError::NameTooShort { name });
+            return Err(TextFieldsError {
+                kind: TextFieldsErrorType::NameTooShort { name },
+            });
         }
 
         if name.len() > Self::MAX_NAME_LENGTH {
-            return Err(TextFieldsError::NameTooLong { name });
+            return Err(TextFieldsError {
+                kind: TextFieldsErrorType::NameTooLong { name },
+            });
         }
 
         Ok(Self(TextFields {
@@ -265,10 +333,13 @@ impl TextFieldsBuilder {
     ///
     /// # Errors
     ///
-    /// Returns [`TextFieldsError::RateLimitInvalid`] if the rate limit is invalid.
+    /// Returns a [`TextFieldsErrorType::RateLimitInvalid`] error type if the
+    /// rate limit is invalid.
     pub fn rate_limit_per_user(mut self, limit: u64) -> Result<Self, TextFieldsError> {
         if limit > Self::MAX_RATE_LIMIT {
-            return Err(TextFieldsError::RateLimitInvalid { limit });
+            return Err(TextFieldsError {
+                kind: TextFieldsErrorType::RateLimitInvalid { limit },
+            });
         }
 
         self.0.rate_limit_per_user.replace(limit);
@@ -280,14 +351,17 @@ impl TextFieldsBuilder {
     ///
     /// # Errors
     ///
-    /// Returns [`TextFieldsError::TopicTooLong`] if the topic is too long.
+    /// Returns a [`TextFieldsErrorType::TopicTooLong`] error type if the topic
+    /// is too long.
     pub fn topic(self, topic: impl Into<String>) -> Result<Self, TextFieldsError> {
         self._topic(topic.into())
     }
 
     fn _topic(mut self, topic: String) -> Result<Self, TextFieldsError> {
         if topic.len() > Self::MAX_TOPIC_LENGTH {
-            return Err(TextFieldsError::TopicTooLong { topic });
+            return Err(TextFieldsError {
+                kind: TextFieldsErrorType::TopicTooLong { topic },
+            });
         }
 
         self.0.topic.replace(topic);
@@ -297,9 +371,51 @@ impl TextFieldsBuilder {
 }
 
 /// Error building voice fields.
-#[derive(Clone, Debug, Eq, PartialEq)]
+#[derive(Debug)]
+pub struct VoiceFieldsError {
+    kind: VoiceFieldsErrorType,
+}
+
+impl VoiceFieldsError {
+    /// Immutable reference to the type of error that occurred.
+    #[must_use = "retrieving the type has no effect if left unused"]
+    pub fn kind(&self) -> &VoiceFieldsErrorType {
+        &self.kind
+    }
+
+    /// Consume the error, returning the source error if there is any.
+    #[allow(clippy::unused_self)]
+    #[must_use = "consuming the error and retrieving the source has no effect if left unused"]
+    pub fn into_source(self) -> Option<Box<dyn Error + Send + Sync>> {
+        None
+    }
+
+    /// Consume the error, returning the owned error type and the source error.
+    #[must_use = "consuming the error into its parts has no effect if left unused"]
+    pub fn into_parts(self) -> (VoiceFieldsErrorType, Option<Box<dyn Error + Send + Sync>>) {
+        (self.kind, None)
+    }
+}
+
+impl Display for VoiceFieldsError {
+    fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
+        match &self.kind {
+            VoiceFieldsErrorType::NameTooShort { name } => {
+                f.write_fmt(format_args!("the name is too short: {}", name.len()))
+            }
+            VoiceFieldsErrorType::NameTooLong { name } => {
+                f.write_fmt(format_args!("the name is too long: {}", name.len()))
+            }
+        }
+    }
+}
+
+impl Error for VoiceFieldsError {}
+
+/// Type of [`VoiceFieldsError`] that occurred.
+#[derive(Debug)]
 #[non_exhaustive]
-pub enum VoiceFieldsError {
+pub enum VoiceFieldsErrorType {
     /// The name is too short.
     NameTooShort {
         /// The invalid name.
@@ -311,21 +427,6 @@ pub enum VoiceFieldsError {
         name: String,
     },
 }
-
-impl Display for VoiceFieldsError {
-    fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
-        match self {
-            Self::NameTooShort { name } => {
-                f.write_fmt(format_args!("the name is too short: {}", name.len()))
-            }
-            Self::NameTooLong { name } => {
-                f.write_fmt(format_args!("the name is too long: {}", name.len()))
-            }
-        }
-    }
-}
-
-impl Error for VoiceFieldsError {}
 
 /// A builder for voice fields.
 #[derive(Clone, Debug, Eq, PartialEq)]
@@ -351,20 +452,26 @@ impl VoiceFieldsBuilder {
     ///
     /// # Errors
     ///
-    /// Returns [`VoiceFieldsError::NameTooShort`] if the name is too short.
+    /// Returns a [`VoiceFieldsErrorType::NameTooShort`] error type if the name
+    /// is too short.
     ///
-    /// Returns [`VoiceFieldsError::NameTooLong`] if the name is too long.
+    /// Returns a [`VoiceFieldsErrorType::NameTooLong`] error type if the name
+    /// is too long.
     pub fn new(name: impl Into<String>) -> Result<Self, VoiceFieldsError> {
         Self::_new(name.into())
     }
 
     fn _new(name: String) -> Result<Self, VoiceFieldsError> {
         if name.len() < Self::MIN_NAME_LENGTH {
-            return Err(VoiceFieldsError::NameTooShort { name });
+            return Err(VoiceFieldsError {
+                kind: VoiceFieldsErrorType::NameTooShort { name },
+            });
         }
 
         if name.len() > Self::MAX_NAME_LENGTH {
-            return Err(VoiceFieldsError::NameTooLong { name });
+            return Err(VoiceFieldsError {
+                kind: VoiceFieldsErrorType::NameTooLong { name },
+            });
         }
 
         Ok(Self(VoiceFields {
@@ -406,9 +513,56 @@ impl VoiceFieldsBuilder {
 }
 
 /// Error creating category fields.
-#[derive(Clone, Debug, Eq, PartialEq)]
+#[derive(Debug)]
+pub struct CategoryFieldsError {
+    kind: CategoryFieldsErrorType,
+}
+
+impl CategoryFieldsError {
+    /// Immutable reference to the type of error that occurred.
+    #[must_use = "retrieving the type has no effect if left unused"]
+    pub fn kind(&self) -> &CategoryFieldsErrorType {
+        &self.kind
+    }
+
+    /// Consume the error, returning the source error if there is any.
+    #[allow(clippy::unused_self)]
+    #[must_use = "consuming the error and retrieving the source has no effect if left unused"]
+    pub fn into_source(self) -> Option<Box<dyn Error + Send + Sync>> {
+        None
+    }
+
+    /// Consume the error, returning the owned error type and the source error.
+    #[must_use = "consuming the error into its parts has no effect if left unused"]
+    pub fn into_parts(
+        self,
+    ) -> (
+        CategoryFieldsErrorType,
+        Option<Box<dyn Error + Send + Sync>>,
+    ) {
+        (self.kind, None)
+    }
+}
+
+impl Display for CategoryFieldsError {
+    fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
+        match &self.kind {
+            CategoryFieldsErrorType::NameTooShort { name } => {
+                f.write_fmt(format_args!("the name is too short: {}", name.len()))
+            }
+            CategoryFieldsErrorType::NameTooLong { name } => {
+                f.write_fmt(format_args!("the name is too long: {}", name.len()))
+            }
+        }
+    }
+}
+
+impl Error for CategoryFieldsError {}
+
+/// Type of [`CategoryFieldsError`] that occurred.
+#[derive(Debug)]
 #[non_exhaustive]
-pub enum CategoryFieldsError {
+pub enum CategoryFieldsErrorType {
     /// The name is too short.
     NameTooShort {
         /// The invalid name.
@@ -420,21 +574,6 @@ pub enum CategoryFieldsError {
         name: String,
     },
 }
-
-impl Display for CategoryFieldsError {
-    fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
-        match self {
-            Self::NameTooShort { name } => {
-                f.write_fmt(format_args!("the name is too short: {}", name.len()))
-            }
-            Self::NameTooLong { name } => {
-                f.write_fmt(format_args!("the name is too long: {}", name.len()))
-            }
-        }
-    }
-}
-
-impl Error for CategoryFieldsError {}
 
 /// A builder for a category channel, and its children.
 #[derive(Clone, Debug, Eq, PartialEq)]
@@ -463,20 +602,26 @@ impl CategoryFieldsBuilder {
     ///
     /// # Errors
     ///
-    /// Returns [`CategoryFieldsError::NameTooShort`] if the name is too short.
+    /// Returns a [`CategoryFieldsErrorType::NameTooShort`] error type if the
+    /// name is too short.
     ///
-    /// Returns [`CategoryFieldsError::NameTooLong`] if the name is too long.
+    /// Returns a [`CategoryFieldsErrorType::NameTooLong`] error type if the
+    /// name is too long.
     pub fn new(name: impl Into<String>) -> Result<Self, CategoryFieldsError> {
         Self::_new(name.into())
     }
 
     fn _new(name: String) -> Result<Self, CategoryFieldsError> {
         if name.len() < Self::MIN_NAME_LENGTH {
-            return Err(CategoryFieldsError::NameTooShort { name });
+            return Err(CategoryFieldsError {
+                kind: CategoryFieldsErrorType::NameTooShort { name },
+            });
         }
 
         if name.len() > Self::MAX_NAME_LENGTH {
-            return Err(CategoryFieldsError::NameTooLong { name });
+            return Err(CategoryFieldsError {
+                kind: CategoryFieldsErrorType::NameTooLong { name },
+            });
         }
 
         Ok(Self {
@@ -574,8 +719,9 @@ impl GuildChannelFieldsBuilder {
 mod tests {
     use super::{
         super::{CategoryFields, GuildChannelFields, RoleFields, TextFields, VoiceFields},
-        CategoryFieldsBuilder, CategoryFieldsError, GuildChannelFieldsBuilder, RoleFieldsBuilder,
-        RoleFieldsError, TextFieldsBuilder, TextFieldsError, VoiceFieldsBuilder, VoiceFieldsError,
+        CategoryFieldsBuilder, CategoryFieldsErrorType, GuildChannelFieldsBuilder,
+        RoleFieldsBuilder, RoleFieldsErrorType, TextFieldsBuilder, TextFieldsErrorType,
+        VoiceFieldsBuilder, VoiceFieldsErrorType,
     };
     use twilight_model::{
         channel::{
@@ -608,12 +754,13 @@ mod tests {
 
     #[test]
     fn test_role_fields() {
-        assert_eq!(
-            RoleFieldsError::ColorNotRgb { color: 123_123_123 },
+        assert!(matches!(
             RoleFieldsBuilder::new("role")
                 .color(123_123_123)
                 .unwrap_err()
-        );
+                .kind(),
+            RoleFieldsErrorType::ColorNotRgb { color: 123_123_123 },
+        ));
 
         let fields = RoleFieldsBuilder::new("rolename")
             .color(0x12_34_56)
@@ -641,12 +788,11 @@ mod tests {
 
     #[test]
     fn test_voice_fields() {
-        assert_eq!(
-            VoiceFieldsError::NameTooShort {
-                name: String::from("c")
-            },
-            VoiceFieldsBuilder::new("c").unwrap_err()
-        );
+        assert!(matches!(
+            VoiceFieldsBuilder::new("c").unwrap_err().kind(),
+            VoiceFieldsErrorType::NameTooShort { name }
+            if name == "c"
+        ));
 
         let fields = voice();
 
@@ -681,12 +827,11 @@ mod tests {
 
     #[test]
     fn test_text_fields() {
-        assert_eq!(
-            TextFieldsError::NameTooShort {
-                name: String::from("b")
-            },
-            TextFieldsBuilder::new("b").unwrap_err()
-        );
+        assert!(matches!(
+            TextFieldsBuilder::new("b").unwrap_err().kind(),
+            TextFieldsErrorType::NameTooShort { name }
+            if name == "b"
+        ));
 
         let fields = text();
 
@@ -718,12 +863,11 @@ mod tests {
 
     #[test]
     fn test_category_fields() {
-        assert_eq!(
-            CategoryFieldsError::NameTooShort {
-                name: String::from("a")
-            },
-            CategoryFieldsBuilder::new("a").unwrap_err()
-        );
+        assert!(matches!(
+            CategoryFieldsBuilder::new("a").unwrap_err().kind(),
+            CategoryFieldsErrorType::NameTooShort { name }
+            if name == "a"
+        ));
 
         let fields = category();
         let channels = GuildChannelFieldsBuilder::new().add_category_builder(fields);

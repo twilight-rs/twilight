@@ -3,12 +3,6 @@ use super::{
     heartbeat::{Heartbeater, Heartbeats},
     throttle::Throttle,
 };
-use async_tungstenite::tungstenite::{protocol::CloseFrame, Message as TungsteniteMessage};
-use futures_channel::mpsc::{TrySendError, UnboundedSender};
-use futures_util::{
-    future::{self, AbortHandle},
-    lock::Mutex,
-};
 use serde::ser::Serialize;
 use std::{
     convert::TryFrom,
@@ -20,46 +14,58 @@ use std::{
     },
     time::Duration,
 };
+use tokio::{
+    sync::{
+        mpsc::{error::SendError, UnboundedSender},
+        Mutex,
+    },
+    task::JoinHandle,
+};
+use tokio_tungstenite::tungstenite::{protocol::CloseFrame, Message as TungsteniteMessage};
 use twilight_model::gateway::payload::Heartbeat;
 
-#[cfg(not(feature = "simd-json"))]
-use serde_json::Error as JsonError;
-#[cfg(feature = "simd-json")]
-use simd_json::Error as JsonError;
-
 #[derive(Debug)]
-pub enum SessionSendError {
-    Sending {
-        source: TrySendError<TungsteniteMessage>,
-    },
-    Serializing {
-        source: JsonError,
-    },
+pub struct SessionSendError {
+    pub(super) source: Option<Box<dyn Error + Send + Sync>>,
+    pub(super) kind: SessionSendErrorType,
+}
+
+impl SessionSendError {
+    /// Immutable reference to the type of error that occurred.
+    pub fn kind(&self) -> &SessionSendErrorType {
+        &self.kind
+    }
 }
 
 impl Display for SessionSendError {
     fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
-        match self {
-            Self::Serializing { source } => Display::fmt(source, f),
-            Self::Sending { source } => Display::fmt(source, f),
+        match &self.kind {
+            SessionSendErrorType::Serializing => f.write_str("failed to serialize payload as json"),
+            SessionSendErrorType::Sending => f.write_str("failed to send message over websocket"),
         }
     }
 }
 
 impl Error for SessionSendError {
     fn source(&self) -> Option<&(dyn Error + 'static)> {
-        match self {
-            Self::Sending { source } => Some(source),
-            Self::Serializing { source } => Some(source),
-        }
+        self.source
+            .as_ref()
+            .map(|source| &**source as &(dyn Error + 'static))
     }
+}
+
+/// Type of [`SessionSendError`] that occurred.
+#[derive(Debug)]
+pub enum SessionSendErrorType {
+    Sending,
+    Serializing,
 }
 
 #[derive(Debug)]
 pub struct Session {
     // Needs to be Arc so it can be cloned in the `Drop` impl when spawned on
     // the runtime.
-    pub heartbeater_handle: Arc<MutexSync<Option<AbortHandle>>>,
+    pub heartbeater_handle: Arc<MutexSync<Option<JoinHandle<()>>>>,
     pub heartbeats: Arc<Heartbeats>,
     pub heartbeat_interval: AtomicU64,
     pub id: MutexSync<Option<Box<str>>>,
@@ -88,19 +94,24 @@ impl Session {
     ///
     /// # Errors
     ///
-    /// Returns [`SessionSendError::Serializing`] when there is an error
-    /// serializing the payload into an acceptable format.
+    /// Returns a [`SessionSendErrorType::Serializing`] error type when there is
+    /// an error serializing the payload into an acceptable format.
     ///
-    /// Returns [`SessionSendError::Sending`] when the receiving channel has hung
-    /// up. This will only happen when the shard has either not started or has
-    /// already shutdown.
+    /// Returns a [`SessionSendErrorType::Sending`] error type when the
+    /// receiving channel has hung up. This will only happen when the shard has
+    /// either not started or has already shutdown.
     pub fn send(&self, payload: impl Serialize) -> Result<(), SessionSendError> {
-        let bytes =
-            json::to_vec(&payload).map_err(|source| SessionSendError::Serializing { source })?;
+        let bytes = json::to_vec(&payload).map_err(|source| SessionSendError {
+            kind: SessionSendErrorType::Serializing,
+            source: Some(Box::new(source)),
+        })?;
 
         self.tx
-            .unbounded_send(TungsteniteMessage::Binary(bytes))
-            .map_err(|source| SessionSendError::Sending { source })?;
+            .send(TungsteniteMessage::Binary(bytes))
+            .map_err(|source| SessionSendError {
+                kind: SessionSendErrorType::Sending,
+                source: Some(Box::new(source)),
+            })?;
 
         Ok(())
     }
@@ -108,9 +119,8 @@ impl Session {
     pub fn close(
         &self,
         close_frame: Option<CloseFrame<'static>>,
-    ) -> Result<(), TrySendError<TungsteniteMessage>> {
-        self.tx
-            .unbounded_send(TungsteniteMessage::Close(close_frame))
+    ) -> Result<(), SendError<TungsteniteMessage>> {
+        self.tx.send(TungsteniteMessage::Close(close_frame))
     }
 
     pub fn heartbeat_interval(&self) -> u64 {
@@ -171,9 +181,7 @@ impl Session {
         let heartbeats = Arc::clone(&self.heartbeats);
 
         let heartbeater = Heartbeater::new(heartbeats, interval, seq, self.tx.clone()).run();
-        let (fut, handle) = future::abortable(heartbeater);
-
-        tokio::spawn(fut);
+        let handle = tokio::spawn(heartbeater);
 
         if let Some(old) = self
             .heartbeater_handle

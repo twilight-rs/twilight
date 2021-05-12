@@ -28,21 +28,22 @@ mod event;
 mod r#impl;
 mod json;
 mod processor;
-mod sink;
 
 pub use self::{
-    builder::{LargeThresholdError, ShardBuilder, ShardIdError},
+    builder::{
+        LargeThresholdError, LargeThresholdErrorType, ShardBuilder, ShardIdError, ShardIdErrorType,
+    },
     config::Config,
     event::Events,
     processor::heartbeat::Latency,
     r#impl::{
-        CommandError, Information, ResumeSession, SendError, SessionInactiveError, Shard,
-        ShardStartError,
+        CommandError, CommandErrorType, Information, ResumeSession, SendError, SendErrorType,
+        SessionInactiveError, Shard, ShardStartError, ShardStartErrorType,
     },
-    sink::ShardSink,
     stage::Stage,
 };
 
-use async_tungstenite::{tokio::ConnectStream, WebSocketStream};
+use tokio::net::TcpStream;
+use tokio_tungstenite::{MaybeTlsStream, WebSocketStream};
 
-type ShardStream = WebSocketStream<ConnectStream>;
+type ShardStream = WebSocketStream<MaybeTlsStream<TcpStream>>;

@@ -118,7 +118,7 @@
 //! [github link]: https://github.com/twilight-rs/twilight
 //! [license badge]: https://img.shields.io/badge/license-ISC-blue.svg?style=for-the-badge&logo=pastebin
 //! [license link]: https://github.com/twilight-rs/twilight/blob/trunk/LICENSE.md
-//! [rust badge]: https://img.shields.io/badge/rust-1.48+-93450a.svg?style=for-the-badge&logo=rust
+//! [rust badge]: https://img.shields.io/badge/rust-1.49+-93450a.svg?style=for-the-badge&logo=rust
 
 #![deny(rust_2018_idioms, broken_intra_doc_links, unused, warnings)]
 
@@ -130,16 +130,16 @@ pub use futures::{
 };
 
 use dashmap::DashMap;
-use futures_channel::{
-    mpsc::{self, UnboundedSender as MpscSender},
-    oneshot::{self, Sender as OneshotSender},
-};
 use std::{
     fmt::{Debug, Formatter, Result as FmtResult},
     sync::{
         atomic::{AtomicU64, Ordering},
         Arc,
     },
+};
+use tokio::sync::{
+    mpsc::{self, UnboundedSender as MpscSender},
+    oneshot::{self, Sender as OneshotSender},
 };
 use twilight_model::{
     channel::Channel,
@@ -159,7 +159,7 @@ impl<E> Sender<E> {
     fn is_closed(&self) -> bool {
         match self {
             Self::Mpsc(sender) => sender.is_closed(),
-            Self::Oneshot(sender) => sender.is_canceled(),
+            Self::Oneshot(sender) => sender.is_closed(),
         }
     }
 }
@@ -317,7 +317,7 @@ impl Standby {
         check: impl Into<Box<F>>,
     ) -> WaitForGuildEventStream {
         tracing::trace!(%guild_id, "waiting for event in guild");
-        let (tx, rx) = mpsc::unbounded();
+        let (tx, rx) = mpsc::unbounded_channel();
 
         {
             let mut guild = self.0.guilds.entry(guild_id).or_default();
@@ -421,7 +421,7 @@ impl Standby {
         check: impl Into<Box<F>>,
     ) -> WaitForEventStream {
         tracing::trace!("waiting for event");
-        let (tx, rx) = mpsc::unbounded();
+        let (tx, rx) = mpsc::unbounded_channel();
 
         {
             self.0.events.insert(
@@ -518,7 +518,7 @@ impl Standby {
         check: impl Into<Box<F>>,
     ) -> WaitForMessageStream {
         tracing::trace!(%channel_id, "waiting for message in channel");
-        let (tx, rx) = mpsc::unbounded();
+        let (tx, rx) = mpsc::unbounded_channel();
 
         {
             let mut guild = self.0.messages.entry(channel_id).or_default();
@@ -616,7 +616,7 @@ impl Standby {
         check: impl Into<Box<F>>,
     ) -> WaitForReactionStream {
         tracing::trace!(%message_id, "waiting for reaction on message");
-        let (tx, rx) = mpsc::unbounded();
+        let (tx, rx) = mpsc::unbounded_channel();
 
         {
             let mut guild = self.0.reactions.entry(message_id).or_default();
@@ -776,7 +776,7 @@ impl Standby {
                 true
             }
             Sender::Mpsc(tx) => {
-                if tx.unbounded_send(event.clone()).is_ok() {
+                if tx.send(event.clone()).is_ok() {
                     tracing::trace!("bystander is a stream, retaining in map");
 
                     bystander.sender.replace(Sender::Mpsc(tx));
@@ -1024,7 +1024,7 @@ mod tests {
         assert!(!standby.0.events.is_empty());
         standby.process(&event);
 
-        assert_eq!(Ok(event), wait.await);
+        assert_eq!(event, wait.await.unwrap());
         assert!(standby.0.events.is_empty());
     }
 
@@ -1052,7 +1052,7 @@ mod tests {
         });
         standby.process(&event);
 
-        assert_eq!(Ok(MessageId(3)), wait.await.map(|msg| msg.id));
+        assert_eq!(MessageId(3), wait.await.map(|msg| msg.id).unwrap());
         assert!(standby.0.messages.is_empty());
     }
 
@@ -1082,7 +1082,10 @@ mod tests {
 
         standby.process(&event);
 
-        assert_eq!(Ok(UserId(3)), wait.await.map(|reaction| reaction.user_id));
+        assert_eq!(
+            UserId(3),
+            wait.await.map(|reaction| reaction.user_id).unwrap()
+        );
         assert!(standby.0.reactions.is_empty());
     }
 
@@ -1110,7 +1113,7 @@ mod tests {
         standby.process(&Event::PresencesReplace);
         standby.process(&Event::Resumed);
 
-        assert_eq!(Ok(Event::Resumed), wait.await);
+        assert_eq!(Event::Resumed, wait.await.unwrap());
     }
 
     /// Test that generic event handlers will be given the opportunity to

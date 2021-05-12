@@ -1,13 +1,11 @@
-use super::{Client, HttpsConnector, State};
-use crate::{ratelimiting::Ratelimiter, request::channel::allowed_mentions::AllowedMentions};
-use hyper::{
-    client::{Client as HyperClient, HttpConnector},
-    header::HeaderMap,
-};
+use super::{Client, State};
+use crate::ratelimiting::Ratelimiter;
+use hyper::header::HeaderMap;
 use std::{
     sync::{atomic::AtomicBool, Arc},
     time::Duration,
 };
+use twilight_model::channel::message::allowed_mentions::AllowedMentions;
 
 #[derive(Debug)]
 /// A builder for [`Client`].
@@ -15,7 +13,6 @@ pub struct ClientBuilder {
     pub(crate) default_allowed_mentions: Option<AllowedMentions>,
     pub(crate) proxy: Option<Box<str>>,
     pub(crate) ratelimiter: Option<Ratelimiter>,
-    pub(crate) hyper_client: Option<HyperClient<HttpsConnector<HttpConnector>>>,
     pub(crate) default_headers: Option<HeaderMap>,
     pub(crate) timeout: Duration,
     pub(crate) token: Option<Box<str>>,
@@ -30,23 +27,18 @@ impl ClientBuilder {
 
     /// Build the [`Client`].
     pub fn build(self) -> Client {
-        let http = self.hyper_client.unwrap_or_else(|| {
-            #[cfg(feature = "hyper-rustls")]
-            let connector = hyper_rustls::HttpsConnector::with_native_roots();
-            #[cfg(all(feature = "hyper-tls", not(feature = "hyper-rustls")))]
-            let connector = {
-                // Workaround for https://github.com/hyperium/hyper-tls/pull/85
-                let tls = native_tls::TlsConnector::builder()
-                    .request_alpns(&["h2", "http/1.1"])
-                    .build()
-                    .expect("TlsConnector::new() failure");
-                let mut http_conn = HttpConnector::new();
-                http_conn.enforce_http(false);
-                hyper_tls::HttpsConnector::from((http_conn, tls.into()))
-            };
+        #[cfg(feature = "rustls-native-roots")]
+        let connector = hyper_rustls::HttpsConnector::with_native_roots();
+        #[cfg(all(feature = "rustls-webpki-roots", not(feature = "rustls-native-roots")))]
+        let connector = hyper_rustls::HttpsConnector::with_webpki_roots();
+        #[cfg(all(
+            feature = "hyper-tls",
+            not(feature = "rustls-native-roots"),
+            not(feature = "rustls-webpki-roots")
+        ))]
+        let connector = hyper_tls::HttpsConnector::new();
 
-            hyper::client::Builder::default().build(connector)
-        });
+        let http = hyper::client::Builder::default().build(connector);
 
         Client {
             state: Arc::new(State {
@@ -67,18 +59,6 @@ impl ClientBuilder {
     /// client.
     pub fn default_allowed_mentions(mut self, allowed_mentions: AllowedMentions) -> Self {
         self.default_allowed_mentions.replace(allowed_mentions);
-
-        self
-    }
-
-    /// Set a pre-configured Hyper client builder to build off of.
-    ///
-    /// The proxy and timeout settings in the Hyper client will be overridden by
-    /// those in this builder.
-    ///
-    /// The default client uses Rustls as its TLS backend.
-    pub fn hyper_client(mut self, client: HyperClient<HttpsConnector<HttpConnector>>) -> Self {
-        self.hyper_client.replace(client);
 
         self
     }
@@ -162,7 +142,6 @@ impl Default for ClientBuilder {
     fn default() -> Self {
         Self {
             default_allowed_mentions: None,
-            hyper_client: None,
             default_headers: None,
             proxy: None,
             ratelimiter: Some(Ratelimiter::new()),

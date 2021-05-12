@@ -1,3 +1,4 @@
+pub mod allowed_mentions;
 pub mod sticker;
 
 mod activity;
@@ -10,9 +11,10 @@ mod reaction;
 mod reference;
 
 pub use self::{
-    activity::MessageActivity, activity_type::MessageActivityType, application::MessageApplication,
-    flags::MessageFlags, kind::MessageType, mention::Mention, reaction::MessageReaction,
-    reference::MessageReference, sticker::Sticker,
+    activity::MessageActivity, activity_type::MessageActivityType,
+    allowed_mentions::AllowedMentions, application::MessageApplication, flags::MessageFlags,
+    kind::MessageType, mention::Mention, reaction::MessageReaction, reference::MessageReference,
+    sticker::Sticker,
 };
 
 use crate::{
@@ -328,6 +330,7 @@ mod tests {
                 channel_id: Some(ChannelId(1)),
                 guild_id: None,
                 message_id: None,
+                fail_if_not_exists: None,
             }),
             stickers: vec![Sticker {
                 asset: "foo1".to_owned(),
