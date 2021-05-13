@@ -86,7 +86,7 @@ pub(crate) struct CreateMessageFields {
     #[serde(skip_serializing_if = "Option::is_none")]
     message_reference: Option<MessageReference>,
     #[serde(skip_serializing_if = "Option::is_none")]
-    nonce: Option<u64>,
+    nonce: Option<u32>,
     #[serde(skip_serializing_if = "Option::is_none")]
     payload_json: Option<Vec<u8>>,
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -240,7 +240,7 @@ impl<'a> CreateMessage<'a> {
     }
 
     /// Attach a nonce to the message, for optimistic message sending.
-    pub fn nonce(mut self, nonce: u64) -> Self {
+    pub fn nonce(mut self, nonce: u32) -> Self {
         self.fields.nonce.replace(nonce);
 
         self
