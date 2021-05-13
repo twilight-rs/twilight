@@ -102,7 +102,7 @@ struct CreateInviteFields {
 /// # Ok(()) }
 /// ```
 ///
-/// [`CREATE_INVITE`]: twilight_model::guild::permissions::Permissions::CREATE_INVITE
+/// [`CREATE_INVITE`]: twilight_model::guild::Permissions::CREATE_INVITE
 pub struct CreateInvite<'a> {
     channel_id: ChannelId,
     fields: CreateInviteFields,

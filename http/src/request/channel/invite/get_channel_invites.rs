@@ -6,7 +6,7 @@ use twilight_model::{id::ChannelId, invite::Invite};
 /// Requires the [`MANAGE_CHANNELS`] permission. This method only works if the
 /// channel is of type [`GuildChannel`].
 ///
-/// [`MANAGE_CHANNELS`]: twilight_model::guild::permissions::Permissions::MANAGE_CHANNELS
+/// [`MANAGE_CHANNELS`]: twilight_model::guild::Permissions::MANAGE_CHANNELS
 /// [`GuildChannel`]: twilight_model::channel::GuildChannel
 pub struct GetChannelInvites<'a> {
     channel_id: ChannelId,

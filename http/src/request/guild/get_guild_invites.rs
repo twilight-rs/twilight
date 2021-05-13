@@ -5,7 +5,7 @@ use twilight_model::{id::GuildId, invite::Invite};
 ///
 /// Requires the [`MANAGE_GUILD`] permission.
 ///
-/// [`MANAGE_GUILD`]: twilight_model::guild::permissions::Permissions::MANAGE_GUILD
+/// [`MANAGE_GUILD`]: twilight_model::guild::Permissions::MANAGE_GUILD
 pub struct GetGuildInvites<'a> {
     fut: Option<Pending<'a, Vec<Invite>>>,
     guild_id: GuildId,
