@@ -144,6 +144,7 @@ pub enum Path {
     GuildsIdWelcomeScreen(u64),
     GuildsIdWebhooks(u64),
     InvitesCode,
+    StageInstances,
     UsersId,
     OauthApplicationsMe,
     UsersIdConnections,
@@ -267,6 +268,7 @@ impl FromStr for Path {
             ["guilds", id, "welcome-screen"] => GuildsIdWelcomeScreen(parse_id(id)?),
             ["guilds", id, "webhooks"] => GuildsIdWebhooks(parse_id(id)?),
             ["invites", _] => InvitesCode,
+            ["stage-instances", _] => StageInstances,
             ["oauth2", "applications", "@me"] => OauthApplicationsMe,
             ["users", _] => UsersId,
             ["users", _, "connections"] => UsersIdConnections,
@@ -392,6 +394,13 @@ pub enum Route {
         /// The ID of the guild.
         guild_id: u64,
     },
+    /// Route information to create a stage instance.
+    CreateStageInstance {
+        /// ID of the channel.
+        channel_id: u64,
+        /// Topic of the stage instance.
+        topic: String,
+    },
     /// Route information to create a guild template.
     CreateTemplate {
         /// The ID of the guild.
@@ -504,6 +513,11 @@ pub enum Route {
         guild_id: u64,
         /// The ID of the role.
         role_id: u64,
+    },
+    /// Route information to delete a stage instance.
+    DeleteStageInstance {
+        /// ID of the stage channel.
+        channel_id: u64,
     },
     /// Route information to delete a guild template.
     DeleteTemplate {
@@ -745,6 +759,11 @@ pub enum Route {
         /// The ID of the message.
         message_id: u64,
     },
+    /// Route information to get a stage instance.
+    GetStageInstance {
+        /// ID of the stage channel.
+        channel_id: u64,
+    },
     /// Route information to get a template.
     GetTemplate {
         /// The template code.
@@ -918,6 +937,11 @@ pub enum Route {
         /// The ID of the guild.
         guild_id: u64,
     },
+    /// Route information to update an existing stage instance.
+    UpdateStageInstance {
+        /// ID of the stage channel.
+        channel_id: u64,
+    },
     /// Route information to update a template.
     UpdateTemplate {
         /// The ID of the guild.
@@ -1078,6 +1102,9 @@ impl Route {
                 Path::GuildsIdRoles(guild_id),
                 format!("guilds/{}/roles", guild_id).into(),
             ),
+            Self::CreateStageInstance { .. } => {
+                (Method::Post, Path::StageInstances, "stage-instances".into())
+            }
             Self::CreateTemplate { guild_id } => (
                 Method::Post,
                 Path::GuildsIdTemplates(guild_id),
@@ -1194,6 +1221,11 @@ impl Route {
                 Method::Delete,
                 Path::GuildsIdRolesId(guild_id),
                 format!("guilds/{}/roles/{}", guild_id, role_id).into(),
+            ),
+            Self::DeleteStageInstance { channel_id } => (
+                Method::Delete,
+                Path::StageInstances,
+                format!("stage-instances/{}", channel_id).into(),
             ),
             Self::DeleteTemplate {
                 guild_id,
@@ -1522,6 +1554,11 @@ impl Route {
                     path.into(),
                 )
             }
+            Self::GetStageInstance { channel_id } => (
+                Method::Get,
+                Path::StageInstances,
+                format!("stage-instances/{}", channel_id).into(),
+            ),
             Self::GetTemplate { template_code } => (
                 Method::Get,
                 Path::Guilds,
@@ -1705,6 +1742,11 @@ impl Route {
                 Method::Patch,
                 Path::GuildsIdRolesId(guild_id),
                 format!("guilds/{}/roles", guild_id).into(),
+            ),
+            Self::UpdateStageInstance { channel_id } => (
+                Method::Patch,
+                Path::StageInstances,
+                format!("stage-instances/{}", channel_id).into()
             ),
             Self::UpdateTemplate {
                 guild_id,

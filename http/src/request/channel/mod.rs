@@ -1,6 +1,7 @@
 pub mod invite;
 pub mod message;
 pub mod reaction;
+pub mod stage;
 pub mod update_channel;
 pub mod webhook;
 

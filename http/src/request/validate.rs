@@ -409,6 +409,17 @@ fn _template_description(value: &str) -> bool {
     (0..=120).contains(&len)
 }
 
+pub fn stage_topic(value: impl AsRef<str>) -> bool {
+    _stage_topic(value.as_ref())
+}
+
+fn _stage_topic(value: &str) -> bool {
+    let len = value.chars().count();
+
+    // <https://github.com/discord/discord-api-docs/commit/f019fc358047050513c623f3639b6e96809f9280>
+    (0..=120).contains(&len)
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
