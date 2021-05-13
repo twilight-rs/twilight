@@ -9,6 +9,7 @@ use twilight_model::id::ChannelId;
 #[derive(Debug)]
 pub struct UpdateStageInstanceError {
     kind: UpdateStageInstanceErrorType,
+    source: Option<Box<dyn Error + Send + Sync>>,
 }
 
 impl UpdateStageInstanceError {
@@ -21,7 +22,7 @@ impl UpdateStageInstanceError {
     /// Consume the error, returning the source error if there is any.
     #[must_use = "consuming the error and retrieving the source has no effect if left unused"]
     pub fn into_source(self) -> Option<Box<dyn Error + Send + Sync>> {
-        None
+        self.source
     }
 
     /// Consume the error, returning the owned error type and the source error.
@@ -48,7 +49,9 @@ impl Display for UpdateStageInstanceError {
 
 impl Error for UpdateStageInstanceError {
     fn source(&self) -> Option<&(dyn Error + 'static)> {
-        None
+        self.source
+            .as_ref()
+            .map(|source| &**source as &(dyn Error + 'static))
     }
 }
 
@@ -94,6 +97,7 @@ impl<'a> UpdateStageInstance<'a> {
         if !validate::stage_topic(&topic) {
             return Err(UpdateStageInstanceError {
                 kind: UpdateStageInstanceErrorType::InvalidTopic { topic },
+                source: None,
             });
         }
 

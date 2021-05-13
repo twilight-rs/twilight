@@ -1746,7 +1746,7 @@ impl Route {
             Self::UpdateStageInstance { channel_id } => (
                 Method::Patch,
                 Path::StageInstances,
-                format!("stage-instances/{}", channel_id).into()
+                format!("stage-instances/{}", channel_id).into(),
             ),
             Self::UpdateTemplate {
                 guild_id,

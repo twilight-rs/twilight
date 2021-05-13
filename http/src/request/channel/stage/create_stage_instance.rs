@@ -9,6 +9,7 @@ use twilight_model::id::ChannelId;
 #[derive(Debug)]
 pub struct CreateStageInstanceError {
     kind: CreateStageInstanceErrorType,
+    source: Option<Box<dyn Error + Send + Sync>>,
 }
 
 impl CreateStageInstanceError {
@@ -21,7 +22,7 @@ impl CreateStageInstanceError {
     /// Consume the error, returning the source error if there is any.
     #[must_use = "consuming the error and retrieving the source has no effect if left unused"]
     pub fn into_source(self) -> Option<Box<dyn Error + Send + Sync>> {
-        None
+        self.source
     }
 
     /// Consume the error, returning the owned error type and the source error.
@@ -32,7 +33,7 @@ impl CreateStageInstanceError {
         CreateStageInstanceErrorType,
         Option<Box<dyn Error + Send + Sync>>,
     ) {
-        (self.kind, None)
+        (self.kind, self.source)
     }
 }
 
@@ -48,7 +49,9 @@ impl Display for CreateStageInstanceError {
 
 impl Error for CreateStageInstanceError {
     fn source(&self) -> Option<&(dyn Error + 'static)> {
-        None
+        self.source
+            .as_ref()
+            .map(|source| &**source as &(dyn Error + 'static))
     }
 }
 
@@ -57,7 +60,7 @@ pub enum CreateStageInstanceErrorType {
     /// Topic is not between 1 and 120 characters in length.
     InvalidTopic {
         /// Invalid topic.
-        topic: String
+        topic: String,
     },
 }
 
@@ -89,6 +92,7 @@ impl<'a> CreateStageInstance<'a> {
         if !validate::stage_topic(&topic) {
             return Err(CreateStageInstanceError {
                 kind: CreateStageInstanceErrorType::InvalidTopic { topic },
+                source: None,
             });
         }
 

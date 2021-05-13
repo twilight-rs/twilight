@@ -27,7 +27,10 @@ mod test {
         serde_test::assert_tokens(
             &value,
             &[
-                Token::Struct { name: "StageInstance", len: 4 },
+                Token::Struct {
+                    name: "StageInstance",
+                    len: 4,
+                },
                 Token::Str("channel_id"),
                 Token::NewtypeStruct { name: "ChannelId" },
                 Token::Str("100"),
@@ -40,7 +43,7 @@ mod test {
                 Token::Str("topic"),
                 Token::Str("a topic"),
                 Token::StructEnd,
-            ]
+            ],
         );
     }
 }
