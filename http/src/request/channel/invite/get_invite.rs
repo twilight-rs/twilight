@@ -30,7 +30,7 @@ struct GetInviteFields {
 /// ```
 ///
 /// [`with_counts`]: Self::with_counts
-/// [`with_counts`]: Self::with_expiration
+/// [`with_expiration`]: Self::with_expiration
 pub struct GetInvite<'a> {
     code: String,
     fields: GetInviteFields,
