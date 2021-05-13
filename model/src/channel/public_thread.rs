@@ -16,10 +16,10 @@ pub struct PublicThread {
     pub parent_id: Option<ChannelId>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub last_message_id: Option<MessageId>,
+    /// Max value of 50.
     pub message_count: u8,
     /// Max value of 50.
     pub member_count: u8,
-    /// Max value of 50.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub rate_limit_per_user: Option<u64>,
     pub thread_metadata: ThreadMetadata,

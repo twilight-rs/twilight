@@ -105,18 +105,18 @@ bitflags! {
         const SHARD_RECONNECTING = 1 << 37;
         /// Shard is resuming a session with the gateway.
         const SHARD_RESUMING = 1 << 38;
-        /// Sent when a thread is created, relevant to the current user,
-        /// or when the current user is added to a thread.
+        /// A thread has been created, relevant to the current user,
+        /// or the current user has been added to a thread.
         const THREAD_CREATE = 1 << 50;
-        /// Sent when a thread is updated.
+        /// A thread has been updated.
         const THREAD_UPDATE = 1 << 51;
-        /// Sent when a thread relevant to the current user is deleted.
+        /// A thread, relevant to the current user, has been deleted.
         const THREAD_DELETE = 1 << 52;
-        /// Sent when the current user gains access to a channel.
+        /// The current user has gained access to a thread.
         const THREAD_LIST_SYNC = 1 << 53;
-        /// Sent when the thread member object for the current user is updated.
+        /// The thread member object for the current user has been updated.
         const THREAD_MEMBER_UPDATE = 1 << 54;
-        /// Sent when anyone is added to or removed from a thread.
+        /// A user has been added to or removed from a thread.
         const THREAD_MEMBERS_UPDATE = 1 << 55;
         /// User has begun typing in a channel.
         const TYPING_START = 1 << 39;

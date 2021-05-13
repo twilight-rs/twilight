@@ -121,17 +121,18 @@ pub enum Event {
     ShardPayload(Payload),
     /// A shard is now in a Resuming stage after a disconnect.
     ShardResuming(Resuming),
-    /// Sent when a thread is created, relevant to the current user, or when the current user is added to a thread.
+    /// A thread has been created, relevant to the current user,
+    /// or the current user has been added to a thread.
     ThreadCreate(ThreadCreate),
-    /// Sent when a thread is updated.
+    /// A thread has been updated.
     ThreadUpdate(ThreadUpdate),
-    /// Sent when a thread relevant to the current user is deleted.
+    /// A thread, relevant to the current user, has been deleted.
     ThreadDelete(ThreadDelete),
-    /// Sent when the current user gains access to a channel.
+    /// The current user has gained access to a thread.
     ThreadListSync(ThreadListSync),
-    /// Sent when the thread member object for the current user is updated.
+    /// The thread member object for the current user has been updated.
     ThreadMemberUpdate(ThreadMemberUpdate),
-    /// Sent when anyone is added to or removed from a thread.
+    /// A user has been added to or removed from a thread.
     ThreadMembersUpdate(ThreadMembersUpdate),
     /// A user started typing in a channel.
     TypingStart(Box<TypingStart>),
