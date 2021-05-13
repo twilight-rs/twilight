@@ -1,9 +1,16 @@
 use crate::request::prelude::*;
+use twilight_model::invite::Invite;
 
 /// Delete an invite by its code.
+///
+/// Requires the [`MANAGE_CHANNELS`] permission on the channel this invite
+/// belongs to, or [`MANAGE_GUILD`] to remove any invite across the guild.
+///
+/// [`MANAGE_CHANNELS`]: twilight_model::guild::permissions::Permissions::MANAGE_CHANNELS
+/// [`MANAGE_GUILD`]: twilight_model::guild::permissions::Permissions::MANAGE_GUILD
 pub struct DeleteInvite<'a> {
     code: String,
-    fut: Option<Pending<'a, ()>>,
+    fut: Option<Pending<'a, Invite>>,
     http: &'a Client,
     reason: Option<String>,
 }
@@ -33,7 +40,7 @@ impl<'a> DeleteInvite<'a> {
             })
         };
 
-        self.fut.replace(Box::pin(self.http.verify(request)));
+        self.fut.replace(Box::pin(self.http.request(request)));
 
         Ok(())
     }
@@ -48,4 +55,4 @@ impl<'a> AuditLogReason for DeleteInvite<'a> {
     }
 }
 
-poll_req!(DeleteInvite<'_>, ());
+poll_req!(DeleteInvite<'_>, Invite);

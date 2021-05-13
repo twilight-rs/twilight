@@ -696,6 +696,8 @@ pub enum Route {
         code: String,
         /// Whether to retrieve statistics about the invite.
         with_counts: bool,
+        /// Whether to retrieve the expiration date of the invite.
+        with_expiration: bool,
     },
     /// Route information to get a member.
     GetMember {
@@ -1437,11 +1439,22 @@ impl Route {
 
                 (Method::Get, Path::UsersIdGuilds, path.into())
             }
-            Self::GetInvite { code, with_counts } => (
-                Method::Get,
-                Path::InvitesCode,
-                format!("invites/{}?with-counts={}", code, with_counts).into(),
-            ),
+            Self::GetInvite {
+                code,
+                with_counts,
+                with_expiration,
+            } => {
+                let query_params = match (with_counts, with_expiration) {
+                    (true, true) => "?with-counts=true&with-expiration=true",
+                    (true, false) => "?with-counts=true",
+                    (false, true) => "?with-expiration=true",
+                    (false, false) => "",
+                };
+
+                let route = format!("invites/{}{}", code, query_params);
+
+                (Method::Get, Path::InvitesCode, route.into())
+            }
             Self::GetMember { guild_id, user_id } => (
                 Method::Get,
                 Path::GuildsIdMembersId(guild_id),
