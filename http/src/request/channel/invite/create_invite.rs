@@ -218,11 +218,17 @@ impl<'a> CreateInvite<'a> {
         self.target_user_id(target_user_id)
     }
 
-    /// Set the target user type for this invite.
+    /// Set the target type for this invite.
     pub fn target_type(mut self, target_type: TargetType) -> Self {
         self.fields.target_type.replace(target_type);
 
         self
+    }
+
+    /// Set the target user type for this invite.
+    #[deprecated(since = "0.4.1", note = "Use `target_type` instead")]
+    pub fn target_user_type(self, target_user_type: TargetType) -> Self {
+        Self::target_type(self, target_user_type)
     }
 
     /// Specify true if the invite should grant temporary membership.
