@@ -24,23 +24,17 @@ impl<'a> DeleteChannelPermissionConfigured<'a> {
     }
 
     fn start(&mut self) -> Result<()> {
-        let request = if let Some(reason) = &self.reason {
-            let headers = audit_header(&reason)?;
-            Request::from((
-                headers,
-                Route::DeletePermissionOverwrite {
-                    channel_id: self.channel_id.0,
-                    target_id: self.target_id,
-                },
-            ))
-        } else {
-            Request::from(Route::DeletePermissionOverwrite {
-                channel_id: self.channel_id.0,
-                target_id: self.target_id,
-            })
-        };
+        let mut request = Request::builder(Route::DeletePermissionOverwrite {
+            channel_id: self.channel_id.0,
+            target_id: self.target_id,
+        });
 
-        self.fut.replace(Box::pin(self.http.verify(request)));
+        if let Some(reason) = &self.reason {
+            request = request.headers(audit_header(reason)?);
+        }
+
+        self.fut
+            .replace(Box::pin(self.http.verify(request.build())));
 
         Ok(())
     }

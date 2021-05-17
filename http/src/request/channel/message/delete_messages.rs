@@ -39,25 +39,17 @@ impl<'a> DeleteMessages<'a> {
     }
 
     fn start(&mut self) -> Result<()> {
-        let request = if let Some(reason) = &self.reason {
-            let headers = audit_header(&reason)?;
-            Request::from((
-                crate::json_to_vec(&self.fields).map_err(HttpError::json)?,
-                headers,
-                Route::DeleteMessages {
-                    channel_id: self.channel_id.0,
-                },
-            ))
-        } else {
-            Request::from((
-                crate::json_to_vec(&self.fields).map_err(HttpError::json)?,
-                Route::DeleteMessages {
-                    channel_id: self.channel_id.0,
-                },
-            ))
-        };
+        let mut request = Request::builder(Route::DeleteMessages {
+            channel_id: self.channel_id.0,
+        })
+        .json(&self.fields)?;
 
-        self.fut.replace(Box::pin(self.http.verify(request)));
+        if let Some(reason) = &self.reason {
+            request = request.headers(audit_header(reason)?);
+        }
+
+        self.fut
+            .replace(Box::pin(self.http.verify(request.build())));
 
         Ok(())
     }

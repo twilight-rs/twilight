@@ -29,12 +29,13 @@ impl<'a> UpdateRolePositions<'a> {
     }
 
     fn start(&mut self) -> Result<()> {
-        self.fut.replace(Box::pin(self.http.request(Request::from((
-            crate::json_to_vec(&self.roles).map_err(HttpError::json)?,
-            Route::UpdateRolePositions {
-                guild_id: self.guild_id.0,
-            },
-        )))));
+        let request = Request::builder(Route::UpdateRolePositions {
+            guild_id: self.guild_id.0,
+        })
+        .json(&self.roles)?
+        .build();
+
+        self.fut.replace(Box::pin(self.http.request(request)));
 
         Ok(())
     }

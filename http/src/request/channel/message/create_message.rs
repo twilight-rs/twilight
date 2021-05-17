@@ -284,32 +284,27 @@ impl<'a> CreateMessage<'a> {
     }
 
     fn start(&mut self) -> Result<()> {
-        self.fut.replace(Box::pin(self.http.request(
-            if self.attachments.is_empty() {
-                Request::from((
-                    crate::json_to_vec(&self.fields).map_err(HttpError::json)?,
-                    Route::CreateMessage {
-                        channel_id: self.channel_id.0,
-                    },
-                ))
-            } else {
-                let mut multipart = Form::new();
+        let mut request = Request::builder(Route::CreateMessage {
+            channel_id: self.channel_id.0,
+        });
 
-                for (index, (name, file)) in self.attachments.drain().enumerate() {
-                    multipart.file(format!("{}", index).as_bytes(), name.as_bytes(), &file);
-                }
+        if self.attachments.is_empty() {
+            let mut form = Form::new();
 
-                let body = crate::json_to_vec(&self.fields).map_err(HttpError::json)?;
-                multipart.part(b"payload_json", &body);
+            for (index, (name, file)) in self.attachments.drain().enumerate() {
+                form.file(format!("{}", index).as_bytes(), name.as_bytes(), &file);
+            }
 
-                Request::from((
-                    multipart,
-                    Route::CreateMessage {
-                        channel_id: self.channel_id.0,
-                    },
-                ))
-            },
-        )));
+            let body = crate::json_to_vec(&self.fields).map_err(HttpError::json)?;
+            form.part(b"payload_json", &body);
+
+            request = request.form(form);
+        } else {
+            request = request.json(&self.fields)?;
+        }
+
+        self.fut
+            .replace(Box::pin(self.http.request(request.build())));
 
         Ok(())
     }

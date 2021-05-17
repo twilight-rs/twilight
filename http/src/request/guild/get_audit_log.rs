@@ -144,15 +144,15 @@ impl<'a> GetAuditLog<'a> {
     }
 
     fn start(&mut self) -> Result<()> {
-        self.fut.replace(Box::pin(self.http.request(Request::from(
-            Route::GetAuditLogs {
-                action_type: self.fields.action_type.map(|x| x as u64),
-                before: self.fields.before,
-                guild_id: self.guild_id.0,
-                limit: self.fields.limit,
-                user_id: self.fields.user_id.map(|x| x.0),
-            },
-        ))));
+        let request = Request::from_route(Route::GetAuditLogs {
+            action_type: self.fields.action_type.map(|x| x as u64),
+            before: self.fields.before,
+            guild_id: self.guild_id.0,
+            limit: self.fields.limit,
+            user_id: self.fields.user_id.map(|x| x.0),
+        });
+
+        self.fut.replace(Box::pin(self.http.request(request)));
 
         Ok(())
     }

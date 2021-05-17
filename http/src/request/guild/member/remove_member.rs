@@ -22,23 +22,17 @@ impl<'a> RemoveMember<'a> {
     }
 
     fn start(&mut self) -> Result<()> {
-        let request = if let Some(reason) = &self.reason {
-            let headers = audit_header(&reason)?;
-            Request::from((
-                headers,
-                Route::RemoveMember {
-                    guild_id: self.guild_id.0,
-                    user_id: self.user_id.0,
-                },
-            ))
-        } else {
-            Request::from(Route::RemoveMember {
-                guild_id: self.guild_id.0,
-                user_id: self.user_id.0,
-            })
-        };
+        let mut request = Request::builder(Route::RemoveMember {
+            guild_id: self.guild_id.0,
+            user_id: self.user_id.0,
+        });
 
-        self.fut.replace(Box::pin(self.http.verify(request)));
+        if let Some(reason) = self.reason.as_ref() {
+            request = request.headers(audit_header(reason)?);
+        }
+
+        self.fut
+            .replace(Box::pin(self.http.verify(request.build())));
 
         Ok(())
     }

@@ -22,23 +22,17 @@ impl<'a> DeleteEmoji<'a> {
     }
 
     fn start(&mut self) -> Result<()> {
-        let request = if let Some(reason) = &self.reason {
-            let headers = audit_header(&reason)?;
-            Request::from((
-                headers,
-                Route::DeleteEmoji {
-                    emoji_id: self.emoji_id.0,
-                    guild_id: self.guild_id.0,
-                },
-            ))
-        } else {
-            Request::from(Route::DeleteEmoji {
-                emoji_id: self.emoji_id.0,
-                guild_id: self.guild_id.0,
-            })
-        };
+        let mut request = Request::builder(Route::DeleteEmoji {
+            emoji_id: self.emoji_id.0,
+            guild_id: self.guild_id.0,
+        });
 
-        self.fut.replace(Box::pin(self.http.verify(request)));
+        if let Some(reason) = self.reason.as_ref() {
+            request = request.headers(audit_header(reason)?);
+        }
+
+        self.fut
+            .replace(Box::pin(self.http.verify(request.build())));
 
         Ok(())
     }

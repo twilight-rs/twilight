@@ -18,11 +18,11 @@ impl<'a> GetChannelWebhooks<'a> {
     }
 
     fn start(&mut self) -> Result<()> {
-        self.fut.replace(Box::pin(self.http.request(Request::from(
-            Route::GetChannelWebhooks {
-                channel_id: self.channel_id.0,
-            },
-        ))));
+        let request = Request::from_route(Route::GetChannelWebhooks {
+            channel_id: self.channel_id.0,
+        });
+
+        self.fut.replace(Box::pin(self.http.request(request)));
 
         Ok(())
     }

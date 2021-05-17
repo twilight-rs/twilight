@@ -51,18 +51,17 @@ impl<'a> DeleteWebhookMessage<'a> {
     }
 
     fn request(&self) -> Result<Request> {
-        let route = Route::DeleteWebhookMessage {
+        let mut request = Request::builder(Route::DeleteWebhookMessage {
             message_id: self.message_id.0,
             token: self.token.clone(),
             webhook_id: self.webhook_id.0,
-        };
+        });
 
-        Ok(if let Some(reason) = &self.reason {
-            let headers = request::audit_header(&reason)?;
-            Request::from((headers, route))
-        } else {
-            Request::from(route)
-        })
+        if let Some(reason) = self.reason.as_ref() {
+            request = request.headers(request::audit_header(reason)?);
+        }
+
+        Ok(request.build())
     }
 
     fn start(&mut self) -> Result<()> {
@@ -96,12 +95,11 @@ mod tests {
         let builder = DeleteWebhookMessage::new(&client, WebhookId(1), "token", MessageId(2));
         let actual = builder.request().expect("failed to create request");
 
-        let route = Route::DeleteWebhookMessage {
+        let expected = Request::from_route(Route::DeleteWebhookMessage {
             message_id: 2,
             token: "token".to_owned(),
             webhook_id: 1,
-        };
-        let expected = Request::from(route);
+        });
 
         assert_eq!(expected.body, actual.body);
         assert_eq!(expected.path, actual.path);

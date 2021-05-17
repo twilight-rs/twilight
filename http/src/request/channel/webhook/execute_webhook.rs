@@ -142,14 +142,13 @@ impl<'a> ExecuteWebhook<'a> {
     }
 
     fn start(&mut self) -> Result<()> {
-        let request = Request::from((
-            crate::json_to_vec(&self.fields).map_err(HttpError::json)?,
-            Route::ExecuteWebhook {
-                token: self.token.clone(),
-                wait: self.fields.wait,
-                webhook_id: self.webhook_id.0,
-            },
-        ));
+        let request = Request::builder(Route::ExecuteWebhook {
+            token: self.token.clone(),
+            wait: self.fields.wait,
+            webhook_id: self.webhook_id.0,
+        })
+        .json(&self.fields)?
+        .build();
 
         match self.fields.wait {
             Some(true) => {

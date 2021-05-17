@@ -2,8 +2,8 @@
 
 use crate::{
     client::Client,
-    error::{Error as HttpError, Result},
-    request::{self, validate, AuditLogReason, AuditLogReasonError, Pending, Request},
+    error::Result,
+    request::{audit_header, validate, AuditLogReason, AuditLogReasonError, Pending, Request},
     routing::Route,
 };
 use serde::Serialize;
@@ -293,19 +293,18 @@ impl<'a> UpdateWebhookMessage<'a> {
     }
 
     fn request(&self) -> Result<Request> {
-        let body = crate::json_to_vec(&self.fields).map_err(HttpError::json)?;
-        let route = Route::UpdateWebhookMessage {
+        let mut request = Request::builder(Route::UpdateWebhookMessage {
             message_id: self.message_id.0,
             token: self.token.clone(),
             webhook_id: self.webhook_id.0,
-        };
-
-        Ok(if let Some(reason) = &self.reason {
-            let headers = request::audit_header(&reason)?;
-            Request::from((body, headers, route))
-        } else {
-            Request::from((body, route))
         })
+        .json(&self.fields)?;
+
+        if let Some(reason) = self.reason.as_ref() {
+            request = request.headers(audit_header(reason)?);
+        }
+
+        Ok(request.build())
     }
 
     fn start(&mut self) -> Result<()> {
@@ -347,18 +346,20 @@ mod tests {
             .expect("'reason' is not a valid reason");
         let actual = builder.request().expect("failed to create request");
 
-        let body = crate::json_to_vec(&UpdateWebhookMessageFields {
+        let body = UpdateWebhookMessageFields {
             allowed_mentions: None,
             content: Some(Some("test".to_owned())),
             embeds: None,
-        })
-        .expect("failed to serialize fields");
+        };
         let route = Route::UpdateWebhookMessage {
             message_id: 2,
             token: "token".to_owned(),
             webhook_id: 1,
         };
-        let expected = Request::from((body, route));
+        let expected = Request::builder(route)
+            .json(&body)
+            .expect("failed to serialize body")
+            .build();
 
         assert_eq!(expected.body, actual.body);
         assert_eq!(expected.path, actual.path);
