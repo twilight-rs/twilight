@@ -12,7 +12,6 @@ use serde::{
 use std::{
     collections::hash_map::{HashMap, RandomState},
     fmt::{Formatter, Result as FmtResult},
-    iter::FromIterator,
 };
 
 #[derive(Clone, Debug, Eq, PartialEq)]
