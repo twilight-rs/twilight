@@ -1,4 +1,4 @@
-use crate::applications::interaction::Interaction;
+use crate::application::interaction::Interaction;
 use serde::{Deserialize, Serialize};
 use std::ops::{Deref, DerefMut};
 

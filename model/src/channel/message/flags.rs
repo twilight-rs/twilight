@@ -11,6 +11,11 @@ bitflags! {
         const SUPPRESS_EMBEDS = 1 << 2;
         const SOURCE_MESSAGE_DELETED = 1 << 3;
         const URGENT = 1 << 4;
+        /// When used, only shows a message to the invoking user.
+        ///
+        /// Used when responding to an [`Interaction`].
+        ///
+        /// [`Interaction`]: crate::application::interaction::Interaction
         const EPHEMERAL = 1 << 6;
     }
 }

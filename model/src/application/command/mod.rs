@@ -1,3 +1,5 @@
+//! Used for building commands to send to Discord.
+
 pub mod permissions;
 
 mod option;

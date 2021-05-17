@@ -3,78 +3,17 @@ use crate::{
     guild::{Permissions, Role},
     id::{ChannelId, GuildId, RoleId, UserId},
     user::User,
-    util::is_false,
 };
-use serde::{de::Deserializer, ser::Serializer, Deserialize, Serialize};
-use std::collections::HashMap;
-
-#[derive(Clone, Debug, Deserialize, Serialize)]
-struct CommandInteractionDataResolvedEnvelope {
-    channels: HashMap<ChannelId, InteractionChannel>,
-    members: HashMap<UserId, InteractionMemberEnvelope>,
-    roles: HashMap<RoleId, Role>,
-    users: HashMap<UserId, User>,
-}
-
-impl From<CommandInteractionDataResolved> for CommandInteractionDataResolvedEnvelope {
-    fn from(resolved: CommandInteractionDataResolved) -> Self {
-        let mut envelope = CommandInteractionDataResolvedEnvelope {
-            channels: HashMap::new(),
-            members: HashMap::new(),
-            roles: HashMap::new(),
-            users: HashMap::new(),
-        };
-
-        for channel in resolved.channels {
-            envelope.channels.insert(channel.id, channel);
-        }
-
-        for member in resolved.members {
-            envelope.members.insert(member.id, member.into());
-        }
-
-        for role in resolved.roles {
-            envelope.roles.insert(role.id, role);
-        }
-
-        for user in resolved.users {
-            envelope.users.insert(user.id, user);
-        }
-
-        envelope
-    }
-}
-
-#[derive(Clone, Debug, Deserialize, Serialize)]
-struct InteractionMemberEnvelope {
-    guild_id: GuildId,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    hoisted_role: Option<RoleId>,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    joined_at: Option<String>,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    nick: Option<String>,
-    #[serde(default, skip_serializing_if = "is_false")]
-    pending: bool,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    premium_since: Option<String>,
-    #[serde(default, skip_serializing_if = "Vec::is_empty")]
-    roles: Vec<RoleId>,
-}
-
-impl From<InteractionMember> for InteractionMemberEnvelope {
-    fn from(member: InteractionMember) -> Self {
-        Self {
-            guild_id: member.guild_id,
-            hoisted_role: member.hoisted_role,
-            joined_at: member.joined_at,
-            nick: member.nick,
-            pending: member.pending,
-            premium_since: member.premium_since,
-            roles: member.roles,
-        }
-    }
-}
+use serde::{
+    de::{Deserializer, Error as DeError, MapAccess, Visitor},
+    ser::{SerializeStruct, Serializer},
+    Deserialize, Serialize,
+};
+use std::{
+    collections::hash_map::{HashMap, RandomState},
+    fmt::{Formatter, Result as FmtResult},
+    iter::FromIterator,
+};
 
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct CommandInteractionDataResolved {
@@ -86,30 +25,149 @@ pub struct CommandInteractionDataResolved {
 
 impl<'de> Deserialize<'de> for CommandInteractionDataResolved {
     fn deserialize<D: Deserializer<'de>>(deserializer: D) -> Result<Self, D::Error> {
-        Ok(CommandInteractionDataResolvedEnvelope::deserialize(deserializer)?.into())
-    }
-}
-
-impl From<CommandInteractionDataResolvedEnvelope> for CommandInteractionDataResolved {
-    fn from(envelope: CommandInteractionDataResolvedEnvelope) -> Self {
-        Self {
-            channels: envelope.channels.into_iter().map(|(_, v)| v).collect(),
-            members: envelope
-                .members
-                .into_iter()
-                .map(|(k, v)| InteractionMember::from((k, v)))
-                .collect(),
-            roles: envelope.roles.into_iter().map(|(_, v)| v).collect(),
-            users: envelope.users.into_iter().map(|(_, v)| v).collect(),
-        }
+        deserializer.deserialize_map(ResolvedVisitor)
     }
 }
 
 impl Serialize for CommandInteractionDataResolved {
     fn serialize<S: Serializer>(&self, serializer: S) -> Result<S::Ok, S::Error> {
-        let envelope: CommandInteractionDataResolvedEnvelope = self.clone().into();
+        let len = vec![
+            self.channels.is_empty(),
+            self.members.is_empty(),
+            self.roles.is_empty(),
+            self.users.is_empty(),
+        ]
+        .into_iter()
+        .filter(|b| !b)
+        .collect::<Vec<bool>>()
+        .len();
 
-        envelope.serialize(serializer)
+        let mut state = serializer.serialize_struct("CommandInteractionDataResolved", len)?;
+
+        if !self.channels.is_empty() {
+            let map: HashMap<ChannelId, &InteractionChannel, RandomState> =
+                HashMap::from_iter(self.channels.iter().map(|c| c.id).zip(self.channels.iter()));
+
+            state.serialize_field("channels", &map)?;
+        }
+
+        if !self.members.is_empty() {
+            let map: HashMap<UserId, &InteractionMember, RandomState> =
+                HashMap::from_iter(self.members.iter().map(|m| m.id).zip(self.members.iter()));
+
+            state.serialize_field("members", &map)?;
+        }
+
+        if !self.roles.is_empty() {
+            let map: HashMap<RoleId, &Role, RandomState> =
+                HashMap::from_iter(self.roles.iter().map(|r| r.id).zip(self.roles.iter()));
+
+            state.serialize_field("roles", &map)?;
+        }
+
+        if !self.users.is_empty() {
+            let map: HashMap<UserId, &User, RandomState> =
+                HashMap::from_iter(self.users.iter().map(|u| u.id).zip(self.users.iter()));
+
+            state.serialize_field("users", &map)?;
+        }
+
+        state.end()
+    }
+}
+
+#[derive(Debug, Deserialize)]
+#[serde(field_identifier, rename_all = "snake_case")]
+enum ResolvedField {
+    Channels,
+    Members,
+    Roles,
+    Users,
+}
+
+struct ResolvedVisitor;
+
+impl<'de> Visitor<'de> for ResolvedVisitor {
+    type Value = CommandInteractionDataResolved;
+
+    fn expecting(&self, f: &mut Formatter<'_>) -> FmtResult {
+        f.write_str("struct CommandInteractionDataResolved")
+    }
+
+    fn visit_map<V: MapAccess<'de>>(self, mut map: V) -> Result<Self::Value, V::Error> {
+        let mut channels: Option<Vec<InteractionChannel>> = None;
+        let mut members: Option<Vec<InteractionMember>> = None;
+        let mut roles: Option<Vec<Role>> = None;
+        let mut users: Option<Vec<User>> = None;
+
+        loop {
+            let key = match map.next_key() {
+                Ok(Some(key)) => key,
+                Ok(None) => break,
+                Err(_) => continue,
+            };
+
+            match key {
+                ResolvedField::Channels => {
+                    if channels.is_some() {
+                        return Err(DeError::duplicate_field("channels"));
+                    }
+
+                    let mapped_channels: HashMap<ChannelId, InteractionChannel> =
+                        map.next_value()?;
+
+                    channels = Some(mapped_channels.into_iter().map(|(_, v)| v).collect());
+                }
+                ResolvedField::Members => {
+                    if members.is_some() {
+                        return Err(DeError::duplicate_field("members"));
+                    }
+
+                    let mapped_members: HashMap<UserId, InteractionMemberEnvelope> =
+                        map.next_value()?;
+
+                    members = Some(
+                        mapped_members
+                            .into_iter()
+                            .map(|(k, v)| InteractionMember {
+                                guild_id: v.guild_id,
+                                hoisted_role: v.hoisted_role,
+                                id: k,
+                                joined_at: v.joined_at,
+                                nick: v.nick,
+                                premium_since: v.premium_since,
+                                roles: v.roles,
+                            })
+                            .collect(),
+                    );
+                }
+                ResolvedField::Roles => {
+                    if roles.is_some() {
+                        return Err(DeError::duplicate_field("roles"));
+                    }
+
+                    let map_roles: HashMap<RoleId, Role> = map.next_value()?;
+
+                    roles = Some(map_roles.into_iter().map(|(_, v)| v).collect());
+                }
+                ResolvedField::Users => {
+                    if users.is_some() {
+                        return Err(DeError::duplicate_field("users"));
+                    }
+
+                    let map_users: HashMap<UserId, User> = map.next_value()?;
+
+                    users = Some(map_users.into_iter().map(|(_, v)| v).collect());
+                }
+            }
+        }
+
+        Ok(CommandInteractionDataResolved {
+            channels: channels.unwrap_or_default(),
+            members: members.unwrap_or_default(),
+            roles: roles.unwrap_or_default(),
+            users: users.unwrap_or_default(),
+        })
     }
 }
 
@@ -122,41 +180,33 @@ pub struct InteractionChannel {
     pub permissions: Permissions,
 }
 
-#[derive(Clone, Debug, Eq, PartialEq)]
+#[derive(Clone, Debug, Eq, PartialEq, Serialize)]
+#[serde(rename = "InteractionMemberEnvelope")]
 pub struct InteractionMember {
     pub guild_id: GuildId,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub hoisted_role: Option<RoleId>,
+    #[serde(skip_serializing)]
     pub id: UserId,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub joined_at: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub nick: Option<String>,
-    /// Whether the user has yet to pass the guild's [Membership Screening]
-    /// requirements.
-    pub pending: bool,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub premium_since: Option<String>,
+    #[serde(skip_serializing_if = "Vec::is_empty")]
     pub roles: Vec<RoleId>,
 }
 
-impl From<(UserId, InteractionMemberEnvelope)> for InteractionMember {
-    fn from((id, envelope): (UserId, InteractionMemberEnvelope)) -> Self {
-        Self {
-            guild_id: envelope.guild_id,
-            hoisted_role: envelope.hoisted_role,
-            id,
-            joined_at: envelope.joined_at,
-            nick: envelope.nick,
-            pending: envelope.pending,
-            premium_since: envelope.premium_since,
-            roles: envelope.roles,
-        }
-    }
-}
-
-impl Serialize for InteractionMember {
-    fn serialize<S: Serializer>(&self, serializer: S) -> Result<S::Ok, S::Error> {
-        let envelope: InteractionMemberEnvelope = self.clone().into();
-
-        envelope.serialize(serializer)
-    }
+#[derive(Deserialize)]
+struct InteractionMemberEnvelope {
+    pub guild_id: GuildId,
+    pub hoisted_role: Option<RoleId>,
+    pub joined_at: Option<String>,
+    pub nick: Option<String>,
+    pub premium_since: Option<String>,
+    #[serde(default)]
+    pub roles: Vec<RoleId>,
 }
 
 #[cfg(test)]
@@ -186,7 +236,6 @@ mod tests {
                 id: UserId(300),
                 joined_at: Some("joined at".into()),
                 nick: None,
-                pending: false,
                 premium_since: None,
                 roles: Vec::new(),
             }],
@@ -222,7 +271,7 @@ mod tests {
             &value,
             &[
                 Token::Struct {
-                    name: "CommandInteractionDataResolvedEnvelope",
+                    name: "CommandInteractionDataResolved",
                     len: 4,
                 },
                 Token::Str("channels"),

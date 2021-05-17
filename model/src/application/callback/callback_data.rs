@@ -10,8 +10,8 @@ use serde::{Deserialize, Serialize};
 ///
 /// This is used when intending to send a message in the response.
 ///
-/// [`Interaction`]: crate::applications::interaction::Interaction
-/// [`ApplicationCommand`]: crate::applications::interaction::Interaction::ApplicationCommand
+/// [`Interaction`]: crate::application::interaction::Interaction
+/// [`ApplicationCommand`]: crate::application::interaction::Interaction::ApplicationCommand
 #[derive(Clone, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
 pub struct CommandCallbackData {
     #[serde(skip_serializing_if = "Option::is_none")]

@@ -3,7 +3,7 @@ use serde_repr::{Deserialize_repr, Serialize_repr};
 use std::convert::TryFrom;
 use std::fmt::{Display, Formatter, Result as FmtResult};
 
-/// Denotes the type integers of possible interactions.
+/// Type of interaction.
 ///
 /// Refer to [the discord docs] for more information.
 ///
@@ -44,7 +44,7 @@ impl TryFrom<u8> for InteractionType {
         match i {
             1 => Ok(Self::Ping),
             2 => Ok(Self::ApplicationCommand),
-            n => Err(UnknownInteractionTypeError { value: n }),
+            other => Err(UnknownInteractionTypeError { value: other }),
         }
     }
 }

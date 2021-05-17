@@ -43,7 +43,7 @@ bitflags! {
         const GUILD_INTEGRATIONS_UPDATE = 1 << 13;
         /// A guild has been updated.
         const GUILD_UPDATE = 1 << 14;
-        /// An interaction was ivoked by a user.
+        /// An interaction was invoked by a user.
         const INTERACTION_CREATE = 1 << 56;
         /// Invite for a channel has been created.
         const INVITE_CREATE = 1 << 46;

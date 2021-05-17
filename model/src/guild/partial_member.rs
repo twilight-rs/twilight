@@ -7,6 +7,11 @@ pub struct PartialMember {
     pub joined_at: Option<String>,
     pub mute: bool,
     pub nick: Option<String>,
+    /// Permission data for the member.
+    ///
+    /// Sent in an [`Interaction`].
+    ///
+    /// [`Interaction`]: crate::application::interaction::Interaction
     pub permissions: Option<Permissions>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub premium_since: Option<String>,

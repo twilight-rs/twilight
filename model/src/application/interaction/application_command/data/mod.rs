@@ -9,21 +9,25 @@ use serde::{Deserialize, Serialize};
 ///
 /// Refer to [the discord docs] for more information.
 ///
-/// [`ApplicationCommand`]: crate::applications::interaction::Interaction::ApplicationCommand
+/// [`ApplicationCommand`]: crate::application::interaction::Interaction::ApplicationCommand
 /// [the discord docs]: https://discord.com/developers/docs/interactions/slash-commands#interaction-applicationcommandinteractiondata
 #[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize, Default)]
 pub struct CommandData {
+    /// ID of the command.
     pub id: CommandId,
+    /// Name of the command.
     pub name: String,
+    /// List of parsed options specified by the user.
     #[serde(default)]
     pub options: Vec<CommandDataOption>,
+    /// Data sent if any of the options are discord types.
     pub resolved: Option<CommandInteractionDataResolved>,
 }
 
 /// Data received when a user fills in a command option.
 ///
-/// Note: user, channel, and role option types will be returned as a String
-/// option here.
+/// Note: user, channel, role, and mentionable option types will be returned as
+/// a [`String`] option here.
 ///
 /// Refer to [the discord docs] for more information.
 ///

@@ -119,6 +119,7 @@ impl From<u64> for ChannelId {
     }
 }
 
+/// Unique ID of a command used in slash commands.
 #[derive(
     Clone, Copy, Debug, Default, Deserialize, Eq, Hash, Ord, PartialEq, PartialOrd, Serialize,
 )]
@@ -204,6 +205,7 @@ impl From<u64> for IntegrationId {
     }
 }
 
+/// Unique ID of an interaction payload.
 #[derive(
     Clone, Copy, Debug, Default, Deserialize, Eq, Hash, Ord, PartialEq, PartialOrd, Serialize,
 )]

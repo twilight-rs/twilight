@@ -1,4 +1,4 @@
-use crate::{applications::interaction::InteractionType, id::InteractionId, user::User};
+use crate::{application::interaction::InteractionType, id::InteractionId, user::User};
 use serde::{Deserialize, Serialize};
 
 #[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]

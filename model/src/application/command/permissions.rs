@@ -12,8 +12,8 @@ pub struct GuildCommandPermissions {
 
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct CommandPermissions {
-    id: CommandPermissionsType,
-    permission: bool,
+    pub id: CommandPermissionsType,
+    pub permission: bool,
 }
 
 #[derive(Clone, Debug, Eq, PartialEq)]

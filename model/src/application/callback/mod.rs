@@ -1,3 +1,5 @@
+//! Used when responding to interactions.
+
 mod callback_data;
 
 pub use callback_data::CommandCallbackData;
@@ -22,7 +24,7 @@ pub enum InteractionResponse {
     /// Responds to an interaction with a message.
     ChannelMessageWithSource(CommandCallbackData),
     /// Acknowledges an interaction, showing a loading state.
-    DeferredChannelMessageWithSource,
+    DeferredChannelMessageWithSource(CommandCallbackData),
 }
 
 impl InteractionResponse {
@@ -32,7 +34,7 @@ impl InteractionResponse {
             InteractionResponse::ChannelMessageWithSource(_) => {
                 InteractionResponseType::ChannelMessageWithSource
             }
-            InteractionResponse::DeferredChannelMessageWithSource => {
+            InteractionResponse::DeferredChannelMessageWithSource(_) => {
                 InteractionResponseType::DeferredChannelMessageWithSource
             }
         }
@@ -43,10 +45,9 @@ impl InteractionResponse {
     // response.
     fn data(&self) -> Option<&CommandCallbackData> {
         match self {
-            InteractionResponse::ChannelMessageWithSource(d) => Some(d),
-            InteractionResponse::Pong | InteractionResponse::DeferredChannelMessageWithSource => {
-                None
-            }
+            InteractionResponse::Pong => None,
+            InteractionResponse::ChannelMessageWithSource(d)
+            | InteractionResponse::DeferredChannelMessageWithSource(d) => Some(d),
         }
     }
 }
@@ -80,7 +81,9 @@ impl<'a> TryFrom<InteractionResponseEnvelope> for InteractionResponse {
                 )?)
             }
             InteractionResponseType::DeferredChannelMessageWithSource => {
-                InteractionResponse::DeferredChannelMessageWithSource
+                InteractionResponse::DeferredChannelMessageWithSource(envelope.data.ok_or(
+                    InteractionResponseEnvelopeParseError::MissingData(envelope.kind),
+                )?)
             }
         };
 
@@ -97,7 +100,7 @@ impl Display for InteractionResponseEnvelopeParseError {
     fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
         match self {
             Self::MissingData(kind) => {
-                write!(f, "data not present, but required for {}", kind.kind())
+                write!(f, "data not present, but required for {}", kind.name())
             }
         }
     }
@@ -123,7 +126,7 @@ pub enum InteractionResponseType {
 }
 
 impl InteractionResponseType {
-    pub fn kind(self) -> &'static str {
+    pub fn name(self) -> &'static str {
         match self {
             InteractionResponseType::Pong => "Pong",
             InteractionResponseType::ChannelMessageWithSource => "ChannelMessageWithSource",
