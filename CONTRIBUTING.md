@@ -13,7 +13,7 @@ up your topic in the `#support` channel.
 Pull requests must be named with the format `{crate}: {short description of change}`, and should use
 lower case letters. If the change spans more than one crate, separate the crate names with a comma
 and a space: `{crate1}, {crate2}: {short description of change}`. Pull requests must be made from a
-new branch. Please avoid making pull requests from the `trunk` branch. If adding a feature or
+new branch. Please avoid making pull requests from the HEAD branch. If adding a feature or
 enhancement, use the term `add` or something sufficiently similar. If fixing a bug, use the term
 `fix`, or something sufficiently similar. Avoid force-pushing to a pull request branch, as this
 erases review comment history.

@@ -47,7 +47,7 @@ impl EmbedFooterBuilder {
     /// use twilight_embed_builder::{EmbedFooterBuilder, ImageSource};
     ///
     /// # fn main() -> Result<(), Box<dyn std::error::Error>> {
-    /// let icon_url = ImageSource::url("https://raw.githubusercontent.com/twilight-rs/twilight/trunk/logo.png")?;
+    /// let icon_url = ImageSource::url("https://raw.githubusercontent.com/twilight-rs/twilight/main/logo.png")?;
     /// let footer = EmbedFooterBuilder::new("Twilight")
     ///     .icon_url(icon_url)
     ///     .build();
