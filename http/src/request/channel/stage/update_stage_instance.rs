@@ -71,8 +71,13 @@ struct UpdateStageInstanceFields {
 
 /// Update fields of an existing stage instance.
 ///
-/// Requires the user to be a moderator of the stage channel. The topic must
-/// be between 1 and 120 characters in length.
+/// Requires the user to be a moderator of the stage channel.
+///
+/// # Errors
+///
+/// Returns a [`UpdateStageInstanceError`] of type [`InvalidTopic`] when the
+///
+/// [`InvalidTopic`]: UpdateStageInstanceErrorType::InvalidTopic
 pub struct UpdateStageInstance<'a> {
     channel_id: ChannelId,
     fields: UpdateStageInstanceFields,

@@ -1303,8 +1303,14 @@ impl Client {
 
     /// Create a new stage instance associated with a stage channel.
     ///
-    /// Requires the user to be a moderator of the stage channel. The topic must
-    /// be between 1 and 120 characters in length.
+    /// Requires the user to be a moderator of the stage channel.
+    ///
+    /// # Errors
+    ///
+    /// Returns a [`CreateStageInstanceError`] of type [`InvalidTopic`] when the
+    /// topic is not between 1 and 120 characters in length.
+    ///
+    /// [`InvalidTopic`]: crate::request::channel::stage::create_stage_instance::CreateStageInstanceErrorType::InvalidTopic
     pub fn create_stage_instance(
         &self,
         channel_id: ChannelId,
@@ -1320,8 +1326,14 @@ impl Client {
 
     /// Update fields of an existing stage instance.
     ///
-    /// Requires the user to be a moderator of the stage channel. The topic must
-    /// be between 1 and 120 characters in length.
+    /// Requires the user to be a moderator of the stage channel.
+    ///
+    /// # Errors
+    ///
+    /// Returns a [`UpdateStageInstanceError`] of type [`InvalidTopic`] when the
+    ///
+    /// [`InvalidTopic`]: crate::request::channel::stage::update_stage_instance::UpdateStageInstanceErrorType::InvalidTopic
+    /// topic is not between 1 and 120 characters in length.
     pub fn update_stage_instance(
         &self,
         channel_id: ChannelId,

@@ -41,7 +41,7 @@ impl Display for CreateStageInstanceError {
     fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
         match &self.kind {
             CreateStageInstanceErrorType::InvalidTopic { .. } => {
-                f.write_fmt(format_args!("invalid topic"))
+                f.write_str("invalid topic")
             }
         }
     }
@@ -66,8 +66,14 @@ pub enum CreateStageInstanceErrorType {
 
 /// Create a new stage instance associated with a stage channel.
 ///
-/// Requires the user to be a moderator of the stage channel. The topic must be
-/// between 1 and 120 characters in length.
+/// Requires the user to be a moderator of the stage channel.
+///
+/// # Errors
+///
+/// Returns a [`CreateStageInstanceError`] of type [`InvalidTopic`] when the
+/// topic is not between 1 and 120 characters in length.
+///
+/// [`InvalidTopic`]: CreateStageInstanceErrorType::InvalidTopic
 pub struct CreateStageInstance<'a> {
     channel_id: ChannelId,
     fut: Option<Pending<'a, ()>>,
