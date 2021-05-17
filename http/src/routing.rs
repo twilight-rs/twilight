@@ -840,8 +840,6 @@ pub enum Route {
     GetReactionUsers {
         /// The minimum ID of users to get.
         after: Option<u64>,
-        /// The maximum ID of users to get.
-        before: Option<u64>,
         /// The ID of the channel.
         channel_id: u64,
         /// The URI encoded custom or unicode emoji.
@@ -1792,7 +1790,6 @@ impl Route {
             ),
             Self::GetReactionUsers {
                 after,
-                before,
                 channel_id,
                 ref emoji,
                 limit,
@@ -1805,10 +1802,6 @@ impl Route {
 
                 if let Some(after) = after {
                     let _ = write!(path, "after={}", after);
-                }
-
-                if let Some(before) = before {
-                    let _ = write!(path, "before={}", before);
                 }
 
                 if let Some(limit) = limit {
