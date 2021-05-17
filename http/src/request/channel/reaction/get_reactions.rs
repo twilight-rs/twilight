@@ -59,7 +59,6 @@ pub enum GetReactionsErrorType {
 #[derive(Default)]
 struct GetReactionsFields {
     after: Option<UserId>,
-    before: Option<UserId>,
     limit: Option<u64>,
 }
 
@@ -100,13 +99,6 @@ impl<'a> GetReactions<'a> {
         self
     }
 
-    /// Get users before this id.
-    pub fn before(mut self, before: UserId) -> Self {
-        self.fields.before.replace(before);
-
-        self
-    }
-
     /// Set the maximum number of users to retrieve.
     ///
     /// The minimum is 1 and the maximum is 100. If no limit is specified, Discord sets the default
@@ -132,7 +124,6 @@ impl<'a> GetReactions<'a> {
         self.fut.replace(Box::pin(self.http.request(Request::from(
             Route::GetReactionUsers {
                 after: self.fields.after.map(|x| x.0),
-                before: self.fields.before.map(|x| x.0),
                 channel_id: self.channel_id.0,
                 emoji: self.emoji.clone(),
                 limit: self.fields.limit,
