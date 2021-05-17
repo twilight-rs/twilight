@@ -198,8 +198,8 @@ impl<'de> Visitor<'de> for InteractionVisitor {
                 Interaction::Ping(Box::new(Ping {
                     application_id,
                     id,
-                    token,
                     kind,
+                    token,
                 }))
             }
             InteractionType::ApplicationCommand => {

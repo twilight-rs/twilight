@@ -39,35 +39,50 @@ impl Serialize for CommandInteractionDataResolved {
         ]
         .into_iter()
         .filter(|b| !b)
-        .collect::<Vec<bool>>()
-        .len();
+        .count();
 
         let mut state = serializer.serialize_struct("CommandInteractionDataResolved", len)?;
 
         if !self.channels.is_empty() {
-            let map: HashMap<ChannelId, &InteractionChannel, RandomState> =
-                HashMap::from_iter(self.channels.iter().map(|c| c.id).zip(self.channels.iter()));
+            let map: HashMap<ChannelId, &InteractionChannel, RandomState> = self
+                .channels
+                .iter()
+                .map(|c| c.id)
+                .zip(self.channels.iter())
+                .collect();
 
             state.serialize_field("channels", &map)?;
         }
 
         if !self.members.is_empty() {
-            let map: HashMap<UserId, &InteractionMember, RandomState> =
-                HashMap::from_iter(self.members.iter().map(|m| m.id).zip(self.members.iter()));
+            let map: HashMap<UserId, &InteractionMember, RandomState> = self
+                .members
+                .iter()
+                .map(|m| m.id)
+                .zip(self.members.iter())
+                .collect();
 
             state.serialize_field("members", &map)?;
         }
 
         if !self.roles.is_empty() {
-            let map: HashMap<RoleId, &Role, RandomState> =
-                HashMap::from_iter(self.roles.iter().map(|r| r.id).zip(self.roles.iter()));
+            let map: HashMap<RoleId, &Role, RandomState> = self
+                .roles
+                .iter()
+                .map(|r| r.id)
+                .zip(self.roles.iter())
+                .collect();
 
             state.serialize_field("roles", &map)?;
         }
 
         if !self.users.is_empty() {
-            let map: HashMap<UserId, &User, RandomState> =
-                HashMap::from_iter(self.users.iter().map(|u| u.id).zip(self.users.iter()));
+            let map: HashMap<UserId, &User, RandomState> = self
+                .users
+                .iter()
+                .map(|u| u.id)
+                .zip(self.users.iter())
+                .collect();
 
             state.serialize_field("users", &map)?;
         }
