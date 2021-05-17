@@ -275,6 +275,21 @@ impl From<(Vec<u8>, HeaderMap<HeaderValue>, Route)> for Request {
     }
 }
 
+impl From<(Form, HeaderMap<HeaderValue>, Route)> for Request {
+    fn from((form, headers, route): (Form, HeaderMap<HeaderValue>, Route)) -> Self {
+        let (method, path, path_str) = route.into_parts();
+
+        Self {
+            body: None,
+            form: Some(form),
+            headers: Some(headers),
+            method,
+            path,
+            path_str,
+        }
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::Method;

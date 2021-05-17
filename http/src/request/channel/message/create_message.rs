@@ -1,6 +1,5 @@
 use crate::request::{multipart::Form, prelude::*};
 use std::{
-    collections::HashMap,
     error::Error,
     fmt::{Display, Formatter, Result as FmtResult},
 };
@@ -116,9 +115,9 @@ pub(crate) struct CreateMessageFields {
 /// # Ok(()) }
 /// ```
 pub struct CreateMessage<'a> {
-    attachments: HashMap<String, Vec<u8>>,
     channel_id: ChannelId,
     pub(crate) fields: CreateMessageFields,
+    files: Vec<(String, Vec<u8>)>,
     fut: Option<Pending<'a, Message>>,
     http: &'a Client,
 }
@@ -126,12 +125,12 @@ pub struct CreateMessage<'a> {
 impl<'a> CreateMessage<'a> {
     pub(crate) fn new(http: &'a Client, channel_id: ChannelId) -> Self {
         Self {
-            attachments: HashMap::new(),
             channel_id,
             fields: CreateMessageFields {
                 allowed_mentions: http.default_allowed_mentions(),
                 ..CreateMessageFields::default()
             },
+            files: Vec::new(),
             fut: None,
             http,
         }
@@ -147,22 +146,18 @@ impl<'a> CreateMessage<'a> {
     /// Attach a new file to the message.
     ///
     /// The file is raw binary data. It can be an image, or any other kind of file.
-    pub fn attachment(mut self, name: impl Into<String>, file: impl Into<Vec<u8>>) -> Self {
-        self.attachments.insert(name.into(), file.into());
-
-        self
+    #[deprecated(since = "0.4.1", note = "use `file` instead")]
+    pub fn attachment(self, name: impl Into<String>, file: impl Into<Vec<u8>>) -> Self {
+        Self::file(self, name, file)
     }
 
     /// Insert multiple attachments into the message.
+    #[deprecated(since = "0.4.1", note = "use `files` instead")]
     pub fn attachments<N: Into<String>, F: Into<Vec<u8>>>(
-        mut self,
+        self,
         attachments: impl IntoIterator<Item = (N, F)>,
     ) -> Self {
-        for (name, file) in attachments {
-            self = self.attachment(name, file);
-        }
-
-        self
+        Self::files(self, attachments)
     }
 
     /// Set the content of the message.
@@ -239,6 +234,27 @@ impl<'a> CreateMessage<'a> {
         self
     }
 
+    /// Attach a file to the message.
+    ///
+    /// The file is raw binary data. It can be an image, or any other kind of file.
+    pub fn file(mut self, name: impl Into<String>, file: impl Into<Vec<u8>>) -> Self {
+        self.files.push((name.into(), file.into()));
+
+        self
+    }
+
+    /// Attach multiple files to the message.
+    pub fn files<N: Into<String>, F: Into<Vec<u8>>>(
+        mut self,
+        attachments: impl IntoIterator<Item = (N, F)>,
+    ) -> Self {
+        for (name, file) in attachments {
+            self = self.file(name, file);
+        }
+
+        self
+    }
+
     /// Attach a nonce to the message, for optimistic message sending.
     pub fn nonce(mut self, nonce: u64) -> Self {
         self.fields.nonce.replace(nonce);
@@ -246,8 +262,12 @@ impl<'a> CreateMessage<'a> {
         self
     }
 
-    /// JSON encoded body of any additional request fields.  See [Discord Docs/Create Message]
+    /// JSON encoded body of any additional request fields.
     ///
+    /// If this method is called, all other fields are ignored, except for
+    /// [`file`]. See [Discord Docs/Create Message].
+    ///
+    /// [`file`]: Self::file
     /// [Discord Docs/Create Message]: https://discord.com/developers/docs/resources/channel#create-message-params
     pub fn payload_json(mut self, payload_json: impl Into<Vec<u8>>) -> Self {
         self.fields.payload_json.replace(payload_json.into());
@@ -285,7 +305,7 @@ impl<'a> CreateMessage<'a> {
 
     fn start(&mut self) -> Result<()> {
         self.fut.replace(Box::pin(self.http.request(
-            if self.attachments.is_empty() {
+            if self.files.is_empty() && self.fields.payload_json.is_none() {
                 Request::from((
                     crate::json_to_vec(&self.fields).map_err(HttpError::json)?,
                     Route::CreateMessage {
@@ -295,12 +315,16 @@ impl<'a> CreateMessage<'a> {
             } else {
                 let mut multipart = Form::new();
 
-                for (index, (name, file)) in self.attachments.drain().enumerate() {
+                for (index, (name, file)) in self.files.drain(..).enumerate() {
                     multipart.file(format!("{}", index).as_bytes(), name.as_bytes(), &file);
                 }
 
-                let body = crate::json_to_vec(&self.fields).map_err(HttpError::json)?;
-                multipart.part(b"payload_json", &body);
+                if let Some(payload_json) = &self.fields.payload_json {
+                    multipart.payload_json(&payload_json);
+                } else {
+                    let body = crate::json_to_vec(&self.fields).map_err(HttpError::json)?;
+                    multipart.payload_json(&body);
+                }
 
                 Request::from((
                     multipart,
