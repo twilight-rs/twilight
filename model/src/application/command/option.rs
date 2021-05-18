@@ -410,6 +410,7 @@ mod tests {
     use serde_test::Token;
 
     #[test]
+    #[allow(clippy::too_many_lines)]
     fn test_command_option_full() {
         let value = Command {
             application_id: Some(ApplicationId(100)),
