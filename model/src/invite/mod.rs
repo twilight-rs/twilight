@@ -4,11 +4,12 @@ mod metadata;
 mod target_type;
 mod welcome_screen;
 
+#[allow(deprecated)]
 pub use self::{
     channel::InviteChannel,
     guild::InviteGuild,
     metadata::InviteMetadata,
-    target_type::TargetType,
+    target_type::{TargetType, TargetUserType},
     welcome_screen::{WelcomeScreen, WelcomeScreenChannel},
 };
 

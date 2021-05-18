@@ -3,9 +3,10 @@ use std::{
     error::Error,
     fmt::{Display, Formatter, Result as FmtResult},
 };
+#[allow(deprecated)]
 use twilight_model::{
     id::{ApplicationId, ChannelId, UserId},
-    invite::{Invite, TargetType},
+    invite::{Invite, TargetType, TargetUserType},
 };
 
 /// Error created when an invite can not be created as configured.
@@ -227,7 +228,8 @@ impl<'a> CreateInvite<'a> {
 
     /// Set the target user type for this invite.
     #[deprecated(since = "0.4.1", note = "Use `target_type` instead")]
-    pub fn target_user_type(self, target_user_type: TargetType) -> Self {
+    #[allow(deprecated)]
+    pub fn target_user_type(self, target_user_type: TargetUserType) -> Self {
         Self::target_type(self, target_user_type)
     }
 

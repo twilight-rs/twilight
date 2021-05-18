@@ -1,5 +1,4 @@
 use crate::request::prelude::*;
-use twilight_model::invite::Invite;
 
 /// Delete an invite by its code.
 ///
@@ -10,7 +9,7 @@ use twilight_model::invite::Invite;
 /// [`MANAGE_GUILD`]: twilight_model::guild::Permissions::MANAGE_GUILD
 pub struct DeleteInvite<'a> {
     code: String,
-    fut: Option<Pending<'a, Invite>>,
+    fut: Option<Pending<'a, ()>>,
     http: &'a Client,
     reason: Option<String>,
 }
@@ -40,7 +39,7 @@ impl<'a> DeleteInvite<'a> {
             })
         };
 
-        self.fut.replace(Box::pin(self.http.request(request)));
+        self.fut.replace(Box::pin(self.http.verify(request)));
 
         Ok(())
     }
@@ -55,4 +54,4 @@ impl<'a> AuditLogReason for DeleteInvite<'a> {
     }
 }
 
-poll_req!(DeleteInvite<'_>, Invite);
+poll_req!(DeleteInvite<'_>, ());
