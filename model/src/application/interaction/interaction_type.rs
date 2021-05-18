@@ -20,8 +20,8 @@ pub enum InteractionType {
 impl InteractionType {
     pub fn kind(self) -> &'static str {
         match self {
-            InteractionType::Ping => "Ping",
-            InteractionType::ApplicationCommand => "ApplicationCommand",
+            Self::Ping => "Ping",
+            Self::ApplicationCommand => "ApplicationCommand",
         }
     }
 }

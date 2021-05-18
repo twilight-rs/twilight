@@ -13,12 +13,12 @@ use serde::{Deserialize, Serialize};
 /// [`Interaction`]: crate::application::interaction::Interaction
 /// [`ApplicationCommand`]: crate::application::interaction::Interaction::ApplicationCommand
 #[derive(Clone, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
-pub struct CommandCallbackData {
+pub struct CallbackData {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub allowed_mentions: Option<AllowedMentions>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub content: Option<String>,
-    #[serde(skip_serializing_if = "Vec::is_empty")]
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
     pub embeds: Vec<Embed>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub flags: Option<MessageFlags>,

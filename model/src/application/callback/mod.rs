@@ -1,16 +1,16 @@
 //! Used when responding to interactions.
 
 mod callback_data;
+mod response_type;
 
-pub use callback_data::CommandCallbackData;
+pub use self::{callback_data::CallbackData, response_type::ResponseType};
 
 use serde::{
-    de::{Deserializer, Error as DeError},
-    Deserialize, Serialize, Serializer,
+    de::{Deserializer, Error as DeError, IgnoredAny, MapAccess, Visitor},
+    ser::{SerializeStruct, Serializer},
+    Deserialize, Serialize,
 };
-use serde_repr::{Deserialize_repr, Serialize_repr};
-use std::convert::{TryFrom, TryInto};
-use std::fmt::{Display, Formatter, Result as FmtResult};
+use std::fmt::{Formatter, Result as FmtResult};
 
 /// Payload used for responding to an interaction.
 ///
@@ -22,117 +22,169 @@ pub enum InteractionResponse {
     /// Used when responding to an interaction of type Ping.
     Pong,
     /// Responds to an interaction with a message.
-    ChannelMessageWithSource(CommandCallbackData),
+    ChannelMessageWithSource(CallbackData),
     /// Acknowledges an interaction, showing a loading state.
-    DeferredChannelMessageWithSource(CommandCallbackData),
+    DeferredChannelMessageWithSource(CallbackData),
 }
 
 impl InteractionResponse {
-    pub fn kind(&self) -> InteractionResponseType {
+    pub fn kind(&self) -> ResponseType {
         match self {
-            InteractionResponse::Pong => InteractionResponseType::Pong,
-            InteractionResponse::ChannelMessageWithSource(_) => {
-                InteractionResponseType::ChannelMessageWithSource
+            Self::Pong => ResponseType::Pong,
+            Self::ChannelMessageWithSource(_) => ResponseType::ChannelMessageWithSource,
+            Self::DeferredChannelMessageWithSource(_) => {
+                ResponseType::DeferredChannelMessageWithSource
             }
-            InteractionResponse::DeferredChannelMessageWithSource(_) => {
-                InteractionResponseType::DeferredChannelMessageWithSource
-            }
-        }
-    }
-
-    // data is intentionally not exported because it's highly likely that
-    // CommandCallbackData will not be the only additional data contained in a
-    // response.
-    fn data(&self) -> Option<&CommandCallbackData> {
-        match self {
-            InteractionResponse::Pong => None,
-            InteractionResponse::ChannelMessageWithSource(d)
-            | InteractionResponse::DeferredChannelMessageWithSource(d) => Some(d),
         }
     }
 }
 
 impl<'de> Deserialize<'de> for InteractionResponse {
-    fn deserialize<D: Deserializer<'de>>(deserializer: D) -> Result<InteractionResponse, D::Error> {
-        let envelope = InteractionResponseEnvelope::deserialize(deserializer)?;
-        envelope.try_into().map_err(DeError::custom)
+    fn deserialize<D: Deserializer<'de>>(deserializer: D) -> Result<Self, D::Error> {
+        deserializer.deserialize_map(ResponseVisitor)
+    }
+}
+
+#[derive(Debug, Deserialize)]
+#[serde(field_identifier, rename_all = "snake_case")]
+enum ResponseField {
+    Data,
+    Type,
+}
+
+struct ResponseVisitor;
+
+impl<'de> Visitor<'de> for ResponseVisitor {
+    type Value = InteractionResponse;
+
+    fn expecting(&self, f: &mut Formatter<'_>) -> FmtResult {
+        f.write_str("struct InteractionResponse")
+    }
+
+    fn visit_map<V: MapAccess<'de>>(self, mut map: V) -> Result<Self::Value, V::Error> {
+        let mut data: Option<CallbackData> = None;
+        let mut kind: Option<ResponseType> = None;
+
+        let span = tracing::trace_span!("deserializing interaction response");
+        let _span_enter = span.enter();
+
+        loop {
+            let span_child = tracing::trace_span!("iterating over interaction response");
+            let _span_child_enter = span_child.enter();
+
+            let key = match map.next_key() {
+                Ok(Some(key)) => {
+                    tracing::trace!(?key, "found key");
+
+                    key
+                }
+                Ok(None) => break,
+                Err(why) => {
+                    map.next_value::<IgnoredAny>()?;
+
+                    tracing::trace!("ran into an unknown key: {:?}", why);
+
+                    continue;
+                }
+            };
+
+            match key {
+                ResponseField::Data => {
+                    if data.is_some() {
+                        return Err(DeError::duplicate_field("data"));
+                    }
+
+                    data = Some(map.next_value()?);
+                }
+                ResponseField::Type => {
+                    if kind.is_some() {
+                        return Err(DeError::duplicate_field("type"));
+                    }
+
+                    kind = Some(map.next_value()?);
+                }
+            }
+        }
+
+        let kind = kind.ok_or_else(|| DeError::missing_field("type"))?;
+
+        Ok(match kind {
+            ResponseType::Pong => Self::Value::Pong,
+            ResponseType::ChannelMessageWithSource => {
+                let data = data.ok_or_else(|| DeError::missing_field("data"))?;
+
+                Self::Value::ChannelMessageWithSource(data)
+            }
+            ResponseType::DeferredChannelMessageWithSource => {
+                let data = data.ok_or_else(|| DeError::missing_field("data"))?;
+
+                Self::Value::DeferredChannelMessageWithSource(data)
+            }
+        })
     }
 }
 
 impl Serialize for InteractionResponse {
     fn serialize<S: Serializer>(&self, serializer: S) -> Result<S::Ok, S::Error> {
-        InteractionResponseEnvelope {
-            kind: self.kind(),
-            data: self.data().cloned(),
-        }
-        .serialize(serializer)
-    }
-}
-
-impl<'a> TryFrom<InteractionResponseEnvelope> for InteractionResponse {
-    type Error = InteractionResponseEnvelopeParseError;
-
-    fn try_from(envelope: InteractionResponseEnvelope) -> Result<Self, Self::Error> {
-        let i = match envelope.kind {
-            InteractionResponseType::Pong => InteractionResponse::Pong,
-            InteractionResponseType::ChannelMessageWithSource => {
-                InteractionResponse::ChannelMessageWithSource(envelope.data.ok_or(
-                    InteractionResponseEnvelopeParseError::MissingData(envelope.kind),
-                )?)
-            }
-            InteractionResponseType::DeferredChannelMessageWithSource => {
-                InteractionResponse::DeferredChannelMessageWithSource(envelope.data.ok_or(
-                    InteractionResponseEnvelopeParseError::MissingData(envelope.kind),
-                )?)
-            }
-        };
-
-        Ok(i)
-    }
-}
-
-#[derive(Debug)]
-enum InteractionResponseEnvelopeParseError {
-    MissingData(InteractionResponseType),
-}
-
-impl Display for InteractionResponseEnvelopeParseError {
-    fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
         match self {
-            Self::MissingData(kind) => {
-                write!(f, "data not present, but required for {}", kind.name())
+            Self::Pong => {
+                let mut state = serializer.serialize_struct("InteractionResponse", 1)?;
+
+                state.serialize_field("type", &self.kind())?;
+
+                state.end()
+            }
+            Self::ChannelMessageWithSource(data) | Self::DeferredChannelMessageWithSource(data) => {
+                let mut state = serializer.serialize_struct("InteractionResponse", 2)?;
+
+                state.serialize_field("type", &self.kind())?;
+                state.serialize_field("data", &data)?;
+
+                state.end()
             }
         }
     }
 }
 
-/// Raw payload sent when responding to an interaction.
-#[derive(Clone, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
-struct InteractionResponseEnvelope {
-    #[serde(rename = "type")]
-    pub kind: InteractionResponseType,
-    pub data: Option<CommandCallbackData>,
-}
+#[cfg(test)]
+mod tests {
+    use super::{CallbackData, InteractionResponse};
+    use crate::channel::message::MessageFlags;
+    use serde_test::Token;
 
-/// Contains the possible response type integers for an interaction.
-#[derive(
-    Clone, Copy, Debug, Deserialize_repr, Eq, Hash, Ord, PartialEq, PartialOrd, Serialize_repr,
-)]
-#[repr(u8)]
-pub enum InteractionResponseType {
-    Pong = 1,
-    ChannelMessageWithSource = 4,
-    DeferredChannelMessageWithSource = 5,
-}
+    #[test]
+    fn test_response() {
+        let value = InteractionResponse::ChannelMessageWithSource(CallbackData {
+            allowed_mentions: None,
+            content: Some("test".into()),
+            embeds: Vec::new(),
+            flags: Some(MessageFlags::EPHEMERAL),
+            tts: None,
+        });
 
-impl InteractionResponseType {
-    pub fn name(self) -> &'static str {
-        match self {
-            InteractionResponseType::Pong => "Pong",
-            InteractionResponseType::ChannelMessageWithSource => "ChannelMessageWithSource",
-            InteractionResponseType::DeferredChannelMessageWithSource => {
-                "DeferredChannelMessageWithSource"
-            }
-        }
+        serde_test::assert_tokens(
+            &value,
+            &[
+                Token::Struct {
+                    name: "InteractionResponse",
+                    len: 2,
+                },
+                Token::Str("type"),
+                Token::U8(4),
+                Token::Str("data"),
+                Token::Struct {
+                    name: "CallbackData",
+                    len: 2,
+                },
+                Token::Str("content"),
+                Token::Some,
+                Token::Str("test"),
+                Token::Str("flags"),
+                Token::Some,
+                Token::U64(64),
+                Token::StructEnd,
+                Token::StructEnd,
+            ],
+        );
     }
 }

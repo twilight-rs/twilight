@@ -39,8 +39,8 @@ pub enum Interaction {
 impl Interaction {
     pub fn guild_id(&self) -> Option<GuildId> {
         match self {
-            Interaction::Ping(_) => None,
-            Interaction::ApplicationCommand(inner) => inner.guild_id,
+            Self::Ping(_) => None,
+            Self::ApplicationCommand(inner) => inner.guild_id,
         }
     }
 }
@@ -195,7 +195,7 @@ impl<'de> Visitor<'de> for InteractionVisitor {
             InteractionType::Ping => {
                 tracing::trace!("handling ping");
 
-                Interaction::Ping(Box::new(Ping {
+                Self::Value::Ping(Box::new(Ping {
                     application_id,
                     id,
                     kind,
@@ -212,7 +212,7 @@ impl<'de> Visitor<'de> for InteractionVisitor {
 
                 tracing::trace!(%channel_id, "handling application command");
 
-                Interaction::ApplicationCommand(Box::new(ApplicationCommand {
+                Self::Value::ApplicationCommand(Box::new(ApplicationCommand {
                     application_id,
                     channel_id,
                     data,

@@ -1,21 +1,11 @@
-use std::convert::From;
-
-use serde::{Deserialize, Deserializer, Serialize, Serializer};
+use crate::util::is_false;
+use serde::{
+    de::{Deserializer, Error as DeError, IgnoredAny, MapAccess, Visitor},
+    ser::Serializer,
+    Deserialize, Serialize,
+};
 use serde_repr::{Deserialize_repr, Serialize_repr};
-
-#[derive(Clone, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
-struct CommandOptionEnvelope {
-    #[serde(default)]
-    pub choices: Option<Vec<CommandOptionChoice>>,
-    pub description: String,
-    #[serde(rename = "type")]
-    pub kind: CommandOptionType,
-    pub name: String,
-    #[serde(default)]
-    pub options: Option<Vec<CommandOption>>,
-    #[serde(default)]
-    pub required: bool,
-}
+use std::fmt::{Formatter, Result as FmtResult};
 
 /// Option for a [`Command`].
 ///
@@ -57,92 +47,259 @@ impl CommandOption {
 }
 
 impl<'de> Deserialize<'de> for CommandOption {
-    fn deserialize<D>(deserializer: D) -> Result<CommandOption, D::Error>
-    where
-        D: Deserializer<'de>,
-    {
-        Ok(CommandOptionEnvelope::deserialize(deserializer)?.into())
+    fn deserialize<D: Deserializer<'de>>(deserializer: D) -> Result<Self, D::Error> {
+        deserializer.deserialize_map(OptionVisitor)
     }
+}
+
+#[derive(Serialize)]
+struct CommandOptionEnvelope<'ser> {
+    #[serde(skip_serializing_if = "Option::is_none")]
+    choices: Option<&'ser [CommandOptionChoice]>,
+    description: &'ser str,
+    name: &'ser str,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    options: Option<&'ser [CommandOption]>,
+    #[serde(skip_serializing_if = "is_false")]
+    required: bool,
+    #[serde(rename = "type")]
+    kind: CommandOptionType,
 }
 
 impl Serialize for CommandOption {
-    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
-    where
-        S: Serializer,
-    {
-        let base = match self {
-            CommandOption::SubCommand(d) | CommandOption::SubCommandGroup(d) => d.base(),
-            CommandOption::String(d) | CommandOption::Integer(d) => d.base(),
-            CommandOption::Boolean(d)
-            | CommandOption::User(d)
-            | CommandOption::Channel(d)
-            | CommandOption::Role(d)
-            | CommandOption::Mentionable(d) => d.clone(),
+    fn serialize<S: Serializer>(&self, serializer: S) -> Result<S::Ok, S::Error> {
+        let envelope = match self {
+            Self::SubCommand(data) | Self::SubCommandGroup(data) => CommandOptionEnvelope {
+                choices: None,
+                description: data.description.as_ref(),
+                name: data.name.as_ref(),
+                options: Some(data.options.as_ref()),
+                required: data.required,
+                kind: self.kind(),
+            },
+            Self::String(data) | Self::Integer(data) => CommandOptionEnvelope {
+                choices: Some(data.choices.as_ref()),
+                description: data.description.as_ref(),
+                name: data.name.as_ref(),
+                options: None,
+                required: data.required,
+                kind: self.kind(),
+            },
+            Self::Boolean(data)
+            | Self::User(data)
+            | Self::Channel(data)
+            | Self::Role(data)
+            | Self::Mentionable(data) => CommandOptionEnvelope {
+                choices: None,
+                description: data.description.as_ref(),
+                name: data.name.as_ref(),
+                options: None,
+                required: data.required,
+                kind: self.kind(),
+            },
         };
 
-        let choices = match self {
-            CommandOption::String(d) | CommandOption::Integer(d) => Some(d.choices.clone()),
-            _ => None,
-        };
-
-        let options = match self {
-            CommandOption::SubCommand(d) | CommandOption::SubCommandGroup(d) => {
-                Some(d.options.clone())
-            }
-            _ => None,
-        };
-
-        CommandOptionEnvelope {
-            choices,
-            description: base.description,
-            kind: self.kind(),
-            name: base.name,
-            options,
-            required: base.required,
-        }
-        .serialize(serializer)
+        envelope.serialize(serializer)
     }
 }
 
-impl From<CommandOptionEnvelope> for CommandOption {
-    fn from(mut envelope: CommandOptionEnvelope) -> Self {
-        match envelope.kind {
+#[derive(Debug, Deserialize)]
+#[serde(field_identifier, rename_all = "snake_case")]
+enum OptionField {
+    Choices,
+    Description,
+    Name,
+    Options,
+    Required,
+    Type,
+}
+
+struct OptionVisitor;
+
+impl<'de> Visitor<'de> for OptionVisitor {
+    type Value = CommandOption;
+
+    fn expecting(&self, f: &mut Formatter<'_>) -> FmtResult {
+        f.write_str("struct CommandOption")
+    }
+
+    #[allow(clippy::too_many_lines)]
+    fn visit_map<V: MapAccess<'de>>(self, mut map: V) -> Result<Self::Value, V::Error> {
+        let mut choices: Option<Option<Vec<CommandOptionChoice>>> = None;
+        let mut description: Option<String> = None;
+        let mut kind: Option<CommandOptionType> = None;
+        let mut name: Option<String> = None;
+        let mut options: Option<Option<Vec<CommandOption>>> = None;
+        let mut required: Option<bool> = None;
+
+        let span = tracing::trace_span!("deserializing command option");
+        let _span_enter = span.enter();
+
+        loop {
+            let span_child = tracing::trace_span!("iterating over command option");
+            let _span_child_enter = span_child.enter();
+
+            let key = match map.next_key() {
+                Ok(Some(key)) => {
+                    tracing::trace!(?key, "found key");
+
+                    key
+                }
+                Ok(None) => break,
+                Err(why) => {
+                    map.next_value::<IgnoredAny>()?;
+
+                    tracing::trace!("ran into an unknown key: {:?}", why);
+
+                    continue;
+                }
+            };
+
+            match key {
+                OptionField::Choices => {
+                    if choices.is_some() {
+                        return Err(DeError::duplicate_field("choices"));
+                    }
+
+                    choices = Some(map.next_value()?);
+                }
+                OptionField::Description => {
+                    if description.is_some() {
+                        return Err(DeError::duplicate_field("description"));
+                    }
+
+                    description = Some(map.next_value()?);
+                }
+                OptionField::Name => {
+                    if name.is_some() {
+                        return Err(DeError::duplicate_field("name"));
+                    }
+
+                    name = Some(map.next_value()?);
+                }
+                OptionField::Options => {
+                    if options.is_some() {
+                        return Err(DeError::duplicate_field("options"));
+                    }
+
+                    options = Some(map.next_value()?);
+                }
+                OptionField::Required => {
+                    if required.is_some() {
+                        return Err(DeError::duplicate_field("required"));
+                    }
+
+                    required = Some(map.next_value()?);
+                }
+                OptionField::Type => {
+                    if kind.is_some() {
+                        return Err(DeError::duplicate_field("type"));
+                    }
+
+                    kind = Some(map.next_value()?);
+                }
+            }
+        }
+
+        let description = description.ok_or_else(|| DeError::missing_field("description"))?;
+        let kind = kind.ok_or_else(|| DeError::missing_field("type"))?;
+        let name = name.ok_or_else(|| DeError::missing_field("name"))?;
+
+        tracing::trace!(
+            %description,
+            ?kind,
+            %name,
+            "common fields of all variants exist"
+        );
+
+        let required = required.unwrap_or_default();
+
+        Ok(match kind {
             CommandOptionType::SubCommand => {
-                CommandOption::SubCommand(OptionsCommandOptionData::from((
-                    envelope.options.take().unwrap_or_default(),
-                    envelope.into(),
-                )))
+                let options = options
+                    .flatten()
+                    .ok_or_else(|| DeError::missing_field("options"))?;
+
+                CommandOption::SubCommand(OptionsCommandOptionData {
+                    description,
+                    name,
+                    options,
+                    required,
+                })
             }
             CommandOptionType::SubCommandGroup => {
-                CommandOption::SubCommandGroup(OptionsCommandOptionData::from((
-                    envelope.options.take().unwrap_or_default(),
-                    envelope.into(),
-                )))
+                let options = options
+                    .flatten()
+                    .ok_or_else(|| DeError::missing_field("options"))?;
+
+                CommandOption::SubCommandGroup(OptionsCommandOptionData {
+                    description,
+                    name,
+                    options,
+                    required,
+                })
             }
-            CommandOptionType::String => CommandOption::String(ChoiceCommandOptionData::from((
-                envelope.choices.take().unwrap_or_default(),
-                envelope.into(),
-            ))),
-            CommandOptionType::Integer => CommandOption::Integer(ChoiceCommandOptionData::from((
-                envelope.choices.take().unwrap_or_default(),
-                envelope.into(),
-            ))),
-            CommandOptionType::Boolean => CommandOption::Boolean(envelope.into()),
-            CommandOptionType::User => CommandOption::User(envelope.into()),
-            CommandOptionType::Channel => CommandOption::Channel(envelope.into()),
-            CommandOptionType::Role => CommandOption::Role(envelope.into()),
-            CommandOptionType::Mentionable => CommandOption::Mentionable(envelope.into()),
-        }
+            CommandOptionType::String => {
+                let choices = choices
+                    .flatten()
+                    .ok_or_else(|| DeError::missing_field("choices"))?;
+
+                CommandOption::String(ChoiceCommandOptionData {
+                    choices,
+                    description,
+                    name,
+                    required,
+                })
+            }
+            CommandOptionType::Integer => {
+                let choices = choices
+                    .flatten()
+                    .ok_or_else(|| DeError::missing_field("choices"))?;
+
+                CommandOption::Integer(ChoiceCommandOptionData {
+                    choices,
+                    description,
+                    name,
+                    required,
+                })
+            }
+            CommandOptionType::Boolean => CommandOption::Boolean(BaseCommandOptionData {
+                description,
+                name,
+                required,
+            }),
+            CommandOptionType::User => CommandOption::User(BaseCommandOptionData {
+                description,
+                name,
+                required,
+            }),
+            CommandOptionType::Channel => CommandOption::Channel(BaseCommandOptionData {
+                description,
+                name,
+                required,
+            }),
+            CommandOptionType::Role => CommandOption::Role(BaseCommandOptionData {
+                description,
+                name,
+                required,
+            }),
+            CommandOptionType::Mentionable => CommandOption::Mentionable(BaseCommandOptionData {
+                description,
+                name,
+                required,
+            }),
+        })
     }
 }
 
 /// Data supplied to a [`CommandOption`] of type [`Boolean`], [`User`],
-/// [`Channel`], or [`Role`].
+/// [`Channel`], [`Role`], or [`Mentionable`].
 ///
 /// [`Boolean`]: CommandOption::Boolean
 /// [`User`]: CommandOption::User
 /// [`Channel`]: CommandOption::Channel
 /// [`Role`]: CommandOption::Role
+/// [`Mentionable`]: CommandOption::Mentionable
 #[derive(Clone, Debug, Default, Deserialize, Eq, Hash, PartialEq, Serialize)]
 pub struct BaseCommandOptionData {
     /// Description of the option. It must be 100 characters or less.
@@ -152,16 +309,6 @@ pub struct BaseCommandOptionData {
     /// Whether the option is required to be completed by a user.
     #[serde(default)]
     pub required: bool,
-}
-
-impl From<CommandOptionEnvelope> for BaseCommandOptionData {
-    fn from(envelope: CommandOptionEnvelope) -> Self {
-        Self {
-            description: envelope.description,
-            name: envelope.name,
-            required: envelope.required,
-        }
-    }
 }
 
 /// Data supplied to a [`CommandOption`] of type [`SubCommand`] or
@@ -187,27 +334,6 @@ pub struct OptionsCommandOptionData {
     pub required: bool,
 }
 
-impl From<(Vec<CommandOption>, BaseCommandOptionData)> for OptionsCommandOptionData {
-    fn from(opt: (Vec<CommandOption>, BaseCommandOptionData)) -> Self {
-        Self {
-            description: opt.1.description,
-            name: opt.1.name,
-            options: opt.0,
-            required: opt.1.required,
-        }
-    }
-}
-
-impl OptionsCommandOptionData {
-    fn base(&self) -> BaseCommandOptionData {
-        BaseCommandOptionData {
-            description: self.description.clone(),
-            name: self.name.clone(),
-            required: self.required,
-        }
-    }
-}
-
 /// Data supplied to a [`CommandOption`] of type [`String`] or [`Integer`].
 ///
 /// [`String`]: CommandOption::String
@@ -227,27 +353,6 @@ pub struct ChoiceCommandOptionData {
     /// Whether or not the option is required to be completed by a user.
     #[serde(default)]
     pub required: bool,
-}
-
-impl From<(Vec<CommandOptionChoice>, BaseCommandOptionData)> for ChoiceCommandOptionData {
-    fn from(opt: (Vec<CommandOptionChoice>, BaseCommandOptionData)) -> Self {
-        Self {
-            choices: opt.0,
-            description: opt.1.description,
-            name: opt.1.name,
-            required: opt.1.required,
-        }
-    }
-}
-
-impl ChoiceCommandOptionData {
-    fn base(&self) -> BaseCommandOptionData {
-        BaseCommandOptionData {
-            name: self.name.clone(),
-            description: self.description.clone(),
-            required: self.required,
-        }
-    }
 }
 
 /// Specifies an option that a user must choose from in a dropdown.
@@ -292,5 +397,247 @@ impl CommandOptionType {
             CommandOptionType::Role => "Role",
             CommandOptionType::Mentionable => "Mentionable",
         }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::{
+        super::Command, BaseCommandOptionData, ChoiceCommandOptionData, CommandOption,
+        CommandOptionChoice, OptionsCommandOptionData,
+    };
+    use crate::id::{ApplicationId, CommandId};
+    use serde_test::Token;
+
+    #[test]
+    fn test_command_option_full() {
+        let value = Command {
+            application_id: Some(ApplicationId(100)),
+            name: "test command".into(),
+            default_permission: Some(true),
+            description: "this command is a test".into(),
+            id: Some(CommandId(200)),
+            options: vec![CommandOption::SubCommandGroup(OptionsCommandOptionData {
+                description: "sub group desc".into(),
+                name: "sub group name".into(),
+                options: vec![CommandOption::SubCommand(OptionsCommandOptionData {
+                    description: "sub command desc".into(),
+                    name: "sub command name".into(),
+                    options: vec![
+                        CommandOption::String(ChoiceCommandOptionData {
+                            choices: vec![CommandOptionChoice::String {
+                                name: "choicea".into(),
+                                value: "choice_a".into(),
+                            }],
+                            description: "string desc".into(),
+                            name: "string".into(),
+                            required: false,
+                        }),
+                        CommandOption::Integer(ChoiceCommandOptionData {
+                            choices: vec![CommandOptionChoice::Int {
+                                name: "choice2".into(),
+                                value: 2,
+                            }],
+                            description: "int desc".into(),
+                            name: "int".into(),
+                            required: false,
+                        }),
+                        CommandOption::Boolean(BaseCommandOptionData {
+                            description: "bool desc".into(),
+                            name: "bool".into(),
+                            required: false,
+                        }),
+                        CommandOption::User(BaseCommandOptionData {
+                            description: "user desc".into(),
+                            name: "user".into(),
+                            required: false,
+                        }),
+                        CommandOption::Channel(BaseCommandOptionData {
+                            description: "channel desc".into(),
+                            name: "channel".into(),
+                            required: false,
+                        }),
+                        CommandOption::Role(BaseCommandOptionData {
+                            description: "role desc".into(),
+                            name: "role".into(),
+                            required: false,
+                        }),
+                        CommandOption::Mentionable(BaseCommandOptionData {
+                            description: "mentionable desc".into(),
+                            name: "mentionable".into(),
+                            required: false,
+                        }),
+                    ],
+                    required: false,
+                })],
+                required: true,
+            })],
+        };
+
+        serde_test::assert_tokens(
+            &value,
+            &[
+                Token::Struct {
+                    name: "Command",
+                    len: 6,
+                },
+                Token::Str("application_id"),
+                Token::Some,
+                Token::NewtypeStruct {
+                    name: "ApplicationId",
+                },
+                Token::Str("100"),
+                Token::Str("name"),
+                Token::Str("test command"),
+                Token::Str("default_permission"),
+                Token::Some,
+                Token::Bool(true),
+                Token::Str("description"),
+                Token::Str("this command is a test"),
+                Token::Str("id"),
+                Token::Some,
+                Token::NewtypeStruct { name: "CommandId" },
+                Token::Str("200"),
+                Token::Str("options"),
+                Token::Seq { len: Some(1) },
+                Token::Struct {
+                    name: "CommandOptionEnvelope",
+                    len: 5,
+                },
+                Token::Str("description"),
+                Token::Str("sub group desc"),
+                Token::Str("name"),
+                Token::Str("sub group name"),
+                Token::Str("options"),
+                Token::Some,
+                Token::Seq { len: Some(1) },
+                Token::Struct {
+                    name: "CommandOptionEnvelope",
+                    len: 4,
+                },
+                Token::Str("description"),
+                Token::Str("sub command desc"),
+                Token::Str("name"),
+                Token::Str("sub command name"),
+                Token::Str("options"),
+                Token::Some,
+                Token::Seq { len: Some(7) },
+                Token::Struct {
+                    name: "CommandOptionEnvelope",
+                    len: 4,
+                },
+                Token::Str("choices"),
+                Token::Some,
+                Token::Seq { len: Some(1) },
+                Token::Struct {
+                    name: "CommandOptionChoice",
+                    len: 2,
+                },
+                Token::Str("name"),
+                Token::Str("choicea"),
+                Token::Str("value"),
+                Token::Str("choice_a"),
+                Token::StructEnd,
+                Token::SeqEnd,
+                Token::Str("description"),
+                Token::Str("string desc"),
+                Token::Str("name"),
+                Token::Str("string"),
+                Token::Str("type"),
+                Token::U8(3),
+                Token::StructEnd,
+                Token::Struct {
+                    name: "CommandOptionEnvelope",
+                    len: 4,
+                },
+                Token::Str("choices"),
+                Token::Some,
+                Token::Seq { len: Some(1) },
+                Token::Struct {
+                    name: "CommandOptionChoice",
+                    len: 2,
+                },
+                Token::Str("name"),
+                Token::Str("choice2"),
+                Token::Str("value"),
+                Token::I64(2),
+                Token::StructEnd,
+                Token::SeqEnd,
+                Token::Str("description"),
+                Token::Str("int desc"),
+                Token::Str("name"),
+                Token::Str("int"),
+                Token::Str("type"),
+                Token::U8(4),
+                Token::StructEnd,
+                Token::Struct {
+                    name: "CommandOptionEnvelope",
+                    len: 3,
+                },
+                Token::Str("description"),
+                Token::Str("bool desc"),
+                Token::Str("name"),
+                Token::Str("bool"),
+                Token::Str("type"),
+                Token::U8(5),
+                Token::StructEnd,
+                Token::Struct {
+                    name: "CommandOptionEnvelope",
+                    len: 3,
+                },
+                Token::Str("description"),
+                Token::Str("user desc"),
+                Token::Str("name"),
+                Token::Str("user"),
+                Token::Str("type"),
+                Token::U8(6),
+                Token::StructEnd,
+                Token::Struct {
+                    name: "CommandOptionEnvelope",
+                    len: 3,
+                },
+                Token::Str("description"),
+                Token::Str("channel desc"),
+                Token::Str("name"),
+                Token::Str("channel"),
+                Token::Str("type"),
+                Token::U8(7),
+                Token::StructEnd,
+                Token::Struct {
+                    name: "CommandOptionEnvelope",
+                    len: 3,
+                },
+                Token::Str("description"),
+                Token::Str("role desc"),
+                Token::Str("name"),
+                Token::Str("role"),
+                Token::Str("type"),
+                Token::U8(8),
+                Token::StructEnd,
+                Token::Struct {
+                    name: "CommandOptionEnvelope",
+                    len: 3,
+                },
+                Token::Str("description"),
+                Token::Str("mentionable desc"),
+                Token::Str("name"),
+                Token::Str("mentionable"),
+                Token::Str("type"),
+                Token::U8(9),
+                Token::StructEnd,
+                Token::SeqEnd,
+                Token::Str("type"),
+                Token::U8(1),
+                Token::StructEnd,
+                Token::SeqEnd,
+                Token::Str("required"),
+                Token::Bool(true),
+                Token::Str("type"),
+                Token::U8(2),
+                Token::StructEnd,
+                Token::SeqEnd,
+                Token::StructEnd,
+            ],
+        );
     }
 }
