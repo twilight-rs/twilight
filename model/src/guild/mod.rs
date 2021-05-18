@@ -723,7 +723,6 @@ impl<'de> Deserialize<'de> for Guild {
                         GuildChannel::PublicThread(c) => {
                             c.guild_id.replace(id);
                         }
-
                         _ => {
                             return Err(DeError::custom(
                                 "non-thread channel found in threads field",
