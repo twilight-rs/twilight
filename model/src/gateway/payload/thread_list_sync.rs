@@ -6,9 +6,9 @@ use serde::{Deserialize, Serialize};
 
 #[derive(Clone, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
 pub struct ThreadListSync {
-    pub guild_id: GuildId,
     #[serde(default)]
     pub channel_ids: Vec<GuildId>,
-    pub threads: Vec<Channel>,
+    pub guild_id: GuildId,
     pub members: Vec<ThreadMember>,
+    pub threads: Vec<Channel>,
 }
