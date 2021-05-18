@@ -65,13 +65,6 @@ pub enum CreateStageInstanceErrorType {
 /// Create a new stage instance associated with a stage channel.
 ///
 /// Requires the user to be a moderator of the stage channel.
-///
-/// # Errors
-///
-/// Returns a [`CreateStageInstanceError`] of type [`InvalidTopic`] when the
-/// topic is not between 1 and 120 characters in length.
-///
-/// [`InvalidTopic`]: CreateStageInstanceErrorType::InvalidTopic
 pub struct CreateStageInstance<'a> {
     channel_id: ChannelId,
     fut: Option<Pending<'a, ()>>,
