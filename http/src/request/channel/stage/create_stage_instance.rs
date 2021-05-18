@@ -40,9 +40,7 @@ impl CreateStageInstanceError {
 impl Display for CreateStageInstanceError {
     fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
         match &self.kind {
-            CreateStageInstanceErrorType::InvalidTopic { .. } => {
-                f.write_str("invalid topic")
-            }
+            CreateStageInstanceErrorType::InvalidTopic { .. } => f.write_str("invalid topic"),
         }
     }
 }
