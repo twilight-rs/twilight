@@ -108,16 +108,16 @@ bitflags! {
         /// A thread has been created, relevant to the current user,
         /// or the current user has been added to a thread.
         const THREAD_CREATE = 1 << 50;
-        /// A thread has been updated.
-        const THREAD_UPDATE = 1 << 51;
         /// A thread, relevant to the current user, has been deleted.
         const THREAD_DELETE = 1 << 52;
         /// The current user has gained access to a thread.
         const THREAD_LIST_SYNC = 1 << 53;
-        /// The thread member object for the current user has been updated.
-        const THREAD_MEMBER_UPDATE = 1 << 54;
         /// A user has been added to or removed from a thread.
         const THREAD_MEMBERS_UPDATE = 1 << 55;
+        /// The thread member object for the current user has been updated.
+        const THREAD_MEMBER_UPDATE = 1 << 54;
+        /// A thread has been updated.
+        const THREAD_UPDATE = 1 << 51;
         /// User has begun typing in a channel.
         const TYPING_START = 1 << 39;
         /// Guild is unavailable, potentially due to an outage.
