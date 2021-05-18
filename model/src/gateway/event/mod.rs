@@ -124,8 +124,6 @@ pub enum Event {
     /// A thread has been created, relevant to the current user,
     /// or the current user has been added to a thread.
     ThreadCreate(ThreadCreate),
-    /// A thread has been updated.
-    ThreadUpdate(ThreadUpdate),
     /// A thread, relevant to the current user, has been deleted.
     ThreadDelete(ThreadDelete),
     /// The current user has gained access to a thread.
@@ -134,6 +132,8 @@ pub enum Event {
     ThreadMemberUpdate(ThreadMemberUpdate),
     /// A user has been added to or removed from a thread.
     ThreadMembersUpdate(ThreadMembersUpdate),
+    /// A thread has been updated.
+    ThreadUpdate(ThreadUpdate),
     /// A user started typing in a channel.
     TypingStart(Box<TypingStart>),
     /// A guild is now unavailable.
@@ -197,11 +197,11 @@ impl Event {
             Self::ShardPayload(_) => EventType::ShardPayload,
             Self::ShardResuming(_) => EventType::ShardResuming,
             Self::ThreadCreate(_) => EventType::ThreadCreate,
-            Self::ThreadUpdate(_) => EventType::ThreadUpdate,
             Self::ThreadDelete(_) => EventType::ThreadDelete,
             Self::ThreadListSync(_) => EventType::ThreadListSync,
             Self::ThreadMemberUpdate(_) => EventType::ThreadMemberUpdate,
             Self::ThreadMembersUpdate(_) => EventType::ThreadMembersUpdate,
+            Self::ThreadUpdate(_) => EventType::ThreadUpdate,
             Self::TypingStart(_) => EventType::TypingStart,
             Self::UnavailableGuild(_) => EventType::UnavailableGuild,
             Self::UserUpdate(_) => EventType::UserUpdate,
@@ -249,11 +249,11 @@ impl From<Box<DispatchEvent>> for Event {
             DispatchEvent::Ready(v) => Self::Ready(v),
             DispatchEvent::Resumed => Self::Resumed,
             DispatchEvent::ThreadCreate(v) => Self::ThreadCreate(v),
-            DispatchEvent::ThreadUpdate(v) => Self::ThreadUpdate(v),
             DispatchEvent::ThreadDelete(v) => Self::ThreadDelete(v),
             DispatchEvent::ThreadListSync(v) => Self::ThreadListSync(v),
             DispatchEvent::ThreadMemberUpdate(v) => Self::ThreadMemberUpdate(v),
             DispatchEvent::ThreadMembersUpdate(v) => Self::ThreadMembersUpdate(v),
+            DispatchEvent::ThreadUpdate(v) => Self::ThreadUpdate(v),
             DispatchEvent::TypingStart(v) => Self::TypingStart(v),
             DispatchEvent::UnavailableGuild(v) => Self::UnavailableGuild(v),
             DispatchEvent::UserUpdate(v) => Self::UserUpdate(v),
