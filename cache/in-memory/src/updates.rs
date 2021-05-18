@@ -685,20 +685,6 @@ impl UpdateCache for ThreadCreate {
     }
 }
 
-impl UpdateCache for ThreadUpdate {
-    fn update(&self, cache: &InMemoryCache) {
-        if !cache.wants(ResourceType::CHANNEL) {
-            return;
-        }
-
-        if let Channel::Guild(c) = &self.0 {
-            if let Some(gid) = c.guild_id() {
-                cache.cache_guild_channel(gid, c.clone());
-            }
-        }
-    }
-}
-
 impl UpdateCache for ThreadDelete {
     fn update(&self, cache: &InMemoryCache) {
         if !cache.wants(ResourceType::CHANNEL) {
@@ -725,6 +711,20 @@ impl UpdateCache for ThreadListSync {
             .collect();
 
         cache.cache_guild_channels(self.guild_id, threads);
+    }
+}
+
+impl UpdateCache for ThreadUpdate {
+    fn update(&self, cache: &InMemoryCache) {
+        if !cache.wants(ResourceType::CHANNEL) {
+            return;
+        }
+
+        if let Channel::Guild(c) = &self.0 {
+            if let Some(gid) = c.guild_id() {
+                cache.cache_guild_channel(gid, c.clone());
+            }
+        }
     }
 }
 
