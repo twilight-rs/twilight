@@ -3,6 +3,7 @@ use serde::{
     de::{Deserialize, Deserializer},
     ser::{Serialize, Serializer},
 };
+use std::time::Duration;
 
 #[derive(Clone, Copy, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
 pub enum AutoArchiveDuration {
@@ -46,7 +47,7 @@ impl From<u16> for AutoArchiveDuration {
     }
 }
 
-impl From<AutoArchiveDuration> for std::time::Duration {
+impl From<AutoArchiveDuration> for Duration {
     fn from(value: AutoArchiveDuration) -> Self {
         Self::from_secs(u64::from(value.number()) * 60)
     }
