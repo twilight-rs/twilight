@@ -56,6 +56,9 @@ mod tests {
         serde_test::assert_tokens(&UserFlags::BUG_HUNTER_LEVEL_2, &[Token::U64(1 << 14)]);
         serde_test::assert_tokens(&UserFlags::VERIFIED_BOT, &[Token::U64(1 << 16)]);
         serde_test::assert_tokens(&UserFlags::VERIFIED_BOT_DEVELOPER, &[Token::U64(1 << 17)]);
-        serde_test::assert_tokens(&UserFlags::DISCORD_CERTIFIED_MODERATOR, &[Token::U64(1 << 18)]);
+        serde_test::assert_tokens(
+            &UserFlags::DISCORD_CERTIFIED_MODERATOR,
+            &[Token::U64(1 << 18)],
+        );
     }
 }
