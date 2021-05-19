@@ -37,14 +37,14 @@
 //!
 //! All first-party crates are licensed under [ISC][LICENSE.md]
 //!
-//! [LICENSE.md]: https://github.com/twilight-rs/twilight/blob/trunk/LICENSE.md
+//! [LICENSE.md]: https://github.com/twilight-rs/twilight/blob/main/LICENSE.md
 //! [discord badge]: https://img.shields.io/discord/745809834183753828?color=%237289DA&label=discord%20server&logo=discord&style=for-the-badge
 //! [discord link]: https://discord.gg/7jj8n7D
 //! [docs:discord:sharding]: https://discord.com/developers/docs/topics/gateway#sharding
 //! [github badge]: https://img.shields.io/badge/github-twilight-6f42c1.svg?style=for-the-badge&logo=github
 //! [github link]: https://github.com/twilight-rs/twilight
 //! [license badge]: https://img.shields.io/badge/license-ISC-blue.svg?style=for-the-badge&logo=pastebin
-//! [license link]: https://github.com/twilight-rs/twilight/blob/trunk/LICENSE.md
+//! [license link]: https://github.com/twilight-rs/twilight/blob/main/LICENSE.md
 //! [rust badge]: https://img.shields.io/badge/rust-1.49+-93450a.svg?style=for-the-badge&logo=rust
 
 #![deny(rust_2018_idioms, broken_intra_doc_links, unused, warnings)]
@@ -53,11 +53,13 @@ pub mod model;
 
 mod builder;
 mod config;
+mod stats;
 mod updates;
 
 pub use self::{
     builder::InMemoryCacheBuilder,
     config::{Config, ResourceType},
+    stats::InMemoryCacheStats,
     updates::UpdateCache,
 };
 
@@ -234,6 +236,25 @@ impl InMemoryCache {
     /// Returns a copy of the config cache.
     pub fn config(&self) -> Config {
         (*self.0.config).clone()
+    }
+
+    /// Create an interface for retrieving statistics about the cache.
+    ///
+    /// # Examples
+    ///
+    /// Print the number of guilds in a cache:
+    ///
+    /// ```
+    /// use twilight_cache_inmemory::InMemoryCache;
+    ///
+    /// let cache = InMemoryCache::new();
+    ///
+    /// // later on...
+    /// let guilds = cache.stats().guilds();
+    /// println!("guild count: {}", guilds);
+    /// ```
+    pub const fn stats(&self) -> InMemoryCacheStats<'_> {
+        InMemoryCacheStats::new(self)
     }
 
     /// Update the cache with an event from the gateway.

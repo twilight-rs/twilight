@@ -591,7 +591,7 @@ impl EmbedBuilder {
     /// use twilight_embed_builder::{EmbedBuilder, EmbedFooterBuilder, ImageSource};
     ///
     /// # fn main() -> Result<(), Box<dyn std::error::Error>> {
-    /// let source = ImageSource::url("https://raw.githubusercontent.com/twilight-rs/twilight/trunk/logo.png")?;
+    /// let source = ImageSource::url("https://raw.githubusercontent.com/twilight-rs/twilight/main/logo.png")?;
     /// let embed = EmbedBuilder::new()
     ///     .footer(EmbedFooterBuilder::new("twilight"))
     ///     .image(source)
@@ -824,7 +824,7 @@ mod tests {
     #[test]
     fn test_builder() {
         let footer_image = ImageSource::url(
-            "https://raw.githubusercontent.com/twilight-rs/twilight/trunk/logo.png",
+            "https://raw.githubusercontent.com/twilight-rs/twilight/main/logo.png",
         )
         .unwrap();
         let embed = EmbedBuilder::new()
@@ -848,7 +848,7 @@ mod tests {
             .to_vec(),
             footer: Some(EmbedFooter {
                 icon_url: Some(
-                    "https://raw.githubusercontent.com/twilight-rs/twilight/trunk/logo.png"
+                    "https://raw.githubusercontent.com/twilight-rs/twilight/main/logo.png"
                         .to_string(),
                 ),
                 proxy_icon_url: None,

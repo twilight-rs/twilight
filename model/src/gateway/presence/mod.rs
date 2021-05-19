@@ -1,3 +1,5 @@
+pub mod activity_button;
+
 mod activity;
 mod activity_assets;
 mod activity_emoji;
@@ -10,8 +12,8 @@ mod client_status;
 mod status;
 
 pub use self::{
-    activity::Activity, activity_assets::ActivityAssets, activity_emoji::ActivityEmoji,
-    activity_flags::ActivityFlags, activity_party::ActivityParty,
+    activity::Activity, activity_assets::ActivityAssets, activity_button::ActivityButton,
+    activity_emoji::ActivityEmoji, activity_flags::ActivityFlags, activity_party::ActivityParty,
     activity_secrets::ActivitySecrets, activity_timestamps::ActivityTimestamps,
     activity_type::ActivityType, client_status::ClientStatus, status::Status,
 };
@@ -154,6 +156,7 @@ mod tests {
         let activity = Activity {
             application_id: None,
             assets: None,
+            buttons: Vec::new(),
             created_at: Some(1_571_048_061_237),
             details: None,
             flags: None,

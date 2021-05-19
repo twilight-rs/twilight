@@ -3,7 +3,7 @@ name: Deploy documentation
 on:
   push:
     branches:
-      - trunk
+      - main
 
 jobs:
   deploy-docs:
