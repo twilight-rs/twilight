@@ -1630,7 +1630,11 @@ impl Route {
 
                 (Method::Get, Path::WebhooksId(webhook_id), path.into())
             }
-            Self::GetWebhookMessage { message_id, token, webhook_id } => (
+            Self::GetWebhookMessage {
+                message_id,
+                token,
+                webhook_id,
+            } => (
                 Method::Get,
                 Path::WebhooksIdTokenMessagesId(webhook_id),
                 format!("webhooks/{}/{}/messages/{}", webhook_id, token, message_id).into(),
