@@ -1478,6 +1478,16 @@ impl Client {
         ExecuteWebhook::new(self, webhook_id, token)
     }
 
+    /// Get a webhook message by [`WebhookId`], Token, and [`MessageId`].
+    pub fn get_webhook_message(
+        &self,
+        webhook_id: WebhookId,
+        token: impl Into<String>,
+        message_id: MessageId,
+    ) -> GetWebhookMessage<'_> {
+        GetWebhookMessage::new(self, webhook_id, token, message_id)
+    }
+
     /// Update a message executed by a webhook.
     ///
     /// # Examples
