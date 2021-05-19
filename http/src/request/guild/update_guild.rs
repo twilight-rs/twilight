@@ -5,7 +5,8 @@ use std::{
 };
 use twilight_model::{
     guild::{
-        DefaultMessageNotificationLevel, ExplicitContentFilter, PartialGuild, VerificationLevel,
+        DefaultMessageNotificationLevel, ExplicitContentFilter, PartialGuild, SystemChannelFlags,
+        VerificationLevel,
     },
     id::{ChannelId, GuildId, UserId},
 };
@@ -74,7 +75,13 @@ struct UpdateGuildFields {
     default_message_notifications: Option<Option<DefaultMessageNotificationLevel>>,
     #[allow(clippy::option_option)]
     #[serde(skip_serializing_if = "Option::is_none")]
+    discovery_splash: Option<Option<String>>,
+    #[allow(clippy::option_option)]
+    #[serde(skip_serializing_if = "Option::is_none")]
     explicit_content_filter: Option<Option<ExplicitContentFilter>>,
+    #[allow(clippy::option_option)]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    features: Option<Option<Vec<String>>>,
     #[allow(clippy::option_option)]
     #[serde(skip_serializing_if = "Option::is_none")]
     icon: Option<Option<String>>,
@@ -91,6 +98,9 @@ struct UpdateGuildFields {
     #[allow(clippy::option_option)]
     #[serde(skip_serializing_if = "Option::is_none")]
     system_channel_id: Option<Option<ChannelId>>,
+    #[allow(clippy::option_option)]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    system_channel_flags: Option<Option<SystemChannelFlags>>,
     #[allow(clippy::option_option)]
     #[serde(skip_serializing_if = "Option::is_none")]
     verification_level: Option<Option<VerificationLevel>>,
@@ -170,6 +180,17 @@ impl<'a> UpdateGuild<'a> {
         self
     }
 
+    /// Set the guild's discovery splash image.
+    ///
+    /// Requires the guild to have the `DISCOVERABLE` feature enabled.
+    pub fn discovery_splash(mut self, discovery_splash: impl Into<Option<String>>) -> Self {
+        self.fields
+            .discovery_splash
+            .replace(discovery_splash.into());
+
+        self
+    }
+
     /// Set the explicit content filter level.
     pub fn explicit_content_filter(
         mut self,
@@ -178,6 +199,15 @@ impl<'a> UpdateGuild<'a> {
         self.fields
             .explicit_content_filter
             .replace(explicit_content_filter.into());
+
+        self
+    }
+
+    /// Set the enabled features of the guild.
+    pub fn features(mut self, features: impl IntoIterator<Item = String>) -> Self {
+        self.fields
+            .features
+            .replace(Some(features.into_iter().collect()));
 
         self
     }
@@ -253,6 +283,18 @@ impl<'a> UpdateGuild<'a> {
         self.fields
             .system_channel_id
             .replace(system_channel_id.into());
+
+        self
+    }
+
+    /// Set the guild's [`SystemChannelFlags`].
+    pub fn system_channel_flags(
+        mut self,
+        system_channel_flags: impl Into<Option<SystemChannelFlags>>,
+    ) -> Self {
+        self.fields
+            .system_channel_flags
+            .replace(system_channel_flags.into());
 
         self
     }
