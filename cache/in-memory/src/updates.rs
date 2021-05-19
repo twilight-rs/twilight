@@ -36,6 +36,7 @@ impl UpdateCache for Event {
             GuildEmojisUpdate(v) => c.update(v),
             GuildIntegrationsUpdate(v) => c.update(v),
             GuildUpdate(v) => c.update(v.deref()),
+            InteractionCreate(_) => {}
             InviteCreate(_) => {}
             InviteDelete(_) => {}
             MemberAdd(v) => c.update(v.deref()),
@@ -754,6 +755,7 @@ mod tests {
         let msg = Message {
             activity: None,
             application: None,
+            application_id: None,
             attachments: Vec::new(),
             author: User {
                 avatar: Some("".to_owned()),
@@ -777,14 +779,17 @@ mod tests {
             flags: Some(MessageFlags::empty()),
             guild_id: Some(GuildId(1)),
             id: MessageId(4),
+            interaction: None,
             kind: MessageType::Regular,
             member: Some(PartialMember {
                 deaf: false,
                 joined_at: None,
                 mute: false,
                 nick: Some("member nick".to_owned()),
+                permissions: None,
                 premium_since: None,
                 roles: Vec::new(),
+                user: None,
             }),
             mention_channels: Vec::new(),
             mention_everyone: false,
@@ -1101,6 +1106,7 @@ mod tests {
         let msg = Message {
             activity: None,
             application: None,
+            application_id: None,
             attachments: Vec::new(),
             author: User {
                 avatar: Some("".to_owned()),
@@ -1124,14 +1130,17 @@ mod tests {
             flags: Some(MessageFlags::empty()),
             guild_id: Some(GuildId(1)),
             id: MessageId(4),
+            interaction: None,
             kind: MessageType::Regular,
             member: Some(PartialMember {
                 deaf: false,
                 joined_at: None,
                 mute: false,
                 nick: Some("member nick".to_owned()),
+                permissions: None,
                 premium_since: None,
                 roles: Vec::new(),
+                user: None,
             }),
             mention_channels: Vec::new(),
             mention_everyone: false,
