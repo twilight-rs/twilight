@@ -22,10 +22,10 @@
 //! `Cargo.toml`'s `[dependencies]` section:
 //!
 //! ```toml
-//! twilight-cache-inmemory = "0.3"
-//! twilight-gateway = "0.3"
-//! twilight-http = "0.3"
-//! twilight-model = "0.3"
+//! twilight-cache-inmemory = "0.4"
+//! twilight-gateway = "0.4"
+//! twilight-http = "0.4"
+//! twilight-model = "0.4"
 //! ```
 //!
 //! If you need any other functionality that Twilight provides, you can just add
