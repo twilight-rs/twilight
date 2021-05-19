@@ -30,6 +30,7 @@ pub enum DispatchEvent {
     IntegrationCreate(Box<IntegrationCreate>),
     IntegrationDelete(IntegrationDelete),
     IntegrationUpdate(Box<IntegrationUpdate>),
+    InteractionCreate(Box<InteractionCreate>),
     InviteCreate(Box<InviteCreate>),
     InviteDelete(InviteDelete),
     MemberAdd(Box<MemberAdd>),
@@ -81,6 +82,7 @@ impl DispatchEvent {
             Self::IntegrationCreate(_) => EventType::IntegrationCreate,
             Self::IntegrationDelete(_) => EventType::IntegrationDelete,
             Self::IntegrationUpdate(_) => EventType::IntegrationUpdate,
+            Self::InteractionCreate(_) => EventType::InteractionCreate,
             Self::InviteCreate(_) => EventType::InviteCreate,
             Self::InviteDelete(_) => EventType::InviteDelete,
             Self::MemberAdd(_) => EventType::MemberAdd,
@@ -135,6 +137,7 @@ impl TryFrom<Event> for DispatchEvent {
             Event::IntegrationCreate(v) => Self::IntegrationCreate(v),
             Event::IntegrationDelete(v) => Self::IntegrationDelete(v),
             Event::IntegrationUpdate(v) => Self::IntegrationUpdate(v),
+            Event::InteractionCreate(v) => Self::InteractionCreate(v),
             Event::InviteCreate(v) => Self::InviteCreate(v),
             Event::InviteDelete(v) => Self::InviteDelete(v),
             Event::MemberAdd(v) => Self::MemberAdd(v),
@@ -253,6 +256,9 @@ impl<'de, 'a> DeserializeSeed<'de> for DispatchEventWithTypeDeserializer<'a> {
             }
             "INTEGRATION_UPDATE" => DispatchEvent::IntegrationUpdate(Box::new(
                 IntegrationUpdate::deserialize(deserializer)?,
+            )),
+            "INTERACTION_CREATE" => DispatchEvent::InteractionCreate(Box::new(
+                InteractionCreate::deserialize(deserializer)?,
             )),
             "INVITE_CREATE" => {
                 DispatchEvent::InviteCreate(Box::new(InviteCreate::deserialize(deserializer)?))
