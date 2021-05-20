@@ -152,15 +152,14 @@ impl<'a> GetGuildMembers<'a> {
     }
 
     fn start(&mut self) -> Result<()> {
-        self.fut
-            .replace(Box::pin(self.http.request_bytes(Request::from(
-                Route::GetGuildMembers {
-                    after: self.fields.after.map(|x| x.0),
-                    guild_id: self.guild_id.0,
-                    limit: self.fields.limit,
-                    presences: self.fields.presences,
-                },
-            ))));
+        let request = Request::from_route(Route::GetGuildMembers {
+            after: self.fields.after.map(|x| x.0),
+            guild_id: self.guild_id.0,
+            limit: self.fields.limit,
+            presences: self.fields.presences,
+        });
+
+        self.fut.replace(Box::pin(self.http.request_bytes(request)));
 
         Ok(())
     }

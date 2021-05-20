@@ -272,25 +272,17 @@ impl<'a> CreateGuildChannel<'a> {
     }
 
     fn start(&mut self) -> Result<()> {
-        let request = if let Some(reason) = &self.reason {
-            let headers = audit_header(&reason)?;
-            Request::from((
-                crate::json_to_vec(&self.fields).map_err(HttpError::json)?,
-                headers,
-                Route::CreateChannel {
-                    guild_id: self.guild_id.0,
-                },
-            ))
-        } else {
-            Request::from((
-                crate::json_to_vec(&self.fields).map_err(HttpError::json)?,
-                Route::CreateChannel {
-                    guild_id: self.guild_id.0,
-                },
-            ))
-        };
+        let mut request = Request::builder(Route::CreateChannel {
+            guild_id: self.guild_id.0,
+        })
+        .json(&self.fields)?;
 
-        self.fut.replace(Box::pin(self.http.request(request)));
+        if let Some(reason) = self.reason.as_ref() {
+            request = request.headers(audit_header(reason)?);
+        }
+
+        self.fut
+            .replace(Box::pin(self.http.request(request.build())));
 
         Ok(())
     }

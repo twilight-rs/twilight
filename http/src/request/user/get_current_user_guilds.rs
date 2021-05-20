@@ -146,13 +146,13 @@ impl<'a> GetCurrentUserGuilds<'a> {
     }
 
     fn start(&mut self) -> Result<()> {
-        self.fut.replace(Box::pin(self.http.request(Request::from(
-            Route::GetGuilds {
-                after: self.fields.after.map(|x| x.0),
-                before: self.fields.before.map(|x| x.0),
-                limit: self.fields.limit,
-            },
-        ))));
+        let request = Request::from_route(Route::GetGuilds {
+            after: self.fields.after.map(|x| x.0),
+            before: self.fields.before.map(|x| x.0),
+            limit: self.fields.limit,
+        });
+
+        self.fut.replace(Box::pin(self.http.request(request)));
 
         Ok(())
     }

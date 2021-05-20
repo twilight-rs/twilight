@@ -12,10 +12,9 @@ impl<'a> GetUserApplicationInfo<'a> {
     }
 
     fn start(&mut self) -> Result<()> {
-        self.fut.replace(Box::pin(
-            self.http
-                .request(Request::from(Route::GetCurrentUserApplicationInfo)),
-        ));
+        let request = Request::from_route(Route::GetCurrentUserApplicationInfo);
+
+        self.fut.replace(Box::pin(self.http.request(request)));
 
         Ok(())
     }

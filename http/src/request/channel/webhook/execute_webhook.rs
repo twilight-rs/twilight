@@ -203,45 +203,39 @@ impl<'a> ExecuteWebhook<'a> {
     }
 
     fn start(&mut self) -> Result<()> {
-        let request = if self.files.is_empty() && self.fields.payload_json.is_none() {
-            Request::from((
-                crate::json_to_vec(&self.fields).map_err(HttpError::json)?,
-                Route::ExecuteWebhook {
-                    token: self.token.clone(),
-                    wait: self.fields.wait,
-                    webhook_id: self.webhook_id.0,
-                },
-            ))
-        } else {
-            let mut multipart = Form::new();
+        let mut request = Request::builder(Route::ExecuteWebhook {
+            token: self.token.clone(),
+            wait: self.fields.wait,
+            webhook_id: self.webhook_id.0,
+        });
+
+        if !self.files.is_empty() || self.fields.payload_json.is_some() {
+            let mut form = Form::new();
 
             for (index, (name, file)) in self.files.drain(..).enumerate() {
-                multipart.file(format!("{}", index).as_bytes(), name.as_bytes(), &file);
+                form.file(format!("{}", index).as_bytes(), name.as_bytes(), &file);
             }
 
             if let Some(payload_json) = &self.fields.payload_json {
-                multipart.payload_json(&payload_json);
+                form.payload_json(&payload_json);
             } else {
                 let body = crate::json_to_vec(&self.fields).map_err(HttpError::json)?;
-                multipart.payload_json(&body);
+                form.payload_json(&body);
             }
 
-            let route = Route::ExecuteWebhook {
-                token: self.token.clone(),
-                wait: self.fields.wait,
-                webhook_id: self.webhook_id.0,
-            };
-
-            Request::from((multipart, route))
-        };
+            request = request.form(form);
+        } else {
+            request = request.json(&self.fields)?;
+        }
 
         match self.fields.wait {
             Some(true) => {
-                self.fut.replace(Box::pin(self.http.request(request)));
+                self.fut
+                    .replace(Box::pin(self.http.request(request.build())));
             }
             _ => {
                 self.fut
-                    .replace(Box::pin(self.http.verify(request).map_ok(|_| None)));
+                    .replace(Box::pin(self.http.verify(request.build()).map_ok(|_| None)));
             }
         }
 

@@ -22,12 +22,11 @@ impl<'a> GetGuildWidget<'a> {
     }
 
     fn start(&mut self) -> Result<()> {
-        self.fut
-            .replace(Box::pin(self.http.request_bytes(Request::from(
-                Route::GetGuildWidget {
-                    guild_id: self.guild_id.0,
-                },
-            ))));
+        let request = Request::from_route(Route::GetGuildWidget {
+            guild_id: self.guild_id.0,
+        });
+
+        self.fut.replace(Box::pin(self.http.request_bytes(request)));
 
         Ok(())
     }

@@ -19,21 +19,16 @@ impl<'a> DeleteInvite<'a> {
     }
 
     fn start(&mut self) -> Result<()> {
-        let request = if let Some(reason) = &self.reason {
-            let headers = audit_header(&reason)?;
-            Request::from((
-                headers,
-                Route::DeleteInvite {
-                    code: self.code.clone(),
-                },
-            ))
-        } else {
-            Request::from(Route::DeleteInvite {
-                code: self.code.clone(),
-            })
-        };
+        let mut request = Request::builder(Route::DeleteInvite {
+            code: self.code.clone(),
+        });
 
-        self.fut.replace(Box::pin(self.http.verify(request)));
+        if let Some(reason) = &self.reason {
+            request = request.headers(audit_header(reason)?);
+        }
+
+        self.fut
+            .replace(Box::pin(self.http.verify(request.build())));
 
         Ok(())
     }

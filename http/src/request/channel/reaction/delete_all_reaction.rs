@@ -27,13 +27,13 @@ impl<'a> DeleteAllReaction<'a> {
     }
 
     fn start(&mut self) -> Result<()> {
-        self.fut.replace(Box::pin(self.http.verify(Request::from(
-            Route::DeleteMessageSpecficReaction {
-                channel_id: self.channel_id.0,
-                message_id: self.message_id.0,
-                emoji: self.emoji.clone(),
-            },
-        ))));
+        let request = Request::from_route(Route::DeleteMessageSpecficReaction {
+            channel_id: self.channel_id.0,
+            message_id: self.message_id.0,
+            emoji: self.emoji.clone(),
+        });
+
+        self.fut.replace(Box::pin(self.http.verify(request)));
 
         Ok(())
     }

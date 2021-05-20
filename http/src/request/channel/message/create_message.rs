@@ -304,36 +304,31 @@ impl<'a> CreateMessage<'a> {
     }
 
     fn start(&mut self) -> Result<()> {
-        self.fut.replace(Box::pin(self.http.request(
-            if self.files.is_empty() && self.fields.payload_json.is_none() {
-                Request::from((
-                    crate::json_to_vec(&self.fields).map_err(HttpError::json)?,
-                    Route::CreateMessage {
-                        channel_id: self.channel_id.0,
-                    },
-                ))
+        let mut request = Request::builder(Route::CreateMessage {
+            channel_id: self.channel_id.0,
+        });
+
+        if !self.files.is_empty() || self.fields.payload_json.is_some() {
+            let mut form = Form::new();
+
+            for (index, (name, file)) in self.files.drain(..).enumerate() {
+                form.file(format!("{}", index).as_bytes(), name.as_bytes(), &file);
+            }
+
+            if let Some(payload_json) = &self.fields.payload_json {
+                form.payload_json(&payload_json);
             } else {
-                let mut multipart = Form::new();
+                let body = crate::json_to_vec(&self.fields).map_err(HttpError::json)?;
+                form.payload_json(&body);
+            }
 
-                for (index, (name, file)) in self.files.drain(..).enumerate() {
-                    multipart.file(format!("{}", index).as_bytes(), name.as_bytes(), &file);
-                }
+            request = request.form(form);
+        } else {
+            request = request.json(&self.fields)?;
+        }
 
-                if let Some(payload_json) = &self.fields.payload_json {
-                    multipart.payload_json(&payload_json);
-                } else {
-                    let body = crate::json_to_vec(&self.fields).map_err(HttpError::json)?;
-                    multipart.payload_json(&body);
-                }
-
-                Request::from((
-                    multipart,
-                    Route::CreateMessage {
-                        channel_id: self.channel_id.0,
-                    },
-                ))
-            },
-        )));
+        self.fut
+            .replace(Box::pin(self.http.request(request.build())));
 
         Ok(())
     }

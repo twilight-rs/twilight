@@ -33,12 +33,12 @@ impl<'a> GetGuild<'a> {
     }
 
     fn start(&mut self) -> Result<()> {
-        self.fut.replace(Box::pin(self.http.request(Request::from(
-            Route::GetGuild {
-                guild_id: self.guild_id.0,
-                with_counts: self.fields.with_counts,
-            },
-        ))));
+        let request = Request::from_route(Route::GetGuild {
+            guild_id: self.guild_id.0,
+            with_counts: self.fields.with_counts,
+        });
+
+        self.fut.replace(Box::pin(self.http.request(request)));
 
         Ok(())
     }

@@ -23,7 +23,7 @@ impl<'a> CrosspostMessage<'a> {
     }
 
     fn start(&mut self) -> Result<()> {
-        let request = Request::from(Route::CrosspostMessage {
+        let request = Request::from_route(Route::CrosspostMessage {
             channel_id: self.channel_id.0,
             message_id: self.message_id.0,
         });

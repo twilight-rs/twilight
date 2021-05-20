@@ -33,12 +33,11 @@ impl<'a> GetGuildVanityUrl<'a> {
     }
 
     fn start(&mut self) -> Result<()> {
-        let fut = self
-            .http
-            .request_bytes(Request::from(Route::GetGuildVanityUrl {
-                guild_id: self.guild_id.0,
-            }));
-        self.fut.replace(Box::pin(fut));
+        let request = Request::from_route(Route::GetGuildVanityUrl {
+            guild_id: self.guild_id.0,
+        });
+
+        self.fut.replace(Box::pin(self.http.request_bytes(request)));
 
         Ok(())
     }

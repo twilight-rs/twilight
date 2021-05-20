@@ -30,12 +30,11 @@ impl<'a> FollowNewsChannel<'a> {
     }
 
     fn start(&mut self) -> Result<()> {
-        let request = Request::from((
-            crate::json_to_vec(&self.fields).map_err(HttpError::json)?,
-            Route::FollowNewsChannel {
-                channel_id: self.channel_id.0,
-            },
-        ));
+        let request = Request::builder(Route::FollowNewsChannel {
+            channel_id: self.channel_id.0,
+        })
+        .json(&self.fields)?
+        .build();
 
         self.fut.replace(Box::pin(self.http.request(request)));
 

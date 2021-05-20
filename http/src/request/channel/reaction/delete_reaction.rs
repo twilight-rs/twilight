@@ -30,14 +30,14 @@ impl<'a> DeleteReaction<'a> {
     }
 
     fn start(&mut self) -> Result<()> {
-        self.fut.replace(Box::pin(self.http.verify(Request::from(
-            Route::DeleteReaction {
-                channel_id: self.channel_id.0,
-                emoji: self.emoji.clone(),
-                message_id: self.message_id.0,
-                user: self.target_user.clone(),
-            },
-        ))));
+        let request = Request::from_route(Route::DeleteReaction {
+            channel_id: self.channel_id.0,
+            emoji: self.emoji.clone(),
+            message_id: self.message_id.0,
+            user: self.target_user.clone(),
+        });
+
+        self.fut.replace(Box::pin(self.http.verify(request)));
 
         Ok(())
     }
