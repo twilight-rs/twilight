@@ -4,6 +4,7 @@ use crate::{
     client::Client,
     error::{Error as HttpError, Result},
     request::{
+        applications::{InteractionError, InteractionErrorType},
         audit_header, validate, AuditLogReason, AuditLogReasonError, Form, Pending, Request,
     },
     routing::Route,
@@ -15,7 +16,7 @@ use std::{
 };
 use twilight_model::{
     channel::{embed::Embed, message::AllowedMentions, Attachment},
-    id::{MessageId, WebhookId},
+    id::{ApplicationId, MessageId, WebhookId},
 };
 
 /// A webhook's message can not be updated as configured.
@@ -157,10 +158,8 @@ pub struct UpdateWebhookMessage<'a> {
     files: Vec<(String, Vec<u8>)>,
     fut: Option<Pending<'a, ()>>,
     http: &'a Client,
-    message_id: MessageId,
     reason: Option<String>,
-    token: String,
-    webhook_id: WebhookId,
+    route: Route,
 }
 
 impl<'a> UpdateWebhookMessage<'a> {
@@ -181,11 +180,36 @@ impl<'a> UpdateWebhookMessage<'a> {
             files: Vec::new(),
             fut: None,
             http,
-            message_id,
             reason: None,
-            token: token.into(),
-            webhook_id,
+            route: Route::UpdateWebhookMessage {
+                message_id: message_id.0,
+                token: token.into(),
+                webhook_id: webhook_id.0,
+            },
         }
+    }
+
+    pub(crate) fn new_interaction(
+        http: &'a Client,
+        application_id: Option<ApplicationId>,
+        interaction_token: impl Into<String>,
+    ) -> Result<Self, InteractionError> {
+        let application_id = application_id.ok_or(InteractionError{ kind: InteractionErrorType::ApplicationIdNotPresent })?;
+
+        Ok(Self {
+            fields: UpdateWebhookMessageFields {
+                allowed_mentions: http.default_allowed_mentions(),
+                ..UpdateWebhookMessageFields::default()
+            },
+            files: Vec::new(),
+            fut: None,
+            http,
+            reason: None,
+            route: Route::UpdateInteractionOriginal {
+                application_id: application_id.0,
+                interaction_token: interaction_token.into(),
+            },
+        })
     }
 
     /// Set the allowed mentions in the message.

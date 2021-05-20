@@ -63,6 +63,7 @@ macro_rules! poll_req {
     };
 }
 
+pub mod applications;
 pub mod channel;
 pub mod guild;
 pub mod prelude;
