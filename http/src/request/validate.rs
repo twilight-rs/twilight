@@ -427,19 +427,19 @@ mod tests {
     #[test]
     fn test_channel_name() {
         assert!(channel_name("aa"));
-        assert!(channel_name("a".repeat(100)));
+        assert!(channel_name("a".repeat(100).as_ref()));
 
         assert!(!channel_name(""));
         assert!(!channel_name("a"));
-        assert!(!channel_name("a".repeat(101)));
+        assert!(!channel_name("a".repeat(101).as_ref()));
     }
 
     #[test]
     fn test_content_limit() {
         assert!(content_limit(""));
-        assert!(content_limit("a".repeat(2000)));
+        assert!(content_limit("a".repeat(2000).as_ref()));
 
-        assert!(!content_limit("a".repeat(2001)));
+        assert!(!content_limit("a".repeat(2001).as_ref()));
     }
 
     #[test]
@@ -677,11 +677,11 @@ mod tests {
     #[test]
     fn test_guild_name() {
         assert!(guild_name("aa"));
-        assert!(guild_name("a".repeat(100)));
+        assert!(guild_name("a".repeat(100).as_ref()));
 
         assert!(!guild_name(""));
         assert!(!guild_name("a"));
-        assert!(!guild_name("a".repeat(101)));
+        assert!(!guild_name("a".repeat(101).as_ref()));
     }
 
     #[test]
@@ -711,18 +711,18 @@ mod tests {
     #[test]
     fn test_nickname() {
         assert!(nickname("a"));
-        assert!(nickname("a".repeat(32)));
+        assert!(nickname("a".repeat(32).as_ref()));
 
         assert!(!nickname(""));
-        assert!(!nickname("a".repeat(33)));
+        assert!(!nickname("a".repeat(33).as_ref()));
     }
 
     #[test]
     fn test_username() {
         assert!(username("aa"));
-        assert!(username("a".repeat(32)));
+        assert!(username("a".repeat(32).as_ref()));
 
         assert!(!username("a"));
-        assert!(!username("a".repeat(33)));
+        assert!(!username("a".repeat(33).as_ref()));
     }
 }
