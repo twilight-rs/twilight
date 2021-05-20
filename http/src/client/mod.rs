@@ -1551,7 +1551,7 @@ impl Client {
         ExecuteWebhook::new(self, webhook_id, token)
     }
 
-    /// Get a webhook message by [`WebhookId`], Token, and [`MessageId`].
+    /// Get a webhook message by [`WebhookId`], token, and [`MessageId`].
     pub fn get_webhook_message(
         &self,
         webhook_id: WebhookId,
