@@ -2,6 +2,15 @@
 
 Changelog for `twilight-cache-inmemory`.
 
+## [0.4.1] - 2021-05-20
+
+### Additions
+
+Add API for accessing statistics about the cache, accessible through
+`InMemoryCache::stats` ([#806] - [@vivian]).
+
+[#806]: https://github.com/twilight-rs/twilight/pull/806
+
 ## [0.4.0] - 2021-05-12
 
 ### Upgrade Path
@@ -214,6 +223,7 @@ Initial release.
 [#528]: https://github.com/twilight-rs/twilight/pull/528
 [#524]: https://github.com/twilight-rs/twilight/pull/524
 
+[0.4.1]: https://github.com/twilight-rs/twilight/releases/tag/cache-in-memory-0.4.1
 [0.4.0]: https://github.com/twilight-rs/twilight/releases/tag/cache-in-memory-0.4.0
 [0.3.6]: https://github.com/twilight-rs/twilight/releases/tag/cache-in-memory-v0.3.6
 [0.3.5]: https://github.com/twilight-rs/twilight/releases/tag/cache-in-memory-v0.3.5
