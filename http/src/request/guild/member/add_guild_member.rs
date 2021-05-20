@@ -167,13 +167,12 @@ impl<'a> AddGuildMember<'a> {
     }
 
     fn start(&mut self) -> Result<()> {
-        let request = Request::from((
-            crate::json_to_vec(&self.fields).map_err(HttpError::json)?,
-            Route::AddGuildMember {
-                guild_id: self.guild_id.0,
-                user_id: self.user_id.0,
-            },
-        ));
+        let request = Request::builder(Route::AddGuildMember {
+            guild_id: self.guild_id.0,
+            user_id: self.user_id.0,
+        })
+        .json(&self.fields)?
+        .build();
 
         self.fut.replace(Box::pin(self.http.request_bytes(request)));
 

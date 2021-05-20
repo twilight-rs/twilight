@@ -91,12 +91,13 @@ impl<'a> CreateGuildFromTemplate<'a> {
     }
 
     fn start(&mut self) -> Result<()> {
-        self.fut.replace(Box::pin(self.http.request(Request::from((
-            crate::json_to_vec(&self.fields).map_err(HttpError::json)?,
-            Route::CreateGuildFromTemplate {
-                template_code: self.template_code.clone(),
-            },
-        )))));
+        let request = Request::builder(Route::CreateGuildFromTemplate {
+            template_code: self.template_code.clone(),
+        })
+        .json(&self.fields)?
+        .build();
+
+        self.fut.replace(Box::pin(self.http.request(request)));
 
         Ok(())
     }

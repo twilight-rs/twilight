@@ -50,7 +50,7 @@ impl<'a> CreateReaction<'a> {
     }
 
     fn request(&self) -> Request {
-        Request::from(Route::CreateReaction {
+        Request::from_route(Route::CreateReaction {
             channel_id: self.channel_id.0,
             emoji: self.emoji.clone(),
             message_id: self.message_id.0,
@@ -90,7 +90,7 @@ mod tests {
         let builder = CreateReaction::new(&client, ChannelId(123), MessageId(456), emoji);
         let actual = builder.request();
 
-        let expected = Request::from(Route::CreateReaction {
+        let expected = Request::from_route(Route::CreateReaction {
             channel_id: 123,
             emoji: utf8_percent_encode("\u{1f303}", NON_ALPHANUMERIC).to_string(),
             message_id: 456,

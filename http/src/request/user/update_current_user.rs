@@ -127,10 +127,11 @@ impl<'a> UpdateCurrentUser<'a> {
     }
 
     fn start(&mut self) -> Result<()> {
-        self.fut.replace(Box::pin(self.http.request(Request::from((
-            crate::json_to_vec(&self.fields).map_err(HttpError::json)?,
-            Route::UpdateCurrentUser,
-        )))));
+        let request = Request::builder(Route::UpdateCurrentUser)
+            .json(&self.fields)?
+            .build();
+
+        self.fut.replace(Box::pin(self.http.request(request)));
 
         Ok(())
     }

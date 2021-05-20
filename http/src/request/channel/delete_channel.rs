@@ -20,21 +20,16 @@ impl<'a> DeleteChannel<'a> {
     }
 
     fn start(&mut self) -> Result<()> {
-        let request = if let Some(reason) = &self.reason {
-            let headers = audit_header(&reason)?;
-            Request::from((
-                headers,
-                Route::DeleteChannel {
-                    channel_id: self.channel_id.0,
-                },
-            ))
-        } else {
-            Request::from(Route::DeleteChannel {
-                channel_id: self.channel_id.0,
-            })
-        };
+        let mut request = Request::builder(Route::DeleteChannel {
+            channel_id: self.channel_id.0,
+        });
 
-        self.fut.replace(Box::pin(self.http.request(request)));
+        if let Some(reason) = &self.reason {
+            request = request.headers(audit_header(reason)?);
+        }
+
+        self.fut
+            .replace(Box::pin(self.http.request(request.build())));
 
         Ok(())
     }

@@ -13,9 +13,9 @@ impl<'a> GetVoiceRegions<'a> {
     }
 
     fn start(&mut self) -> Result<()> {
-        self.fut.replace(Box::pin(
-            self.http.request(Request::from(Route::GetVoiceRegions)),
-        ));
+        let request = Request::from_route(Route::GetVoiceRegions);
+
+        self.fut.replace(Box::pin(self.http.request(request)));
 
         Ok(())
     }

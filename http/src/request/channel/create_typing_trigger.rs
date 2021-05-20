@@ -18,11 +18,11 @@ impl<'a> CreateTypingTrigger<'a> {
     }
 
     fn start(&mut self) -> Result<()> {
-        self.fut.replace(Box::pin(self.http.verify(Request::from(
-            Route::CreateTypingTrigger {
-                channel_id: self.channel_id.0,
-            },
-        ))));
+        let request = Request::from_route(Route::CreateTypingTrigger {
+            channel_id: self.channel_id.0,
+        });
+
+        self.fut.replace(Box::pin(self.http.verify(request)));
 
         Ok(())
     }

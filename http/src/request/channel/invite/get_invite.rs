@@ -52,13 +52,12 @@ impl<'a> GetInvite<'a> {
     }
 
     fn start(&mut self) -> Result<()> {
-        self.fut
-            .replace(Box::pin(self.http.request_bytes(Request::from(
-                Route::GetInvite {
-                    code: self.code.clone(),
-                    with_counts: self.fields.with_counts,
-                },
-            ))));
+        let request = Request::from_route(Route::GetInvite {
+            code: self.code.clone(),
+            with_counts: self.fields.with_counts,
+        });
+
+        self.fut.replace(Box::pin(self.http.request_bytes(request)));
 
         Ok(())
     }
