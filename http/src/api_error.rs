@@ -39,7 +39,7 @@ pub enum ErrorCode {
     UnknownEmoji,
     /// Unknown webhook
     UnknownWebhook,
-    /// Unkonwn webhook service
+    /// Unknown webhook service
     UnknownWebhookService,
     /// Unknown session
     UnknownSession,
