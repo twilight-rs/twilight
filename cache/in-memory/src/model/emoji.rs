@@ -33,8 +33,20 @@ impl PartialEq<Emoji> for CachedEmoji {
 #[cfg(test)]
 mod tests {
     use super::CachedEmoji;
+    use static_assertions::{assert_fields, assert_impl_all};
     use std::fmt::Debug;
     use twilight_model::{guild::Emoji, id::EmojiId};
+
+    assert_fields!(
+        CachedEmoji: id,
+        animated,
+        name,
+        managed,
+        require_colons,
+        roles,
+        user
+    );
+    assert_impl_all!(CachedEmoji: Clone, Debug, Eq, PartialEq);
 
     #[test]
     fn test_eq_emoji() {
@@ -60,23 +72,5 @@ mod tests {
         };
 
         assert_eq!(cached, emoji);
-    }
-
-    #[test]
-    fn test_fields() {
-        static_assertions::assert_fields!(
-            CachedEmoji: id,
-            animated,
-            name,
-            managed,
-            require_colons,
-            roles,
-            user
-        );
-    }
-
-    #[test]
-    fn test_impls() {
-        static_assertions::assert_impl_all!(CachedEmoji: Clone, Debug, Eq, PartialEq);
     }
 }

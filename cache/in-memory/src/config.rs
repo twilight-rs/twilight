@@ -75,6 +75,9 @@ impl Default for Config {
 #[cfg(test)]
 mod tests {
     use super::{Config, ResourceType};
+    use static_assertions::assert_fields;
+
+    assert_fields!(Config: resource_types, message_cache_size);
 
     #[test]
     #[allow(clippy::cognitive_complexity)]
@@ -101,10 +104,5 @@ mod tests {
         let default = Config::default();
         assert_eq!(conf.resource_types, default.resource_types);
         assert_eq!(conf.message_cache_size, default.message_cache_size);
-    }
-
-    #[test]
-    fn test_config_fields() {
-        static_assertions::assert_fields!(Config: resource_types, message_cache_size);
     }
 }
