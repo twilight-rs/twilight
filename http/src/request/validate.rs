@@ -198,14 +198,22 @@ pub const fn ban_delete_message_days(value: u64) -> bool {
     value <= 7
 }
 
-pub fn channel_name(value: &str) -> bool {
+pub fn channel_name(value: impl AsRef<str>) -> bool {
+    _channel_name(value.as_ref())
+}
+
+fn _channel_name(value: &str) -> bool {
     let len = value.chars().count();
 
     // <https://discordapp.com/developers/docs/resources/channel#channel-object-channel-structure>
     (2..=100).contains(&len)
 }
 
-pub fn content_limit(value: &str) -> bool {
+pub fn content_limit(value: impl AsRef<str>) -> bool {
+    _content_limit(value.as_ref())
+}
+
+fn _content_limit(value: &str) -> bool {
     // <https://discordapp.com/developers/docs/resources/channel#create-message-params>
     value.chars().count() <= 2000
 }
@@ -331,7 +339,11 @@ pub const fn get_reactions_limit(value: u64) -> bool {
     value >= 1 && value <= 100
 }
 
-pub fn guild_name(value: &str) -> bool {
+pub fn guild_name(value: impl AsRef<str>) -> bool {
+    _guild_name(value.as_ref())
+}
+
+fn _guild_name(value: &str) -> bool {
     let len = value.chars().count();
 
     // <https://discordapp.com/developers/docs/resources/guild#guild-object-guild-structure>
@@ -353,28 +365,45 @@ pub const fn invite_max_uses(value: u64) -> bool {
     value <= 100
 }
 
-pub fn nickname(value: &str) -> bool {
+pub fn nickname(value: impl AsRef<str>) -> bool {
+    _nickname(value.as_ref())
+}
+
+fn _nickname(value: &str) -> bool {
     let len = value.chars().count();
 
     // <https://discordapp.com/developers/docs/resources/user#usernames-and-nicknames>
     (1..=32).contains(&len)
 }
 
-pub fn username(value: &str) -> bool {
+pub fn username(value: impl AsRef<str>) -> bool {
+    // <https://discordapp.com/developers/docs/resources/user#usernames-and-nicknames>
+    _username(value.as_ref())
+}
+
+fn _username(value: &str) -> bool {
     let len = value.chars().count();
 
     // <https://discordapp.com/developers/docs/resources/user#usernames-and-nicknames>
     (2..=32).contains(&len)
 }
 
-pub fn template_name(value: &str) -> bool {
+pub fn template_name(value: impl AsRef<str>) -> bool {
+    _template_name(value.as_ref())
+}
+
+fn _template_name(value: &str) -> bool {
     let len = value.chars().count();
 
     // <https://discord.com/developers/docs/resources/template#create-guild-template-json-params>
     (1..=100).contains(&len)
 }
 
-pub fn template_description(value: &str) -> bool {
+pub fn template_description(value: impl AsRef<str>) -> bool {
+    _template_name(value.as_ref())
+}
+
+fn _template_description(value: &str) -> bool {
     let len = value.chars().count();
 
     // <https://discord.com/developers/docs/resources/template#create-guild-template-json-params>
@@ -427,19 +456,19 @@ mod tests {
     #[test]
     fn test_channel_name() {
         assert!(channel_name("aa"));
-        assert!(channel_name("a".repeat(100).as_ref()));
+        assert!(channel_name("a".repeat(100)));
 
         assert!(!channel_name(""));
         assert!(!channel_name("a"));
-        assert!(!channel_name("a".repeat(101).as_ref()));
+        assert!(!channel_name("a".repeat(101)));
     }
 
     #[test]
     fn test_content_limit() {
         assert!(content_limit(""));
-        assert!(content_limit("a".repeat(2000).as_ref()));
+        assert!(content_limit("a".repeat(2000)));
 
-        assert!(!content_limit("a".repeat(2001).as_ref()));
+        assert!(!content_limit("a".repeat(2001)));
     }
 
     #[test]
@@ -677,11 +706,11 @@ mod tests {
     #[test]
     fn test_guild_name() {
         assert!(guild_name("aa"));
-        assert!(guild_name("a".repeat(100).as_ref()));
+        assert!(guild_name("a".repeat(100)));
 
         assert!(!guild_name(""));
         assert!(!guild_name("a"));
-        assert!(!guild_name("a".repeat(101).as_ref()));
+        assert!(!guild_name("a".repeat(101)));
     }
 
     #[test]
@@ -711,18 +740,18 @@ mod tests {
     #[test]
     fn test_nickname() {
         assert!(nickname("a"));
-        assert!(nickname("a".repeat(32).as_ref()));
+        assert!(nickname("a".repeat(32)));
 
         assert!(!nickname(""));
-        assert!(!nickname("a".repeat(33).as_ref()));
+        assert!(!nickname("a".repeat(33)));
     }
 
     #[test]
     fn test_username() {
         assert!(username("aa"));
-        assert!(username("a".repeat(32).as_ref()));
+        assert!(username("a".repeat(32)));
 
         assert!(!username("a"));
-        assert!(!username("a".repeat(33).as_ref()));
+        assert!(!username("a".repeat(33)));
     }
 }
