@@ -25,13 +25,12 @@ impl<'a> GetBan<'a> {
     }
 
     fn start(&mut self) -> Result<()> {
-        self.fut
-            .replace(Box::pin(self.http.request_bytes(Request::from(
-                Route::GetBan {
-                    guild_id: self.guild_id.0,
-                    user_id: self.user_id.0,
-                },
-            ))));
+        let request = Request::from_route(Route::GetBan {
+            guild_id: self.guild_id.0,
+            user_id: self.user_id.0,
+        });
+
+        self.fut.replace(Box::pin(self.http.request_bytes(request)));
 
         Ok(())
     }

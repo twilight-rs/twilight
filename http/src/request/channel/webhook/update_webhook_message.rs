@@ -3,7 +3,9 @@
 use crate::{
     client::Client,
     error::{Error as HttpError, Result},
-    request::{self, validate, AuditLogReason, AuditLogReasonError, Form, Pending, Request},
+    request::{
+        audit_header, validate, AuditLogReason, AuditLogReasonError, Form, Pending, Request,
+    },
     routing::Route,
 };
 use serde::Serialize;
@@ -357,44 +359,32 @@ impl<'a> UpdateWebhookMessage<'a> {
     }
 
     fn request(&mut self) -> Result<Request> {
+        let mut request = Request::builder(Route::UpdateWebhookMessage {
+            message_id: self.message_id.0,
+            token: self.token.clone(),
+            webhook_id: self.webhook_id.0,
+        });
+
         if self.files.is_empty() {
-            let body = crate::json_to_vec(&self.fields).map_err(HttpError::json)?;
-
-            let route = Route::UpdateWebhookMessage {
-                message_id: self.message_id.0,
-                token: self.token.clone(),
-                webhook_id: self.webhook_id.0,
-            };
-
-            if let Some(reason) = &self.reason {
-                let headers = request::audit_header(&reason)?;
-                Ok(Request::from((body, headers, route)))
-            } else {
-                Ok(Request::from((body, route)))
-            }
+            request = request.json(&self.fields)?;
         } else {
-            let mut multipart = Form::new();
+            let mut form = Form::new();
 
             for (index, (name, file)) in self.files.drain(..).enumerate() {
-                multipart.file(format!("{}", index).as_bytes(), name.as_bytes(), &file);
+                form.file(format!("{}", index).as_bytes(), name.as_bytes(), &file);
             }
 
             let body = crate::json_to_vec(&self.fields).map_err(HttpError::json)?;
-            multipart.part(b"payload_json", &body);
+            form.payload_json(&body);
 
-            let route = Route::UpdateWebhookMessage {
-                message_id: self.message_id.0,
-                token: self.token.clone(),
-                webhook_id: self.webhook_id.0,
-            };
-
-            if let Some(reason) = &self.reason {
-                let headers = request::audit_header(&reason)?;
-                Ok(Request::from((multipart, headers, route)))
-            } else {
-                Ok(Request::from((multipart, route)))
-            }
+            request = request.form(form);
         }
+
+        if let Some(reason) = self.reason.as_ref() {
+            request = request.headers(audit_header(reason)?);
+        }
+
+        Ok(request.build())
     }
 
     fn start(&mut self) -> Result<()> {
@@ -436,20 +426,22 @@ mod tests {
             .expect("'reason' is not a valid reason");
         let actual = builder.request().expect("failed to create request");
 
-        let body = crate::json_to_vec(&UpdateWebhookMessageFields {
+        let body = UpdateWebhookMessageFields {
             allowed_mentions: None,
             attachments: Vec::new(),
             content: Some(Some("test".to_owned())),
             embeds: None,
             payload_json: None,
-        })
-        .expect("failed to serialize fields");
+        };
         let route = Route::UpdateWebhookMessage {
             message_id: 2,
             token: "token".to_owned(),
             webhook_id: 1,
         };
-        let expected = Request::from((body, route));
+        let expected = Request::builder(route)
+            .json(&body)
+            .expect("failed to serialize body")
+            .build();
 
         assert_eq!(expected.body, actual.body);
         assert_eq!(expected.path, actual.path);

@@ -262,13 +262,14 @@ impl<'a> UpdateMessage<'a> {
     }
 
     fn start(&mut self) -> Result<()> {
-        self.fut.replace(Box::pin(self.http.request(Request::from((
-            crate::json_to_vec(&self.fields).map_err(HttpError::json)?,
-            Route::UpdateMessage {
-                channel_id: self.channel_id.0,
-                message_id: self.message_id.0,
-            },
-        )))));
+        let request = Request::builder(Route::UpdateMessage {
+            channel_id: self.channel_id.0,
+            message_id: self.message_id.0,
+        })
+        .json(&self.fields)?
+        .build();
+
+        self.fut.replace(Box::pin(self.http.request(request)));
 
         Ok(())
     }

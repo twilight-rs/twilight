@@ -169,25 +169,17 @@ impl<'a> UpdateGuildMember<'a> {
     }
 
     fn request(&self) -> Result<Request> {
-        Ok(if let Some(reason) = &self.reason {
-            let headers = audit_header(&reason)?;
-            Request::from((
-                crate::json_to_vec(&self.fields).map_err(HttpError::json)?,
-                headers,
-                Route::UpdateMember {
-                    guild_id: self.guild_id.0,
-                    user_id: self.user_id.0,
-                },
-            ))
-        } else {
-            Request::from((
-                crate::json_to_vec(&self.fields).map_err(HttpError::json)?,
-                Route::UpdateMember {
-                    guild_id: self.guild_id.0,
-                    user_id: self.user_id.0,
-                },
-            ))
+        let mut request = Request::builder(Route::UpdateMember {
+            guild_id: self.guild_id.0,
+            user_id: self.user_id.0,
         })
+        .json(&self.fields)?;
+
+        if let Some(reason) = &self.reason {
+            request = request.headers(audit_header(reason)?);
+        }
+
+        Ok(request.build())
     }
 
     fn start(&mut self) -> Result<()> {
@@ -254,18 +246,18 @@ mod tests {
             .mute(true);
         let actual = builder.request()?;
 
-        let body = crate::json_to_vec(&UpdateGuildMemberFields {
+        let body = UpdateGuildMemberFields {
             channel_id: None,
             deaf: Some(true),
             mute: Some(true),
             nick: None,
             roles: None,
-        })?;
+        };
         let route = Route::UpdateMember {
             guild_id: guild_id.0,
             user_id: user_id.0,
         };
-        let expected = Request::from((body, route));
+        let expected = Request::builder(route).json(&body)?.build();
 
         assert_eq!(actual.body, expected.body);
         assert_eq!(actual.path, expected.path);

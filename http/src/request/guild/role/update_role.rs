@@ -78,27 +78,18 @@ impl<'a> UpdateRole<'a> {
     }
 
     fn start(&mut self) -> Result<()> {
-        let request = if let Some(reason) = &self.reason {
-            let headers = audit_header(&reason)?;
-            Request::from((
-                crate::json_to_vec(&self.fields).map_err(HttpError::json)?,
-                headers,
-                Route::UpdateRole {
-                    guild_id: self.guild_id.0,
-                    role_id: self.role_id.0,
-                },
-            ))
-        } else {
-            Request::from((
-                crate::json_to_vec(&self.fields).map_err(HttpError::json)?,
-                Route::UpdateRole {
-                    guild_id: self.guild_id.0,
-                    role_id: self.role_id.0,
-                },
-            ))
-        };
+        let mut request = Request::builder(Route::UpdateRole {
+            guild_id: self.guild_id.0,
+            role_id: self.role_id.0,
+        })
+        .json(&self.fields)?;
 
-        self.fut.replace(Box::pin(self.http.request(request)));
+        if let Some(reason) = &self.reason {
+            request = request.headers(audit_header(reason)?);
+        }
+
+        self.fut
+            .replace(Box::pin(self.http.request(request.build())));
 
         Ok(())
     }

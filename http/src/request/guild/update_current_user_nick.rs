@@ -25,12 +25,13 @@ impl<'a> UpdateCurrentUserNick<'a> {
     }
 
     fn start(&mut self) -> Result<()> {
-        self.fut.replace(Box::pin(self.http.verify(Request::from((
-            crate::json_to_vec(&self.fields).map_err(HttpError::json)?,
-            Route::UpdateNickname {
-                guild_id: self.guild_id.0,
-            },
-        )))));
+        let request = Request::builder(Route::UpdateNickname {
+            guild_id: self.guild_id.0,
+        })
+        .json(&self.fields)?
+        .build();
+
+        self.fut.replace(Box::pin(self.http.verify(request)));
 
         Ok(())
     }

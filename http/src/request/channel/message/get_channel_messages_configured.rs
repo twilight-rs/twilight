@@ -125,15 +125,15 @@ impl<'a> GetChannelMessagesConfigured<'a> {
     }
 
     fn start(&mut self) -> Result<()> {
-        self.fut.replace(Box::pin(self.http.request(Request::from(
-            Route::GetMessages {
-                after: self.after.map(|x| x.0),
-                around: self.around.map(|x| x.0),
-                before: self.before.map(|x| x.0),
-                channel_id: self.channel_id.0,
-                limit: self.fields.limit,
-            },
-        ))));
+        let request = Request::from_route(Route::GetMessages {
+            after: self.after.map(|x| x.0),
+            around: self.around.map(|x| x.0),
+            before: self.before.map(|x| x.0),
+            channel_id: self.channel_id.0,
+            limit: self.fields.limit,
+        });
+
+        self.fut.replace(Box::pin(self.http.request(request)));
 
         Ok(())
     }
