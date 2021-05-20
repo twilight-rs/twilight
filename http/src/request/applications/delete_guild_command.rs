@@ -17,7 +17,9 @@ impl<'a> DeleteGuildCommand<'a> {
         guild_id: GuildId,
         command_id: CommandId,
     ) -> Result<Self, InteractionError> {
-        let application_id = application_id.ok_or(InteractionError{ kind: InteractionErrorType::ApplicationIdNotPresent })?;
+        let application_id = application_id.ok_or(InteractionError {
+            kind: InteractionErrorType::ApplicationIdNotPresent,
+        })?;
 
         Ok(Self {
             application_id,
@@ -34,7 +36,7 @@ impl<'a> DeleteGuildCommand<'a> {
             command_id: self.command_id.0,
             guild_id: self.guild_id.0,
         });
-        
+
         self.fut.replace(Box::pin(self.http.verify(request)));
 
         Ok(())

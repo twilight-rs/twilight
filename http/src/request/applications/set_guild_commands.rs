@@ -24,7 +24,9 @@ impl<'a> SetGuildCommands<'a> {
         guild_id: GuildId,
         commands: Vec<Command>,
     ) -> Result<Self, InteractionError> {
-        let application_id = application_id.ok_or(InteractionError{ kind: InteractionErrorType::ApplicationIdNotPresent })?;
+        let application_id = application_id.ok_or(InteractionError {
+            kind: InteractionErrorType::ApplicationIdNotPresent,
+        })?;
 
         Ok(Self {
             commands,
@@ -36,14 +38,14 @@ impl<'a> SetGuildCommands<'a> {
     }
 
     fn start(&mut self) -> Result<()> {
-        let request = Request::builder(
-            Route::SetGuildCommands {
-                application_id: self.application_id.0,
-                guild_id: self.guild_id.0,
-            },
-        ).json(&self.commands)?;
-        
-        self.fut.replace(Box::pin(self.http.verify(request.build())));
+        let request = Request::builder(Route::SetGuildCommands {
+            application_id: self.application_id.0,
+            guild_id: self.guild_id.0,
+        })
+        .json(&self.commands)?;
+
+        self.fut
+            .replace(Box::pin(self.http.verify(request.build())));
 
         Ok(())
     }

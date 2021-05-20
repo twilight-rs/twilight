@@ -2,13 +2,13 @@ use super::{Client, State};
 use crate::ratelimiting::Ratelimiter;
 use hyper::header::HeaderMap;
 use std::{
-    sync::{atomic::{AtomicBool, AtomicU64, Ordering}, Arc},
+    sync::{
+        atomic::{AtomicBool, AtomicU64, Ordering},
+        Arc,
+    },
     time::Duration,
 };
-use twilight_model::{
-    channel::message::allowed_mentions::AllowedMentions,
-    id::ApplicationId,
-};
+use twilight_model::{channel::message::allowed_mentions::AllowedMentions, id::ApplicationId};
 
 #[derive(Debug)]
 /// A builder for [`Client`].

@@ -19,7 +19,9 @@ impl<'a> GetGuildCommands<'a> {
         application_id: Option<ApplicationId>,
         guild_id: GuildId,
     ) -> Result<Self, InteractionError> {
-        let application_id = application_id.ok_or(InteractionError{ kind: InteractionErrorType::ApplicationIdNotPresent })?;
+        let application_id = application_id.ok_or(InteractionError {
+            kind: InteractionErrorType::ApplicationIdNotPresent,
+        })?;
 
         Ok(Self {
             application_id,
@@ -34,7 +36,7 @@ impl<'a> GetGuildCommands<'a> {
             application_id: self.application_id.0,
             guild_id: self.guild_id.0,
         });
-        
+
         self.fut.replace(Box::pin(self.http.request(request)));
 
         Ok(())

@@ -194,7 +194,9 @@ impl<'a> UpdateWebhookMessage<'a> {
         application_id: Option<ApplicationId>,
         interaction_token: impl Into<String>,
     ) -> Result<Self, InteractionError> {
-        let application_id = application_id.ok_or(InteractionError{ kind: InteractionErrorType::ApplicationIdNotPresent })?;
+        let application_id = application_id.ok_or(InteractionError {
+            kind: InteractionErrorType::ApplicationIdNotPresent,
+        })?;
 
         Ok(Self {
             fields: UpdateWebhookMessageFields {

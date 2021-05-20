@@ -51,11 +51,12 @@ impl InteractionError {
     }
 }
 
-
 impl Display for InteractionError {
     fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
         match self.kind {
-            InteractionErrorType::ApplicationIdNotPresent => f.write_str("application id not present"),
+            InteractionErrorType::ApplicationIdNotPresent => {
+                f.write_str("application id not present")
+            }
         }
     }
 }

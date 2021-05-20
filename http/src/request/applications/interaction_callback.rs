@@ -27,14 +27,14 @@ impl<'a> InteractionCallback<'a> {
     }
 
     fn start(&mut self) -> Result<()> {
-        let request = Request::builder(
-            Route::InteractionCallback {
-                interaction_id: self.interaction_id.0,
-                interaction_token: self.interaction_token.clone(),
-            },
-        ).json(&self.response)?;
-        
-        self.fut.replace(Box::pin(self.http.verify(request.build())));
+        let request = Request::builder(Route::InteractionCallback {
+            interaction_id: self.interaction_id.0,
+            interaction_token: self.interaction_token.clone(),
+        })
+        .json(&self.response)?;
+
+        self.fut
+            .replace(Box::pin(self.http.verify(request.build())));
 
         Ok(())
     }

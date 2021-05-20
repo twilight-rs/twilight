@@ -13,8 +13,9 @@ use crate::{
         },
         applications::{
             CreateGlobalCommand, CreateGuildCommand, DeleteGlobalCommand, DeleteGuildCommand,
-            GetGlobalCommands, GetGuildCommands, InteractionCallback, InteractionError, InteractionErrorType, SetGlobalCommands,
-            SetGuildCommands, UpdateGlobalCommand, UpdateGuildCommand,
+            GetGlobalCommands, GetGuildCommands, InteractionCallback, InteractionError,
+            InteractionErrorType, SetGlobalCommands, SetGuildCommands, UpdateGlobalCommand,
+            UpdateGuildCommand,
         },
         guild::{create_guild::CreateGuildError, create_guild_channel::CreateGuildChannelError},
         prelude::*,
@@ -42,13 +43,13 @@ use std::{
 };
 use tokio::time;
 use twilight_model::{
-    application::{
-        callback::InteractionResponse,
-        command::Command,
-    },
+    application::{callback::InteractionResponse, command::Command},
     channel::message::allowed_mentions::AllowedMentions,
     guild::Permissions,
-    id::{ApplicationId, ChannelId, CommandId, EmojiId, GuildId, InteractionId, IntegrationId, MessageId, RoleId, UserId, WebhookId},
+    id::{
+        ApplicationId, ChannelId, CommandId, EmojiId, GuildId, IntegrationId, InteractionId,
+        MessageId, RoleId, UserId, WebhookId,
+    },
 };
 
 #[cfg(feature = "hyper-rustls")]
@@ -174,7 +175,7 @@ impl Client {
         self.state.token.as_deref()
     }
 
-        /// Retrieve the [`ApplicationId`] used by interaction methods.
+    /// Retrieve the [`ApplicationId`] used by interaction methods.
     pub fn application_id(&self) -> Option<ApplicationId> {
         let id = self.state.application_id.load(Ordering::Relaxed);
 
@@ -1654,7 +1655,7 @@ impl Client {
         DeleteWebhookMessage::new(self, webhook_id, token, message_id)
     }
 
-        /// Respond to an interaction, by ID and token.
+    /// Respond to an interaction, by ID and token.
     pub fn interaction_callback(
         &self,
         interaction_id: InteractionId,
@@ -1695,9 +1696,9 @@ impl Client {
     ) -> Result<ExecuteWebhook<'_>, InteractionError> {
         // Use the application_id as the WebhookId as that is the only difference
         // between this method and execute_webhook.
-        let application_id = self
-            .application_id()
-            .ok_or(InteractionError{ kind: InteractionErrorType::ApplicationIdNotPresent })?;
+        let application_id = self.application_id().ok_or(InteractionError {
+            kind: InteractionErrorType::ApplicationIdNotPresent,
+        })?;
 
         Ok(ExecuteWebhook::new(
             self,
@@ -1718,9 +1719,9 @@ impl Client {
     ) -> Result<UpdateWebhookMessage<'_>, InteractionError> {
         // Use application_id as webhook_id for same reason as
         // given in create_interaction_followup.
-        let application_id = self
-            .application_id()
-            .ok_or(InteractionError{ kind: InteractionErrorType::ApplicationIdNotPresent })?;
+        let application_id = self.application_id().ok_or(InteractionError {
+            kind: InteractionErrorType::ApplicationIdNotPresent,
+        })?;
 
         Ok(UpdateWebhookMessage::new(
             self,
@@ -1738,9 +1739,9 @@ impl Client {
     ) -> Result<DeleteWebhookMessage<'_>, InteractionError> {
         // Use application_id as webhook_id for same reason as
         // given in create_interaction_followup.
-        let application_id = self
-            .application_id()
-            .ok_or(InteractionError{ kind: InteractionErrorType::ApplicationIdNotPresent })?;
+        let application_id = self.application_id().ok_or(InteractionError {
+            kind: InteractionErrorType::ApplicationIdNotPresent,
+        })?;
 
         Ok(DeleteWebhookMessage::new(
             self,

@@ -19,7 +19,9 @@ impl<'a> SetGlobalCommands<'a> {
         application_id: Option<ApplicationId>,
         commands: Vec<Command>,
     ) -> Result<Self, InteractionError> {
-        let application_id = application_id.ok_or(InteractionError{ kind: InteractionErrorType::ApplicationIdNotPresent })?;
+        let application_id = application_id.ok_or(InteractionError {
+            kind: InteractionErrorType::ApplicationIdNotPresent,
+        })?;
 
         Ok(Self {
             commands,
@@ -30,13 +32,13 @@ impl<'a> SetGlobalCommands<'a> {
     }
 
     fn start(&mut self) -> Result<()> {
-        let request = Request::builder(
-            Route::SetGlobalCommands {
-                application_id: self.application_id.0,
-            },
-        ).json(&self.commands)?;
-        
-        self.fut.replace(Box::pin(self.http.verify(request.build())));
+        let request = Request::builder(Route::SetGlobalCommands {
+            application_id: self.application_id.0,
+        })
+        .json(&self.commands)?;
+
+        self.fut
+            .replace(Box::pin(self.http.verify(request.build())));
 
         Ok(())
     }

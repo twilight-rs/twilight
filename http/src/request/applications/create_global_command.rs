@@ -27,7 +27,9 @@ impl<'a> CreateGlobalCommand<'a> {
         name: String,
         description: String,
     ) -> Result<Self, InteractionError> {
-        let application_id = application_id.ok_or(InteractionError{ kind: InteractionErrorType::ApplicationIdNotPresent })?;
+        let application_id = application_id.ok_or(InteractionError {
+            kind: InteractionErrorType::ApplicationIdNotPresent,
+        })?;
 
         Ok(Self {
             command: Command {
@@ -59,13 +61,13 @@ impl<'a> CreateGlobalCommand<'a> {
     }
 
     fn start(&mut self) -> Result<()> {
-        let request = Request::builder(
-            Route::CreateGlobalCommand {
-                application_id: self.application_id.0,
-            },
-        ).json(&self.command)?;
-        
-        self.fut.replace(Box::pin(self.http.verify(request.build())));
+        let request = Request::builder(Route::CreateGlobalCommand {
+            application_id: self.application_id.0,
+        })
+        .json(&self.command)?;
+
+        self.fut
+            .replace(Box::pin(self.http.verify(request.build())));
 
         Ok(())
     }
