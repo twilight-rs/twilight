@@ -11,6 +11,7 @@ use serde_json::Error as JsonError;
 #[cfg(feature = "simd-json")]
 use simd_json::Error as JsonError;
 
+#[deprecated(since = "0.4.1")]
 pub type Result<T, E = Error> = StdResult<T, E>;
 
 #[derive(Debug)]
