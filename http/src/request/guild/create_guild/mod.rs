@@ -25,7 +25,7 @@ pub struct CreateGuildError {
 impl CreateGuildError {
     /// Immutable reference to the type of error that occurred.
     #[must_use = "retrieving the type has no effect if left unused"]
-    pub fn kind(&self) -> &CreateGuildErrorType {
+    pub const fn kind(&self) -> &CreateGuildErrorType {
         &self.kind
     }
 
@@ -145,6 +145,7 @@ pub enum GuildChannelFields {
 }
 
 impl GuildChannelFields {
+    #[allow(clippy::missing_const_for_fn)]
     pub fn id(self) -> ChannelId {
         match self {
             Self::Category(c) => c.id,

@@ -17,7 +17,7 @@ pub struct UpdateChannelError {
 impl UpdateChannelError {
     /// Immutable reference to the type of error that occurred.
     #[must_use = "retrieving the type has no effect if left unused"]
-    pub fn kind(&self) -> &UpdateChannelErrorType {
+    pub const fn kind(&self) -> &UpdateChannelErrorType {
         &self.kind
     }
 

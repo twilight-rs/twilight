@@ -118,7 +118,7 @@ pub enum Method {
 }
 
 impl Method {
-    pub(crate) fn into_hyper(self) -> HyperMethod {
+    pub(crate) const fn into_hyper(self) -> HyperMethod {
         match self {
             Self::Delete => HyperMethod::DELETE,
             Self::Get => HyperMethod::GET,

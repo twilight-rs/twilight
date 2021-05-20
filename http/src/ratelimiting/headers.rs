@@ -23,7 +23,7 @@ pub enum RatelimitHeaders {
 }
 
 impl RatelimitHeaders {
-    pub fn global(&self) -> bool {
+    pub const fn global(&self) -> bool {
         match self {
             Self::GlobalLimited { .. } => true,
             Self::None => false,

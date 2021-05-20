@@ -44,12 +44,12 @@ pub struct Events {
 }
 
 impl Events {
-    pub(super) fn new(event_types: EventTypeFlags, rx: UnboundedReceiver<Event>) -> Self {
+    pub(super) const fn new(event_types: EventTypeFlags, rx: UnboundedReceiver<Event>) -> Self {
         Self { event_types, rx }
     }
 
     /// Returns the event types that can be passed to this stream.
-    pub fn event_types(&self) -> EventTypeFlags {
+    pub const fn event_types(&self) -> EventTypeFlags {
         self.event_types
     }
 }

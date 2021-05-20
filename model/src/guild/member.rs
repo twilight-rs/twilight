@@ -55,7 +55,7 @@ pub struct MemberDeserializer(GuildId);
 impl MemberDeserializer {
     /// Create a new deserializer for a member when you know the ID but the
     /// payload probably doesn't contain it.
-    pub fn new(guild_id: GuildId) -> Self {
+    pub const fn new(guild_id: GuildId) -> Self {
         Self(guild_id)
     }
 }
@@ -102,7 +102,7 @@ pub(crate) struct OptionalMemberDeserializer(GuildId);
 impl OptionalMemberDeserializer {
     /// Create a new deserializer for a member when you know the ID but the
     /// payload probably doesn't contain it.
-    pub fn new(guild_id: GuildId) -> Self {
+    pub const fn new(guild_id: GuildId) -> Self {
         Self(guild_id)
     }
 }
@@ -139,7 +139,7 @@ pub struct MemberListDeserializer(GuildId);
 impl MemberListDeserializer {
     /// Create a new deserializer for a map of members when you know the
     /// Guild ID but the payload probably doesn't contain it.
-    pub fn new(guild_id: GuildId) -> Self {
+    pub const fn new(guild_id: GuildId) -> Self {
         Self(guild_id)
     }
 }

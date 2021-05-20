@@ -32,7 +32,7 @@ pub struct AllowedMentions {
 }
 
 impl AllowedMentions {
-    pub fn builder() -> AllowedMentionsBuilder {
+    pub const fn builder() -> AllowedMentionsBuilder {
         AllowedMentionsBuilder::new()
     }
 }

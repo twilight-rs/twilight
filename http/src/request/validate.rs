@@ -46,7 +46,7 @@ impl EmbedValidationError {
 
     /// Immutable reference to the type of error that occurred.
     #[must_use = "retrieving the type has no effect if left unused"]
-    pub fn kind(&self) -> &EmbedValidationErrorType {
+    pub const fn kind(&self) -> &EmbedValidationErrorType {
         &self.kind
     }
 
@@ -193,27 +193,19 @@ pub enum EmbedValidationErrorType {
     },
 }
 
-pub fn ban_delete_message_days(value: u64) -> bool {
+pub const fn ban_delete_message_days(value: u64) -> bool {
     // <https://discordapp.com/developers/docs/resources/guild#create-guild-ban-query-string-params>
     value <= 7
 }
 
-pub fn channel_name(value: impl AsRef<str>) -> bool {
-    _channel_name(value.as_ref())
-}
-
-fn _channel_name(value: &str) -> bool {
+pub fn channel_name(value: &str) -> bool {
     let len = value.chars().count();
 
     // <https://discordapp.com/developers/docs/resources/channel#channel-object-channel-structure>
     (2..=100).contains(&len)
 }
 
-pub fn content_limit(value: impl AsRef<str>) -> bool {
-    _content_limit(value.as_ref())
-}
-
-fn _content_limit(value: &str) -> bool {
+pub fn content_limit(value: &str) -> bool {
     // <https://discordapp.com/developers/docs/resources/channel#create-message-params>
     value.chars().count() <= 2000
 }
@@ -310,99 +302,79 @@ pub fn embed(embed: &Embed) -> Result<(), EmbedValidationError> {
     Ok(())
 }
 
-pub fn get_audit_log_limit(value: u64) -> bool {
+pub const fn get_audit_log_limit(value: u64) -> bool {
     // <https://discordapp.com/developers/docs/resources/audit-log#get-guild-audit-log-query-string-parameters>
-    (1..=100).contains(&value)
+    value >= 1 && value <= 100
 }
 
-pub fn get_channel_messages_limit(value: u64) -> bool {
+pub const fn get_channel_messages_limit(value: u64) -> bool {
     // <https://discordapp.com/developers/docs/resources/channel#get-channel-messages-query-string-params>
-    (1..=100).contains(&value)
+    value >= 1 && value <= 100
 }
 
-pub fn get_current_user_guilds_limit(value: u64) -> bool {
+pub const fn get_current_user_guilds_limit(value: u64) -> bool {
     // <https://discordapp.com/developers/docs/resources/user#get-current-user-guilds-query-string-params>
-    (1..=100).contains(&value)
+    value >= 1 && value <= 100
 }
 
-pub fn get_guild_members_limit(value: u64) -> bool {
+pub const fn get_guild_members_limit(value: u64) -> bool {
     // <https://discordapp.com/developers/docs/resources/guild#list-guild-members-query-string-params>
-    (1..=1000).contains(&value)
+    value >= 1 && value <= 1000
 }
 
-pub fn search_guild_members_limit(value: u64) -> bool {
+pub const fn search_guild_members_limit(value: u64) -> bool {
     value > 0 && value <= 1000
 }
 
-pub fn get_reactions_limit(value: u64) -> bool {
+pub const fn get_reactions_limit(value: u64) -> bool {
     // <https://discordapp.com/developers/docs/resources/channel#get-reactions-query-string-params>
-    (1..=100).contains(&value)
+    value >= 1 && value <= 100
 }
 
-pub fn guild_name(value: impl AsRef<str>) -> bool {
-    _guild_name(value.as_ref())
-}
-
-fn _guild_name(value: &str) -> bool {
+pub fn guild_name(value: &str) -> bool {
     let len = value.chars().count();
 
     // <https://discordapp.com/developers/docs/resources/guild#guild-object-guild-structure>
     (2..=100).contains(&len)
 }
 
-pub fn guild_prune_days(value: u64) -> bool {
+pub const fn guild_prune_days(value: u64) -> bool {
     // <https://discordapp.com/developers/docs/resources/guild#get-guild-prune-count-query-string-params>
     value > 0 && value <= 30
 }
 
-pub fn invite_max_age(value: u64) -> bool {
+pub const fn invite_max_age(value: u64) -> bool {
     // <https://discord.com/developers/docs/resources/channel#create-channel-invite-json-params>
     value <= 604_800
 }
 
-pub fn invite_max_uses(value: u64) -> bool {
+pub const fn invite_max_uses(value: u64) -> bool {
     // <https://discord.com/developers/docs/resources/channel#create-channel-invite-json-params>
     value <= 100
 }
 
-pub fn nickname(value: impl AsRef<str>) -> bool {
-    _nickname(value.as_ref())
-}
-
-fn _nickname(value: &str) -> bool {
+pub fn nickname(value: &str) -> bool {
     let len = value.chars().count();
 
     // <https://discordapp.com/developers/docs/resources/user#usernames-and-nicknames>
     (1..=32).contains(&len)
 }
 
-pub fn username(value: impl AsRef<str>) -> bool {
-    // <https://discordapp.com/developers/docs/resources/user#usernames-and-nicknames>
-    _username(value.as_ref())
-}
-
-fn _username(value: &str) -> bool {
+pub fn username(value: &str) -> bool {
     let len = value.chars().count();
 
+    // <https://discordapp.com/developers/docs/resources/user#usernames-and-nicknames>
     (2..=32).contains(&len)
 }
 
-pub fn template_name(value: impl AsRef<str>) -> bool {
-    _template_name(value.as_ref())
-}
-
-fn _template_name(value: &str) -> bool {
+pub fn template_name(value: &str) -> bool {
     let len = value.chars().count();
 
     // <https://discord.com/developers/docs/resources/template#create-guild-template-json-params>
     (1..=100).contains(&len)
 }
 
-pub fn template_description(value: impl AsRef<str>) -> bool {
-    _template_name(value.as_ref())
-}
-
-fn _template_description(value: &str) -> bool {
+pub fn template_description(value: &str) -> bool {
     let len = value.chars().count();
 
     // <https://discord.com/developers/docs/resources/template#create-guild-template-json-params>

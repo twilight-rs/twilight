@@ -32,8 +32,20 @@ pub struct Config {
 }
 
 impl Config {
+    /// Create a new default configuration.
+    ///
+    /// Refer to individual getters for their defaults.
+    pub const fn new() -> Self {
+        Self {
+            resource_types: ResourceType::all(),
+            message_cache_size: 100,
+        }
+    }
+
     /// Returns an immutable reference to the message cache size.
-    pub fn message_cache_size(&self) -> usize {
+    ///
+    /// Defaults to 100.
+    pub const fn message_cache_size(&self) -> usize {
         self.message_cache_size
     }
 
@@ -42,7 +54,9 @@ impl Config {
         &mut self.message_cache_size
     }
     /// Returns an immutable reference to the resource types enabled.
-    pub fn resource_types(&self) -> ResourceType {
+    ///
+    /// Defaults to all resource types.
+    pub const fn resource_types(&self) -> ResourceType {
         self.resource_types
     }
 
@@ -54,10 +68,7 @@ impl Config {
 
 impl Default for Config {
     fn default() -> Self {
-        Self {
-            resource_types: ResourceType::all(),
-            message_cache_size: 100,
-        }
+        Self::new()
     }
 }
 

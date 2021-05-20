@@ -14,11 +14,17 @@ pub struct EmbedAuthorBuilder(EmbedAuthor);
 
 impl EmbedAuthorBuilder {
     /// Create a new default embed author builder.
-    pub fn new() -> Self {
-        Self::default()
+    pub const fn new() -> Self {
+        Self(EmbedAuthor {
+            icon_url: None,
+            name: None,
+            proxy_icon_url: None,
+            url: None,
+        })
     }
 
     /// Build into an embed author.
+    #[allow(clippy::missing_const_for_fn)]
     #[must_use = "should be used as part of an embed builder"]
     pub fn build(self) -> EmbedAuthor {
         self.0
@@ -61,12 +67,7 @@ impl EmbedAuthorBuilder {
 
 impl Default for EmbedAuthorBuilder {
     fn default() -> Self {
-        Self(EmbedAuthor {
-            icon_url: None,
-            name: None,
-            proxy_icon_url: None,
-            url: None,
-        })
+        Self::new()
     }
 }
 

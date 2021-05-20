@@ -66,7 +66,7 @@ impl<'a> Parser<'a> {
     }
 
     /// Returns an immutable reference to the configuration.
-    pub fn config(&self) -> &CommandParserConfig<'a> {
+    pub const fn config(&self) -> &CommandParserConfig<'a> {
         &self.config
     }
 

@@ -100,7 +100,7 @@ mod tests {
             }
         }
 
-        fn tokens(kind: ChannelType) -> [Token; 33] {
+        const fn tokens(kind: ChannelType) -> [Token; 33] {
             [
                 Token::Struct {
                     name: "VoiceChannel",

@@ -32,7 +32,7 @@ pub struct SessionSendError {
 
 impl SessionSendError {
     /// Immutable reference to the type of error that occurred.
-    pub fn kind(&self) -> &SessionSendErrorType {
+    pub const fn kind(&self) -> &SessionSendErrorType {
         &self.kind
     }
 }
