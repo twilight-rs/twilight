@@ -1,4 +1,10 @@
-use crate::request::prelude::*;
+use crate::{
+    client::Client,
+    error::Error,
+    request::{Pending, Request},
+    routing::Route,
+};
+use serde::Serialize;
 use twilight_model::{channel::Webhook, id::WebhookId};
 
 #[derive(Default, Serialize)]
@@ -51,7 +57,7 @@ impl<'a> UpdateWebhookWithToken<'a> {
         self
     }
 
-    fn start(&mut self) -> Result<()> {
+    fn start(&mut self) -> Result<(), Error> {
         let request = Request::builder(Route::UpdateWebhook {
             token: Some(self.token.clone()),
             webhook_id: self.webhook_id.0,

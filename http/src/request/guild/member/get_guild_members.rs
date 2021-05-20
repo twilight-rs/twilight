@@ -1,4 +1,9 @@
-use crate::request::prelude::*;
+use crate::{
+    client::Client,
+    error::Error as HttpError,
+    request::{validate, Pending, Request},
+    routing::Route,
+};
 use bytes::Bytes;
 use serde::de::DeserializeSeed;
 use std::{
@@ -151,7 +156,7 @@ impl<'a> GetGuildMembers<'a> {
         self
     }
 
-    fn start(&mut self) -> Result<()> {
+    fn start(&mut self) -> Result<(), HttpError> {
         let request = Request::from_route(Route::GetGuildMembers {
             after: self.fields.after.map(|x| x.0),
             guild_id: self.guild_id.0,
@@ -166,7 +171,7 @@ impl<'a> GetGuildMembers<'a> {
 }
 
 impl Future for GetGuildMembers<'_> {
-    type Output = Result<Vec<Member>>;
+    type Output = Result<Vec<Member>, HttpError>;
 
     fn poll(mut self: Pin<&mut Self>, cx: &mut Context<'_>) -> Poll<Self::Output> {
         if self.fut.is_none() {

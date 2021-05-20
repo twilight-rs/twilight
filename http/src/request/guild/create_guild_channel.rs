@@ -1,4 +1,10 @@
-use crate::request::prelude::*;
+use crate::{
+    client::Client,
+    error::Error as HttpError,
+    request::{self, validate, AuditLogReason, AuditLogReasonError, Pending, Request},
+    routing::Route,
+};
+use serde::Serialize;
 use std::{
     error::Error,
     fmt::{Display, Formatter, Result as FmtResult},
@@ -271,14 +277,14 @@ impl<'a> CreateGuildChannel<'a> {
         self
     }
 
-    fn start(&mut self) -> Result<()> {
+    fn start(&mut self) -> Result<(), HttpError> {
         let mut request = Request::builder(Route::CreateChannel {
             guild_id: self.guild_id.0,
         })
         .json(&self.fields)?;
 
         if let Some(reason) = self.reason.as_ref() {
-            request = request.headers(audit_header(reason)?);
+            request = request.headers(request::audit_header(reason)?);
         }
 
         self.fut

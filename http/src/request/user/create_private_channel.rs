@@ -1,4 +1,10 @@
-use crate::request::prelude::*;
+use crate::{
+    client::Client,
+    error::Error,
+    request::{Pending, Request},
+    routing::Route,
+};
+use serde::Serialize;
 use twilight_model::{channel::PrivateChannel, id::UserId};
 
 #[derive(Serialize)]
@@ -23,7 +29,7 @@ impl<'a> CreatePrivateChannel<'a> {
             http,
         }
     }
-    fn start(&mut self) -> Result<()> {
+    fn start(&mut self) -> Result<(), Error> {
         let request = Request::builder(Route::CreatePrivateChannel)
             .json(&self.fields)?
             .build();
