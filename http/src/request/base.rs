@@ -35,6 +35,7 @@ impl RequestBuilder {
     }
 
     /// Consume the builder, returning the built request.
+    #[allow(clippy::missing_const_for_fn)]
     #[must_use = "request information is not useful on its own and must be acted on"]
     pub fn build(self) -> Request {
         self.0
