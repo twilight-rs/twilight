@@ -99,6 +99,8 @@ pub mod ratelimiting;
 pub mod request;
 pub mod routing;
 
+mod json;
+
 /// Discord API version used by this crate.
 pub const API_VERSION: u8 = 8;
 
@@ -106,23 +108,6 @@ pub use crate::{
     client::Client,
     error::{Error, Result},
 };
-
-#[cfg(not(feature = "simd-json"))]
-use serde_json::Result as JsonResult;
-#[cfg(feature = "simd-json")]
-use simd_json::Result as JsonResult;
-
-pub(crate) fn json_from_slice<'a, T: serde::de::Deserialize<'a>>(s: &'a mut [u8]) -> JsonResult<T> {
-    #[cfg(not(feature = "simd-json"))]
-    return serde_json::from_slice(s);
-    #[cfg(feature = "simd-json")]
-    return simd_json::from_slice(s);
-}
-
-#[cfg(not(feature = "simd-json"))]
-pub(crate) use serde_json::to_vec as json_to_vec;
-#[cfg(feature = "simd-json")]
-pub(crate) use simd_json::to_vec as json_to_vec;
 
 #[cfg(not(any(
     feature = "native",

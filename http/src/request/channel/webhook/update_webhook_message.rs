@@ -375,7 +375,7 @@ impl<'a> UpdateWebhookMessage<'a> {
                 form.file(format!("{}", index).as_bytes(), name.as_bytes(), &file);
             }
 
-            let body = crate::json_to_vec(&self.fields).map_err(HttpError::json)?;
+            let body = crate::json::to_vec(&self.fields).map_err(HttpError::json)?;
             form.payload_json(&body);
 
             request = request.form(form);

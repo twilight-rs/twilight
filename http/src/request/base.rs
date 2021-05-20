@@ -74,7 +74,7 @@ impl RequestBuilder {
     /// [`ErrorType::Json`]: crate::error::ErrorType::Json
     #[must_use = "request has not been fully built"]
     pub fn json(self, to: &impl Serialize) -> Result<Self> {
-        let bytes = crate::json_to_vec(to).map_err(Error::json)?;
+        let bytes = crate::json::to_vec(to).map_err(Error::json)?;
 
         Ok(self.body(bytes))
     }
