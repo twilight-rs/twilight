@@ -2,6 +2,27 @@
 
 Changelog for `twilight-http`.
 
+## [0.4.1] - 2021-05-20
+
+### Upgrade Path
+
+`CreateMessage::attachments` and `CreateMessage::attachment` have been
+deprecated. Use the `files` and `file` methods instead.
+
+### Additions
+
+Add support for sending non-attachment files for reference in embeds in
+`ExecuteWebhook`, `UpdateMessage`, and `UpdateWebhookMessage`, and sending
+attachments in `UpdateMessage` and `UpdateWebhookMessage`
+([#797] - [@7596ff], [@AsianIntel]).
+
+### Fixes
+
+Fix file uploading functionality in `CreateMessage::payload_json` and
+`ExecuteWebhook::payload_json` ([#797] - [@7596ff], [@AsianIntel]).
+
+[#797]: https://github.com/twilight-rs/twilight/pull/797
+
 ## [0.4.0] - 2021-05-12
 
 ### Upgrade Path
@@ -614,6 +635,7 @@ Initial release.
 
 [0.2.0-beta.1:app integrations]: https://github.com/discord/discord-api-docs/commit/a926694e2f8605848bda6b57d21c8817559e5cec
 
+[0.4.1]: https://github.com/twilight-rs/twilight/releases/tag/http-0.4.1
 [0.4.0]: https://github.com/twilight-rs/twilight/releases/tag/http-0.4.0
 [0.3.9]: https://github.com/twilight-rs/twilight/releases/tag/http-v0.3.9
 [0.3.8]: https://github.com/twilight-rs/twilight/releases/tag/http-v0.3.8
