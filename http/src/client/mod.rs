@@ -7,6 +7,10 @@ use crate::{
     error::{Error, ErrorType, Result},
     ratelimiting::{RatelimitHeaders, Ratelimiter},
     request::{
+        channel::stage::{
+            create_stage_instance::CreateStageInstanceError,
+            update_stage_instance::UpdateStageInstanceError,
+        },
         guild::{create_guild::CreateGuildError, create_guild_channel::CreateGuildChannelError},
         prelude::*,
         GetUserApplicationInfo, Method, Request,
@@ -1295,6 +1299,54 @@ impl Client {
         roles: impl Iterator<Item = (RoleId, u64)>,
     ) -> UpdateRolePositions<'_> {
         UpdateRolePositions::new(self, guild_id, roles)
+    }
+
+    /// Create a new stage instance associated with a stage channel.
+    ///
+    /// Requires the user to be a moderator of the stage channel.
+    ///
+    /// # Errors
+    ///
+    /// Returns a [`CreateStageInstanceError`] of type [`InvalidTopic`] when the
+    /// topic is not between 1 and 120 characters in length.
+    ///
+    /// [`InvalidTopic`]: crate::request::channel::stage::create_stage_instance::CreateStageInstanceErrorType::InvalidTopic
+    pub fn create_stage_instance(
+        &self,
+        channel_id: ChannelId,
+        topic: impl Into<String>,
+    ) -> Result<CreateStageInstance<'_>, CreateStageInstanceError> {
+        CreateStageInstance::new(self, channel_id, topic)
+    }
+
+    /// Gets the stage instance associated with a stage channel, if it exists.
+    pub fn stage_instance(&self, channel_id: ChannelId) -> GetStageInstance<'_> {
+        GetStageInstance::new(self, channel_id)
+    }
+
+    /// Update fields of an existing stage instance.
+    ///
+    /// Requires the user to be a moderator of the stage channel.
+    ///
+    /// # Errors
+    ///
+    /// Returns a [`UpdateStageInstanceError`] of type [`InvalidTopic`] when the
+    ///
+    /// [`InvalidTopic`]: crate::request::channel::stage::update_stage_instance::UpdateStageInstanceErrorType::InvalidTopic
+    /// topic is not between 1 and 120 characters in length.
+    pub fn update_stage_instance(
+        &self,
+        channel_id: ChannelId,
+        topic: impl Into<String>,
+    ) -> Result<UpdateStageInstance<'_>, UpdateStageInstanceError> {
+        UpdateStageInstance::new(self, channel_id, topic)
+    }
+
+    /// Delete the stage instance of a stage channel.
+    ///
+    /// Requires the user to be a moderator of the stage channel.
+    pub fn delete_stage_instance(&self, channel_id: ChannelId) -> DeleteStageInstance<'_> {
+        DeleteStageInstance::new(self, channel_id)
     }
 
     /// Create a new guild based on a template.

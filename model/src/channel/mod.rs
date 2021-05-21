@@ -11,6 +11,7 @@ mod group;
 mod private_channel;
 mod reaction;
 mod reaction_type;
+mod stage_instance;
 mod text_channel;
 mod video_quality_mode;
 mod voice_channel;
@@ -21,8 +22,8 @@ pub use self::{
     attachment::Attachment, category_channel::CategoryChannel, channel_mention::ChannelMention,
     channel_type::ChannelType, followed_channel::FollowedChannel, group::Group, message::Message,
     private_channel::PrivateChannel, reaction::Reaction, reaction_type::ReactionType,
-    text_channel::TextChannel, video_quality_mode::VideoQualityMode, voice_channel::VoiceChannel,
-    webhook::Webhook, webhook_type::WebhookType,
+    stage_instance::StageInstance, text_channel::TextChannel, video_quality_mode::VideoQualityMode,
+    voice_channel::VoiceChannel, webhook::Webhook, webhook_type::WebhookType,
 };
 
 use crate::id::{ChannelId, GuildId, MessageId};
