@@ -435,7 +435,9 @@ impl<'a> CreateGuild<'a> {
 
     /// Set the guild's [`SystemChannelFlags`].
     pub fn system_channel_flags(mut self, system_channel_flags: SystemChannelFlags) -> Self {
-        self.fields.system_channel_flags.replace(system_channel_flags);
+        self.fields
+            .system_channel_flags
+            .replace(system_channel_flags);
 
         self
     }
