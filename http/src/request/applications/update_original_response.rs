@@ -1,10 +1,10 @@
-//! Update a message created by a webhook via execution.
+//! Update a original response create for a interaction.
 
 use crate::{
     client::Client,
     error::{Error as HttpError, Result},
     request::{
-        audit_header, validate, AuditLogReason, AuditLogReasonError, Form, Pending, Request,
+        validate, Form, Pending, Request,
     },
     routing::Route,
 };
@@ -15,20 +15,20 @@ use std::{
 };
 use twilight_model::{
     channel::{embed::Embed, message::AllowedMentions, Attachment},
-    id::{MessageId, WebhookId},
+    id::ApplicationId,
 };
 
 /// A webhook's message can not be updated as configured.
 #[derive(Debug)]
-pub struct UpdateWebhookMessageError {
-    kind: UpdateWebhookMessageErrorType,
+pub struct UpdateOriginalResponseError {
+    kind: UpdateOriginalResponseErrorType,
     source: Option<Box<dyn Error + Send + Sync>>,
 }
 
-impl UpdateWebhookMessageError {
+impl UpdateOriginalResponseError {
     /// Immutable reference to the type of error that occurred.
     #[must_use = "retrieving the type has no effect if left unused"]
-    pub const fn kind(&self) -> &UpdateWebhookMessageErrorType {
+    pub fn kind(&self) -> &UpdateOriginalResponseErrorType {
         &self.kind
     }
 
@@ -43,23 +43,23 @@ impl UpdateWebhookMessageError {
     pub fn into_parts(
         self,
     ) -> (
-        UpdateWebhookMessageErrorType,
+        UpdateOriginalResponseErrorType,
         Option<Box<dyn Error + Send + Sync>>,
     ) {
         (self.kind, self.source)
     }
 }
 
-impl Display for UpdateWebhookMessageError {
+impl Display for UpdateOriginalResponseError {
     fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
         match &self.kind {
-            UpdateWebhookMessageErrorType::ContentInvalid { .. } => {
+            UpdateOriginalResponseErrorType::ContentInvalid { .. } => {
                 f.write_str("message content is invalid")
             }
-            UpdateWebhookMessageErrorType::EmbedTooLarge { .. } => {
+            UpdateOriginalResponseErrorType::EmbedTooLarge { .. } => {
                 f.write_str("length of one of the embeds is too large")
             }
-            UpdateWebhookMessageErrorType::TooManyEmbeds { embeds } => f.write_fmt(format_args!(
+            UpdateOriginalResponseErrorType::TooManyEmbeds { embeds } => f.write_fmt(format_args!(
                 "{} embeds were provided, but only 10 may be provided",
                 embeds.len()
             )),
@@ -67,7 +67,7 @@ impl Display for UpdateWebhookMessageError {
     }
 }
 
-impl Error for UpdateWebhookMessageError {
+impl Error for UpdateOriginalResponseError {
     fn source(&self) -> Option<&(dyn Error + 'static)> {
         self.source
             .as_ref()
@@ -75,10 +75,10 @@ impl Error for UpdateWebhookMessageError {
     }
 }
 
-/// Type of [`UpdateWebhookMessageError`] that occurred.
+/// Type of [`UpdateOriginalResponseError`] that occurred.
 #[derive(Debug)]
 #[non_exhaustive]
-pub enum UpdateWebhookMessageErrorType {
+pub enum UpdateOriginalResponseErrorType {
     /// Content is over 2000 UTF-16 characters.
     ContentInvalid {
         /// Provided content.
@@ -105,7 +105,7 @@ pub enum UpdateWebhookMessageErrorType {
 }
 
 #[derive(Default, Serialize)]
-struct UpdateWebhookMessageFields {
+struct UpdateOriginalResponseFields {
     #[serde(skip_serializing_if = "Option::is_none")]
     allowed_mentions: Option<AllowedMentions>,
     #[serde(skip_serializing_if = "Vec::is_empty")]
@@ -124,7 +124,7 @@ struct UpdateWebhookMessageFields {
 ///
 /// A webhook's message must always have at least one embed or some amount of
 /// content. If you wish to delete a webhook's message refer to
-/// [`DeleteWebhookMessage`].
+/// [`DeleteOriginalResponse`].
 ///
 /// # Examples
 ///
@@ -136,13 +136,14 @@ struct UpdateWebhookMessageFields {
 /// # use twilight_http::Client;
 /// use twilight_model::{
 ///     channel::message::AllowedMentions,
-///     id::{MessageId, WebhookId}
+///     id::ApplicationId,
 /// };
 ///
 /// # #[tokio::main]
 /// # async fn main() -> Result<(), Box<dyn std::error::Error>> {
 /// # let client = Client::new("token");
-/// client.update_webhook_message(WebhookId(1), "token here", MessageId(2))
+/// # client.set_application_id(ApplicationId(1));
+/// client.update_interaction_original("token here")?
 ///     // By creating a default set of allowed mentions, no entity can be
 ///     // mentioned.
 ///     .allowed_mentions(AllowedMentions::default())
@@ -151,43 +152,38 @@ struct UpdateWebhookMessageFields {
 /// # Ok(()) }
 /// ```
 ///
-/// [`DeleteWebhookMessage`]: super::DeleteWebhookMessage
-pub struct UpdateWebhookMessage<'a> {
-    fields: UpdateWebhookMessageFields,
+/// [`DeleteOriginalResponse`]: super::DeleteOriginalResponse
+pub struct UpdateOriginalResponse<'a> {
+    application_id: ApplicationId,
+    fields: UpdateOriginalResponseFields,
     files: Vec<(String, Vec<u8>)>,
     fut: Option<Pending<'a, ()>>,
     http: &'a Client,
-    message_id: MessageId,
-    reason: Option<String>,
     token: String,
-    webhook_id: WebhookId,
 }
 
-impl<'a> UpdateWebhookMessage<'a> {
+impl<'a> UpdateOriginalResponse<'a> {
     /// Maximum number of embeds that a webhook's message may have.
     pub const EMBED_COUNT_LIMIT: usize = 10;
 
     pub(crate) fn new(
         http: &'a Client,
-        webhook_id: WebhookId,
-        token: impl Into<String>,
-        message_id: MessageId,
+        application_id: ApplicationId,
+        interaction_token: impl Into<String>,
     ) -> Self {
         Self {
-            fields: UpdateWebhookMessageFields {
+            application_id,
+            fields: UpdateOriginalResponseFields {
                 allowed_mentions: http.default_allowed_mentions(),
-                ..UpdateWebhookMessageFields::default()
+                ..UpdateOriginalResponseFields::default()
             },
             files: Vec::new(),
             fut: None,
             http,
-            message_id,
-            reason: None,
-            token: token.into(),
-            webhook_id,
+            token: interaction_token.into(),
         }
     }
-
+    
     /// Set the allowed mentions in the message.
     pub fn allowed_mentions(mut self, allowed: AllowedMentions) -> Self {
         self.fields.allowed_mentions.replace(allowed);
@@ -228,13 +224,13 @@ impl<'a> UpdateWebhookMessage<'a> {
     ///
     /// # Errors
     ///
-    /// Returns an [`UpdateWebhookMessageErrorType::ContentInvalid`] error type if
+    /// Returns an [`UpdateOriginalResponseErrorType::ContentInvalid`] error type if
     /// the content length is too long.
-    pub fn content(mut self, content: Option<String>) -> Result<Self, UpdateWebhookMessageError> {
+    pub fn content(mut self, content: Option<String>) -> Result<Self, UpdateOriginalResponseError> {
         if let Some(content_ref) = content.as_ref() {
             if !validate::content_limit(content_ref) {
-                return Err(UpdateWebhookMessageError {
-                    kind: UpdateWebhookMessageErrorType::ContentInvalid {
+                return Err(UpdateOriginalResponseError {
+                    kind: UpdateOriginalResponseErrorType::ContentInvalid {
                         content: content.expect("content is known to be some"),
                     },
                     source: None,
@@ -267,17 +263,18 @@ impl<'a> UpdateWebhookMessage<'a> {
     /// ```no_run
     /// # use twilight_http::Client;
     /// use twilight_embed_builder::EmbedBuilder;
-    /// use twilight_model::id::{MessageId, WebhookId};
+    /// use twilight_model::id::ApplicationId;
     ///
     /// # #[tokio::main] async fn main() -> Result<(), Box<dyn std::error::Error>> {
     /// # let client = Client::new("token");
+    /// # client.set_application_id(ApplicationId(1));
     /// let embed = EmbedBuilder::new()
     ///     .description("Powerful, flexible, and scalable ecosystem of Rust libraries for the Discord API.")
     ///     .title("Twilight")
     ///     .url("https://twilight.rs")
     ///     .build()?;
     ///
-    /// client.update_webhook_message(WebhookId(1), "token", MessageId(2))
+    /// client.update_interaction_original("token")?
     ///     .embeds(Some(vec![embed]))?
     ///     .await?;
     /// # Ok(()) }
@@ -285,19 +282,19 @@ impl<'a> UpdateWebhookMessage<'a> {
     ///
     /// # Errors
     ///
-    /// Returns an [`UpdateWebhookMessageErrorType::EmbedTooLarge`] error type
+    /// Returns an [`UpdateOriginalResponseErrorType::EmbedTooLarge`] error type
     /// if one of the embeds are too large.
     ///
-    /// Returns an [`UpdateWebhookMessageErrorType::TooManyEmbeds`] error type
+    /// Returns an [`UpdateOriginalResponseErrorType::TooManyEmbeds`] error type
     /// if more than 10 embeds are provided.
     ///
     /// [the discord docs]: https://discord.com/developers/docs/resources/channel#embed-limits
     /// [`EMBED_COUNT_LIMIT`]: Self::EMBED_COUNT_LIMIT
-    pub fn embeds(mut self, embeds: Option<Vec<Embed>>) -> Result<Self, UpdateWebhookMessageError> {
+    pub fn embeds(mut self, embeds: Option<Vec<Embed>>) -> Result<Self, UpdateOriginalResponseError> {
         if let Some(embeds_present) = embeds.as_deref() {
             if embeds_present.len() > Self::EMBED_COUNT_LIMIT {
-                return Err(UpdateWebhookMessageError {
-                    kind: UpdateWebhookMessageErrorType::TooManyEmbeds {
+                return Err(UpdateOriginalResponseError {
+                    kind: UpdateOriginalResponseErrorType::TooManyEmbeds {
                         embeds: embeds.expect("embeds are known to be present"),
                     },
                     source: None,
@@ -306,8 +303,8 @@ impl<'a> UpdateWebhookMessage<'a> {
 
             for (idx, embed) in embeds_present.iter().enumerate() {
                 if let Err(source) = validate::embed(&embed) {
-                    return Err(UpdateWebhookMessageError {
-                        kind: UpdateWebhookMessageErrorType::EmbedTooLarge {
+                    return Err(UpdateOriginalResponseError {
+                        kind: UpdateOriginalResponseErrorType::EmbedTooLarge {
                             embeds: embeds.expect("embeds are known to be present"),
                             index: idx,
                         },
@@ -359,12 +356,10 @@ impl<'a> UpdateWebhookMessage<'a> {
     }
 
     fn request(&mut self) -> Result<Request> {
-        let mut request = Request::builder(Route::UpdateWebhookMessage {
-            message_id: self.message_id.0,
-            token: self.token.clone(),
-            webhook_id: self.webhook_id.0,
-        })
-        .use_authorization_token(false);
+        let mut request = Request::builder(Route::UpdateInteractionOriginal {
+            application_id: self.application_id.0,
+            interaction_token: self.token.clone(),
+        });
 
         if self.files.is_empty() {
             request = request.json(&self.fields)?;
@@ -375,14 +370,10 @@ impl<'a> UpdateWebhookMessage<'a> {
                 form.file(format!("{}", index).as_bytes(), name.as_bytes(), &file);
             }
 
-            let body = crate::json::to_vec(&self.fields).map_err(HttpError::json)?;
+            let body = crate::json_to_vec(&self.fields).map_err(HttpError::json)?;
             form.payload_json(&body);
 
             request = request.form(form);
-        }
-
-        if let Some(reason) = self.reason.as_ref() {
-            request = request.headers(audit_header(reason)?);
         }
 
         Ok(request.build())
@@ -396,55 +387,4 @@ impl<'a> UpdateWebhookMessage<'a> {
     }
 }
 
-impl<'a> AuditLogReason for UpdateWebhookMessage<'a> {
-    fn reason(mut self, reason: impl Into<String>) -> Result<Self, AuditLogReasonError> {
-        self.reason
-            .replace(AuditLogReasonError::validate(reason.into())?);
-
-        Ok(self)
-    }
-}
-
-poll_req!(UpdateWebhookMessage<'_>, ());
-
-#[cfg(test)]
-mod tests {
-    use super::{UpdateWebhookMessage, UpdateWebhookMessageFields};
-    use crate::{
-        client::Client,
-        request::{AuditLogReason, Request},
-        routing::Route,
-    };
-    use twilight_model::id::{MessageId, WebhookId};
-
-    #[test]
-    fn test_request() {
-        let client = Client::new("token");
-        let mut builder = UpdateWebhookMessage::new(&client, WebhookId(1), "token", MessageId(2))
-            .content(Some("test".to_owned()))
-            .expect("'test' content couldn't be set")
-            .reason("reason")
-            .expect("'reason' is not a valid reason");
-        let actual = builder.request().expect("failed to create request");
-
-        let body = UpdateWebhookMessageFields {
-            allowed_mentions: None,
-            attachments: Vec::new(),
-            content: Some(Some("test".to_owned())),
-            embeds: None,
-            payload_json: None,
-        };
-        let route = Route::UpdateWebhookMessage {
-            message_id: 2,
-            token: "token".to_owned(),
-            webhook_id: 1,
-        };
-        let expected = Request::builder(route)
-            .json(&body)
-            .expect("failed to serialize body")
-            .build();
-
-        assert_eq!(expected.body, actual.body);
-        assert_eq!(expected.path, actual.path);
-    }
-}
+poll_req!(UpdateOriginalResponse<'_>, ());

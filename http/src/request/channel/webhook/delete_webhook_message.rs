@@ -1,14 +1,10 @@
 use crate::{
     client::Client,
     error::Result,
-    request::{
-        self,
-        applications::{InteractionError, InteractionErrorType},
-        AuditLogReason, AuditLogReasonError, Pending, Request,
-    },
+    request::{self, AuditLogReason, AuditLogReasonError, Pending, Request},
     routing::Route,
 };
-use twilight_model::id::{ApplicationId, MessageId, WebhookId};
+use twilight_model::id::{MessageId, WebhookId};
 
 /// Delete a message created by a webhook.
 ///
@@ -31,8 +27,10 @@ use twilight_model::id::{ApplicationId, MessageId, WebhookId};
 pub struct DeleteWebhookMessage<'a> {
     fut: Option<Pending<'a, ()>>,
     http: &'a Client,
+    message_id: MessageId,
     reason: Option<String>,
-    route: Route,
+    token: String,
+    webhook_id: WebhookId,
 }
 
 impl<'a> DeleteWebhookMessage<'a> {
@@ -45,33 +43,11 @@ impl<'a> DeleteWebhookMessage<'a> {
         Self {
             fut: None,
             http,
+            message_id,
             reason: None,
-            route: Route::DeleteWebhookMessage {
-                message_id: message_id.0,
-                token: token.into(),
-                webhook_id: webhook_id.0,
-            },
+            token: token.into(),
+            webhook_id,
         }
-    }
-
-    pub(crate) fn new_interaction(
-        http: &'a Client,
-        application_id: Option<ApplicationId>,
-        interaction_token: impl Into<String>,
-    ) -> Result<Self, InteractionError> {
-        let application_id = application_id.ok_or(InteractionError {
-            kind: InteractionErrorType::ApplicationIdNotPresent,
-        })?;
-
-        Ok(Self {
-            fut: None,
-            http,
-            route: Route::DeleteInteractionOriginal {
-                application_id: application_id.0,
-                interaction_token: interaction_token.into(),
-            },
-            reason: None,
-        })
     }
 
     fn request(&self) -> Result<Request> {

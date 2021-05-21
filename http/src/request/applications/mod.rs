@@ -16,22 +16,26 @@ mod set_global_commands;
 mod update_global_command;
 
 mod interaction_callback;
+mod update_original_response;
+mod delete_original_response;
 
-pub use create_guild_command::CreateGuildCommand;
-pub use delete_guild_command::DeleteGuildCommand;
-pub use get_guild_commands::GetGuildCommands;
-pub use set_guild_commands::SetGuildCommands;
-pub use update_guild_command::UpdateGuildCommand;
+pub use self::create_guild_command::CreateGuildCommand;
+pub use self::delete_guild_command::DeleteGuildCommand;
+pub use self::get_guild_commands::GetGuildCommands;
+pub use self::set_guild_commands::SetGuildCommands;
+pub use self::update_guild_command::UpdateGuildCommand;
 
-pub use create_global_command::CreateGlobalCommand;
-pub use delete_global_command::DeleteGlobalCommand;
-pub use get_global_commands::GetGlobalCommands;
-pub use set_global_commands::SetGlobalCommands;
-pub use update_global_command::UpdateGlobalCommand;
+pub use self::create_global_command::CreateGlobalCommand;
+pub use self::delete_global_command::DeleteGlobalCommand;
+pub use self::get_global_commands::GetGlobalCommands;
+pub use self::set_global_commands::SetGlobalCommands;
+pub use self::update_global_command::UpdateGlobalCommand;
 
-pub use interaction_callback::InteractionCallback;
+pub use self::interaction_callback::InteractionCallback;
+pub use self::update_original_response::UpdateOriginalResponse;
+pub use self::delete_original_response::DeleteOriginalResponse;
 
-/// The error created if the creation of interacion fails.
+/// The error created if the creation of interaction fails.
 #[derive(Debug)]
 pub struct InteractionError {
     pub(crate) kind: InteractionErrorType,

@@ -12,10 +12,10 @@ use crate::{
             update_stage_instance::UpdateStageInstanceError,
         },
         applications::{
-            CreateGlobalCommand, CreateGuildCommand, DeleteGlobalCommand, DeleteGuildCommand,
+            CreateGlobalCommand, CreateGuildCommand, DeleteGlobalCommand, DeleteGuildCommand, DeleteOriginalResponse,
             GetGlobalCommands, GetGuildCommands, InteractionCallback, InteractionError,
             InteractionErrorType, SetGlobalCommands, SetGuildCommands, UpdateGlobalCommand,
-            UpdateGuildCommand,
+            UpdateGuildCommand, UpdateOriginalResponse,
         },
         guild::{create_guild::CreateGuildError, create_guild_channel::CreateGuildChannelError},
         prelude::*,
@@ -1673,16 +1673,24 @@ impl Client {
     pub fn update_interaction_original(
         &self,
         interaction_token: impl Into<String>,
-    ) -> Result<UpdateWebhookMessage<'_>, InteractionError> {
-        UpdateWebhookMessage::new_interaction(self, self.application_id(), interaction_token)
+    ) -> Result<UpdateOriginalResponse<'_>, InteractionError> {
+        let application_id = self.application_id().ok_or(InteractionError {
+            kind: InteractionErrorType::ApplicationIdNotPresent,
+        })?;
+        
+        Ok(UpdateOriginalResponse::new(self, application_id, interaction_token))
     }
 
     /// Delete the original message, by its token.
     pub fn delete_interaction_original(
         &self,
         interaction_token: impl Into<String>,
-    ) -> Result<DeleteWebhookMessage<'_>, InteractionError> {
-        DeleteWebhookMessage::new_interaction(self, self.application_id(), interaction_token)
+    ) -> Result<DeleteOriginalResponse<'_>, InteractionError> {
+        let application_id = self.application_id().ok_or(InteractionError {
+            kind: InteractionErrorType::ApplicationIdNotPresent,
+        })?;
+        
+        Ok(DeleteOriginalResponse::new(self, application_id, interaction_token))
     }
 
     /// Create a followup message, by an interaction token.
