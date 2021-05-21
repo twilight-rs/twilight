@@ -1552,7 +1552,10 @@ impl Client {
     }
 
     /// Get a webhook message by [`WebhookId`], token, and [`MessageId`].
-    pub fn get_webhook_message(
+    ///
+    /// [`WebhookId`]: twilight_model::id::WebhookId
+    /// [`MessageId`]: twilight_model::id::MessageId
+    pub fn webhook_message(
         &self,
         webhook_id: WebhookId,
         token: impl Into<String>,

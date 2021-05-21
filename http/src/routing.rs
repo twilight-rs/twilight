@@ -803,15 +803,14 @@ pub enum Route {
         /// The ID of the webhook.
         webhook_id: u64,
     },
-    /// Route information to get a previously-sent webhook message by webhook ID, token, and
-    /// message ID.
+    /// Route information to get a previously-sent webhook message.
     GetWebhookMessage {
         /// ID of the message.
         message_id: u64,
-        /// ID of the webhook.
-        webhook_id: u64,
         /// Token of the webhook.
         token: String,
+        /// ID of the webhook.
+        webhook_id: u64,
     },
     /// Route information to leave the guild.
     LeaveGuild {

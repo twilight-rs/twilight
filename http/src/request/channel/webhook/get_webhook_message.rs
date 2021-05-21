@@ -4,7 +4,10 @@ use twilight_model::{
     id::{MessageId, WebhookId},
 };
 
-/// Get a webhook message by [`WebhookId`], Token, and [`MessageId`].
+/// Get a webhook message by [`WebhookId`], token, and [`MessageId`].
+///
+/// [`WebhookId`]: twilight_model::id::WebhookId
+/// [`MessageId`]: twilight_model::id::MessageId
 pub struct GetWebhookMessage<'a> {
     fut: Option<PendingOption<'a>>,
     http: &'a Client,
@@ -34,8 +37,8 @@ impl<'a> GetWebhookMessage<'a> {
             .replace(Box::pin(self.http.request_bytes(Request::from(
                 Route::GetWebhookMessage {
                     message_id: self.message_id.0,
-                    webhook_id: self.webhook_id.0,
                     token: self.token.clone(),
+                    webhook_id: self.webhook_id.0,
                 },
             ))));
 
