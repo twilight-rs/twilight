@@ -63,14 +63,13 @@ impl<'a> GetInvite<'a> {
     }
 
     fn start(&mut self) -> Result<()> {
-        self.fut
-            .replace(Box::pin(self.http.request_bytes(Request::from(
-                Route::GetInviteWithExpiration {
-                    code: self.code.clone(),
-                    with_counts: self.fields.with_counts,
-                    with_expiration: self.fields.with_expiration,
-                },
-            ))));
+        let request = Request::from_route(Route::GetInviteWithExpiration {
+            code: self.code.clone(),
+            with_counts: self.fields.with_counts,
+            with_expiration: self.fields.with_expiration,
+        });
+
+        self.fut.replace(Box::pin(self.http.request_bytes(request)));
 
         Ok(())
     }

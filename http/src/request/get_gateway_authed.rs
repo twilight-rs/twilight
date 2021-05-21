@@ -16,9 +16,9 @@ impl<'a> GetGatewayAuthed<'a> {
     }
 
     fn start(&mut self) -> Result<()> {
-        self.fut.replace(Box::pin(
-            self.http.request(Request::from(Route::GetGatewayBot)),
-        ));
+        let request = Request::from_route(Route::GetGatewayBot);
+
+        self.fut.replace(Box::pin(self.http.request(request)));
 
         Ok(())
     }

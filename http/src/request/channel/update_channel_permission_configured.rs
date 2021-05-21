@@ -55,25 +55,17 @@ impl<'a> UpdateChannelPermissionConfigured<'a> {
     }
 
     fn request(&self) -> Result<Request> {
-        Ok(if let Some(reason) = &self.reason {
-            let headers = audit_header(&reason)?;
-            Request::from((
-                crate::json_to_vec(&self.fields).map_err(HttpError::json)?,
-                headers,
-                Route::UpdatePermissionOverwrite {
-                    channel_id: self.channel_id.0,
-                    target_id: self.target_id,
-                },
-            ))
-        } else {
-            Request::from((
-                crate::json_to_vec(&self.fields).map_err(HttpError::json)?,
-                Route::UpdatePermissionOverwrite {
-                    channel_id: self.channel_id.0,
-                    target_id: self.target_id,
-                },
-            ))
+        let mut request = Request::builder(Route::UpdatePermissionOverwrite {
+            channel_id: self.channel_id.0,
+            target_id: self.target_id,
         })
+        .json(&self.fields)?;
+
+        if let Some(reason) = &self.reason {
+            request = request.headers(audit_header(reason)?);
+        }
+
+        Ok(request.build())
     }
 
     fn start(&mut self) -> Result<()> {
@@ -128,7 +120,7 @@ mod tests {
             channel_id: 1,
             target_id: 2,
         };
-        let expected = Request::from((body, route));
+        let expected = Request::builder(route).body(body).build();
 
         assert_eq!(expected.body, actual.body);
         assert_eq!(expected.path, actual.path);

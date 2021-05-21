@@ -18,11 +18,11 @@ impl<'a> GetGuildIntegrations<'a> {
     }
 
     fn start(&mut self) -> Result<()> {
-        self.fut.replace(Box::pin(self.http.request(Request::from(
-            Route::GetGuildIntegrations {
-                guild_id: self.guild_id.0,
-            },
-        ))));
+        let request = Request::from_route(Route::GetGuildIntegrations {
+            guild_id: self.guild_id.0,
+        });
+
+        self.fut.replace(Box::pin(self.http.request(request)));
 
         Ok(())
     }

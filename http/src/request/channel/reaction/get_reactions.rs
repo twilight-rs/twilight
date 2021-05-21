@@ -129,16 +129,16 @@ impl<'a> GetReactions<'a> {
     }
 
     fn start(&mut self) -> Result<()> {
-        self.fut.replace(Box::pin(self.http.request(Request::from(
-            Route::GetReactionUsers {
-                after: self.fields.after.map(|x| x.0),
-                before: self.fields.before.map(|x| x.0),
-                channel_id: self.channel_id.0,
-                emoji: self.emoji.clone(),
-                limit: self.fields.limit,
-                message_id: self.message_id.0,
-            },
-        ))));
+        let request = Request::from_route(Route::GetReactionUsers {
+            after: self.fields.after.map(|x| x.0),
+            before: self.fields.before.map(|x| x.0),
+            channel_id: self.channel_id.0,
+            emoji: self.emoji.clone(),
+            limit: self.fields.limit,
+            message_id: self.message_id.0,
+        });
+
+        self.fut.replace(Box::pin(self.http.request(request)));
 
         Ok(())
     }

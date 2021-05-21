@@ -24,10 +24,11 @@ impl<'a> CreatePrivateChannel<'a> {
         }
     }
     fn start(&mut self) -> Result<()> {
-        self.fut.replace(Box::pin(self.http.request(Request::from((
-            crate::json_to_vec(&self.fields).map_err(HttpError::json)?,
-            Route::CreatePrivateChannel,
-        )))));
+        let request = Request::builder(Route::CreatePrivateChannel)
+            .json(&self.fields)?
+            .build();
+
+        self.fut.replace(Box::pin(self.http.request(request)));
 
         Ok(())
     }

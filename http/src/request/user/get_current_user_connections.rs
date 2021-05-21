@@ -15,9 +15,9 @@ impl<'a> GetCurrentUserConnections<'a> {
     }
 
     fn start(&mut self) -> Result<()> {
-        self.fut.replace(Box::pin(
-            self.http.request(Request::from(Route::GetUserConnections)),
-        ));
+        let request = Request::from_route(Route::GetUserConnections);
+
+        self.fut.replace(Box::pin(self.http.request(request)));
 
         Ok(())
     }

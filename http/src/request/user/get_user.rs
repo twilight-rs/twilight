@@ -18,12 +18,11 @@ impl<'a> GetUser<'a> {
     }
 
     fn start(&mut self) -> Result<()> {
-        self.fut
-            .replace(Box::pin(self.http.request_bytes(Request::from(
-                Route::GetUser {
-                    target_user: self.target_user.clone(),
-                },
-            ))));
+        let request = Request::from_route(Route::GetUser {
+            target_user: self.target_user.clone(),
+        });
+
+        self.fut.replace(Box::pin(self.http.request_bytes(request)));
 
         Ok(())
     }

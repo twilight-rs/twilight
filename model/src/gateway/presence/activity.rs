@@ -1,7 +1,7 @@
 use crate::{
     gateway::presence::{
-        ActivityAssets, ActivityEmoji, ActivityFlags, ActivityParty, ActivitySecrets,
-        ActivityTimestamps, ActivityType,
+        ActivityAssets, ActivityButton, ActivityEmoji, ActivityFlags, ActivityParty,
+        ActivitySecrets, ActivityTimestamps, ActivityType,
     },
     id::ApplicationId,
 };
@@ -13,6 +13,8 @@ pub struct Activity {
     pub application_id: Option<ApplicationId>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub assets: Option<ActivityAssets>,
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub buttons: Vec<ActivityButton>,
     // Introduced with custom statuses.
     pub created_at: Option<u64>,
     #[serde(skip_serializing_if = "Option::is_none")]

@@ -45,6 +45,7 @@ async fn test_shard_command_ratelimit() {
         vec![Activity {
             application_id: None,
             assets: None,
+            buttons: Vec::new(),
             created_at: None,
             details: None,
             emoji: None,
