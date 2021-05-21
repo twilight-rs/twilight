@@ -11,7 +11,7 @@ use crate::{
             create_stage_instance::CreateStageInstanceError,
             update_stage_instance::UpdateStageInstanceError,
         },
-        applications::{
+        application::{
             CreateGlobalCommand, CreateGuildCommand, DeleteGlobalCommand, DeleteGuildCommand,
             DeleteOriginalResponse, GetGlobalCommands, GetGuildCommands, InteractionCallback,
             InteractionError, InteractionErrorType, SetGlobalCommands, SetGuildCommands,
