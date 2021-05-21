@@ -15,9 +15,9 @@ mod get_global_commands;
 mod set_global_commands;
 mod update_global_command;
 
+mod delete_original_response;
 mod interaction_callback;
 mod update_original_response;
-mod delete_original_response;
 
 pub use self::create_guild_command::CreateGuildCommand;
 pub use self::delete_guild_command::DeleteGuildCommand;
@@ -31,9 +31,9 @@ pub use self::get_global_commands::GetGlobalCommands;
 pub use self::set_global_commands::SetGlobalCommands;
 pub use self::update_global_command::UpdateGlobalCommand;
 
+pub use self::delete_original_response::DeleteOriginalResponse;
 pub use self::interaction_callback::InteractionCallback;
 pub use self::update_original_response::UpdateOriginalResponse;
-pub use self::delete_original_response::DeleteOriginalResponse;
 
 /// The error created if the creation of interaction fails.
 #[derive(Debug)]

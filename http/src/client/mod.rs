@@ -12,10 +12,10 @@ use crate::{
             update_stage_instance::UpdateStageInstanceError,
         },
         applications::{
-            CreateGlobalCommand, CreateGuildCommand, DeleteGlobalCommand, DeleteGuildCommand, DeleteOriginalResponse,
-            GetGlobalCommands, GetGuildCommands, InteractionCallback, InteractionError,
-            InteractionErrorType, SetGlobalCommands, SetGuildCommands, UpdateGlobalCommand,
-            UpdateGuildCommand, UpdateOriginalResponse,
+            CreateGlobalCommand, CreateGuildCommand, DeleteGlobalCommand, DeleteGuildCommand,
+            DeleteOriginalResponse, GetGlobalCommands, GetGuildCommands, InteractionCallback,
+            InteractionError, InteractionErrorType, SetGlobalCommands, SetGuildCommands,
+            UpdateGlobalCommand, UpdateGuildCommand, UpdateOriginalResponse,
         },
         guild::{create_guild::CreateGuildError, create_guild_channel::CreateGuildChannelError},
         prelude::*,
@@ -1677,8 +1677,12 @@ impl Client {
         let application_id = self.application_id().ok_or(InteractionError {
             kind: InteractionErrorType::ApplicationIdNotPresent,
         })?;
-        
-        Ok(UpdateOriginalResponse::new(self, application_id, interaction_token))
+
+        Ok(UpdateOriginalResponse::new(
+            self,
+            application_id,
+            interaction_token,
+        ))
     }
 
     /// Delete the original message, by its token.
@@ -1689,8 +1693,12 @@ impl Client {
         let application_id = self.application_id().ok_or(InteractionError {
             kind: InteractionErrorType::ApplicationIdNotPresent,
         })?;
-        
-        Ok(DeleteOriginalResponse::new(self, application_id, interaction_token))
+
+        Ok(DeleteOriginalResponse::new(
+            self,
+            application_id,
+            interaction_token,
+        ))
     }
 
     /// Create a followup message, by an interaction token.

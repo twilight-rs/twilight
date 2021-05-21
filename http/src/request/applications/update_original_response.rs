@@ -3,9 +3,7 @@
 use crate::{
     client::Client,
     error::{Error as HttpError, Result},
-    request::{
-        validate, Form, Pending, Request,
-    },
+    request::{validate, Form, Pending, Request},
     routing::Route,
 };
 use serde::Serialize;
@@ -183,7 +181,7 @@ impl<'a> UpdateOriginalResponse<'a> {
             token: interaction_token.into(),
         }
     }
-    
+
     /// Set the allowed mentions in the message.
     pub fn allowed_mentions(mut self, allowed: AllowedMentions) -> Self {
         self.fields.allowed_mentions.replace(allowed);
@@ -290,7 +288,10 @@ impl<'a> UpdateOriginalResponse<'a> {
     ///
     /// [the discord docs]: https://discord.com/developers/docs/resources/channel#embed-limits
     /// [`EMBED_COUNT_LIMIT`]: Self::EMBED_COUNT_LIMIT
-    pub fn embeds(mut self, embeds: Option<Vec<Embed>>) -> Result<Self, UpdateOriginalResponseError> {
+    pub fn embeds(
+        mut self,
+        embeds: Option<Vec<Embed>>,
+    ) -> Result<Self, UpdateOriginalResponseError> {
         if let Some(embeds_present) = embeds.as_deref() {
             if embeds_present.len() > Self::EMBED_COUNT_LIMIT {
                 return Err(UpdateOriginalResponseError {
