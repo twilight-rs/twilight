@@ -1,7 +1,7 @@
 pub(super) use super::{audit_header, validate, Pending, PendingOption, Request};
 pub use super::{
     audit_reason::{AuditLogReason, AuditLogReasonError},
-    channel::{invite::*, message::*, reaction::*, webhook::*, *},
+    channel::{invite::*, message::*, reaction::*, stage::*, webhook::*, *},
     get_gateway::GetGateway,
     get_gateway_authed::GetGatewayAuthed,
     get_voice_regions::GetVoiceRegions,
