@@ -198,7 +198,7 @@ impl Future for AddGuildMember<'_> {
                     return Poll::Ready(Ok(None));
                 }
 
-                return Poll::Ready(crate::json_from_slice(&mut bytes).map(Some).map_err(
+                return Poll::Ready(crate::json::from_slice(&mut bytes).map(Some).map_err(
                     |source| HttpError {
                         kind: ErrorType::Parsing { body: bytes },
                         source: Some(Box::new(source)),
