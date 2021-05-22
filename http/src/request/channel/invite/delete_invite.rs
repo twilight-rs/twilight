@@ -1,6 +1,12 @@
 use crate::request::prelude::*;
 
 /// Delete an invite by its code.
+///
+/// Requires the [`MANAGE_CHANNELS`] permission on the channel this invite
+/// belongs to, or [`MANAGE_GUILD`] to remove any invite across the guild.
+///
+/// [`MANAGE_CHANNELS`]: twilight_model::guild::Permissions::MANAGE_CHANNELS
+/// [`MANAGE_GUILD`]: twilight_model::guild::Permissions::MANAGE_GUILD
 pub struct DeleteInvite<'a> {
     code: String,
     fut: Option<Pending<'a, ()>>,
