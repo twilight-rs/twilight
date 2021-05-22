@@ -49,6 +49,24 @@ impl InteractionError {
     pub fn kind(&self) -> &InteractionErrorType {
         &self.kind
     }
+
+    /// Consume the error, returning the source error if there is any.
+    #[allow(clippy::unused_self)]
+    #[must_use = "consuming the error and retrieving the source has no effect if left unused"]
+    pub fn into_source(self) -> Option<Box<dyn Error + Send + Sync>> {
+        None
+    }
+
+    /// Consume the error, returning the owned error type and the source error.
+    #[must_use = "consuming the error into its parts has no effect if left unused"]
+    pub fn into_parts(
+        self,
+    ) -> (
+        InteractionErrorType,
+        Option<Box<dyn Error + Send + Sync>>,
+    ) {
+        (self.kind, None)
+    }
 }
 
 impl Display for InteractionError {
