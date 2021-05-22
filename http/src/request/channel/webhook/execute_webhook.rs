@@ -209,6 +209,10 @@ impl<'a> ExecuteWebhook<'a> {
             webhook_id: self.webhook_id.0,
         });
 
+        // Webhook executions don't need the authorization token, only the
+        // webhook token.
+        request = request.use_authorization_token(false);
+
         if !self.files.is_empty() || self.fields.payload_json.is_some() {
             let mut form = Form::new();
 

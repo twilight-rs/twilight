@@ -363,7 +363,8 @@ impl<'a> UpdateWebhookMessage<'a> {
             message_id: self.message_id.0,
             token: self.token.clone(),
             webhook_id: self.webhook_id.0,
-        });
+        })
+        .use_authorization_token(false);
 
         if self.files.is_empty() {
             request = request.json(&self.fields)?;
