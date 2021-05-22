@@ -230,11 +230,18 @@ impl ClusterBuilder {
     }
 }
 
+impl<T: Into<String>> From<(T, Intents)> for ClusterBuilder {
+    fn from((token, intents): (T, Intents)) -> Self {
+        Self::new(token, intents)
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::ClusterBuilder;
+    use crate::Intents;
     use static_assertions::assert_impl_all;
     use std::fmt::Debug;
 
-    assert_impl_all!(ClusterBuilder: Debug, Send, Sync);
+    assert_impl_all!(ClusterBuilder: Debug, From<(String, Intents)>, Send, Sync);
 }
