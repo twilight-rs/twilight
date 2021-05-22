@@ -33,14 +33,15 @@ impl<'a> GetWebhookMessage<'a> {
     }
 
     fn start(&mut self) -> Result<()> {
-        self.fut
-            .replace(Box::pin(self.http.request_bytes(Request::from(
-                Route::GetWebhookMessage {
-                    message_id: self.message_id.0,
-                    token: self.token.clone(),
-                    webhook_id: self.webhook_id.0,
-                },
-            ))));
+        let request = Request::builder(Route::GetWebhookMessage {
+            message_id: self.message_id.0,
+            token: self.token.clone(),
+            webhook_id: self.webhook_id.0,
+        })
+        .use_authorization_token(false)
+        .build();
+
+        self.fut.replace(Box::pin(self.http.request_bytes(request)));
 
         Ok(())
     }
