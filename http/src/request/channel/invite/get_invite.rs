@@ -56,7 +56,7 @@ impl<'a> GetInvite<'a> {
     }
 
     /// Whether the invite returned should contain its expiration date.
-    pub fn with_expiration(mut self) -> Self {
+    pub const fn with_expiration(mut self) -> Self {
         self.fields.with_expiration = true;
 
         self

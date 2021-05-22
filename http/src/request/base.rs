@@ -84,7 +84,7 @@ impl RequestBuilder {
     /// is set.
     ///
     /// This is primarily useful for executing webhooks.
-    pub fn use_authorization_token(mut self, use_authorization_token: bool) -> Self {
+    pub const fn use_authorization_token(mut self, use_authorization_token: bool) -> Self {
         self.0.use_authorization_token = use_authorization_token;
 
         self
