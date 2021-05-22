@@ -1602,6 +1602,7 @@ impl Client {
             method,
             path: bucket,
             path_str: path,
+            use_authorization_token,
         } = request;
 
         let protocol = if self.state.use_http { "http" } else { "https" };
@@ -1614,19 +1615,21 @@ impl Client {
             .method(method.into_hyper())
             .uri(&url);
 
-        if let Some(ref token) = self.state.token {
-            let value = HeaderValue::from_str(&token).map_err(|source| {
-                #[allow(clippy::borrow_interior_mutable_const)]
-                let name = AUTHORIZATION.to_string();
+        if use_authorization_token {
+            if let Some(ref token) = self.state.token {
+                let value = HeaderValue::from_str(&token).map_err(|source| {
+                    #[allow(clippy::borrow_interior_mutable_const)]
+                    let name = AUTHORIZATION.to_string();
 
-                Error {
-                    kind: ErrorType::CreatingHeader { name },
-                    source: Some(Box::new(source)),
+                    Error {
+                        kind: ErrorType::CreatingHeader { name },
+                        source: Some(Box::new(source)),
+                    }
+                })?;
+
+                if let Some(headers) = builder.headers_mut() {
+                    headers.insert(AUTHORIZATION, value);
                 }
-            })?;
-
-            if let Some(headers) = builder.headers_mut() {
-                headers.insert(AUTHORIZATION, value);
             }
         }
 

@@ -78,6 +78,16 @@ impl RequestBuilder {
 
         Ok(self.body(bytes))
     }
+
+    /// Whether to use the client's authorization token in the request, if one
+    /// is set.
+    ///
+    /// This is primarily useful for executing webhooks.
+    pub fn use_authorization_token(mut self, use_authorization_token: bool) -> Self {
+        self.0.use_authorization_token = use_authorization_token;
+
+        self
+    }
 }
 
 #[derive(Debug)]
@@ -94,6 +104,8 @@ pub struct Request {
     pub path: Path,
     /// The URI path to request.
     pub path_str: Cow<'static, str>,
+    /// Whether to use the client's authorization token in the request.
+    pub(crate) use_authorization_token: bool,
 }
 
 impl Request {
@@ -116,6 +128,7 @@ impl Request {
             method,
             path,
             path_str,
+            use_authorization_token: true,
         }
     }
 
@@ -171,7 +184,13 @@ impl Request {
             method,
             path,
             path_str,
+            use_authorization_token: true,
         }
+    }
+
+    /// Whether to use the client's authorization token in the request.
+    pub const fn use_authorization_token(&self) -> bool {
+        self.use_authorization_token
     }
 }
 
@@ -186,6 +205,7 @@ impl From<Route> for Request {
             method,
             path,
             path_str,
+            use_authorization_token: true,
         }
     }
 }
@@ -201,6 +221,7 @@ impl From<(Vec<u8>, Route)> for Request {
             method,
             path,
             path_str,
+            use_authorization_token: true,
         }
     }
 }
@@ -216,6 +237,7 @@ impl From<(Form, Route)> for Request {
             method,
             path,
             path_str,
+            use_authorization_token: true,
         }
     }
 }
@@ -231,6 +253,7 @@ impl From<(Vec<u8>, Form, Route)> for Request {
             method,
             path,
             path_str,
+            use_authorization_token: true,
         }
     }
 }
@@ -246,6 +269,7 @@ impl From<(HeaderMap<HeaderValue>, Route)> for Request {
             method,
             path,
             path_str,
+            use_authorization_token: true,
         }
     }
 }
@@ -261,6 +285,7 @@ impl From<(Vec<u8>, HeaderMap<HeaderValue>, Route)> for Request {
             method,
             path,
             path_str,
+            use_authorization_token: true,
         }
     }
 }
@@ -276,6 +301,7 @@ impl From<(Form, HeaderMap<HeaderValue>, Route)> for Request {
             method,
             path,
             path_str,
+            use_authorization_token: true,
         }
     }
 }

@@ -55,7 +55,8 @@ impl<'a> DeleteWebhookMessage<'a> {
             message_id: self.message_id.0,
             token: self.token.clone(),
             webhook_id: self.webhook_id.0,
-        });
+        })
+        .use_authorization_token(false);
 
         if let Some(reason) = self.reason.as_ref() {
             request = request.headers(request::audit_header(reason)?);
