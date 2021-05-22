@@ -11,7 +11,7 @@ fn shard() -> Result<Shard, Box<dyn Error>> {
 #[ignore]
 #[tokio::test]
 async fn test_shard_event_emits() -> Result<(), Box<dyn Error>> {
-    let mut shard = shard()?;
+    let shard = shard()?;
     let mut events = shard.events();
     shard.start().await?;
 
