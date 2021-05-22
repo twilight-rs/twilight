@@ -1,6 +1,6 @@
 use crate::{
     id::{ChannelId, GuildId, UserId},
-    invite::TargetUserType,
+    invite::TargetType,
     user::User,
 };
 use serde::{Deserialize, Serialize};
@@ -16,7 +16,7 @@ pub struct InviteCreate {
     pub max_age: u64,
     pub max_uses: u64,
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub target_user_type: Option<TargetUserType>,
+    pub target_user_type: Option<TargetType>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub target_user: Option<PartialUser>,
     pub temporary: bool,

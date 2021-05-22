@@ -1,14 +1,15 @@
 mod channel;
 mod guild;
 mod metadata;
-mod target_user_type;
+mod target_type;
 mod welcome_screen;
 
+#[allow(deprecated)]
 pub use self::{
     channel::InviteChannel,
     guild::InviteGuild,
     metadata::InviteMetadata,
-    target_user_type::TargetUserType,
+    target_type::{TargetType, TargetUserType},
     welcome_screen::{WelcomeScreen, WelcomeScreenChannel},
 };
 
@@ -24,11 +25,13 @@ pub struct Invite {
     pub channel: InviteChannel,
     pub code: String,
     #[serde(skip_serializing_if = "Option::is_none")]
+    pub expires_at: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub guild: Option<InviteGuild>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub inviter: Option<User>,
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub target_user_type: Option<TargetUserType>,
+    pub target_type: Option<TargetType>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub target_user: Option<User>,
 }
@@ -36,8 +39,8 @@ pub struct Invite {
 #[cfg(test)]
 mod tests {
     use super::{
-        welcome_screen::WelcomeScreenChannel, Invite, InviteChannel, InviteGuild, TargetUserType,
-        User, WelcomeScreen,
+        welcome_screen::WelcomeScreenChannel, Invite, InviteChannel, InviteGuild, TargetType, User,
+        WelcomeScreen,
     };
     use crate::{
         channel::ChannelType,
@@ -57,9 +60,10 @@ mod tests {
                 name: None,
             },
             code: "uniquecode".to_owned(),
+            expires_at: None,
             guild: None,
             inviter: None,
-            target_user_type: Some(TargetUserType::Stream),
+            target_type: Some(TargetType::Stream),
             target_user: None,
         };
 
@@ -89,7 +93,7 @@ mod tests {
                 Token::StructEnd,
                 Token::Str("code"),
                 Token::Str("uniquecode"),
-                Token::Str("target_user_type"),
+                Token::Str("target_type"),
                 Token::Some,
                 Token::U8(1),
                 Token::StructEnd,
@@ -137,6 +141,7 @@ mod tests {
                     ],
                 }),
             }),
+            expires_at: Some("expires at timestamp".to_owned()),
             inviter: Some(User {
                 avatar: None,
                 bot: false,
@@ -152,7 +157,7 @@ mod tests {
                 system: None,
                 verified: None,
             }),
-            target_user_type: Some(TargetUserType::Stream),
+            target_type: Some(TargetType::Stream),
             target_user: Some(User {
                 avatar: None,
                 bot: false,
@@ -175,7 +180,7 @@ mod tests {
             &[
                 Token::Struct {
                     name: "Invite",
-                    len: 8,
+                    len: 9,
                 },
                 Token::Str("approximate_member_count"),
                 Token::Some,
@@ -196,6 +201,9 @@ mod tests {
                 Token::StructEnd,
                 Token::Str("code"),
                 Token::Str("uniquecode"),
+                Token::Str("expires_at"),
+                Token::Some,
+                Token::Str("expires at timestamp"),
                 Token::Str("guild"),
                 Token::Some,
                 Token::Struct {
@@ -292,7 +300,7 @@ mod tests {
                 Token::Str("username"),
                 Token::Str("test"),
                 Token::StructEnd,
-                Token::Str("target_user_type"),
+                Token::Str("target_type"),
                 Token::Some,
                 Token::U8(1),
                 Token::Str("target_user"),

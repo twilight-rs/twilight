@@ -332,7 +332,11 @@ impl Client {
 
     /// Get the invites for a guild channel.
     ///
-    /// This method only works if the channel is of type `GuildChannel`.
+    /// Requires the [`MANAGE_CHANNELS`] permission. This method only works if
+    /// the channel is of type [`GuildChannel`].
+    ///
+    /// [`MANAGE_CHANNELS`]: twilight_model::guild::Permissions::MANAGE_CHANNELS
+    /// [`GuildChannel`]: twilight_model::channel::GuildChannel
     pub fn channel_invites(&self, channel_id: ChannelId) -> GetChannelInvites<'_> {
         GetChannelInvites::new(self, channel_id)
     }
@@ -727,6 +731,10 @@ impl Client {
     }
 
     /// Get information about the invites of a guild.
+    ///
+    /// Requires the [`MANAGE_GUILD`] permission.
+    ///
+    /// [`MANAGE_GUILD`]: twilight_model::guild::Permissions::MANAGE_GUILD
     pub fn guild_invites(&self, guild_id: GuildId) -> GetGuildInvites<'_> {
         GetGuildInvites::new(self, guild_id)
     }
@@ -962,7 +970,9 @@ impl Client {
 
     /// Get information about an invite by its code.
     ///
-    /// If [`with_counts`] is called, the returned invite will contain approximate member counts.
+    /// If [`with_counts`] is called, the returned invite will contain
+    /// approximate member counts.  If [`with_expiration`] is called, it will
+    /// contain the expiration date.
     ///
     /// # Examples
     ///
@@ -981,11 +991,14 @@ impl Client {
     /// ```
     ///
     /// [`with_counts`]: crate::request::channel::invite::GetInvite::with_counts
+    /// [`with_expiration`]: crate::request::channel::invite::GetInvite::with_expiration
     pub fn invite(&self, code: impl Into<String>) -> GetInvite<'_> {
         GetInvite::new(self, code)
     }
 
     /// Create an invite, with options.
+    ///
+    /// Requires the [`CREATE_INVITE`] permission.
     ///
     /// # Examples
     ///
@@ -1004,11 +1017,19 @@ impl Client {
     ///     .await?;
     /// # Ok(()) }
     /// ```
+    ///
+    /// [`CREATE_INVITE`]: twilight_model::guild::Permissions::CREATE_INVITE
     pub fn create_invite(&self, channel_id: ChannelId) -> CreateInvite<'_> {
         CreateInvite::new(self, channel_id)
     }
 
     /// Delete an invite by its code.
+    ///
+    /// Requires the [`MANAGE_CHANNELS`] permission on the channel this invite
+    /// belongs to, or [`MANAGE_GUILD`] to remove any invite across the guild.
+    ///
+    /// [`MANAGE_CHANNELS`]: twilight_model::guild::Permissions::MANAGE_CHANNELS
+    /// [`MANAGE_GUILD`]: twilight_model::guild::Permissions::MANAGE_GUILD
     pub fn delete_invite(&self, code: impl Into<String>) -> DeleteInvite<'_> {
         DeleteInvite::new(self, code)
     }
