@@ -145,7 +145,7 @@ impl Emitter {
     }
 
     fn send(&self, event: Event) {
-        let _ = self.tx.send(event);
+        let _res = self.tx.send(event);
     }
 }
 
