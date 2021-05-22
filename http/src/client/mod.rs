@@ -1816,7 +1816,7 @@ impl Client {
         let mut bytes = vec![0; buf.remaining()];
         buf.copy_to_slice(&mut bytes);
 
-        let result = crate::json_from_slice(&mut bytes);
+        let result = crate::json::from_slice(&mut bytes);
 
         result.map_err(|source| Error {
             kind: ErrorType::Parsing {
@@ -1884,7 +1884,7 @@ impl Client {
         let mut bytes = vec![0; buf.remaining()];
         buf.copy_to_slice(&mut bytes);
 
-        let error = crate::json_from_slice::<ApiError>(&mut bytes).map_err(|source| Error {
+        let error = crate::json::from_slice::<ApiError>(&mut bytes).map_err(|source| Error {
             kind: ErrorType::Parsing {
                 body: bytes.clone(),
             },

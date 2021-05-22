@@ -63,7 +63,7 @@ impl Future for GetGuildVanityUrl<'_> {
 
                 let mut bytes = bytes.as_ref().to_vec();
                 let vanity_url =
-                    crate::json_from_slice::<VanityUrl>(&mut bytes).map_err(|source| Error {
+                    crate::json::from_slice::<VanityUrl>(&mut bytes).map_err(|source| Error {
                         kind: ErrorType::Parsing {
                             body: bytes.clone(),
                         },

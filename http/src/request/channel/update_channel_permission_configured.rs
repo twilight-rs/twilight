@@ -110,7 +110,7 @@ mod tests {
         );
         let actual = builder.request().expect("failed to create request");
 
-        let body = crate::json_to_vec(&UpdateChannelPermissionConfiguredFields {
+        let body = crate::json::to_vec(&UpdateChannelPermissionConfiguredFields {
             allow: Permissions::empty(),
             deny: Permissions::SEND_MESSAGES,
             kind: PermissionOverwriteTargetType::Member,
