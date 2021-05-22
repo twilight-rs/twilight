@@ -3,22 +3,27 @@ use std::{
     fmt::{Display, Formatter, Result as FmtResult},
 };
 
-mod create_guild_command;
-mod delete_guild_command;
+mod create_followup_message;
 mod create_global_command;
+mod create_guild_command;
+mod delete_followup_message;
 mod delete_global_command;
+mod delete_guild_command;
 mod delete_original_response;
 mod get_global_commands;
 mod get_guild_commands;
 mod interaction_callback;
 mod set_global_commands;
 mod set_guild_commands;
+mod update_followup_message;
 mod update_global_command;
 mod update_guild_command;
 mod update_original_response;
 
+pub use self::create_followup_message::CreateFollowupMessage;
 pub use self::create_global_command::CreateGlobalCommand;
 pub use self::create_guild_command::CreateGuildCommand;
+pub use self::delete_followup_message::DeleteFollowupMessage;
 pub use self::delete_global_command::DeleteGlobalCommand;
 pub use self::delete_guild_command::DeleteGuildCommand;
 pub use self::delete_original_response::DeleteOriginalResponse;
@@ -27,6 +32,7 @@ pub use self::get_guild_commands::GetGuildCommands;
 pub use self::interaction_callback::InteractionCallback;
 pub use self::set_global_commands::SetGlobalCommands;
 pub use self::set_guild_commands::SetGuildCommands;
+pub use self::update_followup_message::UpdateFollowupMessage;
 pub use self::update_global_command::UpdateGlobalCommand;
 pub use self::update_guild_command::UpdateGuildCommand;
 pub use self::update_original_response::UpdateOriginalResponse;

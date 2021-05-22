@@ -12,10 +12,10 @@ use crate::{
             update_stage_instance::UpdateStageInstanceError,
         },
         application::{
-            CreateGlobalCommand, CreateGuildCommand, DeleteGlobalCommand, DeleteGuildCommand,
+            CreateGlobalCommand, CreateGuildCommand, CreateFollowupMessage, DeleteFollowupMessage, DeleteGlobalCommand, DeleteGuildCommand,
             DeleteOriginalResponse, GetGlobalCommands, GetGuildCommands, InteractionCallback,
             InteractionError, InteractionErrorType, SetGlobalCommands, SetGuildCommands,
-            UpdateGlobalCommand, UpdateGuildCommand, UpdateOriginalResponse,
+            UpdateFollowupMessage, UpdateGlobalCommand, UpdateGuildCommand, UpdateOriginalResponse,
         },
         guild::{create_guild::CreateGuildError, create_guild_channel::CreateGuildChannelError},
         prelude::*,
@@ -1706,19 +1706,17 @@ impl Client {
     /// Functions the same as [`execute_webhook`].
     ///
     /// [`execute_webhook`]: Client::execute_webhook
-    pub fn create_interaction_followup(
+    pub fn create_followup_message(
         &self,
         interaction_token: impl Into<String>,
-    ) -> Result<ExecuteWebhook<'_>, InteractionError> {
-        // Use the application_id as the WebhookId as that is the only difference
-        // between this method and execute_webhook.
+    ) -> Result<CreateFollowupMessage<'_>, InteractionError> {
         let application_id = self.application_id().ok_or(InteractionError {
             kind: InteractionErrorType::ApplicationIdNotPresent,
         })?;
 
-        Ok(ExecuteWebhook::new(
+        Ok(CreateFollowupMessage::new(
             self,
-            WebhookId(application_id.0),
+            application_id,
             interaction_token,
         ))
     }
@@ -1728,40 +1726,36 @@ impl Client {
     /// Functions the same as [`update_webhook_message`].
     ///
     /// [`update_webhook_message`]: Client::update_webhook_message
-    pub fn update_interaction_followup(
+    pub fn update_followup_message(
         &self,
         interaction_token: impl Into<String>,
         message_id: MessageId,
-    ) -> Result<UpdateWebhookMessage<'_>, InteractionError> {
-        // Use application_id as webhook_id for same reason as
-        // given in create_interaction_followup.
+    ) -> Result<UpdateFollowupMessage<'_>, InteractionError> {
         let application_id = self.application_id().ok_or(InteractionError {
             kind: InteractionErrorType::ApplicationIdNotPresent,
         })?;
 
-        Ok(UpdateWebhookMessage::new(
+        Ok(UpdateFollowupMessage::new(
             self,
-            WebhookId(application_id.0),
+            application_id,
             interaction_token,
             message_id,
         ))
     }
 
     /// Delete a followup message by interaction token and the message's ID.
-    pub fn delete_interaction_followup(
+    pub fn delete_followup_message(
         &self,
         interaction_token: impl Into<String>,
         message_id: MessageId,
-    ) -> Result<DeleteWebhookMessage<'_>, InteractionError> {
-        // Use application_id as webhook_id for same reason as
-        // given in create_interaction_followup.
+    ) -> Result<DeleteFollowupMessage<'_>, InteractionError> {
         let application_id = self.application_id().ok_or(InteractionError {
             kind: InteractionErrorType::ApplicationIdNotPresent,
         })?;
 
-        Ok(DeleteWebhookMessage::new(
+        Ok(DeleteFollowupMessage::new(
             self,
-            WebhookId(application_id.0),
+            application_id,
             interaction_token,
             message_id,
         ))
