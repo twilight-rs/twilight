@@ -216,7 +216,7 @@ pub enum ErrorCode {
 }
 
 impl ErrorCode {
-    pub fn num(&self) -> u64 {
+    pub const fn num(&self) -> u64 {
         match self {
             Self::GeneralError => 0,
             Self::UnknownAccount => 10001,

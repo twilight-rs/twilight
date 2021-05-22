@@ -14,7 +14,7 @@ pub struct Listener<T> {
 
 impl<T> Listener<T> {
     /// Return whether the listener wants (contains) an event type.
-    pub fn wants(&self, event_type: EventTypeFlags) -> bool {
+    pub const fn wants(&self, event_type: EventTypeFlags) -> bool {
         self.events.contains(event_type)
     }
 }

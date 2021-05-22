@@ -9,8 +9,8 @@ pub struct InMemoryCacheBuilder(Config);
 
 impl InMemoryCacheBuilder {
     /// Creates a builder to configure and construct an [`InMemoryCache`].
-    pub fn new() -> Self {
-        Self::default()
+    pub const fn new() -> Self {
+        Self(Config::new())
     }
 
     /// Consume the builder, returning a configured cache.
@@ -21,7 +21,7 @@ impl InMemoryCacheBuilder {
     /// Sets the list of resource types for the cache to handle.
     ///
     /// Defaults to all types.
-    pub fn resource_types(mut self, resource_types: ResourceType) -> Self {
+    pub const fn resource_types(mut self, resource_types: ResourceType) -> Self {
         self.0.resource_types = resource_types;
 
         self
@@ -30,7 +30,7 @@ impl InMemoryCacheBuilder {
     /// Sets the number of messages to cache per channel.
     ///
     /// Defaults to 100.
-    pub fn message_cache_size(mut self, message_cache_size: usize) -> Self {
+    pub const fn message_cache_size(mut self, message_cache_size: usize) -> Self {
         self.0.message_cache_size = message_cache_size;
 
         self

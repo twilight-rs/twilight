@@ -28,8 +28,11 @@ pub struct CommandParserConfig<'a> {
 
 impl<'a> CommandParserConfig<'a> {
     /// Creates a fresh default configuration with no commands or prefixes.
-    pub fn new() -> Self {
-        Self::default()
+    pub const fn new() -> Self {
+        Self {
+            commands: Vec::new(),
+            prefixes: Vec::new(),
+        }
     }
 
     /// Returns an iterator of immutable references to the commands.

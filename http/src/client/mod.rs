@@ -385,7 +385,10 @@ impl Client {
         GetChannelMessages::new(self, channel_id)
     }
 
-    pub fn delete_channel_permission(&self, channel_id: ChannelId) -> DeleteChannelPermission<'_> {
+    pub const fn delete_channel_permission(
+        &self,
+        channel_id: ChannelId,
+    ) -> DeleteChannelPermission<'_> {
         DeleteChannelPermission::new(self, channel_id)
     }
 
@@ -414,7 +417,7 @@ impl Client {
     ///     .await?;
     /// # Ok(()) }
     /// ```
-    pub fn update_channel_permission(
+    pub const fn update_channel_permission(
         &self,
         channel_id: ChannelId,
         allow: Permissions,

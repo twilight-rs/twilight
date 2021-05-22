@@ -13,7 +13,7 @@ pub struct ParseMentionError<'a> {
 impl<'a> ParseMentionError<'a> {
     /// Immutable reference to the type of error that occurred.
     #[must_use = "retrieving the type has no effect if left unused"]
-    pub fn kind(&self) -> &ParseMentionErrorType<'_> {
+    pub const fn kind(&self) -> &ParseMentionErrorType<'_> {
         &self.kind
     }
 

@@ -33,7 +33,7 @@ pub struct CommandError {
 impl CommandError {
     /// Immutable reference to the type of error that occurred.
     #[must_use = "retrieving the type has no effect if left unused"]
-    pub fn kind(&self) -> &CommandErrorType {
+    pub const fn kind(&self) -> &CommandErrorType {
         &self.kind
     }
 
@@ -124,7 +124,7 @@ pub struct SendError {
 impl SendError {
     /// Immutable reference to the type of error that occurred.
     #[must_use = "retrieving the type has no effect if left unused"]
-    pub fn kind(&self) -> &SendErrorType {
+    pub const fn kind(&self) -> &SendErrorType {
         &self.kind
     }
 
@@ -181,7 +181,7 @@ pub struct ShardStartError {
 impl ShardStartError {
     /// Immutable reference to the type of error that occurred.
     #[must_use = "retrieving the type has no effect if left unused"]
-    pub fn kind(&self) -> &ShardStartErrorType {
+    pub const fn kind(&self) -> &ShardStartErrorType {
         &self.kind
     }
 
@@ -249,7 +249,7 @@ pub struct Information {
 
 impl Information {
     /// Return the ID of the shard.
-    pub fn id(&self) -> u64 {
+    pub const fn id(&self) -> u64 {
         self.id
     }
 
@@ -257,7 +257,7 @@ impl Information {
     ///
     /// This includes the average latency over all time, and the latency
     /// information for the 5 most recent heartbeats.
-    pub fn latency(&self) -> &Latency {
+    pub const fn latency(&self) -> &Latency {
         &self.latency
     }
 
@@ -273,7 +273,7 @@ impl Information {
     /// been connected for a longer time, while a smaller number typically
     /// correlates to meaning that it's been connected for a less amount of
     /// time.
-    pub fn seq(&self) -> u64 {
+    pub const fn seq(&self) -> u64 {
         self.seq
     }
 
@@ -282,7 +282,7 @@ impl Information {
     /// For example, once a shard is fully booted then it will be [`Connected`].
     ///
     /// [`Connected`]: Stage::Connected
-    pub fn stage(&self) -> Stage {
+    pub const fn stage(&self) -> Stage {
         self.stage
     }
 }

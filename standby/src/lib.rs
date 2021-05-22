@@ -120,7 +120,13 @@
 //! [license link]: https://github.com/twilight-rs/twilight/blob/main/LICENSE.md
 //! [rust badge]: https://img.shields.io/badge/rust-1.49+-93450a.svg?style=for-the-badge&logo=rust
 
-#![deny(rust_2018_idioms, broken_intra_doc_links, unused, warnings)]
+#![deny(
+    broken_intra_doc_links,
+    clippy::missing_const_for_fn,
+    rust_2018_idioms,
+    unused,
+    warnings
+)]
 
 mod futures;
 
@@ -790,40 +796,40 @@ impl Standby {
     }
 }
 
-fn event_guild_id(event: &Event) -> Option<GuildId> {
+const fn event_guild_id(event: &Event) -> Option<GuildId> {
     match event {
         Event::BanAdd(e) => Some(e.guild_id),
         Event::BanRemove(e) => Some(e.guild_id),
-        Event::ChannelCreate(e) => channel_guild_id(e),
-        Event::ChannelDelete(e) => channel_guild_id(e),
+        Event::ChannelCreate(e) => channel_guild_id(&e.0),
+        Event::ChannelDelete(e) => channel_guild_id(&e.0),
         Event::ChannelPinsUpdate(_) => None,
-        Event::ChannelUpdate(e) => channel_guild_id(e),
+        Event::ChannelUpdate(e) => channel_guild_id(&e.0),
         Event::GatewayHeartbeatAck => None,
         Event::GatewayHeartbeat(_) => None,
         Event::GatewayHello(_) => None,
         Event::GatewayInvalidateSession(_) => None,
         Event::GatewayReconnect => None,
         Event::GiftCodeUpdate => None,
-        Event::GuildCreate(e) => Some(e.id),
+        Event::GuildCreate(e) => Some(e.0.id),
         Event::GuildDelete(e) => Some(e.id),
         Event::GuildEmojisUpdate(e) => Some(e.guild_id),
         Event::GuildIntegrationsUpdate(e) => Some(e.guild_id),
-        Event::GuildUpdate(e) => Some(e.id),
-        Event::InteractionCreate(e) => e.guild_id(),
+        Event::GuildUpdate(e) => Some(e.0.id),
+        Event::InteractionCreate(e) => e.0.guild_id(),
         Event::InviteCreate(e) => Some(e.guild_id),
         Event::InviteDelete(e) => Some(e.guild_id),
-        Event::MemberAdd(e) => Some(e.guild_id),
+        Event::MemberAdd(e) => Some(e.0.guild_id),
         Event::MemberChunk(e) => Some(e.guild_id),
         Event::MemberRemove(e) => Some(e.guild_id),
         Event::MemberUpdate(e) => Some(e.guild_id),
-        Event::MessageCreate(e) => e.guild_id,
+        Event::MessageCreate(e) => e.0.guild_id,
         Event::MessageDelete(_) => None,
         Event::MessageDeleteBulk(_) => None,
         Event::MessageUpdate(_) => None,
         Event::PresenceUpdate(e) => Some(e.guild_id),
         Event::PresencesReplace => None,
-        Event::ReactionAdd(e) => e.guild_id,
-        Event::ReactionRemove(e) => e.guild_id,
+        Event::ReactionAdd(e) => e.0.guild_id,
+        Event::ReactionRemove(e) => e.0.guild_id,
         Event::ReactionRemoveAll(e) => e.guild_id,
         Event::ReactionRemoveEmoji(e) => Some(e.guild_id),
         Event::Ready(_) => None,
@@ -847,7 +853,7 @@ fn event_guild_id(event: &Event) -> Option<GuildId> {
     }
 }
 
-fn channel_guild_id(channel: &Channel) -> Option<GuildId> {
+const fn channel_guild_id(channel: &Channel) -> Option<GuildId> {
     match channel {
         Channel::Guild(c) => c.guild_id(),
         _ => None,

@@ -47,7 +47,13 @@
 //! [license link]: https://github.com/twilight-rs/twilight/blob/main/LICENSE.md
 //! [rust badge]: https://img.shields.io/badge/rust-1.49+-93450a.svg?style=for-the-badge&logo=rust
 
-#![deny(rust_2018_idioms, broken_intra_doc_links, unused, warnings)]
+#![deny(
+    clippy::missing_const_for_fn,
+    broken_intra_doc_links,
+    rust_2018_idioms,
+    unused,
+    warnings
+)]
 
 pub mod model;
 
@@ -229,7 +235,7 @@ impl InMemoryCache {
     }
 
     /// Create a new builder to configure and construct an in-memory cache.
-    pub fn builder() -> InMemoryCacheBuilder {
+    pub const fn builder() -> InMemoryCacheBuilder {
         InMemoryCacheBuilder::new()
     }
 
@@ -979,7 +985,7 @@ impl InMemoryCache {
     }
 }
 
-fn presence_user_id(presence: &Presence) -> UserId {
+const fn presence_user_id(presence: &Presence) -> UserId {
     match presence.user {
         UserOrId::User(ref u) => u.id,
         UserOrId::UserId { id } => id,

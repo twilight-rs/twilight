@@ -58,7 +58,7 @@ pub enum Channel {
 
 impl Channel {
     /// Return the ID of the inner channel.
-    pub fn id(&self) -> ChannelId {
+    pub const fn id(&self) -> ChannelId {
         match self {
             Self::Group(group) => group.id,
             Self::Guild(guild_channel) => guild_channel.id(),
@@ -91,7 +91,7 @@ pub enum GuildChannel {
 
 impl GuildChannel {
     /// Return the guild ID of the inner guild channel.
-    pub fn guild_id(&self) -> Option<GuildId> {
+    pub const fn guild_id(&self) -> Option<GuildId> {
         match self {
             Self::Category(category) => category.guild_id,
             Self::Text(text) => text.guild_id,
@@ -101,7 +101,7 @@ impl GuildChannel {
     }
 
     /// Return the ID of the inner guild channel.
-    pub fn id(&self) -> ChannelId {
+    pub const fn id(&self) -> ChannelId {
         match self {
             Self::Category(category) => category.id,
             Self::Text(text) => text.id,
@@ -493,7 +493,7 @@ mod tests {
         }
     }
 
-    fn private() -> PrivateChannel {
+    const fn private() -> PrivateChannel {
         PrivateChannel {
             id: ChannelId(234),
             last_message_id: None,

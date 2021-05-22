@@ -73,7 +73,7 @@ pub enum EventType {
 }
 
 impl EventType {
-    pub fn name(self) -> Option<&'static str> {
+    pub const fn name(self) -> Option<&'static str> {
         match self {
             Self::BanAdd => Some("GUILD_BAN_ADD"),
             Self::BanRemove => Some("GUILD_BAN_REMOVE"),
