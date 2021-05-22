@@ -4,7 +4,7 @@ use twilight_model::{
     id::{ApplicationId, GuildId},
 };
 
-/// Fetch all commands for a guild, by ID.
+/// Fetch command permissions for all commands from the current application in a guild.
 pub struct GetGuildCommandPermissions<'a> {
     application_id: ApplicationId,
     guild_id: GuildId,

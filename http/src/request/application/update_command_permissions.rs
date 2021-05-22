@@ -10,7 +10,12 @@ struct UpdateCommandPermissionsFields {
     pub permissions: Vec<CommandPermissions>,
 }
 
-/// Fetch all commands for a guild, by ID.
+/// Update command permissions for a single command in a guild.
+///
+/// # Note:
+///
+/// This overwrites the command permissions so the full set of permissions
+/// have to be sent every time.
 pub struct UpdateCommandPermissions<'a> {
     application_id: ApplicationId,
     command_id: CommandId,

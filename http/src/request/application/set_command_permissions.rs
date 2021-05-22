@@ -11,7 +11,12 @@ struct PartialGuildCommandPermissions {
     permissions: CommandPermissions,
 }
 
-/// Fetch all commands for a guild, by ID.
+/// Update command permissions for all commands in a guild.
+///
+/// # Note:
+///
+/// This overwrites the command permissions so the full set of permissions
+/// have to be sent every time.
 pub struct SetCommandPermissions<'a> {
     application_id: ApplicationId,
     guild_id: GuildId,

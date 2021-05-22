@@ -1948,7 +1948,7 @@ impl Client {
         Ok(SetGlobalCommands::new(&self, application_id, commands))
     }
 
-    /// Fetch command permissions for a command from the current application in a guild
+    /// Fetch command permissions for a command from the current application in a guild.
     pub fn get_command_permissions(
         &self,
         guild_id: GuildId,
@@ -1966,7 +1966,7 @@ impl Client {
         ))
     }
 
-    /// Fetch command permissions for all commands from the current application in a guild
+    /// Fetch command permissions for all commands from the current application in a guild.
     pub fn get_guild_command_permissions(
         &self,
         guild_id: GuildId,
