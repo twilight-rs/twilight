@@ -288,7 +288,7 @@ impl<'a> CreateGuild<'a> {
     /// This must be an ID specified in [`channels`].
     ///
     /// [`channels`]: Self::channels
-    pub fn afk_chanel_id(mut self, afk_channel_id: ChannelId) -> Self {
+    pub fn afk_channel_id(mut self, afk_channel_id: ChannelId) -> Self {
         self.fields.afk_channel_id.replace(afk_channel_id);
 
         self
