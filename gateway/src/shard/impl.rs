@@ -309,7 +309,7 @@ struct ShardRef {
 /// Shards are responsible for handling incoming events, process events relevant
 /// to the operation of shards - such as requests from the gateway to re-connect
 /// or invalidate a session - and then pass the events on to the user via an
-/// [event stream][`events`].
+/// event stream.
 ///
 /// Shards will [go through a queue][`queue`] to initialize new ratelimited
 /// sessions with the ratelimit. Refer to Discord's [documentation][docs:shards]
@@ -358,7 +358,6 @@ struct ShardRef {
 /// # Ok(()) }
 /// ```
 ///
-/// [`events`]: Self::events
 /// [`queue`]: crate::queue
 /// [docs:shards]: https://discord.com/developers/docs/topics/gateway#sharding
 #[derive(Clone, Debug)]
