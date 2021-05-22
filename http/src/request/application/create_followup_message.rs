@@ -1,6 +1,10 @@
 use crate::request::{prelude::*, Form};
 use twilight_model::{
-    channel::{embed::Embed, message::{AllowedMentions, MessageFlags}, Message},
+    channel::{
+        embed::Embed,
+        message::{AllowedMentions, MessageFlags},
+        Message,
+    },
     id::ApplicationId,
 };
 
@@ -58,7 +62,11 @@ pub struct CreateFollowupMessage<'a> {
 }
 
 impl<'a> CreateFollowupMessage<'a> {
-    pub(crate) fn new(http: &'a Client, application_id: ApplicationId, token: impl Into<String>) -> Self {
+    pub(crate) fn new(
+        http: &'a Client,
+        application_id: ApplicationId,
+        token: impl Into<String>,
+    ) -> Self {
         Self {
             fields: CreateFollowupMessageFields::default(),
             files: Vec::new(),
@@ -106,7 +114,7 @@ impl<'a> CreateFollowupMessage<'a> {
         } else {
             self.fields.flags = None;
         }
-        
+
         self
     }
 
@@ -200,7 +208,7 @@ impl<'a> CreateFollowupMessage<'a> {
 
         self
     }
-    
+
     fn start(&mut self) -> Result<()> {
         let mut request = Request::builder(Route::ExecuteWebhook {
             token: self.token.clone(),

@@ -4,7 +4,7 @@ use crate::{
     request::{Pending, Request},
     routing::Route,
 };
-use twilight_model::id::{MessageId, ApplicationId};
+use twilight_model::id::{ApplicationId, MessageId};
 
 /// Delete a followup message created from a interaction.
 ///
@@ -70,12 +70,12 @@ poll_req!(DeleteFollowupMessage<'_>, ());
 mod tests {
     use super::DeleteFollowupMessage;
     use crate::{client::Client, request::Request, routing::Route};
-    use twilight_model::id::{MessageId, ApplicationId};
+    use twilight_model::id::{ApplicationId, MessageId};
 
     #[test]
     fn test_request() {
         let client = Client::new("token");
-        
+
         let builder = DeleteFollowupMessage::new(&client, ApplicationId(1), "token", MessageId(2));
         let actual = builder.request().expect("failed to create request");
 

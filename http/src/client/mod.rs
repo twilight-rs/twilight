@@ -7,15 +7,16 @@ use crate::{
     error::{Error, ErrorType, Result},
     ratelimiting::{RatelimitHeaders, Ratelimiter},
     request::{
+        application::{
+            CreateFollowupMessage, CreateGlobalCommand, CreateGuildCommand, DeleteFollowupMessage,
+            DeleteGlobalCommand, DeleteGuildCommand, DeleteOriginalResponse, GetGlobalCommands,
+            GetGuildCommands, InteractionCallback, InteractionError, InteractionErrorType,
+            SetGlobalCommands, SetGuildCommands, UpdateFollowupMessage, UpdateGlobalCommand,
+            UpdateGuildCommand, UpdateOriginalResponse,
+        },
         channel::stage::{
             create_stage_instance::CreateStageInstanceError,
             update_stage_instance::UpdateStageInstanceError,
-        },
-        application::{
-            CreateGlobalCommand, CreateGuildCommand, CreateFollowupMessage, DeleteFollowupMessage, DeleteGlobalCommand, DeleteGuildCommand,
-            DeleteOriginalResponse, GetGlobalCommands, GetGuildCommands, InteractionCallback,
-            InteractionError, InteractionErrorType, SetGlobalCommands, SetGuildCommands,
-            UpdateFollowupMessage, UpdateGlobalCommand, UpdateGuildCommand, UpdateOriginalResponse,
         },
         guild::{create_guild::CreateGuildError, create_guild_channel::CreateGuildChannelError},
         prelude::*,

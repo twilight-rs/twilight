@@ -65,12 +65,7 @@ impl InteractionError {
 
     /// Consume the error, returning the owned error type and the source error.
     #[must_use = "consuming the error into its parts has no effect if left unused"]
-    pub fn into_parts(
-        self,
-    ) -> (
-        InteractionErrorType,
-        Option<Box<dyn Error + Send + Sync>>,
-    ) {
+    pub fn into_parts(self) -> (InteractionErrorType, Option<Box<dyn Error + Send + Sync>>) {
         (self.kind, None)
     }
 }

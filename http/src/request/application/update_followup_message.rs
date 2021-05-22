@@ -3,9 +3,7 @@
 use crate::{
     client::Client,
     error::{Error as HttpError, Result},
-    request::{
-        validate, Form, Pending, Request,
-    },
+    request::{validate, Form, Pending, Request},
     routing::Route,
 };
 use serde::Serialize;
@@ -15,7 +13,7 @@ use std::{
 };
 use twilight_model::{
     channel::{embed::Embed, message::AllowedMentions, Attachment},
-    id::{MessageId, ApplicationId},
+    id::{ApplicationId, MessageId},
 };
 
 /// A followup message can not be updated as configured.
@@ -293,7 +291,10 @@ impl<'a> UpdateFollowupMessage<'a> {
     ///
     /// [the discord docs]: https://discord.com/developers/docs/resources/channel#embed-limits
     /// [`EMBED_COUNT_LIMIT`]: Self::EMBED_COUNT_LIMIT
-    pub fn embeds(mut self, embeds: Option<Vec<Embed>>) -> Result<Self, UpdateFollowupMessageError> {
+    pub fn embeds(
+        mut self,
+        embeds: Option<Vec<Embed>>,
+    ) -> Result<Self, UpdateFollowupMessageError> {
         if let Some(embeds_present) = embeds.as_deref() {
             if embeds_present.len() > Self::EMBED_COUNT_LIMIT {
                 return Err(UpdateFollowupMessageError {
