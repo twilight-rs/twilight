@@ -345,10 +345,10 @@ impl<'a> UpdateOriginalResponse<'a> {
     ///
     /// If this method is called, all other fields are ignored, except for
     /// [`file`]. See [Discord Docs/Create Message] and
-    /// [`ExecuteWebhook::payload_json`].
+    /// [`CreateFollowupMessage::payload_json`].
     ///
     /// [`file`]: Self::file
-    /// [`ExecuteWebhook::payload_json`]: super::ExecuteWebhook::payload_json
+    /// [`CreateFollowupMessage::payload_json`]: super::CreateFollowupMessage::payload_json
     /// [Discord Docs/Create Message]: https://discord.com/developers/docs/resources/channel#create-message-params
     pub fn payload_json(mut self, payload_json: impl Into<Vec<u8>>) -> Self {
         self.fields.payload_json.replace(payload_json.into());

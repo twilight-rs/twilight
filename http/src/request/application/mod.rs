@@ -32,10 +32,10 @@ pub use self::get_guild_commands::GetGuildCommands;
 pub use self::interaction_callback::InteractionCallback;
 pub use self::set_global_commands::SetGlobalCommands;
 pub use self::set_guild_commands::SetGuildCommands;
-pub use self::update_followup_message::UpdateFollowupMessage;
+pub use self::update_followup_message::{UpdateFollowupMessage, UpdateFollowupMessageError, UpdateFollowupMessageErrorType};
 pub use self::update_global_command::UpdateGlobalCommand;
 pub use self::update_guild_command::UpdateGuildCommand;
-pub use self::update_original_response::UpdateOriginalResponse;
+pub use self::update_original_response::{UpdateOriginalResponse, UpdateOriginalResponseError, UpdateOriginalResponseErrorType};
 
 /// The error created if the creation of interaction fails.
 #[derive(Debug)]
