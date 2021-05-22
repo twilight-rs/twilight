@@ -102,12 +102,12 @@ impl<'a> CreateStageInstance<'a> {
     }
 
     fn start(&mut self) -> Result<()> {
-        self.fut.replace(Box::pin(self.http.verify(Request::from(
-            Route::CreateStageInstance {
-                channel_id: self.channel_id.0,
-                topic: self.topic.clone(),
-            },
-        ))));
+        let request = Request::from_route(Route::CreateStageInstance {
+            channel_id: self.channel_id.0,
+            topic: self.topic.clone(),
+        });
+
+        self.fut.replace(Box::pin(self.http.verify(request)));
 
         Ok(())
     }
