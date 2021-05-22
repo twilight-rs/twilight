@@ -72,17 +72,20 @@ impl Emitter {
         (Self { event_types, tx }, rx)
     }
 
-    /// Return whether the listener wants an event type.
+    /// Whether the configured event types include an individual event type.
     #[inline]
     pub const fn wants(&self, event_type: EventTypeFlags) -> bool {
         self.event_types.contains(event_type)
     }
 
-    /// Send some bytes to the listener if it hassubscribed to shard payloads.
+    /// Send some bytes to the listener if it has subscribed to
+    /// [`EventTypeFlags::SHARD_PAYLOAD`].
     ///
     /// Shard payload events aren't subscribed to by default and must be opted
     /// in to. If the listener has subscribed to them, then the input bytes will
     /// be cloned. This means that for most users, this will be a cheap check.
+    ///
+    /// [`EventTypeFlags::SHARD_PAYLOAD`]: crate::EventTypeFlags::SHARD_PAYLOAD
     #[tracing::instrument(level = "trace")]
     pub fn bytes(&self, bytes: &[u8]) {
         if self.wants(EventTypeFlags::SHARD_PAYLOAD) {
