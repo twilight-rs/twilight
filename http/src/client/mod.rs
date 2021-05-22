@@ -9,9 +9,10 @@ use crate::{
     request::{
         application::{
             CreateFollowupMessage, CreateGlobalCommand, CreateGuildCommand, DeleteFollowupMessage,
-            DeleteGlobalCommand, DeleteGuildCommand, DeleteOriginalResponse, GetGlobalCommands,
-            GetGuildCommands, InteractionCallback, InteractionError, InteractionErrorType,
-            SetGlobalCommands, SetGuildCommands, UpdateFollowupMessage, UpdateGlobalCommand,
+            DeleteGlobalCommand, DeleteGuildCommand, DeleteOriginalResponse, GetCommandPermissions,
+            GetGlobalCommands, GetGuildCommandPermissions, GetGuildCommands, InteractionCallback,
+            InteractionError, InteractionErrorType, SetCommandPermissions, SetGlobalCommands,
+            SetGuildCommands, UpdateCommandPermissions, UpdateFollowupMessage, UpdateGlobalCommand,
             UpdateGuildCommand, UpdateOriginalResponse,
         },
         channel::stage::{
@@ -44,7 +45,10 @@ use std::{
 };
 use tokio::time;
 use twilight_model::{
-    application::{callback::InteractionResponse, command::Command},
+    application::{
+        callback::InteractionResponse,
+        command::{permissions::CommandPermissions, Command},
+    },
     channel::message::allowed_mentions::AllowedMentions,
     guild::Permissions,
     id::{
@@ -1887,6 +1891,88 @@ impl Client {
         commands: Vec<Command>,
     ) -> Result<SetGlobalCommands<'_>, InteractionError> {
         SetGlobalCommands::new(&self, self.application_id(), commands)
+    }
+
+    /// Fetch command permissions for a command from the current application in a guild
+    pub fn get_command_permissions(
+        &self,
+        guild_id: GuildId,
+        command_id: CommandId,
+    ) -> Result<GetCommandPermissions<'_>, InteractionError> {
+        let application_id = self.application_id().ok_or(InteractionError {
+            kind: InteractionErrorType::ApplicationIdNotPresent,
+        })?;
+
+        Ok(GetCommandPermissions::new(
+            &self,
+            application_id,
+            guild_id,
+            command_id,
+        ))
+    }
+
+    /// Fetch command permissions for all commands from the current application in a guild
+    pub fn get_guild_command_permissions(
+        &self,
+        guild_id: GuildId,
+    ) -> Result<GetGuildCommandPermissions<'_>, InteractionError> {
+        let application_id = self.application_id().ok_or(InteractionError {
+            kind: InteractionErrorType::ApplicationIdNotPresent,
+        })?;
+
+        Ok(GetGuildCommandPermissions::new(
+            &self,
+            application_id,
+            guild_id,
+        ))
+    }
+
+    /// Update command permissions for a single command in a guild.
+    ///
+    /// # Note:
+    ///
+    /// This overwrites the command permissions so the full set of permissions
+    /// have to be sent every time.
+    pub fn update_command_permissions(
+        &self,
+        guild_id: GuildId,
+        command_id: CommandId,
+        permissions: Vec<CommandPermissions>,
+    ) -> Result<UpdateCommandPermissions<'_>, InteractionError> {
+        let application_id = self.application_id().ok_or(InteractionError {
+            kind: InteractionErrorType::ApplicationIdNotPresent,
+        })?;
+
+        Ok(UpdateCommandPermissions::new(
+            &self,
+            application_id,
+            guild_id,
+            command_id,
+            permissions,
+        ))
+    }
+
+    /// Update command permissions for all commands in a guild.
+    ///
+    /// # Note:
+    ///
+    /// This overwrites the command permissions so the full set of permissions
+    /// have to be sent every time.
+    pub fn set_command_permissions(
+        &self,
+        guild_id: GuildId,
+        permissions: impl Iterator<Item = (CommandId, CommandPermissions)>,
+    ) -> Result<SetCommandPermissions<'_>, InteractionError> {
+        let application_id = self.application_id().ok_or(InteractionError {
+            kind: InteractionErrorType::ApplicationIdNotPresent,
+        })?;
+
+        Ok(SetCommandPermissions::new(
+            &self,
+            application_id,
+            guild_id,
+            permissions,
+        ))
     }
 
     /// Execute a request, returning the response.

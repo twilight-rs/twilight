@@ -210,8 +210,12 @@ impl FromStr for Path {
         Ok(match parts.as_slice() {
             ["applications", id, "commands"] => ApplicationCommand(parse_id(id)?),
             ["applications", id, "commands", _] => ApplicationCommandId(parse_id(id)?),
-            ["applications", id, "guilds", _, "commands"] => ApplicationGuildCommand(parse_id(id)?),
-            ["applications", id, "guilds", _, "commands", _] => {
+            ["applications", id, "guilds", _, "commands"]
+            | ["applications", id, "guilds", _, "commands", "permissions"] => {
+                ApplicationGuildCommand(parse_id(id)?)
+            }
+            ["applications", id, "guilds", _, "commands", _]
+            | ["applications", id, "guilds", _, "commands", _, "permissions"] => {
                 ApplicationGuildCommandId(parse_id(id)?)
             }
             ["channels", id] => ChannelsId(parse_id(id)?),
@@ -650,6 +654,15 @@ pub enum Route {
         /// The ID of the guild.
         guild_id: u64,
     },
+    /// Route information to get permissions of a specific guild command.
+    GetCommandPermissions {
+        /// The ID of the application.
+        application_id: u64,
+        /// The ID of the command.
+        command_id: u64,
+        /// The ID of the guild.
+        guild_id: u64,
+    },
     /// Route information to get info about application the current bot user belongs to
     GetCurrentUserApplicationInfo,
     /// Route information to get an emoji by ID within a guild.
@@ -680,6 +693,13 @@ pub enum Route {
         /// Whether to include approximate member and presence counts for the
         /// guild.
         with_counts: bool,
+    },
+    /// Route information to get permsiions of all guild commands
+    GetGuildCommandPermissions {
+        /// The ID of the application.
+        application_id: u64,
+        /// The ID of the guild.
+        guild_id: u64,
     },
     /// Route information to get guild commands.
     GetGuildCommands {
@@ -918,6 +938,13 @@ pub enum Route {
         /// Query to search by.
         query: String,
     },
+    /// Route information to set permissions of commands in a guild.
+    SetCommandPermissions {
+        /// The ID of the owner application.
+        application_id: u64,
+        /// The ID of the guild.
+        guild_id: u64,
+    },
     /// Route information to set global commands.
     SetGlobalCommands {
         /// The ID of the owner application.
@@ -955,6 +982,15 @@ pub enum Route {
     UpdateChannel {
         /// The ID of the channel.
         channel_id: u64,
+    },
+    /// Route information to edit permission of a command in a guild.
+    UpdateCommandPermissions {
+        /// The ID of the application.
+        application_id: u64,
+        /// The ID of the command.
+        command_id: u64,
+        /// The ID of the guild.
+        guild_id: u64,
     },
     /// Route information to update the current user.
     UpdateCurrentUser,
@@ -1502,6 +1538,19 @@ impl Route {
                 Path::GuildsIdChannels(guild_id),
                 format!("guilds/{}/channels", guild_id).into(),
             ),
+            Self::GetCommandPermissions {
+                application_id,
+                command_id,
+                guild_id,
+            } => (
+                Method::Get,
+                Path::ApplicationGuildCommandId(application_id),
+                format!(
+                    "/applications/{}/guilds/{}/commands/{}/permissions",
+                    application_id, guild_id, command_id
+                )
+                .into(),
+            ),
             Self::GetCurrentUserApplicationInfo => (
                 Method::Get,
                 Path::OauthApplicationsMe,
@@ -1533,6 +1582,18 @@ impl Route {
                 }
                 (Method::Get, Path::GuildsId(guild_id), path.into())
             }
+            Self::GetGuildCommandPermissions {
+                application_id,
+                guild_id,
+            } => (
+                Method::Get,
+                Path::ApplicationGuildCommand(application_id),
+                format!(
+                    "/applications/{}/guilds/{}/commands/permissions",
+                    application_id, guild_id
+                )
+                .into(),
+            ),
             Self::GetGuildCommands {
                 application_id,
                 guild_id,
@@ -1865,6 +1926,18 @@ impl Route {
                     path.into(),
                 )
             }
+            Self::SetCommandPermissions {
+                application_id,
+                guild_id,
+            } => (
+                Method::Put,
+                Path::ApplicationGuildCommand(application_id),
+                format!(
+                    "/applications/{}/guilds/{}/commands/permissions",
+                    application_id, guild_id
+                )
+                .into(),
+            ),
             Self::SetGlobalCommands { application_id } => (
                 Method::Put,
                 Path::ApplicationCommand(application_id),
@@ -1910,6 +1983,19 @@ impl Route {
                 Method::Patch,
                 Path::ChannelsId(channel_id),
                 format!("channels/{}", channel_id).into(),
+            ),
+            Self::UpdateCommandPermissions {
+                application_id,
+                command_id,
+                guild_id,
+            } => (
+                Method::Put,
+                Path::ApplicationGuildCommandId(application_id),
+                format!(
+                    "/applications/{}/guilds/{}/commands/{}/permissions",
+                    application_id, guild_id, command_id
+                )
+                .into(),
             ),
             Self::UpdateCurrentUser => (Method::Patch, Path::UsersId, "users/@me".into()),
             Self::UpdateCurrentUserVoiceState { guild_id } => (

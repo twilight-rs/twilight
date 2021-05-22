@@ -10,11 +10,15 @@ mod delete_followup_message;
 mod delete_global_command;
 mod delete_guild_command;
 mod delete_original_response;
+mod get_command_permissions;
 mod get_global_commands;
+mod get_guild_command_permissions;
 mod get_guild_commands;
 mod interaction_callback;
+mod set_command_permissions;
 mod set_global_commands;
 mod set_guild_commands;
+mod update_command_permissions;
 mod update_followup_message;
 mod update_global_command;
 mod update_guild_command;
@@ -27,15 +31,23 @@ pub use self::delete_followup_message::DeleteFollowupMessage;
 pub use self::delete_global_command::DeleteGlobalCommand;
 pub use self::delete_guild_command::DeleteGuildCommand;
 pub use self::delete_original_response::DeleteOriginalResponse;
+pub use self::get_command_permissions::GetCommandPermissions;
 pub use self::get_global_commands::GetGlobalCommands;
+pub use self::get_guild_command_permissions::GetGuildCommandPermissions;
 pub use self::get_guild_commands::GetGuildCommands;
 pub use self::interaction_callback::InteractionCallback;
+pub use self::set_command_permissions::SetCommandPermissions;
 pub use self::set_global_commands::SetGlobalCommands;
 pub use self::set_guild_commands::SetGuildCommands;
-pub use self::update_followup_message::{UpdateFollowupMessage, UpdateFollowupMessageError, UpdateFollowupMessageErrorType};
+pub use self::update_command_permissions::UpdateCommandPermissions;
+pub use self::update_followup_message::{
+    UpdateFollowupMessage, UpdateFollowupMessageError, UpdateFollowupMessageErrorType,
+};
 pub use self::update_global_command::UpdateGlobalCommand;
 pub use self::update_guild_command::UpdateGuildCommand;
-pub use self::update_original_response::{UpdateOriginalResponse, UpdateOriginalResponseError, UpdateOriginalResponseErrorType};
+pub use self::update_original_response::{
+    UpdateOriginalResponse, UpdateOriginalResponseError, UpdateOriginalResponseErrorType,
+};
 
 /// The error created if the creation of interaction fails.
 #[derive(Debug)]
