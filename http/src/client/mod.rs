@@ -1820,8 +1820,13 @@ impl Client {
         let application_id = self.application_id().ok_or(InteractionError {
             kind: InteractionErrorType::ApplicationIdNotPresent,
         })?;
-        
-        Ok(UpdateGuildCommand::new(&self, application_id, guild_id, command_id))
+
+        Ok(UpdateGuildCommand::new(
+            &self,
+            application_id,
+            guild_id,
+            command_id,
+        ))
     }
 
     /// Delete a command in a guild, by ID.
@@ -1833,8 +1838,13 @@ impl Client {
         let application_id = self.application_id().ok_or(InteractionError {
             kind: InteractionErrorType::ApplicationIdNotPresent,
         })?;
-        
-        Ok(DeleteGuildCommand::new(&self, application_id, guild_id, command_id))
+
+        Ok(DeleteGuildCommand::new(
+            &self,
+            application_id,
+            guild_id,
+            command_id,
+        ))
     }
 
     /// Set a guild's commands.
@@ -1849,8 +1859,13 @@ impl Client {
         let application_id = self.application_id().ok_or(InteractionError {
             kind: InteractionErrorType::ApplicationIdNotPresent,
         })?;
-        
-        Ok(SetGuildCommands::new(&self, application_id, guild_id, commands))
+
+        Ok(SetGuildCommands::new(
+            &self,
+            application_id,
+            guild_id,
+            commands,
+        ))
     }
 
     /// Create a new global command.
@@ -1869,7 +1884,7 @@ impl Client {
         let application_id = self.application_id().ok_or(InteractionError {
             kind: InteractionErrorType::ApplicationIdNotPresent,
         })?;
-        
+
         Ok(CreateGlobalCommand::new(
             &self,
             application_id,
@@ -1883,7 +1898,7 @@ impl Client {
         let application_id = self.application_id().ok_or(InteractionError {
             kind: InteractionErrorType::ApplicationIdNotPresent,
         })?;
-        
+
         Ok(GetGlobalCommands::new(&self, application_id))
     }
 
@@ -1900,7 +1915,7 @@ impl Client {
         let application_id = self.application_id().ok_or(InteractionError {
             kind: InteractionErrorType::ApplicationIdNotPresent,
         })?;
-        
+
         Ok(UpdateGlobalCommand::new(&self, application_id, command_id))
     }
 
@@ -1912,7 +1927,7 @@ impl Client {
         let application_id = self.application_id().ok_or(InteractionError {
             kind: InteractionErrorType::ApplicationIdNotPresent,
         })?;
-        
+
         Ok(DeleteGlobalCommand::new(&self, application_id, command_id))
     }
 
@@ -1929,7 +1944,7 @@ impl Client {
         let application_id = self.application_id().ok_or(InteractionError {
             kind: InteractionErrorType::ApplicationIdNotPresent,
         })?;
-        
+
         Ok(SetGlobalCommands::new(&self, application_id, commands))
     }
 

@@ -13,11 +13,7 @@ pub struct GetGuildCommands<'a> {
 }
 
 impl<'a> GetGuildCommands<'a> {
-    pub(crate) fn new(
-        http: &'a Client,
-        application_id: ApplicationId,
-        guild_id: GuildId,
-    ) -> Self {
+    pub(crate) fn new(http: &'a Client, application_id: ApplicationId, guild_id: GuildId) -> Self {
         Self {
             application_id,
             guild_id,

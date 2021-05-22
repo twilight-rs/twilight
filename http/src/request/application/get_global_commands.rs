@@ -9,10 +9,7 @@ pub struct GetGlobalCommands<'a> {
 }
 
 impl<'a> GetGlobalCommands<'a> {
-    pub(crate) fn new(
-        http: &'a Client,
-        application_id: ApplicationId,
-    ) -> Self {
+    pub(crate) fn new(http: &'a Client, application_id: ApplicationId) -> Self {
         Self {
             application_id,
             fut: None,
