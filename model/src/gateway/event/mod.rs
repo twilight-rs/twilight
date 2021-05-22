@@ -136,7 +136,7 @@ pub enum Event {
 }
 
 impl Event {
-    pub fn kind(&self) -> EventType {
+    pub const fn kind(&self) -> EventType {
         match self {
             Self::BanAdd(_) => EventType::BanAdd,
             Self::BanRemove(_) => EventType::BanRemove,
@@ -266,20 +266,24 @@ impl From<ShardEvent> for Event {
     }
 }
 
-/// An error that describes a failure to convert
-/// from one event type to another.
+/// An error that describes a failure to convert from one event type to another.
 #[derive(Debug)]
 pub struct EventConversionError {
-    /// The original event
     event: Event,
 }
 
 impl EventConversionError {
-    pub fn new(event: Event) -> EventConversionError {
+    pub const fn new(event: Event) -> EventConversionError {
         Self { event }
     }
 
-    /// Get the original event
+    /// Return an immutable reference to the original event.
+    pub const fn event_ref(&self) -> &Event {
+        &self.event
+    }
+
+    /// Consume the error, returning the original event.
+    #[allow(clippy::missing_const_for_fn)]
     pub fn into_event(self) -> Event {
         self.event
     }

@@ -17,7 +17,7 @@ pub struct CreateGuildPruneError {
 impl CreateGuildPruneError {
     /// Immutable reference to the type of error that occurred.
     #[must_use = "retrieving the type has no effect if left unused"]
-    pub fn kind(&self) -> &CreateGuildPruneErrorType {
+    pub const fn kind(&self) -> &CreateGuildPruneErrorType {
         &self.kind
     }
 

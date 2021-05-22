@@ -11,7 +11,7 @@ pub enum CaseSensitivity {
 }
 
 impl CaseSensitivity {
-    pub fn is_sensitive(&self) -> bool {
+    pub const fn is_sensitive(&self) -> bool {
         matches!(self, Self::Sensitive(_))
     }
 }

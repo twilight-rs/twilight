@@ -64,11 +64,12 @@ pub struct Emitter {
 
 impl Emitter {
     /// Create a new emitter for events and bytes.
-    pub fn new(listeners: Listeners<Event>) -> Self {
+    pub const fn new(listeners: Listeners<Event>) -> Self {
         Self { listeners }
     }
 
     /// Consume the emitter, returning the inner listeners.
+    #[allow(clippy::missing_const_for_fn)]
     pub fn into_listeners(self) -> Listeners<Event> {
         self.listeners
     }

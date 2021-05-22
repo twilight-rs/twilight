@@ -23,7 +23,7 @@ impl Config {
     /// Refer to [`ClusterBuilder::http_client`] for the default value.
     ///
     /// [`ClusterBuilder::http_client`]: super::ClusterBuilder::http_client
-    pub fn http_client(&self) -> &Client {
+    pub const fn http_client(&self) -> &Client {
         &self.http_client
     }
 
@@ -33,7 +33,7 @@ impl Config {
     /// Refer to [`ShardBuilder`]'s methods for the default values.
     ///
     /// [`ShardBuilder`]: crate::shard::ShardBuilder#impl
-    pub fn shard_config(&self) -> &ShardConfig {
+    pub const fn shard_config(&self) -> &ShardConfig {
         &self.shard_config
     }
 
@@ -42,7 +42,7 @@ impl Config {
     /// Refer to [`ClusterBuilder::shard_scheme`] for the default value.
     ///
     /// [`ClusterBuilder::shard_scheme`]: super::ClusterBuilder::shard_scheme
-    pub fn shard_scheme(&self) -> &ShardScheme {
+    pub const fn shard_scheme(&self) -> &ShardScheme {
         &self.shard_scheme
     }
 

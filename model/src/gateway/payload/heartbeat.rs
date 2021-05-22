@@ -8,7 +8,7 @@ pub struct Heartbeat {
 }
 
 impl Heartbeat {
-    pub fn new(seq: u64) -> Self {
+    pub const fn new(seq: u64) -> Self {
         Self {
             d: seq,
             op: OpCode::Heartbeat,

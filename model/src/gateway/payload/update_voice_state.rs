@@ -42,7 +42,7 @@ impl UpdateVoiceStateInfo {
         Self::_new(guild_id.into(), channel_id.into(), self_deaf, self_mute)
     }
 
-    fn _new(
+    const fn _new(
         guild_id: GuildId,
         channel_id: Option<ChannelId>,
         self_deaf: bool,

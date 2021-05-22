@@ -26,7 +26,7 @@ impl<'a> GetGuild<'a> {
 
     /// Sets if you want to receive `approximate_member_count` and `approximate_presence_count` in
     /// the guild structure.
-    pub fn with_counts(mut self, with: bool) -> Self {
+    pub const fn with_counts(mut self, with: bool) -> Self {
         self.fields.with_counts = with;
 
         self

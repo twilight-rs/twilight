@@ -11,7 +11,7 @@ pub struct DeleteChannelPermission<'a> {
 }
 
 impl<'a> DeleteChannelPermission<'a> {
-    pub(crate) fn new(http: &'a Client, channel_id: ChannelId) -> Self {
+    pub(crate) const fn new(http: &'a Client, channel_id: ChannelId) -> Self {
         Self { channel_id, http }
     }
 

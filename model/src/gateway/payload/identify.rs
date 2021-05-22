@@ -9,7 +9,7 @@ pub struct Identify {
 }
 
 impl Identify {
-    pub fn new(info: IdentifyInfo) -> Self {
+    pub const fn new(info: IdentifyInfo) -> Self {
         Self {
             d: info,
             op: OpCode::Identify,

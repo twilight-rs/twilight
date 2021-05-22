@@ -49,14 +49,14 @@ impl<'a> GetInvite<'a> {
     }
 
     /// Whether the invite returned should contain approximate member counts.
-    pub fn with_counts(mut self) -> Self {
+    pub const fn with_counts(mut self) -> Self {
         self.fields.with_counts = true;
 
         self
     }
 
     /// Whether the invite returned should contain its expiration date.
-    pub fn with_expiration(mut self) -> Self {
+    pub const fn with_expiration(mut self) -> Self {
         self.fields.with_expiration = true;
 
         self

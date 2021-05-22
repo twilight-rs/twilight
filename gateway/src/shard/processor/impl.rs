@@ -93,7 +93,7 @@ struct ProcessError {
 }
 
 impl ProcessError {
-    fn fatal(&self) -> bool {
+    const fn fatal(&self) -> bool {
         matches!(
             self.kind,
             ProcessErrorType::SendingClose { .. } | ProcessErrorType::SessionSend { .. }
@@ -159,7 +159,7 @@ struct ReceivingEventError {
 }
 
 impl ReceivingEventError {
-    fn fatal(&self) -> bool {
+    const fn fatal(&self) -> bool {
         matches!(
             self.kind,
             ReceivingEventErrorType::AuthorizationInvalid { .. }
@@ -168,7 +168,7 @@ impl ReceivingEventError {
         )
     }
 
-    fn reconnectable(&self) -> bool {
+    const fn reconnectable(&self) -> bool {
         #[cfg(feature = "compression")]
         {
             matches!(self.kind, ReceivingEventErrorType::Decompressing)
@@ -179,7 +179,7 @@ impl ReceivingEventError {
         }
     }
 
-    fn resumable(&self) -> bool {
+    const fn resumable(&self) -> bool {
         matches!(self.kind, ReceivingEventErrorType::EventStreamEnded)
     }
 }

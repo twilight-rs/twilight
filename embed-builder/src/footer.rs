@@ -23,7 +23,7 @@ impl EmbedFooterBuilder {
         Self::_new(text.into())
     }
 
-    fn _new(text: String) -> Self {
+    const fn _new(text: String) -> Self {
         Self(EmbedFooter {
             icon_url: None,
             proxy_icon_url: None,
@@ -32,6 +32,7 @@ impl EmbedFooterBuilder {
     }
 
     /// Build into an embed footer.
+    #[allow(clippy::missing_const_for_fn)]
     #[must_use = "should be used as part of an embed builder"]
     pub fn build(self) -> EmbedFooter {
         self.0

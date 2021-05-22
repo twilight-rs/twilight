@@ -106,7 +106,7 @@ impl ClientBuilder {
     /// Set the timeout for HTTP requests.
     ///
     /// The default is 10 seconds.
-    pub fn timeout(mut self, duration: Duration) -> Self {
+    pub const fn timeout(mut self, duration: Duration) -> Self {
         self.timeout = duration;
 
         self

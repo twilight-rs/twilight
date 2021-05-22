@@ -46,7 +46,7 @@ impl<'a, T> MentionIter<'a, T> {
 
     /// Return an immutable reference to the underlying buffer of the iterator.
     #[must_use]
-    pub fn as_str(&self) -> &'a str {
+    pub const fn as_str(&self) -> &'a str {
         self.buf
     }
 }

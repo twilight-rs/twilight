@@ -22,7 +22,7 @@ pub struct CreateMessageError {
 impl CreateMessageError {
     /// Immutable reference to the type of error that occurred.
     #[must_use = "retrieving the type has no effect if left unused"]
-    pub fn kind(&self) -> &CreateMessageErrorType {
+    pub const fn kind(&self) -> &CreateMessageErrorType {
         &self.kind
     }
 

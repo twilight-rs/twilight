@@ -22,7 +22,7 @@ pub struct EmbedError {
 impl EmbedError {
     /// Immutable reference to the type of error that occurred.
     #[must_use = "retrieving the type has no effect if left unused"]
-    pub fn kind(&self) -> &EmbedErrorType {
+    pub const fn kind(&self) -> &EmbedErrorType {
         &self.kind
     }
 
@@ -229,8 +229,22 @@ impl EmbedBuilder {
     ///
     /// [crate-level documentation]: crate
     /// [default implementation]: Self::default
-    pub fn new() -> Self {
-        Self::default()
+    pub const fn new() -> Self {
+        EmbedBuilder(Embed {
+            author: None,
+            color: None,
+            description: None,
+            fields: Vec::new(),
+            footer: None,
+            image: None,
+            kind: String::new(),
+            provider: None,
+            thumbnail: None,
+            timestamp: None,
+            title: None,
+            url: None,
+            video: None,
+        })
     }
 
     /// Build this into an embed.
@@ -446,6 +460,10 @@ impl EmbedBuilder {
             return Err(EmbedError {
                 kind: EmbedErrorType::TotalContentTooLarge { length: total },
             });
+        }
+
+        if self.0.kind.is_empty() {
+            self.0.kind = "rich".to_string();
         }
 
         Ok(self.0)
@@ -713,21 +731,7 @@ impl Default for EmbedBuilder {
     ///
     /// All embeds have a "rich" type.
     fn default() -> Self {
-        EmbedBuilder(Embed {
-            author: None,
-            color: None,
-            description: None,
-            fields: Vec::new(),
-            footer: None,
-            image: None,
-            kind: String::from("rich"),
-            provider: None,
-            thumbnail: None,
-            timestamp: None,
-            title: None,
-            url: None,
-            video: None,
-        })
+        Self::new()
     }
 }
 
