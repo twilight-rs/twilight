@@ -1,4 +1,3 @@
-use super::{InteractionError, InteractionErrorType};
 use crate::request::prelude::*;
 use twilight_model::id::{ApplicationId, CommandId, GuildId};
 
@@ -13,21 +12,17 @@ pub struct DeleteGuildCommand<'a> {
 impl<'a> DeleteGuildCommand<'a> {
     pub(crate) fn new(
         http: &'a Client,
-        application_id: Option<ApplicationId>,
+        application_id: ApplicationId,
         guild_id: GuildId,
         command_id: CommandId,
-    ) -> Result<Self, InteractionError> {
-        let application_id = application_id.ok_or(InteractionError {
-            kind: InteractionErrorType::ApplicationIdNotPresent,
-        })?;
-
-        Ok(Self {
+    ) -> Self {
+        Self {
             application_id,
             command_id,
             fut: None,
             guild_id,
             http,
-        })
+        }
     }
 
     fn start(&mut self) -> Result<()> {

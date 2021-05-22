@@ -1,4 +1,3 @@
-use super::{InteractionError, InteractionErrorType};
 use crate::request::prelude::*;
 use twilight_model::{
     application::command::{Command, CommandOption},
@@ -23,15 +22,11 @@ pub struct CreateGlobalCommand<'a> {
 impl<'a> CreateGlobalCommand<'a> {
     pub(crate) fn new(
         http: &'a Client,
-        application_id: Option<ApplicationId>,
+        application_id: ApplicationId,
         name: String,
         description: String,
-    ) -> Result<Self, InteractionError> {
-        let application_id = application_id.ok_or(InteractionError {
-            kind: InteractionErrorType::ApplicationIdNotPresent,
-        })?;
-
-        Ok(Self {
+    ) -> Self {
+        Self {
             command: Command {
                 application_id: Some(application_id),
                 name,
@@ -43,7 +38,7 @@ impl<'a> CreateGlobalCommand<'a> {
             application_id,
             fut: None,
             http,
-        })
+        }
     }
 
     /// Add a command option.

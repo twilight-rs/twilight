@@ -1781,13 +1781,17 @@ impl Client {
         name: impl Into<String>,
         description: impl Into<String>,
     ) -> Result<CreateGuildCommand<'_>, InteractionError> {
-        CreateGuildCommand::new(
+        let application_id = self.application_id().ok_or(InteractionError {
+            kind: InteractionErrorType::ApplicationIdNotPresent,
+        })?;
+
+        Ok(CreateGuildCommand::new(
             &self,
-            self.application_id(),
+            application_id,
             guild_id,
             name.into(),
             description.into(),
-        )
+        ))
     }
 
     /// Fetch all commands for a guild, by ID.
@@ -1795,7 +1799,11 @@ impl Client {
         &self,
         guild_id: GuildId,
     ) -> Result<GetGuildCommands<'_>, InteractionError> {
-        GetGuildCommands::new(&self, self.application_id(), guild_id)
+        let application_id = self.application_id().ok_or(InteractionError {
+            kind: InteractionErrorType::ApplicationIdNotPresent,
+        })?;
+
+        Ok(GetGuildCommands::new(&self, application_id, guild_id))
     }
 
     /// Edit a command in a guild, by ID.
@@ -1809,7 +1817,11 @@ impl Client {
         guild_id: GuildId,
         command_id: CommandId,
     ) -> Result<UpdateGuildCommand<'_>, InteractionError> {
-        UpdateGuildCommand::new(&self, self.application_id(), guild_id, command_id)
+        let application_id = self.application_id().ok_or(InteractionError {
+            kind: InteractionErrorType::ApplicationIdNotPresent,
+        })?;
+        
+        Ok(UpdateGuildCommand::new(&self, application_id, guild_id, command_id))
     }
 
     /// Delete a command in a guild, by ID.
@@ -1818,7 +1830,11 @@ impl Client {
         guild_id: GuildId,
         command_id: CommandId,
     ) -> Result<DeleteGuildCommand<'_>, InteractionError> {
-        DeleteGuildCommand::new(&self, self.application_id(), guild_id, command_id)
+        let application_id = self.application_id().ok_or(InteractionError {
+            kind: InteractionErrorType::ApplicationIdNotPresent,
+        })?;
+        
+        Ok(DeleteGuildCommand::new(&self, application_id, guild_id, command_id))
     }
 
     /// Set a guild's commands.
@@ -1830,7 +1846,11 @@ impl Client {
         guild_id: GuildId,
         commands: Vec<Command>,
     ) -> Result<SetGuildCommands<'_>, InteractionError> {
-        SetGuildCommands::new(&self, self.application_id(), guild_id, commands)
+        let application_id = self.application_id().ok_or(InteractionError {
+            kind: InteractionErrorType::ApplicationIdNotPresent,
+        })?;
+        
+        Ok(SetGuildCommands::new(&self, application_id, guild_id, commands))
     }
 
     /// Create a new global command.
@@ -1846,17 +1866,25 @@ impl Client {
         name: impl Into<String>,
         description: impl Into<String>,
     ) -> Result<CreateGlobalCommand<'_>, InteractionError> {
-        CreateGlobalCommand::new(
+        let application_id = self.application_id().ok_or(InteractionError {
+            kind: InteractionErrorType::ApplicationIdNotPresent,
+        })?;
+        
+        Ok(CreateGlobalCommand::new(
             &self,
-            self.application_id(),
+            application_id,
             name.into(),
             description.into(),
-        )
+        ))
     }
 
     /// Fetch all global commands for your app.
     pub fn get_global_commands(&self) -> Result<GetGlobalCommands<'_>, InteractionError> {
-        GetGlobalCommands::new(&self, self.application_id())
+        let application_id = self.application_id().ok_or(InteractionError {
+            kind: InteractionErrorType::ApplicationIdNotPresent,
+        })?;
+        
+        Ok(GetGlobalCommands::new(&self, application_id))
     }
 
     /// Edit a global command, by ID.
@@ -1869,7 +1897,11 @@ impl Client {
         &self,
         command_id: CommandId,
     ) -> Result<UpdateGlobalCommand<'_>, InteractionError> {
-        UpdateGlobalCommand::new(&self, self.application_id(), command_id)
+        let application_id = self.application_id().ok_or(InteractionError {
+            kind: InteractionErrorType::ApplicationIdNotPresent,
+        })?;
+        
+        Ok(UpdateGlobalCommand::new(&self, application_id, command_id))
     }
 
     /// Delete a global command, by ID.
@@ -1877,7 +1909,11 @@ impl Client {
         &self,
         command_id: CommandId,
     ) -> Result<DeleteGlobalCommand<'_>, InteractionError> {
-        DeleteGlobalCommand::new(&self, self.application_id(), command_id)
+        let application_id = self.application_id().ok_or(InteractionError {
+            kind: InteractionErrorType::ApplicationIdNotPresent,
+        })?;
+        
+        Ok(DeleteGlobalCommand::new(&self, application_id, command_id))
     }
 
     /// Set global commands.
@@ -1890,7 +1926,11 @@ impl Client {
         &self,
         commands: Vec<Command>,
     ) -> Result<SetGlobalCommands<'_>, InteractionError> {
-        SetGlobalCommands::new(&self, self.application_id(), commands)
+        let application_id = self.application_id().ok_or(InteractionError {
+            kind: InteractionErrorType::ApplicationIdNotPresent,
+        })?;
+        
+        Ok(SetGlobalCommands::new(&self, application_id, commands))
     }
 
     /// Fetch command permissions for a command from the current application in a guild
