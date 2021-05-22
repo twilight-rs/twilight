@@ -39,6 +39,10 @@ pub enum ErrorCode {
     UnknownEmoji,
     /// Unknown webhook
     UnknownWebhook,
+    /// Unknown webhook service
+    UnknownWebhookService,
+    /// Unknown session
+    UnknownSession,
     /// Unknown ban
     UnknownBan,
     /// Unknown SKU
@@ -54,8 +58,12 @@ pub enum ErrorCode {
     UnknownLobby,
     /// Unknown branch
     UnknownBranch,
+    /// Unknown store directory layout
+    UnknownStoreDirectoryLayout,
     /// Unknown redistributable
     UnknownRedistributable,
+    /// Unknown gift code
+    UnknownGiftCode,
     /// Unknown guild template
     UnknownGuildTemplate,
     /// Unknown interaction
@@ -64,6 +72,14 @@ pub enum ErrorCode {
     BotsCannotUseEndpoint,
     /// Only bots can use this endpoint
     OnlyBotsCanUseEndpoint,
+    /// Explicit content cannot be sent to the desired recipient(s)
+    ExplicitContentSendingBlocked,
+    /// You are not authorized to perform this action on this application
+    UnauthorizedApplicationAction,
+    /// This action cannot be performed due to slowmode rate limit
+    SlowModeRateLimitReached,
+    /// Only the owner of this account can perform this action
+    NotAccountOwner,
     /// Message cannot be edited due to announcement rate limits
     AnnouncementRateLimitReached,
     /// The channel you are writing has hit the write rate limit
@@ -74,10 +90,14 @@ pub enum ErrorCode {
     MaximumFriendsReached,
     /// Maximum number of pins reached for the channel (50)
     MaximumPinsReached,
+    /// Maximum number of recipients reached (10)
+    MaximumRecipientsReached,
     /// Maximum number of guild roles reached (250)
     MaximumRolesReached,
     /// Maximum number of webhooks reached (10)
     MaximumWebhooksReached,
+    /// Maximum number of emojis reached
+    MaximumEmojisReached,
     /// Maximum number of reactions reached (20)
     MaximumReactionsReached,
     /// Maximum number of guild channels reached (500)
@@ -90,16 +110,22 @@ pub enum ErrorCode {
     GuildTemplateAlreadyExist,
     /// Maximum number of bans for non-guild members have been exceeded
     MaximumNonGuildBansReached,
+    /// Maximum number of bans fetches has been reached
+    MaximumGuildBansFetchesReached,
     /// Unauthorized. Provide a valid token and try again
     Unauthorized,
     /// You need to verify your account in order to perform this action
     AccountNeedsVerification,
+    /// You are opening direct messages too fast
+    OpeningDirectMessageRateLimitReached,
     /// Request entity too large. Try sending something smaller in size
     RequestEntityTooLarge,
     /// This feature has been temporarily disabled server-side
     FeatureTemporarilyDisabled,
     /// The user is banned from this guild
     UserBannedFromGuild,
+    /// Target user is not connected to voice
+    UserNotInVoice,
     /// This message has already been crossposted
     MessageAlreadyCrossposted,
     /// Missing access
@@ -145,8 +171,12 @@ pub enum ErrorCode {
     CannotExecuteActionOnChannelType,
     /// Invalid OAuth2 access token provided
     InvalidOAuthAccessToken,
+    /// Missing required OAuth2 scope
+    MissingOAuthScope,
     /// Invalid webhook token provided
     InvalidWebhookToken,
+    /// Invalid role
+    InvalidRole,
     /// Invalid recipient(s)
     InvalidRecipient,
     /// A message provided was too old to bulk delete
@@ -157,12 +187,18 @@ pub enum ErrorCode {
     InviteAcceptedToGuildBotNotIn,
     /// Invalid API version provided
     InvalidApiVersion,
+    /// Cannot self-redeem this gift
+    CannotSelfRedeemGift,
+    /// Payment source required to redeem gift
+    PaymentRequiredForGift,
     /// Cannot delete a channel required for Community guilds
     CommunityGuildRequired,
     /// Invalid sticker sent
     InvalidStickerSent,
     /// Two factor is required for this operation.
     TwoFactorRequired,
+    /// No users with DiscordTag exist
+    NoSuchUser,
     /// Reaction was blocked
     ReactionBlocked,
     /// API resource is currently overloaded. Try again a little later
@@ -192,6 +228,8 @@ impl ErrorCode {
             Self::UnknownUser => 10013,
             Self::UnknownEmoji => 10014,
             Self::UnknownWebhook => 10015,
+            Self::UnknownWebhookService => 10016,
+            Self::UnknownSession => 10020,
             Self::UnknownBan => 10026,
             Self::UnknownSKU => 10027,
             Self::UnknownStoreListing => 10028,
@@ -199,29 +237,40 @@ impl ErrorCode {
             Self::UnknownBuild => 10030,
             Self::UnknownLobby => 10031,
             Self::UnknownBranch => 10032,
+            Self::UnknownStoreDirectoryLayout => 10033,
             Self::UnknownRedistributable => 10036,
+            Self::UnknownGiftCode => 10038,
             Self::UnknownGuildTemplate => 10057,
             Self::UnknownInteraction => 10062,
             Self::BotsCannotUseEndpoint => 20001,
             Self::OnlyBotsCanUseEndpoint => 20002,
+            Self::ExplicitContentSendingBlocked => 20009,
+            Self::UnauthorizedApplicationAction => 20012,
+            Self::SlowModeRateLimitReached => 20016,
+            Self::NotAccountOwner => 20018,
             Self::AnnouncementRateLimitReached => 20022,
             Self::ChannelRateLimitReached => 20028,
             Self::MaximumGuildsReached => 30001,
             Self::MaximumFriendsReached => 30002,
             Self::MaximumPinsReached => 30003,
+            Self::MaximumRecipientsReached => 30004,
             Self::MaximumRolesReached => 30005,
             Self::MaximumWebhooksReached => 30007,
+            Self::MaximumEmojisReached => 30008,
             Self::MaximumReactionsReached => 30010,
             Self::MaximumGuildChannelsReached => 30013,
             Self::MaximumAttachmentsReached => 30015,
             Self::MaximumInvitesReached => 30016,
             Self::GuildTemplateAlreadyExist => 30031,
             Self::MaximumNonGuildBansReached => 30035,
+            Self::MaximumGuildBansFetchesReached => 30037,
             Self::Unauthorized => 40001,
             Self::AccountNeedsVerification => 40002,
+            Self::OpeningDirectMessageRateLimitReached => 40003,
             Self::RequestEntityTooLarge => 40005,
             Self::FeatureTemporarilyDisabled => 40006,
             Self::UserBannedFromGuild => 40007,
+            Self::UserNotInVoice => 40032,
             Self::MessageAlreadyCrossposted => 40033,
             Self::Missingaccess => 50001,
             Self::InvalidAccountType => 50002,
@@ -244,15 +293,20 @@ impl ErrorCode {
             Self::InvalidActionOnSystemMessage => 50021,
             Self::CannotExecuteActionOnChannelType => 50024,
             Self::InvalidOAuthAccessToken => 50025,
+            Self::MissingOAuthScope => 50026,
             Self::InvalidWebhookToken => 50027,
+            Self::InvalidRole => 50028,
             Self::InvalidRecipient => 50033,
             Self::MessageTooOldToBulkDelete => 50034,
             Self::InvalidFormBodyOrContentType => 50035,
             Self::InviteAcceptedToGuildBotNotIn => 50036,
             Self::InvalidApiVersion => 50041,
+            Self::CannotSelfRedeemGift => 50054,
+            Self::PaymentRequiredForGift => 50070,
             Self::CommunityGuildRequired => 50074,
             Self::InvalidStickerSent => 50081,
             Self::TwoFactorRequired => 60003,
+            Self::NoSuchUser => 80004,
             Self::ReactionBlocked => 90001,
             Self::ApiResourceOverloaded => 130_000,
             Self::Other(other) => *other,
@@ -279,6 +333,8 @@ impl From<u64> for ErrorCode {
             10013 => Self::UnknownUser,
             10014 => Self::UnknownEmoji,
             10015 => Self::UnknownWebhook,
+            10016 => Self::UnknownWebhookService,
+            10020 => Self::UnknownSession,
             10026 => Self::UnknownBan,
             10027 => Self::UnknownSKU,
             10028 => Self::UnknownStoreListing,
@@ -286,29 +342,40 @@ impl From<u64> for ErrorCode {
             10030 => Self::UnknownBuild,
             10031 => Self::UnknownLobby,
             10032 => Self::UnknownBranch,
+            10033 => Self::UnknownStoreDirectoryLayout,
             10036 => Self::UnknownRedistributable,
+            10038 => Self::UnknownGiftCode,
             10057 => Self::UnknownGuildTemplate,
             10062 => Self::UnknownInteraction,
             20001 => Self::BotsCannotUseEndpoint,
             20002 => Self::OnlyBotsCanUseEndpoint,
             20022 => Self::AnnouncementRateLimitReached,
+            20009 => Self::ExplicitContentSendingBlocked,
+            20012 => Self::UnauthorizedApplicationAction,
+            20016 => Self::SlowModeRateLimitReached,
+            20018 => Self::NotAccountOwner,
             20028 => Self::ChannelRateLimitReached,
             30001 => Self::MaximumGuildsReached,
             30002 => Self::MaximumFriendsReached,
             30003 => Self::MaximumPinsReached,
+            30004 => Self::MaximumRecipientsReached,
             30005 => Self::MaximumRolesReached,
             30007 => Self::MaximumWebhooksReached,
+            30008 => Self::MaximumEmojisReached,
             30010 => Self::MaximumReactionsReached,
             30013 => Self::MaximumGuildChannelsReached,
             30015 => Self::MaximumAttachmentsReached,
             30016 => Self::MaximumInvitesReached,
             30031 => Self::GuildTemplateAlreadyExist,
             30035 => Self::MaximumNonGuildBansReached,
+            30037 => Self::MaximumGuildBansFetchesReached,
             40001 => Self::Unauthorized,
             40002 => Self::AccountNeedsVerification,
+            40003 => Self::OpeningDirectMessageRateLimitReached,
             40005 => Self::RequestEntityTooLarge,
             40006 => Self::FeatureTemporarilyDisabled,
             40007 => Self::UserBannedFromGuild,
+            40032 => Self::UserNotInVoice,
             40033 => Self::MessageAlreadyCrossposted,
             50001 => Self::Missingaccess,
             50002 => Self::InvalidAccountType,
@@ -331,15 +398,20 @@ impl From<u64> for ErrorCode {
             50021 => Self::InvalidActionOnSystemMessage,
             50024 => Self::CannotExecuteActionOnChannelType,
             50025 => Self::InvalidOAuthAccessToken,
+            50026 => Self::MissingOAuthScope,
             50027 => Self::InvalidWebhookToken,
+            50028 => Self::InvalidRole,
             50033 => Self::InvalidRecipient,
             50034 => Self::MessageTooOldToBulkDelete,
             50035 => Self::InvalidFormBodyOrContentType,
             50036 => Self::InviteAcceptedToGuildBotNotIn,
             50041 => Self::InvalidApiVersion,
+            50054 => Self::CannotSelfRedeemGift,
+            50070 => Self::PaymentRequiredForGift,
             50074 => Self::CommunityGuildRequired,
             50081 => Self::InvalidStickerSent,
             60003 => Self::TwoFactorRequired,
+            80004 => Self::NoSuchUser,
             90001 => Self::ReactionBlocked,
             130_000 => Self::ApiResourceOverloaded,
             other => Self::Other(other),
@@ -366,6 +438,8 @@ impl Display for ErrorCode {
             Self::UnknownUser => f.write_str("Unknown user"),
             Self::UnknownEmoji => f.write_str("Unknown emoji"),
             Self::UnknownWebhook => f.write_str("Unknown webhook"),
+            Self::UnknownWebhookService => f.write_str("Unknown webhook service"),
+            Self::UnknownSession => f.write_str("Unknown session"),
             Self::UnknownBan => f.write_str("Unknown ban"),
             Self::UnknownSKU => f.write_str("Unknown SKU"),
             Self::UnknownStoreListing => f.write_str("Unknown Store Listing"),
@@ -373,29 +447,40 @@ impl Display for ErrorCode {
             Self::UnknownBuild => f.write_str("Unknown build"),
             Self::UnknownLobby => f.write_str("Unknown lobby"),
             Self::UnknownBranch => f.write_str("Unknown branch"),
+            Self::UnknownStoreDirectoryLayout => f.write_str("Unknown store directory layout"),
             Self::UnknownRedistributable => f.write_str("Unknown redistributable"),
+            Self::UnknownGiftCode => f.write_str("Unknown gift code"),
             Self::UnknownGuildTemplate => f.write_str("Unknown guild template"),
             Self::UnknownInteraction => f.write_str("Unknown interaction"),
             Self::BotsCannotUseEndpoint => f.write_str("Bots cannot use this endpoint"),
             Self::OnlyBotsCanUseEndpoint => f.write_str("Only bots can use this endpoint"),
+            Self::ExplicitContentSendingBlocked => f.write_str("Explicit content cannot be sent to the desired recipient(s)"),
+            Self::UnauthorizedApplicationAction => f.write_str("You are not authorized to perform this action on this application"),
+            Self::SlowModeRateLimitReached => f.write_str("This action cannot be performed due to slowmode rate limit"),
+            Self::NotAccountOwner => f.write_str("Only the owner of this account can perform this action"),
             Self::AnnouncementRateLimitReached => f.write_str("Message cannot be edited due to announcement rate limits"),
             Self::ChannelRateLimitReached => f.write_str("The channel you are writing has hit the write rate limit"),
             Self::MaximumGuildsReached => f.write_str("Maximum number of guilds reached (100)"),
             Self::MaximumFriendsReached => f.write_str("Maximum number of friends reached (1000)"),
             Self::MaximumPinsReached => f.write_str("Maximum number of pins reached for the channel (50)"),
+            Self::MaximumRecipientsReached => f.write_str("Maximum number of recipients reached (10)"),
             Self::MaximumRolesReached => f.write_str("Maximum number of guild roles reached (250)"),
             Self::MaximumWebhooksReached => f.write_str("Maximum number of webhooks reached (10)"),
+            Self::MaximumEmojisReached => f.write_str("Maximum number of emojis reached"),
             Self::MaximumReactionsReached => f.write_str("Maximum number of reactions reached (20)"),
             Self::MaximumGuildChannelsReached => f.write_str("Maximum number of guild channels reached (500)"),
             Self::MaximumAttachmentsReached => f.write_str("Maximum number of attachments in a message reached (10)"),
             Self::MaximumInvitesReached => f.write_str("Maximum number of invites reached (1000)"),
             Self::GuildTemplateAlreadyExist => f.write_str("Guild already has a template"),
             Self::MaximumNonGuildBansReached => f.write_str("Maximum number of bans for non-guild members have been exceeded"),
+            Self::MaximumGuildBansFetchesReached => f.write_str("Maximum number of bans fetches has been reached"),
             Self::Unauthorized => f.write_str("Unauthorized. Provide a valid token and try again"),
             Self::AccountNeedsVerification => f.write_str("You need to verify your account in order to perform this action"),
+            Self::OpeningDirectMessageRateLimitReached => f.write_str("You are opening direct messages too fast"),
             Self::RequestEntityTooLarge => f.write_str("Request entity too large. Try sending something smaller in size"),
             Self::FeatureTemporarilyDisabled => f.write_str("This feature has been temporarily disabled server-side"),
             Self::UserBannedFromGuild => f.write_str("The user is banned from this guild"),
+            Self::UserNotInVoice => f.write_str("Target user is not connected to voice"),
             Self::MessageAlreadyCrossposted => f.write_str("This message has already been crossposted"),
             Self::Missingaccess => f.write_str("Missing access"),
             Self::InvalidAccountType => f.write_str("Invalid account type"),
@@ -418,15 +503,20 @@ impl Display for ErrorCode {
             Self::InvalidActionOnSystemMessage => f.write_str("Cannot execute action on a system message"),
             Self::CannotExecuteActionOnChannelType => f.write_str("Cannot execute action on channel type"),
             Self::InvalidOAuthAccessToken => f.write_str("Invalid OAuth2 access token provided"),
+            Self::MissingOAuthScope => f.write_str("Missing required OAuth2 scope"),
             Self::InvalidWebhookToken => f.write_str("Invalid webhook token provided."),
+            Self::InvalidRole => f.write_str("Invalid role"),
             Self::InvalidRecipient => f.write_str("Invalid recipient(s)"),
             Self::MessageTooOldToBulkDelete => f.write_str("A message provided was too old to bulk delete"),
             Self::InvalidFormBodyOrContentType => f.write_str("Invalid form body (returned for both application/json and multipart/form-data bodies), or invalid Content-Type provided"),
             Self::InviteAcceptedToGuildBotNotIn => f.write_str("An invite was accepted to a guild the application's bot is not in"),
             Self::InvalidApiVersion => f.write_str("Invalid API version provided"),
+            Self::CannotSelfRedeemGift => f.write_str("Cannot self-redeem this gift"),
+            Self::PaymentRequiredForGift => f.write_str("Payment source required to redeem gift"),
             Self::CommunityGuildRequired => f.write_str("Cannot delete a channel required for Community guilds"),
             Self::InvalidStickerSent => f.write_str("Invalid sticker sent"),
             Self::TwoFactorRequired => f.write_str("Two factor is required for this operation"),
+            Self::NoSuchUser => f.write_str("No users with DiscordTag exist"),
             Self::ReactionBlocked => f.write_str("Reaction was blocked"),
             Self::ApiResourceOverloaded => f.write_str("API resource is currently overloaded. Try again a little later"),
             Self::Other(number) => write!(f, "An error code Twilight doesn't have registered: {}", number),
