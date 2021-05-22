@@ -1,5 +1,9 @@
 use super::super::ShardStream;
-use futures_util::{future::FutureExt, sink::SinkExt, stream::StreamExt};
+use futures_util::{
+    future::{self, Either, FutureExt},
+    sink::SinkExt,
+    stream::StreamExt,
+};
 use std::time::Duration;
 use tokio::{
     sync::mpsc::{self, UnboundedReceiver, UnboundedSender},
@@ -36,15 +40,18 @@ impl SocketForwarder {
     pub async fn run(mut self) {
         tracing::debug!("starting driving loop");
 
-        // This seems to come from the `if let` in the macro and may be a false
-        // positive.
-        #[allow(clippy::mut_mut)]
         loop {
             let timeout = sleep(Self::TIMEOUT).fuse();
             tokio::pin!(timeout);
 
-            tokio::select! {
-                maybe_msg = self.rx.recv().fuse() => {
+            let rx = Box::pin(self.rx.recv().fuse());
+            let tx = Box::pin(self.stream.next().fuse());
+
+            let select_message = future::select(rx, tx);
+
+            match future::select(select_message, timeout).await {
+                // `rx` future finished first.
+                Either::Left((Either::Left((maybe_msg, _)), _)) => {
                     if let Some(msg) = maybe_msg {
                         tracing::trace!("sending message: {}", msg);
 
@@ -58,25 +65,25 @@ impl SocketForwarder {
 
                         break;
                     }
-                },
-                try_msg = self.stream.next().fuse() => {
-                    match try_msg {
-                        Some(Ok(msg)) => {
-                            if self.tx.send(msg).is_err() {
-                                break;
-                            }
-                        },
-                        Some(Err(err)) => {
-                            tracing::warn!("socket errored: {}", err);
-                            break;
-                        },
-                        None => {
-                            tracing::debug!("socket ended");
+                }
+                // `tx` future finished first.
+                Either::Left((Either::Right((try_msg, _)), _)) => match try_msg {
+                    Some(Ok(msg)) => {
+                        if self.tx.send(msg).is_err() {
                             break;
                         }
                     }
+                    Some(Err(err)) => {
+                        tracing::warn!("socket errored: {}", err);
+                        break;
+                    }
+                    None => {
+                        tracing::debug!("socket ended");
+                        break;
+                    }
                 },
-                _ = timeout => {
+                // Timeout future finished first.
+                Either::Right((_, _)) => {
                     tracing::warn!("socket timed out");
                     break;
                 }
