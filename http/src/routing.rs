@@ -192,7 +192,7 @@ impl FromStr for Path {
     /// );
     /// # Ok(()) }
     /// ```
-    #[allow(clippy::enum_glob_use)]
+    #[allow(clippy::enum_glob_use, clippy::too_many_lines)]
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         use Path::*;
 
