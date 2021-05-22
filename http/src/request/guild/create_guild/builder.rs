@@ -18,7 +18,7 @@ pub struct RoleFieldsError {
 impl RoleFieldsError {
     /// Immutable reference to the type of error that occurred.
     #[must_use = "retrieving the type has no effect if left unused"]
-    pub fn kind(&self) -> &RoleFieldsErrorType {
+    pub const fn kind(&self) -> &RoleFieldsErrorType {
         &self.kind
     }
 
@@ -93,6 +93,7 @@ impl RoleFieldsBuilder {
     }
 
     /// Build the role fields.
+    #[allow(clippy::missing_const_for_fn)]
     pub fn build(self) -> RoleFields {
         self.0
     }
@@ -173,7 +174,7 @@ pub struct TextFieldsError {
 impl TextFieldsError {
     /// Immutable reference to the type of error that occurred.
     #[must_use = "retrieving the type has no effect if left unused"]
-    pub fn kind(&self) -> &TextFieldsErrorType {
+    pub const fn kind(&self) -> &TextFieldsErrorType {
         &self.kind
     }
 
@@ -311,6 +312,7 @@ impl TextFieldsBuilder {
     }
 
     /// Build the text fields.
+    #[allow(clippy::missing_const_for_fn)]
     pub fn build(self) -> TextFields {
         self.0
     }
@@ -379,7 +381,7 @@ pub struct VoiceFieldsError {
 impl VoiceFieldsError {
     /// Immutable reference to the type of error that occurred.
     #[must_use = "retrieving the type has no effect if left unused"]
-    pub fn kind(&self) -> &VoiceFieldsErrorType {
+    pub const fn kind(&self) -> &VoiceFieldsErrorType {
         &self.kind
     }
 
@@ -486,6 +488,7 @@ impl VoiceFieldsBuilder {
     }
 
     /// Build the voice fields.
+    #[allow(clippy::missing_const_for_fn)]
     pub fn build(self) -> VoiceFields {
         self.0
     }
@@ -521,7 +524,7 @@ pub struct CategoryFieldsError {
 impl CategoryFieldsError {
     /// Immutable reference to the type of error that occurred.
     #[must_use = "retrieving the type has no effect if left unused"]
-    pub fn kind(&self) -> &CategoryFieldsErrorType {
+    pub const fn kind(&self) -> &CategoryFieldsErrorType {
         &self.kind
     }
 
@@ -675,11 +678,12 @@ pub struct GuildChannelFieldsBuilder(Vec<GuildChannelFields>);
 
 impl GuildChannelFieldsBuilder {
     /// Create a new channels builder.
-    pub fn new() -> Self {
-        Self::default()
+    pub const fn new() -> Self {
+        Self(Vec::new())
     }
 
     /// Build the list of channels.
+    #[allow(clippy::missing_const_for_fn)]
     pub fn build(self) -> Vec<GuildChannelFields> {
         self.0
     }

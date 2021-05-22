@@ -172,6 +172,7 @@ impl ClusterBuilder {
     ///     .await?;
     /// # Ok(()) }
     /// ```
+    #[allow(clippy::missing_const_for_fn)]
     pub fn shard_scheme(mut self, scheme: ShardScheme) -> Self {
         self.0.shard_scheme = scheme;
 
@@ -201,6 +202,7 @@ impl ClusterBuilder {
     /// Note that this does not guarantee all or any of the shards will be able
     /// to resume. If their sessions are invalid they will have to re-identify
     /// to initialize a new session.
+    #[allow(clippy::missing_const_for_fn)]
     pub fn resume_sessions(mut self, resume_sessions: HashMap<u64, ResumeSession>) -> Self {
         self.0.resume_sessions = resume_sessions;
         self

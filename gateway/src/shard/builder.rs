@@ -19,7 +19,7 @@ pub struct LargeThresholdError {
 impl LargeThresholdError {
     /// Immutable reference to the type of error that occurred.
     #[must_use = "retrieving the type has no effect if left unused"]
-    pub fn kind(&self) -> &LargeThresholdErrorType {
+    pub const fn kind(&self) -> &LargeThresholdErrorType {
         &self.kind
     }
 
@@ -84,7 +84,7 @@ pub struct ShardIdError {
 impl ShardIdError {
     /// Immutable reference to the type of error that occurred.
     #[must_use = "retrieving the type has no effect if left unused"]
-    pub fn kind(&self) -> &ShardIdErrorType {
+    pub const fn kind(&self) -> &ShardIdErrorType {
         &self.kind
     }
 
@@ -199,6 +199,7 @@ impl ShardBuilder {
     /// information.
     ///
     /// Default is a new, unconfigured instance of an HTTP client.
+    #[allow(clippy::missing_const_for_fn)]
     pub fn http_client(mut self, http_client: HttpClient) -> Self {
         self.0.http_client = http_client;
 
@@ -223,6 +224,7 @@ impl ShardBuilder {
     ///
     /// Returns a [`LargeThresholdErrorType::TooMany`] error type if the
     /// provided value is above 250.
+    #[allow(clippy::missing_const_for_fn)]
     pub fn large_threshold(mut self, large_threshold: u64) -> Result<Self, LargeThresholdError> {
         match large_threshold {
             0..=49 => {
@@ -306,6 +308,7 @@ impl ShardBuilder {
     ///
     /// Returns a [`ShardIdErrorType::IdTooLarge`] error type if the shard ID to
     /// connect as is larger than the total.
+    #[allow(clippy::missing_const_for_fn)]
     pub fn shard(mut self, shard_id: u64, shard_total: u64) -> Result<Self, ShardIdError> {
         if shard_id >= shard_total {
             return Err(ShardIdError {

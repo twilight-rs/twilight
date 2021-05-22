@@ -44,11 +44,11 @@ pub struct CloseCodeConversionError {
 }
 
 impl CloseCodeConversionError {
-    fn new(code: u16) -> Self {
+    const fn new(code: u16) -> Self {
         Self { code }
     }
 
-    pub fn code(&self) -> u16 {
+    pub const fn code(&self) -> u16 {
         self.code
     }
 }

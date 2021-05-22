@@ -48,6 +48,7 @@
 
 #![deny(
     clippy::all,
+    clippy::missing_const_for_fn,
     clippy::pedantic,
     future_incompatible,
     missing_docs,

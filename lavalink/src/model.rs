@@ -123,7 +123,7 @@ pub mod outgoing {
 
     impl Destroy {
         /// Create a new destroy event.
-        pub fn new(guild_id: GuildId) -> Self {
+        pub const fn new(guild_id: GuildId) -> Self {
             Self {
                 guild_id,
                 op: Opcode::Destroy,

@@ -12,7 +12,7 @@ pub enum VideoQualityMode {
 }
 
 impl VideoQualityMode {
-    pub fn name(self) -> &'static str {
+    pub const fn name(self) -> &'static str {
         match self {
             Self::Auto => "Auto",
             Self::Full => "Full",

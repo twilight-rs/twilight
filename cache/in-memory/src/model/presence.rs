@@ -43,7 +43,7 @@ impl From<&'_ Presence> for CachedPresence {
     }
 }
 
-fn presence_user_id(user: &UserOrId) -> UserId {
+const fn presence_user_id(user: &UserOrId) -> UserId {
     match user {
         UserOrId::User(ref u) => u.id,
         UserOrId::UserId { id } => *id,

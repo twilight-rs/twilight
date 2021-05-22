@@ -29,7 +29,7 @@ impl EmbedFieldBuilder {
         Self::_new(name.into(), value.into())
     }
 
-    fn _new(name: String, value: String) -> Self {
+    const fn _new(name: String, value: String) -> Self {
         Self(EmbedField {
             inline: false,
             name,
@@ -38,6 +38,7 @@ impl EmbedFieldBuilder {
     }
 
     /// Build into an embed field.
+    #[allow(clippy::missing_const_for_fn)]
     #[must_use = "should be used as part of an embed builder"]
     pub fn build(self) -> EmbedField {
         self.0
@@ -56,7 +57,7 @@ impl EmbedFieldBuilder {
     ///     .inline()
     ///     .build();
     /// ```
-    pub fn inline(mut self) -> Self {
+    pub const fn inline(mut self) -> Self {
         self.0.inline = true;
 
         self

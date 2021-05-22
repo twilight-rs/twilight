@@ -8,8 +8,13 @@ pub struct AllowedMentionsBuilder(AllowedMentions);
 
 impl AllowedMentionsBuilder {
     /// Create a new [`AllowedMentionsBuilder`].
-    pub fn new() -> Self {
-        Self::default()
+    pub const fn new() -> Self {
+        Self(AllowedMentions {
+            parse: Vec::new(),
+            users: Vec::new(),
+            roles: Vec::new(),
+            replied_user: false,
+        })
     }
 
     /// Allow parsing of `@everyone`.
@@ -20,7 +25,7 @@ impl AllowedMentionsBuilder {
     }
 
     /// When replying, whether to mention the target user.
-    pub fn replied_user(mut self) -> Self {
+    pub const fn replied_user(mut self) -> Self {
         self.0.replied_user = true;
 
         self

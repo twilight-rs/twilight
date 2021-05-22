@@ -31,18 +31,18 @@ impl Config {
 
     /// Return an immutable reference to the `twilight_http` client to be used
     /// by the shard.
-    pub fn http_client(&self) -> &Client {
+    pub const fn http_client(&self) -> &Client {
         &self.http_client
     }
 
     /// Return a copy of the intents that the gateway is using.
-    pub fn intents(&self) -> Intents {
+    pub const fn intents(&self) -> Intents {
         self.intents
     }
 
     /// Return the maximum threshold at which point the gateway will stop
     /// sending a guild's member list in Guild Create events.
-    pub fn large_threshold(&self) -> u64 {
+    pub const fn large_threshold(&self) -> u64 {
         self.large_threshold
     }
 
@@ -51,18 +51,18 @@ impl Config {
     ///
     /// This will be the bot's presence. For example, setting the online status
     /// to Do Not Disturb will show the status in the bot's presence.
-    pub fn presence(&self) -> Option<&UpdateStatusInfo> {
+    pub const fn presence(&self) -> Option<&UpdateStatusInfo> {
         self.presence.as_ref()
     }
 
     /// The shard's ID and the total number of shards used by the bot.
-    pub fn shard(&self) -> [u64; 2] {
+    pub const fn shard(&self) -> [u64; 2] {
         self.shard
     }
 
     /// Return an immutable reference to the token used to authenticate with
     /// when identifying with the gateway.
-    pub fn token(&self) -> &str {
+    pub const fn token(&self) -> &str {
         &self.token
     }
 }

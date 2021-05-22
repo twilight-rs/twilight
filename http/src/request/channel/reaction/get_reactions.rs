@@ -17,7 +17,7 @@ pub struct GetReactionsError {
 impl GetReactionsError {
     /// Immutable reference to the type of error that occurred.
     #[must_use = "retrieving the type has no effect if left unused"]
-    pub fn kind(&self) -> &GetReactionsErrorType {
+    pub const fn kind(&self) -> &GetReactionsErrorType {
         &self.kind
     }
 
