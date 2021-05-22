@@ -9,7 +9,7 @@ pub enum TargetType {
     EmbeddedApplication = 2,
 }
 
-#[deprecated(since = "0.4.1", note = "renamed to `TargetType`")]
+#[deprecated(since = "0.4.2", note = "renamed to `TargetType`")]
 pub type TargetUserType = TargetType;
 
 #[cfg(test)]

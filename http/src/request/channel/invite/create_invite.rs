@@ -226,7 +226,7 @@ impl<'a> CreateInvite<'a> {
     }
 
     /// Set the target user type for this invite.
-    #[deprecated(since = "0.4.1", note = "Use `target_type` instead")]
+    #[deprecated(since = "0.4.2", note = "Use `target_type` instead")]
     pub fn target_user_type(self, target_user_type: TargetType) -> Self {
         Self::target_type(self, target_user_type)
     }
