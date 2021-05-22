@@ -1,5 +1,8 @@
 use super::scheme::ShardScheme;
-use crate::shard::{Config as ShardConfig, ResumeSession};
+use crate::{
+    shard::{Config as ShardConfig, ResumeSession},
+    EventTypeFlags,
+};
 use std::{collections::HashMap, sync::Arc};
 use twilight_gateway_queue::Queue;
 use twilight_http::Client;
@@ -17,6 +20,11 @@ pub struct Config {
 }
 
 impl Config {
+    /// Copy of the event type flags.
+    pub const fn event_types(&self) -> EventTypeFlags {
+        self.shard_config.event_types()
+    }
+
     /// Return an immutable reference to the `twilight_http` client used by the
     /// cluster and shards to get the gateway information.
     ///

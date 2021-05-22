@@ -24,6 +24,7 @@ pub mod stage;
 
 mod builder;
 mod config;
+mod emitter;
 mod event;
 mod r#impl;
 mod json;

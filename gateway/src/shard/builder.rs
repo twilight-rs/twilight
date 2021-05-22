@@ -1,4 +1,5 @@
-use super::{config::Config, Shard};
+use super::{config::Config, Events, Shard};
+use crate::EventTypeFlags;
 use std::{
     error::Error,
     fmt::{Display, Formatter, Result as FmtResult},
@@ -170,6 +171,7 @@ impl ShardBuilder {
         }
 
         Self(Config {
+            event_types: EventTypeFlags::default(),
             gateway_url: None,
             http_client: HttpClient::new(token.clone()),
             intents,
@@ -184,8 +186,22 @@ impl ShardBuilder {
     }
 
     /// Consume the builder, constructing a shard.
-    pub fn build(self) -> Shard {
+    pub fn build(self) -> (Shard, Events) {
         Shard::new_with_config(self.0)
+    }
+
+    /// Set the event types to process.
+    ///
+    /// This is an optimization technique; all events not included in the
+    /// provided event type flags will not be deserialized by the gateway and
+    /// will be discarded. All events will still be sent if
+    /// [`EventTypeFlags::SHARD_PAYLOAD`] is enabled.
+    ///
+    /// [`EventTypeFlags::SHARD_PAYLOAD`]: crate::EventTypeFlags::SHARD_PAYLOAD
+    pub const fn event_types(mut self, event_types: EventTypeFlags) -> Self {
+        self.0.event_types = event_types;
+
+        self
     }
 
     /// Set the URL used for connecting to Discord's gateway
@@ -325,18 +341,11 @@ impl ShardBuilder {
     }
 }
 
-impl<T: Into<String>> From<(T, Intents)> for ShardBuilder {
-    fn from((token, intents): (T, Intents)) -> Self {
-        Self::new(token, intents)
-    }
-}
-
 #[cfg(test)]
 mod tests {
     use super::{
         LargeThresholdError, LargeThresholdErrorType, ShardBuilder, ShardIdError, ShardIdErrorType,
     };
-    use crate::Intents;
     use static_assertions::{assert_fields, assert_impl_all};
     use std::{error::Error, fmt::Debug};
 
@@ -344,13 +353,7 @@ mod tests {
     assert_fields!(LargeThresholdErrorType::TooFew: value);
     assert_fields!(LargeThresholdErrorType::TooMany: value);
     assert_impl_all!(LargeThresholdError: Error, Send, Sync);
-    assert_impl_all!(
-        ShardBuilder: Clone,
-        Debug,
-        From<(String, Intents)>,
-        Send,
-        Sync
-    );
+    assert_impl_all!(ShardBuilder: Clone, Debug, Send, Sync);
     assert_impl_all!(ShardIdErrorType: Debug, Send, Sync);
     assert_fields!(ShardIdErrorType::IdTooLarge: id, total);
     assert_impl_all!(ShardIdError: Error, Send, Sync);

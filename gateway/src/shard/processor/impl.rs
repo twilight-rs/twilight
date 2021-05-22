@@ -3,15 +3,15 @@ use super::inflater::Inflater;
 use super::{
     super::{
         config::Config,
+        emitter::{EmitJsonErrorType, Emitter},
         json::{self, GatewayEventParsingError, GatewayEventParsingErrorType},
         stage::Stage,
         ShardStream,
     },
-    emitter::{EmitJsonErrorType, Emitter},
     session::{Session, SessionSendError, SessionSendErrorType},
     socket_forwarder::SocketForwarder,
 };
-use crate::{event::EventTypeFlags, listener::Listeners};
+use crate::event::EventTypeFlags;
 use serde::{Deserialize, Serialize};
 use std::{
     borrow::Cow,
@@ -279,7 +279,7 @@ impl ShardProcessor {
     pub async fn new(
         config: Arc<Config>,
         mut url: String,
-        listeners: Listeners<Event>,
+        emitter: Emitter,
     ) -> Result<(Self, WatchReceiver<Arc<Session>>), ConnectingError> {
         //if we got resume info we don't need to wait
         let shard_id = config.shard();
@@ -298,7 +298,6 @@ impl ShardProcessor {
         #[cfg(not(feature = "compression"))]
         url.push_str("?v=8");
 
-        let emitter = Emitter::new(listeners);
         emitter.event(Event::ShardConnecting(Connecting {
             gateway: url.clone(),
             shard_id: config.shard()[0],
@@ -380,8 +379,6 @@ impl ShardProcessor {
                 }
             }
         }
-
-        self.emitter.into_listeners().remove_all();
     }
 
     #[allow(clippy::too_many_lines)]

@@ -38,7 +38,7 @@ async fn main() -> Result<(), Box<dyn Error + Send + Sync + 'static>> {
     // Initialize the tracing subscriber.
     tracing_subscriber::fmt::init();
 
-    let state = {
+    let (mut events, state) = {
         let token = env::var("DISCORD_TOKEN")?;
         let lavalink_host = SocketAddr::from_str(&env::var("LAVALINK_HOST")?)?;
         let lavalink_auth = env::var("LAVALINK_AUTHORIZATION")?;
@@ -51,19 +51,20 @@ async fn main() -> Result<(), Box<dyn Error + Send + Sync + 'static>> {
         lavalink.add(lavalink_host, lavalink_auth).await?;
 
         let intents = Intents::GUILD_MESSAGES | Intents::GUILD_VOICE_STATES;
-        let shard = Shard::new(token, intents);
+        let (shard, events) = Shard::new(token, intents);
         shard.start().await?;
 
-        State {
-            http,
-            lavalink,
-            hyper: HyperClient::new(),
-            shard,
-            standby: Standby::new(),
-        }
+        (
+            events,
+            State {
+                http,
+                lavalink,
+                hyper: HyperClient::new(),
+                shard,
+                standby: Standby::new(),
+            },
+        )
     };
-
-    let mut events = state.shard.events();
 
     while let Some(event) = events.next().await {
         state.standby.process(&event);

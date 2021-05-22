@@ -26,13 +26,11 @@ async fn main() -> Result<(), Box<dyn Error + Send + Sync>> {
     tracing_subscriber::fmt::init();
 
     let intents = Intents::GUILD_BANS | Intents::GUILD_EMOJIS | Intents::GUILD_MESSAGES;
-    let cluster = Cluster::new(env::var("DISCORD_TOKEN")?, intents).await?;
+    let (cluster, mut events) = Cluster::new(env::var("DISCORD_TOKEN")?, intents).await?;
     println!("Created cluster");
 
     cluster.up().await;
     println!("Started cluster");
-
-    let mut events = cluster.events();
 
     // Start exporter in a seperate task
     tokio::task::spawn_blocking(move || exporter.run());

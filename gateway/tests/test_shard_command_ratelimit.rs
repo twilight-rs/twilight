@@ -3,13 +3,16 @@ use std::{
     env,
     time::{Duration, Instant},
 };
-use twilight_gateway::{Event, Intents, Shard};
+use twilight_gateway::{
+    shard::{Events, Shard},
+    Event, Intents,
+};
 use twilight_model::gateway::{
     payload::UpdateStatus,
     presence::{Activity, ActivityType, Status},
 };
 
-fn shard() -> Shard {
+fn shard() -> (Shard, Events) {
     let token = env::var("DISCORD_TOKEN").unwrap();
 
     Shard::new(token, Intents::empty())
@@ -18,8 +21,7 @@ fn shard() -> Shard {
 #[ignore]
 #[tokio::test]
 async fn test_shard_command_ratelimit() {
-    let shard = shard();
-    let mut events = shard.events();
+    let (shard, mut events) = shard();
     shard.start().await.unwrap();
 
     assert!(matches!(
