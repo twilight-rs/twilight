@@ -610,7 +610,7 @@ impl Cluster {
     /// time the future is polled the cluster may have already dropped, bringing
     /// down the queue and shards with it.
     async fn start(cluster: Arc<ClusterRef>, shard_id: u64) -> Option<Shard> {
-        let mut shard = cluster
+        let shard = cluster
             .shards
             .lock()
             .expect("shards poisoned")
