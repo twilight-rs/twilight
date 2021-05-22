@@ -73,7 +73,7 @@
 //! async fn main() -> Result<(), Box<dyn Error>> {
 //!     // Start a shard connected to the gateway to receive events.
 //!     let intents = Intents::GUILD_MESSAGES | Intents::GUILD_MESSAGE_REACTIONS;
-//!     let mut shard = Shard::new(env::var("DISCORD_TOKEN")?, intents);
+//!     let shard = Shard::new(env::var("DISCORD_TOKEN")?, intents);
 //!     let mut events = shard.events();
 //!     shard.start().await?;
 //!

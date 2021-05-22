@@ -18,7 +18,7 @@ fn shard() -> Shard {
 #[ignore]
 #[tokio::test]
 async fn test_shard_command_ratelimit() {
-    let mut shard = shard();
+    let shard = shard();
     let mut events = shard.events();
     shard.start().await.unwrap();
 
