@@ -4,8 +4,8 @@ use std::{
     fmt::{Display, Formatter, Result as FmtResult},
 };
 use twilight_model::{
-    id::{ChannelId, UserId},
-    invite::{Invite, TargetUserType},
+    id::{ApplicationId, ChannelId, UserId},
+    invite::{Invite, TargetType},
 };
 
 /// Error created when an invite can not be created as configured.
@@ -71,14 +71,18 @@ struct CreateInviteFields {
     #[serde(skip_serializing_if = "Option::is_none")]
     temporary: Option<bool>,
     #[serde(skip_serializing_if = "Option::is_none")]
-    unique: Option<bool>,
+    target_application_id: Option<ApplicationId>,
     #[serde(skip_serializing_if = "Option::is_none")]
     target_user_id: Option<String>,
     #[serde(skip_serializing_if = "Option::is_none")]
-    target_user_type: Option<TargetUserType>,
+    target_type: Option<TargetType>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    unique: Option<bool>,
 }
 
 /// Create an invite, with options.
+///
+/// Requires the [`CREATE_INVITE`] permission.
 ///
 /// # Examples
 ///
@@ -97,6 +101,8 @@ struct CreateInviteFields {
 ///     .await?;
 /// # Ok(()) }
 /// ```
+///
+/// [`CREATE_INVITE`]: twilight_model::guild::Permissions::CREATE_INVITE
 pub struct CreateInvite<'a> {
     channel_id: ChannelId,
     fields: CreateInviteFields,
@@ -184,26 +190,20 @@ impl<'a> CreateInvite<'a> {
         Ok(self)
     }
 
-    /// Specify true if the invite should grant temporary membership. Defaults to false.
-    pub fn temporary(mut self, temporary: bool) -> Self {
-        self.fields.temporary.replace(temporary);
+    /// Set the target application ID for this invite.
+    ///
+    /// This only works if [`target_type`] is set to [`TargetType::EmbeddedApplication`].
+    ///
+    /// [`target_type`]: Self::target_type
+    pub fn target_application_id(mut self, target_application_id: ApplicationId) -> Self {
+        self.fields
+            .target_application_id
+            .replace(target_application_id);
 
         self
     }
 
-    /// Specify true if the invite should be unique. Defaults to false.
-    ///
-    /// If true, don't try to reuse a similar invite (useful for creating many unique one time use
-    /// invites). Refer to [the discord docs] for more information.
-    ///
-    /// [the discord docs]: https://discord.com/developers/docs/resources/channel#create-channel-invite
-    pub fn unique(mut self, unique: bool) -> Self {
-        self.fields.unique.replace(unique);
-
-        self
-    }
-
-    /// Set the target user for this invite.
+    /// Set the target user id for this invite.
     pub fn target_user_id(mut self, target_user_id: UserId) -> Self {
         self.fields
             .target_user_id
@@ -218,9 +218,36 @@ impl<'a> CreateInvite<'a> {
         self.target_user_id(target_user_id)
     }
 
+    /// Set the target type for this invite.
+    pub fn target_type(mut self, target_type: TargetType) -> Self {
+        self.fields.target_type.replace(target_type);
+
+        self
+    }
+
     /// Set the target user type for this invite.
-    pub fn target_user_type(mut self, target_user_type: TargetUserType) -> Self {
-        self.fields.target_user_type.replace(target_user_type);
+    #[deprecated(since = "0.4.2", note = "Use `target_type` instead")]
+    pub fn target_user_type(self, target_user_type: TargetType) -> Self {
+        Self::target_type(self, target_user_type)
+    }
+
+    /// Specify true if the invite should grant temporary membership.
+    ///
+    /// Defaults to false.
+    pub fn temporary(mut self, temporary: bool) -> Self {
+        self.fields.temporary.replace(temporary);
+
+        self
+    }
+
+    /// Specify true if the invite should be unique. Defaults to false.
+    ///
+    /// If true, don't try to reuse a similar invite (useful for creating many unique one time use
+    /// invites). Refer to [the discord docs] for more information.
+    ///
+    /// [the discord docs]: https://discord.com/developers/docs/resources/channel#create-channel-invite
+    pub fn unique(mut self, unique: bool) -> Self {
+        self.fields.unique.replace(unique);
 
         self
     }
