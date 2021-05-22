@@ -57,6 +57,7 @@ impl<'a> UpdateWebhookWithToken<'a> {
             webhook_id: self.webhook_id.0,
         })
         .json(&self.fields)?
+        .use_authorization_token(false)
         .build();
 
         self.fut.replace(Box::pin(self.http.request(request)));
