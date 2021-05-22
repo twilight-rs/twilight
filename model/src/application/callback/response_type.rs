@@ -12,7 +12,7 @@ pub enum ResponseType {
 }
 
 impl ResponseType {
-    pub fn name(self) -> &'static str {
+    pub const fn name(self) -> &'static str {
         match self {
             Self::Pong => "Pong",
             Self::ChannelMessageWithSource => "ChannelMessageWithSource",

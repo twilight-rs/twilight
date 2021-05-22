@@ -37,7 +37,7 @@ pub enum Interaction {
 }
 
 impl Interaction {
-    pub fn guild_id(&self) -> Option<GuildId> {
+    pub const fn guild_id(&self) -> Option<GuildId> {
         match self {
             Self::Ping(_) => None,
             Self::ApplicationCommand(inner) => inner.guild_id,

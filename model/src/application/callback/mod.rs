@@ -28,7 +28,7 @@ pub enum InteractionResponse {
 }
 
 impl InteractionResponse {
-    pub fn kind(&self) -> ResponseType {
+    pub const fn kind(&self) -> ResponseType {
         match self {
             Self::Pong => ResponseType::Pong,
             Self::ChannelMessageWithSource(_) => ResponseType::ChannelMessageWithSource,

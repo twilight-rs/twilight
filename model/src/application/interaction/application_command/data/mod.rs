@@ -55,7 +55,7 @@ pub enum CommandDataOption {
 }
 
 impl CommandDataOption {
-    pub fn kind(&self) -> &'static str {
+    pub const fn kind(&self) -> &'static str {
         match self {
             CommandDataOption::String { .. } => "String",
             CommandDataOption::Integer { .. } => "Integer",
