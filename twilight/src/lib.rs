@@ -108,8 +108,12 @@
 //! ### [`twilight-util`]
 //!
 //! Utility crate that adds utilities to the twilight ecosystem that do not fit
-//! in any other crate. Currently, it contains a trait to make extracting data
-//! from Discord identifiers (Snowflakes) easier.
+//! in any other crate. Currently, it contains:
+//!
+//! - A trait to make extracting data from Discord identifiers (Snowflakes)
+//! easier;
+//! - A calculator to calculate the permissions of a member in a guild or
+//! channel.
 //!
 //! ### [`twilight-gateway-queue`]
 //!
