@@ -24,7 +24,7 @@ pub(crate) struct CreateFollowupMessageFields {
     username: Option<String>,
     #[serde(skip_serializing_if = "Option::is_none")]
     flags: Option<MessageFlags>,
-    pub(crate) allowed_mentions: Option<AllowedMentions>,
+    allowed_mentions: Option<AllowedMentions>,
 }
 
 /// Create a followup message to an interaction.
@@ -93,7 +93,7 @@ impl<'a> CreateFollowupMessage<'a> {
 
     /// The content of the webook's message.
     ///
-    /// Up to 2000 UTF-16 codepoints, same as a message.
+    /// Up to 2000 UTF-16 codepoints.
     pub fn content(mut self, content: impl Into<String>) -> Self {
         self.fields.content.replace(content.into());
 

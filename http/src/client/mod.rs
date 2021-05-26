@@ -1671,10 +1671,6 @@ impl Client {
     }
 
     /// Edit the original message, by its token.
-    ///
-    /// Functions the same as [`update_webhook_message`].
-    ///
-    /// [`update_webhook_message`]: Client::update_webhook_message
     pub fn update_interaction_original(
         &self,
         interaction_token: impl Into<String>,
@@ -1707,10 +1703,6 @@ impl Client {
     }
 
     /// Create a followup message, by an interaction token.
-    ///
-    /// Functions the same as [`execute_webhook`].
-    ///
-    /// [`execute_webhook`]: Client::execute_webhook
     pub fn create_followup_message(
         &self,
         interaction_token: impl Into<String>,
@@ -1727,10 +1719,6 @@ impl Client {
     }
 
     /// Edit a followup message, by an interaction token.
-    ///
-    /// Functions the same as [`update_webhook_message`].
-    ///
-    /// [`update_webhook_message`]: Client::update_webhook_message
     pub fn update_followup_message(
         &self,
         interaction_token: impl Into<String>,
@@ -1785,13 +1773,13 @@ impl Client {
             kind: InteractionErrorType::ApplicationIdNotPresent,
         })?;
 
-        Ok(CreateGuildCommand::new(
+        CreateGuildCommand::new(
             &self,
             application_id,
             guild_id,
             name.into(),
             description.into(),
-        ))
+        )
     }
 
     /// Fetch all commands for a guild, by ID.
@@ -1885,15 +1873,10 @@ impl Client {
             kind: InteractionErrorType::ApplicationIdNotPresent,
         })?;
 
-        Ok(CreateGlobalCommand::new(
-            &self,
-            application_id,
-            name.into(),
-            description.into(),
-        ))
+        CreateGlobalCommand::new(&self, application_id, name.into(), description.into())
     }
 
-    /// Fetch all global commands for your app.
+    /// Fetch all global commands for your application.
     pub fn get_global_commands(&self) -> Result<GetGlobalCommands<'_>, InteractionError> {
         let application_id = self.application_id().ok_or(InteractionError {
             kind: InteractionErrorType::ApplicationIdNotPresent,
@@ -1932,8 +1915,6 @@ impl Client {
     }
 
     /// Set global commands.
-    ///
-    /// # Note:
     ///
     /// This method is idempotent: it can be used on every start, without being
     /// ratelimited if there aren't changes to the commands.
@@ -1984,8 +1965,6 @@ impl Client {
 
     /// Update command permissions for a single command in a guild.
     ///
-    /// # Note:
-    ///
     /// This overwrites the command permissions so the full set of permissions
     /// have to be sent every time.
     pub fn update_command_permissions(
@@ -2008,8 +1987,6 @@ impl Client {
     }
 
     /// Update command permissions for all commands in a guild.
-    ///
-    /// # Note:
     ///
     /// This overwrites the command permissions so the full set of permissions
     /// have to be sent every time.

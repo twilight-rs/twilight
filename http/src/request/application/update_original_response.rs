@@ -16,7 +16,7 @@ use twilight_model::{
     id::ApplicationId,
 };
 
-/// A webhook's message can not be updated as configured.
+/// A original response can not be updated as configured.
 #[derive(Debug)]
 pub struct UpdateOriginalResponseError {
     kind: UpdateOriginalResponseErrorType,
@@ -95,7 +95,7 @@ pub enum UpdateOriginalResponseErrorType {
     },
     /// Too many embeds were provided.
     ///
-    /// A webhook can have up to 10 embeds.
+    /// A original response can have up to 10 embeds.
     TooManyEmbeds {
         /// Provided embeds.
         embeds: Vec<Embed>,
@@ -118,15 +118,15 @@ struct UpdateOriginalResponseFields {
     payload_json: Option<Vec<u8>>,
 }
 
-/// Update a message created by a webhook.
+/// Update the original response created by a interaction.
 ///
-/// A webhook's message must always have at least one embed or some amount of
-/// content. If you wish to delete a webhook's message refer to
+/// A response must always have at least one embed or some amount of
+/// content. If you wish to delete a original response refer to
 /// [`DeleteOriginalResponse`].
 ///
 /// # Examples
 ///
-/// Update a webhook's message by setting the content to `test <@3>` -
+/// Update the original response by setting the content to `test <@3>` -
 /// attempting to mention user ID 3 - and specifying that only that the user may
 /// not be mentioned.
 ///
@@ -161,7 +161,7 @@ pub struct UpdateOriginalResponse<'a> {
 }
 
 impl<'a> UpdateOriginalResponse<'a> {
-    /// Maximum number of embeds that a webhook's message may have.
+    /// Maximum number of embeds that a original response may have.
     pub const EMBED_COUNT_LIMIT: usize = 10;
 
     pub(crate) fn new(
@@ -241,7 +241,7 @@ impl<'a> UpdateOriginalResponse<'a> {
         Ok(self)
     }
 
-    /// Set the list of embeds of the webhook's message.
+    /// Set the list of embeds of the original response.
     ///
     /// Pass `None` to remove all of the embeds.
     ///
@@ -320,7 +320,7 @@ impl<'a> UpdateOriginalResponse<'a> {
         Ok(self)
     }
 
-    /// Attach a file to the webhook.
+    /// Attach a file to the original response.
     ///
     /// This method is repeatable.
     pub fn file(mut self, name: impl Into<String>, file: impl Into<Vec<u8>>) -> Self {
@@ -329,7 +329,7 @@ impl<'a> UpdateOriginalResponse<'a> {
         self
     }
 
-    /// Attach multiple files to the webhook.
+    /// Attach multiple files to the original response.
     pub fn files<N: Into<String>, F: Into<Vec<u8>>>(
         mut self,
         attachments: impl IntoIterator<Item = (N, F)>,

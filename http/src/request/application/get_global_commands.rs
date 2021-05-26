@@ -1,7 +1,7 @@
 use crate::request::prelude::*;
 use twilight_model::{application::command::Command, id::ApplicationId};
 
-/// Fetch all global commands for your app.
+/// Fetch all global commands for an application.
 pub struct GetGlobalCommands<'a> {
     application_id: ApplicationId,
     fut: Option<Pending<'a, Vec<Command>>>,

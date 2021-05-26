@@ -13,8 +13,6 @@ struct PartialGuildCommandPermissions {
 
 /// Update command permissions for all commands in a guild.
 ///
-/// # Note:
-///
 /// This overwrites the command permissions so the full set of permissions
 /// have to be sent every time.
 pub struct SetCommandPermissions<'a> {

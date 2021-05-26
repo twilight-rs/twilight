@@ -1,8 +1,3 @@
-use std::{
-    error::Error,
-    fmt::{Display, Formatter, Result as FmtResult},
-};
-
 mod create_followup_message;
 mod create_global_command;
 mod create_guild_command;
@@ -24,30 +19,38 @@ mod update_global_command;
 mod update_guild_command;
 mod update_original_response;
 
-pub use self::create_followup_message::CreateFollowupMessage;
-pub use self::create_global_command::CreateGlobalCommand;
-pub use self::create_guild_command::CreateGuildCommand;
-pub use self::delete_followup_message::DeleteFollowupMessage;
-pub use self::delete_global_command::DeleteGlobalCommand;
-pub use self::delete_guild_command::DeleteGuildCommand;
-pub use self::delete_original_response::DeleteOriginalResponse;
-pub use self::get_command_permissions::GetCommandPermissions;
-pub use self::get_global_commands::GetGlobalCommands;
-pub use self::get_guild_command_permissions::GetGuildCommandPermissions;
-pub use self::get_guild_commands::GetGuildCommands;
-pub use self::interaction_callback::InteractionCallback;
-pub use self::set_command_permissions::SetCommandPermissions;
-pub use self::set_global_commands::SetGlobalCommands;
-pub use self::set_guild_commands::SetGuildCommands;
-pub use self::update_command_permissions::UpdateCommandPermissions;
-pub use self::update_followup_message::{
-    UpdateFollowupMessage, UpdateFollowupMessageError, UpdateFollowupMessageErrorType,
+pub use self::{
+    create_followup_message::CreateFollowupMessage,
+    create_global_command::CreateGlobalCommand,
+    create_guild_command::CreateGuildCommand,
+    delete_followup_message::DeleteFollowupMessage,
+    delete_global_command::DeleteGlobalCommand,
+    delete_guild_command::DeleteGuildCommand,
+    delete_original_response::DeleteOriginalResponse,
+    get_command_permissions::GetCommandPermissions,
+    get_global_commands::GetGlobalCommands,
+    get_guild_command_permissions::GetGuildCommandPermissions,
+    get_guild_commands::GetGuildCommands,
+    interaction_callback::InteractionCallback,
+    set_command_permissions::SetCommandPermissions,
+    set_global_commands::SetGlobalCommands,
+    set_guild_commands::SetGuildCommands,
+    update_command_permissions::UpdateCommandPermissions,
+    update_followup_message::{
+        UpdateFollowupMessage, UpdateFollowupMessageError, UpdateFollowupMessageErrorType,
+    },
+    update_global_command::UpdateGlobalCommand,
+    update_guild_command::UpdateGuildCommand,
+    update_original_response::{
+        UpdateOriginalResponse, UpdateOriginalResponseError, UpdateOriginalResponseErrorType,
+    },
 };
-pub use self::update_global_command::UpdateGlobalCommand;
-pub use self::update_guild_command::UpdateGuildCommand;
-pub use self::update_original_response::{
-    UpdateOriginalResponse, UpdateOriginalResponseError, UpdateOriginalResponseErrorType,
+
+use std::{
+    error::Error,
+    fmt::{Display, Formatter, Result as FmtResult},
 };
+use twilight_model::application::command::CommandOption;
 
 /// The error created if the creation of interaction fails.
 #[derive(Debug)]
@@ -58,7 +61,14 @@ pub struct InteractionError {
 #[derive(Debug)]
 #[non_exhaustive]
 pub enum InteractionErrorType {
+    /// Application id was not set on the client.
     ApplicationIdNotPresent,
+    /// Command name validation failed.
+    CommandNameValidationFailed { name: String },
+    /// Command description validation failed.
+    CommandDescriptionValidationFailed { description: String },
+    /// Required command options have to be passed before optional ones.
+    CommandOptionsRequiredFirst { option: CommandOption },
 }
 
 impl InteractionError {
@@ -87,6 +97,15 @@ impl Display for InteractionError {
         match self.kind {
             InteractionErrorType::ApplicationIdNotPresent => {
                 f.write_str("application id not present")
+            }
+            InteractionErrorType::CommandNameValidationFailed { .. } => {
+                f.write_str("command name must be between 3 and 32 characters")
+            }
+            InteractionErrorType::CommandDescriptionValidationFailed { .. } => {
+                f.write_str("command description must be between 1 and 100 characters")
+            }
+            InteractionErrorType::CommandOptionsRequiredFirst { .. } => {
+                f.write_str("optional command options must be added after required")
             }
         }
     }

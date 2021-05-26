@@ -1,4 +1,7 @@
-use crate::request::prelude::*;
+use crate::request::{
+    application::{InteractionError, InteractionErrorType},
+    prelude::*,
+};
 use twilight_model::{
     application::command::{Command, CommandOption},
     id::{ApplicationId, GuildId},
@@ -27,8 +30,19 @@ impl<'a> CreateGuildCommand<'a> {
         guild_id: GuildId,
         name: String,
         description: String,
-    ) -> Self {
-        Self {
+    ) -> Result<Self, InteractionError> {
+        if !validate::command_name(&name) {
+            return Err(InteractionError {
+                kind: InteractionErrorType::CommandNameValidationFailed { name },
+            });
+        }
+        if !validate::command_description(&description) {
+            return Err(InteractionError {
+                kind: InteractionErrorType::CommandDescriptionValidationFailed { description },
+            });
+        }
+
+        Ok(Self {
             command: Command {
                 application_id: Some(application_id),
                 name,
@@ -41,7 +55,7 @@ impl<'a> CreateGuildCommand<'a> {
             guild_id,
             fut: None,
             http,
-        }
+        })
     }
 
     /// Add a command option.
@@ -51,7 +65,7 @@ impl<'a> CreateGuildCommand<'a> {
         self
     }
 
-    /// Whether the command is enabled by default when the app is added to a guild
+    /// Whether the command is enabled by default when the app is added to a guild.
     pub fn default_permission(mut self, default: bool) -> Self {
         self.command.default_permission.replace(default);
 

@@ -44,6 +44,18 @@ impl CommandOption {
             CommandOption::Mentionable(_) => CommandOptionType::Mentionable,
         }
     }
+
+    pub fn is_required(&self) -> bool {
+        match self {
+            CommandOption::SubCommand(data) | CommandOption::SubCommandGroup(data) => data.required,
+            CommandOption::String(data) | CommandOption::Integer(data) => data.required,
+            CommandOption::Boolean(data)
+            | CommandOption::User(data)
+            | CommandOption::Channel(data)
+            | CommandOption::Role(data)
+            | CommandOption::Mentionable(data) => data.required,
+        }
+    }
 }
 
 impl<'de> Deserialize<'de> for CommandOption {

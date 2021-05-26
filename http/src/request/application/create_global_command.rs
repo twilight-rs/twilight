@@ -1,4 +1,7 @@
-use crate::request::prelude::*;
+use crate::request::{
+    application::{InteractionError, InteractionErrorType},
+    prelude::*,
+};
 use twilight_model::{
     application::command::{Command, CommandOption},
     id::ApplicationId,
@@ -17,6 +20,7 @@ pub struct CreateGlobalCommand<'a> {
     application_id: ApplicationId,
     fut: Option<Pending<'a, ()>>,
     http: &'a Client,
+    optional_option_added: bool,
 }
 
 impl<'a> CreateGlobalCommand<'a> {
@@ -25,8 +29,19 @@ impl<'a> CreateGlobalCommand<'a> {
         application_id: ApplicationId,
         name: String,
         description: String,
-    ) -> Self {
-        Self {
+    ) -> Result<Self, InteractionError> {
+        if !validate::command_name(&name) {
+            return Err(InteractionError {
+                kind: InteractionErrorType::CommandNameValidationFailed { name },
+            });
+        }
+        if !validate::command_description(&description) {
+            return Err(InteractionError {
+                kind: InteractionErrorType::CommandDescriptionValidationFailed { description },
+            });
+        }
+
+        Ok(Self {
             command: Command {
                 application_id: Some(application_id),
                 name,
@@ -38,17 +53,30 @@ impl<'a> CreateGlobalCommand<'a> {
             application_id,
             fut: None,
             http,
-        }
+            optional_option_added: false,
+        })
     }
 
     /// Add a command option.
-    pub fn push_command_option(mut self, option: CommandOption) -> Self {
+    ///
+    /// Required command options must be added before optional options.
+    pub fn push_command_option(mut self, option: CommandOption) -> Result<Self, InteractionError> {
+        if !self.optional_option_added && !option.is_required() {
+            self.optional_option_added = true
+        }
+
+        if option.is_required() && self.optional_option_added {
+            return Err(InteractionError {
+                kind: InteractionErrorType::CommandOptionsRequiredFirst { option },
+            });
+        }
+
         self.command.options.push(option);
 
-        self
+        Ok(self)
     }
 
-    /// Whether the command is enabled by default when the app is added to a guild
+    /// Whether the command is enabled by default when the app is added to a guild.
     pub fn default_permission(mut self, default: bool) -> Self {
         self.command.default_permission.replace(default);
 

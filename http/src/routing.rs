@@ -477,9 +477,9 @@ pub enum Route {
     },
     /// Route information to delete a global command.
     DeleteGlobalCommand {
-        /// The ID of the owner application
+        /// The ID of the owner application.
         application_id: u64,
-        /// The ID of the command
+        /// The ID of the command.
         command_id: u64,
     },
     /// Route information to delete a guild.
@@ -694,7 +694,7 @@ pub enum Route {
         /// guild.
         with_counts: bool,
     },
-    /// Route information to get permsiions of all guild commands
+    /// Route information to get permissions of all guild commands.
     GetGuildCommandPermissions {
         /// The ID of the application.
         application_id: u64,
@@ -894,7 +894,8 @@ pub enum Route {
         token: String,
         /// ID of the webhook.
         webhook_id: u64,
-    /// Route information to callback of a interaction.
+    }
+    /// Route information to respond to an interaction.
     InteractionCallback {
         /// The ID of the interaction.
         interaction_id: u64,
@@ -983,7 +984,7 @@ pub enum Route {
         /// The ID of the channel.
         channel_id: u64,
     },
-    /// Route information to edit permission of a command in a guild.
+    /// Route information to edit permissions of a command in a guild.
     UpdateCommandPermissions {
         /// The ID of the application.
         application_id: u64,
