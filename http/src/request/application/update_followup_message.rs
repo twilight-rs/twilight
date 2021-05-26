@@ -366,19 +366,23 @@ impl<'a> UpdateFollowupMessage<'a> {
             webhook_id: self.application_id.0,
         });
 
-        if self.files.is_empty() {
-            request = request.json(&self.fields)?;
-        } else {
+        if !self.files.is_empty() || self.fields.payload_json.is_some() {
             let mut form = Form::new();
 
             for (index, (name, file)) in self.files.drain(..).enumerate() {
                 form.file(format!("{}", index).as_bytes(), name.as_bytes(), &file);
             }
 
-            let body = crate::json_to_vec(&self.fields).map_err(HttpError::json)?;
-            form.payload_json(&body);
+            if let Some(payload_json) = &self.fields.payload_json {
+                form.payload_json(&payload_json);
+            } else {
+                let body = crate::json_to_vec(&self.fields).map_err(HttpError::json)?;
+                form.payload_json(&body);
+            }
 
             request = request.form(form);
+        } else {
+            request = request.json(&self.fields)?;
         }
 
         Ok(request.build())
