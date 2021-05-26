@@ -7,6 +7,8 @@ use serde_repr::{Deserialize_repr, Serialize_repr};
 pub enum WebhookType {
     Incoming = 1,
     ChannelFollower = 2,
+    /// Webhooks used with interactions.
+    Application = 3,
 }
 
 impl Default for WebhookType {
