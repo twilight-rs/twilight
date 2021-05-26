@@ -226,7 +226,7 @@ impl<'a> CreateFollowupMessage<'a> {
             if let Some(payload_json) = &self.fields.payload_json {
                 form.payload_json(&payload_json);
             } else {
-                let body = crate::json_to_vec(&self.fields).map_err(HttpError::json)?;
+                let body = crate::json::to_vec(&self.fields).map_err(HttpError::json)?;
                 form.payload_json(&body);
             }
 

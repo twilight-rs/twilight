@@ -894,7 +894,7 @@ pub enum Route {
         token: String,
         /// ID of the webhook.
         webhook_id: u64,
-    }
+    },
     /// Route information to respond to an interaction.
     InteractionCallback {
         /// The ID of the interaction.
