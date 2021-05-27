@@ -933,7 +933,7 @@ mod tests {
                 Token::Str("name"),
                 Token::Str("the name"),
                 Token::Str("nsfw_level"),
-                Token::U8(1),
+                Token::U8(0),
                 Token::Str("owner_id"),
                 Token::NewtypeStruct { name: "UserId" },
                 Token::Str("5"),
