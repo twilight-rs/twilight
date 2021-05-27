@@ -45,7 +45,7 @@ impl CommandOption {
         }
     }
 
-    pub fn is_required(&self) -> bool {
+    pub const fn is_required(&self) -> bool {
         match self {
             CommandOption::SubCommand(data) | CommandOption::SubCommandGroup(data) => data.required,
             CommandOption::String(data) | CommandOption::Integer(data) => data.required,
