@@ -1349,13 +1349,13 @@ mod tests {
 
         {
             let cached_instances = cache
-                .guild_stage_instances(stage_instance.guild_id.clone())
+                .guild_stage_instances(stage_instance.guild_id)
                 .unwrap();
             assert_eq!(1, cached_instances.len());
         }
 
         {
-            let cached_instance = cache.stage_instance(stage_instance.id.clone()).unwrap();
+            let cached_instance = cache.stage_instance(stage_instance.id).unwrap();
             assert_eq!(stage_instance.topic, cached_instance.topic);
         }
 
@@ -1367,7 +1367,7 @@ mod tests {
         cache.update(&StageInstanceUpdate(new_stage_instance.clone()));
 
         {
-            let cached_instance = cache.stage_instance(stage_instance.id.clone()).unwrap();
+            let cached_instance = cache.stage_instance(stage_instance.id).unwrap();
             assert_ne!(stage_instance.topic, cached_instance.topic);
             assert_eq!(new_stage_instance.topic, "a new topic");
         }
@@ -1376,13 +1376,13 @@ mod tests {
 
         {
             let cached_instances = cache
-                .guild_stage_instances(stage_instance.guild_id.clone())
+                .guild_stage_instances(stage_instance.guild_id)
                 .unwrap();
             assert_eq!(0, cached_instances.len());
         }
 
         {
-            let cached_instance = cache.stage_instance(stage_instance.id.clone());
+            let cached_instance = cache.stage_instance(stage_instance.id);
             assert_eq!(cached_instance, None);
         }
     }
