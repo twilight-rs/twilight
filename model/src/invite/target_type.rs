@@ -9,9 +9,6 @@ pub enum TargetType {
     EmbeddedApplication = 2,
 }
 
-#[deprecated(since = "0.4.2", note = "renamed to `TargetType`")]
-pub type TargetUserType = TargetType;
-
 #[cfg(test)]
 mod tests {
     use super::TargetType;
