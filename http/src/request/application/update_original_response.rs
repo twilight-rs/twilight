@@ -26,7 +26,7 @@ pub struct UpdateOriginalResponseError {
 impl UpdateOriginalResponseError {
     /// Immutable reference to the type of error that occurred.
     #[must_use = "retrieving the type has no effect if left unused"]
-    pub fn kind(&self) -> &UpdateOriginalResponseErrorType {
+    pub const fn kind(&self) -> &UpdateOriginalResponseErrorType {
         &self.kind
     }
 

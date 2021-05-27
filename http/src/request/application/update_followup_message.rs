@@ -26,7 +26,7 @@ pub struct UpdateFollowupMessageError {
 impl UpdateFollowupMessageError {
     /// Immutable reference to the type of error that occurred.
     #[must_use = "retrieving the type has no effect if left unused"]
-    pub fn kind(&self) -> &UpdateFollowupMessageErrorType {
+    pub const fn kind(&self) -> &UpdateFollowupMessageErrorType {
         &self.kind
     }
 
