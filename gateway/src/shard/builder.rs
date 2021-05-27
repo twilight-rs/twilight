@@ -253,6 +253,35 @@ impl ShardBuilder {
     ///
     /// Default is no presence, which defaults to strictly being "online"
     /// with no special qualities.
+    ///
+    /// # Examples
+    ///
+    /// Set the bot user's presence to idle with the status "Not accepting
+    /// commands":
+    ///
+    /// ```no_run
+    /// use twilight_gateway::{Intents, Shard};
+    /// use twilight_model::gateway::{
+    ///     payload::update_status::UpdateStatusInfo,
+    ///     presence::{ActivityType, MinimalActivity, Status},
+    /// };
+    ///
+    /// # fn main() -> Result<(), Box<dyn std::error::Error>> {
+    /// let shard = Shard::builder("token", Intents::empty())
+    ///     .presence(UpdateStatusInfo::new(
+    ///         Some(vec![MinimalActivity {
+    ///             kind: ActivityType::Playing,
+    ///             name: "Not accepting commands".into(),
+    ///             url: None,
+    ///         }
+    ///         .into()]),
+    ///         false,
+    ///         None,
+    ///         Status::Idle,
+    ///     ));
+    /// # Ok(()) }
+    ///
+    /// ```
     pub fn presence(mut self, presence: UpdateStatusInfo) -> Self {
         self.0.presence.replace(presence);
 
