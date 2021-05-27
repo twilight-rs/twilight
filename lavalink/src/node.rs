@@ -58,7 +58,7 @@ pub struct NodeError {
 impl NodeError {
     /// Immutable reference to the type of error that occurred.
     #[must_use = "retrieving the type has no effect if left unused"]
-    pub fn kind(&self) -> &NodeErrorType {
+    pub const fn kind(&self) -> &NodeErrorType {
         &self.kind
     }
 
@@ -133,7 +133,7 @@ pub struct NodeSenderError {
 
 impl NodeSenderError {
     /// Immutable reference to the type of error that occurred.
-    pub fn kind(&self) -> &NodeSenderErrorType {
+    pub const fn kind(&self) -> &NodeSenderErrorType {
         &self.kind
     }
 
@@ -254,7 +254,7 @@ pub struct Resume {
 impl Resume {
     /// Configure resume capability, providing the number of seconds that the
     /// Lavalink server should queue events for when the connection is resumed.
-    pub fn new(seconds: u64) -> Self {
+    pub const fn new(seconds: u64) -> Self {
         Self { timeout: seconds }
     }
 }
@@ -289,7 +289,7 @@ impl NodeConfig {
         )
     }
 
-    fn _new(
+    const fn _new(
         user_id: UserId,
         shard_count: u64,
         address: SocketAddr,

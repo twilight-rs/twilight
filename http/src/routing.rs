@@ -17,7 +17,7 @@ pub struct PathParseError {
 impl PathParseError {
     /// Immutable reference to the type of error that occurred.
     #[must_use = "retrieving the type has no effect if left unused"]
-    pub fn kind(&self) -> &PathParseErrorType {
+    pub const fn kind(&self) -> &PathParseErrorType {
         &self.kind
     }
 
@@ -801,6 +801,15 @@ pub enum Route {
         /// The token of the webhook.
         token: Option<String>,
         /// The ID of the webhook.
+        webhook_id: u64,
+    },
+    /// Route information to get a previously-sent webhook message.
+    GetWebhookMessage {
+        /// ID of the message.
+        message_id: u64,
+        /// Token of the webhook.
+        token: String,
+        /// ID of the webhook.
         webhook_id: u64,
     },
     /// Route information to leave the guild.
@@ -1620,6 +1629,15 @@ impl Route {
 
                 (Method::Get, Path::WebhooksId(webhook_id), path.into())
             }
+            Self::GetWebhookMessage {
+                message_id,
+                token,
+                webhook_id,
+            } => (
+                Method::Get,
+                Path::WebhooksIdTokenMessagesId(webhook_id),
+                format!("webhooks/{}/{}/messages/{}", webhook_id, token, message_id).into(),
+            ),
             Self::LeaveGuild { guild_id } => (
                 Method::Delete,
                 Path::UsersIdGuildsId,

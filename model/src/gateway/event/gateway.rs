@@ -103,17 +103,18 @@ impl GatewayEventDeserializerOwned {
     }
 
     /// Return the opcode of the payload.
-    pub fn op(&self) -> u8 {
+    pub const fn op(&self) -> u8 {
         self.op
     }
 
     /// Return the sequence of the payload.
-    pub fn sequence(&self) -> Option<u64> {
+    pub const fn sequence(&self) -> Option<u64> {
         self.sequence
     }
 
     /// Consume the deserializer, returning its opcode, sequence, and event type
     /// components.
+    #[allow(clippy::missing_const_for_fn)]
     pub fn into_parts(self) -> (u8, Option<u64>, Option<String>) {
         (self.op, self.sequence, self.event_type)
     }
@@ -139,7 +140,7 @@ impl<'a> GatewayEventDeserializer<'a> {
     ///
     /// This might be useful if you scan the payload for this information and
     /// do some work with the event type prior to deserializing the payload.
-    pub fn new(op: u8, sequence: Option<u64>, event_type: Option<&'a str>) -> Self {
+    pub const fn new(op: u8, sequence: Option<u64>, event_type: Option<&'a str>) -> Self {
         Self {
             event_type,
             op,
@@ -166,23 +167,23 @@ impl<'a> GatewayEventDeserializer<'a> {
     }
 
     /// Return an immutable reference to the event type of the payload.
-    pub fn event_type_ref(&self) -> Option<&str> {
+    pub const fn event_type_ref(&self) -> Option<&str> {
         self.event_type
     }
 
     /// Return the opcode of the payload.
-    pub fn op(&self) -> u8 {
+    pub const fn op(&self) -> u8 {
         self.op
     }
 
     /// Return the sequence of the payload.
-    pub fn sequence(&self) -> Option<u64> {
+    pub const fn sequence(&self) -> Option<u64> {
         self.sequence
     }
 
     /// Consume the deserializer, returning its opcode and event type
     /// components.
-    pub fn into_parts(self) -> (u8, Option<u64>, Option<&'a str>) {
+    pub const fn into_parts(self) -> (u8, Option<u64>, Option<&'a str>) {
         (self.op, self.sequence, self.event_type)
     }
 
@@ -464,7 +465,7 @@ impl<'de> DeserializeSeed<'de> for GatewayEventDeserializerOwned {
 
 impl Serialize for GatewayEvent {
     fn serialize<S: Serializer>(&self, serializer: S) -> Result<S::Ok, S::Error> {
-        fn opcode(gateway_event: &GatewayEvent) -> OpCode {
+        const fn opcode(gateway_event: &GatewayEvent) -> OpCode {
             match gateway_event {
                 GatewayEvent::Dispatch(_, _) => OpCode::Event,
                 GatewayEvent::Heartbeat(_) => OpCode::Heartbeat,

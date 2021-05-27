@@ -19,7 +19,7 @@ pub struct UserIdsError {
 impl UserIdsError {
     /// Immutable reference to the type of error that occurred.
     #[must_use = "retrieving the type has no effect if left unused"]
-    pub fn kind(&self) -> &UserIdsErrorType {
+    pub const fn kind(&self) -> &UserIdsErrorType {
         &self.kind
     }
 
@@ -78,7 +78,7 @@ impl RequestGuildMembers {
     ///
     /// This is an alias to [`RequestGuildMembersBuilder::new`]. Refer to its
     /// documentation for more information.
-    pub fn builder(guild_id: GuildId) -> RequestGuildMembersBuilder {
+    pub const fn builder(guild_id: GuildId) -> RequestGuildMembersBuilder {
         RequestGuildMembersBuilder::new(guild_id)
     }
 }
@@ -92,7 +92,7 @@ pub struct RequestGuildMembersBuilder {
 impl RequestGuildMembersBuilder {
     /// Create a new builder to configure and construct a
     /// [`RequestGuildMembers`].
-    pub fn new(guild_id: GuildId) -> Self {
+    pub const fn new(guild_id: GuildId) -> Self {
         Self {
             guild_id,
             nonce: None,
@@ -186,6 +186,7 @@ impl RequestGuildMembersBuilder {
     ///
     /// assert_eq!(Some(RequestGuildMemberId::One(UserId(2))), request.d.user_ids);
     /// ```
+    #[allow(clippy::missing_const_for_fn)]
     pub fn user_id(self, user_id: UserId) -> RequestGuildMembers {
         RequestGuildMembers {
             d: RequestGuildMembersInfo {

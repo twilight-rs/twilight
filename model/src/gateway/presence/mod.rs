@@ -87,7 +87,7 @@ pub struct PresenceDeserializer(GuildId);
 impl PresenceDeserializer {
     /// Create a new deserializer for a presence when you know the guild ID but
     /// the payload probably doesn't contain it.
-    pub fn new(guild_id: GuildId) -> Self {
+    pub const fn new(guild_id: GuildId) -> Self {
         Self(guild_id)
     }
 }
@@ -106,7 +106,7 @@ pub struct PresenceListDeserializer(GuildId);
 impl PresenceListDeserializer {
     /// Create a new deserializer for a map of presences when you know the
     /// Guild ID but the payload probably doesn't contain it.
-    pub fn new(guild_id: GuildId) -> Self {
+    pub const fn new(guild_id: GuildId) -> Self {
         Self(guild_id)
     }
 }

@@ -39,7 +39,7 @@ pub struct UpdateChannelPermission<'a> {
 }
 
 impl<'a> UpdateChannelPermission<'a> {
-    pub(crate) fn new(
+    pub(crate) const fn new(
         http: &'a Client,
         channel_id: ChannelId,
         allow: Permissions,

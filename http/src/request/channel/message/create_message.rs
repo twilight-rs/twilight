@@ -22,7 +22,7 @@ pub struct CreateMessageError {
 impl CreateMessageError {
     /// Immutable reference to the type of error that occurred.
     #[must_use = "retrieving the type has no effect if left unused"]
-    pub fn kind(&self) -> &CreateMessageErrorType {
+    pub const fn kind(&self) -> &CreateMessageErrorType {
         &self.kind
     }
 
@@ -318,7 +318,7 @@ impl<'a> CreateMessage<'a> {
             if let Some(payload_json) = &self.fields.payload_json {
                 form.payload_json(&payload_json);
             } else {
-                let body = crate::json_to_vec(&self.fields).map_err(HttpError::json)?;
+                let body = crate::json::to_vec(&self.fields).map_err(HttpError::json)?;
                 form.payload_json(&body);
             }
 

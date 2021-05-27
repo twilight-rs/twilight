@@ -31,7 +31,7 @@ pub enum CommandOption {
 }
 
 impl CommandOption {
-    pub fn kind(&self) -> CommandOptionType {
+    pub const fn kind(&self) -> CommandOptionType {
         match self {
             CommandOption::SubCommand(_) => CommandOptionType::SubCommand,
             CommandOption::SubCommandGroup(_) => CommandOptionType::SubCommandGroup,
@@ -385,7 +385,7 @@ pub enum CommandOptionType {
 }
 
 impl CommandOptionType {
-    pub fn kind(self) -> &'static str {
+    pub const fn kind(self) -> &'static str {
         match self {
             CommandOptionType::SubCommand => "SubCommand",
             CommandOptionType::SubCommandGroup => "SubCommandGroup",

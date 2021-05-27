@@ -112,6 +112,7 @@
 
 #![deny(
     clippy::all,
+    clippy::missing_const_for_fn,
     future_incompatible,
     missing_docs,
     nonstandard_style,

@@ -16,7 +16,7 @@ pub enum ChannelType {
 }
 
 impl ChannelType {
-    pub fn name(self) -> &'static str {
+    pub const fn name(self) -> &'static str {
         match self {
             Self::Group => "Group",
             Self::GuildCategory => "GuildCategory",

@@ -14,7 +14,7 @@ pub struct GetCurrentUserGuildsError {
 impl GetCurrentUserGuildsError {
     /// Immutable reference to the type of error that occurred.
     #[must_use = "retrieving the type has no effect if left unused"]
-    pub fn kind(&self) -> &GetCurrentUserGuildsErrorType {
+    pub const fn kind(&self) -> &GetCurrentUserGuildsErrorType {
         &self.kind
     }
 

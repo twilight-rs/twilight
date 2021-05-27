@@ -385,7 +385,10 @@ impl Client {
         GetChannelMessages::new(self, channel_id)
     }
 
-    pub fn delete_channel_permission(&self, channel_id: ChannelId) -> DeleteChannelPermission<'_> {
+    pub const fn delete_channel_permission(
+        &self,
+        channel_id: ChannelId,
+    ) -> DeleteChannelPermission<'_> {
         DeleteChannelPermission::new(self, channel_id)
     }
 
@@ -414,7 +417,7 @@ impl Client {
     ///     .await?;
     /// # Ok(()) }
     /// ```
-    pub fn update_channel_permission(
+    pub const fn update_channel_permission(
         &self,
         channel_id: ChannelId,
         allow: Permissions,
@@ -1551,6 +1554,19 @@ impl Client {
         ExecuteWebhook::new(self, webhook_id, token)
     }
 
+    /// Get a webhook message by [`WebhookId`], token, and [`MessageId`].
+    ///
+    /// [`WebhookId`]: twilight_model::id::WebhookId
+    /// [`MessageId`]: twilight_model::id::MessageId
+    pub fn webhook_message(
+        &self,
+        webhook_id: WebhookId,
+        token: impl Into<String>,
+        message_id: MessageId,
+    ) -> GetWebhookMessage<'_> {
+        GetWebhookMessage::new(self, webhook_id, token, message_id)
+    }
+
     /// Update a message executed by a webhook.
     ///
     /// # Examples
@@ -1800,7 +1816,7 @@ impl Client {
         let mut bytes = vec![0; buf.remaining()];
         buf.copy_to_slice(&mut bytes);
 
-        let result = crate::json_from_slice(&mut bytes);
+        let result = crate::json::from_slice(&mut bytes);
 
         result.map_err(|source| Error {
             kind: ErrorType::Parsing {
@@ -1868,7 +1884,7 @@ impl Client {
         let mut bytes = vec![0; buf.remaining()];
         buf.copy_to_slice(&mut bytes);
 
-        let error = crate::json_from_slice::<ApiError>(&mut bytes).map_err(|source| Error {
+        let error = crate::json::from_slice::<ApiError>(&mut bytes).map_err(|source| Error {
             kind: ErrorType::Parsing {
                 body: bytes.clone(),
             },

@@ -216,7 +216,8 @@ pub enum ErrorCode {
 }
 
 impl ErrorCode {
-    pub fn num(&self) -> u64 {
+    #[allow(clippy::too_many_lines)]
+    pub const fn num(&self) -> u64 {
         match self {
             Self::GeneralError => 0,
             Self::UnknownAccount => 10001,
@@ -324,6 +325,7 @@ impl ErrorCode {
 }
 
 impl From<u64> for ErrorCode {
+    #[allow(clippy::too_many_lines)]
     fn from(int: u64) -> Self {
         match int {
             0 => Self::GeneralError,
@@ -432,6 +434,7 @@ impl From<u64> for ErrorCode {
 }
 
 impl Display for ErrorCode {
+    #[allow(clippy::too_many_lines)]
     fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
         match self {
             Self::GeneralError => f.write_str("General error (such as a malformed request body, amongst other things)"),

@@ -23,7 +23,7 @@ pub struct AddGuildMemberError {
 impl AddGuildMemberError {
     /// Immutable reference to the type of error that occurred.
     #[must_use = "retrieving the type has no effect if left unused"]
-    pub fn kind(&self) -> &AddGuildMemberErrorType {
+    pub const fn kind(&self) -> &AddGuildMemberErrorType {
         &self.kind
     }
 
@@ -198,7 +198,7 @@ impl Future for AddGuildMember<'_> {
                     return Poll::Ready(Ok(None));
                 }
 
-                return Poll::Ready(crate::json_from_slice(&mut bytes).map(Some).map_err(
+                return Poll::Ready(crate::json::from_slice(&mut bytes).map(Some).map_err(
                     |source| HttpError {
                         kind: ErrorType::Parsing { body: bytes },
                         source: Some(Box::new(source)),

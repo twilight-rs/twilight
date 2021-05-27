@@ -28,7 +28,7 @@ pub struct UpdateWebhookMessageError {
 impl UpdateWebhookMessageError {
     /// Immutable reference to the type of error that occurred.
     #[must_use = "retrieving the type has no effect if left unused"]
-    pub fn kind(&self) -> &UpdateWebhookMessageErrorType {
+    pub const fn kind(&self) -> &UpdateWebhookMessageErrorType {
         &self.kind
     }
 
@@ -375,7 +375,7 @@ impl<'a> UpdateWebhookMessage<'a> {
                 form.file(format!("{}", index).as_bytes(), name.as_bytes(), &file);
             }
 
-            let body = crate::json_to_vec(&self.fields).map_err(HttpError::json)?;
+            let body = crate::json::to_vec(&self.fields).map_err(HttpError::json)?;
             form.payload_json(&body);
 
             request = request.form(form);

@@ -17,7 +17,7 @@ pub struct UpdateChannelError {
 impl UpdateChannelError {
     /// Immutable reference to the type of error that occurred.
     #[must_use = "retrieving the type has no effect if left unused"]
-    pub fn kind(&self) -> &UpdateChannelErrorType {
+    pub const fn kind(&self) -> &UpdateChannelErrorType {
         &self.kind
     }
 
@@ -285,8 +285,7 @@ impl<'a> UpdateChannel<'a> {
     fn start(&mut self) -> Result<()> {
         let mut request = Request::builder(Route::UpdateChannel {
             channel_id: self.channel_id.0,
-        })
-        .json(&self.fields)?;
+        });
 
         if let Some(reason) = &self.reason {
             request = request.headers(audit_header(reason)?);

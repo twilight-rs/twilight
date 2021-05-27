@@ -27,7 +27,7 @@ pub struct GetGuildMembersError {
 impl GetGuildMembersError {
     /// Immutable reference to the type of error that occurred.
     #[must_use = "retrieving the type has no effect if left unused"]
-    pub fn kind(&self) -> &GetGuildMembersErrorType {
+    pub const fn kind(&self) -> &GetGuildMembersErrorType {
         &self.kind
     }
 
@@ -182,7 +182,7 @@ impl Future for GetGuildMembers<'_> {
 
                 let mut bytes = bytes.as_ref().to_vec();
                 let values =
-                    crate::json_from_slice::<Vec<Value>>(&mut bytes).map_err(HttpError::json)?;
+                    crate::json::from_slice::<Vec<Value>>(&mut bytes).map_err(HttpError::json)?;
 
                 for value in values {
                     let member_deserializer = MemberDeserializer::new(self.guild_id);
