@@ -36,6 +36,7 @@ impl<'a> CreateGuildCommand<'a> {
                 kind: InteractionErrorType::CommandNameValidationFailed { name },
             });
         }
+
         if !validate::command_description(&description) {
             return Err(InteractionError {
                 kind: InteractionErrorType::CommandDescriptionValidationFailed { description },
@@ -58,16 +59,16 @@ impl<'a> CreateGuildCommand<'a> {
         })
     }
 
-    /// Add a command option.
-    pub fn push_command_option(mut self, option: CommandOption) -> Self {
-        self.command.options.push(option);
+    /// Whether the command is enabled by default when the app is added to a guild.
+    pub fn default_permission(mut self, default: bool) -> Self {
+        self.command.default_permission.replace(default);
 
         self
     }
 
-    /// Whether the command is enabled by default when the app is added to a guild.
-    pub fn default_permission(mut self, default: bool) -> Self {
-        self.command.default_permission.replace(default);
+    /// Add a command option.
+    pub fn push_command_option(mut self, option: CommandOption) -> Self {
+        self.command.options.push(option);
 
         self
     }
