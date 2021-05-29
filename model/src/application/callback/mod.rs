@@ -176,7 +176,7 @@ mod tests {
             embeds: Vec::new(),
             flags: Some(MessageFlags::EPHEMERAL),
             tts: None,
-            components: vec![]
+            components: Vec::new()
         });
 
         serde_test::assert_tokens(
