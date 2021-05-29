@@ -15,6 +15,7 @@ use std::fmt::{Display, Formatter, Result as FmtResult};
 pub enum InteractionType {
     Ping = 1,
     ApplicationCommand = 2,
+    ButtonInteraction = 3,
 }
 
 impl InteractionType {
@@ -22,6 +23,7 @@ impl InteractionType {
         match self {
             Self::Ping => "Ping",
             Self::ApplicationCommand => "ApplicationCommand",
+            InteractionType::ButtonInteraction => "ButtonInteraction",
         }
     }
 }

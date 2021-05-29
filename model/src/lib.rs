@@ -50,6 +50,7 @@
 
 pub mod application;
 pub mod channel;
+pub mod component;
 pub mod gateway;
 pub mod guild;
 pub mod id;

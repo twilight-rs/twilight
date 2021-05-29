@@ -25,6 +25,10 @@ pub enum InteractionResponse {
     ChannelMessageWithSource(CallbackData),
     /// Acknowledges an interaction, showing a loading state.
     DeferredChannelMessageWithSource(CallbackData),
+    /// Acknowledge a component interaction, no loading state is shown to the user
+    DeferredUpdateMessage,
+    /// Response to a component interaction, updates the message the component is attached to with this
+    UpdateMessage(CallbackData),
 }
 
 impl InteractionResponse {
@@ -35,6 +39,10 @@ impl InteractionResponse {
             Self::DeferredChannelMessageWithSource(_) => {
                 ResponseType::DeferredChannelMessageWithSource
             }
+            InteractionResponse::DeferredUpdateMessage => {
+                ResponseType::DeferredUpdateMessage
+            }
+            InteractionResponse::UpdateMessage(_) => ResponseType::UpdateMessage,
         }
     }
 }
@@ -120,6 +128,12 @@ impl<'de> Visitor<'de> for ResponseVisitor {
 
                 Self::Value::DeferredChannelMessageWithSource(data)
             }
+            ResponseType::DeferredUpdateMessage => Self::Value::DeferredUpdateMessage,
+            ResponseType::UpdateMessage => {
+                let data = data.ok_or_else(|| DeError::missing_field("data"))?;
+
+                Self::Value::UpdateMessage(data)
+            }
         })
     }
 }
@@ -127,14 +141,16 @@ impl<'de> Visitor<'de> for ResponseVisitor {
 impl Serialize for InteractionResponse {
     fn serialize<S: Serializer>(&self, serializer: S) -> Result<S::Ok, S::Error> {
         match self {
-            Self::Pong => {
+            Self::Pong | Self::DeferredUpdateMessage => {
                 let mut state = serializer.serialize_struct("InteractionResponse", 1)?;
 
                 state.serialize_field("type", &self.kind())?;
 
                 state.end()
             }
-            Self::ChannelMessageWithSource(data) | Self::DeferredChannelMessageWithSource(data) => {
+            Self::ChannelMessageWithSource(data)
+            | Self::DeferredChannelMessageWithSource(data)
+            | Self::UpdateMessage(data) => {
                 let mut state = serializer.serialize_struct("InteractionResponse", 2)?;
 
                 state.serialize_field("type", &self.kind())?;
@@ -160,6 +176,7 @@ mod tests {
             embeds: Vec::new(),
             flags: Some(MessageFlags::EPHEMERAL),
             tts: None,
+            components: vec![]
         });
 
         serde_test::assert_tokens(

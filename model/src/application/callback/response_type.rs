@@ -9,6 +9,8 @@ pub enum ResponseType {
     Pong = 1,
     ChannelMessageWithSource = 4,
     DeferredChannelMessageWithSource = 5,
+    DeferredUpdateMessage = 6,
+    UpdateMessage = 7,
 }
 
 impl ResponseType {
@@ -17,6 +19,8 @@ impl ResponseType {
             Self::Pong => "Pong",
             Self::ChannelMessageWithSource => "ChannelMessageWithSource",
             Self::DeferredChannelMessageWithSource => "DeferredChannelMessageWithSource",
+            Self::DeferredUpdateMessage => "DeferredUpdateMessage",
+            Self::UpdateMessage => "UpdateMessage",
         }
     }
 }

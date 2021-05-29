@@ -10,6 +10,8 @@ use twilight_model::{
     channel::{embed::Embed, message::AllowedMentions, Message},
     id::WebhookId,
 };
+use twilight_model::component::Component;
+use crate::request::channel::message::create_message::{CreateMessageError, CreateMessageErrorType};
 
 #[derive(Default, Serialize)]
 pub(crate) struct ExecuteWebhookFields {
@@ -29,6 +31,8 @@ pub(crate) struct ExecuteWebhookFields {
     wait: Option<bool>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub(crate) allowed_mentions: Option<AllowedMentions>,
+    #[serde(skip_serializing_if = "Vec::is_empty")]
+    components: Vec<Component>,
 }
 
 /// Executes a webhook, sending a message to its channel.
@@ -250,6 +254,31 @@ impl<'a> ExecuteWebhook<'a> {
         }
 
         Ok(())
+    }
+
+    /// Add a component to the message, right now only `ActionRow` is a valid root component
+    /// Can only be used with webhooks made by a bot
+    pub fn add_component(mut self, component: Component) -> Result<Self, CreateMessageError> {
+        if self.fields.components.len() == 5 {
+            return Err(CreateMessageError {
+                kind: CreateMessageErrorType::TooManyComponents,
+                source: None,
+            });
+        }
+
+        match &component {
+            Component::ActionRow(_) => {
+                self.fields.components.push(component);
+
+                Ok(self)
+            }
+            _ => {
+                Err(CreateMessageError {
+                    kind: CreateMessageErrorType::InvalidRootComponent,
+                    source: None,
+                })
+            }
+        }
     }
 }
 

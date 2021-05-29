@@ -13,6 +13,8 @@ use twilight_model::{
     },
     id::ApplicationId,
 };
+use twilight_model::component::Component;
+use crate::request::channel::message::create_message::{CreateMessageError, CreateMessageErrorType};
 
 #[derive(Default, Serialize)]
 pub(crate) struct CreateFollowupMessageFields {
@@ -31,6 +33,8 @@ pub(crate) struct CreateFollowupMessageFields {
     #[serde(skip_serializing_if = "Option::is_none")]
     flags: Option<MessageFlags>,
     allowed_mentions: Option<AllowedMentions>,
+    #[serde(skip_serializing_if = "Vec::is_empty")]
+    components: Vec<Component>,
 }
 
 /// Create a followup message to an interaction.
@@ -249,6 +253,30 @@ impl<'a> CreateFollowupMessage<'a> {
             .replace(Box::pin(self.http.request(request.build())));
 
         Ok(())
+    }
+
+    /// Add a component to the message, right now only `ActionRow` is a valid root component
+    pub fn add_component(mut self, component: Component) -> Result<Self, CreateMessageError> {
+        if self.fields.components.len() == 5 {
+            return Err(CreateMessageError {
+                kind: CreateMessageErrorType::TooManyComponents,
+                source: None,
+            });
+        }
+
+        match &component {
+            Component::ActionRow(_) => {
+                self.fields.components.push(component);
+
+                Ok(self)
+            }
+            _ => {
+                Err(CreateMessageError {
+                    kind: CreateMessageErrorType::InvalidRootComponent,
+                    source: None,
+                })
+            }
+        }
     }
 }
 

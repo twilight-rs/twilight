@@ -9,6 +9,7 @@ use std::{
     error::Error,
     fmt::{Display, Formatter, Result as FmtResult},
 };
+use twilight_model::component::Component;
 use twilight_model::{
     channel::{
         embed::Embed,
@@ -21,8 +22,8 @@ use twilight_model::{
 /// The error created when a messsage can not be created as configured.
 #[derive(Debug)]
 pub struct CreateMessageError {
-    kind: CreateMessageErrorType,
-    source: Option<Box<dyn Error + Send + Sync>>,
+    pub(crate) kind: CreateMessageErrorType,
+    pub(crate) source: Option<Box<dyn Error + Send + Sync>>,
 }
 
 impl CreateMessageError {
@@ -54,6 +55,12 @@ impl Display for CreateMessageError {
             CreateMessageErrorType::EmbedTooLarge { .. } => {
                 f.write_str("the embed's contents are too long")
             }
+            CreateMessageErrorType::TooManyComponents => {
+                f.write_str("only 5 root components are allowed")
+            }
+            CreateMessageErrorType::InvalidRootComponent => {
+                f.write_str("not all components are valid as root components")
+            }
         }
     }
 }
@@ -80,6 +87,10 @@ pub enum CreateMessageErrorType {
         /// Provided embed.
         embed: Box<Embed>,
     },
+    /// You can only have up to 5 root components on a message
+    TooManyComponents,
+    /// Only ComponentRows are valid root components at this time
+    InvalidRootComponent,
 }
 
 #[derive(Default, Serialize)]
@@ -98,6 +109,8 @@ pub(crate) struct CreateMessageFields {
     pub(crate) allowed_mentions: Option<AllowedMentions>,
     #[serde(skip_serializing_if = "Option::is_none")]
     tts: Option<bool>,
+    #[serde(skip_serializing_if = "Vec::is_empty")]
+    components: Vec<Component>,
 }
 
 /// Send a message to a channel.
@@ -338,6 +351,29 @@ impl<'a> CreateMessage<'a> {
 
         Ok(())
     }
-}
 
+    /// Add a component to the message, right now only `ActionRow` is a valid root component
+    pub fn add_component(mut self, component: Component) -> Result<Self, CreateMessageError> {
+        if self.fields.components.len() == 5 {
+            return Err(CreateMessageError {
+                kind: CreateMessageErrorType::TooManyComponents,
+                source: None,
+            });
+        }
+
+        match &component {
+            Component::ActionRow(_) => {
+                self.fields.components.push(component);
+
+                Ok(self)
+            }
+            _ => {
+                Err(CreateMessageError {
+                    kind: CreateMessageErrorType::InvalidRootComponent,
+                    source: None,
+                })
+            }
+        }
+    }
+}
 poll_req!(CreateMessage<'_>, Message);
