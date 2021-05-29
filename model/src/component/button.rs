@@ -52,6 +52,9 @@ pub enum ButtonBuilderError {
 impl ButtonBuilder {
     /// Makes a new button that links to an external site
     /// You will also need to set the emoji or label as well (or both)
+    ///
+    /// # Errors
+    /// Emits `ButtonBuilderError::LinkTooLong` if the link is over 512 chars
     pub fn new_link(url: impl Into<String>) -> Result<Self, ButtonBuilderError> {
         let url = url.into();
         if url.len() > 512 {
@@ -62,7 +65,7 @@ impl ButtonBuilder {
                 emoji: None,
                 label: None,
                 custom_id: None,
-                url: Some(url.into()),
+                url: Some(url),
                 disabled: false,
             })
         }
@@ -70,6 +73,9 @@ impl ButtonBuilder {
 
     /// Make a new button with a specific style and id
     /// You will also need to set the emoji or label as well (or both)
+    ///
+    /// # Errors
+    /// Emits `ButtonBuilderError::CustomIdTooLong` if  the custom id is over 100 chars
     pub fn new_button(
         style: ButtonStyle,
         custom_id: impl Into<String>,
@@ -96,6 +102,9 @@ impl ButtonBuilder {
     }
 
     /// Set the button label text
+    ///
+    /// # Errors
+    /// Emits `ButtonBuilderError::LabelTooLong` if the label is more then 80 characters
     pub fn with_label(mut self, label: impl Into<String>) -> Result<Self, ButtonBuilderError> {
         let label = label.into();
         if label.len() > 80 {
@@ -115,7 +124,7 @@ impl ButtonBuilder {
     /// Finish the builder and assemble into the component
     ///
     /// # Errors
-    /// Emits a
+    /// Emits `ButtonBuilderError::MissingLabelOrEmoji` when there is no label or emoji set
     pub fn build(self) -> Result<Component, ButtonBuilderError> {
         if self.label.is_none() && self.emoji.is_none() {
             Err(ButtonBuilderError::MissingLabelOrEmoji)
