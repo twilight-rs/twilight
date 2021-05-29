@@ -25,7 +25,7 @@ pub struct CallbackData {
     pub flags: Option<MessageFlags>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub tts: Option<bool>,
-    #[serde(skip_serializing_if = "Vec::is_empty")]
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
     pub components: Vec<Component>,
 }
 

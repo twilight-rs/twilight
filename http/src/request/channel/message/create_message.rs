@@ -367,12 +367,10 @@ impl<'a> CreateMessage<'a> {
 
                 Ok(self)
             }
-            _ => {
-                Err(CreateMessageError {
-                    kind: CreateMessageErrorType::InvalidRootComponent,
-                    source: None,
-                })
-            }
+            _ => Err(CreateMessageError {
+                kind: CreateMessageErrorType::InvalidRootComponent,
+                source: None,
+            }),
         }
     }
 }

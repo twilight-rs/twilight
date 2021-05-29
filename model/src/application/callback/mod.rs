@@ -39,9 +39,7 @@ impl InteractionResponse {
             Self::DeferredChannelMessageWithSource(_) => {
                 ResponseType::DeferredChannelMessageWithSource
             }
-            InteractionResponse::DeferredUpdateMessage => {
-                ResponseType::DeferredUpdateMessage
-            }
+            InteractionResponse::DeferredUpdateMessage => ResponseType::DeferredUpdateMessage,
             InteractionResponse::UpdateMessage(_) => ResponseType::UpdateMessage,
         }
     }
@@ -176,7 +174,7 @@ mod tests {
             embeds: Vec::new(),
             flags: Some(MessageFlags::EPHEMERAL),
             tts: None,
-            components: Vec::new()
+            components: Vec::new(),
         });
 
         serde_test::assert_tokens(

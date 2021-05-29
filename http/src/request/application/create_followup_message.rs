@@ -1,3 +1,6 @@
+use crate::request::channel::message::create_message::{
+    CreateMessageError, CreateMessageErrorType,
+};
 use crate::{
     client::Client,
     error::Error,
@@ -5,6 +8,7 @@ use crate::{
     routing::Route,
 };
 use serde::Serialize;
+use twilight_model::component::Component;
 use twilight_model::{
     channel::{
         embed::Embed,
@@ -13,8 +17,6 @@ use twilight_model::{
     },
     id::ApplicationId,
 };
-use twilight_model::component::Component;
-use crate::request::channel::message::create_message::{CreateMessageError, CreateMessageErrorType};
 
 #[derive(Default, Serialize)]
 pub(crate) struct CreateFollowupMessageFields {
@@ -270,12 +272,10 @@ impl<'a> CreateFollowupMessage<'a> {
 
                 Ok(self)
             }
-            _ => {
-                Err(CreateMessageError {
-                    kind: CreateMessageErrorType::InvalidRootComponent,
-                    source: None,
-                })
-            }
+            _ => Err(CreateMessageError {
+                kind: CreateMessageErrorType::InvalidRootComponent,
+                source: None,
+            }),
         }
     }
 }
