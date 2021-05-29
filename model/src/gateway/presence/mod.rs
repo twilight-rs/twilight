@@ -9,13 +9,15 @@ mod activity_secrets;
 mod activity_timestamps;
 mod activity_type;
 mod client_status;
+mod minimal_activity;
 mod status;
 
 pub use self::{
     activity::Activity, activity_assets::ActivityAssets, activity_button::ActivityButton,
     activity_emoji::ActivityEmoji, activity_flags::ActivityFlags, activity_party::ActivityParty,
     activity_secrets::ActivitySecrets, activity_timestamps::ActivityTimestamps,
-    activity_type::ActivityType, client_status::ClientStatus, status::Status,
+    activity_type::ActivityType, client_status::ClientStatus, minimal_activity::MinimalActivity,
+    status::Status,
 };
 
 use crate::{
