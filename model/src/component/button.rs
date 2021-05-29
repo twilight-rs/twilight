@@ -33,6 +33,7 @@ pub struct PartialEmoji {
 }
 
 /// Helper struct for assembling  the Button struct
+#[derive(Debug)]
 pub struct ButtonBuilder {
     pub(crate) style: ButtonStyle,
     pub(crate) emoji: Option<PartialEmoji>,
@@ -42,6 +43,7 @@ pub struct ButtonBuilder {
     pub(crate) disabled: bool,
 }
 
+#[derive(Debug)]
 pub enum ButtonBuilderError {
     MissingLabelOrEmoji,
     LabelTooLong,
