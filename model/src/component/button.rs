@@ -104,7 +104,7 @@ impl ButtonBuilder {
     /// Set the button label text
     ///
     /// # Errors
-    /// Emits `ButtonBuilderError::LabelTooLong` if the label is more then 80 characters
+    /// Emits `ButtonBuilderError::LabelTooLong` if the label is more than 80 characters
     pub fn with_label(mut self, label: impl Into<String>) -> Result<Self, ButtonBuilderError> {
         let label = label.into();
         if label.len() > 80 {

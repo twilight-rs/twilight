@@ -1,8 +1,6 @@
 mod button;
 
-
 pub use button::{Button, ButtonBuilder, ButtonStyle, PartialEmoji};
-
 
 use serde::ser::SerializeStruct;
 use serde::{Deserialize, Serialize, Serializer};
@@ -71,7 +69,7 @@ impl Component {
     /// Create a new action row containing subcomponent, this can not contain other
     ///
     /// # Errors
-    /// Returns a `ComponentError` if this contains too many subcomponents (more then 5 buttons)
+    /// Returns a `ComponentError` if this contains too many subcomponents (more than 5 buttons)
     /// or other action rows
     pub fn create_action_row(components: Vec<Component>) -> Result<Self, ComponentError> {
         for component in &components {
