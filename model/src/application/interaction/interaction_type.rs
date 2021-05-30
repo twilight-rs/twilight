@@ -15,7 +15,7 @@ use std::fmt::{Display, Formatter, Result as FmtResult};
 pub enum InteractionType {
     Ping = 1,
     ApplicationCommand = 2,
-    ButtonInteraction = 3,
+    MessageComponent = 3,
 }
 
 impl InteractionType {
@@ -23,7 +23,7 @@ impl InteractionType {
         match self {
             Self::Ping => "Ping",
             Self::ApplicationCommand => "ApplicationCommand",
-            InteractionType::ButtonInteraction => "ButtonInteraction",
+            InteractionType::MessageComponent => "MessageComponent",
         }
     }
 }
@@ -46,6 +46,7 @@ impl TryFrom<u8> for InteractionType {
         match i {
             1 => Ok(Self::Ping),
             2 => Ok(Self::ApplicationCommand),
+            3 => Ok(Self::MessageComponent),
             other => Err(UnknownInteractionTypeError { value: other }),
         }
     }

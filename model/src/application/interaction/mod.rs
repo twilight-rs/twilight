@@ -1,16 +1,17 @@
 //! Used when recieving interactions through gateway or webhooks.
 
 pub mod application_command;
-pub mod button_interaction;
 mod interaction_type;
+pub mod message_component;
 mod ping;
 
 pub use self::{
     application_command::ApplicationCommand, interaction_type::InteractionType, ping::Ping,
 };
 
-use crate::application::interaction::button_interaction::ButtonInteraction;
-use crate::channel::Message;
+use crate::application::interaction::message_component::{
+    ComponentMessage, MessageComponentInteraction,
+};
 use crate::{
     guild::PartialMember,
     id::{ApplicationId, ChannelId, GuildId, InteractionId},
@@ -36,7 +37,7 @@ pub enum Interaction {
     Ping(Box<Ping>),
     /// Application command variant.
     ApplicationCommand(Box<ApplicationCommand>),
-    Button(Box<ButtonInteraction>),
+    MessageComponent(Box<MessageComponentInteraction>),
 }
 
 impl Interaction {
@@ -44,7 +45,7 @@ impl Interaction {
         match self {
             Self::Ping(_) => None,
             Self::ApplicationCommand(inner) => inner.guild_id,
-            Interaction::Button(inner) => inner.guild_id,
+            Interaction::MessageComponent(inner) => inner.guild_id,
         }
     }
 }
@@ -87,7 +88,7 @@ impl<'de> Visitor<'de> for InteractionVisitor {
         let mut guild_id: Option<Option<GuildId>> = None;
         let mut id: Option<InteractionId> = None;
         let mut member: Option<Option<PartialMember>> = None;
-        let mut message: Option<Message> = None;
+        let mut message: Option<ComponentMessage> = None;
         let mut token: Option<String> = None;
         let mut kind: Option<InteractionType> = None;
         let mut user: Option<Option<User>> = None;
@@ -239,7 +240,7 @@ impl<'de> Visitor<'de> for InteractionVisitor {
                     user,
                 }))
             }
-            InteractionType::ButtonInteraction => {
+            InteractionType::MessageComponent => {
                 let channel_id = channel_id.ok_or_else(|| DeError::missing_field("channel_id"))?;
                 let data = data
                     .ok_or_else(|| DeError::missing_field("data"))?
@@ -251,7 +252,7 @@ impl<'de> Visitor<'de> for InteractionVisitor {
                 let member = member.unwrap_or_default();
                 let user = user.unwrap_or_default();
 
-                Self::Value::Button(Box::new(ButtonInteraction {
+                Self::Value::MessageComponent(Box::new(MessageComponentInteraction {
                     application_id,
                     channel_id,
                     data,
