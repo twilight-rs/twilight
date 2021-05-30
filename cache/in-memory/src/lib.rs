@@ -393,7 +393,7 @@ impl InMemoryCache {
     /// This is a O(m) operation, where m is the amount of stage instances in
     /// the guild. This requires the [`GUILDS`] intent.
     ///
-    /// [`GUILDS`]: ::twilight_model::gateway::Intents::GUILDS
+    /// [`GUILDS`]: twilight_model::gateway::Intents::GUILDS
     pub fn guild_stage_instances(&self, guild_id: GuildId) -> Option<HashSet<StageId>> {
         self.0
             .guild_stage_instances
@@ -473,7 +473,7 @@ impl InMemoryCache {
     ///
     /// This is an O(1) operation. This requires the [`GUILDS`] intent.
     ///
-    /// [`GUILDS`]: ::twilight_model::gateway::Intents::GUILDS
+    /// [`GUILDS`]: twilight_model::gateway::Intents::GUILDS
     pub fn stage_instance(&self, stage_id: StageId) -> Option<Arc<StageInstance>> {
         self.0
             .stage_instances
