@@ -23,7 +23,7 @@ impl InteractionType {
         match self {
             Self::Ping => "Ping",
             Self::ApplicationCommand => "ApplicationCommand",
-            InteractionType::MessageComponent => "MessageComponent",
+            Self::MessageComponent => "MessageComponent",
         }
     }
 }
