@@ -2,6 +2,21 @@
 
 Changelog for `twilight-command-parser`.
 
+## [0.4.1] - 2021-05-30
+
+### Enhancements
+
+The following functions are now `const`:
+
+- `Arguments::as_str`
+- `CaseSensitivity::is_sensitive`
+- `CommandParserConfig::new`
+- `Parser::config`
+
+([#824] - [@vivian]).
+
+[#824]: https://github.com/twilight-rs/twilight/pull/824
+
 ## [0.4.0] - 2021-05-12
 
 ### Upgrade Path
@@ -102,6 +117,7 @@ Initial release.
 [#515]: https://github.com/twilight-rs/twilight/pull/515
 [#511]: https://github.com/twilight-rs/twilight/pull/511
 
+[0.4.1]: https://github.com/twilight-rs/twilight/releases/tag/command-parser-0.4.1
 [0.4.0]: https://github.com/twilight-rs/twilight/releases/tag/command-parser-0.4.0
 [0.3.0]: https://github.com/twilight-rs/twilight/releases/tag/command-parser-v0.3.0
 [0.2.2]: https://github.com/twilight-rs/twilight/releases/tag/command-parser-v0.2.2
