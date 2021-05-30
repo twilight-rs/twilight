@@ -2,6 +2,19 @@
 
 Changelog for `twilight-mention`.
 
+## [0.4.1] - 2021-05-30
+
+### Enhancements
+
+The following functions are now `const`:
+
+- `parse::MentionIter::as_str`
+- `parse::ParseMentionError::kind`
+
+([#824] - [@vivian]).
+
+[#824]: https://github.com/twilight-rs/twilight/pull/824
+
 ## [0.4.0] - 2020-05-12
 
 ### Upgrade Path
@@ -62,6 +75,7 @@ Initial release.
 
 [#513]: https://github.com/twilight-rs/twilight/pull/513
 
+[0.4.1]: https://github.com/twilight-rs/twilight/releases/tag/mention-0.4.1
 [0.4.0]: https://github.com/twilight-rs/twilight/releases/tag/mention-0.4.0
 [0.3.0]: https://github.com/twilight-rs/twilight/releases/tag/mention-v0.3.0
 [0.2.0]: https://github.com/twilight-rs/twilight/releases/tag/mention-v0.2.0
