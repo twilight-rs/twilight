@@ -7,6 +7,8 @@ use serde_repr::{Deserialize_repr, Serialize_repr};
 pub enum WebhookType {
     Incoming = 1,
     ChannelFollower = 2,
+    /// Webhooks used with interactions.
+    Application = 3,
 }
 
 impl Default for WebhookType {
@@ -29,5 +31,6 @@ mod tests {
     fn test_variants() {
         serde_test::assert_tokens(&WebhookType::Incoming, &[Token::U8(1)]);
         serde_test::assert_tokens(&WebhookType::ChannelFollower, &[Token::U8(2)]);
+        serde_test::assert_tokens(&WebhookType::Application, &[Token::U8(3)]);
     }
 }
