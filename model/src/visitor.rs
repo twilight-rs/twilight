@@ -11,7 +11,7 @@ pub struct U16EnumVisitor<'a> {
 }
 
 impl<'a> U16EnumVisitor<'a> {
-    pub fn new(description: &'a str) -> Self {
+    pub const fn new(description: &'a str) -> Self {
         Self {
             description,
             phantom: PhantomData,

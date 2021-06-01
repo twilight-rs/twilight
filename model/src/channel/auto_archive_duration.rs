@@ -24,7 +24,7 @@ impl AutoArchiveDuration {
     ///
     /// assert_eq!(60, AutoArchiveDuration::Hour.number());
     /// ```
-    pub fn number(self) -> u16 {
+    pub const fn number(self) -> u16 {
         match self {
             Self::Hour => 60,
             Self::Day => 1440,
