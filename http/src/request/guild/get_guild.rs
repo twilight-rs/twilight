@@ -26,19 +26,19 @@ impl<'a> GetGuild<'a> {
 
     /// Sets if you want to receive `approximate_member_count` and `approximate_presence_count` in
     /// the guild structure.
-    pub fn with_counts(mut self, with: bool) -> Self {
+    pub const fn with_counts(mut self, with: bool) -> Self {
         self.fields.with_counts = with;
 
         self
     }
 
     fn start(&mut self) -> Result<()> {
-        self.fut.replace(Box::pin(self.http.request(Request::from(
-            Route::GetGuild {
-                guild_id: self.guild_id.0,
-                with_counts: self.fields.with_counts,
-            },
-        ))));
+        let request = Request::from_route(Route::GetGuild {
+            guild_id: self.guild_id.0,
+            with_counts: self.fields.with_counts,
+        });
+
+        self.fut.replace(Box::pin(self.http.request(request)));
 
         Ok(())
     }

@@ -15,6 +15,7 @@ mod private_thread;
 mod public_thread;
 mod reaction;
 mod reaction_type;
+mod stage_instance;
 mod text_channel;
 mod thread_member;
 mod thread_metadata;
@@ -28,8 +29,8 @@ pub use self::{
     category_channel::CategoryChannel, channel_mention::ChannelMention, channel_type::ChannelType,
     followed_channel::FollowedChannel, group::Group, message::Message, news_thread::NewsThread,
     private_channel::PrivateChannel, private_thread::PrivateThread, public_thread::PublicThread,
-    reaction::Reaction, reaction_type::ReactionType, text_channel::TextChannel,
-    thread_member::ThreadMember, thread_metadata::ThreadMetadata,
+    reaction::Reaction, reaction_type::ReactionType, stage_instance::StageInstance,
+    text_channel::TextChannel, thread_member::ThreadMember, thread_metadata::ThreadMetadata,
     video_quality_mode::VideoQualityMode, voice_channel::VoiceChannel, webhook::Webhook,
     webhook_type::WebhookType,
 };
@@ -66,7 +67,7 @@ pub enum Channel {
 
 impl Channel {
     /// Return the ID of the inner channel.
-    pub fn id(&self) -> ChannelId {
+    pub const fn id(&self) -> ChannelId {
         match self {
             Self::Group(group) => group.id,
             Self::Guild(guild_channel) => guild_channel.id(),
@@ -102,7 +103,7 @@ pub enum GuildChannel {
 
 impl GuildChannel {
     /// Return the guild ID of the inner guild channel.
-    pub fn guild_id(&self) -> Option<GuildId> {
+    pub const fn guild_id(&self) -> Option<GuildId> {
         match self {
             Self::Category(category) => category.guild_id,
             Self::NewsThread(thread) => thread.guild_id,
@@ -115,7 +116,7 @@ impl GuildChannel {
     }
 
     /// Return the ID of the inner guild channel.
-    pub fn id(&self) -> ChannelId {
+    pub const fn id(&self) -> ChannelId {
         match self {
             Self::Category(category) => category.id,
             Self::NewsThread(thread) => thread.id,
@@ -513,7 +514,7 @@ mod tests {
         }
     }
 
-    fn private() -> PrivateChannel {
+    const fn private() -> PrivateChannel {
         PrivateChannel {
             id: ChannelId(234),
             last_message_id: None,

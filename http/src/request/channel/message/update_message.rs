@@ -7,7 +7,7 @@ use twilight_model::{
     channel::{
         embed::Embed,
         message::{AllowedMentions, MessageFlags},
-        Message,
+        Attachment, Message,
     },
     id::{ChannelId, MessageId},
 };
@@ -22,7 +22,7 @@ pub struct UpdateMessageError {
 impl UpdateMessageError {
     /// Immutable reference to the type of error that occurred.
     #[must_use = "retrieving the type has no effect if left unused"]
-    pub fn kind(&self) -> &UpdateMessageErrorType {
+    pub const fn kind(&self) -> &UpdateMessageErrorType {
         &self.kind
     }
 
@@ -80,6 +80,8 @@ pub enum UpdateMessageErrorType {
 struct UpdateMessageFields {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub(crate) allowed_mentions: Option<AllowedMentions>,
+    #[serde(skip_serializing_if = "Vec::is_empty")]
+    pub attachments: Vec<Attachment>,
     // We don't serialize if this is Option::None, to avoid overwriting the
     // field without meaning to.
     //
@@ -153,6 +155,28 @@ impl<'a> UpdateMessage<'a> {
             http,
             message_id,
         }
+    }
+
+    /// Specify an attachment already present in the target message to keep.
+    ///
+    /// If called, all unspecified attachments will be removed from the message.
+    /// If not called, all attachments will be kept.
+    pub fn attachment(mut self, attachment: Attachment) -> Self {
+        self.fields.attachments.push(attachment);
+
+        self
+    }
+
+    /// Specify multiple attachments already present in the target message to keep.
+    ///
+    /// If called, all unspecified attachments will be removed from the message.
+    /// If not called, all attachments will be kept.
+    pub fn attachments(mut self, attachments: impl IntoIterator<Item = Attachment>) -> Self {
+        self.fields
+            .attachments
+            .extend(attachments.into_iter().collect::<Vec<Attachment>>());
+
+        self
     }
 
     /// Set the content of the message.
@@ -238,13 +262,14 @@ impl<'a> UpdateMessage<'a> {
     }
 
     fn start(&mut self) -> Result<()> {
-        self.fut.replace(Box::pin(self.http.request(Request::from((
-            crate::json_to_vec(&self.fields).map_err(HttpError::json)?,
-            Route::UpdateMessage {
-                channel_id: self.channel_id.0,
-                message_id: self.message_id.0,
-            },
-        )))));
+        let request = Request::builder(Route::UpdateMessage {
+            channel_id: self.channel_id.0,
+            message_id: self.message_id.0,
+        })
+        .json(&self.fields)?
+        .build();
+
+        self.fut.replace(Box::pin(self.http.request(request)));
 
         Ok(())
     }

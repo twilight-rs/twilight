@@ -17,7 +17,7 @@ pub struct CreateGuildPruneError {
 impl CreateGuildPruneError {
     /// Immutable reference to the type of error that occurred.
     #[must_use = "retrieving the type has no effect if left unused"]
-    pub fn kind(&self) -> &CreateGuildPruneErrorType {
+    pub const fn kind(&self) -> &CreateGuildPruneErrorType {
         &self.kind
     }
 
@@ -128,27 +128,19 @@ impl<'a> CreateGuildPrune<'a> {
     }
 
     fn start(&mut self) -> Result<()> {
-        let request = if let Some(reason) = &self.reason {
-            let headers = audit_header(&reason)?;
-            Request::from((
-                headers,
-                Route::CreateGuildPrune {
-                    compute_prune_count: self.fields.compute_prune_count,
-                    days: self.fields.days,
-                    guild_id: self.guild_id.0,
-                    include_roles: self.fields.include_roles.clone(),
-                },
-            ))
-        } else {
-            Request::from(Route::CreateGuildPrune {
-                compute_prune_count: self.fields.compute_prune_count,
-                days: self.fields.days,
-                guild_id: self.guild_id.0,
-                include_roles: self.fields.include_roles.clone(),
-            })
-        };
+        let mut request = Request::builder(Route::CreateGuildPrune {
+            compute_prune_count: self.fields.compute_prune_count,
+            days: self.fields.days,
+            guild_id: self.guild_id.0,
+            include_roles: self.fields.include_roles.clone(),
+        });
 
-        self.fut.replace(Box::pin(self.http.request(request)));
+        if let Some(reason) = self.reason.as_ref() {
+            request = request.headers(audit_header(reason)?);
+        }
+
+        self.fut
+            .replace(Box::pin(self.http.request(request.build())));
 
         Ok(())
     }

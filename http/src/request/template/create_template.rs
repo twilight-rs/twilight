@@ -107,12 +107,13 @@ impl<'a> CreateTemplate<'a> {
     }
 
     fn start(&mut self) -> Result<()> {
-        self.fut.replace(Box::pin(self.http.request(Request::from((
-            crate::json_to_vec(&self.fields).map_err(HttpError::json)?,
-            Route::CreateTemplate {
-                guild_id: self.guild_id.0,
-            },
-        )))));
+        let request = Request::builder(Route::CreateTemplate {
+            guild_id: self.guild_id.0,
+        })
+        .json(&self.fields)?
+        .build();
+
+        self.fut.replace(Box::pin(self.http.request(request)));
 
         Ok(())
     }

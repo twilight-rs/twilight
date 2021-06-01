@@ -52,13 +52,15 @@ impl<'a> UpdateWebhookWithToken<'a> {
     }
 
     fn start(&mut self) -> Result<()> {
-        self.fut.replace(Box::pin(self.http.request(Request::from((
-            crate::json_to_vec(&self.fields).map_err(HttpError::json)?,
-            Route::UpdateWebhook {
-                token: Some(self.token.clone()),
-                webhook_id: self.webhook_id.0,
-            },
-        )))));
+        let request = Request::builder(Route::UpdateWebhook {
+            token: Some(self.token.clone()),
+            webhook_id: self.webhook_id.0,
+        })
+        .json(&self.fields)?
+        .use_authorization_token(false)
+        .build();
+
+        self.fut.replace(Box::pin(self.http.request(request)));
 
         Ok(())
     }

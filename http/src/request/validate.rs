@@ -46,7 +46,7 @@ impl EmbedValidationError {
 
     /// Immutable reference to the type of error that occurred.
     #[must_use = "retrieving the type has no effect if left unused"]
-    pub fn kind(&self) -> &EmbedValidationErrorType {
+    pub const fn kind(&self) -> &EmbedValidationErrorType {
         &self.kind
     }
 
@@ -193,7 +193,7 @@ pub enum EmbedValidationErrorType {
     },
 }
 
-pub fn ban_delete_message_days(value: u64) -> bool {
+pub const fn ban_delete_message_days(value: u64) -> bool {
     // <https://discordapp.com/developers/docs/resources/guild#create-guild-ban-query-string-params>
     value <= 7
 }
@@ -310,33 +310,33 @@ pub fn embed(embed: &Embed) -> Result<(), EmbedValidationError> {
     Ok(())
 }
 
-pub fn get_audit_log_limit(value: u64) -> bool {
+pub const fn get_audit_log_limit(value: u64) -> bool {
     // <https://discordapp.com/developers/docs/resources/audit-log#get-guild-audit-log-query-string-parameters>
-    (1..=100).contains(&value)
+    value >= 1 && value <= 100
 }
 
-pub fn get_channel_messages_limit(value: u64) -> bool {
+pub const fn get_channel_messages_limit(value: u64) -> bool {
     // <https://discordapp.com/developers/docs/resources/channel#get-channel-messages-query-string-params>
-    (1..=100).contains(&value)
+    value >= 1 && value <= 100
 }
 
-pub fn get_current_user_guilds_limit(value: u64) -> bool {
+pub const fn get_current_user_guilds_limit(value: u64) -> bool {
     // <https://discordapp.com/developers/docs/resources/user#get-current-user-guilds-query-string-params>
-    (1..=100).contains(&value)
+    value >= 1 && value <= 100
 }
 
-pub fn get_guild_members_limit(value: u64) -> bool {
+pub const fn get_guild_members_limit(value: u64) -> bool {
     // <https://discordapp.com/developers/docs/resources/guild#list-guild-members-query-string-params>
-    (1..=1000).contains(&value)
+    value >= 1 && value <= 1000
 }
 
-pub fn search_guild_members_limit(value: u64) -> bool {
+pub const fn search_guild_members_limit(value: u64) -> bool {
     value > 0 && value <= 1000
 }
 
-pub fn get_reactions_limit(value: u64) -> bool {
+pub const fn get_reactions_limit(value: u64) -> bool {
     // <https://discordapp.com/developers/docs/resources/channel#get-reactions-query-string-params>
-    (1..=100).contains(&value)
+    value >= 1 && value <= 100
 }
 
 pub fn guild_name(value: impl AsRef<str>) -> bool {
@@ -350,17 +350,17 @@ fn _guild_name(value: &str) -> bool {
     (2..=100).contains(&len)
 }
 
-pub fn guild_prune_days(value: u64) -> bool {
+pub const fn guild_prune_days(value: u64) -> bool {
     // <https://discordapp.com/developers/docs/resources/guild#get-guild-prune-count-query-string-params>
     value > 0 && value <= 30
 }
 
-pub fn invite_max_age(value: u64) -> bool {
+pub const fn invite_max_age(value: u64) -> bool {
     // <https://discord.com/developers/docs/resources/channel#create-channel-invite-json-params>
     value <= 604_800
 }
 
-pub fn invite_max_uses(value: u64) -> bool {
+pub const fn invite_max_uses(value: u64) -> bool {
     // <https://discord.com/developers/docs/resources/channel#create-channel-invite-json-params>
     value <= 100
 }
@@ -384,6 +384,7 @@ pub fn username(value: impl AsRef<str>) -> bool {
 fn _username(value: &str) -> bool {
     let len = value.chars().count();
 
+    // <https://discordapp.com/developers/docs/resources/user#usernames-and-nicknames>
     (2..=32).contains(&len)
 }
 
@@ -406,6 +407,17 @@ fn _template_description(value: &str) -> bool {
     let len = value.chars().count();
 
     // <https://discord.com/developers/docs/resources/template#create-guild-template-json-params>
+    (0..=120).contains(&len)
+}
+
+pub fn stage_topic(value: impl AsRef<str>) -> bool {
+    _stage_topic(value.as_ref())
+}
+
+fn _stage_topic(value: &str) -> bool {
+    let len = value.chars().count();
+
+    // <https://github.com/discord/discord-api-docs/commit/f019fc358047050513c623f3639b6e96809f9280>
     (0..=120).contains(&len)
 }
 

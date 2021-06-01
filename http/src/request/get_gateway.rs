@@ -54,9 +54,9 @@ impl<'a> GetGateway<'a> {
     }
 
     fn start(&mut self) -> Result<()> {
-        self.fut.replace(Box::pin(
-            self.http.request(Request::from(Route::GetGateway)),
-        ));
+        let request = Request::from_route(Route::GetGateway);
+
+        self.fut.replace(Box::pin(self.http.request(request)));
 
         Ok(())
     }

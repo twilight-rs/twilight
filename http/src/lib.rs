@@ -70,11 +70,12 @@
 //! [github badge]: https://img.shields.io/badge/github-twilight-6f42c1.svg?style=for-the-badge&logo=github
 //! [github link]: https://github.com/twilight-rs/twilight
 //! [license badge]: https://img.shields.io/badge/license-ISC-blue.svg?style=for-the-badge&logo=pastebin
-//! [license link]: https://github.com/twilight-rs/twilight/blob/trunk/LICENSE.md
+//! [license link]: https://github.com/twilight-rs/twilight/blob/main/LICENSE.md
 //! [rust badge]: https://img.shields.io/badge/rust-1.49+-93450a.svg?style=for-the-badge&logo=rust
 
 #![deny(
     clippy::all,
+    clippy::missing_const_for_fn,
     clippy::pedantic,
     future_incompatible,
     nonstandard_style,
@@ -99,6 +100,8 @@ pub mod ratelimiting;
 pub mod request;
 pub mod routing;
 
+mod json;
+
 /// Discord API version used by this crate.
 pub const API_VERSION: u8 = 8;
 
@@ -106,23 +109,6 @@ pub use crate::{
     client::Client,
     error::{Error, Result},
 };
-
-#[cfg(not(feature = "simd-json"))]
-use serde_json::Result as JsonResult;
-#[cfg(feature = "simd-json")]
-use simd_json::Result as JsonResult;
-
-pub(crate) fn json_from_slice<'a, T: serde::de::Deserialize<'a>>(s: &'a mut [u8]) -> JsonResult<T> {
-    #[cfg(not(feature = "simd-json"))]
-    return serde_json::from_slice(s);
-    #[cfg(feature = "simd-json")]
-    return simd_json::from_slice(s);
-}
-
-#[cfg(not(feature = "simd-json"))]
-pub(crate) use serde_json::to_vec as json_to_vec;
-#[cfg(feature = "simd-json")]
-pub(crate) use simd_json::to_vec as json_to_vec;
 
 #[cfg(not(any(
     feature = "native",

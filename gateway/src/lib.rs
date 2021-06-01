@@ -106,11 +106,12 @@
 //! [github badge]: https://img.shields.io/badge/github-twilight-6f42c1.svg?style=for-the-badge&logo=github
 //! [github link]: https://github.com/twilight-rs/twilight
 //! [license badge]: https://img.shields.io/badge/license-ISC-blue.svg?style=for-the-badge&logo=pastebin
-//! [license link]: https://github.com/twilight-rs/twilight/blob/trunk/LICENSE.md
+//! [license link]: https://github.com/twilight-rs/twilight/blob/main/LICENSE.md
 //! [rust badge]: https://img.shields.io/badge/rust-1.49+-93450a.svg?style=for-the-badge&logo=rust
 
 #![deny(
     clippy::all,
+    clippy::missing_const_for_fn,
     clippy::pedantic,
     future_incompatible,
     missing_docs,
@@ -121,10 +122,6 @@
     warnings
 )]
 #![allow(clippy::module_name_repetitions, clippy::must_use_candidate)]
-// Required due to `futures_util::select!`.
-//
-// <https://github.com/rust-lang/futures-rs/issues/1917>
-#![recursion_limit = "256"]
 
 pub mod cluster;
 pub mod shard;

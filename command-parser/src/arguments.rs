@@ -43,7 +43,7 @@ impl<'a> Arguments<'a> {
     /// }
     /// # else { panic!("Not command match"); }
     /// ```
-    pub fn as_str(&self) -> &str {
+    pub const fn as_str(&self) -> &'a str {
         self.buf
     }
 

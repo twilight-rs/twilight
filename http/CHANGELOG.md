@@ -2,6 +2,209 @@
 
 Changelog for `twilight-http`.
 
+## [0.4.2] - 2021-05-30
+
+### Upgrade Path
+
+`Request::new` and the `From` implementations on `Request` have been
+deprecated; use the new `RequestBuilder` instead.
+
+`CreateInvite::target_user_type` has been deprecated; use
+`CreateInvite::target_type` instead.
+
+### Additions
+
+Add `request::RequestBuilder` for constructing manual `Request`s
+([#814] - [@vivian], [#831] - [@vivian]).
+
+Add support for 18 new HTTP API error codes ([#818] - [@7596ff]).
+
+Add the following new `CreateGuild` and `UpdateGuild` methods:
+
+- `CreateGuild::afk_channel_id`
+- `CreateGuild::afk_timeout`
+- `CreateGuild::system_channel_id`
+- `CreateGuild::system_channel_flags`
+- `UpdateGuild::discovery_splash`
+- `UpdateGuild::features`
+- `UpdateGuild::system_channel_flags`
+
+([#819] - [@7596ff]).
+
+Support retrieving a webhook's message, exposed via `Client::webhook_message`
+([#817] - [@7596ff]).
+
+Support Stage Instances by adding the following request methods:
+
+- `Client::create_stage_instance`
+- `Client::delete_stage_instance`
+- `Client::stage_instance`
+- `Client::update_stage_instance`
+
+([#812], [#830] - [@7596ff]).
+
+Bring invites up to date by adding `CreateInvite::target_application_id`, adding
+`GetInvite::with_expiration`, and adding `CreateInvite::target_type` while
+deprecating `CreateInvite::target_user_type` ([#809] - [@7596ff]).
+
+### Fixes
+
+Fix request sending logic in `UpdateWebhookMessage` ([#844] - [@7596ff]).
+
+### Enhancements
+
+Don't send client authentication in webhook requests using a webhook token
+([#828] - [@vivian]).
+
+The following functions are now `const`:
+
+- `api_error::ErrorCode::num`
+- `client::ClientBuilder::timeout`
+- `client::Client::delete_channel_permission`
+- `client::Client::update_channel_permission`
+- `ratelimiting::RatelimitError::error::kind`
+- `ratelimiting::RatelimitHeaders::global`
+- `request::channel::invite::GetInvite::with_counts`
+- `request::guild::create_guild::GuildChannelFieldsBuilder::new`
+- `request::guild::GetGuild::with_counts`
+- `request::AuditLogReasonError::kind`
+- `Error::kind`
+
+([#824] - [@vivian]).
+
+### Changes
+
+`Request::new` and `Request`'s `From` implementations have been deprecated
+([#814] - [@vivian]).
+
+[#844]: https://github.com/twilight-rs/twilight/pull/844
+[#831]: https://github.com/twilight-rs/twilight/pull/831
+[#830]: https://github.com/twilight-rs/twilight/pull/830
+[#828]: https://github.com/twilight-rs/twilight/pull/828
+[#824]: https://github.com/twilight-rs/twilight/pull/824
+[#818]: https://github.com/twilight-rs/twilight/pull/818
+[#817]: https://github.com/twilight-rs/twilight/pull/817
+[#814]: https://github.com/twilight-rs/twilight/pull/814
+[#812]: https://github.com/twilight-rs/twilight/pull/812
+[#809]: https://github.com/twilight-rs/twilight/pull/809
+
+## [0.4.1] - 2021-05-20
+
+### Upgrade Path
+
+`CreateMessage::attachments` and `CreateMessage::attachment` have been
+deprecated. Use the `files` and `file` methods instead.
+
+### Additions
+
+Add support for sending non-attachment files for reference in embeds in
+`ExecuteWebhook`, `UpdateMessage`, and `UpdateWebhookMessage`, and sending
+attachments in `UpdateMessage` and `UpdateWebhookMessage`
+([#797] - [@7596ff], [@AsianIntel]).
+
+### Fixes
+
+Fix file uploading functionality in `CreateMessage::payload_json` and
+`ExecuteWebhook::payload_json` ([#797] - [@7596ff], [@AsianIntel]).
+
+[#797]: https://github.com/twilight-rs/twilight/pull/797
+
+## [0.4.0] - 2021-05-12
+
+### Upgrade Path
+
+The MSRV is now Rust 1.49.
+
+Remove calls to:
+
+- `Client::create_guild_integration`
+- `Client::current_user_private_channels`
+- `Client::delete_guild_integration`
+- `Client::sync_guild_integration`
+
+Remove references to:
+
+- `request::guild::integration`
+- `request::user::GetCurrentUserPrivateChannels`
+
+Replace references to `Path::WebhooksIdTokenMessageId` with
+`Path::WebhooksIdTokenMessagesId`.
+
+`CreateInvite::{max_age, max_uses}` now return validation errors, so the results
+returned from them need to be handled.
+
+Don't re-use `hyper` clients via the builder. If you need to configure the
+underlying `hyper` client please create an issue with the reason why.
+
+Errors are no longer enums and don't expose their concrete underlying error
+source. You can access the underlying error via the implemented
+`std::error::Error::source` method or the `into_parts` or `into_source` methods
+on each error struct, which will return a boxed `std::error::Error`. To access
+the reason for the error use the `kind` or `into_parts` method on error structs;
+the returned error type is an enum with variants for each potential reason the
+error occurred.
+
+When specifying a method in a custom request use `request::Method` instead of
+`hyper`'s.
+
+The Allowed Mentions API has been reworked and moved to `twilight-model`. Use it
+like so:
+
+```rust
+use twilight_model::channel::message::AllowedMentions;
+
+let allowed_mentions = AllowedMentions::builder()
+    .replied_user()
+    .user_ids(user_ids)
+    .build();
+```
+
+### Additions
+
+Support `CreateMessage::fail_if_not_exists` which will fail creating the message
+if the referenced message does not exist ([#708] - [@7596ff]).
+
+### Enhancements
+
+Update `simd-json` to 0.4 ([#786] - [@Gekbpunkt]).
+
+The `futures-channel` dependency has been removed ([#785] - [@Gelbpunkt]).
+
+### Changes
+
+Remove support for guild integration calls, which are blocked for bots due to a
+Discord API change ([#751] - [@vivian]).
+
+Rename `Path::WebhooksIdTokenMessageId` to `Path::WebhooksIdTokenMessagesId`
+([#755] - [@vivian]).
+
+Return validation errors for `CreateInvite::max_age` and
+`CreateInvite::max_uses` ([#757] - [@vivian]).
+
+Remove ability to get current user's DM channels ([#782] - [@vivian]).
+
+Remove `ClientBuilder::hyper_client` and `From<HyperClient> for Client` which
+were available to re-use `hyper` clients ([#768] - [@vivian]).
+
+Return updated copy of member when updating a member ([#758] - [@vivian]).
+
+The `request::channel::message::allowed_mentions` API has been reworked and
+moved to the `twilight-model` crate ([#760] - [@7596ff]).
+
+Add custom method enum type for use rather than `hyper`'s ([#767] - [@vivian]).
+
+[#786]: https://github.com/twilight-rs/twilight/pull/786
+[#785]: https://github.com/twilight-rs/twilight/pull/785
+[#782]: https://github.com/twilight-rs/twilight/pull/782
+[#768]: https://github.com/twilight-rs/twilight/pull/768
+[#767]: https://github.com/twilight-rs/twilight/pull/767
+[#760]: https://github.com/twilight-rs/twilight/pull/760
+[#758]: https://github.com/twilight-rs/twilight/pull/758
+[#757]: https://github.com/twilight-rs/twilight/pull/757
+[#755]: https://github.com/twilight-rs/twilight/pull/755
+[#751]: https://github.com/twilight-rs/twilight/pull/751
+[#708]: https://github.com/twilight-rs/twilight/pull/708
+
 ## [0.3.9] - 2021-05-09
 
 ### Additions
@@ -518,6 +721,9 @@ Initial release.
 
 [0.2.0-beta.1:app integrations]: https://github.com/discord/discord-api-docs/commit/a926694e2f8605848bda6b57d21c8817559e5cec
 
+[0.4.2]: https://github.com/twilight-rs/twilight/releases/tag/http-0.4.2
+[0.4.1]: https://github.com/twilight-rs/twilight/releases/tag/http-0.4.1
+[0.4.0]: https://github.com/twilight-rs/twilight/releases/tag/http-0.4.0
 [0.3.9]: https://github.com/twilight-rs/twilight/releases/tag/http-v0.3.9
 [0.3.8]: https://github.com/twilight-rs/twilight/releases/tag/http-v0.3.8
 [0.3.6]: https://github.com/twilight-rs/twilight/releases/tag/http-v0.3.6

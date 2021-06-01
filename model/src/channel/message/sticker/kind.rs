@@ -42,7 +42,7 @@ pub struct StickerFormatTypeConversionError {
 
 impl<'a> StickerFormatTypeConversionError {
     /// Retrieve a copy of the input value that couldn't be parsed.
-    pub fn value(&self) -> u8 {
+    pub const fn value(&self) -> u8 {
         self.value
     }
 }

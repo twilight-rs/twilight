@@ -15,7 +15,7 @@ pub struct ImageSourceAttachmentError {
 impl ImageSourceAttachmentError {
     /// Immutable reference to the type of error that occurred.
     #[must_use = "retrieving the type has no effect if left unused"]
-    pub fn kind(&self) -> &ImageSourceAttachmentErrorType {
+    pub const fn kind(&self) -> &ImageSourceAttachmentErrorType {
         &self.kind
     }
 
@@ -74,7 +74,7 @@ pub struct ImageSourceUrlError {
 impl ImageSourceUrlError {
     /// Immutable reference to the type of error that occurred.
     #[must_use = "retrieving the type has no effect if left unused"]
-    pub fn kind(&self) -> &ImageSourceUrlErrorType {
+    pub const fn kind(&self) -> &ImageSourceUrlErrorType {
         &self.kind
     }
 

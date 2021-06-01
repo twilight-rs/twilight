@@ -224,6 +224,23 @@ impl From<u64> for RoleId {
 #[derive(
     Clone, Copy, Debug, Default, Deserialize, Eq, Hash, Ord, PartialEq, PartialOrd, Serialize,
 )]
+pub struct StageId(#[serde(with = "string")] pub u64);
+
+impl Display for StageId {
+    fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
+        Display::fmt(&self.0, f)
+    }
+}
+
+impl From<u64> for StageId {
+    fn from(id: u64) -> Self {
+        StageId(id)
+    }
+}
+
+#[derive(
+    Clone, Copy, Debug, Default, Deserialize, Eq, Hash, Ord, PartialEq, PartialOrd, Serialize,
+)]
 pub struct UserId(#[serde(with = "string")] pub u64);
 
 impl Display for UserId {
@@ -259,7 +276,7 @@ impl From<u64> for WebhookId {
 mod tests {
     use super::{
         ApplicationId, AttachmentId, AuditLogEntryId, ChannelId, EmojiId, GenericId, GuildId,
-        IntegrationId, MessageId, RoleId, UserId, WebhookId,
+        IntegrationId, MessageId, RoleId, StageId, UserId, WebhookId,
     };
     use serde_test::Token;
 
@@ -419,6 +436,20 @@ mod tests {
             &RoleId(114_941_315_417_899_012),
             &[
                 Token::NewtypeStruct { name: "RoleId" },
+                Token::U64(114_941_315_417_899_012),
+            ],
+        );
+        serde_test::assert_tokens(
+            &StageId(114_941_315_417_899_012),
+            &[
+                Token::NewtypeStruct { name: "StageId" },
+                Token::Str("114941315417899012"),
+            ],
+        );
+        serde_test::assert_de_tokens(
+            &StageId(114_941_315_417_899_012),
+            &[
+                Token::NewtypeStruct { name: "StageId" },
                 Token::U64(114_941_315_417_899_012),
             ],
         );

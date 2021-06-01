@@ -33,12 +33,11 @@ impl<'a> GetGuildVanityUrl<'a> {
     }
 
     fn start(&mut self) -> Result<()> {
-        let fut = self
-            .http
-            .request_bytes(Request::from(Route::GetGuildVanityUrl {
-                guild_id: self.guild_id.0,
-            }));
-        self.fut.replace(Box::pin(fut));
+        let request = Request::from_route(Route::GetGuildVanityUrl {
+            guild_id: self.guild_id.0,
+        });
+
+        self.fut.replace(Box::pin(self.http.request_bytes(request)));
 
         Ok(())
     }
@@ -64,7 +63,7 @@ impl Future for GetGuildVanityUrl<'_> {
 
                 let mut bytes = bytes.as_ref().to_vec();
                 let vanity_url =
-                    crate::json_from_slice::<VanityUrl>(&mut bytes).map_err(|source| Error {
+                    crate::json::from_slice::<VanityUrl>(&mut bytes).map_err(|source| Error {
                         kind: ErrorType::Parsing {
                             body: bytes.clone(),
                         },

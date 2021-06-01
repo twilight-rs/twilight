@@ -33,23 +33,17 @@ impl<'a> DeleteWebhook<'a> {
     }
 
     fn start(&mut self) -> Result<()> {
-        let request = if let Some(reason) = &self.reason {
-            let headers = audit_header(&reason)?;
-            Request::from((
-                headers,
-                Route::DeleteWebhook {
-                    webhook_id: self.id.0,
-                    token: self.fields.token.clone(),
-                },
-            ))
-        } else {
-            Request::from(Route::DeleteWebhook {
-                webhook_id: self.id.0,
-                token: self.fields.token.clone(),
-            })
-        };
+        let mut request = Request::builder(Route::DeleteWebhook {
+            webhook_id: self.id.0,
+            token: self.fields.token.clone(),
+        });
 
-        self.fut.replace(Box::pin(self.http.verify(request)));
+        if let Some(reason) = self.reason.as_ref() {
+            request = request.headers(audit_header(reason)?);
+        }
+
+        self.fut
+            .replace(Box::pin(self.http.verify(request.build())));
 
         Ok(())
     }

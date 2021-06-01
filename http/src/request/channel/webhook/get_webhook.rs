@@ -24,7 +24,8 @@ impl<'a> GetWebhook<'a> {
         }
     }
 
-    /// Specify the token for auth, if not already authenticated with a Bot token.
+    /// Specify the token for auth, if not already authenticated with a Bot
+    /// token.
     pub fn token(mut self, token: impl Into<String>) -> Self {
         self.fields.token.replace(token.into());
 
@@ -32,13 +33,19 @@ impl<'a> GetWebhook<'a> {
     }
 
     fn start(&mut self) -> Result<()> {
+        let mut request = Request::builder(Route::GetWebhook {
+            token: self.fields.token.clone(),
+            webhook_id: self.id.0,
+        });
+
+        // If a webhook token has been configured, then we don't need to use
+        // the client's authorization token.
+        if self.fields.token.is_some() {
+            request = request.use_authorization_token(false);
+        }
+
         self.fut
-            .replace(Box::pin(self.http.request_bytes(Request::from(
-                Route::GetWebhook {
-                    token: self.fields.token.clone(),
-                    webhook_id: self.id.0,
-                },
-            ))));
+            .replace(Box::pin(self.http.request_bytes(request.build())));
 
         Ok(())
     }

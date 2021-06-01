@@ -17,7 +17,7 @@ pub struct ShardSchemeRangeError {
 impl ShardSchemeRangeError {
     /// Immutable reference to the type of error that occurred.
     #[must_use = "retrieving the type has no effect if left unused"]
-    pub fn kind(&self) -> &ShardSchemeRangeErrorType {
+    pub const fn kind(&self) -> &ShardSchemeRangeErrorType {
         &self.kind
     }
 
@@ -234,7 +234,7 @@ impl ShardScheme {
     /// In the case of the [`Auto`] variant the total is unknown.
     ///
     /// [`Auto`]: Self::Auto
-    pub fn from(&self) -> Option<u64> {
+    pub const fn from(&self) -> Option<u64> {
         match self {
             Self::Auto => None,
             Self::Bucket { bucket_id, .. } => Some(*bucket_id),
@@ -247,7 +247,7 @@ impl ShardScheme {
     /// In the case of the [`Auto`] variant the total is unknown.
     ///
     /// [`Auto`]: Self::Auto
-    pub fn total(&self) -> Option<u64> {
+    pub const fn total(&self) -> Option<u64> {
         match self {
             Self::Auto => None,
             Self::Bucket { total, .. } | Self::Range { total, .. } => Some(*total),

@@ -1,4 +1,4 @@
-use crate::request::prelude::*;
+use crate::request::{prelude::*, Form};
 use futures_util::future::TryFutureExt;
 use twilight_model::{
     channel::{embed::Embed, message::AllowedMentions, Message},
@@ -13,8 +13,6 @@ pub(crate) struct ExecuteWebhookFields {
     content: Option<String>,
     #[serde(skip_serializing_if = "Option::is_none")]
     embeds: Option<Vec<Embed>>,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    file: Option<Vec<u8>>,
     #[serde(skip_serializing_if = "Option::is_none")]
     payload_json: Option<Vec<u8>>,
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -54,6 +52,7 @@ pub(crate) struct ExecuteWebhookFields {
 /// [`file`]: Self::file
 pub struct ExecuteWebhook<'a> {
     pub(crate) fields: ExecuteWebhookFields,
+    files: Vec<(String, Vec<u8>)>,
     fut: Option<Pending<'a, Option<Message>>>,
     http: &'a Client,
     token: String,
@@ -64,6 +63,7 @@ impl<'a> ExecuteWebhook<'a> {
     pub(crate) fn new(http: &'a Client, webhook_id: WebhookId, token: impl Into<String>) -> Self {
         Self {
             fields: ExecuteWebhookFields::default(),
+            files: Vec::new(),
             fut: None,
             http,
             token: token.into(),
@@ -102,14 +102,75 @@ impl<'a> ExecuteWebhook<'a> {
     }
 
     /// Attach a file to the webhook.
-    pub fn file(mut self, file: impl Into<Vec<u8>>) -> Self {
-        self.fields.file.replace(file.into());
+    ///
+    /// This method is repeatable.
+    pub fn file(mut self, name: impl Into<String>, file: impl Into<Vec<u8>>) -> Self {
+        self.files.push((name.into(), file.into()));
 
         self
     }
 
-    /// JSON encoded body of any additional request fields. See [Discord Docs/Create Message]
+    /// Attach multiple files to the webhook.
+    pub fn files<N: Into<String>, F: Into<Vec<u8>>>(
+        mut self,
+        attachments: impl IntoIterator<Item = (N, F)>,
+    ) -> Self {
+        for (name, file) in attachments {
+            self = self.file(name, file);
+        }
+
+        self
+    }
+
+    /// JSON encoded body of any additional request fields.
     ///
+    /// If this method is called, all other fields are ignored, except for
+    /// [`file`]. See [Discord Docs/Create Message].
+    ///
+    /// # Examples
+    ///
+    /// Without [`payload_json`]:
+    ///
+    /// ```rust,no_run
+    /// use twilight_embed_builder::EmbedBuilder;
+    /// # use twilight_http::Client;
+    /// use twilight_model::id::{MessageId, WebhookId};
+    ///
+    /// # #[tokio::main]
+    /// # async fn main() -> Result<(), Box<dyn std::error::Error>> {
+    /// # let client = Client::new("token");
+    /// let message = client.execute_webhook(WebhookId(1), "token here")
+    ///     .content("some content")
+    ///     .embeds(vec![EmbedBuilder::new().title("title").build()?])
+    ///     .wait(true)
+    ///     .await?
+    ///     .unwrap();
+    ///
+    /// assert_eq!(message.content, "some content");
+    /// # Ok(()) }
+    /// ```
+    ///
+    /// With [`payload_json`]:
+    ///
+    /// ```rust,no_run
+    /// # use twilight_http::Client;
+    /// use twilight_model::id::{MessageId, WebhookId};
+    ///
+    /// # #[tokio::main]
+    /// # async fn main() -> Result<(), Box<dyn std::error::Error>> {
+    /// # let client = Client::new("token");
+    /// let message = client.execute_webhook(WebhookId(1), "token here")
+    ///     .content("some content")
+    ///     .payload_json(r#"{ "content": "other content", "embeds": [ { "title": "title" } ] }"#)
+    ///     .wait(true)
+    ///     .await?
+    ///     .unwrap();
+    ///
+    /// assert_eq!(message.content, "other content");
+    /// # Ok(()) }
+    /// ```
+    ///
+    /// [`payload_json`]: Self::payload_json
     /// [Discord Docs/Create Message]: https://discord.com/developers/docs/resources/channel#create-message-params
     pub fn payload_json(mut self, payload_json: impl Into<Vec<u8>>) -> Self {
         self.fields.payload_json.replace(payload_json.into());
@@ -142,22 +203,43 @@ impl<'a> ExecuteWebhook<'a> {
     }
 
     fn start(&mut self) -> Result<()> {
-        let request = Request::from((
-            crate::json_to_vec(&self.fields).map_err(HttpError::json)?,
-            Route::ExecuteWebhook {
-                token: self.token.clone(),
-                wait: self.fields.wait,
-                webhook_id: self.webhook_id.0,
-            },
-        ));
+        let mut request = Request::builder(Route::ExecuteWebhook {
+            token: self.token.clone(),
+            wait: self.fields.wait,
+            webhook_id: self.webhook_id.0,
+        });
+
+        // Webhook executions don't need the authorization token, only the
+        // webhook token.
+        request = request.use_authorization_token(false);
+
+        if !self.files.is_empty() || self.fields.payload_json.is_some() {
+            let mut form = Form::new();
+
+            for (index, (name, file)) in self.files.drain(..).enumerate() {
+                form.file(format!("{}", index).as_bytes(), name.as_bytes(), &file);
+            }
+
+            if let Some(payload_json) = &self.fields.payload_json {
+                form.payload_json(&payload_json);
+            } else {
+                let body = crate::json::to_vec(&self.fields).map_err(HttpError::json)?;
+                form.payload_json(&body);
+            }
+
+            request = request.form(form);
+        } else {
+            request = request.json(&self.fields)?;
+        }
 
         match self.fields.wait {
             Some(true) => {
-                self.fut.replace(Box::pin(self.http.request(request)));
+                self.fut
+                    .replace(Box::pin(self.http.request(request.build())));
             }
             _ => {
                 self.fut
-                    .replace(Box::pin(self.http.verify(request).map_ok(|_| None)));
+                    .replace(Box::pin(self.http.verify(request.build()).map_ok(|_| None)));
             }
         }
 

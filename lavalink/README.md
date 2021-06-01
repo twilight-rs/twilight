@@ -84,7 +84,7 @@ async fn main() -> Result<(), Box<dyn Error + Send + Sync + 'static>> {
     lavalink.add(lavalink_host, lavalink_auth).await?;
 
     let intents = Intents::GUILD_MESSAGES | Intents::GUILD_VOICE_STATES;
-    let mut shard = Shard::new(token, intents);
+    let shard = Shard::new(token, intents);
     shard.start().await?;
 
     let mut events = shard.events();
@@ -107,7 +107,7 @@ async fn main() -> Result<(), Box<dyn Error + Send + Sync + 'static>> {
 [github badge]: https://img.shields.io/badge/github-twilight-6f42c1.svg?style=for-the-badge&logo=github
 [github link]: https://github.com/twilight-rs/twilight
 [license badge]: https://img.shields.io/badge/license-ISC-blue.svg?style=for-the-badge&logo=pastebin
-[license link]: https://github.com/twilight-rs/twilight/blob/trunk/LICENSE.md
+[license link]: https://github.com/twilight-rs/twilight/blob/main/LICENSE.md
 [node]: Node
 [process]: Lavalink::process
 [rust badge]: https://img.shields.io/badge/rust-1.49+-93450a.svg?style=for-the-badge&logo=rust

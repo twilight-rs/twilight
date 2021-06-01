@@ -1,3 +1,5 @@
+pub mod activity_button;
+
 mod activity;
 mod activity_assets;
 mod activity_emoji;
@@ -7,13 +9,15 @@ mod activity_secrets;
 mod activity_timestamps;
 mod activity_type;
 mod client_status;
+mod minimal_activity;
 mod status;
 
 pub use self::{
-    activity::Activity, activity_assets::ActivityAssets, activity_emoji::ActivityEmoji,
-    activity_flags::ActivityFlags, activity_party::ActivityParty,
+    activity::Activity, activity_assets::ActivityAssets, activity_button::ActivityButton,
+    activity_emoji::ActivityEmoji, activity_flags::ActivityFlags, activity_party::ActivityParty,
     activity_secrets::ActivitySecrets, activity_timestamps::ActivityTimestamps,
-    activity_type::ActivityType, client_status::ClientStatus, status::Status,
+    activity_type::ActivityType, client_status::ClientStatus, minimal_activity::MinimalActivity,
+    status::Status,
 };
 
 use crate::{
@@ -85,7 +89,7 @@ pub struct PresenceDeserializer(GuildId);
 impl PresenceDeserializer {
     /// Create a new deserializer for a presence when you know the guild ID but
     /// the payload probably doesn't contain it.
-    pub fn new(guild_id: GuildId) -> Self {
+    pub const fn new(guild_id: GuildId) -> Self {
         Self(guild_id)
     }
 }
@@ -104,7 +108,7 @@ pub struct PresenceListDeserializer(GuildId);
 impl PresenceListDeserializer {
     /// Create a new deserializer for a map of presences when you know the
     /// Guild ID but the payload probably doesn't contain it.
-    pub fn new(guild_id: GuildId) -> Self {
+    pub const fn new(guild_id: GuildId) -> Self {
         Self(guild_id)
     }
 }
@@ -154,6 +158,7 @@ mod tests {
         let activity = Activity {
             application_id: None,
             assets: None,
+            buttons: Vec::new(),
             created_at: Some(1_571_048_061_237),
             details: None,
             flags: None,

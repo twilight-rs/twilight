@@ -27,7 +27,7 @@ pub struct GetGuildMembersError {
 impl GetGuildMembersError {
     /// Immutable reference to the type of error that occurred.
     #[must_use = "retrieving the type has no effect if left unused"]
-    pub fn kind(&self) -> &GetGuildMembersErrorType {
+    pub const fn kind(&self) -> &GetGuildMembersErrorType {
         &self.kind
     }
 
@@ -152,15 +152,14 @@ impl<'a> GetGuildMembers<'a> {
     }
 
     fn start(&mut self) -> Result<()> {
-        self.fut
-            .replace(Box::pin(self.http.request_bytes(Request::from(
-                Route::GetGuildMembers {
-                    after: self.fields.after.map(|x| x.0),
-                    guild_id: self.guild_id.0,
-                    limit: self.fields.limit,
-                    presences: self.fields.presences,
-                },
-            ))));
+        let request = Request::from_route(Route::GetGuildMembers {
+            after: self.fields.after.map(|x| x.0),
+            guild_id: self.guild_id.0,
+            limit: self.fields.limit,
+            presences: self.fields.presences,
+        });
+
+        self.fut.replace(Box::pin(self.http.request_bytes(request)));
 
         Ok(())
     }
@@ -183,7 +182,7 @@ impl Future for GetGuildMembers<'_> {
 
                 let mut bytes = bytes.as_ref().to_vec();
                 let values =
-                    crate::json_from_slice::<Vec<Value>>(&mut bytes).map_err(HttpError::json)?;
+                    crate::json::from_slice::<Vec<Value>>(&mut bytes).map_err(HttpError::json)?;
 
                 for value in values {
                     let member_deserializer = MemberDeserializer::new(self.guild_id);

@@ -46,6 +46,15 @@ impl Form {
         self
     }
 
+    pub fn payload_json(&mut self, json: &[u8]) -> &mut Self {
+        self.start();
+        self.name(b"payload_json");
+        self.buffer.extend(b"\r\nContent-Type: application/json");
+        self.data(json);
+
+        self
+    }
+
     fn start(&mut self) {
         self.buffer.extend(b"\r\n");
         self.boundary();

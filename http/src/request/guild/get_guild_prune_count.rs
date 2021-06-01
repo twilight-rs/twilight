@@ -17,7 +17,7 @@ pub struct GetGuildPruneCountError {
 impl GetGuildPruneCountError {
     /// Immutable reference to the type of error that occurred.
     #[must_use = "retrieving the type has no effect if left unused"]
-    pub fn kind(&self) -> &GetGuildPruneCountErrorType {
+    pub const fn kind(&self) -> &GetGuildPruneCountErrorType {
         &self.kind
     }
 
@@ -115,13 +115,13 @@ impl<'a> GetGuildPruneCount<'a> {
     }
 
     fn start(&mut self) -> Result<()> {
-        self.fut.replace(Box::pin(self.http.request(Request::from(
-            Route::GetGuildPruneCount {
-                days: self.fields.days,
-                guild_id: self.guild_id.0,
-                include_roles: self.fields.include_roles.clone(),
-            },
-        ))));
+        let request = Request::from_route(Route::GetGuildPruneCount {
+            days: self.fields.days,
+            guild_id: self.guild_id.0,
+            include_roles: self.fields.include_roles.clone(),
+        });
+
+        self.fut.replace(Box::pin(self.http.request(request)));
 
         Ok(())
     }

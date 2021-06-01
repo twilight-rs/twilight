@@ -43,29 +43,29 @@ impl Latency {
     /// # Note
     ///
     /// If this is None, the shard has not received a heartbeat yet.
-    pub fn average(&self) -> Option<Duration> {
+    pub const fn average(&self) -> Option<Duration> {
         self.average
     }
 
     /// The total number of heartbeats that have been sent during this session.
-    pub fn heartbeats(&self) -> u32 {
+    pub const fn heartbeats(&self) -> u32 {
         self.heartbeats
     }
 
     /// The 5 most recent latency times.
     ///
     /// Index 0 is the oldest, 4 is the most recent.
-    pub fn recent(&self) -> &VecDeque<Duration> {
+    pub const fn recent(&self) -> &VecDeque<Duration> {
         &self.recent
     }
 
     /// When the last heartbeat acknowledgement was received.
-    pub fn received(&self) -> Option<Instant> {
+    pub const fn received(&self) -> Option<Instant> {
         self.received
     }
 
     /// When the last heartbeat was sent.
-    pub fn sent(&self) -> Option<Instant> {
+    pub const fn sent(&self) -> Option<Instant> {
         self.sent
     }
 }

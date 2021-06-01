@@ -7,6 +7,10 @@ use crate::{
     error::{Error, ErrorType, Result},
     ratelimiting::{RatelimitHeaders, Ratelimiter},
     request::{
+        channel::stage::{
+            create_stage_instance::CreateStageInstanceError,
+            update_stage_instance::UpdateStageInstanceError,
+        },
         guild::{create_guild::CreateGuildError, create_guild_channel::CreateGuildChannelError},
         prelude::*,
         GetUserApplicationInfo, Method, Request,
@@ -328,7 +332,11 @@ impl Client {
 
     /// Get the invites for a guild channel.
     ///
-    /// This method only works if the channel is of type `GuildChannel`.
+    /// Requires the [`MANAGE_CHANNELS`] permission. This method only works if
+    /// the channel is of type [`GuildChannel`].
+    ///
+    /// [`MANAGE_CHANNELS`]: twilight_model::guild::Permissions::MANAGE_CHANNELS
+    /// [`GuildChannel`]: twilight_model::channel::GuildChannel
     pub fn channel_invites(&self, channel_id: ChannelId) -> GetChannelInvites<'_> {
         GetChannelInvites::new(self, channel_id)
     }
@@ -377,7 +385,10 @@ impl Client {
         GetChannelMessages::new(self, channel_id)
     }
 
-    pub fn delete_channel_permission(&self, channel_id: ChannelId) -> DeleteChannelPermission<'_> {
+    pub const fn delete_channel_permission(
+        &self,
+        channel_id: ChannelId,
+    ) -> DeleteChannelPermission<'_> {
         DeleteChannelPermission::new(self, channel_id)
     }
 
@@ -406,7 +417,7 @@ impl Client {
     ///     .await?;
     /// # Ok(()) }
     /// ```
-    pub fn update_channel_permission(
+    pub const fn update_channel_permission(
         &self,
         channel_id: ChannelId,
         allow: Permissions,
@@ -723,6 +734,10 @@ impl Client {
     }
 
     /// Get information about the invites of a guild.
+    ///
+    /// Requires the [`MANAGE_GUILD`] permission.
+    ///
+    /// [`MANAGE_GUILD`]: twilight_model::guild::Permissions::MANAGE_GUILD
     pub fn guild_invites(&self, guild_id: GuildId) -> GetGuildInvites<'_> {
         GetGuildInvites::new(self, guild_id)
     }
@@ -958,7 +973,9 @@ impl Client {
 
     /// Get information about an invite by its code.
     ///
-    /// If [`with_counts`] is called, the returned invite will contain approximate member counts.
+    /// If [`with_counts`] is called, the returned invite will contain
+    /// approximate member counts.  If [`with_expiration`] is called, it will
+    /// contain the expiration date.
     ///
     /// # Examples
     ///
@@ -977,11 +994,14 @@ impl Client {
     /// ```
     ///
     /// [`with_counts`]: crate::request::channel::invite::GetInvite::with_counts
+    /// [`with_expiration`]: crate::request::channel::invite::GetInvite::with_expiration
     pub fn invite(&self, code: impl Into<String>) -> GetInvite<'_> {
         GetInvite::new(self, code)
     }
 
     /// Create an invite, with options.
+    ///
+    /// Requires the [`CREATE_INVITE`] permission.
     ///
     /// # Examples
     ///
@@ -1000,11 +1020,19 @@ impl Client {
     ///     .await?;
     /// # Ok(()) }
     /// ```
+    ///
+    /// [`CREATE_INVITE`]: twilight_model::guild::Permissions::CREATE_INVITE
     pub fn create_invite(&self, channel_id: ChannelId) -> CreateInvite<'_> {
         CreateInvite::new(self, channel_id)
     }
 
     /// Delete an invite by its code.
+    ///
+    /// Requires the [`MANAGE_CHANNELS`] permission on the channel this invite
+    /// belongs to, or [`MANAGE_GUILD`] to remove any invite across the guild.
+    ///
+    /// [`MANAGE_CHANNELS`]: twilight_model::guild::Permissions::MANAGE_CHANNELS
+    /// [`MANAGE_GUILD`]: twilight_model::guild::Permissions::MANAGE_GUILD
     pub fn delete_invite(&self, code: impl Into<String>) -> DeleteInvite<'_> {
         DeleteInvite::new(self, code)
     }
@@ -1297,6 +1325,54 @@ impl Client {
         UpdateRolePositions::new(self, guild_id, roles)
     }
 
+    /// Create a new stage instance associated with a stage channel.
+    ///
+    /// Requires the user to be a moderator of the stage channel.
+    ///
+    /// # Errors
+    ///
+    /// Returns a [`CreateStageInstanceError`] of type [`InvalidTopic`] when the
+    /// topic is not between 1 and 120 characters in length.
+    ///
+    /// [`InvalidTopic`]: crate::request::channel::stage::create_stage_instance::CreateStageInstanceErrorType::InvalidTopic
+    pub fn create_stage_instance(
+        &self,
+        channel_id: ChannelId,
+        topic: impl Into<String>,
+    ) -> Result<CreateStageInstance<'_>, CreateStageInstanceError> {
+        CreateStageInstance::new(self, channel_id, topic)
+    }
+
+    /// Gets the stage instance associated with a stage channel, if it exists.
+    pub fn stage_instance(&self, channel_id: ChannelId) -> GetStageInstance<'_> {
+        GetStageInstance::new(self, channel_id)
+    }
+
+    /// Update fields of an existing stage instance.
+    ///
+    /// Requires the user to be a moderator of the stage channel.
+    ///
+    /// # Errors
+    ///
+    /// Returns a [`UpdateStageInstanceError`] of type [`InvalidTopic`] when the
+    ///
+    /// [`InvalidTopic`]: crate::request::channel::stage::update_stage_instance::UpdateStageInstanceErrorType::InvalidTopic
+    /// topic is not between 1 and 120 characters in length.
+    pub fn update_stage_instance(
+        &self,
+        channel_id: ChannelId,
+        topic: impl Into<String>,
+    ) -> Result<UpdateStageInstance<'_>, UpdateStageInstanceError> {
+        UpdateStageInstance::new(self, channel_id, topic)
+    }
+
+    /// Delete the stage instance of a stage channel.
+    ///
+    /// Requires the user to be a moderator of the stage channel.
+    pub fn delete_stage_instance(&self, channel_id: ChannelId) -> DeleteStageInstance<'_> {
+        DeleteStageInstance::new(self, channel_id)
+    }
+
     /// Create a new guild based on a template.
     ///
     /// This endpoint can only be used by bots in less than 10 guilds.
@@ -1478,6 +1554,19 @@ impl Client {
         ExecuteWebhook::new(self, webhook_id, token)
     }
 
+    /// Get a webhook message by [`WebhookId`], token, and [`MessageId`].
+    ///
+    /// [`WebhookId`]: twilight_model::id::WebhookId
+    /// [`MessageId`]: twilight_model::id::MessageId
+    pub fn webhook_message(
+        &self,
+        webhook_id: WebhookId,
+        token: impl Into<String>,
+        message_id: MessageId,
+    ) -> GetWebhookMessage<'_> {
+        GetWebhookMessage::new(self, webhook_id, token, message_id)
+    }
+
     /// Update a message executed by a webhook.
     ///
     /// # Examples
@@ -1550,6 +1639,7 @@ impl Client {
             method,
             path: bucket,
             path_str: path,
+            use_authorization_token,
         } = request;
 
         let protocol = if self.state.use_http { "http" } else { "https" };
@@ -1562,19 +1652,21 @@ impl Client {
             .method(method.into_hyper())
             .uri(&url);
 
-        if let Some(ref token) = self.state.token {
-            let value = HeaderValue::from_str(&token).map_err(|source| {
-                #[allow(clippy::borrow_interior_mutable_const)]
-                let name = AUTHORIZATION.to_string();
+        if use_authorization_token {
+            if let Some(ref token) = self.state.token {
+                let value = HeaderValue::from_str(&token).map_err(|source| {
+                    #[allow(clippy::borrow_interior_mutable_const)]
+                    let name = AUTHORIZATION.to_string();
 
-                Error {
-                    kind: ErrorType::CreatingHeader { name },
-                    source: Some(Box::new(source)),
+                    Error {
+                        kind: ErrorType::CreatingHeader { name },
+                        source: Some(Box::new(source)),
+                    }
+                })?;
+
+                if let Some(headers) = builder.headers_mut() {
+                    headers.insert(AUTHORIZATION, value);
                 }
-            })?;
-
-            if let Some(headers) = builder.headers_mut() {
-                headers.insert(AUTHORIZATION, value);
             }
         }
 
@@ -1724,7 +1816,7 @@ impl Client {
         let mut bytes = vec![0; buf.remaining()];
         buf.copy_to_slice(&mut bytes);
 
-        let result = crate::json_from_slice(&mut bytes);
+        let result = crate::json::from_slice(&mut bytes);
 
         result.map_err(|source| Error {
             kind: ErrorType::Parsing {
@@ -1792,7 +1884,7 @@ impl Client {
         let mut bytes = vec![0; buf.remaining()];
         buf.copy_to_slice(&mut bytes);
 
-        let error = crate::json_from_slice::<ApiError>(&mut bytes).map_err(|source| Error {
+        let error = crate::json::from_slice::<ApiError>(&mut bytes).map_err(|source| Error {
             kind: ErrorType::Parsing {
                 body: bytes.clone(),
             },

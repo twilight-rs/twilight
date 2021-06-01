@@ -17,7 +17,7 @@ pub struct PathParseError {
 impl PathParseError {
     /// Immutable reference to the type of error that occurred.
     #[must_use = "retrieving the type has no effect if left unused"]
-    pub fn kind(&self) -> &PathParseErrorType {
+    pub const fn kind(&self) -> &PathParseErrorType {
         &self.kind
     }
 
@@ -144,6 +144,7 @@ pub enum Path {
     GuildsIdWelcomeScreen(u64),
     GuildsIdWebhooks(u64),
     InvitesCode,
+    StageInstances,
     UsersId,
     OauthApplicationsMe,
     UsersIdConnections,
@@ -267,6 +268,7 @@ impl FromStr for Path {
             ["guilds", id, "welcome-screen"] => GuildsIdWelcomeScreen(parse_id(id)?),
             ["guilds", id, "webhooks"] => GuildsIdWebhooks(parse_id(id)?),
             ["invites", _] => InvitesCode,
+            ["stage-instances", _] => StageInstances,
             ["oauth2", "applications", "@me"] => OauthApplicationsMe,
             ["users", _] => UsersId,
             ["users", _, "connections"] => UsersIdConnections,
@@ -392,6 +394,13 @@ pub enum Route {
         /// The ID of the guild.
         guild_id: u64,
     },
+    /// Route information to create a stage instance.
+    CreateStageInstance {
+        /// ID of the channel.
+        channel_id: u64,
+        /// Topic of the stage instance.
+        topic: String,
+    },
     /// Route information to create a guild template.
     CreateTemplate {
         /// The ID of the guild.
@@ -504,6 +513,11 @@ pub enum Route {
         guild_id: u64,
         /// The ID of the role.
         role_id: u64,
+    },
+    /// Route information to delete a stage instance.
+    DeleteStageInstance {
+        /// ID of the stage channel.
+        channel_id: u64,
     },
     /// Route information to delete a guild template.
     DeleteTemplate {
@@ -697,6 +711,15 @@ pub enum Route {
         /// Whether to retrieve statistics about the invite.
         with_counts: bool,
     },
+    /// Route information to get an invite with an expiration.
+    GetInviteWithExpiration {
+        /// The unique invite code.
+        code: String,
+        /// Whether to retrieve statistics about the invite.
+        with_counts: bool,
+        /// Whether to retrieve the expiration date of the invite.
+        with_expiration: bool,
+    },
     /// Route information to get a member.
     GetMember {
         /// The ID of the guild.
@@ -745,6 +768,11 @@ pub enum Route {
         /// The ID of the message.
         message_id: u64,
     },
+    /// Route information to get a stage instance.
+    GetStageInstance {
+        /// ID of the stage channel.
+        channel_id: u64,
+    },
     /// Route information to get a template.
     GetTemplate {
         /// The template code.
@@ -773,6 +801,15 @@ pub enum Route {
         /// The token of the webhook.
         token: Option<String>,
         /// The ID of the webhook.
+        webhook_id: u64,
+    },
+    /// Route information to get a previously-sent webhook message.
+    GetWebhookMessage {
+        /// ID of the message.
+        message_id: u64,
+        /// Token of the webhook.
+        token: String,
+        /// ID of the webhook.
         webhook_id: u64,
     },
     /// Route information to leave the guild.
@@ -917,6 +954,11 @@ pub enum Route {
     UpdateRolePositions {
         /// The ID of the guild.
         guild_id: u64,
+    },
+    /// Route information to update an existing stage instance.
+    UpdateStageInstance {
+        /// ID of the stage channel.
+        channel_id: u64,
     },
     /// Route information to update a template.
     UpdateTemplate {
@@ -1078,6 +1120,9 @@ impl Route {
                 Path::GuildsIdRoles(guild_id),
                 format!("guilds/{}/roles", guild_id).into(),
             ),
+            Self::CreateStageInstance { .. } => {
+                (Method::Post, Path::StageInstances, "stage-instances".into())
+            }
             Self::CreateTemplate { guild_id } => (
                 Method::Post,
                 Path::GuildsIdTemplates(guild_id),
@@ -1194,6 +1239,11 @@ impl Route {
                 Method::Delete,
                 Path::GuildsIdRolesId(guild_id),
                 format!("guilds/{}/roles/{}", guild_id, role_id).into(),
+            ),
+            Self::DeleteStageInstance { channel_id } => (
+                Method::Delete,
+                Path::StageInstances,
+                format!("stage-instances/{}", channel_id).into(),
             ),
             Self::DeleteTemplate {
                 guild_id,
@@ -1442,6 +1492,22 @@ impl Route {
                 Path::InvitesCode,
                 format!("invites/{}?with-counts={}", code, with_counts).into(),
             ),
+            Self::GetInviteWithExpiration {
+                code,
+                with_counts,
+                with_expiration,
+            } => {
+                let query_params = match (with_counts, with_expiration) {
+                    (true, true) => "?with-counts=true&with-expiration=true",
+                    (true, false) => "?with-counts=true",
+                    (false, true) => "?with-expiration=true",
+                    (false, false) => "",
+                };
+
+                let route = format!("invites/{}{}", code, query_params);
+
+                (Method::Get, Path::InvitesCode, route.into())
+            }
             Self::GetMember { guild_id, user_id } => (
                 Method::Get,
                 Path::GuildsIdMembersId(guild_id),
@@ -1522,6 +1588,11 @@ impl Route {
                     path.into(),
                 )
             }
+            Self::GetStageInstance { channel_id } => (
+                Method::Get,
+                Path::StageInstances,
+                format!("stage-instances/{}", channel_id).into(),
+            ),
             Self::GetTemplate { template_code } => (
                 Method::Get,
                 Path::Guilds,
@@ -1558,6 +1629,15 @@ impl Route {
 
                 (Method::Get, Path::WebhooksId(webhook_id), path.into())
             }
+            Self::GetWebhookMessage {
+                message_id,
+                token,
+                webhook_id,
+            } => (
+                Method::Get,
+                Path::WebhooksIdTokenMessagesId(webhook_id),
+                format!("webhooks/{}/{}/messages/{}", webhook_id, token, message_id).into(),
+            ),
             Self::LeaveGuild { guild_id } => (
                 Method::Delete,
                 Path::UsersIdGuildsId,
@@ -1705,6 +1785,11 @@ impl Route {
                 Method::Patch,
                 Path::GuildsIdRolesId(guild_id),
                 format!("guilds/{}/roles", guild_id).into(),
+            ),
+            Self::UpdateStageInstance { channel_id } => (
+                Method::Patch,
+                Path::StageInstances,
+                format!("stage-instances/{}", channel_id).into(),
             ),
             Self::UpdateTemplate {
                 guild_id,

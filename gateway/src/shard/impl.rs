@@ -33,7 +33,7 @@ pub struct CommandError {
 impl CommandError {
     /// Immutable reference to the type of error that occurred.
     #[must_use = "retrieving the type has no effect if left unused"]
-    pub fn kind(&self) -> &CommandErrorType {
+    pub const fn kind(&self) -> &CommandErrorType {
         &self.kind
     }
 
@@ -124,7 +124,7 @@ pub struct SendError {
 impl SendError {
     /// Immutable reference to the type of error that occurred.
     #[must_use = "retrieving the type has no effect if left unused"]
-    pub fn kind(&self) -> &SendErrorType {
+    pub const fn kind(&self) -> &SendErrorType {
         &self.kind
     }
 
@@ -181,7 +181,7 @@ pub struct ShardStartError {
 impl ShardStartError {
     /// Immutable reference to the type of error that occurred.
     #[must_use = "retrieving the type has no effect if left unused"]
-    pub fn kind(&self) -> &ShardStartErrorType {
+    pub const fn kind(&self) -> &ShardStartErrorType {
         &self.kind
     }
 
@@ -249,7 +249,7 @@ pub struct Information {
 
 impl Information {
     /// Return the ID of the shard.
-    pub fn id(&self) -> u64 {
+    pub const fn id(&self) -> u64 {
         self.id
     }
 
@@ -257,7 +257,7 @@ impl Information {
     ///
     /// This includes the average latency over all time, and the latency
     /// information for the 5 most recent heartbeats.
-    pub fn latency(&self) -> &Latency {
+    pub const fn latency(&self) -> &Latency {
         &self.latency
     }
 
@@ -273,7 +273,7 @@ impl Information {
     /// been connected for a longer time, while a smaller number typically
     /// correlates to meaning that it's been connected for a less amount of
     /// time.
-    pub fn seq(&self) -> u64 {
+    pub const fn seq(&self) -> u64 {
         self.seq
     }
 
@@ -282,7 +282,7 @@ impl Information {
     /// For example, once a shard is fully booted then it will be [`Connected`].
     ///
     /// [`Connected`]: Stage::Connected
-    pub fn stage(&self) -> Stage {
+    pub const fn stage(&self) -> Stage {
         self.stage
     }
 }
@@ -333,7 +333,7 @@ struct ShardRef {
 /// // Use the value of the "DISCORD_TOKEN" environment variable as the bot's
 /// // token. Of course, you may pass this into your program however you want.
 /// let token = env::var("DISCORD_TOKEN")?;
-/// let mut shard = Shard::new(token, Intents::GUILD_MESSAGES);
+/// let shard = Shard::new(token, Intents::GUILD_MESSAGES);
 ///
 /// // Start the shard.
 /// shard.start().await?;
@@ -382,7 +382,7 @@ impl Shard {
     /// let token = env::var("DISCORD_TOKEN")?;
     ///
     /// let intents = Intents::GUILD_MESSAGES | Intents::GUILD_MESSAGE_TYPING;
-    /// let mut shard = Shard::new(token, intents);
+    /// let shard = Shard::new(token, intents);
     /// shard.start().await?;
     ///
     /// tokio_time::sleep(Duration::from_secs(1)).await;
@@ -433,7 +433,7 @@ impl Shard {
     ///
     /// Returns a [`ShardStartErrorType::RetrievingGatewayUrl`] error type if
     /// the gateway URL couldn't be retrieved from the HTTP API.
-    pub async fn start(&mut self) -> Result<(), ShardStartError> {
+    pub async fn start(&self) -> Result<(), ShardStartError> {
         let url = if let Some(u) = self.0.config.gateway_url.clone() {
             u.into_string()
         } else {
@@ -526,7 +526,7 @@ impl Shard {
     ///
     /// # #[tokio::main]
     /// # async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
-    /// let mut shard = Shard::new(env::var("DISCORD_TOKEN")?, Intents::empty());
+    /// let shard = Shard::new(env::var("DISCORD_TOKEN")?, Intents::empty());
     /// shard.start().await?;
     ///
     /// let event_types = EventTypeFlags::SHARD_CONNECTED | EventTypeFlags::SHARD_DISCONNECTED;
@@ -604,7 +604,7 @@ impl Shard {
     /// use twilight_gateway::{shard::{raw_message::Message, Shard}, Intents};
     ///
     /// let token = env::var("DISCORD_TOKEN")?;
-    /// let mut shard = Shard::new(token, Intents::GUILDS);
+    /// let shard = Shard::new(token, Intents::GUILDS);
     /// shard.start().await?;
     ///
     /// shard.send(Message::Ping(Vec::new())).await?;
@@ -625,7 +625,7 @@ impl Shard {
     /// };
     ///
     /// let token = env::var("DISCORD_TOKEN")?;
-    /// let mut shard = Shard::new(token, Intents::GUILDS);
+    /// let shard = Shard::new(token, Intents::GUILDS);
     /// shard.start().await?;
     ///
     /// let close = CloseFrame::from((1000, ""));

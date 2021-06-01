@@ -4,8 +4,8 @@ use std::{
     fmt::{Display, Formatter, Result as FmtResult},
 };
 use twilight_model::{
-    id::{ChannelId, UserId},
-    invite::{Invite, TargetUserType},
+    id::{ApplicationId, ChannelId, UserId},
+    invite::{Invite, TargetType},
 };
 
 /// Error created when an invite can not be created as configured.
@@ -17,7 +17,7 @@ pub struct CreateInviteError {
 impl CreateInviteError {
     /// Immutable reference to the type of error that occurred.
     #[must_use = "retrieving the type has no effect if left unused"]
-    pub fn kind(&self) -> &CreateInviteErrorType {
+    pub const fn kind(&self) -> &CreateInviteErrorType {
         &self.kind
     }
 
@@ -71,14 +71,18 @@ struct CreateInviteFields {
     #[serde(skip_serializing_if = "Option::is_none")]
     temporary: Option<bool>,
     #[serde(skip_serializing_if = "Option::is_none")]
-    unique: Option<bool>,
+    target_application_id: Option<ApplicationId>,
     #[serde(skip_serializing_if = "Option::is_none")]
     target_user_id: Option<String>,
     #[serde(skip_serializing_if = "Option::is_none")]
-    target_user_type: Option<TargetUserType>,
+    target_type: Option<TargetType>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    unique: Option<bool>,
 }
 
 /// Create an invite, with options.
+///
+/// Requires the [`CREATE_INVITE`] permission.
 ///
 /// # Examples
 ///
@@ -97,6 +101,8 @@ struct CreateInviteFields {
 ///     .await?;
 /// # Ok(()) }
 /// ```
+///
+/// [`CREATE_INVITE`]: twilight_model::guild::Permissions::CREATE_INVITE
 pub struct CreateInvite<'a> {
     channel_id: ChannelId,
     fields: CreateInviteFields,
@@ -184,7 +190,50 @@ impl<'a> CreateInvite<'a> {
         Ok(self)
     }
 
-    /// Specify true if the invite should grant temporary membership. Defaults to false.
+    /// Set the target application ID for this invite.
+    ///
+    /// This only works if [`target_type`] is set to [`TargetType::EmbeddedApplication`].
+    ///
+    /// [`target_type`]: Self::target_type
+    pub fn target_application_id(mut self, target_application_id: ApplicationId) -> Self {
+        self.fields
+            .target_application_id
+            .replace(target_application_id);
+
+        self
+    }
+
+    /// Set the target user id for this invite.
+    pub fn target_user_id(mut self, target_user_id: UserId) -> Self {
+        self.fields
+            .target_user_id
+            .replace(target_user_id.0.to_string());
+
+        self
+    }
+
+    /// Set the target user for this invite.
+    #[deprecated(since = "0.3.7", note = "Use `target_user_id` instead")]
+    pub fn target_user(self, target_user_id: UserId) -> Self {
+        self.target_user_id(target_user_id)
+    }
+
+    /// Set the target type for this invite.
+    pub fn target_type(mut self, target_type: TargetType) -> Self {
+        self.fields.target_type.replace(target_type);
+
+        self
+    }
+
+    /// Set the target user type for this invite.
+    #[deprecated(since = "0.4.2", note = "Use `target_type` instead")]
+    pub fn target_user_type(self, target_user_type: TargetType) -> Self {
+        Self::target_type(self, target_user_type)
+    }
+
+    /// Specify true if the invite should grant temporary membership.
+    ///
+    /// Defaults to false.
     pub fn temporary(mut self, temporary: bool) -> Self {
         self.fields.temporary.replace(temporary);
 
@@ -203,48 +252,18 @@ impl<'a> CreateInvite<'a> {
         self
     }
 
-    /// Set the target user for this invite.
-    pub fn target_user_id(mut self, target_user_id: UserId) -> Self {
-        self.fields
-            .target_user_id
-            .replace(target_user_id.0.to_string());
-
-        self
-    }
-
-    /// Set the target user for this invite.
-    #[deprecated(since = "0.3.7", note = "Use `target_user_id` instead")]
-    pub fn target_user(self, target_user_id: UserId) -> Self {
-        self.target_user_id(target_user_id)
-    }
-
-    /// Set the target user type for this invite.
-    pub fn target_user_type(mut self, target_user_type: TargetUserType) -> Self {
-        self.fields.target_user_type.replace(target_user_type);
-
-        self
-    }
-
     fn start(&mut self) -> Result<()> {
-        let request = if let Some(reason) = &self.reason {
-            let headers = audit_header(&reason)?;
-            Request::from((
-                crate::json_to_vec(&self.fields).map_err(HttpError::json)?,
-                headers,
-                Route::CreateInvite {
-                    channel_id: self.channel_id.0,
-                },
-            ))
-        } else {
-            Request::from((
-                crate::json_to_vec(&self.fields).map_err(HttpError::json)?,
-                Route::CreateInvite {
-                    channel_id: self.channel_id.0,
-                },
-            ))
-        };
+        let mut request = Request::builder(Route::CreateInvite {
+            channel_id: self.channel_id.0,
+        })
+        .json(&self.fields)?;
 
-        self.fut.replace(Box::pin(self.http.request(request)));
+        if let Some(reason) = &self.reason {
+            request = request.headers(audit_header(reason)?);
+        }
+
+        self.fut
+            .replace(Box::pin(self.http.request(request.build())));
 
         Ok(())
     }

@@ -64,7 +64,7 @@ pub enum DispatchEvent {
 
 impl DispatchEvent {
     /// Returns the type of event that this event is.
-    pub fn kind(&self) -> EventType {
+    pub const fn kind(&self) -> EventType {
         match self {
             Self::BanAdd(_) => EventType::BanAdd,
             Self::BanRemove(_) => EventType::BanRemove,
@@ -179,7 +179,7 @@ pub struct DispatchEventWithTypeDeserializer<'a>(&'a str);
 
 impl<'a> DispatchEventWithTypeDeserializer<'a> {
     /// Create a new deserializer.
-    pub fn new(event_name: &'a str) -> Self {
+    pub const fn new(event_name: &'a str) -> Self {
         Self(event_name)
     }
 }

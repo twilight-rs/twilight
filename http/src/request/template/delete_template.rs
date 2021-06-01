@@ -28,12 +28,12 @@ impl<'a> DeleteTemplate<'a> {
     }
 
     fn start(&mut self) -> Result<()> {
-        self.fut.replace(Box::pin(self.http.verify(Request::from(
-            Route::DeleteTemplate {
-                guild_id: self.guild_id.0,
-                template_code: self.template_code.clone(),
-            },
-        ))));
+        let request = Request::from_route(Route::DeleteTemplate {
+            guild_id: self.guild_id.0,
+            template_code: self.template_code.clone(),
+        });
+
+        self.fut.replace(Box::pin(self.http.verify(request)));
 
         Ok(())
     }

@@ -2,6 +2,129 @@
 
 Changelog for `twilight-model`.
 
+## [0.4.2] - 2021-05-30
+
+### Upgrade Path
+
+`invite::TargetUserType` is now deprecated; `invite::TargetType` should be used
+instead. `invite::Invite::target_user_type` has been renamed to `target_type`.
+
+### Additions
+
+Add the `DISCORD_CERTIFIED_MODERATOR` user flag ([#820] - [@7596ff]).
+
+Add `channel::StageInstance` and `id::StageId` in relation to stage channel
+support ([#812] - [@7596ff]).
+
+Add the `invite::Invite::expires_at` field and
+`invite::TargetType::EmbeddedApplication` variant ([#809] - [@7596ff]).
+
+Add `gateway::presence::MinimalActivity`, intended for bots to use when setting
+presences ([#851] - [@7596ff]).
+
+### Enhancements
+
+The following functions are now `const`:
+
+- `channel::ChannelType::name`;
+- `channel::message::allowed_mentions::AllowedMentionsBuilder::new`;
+- `channel::message::allowed_mentions::AllowedMentionsBuilder::replied_user`;
+- `channel::message::allowed_mentions::AllowedMentions::new`
+- `channel::message::sticker::StickerType::value`
+- `channel::Channel::id`
+- `channel::GuildChannel::guild_id`
+- `channel::GuildChannel::id`
+- `channel::VideoQualityMode::name`
+- `gateway::event::gateway::payload::Heartbeat::new`
+- `gateway::event::gateway::payload::identify::Identify::new`
+- `gateway::event::gateway::payload::request_guild_members::RequestGuildMembersBuilder::new`
+- `gateway::event::gateway::payload::request_guild_members::RequestGuildMembers::builder`
+- `gateway::event::gateway::payload::request_guild_members::UserIdsError::kind`
+- `gateway::event::gateway::payload::update_status::UpdateStatusInfo::new`
+- `gateway::event::gateway::payload::UpdateVoiceState::new`
+- `gateway::event::gateway::presence::PresenceDeserializer::new`
+- `gateway::event::gateway::presence::PresenceListDeserializer::new`
+- `gateway::event::gateway::EventType::name`
+- `gateway::event::gateway::Event::kind`
+- `gateway::event::gateway::GatewayEventDeserializerOwned::op`
+- `gateway::event::gateway::GatewayEventDeserializerOwned::sequence`
+- `gateway::event::gateway::GatewayEventDeserializer::new`
+- `gateway::event::gateway::GatewayEventDeserializer::event_type_ref`
+- `gateway::event::gateway::GatewayEventDeserializer::op`
+- `gateway::event::gateway::GatewayEventDeserializer::sequence`
+- `gateway::event::gateway::GatewayEventDeserializer::into_parts`
+- `gateway::event::DispatchEvent::kind`
+- `gateway::event::DispatchEventWithTypeDeserializer::new`
+- `guild::member::MemberDeserializer::new`
+- `guild::member::MemberListDeserializer::new`
+- `guild::member::OptionalMemberDeserializer::new`
+- `voice::CloseCodeConversionError::code`
+
+([#824] - [@vivian]).
+
+### Changes
+
+`invite::Invite::target_user_type` has been renamed to `target_type`
+([#809] - [@7596ff]).
+
+[#851]: https://github.com/twilight-rs/twilight/pull/851
+[#824]: https://github.com/twilight-rs/twilight/pull/824
+[#820]: https://github.com/twilight-rs/twilight/pull/820
+[#812]: https://github.com/twilight-rs/twilight/pull/812
+[#809]: https://github.com/twilight-rs/twilight/pull/809
+
+## [0.4.1] - 2021-05-20
+
+### Additions
+
+Support activity buttons ([#772] - [@vivian]).
+
+[#772]: https://github.com/twilight-rs/twilight/pull/772
+
+## [0.4.0] - 2021-05-12
+
+### Upgrade Path
+
+The MSRV is now Rust 1.49.
+
+Don't reference `GuildStatus`. `Ready::guilds` is now a `Vec<UnavailableGuild>`.
+
+Don't reference `Guild::lazy`.
+
+Errors are no longer enums and don't expose their concrete underlying error
+source. You can access the underlying error via the implemented
+`std::error::Error::source` method or the `into_parts` or `into_source` methods
+on each error struct, which will return a boxed `std::error::Error`. To access
+the reason for the error use the `kind` or `into_parts` method on error structs;
+the returned error type is an enum with variants for each potential reason the
+error occurred.
+
+### Additions
+
+Support `MessageReference::fail_if_not_exists`, which will fail sending a
+message if the referenced message does not exist ([#708] - [@7596ff]).
+
+Implement `Ord` for roles based on position and ID ([#762] - [@james7132]).
+
+Add a reworked Allowed Mentions model and builder, moved from the
+`twilight-http` crate ([#760] - [@7596ff]).
+
+### Changes
+
+Remove the `guild::GuildStatus` enum because guilds are never online in `Ready`
+payloads ([#688] - [@vivian]).
+
+`MessageUpdate::mentions` is now a `Vec<Mention>` instead of a `Vec<User>`
+([#699] - [@chamburr]).
+
+Remove the `Guild::lazy` field ([#724] - [@7596ff]).
+
+[#762]: https://github.com/twilight-rs/twilight/pull/762
+[#724]: https://github.com/twilight-rs/twilight/pull/724
+[#708]: https://github.com/twilight-rs/twilight/pull/708
+[#699]: https://github.com/twilight-rs/twilight/pull/699
+[#688]: https://github.com/twilight-rs/twilight/pull/688
+
 ## [0.3.7] - 2021-04-27
 
 ### Additions
@@ -394,6 +517,7 @@ Initial release.
 
 [@7596ff]: https://github.com/7596ff
 [@AsianIntel]: https://github.com/AsianIntel
+[@chamburr]: https://github.com/chamburr
 [@DusterTheFirst]: https://github.com/DusterTheFirst
 [@Erk-]: https://github.com/Erk-
 [@Gelbpunkt]: https://github.com/Gelbpunkt
@@ -430,6 +554,9 @@ Initial release.
 
 [0.2.0-beta.1:app integrations]: https://github.com/discord/discord-api-docs/commit/a926694e2f8605848bda6b57d21c8817559e5cec
 
+[0.4.2]: https://github.com/twilight-rs/twilight/releases/tag/model-0.4.2
+[0.4.1]: https://github.com/twilight-rs/twilight/releases/tag/model-0.4.1
+[0.4.0]: https://github.com/twilight-rs/twilight/releases/tag/model-0.4.0
 [0.3.7]: https://github.com/twilight-rs/twilight/releases/tag/model-v0.3.7
 [0.3.5]: https://github.com/twilight-rs/twilight/releases/tag/model-v0.3.5
 [0.3.4]: https://github.com/twilight-rs/twilight/releases/tag/model-v0.3.4

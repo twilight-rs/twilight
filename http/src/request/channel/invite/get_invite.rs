@@ -4,11 +4,14 @@ use twilight_model::invite::Invite;
 #[derive(Default)]
 struct GetInviteFields {
     with_counts: bool,
+    with_expiration: bool,
 }
 
 /// Get information about an invite by its code.
 ///
-/// If [`with_counts`] is called, the returned invite will contain approximate member counts.
+/// If [`with_counts`] is called, the returned invite will contain approximate
+/// member counts. If [`with_expiration`] is called, it will contain the
+/// expiration date.
 ///
 /// # Examples
 ///
@@ -27,6 +30,7 @@ struct GetInviteFields {
 /// ```
 ///
 /// [`with_counts`]: Self::with_counts
+/// [`with_expiration`]: Self::with_expiration
 pub struct GetInvite<'a> {
     code: String,
     fields: GetInviteFields,
@@ -45,20 +49,27 @@ impl<'a> GetInvite<'a> {
     }
 
     /// Whether the invite returned should contain approximate member counts.
-    pub fn with_counts(mut self) -> Self {
+    pub const fn with_counts(mut self) -> Self {
         self.fields.with_counts = true;
 
         self
     }
 
+    /// Whether the invite returned should contain its expiration date.
+    pub const fn with_expiration(mut self) -> Self {
+        self.fields.with_expiration = true;
+
+        self
+    }
+
     fn start(&mut self) -> Result<()> {
-        self.fut
-            .replace(Box::pin(self.http.request_bytes(Request::from(
-                Route::GetInvite {
-                    code: self.code.clone(),
-                    with_counts: self.fields.with_counts,
-                },
-            ))));
+        let request = Request::from_route(Route::GetInviteWithExpiration {
+            code: self.code.clone(),
+            with_counts: self.fields.with_counts,
+            with_expiration: self.fields.with_expiration,
+        });
+
+        self.fut.replace(Box::pin(self.http.request_bytes(request)));
 
         Ok(())
     }

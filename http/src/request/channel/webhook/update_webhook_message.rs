@@ -3,7 +3,9 @@
 use crate::{
     client::Client,
     error::{Error as HttpError, Result},
-    request::{self, validate, AuditLogReason, AuditLogReasonError, Pending, Request},
+    request::{
+        audit_header, validate, AuditLogReason, AuditLogReasonError, Form, Pending, Request,
+    },
     routing::Route,
 };
 use serde::Serialize;
@@ -12,7 +14,7 @@ use std::{
     fmt::{Display, Formatter, Result as FmtResult},
 };
 use twilight_model::{
-    channel::{embed::Embed, message::AllowedMentions},
+    channel::{embed::Embed, message::AllowedMentions, Attachment},
     id::{MessageId, WebhookId},
 };
 
@@ -26,7 +28,7 @@ pub struct UpdateWebhookMessageError {
 impl UpdateWebhookMessageError {
     /// Immutable reference to the type of error that occurred.
     #[must_use = "retrieving the type has no effect if left unused"]
-    pub fn kind(&self) -> &UpdateWebhookMessageErrorType {
+    pub const fn kind(&self) -> &UpdateWebhookMessageErrorType {
         &self.kind
     }
 
@@ -106,12 +108,16 @@ pub enum UpdateWebhookMessageErrorType {
 struct UpdateWebhookMessageFields {
     #[serde(skip_serializing_if = "Option::is_none")]
     allowed_mentions: Option<AllowedMentions>,
+    #[serde(skip_serializing_if = "Vec::is_empty")]
+    attachments: Vec<Attachment>,
     #[allow(clippy::option_option)]
     #[serde(skip_serializing_if = "Option::is_none")]
     content: Option<Option<String>>,
     #[allow(clippy::option_option)]
     #[serde(skip_serializing_if = "Option::is_none")]
     embeds: Option<Option<Vec<Embed>>>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    payload_json: Option<Vec<u8>>,
 }
 
 /// Update a message created by a webhook.
@@ -148,6 +154,7 @@ struct UpdateWebhookMessageFields {
 /// [`DeleteWebhookMessage`]: super::DeleteWebhookMessage
 pub struct UpdateWebhookMessage<'a> {
     fields: UpdateWebhookMessageFields,
+    files: Vec<(String, Vec<u8>)>,
     fut: Option<Pending<'a, ()>>,
     http: &'a Client,
     message_id: MessageId,
@@ -171,6 +178,7 @@ impl<'a> UpdateWebhookMessage<'a> {
                 allowed_mentions: http.default_allowed_mentions(),
                 ..UpdateWebhookMessageFields::default()
             },
+            files: Vec::new(),
             fut: None,
             http,
             message_id,
@@ -183,6 +191,28 @@ impl<'a> UpdateWebhookMessage<'a> {
     /// Set the allowed mentions in the message.
     pub fn allowed_mentions(mut self, allowed: AllowedMentions) -> Self {
         self.fields.allowed_mentions.replace(allowed);
+
+        self
+    }
+
+    /// Specify an attachment already present in the target message to keep.
+    ///
+    /// If called, all unspecified attachments will be removed from the message.
+    /// If not called, all attachments will be kept.
+    pub fn attachment(mut self, attachment: Attachment) -> Self {
+        self.fields.attachments.push(attachment);
+
+        self
+    }
+
+    /// Specify multiple attachments already present in the target message to keep.
+    ///
+    /// If called, all unspecified attachments will be removed from the message.
+    /// If not called, all attachments will be kept.
+    pub fn attachments(mut self, attachments: impl IntoIterator<Item = Attachment>) -> Self {
+        self.fields
+            .attachments
+            .extend(attachments.into_iter().collect::<Vec<Attachment>>());
 
         self
     }
@@ -292,20 +322,74 @@ impl<'a> UpdateWebhookMessage<'a> {
         Ok(self)
     }
 
-    fn request(&self) -> Result<Request> {
-        let body = crate::json_to_vec(&self.fields).map_err(HttpError::json)?;
-        let route = Route::UpdateWebhookMessage {
+    /// Attach a file to the webhook.
+    ///
+    /// This method is repeatable.
+    pub fn file(mut self, name: impl Into<String>, file: impl Into<Vec<u8>>) -> Self {
+        self.files.push((name.into(), file.into()));
+
+        self
+    }
+
+    /// Attach multiple files to the webhook.
+    pub fn files<N: Into<String>, F: Into<Vec<u8>>>(
+        mut self,
+        attachments: impl IntoIterator<Item = (N, F)>,
+    ) -> Self {
+        for (name, file) in attachments {
+            self = self.file(name, file);
+        }
+
+        self
+    }
+
+    /// JSON encoded body of any additional request fields.
+    ///
+    /// If this method is called, all other fields are ignored, except for
+    /// [`file`]. See [Discord Docs/Create Message] and
+    /// [`ExecuteWebhook::payload_json`].
+    ///
+    /// [`file`]: Self::file
+    /// [`ExecuteWebhook::payload_json`]: super::ExecuteWebhook::payload_json
+    /// [Discord Docs/Create Message]: https://discord.com/developers/docs/resources/channel#create-message-params
+    pub fn payload_json(mut self, payload_json: impl Into<Vec<u8>>) -> Self {
+        self.fields.payload_json.replace(payload_json.into());
+
+        self
+    }
+
+    fn request(&mut self) -> Result<Request> {
+        let mut request = Request::builder(Route::UpdateWebhookMessage {
             message_id: self.message_id.0,
             token: self.token.clone(),
             webhook_id: self.webhook_id.0,
-        };
-
-        Ok(if let Some(reason) = &self.reason {
-            let headers = request::audit_header(&reason)?;
-            Request::from((body, headers, route))
-        } else {
-            Request::from((body, route))
         })
+        .use_authorization_token(false);
+
+        if !self.files.is_empty() || self.fields.payload_json.is_some() {
+            let mut form = Form::new();
+
+            for (index, (name, file)) in self.files.drain(..).enumerate() {
+                form.file(format!("{}", index).as_bytes(), name.as_bytes(), &file);
+            }
+
+            if let Some(payload_json) = &self.fields.payload_json {
+                form.payload_json(&payload_json);
+            } else {
+                let body = crate::json::to_vec(&self.fields).map_err(HttpError::json)?;
+                form.payload_json(&body);
+            }
+
+            request = request.form(form);
+        } else {
+            request = request.json(&self.fields)?;
+        }
+
+        if let Some(reason) = self.reason.as_ref() {
+            request = request.headers(audit_header(reason)?);
+        }
+
+        Ok(request.build())
     }
 
     fn start(&mut self) -> Result<()> {
@@ -340,25 +424,29 @@ mod tests {
     #[test]
     fn test_request() {
         let client = Client::new("token");
-        let builder = UpdateWebhookMessage::new(&client, WebhookId(1), "token", MessageId(2))
+        let mut builder = UpdateWebhookMessage::new(&client, WebhookId(1), "token", MessageId(2))
             .content(Some("test".to_owned()))
             .expect("'test' content couldn't be set")
             .reason("reason")
             .expect("'reason' is not a valid reason");
         let actual = builder.request().expect("failed to create request");
 
-        let body = crate::json_to_vec(&UpdateWebhookMessageFields {
+        let body = UpdateWebhookMessageFields {
             allowed_mentions: None,
+            attachments: Vec::new(),
             content: Some(Some("test".to_owned())),
             embeds: None,
-        })
-        .expect("failed to serialize fields");
+            payload_json: None,
+        };
         let route = Route::UpdateWebhookMessage {
             message_id: 2,
             token: "token".to_owned(),
             webhook_id: 1,
         };
-        let expected = Request::from((body, route));
+        let expected = Request::builder(route)
+            .json(&body)
+            .expect("failed to serialize body")
+            .build();
 
         assert_eq!(expected.body, actual.body);
         assert_eq!(expected.path, actual.path);

@@ -42,13 +42,12 @@ impl<'a> GetEmoji<'a> {
     }
 
     fn start(&mut self) -> Result<()> {
-        self.fut
-            .replace(Box::pin(self.http.request_bytes(Request::from(
-                Route::GetEmoji {
-                    emoji_id: self.emoji_id.0,
-                    guild_id: self.guild_id.0,
-                },
-            ))));
+        let request = Request::from_route(Route::GetEmoji {
+            emoji_id: self.emoji_id.0,
+            guild_id: self.guild_id.0,
+        });
+
+        self.fut.replace(Box::pin(self.http.request_bytes(request)));
 
         Ok(())
     }

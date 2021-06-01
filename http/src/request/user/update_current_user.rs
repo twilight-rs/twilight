@@ -14,7 +14,7 @@ pub struct UpdateCurrentUserError {
 impl UpdateCurrentUserError {
     /// Immutable reference to the type of error that occurred.
     #[must_use = "retrieving the type has no effect if left unused"]
-    pub fn kind(&self) -> &UpdateCurrentUserErrorType {
+    pub const fn kind(&self) -> &UpdateCurrentUserErrorType {
         &self.kind
     }
 
@@ -127,10 +127,11 @@ impl<'a> UpdateCurrentUser<'a> {
     }
 
     fn start(&mut self) -> Result<()> {
-        self.fut.replace(Box::pin(self.http.request(Request::from((
-            crate::json_to_vec(&self.fields).map_err(HttpError::json)?,
-            Route::UpdateCurrentUser,
-        )))));
+        let request = Request::builder(Route::UpdateCurrentUser)
+            .json(&self.fields)?
+            .build();
+
+        self.fut.replace(Box::pin(self.http.request(request)));
 
         Ok(())
     }

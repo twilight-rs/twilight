@@ -26,7 +26,7 @@ pub struct ClientError {
 
 impl ClientError {
     /// Immutable reference to the type of error that occurred.
-    pub fn kind(&self) -> &ClientErrorType {
+    pub const fn kind(&self) -> &ClientErrorType {
         &self.kind
     }
 

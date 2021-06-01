@@ -112,14 +112,13 @@ impl<'a> SearchGuildMembers<'a> {
     }
 
     fn start(&mut self) -> Result<()> {
-        self.fut
-            .replace(Box::pin(self.http.request_bytes(Request::from(
-                Route::SearchGuildMembers {
-                    guild_id: self.guild_id.0,
-                    limit: self.fields.limit,
-                    query: self.fields.query.clone(),
-                },
-            ))));
+        let request = Request::from_route(Route::SearchGuildMembers {
+            guild_id: self.guild_id.0,
+            limit: self.fields.limit,
+            query: self.fields.query.clone(),
+        });
+
+        self.fut.replace(Box::pin(self.http.request_bytes(request)));
 
         Ok(())
     }
@@ -142,7 +141,7 @@ impl Future for SearchGuildMembers<'_> {
 
                 let mut bytes = bytes.as_ref().to_vec();
                 let values =
-                    crate::json_from_slice::<Vec<Value>>(&mut bytes).map_err(HttpError::json)?;
+                    crate::json::from_slice::<Vec<Value>>(&mut bytes).map_err(HttpError::json)?;
 
                 for value in values {
                     let member_deserializer = MemberDeserializer::new(self.guild_id);

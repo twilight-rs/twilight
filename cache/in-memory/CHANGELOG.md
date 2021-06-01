@@ -2,6 +2,39 @@
 
 Changelog for `twilight-cache-inmemory`.
 
+## [0.4.2] - 2021-05-30
+
+### Enhancements
+
+The following functions are now `const`:
+
+- `Config::new`
+- `Config::message_cache_size`
+- `Config::resource_types`
+- `InMemoryCacheBuilder::new`
+- `InMemoryCacheBuilder::message_cache_size`
+- `InMemoryCacheBuilder::resource_types`
+- `InMemoryCache::builder`
+
+([#824] - [@vivian]).
+
+[#824]: https://github.com/twilight-rs/twilight/pull/824
+
+## [0.4.1] - 2021-05-20
+
+### Additions
+
+Add API for accessing statistics about the cache, accessible through
+`InMemoryCache::stats` ([#806] - [@vivian]).
+
+[#806]: https://github.com/twilight-rs/twilight/pull/806
+
+## [0.4.0] - 2021-05-12
+
+### Upgrade Path
+
+The MSRV is now Rust 1.49.
+
 ## [0.3.6] - 2021-04-27
 
 ### Additions
@@ -208,6 +241,9 @@ Initial release.
 [#528]: https://github.com/twilight-rs/twilight/pull/528
 [#524]: https://github.com/twilight-rs/twilight/pull/524
 
+[0.4.2]: https://github.com/twilight-rs/twilight/releases/tag/cache-in-memory-0.4.2
+[0.4.1]: https://github.com/twilight-rs/twilight/releases/tag/cache-in-memory-0.4.1
+[0.4.0]: https://github.com/twilight-rs/twilight/releases/tag/cache-in-memory-0.4.0
 [0.3.6]: https://github.com/twilight-rs/twilight/releases/tag/cache-in-memory-v0.3.6
 [0.3.5]: https://github.com/twilight-rs/twilight/releases/tag/cache-in-memory-v0.3.5
 [0.3.4]: https://github.com/twilight-rs/twilight/releases/tag/cache-in-memory-v0.3.4

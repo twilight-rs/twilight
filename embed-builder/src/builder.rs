@@ -22,7 +22,7 @@ pub struct EmbedError {
 impl EmbedError {
     /// Immutable reference to the type of error that occurred.
     #[must_use = "retrieving the type has no effect if left unused"]
-    pub fn kind(&self) -> &EmbedErrorType {
+    pub const fn kind(&self) -> &EmbedErrorType {
         &self.kind
     }
 
@@ -229,8 +229,22 @@ impl EmbedBuilder {
     ///
     /// [crate-level documentation]: crate
     /// [default implementation]: Self::default
-    pub fn new() -> Self {
-        Self::default()
+    pub const fn new() -> Self {
+        EmbedBuilder(Embed {
+            author: None,
+            color: None,
+            description: None,
+            fields: Vec::new(),
+            footer: None,
+            image: None,
+            kind: String::new(),
+            provider: None,
+            thumbnail: None,
+            timestamp: None,
+            title: None,
+            url: None,
+            video: None,
+        })
     }
 
     /// Build this into an embed.
@@ -448,6 +462,10 @@ impl EmbedBuilder {
             });
         }
 
+        if self.0.kind.is_empty() {
+            self.0.kind = "rich".to_string();
+        }
+
         Ok(self.0)
     }
 
@@ -591,7 +609,7 @@ impl EmbedBuilder {
     /// use twilight_embed_builder::{EmbedBuilder, EmbedFooterBuilder, ImageSource};
     ///
     /// # fn main() -> Result<(), Box<dyn std::error::Error>> {
-    /// let source = ImageSource::url("https://raw.githubusercontent.com/twilight-rs/twilight/trunk/logo.png")?;
+    /// let source = ImageSource::url("https://raw.githubusercontent.com/twilight-rs/twilight/main/logo.png")?;
     /// let embed = EmbedBuilder::new()
     ///     .footer(EmbedFooterBuilder::new("twilight"))
     ///     .image(source)
@@ -713,21 +731,7 @@ impl Default for EmbedBuilder {
     ///
     /// All embeds have a "rich" type.
     fn default() -> Self {
-        EmbedBuilder(Embed {
-            author: None,
-            color: None,
-            description: None,
-            fields: Vec::new(),
-            footer: None,
-            image: None,
-            kind: String::from("rich"),
-            provider: None,
-            thumbnail: None,
-            timestamp: None,
-            title: None,
-            url: None,
-            video: None,
-        })
+        Self::new()
     }
 }
 
@@ -824,7 +828,7 @@ mod tests {
     #[test]
     fn test_builder() {
         let footer_image = ImageSource::url(
-            "https://raw.githubusercontent.com/twilight-rs/twilight/trunk/logo.png",
+            "https://raw.githubusercontent.com/twilight-rs/twilight/main/logo.png",
         )
         .unwrap();
         let embed = EmbedBuilder::new()
@@ -848,7 +852,7 @@ mod tests {
             .to_vec(),
             footer: Some(EmbedFooter {
                 icon_url: Some(
-                    "https://raw.githubusercontent.com/twilight-rs/twilight/trunk/logo.png"
+                    "https://raw.githubusercontent.com/twilight-rs/twilight/main/logo.png"
                         .to_string(),
                 ),
                 proxy_icon_url: None,

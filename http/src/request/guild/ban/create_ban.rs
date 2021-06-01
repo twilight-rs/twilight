@@ -14,7 +14,7 @@ pub struct CreateBanError {
 impl CreateBanError {
     /// Immutable reference to the type of error that occurred.
     #[must_use = "retrieving the type has no effect if left unused"]
-    pub fn kind(&self) -> &CreateBanErrorType {
+    pub const fn kind(&self) -> &CreateBanErrorType {
         &self.kind
     }
 
@@ -125,14 +125,14 @@ impl<'a> CreateBan<'a> {
     }
 
     fn start(&mut self) -> Result<()> {
-        self.fut.replace(Box::pin(self.http.verify(Request::from(
-            Route::CreateBan {
-                delete_message_days: self.fields.delete_message_days,
-                guild_id: self.guild_id.0,
-                reason: self.fields.reason.clone(),
-                user_id: self.user_id.0,
-            },
-        ))));
+        let request = Request::from_route(Route::CreateBan {
+            delete_message_days: self.fields.delete_message_days,
+            guild_id: self.guild_id.0,
+            reason: self.fields.reason.clone(),
+            user_id: self.user_id.0,
+        });
+
+        self.fut.replace(Box::pin(self.http.verify(request)));
 
         Ok(())
     }

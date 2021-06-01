@@ -7,7 +7,7 @@ use twilight_model::{
     channel::{permission_overwrite::PermissionOverwrite, ChannelType},
     guild::{
         DefaultMessageNotificationLevel, ExplicitContentFilter, PartialGuild, Permissions,
-        VerificationLevel,
+        SystemChannelFlags, VerificationLevel,
     },
     id::{ChannelId, RoleId},
 };
@@ -25,7 +25,7 @@ pub struct CreateGuildError {
 impl CreateGuildError {
     /// Immutable reference to the type of error that occurred.
     #[must_use = "retrieving the type has no effect if left unused"]
-    pub fn kind(&self) -> &CreateGuildErrorType {
+    pub const fn kind(&self) -> &CreateGuildErrorType {
         &self.kind
     }
 
@@ -88,6 +88,10 @@ pub enum CreateGuildErrorType {
 #[derive(Serialize)]
 struct CreateGuildFields {
     #[serde(skip_serializing_if = "Option::is_none")]
+    afk_channel_id: Option<ChannelId>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    afk_timeout: Option<u64>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     channels: Option<Vec<GuildChannelFields>>,
     #[serde(skip_serializing_if = "Option::is_none")]
     default_message_notifications: Option<DefaultMessageNotificationLevel>,
@@ -100,6 +104,10 @@ struct CreateGuildFields {
     region: Option<String>,
     #[serde(skip_serializing_if = "Option::is_none")]
     roles: Option<Vec<RoleFields>>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    system_channel_id: Option<ChannelId>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    system_channel_flags: Option<SystemChannelFlags>,
     #[serde(skip_serializing_if = "Option::is_none")]
     verification_level: Option<VerificationLevel>,
 }
@@ -145,6 +153,7 @@ pub enum GuildChannelFields {
 }
 
 impl GuildChannelFields {
+    #[allow(clippy::missing_const_for_fn)]
     pub fn id(self) -> ChannelId {
         match self {
             Self::Category(c) => c.id,
@@ -243,6 +252,8 @@ impl<'a> CreateGuild<'a> {
 
         Ok(Self {
             fields: CreateGuildFields {
+                afk_channel_id: None,
+                afk_timeout: None,
                 channels: None,
                 default_message_notifications: None,
                 explicit_content_filter: None,
@@ -250,6 +261,8 @@ impl<'a> CreateGuild<'a> {
                 name,
                 region: None,
                 roles: None,
+                system_channel_id: None,
+                system_channel_flags: None,
                 verification_level: None,
             },
             fut: None,
@@ -267,6 +280,24 @@ impl<'a> CreateGuild<'a> {
         if let Some(roles) = self.fields.roles.as_mut() {
             roles.push(role.into());
         }
+
+        self
+    }
+
+    /// Set the ID of the AFK voice channel.
+    ///
+    /// This must be an ID specified in [`channels`].
+    ///
+    /// [`channels`]: Self::channels
+    pub fn afk_channel_id(mut self, afk_channel_id: ChannelId) -> Self {
+        self.fields.afk_channel_id.replace(afk_channel_id);
+
+        self
+    }
+
+    /// Set the AFK timeout, in seconds.
+    pub fn afk_timeout(mut self, afk_timeout: u64) -> Self {
+        self.fields.afk_timeout.replace(afk_timeout);
 
         self
     }
@@ -392,6 +423,26 @@ impl<'a> CreateGuild<'a> {
         self
     }
 
+    /// Set the channel where system messages will be posted.
+    ///
+    /// This must be an ID specified in [`channels`].
+    ///
+    /// [`channels`]: Self::channels
+    pub fn system_channel_id(mut self, system_channel_id: ChannelId) -> Self {
+        self.fields.system_channel_id.replace(system_channel_id);
+
+        self
+    }
+
+    /// Set the guild's [`SystemChannelFlags`].
+    pub fn system_channel_flags(mut self, system_channel_flags: SystemChannelFlags) -> Self {
+        self.fields
+            .system_channel_flags
+            .replace(system_channel_flags);
+
+        self
+    }
+
     /// Set the roles to create with the guild.
     ///
     /// The maximum number of roles that can be provided is 250.
@@ -432,10 +483,11 @@ impl<'a> CreateGuild<'a> {
     }
 
     fn start(&mut self) -> Result<()> {
-        self.fut.replace(Box::pin(self.http.request(Request::from((
-            crate::json_to_vec(&self.fields).map_err(HttpError::json)?,
-            Route::CreateGuild,
-        )))));
+        let request = Request::builder(Route::CreateGuild)
+            .json(&self.fields)?
+            .build();
+
+        self.fut.replace(Box::pin(self.http.request(request)));
 
         Ok(())
     }

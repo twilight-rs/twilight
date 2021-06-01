@@ -8,7 +8,7 @@ async fn main() -> Result<(), Box<dyn Error + Send + Sync>> {
     tracing_subscriber::fmt::init();
 
     let intents = Intents::GUILD_MESSAGES | Intents::GUILD_VOICE_STATES;
-    let mut shard = Shard::new(env::var("DISCORD_TOKEN")?, intents);
+    let shard = Shard::new(env::var("DISCORD_TOKEN")?, intents);
     let mut events = shard.events();
 
     shard.start().await?;

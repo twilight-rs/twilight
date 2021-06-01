@@ -38,13 +38,12 @@ impl<'a> GetMember<'a> {
     }
 
     fn start(&mut self) -> Result<()> {
-        self.fut
-            .replace(Box::pin(self.http.request_bytes(Request::from(
-                Route::GetMember {
-                    guild_id: self.guild_id.0,
-                    user_id: self.user_id.0,
-                },
-            ))));
+        let request = Request::from_route(Route::GetMember {
+            guild_id: self.guild_id.0,
+            user_id: self.user_id.0,
+        });
+
+        self.fut.replace(Box::pin(self.http.request_bytes(request)));
 
         Ok(())
     }
@@ -69,7 +68,8 @@ impl Future for GetMember<'_> {
                 };
 
                 let mut bytes = bytes.as_ref().to_vec();
-                let value = crate::json_from_slice::<Value>(&mut bytes).map_err(HttpError::json)?;
+                let value =
+                    crate::json::from_slice::<Value>(&mut bytes).map_err(HttpError::json)?;
 
                 let member_deserializer = MemberDeserializer::new(self.guild_id);
                 let member = member_deserializer

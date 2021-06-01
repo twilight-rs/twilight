@@ -27,7 +27,7 @@ pub struct ClusterCommandError {
 impl ClusterCommandError {
     /// Immutable reference to the type of error that occurred.
     #[must_use = "retrieving the type has no effect if left unused"]
-    pub fn kind(&self) -> &ClusterCommandErrorType {
+    pub const fn kind(&self) -> &ClusterCommandErrorType {
         &self.kind
     }
 
@@ -108,7 +108,7 @@ pub struct ClusterSendError {
 impl ClusterSendError {
     /// Immutable reference to the type of error that occurred.
     #[must_use = "retrieving the type has no effect if left unused"]
-    pub fn kind(&self) -> &ClusterSendErrorType {
+    pub const fn kind(&self) -> &ClusterSendErrorType {
         &self.kind
     }
 
@@ -168,7 +168,7 @@ pub struct ClusterStartError {
 impl ClusterStartError {
     /// Immutable reference to the type of error that occurred.
     #[must_use = "retrieving the type has no effect if left unused"]
-    pub fn kind(&self) -> &ClusterStartErrorType {
+    pub const fn kind(&self) -> &ClusterStartErrorType {
         &self.kind
     }
 
@@ -610,7 +610,7 @@ impl Cluster {
     /// time the future is polled the cluster may have already dropped, bringing
     /// down the queue and shards with it.
     async fn start(cluster: Arc<ClusterRef>, shard_id: u64) -> Option<Shard> {
-        let mut shard = cluster
+        let shard = cluster
             .shards
             .lock()
             .expect("shards poisoned")

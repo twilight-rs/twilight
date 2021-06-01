@@ -73,7 +73,7 @@ use twilight_standby::Standby;
 async fn main() -> Result<(), Box<dyn Error>> {
     // Start a shard connected to the gateway to receive events.
     let intents = Intents::GUILD_MESSAGES | Intents::GUILD_MESSAGE_REACTIONS;
-    let mut shard = Shard::new(env::var("DISCORD_TOKEN")?, intents);
+    let shard = Shard::new(env::var("DISCORD_TOKEN")?, intents);
     let mut events = shard.events();
     shard.start().await?;
 
@@ -117,7 +117,7 @@ For more examples, check out each of the methods on [`Standby`].
 [github badge]: https://img.shields.io/badge/github-twilight-6f42c1.svg?style=for-the-badge&logo=github
 [github link]: https://github.com/twilight-rs/twilight
 [license badge]: https://img.shields.io/badge/license-ISC-blue.svg?style=for-the-badge&logo=pastebin
-[license link]: https://github.com/twilight-rs/twilight/blob/trunk/LICENSE.md
+[license link]: https://github.com/twilight-rs/twilight/blob/main/LICENSE.md
 [rust badge]: https://img.shields.io/badge/rust-1.49+-93450a.svg?style=for-the-badge&logo=rust
 
 <!-- cargo-sync-readme end -->

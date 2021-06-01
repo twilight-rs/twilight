@@ -18,7 +18,7 @@ pub struct GetChannelMessagesError {
 impl GetChannelMessagesError {
     /// Immutable reference to the type of error that occurred.
     #[must_use = "retrieving the type has no effect if left unused"]
-    pub fn kind(&self) -> &GetChannelMessagesErrorType {
+    pub const fn kind(&self) -> &GetChannelMessagesErrorType {
         &self.kind
     }
 
@@ -171,15 +171,15 @@ impl<'a> GetChannelMessages<'a> {
     }
 
     fn start(&mut self) -> Result<()> {
-        self.fut.replace(Box::pin(self.http.request(Request::from(
-            Route::GetMessages {
-                after: None,
-                around: None,
-                before: None,
-                channel_id: self.channel_id.0,
-                limit: self.fields.limit,
-            },
-        ))));
+        let request = Request::from_route(Route::GetMessages {
+            after: None,
+            around: None,
+            before: None,
+            channel_id: self.channel_id.0,
+            limit: self.fields.limit,
+        });
+
+        self.fut.replace(Box::pin(self.http.request(request)));
 
         Ok(())
     }

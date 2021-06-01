@@ -24,10 +24,10 @@ We recommend that most users start out with these crates added to your
 `Cargo.toml`'s `[dependencies]` section:
 
 ```toml
-twilight-cache-inmemory = "0.3"
-twilight-gateway = "0.3"
-twilight-http = "0.3"
-twilight-model = "0.3"
+twilight-cache-inmemory = "0.4"
+twilight-gateway = "0.4"
+twilight-http = "0.4"
+twilight-model = "0.4"
 ```
 
 If you need any other functionality that Twilight provides, you can just add
@@ -207,7 +207,7 @@ tracing_log::LogTracer::init()?;
 
 All first-party crates are licensed under [ISC][LICENSE.md]
 
-[LICENSE.md]: https://github.com/twilight-rs/twilight/blob/trunk/LICENSE.md
+[LICENSE.md]: https://github.com/twilight-rs/twilight/blob/main/LICENSE.md
 [Lavalink]: https://github.com/freyacodes/Lavalink
 [`http`]: https://crates.io/crates/http
 [discord badge]: https://img.shields.io/discord/745809834183753828?color=%237289DA&label=discord%20server&logo=discord&style=for-the-badge
@@ -216,8 +216,8 @@ All first-party crates are licensed under [ISC][LICENSE.md]
 [github badge]: https://img.shields.io/badge/github-twilight-6f42c1.svg?style=for-the-badge&logo=github
 [github link]: https://github.com/twilight-rs/twilight
 [license badge]: https://img.shields.io/badge/license-ISC-blue.svg?style=for-the-badge&logo=pastebin
-[license link]: https://github.com/twilight-rs/twilight/blob/trunk/LICENSE.md
-[logo]: https://raw.githubusercontent.com/twilight-rs/twilight/trunk/logo.png
+[license link]: https://github.com/twilight-rs/twilight/blob/main/LICENSE.md
+[logo]: https://raw.githubusercontent.com/twilight-rs/twilight/main/logo.png
 [rust badge]: https://img.shields.io/badge/rust-1.49+-93450a.svg?style=for-the-badge&logo=rust
 [`tracing-log`]: https://github.com/tokio-rs/tracing/tree/master/tracing-log
 [`twilight-cache-inmemory`]: https://twilight.rs/chapter_1_crates/section_4_cache_inmemory.html
