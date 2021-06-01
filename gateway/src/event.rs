@@ -108,9 +108,9 @@ bitflags! {
         /// Stage instance was created in a stage channel.
         const STAGE_INSTANCE_CREATE = 1 << 57;
         /// Stage instance was deleted in a stage channel.
-        const STAGE_INSTANCE_DELETE = 1 << 57;
+        const STAGE_INSTANCE_DELETE = 1 << 58;
         /// Stage instance was updated in a stage channel.
-        const STAGE_INSTANCE_UPDATE = 1 << 57;
+        const STAGE_INSTANCE_UPDATE = 1 << 59;
         /// User has begun typing in a channel.
         const TYPING_START = 1 << 39;
         /// Guild is unavailable, potentially due to an outage.
