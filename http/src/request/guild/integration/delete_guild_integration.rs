@@ -1,4 +1,9 @@
-use crate::request::prelude::*;
+use crate::{
+    client::Client,
+    error::Error,
+    request::{self, AuditLogReason, AuditLogReasonError, Pending, Request},
+    routing::Route,
+};
 use twilight_model::id::{GuildId, IntegrationId};
 
 /// Delete an integration for a guild, by the integration's id.
@@ -21,14 +26,14 @@ impl<'a> DeleteGuildIntegration<'a> {
         }
     }
 
-    fn start(&mut self) -> Result<()> {
+    fn start(&mut self) -> Result<(), Error> {
         let mut request = Request::builder(Route::DeleteGuildIntegration {
             guild_id: self.guild_id.0,
             integration_id: self.integration_id.0,
         });
 
         if let Some(reason) = self.reason.as_ref() {
-            request = request.headers(audit_header(reason)?);
+            request = request.headers(request::audit_header(reason)?);
         }
 
         self.fut

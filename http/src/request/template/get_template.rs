@@ -1,4 +1,9 @@
-use crate::request::prelude::*;
+use crate::{
+    client::Client,
+    error::Error,
+    request::{Pending, Request},
+    routing::Route,
+};
 use twilight_model::template::Template;
 
 /// Get a template by its code.
@@ -21,7 +26,7 @@ impl<'a> GetTemplate<'a> {
         }
     }
 
-    fn start(&mut self) -> Result<()> {
+    fn start(&mut self) -> Result<(), Error> {
         let request = Request::from_route(Route::GetTemplate {
             template_code: self.template_code.clone(),
         });

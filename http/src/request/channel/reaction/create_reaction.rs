@@ -1,4 +1,10 @@
-use crate::request::prelude::*;
+use super::RequestReactionType;
+use crate::{
+    client::Client,
+    error::Error,
+    request::{Pending, Request},
+    routing::Route,
+};
 use twilight_model::id::{ChannelId, MessageId};
 
 /// Create a reaction in a [`ChannelId`] on a [`MessageId`].
@@ -57,7 +63,7 @@ impl<'a> CreateReaction<'a> {
         })
     }
 
-    fn start(&mut self) -> Result<()> {
+    fn start(&mut self) -> Result<(), Error> {
         let request = self.request();
 
         self.fut.replace(Box::pin(self.http.verify(request)));

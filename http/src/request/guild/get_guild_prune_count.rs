@@ -1,4 +1,9 @@
-use crate::request::prelude::*;
+use crate::{
+    client::Client,
+    error::Error as HttpError,
+    request::{validate, Pending, Request},
+    routing::Route,
+};
 use std::{
     error::Error,
     fmt::{Display, Formatter, Result as FmtResult},
@@ -114,7 +119,7 @@ impl<'a> GetGuildPruneCount<'a> {
         self
     }
 
-    fn start(&mut self) -> Result<()> {
+    fn start(&mut self) -> Result<(), HttpError> {
         let request = Request::from_route(Route::GetGuildPruneCount {
             days: self.fields.days,
             guild_id: self.guild_id.0,
