@@ -1,4 +1,9 @@
-use crate::request::prelude::*;
+use crate::{
+    client::Client,
+    error::Error,
+    request::{self, AuditLogReason, AuditLogReasonError, Pending, Request},
+    routing::Route,
+};
 use twilight_model::id::{ChannelId, MessageId};
 
 /// Delete a pin in a channel, by ID.
@@ -21,14 +26,14 @@ impl<'a> DeletePin<'a> {
         }
     }
 
-    fn start(&mut self) -> Result<()> {
+    fn start(&mut self) -> Result<(), Error> {
         let mut request = Request::builder(Route::UnpinMessage {
             channel_id: self.channel_id.0,
             message_id: self.message_id.0,
         });
 
         if let Some(reason) = &self.reason {
-            request = request.headers(audit_header(reason)?);
+            request = request.headers(request::audit_header(reason)?);
         }
 
         self.fut

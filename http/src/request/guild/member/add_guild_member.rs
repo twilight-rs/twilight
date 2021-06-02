@@ -1,7 +1,10 @@
 use crate::{
+    client::Client,
     error::{Error as HttpError, ErrorType},
-    request::prelude::*,
+    request::{validate, PendingOption, Request},
+    routing::Route,
 };
+use serde::Serialize;
 use std::{
     error::Error,
     fmt::{Display, Formatter, Result as FmtResult},
@@ -166,7 +169,7 @@ impl<'a> AddGuildMember<'a> {
         self
     }
 
-    fn start(&mut self) -> Result<()> {
+    fn start(&mut self) -> Result<(), HttpError> {
         let request = Request::builder(Route::AddGuildMember {
             guild_id: self.guild_id.0,
             user_id: self.user_id.0,
@@ -181,7 +184,7 @@ impl<'a> AddGuildMember<'a> {
 }
 
 impl Future for AddGuildMember<'_> {
-    type Output = Result<Option<PartialMember>>;
+    type Output = Result<Option<PartialMember>, HttpError>;
 
     fn poll(mut self: Pin<&mut Self>, cx: &mut Context<'_>) -> Poll<Self::Output> {
         loop {

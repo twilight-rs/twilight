@@ -1,4 +1,3 @@
-pub(super) use super::{audit_header, validate, Pending, PendingOption, Request};
 pub use super::{
     audit_reason::{AuditLogReason, AuditLogReasonError},
     channel::{invite::*, message::*, reaction::*, stage::*, webhook::*, *},
@@ -12,9 +11,3 @@ pub use super::{
     },
     user::*,
 };
-pub(super) use crate::{
-    client::Client,
-    error::{Error as HttpError, Result},
-    routing::Route,
-};
-pub(super) use serde::Serialize;

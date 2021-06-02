@@ -1,4 +1,9 @@
-use crate::request::prelude::*;
+use crate::{
+    client::Client,
+    error::Error,
+    request::{self, AuditLogReason, AuditLogReasonError, Pending, Request},
+    routing::Route,
+};
 use twilight_model::id::WebhookId;
 
 struct DeleteWebhookParams {
@@ -32,14 +37,14 @@ impl<'a> DeleteWebhook<'a> {
         self
     }
 
-    fn start(&mut self) -> Result<()> {
+    fn start(&mut self) -> Result<(), Error> {
         let mut request = Request::builder(Route::DeleteWebhook {
             webhook_id: self.id.0,
             token: self.fields.token.clone(),
         });
 
         if let Some(reason) = self.reason.as_ref() {
-            request = request.headers(audit_header(reason)?);
+            request = request.headers(request::audit_header(reason)?);
         }
 
         self.fut

@@ -3,9 +3,7 @@
 use crate::{
     client::Client,
     error::{Error as HttpError, Result},
-    request::{
-        audit_header, validate, AuditLogReason, AuditLogReasonError, Form, Pending, Request,
-    },
+    request::{self, validate, AuditLogReason, AuditLogReasonError, Form, Pending, Request},
     routing::Route,
 };
 use serde::Serialize;
@@ -386,13 +384,13 @@ impl<'a> UpdateWebhookMessage<'a> {
         }
 
         if let Some(reason) = self.reason.as_ref() {
-            request = request.headers(audit_header(reason)?);
+            request = request.headers(request::audit_header(reason)?);
         }
 
         Ok(request.build())
     }
 
-    fn start(&mut self) -> Result<()> {
+    fn start(&mut self) -> Result<(), HttpError> {
         let request = self.request()?;
         self.fut.replace(Box::pin(self.http.verify(request)));
 

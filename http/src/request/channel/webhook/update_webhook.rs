@@ -1,4 +1,10 @@
-use crate::request::prelude::*;
+use crate::{
+    client::Client,
+    error::Error,
+    request::{self, AuditLogReason, AuditLogReasonError, Pending, Request},
+    routing::Route,
+};
+use serde::Serialize;
 use twilight_model::{
     channel::Webhook,
     id::{ChannelId, WebhookId},
@@ -65,7 +71,7 @@ impl<'a> UpdateWebhook<'a> {
         self
     }
 
-    fn start(&mut self) -> Result<()> {
+    fn start(&mut self) -> Result<(), Error> {
         let mut request = Request::builder(Route::UpdateWebhook {
             token: None,
             webhook_id: self.webhook_id.0,
@@ -73,7 +79,7 @@ impl<'a> UpdateWebhook<'a> {
         .json(&self.fields)?;
 
         if let Some(reason) = self.reason.as_ref() {
-            request = request.headers(audit_header(reason)?);
+            request = request.headers(request::audit_header(reason)?);
         }
 
         self.fut

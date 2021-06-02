@@ -1,4 +1,10 @@
-use crate::request::prelude::*;
+use crate::{
+    client::Client,
+    error::Error,
+    request::{Pending, Request},
+    routing::Route,
+};
+use serde::Serialize;
 use twilight_model::id::GuildId;
 
 #[derive(Serialize)]
@@ -24,7 +30,7 @@ impl<'a> UpdateCurrentUserNick<'a> {
         }
     }
 
-    fn start(&mut self) -> Result<()> {
+    fn start(&mut self) -> Result<(), Error> {
         let request = Request::builder(Route::UpdateNickname {
             guild_id: self.guild_id.0,
         })
