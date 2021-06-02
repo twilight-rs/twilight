@@ -131,16 +131,18 @@ struct UpdateFollowupMessageFields {
 /// not be mentioned.
 ///
 /// ```no_run
-/// # use twilight_http::Client;
+/// # #[tokio::main]
+/// # async fn main() -> Result<(), Box<dyn std::error::Error>> {
+/// use std::env;
+/// use twilight_http::Client;
 /// use twilight_model::{
 ///     channel::message::AllowedMentions,
 ///     id::{MessageId, ApplicationId}
 /// };
 ///
-/// # #[tokio::main]
-/// # async fn main() -> Result<(), Box<dyn std::error::Error>> {
-/// # let client = Client::new("token");
-/// # client.set_application_id(ApplicationId(1));
+/// let client = Client::new(env::var("DISCORD_TOKEN")?);
+/// client.set_application_id(ApplicationId(1));
+///
 /// client.update_followup_message("token here", MessageId(2))?
 ///     // By creating a default set of allowed mentions, no entity can be
 ///     // mentioned.
@@ -262,13 +264,15 @@ impl<'a> UpdateFollowupMessage<'a> {
     /// modified.
     ///
     /// ```no_run
-    /// # use twilight_http::Client;
+    /// # #[tokio::main] async fn main() -> Result<(), Box<dyn std::error::Error>> {
+    /// use std::env;
+    /// use twilight_http::Client;
     /// use twilight_embed_builder::EmbedBuilder;
     /// use twilight_model::id::{ApplicationId, MessageId};
     ///
-    /// # #[tokio::main] async fn main() -> Result<(), Box<dyn std::error::Error>> {
-    /// # let client = Client::new("token");
-    /// # client.set_application_id(ApplicationId(1));
+    /// let client = Client::new(env::var("DISCORD_TOKEN")?);
+    /// client.set_application_id(ApplicationId(1));
+    ///
     /// let embed = EmbedBuilder::new()
     ///     .description("Powerful, flexible, and scalable ecosystem of Rust libraries for the Discord API.")
     ///     .title("Twilight")

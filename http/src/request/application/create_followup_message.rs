@@ -29,17 +29,17 @@ pub(crate) struct CreateFollowupMessageFields {
 
 /// Create a followup message to an interaction.
 ///
-/// You can only specify one of [`content`], [`embeds`], or [`file`].
+/// You must specify at least one of [`content`], [`embeds`], or [`file`].
 ///
 /// # Examples
 ///
 /// ```rust,no_run
+/// # #[tokio::main] async fn main() -> Result<(), Box<dyn std::error::Error>> {
+/// use std::env;
 /// use twilight_http::Client;
 /// use twilight_model::id::ApplicationId;
 ///
-/// # #[tokio::main]
-/// # async fn main() -> Result<(), Box<dyn std::error::Error>> {
-/// let client = Client::new("my token");
+/// let client = Client::new(env::var("DISCORD_TOKEN")?);
 /// client.set_application_id(ApplicationId(1));
 ///
 /// let webhook = client
@@ -149,14 +149,16 @@ impl<'a> CreateFollowupMessage<'a> {
     /// Without [`payload_json`]:
     ///
     /// ```rust,no_run
-    /// use twilight_embed_builder::EmbedBuilder;
-    /// # use twilight_http::Client;
-    /// use twilight_model::id::{MessageId, ApplicationId};
-    ///
     /// # #[tokio::main]
     /// # async fn main() -> Result<(), Box<dyn std::error::Error>> {
-    /// # let client = Client::new("token");
-    /// # client.set_application_id(ApplicationId(1));
+    /// use std::env;
+    /// use twilight_embed_builder::EmbedBuilder;
+    /// use twilight_http::Client;
+    /// use twilight_model::id::{MessageId, ApplicationId};
+    ///
+    /// let client = Client::new(env::var("DISCORD_TOKEN")?);
+    /// client.set_application_id(ApplicationId(1));
+    ///
     /// let message = client.create_followup_message("token here")?
     ///     .content("some content")
     ///     .embeds(vec![EmbedBuilder::new().title("title").build()?])
@@ -170,13 +172,15 @@ impl<'a> CreateFollowupMessage<'a> {
     /// With [`payload_json`]:
     ///
     /// ```rust,no_run
-    /// # use twilight_http::Client;
-    /// use twilight_model::id::{MessageId, ApplicationId};
-    ///
     /// # #[tokio::main]
     /// # async fn main() -> Result<(), Box<dyn std::error::Error>> {
-    /// # let client = Client::new("token");
-    /// # client.set_application_id(ApplicationId(1));
+    /// use std::env;
+    /// use twilight_http::Client;
+    /// use twilight_model::id::{MessageId, ApplicationId};
+    ///
+    /// let client = Client::new(env::var("DISCORD_TOKEN")?);
+    /// client.set_application_id(ApplicationId(1));
+    ///
     /// let message = client.create_followup_message("token here")?
     ///     .content("some content")
     ///     .payload_json(r#"{ "content": "other content", "embeds": [ { "title": "title" } ] }"#)

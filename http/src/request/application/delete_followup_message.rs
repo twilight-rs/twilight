@@ -11,12 +11,12 @@ use twilight_model::id::{ApplicationId, MessageId};
 /// # Examples
 ///
 /// ```no_run
-/// # use twilight_http::Client;
+/// # #[tokio::main] async fn main() -> Result<(), Box<dyn std::error::Error>> {
+/// use std::env;
+/// use twilight_http::Client;
 /// use twilight_model::id::{MessageId, ApplicationId};
 ///
-/// # #[tokio::main]
-/// # async fn main() -> Result<(), Box<dyn std::error::Error>> {
-/// # let client = Client::new("token");
+/// let client = Client::new(env::var("DISCORD_TOKEN")?);
 /// client
 ///     .delete_followup_message("token here", MessageId(2))?
 ///     .await?;

@@ -14,12 +14,12 @@ impl<'a> InteractionCallback<'a> {
     pub(crate) fn new(
         http: &'a Client,
         interaction_id: InteractionId,
-        interaction_token: String,
+        interaction_token: impl Into<String>,
         response: InteractionResponse,
     ) -> Self {
         Self {
             interaction_id,
-            interaction_token,
+            interaction_token: interaction_token.into(),
             response,
             fut: None,
             http,

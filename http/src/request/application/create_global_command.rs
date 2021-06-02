@@ -27,9 +27,12 @@ impl<'a> CreateGlobalCommand<'a> {
     pub(crate) fn new(
         http: &'a Client,
         application_id: ApplicationId,
-        name: String,
-        description: String,
+        name: impl Into<String>,
+        description: impl Into<String>,
     ) -> Result<Self, InteractionError> {
+        let name = name.into();
+        let description = description.into();
+
         if !validate::command_name(&name) {
             return Err(InteractionError {
                 kind: InteractionErrorType::CommandNameValidationFailed { name },
@@ -60,7 +63,12 @@ impl<'a> CreateGlobalCommand<'a> {
     /// Add a command option.
     ///
     /// Required command options must be added before optional options.
-    pub fn push_command_option(mut self, option: CommandOption) -> Result<Self, InteractionError> {
+    ///
+    /// Errors
+    ///
+    /// Retuns an [`InteractionErrorType::CommandOptionsRequiredFirst`]
+    /// if a required option was added after an optional option.
+    pub fn add_command_option(mut self, option: CommandOption) -> Result<Self, InteractionError> {
         if !self.optional_option_added && !option.is_required() {
             self.optional_option_added = true
         }

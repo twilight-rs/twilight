@@ -16,11 +16,12 @@ use twilight_model::{
 ///
 /// [the discord docs]: https://discord.com/developers/docs/interactions/slash-commands#create-guild-application-command
 pub struct CreateGuildCommand<'a> {
-    command: Command,
     application_id: ApplicationId,
-    guild_id: GuildId,
+    command: Command,
     fut: Option<Pending<'a, ()>>,
+    guild_id: GuildId,
     http: &'a Client,
+    optional_option_added: bool,
 }
 
 impl<'a> CreateGuildCommand<'a> {
@@ -28,9 +29,12 @@ impl<'a> CreateGuildCommand<'a> {
         http: &'a Client,
         application_id: ApplicationId,
         guild_id: GuildId,
-        name: String,
-        description: String,
+        name: impl Into<String>,
+        description: impl Into<String>,
     ) -> Result<Self, InteractionError> {
+        let name = name.into();
+        let description = description.into();
+
         if !validate::command_name(&name) {
             return Err(InteractionError {
                 kind: InteractionErrorType::CommandNameValidationFailed { name },
@@ -56,10 +60,12 @@ impl<'a> CreateGuildCommand<'a> {
             guild_id,
             fut: None,
             http,
+            optional_option_added: false,
         })
     }
 
-    /// Whether the command is enabled by default when the app is added to a guild.
+    /// Whether the command is enabled by default when the app is added to
+    /// a guild.
     pub fn default_permission(mut self, default: bool) -> Self {
         self.command.default_permission.replace(default);
 
@@ -67,10 +73,27 @@ impl<'a> CreateGuildCommand<'a> {
     }
 
     /// Add a command option.
-    pub fn push_command_option(mut self, option: CommandOption) -> Self {
+    ///
+    /// Required command options must be added before optional options.
+    ///
+    /// Errors
+    ///
+    /// Retuns an [`InteractionErrorType::CommandOptionsRequiredFirst`]
+    /// if a required option was added after an optional option.
+    pub fn add_command_option(mut self, option: CommandOption) -> Result<Self, InteractionError> {
+        if !self.optional_option_added && !option.is_required() {
+            self.optional_option_added = true
+        }
+
+        if option.is_required() && self.optional_option_added {
+            return Err(InteractionError {
+                kind: InteractionErrorType::CommandOptionsRequiredFirst { option },
+            });
+        }
+
         self.command.options.push(option);
 
-        self
+        Ok(self)
     }
 
     fn start(&mut self) -> Result<()> {

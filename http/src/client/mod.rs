@@ -1667,10 +1667,16 @@ impl Client {
         interaction_token: impl Into<String>,
         response: InteractionResponse,
     ) -> InteractionCallback<'_> {
-        InteractionCallback::new(&self, interaction_id, interaction_token.into(), response)
+        InteractionCallback::new(self, interaction_id, interaction_token, response)
     }
 
     /// Edit the original message, by its token.
+    ///
+    /// # Errors
+    ///
+    /// Returns an [`InteractionErrorType::ApplicationIdNotPresent`]
+    /// error type if an application ID has not been configured via
+    /// [`Client::set_application_id`].
     pub fn update_interaction_original(
         &self,
         interaction_token: impl Into<String>,
@@ -1687,6 +1693,11 @@ impl Client {
     }
 
     /// Delete the original message, by its token.
+    /// # Errors
+    ///
+    /// Returns an [`InteractionErrorType::ApplicationIdNotPresent`]
+    /// error type if an application ID has not been configured via
+    /// [`Client::set_application_id`].
     pub fn delete_interaction_original(
         &self,
         interaction_token: impl Into<String>,
@@ -1703,6 +1714,11 @@ impl Client {
     }
 
     /// Create a followup message, by an interaction token.
+    /// # Errors
+    ///
+    /// Returns an [`InteractionErrorType::ApplicationIdNotPresent`]
+    /// error type if an application ID has not been configured via
+    /// [`Client::set_application_id`].
     pub fn create_followup_message(
         &self,
         interaction_token: impl Into<String>,
@@ -1719,6 +1735,11 @@ impl Client {
     }
 
     /// Edit a followup message, by an interaction token.
+    /// # Errors
+    ///
+    /// Returns an [`InteractionErrorType::ApplicationIdNotPresent`]
+    /// error type if an application ID has not been configured via
+    /// [`Client::set_application_id`].
     pub fn update_followup_message(
         &self,
         interaction_token: impl Into<String>,
@@ -1737,6 +1758,11 @@ impl Client {
     }
 
     /// Delete a followup message by interaction token and the message's ID.
+    /// # Errors
+    ///
+    /// Returns an [`InteractionErrorType::ApplicationIdNotPresent`]
+    /// error type if an application ID has not been configured via
+    /// [`Client::set_application_id`].
     pub fn delete_followup_message(
         &self,
         interaction_token: impl Into<String>,
@@ -1762,6 +1788,19 @@ impl Client {
     /// the same guild will overwrite the old command. See [the discord docs]
     /// for more information.
     ///
+    /// # Errors
+    ///
+    /// Returns an [`InteractionErrorType::ApplicationIdNotPresent`]
+    /// error type if an application ID has not been configured via
+    /// [`Client::set_application_id`].
+    ///
+    /// Returns an [`InteractionErrorType::CommandNameValidationFailed`]
+    /// error type if the command name is not between 3 and 32 characters.
+    ///
+    /// Returns an [`InteractionErrorType::CommandDescriptionValidationFailed`]
+    /// error type if the command description is not between 1 and
+    /// 100 characters.
+    ///
     /// [the discord docs]: https://discord.com/developers/docs/interactions/slash-commands#create-guild-application-command
     pub fn create_guild_command(
         &self,
@@ -1773,16 +1812,16 @@ impl Client {
             kind: InteractionErrorType::ApplicationIdNotPresent,
         })?;
 
-        CreateGuildCommand::new(
-            &self,
-            application_id,
-            guild_id,
-            name.into(),
-            description.into(),
-        )
+        CreateGuildCommand::new(&self, application_id, guild_id, name, description)
     }
 
     /// Fetch all commands for a guild, by ID.
+    ///
+    /// # Errors
+    ///
+    /// Returns an [`InteractionErrorType::ApplicationIdNotPresent`]
+    /// error type if an application ID has not been configured via
+    /// [`Client::set_application_id`].
     pub fn get_guild_commands(
         &self,
         guild_id: GuildId,
@@ -1791,13 +1830,19 @@ impl Client {
             kind: InteractionErrorType::ApplicationIdNotPresent,
         })?;
 
-        Ok(GetGuildCommands::new(&self, application_id, guild_id))
+        Ok(GetGuildCommands::new(self, application_id, guild_id))
     }
 
     /// Edit a command in a guild, by ID.
     ///
     /// You must specify a name and description. See [the discord docs] for more
     /// information.
+    ///
+    /// # Errors
+    ///
+    /// Returns an [`InteractionErrorType::ApplicationIdNotPresent`]
+    /// error type if an application ID has not been configured via
+    /// [`Client::set_application_id`].
     ///
     /// [the discord docs]: https://discord.com/developers/docs/interactions/slash-commands#edit-guild-application-command
     pub fn update_guild_command(
@@ -1810,7 +1855,7 @@ impl Client {
         })?;
 
         Ok(UpdateGuildCommand::new(
-            &self,
+            self,
             application_id,
             guild_id,
             command_id,
@@ -1818,6 +1863,12 @@ impl Client {
     }
 
     /// Delete a command in a guild, by ID.
+    ///
+    /// # Errors
+    ///
+    /// Returns an [`InteractionErrorType::ApplicationIdNotPresent`]
+    /// error type if an application ID has not been configured via
+    /// [`Client::set_application_id`].
     pub fn delete_guild_command(
         &self,
         guild_id: GuildId,
@@ -1828,7 +1879,7 @@ impl Client {
         })?;
 
         Ok(DeleteGuildCommand::new(
-            &self,
+            self,
             application_id,
             guild_id,
             command_id,
@@ -1839,6 +1890,12 @@ impl Client {
     ///
     /// This method is idempotent: it can be used on every start, without being
     /// ratelimited if there aren't changes to the commands.
+    ///
+    /// # Errors
+    ///
+    /// Returns an [`InteractionErrorType::ApplicationIdNotPresent`]
+    /// error type if an application ID has not been configured via
+    /// [`Client::set_application_id`].
     pub fn set_guild_commands(
         &self,
         guild_id: GuildId,
@@ -1849,7 +1906,7 @@ impl Client {
         })?;
 
         Ok(SetGuildCommands::new(
-            &self,
+            self,
             application_id,
             guild_id,
             commands,
@@ -1861,7 +1918,20 @@ impl Client {
     /// The name must be between 3 and 32 characters in length, and the
     /// description must be between 1 and 100 characters in length. Creating a
     /// command with the same name as an already-existing global command will
-    /// overwwrite the old command. See [the discord docs] for more information.
+    /// overwrite the old command. See [the discord docs] for more information.
+    ///
+    /// # Errors
+    ///
+    /// Returns an [`InteractionErrorType::ApplicationIdNotPresent`]
+    /// error type if an application ID has not been configured via
+    /// [`Client::set_application_id`].
+    ///
+    /// Returns an [`InteractionErrorType::CommandNameValidationFailed`]
+    /// error type if the command name is not between 3 and 32 characters.
+    ///
+    /// Returns an [`InteractionErrorType::CommandDescriptionValidationFailed`]
+    /// error type if the command description is not between 1 and
+    /// 100 characters.
     ///
     /// [the discord docs]: https://discord.com/developers/docs/interactions/slash-commands#create-global-application-command
     pub fn create_global_command(
@@ -1873,22 +1943,34 @@ impl Client {
             kind: InteractionErrorType::ApplicationIdNotPresent,
         })?;
 
-        CreateGlobalCommand::new(&self, application_id, name.into(), description.into())
+        CreateGlobalCommand::new(self, application_id, name, description)
     }
 
     /// Fetch all global commands for your application.
+    ///
+    /// # Errors
+    ///
+    /// Returns an [`InteractionErrorType::ApplicationIdNotPresent`]
+    /// error type if an application ID has not been configured via
+    /// [`Client::set_application_id`].
     pub fn get_global_commands(&self) -> Result<GetGlobalCommands<'_>, InteractionError> {
         let application_id = self.application_id().ok_or(InteractionError {
             kind: InteractionErrorType::ApplicationIdNotPresent,
         })?;
 
-        Ok(GetGlobalCommands::new(&self, application_id))
+        Ok(GetGlobalCommands::new(self, application_id))
     }
 
     /// Edit a global command, by ID.
     ///
     /// You must specify a name and description. See [the discord docs] for more
     /// information.
+    ///
+    /// # Errors
+    ///
+    /// Returns an [`InteractionErrorType::ApplicationIdNotPresent`]
+    /// error type if an application ID has not been configured via
+    /// [`Client::set_application_id`].
     ///
     /// [the discord docs]: https://discord.com/developers/docs/interactions/slash-commands#edit-global-application-command
     pub fn update_global_command(
@@ -1899,10 +1981,16 @@ impl Client {
             kind: InteractionErrorType::ApplicationIdNotPresent,
         })?;
 
-        Ok(UpdateGlobalCommand::new(&self, application_id, command_id))
+        Ok(UpdateGlobalCommand::new(self, application_id, command_id))
     }
 
     /// Delete a global command, by ID.
+    ///
+    /// # Errors
+    ///
+    /// Returns an [`InteractionErrorType::ApplicationIdNotPresent`]
+    /// error type if an application ID has not been configured via
+    /// [`Client::set_application_id`].
     pub fn delete_global_command(
         &self,
         command_id: CommandId,
@@ -1911,13 +1999,19 @@ impl Client {
             kind: InteractionErrorType::ApplicationIdNotPresent,
         })?;
 
-        Ok(DeleteGlobalCommand::new(&self, application_id, command_id))
+        Ok(DeleteGlobalCommand::new(self, application_id, command_id))
     }
 
     /// Set global commands.
     ///
     /// This method is idempotent: it can be used on every start, without being
     /// ratelimited if there aren't changes to the commands.
+    ///
+    /// # Errors
+    ///
+    /// Returns an [`InteractionErrorType::ApplicationIdNotPresent`]
+    /// error type if an application ID has not been configured via
+    /// [`Client::set_application_id`].
     pub fn set_global_commands(
         &self,
         commands: Vec<Command>,
@@ -1926,10 +2020,17 @@ impl Client {
             kind: InteractionErrorType::ApplicationIdNotPresent,
         })?;
 
-        Ok(SetGlobalCommands::new(&self, application_id, commands))
+        Ok(SetGlobalCommands::new(self, application_id, commands))
     }
 
-    /// Fetch command permissions for a command from the current application in a guild.
+    /// Fetch command permissions for a command from the current application
+    /// in a guild.
+    ///
+    /// # Errors
+    ///
+    /// Returns an [`InteractionErrorType::ApplicationIdNotPresent`]
+    /// error type if an application ID has not been configured via
+    /// [`Client::set_application_id`].
     pub fn get_command_permissions(
         &self,
         guild_id: GuildId,
@@ -1947,7 +2048,14 @@ impl Client {
         ))
     }
 
-    /// Fetch command permissions for all commands from the current application in a guild.
+    /// Fetch command permissions for all commands from the current
+    /// application in a guild.
+    ///
+    /// # Errors
+    ///
+    /// Returns an [`InteractionErrorType::ApplicationIdNotPresent`]
+    /// error type if an application ID has not been configured via
+    /// [`Client::set_application_id`].
     pub fn get_guild_command_permissions(
         &self,
         guild_id: GuildId,
@@ -1957,7 +2065,7 @@ impl Client {
         })?;
 
         Ok(GetGuildCommandPermissions::new(
-            &self,
+            self,
             application_id,
             guild_id,
         ))
@@ -1967,6 +2075,12 @@ impl Client {
     ///
     /// This overwrites the command permissions so the full set of permissions
     /// have to be sent every time.
+    ///
+    /// # Errors
+    ///
+    /// Returns an [`InteractionErrorType::ApplicationIdNotPresent`]
+    /// error type if an application ID has not been configured via
+    /// [`Client::set_application_id`].
     pub fn update_command_permissions(
         &self,
         guild_id: GuildId,
@@ -1978,7 +2092,7 @@ impl Client {
         })?;
 
         Ok(UpdateCommandPermissions::new(
-            &self,
+            self,
             application_id,
             guild_id,
             command_id,
@@ -1990,6 +2104,12 @@ impl Client {
     ///
     /// This overwrites the command permissions so the full set of permissions
     /// have to be sent every time.
+    ///
+    /// # Errors
+    ///
+    /// Returns an [`InteractionErrorType::ApplicationIdNotPresent`]
+    /// error type if an application ID has not been configured via
+    /// [`Client::set_application_id`].
     pub fn set_command_permissions(
         &self,
         guild_id: GuildId,
@@ -2000,7 +2120,7 @@ impl Client {
         })?;
 
         Ok(SetCommandPermissions::new(
-            &self,
+            self,
             application_id,
             guild_id,
             permissions,

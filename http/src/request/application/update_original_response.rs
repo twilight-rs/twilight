@@ -131,16 +131,18 @@ struct UpdateOriginalResponseFields {
 /// not be mentioned.
 ///
 /// ```no_run
-/// # use twilight_http::Client;
+/// # #[tokio::main]
+/// # async fn main() -> Result<(), Box<dyn std::error::Error>> {
+/// use std::env;
+/// use twilight_http::Client;
 /// use twilight_model::{
 ///     channel::message::AllowedMentions,
 ///     id::ApplicationId,
 /// };
 ///
-/// # #[tokio::main]
-/// # async fn main() -> Result<(), Box<dyn std::error::Error>> {
-/// # let client = Client::new("token");
-/// # client.set_application_id(ApplicationId(1));
+/// let client = Client::new(env::var("DISCORD_TOKEN")?);
+/// client.set_application_id(ApplicationId(1));
+///
 /// client.update_interaction_original("token here")?
 ///     // By creating a default set of allowed mentions, no entity can be
 ///     // mentioned.
@@ -259,13 +261,16 @@ impl<'a> UpdateOriginalResponse<'a> {
     /// modified.
     ///
     /// ```no_run
-    /// # use twilight_http::Client;
+    /// # #[tokio::main]
+    /// # async fn main() -> Result<(), Box<dyn std::error::Error>> {
+    /// use std::env;
+    /// use twilight_http::Client;
     /// use twilight_embed_builder::EmbedBuilder;
     /// use twilight_model::id::ApplicationId;
     ///
-    /// # #[tokio::main] async fn main() -> Result<(), Box<dyn std::error::Error>> {
-    /// # let client = Client::new("token");
-    /// # client.set_application_id(ApplicationId(1));
+    /// let client = Client::new(env::var("DISCORD_TOKEN")?);
+    /// client.set_application_id(ApplicationId(1));
+    ///
     /// let embed = EmbedBuilder::new()
     ///     .description("Powerful, flexible, and scalable ecosystem of Rust libraries for the Discord API.")
     ///     .title("Twilight")
