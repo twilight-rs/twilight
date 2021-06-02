@@ -16,12 +16,10 @@ async fn main() -> Result<(), Box<dyn Error + Send + Sync>> {
 
     let intents =
         Intents::GUILD_MESSAGES | Intents::GUILD_MESSAGE_REACTIONS | Intents::GUILD_MESSAGE_TYPING;
-    let cluster = Cluster::builder(env::var("DISCORD_TOKEN")?, intents)
+    let (cluster, mut events) = Cluster::builder(env::var("DISCORD_TOKEN")?, intents)
         .shard_scheme(scheme)
         .build()
         .await?;
-
-    let mut events = cluster.events();
 
     let cluster_spawn = cluster.clone();
 

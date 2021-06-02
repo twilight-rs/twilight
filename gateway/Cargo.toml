@@ -27,7 +27,6 @@ serde = { default-features = false, features = ["derive"], version = "1" }
 serde_json = { default-features = false, version = "1" }
 tokio = { default-features = false, features = ["net", "rt", "sync"], version = "1.0" }
 url = { default-features = false, version = "2" }
-dashmap = { default-features = false, version = "4.0" }
 
 # Optional
 # The default backend for flate2; miniz-oxide, works differently

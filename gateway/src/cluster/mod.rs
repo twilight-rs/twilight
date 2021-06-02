@@ -15,11 +15,9 @@
 //! async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
 //!     let token = env::var("DISCORD_TOKEN")?;
 //!     let intents = Intents::GUILD_BANS | Intents::GUILD_EMOJIS | Intents::GUILD_MESSAGES;
-//!     let cluster = Cluster::new(token, intents).await?;
+//!     let (cluster, mut events) = Cluster::new(token, intents).await?;
 //!
 //!     cluster.up().await;
-//!
-//!     let mut events = cluster.events();
 //!
 //!     while let Some((shard_id, event)) = events.next().await {
 //!         tokio::spawn(handle_event(cluster.clone(), shard_id, event));
@@ -68,11 +66,12 @@
 //!     let token = env::var("DISCORD_TOKEN")?;
 //!     let intents = Intents::GUILD_MESSAGES;
 //!     let scheme = ShardScheme::try_from((1, 16, 320))?;
-//!     let cluster = Cluster::builder(token, intents).shard_scheme(scheme).build().await?;
+//!     let (cluster, mut events) = Cluster::builder(token, intents)
+//!         .shard_scheme(scheme)
+//!         .build()
+//!         .await?;
 //!
 //!     cluster.up().await;
-//!
-//!     let mut events = cluster.events();
 //!
 //!     while let Some((shard_id, event)) = events.next().await {
 //!         println!("got event type {:?}", event.kind());

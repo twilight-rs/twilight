@@ -1,13 +1,14 @@
 use super::{
     builder::ShardBuilder,
     config::Config,
+    emitter::Emitter,
     event::Events,
     json,
     processor::{ConnectingErrorType, Latency, Session, ShardProcessor},
     raw_message::Message,
     stage::Stage,
 };
-use crate::{listener::Listeners, EventTypeFlags, Intents};
+use crate::Intents;
 use futures_util::stream::StreamExt;
 use once_cell::sync::OnceCell;
 use serde::{Deserialize, Serialize};
@@ -21,7 +22,6 @@ use tokio::{sync::watch::Receiver as WatchReceiver, task::JoinHandle};
 use tokio_tungstenite::tungstenite::protocol::{
     frame::coding::CloseCode, CloseFrame as TungsteniteCloseFrame,
 };
-use twilight_model::gateway::event::Event;
 
 /// Sending a command failed.
 #[derive(Debug)]
@@ -299,7 +299,7 @@ pub struct ResumeSession {
 #[derive(Debug)]
 struct ShardRef {
     config: Arc<Config>,
-    listeners: Listeners<Event>,
+    emitter: Emitter,
     processor_handle: OnceCell<JoinHandle<()>>,
     session: OnceCell<WatchReceiver<Arc<Session>>>,
 }
@@ -309,7 +309,7 @@ struct ShardRef {
 /// Shards are responsible for handling incoming events, process events relevant
 /// to the operation of shards - such as requests from the gateway to re-connect
 /// or invalidate a session - and then pass the events on to the user via an
-/// [event stream][`events`].
+/// event stream.
 ///
 /// Shards will [go through a queue][`queue`] to initialize new ratelimited
 /// sessions with the ratelimit. Refer to Discord's [documentation][docs:shards]
@@ -333,14 +333,16 @@ struct ShardRef {
 /// // Use the value of the "DISCORD_TOKEN" environment variable as the bot's
 /// // token. Of course, you may pass this into your program however you want.
 /// let token = env::var("DISCORD_TOKEN")?;
-/// let shard = Shard::new(token, Intents::GUILD_MESSAGES);
+/// let event_types = EventTypeFlags::MESSAGE_CREATE | EventTypeFlags::MESSAGE_DELETE;
+///
+/// let (shard, mut events) = Shard::builder(token, Intents::GUILD_MESSAGES)
+///     .event_types(event_types)
+///     .build();
 ///
 /// // Start the shard.
 /// shard.start().await?;
 ///
 /// // Create a loop of only new message and deleted message events.
-/// let event_types = EventTypeFlags::MESSAGE_CREATE | EventTypeFlags::MESSAGE_DELETE;
-/// let mut events = shard.some_events(event_types);
 ///
 /// while let Some(event) = events.next().await {
 ///     match event {
@@ -356,7 +358,6 @@ struct ShardRef {
 /// # Ok(()) }
 /// ```
 ///
-/// [`events`]: Self::events
 /// [`queue`]: crate::queue
 /// [docs:shards]: https://discord.com/developers/docs/topics/gateway#sharding
 #[derive(Clone, Debug)]
@@ -382,7 +383,7 @@ impl Shard {
     /// let token = env::var("DISCORD_TOKEN")?;
     ///
     /// let intents = Intents::GUILD_MESSAGES | Intents::GUILD_MESSAGE_TYPING;
-    /// let shard = Shard::new(token, intents);
+    /// let (shard, _) = Shard::new(token, intents);
     /// shard.start().await?;
     ///
     /// tokio_time::sleep(Duration::from_secs(1)).await;
@@ -393,19 +394,24 @@ impl Shard {
     /// ```
     ///
     /// [`start`]: Self::start
-    pub fn new(token: impl Into<String>, intents: Intents) -> Self {
+    pub fn new(token: impl Into<String>, intents: Intents) -> (Self, Events) {
         Self::builder(token, intents).build()
     }
 
-    pub(crate) fn new_with_config(config: Config) -> Self {
+    pub(crate) fn new_with_config(config: Config) -> (Self, Events) {
         let config = Arc::new(config);
+        let event_types = config.event_types();
 
-        Self(Arc::new(ShardRef {
+        let (emitter, rx) = Emitter::new(event_types);
+
+        let this = Self(Arc::new(ShardRef {
             config,
-            listeners: Listeners::default(),
+            emitter,
             processor_handle: OnceCell::new(),
             session: OnceCell::new(),
-        }))
+        }));
+
+        (this, Events::new(event_types, rx))
     }
 
     /// Create a builder to configure and construct a shard.
@@ -451,9 +457,9 @@ impl Shard {
         };
 
         let config = Arc::clone(&self.0.config);
-        let listeners = self.0.listeners.clone();
+        let emitter = self.0.emitter.clone();
         let (processor, wrx) =
-            ShardProcessor::new(config, url, listeners)
+            ShardProcessor::new(config, url, emitter)
                 .await
                 .map_err(|source| {
                     let (kind, source) = source.into_parts();
@@ -482,72 +488,6 @@ impl Shard {
         let _session = self.0.session.set(wrx);
 
         Ok(())
-    }
-
-    /// Create a new stream of events from the shard.
-    ///
-    /// There can be multiple streams of events. All events will be broadcast to
-    /// all streams of events.
-    ///
-    /// **Note** that we *highly* recommend specifying only the events that you
-    /// need via [`some_events`], especially if performance is a concern. This
-    /// will ensure that events you don't care about aren't deserialized from
-    /// received websocket messages. Gateway intents only allow specifying
-    /// categories of events, but using [`some_events`] will filter it further
-    /// on the client side.
-    ///
-    /// The returned event stream implements [`futures::stream::Stream`].
-    ///
-    /// All event types except for [`EventType::ShardPayload`] are enabled. If
-    /// you need to enable it, consider calling [`some_events`] instead.
-    ///
-    /// [`EventType::ShardPayload`]: ::twilight_model::gateway::event::EventType::ShardPayload
-    /// [`futures::stream::Stream`]: https://docs.rs/futures/*/futures/stream/trait.Stream.html
-    /// [`some_events`]: Self::some_events
-    pub fn events(&self) -> Events {
-        self.some_events(EventTypeFlags::default())
-    }
-
-    /// Create a new filtered stream of events from the shard.
-    ///
-    /// Only the events specified in the bitflags will be sent over the stream.
-    ///
-    /// The returned event stream implements [`futures::stream::Stream`].
-    ///
-    /// # Examples
-    ///
-    /// Filter the events so that you only receive the [`Event::ShardConnected`]
-    /// and [`Event::ShardDisconnected`] events:
-    ///
-    /// ```no_run
-    /// use twilight_gateway::{EventTypeFlags, Event, Intents, Shard};
-    /// use futures::StreamExt;
-    /// use std::env;
-    ///
-    /// # #[tokio::main]
-    /// # async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
-    /// let shard = Shard::new(env::var("DISCORD_TOKEN")?, Intents::empty());
-    /// shard.start().await?;
-    ///
-    /// let event_types = EventTypeFlags::SHARD_CONNECTED | EventTypeFlags::SHARD_DISCONNECTED;
-    /// let mut events = shard.some_events(event_types);
-    ///
-    /// while let Some(event) = events.next().await {
-    ///     match event {
-    ///         Event::ShardConnected(_) => println!("Shard is now connected"),
-    ///         Event::ShardDisconnected(_) => println!("Shard is now disconnected"),
-    ///         // No other event will come in through the stream.
-    ///         _ => {},
-    ///     }
-    /// }
-    /// # Ok(()) }
-    /// ```
-    ///
-    /// [`futures::stream::Stream`]: https://docs.rs/futures/*/futures/stream/trait.Stream.html
-    pub fn some_events(&self, event_types: EventTypeFlags) -> Events {
-        let rx = self.0.listeners.add(event_types);
-
-        Events::new(event_types, rx)
     }
 
     /// Retrieve information about the running of the shard, such as the current
@@ -604,7 +544,7 @@ impl Shard {
     /// use twilight_gateway::{shard::{raw_message::Message, Shard}, Intents};
     ///
     /// let token = env::var("DISCORD_TOKEN")?;
-    /// let shard = Shard::new(token, Intents::GUILDS);
+    /// let (shard, _) = Shard::new(token, Intents::GUILDS);
     /// shard.start().await?;
     ///
     /// shard.send(Message::Ping(Vec::new())).await?;
@@ -625,7 +565,7 @@ impl Shard {
     /// };
     ///
     /// let token = env::var("DISCORD_TOKEN")?;
-    /// let shard = Shard::new(token, Intents::GUILDS);
+    /// let (shard, _) = Shard::new(token, Intents::GUILDS);
     /// shard.start().await?;
     ///
     /// let close = CloseFrame::from((1000, ""));
@@ -695,8 +635,6 @@ impl Shard {
     /// code, causing Discord to show the bot as being offline. The session will
     /// not be resumable.
     pub fn shutdown(&self) {
-        self.0.listeners.remove_all();
-
         if let Some(processor_handle) = self.0.processor_handle.get() {
             processor_handle.abort();
         }
@@ -720,8 +658,6 @@ impl Shard {
     ///
     /// [`ClusterBuilder::resume_sessions`]: crate::cluster::ClusterBuilder::resume_sessions
     pub fn shutdown_resumable(&self) -> (u64, Option<ResumeSession>) {
-        self.0.listeners.remove_all();
-
         if let Some(processor_handle) = self.0.processor_handle.get() {
             processor_handle.abort();
         }

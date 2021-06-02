@@ -1,3 +1,4 @@
+use crate::EventTypeFlags;
 use std::sync::Arc;
 use twilight_gateway_queue::Queue;
 use twilight_http::Client;
@@ -11,6 +12,7 @@ use twilight_model::gateway::{payload::update_status::UpdateStatusInfo, Intents}
 /// [`Shard::builder`]: super::Shard::builder
 #[derive(Clone, Debug)]
 pub struct Config {
+    pub(crate) event_types: EventTypeFlags,
     pub(crate) gateway_url: Option<Box<str>>,
     pub(crate) http_client: Client,
     pub(super) intents: Intents,
@@ -24,6 +26,11 @@ pub struct Config {
 }
 
 impl Config {
+    /// Copy of the event type flags.
+    pub const fn event_types(&self) -> EventTypeFlags {
+        self.event_types
+    }
+
     /// Return an immutable reference to the url used to connect to the gateway.
     pub fn gateway_url(&self) -> Option<&str> {
         self.gateway_url.as_deref()

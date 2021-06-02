@@ -127,7 +127,6 @@ pub mod cluster;
 pub mod shard;
 
 mod event;
-mod listener;
 
 pub use self::event::EventTypeFlags;
 pub use twilight_model::gateway::Intents;

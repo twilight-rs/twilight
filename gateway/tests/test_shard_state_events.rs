@@ -1,8 +1,11 @@
 use futures::stream::StreamExt;
 use std::{env, error::Error};
-use twilight_gateway::{Event, Intents, Shard};
+use twilight_gateway::{
+    shard::{Events, Shard},
+    Event, Intents,
+};
 
-fn shard() -> Result<Shard, Box<dyn Error>> {
+fn shard() -> Result<(Shard, Events), Box<dyn Error>> {
     let token = env::var("DISCORD_TOKEN")?;
 
     Ok(Shard::new(token, Intents::empty()))
@@ -11,8 +14,7 @@ fn shard() -> Result<Shard, Box<dyn Error>> {
 #[ignore]
 #[tokio::test]
 async fn test_shard_event_emits() -> Result<(), Box<dyn Error>> {
-    let shard = shard()?;
-    let mut events = shard.events();
+    let (shard, mut events) = shard()?;
     shard.start().await?;
 
     assert!(matches!(events.next().await.unwrap(), Event::ShardConnecting(c) if c.shard_id == 0));
