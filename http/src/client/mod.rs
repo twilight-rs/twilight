@@ -4,7 +4,7 @@ pub use self::builder::ClientBuilder;
 
 use crate::{
     api_error::{ApiError, ErrorCode},
-    error::{Error, ErrorType, Result},
+    error::{Error, ErrorType},
     ratelimiting::{RatelimitHeaders, Ratelimiter},
     request::{
         application::{
@@ -36,7 +36,6 @@ use serde::de::DeserializeOwned;
 use std::{
     convert::TryFrom,
     fmt::{Debug, Formatter, Result as FmtResult},
-    result::Result as StdResult,
     sync::{
         atomic::{AtomicBool, AtomicU64, Ordering},
         Arc,
@@ -682,7 +681,7 @@ impl Client {
     pub fn create_guild(
         &self,
         name: impl Into<String>,
-    ) -> StdResult<CreateGuild<'_>, CreateGuildError> {
+    ) -> Result<CreateGuild<'_>, CreateGuildError> {
         CreateGuild::new(self, name)
     }
 
@@ -733,7 +732,7 @@ impl Client {
         &self,
         guild_id: GuildId,
         name: impl Into<String>,
-    ) -> StdResult<CreateGuildChannel<'_>, CreateGuildChannelError> {
+    ) -> Result<CreateGuildChannel<'_>, CreateGuildChannelError> {
         CreateGuildChannel::new(self, guild_id, name)
     }
 
@@ -1430,7 +1429,7 @@ impl Client {
         &self,
         template_code: impl Into<String>,
         name: impl Into<String>,
-    ) -> StdResult<CreateGuildFromTemplate<'_>, CreateGuildFromTemplateError> {
+    ) -> Result<CreateGuildFromTemplate<'_>, CreateGuildFromTemplateError> {
         CreateGuildFromTemplate::new(self, template_code, name)
     }
 
@@ -1448,7 +1447,7 @@ impl Client {
         &self,
         guild_id: GuildId,
         name: impl Into<String>,
-    ) -> StdResult<CreateTemplate<'_>, CreateTemplateError> {
+    ) -> Result<CreateTemplate<'_>, CreateTemplateError> {
         CreateTemplate::new(self, guild_id, name)
     }
 
@@ -2138,7 +2137,7 @@ impl Client {
     /// Returns an [`ErrorType::Unauthorized`] error type if the configured
     /// token has become invalid due to expiration, revokation, etc.
     #[allow(clippy::too_many_lines)]
-    pub async fn raw(&self, request: Request) -> Result<Response<Body>> {
+    pub async fn raw(&self, request: Request) -> Result<Response<Body>, Error> {
         if self.state.token_invalid.load(Ordering::Relaxed) {
             return Err(Error {
                 kind: ErrorType::Unauthorized,
@@ -2317,7 +2316,7 @@ impl Client {
     ///
     /// Returns an [`ErrorType::Unauthorized`] error type if the configured
     /// token has become invalid due to expiration, revokation, etc.
-    pub async fn request<T: DeserializeOwned>(&self, request: Request) -> Result<T> {
+    pub async fn request<T: DeserializeOwned>(&self, request: Request) -> Result<T, Error> {
         let resp = self.make_request(request).await?;
 
         let mut buf = body::aggregate(resp.into_body())
@@ -2340,7 +2339,7 @@ impl Client {
         })
     }
 
-    pub(crate) async fn request_bytes(&self, request: Request) -> Result<Bytes> {
+    pub(crate) async fn request_bytes(&self, request: Request) -> Result<Bytes, Error> {
         let resp = self.make_request(request).await?;
 
         hyper::body::to_bytes(resp.into_body())
@@ -2359,13 +2358,13 @@ impl Client {
     ///
     /// Returns an [`ErrorType::Unauthorized`] error type if the configured
     /// token has become invalid due to expiration, revokation, etc.
-    pub async fn verify(&self, request: Request) -> Result<()> {
+    pub async fn verify(&self, request: Request) -> Result<(), Error> {
         self.make_request(request).await?;
 
         Ok(())
     }
 
-    async fn make_request(&self, request: Request) -> Result<Response<Body>> {
+    async fn make_request(&self, request: Request) -> Result<Response<Body>, Error> {
         let resp = self.raw(request).await?;
         let status = resp.status();
 

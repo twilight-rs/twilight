@@ -1,6 +1,6 @@
 use super::{Form, Method};
 use crate::{
-    error::{Error, Result},
+    error::Error,
     routing::{Path, Route},
 };
 use hyper::header::{HeaderMap, HeaderName, HeaderValue};
@@ -74,7 +74,7 @@ impl RequestBuilder {
     ///
     /// [`ErrorType::Json`]: crate::error::ErrorType::Json
     #[must_use = "request has not been fully built"]
-    pub fn json(self, to: &impl Serialize) -> Result<Self> {
+    pub fn json(self, to: &impl Serialize) -> Result<Self, Error> {
         let bytes = crate::json::to_vec(to).map_err(Error::json)?;
 
         Ok(self.body(bytes))
