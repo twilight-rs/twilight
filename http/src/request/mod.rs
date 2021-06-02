@@ -1,7 +1,7 @@
 macro_rules! poll_req {
     ($ty: ty, $ret: ty) => {
         impl std::future::Future for $ty {
-            type Output = $crate::error::Result<$ret>;
+            type Output = ::std::result::Result<$ret, $crate::error::Error>;
 
             fn poll(
                 mut self: std::pin::Pin<&mut Self>,
@@ -22,7 +22,7 @@ macro_rules! poll_req {
 
     (opt, $ty: ty, $ret: ty) => {
         impl std::future::Future for $ty {
-            type Output = $crate::error::Result<Option<$ret>>;
+            type Output = ::std::result::Result<Option<$ret>, $crate::error::Error>;
 
             fn poll(
                 mut self: std::pin::Pin<&mut Self>,

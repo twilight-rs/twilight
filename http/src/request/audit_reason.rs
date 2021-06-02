@@ -10,7 +10,26 @@ pub trait AuditLogReason: private::Sealed {
 }
 
 mod private {
-    use crate::request::prelude::*;
+    use crate::request::{
+        channel::{
+            invite::{CreateInvite, DeleteInvite},
+            message::{DeleteMessage, DeleteMessages},
+            webhook::{
+                CreateWebhook, DeleteWebhook, DeleteWebhookMessage, UpdateWebhook,
+                UpdateWebhookMessage,
+            },
+            CreatePin, DeleteChannel, DeleteChannelPermissionConfigured, DeletePin, UpdateChannel,
+            UpdateChannelPermissionConfigured,
+        },
+        guild::{
+            ban::{CreateBan, DeleteBan},
+            emoji::{CreateEmoji, DeleteEmoji, UpdateEmoji},
+            integration::DeleteGuildIntegration,
+            member::{AddRoleToMember, RemoveMember, RemoveRoleFromMember, UpdateGuildMember},
+            role::{CreateRole, DeleteRole, UpdateRole},
+            CreateGuildChannel, CreateGuildPrune, UpdateGuild,
+        },
+    };
 
     /// Sealed stops crates other crates implementing the trait.
     pub trait Sealed {}
@@ -119,7 +138,24 @@ pub enum AuditLogReasonErrorType {
 
 #[cfg(test)]
 mod test {
-    use crate::request::prelude::*;
+    use super::AuditLogReason;
+    use crate::request::{
+        channel::{
+            invite::{CreateInvite, DeleteInvite},
+            message::{DeleteMessage, DeleteMessages},
+            webhook::{CreateWebhook, DeleteWebhook, UpdateWebhook},
+            CreatePin, DeleteChannel, DeleteChannelPermissionConfigured, DeletePin, UpdateChannel,
+            UpdateChannelPermissionConfigured,
+        },
+        guild::{
+            ban::{CreateBan, DeleteBan},
+            emoji::{CreateEmoji, DeleteEmoji, UpdateEmoji},
+            integration::DeleteGuildIntegration,
+            member::{AddRoleToMember, RemoveMember, RemoveRoleFromMember, UpdateGuildMember},
+            role::{CreateRole, DeleteRole, UpdateRole},
+            CreateGuildChannel, CreateGuildPrune, UpdateGuild,
+        },
+    };
     use static_assertions::{assert_impl_all, assert_obj_safe};
 
     assert_obj_safe!(AuditLogReason);

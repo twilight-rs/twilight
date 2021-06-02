@@ -1,4 +1,9 @@
-use crate::request::prelude::*;
+use crate::{
+    client::Client,
+    error::Error,
+    request::{Pending, Request},
+    routing::Route,
+};
 use twilight_model::{id::GuildId, invite::Invite};
 
 /// Get information about the invites of a guild.
@@ -21,7 +26,7 @@ impl<'a> GetGuildInvites<'a> {
         }
     }
 
-    fn start(&mut self) -> Result<()> {
+    fn start(&mut self) -> Result<(), Error> {
         let request = Request::from_route(Route::GetGuildInvites {
             guild_id: self.guild_id.0,
         });

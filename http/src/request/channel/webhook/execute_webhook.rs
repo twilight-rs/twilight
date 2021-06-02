@@ -1,5 +1,11 @@
-use crate::request::{prelude::*, Form};
+use crate::{
+    client::Client,
+    error::Error,
+    request::{Form, Pending, Request},
+    routing::Route,
+};
 use futures_util::future::TryFutureExt;
+use serde::Serialize;
 use twilight_model::{
     channel::{embed::Embed, message::AllowedMentions, Message},
     id::WebhookId,
@@ -202,7 +208,7 @@ impl<'a> ExecuteWebhook<'a> {
         self
     }
 
-    fn start(&mut self) -> Result<()> {
+    fn start(&mut self) -> Result<(), Error> {
         let mut request = Request::builder(Route::ExecuteWebhook {
             token: self.token.clone(),
             wait: self.fields.wait,
@@ -223,7 +229,7 @@ impl<'a> ExecuteWebhook<'a> {
             if let Some(payload_json) = &self.fields.payload_json {
                 form.payload_json(&payload_json);
             } else {
-                let body = crate::json::to_vec(&self.fields).map_err(HttpError::json)?;
+                let body = crate::json::to_vec(&self.fields).map_err(Error::json)?;
                 form.payload_json(&body);
             }
 

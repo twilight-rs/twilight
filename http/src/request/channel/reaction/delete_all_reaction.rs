@@ -1,4 +1,10 @@
-use crate::request::prelude::*;
+use super::RequestReactionType;
+use crate::{
+    client::Client,
+    error::Error,
+    request::{Pending, Request},
+    routing::Route,
+};
 use twilight_model::id::{ChannelId, MessageId};
 
 /// Remove all reactions of a specified emoji from a message.
@@ -26,7 +32,7 @@ impl<'a> DeleteAllReaction<'a> {
         }
     }
 
-    fn start(&mut self) -> Result<()> {
+    fn start(&mut self) -> Result<(), Error> {
         let request = Request::from_route(Route::DeleteMessageSpecficReaction {
             channel_id: self.channel_id.0,
             message_id: self.message_id.0,

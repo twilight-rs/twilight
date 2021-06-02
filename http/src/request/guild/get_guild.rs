@@ -1,4 +1,9 @@
-use crate::request::prelude::*;
+use crate::{
+    client::Client,
+    error::Error,
+    request::{Pending, Request},
+    routing::Route,
+};
 use twilight_model::{guild::Guild, id::GuildId};
 
 #[derive(Default)]
@@ -32,7 +37,7 @@ impl<'a> GetGuild<'a> {
         self
     }
 
-    fn start(&mut self) -> Result<()> {
+    fn start(&mut self) -> Result<(), Error> {
         let request = Request::from_route(Route::GetGuild {
             guild_id: self.guild_id.0,
             with_counts: self.fields.with_counts,

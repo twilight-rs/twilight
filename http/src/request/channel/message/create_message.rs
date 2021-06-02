@@ -1,4 +1,10 @@
-use crate::request::{multipart::Form, prelude::*};
+use crate::{
+    client::Client,
+    error::Error as HttpError,
+    request::{multipart::Form, validate, Pending, Request},
+    routing::Route,
+};
+use serde::Serialize;
 use std::{
     error::Error,
     fmt::{Display, Formatter, Result as FmtResult},
@@ -303,7 +309,7 @@ impl<'a> CreateMessage<'a> {
         self
     }
 
-    fn start(&mut self) -> Result<()> {
+    fn start(&mut self) -> Result<(), HttpError> {
         let mut request = Request::builder(Route::CreateMessage {
             channel_id: self.channel_id.0,
         });

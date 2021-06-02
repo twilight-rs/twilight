@@ -1,4 +1,10 @@
-use crate::request::prelude::*;
+use crate::{
+    client::Client,
+    error::Error,
+    request::{self, AuditLogReason, AuditLogReasonError, Pending, Request},
+    routing::Route,
+};
+use serde::Serialize;
 use twilight_model::{
     guild::{Permissions, Role},
     id::{GuildId, RoleId},
@@ -77,7 +83,7 @@ impl<'a> UpdateRole<'a> {
         self
     }
 
-    fn start(&mut self) -> Result<()> {
+    fn start(&mut self) -> Result<(), Error> {
         let mut request = Request::builder(Route::UpdateRole {
             guild_id: self.guild_id.0,
             role_id: self.role_id.0,
@@ -85,7 +91,7 @@ impl<'a> UpdateRole<'a> {
         .json(&self.fields)?;
 
         if let Some(reason) = &self.reason {
-            request = request.headers(audit_header(reason)?);
+            request = request.headers(request::audit_header(reason)?);
         }
 
         self.fut

@@ -1,4 +1,10 @@
-use crate::request::prelude::*;
+use crate::{
+    client::Client,
+    error::Error,
+    request::{self, AuditLogReason, AuditLogReasonError, Pending, Request},
+    routing::Route,
+};
+use serde::Serialize;
 use twilight_model::{
     channel::permission_overwrite::{PermissionOverwriteTargetType, PermissionOverwriteType},
     guild::Permissions,
@@ -54,7 +60,7 @@ impl<'a> UpdateChannelPermissionConfigured<'a> {
         }
     }
 
-    fn request(&self) -> Result<Request> {
+    fn request(&self) -> Result<Request, Error> {
         let mut request = Request::builder(Route::UpdatePermissionOverwrite {
             channel_id: self.channel_id.0,
             target_id: self.target_id,
@@ -62,13 +68,13 @@ impl<'a> UpdateChannelPermissionConfigured<'a> {
         .json(&self.fields)?;
 
         if let Some(reason) = &self.reason {
-            request = request.headers(audit_header(reason)?);
+            request = request.headers(request::audit_header(reason)?);
         }
 
         Ok(request.build())
     }
 
-    fn start(&mut self) -> Result<()> {
+    fn start(&mut self) -> Result<(), Error> {
         let request = self.request()?;
 
         self.fut.replace(Box::pin(self.http.verify(request)));
