@@ -1,7 +1,6 @@
 pub mod heartbeat;
 
 mod compression;
-mod emitter;
 mod r#impl;
 mod session;
 mod socket_forwarder;

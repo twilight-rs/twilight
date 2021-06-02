@@ -84,10 +84,8 @@ async fn main() -> Result<(), Box<dyn Error + Send + Sync + 'static>> {
     lavalink.add(lavalink_host, lavalink_auth).await?;
 
     let intents = Intents::GUILD_MESSAGES | Intents::GUILD_VOICE_STATES;
-    let shard = Shard::new(token, intents);
+    let (shard, mut events) = Shard::new(token, intents);
     shard.start().await?;
-
-    let mut events = shard.events();
 
     while let Some(event) = events.next().await {
         lavalink.process(&event).await?;

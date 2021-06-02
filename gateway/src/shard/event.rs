@@ -8,10 +8,10 @@
 //!
 //! Also included is the [`EventType`] bitflags, which can be used to identify
 //! the type of an event and to filter events from event streams via
-//! [`Shard::some_events`].
+//! [`ShardBuilder::event_types`].
 //!
 //! [`EventType`]: ::twilight_model::gateway::event::EventType
-//! [`Shard::some_events`]: super::Shard::some_events
+//! [`ShardBuilder::event_types`]: crate::shard::ShardBuilder::event_types
 
 use crate::EventTypeFlags;
 use futures_util::stream::Stream;
@@ -32,11 +32,10 @@ use twilight_model::gateway::event::Event;
 ///
 /// # Examples
 ///
-/// Refer to [`Shard::some_events`] for an example of how to use this.
+/// Refer to [`Shard`] for an example of how to use this.
 ///
 /// [`Events::event_types`]: Self::event_types
 /// [`Shard`]: super::Shard
-/// [`Shard::some_events`]: super::Shard::some_events
 /// [`futures::stream::Stream`]: https://docs.rs/futures/*/futures/stream/trait.Stream.html
 pub struct Events {
     event_types: EventTypeFlags,

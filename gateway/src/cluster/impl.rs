@@ -1,7 +1,7 @@
 use super::{builder::ClusterBuilder, config::Config, scheme::ShardScheme};
 use crate::{
-    shard::{raw_message::Message, Information, ResumeSession, Shard},
-    EventTypeFlags, Intents,
+    shard::{raw_message::Message, Events, Information, ResumeSession, Shard},
+    Intents,
 };
 use futures_util::{
     future,
@@ -246,6 +246,39 @@ impl Cluster {
     ///
     /// Use [`builder`] to configure and construct a cluster.
     ///
+    /// # Examples
+    ///
+    /// Create a cluster, receiving a stream of events:
+    ///
+    /// ```no_run
+    /// use twilight_gateway::{Cluster, EventTypeFlags, Event, Intents};
+    /// use futures::StreamExt;
+    /// use std::env;
+    ///
+    /// # #[tokio::main]
+    /// # async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
+    /// let types = EventTypeFlags::MESSAGE_CREATE
+    ///     | EventTypeFlags::MESSAGE_DELETE
+    ///     | EventTypeFlags::MESSAGE_UPDATE;
+    ///
+    /// let (cluster, mut events) = Cluster::builder(env::var("DISCORD_TOKEN")?, Intents::GUILD_MESSAGES)
+    ///     .event_types(types)
+    ///     .build()
+    ///     .await?;
+    /// cluster.up().await;
+    ///
+    /// while let Some((shard_id, event)) = events.next().await {
+    ///     match event {
+    ///         Event::MessageCreate(_) => println!("Shard {} got a new message", shard_id),
+    ///         Event::MessageDelete(_) => println!("Shard {} got a deleted message", shard_id),
+    ///         Event::MessageUpdate(_) => println!("Shard {} got an updated message", shard_id),
+    ///         // No other events will come in through the stream.
+    ///         _ => {},
+    ///     }
+    /// }
+    /// # Ok(()) }
+    /// ```
+    ///
     /// # Errors
     ///
     /// Returns a [`ClusterStartErrorType::RetrievingGatewayInfo`] error type if
@@ -255,11 +288,19 @@ impl Cluster {
     pub async fn new(
         token: impl Into<String>,
         intents: Intents,
-    ) -> Result<Self, ClusterStartError> {
+    ) -> Result<(Self, impl Stream<Item = (u64, Event)>), ClusterStartError> {
         Self::builder(token, intents).build().await
     }
 
-    pub(super) async fn new_with_config(mut config: Config) -> Result<Self, ClusterStartError> {
+    pub(super) async fn new_with_config(
+        mut config: Config,
+    ) -> Result<(Self, impl Stream<Item = (u64, Event)>), ClusterStartError> {
+        #[derive(Default)]
+        struct ShardFold {
+            shards: HashMap<u64, Shard>,
+            streams: Vec<(u64, Events)>,
+        }
+
         let scheme = match config.shard_scheme() {
             ShardScheme::Auto => Self::retrieve_shard_count(&config.http_client).await?,
             other => other.clone(),
@@ -274,26 +315,39 @@ impl Cluster {
             metrics::gauge!("Cluster-Shard-Count", total as f64);
         }
 
-        let shards = iter
-            .map(|idx| {
-                let mut shard_config = config.shard_config().clone();
-                shard_config.shard = [idx, total];
+        let ShardFold { shards, streams } = iter.fold(ShardFold::default(), |mut fold, idx| {
+            let mut shard_config = config.shard_config().clone();
+            shard_config.shard = [idx, total];
 
-                if let Some(data) = config.resume_sessions.remove(&idx) {
-                    shard_config.session_id = Some(data.session_id.into_boxed_str());
-                    shard_config.sequence = Some(data.sequence);
-                }
+            if let Some(data) = config.resume_sessions.remove(&idx) {
+                shard_config.session_id = Some(data.session_id.into_boxed_str());
+                shard_config.sequence = Some(data.sequence);
+            }
 
-                (idx, Shard::new_with_config(shard_config))
-            })
-            .collect();
+            let (shard, stream) = Shard::new_with_config(shard_config);
 
-        Ok(Self(Arc::new(ClusterRef {
-            config,
-            shard_from: scheme.from().expect("shard scheme is not auto"),
-            shard_to: scheme.to().expect("shard scheme is not auto"),
-            shards: Mutex::new(shards),
-        })))
+            fold.shards.insert(idx, shard);
+            fold.streams.push((idx, stream));
+
+            fold
+        });
+
+        let combined = streams
+            .into_iter()
+            .map(|(id, stream)| stream.map(move |e| (id, e)));
+
+        #[allow(clippy::from_iter_instead_of_collect)]
+        let select_all = SelectAll::from_iter(combined);
+
+        Ok((
+            Self(Arc::new(ClusterRef {
+                config,
+                shard_from: scheme.from().expect("shard scheme is not auto"),
+                shard_to: scheme.to().expect("shard scheme is not auto"),
+                shards: Mutex::new(shards),
+            })),
+            select_all,
+        ))
     }
 
     /// Retrieve the recommended number of shards from the HTTP API.
@@ -317,6 +371,41 @@ impl Cluster {
     }
 
     /// Create a builder to configure and construct a cluster.
+    ///
+    /// # Examples
+    ///
+    /// Create a cluster, receiving a stream of events when a message is
+    /// created, deleted, or updated:
+    ///
+    /// ```no_run
+    /// use twilight_gateway::{Cluster, EventTypeFlags, Event, Intents};
+    /// use futures::StreamExt;
+    /// use std::env;
+    ///
+    /// # #[tokio::main]
+    /// # async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
+    /// let token = env::var("DISCORD_TOKEN")?;
+    /// let types = EventTypeFlags::MESSAGE_CREATE
+    ///     | EventTypeFlags::MESSAGE_DELETE
+    ///     | EventTypeFlags::MESSAGE_UPDATE;
+    ///
+    /// let (cluster, mut events) = Cluster::builder(token, Intents::GUILD_MESSAGES)
+    ///     .event_types(types)
+    ///     .build()
+    ///     .await?;
+    /// cluster.up().await;
+    ///
+    /// while let Some((shard_id, event)) = events.next().await {
+    ///     match event {
+    ///         Event::MessageCreate(_) => println!("Shard {} got a new message", shard_id),
+    ///         Event::MessageDelete(_) => println!("Shard {} got a deleted message", shard_id),
+    ///         Event::MessageUpdate(_) => println!("Shard {} got an updated message", shard_id),
+    ///         // No other events will come in through the stream.
+    ///         _ => {},
+    ///     }
+    /// }
+    /// # Ok(()) }
+    /// ```
     pub fn builder(token: impl Into<String>, intents: Intents) -> ClusterBuilder {
         ClusterBuilder::new(token, intents)
     }
@@ -344,7 +433,7 @@ impl Cluster {
     /// # async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
     /// let token = env::var("DISCORD_TOKEN")?;
     /// let scheme = ShardScheme::try_from((0..=9, 10))?;
-    /// let cluster = Cluster::builder(token, Intents::GUILD_MESSAGES)
+    /// let (cluster, _) = Cluster::builder(token, Intents::GUILD_MESSAGES)
     ///     .shard_scheme(scheme)
     ///     .build()
     ///     .await?;
@@ -420,7 +509,7 @@ impl Cluster {
     ///
     /// # #[tokio::main]
     /// # async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
-    /// let cluster = Cluster::new(env::var("DISCORD_TOKEN")?, Intents::empty()).await?;
+    /// let (cluster, _) = Cluster::new(env::var("DISCORD_TOKEN")?, Intents::empty()).await?;
     /// cluster.up().await;
     ///
     /// tokio::time::sleep(Duration::from_secs(60)).await;
@@ -505,7 +594,7 @@ impl Cluster {
     /// };
     ///
     /// let token = env::var("DISCORD_TOKEN")?;
-    /// let cluster = Cluster::new(token, Intents::GUILDS).await?;
+    /// let (cluster, _) = Cluster::new(token, Intents::GUILDS).await?;
     /// cluster.up().await;
     ///
     /// // some time later..
@@ -537,70 +626,6 @@ impl Cluster {
                 kind: ClusterSendErrorType::Sending,
                 source: Some(Box::new(source)),
             })
-    }
-
-    /// Return a stream of events from all shards managed by this Cluster.
-    ///
-    /// Each item in the stream contains both the shard's ID and the event
-    /// itself.
-    ///
-    /// **Note** that we *highly* recommend specifying only the events that you
-    /// need via [`some_events`], especially if performance is a concern. This
-    /// will ensure that events you don't care about aren't deserialized from
-    /// received websocket messages. Gateway intents only allow specifying
-    /// categories of events, but using [`some_events`] will filter it further
-    /// on the client side.
-    ///
-    /// [`some_events`]: Self::some_events
-    pub fn events(&self) -> impl Stream<Item = (u64, Event)> {
-        self.some_events(EventTypeFlags::default())
-    }
-
-    /// Like [`events`], but filters the events so that the stream consumer
-    /// receives only the selected event types.
-    ///
-    /// # Examples
-    ///
-    /// Retrieve a stream of events when a message is created, deleted, or
-    /// updated:
-    ///
-    /// ```no_run
-    /// use twilight_gateway::{Cluster, EventTypeFlags, Event, Intents};
-    /// use futures::StreamExt;
-    /// use std::env;
-    ///
-    /// # #[tokio::main]
-    /// # async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
-    /// let cluster = Cluster::new(env::var("DISCORD_TOKEN")?, Intents::GUILD_MESSAGES).await?;
-    /// cluster.up().await;
-    ///
-    /// let types = EventTypeFlags::MESSAGE_CREATE
-    ///     | EventTypeFlags::MESSAGE_DELETE
-    ///     | EventTypeFlags::MESSAGE_UPDATE;
-    /// let mut events = cluster.some_events(types);
-    ///
-    /// while let Some((shard_id, event)) = events.next().await {
-    ///     match event {
-    ///         Event::MessageCreate(_) => println!("Shard {} got a new message", shard_id),
-    ///         Event::MessageDelete(_) => println!("Shard {} got a deleted message", shard_id),
-    ///         Event::MessageUpdate(_) => println!("Shard {} got an updated message", shard_id),
-    ///         // No other events will come in through the stream.
-    ///         _ => {},
-    ///     }
-    /// }
-    /// # Ok(()) }
-    /// ```
-    ///
-    /// [`events`]: Self::events
-    pub fn some_events(&self, types: EventTypeFlags) -> impl Stream<Item = (u64, Event)> {
-        let shards = self.0.shards.lock().expect("shards poisoned").clone();
-        let stream = shards
-            .into_iter()
-            .map(|(id, shard)| shard.some_events(types).map(move |e| (id, e)));
-
-        // Clippy recommends using bad code here.
-        #[allow(clippy::from_iter_instead_of_collect)]
-        SelectAll::from_iter(stream)
     }
 
     /// Queue a request to start a shard by ID and starts it once the queue
