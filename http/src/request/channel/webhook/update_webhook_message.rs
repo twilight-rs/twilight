@@ -2,7 +2,7 @@
 
 use crate::{
     client::Client,
-    error::{Error as HttpError, Result},
+    error::Error as HttpError,
     request::{self, validate, AuditLogReason, AuditLogReasonError, Form, Pending, Request},
     routing::Route,
 };
@@ -356,7 +356,7 @@ impl<'a> UpdateWebhookMessage<'a> {
         self
     }
 
-    fn request(&mut self) -> Result<Request> {
+    fn request(&mut self) -> Result<Request, HttpError> {
         let mut request = Request::builder(Route::UpdateWebhookMessage {
             message_id: self.message_id.0,
             token: self.token.clone(),
