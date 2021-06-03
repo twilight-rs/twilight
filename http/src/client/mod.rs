@@ -1693,6 +1693,7 @@ impl Client {
     }
 
     /// Delete the original message, by its token.
+    ///
     /// # Errors
     ///
     /// Returns an [`InteractionErrorType::ApplicationIdNotPresent`]
@@ -1714,6 +1715,7 @@ impl Client {
     }
 
     /// Create a followup message, by an interaction token.
+    ///
     /// # Errors
     ///
     /// Returns an [`InteractionErrorType::ApplicationIdNotPresent`]
@@ -1735,6 +1737,7 @@ impl Client {
     }
 
     /// Edit a followup message, by an interaction token.
+    ///
     /// # Errors
     ///
     /// Returns an [`InteractionErrorType::ApplicationIdNotPresent`]
@@ -1758,6 +1761,7 @@ impl Client {
     }
 
     /// Delete a followup message by interaction token and the message's ID.
+    ///
     /// # Errors
     ///
     /// Returns an [`InteractionErrorType::ApplicationIdNotPresent`]
