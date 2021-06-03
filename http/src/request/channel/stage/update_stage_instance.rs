@@ -9,7 +9,7 @@ use std::{
     error::Error,
     fmt::{Display, Formatter, Result as FmtResult},
 };
-use twilight_model::id::ChannelId;
+use twilight_model::{channel::stage_instance::PrivacyLevel, id::ChannelId};
 
 /// The request can not be created as configured.
 #[derive(Debug)]
@@ -70,9 +70,12 @@ pub enum UpdateStageInstanceErrorType {
     },
 }
 
-#[derive(Serialize)]
+#[derive(Default, Serialize)]
 struct UpdateStageInstanceFields {
-    topic: String,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    privacy_level: Option<PrivacyLevel>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    topic: Option<String>,
 }
 
 /// Update fields of an existing stage instance.
@@ -86,19 +89,28 @@ pub struct UpdateStageInstance<'a> {
 }
 
 impl<'a> UpdateStageInstance<'a> {
-    pub(crate) fn new(
-        http: &'a Client,
-        channel_id: ChannelId,
-        topic: impl Into<String>,
-    ) -> Result<Self, UpdateStageInstanceError> {
-        Self::_new(http, channel_id, topic.into())
+    pub(crate) fn new(http: &'a Client, channel_id: ChannelId) -> Self {
+        Self {
+            channel_id,
+            fields: UpdateStageInstanceFields::default(),
+            fut: None,
+            http,
+        }
     }
 
-    fn _new(
-        http: &'a Client,
-        channel_id: ChannelId,
-        topic: String,
-    ) -> Result<Self, UpdateStageInstanceError> {
+    /// Set the [`PrivacyLevel`] of the instance.
+    pub fn privacy_level(mut self, privacy_level: PrivacyLevel) -> Self {
+        self.fields.privacy_level.replace(privacy_level);
+
+        self
+    }
+
+    /// Set the new topic of the instance.
+    pub fn topic(self, topic: impl Into<String>) -> Result<Self, UpdateStageInstanceError> {
+        self._topic(topic.into())
+    }
+
+    fn _topic(mut self, topic: String) -> Result<Self, UpdateStageInstanceError> {
         if !validate::stage_topic(&topic) {
             return Err(UpdateStageInstanceError {
                 kind: UpdateStageInstanceErrorType::InvalidTopic { topic },
@@ -106,12 +118,9 @@ impl<'a> UpdateStageInstance<'a> {
             });
         }
 
-        Ok(Self {
-            channel_id,
-            fields: UpdateStageInstanceFields { topic },
-            fut: None,
-            http,
-        })
+        self.fields.topic.replace(topic);
+
+        Ok(self)
     }
 
     fn start(&mut self) -> Result<(), HttpError> {
