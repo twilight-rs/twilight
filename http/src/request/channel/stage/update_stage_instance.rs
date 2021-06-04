@@ -111,7 +111,10 @@ impl<'a> UpdateStageInstance<'a> {
 
         Ok(Self {
             channel_id,
-            fields: UpdateStageInstanceFields::default(),
+            fields: UpdateStageInstanceFields {
+                topic,
+                ..UpdateStageInstanceFields::default()
+            },
             fut: None,
             http,
         })
