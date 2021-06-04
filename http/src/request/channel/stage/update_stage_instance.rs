@@ -89,13 +89,32 @@ pub struct UpdateStageInstance<'a> {
 }
 
 impl<'a> UpdateStageInstance<'a> {
-    pub(crate) fn new(http: &'a Client, channel_id: ChannelId) -> Self {
-        Self {
+    pub(crate) fn new(
+        http: &'a Client,
+        channel_id: ChannelId,
+        topic: impl Into<String>,
+    ) -> Result<Self, UpdateStageInstanceError> {
+        Self::_new(http, channel_id, topic.into())
+    }
+
+    fn _new(
+        http: &'a Client,
+        channel_id: ChannelId,
+        topic: String,
+    ) -> Result<Self, UpdateStageInstanceError> {
+        if !validate::stage_topic(&topic) {
+            return Err(UpdateStageInstanceError {
+                kind: UpdateStageInstanceErrorType::InvalidTopic { topic },
+                source: None,
+            });
+        }
+
+        Ok(Self {
             channel_id,
             fields: UpdateStageInstanceFields::default(),
             fut: None,
             http,
-        }
+        })
     }
 
     /// Set the [`PrivacyLevel`] of the instance.
