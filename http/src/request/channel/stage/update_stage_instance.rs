@@ -112,7 +112,7 @@ impl<'a> UpdateStageInstance<'a> {
         Ok(Self {
             channel_id,
             fields: UpdateStageInstanceFields {
-                topic,
+                topic: Some(topic),
                 ..UpdateStageInstanceFields::default()
             },
             fut: None,
