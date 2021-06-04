@@ -29,6 +29,9 @@ pub struct PartialGuild {
     pub member_count: Option<u64>,
     pub mfa_level: MfaLevel,
     pub name: String,
+    #[deprecated(since = "0.4.3", note = "no longer provided by discord, see #839")]
+    #[serde(skip)]
+    pub nsfw: bool,
     pub nsfw_level: NSFWLevel,
     pub owner_id: UserId,
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -63,6 +66,7 @@ mod tests {
     use serde_test::Token;
 
     #[allow(clippy::too_many_lines)]
+    #[allow(deprecated)]
     #[test]
     fn test_partial_guild() {
         let value = PartialGuild {
@@ -83,6 +87,7 @@ mod tests {
             member_count: Some(12_000),
             mfa_level: MfaLevel::Elevated,
             name: "the name".to_owned(),
+            nsfw: false,
             nsfw_level: NSFWLevel::Default,
             owner_id: UserId(5),
             owner: Some(false),

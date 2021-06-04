@@ -27,6 +27,8 @@ pub struct CachedGuild {
     pub member_count: Option<u64>,
     pub mfa_level: MfaLevel,
     pub name: String,
+    #[deprecated(since = "0.4.3", note = "no longer provided by discord, see #839")]
+    pub nsfw: bool,
     pub nsfw_level: NSFWLevel,
     pub owner: Option<bool>,
     pub owner_id: UserId,
