@@ -12,6 +12,15 @@ pub struct CachedGuild {
     pub id: GuildId,
     pub afk_channel_id: Option<ChannelId>,
     pub afk_timeout: u64,
+    /// Approximate number of slash commands in the guild.
+    ///
+    /// This field is only present in [`GuildCreate`] events.
+    ///
+    /// **Note** that this is an *approximate* number of slash commands in the
+    /// guild; the value may not be accurate.
+    ///
+    /// [`GuildCreate`]: twilight_model::gateway::payload::GuildCreate
+    pub application_command_count: Option<u64>,
     pub application_id: Option<ApplicationId>,
     pub banner: Option<String>,
     pub default_message_notifications: DefaultMessageNotificationLevel,
@@ -44,4 +53,60 @@ pub struct CachedGuild {
     pub vanity_url_code: Option<String>,
     pub widget_channel_id: Option<ChannelId>,
     pub widget_enabled: Option<bool>,
+}
+
+#[cfg(test)]
+mod tests {
+    use super::CachedGuild;
+    use serde::Serialize;
+    use static_assertions::{assert_fields, assert_impl_all};
+    use std::fmt::Debug;
+
+    assert_fields!(
+        CachedGuild: afk_channel_id,
+        afk_timeout,
+        application_command_count,
+        application_id,
+        banner,
+        default_message_notifications,
+        description,
+        discovery_splash,
+        explicit_content_filter,
+        features,
+        icon,
+        id,
+        joined_at,
+        large,
+        max_members,
+        max_presences,
+        member_count,
+        mfa_level,
+        name,
+        nsfw,
+        owner,
+        owner_id,
+        permissions,
+        preferred_locale,
+        premium_subscription_count,
+        premium_tier,
+        region,
+        rules_channel_id,
+        splash,
+        system_channel_id,
+        system_channel_flags,
+        unavailable,
+        verification_level,
+        vanity_url_code,
+        widget_channel_id,
+        widget_enabled
+    );
+    assert_impl_all!(
+        CachedGuild: Clone,
+        Debug,
+        Eq,
+        PartialEq,
+        Serialize,
+        Send,
+        Sync
+    );
 }

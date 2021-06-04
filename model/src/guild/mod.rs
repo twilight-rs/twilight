@@ -54,6 +54,16 @@ use std::fmt::{Formatter, Result as FmtResult};
 pub struct Guild {
     pub afk_channel_id: Option<ChannelId>,
     pub afk_timeout: u64,
+    /// Approximate number of slash commands in the guild.
+    ///
+    /// This field is only present in [`GuildCreate`] events.
+    ///
+    /// **Note** that this is an *approximate* number of slash commands in the
+    /// guild; the value may not be accurate.
+    ///
+    /// [`GuildCreate`]: crate::gateway::payload::GuildCreate
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub application_command_count: Option<u64>,
     pub application_id: Option<ApplicationId>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub approximate_member_count: Option<u64>,
@@ -124,6 +134,7 @@ impl<'de> Deserialize<'de> for Guild {
         enum Field {
             AfkChannelId,
             AfkTimeout,
+            ApplicationCommandCount,
             ApplicationId,
             ApproximateMemberCount,
             ApproximatePresenceCount,
@@ -181,6 +192,7 @@ impl<'de> Deserialize<'de> for Guild {
             fn visit_map<V: MapAccess<'de>>(self, mut map: V) -> Result<Self::Value, V::Error> {
                 let mut afk_channel_id = None::<Option<_>>;
                 let mut afk_timeout = None;
+                let mut application_command_count = None::<Option<_>>;
                 let mut application_id = None::<Option<_>>;
                 let mut approximate_member_count = None::<Option<_>>;
                 let mut approximate_presence_count = None::<Option<_>>;
@@ -262,6 +274,13 @@ impl<'de> Deserialize<'de> for Guild {
                             }
 
                             afk_timeout = Some(map.next_value()?);
+                        }
+                        Field::ApplicationCommandCount => {
+                            if application_command_count.is_some() {
+                                return Err(DeError::duplicate_field("application_command_count"));
+                            }
+
+                            application_command_count = Some(map.next_value()?);
                         }
                         Field::ApplicationId => {
                             if application_id.is_some() {
@@ -587,6 +606,7 @@ impl<'de> Deserialize<'de> for Guild {
                     .ok_or_else(|| DeError::missing_field("verification_level"))?;
 
                 let afk_channel_id = afk_channel_id.unwrap_or_default();
+                let application_command_count = application_command_count.unwrap_or_default();
                 let application_id = application_id.unwrap_or_default();
                 let approximate_member_count = approximate_member_count.unwrap_or_default();
                 let approximate_presence_count = approximate_presence_count.unwrap_or_default();
@@ -621,6 +641,7 @@ impl<'de> Deserialize<'de> for Guild {
                 tracing::trace!(
                     ?afk_channel_id,
                     %afk_timeout,
+                    ?application_command_count,
                     ?application_id,
                     ?approximate_member_count,
                     ?approximate_presence_count,
@@ -697,6 +718,7 @@ impl<'de> Deserialize<'de> for Guild {
                 Ok(Guild {
                     afk_channel_id,
                     afk_timeout,
+                    application_command_count,
                     application_id,
                     approximate_member_count,
                     approximate_presence_count,
@@ -808,6 +830,7 @@ mod tests {
         let value = Guild {
             afk_channel_id: Some(ChannelId(2)),
             afk_timeout: 900,
+            application_command_count: Some(10),
             application_id: Some(ApplicationId(3)),
             approximate_member_count: Some(1_200),
             approximate_presence_count: Some(900),
@@ -857,7 +880,7 @@ mod tests {
             &[
                 Token::Struct {
                     name: "Guild",
-                    len: 44,
+                    len: 45,
                 },
                 Token::Str("afk_channel_id"),
                 Token::Some,
@@ -865,6 +888,9 @@ mod tests {
                 Token::Str("2"),
                 Token::Str("afk_timeout"),
                 Token::U64(900),
+                Token::Str("application_command_count"),
+                Token::Some,
+                Token::U64(10),
                 Token::Str("application_id"),
                 Token::Some,
                 Token::NewtypeStruct {

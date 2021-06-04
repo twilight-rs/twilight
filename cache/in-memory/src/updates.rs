@@ -890,6 +890,7 @@ mod tests {
         let guild = Guild {
             afk_channel_id: None,
             afk_timeout: 0,
+            application_command_count: Some(7),
             application_id: None,
             approximate_member_count: None,
             approximate_presence_count: None,
