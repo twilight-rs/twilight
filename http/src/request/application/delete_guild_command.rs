@@ -1,4 +1,9 @@
-use crate::request::prelude::*;
+use crate::{
+    client::Client,
+    error::Error,
+    request::{Pending, Request},
+    routing::Route,
+};
 use twilight_model::id::{ApplicationId, CommandId, GuildId};
 
 /// Delete a command in a guild, by ID.
@@ -26,7 +31,7 @@ impl<'a> DeleteGuildCommand<'a> {
         }
     }
 
-    fn start(&mut self) -> Result<()> {
+    fn start(&mut self) -> Result<(), Error> {
         let request = Request::from_route(Route::DeleteGuildCommand {
             application_id: self.application_id.0,
             command_id: self.command_id.0,

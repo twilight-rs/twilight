@@ -2,7 +2,7 @@
 
 use crate::{
     client::Client,
-    error::{Error as HttpError, Result},
+    error::Error as HttpError,
     request::{validate, Form, Pending, Request},
     routing::Route,
 };
@@ -361,7 +361,7 @@ impl<'a> UpdateOriginalResponse<'a> {
         self
     }
 
-    fn request(&mut self) -> Result<Request> {
+    fn request(&mut self) -> Result<Request, HttpError> {
         let mut request = Request::builder(Route::UpdateInteractionOriginal {
             application_id: self.application_id.0,
             interaction_token: self.token.clone(),
@@ -389,7 +389,7 @@ impl<'a> UpdateOriginalResponse<'a> {
         Ok(request.build())
     }
 
-    fn start(&mut self) -> Result<()> {
+    fn start(&mut self) -> Result<(), HttpError> {
         let request = self.request()?;
         self.fut.replace(Box::pin(self.http.verify(request)));
 

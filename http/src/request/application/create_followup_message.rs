@@ -1,4 +1,10 @@
-use crate::request::{prelude::*, Form};
+use crate::{
+    client::Client,
+    error::Error,
+    request::{Form, Pending, Request},
+    routing::Route,
+};
+use serde::Serialize;
 use twilight_model::{
     channel::{
         embed::Embed,
@@ -213,7 +219,7 @@ impl<'a> CreateFollowupMessage<'a> {
         self
     }
 
-    fn start(&mut self) -> Result<()> {
+    fn start(&mut self) -> Result<(), Error> {
         let mut request = Request::builder(Route::ExecuteWebhook {
             token: self.token.clone(),
             wait: None,
@@ -230,7 +236,7 @@ impl<'a> CreateFollowupMessage<'a> {
             if let Some(payload_json) = &self.fields.payload_json {
                 form.payload_json(&payload_json);
             } else {
-                let body = crate::json::to_vec(&self.fields).map_err(HttpError::json)?;
+                let body = crate::json::to_vec(&self.fields).map_err(Error::json)?;
                 form.payload_json(&body);
             }
 

@@ -1,6 +1,6 @@
 use crate::{
     client::Client,
-    error::Result,
+    error::Error,
     request::{Pending, Request},
     routing::Route,
 };
@@ -47,7 +47,7 @@ impl<'a> DeleteOriginalResponse<'a> {
         }
     }
 
-    fn request(&self) -> Result<Request> {
+    fn request(&self) -> Result<Request, Error> {
         let request = Request::from_route(Route::DeleteInteractionOriginal {
             application_id: self.application_id.0,
             interaction_token: self.token.clone(),
@@ -56,7 +56,7 @@ impl<'a> DeleteOriginalResponse<'a> {
         Ok(request)
     }
 
-    fn start(&mut self) -> Result<()> {
+    fn start(&mut self) -> Result<(), Error> {
         let request = self.request()?;
         self.fut.replace(Box::pin(self.http.verify(request)));
 

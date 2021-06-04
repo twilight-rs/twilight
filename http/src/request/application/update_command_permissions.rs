@@ -1,4 +1,9 @@
-use crate::request::prelude::*;
+use crate::{
+    client::Client,
+    error::Error,
+    request::{Pending, Request},
+    routing::Route,
+};
 use serde::Serialize;
 use twilight_model::{
     application::command::permissions::CommandPermissions,
@@ -43,7 +48,7 @@ impl<'a> UpdateCommandPermissions<'a> {
         }
     }
 
-    fn start(&mut self) -> Result<()> {
+    fn start(&mut self) -> Result<(), Error> {
         let request = Request::builder(Route::UpdateCommandPermissions {
             application_id: self.application_id.0,
             command_id: self.command_id.0,
