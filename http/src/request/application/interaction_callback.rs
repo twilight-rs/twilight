@@ -1,4 +1,9 @@
-use crate::request::prelude::*;
+use crate::{
+    client::Client,
+    error::Error,
+    request::{Pending, Request},
+    routing::Route,
+};
 use twilight_model::{application::callback::InteractionResponse, id::InteractionId};
 
 /// Respond to an interaction, by ID and token.
@@ -26,7 +31,7 @@ impl<'a> InteractionCallback<'a> {
         }
     }
 
-    fn start(&mut self) -> Result<()> {
+    fn start(&mut self) -> Result<(), Error> {
         let request = Request::builder(Route::InteractionCallback {
             interaction_id: self.interaction_id.0,
             interaction_token: self.interaction_token.clone(),

@@ -1,4 +1,9 @@
-use crate::request::prelude::*;
+use crate::{
+    client::Client,
+    error::Error,
+    request::{Pending, Request},
+    routing::Route,
+};
 use twilight_model::{
     application::command::CommandOption,
     id::{ApplicationId, CommandId, GuildId},
@@ -71,7 +76,7 @@ impl<'a> UpdateGuildCommand<'a> {
         self
     }
 
-    fn start(&mut self) -> Result<()> {
+    fn start(&mut self) -> Result<(), Error> {
         let request = Request::builder(Route::UpdateGuildCommand {
             application_id: self.application_id.0,
             command_id: self.command_id.0,

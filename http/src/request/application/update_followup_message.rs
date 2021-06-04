@@ -2,7 +2,7 @@
 
 use crate::{
     client::Client,
-    error::{Error as HttpError, Result},
+    error::Error as HttpError,
     request::{validate, Form, Pending, Request},
     routing::Route,
 };
@@ -363,7 +363,7 @@ impl<'a> UpdateFollowupMessage<'a> {
         self
     }
 
-    fn request(&mut self) -> Result<Request> {
+    fn request(&mut self) -> Result<Request, HttpError> {
         let mut request = Request::builder(Route::UpdateWebhookMessage {
             message_id: self.message_id.0,
             token: self.token.clone(),
@@ -392,7 +392,7 @@ impl<'a> UpdateFollowupMessage<'a> {
         Ok(request.build())
     }
 
-    fn start(&mut self) -> Result<()> {
+    fn start(&mut self) -> Result<(), HttpError> {
         let request = self.request()?;
         self.fut.replace(Box::pin(self.http.verify(request)));
 

@@ -1,4 +1,9 @@
-use crate::request::prelude::*;
+use crate::{
+    client::Client,
+    error::Error,
+    request::{Pending, Request},
+    routing::Route,
+};
 use twilight_model::{application::command::Command, id::ApplicationId};
 
 /// Retrieve all global commands for an application.
@@ -17,7 +22,7 @@ impl<'a> GetGlobalCommands<'a> {
         }
     }
 
-    fn start(&mut self) -> Result<()> {
+    fn start(&mut self) -> Result<(), Error> {
         let request = Request::from_route(Route::GetGlobalCommands {
             application_id: self.application_id.0,
         });

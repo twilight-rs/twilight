@@ -1,6 +1,11 @@
-use crate::request::{
-    application::{InteractionError, InteractionErrorType},
-    prelude::*,
+use crate::{
+    client::Client,
+    error::Error as HttpError,
+    request::{
+        application::{InteractionError, InteractionErrorType},
+        validate, Pending, Request,
+    },
+    routing::Route,
 };
 use twilight_model::{
     application::command::{Command, CommandOption},
@@ -96,7 +101,7 @@ impl<'a> CreateGuildCommand<'a> {
         Ok(self)
     }
 
-    fn start(&mut self) -> Result<()> {
+    fn start(&mut self) -> Result<(), HttpError> {
         let request = Request::builder(Route::CreateGuildCommand {
             application_id: self.application_id.0,
             guild_id: self.guild_id.0,

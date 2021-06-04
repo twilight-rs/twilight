@@ -1,6 +1,6 @@
 use crate::{
     client::Client,
-    error::Result,
+    error::Error,
     request::{Pending, Request},
     routing::Route,
 };
@@ -46,7 +46,7 @@ impl<'a> DeleteFollowupMessage<'a> {
         }
     }
 
-    fn request(&self) -> Result<Request> {
+    fn request(&self) -> Result<Request, Error> {
         let request = Request::from_route(Route::DeleteWebhookMessage {
             message_id: self.message_id.0,
             token: self.token.clone(),
@@ -56,7 +56,7 @@ impl<'a> DeleteFollowupMessage<'a> {
         Ok(request)
     }
 
-    fn start(&mut self) -> Result<()> {
+    fn start(&mut self) -> Result<(), Error> {
         let request = self.request()?;
         self.fut.replace(Box::pin(self.http.verify(request)));
 

@@ -1,4 +1,9 @@
-use crate::request::prelude::*;
+use crate::{
+    client::Client,
+    error::Error,
+    request::{Pending, Request},
+    routing::Route,
+};
 use twilight_model::{
     application::command::permissions::GuildCommandPermissions,
     id::{ApplicationId, GuildId},
@@ -22,7 +27,7 @@ impl<'a> GetGuildCommandPermissions<'a> {
         }
     }
 
-    fn start(&mut self) -> Result<()> {
+    fn start(&mut self) -> Result<(), Error> {
         let request = Request::from_route(Route::GetGuildCommandPermissions {
             application_id: self.application_id.0,
             guild_id: self.guild_id.0,

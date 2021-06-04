@@ -1,4 +1,9 @@
-use crate::request::prelude::*;
+use crate::{
+    client::Client,
+    error::Error,
+    request::{Pending, Request},
+    routing::Route,
+};
 use twilight_model::id::{ApplicationId, CommandId};
 
 /// Delete a global command, by ID.
@@ -23,7 +28,7 @@ impl<'a> DeleteGlobalCommand<'a> {
         }
     }
 
-    fn start(&mut self) -> Result<()> {
+    fn start(&mut self) -> Result<(), Error> {
         let request = Request::from_route(Route::DeleteGlobalCommand {
             application_id: self.application_id.0,
             command_id: self.command_id.0,
