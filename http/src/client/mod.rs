@@ -19,7 +19,10 @@ use crate::{
             create_stage_instance::CreateStageInstanceError,
             update_stage_instance::UpdateStageInstanceError,
         },
-        guild::{create_guild::CreateGuildError, create_guild_channel::CreateGuildChannelError},
+        guild::{
+            create_guild::CreateGuildError, create_guild_channel::CreateGuildChannelError,
+            update_guild_channel_positions::Position,
+        },
         prelude::*,
         GetUserApplicationInfo, Method, Request,
     },
@@ -739,10 +742,13 @@ impl Client {
     /// Modify the positions of the channels.
     ///
     /// The minimum amount of channels to modify, is a swap between two channels.
+    ///
+    /// This function accepts an `Iterator` of `(ChannelId, u64)`. It also
+    /// accepts an `Iterator` of `Position`, which has extra fields.
     pub fn update_guild_channel_positions(
         &self,
         guild_id: GuildId,
-        channel_positions: impl Iterator<Item = (ChannelId, u64)>,
+        channel_positions: impl Iterator<Item = impl Into<Position>>,
     ) -> UpdateGuildChannelPositions<'_> {
         UpdateGuildChannelPositions::new(self, guild_id, channel_positions)
     }
