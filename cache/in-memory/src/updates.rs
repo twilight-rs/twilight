@@ -64,6 +64,9 @@ impl UpdateCache for Event {
             ShardReconnecting(_) => {}
             ShardPayload(_) => {}
             ShardResuming(_) => {}
+            StageInstanceCreate(v) => c.update(v),
+            StageInstanceDelete(v) => c.update(v),
+            StageInstanceUpdate(v) => c.update(v),
             ThreadCreate(v) => c.update(v),
             ThreadUpdate(v) => c.update(v),
             ThreadDelete(v) => c.update(v),
@@ -671,6 +674,36 @@ impl UpdateCache for RoleUpdate {
     }
 }
 
+impl UpdateCache for StageInstanceCreate {
+    fn update(&self, cache: &InMemoryCache) {
+        if !cache.wants(ResourceType::STAGE_INSTANCE) {
+            return;
+        }
+
+        cache.cache_stage_instance(self.guild_id, self.0.clone());
+    }
+}
+
+impl UpdateCache for StageInstanceDelete {
+    fn update(&self, cache: &InMemoryCache) {
+        if !cache.wants(ResourceType::STAGE_INSTANCE) {
+            return;
+        }
+
+        cache.delete_stage_instance(self.id);
+    }
+}
+
+impl UpdateCache for StageInstanceUpdate {
+    fn update(&self, cache: &InMemoryCache) {
+        if !cache.wants(ResourceType::STAGE_INSTANCE) {
+            return;
+        }
+
+        cache.cache_stage_instance(self.guild_id, self.0.clone());
+    }
+}
+
 impl UpdateCache for ThreadCreate {
     fn update(&self, cache: &InMemoryCache) {
         if !cache.wants(ResourceType::CHANNEL) {
@@ -983,6 +1016,7 @@ mod tests {
             roles: Vec::new(),
             rules_channel_id: None,
             splash: None,
+            stage_instances: Vec::new(),
             system_channel_flags: SystemChannelFlags::empty(),
             system_channel_id: None,
             threads: Vec::new(),

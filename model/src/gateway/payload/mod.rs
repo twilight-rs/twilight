@@ -34,6 +34,9 @@ mod ready;
 mod role_create;
 mod role_delete;
 mod role_update;
+mod stage_instance_create;
+mod stage_instance_delete;
+mod stage_instance_update;
 mod thread_create;
 mod thread_delete;
 mod thread_list_sync;
@@ -61,11 +64,12 @@ pub use self::{
     reaction_remove::ReactionRemove, reaction_remove_all::ReactionRemoveAll,
     reaction_remove_emoji::ReactionRemoveEmoji, ready::Ready,
     request_guild_members::RequestGuildMembers, role_create::RoleCreate, role_delete::RoleDelete,
-    role_update::RoleUpdate, thread_create::ThreadCreate, thread_delete::ThreadDelete,
-    thread_list_sync::ThreadListSync, thread_member_update::ThreadMemberUpdate,
-    thread_members_update::ThreadMembersUpdate, thread_update::ThreadUpdate,
-    typing_start::TypingStart, unavailable_guild::UnavailableGuild, update_status::UpdateStatus,
-    update_voice_state::UpdateVoiceState, user_update::UserUpdate,
+    role_update::RoleUpdate, stage_instance_create::StageInstanceCreate,
+    stage_instance_delete::StageInstanceDelete, stage_instance_update::StageInstanceUpdate,
+    thread_create::ThreadCreate, thread_delete::ThreadDelete, thread_list_sync::ThreadListSync,
+    thread_member_update::ThreadMemberUpdate, thread_members_update::ThreadMembersUpdate,
+    thread_update::ThreadUpdate, typing_start::TypingStart, unavailable_guild::UnavailableGuild,
+    update_status::UpdateStatus, update_voice_state::UpdateVoiceState, user_update::UserUpdate,
     voice_server_update::VoiceServerUpdate, voice_state_update::VoiceStateUpdate,
     webhooks_update::WebhooksUpdate,
 };

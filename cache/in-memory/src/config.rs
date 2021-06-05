@@ -19,6 +19,7 @@ bitflags! {
         const USER_CURRENT = 1 << 8;
         const USER = 1 << 9;
         const VOICE_STATE = 1 << 10;
+        const STAGE_INSTANCE = 1 << 11;
     }
 }
 
@@ -93,6 +94,7 @@ mod tests {
         assert_eq!(1 << 8, ResourceType::USER_CURRENT.bits());
         assert_eq!(1 << 9, ResourceType::USER.bits());
         assert_eq!(1 << 10, ResourceType::VOICE_STATE.bits());
+        assert_eq!(1 << 11, ResourceType::STAGE_INSTANCE.bits());
     }
 
     #[test]

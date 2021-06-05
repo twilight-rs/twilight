@@ -105,6 +105,12 @@ bitflags! {
         const SHARD_RECONNECTING = 1 << 37;
         /// Shard is resuming a session with the gateway.
         const SHARD_RESUMING = 1 << 38;
+        /// Stage instance was created in a stage channel.
+        const STAGE_INSTANCE_CREATE = 1 << 57;
+        /// Stage instance was deleted in a stage channel.
+        const STAGE_INSTANCE_DELETE = 1 << 58;
+        /// Stage instance was updated in a stage channel.
+        const STAGE_INSTANCE_UPDATE = 1 << 59;
         /// A thread has been created, relevant to the current user,
         /// or the current user has been added to a thread.
         const THREAD_CREATE = 1 << 50;
@@ -181,6 +187,9 @@ impl From<EventType> for EventTypeFlags {
             EventType::ShardReconnecting => EventTypeFlags::SHARD_RECONNECTING,
             EventType::ShardPayload => EventTypeFlags::SHARD_PAYLOAD,
             EventType::ShardResuming => EventTypeFlags::SHARD_RESUMING,
+            EventType::StageInstanceCreate => EventTypeFlags::STAGE_INSTANCE_CREATE,
+            EventType::StageInstanceDelete => EventTypeFlags::STAGE_INSTANCE_DELETE,
+            EventType::StageInstanceUpdate => EventTypeFlags::STAGE_INSTANCE_UPDATE,
             EventType::ThreadCreate => EventTypeFlags::THREAD_CREATE,
             EventType::ThreadDelete => EventTypeFlags::THREAD_DELETE,
             EventType::ThreadListSync => EventTypeFlags::THREAD_LIST_SYNC,

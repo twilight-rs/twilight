@@ -63,6 +63,9 @@ pub enum EventType {
     ShardReconnecting,
     ShardPayload,
     ShardResuming,
+    StageInstanceCreate,
+    StageInstanceDelete,
+    StageInstanceUpdate,
     ThreadCreate,
     ThreadDelete,
     ThreadListSync,
@@ -113,6 +116,9 @@ impl EventType {
             Self::RoleCreate => Some("GUILD_ROLE_CREATE"),
             Self::RoleDelete => Some("GUILD_ROLE_DELETE"),
             Self::RoleUpdate => Some("GUILD_ROLE_UPDATE"),
+            Self::StageInstanceCreate => Some("STAGE_INSTANCE_CREATE"),
+            Self::StageInstanceDelete => Some("STAGE_INSTANCE_DELETE"),
+            Self::StageInstanceUpdate => Some("STAGE_INSTANCE_UPDATE"),
             Self::ThreadCreate => Some("THREAD_CREATE"),
             Self::ThreadDelete => Some("THREAD_DELETE"),
             Self::ThreadListSync => Some("THREAD_LIST_SYNC"),
@@ -179,6 +185,9 @@ impl<'a> TryFrom<&'a str> for EventType {
             "GUILD_ROLE_CREATE" => Ok(Self::RoleCreate),
             "GUILD_ROLE_DELETE" => Ok(Self::RoleDelete),
             "GUILD_ROLE_UPDATE" => Ok(Self::RoleUpdate),
+            "STAGE_INSTANCE_CREATE" => Ok(Self::StageInstanceCreate),
+            "STAGE_INSTANCE_DELETE" => Ok(Self::StageInstanceDelete),
+            "STAGE_INSTANCE_UPDATE" => Ok(Self::StageInstanceUpdate),
             "THREAD_CREATE" => Ok(Self::ThreadCreate),
             "THREAD_DELETE" => Ok(Self::ThreadDelete),
             "THREAD_LIST_SYNC" => Ok(Self::ThreadListSync),
@@ -267,6 +276,9 @@ mod tests {
         assert_variant(EventType::ShardPayload, "SHARD_PAYLOAD");
         assert_variant(EventType::ShardReconnecting, "SHARD_RECONNECTING");
         assert_variant(EventType::ShardResuming, "SHARD_RESUMING");
+        assert_variant(EventType::StageInstanceCreate, "STAGE_INSTANCE_CREATE");
+        assert_variant(EventType::StageInstanceDelete, "STAGE_INSTANCE_DELETE");
+        assert_variant(EventType::StageInstanceUpdate, "STAGE_INSTANCE_UPDATE");
         assert_variant(EventType::ThreadCreate, "THREAD_CREATE");
         assert_variant(EventType::ThreadDelete, "THREAD_DELETE");
         assert_variant(EventType::ThreadListSync, "THREAD_LIST_SYNC");
