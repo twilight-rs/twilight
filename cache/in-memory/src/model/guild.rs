@@ -36,6 +36,7 @@ pub struct CachedGuild {
     pub preferred_locale: String,
     pub premium_subscription_count: Option<u64>,
     pub premium_tier: PremiumTier,
+    #[deprecated(since = "0.4.3", note = "no longer provided by discord, see #884")]
     pub region: String,
     pub rules_channel_id: Option<ChannelId>,
     pub splash: Option<String>,
