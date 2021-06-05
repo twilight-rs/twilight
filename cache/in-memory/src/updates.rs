@@ -487,10 +487,10 @@ impl UpdateCache for MessageCreate {
 
         channel.push_front(Arc::new(From::from(self.0.clone())));
 
-        let user = cache.cache_user(Cow::Borrowed(&self.author), self.guild_id);
+        cache.cache_user(Cow::Borrowed(&self.author), self.guild_id);
 
         if let (Some(member), Some(guild_id)) = (&self.member, self.guild_id) {
-            cache.cache_borrowed_partial_member(guild_id, member, user);
+            cache.cache_borrowed_partial_member(guild_id, member, self.author.id);
         }
     }
 }
@@ -1234,8 +1234,8 @@ mod tests {
             assert_eq!(entry.value().1.len(), 1);
         }
         assert_eq!(
-            cache.member(GuildId(2), UserId(3)).unwrap().user.name,
-            "test"
+            cache.member(GuildId(2), UserId(3)).unwrap().user_id,
+            UserId(3),
         );
     }
 
@@ -1305,8 +1305,8 @@ mod tests {
             assert_eq!(entry.value().1.len(), 1);
         }
         assert_eq!(
-            cache.member(GuildId(1), UserId(3)).unwrap().user.name,
-            "test"
+            cache.member(GuildId(1), UserId(3)).unwrap().user_id,
+            UserId(3),
         );
         {
             let entry = cache.0.messages.get(&ChannelId(2)).unwrap();

@@ -615,9 +615,11 @@ impl InMemoryCache {
             Some(_) | None => {}
         }
 
-        let user = emoji
-            .user
-            .map(|u| self.cache_user(Cow::Owned(u), Some(guild_id)));
+        let user_id = emoji.user.as_ref().map(|user| user.id);
+
+        if let Some(user) = emoji.user {
+            self.cache_user(Cow::Owned(user), Some(guild_id));
+        }
 
         let cached = Arc::new(CachedEmoji {
             id: emoji.id,
@@ -626,7 +628,7 @@ impl InMemoryCache {
             managed: emoji.managed,
             require_colons: emoji.require_colons,
             roles: emoji.roles,
-            user,
+            user_id,
             available: emoji.available,
         });
 
@@ -782,7 +784,9 @@ impl InMemoryCache {
             Some(_) | None => {}
         }
 
-        let user = self.cache_user(Cow::Owned(member.user), Some(guild_id));
+        let user_id = member.user.id;
+
+        self.cache_user(Cow::Owned(member.user), Some(guild_id));
         let cached = Arc::new(CachedMember {
             deaf: Some(member.deaf),
             guild_id,
@@ -792,7 +796,7 @@ impl InMemoryCache {
             pending: member.pending,
             premium_since: member.premium_since,
             roles: member.roles,
-            user,
+            user_id,
         });
         self.0.members.insert(id, Arc::clone(&cached));
         self.0
@@ -807,9 +811,9 @@ impl InMemoryCache {
         &self,
         guild_id: GuildId,
         member: &PartialMember,
-        user: Arc<User>,
+        user_id: UserId,
     ) -> Arc<CachedMember> {
-        let id = (guild_id, user.id);
+        let id = (guild_id, user_id);
         match self.0.members.get(&id) {
             Some(m) if **m == member => return Arc::clone(&m),
             Some(_) | None => {}
@@ -819,7 +823,7 @@ impl InMemoryCache {
             .guild_members
             .entry(guild_id)
             .or_default()
-            .insert(user.id);
+            .insert(user_id);
 
         let cached = Arc::new(CachedMember {
             deaf: Some(member.deaf),
@@ -830,7 +834,7 @@ impl InMemoryCache {
             pending: false,
             premium_since: None,
             roles: member.roles.to_owned(),
-            user,
+            user_id,
         });
         self.0.members.insert(id, Arc::clone(&cached));
 
@@ -961,27 +965,25 @@ impl InMemoryCache {
         )
     }
 
-    fn cache_user(&self, user: Cow<'_, User>, guild_id: Option<GuildId>) -> Arc<User> {
+    fn cache_user(&self, user: Cow<'_, User>, guild_id: Option<GuildId>) {
         match self.0.users.get_mut(&user.id) {
             Some(mut u) if *u.0 == *user => {
                 if let Some(guild_id) = guild_id {
                     u.1.insert(guild_id);
                 }
 
-                return Arc::clone(&u.value().0);
+                return;
             }
             Some(_) | None => {}
         }
-        let user = Arc::new(user.into_owned());
+
         if let Some(guild_id) = guild_id {
             let mut guild_id_set = BTreeSet::new();
             guild_id_set.insert(guild_id);
             self.0
                 .users
-                .insert(user.id, (Arc::clone(&user), guild_id_set));
+                .insert(user.id, (Arc::new(user.into_owned()), guild_id_set));
         }
-
-        user
     }
 
     fn cache_voice_states(&self, voice_states: impl IntoIterator<Item = VoiceState>) {
