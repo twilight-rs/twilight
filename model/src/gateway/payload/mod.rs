@@ -35,6 +35,9 @@ mod ready;
 mod role_create;
 mod role_delete;
 mod role_update;
+mod stage_instance_create;
+mod stage_instance_delete;
+mod stage_instance_update;
 mod typing_start;
 mod unavailable_guild;
 mod update_voice_state;
@@ -56,8 +59,9 @@ pub use self::{
     presence_update::PresenceUpdate, reaction_add::ReactionAdd, reaction_remove::ReactionRemove,
     reaction_remove_all::ReactionRemoveAll, reaction_remove_emoji::ReactionRemoveEmoji,
     ready::Ready, request_guild_members::RequestGuildMembers, role_create::RoleCreate,
-    role_delete::RoleDelete, role_update::RoleUpdate, typing_start::TypingStart,
-    unavailable_guild::UnavailableGuild, update_status::UpdateStatus,
+    role_delete::RoleDelete, role_update::RoleUpdate, stage_instance_create::StageInstanceCreate,
+    stage_instance_delete::StageInstanceDelete, stage_instance_update::StageInstanceUpdate,
+    typing_start::TypingStart, unavailable_guild::UnavailableGuild, update_status::UpdateStatus,
     update_voice_state::UpdateVoiceState, user_update::UserUpdate,
     voice_server_update::VoiceServerUpdate, voice_state_update::VoiceStateUpdate,
     webhooks_update::WebhooksUpdate,

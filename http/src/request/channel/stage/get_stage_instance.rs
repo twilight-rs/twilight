@@ -1,4 +1,9 @@
-use crate::request::prelude::*;
+use crate::{
+    client::Client,
+    error::Error,
+    request::{Pending, Request},
+    routing::Route,
+};
 use twilight_model::{channel::StageInstance, id::ChannelId};
 
 /// Gets the stage instance associated with a stage channel, if it exists.
@@ -17,7 +22,7 @@ impl<'a> GetStageInstance<'a> {
         }
     }
 
-    fn start(&mut self) -> Result<()> {
+    fn start(&mut self) -> Result<(), Error> {
         let request = Request::from_route(Route::GetStageInstance {
             channel_id: self.channel_id.0,
         });

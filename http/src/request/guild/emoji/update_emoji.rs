@@ -1,4 +1,10 @@
-use crate::request::prelude::*;
+use crate::{
+    client::Client,
+    error::Error,
+    request::{self, AuditLogReason, AuditLogReasonError, Pending, Request},
+    routing::Route,
+};
+use serde::Serialize;
 use twilight_model::{
     guild::Emoji,
     id::{EmojiId, GuildId, RoleId},
@@ -48,7 +54,7 @@ impl<'a> UpdateEmoji<'a> {
         self
     }
 
-    fn start(&mut self) -> Result<()> {
+    fn start(&mut self) -> Result<(), Error> {
         let mut request = Request::builder(Route::UpdateEmoji {
             emoji_id: self.emoji_id.0,
             guild_id: self.guild_id.0,
@@ -56,7 +62,7 @@ impl<'a> UpdateEmoji<'a> {
         .json(&self.fields)?;
 
         if let Some(reason) = self.reason.as_ref() {
-            request = request.headers(audit_header(reason)?);
+            request = request.headers(request::audit_header(reason)?);
         }
 
         self.fut

@@ -1,4 +1,9 @@
-use crate::request::prelude::*;
+use crate::{
+    client::Client,
+    error::Error,
+    request::{Pending, Request},
+    routing::Route,
+};
 use twilight_model::{channel::Message, id::ChannelId};
 
 /// Get the pins of a channel.
@@ -17,7 +22,7 @@ impl<'a> GetPins<'a> {
         }
     }
 
-    fn start(&mut self) -> Result<()> {
+    fn start(&mut self) -> Result<(), Error> {
         let request = Request::from_route(Route::GetPins {
             channel_id: self.channel_id.0,
         });

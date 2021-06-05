@@ -4,14 +4,25 @@ pub use self::builder::ClientBuilder;
 
 use crate::{
     api_error::{ApiError, ErrorCode},
-    error::{Error, ErrorType, Result},
+    error::{Error, ErrorType},
     ratelimiting::{RatelimitHeaders, Ratelimiter},
     request::{
+        application::{
+            CreateFollowupMessage, CreateGlobalCommand, CreateGuildCommand, DeleteFollowupMessage,
+            DeleteGlobalCommand, DeleteGuildCommand, DeleteOriginalResponse, GetCommandPermissions,
+            GetGlobalCommands, GetGuildCommandPermissions, GetGuildCommands, InteractionCallback,
+            InteractionError, InteractionErrorType, SetCommandPermissions, SetGlobalCommands,
+            SetGuildCommands, UpdateCommandPermissions, UpdateFollowupMessage, UpdateGlobalCommand,
+            UpdateGuildCommand, UpdateOriginalResponse,
+        },
         channel::stage::{
             create_stage_instance::CreateStageInstanceError,
             update_stage_instance::UpdateStageInstanceError,
         },
-        guild::{create_guild::CreateGuildError, create_guild_channel::CreateGuildChannelError},
+        guild::{
+            create_guild::CreateGuildError, create_guild_channel::CreateGuildChannelError,
+            update_guild_channel_positions::Position,
+        },
         prelude::*,
         GetUserApplicationInfo, Method, Request,
     },
@@ -28,18 +39,24 @@ use serde::de::DeserializeOwned;
 use std::{
     convert::TryFrom,
     fmt::{Debug, Formatter, Result as FmtResult},
-    result::Result as StdResult,
     sync::{
-        atomic::{AtomicBool, Ordering},
+        atomic::{AtomicBool, AtomicU64, Ordering},
         Arc,
     },
     time::Duration,
 };
 use tokio::time;
 use twilight_model::{
+    application::{
+        callback::InteractionResponse,
+        command::{permissions::CommandPermissions, Command},
+    },
     channel::message::allowed_mentions::AllowedMentions,
     guild::Permissions,
-    id::{ChannelId, EmojiId, GuildId, IntegrationId, MessageId, RoleId, UserId, WebhookId},
+    id::{
+        ApplicationId, ChannelId, CommandId, EmojiId, GuildId, IntegrationId, InteractionId,
+        MessageId, RoleId, UserId, WebhookId,
+    },
 };
 
 #[cfg(feature = "hyper-rustls")]
@@ -56,6 +73,7 @@ struct State {
     token_invalid: AtomicBool,
     token: Option<Box<str>>,
     use_http: bool,
+    pub(crate) application_id: AtomicU64,
     pub(crate) default_allowed_mentions: Option<AllowedMentions>,
 }
 
@@ -162,6 +180,33 @@ impl Client {
     /// reflects that.
     pub fn token(&self) -> Option<&str> {
         self.state.token.as_deref()
+    }
+
+    /// Retrieve the [`ApplicationId`] used by interaction methods.
+    pub fn application_id(&self) -> Option<ApplicationId> {
+        let id = self.state.application_id.load(Ordering::Relaxed);
+
+        if id != 0 {
+            return Some(ApplicationId(id));
+        }
+
+        None
+    }
+
+    /// Set a new [`ApplicationId`] after building the client.
+    ///
+    /// Returns the previous ID, if there was one.
+    pub fn set_application_id(&self, application_id: ApplicationId) -> Option<ApplicationId> {
+        let prev = self
+            .state
+            .application_id
+            .swap(application_id.0, Ordering::Relaxed);
+
+        if prev != 0 {
+            return Some(ApplicationId(prev));
+        }
+
+        None
     }
 
     /// Get the default [`AllowedMentions`] for sent messages.
@@ -639,7 +684,7 @@ impl Client {
     pub fn create_guild(
         &self,
         name: impl Into<String>,
-    ) -> StdResult<CreateGuild<'_>, CreateGuildError> {
+    ) -> Result<CreateGuild<'_>, CreateGuildError> {
         CreateGuild::new(self, name)
     }
 
@@ -690,17 +735,20 @@ impl Client {
         &self,
         guild_id: GuildId,
         name: impl Into<String>,
-    ) -> StdResult<CreateGuildChannel<'_>, CreateGuildChannelError> {
+    ) -> Result<CreateGuildChannel<'_>, CreateGuildChannelError> {
         CreateGuildChannel::new(self, guild_id, name)
     }
 
     /// Modify the positions of the channels.
     ///
     /// The minimum amount of channels to modify, is a swap between two channels.
+    ///
+    /// This function accepts an `Iterator` of `(ChannelId, u64)`. It also
+    /// accepts an `Iterator` of `Position`, which has extra fields.
     pub fn update_guild_channel_positions(
         &self,
         guild_id: GuildId,
-        channel_positions: impl Iterator<Item = (ChannelId, u64)>,
+        channel_positions: impl Iterator<Item = impl Into<Position>>,
     ) -> UpdateGuildChannelPositions<'_> {
         UpdateGuildChannelPositions::new(self, guild_id, channel_positions)
     }
@@ -1387,7 +1435,7 @@ impl Client {
         &self,
         template_code: impl Into<String>,
         name: impl Into<String>,
-    ) -> StdResult<CreateGuildFromTemplate<'_>, CreateGuildFromTemplateError> {
+    ) -> Result<CreateGuildFromTemplate<'_>, CreateGuildFromTemplateError> {
         CreateGuildFromTemplate::new(self, template_code, name)
     }
 
@@ -1405,7 +1453,7 @@ impl Client {
         &self,
         guild_id: GuildId,
         name: impl Into<String>,
-    ) -> StdResult<CreateTemplate<'_>, CreateTemplateError> {
+    ) -> Result<CreateTemplate<'_>, CreateTemplateError> {
         CreateTemplate::new(self, guild_id, name)
     }
 
@@ -1617,6 +1665,477 @@ impl Client {
         DeleteWebhookMessage::new(self, webhook_id, token, message_id)
     }
 
+    /// Respond to an interaction, by ID and token.
+    pub fn interaction_callback(
+        &self,
+        interaction_id: InteractionId,
+        interaction_token: impl Into<String>,
+        response: InteractionResponse,
+    ) -> InteractionCallback<'_> {
+        InteractionCallback::new(self, interaction_id, interaction_token, response)
+    }
+
+    /// Edit the original message, by its token.
+    ///
+    /// # Errors
+    ///
+    /// Returns an [`InteractionErrorType::ApplicationIdNotPresent`]
+    /// error type if an application ID has not been configured via
+    /// [`Client::set_application_id`].
+    pub fn update_interaction_original(
+        &self,
+        interaction_token: impl Into<String>,
+    ) -> Result<UpdateOriginalResponse<'_>, InteractionError> {
+        let application_id = self.application_id().ok_or(InteractionError {
+            kind: InteractionErrorType::ApplicationIdNotPresent,
+        })?;
+
+        Ok(UpdateOriginalResponse::new(
+            self,
+            application_id,
+            interaction_token,
+        ))
+    }
+
+    /// Delete the original message, by its token.
+    ///
+    /// # Errors
+    ///
+    /// Returns an [`InteractionErrorType::ApplicationIdNotPresent`]
+    /// error type if an application ID has not been configured via
+    /// [`Client::set_application_id`].
+    pub fn delete_interaction_original(
+        &self,
+        interaction_token: impl Into<String>,
+    ) -> Result<DeleteOriginalResponse<'_>, InteractionError> {
+        let application_id = self.application_id().ok_or(InteractionError {
+            kind: InteractionErrorType::ApplicationIdNotPresent,
+        })?;
+
+        Ok(DeleteOriginalResponse::new(
+            self,
+            application_id,
+            interaction_token,
+        ))
+    }
+
+    /// Create a followup message, by an interaction token.
+    ///
+    /// # Errors
+    ///
+    /// Returns an [`InteractionErrorType::ApplicationIdNotPresent`]
+    /// error type if an application ID has not been configured via
+    /// [`Client::set_application_id`].
+    pub fn create_followup_message(
+        &self,
+        interaction_token: impl Into<String>,
+    ) -> Result<CreateFollowupMessage<'_>, InteractionError> {
+        let application_id = self.application_id().ok_or(InteractionError {
+            kind: InteractionErrorType::ApplicationIdNotPresent,
+        })?;
+
+        Ok(CreateFollowupMessage::new(
+            self,
+            application_id,
+            interaction_token,
+        ))
+    }
+
+    /// Edit a followup message, by an interaction token.
+    ///
+    /// # Errors
+    ///
+    /// Returns an [`InteractionErrorType::ApplicationIdNotPresent`]
+    /// error type if an application ID has not been configured via
+    /// [`Client::set_application_id`].
+    pub fn update_followup_message(
+        &self,
+        interaction_token: impl Into<String>,
+        message_id: MessageId,
+    ) -> Result<UpdateFollowupMessage<'_>, InteractionError> {
+        let application_id = self.application_id().ok_or(InteractionError {
+            kind: InteractionErrorType::ApplicationIdNotPresent,
+        })?;
+
+        Ok(UpdateFollowupMessage::new(
+            self,
+            application_id,
+            interaction_token,
+            message_id,
+        ))
+    }
+
+    /// Delete a followup message by interaction token and the message's ID.
+    ///
+    /// # Errors
+    ///
+    /// Returns an [`InteractionErrorType::ApplicationIdNotPresent`]
+    /// error type if an application ID has not been configured via
+    /// [`Client::set_application_id`].
+    pub fn delete_followup_message(
+        &self,
+        interaction_token: impl Into<String>,
+        message_id: MessageId,
+    ) -> Result<DeleteFollowupMessage<'_>, InteractionError> {
+        let application_id = self.application_id().ok_or(InteractionError {
+            kind: InteractionErrorType::ApplicationIdNotPresent,
+        })?;
+
+        Ok(DeleteFollowupMessage::new(
+            self,
+            application_id,
+            interaction_token,
+            message_id,
+        ))
+    }
+
+    /// Create a new command in a guild.
+    ///
+    /// The name must be between 3 and 32 characters in length, and the
+    /// description must be between 1 and 100 characters in length. Creating a
+    /// guild command with the same name as an already-existing guild command in
+    /// the same guild will overwrite the old command. See [the discord docs]
+    /// for more information.
+    ///
+    /// # Errors
+    ///
+    /// Returns an [`InteractionErrorType::ApplicationIdNotPresent`]
+    /// error type if an application ID has not been configured via
+    /// [`Client::set_application_id`].
+    ///
+    /// Returns an [`InteractionErrorType::CommandNameValidationFailed`]
+    /// error type if the command name is not between 3 and 32 characters.
+    ///
+    /// Returns an [`InteractionErrorType::CommandDescriptionValidationFailed`]
+    /// error type if the command description is not between 1 and
+    /// 100 characters.
+    ///
+    /// [the discord docs]: https://discord.com/developers/docs/interactions/slash-commands#create-guild-application-command
+    pub fn create_guild_command(
+        &self,
+        guild_id: GuildId,
+        name: impl Into<String>,
+        description: impl Into<String>,
+    ) -> Result<CreateGuildCommand<'_>, InteractionError> {
+        let application_id = self.application_id().ok_or(InteractionError {
+            kind: InteractionErrorType::ApplicationIdNotPresent,
+        })?;
+
+        CreateGuildCommand::new(&self, application_id, guild_id, name, description)
+    }
+
+    /// Fetch all commands for a guild, by ID.
+    ///
+    /// # Errors
+    ///
+    /// Returns an [`InteractionErrorType::ApplicationIdNotPresent`]
+    /// error type if an application ID has not been configured via
+    /// [`Client::set_application_id`].
+    pub fn get_guild_commands(
+        &self,
+        guild_id: GuildId,
+    ) -> Result<GetGuildCommands<'_>, InteractionError> {
+        let application_id = self.application_id().ok_or(InteractionError {
+            kind: InteractionErrorType::ApplicationIdNotPresent,
+        })?;
+
+        Ok(GetGuildCommands::new(self, application_id, guild_id))
+    }
+
+    /// Edit a command in a guild, by ID.
+    ///
+    /// You must specify a name and description. See [the discord docs] for more
+    /// information.
+    ///
+    /// # Errors
+    ///
+    /// Returns an [`InteractionErrorType::ApplicationIdNotPresent`]
+    /// error type if an application ID has not been configured via
+    /// [`Client::set_application_id`].
+    ///
+    /// [the discord docs]: https://discord.com/developers/docs/interactions/slash-commands#edit-guild-application-command
+    pub fn update_guild_command(
+        &self,
+        guild_id: GuildId,
+        command_id: CommandId,
+    ) -> Result<UpdateGuildCommand<'_>, InteractionError> {
+        let application_id = self.application_id().ok_or(InteractionError {
+            kind: InteractionErrorType::ApplicationIdNotPresent,
+        })?;
+
+        Ok(UpdateGuildCommand::new(
+            self,
+            application_id,
+            guild_id,
+            command_id,
+        ))
+    }
+
+    /// Delete a command in a guild, by ID.
+    ///
+    /// # Errors
+    ///
+    /// Returns an [`InteractionErrorType::ApplicationIdNotPresent`]
+    /// error type if an application ID has not been configured via
+    /// [`Client::set_application_id`].
+    pub fn delete_guild_command(
+        &self,
+        guild_id: GuildId,
+        command_id: CommandId,
+    ) -> Result<DeleteGuildCommand<'_>, InteractionError> {
+        let application_id = self.application_id().ok_or(InteractionError {
+            kind: InteractionErrorType::ApplicationIdNotPresent,
+        })?;
+
+        Ok(DeleteGuildCommand::new(
+            self,
+            application_id,
+            guild_id,
+            command_id,
+        ))
+    }
+
+    /// Set a guild's commands.
+    ///
+    /// This method is idempotent: it can be used on every start, without being
+    /// ratelimited if there aren't changes to the commands.
+    ///
+    /// # Errors
+    ///
+    /// Returns an [`InteractionErrorType::ApplicationIdNotPresent`]
+    /// error type if an application ID has not been configured via
+    /// [`Client::set_application_id`].
+    pub fn set_guild_commands(
+        &self,
+        guild_id: GuildId,
+        commands: Vec<Command>,
+    ) -> Result<SetGuildCommands<'_>, InteractionError> {
+        let application_id = self.application_id().ok_or(InteractionError {
+            kind: InteractionErrorType::ApplicationIdNotPresent,
+        })?;
+
+        Ok(SetGuildCommands::new(
+            self,
+            application_id,
+            guild_id,
+            commands,
+        ))
+    }
+
+    /// Create a new global command.
+    ///
+    /// The name must be between 3 and 32 characters in length, and the
+    /// description must be between 1 and 100 characters in length. Creating a
+    /// command with the same name as an already-existing global command will
+    /// overwrite the old command. See [the discord docs] for more information.
+    ///
+    /// # Errors
+    ///
+    /// Returns an [`InteractionErrorType::ApplicationIdNotPresent`]
+    /// error type if an application ID has not been configured via
+    /// [`Client::set_application_id`].
+    ///
+    /// Returns an [`InteractionErrorType::CommandNameValidationFailed`]
+    /// error type if the command name is not between 3 and 32 characters.
+    ///
+    /// Returns an [`InteractionErrorType::CommandDescriptionValidationFailed`]
+    /// error type if the command description is not between 1 and
+    /// 100 characters.
+    ///
+    /// [the discord docs]: https://discord.com/developers/docs/interactions/slash-commands#create-global-application-command
+    pub fn create_global_command(
+        &self,
+        name: impl Into<String>,
+        description: impl Into<String>,
+    ) -> Result<CreateGlobalCommand<'_>, InteractionError> {
+        let application_id = self.application_id().ok_or(InteractionError {
+            kind: InteractionErrorType::ApplicationIdNotPresent,
+        })?;
+
+        CreateGlobalCommand::new(self, application_id, name, description)
+    }
+
+    /// Fetch all global commands for your application.
+    ///
+    /// # Errors
+    ///
+    /// Returns an [`InteractionErrorType::ApplicationIdNotPresent`]
+    /// error type if an application ID has not been configured via
+    /// [`Client::set_application_id`].
+    pub fn get_global_commands(&self) -> Result<GetGlobalCommands<'_>, InteractionError> {
+        let application_id = self.application_id().ok_or(InteractionError {
+            kind: InteractionErrorType::ApplicationIdNotPresent,
+        })?;
+
+        Ok(GetGlobalCommands::new(self, application_id))
+    }
+
+    /// Edit a global command, by ID.
+    ///
+    /// You must specify a name and description. See [the discord docs] for more
+    /// information.
+    ///
+    /// # Errors
+    ///
+    /// Returns an [`InteractionErrorType::ApplicationIdNotPresent`]
+    /// error type if an application ID has not been configured via
+    /// [`Client::set_application_id`].
+    ///
+    /// [the discord docs]: https://discord.com/developers/docs/interactions/slash-commands#edit-global-application-command
+    pub fn update_global_command(
+        &self,
+        command_id: CommandId,
+    ) -> Result<UpdateGlobalCommand<'_>, InteractionError> {
+        let application_id = self.application_id().ok_or(InteractionError {
+            kind: InteractionErrorType::ApplicationIdNotPresent,
+        })?;
+
+        Ok(UpdateGlobalCommand::new(self, application_id, command_id))
+    }
+
+    /// Delete a global command, by ID.
+    ///
+    /// # Errors
+    ///
+    /// Returns an [`InteractionErrorType::ApplicationIdNotPresent`]
+    /// error type if an application ID has not been configured via
+    /// [`Client::set_application_id`].
+    pub fn delete_global_command(
+        &self,
+        command_id: CommandId,
+    ) -> Result<DeleteGlobalCommand<'_>, InteractionError> {
+        let application_id = self.application_id().ok_or(InteractionError {
+            kind: InteractionErrorType::ApplicationIdNotPresent,
+        })?;
+
+        Ok(DeleteGlobalCommand::new(self, application_id, command_id))
+    }
+
+    /// Set global commands.
+    ///
+    /// This method is idempotent: it can be used on every start, without being
+    /// ratelimited if there aren't changes to the commands.
+    ///
+    /// # Errors
+    ///
+    /// Returns an [`InteractionErrorType::ApplicationIdNotPresent`]
+    /// error type if an application ID has not been configured via
+    /// [`Client::set_application_id`].
+    pub fn set_global_commands(
+        &self,
+        commands: Vec<Command>,
+    ) -> Result<SetGlobalCommands<'_>, InteractionError> {
+        let application_id = self.application_id().ok_or(InteractionError {
+            kind: InteractionErrorType::ApplicationIdNotPresent,
+        })?;
+
+        Ok(SetGlobalCommands::new(self, application_id, commands))
+    }
+
+    /// Fetch command permissions for a command from the current application
+    /// in a guild.
+    ///
+    /// # Errors
+    ///
+    /// Returns an [`InteractionErrorType::ApplicationIdNotPresent`]
+    /// error type if an application ID has not been configured via
+    /// [`Client::set_application_id`].
+    pub fn get_command_permissions(
+        &self,
+        guild_id: GuildId,
+        command_id: CommandId,
+    ) -> Result<GetCommandPermissions<'_>, InteractionError> {
+        let application_id = self.application_id().ok_or(InteractionError {
+            kind: InteractionErrorType::ApplicationIdNotPresent,
+        })?;
+
+        Ok(GetCommandPermissions::new(
+            &self,
+            application_id,
+            guild_id,
+            command_id,
+        ))
+    }
+
+    /// Fetch command permissions for all commands from the current
+    /// application in a guild.
+    ///
+    /// # Errors
+    ///
+    /// Returns an [`InteractionErrorType::ApplicationIdNotPresent`]
+    /// error type if an application ID has not been configured via
+    /// [`Client::set_application_id`].
+    pub fn get_guild_command_permissions(
+        &self,
+        guild_id: GuildId,
+    ) -> Result<GetGuildCommandPermissions<'_>, InteractionError> {
+        let application_id = self.application_id().ok_or(InteractionError {
+            kind: InteractionErrorType::ApplicationIdNotPresent,
+        })?;
+
+        Ok(GetGuildCommandPermissions::new(
+            self,
+            application_id,
+            guild_id,
+        ))
+    }
+
+    /// Update command permissions for a single command in a guild.
+    ///
+    /// This overwrites the command permissions so the full set of permissions
+    /// have to be sent every time.
+    ///
+    /// # Errors
+    ///
+    /// Returns an [`InteractionErrorType::ApplicationIdNotPresent`]
+    /// error type if an application ID has not been configured via
+    /// [`Client::set_application_id`].
+    pub fn update_command_permissions(
+        &self,
+        guild_id: GuildId,
+        command_id: CommandId,
+        permissions: Vec<CommandPermissions>,
+    ) -> Result<UpdateCommandPermissions<'_>, InteractionError> {
+        let application_id = self.application_id().ok_or(InteractionError {
+            kind: InteractionErrorType::ApplicationIdNotPresent,
+        })?;
+
+        Ok(UpdateCommandPermissions::new(
+            self,
+            application_id,
+            guild_id,
+            command_id,
+            permissions,
+        ))
+    }
+
+    /// Update command permissions for all commands in a guild.
+    ///
+    /// This overwrites the command permissions so the full set of permissions
+    /// have to be sent every time.
+    ///
+    /// # Errors
+    ///
+    /// Returns an [`InteractionErrorType::ApplicationIdNotPresent`]
+    /// error type if an application ID has not been configured via
+    /// [`Client::set_application_id`].
+    pub fn set_command_permissions(
+        &self,
+        guild_id: GuildId,
+        permissions: impl Iterator<Item = (CommandId, CommandPermissions)>,
+    ) -> Result<SetCommandPermissions<'_>, InteractionError> {
+        let application_id = self.application_id().ok_or(InteractionError {
+            kind: InteractionErrorType::ApplicationIdNotPresent,
+        })?;
+
+        Ok(SetCommandPermissions::new(
+            self,
+            application_id,
+            guild_id,
+            permissions,
+        ))
+    }
+
     /// Execute a request, returning the response.
     ///
     /// # Errors
@@ -1624,7 +2143,7 @@ impl Client {
     /// Returns an [`ErrorType::Unauthorized`] error type if the configured
     /// token has become invalid due to expiration, revokation, etc.
     #[allow(clippy::too_many_lines)]
-    pub async fn raw(&self, request: Request) -> Result<Response<Body>> {
+    pub async fn raw(&self, request: Request) -> Result<Response<Body>, Error> {
         if self.state.token_invalid.load(Ordering::Relaxed) {
             return Err(Error {
                 kind: ErrorType::Unauthorized,
@@ -1803,7 +2322,7 @@ impl Client {
     ///
     /// Returns an [`ErrorType::Unauthorized`] error type if the configured
     /// token has become invalid due to expiration, revokation, etc.
-    pub async fn request<T: DeserializeOwned>(&self, request: Request) -> Result<T> {
+    pub async fn request<T: DeserializeOwned>(&self, request: Request) -> Result<T, Error> {
         let resp = self.make_request(request).await?;
 
         let mut buf = body::aggregate(resp.into_body())
@@ -1826,7 +2345,7 @@ impl Client {
         })
     }
 
-    pub(crate) async fn request_bytes(&self, request: Request) -> Result<Bytes> {
+    pub(crate) async fn request_bytes(&self, request: Request) -> Result<Bytes, Error> {
         let resp = self.make_request(request).await?;
 
         hyper::body::to_bytes(resp.into_body())
@@ -1845,13 +2364,13 @@ impl Client {
     ///
     /// Returns an [`ErrorType::Unauthorized`] error type if the configured
     /// token has become invalid due to expiration, revokation, etc.
-    pub async fn verify(&self, request: Request) -> Result<()> {
+    pub async fn verify(&self, request: Request) -> Result<(), Error> {
         self.make_request(request).await?;
 
         Ok(())
     }
 
-    async fn make_request(&self, request: Request) -> Result<Response<Body>> {
+    async fn make_request(&self, request: Request) -> Result<Response<Body>, Error> {
         let resp = self.raw(request).await?;
         let status = resp.status();
 

@@ -1,4 +1,10 @@
-use crate::request::prelude::*;
+use super::RequestReactionType;
+use crate::{
+    client::Client,
+    error::Error as HttpError,
+    request::{validate, Pending, Request},
+    routing::Route,
+};
 use std::{
     error::Error,
     fmt::{Display, Formatter, Result as FmtResult},
@@ -128,7 +134,7 @@ impl<'a> GetReactions<'a> {
         Ok(self)
     }
 
-    fn start(&mut self) -> Result<()> {
+    fn start(&mut self) -> Result<(), HttpError> {
         let request = Request::from_route(Route::GetReactionUsers {
             after: self.fields.after.map(|x| x.0),
             before: self.fields.before.map(|x| x.0),

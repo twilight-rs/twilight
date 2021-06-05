@@ -79,10 +79,10 @@ use std::{
 };
 use twilight_model::{
     application::interaction::application_command::InteractionMember,
-    channel::{Group, GuildChannel, PrivateChannel},
+    channel::{Group, GuildChannel, PrivateChannel, StageInstance},
     gateway::presence::{Presence, UserOrId},
     guild::{Emoji, Guild, Member, PartialMember, Role},
-    id::{ChannelId, EmojiId, GuildId, MessageId, RoleId, UserId},
+    id::{ChannelId, EmojiId, GuildId, MessageId, RoleId, StageId, UserId},
     user::{CurrentUser, User},
     voice::VoiceState,
 };
@@ -155,10 +155,12 @@ struct InMemoryCacheRef {
     guild_members: DashMap<GuildId, HashSet<UserId>>,
     guild_presences: DashMap<GuildId, HashSet<UserId>>,
     guild_roles: DashMap<GuildId, HashSet<RoleId>>,
+    guild_stage_instances: DashMap<GuildId, HashSet<StageId>>,
     members: DashMap<(GuildId, UserId), Arc<CachedMember>>,
     messages: DashMap<ChannelId, VecDeque<Arc<CachedMessage>>>,
     presences: DashMap<(GuildId, UserId), Arc<CachedPresence>>,
     roles: DashMap<RoleId, GuildItem<Role>>,
+    stage_instances: DashMap<StageId, GuildItem<StageInstance>>,
     unavailable_guilds: DashSet<GuildId>,
     users: DashMap<UserId, (Arc<User>, BTreeSet<GuildId>)>,
     /// Mapping of channels and the users currently connected.
@@ -387,6 +389,19 @@ impl InMemoryCache {
         self.0.guild_roles.get(&guild_id).map(|r| r.value().clone())
     }
 
+    /// Gets the set of stage instances in a guild.
+    ///
+    /// This is a O(m) operation, where m is the amount of stage instances in
+    /// the guild. This requires the [`GUILDS`] intent.
+    ///
+    /// [`GUILDS`]: twilight_model::gateway::Intents::GUILDS
+    pub fn guild_stage_instances(&self, guild_id: GuildId) -> Option<HashSet<StageId>> {
+        self.0
+            .guild_stage_instances
+            .get(&guild_id)
+            .map(|r| r.value().clone())
+    }
+
     /// Gets a member by guild ID and user ID.
     ///
     /// This is an O(1) operation. This requires the [`GUILD_MEMBERS`] intent.
@@ -455,6 +470,18 @@ impl InMemoryCache {
             .map(|role| Arc::clone(&role.data))
     }
 
+    /// Gets a stage instance by ID.
+    ///
+    /// This is an O(1) operation. This requires the [`GUILDS`] intent.
+    ///
+    /// [`GUILDS`]: twilight_model::gateway::Intents::GUILDS
+    pub fn stage_instance(&self, stage_id: StageId) -> Option<Arc<StageInstance>> {
+        self.0
+            .stage_instances
+            .get(&stage_id)
+            .map(|role| Arc::clone(&role.data))
+    }
+
     /// Gets a user by ID.
     ///
     /// This is an O(1) operation. This requires the [`GUILD_MEMBERS`] intent.
@@ -514,6 +541,7 @@ impl InMemoryCache {
         self.0.guild_members.clear();
         self.0.guild_presences.clear();
         self.0.guild_roles.clear();
+        self.0.guild_stage_instances.clear();
         self.0.members.clear();
         self.0.messages.clear();
         self.0.presences.clear();
@@ -678,6 +706,14 @@ impl InMemoryCache {
             self.cache_voice_states(guild.voice_states);
         }
 
+        if self.wants(ResourceType::STAGE_INSTANCE) {
+            self.0
+                .guild_stage_instances
+                .insert(guild.id, HashSet::new());
+            self.cache_stage_instances(guild.id, guild.stage_instances);
+        }
+
+        #[allow(deprecated)]
         let guild = CachedGuild {
             id: guild.id,
             afk_channel_id: guild.afk_channel_id,
@@ -697,7 +733,8 @@ impl InMemoryCache {
             member_count: guild.member_count,
             mfa_level: guild.mfa_level,
             name: guild.name,
-            nsfw: guild.nsfw,
+            nsfw: false,
+            nsfw_level: guild.nsfw_level,
             owner: guild.owner,
             owner_id: guild.owner_id,
             permissions: guild.permissions,
@@ -877,6 +914,35 @@ impl InMemoryCache {
         upsert_guild_item(&self.0.roles, guild_id, role.id, role)
     }
 
+    fn cache_stage_instances(
+        &self,
+        guild_id: GuildId,
+        stage_instances: impl IntoIterator<Item = StageInstance>,
+    ) {
+        for stage_instance in stage_instances {
+            self.cache_stage_instance(guild_id, stage_instance);
+        }
+    }
+
+    fn cache_stage_instance(
+        &self,
+        guild_id: GuildId,
+        stage_instance: StageInstance,
+    ) -> Arc<StageInstance> {
+        self.0
+            .guild_stage_instances
+            .entry(guild_id)
+            .or_default()
+            .insert(stage_instance.id);
+
+        upsert_guild_item(
+            &self.0.stage_instances,
+            guild_id,
+            stage_instance.id,
+            stage_instance,
+        )
+    }
+
     fn cache_user(&self, user: Cow<'_, User>, guild_id: Option<GuildId>) -> Arc<User> {
         match self.0.users.get_mut(&user.id) {
             Some(mut u) if *u.0 == *user => {
@@ -1015,6 +1081,20 @@ impl InMemoryCache {
         Some(role.data)
     }
 
+    fn delete_stage_instance(&self, stage_id: StageId) -> Option<Arc<StageInstance>> {
+        let stage_instance = self.0.stage_instances.remove(&stage_id).map(|(_, v)| v)?;
+
+        if let Some(mut stage_instances) = self
+            .0
+            .guild_stage_instances
+            .get_mut(&stage_instance.guild_id)
+        {
+            stage_instances.remove(&stage_id);
+        }
+
+        Some(stage_instance.data)
+    }
+
     /// Determine whether the configured cache wants a specific resource to be
     /// processed.
     fn wants(&self, resource_type: ResourceType) -> bool {
@@ -1034,13 +1114,16 @@ mod tests {
     use crate::InMemoryCache;
     use std::borrow::Cow;
     use twilight_model::{
-        channel::{ChannelType, GuildChannel, TextChannel},
-        gateway::payload::{GuildEmojisUpdate, MemberRemove, RoleDelete},
+        channel::{ChannelType, GuildChannel, StageInstance, TextChannel},
+        gateway::payload::{
+            GuildEmojisUpdate, MemberRemove, RoleDelete, StageInstanceCreate, StageInstanceDelete,
+            StageInstanceUpdate,
+        },
         guild::{
             DefaultMessageNotificationLevel, Emoji, ExplicitContentFilter, Guild, Member, MfaLevel,
-            Permissions, PremiumTier, Role, SystemChannelFlags, VerificationLevel,
+            NSFWLevel, Permissions, PremiumTier, Role, SystemChannelFlags, VerificationLevel,
         },
-        id::{ChannelId, EmojiId, GuildId, RoleId, UserId},
+        id::{ChannelId, EmojiId, GuildId, RoleId, StageId, UserId},
         user::{CurrentUser, User},
         voice::VoiceState,
     };
@@ -1172,6 +1255,7 @@ mod tests {
             topic: None,
         })]);
 
+        #[allow(deprecated)]
         let guild = Guild {
             id: GuildId(123),
             afk_channel_id: None,
@@ -1195,6 +1279,7 @@ mod tests {
             mfa_level: MfaLevel::Elevated,
             name: "this is a guild".to_owned(),
             nsfw: false,
+            nsfw_level: NSFWLevel::AgeRestricted,
             owner: Some(false),
             owner_id: UserId(456),
             permissions: Some(Permissions::SEND_MESSAGES),
@@ -1205,6 +1290,7 @@ mod tests {
             region: "us-east".to_owned(),
             roles: Vec::new(),
             splash: None,
+            stage_instances: Vec::new(),
             system_channel_id: None,
             system_channel_flags: SystemChannelFlags::SUPPRESS_JOIN_NOTIFICATIONS,
             rules_channel_id: None,
@@ -1287,6 +1373,59 @@ mod tests {
             user: user(user_id),
         });
         assert!(!cache.0.users.contains_key(&user_id));
+    }
+
+    #[test]
+    fn test_stage_channels() {
+        let cache = InMemoryCache::new();
+
+        let stage_instance = StageInstance {
+            channel_id: ChannelId(1),
+            guild_id: GuildId(2),
+            id: StageId(3),
+            topic: "topic".into(),
+        };
+
+        cache.update(&StageInstanceCreate(stage_instance.clone()));
+
+        {
+            let cached_instances = cache
+                .guild_stage_instances(stage_instance.guild_id)
+                .unwrap();
+            assert_eq!(1, cached_instances.len());
+        }
+
+        {
+            let cached_instance = cache.stage_instance(stage_instance.id).unwrap();
+            assert_eq!(stage_instance.topic, cached_instance.topic);
+        }
+
+        let new_stage_instance = StageInstance {
+            topic: "a new topic".into(),
+            ..stage_instance
+        };
+
+        cache.update(&StageInstanceUpdate(new_stage_instance.clone()));
+
+        {
+            let cached_instance = cache.stage_instance(stage_instance.id).unwrap();
+            assert_ne!(stage_instance.topic, cached_instance.topic);
+            assert_eq!(new_stage_instance.topic, "a new topic");
+        }
+
+        cache.update(&StageInstanceDelete(new_stage_instance));
+
+        {
+            let cached_instances = cache
+                .guild_stage_instances(stage_instance.guild_id)
+                .unwrap();
+            assert_eq!(0, cached_instances.len());
+        }
+
+        {
+            let cached_instance = cache.stage_instance(stage_instance.id);
+            assert_eq!(cached_instance, None);
+        }
     }
 
     #[test]

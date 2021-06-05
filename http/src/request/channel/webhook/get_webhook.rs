@@ -1,4 +1,9 @@
-use crate::request::prelude::*;
+use crate::{
+    client::Client,
+    error::Error,
+    request::{PendingOption, Request},
+    routing::Route,
+};
 use twilight_model::{channel::Webhook, id::WebhookId};
 
 #[derive(Default)]
@@ -32,7 +37,7 @@ impl<'a> GetWebhook<'a> {
         self
     }
 
-    fn start(&mut self) -> Result<()> {
+    fn start(&mut self) -> Result<(), Error> {
         let mut request = Request::builder(Route::GetWebhook {
             token: self.fields.token.clone(),
             webhook_id: self.id.0,

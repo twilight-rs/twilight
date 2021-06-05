@@ -1,5 +1,5 @@
 use super::UpdateChannelPermissionConfigured;
-use crate::request::prelude::*;
+use crate::client::Client;
 use twilight_model::{
     channel::permission_overwrite::PermissionOverwriteType,
     guild::Permissions,

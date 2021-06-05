@@ -1,15 +1,40 @@
-use crate::request::prelude::*;
+use crate::{
+    client::Client,
+    error::Error,
+    request::{Pending, Request},
+    routing::Route,
+};
+use serde::Serialize;
 use twilight_model::id::{ChannelId, GuildId};
 
 #[derive(Serialize)]
-struct Position {
+pub struct Position {
     id: ChannelId,
-    position: u64,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    lock_permissions: Option<bool>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    parent_id: Option<ChannelId>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    position: Option<u64>,
+}
+
+impl From<(ChannelId, u64)> for Position {
+    fn from((id, position): (ChannelId, u64)) -> Self {
+        Self {
+            id,
+            lock_permissions: None,
+            parent_id: None,
+            position: Some(position),
+        }
+    }
 }
 
 /// Modify the positions of the channels.
 ///
 /// The minimum amount of channels to modify, is a swap between two channels.
+///
+/// This function accepts an `Iterator` of `(ChannelId, u64)`. It also accepts
+/// an `Iterator` of `Position`, which has extra fields.
 pub struct UpdateGuildChannelPositions<'a> {
     fut: Option<Pending<'a, ()>>,
     guild_id: GuildId,
@@ -21,11 +46,9 @@ impl<'a> UpdateGuildChannelPositions<'a> {
     pub(crate) fn new(
         http: &'a Client,
         guild_id: GuildId,
-        channel_positions: impl Iterator<Item = (ChannelId, u64)>,
+        channel_positions: impl Iterator<Item = impl Into<Position>>,
     ) -> Self {
-        let positions = channel_positions
-            .map(|(id, position)| Position { id, position })
-            .collect::<Vec<_>>();
+        let positions = channel_positions.map(Into::into).collect();
 
         Self {
             fut: None,
@@ -35,7 +58,7 @@ impl<'a> UpdateGuildChannelPositions<'a> {
         }
     }
 
-    fn start(&mut self) -> Result<()> {
+    fn start(&mut self) -> Result<(), Error> {
         let request = Request::builder(Route::UpdateGuildChannels {
             guild_id: self.guild_id.0,
         })

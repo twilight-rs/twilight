@@ -1,4 +1,9 @@
-use crate::request::prelude::*;
+use crate::{
+    client::Client,
+    error::Error,
+    request::{self, AuditLogReason, AuditLogReasonError, Pending, Request},
+    routing::Route,
+};
 use twilight_model::id::{GuildId, RoleId, UserId};
 
 /// Remove a role from a member in a guild, by id.
@@ -28,7 +33,7 @@ impl<'a> RemoveRoleFromMember<'a> {
         }
     }
 
-    fn start(&mut self) -> Result<()> {
+    fn start(&mut self) -> Result<(), Error> {
         let mut request = Request::builder(Route::RemoveMemberRole {
             guild_id: self.guild_id.0,
             role_id: self.role_id.0,
@@ -36,7 +41,7 @@ impl<'a> RemoveRoleFromMember<'a> {
         });
 
         if let Some(reason) = self.reason.as_ref() {
-            request = request.headers(audit_header(reason)?);
+            request = request.headers(request::audit_header(reason)?);
         }
 
         self.fut

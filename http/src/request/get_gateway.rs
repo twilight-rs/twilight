@@ -1,4 +1,9 @@
-use super::{prelude::*, GetGatewayAuthed};
+use crate::{
+    client::Client,
+    error::Error,
+    request::{GetGatewayAuthed, Pending, Request},
+    routing::Route,
+};
 use twilight_model::gateway::connection_info::ConnectionInfo;
 
 /// Get information about the gateway, optionally with additional information detailing the
@@ -53,7 +58,7 @@ impl<'a> GetGateway<'a> {
         GetGatewayAuthed::new(self.http)
     }
 
-    fn start(&mut self) -> Result<()> {
+    fn start(&mut self) -> Result<(), Error> {
         let request = Request::from_route(Route::GetGateway);
 
         self.fut.replace(Box::pin(self.http.request(request)));
