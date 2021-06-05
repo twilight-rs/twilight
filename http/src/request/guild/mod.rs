@@ -9,6 +9,7 @@ pub mod integration;
 pub mod member;
 pub mod role;
 pub mod update_guild;
+pub mod update_guild_channel_positions;
 pub mod user;
 
 mod delete_guild;
@@ -22,7 +23,6 @@ mod get_guild_webhooks;
 mod get_guild_welcome_screen;
 mod get_guild_widget;
 mod update_current_user_nick;
-mod update_guild_channel_positions;
 mod update_guild_welcome_screen;
 mod update_guild_widget;
 
