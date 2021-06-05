@@ -272,7 +272,7 @@ impl UpdateCache for GuildUpdate {
             guild.max_presences = Some(self.max_presences.unwrap_or(25000));
             guild.mfa_level = self.mfa_level;
             guild.name = self.name.clone();
-            guild.nsfw = self.nsfw;
+            guild.nsfw_level = self.nsfw_level;
             guild.owner = self.owner;
             guild.owner_id = self.owner_id;
             guild.permissions = self.permissions;
@@ -754,7 +754,8 @@ mod tests {
         gateway::payload::{reaction_remove_emoji::PartialEmoji, ChannelDelete},
         guild::{
             DefaultMessageNotificationLevel, ExplicitContentFilter, Guild, Member, MfaLevel,
-            PartialGuild, PartialMember, PremiumTier, SystemChannelFlags, VerificationLevel,
+            NSFWLevel, PartialGuild, PartialMember, PremiumTier, SystemChannelFlags,
+            VerificationLevel,
         },
         id::{ChannelId, GuildId, MessageId, UserId},
         user::User,
@@ -917,6 +918,7 @@ mod tests {
         cache
     }
 
+    #[allow(deprecated)]
     #[test]
     fn test_guild_update() {
         let cache = InMemoryCache::new();
@@ -946,6 +948,7 @@ mod tests {
             mfa_level: MfaLevel::None,
             name: "test".to_owned(),
             nsfw: false,
+            nsfw_level: NSFWLevel::Default,
             owner_id: UserId(1),
             owner: None,
             permissions: None,
@@ -970,6 +973,7 @@ mod tests {
 
         cache.update(&GuildCreate(guild.clone()));
 
+        #[allow(deprecated)]
         let mutation = PartialGuild {
             id: guild.id,
             afk_channel_id: guild.afk_channel_id,
@@ -988,7 +992,8 @@ mod tests {
             member_count: guild.member_count,
             mfa_level: guild.mfa_level,
             name: "test2222".to_owned(),
-            nsfw: guild.nsfw,
+            nsfw: false,
+            nsfw_level: guild.nsfw_level,
             owner_id: UserId(2),
             owner: guild.owner,
             permissions: guild.permissions,
