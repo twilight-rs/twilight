@@ -206,7 +206,7 @@ fn _channel_name(value: &str) -> bool {
     let len = value.chars().count();
 
     // <https://discordapp.com/developers/docs/resources/channel#channel-object-channel-structure>
-    (2..=100).contains(&len)
+    (1..=100).contains(&len)
 }
 
 pub fn content_limit(value: impl AsRef<str>) -> bool {
@@ -455,11 +455,10 @@ mod tests {
 
     #[test]
     fn test_channel_name() {
-        assert!(channel_name("aa"));
+        assert!(channel_name("a"));
         assert!(channel_name("a".repeat(100)));
 
         assert!(!channel_name(""));
-        assert!(!channel_name("a"));
         assert!(!channel_name("a".repeat(101)));
     }
 
