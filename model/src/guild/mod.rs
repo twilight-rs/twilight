@@ -98,6 +98,7 @@ pub struct Guild {
     pub premium_tier: PremiumTier,
     #[serde(default)]
     pub presences: Vec<Presence>,
+    #[deprecated(since = "0.4.3", note = "no longer provided by discord, see #884")]
     pub region: String,
     pub roles: Vec<Role>,
     pub rules_channel_id: Option<ChannelId>,
@@ -694,6 +695,7 @@ impl<'de> Deserialize<'de> for Guild {
                     voice_state.guild_id.replace(id);
                 }
 
+                #[allow(deprecated)]
                 Ok(Guild {
                     afk_channel_id,
                     afk_timeout,
@@ -805,6 +807,7 @@ mod tests {
     #[allow(clippy::too_many_lines)]
     #[test]
     fn test_guild() {
+        #[allow(deprecated)]
         let value = Guild {
             afk_channel_id: Some(ChannelId(2)),
             afk_timeout: 900,

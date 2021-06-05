@@ -166,6 +166,7 @@ mod tests {
     "usage_count": 0
 }"#;
 
+        #[allow(deprecated)]
         let value = Template {
             code: "code".into(),
             created_at: "2021-04-07T14:55:37+00:00".into(),

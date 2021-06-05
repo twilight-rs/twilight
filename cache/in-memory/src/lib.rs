@@ -677,6 +677,7 @@ impl InMemoryCache {
             self.cache_voice_states(guild.voice_states);
         }
 
+        #[allow(deprecated)]
         let guild = CachedGuild {
             id: guild.id,
             afk_channel_id: guild.afk_channel_id,
@@ -1135,6 +1136,7 @@ mod tests {
             topic: None,
         })]);
 
+        #[allow(deprecated)]
         let guild = Guild {
             id: GuildId(123),
             afk_channel_id: None,
