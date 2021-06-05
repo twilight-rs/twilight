@@ -11,6 +11,11 @@ bitflags! {
         const SUPPRESS_EMBEDS = 1 << 2;
         const SOURCE_MESSAGE_DELETED = 1 << 3;
         const URGENT = 1 << 4;
+        /// A thread has been started from this message.
+        ///
+        /// All threads must be started from a message, but can be
+        /// orphaned if the message is later deleted.
+        const HAS_THREAD = 1 << 5;
     }
 }
 

@@ -18,7 +18,7 @@ pub use self::{
 };
 
 use crate::{
-    channel::{embed::Embed, Attachment, ChannelMention},
+    channel::{embed::Embed, Attachment, Channel, ChannelMention},
     guild::PartialMember,
     id::{ChannelId, GuildId, MessageId, RoleId, WebhookId},
     user::User,
@@ -66,6 +66,8 @@ pub struct Message {
     #[serde(default)]
     pub stickers: Vec<Sticker>,
     pub timestamp: String,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub thread: Option<Channel>,
     pub tts: bool,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub webhook_id: Option<WebhookId>,
@@ -142,6 +144,7 @@ mod tests {
             }],
             referenced_message: None,
             timestamp: "2020-02-02T02:02:02.020000+00:00".to_owned(),
+            thread: None,
             tts: false,
             webhook_id: None,
         };
@@ -343,6 +346,7 @@ mod tests {
             }],
             referenced_message: None,
             timestamp: "2020-02-02T02:02:02.020000+00:00".to_owned(),
+            thread: None,
             tts: false,
             webhook_id: Some(WebhookId(1)),
         };
