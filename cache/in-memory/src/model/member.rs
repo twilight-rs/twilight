@@ -1,9 +1,7 @@
 use serde::Serialize;
-use std::sync::Arc;
 use twilight_model::{
     guild::{Member, PartialMember},
-    id::{GuildId, RoleId},
-    user::User,
+    id::{GuildId, RoleId, UserId},
 };
 
 #[derive(Clone, Debug, Eq, PartialEq, Serialize)]
@@ -16,7 +14,8 @@ pub struct CachedMember {
     pub pending: bool,
     pub premium_since: Option<String>,
     pub roles: Vec<RoleId>,
-    pub user: Arc<User>,
+    /// ID of the user relating to the member.
+    pub user_id: UserId,
 }
 
 impl PartialEq<Member> for CachedMember {
@@ -29,6 +28,7 @@ impl PartialEq<Member> for CachedMember {
             self.pending,
             self.premium_since.as_ref(),
             &self.roles,
+            self.user_id,
         ) == (
             other.deaf,
             other.joined_at.as_ref(),
@@ -37,6 +37,7 @@ impl PartialEq<Member> for CachedMember {
             other.pending,
             other.premium_since.as_ref(),
             &other.roles,
+            self.user_id,
         )
     }
 }
@@ -64,12 +65,24 @@ impl PartialEq<&PartialMember> for CachedMember {
 #[cfg(test)]
 mod tests {
     use super::CachedMember;
-    use std::sync::Arc;
+    use static_assertions::assert_fields;
     use twilight_model::{
         guild::{Member, PartialMember},
         id::{GuildId, RoleId, UserId},
         user::User,
     };
+
+    assert_fields!(
+        CachedMember: deaf,
+        guild_id,
+        joined_at,
+        mute,
+        nick,
+        pending,
+        premium_since,
+        roles,
+        user_id
+    );
 
     fn cached_member() -> CachedMember {
         CachedMember {
@@ -81,7 +94,7 @@ mod tests {
             pending: false,
             premium_since: None,
             roles: Vec::new(),
-            user: Arc::new(user()),
+            user_id: user().id,
         }
     }
 
