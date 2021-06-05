@@ -75,7 +75,7 @@ pub trait Mention<T> {
 }
 
 impl<T, M: Mention<T>> Mention<T> for &'_ M {
-    fn mention(&self) ->MentionFormat<T> {
+    fn mention(&self) -> MentionFormat<T> {
         (*self).mention()
     }
 }
