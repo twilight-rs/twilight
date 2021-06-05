@@ -68,6 +68,8 @@ pub enum ErrorCode {
     AnnouncementRateLimitReached,
     /// The channel you are writing has hit the write rate limit
     ChannelRateLimitReached,
+    /// Your Stage topic contains words that are not allowed for public Stages
+    UnallowedWordsForPublicStage,
     /// Maximum number of guilds reached (100)
     MaximumGuildsReached,
     /// Maximum number of friends reached (1000)
@@ -206,6 +208,7 @@ impl ErrorCode {
             Self::OnlyBotsCanUseEndpoint => 20002,
             Self::AnnouncementRateLimitReached => 20022,
             Self::ChannelRateLimitReached => 20028,
+            Self::UnallowedWordsForPublicStage => 20031,
             Self::MaximumGuildsReached => 30001,
             Self::MaximumFriendsReached => 30002,
             Self::MaximumPinsReached => 30003,
@@ -293,6 +296,7 @@ impl From<u64> for ErrorCode {
             20002 => Self::OnlyBotsCanUseEndpoint,
             20022 => Self::AnnouncementRateLimitReached,
             20028 => Self::ChannelRateLimitReached,
+            20031 => Self::UnallowedWordsForPublicStage,
             30001 => Self::MaximumGuildsReached,
             30002 => Self::MaximumFriendsReached,
             30003 => Self::MaximumPinsReached,
@@ -380,6 +384,7 @@ impl Display for ErrorCode {
             Self::OnlyBotsCanUseEndpoint => f.write_str("Only bots can use this endpoint"),
             Self::AnnouncementRateLimitReached => f.write_str("Message cannot be edited due to announcement rate limits"),
             Self::ChannelRateLimitReached => f.write_str("The channel you are writing has hit the write rate limit"),
+            Self::UnallowedWordsForPublicStage => f.write_str("Your Stage topic contains words that are not allowed for public Stages"),
             Self::MaximumGuildsReached => f.write_str("Maximum number of guilds reached (100)"),
             Self::MaximumFriendsReached => f.write_str("Maximum number of friends reached (1000)"),
             Self::MaximumPinsReached => f.write_str("Maximum number of pins reached for the channel (50)"),
