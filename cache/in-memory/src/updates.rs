@@ -258,6 +258,7 @@ impl UpdateCache for GuildUpdate {
             return;
         }
 
+        #[allow(deprecated)]
         if let Some(mut guild) = cache.0.guilds.get_mut(&self.0.id) {
             let mut guild = Arc::make_mut(&mut guild);
             guild.afk_channel_id = self.afk_channel_id;
@@ -917,6 +918,7 @@ mod tests {
     #[test]
     fn test_guild_update() {
         let cache = InMemoryCache::new();
+        #[allow(deprecated)]
         let guild = Guild {
             afk_channel_id: None,
             afk_timeout: 0,
