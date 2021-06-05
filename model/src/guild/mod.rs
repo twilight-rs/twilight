@@ -11,6 +11,7 @@ mod integration_account;
 mod integration_application;
 mod integration_expire_behavior;
 mod mfa_level;
+mod nsfw_level;
 mod partial_guild;
 mod partial_member;
 mod permissions;
@@ -29,9 +30,9 @@ pub use self::{
     explicit_content_filter::ExplicitContentFilter, info::GuildInfo, integration::GuildIntegration,
     integration_account::IntegrationAccount, integration_application::IntegrationApplication,
     integration_expire_behavior::IntegrationExpireBehavior, member::Member, mfa_level::MfaLevel,
-    partial_guild::PartialGuild, partial_member::PartialMember, permissions::Permissions,
-    premium_tier::PremiumTier, preview::GuildPreview, prune::GuildPrune, role::Role,
-    role_tags::RoleTags, system_channel_flags::SystemChannelFlags,
+    nsfw_level::NSFWLevel, partial_guild::PartialGuild, partial_member::PartialMember,
+    permissions::Permissions, premium_tier::PremiumTier, preview::GuildPreview, prune::GuildPrune,
+    role::Role, role_tags::RoleTags, system_channel_flags::SystemChannelFlags,
     unavailable_guild::UnavailableGuild, verification_level::VerificationLevel,
     widget::GuildWidget,
 };
@@ -85,7 +86,10 @@ pub struct Guild {
     pub members: Vec<Member>,
     pub mfa_level: MfaLevel,
     pub name: String,
+    #[deprecated(since = "0.4.3", note = "no longer provided by discord, see #839")]
+    #[serde(skip)]
     pub nsfw: bool,
+    pub nsfw_level: NSFWLevel,
     pub owner_id: UserId,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub owner: Option<bool>,
@@ -148,7 +152,7 @@ impl<'de> Deserialize<'de> for Guild {
             Members,
             MfaLevel,
             Name,
-            Nsfw,
+            NsfwLevel,
             OwnerId,
             Owner,
             Permissions,
@@ -206,7 +210,7 @@ impl<'de> Deserialize<'de> for Guild {
                 let mut members = None;
                 let mut mfa_level = None;
                 let mut name = None;
-                let mut nsfw = None;
+                let mut nsfw_level = None;
                 let mut owner = None::<Option<_>>;
                 let mut owner_id = None;
                 let mut permissions = None::<Option<_>>;
@@ -425,12 +429,12 @@ impl<'de> Deserialize<'de> for Guild {
 
                             name = Some(map.next_value()?);
                         }
-                        Field::Nsfw => {
-                            if nsfw.is_some() {
-                                return Err(DeError::duplicate_field("nsfw"));
+                        Field::NsfwLevel => {
+                            if nsfw_level.is_some() {
+                                return Err(DeError::duplicate_field("nsfw_level"));
                             }
 
-                            nsfw = Some(map.next_value()?);
+                            nsfw_level = Some(map.next_value()?);
                         }
                         Field::Owner => {
                             if owner.is_some() {
@@ -614,7 +618,7 @@ impl<'de> Deserialize<'de> for Guild {
                 let max_video_channel_users = max_video_channel_users.unwrap_or_default();
                 let member_count = member_count.unwrap_or_default();
                 let mut members = members.unwrap_or_default();
-                let nsfw = nsfw.unwrap_or_default();
+                let nsfw_level = nsfw_level.ok_or_else(|| DeError::missing_field("nsfw_level"))?;
                 let owner = owner.unwrap_or_default();
                 let permissions = permissions.unwrap_or_default();
                 let premium_subscription_count = premium_subscription_count.unwrap_or_default();
@@ -707,6 +711,7 @@ impl<'de> Deserialize<'de> for Guild {
                     voice_state.guild_id.replace(id);
                 }
 
+                #[allow(deprecated)]
                 Ok(Guild {
                     afk_channel_id,
                     afk_timeout,
@@ -732,7 +737,8 @@ impl<'de> Deserialize<'de> for Guild {
                     members,
                     mfa_level,
                     name,
-                    nsfw,
+                    nsfw: false,
+                    nsfw_level,
                     owner_id,
                     owner,
                     permissions,
@@ -782,7 +788,7 @@ impl<'de> Deserialize<'de> for Guild {
             "members",
             "mfa_level",
             "name",
-            "nsfw",
+            "nsfw_level",
             "owner",
             "owner_id",
             "permissions",
@@ -812,11 +818,13 @@ impl<'de> Deserialize<'de> for Guild {
 mod tests {
     use super::{
         ApplicationId, ChannelId, DefaultMessageNotificationLevel, ExplicitContentFilter, Guild,
-        GuildId, MfaLevel, Permissions, PremiumTier, SystemChannelFlags, UserId, VerificationLevel,
+        GuildId, MfaLevel, NSFWLevel, Permissions, PremiumTier, SystemChannelFlags, UserId,
+        VerificationLevel,
     };
     use serde_test::Token;
 
     #[allow(clippy::too_many_lines)]
+    #[allow(deprecated)]
     #[test]
     fn test_guild() {
         let value = Guild {
@@ -845,6 +853,7 @@ mod tests {
             mfa_level: MfaLevel::Elevated,
             name: "the name".to_owned(),
             nsfw: false,
+            nsfw_level: NSFWLevel::Default,
             owner_id: UserId(5),
             owner: Some(false),
             permissions: Some(Permissions::SEND_MESSAGES),
@@ -945,8 +954,8 @@ mod tests {
                 Token::U8(1),
                 Token::Str("name"),
                 Token::Str("the name"),
-                Token::Str("nsfw"),
-                Token::Bool(false),
+                Token::Str("nsfw_level"),
+                Token::U8(0),
                 Token::Str("owner_id"),
                 Token::NewtypeStruct { name: "UserId" },
                 Token::Str("5"),

@@ -712,6 +712,7 @@ impl InMemoryCache {
             self.cache_stage_instances(guild.id, guild.stage_instances);
         }
 
+        #[allow(deprecated)]
         let guild = CachedGuild {
             id: guild.id,
             afk_channel_id: guild.afk_channel_id,
@@ -731,7 +732,8 @@ impl InMemoryCache {
             member_count: guild.member_count,
             mfa_level: guild.mfa_level,
             name: guild.name,
-            nsfw: guild.nsfw,
+            nsfw: false,
+            nsfw_level: guild.nsfw_level,
             owner: guild.owner,
             owner_id: guild.owner_id,
             permissions: guild.permissions,
@@ -1082,7 +1084,7 @@ mod tests {
         },
         guild::{
             DefaultMessageNotificationLevel, Emoji, ExplicitContentFilter, Guild, Member, MfaLevel,
-            Permissions, PremiumTier, Role, SystemChannelFlags, VerificationLevel,
+            NSFWLevel, Permissions, PremiumTier, Role, SystemChannelFlags, VerificationLevel,
         },
         id::{ChannelId, EmojiId, GuildId, RoleId, StageId, UserId},
         user::{CurrentUser, User},
@@ -1216,6 +1218,7 @@ mod tests {
             topic: None,
         })]);
 
+        #[allow(deprecated)]
         let guild = Guild {
             id: GuildId(123),
             afk_channel_id: None,
@@ -1239,6 +1242,7 @@ mod tests {
             mfa_level: MfaLevel::Elevated,
             name: "this is a guild".to_owned(),
             nsfw: false,
+            nsfw_level: NSFWLevel::AgeRestricted,
             owner: Some(false),
             owner_id: UserId(456),
             permissions: Some(Permissions::SEND_MESSAGES),
