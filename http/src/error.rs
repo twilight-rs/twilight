@@ -55,12 +55,10 @@ impl Display for Error {
             ErrorType::CreatingHeader { name, .. } => {
                 write!(f, "Parsing the value for header {} failed", name)
             }
-            ErrorType::Formatting => f.write_str("Formatting a string failed"),
             ErrorType::Json => f.write_str("Given value couldn't be serialized"),
             ErrorType::Parsing { body, .. } => {
                 write!(f, "Response body couldn't be deserialized: {:?}", body)
             }
-            ErrorType::Ratelimiting => f.write_str("Ratelimiting failure"),
             ErrorType::RequestCanceled => {
                 f.write_str("Request was canceled either before or while being sent")
             }
@@ -98,12 +96,10 @@ pub enum ErrorType {
     CreatingHeader {
         name: String,
     },
-    Formatting,
     Json,
     Parsing {
         body: Vec<u8>,
     },
-    Ratelimiting,
     RequestCanceled,
     RequestError,
     RequestTimedOut,
