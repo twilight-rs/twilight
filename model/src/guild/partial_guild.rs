@@ -42,6 +42,7 @@ pub struct PartialGuild {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub premium_subscription_count: Option<u64>,
     pub premium_tier: PremiumTier,
+    #[deprecated(since = "0.4.3", note = "no longer provided by discord, see #884")]
     pub region: String,
     pub roles: Vec<Role>,
     pub rules_channel_id: Option<ChannelId>,
@@ -69,6 +70,7 @@ mod tests {
     #[allow(deprecated)]
     #[test]
     fn test_partial_guild() {
+        #[allow(deprecated)]
         let value = PartialGuild {
             id: GuildId(1),
             afk_channel_id: Some(ChannelId(2)),
