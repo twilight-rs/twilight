@@ -17,6 +17,11 @@ bitflags! {
         ///
         /// [`Interaction`]: crate::application::interaction::Interaction
         const EPHEMERAL = 1 << 6;
+        /// A thread has been started from this message.
+        ///
+        /// All threads must be started from a message, but can be
+        /// orphaned if the message is later deleted.
+        const HAS_THREAD = 1 << 5;
     }
 }
 

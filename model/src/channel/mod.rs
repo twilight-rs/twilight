@@ -5,31 +5,43 @@ pub mod stage_instance;
 pub mod webhook;
 
 mod attachment;
+mod auto_archive_duration;
 mod category_channel;
 mod channel_mention;
 mod channel_type;
 mod followed_channel;
 mod group;
+mod news_thread;
 mod private_channel;
+mod private_thread;
+mod public_thread;
 mod reaction;
 mod reaction_type;
 mod text_channel;
+mod thread_member;
+mod thread_metadata;
 mod video_quality_mode;
 mod voice_channel;
 
 pub use self::{
     attachment::Attachment,
+    auto_archive_duration::AutoArchiveDuration,
     category_channel::CategoryChannel,
     channel_mention::ChannelMention,
     channel_type::ChannelType,
     followed_channel::FollowedChannel,
     group::Group,
     message::Message,
+    news_thread::NewsThread,
     private_channel::PrivateChannel,
+    private_thread::PrivateThread,
+    public_thread::PublicThread,
     reaction::Reaction,
     reaction_type::ReactionType,
     stage_instance::StageInstance,
     text_channel::TextChannel,
+    thread_member::ThreadMember,
+    thread_metadata::ThreadMetadata,
     video_quality_mode::VideoQualityMode,
     voice_channel::VoiceChannel,
     webhook::{Webhook, WebhookType},
@@ -105,6 +117,9 @@ impl Channel {
 #[serde(untagged)]
 pub enum GuildChannel {
     Category(CategoryChannel),
+    NewsThread(NewsThread),
+    PrivateThread(PrivateThread),
+    PublicThread(PublicThread),
     Text(TextChannel),
     Voice(VoiceChannel),
     Stage(VoiceChannel),
@@ -115,6 +130,9 @@ impl GuildChannel {
     pub const fn guild_id(&self) -> Option<GuildId> {
         match self {
             Self::Category(category) => category.guild_id,
+            Self::NewsThread(thread) => thread.guild_id,
+            Self::PrivateThread(thread) => thread.guild_id,
+            Self::PublicThread(thread) => thread.guild_id,
             Self::Text(text) => text.guild_id,
             Self::Voice(voice) => voice.guild_id,
             Self::Stage(stage) => stage.guild_id,
@@ -125,6 +143,9 @@ impl GuildChannel {
     pub const fn id(&self) -> ChannelId {
         match self {
             Self::Category(category) => category.id,
+            Self::NewsThread(thread) => thread.id,
+            Self::PrivateThread(thread) => thread.id,
+            Self::PublicThread(thread) => thread.id,
             Self::Text(text) => text.id,
             Self::Voice(voice) => voice.id,
             Self::Stage(stage) => stage.id,
@@ -135,6 +156,9 @@ impl GuildChannel {
     pub const fn kind(&self) -> ChannelType {
         match self {
             Self::Category(c) => c.kind,
+            Self::NewsThread(c) => c.kind,
+            Self::PrivateThread(c) => c.kind,
+            Self::PublicThread(c) => c.kind,
             Self::Text(c) => c.kind,
             Self::Stage(c) | Self::Voice(c) => c.kind,
         }
@@ -144,6 +168,9 @@ impl GuildChannel {
     pub fn name(&self) -> &str {
         match self {
             Self::Category(category) => category.name.as_ref(),
+            Self::NewsThread(thread) => thread.name.as_ref(),
+            Self::PrivateThread(thread) => thread.name.as_ref(),
+            Self::PublicThread(thread) => thread.name.as_ref(),
             Self::Text(text) => text.name.as_ref(),
             Self::Voice(voice) => voice.name.as_ref(),
             Self::Stage(stage) => stage.name.as_ref(),
