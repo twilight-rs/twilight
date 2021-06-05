@@ -64,6 +64,9 @@ pub enum EventType {
     ShardReconnecting,
     ShardPayload,
     ShardResuming,
+    StageInstanceCreate,
+    StageInstanceDelete,
+    StageInstanceUpdate,
     TypingStart,
     UnavailableGuild,
     UserUpdate,
@@ -109,6 +112,9 @@ impl EventType {
             Self::RoleCreate => Some("GUILD_ROLE_CREATE"),
             Self::RoleDelete => Some("GUILD_ROLE_DELETE"),
             Self::RoleUpdate => Some("GUILD_ROLE_UPDATE"),
+            Self::StageInstanceCreate => Some("STAGE_INSTANCE_CREATE"),
+            Self::StageInstanceDelete => Some("STAGE_INSTANCE_DELETE"),
+            Self::StageInstanceUpdate => Some("STAGE_INSTANCE_UPDATE"),
             Self::TypingStart => Some("TYPING_START"),
             Self::UnavailableGuild => Some("UNAVAILABLE_GUILD"),
             Self::UserUpdate => Some("USER_UPDATE"),
@@ -170,6 +176,9 @@ impl<'a> TryFrom<&'a str> for EventType {
             "GUILD_ROLE_CREATE" => Ok(Self::RoleCreate),
             "GUILD_ROLE_DELETE" => Ok(Self::RoleDelete),
             "GUILD_ROLE_UPDATE" => Ok(Self::RoleUpdate),
+            "STAGE_INSTANCE_CREATE" => Ok(Self::StageInstanceCreate),
+            "STAGE_INSTANCE_DELETE" => Ok(Self::StageInstanceDelete),
+            "STAGE_INSTANCE_UPDATE" => Ok(Self::StageInstanceUpdate),
             "TYPING_START" => Ok(Self::TypingStart),
             "UNAVAILABLE_GUILD" => Ok(Self::UnavailableGuild),
             "USER_UPDATE" => Ok(Self::UserUpdate),
@@ -253,6 +262,9 @@ mod tests {
         assert_variant(EventType::ShardPayload, "SHARD_PAYLOAD");
         assert_variant(EventType::ShardReconnecting, "SHARD_RECONNECTING");
         assert_variant(EventType::ShardResuming, "SHARD_RESUMING");
+        assert_variant(EventType::StageInstanceCreate, "STAGE_INSTANCE_CREATE");
+        assert_variant(EventType::StageInstanceDelete, "STAGE_INSTANCE_DELETE");
+        assert_variant(EventType::StageInstanceUpdate, "STAGE_INSTANCE_UPDATE");
         assert_variant(EventType::TypingStart, "TYPING_START");
         assert_variant(EventType::UnavailableGuild, "UNAVAILABLE_GUILD");
         assert_variant(EventType::UserUpdate, "USER_UPDATE");

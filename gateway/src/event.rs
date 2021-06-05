@@ -107,6 +107,12 @@ bitflags! {
         const SHARD_RECONNECTING = 1 << 37;
         /// Shard is resuming a session with the gateway.
         const SHARD_RESUMING = 1 << 38;
+        /// Stage instance was created in a stage channel.
+        const STAGE_INSTANCE_CREATE = 1 << 57;
+        /// Stage instance was deleted in a stage channel.
+        const STAGE_INSTANCE_DELETE = 1 << 58;
+        /// Stage instance was updated in a stage channel.
+        const STAGE_INSTANCE_UPDATE = 1 << 59;
         /// User has begun typing in a channel.
         const TYPING_START = 1 << 39;
         /// Guild is unavailable, potentially due to an outage.
@@ -171,6 +177,9 @@ impl From<EventType> for EventTypeFlags {
             EventType::ShardReconnecting => EventTypeFlags::SHARD_RECONNECTING,
             EventType::ShardPayload => EventTypeFlags::SHARD_PAYLOAD,
             EventType::ShardResuming => EventTypeFlags::SHARD_RESUMING,
+            EventType::StageInstanceCreate => EventTypeFlags::STAGE_INSTANCE_CREATE,
+            EventType::StageInstanceDelete => EventTypeFlags::STAGE_INSTANCE_DELETE,
+            EventType::StageInstanceUpdate => EventTypeFlags::STAGE_INSTANCE_UPDATE,
             EventType::TypingStart => EventTypeFlags::TYPING_START,
             EventType::UnavailableGuild => EventTypeFlags::UNAVAILABLE_GUILD,
             EventType::UserUpdate => EventTypeFlags::USER_UPDATE,

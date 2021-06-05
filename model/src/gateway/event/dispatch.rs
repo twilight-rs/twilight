@@ -49,6 +49,9 @@ pub enum DispatchEvent {
     RoleCreate(RoleCreate),
     RoleDelete(RoleDelete),
     RoleUpdate(RoleUpdate),
+    StageInstanceCreate(StageInstanceCreate),
+    StageInstanceDelete(StageInstanceDelete),
+    StageInstanceUpdate(StageInstanceUpdate),
     TypingStart(Box<TypingStart>),
     UnavailableGuild(UnavailableGuild),
     UserUpdate(UserUpdate),
@@ -95,6 +98,9 @@ impl DispatchEvent {
             Self::RoleCreate(_) => EventType::RoleCreate,
             Self::RoleDelete(_) => EventType::RoleDelete,
             Self::RoleUpdate(_) => EventType::RoleUpdate,
+            Self::StageInstanceCreate(_) => EventType::StageInstanceCreate,
+            Self::StageInstanceDelete(_) => EventType::StageInstanceDelete,
+            Self::StageInstanceUpdate(_) => EventType::StageInstanceUpdate,
             Self::TypingStart(_) => EventType::TypingStart,
             Self::UnavailableGuild(_) => EventType::UnavailableGuild,
             Self::UserUpdate(_) => EventType::UserUpdate,
@@ -144,6 +150,9 @@ impl TryFrom<Event> for DispatchEvent {
             Event::RoleCreate(v) => Self::RoleCreate(v),
             Event::RoleDelete(v) => Self::RoleDelete(v),
             Event::RoleUpdate(v) => Self::RoleUpdate(v),
+            Event::StageInstanceCreate(v) => Self::StageInstanceCreate(v),
+            Event::StageInstanceDelete(v) => Self::StageInstanceDelete(v),
+            Event::StageInstanceUpdate(v) => Self::StageInstanceUpdate(v),
             Event::TypingStart(v) => Self::TypingStart(v),
             Event::UnavailableGuild(v) => Self::UnavailableGuild(v),
             Event::UserUpdate(v) => Self::UserUpdate(v),
@@ -276,6 +285,15 @@ impl<'de, 'a> DeserializeSeed<'de> for DispatchEventWithTypeDeserializer<'a> {
                 deserializer.deserialize_ignored_any(IgnoredAny)?;
 
                 DispatchEvent::Resumed
+            }
+            "STAGE_INSTANCE_CREATE" => {
+                DispatchEvent::StageInstanceCreate(StageInstanceCreate::deserialize(deserializer)?)
+            }
+            "STAGE_INSTANCE_DELETE" => {
+                DispatchEvent::StageInstanceDelete(StageInstanceDelete::deserialize(deserializer)?)
+            }
+            "STAGE_INSTANCE_UPDATE" => {
+                DispatchEvent::StageInstanceUpdate(StageInstanceUpdate::deserialize(deserializer)?)
             }
             "TYPING_START" => {
                 DispatchEvent::TypingStart(Box::new(TypingStart::deserialize(deserializer)?))

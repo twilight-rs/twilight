@@ -123,6 +123,12 @@ pub enum Event {
     ShardPayload(Payload),
     /// A shard is now in a Resuming stage after a disconnect.
     ShardResuming(Resuming),
+    /// A stage instance was created in a stage channel.
+    StageInstanceCreate(StageInstanceCreate),
+    /// A stage instance was deleted in a stage channel.
+    StageInstanceDelete(StageInstanceDelete),
+    /// A stage instance was updated in a stage channel.
+    StageInstanceUpdate(StageInstanceUpdate),
     /// A user started typing in a channel.
     TypingStart(Box<TypingStart>),
     /// A guild is now unavailable.
@@ -186,6 +192,9 @@ impl Event {
             Self::ShardReconnecting(_) => EventType::ShardReconnecting,
             Self::ShardPayload(_) => EventType::ShardPayload,
             Self::ShardResuming(_) => EventType::ShardResuming,
+            Self::StageInstanceCreate(_) => EventType::StageInstanceCreate,
+            Self::StageInstanceDelete(_) => EventType::StageInstanceDelete,
+            Self::StageInstanceUpdate(_) => EventType::StageInstanceUpdate,
             Self::TypingStart(_) => EventType::TypingStart,
             Self::UnavailableGuild(_) => EventType::UnavailableGuild,
             Self::UserUpdate(_) => EventType::UserUpdate,
@@ -233,6 +242,9 @@ impl From<Box<DispatchEvent>> for Event {
             DispatchEvent::ReactionRemoveEmoji(v) => Self::ReactionRemoveEmoji(v),
             DispatchEvent::Ready(v) => Self::Ready(v),
             DispatchEvent::Resumed => Self::Resumed,
+            DispatchEvent::StageInstanceCreate(v) => Self::StageInstanceCreate(v),
+            DispatchEvent::StageInstanceDelete(v) => Self::StageInstanceDelete(v),
+            DispatchEvent::StageInstanceUpdate(v) => Self::StageInstanceUpdate(v),
             DispatchEvent::TypingStart(v) => Self::TypingStart(v),
             DispatchEvent::UnavailableGuild(v) => Self::UnavailableGuild(v),
             DispatchEvent::UserUpdate(v) => Self::UserUpdate(v),
