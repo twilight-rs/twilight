@@ -27,7 +27,7 @@ use tokio::sync::{
     watch::{channel as watch_channel, Receiver as WatchReceiver, Sender as WatchSender},
 };
 use tokio_tungstenite::tungstenite::{
-    protocol::{frame::coding::CloseCode, CloseFrame},
+    protocol::{frame::coding::CloseCode, CloseFrame, WebSocketConfig},
     Message,
 };
 use twilight_model::gateway::{
@@ -861,10 +861,6 @@ impl ShardProcessor {
     }
 
     async fn connect(url: &str) -> Result<ShardStream, ConnectingError> {
-        use tokio_tungstenite::{
-            connect_async_with_config, tungstenite::protocol::WebSocketConfig,
-        };
-
         let url = Url::parse(url).map_err(|source| ConnectingError {
             kind: ConnectingErrorType::ParsingUrl {
                 url: url.to_owned(),
@@ -872,12 +868,19 @@ impl ShardProcessor {
             source: Some(Box::new(source)),
         })?;
 
+        // `max_frame_size` and `max_message_queue` limits are disabled because
+        // Discord is not a malicious actor.
+        //
+        // `accept_unmasked_frames` and `max_send_queue` are set to their
+        // defaults.
         let config = WebSocketConfig {
+            accept_unmasked_frames: false,
             max_frame_size: None,
-            ..WebSocketConfig::default()
+            max_message_size: None,
+            max_send_queue: None,
         };
 
-        let (stream, _) = connect_async_with_config(url, Some(config))
+        let (stream, _) = tokio_tungstenite::connect_async_with_config(url, Some(config))
             .await
             .map_err(|source| ConnectingError {
                 kind: ConnectingErrorType::Establishing,
