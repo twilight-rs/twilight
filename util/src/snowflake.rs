@@ -80,70 +80,30 @@ pub trait Snowflake {
     }
 }
 
-impl Snowflake for AttachmentId {
-    fn id(&self) -> u64 {
-        self.0
+macro_rules! impl_snowflake {
+    ($($args:ident;)*) => {
+        $(
+            impl Snowflake for $args {
+                fn id(&self) ->u64 {
+                    self.0
+                }
+            }
+        )*
     }
 }
 
-impl Snowflake for AuditLogEntryId {
-    fn id(&self) -> u64 {
-        self.0
-    }
-}
-
-impl Snowflake for ChannelId {
-    fn id(&self) -> u64 {
-        self.0
-    }
-}
-
-impl Snowflake for EmojiId {
-    fn id(&self) -> u64 {
-        self.0
-    }
-}
-
-impl Snowflake for GenericId {
-    fn id(&self) -> u64 {
-        self.0
-    }
-}
-
-impl Snowflake for GuildId {
-    fn id(&self) -> u64 {
-        self.0
-    }
-}
-
-impl Snowflake for IntegrationId {
-    fn id(&self) -> u64 {
-        self.0
-    }
-}
-
-impl Snowflake for MessageId {
-    fn id(&self) -> u64 {
-        self.0
-    }
-}
-
-impl Snowflake for RoleId {
-    fn id(&self) -> u64 {
-        self.0
-    }
-}
-
-impl Snowflake for UserId {
-    fn id(&self) -> u64 {
-        self.0
-    }
-}
-
-impl Snowflake for WebhookId {
-    fn id(&self) -> u64 {
-        self.0
-    }
+impl_snowflake! {
+    AttachmentId;
+    AuditLogEntryId;
+    ChannelId;
+    EmojiId;
+    GenericId;
+    GuildId;
+    IntegrationId;
+    MessageId;
+    RoleId;
+    UserId;
+    WebhookId;
 }
 
 #[cfg(test)]
