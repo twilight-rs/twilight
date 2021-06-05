@@ -2,6 +2,92 @@
 
 Changelog for `twilight-http`.
 
+## [0.4.2] - 2021-05-30
+
+### Upgrade Path
+
+`Request::new` and the `From` implementations on `Request` have been
+deprecated; use the new `RequestBuilder` instead.
+
+`CreateInvite::target_user_type` has been deprecated; use
+`CreateInvite::target_type` instead.
+
+### Additions
+
+Add `request::RequestBuilder` for constructing manual `Request`s
+([#814] - [@vivian], [#831] - [@vivian]).
+
+Add support for 18 new HTTP API error codes ([#818] - [@7596ff]).
+
+Add the following new `CreateGuild` and `UpdateGuild` methods:
+
+- `CreateGuild::afk_channel_id`
+- `CreateGuild::afk_timeout`
+- `CreateGuild::system_channel_id`
+- `CreateGuild::system_channel_flags`
+- `UpdateGuild::discovery_splash`
+- `UpdateGuild::features`
+- `UpdateGuild::system_channel_flags`
+
+([#819] - [@7596ff]).
+
+Support retrieving a webhook's message, exposed via `Client::webhook_message`
+([#817] - [@7596ff]).
+
+Support Stage Instances by adding the following request methods:
+
+- `Client::create_stage_instance`
+- `Client::delete_stage_instance`
+- `Client::stage_instance`
+- `Client::update_stage_instance`
+
+([#812], [#830] - [@7596ff]).
+
+Bring invites up to date by adding `CreateInvite::target_application_id`, adding
+`GetInvite::with_expiration`, and adding `CreateInvite::target_type` while
+deprecating `CreateInvite::target_user_type` ([#809] - [@7596ff]).
+
+### Fixes
+
+Fix request sending logic in `UpdateWebhookMessage` ([#844] - [@7596ff]).
+
+### Enhancements
+
+Don't send client authentication in webhook requests using a webhook token
+([#828] - [@vivian]).
+
+The following functions are now `const`:
+
+- `api_error::ErrorCode::num`
+- `client::ClientBuilder::timeout`
+- `client::Client::delete_channel_permission`
+- `client::Client::update_channel_permission`
+- `ratelimiting::RatelimitError::error::kind`
+- `ratelimiting::RatelimitHeaders::global`
+- `request::channel::invite::GetInvite::with_counts`
+- `request::guild::create_guild::GuildChannelFieldsBuilder::new`
+- `request::guild::GetGuild::with_counts`
+- `request::AuditLogReasonError::kind`
+- `Error::kind`
+
+([#824] - [@vivian]).
+
+### Changes
+
+`Request::new` and `Request`'s `From` implementations have been deprecated
+([#814] - [@vivian]).
+
+[#844]: https://github.com/twilight-rs/twilight/pull/844
+[#831]: https://github.com/twilight-rs/twilight/pull/831
+[#830]: https://github.com/twilight-rs/twilight/pull/830
+[#828]: https://github.com/twilight-rs/twilight/pull/828
+[#824]: https://github.com/twilight-rs/twilight/pull/824
+[#818]: https://github.com/twilight-rs/twilight/pull/818
+[#817]: https://github.com/twilight-rs/twilight/pull/817
+[#814]: https://github.com/twilight-rs/twilight/pull/814
+[#812]: https://github.com/twilight-rs/twilight/pull/812
+[#809]: https://github.com/twilight-rs/twilight/pull/809
+
 ## [0.4.1] - 2021-05-20
 
 ### Upgrade Path
@@ -635,6 +721,7 @@ Initial release.
 
 [0.2.0-beta.1:app integrations]: https://github.com/discord/discord-api-docs/commit/a926694e2f8605848bda6b57d21c8817559e5cec
 
+[0.4.2]: https://github.com/twilight-rs/twilight/releases/tag/http-0.4.2
 [0.4.1]: https://github.com/twilight-rs/twilight/releases/tag/http-0.4.1
 [0.4.0]: https://github.com/twilight-rs/twilight/releases/tag/http-0.4.0
 [0.3.9]: https://github.com/twilight-rs/twilight/releases/tag/http-v0.3.9

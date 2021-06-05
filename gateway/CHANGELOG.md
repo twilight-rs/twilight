@@ -2,6 +2,59 @@
 
 Changelog for `twilight-gateway`.
 
+## [0.4.1] - 2021-05-30
+
+### Enhancements
+
+A peer feature dependency of `tokio`'s `macros` feature has been removed
+([#826] - [@vivian]).
+
+`Shard::start` no longer requires mutability ([#827] - [@vivian]).
+
+The following functions are now `const`:
+
+- `cluster::ClusterCommandError::kind`
+- `cluster::ClusterSendError::kind`
+- `cluster::ClusterStartError::kind`
+- `cluster::scheme::ShardSchemeRangeError::kind`
+- `cluster::scheme::ShardScheme::from`
+- `cluster::scheme::ShardScheme::total`
+- `cluster::Config::http_client`
+- `cluster::Config::shard_config`
+- `cluster::Config::shard_scheme`
+- `shard::stage::StageConverserionError::kind`
+- `shard::CommandError::kind`
+- `shard::Config::http_client`
+- `shard::Config::intents`
+- `shard::Config::large_threshold`
+- `shard::Config::presence`
+- `shard::Config::shard`
+- `shard::Config::token`
+- `shard::Events::event_types`
+- `shard::Information::id`
+- `shard::Information::latency`
+- `shard::Information::seq`
+- `shard::Information::stage`
+- `shard::LargeThresholdError::kind`
+- `shard::Latency::average`
+- `shard::Latency::heartbeats`
+- `shard::Latency::recent`
+- `shard::Latency::received`
+- `shard::Latency::sent`
+- `shard::SendError::kind`
+- `shard::ShardIdError::kind`
+- `shard::ShardStartError::kind`
+
+([#824] - [@vivian]).
+
+Add documentation to `shard::ShardBuilder::presence` on using the new
+`MinimalActivity` model to easily set a presence ([#851] - [@7596ff]).
+
+[#851]: https://github.com/twilight-rs/twilight/pull/851
+[#827]: https://github.com/twilight-rs/twilight/pull/827
+[#826]: https://github.com/twilight-rs/twilight/pull/826
+[#824]: https://github.com/twilight-rs/twilight/pull/824
+
 ## [0.4.0] - 2021-05-12
 
 ### Upgrade Path
@@ -287,6 +340,7 @@ Initial release.
 [#515]: https://github.com/twilight-rs/twilight/pull/515
 [#512]: https://github.com/twilight-rs/twilight/pull/512
 
+[0.4.1]: https://github.com/twilight-rs/twilight/releases/tag/gateway-0.4.1
 [0.4.0]: https://github.com/twilight-rs/twilight/releases/tag/gateway-0.4.0
 [0.3.4]: https://github.com/twilight-rs/twilight/releases/tag/gateway-v0.3.4
 [0.3.3]: https://github.com/twilight-rs/twilight/releases/tag/gateway-v0.3.3

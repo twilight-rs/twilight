@@ -2,10 +2,8 @@
 
 use crate::{
     client::Client,
-    error::{Error as HttpError, Result},
-    request::{
-        audit_header, validate, AuditLogReason, AuditLogReasonError, Form, Pending, Request,
-    },
+    error::Error as HttpError,
+    request::{self, validate, AuditLogReason, AuditLogReasonError, Form, Pending, Request},
     routing::Route,
 };
 use serde::Serialize;
@@ -358,7 +356,7 @@ impl<'a> UpdateWebhookMessage<'a> {
         self
     }
 
-    fn request(&mut self) -> Result<Request> {
+    fn request(&mut self) -> Result<Request, HttpError> {
         let mut request = Request::builder(Route::UpdateWebhookMessage {
             message_id: self.message_id.0,
             token: self.token.clone(),
@@ -366,29 +364,33 @@ impl<'a> UpdateWebhookMessage<'a> {
         })
         .use_authorization_token(false);
 
-        if self.files.is_empty() {
-            request = request.json(&self.fields)?;
-        } else {
+        if !self.files.is_empty() || self.fields.payload_json.is_some() {
             let mut form = Form::new();
 
             for (index, (name, file)) in self.files.drain(..).enumerate() {
                 form.file(format!("{}", index).as_bytes(), name.as_bytes(), &file);
             }
 
-            let body = crate::json::to_vec(&self.fields).map_err(HttpError::json)?;
-            form.payload_json(&body);
+            if let Some(payload_json) = &self.fields.payload_json {
+                form.payload_json(&payload_json);
+            } else {
+                let body = crate::json::to_vec(&self.fields).map_err(HttpError::json)?;
+                form.payload_json(&body);
+            }
 
             request = request.form(form);
+        } else {
+            request = request.json(&self.fields)?;
         }
 
         if let Some(reason) = self.reason.as_ref() {
-            request = request.headers(audit_header(reason)?);
+            request = request.headers(request::audit_header(reason)?);
         }
 
         Ok(request.build())
     }
 
-    fn start(&mut self) -> Result<()> {
+    fn start(&mut self) -> Result<(), HttpError> {
         let request = self.request()?;
         self.fut.replace(Box::pin(self.http.verify(request)));
 

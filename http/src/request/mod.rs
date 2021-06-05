@@ -1,7 +1,7 @@
 macro_rules! poll_req {
     ($ty: ty, $ret: ty) => {
         impl std::future::Future for $ty {
-            type Output = $crate::error::Result<$ret>;
+            type Output = ::std::result::Result<$ret, $crate::error::Error>;
 
             fn poll(
                 mut self: std::pin::Pin<&mut Self>,
@@ -22,7 +22,7 @@ macro_rules! poll_req {
 
     (opt, $ty: ty, $ret: ty) => {
         impl std::future::Future for $ty {
-            type Output = $crate::error::Result<Option<$ret>>;
+            type Output = ::std::result::Result<Option<$ret>, $crate::error::Error>;
 
             fn poll(
                 mut self: std::pin::Pin<&mut Self>,
@@ -88,7 +88,7 @@ pub use self::{
     multipart::Form,
 };
 
-use crate::error::{Error, ErrorType, Result};
+use crate::error::{Error, ErrorType};
 use bytes::Bytes;
 use hyper::{
     header::{HeaderName, HeaderValue},
@@ -97,8 +97,8 @@ use hyper::{
 use percent_encoding::{utf8_percent_encode, NON_ALPHANUMERIC};
 use std::{future::Future, iter, pin::Pin};
 
-type Pending<'a, T> = Pin<Box<dyn Future<Output = Result<T>> + Send + 'a>>;
-type PendingOption<'a> = Pin<Box<dyn Future<Output = Result<Bytes>> + Send + 'a>>;
+type Pending<'a, T> = Pin<Box<dyn Future<Output = Result<T, Error>> + Send + 'a>>;
+type PendingOption<'a> = Pin<Box<dyn Future<Output = Result<Bytes, Error>> + Send + 'a>>;
 
 /// Request method.
 #[derive(Clone, Copy, Debug, Eq, Hash, PartialEq)]
@@ -130,7 +130,7 @@ impl Method {
 
 pub(crate) fn audit_header(
     reason: &str,
-) -> Result<impl Iterator<Item = (HeaderName, HeaderValue)>> {
+) -> Result<impl Iterator<Item = (HeaderName, HeaderValue)>, Error> {
     let header_name = HeaderName::from_static("x-audit-log-reason");
     let encoded_reason = utf8_percent_encode(reason, NON_ALPHANUMERIC).to_string();
     let header_value = HeaderValue::from_str(&encoded_reason).map_err(|e| Error {

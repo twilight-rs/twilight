@@ -1,4 +1,9 @@
-use crate::request::prelude::*;
+use crate::{
+    client::Client,
+    error::Error,
+    request::{Pending, Request},
+    routing::Route,
+};
 use twilight_model::id::{ChannelId, MessageId};
 
 /// Delete all reactions by all users on a message.
@@ -19,7 +24,7 @@ impl<'a> DeleteAllReactions<'a> {
         }
     }
 
-    fn start(&mut self) -> Result<()> {
+    fn start(&mut self) -> Result<(), Error> {
         let request = Request::from_route(Route::DeleteMessageReactions {
             channel_id: self.channel_id.0,
             message_id: self.message_id.0,

@@ -2,6 +2,25 @@
 
 Changelog for `twilight-embed-builder`.
 
+## [0.4.1] - 2021-05-30
+
+### Enhancements
+
+The following functions are now `const`:
+
+- `EmbedAuthorBuilder::new`
+- `EmbedBuilder::new`
+- `EmbedFieldBuilder::new`
+- `EmbedFieldBuilder::inline`
+- `EmbedFooterBuilder::new`
+- `EmbedError::kind`
+- `image_source::ImageSourceAttachmentError::kind`
+- `image_source::ImageSourceUrlError::kind`
+
+([#824] - [@vivian]).
+
+[#824]: https://github.com/twilight-rs/twilight/pull/824
+
 ## [0.4.0] - 2021-05-12
 
 ### Upgrade Path
@@ -71,6 +90,7 @@ crates in the ecosystem receiving a major version bump. There are no changes.
 
 Initial release.
 
+[0.4.1]: https://github.com/twilight-rs/twilight/releases/tag/embed-builder-0.4.1
 [0.4.0]: https://github.com/twilight-rs/twilight/releases/tag/embed-builder-0.4.0
 [0.3.0]: https://github.com/twilight-rs/twilight/releases/tag/v0.3.0
 [0.2.0]: https://github.com/twilight-rs/twilight/releases/tag/v0.2.0

@@ -1,4 +1,9 @@
-use crate::request::prelude::*;
+use crate::{
+    client::Client,
+    error::Error,
+    request::{Pending, Request},
+    routing::Route,
+};
 use twilight_model::{
     guild::Role,
     id::{GuildId, RoleId},
@@ -28,7 +33,7 @@ impl<'a> UpdateRolePositions<'a> {
         }
     }
 
-    fn start(&mut self) -> Result<()> {
+    fn start(&mut self) -> Result<(), Error> {
         let request = Request::builder(Route::UpdateRolePositions {
             guild_id: self.guild_id.0,
         })

@@ -1,4 +1,9 @@
-use crate::request::prelude::*;
+use crate::{
+    client::Client,
+    error::Error,
+    request::{self, AuditLogReason, AuditLogReasonError, Pending, Request},
+    routing::Route,
+};
 use twilight_model::{channel::Channel, id::ChannelId};
 
 /// Delete a channel by ID.
@@ -19,13 +24,13 @@ impl<'a> DeleteChannel<'a> {
         }
     }
 
-    fn start(&mut self) -> Result<()> {
+    fn start(&mut self) -> Result<(), Error> {
         let mut request = Request::builder(Route::DeleteChannel {
             channel_id: self.channel_id.0,
         });
 
         if let Some(reason) = &self.reason {
-            request = request.headers(audit_header(reason)?);
+            request = request.headers(request::audit_header(reason)?);
         }
 
         self.fut

@@ -1,6 +1,11 @@
-use crate::request::prelude::*;
+use crate::{
+    client::Client,
+    error::Error as HttpError,
+    request::{self, validate, AuditLogReason, AuditLogReasonError, Pending, Request},
+    routing::Route,
+};
 use bytes::Bytes;
-use serde::de::DeserializeSeed;
+use serde::{de::DeserializeSeed, Serialize};
 use std::{
     error::Error,
     fmt::{Display, Formatter, Result as FmtResult},
@@ -168,7 +173,7 @@ impl<'a> UpdateGuildMember<'a> {
         self
     }
 
-    fn request(&self) -> Result<Request> {
+    fn request(&self) -> Result<Request, HttpError> {
         let mut request = Request::builder(Route::UpdateMember {
             guild_id: self.guild_id.0,
             user_id: self.user_id.0,
@@ -176,13 +181,13 @@ impl<'a> UpdateGuildMember<'a> {
         .json(&self.fields)?;
 
         if let Some(reason) = &self.reason {
-            request = request.headers(audit_header(reason)?);
+            request = request.headers(request::audit_header(reason)?);
         }
 
         Ok(request.build())
     }
 
-    fn start(&mut self) -> Result<()> {
+    fn start(&mut self) -> Result<(), HttpError> {
         let request = self.request()?;
         self.fut.replace(Box::pin(self.http.request_bytes(request)));
 
@@ -200,7 +205,7 @@ impl<'a> AuditLogReason for UpdateGuildMember<'a> {
 }
 
 impl Future for UpdateGuildMember<'_> {
-    type Output = Result<Member>;
+    type Output = Result<Member, HttpError>;
 
     fn poll(mut self: Pin<&mut Self>, cx: &mut Context<'_>) -> Poll<Self::Output> {
         loop {
