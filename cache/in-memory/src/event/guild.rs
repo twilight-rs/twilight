@@ -18,6 +18,7 @@ impl InMemoryCache {
         if self.wants(ResourceType::CHANNEL) {
             self.0.guild_channels.insert(guild.id, HashSet::new());
             self.cache_guild_channels(guild.id, guild.channels);
+            self.cache_guild_channels(guild.id, guild.threads);
         }
 
         if self.wants(ResourceType::EMOJI) {
@@ -205,7 +206,10 @@ impl UpdateCache for GuildUpdate {
 mod tests {
     use super::*;
     use twilight_model::{
-        channel::{ChannelType, GuildChannel, TextChannel},
+        channel::{
+            AutoArchiveDuration, ChannelType, GuildChannel, PublicThread, TextChannel,
+            ThreadMember, ThreadMetadata,
+        },
         guild::{
             DefaultMessageNotificationLevel, ExplicitContentFilter, MfaLevel, NSFWLevel,
             PartialGuild, Permissions, PremiumTier, SystemChannelFlags, VerificationLevel,
@@ -228,6 +232,32 @@ mod tests {
             position: 1,
             rate_limit_per_user: None,
             topic: None,
+        })]);
+
+        let threads = Vec::from([GuildChannel::PublicThread(PublicThread {
+            id: ChannelId(222),
+            guild_id: None,
+            kind: ChannelType::GuildPublicThread,
+            last_message_id: None,
+            message_count: 0,
+            name: "guild thread with no guild id".to_owned(),
+            owner_id: None,
+            parent_id: None,
+            rate_limit_per_user: None,
+            member_count: 0,
+            thread_metadata: ThreadMetadata {
+                archived: false,
+                archiver_id: None,
+                auto_archive_duration: AutoArchiveDuration::Hour,
+                archive_timestamp: "".to_string(),
+                locked: false,
+            },
+            member: ThreadMember {
+                id: ChannelId(1),
+                user_id: UserId(2),
+                join_timestamp: "".to_string(),
+                flags: 0,
+            },
         })]);
 
         let guild = Guild {
@@ -266,6 +296,7 @@ mod tests {
             system_channel_id: None,
             system_channel_flags: SystemChannelFlags::SUPPRESS_JOIN_NOTIFICATIONS,
             rules_channel_id: None,
+            threads,
             unavailable: false,
             verification_level: VerificationLevel::VeryHigh,
             voice_states: Vec::new(),
@@ -281,6 +312,7 @@ mod tests {
         cache.cache_guild(guild);
 
         let channel = cache.guild_channel(ChannelId(111)).unwrap();
+        let thread = cache.guild_channel(ChannelId(222)).unwrap();
 
         // The channel was given to the cache without a guild ID, but because
         // it's part of a guild create, the cache can automatically attach the
@@ -288,6 +320,13 @@ mod tests {
         // correct value.
         match channel {
             GuildChannel::Text(ref c) => {
+                assert_eq!(Some(GuildId(123)), c.guild_id);
+            }
+            _ => panic!("{:?}", channel),
+        }
+
+        match thread {
+            GuildChannel::PublicThread(ref c) => {
                 assert_eq!(Some(GuildId(123)), c.guild_id);
             }
             _ => panic!("{:?}", channel),
@@ -336,6 +375,7 @@ mod tests {
             stage_instances: Vec::new(),
             system_channel_flags: SystemChannelFlags::empty(),
             system_channel_id: None,
+            threads: Vec::new(),
             unavailable: false,
             vanity_url_code: None,
             verification_level: VerificationLevel::VeryHigh,

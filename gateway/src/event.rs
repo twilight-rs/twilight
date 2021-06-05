@@ -119,6 +119,19 @@ bitflags! {
         const STAGE_INSTANCE_DELETE = 1 << 58;
         /// Stage instance was updated in a stage channel.
         const STAGE_INSTANCE_UPDATE = 1 << 59;
+        /// A thread has been created, relevant to the current user,
+        /// or the current user has been added to a thread.
+        const THREAD_CREATE = 1 << 50;
+        /// A thread, relevant to the current user, has been deleted.
+        const THREAD_DELETE = 1 << 52;
+        /// The current user has gained access to a thread.
+        const THREAD_LIST_SYNC = 1 << 53;
+        /// A user has been added to or removed from a thread.
+        const THREAD_MEMBERS_UPDATE = 1 << 55;
+        /// The thread member object for the current user has been updated.
+        const THREAD_MEMBER_UPDATE = 1 << 54;
+        /// A thread has been updated.
+        const THREAD_UPDATE = 1 << 51;
         /// User has begun typing in a channel.
         const TYPING_START = 1 << 39;
         /// Guild is unavailable, potentially due to an outage.
@@ -189,6 +202,12 @@ impl From<EventType> for EventTypeFlags {
             EventType::StageInstanceCreate => EventTypeFlags::STAGE_INSTANCE_CREATE,
             EventType::StageInstanceDelete => EventTypeFlags::STAGE_INSTANCE_DELETE,
             EventType::StageInstanceUpdate => EventTypeFlags::STAGE_INSTANCE_UPDATE,
+            EventType::ThreadCreate => EventTypeFlags::THREAD_CREATE,
+            EventType::ThreadDelete => EventTypeFlags::THREAD_DELETE,
+            EventType::ThreadListSync => EventTypeFlags::THREAD_LIST_SYNC,
+            EventType::ThreadMembersUpdate => EventTypeFlags::THREAD_MEMBERS_UPDATE,
+            EventType::ThreadMemberUpdate => EventTypeFlags::THREAD_MEMBER_UPDATE,
+            EventType::ThreadUpdate => EventTypeFlags::THREAD_UPDATE,
             EventType::TypingStart => EventTypeFlags::TYPING_START,
             EventType::UnavailableGuild => EventTypeFlags::UNAVAILABLE_GUILD,
             EventType::UserUpdate => EventTypeFlags::USER_UPDATE,

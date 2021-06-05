@@ -16,9 +16,18 @@ impl InMemoryCache {
         }
     }
 
-    fn cache_guild_channel(&self, guild_id: GuildId, mut channel: GuildChannel) {
+    pub(crate) fn cache_guild_channel(&self, guild_id: GuildId, mut channel: GuildChannel) {
         match channel {
             GuildChannel::Category(ref mut c) => {
+                c.guild_id.replace(guild_id);
+            }
+            GuildChannel::NewsThread(ref mut c) => {
+                c.guild_id.replace(guild_id);
+            }
+            GuildChannel::PrivateThread(ref mut c) => {
+                c.guild_id.replace(guild_id);
+            }
+            GuildChannel::PublicThread(ref mut c) => {
                 c.guild_id.replace(guild_id);
             }
             GuildChannel::Text(ref mut c) => {
@@ -56,7 +65,7 @@ impl InMemoryCache {
     ///
     /// The guild channel data itself and the channel entry in its guild's list
     /// of channels will be deleted.
-    fn delete_guild_channel(&self, channel_id: ChannelId) {
+    pub(crate) fn delete_guild_channel(&self, channel_id: ChannelId) {
         if let Some((_, item)) = self.0.channels_guild.remove(&channel_id) {
             if let Some(mut guild_channels) = self.0.guild_channels.get_mut(&item.guild_id) {
                 guild_channels.remove(&channel_id);
