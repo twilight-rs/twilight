@@ -306,6 +306,7 @@ impl<'de, 'a> DeserializeSeed<'de> for DispatchEventWithTypeDeserializer<'a> {
             }
             "STAGE_INSTANCE_UPDATE" => {
                 DispatchEvent::StageInstanceUpdate(StageInstanceUpdate::deserialize(deserializer)?)
+            }
             "THREAD_CREATE" => {
                 DispatchEvent::ThreadCreate(ThreadCreate::deserialize(deserializer)?)
             }
