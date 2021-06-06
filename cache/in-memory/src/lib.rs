@@ -1077,7 +1077,9 @@ mod tests {
     use crate::InMemoryCache;
     use std::borrow::Cow;
     use twilight_model::{
-        channel::{ChannelType, GuildChannel, StageInstance, TextChannel},
+        channel::{
+            stage_instance::PrivacyLevel, ChannelType, GuildChannel, StageInstance, TextChannel,
+        },
         gateway::payload::{
             GuildEmojisUpdate, MemberRemove, RoleDelete, StageInstanceCreate, StageInstanceDelete,
             StageInstanceUpdate,
@@ -1344,8 +1346,10 @@ mod tests {
 
         let stage_instance = StageInstance {
             channel_id: ChannelId(1),
+            discoverable_disabled: true,
             guild_id: GuildId(2),
             id: StageId(3),
+            privacy_level: PrivacyLevel::GuildOnly,
             topic: "topic".into(),
         };
 
