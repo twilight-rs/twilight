@@ -54,11 +54,11 @@ pub enum GatewayEventParsingErrorType {
 ///
 /// # Errors
 ///
-/// Returns [`GatewayEventParsingError::PayloadInvalid`] if the payload wasn't a valid
-/// `GatewayEvent` data structure.
+/// Returns a [`GatewayEventParsingErrorType::Deserializing`] error type if the
+/// payload failed to deserialize.
 ///
-/// Returns [`GatewayEventParsingError::Deserializing`] if the payload failed to
-/// deserialize.
+/// Returns a [`GatewayEventParsingErrorType::PayloadInvalid`] error type if the
+/// payload wasn't a valid `GatewayEvent` data structure.
 #[cfg(not(feature = "simd-json"))]
 #[allow(dead_code)]
 pub fn parse_gateway_event(
