@@ -285,12 +285,12 @@ impl ShardBuilder {
     /// # fn main() -> Result<(), Box<dyn std::error::Error>> {
     /// let shard = Shard::builder("token", Intents::empty())
     ///     .presence(UpdateStatusInfo::new(
-    ///         Some(vec![MinimalActivity {
+    ///         vec![MinimalActivity {
     ///             kind: ActivityType::Playing,
     ///             name: "Not accepting commands".into(),
     ///             url: None,
     ///         }
-    ///         .into()]),
+    ///         .into()],
     ///         false,
     ///         None,
     ///         Status::Idle,
