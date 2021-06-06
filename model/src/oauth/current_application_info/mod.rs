@@ -24,6 +24,7 @@ pub struct CurrentApplicationInfo {
     pub owner: User,
     pub primary_sku_id: Option<SkuId>,
     /// URL of the application's privacy policy.
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub privacy_policy_url: Option<String>,
     #[serde(default)]
     pub rpc_origins: Vec<String>,
@@ -31,6 +32,7 @@ pub struct CurrentApplicationInfo {
     pub summary: String,
     pub team: Option<Team>,
     /// URL of the application's terms of service.
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub terms_of_service_url: Option<String>,
     pub verify_key: String,
 }
