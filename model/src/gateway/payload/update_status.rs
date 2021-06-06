@@ -22,6 +22,7 @@ impl UpdateStatusError {
     }
 
     /// Consume the error, returning the source error if there is any.
+    #[allow(clippy::unused_self)]
     #[must_use = "consuming the error and retrieving the source has no effect if let unused"]
     pub fn into_source(self) -> Option<Box<dyn Error + Send + Sync>> {
         None
@@ -61,6 +62,12 @@ pub struct UpdateStatus {
 }
 
 impl UpdateStatus {
+    /// Create a new, valid [`UpdateStatus`] payload.
+    ///
+    /// # Errors
+    ///
+    /// Returns an error of type [`UpdateStatusErrorType::MissingActivity`] if
+    /// an empty set of activites is provided.
     pub fn new(
         activities: impl Into<Vec<Activity>>,
         afk: bool,
@@ -88,6 +95,12 @@ pub struct UpdateStatusInfo {
 }
 
 impl UpdateStatusInfo {
+    /// Create a new, valid [`UpdateStatusInfo`] struct.
+    ///
+    /// # Errors
+    ///
+    /// Returns an error of type [`UpdateStatusErrorType::MissingActivity`] if
+    /// an empty set of activites is provided.
     pub fn new(
         activities: impl Into<Vec<Activity>>,
         afk: bool,
