@@ -1,7 +1,7 @@
 use crate::{
     channel::ChannelType,
     guild::{Permissions, Role},
-    id::{ChannelId, GuildId, RoleId, UserId},
+    id::{ChannelId, RoleId, UserId},
     user::User,
 };
 use serde::{
@@ -144,7 +144,6 @@ impl<'de> Visitor<'de> for ResolvedVisitor {
                         mapped_members
                             .into_iter()
                             .map(|(k, v)| InteractionMember {
-                                guild_id: v.guild_id,
                                 hoisted_role: v.hoisted_role,
                                 id: k,
                                 joined_at: v.joined_at,
@@ -197,7 +196,6 @@ pub struct InteractionChannel {
 #[derive(Clone, Debug, Eq, PartialEq, Serialize)]
 #[serde(rename = "InteractionMemberEnvelope")]
 pub struct InteractionMember {
-    pub guild_id: GuildId,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub hoisted_role: Option<RoleId>,
     #[serde(skip_serializing)]
@@ -214,7 +212,6 @@ pub struct InteractionMember {
 
 #[derive(Deserialize)]
 struct InteractionMemberEnvelope {
-    pub guild_id: GuildId,
     pub hoisted_role: Option<RoleId>,
     pub joined_at: Option<String>,
     pub nick: Option<String>,
@@ -229,7 +226,7 @@ mod tests {
     use crate::{
         channel::ChannelType,
         guild::{Permissions, Role},
-        id::{ChannelId, GuildId, RoleId, UserId},
+        id::{ChannelId, RoleId, UserId},
         user::{PremiumType, User, UserFlags},
     };
     use serde_test::Token;
@@ -245,7 +242,6 @@ mod tests {
                 permissions: Permissions::empty(),
             }],
             members: vec![InteractionMember {
-                guild_id: GuildId(200),
                 hoisted_role: None,
                 id: UserId(300),
                 joined_at: Some("joined at".into()),
@@ -313,11 +309,8 @@ mod tests {
                 Token::Str("300"),
                 Token::Struct {
                     name: "InteractionMemberEnvelope",
-                    len: 2,
+                    len: 1,
                 },
-                Token::Str("guild_id"),
-                Token::NewtypeStruct { name: "GuildId" },
-                Token::Str("200"),
                 Token::Str("joined_at"),
                 Token::Some,
                 Token::Str("joined at"),
