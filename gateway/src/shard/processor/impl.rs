@@ -710,8 +710,8 @@ impl ShardProcessor {
     ///
     /// # Errors
     ///
-    /// Returns [`ReceivingEventError::AuthorizationInvalid`] if the provided authorization
-    /// is invalid.
+    /// Returns a [`ReceivingEventErrorType::AuthorizationInvalid`] error type
+    /// if the provided authorization is invalid.
     async fn next_payload(&mut self) -> Result<(), ReceivingEventError> {
         #[cfg(feature = "compression")]
         self.inflater.clear();
