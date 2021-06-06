@@ -294,7 +294,7 @@ impl ShardBuilder {
     ///         false,
     ///         None,
     ///         Status::Idle,
-    ///     ));
+    ///     )?);
     /// # Ok(()) }
     ///
     /// ```
