@@ -709,6 +709,7 @@ impl<'de> Deserialize<'de> for Guild {
                     voice_state.guild_id.replace(id);
                 }
 
+                #[allow(deprecated)]
                 Ok(Guild {
                     afk_channel_id,
                     afk_timeout,

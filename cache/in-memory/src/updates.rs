@@ -968,6 +968,7 @@ mod tests {
 
         cache.update(&GuildCreate(guild.clone()));
 
+        #[allow(deprecated)]
         let mutation = PartialGuild {
             id: guild.id,
             afk_channel_id: guild.afk_channel_id,
