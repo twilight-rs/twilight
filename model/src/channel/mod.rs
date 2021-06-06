@@ -1,6 +1,7 @@
 pub mod embed;
 pub mod message;
 pub mod permission_overwrite;
+pub mod stage_instance;
 
 mod attachment;
 mod auto_archive_duration;
@@ -15,7 +16,6 @@ mod private_thread;
 mod public_thread;
 mod reaction;
 mod reaction_type;
-mod stage_instance;
 mod text_channel;
 mod thread_member;
 mod thread_metadata;
