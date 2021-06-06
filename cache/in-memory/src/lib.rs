@@ -732,7 +732,6 @@ impl InMemoryCache {
             member_count: guild.member_count,
             mfa_level: guild.mfa_level,
             name: guild.name,
-            nsfw: false,
             nsfw_level: guild.nsfw_level,
             owner: guild.owner,
             owner_id: guild.owner_id,
@@ -1218,7 +1217,6 @@ mod tests {
             topic: None,
         })]);
 
-        #[allow(deprecated)]
         let guild = Guild {
             id: GuildId(123),
             afk_channel_id: None,
@@ -1241,7 +1239,6 @@ mod tests {
             members: Vec::new(),
             mfa_level: MfaLevel::Elevated,
             name: "this is a guild".to_owned(),
-            nsfw: false,
             nsfw_level: NSFWLevel::AgeRestricted,
             owner: Some(false),
             owner_id: UserId(456),

@@ -914,7 +914,6 @@ mod tests {
         cache
     }
 
-    #[allow(deprecated)]
     #[test]
     fn test_guild_update() {
         let cache = InMemoryCache::new();
@@ -944,7 +943,6 @@ mod tests {
             members: Vec::new(),
             mfa_level: MfaLevel::None,
             name: "test".to_owned(),
-            nsfw: false,
             nsfw_level: NSFWLevel::Default,
             owner_id: UserId(1),
             owner: None,
@@ -970,7 +968,6 @@ mod tests {
 
         cache.update(&GuildCreate(guild.clone()));
 
-        #[allow(deprecated)]
         let mutation = PartialGuild {
             id: guild.id,
             afk_channel_id: guild.afk_channel_id,
@@ -989,7 +986,6 @@ mod tests {
             member_count: guild.member_count,
             mfa_level: guild.mfa_level,
             name: "test2222".to_owned(),
-            nsfw: false,
             nsfw_level: guild.nsfw_level,
             owner_id: UserId(2),
             owner: guild.owner,

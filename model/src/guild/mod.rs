@@ -86,9 +86,6 @@ pub struct Guild {
     pub members: Vec<Member>,
     pub mfa_level: MfaLevel,
     pub name: String,
-    #[deprecated(since = "0.4.3", note = "no longer provided by discord, see #839")]
-    #[serde(skip)]
-    pub nsfw: bool,
     pub nsfw_level: NSFWLevel,
     pub owner_id: UserId,
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -712,7 +709,6 @@ impl<'de> Deserialize<'de> for Guild {
                     voice_state.guild_id.replace(id);
                 }
 
-                #[allow(deprecated)]
                 Ok(Guild {
                     afk_channel_id,
                     afk_timeout,
@@ -738,7 +734,6 @@ impl<'de> Deserialize<'de> for Guild {
                     members,
                     mfa_level,
                     name,
-                    nsfw: false,
                     nsfw_level,
                     owner_id,
                     owner,
@@ -825,7 +820,6 @@ mod tests {
     use serde_test::Token;
 
     #[allow(clippy::too_many_lines)]
-    #[allow(deprecated)]
     #[test]
     fn test_guild() {
         #[allow(deprecated)]
@@ -854,7 +848,6 @@ mod tests {
             members: Vec::new(),
             mfa_level: MfaLevel::Elevated,
             name: "the name".to_owned(),
-            nsfw: false,
             nsfw_level: NSFWLevel::Default,
             owner_id: UserId(5),
             owner: Some(false),
