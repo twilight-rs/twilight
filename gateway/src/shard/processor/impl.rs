@@ -1,5 +1,3 @@
-#[cfg(feature = "compression")]
-use super::inflater::Inflater;
 use super::{
     super::{
         config::Config,
@@ -7,6 +5,7 @@ use super::{
         stage::Stage,
         ShardStream,
     },
+    compression::{self, Compression},
     emitter::{EmitJsonErrorType, Emitter},
     session::{Session, SessionSendError, SessionSendErrorType},
     socket_forwarder::SocketForwarder,
@@ -153,9 +152,9 @@ enum ProcessErrorType {
 }
 
 #[derive(Debug)]
-struct ReceivingEventError {
-    kind: ReceivingEventErrorType,
-    source: Option<Box<dyn Error + Send + Sync>>,
+pub struct ReceivingEventError {
+    pub kind: ReceivingEventErrorType,
+    pub source: Option<Box<dyn Error + Send + Sync>>,
 }
 
 impl ReceivingEventError {
@@ -169,14 +168,7 @@ impl ReceivingEventError {
     }
 
     const fn reconnectable(&self) -> bool {
-        #[cfg(feature = "compression")]
-        {
-            matches!(self.kind, ReceivingEventErrorType::Decompressing)
-        }
-        #[cfg(not(feature = "compression"))]
-        {
-            false
-        }
+        matches!(self.kind, ReceivingEventErrorType::Decompressing)
     }
 
     const fn resumable(&self) -> bool {
@@ -190,7 +182,6 @@ impl Display for ReceivingEventError {
             ReceivingEventErrorType::AuthorizationInvalid { shard_id, .. } => f.write_fmt(
                 format_args!("the authorization token for shard {} is invalid", shard_id),
             ),
-            #[cfg(feature = "compression")]
             ReceivingEventErrorType::Decompressing => {
                 f.write_str("a frame could not be decompressed")
             }
@@ -223,10 +214,9 @@ impl Error for ReceivingEventError {
 
 /// Type of [`ReceivingEventError`] that occurred.
 #[derive(Debug)]
-enum ReceivingEventErrorType {
+pub enum ReceivingEventErrorType {
     /// Provided authorization token is invalid.
     AuthorizationInvalid { shard_id: u64, token: String },
-    #[cfg(feature = "compression")]
     /// Decompressing a frame from Discord failed.
     Decompressing,
     /// The event stream has ended, this is recoverable by resuming.
@@ -266,10 +256,7 @@ pub struct ShardProcessor {
     pub properties: IdentifyProperties,
     pub rx: UnboundedReceiver<Message>,
     pub session: Arc<Session>,
-    #[cfg(feature = "compression")]
-    inflater: Inflater,
-    #[cfg(not(feature = "compression"))]
-    buffer: Vec<u8>,
+    compression: Compression,
     url: Box<str>,
     resume: Option<(u64, Box<str>)>,
     wtx: WatchSender<Arc<Session>>,
@@ -293,10 +280,8 @@ impl ShardProcessor {
 
         let properties = IdentifyProperties::new("twilight.rs", "twilight.rs", OS, "", "");
 
-        #[cfg(feature = "compression")]
-        url.push_str("?v=8&compress=zlib-stream");
-        #[cfg(not(feature = "compression"))]
         url.push_str("?v=8");
+        compression::add_url_feature(&mut url);
 
         let emitter = Emitter::new(listeners);
         emitter.event(Event::ShardConnecting(Connecting {
@@ -320,15 +305,12 @@ impl ShardProcessor {
         let (wtx, wrx) = watch_channel(Arc::clone(&session));
 
         let mut processor = Self {
+            compression: Compression::new(shard_id),
             config,
             emitter,
             properties,
             rx,
             session,
-            #[cfg(feature = "compression")]
-            inflater: Inflater::new(shard_id),
-            #[cfg(not(feature = "compression"))]
-            buffer: Vec::new(),
             url: url.into_boxed_str(),
             resume: None,
             wtx,
@@ -387,19 +369,11 @@ impl ShardProcessor {
     #[allow(clippy::too_many_lines)]
     async fn process(&mut self) -> Result<(), ProcessError> {
         let (op, seq, event_type) = {
-            #[cfg(feature = "compression")]
-            let json =
-                str::from_utf8_mut(self.inflater.buffer_mut()).map_err(|source| ProcessError {
-                    kind: ProcessErrorType::PayloadNotUtf8,
-                    source: Some(Box::new(source)),
-                })?;
-
-            #[cfg(not(feature = "compression"))]
-            let json =
-                str::from_utf8_mut(self.buffer.as_mut_slice()).map_err(|source| ProcessError {
-                    kind: ProcessErrorType::PayloadNotUtf8,
-                    source: Some(Box::new(source)),
-                })?;
+            let buffer = self.compression.buffer_slice_mut();
+            let json = str::from_utf8_mut(buffer).map_err(|source| ProcessError {
+                kind: ProcessErrorType::PayloadNotUtf8,
+                source: Some(Box::new(source)),
+            })?;
 
             tracing::trace!(%json, "Received JSON");
             let emitter = self.emitter.clone();
@@ -415,18 +389,8 @@ impl ShardProcessor {
                     // should be a good trade-off either way.
                     (op, seq, event_type.map(ToOwned::to_owned))
                 } else {
-                    #[cfg(feature = "compression")]
                     tracing::warn!(
-                        json = ?self.inflater.buffer_ref(),
-                        shard_id = self.config.shard()[0],
-                        shard_total = self.config.shard()[1],
-                        seq = self.session.seq(),
-                        stage = ?self.session.stage(),
-                        "received payload without opcode",
-                    );
-                    #[cfg(not(feature = "compression"))]
-                    tracing::warn!(
-                        json = ?self.buffer,
+                        json = ?self.compression.buffer_slice_ref(),
                         shard_id = self.config.shard()[0],
                         shard_total = self.config.shard()[1],
                         seq = self.session.seq(),
@@ -496,19 +460,14 @@ impl ShardProcessor {
 
                 return Ok(());
             } else if event_type.as_deref() == Some("READY") {
-                #[cfg(feature = "compression")]
-                let buf_ref = self.inflater.buffer_mut();
-                #[cfg(not(feature = "compression"))]
-                let buf_ref = self.buffer.as_mut_slice();
-
-                let ready =
-                    json::from_slice::<ReadyMinimal>(buf_ref).map_err(|source| ProcessError {
-                        kind: ProcessErrorType::ParsingPayload,
-                        source: Some(Box::new(GatewayEventParsingError {
-                            kind: GatewayEventParsingErrorType::Deserializing,
-                            source: Some(Box::new(source)),
-                        })),
-                    })?;
+                let ready = json::from_slice::<ReadyMinimal>(self.compression.buffer_slice_mut())
+                    .map_err(|source| ProcessError {
+                    kind: ProcessErrorType::ParsingPayload,
+                    source: Some(Box::new(GatewayEventParsingError {
+                        kind: GatewayEventParsingErrorType::Deserializing,
+                        source: Some(Box::new(source)),
+                    })),
+                })?;
 
                 self.process_ready(&ready.d);
                 emitter.event(Event::Ready(Box::new(ready.d)));
@@ -523,10 +482,7 @@ impl ShardProcessor {
 
         // We already know from earlier that the payload is valid UTF-8, so we
         // can skip having to re-validate here since it hasn't been mutated.
-        #[cfg(feature = "compression")]
-        let json = unsafe { str::from_utf8_unchecked_mut(self.inflater.buffer_mut()) };
-        #[cfg(not(feature = "compression"))]
-        let json = unsafe { str::from_utf8_unchecked_mut(self.buffer.as_mut_slice()) };
+        let json = unsafe { self.compression.buffer_str_mut() };
 
         self.emitter
             .json(op, Some(seq), event_type.as_deref(), json)
@@ -713,10 +669,7 @@ impl ShardProcessor {
     /// Returns [`ReceivingEventError::AuthorizationInvalid`] if the provided authorization
     /// is invalid.
     async fn next_payload(&mut self) -> Result<(), ReceivingEventError> {
-        #[cfg(feature = "compression")]
-        self.inflater.clear();
-        #[cfg(not(feature = "compression"))]
-        self.buffer.clear();
+        self.compression.clear();
 
         loop {
             // Returns None when the socket forwarder has ended, meaning the
@@ -751,14 +704,12 @@ impl ShardProcessor {
         msg: &'a mut Message,
     ) -> Result<bool, ReceivingEventError> {
         match msg {
-            #[allow(unused_variables)]
-            Message::Binary(bin) => {
-                #[cfg(feature = "compression")]
-                {
-                    self.inflater.extend(&bin[..]);
+            Message::Binary(json) => {
+                let extended = self.compression.extend_binary(json.as_slice());
 
-                    let bytes = match self.inflater.msg() {
-                        Ok(Some(bytes)) => bytes,
+                if extended {
+                    match self.compression.message_mut() {
+                        Ok(Some(bytes)) => self.emitter.bytes(bytes),
                         Ok(None) => return Ok(false),
                         Err(source) => {
                             return Err(ReceivingEventError {
@@ -767,40 +718,23 @@ impl ShardProcessor {
                             })
                         }
                     };
-
-                    self.emitter.bytes(bytes);
-
-                    Ok(true)
                 }
-                #[cfg(not(feature = "compression"))]
-                {
-                    /* Intentionally left empty as Discord should
-                     * not send binary payloads when not using compression
-                     */
-                    Ok(false)
-                }
+
+                Ok(extended)
             }
             Message::Close(close_frame) => {
                 self.handle_close(close_frame.as_ref()).await?;
 
                 Ok(false)
             }
-            #[allow(unused_variables)]
             Message::Text(json) => {
-                #[cfg(feature = "compression")]
-                {
-                    /* Empty intentionally as discord does not
-                     * send text when comppresion is enabled
-                     */
-                    Ok(false)
-                }
-                #[cfg(not(feature = "compression"))]
-                {
-                    self.emitter.bytes(json.as_bytes());
-                    self.buffer.extend_from_slice(json.as_bytes());
+                let extended = self.compression.extend_text(json.as_bytes());
 
-                    Ok(true)
+                if extended {
+                    self.emitter.bytes(json.as_bytes());
                 }
+
+                Ok(extended)
             }
             // Discord doesn't appear to send Text messages, so we can ignore
             // these.
@@ -1022,9 +956,6 @@ impl ShardProcessor {
         }
 
         self.session.set_stage(stage);
-        #[cfg(feature = "compression")]
-        self.inflater.reset();
-        #[cfg(not(feature = "compression"))]
-        self.buffer.clear();
+        self.compression.reset();
     }
 }
