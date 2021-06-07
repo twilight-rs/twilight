@@ -135,8 +135,8 @@ impl<'a> SearchGuildMembers<'a> {
     ///
     /// # Errors
     ///
-    /// Returns a [`SearchGuildMembersError::LimitInvalid`] error type if the
-    /// limit is 0 or greater than 1000.
+    /// Returns a [`SearchGuildMembersErrorType::LimitInvalid`] error type if
+    /// the limit is 0 or greater than 1000.
     pub fn limit(mut self, limit: u64) -> Result<Self, SearchGuildMembersError> {
         // Using get_guild_members_limit here as the limits are the same
         // and this endpoint is not officially documented yet.
