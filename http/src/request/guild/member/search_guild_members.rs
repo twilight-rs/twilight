@@ -65,7 +65,7 @@ impl Display for SearchGuildMembersError {
 
 impl Error for SearchGuildMembersError {}
 
-/// Type of error that occured.
+/// Type of [`SearchGuildMembersError`] that occurred.
 #[derive(Debug)]
 #[non_exhaustive]
 pub enum SearchGuildMembersErrorType {

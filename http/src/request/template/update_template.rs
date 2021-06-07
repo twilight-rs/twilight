@@ -58,6 +58,7 @@ impl Display for UpdateTemplateError {
 
 impl Error for UpdateTemplateError {}
 
+/// Type of [`UpdateTemplateError`] that occurred.
 #[derive(Debug)]
 #[non_exhaustive]
 pub enum UpdateTemplateErrorType {

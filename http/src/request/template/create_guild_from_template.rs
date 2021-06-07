@@ -54,6 +54,7 @@ impl Display for CreateGuildFromTemplateError {
 
 impl Error for CreateGuildFromTemplateError {}
 
+/// Type of [`CreateGuildFromTemplateError`] that occurred.
 #[derive(Debug)]
 #[non_exhaustive]
 pub enum CreateGuildFromTemplateErrorType {

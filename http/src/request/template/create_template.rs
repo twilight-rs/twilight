@@ -58,7 +58,7 @@ impl Display for CreateTemplateError {
 
 impl Error for CreateTemplateError {}
 
-/// Type of error.
+/// Type of [`CreateTemplateError`] that occurred.
 #[derive(Debug)]
 #[non_exhaustive]
 pub enum CreateTemplateErrorType {
