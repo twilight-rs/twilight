@@ -1,3 +1,7 @@
+mod flags;
+
+pub use self::flags::ApplicationFlags;
+
 use crate::{
     id::{ApplicationId, GuildId},
     oauth::{id::SkuId, team::Team},
@@ -12,24 +16,66 @@ pub struct CurrentApplicationInfo {
     pub cover_image: Option<String>,
     pub description: String,
     pub guild_id: Option<GuildId>,
+    /// Public flags of the application.
+    pub flags: ApplicationFlags,
     pub icon: Option<String>,
     pub id: ApplicationId,
     pub name: String,
     pub owner: User,
     pub primary_sku_id: Option<SkuId>,
+    /// URL of the application's privacy policy.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub privacy_policy_url: Option<String>,
     #[serde(default)]
     pub rpc_origins: Vec<String>,
     pub slug: Option<String>,
     pub summary: String,
     pub team: Option<Team>,
+    /// URL of the application's terms of service.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub terms_of_service_url: Option<String>,
     pub verify_key: String,
 }
 
 #[cfg(test)]
 mod tests {
-    use super::{CurrentApplicationInfo, GuildId, SkuId, Team, User};
+    use super::{ApplicationFlags, CurrentApplicationInfo, GuildId, SkuId, Team, User};
     use crate::{id::ApplicationId, id::UserId, oauth::id::TeamId};
+    use serde::{Deserialize, Serialize};
     use serde_test::Token;
+    use static_assertions::{assert_fields, assert_impl_all};
+    use std::{fmt::Debug, hash::Hash};
+
+    assert_fields!(
+        CurrentApplicationInfo: bot_public,
+        bot_require_code_grant,
+        cover_image,
+        description,
+        guild_id,
+        flags,
+        icon,
+        id,
+        name,
+        owner,
+        primary_sku_id,
+        privacy_policy_url,
+        rpc_origins,
+        slug,
+        summary,
+        team,
+        terms_of_service_url,
+        verify_key
+    );
+
+    assert_impl_all!(
+        CurrentApplicationInfo: Clone,
+        Debug,
+        Deserialize<'static>,
+        Eq,
+        Hash,
+        PartialEq,
+        Serialize
+    );
 
     #[allow(clippy::too_many_lines)]
     #[test]
@@ -40,6 +86,7 @@ mod tests {
             cover_image: Some("cover image hash".to_owned()),
             description: "a pretty cool application".to_owned(),
             guild_id: Some(GuildId(1)),
+            flags: ApplicationFlags::EMBEDDED,
             icon: Some("icon hash".to_owned()),
             id: ApplicationId(2),
             name: "cool application".to_owned(),
@@ -59,6 +106,7 @@ mod tests {
                 verified: None,
             },
             primary_sku_id: Some(SkuId(4)),
+            privacy_policy_url: Some("https://privacypolicy".into()),
             rpc_origins: vec!["one".to_owned()],
             slug: Some("app slug".to_owned()),
             summary: "a summary".to_owned(),
@@ -69,6 +117,7 @@ mod tests {
                 name: "team name".into(),
                 owner_user_id: UserId(6),
             }),
+            terms_of_service_url: Some("https://termsofservice".into()),
             verify_key: "key".to_owned(),
         };
 
@@ -77,7 +126,7 @@ mod tests {
             &[
                 Token::Struct {
                     name: "CurrentApplicationInfo",
-                    len: 15,
+                    len: 18,
                 },
                 Token::Str("bot_public"),
                 Token::Bool(true),
@@ -92,6 +141,8 @@ mod tests {
                 Token::Some,
                 Token::NewtypeStruct { name: "GuildId" },
                 Token::Str("1"),
+                Token::Str("flags"),
+                Token::U64(131_072),
                 Token::Str("icon"),
                 Token::Some,
                 Token::Str("icon hash"),
@@ -123,6 +174,9 @@ mod tests {
                 Token::Some,
                 Token::NewtypeStruct { name: "SkuId" },
                 Token::Str("4"),
+                Token::Str("privacy_policy_url"),
+                Token::Some,
+                Token::Str("https://privacypolicy"),
                 Token::Str("rpc_origins"),
                 Token::Seq { len: Some(1) },
                 Token::Str("one"),
@@ -152,6 +206,9 @@ mod tests {
                 Token::NewtypeStruct { name: "UserId" },
                 Token::Str("6"),
                 Token::StructEnd,
+                Token::Str("terms_of_service_url"),
+                Token::Some,
+                Token::Str("https://termsofservice"),
                 Token::Str("verify_key"),
                 Token::Str("key"),
                 Token::StructEnd,
