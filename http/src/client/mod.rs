@@ -803,10 +803,11 @@ impl Client {
     ///
     /// # Errors
     ///
-    /// Returns [`SearchGuildMembersError::LimitInvalid`] if the limit is invalid.
+    /// Returns a [`SearchGuildMembersErrorType::LimitInvalid`] error type if
+    /// the limit is invalid.
     ///
     /// [`GUILD_MEMBERS`]: ../../twilight_model/gateway/struct.Intents.html#associatedconstant.GUILD_MEMBERS
-    /// [`SearchGuildMembersError::LimitInvalid`]: ../request/guild/member/search_guild_members/enum.SearchGuildMembersError.html#variant.LimitInvalid
+    /// [`SearchGuildMembersErrorType::LimitInvalid`]: ../request/guild/member/search_guild_members/enum.SearchGuildMembersError.html#variant.LimitInvalid
     pub fn search_guild_members(
         &self,
         guild_id: GuildId,
@@ -1384,10 +1385,10 @@ impl Client {
     ///
     /// # Errors
     ///
-    /// Returns [`CreateGuildFromTemplateError::NameInvalid`] when the name is
-    /// invalid.
+    /// Returns a [`CreateGuildFromTemplateErrorType::NameInvalid`] error type
+    /// if the name is invalid.
     ///
-    /// [`CreateGuildFromTemplateError::NameInvalid`]: crate::request::template::create_guild_from_template::CreateGuildFromTemplateError::NameInvalid
+    /// [`CreateGuildFromTemplateErrorType::NameInvalid`]: crate::request::template::create_guild_from_template::CreateGuildFromTemplateErrorType::NameInvalid
     pub fn create_guild_from_template(
         &self,
         template_code: impl Into<String>,
@@ -1403,9 +1404,10 @@ impl Client {
     ///
     /// # Errors
     ///
-    /// Returns [`CreateTemplateError::NameInvalid`] when the name is invalid.
+    /// Returns a [`CreateTemplateErrorType::NameInvalid`] error type if the
+    /// name is invalid.
     ///
-    /// [`CreateTemplateError::NameInvalid`]: crate::request::template::create_template::CreateTemplateError::NameInvalid
+    /// [`CreateTemplateErrorType::NameInvalid`]: crate::request::template::create_template::CreateTemplateErrorType::NameInvalid
     pub fn create_template(
         &self,
         guild_id: GuildId,

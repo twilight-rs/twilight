@@ -11,9 +11,56 @@ use std::{
 };
 use twilight_model::{id::GuildId, template::Template};
 
-#[derive(Clone, Debug)]
+/// Error emitted when the template can not be upated as configured.
+#[derive(Debug)]
+pub struct UpdateTemplateError {
+    kind: UpdateTemplateErrorType,
+}
+
+impl UpdateTemplateError {
+    /// Immutable reference to the type of error that occured.
+    #[must_use = "retrieving the type has no effect if left unused"]
+    pub const fn kind(&self) -> &UpdateTemplateErrorType {
+        &self.kind
+    }
+
+    /// Consumes the error, returning the source error if there is any.
+    #[allow(clippy::unused_self)]
+    #[must_use = "consuming the error and retrieving the source has no effect if left unused"]
+    pub fn into_source(self) -> Option<Box<dyn Error + Send + Sync>> {
+        None
+    }
+
+    /// Consume the error, returning the owned error type nad the source error.
+    #[must_use = "consuming the error int its parts has no effect if left unused"]
+    pub fn into_parts(
+        self,
+    ) -> (
+        UpdateTemplateErrorType,
+        Option<Box<dyn Error + Send + Sync>>,
+    ) {
+        (self.kind, None)
+    }
+}
+
+impl Display for UpdateTemplateError {
+    fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
+        match self.kind {
+            UpdateTemplateErrorType::NameInvalid { .. } => {
+                f.write_str("the template name is invalid")
+            }
+            UpdateTemplateErrorType::DescriptionTooLarge { .. } => {
+                f.write_str("the template description is too large")
+            }
+        }
+    }
+}
+
+impl Error for UpdateTemplateError {}
+
+#[derive(Debug)]
 #[non_exhaustive]
-pub enum UpdateTemplateError {
+pub enum UpdateTemplateErrorType {
     /// Name of the template is invalid.
     NameInvalid {
         /// Provided name.
@@ -25,19 +72,6 @@ pub enum UpdateTemplateError {
         description: String,
     },
 }
-
-impl Display for UpdateTemplateError {
-    fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
-        match self {
-            Self::NameInvalid { .. } => f.write_str("the template name is invalid"),
-            Self::DescriptionTooLarge { .. } => {
-                f.write_str("the template description is too large")
-            }
-        }
-    }
-}
-
-impl Error for UpdateTemplateError {}
 
 #[derive(Serialize)]
 struct UpdateTemplateFields {
@@ -82,15 +116,17 @@ impl<'a> UpdateTemplate<'a> {
     ///
     /// # Errors
     ///
-    /// Returns [`UpdateTemplateError::DescriptionTooLarge`] when the
-    /// description is too large.
+    /// Returns an [`UpdateTemplateErrorType::DescriptionTooLarge`] error type
+    /// if the description is too large.
     pub fn description(self, description: impl Into<String>) -> Result<Self, UpdateTemplateError> {
         self._description(description.into())
     }
 
     fn _description(mut self, description: String) -> Result<Self, UpdateTemplateError> {
         if !validate::template_description(&description) {
-            return Err(UpdateTemplateError::DescriptionTooLarge { description });
+            return Err(UpdateTemplateError {
+                kind: UpdateTemplateErrorType::DescriptionTooLarge { description },
+            });
         }
 
         self.fields.description.replace(description);
@@ -104,14 +140,17 @@ impl<'a> UpdateTemplate<'a> {
     ///
     /// # Errors
     ///
-    /// Returns [`UpdateTemplateError::NameInvalid`] when the name is invalid.
+    /// Returns an [`UpdateTemplateErrorType::NameInvalid`] error type if the
+    /// name is invalid.
     pub fn name(self, name: impl Into<String>) -> Result<Self, UpdateTemplateError> {
         self._name(name.into())
     }
 
     fn _name(mut self, name: String) -> Result<Self, UpdateTemplateError> {
         if !validate::template_name(&name) {
-            return Err(UpdateTemplateError::NameInvalid { name });
+            return Err(UpdateTemplateError {
+                kind: UpdateTemplateErrorType::NameInvalid { name },
+            });
         }
 
         self.fields.name.replace(name);
