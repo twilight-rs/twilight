@@ -1,4 +1,9 @@
-use crate::request::prelude::*;
+use crate::{
+    client::Client,
+    error::Error,
+    request::{Pending, Request},
+    routing::Route,
+};
 use twilight_model::{channel::GuildChannel, id::GuildId};
 
 /// Get the channels in a guild.
@@ -17,7 +22,7 @@ impl<'a> GetGuildChannels<'a> {
         }
     }
 
-    fn start(&mut self) -> Result<()> {
+    fn start(&mut self) -> Result<(), Error> {
         let request = Request::from_route(Route::GetChannels {
             guild_id: self.guild_id.0,
         });

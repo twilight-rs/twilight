@@ -1,4 +1,9 @@
-use crate::request::prelude::*;
+use crate::{
+    client::Client,
+    error::Error,
+    request::{Pending, Request},
+    routing::Route,
+};
 use twilight_model::gateway::connection_info::BotConnectionInfo;
 
 /// Get information about the gateway, authenticated as a bot user.
@@ -15,7 +20,7 @@ impl<'a> GetGatewayAuthed<'a> {
         Self { fut: None, http }
     }
 
-    fn start(&mut self) -> Result<()> {
+    fn start(&mut self) -> Result<(), Error> {
         let request = Request::from_route(Route::GetGatewayBot);
 
         self.fut.replace(Box::pin(self.http.request(request)));

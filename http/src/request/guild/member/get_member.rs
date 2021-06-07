@@ -1,6 +1,8 @@
 use crate::{
+    client::Client,
     error::{Error, ErrorType},
-    request::prelude::*,
+    request::{PendingOption, Request},
+    routing::Route,
 };
 use hyper::StatusCode;
 use serde::de::DeserializeSeed;
@@ -37,7 +39,7 @@ impl<'a> GetMember<'a> {
         }
     }
 
-    fn start(&mut self) -> Result<()> {
+    fn start(&mut self) -> Result<(), Error> {
         let request = Request::from_route(Route::GetMember {
             guild_id: self.guild_id.0,
             user_id: self.user_id.0,
@@ -50,7 +52,7 @@ impl<'a> GetMember<'a> {
 }
 
 impl Future for GetMember<'_> {
-    type Output = Result<Option<Member>>;
+    type Output = Result<Option<Member>, Error>;
 
     fn poll(mut self: Pin<&mut Self>, cx: &mut Context<'_>) -> Poll<Self::Output> {
         loop {
@@ -68,13 +70,12 @@ impl Future for GetMember<'_> {
                 };
 
                 let mut bytes = bytes.as_ref().to_vec();
-                let value =
-                    crate::json::from_slice::<Value>(&mut bytes).map_err(HttpError::json)?;
+                let value = crate::json::from_slice::<Value>(&mut bytes).map_err(Error::json)?;
 
                 let member_deserializer = MemberDeserializer::new(self.guild_id);
                 let member = member_deserializer
                     .deserialize(value)
-                    .map_err(HttpError::json)?;
+                    .map_err(Error::json)?;
 
                 return Poll::Ready(Ok(Some(member)));
             }

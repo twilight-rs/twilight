@@ -34,7 +34,7 @@ pub enum AuditLogChangeKey {
     Mute,
     Name,
     Nick,
-    Nsfw,
+    NsfwLevel,
     OwnerId,
     PermissionOverwrites,
     Permissions,

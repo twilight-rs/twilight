@@ -1,4 +1,9 @@
-use crate::request::prelude::*;
+use crate::{
+    client::Client,
+    error::Error,
+    request::{PendingOption, Request},
+    routing::Route,
+};
 use twilight_model::user::User;
 
 /// Get a user's information by id.
@@ -17,7 +22,7 @@ impl<'a> GetUser<'a> {
         }
     }
 
-    fn start(&mut self) -> Result<()> {
+    fn start(&mut self) -> Result<(), Error> {
         let request = Request::from_route(Route::GetUser {
             target_user: self.target_user.clone(),
         });

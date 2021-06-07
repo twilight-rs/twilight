@@ -1,4 +1,9 @@
-use crate::request::prelude::*;
+use crate::{
+    client::Client,
+    error::Error,
+    request::{Pending, Request},
+    routing::Route,
+};
 use serde::Serialize;
 use twilight_model::{channel::FollowedChannel, id::ChannelId};
 
@@ -29,7 +34,7 @@ impl<'a> FollowNewsChannel<'a> {
         }
     }
 
-    fn start(&mut self) -> Result<()> {
+    fn start(&mut self) -> Result<(), Error> {
         let request = Request::builder(Route::FollowNewsChannel {
             channel_id: self.channel_id.0,
         })

@@ -20,6 +20,7 @@ pub struct TemplateGuild {
     pub icon_hash: Option<String>,
     pub name: String,
     pub preferred_locale: String,
+    #[deprecated(since = "0.4.3", note = "no longer provided by discord, see #884")]
     pub region: String,
     pub roles: Vec<TemplateRole>,
     pub system_channel_flags: SystemChannelFlags,

@@ -1,4 +1,10 @@
-use crate::request::prelude::*;
+use crate::{
+    client::Client,
+    error::Error as HttpError,
+    request::{validate, Pending, Request},
+    routing::Route,
+};
+use serde::Serialize;
 use std::{
     error::Error,
     fmt::{Display, Formatter, Result as FmtResult},
@@ -126,7 +132,7 @@ impl<'a> UpdateCurrentUser<'a> {
         Ok(self)
     }
 
-    fn start(&mut self) -> Result<()> {
+    fn start(&mut self) -> Result<(), HttpError> {
         let request = Request::builder(Route::UpdateCurrentUser)
             .json(&self.fields)?
             .build();

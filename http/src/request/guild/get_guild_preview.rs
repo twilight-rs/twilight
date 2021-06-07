@@ -1,4 +1,9 @@
-use crate::request::prelude::*;
+use crate::{
+    client::Client,
+    error::Error,
+    request::{Pending, Request},
+    routing::Route,
+};
 use twilight_model::{guild::GuildPreview, id::GuildId};
 
 /// For public guilds, get the guild preview.
@@ -19,7 +24,7 @@ impl<'a> GetGuildPreview<'a> {
         }
     }
 
-    fn start(&mut self) -> Result<()> {
+    fn start(&mut self) -> Result<(), Error> {
         let request = Request::from_route(Route::GetGuildPreview {
             guild_id: self.guild_id.0,
         });

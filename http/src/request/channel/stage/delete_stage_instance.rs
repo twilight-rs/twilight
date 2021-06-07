@@ -1,4 +1,9 @@
-use crate::request::prelude::*;
+use crate::{
+    client::Client,
+    error::Error,
+    request::{Pending, Request},
+    routing::Route,
+};
 use twilight_model::id::ChannelId;
 
 /// Delete the stage instance of a stage channel.
@@ -19,7 +24,7 @@ impl<'a> DeleteStageInstance<'a> {
         }
     }
 
-    fn start(&mut self) -> Result<()> {
+    fn start(&mut self) -> Result<(), Error> {
         let request = Request::from_route(Route::DeleteStageInstance {
             channel_id: self.channel_id.0,
         });

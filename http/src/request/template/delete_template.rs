@@ -1,4 +1,9 @@
-use crate::request::prelude::*;
+use crate::{
+    client::Client,
+    error::Error,
+    request::{Pending, Request},
+    routing::Route,
+};
 use twilight_model::id::GuildId;
 
 /// Delete a template by ID and code.
@@ -27,7 +32,7 @@ impl<'a> DeleteTemplate<'a> {
         }
     }
 
-    fn start(&mut self) -> Result<()> {
+    fn start(&mut self) -> Result<(), Error> {
         let request = Request::from_route(Route::DeleteTemplate {
             guild_id: self.guild_id.0,
             template_code: self.template_code.clone(),

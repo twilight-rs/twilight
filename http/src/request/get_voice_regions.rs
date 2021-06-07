@@ -1,4 +1,9 @@
-use crate::request::prelude::*;
+use crate::{
+    client::Client,
+    error::Error,
+    request::{Pending, Request},
+    routing::Route,
+};
 use twilight_model::voice::VoiceRegion;
 
 /// Get a list of voice regions that can be used when creating a guild.
@@ -12,7 +17,7 @@ impl<'a> GetVoiceRegions<'a> {
         Self { fut: None, http }
     }
 
-    fn start(&mut self) -> Result<()> {
+    fn start(&mut self) -> Result<(), Error> {
         let request = Request::from_route(Route::GetVoiceRegions);
 
         self.fut.replace(Box::pin(self.http.request(request)));

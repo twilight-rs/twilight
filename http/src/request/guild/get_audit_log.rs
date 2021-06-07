@@ -1,4 +1,9 @@
-use crate::request::prelude::*;
+use crate::{
+    client::Client,
+    error::Error as HttpError,
+    request::{validate, Pending, Request},
+    routing::Route,
+};
 use std::{
     error::Error,
     fmt::{Display, Formatter, Result as FmtResult},
@@ -143,7 +148,7 @@ impl<'a> GetAuditLog<'a> {
         self
     }
 
-    fn start(&mut self) -> Result<()> {
+    fn start(&mut self) -> Result<(), HttpError> {
         let request = Request::from_route(Route::GetAuditLogs {
             action_type: self.fields.action_type.map(|x| x as u64),
             before: self.fields.before,

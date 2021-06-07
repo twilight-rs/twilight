@@ -1,5 +1,5 @@
 use super::DeleteChannelPermissionConfigured;
-use crate::request::prelude::*;
+use crate::client::Client;
 use twilight_model::id::{ChannelId, RoleId, UserId};
 
 /// Clear the permissions for a target ID in a channel.
