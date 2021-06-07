@@ -889,7 +889,7 @@ impl InMemoryCache {
             guild_id,
             stage_instance.id,
             stage_instance,
-        )
+        );
     }
 
     fn cache_user(&self, user: Cow<'_, User>, guild_id: Option<GuildId>) {
