@@ -1,9 +1,8 @@
 pub mod heartbeat;
 
+mod compression;
 mod emitter;
 mod r#impl;
-#[cfg(feature = "compression")]
-mod inflater;
 mod session;
 mod socket_forwarder;
 mod throttle;
