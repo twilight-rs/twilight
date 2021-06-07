@@ -1,9 +1,11 @@
+use crate::model::CachedPresence;
+
 use super::{config::ResourceType, InMemoryCache};
 use dashmap::DashMap;
 use std::{borrow::Cow, collections::HashSet, hash::Hash, ops::Deref, sync::Arc};
 use twilight_model::{
     channel::{message::MessageReaction, Channel, GuildChannel, ReactionType},
-    gateway::{event::Event, payload::*, presence::Presence},
+    gateway::{event::Event, payload::*},
     id::GuildId,
 };
 
@@ -489,12 +491,12 @@ impl UpdateCache for PresenceUpdate {
             return;
         }
 
-        let presence = Presence {
+        let presence = CachedPresence {
             activities: self.activities.clone(),
             client_status: self.client_status.clone(),
             guild_id: self.guild_id,
             status: self.status,
-            user: self.user.clone(),
+            user_id: crate::presence_user_id(&self.user),
         };
 
         cache.cache_presence(self.guild_id, presence);

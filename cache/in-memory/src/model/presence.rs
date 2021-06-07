@@ -31,11 +31,11 @@ impl PartialEq<Presence> for CachedPresence {
     }
 }
 
-impl From<&'_ Presence> for CachedPresence {
-    fn from(presence: &'_ Presence) -> Self {
+impl From<Presence> for CachedPresence {
+    fn from(presence: Presence) -> Self {
         Self {
-            activities: presence.activities.clone(),
-            client_status: presence.client_status.clone(),
+            activities: presence.activities,
+            client_status: presence.client_status,
             guild_id: presence.guild_id,
             status: presence.status,
             user_id: presence_user_id(&presence.user),
