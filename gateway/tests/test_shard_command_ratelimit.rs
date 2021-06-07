@@ -65,7 +65,8 @@ async fn test_shard_command_ratelimit() {
         false,
         Some(1),
         Status::DoNotDisturb,
-    ).unwrap();
+    )
+    .unwrap();
     let now = Instant::now();
     shard.command(&payload).await.unwrap();
     assert!(now.elapsed() < Duration::from_millis(500));

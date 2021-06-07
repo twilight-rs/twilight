@@ -47,7 +47,7 @@ impl Display for UpdateStatusError {
 
 impl Error for UpdateStatusError {}
 
-/// Type of [`UpdateStatusError`] that occured.
+/// Type of [`UpdateStatusError`] that occurred.
 #[derive(Debug)]
 #[non_exhaustive]
 pub enum UpdateStatusErrorType {
@@ -95,12 +95,12 @@ pub struct UpdateStatusInfo {
 }
 
 impl UpdateStatusInfo {
-    /// Create a new, valid [`UpdateStatusInfo`] struct.
+    /// Create a validated stats update info struct.
     ///
     /// # Errors
     ///
-    /// Returns an error of type [`UpdateStatusErrorType::MissingActivity`] if
-    /// an empty set of activites is provided.
+    /// Returns an [`UpdateStatusErrorType::MissingActivity`] error type if an
+    /// empty set of activites is provided.
     pub fn new(
         activities: impl Into<Vec<Activity>>,
         afk: bool,
