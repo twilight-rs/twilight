@@ -15,10 +15,7 @@ use crate::{
             SetGuildCommands, UpdateCommandPermissions, UpdateFollowupMessage, UpdateGlobalCommand,
             UpdateGuildCommand, UpdateOriginalResponse,
         },
-        channel::stage::{
-            create_stage_instance::CreateStageInstanceError,
-            update_stage_instance::UpdateStageInstanceError,
-        },
+        channel::stage::create_stage_instance::CreateStageInstanceError,
         guild::{
             create_guild::CreateGuildError, create_guild_channel::CreateGuildChannelError,
             update_guild_channel_positions::Position,
@@ -1399,19 +1396,8 @@ impl Client {
     /// Update fields of an existing stage instance.
     ///
     /// Requires the user to be a moderator of the stage channel.
-    ///
-    /// # Errors
-    ///
-    /// Returns a [`UpdateStageInstanceError`] of type [`InvalidTopic`] when the
-    ///
-    /// [`InvalidTopic`]: crate::request::channel::stage::update_stage_instance::UpdateStageInstanceErrorType::InvalidTopic
-    /// topic is not between 1 and 120 characters in length.
-    pub fn update_stage_instance(
-        &self,
-        channel_id: ChannelId,
-        topic: impl Into<String>,
-    ) -> Result<UpdateStageInstance<'_>, UpdateStageInstanceError> {
-        UpdateStageInstance::new(self, channel_id, topic)
+    pub fn update_stage_instance(&self, channel_id: ChannelId) -> UpdateStageInstance<'_> {
+        UpdateStageInstance::new(self, channel_id)
     }
 
     /// Delete the stage instance of a stage channel.
