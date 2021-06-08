@@ -1,4 +1,9 @@
-use crate::request::prelude::*;
+use crate::{
+    client::Client,
+    error::Error as HttpError,
+    request::{validate, AuditLogReason, AuditLogReasonError, Pending, Request},
+    routing::Route,
+};
 use std::{
     error::Error,
     fmt::{Display, Formatter, Result as FmtResult},
@@ -124,7 +129,7 @@ impl<'a> CreateBan<'a> {
         Ok(self)
     }
 
-    fn start(&mut self) -> Result<()> {
+    fn start(&mut self) -> Result<(), HttpError> {
         let request = Request::from_route(Route::CreateBan {
             delete_message_days: self.fields.delete_message_days,
             guild_id: self.guild_id.0,

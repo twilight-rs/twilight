@@ -1,7 +1,7 @@
 use crate::{
     guild::{
-        DefaultMessageNotificationLevel, Emoji, ExplicitContentFilter, MfaLevel, Permissions,
-        PremiumTier, Role, SystemChannelFlags, VerificationLevel,
+        DefaultMessageNotificationLevel, Emoji, ExplicitContentFilter, MfaLevel, NSFWLevel,
+        Permissions, PremiumTier, Role, SystemChannelFlags, VerificationLevel,
     },
     id::{ApplicationId, ChannelId, GuildId, UserId},
 };
@@ -29,7 +29,10 @@ pub struct PartialGuild {
     pub member_count: Option<u64>,
     pub mfa_level: MfaLevel,
     pub name: String,
+    #[deprecated(since = "0.4.3", note = "no longer provided by discord, see #839")]
+    #[serde(skip)]
     pub nsfw: bool,
+    pub nsfw_level: NSFWLevel,
     pub owner_id: UserId,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub owner: Option<bool>,
@@ -39,6 +42,7 @@ pub struct PartialGuild {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub premium_subscription_count: Option<u64>,
     pub premium_tier: PremiumTier,
+    #[deprecated(since = "0.4.3", note = "no longer provided by discord, see #884")]
     pub region: String,
     pub roles: Vec<Role>,
     pub rules_channel_id: Option<ChannelId>,
@@ -57,14 +61,16 @@ pub struct PartialGuild {
 mod tests {
     use super::{
         ApplicationId, ChannelId, DefaultMessageNotificationLevel, ExplicitContentFilter, GuildId,
-        MfaLevel, PartialGuild, Permissions, PremiumTier, SystemChannelFlags, UserId,
+        MfaLevel, NSFWLevel, PartialGuild, Permissions, PremiumTier, SystemChannelFlags, UserId,
         VerificationLevel,
     };
     use serde_test::Token;
 
     #[allow(clippy::too_many_lines)]
+    #[allow(deprecated)]
     #[test]
     fn test_partial_guild() {
+        #[allow(deprecated)]
         let value = PartialGuild {
             id: GuildId(1),
             afk_channel_id: Some(ChannelId(2)),
@@ -84,6 +90,7 @@ mod tests {
             mfa_level: MfaLevel::Elevated,
             name: "the name".to_owned(),
             nsfw: false,
+            nsfw_level: NSFWLevel::Default,
             owner_id: UserId(5),
             owner: Some(false),
             permissions: Some(Permissions::SEND_MESSAGES),
@@ -160,8 +167,8 @@ mod tests {
                 Token::U8(1),
                 Token::Str("name"),
                 Token::Str("the name"),
-                Token::Str("nsfw"),
-                Token::Bool(false),
+                Token::Str("nsfw_level"),
+                Token::U8(0),
                 Token::Str("owner_id"),
                 Token::NewtypeStruct { name: "UserId" },
                 Token::Str("5"),

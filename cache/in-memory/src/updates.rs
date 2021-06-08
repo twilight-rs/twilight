@@ -64,6 +64,9 @@ impl UpdateCache for Event {
             ShardReconnecting(_) => {}
             ShardPayload(_) => {}
             ShardResuming(_) => {}
+            StageInstanceCreate(v) => c.update(v),
+            StageInstanceDelete(v) => c.update(v),
+            StageInstanceUpdate(v) => c.update(v),
             TypingStart(v) => c.update(v.deref()),
             UnavailableGuild(v) => c.update(v),
             UserUpdate(v) => c.update(v),
@@ -255,6 +258,7 @@ impl UpdateCache for GuildUpdate {
             return;
         }
 
+        #[allow(deprecated)]
         if let Some(mut guild) = cache.0.guilds.get_mut(&self.0.id) {
             let mut guild = Arc::make_mut(&mut guild);
             guild.afk_channel_id = self.afk_channel_id;
@@ -268,7 +272,7 @@ impl UpdateCache for GuildUpdate {
             guild.max_presences = Some(self.max_presences.unwrap_or(25000));
             guild.mfa_level = self.mfa_level;
             guild.name = self.name.clone();
-            guild.nsfw = self.nsfw;
+            guild.nsfw_level = self.nsfw_level;
             guild.owner = self.owner;
             guild.owner_id = self.owner_id;
             guild.permissions = self.permissions;
@@ -665,6 +669,36 @@ impl UpdateCache for RoleUpdate {
     }
 }
 
+impl UpdateCache for StageInstanceCreate {
+    fn update(&self, cache: &InMemoryCache) {
+        if !cache.wants(ResourceType::STAGE_INSTANCE) {
+            return;
+        }
+
+        cache.cache_stage_instance(self.guild_id, self.0.clone());
+    }
+}
+
+impl UpdateCache for StageInstanceDelete {
+    fn update(&self, cache: &InMemoryCache) {
+        if !cache.wants(ResourceType::STAGE_INSTANCE) {
+            return;
+        }
+
+        cache.delete_stage_instance(self.id);
+    }
+}
+
+impl UpdateCache for StageInstanceUpdate {
+    fn update(&self, cache: &InMemoryCache) {
+        if !cache.wants(ResourceType::STAGE_INSTANCE) {
+            return;
+        }
+
+        cache.cache_stage_instance(self.guild_id, self.0.clone());
+    }
+}
+
 impl UpdateCache for TypingStart {}
 
 impl UpdateCache for UnavailableGuild {
@@ -720,7 +754,8 @@ mod tests {
         gateway::payload::{reaction_remove_emoji::PartialEmoji, ChannelDelete},
         guild::{
             DefaultMessageNotificationLevel, ExplicitContentFilter, Guild, Member, MfaLevel,
-            PartialGuild, PartialMember, PremiumTier, SystemChannelFlags, VerificationLevel,
+            NSFWLevel, PartialGuild, PartialMember, PremiumTier, SystemChannelFlags,
+            VerificationLevel,
         },
         id::{ChannelId, GuildId, MessageId, UserId},
         user::User,
@@ -879,9 +914,11 @@ mod tests {
         cache
     }
 
+    #[allow(deprecated)]
     #[test]
     fn test_guild_update() {
         let cache = InMemoryCache::new();
+        #[allow(deprecated)]
         let guild = Guild {
             afk_channel_id: None,
             afk_timeout: 0,
@@ -908,6 +945,7 @@ mod tests {
             mfa_level: MfaLevel::None,
             name: "test".to_owned(),
             nsfw: false,
+            nsfw_level: NSFWLevel::Default,
             owner_id: UserId(1),
             owner: None,
             permissions: None,
@@ -919,6 +957,7 @@ mod tests {
             roles: Vec::new(),
             rules_channel_id: None,
             splash: None,
+            stage_instances: Vec::new(),
             system_channel_flags: SystemChannelFlags::empty(),
             system_channel_id: None,
             unavailable: false,
@@ -931,6 +970,7 @@ mod tests {
 
         cache.update(&GuildCreate(guild.clone()));
 
+        #[allow(deprecated)]
         let mutation = PartialGuild {
             id: guild.id,
             afk_channel_id: guild.afk_channel_id,
@@ -949,7 +989,8 @@ mod tests {
             member_count: guild.member_count,
             mfa_level: guild.mfa_level,
             name: "test2222".to_owned(),
-            nsfw: guild.nsfw,
+            nsfw: false,
+            nsfw_level: guild.nsfw_level,
             owner_id: UserId(2),
             owner: guild.owner,
             permissions: guild.permissions,

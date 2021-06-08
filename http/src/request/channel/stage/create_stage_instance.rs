@@ -1,9 +1,15 @@
-use crate::request::prelude::*;
+use crate::{
+    client::Client,
+    error::Error as HttpError,
+    request::{validate, Pending, Request},
+    routing::Route,
+};
+use serde::Serialize;
 use std::{
     error::Error,
     fmt::{Display, Formatter, Result as FmtResult},
 };
-use twilight_model::id::ChannelId;
+use twilight_model::{channel::stage_instance::PrivacyLevel, id::ChannelId};
 
 /// The request can not be created as configured.
 #[derive(Debug)]
@@ -62,11 +68,18 @@ pub enum CreateStageInstanceErrorType {
     },
 }
 
+#[derive(Default, Serialize)]
+struct CreateStageInstanceFields {
+    #[serde(skip_serializing_if = "Option::is_none")]
+    privacy_level: Option<PrivacyLevel>,
+}
+
 /// Create a new stage instance associated with a stage channel.
 ///
 /// Requires the user to be a moderator of the stage channel.
 pub struct CreateStageInstance<'a> {
     channel_id: ChannelId,
+    fields: CreateStageInstanceFields,
     fut: Option<Pending<'a, ()>>,
     http: &'a Client,
     topic: String,
@@ -95,17 +108,27 @@ impl<'a> CreateStageInstance<'a> {
 
         Ok(Self {
             channel_id,
+            fields: CreateStageInstanceFields::default(),
             fut: None,
             http,
             topic,
         })
     }
 
-    fn start(&mut self) -> Result<()> {
-        let request = Request::from_route(Route::CreateStageInstance {
+    /// Set the [`PrivacyLevel`] of the instance.
+    pub fn privacy_level(mut self, privacy_level: PrivacyLevel) -> Self {
+        self.fields.privacy_level.replace(privacy_level);
+
+        self
+    }
+
+    fn start(&mut self) -> Result<(), HttpError> {
+        let request = Request::builder(Route::CreateStageInstance {
             channel_id: self.channel_id.0,
             topic: self.topic.clone(),
-        });
+        })
+        .json(&self.fields)?
+        .build();
 
         self.fut.replace(Box::pin(self.http.verify(request)));
 

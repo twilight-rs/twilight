@@ -1,4 +1,9 @@
-use crate::request::prelude::*;
+use crate::{
+    client::Client,
+    error::Error,
+    request::{PendingOption, Request},
+    routing::Route,
+};
 use twilight_model::{id::GuildId, invite::WelcomeScreen};
 
 /// Get the guild's welcome screen.
@@ -17,7 +22,7 @@ impl<'a> GetGuildWelcomeScreen<'a> {
         }
     }
 
-    fn start(&mut self) -> Result<()> {
+    fn start(&mut self) -> Result<(), Error> {
         let request = Request::from_route(Route::GetGuildWelcomeScreen {
             guild_id: self.guild_id.0,
         });

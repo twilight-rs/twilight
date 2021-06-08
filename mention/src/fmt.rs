@@ -74,17 +74,16 @@ pub trait Mention<T> {
     fn mention(&self) -> MentionFormat<T>;
 }
 
-/// Mention a channel ID. This will format as `<#ID>`.
-impl Mention<ChannelId> for ChannelId {
-    fn mention(&self) -> MentionFormat<ChannelId> {
-        MentionFormat(*self)
+impl<T, M: Mention<T>> Mention<T> for &'_ M {
+    fn mention(&self) -> MentionFormat<T> {
+        (*self).mention()
     }
 }
 
 /// Mention a channel ID. This will format as `<#ID>`.
-impl Mention<ChannelId> for &'_ ChannelId {
+impl Mention<ChannelId> for ChannelId {
     fn mention(&self) -> MentionFormat<ChannelId> {
-        (*self).mention()
+        MentionFormat(*self)
     }
 }
 
@@ -95,13 +94,6 @@ impl Mention<ChannelId> for CategoryChannel {
     }
 }
 
-/// Mention a guild category channel. This will format as `<#ID>`.
-impl Mention<ChannelId> for &'_ CategoryChannel {
-    fn mention(&self) -> MentionFormat<ChannelId> {
-        (*self).mention()
-    }
-}
-
 /// Mention a channel. This will format as `<#ID>`.
 impl Mention<ChannelId> for Channel {
     fn mention(&self) -> MentionFormat<ChannelId> {
@@ -109,24 +101,10 @@ impl Mention<ChannelId> for Channel {
     }
 }
 
-/// Mention a channel. This will format as `<#ID>`.
-impl Mention<ChannelId> for &'_ Channel {
-    fn mention(&self) -> MentionFormat<ChannelId> {
-        (*self).mention()
-    }
-}
-
 /// Mention the current user. This will format as `<@ID>`.
 impl Mention<UserId> for CurrentUser {
     fn mention(&self) -> MentionFormat<UserId> {
         MentionFormat(self.id)
-    }
-}
-
-/// Mention the current user. This will format as `<@ID>`.
-impl Mention<UserId> for &'_ CurrentUser {
-    fn mention(&self) -> MentionFormat<UserId> {
-        (*self).mention()
     }
 }
 
@@ -138,23 +116,9 @@ impl Mention<EmojiId> for EmojiId {
 }
 
 /// Mention an emoji. This will format as `<:emoji:ID>`.
-impl Mention<EmojiId> for &'_ EmojiId {
-    fn mention(&self) -> MentionFormat<EmojiId> {
-        (*self).mention()
-    }
-}
-
-/// Mention an emoji. This will format as `<:emoji:ID>`.
 impl Mention<EmojiId> for Emoji {
     fn mention(&self) -> MentionFormat<EmojiId> {
         MentionFormat(self.id)
-    }
-}
-
-/// Mention an emoji. This will format as `<:emoji:ID>`.
-impl Mention<EmojiId> for &'_ Emoji {
-    fn mention(&self) -> MentionFormat<EmojiId> {
-        (*self).mention()
     }
 }
 
@@ -165,24 +129,10 @@ impl Mention<ChannelId> for Group {
     }
 }
 
-/// Mention a group. This will format as `<#ID>`.
-impl Mention<ChannelId> for &'_ Group {
-    fn mention(&self) -> MentionFormat<ChannelId> {
-        (*self).mention()
-    }
-}
-
 /// Mention a guild channel. This will format as `<#ID>`.
 impl Mention<ChannelId> for GuildChannel {
     fn mention(&self) -> MentionFormat<ChannelId> {
         MentionFormat(self.id())
-    }
-}
-
-/// Mention a guild channel. This will format as `<#ID>`.
-impl Mention<ChannelId> for &'_ GuildChannel {
-    fn mention(&self) -> MentionFormat<ChannelId> {
-        (*self).mention()
     }
 }
 
@@ -193,24 +143,10 @@ impl Mention<UserId> for Member {
     }
 }
 
-/// Mention a member's user. This will format as `<@ID>`.
-impl Mention<UserId> for &'_ Member {
-    fn mention(&self) -> MentionFormat<UserId> {
-        (*self).mention()
-    }
-}
-
 /// Mention a private channel. This will format as `<#ID>`.
 impl Mention<ChannelId> for PrivateChannel {
     fn mention(&self) -> MentionFormat<ChannelId> {
         MentionFormat(self.id)
-    }
-}
-
-/// Mention a private channel. This will format as `<#ID>`.
-impl Mention<ChannelId> for &'_ PrivateChannel {
-    fn mention(&self) -> MentionFormat<ChannelId> {
-        (*self).mention()
     }
 }
 
@@ -222,23 +158,9 @@ impl Mention<RoleId> for RoleId {
 }
 
 /// Mention a role ID. This will format as `<@&ID>`.
-impl Mention<RoleId> for &'_ RoleId {
-    fn mention(&self) -> MentionFormat<RoleId> {
-        (*self).mention()
-    }
-}
-
-/// Mention a role ID. This will format as `<@&ID>`.
 impl Mention<RoleId> for Role {
     fn mention(&self) -> MentionFormat<RoleId> {
         MentionFormat(self.id)
-    }
-}
-
-/// Mention a role ID. This will format as `<@&ID>`.
-impl Mention<RoleId> for &'_ Role {
-    fn mention(&self) -> MentionFormat<RoleId> {
-        (*self).mention()
     }
 }
 
@@ -249,24 +171,10 @@ impl Mention<ChannelId> for TextChannel {
     }
 }
 
-/// Mention a guild text channel. This will format as `<#ID>`.
-impl Mention<ChannelId> for &'_ TextChannel {
-    fn mention(&self) -> MentionFormat<ChannelId> {
-        (*self).mention()
-    }
-}
-
 /// Mention a user ID. This will format as `<&ID>`.
 impl Mention<UserId> for UserId {
     fn mention(&self) -> MentionFormat<UserId> {
         MentionFormat(*self)
-    }
-}
-
-/// Mention a user ID. This will format as `<&ID>`.
-impl Mention<UserId> for &'_ UserId {
-    fn mention(&self) -> MentionFormat<UserId> {
-        (*self).mention()
     }
 }
 
@@ -277,24 +185,10 @@ impl Mention<UserId> for User {
     }
 }
 
-/// Mention a user. This will format as `<&ID>`.
-impl Mention<UserId> for &'_ User {
-    fn mention(&self) -> MentionFormat<UserId> {
-        (*self).mention()
-    }
-}
-
 /// Mention a guild voice channel. This will format as `<#ID>`.
 impl Mention<ChannelId> for VoiceChannel {
     fn mention(&self) -> MentionFormat<ChannelId> {
         MentionFormat(self.id)
-    }
-}
-
-/// Mention a guild voice channel. This will format as `<#ID>`.
-impl Mention<ChannelId> for &'_ VoiceChannel {
-    fn mention(&self) -> MentionFormat<ChannelId> {
-        (*self).mention()
     }
 }
 

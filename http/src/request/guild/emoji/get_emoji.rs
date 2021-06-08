@@ -1,4 +1,9 @@
-use crate::request::prelude::*;
+use crate::{
+    client::Client,
+    error::Error,
+    request::{PendingOption, Request},
+    routing::Route,
+};
 use twilight_model::{
     guild::Emoji,
     id::{EmojiId, GuildId},
@@ -41,7 +46,7 @@ impl<'a> GetEmoji<'a> {
         }
     }
 
-    fn start(&mut self) -> Result<()> {
+    fn start(&mut self) -> Result<(), Error> {
         let request = Request::from_route(Route::GetEmoji {
             emoji_id: self.emoji_id.0,
             guild_id: self.guild_id.0,

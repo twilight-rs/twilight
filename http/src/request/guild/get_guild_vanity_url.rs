@@ -1,6 +1,8 @@
 use crate::{
+    client::Client,
     error::{Error, ErrorType},
-    request::prelude::*,
+    request::{PendingOption, Request},
+    routing::Route,
 };
 use hyper::StatusCode;
 use serde::Deserialize;
@@ -32,7 +34,7 @@ impl<'a> GetGuildVanityUrl<'a> {
         }
     }
 
-    fn start(&mut self) -> Result<()> {
+    fn start(&mut self) -> Result<(), Error> {
         let request = Request::from_route(Route::GetGuildVanityUrl {
             guild_id: self.guild_id.0,
         });
@@ -44,7 +46,7 @@ impl<'a> GetGuildVanityUrl<'a> {
 }
 
 impl Future for GetGuildVanityUrl<'_> {
-    type Output = Result<Option<String>>;
+    type Output = Result<Option<String>, Error>;
 
     fn poll(mut self: Pin<&mut Self>, cx: &mut Context<'_>) -> Poll<Self::Output> {
         loop {

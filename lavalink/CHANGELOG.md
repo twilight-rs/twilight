@@ -2,6 +2,22 @@
 
 Changelog for `twilight-lavalink`.
 
+## [0.4.1] - 2021-05-30
+
+### Enhancements
+
+The following functions are now `const`:
+
+- `client::ClientError::kind`
+- `model::outgoing::Destroy::new`
+- `node::NodeError::kind`
+- `node::NodeSenderError::kind`
+- `node::Resume::new`
+
+([#824] - [@vivian]).
+
+[#824]: https://github.com/twilight-rs/twilight/pull/824
+
 ## [0.4.0] - 2021-05-12
 
 ### Upgrade Path
@@ -149,6 +165,7 @@ Initial release.
 [#548]: https://github.com/twilight-rs/twilight/pull/548
 [#518]: https://github.com/twilight-rs/twilight/pull/518
 
+[0.4.1]: https://github.com/twilight-rs/twilight/releases/tag/lavalink-0.4.1
 [0.4.0]: https://github.com/twilight-rs/twilight/releases/tag/lavalink-0.4.0
 [0.3.2]: https://github.com/twilight-rs/twilight/releases/tag/lavalink-v0.3.2
 [0.3.1]: https://github.com/twilight-rs/twilight/releases/tag/lavalink-v0.3.1

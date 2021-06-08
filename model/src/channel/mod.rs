@@ -1,6 +1,7 @@
 pub mod embed;
 pub mod message;
 pub mod permission_overwrite;
+pub mod stage_instance;
 
 mod attachment;
 mod category_channel;
@@ -11,7 +12,6 @@ mod group;
 mod private_channel;
 mod reaction;
 mod reaction_type;
-mod stage_instance;
 mod text_channel;
 mod video_quality_mode;
 mod voice_channel;

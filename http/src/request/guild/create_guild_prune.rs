@@ -1,4 +1,9 @@
-use crate::request::prelude::*;
+use crate::{
+    client::Client,
+    error::Error as HttpError,
+    request::{self, validate, AuditLogReason, AuditLogReasonError, Pending, Request},
+    routing::Route,
+};
 use std::{
     error::Error,
     fmt::{Display, Formatter, Result as FmtResult},
@@ -127,7 +132,7 @@ impl<'a> CreateGuildPrune<'a> {
         Ok(self)
     }
 
-    fn start(&mut self) -> Result<()> {
+    fn start(&mut self) -> Result<(), HttpError> {
         let mut request = Request::builder(Route::CreateGuildPrune {
             compute_prune_count: self.fields.compute_prune_count,
             days: self.fields.days,
@@ -136,7 +141,7 @@ impl<'a> CreateGuildPrune<'a> {
         });
 
         if let Some(reason) = self.reason.as_ref() {
-            request = request.headers(audit_header(reason)?);
+            request = request.headers(request::audit_header(reason)?);
         }
 
         self.fut
