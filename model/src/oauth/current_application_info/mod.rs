@@ -143,6 +143,7 @@ mod tests {
                 Token::Str("1"),
                 Token::Str("flags"),
                 Token::Some,
+                Token::U64(131072),
                 Token::Str("icon"),
                 Token::Some,
                 Token::Str("icon hash"),
