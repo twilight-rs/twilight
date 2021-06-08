@@ -17,7 +17,7 @@ pub struct CurrentApplicationInfo {
     pub description: String,
     pub guild_id: Option<GuildId>,
     /// Public flags of the application.
-    pub flags: ApplicationFlags,
+    pub flags: Option<ApplicationFlags>,
     pub icon: Option<String>,
     pub id: ApplicationId,
     pub name: String,
@@ -86,7 +86,7 @@ mod tests {
             cover_image: Some("cover image hash".to_owned()),
             description: "a pretty cool application".to_owned(),
             guild_id: Some(GuildId(1)),
-            flags: ApplicationFlags::EMBEDDED,
+            flags: Some(ApplicationFlags::EMBEDDED),
             icon: Some("icon hash".to_owned()),
             id: ApplicationId(2),
             name: "cool application".to_owned(),
