@@ -8,7 +8,7 @@ use twilight_gateway::{
     Event, Intents,
 };
 use twilight_model::gateway::{
-    payload::UpdateStatus,
+    payload::UpdatePresence,
     presence::{Activity, ActivityType, Status},
 };
 
@@ -43,7 +43,7 @@ async fn test_shard_command_ratelimit() {
     assert!(matches!(events.next().await.unwrap(), Event::Ready(_)));
 
     // now that we're connected we can test sending
-    let payload = UpdateStatus::new(
+    let payload = UpdatePresence::new(
         vec![Activity {
             application_id: None,
             assets: None,
