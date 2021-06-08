@@ -142,7 +142,7 @@ mod tests {
                 Token::NewtypeStruct { name: "GuildId" },
                 Token::Str("1"),
                 Token::Str("flags"),
-                Token::U64(131_072),
+                Token::Some,
                 Token::Str("icon"),
                 Token::Some,
                 Token::Str("icon hash"),
