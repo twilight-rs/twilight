@@ -1,10 +1,14 @@
 use crate::{
     client::Client,
     error::Error,
-    request::{Pending, Request},
+    request::{
+        application::{InteractionError, InteractionErrorType},
+        validate, Pending, Request,
+    },
     routing::Route,
 };
 use serde::Serialize;
+use std::collections::HashMap;
 use twilight_model::{
     application::command::permissions::CommandPermissions,
     id::{ApplicationId, CommandId, GuildId},
@@ -34,7 +38,7 @@ impl<'a> SetCommandPermissions<'a> {
         application_id: ApplicationId,
         guild_id: GuildId,
         permissions: impl Iterator<Item = (CommandId, CommandPermissions)>,
-    ) -> Self {
+    ) -> Result<Self, InteractionError> {
         let fields = permissions
             .map(
                 |(command_id, command_permissions)| PartialGuildCommandPermissions {
@@ -42,14 +46,34 @@ impl<'a> SetCommandPermissions<'a> {
                     permissions: command_permissions,
                 },
             )
-            .collect();
-        Self {
+            .collect::<Vec<PartialGuildCommandPermissions>>();
+
+        if !fields
+            .iter()
+            .fold(HashMap::new(), |mut acc, permission| {
+                acc.entry(permission.id)
+                    .and_modify(|p| *p += 1)
+                    .or_insert(1usize);
+
+                acc
+            })
+            .iter()
+            .fold(true, |valid, permission| {
+                valid && validate::command_permissions(*permission.1)
+            })
+        {
+            return Err(InteractionError {
+                kind: InteractionErrorType::TooManyCommandPermissions,
+            });
+        }
+
+        Ok(Self {
             application_id,
             guild_id,
             fields,
             fut: None,
             http,
-        }
+        })
     }
 
     fn start(&mut self) -> Result<(), Error> {
@@ -67,3 +91,114 @@ impl<'a> SetCommandPermissions<'a> {
 }
 
 poll_req!(SetCommandPermissions<'_>, ());
+
+#[cfg(test)]
+mod tests {
+    use super::SetCommandPermissions;
+    use crate::Client;
+    use twilight_model::{
+        application::command::permissions::{CommandPermissions, CommandPermissionsType},
+        id::{ApplicationId, CommandId, GuildId, RoleId},
+    };
+
+    #[test]
+    fn test_validation() {
+        let http = Client::new("token");
+
+        let permissions = vec![
+            (
+                CommandId(3),
+                CommandPermissions {
+                    id: CommandPermissionsType::Role(RoleId(4)),
+                    permission: true,
+                },
+            ),
+            (
+                CommandId(3),
+                CommandPermissions {
+                    id: CommandPermissionsType::Role(RoleId(4)),
+                    permission: true,
+                },
+            ),
+            (
+                CommandId(3),
+                CommandPermissions {
+                    id: CommandPermissionsType::Role(RoleId(4)),
+                    permission: true,
+                },
+            ),
+            (
+                CommandId(3),
+                CommandPermissions {
+                    id: CommandPermissionsType::Role(RoleId(4)),
+                    permission: true,
+                },
+            ),
+            (
+                CommandId(3),
+                CommandPermissions {
+                    id: CommandPermissionsType::Role(RoleId(4)),
+                    permission: true,
+                },
+            ),
+            (
+                CommandId(3),
+                CommandPermissions {
+                    id: CommandPermissionsType::Role(RoleId(4)),
+                    permission: true,
+                },
+            ),
+            (
+                CommandId(3),
+                CommandPermissions {
+                    id: CommandPermissionsType::Role(RoleId(4)),
+                    permission: true,
+                },
+            ),
+            (
+                CommandId(3),
+                CommandPermissions {
+                    id: CommandPermissionsType::Role(RoleId(4)),
+                    permission: true,
+                },
+            ),
+            (
+                CommandId(3),
+                CommandPermissions {
+                    id: CommandPermissionsType::Role(RoleId(4)),
+                    permission: true,
+                },
+            ),
+            (
+                CommandId(3),
+                CommandPermissions {
+                    id: CommandPermissionsType::Role(RoleId(4)),
+                    permission: true,
+                },
+            ),
+            (
+                CommandId(3),
+                CommandPermissions {
+                    id: CommandPermissionsType::Role(RoleId(4)),
+                    permission: true,
+                },
+            ),
+            (
+                CommandId(3),
+                CommandPermissions {
+                    id: CommandPermissionsType::Role(RoleId(4)),
+                    permission: true,
+                },
+            ),
+        ];
+
+        let request = SetCommandPermissions::new(
+            &http,
+            ApplicationId(1),
+            GuildId(2),
+            permissions.into_iter(),
+        );
+
+        assert!(request.is_err());
+    }
+}
