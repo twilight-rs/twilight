@@ -321,11 +321,15 @@ impl UpdateCache for InteractionCreate {
                     for u in &resolved.users {
                         let user = cache.cache_user(Cow::Borrowed(u), command.guild_id);
 
-                        // This should always execute, because resolved members are guaranteed
-                        // to have a matching resolved user
+                        if !cache.wants(ResourceType::MEMBER) || command.guild_id.is_none() {
+                            continue;
+                        }
+
+                        // This should always match, because resolved members
+                        // are guaranteed to have a matching resolved user
                         if let Some(member) = &resolved.members.iter().find(|m| m.id == user.id) {
-                            if cache.wants(ResourceType::MEMBER) {
-                                cache.cache_borrowed_interaction_member(&member, user);
+                            if let Some(guild_id) = command.guild_id {
+                                cache.cache_borrowed_interaction_member(guild_id, &member, user);
                             }
                         }
                     }
@@ -1382,7 +1386,6 @@ mod tests {
                     resolved: Some(CommandInteractionDataResolved {
                         channels: Vec::new(),
                         members: vec![InteractionMember {
-                            guild_id: GuildId(3),
                             hoisted_role: None,
                             id: UserId(7),
                             joined_at: Some("joined at date".into()),
