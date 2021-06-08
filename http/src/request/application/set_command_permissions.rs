@@ -53,14 +53,12 @@ impl<'a> SetCommandPermissions<'a> {
             .fold(HashMap::new(), |mut acc, permission| {
                 acc.entry(permission.id)
                     .and_modify(|p| *p += 1)
-                    .or_insert(1usize);
+                    .or_insert(1_usize);
 
                 acc
             })
             .iter()
-            .fold(true, |valid, permission| {
-                valid && validate::command_permissions(*permission.1)
-            })
+            .all(|permission| validate::command_permissions(*permission.1))
         {
             return Err(InteractionError {
                 kind: InteractionErrorType::TooManyCommandPermissions,
