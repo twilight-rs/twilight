@@ -24,7 +24,7 @@ pub struct SetCommandPermissions<'a> {
     application_id: ApplicationId,
     guild_id: GuildId,
     fields: Vec<PartialGuildCommandPermissions>,
-    fut: Option<Pending<'a, ()>>,
+    fut: Option<Pending<'a, CommandPermissions>>,
     http: &'a Client,
 }
 
@@ -60,10 +60,10 @@ impl<'a> SetCommandPermissions<'a> {
         .json(&self.fields)?;
 
         self.fut
-            .replace(Box::pin(self.http.verify(request.build())));
+            .replace(Box::pin(self.http.request(request.build())));
 
         Ok(())
     }
 }
 
-poll_req!(SetCommandPermissions<'_>, ());
+poll_req!(SetCommandPermissions<'_>, CommandPermissions);
