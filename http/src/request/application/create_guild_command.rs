@@ -55,6 +55,7 @@ impl<'a> CreateGuildCommand<'a> {
         Ok(Self {
             command: Command {
                 application_id: Some(application_id),
+                guild_id: None,
                 name,
                 default_permission: None,
                 description,

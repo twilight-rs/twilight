@@ -418,7 +418,7 @@ mod tests {
         super::Command, BaseCommandOptionData, ChoiceCommandOptionData, CommandOption,
         CommandOptionChoice, OptionsCommandOptionData,
     };
-    use crate::id::{ApplicationId, CommandId};
+    use crate::id::{ApplicationId, CommandId, GuildId};
     use serde_test::Token;
 
     #[test]
@@ -426,6 +426,7 @@ mod tests {
     fn test_command_option_full() {
         let value = Command {
             application_id: Some(ApplicationId(100)),
+            guild_id: Some(GuildId(300)),
             name: "test command".into(),
             default_permission: Some(true),
             description: "this command is a test".into(),
@@ -492,7 +493,7 @@ mod tests {
             &[
                 Token::Struct {
                     name: "Command",
-                    len: 6,
+                    len: 7,
                 },
                 Token::Str("application_id"),
                 Token::Some,
@@ -500,6 +501,12 @@ mod tests {
                     name: "ApplicationId",
                 },
                 Token::Str("100"),
+                Token::Str("guild_id"),
+                Token::Some,
+                Token::NewtypeStruct {
+                    name: "GuildId",
+                },
+                Token::Str("300"),
                 Token::Str("name"),
                 Token::Str("test command"),
                 Token::Str("default_permission"),
