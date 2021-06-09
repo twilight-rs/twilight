@@ -51,6 +51,7 @@ pub enum AuditLogChangeKey {
     RulesChannelId,
     SplashHash,
     SystemChannelId,
+    PrivacyLevel,
     Temporary,
     Topic,
     Type,
