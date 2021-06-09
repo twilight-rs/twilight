@@ -503,9 +503,7 @@ mod tests {
                 Token::Str("100"),
                 Token::Str("guild_id"),
                 Token::Some,
-                Token::NewtypeStruct {
-                    name: "GuildId",
-                },
+                Token::NewtypeStruct { name: "GuildId" },
                 Token::Str("300"),
                 Token::Str("name"),
                 Token::Str("test command"),
