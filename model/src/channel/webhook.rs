@@ -1,12 +1,14 @@
 use crate::{
     channel::WebhookType,
-    id::{ChannelId, GuildId, WebhookId},
+    id::{ApplicationId, ChannelId, GuildId, WebhookId},
     user::User,
 };
 use serde::{Deserialize, Serialize};
 
 #[derive(Clone, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
 pub struct Webhook {
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub application_id: Option<ApplicationId>,
     pub avatar: Option<String>,
     pub channel_id: ChannelId,
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -23,13 +25,14 @@ pub struct Webhook {
 
 #[cfg(test)]
 mod tests {
-    use super::{ChannelId, GuildId, User, Webhook, WebhookId, WebhookType};
+    use super::{ApplicationId, ChannelId, GuildId, User, Webhook, WebhookId, WebhookType};
     use crate::id::UserId;
     use serde_test::Token;
 
     #[test]
     fn test_webhook() {
         let value = Webhook {
+            application_id: Some(ApplicationId(4)),
             avatar: Some("avatar".to_owned()),
             channel_id: ChannelId(1),
             guild_id: Some(GuildId(2)),
@@ -45,8 +48,14 @@ mod tests {
             &[
                 Token::Struct {
                     name: "Webhook",
-                    len: 7,
+                    len: 8,
                 },
+                Token::Str("application_id"),
+                Token::Some,
+                Token::NewtypeStruct {
+                    name: "ApplicationId",
+                },
+                Token::Str("4"),
                 Token::Str("avatar"),
                 Token::Some,
                 Token::Str("avatar"),
@@ -76,6 +85,7 @@ mod tests {
     #[test]
     fn test_webhook_complete() {
         let value = Webhook {
+            application_id: Some(ApplicationId(4)),
             avatar: Some("avatar".to_owned()),
             channel_id: ChannelId(1),
             guild_id: Some(GuildId(2)),
@@ -105,8 +115,14 @@ mod tests {
             &[
                 Token::Struct {
                     name: "Webhook",
-                    len: 8,
+                    len: 9,
                 },
+                Token::Str("application_id"),
+                Token::Some,
+                Token::NewtypeStruct {
+                    name: "ApplicationId",
+                },
+                Token::Str("4"),
                 Token::Str("avatar"),
                 Token::Some,
                 Token::Str("avatar"),
