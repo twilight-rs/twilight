@@ -60,11 +60,18 @@
 //!
 //! This is enabled by default.
 //!
+//! ### Tracing
+//!
+//! The `tracing` feature enables logging via the [`tracing`] crate.
+//!
+//! This is enabled by default.
+//!
 //! [`native-tls`]: https://crates.io/crates/native-tls
 //! [`hyper`]: https://crates.io/crates/hyper
 //! [`rustls`]: https://crates.io/crates/rustls
 //! [`serde_json`]: https://crates.io/crates/serde_json
 //! [`simd-json`]: https://crates.io/crates/simd-json
+//! [`tracing`]: https://crates.io/crates/tracing
 //! [discord badge]: https://img.shields.io/discord/745809834183753828?color=%237289DA&label=discord%20server&logo=discord&style=for-the-badge
 //! [discord link]: https://discord.gg/7jj8n7D
 //! [github badge]: https://img.shields.io/badge/github-twilight-6f42c1.svg?style=for-the-badge&logo=github
