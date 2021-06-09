@@ -1,5 +1,5 @@
+use crate::id::{ApplicationId, GuildId, IntegrationId};
 use serde::{Deserialize, Serialize};
-use crate::id::{GuildId, IntegrationId, ApplicationId};
 
 #[derive(Clone, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
 pub struct IntegrationDelete {
