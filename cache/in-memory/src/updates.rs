@@ -36,6 +36,9 @@ impl UpdateCache for Event {
             GuildEmojisUpdate(v) => c.update(v),
             GuildIntegrationsUpdate(v) => c.update(v),
             GuildUpdate(v) => c.update(v.deref()),
+            IntegrationCreate(v) => c.update(v.deref()),
+            IntegrationDelete(v) => c.update(v.deref()),
+            IntegrationUpdate(v) => c.update(v.deref()),
             InviteCreate(_) => {}
             InviteDelete(_) => {}
             MemberAdd(v) => c.update(v.deref()),
@@ -289,6 +292,41 @@ impl UpdateCache for GuildUpdate {
             guild.widget_channel_id = self.widget_channel_id;
             guild.widget_enabled = self.widget_enabled;
         };
+    }
+}
+
+impl UpdateCache for IntegrationCreate {
+    fn update(&self, cache: &InMemoryCache) {
+        if !cache.wants(ResourceType::INTEGRATION) || self.guild_id.is_none() {
+            return;
+        }
+
+        super::upsert_guild_item(
+            &cache.0.integrations,
+            self.guild_id.unwrap(),
+            (self.guild_id.unwrap(), self.id),
+            self.0.clone(),
+        );
+    }
+}
+
+impl UpdateCache for IntegrationDelete {
+    fn update(&self, cache: &InMemoryCache) {
+        if !cache.wants(ResourceType::INTEGRATION) {
+            return;
+        }
+
+        cache.delete_integration(self.guild_id, self.id);
+    }
+}
+
+impl UpdateCache for IntegrationUpdate {
+    fn update(&self, cache: &InMemoryCache) {
+        if !cache.wants(ResourceType::INTEGRATION) || self.guild_id.is_none() {
+            return;
+        }
+
+        cache.cache_integration(self.guild_id.unwrap(), self.0.clone());
     }
 }
 

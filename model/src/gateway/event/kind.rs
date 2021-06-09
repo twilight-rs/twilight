@@ -24,6 +24,9 @@ pub enum EventType {
     GuildEmojisUpdate,
     GuildIntegrationsUpdate,
     GuildUpdate,
+    IntegrationCreate,
+    IntegrationDelete,
+    IntegrationUpdate,
     InviteCreate,
     InviteDelete,
     #[serde(rename = "GUILD_MEMBER_ADD")]
@@ -89,6 +92,9 @@ impl EventType {
             Self::GuildEmojisUpdate => Some("GUILD_EMOJIS_UPDATE"),
             Self::GuildIntegrationsUpdate => Some("GUILD_INTEGRATIONS_UPDATE"),
             Self::GuildUpdate => Some("GUILD_UPDATE"),
+            Self::IntegrationCreate => Some("INTEGRATION_CREATE"),
+            Self::IntegrationDelete => Some("INTEGRATION_DELETE"),
+            Self::IntegrationUpdate => Some("INTEGRATION_UPDATE"),
             Self::InviteCreate => Some("INVITE_CREATE"),
             Self::InviteDelete => Some("INVITE_DELETE"),
             Self::MemberAdd => Some("GUILD_MEMBER_ADD"),
@@ -152,6 +158,9 @@ impl<'a> TryFrom<&'a str> for EventType {
             "GUILD_EMOJIS_UPDATE" => Ok(Self::GuildEmojisUpdate),
             "GUILD_INTEGRATIONS_UPDATE" => Ok(Self::GuildIntegrationsUpdate),
             "GUILD_UPDATE" => Ok(Self::GuildUpdate),
+            "INTEGRATION_CREATE" => Ok(Self::IntegrationCreate),
+            "INTEGRATION_DELETE" => Ok(Self::IntegrationDelete),
+            "INTEGRATION_UPDATE" => Ok(Self::IntegrationUpdate),
             "INVITE_CREATE" => Ok(Self::InviteCreate),
             "INVITE_DELETE" => Ok(Self::InviteDelete),
             "GUILD_MEMBER_ADD" => Ok(Self::MemberAdd),
@@ -227,6 +236,9 @@ mod tests {
             "GUILD_INTEGRATIONS_UPDATE",
         );
         assert_variant(EventType::GuildUpdate, "GUILD_UPDATE");
+        assert_variant(EventType::IntegrationCreate, "INTEGRATION_CREATE");
+        assert_variant(EventType::IntegrationDelete, "INTEGRATION_DELETE");
+        assert_variant(EventType::IntegrationUpdate, "INTEGRATION_UPDATE");
         assert_variant(EventType::InviteCreate, "INVITE_CREATE");
         assert_variant(EventType::InviteDelete, "INVITE_DELETE");
         assert_variant(EventType::MemberAdd, "GUILD_MEMBER_ADD");

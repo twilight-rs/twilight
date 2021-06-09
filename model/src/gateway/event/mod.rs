@@ -59,6 +59,12 @@ pub enum Event {
     GuildIntegrationsUpdate(GuildIntegrationsUpdate),
     /// A guild was updated.
     GuildUpdate(Box<GuildUpdate>),
+    /// A guild integration was created.
+    IntegrationCreate(Box<IntegrationCreate>),
+    /// A guild integration was updated.
+    IntegrationDelete(IntegrationDelete),
+    /// A guild integration was deleted.
+    IntegrationUpdate(Box<IntegrationUpdate>),
     /// A invite was made.
     InviteCreate(Box<InviteCreate>),
     /// A invite was deleted.
@@ -161,6 +167,9 @@ impl Event {
             Self::GuildEmojisUpdate(_) => EventType::GuildEmojisUpdate,
             Self::GuildIntegrationsUpdate(_) => EventType::GuildIntegrationsUpdate,
             Self::GuildUpdate(_) => EventType::GuildUpdate,
+            Self::IntegrationCreate(_) => EventType::IntegrationCreate,
+            Self::IntegrationDelete(_) => EventType::IntegrationDelete,
+            Self::IntegrationUpdate(_) => EventType::IntegrationUpdate,
             Self::InviteCreate(_) => EventType::InviteCreate,
             Self::InviteDelete(_) => EventType::InviteDelete,
             Self::MemberAdd(_) => EventType::MemberAdd,
@@ -216,6 +225,9 @@ impl From<Box<DispatchEvent>> for Event {
             DispatchEvent::GuildDelete(v) => Self::GuildDelete(v),
             DispatchEvent::GuildEmojisUpdate(v) => Self::GuildEmojisUpdate(v),
             DispatchEvent::GuildIntegrationsUpdate(v) => Self::GuildIntegrationsUpdate(v),
+            DispatchEvent::IntegrationCreate(v) => Self::IntegrationCreate(v),
+            DispatchEvent::IntegrationDelete(v) => Self::IntegrationDelete(v),
+            DispatchEvent::IntegrationUpdate(v) => Self::IntegrationUpdate(v),
             DispatchEvent::InviteCreate(v) => Self::InviteCreate(v),
             DispatchEvent::InviteDelete(v) => Self::InviteDelete(v),
             DispatchEvent::MemberAdd(v) => Self::MemberAdd(v),

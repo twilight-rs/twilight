@@ -1,6 +1,6 @@
 use super::{IntegrationAccount, IntegrationApplication, IntegrationExpireBehavior};
 use crate::{
-    id::{IntegrationId, RoleId},
+    id::{GuildId, IntegrationId, RoleId},
     user::User,
 };
 use serde::{Deserialize, Serialize};
@@ -17,6 +17,8 @@ pub struct GuildIntegration {
     pub expire_behavior: Option<IntegrationExpireBehavior>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub expire_grace_period: Option<u64>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub guild_id: Option<GuildId>,
     pub id: IntegrationId,
     #[serde(rename = "type")]
     pub kind: String,
