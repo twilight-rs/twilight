@@ -94,6 +94,7 @@ poll_req!(SetCommandPermissions<'_>, ());
 mod tests {
     use super::SetCommandPermissions;
     use crate::Client;
+    use std::iter;
     use twilight_model::{
         application::command::permissions::{CommandPermissions, CommandPermissionsType},
         id::{ApplicationId, CommandId, GuildId, RoleId},
@@ -103,92 +104,14 @@ mod tests {
     fn test_validation() {
         let http = Client::new("token");
 
-        let permissions = vec![
-            (
-                CommandId(3),
-                CommandPermissions {
-                    id: CommandPermissionsType::Role(RoleId(4)),
-                    permission: true,
-                },
-            ),
-            (
-                CommandId(3),
-                CommandPermissions {
-                    id: CommandPermissionsType::Role(RoleId(4)),
-                    permission: true,
-                },
-            ),
-            (
-                CommandId(3),
-                CommandPermissions {
-                    id: CommandPermissionsType::Role(RoleId(4)),
-                    permission: true,
-                },
-            ),
-            (
-                CommandId(3),
-                CommandPermissions {
-                    id: CommandPermissionsType::Role(RoleId(4)),
-                    permission: true,
-                },
-            ),
-            (
-                CommandId(3),
-                CommandPermissions {
-                    id: CommandPermissionsType::Role(RoleId(4)),
-                    permission: true,
-                },
-            ),
-            (
-                CommandId(3),
-                CommandPermissions {
-                    id: CommandPermissionsType::Role(RoleId(4)),
-                    permission: true,
-                },
-            ),
-            (
-                CommandId(3),
-                CommandPermissions {
-                    id: CommandPermissionsType::Role(RoleId(4)),
-                    permission: true,
-                },
-            ),
-            (
-                CommandId(3),
-                CommandPermissions {
-                    id: CommandPermissionsType::Role(RoleId(4)),
-                    permission: true,
-                },
-            ),
-            (
-                CommandId(3),
-                CommandPermissions {
-                    id: CommandPermissionsType::Role(RoleId(4)),
-                    permission: true,
-                },
-            ),
-            (
-                CommandId(3),
-                CommandPermissions {
-                    id: CommandPermissionsType::Role(RoleId(4)),
-                    permission: true,
-                },
-            ),
-            (
-                CommandId(3),
-                CommandPermissions {
-                    id: CommandPermissionsType::Role(RoleId(4)),
-                    permission: true,
-                },
-            ),
-            (
-                CommandId(3),
-                CommandPermissions {
-                    id: CommandPermissionsType::Role(RoleId(4)),
-                    permission: true,
-                },
-            ),
-        ];
+        let permissions = iter::repeat((
+            CommandId(3),
+            CommandPermissions {
+                id: CommandPermissionsType::Role(RoleId(4)),
+                permission: true,
+            },
+        ))
+        .take(11);
 
         let request = SetCommandPermissions::new(
             &http,
