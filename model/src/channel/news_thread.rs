@@ -35,6 +35,7 @@ mod tests {
     };
     use serde_test::Token;
 
+    #[allow(clippy::too_many_lines)]
     #[test]
     fn test_news_thread() {
         let value = NewsThread {
