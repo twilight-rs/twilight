@@ -1054,7 +1054,12 @@ impl InMemoryCache {
     }
 
     fn delete_integration(&self, guild_id: GuildId, integration_id: IntegrationId) {
-        if  self.0.integrations.remove(&(guild_id, integration_id)).is_some() {
+        if self
+            .0
+            .integrations
+            .remove(&(guild_id, integration_id))
+            .is_some()
+        {
             if let Some(mut integrations) = self.0.guild_integrations.get_mut(&guild_id) {
                 integrations.remove(&integration_id);
             }
