@@ -117,7 +117,7 @@ mod tests {
             &http,
             ApplicationId(1),
             GuildId(2),
-            permissions.into_iter(),
+            permissions,
         );
 
         assert!(request.is_err());
