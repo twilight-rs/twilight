@@ -297,16 +297,18 @@ impl UpdateCache for GuildUpdate {
 
 impl UpdateCache for IntegrationCreate {
     fn update(&self, cache: &InMemoryCache) {
-        if !cache.wants(ResourceType::INTEGRATION) || self.guild_id.is_none() {
+        if !cache.wants(ResourceType::INTEGRATION) {
             return;
         }
 
-        super::upsert_guild_item(
-            &cache.0.integrations,
-            self.guild_id.unwrap(),
-            (self.guild_id.unwrap(), self.id),
-            self.0.clone(),
-        );
+        if let Some(guild_id) = self.guild_id {
+            super::upsert_guild_item(
+                &cache.0.integrations,
+                guild_id,
+                (guild_id, self.id),
+                self.0.clone(),
+            );
+        }
     }
 }
 
@@ -322,11 +324,13 @@ impl UpdateCache for IntegrationDelete {
 
 impl UpdateCache for IntegrationUpdate {
     fn update(&self, cache: &InMemoryCache) {
-        if !cache.wants(ResourceType::INTEGRATION) || self.guild_id.is_none() {
+        if !cache.wants(ResourceType::INTEGRATION) {
             return;
         }
 
-        cache.cache_integration(self.guild_id.unwrap(), self.0.clone());
+        if let Some(guild_id) = self.guild_id {
+            cache.cache_integration(guild_id, self.0.clone());
+        }
     }
 }
 
