@@ -62,7 +62,7 @@ pub enum UpdatePresenceErrorType {
 
 #[derive(Clone, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
 pub struct UpdatePresence {
-    pub d: UpdatePresenceData,
+    pub d: UpdatePresencePayload,
     pub op: OpCode,
 }
 
@@ -79,7 +79,7 @@ impl UpdatePresence {
         since: impl Into<Option<u64>>,
         status: impl Into<Status>,
     ) -> Result<Self, UpdatePresenceError> {
-        let d = UpdatePresenceData::new(activities, afk, since, status)?;
+        let d = UpdatePresencePayload::new(activities, afk, since, status)?;
 
         Ok(Self {
             d,
@@ -89,7 +89,7 @@ impl UpdatePresence {
 }
 
 #[derive(Clone, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
-pub struct UpdatePresenceData {
+pub struct UpdatePresencePayload {
     /// User's activities.
     ///
     /// At least one is required.
@@ -99,7 +99,7 @@ pub struct UpdatePresenceData {
     pub status: Status,
 }
 
-impl UpdatePresenceData {
+impl UpdatePresencePayload {
     /// Create a validated stats update info struct.
     ///
     /// # Errors

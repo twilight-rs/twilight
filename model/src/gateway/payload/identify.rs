@@ -1,4 +1,4 @@
-use super::update_presence::UpdatePresenceData;
+use super::update_presence::UpdatePresencePayload;
 use crate::gateway::{intents::Intents, opcode::OpCode};
 use serde::{Deserialize, Serialize};
 
@@ -22,7 +22,7 @@ pub struct IdentifyInfo {
     pub compress: bool,
     pub intents: Intents,
     pub large_threshold: u64,
-    pub presence: Option<UpdatePresenceData>,
+    pub presence: Option<UpdatePresencePayload>,
     pub properties: IdentifyProperties,
     pub shard: Option<[u64; 2]>,
     pub token: String,

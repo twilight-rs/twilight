@@ -7,7 +7,7 @@ use std::{
 };
 use twilight_gateway_queue::{LocalQueue, Queue};
 use twilight_http::Client as HttpClient;
-use twilight_model::gateway::{payload::update_presence::UpdatePresenceData, Intents};
+use twilight_model::gateway::{payload::update_presence::UpdatePresencePayload, Intents};
 
 /// Large threshold configuration is invalid.
 ///
@@ -278,13 +278,13 @@ impl ShardBuilder {
     /// ```no_run
     /// use twilight_gateway::{Intents, Shard};
     /// use twilight_model::gateway::{
-    ///     payload::update_presence::UpdatePresenceData,
+    ///     payload::update_presence::UpdatePresencePayload,
     ///     presence::{ActivityType, MinimalActivity, Status},
     /// };
     ///
     /// # fn main() -> Result<(), Box<dyn std::error::Error>> {
     /// let shard = Shard::builder("token", Intents::empty())
-    ///     .presence(UpdatePresenceData::new(
+    ///     .presence(UpdatePresencePayload::new(
     ///         vec![MinimalActivity {
     ///             kind: ActivityType::Playing,
     ///             name: "Not accepting commands".into(),
@@ -298,7 +298,7 @@ impl ShardBuilder {
     /// # Ok(()) }
     ///
     /// ```
-    pub fn presence(mut self, presence: UpdatePresenceData) -> Self {
+    pub fn presence(mut self, presence: UpdatePresencePayload) -> Self {
         self.0.presence.replace(presence);
 
         self

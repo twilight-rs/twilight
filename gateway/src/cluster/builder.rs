@@ -11,7 +11,7 @@ use futures_util::stream::Stream;
 use std::{collections::HashMap, sync::Arc};
 use twilight_gateway_queue::{LocalQueue, Queue};
 use twilight_http::Client;
-use twilight_model::gateway::{payload::update_presence::UpdatePresenceData, Intents};
+use twilight_model::gateway::{payload::update_presence::UpdatePresencePayload, Intents};
 
 /// Builder to configure and construct a [`Cluster`].
 ///
@@ -156,7 +156,7 @@ impl ClusterBuilder {
     /// Set the presence to use when identifying with the gateway.
     ///
     /// Refer to the shard's [`ShardBuilder::presence`] for more information.
-    pub fn presence(mut self, presence: UpdatePresenceData) -> Self {
+    pub fn presence(mut self, presence: UpdatePresencePayload) -> Self {
         self.1 = self.1.presence(presence);
 
         self
