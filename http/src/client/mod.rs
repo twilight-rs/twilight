@@ -3,7 +3,7 @@ mod builder;
 pub use self::builder::ClientBuilder;
 
 use crate::{
-    api_error::{ApiError, ErrorCode},
+    api_error::ApiError,
     error::{Error, ErrorType},
     ratelimiting::{RatelimitHeaders, Ratelimiter},
     request::{
@@ -2140,6 +2140,7 @@ impl Client {
         let host = self.state.proxy.as_deref().unwrap_or("discord.com");
 
         let url = format!("{}://{}/api/v{}/{}", protocol, host, API_VERSION, path);
+        #[cfg(feature = "tracing")]
         tracing::debug!("URL: {:?}", url);
 
         let mut builder = hyper::Request::builder()
@@ -2281,7 +2282,9 @@ impl Client {
             Ok(v) => {
                 let _res = tx.send(Some(v));
             }
+            #[allow(unused_variables)]
             Err(why) => {
+                #[cfg(feature = "tracing")]
                 tracing::warn!("header parsing failed: {:?}; {:?}", why, resp);
 
                 let _res = tx.send(None);
@@ -2354,11 +2357,17 @@ impl Client {
         }
 
         match status {
-            StatusCode::IM_A_TEAPOT => tracing::warn!(
-                "discord's api now runs off of teapots -- proceed to panic: {:?}",
-                resp,
-            ),
-            StatusCode::TOO_MANY_REQUESTS => tracing::warn!("429 response: {:?}", resp),
+            StatusCode::IM_A_TEAPOT => {
+                #[cfg(feature = "tracing")]
+                tracing::warn!(
+                    "discord's api now runs off of teapots -- proceed to panic: {:?}",
+                    resp,
+                );
+            }
+            StatusCode::TOO_MANY_REQUESTS => {
+                #[cfg(feature = "tracing")]
+                tracing::warn!("429 response: {:?}", resp);
+            }
             StatusCode::SERVICE_UNAVAILABLE => {
                 return Err(Error {
                     kind: ErrorType::ServiceUnavailable { response: resp },
@@ -2385,7 +2394,10 @@ impl Client {
             source: Some(Box::new(source)),
         })?;
 
+        #[cfg(feature = "tracing")]
         if let ApiError::General(ref general) = error {
+            use crate::api_error::ErrorCode;
+
             if let ErrorCode::Other(num) = general.code {
                 tracing::debug!("got unknown API error code variant: {}; {:?}", num, error);
             }
