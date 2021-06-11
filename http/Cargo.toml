@@ -20,7 +20,6 @@ futures-util = { default-features = false, features = ["std"], version = "0.3" }
 hyper = { default-features = false, features = ["client", "http1", "http2", "runtime"], version = "0.14" }
 hyper-rustls = { default-features = false, optional = true, version = "0.22" }
 hyper-tls = { default-features = false, optional = true, version = "0.5" }
-native-tls = { default-features = false, features = ["alpn"], optional = true, version = "0.2.7" }
 percent-encoding = { default-features = false, version = "2" }
 tokio = { default-features = false, features = ["time"], version = "1.0" }
 tracing = { default-features = false, features = ["std", "attributes"], version = "0.1" }
