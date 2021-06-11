@@ -25,7 +25,6 @@ tracing = { default-features = false, features = ["std", "attributes"], version 
 twilight-model = { default-features = false, path = "../model" }
 serde = { default-features = false, features = ["derive"], version = "1" }
 serde_json = { default-features = false, features = ["alloc"], version = "1" }
-serde_repr = { default-features = false, version = "0.1" }
 
 # optional
 simd-json = { default-features = false, features = ["serde_impl", "swar-number-parsing"], optional = true, version = "0.4" }
