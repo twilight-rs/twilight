@@ -113,12 +113,7 @@ mod tests {
         ))
         .take(11);
 
-        let request = SetCommandPermissions::new(
-            &http,
-            ApplicationId(1),
-            GuildId(2),
-            permissions,
-        );
+        let request = SetCommandPermissions::new(&http, ApplicationId(1), GuildId(2), permissions);
 
         assert!(request.is_err());
     }
