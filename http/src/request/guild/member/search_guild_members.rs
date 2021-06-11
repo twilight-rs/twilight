@@ -4,7 +4,7 @@ use crate::{
     request::{validate, Pending, Request},
     routing::Route,
 };
-use bytes::Bytes;
+use hyper::body::Bytes;
 use serde::de::DeserializeSeed;
 use std::{
     error::Error,

@@ -28,7 +28,7 @@ use crate::{
     },
     API_VERSION,
 };
-use bytes::Bytes;
+use hyper::body::Bytes;
 use hyper::{
     body::{self, Buf},
     client::{Client as HyperClient, HttpConnector},
