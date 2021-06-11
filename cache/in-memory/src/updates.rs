@@ -381,6 +381,18 @@ impl UpdateCache for MemberUpdate {
 
 impl UpdateCache for MessageCreate {
     fn update(&self, cache: &InMemoryCache) {
+        if cache.wants(ResourceType::USER) {
+            cache.cache_user(Cow::Borrowed(&self.author), self.guild_id);
+        }
+
+        if let (Some(member), Some(guild_id), true) = (
+            &self.member,
+            self.guild_id,
+            cache.wants(ResourceType::MEMBER),
+        ) {
+            cache.cache_borrowed_partial_member(guild_id, member, self.author.id)
+        }
+
         if !cache.wants(ResourceType::MESSAGE) {
             return;
         }
@@ -392,12 +404,6 @@ impl UpdateCache for MessageCreate {
         }
 
         channel.push_front(Arc::new(From::from(self.0.clone())));
-
-        cache.cache_user(Cow::Borrowed(&self.author), self.guild_id);
-
-        if let (Some(member), Some(guild_id)) = (&self.member, self.guild_id) {
-            cache.cache_borrowed_partial_member(guild_id, member, self.author.id);
-        }
     }
 }
 
@@ -1135,7 +1141,7 @@ mod tests {
     #[test]
     fn test_message_create() {
         let cache = InMemoryCache::builder()
-            .resource_types(ResourceType::MESSAGE)
+            .resource_types(ResourceType::MESSAGE | ResourceType::MEMBER | ResourceType::USER)
             .message_cache_size(1)
             .build();
         let msg = Message {
