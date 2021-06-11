@@ -16,7 +16,6 @@ version = "0.4.2"
 
 [dependencies]
 rand = { default-features = false, features = ["std_rng", "std"], version = "0.8" }
-futures-util = { default-features = false, features = ["std"], version = "0.3" }
 hyper = { default-features = false, features = ["client", "http1", "http2", "runtime"], version = "0.14" }
 hyper-rustls = { default-features = false, optional = true, version = "0.22" }
 hyper-tls = { default-features = false, optional = true, version = "0.5" }
