@@ -92,6 +92,7 @@ impl RequestBuilder {
 }
 
 #[derive(Debug)]
+#[non_exhaustive]
 pub struct Request {
     /// The body of the request, if any.
     pub body: Option<Vec<u8>>,
@@ -106,7 +107,7 @@ pub struct Request {
     /// The URI path to request.
     pub path_str: Cow<'static, str>,
     /// Whether to use the client's authorization token in the request.
-    pub(crate) use_authorization_token: bool,
+    pub use_authorization_token: bool,
 }
 
 impl Request {
