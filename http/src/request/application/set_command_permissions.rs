@@ -100,18 +100,32 @@ mod tests {
         id::{ApplicationId, CommandId, GuildId, RoleId},
     };
 
-    #[test]
-    fn test_validation() {
-        let http = Client::new("token");
-
-        let permissions = iter::repeat((
+    fn make_iter() -> impl Iterator<Item = (CommandId, CommandPermissions)> {
+        iter::repeat((
             CommandId(3),
             CommandPermissions {
                 id: CommandPermissionsType::Role(RoleId(4)),
                 permission: true,
             },
         ))
-        .take(11);
+    }
+
+    #[test]
+    fn test_correct_validation() {
+        let http = Client::new("token");
+
+        let permissions = make_iter().take(4);
+
+        let request = SetCommandPermissions::new(&http, ApplicationId(1), GuildId(2), permissions);
+
+        assert!(request.is_ok());
+    }
+
+    #[test]
+    fn test_incorrect_validation() {
+        let http = Client::new("token");
+
+        let permissions = make_iter().take(11);
 
         let request = SetCommandPermissions::new(&http, ApplicationId(1), GuildId(2), permissions);
 
