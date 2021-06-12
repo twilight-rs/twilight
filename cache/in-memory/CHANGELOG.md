@@ -2,6 +2,29 @@
 
 Changelog for `twilight-cache-inmemory`.
 
+## [0.4.3] - 2021-06-12
+
+### Additions
+
+Support stage instances ([#845] - [@7596ff]).
+
+Support `Guild::nsfw_level`.
+
+Support integration events ([#914] - [@7596ff]).
+
+### Changes
+
+The `CachedGuild::nsfw` field has been deprecated, as Discord no longer supports
+it. Read `CachedGuild::nsfw_level` instead ([#848] - [@tbnritzdoge]).
+
+The `CachedGuild::region` field has been deprecated, as Discord no longer
+supports it. There is no direct alternative ([#887] - [@BlackHoleFox]).
+
+[#845]: https://github.com/twilight-rs/twilight/pull/845
+[#848]: https://github.com/twilight-rs/twilight/pull/848
+[#887]: https://github.com/twilight-rs/twilight/pull/887
+[#914]: https://github.com/twilight-rs/twilight/pull/914
+
 ## [0.4.2] - 2021-05-30
 
 ### Enhancements
@@ -226,6 +249,7 @@ Initial release.
 [@MaxOhn]: https://github.com/MaxOhn
 [@nickelc]: https://github.com/nickelc
 [@sam-kirby]: https://github.com/sam-kirby
+[@tbnritzdoge]: https://github.com/tbnritzdoge
 [@vivian]: https://github.com/vivian
 
 [#639]: https://github.com/twilight-rs/twilight/pull/639
@@ -241,6 +265,7 @@ Initial release.
 [#528]: https://github.com/twilight-rs/twilight/pull/528
 [#524]: https://github.com/twilight-rs/twilight/pull/524
 
+[0.4.3]: https://github.com/twilight-rs/twilight/releases/tag/cache-in-memory-0.4.3
 [0.4.2]: https://github.com/twilight-rs/twilight/releases/tag/cache-in-memory-0.4.2
 [0.4.1]: https://github.com/twilight-rs/twilight/releases/tag/cache-in-memory-0.4.1
 [0.4.0]: https://github.com/twilight-rs/twilight/releases/tag/cache-in-memory-0.4.0
