@@ -40,4 +40,7 @@ pub enum AuditLogEvent {
     IntegrationCreate = 80,
     IntegrationUpdate = 81,
     IntegrationDelete = 82,
+    StageInstanceCreate = 83,
+    StageInstanceUpdate = 84,
+    StageInstanceDelete = 85,
 }
