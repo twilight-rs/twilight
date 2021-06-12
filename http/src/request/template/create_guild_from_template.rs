@@ -11,9 +11,53 @@ use std::{
 };
 use twilight_model::guild::Guild;
 
-#[derive(Clone, Debug)]
+#[derive(Debug)]
+pub struct CreateGuildFromTemplateError {
+    kind: CreateGuildFromTemplateErrorType,
+}
+
+impl CreateGuildFromTemplateError {
+    /// Immutable reference to the type of error that occurred.
+    #[must_use = "retrieving the type has no effect if left unused"]
+    pub const fn kind(&self) -> &CreateGuildFromTemplateErrorType {
+        &self.kind
+    }
+
+    /// Consumes the error, returning the source error if there is any.
+    #[allow(clippy::unused_self)]
+    #[must_use = "consuming the error and retrieving the source has no effect if left unused"]
+    pub fn into_source(self) -> Option<Box<dyn Error + Send + Sync>> {
+        None
+    }
+
+    /// Consume the error, returning the owned error type nad the source error.
+    #[must_use = "consuming the error int its parts has no effect if left unused"]
+    pub fn into_parts(
+        self,
+    ) -> (
+        CreateGuildFromTemplateErrorType,
+        Option<Box<dyn Error + Send + Sync>>,
+    ) {
+        (self.kind, None)
+    }
+}
+
+impl Display for CreateGuildFromTemplateError {
+    fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
+        match self.kind {
+            CreateGuildFromTemplateErrorType::NameInvalid { .. } => {
+                f.write_str("the guild name is invalid")
+            }
+        }
+    }
+}
+
+impl Error for CreateGuildFromTemplateError {}
+
+/// Type of [`CreateGuildFromTemplateError`] that occurred.
+#[derive(Debug)]
 #[non_exhaustive]
-pub enum CreateGuildFromTemplateError {
+pub enum CreateGuildFromTemplateErrorType {
     /// Name of the guild is either fewer than 2 UTF-16 characters or more than 100 UTF-16
     /// characters.
     NameInvalid {
@@ -21,16 +65,6 @@ pub enum CreateGuildFromTemplateError {
         name: String,
     },
 }
-
-impl Display for CreateGuildFromTemplateError {
-    fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
-        match self {
-            Self::NameInvalid { .. } => f.write_str("the guild name is invalid"),
-        }
-    }
-}
-
-impl Error for CreateGuildFromTemplateError {}
 
 #[derive(Serialize)]
 struct CreateGuildFromTemplateFields {
@@ -44,8 +78,8 @@ struct CreateGuildFromTemplateFields {
 ///
 /// # Errors
 ///
-/// Returns [`CreateGuildFromTemplateError::NameInvalid`] when the name is
-/// invalid.
+/// Returns a [`CreateGuildFromTemplateErrorType::NameInvalid`] error type if
+/// the name is invalid.
 pub struct CreateGuildFromTemplate<'a> {
     fields: CreateGuildFromTemplateFields,
     fut: Option<Pending<'a, Guild>>,
@@ -68,7 +102,9 @@ impl<'a> CreateGuildFromTemplate<'a> {
         name: String,
     ) -> Result<Self, CreateGuildFromTemplateError> {
         if !validate::guild_name(&name) {
-            return Err(CreateGuildFromTemplateError::NameInvalid { name });
+            return Err(CreateGuildFromTemplateError {
+                kind: CreateGuildFromTemplateErrorType::NameInvalid { name },
+            });
         }
 
         Ok(Self {
