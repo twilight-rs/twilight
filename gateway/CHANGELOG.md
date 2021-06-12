@@ -2,6 +2,28 @@
 
 Changelog for `twilight-gateway`.
 
+## [0.4.2] - 2021-06-12
+
+### Additions
+
+There are 6 new `EventTypeFlags` ([#845], [#914] - [@7596ff]):
+
+- `EventTypeFlags::INTEGRATION_CREATE`
+- `EventTypeFlags::INTEGRATION_DELETE`
+- `EventTypeFlags::INTEGRATION_UPDATE`
+- `EventTypeFlags::STAGE_INSTANCE_CREATE`
+- `EventTypeFlags::STAGE_INSTANCE_DELETE`
+- `EventTypeFlags::STAGE_INSTANCE_UPDATE`
+
+### Enhancements
+
+The WebSocket connection max message size limit has been removed ([#853] -
+[@vivian]).
+
+[#845]: https://github.com/twilight-rs/twilight/pull/845
+[#853]: https://github.com/twilight-rs/twilight/pull/853
+[#914]: https://github.com/twilight-rs/twilight/pull/914
+
 ## [0.4.1] - 2021-05-30
 
 ### Enhancements
@@ -313,6 +335,7 @@ pulling in all of the gateway when creating shard queue brokers ([#537] - [@Gelb
 
 Initial release.
 
+[@7596ff]: https://github.com/7596ff
 [@chamburr]: https://github.com/chamburr
 [@dvtkrlbs]: https://github.com/dvtkrlbs
 [@Erk-]: https://github.com/Erk-
@@ -340,6 +363,7 @@ Initial release.
 [#515]: https://github.com/twilight-rs/twilight/pull/515
 [#512]: https://github.com/twilight-rs/twilight/pull/512
 
+[0.4.2]: https://github.com/twilight-rs/twilight/releases/tag/gateway-0.4.2
 [0.4.1]: https://github.com/twilight-rs/twilight/releases/tag/gateway-0.4.1
 [0.4.0]: https://github.com/twilight-rs/twilight/releases/tag/gateway-0.4.0
 [0.3.4]: https://github.com/twilight-rs/twilight/releases/tag/gateway-v0.3.4
