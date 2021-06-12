@@ -89,7 +89,7 @@ pub use self::{
 };
 
 use crate::error::{Error, ErrorType};
-use bytes::Bytes;
+use hyper::body::Bytes;
 use hyper::{
     header::{HeaderName, HeaderValue},
     Method as HyperMethod,

@@ -1,11 +1,16 @@
 use crate::{
     client::Client,
-    error::Error,
-    request::{Form, Pending, Request},
+    error::{Error, ErrorType},
+    request::{Form, PendingOption, Request},
     routing::Route,
 };
-use futures_util::future::TryFutureExt;
+use hyper::StatusCode;
 use serde::Serialize;
+use std::{
+    future::Future,
+    pin::Pin,
+    task::{Context, Poll},
+};
 use twilight_model::{
     channel::{embed::Embed, message::AllowedMentions, Message},
     id::WebhookId,
@@ -59,7 +64,7 @@ pub(crate) struct ExecuteWebhookFields {
 pub struct ExecuteWebhook<'a> {
     pub(crate) fields: ExecuteWebhookFields,
     files: Vec<(String, Vec<u8>)>,
-    fut: Option<Pending<'a, Option<Message>>>,
+    fut: Option<PendingOption<'a>>,
     http: &'a Client,
     token: String,
     webhook_id: WebhookId,
@@ -238,19 +243,50 @@ impl<'a> ExecuteWebhook<'a> {
             request = request.json(&self.fields)?;
         }
 
-        match self.fields.wait {
-            Some(true) => {
-                self.fut
-                    .replace(Box::pin(self.http.request(request.build())));
-            }
-            _ => {
-                self.fut
-                    .replace(Box::pin(self.http.verify(request.build()).map_ok(|_| None)));
-            }
-        }
+        self.fut
+            .replace(Box::pin(self.http.request_bytes(request.build())));
 
         Ok(())
     }
 }
 
-poll_req!(ExecuteWebhook<'_>, Option<Message>);
+impl Future for ExecuteWebhook<'_> {
+    type Output = Result<Option<Message>, Error>;
+
+    fn poll(mut self: Pin<&mut Self>, cx: &mut Context<'_>) -> Poll<Self::Output> {
+        loop {
+            if let Some(fut) = self.as_mut().fut.as_mut() {
+                let bytes = match fut.as_mut().poll(cx) {
+                    Poll::Ready(Ok(bytes)) => bytes,
+                    Poll::Ready(Err(Error {
+                        kind: ErrorType::Response { status, .. },
+                        source: None,
+                    })) if status == StatusCode::NOT_FOUND => {
+                        return Poll::Ready(Ok(None));
+                    }
+                    Poll::Ready(Err(why)) => return Poll::Ready(Err(why)),
+                    Poll::Pending => return Poll::Pending,
+                };
+
+                if !self.fields.wait.unwrap_or_default() {
+                    return Poll::Ready(Ok(None));
+                }
+
+                let mut bytes = bytes.as_ref().to_vec();
+                let message =
+                    crate::json::from_slice::<Message>(&mut bytes).map_err(|source| Error {
+                        kind: ErrorType::Parsing {
+                            body: bytes.clone(),
+                        },
+                        source: Some(Box::new(source)),
+                    })?;
+
+                return Poll::Ready(Ok(Some(message)));
+            }
+
+            if let Err(why) = self.as_mut().start() {
+                return Poll::Ready(Err(why));
+            }
+        }
+    }
+}
