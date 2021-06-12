@@ -422,8 +422,8 @@ impl<'de> Visitor<'de> for GatewayEventVisitor<'_> {
                 ))
             }
             OpCode::Resume => return Err(DeError::unknown_variant("Resume", VALID_OPCODES)),
-            OpCode::StatusUpdate => {
-                return Err(DeError::unknown_variant("StatusUpdate", VALID_OPCODES))
+            OpCode::PresenceUpdate => {
+                return Err(DeError::unknown_variant("PresenceUpdate", VALID_OPCODES))
             }
             OpCode::VoiceServerPing => {
                 return Err(DeError::unknown_variant("VoiceServerPing", VALID_OPCODES))

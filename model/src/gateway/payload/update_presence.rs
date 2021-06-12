@@ -10,14 +10,14 @@ use std::{
 
 /// Error emitted when the payload can not be created as configured.
 #[derive(Debug)]
-pub struct UpdateStatusError {
-    kind: UpdateStatusErrorType,
+pub struct UpdatePresenceError {
+    kind: UpdatePresenceErrorType,
 }
 
-impl UpdateStatusError {
+impl UpdatePresenceError {
     /// Immutable reference to the type of error that occured.
     #[must_use = "retrieving the type has no effect if let unused"]
-    pub const fn kind(&self) -> &UpdateStatusErrorType {
+    pub const fn kind(&self) -> &UpdatePresenceErrorType {
         &self.kind
     }
 
@@ -30,61 +30,66 @@ impl UpdateStatusError {
 
     /// Consume the error, returning the owned error type and the source error.
     #[must_use = "consuming the error into its parts has no effect if left unused"]
-    pub fn into_parts(self) -> (UpdateStatusErrorType, Option<Box<dyn Error + Send + Sync>>) {
+    pub fn into_parts(
+        self,
+    ) -> (
+        UpdatePresenceErrorType,
+        Option<Box<dyn Error + Send + Sync>>,
+    ) {
         (self.kind, None)
     }
 }
 
-impl Display for UpdateStatusError {
+impl Display for UpdatePresenceError {
     fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
         match self.kind {
-            UpdateStatusErrorType::MissingActivity => {
+            UpdatePresenceErrorType::MissingActivity => {
                 f.write_str("at least one activity must be provided")
             }
         }
     }
 }
 
-impl Error for UpdateStatusError {}
+impl Error for UpdatePresenceError {}
 
-/// Type of [`UpdateStatusError`] that occurred.
+/// Type of [`UpdatePresenceError`] that occurred.
 #[derive(Debug)]
 #[non_exhaustive]
-pub enum UpdateStatusErrorType {
+pub enum UpdatePresenceErrorType {
     /// No activities provided.
     MissingActivity,
 }
 
 #[derive(Clone, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
-pub struct UpdateStatus {
-    pub d: UpdateStatusInfo,
+pub struct UpdatePresence {
+    pub d: UpdatePresencePayload,
     pub op: OpCode,
 }
 
-impl UpdateStatus {
-    /// Create a new, valid [`UpdateStatus`] payload.
+impl UpdatePresence {
+    /// Create a new, valid [`UpdatePresence`] payload.
     ///
     /// # Errors
     ///
-    /// Returns an error of type [`UpdateStatusErrorType::MissingActivity`] if
+    /// Returns an error of type [`UpdatePresenceErrorType::MissingActivity`] if
     /// an empty set of activites is provided.
     pub fn new(
         activities: impl Into<Vec<Activity>>,
         afk: bool,
         since: impl Into<Option<u64>>,
         status: impl Into<Status>,
-    ) -> Result<Self, UpdateStatusError> {
-        let d = UpdateStatusInfo::new(activities, afk, since, status)?;
+    ) -> Result<Self, UpdatePresenceError> {
+        let d = UpdatePresencePayload::new(activities, afk, since, status)?;
 
         Ok(Self {
             d,
-            op: OpCode::StatusUpdate,
+            op: OpCode::PresenceUpdate,
         })
     }
 }
 
 #[derive(Clone, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
-pub struct UpdateStatusInfo {
+pub struct UpdatePresencePayload {
     /// User's activities.
     ///
     /// At least one is required.
@@ -94,19 +99,19 @@ pub struct UpdateStatusInfo {
     pub status: Status,
 }
 
-impl UpdateStatusInfo {
+impl UpdatePresencePayload {
     /// Create a validated stats update info struct.
     ///
     /// # Errors
     ///
-    /// Returns an [`UpdateStatusErrorType::MissingActivity`] error type if an
+    /// Returns an [`UpdatePresenceErrorType::MissingActivity`] error type if an
     /// empty set of activites is provided.
     pub fn new(
         activities: impl Into<Vec<Activity>>,
         afk: bool,
         since: impl Into<Option<u64>>,
         status: impl Into<Status>,
-    ) -> Result<Self, UpdateStatusError> {
+    ) -> Result<Self, UpdatePresenceError> {
         Self::_new(activities.into(), afk, since.into(), status.into())
     }
 
@@ -115,10 +120,10 @@ impl UpdateStatusInfo {
         afk: bool,
         since: Option<u64>,
         status: Status,
-    ) -> Result<Self, UpdateStatusError> {
+    ) -> Result<Self, UpdatePresenceError> {
         if activities.is_empty() {
-            return Err(UpdateStatusError {
-                kind: UpdateStatusErrorType::MissingActivity,
+            return Err(UpdatePresenceError {
+                kind: UpdatePresenceErrorType::MissingActivity,
             });
         }
 

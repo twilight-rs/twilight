@@ -13,7 +13,7 @@ pub enum OpCode {
     /// Start a new session.
     Identify = 2,
     /// Update the client's presence information.
-    StatusUpdate = 3,
+    PresenceUpdate = 3,
     /// Join, leave or move between voice channels.
     VoiceStateUpdate = 4,
     /// Voice ping checking. This opcode is deprecated.
@@ -42,7 +42,7 @@ mod tests {
         serde_test::assert_tokens(&OpCode::Event, &[Token::U8(0)]);
         serde_test::assert_tokens(&OpCode::Heartbeat, &[Token::U8(1)]);
         serde_test::assert_tokens(&OpCode::Identify, &[Token::U8(2)]);
-        serde_test::assert_tokens(&OpCode::StatusUpdate, &[Token::U8(3)]);
+        serde_test::assert_tokens(&OpCode::PresenceUpdate, &[Token::U8(3)]);
         serde_test::assert_tokens(&OpCode::VoiceStateUpdate, &[Token::U8(4)]);
         serde_test::assert_tokens(&OpCode::VoiceServerPing, &[Token::U8(5)]);
         serde_test::assert_tokens(&OpCode::Resume, &[Token::U8(6)]);
