@@ -15,8 +15,9 @@ Twilight's `Error` system is a struct with one required field (`kind`) and one o
 to access data within the error. The return types for any source errors are `dyn Error`, which
 allows us to update dependencies without breaking the public API.
 
-Normally, the fields of the error type are not public, as they can be accessed through the provided
-methods. However, in some cases, you may need to make the types `pub` or `pub(crate)`.
+Normally, the fields of the error struct are not public, as they can be accessed through the
+provided methods. However, in some cases, you may need to make the struct fields `pub` or
+`pub(crate)`.
 
 Any new error implementations must follow this pattern:
 
