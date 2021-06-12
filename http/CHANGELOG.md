@@ -2,6 +2,56 @@
 
 Changelog for `twilight-http`.
 
+## [0.4.3] - 2021-06-12
+
+### Additions
+
+Added new `ErrorCode`s:
+
+- `20031 UnallowedWordsForPublicStage` ([#886] - [@BlackHoleFox])
+- `30018 MaximumAnimatedEmojisReached` ([#918] - [@7596ff])
+- `30019 MaximumGuildMembersReached` ([#918] - [@7596ff])
+
+Added new request methods ([#867] - [@7596ff]):
+
+- `CreateStageInstance::privacy_level`
+- `UpdateStageInstance::privacy_level`
+- `UpdateStageInstance::topic`
+
+Note: it is currently impossible to change only the `privacy_level` of an
+existing stage instance.  The change required to fix this is breaking, and will
+be fixed in a later version.
+
+### Changes
+
+The following dependencies have been removed:
+
+- `bytes` ([#909] - [@vivian])
+- `futures-util` ([#912] - [@vivian])
+- `native-tls` ([#911] - [@vivian])
+- `serde_repr` ([#920] - [@vivian])
+
+`Client::update_guild_channel_positions` was changed ([#880] - [@7596ff]):
+- It now accepts a more generic parameter.
+- `twilight_http::request::guild::update_guild_channel_positions::Position` is
+  now `pub`, and has new fields `lock_permissions` and `parent_id`.
+
+`error::Result` has been deprecated, as importing `error::Error` is similar
+([#821] - [@vivian]).
+
+The minimum channel name length is now 1 ([#885] - [@BlackHoleFox]).
+
+[#821]: https://github.com/twilight-rs/twilight/pull/821
+[#867]: https://github.com/twilight-rs/twilight/pull/867
+[#880]: https://github.com/twilight-rs/twilight/pull/880
+[#885]: https://github.com/twilight-rs/twilight/pull/885
+[#886]: https://github.com/twilight-rs/twilight/pull/886
+[#909]: https://github.com/twilight-rs/twilight/pull/909
+[#911]: https://github.com/twilight-rs/twilight/pull/911
+[#912]: https://github.com/twilight-rs/twilight/pull/912
+[#918]: https://github.com/twilight-rs/twilight/pull/918
+[#920]: https://github.com/twilight-rs/twilight/pull/920
+
 ## [0.4.2] - 2021-05-30
 
 ### Upgrade Path
@@ -672,6 +722,7 @@ Initial release.
 [@7596ff]: https://github.com/7596ff
 [@AEnterprise]: https://github.com/AEnterprise
 [@AsianIntel]: https://github.com/AsianIntel
+[@BlackHoleFox]: https://github.com/BlackHoleFox
 [@chamburr]: https://github.com/chamburr
 [@coadler]: https://github.com/coadler
 [@DusterTheFirst]: https://github.com/DusterTheFirst
@@ -721,6 +772,7 @@ Initial release.
 
 [0.2.0-beta.1:app integrations]: https://github.com/discord/discord-api-docs/commit/a926694e2f8605848bda6b57d21c8817559e5cec
 
+[0.4.3]: https://github.com/twilight-rs/twilight/releases/tag/http-0.4.3
 [0.4.2]: https://github.com/twilight-rs/twilight/releases/tag/http-0.4.2
 [0.4.1]: https://github.com/twilight-rs/twilight/releases/tag/http-0.4.1
 [0.4.0]: https://github.com/twilight-rs/twilight/releases/tag/http-0.4.0
