@@ -12,9 +12,56 @@ use std::{
 use twilight_model::{id::GuildId, template::Template};
 
 /// Error returned when the template can not be created as configured.
-#[derive(Clone, Debug)]
+#[derive(Debug)]
+pub struct CreateTemplateError {
+    kind: CreateTemplateErrorType,
+}
+
+impl CreateTemplateError {
+    /// Immutable reference to the type of error that occurred.
+    #[must_use = "retrieving the type has no effect if left unused"]
+    pub const fn kind(&self) -> &CreateTemplateErrorType {
+        &self.kind
+    }
+
+    /// Consumes the error, returning the source error if there is any.
+    #[allow(clippy::unused_self)]
+    #[must_use = "consuming the error and retrieving the source has no effect if left unused"]
+    pub fn into_source(self) -> Option<Box<dyn Error + Send + Sync>> {
+        None
+    }
+
+    /// Consume the error, returning the owned error type nad the source error.
+    #[must_use = "consuming the error int its parts has no effect if left unused"]
+    pub fn into_parts(
+        self,
+    ) -> (
+        CreateTemplateErrorType,
+        Option<Box<dyn Error + Send + Sync>>,
+    ) {
+        (self.kind, None)
+    }
+}
+
+impl Display for CreateTemplateError {
+    fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
+        match self.kind {
+            CreateTemplateErrorType::NameInvalid { .. } => {
+                f.write_str("the template name is invalid")
+            }
+            CreateTemplateErrorType::DescriptionTooLarge { .. } => {
+                f.write_str("the template description is too large")
+            }
+        }
+    }
+}
+
+impl Error for CreateTemplateError {}
+
+/// Type of [`CreateTemplateError`] that occurred.
+#[derive(Debug)]
 #[non_exhaustive]
-pub enum CreateTemplateError {
+pub enum CreateTemplateErrorType {
     /// Name of the template is invalid.
     NameInvalid {
         /// Provided name.
@@ -26,19 +73,6 @@ pub enum CreateTemplateError {
         description: String,
     },
 }
-
-impl Display for CreateTemplateError {
-    fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
-        match self {
-            Self::NameInvalid { .. } => f.write_str("the template name is invalid"),
-            Self::DescriptionTooLarge { .. } => {
-                f.write_str("the template description is too large")
-            }
-        }
-    }
-}
-
-impl Error for CreateTemplateError {}
 
 #[derive(Serialize)]
 struct CreateTemplateFields {
@@ -53,7 +87,8 @@ struct CreateTemplateFields {
 ///
 /// # Errors
 ///
-/// Returns [`CreateTemplateError::NameInvalid`] when the name is invalid.
+/// Returns a [`CreateTemplateErrorType::NameInvalid`] error type if the name is
+/// invalid.
 pub struct CreateTemplate<'a> {
     fields: CreateTemplateFields,
     fut: Option<Pending<'a, Template>>,
@@ -76,7 +111,9 @@ impl<'a> CreateTemplate<'a> {
         name: String,
     ) -> Result<Self, CreateTemplateError> {
         if !validate::template_name(&name) {
-            return Err(CreateTemplateError::NameInvalid { name });
+            return Err(CreateTemplateError {
+                kind: CreateTemplateErrorType::NameInvalid { name },
+            });
         }
 
         Ok(Self {
@@ -96,15 +133,17 @@ impl<'a> CreateTemplate<'a> {
     ///
     /// # Errors
     ///
-    /// Returns [`CreateTemplateError::DescriptionTooLarge`] when the
-    /// description is too large.
+    /// Returns a [`CreateTemplateErrorType::DescriptionTooLarge`] error type if
+    /// the description is too large.
     pub fn description(self, description: impl Into<String>) -> Result<Self, CreateTemplateError> {
         self._description(description.into())
     }
 
     fn _description(mut self, description: String) -> Result<Self, CreateTemplateError> {
         if !validate::template_description(&description) {
-            return Err(CreateTemplateError::DescriptionTooLarge { description });
+            return Err(CreateTemplateError {
+                kind: CreateTemplateErrorType::DescriptionTooLarge { description },
+            });
         }
 
         self.fields.description.replace(description);
