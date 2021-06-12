@@ -1197,10 +1197,10 @@ mod tests {
             let entry = cache.0.users.get(&UserId(3)).unwrap();
             assert_eq!(entry.value().1.len(), 1);
         }
-        // assert_eq!(
-        //     cache.member(GuildId(1), UserId(3)).unwrap().user.name,
-        //     "test"
-        // );
+        assert_eq!(
+            cache.member(GuildId(1), UserId(3)).unwrap().user_id,
+            UserId(3),
+        );
         {
             let entry = cache.0.messages.get(&ChannelId(2)).unwrap();
             assert_eq!(entry.value().len(), 1);
