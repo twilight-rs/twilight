@@ -27,6 +27,9 @@ pub enum DispatchEvent {
     GuildEmojisUpdate(GuildEmojisUpdate),
     GuildIntegrationsUpdate(GuildIntegrationsUpdate),
     GuildUpdate(Box<GuildUpdate>),
+    IntegrationCreate(Box<IntegrationCreate>),
+    IntegrationDelete(IntegrationDelete),
+    IntegrationUpdate(Box<IntegrationUpdate>),
     InviteCreate(Box<InviteCreate>),
     InviteDelete(InviteDelete),
     MemberAdd(Box<MemberAdd>),
@@ -75,6 +78,9 @@ impl DispatchEvent {
             Self::GuildEmojisUpdate(_) => EventType::GuildEmojisUpdate,
             Self::GuildIntegrationsUpdate(_) => EventType::GuildIntegrationsUpdate,
             Self::GuildUpdate(_) => EventType::GuildUpdate,
+            Self::IntegrationCreate(_) => EventType::IntegrationCreate,
+            Self::IntegrationDelete(_) => EventType::IntegrationDelete,
+            Self::IntegrationUpdate(_) => EventType::IntegrationUpdate,
             Self::InviteCreate(_) => EventType::InviteCreate,
             Self::InviteDelete(_) => EventType::InviteDelete,
             Self::MemberAdd(_) => EventType::MemberAdd,
@@ -126,6 +132,9 @@ impl TryFrom<Event> for DispatchEvent {
             Event::GuildEmojisUpdate(v) => Self::GuildEmojisUpdate(v),
             Event::GuildIntegrationsUpdate(v) => Self::GuildIntegrationsUpdate(v),
             Event::GuildUpdate(v) => Self::GuildUpdate(v),
+            Event::IntegrationCreate(v) => Self::IntegrationCreate(v),
+            Event::IntegrationDelete(v) => Self::IntegrationDelete(v),
+            Event::IntegrationUpdate(v) => Self::IntegrationUpdate(v),
             Event::InviteCreate(v) => Self::InviteCreate(v),
             Event::InviteDelete(v) => Self::InviteDelete(v),
             Event::MemberAdd(v) => Self::MemberAdd(v),
@@ -236,6 +245,15 @@ impl<'de, 'a> DeserializeSeed<'de> for DispatchEventWithTypeDeserializer<'a> {
             "GUILD_UPDATE" => {
                 DispatchEvent::GuildUpdate(Box::new(GuildUpdate::deserialize(deserializer)?))
             }
+            "INTEGRATION_CREATE" => DispatchEvent::IntegrationCreate(Box::new(
+                IntegrationCreate::deserialize(deserializer)?,
+            )),
+            "INTEGRATION_DELETE" => {
+                DispatchEvent::IntegrationDelete(IntegrationDelete::deserialize(deserializer)?)
+            }
+            "INTEGRATION_UPDATE" => DispatchEvent::IntegrationUpdate(Box::new(
+                IntegrationUpdate::deserialize(deserializer)?,
+            )),
             "INVITE_CREATE" => {
                 DispatchEvent::InviteCreate(Box::new(InviteCreate::deserialize(deserializer)?))
             }

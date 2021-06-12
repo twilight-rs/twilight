@@ -81,8 +81,8 @@ use std::{
 use twilight_model::{
     channel::{Group, GuildChannel, PrivateChannel, StageInstance},
     gateway::presence::UserOrId,
-    guild::{Emoji, Guild, Member, PartialMember, Role},
-    id::{ChannelId, EmojiId, GuildId, MessageId, RoleId, StageId, UserId},
+    guild::{Emoji, Guild, GuildIntegration, Member, PartialMember, Role},
+    id::{ChannelId, EmojiId, GuildId, IntegrationId, MessageId, RoleId, StageId, UserId},
     user::{CurrentUser, User},
     voice::VoiceState,
 };
@@ -134,10 +134,12 @@ struct InMemoryCacheRef {
     guilds: DashMap<GuildId, CachedGuild>,
     guild_channels: DashMap<GuildId, HashSet<ChannelId>>,
     guild_emojis: DashMap<GuildId, HashSet<EmojiId>>,
+    guild_integrations: DashMap<GuildId, HashSet<IntegrationId>>,
     guild_members: DashMap<GuildId, HashSet<UserId>>,
     guild_presences: DashMap<GuildId, HashSet<UserId>>,
     guild_roles: DashMap<GuildId, HashSet<RoleId>>,
     guild_stage_instances: DashMap<GuildId, HashSet<StageId>>,
+    integrations: DashMap<(GuildId, IntegrationId), GuildItem<GuildIntegration>>,
     members: DashMap<(GuildId, UserId), CachedMember>,
     messages: DashMap<ChannelId, VecDeque<CachedMessage>>,
     presences: DashMap<(GuildId, UserId), CachedPresence>,
@@ -511,10 +513,12 @@ impl InMemoryCache {
         self.0.guilds.clear();
         self.0.guild_channels.clear();
         self.0.guild_emojis.clear();
+        self.0.guild_integrations.clear();
         self.0.guild_members.clear();
         self.0.guild_presences.clear();
         self.0.guild_roles.clear();
         self.0.guild_stage_instances.clear();
+        self.0.integrations.clear();
         self.0.members.clear();
         self.0.messages.clear();
         self.0.presences.clear();
@@ -720,6 +724,21 @@ impl InMemoryCache {
 
         self.0.unavailable_guilds.remove(&guild.id);
         self.0.guilds.insert(guild.id, guild);
+    }
+
+    fn cache_integration(&self, guild_id: GuildId, integration: GuildIntegration) {
+        self.0
+            .guild_integrations
+            .entry(guild_id)
+            .or_default()
+            .insert(integration.id);
+
+        upsert_guild_item(
+            &self.0.integrations,
+            guild_id,
+            (guild_id, integration.id),
+            integration,
+        );
     }
 
     fn cache_member(&self, guild_id: GuildId, member: Member) {
@@ -973,6 +992,19 @@ impl InMemoryCache {
         if let Some((_, item)) = self.0.channels_guild.remove(&channel_id) {
             if let Some(mut guild_channels) = self.0.guild_channels.get_mut(&item.guild_id) {
                 guild_channels.remove(&channel_id);
+            }
+        }
+    }
+
+    fn delete_integration(&self, guild_id: GuildId, integration_id: IntegrationId) {
+        if self
+            .0
+            .integrations
+            .remove(&(guild_id, integration_id))
+            .is_some()
+        {
+            if let Some(mut integrations) = self.0.guild_integrations.get_mut(&guild_id) {
+                integrations.remove(&integration_id);
             }
         }
     }

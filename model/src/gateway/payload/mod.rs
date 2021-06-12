@@ -16,6 +16,9 @@ mod guild_emojis_update;
 mod guild_integrations_update;
 mod guild_update;
 mod heartbeat;
+mod integration_create;
+mod integration_delete;
+mod integration_update;
 mod invite_create;
 mod invite_delete;
 mod member_add;
@@ -50,15 +53,16 @@ pub use self::{
     channel_delete::ChannelDelete, channel_pins_update::ChannelPinsUpdate,
     channel_update::ChannelUpdate, guild_create::GuildCreate, guild_delete::GuildDelete,
     guild_emojis_update::GuildEmojisUpdate, guild_integrations_update::GuildIntegrationsUpdate,
-    guild_update::GuildUpdate, heartbeat::Heartbeat, invite_create::InviteCreate,
-    invite_delete::InviteDelete, member_add::MemberAdd, member_chunk::MemberChunk,
-    member_remove::MemberRemove, member_update::MemberUpdate, message_create::MessageCreate,
-    message_delete::MessageDelete, message_delete_bulk::MessageDeleteBulk,
-    message_update::MessageUpdate, presence_update::PresenceUpdate, reaction_add::ReactionAdd,
-    reaction_remove::ReactionRemove, reaction_remove_all::ReactionRemoveAll,
-    reaction_remove_emoji::ReactionRemoveEmoji, ready::Ready,
-    request_guild_members::RequestGuildMembers, role_create::RoleCreate, role_delete::RoleDelete,
-    role_update::RoleUpdate, stage_instance_create::StageInstanceCreate,
+    guild_update::GuildUpdate, heartbeat::Heartbeat, integration_create::IntegrationCreate,
+    integration_delete::IntegrationDelete, integration_update::IntegrationUpdate,
+    invite_create::InviteCreate, invite_delete::InviteDelete, member_add::MemberAdd,
+    member_chunk::MemberChunk, member_remove::MemberRemove, member_update::MemberUpdate,
+    message_create::MessageCreate, message_delete::MessageDelete,
+    message_delete_bulk::MessageDeleteBulk, message_update::MessageUpdate,
+    presence_update::PresenceUpdate, reaction_add::ReactionAdd, reaction_remove::ReactionRemove,
+    reaction_remove_all::ReactionRemoveAll, reaction_remove_emoji::ReactionRemoveEmoji,
+    ready::Ready, request_guild_members::RequestGuildMembers, role_create::RoleCreate,
+    role_delete::RoleDelete, role_update::RoleUpdate, stage_instance_create::StageInstanceCreate,
     stage_instance_delete::StageInstanceDelete, stage_instance_update::StageInstanceUpdate,
     typing_start::TypingStart, unavailable_guild::UnavailableGuild,
     update_presence::UpdatePresence, update_voice_state::UpdateVoiceState, user_update::UserUpdate,
