@@ -2,7 +2,7 @@ pub mod identify;
 pub mod reaction_remove_emoji;
 pub mod request_guild_members;
 pub mod resume;
-pub mod update_status;
+pub mod update_presence;
 
 mod ban_add;
 mod ban_remove;
@@ -60,8 +60,8 @@ pub use self::{
     request_guild_members::RequestGuildMembers, role_create::RoleCreate, role_delete::RoleDelete,
     role_update::RoleUpdate, stage_instance_create::StageInstanceCreate,
     stage_instance_delete::StageInstanceDelete, stage_instance_update::StageInstanceUpdate,
-    typing_start::TypingStart, unavailable_guild::UnavailableGuild, update_status::UpdateStatus,
-    update_voice_state::UpdateVoiceState, user_update::UserUpdate,
+    typing_start::TypingStart, unavailable_guild::UnavailableGuild,
+    update_presence::UpdatePresence, update_voice_state::UpdateVoiceState, user_update::UserUpdate,
     voice_server_update::VoiceServerUpdate, voice_state_update::VoiceStateUpdate,
     webhooks_update::WebhooksUpdate,
 };
