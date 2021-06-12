@@ -20,6 +20,7 @@ bitflags! {
         const USER = 1 << 9;
         const VOICE_STATE = 1 << 10;
         const STAGE_INSTANCE = 1 << 11;
+        const INTEGRATION = 1 << 12;
     }
 }
 
