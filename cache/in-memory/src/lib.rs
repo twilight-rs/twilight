@@ -68,7 +68,10 @@ pub use self::{
 };
 
 use self::model::*;
-use dashmap::{mapref::entry::Entry, DashMap, DashSet};
+use dashmap::{
+    mapref::{entry::Entry, one::Ref},
+    DashMap, DashSet,
+};
 use std::{
     borrow::Cow,
     collections::{BTreeSet, HashSet, VecDeque},
@@ -87,57 +90,49 @@ use twilight_model::{
 
 #[derive(Debug)]
 struct GuildItem<T> {
-    data: Arc<T>,
+    data: T,
     guild_id: GuildId,
 }
 
 fn upsert_guild_item<K: Eq + Hash, V: PartialEq>(
     map: &DashMap<K, GuildItem<V>>,
     guild_id: GuildId,
-    k: K,
-    v: V,
+    key: K,
+    value: V,
 ) {
-    match map.entry(k) {
-        Entry::Occupied(e) if *e.get().data == v => {}
-        Entry::Occupied(mut e) => {
-            e.insert(GuildItem {
-                data: Arc::new(v),
+    match map.entry(key) {
+        Entry::Occupied(entry) if entry.get().data == value => {}
+        Entry::Occupied(mut entry) => {
+            entry.insert(GuildItem {
+                data: value,
                 guild_id,
             });
         }
-        Entry::Vacant(e) => {
-            e.insert(GuildItem {
-                data: Arc::new(v),
+        Entry::Vacant(entry) => {
+            entry.insert(GuildItem {
+                data: value,
                 guild_id,
             });
         }
     }
 }
 
-fn upsert_item<K: Eq + Hash, V: PartialEq>(map: &DashMap<K, Arc<V>>, key: K, value: V) {
-    match map.entry(key) {
-        Entry::Occupied(entry) if **entry.get() == value => {}
-        Entry::Occupied(mut entry) => {
-            entry.insert(Arc::new(value));
-        }
-        Entry::Vacant(entry) => {
-            entry.insert(Arc::new(value));
-        }
-    }
+fn upsert_item<K: Eq + Hash, V: PartialEq>(map: &DashMap<K, V>, k: K, v: V) {
+    map.insert(k, v);
 }
 
 // When adding a field here, be sure to add it to `InMemoryCache::clear` if
 // necessary.
 #[derive(Debug, Default)]
 struct InMemoryCacheRef {
-    config: Arc<Config>,
+    config: Config,
     channels_guild: DashMap<ChannelId, GuildItem<GuildChannel>>,
-    channels_private: DashMap<ChannelId, Arc<PrivateChannel>>,
+    channels_private: DashMap<ChannelId, PrivateChannel>,
     // So long as the lock isn't held across await or panic points this is fine.
-    current_user: Mutex<Option<Arc<CurrentUser>>>,
+    current_user: Mutex<Option<CurrentUser>>,
     emojis: DashMap<EmojiId, GuildItem<CachedEmoji>>,
-    groups: DashMap<ChannelId, Arc<Group>>,
-    guilds: DashMap<GuildId, Arc<CachedGuild>>,
+    groups: DashMap<ChannelId, Group>,
+    guilds: DashMap<GuildId, CachedGuild>,
     guild_channels: DashMap<GuildId, HashSet<ChannelId>>,
     guild_emojis: DashMap<GuildId, HashSet<EmojiId>>,
     guild_integrations: DashMap<GuildId, HashSet<IntegrationId>>,
@@ -146,19 +141,19 @@ struct InMemoryCacheRef {
     guild_roles: DashMap<GuildId, HashSet<RoleId>>,
     guild_stage_instances: DashMap<GuildId, HashSet<StageId>>,
     integrations: DashMap<(GuildId, IntegrationId), GuildItem<GuildIntegration>>,
-    members: DashMap<(GuildId, UserId), Arc<CachedMember>>,
-    messages: DashMap<ChannelId, VecDeque<Arc<CachedMessage>>>,
-    presences: DashMap<(GuildId, UserId), Arc<CachedPresence>>,
+    members: DashMap<(GuildId, UserId), CachedMember>,
+    messages: DashMap<ChannelId, VecDeque<CachedMessage>>,
+    presences: DashMap<(GuildId, UserId), CachedPresence>,
     roles: DashMap<RoleId, GuildItem<Role>>,
     stage_instances: DashMap<StageId, GuildItem<StageInstance>>,
     unavailable_guilds: DashSet<GuildId>,
-    users: DashMap<UserId, (Arc<User>, BTreeSet<GuildId>)>,
+    users: DashMap<UserId, (User, BTreeSet<GuildId>)>,
     /// Mapping of channels and the users currently connected.
     voice_state_channels: DashMap<ChannelId, HashSet<(GuildId, UserId)>>,
     /// Mapping of guilds and users currently connected to its voice channels.
     voice_state_guilds: DashMap<GuildId, HashSet<UserId>>,
     /// Mapping of guild ID and user ID pairs to their voice states.
-    voice_states: DashMap<(GuildId, UserId), Arc<VoiceState>>,
+    voice_states: DashMap<(GuildId, UserId), VoiceState>,
 }
 
 /// A thread-safe, in-memory-process cache of Discord data. It can be cloned and
@@ -179,10 +174,10 @@ struct InMemoryCacheRef {
 ///
 /// The defining characteristic of this cache is that returned types (such as a
 /// guild or user) do not use locking for access. The internals of the cache use
-/// a concurrent map for mutability and the returned types themselves are Arcs.
-/// If a user is retrieved from the cache, an `Arc<User>` is returned. If a
-/// reference to that user is held but the cache updates the user, the reference
-/// held by you will be outdated, but still exist.
+/// a concurrent map for mutability and the returned types are clones of the
+/// cached data. If a user is retrieved from the cache, then a clone of the user
+/// *at that point in time* is returned. If the cache updates the user, then the
+/// returned user  held by you will be outdated.
 ///
 /// The intended use is that data is held outside the cache for only as long
 /// as necessary, where the state of the value at that point time doesn't need
@@ -222,7 +217,7 @@ impl InMemoryCache {
 
     fn new_with_config(config: Config) -> Self {
         Self(Arc::new(InMemoryCacheRef {
-            config: Arc::new(config),
+            config,
             ..Default::default()
         }))
     }
@@ -234,7 +229,7 @@ impl InMemoryCache {
 
     /// Returns a copy of the config cache.
     pub fn config(&self) -> Config {
-        (*self.0.config).clone()
+        self.0.config.clone()
     }
 
     /// Create an interface for retrieving statistics about the cache.
@@ -266,17 +261,17 @@ impl InMemoryCache {
     /// This is an O(1) operation. This requires the [`GUILDS`] intent.
     ///
     /// [`GUILDS`]: ::twilight_model::gateway::Intents::GUILDS
-    pub fn guild_channel(&self, channel_id: ChannelId) -> Option<Arc<GuildChannel>> {
+    pub fn guild_channel(&self, channel_id: ChannelId) -> Option<GuildChannel> {
         self.0
             .channels_guild
             .get(&channel_id)
-            .map(|x| Arc::clone(&x.data))
+            .map(|r| r.data.clone())
     }
 
     /// Gets the current user.
     ///
     /// This is an O(1) operation.
-    pub fn current_user(&self) -> Option<Arc<CurrentUser>> {
+    pub fn current_user(&self) -> Option<CurrentUser> {
         self.0
             .current_user
             .lock()
@@ -289,18 +284,15 @@ impl InMemoryCache {
     /// This is an O(1) operation. This requires the [`GUILD_EMOJIS`] intent.
     ///
     /// [`GUILD_EMOJIS`]: ::twilight_model::gateway::Intents::GUILD_EMOJIS
-    pub fn emoji(&self, emoji_id: EmojiId) -> Option<Arc<CachedEmoji>> {
-        self.0.emojis.get(&emoji_id).map(|x| Arc::clone(&x.data))
+    pub fn emoji(&self, emoji_id: EmojiId) -> Option<CachedEmoji> {
+        self.0.emojis.get(&emoji_id).map(|r| r.data.clone())
     }
 
     /// Gets a group by ID.
     ///
     /// This is an O(1) operation.
-    pub fn group(&self, channel_id: ChannelId) -> Option<Arc<Group>> {
-        self.0
-            .groups
-            .get(&channel_id)
-            .map(|r| Arc::clone(r.value()))
+    pub fn group(&self, channel_id: ChannelId) -> Option<Group> {
+        self.0.groups.get(&channel_id).map(|r| r.clone())
     }
 
     /// Gets a guild by ID.
@@ -308,8 +300,8 @@ impl InMemoryCache {
     /// This is an O(1) operation. This requires the [`GUILDS`] intent.
     ///
     /// [`GUILDS`]: ::twilight_model::gateway::Intents::GUILDS
-    pub fn guild(&self, guild_id: GuildId) -> Option<Arc<CachedGuild>> {
-        self.0.guilds.get(&guild_id).map(|r| Arc::clone(r.value()))
+    pub fn guild(&self, guild_id: GuildId) -> Option<CachedGuild> {
+        self.0.guilds.get(&guild_id).map(|r| r.clone())
     }
 
     /// Gets the set of channels in a guild.
@@ -319,10 +311,7 @@ impl InMemoryCache {
     ///
     /// [`GUILDS`]: ::twilight_model::gateway::Intents::GUILDS
     pub fn guild_channels(&self, guild_id: GuildId) -> Option<HashSet<ChannelId>> {
-        self.0
-            .guild_channels
-            .get(&guild_id)
-            .map(|r| r.value().clone())
+        self.0.guild_channels.get(&guild_id).map(|r| r.clone())
     }
 
     /// Gets the set of emojis in a guild.
@@ -333,10 +322,7 @@ impl InMemoryCache {
     /// [`GUILDS`]: ::twilight_model::gateway::Intents::GUILDS
     /// [`GUILD_EMOJIS`]: ::twilight_model::gateway::Intents::GUILD_EMOJIS
     pub fn guild_emojis(&self, guild_id: GuildId) -> Option<HashSet<EmojiId>> {
-        self.0
-            .guild_emojis
-            .get(&guild_id)
-            .map(|r| r.value().clone())
+        self.0.guild_emojis.get(&guild_id).map(|r| r.clone())
     }
 
     /// Gets the set of members in a guild.
@@ -348,10 +334,7 @@ impl InMemoryCache {
     ///
     /// [`GUILD_MEMBERS`]: ::twilight_model::gateway::Intents::GUILD_MEMBERS
     pub fn guild_members(&self, guild_id: GuildId) -> Option<HashSet<UserId>> {
-        self.0
-            .guild_members
-            .get(&guild_id)
-            .map(|r| r.value().clone())
+        self.0.guild_members.get(&guild_id).map(|r| r.clone())
     }
 
     /// Gets the set of presences in a guild.
@@ -363,10 +346,7 @@ impl InMemoryCache {
     ///
     /// [`GUILD_PRESENCES`]: ::twilight_model::gateway::Intents::GUILD_PRESENCES
     pub fn guild_presences(&self, guild_id: GuildId) -> Option<HashSet<UserId>> {
-        self.0
-            .guild_presences
-            .get(&guild_id)
-            .map(|r| r.value().clone())
+        self.0.guild_presences.get(&guild_id).map(|r| r.clone())
     }
 
     /// Gets the set of roles in a guild.
@@ -376,7 +356,7 @@ impl InMemoryCache {
     ///
     /// [`GUILDS`]: ::twilight_model::gateway::Intents::GUILDS
     pub fn guild_roles(&self, guild_id: GuildId) -> Option<HashSet<RoleId>> {
-        self.0.guild_roles.get(&guild_id).map(|r| r.value().clone())
+        self.0.guild_roles.get(&guild_id).map(|r| r.clone())
     }
 
     /// Gets the set of stage instances in a guild.
@@ -397,11 +377,8 @@ impl InMemoryCache {
     /// This is an O(1) operation. This requires the [`GUILD_MEMBERS`] intent.
     ///
     /// [`GUILD_MEMBERS`]: ::twilight_model::gateway::Intents::GUILD_MEMBERS
-    pub fn member(&self, guild_id: GuildId, user_id: UserId) -> Option<Arc<CachedMember>> {
-        self.0
-            .members
-            .get(&(guild_id, user_id))
-            .map(|r| Arc::clone(r.value()))
+    pub fn member(&self, guild_id: GuildId, user_id: UserId) -> Option<CachedMember> {
+        self.0.members.get(&(guild_id, user_id)).map(|r| r.clone())
     }
 
     /// Gets a message by channel ID and message ID.
@@ -411,17 +388,10 @@ impl InMemoryCache {
     ///
     /// [`GUILD_MESSAGES`]: ::twilight_model::gateway::Intents::GUILD_MESSAGES
     /// [`DIRECT_MESSAGES`]: ::twilight_model::gateway::Intents::DIRECT_MESSAGES
-    pub fn message(
-        &self,
-        channel_id: ChannelId,
-        message_id: MessageId,
-    ) -> Option<Arc<CachedMessage>> {
+    pub fn message(&self, channel_id: ChannelId, message_id: MessageId) -> Option<CachedMessage> {
         let channel = self.0.messages.get(&channel_id)?;
 
-        channel
-            .iter()
-            .find(|msg| msg.id == message_id)
-            .map(Arc::clone)
+        channel.iter().find(|msg| msg.id == message_id).cloned()
     }
 
     /// Gets a presence by, optionally, guild ID, and user ID.
@@ -429,11 +399,11 @@ impl InMemoryCache {
     /// This is an O(1) operation. This requires the [`GUILD_PRESENCES`] intent.
     ///
     /// [`GUILD_PRESENCES`]: ::twilight_model::gateway::Intents::GUILD_PRESENCES
-    pub fn presence(&self, guild_id: GuildId, user_id: UserId) -> Option<Arc<CachedPresence>> {
+    pub fn presence(&self, guild_id: GuildId, user_id: UserId) -> Option<CachedPresence> {
         self.0
             .presences
             .get(&(guild_id, user_id))
-            .map(|r| Arc::clone(r.value()))
+            .map(|r| r.clone())
     }
 
     /// Gets a private channel by ID.
@@ -441,11 +411,8 @@ impl InMemoryCache {
     /// This is an O(1) operation. This requires the [`DIRECT_MESSAGES`] intent.
     ///
     /// [`DIRECT_MESSAGES`]: ::twilight_model::gateway::Intents::DIRECT_MESSAGES
-    pub fn private_channel(&self, channel_id: ChannelId) -> Option<Arc<PrivateChannel>> {
-        self.0
-            .channels_private
-            .get(&channel_id)
-            .map(|r| Arc::clone(r.value()))
+    pub fn private_channel(&self, channel_id: ChannelId) -> Option<PrivateChannel> {
+        self.0.channels_private.get(&channel_id).map(|r| r.clone())
     }
 
     /// Gets a role by ID.
@@ -453,11 +420,8 @@ impl InMemoryCache {
     /// This is an O(1) operation. This requires the [`GUILDS`] intent.
     ///
     /// [`GUILDS`]: ::twilight_model::gateway::Intents::GUILDS
-    pub fn role(&self, role_id: RoleId) -> Option<Arc<Role>> {
-        self.0
-            .roles
-            .get(&role_id)
-            .map(|role| Arc::clone(&role.data))
+    pub fn role(&self, role_id: RoleId) -> Option<Role> {
+        self.0.roles.get(&role_id).map(|r| r.data.clone())
     }
 
     /// Gets a stage instance by ID.
@@ -465,11 +429,11 @@ impl InMemoryCache {
     /// This is an O(1) operation. This requires the [`GUILDS`] intent.
     ///
     /// [`GUILDS`]: twilight_model::gateway::Intents::GUILDS
-    pub fn stage_instance(&self, stage_id: StageId) -> Option<Arc<StageInstance>> {
+    pub fn stage_instance(&self, stage_id: StageId) -> Option<StageInstance> {
         self.0
             .stage_instances
             .get(&stage_id)
-            .map(|role| Arc::clone(&role.data))
+            .map(|role| role.data.clone())
     }
 
     /// Gets a user by ID.
@@ -477,8 +441,17 @@ impl InMemoryCache {
     /// This is an O(1) operation. This requires the [`GUILD_MEMBERS`] intent.
     ///
     /// [`GUILD_MEMBERS`]: ::twilight_model::gateway::Intents::GUILD_MEMBERS
-    pub fn user(&self, user_id: UserId) -> Option<Arc<User>> {
-        self.0.users.get(&user_id).map(|r| Arc::clone(&r.0))
+    pub fn user(&self, user_id: UserId) -> Option<User> {
+        self.0.users.get(&user_id).map(|r| r.0.clone())
+    }
+
+    /// Gets a user by ID.
+    ///
+    /// This is an O(1) operation. This requires the [`GUILD_MEMBERS`] intent.
+    ///
+    /// [`GUILD_MEMBERS`]: ::twilight_model::gateway::Intents::GUILD_MEMBERS
+    pub fn user_ref(&self, user_id: UserId) -> Option<Ref<'_, UserId, (User, BTreeSet<GuildId>)>> {
+        self.0.users.get(&user_id)
     }
 
     /// Gets the voice states within a voice channel.
@@ -487,13 +460,13 @@ impl InMemoryCache {
     ///
     /// [`GUILDS`]: ::twilight_model::gateway::Intents::GUILDS
     /// [`GUILD_VOICE_STATES`]: ::twilight_model::gateway::Intents::GUILD_VOICE_STATES
-    pub fn voice_channel_states(&self, channel_id: ChannelId) -> Option<Vec<Arc<VoiceState>>> {
+    pub fn voice_channel_states(&self, channel_id: ChannelId) -> Option<Vec<VoiceState>> {
         let user_ids = self.0.voice_state_channels.get(&channel_id)?;
 
         Some(
             user_ids
                 .iter()
-                .filter_map(|key| self.0.voice_states.get(&key).map(|r| Arc::clone(r.value())))
+                .filter_map(|key| self.0.voice_states.get(&key).map(|r| r.clone()))
                 .collect(),
         )
     }
@@ -505,11 +478,11 @@ impl InMemoryCache {
     ///
     /// [`GUILDS`]: ::twilight_model::gateway::Intents::GUILDS
     /// [`GUILD_VOICE_STATES`]: ::twilight_model::gateway::Intents::GUILD_VOICE_STATES
-    pub fn voice_state(&self, user_id: UserId, guild_id: GuildId) -> Option<Arc<VoiceState>> {
+    pub fn voice_state(&self, user_id: UserId, guild_id: GuildId) -> Option<VoiceState> {
         self.0
             .voice_states
             .get(&(guild_id, user_id))
-            .map(|r| Arc::clone(r.value()))
+            .map(|r| r.clone())
     }
 
     /// Clear the state of the Cache.
@@ -545,18 +518,12 @@ impl InMemoryCache {
         self.0.voice_states.clear();
     }
 
-    fn cache_current_user(&self, mut current_user: CurrentUser) {
-        let mut user = self.0.current_user.lock().expect("current user poisoned");
-
-        if let Some(mut user) = user.as_mut() {
-            if let Some(user) = Arc::get_mut(&mut user) {
-                std::mem::swap(user, &mut current_user);
-
-                return;
-            }
-        }
-
-        *user = Some(Arc::new(current_user));
+    fn cache_current_user(&self, current_user: CurrentUser) {
+        self.0
+            .current_user
+            .lock()
+            .expect("current user poisoned")
+            .replace(current_user);
     }
 
     fn cache_guild_channels(
@@ -597,7 +564,7 @@ impl InMemoryCache {
 
     fn cache_emoji(&self, guild_id: GuildId, emoji: Emoji) {
         match self.0.emojis.get(&emoji.id) {
-            Some(e) if *e.data == emoji => return,
+            Some(cached_emoji) if cached_emoji.data == emoji => return,
             Some(_) | None => {}
         }
 
@@ -607,7 +574,7 @@ impl InMemoryCache {
             self.cache_user(Cow::Owned(user), Some(guild_id));
         }
 
-        let cached = Arc::new(CachedEmoji {
+        let cached = CachedEmoji {
             id: emoji.id,
             animated: emoji.animated,
             name: emoji.name,
@@ -616,7 +583,7 @@ impl InMemoryCache {
             roles: emoji.roles,
             user_id,
             available: emoji.available,
-        });
+        };
 
         self.0.emojis.insert(
             cached.id,
@@ -744,7 +711,7 @@ impl InMemoryCache {
         };
 
         self.0.unavailable_guilds.remove(&guild.id);
-        self.0.guilds.insert(guild.id, Arc::new(guild));
+        self.0.guilds.insert(guild.id, guild);
     }
 
     fn cache_integration(&self, guild_id: GuildId, integration: GuildIntegration) {
@@ -767,7 +734,7 @@ impl InMemoryCache {
         let id = (guild_id, member_id);
 
         if let Some(m) = self.0.members.get(&id) {
-            if **m == member {
+            if *m == member {
                 return;
             }
         }
@@ -775,7 +742,7 @@ impl InMemoryCache {
         let user_id = member.user.id;
 
         self.cache_user(Cow::Owned(member.user), Some(guild_id));
-        let cached = Arc::new(CachedMember {
+        let cached = CachedMember {
             deaf: Some(member.deaf),
             guild_id,
             joined_at: member.joined_at,
@@ -785,7 +752,7 @@ impl InMemoryCache {
             premium_since: member.premium_since,
             roles: member.roles,
             user_id,
-        });
+        };
         self.0.members.insert(id, cached);
         self.0
             .guild_members
@@ -803,7 +770,7 @@ impl InMemoryCache {
         let id = (guild_id, user_id);
 
         if let Some(m) = self.0.members.get(&id) {
-            if **m == member {
+            if *m == member {
                 return;
             }
         }
@@ -814,7 +781,7 @@ impl InMemoryCache {
             .or_default()
             .insert(user_id);
 
-        let cached = Arc::new(CachedMember {
+        let cached = CachedMember {
             deaf: Some(member.deaf),
             guild_id,
             joined_at: member.joined_at.to_owned(),
@@ -824,7 +791,7 @@ impl InMemoryCache {
             premium_since: None,
             roles: member.roles.to_owned(),
             user_id,
-        });
+        };
         self.0.members.insert(id, cached);
     }
 
@@ -882,27 +849,15 @@ impl InMemoryCache {
     }
 
     fn cache_presence(&self, guild_id: GuildId, presence: CachedPresence) {
-        let key = (guild_id, presence.user_id);
-
-        match self.0.presences.get(&key) {
-            Some(p) if **p == presence => return,
-            Some(_) | None => {}
-        }
-
-        self.0.presences.insert(key, Arc::new(presence));
+        self.0
+            .presences
+            .insert((guild_id, presence.user_id), presence);
     }
 
     fn cache_private_channel(&self, private_channel: PrivateChannel) {
-        let id = private_channel.id;
-
-        match self.0.channels_private.get(&id) {
-            Some(c) if **c == private_channel => {}
-            Some(_) | None => {
-                self.0
-                    .channels_private
-                    .insert(id, Arc::new(private_channel));
-            }
-        }
+        self.0
+            .channels_private
+            .insert(private_channel.id, private_channel);
     }
 
     fn cache_roles(&self, guild_id: GuildId, roles: impl IntoIterator<Item = Role>) {
@@ -950,7 +905,7 @@ impl InMemoryCache {
 
     fn cache_user(&self, user: Cow<'_, User>, guild_id: Option<GuildId>) {
         match self.0.users.get_mut(&user.id) {
-            Some(mut u) if *u.0 == *user => {
+            Some(mut u) if u.0 == *user => {
                 if let Some(guild_id) = guild_id {
                     u.1.insert(guild_id);
                 }
@@ -959,13 +914,12 @@ impl InMemoryCache {
             }
             Some(_) | None => {}
         }
+        let user = user.into_owned();
 
         if let Some(guild_id) = guild_id {
             let mut guild_id_set = BTreeSet::new();
             guild_id_set.insert(guild_id);
-            self.0
-                .users
-                .insert(user.id, (Arc::new(user.into_owned()), guild_id_set));
+            self.0.users.insert(user.id, (user, guild_id_set));
         }
     }
 
@@ -1029,9 +983,7 @@ impl InMemoryCache {
         }
 
         let maybe_channel_id = voice_state.channel_id;
-        self.0
-            .voice_states
-            .insert((guild_id, user_id), Arc::new(voice_state));
+        self.0.voice_states.insert((guild_id, user_id), voice_state);
 
         self.0
             .voice_state_guilds
@@ -1090,18 +1042,14 @@ impl InMemoryCache {
         }
     }
 
-    fn delete_stage_instance(&self, stage_id: StageId) -> Option<Arc<StageInstance>> {
-        let stage_instance = self.0.stage_instances.remove(&stage_id).map(|(_, v)| v)?;
+    fn delete_stage_instance(&self, stage_id: StageId) {
+        if let Some((_, data)) = self.0.stage_instances.remove(&stage_id) {
+            let guild_id = data.guild_id;
 
-        if let Some(mut stage_instances) = self
-            .0
-            .guild_stage_instances
-            .get_mut(&stage_instance.guild_id)
-        {
-            stage_instances.remove(&stage_id);
+            if let Some(mut stage_instances) = self.0.guild_stage_instances.get_mut(&guild_id) {
+                stage_instances.remove(&stage_id);
+            }
         }
-
-        Some(stage_instance.data)
     }
 
     /// Determine whether the configured cache wants a specific resource to be
@@ -1324,7 +1272,7 @@ mod tests {
         // it's part of a guild create, the cache can automatically attach the
         // guild ID to it. So now, the channel's guild ID is present with the
         // correct value.
-        match *channel {
+        match channel {
             GuildChannel::Text(ref c) => {
                 assert_eq!(Some(GuildId(123)), c.guild_id);
             }
@@ -1616,7 +1564,7 @@ mod tests {
             // Check for the cached role
             assert!(guild_1_roles
                 .into_iter()
-                .all(|role| *cache.role(role.id).expect("Role missing from cache") == role))
+                .all(|role| cache.role(role.id).expect("Role missing from cache") == role))
         }
 
         // Bulk inserts
@@ -1640,7 +1588,7 @@ mod tests {
             // Check for the cached role
             assert!(guild_2_roles
                 .into_iter()
-                .all(|role| *cache.role(role.id).expect("Role missing from cache") == role))
+                .all(|role| cache.role(role.id).expect("Role missing from cache") == role))
         }
     }
 

@@ -1,8 +1,8 @@
-use crate::model::CachedPresence;
+use crate::model::{CachedMessage, CachedPresence};
 
 use super::{config::ResourceType, InMemoryCache};
 use dashmap::DashMap;
-use std::{borrow::Cow, collections::HashSet, hash::Hash, ops::Deref, sync::Arc};
+use std::{borrow::Cow, collections::HashSet, hash::Hash, ops::Deref};
 use twilight_model::{
     application::interaction::Interaction,
     channel::{message::MessageReaction, Channel, GuildChannel, ReactionType},
@@ -136,10 +136,10 @@ impl UpdateCache for ChannelPinsUpdate {
             return;
         }
 
-        if let Some(mut item) = cache.0.channels_guild.get_mut(&self.channel_id) {
-            let channel = Arc::make_mut(&mut item.data);
+        if let Some(mut r) = cache.0.channels_guild.get_mut(&self.channel_id) {
+            let value = r.value_mut();
 
-            if let GuildChannel::Text(text) = channel {
+            if let GuildChannel::Text(ref mut text) = value.data {
                 text.last_pin_timestamp = self.last_pin_timestamp.clone();
             }
 
@@ -147,13 +147,13 @@ impl UpdateCache for ChannelPinsUpdate {
         }
 
         if let Some(mut channel) = cache.0.channels_private.get_mut(&self.channel_id) {
-            Arc::make_mut(&mut channel).last_pin_timestamp = self.last_pin_timestamp.clone();
+            channel.last_pin_timestamp = self.last_pin_timestamp.clone();
 
             return;
         }
 
         if let Some(mut group) = cache.0.groups.get_mut(&self.channel_id) {
-            Arc::make_mut(&mut group).last_pin_timestamp = self.last_pin_timestamp.clone();
+            group.last_pin_timestamp = self.last_pin_timestamp.clone();
         }
     }
 }
@@ -267,7 +267,6 @@ impl UpdateCache for GuildUpdate {
 
         #[allow(deprecated)]
         if let Some(mut guild) = cache.0.guilds.get_mut(&self.0.id) {
-            let mut guild = Arc::make_mut(&mut guild);
             guild.afk_channel_id = self.afk_channel_id;
             guild.afk_timeout = self.afk_timeout;
             guild.banner = self.banner.clone();
@@ -464,7 +463,6 @@ impl UpdateCache for MemberUpdate {
             Some(member) => member,
             None => return,
         };
-        let mut member = Arc::make_mut(&mut member);
 
         member.deaf = self.deaf.or(member.deaf);
         member.mute = self.mute.or(member.mute);
@@ -499,7 +497,7 @@ impl UpdateCache for MessageCreate {
             channel.pop_back();
         }
 
-        channel.push_front(Arc::new(From::from(self.0.clone())));
+        channel.push_front(CachedMessage::from(self.0.clone()));
     }
 }
 
@@ -542,46 +540,44 @@ impl UpdateCache for MessageUpdate {
         let mut channel = cache.0.messages.entry(self.channel_id).or_default();
 
         if let Some(mut message) = channel.iter_mut().find(|msg| msg.id == self.id) {
-            let mut msg = Arc::make_mut(&mut message);
-
             if let Some(attachments) = &self.attachments {
-                msg.attachments = attachments.clone();
+                message.attachments = attachments.clone();
             }
 
             if let Some(content) = &self.content {
-                msg.content = content.clone();
+                message.content = content.clone();
             }
 
             if let Some(edited_timestamp) = &self.edited_timestamp {
-                msg.edited_timestamp.replace(edited_timestamp.clone());
+                message.edited_timestamp.replace(edited_timestamp.clone());
             }
 
             if let Some(embeds) = &self.embeds {
-                msg.embeds = embeds.clone();
+                message.embeds = embeds.clone();
             }
 
             if let Some(mention_everyone) = self.mention_everyone {
-                msg.mention_everyone = mention_everyone;
+                message.mention_everyone = mention_everyone;
             }
 
             if let Some(mention_roles) = &self.mention_roles {
-                msg.mention_roles = mention_roles.clone();
+                message.mention_roles = mention_roles.clone();
             }
 
             if let Some(mentions) = &self.mentions {
-                msg.mentions = mentions.iter().map(|x| x.id).collect::<Vec<_>>();
+                message.mentions = mentions.iter().map(|x| x.id).collect::<Vec<_>>();
             }
 
             if let Some(pinned) = self.pinned {
-                msg.pinned = pinned;
+                message.pinned = pinned;
             }
 
             if let Some(timestamp) = &self.timestamp {
-                msg.timestamp = timestamp.clone();
+                message.timestamp = timestamp.clone();
             }
 
             if let Some(tts) = self.tts {
-                msg.tts = tts;
+                message.tts = tts;
             }
         }
     }
@@ -613,14 +609,16 @@ impl UpdateCache for ReactionAdd {
 
         let mut channel = cache.0.messages.entry(self.0.channel_id).or_default();
 
-        let mut message = match channel.iter_mut().find(|msg| msg.id == self.0.message_id) {
+        let message = match channel.iter_mut().find(|msg| msg.id == self.0.message_id) {
             Some(message) => message,
             None => return,
         };
 
-        let msg = Arc::make_mut(&mut message);
-
-        if let Some(reaction) = msg.reactions.iter_mut().find(|r| r.emoji == self.0.emoji) {
+        if let Some(reaction) = message
+            .reactions
+            .iter_mut()
+            .find(|r| r.emoji == self.0.emoji)
+        {
             if !reaction.me {
                 if let Some(current_user) = cache.current_user() {
                     if current_user.id == self.0.user_id {
@@ -636,7 +634,7 @@ impl UpdateCache for ReactionAdd {
                 .map(|user| user.id == self.0.user_id)
                 .unwrap_or_default();
 
-            msg.reactions.push(MessageReaction {
+            message.reactions.push(MessageReaction {
                 count: 1,
                 emoji: self.0.emoji.clone(),
                 me,
@@ -653,14 +651,16 @@ impl UpdateCache for ReactionRemove {
 
         let mut channel = cache.0.messages.entry(self.0.channel_id).or_default();
 
-        let mut message = match channel.iter_mut().find(|msg| msg.id == self.0.message_id) {
+        let message = match channel.iter_mut().find(|msg| msg.id == self.0.message_id) {
             Some(message) => message,
             None => return,
         };
 
-        let msg = Arc::make_mut(&mut message);
-
-        if let Some(reaction) = msg.reactions.iter_mut().find(|r| r.emoji == self.0.emoji) {
+        if let Some(reaction) = message
+            .reactions
+            .iter_mut()
+            .find(|r| r.emoji == self.0.emoji)
+        {
             if reaction.me {
                 if let Some(current_user) = cache.current_user() {
                     if current_user.id == self.0.user_id {
@@ -672,7 +672,7 @@ impl UpdateCache for ReactionRemove {
             if reaction.count > 1 {
                 reaction.count -= 1;
             } else {
-                msg.reactions.retain(|e| !(e.emoji == self.0.emoji));
+                message.reactions.retain(|e| !(e.emoji == self.0.emoji));
             }
         }
     }
@@ -686,13 +686,12 @@ impl UpdateCache for ReactionRemoveAll {
 
         let mut channel = cache.0.messages.entry(self.channel_id).or_default();
 
-        let mut message = match channel.iter_mut().find(|msg| msg.id == self.message_id) {
+        let message = match channel.iter_mut().find(|msg| msg.id == self.message_id) {
             Some(message) => message,
             None => return,
         };
 
-        let msg = Arc::make_mut(&mut message);
-        msg.reactions.clear();
+        message.reactions.clear();
     }
 }
 
@@ -704,12 +703,12 @@ impl UpdateCache for ReactionRemoveEmoji {
 
         let mut channel = cache.0.messages.entry(self.channel_id).or_default();
 
-        let mut message = match channel.iter_mut().find(|msg| msg.id == self.message_id) {
+        let message = match channel.iter_mut().find(|msg| msg.id == self.message_id) {
             Some(message) => message,
             None => return,
         };
 
-        let index = message.reactions.iter().position(|r| {
+        let maybe_index = message.reactions.iter().position(|r| {
             matches!(&r.emoji,
                 ReactionType::Unicode { name, .. }
                     | ReactionType::Custom { name: Some(name), .. }
@@ -717,9 +716,8 @@ impl UpdateCache for ReactionRemoveEmoji {
             )
         });
 
-        if let Some(index) = index {
-            let msg = Arc::make_mut(&mut message);
-            msg.reactions.remove(index);
+        if let Some(index) = maybe_index {
+            message.reactions.remove(index);
         }
     }
 }
