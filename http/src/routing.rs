@@ -480,7 +480,7 @@ pub enum Route {
     },
     /// Route information to delete all of the reactions on a message with a
     /// specific emoji.
-    DeleteMessageSpecficReaction {
+    DeleteMessageSpecificReaction {
         /// The ID of the channel.
         channel_id: u64,
         /// The URI encoded custom or unicode emoji.
@@ -1185,7 +1185,7 @@ impl Route {
                 Path::ChannelsIdMessagesIdReactions(channel_id),
                 format!("channels/{}/messages/{}/reactions", channel_id, message_id).into(),
             ),
-            Self::DeleteMessageSpecficReaction {
+            Self::DeleteMessageSpecificReaction {
                 channel_id,
                 message_id,
                 emoji,
@@ -1822,9 +1822,12 @@ impl Route {
 
 #[cfg(test)]
 mod tests {
-    use super::{Path, PathParseErrorType};
+    use super::{Path, PathParseErrorType, Route};
     use crate::request::Method;
+    use static_assertions::assert_fields;
     use std::{convert::TryFrom, error::Error, str::FromStr};
+
+    assert_fields!(Route::DeleteMessageSpecificReaction: channel_id, emoji, message_id);
 
     #[test]
     fn test_path_prefix_unimportant() -> Result<(), Box<dyn Error>> {
