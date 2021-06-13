@@ -78,6 +78,7 @@ use std::{
     sync::{Arc, Mutex},
 };
 use twilight_model::{
+    application::interaction::application_command::InteractionMember,
     channel::{Group, GuildChannel, PrivateChannel, StageInstance},
     gateway::presence::{Presence, UserOrId},
     guild::{Emoji, Guild, GuildIntegration, Member, PartialMember, Role},
@@ -785,10 +786,10 @@ impl InMemoryCache {
 
         let user = self.cache_user(Cow::Owned(member.user), Some(guild_id));
         let cached = Arc::new(CachedMember {
-            deaf: member.deaf,
+            deaf: Some(member.deaf),
             guild_id,
             joined_at: member.joined_at,
-            mute: member.mute,
+            mute: Some(member.mute),
             nick: member.nick,
             pending: member.pending,
             premium_since: member.premium_since,
@@ -823,16 +824,53 @@ impl InMemoryCache {
             .insert(user.id);
 
         let cached = Arc::new(CachedMember {
-            deaf: member.deaf,
+            deaf: Some(member.deaf),
             guild_id,
             joined_at: member.joined_at.to_owned(),
-            mute: member.mute,
+            mute: Some(member.mute),
             nick: member.nick.to_owned(),
             pending: false,
             premium_since: None,
             roles: member.roles.to_owned(),
             user,
         });
+        self.0.members.insert(id, Arc::clone(&cached));
+
+        cached
+    }
+
+    fn cache_borrowed_interaction_member(
+        &self,
+        guild_id: GuildId,
+        member: &InteractionMember,
+        user: Arc<User>,
+    ) -> Arc<CachedMember> {
+        let id = (guild_id, member.id);
+
+        let (deaf, mute) = match self.0.members.get(&id) {
+            Some(m) if **m == member => return Arc::clone(&m),
+            Some(m) => (m.deaf, m.mute),
+            None => (None, None),
+        };
+
+        self.0
+            .guild_members
+            .entry(guild_id)
+            .or_default()
+            .insert(member.id);
+
+        let cached = Arc::new(CachedMember {
+            deaf,
+            guild_id,
+            joined_at: member.joined_at.to_owned(),
+            mute,
+            nick: member.nick.to_owned(),
+            pending: false,
+            premium_since: member.premium_since.to_owned(),
+            roles: member.roles.to_owned(),
+            user,
+        });
+
         self.0.members.insert(id, Arc::clone(&cached));
 
         cached

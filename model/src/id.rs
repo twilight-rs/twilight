@@ -119,6 +119,24 @@ impl From<u64> for ChannelId {
     }
 }
 
+/// Unique ID of a command used in slash commands.
+#[derive(
+    Clone, Copy, Debug, Default, Deserialize, Eq, Hash, Ord, PartialEq, PartialOrd, Serialize,
+)]
+pub struct CommandId(#[serde(with = "string")] pub u64);
+
+impl Display for CommandId {
+    fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
+        Display::fmt(&self.0, f)
+    }
+}
+
+impl From<u64> for CommandId {
+    fn from(id: u64) -> Self {
+        CommandId(id)
+    }
+}
+
 #[derive(
     Clone, Copy, Debug, Default, Deserialize, Eq, Hash, Ord, PartialEq, PartialOrd, Serialize,
 )]
@@ -184,6 +202,24 @@ impl Display for IntegrationId {
 impl From<u64> for IntegrationId {
     fn from(id: u64) -> Self {
         IntegrationId(id)
+    }
+}
+
+/// Unique ID of an interaction payload.
+#[derive(
+    Clone, Copy, Debug, Default, Deserialize, Eq, Hash, Ord, PartialEq, PartialOrd, Serialize,
+)]
+pub struct InteractionId(#[serde(with = "string")] pub u64);
+
+impl Display for InteractionId {
+    fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
+        Display::fmt(&self.0, f)
+    }
+}
+
+impl From<u64> for InteractionId {
+    fn from(id: u64) -> Self {
+        InteractionId(id)
     }
 }
 
@@ -275,8 +311,8 @@ impl From<u64> for WebhookId {
 #[cfg(test)]
 mod tests {
     use super::{
-        ApplicationId, AttachmentId, AuditLogEntryId, ChannelId, EmojiId, GenericId, GuildId,
-        IntegrationId, MessageId, RoleId, StageId, UserId, WebhookId,
+        ApplicationId, AttachmentId, AuditLogEntryId, ChannelId, CommandId, EmojiId, GenericId,
+        GuildId, IntegrationId, InteractionId, MessageId, RoleId, StageId, UserId, WebhookId,
     };
     use serde_test::Token;
 
@@ -352,6 +388,20 @@ mod tests {
             ],
         );
         serde_test::assert_tokens(
+            &CommandId(114_941_315_417_899_012),
+            &[
+                Token::NewtypeStruct { name: "CommandId" },
+                Token::Str("114941315417899012"),
+            ],
+        );
+        serde_test::assert_de_tokens(
+            &CommandId(114_941_315_417_899_012),
+            &[
+                Token::NewtypeStruct { name: "CommandId" },
+                Token::U64(114_941_315_417_899_012),
+            ],
+        );
+        serde_test::assert_tokens(
             &EmojiId(114_941_315_417_899_012),
             &[
                 Token::NewtypeStruct { name: "EmojiId" },
@@ -407,6 +457,24 @@ mod tests {
             &[
                 Token::NewtypeStruct {
                     name: "IntegrationId",
+                },
+                Token::U64(114_941_315_417_899_012),
+            ],
+        );
+        serde_test::assert_tokens(
+            &InteractionId(114_941_315_417_899_012),
+            &[
+                Token::NewtypeStruct {
+                    name: "InteractionId",
+                },
+                Token::Str("114941315417899012"),
+            ],
+        );
+        serde_test::assert_de_tokens(
+            &InteractionId(114_941_315_417_899_012),
+            &[
+                Token::NewtypeStruct {
+                    name: "InteractionId",
                 },
                 Token::U64(114_941_315_417_899_012),
             ],

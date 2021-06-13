@@ -49,6 +49,8 @@ bitflags! {
         const INTEGRATION_DELETE = 1 << 61;
         /// A guild integration was updated.
         const INTEGRATION_UPDATE = 1 << 62;
+        /// An interaction was invoked by a user.
+        const INTERACTION_CREATE = 1 << 56;
         /// Invite for a channel has been created.
         const INVITE_CREATE = 1 << 46;
         /// Invite for a channel has been deleted.
@@ -155,6 +157,7 @@ impl From<EventType> for EventTypeFlags {
             EventType::IntegrationCreate => EventTypeFlags::INTEGRATION_CREATE,
             EventType::IntegrationDelete => EventTypeFlags::INTEGRATION_DELETE,
             EventType::IntegrationUpdate => EventTypeFlags::INTEGRATION_UPDATE,
+            EventType::InteractionCreate => EventTypeFlags::INTERACTION_CREATE,
             EventType::InviteCreate => EventTypeFlags::INVITE_CREATE,
             EventType::InviteDelete => EventTypeFlags::INVITE_DELETE,
             EventType::MemberAdd => EventTypeFlags::MEMBER_ADD,

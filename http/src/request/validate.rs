@@ -421,6 +421,33 @@ fn _stage_topic(value: &str) -> bool {
     (0..=120).contains(&len)
 }
 
+pub fn command_name(value: impl AsRef<str>) -> bool {
+    _command_name(value.as_ref())
+}
+
+fn _command_name(value: &str) -> bool {
+    let len = value.chars().count();
+
+    // https://discord.com/developers/docs/interactions/slash-commands#applicationcommandoption
+    (3..=32).contains(&len)
+}
+
+pub fn command_description(value: impl AsRef<str>) -> bool {
+    _command_description(value.as_ref())
+}
+
+fn _command_description(value: &str) -> bool {
+    let len = value.chars().count();
+
+    // https://discord.com/developers/docs/interactions/slash-commands#applicationcommandoption
+    (1..=100).contains(&len)
+}
+
+pub fn command_permissions(len: usize) -> bool {
+    // https://discord.com/developers/docs/interactions/slash-commands#edit-application-command-permissions
+    (0..=10).contains(&len)
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
