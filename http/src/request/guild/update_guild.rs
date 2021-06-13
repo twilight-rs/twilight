@@ -97,9 +97,6 @@ struct UpdateGuildFields {
     owner_id: Option<UserId>,
     #[allow(clippy::option_option)]
     #[serde(skip_serializing_if = "Option::is_none")]
-    region: Option<Option<String>>,
-    #[allow(clippy::option_option)]
-    #[serde(skip_serializing_if = "Option::is_none")]
     splash: Option<Option<String>>,
     #[allow(clippy::option_option)]
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -261,16 +258,6 @@ impl<'a> UpdateGuild<'a> {
     /// Only works if the current user is the owner.
     pub fn owner_id(mut self, owner_id: impl Into<UserId>) -> Self {
         self.fields.owner_id.replace(owner_id.into());
-
-        self
-    }
-
-    /// Specify the voice server region for the guild. Refer to [the discord docs] for more
-    /// information.
-    ///
-    /// [the discord docs]: https://discord.com/developers/docs/resources/voice#voice-region-object
-    pub fn region(mut self, region: impl Into<Option<String>>) -> Self {
-        self.fields.region.replace(region.into());
 
         self
     }

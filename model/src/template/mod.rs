@@ -138,7 +138,6 @@ mod tests {
         "icon_hash": null,
         "name": "server name",
         "preferred_locale": "en-US",
-        "region": "us-east",
         "roles": [
             {
                 "color": 0,
@@ -166,7 +165,6 @@ mod tests {
     "usage_count": 0
 }"#;
 
-        #[allow(deprecated)]
         let value = Template {
             code: "code".into(),
             created_at: "2021-04-07T14:55:37+00:00".into(),
@@ -254,7 +252,6 @@ mod tests {
                 icon_hash: None,
                 name: "server name".into(),
                 preferred_locale: "en-US".into(),
-                region: "us-east".into(),
                 roles: vec![
                     TemplateRole {
                         color: 0,
@@ -359,7 +356,7 @@ mod tests {
                 Token::Str("serialized_source_guild"),
                 Token::Struct {
                     name: "TemplateGuild",
-                    len: 14,
+                    len: 13,
                 },
                 Token::Str("afk_channel_id"),
                 Token::None,
@@ -492,8 +489,6 @@ mod tests {
                 Token::Str("server name"),
                 Token::Str("preferred_locale"),
                 Token::Str("en-US"),
-                Token::Str("region"),
-                Token::Str("us-east"),
                 Token::Str("roles"),
                 Token::Seq { len: Some(2) },
                 Token::Struct {

@@ -107,8 +107,6 @@ struct CreateGuildFields {
     icon: Option<String>,
     name: String,
     #[serde(skip_serializing_if = "Option::is_none")]
-    region: Option<String>,
-    #[serde(skip_serializing_if = "Option::is_none")]
     roles: Option<Vec<RoleFields>>,
     #[serde(skip_serializing_if = "Option::is_none")]
     system_channel_id: Option<ChannelId>,
@@ -265,7 +263,6 @@ impl<'a> CreateGuild<'a> {
                 explicit_content_filter: None,
                 icon: None,
                 name,
-                region: None,
                 roles: None,
                 system_channel_id: None,
                 system_channel_flags: None,
@@ -415,16 +412,6 @@ impl<'a> CreateGuild<'a> {
         } else {
             self.fields.roles.replace(vec![everyone.into()]);
         }
-
-        self
-    }
-
-    /// Specify the voice server region for the guild. Refer to [the discord docs] for more
-    /// information.
-    ///
-    /// [the discord docs]: https://discord.com/developers/docs/resources/voice#voice-region-object
-    pub fn region(mut self, region: impl Into<String>) -> Self {
-        self.fields.region.replace(region.into());
 
         self
     }
