@@ -1,10 +1,14 @@
 use crate::{
     client::Client,
     error::Error,
-    request::{Pending, Request},
+    request::{
+        application::{InteractionError, InteractionErrorType},
+        validate, Pending, Request,
+    },
     routing::Route,
 };
 use serde::Serialize;
+use std::collections::HashMap;
 use twilight_model::{
     application::command::permissions::CommandPermissions,
     id::{ApplicationId, CommandId, GuildId},
@@ -34,7 +38,7 @@ impl<'a> SetCommandPermissions<'a> {
         application_id: ApplicationId,
         guild_id: GuildId,
         permissions: impl Iterator<Item = (CommandId, CommandPermissions)>,
-    ) -> Self {
+    ) -> Result<Self, InteractionError> {
         let fields = permissions
             .map(
                 |(command_id, command_permissions)| PartialGuildCommandPermissions {
@@ -42,14 +46,32 @@ impl<'a> SetCommandPermissions<'a> {
                     permissions: command_permissions,
                 },
             )
-            .collect();
-        Self {
+            .collect::<Vec<PartialGuildCommandPermissions>>();
+
+        if !fields
+            .iter()
+            .fold(HashMap::new(), |mut acc, permission| {
+                acc.entry(permission.id)
+                    .and_modify(|p| *p += 1)
+                    .or_insert(1_usize);
+
+                acc
+            })
+            .iter()
+            .all(|permission| validate::command_permissions(*permission.1))
+        {
+            return Err(InteractionError {
+                kind: InteractionErrorType::TooManyCommandPermissions,
+            });
+        }
+
+        Ok(Self {
             application_id,
             guild_id,
             fields,
             fut: None,
             http,
-        }
+        })
     }
 
     fn start(&mut self) -> Result<(), Error> {
@@ -67,3 +89,46 @@ impl<'a> SetCommandPermissions<'a> {
 }
 
 poll_req!(SetCommandPermissions<'_>, ());
+
+#[cfg(test)]
+mod tests {
+    use super::SetCommandPermissions;
+    use crate::Client;
+    use std::iter;
+    use twilight_model::{
+        application::command::permissions::{CommandPermissions, CommandPermissionsType},
+        id::{ApplicationId, CommandId, GuildId, RoleId},
+    };
+
+    fn make_iter() -> impl Iterator<Item = (CommandId, CommandPermissions)> {
+        iter::repeat((
+            CommandId(3),
+            CommandPermissions {
+                id: CommandPermissionsType::Role(RoleId(4)),
+                permission: true,
+            },
+        ))
+    }
+
+    #[test]
+    fn test_correct_validation() {
+        let http = Client::new("token");
+
+        let permissions = make_iter().take(4);
+
+        let request = SetCommandPermissions::new(&http, ApplicationId(1), GuildId(2), permissions);
+
+        assert!(request.is_ok());
+    }
+
+    #[test]
+    fn test_incorrect_validation() {
+        let http = Client::new("token");
+
+        let permissions = make_iter().take(11);
+
+        let request = SetCommandPermissions::new(&http, ApplicationId(1), GuildId(2), permissions);
+
+        assert!(request.is_err());
+    }
+}
