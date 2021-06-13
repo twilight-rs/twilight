@@ -2,6 +2,46 @@
 
 Changelog for `twilight-gateway`.
 
+## [0.5.0] - 2021-06-13
+
+### Upgrade Path
+
+Replace `zlib` features with their new names.
+
+Create a `Cluster` or `Shard` like this:
+
+```diff
+-let cluster = Cluster::new(token, intents).await?;
+-let mut events = cluster.events();
++let (cluster, mut events) = Cluster::new(token, intents).await?;
+```
+
+Replace references to `UpdateStatus` and `UpdateStatusInfo` with
+`UpdatePresence` and `UpdatePresencePayload` respectively.
+
+Ensure at least one `Activity` is present in `UpdatePresence`.
+
+### Changes
+
+The `zlib` feature choices have been renamed from `'stock-zlib` and `simd-zlib`
+to `zlib-stock` and `zlib-simd` respectively ([#829] - [@vivian]).
+
+`Cluster::new`, `ClusterBuilder::build`, `Shard::new`, and `ShardBuilder::build`
+now return a tuple with two elements: the cluster or shard itself and a stream
+of events. See the PR for more details ([#832] - [@vivian]).
+
+`UpdateStatus` and `UpdateStatusInfo` have been renamed to `UpdatePresence` and
+`UpdatePresencePayload` respectively ([#902] - [@7596ff]).
+
+At least one `Activity` is required when building an `UpdatePresence` payload.
+`UpdatePresenceError` and `UpdatePresenceErrorType` have been created to
+validate this ([#891] - [@7596ff]).
+
+[#829]: https://github.com/twilight-rs/twilight/pull/829
+[#832]: https://github.com/twilight-rs/twilight/pull/832
+[#891]: https://github.com/twilight-rs/twilight/pull/891
+[#902]: https://github.com/twilight-rs/twilight/pull/902
+
 ## [0.4.2] - 2021-06-12
 
 ### Additions
@@ -363,6 +403,7 @@ Initial release.
 [#515]: https://github.com/twilight-rs/twilight/pull/515
 [#512]: https://github.com/twilight-rs/twilight/pull/512
 
+[0.5.0]: https://github.com/twilight-rs/twilight/releases/tag/gateway-0.5.0
 [0.4.2]: https://github.com/twilight-rs/twilight/releases/tag/gateway-0.4.2
 [0.4.1]: https://github.com/twilight-rs/twilight/releases/tag/gateway-0.4.1
 [0.4.0]: https://github.com/twilight-rs/twilight/releases/tag/gateway-0.4.0

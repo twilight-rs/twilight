@@ -2,6 +2,92 @@
 
 Changelog for `twilight-model`.
 
+## [0.5.0] - 2021-06-13
+
+### Upgrade Path
+
+Remove references to `Guild::nsfw`, `Guild::region`, `PartialGuild::nsfw`,
+`PartialGuild::region`, and `TemplateGuild::region`.
+
+Replace the following usages:
+```diff
+-twilight_model::channel::invite::TargetUserType
++twilight_model::channel::invite::TargetType
+
+-twilight_model::gateway::payload::update_status::UpdateStatus
++twilight_model::gateway::payload::update_presence::UpdatePresence
+
+-twilight_model::gateway::payload::update_status::UpdateStatusInfo
++twilight_model::gateway::payload::update_presence::UpdatePresencePayload
+```
+
+### Additions
+
+Support for Slash Commands has been added.
+
+The following models have been added:
+
+- `enum CommandDataOption`
+- `enum CommandOption`
+- `enum CommandOptionChoice`
+- `enum CommandOptionType`
+- `enum CommandPermissionsType`
+- `enum Interaction`
+- `enum InteractionResponse`
+- `enum InteractionType`
+- `enum ReponseType`
+- `struct ApplicationCommand`
+- `struct BaseCommandOptionData`
+- `struct CallbackData`
+- `struct ChoiceCommandOptionData`
+- `struct Command`
+- `struct CommandData`
+- `struct CommandId`
+- `struct CommandInteractionDataResolved`
+- `struct CommandPermissions`
+- `struct GuildCommandPermissions`
+- `struct InteractionChannel`
+- `struct InteractionCreate`
+- `struct InteractionId`
+- `struct InteractionMember`
+- `struct MessageInteraction`
+- `struct OptionsCommandOptionData`
+- `struct PartialApplication`
+- `struct Ping`
+
+### Enhancements
+
+The following models have been updated:
+
+- `bitflags MessageFlgas`: added `EPHEMERAL`
+- `enum Event`: added `InteractionCreate`
+- `enum WebhookType`: added `Application`
+- `struct Message`: added `application_id`, `interaction`
+- `struct PartialMember`: added `permissions`
+- `struct Ready`: added `application`
+
+### Changes
+
+The `TargetType` re-export (`TargetUserType`) has been removed ([#847] -
+[@7596ff]).
+
+`Guild::nsfw` and `PartialGuild::nsfw` have been removed ([#890] - [@7596ff]).
+
+`UpdateStatus` and `UpdateStatusInfo` have been renamed to `UpdatePresence` and
+`UpdatePresencePayload` respectively ([#902] - [@7596ff]).
+
+At least one `Activity` is required when building an `UpdatePresence` payload.
+`UpdatePresenceError` and `UpdatePresenceErrorType` have been created to
+validate this ([#891] - [@7596ff]).
+
+References to `Guild::region` have been removed. This includes
+`PartialGuild::region` and `TemplateGuild::region`.
+
+[#847]: https://github.com/twilight-rs/twilight/pull/847
+[#890]: https://github.com/twilight-rs/twilight/pull/890
+[#891]: https://github.com/twilight-rs/twilight/pull/891
+[#902]: https://github.com/twilight-rs/twilight/pull/902
+
 ## [0.4.3] - 2021-06-12
 
 ### Additions
@@ -605,6 +691,7 @@ Initial release.
 
 [0.2.0-beta.1:app integrations]: https://github.com/discord/discord-api-docs/commit/a926694e2f8605848bda6b57d21c8817559e5cec
 
+[0.5.0]: https://github.com/twilight-rs/twilight/releases/tag/model-0.5.0
 [0.4.3]: https://github.com/twilight-rs/twilight/releases/tag/model-0.4.3
 [0.4.2]: https://github.com/twilight-rs/twilight/releases/tag/model-0.4.2
 [0.4.1]: https://github.com/twilight-rs/twilight/releases/tag/model-0.4.1

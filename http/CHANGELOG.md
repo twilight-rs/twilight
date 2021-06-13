@@ -2,6 +2,151 @@
 
 Changelog for `twilight-http`.
 
+## [0.5.0] - 2021-06-13
+
+### Upgrade Path
+
+Remove usage of `GetReactions::before`, `ErrorType::Formatting`,
+`ErrorType::Ratelimiting`, `CreateMessage::attachment`,
+`CreateMessage::attachments`, `CreateGuild::region`, `UpdateGuild::region`, and
+`Result`.
+
+Update usage of `CreateGuildFromTemplateError`, `CreateTemplateError`,
+`SearchGuildMembersError`, `UpdateTemplateError`.
+
+Replace the following usages:
+```diff
+-twilight_http::routing::Route::DeleteMessageSpecficReaction
++twilight_http::routing::Route::DeleteMessageSpecificReaction
+
+-twilight_http::request::channel::invite::CreateInvite::target_user
++twilight_http::request::channel::invite::CreateInvite::target_user_id
+
+-twilight_http::request::channel::invite::CreateInvite::target_user_type
++twilight_http::request::channel::invite::CreateInvite::target_type
+```
+
+`UpdateStageInstance` requests now look like this:
+
+```diff
+-client.update_stage_instance(channel_id, topic)?.await?;
++client.update_stage_instance(channel_id)
++    .topic(topic)?
++    .await?;
+```
+
+If previously using the `tracing` feature, and using a custom feature set, add
+`tracing` to your list of features.
+
+### Additions
+
+Support for Slash Commands has been added.
+
+The following HTTP requests have been added:
+
+- `create_followup_message`
+- `create_global_command`
+- `create_guild_command`
+- `delete_followup_message`
+- `delete_global_command`
+- `delete_guild_command`
+- `delete_interaction_original`
+- `get_command_permissions`
+- `get_global_commands`
+- `get_guild_command_permissions`
+- `get_guild_commands`
+- `interaction_callback`
+- `set_command_permissions`
+- `set_global_commands`
+- `set_guild_commands`
+- `update_command_permissions`
+- `update_followup_message`
+- `update_global_command`
+- `update_guild_command`
+- `update_interaction_original`
+
+### Enhancements
+
+The following HTTP errors have been added:
+
+- `10063` `UnknownApplicationCommand`
+- `10066` `UnknownApplicationCommandPermissions`
+- `40041` `CommandNameAlreadyExists`
+
+The following HTTP ratelimiting paths have been added:
+
+- `ApplicationCommand(u64)`
+- `ApplicationCommandId(u64)`
+- `ApplicationGuildCommand(u64)`
+- `ApplicationGuildCommandId(u64)`
+- `InteractionCallback(u64)`
+
+The following HTTP routes have been added:
+
+`CreateGlobalCommand { application_id }`
+`CreateGuildCommand { application_id, guild_id }`
+`DeleteGlobalCommand { application_id, command_id }`
+`DeleteGuildCommand { application_id, command_id, guild_id }`
+`DeleteInteractionOriginal { application_id, interaction_token }`
+`GetCommandPermissions { application_id, command_id, guild_id }`
+`GetGlobalCommands { application_id }`
+`GetGuildCommandPermissions { application_id, guild_id }`
+`GetGuildCommands { application_id, guild_id }`
+`InteractionCallback { interaction_id, interaction_token }`
+`SetCommandPermissions { application_id, guild_id }`
+`SetGlobalCommands { application_id }`
+`SetGuildCommands { application_id, guild_id }`
+`UpdateCommandPermissions { application_id, command_id, guild_id }`
+`UpdateGlobalCommand { application_id, command_id }`
+`UpdateGuildCommand { application_id, command_id, guild_id }`
+`UpdateInteractionOriginal { application_id, interaction_token }`
+
+### Changes
+
+`GetReactions::before`, and its corresponding `Route::GetReactionUsers::before`
+has been removed ([#810] - [@7596ff]).
+
+`CreateInvite::{target_user} and {target_user_type}` have been removed [#847] -
+[@7596ff]).
+
+The `Formatting` and `Ratelimiting` HTTP error variants have been removed, as
+they are unused ([#854] - [@vivian]).
+
+In `UpdateStageInstance`, the `topic` field is no longer required ([#895] -
+[@7596ff]).
+
+The `tracing` dependency is now optional, and enabled by default ([#910] -
+[@vivian]).
+
+The following errors have been properly converted to the new `Error` standard
+([#898] - [@7596ff]):
+- `CreateGuildFromTemplateError`
+- `CreateTemplateError`
+- `SearchGuildMembersError`
+- `UpdateTemplateError`
+
+A typo in the name of `DeleteMessageSpecificReaction` has been fixed ([#927] -
+[@vivian]).
+
+`CreateMessage::{attachment, attachments}` have been removed ([#929] -
+[@7596ff]).
+
+References to `Guild::region` have been removed. This includes the `region`
+method on `CreateGuild` and `UpdateGuild` ([#930] - [@7596ff]).
+
+`Result` has been removed ([#931] - [@7596ff]).
+
+[#810]: https://github.com/twilight-rs/twilight/pull/810
+[#847]: https://github.com/twilight-rs/twilight/pull/847
+[#854]: https://github.com/twilight-rs/twilight/pull/854
+[#895]: https://github.com/twilight-rs/twilight/pull/895
+[#898]: https://github.com/twilight-rs/twilight/pull/898
+[#910]: https://github.com/twilight-rs/twilight/pull/910
+[#927]: https://github.com/twilight-rs/twilight/pull/927
+[#929]: https://github.com/twilight-rs/twilight/pull/929
+[#930]: https://github.com/twilight-rs/twilight/pull/930
+[#931]: https://github.com/twilight-rs/twilight/pull/931
+
 ## [0.4.3] - 2021-06-12
 
 ### Additions
@@ -772,6 +917,7 @@ Initial release.
 
 [0.2.0-beta.1:app integrations]: https://github.com/discord/discord-api-docs/commit/a926694e2f8605848bda6b57d21c8817559e5cec
 
+[0.5.0]: https://github.com/twilight-rs/twilight/releases/tag/http-0.5.0
 [0.4.3]: https://github.com/twilight-rs/twilight/releases/tag/http-0.4.3
 [0.4.2]: https://github.com/twilight-rs/twilight/releases/tag/http-0.4.2
 [0.4.1]: https://github.com/twilight-rs/twilight/releases/tag/http-0.4.1
