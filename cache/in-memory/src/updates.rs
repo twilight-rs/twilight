@@ -1500,13 +1500,13 @@ mod tests {
         {
             let member = cache.member(GuildId(3), UserId(6)).unwrap();
             let user = cache.user(member.user_id).unwrap();
-            assert_eq!(user.avatar.clone().unwrap(), "avatar string");
+            assert_eq!(user.avatar.unwrap(), "avatar string");
         }
 
         {
             let member = cache.member(GuildId(3), UserId(7)).unwrap();
             let user = cache.user(member.user_id).unwrap();
-            assert_eq!(user.avatar.clone().unwrap(), "different avatar");
+            assert_eq!(user.avatar.unwrap(), "different avatar");
         }
 
         {
