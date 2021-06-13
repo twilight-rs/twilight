@@ -9,7 +9,7 @@ pub use self::option::{
     CommandOptionType, OptionsCommandOptionData,
 };
 
-use crate::id::{ApplicationId, CommandId};
+use crate::id::{ApplicationId, CommandId, GuildId};
 use serde::{Deserialize, Serialize};
 
 /// Data sent to discord to create a command.
@@ -23,6 +23,9 @@ use serde::{Deserialize, Serialize};
 pub struct Command {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub application_id: Option<ApplicationId>,
+    /// Guild ID of the command, if not global.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub guild_id: Option<GuildId>,
     pub name: String,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub default_permission: Option<bool>,
