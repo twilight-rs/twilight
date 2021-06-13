@@ -944,7 +944,11 @@ impl InMemoryCache {
         }
     }
 
-    fn cache_stage_instance(&self, guild_id: GuildId, stage_instance: StageInstance) {
+    fn cache_stage_instance(
+        &self,
+        guild_id: GuildId,
+        stage_instance: StageInstance,
+    ) -> Arc<StageInstance> {
         self.0
             .guild_stage_instances
             .entry(guild_id)
@@ -956,7 +960,7 @@ impl InMemoryCache {
             guild_id,
             stage_instance.id,
             stage_instance,
-        );
+        )
     }
 
     fn cache_user(&self, user: Cow<'_, User>, guild_id: Option<GuildId>) -> Arc<User> {
