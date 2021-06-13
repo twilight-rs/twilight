@@ -23,48 +23,19 @@ Replace the following usages:
 
 ### Additions
 
-Support for Slash Commands has been added.
-
-The following models have been added:
-
-- `enum CommandDataOption`
-- `enum CommandOption`
-- `enum CommandOptionChoice`
-- `enum CommandOptionType`
-- `enum CommandPermissionsType`
-- `enum Interaction`
-- `enum InteractionResponse`
-- `enum InteractionType`
-- `enum ReponseType`
-- `struct ApplicationCommand`
-- `struct BaseCommandOptionData`
-- `struct CallbackData`
-- `struct ChoiceCommandOptionData`
-- `struct Command`
-- `struct CommandData`
-- `struct CommandId`
-- `struct CommandInteractionDataResolved`
-- `struct CommandPermissions`
-- `struct GuildCommandPermissions`
-- `struct InteractionChannel`
-- `struct InteractionCreate`
-- `struct InteractionId`
-- `struct InteractionMember`
-- `struct MessageInteraction`
-- `struct OptionsCommandOptionData`
-- `struct PartialApplication`
-- `struct Ping`
+Support for Slash Commands has been added. New models are present in the
+`application` module ([#932]).
 
 ### Enhancements
 
 The following models have been updated:
 
-- `bitflags MessageFlgas`: added `EPHEMERAL`
-- `enum Event`: added `InteractionCreate`
-- `enum WebhookType`: added `Application`
-- `struct Message`: added `application_id`, `interaction`
-- `struct PartialMember`: added `permissions`
-- `struct Ready`: added `application`
+- `twilight_model::channel::message::MessageFlags`: added `EPHEMERAL`
+- `twilight_model::channel::Message`: added `application_id`, `interaction`
+- `twilight_model::channel::WebhookType`: added `Application`
+- `twilight_model::gateway::Event`: added `InteractionCreate`
+- `twilight_model::gateway::payload::Ready`: added `application`
+- `twilight_model::guild::PartialMember`: added `permissions`
 
 ### Changes
 
@@ -87,6 +58,7 @@ References to `Guild::region` have been removed. This includes
 [#890]: https://github.com/twilight-rs/twilight/pull/890
 [#891]: https://github.com/twilight-rs/twilight/pull/891
 [#902]: https://github.com/twilight-rs/twilight/pull/902
+[#932]: https://github.com/twilight-rs/twilight/pull/932
 
 ## [0.4.3] - 2021-06-12
 

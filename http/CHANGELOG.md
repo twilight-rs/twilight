@@ -35,9 +35,6 @@ Replace the following usages:
 +    .await?;
 ```
 
-If previously using the `tracing` feature, and using a custom feature set, add
-`tracing` to your list of features.
-
 ### Additions
 
 Support for Slash Commands has been added.
@@ -106,7 +103,7 @@ The following HTTP routes have been added:
 `GetReactions::before`, and its corresponding `Route::GetReactionUsers::before`
 has been removed ([#810] - [@7596ff]).
 
-`CreateInvite::{target_user} and {target_user_type}` have been removed [#847] -
+`CreateInvite::{target_user, target_user_type}` have been removed [#847] -
 [@7596ff]).
 
 The `Formatting` and `Ratelimiting` HTTP error variants have been removed, as

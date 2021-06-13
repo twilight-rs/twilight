@@ -6,15 +6,16 @@ Changelog for `twilight-cache-inmemory`.
 
 ### Upgrade Path
 
-In order to access `user` data with `CachedEmoji`, `CachedMember`, or
-`CachedPresence`, make a separate call to `InMemoryCache::user`.
+`CachedEmoji`, `CachedMember`, and `CachedPresence` have had their `user` fields
+replaced with `user_id`. In order to access `user` data, make a separate call to
+`InMemoryCache::user`.
 
 Remove references to `CachedGuild::{nsfw, region}`.
 
 Update usage of `CachedMember::{deaf, mute}`.
 
-When accessing cached data, update any logic that would require the return type
-to be an `Arc<T>`.
+Cache methods now return clones of the cached data. When accessing data, update
+any logic that would require the return type to be an `Arc<T>`.
 
 ### Changes
 
@@ -32,8 +33,8 @@ from `Option<Arc<User>>` to `Option<UserId>` ([#871] - [@vivian]).
 When caching `MessageCreate` events, each `ResourceType` is checked and cached
 individually ([#921] - [@vilgotf]).
 
-The following methods no longer return an `Arc` of cached data ([#900] -
-[@vivian]):
+The following methods no longer return an `Arc` of cached data, and instead
+return a clone ([#900] - [@vivian]):
 - `current_user`
 - `emoji`
 - `group`
