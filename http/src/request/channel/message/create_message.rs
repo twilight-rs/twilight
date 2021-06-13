@@ -149,23 +149,6 @@ impl<'a> CreateMessage<'a> {
         self
     }
 
-    /// Attach a new file to the message.
-    ///
-    /// The file is raw binary data. It can be an image, or any other kind of file.
-    #[deprecated(since = "0.4.1", note = "use `file` instead")]
-    pub fn attachment(self, name: impl Into<String>, file: impl Into<Vec<u8>>) -> Self {
-        Self::file(self, name, file)
-    }
-
-    /// Insert multiple attachments into the message.
-    #[deprecated(since = "0.4.1", note = "use `files` instead")]
-    pub fn attachments<N: Into<String>, F: Into<Vec<u8>>>(
-        self,
-        attachments: impl IntoIterator<Item = (N, F)>,
-    ) -> Self {
-        Self::files(self, attachments)
-    }
-
     /// Set the content of the message.
     ///
     /// The maximum length is 2000 UTF-16 characters.
