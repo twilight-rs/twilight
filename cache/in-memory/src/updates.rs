@@ -343,12 +343,12 @@ impl UpdateCache for InteractionCreate {
                 if cache.wants(ResourceType::MEMBER) {
                     if let Some(member) = &command.member {
                         if let Some(user) = &member.user {
-                            let user = cache.cache_user(Cow::Borrowed(user), command.guild_id);
+                            cache.cache_user(Cow::Borrowed(user), command.guild_id);
 
                             cache.cache_borrowed_partial_member(
                                 command.guild_id.unwrap(),
                                 &member,
-                                user,
+                                user.id,
                             );
                         }
                     }
@@ -360,7 +360,7 @@ impl UpdateCache for InteractionCreate {
 
                 if let Some(resolved) = &command.data.resolved {
                     for u in &resolved.users {
-                        let user = cache.cache_user(Cow::Borrowed(u), command.guild_id);
+                        cache.cache_user(Cow::Borrowed(u), command.guild_id);
 
                         if !cache.wants(ResourceType::MEMBER) || command.guild_id.is_none() {
                             continue;
@@ -368,9 +368,9 @@ impl UpdateCache for InteractionCreate {
 
                         // This should always match, because resolved members
                         // are guaranteed to have a matching resolved user
-                        if let Some(member) = &resolved.members.iter().find(|m| m.id == user.id) {
+                        if let Some(member) = &resolved.members.iter().find(|m| m.id == u.id) {
                             if let Some(guild_id) = command.guild_id {
-                                cache.cache_borrowed_interaction_member(guild_id, &member, user);
+                                cache.cache_borrowed_interaction_member(guild_id, &member);
                             }
                         }
                     }
@@ -1499,12 +1499,14 @@ mod tests {
 
         {
             let member = cache.member(GuildId(3), UserId(6)).unwrap();
-            assert_eq!(member.user.avatar.clone().unwrap(), "avatar string");
+            let user = cache.user(member.user_id).unwrap();
+            assert_eq!(user.avatar.clone().unwrap(), "avatar string");
         }
 
         {
             let member = cache.member(GuildId(3), UserId(7)).unwrap();
-            assert_eq!(member.user.avatar.clone().unwrap(), "different avatar");
+            let user = cache.user(member.user_id).unwrap();
+            assert_eq!(user.avatar.clone().unwrap(), "different avatar");
         }
 
         {

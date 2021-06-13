@@ -793,16 +793,11 @@ impl InMemoryCache {
         self.0.members.insert(id, cached);
     }
 
-    fn cache_borrowed_interaction_member(
-        &self,
-        guild_id: GuildId,
-        member: &InteractionMember,
-        user: Arc<User>,
-    ) -> Arc<CachedMember> {
+    fn cache_borrowed_interaction_member(&self, guild_id: GuildId, member: &InteractionMember) {
         let id = (guild_id, member.id);
 
         let (deaf, mute) = match self.0.members.get(&id) {
-            Some(m) if **m == member => return Arc::clone(&m),
+            Some(m) if *m == member => return,
             Some(m) => (m.deaf, m.mute),
             None => (None, None),
         };
@@ -813,7 +808,7 @@ impl InMemoryCache {
             .or_default()
             .insert(member.id);
 
-        let cached = Arc::new(CachedMember {
+        let cached = CachedMember {
             deaf,
             guild_id,
             joined_at: member.joined_at.to_owned(),
@@ -822,12 +817,10 @@ impl InMemoryCache {
             pending: false,
             premium_since: member.premium_since.to_owned(),
             roles: member.roles.to_owned(),
-            user,
-        });
+            user_id: member.id,
+        };
 
-        self.0.members.insert(id, Arc::clone(&cached));
-
-        cached
+        self.0.members.insert(id, cached);
     }
 
     fn cache_members(&self, guild_id: GuildId, members: impl IntoIterator<Item = Member>) {
