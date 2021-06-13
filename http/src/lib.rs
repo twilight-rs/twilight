@@ -114,9 +114,6 @@ pub const API_VERSION: u8 = 8;
 
 pub use crate::{client::Client, error::Error};
 
-#[allow(deprecated)]
-pub use crate::error::Result;
-
 #[cfg(not(any(
     feature = "native",
     feature = "rustls-native-roots",
