@@ -671,7 +671,6 @@ impl InMemoryCache {
             self.cache_stage_instances(guild.id, guild.stage_instances);
         }
 
-        #[allow(deprecated)]
         let guild = CachedGuild {
             id: guild.id,
             afk_channel_id: guild.afk_channel_id,
@@ -698,7 +697,6 @@ impl InMemoryCache {
             preferred_locale: guild.preferred_locale,
             premium_subscription_count: guild.premium_subscription_count,
             premium_tier: guild.premium_tier,
-            region: guild.region,
             rules_channel_id: guild.rules_channel_id,
             splash: guild.splash,
             system_channel_id: guild.system_channel_id,
@@ -1214,7 +1212,6 @@ mod tests {
             topic: None,
         })]);
 
-        #[allow(deprecated)]
         let guild = Guild {
             id: GuildId(123),
             afk_channel_id: None,
@@ -1245,7 +1242,6 @@ mod tests {
             premium_subscription_count: Some(0),
             premium_tier: PremiumTier::None,
             presences: Vec::new(),
-            region: "us-east".to_owned(),
             roles: Vec::new(),
             splash: None,
             stage_instances: Vec::new(),

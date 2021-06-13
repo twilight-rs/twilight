@@ -99,8 +99,6 @@ pub struct Guild {
     pub premium_tier: PremiumTier,
     #[serde(default)]
     pub presences: Vec<Presence>,
-    #[deprecated(since = "0.4.3", note = "no longer provided by discord, see #884")]
-    pub region: String,
     pub roles: Vec<Role>,
     pub rules_channel_id: Option<ChannelId>,
     pub splash: Option<String>,
@@ -158,7 +156,6 @@ impl<'de> Deserialize<'de> for Guild {
             PremiumSubscriptionCount,
             PremiumTier,
             Presences,
-            Region,
             Roles,
             Splash,
             StageInstances,
@@ -216,7 +213,6 @@ impl<'de> Deserialize<'de> for Guild {
                 let mut premium_subscription_count = None::<Option<_>>;
                 let mut premium_tier = None;
                 let mut presences = None;
-                let mut region = None;
                 let mut roles = None;
                 let mut splash = None::<Option<_>>;
                 let mut stage_instances = None::<Vec<StageInstance>>;
@@ -485,13 +481,6 @@ impl<'de> Deserialize<'de> for Guild {
 
                             presences = Some(map.next_value_seed(deserializer)?);
                         }
-                        Field::Region => {
-                            if region.is_some() {
-                                return Err(DeError::duplicate_field("region"));
-                            }
-
-                            region = Some(map.next_value()?);
-                        }
                         Field::Roles => {
                             if roles.is_some() {
                                 return Err(DeError::duplicate_field("roles"));
@@ -592,7 +581,6 @@ impl<'de> Deserialize<'de> for Guild {
                 let owner_id = owner_id.ok_or_else(|| DeError::missing_field("owner_id"))?;
                 let preferred_locale =
                     preferred_locale.ok_or_else(|| DeError::missing_field("preferred_locale"))?;
-                let region = region.ok_or_else(|| DeError::missing_field("region"))?;
                 let roles = roles.ok_or_else(|| DeError::missing_field("roles"))?;
                 let system_channel_flags = system_channel_flags
                     .ok_or_else(|| DeError::missing_field("system_channel_flags"))?;
@@ -668,7 +656,6 @@ impl<'de> Deserialize<'de> for Guild {
                 tracing::trace!(
                     ?premium_tier,
                     ?presences,
-                    %region,
                     ?rules_channel_id,
                     ?roles,
                     ?splash,
@@ -709,7 +696,6 @@ impl<'de> Deserialize<'de> for Guild {
                     voice_state.guild_id.replace(id);
                 }
 
-                #[allow(deprecated)]
                 Ok(Guild {
                     afk_channel_id,
                     afk_timeout,
@@ -743,7 +729,6 @@ impl<'de> Deserialize<'de> for Guild {
                     premium_subscription_count,
                     premium_tier,
                     presences,
-                    region,
                     roles,
                     rules_channel_id,
                     splash,
@@ -793,7 +778,6 @@ impl<'de> Deserialize<'de> for Guild {
             "premium_subscription_count",
             "premium_tier",
             "presences",
-            "region",
             "roles",
             "splash",
             "system_channel_id",
@@ -823,7 +807,6 @@ mod tests {
     #[allow(clippy::too_many_lines)]
     #[test]
     fn test_guild() {
-        #[allow(deprecated)]
         let value = Guild {
             afk_channel_id: Some(ChannelId(2)),
             afk_timeout: 900,
@@ -857,7 +840,6 @@ mod tests {
             premium_subscription_count: Some(3),
             premium_tier: PremiumTier::Tier1,
             presences: Vec::new(),
-            region: "us-west".to_owned(),
             roles: Vec::new(),
             rules_channel_id: Some(ChannelId(6)),
             splash: Some("splash hash".to_owned()),
@@ -877,7 +859,7 @@ mod tests {
             &[
                 Token::Struct {
                     name: "Guild",
-                    len: 44,
+                    len: 43,
                 },
                 Token::Str("afk_channel_id"),
                 Token::Some,
@@ -971,8 +953,6 @@ mod tests {
                 Token::Str("presences"),
                 Token::Seq { len: Some(0) },
                 Token::SeqEnd,
-                Token::Str("region"),
-                Token::Str("us-west"),
                 Token::Str("roles"),
                 Token::Seq { len: Some(0) },
                 Token::SeqEnd,

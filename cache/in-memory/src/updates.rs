@@ -265,7 +265,6 @@ impl UpdateCache for GuildUpdate {
             return;
         }
 
-        #[allow(deprecated)]
         if let Some(mut guild) = cache.0.guilds.get_mut(&self.0.id) {
             guild.afk_channel_id = self.afk_channel_id;
             guild.afk_timeout = self.afk_timeout;
@@ -287,7 +286,6 @@ impl UpdateCache for GuildUpdate {
             guild
                 .premium_subscription_count
                 .replace(self.premium_subscription_count.unwrap_or_default());
-            guild.region = self.region.clone();
             guild.splash = self.splash.clone();
             guild.system_channel_id = self.system_channel_id;
             guild.verification_level = self.verification_level;
@@ -1029,7 +1027,6 @@ mod tests {
     #[test]
     fn test_guild_update() {
         let cache = InMemoryCache::new();
-        #[allow(deprecated)]
         let guild = Guild {
             afk_channel_id: None,
             afk_timeout: 0,
@@ -1063,7 +1060,6 @@ mod tests {
             premium_subscription_count: None,
             premium_tier: PremiumTier::None,
             presences: Vec::new(),
-            region: "us".to_owned(),
             roles: Vec::new(),
             rules_channel_id: None,
             splash: None,
@@ -1080,7 +1076,6 @@ mod tests {
 
         cache.update(&GuildCreate(guild.clone()));
 
-        #[allow(deprecated)]
         let mutation = PartialGuild {
             id: guild.id,
             afk_channel_id: guild.afk_channel_id,
@@ -1106,7 +1101,6 @@ mod tests {
             preferred_locale: guild.preferred_locale,
             premium_subscription_count: guild.premium_subscription_count,
             premium_tier: guild.premium_tier,
-            region: guild.region,
             roles: guild.roles,
             rules_channel_id: guild.rules_channel_id,
             splash: guild.splash,

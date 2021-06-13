@@ -39,8 +39,6 @@ pub struct PartialGuild {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub premium_subscription_count: Option<u64>,
     pub premium_tier: PremiumTier,
-    #[deprecated(since = "0.4.3", note = "no longer provided by discord, see #884")]
-    pub region: String,
     pub roles: Vec<Role>,
     pub rules_channel_id: Option<ChannelId>,
     pub splash: Option<String>,
@@ -66,7 +64,6 @@ mod tests {
     #[allow(clippy::too_many_lines)]
     #[test]
     fn test_partial_guild() {
-        #[allow(deprecated)]
         let value = PartialGuild {
             id: GuildId(1),
             afk_channel_id: Some(ChannelId(2)),
@@ -92,7 +89,6 @@ mod tests {
             preferred_locale: "en-us".to_owned(),
             premium_subscription_count: Some(3),
             premium_tier: PremiumTier::Tier1,
-            region: "us-west".to_owned(),
             roles: Vec::new(),
             rules_channel_id: Some(ChannelId(6)),
             splash: Some("splash hash".to_owned()),
@@ -109,7 +105,7 @@ mod tests {
             &[
                 Token::Struct {
                     name: "PartialGuild",
-                    len: 34,
+                    len: 33,
                 },
                 Token::Str("id"),
                 Token::NewtypeStruct { name: "GuildId" },
@@ -180,8 +176,6 @@ mod tests {
                 Token::U64(3),
                 Token::Str("premium_tier"),
                 Token::U8(1),
-                Token::Str("region"),
-                Token::Str("us-west"),
                 Token::Str("roles"),
                 Token::Seq { len: Some(0) },
                 Token::SeqEnd,
