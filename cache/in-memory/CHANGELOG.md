@@ -2,6 +2,67 @@
 
 Changelog for `twilight-cache-inmemory`.
 
+## [0.5.0] - 2021-06-13
+
+### Upgrade Path
+
+`CachedEmoji`, `CachedMember`, and `CachedPresence` have had their `user` fields
+replaced with `user_id`. In order to access `user` data, make a separate call to
+`InMemoryCache::user`.
+
+Remove references to `CachedGuild::{nsfw, region}`.
+
+Update usage of `CachedMember::{deaf, mute}`.
+
+Cache methods now return clones of the cached data. When accessing data, update
+any logic that would require the return type to be an `Arc<T>`.
+
+### Changes
+
+`CachedEmoji::user` has been renamed to `user_id`, and its type has changed from
+`Option<Arc<User>>` to `Option<UserId>` ([#871] - [@vivian]).
+
+`CachedMember::user` has been renamed to `user_id`, and its type has changed
+from `Option<Arc<User>>` to `Option<UserId>` ([#871] - [@vivian]).
+
+`Presence` has been replaced with `CachedPresence`. The new model contains a
+`user_id` field in lieu of `Presence::user` ([#872] - [@vivian]).
+
+`CachedGuild::nsfw` has been removed ([#890] - [@7596ff]).
+
+When caching `MessageCreate` events, each `ResourceType` is checked and cached
+individually ([#921] - [@vilgotf]).
+
+The following methods no longer return an `Arc` of cached data, and instead
+return a clone ([#900] - [@vivian]):
+- `current_user`
+- `emoji`
+- `group`
+- `guild_channel`
+- `guild`
+- `member`
+- `message`
+- `presence`
+- `private_channel`
+- `role`
+- `stage_instance`
+- `user`
+- `voice_channel_states`
+- `voice_state`
+
+References to `Guild::region` have been removed. This includes
+`CachedGuild::region` ([#930] - [@7596ff]).
+
+`CachedMember::{deaf, mute}` have been made `Option`s ([#932]).
+
+[#871]: https://github.com/twilight-rs/twilight/pull/871
+[#872]: https://github.com/twilight-rs/twilight/pull/872
+[#890]: https://github.com/twilight-rs/twilight/pull/890
+[#900]: https://github.com/twilight-rs/twilight/pull/900
+[#921]: https://github.com/twilight-rs/twilight/pull/921
+[#930]: https://github.com/twilight-rs/twilight/pull/930
+[#932]: https://github.com/twilight-rs/twilight/pull/932
+
 ## [0.4.3] - 2021-06-12
 
 ### Additions
@@ -250,6 +311,7 @@ Initial release.
 [@nickelc]: https://github.com/nickelc
 [@sam-kirby]: https://github.com/sam-kirby
 [@tbnritzdoge]: https://github.com/tbnritzdoge
+[@vilgotf]: https://github.com/vilgotf
 [@vivian]: https://github.com/vivian
 
 [#639]: https://github.com/twilight-rs/twilight/pull/639
@@ -265,6 +327,7 @@ Initial release.
 [#528]: https://github.com/twilight-rs/twilight/pull/528
 [#524]: https://github.com/twilight-rs/twilight/pull/524
 
+[0.5.0]: https://github.com/twilight-rs/twilight/releases/tag/cache-in-memory-0.5.0
 [0.4.3]: https://github.com/twilight-rs/twilight/releases/tag/cache-in-memory-0.4.3
 [0.4.2]: https://github.com/twilight-rs/twilight/releases/tag/cache-in-memory-0.4.2
 [0.4.1]: https://github.com/twilight-rs/twilight/releases/tag/cache-in-memory-0.4.1
