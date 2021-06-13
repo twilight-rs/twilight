@@ -1,7 +1,10 @@
 use crate::{
     client::Client,
     error::Error,
-    request::{Pending, Request},
+    request::{
+        application::{InteractionError, InteractionErrorType},
+        validate, Pending, Request,
+    },
     routing::Route,
 };
 use serde::Serialize;
@@ -26,7 +29,7 @@ pub struct UpdateCommandPermissions<'a> {
     command_id: CommandId,
     guild_id: GuildId,
     fields: UpdateCommandPermissionsFields,
-    fut: Option<Pending<'a, ()>>,
+    fut: Option<Pending<'a, Vec<CommandPermissions>>>,
     http: &'a Client,
 }
 
@@ -37,15 +40,21 @@ impl<'a> UpdateCommandPermissions<'a> {
         guild_id: GuildId,
         command_id: CommandId,
         permissions: Vec<CommandPermissions>,
-    ) -> Self {
-        Self {
+    ) -> Result<Self, InteractionError> {
+        if !validate::command_permissions(permissions.len()) {
+            return Err(InteractionError {
+                kind: InteractionErrorType::TooManyCommandPermissions,
+            });
+        }
+
+        Ok(Self {
             application_id,
             command_id,
             guild_id,
             fields: UpdateCommandPermissionsFields { permissions },
             fut: None,
             http,
-        }
+        })
     }
 
     fn start(&mut self) -> Result<(), Error> {
@@ -57,10 +66,10 @@ impl<'a> UpdateCommandPermissions<'a> {
         .json(&self.fields)?;
 
         self.fut
-            .replace(Box::pin(self.http.verify(request.build())));
+            .replace(Box::pin(self.http.request(request.build())));
 
         Ok(())
     }
 }
 
-poll_req!(UpdateCommandPermissions<'_>, ());
+poll_req!(UpdateCommandPermissions<'_>, Vec<CommandPermissions>);

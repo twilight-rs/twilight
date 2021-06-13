@@ -1,6 +1,7 @@
 use serde::Serialize;
 use std::sync::Arc;
 use twilight_model::{
+    application::interaction::application_command::InteractionMember,
     guild::{Member, PartialMember},
     id::{GuildId, RoleId},
     user::User,
@@ -8,10 +9,10 @@ use twilight_model::{
 
 #[derive(Clone, Debug, Eq, PartialEq, Serialize)]
 pub struct CachedMember {
-    pub deaf: bool,
+    pub deaf: Option<bool>,
     pub guild_id: GuildId,
     pub joined_at: Option<String>,
-    pub mute: bool,
+    pub mute: Option<bool>,
     pub nick: Option<String>,
     pub pending: bool,
     pub premium_since: Option<String>,
@@ -30,9 +31,9 @@ impl PartialEq<Member> for CachedMember {
             self.premium_since.as_ref(),
             &self.roles,
         ) == (
-            other.deaf,
+            Some(other.deaf),
             other.joined_at.as_ref(),
-            other.mute,
+            Some(other.mute),
             &other.nick,
             other.pending,
             other.premium_since.as_ref(),
@@ -51,9 +52,25 @@ impl PartialEq<&PartialMember> for CachedMember {
             &self.premium_since,
             &self.roles,
         ) == (
-            other.deaf,
+            Some(other.deaf),
             other.joined_at.as_ref(),
-            other.mute,
+            Some(other.mute),
+            &other.nick,
+            &other.premium_since,
+            &other.roles,
+        )
+    }
+}
+
+impl PartialEq<&InteractionMember> for CachedMember {
+    fn eq(&self, other: &&InteractionMember) -> bool {
+        (
+            self.joined_at.as_ref(),
+            &self.nick,
+            &self.premium_since,
+            &self.roles,
+        ) == (
+            other.joined_at.as_ref(),
             &other.nick,
             &other.premium_since,
             &other.roles,
@@ -73,10 +90,10 @@ mod tests {
 
     fn cached_member() -> CachedMember {
         CachedMember {
-            deaf: false,
+            deaf: Some(false),
             guild_id: GuildId(3),
             joined_at: None,
-            mute: true,
+            mute: Some(true),
             nick: Some("member nick".to_owned()),
             pending: false,
             premium_since: None,

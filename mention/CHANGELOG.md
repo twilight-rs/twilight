@@ -2,6 +2,15 @@
 
 Changelog for `twilight-mention`.
 
+## [0.4.2] - 2021-06-12
+
+### Enhancements
+
+The mention implementation has been made more generic. There are no breaking
+changes ([#883] - [@PyroTechniac]).
+
+[#883]: https://github.com/twilight-rs/twilight/pull/883
+
 ## [0.4.1] - 2021-05-30
 
 ### Enhancements
@@ -71,10 +80,12 @@ crates in the ecosystem receiving a major version bump. There are no changes.
 Initial release.
 
 [@BlackHoleFox]: https://github.com/BlackHoleFox
+[@PyroTechniac]: https://github.com/PyroTechniac
 [@vivian]: https://github.com/vivian
 
 [#513]: https://github.com/twilight-rs/twilight/pull/513
 
+[0.4.2]: https://github.com/twilight-rs/twilight/releases/tag/mention-0.4.2
 [0.4.1]: https://github.com/twilight-rs/twilight/releases/tag/mention-0.4.1
 [0.4.0]: https://github.com/twilight-rs/twilight/releases/tag/mention-0.4.0
 [0.3.0]: https://github.com/twilight-rs/twilight/releases/tag/mention-v0.3.0

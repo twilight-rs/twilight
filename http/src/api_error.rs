@@ -112,6 +112,10 @@ pub enum ErrorCode {
     MaximumAttachmentsReached,
     /// Maximum number of invites reached (1000)
     MaximumInvitesReached,
+    /// Maximum number of animated emojis reached
+    MaximumAnimatedEmojisReached,
+    /// Maximum number of server members reached
+    MaximumGuildMembersReached,
     /// Guild already has a template
     GuildTemplateAlreadyExist,
     /// Maximum number of bans for non-guild members have been exceeded
@@ -273,6 +277,8 @@ impl ErrorCode {
             Self::MaximumGuildChannelsReached => 30013,
             Self::MaximumAttachmentsReached => 30015,
             Self::MaximumInvitesReached => 30016,
+            Self::MaximumAnimatedEmojisReached => 30018,
+            Self::MaximumGuildMembersReached => 30019,
             Self::GuildTemplateAlreadyExist => 30031,
             Self::MaximumNonGuildBansReached => 30035,
             Self::MaximumGuildBansFetchesReached => 30037,
@@ -383,6 +389,8 @@ impl From<u64> for ErrorCode {
             30013 => Self::MaximumGuildChannelsReached,
             30015 => Self::MaximumAttachmentsReached,
             30016 => Self::MaximumInvitesReached,
+            30018 => Self::MaximumAnimatedEmojisReached,
+            30019 => Self::MaximumGuildMembersReached,
             30031 => Self::GuildTemplateAlreadyExist,
             30035 => Self::MaximumNonGuildBansReached,
             30037 => Self::MaximumGuildBansFetchesReached,
@@ -493,6 +501,8 @@ impl Display for ErrorCode {
             Self::MaximumGuildChannelsReached => f.write_str("Maximum number of guild channels reached (500)"),
             Self::MaximumAttachmentsReached => f.write_str("Maximum number of attachments in a message reached (10)"),
             Self::MaximumInvitesReached => f.write_str("Maximum number of invites reached (1000)"),
+            Self::MaximumAnimatedEmojisReached => f.write_str("Maximum animated emojis reached"),
+            Self::MaximumGuildMembersReached => f.write_str("Maximum number of server members reached"),
             Self::GuildTemplateAlreadyExist => f.write_str("Guild already has a template"),
             Self::MaximumNonGuildBansReached => f.write_str("Maximum number of bans for non-guild members have been exceeded"),
             Self::MaximumGuildBansFetchesReached => f.write_str("Maximum number of bans fetches has been reached"),

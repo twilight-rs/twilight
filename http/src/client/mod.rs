@@ -28,7 +28,7 @@ use crate::{
     },
     API_VERSION,
 };
-use bytes::Bytes;
+use hyper::body::Bytes;
 use hyper::{
     body::{self, Buf},
     client::{Client as HyperClient, HttpConnector},
@@ -2100,13 +2100,7 @@ impl Client {
             kind: InteractionErrorType::ApplicationIdNotPresent,
         })?;
 
-        Ok(UpdateCommandPermissions::new(
-            self,
-            application_id,
-            guild_id,
-            command_id,
-            permissions,
-        ))
+        UpdateCommandPermissions::new(self, application_id, guild_id, command_id, permissions)
     }
 
     /// Update command permissions for all commands in a guild.
@@ -2128,12 +2122,7 @@ impl Client {
             kind: InteractionErrorType::ApplicationIdNotPresent,
         })?;
 
-        Ok(SetCommandPermissions::new(
-            self,
-            application_id,
-            guild_id,
-            permissions,
-        ))
+        SetCommandPermissions::new(self, application_id, guild_id, permissions)
     }
 
     /// Execute a request, returning the response.
