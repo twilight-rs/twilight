@@ -2,6 +2,7 @@ use super::{config::ResourceType, InMemoryCache};
 use dashmap::DashMap;
 use std::{borrow::Cow, collections::HashSet, hash::Hash, ops::Deref, sync::Arc};
 use twilight_model::{
+    application::interaction::Interaction,
     channel::{message::MessageReaction, Channel, GuildChannel, ReactionType},
     gateway::{event::Event, payload::*, presence::Presence},
     id::GuildId,
@@ -36,7 +37,10 @@ impl UpdateCache for Event {
             GuildEmojisUpdate(v) => c.update(v),
             GuildIntegrationsUpdate(v) => c.update(v),
             GuildUpdate(v) => c.update(v.deref()),
-            InteractionCreate(_) => {}
+            IntegrationCreate(v) => c.update(v.deref()),
+            IntegrationDelete(v) => c.update(v.deref()),
+            IntegrationUpdate(v) => c.update(v.deref()),
+            InteractionCreate(v) => c.update(v.deref()),
             InviteCreate(_) => {}
             InviteDelete(_) => {}
             MemberAdd(v) => c.update(v.deref()),
@@ -293,6 +297,97 @@ impl UpdateCache for GuildUpdate {
     }
 }
 
+impl UpdateCache for IntegrationCreate {
+    fn update(&self, cache: &InMemoryCache) {
+        if !cache.wants(ResourceType::INTEGRATION) {
+            return;
+        }
+
+        if let Some(guild_id) = self.guild_id {
+            super::upsert_guild_item(
+                &cache.0.integrations,
+                guild_id,
+                (guild_id, self.id),
+                self.0.clone(),
+            );
+        }
+    }
+}
+
+impl UpdateCache for IntegrationDelete {
+    fn update(&self, cache: &InMemoryCache) {
+        if !cache.wants(ResourceType::INTEGRATION) {
+            return;
+        }
+
+        cache.delete_integration(self.guild_id, self.id);
+    }
+}
+
+impl UpdateCache for IntegrationUpdate {
+    fn update(&self, cache: &InMemoryCache) {
+        if !cache.wants(ResourceType::INTEGRATION) {
+            return;
+        }
+
+        if let Some(guild_id) = self.guild_id {
+            cache.cache_integration(guild_id, self.0.clone());
+        }
+    }
+}
+
+impl UpdateCache for InteractionCreate {
+    fn update(&self, cache: &InMemoryCache) {
+        #[allow(clippy::single_match)]
+        match &self.0 {
+            Interaction::ApplicationCommand(command) => {
+                if cache.wants(ResourceType::MEMBER) {
+                    if let Some(member) = &command.member {
+                        if let Some(user) = &member.user {
+                            let user = cache.cache_user(Cow::Borrowed(user), command.guild_id);
+
+                            cache.cache_borrowed_partial_member(
+                                command.guild_id.unwrap(),
+                                &member,
+                                user,
+                            );
+                        }
+                    }
+                }
+
+                if let Some(user) = &command.user {
+                    cache.cache_user(Cow::Borrowed(user), None);
+                }
+
+                if let Some(resolved) = &command.data.resolved {
+                    for u in &resolved.users {
+                        let user = cache.cache_user(Cow::Borrowed(u), command.guild_id);
+
+                        if !cache.wants(ResourceType::MEMBER) || command.guild_id.is_none() {
+                            continue;
+                        }
+
+                        // This should always match, because resolved members
+                        // are guaranteed to have a matching resolved user
+                        if let Some(member) = &resolved.members.iter().find(|m| m.id == user.id) {
+                            if let Some(guild_id) = command.guild_id {
+                                cache.cache_borrowed_interaction_member(guild_id, &member, user);
+                            }
+                        }
+                    }
+
+                    if cache.wants(ResourceType::ROLE) {
+                        if let Some(guild_id) = command.guild_id {
+                            cache.cache_roles(guild_id, resolved.roles.iter().cloned());
+                        }
+                    }
+                }
+            }
+            _ => {}
+        };
+    }
+}
+
 impl UpdateCache for MemberAdd {
     fn update(&self, cache: &InMemoryCache) {
         if !cache.wants(ResourceType::MEMBER) {
@@ -369,8 +464,8 @@ impl UpdateCache for MemberUpdate {
         };
         let mut member = Arc::make_mut(&mut member);
 
-        member.deaf = self.deaf.unwrap_or(member.deaf);
-        member.mute = self.mute.unwrap_or(member.mute);
+        member.deaf = self.deaf.or(member.deaf);
+        member.mute = self.mute.or(member.mute);
         member.nick = self.nick.clone();
         member.roles = self.roles.clone();
         member.joined_at.replace(self.joined_at.clone());
@@ -748,6 +843,10 @@ mod tests {
     use super::*;
     use crate::config::ResourceType;
     use twilight_model::{
+        application::interaction::{
+            application_command::{CommandData, CommandInteractionDataResolved, InteractionMember},
+            ApplicationCommand, InteractionType,
+        },
         channel::{
             message::{MessageFlags, MessageType},
             ChannelType, GuildChannel, Message, Reaction, TextChannel,
@@ -755,10 +854,12 @@ mod tests {
         gateway::payload::{reaction_remove_emoji::PartialEmoji, ChannelDelete},
         guild::{
             DefaultMessageNotificationLevel, ExplicitContentFilter, Guild, Member, MfaLevel,
-            NSFWLevel, PartialGuild, PartialMember, PremiumTier, SystemChannelFlags,
-            VerificationLevel,
+            NSFWLevel, PartialGuild, PartialMember, Permissions, PremiumTier, Role,
+            SystemChannelFlags, VerificationLevel,
         },
-        id::{ChannelId, GuildId, MessageId, UserId},
+        id::{
+            ApplicationId, ChannelId, CommandId, GuildId, InteractionId, MessageId, RoleId, UserId,
+        },
         user::User,
         voice::VoiceState,
     };
@@ -1311,5 +1412,107 @@ mod tests {
         let msg = cache.message(ChannelId(2), MessageId(4)).unwrap();
 
         assert_eq!(msg.reactions.len(), 0);
+    }
+
+    #[test]
+    fn test_interaction_create() {
+        let cache = InMemoryCache::new();
+        cache.update(&InteractionCreate(Interaction::ApplicationCommand(
+            Box::new(ApplicationCommand {
+                application_id: ApplicationId(1),
+                channel_id: ChannelId(2),
+                data: CommandData {
+                    id: CommandId(5),
+                    name: "command name".into(),
+                    options: Vec::new(),
+                    resolved: Some(CommandInteractionDataResolved {
+                        channels: Vec::new(),
+                        members: vec![InteractionMember {
+                            hoisted_role: None,
+                            id: UserId(7),
+                            joined_at: Some("joined at date".into()),
+                            nick: None,
+                            premium_since: None,
+                            roles: vec![RoleId(8)],
+                        }],
+                        roles: vec![Role {
+                            color: 0u32,
+                            hoist: false,
+                            id: RoleId(8),
+                            managed: false,
+                            mentionable: true,
+                            name: "role name".into(),
+                            permissions: Permissions::empty(),
+                            position: 2i64,
+                            tags: None,
+                        }],
+                        users: vec![User {
+                            avatar: Some("different avatar".into()),
+                            bot: false,
+                            discriminator: "5678".into(),
+                            email: None,
+                            flags: None,
+                            id: UserId(7),
+                            locale: None,
+                            mfa_enabled: None,
+                            name: "different name".into(),
+                            premium_type: None,
+                            public_flags: None,
+                            system: None,
+                            verified: None,
+                        }],
+                    }),
+                },
+                guild_id: Some(GuildId(3)),
+                id: InteractionId(4),
+                kind: InteractionType::ApplicationCommand,
+                member: Some(PartialMember {
+                    deaf: false,
+                    joined_at: Some("joined at".into()),
+                    mute: false,
+                    nick: None,
+                    permissions: Some(Permissions::empty()),
+                    premium_since: None,
+                    roles: Vec::new(),
+                    user: Some(User {
+                        avatar: Some("avatar string".into()),
+                        bot: false,
+                        discriminator: "1234".into(),
+                        email: None,
+                        flags: None,
+                        id: UserId(6),
+                        locale: None,
+                        mfa_enabled: None,
+                        name: "username".into(),
+                        premium_type: None,
+                        public_flags: None,
+                        system: None,
+                        verified: None,
+                    }),
+                }),
+                token: "token".into(),
+                user: None,
+            }),
+        )));
+
+        {
+            let guild_members = cache.guild_members(GuildId(3)).unwrap();
+            assert_eq!(guild_members.len(), 2);
+        }
+
+        {
+            let member = cache.member(GuildId(3), UserId(6)).unwrap();
+            assert_eq!(member.user.avatar.clone().unwrap(), "avatar string");
+        }
+
+        {
+            let member = cache.member(GuildId(3), UserId(7)).unwrap();
+            assert_eq!(member.user.avatar.clone().unwrap(), "different avatar");
+        }
+
+        {
+            let guild_roles = cache.guild_roles(GuildId(3)).unwrap();
+            assert_eq!(guild_roles.len(), 1);
+        }
     }
 }

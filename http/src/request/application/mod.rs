@@ -69,6 +69,8 @@ pub enum InteractionErrorType {
     CommandDescriptionValidationFailed { description: String },
     /// Required command options have to be passed before optional ones.
     CommandOptionsRequiredFirst { option: CommandOption },
+    /// More than 10 permission overwrites were set.
+    TooManyCommandPermissions,
 }
 
 impl InteractionError {
@@ -106,6 +108,9 @@ impl Display for InteractionError {
             }
             InteractionErrorType::CommandOptionsRequiredFirst { .. } => {
                 f.write_str("optional command options must be added after required")
+            }
+            InteractionErrorType::TooManyCommandPermissions { .. } => {
+                f.write_str("more than 10 permission overwrites were set")
             }
         }
     }

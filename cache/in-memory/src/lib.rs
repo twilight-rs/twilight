@@ -78,10 +78,11 @@ use std::{
     sync::{Arc, Mutex},
 };
 use twilight_model::{
+    application::interaction::application_command::InteractionMember,
     channel::{Group, GuildChannel, PrivateChannel, StageInstance},
     gateway::presence::{Presence, UserOrId},
-    guild::{Emoji, Guild, Member, PartialMember, Role},
-    id::{ChannelId, EmojiId, GuildId, MessageId, RoleId, StageId, UserId},
+    guild::{Emoji, Guild, GuildIntegration, Member, PartialMember, Role},
+    id::{ChannelId, EmojiId, GuildId, IntegrationId, MessageId, RoleId, StageId, UserId},
     user::{CurrentUser, User},
     voice::VoiceState,
 };
@@ -151,10 +152,12 @@ struct InMemoryCacheRef {
     guilds: DashMap<GuildId, Arc<CachedGuild>>,
     guild_channels: DashMap<GuildId, HashSet<ChannelId>>,
     guild_emojis: DashMap<GuildId, HashSet<EmojiId>>,
+    guild_integrations: DashMap<GuildId, HashSet<IntegrationId>>,
     guild_members: DashMap<GuildId, HashSet<UserId>>,
     guild_presences: DashMap<GuildId, HashSet<UserId>>,
     guild_roles: DashMap<GuildId, HashSet<RoleId>>,
     guild_stage_instances: DashMap<GuildId, HashSet<StageId>>,
+    integrations: DashMap<(GuildId, IntegrationId), GuildItem<GuildIntegration>>,
     members: DashMap<(GuildId, UserId), Arc<CachedMember>>,
     messages: DashMap<ChannelId, VecDeque<Arc<CachedMessage>>>,
     presences: DashMap<(GuildId, UserId), Arc<CachedPresence>>,
@@ -537,10 +540,12 @@ impl InMemoryCache {
         self.0.guilds.clear();
         self.0.guild_channels.clear();
         self.0.guild_emojis.clear();
+        self.0.guild_integrations.clear();
         self.0.guild_members.clear();
         self.0.guild_presences.clear();
         self.0.guild_roles.clear();
         self.0.guild_stage_instances.clear();
+        self.0.integrations.clear();
         self.0.members.clear();
         self.0.messages.clear();
         self.0.presences.clear();
@@ -756,6 +761,21 @@ impl InMemoryCache {
         self.0.guilds.insert(guild.id, Arc::new(guild));
     }
 
+    fn cache_integration(&self, guild_id: GuildId, integration: GuildIntegration) {
+        self.0
+            .guild_integrations
+            .entry(guild_id)
+            .or_default()
+            .insert(integration.id);
+
+        upsert_guild_item(
+            &self.0.integrations,
+            guild_id,
+            (guild_id, integration.id),
+            integration,
+        );
+    }
+
     fn cache_member(&self, guild_id: GuildId, member: Member) -> Arc<CachedMember> {
         let member_id = member.user.id;
         let id = (guild_id, member_id);
@@ -766,10 +786,10 @@ impl InMemoryCache {
 
         let user = self.cache_user(Cow::Owned(member.user), Some(guild_id));
         let cached = Arc::new(CachedMember {
-            deaf: member.deaf,
+            deaf: Some(member.deaf),
             guild_id,
             joined_at: member.joined_at,
-            mute: member.mute,
+            mute: Some(member.mute),
             nick: member.nick,
             pending: member.pending,
             premium_since: member.premium_since,
@@ -804,16 +824,53 @@ impl InMemoryCache {
             .insert(user.id);
 
         let cached = Arc::new(CachedMember {
-            deaf: member.deaf,
+            deaf: Some(member.deaf),
             guild_id,
             joined_at: member.joined_at.to_owned(),
-            mute: member.mute,
+            mute: Some(member.mute),
             nick: member.nick.to_owned(),
             pending: false,
             premium_since: None,
             roles: member.roles.to_owned(),
             user,
         });
+        self.0.members.insert(id, Arc::clone(&cached));
+
+        cached
+    }
+
+    fn cache_borrowed_interaction_member(
+        &self,
+        guild_id: GuildId,
+        member: &InteractionMember,
+        user: Arc<User>,
+    ) -> Arc<CachedMember> {
+        let id = (guild_id, member.id);
+
+        let (deaf, mute) = match self.0.members.get(&id) {
+            Some(m) if **m == member => return Arc::clone(&m),
+            Some(m) => (m.deaf, m.mute),
+            None => (None, None),
+        };
+
+        self.0
+            .guild_members
+            .entry(guild_id)
+            .or_default()
+            .insert(member.id);
+
+        let cached = Arc::new(CachedMember {
+            deaf,
+            guild_id,
+            joined_at: member.joined_at.to_owned(),
+            mute,
+            nick: member.nick.to_owned(),
+            pending: false,
+            premium_since: member.premium_since.to_owned(),
+            roles: member.roles.to_owned(),
+            user,
+        });
+
         self.0.members.insert(id, Arc::clone(&cached));
 
         cached
@@ -887,11 +944,7 @@ impl InMemoryCache {
         }
     }
 
-    fn cache_stage_instance(
-        &self,
-        guild_id: GuildId,
-        stage_instance: StageInstance,
-    ) -> Arc<StageInstance> {
+    fn cache_stage_instance(&self, guild_id: GuildId, stage_instance: StageInstance) {
         self.0
             .guild_stage_instances
             .entry(guild_id)
@@ -903,7 +956,7 @@ impl InMemoryCache {
             guild_id,
             stage_instance.id,
             stage_instance,
-        )
+        );
     }
 
     fn cache_user(&self, user: Cow<'_, User>, guild_id: Option<GuildId>) -> Arc<User> {
@@ -1032,6 +1085,19 @@ impl InMemoryCache {
         }
 
         Some(data)
+    }
+
+    fn delete_integration(&self, guild_id: GuildId, integration_id: IntegrationId) {
+        if self
+            .0
+            .integrations
+            .remove(&(guild_id, integration_id))
+            .is_some()
+        {
+            if let Some(mut integrations) = self.0.guild_integrations.get_mut(&guild_id) {
+                integrations.remove(&integration_id);
+            }
+        }
     }
 
     fn delete_role(&self, role_id: RoleId) -> Option<Arc<Role>> {
