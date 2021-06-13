@@ -2,6 +2,12 @@
 
 Changelog for `twilight-embed-builder`.
 
+## [0.5.0] - 2021-06-13
+
+This major version bump of the Embed Builder crate is done to match all of the
+other crates in the ecosystem receiving a major version bump. There are no
+changes.
+
 ## [0.4.1] - 2021-05-30
 
 ### Enhancements
@@ -90,6 +96,7 @@ crates in the ecosystem receiving a major version bump. There are no changes.
 
 Initial release.
 
+[0.5.0]: https://github.com/twilight-rs/twilight/releases/tag/embed-builder-0.5.0
 [0.4.1]: https://github.com/twilight-rs/twilight/releases/tag/embed-builder-0.4.1
 [0.4.0]: https://github.com/twilight-rs/twilight/releases/tag/embed-builder-0.4.0
 [0.3.0]: https://github.com/twilight-rs/twilight/releases/tag/v0.3.0
