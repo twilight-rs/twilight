@@ -3,16 +3,12 @@ use hyper::{Body, Response, StatusCode};
 use std::{
     error::Error as StdError,
     fmt::{Display, Formatter, Result as FmtResult},
-    result::Result as StdResult,
 };
 
 #[cfg(not(feature = "simd-json"))]
 use serde_json::Error as JsonError;
 #[cfg(feature = "simd-json")]
 use simd_json::Error as JsonError;
-
-#[deprecated(since = "0.4.3")]
-pub type Result<T, E = Error> = StdResult<T, E>;
 
 #[derive(Debug)]
 pub struct Error {
