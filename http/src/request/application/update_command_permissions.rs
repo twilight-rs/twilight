@@ -29,7 +29,7 @@ pub struct UpdateCommandPermissions<'a> {
     command_id: CommandId,
     guild_id: GuildId,
     fields: UpdateCommandPermissionsFields,
-    fut: Option<Pending<'a, ()>>,
+    fut: Option<Pending<'a, Vec<CommandPermissions>>>,
     http: &'a Client,
 }
 
@@ -66,10 +66,10 @@ impl<'a> UpdateCommandPermissions<'a> {
         .json(&self.fields)?;
 
         self.fut
-            .replace(Box::pin(self.http.verify(request.build())));
+            .replace(Box::pin(self.http.request(request.build())));
 
         Ok(())
     }
 }
 
-poll_req!(UpdateCommandPermissions<'_>, ());
+poll_req!(UpdateCommandPermissions<'_>, Vec<CommandPermissions>);
