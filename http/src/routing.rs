@@ -428,12 +428,7 @@ pub enum Route {
         guild_id: u64,
     },
     /// Route information to create a stage instance.
-    CreateStageInstance {
-        /// ID of the channel.
-        channel_id: u64,
-        /// Topic of the stage instance.
-        topic: String,
-    },
+    CreateStageInstance,
     /// Route information to create a guild template.
     CreateTemplate {
         /// The ID of the guild.
