@@ -4,7 +4,7 @@ use crate::InMemoryCache;
 use twilight_model::{
     channel::{
         message::{Message, MessageFlags, MessageType},
-        Reaction, ReactionType,
+        ChannelType, GuildChannel, Reaction, ReactionType, TextChannel,
     },
     gateway::payload::{MessageCreate, ReactionAdd},
     guild::{Emoji, Member, PartialMember, Permissions, Role},
@@ -176,6 +176,27 @@ pub fn emoji(id: EmojiId, user: Option<User>) -> Emoji {
         roles: Vec::new(),
         user,
     }
+}
+
+pub fn guild_channel_text() -> (GuildId, ChannelId, GuildChannel) {
+    let guild_id = GuildId(1);
+    let channel_id = ChannelId(2);
+    let channel = GuildChannel::Text(TextChannel {
+        guild_id: Some(guild_id),
+        id: channel_id,
+        kind: ChannelType::GuildText,
+        last_message_id: None,
+        last_pin_timestamp: None,
+        name: "test".to_owned(),
+        nsfw: false,
+        parent_id: None,
+        permission_overwrites: Vec::new(),
+        position: 3,
+        rate_limit_per_user: None,
+        topic: None,
+    });
+
+    (guild_id, channel_id, channel)
 }
 
 pub fn member(id: UserId, guild_id: GuildId) -> Member {
