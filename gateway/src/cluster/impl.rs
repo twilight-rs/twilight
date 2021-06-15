@@ -288,13 +288,25 @@ impl Cluster {
     pub async fn new(
         token: impl Into<String>,
         intents: Intents,
-    ) -> Result<(Self, impl Stream<Item = (u64, Event)> + Unpin + Sync + 'static), ClusterStartError> {
+    ) -> Result<
+        (
+            Self,
+            impl Stream<Item = (u64, Event)> + Unpin + Sync + 'static,
+        ),
+        ClusterStartError,
+    > {
         Self::builder(token, intents).build().await
     }
 
     pub(super) async fn new_with_config(
         mut config: Config,
-    ) -> Result<(Self, impl Stream<Item = (u64, Event)> + Unpin + Sync + 'static), ClusterStartError> {
+    ) -> Result<
+        (
+            Self,
+            impl Stream<Item = (u64, Event)> + Unpin + Sync + 'static,
+        ),
+        ClusterStartError,
+    > {
         #[derive(Default)]
         struct ShardFold {
             shards: HashMap<u64, Shard>,
