@@ -14,7 +14,8 @@
 //! name:
 //!
 //! ```no_run
-//! # #[tokio::main] async fn main() -> Result<(), Box<dyn std::error::Error>> {
+//! # #[tokio::main]
+//! # async fn main() -> Result<(), Box<dyn std::error::Error>> {
 //! # let user_id = twilight_model::id::UserId(1);
 //! use std::env;
 //! use twilight_http::Client;
@@ -40,7 +41,8 @@
 //! [`Response::iter`][`iter`], printing their name:
 //!
 //! ```no_run
-//! # #[tokio::main] async fn main() -> Result<(), Box<dyn std::error::Error>> {
+//! # #[tokio::main]
+//! # async fn main() -> Result<(), Box<dyn std::error::Error>> {
 //! # let guild_id = twilight_model::id::GuildId(1);
 //! use std::env;
 //! use twilight_http::Client;
@@ -176,7 +178,8 @@ pub enum DeserializeBodyErrorType {
 /// # Examples
 ///
 /// ```no_run
-/// # #[tokio::main] async fn main() -> Result<(), Box<dyn std::error::Error>> {
+/// # #[tokio::main]
+/// # async fn main() -> Result<(), Box<dyn std::error::Error>> {
 /// # let user_id = twilight_model::id::UserId(1);
 /// use std::env;
 /// use twilight_http::Client;
@@ -229,7 +232,8 @@ impl<T> Response<T> {
     /// Count the number of bytes in a response body:
     ///
     /// ```no_run
-    /// # #[tokio::main] async fn main() -> Result<(), Box<dyn std::error::Error>> {
+    /// # #[tokio::main]
+    /// # async fn main() -> Result<(), Box<dyn std::error::Error>> {
     /// # let user_id = twilight_model::id::UserId(1);
     /// use std::env;
     /// use twilight_http::Client;
@@ -280,7 +284,8 @@ impl<T> Response<T> {
     /// Print the textual response from getting the current user:
     ///
     /// ```no_run
-    /// # #[tokio::main] async fn main() -> Result<(), Box<dyn std::error::Error>> {
+    /// # #[tokio::main]
+    /// # async fn main() -> Result<(), Box<dyn std::error::Error>> {
     /// use std::env;
     /// use twilight_http::Client;
     ///
@@ -370,7 +375,8 @@ impl<T: DeserializeOwned> Response<ListBody<T>> {
     /// Get the pins of a channel and lazily iterate over the messages:
     ///
     /// ```no_run
-    /// # #[tokio::main] async fn main() -> Result<(), Box<dyn std::error::Error>> {
+    /// # #[tokio::main]
+    /// # async fn main() -> Result<(), Box<dyn std::error::Error>> {
     /// # let channel_id = twilight_model::id::ChannelId(1);
     /// use std::env;
     /// use twilight_http::Client;
@@ -452,7 +458,8 @@ impl Response<MemberListBody> {
     /// Search up to 500 members of a guild that start with the name "te":
     ///
     /// ```no_run
-    /// # #[tokio::main] async fn main() -> Result<(), Box<dyn std::error::Error>> {
+    /// # #[tokio::main]
+    /// # async fn main() -> Result<(), Box<dyn std::error::Error>> {
     /// # let guild_id = twilight_model::id::GuildId(1);
     /// use std::env;
     /// use twilight_http::Client;
@@ -502,7 +509,8 @@ impl Response<MemberListBody> {
 /// creating a message:
 ///
 /// ```no_run
-/// # #[tokio::main] async fn main() -> Result<(), Box<dyn std::error::Error>> {
+/// # #[tokio::main]
+/// # async fn main() -> Result<(), Box<dyn std::error::Error>> {
 /// # let channel_id = twilight_model::id::ChannelId(1);
 /// use std::env;
 /// use twilight_http::Client;
@@ -551,7 +559,8 @@ impl<'a> Iterator for HeaderIter<'a> {
 /// Print the bytes of the body of the response from creating a message:
 ///
 /// ```no_run
-/// # #[tokio::main] async fn main() -> Result<(), Box<dyn std::error::Error>> {
+/// # #[tokio::main]
+/// # async fn main() -> Result<(), Box<dyn std::error::Error>> {
 /// # let channel_id = twilight_model::id::ChannelId(1);
 /// # let message_id = twilight_model::id::MessageId(2);
 /// use std::env;
@@ -600,7 +609,8 @@ impl Future for BytesFuture {
 /// Get an emoji by its ID and print its name:
 ///
 /// ```no_run
-/// # #[tokio::main] async fn main() -> Result<(), Box<dyn std::error::Error>> {
+/// # #[tokio::main]
+/// # async fn main() -> Result<(), Box<dyn std::error::Error>> {
 /// # let guild_id = twilight_model::id::GuildId(1);
 /// # let emoji_id = twilight_model::id::EmojiId(2);
 /// use std::env;
@@ -661,7 +671,8 @@ impl<T: DeserializeOwned + Unpin> Future for ModelFuture<T> {
 /// Iterate over the emojis in a guild and print the name of each:
 ///
 /// ```no_run
-/// # #[tokio::main] async fn main() -> Result<(), Box<dyn std::error::Error>> {
+/// # #[tokio::main]
+/// # async fn main() -> Result<(), Box<dyn std::error::Error>> {
 /// # let guild_id = twilight_model::id::GuildId(1);
 /// use std::env;
 /// use twilight_http::Client;
@@ -716,7 +727,8 @@ impl<T: DeserializeOwned + Unpin> Future for ModelIterFuture<T> {
 /// Iterate over the first 500 members in a guild and print the nickname of each:
 ///
 /// ```no_run
-/// # #[tokio::main] async fn main() -> Result<(), Box<dyn std::error::Error>> {
+/// # #[tokio::main]
+/// # async fn main() -> Result<(), Box<dyn std::error::Error>> {
 /// # let guild_id = twilight_model::id::GuildId(1);
 /// use std::env;
 /// use twilight_http::Client;
@@ -777,7 +789,8 @@ impl Future for MemberIterFuture {
 /// Get a member by guild and user ID and print whether the user is deafened:
 ///
 /// ```no_run
-/// # #[tokio::main] async fn main() -> Result<(), Box<dyn std::error::Error>> {
+/// # #[tokio::main]
+/// # async fn main() -> Result<(), Box<dyn std::error::Error>> {
 /// # let guild_id = twilight_model::id::GuildId(1);
 /// # let user_id = twilight_model::id::UserId(2);
 /// use std::env;
@@ -849,7 +862,8 @@ impl Future for MemberFuture {
 /// Get the first 100 members of a guild and print their names:
 ///
 /// ```no_run
-/// # #[tokio::main] async fn main() -> Result<(), Box<dyn std::error::Error>> {
+/// # #[tokio::main]
+/// # async fn main() -> Result<(), Box<dyn std::error::Error>> {
 /// # let guild_id = twilight_model::id::GuildId(1);
 /// use std::env;
 /// use twilight_http::Client;
@@ -926,7 +940,8 @@ impl Future for MemberListFuture {
 /// Print the textual body of the response from creating a message:
 ///
 /// ```no_run
-/// # #[tokio::main] async fn main() -> Result<(), Box<dyn std::error::Error>> {
+/// # #[tokio::main]
+/// # async fn main() -> Result<(), Box<dyn std::error::Error>> {
 /// # let channel_id = twilight_model::id::ChannelId(1);
 /// # let message_id = twilight_model::id::MessageId(2);
 /// use std::env;

@@ -46,7 +46,8 @@ use twilight_model::{
 /// Iterate over the bans of a guild:
 ///
 /// ```no_run
-/// # #[tokio::main] async fn main() -> Result<(), Box<dyn std::error::Error>> {
+/// # #[tokio::main]
+/// # async fn main() -> Result<(), Box<dyn std::error::Error>> {
 /// # let guild_id = twilight_model::id::GuildId(1);
 /// use std::env;
 /// use twilight_http::Client;
@@ -121,11 +122,11 @@ impl<T: DeserializeOwned> Iterator for ModelIter<T> {
     /// Deserialize the next entry in the iterator.
     ///
     /// Every iteration returns a result for that individual entry in the
-    /// response body. If a response has many entries and an entry fails to
+    /// response body. If a response has many entries and one of them fails to
     /// deserialize in the middle of the iterator then succeeding entries are
     /// unaffected by a failure and can still successfully deserialize.
     ///
-    /// # Examples
+    /// # Errors
     ///
     /// Returns a [`DeserializeBodyErrorType::Deserializing`] error type if the
     /// entry could not be deserialized into something.
@@ -183,7 +184,7 @@ impl Iterator for MemberIter {
     /// deserialize in the middle of the iterator then succeeding members are
     /// unaffected by a failure and can still successfully deserialize.
     ///
-    /// # Examples
+    /// # Errors
     ///
     /// Returns a [`DeserializeBodyErrorType::Deserializing`] error type if the
     /// member could not be deserialized.
