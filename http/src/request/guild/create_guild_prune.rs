@@ -80,7 +80,7 @@ struct CreateGuildPruneFields {
 pub struct CreateGuildPrune<'a> {
     fields: CreateGuildPruneFields,
     guild_id: GuildId,
-    fut: Option<PendingResponse<'a, Option<GuildPrune>>>,
+    fut: Option<PendingResponse<'a, GuildPrune>>,
     http: &'a Client,
     reason: Option<String>,
 }
@@ -160,4 +160,4 @@ impl<'a> AuditLogReason for CreateGuildPrune<'a> {
     }
 }
 
-poll_req!(CreateGuildPrune<'_>, Option<GuildPrune>);
+poll_req!(CreateGuildPrune<'_>, GuildPrune);

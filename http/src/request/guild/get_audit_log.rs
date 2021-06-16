@@ -90,7 +90,7 @@ struct GetAuditLogFields {
 /// ```
 pub struct GetAuditLog<'a> {
     fields: GetAuditLogFields,
-    fut: Option<PendingResponse<'a, Option<AuditLog>>>,
+    fut: Option<PendingResponse<'a, AuditLog>>,
     guild_id: GuildId,
     http: &'a Client,
 }
@@ -163,4 +163,4 @@ impl<'a> GetAuditLog<'a> {
     }
 }
 
-poll_req!(GetAuditLog<'_>, Option<AuditLog>);
+poll_req!(GetAuditLog<'_>, AuditLog);
