@@ -1,5 +1,3 @@
-#![allow(dead_code)]
-
 use crate::InMemoryCache;
 use twilight_model::{
     channel::{
