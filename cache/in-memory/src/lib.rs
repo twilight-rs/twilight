@@ -59,6 +59,8 @@ mod builder;
 mod config;
 mod event;
 mod stats;
+
+#[cfg(test)]
 mod test;
 
 pub use self::{
