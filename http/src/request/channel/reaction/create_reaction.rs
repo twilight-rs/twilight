@@ -2,7 +2,8 @@ use super::RequestReactionType;
 use crate::{
     client::Client,
     error::Error,
-    request::{Pending, Request},
+    request::{PendingResponse, Request},
+    response::marker::EmptyBody,
     routing::Route,
 };
 use twilight_model::id::{ChannelId, MessageId};
@@ -34,7 +35,7 @@ use twilight_model::id::{ChannelId, MessageId};
 pub struct CreateReaction<'a> {
     channel_id: ChannelId,
     emoji: RequestReactionType,
-    fut: Option<Pending<'a, ()>>,
+    fut: Option<PendingResponse<'a, EmptyBody>>,
     http: &'a Client,
     message_id: MessageId,
 }
@@ -66,13 +67,13 @@ impl<'a> CreateReaction<'a> {
     fn start(&mut self) -> Result<(), Error> {
         let request = self.request();
 
-        self.fut.replace(Box::pin(self.http.verify(request)));
+        self.fut.replace(Box::pin(self.http.request(request)));
 
         Ok(())
     }
 }
 
-poll_req!(CreateReaction<'_>, ());
+poll_req!(CreateReaction<'_>, EmptyBody);
 
 #[cfg(test)]
 mod tests {

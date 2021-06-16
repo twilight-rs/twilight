@@ -1,7 +1,8 @@
 use crate::{
     client::Client,
     error::Error,
-    request::{Pending, Request},
+    request::{PendingResponse, Request},
+    response::marker::ListBody,
     routing::Route,
 };
 use twilight_model::{channel::Message, id::ChannelId};
@@ -9,7 +10,7 @@ use twilight_model::{channel::Message, id::ChannelId};
 /// Get the pins of a channel.
 pub struct GetPins<'a> {
     channel_id: ChannelId,
-    fut: Option<Pending<'a, Vec<Message>>>,
+    fut: Option<PendingResponse<'a, ListBody<Message>>>,
     http: &'a Client,
 }
 
@@ -33,4 +34,4 @@ impl<'a> GetPins<'a> {
     }
 }
 
-poll_req!(GetPins<'_>, Vec<Message>);
+poll_req!(GetPins<'_>, ListBody<Message>);

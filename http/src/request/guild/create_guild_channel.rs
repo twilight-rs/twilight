@@ -1,7 +1,7 @@
 use crate::{
     client::Client,
     error::Error as HttpError,
-    request::{self, validate, AuditLogReason, AuditLogReasonError, Pending, Request},
+    request::{self, validate, AuditLogReason, AuditLogReasonError, PendingResponse, Request},
     routing::Route,
 };
 use serde::Serialize;
@@ -113,7 +113,7 @@ struct CreateGuildChannelFields {
 /// and the maximum is 100 UTF-16 characters.
 pub struct CreateGuildChannel<'a> {
     fields: CreateGuildChannelFields,
-    fut: Option<Pending<'a, GuildChannel>>,
+    fut: Option<PendingResponse<'a, GuildChannel>>,
     guild_id: GuildId,
     http: &'a Client,
     reason: Option<String>,

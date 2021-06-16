@@ -1,7 +1,8 @@
 use crate::{
     client::Client,
     error::Error,
-    request::{Pending, Request},
+    request::{PendingResponse, Request},
+    response::marker::ListBody,
     routing::Route,
 };
 use twilight_model::{
@@ -13,7 +14,7 @@ use twilight_model::{
 pub struct GetGuildCommandPermissions<'a> {
     application_id: ApplicationId,
     guild_id: GuildId,
-    fut: Option<Pending<'a, Vec<GuildCommandPermissions>>>,
+    fut: Option<PendingResponse<'a, ListBody<GuildCommandPermissions>>>,
     http: &'a Client,
 }
 
@@ -39,4 +40,7 @@ impl<'a> GetGuildCommandPermissions<'a> {
     }
 }
 
-poll_req!(GetGuildCommandPermissions<'_>, Vec<GuildCommandPermissions>);
+poll_req!(
+    GetGuildCommandPermissions<'_>,
+    ListBody<GuildCommandPermissions>
+);

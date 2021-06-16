@@ -1,7 +1,7 @@
 use crate::{
     client::Client,
     error::Error,
-    request::{self, AuditLogReason, AuditLogReasonError, Pending, Request},
+    request::{self, AuditLogReason, AuditLogReasonError, PendingResponse, Request},
     routing::Route,
 };
 use serde::Serialize;
@@ -26,7 +26,7 @@ struct CreateEmojiFields {
 ///
 /// [the discord docs]: https://discord.com/developers/docs/reference#image-data
 pub struct CreateEmoji<'a> {
-    fut: Option<Pending<'a, Emoji>>,
+    fut: Option<PendingResponse<'a, Emoji>>,
     fields: CreateEmojiFields,
     guild_id: GuildId,
     http: &'a Client,

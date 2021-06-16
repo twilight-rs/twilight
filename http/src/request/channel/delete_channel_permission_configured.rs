@@ -1,7 +1,8 @@
 use crate::{
     client::Client,
     error::Error,
-    request::{self, AuditLogReason, AuditLogReasonError, Pending, Request},
+    request::{self, AuditLogReason, AuditLogReasonError, PendingResponse, Request},
+    response::marker::EmptyBody,
     routing::Route,
 };
 use twilight_model::id::ChannelId;
@@ -11,7 +12,7 @@ use twilight_model::id::ChannelId;
 /// The `target_id` is a `u64`, but it should point to a `RoleId` or a `UserId`.
 pub struct DeleteChannelPermissionConfigured<'a> {
     channel_id: ChannelId,
-    fut: Option<Pending<'a, ()>>,
+    fut: Option<PendingResponse<'a, EmptyBody>>,
     http: &'a Client,
     reason: Option<String>,
     target_id: u64,
@@ -39,7 +40,7 @@ impl<'a> DeleteChannelPermissionConfigured<'a> {
         }
 
         self.fut
-            .replace(Box::pin(self.http.verify(request.build())));
+            .replace(Box::pin(self.http.request(request.build())));
 
         Ok(())
     }
@@ -54,4 +55,4 @@ impl<'a> AuditLogReason for DeleteChannelPermissionConfigured<'a> {
     }
 }
 
-poll_req!(DeleteChannelPermissionConfigured<'_>, ());
+poll_req!(DeleteChannelPermissionConfigured<'_>, EmptyBody);

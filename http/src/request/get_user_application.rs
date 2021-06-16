@@ -1,13 +1,13 @@
 use crate::{
     client::Client,
     error::Error,
-    request::{Pending, Request},
+    request::{PendingResponse, Request},
     routing::Route,
 };
 use twilight_model::oauth::CurrentApplicationInfo;
 
 pub struct GetUserApplicationInfo<'a> {
-    fut: Option<Pending<'a, CurrentApplicationInfo>>,
+    fut: Option<PendingResponse<'a, CurrentApplicationInfo>>,
     http: &'a Client,
 }
 

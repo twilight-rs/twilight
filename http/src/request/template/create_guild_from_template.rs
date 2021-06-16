@@ -1,7 +1,7 @@
 use crate::{
     client::Client,
     error::Error as HttpError,
-    request::{validate, Pending, Request},
+    request::{validate, PendingResponse, Request},
     routing::Route,
 };
 use serde::Serialize;
@@ -82,7 +82,7 @@ struct CreateGuildFromTemplateFields {
 /// the name is invalid.
 pub struct CreateGuildFromTemplate<'a> {
     fields: CreateGuildFromTemplateFields,
-    fut: Option<Pending<'a, Guild>>,
+    fut: Option<PendingResponse<'a, Guild>>,
     http: &'a Client,
     template_code: String,
 }

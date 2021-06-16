@@ -1,7 +1,7 @@
 use crate::{
     client::Client,
     error::Error,
-    request::{self, AuditLogReason, AuditLogReasonError, Pending, Request},
+    request::{self, AuditLogReason, AuditLogReasonError, PendingResponse, Request},
     routing::Route,
 };
 use serde::Serialize;
@@ -22,7 +22,7 @@ struct UpdateEmojiFields {
 pub struct UpdateEmoji<'a> {
     emoji_id: EmojiId,
     fields: UpdateEmojiFields,
-    fut: Option<Pending<'a, Emoji>>,
+    fut: Option<PendingResponse<'a, Emoji>>,
     guild_id: GuildId,
     http: &'a Client,
     reason: Option<String>,

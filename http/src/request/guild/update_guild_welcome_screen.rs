@@ -1,7 +1,7 @@
 use crate::{
     client::Client,
     error::Error,
-    request::{Pending, Request},
+    request::{PendingResponse, Request},
     routing::Route,
 };
 use serde::Serialize;
@@ -27,7 +27,7 @@ struct UpdateGuildWelcomeScreenFields {
 /// [`MANAGE_GUILD`]: twilight_model::guild::Permissions::MANAGE_GUILD
 pub struct UpdateGuildWelcomeScreen<'a> {
     fields: UpdateGuildWelcomeScreenFields,
-    fut: Option<Pending<'a, WelcomeScreen>>,
+    fut: Option<PendingResponse<'a, WelcomeScreen>>,
     guild_id: GuildId,
     http: &'a Client,
 }

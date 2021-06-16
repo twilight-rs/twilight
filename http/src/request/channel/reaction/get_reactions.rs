@@ -2,7 +2,8 @@ use super::RequestReactionType;
 use crate::{
     client::Client,
     error::Error as HttpError,
-    request::{validate, Pending, Request},
+    request::{validate, PendingResponse, Request},
+    response::marker::ListBody,
     routing::Route,
 };
 use std::{
@@ -76,7 +77,7 @@ pub struct GetReactions<'a> {
     channel_id: ChannelId,
     emoji: RequestReactionType,
     fields: GetReactionsFields,
-    fut: Option<Pending<'a, Vec<User>>>,
+    fut: Option<PendingResponse<'a, ListBody<User>>>,
     http: &'a Client,
     message_id: MessageId,
 }
@@ -141,4 +142,4 @@ impl<'a> GetReactions<'a> {
     }
 }
 
-poll_req!(GetReactions<'_>, Vec<User>);
+poll_req!(GetReactions<'_>, ListBody<User>);

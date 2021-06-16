@@ -1,7 +1,7 @@
 use crate::{
     client::Client,
     error::Error,
-    request::{PendingOption, Request},
+    request::{PendingResponse, Request},
     routing::Route,
 };
 use twilight_model::{
@@ -13,7 +13,7 @@ use twilight_model::{
 ///
 /// Includes the user banned and the reason.
 pub struct GetBan<'a> {
-    fut: Option<PendingOption<'a>>,
+    fut: Option<PendingResponse<'a, Ban>>,
     guild_id: GuildId,
     http: &'a Client,
     user_id: UserId,
@@ -35,10 +35,10 @@ impl<'a> GetBan<'a> {
             user_id: self.user_id.0,
         });
 
-        self.fut.replace(Box::pin(self.http.request_bytes(request)));
+        self.fut.replace(Box::pin(self.http.request(request)));
 
         Ok(())
     }
 }
 
-poll_req!(opt, GetBan<'_>, Ban);
+poll_req!(GetBan<'_>, Ban);

@@ -1,7 +1,7 @@
 use crate::{
     client::Client,
     error::Error as HttpError,
-    request::{self, validate, AuditLogReason, AuditLogReasonError, Pending, Request},
+    request::{self, validate, AuditLogReason, AuditLogReasonError, PendingResponse, Request},
     routing::Route,
 };
 use std::{
@@ -80,7 +80,7 @@ struct CreateGuildPruneFields {
 pub struct CreateGuildPrune<'a> {
     fields: CreateGuildPruneFields,
     guild_id: GuildId,
-    fut: Option<Pending<'a, Option<GuildPrune>>>,
+    fut: Option<PendingResponse<'a, Option<GuildPrune>>>,
     http: &'a Client,
     reason: Option<String>,
 }

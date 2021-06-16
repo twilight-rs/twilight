@@ -1,14 +1,15 @@
 use crate::{
     client::Client,
     error::Error,
-    request::{Pending, Request},
+    request::{PendingResponse, Request},
+    response::marker::ListBody,
     routing::Route,
 };
 use twilight_model::voice::VoiceRegion;
 
 /// Get a list of voice regions that can be used when creating a guild.
 pub struct GetVoiceRegions<'a> {
-    fut: Option<Pending<'a, Vec<VoiceRegion>>>,
+    fut: Option<PendingResponse<'a, ListBody<VoiceRegion>>>,
     http: &'a Client,
 }
 
@@ -26,4 +27,4 @@ impl<'a> GetVoiceRegions<'a> {
     }
 }
 
-poll_req!(GetVoiceRegions<'_>, Vec<VoiceRegion>);
+poll_req!(GetVoiceRegions<'_>, ListBody<VoiceRegion>);

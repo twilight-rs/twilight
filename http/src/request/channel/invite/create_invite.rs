@@ -1,7 +1,7 @@
 use crate::{
     client::Client,
     error::Error as HttpError,
-    request::{self, validate, AuditLogReason, AuditLogReasonError, Pending, Request},
+    request::{self, validate, AuditLogReason, AuditLogReasonError, PendingResponse, Request},
     routing::Route,
 };
 use serde::Serialize;
@@ -112,7 +112,7 @@ struct CreateInviteFields {
 pub struct CreateInvite<'a> {
     channel_id: ChannelId,
     fields: CreateInviteFields,
-    fut: Option<Pending<'a, Invite>>,
+    fut: Option<PendingResponse<'a, Invite>>,
     http: &'a Client,
     reason: Option<String>,
 }
@@ -146,7 +146,11 @@ impl<'a> CreateInvite<'a> {
     /// # #[tokio::main]
     /// # async fn main() -> Result<(), Box<dyn std::error::Error>> {
     /// let client = Client::new(env::var("DISCORD_TOKEN")?);
-    /// let invite = client.create_invite(ChannelId(1)).max_age(60 * 60)?.await?;
+    /// let invite = client.create_invite(ChannelId(1))
+    ///     .max_age(60 * 60)?
+    ///     .await?
+    ///     .model()
+    ///     .await?;
     ///
     /// println!("invite code: {}", invite.code);
     /// # Ok(()) }
@@ -179,7 +183,11 @@ impl<'a> CreateInvite<'a> {
     /// # #[tokio::main]
     /// # async fn main() -> Result<(), Box<dyn std::error::Error>> {
     /// let client = Client::new(env::var("DISCORD_TOKEN")?);
-    /// let invite = client.create_invite(ChannelId(1)).max_uses(5)?.await?;
+    /// let invite = client.create_invite(ChannelId(1))
+    ///     .max_uses(5)?
+    ///     .await?
+    ///     .model()
+    ///     .await?;
     ///
     /// println!("invite code: {}", invite.code);
     /// # Ok(()) }

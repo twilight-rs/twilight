@@ -1,7 +1,8 @@
 use crate::{
     client::Client,
     error::Error,
-    request::{Pending, Request},
+    request::{PendingResponse, Request},
+    response::marker::ListBody,
     routing::Route,
 };
 use twilight_model::{id::ChannelId, invite::Invite};
@@ -15,7 +16,7 @@ use twilight_model::{id::ChannelId, invite::Invite};
 /// [`GuildChannel`]: twilight_model::channel::GuildChannel
 pub struct GetChannelInvites<'a> {
     channel_id: ChannelId,
-    fut: Option<Pending<'a, Vec<Invite>>>,
+    fut: Option<PendingResponse<'a, ListBody<Invite>>>,
     http: &'a Client,
 }
 
@@ -39,4 +40,4 @@ impl<'a> GetChannelInvites<'a> {
     }
 }
 
-poll_req!(GetChannelInvites<'_>, Vec<Invite>);
+poll_req!(GetChannelInvites<'_>, ListBody<Invite>);

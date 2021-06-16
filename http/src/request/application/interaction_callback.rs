@@ -1,7 +1,8 @@
 use crate::{
     client::Client,
     error::Error,
-    request::{Pending, Request},
+    request::{PendingResponse, Request},
+    response::marker::EmptyBody,
     routing::Route,
 };
 use twilight_model::{application::callback::InteractionResponse, id::InteractionId};
@@ -11,7 +12,7 @@ pub struct InteractionCallback<'a> {
     interaction_id: InteractionId,
     interaction_token: String,
     response: InteractionResponse,
-    fut: Option<Pending<'a, ()>>,
+    fut: Option<PendingResponse<'a, EmptyBody>>,
     http: &'a Client,
 }
 
@@ -39,10 +40,10 @@ impl<'a> InteractionCallback<'a> {
         .json(&self.response)?;
 
         self.fut
-            .replace(Box::pin(self.http.verify(request.build())));
+            .replace(Box::pin(self.http.request(request.build())));
 
         Ok(())
     }
 }
 
-poll_req!(InteractionCallback<'_>, ());
+poll_req!(InteractionCallback<'_>, EmptyBody);

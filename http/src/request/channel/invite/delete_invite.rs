@@ -1,7 +1,8 @@
 use crate::{
     client::Client,
     error::Error,
-    request::{self, AuditLogReason, AuditLogReasonError, Pending, Request},
+    request::{self, AuditLogReason, AuditLogReasonError, PendingResponse, Request},
+    response::marker::EmptyBody,
     routing::Route,
 };
 
@@ -14,7 +15,7 @@ use crate::{
 /// [`MANAGE_GUILD`]: twilight_model::guild::Permissions::MANAGE_GUILD
 pub struct DeleteInvite<'a> {
     code: String,
-    fut: Option<Pending<'a, ()>>,
+    fut: Option<PendingResponse<'a, EmptyBody>>,
     http: &'a Client,
     reason: Option<String>,
 }
@@ -39,7 +40,7 @@ impl<'a> DeleteInvite<'a> {
         }
 
         self.fut
-            .replace(Box::pin(self.http.verify(request.build())));
+            .replace(Box::pin(self.http.request(request.build())));
 
         Ok(())
     }
@@ -54,4 +55,4 @@ impl<'a> AuditLogReason for DeleteInvite<'a> {
     }
 }
 
-poll_req!(DeleteInvite<'_>, ());
+poll_req!(DeleteInvite<'_>, EmptyBody);

@@ -1,14 +1,14 @@
 use crate::{
     client::Client,
     error::Error,
-    request::{Pending, Request},
+    request::{PendingResponse, Request},
     routing::Route,
 };
 use twilight_model::user::CurrentUser;
 
 /// Get information about the current user.
 pub struct GetCurrentUser<'a> {
-    fut: Option<Pending<'a, CurrentUser>>,
+    fut: Option<PendingResponse<'a, CurrentUser>>,
     http: &'a Client,
 }
 

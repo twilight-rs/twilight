@@ -1,7 +1,8 @@
 use crate::{
     client::Client,
     error::Error as HttpError,
-    request::{validate, Pending, Request},
+    request::{validate, PendingResponse, Request},
+    response::marker::EmptyBody,
     routing::Route,
 };
 use serde::Serialize;
@@ -81,7 +82,7 @@ struct CreateStageInstanceFields {
 /// Requires the user to be a moderator of the stage channel.
 pub struct CreateStageInstance<'a> {
     fields: CreateStageInstanceFields,
-    fut: Option<Pending<'a, ()>>,
+    fut: Option<PendingResponse<'a, EmptyBody>>,
     http: &'a Client,
 }
 
@@ -129,10 +130,10 @@ impl<'a> CreateStageInstance<'a> {
             .json(&self.fields)?
             .build();
 
-        self.fut.replace(Box::pin(self.http.verify(request)));
+        self.fut.replace(Box::pin(self.http.request(request)));
 
         Ok(())
     }
 }
 
-poll_req!(CreateStageInstance<'_>, ());
+poll_req!(CreateStageInstance<'_>, EmptyBody);

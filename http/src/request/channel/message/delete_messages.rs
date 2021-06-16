@@ -1,7 +1,8 @@
 use crate::{
     client::Client,
     error::Error,
-    request::{self, AuditLogReason, AuditLogReasonError, Pending, Request},
+    request::{self, AuditLogReason, AuditLogReasonError, PendingResponse, Request},
+    response::marker::EmptyBody,
     routing::Route,
 };
 use serde::Serialize;
@@ -22,7 +23,7 @@ struct DeleteMessagesFields {
 pub struct DeleteMessages<'a> {
     channel_id: ChannelId,
     fields: DeleteMessagesFields,
-    fut: Option<Pending<'a, ()>>,
+    fut: Option<PendingResponse<'a, EmptyBody>>,
     http: &'a Client,
     reason: Option<String>,
 }
@@ -55,7 +56,7 @@ impl<'a> DeleteMessages<'a> {
         }
 
         self.fut
-            .replace(Box::pin(self.http.verify(request.build())));
+            .replace(Box::pin(self.http.request(request.build())));
 
         Ok(())
     }
@@ -70,4 +71,4 @@ impl<'a> AuditLogReason for DeleteMessages<'a> {
     }
 }
 
-poll_req!(DeleteMessages<'_>, ());
+poll_req!(DeleteMessages<'_>, EmptyBody);

@@ -1,7 +1,8 @@
 use crate::{
     client::Client,
     error::Error,
-    request::{Pending, Request},
+    request::{PendingResponse, Request},
+    response::marker::EmptyBody,
     routing::Route,
 };
 use serde::Serialize;
@@ -36,7 +37,7 @@ impl From<(ChannelId, u64)> for Position {
 /// This function accepts an `Iterator` of `(ChannelId, u64)`. It also accepts
 /// an `Iterator` of `Position`, which has extra fields.
 pub struct UpdateGuildChannelPositions<'a> {
-    fut: Option<Pending<'a, ()>>,
+    fut: Option<PendingResponse<'a, EmptyBody>>,
     guild_id: GuildId,
     http: &'a Client,
     positions: Vec<Position>,
@@ -65,10 +66,10 @@ impl<'a> UpdateGuildChannelPositions<'a> {
         .json(&self.positions)?
         .build();
 
-        self.fut.replace(Box::pin(self.http.verify(request)));
+        self.fut.replace(Box::pin(self.http.request(request)));
 
         Ok(())
     }
 }
 
-poll_req!(UpdateGuildChannelPositions<'_>, ());
+poll_req!(UpdateGuildChannelPositions<'_>, EmptyBody);

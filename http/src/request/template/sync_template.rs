@@ -1,14 +1,14 @@
 use crate::{
     client::Client,
     error::Error,
-    request::{Pending, Request},
+    request::{PendingResponse, Request},
     routing::Route,
 };
 use twilight_model::{id::GuildId, template::Template};
 
 /// Sync a template to the current state of the guild, by ID and code.
 pub struct SyncTemplate<'a> {
-    fut: Option<Pending<'a, Template>>,
+    fut: Option<PendingResponse<'a, Template>>,
     guild_id: GuildId,
     http: &'a Client,
     template_code: String,

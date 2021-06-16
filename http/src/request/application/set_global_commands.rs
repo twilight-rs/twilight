@@ -1,7 +1,8 @@
 use crate::{
     client::Client,
     error::Error,
-    request::{Pending, Request},
+    request::{PendingResponse, Request},
+    response::marker::EmptyBody,
     routing::Route,
 };
 use twilight_model::{application::command::Command, id::ApplicationId};
@@ -13,7 +14,7 @@ use twilight_model::{application::command::Command, id::ApplicationId};
 pub struct SetGlobalCommands<'a> {
     commands: Vec<Command>,
     application_id: ApplicationId,
-    fut: Option<Pending<'a, ()>>,
+    fut: Option<PendingResponse<'a, EmptyBody>>,
     http: &'a Client,
 }
 
@@ -38,10 +39,10 @@ impl<'a> SetGlobalCommands<'a> {
         .json(&self.commands)?;
 
         self.fut
-            .replace(Box::pin(self.http.verify(request.build())));
+            .replace(Box::pin(self.http.request(request.build())));
 
         Ok(())
     }
 }
 
-poll_req!(SetGlobalCommands<'_>, ());
+poll_req!(SetGlobalCommands<'_>, EmptyBody);
