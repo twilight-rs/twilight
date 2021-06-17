@@ -193,7 +193,8 @@ impl BucketQueueTask {
                 // - None was sent through the channel (request aborted)
                 // - channel was closed
                 // - timeout reached
-                Ok(Err(_) | Ok(None)) | Err(_) => {
+                #[allow(clippy::unnested_or_patterns)]
+                Ok(Err(_)) | Err(_) | Ok(Ok(None)) => {
                     #[cfg(feature = "tracing")]
                     tracing::debug!(parent: &span, "receiver timed out");
                 }
