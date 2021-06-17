@@ -194,7 +194,6 @@ impl BucketQueueTask {
                 // - channel was closed
                 // - timeout reached
                 Ok(Err(_) | Ok(None)) | Err(_) => {
-                //Ok(Err(_)) | Err(_) | Ok(Ok(None)) => {
                     #[cfg(feature = "tracing")]
                     tracing::debug!(parent: &span, "receiver timed out");
                 }
