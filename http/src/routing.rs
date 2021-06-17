@@ -207,6 +207,7 @@ impl FromStr for Path {
 
         let parts = s.split('/').skip(skip).collect::<Vec<&str>>();
 
+        #[allow(clippy::unnested_or_patterns)]
         Ok(match parts.as_slice() {
             ["applications", id, "commands"] => ApplicationCommand(parse_id(id)?),
             ["applications", id, "commands", _] => ApplicationCommandId(parse_id(id)?),
@@ -262,7 +263,6 @@ impl FromStr for Path {
             ["guilds", id, "bans"] => GuildsIdBans(parse_id(id)?),
             ["guilds", id, "bans", _] => GuildsIdBansUserId(parse_id(id)?),
             ["guilds", id, "channels"] => GuildsIdChannels(parse_id(id)?),
-            #[allow(clippy::unnested_or_patterns)]
             ["guilds", id, "widget"] | ["guilds", id, "widget.json"] => {
                 GuildsIdWidget(parse_id(id)?)
             }
