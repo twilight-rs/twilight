@@ -311,7 +311,7 @@ impl EmbedBuilder {
     /// [`FIELD_VALUE_LENGTH_LIMIT`]: Self::FIELD_VALUE_LENGTH_LIMIT
     /// [`FOOTER_TEXT_LENGTH_LIMIT`]: Self::FOOTER_TEXT_LENGTH_LIMIT
     /// [`TITLE_LENGTH_LIMIT`]: Self::TITLE_LENGTH_LIMIT
-    #[allow(clippy::clippy::too_many_lines)]
+    #[allow(clippy::too_many_lines)]
     #[must_use = "should be used as part of something like a message"]
     pub fn build(mut self) -> Result<Embed, EmbedError> {
         if self.0.fields.len() > Self::EMBED_FIELD_LIMIT {
