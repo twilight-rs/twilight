@@ -253,8 +253,8 @@ mod tests {
                 locked: false,
             },
             member: ThreadMember {
-                id: ChannelId(1),
-                user_id: UserId(2),
+                id: Some(ChannelId(1)),
+                user_id: Some(UserId(2)),
                 join_timestamp: "".to_string(),
                 flags: 0,
             },

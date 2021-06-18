@@ -35,6 +35,7 @@ mod tests {
     };
     use serde_test::Token;
 
+    #[allow(clippy::too_many_lines)]
     #[test]
     fn test_news_thread() {
         let value = NewsThread {
@@ -45,8 +46,8 @@ mod tests {
             name: "test".to_owned(),
             member_count: 7,
             member: ThreadMember {
-                id: ChannelId(10),
-                user_id: UserId(11),
+                id: Some(ChannelId(10)),
+                user_id: Some(UserId(11)),
                 join_timestamp: "456".to_owned(),
                 flags: 12,
             },
@@ -93,11 +94,13 @@ mod tests {
                 Token::Str("flags"),
                 Token::U64(12),
                 Token::Str("id"),
+                Token::Some,
                 Token::NewtypeStruct { name: "ChannelId" },
                 Token::Str("10"),
                 Token::Str("join_timestamp"),
                 Token::Str("456"),
                 Token::Str("user_id"),
+                Token::Some,
                 Token::NewtypeStruct { name: "UserId" },
                 Token::Str("11"),
                 Token::StructEnd,
