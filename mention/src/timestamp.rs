@@ -77,7 +77,7 @@ impl Error for TimestampFlagConversionError {}
 #[derive(Debug, Eq, PartialEq)]
 #[non_exhaustive]
 pub enum TimestampFlagConversionErrorType {
-    /// ID portion of the mention isn't a u64.
+    /// Given value is not a valid flag.
     FlagInvalid,
 }
 
@@ -279,10 +279,14 @@ impl TryFrom<&str> for TimestampFlag {
 
 #[cfg(test)]
 mod tests {
-    use super::{Timestamp, TimestampFlag};
+    use super::{
+        Timestamp, TimestampFlag, TimestampFlagConversionError, TimestampFlagConversionErrorType,
+    };
     use static_assertions::assert_impl_all;
-    use std::{fmt::Debug, hash::Hash};
+    use std::{convert::TryFrom, error::Error, fmt::Debug, hash::Hash};
 
+    assert_impl_all!(TimestampFlagConversionErrorType: Debug, Send, Sync);
+    assert_impl_all!(TimestampFlagConversionError: Debug, Error, Send, Sync);
     assert_impl_all!(
         TimestampFlag: Clone,
         Copy,
@@ -319,6 +323,20 @@ mod tests {
         assert_eq!("f", TimestampFlag::ShortDateTime.flag());
         assert_eq!("d", TimestampFlag::ShortDate.flag());
         assert_eq!("t", TimestampFlag::ShortTime.flag());
+    }
+
+    /// Test that flag modifiers correctly parse from their string slice variants.
+    #[test]
+    fn test_timestamp_flag_try_from() -> Result<(), TimestampFlagConversionError> {
+        assert_eq!(TimestampFlag::try_from("F")?, TimestampFlag::LongDateTime);
+        assert_eq!(TimestampFlag::try_from("D")?, TimestampFlag::LongDate);
+        assert_eq!(TimestampFlag::try_from("T")?, TimestampFlag::LongTime);
+        assert_eq!(TimestampFlag::try_from("R")?, TimestampFlag::RelativeTime);
+        assert_eq!(TimestampFlag::try_from("f")?, TimestampFlag::ShortDateTime);
+        assert_eq!(TimestampFlag::try_from("d")?, TimestampFlag::ShortDate);
+        assert_eq!(TimestampFlag::try_from("t")?, TimestampFlag::ShortTime);
+
+        Ok(())
     }
 
     /// Test that timestamps are correctly compared based on their inner unix
