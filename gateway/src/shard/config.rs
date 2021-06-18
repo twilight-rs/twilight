@@ -1,7 +1,8 @@
+use crate::EventTypeFlags;
 use std::sync::Arc;
 use twilight_gateway_queue::Queue;
 use twilight_http::Client;
-use twilight_model::gateway::{payload::update_status::UpdateStatusInfo, Intents};
+use twilight_model::gateway::{payload::update_presence::UpdatePresencePayload, Intents};
 
 /// The configuration used by the shard to identify with the gateway and
 /// operate.
@@ -11,11 +12,12 @@ use twilight_model::gateway::{payload::update_status::UpdateStatusInfo, Intents}
 /// [`Shard::builder`]: super::Shard::builder
 #[derive(Clone, Debug)]
 pub struct Config {
+    pub(crate) event_types: EventTypeFlags,
     pub(crate) gateway_url: Option<Box<str>>,
     pub(crate) http_client: Client,
     pub(super) intents: Intents,
     pub(super) large_threshold: u64,
-    pub(super) presence: Option<UpdateStatusInfo>,
+    pub(super) presence: Option<UpdatePresencePayload>,
     pub(super) queue: Arc<Box<dyn Queue>>,
     pub(crate) shard: [u64; 2],
     pub(super) token: Box<str>,
@@ -24,6 +26,11 @@ pub struct Config {
 }
 
 impl Config {
+    /// Copy of the event type flags.
+    pub const fn event_types(&self) -> EventTypeFlags {
+        self.event_types
+    }
+
     /// Return an immutable reference to the url used to connect to the gateway.
     pub fn gateway_url(&self) -> Option<&str> {
         self.gateway_url.as_deref()
@@ -51,7 +58,7 @@ impl Config {
     ///
     /// This will be the bot's presence. For example, setting the online status
     /// to Do Not Disturb will show the status in the bot's presence.
-    pub const fn presence(&self) -> Option<&UpdateStatusInfo> {
+    pub const fn presence(&self) -> Option<&UpdatePresencePayload> {
         self.presence.as_ref()
     }
 

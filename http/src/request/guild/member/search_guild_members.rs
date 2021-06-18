@@ -4,7 +4,7 @@ use crate::{
     request::{validate, Pending, Request},
     routing::Route,
 };
-use bytes::Bytes;
+use hyper::body::Bytes;
 use serde::de::DeserializeSeed;
 use std::{
     error::Error,
@@ -24,25 +24,57 @@ use serde_json::Value;
 use simd_json::value::OwnedValue as Value;
 
 /// The error created when the members can not be queried as configured.
-#[derive(Clone, Debug)]
+#[derive(Debug)]
+pub struct SearchGuildMembersError {
+    kind: SearchGuildMembersErrorType,
+}
+
+impl SearchGuildMembersError {
+    /// Immutable reference to the type of error that occurred.
+    #[must_use = "retrieving the type has no effect if left unused"]
+    pub const fn kind(&self) -> &SearchGuildMembersErrorType {
+        &self.kind
+    }
+
+    /// Consumes the error, returning the source error if there is any.
+    #[allow(clippy::unused_self)]
+    #[must_use = "consuming the error and retrieving the source has no effect if left unused"]
+    pub fn into_source(self) -> Option<Box<dyn Error + Send + Sync>> {
+        None
+    }
+
+    /// Consume the error, returning the owned error type nad the source error.
+    #[must_use = "consuming the error int its parts has no effect if left unused"]
+    pub fn into_parts(
+        self,
+    ) -> (
+        SearchGuildMembersErrorType,
+        Option<Box<dyn Error + Send + Sync>>,
+    ) {
+        (self.kind, None)
+    }
+}
+
+impl Display for SearchGuildMembersError {
+    fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
+        match self.kind {
+            SearchGuildMembersErrorType::LimitInvalid { .. } => f.write_str("the limit is invalid"),
+        }
+    }
+}
+
+impl Error for SearchGuildMembersError {}
+
+/// Type of [`SearchGuildMembersError`] that occurred.
+#[derive(Debug)]
 #[non_exhaustive]
-pub enum SearchGuildMembersError {
+pub enum SearchGuildMembersErrorType {
     /// The limit is either 0 or more than 1000.
     LimitInvalid {
         /// Provided limit.
         limit: u64,
     },
 }
-
-impl Display for SearchGuildMembersError {
-    fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
-        match self {
-            Self::LimitInvalid { .. } => f.write_str("the limit is invalid"),
-        }
-    }
-}
-
-impl Error for SearchGuildMembersError {}
 
 struct SearchGuildMembersFields {
     query: String,
@@ -72,7 +104,8 @@ struct SearchGuildMembersFields {
 ///
 /// # Errors
 ///
-/// Returns [`SearchGuildMembersError::LimitInvalid`] if the limit is invalid.
+/// Returns a [`SearchGuildMembersErrorType::LimitInvalid`] error type if the
+/// limit is invalid.
 ///
 /// [`GUILD_MEMBERS`]: twilight_model::gateway::Intents#GUILD_MEMBERS
 pub struct SearchGuildMembers<'a> {
@@ -102,13 +135,15 @@ impl<'a> SearchGuildMembers<'a> {
     ///
     /// # Errors
     ///
-    /// Returns [`SearchGuildMembersError::LimitInvalid`] if the limit is 0 or
-    /// greater than 1000.
+    /// Returns a [`SearchGuildMembersErrorType::LimitInvalid`] error type if
+    /// the limit is 0 or greater than 1000.
     pub fn limit(mut self, limit: u64) -> Result<Self, SearchGuildMembersError> {
         // Using get_guild_members_limit here as the limits are the same
         // and this endpoint is not officially documented yet.
         if !validate::search_guild_members_limit(limit) {
-            return Err(SearchGuildMembersError::LimitInvalid { limit });
+            return Err(SearchGuildMembersError {
+                kind: SearchGuildMembersErrorType::LimitInvalid { limit },
+            });
         }
 
         self.fields.limit.replace(limit);

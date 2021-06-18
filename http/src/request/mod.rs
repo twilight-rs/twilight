@@ -63,6 +63,7 @@ macro_rules! poll_req {
     };
 }
 
+pub mod application;
 pub mod channel;
 pub mod guild;
 pub mod prelude;
@@ -89,7 +90,7 @@ pub use self::{
 };
 
 use crate::error::{Error, ErrorType};
-use bytes::Bytes;
+use hyper::body::Bytes;
 use hyper::{
     header::{HeaderName, HeaderValue},
     Method as HyperMethod,

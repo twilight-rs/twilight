@@ -3,11 +3,15 @@ use super::{
     r#impl::{Cluster, ClusterStartError},
     scheme::ShardScheme,
 };
-use crate::shard::{LargeThresholdError, ResumeSession, ShardBuilder};
+use crate::{
+    shard::{LargeThresholdError, ResumeSession, ShardBuilder},
+    Event, EventTypeFlags,
+};
+use futures_util::stream::Stream;
 use std::{collections::HashMap, sync::Arc};
 use twilight_gateway_queue::{LocalQueue, Queue};
 use twilight_http::Client;
-use twilight_model::gateway::{payload::update_status::UpdateStatusInfo, Intents};
+use twilight_model::gateway::{payload::update_presence::UpdatePresencePayload, Intents};
 
 /// Builder to configure and construct a [`Cluster`].
 ///
@@ -72,7 +76,9 @@ impl ClusterBuilder {
     /// there was an HTTP error Retrieving the gateway information.
     ///
     /// [`ClusterStartErrorType::RetrievingGatewayInfo`]: super::ClusterStartErrorType::RetrievingGatewayInfo
-    pub async fn build(mut self) -> Result<Cluster, ClusterStartError> {
+    pub async fn build(
+        mut self,
+    ) -> Result<(Cluster, impl Stream<Item = (u64, Event)>), ClusterStartError> {
         if (self.1).0.gateway_url.is_none() {
             let gateway_url = (self.1)
                 .0
@@ -89,6 +95,21 @@ impl ClusterBuilder {
         self.0.shard_config = (self.1).0;
 
         Cluster::new_with_config(self.0).await
+    }
+
+    /// Set the event types to process.
+    ///
+    /// This is an optimization technique; all events not included in the
+    /// provided event type flags will not be deserialized by the gateway and
+    /// will be discarded. All events will still be sent if
+    /// [`EventTypeFlags::SHARD_PAYLOAD`] is enabled.
+    ///
+    /// [`EventTypeFlags::SHARD_PAYLOAD`]: crate::EventTypeFlags::SHARD_PAYLOAD
+    #[allow(clippy::missing_const_for_fn)]
+    pub fn event_types(mut self, event_types: EventTypeFlags) -> Self {
+        self.1 = self.1.event_types(event_types);
+
+        self
     }
 
     /// Set the URL that will be used to connect to the gateway.
@@ -135,7 +156,7 @@ impl ClusterBuilder {
     /// Set the presence to use when identifying with the gateway.
     ///
     /// Refer to the shard's [`ShardBuilder::presence`] for more information.
-    pub fn presence(mut self, presence: UpdateStatusInfo) -> Self {
+    pub fn presence(mut self, presence: UpdatePresencePayload) -> Self {
         self.1 = self.1.presence(presence);
 
         self

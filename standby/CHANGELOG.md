@@ -2,6 +2,22 @@
 
 Changelog for `twilight-standby`.
 
+## [0.5.0] - 2021-06-13
+
+This major version bump of the Standby crate is done to match all of the other
+crates in the ecosystem receiving a major version bump. There are no changes.
+
+## [0.4.1] - 2021-06-12
+
+### Changes
+
+Support the new events added in model: `IntegrationCreate, IntegrationDelete,
+IntegrationUpdate, StageInstanceCreate`, `StageInstanceDelete`,
+`StageInstanceUpdate` ([#845], [#914] - [@7596ff]).
+
+[#845]: https://github.com/twilight-rs/twilight/pull/845
+[#914]: https://github.com/twilight-rs/twilight/pull/914
+
 ## [0.4.0] - 2021-05-12
 
 ### Upgrade Path
@@ -66,6 +82,7 @@ the ecosystem receiving a major version bump. There are no changes.
 
 Initial release.
 
+[@7596ff]: https://github.com/7596ff
 [@chamburr]: https://github.com/chamburr
 [@Gelbpunkt]: https://github.com/Gelbpunkt
 [@nickelc]: https://github.com/nickelc
@@ -74,6 +91,8 @@ Initial release.
 [#624]: https://github.com/twilight-rs/twilight/pull/624
 [#523]: https://github.com/twilight-rs/twilight/pull/523
 
+[0.5.0]: https://github.com/twilight-rs/twilight/releases/tag/standby-0.5.0
+[0.4.1]: https://github.com/twilight-rs/twilight/releases/tag/standby-0.4.1
 [0.4.0]: https://github.com/twilight-rs/twilight/releases/tag/standby-0.4.0
 [0.3.0]: https://github.com/twilight-rs/twilight/releases/tag/standby-v0.3.0
 [0.2.2]: https://github.com/twilight-rs/twilight/releases/tag/standby-v0.2.2

@@ -4,7 +4,7 @@ use crate::{
     request::{self, validate, AuditLogReason, AuditLogReasonError, Pending, Request},
     routing::Route,
 };
-use bytes::Bytes;
+use hyper::body::Bytes;
 use serde::{de::DeserializeSeed, Serialize};
 use std::{
     error::Error,

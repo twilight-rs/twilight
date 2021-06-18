@@ -2,6 +2,12 @@
 
 Changelog for `twilight-util`.
 
+## [0.5.0] - 2021-06-13
+
+This major version bump of the Util crate is done to match all of the other
+crates in the ecosystem receiving a major version bump. There are no
+breaking changes.
+
 ## [0.4.1] - 2021-05-30
 
 ### Enhancements
@@ -57,6 +63,7 @@ Initial release.
 
 [@vivian]: https://github.com/vivian
 
+[0.5.0]: https://github.com/twilight-rs/twilight/releases/tag/util-0.5.0
 [0.4.1]: https://github.com/twilight-rs/twilight/releases/tag/util-0.4.1
 [0.4.0]: https://github.com/twilight-rs/twilight/releases/tag/util-0.4.0
 [0.3.0]: https://github.com/twilight-rs/twilight/releases/tag/util-v0.3.0

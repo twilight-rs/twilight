@@ -12,7 +12,7 @@ name = "twilight-gateway"
 publish = false
 readme = "README.md"
 repository = "https://github.com/twilight-rs/twilight.git"
-version = "0.4.1"
+version = "0.5.0"
 
 [dependencies]
 tokio-tungstenite = { default-features = false, features = ["connect"], version = "0.14" }
@@ -27,7 +27,6 @@ serde = { default-features = false, features = ["derive"], version = "1" }
 serde_json = { default-features = false, version = "1" }
 tokio = { default-features = false, features = ["net", "rt", "sync"], version = "1.0" }
 url = { default-features = false, version = "2" }
-dashmap = { default-features = false, version = "4.0" }
 
 # Optional
 # The default backend for flate2; miniz-oxide, works differently
@@ -50,8 +49,8 @@ native = ["twilight-http/native", "twilight-gateway-queue/native", "tokio-tungst
 rustls = ["rustls-native-roots"]
 rustls-native-roots = ["twilight-http/rustls-native-roots", "twilight-gateway-queue/rustls-native-roots", "tokio-tungstenite/rustls-tls"]
 rustls-webpki-roots = ["twilight-http/rustls-webpki-roots", "twilight-gateway-queue/rustls-webpki-roots", "tokio-tungstenite/rustls-tls"]
-simd-zlib = ["compression", "flate2/zlib-ng-compat"]
+zlib-simd = ["compression", "flate2/zlib-ng-compat"]
 # if the `zlib` feature is enabled anywhere in the dependency tree it will
 # always use stock zlib instead of zlib-ng.
 # https://github.com/rust-lang/libz-sys/blob/main/README.md#zlib-ng
-stock-zlib = ["compression", "flate2/zlib"]
+zlib-stock = ["compression", "flate2/zlib"]

@@ -1,22 +1,22 @@
 use serde::Serialize;
-use std::sync::Arc;
 use twilight_model::{
+    application::interaction::application_command::InteractionMember,
     guild::{Member, PartialMember},
-    id::{GuildId, RoleId},
-    user::User,
+    id::{GuildId, RoleId, UserId},
 };
 
 #[derive(Clone, Debug, Eq, PartialEq, Serialize)]
 pub struct CachedMember {
-    pub deaf: bool,
+    pub deaf: Option<bool>,
     pub guild_id: GuildId,
     pub joined_at: Option<String>,
-    pub mute: bool,
+    pub mute: Option<bool>,
     pub nick: Option<String>,
     pub pending: bool,
     pub premium_since: Option<String>,
     pub roles: Vec<RoleId>,
-    pub user: Arc<User>,
+    /// ID of the user relating to the member.
+    pub user_id: UserId,
 }
 
 impl PartialEq<Member> for CachedMember {
@@ -29,14 +29,16 @@ impl PartialEq<Member> for CachedMember {
             self.pending,
             self.premium_since.as_ref(),
             &self.roles,
+            self.user_id,
         ) == (
-            other.deaf,
+            Some(other.deaf),
             other.joined_at.as_ref(),
-            other.mute,
+            Some(other.mute),
             &other.nick,
             other.pending,
             other.premium_since.as_ref(),
             &other.roles,
+            self.user_id,
         )
     }
 }
@@ -51,9 +53,25 @@ impl PartialEq<&PartialMember> for CachedMember {
             &self.premium_since,
             &self.roles,
         ) == (
-            other.deaf,
+            Some(other.deaf),
             other.joined_at.as_ref(),
-            other.mute,
+            Some(other.mute),
+            &other.nick,
+            &other.premium_since,
+            &other.roles,
+        )
+    }
+}
+
+impl PartialEq<&InteractionMember> for CachedMember {
+    fn eq(&self, other: &&InteractionMember) -> bool {
+        (
+            self.joined_at.as_ref(),
+            &self.nick,
+            &self.premium_since,
+            &self.roles,
+        ) == (
+            other.joined_at.as_ref(),
             &other.nick,
             &other.premium_since,
             &other.roles,
@@ -64,24 +82,36 @@ impl PartialEq<&PartialMember> for CachedMember {
 #[cfg(test)]
 mod tests {
     use super::CachedMember;
-    use std::sync::Arc;
+    use static_assertions::assert_fields;
     use twilight_model::{
         guild::{Member, PartialMember},
         id::{GuildId, RoleId, UserId},
         user::User,
     };
 
+    assert_fields!(
+        CachedMember: deaf,
+        guild_id,
+        joined_at,
+        mute,
+        nick,
+        pending,
+        premium_since,
+        roles,
+        user_id
+    );
+
     fn cached_member() -> CachedMember {
         CachedMember {
-            deaf: false,
+            deaf: Some(false),
             guild_id: GuildId(3),
             joined_at: None,
-            mute: true,
+            mute: Some(true),
             nick: Some("member nick".to_owned()),
             pending: false,
             premium_since: None,
             roles: Vec::new(),
-            user: Arc::new(user()),
+            user_id: user().id,
         }
     }
 
@@ -128,8 +158,10 @@ mod tests {
             joined_at: None,
             mute: true,
             nick: Some("member nick".to_owned()),
+            permissions: None,
             premium_since: None,
             roles: Vec::new(),
+            user: None,
         };
 
         assert_eq!(cached_member(), &member);

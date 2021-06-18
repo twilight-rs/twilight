@@ -33,7 +33,7 @@ impl<'a> DeleteAllReaction<'a> {
     }
 
     fn start(&mut self) -> Result<(), Error> {
-        let request = Request::from_route(Route::DeleteMessageSpecficReaction {
+        let request = Request::from_route(Route::DeleteMessageSpecificReaction {
             channel_id: self.channel_id.0,
             message_id: self.message_id.0,
             emoji: self.emoji.clone(),

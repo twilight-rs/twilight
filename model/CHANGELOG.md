@@ -2,6 +2,115 @@
 
 Changelog for `twilight-model`.
 
+## [0.5.0] - 2021-06-13
+
+### Upgrade Path
+
+Remove references to `Guild::nsfw`, `Guild::region`, `PartialGuild::nsfw`,
+`PartialGuild::region`, and `TemplateGuild::region`.
+
+Replace the following usages:
+```diff
+-twilight_model::channel::invite::TargetUserType
++twilight_model::channel::invite::TargetType
+
+-twilight_model::gateway::payload::update_status::UpdateStatus
++twilight_model::gateway::payload::update_presence::UpdatePresence
+
+-twilight_model::gateway::payload::update_status::UpdateStatusInfo
++twilight_model::gateway::payload::update_presence::UpdatePresencePayload
+```
+
+### Additions
+
+Support for Slash Commands has been added. New models are present in the
+`application` module ([#932]).
+
+### Enhancements
+
+The following models have been updated:
+
+- `twilight_model::channel::message::MessageFlags`: added `EPHEMERAL`
+- `twilight_model::channel::Message`: added `application_id`, `interaction`
+- `twilight_model::channel::WebhookType`: added `Application`
+- `twilight_model::gateway::Event`: added `InteractionCreate`
+- `twilight_model::gateway::payload::Ready`: added `application`
+- `twilight_model::guild::PartialMember`: added `permissions`
+
+### Changes
+
+The `TargetType` re-export (`TargetUserType`) has been removed ([#847] -
+[@7596ff]).
+
+`Guild::nsfw` and `PartialGuild::nsfw` have been removed ([#890] - [@7596ff]).
+
+`UpdateStatus` and `UpdateStatusInfo` have been renamed to `UpdatePresence` and
+`UpdatePresencePayload` respectively ([#902] - [@7596ff]).
+
+At least one `Activity` is required when building an `UpdatePresence` payload.
+`UpdatePresenceError` and `UpdatePresenceErrorType` have been created to
+validate this ([#891] - [@7596ff]).
+
+References to `Guild::region` have been removed. This includes
+`PartialGuild::region` and `TemplateGuild::region`.
+
+[#847]: https://github.com/twilight-rs/twilight/pull/847
+[#890]: https://github.com/twilight-rs/twilight/pull/890
+[#891]: https://github.com/twilight-rs/twilight/pull/891
+[#902]: https://github.com/twilight-rs/twilight/pull/902
+[#932]: https://github.com/twilight-rs/twilight/pull/932
+
+## [0.4.3] - 2021-06-12
+
+### Additions
+
+Support `StageInstanceCreate`, `StageInstanceDelete`, `StageInstanceUpdate`
+events ([#845] - [@7596ff]).
+
+Add the `NsfwLevel` change key to audit log ([#848] - [@tbnritzdoge]).
+
+Support `channel::stage_instance::StageInstance::{discoverable_disabled,
+privacy_level}` and `channel::stage_instance::PrivacyLevel` ([#867] -
+[@7596ff]).
+
+Support `Team::name` ([#881] - [@7596ff]).
+
+Support `CurrentApplicationInfo::{flags, privacy_policy_url,
+terms_of_service_url}` ([#882], [#904]
+- [@7596ff], [@Gelbpunkt])
+
+Support `StageInstance*` events and `PrivacyLevel` change key in the audit log
+([#907] - [@7596ff]).
+
+Support `Webhook::application_id` ([#908] - [@7596ff]).
+
+Support `IntegrationCreate`, `IntegrationDelete`, and `IntegrationUpdate`
+events, and add `GuildIntegration::guild_id` as an `Option` ([#914] -
+[@7596ff]).
+
+### Changes
+
+Support `Guild::stage_instances`, which are present in the `GuildCreate` event
+([#845] - [@7596ff]).
+
+Deprecate `{Guild, PartialGuild}::nsfw` in favor of `nsfw_level`, ([#848] -
+[@tbnritzdoge]).
+
+Deprecate `{Guild, PartialGuild, TemplateGuild}::region`, as this field is no
+longer provided by Discord. There is no direct alternative ([#887] -
+[@BlackHoleFox]).
+
+[#845]: https://github.com/twilight-rs/twilight/pull/845
+[#848]: https://github.com/twilight-rs/twilight/pull/848
+[#867]: https://github.com/twilight-rs/twilight/pull/867
+[#881]: https://github.com/twilight-rs/twilight/pull/881
+[#882]: https://github.com/twilight-rs/twilight/pull/882
+[#887]: https://github.com/twilight-rs/twilight/pull/887
+[#904]: https://github.com/twilight-rs/twilight/pull/904
+[#907]: https://github.com/twilight-rs/twilight/pull/907
+[#908]: https://github.com/twilight-rs/twilight/pull/908
+[#914]: https://github.com/twilight-rs/twilight/pull/914
+
 ## [0.4.2] - 2021-05-30
 
 ### Upgrade Path
@@ -517,12 +626,12 @@ Initial release.
 
 [@7596ff]: https://github.com/7596ff
 [@AsianIntel]: https://github.com/AsianIntel
+[@BlackHoleFox]: https://github.com/BlackHoleFox
 [@chamburr]: https://github.com/chamburr
+[@coadler]: https://github.com/coadler
 [@DusterTheFirst]: https://github.com/DusterTheFirst
 [@Erk-]: https://github.com/Erk-
 [@Gelbpunkt]: https://github.com/Gelbpunkt
-[@chamburr]: https://github.com/chamburr
-[@coadler]: https://github.com/coadler
 [@james7132]: https://github.com/james7132
 [@jazevedo620]: https://github.com/jazevedo620
 [@kotx]: https://github.com/kotx
@@ -554,6 +663,8 @@ Initial release.
 
 [0.2.0-beta.1:app integrations]: https://github.com/discord/discord-api-docs/commit/a926694e2f8605848bda6b57d21c8817559e5cec
 
+[0.5.0]: https://github.com/twilight-rs/twilight/releases/tag/model-0.5.0
+[0.4.3]: https://github.com/twilight-rs/twilight/releases/tag/model-0.4.3
 [0.4.2]: https://github.com/twilight-rs/twilight/releases/tag/model-0.4.2
 [0.4.1]: https://github.com/twilight-rs/twilight/releases/tag/model-0.4.1
 [0.4.0]: https://github.com/twilight-rs/twilight/releases/tag/model-0.4.0

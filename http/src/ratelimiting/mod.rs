@@ -60,6 +60,7 @@ impl Ratelimiter {
     }
 
     pub async fn get(&self, path: Path) -> Receiver<Sender<Option<RatelimitHeaders>>> {
+        #[cfg(feature = "tracing")]
         tracing::debug!("getting bucket for path: {:?}", path);
 
         let (tx, rx) = oneshot::channel();
@@ -103,15 +104,18 @@ impl Ratelimiter {
 
         match buckets.entry(path.clone()) {
             Entry::Occupied(bucket) => {
+                #[cfg(feature = "tracing")]
                 tracing::debug!("got existing bucket: {:?}", path);
 
                 let bucket = bucket.into_mut();
                 bucket.queue.push(tx);
+                #[cfg(feature = "tracing")]
                 tracing::debug!("added request into bucket queue: {:?}", path);
 
                 (Arc::clone(&bucket), false)
             }
             Entry::Vacant(entry) => {
+                #[cfg(feature = "tracing")]
                 tracing::debug!("making new bucket for path: {:?}", path);
                 let bucket = Bucket::new(path.clone());
                 bucket.queue.push(tx);

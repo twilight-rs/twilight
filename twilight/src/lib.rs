@@ -136,7 +136,7 @@
 //!     let scheme = ShardScheme::Auto;
 //!
 //!     // Use intents to only receive guild message events.
-//!     let cluster = Cluster::builder(&token, Intents::GUILD_MESSAGES)
+//!     let (cluster, mut events) = Cluster::builder(&token, Intents::GUILD_MESSAGES)
 //!         .shard_scheme(scheme)
 //!         .build()
 //!         .await?;
@@ -157,8 +157,6 @@
 //!     let cache = InMemoryCache::builder()
 //!         .resource_types(ResourceType::MESSAGE)
 //!         .build();
-//!
-//!     let mut events = cluster.events();
 //!
 //!     // Process each event as they come in.
 //!     while let Some((shard_id, event)) = events.next().await {

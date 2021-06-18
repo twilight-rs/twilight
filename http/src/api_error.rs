@@ -68,6 +68,10 @@ pub enum ErrorCode {
     UnknownGuildTemplate,
     /// Unknown interaction
     UnknownInteraction,
+    /// Unknown application command
+    UnknownApplicationCommand,
+    /// Unknown application command permissions
+    UnknownApplicationCommandPermissions,
     /// Bots cannot use this endpoint
     BotsCannotUseEndpoint,
     /// Only bots can use this endpoint
@@ -108,6 +112,10 @@ pub enum ErrorCode {
     MaximumAttachmentsReached,
     /// Maximum number of invites reached (1000)
     MaximumInvitesReached,
+    /// Maximum number of animated emojis reached
+    MaximumAnimatedEmojisReached,
+    /// Maximum number of server members reached
+    MaximumGuildMembersReached,
     /// Guild already has a template
     GuildTemplateAlreadyExist,
     /// Maximum number of bans for non-guild members have been exceeded
@@ -130,6 +138,8 @@ pub enum ErrorCode {
     UserNotInVoice,
     /// This message has already been crossposted
     MessageAlreadyCrossposted,
+    /// An application command with that name already exists
+    CommandNameAlreadyExists,
     /// Missing access
     Missingaccess,
     /// Invalid account type
@@ -245,6 +255,8 @@ impl ErrorCode {
             Self::UnknownGiftCode => 10038,
             Self::UnknownGuildTemplate => 10057,
             Self::UnknownInteraction => 10062,
+            Self::UnknownApplicationCommand => 10063,
+            Self::UnknownApplicationCommandPermissions => 10066,
             Self::BotsCannotUseEndpoint => 20001,
             Self::OnlyBotsCanUseEndpoint => 20002,
             Self::ExplicitContentSendingBlocked => 20009,
@@ -265,6 +277,8 @@ impl ErrorCode {
             Self::MaximumGuildChannelsReached => 30013,
             Self::MaximumAttachmentsReached => 30015,
             Self::MaximumInvitesReached => 30016,
+            Self::MaximumAnimatedEmojisReached => 30018,
+            Self::MaximumGuildMembersReached => 30019,
             Self::GuildTemplateAlreadyExist => 30031,
             Self::MaximumNonGuildBansReached => 30035,
             Self::MaximumGuildBansFetchesReached => 30037,
@@ -276,6 +290,7 @@ impl ErrorCode {
             Self::UserBannedFromGuild => 40007,
             Self::UserNotInVoice => 40032,
             Self::MessageAlreadyCrossposted => 40033,
+            Self::CommandNameAlreadyExists => 40041,
             Self::Missingaccess => 50001,
             Self::InvalidAccountType => 50002,
             Self::InvalidDMChannelAction => 50003,
@@ -352,6 +367,8 @@ impl From<u64> for ErrorCode {
             10038 => Self::UnknownGiftCode,
             10057 => Self::UnknownGuildTemplate,
             10062 => Self::UnknownInteraction,
+            10063 => Self::UnknownApplicationCommand,
+            10066 => Self::UnknownApplicationCommandPermissions,
             20001 => Self::BotsCannotUseEndpoint,
             20002 => Self::OnlyBotsCanUseEndpoint,
             20022 => Self::AnnouncementRateLimitReached,
@@ -372,6 +389,8 @@ impl From<u64> for ErrorCode {
             30013 => Self::MaximumGuildChannelsReached,
             30015 => Self::MaximumAttachmentsReached,
             30016 => Self::MaximumInvitesReached,
+            30018 => Self::MaximumAnimatedEmojisReached,
+            30019 => Self::MaximumGuildMembersReached,
             30031 => Self::GuildTemplateAlreadyExist,
             30035 => Self::MaximumNonGuildBansReached,
             30037 => Self::MaximumGuildBansFetchesReached,
@@ -383,6 +402,7 @@ impl From<u64> for ErrorCode {
             40007 => Self::UserBannedFromGuild,
             40032 => Self::UserNotInVoice,
             40033 => Self::MessageAlreadyCrossposted,
+            40041 => Self::CommandNameAlreadyExists,
             50001 => Self::Missingaccess,
             50002 => Self::InvalidAccountType,
             50003 => Self::InvalidDMChannelAction,
@@ -459,6 +479,8 @@ impl Display for ErrorCode {
             Self::UnknownGiftCode => f.write_str("Unknown gift code"),
             Self::UnknownGuildTemplate => f.write_str("Unknown guild template"),
             Self::UnknownInteraction => f.write_str("Unknown interaction"),
+            Self::UnknownApplicationCommand => f.write_str("Unknown application command"),
+            Self::UnknownApplicationCommandPermissions => f.write_str("Unknown application command permissions"),
             Self::BotsCannotUseEndpoint => f.write_str("Bots cannot use this endpoint"),
             Self::OnlyBotsCanUseEndpoint => f.write_str("Only bots can use this endpoint"),
             Self::ExplicitContentSendingBlocked => f.write_str("Explicit content cannot be sent to the desired recipient(s)"),
@@ -479,6 +501,8 @@ impl Display for ErrorCode {
             Self::MaximumGuildChannelsReached => f.write_str("Maximum number of guild channels reached (500)"),
             Self::MaximumAttachmentsReached => f.write_str("Maximum number of attachments in a message reached (10)"),
             Self::MaximumInvitesReached => f.write_str("Maximum number of invites reached (1000)"),
+            Self::MaximumAnimatedEmojisReached => f.write_str("Maximum animated emojis reached"),
+            Self::MaximumGuildMembersReached => f.write_str("Maximum number of server members reached"),
             Self::GuildTemplateAlreadyExist => f.write_str("Guild already has a template"),
             Self::MaximumNonGuildBansReached => f.write_str("Maximum number of bans for non-guild members have been exceeded"),
             Self::MaximumGuildBansFetchesReached => f.write_str("Maximum number of bans fetches has been reached"),
@@ -490,6 +514,7 @@ impl Display for ErrorCode {
             Self::UserBannedFromGuild => f.write_str("The user is banned from this guild"),
             Self::UserNotInVoice => f.write_str("Target user is not connected to voice"),
             Self::MessageAlreadyCrossposted => f.write_str("This message has already been crossposted"),
+            Self::CommandNameAlreadyExists => f.write_str("An application command with that name already exists"),
             Self::Missingaccess => f.write_str("Missing access"),
             Self::InvalidAccountType => f.write_str("Invalid account type"),
             Self::InvalidDMChannelAction => f.write_str("Cannot execute action on a DM channel"),

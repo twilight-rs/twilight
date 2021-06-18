@@ -1,9 +1,7 @@
 use serde::Serialize;
-use std::sync::Arc;
 use twilight_model::{
     guild::Emoji,
-    id::{EmojiId, RoleId},
-    user::User,
+    id::{EmojiId, RoleId, UserId},
 };
 
 #[derive(Clone, Debug, Eq, PartialEq, Serialize)]
@@ -14,7 +12,8 @@ pub struct CachedEmoji {
     pub managed: bool,
     pub require_colons: bool,
     pub roles: Vec<RoleId>,
-    pub user: Option<Arc<User>>,
+    /// ID of the user who created the emoji.
+    pub user_id: Option<UserId>,
     pub available: bool,
 }
 
@@ -26,6 +25,7 @@ impl PartialEq<Emoji> for CachedEmoji {
             && self.name == other.name
             && self.require_colons == other.require_colons
             && self.roles == other.roles
+            && self.user_id == other.user.as_ref().map(|user| user.id)
             && self.available == other.available
     }
 }
@@ -44,7 +44,7 @@ mod tests {
         managed,
         require_colons,
         roles,
-        user
+        user_id
     );
     assert_impl_all!(CachedEmoji: Clone, Debug, Eq, PartialEq);
 
@@ -67,7 +67,7 @@ mod tests {
             managed: false,
             require_colons: true,
             roles: vec![],
-            user: None,
+            user_id: None,
             available: true,
         };
 

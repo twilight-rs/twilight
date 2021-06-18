@@ -2,6 +2,198 @@
 
 Changelog for `twilight-http`.
 
+## [0.5.0] - 2021-06-13
+
+### Upgrade Path
+
+Remove usage of `GetReactions::before`, `ErrorType::Formatting`,
+`ErrorType::Ratelimiting`, `CreateMessage::attachment`,
+`CreateMessage::attachments`, `CreateGuild::region`, `UpdateGuild::region`, and
+`Result`.
+
+Update usage of `CreateGuildFromTemplateError`, `CreateTemplateError`,
+`SearchGuildMembersError`, `UpdateTemplateError`.
+
+Replace the following usages:
+```diff
+-twilight_http::routing::Route::DeleteMessageSpecficReaction
++twilight_http::routing::Route::DeleteMessageSpecificReaction
+
+-twilight_http::request::channel::invite::CreateInvite::target_user
++twilight_http::request::channel::invite::CreateInvite::target_user_id
+
+-twilight_http::request::channel::invite::CreateInvite::target_user_type
++twilight_http::request::channel::invite::CreateInvite::target_type
+```
+
+`UpdateStageInstance` requests now look like this:
+
+```diff
+-client.update_stage_instance(channel_id, topic)?.await?;
++client.update_stage_instance(channel_id)
++    .topic(topic)?
++    .await?;
+```
+
+### Additions
+
+Support for Slash Commands has been added.
+
+The following HTTP requests have been added:
+
+- `create_followup_message`
+- `create_global_command`
+- `create_guild_command`
+- `delete_followup_message`
+- `delete_global_command`
+- `delete_guild_command`
+- `delete_interaction_original`
+- `get_command_permissions`
+- `get_global_commands`
+- `get_guild_command_permissions`
+- `get_guild_commands`
+- `interaction_callback`
+- `set_command_permissions`
+- `set_global_commands`
+- `set_guild_commands`
+- `update_command_permissions`
+- `update_followup_message`
+- `update_global_command`
+- `update_guild_command`
+- `update_interaction_original`
+
+### Enhancements
+
+The following HTTP errors have been added:
+
+- `10063` `UnknownApplicationCommand`
+- `10066` `UnknownApplicationCommandPermissions`
+- `40041` `CommandNameAlreadyExists`
+
+The following HTTP ratelimiting paths have been added:
+
+- `ApplicationCommand(u64)`
+- `ApplicationCommandId(u64)`
+- `ApplicationGuildCommand(u64)`
+- `ApplicationGuildCommandId(u64)`
+- `InteractionCallback(u64)`
+
+The following HTTP routes have been added:
+
+`CreateGlobalCommand { application_id }`
+`CreateGuildCommand { application_id, guild_id }`
+`DeleteGlobalCommand { application_id, command_id }`
+`DeleteGuildCommand { application_id, command_id, guild_id }`
+`DeleteInteractionOriginal { application_id, interaction_token }`
+`GetCommandPermissions { application_id, command_id, guild_id }`
+`GetGlobalCommands { application_id }`
+`GetGuildCommandPermissions { application_id, guild_id }`
+`GetGuildCommands { application_id, guild_id }`
+`InteractionCallback { interaction_id, interaction_token }`
+`SetCommandPermissions { application_id, guild_id }`
+`SetGlobalCommands { application_id }`
+`SetGuildCommands { application_id, guild_id }`
+`UpdateCommandPermissions { application_id, command_id, guild_id }`
+`UpdateGlobalCommand { application_id, command_id }`
+`UpdateGuildCommand { application_id, command_id, guild_id }`
+`UpdateInteractionOriginal { application_id, interaction_token }`
+
+### Changes
+
+`GetReactions::before`, and its corresponding `Route::GetReactionUsers::before`
+has been removed ([#810] - [@7596ff]).
+
+`CreateInvite::{target_user, target_user_type}` have been removed [#847] -
+[@7596ff]).
+
+The `Formatting` and `Ratelimiting` HTTP error variants have been removed, as
+they are unused ([#854] - [@vivian]).
+
+In `UpdateStageInstance`, the `topic` field is no longer required ([#895] -
+[@7596ff]).
+
+The `tracing` dependency is now optional, and enabled by default ([#910] -
+[@vivian]).
+
+The following errors have been properly converted to the new `Error` standard
+([#898] - [@7596ff]):
+- `CreateGuildFromTemplateError`
+- `CreateTemplateError`
+- `SearchGuildMembersError`
+- `UpdateTemplateError`
+
+A typo in the name of `DeleteMessageSpecificReaction` has been fixed ([#927] -
+[@vivian]).
+
+`CreateMessage::{attachment, attachments}` have been removed ([#929] -
+[@7596ff]).
+
+References to `Guild::region` have been removed. This includes the `region`
+method on `CreateGuild` and `UpdateGuild` ([#930] - [@7596ff]).
+
+`Result` has been removed ([#931] - [@7596ff]).
+
+[#810]: https://github.com/twilight-rs/twilight/pull/810
+[#847]: https://github.com/twilight-rs/twilight/pull/847
+[#854]: https://github.com/twilight-rs/twilight/pull/854
+[#895]: https://github.com/twilight-rs/twilight/pull/895
+[#898]: https://github.com/twilight-rs/twilight/pull/898
+[#910]: https://github.com/twilight-rs/twilight/pull/910
+[#927]: https://github.com/twilight-rs/twilight/pull/927
+[#929]: https://github.com/twilight-rs/twilight/pull/929
+[#930]: https://github.com/twilight-rs/twilight/pull/930
+[#931]: https://github.com/twilight-rs/twilight/pull/931
+
+## [0.4.3] - 2021-06-12
+
+### Additions
+
+Added new `ErrorCode`s:
+
+- `20031 UnallowedWordsForPublicStage` ([#886] - [@BlackHoleFox])
+- `30018 MaximumAnimatedEmojisReached` ([#918] - [@7596ff])
+- `30019 MaximumGuildMembersReached` ([#918] - [@7596ff])
+
+Added new request methods ([#867] - [@7596ff]):
+
+- `CreateStageInstance::privacy_level`
+- `UpdateStageInstance::privacy_level`
+- `UpdateStageInstance::topic`
+
+Note: it is currently impossible to change only the `privacy_level` of an
+existing stage instance.  The change required to fix this is breaking, and will
+be fixed in a later version.
+
+### Changes
+
+The following dependencies have been removed:
+
+- `bytes` ([#909] - [@vivian])
+- `futures-util` ([#912] - [@vivian])
+- `native-tls` ([#911] - [@vivian])
+- `serde_repr` ([#920] - [@vivian])
+
+`Client::update_guild_channel_positions` was changed ([#880] - [@7596ff]):
+- It now accepts a more generic parameter.
+- `twilight_http::request::guild::update_guild_channel_positions::Position` is
+  now `pub`, and has new fields `lock_permissions` and `parent_id`.
+
+`error::Result` has been deprecated, as importing `error::Error` is similar
+([#821] - [@vivian]).
+
+The minimum channel name length is now 1 ([#885] - [@BlackHoleFox]).
+
+[#821]: https://github.com/twilight-rs/twilight/pull/821
+[#867]: https://github.com/twilight-rs/twilight/pull/867
+[#880]: https://github.com/twilight-rs/twilight/pull/880
+[#885]: https://github.com/twilight-rs/twilight/pull/885
+[#886]: https://github.com/twilight-rs/twilight/pull/886
+[#909]: https://github.com/twilight-rs/twilight/pull/909
+[#911]: https://github.com/twilight-rs/twilight/pull/911
+[#912]: https://github.com/twilight-rs/twilight/pull/912
+[#918]: https://github.com/twilight-rs/twilight/pull/918
+[#920]: https://github.com/twilight-rs/twilight/pull/920
+
 ## [0.4.2] - 2021-05-30
 
 ### Upgrade Path
@@ -672,6 +864,7 @@ Initial release.
 [@7596ff]: https://github.com/7596ff
 [@AEnterprise]: https://github.com/AEnterprise
 [@AsianIntel]: https://github.com/AsianIntel
+[@BlackHoleFox]: https://github.com/BlackHoleFox
 [@chamburr]: https://github.com/chamburr
 [@coadler]: https://github.com/coadler
 [@DusterTheFirst]: https://github.com/DusterTheFirst
@@ -721,6 +914,8 @@ Initial release.
 
 [0.2.0-beta.1:app integrations]: https://github.com/discord/discord-api-docs/commit/a926694e2f8605848bda6b57d21c8817559e5cec
 
+[0.5.0]: https://github.com/twilight-rs/twilight/releases/tag/http-0.5.0
+[0.4.3]: https://github.com/twilight-rs/twilight/releases/tag/http-0.4.3
 [0.4.2]: https://github.com/twilight-rs/twilight/releases/tag/http-0.4.2
 [0.4.1]: https://github.com/twilight-rs/twilight/releases/tag/http-0.4.1
 [0.4.0]: https://github.com/twilight-rs/twilight/releases/tag/http-0.4.0

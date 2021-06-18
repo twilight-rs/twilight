@@ -1,9 +1,12 @@
+use crate::model::{CachedMessage, CachedPresence};
+
 use super::{config::ResourceType, InMemoryCache};
 use dashmap::DashMap;
-use std::{borrow::Cow, collections::HashSet, hash::Hash, ops::Deref, sync::Arc};
+use std::{borrow::Cow, collections::HashSet, hash::Hash, ops::Deref};
 use twilight_model::{
+    application::interaction::Interaction,
     channel::{message::MessageReaction, Channel, GuildChannel, ReactionType},
-    gateway::{event::Event, payload::*, presence::Presence},
+    gateway::{event::Event, payload::*},
     id::GuildId,
 };
 
@@ -36,6 +39,10 @@ impl UpdateCache for Event {
             GuildEmojisUpdate(v) => c.update(v),
             GuildIntegrationsUpdate(v) => c.update(v),
             GuildUpdate(v) => c.update(v.deref()),
+            IntegrationCreate(v) => c.update(v.deref()),
+            IntegrationDelete(v) => c.update(v.deref()),
+            IntegrationUpdate(v) => c.update(v.deref()),
+            InteractionCreate(v) => c.update(v.deref()),
             InviteCreate(_) => {}
             InviteDelete(_) => {}
             MemberAdd(v) => c.update(v.deref()),
@@ -129,10 +136,10 @@ impl UpdateCache for ChannelPinsUpdate {
             return;
         }
 
-        if let Some(mut item) = cache.0.channels_guild.get_mut(&self.channel_id) {
-            let channel = Arc::make_mut(&mut item.data);
+        if let Some(mut r) = cache.0.channels_guild.get_mut(&self.channel_id) {
+            let value = r.value_mut();
 
-            if let GuildChannel::Text(text) = channel {
+            if let GuildChannel::Text(ref mut text) = value.data {
                 text.last_pin_timestamp = self.last_pin_timestamp.clone();
             }
 
@@ -140,13 +147,13 @@ impl UpdateCache for ChannelPinsUpdate {
         }
 
         if let Some(mut channel) = cache.0.channels_private.get_mut(&self.channel_id) {
-            Arc::make_mut(&mut channel).last_pin_timestamp = self.last_pin_timestamp.clone();
+            channel.last_pin_timestamp = self.last_pin_timestamp.clone();
 
             return;
         }
 
         if let Some(mut group) = cache.0.groups.get_mut(&self.channel_id) {
-            Arc::make_mut(&mut group).last_pin_timestamp = self.last_pin_timestamp.clone();
+            group.last_pin_timestamp = self.last_pin_timestamp.clone();
         }
     }
 }
@@ -258,9 +265,7 @@ impl UpdateCache for GuildUpdate {
             return;
         }
 
-        #[allow(deprecated)]
         if let Some(mut guild) = cache.0.guilds.get_mut(&self.0.id) {
-            let mut guild = Arc::make_mut(&mut guild);
             guild.afk_channel_id = self.afk_channel_id;
             guild.afk_timeout = self.afk_timeout;
             guild.banner = self.banner.clone();
@@ -281,13 +286,103 @@ impl UpdateCache for GuildUpdate {
             guild
                 .premium_subscription_count
                 .replace(self.premium_subscription_count.unwrap_or_default());
-            guild.region = self.region.clone();
             guild.splash = self.splash.clone();
             guild.system_channel_id = self.system_channel_id;
             guild.verification_level = self.verification_level;
             guild.vanity_url_code = self.vanity_url_code.clone();
             guild.widget_channel_id = self.widget_channel_id;
             guild.widget_enabled = self.widget_enabled;
+        };
+    }
+}
+
+impl UpdateCache for IntegrationCreate {
+    fn update(&self, cache: &InMemoryCache) {
+        if !cache.wants(ResourceType::INTEGRATION) {
+            return;
+        }
+
+        if let Some(guild_id) = self.guild_id {
+            super::upsert_guild_item(
+                &cache.0.integrations,
+                guild_id,
+                (guild_id, self.id),
+                self.0.clone(),
+            );
+        }
+    }
+}
+
+impl UpdateCache for IntegrationDelete {
+    fn update(&self, cache: &InMemoryCache) {
+        if !cache.wants(ResourceType::INTEGRATION) {
+            return;
+        }
+
+        cache.delete_integration(self.guild_id, self.id);
+    }
+}
+
+impl UpdateCache for IntegrationUpdate {
+    fn update(&self, cache: &InMemoryCache) {
+        if !cache.wants(ResourceType::INTEGRATION) {
+            return;
+        }
+
+        if let Some(guild_id) = self.guild_id {
+            cache.cache_integration(guild_id, self.0.clone());
+        }
+    }
+}
+
+impl UpdateCache for InteractionCreate {
+    fn update(&self, cache: &InMemoryCache) {
+        #[allow(clippy::single_match)]
+        match &self.0 {
+            Interaction::ApplicationCommand(command) => {
+                if cache.wants(ResourceType::MEMBER) {
+                    if let Some(member) = &command.member {
+                        if let Some(user) = &member.user {
+                            cache.cache_user(Cow::Borrowed(user), command.guild_id);
+
+                            cache.cache_borrowed_partial_member(
+                                command.guild_id.unwrap(),
+                                &member,
+                                user.id,
+                            );
+                        }
+                    }
+                }
+
+                if let Some(user) = &command.user {
+                    cache.cache_user(Cow::Borrowed(user), None);
+                }
+
+                if let Some(resolved) = &command.data.resolved {
+                    for u in &resolved.users {
+                        cache.cache_user(Cow::Borrowed(u), command.guild_id);
+
+                        if !cache.wants(ResourceType::MEMBER) || command.guild_id.is_none() {
+                            continue;
+                        }
+
+                        // This should always match, because resolved members
+                        // are guaranteed to have a matching resolved user
+                        if let Some(member) = &resolved.members.iter().find(|m| m.id == u.id) {
+                            if let Some(guild_id) = command.guild_id {
+                                cache.cache_borrowed_interaction_member(guild_id, &member);
+                            }
+                        }
+                    }
+
+                    if cache.wants(ResourceType::ROLE) {
+                        if let Some(guild_id) = command.guild_id {
+                            cache.cache_roles(guild_id, resolved.roles.iter().cloned());
+                        }
+                    }
+                }
+            }
+            _ => {}
         };
     }
 }
@@ -366,10 +461,9 @@ impl UpdateCache for MemberUpdate {
             Some(member) => member,
             None => return,
         };
-        let mut member = Arc::make_mut(&mut member);
 
-        member.deaf = self.deaf.unwrap_or(member.deaf);
-        member.mute = self.mute.unwrap_or(member.mute);
+        member.deaf = self.deaf.or(member.deaf);
+        member.mute = self.mute.or(member.mute);
         member.nick = self.nick.clone();
         member.roles = self.roles.clone();
         member.joined_at.replace(self.joined_at.clone());
@@ -379,6 +473,18 @@ impl UpdateCache for MemberUpdate {
 
 impl UpdateCache for MessageCreate {
     fn update(&self, cache: &InMemoryCache) {
+        if cache.wants(ResourceType::USER) {
+            cache.cache_user(Cow::Borrowed(&self.author), self.guild_id);
+        }
+
+        if let (Some(member), Some(guild_id), true) = (
+            &self.member,
+            self.guild_id,
+            cache.wants(ResourceType::MEMBER),
+        ) {
+            cache.cache_borrowed_partial_member(guild_id, member, self.author.id)
+        }
+
         if !cache.wants(ResourceType::MESSAGE) {
             return;
         }
@@ -389,13 +495,7 @@ impl UpdateCache for MessageCreate {
             channel.pop_back();
         }
 
-        channel.push_front(Arc::new(From::from(self.0.clone())));
-
-        let user = cache.cache_user(Cow::Borrowed(&self.author), self.guild_id);
-
-        if let (Some(member), Some(guild_id)) = (&self.member, self.guild_id) {
-            cache.cache_borrowed_partial_member(guild_id, member, user);
-        }
+        channel.push_front(CachedMessage::from(self.0.clone()));
     }
 }
 
@@ -438,46 +538,44 @@ impl UpdateCache for MessageUpdate {
         let mut channel = cache.0.messages.entry(self.channel_id).or_default();
 
         if let Some(mut message) = channel.iter_mut().find(|msg| msg.id == self.id) {
-            let mut msg = Arc::make_mut(&mut message);
-
             if let Some(attachments) = &self.attachments {
-                msg.attachments = attachments.clone();
+                message.attachments = attachments.clone();
             }
 
             if let Some(content) = &self.content {
-                msg.content = content.clone();
+                message.content = content.clone();
             }
 
             if let Some(edited_timestamp) = &self.edited_timestamp {
-                msg.edited_timestamp.replace(edited_timestamp.clone());
+                message.edited_timestamp.replace(edited_timestamp.clone());
             }
 
             if let Some(embeds) = &self.embeds {
-                msg.embeds = embeds.clone();
+                message.embeds = embeds.clone();
             }
 
             if let Some(mention_everyone) = self.mention_everyone {
-                msg.mention_everyone = mention_everyone;
+                message.mention_everyone = mention_everyone;
             }
 
             if let Some(mention_roles) = &self.mention_roles {
-                msg.mention_roles = mention_roles.clone();
+                message.mention_roles = mention_roles.clone();
             }
 
             if let Some(mentions) = &self.mentions {
-                msg.mentions = mentions.iter().map(|x| x.id).collect::<Vec<_>>();
+                message.mentions = mentions.iter().map(|x| x.id).collect::<Vec<_>>();
             }
 
             if let Some(pinned) = self.pinned {
-                msg.pinned = pinned;
+                message.pinned = pinned;
             }
 
             if let Some(timestamp) = &self.timestamp {
-                msg.timestamp = timestamp.clone();
+                message.timestamp = timestamp.clone();
             }
 
             if let Some(tts) = self.tts {
-                msg.tts = tts;
+                message.tts = tts;
             }
         }
     }
@@ -489,12 +587,12 @@ impl UpdateCache for PresenceUpdate {
             return;
         }
 
-        let presence = Presence {
+        let presence = CachedPresence {
             activities: self.activities.clone(),
             client_status: self.client_status.clone(),
             guild_id: self.guild_id,
             status: self.status,
-            user: self.user.clone(),
+            user_id: crate::presence_user_id(&self.user),
         };
 
         cache.cache_presence(self.guild_id, presence);
@@ -509,14 +607,16 @@ impl UpdateCache for ReactionAdd {
 
         let mut channel = cache.0.messages.entry(self.0.channel_id).or_default();
 
-        let mut message = match channel.iter_mut().find(|msg| msg.id == self.0.message_id) {
+        let message = match channel.iter_mut().find(|msg| msg.id == self.0.message_id) {
             Some(message) => message,
             None => return,
         };
 
-        let msg = Arc::make_mut(&mut message);
-
-        if let Some(reaction) = msg.reactions.iter_mut().find(|r| r.emoji == self.0.emoji) {
+        if let Some(reaction) = message
+            .reactions
+            .iter_mut()
+            .find(|r| r.emoji == self.0.emoji)
+        {
             if !reaction.me {
                 if let Some(current_user) = cache.current_user() {
                     if current_user.id == self.0.user_id {
@@ -532,7 +632,7 @@ impl UpdateCache for ReactionAdd {
                 .map(|user| user.id == self.0.user_id)
                 .unwrap_or_default();
 
-            msg.reactions.push(MessageReaction {
+            message.reactions.push(MessageReaction {
                 count: 1,
                 emoji: self.0.emoji.clone(),
                 me,
@@ -549,14 +649,16 @@ impl UpdateCache for ReactionRemove {
 
         let mut channel = cache.0.messages.entry(self.0.channel_id).or_default();
 
-        let mut message = match channel.iter_mut().find(|msg| msg.id == self.0.message_id) {
+        let message = match channel.iter_mut().find(|msg| msg.id == self.0.message_id) {
             Some(message) => message,
             None => return,
         };
 
-        let msg = Arc::make_mut(&mut message);
-
-        if let Some(reaction) = msg.reactions.iter_mut().find(|r| r.emoji == self.0.emoji) {
+        if let Some(reaction) = message
+            .reactions
+            .iter_mut()
+            .find(|r| r.emoji == self.0.emoji)
+        {
             if reaction.me {
                 if let Some(current_user) = cache.current_user() {
                     if current_user.id == self.0.user_id {
@@ -568,7 +670,7 @@ impl UpdateCache for ReactionRemove {
             if reaction.count > 1 {
                 reaction.count -= 1;
             } else {
-                msg.reactions.retain(|e| !(e.emoji == self.0.emoji));
+                message.reactions.retain(|e| !(e.emoji == self.0.emoji));
             }
         }
     }
@@ -582,13 +684,12 @@ impl UpdateCache for ReactionRemoveAll {
 
         let mut channel = cache.0.messages.entry(self.channel_id).or_default();
 
-        let mut message = match channel.iter_mut().find(|msg| msg.id == self.message_id) {
+        let message = match channel.iter_mut().find(|msg| msg.id == self.message_id) {
             Some(message) => message,
             None => return,
         };
 
-        let msg = Arc::make_mut(&mut message);
-        msg.reactions.clear();
+        message.reactions.clear();
     }
 }
 
@@ -600,12 +701,12 @@ impl UpdateCache for ReactionRemoveEmoji {
 
         let mut channel = cache.0.messages.entry(self.channel_id).or_default();
 
-        let mut message = match channel.iter_mut().find(|msg| msg.id == self.message_id) {
+        let message = match channel.iter_mut().find(|msg| msg.id == self.message_id) {
             Some(message) => message,
             None => return,
         };
 
-        let index = message.reactions.iter().position(|r| {
+        let maybe_index = message.reactions.iter().position(|r| {
             matches!(&r.emoji,
                 ReactionType::Unicode { name, .. }
                     | ReactionType::Custom { name: Some(name), .. }
@@ -613,9 +714,8 @@ impl UpdateCache for ReactionRemoveEmoji {
             )
         });
 
-        if let Some(index) = index {
-            let msg = Arc::make_mut(&mut message);
-            msg.reactions.remove(index);
+        if let Some(index) = maybe_index {
+            message.reactions.remove(index);
         }
     }
 }
@@ -747,6 +847,10 @@ mod tests {
     use super::*;
     use crate::config::ResourceType;
     use twilight_model::{
+        application::interaction::{
+            application_command::{CommandData, CommandInteractionDataResolved, InteractionMember},
+            ApplicationCommand, InteractionType,
+        },
         channel::{
             message::{MessageFlags, MessageType},
             ChannelType, GuildChannel, Message, Reaction, TextChannel,
@@ -754,10 +858,12 @@ mod tests {
         gateway::payload::{reaction_remove_emoji::PartialEmoji, ChannelDelete},
         guild::{
             DefaultMessageNotificationLevel, ExplicitContentFilter, Guild, Member, MfaLevel,
-            NSFWLevel, PartialGuild, PartialMember, PremiumTier, SystemChannelFlags,
-            VerificationLevel,
+            NSFWLevel, PartialGuild, PartialMember, Permissions, PremiumTier, Role,
+            SystemChannelFlags, VerificationLevel,
         },
-        id::{ChannelId, GuildId, MessageId, UserId},
+        id::{
+            ApplicationId, ChannelId, CommandId, GuildId, InteractionId, MessageId, RoleId, UserId,
+        },
         user::User,
         voice::VoiceState,
     };
@@ -789,6 +895,7 @@ mod tests {
         let msg = Message {
             activity: None,
             application: None,
+            application_id: None,
             attachments: Vec::new(),
             author: User {
                 avatar: Some("".to_owned()),
@@ -812,14 +919,17 @@ mod tests {
             flags: Some(MessageFlags::empty()),
             guild_id: Some(GuildId(1)),
             id: MessageId(4),
+            interaction: None,
             kind: MessageType::Regular,
             member: Some(PartialMember {
                 deaf: false,
                 joined_at: None,
                 mute: false,
                 nick: Some("member nick".to_owned()),
+                permissions: None,
                 premium_since: None,
                 roles: Vec::new(),
+                user: None,
             }),
             mention_channels: Vec::new(),
             mention_everyone: false,
@@ -914,11 +1024,9 @@ mod tests {
         cache
     }
 
-    #[allow(deprecated)]
     #[test]
     fn test_guild_update() {
         let cache = InMemoryCache::new();
-        #[allow(deprecated)]
         let guild = Guild {
             afk_channel_id: None,
             afk_timeout: 0,
@@ -944,7 +1052,6 @@ mod tests {
             members: Vec::new(),
             mfa_level: MfaLevel::None,
             name: "test".to_owned(),
-            nsfw: false,
             nsfw_level: NSFWLevel::Default,
             owner_id: UserId(1),
             owner: None,
@@ -953,7 +1060,6 @@ mod tests {
             premium_subscription_count: None,
             premium_tier: PremiumTier::None,
             presences: Vec::new(),
-            region: "us".to_owned(),
             roles: Vec::new(),
             rules_channel_id: None,
             splash: None,
@@ -970,7 +1076,6 @@ mod tests {
 
         cache.update(&GuildCreate(guild.clone()));
 
-        #[allow(deprecated)]
         let mutation = PartialGuild {
             id: guild.id,
             afk_channel_id: guild.afk_channel_id,
@@ -989,7 +1094,6 @@ mod tests {
             member_count: guild.member_count,
             mfa_level: guild.mfa_level,
             name: "test2222".to_owned(),
-            nsfw: false,
             nsfw_level: guild.nsfw_level,
             owner_id: UserId(2),
             owner: guild.owner,
@@ -997,7 +1101,6 @@ mod tests {
             preferred_locale: guild.preferred_locale,
             premium_subscription_count: guild.premium_subscription_count,
             premium_tier: guild.premium_tier,
-            region: guild.region,
             roles: guild.roles,
             rules_channel_id: guild.rules_channel_id,
             splash: guild.splash,
@@ -1128,20 +1231,21 @@ mod tests {
             assert_eq!(entry.value().1.len(), 1);
         }
         assert_eq!(
-            cache.member(GuildId(2), UserId(3)).unwrap().user.name,
-            "test"
+            cache.member(GuildId(2), UserId(3)).unwrap().user_id,
+            UserId(3),
         );
     }
 
     #[test]
     fn test_message_create() {
         let cache = InMemoryCache::builder()
-            .resource_types(ResourceType::MESSAGE)
+            .resource_types(ResourceType::MESSAGE | ResourceType::MEMBER | ResourceType::USER)
             .message_cache_size(1)
             .build();
         let msg = Message {
             activity: None,
             application: None,
+            application_id: None,
             attachments: Vec::new(),
             author: User {
                 avatar: Some("".to_owned()),
@@ -1165,14 +1269,17 @@ mod tests {
             flags: Some(MessageFlags::empty()),
             guild_id: Some(GuildId(1)),
             id: MessageId(4),
+            interaction: None,
             kind: MessageType::Regular,
             member: Some(PartialMember {
                 deaf: false,
                 joined_at: None,
                 mute: false,
                 nick: Some("member nick".to_owned()),
+                permissions: None,
                 premium_since: None,
                 roles: Vec::new(),
+                user: None,
             }),
             mention_channels: Vec::new(),
             mention_everyone: false,
@@ -1195,8 +1302,8 @@ mod tests {
             assert_eq!(entry.value().1.len(), 1);
         }
         assert_eq!(
-            cache.member(GuildId(1), UserId(3)).unwrap().user.name,
-            "test"
+            cache.member(GuildId(1), UserId(3)).unwrap().user_id,
+            UserId(3),
         );
         {
             let entry = cache.0.messages.get(&ChannelId(2)).unwrap();
@@ -1302,5 +1409,109 @@ mod tests {
         let msg = cache.message(ChannelId(2), MessageId(4)).unwrap();
 
         assert_eq!(msg.reactions.len(), 0);
+    }
+
+    #[test]
+    fn test_interaction_create() {
+        let cache = InMemoryCache::new();
+        cache.update(&InteractionCreate(Interaction::ApplicationCommand(
+            Box::new(ApplicationCommand {
+                application_id: ApplicationId(1),
+                channel_id: ChannelId(2),
+                data: CommandData {
+                    id: CommandId(5),
+                    name: "command name".into(),
+                    options: Vec::new(),
+                    resolved: Some(CommandInteractionDataResolved {
+                        channels: Vec::new(),
+                        members: vec![InteractionMember {
+                            hoisted_role: None,
+                            id: UserId(7),
+                            joined_at: Some("joined at date".into()),
+                            nick: None,
+                            premium_since: None,
+                            roles: vec![RoleId(8)],
+                        }],
+                        roles: vec![Role {
+                            color: 0u32,
+                            hoist: false,
+                            id: RoleId(8),
+                            managed: false,
+                            mentionable: true,
+                            name: "role name".into(),
+                            permissions: Permissions::empty(),
+                            position: 2i64,
+                            tags: None,
+                        }],
+                        users: vec![User {
+                            avatar: Some("different avatar".into()),
+                            bot: false,
+                            discriminator: "5678".into(),
+                            email: None,
+                            flags: None,
+                            id: UserId(7),
+                            locale: None,
+                            mfa_enabled: None,
+                            name: "different name".into(),
+                            premium_type: None,
+                            public_flags: None,
+                            system: None,
+                            verified: None,
+                        }],
+                    }),
+                },
+                guild_id: Some(GuildId(3)),
+                id: InteractionId(4),
+                kind: InteractionType::ApplicationCommand,
+                member: Some(PartialMember {
+                    deaf: false,
+                    joined_at: Some("joined at".into()),
+                    mute: false,
+                    nick: None,
+                    permissions: Some(Permissions::empty()),
+                    premium_since: None,
+                    roles: Vec::new(),
+                    user: Some(User {
+                        avatar: Some("avatar string".into()),
+                        bot: false,
+                        discriminator: "1234".into(),
+                        email: None,
+                        flags: None,
+                        id: UserId(6),
+                        locale: None,
+                        mfa_enabled: None,
+                        name: "username".into(),
+                        premium_type: None,
+                        public_flags: None,
+                        system: None,
+                        verified: None,
+                    }),
+                }),
+                token: "token".into(),
+                user: None,
+            }),
+        )));
+
+        {
+            let guild_members = cache.guild_members(GuildId(3)).unwrap();
+            assert_eq!(guild_members.len(), 2);
+        }
+
+        {
+            let member = cache.member(GuildId(3), UserId(6)).unwrap();
+            let user = cache.user(member.user_id).unwrap();
+            assert_eq!(user.avatar.unwrap(), "avatar string");
+        }
+
+        {
+            let member = cache.member(GuildId(3), UserId(7)).unwrap();
+            let user = cache.user(member.user_id).unwrap();
+            assert_eq!(user.avatar.unwrap(), "different avatar");
+        }
+
+        {
+            let guild_roles = cache.guild_roles(GuildId(3)).unwrap();
+            assert_eq!(guild_roles.len(), 1);
+        }
     }
 }

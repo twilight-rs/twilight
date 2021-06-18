@@ -172,6 +172,7 @@ impl BucketQueueTask {
     }
 
     pub async fn run(self) {
+        #[cfg(feature = "tracing")]
         let span = tracing::debug_span!("background queue task", path=?self.path);
 
         while let Some(queue_tx) = self.next().await {
@@ -183,20 +184,24 @@ impl BucketQueueTask {
 
             let _sent = queue_tx.send(tx);
 
+            #[cfg(feature = "tracing")]
             tracing::debug!(parent: &span, "starting to wait for response headers",);
 
             // TODO: Find a better way of handling nested types.
+            #[allow(clippy::unnested_or_patterns)]
             match timeout(Self::WAIT, rx).await {
                 Ok(Ok(Some(headers))) => self.handle_headers(&headers).await,
                 // - None was sent through the channel (request aborted)
                 // - channel was closed
                 // - timeout reached
                 Ok(Err(_)) | Err(_) | Ok(Ok(None)) => {
+                    #[cfg(feature = "tracing")]
                     tracing::debug!(parent: &span, "receiver timed out");
                 }
             }
         }
 
+        #[cfg(feature = "tracing")]
         tracing::debug!(parent: &span, "bucket appears finished, removing");
 
         self.buckets.lock().await.remove(&self.path);
@@ -225,11 +230,13 @@ impl BucketQueueTask {
             }
         };
 
+        #[cfg(feature = "tracing")]
         tracing::debug!(path=?self.path, "updating bucket");
         self.bucket.update(ratelimits).await;
     }
 
     async fn lock_global(&self, wait: Duration) {
+        #[cfg(feature = "tracing")]
         tracing::debug!(path=?self.path, "request got global ratelimited");
         self.global.lock();
         let lock = self.global.0.lock().await;
@@ -240,6 +247,7 @@ impl BucketQueueTask {
     }
 
     async fn next(&self) -> Option<Sender<Sender<Option<RatelimitHeaders>>>> {
+        #[cfg(feature = "tracing")]
         tracing::debug!(path=?self.path, "starting to get next in queue");
 
         self.wait_if_needed().await;
@@ -248,6 +256,7 @@ impl BucketQueueTask {
     }
 
     async fn wait_if_needed(&self) {
+        #[cfg(feature = "tracing")]
         let span = tracing::debug_span!("waiting for bucket to refresh", path=?self.path);
 
         let wait = {
@@ -255,6 +264,7 @@ impl BucketQueueTask {
                 return;
             }
 
+            #[cfg(feature = "tracing")]
             tracing::debug!(parent: &span, "0 tickets remaining, may have to wait");
 
             match self.bucket.time_remaining().await {
@@ -268,6 +278,7 @@ impl BucketQueueTask {
             }
         };
 
+        #[cfg(feature = "tracing")]
         tracing::debug!(
             parent: &span,
             milliseconds=%wait.as_millis(),
@@ -276,6 +287,7 @@ impl BucketQueueTask {
 
         sleep(wait).await;
 
+        #[cfg(feature = "tracing")]
         tracing::debug!(parent: &span, "done waiting for ratelimit to pass");
 
         self.bucket.try_reset().await;

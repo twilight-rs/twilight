@@ -2,6 +2,21 @@
 
 Changelog for `twilight-command-parser`.
 
+## [0.5.0] - 2021-06-13
+
+This major version bump of the Command Parser crate is done to match all of the
+other crates in the ecosystem receiving a major version bump. There are no
+changes.
+
+## [0.4.2] - 2021-06-12
+
+### Enhancements
+
+`Arguments::as_str` now uses the borrowed string's lifetime ([#852] -
+[@vilgotf]).
+
+[#852]: https://github.com/twilight-rs/twilight/pull/852
+
 ## [0.4.1] - 2021-05-30
 
 ### Enhancements
@@ -109,6 +124,7 @@ Initial release.
 [@AsianIntel]: https://github.com/AsianIntel
 [@Erk-]: https://github.com/Erk-
 [@nickelc]: https://github.com/nickelc
+[@vilgotf]: https://github.com/vilgotf
 [@vivian]: https://github.com/vivian
 
 [#585]: https://github.com/twilight-rs/twilight/pull/585
@@ -117,6 +133,8 @@ Initial release.
 [#515]: https://github.com/twilight-rs/twilight/pull/515
 [#511]: https://github.com/twilight-rs/twilight/pull/511
 
+[0.5.0]: https://github.com/twilight-rs/twilight/releases/tag/command-parser-0.5.0
+[0.4.2]: https://github.com/twilight-rs/twilight/releases/tag/command-parser-0.4.2
 [0.4.1]: https://github.com/twilight-rs/twilight/releases/tag/command-parser-0.4.1
 [0.4.0]: https://github.com/twilight-rs/twilight/releases/tag/command-parser-0.4.0
 [0.3.0]: https://github.com/twilight-rs/twilight/releases/tag/command-parser-v0.3.0

@@ -76,12 +76,12 @@
 //! described below. Enabling any of the two features below will also enable
 //! `compression`. `compression` is enabled by default.
 //!
-//! There are 2 zlib features `stock-zlib` and `simd-zlib` for the library to work
-//! one of them has to be enabled. If both are enabled it will use `stock-zlib`
+//! There are 2 zlib features `zlib-stock` and `zlib-simd` for the library to work
+//! one of them has to be enabled. If both are enabled it will use `zlib-stock`
 //!
-//! `stock-zlib` enabled by default.
+//! `zlib-stock` enabled by default.
 //!
-//! Enabling **only** `simd-zlib` will make the library use [`zlib-ng`] which is a modern
+//! Enabling **only** `zlib-simd` will make the library use [`zlib-ng`] which is a modern
 //! fork of zlib that is faster and more effective, but it needs `cmake` to compile.
 //!
 //! ### Metrics
@@ -127,7 +127,6 @@ pub mod cluster;
 pub mod shard;
 
 mod event;
-mod listener;
 
 pub use self::event::EventTypeFlags;
 pub use twilight_model::gateway::Intents;
