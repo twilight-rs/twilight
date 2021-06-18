@@ -164,10 +164,12 @@ mod tests {
     assert_fields!(ParseMentionErrorType::IdNotU64: found);
     assert_fields!(ParseMentionErrorType::LeadingArrow: found);
     assert_fields!(ParseMentionErrorType::Sigil: expected, found);
+    assert_fields!(ParseMentionErrorType::TimestampFlagInvalid: found);
     assert_fields!(ParseMentionErrorType::TrailingArrow: found);
     assert_impl_all!(ParseMentionErrorType<'_>: Debug, Send, Sync);
     assert_impl_all!(ParseMentionError<'_>: Debug, Error, Send, Sync);
 
+    #[allow(clippy::too_many_lines)]
     #[test]
     fn test_display() {
         let mut expected = "id portion ('abcd') of mention is not a u64";
@@ -246,6 +248,15 @@ mod tests {
                     expected: &["@!", "@"],
                     found: None
                 },
+                source: None,
+            }
+            .to_string(),
+        );
+        expected = "timestamp flag value 'E' is invalid";
+        assert_eq!(
+            expected,
+            ParseMentionError {
+                kind: ParseMentionErrorType::TimestampFlagInvalid { found: "E" },
                 source: None,
             }
             .to_string(),
