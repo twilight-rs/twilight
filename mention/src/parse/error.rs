@@ -82,7 +82,7 @@ impl Display for ParseMentionError<'_> {
                     f.write_str("nothing")
                 }
             }
-            &ParseMentionErrorType::TimestampFlagInvalid { found } => {
+            ParseMentionErrorType::TimestampFlagInvalid { found } => {
                 f.write_str("timestamp flag value '")?;
                 f.write_str(found)?;
 
