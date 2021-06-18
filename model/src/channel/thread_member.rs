@@ -5,9 +5,11 @@ use serde::{Deserialize, Serialize};
 pub struct ThreadMember {
     // Values currently unknown and undocumented.
     pub flags: u64,
-    pub id: ChannelId,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub id: Option<ChannelId>,
     pub join_timestamp: String,
-    pub user_id: UserId,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub user_id: Option<UserId>,
 }
 
 #[cfg(test)]
@@ -20,9 +22,9 @@ mod tests {
     fn test_thread_member() {
         let value = ThreadMember {
             flags: 3,
-            id: ChannelId(1),
+            id: Some(ChannelId(1)),
             join_timestamp: "123".to_string(),
-            user_id: UserId(2),
+            user_id: Some(UserId(2)),
         };
 
         serde_test::assert_tokens(
@@ -35,11 +37,13 @@ mod tests {
                 Token::Str("flags"),
                 Token::U64(3),
                 Token::Str("id"),
+                Token::Some,
                 Token::NewtypeStruct { name: "ChannelId" },
                 Token::Str("1"),
                 Token::Str("join_timestamp"),
                 Token::Str("123"),
                 Token::Str("user_id"),
+                Token::Some,
                 Token::NewtypeStruct { name: "UserId" },
                 Token::Str("2"),
                 Token::StructEnd,
