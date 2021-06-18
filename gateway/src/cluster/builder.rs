@@ -78,7 +78,13 @@ impl ClusterBuilder {
     /// [`ClusterStartErrorType::RetrievingGatewayInfo`]: super::ClusterStartErrorType::RetrievingGatewayInfo
     pub async fn build(
         mut self,
-    ) -> Result<(Cluster, impl Stream<Item = (u64, Event)>), ClusterStartError> {
+    ) -> Result<
+        (
+            Cluster,
+            impl Stream<Item = (u64, Event)> + Unpin + Sync + 'static,
+        ),
+        ClusterStartError,
+    > {
         if (self.1).0.gateway_url.is_none() {
             let gateway_url = (self.1)
                 .0
