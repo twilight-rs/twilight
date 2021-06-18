@@ -72,54 +72,62 @@ impl EmbedValidationError {
 impl Display for EmbedValidationError {
     fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
         match &self.kind {
-            EmbedValidationErrorType::AuthorNameTooLarge { chars } => write!(
-                f,
-                "the author name is {} characters long, but the max is {}",
-                chars,
-                Self::AUTHOR_NAME_LENGTH
-            ),
-            EmbedValidationErrorType::DescriptionTooLarge { chars } => write!(
-                f,
-                "the description is {} characters long, but the max is {}",
-                chars,
-                Self::DESCRIPTION_LENGTH
-            ),
-            EmbedValidationErrorType::EmbedTooLarge { chars } => write!(
-                f,
-                "the combined total length of the embed is {} characters long, but the max is {}",
-                chars,
-                Self::EMBED_TOTAL_LENGTH
-            ),
-            EmbedValidationErrorType::FieldNameTooLarge { chars } => write!(
-                f,
-                "a field name is {} characters long, but the max is {}",
-                chars,
-                Self::FIELD_NAME_LENGTH
-            ),
-            EmbedValidationErrorType::FieldValueTooLarge { chars } => write!(
-                f,
-                "a field value is {} characters long, but the max is {}",
-                chars,
-                Self::FIELD_VALUE_LENGTH
-            ),
-            EmbedValidationErrorType::FooterTextTooLarge { chars } => write!(
-                f,
-                "the footer's text is {} characters long, but the max is {}",
-                chars,
-                Self::FOOTER_TEXT_LENGTH
-            ),
-            EmbedValidationErrorType::TitleTooLarge { chars } => write!(
-                f,
-                "the title's length is {} characters long, but the max is {}",
-                chars,
-                Self::TITLE_LENGTH
-            ),
-            EmbedValidationErrorType::TooManyFields { amount } => write!(
-                f,
-                "there are {} fields, but the maximum amount is {}",
-                amount,
-                Self::FIELD_COUNT
-            ),
+            EmbedValidationErrorType::AuthorNameTooLarge { chars } => {
+                f.write_str("the author name is ")?;
+                Display::fmt(chars, f)?;
+                f.write_str(" characters long, but the max is ")?;
+
+                Display::fmt(&Self::AUTHOR_NAME_LENGTH, f)
+            }
+            EmbedValidationErrorType::DescriptionTooLarge { chars } => {
+                f.write_str("the description is ")?;
+                Display::fmt(chars, f)?;
+                f.write_str(" characters long, but the max is ")?;
+
+                Display::fmt(&Self::DESCRIPTION_LENGTH, f)
+            }
+            EmbedValidationErrorType::EmbedTooLarge { chars } => {
+                f.write_str("the combined total length of the embed is ")?;
+                Display::fmt(chars, f)?;
+                f.write_str(" characters long, but the max is ")?;
+
+                Display::fmt(&Self::EMBED_TOTAL_LENGTH, f)
+            }
+            EmbedValidationErrorType::FieldNameTooLarge { chars } => {
+                f.write_str("a field name is ")?;
+                Display::fmt(chars, f)?;
+                f.write_str(" characters long, but the max is ")?;
+
+                Display::fmt(&Self::FIELD_NAME_LENGTH, f)
+            }
+            EmbedValidationErrorType::FieldValueTooLarge { chars } => {
+                f.write_str("a field value is ")?;
+                Display::fmt(chars, f)?;
+                f.write_str(" characters long, but the max is ")?;
+
+                Display::fmt(&Self::FIELD_VALUE_LENGTH, f)
+            }
+            EmbedValidationErrorType::FooterTextTooLarge { chars } => {
+                f.write_str("the footer's text is ")?;
+                Display::fmt(chars, f)?;
+                f.write_str(" characters long, but the max is ")?;
+
+                Display::fmt(&Self::FOOTER_TEXT_LENGTH, f)
+            }
+            EmbedValidationErrorType::TitleTooLarge { chars } => {
+                f.write_str("the title's length is ")?;
+                Display::fmt(chars, f)?;
+                f.write_str(" characters long, but the max is ")?;
+
+                Display::fmt(&Self::TITLE_LENGTH, f)
+            }
+            EmbedValidationErrorType::TooManyFields { amount } => {
+                f.write_str("there are ")?;
+                Display::fmt(amount, f)?;
+                f.write_str(" fields, but the maximum amount is ")?;
+
+                Display::fmt(&Self::FIELD_COUNT, f)
+            }
         }
     }
 }
