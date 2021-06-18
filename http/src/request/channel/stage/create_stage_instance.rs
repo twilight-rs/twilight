@@ -70,19 +70,19 @@ pub enum CreateStageInstanceErrorType {
 
 #[derive(Default, Serialize)]
 struct CreateStageInstanceFields {
+    channel_id: ChannelId,
     #[serde(skip_serializing_if = "Option::is_none")]
     privacy_level: Option<PrivacyLevel>,
+    topic: String,
 }
 
 /// Create a new stage instance associated with a stage channel.
 ///
 /// Requires the user to be a moderator of the stage channel.
 pub struct CreateStageInstance<'a> {
-    channel_id: ChannelId,
     fields: CreateStageInstanceFields,
     fut: Option<Pending<'a, ()>>,
     http: &'a Client,
-    topic: String,
 }
 
 impl<'a> CreateStageInstance<'a> {
@@ -107,11 +107,13 @@ impl<'a> CreateStageInstance<'a> {
         }
 
         Ok(Self {
-            channel_id,
-            fields: CreateStageInstanceFields::default(),
+            fields: CreateStageInstanceFields {
+                channel_id,
+                topic,
+                ..CreateStageInstanceFields::default()
+            },
             fut: None,
             http,
-            topic,
         })
     }
 
@@ -123,12 +125,9 @@ impl<'a> CreateStageInstance<'a> {
     }
 
     fn start(&mut self) -> Result<(), HttpError> {
-        let request = Request::builder(Route::CreateStageInstance {
-            channel_id: self.channel_id.0,
-            topic: self.topic.clone(),
-        })
-        .json(&self.fields)?
-        .build();
+        let request = Request::builder(Route::CreateStageInstance)
+            .json(&self.fields)?
+            .build();
 
         self.fut.replace(Box::pin(self.http.verify(request)));
 
