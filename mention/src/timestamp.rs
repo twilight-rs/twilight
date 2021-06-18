@@ -283,7 +283,7 @@ mod tests {
         Timestamp, TimestampFlag, TimestampFlagConversionError, TimestampFlagConversionErrorType,
     };
     use static_assertions::assert_impl_all;
-    use std::{convert::TryFrom, error::Error, fmt::Debug, hash::Hash};
+    use std::{cmp::Ordering, convert::TryFrom, error::Error, fmt::Debug, hash::Hash};
 
     assert_impl_all!(TimestampFlagConversionErrorType: Debug, Send, Sync);
     assert_impl_all!(TimestampFlagConversionError: Debug, Error, Send, Sync);
@@ -349,7 +349,7 @@ mod tests {
         // Assert that two timestamps with the same unix timestamp are equal.
         //
         // We make a new timestamp here to around Clippy's `eq_op` lint.
-        assert!(Timestamp::new(2, None).cmp(&TIMESTAMP_NEW).is_eq());
+        assert!(Timestamp::new(2, None).cmp(&TIMESTAMP_NEW) == Ordering::Equal);
 
         // Assert that a lower timestamp is less than than a greater timestamp.
         assert!(TIMESTAMP_OLD < TIMESTAMP_NEW);
@@ -368,10 +368,11 @@ mod tests {
         // regardless of flag combinations.
         //
         // We make new timestamps here to around Clippy's `eq_op` lint.
-        assert!(TIMESTAMP_NEW_FLAGGED.cmp(&TIMESTAMP_NEW).is_eq());
-        assert!(Timestamp::new(2, Some(TimestampFlag::RelativeTime))
-            .cmp(&TIMESTAMP_NEW_FLAGGED)
-            .is_eq());
+        assert!(TIMESTAMP_NEW_FLAGGED.cmp(&TIMESTAMP_NEW) == Ordering::Equal);
+        assert!(
+            Timestamp::new(2, Some(TimestampFlag::RelativeTime)).cmp(&TIMESTAMP_NEW_FLAGGED)
+                == Ordering::Equal
+        );
 
         // Assert that a lower timestamp is less than than a greater timestamp
         // regardless of flag.
