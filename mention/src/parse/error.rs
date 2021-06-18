@@ -33,6 +33,13 @@ impl<'a> ParseMentionError<'a> {
     ) {
         (self.kind, self.source)
     }
+
+    pub(super) fn trailing_arrow(found: Option<char>) -> Self {
+        Self {
+            kind: ParseMentionErrorType::TrailingArrow { found },
+            source: None,
+        }
+    }
 }
 
 impl Display for ParseMentionError<'_> {
@@ -74,6 +81,12 @@ impl Display for ParseMentionError<'_> {
                 } else {
                     f.write_str("nothing")
                 }
+            }
+            &ParseMentionErrorType::TimestampFlagInvalid { found } => {
+                f.write_str("timestamp flag value '")?;
+                f.write_str(found)?;
+
+                f.write_str("' is invalid")
             }
             ParseMentionErrorType::TrailingArrow { found } => {
                 f.write_str("expected to find a trailing arrow ('>') but instead ")?;
@@ -129,6 +142,11 @@ pub enum ParseMentionErrorType<'a> {
         expected: &'a [&'a str],
         /// Character that was instead found where the sigil should be.
         found: Option<char>,
+    },
+    /// Timestamp flag value is invalid.
+    TimestampFlagInvalid {
+        /// Value of the flag.
+        found: &'a str,
     },
     /// Trailing arrow (`>`) is not present.
     TrailingArrow {

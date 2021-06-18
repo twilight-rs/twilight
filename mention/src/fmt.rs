@@ -1,5 +1,6 @@
 //! Formatters for creating mentions.
 
+use super::timestamp::Timestamp;
 use std::fmt::{Display, Formatter, Result as FmtResult};
 use twilight_model::{
     channel::{
@@ -43,6 +44,22 @@ impl Display for MentionFormat<EmojiId> {
 impl Display for MentionFormat<RoleId> {
     fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
         f.write_fmt(format_args!("<@&{}>", self.0))
+    }
+}
+
+/// Mention a user. This will format as `<t:UNIX>` if a flag is not specified or
+/// `<t:UNIX:FLAG>` if a flag is specified.
+impl Display for MentionFormat<Timestamp> {
+    fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
+        f.write_str("<t:")?;
+        Display::fmt(&self.0.unix(), f)?;
+
+        if let Some(flag) = self.0.flag() {
+            f.write_str(":")?;
+            Display::fmt(&flag, f)?;
+        }
+
+        f.write_str(">")
     }
 }
 
@@ -171,6 +188,14 @@ impl Mention<ChannelId> for TextChannel {
     }
 }
 
+/// Mention a timestamp. This will format as `<t:UNIX>` if a flag is not specified
+/// or `<t:UNIX:FLAG>` if a flag is specified.
+impl Mention<Self> for Timestamp {
+    fn mention(&self) -> MentionFormat<Self> {
+        MentionFormat(*self)
+    }
+}
+
 /// Mention a user ID. This will format as `<&ID>`.
 impl Mention<UserId> for UserId {
     fn mention(&self) -> MentionFormat<UserId> {
@@ -194,6 +219,8 @@ impl Mention<ChannelId> for VoiceChannel {
 
 #[cfg(test)]
 mod tests {
+    use crate::timestamp::{Timestamp, TimestampFlag};
+
     use super::{Mention, MentionFormat};
     use static_assertions::assert_impl_all;
     use std::fmt::{Debug, Display};
@@ -258,6 +285,22 @@ mod tests {
     #[test]
     fn test_mention_format_role_id() {
         assert_eq!("<@&123>", RoleId(123).mention().to_string());
+    }
+
+    /// Test that a timestamp with a flag displays correctly.
+    #[test]
+    fn test_mention_format_timestamp_flagged() {
+        let timestamp = Timestamp::new(1_624_047_064, Some(TimestampFlag::RelativeTime));
+
+        assert_eq!("<t:1624047064:R>", timestamp.mention().to_string());
+    }
+
+    /// Test that a timestamp without a flag displays correctly.
+    #[test]
+    fn test_mention_format_timestamp_unflagged() {
+        let timestamp = Timestamp::new(1_624_047_064, None);
+
+        assert_eq!("<t:1624047064>", timestamp.mention().to_string());
     }
 
     #[test]
