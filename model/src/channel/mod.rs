@@ -45,7 +45,7 @@ impl Display for ConversionError {
                 f.write_str("Could not convert ")?;
                 Display::fmt(num, f)?;
 
-                f.write_str(" into a valid MessageType")
+                f.write_str(" into a valid MessageType!")
             }
         }
     }

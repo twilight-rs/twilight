@@ -553,7 +553,7 @@ impl Display for ErrorCode {
             Self::ReactionBlocked => f.write_str("Reaction was blocked"),
             Self::ApiResourceOverloaded => f.write_str("API resource is currently overloaded. Try again a little later"),
             Self::Other(number) => {
-                f.write_str("error code not registered by Twilight: ")?;
+                f.write_str("An error code Twilight doesn't have registered: ")?;
 
                 Display::fmt(number, f)
             }
