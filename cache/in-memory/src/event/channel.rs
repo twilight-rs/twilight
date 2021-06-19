@@ -204,41 +204,69 @@ impl UpdateCache for ChannelUpdate {
 mod tests {
     use super::*;
     use crate::test;
-    use twilight_model::gateway::event::Event;
 
     #[test]
-    fn test_channel_delete_guild() {
+    fn test_channel_lifecycle() {
         let cache = InMemoryCache::new();
-        let (guild_id, channel_id, channel) = test::guild_channel_text();
+        let (guild_id, channel_id, channel) = test::guild_channel_text("name".to_string());
 
-        cache.cache_guild_channel(guild_id, channel.clone());
-        assert_eq!(1, cache.0.channels_guild.len());
-        assert!(cache
-            .0
-            .guild_channels
-            .get(&guild_id)
-            .unwrap()
-            .contains(&channel_id));
+        let event = ChannelCreate(Channel::Guild(channel.clone()));
+        cache.update(&event);
 
-        cache.update(&Event::ChannelDelete(ChannelDelete(Channel::Guild(
-            channel,
-        ))));
-        assert!(cache.0.channels_guild.is_empty());
-        assert!(cache.0.guild_channels.get(&guild_id).unwrap().is_empty());
-    }
+        {
+            let cached_channel = cache.guild_channel(channel_id).unwrap();
 
-    #[test]
-    fn test_channel_update_guild() {
-        let cache = InMemoryCache::new();
-        let (guild_id, channel_id, channel) = test::guild_channel_text();
+            assert_eq!(channel.id(), cached_channel.id());
+            assert_eq!(channel.name(), cached_channel.name());
 
-        cache.update(&ChannelUpdate(Channel::Guild(channel)));
-        assert_eq!(1, cache.0.channels_guild.len());
-        assert!(cache
-            .0
-            .guild_channels
-            .get(&guild_id)
-            .unwrap()
-            .contains(&channel_id));
+            assert!(cache
+                .guild_channels(guild_id)
+                .unwrap()
+                .contains(&channel_id));
+        }
+
+        let (_, _, new_channel) = test::guild_channel_text("new name".to_string());
+
+        let event = ChannelUpdate(Channel::Guild(new_channel.clone()));
+        cache.update(&event);
+
+        {
+            let cached_channel = cache.guild_channel(channel_id).unwrap();
+
+            assert_eq!(channel.id(), cached_channel.id());
+            assert_eq!(new_channel.name(), cached_channel.name());
+
+            if let GuildChannel::Text(text_channel) = cached_channel {
+                assert_eq!(None, text_channel.last_pin_timestamp);
+            }
+        }
+
+        let event = ChannelPinsUpdate {
+            channel_id,
+            guild_id: Some(guild_id),
+            last_pin_timestamp: Some("new last pin".into()),
+        };
+        cache.update(&event);
+
+        {
+            let cached_channel = cache.guild_channel(channel_id).unwrap();
+            if let GuildChannel::Text(text_channel) = cached_channel {
+                assert_eq!(
+                    Some("new last pin".to_string()),
+                    text_channel.last_pin_timestamp
+                );
+            }
+        }
+
+        let event = ChannelDelete(Channel::Guild(new_channel.clone()));
+        cache.update(&event);
+
+        {
+            assert_eq!(None, cache.guild_channel(channel_id));
+            assert!(!cache
+                .guild_channels(guild_id)
+                .unwrap()
+                .contains(&channel_id));
+        }
     }
 }

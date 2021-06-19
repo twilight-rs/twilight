@@ -230,6 +230,78 @@ mod tests {
     use crate::test;
 
     #[test]
+    fn test_member_lifecycle() {
+        let cache = InMemoryCache::new();
+
+        // contains one member
+        let guild = test::guild(GuildId(1), "name".to_string());
+
+        test::members(100..=110, guild.id)
+            .into_iter()
+            .map(|member| MemberAdd(member))
+            .map(|member| cache.update(&member))
+            .for_each(drop);
+
+        {
+            let members = cache.guild_members(guild.id).unwrap();
+            assert_eq!(11, members.len());
+
+            assert!(cache.member(guild.id, UserId(101)).is_some());
+        }
+
+        let event = MemberChunk {
+            chunk_count: 1,
+            chunk_index: 1,
+            guild_id: guild.id,
+            members: test::members(110..=120, guild.id),
+            nonce: None,
+            not_found: Vec::new(),
+            presences: Vec::new(),
+        };
+        cache.update(&event);
+
+        {
+            let members = cache.guild_members(guild.id).unwrap();
+            assert_eq!(21, members.len());
+
+            assert!(cache.member(guild.id, UserId(112)).is_some());
+        }
+
+        let event = MemberUpdate {
+            guild_id: guild.id,
+            deaf: None,
+            joined_at: "joined_at".into(),
+            mute: None,
+            nick: Some("nickname".into()),
+            pending: false,
+            premium_since: None,
+            roles: Vec::new(),
+            user: test::user(UserId(113)),
+        };
+        cache.update(&event);
+
+        {
+            let member = cache.member(guild.id, UserId(113)).unwrap();
+            assert_eq!(Some("nickname".to_string()), member.nick);
+        }
+
+        (100..=114)
+            .map(UserId)
+            .map(test::user)
+            .map(|user| MemberRemove {
+                guild_id: guild.id,
+                user,
+            })
+            .map(|member| cache.update(&member))
+            .for_each(drop);
+
+        {
+            let members = cache.guild_members(guild.id).unwrap();
+            assert_eq!(6, members.len());
+        }
+    }
+
+    #[test]
     fn test_cache_guild_member() {
         let cache = InMemoryCache::new();
 

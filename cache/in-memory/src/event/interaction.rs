@@ -70,8 +70,9 @@ mod tests {
     #[test]
     fn test_interaction_create() {
         let cache = InMemoryCache::new();
-        cache.update(&InteractionCreate(Interaction::ApplicationCommand(
-            Box::new(ApplicationCommand {
+
+        let event = InteractionCreate(Interaction::ApplicationCommand(Box::new(
+            ApplicationCommand {
                 application_id: ApplicationId(1),
                 channel_id: ChannelId(2),
                 data: CommandData {
@@ -145,8 +146,10 @@ mod tests {
                 }),
                 token: "token".into(),
                 user: None,
-            }),
+            },
         )));
+
+        cache.update(&event);
 
         {
             let guild_members = cache.guild_members(GuildId(3)).unwrap();

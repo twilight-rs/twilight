@@ -273,8 +273,12 @@ mod tests {
     #[test]
     fn test_voice_states() {
         let cache = InMemoryCache::new();
-        cache.cache_voice_state(test::voice_state(GuildId(1), Some(ChannelId(2)), UserId(3)));
-        cache.cache_voice_state(test::voice_state(GuildId(1), Some(ChannelId(2)), UserId(4)));
+
+        let event = VoiceStateUpdate(test::voice_state(GuildId(1), Some(ChannelId(2)), UserId(3)));
+        cache.update(&event);
+
+        let event = VoiceStateUpdate(test::voice_state(GuildId(1), Some(ChannelId(2)), UserId(4)));
+        cache.update(&event);
 
         // Returns both voice states for the channel that exists.
         assert_eq!(2, cache.voice_channel_states(ChannelId(2)).unwrap().len());

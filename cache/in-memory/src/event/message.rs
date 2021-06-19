@@ -133,12 +133,122 @@ impl UpdateCache for MessageUpdate {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::test;
     use twilight_model::{
-        channel::message::{Message, MessageFlags, MessageType},
-        guild::PartialMember,
+        channel::message::Mention,
+        guild::{PartialMember, Permissions},
         id::{ChannelId, GuildId, UserId},
-        user::User,
+        user::{User, UserFlags},
     };
+
+    #[test]
+    fn test_message_lifecycle() {
+        let cache = InMemoryCache::new();
+
+        let event = MessageCreate(test::message(MessageId(2), "content".to_string()));
+        cache.update(&event);
+
+        {
+            let message = cache.message(ChannelId(2), MessageId(2)).unwrap();
+            assert_eq!("content".to_string(), message.content);
+        }
+
+        let event = MessageUpdate {
+            attachments: None,
+            author: None,
+            channel_id: ChannelId(2),
+            content: Some("content <@123>".into()),
+            edited_timestamp: Some("timestamp".into()),
+            embeds: None,
+            guild_id: Some(GuildId(1)),
+            id: MessageId(2),
+            kind: None,
+            mention_everyone: None,
+            mention_roles: None,
+            mentions: Some(Vec::from([Mention {
+                avatar: None,
+                bot: false,
+                discriminator: "1234".into(),
+                id: UserId(123),
+                member: Some(PartialMember {
+                    deaf: false,
+                    joined_at: None,
+                    mute: false,
+                    nick: None,
+                    permissions: Some(Permissions::empty()),
+                    premium_since: None,
+                    roles: Vec::new(),
+                    user: Some(User {
+                        avatar: None,
+                        bot: false,
+                        discriminator: "1234".into(),
+                        email: None,
+                        flags: None,
+                        id: UserId(123),
+                        locale: None,
+                        mfa_enabled: None,
+                        name: "username".into(),
+                        premium_type: None,
+                        public_flags: None,
+                        system: None,
+                        verified: None,
+                    }),
+                }),
+                name: "username".into(),
+                public_flags: UserFlags::empty(),
+            }])),
+            pinned: None,
+            timestamp: None,
+            tts: None,
+        };
+        cache.update(&event);
+
+        {
+            let message = cache.message(ChannelId(2), MessageId(2)).unwrap();
+
+            assert_eq!("content <@123>".to_string(), message.content);
+            assert_eq!(1, message.mentions.len());
+        }
+
+        (3..=10)
+            .map(|id| MessageId(id))
+            .map(|id| test::message(id, "content".to_string()))
+            .map(|message| MessageCreate(message))
+            .map(|event| cache.update(&event))
+            .for_each(drop);
+
+        {
+            let channel_messages = cache.0.messages.get(&ChannelId(2)).unwrap();
+
+            assert_eq!(9, channel_messages.len());
+            assert!(cache.message(ChannelId(2), MessageId(10)).is_some());
+        }
+
+        let event = MessageDeleteBulk {
+            channel_id: ChannelId(2),
+            guild_id: Some(GuildId(2)),
+            ids: (3..=10).map(|id| MessageId(id)).collect(),
+        };
+        cache.update(&event);
+
+        {
+            let channel_messages = cache.0.messages.get(&ChannelId(2)).unwrap();
+
+            assert_eq!(1, channel_messages.len());
+            assert!(cache.message(ChannelId(2), MessageId(10)).is_none());
+        }
+
+        let event = MessageDelete {
+            channel_id: ChannelId(2),
+            guild_id: Some(GuildId(2)),
+            id: MessageId(2),
+        };
+        cache.update(&event);
+
+        {
+            assert!(cache.message(ChannelId(2), MessageId(2)).is_none());
+        }
+    }
 
     #[test]
     fn test_message_create() {
@@ -146,69 +256,20 @@ mod tests {
             .resource_types(ResourceType::MESSAGE | ResourceType::MEMBER | ResourceType::USER)
             .message_cache_size(1)
             .build();
-        let msg = Message {
-            activity: None,
-            application: None,
-            application_id: None,
-            attachments: Vec::new(),
-            author: User {
-                avatar: Some("".to_owned()),
-                bot: false,
-                discriminator: "0001".to_owned(),
-                email: None,
-                flags: None,
-                id: UserId(3),
-                locale: None,
-                mfa_enabled: None,
-                name: "test".to_owned(),
-                premium_type: None,
-                public_flags: None,
-                system: None,
-                verified: None,
-            },
-            channel_id: ChannelId(2),
-            content: "ping".to_owned(),
-            edited_timestamp: None,
-            embeds: Vec::new(),
-            flags: Some(MessageFlags::empty()),
-            guild_id: Some(GuildId(1)),
-            id: MessageId(4),
-            interaction: None,
-            kind: MessageType::Regular,
-            member: Some(PartialMember {
-                deaf: false,
-                joined_at: None,
-                mute: false,
-                nick: Some("member nick".to_owned()),
-                permissions: None,
-                premium_since: None,
-                roles: Vec::new(),
-                user: None,
-            }),
-            mention_channels: Vec::new(),
-            mention_everyone: false,
-            mention_roles: Vec::new(),
-            mentions: Vec::new(),
-            pinned: false,
-            reactions: Vec::new(),
-            reference: None,
-            stickers: Vec::new(),
-            referenced_message: None,
-            timestamp: String::new(),
-            tts: false,
-            webhook_id: None,
-        };
 
-        cache.update(&MessageCreate(msg));
+        let event = MessageCreate(test::message(MessageId(4), "content".to_string()));
+        cache.update(&event);
 
         {
             let entry = cache.0.users.get(&UserId(3)).unwrap();
             assert_eq!(entry.value().1.len(), 1);
         }
+
         assert_eq!(
             cache.member(GuildId(1), UserId(3)).unwrap().user_id,
             UserId(3),
         );
+
         {
             let entry = cache.0.messages.get(&ChannelId(2)).unwrap();
             assert_eq!(entry.value().len(), 1);

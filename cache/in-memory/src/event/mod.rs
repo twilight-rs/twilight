@@ -123,6 +123,7 @@ impl UpdateCache for UserUpdate {
 mod tests {
     use super::*;
     use crate::test;
+    use twilight_model::{id::ApplicationId, oauth::PartialApplication, user::UserFlags};
 
     /// Test retrieval of the current user, notably that it doesn't simply
     /// panic or do anything funny. This is the only synchronous mutex that we
@@ -133,5 +134,57 @@ mod tests {
         assert!(cache.current_user().is_none());
         cache.cache_current_user(test::current_user(1));
         assert!(cache.current_user().is_some());
+    }
+
+    #[test]
+    fn test_current_user_lifecycle() {
+        let cache = InMemoryCache::new();
+
+        let current_user = CurrentUser {
+            avatar: None,
+            bot: true,
+            discriminator: "1111".into(),
+            email: None,
+            flags: None,
+            id: UserId(2),
+            locale: None,
+            mfa_enabled: false,
+            name: "bot".into(),
+            premium_type: None,
+            public_flags: None,
+            verified: None,
+        };
+
+        let event = Ready {
+            application: PartialApplication {
+                flags: UserFlags::empty(),
+                id: ApplicationId(1),
+            },
+            guilds: Vec::new(),
+            session_id: "session_id".into(),
+            shard: Some([1, 1]),
+            user: current_user.clone(),
+            version: 1,
+        };
+        cache.update(&event);
+
+        {
+            let current_user = cache.current_user().unwrap();
+
+            assert_eq!("bot".to_string(), current_user.name);
+            assert!(current_user.avatar.is_none());
+        }
+
+        let event = UserUpdate(CurrentUser {
+            avatar: Some("avatar".into()),
+            ..current_user
+        });
+        cache.update(&event);
+
+        {
+            let current_user = cache.current_user().unwrap();
+
+            assert_eq!("avatar".to_string(), current_user.avatar.unwrap());
+        }
     }
 }

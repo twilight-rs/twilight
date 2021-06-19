@@ -104,10 +104,10 @@ impl UpdateCache for GuildEmojisUpdate {
 mod tests {
     use super::*;
     use crate::test;
-    use twilight_model::{id::UserId, user::User};
+    use twilight_model::{gateway::payload::GuildCreate, id::UserId, user::User};
 
     #[test]
-    fn test_cache_emoji() {
+    fn test_direct_emoji() {
         let cache = InMemoryCache::new();
 
         // The user to do some of the inserts
@@ -173,58 +173,89 @@ mod tests {
     }
 
     #[test]
-    fn test_emoji_removal() {
+    fn test_emoji() {
         let cache = InMemoryCache::new();
 
-        let guild_id = GuildId(1);
-
-        let emote = test::emoji(EmojiId(1), None);
-        let emote_2 = test::emoji(EmojiId(2), None);
-        let emote_3 = test::emoji(EmojiId(3), None);
-
-        cache.cache_emoji(guild_id, emote.clone());
-        cache.cache_emoji(guild_id, emote_2.clone());
-        cache.cache_emoji(guild_id, emote_3.clone());
-
-        cache.update(&GuildEmojisUpdate {
-            emojis: vec![emote.clone(), emote_3.clone()],
-            guild_id,
-        });
-
-        assert_eq!(cache.0.emojis.len(), 2);
-        assert_eq!(cache.0.guild_emojis.get(&guild_id).unwrap().len(), 2);
-        assert!(cache.emoji(emote.id).is_some());
-        assert!(cache.emoji(emote_2.id).is_none());
-        assert!(cache.emoji(emote_3.id).is_some());
-
-        cache.update(&GuildEmojisUpdate {
-            emojis: vec![emote.clone()],
-            guild_id,
-        });
-
-        assert_eq!(cache.0.emojis.len(), 1);
-        assert_eq!(cache.0.guild_emojis.get(&guild_id).unwrap().len(), 1);
-        assert!(cache.emoji(emote.id).is_some());
-        assert!(cache.emoji(emote_2.id).is_none());
-
+        let emote = test::emoji(EmojiId(1), Some(test::user(UserId(1))));
+        let emote_2 = test::emoji(EmojiId(2), Some(test::user(UserId(2))));
+        let emote_3 = test::emoji(EmojiId(3), Some(test::user(UserId(1))));
         let emote_4 = test::emoji(EmojiId(4), None);
 
-        cache.update(&GuildEmojisUpdate {
+        let guild = test::guild(GuildId(1), "name".into());
+        let event = GuildCreate(guild.clone());
+        cache.update(&event);
+
+        {
+            assert_eq!(2, cache.0.emojis.len());
+
+            let guild_emojis = cache.guild_emojis(guild.id).unwrap();
+            assert_eq!(2, guild_emojis.len());
+
+            assert!(cache.emoji(emote.id).is_some());
+            assert!(cache.emoji(emote_2.id).is_some());
+            assert!(cache.emoji(emote_3.id).is_none());
+        }
+
+        let event = GuildEmojisUpdate {
+            emojis: vec![emote.clone(), emote_2.clone(), emote_3.clone()],
+            guild_id: guild.id,
+        };
+        cache.update(&event);
+
+        {
+            assert_eq!(3, cache.0.emojis.len());
+
+            let guild_emojis = cache.guild_emojis(guild.id).unwrap();
+            assert_eq!(3, guild_emojis.len());
+
+            assert!(cache.emoji(emote.id).is_some());
+            assert!(cache.emoji(emote_2.id).is_some());
+            assert!(cache.emoji(emote_3.id).is_some());
+        }
+
+        let event = GuildEmojisUpdate {
+            emojis: vec![emote.clone()],
+            guild_id: guild.id,
+        };
+        cache.update(&event);
+
+        {
+            assert_eq!(1, cache.0.emojis.len());
+
+            let guild_emojis = cache.guild_emojis(guild.id).unwrap();
+            assert_eq!(1, guild_emojis.len());
+
+            assert!(cache.emoji(emote.id).is_some());
+            assert!(cache.emoji(emote_2.id).is_none());
+        }
+
+        let event = GuildEmojisUpdate {
             emojis: vec![emote_4.clone()],
-            guild_id,
-        });
+            guild_id: guild.id,
+        };
+        cache.update(&event);
 
-        assert_eq!(cache.0.emojis.len(), 1);
-        assert_eq!(cache.0.guild_emojis.get(&guild_id).unwrap().len(), 1);
-        assert!(cache.emoji(emote_4.id).is_some());
-        assert!(cache.emoji(emote.id).is_none());
+        {
+            assert_eq!(1, cache.0.emojis.len());
 
-        cache.update(&GuildEmojisUpdate {
+            let guild_emojis = cache.guild_emojis(guild.id).unwrap();
+            assert_eq!(1, guild_emojis.len());
+
+            assert!(cache.emoji(emote.id).is_none());
+            assert!(cache.emoji(emote_4.id).is_some());
+        }
+
+        let event = GuildEmojisUpdate {
             emojis: vec![],
-            guild_id,
-        });
+            guild_id: guild.id,
+        };
+        cache.update(&event);
 
-        assert!(cache.0.emojis.is_empty());
-        assert!(cache.0.guild_emojis.get(&guild_id).unwrap().is_empty());
+        {
+            assert!(cache.0.emojis.is_empty());
+
+            let guild_emojis = cache.guild_emojis(guild.id).unwrap();
+            assert_eq!(0, guild_emojis.len());
+        }
     }
 }

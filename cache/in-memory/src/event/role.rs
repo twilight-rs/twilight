@@ -94,6 +94,55 @@ mod tests {
     use crate::test;
 
     #[test]
+    fn test_role_lifecycle() {
+        let cache = InMemoryCache::new();
+
+        let event = RoleCreate {
+            guild_id: GuildId(1),
+            role: test::role(RoleId(2)),
+        };
+        cache.update(&event);
+
+        {
+            assert_eq!(1, cache.0.roles.len());
+
+            assert!(cache
+                .guild_roles(GuildId(1))
+                .unwrap_or_default()
+                .contains(&RoleId(2)));
+
+            let role = cache.role(RoleId(2)).unwrap();
+            assert_eq!("test".to_string(), role.name);
+        }
+
+        let role = Role {
+            name: "new name".into(),
+            ..test::role(RoleId(2))
+        };
+        let event = RoleUpdate {
+            guild_id: GuildId(1),
+            role,
+        };
+        cache.update(&event);
+
+        {
+            let role = cache.role(RoleId(2)).unwrap();
+            assert_eq!("new name".to_string(), role.name);
+        }
+
+        let event = RoleDelete {
+            guild_id: GuildId(1),
+            role_id: RoleId(2),
+        };
+        cache.update(&event);
+
+        {
+            assert_eq!(0, cache.0.roles.len());
+            assert!(cache.role(RoleId(2)).is_none());
+        }
+    }
+
+    #[test]
     fn test_cache_role() {
         let cache = InMemoryCache::new();
 
