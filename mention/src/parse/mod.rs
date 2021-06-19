@@ -41,7 +41,10 @@
 //!
 //! ```
 //! fn main() -> Result<(), Box<dyn std::error::Error>> {
-//! use twilight_mention::{timestamp::{TimestampStyle, Timestamp}, ParseMention};
+//! use twilight_mention::{
+//!     timestamp::{TimestampStyle, Timestamp},
+//!     parse::ParseMention,
+//! };
 //!
 //! let expected_timestamp = Timestamp::new(
 //!     1_600_000_000,

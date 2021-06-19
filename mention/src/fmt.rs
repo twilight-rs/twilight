@@ -188,8 +188,8 @@ impl Mention<ChannelId> for TextChannel {
     }
 }
 
-/// Mention a timestamp. This will format as `<t:UNIX>` if a style is not specified
-/// or `<t:UNIX:STYLE>` if a style is specified.
+/// Mention a timestamp. This will format as `<t:UNIX>` if a style is not
+/// specified or `<t:UNIX:STYLE>` if a style is specified.
 impl Mention<Self> for Timestamp {
     fn mention(&self) -> MentionFormat<Self> {
         MentionFormat(*self)

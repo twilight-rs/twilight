@@ -163,8 +163,8 @@ impl ParseMention for Timestamp {
     ///
     /// # Examples
     ///
-    /// Returns [`ParseMentionErrorType::TimestampStyleInvalid`] if the timestamp
-    /// style value is invalid.
+    /// Returns [`ParseMentionErrorType::TimestampStyleInvalid`] if the
+    /// timestamp style value is invalid.
     ///
     /// [`ParseMentionError::TimestampStyleInvalid`]: super::error::ParseMentionErrorType::TimestampStyleInvalid
     fn parse(buf: &str) -> Result<Self, ParseMentionError<'_>>
@@ -195,8 +195,8 @@ impl ParseMention for UserId {
 ///
 /// # Errors
 ///
-/// Returns [`ParseMentionErrorType::TimestampStyleInvalid`] if the timestamp style
-/// value is invalid.
+/// Returns [`ParseMentionErrorType::TimestampStyleInvalid`] if the timestamp
+/// style value is invalid.
 fn parse_maybe_style(value: Option<&str>) -> Result<Option<TimestampStyle>, ParseMentionError<'_>> {
     Ok(if let Some(modifier) = value {
         Some(
