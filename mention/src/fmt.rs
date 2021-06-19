@@ -28,28 +28,40 @@ pub struct MentionFormat<T>(T);
 /// Mention a channel. This will format as `<#ID>`.
 impl Display for MentionFormat<ChannelId> {
     fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
-        f.write_fmt(format_args!("<#{}>", self.0))
+        f.write_str("<#")?;
+        Display::fmt(&self.0, f)?;
+
+        f.write_str(">")
     }
 }
 
 /// Mention an emoji. This will format as `<:emoji:ID>`.
 impl Display for MentionFormat<EmojiId> {
     fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
-        f.write_fmt(format_args!("<:emoji:{}>", self.0))
+        f.write_str("<:emoji:")?;
+        Display::fmt(&self.0, f)?;
+
+        f.write_str(">")
     }
 }
 
 /// Mention a role. This will format as `<@&ID>`.
 impl Display for MentionFormat<RoleId> {
     fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
-        f.write_fmt(format_args!("<@&{}>", self.0))
+        f.write_str("<@&")?;
+        Display::fmt(&self.0, f)?;
+
+        f.write_str(">")
     }
 }
 
 /// Mention a user. This will format as `<@ID>`.
 impl Display for MentionFormat<UserId> {
     fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
-        f.write_fmt(format_args!("<@{}>", self.0))
+        f.write_str("<@")?;
+        Display::fmt(&self.0, f)?;
+
+        f.write_str(">")
     }
 }
 
