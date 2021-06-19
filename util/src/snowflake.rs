@@ -1,8 +1,8 @@
 //! Provides the Snowflake trait for defining extractable information from a Discord Snowflake.
 
 use twilight_model::id::{
-    AttachmentId, AuditLogEntryId, ChannelId, EmojiId, GenericId, GuildId, IntegrationId,
-    MessageId, RoleId, UserId, WebhookId,
+    ApplicationId, AttachmentId, AuditLogEntryId, ChannelId, CommandId, EmojiId, GenericId,
+    GuildId, IntegrationId, InteractionId, MessageId, RoleId, StageId, UserId, WebhookId,
 };
 
 /// Snowflake is a trait for defining extractable information from a Snowflake. A Snowflake is a
@@ -80,6 +80,12 @@ pub trait Snowflake {
     }
 }
 
+impl Snowflake for ApplicationId {
+    fn id(&self) -> u64 {
+        self.0
+    }
+}
+
 impl Snowflake for AttachmentId {
     fn id(&self) -> u64 {
         self.0
@@ -93,6 +99,12 @@ impl Snowflake for AuditLogEntryId {
 }
 
 impl Snowflake for ChannelId {
+    fn id(&self) -> u64 {
+        self.0
+    }
+}
+
+impl Snowflake for CommandId {
     fn id(&self) -> u64 {
         self.0
     }
@@ -122,6 +134,12 @@ impl Snowflake for IntegrationId {
     }
 }
 
+impl Snowflake for InteractionId {
+    fn id(&self) -> u64 {
+        self.0
+    }
+}
+
 impl Snowflake for MessageId {
     fn id(&self) -> u64 {
         self.0
@@ -129,6 +147,12 @@ impl Snowflake for MessageId {
 }
 
 impl Snowflake for RoleId {
+    fn id(&self) -> u64 {
+        self.0
+    }
+}
+
+impl Snowflake for StageId {
     fn id(&self) -> u64 {
         self.0
     }
@@ -151,19 +175,23 @@ mod tests {
     use super::Snowflake;
     use static_assertions::{assert_impl_all, assert_obj_safe};
     use twilight_model::id::{
-        AttachmentId, AuditLogEntryId, ChannelId, EmojiId, GenericId, GuildId, IntegrationId,
-        MessageId, RoleId, UserId, WebhookId,
+        ApplicationId, AttachmentId, AuditLogEntryId, ChannelId, CommandId, EmojiId, GenericId,
+        GuildId, IntegrationId, InteractionId, MessageId, RoleId, StageId, UserId, WebhookId,
     };
 
+    assert_impl_all!(ApplicationId: Snowflake);
     assert_impl_all!(AttachmentId: Snowflake);
     assert_impl_all!(AuditLogEntryId: Snowflake);
     assert_impl_all!(ChannelId: Snowflake);
+    assert_impl_all!(CommandId: Snowflake);
     assert_impl_all!(EmojiId: Snowflake);
     assert_impl_all!(GenericId: Snowflake);
     assert_impl_all!(GuildId: Snowflake);
     assert_impl_all!(IntegrationId: Snowflake);
+    assert_impl_all!(InteractionId: Snowflake);
     assert_impl_all!(MessageId: Snowflake);
     assert_impl_all!(RoleId: Snowflake);
+    assert_impl_all!(StageId: Snowflake);
     assert_impl_all!(UserId: Snowflake);
     assert_impl_all!(WebhookId: Snowflake);
     assert_obj_safe!(Snowflake);
