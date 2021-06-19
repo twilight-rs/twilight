@@ -99,7 +99,7 @@ impl<'a, T: ParseMention> Iterator for MentionIter<'a, T> {
 
 #[cfg(test)]
 mod tests {
-    use crate::timestamp::{Timestamp, TimestampFlag};
+    use crate::timestamp::{Timestamp, TimestampStyle};
 
     use super::{
         super::{MentionType, ParseMention},
@@ -169,7 +169,7 @@ mod tests {
             iter.next().unwrap().0
         );
         assert_eq!(
-            MentionType::Timestamp(Timestamp::new(56, Some(TimestampFlag::ShortDate))),
+            MentionType::Timestamp(Timestamp::new(56, Some(TimestampStyle::ShortDate))),
             iter.next().unwrap().0
         );
         assert!(iter.next().is_none());
@@ -188,7 +188,7 @@ mod tests {
         let mut iter = Timestamp::iter("some <t:123> roles <t:456:t>");
         assert_eq!(Timestamp::new(123, None), iter.next().unwrap().0);
         assert_eq!(
-            Timestamp::new(456, Some(TimestampFlag::ShortTime)),
+            Timestamp::new(456, Some(TimestampStyle::ShortTime)),
             iter.next().unwrap().0
         );
         assert!(iter.next().is_none());

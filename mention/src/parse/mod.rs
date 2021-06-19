@@ -41,11 +41,11 @@
 //!
 //! ```
 //! fn main() -> Result<(), Box<dyn std::error::Error>> {
-//! use twilight_mention::{timestamp::{TimestampFlag, Timestamp}, ParseMention};
+//! use twilight_mention::{timestamp::{TimestampStyle, Timestamp}, ParseMention};
 //!
 //! let expected_timestamp = Timestamp::new(
 //!     1_600_000_000,
-//!     Some(TimestampFlag::RelativeTime),
+//!     Some(TimestampStyle::RelativeTime),
 //! );
 //! assert_eq!(expected_timestamp, Timestamp::parse("<t:1600000000:R>")?);
 //! # Ok(()) }
@@ -112,7 +112,7 @@ use twilight_model::id::{ChannelId, EmojiId, RoleId, UserId};
 /// assert!(matches!(
 ///     iter.next(),
 ///     Some((MentionType::Timestamp(timestamp), _, _))
-///     if timestamp.unix() == 1_624_047_978 && timestamp.flag().is_none()
+///     if timestamp.unix() == 1_624_047_978 && timestamp.style().is_none()
 /// ));
 /// assert!(matches!(iter.next(), Some((MentionType::User(UserId(78)), _, _))));
 /// assert!(iter.next().is_none());

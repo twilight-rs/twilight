@@ -1,4 +1,4 @@
-use crate::timestamp::{Timestamp, TimestampFlag};
+use crate::timestamp::{Timestamp, TimestampStyle};
 
 use super::{MentionIter, MentionType, ParseMentionError, ParseMentionErrorType};
 use std::{convert::TryFrom, str::Chars};
@@ -99,10 +99,10 @@ impl ParseMention for MentionType {
     ///
     /// # Examples
     ///
-    /// Returns [`ParseMentionErrorType::TimestampFlagInvalid`] if a timestamp
-    /// flag value is invalid.
+    /// Returns [`ParseMentionErrorType::TimestampStyleInvalid`] if a timestamp
+    /// style value is invalid.
     ///
-    /// [`ParseMentionError::TimestampFlagInvalid`]: super::error::ParseMentionErrorType::TimestampFlagInvalid
+    /// [`ParseMentionError::TimestampStyleInvalid`]: super::error::ParseMentionErrorType::TimestampStyleInvalid
     fn parse(buf: &str) -> Result<Self, ParseMentionError<'_>>
     where
         Self: Sized,
@@ -129,9 +129,9 @@ impl ParseMention for MentionType {
 
         for sigil in Timestamp::SIGILS {
             if *sigil == found {
-                let maybe_flag = parse_maybe_flag(maybe_modifier)?;
+                let maybe_style = parse_maybe_style(maybe_modifier)?;
 
-                return Ok(MentionType::Timestamp(Timestamp::new(id, maybe_flag)));
+                return Ok(MentionType::Timestamp(Timestamp::new(id, maybe_style)));
             }
         }
 
@@ -163,17 +163,17 @@ impl ParseMention for Timestamp {
     ///
     /// # Examples
     ///
-    /// Returns [`ParseMentionErrorType::TimestampFlagInvalid`] if the timestamp
-    /// flag value is invalid.
+    /// Returns [`ParseMentionErrorType::TimestampStyleInvalid`] if the timestamp
+    /// style value is invalid.
     ///
-    /// [`ParseMentionError::TimestampFlagInvalid`]: super::error::ParseMentionErrorType::TimestampFlagInvalid
+    /// [`ParseMentionError::TimestampStyleInvalid`]: super::error::ParseMentionErrorType::TimestampStyleInvalid
     fn parse(buf: &str) -> Result<Self, ParseMentionError<'_>>
     where
         Self: Sized,
     {
         let (unix, maybe_modifier, _) = parse_mention(buf, Self::SIGILS)?;
 
-        Ok(Timestamp::new(unix, parse_maybe_flag(maybe_modifier)?))
+        Ok(Timestamp::new(unix, parse_maybe_style(maybe_modifier)?))
     }
 }
 
@@ -191,17 +191,17 @@ impl ParseMention for UserId {
     }
 }
 
-/// Parse a possible flag value string slice into a [`TimestampFlag`].
+/// Parse a possible style value string slice into a [`TimestampStyle`].
 ///
 /// # Errors
 ///
-/// Returns [`ParseMentionErrorType::TimestampFlagInvalid`] if the timestamp flag
+/// Returns [`ParseMentionErrorType::TimestampStyleInvalid`] if the timestamp style
 /// value is invalid.
-fn parse_maybe_flag(value: Option<&str>) -> Result<Option<TimestampFlag>, ParseMentionError<'_>> {
+fn parse_maybe_style(value: Option<&str>) -> Result<Option<TimestampStyle>, ParseMentionError<'_>> {
     Ok(if let Some(modifier) = value {
         Some(
-            TimestampFlag::try_from(modifier).map_err(|source| ParseMentionError {
-                kind: ParseMentionErrorType::TimestampFlagInvalid { found: modifier },
+            TimestampStyle::try_from(modifier).map_err(|source| ParseMentionError {
+                kind: ParseMentionErrorType::TimestampStyleInvalid { found: modifier },
                 source: Some(Box::new(source)),
             })?,
         )
@@ -287,18 +287,18 @@ fn parse_mention<'a>(
         source: Some(Box::new(source)),
     })?;
 
-    // If additional information - like a timestamp flag - is present then we
+    // If additional information - like a timestamp style - is present then we
     // can just get a subslice of the string via the split and ending positions.
-    let flag = maybe_split_position.and_then(|split_position| {
+    let style = maybe_split_position.and_then(|split_position| {
         chars.next();
 
         // We need to remove 1 so we don't catch the `>` in it.
-        let flag_end_position = end_position - 1;
+        let style_end_position = end_position - 1;
 
-        chars.as_str().get(split_position..flag_end_position)
+        chars.as_str().get(split_position..style_end_position)
     });
 
-    Ok((num, flag, sigil))
+    Ok((num, style, sigil))
 }
 
 // Don't use `Iterator::skip_while` so we can mutate `chars` in-place;
@@ -344,7 +344,7 @@ mod tests {
     };
     use crate::{
         parse::ParseMentionError,
-        timestamp::{Timestamp, TimestampFlag},
+        timestamp::{Timestamp, TimestampStyle},
     };
     use static_assertions::assert_impl_all;
     use twilight_model::id::{ChannelId, EmojiId, RoleId, UserId};
@@ -431,11 +431,11 @@ mod tests {
     fn test_parse_timestamp() -> Result<(), ParseMentionError<'static>> {
         assert_eq!(Timestamp::new(123, None), Timestamp::parse("<t:123>")?);
         assert_eq!(
-            Timestamp::new(123, Some(TimestampFlag::RelativeTime)),
+            Timestamp::new(123, Some(TimestampStyle::RelativeTime)),
             Timestamp::parse("<t:123:R>")?
         );
         assert_eq!(
-            &ParseMentionErrorType::TimestampFlagInvalid { found: "?" },
+            &ParseMentionErrorType::TimestampStyleInvalid { found: "?" },
             Timestamp::parse("<t:123:?>").unwrap_err().kind(),
         );
 

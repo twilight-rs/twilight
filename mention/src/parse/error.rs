@@ -82,8 +82,8 @@ impl Display for ParseMentionError<'_> {
                     f.write_str("nothing")
                 }
             }
-            ParseMentionErrorType::TimestampFlagInvalid { found } => {
-                f.write_str("timestamp flag value '")?;
+            ParseMentionErrorType::TimestampStyleInvalid { found } => {
+                f.write_str("timestamp style value '")?;
                 f.write_str(found)?;
 
                 f.write_str("' is invalid")
@@ -143,9 +143,9 @@ pub enum ParseMentionErrorType<'a> {
         /// Character that was instead found where the sigil should be.
         found: Option<char>,
     },
-    /// Timestamp flag value is invalid.
-    TimestampFlagInvalid {
-        /// Value of the flag.
+    /// Timestamp style value is invalid.
+    TimestampStyleInvalid {
+        /// Value of the style.
         found: &'a str,
     },
     /// Trailing arrow (`>`) is not present.
@@ -164,7 +164,7 @@ mod tests {
     assert_fields!(ParseMentionErrorType::IdNotU64: found);
     assert_fields!(ParseMentionErrorType::LeadingArrow: found);
     assert_fields!(ParseMentionErrorType::Sigil: expected, found);
-    assert_fields!(ParseMentionErrorType::TimestampFlagInvalid: found);
+    assert_fields!(ParseMentionErrorType::TimestampStyleInvalid: found);
     assert_fields!(ParseMentionErrorType::TrailingArrow: found);
     assert_impl_all!(ParseMentionErrorType<'_>: Debug, Send, Sync);
     assert_impl_all!(ParseMentionError<'_>: Debug, Error, Send, Sync);
@@ -252,11 +252,11 @@ mod tests {
             }
             .to_string(),
         );
-        expected = "timestamp flag value 'E' is invalid";
+        expected = "timestamp style value 'E' is invalid";
         assert_eq!(
             expected,
             ParseMentionError {
-                kind: ParseMentionErrorType::TimestampFlagInvalid { found: "E" },
+                kind: ParseMentionErrorType::TimestampStyleInvalid { found: "E" },
                 source: None,
             }
             .to_string(),
