@@ -12,7 +12,7 @@
 //! use std::env;
 //!
 //! #[tokio::main]
-//! async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
+//! async fn main() -> Result<(), Box<dyn std::error::Error>> {
 //!     let token = env::var("DISCORD_TOKEN")?;
 //!     let intents = Intents::GUILD_BANS | Intents::GUILD_EMOJIS | Intents::GUILD_MESSAGES;
 //!     let (cluster, mut events) = Cluster::new(token, intents).await?;

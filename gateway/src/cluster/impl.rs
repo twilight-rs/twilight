@@ -256,7 +256,7 @@ impl Cluster {
     /// use std::env;
     ///
     /// # #[tokio::main]
-    /// # async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
+    /// # async fn main() -> Result<(), Box<dyn std::error::Error>> {
     /// let types = EventTypeFlags::MESSAGE_CREATE
     ///     | EventTypeFlags::MESSAGE_DELETE
     ///     | EventTypeFlags::MESSAGE_UPDATE;
@@ -395,7 +395,7 @@ impl Cluster {
     /// use std::env;
     ///
     /// # #[tokio::main]
-    /// # async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
+    /// # async fn main() -> Result<(), Box<dyn std::error::Error>> {
     /// let token = env::var("DISCORD_TOKEN")?;
     /// let types = EventTypeFlags::MESSAGE_CREATE
     ///     | EventTypeFlags::MESSAGE_DELETE
@@ -442,7 +442,7 @@ impl Cluster {
     /// };
     ///
     /// # #[tokio::main]
-    /// # async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
+    /// # async fn main() -> Result<(), Box<dyn std::error::Error>> {
     /// let token = env::var("DISCORD_TOKEN")?;
     /// let scheme = ShardScheme::try_from((0..=9, 10))?;
     /// let (cluster, _) = Cluster::builder(token, Intents::GUILD_MESSAGES)
@@ -520,7 +520,7 @@ impl Cluster {
     /// use std::{env, time::Duration};
     ///
     /// # #[tokio::main]
-    /// # async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
+    /// # async fn main() -> Result<(), Box<dyn std::error::Error>> {
     /// let (cluster, _) = Cluster::new(env::var("DISCORD_TOKEN")?, Intents::empty()).await?;
     /// cluster.up().await;
     ///

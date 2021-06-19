@@ -97,7 +97,7 @@ struct CreateInviteFields {
 /// use twilight_model::id::ChannelId;
 ///
 /// # #[tokio::main]
-/// # async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
+/// # async fn main() -> Result<(), Box<dyn std::error::Error>> {
 /// let client = Client::new("my token");
 ///
 /// let channel_id = ChannelId(123);
