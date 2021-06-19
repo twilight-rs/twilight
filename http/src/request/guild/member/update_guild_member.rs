@@ -163,7 +163,7 @@ impl<'a> UpdateGuildMember<'a> {
 
             self.fields.nick.replace(NullableField::Value(nick));
         } else {
-            self.fields.nick = None;
+            self.fields.nick.replace(NullableField::Null);
         }
 
         Ok(self)
