@@ -48,7 +48,7 @@ impl<'a> UpdateCurrentUserVoiceState<'a> {
     /// - You are able to set `request_to_speak_timestamp` to any present or
     /// future time.
     pub fn request_to_speak_timestamp(self, request_to_speak_timestamp: impl Into<String>) -> Self {
-        Self::_request_to_speak_timestamp(self, request_to_speak_timestamp.into())
+        self._request_to_speak_timestamp(request_to_speak_timestamp.into())
     }
 
     fn _request_to_speak_timestamp(mut self, request_to_speak_timestamp: String) -> Self {
