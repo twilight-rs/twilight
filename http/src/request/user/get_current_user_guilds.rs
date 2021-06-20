@@ -83,7 +83,7 @@ struct GetCurrentUserGuildsFields {
 /// use twilight_model::id::GuildId;
 ///
 /// # #[tokio::main]
-/// # async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
+/// # async fn main() -> Result<(), Box<dyn std::error::Error>> {
 /// let client = Client::new("my token");
 ///
 /// let after = GuildId(300);
