@@ -129,7 +129,7 @@ impl Debug for State {
 /// use twilight_http::Client;
 ///
 /// # #[tokio::main]
-/// # async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
+/// # async fn main() -> Result<(), Box<dyn std::error::Error>> {
 /// let client = Client::new("my token");
 /// # Ok(()) }
 /// ```
@@ -140,7 +140,7 @@ impl Debug for State {
 /// use std::time::Duration;
 ///
 /// # #[tokio::main]
-/// # async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
+/// # async fn main() -> Result<(), Box<dyn std::error::Error>> {
 /// let client = Client::builder()
 ///     .token("my token")
 ///     .timeout(Duration::from_secs(5))
@@ -252,7 +252,7 @@ impl Client {
     /// use twilight_model::id::GuildId;
     /// #
     /// # #[tokio::main]
-    /// # async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
+    /// # async fn main() -> Result<(), Box<dyn std::error::Error>> {
     /// # let client = Client::new("my token");
     /// #
     /// let guild_id = GuildId(1);
@@ -284,7 +284,7 @@ impl Client {
     /// use twilight_model::id::{GuildId, UserId};
     /// #
     /// # #[tokio::main]
-    /// # async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
+    /// # async fn main() -> Result<(), Box<dyn std::error::Error>> {
     /// # let client = Client::new("my token");
     /// #
     /// let guild_id = GuildId(100);
@@ -310,7 +310,7 @@ impl Client {
     /// use twilight_model::id::{GuildId, UserId};
     /// #
     /// # #[tokio::main]
-    /// # async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
+    /// # async fn main() -> Result<(), Box<dyn std::error::Error>> {
     /// # let client = Client::new("my token");
     /// #
     /// let guild_id = GuildId(100);
@@ -334,7 +334,7 @@ impl Client {
     /// # use twilight_model::id::ChannelId;
     /// #
     /// # #[tokio::main]
-    /// # async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
+    /// # async fn main() -> Result<(), Box<dyn std::error::Error>> {
     /// # let client = Client::new("my token");
     /// #
     /// let channel_id = ChannelId(100);
@@ -397,7 +397,7 @@ impl Client {
     /// use twilight_model::id::{ChannelId, MessageId};
     ///
     /// # #[tokio::main]
-    /// # async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
+    /// # async fn main() -> Result<(), Box<dyn std::error::Error>> {
     /// let client = Client::new("my token");
     /// let channel_id = ChannelId(123);
     /// let message_id = MessageId(234);
@@ -446,7 +446,7 @@ impl Client {
     /// use twilight_model::id::{ChannelId, RoleId};
     /// #
     /// # #[tokio::main]
-    /// # async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
+    /// # async fn main() -> Result<(), Box<dyn std::error::Error>> {
     /// # let client = Client::new("my token");
     ///
     /// let channel_id = ChannelId(123);
@@ -526,7 +526,7 @@ impl Client {
     /// use twilight_model::id::GuildId;
     ///
     /// # #[tokio::main]
-    /// # async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
+    /// # async fn main() -> Result<(), Box<dyn std::error::Error>> {
     /// # let client = Client::new("my token");
     /// #
     /// let after = GuildId(300);
@@ -562,7 +562,7 @@ impl Client {
     /// # use twilight_model::id::GuildId;
     /// #
     /// # #[tokio::main]
-    /// # async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
+    /// # async fn main() -> Result<(), Box<dyn std::error::Error>> {
     /// # let client = Client::new("my token");
     /// #
     /// let guild_id = GuildId(100);
@@ -585,7 +585,7 @@ impl Client {
     /// # use twilight_model::id::{EmojiId, GuildId};
     /// #
     /// # #[tokio::main]
-    /// # async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
+    /// # async fn main() -> Result<(), Box<dyn std::error::Error>> {
     /// # let client = Client::new("my token");
     /// #
     /// let guild_id = GuildId(50);
@@ -635,7 +635,7 @@ impl Client {
     /// # use twilight_http::Client;
     /// #
     /// # #[tokio::main]
-    /// # async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
+    /// # async fn main() -> Result<(), Box<dyn std::error::Error>> {
     /// # let client = Client::new("my token");
     /// #
     /// let info = client.gateway().await?;
@@ -649,7 +649,7 @@ impl Client {
     /// # use twilight_http::Client;
     /// #
     /// # #[tokio::main]
-    /// # async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
+    /// # async fn main() -> Result<(), Box<dyn std::error::Error>> {
     /// # let client = Client::new("my token");
     /// #
     /// let info = client.gateway().authed().await?;
@@ -801,7 +801,7 @@ impl Client {
     /// use twilight_model::id::{GuildId, UserId};
     /// #
     /// # #[tokio::main]
-    /// # async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
+    /// # async fn main() -> Result<(), Box<dyn std::error::Error>> {
     /// # let client = Client::new("my token");
     /// #
     /// let guild_id = GuildId(100);
@@ -833,7 +833,7 @@ impl Client {
     /// use twilight_model::id::GuildId;
     ///
     /// # #[tokio::main]
-    /// # async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
+    /// # async fn main() -> Result<(), Box<dyn std::error::Error>> {
     /// let client = Client::new("my token");
     ///
     /// let guild_id = GuildId(100);
@@ -936,7 +936,7 @@ impl Client {
     /// use twilight_model::id::{GuildId, RoleId, UserId};
     /// #
     /// # #[tokio::main]
-    /// # async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
+    /// # async fn main() -> Result<(), Box<dyn std::error::Error>> {
     /// # let client = Client::new("my token");
     /// #
     /// let guild_id = GuildId(1);
@@ -1029,7 +1029,7 @@ impl Client {
     /// # use twilight_http::Client;
     /// #
     /// # #[tokio::main]
-    /// # async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
+    /// # async fn main() -> Result<(), Box<dyn std::error::Error>> {
     /// # let client = Client::new("my token");
     /// #
     /// let invite = client
@@ -1056,7 +1056,7 @@ impl Client {
     /// # use twilight_model::id::ChannelId;
     /// #
     /// # #[tokio::main]
-    /// # async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
+    /// # async fn main() -> Result<(), Box<dyn std::error::Error>> {
     /// # let client = Client::new("my token");
     /// #
     /// let channel_id = ChannelId(123);
@@ -1097,7 +1097,7 @@ impl Client {
     /// # use twilight_model::id::ChannelId;
     /// #
     /// # #[tokio::main]
-    /// # async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
+    /// # async fn main() -> Result<(), Box<dyn std::error::Error>> {
     /// # let client = Client::new("my token");
     /// #
     /// let channel_id = ChannelId(123);
@@ -1168,7 +1168,7 @@ impl Client {
     /// use twilight_model::id::{ChannelId, MessageId};
     ///
     /// # #[tokio::main]
-    /// # async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
+    /// # async fn main() -> Result<(), Box<dyn std::error::Error>> {
     /// let client = Client::new("my token");
     /// client.update_message(ChannelId(1), MessageId(2))
     ///     .content("test update".to_owned())?
@@ -1183,7 +1183,7 @@ impl Client {
     /// # use twilight_model::id::{ChannelId, MessageId};
     /// #
     /// # #[tokio::main]
-    /// # async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
+    /// # async fn main() -> Result<(), Box<dyn std::error::Error>> {
     /// # let client = Client::new("my token");
     /// client.update_message(ChannelId(1), MessageId(2))
     ///     .content(None)?
@@ -1249,7 +1249,7 @@ impl Client {
     /// # };
     /// #
     /// # #[tokio::main]
-    /// # async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
+    /// # async fn main() -> Result<(), Box<dyn std::error::Error>> {
     /// # let client = Client::new("my token");
     /// #
     /// let channel_id = ChannelId(123);
