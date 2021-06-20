@@ -4,7 +4,7 @@
 //! to lazily parse mentions.
 //!
 //! There is also the [`MentionType`]: it's an enum wrapping all possible types
-//! of mentions and works just like the individual IDs.
+//! of mentions and works just like the individual IDs and [`Timestamp`].
 //!
 //! While the syntax of mentions will be validated and the IDs within them
 //! parsed, they won't be validated as being proper snowflakes or as real IDs in
@@ -36,10 +36,31 @@
 //! assert!(matches!(iter.next(), Some((UserId(789), _, _))));
 //! assert!(iter.next().is_none());
 //! ```
+//!
+//! Parse a timestamp:
+//!
+//! ```
+//! fn main() -> Result<(), Box<dyn std::error::Error>> {
+//! use twilight_mention::{
+//!     timestamp::{TimestampStyle, Timestamp},
+//!     parse::ParseMention,
+//! };
+//!
+//! let expected_timestamp = Timestamp::new(
+//!     1_600_000_000,
+//!     Some(TimestampStyle::RelativeTime),
+//! );
+//! assert_eq!(expected_timestamp, Timestamp::parse("<t:1600000000:R>")?);
+//! # Ok(()) }
+//! ```
+//!
+//! [`Timestamp`]: crate::timestamp::Timestamp
 
 mod error;
 mod r#impl;
 mod iter;
+
+use crate::{timestamp::Timestamp, Mention};
 
 pub use self::{
     error::{ParseMentionError, ParseMentionErrorType},
@@ -60,28 +81,42 @@ use twilight_model::id::{ChannelId, EmojiId, RoleId, UserId};
 /// Parse any type of mention out of a string:
 ///
 /// ```
-/// use twilight_mention::parse::{MentionType, ParseMention};
+/// use twilight_mention::{
+///     parse::{MentionType, ParseMention},
+///     timestamp::Timestamp,
+/// };
 /// use twilight_model::id::{ChannelId, RoleId, UserId};
 ///
 /// # fn main() -> Result<(), Box<dyn std::error::Error>> {
 /// assert_eq!(MentionType::Channel(ChannelId(123)), MentionType::parse("<#123>")?);
 /// assert_eq!(MentionType::Role(RoleId(123)), MentionType::parse("<@&123>")?);
 /// assert_eq!(MentionType::User(UserId(123)), MentionType::parse("<@!123>")?);
+///
+/// let timestamp = Timestamp::new(123, None);
+/// assert_eq!(MentionType::Timestamp(timestamp), MentionType::parse("<t:123>")?);
 /// # Ok(()) }
 /// ```
 ///
 /// Iterate over all types of mentions in a buffer:
 ///
 /// ```
-/// use twilight_mention::parse::{MentionType, ParseMention};
+/// use twilight_mention::{
+///     parse::{MentionType, ParseMention},
+///     timestamp::Timestamp,
+///  };
 /// use twilight_model::id::{ChannelId, EmojiId, RoleId, UserId};
 ///
-/// let buf = "channel <#12> emoji <:name:34> role <@&56> user <@78>";
+/// let buf = "channel <#12> emoji <:name:34> role <@&56> timestamp <t:1624047978> user <@78>";
 ///
 /// let mut iter = MentionType::iter(buf);
 /// assert!(matches!(iter.next(), Some((MentionType::Channel(ChannelId(12)), _, _))));
 /// assert!(matches!(iter.next(), Some((MentionType::Emoji(EmojiId(34)), _, _))));
 /// assert!(matches!(iter.next(), Some((MentionType::Role(RoleId(56)), _, _))));
+/// assert!(matches!(
+///     iter.next(),
+///     Some((MentionType::Timestamp(timestamp), _, _))
+///     if timestamp.unix() == 1_624_047_978 && timestamp.style().is_none()
+/// ));
 /// assert!(matches!(iter.next(), Some((MentionType::User(UserId(78)), _, _))));
 /// assert!(iter.next().is_none());
 /// ```
@@ -94,6 +129,8 @@ pub enum MentionType {
     Emoji(EmojiId),
     /// Role mention.
     Role(RoleId),
+    /// Timestamp mention.
+    Timestamp(Timestamp),
     /// User mention.
     User(UserId),
 }
@@ -104,6 +141,7 @@ impl Display for MentionType {
             Self::Channel(id) => Display::fmt(id, f),
             Self::Emoji(id) => Display::fmt(id, f),
             Self::Role(id) => Display::fmt(id, f),
+            Self::Timestamp(timestamp) => Display::fmt(&timestamp.mention(), f),
             Self::User(id) => Display::fmt(id, f),
         }
     }

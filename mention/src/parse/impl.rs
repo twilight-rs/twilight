@@ -1,5 +1,7 @@
+use crate::timestamp::{Timestamp, TimestampStyle};
+
 use super::{MentionIter, MentionType, ParseMentionError, ParseMentionErrorType};
-use std::str::Chars;
+use std::{convert::TryFrom, str::Chars};
 use twilight_model::id::{ChannelId, EmojiId, RoleId, UserId};
 
 /// Parse mentions out of buffers.
@@ -72,7 +74,7 @@ impl ParseMention for ChannelId {
     where
         Self: Sized,
     {
-        parse_id(buf, Self::SIGILS).map(|(id, _)| ChannelId(id))
+        parse_mention(buf, Self::SIGILS).map(|(id, _, _)| ChannelId(id))
     }
 }
 
@@ -83,7 +85,7 @@ impl ParseMention for EmojiId {
     where
         Self: Sized,
     {
-        parse_id(buf, Self::SIGILS).map(|(id, _)| EmojiId(id))
+        parse_mention(buf, Self::SIGILS).map(|(id, _, _)| EmojiId(id))
     }
 }
 
@@ -91,13 +93,21 @@ impl ParseMention for MentionType {
     /// Sigils for any type of mention.
     ///
     /// Contains all of the sigils of every other type of mention.
-    const SIGILS: &'static [&'static str] = &["#", ":", "@&", "@!", "@"];
+    const SIGILS: &'static [&'static str] = &["#", ":", "@&", "@!", "@", "t:"];
 
+    /// Parse a mention from a string slice.
+    ///
+    /// # Examples
+    ///
+    /// Returns [`ParseMentionErrorType::TimestampStyleInvalid`] if a timestamp
+    /// style value is invalid.
+    ///
+    /// [`ParseMentionError::TimestampStyleInvalid`]: super::error::ParseMentionErrorType::TimestampStyleInvalid
     fn parse(buf: &str) -> Result<Self, ParseMentionError<'_>>
     where
         Self: Sized,
     {
-        let (id, found) = parse_id(buf, Self::SIGILS)?;
+        let (id, maybe_modifier, found) = parse_mention(buf, Self::SIGILS)?;
 
         for sigil in ChannelId::SIGILS {
             if *sigil == found {
@@ -114,6 +124,14 @@ impl ParseMention for MentionType {
         for sigil in RoleId::SIGILS {
             if *sigil == found {
                 return Ok(MentionType::Role(RoleId(id)));
+            }
+        }
+
+        for sigil in Timestamp::SIGILS {
+            if *sigil == found {
+                let maybe_style = parse_maybe_style(maybe_modifier)?;
+
+                return Ok(MentionType::Timestamp(Timestamp::new(id, maybe_style)));
             }
         }
 
@@ -134,7 +152,28 @@ impl ParseMention for RoleId {
     where
         Self: Sized,
     {
-        parse_id(buf, Self::SIGILS).map(|(id, _)| RoleId(id))
+        parse_mention(buf, Self::SIGILS).map(|(id, _, _)| RoleId(id))
+    }
+}
+
+impl ParseMention for Timestamp {
+    const SIGILS: &'static [&'static str] = &["t:"];
+
+    /// Parse a timestamp from a string slice.
+    ///
+    /// # Examples
+    ///
+    /// Returns [`ParseMentionErrorType::TimestampStyleInvalid`] if the
+    /// timestamp style value is invalid.
+    ///
+    /// [`ParseMentionError::TimestampStyleInvalid`]: super::error::ParseMentionErrorType::TimestampStyleInvalid
+    fn parse(buf: &str) -> Result<Self, ParseMentionError<'_>>
+    where
+        Self: Sized,
+    {
+        let (unix, maybe_modifier, _) = parse_mention(buf, Self::SIGILS)?;
+
+        Ok(Timestamp::new(unix, parse_maybe_style(maybe_modifier)?))
     }
 }
 
@@ -148,8 +187,27 @@ impl ParseMention for UserId {
     where
         Self: Sized,
     {
-        parse_id(buf, Self::SIGILS).map(|(id, _)| UserId(id))
+        parse_mention(buf, Self::SIGILS).map(|(id, _, _)| UserId(id))
     }
+}
+
+/// Parse a possible style value string slice into a [`TimestampStyle`].
+///
+/// # Errors
+///
+/// Returns [`ParseMentionErrorType::TimestampStyleInvalid`] if the timestamp
+/// style value is invalid.
+fn parse_maybe_style(value: Option<&str>) -> Result<Option<TimestampStyle>, ParseMentionError<'_>> {
+    Ok(if let Some(modifier) = value {
+        Some(
+            TimestampStyle::try_from(modifier).map_err(|source| ParseMentionError {
+                kind: ParseMentionErrorType::TimestampStyleInvalid { found: modifier },
+                source: Some(Box::new(source)),
+            })?,
+        )
+    } else {
+        None
+    })
 }
 
 /// # Errors
@@ -162,10 +220,10 @@ impl ParseMention for UserId {
 ///
 /// Returns [`ParseMentionError::TrailingArrow`] if the trailing arrow is not
 /// present after the ID.
-fn parse_id<'a>(
+fn parse_mention<'a>(
     buf: &'a str,
     sigils: &'a [&'a str],
-) -> Result<(u64, &'a str), ParseMentionError<'a>> {
+) -> Result<(u64, Option<&'a str>, &'a str), ParseMentionError<'a>> {
     let mut chars = buf.chars();
 
     let c = chars.next();
@@ -201,7 +259,7 @@ fn parse_id<'a>(
         });
     };
 
-    if sigil == ":" && !emoji_sigil_present(&mut chars) {
+    if sigil == ":" && !separator_sigil_present(&mut chars) {
         return Err(ParseMentionError {
             kind: ParseMentionErrorType::PartMissing {
                 found: 1,
@@ -211,27 +269,41 @@ fn parse_id<'a>(
         });
     }
 
-    let remaining = chars
+    let end_position = chars
         .as_str()
         .find('>')
-        .and_then(|idx| chars.as_str().get(..idx))
-        .ok_or(ParseMentionError {
-            kind: ParseMentionErrorType::TrailingArrow { found: None },
-            source: None,
-        })?;
+        .ok_or_else(|| ParseMentionError::trailing_arrow(None))?;
+    let maybe_split_position = chars.as_str().find(':');
 
-    remaining
-        .parse()
-        .map(|id| (id, sigil))
-        .map_err(|source| ParseMentionError {
-            kind: ParseMentionErrorType::IdNotU64 { found: remaining },
-            source: Some(Box::new(source)),
-        })
+    let end_of_id_position = maybe_split_position.unwrap_or(end_position);
+
+    let remaining = chars
+        .as_str()
+        .get(..end_of_id_position)
+        .ok_or_else(|| ParseMentionError::trailing_arrow(None))?;
+
+    let num = remaining.parse().map_err(|source| ParseMentionError {
+        kind: ParseMentionErrorType::IdNotU64 { found: remaining },
+        source: Some(Box::new(source)),
+    })?;
+
+    // If additional information - like a timestamp style - is present then we
+    // can just get a subslice of the string via the split and ending positions.
+    let style = maybe_split_position.and_then(|split_position| {
+        chars.next();
+
+        // We need to remove 1 so we don't catch the `>` in it.
+        let style_end_position = end_position - 1;
+
+        chars.as_str().get(split_position..style_end_position)
+    });
+
+    Ok((num, style, sigil))
 }
 
 // Don't use `Iterator::skip_while` so we can mutate `chars` in-place;
 // `skip_while` is consuming.
-fn emoji_sigil_present(chars: &mut Chars<'_>) -> bool {
+fn separator_sigil_present(chars: &mut Chars<'_>) -> bool {
     for c in chars {
         if c == ':' {
             return true;
@@ -250,6 +322,7 @@ fn emoji_sigil_present(chars: &mut Chars<'_>) -> bool {
 /// <https://rust-lang.github.io/api-guidelines/future-proofing.html>
 mod private {
     use super::super::MentionType;
+    use crate::timestamp::Timestamp;
     use twilight_model::id::{ChannelId, EmojiId, RoleId, UserId};
 
     pub trait Sealed {}
@@ -258,6 +331,7 @@ mod private {
     impl Sealed for EmojiId {}
     impl Sealed for MentionType {}
     impl Sealed for RoleId {}
+    impl Sealed for Timestamp {}
     impl Sealed for UserId {}
 }
 
@@ -267,6 +341,10 @@ mod tests {
         super::{MentionType, ParseMentionErrorType},
         private::Sealed,
         ParseMention,
+    };
+    use crate::{
+        parse::ParseMentionError,
+        timestamp::{Timestamp, TimestampStyle},
     };
     use static_assertions::assert_impl_all;
     use twilight_model::id::{ChannelId, EmojiId, RoleId, UserId};
@@ -281,7 +359,7 @@ mod tests {
     fn test_sigils() {
         assert_eq!(&["#"], ChannelId::SIGILS);
         assert_eq!(&[":"], EmojiId::SIGILS);
-        assert_eq!(&["#", ":", "@&", "@!", "@"], MentionType::SIGILS);
+        assert_eq!(&["#", ":", "@&", "@!", "@", "t:"], MentionType::SIGILS);
         assert_eq!(&["@&"], RoleId::SIGILS);
         assert_eq!(&["@!", "@"], UserId::SIGILS);
     }
@@ -330,7 +408,7 @@ mod tests {
         );
         assert_eq!(
             &ParseMentionErrorType::Sigil {
-                expected: &["#", ":", "@&", "@!", "@"],
+                expected: &["#", ":", "@&", "@!", "@", "t:"],
                 found: Some(';'),
             },
             MentionType::parse("<;123>").unwrap_err().kind(),
@@ -350,6 +428,21 @@ mod tests {
     }
 
     #[test]
+    fn test_parse_timestamp() -> Result<(), ParseMentionError<'static>> {
+        assert_eq!(Timestamp::new(123, None), Timestamp::parse("<t:123>")?);
+        assert_eq!(
+            Timestamp::new(123, Some(TimestampStyle::RelativeTime)),
+            Timestamp::parse("<t:123:R>")?
+        );
+        assert_eq!(
+            &ParseMentionErrorType::TimestampStyleInvalid { found: "?" },
+            Timestamp::parse("<t:123:?>").unwrap_err().kind(),
+        );
+
+        Ok(())
+    }
+
+    #[test]
     fn test_parse_user_id() {
         assert_eq!(UserId(123), UserId::parse("<@123>").unwrap());
         assert_eq!(
@@ -365,21 +458,21 @@ mod tests {
                 expected: &["@"],
                 found: Some('#'),
             },
-            super::parse_id("<#123>", &["@"]).unwrap_err().kind(),
+            super::parse_mention("<#123>", &["@"]).unwrap_err().kind(),
         );
         assert_eq!(
             &ParseMentionErrorType::Sigil {
                 expected: &["#"],
                 found: None,
             },
-            super::parse_id("<", &["#"]).unwrap_err().kind(),
+            super::parse_mention("<", &["#"]).unwrap_err().kind(),
         );
         assert_eq!(
             &ParseMentionErrorType::Sigil {
                 expected: &["#"],
                 found: None,
             },
-            super::parse_id("<", &["#"]).unwrap_err().kind(),
+            super::parse_mention("<", &["#"]).unwrap_err().kind(),
         );
     }
 }
