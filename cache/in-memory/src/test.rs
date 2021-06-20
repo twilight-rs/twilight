@@ -246,7 +246,7 @@ pub fn guild(id: GuildId, name: String) -> Guild {
     }
 }
 
-pub fn guild_channel_text(name: String) -> (GuildId, ChannelId, GuildChannel) {
+pub const fn guild_channel_text(name: String) -> (GuildId, ChannelId, GuildChannel) {
     let guild_id = GuildId(1);
     let channel_id = ChannelId(2);
     let channel = GuildChannel::Text(TextChannel {

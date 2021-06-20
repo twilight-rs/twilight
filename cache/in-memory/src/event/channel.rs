@@ -258,7 +258,7 @@ mod tests {
             }
         }
 
-        let event = ChannelDelete(Channel::Guild(new_channel.clone()));
+        let event = ChannelDelete(Channel::Guild(new_channel));
         cache.update(&event);
 
         {

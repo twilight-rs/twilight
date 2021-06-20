@@ -211,9 +211,9 @@ mod tests {
         }
 
         (3..=10)
-            .map(|id| MessageId(id))
+            .map(MessageId)
             .map(|id| test::message(id, "content".to_string()))
-            .map(|message| MessageCreate(message))
+            .map(MessageCreate)
             .map(|event| cache.update(&event))
             .for_each(drop);
 
@@ -227,7 +227,7 @@ mod tests {
         let event = MessageDeleteBulk {
             channel_id: ChannelId(2),
             guild_id: Some(GuildId(2)),
-            ids: (3..=10).map(|id| MessageId(id)).collect(),
+            ids: (3..=10).map(MessageId).collect(),
         };
         cache.update(&event);
 

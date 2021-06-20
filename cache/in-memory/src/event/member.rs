@@ -238,7 +238,7 @@ mod tests {
 
         test::members(100..=110, guild.id)
             .into_iter()
-            .map(|member| MemberAdd(member))
+            .map(MemberAdd)
             .map(|member| cache.update(&member))
             .for_each(drop);
 
