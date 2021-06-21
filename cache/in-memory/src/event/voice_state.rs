@@ -1,42 +1,7 @@
 use crate::{config::ResourceType, InMemoryCache, UpdateCache};
-use twilight_model::{
-    gateway::payload::VoiceStateUpdate,
-    id::{ChannelId, GuildId, UserId},
-    voice::VoiceState,
-};
+use twilight_model::{gateway::payload::VoiceStateUpdate, voice::VoiceState};
 
 impl InMemoryCache {
-    /// Gets the voice states within a voice channel.
-    ///
-    /// This requires both the [`GUILDS`] and [`GUILD_VOICE_STATES`] intents.
-    ///
-    /// [`GUILDS`]: ::twilight_model::gateway::Intents::GUILDS
-    /// [`GUILD_VOICE_STATES`]: ::twilight_model::gateway::Intents::GUILD_VOICE_STATES
-    pub fn voice_channel_states(&self, channel_id: ChannelId) -> Option<Vec<VoiceState>> {
-        let user_ids = self.0.voice_state_channels.get(&channel_id)?;
-
-        Some(
-            user_ids
-                .iter()
-                .filter_map(|key| self.0.voice_states.get(&key).map(|r| r.clone()))
-                .collect(),
-        )
-    }
-
-    /// Gets a voice state by user ID and Guild ID.
-    ///
-    /// This is an O(1) operation. This requires both the [`GUILDS`] and
-    /// [`GUILD_VOICE_STATES`] intents.
-    ///
-    /// [`GUILDS`]: ::twilight_model::gateway::Intents::GUILDS
-    /// [`GUILD_VOICE_STATES`]: ::twilight_model::gateway::Intents::GUILD_VOICE_STATES
-    pub fn voice_state(&self, user_id: UserId, guild_id: GuildId) -> Option<VoiceState> {
-        self.0
-            .voice_states
-            .get(&(guild_id, user_id))
-            .map(|r| r.clone())
-    }
-
     pub(crate) fn cache_voice_states(&self, voice_states: impl IntoIterator<Item = VoiceState>) {
         for voice_state in voice_states {
             self.cache_voice_state(voice_state);
@@ -133,6 +98,7 @@ impl UpdateCache for VoiceStateUpdate {
 mod tests {
     use super::*;
     use crate::test;
+    use twilight_model::id::{ChannelId, GuildId, UserId};
 
     #[test]
     fn test_voice_state_inserts_and_removes() {
