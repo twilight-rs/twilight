@@ -59,12 +59,7 @@ impl UpdateCache for RoleCreate {
             return;
         }
 
-        crate::upsert_guild_item(
-            &cache.0.roles,
-            self.guild_id,
-            self.role.id,
-            self.role.clone(),
-        );
+        cache.cache_role(self.guild_id, self.role.clone());
     }
 }
 
