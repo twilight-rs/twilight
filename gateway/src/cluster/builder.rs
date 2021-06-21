@@ -81,7 +81,7 @@ impl ClusterBuilder {
     ) -> Result<
         (
             Cluster,
-            impl Stream<Item = (u64, Event)> + Unpin + Sync + 'static,
+            impl Stream<Item = (u64, Event)> + Unpin + Send + Sync + 'static,
         ),
         ClusterStartError,
     > {
