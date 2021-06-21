@@ -291,7 +291,7 @@ impl Cluster {
     ) -> Result<
         (
             Self,
-            impl Stream<Item = (u64, Event)> + Unpin + Send + Sync + 'static,
+            impl Stream<Item = (u64, Event)> + Send + Sync + Unpin + 'static,
         ),
         ClusterStartError,
     > {
@@ -303,7 +303,7 @@ impl Cluster {
     ) -> Result<
         (
             Self,
-            impl Stream<Item = (u64, Event)> + Unpin + Send + Sync + 'static,
+            impl Stream<Item = (u64, Event)> + Send + Sync + Unpin + 'static,
         ),
         ClusterStartError,
     > {
