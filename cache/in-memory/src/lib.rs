@@ -526,7 +526,6 @@ impl InMemoryCache {
     fn wants(&self, resource_type: ResourceType) -> bool {
         self.0.config.resource_types().contains(resource_type)
     }
-
 }
 
 pub trait UpdateCache {
