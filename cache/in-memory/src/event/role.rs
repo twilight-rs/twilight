@@ -89,6 +89,23 @@ mod tests {
     use crate::test;
 
     #[test]
+    fn test_insert_role_on_event() {
+        let cache = InMemoryCache::new();
+
+        cache.update(&RoleCreate {
+            guild_id: GuildId(1),
+            role: test::role(RoleId(2)),
+        });
+
+        {
+            assert_eq!(1, cache.0.guild_roles.get(&GuildId(1)).unwrap().len());
+            assert_eq!(1, cache.0.roles.len());
+
+            assert_eq!("test".to_string(), cache.role(RoleId(2)).unwrap().name);
+        }
+    }
+
+    #[test]
     fn test_cache_role() {
         let cache = InMemoryCache::new();
 
