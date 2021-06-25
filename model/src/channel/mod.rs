@@ -2,6 +2,7 @@ pub mod embed;
 pub mod message;
 pub mod permission_overwrite;
 pub mod stage_instance;
+pub mod webhook;
 
 mod attachment;
 mod category_channel;
@@ -15,15 +16,23 @@ mod reaction_type;
 mod text_channel;
 mod video_quality_mode;
 mod voice_channel;
-mod webhook;
-mod webhook_type;
 
 pub use self::{
-    attachment::Attachment, category_channel::CategoryChannel, channel_mention::ChannelMention,
-    channel_type::ChannelType, followed_channel::FollowedChannel, group::Group, message::Message,
-    private_channel::PrivateChannel, reaction::Reaction, reaction_type::ReactionType,
-    stage_instance::StageInstance, text_channel::TextChannel, video_quality_mode::VideoQualityMode,
-    voice_channel::VoiceChannel, webhook::Webhook, webhook_type::WebhookType,
+    attachment::Attachment,
+    category_channel::CategoryChannel,
+    channel_mention::ChannelMention,
+    channel_type::ChannelType,
+    followed_channel::FollowedChannel,
+    group::Group,
+    message::Message,
+    private_channel::PrivateChannel,
+    reaction::Reaction,
+    reaction_type::ReactionType,
+    stage_instance::StageInstance,
+    text_channel::TextChannel,
+    video_quality_mode::VideoQualityMode,
+    voice_channel::VoiceChannel,
+    webhook::{Webhook, WebhookType},
 };
 
 use crate::id::{ChannelId, GuildId, MessageId};
