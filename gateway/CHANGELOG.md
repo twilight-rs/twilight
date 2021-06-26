@@ -2,6 +2,17 @@
 
 Changelog for `twilight-gateway`.
 
+## [0.5.1] - 2021-06-24
+
+### Additions
+
+Add the bounds `Send + Sync + Unpin + 'static` to the event stream returned by
+`Cluster::new` and `ClusterBuilder::build`
+([#939] - [@Erk-], [#959] - [@7596ff]).
+
+[#959]: https://github.com/twilight-rs/twilight/pull/959
+[#939]: https://github.com/twilight-rs/twilight/pull/939
+
 ## [0.5.0] - 2021-06-13
 
 ### Upgrade Path
@@ -403,6 +414,7 @@ Initial release.
 [#515]: https://github.com/twilight-rs/twilight/pull/515
 [#512]: https://github.com/twilight-rs/twilight/pull/512
 
+[0.5.1]: https://github.com/twilight-rs/twilight/releases/tag/gateway-0.5.1
 [0.5.0]: https://github.com/twilight-rs/twilight/releases/tag/gateway-0.5.0
 [0.4.2]: https://github.com/twilight-rs/twilight/releases/tag/gateway-0.4.2
 [0.4.1]: https://github.com/twilight-rs/twilight/releases/tag/gateway-0.4.1

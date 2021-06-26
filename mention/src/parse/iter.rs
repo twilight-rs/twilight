@@ -99,6 +99,8 @@ impl<'a, T: ParseMention> Iterator for MentionIter<'a, T> {
 
 #[cfg(test)]
 mod tests {
+    use crate::timestamp::{Timestamp, TimestampStyle};
+
     use super::{
         super::{MentionType, ParseMention},
         MentionIter,
@@ -159,10 +161,36 @@ mod tests {
     }
 
     #[test]
+    fn test_iter_mention_type_with_timestamp() {
+        let mut iter = MentionType::iter("<#12> <t:34> <t:56:d>");
+        assert_eq!(MentionType::Channel(ChannelId(12)), iter.next().unwrap().0);
+        assert_eq!(
+            MentionType::Timestamp(Timestamp::new(34, None)),
+            iter.next().unwrap().0
+        );
+        assert_eq!(
+            MentionType::Timestamp(Timestamp::new(56, Some(TimestampStyle::ShortDate))),
+            iter.next().unwrap().0
+        );
+        assert!(iter.next().is_none());
+    }
+
+    #[test]
     fn test_iter_role_ids() {
         let mut iter = RoleId::iter("some <@&123> roles <@&456>");
         assert_eq!(RoleId(123), iter.next().unwrap().0);
         assert_eq!(RoleId(456), iter.next().unwrap().0);
+        assert!(iter.next().is_none());
+    }
+
+    #[test]
+    fn test_iter_timestamps() {
+        let mut iter = Timestamp::iter("some <t:123> roles <t:456:t>");
+        assert_eq!(Timestamp::new(123, None), iter.next().unwrap().0);
+        assert_eq!(
+            Timestamp::new(456, Some(TimestampStyle::ShortTime)),
+            iter.next().unwrap().0
+        );
         assert!(iter.next().is_none());
     }
 

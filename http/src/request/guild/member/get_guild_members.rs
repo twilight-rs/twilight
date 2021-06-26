@@ -97,7 +97,7 @@ struct GetGuildMembersFields {
 /// use twilight_model::id::{GuildId, UserId};
 ///
 /// # #[tokio::main]
-/// # async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
+/// # async fn main() -> Result<(), Box<dyn std::error::Error>> {
 /// let client = Client::new("my token");
 ///
 /// let guild_id = GuildId(100);

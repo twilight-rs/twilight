@@ -17,7 +17,7 @@ use twilight_model::gateway::connection_info::ConnectionInfo;
 /// use twilight_http::Client;
 ///
 /// # #[tokio::main]
-/// # async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
+/// # async fn main() -> Result<(), Box<dyn std::error::Error>> {
 /// let client = Client::new("my token");
 ///
 /// let info = client.gateway().await?;
@@ -31,7 +31,7 @@ use twilight_model::gateway::connection_info::ConnectionInfo;
 /// use twilight_http::Client;
 ///
 /// # #[tokio::main]
-/// # async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
+/// # async fn main() -> Result<(), Box<dyn std::error::Error>> {
 /// let client = Client::new("my token");
 ///
 /// let info = client.gateway().authed().await?;

@@ -33,6 +33,13 @@ impl<'a> ParseMentionError<'a> {
     ) {
         (self.kind, self.source)
     }
+
+    pub(super) fn trailing_arrow(found: Option<char>) -> Self {
+        Self {
+            kind: ParseMentionErrorType::TrailingArrow { found },
+            source: None,
+        }
+    }
 }
 
 impl Display for ParseMentionError<'_> {
@@ -74,6 +81,12 @@ impl Display for ParseMentionError<'_> {
                 } else {
                     f.write_str("nothing")
                 }
+            }
+            ParseMentionErrorType::TimestampStyleInvalid { found } => {
+                f.write_str("timestamp style value '")?;
+                f.write_str(found)?;
+
+                f.write_str("' is invalid")
             }
             ParseMentionErrorType::TrailingArrow { found } => {
                 f.write_str("expected to find a trailing arrow ('>') but instead ")?;
@@ -130,6 +143,11 @@ pub enum ParseMentionErrorType<'a> {
         /// Character that was instead found where the sigil should be.
         found: Option<char>,
     },
+    /// Timestamp style value is invalid.
+    TimestampStyleInvalid {
+        /// Value of the style.
+        found: &'a str,
+    },
     /// Trailing arrow (`>`) is not present.
     TrailingArrow {
         /// Character that was instead found where the trailing arrow should be.
@@ -146,10 +164,12 @@ mod tests {
     assert_fields!(ParseMentionErrorType::IdNotU64: found);
     assert_fields!(ParseMentionErrorType::LeadingArrow: found);
     assert_fields!(ParseMentionErrorType::Sigil: expected, found);
+    assert_fields!(ParseMentionErrorType::TimestampStyleInvalid: found);
     assert_fields!(ParseMentionErrorType::TrailingArrow: found);
     assert_impl_all!(ParseMentionErrorType<'_>: Debug, Send, Sync);
     assert_impl_all!(ParseMentionError<'_>: Debug, Error, Send, Sync);
 
+    #[allow(clippy::too_many_lines)]
     #[test]
     fn test_display() {
         let mut expected = "id portion ('abcd') of mention is not a u64";
@@ -228,6 +248,15 @@ mod tests {
                     expected: &["@!", "@"],
                     found: None
                 },
+                source: None,
+            }
+            .to_string(),
+        );
+        expected = "timestamp style value 'E' is invalid";
+        assert_eq!(
+            expected,
+            ParseMentionError {
+                kind: ParseMentionErrorType::TimestampStyleInvalid { found: "E" },
                 source: None,
             }
             .to_string(),

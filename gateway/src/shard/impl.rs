@@ -379,7 +379,7 @@ impl Shard {
     /// use tokio::time as tokio_time;
     ///
     /// # #[tokio::main]
-    /// # async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
+    /// # async fn main() -> Result<(), Box<dyn std::error::Error>> {
     /// let token = env::var("DISCORD_TOKEN")?;
     ///
     /// let intents = Intents::GUILD_MESSAGES | Intents::GUILD_MESSAGE_TYPING;
