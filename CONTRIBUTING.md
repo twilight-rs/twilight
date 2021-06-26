@@ -58,7 +58,10 @@ impl Display for TwilightError {
         match self.kind {
             TwilightErrorType::AnError => f.write_str("something went wrong"),
             TwilightErrorType::AnotherError { mistake_count } => {
-                f.write_fmt(format_args!("something else went wrong, {} mistakes", mistake_count))
+                f.write_str("something else went wrong, ")?;
+                Display::fmt(mistake_count, f)?;
+
+                f.write_str(" mistakes")
             }
         }
     }

@@ -628,11 +628,11 @@ pub struct GeneralApiError {
 
 impl Display for GeneralApiError {
     fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
-        f.write_fmt(format_args!(
-            "Error code {}: {}",
-            self.code.num(),
-            self.message
-        ))
+        f.write_str("Error code ")?;
+        Display::fmt(&self.code.num(), f)?;
+        f.write_str(": ")?;
+
+        f.write_str(&self.message)
     }
 }
 
