@@ -89,6 +89,41 @@ pub enum TwilightErrorType {
 }
 ```
 
+# Formatters
+
+Macros like `format_args!` and `write!` have runtime performance hits. Instead,
+use `core::fmt::Formatter` methods such as `Formatter::write_str` and calling
+`Display::fmt` directly.
+
+An example of what *not* to do:
+
+```rust
+use std::fmt::{Display, Formatter, Result as FmtResult};
+
+struct Foo {
+    number: u64,
+}
+
+impl Display for Foo {
+    fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
+        write!(f, "the number {} is too high", self.number)
+    }
+}
+```
+
+Instead, write the `Display` implementation like this:
+
+```rust
+impl Display for Foo {
+    fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
+        f.write_str("the number ")?;
+        Display::fmt(&self.number, f)?;
+
+        f.write_str(" is too high")
+    }
+}
+```
+
 # Pull Requests
 
 Pull requests must be named with a short description of the contained changes. Pull requests must be
