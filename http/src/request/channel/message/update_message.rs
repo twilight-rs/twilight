@@ -1,7 +1,10 @@
 use crate::{
     client::Client,
     error::Error as HttpError,
-    request::{validate, Pending, Request},
+    request::{
+        validate::{self, EmbedValidationError},
+        Pending, Request,
+    },
     routing::Route,
 };
 use serde::Serialize;
@@ -43,6 +46,16 @@ impl UpdateMessageError {
     pub fn into_parts(self) -> (UpdateMessageErrorType, Option<Box<dyn Error + Send + Sync>>) {
         (self.kind, self.source)
     }
+
+    fn embed(source: EmbedValidationError, embed: Embed, idx: Option<usize>) -> Self {
+        Self {
+            kind: UpdateMessageErrorType::EmbedTooLarge {
+                embed: Box::new(embed),
+                idx,
+            },
+            source: Some(Box::new(source)),
+        }
+    }
 }
 
 impl Display for UpdateMessageError {
@@ -79,6 +92,8 @@ pub enum UpdateMessageErrorType {
     EmbedTooLarge {
         /// Provided embed.
         embed: Box<Embed>,
+        /// Index of the embed, if there is any.
+        idx: Option<usize>,
     },
 }
 
@@ -100,9 +115,8 @@ struct UpdateMessageFields {
     #[allow(clippy::option_option)]
     #[serde(skip_serializing_if = "Option::is_none")]
     content: Option<Option<String>>,
-    #[allow(clippy::option_option)]
     #[serde(skip_serializing_if = "Option::is_none")]
-    embed: Option<Option<Embed>>,
+    embeds: Option<Vec<Embed>>,
     #[serde(skip_serializing_if = "Option::is_none")]
     flags: Option<MessageFlags>,
 }
@@ -219,29 +233,78 @@ impl<'a> UpdateMessage<'a> {
         Ok(self)
     }
 
-    /// Set the embed of the message.
+    /// Attaches an embed to the message.
     ///
-    /// Pass `None` if you want to remove the message embed.
+    /// Pass `None` if you want to remove all of the embeds.
     ///
-    /// Note that if there is no content then you will not be
-    /// able to remove the embed of the message.
+    /// The first call of this method will clear all present embeds from a
+    /// message and replace it with the set embed. Subsequent calls will add
+    /// more embeds.
+    ///
+    /// To pass multiple embeds at once, use [`embeds`].
+    ///
+    /// # Errors
+    ///
+    /// Returns an [`UpdateMessageErrorType::EmbedTooLarge`] error type if the
+    /// embed is too large.
+    ///
+    /// [`embeds`]: Self::embeds
     pub fn embed(self, embed: impl Into<Option<Embed>>) -> Result<Self, UpdateMessageError> {
         self._embed(embed.into())
     }
 
     fn _embed(mut self, embed: Option<Embed>) -> Result<Self, UpdateMessageError> {
         if let Some(embed_ref) = embed.as_ref() {
-            if let Err(source) = validate::embed(&embed_ref) {
-                return Err(UpdateMessageError {
-                    kind: UpdateMessageErrorType::EmbedTooLarge {
-                        embed: Box::new(embed.expect("embed is known to be some")),
-                    },
-                    source: Some(Box::new(source)),
-                });
-            }
+            validate::embed(&embed_ref)
+                .map_err(|source| UpdateMessageError::embed(source, embed_ref.clone(), None))?;
         }
 
-        self.fields.embed.replace(embed);
+        if let Some(embed) = embed {
+            if let Some(embeds) = &mut self.fields.embeds {
+                embeds.push(embed);
+            } else {
+                self.fields.embeds.replace(Vec::from([embed]));
+            }
+        } else {
+            self.fields.embeds.replace(Vec::new());
+        }
+
+        Ok(self)
+    }
+
+    /// Set the embeds of the message.
+    ///
+    /// To keep all embeds, do not use this.
+    ///
+    /// To modify one or more embeds in the message, acquire them from the
+    /// previous message, mutate it/them in place, then pass that list to this
+    /// method.
+    ///
+    /// To remove all embeds, pass an empty list: `iter::empty`
+    ///
+    /// Note that if there is no content or file then you will not be able to
+    /// remove all of the embeds.
+    ///
+    /// # Errors
+    ///
+    /// Returns an [`UpdateMessageErrorType::EmbedTooLarge`] error type if an
+    /// embed is too large.
+    ///
+    /// [`iter::empty`]: std::iter::empty
+    pub fn embeds(
+        mut self,
+        embeds: impl IntoIterator<Item = Embed>,
+    ) -> Result<Self, UpdateMessageError> {
+        for (idx, embed) in embeds.into_iter().enumerate() {
+            validate::embed(&embed)
+                .map_err(|source| UpdateMessageError::embed(source, embed.clone(), Some(idx)))?;
+
+            if let Some(embeds) = &mut self.fields.embeds {
+                embeds.push(embed);
+            } else {
+                self.fields.embeds.replace(Vec::from([embed]));
+            }
+        }
 
         Ok(self)
     }
