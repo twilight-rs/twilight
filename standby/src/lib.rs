@@ -119,6 +119,7 @@
 //!
 //! For more examples, check out each of the methods on [`Standby`].
 //!
+//! [`tracing`]: https://crates.io/crates/tracing
 //! [discord badge]: https://img.shields.io/discord/745809834183753828?color=%237289DA&label=discord%20server&logo=discord&style=for-the-badge
 //! [discord link]: https://discord.gg/7jj8n7D
 //! [github badge]: https://img.shields.io/badge/github-twilight-6f42c1.svg?style=for-the-badge&logo=github
