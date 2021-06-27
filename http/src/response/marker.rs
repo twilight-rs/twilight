@@ -25,17 +25,8 @@ pub struct EmptyBody;
 
 /// Marker that a response has a list of something.
 ///
-/// A `ListBody` is advantageous because it allows the retrieval of a
-/// [`ModelIter`] to allow lazy deserialization. Instead of deserializing all of
-/// the entries and collecting them into a `Vec` via [`Response::models`], you
-/// can use [`Response::iter`] to iterate over and deserialize entries
-/// on-demand. This saves processing time if the iterator is short-circuited.
-/// Refer to the documentation for [`ModelIter`] for additional information.
+/// May be used via the [`Response::models`].
 ///
-/// May be used via the [`Response::iter`] or [`Response::models`] methods.
-///
-/// [`ModelIter`]: super::ModelIter
-/// [`Response::iter`]: super::Response::<ListBody<T>>::iter
 /// [`Response::models`]: super::Response::<ListBody<T>>::models
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct ListBody<T> {
