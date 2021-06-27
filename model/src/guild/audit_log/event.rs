@@ -1,11 +1,13 @@
 use serde_repr::{Deserialize_repr, Serialize_repr};
 
+/// Action to cause an audit log entry.
 #[derive(
     Clone, Copy, Debug, Deserialize_repr, Eq, Hash, PartialEq, PartialOrd, Ord, Serialize_repr,
 )]
 #[repr(u8)]
 pub enum AuditLogEvent {
-    GuildCreate = 1,
+    /// Guild was updated.
+    GuildUpdate = 1,
     ChannelCreate = 10,
     ChannelUpdate = 11,
     ChannelDelete = 12,
@@ -43,4 +45,26 @@ pub enum AuditLogEvent {
     StageInstanceCreate = 83,
     StageInstanceUpdate = 84,
     StageInstanceDelete = 85,
+}
+
+#[cfg(test)]
+mod tests {
+    use super::AuditLogEvent;
+    use serde::{Deserialize, Serialize};
+    use static_assertions::{assert_impl_all, const_assert_eq};
+    use std::{fmt::Debug, hash::Hash};
+
+    assert_impl_all!(
+        AuditLogEvent: Clone,
+        Copy,
+        Debug,
+        Deserialize<'static>,
+        Eq,
+        Hash,
+        PartialEq,
+        PartialOrd,
+        Ord,
+        Serialize
+    );
+    const_assert_eq!(1, AuditLogEvent::GuildUpdate as u8);
 }
