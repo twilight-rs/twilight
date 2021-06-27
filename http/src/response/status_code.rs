@@ -13,6 +13,7 @@ impl StatusCode {
     }
 
     /// Raw status code value.
+    #[must_use = "status code must be used to be useful"]
     pub const fn raw(self) -> u16 {
         self.0
     }
@@ -20,6 +21,7 @@ impl StatusCode {
     /// Whether the status code is informational.
     ///
     /// This is defined as being between `[100, 200)`.
+    #[must_use = "whether a status code is informational must be used"]
     pub const fn is_informational(self) -> bool {
         self.in_range(100, 200)
     }
@@ -27,6 +29,7 @@ impl StatusCode {
     /// Whether the status code is a success.
     ///
     /// This is defined as being between `[200, 300)`.
+    #[must_use = "whether a status code is a success must be used"]
     pub const fn is_success(self) -> bool {
         self.in_range(200, 300)
     }
@@ -34,6 +37,7 @@ impl StatusCode {
     /// Whether the status code is a redirection.
     ///
     /// This is defined as being between `[300, 400)`.
+    #[must_use = "whether a status code is redirectional must be used"]
     pub const fn is_redirection(self) -> bool {
         self.in_range(300, 400)
     }
@@ -41,6 +45,7 @@ impl StatusCode {
     /// Whether the status code is a client error.
     ///
     /// This is defined as being between `[400, 500)`.
+    #[must_use = "whether a status code is a client error must be used"]
     pub const fn is_client_error(self) -> bool {
         self.in_range(400, 500)
     }
@@ -48,6 +53,7 @@ impl StatusCode {
     /// Whether the status code is a server error.
     ///
     /// This is defined as being between `[500, 600)`.
+    #[must_use = "whether a status code is a server error must be used"]
     pub const fn is_server_error(self) -> bool {
         self.in_range(500, 600)
     }
