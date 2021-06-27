@@ -1,5 +1,5 @@
 use crate::{config::ResourceType, model::CachedMember, InMemoryCache, UpdateCache};
-use std::{borrow::Cow, collections::HashSet};
+use std::borrow::Cow;
 use twilight_model::{
     application::interaction::application_command::InteractionMember,
     gateway::payload::{MemberAdd, MemberChunk, MemberRemove, MemberUpdate},
@@ -8,27 +8,6 @@ use twilight_model::{
 };
 
 impl InMemoryCache {
-    /// Gets the set of members in a guild.
-    ///
-    /// This list may be incomplete if not all members have been cached.
-    ///
-    /// This is a O(m) operation, where m is the amount of members in the guild.
-    /// This requires the [`GUILD_MEMBERS`] intent.
-    ///
-    /// [`GUILD_MEMBERS`]: ::twilight_model::gateway::Intents::GUILD_MEMBERS
-    pub fn guild_members(&self, guild_id: GuildId) -> Option<HashSet<UserId>> {
-        self.0.guild_members.get(&guild_id).map(|r| r.clone())
-    }
-
-    /// Gets a member by guild ID and user ID.
-    ///
-    /// This is an O(1) operation. This requires the [`GUILD_MEMBERS`] intent.
-    ///
-    /// [`GUILD_MEMBERS`]: ::twilight_model::gateway::Intents::GUILD_MEMBERS
-    pub fn member(&self, guild_id: GuildId, user_id: UserId) -> Option<CachedMember> {
-        self.0.members.get(&(guild_id, user_id)).map(|r| r.clone())
-    }
-
     pub(crate) fn cache_members(
         &self,
         guild_id: GuildId,
