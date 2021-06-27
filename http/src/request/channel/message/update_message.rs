@@ -277,7 +277,7 @@ impl<'a> UpdateMessage<'a> {
     /// To keep all embeds, do not use this.
     ///
     /// To modify one or more embeds in the message, acquire them from the
-    /// previous message, mutate it/them in place, then pass that list to this
+    /// previous message, mutate them in place, then pass that list to this
     /// method.
     ///
     /// To remove all embeds, pass an empty list: `iter::empty`
