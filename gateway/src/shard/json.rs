@@ -77,6 +77,7 @@ pub fn parse_gateway_event(
     gateway_deserializer
         .deserialize(&mut json_deserializer)
         .map_err(|source| {
+            #[cfg(feature = "tracing")]
             tracing::debug!("invalid JSON: {}", json);
 
             GatewayEventParsingError {
@@ -125,6 +126,7 @@ pub fn parse_gateway_event(
     gateway_deserializer
         .deserialize(&mut json_deserializer)
         .map_err(|source| {
+            #[cfg(feature = "tracing")]
             tracing::debug!("invalid JSON: {}", json);
 
             GatewayEventParsingError {

@@ -480,6 +480,7 @@ impl Shard {
         let handle = tokio::spawn(async move {
             processor.run().await;
 
+            #[cfg(feature = "tracing")]
             tracing::debug!("shard processor future ended");
         });
 
