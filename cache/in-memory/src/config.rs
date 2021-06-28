@@ -8,18 +8,31 @@ bitflags! {
     /// created channels, channel updates, and channel deletes, but not their
     /// messages.
     pub struct ResourceType: u64 {
+        /// Information relating to channels.
         const CHANNEL = 1;
+        /// Information relating to emojis.
         const EMOJI = 1 << 1;
+        /// Information relating to guilds.
         const GUILD = 1 << 2;
+        /// Information relating to members.
         const MEMBER = 1 << 3;
+        /// Information relating to messages.
         const MESSAGE = 1 << 4;
+        /// Information relating to presences.
         const PRESENCE = 1 << 5;
+        /// Information relating to reactions.
         const REACTION = 1 << 6;
+        /// Information relating to roles.
         const ROLE = 1 << 7;
+        /// Information relating the current user.
         const USER_CURRENT = 1 << 8;
+        /// Information relating to users.
         const USER = 1 << 9;
+        /// Information relating to voice states.
         const VOICE_STATE = 1 << 10;
+        /// Information relating to stage instances.
         const STAGE_INSTANCE = 1 << 11;
+        /// Information relating to guild integrations.
         const INTEGRATION = 1 << 12;
     }
 }

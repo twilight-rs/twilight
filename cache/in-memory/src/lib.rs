@@ -46,8 +46,9 @@
 //! [rust badge]: https://img.shields.io/badge/rust-1.49+-93450a.svg?style=for-the-badge&logo=rust
 
 #![deny(
-    clippy::missing_const_for_fn,
     broken_intra_doc_links,
+    clippy::missing_const_for_fn,
+    missing_docs,
     rust_2018_idioms,
     unused,
     warnings
@@ -528,7 +529,9 @@ impl InMemoryCache {
     }
 }
 
+/// Implemented for dispatch events.
 pub trait UpdateCache {
+    /// Updates the cache based on data contained within an event.
     // Allow this for presentation purposes in documentation.
     #[allow(unused_variables)]
     fn update(&self, cache: &InMemoryCache) {}
