@@ -27,11 +27,6 @@ impl Inflater {
         }
     }
 
-    /// Return an immutable reference to the buffer.
-    pub fn buffer_ref(&self) -> &[u8] {
-        self.buffer.as_slice()
-    }
-
     /// Return a mutable reference to the buffer.
     pub fn buffer_mut(&mut self) -> &mut [u8] {
         self.buffer.as_mut_slice()
@@ -51,7 +46,7 @@ impl Inflater {
     /// This returns `flate2`'s `DecompressError` as its method's type signature
     /// indicates it can return an error, however in reality in versions up to
     /// 1.0.17 it won't.
-    #[tracing::instrument(level = "trace")]
+    #[cfg_attr(feature = "tracing", tracing::instrument(level = "trace"))]
     pub fn msg(&mut self) -> Result<Option<&mut [u8]>, DecompressError> {
         let length = self.compressed.len();
 
@@ -85,6 +80,7 @@ impl Inflater {
             }
         }
 
+        #[cfg(feature = "tracing")]
         tracing::trace!(
             bytes_in = self.compressed.len(),
             bytes_out = self.buffer.len(),
@@ -92,30 +88,35 @@ impl Inflater {
             shard_total = self.shard[1],
             "payload lengths",
         );
+
         self.compressed.clear();
 
-        // It doesn't matter if we lose precision for logging.
-        #[allow(clippy::cast_precision_loss)]
-        let saved_percentage =
-            self.decompress.total_in() as f64 / self.decompress.total_out() as f64;
-        let saved_percentage_readable = saved_percentage * 100.0;
+        #[cfg(feature = "tracing")]
+        {
+            // It doesn't matter if we lose precision for logging.
+            #[allow(clippy::cast_precision_loss)]
+            let saved_percentage =
+                self.decompress.total_in() as f64 / self.decompress.total_out() as f64;
+            let saved_percentage_readable = saved_percentage * 100.0;
+            let saved_kib = (self.decompress.total_out() - self.decompress.total_in()) / 1_024;
 
-        let saved_kib = (self.decompress.total_out() - self.decompress.total_in()) / 1_024;
-
-        tracing::trace!(
-            saved_kib = saved_kib,
-            saved_percentage = %saved_percentage_readable,
-            shard_id = self.shard[0],
-            shard_total = self.shard[1],
-            total_in = self.decompress.total_in(),
-            total_out = self.decompress.total_out(),
-            "data saved",
-        );
+            tracing::trace!(
+                saved_kib = saved_kib,
+                saved_percentage = %saved_percentage_readable,
+                shard_id = self.shard[0],
+                shard_total = self.shard[1],
+                total_in = self.decompress.total_in(),
+                total_out = self.decompress.total_out(),
+                "data saved",
+            );
+        }
 
         #[cfg(feature = "metrics")]
         self.inflater_metrics();
 
+        #[cfg(feature = "tracing")]
         tracing::trace!("capacity: {}", self.buffer.capacity());
+
         Ok(Some(&mut self.buffer))
     }
 
@@ -123,7 +124,7 @@ impl Inflater {
     ///
     /// If the capacity is 4 times larger than the buffer length then the
     /// capacity will be shrunk to the length.
-    #[tracing::instrument(level = "trace")]
+    #[cfg_attr(feature = "tracing", tracing::instrument(level = "trace"))]
     pub fn clear(&mut self) {
         self.shrink();
 
@@ -165,12 +166,14 @@ impl Inflater {
         self.compressed.shrink_to_fit();
         self.buffer.shrink_to_fit();
 
+        #[cfg(feature = "tracing")]
         tracing::trace!(
             capacity = self.compressed.capacity(),
             shard_id = self.shard[0],
             shard_total = self.shard[1],
             "compressed capacity",
         );
+        #[cfg(feature = "tracing")]
         tracing::trace!(
             capacity = self.buffer.capacity(),
             shard_id = self.shard[0],
@@ -226,7 +229,6 @@ mod tests {
         assert!(!inflater.internal_buffer.is_empty());
 
         assert_eq!(OUTPUT, inflater.buffer_mut());
-        assert_eq!(OUTPUT, inflater.buffer_ref());
 
         // Check to make sure `buffer` and `internal_buffer` haven't been cleared.
         assert!(!inflater.internal_buffer.is_empty());
