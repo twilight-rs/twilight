@@ -113,6 +113,7 @@ impl Heartbeats {
             let millis = if let Ok(millis) = dur.as_millis().try_into() {
                 millis
             } else {
+                #[cfg(feature = "tracing")]
                 tracing::error!("duration millis is more than u64: {:?}", dur);
 
                 return;
@@ -197,8 +198,9 @@ impl Heartbeater {
     }
 
     pub async fn run(self) {
-        if let Err(why) = self.try_run().await {
-            tracing::warn!("Error sending heartbeat: {:?}", why);
+        if let Err(_source) = self.try_run().await {
+            #[cfg(feature = "tracing")]
+            tracing::warn!("Error sending heartbeat: {:?}", _source);
         }
     }
 
@@ -236,14 +238,19 @@ impl Heartbeater {
                 source: Some(Box::new(source)),
             })?;
 
+            #[cfg(feature = "tracing")]
             tracing::debug!(seq, "sending heartbeat");
+
             self.tx
                 .send(TungsteniteMessage::Binary(bytes))
                 .map_err(|source| SessionSendError {
                     kind: SessionSendErrorType::Sending,
                     source: Some(Box::new(source)),
                 })?;
+
+            #[cfg(feature = "tracing")]
             tracing::debug!(seq, "sent heartbeat");
+
             self.heartbeats.send();
         }
     }
