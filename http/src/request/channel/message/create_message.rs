@@ -197,7 +197,7 @@ impl<'a> CreateMessage<'a> {
         Ok(self)
     }
 
-    /// Attach an embed to a message.
+    /// Attach an embed to the message.
     ///
     /// Embed total character length must not exceed 6000 characters.
     /// Additionally, the internal fields also have character limits. Refer to

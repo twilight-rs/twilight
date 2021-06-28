@@ -240,7 +240,7 @@ impl<'a> UpdateMessage<'a> {
         Ok(self)
     }
 
-    /// Attaches an embed to the message.
+    /// Attach an embed to the message.
     ///
     /// Pass `None` if you want to remove all of the embeds.
     ///
@@ -279,7 +279,7 @@ impl<'a> UpdateMessage<'a> {
         Ok(self)
     }
 
-    /// Set the embeds of the message.
+    /// Attach multiple embeds to the message.
     ///
     /// To keep all embeds, do not use this.
     ///
