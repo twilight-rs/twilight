@@ -65,8 +65,15 @@ impl Display for CreateMessageError {
             CreateMessageErrorType::ContentInvalid { .. } => {
                 f.write_str("the message content is invalid")
             }
-            CreateMessageErrorType::EmbedTooLarge { .. } => {
-                f.write_str("the embed's contents are too long")
+            CreateMessageErrorType::EmbedTooLarge { idx, .. } => {
+                if let Some(idx) = idx {
+                    f.write_str("the embed at index ")?;
+                    Display::fmt(&idx, f)?;
+
+                    f.write_str("'s contents are too long")
+                } else {
+                    f.write_str("the embed's contents are too long")
+                }
             }
         }
     }

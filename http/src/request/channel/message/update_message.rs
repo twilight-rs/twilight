@@ -64,8 +64,15 @@ impl Display for UpdateMessageError {
             UpdateMessageErrorType::ContentInvalid { .. } => {
                 f.write_str("the message content is invalid")
             }
-            UpdateMessageErrorType::EmbedTooLarge { .. } => {
-                f.write_str("the embed's contents are too long")
+            UpdateMessageErrorType::EmbedTooLarge { idx, .. } => {
+                if let Some(idx) = idx {
+                    f.write_str("the embed at index ")?;
+                    Display::fmt(&idx, f)?;
+
+                    f.write_str("'s contents are too long")
+                } else {
+                    f.write_str("the embed's contents are too long")
+                }
             }
         }
     }
@@ -280,7 +287,8 @@ impl<'a> UpdateMessage<'a> {
     /// previous message, mutate them in place, then pass that list to this
     /// method.
     ///
-    /// To remove all embeds, pass an empty list: `iter::empty`
+    /// To remove all embeds, pass an empty iterator via a function like
+    /// [`std::iter::empty`].
     ///
     /// Note that if there is no content or file then you will not be able to
     /// remove all of the embeds.
@@ -289,8 +297,6 @@ impl<'a> UpdateMessage<'a> {
     ///
     /// Returns an [`UpdateMessageErrorType::EmbedTooLarge`] error type if an
     /// embed is too large.
-    ///
-    /// [`iter::empty`]: std::iter::empty
     pub fn embeds(
         mut self,
         embeds: impl IntoIterator<Item = Embed>,
