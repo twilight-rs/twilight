@@ -8,3 +8,23 @@ pub struct WebhookGuild {
     pub id: GuildId,
     pub name: String,
 }
+
+#[cfg(test)]
+mod tests {
+    use super::WebhookGuild;
+    use serde::{Deserialize, Serialize};
+    use static_assertions::{assert_fields, assert_impl_all};
+    use std::{fmt::Debug, hash::Hash};
+
+    assert_fields!(WebhookGuild: icon, id, name);
+
+    assert_impl_all!(
+        WebhookGuild: Clone,
+        Debug,
+        Deserialize<'static>,
+        Eq,
+        Hash,
+        PartialEq,
+        Serialize
+    );
+}

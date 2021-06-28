@@ -41,7 +41,34 @@ mod tests {
         WebhookType,
     };
     use crate::id::UserId;
+    use serde::{Deserialize, Serialize};
     use serde_test::Token;
+    use static_assertions::{assert_fields, assert_impl_all};
+    use std::{fmt::Debug, hash::Hash};
+
+    assert_fields!(
+        Webhook: application_id,
+        avatar,
+        channel_id,
+        guild_id,
+        id,
+        kind,
+        name,
+        source_channel,
+        source_guild,
+        token,
+        user
+    );
+
+    assert_impl_all!(
+        Webhook: Clone,
+        Debug,
+        Deserialize<'static>,
+        Eq,
+        Hash,
+        PartialEq,
+        Serialize
+    );
 
     #[test]
     fn test_webhook() {
