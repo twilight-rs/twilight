@@ -1,10 +1,9 @@
-use crate::error::{Error, ErrorType};
-
 #[cfg(not(feature = "simd-json"))]
 pub use serde_json::to_vec;
 #[cfg(feature = "simd-json")]
 pub use simd_json::to_vec;
 
+use crate::error::{Error, ErrorType};
 use hyper::body::Bytes;
 use serde::de::DeserializeOwned;
 
