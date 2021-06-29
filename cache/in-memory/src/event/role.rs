@@ -1,5 +1,4 @@
 use crate::{config::ResourceType, InMemoryCache, UpdateCache};
-use std::collections::HashSet;
 use twilight_model::{
     gateway::payload::{RoleCreate, RoleDelete, RoleUpdate},
     guild::Role,
@@ -7,25 +6,6 @@ use twilight_model::{
 };
 
 impl InMemoryCache {
-    /// Gets the set of roles in a guild.
-    ///
-    /// This is a O(m) operation, where m is the amount of roles in the guild.
-    /// This requires the [`GUILDS`] intent.
-    ///
-    /// [`GUILDS`]: ::twilight_model::gateway::Intents::GUILDS
-    pub fn guild_roles(&self, guild_id: GuildId) -> Option<HashSet<RoleId>> {
-        self.0.guild_roles.get(&guild_id).map(|r| r.clone())
-    }
-
-    /// Gets a role by ID.
-    ///
-    /// This is an O(1) operation. This requires the [`GUILDS`] intent.
-    ///
-    /// [`GUILDS`]: ::twilight_model::gateway::Intents::GUILDS
-    pub fn role(&self, role_id: RoleId) -> Option<Role> {
-        self.0.roles.get(&role_id).map(|r| r.data.clone())
-    }
-
     pub(crate) fn cache_roles(&self, guild_id: GuildId, roles: impl IntoIterator<Item = Role>) {
         for role in roles {
             self.cache_role(guild_id, role);
@@ -59,12 +39,7 @@ impl UpdateCache for RoleCreate {
             return;
         }
 
-        crate::upsert_guild_item(
-            &cache.0.roles,
-            self.guild_id,
-            self.role.id,
-            self.role.clone(),
-        );
+        cache.cache_role(self.guild_id, self.role.clone());
     }
 }
 
@@ -92,6 +67,23 @@ impl UpdateCache for RoleUpdate {
 mod tests {
     use super::*;
     use crate::test;
+
+    #[test]
+    fn test_insert_role_on_event() {
+        let cache = InMemoryCache::new();
+
+        cache.update(&RoleCreate {
+            guild_id: GuildId(1),
+            role: test::role(RoleId(2)),
+        });
+
+        {
+            assert_eq!(1, cache.0.guild_roles.get(&GuildId(1)).unwrap().len());
+            assert_eq!(1, cache.0.roles.len());
+
+            assert_eq!("test".to_string(), cache.role(RoleId(2)).unwrap().name);
+        }
+    }
 
     #[test]
     fn test_cache_role() {

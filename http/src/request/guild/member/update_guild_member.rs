@@ -1,7 +1,9 @@
 use crate::{
     client::Client,
     error::Error as HttpError,
-    request::{self, validate, AuditLogReason, AuditLogReasonError, Pending, Request},
+    request::{
+        self, validate, AuditLogReason, AuditLogReasonError, NullableField, Pending, Request,
+    },
     routing::Route,
 };
 use hyper::body::Bytes;
@@ -77,16 +79,14 @@ pub enum UpdateGuildMemberErrorType {
 
 #[derive(Default, Serialize)]
 struct UpdateGuildMemberFields {
-    #[allow(clippy::option_option)]
     #[serde(skip_serializing_if = "Option::is_none")]
-    channel_id: Option<Option<ChannelId>>,
+    channel_id: Option<NullableField<ChannelId>>,
     #[serde(skip_serializing_if = "Option::is_none")]
     deaf: Option<bool>,
     #[serde(skip_serializing_if = "Option::is_none")]
     mute: Option<bool>,
-    #[allow(clippy::option_option)]
     #[serde(skip_serializing_if = "Option::is_none")]
-    nick: Option<Option<String>>,
+    nick: Option<NullableField<String>>,
     #[serde(skip_serializing_if = "Option::is_none")]
     roles: Option<Vec<RoleId>>,
 }
@@ -119,7 +119,10 @@ impl<'a> UpdateGuildMember<'a> {
 
     /// Move the member to a different voice channel.
     pub fn channel_id(mut self, channel_id: impl Into<Option<ChannelId>>) -> Self {
-        self.fields.channel_id.replace(channel_id.into());
+        let channel_id = channel_id.into();
+        self.fields
+            .channel_id
+            .replace(NullableField::from_option(channel_id));
 
         self
     }
@@ -158,7 +161,7 @@ impl<'a> UpdateGuildMember<'a> {
                 });
             }
 
-            self.fields.nick.replace(Some(nick));
+            self.fields.nick.replace(NullableField::Value(nick));
         } else {
             self.fields.nick = None;
         }
@@ -216,9 +219,7 @@ impl Future for UpdateGuildMember<'_> {
                     Poll::Pending => return Poll::Pending,
                 };
 
-                let mut bytes = bytes.as_ref().to_vec();
-                let value =
-                    crate::json::from_slice::<Value>(&mut bytes).map_err(HttpError::json)?;
+                let value = crate::json::from_bytes::<Value>(&bytes).map_err(HttpError::json)?;
 
                 let member_deserializer = MemberDeserializer::new(self.guild_id);
                 let member = member_deserializer

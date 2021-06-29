@@ -59,7 +59,9 @@ impl CloseCodeConversionError {
 
 impl Display for CloseCodeConversionError {
     fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
-        f.write_fmt(format_args!("{} isn't a valid close code", self.code))
+        Display::fmt(&self.code, f)?;
+
+        f.write_str(" isn't a valid close code")
     }
 }
 

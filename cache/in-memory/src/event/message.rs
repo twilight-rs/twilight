@@ -1,24 +1,8 @@
 use crate::{config::ResourceType, model::CachedMessage, InMemoryCache, UpdateCache};
 use std::borrow::Cow;
-use twilight_model::{
-    gateway::payload::{MessageCreate, MessageDelete, MessageDeleteBulk, MessageUpdate},
-    id::{ChannelId, MessageId},
+use twilight_model::gateway::payload::{
+    MessageCreate, MessageDelete, MessageDeleteBulk, MessageUpdate,
 };
-
-impl InMemoryCache {
-    /// Gets a message by channel ID and message ID.
-    ///
-    /// This is an O(n) operation. This requires one or both of the
-    /// [`GUILD_MESSAGES`] or [`DIRECT_MESSAGES`] intents.
-    ///
-    /// [`GUILD_MESSAGES`]: ::twilight_model::gateway::Intents::GUILD_MESSAGES
-    /// [`DIRECT_MESSAGES`]: ::twilight_model::gateway::Intents::DIRECT_MESSAGES
-    pub fn message(&self, channel_id: ChannelId, message_id: MessageId) -> Option<CachedMessage> {
-        let channel = self.0.messages.get(&channel_id)?;
-
-        channel.iter().find(|msg| msg.id == message_id).cloned()
-    }
-}
 
 impl UpdateCache for MessageCreate {
     fn update(&self, cache: &InMemoryCache) {
@@ -136,7 +120,7 @@ mod tests {
     use twilight_model::{
         channel::message::{Message, MessageFlags, MessageType},
         guild::PartialMember,
-        id::{ChannelId, GuildId, UserId},
+        id::{ChannelId, GuildId, MessageId, UserId},
         user::User,
     };
 
