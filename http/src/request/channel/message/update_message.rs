@@ -3,7 +3,7 @@ use crate::{
     error::Error as HttpError,
     request::{
         validate::{self, EmbedValidationError},
-        Pending, Request,
+        NullableField, Pending, Request,
     },
     routing::Route,
 };
@@ -119,9 +119,8 @@ struct UpdateMessageFields {
     // - Some(None): Removing the "content" by giving the Discord API a written
     //   `"content": null` in the JSON;
     // - None: Don't serialize the field at all, not modifying the state.
-    #[allow(clippy::option_option)]
     #[serde(skip_serializing_if = "Option::is_none")]
-    content: Option<Option<String>>,
+    content: Option<NullableField<String>>,
     #[serde(skip_serializing_if = "Option::is_none")]
     embeds: Option<Vec<Embed>>,
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -235,7 +234,9 @@ impl<'a> UpdateMessage<'a> {
             }
         }
 
-        self.fields.content.replace(content);
+        self.fields
+            .content
+            .replace(NullableField::from_option(content));
 
         Ok(self)
     }

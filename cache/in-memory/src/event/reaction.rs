@@ -1,6 +1,6 @@
 use crate::{config::ResourceType, InMemoryCache, UpdateCache};
 use twilight_model::{
-    channel::{message::MessageReaction, ReactionType},
+    channel::message::MessageReaction,
     gateway::payload::{ReactionAdd, ReactionRemove, ReactionRemoveAll, ReactionRemoveEmoji},
 };
 
@@ -111,13 +111,7 @@ impl UpdateCache for ReactionRemoveEmoji {
             None => return,
         };
 
-        let maybe_index = message.reactions.iter().position(|r| {
-            matches!(&r.emoji,
-                ReactionType::Unicode { name, .. }
-                    | ReactionType::Custom { name: Some(name), .. }
-                    if *name == self.emoji.name
-            )
-        });
+        let maybe_index = message.reactions.iter().position(|r| r.emoji == self.emoji);
 
         if let Some(index) = maybe_index {
             message.reactions.remove(index);
@@ -130,8 +124,7 @@ mod tests {
     use super::*;
     use crate::test;
     use twilight_model::{
-        channel::Reaction,
-        gateway::payload::reaction_remove_emoji::PartialEmoji,
+        channel::{Reaction, ReactionType},
         id::{ChannelId, GuildId, MessageId, UserId},
     };
 
@@ -209,8 +202,7 @@ mod tests {
         let cache = test::cache_with_message_and_reactions();
         cache.update(&ReactionRemoveEmoji {
             channel_id: ChannelId(2),
-            emoji: PartialEmoji {
-                id: None,
+            emoji: ReactionType::Unicode {
                 name: "😀".to_owned(),
             },
             guild_id: GuildId(1),

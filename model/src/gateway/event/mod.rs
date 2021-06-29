@@ -319,7 +319,7 @@ impl EventConversionError {
 
 impl Display for EventConversionError {
     fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
-        write!(f, "event variant failed to convert")
+        f.write_str("event variant failed to convert")
     }
 }
 

@@ -74,7 +74,7 @@ struct GetReactionsFields {
 /// requests must be chained until all reactions are retireved.
 pub struct GetReactions<'a> {
     channel_id: ChannelId,
-    emoji: String,
+    emoji: RequestReactionType,
     fields: GetReactionsFields,
     fut: Option<Pending<'a, Vec<User>>>,
     http: &'a Client,
@@ -90,7 +90,7 @@ impl<'a> GetReactions<'a> {
     ) -> Self {
         Self {
             channel_id,
-            emoji: super::format_emoji(emoji),
+            emoji,
             fields: GetReactionsFields::default(),
             fut: None,
             http,
@@ -130,7 +130,7 @@ impl<'a> GetReactions<'a> {
         let request = Request::from_route(Route::GetReactionUsers {
             after: self.fields.after.map(|x| x.0),
             channel_id: self.channel_id.0,
-            emoji: self.emoji.clone(),
+            emoji: self.emoji.display().to_string(),
             limit: self.fields.limit,
             message_id: self.message_id.0,
         });
