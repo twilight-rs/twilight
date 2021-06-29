@@ -229,7 +229,7 @@ pub enum ErrorCode {
     /// user to the thread
     ThreadArchived,
     /// Invalid thread notification settings
-    ThreadInvalidNotificiationSettings,
+    ThreadInvalidNotificationSettings,
     /// `before` value is earlier than the thread creation date
     ThreadInvalidBeforeValue,
     /// Two factor is required for this operation.
@@ -369,7 +369,7 @@ impl ErrorCode {
             Self::CommunityGuildRequired => 50074,
             Self::InvalidStickerSent => 50081,
             Self::ThreadArchived => 50083,
-            Self::ThreadInvalidNotificiationSettings => 50084,
+            Self::ThreadInvalidNotificationSettings => 50084,
             Self::ThreadInvalidBeforeValue => 50085,
             Self::TwoFactorRequired => 60003,
             Self::NoSuchUser => 80004,
@@ -498,7 +498,7 @@ impl From<u64> for ErrorCode {
             50074 => Self::CommunityGuildRequired,
             50081 => Self::InvalidStickerSent,
             50083 => Self::ThreadArchived,
-            50084 => Self::ThreadInvalidNotificiationSettings,
+            50084 => Self::ThreadInvalidNotificationSettings,
             50085 => Self::ThreadInvalidBeforeValue,
             60003 => Self::TwoFactorRequired,
             80004 => Self::NoSuchUser,
@@ -627,7 +627,7 @@ impl Display for ErrorCode {
             Self::CommunityGuildRequired => f.write_str("Cannot delete a channel required for Community guilds"),
             Self::InvalidStickerSent => f.write_str("Invalid sticker sent"),
             Self::ThreadArchived => f.write_str("Tried to perform an operation on an archived thread, such as editing a message or adding a user to the thread"),
-            Self::ThreadInvalidNotificiationSettings => f.write_str("Invalid thread notification settings"),
+            Self::ThreadInvalidNotificationSettings => f.write_str("Invalid thread notification settings"),
             Self::ThreadInvalidBeforeValue => f.write_str("`before` value is earlier than the thread creation date"),
             Self::TwoFactorRequired => f.write_str("Two factor is required for this operation"),
             Self::NoSuchUser => f.write_str("No users with DiscordTag exist"),
