@@ -1,7 +1,7 @@
 use crate::{
     client::Client,
     error::Error,
-    request::{self, AuditLogReason, AuditLogReasonError, Pending, Request},
+    request::{self, AuditLogReason, AuditLogReasonError, NullableField, Pending, Request},
     routing::Route,
 };
 use serde::Serialize;
@@ -12,16 +12,14 @@ use twilight_model::{
 
 #[derive(Default, Serialize)]
 struct UpdateRoleFields {
-    #[allow(clippy::option_option)]
     #[serde(skip_serializing_if = "Option::is_none")]
-    color: Option<Option<u32>>,
+    color: Option<NullableField<u32>>,
     #[serde(skip_serializing_if = "Option::is_none")]
     hoist: Option<bool>,
     #[serde(skip_serializing_if = "Option::is_none")]
     mentionable: Option<bool>,
-    #[allow(clippy::option_option)]
     #[serde(skip_serializing_if = "Option::is_none")]
-    name: Option<Option<String>>,
+    name: Option<NullableField<String>>,
     #[serde(skip_serializing_if = "Option::is_none")]
     permissions: Option<Permissions>,
 }
@@ -50,7 +48,9 @@ impl<'a> UpdateRole<'a> {
 
     /// Set the color of the role.
     pub fn color(mut self, color: impl Into<Option<u32>>) -> Self {
-        self.fields.color.replace(color.into());
+        self.fields
+            .color
+            .replace(NullableField::from_option(color.into()));
 
         self
     }
@@ -71,7 +71,9 @@ impl<'a> UpdateRole<'a> {
 
     /// Set the name of the role.
     pub fn name(mut self, name: impl Into<Option<String>>) -> Self {
-        self.fields.name.replace(name.into());
+        self.fields
+            .name
+            .replace(NullableField::from_option(name.into()));
 
         self
     }

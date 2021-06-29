@@ -1,7 +1,7 @@
 use crate::{
     client::Client,
     error::Error,
-    request::{Pending, Request},
+    request::{NullableField, Pending, Request},
     routing::Route,
 };
 use serde::Serialize;
@@ -12,9 +12,8 @@ use twilight_model::{
 
 #[derive(Default, Serialize)]
 struct UpdateGuildWidgetFields {
-    #[allow(clippy::option_option)]
     #[serde(skip_serializing_if = "Option::is_none")]
-    channel_id: Option<Option<ChannelId>>,
+    channel_id: Option<NullableField<ChannelId>>,
     #[serde(skip_serializing_if = "Option::is_none")]
     enabled: Option<bool>,
 }
@@ -39,7 +38,10 @@ impl<'a> UpdateGuildWidget<'a> {
 
     /// Set which channel to display on the widget.
     pub fn channel_id(mut self, channel_id: impl Into<Option<ChannelId>>) -> Self {
-        self.fields.channel_id.replace(channel_id.into());
+        let channel_id = channel_id.into();
+        self.fields
+            .channel_id
+            .replace(NullableField::from_option(channel_id));
 
         self
     }
