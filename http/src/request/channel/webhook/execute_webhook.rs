@@ -191,7 +191,7 @@ impl<'a> ExecuteWebhook<'a> {
         self
     }
 
-    /// Execute in a thread in the webhook's channel.
+    /// Execute in a thread belonging to the channel instead of the channel itself.
     pub fn thread_id(mut self, thread_id: ChannelId) -> Self {
         self.fields.thread_id.replace(thread_id);
 
