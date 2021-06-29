@@ -66,11 +66,11 @@ mod tests {
             id: EmojiId(123),
             animated: true,
             name: "foo".to_owned(),
-            available: true,
             managed: false,
             require_colons: true,
             roles: vec![],
             user: None,
+            available: true,
         };
         let cached = CachedEmoji {
             id: EmojiId(123),
