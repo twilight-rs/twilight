@@ -70,7 +70,7 @@ pub struct CachedGuild {
     pub owner_id: UserId,
     /// Total permissions for the current user in the guild, excluding overwrites.
     pub permissions: Option<Permissions>,
-    /// For Community guilds, the preferred locale.
+    /// Preferred locale for Community guilds.
     ///
     /// Used in server discovery and notices from Discord. Defaults to "en-US".
     pub preferred_locale: String,
