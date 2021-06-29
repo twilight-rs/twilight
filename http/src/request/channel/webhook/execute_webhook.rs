@@ -272,14 +272,7 @@ impl Future for ExecuteWebhook<'_> {
                     return Poll::Ready(Ok(None));
                 }
 
-                let mut bytes = bytes.as_ref().to_vec();
-                let message =
-                    crate::json::from_slice::<Message>(&mut bytes).map_err(|source| Error {
-                        kind: ErrorType::Parsing {
-                            body: bytes.clone(),
-                        },
-                        source: Some(Box::new(source)),
-                    })?;
+                let message = crate::json::parse_bytes::<Message>(&bytes)?;
 
                 return Poll::Ready(Ok(Some(message)));
             }
