@@ -9,7 +9,7 @@ use twilight_model::{
 /// [`Emoji`]: twilight_model::guild::Emoji
 #[derive(Clone, Debug, Eq, PartialEq, Serialize)]
 pub struct CachedEmoji {
-    /// Id of the Emoji.
+    /// ID of the Emoji.
     pub id: EmojiId,
     /// Whether the emoji is animated.
     pub animated: bool,
