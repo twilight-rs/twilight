@@ -40,6 +40,8 @@ bitflags! {
         const MANAGE_EMOJIS = 0x4000_0000;
         const USE_SLASH_COMMANDS = 0x8000_0000;
         const REQUEST_TO_SPEAK = 0x10000_0000;
+        /// Allows for deleting and archiving threads, and viewing all private threads.
+        const MANAGE_THREADS = 0x40000_0000;
     }
 }
 
