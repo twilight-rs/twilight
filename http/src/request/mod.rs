@@ -43,15 +43,7 @@ macro_rules! poll_req {
                             Poll::Pending => return Poll::Pending,
                         };
 
-                        let mut bytes = bytes.as_ref().to_vec();
-                        return Poll::Ready(crate::json::from_slice(&mut bytes).map(Some).map_err(
-                            |source| crate::Error {
-                                kind: crate::error::ErrorType::Parsing {
-                                    body: bytes.to_vec(),
-                                },
-                                source: Some(Box::new(source)),
-                            },
-                        ));
+                        return Poll::Ready(crate::json::parse_bytes(&bytes));
                     }
 
                     if let Err(why) = self.as_mut().start() {

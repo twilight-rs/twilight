@@ -216,9 +216,7 @@ impl Future for UpdateGuildMember<'_> {
                     Poll::Pending => return Poll::Pending,
                 };
 
-                let mut bytes = bytes.as_ref().to_vec();
-                let value =
-                    crate::json::from_slice::<Value>(&mut bytes).map_err(HttpError::json)?;
+                let value = crate::json::from_bytes::<Value>(&bytes).map_err(HttpError::json)?;
 
                 let member_deserializer = MemberDeserializer::new(self.guild_id);
                 let member = member_deserializer
