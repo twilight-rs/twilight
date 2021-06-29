@@ -13,7 +13,7 @@ use std::{
 };
 use twilight_model::{
     channel::{embed::Embed, message::AllowedMentions, Message},
-    id::WebhookId,
+    id::{ChannelId, WebhookId},
 };
 
 #[derive(Default, Serialize)]
@@ -26,6 +26,8 @@ pub(crate) struct ExecuteWebhookFields {
     embeds: Option<Vec<Embed>>,
     #[serde(skip_serializing_if = "Option::is_none")]
     payload_json: Option<Vec<u8>>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    thread_id: Option<ChannelId>,
     #[serde(skip_serializing_if = "Option::is_none")]
     tts: Option<bool>,
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -96,7 +98,7 @@ impl<'a> ExecuteWebhook<'a> {
         self
     }
 
-    /// The content of the webook's message.
+    /// The content of the webhook's message.
     ///
     /// Up to 2000 UTF-16 codepoints, same as a message.
     pub fn content(mut self, content: impl Into<String>) -> Self {
@@ -185,6 +187,13 @@ impl<'a> ExecuteWebhook<'a> {
     /// [Discord Docs/Create Message]: https://discord.com/developers/docs/resources/channel#create-message-params
     pub fn payload_json(mut self, payload_json: impl Into<Vec<u8>>) -> Self {
         self.fields.payload_json.replace(payload_json.into());
+
+        self
+    }
+
+    /// Execute in a thread in the webhook's channel.
+    pub fn thread_id(mut self, thread_id: ChannelId) -> Self {
+        self.fields.thread_id.replace(thread_id);
 
         self
     }
