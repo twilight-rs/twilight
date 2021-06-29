@@ -52,7 +52,10 @@ impl Display for StageConversionError {
     fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
         match &self.kind {
             StageConversionErrorType::InvalidInteger { value } => {
-                write!(f, "The integer {} is invalid", value)
+                f.write_str("The integer ")?;
+                Display::fmt(value, f)?;
+
+                f.write_str(" is invalid")
             }
         }
     }

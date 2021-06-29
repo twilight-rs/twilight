@@ -57,10 +57,11 @@ impl Display for UpdateOriginalResponseError {
             UpdateOriginalResponseErrorType::EmbedTooLarge { .. } => {
                 f.write_str("length of one of the embeds is too large")
             }
-            UpdateOriginalResponseErrorType::TooManyEmbeds { embeds } => f.write_fmt(format_args!(
-                "{} embeds were provided, but only 10 may be provided",
-                embeds.len()
-            )),
+            UpdateOriginalResponseErrorType::TooManyEmbeds { embeds } => {
+                Display::fmt(&embeds.len(), f)?;
+
+                f.write_str(" embeds were provided, but only 10 may be provided")
+            }
         }
     }
 }

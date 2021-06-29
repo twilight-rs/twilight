@@ -45,8 +45,8 @@
 #![allow(clippy::module_name_repetitions)]
 
 pub mod fmt;
-
 pub mod parse;
+pub mod timestamp;
 
 #[doc(no_inline)]
 pub use fmt::Mention;

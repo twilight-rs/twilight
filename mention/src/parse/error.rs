@@ -33,34 +33,50 @@ impl<'a> ParseMentionError<'a> {
     ) {
         (self.kind, self.source)
     }
+
+    pub(super) fn trailing_arrow(found: Option<char>) -> Self {
+        Self {
+            kind: ParseMentionErrorType::TrailingArrow { found },
+            source: None,
+        }
+    }
 }
 
 impl Display for ParseMentionError<'_> {
     fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
         match &self.kind {
-            ParseMentionErrorType::IdNotU64 { found, .. } => f.write_fmt(format_args!(
-                "id portion ('{}') of mention is not a u64",
-                found,
-            )),
+            ParseMentionErrorType::IdNotU64 { found, .. } => {
+                f.write_str("id portion ('")?;
+                Display::fmt(found, f)?;
+
+                f.write_str("') of mention is not a u64")
+            }
             ParseMentionErrorType::LeadingArrow { found } => {
-                f.write_str("expected to find a leading arrow ('<') but instead ")?;
+                f.write_str("expected to find a leading arrow ('<') but instead found ")?;
 
                 if let Some(c) = found {
-                    f.write_fmt(format_args!("found '{}'", c))
+                    f.write_str("'")?;
+                    f.write_str(c.encode_utf8(&mut [0; 4]))?;
+
+                    f.write_str("'")
                 } else {
-                    f.write_str("found nothing")
+                    f.write_str("nothing")
                 }
             }
-            ParseMentionErrorType::PartMissing { expected, found } => f.write_fmt(format_args!(
-                "
-                    expected {} parts but only found {}",
-                expected, found,
-            )),
+            ParseMentionErrorType::PartMissing { expected, found } => {
+                f.write_str("expected ")?;
+                Display::fmt(expected, f)?;
+                f.write_str(" parts but only found ")?;
+
+                Display::fmt(found, f)
+            }
             ParseMentionErrorType::Sigil { expected, found } => {
                 f.write_str("expected to find a mention sigil (")?;
 
                 for (idx, sigil) in expected.iter().enumerate() {
-                    f.write_fmt(format_args!("'{}'", sigil))?;
+                    f.write_str("'")?;
+                    f.write_str(sigil)?;
+                    f.write_str("'")?;
 
                     if idx < expected.len() - 1 {
                         f.write_str(", ")?;
@@ -70,18 +86,30 @@ impl Display for ParseMentionError<'_> {
                 f.write_str(") but instead found ")?;
 
                 if let Some(c) = found {
-                    f.write_fmt(format_args!("'{}'", c))
+                    f.write_str("'")?;
+                    f.write_str(c.encode_utf8(&mut [0; 4]))?;
+
+                    f.write_str("'")
                 } else {
                     f.write_str("nothing")
                 }
             }
+            ParseMentionErrorType::TimestampStyleInvalid { found } => {
+                f.write_str("timestamp style value '")?;
+                f.write_str(found)?;
+
+                f.write_str("' is invalid")
+            }
             ParseMentionErrorType::TrailingArrow { found } => {
-                f.write_str("expected to find a trailing arrow ('>') but instead ")?;
+                f.write_str("expected to find a trailing arrow ('>') but instead found ")?;
 
                 if let Some(c) = found {
-                    f.write_fmt(format_args!("found '{}'", c))
+                    f.write_str("'")?;
+                    f.write_str(c.encode_utf8(&mut [0; 4]))?;
+
+                    f.write_str("'")
                 } else {
-                    f.write_str("found nothing")
+                    f.write_str("nothing")
                 }
             }
         }
@@ -130,6 +158,11 @@ pub enum ParseMentionErrorType<'a> {
         /// Character that was instead found where the sigil should be.
         found: Option<char>,
     },
+    /// Timestamp style value is invalid.
+    TimestampStyleInvalid {
+        /// Value of the style.
+        found: &'a str,
+    },
     /// Trailing arrow (`>`) is not present.
     TrailingArrow {
         /// Character that was instead found where the trailing arrow should be.
@@ -146,10 +179,12 @@ mod tests {
     assert_fields!(ParseMentionErrorType::IdNotU64: found);
     assert_fields!(ParseMentionErrorType::LeadingArrow: found);
     assert_fields!(ParseMentionErrorType::Sigil: expected, found);
+    assert_fields!(ParseMentionErrorType::TimestampStyleInvalid: found);
     assert_fields!(ParseMentionErrorType::TrailingArrow: found);
     assert_impl_all!(ParseMentionErrorType<'_>: Debug, Send, Sync);
     assert_impl_all!(ParseMentionError<'_>: Debug, Error, Send, Sync);
 
+    #[allow(clippy::too_many_lines)]
     #[test]
     fn test_display() {
         let mut expected = "id portion ('abcd') of mention is not a u64";
@@ -228,6 +263,15 @@ mod tests {
                     expected: &["@!", "@"],
                     found: None
                 },
+                source: None,
+            }
+            .to_string(),
+        );
+        expected = "timestamp style value 'E' is invalid";
+        assert_eq!(
+            expected,
+            ParseMentionError {
+                kind: ParseMentionErrorType::TimestampStyleInvalid { found: "E" },
                 source: None,
             }
             .to_string(),

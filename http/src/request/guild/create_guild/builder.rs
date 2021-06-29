@@ -40,7 +40,10 @@ impl Display for RoleFieldsError {
     fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
         match &self.kind {
             RoleFieldsErrorType::ColorNotRgb { color } => {
-                f.write_fmt(format_args!("the color {} is invalid", color))
+                f.write_str("the color ")?;
+                Display::fmt(color, f)?;
+
+                f.write_str(" is invalid")
             }
             RoleFieldsErrorType::IdInvalid => {
                 f.write_str("the given id value is 1, which is not acceptable")
@@ -196,16 +199,25 @@ impl Display for TextFieldsError {
     fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
         match &self.kind {
             TextFieldsErrorType::NameTooShort { name } => {
-                f.write_fmt(format_args!("the name is too short: {}", name.len()))
+                f.write_str("the name is too short: ")?;
+
+                Display::fmt(&name.len(), f)
             }
             TextFieldsErrorType::NameTooLong { name } => {
-                f.write_fmt(format_args!("the name is too long: {}", name.len()))
+                f.write_str("the name is too long: ")?;
+
+                Display::fmt(&name.len(), f)
             }
             TextFieldsErrorType::RateLimitInvalid { limit } => {
-                f.write_fmt(format_args!("the rate limit {} is invalid", limit))
+                f.write_str("the rate limit ")?;
+                Display::fmt(limit, f)?;
+
+                f.write_str(" is invalid")
             }
             TextFieldsErrorType::TopicTooLong { topic } => {
-                f.write_fmt(format_args!("the topic is too long: {}", topic.len()))
+                f.write_str("the topic is too long: ")?;
+
+                Display::fmt(&topic.len(), f)
             }
         }
     }
@@ -403,10 +415,14 @@ impl Display for VoiceFieldsError {
     fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
         match &self.kind {
             VoiceFieldsErrorType::NameTooShort { name } => {
-                f.write_fmt(format_args!("the name is too short: {}", name.len()))
+                f.write_str("the name is too short: ")?;
+
+                Display::fmt(&name.len(), f)
             }
             VoiceFieldsErrorType::NameTooLong { name } => {
-                f.write_fmt(format_args!("the name is too long: {}", name.len()))
+                f.write_str("the name is too long: ")?;
+
+                Display::fmt(&name.len(), f)
             }
         }
     }
@@ -551,10 +567,14 @@ impl Display for CategoryFieldsError {
     fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
         match &self.kind {
             CategoryFieldsErrorType::NameTooShort { name } => {
-                f.write_fmt(format_args!("the name is too short: {}", name.len()))
+                f.write_str("the name is too short: ")?;
+
+                Display::fmt(&name.len(), f)
             }
             CategoryFieldsErrorType::NameTooLong { name } => {
-                f.write_fmt(format_args!("the name is too long: {}", name.len()))
+                f.write_str("the name is too long: ")?;
+
+                Display::fmt(&name.len(), f)
             }
         }
     }
