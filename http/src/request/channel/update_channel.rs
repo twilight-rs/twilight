@@ -1,7 +1,9 @@
 use crate::{
     client::Client,
     error::Error as HttpError,
-    request::{self, validate, AuditLogReason, AuditLogReasonError, Pending, Request},
+    request::{
+        self, validate, AuditLogReason, AuditLogReasonError, NullableField, Pending, Request,
+    },
     routing::Route,
 };
 use serde::Serialize;
@@ -88,9 +90,8 @@ struct UpdateChannelFields {
     name: Option<String>,
     #[serde(skip_serializing_if = "Option::is_none")]
     nsfw: Option<bool>,
-    #[allow(clippy::option_option)]
     #[serde(skip_serializing_if = "Option::is_none")]
-    parent_id: Option<Option<ChannelId>>,
+    parent_id: Option<NullableField<ChannelId>>,
     #[serde(skip_serializing_if = "Option::is_none")]
     permission_overwrites: Option<Vec<PermissionOverwrite>>,
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -173,7 +174,11 @@ impl<'a> UpdateChannel<'a> {
     /// If this is specified, and the parent ID is a `ChannelType::CategoryChannel`, move this
     /// channel to a child of the category channel.
     pub fn parent_id(mut self, parent_id: impl Into<Option<ChannelId>>) -> Self {
-        self.fields.parent_id.replace(parent_id.into());
+        let parent_id = parent_id.into();
+
+        self.fields
+            .parent_id
+            .replace(NullableField::from_option(parent_id));
 
         self
     }
