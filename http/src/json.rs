@@ -6,17 +6,17 @@ pub use serde_json::to_vec;
 pub use simd_json::to_vec;
 
 use hyper::body::Bytes;
-use serde::Deserialize;
+use serde::de::DeserializeOwned;
 
 #[cfg(not(feature = "simd-json"))]
 use serde_json::Result as JsonResult;
 #[cfg(feature = "simd-json")]
 use simd_json::Result as JsonResult;
 
-pub fn from_bytes<'a, T: Deserialize<'a>>(bytes: &'a Bytes) -> JsonResult<T> {
+pub fn from_bytes<T: DeserializeOwned>(bytes: &Bytes) -> JsonResult<T> {
     #[cfg(not(feature = "simd-json"))]
     {
-        serde_json::from_slice(&bytes)
+        serde_json::from_slice::<T>(&bytes)
     }
 
     #[cfg(feature = "simd-json")]
@@ -26,7 +26,7 @@ pub fn from_bytes<'a, T: Deserialize<'a>>(bytes: &'a Bytes) -> JsonResult<T> {
     }
 }
 
-pub fn parse_bytes<'a, T: Deserialize<'a>>(bytes: &'a Bytes) -> Result<T, Error> {
+pub fn parse_bytes<T: DeserializeOwned>(bytes: &Bytes) -> Result<T, Error> {
     from_bytes(bytes).map_err(|source| Error {
         kind: ErrorType::Parsing {
             body: bytes.to_vec(),
