@@ -10,7 +10,7 @@ use twilight_model::id::{ChannelId, MessageId};
 /// Delete one reaction by a user on a message.
 pub struct DeleteReaction<'a> {
     channel_id: ChannelId,
-    emoji: String,
+    emoji: RequestReactionType,
     fut: Option<Pending<'a, ()>>,
     http: &'a Client,
     message_id: MessageId,
@@ -27,7 +27,7 @@ impl<'a> DeleteReaction<'a> {
     ) -> Self {
         Self {
             channel_id,
-            emoji: super::format_emoji(emoji),
+            emoji,
             fut: None,
             http,
             message_id,
@@ -38,7 +38,7 @@ impl<'a> DeleteReaction<'a> {
     fn start(&mut self) -> Result<(), Error> {
         let request = Request::from_route(Route::DeleteReaction {
             channel_id: self.channel_id.0,
-            emoji: self.emoji.clone(),
+            emoji: self.emoji.display().to_string(),
             message_id: self.message_id.0,
             user: self.target_user.clone(),
         });
