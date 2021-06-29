@@ -15,10 +15,6 @@ pub struct CachedEmoji {
     pub animated: bool,
     /// Name of the Emoji.
     pub name: String,
-    /// Whether this emoji can be used.
-    ///
-    /// May be false due to loss of Server Boosts.
-    pub available: bool,
     /// Whether the emoji is managed.
     pub managed: bool,
     /// Whether the emoji must be wrapped in colons.
@@ -27,6 +23,10 @@ pub struct CachedEmoji {
     pub roles: Vec<RoleId>,
     /// ID of the user who created the emoji.
     pub user_id: Option<UserId>,
+    /// Whether this emoji can be used.
+    ///
+    /// May be false due to loss of Server Boosts.
+    pub available: bool,
 }
 
 impl PartialEq<Emoji> for CachedEmoji {
@@ -52,8 +52,8 @@ mod tests {
     assert_fields!(
         CachedEmoji: id,
         animated,
-        managed,
         name,
+        managed,
         require_colons,
         roles,
         user_id
@@ -75,12 +75,12 @@ mod tests {
         let cached = CachedEmoji {
             id: EmojiId(123),
             animated: true,
-            available: true,
             name: "foo".to_owned(),
             managed: false,
             require_colons: true,
             roles: vec![],
             user_id: None,
+            available: true,
         };
 
         assert_eq!(cached, emoji);
