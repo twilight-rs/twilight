@@ -33,7 +33,7 @@ pub struct CachedMessage {
     pub channel_id: ChannelId,
     /// Content of the message.
     pub content: String,
-    /// ISO8601 timestamp of the date the message was last edited.
+    /// ISO 8601 timestamp of the date the message was last edited.
     pub edited_timestamp: Option<String>,
     /// Embeds attached to the message.
     pub embeds: Vec<Embed>,
@@ -61,7 +61,7 @@ pub struct CachedMessage {
     pub reference: Option<MessageReference>,
     #[allow(missing_docs)]
     pub stickers: Vec<Sticker>,
-    /// ISO8601 timestamp of the date the message was sent.
+    /// ISO 8601 timestamp of the date the message was sent.
     pub timestamp: String,
     /// Whether the message is text-to-speech.
     pub tts: bool,

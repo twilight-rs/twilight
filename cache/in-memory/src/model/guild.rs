@@ -48,7 +48,7 @@ pub struct CachedGuild {
     ///
     /// [Discord Docs/Image Formatting]: https://discord.com/developers/docs/reference#image-formatting
     pub icon: Option<String>,
-    /// ISO8601 timestamp of the user's join date.
+    /// ISO 8601 timestamp of the user's join date.
     pub joined_at: Option<String>,
     /// Whether this guild is "large".
     pub large: bool,
@@ -64,11 +64,11 @@ pub struct CachedGuild {
     pub name: String,
     /// NSFW level.
     pub nsfw_level: NSFWLevel,
-    /// Whether the user is the owner of the guild.
+    /// Whether the current user is the owner of the guild.
     pub owner: Option<bool>,
     /// ID of the guild's owner.
     pub owner_id: UserId,
-    /// Total permissions for the user in the guild, excluding overwrites.
+    /// Total permissions for the current user in the guild, excluding overwrites.
     pub permissions: Option<Permissions>,
     /// For Community guilds, the preferred locale.
     ///
@@ -88,7 +88,7 @@ pub struct CachedGuild {
     pub splash: Option<String>,
     /// System channel flags.
     pub system_channel_flags: SystemChannelFlags,
-    /// ID where notices are posted.
+    /// ID of the channel where notices are posted.
     ///
     /// Example notices include welcome messages and boost events.
     pub system_channel_id: Option<ChannelId>,

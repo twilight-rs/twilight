@@ -14,7 +14,7 @@ pub struct CachedMember {
     pub deaf: Option<bool>,
     /// ID of the guild this member is a part of.
     pub guild_id: GuildId,
-    /// ISO8601 timestamp of this member's join date.
+    /// ISO 8601 timestamp of this member's join date.
     pub joined_at: Option<String>,
     /// Whether the member is muted in a voice channel.
     pub mute: Option<bool>,
@@ -22,7 +22,7 @@ pub struct CachedMember {
     pub nick: Option<String>,
     /// Whether the member has not yet passed the guild's Membership Screening requirements.
     pub pending: bool,
-    /// ISO8601 timestamp of the date the member boosted the guild.
+    /// ISO 8601 timestamp of the date the member boosted the guild.
     pub premium_since: Option<String>,
     /// List of role IDs this member has.
     pub roles: Vec<RoleId>,
