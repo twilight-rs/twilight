@@ -344,6 +344,8 @@ impl ShardProcessor {
                 Err(source) => {
                     tracing::warn!("{}", source);
 
+                    self.emit_disconnected(None, None).await;
+
                     if source.fatal() {
                         break;
                     }
@@ -370,6 +372,7 @@ impl ShardProcessor {
 
                 if source.fatal() {
                     tracing::debug!("error processing event; reconnecting");
+                    self.emit_disconnected(None, None).await;
 
                     self.reconnect().await;
                 }
@@ -573,6 +576,7 @@ impl ShardProcessor {
 
         if let Err(err) = self.session.heartbeat() {
             tracing::warn!("error sending heartbeat; reconnecting: {}", err);
+            self.emit_disconnected(None, None).await;
 
             self.reconnect().await;
         }
@@ -621,6 +625,8 @@ impl ShardProcessor {
     }
 
     async fn process_invalidate_session(&mut self, resumable: bool) {
+        self.emit_disconnected(None, None).await;
+
         if resumable {
             #[cfg(feature = "metrics")]
             metrics::counter!("GatewayEvent", 1, "GatewayEvent" => "InvalidateSessionTrue");
@@ -646,11 +652,13 @@ impl ShardProcessor {
             reason: Cow::Borrowed("Reconnecting"),
         };
         self.session
-            .close(Some(frame))
+            .close(Some(frame.clone()))
             .map_err(|source| ProcessError {
                 source: Some(Box::new(source)),
                 kind: ProcessErrorType::SendingClose,
             })?;
+        self.emit_disconnected(Some(frame.code.into()), Some(frame.reason.to_string()))
+            .await;
         self.resume().await;
 
         Ok(())
@@ -661,6 +669,8 @@ impl ShardProcessor {
             tracing::warn!("sending message failed: {:?}", source);
 
             if matches!(source.kind(), SessionSendErrorType::Sending { .. }) {
+                self.emit_disconnected(None, None).await;
+
                 self.reconnect().await;
             }
 
@@ -759,13 +769,11 @@ impl ShardProcessor {
     ) -> Result<(), ReceivingEventError> {
         tracing::info!("got close code: {:?}", close_frame);
 
-        self.emitter.event(Event::ShardDisconnected(Disconnected {
-            code: close_frame.as_ref().map(|frame| frame.code.into()),
-            reason: close_frame
-                .as_ref()
-                .map(|frame| frame.reason.clone().into()),
-            shard_id: self.config.shard()[0],
-        }));
+        self.emit_disconnected(
+            close_frame.map(|c| c.code.into()),
+            close_frame.map(|c| c.reason.to_string()),
+        )
+        .await;
 
         if let Some(close_frame) = close_frame {
             match close_frame.code {
@@ -968,5 +976,13 @@ impl ShardProcessor {
 
         self.session.set_stage(stage);
         self.compression.reset();
+    }
+
+    async fn emit_disconnected(&self, code: Option<u16>, reason: Option<String>) {
+        self.emitter.event(Event::ShardDisconnected(Disconnected {
+            code,
+            reason,
+            shard_id: self.config.shard()[0],
+        }));
     }
 }
