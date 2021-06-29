@@ -131,6 +131,7 @@
 #![deny(
     broken_intra_doc_links,
     clippy::missing_const_for_fn,
+    missing_docs,
     rust_2018_idioms,
     unused,
     warnings
