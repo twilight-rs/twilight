@@ -116,12 +116,13 @@ impl AuditLogReasonError {
 impl Display for AuditLogReasonError {
     fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
         match &self.kind {
-            AuditLogReasonErrorType::TooLarge { reason } => write!(
-                f,
-                "the audit log reason is {} characters long, but the max is {}",
-                reason.chars().count(),
-                Self::AUDIT_REASON_LENGTH
-            ),
+            AuditLogReasonErrorType::TooLarge { reason } => {
+                f.write_str("the audit log reason is ")?;
+                Display::fmt(&reason.chars().count(), f)?;
+                f.write_str(" characters long, but the max is ")?;
+
+                Display::fmt(&Self::AUDIT_REASON_LENGTH, f)
+            }
         }
     }
 }

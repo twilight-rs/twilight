@@ -1,7 +1,7 @@
 use crate::{
     client::Client,
     error::Error,
-    request::{Pending, Request},
+    request::{NullableField, Pending, Request},
     routing::Route,
 };
 use serde::Serialize;
@@ -9,12 +9,10 @@ use twilight_model::{channel::Webhook, id::WebhookId};
 
 #[derive(Default, Serialize)]
 struct UpdateWebhookWithTokenFields {
-    #[allow(clippy::option_option)]
     #[serde(skip_serializing_if = "Option::is_none")]
-    avatar: Option<Option<String>>,
-    #[allow(clippy::option_option)]
+    avatar: Option<NullableField<String>>,
     #[serde(skip_serializing_if = "Option::is_none")]
-    name: Option<Option<String>>,
+    name: Option<NullableField<String>>,
 }
 
 /// Update a webhook, with a token, by ID.
@@ -45,14 +43,18 @@ impl<'a> UpdateWebhookWithToken<'a> {
     ///
     /// [Discord Docs/Image Data]: https://discord.com/developers/docs/reference#image-data
     pub fn avatar(mut self, avatar: impl Into<Option<String>>) -> Self {
-        self.fields.avatar.replace(avatar.into());
+        self.fields
+            .avatar
+            .replace(NullableField::from_option(avatar.into()));
 
         self
     }
 
     /// Change the name of the webhook.
     pub fn name(mut self, name: impl Into<Option<String>>) -> Self {
-        self.fields.name.replace(name.into());
+        self.fields
+            .name
+            .replace(NullableField::from_option(name.into()));
 
         self
     }

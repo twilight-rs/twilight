@@ -12,15 +12,6 @@ use twilight_model::{
 };
 
 impl InMemoryCache {
-    /// Gets a guild by ID.
-    ///
-    /// This is an O(1) operation. This requires the [`GUILDS`] intent.
-    ///
-    /// [`GUILDS`]: ::twilight_model::gateway::Intents::GUILDS
-    pub fn guild(&self, guild_id: GuildId) -> Option<CachedGuild> {
-        self.0.guilds.get(&guild_id).map(|r| r.clone())
-    }
-
     fn cache_guild(&self, guild: Guild) {
         // The map and set creation needs to occur first, so caching states and
         // objects always has a place to put them.

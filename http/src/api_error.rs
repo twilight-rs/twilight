@@ -562,7 +562,11 @@ impl Display for ErrorCode {
             Self::ReactionBlocked => f.write_str("Reaction was blocked"),
             Self::ApiResourceOverloaded => f.write_str("API resource is currently overloaded. Try again a little later"),
             Self::StageAlreadyOpen => f.write_str("The Stage is already open"),
-            Self::Other(number) => write!(f, "An error code Twilight doesn't have registered: {}", number),
+            Self::Other(number) => {
+                f.write_str("An error code Twilight doesn't have registered: ")?;
+
+                Display::fmt(number, f)
+            }
         }
     }
 }
@@ -634,11 +638,11 @@ pub struct GeneralApiError {
 
 impl Display for GeneralApiError {
     fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
-        f.write_fmt(format_args!(
-            "Error code {}: {}",
-            self.code.num(),
-            self.message
-        ))
+        f.write_str("Error code ")?;
+        Display::fmt(&self.code.num(), f)?;
+        f.write_str(": ")?;
+
+        f.write_str(&self.message)
     }
 }
 
@@ -716,7 +720,10 @@ impl Display for RatelimitedApiError {
             f.write_str("global ")?;
         }
 
-        write!(f, "ratelimited for {}s", self.retry_after)
+        f.write_str("ratelimited for ")?;
+        Display::fmt(&self.retry_after, f)?;
+
+        f.write_str("s")
     }
 }
 

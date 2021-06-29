@@ -71,7 +71,10 @@ impl Display for ClusterCommandError {
                 f.write_str("sending the message over the websocket failed")
             }
             ClusterCommandErrorType::ShardNonexistent { id } => {
-                f.write_fmt(format_args!("shard {} does not exist", id,))
+                f.write_str("shard ")?;
+                Display::fmt(id, f)?;
+
+                f.write_str(" does not exist")
             }
         }
     }
@@ -131,7 +134,10 @@ impl Display for ClusterSendError {
         match &self.kind {
             ClusterSendErrorType::Sending => f.write_str("failed to send message over websocket"),
             ClusterSendErrorType::ShardNonexistent { id } => {
-                f.write_fmt(format_args!("shard {} does not exist", id))
+                f.write_str("shard ")?;
+                Display::fmt(id, f)?;
+
+                f.write_str(" does not exist")
             }
         }
     }
@@ -291,7 +297,7 @@ impl Cluster {
     ) -> Result<
         (
             Self,
-            impl Stream<Item = (u64, Event)> + Unpin + Sync + 'static,
+            impl Stream<Item = (u64, Event)> + Send + Sync + Unpin + 'static,
         ),
         ClusterStartError,
     > {
@@ -303,7 +309,7 @@ impl Cluster {
     ) -> Result<
         (
             Self,
-            impl Stream<Item = (u64, Event)> + Unpin + Sync + 'static,
+            impl Stream<Item = (u64, Event)> + Send + Sync + Unpin + 'static,
         ),
         ClusterStartError,
     > {
