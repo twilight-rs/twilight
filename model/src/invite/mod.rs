@@ -74,7 +74,9 @@ mod tests {
         Deserialize<'static>,
         Eq,
         PartialEq,
-        Serialize
+        Serialize,
+        Send,
+        Sync,
     );
 
     #[test]
