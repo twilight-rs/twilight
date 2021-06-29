@@ -1,7 +1,7 @@
 use crate::{
     client::Client,
     error::Error,
-    request::{Pending, Request},
+    request::{NullableField, Pending, Request},
     routing::Route,
 };
 use serde::Serialize;
@@ -12,9 +12,8 @@ struct UpdateCurrentUserVoiceStateFields {
     channel_id: ChannelId,
     #[serde(skip_serializing_if = "Option::is_none")]
     suppress: Option<bool>,
-    #[allow(clippy::option_option)]
     #[serde(skip_serializing_if = "Option::is_none")]
-    request_to_speak_timestamp: Option<Option<String>>,
+    request_to_speak_timestamp: Option<NullableField<String>>,
 }
 
 /// Update the current user's voice state.
@@ -53,11 +52,13 @@ impl<'a> UpdateCurrentUserVoiceState<'a> {
 
     fn _request_to_speak_timestamp(mut self, request_to_speak_timestamp: String) -> Self {
         if request_to_speak_timestamp.is_empty() {
-            self.fields.request_to_speak_timestamp.replace(None);
+            self.fields
+                .request_to_speak_timestamp
+                .replace(NullableField::Null);
         } else {
             self.fields
                 .request_to_speak_timestamp
-                .replace(Some(request_to_speak_timestamp));
+                .replace(NullableField::Value(request_to_speak_timestamp));
         }
 
         self

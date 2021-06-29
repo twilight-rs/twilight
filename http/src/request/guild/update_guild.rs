@@ -1,7 +1,9 @@
 use crate::{
     client::Client,
     error::Error as HttpError,
-    request::{self, validate, AuditLogReason, AuditLogReasonError, Pending, Request},
+    request::{
+        self, validate, AuditLogReason, AuditLogReasonError, NullableField, Pending, Request,
+    },
     routing::Route,
 };
 use serde::Serialize;
@@ -68,54 +70,40 @@ pub enum UpdateGuildErrorType {
 
 #[derive(Default, Serialize)]
 struct UpdateGuildFields {
-    #[allow(clippy::option_option)]
     #[serde(skip_serializing_if = "Option::is_none")]
-    afk_channel_id: Option<Option<ChannelId>>,
+    afk_channel_id: Option<NullableField<ChannelId>>,
     #[serde(skip_serializing_if = "Option::is_none")]
     afk_timeout: Option<u64>,
-    #[allow(clippy::option_option)]
     #[serde(skip_serializing_if = "Option::is_none")]
-    banner: Option<Option<String>>,
-    #[allow(clippy::option_option)]
+    banner: Option<NullableField<String>>,
     #[serde(skip_serializing_if = "Option::is_none")]
-    default_message_notifications: Option<Option<DefaultMessageNotificationLevel>>,
-    #[allow(clippy::option_option)]
+    default_message_notifications: Option<NullableField<DefaultMessageNotificationLevel>>,
     #[serde(skip_serializing_if = "Option::is_none")]
-    discovery_splash: Option<Option<String>>,
-    #[allow(clippy::option_option)]
+    discovery_splash: Option<NullableField<String>>,
     #[serde(skip_serializing_if = "Option::is_none")]
-    explicit_content_filter: Option<Option<ExplicitContentFilter>>,
-    #[allow(clippy::option_option)]
+    explicit_content_filter: Option<NullableField<ExplicitContentFilter>>,
     #[serde(skip_serializing_if = "Option::is_none")]
-    features: Option<Option<Vec<String>>>,
-    #[allow(clippy::option_option)]
+    features: Option<Vec<String>>,
     #[serde(skip_serializing_if = "Option::is_none")]
-    icon: Option<Option<String>>,
+    icon: Option<NullableField<String>>,
     #[serde(skip_serializing_if = "Option::is_none")]
     name: Option<String>,
     #[serde(skip_serializing_if = "Option::is_none")]
     owner_id: Option<UserId>,
-    #[allow(clippy::option_option)]
     #[serde(skip_serializing_if = "Option::is_none")]
-    splash: Option<Option<String>>,
-    #[allow(clippy::option_option)]
+    splash: Option<NullableField<String>>,
     #[serde(skip_serializing_if = "Option::is_none")]
-    system_channel_id: Option<Option<ChannelId>>,
-    #[allow(clippy::option_option)]
+    system_channel_id: Option<NullableField<ChannelId>>,
     #[serde(skip_serializing_if = "Option::is_none")]
-    system_channel_flags: Option<Option<SystemChannelFlags>>,
-    #[allow(clippy::option_option)]
+    system_channel_flags: Option<NullableField<SystemChannelFlags>>,
     #[serde(skip_serializing_if = "Option::is_none")]
-    verification_level: Option<Option<VerificationLevel>>,
-    #[allow(clippy::option_option)]
+    verification_level: Option<NullableField<VerificationLevel>>,
     #[serde(skip_serializing_if = "Option::is_none")]
-    rules_channel_id: Option<Option<ChannelId>>,
-    #[allow(clippy::option_option)]
+    rules_channel_id: Option<NullableField<ChannelId>>,
     #[serde(skip_serializing_if = "Option::is_none")]
-    public_updates_channel_id: Option<Option<ChannelId>>,
-    #[allow(clippy::option_option)]
+    public_updates_channel_id: Option<NullableField<ChannelId>>,
     #[serde(skip_serializing_if = "Option::is_none")]
-    preferred_locale: Option<Option<String>>,
+    preferred_locale: Option<NullableField<String>>,
 }
 
 /// Update a guild.
@@ -144,7 +132,9 @@ impl<'a> UpdateGuild<'a> {
 
     /// Set the voice channel where AFK voice users are sent.
     pub fn afk_channel_id(mut self, afk_channel_id: impl Into<Option<ChannelId>>) -> Self {
-        self.fields.afk_channel_id.replace(afk_channel_id.into());
+        self.fields
+            .afk_channel_id
+            .replace(NullableField::from_option(afk_channel_id.into()));
 
         self
     }
@@ -163,7 +153,9 @@ impl<'a> UpdateGuild<'a> {
     ///
     /// The server must have the `BANNER` feature.
     pub fn banner(mut self, banner: impl Into<Option<String>>) -> Self {
-        self.fields.banner.replace(banner.into());
+        self.fields
+            .banner
+            .replace(NullableField::from_option(banner.into()));
 
         self
     }
@@ -178,7 +170,9 @@ impl<'a> UpdateGuild<'a> {
     ) -> Self {
         self.fields
             .default_message_notifications
-            .replace(default_message_notifications.into());
+            .replace(NullableField::from_option(
+                default_message_notifications.into(),
+            ));
 
         self
     }
@@ -189,7 +183,7 @@ impl<'a> UpdateGuild<'a> {
     pub fn discovery_splash(mut self, discovery_splash: impl Into<Option<String>>) -> Self {
         self.fields
             .discovery_splash
-            .replace(discovery_splash.into());
+            .replace(NullableField::from_option(discovery_splash.into()));
 
         self
     }
@@ -201,16 +195,14 @@ impl<'a> UpdateGuild<'a> {
     ) -> Self {
         self.fields
             .explicit_content_filter
-            .replace(explicit_content_filter.into());
+            .replace(NullableField::from_option(explicit_content_filter.into()));
 
         self
     }
 
     /// Set the enabled features of the guild.
     pub fn features(mut self, features: impl IntoIterator<Item = String>) -> Self {
-        self.fields
-            .features
-            .replace(Some(features.into_iter().collect()));
+        self.fields.features.replace(features.into_iter().collect());
 
         self
     }
@@ -223,7 +215,9 @@ impl<'a> UpdateGuild<'a> {
     ///
     /// [the discord docs]: https://discord.com/developers/docs/reference#image-data
     pub fn icon(mut self, icon: impl Into<Option<String>>) -> Self {
-        self.fields.icon.replace(icon.into());
+        self.fields
+            .icon
+            .replace(NullableField::from_option(icon.into()));
 
         self
     }
@@ -266,7 +260,9 @@ impl<'a> UpdateGuild<'a> {
     ///
     /// Requires the guild to have the `INVITE_SPLASH` feature enabled.
     pub fn splash(mut self, splash: impl Into<Option<String>>) -> Self {
-        self.fields.splash.replace(splash.into());
+        self.fields
+            .splash
+            .replace(NullableField::from_option(splash.into()));
 
         self
     }
@@ -275,7 +271,7 @@ impl<'a> UpdateGuild<'a> {
     pub fn system_channel(mut self, system_channel_id: impl Into<Option<ChannelId>>) -> Self {
         self.fields
             .system_channel_id
-            .replace(system_channel_id.into());
+            .replace(NullableField::from_option(system_channel_id.into()));
 
         self
     }
@@ -287,7 +283,7 @@ impl<'a> UpdateGuild<'a> {
     ) -> Self {
         self.fields
             .system_channel_flags
-            .replace(system_channel_flags.into());
+            .replace(NullableField::from_option(system_channel_flags.into()));
 
         self
     }
@@ -300,7 +296,7 @@ impl<'a> UpdateGuild<'a> {
     pub fn rules_channel(mut self, rules_channel_id: impl Into<Option<ChannelId>>) -> Self {
         self.fields
             .rules_channel_id
-            .replace(rules_channel_id.into());
+            .replace(NullableField::from_option(rules_channel_id.into()));
 
         self
     }
@@ -314,7 +310,7 @@ impl<'a> UpdateGuild<'a> {
     ) -> Self {
         self.fields
             .public_updates_channel_id
-            .replace(public_updates_channel_id.into());
+            .replace(NullableField::from_option(public_updates_channel_id.into()));
 
         self
     }
@@ -325,7 +321,7 @@ impl<'a> UpdateGuild<'a> {
     pub fn preferred_locale(mut self, preferred_locale: impl Into<Option<String>>) -> Self {
         self.fields
             .preferred_locale
-            .replace(preferred_locale.into());
+            .replace(NullableField::from_option(preferred_locale.into()));
 
         self
     }
@@ -339,7 +335,7 @@ impl<'a> UpdateGuild<'a> {
     ) -> Self {
         self.fields
             .verification_level
-            .replace(verification_level.into());
+            .replace(NullableField::from_option(verification_level.into()));
 
         self
     }

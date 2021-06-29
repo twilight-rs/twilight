@@ -1,7 +1,7 @@
 use crate::{
     client::Client,
     error::Error as HttpError,
-    request::{validate, Pending, Request},
+    request::{validate, NullableField, Pending, Request},
     routing::Route,
 };
 use serde::Serialize;
@@ -69,9 +69,8 @@ pub enum UpdateCurrentUserErrorType {
 
 #[derive(Default, Serialize)]
 struct UpdateCurrentUserFields {
-    #[allow(clippy::option_option)]
     #[serde(skip_serializing_if = "Option::is_none")]
-    avatar: Option<Option<String>>,
+    avatar: Option<NullableField<String>>,
     #[serde(skip_serializing_if = "Option::is_none")]
     username: Option<String>,
 }
@@ -103,7 +102,9 @@ impl<'a> UpdateCurrentUser<'a> {
     ///
     /// [the discord docs]: https://discord.com/developers/docs/reference#image-data
     pub fn avatar(mut self, avatar: impl Into<Option<String>>) -> Self {
-        self.fields.avatar.replace(avatar.into());
+        self.fields
+            .avatar
+            .replace(NullableField::from_option(avatar.into()));
 
         self
     }
