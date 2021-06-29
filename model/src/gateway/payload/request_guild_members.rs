@@ -46,10 +46,10 @@ impl UserIdsError {
 impl Display for UserIdsError {
     fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
         match &self.kind {
-            UserIdsErrorType::TooMany { ids } => f.write_fmt(format_args!(
-                "{} user IDs were provided when only a maximum of 100 is allowed",
-                ids.len(),
-            )),
+            UserIdsErrorType::TooMany { ids } => {
+                Display::fmt(&ids.len(), f)?;
+                f.write_str(" user IDs were provided when only a maximum of 100 is allowed")
+            }
         }
     }
 }
