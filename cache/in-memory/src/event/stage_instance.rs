@@ -1,5 +1,4 @@
 use crate::{config::ResourceType, InMemoryCache, UpdateCache};
-use std::collections::HashSet;
 use twilight_model::{
     channel::StageInstance,
     gateway::payload::{StageInstanceCreate, StageInstanceDelete, StageInstanceUpdate},
@@ -7,31 +6,6 @@ use twilight_model::{
 };
 
 impl InMemoryCache {
-    /// Gets the set of stage instances in a guild.
-    ///
-    /// This is a O(m) operation, where m is the amount of stage instances in
-    /// the guild. This requires the [`GUILDS`] intent.
-    ///
-    /// [`GUILDS`]: twilight_model::gateway::Intents::GUILDS
-    pub fn guild_stage_instances(&self, guild_id: GuildId) -> Option<HashSet<StageId>> {
-        self.0
-            .guild_stage_instances
-            .get(&guild_id)
-            .map(|r| r.value().clone())
-    }
-
-    /// Gets a stage instance by ID.
-    ///
-    /// This is an O(1) operation. This requires the [`GUILDS`] intent.
-    ///
-    /// [`GUILDS`]: twilight_model::gateway::Intents::GUILDS
-    pub fn stage_instance(&self, stage_id: StageId) -> Option<StageInstance> {
-        self.0
-            .stage_instances
-            .get(&stage_id)
-            .map(|role| role.data.clone())
-    }
-
     pub(crate) fn cache_stage_instances(
         &self,
         guild_id: GuildId,

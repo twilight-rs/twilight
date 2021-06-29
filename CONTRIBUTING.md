@@ -58,7 +58,10 @@ impl Display for TwilightError {
         match self.kind {
             TwilightErrorType::AnError => f.write_str("something went wrong"),
             TwilightErrorType::AnotherError { mistake_count } => {
-                f.write_fmt(format_args!("something else went wrong, {} mistakes", mistake_count))
+                f.write_str("something else went wrong, ")?;
+                Display::fmt(mistake_count, f)?;
+
+                f.write_str(" mistakes")
             }
         }
     }
@@ -83,6 +86,41 @@ pub enum TwilightErrorType {
         /// Amount of mistakes.
         mistake_count: u64
     },
+}
+```
+
+# Formatters
+
+Macros like `format_args!` and `write!` have runtime performance hits. Instead,
+use `core::fmt::Formatter` methods such as `Formatter::write_str` and calling
+`Display::fmt` directly.
+
+An example of what *not* to do:
+
+```rust
+use std::fmt::{Display, Formatter, Result as FmtResult};
+
+struct Foo {
+    number: u64,
+}
+
+impl Display for Foo {
+    fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
+        write!(f, "the number {} is too high", self.number)
+    }
+}
+```
+
+Instead, write the `Display` implementation like this:
+
+```rust
+impl Display for Foo {
+    fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
+        f.write_str("the number ")?;
+        Display::fmt(&self.number, f)?;
+
+        f.write_str(" is too high")
+    }
 }
 ```
 

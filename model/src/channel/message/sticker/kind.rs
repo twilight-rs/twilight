@@ -49,10 +49,10 @@ impl<'a> StickerFormatTypeConversionError {
 
 impl Display for StickerFormatTypeConversionError {
     fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
-        f.write_fmt(format_args!(
-            "Value ({}) doesn't match a sticker type",
-            self.value,
-        ))
+        f.write_str("Value (")?;
+        Display::fmt(&self.value, f)?;
+
+        f.write_str(") doesn't match a sticker type")
     }
 }
 

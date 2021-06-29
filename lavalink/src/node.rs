@@ -85,11 +85,12 @@ impl Display for NodeError {
             NodeErrorType::SerializingMessage { .. } => {
                 f.write_str("failed to serialize outgoing message as json")
             }
-            NodeErrorType::Unauthorized { address, .. } => write!(
-                f,
-                "the authorization used to connect to node {} is invalid",
-                address
-            ),
+            NodeErrorType::Unauthorized { address, .. } => {
+                f.write_str("the authorization used to connect to node ")?;
+                Display::fmt(address, f)?;
+
+                f.write_str(" is invalid")
+            }
         }
     }
 }

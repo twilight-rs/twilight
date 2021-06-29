@@ -157,21 +157,22 @@ impl Request {
     ///
     /// Use the [`RequestBuilder`] if you need to set a combination of
     /// configurations in the request.
+    // `Route`'s methods have been changed to no longer consume itself, so we
+    // could pass the route by reference but we need to avoid breakage.
+    #[allow(clippy::needless_pass_by_value)]
     #[deprecated(since = "0.4.0", note = "Use `Request::builder` instead")]
     pub fn new(
         body: Option<Vec<u8>>,
         headers: Option<HeaderMap<HeaderValue>>,
         route: Route,
     ) -> Self {
-        let (method, path, path_str) = route.into_parts();
-
         Self {
             body,
             form: None,
             headers,
-            method,
-            path,
-            path_str,
+            method: route.method(),
+            path: route.path(),
+            path_str: Cow::Owned(route.display().to_string()),
             use_authorization_token: true,
         }
     }
@@ -218,16 +219,17 @@ impl Request {
     /// ```
     ///
     /// [`builder`]: Self::builder
+    // `Route`'s methods have been changed to no longer consume itself, so we
+    // could pass the route by reference but we need to avoid breakage.
+    #[allow(clippy::needless_pass_by_value)]
     pub fn from_route(route: Route) -> Self {
-        let (method, path, path_str) = route.into_parts();
-
         Self {
             body: None,
             form: None,
             headers: None,
-            method,
-            path,
-            path_str,
+            method: route.method(),
+            path: route.path(),
+            path_str: Cow::Owned(route.display().to_string()),
             use_authorization_token: true,
         }
     }
@@ -240,15 +242,13 @@ impl Request {
 
 impl From<Route> for Request {
     fn from(route: Route) -> Self {
-        let (method, path, path_str) = route.into_parts();
-
         Self {
             body: None,
             form: None,
             headers: None,
-            method,
-            path,
-            path_str,
+            method: route.method(),
+            path: route.path(),
+            path_str: Cow::Owned(route.display().to_string()),
             use_authorization_token: true,
         }
     }
@@ -256,15 +256,13 @@ impl From<Route> for Request {
 
 impl From<(Vec<u8>, Route)> for Request {
     fn from((body, route): (Vec<u8>, Route)) -> Self {
-        let (method, path, path_str) = route.into_parts();
-
         Self {
             body: Some(body),
             form: None,
             headers: None,
-            method,
-            path,
-            path_str,
+            method: route.method(),
+            path: route.path(),
+            path_str: Cow::Owned(route.display().to_string()),
             use_authorization_token: true,
         }
     }
@@ -272,15 +270,13 @@ impl From<(Vec<u8>, Route)> for Request {
 
 impl From<(Form, Route)> for Request {
     fn from((form, route): (Form, Route)) -> Self {
-        let (method, path, path_str) = route.into_parts();
-
         Self {
             body: None,
             form: Some(form),
             headers: None,
-            method,
-            path,
-            path_str,
+            method: route.method(),
+            path: route.path(),
+            path_str: Cow::Owned(route.display().to_string()),
             use_authorization_token: true,
         }
     }
@@ -288,15 +284,13 @@ impl From<(Form, Route)> for Request {
 
 impl From<(Vec<u8>, Form, Route)> for Request {
     fn from((body, form, route): (Vec<u8>, Form, Route)) -> Self {
-        let (method, path, path_str) = route.into_parts();
-
         Self {
             body: Some(body),
             form: Some(form),
             headers: None,
-            method,
-            path,
-            path_str,
+            method: route.method(),
+            path: route.path(),
+            path_str: Cow::Owned(route.display().to_string()),
             use_authorization_token: true,
         }
     }
@@ -304,15 +298,13 @@ impl From<(Vec<u8>, Form, Route)> for Request {
 
 impl From<(HeaderMap<HeaderValue>, Route)> for Request {
     fn from((headers, route): (HeaderMap<HeaderValue>, Route)) -> Self {
-        let (method, path, path_str) = route.into_parts();
-
         Self {
             body: None,
             form: None,
             headers: Some(headers),
-            method,
-            path,
-            path_str,
+            method: route.method(),
+            path: route.path(),
+            path_str: Cow::Owned(route.display().to_string()),
             use_authorization_token: true,
         }
     }
@@ -320,15 +312,13 @@ impl From<(HeaderMap<HeaderValue>, Route)> for Request {
 
 impl From<(Vec<u8>, HeaderMap<HeaderValue>, Route)> for Request {
     fn from((body, headers, route): (Vec<u8>, HeaderMap<HeaderValue>, Route)) -> Self {
-        let (method, path, path_str) = route.into_parts();
-
         Self {
             body: Some(body),
             form: None,
             headers: Some(headers),
-            method,
-            path,
-            path_str,
+            method: route.method(),
+            path: route.path(),
+            path_str: Cow::Owned(route.display().to_string()),
             use_authorization_token: true,
         }
     }
@@ -336,15 +326,13 @@ impl From<(Vec<u8>, HeaderMap<HeaderValue>, Route)> for Request {
 
 impl From<(Form, HeaderMap<HeaderValue>, Route)> for Request {
     fn from((form, headers, route): (Form, HeaderMap<HeaderValue>, Route)) -> Self {
-        let (method, path, path_str) = route.into_parts();
-
         Self {
             body: None,
             form: Some(form),
             headers: Some(headers),
-            method,
-            path,
-            path_str,
+            method: route.method(),
+            path: route.path(),
+            path_str: Cow::Owned(route.display().to_string()),
             use_authorization_token: true,
         }
     }

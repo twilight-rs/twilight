@@ -1,5 +1,4 @@
 use crate::{config::ResourceType, InMemoryCache, UpdateCache};
-use std::collections::HashSet;
 use twilight_model::{
     channel::{Channel, Group, GuildChannel, PrivateChannel},
     gateway::payload::{ChannelCreate, ChannelDelete, ChannelPinsUpdate, ChannelUpdate},
@@ -7,44 +6,6 @@ use twilight_model::{
 };
 
 impl InMemoryCache {
-    /// Gets a channel by ID.
-    ///
-    /// This is an O(1) operation. This requires the [`GUILDS`] intent.
-    ///
-    /// [`GUILDS`]: ::twilight_model::gateway::Intents::GUILDS
-    pub fn guild_channel(&self, channel_id: ChannelId) -> Option<GuildChannel> {
-        self.0
-            .channels_guild
-            .get(&channel_id)
-            .map(|r| r.data.clone())
-    }
-
-    /// Gets the set of channels in a guild.
-    ///
-    /// This is a O(m) operation, where m is the amount of channels in the
-    /// guild. This requires the [`GUILDS`] intent.
-    ///
-    /// [`GUILDS`]: ::twilight_model::gateway::Intents::GUILDS
-    pub fn guild_channels(&self, guild_id: GuildId) -> Option<HashSet<ChannelId>> {
-        self.0.guild_channels.get(&guild_id).map(|r| r.clone())
-    }
-
-    /// Gets a group by ID.
-    ///
-    /// This is an O(1) operation.
-    pub fn group(&self, channel_id: ChannelId) -> Option<Group> {
-        self.0.groups.get(&channel_id).map(|r| r.clone())
-    }
-
-    /// Gets a private channel by ID.
-    ///
-    /// This is an O(1) operation. This requires the [`DIRECT_MESSAGES`] intent.
-    ///
-    /// [`DIRECT_MESSAGES`]: ::twilight_model::gateway::Intents::DIRECT_MESSAGES
-    pub fn private_channel(&self, channel_id: ChannelId) -> Option<PrivateChannel> {
-        self.0.channels_private.get(&channel_id).map(|r| r.clone())
-    }
-
     pub(crate) fn cache_guild_channels(
         &self,
         guild_id: GuildId,

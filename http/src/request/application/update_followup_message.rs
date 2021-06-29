@@ -3,7 +3,7 @@
 use crate::{
     client::Client,
     error::Error as HttpError,
-    request::{validate, Form, Pending, Request},
+    request::{validate, Form, NullableField, Pending, Request},
     routing::Route,
 };
 use serde::Serialize;
@@ -57,10 +57,11 @@ impl Display for UpdateFollowupMessageError {
             UpdateFollowupMessageErrorType::EmbedTooLarge { .. } => {
                 f.write_str("length of one of the embeds is too large")
             }
-            UpdateFollowupMessageErrorType::TooManyEmbeds { embeds } => f.write_fmt(format_args!(
-                "{} embeds were provided, but only 10 may be provided",
-                embeds.len()
-            )),
+            UpdateFollowupMessageErrorType::TooManyEmbeds { embeds } => {
+                Display::fmt(&embeds.len(), f)?;
+
+                f.write_str(" embeds were provided, but only 10 may be provided")
+            }
         }
     }
 }
@@ -108,12 +109,10 @@ struct UpdateFollowupMessageFields {
     allowed_mentions: Option<AllowedMentions>,
     #[serde(skip_serializing_if = "Vec::is_empty")]
     attachments: Vec<Attachment>,
-    #[allow(clippy::option_option)]
     #[serde(skip_serializing_if = "Option::is_none")]
-    content: Option<Option<String>>,
-    #[allow(clippy::option_option)]
+    content: Option<NullableField<String>>,
     #[serde(skip_serializing_if = "Option::is_none")]
-    embeds: Option<Option<Vec<Embed>>>,
+    embeds: Option<NullableField<Vec<Embed>>>,
     #[serde(skip_serializing_if = "Option::is_none")]
     payload_json: Option<Vec<u8>>,
 }
@@ -241,7 +240,9 @@ impl<'a> UpdateFollowupMessage<'a> {
             }
         }
 
-        self.fields.content.replace(content);
+        self.fields
+            .content
+            .replace(NullableField::from_option(content));
 
         Ok(self)
     }
@@ -322,7 +323,9 @@ impl<'a> UpdateFollowupMessage<'a> {
             }
         }
 
-        self.fields.embeds.replace(embeds);
+        self.fields
+            .embeds
+            .replace(NullableField::from_option(embeds));
 
         Ok(self)
     }

@@ -12,44 +12,14 @@ pub mod stage_instance;
 pub mod voice_state;
 
 use crate::{config::ResourceType, InMemoryCache, UpdateCache};
-use dashmap::mapref::one::Ref;
 use std::{borrow::Cow, collections::BTreeSet};
 use twilight_model::{
     gateway::payload::{Ready, UnavailableGuild, UserUpdate},
-    id::{GuildId, UserId},
+    id::GuildId,
     user::{CurrentUser, User},
 };
 
 impl InMemoryCache {
-    /// Gets the current user.
-    ///
-    /// This is an O(1) operation.
-    pub fn current_user(&self) -> Option<CurrentUser> {
-        self.0
-            .current_user
-            .lock()
-            .expect("current user poisoned")
-            .clone()
-    }
-
-    /// Gets a user by ID.
-    ///
-    /// This is an O(1) operation. This requires the [`GUILD_MEMBERS`] intent.
-    ///
-    /// [`GUILD_MEMBERS`]: ::twilight_model::gateway::Intents::GUILD_MEMBERS
-    pub fn user(&self, user_id: UserId) -> Option<User> {
-        self.0.users.get(&user_id).map(|r| r.0.clone())
-    }
-
-    /// Gets a user by ID.
-    ///
-    /// This is an O(1) operation. This requires the [`GUILD_MEMBERS`] intent.
-    ///
-    /// [`GUILD_MEMBERS`]: ::twilight_model::gateway::Intents::GUILD_MEMBERS
-    pub fn user_ref(&self, user_id: UserId) -> Option<Ref<'_, UserId, (User, BTreeSet<GuildId>)>> {
-        self.0.users.get(&user_id)
-    }
-
     fn cache_current_user(&self, current_user: CurrentUser) {
         self.0
             .current_user

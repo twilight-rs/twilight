@@ -46,7 +46,10 @@ impl Display for EmbedError {
             EmbedErrorType::AuthorNameEmpty { .. } => f.write_str("the author name is empty"),
             EmbedErrorType::AuthorNameTooLong { .. } => f.write_str("the author name is too long"),
             EmbedErrorType::ColorNotRgb { color } => {
-                f.write_fmt(format_args!("the color {} is invalid", color))
+                f.write_str("the color ")?;
+                Display::fmt(color, f)?;
+
+                f.write_str(" is invalid")
             }
             EmbedErrorType::ColorZero => {
                 f.write_str("the given color value is 0, which is not acceptable")
