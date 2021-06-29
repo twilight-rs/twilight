@@ -16,7 +16,7 @@ use std::{
     borrow::Cow,
     env::consts::OS,
     error::Error,
-    fmt::{Display, Formatter, Result as FmtResult},
+    fmt::{Debug, Display, Formatter, Result as FmtResult},
     str,
     sync::{atomic::Ordering, Arc},
     time::Duration,
@@ -63,7 +63,10 @@ impl Display for ConnectingError {
         match &self.kind {
             ConnectingErrorType::Establishing => f.write_str("failed to establish the connection"),
             ConnectingErrorType::ParsingUrl { url } => {
-                f.write_fmt(format_args!("the gateway url `{}` is invalid", url,))
+                f.write_str("the gateway url `")?;
+                f.write_str(url)?;
+
+                f.write_str("` is invalid")
             }
         }
     }
@@ -103,10 +106,14 @@ impl ProcessError {
 impl Display for ProcessError {
     fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
         match &self.kind {
-            ProcessErrorType::EventTypeUnknown { event_type, op } => f.write_fmt(format_args!(
-                "provided event type ({:?})/op ({}) pair is unknown",
-                event_type, op,
-            )),
+            ProcessErrorType::EventTypeUnknown { event_type, op } => {
+                f.write_str("provided event type (")?;
+                Debug::fmt(event_type, f)?;
+                f.write_str(")/op (")?;
+                Display::fmt(op, f)?;
+
+                f.write_str(") pair is unknown")
+            }
             ProcessErrorType::ParsingPayload => f.write_str("payload could not be parsed as json"),
             ProcessErrorType::PayloadNotUtf8 { .. } => {
                 f.write_str("the payload from Discord wasn't UTF-8 valid")
@@ -179,23 +186,30 @@ impl ReceivingEventError {
 impl Display for ReceivingEventError {
     fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
         match &self.kind {
-            ReceivingEventErrorType::AuthorizationInvalid { shard_id, .. } => f.write_fmt(
-                format_args!("the authorization token for shard {} is invalid", shard_id),
-            ),
+            ReceivingEventErrorType::AuthorizationInvalid { shard_id, .. } => {
+                f.write_str("the authorization token for shard ")?;
+                Display::fmt(shard_id, f)?;
+
+                f.write_str(" is invalid")
+            }
             ReceivingEventErrorType::Decompressing => {
                 f.write_str("a frame could not be decompressed")
             }
             ReceivingEventErrorType::IntentsDisallowed { intents, shard_id } => {
-                f.write_fmt(format_args!(
-                    "at least one of the intents ({:?}) for shard {} are disallowed",
-                    intents, shard_id
-                ))
+                f.write_str("at least one of the intents (")?;
+                Debug::fmt(intents, f)?;
+                f.write_str(") for shard ")?;
+                Display::fmt(shard_id, f)?;
+
+                f.write_str(" are disallowed")
             }
             ReceivingEventErrorType::IntentsInvalid { intents, shard_id } => {
-                f.write_fmt(format_args!(
-                    "at least one of the intents ({:?}) for shard {} are invalid",
-                    intents, shard_id
-                ))
+                f.write_str("at least one of the intents (")?;
+                Debug::fmt(intents, f)?;
+                f.write_str(") for shard ")?;
+                Display::fmt(shard_id, f)?;
+
+                f.write_str(" are invalid")
             }
             ReceivingEventErrorType::EventStreamEnded => {
                 f.write_str("event stream from gateway ended")

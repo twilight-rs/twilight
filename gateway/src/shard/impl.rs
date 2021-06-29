@@ -203,7 +203,10 @@ impl Display for ShardStartError {
         match &self.kind {
             ShardStartErrorType::Establishing => f.write_str("establishing the connection failed"),
             ShardStartErrorType::ParsingGatewayUrl { url } => {
-                f.write_fmt(format_args!("the gateway url `{}` is invalid", url,))
+                f.write_str("the gateway url `")?;
+                f.write_str(url)?;
+
+                f.write_str("` is invalid")
             }
             ShardStartErrorType::RetrievingGatewayUrl => {
                 f.write_str("retrieving the gateway URL via HTTP failed")

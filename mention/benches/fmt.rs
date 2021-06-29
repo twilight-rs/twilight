@@ -1,6 +1,6 @@
 use criterion::{criterion_group, criterion_main, Criterion};
 use std::fmt::{Display, Write};
-use twilight_mention::fmt::{Mention, MentionFormat};
+use twilight_mention::fmt::Mention;
 use twilight_model::id::{ChannelId, EmojiId, RoleId, UserId};
 
 fn format_id<T: Display>(input: &mut String, formatter: &T) {

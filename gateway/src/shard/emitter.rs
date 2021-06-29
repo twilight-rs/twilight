@@ -3,7 +3,7 @@ use crate::{Event, EventTypeFlags};
 use std::{
     convert::TryFrom,
     error::Error,
-    fmt::{Display, Formatter, Result as FmtResult},
+    fmt::{Debug, Display, Formatter, Result as FmtResult},
 };
 use tokio::sync::mpsc::{self, UnboundedReceiver, UnboundedSender};
 use twilight_model::gateway::event::shard::Payload;
@@ -23,10 +23,14 @@ impl EmitJsonError {
 impl Display for EmitJsonError {
     fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
         match &self.kind {
-            EmitJsonErrorType::EventTypeUnknown { event_type, op } => f.write_fmt(format_args!(
-                "provided event type ({:?})/op ({}) pair is unknown",
-                event_type, op,
-            )),
+            EmitJsonErrorType::EventTypeUnknown { event_type, op } => {
+                f.write_str("provided event type (")?;
+                Debug::fmt(event_type, f)?;
+                f.write_str(")/op (")?;
+                Display::fmt(op, f)?;
+
+                f.write_str(") pair is unknown")
+            }
             EmitJsonErrorType::Parsing => f.write_str("parsing a gateway event failed"),
         }
     }
