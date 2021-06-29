@@ -20,7 +20,7 @@ pub struct InviteStageInstanceMember {
     /// Avatar hash.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub avatar: Option<String>,
-    /// ISO8601 timestamp of the date the member joined the guild.
+    /// ISO 8601 timestamp of the date the member joined the guild.
     pub joined_at: String,
     /// Member's nickname, if there is one.
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -28,10 +28,10 @@ pub struct InviteStageInstanceMember {
     /// Whether the member has passed the guild's membership screening requirements.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub pending: Option<bool>,
-    /// ISO8601 timestamp of the date the member boosted the guild.
+    /// ISO 8601 timestamp of the date the member boosted the guild.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub premium_since: Option<String>,
-    /// List of role IDS the user has.
+    /// List of role IDs the user has.
     #[serde(default, skip_serializing_if = "Vec::is_empty")]
     pub roles: Vec<RoleId>,
     /// User data for the member.
@@ -69,7 +69,9 @@ mod tests {
         Eq,
         Hash,
         PartialEq,
-        Serialize
+        Serialize,
+        Send,
+        Sync
     );
 
     assert_impl_all!(
@@ -79,6 +81,8 @@ mod tests {
         Eq,
         Hash,
         PartialEq,
-        Serialize
+        Serialize,
+        Send,
+        Sync
     );
 }
