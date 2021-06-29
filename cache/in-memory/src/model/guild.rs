@@ -12,6 +12,8 @@ use twilight_model::{
 /// [`Guild`]: twilight_model::guild::Guild
 #[derive(Clone, Debug, Eq, PartialEq, Serialize)]
 pub struct CachedGuild {
+    /// ID of the guild.
+    pub id: GuildId,
     /// ID of the AFK channel.
     pub afk_channel_id: Option<ChannelId>,
     /// AFK timeout in seconds.
@@ -46,8 +48,6 @@ pub struct CachedGuild {
     ///
     /// [Discord Docs/Image Formatting]: https://discord.com/developers/docs/reference#image-formatting
     pub icon: Option<String>,
-    /// ID of the guild.
-    pub id: GuildId,
     /// ISO8601 timestamp of the user's join date.
     pub joined_at: Option<String>,
     /// Whether this guild is "large".

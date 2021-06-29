@@ -9,14 +9,14 @@ use twilight_model::{
 /// [`Emoji`]: twilight_model::guild::Emoji
 #[derive(Clone, Debug, Eq, PartialEq, Serialize)]
 pub struct CachedEmoji {
+    /// Id of the Emoji.
+    pub id: EmojiId,
     /// Whether the emoji is animated.
     pub animated: bool,
     /// Whether this emoji can be used.
     ///
     /// May be false due to loss of Server Boosts.
     pub available: bool,
-    /// Id of the Emoji.
-    pub id: EmojiId,
     /// Whether the emoji is managed.
     pub managed: bool,
     /// Name of the Emoji.
@@ -31,9 +31,9 @@ pub struct CachedEmoji {
 
 impl PartialEq<Emoji> for CachedEmoji {
     fn eq(&self, other: &Emoji) -> bool {
-        self.animated == other.animated
+        self.id == other.id
+            && self.animated == other.animated
             && self.available == other.available
-            && self.id == other.id
             && self.managed == other.managed
             && self.name == other.name
             && self.require_colons == other.require_colons
@@ -52,8 +52,8 @@ mod tests {
     assert_fields!(
         CachedEmoji: id,
         animated,
-        name,
         managed,
+        name,
         require_colons,
         roles,
         user_id
@@ -63,9 +63,9 @@ mod tests {
     #[test]
     fn test_eq_emoji() {
         let emoji = Emoji {
+            id: EmojiId(123),
             animated: true,
             available: true,
-            id: EmojiId(123),
             managed: false,
             name: "foo".to_owned(),
             require_colons: true,

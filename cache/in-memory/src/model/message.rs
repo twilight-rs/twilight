@@ -17,6 +17,8 @@ use twilight_model::{
 /// [`Message`]: twilight_model::channel::Message
 #[derive(Clone, Debug, Eq, PartialEq, Serialize)]
 pub struct CachedMessage {
+    /// ID of the message.
+    pub id: MessageId,
     /// For rich presence chat embeds, the activity object.
     pub activity: Option<MessageActivity>,
     /// For interaction responses, the ID of the interaction's application.
@@ -39,8 +41,6 @@ pub struct CachedMessage {
     pub flags: Option<MessageFlags>,
     /// ID of the guild the message was sent in, if there is one.
     pub guild_id: Option<GuildId>,
-    /// ID of the message.
-    pub id: MessageId,
     /// Type of the message.
     pub kind: MessageType,
     /// Member data for the author, if there is any.
