@@ -13,14 +13,14 @@ pub struct CachedEmoji {
     pub id: EmojiId,
     /// Whether the emoji is animated.
     pub animated: bool,
+    /// Name of the Emoji.
+    pub name: String,
     /// Whether this emoji can be used.
     ///
     /// May be false due to loss of Server Boosts.
     pub available: bool,
     /// Whether the emoji is managed.
     pub managed: bool,
-    /// Name of the Emoji.
-    pub name: String,
     /// Whether the emoji must be wrapped in colons.
     pub require_colons: bool,
     /// List of roles allowed to use this emoji.
@@ -33,12 +33,12 @@ impl PartialEq<Emoji> for CachedEmoji {
     fn eq(&self, other: &Emoji) -> bool {
         self.id == other.id
             && self.animated == other.animated
-            && self.available == other.available
             && self.managed == other.managed
             && self.name == other.name
             && self.require_colons == other.require_colons
             && self.roles == other.roles
             && self.user_id == other.user.as_ref().map(|user| user.id)
+            && self.available == other.available
     }
 }
 
@@ -65,19 +65,19 @@ mod tests {
         let emoji = Emoji {
             id: EmojiId(123),
             animated: true,
+            name: "foo".to_owned(),
             available: true,
             managed: false,
-            name: "foo".to_owned(),
             require_colons: true,
             roles: vec![],
             user: None,
         };
         let cached = CachedEmoji {
+            id: EmojiId(123),
             animated: true,
             available: true,
-            id: EmojiId(123),
-            managed: false,
             name: "foo".to_owned(),
+            managed: false,
             require_colons: true,
             roles: vec![],
             user_id: None,

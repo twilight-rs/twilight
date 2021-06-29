@@ -86,19 +86,19 @@ pub struct CachedGuild {
     ///
     /// [Discord Docs/Image Formatting]: https://discord.com/developers/docs/reference#image-formatting
     pub splash: Option<String>,
-    /// System channel flags.
-    pub system_channel_flags: SystemChannelFlags,
     /// ID of the channel where notices are posted.
     ///
     /// Example notices include welcome messages and boost events.
     pub system_channel_id: Option<ChannelId>,
+    /// System channel flags.
+    pub system_channel_flags: SystemChannelFlags,
     /// Whether the guild is unavailable due to an outage.
     pub unavailable: bool,
     /// Vanity URL code.
-    pub vanity_url_code: Option<String>,
-    /// Required verification level.
     pub verification_level: VerificationLevel,
     /// ID of the channel that a widget generates an invite to.
+    pub vanity_url_code: Option<String>,
+    /// Required verification level.
     pub widget_channel_id: Option<ChannelId>,
     /// Whether the widget is enabled.
     pub widget_enabled: Option<bool>,
