@@ -17,7 +17,7 @@ pub struct InviteStageInstance {
 
 #[derive(Clone, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
 pub struct InviteStageInstanceMember {
-    /// Avatar hash.
+    /// Guild specific avatar hash.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub avatar: Option<String>,
     /// ISO 8601 timestamp of the date the member joined the guild.
