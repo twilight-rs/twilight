@@ -814,15 +814,12 @@ impl ShardProcessor {
     }
 
     async fn connect(url: &str) -> Result<ShardStream, ConnectingError> {
-        let url = Url::parse(url).map_err(|source| {
-            let _ = &url;
-
-            ConnectingError {
-                kind: ConnectingErrorType::ParsingUrl {
-                    url: url.to_owned(),
-                },
-                source: Some(Box::new(source)),
-            }
+        #[allow(disjoint_capture_migration)]
+        let url = Url::parse(url).map_err(|source| ConnectingError {
+            kind: ConnectingErrorType::ParsingUrl {
+                url: url.to_owned(),
+            },
+            source: Some(Box::new(source)),
         })?;
 
         // `max_frame_size` and `max_message_queue` limits are disabled because
