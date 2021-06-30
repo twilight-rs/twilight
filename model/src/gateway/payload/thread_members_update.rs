@@ -1,5 +1,5 @@
 use crate::{
-    channel::ThreadMember,
+    channel::thread::ThreadMember,
     id::{ChannelId, GuildId, UserId},
 };
 use serde::{Deserialize, Serialize};

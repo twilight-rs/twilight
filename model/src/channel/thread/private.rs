@@ -1,9 +1,13 @@
-use crate::channel::{ChannelType, ThreadMember, ThreadMetadata};
+use crate::channel::{
+    permission_overwrite::PermissionOverwrite,
+    thread::{ThreadMember, ThreadMetadata},
+    ChannelType,
+};
 use crate::id::{ChannelId, GuildId, MessageId, UserId};
 use serde::{Deserialize, Serialize};
 
 #[derive(Clone, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
-pub struct NewsThread {
+pub struct PrivateThread {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub guild_id: Option<GuildId>,
     pub id: ChannelId,
@@ -23,27 +27,24 @@ pub struct NewsThread {
     pub parent_id: Option<ChannelId>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub rate_limit_per_user: Option<u64>,
+    pub permission_overwrites: Vec<PermissionOverwrite>,
     pub thread_metadata: ThreadMetadata,
 }
 
 #[cfg(test)]
 mod tests {
-    use super::NewsThread;
-    use crate::{
-        channel::{AutoArchiveDuration, ChannelType, ThreadMember, ThreadMetadata},
-        id::{ChannelId, GuildId, MessageId, UserId},
-    };
+    use super::{ChannelId, ChannelType, GuildId, MessageId, ThreadMember, ThreadMetadata, UserId};
+    use crate::channel::thread::{AutoArchiveDuration, PrivateThread};
     use serde_test::Token;
 
-    #[allow(clippy::too_many_lines)]
     #[test]
-    fn test_news_thread() {
-        let value = NewsThread {
+    #[allow(clippy::too_many_lines)]
+    fn test_private_thread() {
+        let value = PrivateThread {
             guild_id: Some(GuildId(2)),
             id: ChannelId(1),
-            kind: ChannelType::GuildNewsThread,
+            kind: ChannelType::GuildPrivateThread,
             last_message_id: Some(MessageId(5)),
-            name: "test".to_owned(),
             member_count: 7,
             member: ThreadMember {
                 id: Some(ChannelId(10)),
@@ -52,9 +53,11 @@ mod tests {
                 flags: 12,
             },
             message_count: 6,
+            name: "test".to_owned(),
             owner_id: Some(UserId(3)),
             parent_id: Some(ChannelId(4)),
             rate_limit_per_user: Some(8),
+            permission_overwrites: Vec::new(),
             thread_metadata: ThreadMetadata {
                 archived: true,
                 archiver_id: Some(UserId(9)),
@@ -68,8 +71,8 @@ mod tests {
             &value,
             &[
                 Token::Struct {
-                    name: "NewsThread",
-                    len: 12,
+                    name: "PrivateThread",
+                    len: 13,
                 },
                 Token::Str("guild_id"),
                 Token::Some,
@@ -79,7 +82,7 @@ mod tests {
                 Token::NewtypeStruct { name: "ChannelId" },
                 Token::Str("1"),
                 Token::Str("type"),
-                Token::U8(10),
+                Token::U8(12),
                 Token::Str("last_message_id"),
                 Token::Some,
                 Token::NewtypeStruct { name: "MessageId" },
@@ -119,6 +122,9 @@ mod tests {
                 Token::Str("rate_limit_per_user"),
                 Token::Some,
                 Token::U64(8),
+                Token::Str("permission_overwrites"),
+                Token::Seq { len: Some(0) },
+                Token::SeqEnd,
                 Token::Str("thread_metadata"),
                 Token::Struct {
                     name: "ThreadMetadata",

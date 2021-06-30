@@ -14,8 +14,7 @@ pub struct ThreadMember {
 
 #[cfg(test)]
 mod tests {
-    use super::ThreadMember;
-    use crate::id::{ChannelId, UserId};
+    use super::{ChannelId, ThreadMember, UserId};
     use serde_test::Token;
 
     #[test]
