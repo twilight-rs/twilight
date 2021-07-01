@@ -47,15 +47,23 @@ impl Display for ShardSchemeRangeError {
                 bucket_id,
                 concurrency,
                 ..
-            } => f.write_fmt(format_args!(
-                "bucket ID {} is larger than maximum concurrency ({})",
-                bucket_id, concurrency
-            )),
+            } => {
+                f.write_str("bucket ID ")?;
+                Display::fmt(bucket_id, f)?;
+                f.write_str(" is larger than maximum concurrency (")?;
+                Display::fmt(concurrency, f)?;
+
+                f.write_str(")")
+            }
             ShardSchemeRangeErrorType::IdTooLarge { end, start, total } => {
-                f.write_fmt(format_args!(
-                    "The shard ID range {}-{}/{} is larger than the total",
-                    start, end, total
-                ))
+                f.write_str("The shard ID range ")?;
+                Display::fmt(start, f)?;
+                f.write_str("-")?;
+                Display::fmt(end, f)?;
+                f.write_str("/")?;
+                Display::fmt(total, f)?;
+
+                f.write_str(" is larger than the total")
             }
         }
     }

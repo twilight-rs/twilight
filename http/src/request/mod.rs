@@ -43,15 +43,7 @@ macro_rules! poll_req {
                             Poll::Pending => return Poll::Pending,
                         };
 
-                        let mut bytes = bytes.as_ref().to_vec();
-                        return Poll::Ready(crate::json::from_slice(&mut bytes).map(Some).map_err(
-                            |source| crate::Error {
-                                kind: crate::error::ErrorType::Parsing {
-                                    body: bytes.to_vec(),
-                                },
-                                source: Some(Box::new(source)),
-                            },
-                        ));
+                        return Poll::Ready(crate::json::parse_bytes(&bytes));
                     }
 
                     if let Err(why) = self.as_mut().start() {
@@ -96,6 +88,7 @@ use hyper::{
     Method as HyperMethod,
 };
 use percent_encoding::{utf8_percent_encode, NON_ALPHANUMERIC};
+use serde::{Serialize, Serializer};
 use std::{future::Future, iter, pin::Pin};
 
 type Pending<'a, T> = Pin<Box<dyn Future<Output = Result<T, Error>> + Send + 'a>>;
@@ -125,6 +118,40 @@ impl Method {
             Self::Patch => HyperMethod::PATCH,
             Self::Post => HyperMethod::POST,
             Self::Put => HyperMethod::PUT,
+        }
+    }
+}
+
+/// Field that either serializes to null or a value.
+///
+/// This is particularly useful when combined with an `Option` by allowing three
+/// states via `Option<NullableField<T>>`: undefined, null, and T.
+///
+/// When undefined a field can skip serialization, while if it's null then it will
+/// serialize as null. This mechanism is primarily used in patch requests.
+enum NullableField<T> {
+    /// Remove a value.
+    Null,
+    /// Set a value.
+    Value(T),
+}
+
+impl<T> NullableField<T> {
+    /// Create a `NullableField` from an option.
+    #[allow(clippy::missing_const_for_fn)]
+    fn from_option(option: Option<T>) -> Self {
+        match option {
+            Some(value) => Self::Value(value),
+            None => Self::Null,
+        }
+    }
+}
+
+impl<T: Serialize> Serialize for NullableField<T> {
+    fn serialize<S: Serializer>(&self, serializer: S) -> Result<S::Ok, S::Error> {
+        match self {
+            Self::Null => serializer.serialize_none(),
+            Self::Value(inner) => serializer.serialize_some(inner),
         }
     }
 }

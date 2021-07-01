@@ -31,18 +31,21 @@ use serde::{
     de::{Deserializer, Error as DeError, IgnoredAny, MapAccess, Visitor},
     Deserialize, Serialize,
 };
-use std::fmt::{self, Formatter, Result as FmtResult};
+use std::fmt::{Display, Formatter, Result as FmtResult};
 
 #[derive(Copy, Clone, Debug, Eq, PartialEq)]
 pub enum ConversionError {
     MessageType(u8),
 }
 
-impl fmt::Display for ConversionError {
+impl Display for ConversionError {
     fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
         match self {
             ConversionError::MessageType(num) => {
-                write!(f, "Could not convert {} into a valid MessageType!", num)
+                f.write_str("Could not convert ")?;
+                Display::fmt(num, f)?;
+
+                f.write_str(" into a valid MessageType!")
             }
         }
     }

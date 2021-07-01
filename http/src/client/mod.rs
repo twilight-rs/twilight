@@ -27,7 +27,7 @@ use crate::{
 };
 use hyper::body::Bytes;
 use hyper::{
-    body::{self, Buf},
+    body,
     client::{Client as HyperClient, HttpConnector},
     header::{HeaderMap, HeaderValue, AUTHORIZATION, CONTENT_LENGTH, CONTENT_TYPE, USER_AGENT},
     Body, Response, StatusCode,
@@ -2305,24 +2305,14 @@ impl Client {
     pub async fn request<T: DeserializeOwned>(&self, request: Request) -> Result<T, Error> {
         let resp = self.make_request(request).await?;
 
-        let mut buf = body::aggregate(resp.into_body())
+        let bytes = body::to_bytes(resp.into_body())
             .await
             .map_err(|source| Error {
                 kind: ErrorType::ChunkingResponse,
                 source: Some(Box::new(source)),
             })?;
 
-        let mut bytes = vec![0; buf.remaining()];
-        buf.copy_to_slice(&mut bytes);
-
-        let result = crate::json::from_slice(&mut bytes);
-
-        result.map_err(|source| Error {
-            kind: ErrorType::Parsing {
-                body: bytes.clone(),
-            },
-            source: Some(Box::new(source)),
-        })
+        crate::json::parse_bytes(&bytes)
     }
 
     pub(crate) async fn request_bytes(&self, request: Request) -> Result<Bytes, Error> {
@@ -2379,22 +2369,14 @@ impl Client {
             _ => {}
         }
 
-        let mut buf = hyper::body::aggregate(resp.into_body())
+        let bytes = body::to_bytes(resp.into_body())
             .await
             .map_err(|source| Error {
                 kind: ErrorType::ChunkingResponse,
                 source: Some(Box::new(source)),
             })?;
 
-        let mut bytes = vec![0; buf.remaining()];
-        buf.copy_to_slice(&mut bytes);
-
-        let error = crate::json::from_slice::<ApiError>(&mut bytes).map_err(|source| Error {
-            kind: ErrorType::Parsing {
-                body: bytes.clone(),
-            },
-            source: Some(Box::new(source)),
-        })?;
+        let error = crate::json::parse_bytes::<ApiError>(&bytes)?;
 
         #[cfg(feature = "tracing")]
         if let ApiError::General(ref general) = error {
@@ -2407,7 +2389,7 @@ impl Client {
 
         Err(Error {
             kind: ErrorType::Response {
-                body: bytes,
+                body: bytes.to_vec(),
                 error,
                 status,
             },

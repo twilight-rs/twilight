@@ -3,7 +3,9 @@
 use crate::{
     client::Client,
     error::Error as HttpError,
-    request::{self, validate, AuditLogReason, AuditLogReasonError, Form, Pending, Request},
+    request::{
+        self, validate, AuditLogReason, AuditLogReasonError, Form, NullableField, Pending, Request,
+    },
     routing::Route,
 };
 use serde::Serialize;
@@ -57,10 +59,11 @@ impl Display for UpdateWebhookMessageError {
             UpdateWebhookMessageErrorType::EmbedTooLarge { .. } => {
                 f.write_str("length of one of the embeds is too large")
             }
-            UpdateWebhookMessageErrorType::TooManyEmbeds { embeds } => f.write_fmt(format_args!(
-                "{} embeds were provided, but only 10 may be provided",
-                embeds.len()
-            )),
+            UpdateWebhookMessageErrorType::TooManyEmbeds { embeds } => {
+                Display::fmt(&embeds.len(), f)?;
+
+                f.write_str(" embeds were provided, but only 10 may be provided")
+            }
         }
     }
 }
@@ -108,12 +111,10 @@ struct UpdateWebhookMessageFields {
     allowed_mentions: Option<AllowedMentions>,
     #[serde(skip_serializing_if = "Vec::is_empty")]
     attachments: Vec<Attachment>,
-    #[allow(clippy::option_option)]
     #[serde(skip_serializing_if = "Option::is_none")]
-    content: Option<Option<String>>,
-    #[allow(clippy::option_option)]
+    content: Option<NullableField<String>>,
     #[serde(skip_serializing_if = "Option::is_none")]
-    embeds: Option<Option<Vec<Embed>>>,
+    embeds: Option<NullableField<Vec<Embed>>>,
     #[serde(skip_serializing_if = "Option::is_none")]
     payload_json: Option<Vec<u8>>,
 }
@@ -240,7 +241,9 @@ impl<'a> UpdateWebhookMessage<'a> {
             }
         }
 
-        self.fields.content.replace(content);
+        self.fields
+            .content
+            .replace(NullableField::from_option(content));
 
         Ok(self)
     }
@@ -315,7 +318,9 @@ impl<'a> UpdateWebhookMessage<'a> {
             }
         }
 
-        self.fields.embeds.replace(embeds);
+        self.fields
+            .embeds
+            .replace(NullableField::from_option(embeds));
 
         Ok(self)
     }
@@ -414,7 +419,7 @@ mod tests {
     use super::{UpdateWebhookMessage, UpdateWebhookMessageFields};
     use crate::{
         client::Client,
-        request::{AuditLogReason, Request},
+        request::{AuditLogReason, NullableField, Request},
         routing::Route,
     };
     use twilight_model::id::{MessageId, WebhookId};
@@ -432,7 +437,7 @@ mod tests {
         let body = UpdateWebhookMessageFields {
             allowed_mentions: None,
             attachments: Vec::new(),
-            content: Some(Some("test".to_owned())),
+            content: Some(NullableField::Value("test".to_owned())),
             embeds: None,
             payload_json: None,
         };

@@ -46,9 +46,7 @@ impl UpdateStageInstanceError {
 impl Display for UpdateStageInstanceError {
     fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
         match &self.kind {
-            UpdateStageInstanceErrorType::InvalidTopic { .. } => {
-                f.write_fmt(format_args!("invalid topic"))
-            }
+            UpdateStageInstanceErrorType::InvalidTopic { .. } => f.write_str("invalid topic"),
         }
     }
 }
