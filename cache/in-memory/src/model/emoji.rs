@@ -4,16 +4,28 @@ use twilight_model::{
     id::{EmojiId, RoleId, UserId},
 };
 
+/// Represents a cached [`Emoji`].
+///
+/// [`Emoji`]: twilight_model::guild::Emoji
 #[derive(Clone, Debug, Eq, PartialEq, Serialize)]
 pub struct CachedEmoji {
+    /// ID of the Emoji.
     pub id: EmojiId,
+    /// Whether the emoji is animated.
     pub animated: bool,
+    /// Name of the Emoji.
     pub name: String,
+    /// Whether the emoji is managed.
     pub managed: bool,
+    /// Whether the emoji must be wrapped in colons.
     pub require_colons: bool,
+    /// List of roles allowed to use this emoji.
     pub roles: Vec<RoleId>,
     /// ID of the user who created the emoji.
     pub user_id: Option<UserId>,
+    /// Whether this emoji can be used.
+    ///
+    /// May be false due to loss of Server Boosts.
     pub available: bool,
 }
 
