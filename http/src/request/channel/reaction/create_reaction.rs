@@ -33,7 +33,7 @@ use twilight_model::id::{ChannelId, MessageId};
 /// ```
 pub struct CreateReaction<'a> {
     channel_id: ChannelId,
-    emoji: String,
+    emoji: RequestReactionType,
     fut: Option<Pending<'a, ()>>,
     http: &'a Client,
     message_id: MessageId,
@@ -48,7 +48,7 @@ impl<'a> CreateReaction<'a> {
     ) -> Self {
         Self {
             channel_id,
-            emoji: super::format_emoji(emoji),
+            emoji,
             fut: None,
             http,
             message_id,
@@ -58,7 +58,7 @@ impl<'a> CreateReaction<'a> {
     fn request(&self) -> Request {
         Request::from_route(Route::CreateReaction {
             channel_id: self.channel_id.0,
-            emoji: self.emoji.clone(),
+            emoji: self.emoji.display().to_string(),
             message_id: self.message_id.0,
         })
     }

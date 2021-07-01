@@ -1,6 +1,6 @@
 use crate::{
     client::Client,
-    error::{Error as HttpError, ErrorType},
+    error::Error as HttpError,
     request::{validate, PendingOption, Request},
     routing::Route,
 };
@@ -195,18 +195,11 @@ impl Future for AddGuildMember<'_> {
                     Poll::Pending => return Poll::Pending,
                 };
 
-                let mut bytes = bytes.as_ref().to_vec();
-
                 if bytes.is_empty() {
                     return Poll::Ready(Ok(None));
                 }
 
-                return Poll::Ready(crate::json::from_slice(&mut bytes).map(Some).map_err(
-                    |source| HttpError {
-                        kind: ErrorType::Parsing { body: bytes },
-                        source: Some(Box::new(source)),
-                    },
-                ));
+                return Poll::Ready(crate::json::parse_bytes(&bytes));
             }
 
             if let Err(why) = self.as_mut().start() {
