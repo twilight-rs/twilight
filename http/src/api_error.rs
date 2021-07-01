@@ -72,6 +72,8 @@ pub enum ErrorCode {
     UnknownApplicationCommand,
     /// Unknown application command permissions
     UnknownApplicationCommandPermissions,
+    /// Unknown Stage Instance
+    UnknownStageInstance,
     /// Bots cannot use this endpoint
     BotsCannotUseEndpoint,
     /// Only bots can use this endpoint
@@ -215,6 +217,8 @@ pub enum ErrorCode {
     ReactionBlocked,
     /// API resource is currently overloaded. Try again a little later
     ApiResourceOverloaded,
+    /// The Stage is already open
+    StageAlreadyOpen,
     /// A status code that Twilight doesn't have registered.
     ///
     /// Please report the number if you see this variant!
@@ -257,6 +261,7 @@ impl ErrorCode {
             Self::UnknownInteraction => 10062,
             Self::UnknownApplicationCommand => 10063,
             Self::UnknownApplicationCommandPermissions => 10066,
+            Self::UnknownStageInstance => 10067,
             Self::BotsCannotUseEndpoint => 20001,
             Self::OnlyBotsCanUseEndpoint => 20002,
             Self::ExplicitContentSendingBlocked => 20009,
@@ -328,6 +333,7 @@ impl ErrorCode {
             Self::NoSuchUser => 80004,
             Self::ReactionBlocked => 90001,
             Self::ApiResourceOverloaded => 130_000,
+            Self::StageAlreadyOpen => 150_006,
             Self::Other(other) => *other,
         }
     }
@@ -369,6 +375,7 @@ impl From<u64> for ErrorCode {
             10062 => Self::UnknownInteraction,
             10063 => Self::UnknownApplicationCommand,
             10066 => Self::UnknownApplicationCommandPermissions,
+            10067 => Self::UnknownStageInstance,
             20001 => Self::BotsCannotUseEndpoint,
             20002 => Self::OnlyBotsCanUseEndpoint,
             20022 => Self::AnnouncementRateLimitReached,
@@ -440,6 +447,7 @@ impl From<u64> for ErrorCode {
             80004 => Self::NoSuchUser,
             90001 => Self::ReactionBlocked,
             130_000 => Self::ApiResourceOverloaded,
+            150_006 => Self::StageAlreadyOpen,
             other => Self::Other(other),
         }
     }
@@ -481,6 +489,7 @@ impl Display for ErrorCode {
             Self::UnknownInteraction => f.write_str("Unknown interaction"),
             Self::UnknownApplicationCommand => f.write_str("Unknown application command"),
             Self::UnknownApplicationCommandPermissions => f.write_str("Unknown application command permissions"),
+            Self::UnknownStageInstance => f.write_str("Unknown Stage Instance"),
             Self::BotsCannotUseEndpoint => f.write_str("Bots cannot use this endpoint"),
             Self::OnlyBotsCanUseEndpoint => f.write_str("Only bots can use this endpoint"),
             Self::ExplicitContentSendingBlocked => f.write_str("Explicit content cannot be sent to the desired recipient(s)"),
@@ -552,6 +561,7 @@ impl Display for ErrorCode {
             Self::NoSuchUser => f.write_str("No users with DiscordTag exist"),
             Self::ReactionBlocked => f.write_str("Reaction was blocked"),
             Self::ApiResourceOverloaded => f.write_str("API resource is currently overloaded. Try again a little later"),
+            Self::StageAlreadyOpen => f.write_str("The Stage is already open"),
             Self::Other(number) => {
                 f.write_str("An error code Twilight doesn't have registered: ")?;
 
