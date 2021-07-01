@@ -119,15 +119,15 @@ fn header_bool(map: &HeaderMap<HeaderValue>, name: &'static str) -> RatelimitRes
         .get(name)
         .ok_or_else(|| RatelimitError::header_missing(name))?;
 
-    let text = value.to_str().map_err(|source| {
-        RatelimitError::header_not_utf8(name, value.as_bytes().to_owned(), source)
-    })?;
+    let text = value
+        .to_str()
+        .map_err(|source| {
+            RatelimitError::header_not_utf8(name, value.as_bytes().to_owned(), source)
+        })?
+        .to_owned();
 
     let end = text.parse().map_err(|source| RatelimitError {
-        kind: RatelimitErrorType::ParsingBoolText {
-            name,
-            text: text.to_owned(),
-        },
+        kind: RatelimitErrorType::ParsingBoolText { name, text },
         source: Some(Box::new(source)),
     })?;
 
@@ -139,15 +139,15 @@ fn header_float(map: &HeaderMap<HeaderValue>, name: &'static str) -> RatelimitRe
         .get(name)
         .ok_or_else(|| RatelimitError::header_missing(name))?;
 
-    let text = value.to_str().map_err(|source| {
-        RatelimitError::header_not_utf8(name, value.as_bytes().to_owned(), source)
-    })?;
+    let text = value
+        .to_str()
+        .map_err(|source| {
+            RatelimitError::header_not_utf8(name, value.as_bytes().to_owned(), source)
+        })?
+        .to_owned();
 
     let end = text.parse().map_err(|source| RatelimitError {
-        kind: RatelimitErrorType::ParsingFloatText {
-            name,
-            text: text.to_owned(),
-        },
+        kind: RatelimitErrorType::ParsingFloatText { name, text },
         source: Some(Box::new(source)),
     })?;
 
@@ -159,15 +159,15 @@ fn header_int(map: &HeaderMap<HeaderValue>, name: &'static str) -> RatelimitResu
         .get(name)
         .ok_or_else(|| RatelimitError::header_missing(name))?;
 
-    let text = value.to_str().map_err(|source| {
-        RatelimitError::header_not_utf8(name, value.as_bytes().to_owned(), source)
-    })?;
+    let text = value
+        .to_str()
+        .map_err(|source| {
+            RatelimitError::header_not_utf8(name, value.as_bytes().to_owned(), source)
+        })?
+        .to_owned();
 
     let end = text.parse().map_err(|source| RatelimitError {
-        kind: RatelimitErrorType::ParsingIntText {
-            name,
-            text: text.to_owned(),
-        },
+        kind: RatelimitErrorType::ParsingIntText { name, text },
         source: Some(Box::new(source)),
     })?;
 
