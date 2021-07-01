@@ -70,7 +70,10 @@ pub use self::{
 };
 
 use self::model::*;
-use dashmap::{mapref::entry::Entry, DashMap, DashSet};
+use dashmap::{
+    mapref::{entry::Entry, one::Ref},
+    DashMap, DashSet,
+};
 use std::{
     collections::{BTreeSet, HashSet, VecDeque},
     hash::Hash,
@@ -81,7 +84,7 @@ use twilight_model::{
     channel::{Group, GuildChannel, PrivateChannel, StageInstance},
     gateway::event::Event,
     guild::{GuildIntegration, Role},
-    id::{ChannelId, EmojiId, GuildId, IntegrationId, RoleId, StageId, UserId},
+    id::{ChannelId, EmojiId, GuildId, IntegrationId, MessageId, RoleId, StageId, UserId},
     user::{CurrentUser, User},
     voice::VoiceState,
 };
@@ -213,13 +216,6 @@ impl InMemoryCache {
         Self::default()
     }
 
-    fn new_with_config(config: Config) -> Self {
-        Self(Arc::new(InMemoryCacheRef {
-            config,
-            ..Default::default()
-        }))
-    }
-
     /// Create a new builder to configure and construct an in-memory cache.
     pub const fn builder() -> InMemoryCacheBuilder {
         InMemoryCacheBuilder::new()
@@ -285,6 +281,244 @@ impl InMemoryCache {
     /// Update the cache with an event from the gateway.
     pub fn update(&self, value: &impl UpdateCache) {
         value.update(self);
+    }
+
+    /// Gets the current user.
+    ///
+    /// This is an O(1) operation.
+    pub fn current_user(&self) -> Option<CurrentUser> {
+        self.0
+            .current_user
+            .lock()
+            .expect("current user poisoned")
+            .clone()
+    }
+
+    /// Gets an emoji by ID.
+    ///
+    /// This is an O(1) operation. This requires the [`GUILD_EMOJIS`] intent.
+    ///
+    /// [`GUILD_EMOJIS`]: ::twilight_model::gateway::Intents::GUILD_EMOJIS
+    pub fn emoji(&self, emoji_id: EmojiId) -> Option<CachedEmoji> {
+        self.0.emojis.get(&emoji_id).map(|r| r.data.clone())
+    }
+
+    /// Gets a group by ID.
+    ///
+    /// This is an O(1) operation.
+    pub fn group(&self, channel_id: ChannelId) -> Option<Group> {
+        self.0.groups.get(&channel_id).map(|r| r.clone())
+    }
+
+    /// Gets a guild by ID.
+    ///
+    /// This is an O(1) operation. This requires the [`GUILDS`] intent.
+    ///
+    /// [`GUILDS`]: ::twilight_model::gateway::Intents::GUILDS
+    pub fn guild(&self, guild_id: GuildId) -> Option<CachedGuild> {
+        self.0.guilds.get(&guild_id).map(|r| r.clone())
+    }
+
+    /// Gets a channel by ID.
+    ///
+    /// This is an O(1) operation. This requires the [`GUILDS`] intent.
+    ///
+    /// [`GUILDS`]: ::twilight_model::gateway::Intents::GUILDS
+    pub fn guild_channel(&self, channel_id: ChannelId) -> Option<GuildChannel> {
+        self.0
+            .channels_guild
+            .get(&channel_id)
+            .map(|r| r.data.clone())
+    }
+
+    /// Gets the set of channels in a guild.
+    ///
+    /// This is a O(m) operation, where m is the amount of channels in the
+    /// guild. This requires the [`GUILDS`] intent.
+    ///
+    /// [`GUILDS`]: ::twilight_model::gateway::Intents::GUILDS
+    pub fn guild_channels(&self, guild_id: GuildId) -> Option<HashSet<ChannelId>> {
+        self.0.guild_channels.get(&guild_id).map(|r| r.clone())
+    }
+
+    /// Gets the set of emojis in a guild.
+    ///
+    /// This is a O(m) operation, where m is the amount of emojis in the guild.
+    /// This requires both the [`GUILDS`] and [`GUILD_EMOJIS`] intents.
+    ///
+    /// [`GUILDS`]: ::twilight_model::gateway::Intents::GUILDS
+    /// [`GUILD_EMOJIS`]: ::twilight_model::gateway::Intents::GUILD_EMOJIS
+    pub fn guild_emojis(&self, guild_id: GuildId) -> Option<HashSet<EmojiId>> {
+        self.0.guild_emojis.get(&guild_id).map(|r| r.clone())
+    }
+
+    /// Gets the set of members in a guild.
+    ///
+    /// This list may be incomplete if not all members have been cached.
+    ///
+    /// This is a O(m) operation, where m is the amount of members in the guild.
+    /// This requires the [`GUILD_MEMBERS`] intent.
+    ///
+    /// [`GUILD_MEMBERS`]: ::twilight_model::gateway::Intents::GUILD_MEMBERS
+    pub fn guild_members(&self, guild_id: GuildId) -> Option<HashSet<UserId>> {
+        self.0.guild_members.get(&guild_id).map(|r| r.clone())
+    }
+
+    /// Gets the set of presences in a guild.
+    ///
+    /// This list may be incomplete if not all members have been cached.
+    ///
+    /// This is a O(m) operation, where m is the amount of members in the guild.
+    /// This requires the [`GUILD_PRESENCES`] intent.
+    ///
+    /// [`GUILD_PRESENCES`]: ::twilight_model::gateway::Intents::GUILD_PRESENCES
+    pub fn guild_presences(&self, guild_id: GuildId) -> Option<HashSet<UserId>> {
+        self.0.guild_presences.get(&guild_id).map(|r| r.clone())
+    }
+
+    /// Gets the set of roles in a guild.
+    ///
+    /// This is a O(m) operation, where m is the amount of roles in the guild.
+    /// This requires the [`GUILDS`] intent.
+    ///
+    /// [`GUILDS`]: ::twilight_model::gateway::Intents::GUILDS
+    pub fn guild_roles(&self, guild_id: GuildId) -> Option<HashSet<RoleId>> {
+        self.0.guild_roles.get(&guild_id).map(|r| r.clone())
+    }
+
+    /// Gets the set of stage instances in a guild.
+    ///
+    /// This is a O(m) operation, where m is the amount of stage instances in
+    /// the guild. This requires the [`GUILDS`] intent.
+    ///
+    /// [`GUILDS`]: twilight_model::gateway::Intents::GUILDS
+    pub fn guild_stage_instances(&self, guild_id: GuildId) -> Option<HashSet<StageId>> {
+        self.0
+            .guild_stage_instances
+            .get(&guild_id)
+            .map(|r| r.value().clone())
+    }
+
+    /// Gets a member by guild ID and user ID.
+    ///
+    /// This is an O(1) operation. This requires the [`GUILD_MEMBERS`] intent.
+    ///
+    /// [`GUILD_MEMBERS`]: ::twilight_model::gateway::Intents::GUILD_MEMBERS
+    pub fn member(&self, guild_id: GuildId, user_id: UserId) -> Option<CachedMember> {
+        self.0.members.get(&(guild_id, user_id)).map(|r| r.clone())
+    }
+
+    /// Gets a message by channel ID and message ID.
+    ///
+    /// This is an O(n) operation. This requires one or both of the
+    /// [`GUILD_MESSAGES`] or [`DIRECT_MESSAGES`] intents.
+    ///
+    /// [`GUILD_MESSAGES`]: ::twilight_model::gateway::Intents::GUILD_MESSAGES
+    /// [`DIRECT_MESSAGES`]: ::twilight_model::gateway::Intents::DIRECT_MESSAGES
+    pub fn message(&self, channel_id: ChannelId, message_id: MessageId) -> Option<CachedMessage> {
+        let channel = self.0.messages.get(&channel_id)?;
+
+        channel.iter().find(|msg| msg.id == message_id).cloned()
+    }
+
+    /// Gets a presence by, optionally, guild ID, and user ID.
+    ///
+    /// This is an O(1) operation. This requires the [`GUILD_PRESENCES`] intent.
+    ///
+    /// [`GUILD_PRESENCES`]: ::twilight_model::gateway::Intents::GUILD_PRESENCES
+    pub fn presence(&self, guild_id: GuildId, user_id: UserId) -> Option<CachedPresence> {
+        self.0
+            .presences
+            .get(&(guild_id, user_id))
+            .map(|r| r.clone())
+    }
+
+    /// Gets a private channel by ID.
+    ///
+    /// This is an O(1) operation. This requires the [`DIRECT_MESSAGES`] intent.
+    ///
+    /// [`DIRECT_MESSAGES`]: ::twilight_model::gateway::Intents::DIRECT_MESSAGES
+    pub fn private_channel(&self, channel_id: ChannelId) -> Option<PrivateChannel> {
+        self.0.channels_private.get(&channel_id).map(|r| r.clone())
+    }
+
+    /// Gets a role by ID.
+    ///
+    /// This is an O(1) operation. This requires the [`GUILDS`] intent.
+    ///
+    /// [`GUILDS`]: ::twilight_model::gateway::Intents::GUILDS
+    pub fn role(&self, role_id: RoleId) -> Option<Role> {
+        self.0.roles.get(&role_id).map(|r| r.data.clone())
+    }
+
+    /// Gets a stage instance by ID.
+    ///
+    /// This is an O(1) operation. This requires the [`GUILDS`] intent.
+    ///
+    /// [`GUILDS`]: twilight_model::gateway::Intents::GUILDS
+    pub fn stage_instance(&self, stage_id: StageId) -> Option<StageInstance> {
+        self.0
+            .stage_instances
+            .get(&stage_id)
+            .map(|role| role.data.clone())
+    }
+
+    /// Gets a user by ID.
+    ///
+    /// This is an O(1) operation. This requires the [`GUILD_MEMBERS`] intent.
+    ///
+    /// [`GUILD_MEMBERS`]: ::twilight_model::gateway::Intents::GUILD_MEMBERS
+    pub fn user(&self, user_id: UserId) -> Option<User> {
+        self.0.users.get(&user_id).map(|r| r.0.clone())
+    }
+
+    /// Gets a user by ID.
+    ///
+    /// This is an O(1) operation. This requires the [`GUILD_MEMBERS`] intent.
+    ///
+    /// [`GUILD_MEMBERS`]: ::twilight_model::gateway::Intents::GUILD_MEMBERS
+    #[deprecated(since = "0.5.1", note = "use `user`")]
+    #[doc(hidden)]
+    pub fn user_ref(&self, user_id: UserId) -> Option<Ref<'_, UserId, (User, BTreeSet<GuildId>)>> {
+        self.0.users.get(&user_id)
+    }
+
+    /// Gets the voice states within a voice channel.
+    ///
+    /// This requires both the [`GUILDS`] and [`GUILD_VOICE_STATES`] intents.
+    ///
+    /// [`GUILDS`]: ::twilight_model::gateway::Intents::GUILDS
+    /// [`GUILD_VOICE_STATES`]: ::twilight_model::gateway::Intents::GUILD_VOICE_STATES
+    pub fn voice_channel_states(&self, channel_id: ChannelId) -> Option<Vec<VoiceState>> {
+        let user_ids = self.0.voice_state_channels.get(&channel_id)?;
+
+        Some(
+            user_ids
+                .iter()
+                .filter_map(|key| self.0.voice_states.get(&key).map(|r| r.clone()))
+                .collect(),
+        )
+    }
+
+    /// Gets a voice state by user ID and Guild ID.
+    ///
+    /// This is an O(1) operation. This requires both the [`GUILDS`] and
+    /// [`GUILD_VOICE_STATES`] intents.
+    ///
+    /// [`GUILDS`]: ::twilight_model::gateway::Intents::GUILDS
+    /// [`GUILD_VOICE_STATES`]: ::twilight_model::gateway::Intents::GUILD_VOICE_STATES
+    pub fn voice_state(&self, user_id: UserId, guild_id: GuildId) -> Option<VoiceState> {
+        self.0
+            .voice_states
+            .get(&(guild_id, user_id))
+            .map(|r| r.clone())
+    }
+
+    fn new_with_config(config: Config) -> Self {
+        Self(Arc::new(InMemoryCacheRef {
+            config,
+            ..Default::default()
+        }))
     }
 
     /// Determine whether the configured cache wants a specific resource to be

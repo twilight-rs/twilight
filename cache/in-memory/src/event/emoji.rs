@@ -1,5 +1,5 @@
 use crate::{config::ResourceType, model::CachedEmoji, GuildItem, InMemoryCache, UpdateCache};
-use std::{borrow::Cow, collections::HashSet};
+use std::borrow::Cow;
 use twilight_model::{
     gateway::payload::GuildEmojisUpdate,
     guild::Emoji,
@@ -7,26 +7,6 @@ use twilight_model::{
 };
 
 impl InMemoryCache {
-    /// Gets an emoji by ID.
-    ///
-    /// This is an O(1) operation. This requires the [`GUILD_EMOJIS`] intent.
-    ///
-    /// [`GUILD_EMOJIS`]: ::twilight_model::gateway::Intents::GUILD_EMOJIS
-    pub fn emoji(&self, emoji_id: EmojiId) -> Option<CachedEmoji> {
-        self.0.emojis.get(&emoji_id).map(|r| r.data.clone())
-    }
-
-    /// Gets the set of emojis in a guild.
-    ///
-    /// This is a O(m) operation, where m is the amount of emojis in the guild.
-    /// This requires both the [`GUILDS`] and [`GUILD_EMOJIS`] intents.
-    ///
-    /// [`GUILDS`]: ::twilight_model::gateway::Intents::GUILDS
-    /// [`GUILD_EMOJIS`]: ::twilight_model::gateway::Intents::GUILD_EMOJIS
-    pub fn guild_emojis(&self, guild_id: GuildId) -> Option<HashSet<EmojiId>> {
-        self.0.guild_emojis.get(&guild_id).map(|r| r.clone())
-    }
-
     pub(crate) fn cache_emojis(&self, guild_id: GuildId, emojis: Vec<Emoji>) {
         if let Some(mut guild_emojis) = self.0.guild_emojis.get_mut(&guild_id) {
             let incoming: Vec<EmojiId> = emojis.iter().map(|e| e.id).collect();

@@ -16,7 +16,7 @@ use std::{
     borrow::Cow,
     env::consts::OS,
     error::Error,
-    fmt::{Display, Formatter, Result as FmtResult},
+    fmt::{Debug, Display, Formatter, Result as FmtResult},
     str,
     sync::{atomic::Ordering, Arc},
     time::Duration,
@@ -63,7 +63,10 @@ impl Display for ConnectingError {
         match &self.kind {
             ConnectingErrorType::Establishing => f.write_str("failed to establish the connection"),
             ConnectingErrorType::ParsingUrl { url } => {
-                f.write_fmt(format_args!("the gateway url `{}` is invalid", url,))
+                f.write_str("the gateway url `")?;
+                f.write_str(url)?;
+
+                f.write_str("` is invalid")
             }
         }
     }
@@ -103,10 +106,14 @@ impl ProcessError {
 impl Display for ProcessError {
     fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
         match &self.kind {
-            ProcessErrorType::EventTypeUnknown { event_type, op } => f.write_fmt(format_args!(
-                "provided event type ({:?})/op ({}) pair is unknown",
-                event_type, op,
-            )),
+            ProcessErrorType::EventTypeUnknown { event_type, op } => {
+                f.write_str("provided event type (")?;
+                Debug::fmt(event_type, f)?;
+                f.write_str(")/op (")?;
+                Display::fmt(op, f)?;
+
+                f.write_str(") pair is unknown")
+            }
             ProcessErrorType::ParsingPayload => f.write_str("payload could not be parsed as json"),
             ProcessErrorType::PayloadNotUtf8 { .. } => {
                 f.write_str("the payload from Discord wasn't UTF-8 valid")
@@ -179,23 +186,30 @@ impl ReceivingEventError {
 impl Display for ReceivingEventError {
     fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
         match &self.kind {
-            ReceivingEventErrorType::AuthorizationInvalid { shard_id, .. } => f.write_fmt(
-                format_args!("the authorization token for shard {} is invalid", shard_id),
-            ),
+            ReceivingEventErrorType::AuthorizationInvalid { shard_id, .. } => {
+                f.write_str("the authorization token for shard ")?;
+                Display::fmt(shard_id, f)?;
+
+                f.write_str(" is invalid")
+            }
             ReceivingEventErrorType::Decompressing => {
                 f.write_str("a frame could not be decompressed")
             }
             ReceivingEventErrorType::IntentsDisallowed { intents, shard_id } => {
-                f.write_fmt(format_args!(
-                    "at least one of the intents ({:?}) for shard {} are disallowed",
-                    intents, shard_id
-                ))
+                f.write_str("at least one of the intents (")?;
+                Debug::fmt(intents, f)?;
+                f.write_str(") for shard ")?;
+                Display::fmt(shard_id, f)?;
+
+                f.write_str(" are disallowed")
             }
             ReceivingEventErrorType::IntentsInvalid { intents, shard_id } => {
-                f.write_fmt(format_args!(
-                    "at least one of the intents ({:?}) for shard {} are invalid",
-                    intents, shard_id
-                ))
+                f.write_str("at least one of the intents (")?;
+                Debug::fmt(intents, f)?;
+                f.write_str(") for shard ")?;
+                Display::fmt(shard_id, f)?;
+
+                f.write_str(" are invalid")
             }
             ReceivingEventErrorType::EventStreamEnded => {
                 f.write_str("event stream from gateway ended")
@@ -330,6 +344,8 @@ impl ShardProcessor {
                 Err(source) => {
                     tracing::warn!("{}", source);
 
+                    self.emit_disconnected(None, None).await;
+
                     if source.fatal() {
                         break;
                     }
@@ -356,6 +372,7 @@ impl ShardProcessor {
 
                 if source.fatal() {
                     tracing::debug!("error processing event; reconnecting");
+                    self.emit_disconnected(None, None).await;
 
                     self.reconnect().await;
                 }
@@ -559,6 +576,7 @@ impl ShardProcessor {
 
         if let Err(err) = self.session.heartbeat() {
             tracing::warn!("error sending heartbeat; reconnecting: {}", err);
+            self.emit_disconnected(None, None).await;
 
             self.reconnect().await;
         }
@@ -607,6 +625,8 @@ impl ShardProcessor {
     }
 
     async fn process_invalidate_session(&mut self, resumable: bool) {
+        self.emit_disconnected(None, None).await;
+
         if resumable {
             #[cfg(feature = "metrics")]
             metrics::counter!("GatewayEvent", 1, "GatewayEvent" => "InvalidateSessionTrue");
@@ -632,11 +652,13 @@ impl ShardProcessor {
             reason: Cow::Borrowed("Reconnecting"),
         };
         self.session
-            .close(Some(frame))
+            .close(Some(frame.clone()))
             .map_err(|source| ProcessError {
                 source: Some(Box::new(source)),
                 kind: ProcessErrorType::SendingClose,
             })?;
+        self.emit_disconnected(Some(frame.code.into()), Some(frame.reason.to_string()))
+            .await;
         self.resume().await;
 
         Ok(())
@@ -647,6 +669,8 @@ impl ShardProcessor {
             tracing::warn!("sending message failed: {:?}", source);
 
             if matches!(source.kind(), SessionSendErrorType::Sending { .. }) {
+                self.emit_disconnected(None, None).await;
+
                 self.reconnect().await;
             }
 
@@ -745,13 +769,11 @@ impl ShardProcessor {
     ) -> Result<(), ReceivingEventError> {
         tracing::info!("got close code: {:?}", close_frame);
 
-        self.emitter.event(Event::ShardDisconnected(Disconnected {
-            code: close_frame.as_ref().map(|frame| frame.code.into()),
-            reason: close_frame
-                .as_ref()
-                .map(|frame| frame.reason.clone().into()),
-            shard_id: self.config.shard()[0],
-        }));
+        self.emit_disconnected(
+            close_frame.map(|c| c.code.into()),
+            close_frame.map(|c| c.reason.to_string()),
+        )
+        .await;
 
         if let Some(close_frame) = close_frame {
             match close_frame.code {
@@ -954,5 +976,13 @@ impl ShardProcessor {
 
         self.session.set_stage(stage);
         self.compression.reset();
+    }
+
+    async fn emit_disconnected(&self, code: Option<u16>, reason: Option<String>) {
+        self.emitter.event(Event::ShardDisconnected(Disconnected {
+            code,
+            reason,
+            shard_id: self.config.shard()[0],
+        }));
     }
 }

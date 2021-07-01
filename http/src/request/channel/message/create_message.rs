@@ -1,7 +1,11 @@
 use crate::{
     client::Client,
     error::Error as HttpError,
-    request::{multipart::Form, validate, Pending, Request},
+    request::{
+        multipart::Form,
+        validate::{self, EmbedValidationError},
+        Pending, Request,
+    },
     routing::Route,
 };
 use serde::Serialize;
@@ -18,7 +22,7 @@ use twilight_model::{
     id::{ChannelId, MessageId},
 };
 
-/// The error created when a messsage can not be created as configured.
+/// The error created when a message can not be created as configured.
 #[derive(Debug)]
 pub struct CreateMessageError {
     kind: CreateMessageErrorType,
@@ -43,6 +47,16 @@ impl CreateMessageError {
     pub fn into_parts(self) -> (CreateMessageErrorType, Option<Box<dyn Error + Send + Sync>>) {
         (self.kind, self.source)
     }
+
+    fn embed(source: EmbedValidationError, embed: Embed, idx: Option<usize>) -> Self {
+        Self {
+            kind: CreateMessageErrorType::EmbedTooLarge {
+                embed: Box::new(embed),
+                idx,
+            },
+            source: Some(Box::new(source)),
+        }
+    }
 }
 
 impl Display for CreateMessageError {
@@ -51,8 +65,15 @@ impl Display for CreateMessageError {
             CreateMessageErrorType::ContentInvalid { .. } => {
                 f.write_str("the message content is invalid")
             }
-            CreateMessageErrorType::EmbedTooLarge { .. } => {
-                f.write_str("the embed's contents are too long")
+            CreateMessageErrorType::EmbedTooLarge { idx, .. } => {
+                if let Some(idx) = idx {
+                    f.write_str("the embed at index ")?;
+                    Display::fmt(&idx, f)?;
+
+                    f.write_str("'s contents are too long")
+                } else {
+                    f.write_str("the embed's contents are too long")
+                }
             }
         }
     }
@@ -79,6 +100,8 @@ pub enum CreateMessageErrorType {
     EmbedTooLarge {
         /// Provided embed.
         embed: Box<Embed>,
+        /// Index of the embed, if there is any.
+        idx: Option<usize>,
     },
 }
 
@@ -86,8 +109,8 @@ pub enum CreateMessageErrorType {
 pub(crate) struct CreateMessageFields {
     #[serde(skip_serializing_if = "Option::is_none")]
     content: Option<String>,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    embed: Option<Embed>,
+    #[serde(skip_serializing_if = "Vec::is_empty")]
+    embeds: Vec<Embed>,
     #[serde(skip_serializing_if = "Option::is_none")]
     message_reference: Option<MessageReference>,
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -174,10 +197,11 @@ impl<'a> CreateMessage<'a> {
         Ok(self)
     }
 
-    /// Set the embed of the message.
+    /// Attach an embed to the message.
     ///
-    /// Embed total character length must not exceed 6000 characters. Additionally, the internal
-    /// fields also have character limits. Refer to [the discord docs] for more information.
+    /// Embed total character length must not exceed 6000 characters.
+    /// Additionally, the internal fields also have character limits. Refer to
+    /// [the discord docs] for more information.
     ///
     /// # Examples
     ///
@@ -191,16 +215,36 @@ impl<'a> CreateMessage<'a> {
     /// [the discord docs]: https://discord.com/developers/docs/resources/channel#embed-limits
     /// [`EmbedBuilder`]: https://docs.rs/twilight-embed-builder/*/twilight_embed_builder
     pub fn embed(mut self, embed: Embed) -> Result<Self, CreateMessageError> {
-        if let Err(source) = validate::embed(&embed) {
-            return Err(CreateMessageError {
-                kind: CreateMessageErrorType::EmbedTooLarge {
-                    embed: Box::new(embed),
-                },
-                source: Some(Box::new(source)),
-            });
-        }
+        validate::embed(&embed)
+            .map_err(|source| CreateMessageError::embed(source, embed.clone(), None))?;
 
-        self.fields.embed.replace(embed);
+        self.fields.embeds.push(embed);
+
+        Ok(self)
+    }
+
+    /// Attach multiple embeds to the message.
+    ///
+    /// Embed total character length must not exceed 6000 characters.
+    /// Additionally, the internal fields also have character limits. Refer to
+    /// [the discord docs] for more information.
+    ///
+    /// # Errors
+    ///
+    /// Returns a [`CreateMessageErrorType::EmbedTooLarge`] error type if an
+    /// embed is too large.
+    ///
+    /// [the discord docs]: https://discord.com/developers/docs/resources/channel#embed-limits
+    pub fn embeds(
+        mut self,
+        embeds: impl IntoIterator<Item = Embed>,
+    ) -> Result<Self, CreateMessageError> {
+        for (idx, embed) in embeds.into_iter().enumerate() {
+            validate::embed(&embed)
+                .map_err(|source| CreateMessageError::embed(source, embed.clone(), Some(idx)))?;
+
+            self.fields.embeds.push(embed);
+        }
 
         Ok(self)
     }

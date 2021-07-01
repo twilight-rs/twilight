@@ -203,7 +203,10 @@ impl Display for ShardStartError {
         match &self.kind {
             ShardStartErrorType::Establishing => f.write_str("establishing the connection failed"),
             ShardStartErrorType::ParsingGatewayUrl { url } => {
-                f.write_fmt(format_args!("the gateway url `{}` is invalid", url,))
+                f.write_str("the gateway url `")?;
+                f.write_str(url)?;
+
+                f.write_str("` is invalid")
             }
             ShardStartErrorType::RetrievingGatewayUrl => {
                 f.write_str("retrieving the gateway URL via HTTP failed")
@@ -585,22 +588,25 @@ impl Shard {
     ///
     /// [`shutdown`]: Self::shutdown
     pub async fn send(&self, message: Message) -> Result<(), SendError> {
-        if let Ok(session) = self.session() {
-            // Tick ratelimiter.
-            session.ratelimit.lock().await.next().await;
+        let session = self.session().map_err(|source| SendError {
+            source: Some(Box::new(source)),
+            kind: SendErrorType::SessionInactive,
+        })?;
 
-            session
-                .tx
-                .send(message.into_tungstenite())
-                .map_err(|source| SendError {
-                    source: Some(Box::new(source)),
-                    kind: SendErrorType::Sending,
-                })
-        } else {
-            Err(SendError {
-                source: Some(Box::new(SessionInactiveError)),
-                kind: SendErrorType::SessionInactive,
-            })
+        // Only tick the ratelimiter if there wasn't an error sending it over
+        // the tx. If tx sending fails then the message couldn't be sent anyway,
+        // which does not affect ratelimiting of external sending.
+        match session.tx.send(message.into_tungstenite()) {
+            Ok(()) => {
+                // Tick ratelimiter.
+                session.ratelimit.lock().await.next().await;
+
+                Ok(())
+            }
+            Err(source) => Err(SendError {
+                source: Some(Box::new(source)),
+                kind: SendErrorType::Sending,
+            }),
         }
     }
 

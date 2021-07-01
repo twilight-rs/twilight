@@ -1,7 +1,9 @@
 use crate::{
     client::Client,
     error::Error as HttpError,
-    request::{self, validate, AuditLogReason, AuditLogReasonError, Pending, Request},
+    request::{
+        self, validate, AuditLogReason, AuditLogReasonError, NullableField, Pending, Request,
+    },
     routing::Route,
 };
 use hyper::body::Bytes;
@@ -77,16 +79,14 @@ pub enum UpdateGuildMemberErrorType {
 
 #[derive(Default, Serialize)]
 struct UpdateGuildMemberFields {
-    #[allow(clippy::option_option)]
     #[serde(skip_serializing_if = "Option::is_none")]
-    channel_id: Option<Option<ChannelId>>,
+    channel_id: Option<NullableField<ChannelId>>,
     #[serde(skip_serializing_if = "Option::is_none")]
     deaf: Option<bool>,
     #[serde(skip_serializing_if = "Option::is_none")]
     mute: Option<bool>,
-    #[allow(clippy::option_option)]
     #[serde(skip_serializing_if = "Option::is_none")]
-    nick: Option<Option<String>>,
+    nick: Option<NullableField<String>>,
     #[serde(skip_serializing_if = "Option::is_none")]
     roles: Option<Vec<RoleId>>,
 }
@@ -119,7 +119,10 @@ impl<'a> UpdateGuildMember<'a> {
 
     /// Move the member to a different voice channel.
     pub fn channel_id(mut self, channel_id: impl Into<Option<ChannelId>>) -> Self {
-        self.fields.channel_id.replace(channel_id.into());
+        let channel_id = channel_id.into();
+        self.fields
+            .channel_id
+            .replace(NullableField::from_option(channel_id));
 
         self
     }
@@ -158,9 +161,9 @@ impl<'a> UpdateGuildMember<'a> {
                 });
             }
 
-            self.fields.nick.replace(Some(nick));
+            self.fields.nick.replace(NullableField::Value(nick));
         } else {
-            self.fields.nick = None;
+            self.fields.nick.replace(NullableField::Null);
         }
 
         Ok(self)
@@ -216,9 +219,7 @@ impl Future for UpdateGuildMember<'_> {
                     Poll::Pending => return Poll::Pending,
                 };
 
-                let mut bytes = bytes.as_ref().to_vec();
-                let value =
-                    crate::json::from_slice::<Value>(&mut bytes).map_err(HttpError::json)?;
+                let value = crate::json::from_bytes::<Value>(&bytes).map_err(HttpError::json)?;
 
                 let member_deserializer = MemberDeserializer::new(self.guild_id);
                 let member = member_deserializer
@@ -238,35 +239,81 @@ impl Future for UpdateGuildMember<'_> {
 #[cfg(test)]
 mod tests {
     use super::{UpdateGuildMember, UpdateGuildMemberFields};
-    use crate::{request::Request, routing::Route, Client};
+    use crate::{
+        request::{NullableField, Request},
+        routing::Route,
+        Client,
+    };
     use std::error::Error;
     use twilight_model::id::{GuildId, UserId};
+
+    const GUILD_ID: GuildId = GuildId(1);
+    const USER_ID: UserId = UserId(1);
 
     #[test]
     fn test_request() -> Result<(), Box<dyn Error>> {
         let client = Client::new("foo");
-        let guild_id = GuildId(1);
-        let user_id = UserId(2);
-        let builder = UpdateGuildMember::new(&client, guild_id, user_id)
+        let builder = UpdateGuildMember::new(&client, GUILD_ID, USER_ID)
             .deaf(true)
             .mute(true);
         let actual = builder.request()?;
 
         let body = UpdateGuildMemberFields {
-            channel_id: None,
             deaf: Some(true),
             mute: Some(true),
-            nick: None,
-            roles: None,
+            ..UpdateGuildMemberFields::default()
         };
         let route = Route::UpdateMember {
-            guild_id: guild_id.0,
-            user_id: user_id.0,
+            guild_id: GUILD_ID.0,
+            user_id: USER_ID.0,
         };
         let expected = Request::builder(route).json(&body)?.build();
 
         assert_eq!(actual.body, expected.body);
         assert_eq!(actual.path, expected.path);
+
+        Ok(())
+    }
+
+    #[test]
+    fn test_nick_set_null() -> Result<(), Box<dyn Error>> {
+        let client = Client::new("foo");
+        let builder = UpdateGuildMember::new(&client, GUILD_ID, USER_ID).nick(None)?;
+        let actual = builder.request()?;
+
+        let body = UpdateGuildMemberFields {
+            nick: Some(NullableField::Null),
+            ..UpdateGuildMemberFields::default()
+        };
+        let route = Route::UpdateMember {
+            guild_id: GUILD_ID.0,
+            user_id: USER_ID.0,
+        };
+        let expected = Request::builder(route).json(&body)?.build();
+
+        assert_eq!(actual.body, expected.body);
+
+        Ok(())
+    }
+
+    #[test]
+    fn test_nick_set_value() -> Result<(), Box<dyn Error>> {
+        let client = Client::new("foo");
+        let builder =
+            UpdateGuildMember::new(&client, GUILD_ID, USER_ID).nick(Some("foo".to_owned()))?;
+        let actual = builder.request()?;
+
+        let body = UpdateGuildMemberFields {
+            nick: Some(NullableField::Value("foo".to_owned())),
+            ..UpdateGuildMemberFields::default()
+        };
+        let route = Route::UpdateMember {
+            guild_id: GUILD_ID.0,
+            user_id: USER_ID.0,
+        };
+        let expected = Request::builder(route).json(&body)?.build();
+
+        assert_eq!(actual.body, expected.body);
 
         Ok(())
     }

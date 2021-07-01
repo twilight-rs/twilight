@@ -45,29 +45,38 @@ impl<'a> ParseMentionError<'a> {
 impl Display for ParseMentionError<'_> {
     fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
         match &self.kind {
-            ParseMentionErrorType::IdNotU64 { found, .. } => f.write_fmt(format_args!(
-                "id portion ('{}') of mention is not a u64",
-                found,
-            )),
+            ParseMentionErrorType::IdNotU64 { found, .. } => {
+                f.write_str("id portion ('")?;
+                Display::fmt(found, f)?;
+
+                f.write_str("') of mention is not a u64")
+            }
             ParseMentionErrorType::LeadingArrow { found } => {
-                f.write_str("expected to find a leading arrow ('<') but instead ")?;
+                f.write_str("expected to find a leading arrow ('<') but instead found ")?;
 
                 if let Some(c) = found {
-                    f.write_fmt(format_args!("found '{}'", c))
+                    f.write_str("'")?;
+                    f.write_str(c.encode_utf8(&mut [0; 4]))?;
+
+                    f.write_str("'")
                 } else {
-                    f.write_str("found nothing")
+                    f.write_str("nothing")
                 }
             }
-            ParseMentionErrorType::PartMissing { expected, found } => f.write_fmt(format_args!(
-                "
-                    expected {} parts but only found {}",
-                expected, found,
-            )),
+            ParseMentionErrorType::PartMissing { expected, found } => {
+                f.write_str("expected ")?;
+                Display::fmt(expected, f)?;
+                f.write_str(" parts but only found ")?;
+
+                Display::fmt(found, f)
+            }
             ParseMentionErrorType::Sigil { expected, found } => {
                 f.write_str("expected to find a mention sigil (")?;
 
                 for (idx, sigil) in expected.iter().enumerate() {
-                    f.write_fmt(format_args!("'{}'", sigil))?;
+                    f.write_str("'")?;
+                    f.write_str(sigil)?;
+                    f.write_str("'")?;
 
                     if idx < expected.len() - 1 {
                         f.write_str(", ")?;
@@ -77,7 +86,10 @@ impl Display for ParseMentionError<'_> {
                 f.write_str(") but instead found ")?;
 
                 if let Some(c) = found {
-                    f.write_fmt(format_args!("'{}'", c))
+                    f.write_str("'")?;
+                    f.write_str(c.encode_utf8(&mut [0; 4]))?;
+
+                    f.write_str("'")
                 } else {
                     f.write_str("nothing")
                 }
@@ -89,12 +101,15 @@ impl Display for ParseMentionError<'_> {
                 f.write_str("' is invalid")
             }
             ParseMentionErrorType::TrailingArrow { found } => {
-                f.write_str("expected to find a trailing arrow ('>') but instead ")?;
+                f.write_str("expected to find a trailing arrow ('>') but instead found ")?;
 
                 if let Some(c) = found {
-                    f.write_fmt(format_args!("found '{}'", c))
+                    f.write_str("'")?;
+                    f.write_str(c.encode_utf8(&mut [0; 4]))?;
+
+                    f.write_str("'")
                 } else {
-                    f.write_str("found nothing")
+                    f.write_str("nothing")
                 }
             }
         }

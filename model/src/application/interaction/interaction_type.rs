@@ -33,7 +33,9 @@ pub struct UnknownInteractionTypeError {
 
 impl Display for UnknownInteractionTypeError {
     fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
-        write!(f, "unknown interaction type: {}", self.value)
+        f.write_str("unknown interaction type: ")?;
+
+        Display::fmt(&self.value, f)
     }
 }
 
