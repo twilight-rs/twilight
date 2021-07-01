@@ -7,6 +7,11 @@
 //!
 //! ## Features
 //!
+//! ### `permission-calculator`
+//!
+//! Allows the use of a calculator to determine the permissions of a member in
+//! a guild or channel.
+//!
 //! ### `snowflake`
 //!
 //! Allows the use of the `Snowflake` trait, which provides methods for the extraction of
@@ -39,6 +44,10 @@
 #[cfg(feature = "link")]
 #[cfg_attr(docsrs, doc(cfg(feature = "link")))]
 pub mod link;
+
+#[cfg(feature = "permission-calculator")]
+#[cfg_attr(docsrs, doc(cfg(feature = "permission-calculator")))]
+pub mod permission_calculator;
 
 #[cfg(feature = "snowflake")]
 #[cfg_attr(docsrs, doc(cfg(feature = "snowflake")))]
