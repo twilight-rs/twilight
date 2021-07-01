@@ -1,5 +1,10 @@
+mod channel;
+mod guild;
+mod kind;
+
+pub use self::{channel::WebhookChannel, guild::WebhookGuild, kind::WebhookType};
+
 use crate::{
-    channel::WebhookType,
     id::{ApplicationId, ChannelId, GuildId, WebhookId},
     user::User,
 };
@@ -17,6 +22,12 @@ pub struct Webhook {
     #[serde(default = "WebhookType::default", rename = "type")]
     pub kind: WebhookType,
     pub name: Option<String>,
+    /// Partial channel object that a webhook is following.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub source_channel: Option<WebhookChannel>,
+    /// Partial guild object that a webhook is following.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub source_guild: Option<WebhookGuild>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub token: Option<String>,
     /// Url used for executing the webhook.
@@ -32,9 +43,39 @@ pub struct Webhook {
 
 #[cfg(test)]
 mod tests {
-    use super::{ApplicationId, ChannelId, GuildId, User, Webhook, WebhookId, WebhookType};
+    use super::{
+        ApplicationId, ChannelId, GuildId, User, Webhook, WebhookChannel, WebhookGuild, WebhookId,
+        WebhookType,
+    };
     use crate::id::UserId;
+    use serde::{Deserialize, Serialize};
     use serde_test::Token;
+    use static_assertions::{assert_fields, assert_impl_all};
+    use std::{fmt::Debug, hash::Hash};
+
+    assert_fields!(
+        Webhook: application_id,
+        avatar,
+        channel_id,
+        guild_id,
+        id,
+        kind,
+        name,
+        source_channel,
+        source_guild,
+        token,
+        user
+    );
+
+    assert_impl_all!(
+        Webhook: Clone,
+        Debug,
+        Deserialize<'static>,
+        Eq,
+        Hash,
+        PartialEq,
+        Serialize
+    );
 
     #[test]
     fn test_webhook() {
@@ -46,6 +87,8 @@ mod tests {
             id: WebhookId(3),
             kind: WebhookType::Incoming,
             name: Some("a webhook".to_owned()),
+            source_channel: None,
+            source_guild: None,
             token: Some("a token".to_owned()),
             url: None,
             user: None,
@@ -90,6 +133,7 @@ mod tests {
         );
     }
 
+    #[allow(clippy::too_many_lines)]
     #[test]
     fn test_webhook_complete() {
         let value = Webhook {
@@ -100,6 +144,15 @@ mod tests {
             id: WebhookId(3),
             kind: WebhookType::Incoming,
             name: Some("a webhook".to_owned()),
+            source_channel: Some(WebhookChannel {
+                id: ChannelId(4),
+                name: "webhook channel".into(),
+            }),
+            source_guild: Some(WebhookGuild {
+                icon: Some("guild icon".into()),
+                id: GuildId(5),
+                name: "webhook guild".into(),
+            }),
             token: Some("a token".to_owned()),
             url: Some("https://a-url".to_owned()),
             user: Some(User {
@@ -124,7 +177,7 @@ mod tests {
             &[
                 Token::Struct {
                     name: "Webhook",
-                    len: 10,
+                    len: 12,
                 },
                 Token::Str("application_id"),
                 Token::Some,
@@ -150,6 +203,33 @@ mod tests {
                 Token::Str("name"),
                 Token::Some,
                 Token::Str("a webhook"),
+                Token::Str("source_channel"),
+                Token::Some,
+                Token::Struct {
+                    name: "WebhookChannel",
+                    len: 2,
+                },
+                Token::Str("id"),
+                Token::NewtypeStruct { name: "ChannelId" },
+                Token::Str("4"),
+                Token::Str("name"),
+                Token::Str("webhook channel"),
+                Token::StructEnd,
+                Token::Str("source_guild"),
+                Token::Some,
+                Token::Struct {
+                    name: "WebhookGuild",
+                    len: 3,
+                },
+                Token::Str("icon"),
+                Token::Some,
+                Token::Str("guild icon"),
+                Token::Str("id"),
+                Token::NewtypeStruct { name: "GuildId" },
+                Token::Str("5"),
+                Token::Str("name"),
+                Token::Str("webhook guild"),
+                Token::StructEnd,
                 Token::Str("token"),
                 Token::Some,
                 Token::Str("a token"),
