@@ -4,18 +4,32 @@ use twilight_model::{
     voice::VoiceState,
 };
 
+/// Represents a cached [`VoiceState`].
+///
+/// [`VoiceState`]: twilight_model::voice::VoiceState
 #[derive(Clone, Debug, Eq, PartialEq, Serialize)]
 pub struct CachedVoiceState {
+    /// ID of the channel that this user is connected to.
     pub channel_id: Option<ChannelId>,
+    /// Whether the user is deafened.
     pub deaf: bool,
+    /// ID of the guild that this user is connected in, if there is one.
     pub guild_id: Option<GuildId>,
+    /// Whether the user is muted.
     pub mute: bool,
+    /// Whether the user has deafened themself.
     pub self_deaf: bool,
+    /// Whether the user has muted themself.
     pub self_mute: bool,
+    /// Whether the user is streaming via "Go Live".
     pub self_stream: bool,
+    /// Session ID.
     pub session_id: String,
+    /// Whether this user is muted by the current user.
     pub suppress: bool,
+    /// Voice connection token.
     pub token: Option<String>,
+    /// ID of the user.
     pub user_id: UserId,
 }
 

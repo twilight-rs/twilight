@@ -4,12 +4,20 @@ use twilight_model::{
     id::{GuildId, UserId},
 };
 
+/// Represents a cached [`Presence`].
+///
+/// [`Presence`]: twilight_model::gateway::presence::Presence
 #[derive(Clone, Debug, Eq, PartialEq, Serialize)]
 pub struct CachedPresence {
+    /// Current activities.
     pub activities: Vec<Activity>,
+    /// Platform-dependent status.
     pub client_status: ClientStatus,
+    /// ID of the guild.
     pub guild_id: GuildId,
+    /// Status of the user.
     pub status: Status,
+    /// ID of the user.
     pub user_id: UserId,
 }
 

@@ -5,15 +5,26 @@ use twilight_model::{
     id::{GuildId, RoleId, UserId},
 };
 
+/// Represents a cached [`Member`].
+///
+/// [`Member`]: twilight_model::guild::Member
 #[derive(Clone, Debug, Eq, PartialEq, Serialize)]
 pub struct CachedMember {
+    /// Whether the member is deafened in a voice channel.
     pub deaf: Option<bool>,
+    /// ID of the guild this member is a part of.
     pub guild_id: GuildId,
+    /// ISO 8601 timestamp of this member's join date.
     pub joined_at: Option<String>,
+    /// Whether the member is muted in a voice channel.
     pub mute: Option<bool>,
+    /// Nickname of the member.
     pub nick: Option<String>,
+    /// Whether the member has not yet passed the guild's Membership Screening requirements.
     pub pending: bool,
+    /// ISO 8601 timestamp of the date the member boosted the guild.
     pub premium_since: Option<String>,
+    /// List of role IDs this member has.
     pub roles: Vec<RoleId>,
     /// ID of the user relating to the member.
     pub user_id: UserId,
