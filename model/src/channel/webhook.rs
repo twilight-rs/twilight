@@ -19,6 +19,13 @@ pub struct Webhook {
     pub name: Option<String>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub token: Option<String>,
+    /// Url used for executing the webhook.
+    ///
+    /// Returned by the [`webhooks` OAuth2] flow.
+    ///
+    /// [`webhooks` OAuth2]: https://discord.com/developers/docs/topics/oauth2#webhooks
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub url: Option<String>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub user: Option<User>,
 }
@@ -40,6 +47,7 @@ mod tests {
             kind: WebhookType::Incoming,
             name: Some("a webhook".to_owned()),
             token: Some("a token".to_owned()),
+            url: None,
             user: None,
         };
 
@@ -93,6 +101,7 @@ mod tests {
             kind: WebhookType::Incoming,
             name: Some("a webhook".to_owned()),
             token: Some("a token".to_owned()),
+            url: Some("https://a-url".to_owned()),
             user: Some(User {
                 avatar: None,
                 bot: false,
@@ -115,7 +124,7 @@ mod tests {
             &[
                 Token::Struct {
                     name: "Webhook",
-                    len: 9,
+                    len: 10,
                 },
                 Token::Str("application_id"),
                 Token::Some,
@@ -144,6 +153,9 @@ mod tests {
                 Token::Str("token"),
                 Token::Some,
                 Token::Str("a token"),
+                Token::Str("url"),
+                Token::Some,
+                Token::Str("https://a-url"),
                 Token::Str("user"),
                 Token::Some,
                 Token::Struct {

@@ -106,10 +106,13 @@ impl ShardIdError {
 impl Display for ShardIdError {
     fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
         match &self.kind {
-            ShardIdErrorType::IdTooLarge { id, total } => f.write_fmt(format_args!(
-                "provided shard ID {} is larger than the total {}",
-                id, total,
-            )),
+            ShardIdErrorType::IdTooLarge { id, total } => {
+                f.write_str("provided shard ID ")?;
+                Display::fmt(id, f)?;
+                f.write_str(" is larger than the total ")?;
+
+                Display::fmt(total, f)
+            }
         }
     }
 }

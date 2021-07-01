@@ -2,7 +2,7 @@ use crate::api_error::ApiError;
 use hyper::{Body, Response, StatusCode};
 use std::{
     error::Error as StdError,
-    fmt::{Display, Formatter, Result as FmtResult},
+    fmt::{Debug, Display, Formatter, Result as FmtResult},
 };
 
 #[cfg(not(feature = "simd-json"))]
@@ -49,22 +49,29 @@ impl Display for Error {
             ErrorType::BuildingRequest => f.write_str("failed to build the request"),
             ErrorType::ChunkingResponse => f.write_str("Chunking the response failed"),
             ErrorType::CreatingHeader { name, .. } => {
-                write!(f, "Parsing the value for header {} failed", name)
+                f.write_str("Parsing the value for header {}")?;
+                f.write_str(name)?;
+
+                f.write_str(" failed")
             }
             ErrorType::Json => f.write_str("Given value couldn't be serialized"),
             ErrorType::Parsing { body, .. } => {
-                write!(f, "Response body couldn't be deserialized: {:?}", body)
+                f.write_str("Response body couldn't be deserialized: ")?;
+
+                Debug::fmt(body, f)
             }
             ErrorType::RequestCanceled => {
                 f.write_str("Request was canceled either before or while being sent")
             }
             ErrorType::RequestError => f.write_str("Parsing or sending the response failed"),
             ErrorType::RequestTimedOut => f.write_str("request timed out"),
-            ErrorType::Response { error, status, .. } => write!(
-                f,
-                "Response error: status code {}, error: {}",
-                status, error
-            ),
+            ErrorType::Response { error, status, .. } => {
+                f.write_str("Response error: status code ")?;
+                Display::fmt(status, f)?;
+                f.write_str(", error: ")?;
+
+                Display::fmt(error, f)
+            }
             ErrorType::ServiceUnavailable { .. } => {
                 f.write_str("api may be temporarily unavailable (received a 503)")
             }

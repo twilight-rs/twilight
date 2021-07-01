@@ -1,7 +1,7 @@
 use hyper::header::ToStrError;
 use std::{
     error::Error,
-    fmt::{Display, Formatter, Result as FmtResult},
+    fmt::{Debug, Display, Formatter, Result as FmtResult},
     result::Result as StdResult,
 };
 
@@ -52,26 +52,39 @@ impl Display for RatelimitError {
         match &self.kind {
             RatelimitErrorType::NoHeaders => f.write_str("No headers are present"),
             RatelimitErrorType::HeaderMissing { name } => {
-                write!(f, "At least one header, {:?}, is missing", name)
+                f.write_str(r#"At least one header, ""#)?;
+                f.write_str(name)?;
+
+                f.write_str(r#"", is missing"#)
             }
             RatelimitErrorType::HeaderNotUtf8 { name, value, .. } => {
-                write!(f, "The header {:?} has invalid UTF-16: {:?}", name, value)
+                f.write_str(r#"The header ""#)?;
+                f.write_str(name)?;
+                f.write_str(r#"" has invalid UTF-16: "#)?;
+
+                Debug::fmt(value, f)
             }
-            RatelimitErrorType::ParsingBoolText { name, text, .. } => write!(
-                f,
-                "The header {:?} should be a bool but isn't: {:?}",
-                name, text
-            ),
-            RatelimitErrorType::ParsingFloatText { name, text, .. } => write!(
-                f,
-                "The header {:?} should be a float but isn't: {:?}",
-                name, text
-            ),
-            RatelimitErrorType::ParsingIntText { name, text, .. } => write!(
-                f,
-                "The header {:?} should be an integer but isn't: {:?}",
-                name, text
-            ),
+            RatelimitErrorType::ParsingBoolText { name, text, .. } => {
+                f.write_str(r#"The header ""#)?;
+                f.write_str(name)?;
+                f.write_str(r#"" should be a bool but isn't: ""#)?;
+
+                f.write_str(text)
+            }
+            RatelimitErrorType::ParsingFloatText { name, text, .. } => {
+                f.write_str(r#"The header ""#)?;
+                f.write_str(name)?;
+                f.write_str(r#"" should be a float but isn't: ""#)?;
+
+                f.write_str(text)
+            }
+            RatelimitErrorType::ParsingIntText { name, text, .. } => {
+                f.write_str(r#"The header ""#)?;
+                f.write_str(name)?;
+                f.write_str(r#"" should be an integer but isn't: ""#)?;
+
+                f.write_str(text)
+            }
         }
     }
 }

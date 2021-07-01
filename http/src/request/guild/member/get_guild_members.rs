@@ -185,9 +185,8 @@ impl Future for GetGuildMembers<'_> {
                 let bytes = res?;
                 let mut members = Vec::new();
 
-                let mut bytes = bytes.as_ref().to_vec();
                 let values =
-                    crate::json::from_slice::<Vec<Value>>(&mut bytes).map_err(HttpError::json)?;
+                    crate::json::from_bytes::<Vec<Value>>(&bytes).map_err(HttpError::json)?;
 
                 for value in values {
                     let member_deserializer = MemberDeserializer::new(self.guild_id);

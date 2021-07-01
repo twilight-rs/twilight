@@ -44,7 +44,7 @@ impl<'a> UpdateGuildWelcomeScreen<'a> {
 
     /// Set the description of the welcome screen.
     pub fn description(self, description: impl Into<String>) -> Self {
-        Self::_description(self, description.into())
+        self._description(description.into())
     }
 
     fn _description(mut self, description: String) -> Self {
