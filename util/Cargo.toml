@@ -17,8 +17,9 @@ version = "0.5.0"
 [features]
 default = []
 link = ["twilight-model"]
+permission-calculator = ["twilight-model"]
 snowflake = ["twilight-model"]
-full = ["link", "snowflake"]
+full = ["link", "permission-calculator", "snowflake"]
 
 [package.metadata.docs.rs]
 all-features = true

@@ -9,6 +9,11 @@ augment or enhance default functionality.
 
 ## Features
 
+### `permission-calculator`
+
+Allows the use of a calculator to determine the permissions of a member in
+a guild or channel.
+
 ### `snowflake`
 
 Allows the use of the `Snowflake` trait, which provides methods for the extraction of
