@@ -2,6 +2,16 @@
 
 Changelog for `twilight-http`.
 
+## [0.5.2] - 2021-07-02
+
+### Fixes
+
+The display formatters for `routing::Route`'s `SetGuildCommands` and
+`UpdateGlobalCommand` variants have been fixed, which were resulting in 404 Not
+Found errors ([#1005] - [@zeylahellyer]).
+
+[#1005]: https://github.com/twilight-rs/twilight/pull/1005
+
 ## [0.5.1] - 2021-07-02
 
 ### Additions
@@ -973,6 +983,7 @@ Initial release.
 
 [0.2.0-beta.1:app integrations]: https://github.com/discord/discord-api-docs/commit/a926694e2f8605848bda6b57d21c8817559e5cec
 
+[0.5.2]: https://github.com/twilight-rs/twilight/releases/tag/http-0.5.2
 [0.5.1]: https://github.com/twilight-rs/twilight/releases/tag/http-0.5.1
 [0.5.0]: https://github.com/twilight-rs/twilight/releases/tag/http-0.5.0
 [0.4.3]: https://github.com/twilight-rs/twilight/releases/tag/http-0.4.3
