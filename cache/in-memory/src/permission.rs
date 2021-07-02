@@ -250,6 +250,8 @@ impl<'a> InMemoryCachePermissions<'a> {
 
     /// Calculate the permissions of a member in a guild channel.
     ///
+    /// Returns [`Permissions::all`] if the user is the owner of the guild.
+    ///
     /// The following [`ResourceType`]s must be enabled:
     ///
     /// - [`ResourceType::CHANNEL`]
@@ -291,6 +293,7 @@ impl<'a> InMemoryCachePermissions<'a> {
     /// Returns a [`ChannelErrorType::RoleUnavailable`] error type if one of the
     /// member's roles is not in the cache.
     ///
+    /// [`Permissions::all`]: twilight_model::guild::Permissions::all
     /// [`ResourceType::CHANNEL`]: crate::ResourceType::CHANNEL
     /// [`ResourceType::MEMBER`]: crate::ResourceType::MEMBER
     /// [`ResourceType::ROLE`]: crate::ResourceType::ROLE
@@ -313,6 +316,11 @@ impl<'a> InMemoryCachePermissions<'a> {
             kind: ChannelErrorType::ChannelUnavailable { channel_id },
             source: None,
         })?;
+
+        if self.is_owner(user_id, guild_id) {
+            return Ok(Permissions::all());
+        }
+
         let MemberRoles { assigned, everyone } = self
             .member_roles(user_id, guild_id)
             .map_err(ChannelError::from_member_roles)?;
@@ -331,6 +339,8 @@ impl<'a> InMemoryCachePermissions<'a> {
     }
 
     /// Calculate the guild-level permissions of a member.
+    ///
+    /// Returns [`Permissions::all`] if the user is the owner of the guild.
     ///
     /// The following [`ResourceType`]s must be enabled:
     ///
@@ -369,10 +379,15 @@ impl<'a> InMemoryCachePermissions<'a> {
     /// Returns a [`RootErrorType::RoleUnavailable`] error type if one of the
     /// member's roles is not in the cache.
     ///
+    /// [`Permissions::all`]: twilight_model::guild::Permissions::all
     /// [`ResourceType::MEMBER`]: crate::ResourceType::MEMBER
     /// [`ResourceType::ROLE`]: crate::ResourceType::ROLE
     /// [`ResourceType`]: crate::ResourceType
     pub fn root(&self, user_id: UserId, guild_id: GuildId) -> Result<Permissions, RootError> {
+        if self.is_owner(user_id, guild_id) {
+            return Ok(Permissions::all());
+        }
+
         let MemberRoles { assigned, everyone } = self
             .member_roles(user_id, guild_id)
             .map_err(RootError::from_member_roles)?;
@@ -380,6 +395,19 @@ impl<'a> InMemoryCachePermissions<'a> {
             PermissionCalculator::new(guild_id, user_id, everyone, assigned.as_slice());
 
         Ok(calculator.root())
+    }
+
+    /// Determine whether a given user is the owner of a guild.
+    ///
+    /// Returns true if the user is or false if the user is definitively not the
+    /// owner of the guild or the guild is not in the cache.
+    fn is_owner(&self, user_id: UserId, guild_id: GuildId) -> bool {
+        (self.0)
+            .0
+            .guilds
+            .get(&guild_id)
+            .map(|r| r.owner_id == user_id)
+            .unwrap_or_default()
     }
 
     /// Retrieve a member's roles' permissions and the guild's `@everyone`
@@ -692,6 +720,25 @@ mod tests {
             Permissions::EMBED_LINKS | Permissions::SEND_MESSAGES,
             permissions.in_channel(USER_ID, CHANNEL_ID)?,
         );
+
+        Ok(())
+    }
+
+    /// Test that [`in_channel`] and [`root`] both return [`Permissions::all`]
+    /// if the user is also the owner of the guild.
+    ///
+    /// Only the guild needs to be in the cache to short-circuit on this
+    /// condition.
+    #[test]
+    fn test_root_owner() -> Result<(), Box<dyn Error>> {
+        let cache = InMemoryCache::new();
+        let permissions = cache.permissions();
+        cache.update(&GuildCreate(base_guild()));
+
+        assert!(permissions.root(OWNER_ID, GUILD_ID)?.is_all());
+
+        cache.update(&ChannelCreate(channel()));
+        assert!(permissions.in_channel(OWNER_ID, CHANNEL_ID)?.is_all());
 
         Ok(())
     }
