@@ -2,6 +2,16 @@
 
 Changelog for `twilight-embed-builder`.
 
+## [0.5.1] - 2021-07-02
+
+### Enhancements
+
+Improve the `Display` implementation performance on the `EmbedError` by calling
+`Formatter` methods directly instead of calling the `format_args!` and `write!`
+macros ([#944] - [@zeylahellyer]).
+
+[#944]: https://github.com/twilight-rs/twilight/pull/944
+
 ## [0.5.0] - 2021-06-13
 
 This major version bump of the Embed Builder crate is done to match all of the
@@ -96,6 +106,9 @@ crates in the ecosystem receiving a major version bump. There are no changes.
 
 Initial release.
 
+[@zeylahellyer]: https://github.com/zeylahellyer
+
+[0.5.1]: https://github.com/twilight-rs/twilight/releases/tag/embed-builder-0.5.1
 [0.5.0]: https://github.com/twilight-rs/twilight/releases/tag/embed-builder-0.5.0
 [0.4.1]: https://github.com/twilight-rs/twilight/releases/tag/embed-builder-0.4.1
 [0.4.0]: https://github.com/twilight-rs/twilight/releases/tag/embed-builder-0.4.0
