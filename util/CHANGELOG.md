@@ -2,6 +2,21 @@
 
 Changelog for `twilight-util`.
 
+## [0.5.1] - 2021-07-02
+
+### Additions
+
+Add a calculator for calculating the permissions of a member on a guild level or
+in a specific channel, exposed via the `permission-calculator` feature flag
+([#834] - [@zeylahellyer]).
+
+Implement the `snowflake::Snowflake` trait on the new `twilight_model::id` types
+`ApplicationId`, `CommandId`, `IntegrationId`, and `InteractionId`
+([#950] - [@zeylahellyer]).
+
+[#950]: https://github.com/twilight-rs/twilight/pull/950
+[#834]: https://github.com/twilight-rs/twilight/pull/834
+
 ## [0.5.0] - 2021-06-13
 
 This major version bump of the Util crate is done to match all of the other
@@ -62,7 +77,9 @@ crates in the ecosystem receiving a major version bump. There are no changes.
 Initial release.
 
 [@vivian]: https://github.com/vivian
+[@zeylahellyer]: https://github.com/zeylahellyer
 
+[0.5.1]: https://github.com/twilight-rs/twilight/releases/tag/util-0.5.1
 [0.5.0]: https://github.com/twilight-rs/twilight/releases/tag/util-0.5.0
 [0.4.1]: https://github.com/twilight-rs/twilight/releases/tag/util-0.4.1
 [0.4.0]: https://github.com/twilight-rs/twilight/releases/tag/util-0.4.0
