@@ -2,6 +2,34 @@
 
 Changelog for `twilight-cache-inmemory`.
 
+## [0.5.1] - 2021-07-02
+
+### Fixes
+
+Properly add new roles to guilds' roles relation; roles would be added to the
+cache and could be retrieved but would not be in a guild's list of roles
+([#952] - [@7596ff]).
+
+### Enhancements
+
+Document all of the remaining undocumented API ([#989] - [@7596ff]).
+
+Remove the dependency on `tracing` and remove the `rc` feature on `serde`
+([#960] - [@zeylahellyer]).
+
+Refactor internals to be less unruly, which will improve maintainability
+([#938], [#953] - [@7596ff]).
+
+### Changes
+
+`InMemoryCache::user_ref` has been deprecated and hidden; this should never have
+been released with 0.5.0 ([#953] - [@7596ff]).
+
+[#960]: https://github.com/twilight-rs/twilight/pull/960
+[#953]: https://github.com/twilight-rs/twilight/pull/953
+[#952]: https://github.com/twilight-rs/twilight/pull/952
+[#938]: https://github.com/twilight-rs/twilight/pull/938
+
 ## [0.5.0] - 2021-06-13
 
 ### Upgrade Path
@@ -313,6 +341,7 @@ Initial release.
 [@tbnritzdoge]: https://github.com/tbnritzdoge
 [@vilgotf]: https://github.com/vilgotf
 [@vivian]: https://github.com/vivian
+[@zeylahellyer]: https://github.com/zeylahellyer
 
 [#639]: https://github.com/twilight-rs/twilight/pull/639
 [#624]: https://github.com/twilight-rs/twilight/pull/624
@@ -327,6 +356,7 @@ Initial release.
 [#528]: https://github.com/twilight-rs/twilight/pull/528
 [#524]: https://github.com/twilight-rs/twilight/pull/524
 
+[0.5.1]: https://github.com/twilight-rs/twilight/releases/tag/cache-in-memory-0.5.1
 [0.5.0]: https://github.com/twilight-rs/twilight/releases/tag/cache-in-memory-0.5.0
 [0.4.3]: https://github.com/twilight-rs/twilight/releases/tag/cache-in-memory-0.4.3
 [0.4.2]: https://github.com/twilight-rs/twilight/releases/tag/cache-in-memory-0.4.2
