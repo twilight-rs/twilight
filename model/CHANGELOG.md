@@ -2,6 +2,50 @@
 
 Changelog for `twilight-model`.
 
+## [0.5.1] - 2021-07-02
+
+### Upgrade Path
+
+`gateway::payload::reaction_remove_emoji::PartialEmoji` has been
+removed.
+
+`gateway::payload::reaction_remove_emoji::ReactionRemoveEmoji::emoji` is no
+longer the aforementioned `PartialEmoji` and is now a `channel::ReactionType`.
+
+### Additions
+
+Support the new `channel::webhook::Webhook` fields `source_channel` and
+`source_guild` ([#961] - [@7596ff]).
+
+Add the new `channel::webhook::Webhook::url` field ([#957] - [@7596ff]).
+
+### Fixes
+
+`gateway::payload::reaction_remove_emoji::ReactionRemoveEmoji::emoji` previously
+did not account for custom reactions without names, but due to now being of the
+`channel::ReactionType` type it does ([#958] - [@7596ff]).
+
+### Enhancements
+
+Improve the `Display` implementation performance of various `Display`
+implementations by calling `Formatter` methods directly instead of calling the
+`format_args!` and `write!` macros ([#944] - [@zeylahellyer]).
+
+### Changes
+
+`channel::Webhook` and `channel::WebhookType` have been moved to a new
+`channel::webhook` module, but re-exports have been left in their place
+([#961] - [@7596ff]).
+
+`gateway::payload::reaction_remove_emoji::ReactionRemoveEmoji::emoji` is now a
+`channel::ReactionType`, `gateway::payload::reaction_remove_emoji::PartialEmoji`
+has been removed ([#958] - [@7596ff]).
+
+[#961]: https://github.com/twilight-rs/twilight/pull/961
+[#958]: https://github.com/twilight-rs/twilight/pull/958
+[#957]: https://github.com/twilight-rs/twilight/pull/957
+[#944]: https://github.com/twilight-rs/twilight/pull/944
+
 ## [0.5.0] - 2021-06-13
 
 ### Upgrade Path
@@ -639,6 +683,7 @@ Initial release.
 [@sam-kirby]: https://github.com/sam-kirby
 [@tbnritzdoge]: https://github.com/tbnritzdoge
 [@vivian]: https://github.com/vivian
+[@zeylahellyer]: https://github.com/zeylahellyer
 
 [#625]: https://github.com/twilight-rs/twilight/pull/625
 [#624]: https://github.com/twilight-rs/twilight/pull/624
@@ -663,6 +708,7 @@ Initial release.
 
 [0.2.0-beta.1:app integrations]: https://github.com/discord/discord-api-docs/commit/a926694e2f8605848bda6b57d21c8817559e5cec
 
+[0.5.1]: https://github.com/twilight-rs/twilight/releases/tag/model-0.5.1
 [0.5.0]: https://github.com/twilight-rs/twilight/releases/tag/model-0.5.0
 [0.4.3]: https://github.com/twilight-rs/twilight/releases/tag/model-0.4.3
 [0.4.2]: https://github.com/twilight-rs/twilight/releases/tag/model-0.4.2
