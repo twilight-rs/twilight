@@ -134,7 +134,7 @@ impl Display for RouteDisplay<'_> {
                 application_id,
                 guild_id,
             } => {
-                f.write_str("application/")?;
+                f.write_str("applications/")?;
                 Display::fmt(application_id, f)?;
                 f.write_str("/guilds/")?;
                 Display::fmt(guild_id, f)?;
@@ -288,7 +288,7 @@ impl Display for RouteDisplay<'_> {
                 application_id,
                 command_id,
             } => {
-                f.write_str("application/")?;
+                f.write_str("applications/")?;
                 Display::fmt(application_id, f)?;
                 f.write_str("/commands/")?;
 
@@ -919,7 +919,7 @@ impl Display for RouteDisplay<'_> {
 
 #[cfg(test)]
 mod tests {
-    use super::RouteDisplay;
+    use super::{super::Route, RouteDisplay};
     use static_assertions::assert_impl_all;
     use std::{
         fmt::{Debug, Display},
@@ -927,4 +927,27 @@ mod tests {
     };
 
     assert_impl_all!(RouteDisplay<'_>: Clone, Debug, Display, Eq, Hash, PartialEq, Send, Sync);
+
+    #[test]
+    fn test_set_guild_commands() {
+        let route = Route::SetGuildCommands {
+            application_id: 1,
+            guild_id: 2,
+        };
+
+        assert_eq!(
+            "applications/1/guilds/2/commands",
+            route.display().to_string()
+        );
+    }
+
+    #[test]
+    fn test_update_global_command() {
+        let route = Route::UpdateGlobalCommand {
+            application_id: 1,
+            command_id: 2,
+        };
+
+        assert_eq!("applications/1/commands/2", route.display().to_string());
+    }
 }
