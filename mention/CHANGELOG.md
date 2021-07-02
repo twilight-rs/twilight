@@ -2,6 +2,28 @@
 
 Changelog for `twilight-mention`.
 
+## [0.5.1] - 2021-07-02
+
+### Additions
+
+Support the new timestamp (`<t:unixtimestamp:?style>`) format via the new
+`timestamp` module by adding a formatter and parser implementation
+([#945] - [@zeylahellyer]).
+
+### Enhancements
+
+Improve the `Display` implementation performance of `ParseMentionError`'s
+`Display` implementation by calling `Formatter` methods directly instead of
+calling the `format_args!` and `write!` macros ([#944] - [@zeylahellyer]).
+
+Improve the performance of the `fmt` module's Display implementations by
+~10% by directly writing to Formatters instead of calling the `format_args!`
+macro ([#942] - [@zeylahellyer]).
+
+[#945]: https://github.com/twilight-rs/twilight/pull/945
+[#944]: https://github.com/twilight-rs/twilight/pull/944
+[#942]: https://github.com/twilight-rs/twilight/pull/942
+
 ## [0.5.0] - 2021-06-13
 
 This major version bump of the Mention crate is done to match all of the other
@@ -87,9 +109,11 @@ Initial release.
 [@BlackHoleFox]: https://github.com/BlackHoleFox
 [@PyroTechniac]: https://github.com/PyroTechniac
 [@vivian]: https://github.com/vivian
+[@zeylahellyer]: https://github.com/zeylahellyer
 
 [#513]: https://github.com/twilight-rs/twilight/pull/513
 
+[0.5.1]: https://github.com/twilight-rs/twilight/releases/tag/mention-0.5.1
 [0.5.0]: https://github.com/twilight-rs/twilight/releases/tag/mention-0.5.0
 [0.4.2]: https://github.com/twilight-rs/twilight/releases/tag/mention-0.4.2
 [0.4.1]: https://github.com/twilight-rs/twilight/releases/tag/mention-0.4.1
