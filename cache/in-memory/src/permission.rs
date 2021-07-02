@@ -729,6 +729,9 @@ mod tests {
     ///
     /// Only the guild needs to be in the cache to short-circuit on this
     /// condition.
+    ///
+    /// [`in_channel`]: super::InMemoryCachePermissions::in_channel
+    /// [`root`]: super::InMemoryCachePermissions::root
     #[test]
     fn test_owner() -> Result<(), Box<dyn Error>> {
         let cache = InMemoryCache::new();
