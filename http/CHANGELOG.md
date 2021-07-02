@@ -2,6 +2,63 @@
 
 Changelog for `twilight-http`.
 
+## [0.5.1] - 2021-07-02
+
+### Additions
+
+Support setting multiple embeds in the `CreateMessage` and `UpdateMessage`
+requests via their new `embeds` methods ([#987] - [@7596ff]).
+
+Add a URL display formatter for
+`request::channel::reaction::RequestReactionType` returned via the new
+`RequestReactionType::display` method ([#967] - [@zeylahellyer]).
+
+Add the ability to create raw requests without a `routing::Route` via the
+`request::RequestBuilder::raw` method ([#963] - [@zeylahellyer]).
+
+3 new methods have been added which return the individual components of the
+now-deprecated `routing::Route::into_parts` method: `Route::display` which
+returns a type implementing `Display` to format the path of a route,
+`Route::method` to determine the HTTP method of a route, and `Route::path` to
+get the ratelimiting path of a route. This also improves the performance of
+the display implementation of `Route::display` over `Route::into_parts`
+([#962] - [@zeylahellyer]).
+
+Add the new stage API error codes "Unknown Stage Instance" (10067) and
+"Stage Already Open" (150006) ([#955] - [@7596ff]).
+
+### Fixes
+
+Correctly remove the nickname when a `None` nickname is provided in the
+`UpdateGuildMember` request ([#949] - [@zeylahellyer]).
+
+Fix the request sending of the `CreateStageInstance` request
+([#936] - [@7596ff]).
+
+### Enhancements
+
+Reduce allocations when parsing responses without using `serde_json`
+([#994] - [@MaxOhn]).
+
+Improve the `Display` implementation performance of various `Display`
+implementations by calling `Formatter` methods directly instead of calling the
+`format_args!` and `write!` macros ([#944] - [@zeylahellyer]).
+
+### Changes
+
+`routing::Route::into_parts` has been deprecated in favor of `Route::display`,
+`Route::method`, and `Route::path` ([#962] - [@zeylahellyer]).
+
+[#994]: https://github.com/twilight-rs/twilight/pull/994
+[#987]: https://github.com/twilight-rs/twilight/pull/987
+[#967]: https://github.com/twilight-rs/twilight/pull/967
+[#963]: https://github.com/twilight-rs/twilight/pull/963
+[#962]: https://github.com/twilight-rs/twilight/pull/962
+[#955]: https://github.com/twilight-rs/twilight/pull/955
+[#949]: https://github.com/twilight-rs/twilight/pull/949
+[#944]: https://github.com/twilight-rs/twilight/pull/944
+[#936]: https://github.com/twilight-rs/twilight/pull/936
+
 ## [0.5.0] - 2021-06-13
 
 ### Upgrade Path
@@ -871,11 +928,13 @@ Initial release.
 [@Erk-]: https://github.com/Erk-
 [@Gelbpunkt]: https://github.com/Gelbpunkt
 [@jazevedo620]: https://github.com/jazevedo620
+[@MaxOhn]: https://github.com/MaxOhn
 [@nickelc]: https://github.com/nickelc
 [@sam-kirby]: https://github.com/sam-kirby
 [@Silvea12]: https://github.com/Silvea12
 [@tbnritzdoge]: https://github.com/tbnritzdoge
 [@vivian]: https://github.com/vivian
+[@zeylahellyer]: https://github.com/zeylahellyer
 
 [#647]: https://github.com/twilight-rs/twilight/pull/647
 [#644]: https://github.com/twilight-rs/twilight/pull/644
@@ -914,6 +973,7 @@ Initial release.
 
 [0.2.0-beta.1:app integrations]: https://github.com/discord/discord-api-docs/commit/a926694e2f8605848bda6b57d21c8817559e5cec
 
+[0.5.1]: https://github.com/twilight-rs/twilight/releases/tag/http-0.5.1
 [0.5.0]: https://github.com/twilight-rs/twilight/releases/tag/http-0.5.0
 [0.4.3]: https://github.com/twilight-rs/twilight/releases/tag/http-0.4.3
 [0.4.2]: https://github.com/twilight-rs/twilight/releases/tag/http-0.4.2
