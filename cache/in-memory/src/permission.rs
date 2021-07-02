@@ -436,8 +436,21 @@ mod tests {
     use super::{
         ChannelError, ChannelErrorType, InMemoryCachePermissions, RootError, RootErrorType,
     };
+    use crate::{test, InMemoryCache};
     use static_assertions::{assert_fields, assert_impl_all};
-    use std::fmt::Debug;
+    use std::{error::Error, fmt::Debug};
+    use twilight_model::{
+        channel::{
+            permission_overwrite::{PermissionOverwrite, PermissionOverwriteType},
+            Channel, ChannelType, GuildChannel, TextChannel,
+        },
+        gateway::payload::{ChannelCreate, GuildCreate, MemberAdd, MemberUpdate, RoleCreate},
+        guild::{
+            DefaultMessageNotificationLevel, ExplicitContentFilter, Guild, MfaLevel, NSFWLevel,
+            Permissions, PremiumTier, Role, SystemChannelFlags, VerificationLevel,
+        },
+        id::{ChannelId, GuildId, RoleId, UserId},
+    };
 
     assert_fields!(ChannelErrorType::ChannelUnavailable: channel_id);
     assert_fields!(ChannelErrorType::MemberUnavailable: guild_id, user_id);
@@ -449,4 +462,237 @@ mod tests {
     assert_fields!(RootErrorType::RoleUnavailable: role_id);
     assert_impl_all!(RootErrorType: Debug, Send, Sync);
     assert_impl_all!(RootError: Debug, Send, Sync);
+
+    /// Guild ID used in tests.
+    const GUILD_ID: GuildId = GuildId(1);
+
+    /// ID of the `@everyone` role.
+    const EVERYONE_ROLE_ID: RoleId = RoleId(GUILD_ID.0);
+
+    /// User ID used in tests.
+    const USER_ID: UserId = UserId(2);
+
+    /// ID of the `@everyone` role.
+    const OTHER_ROLE_ID: RoleId = RoleId(3);
+
+    /// ID of the user that owns the guild with the ID [`GUILD_ID`].
+    const OWNER_ID: UserId = UserId(4);
+
+    /// ID of the #general channel in the guild.
+    ///
+    /// This has the same ID as the [`GUILD_ID`].
+    const CHANNEL_ID: ChannelId = ChannelId(GUILD_ID.0);
+
+    fn base_guild() -> Guild {
+        Guild {
+            id: GUILD_ID,
+            afk_channel_id: None,
+            afk_timeout: 300,
+            application_id: None,
+            banner: None,
+            channels: Vec::new(),
+            default_message_notifications: DefaultMessageNotificationLevel::Mentions,
+            description: None,
+            discovery_splash: None,
+            emojis: Vec::new(),
+            explicit_content_filter: ExplicitContentFilter::AllMembers,
+            features: Vec::new(),
+            icon: None,
+            joined_at: None,
+            large: false,
+            max_members: None,
+            max_presences: None,
+            member_count: None,
+            members: Vec::new(),
+            mfa_level: MfaLevel::Elevated,
+            name: "this is a guild".to_owned(),
+            nsfw_level: NSFWLevel::AgeRestricted,
+            owner: Some(false),
+            owner_id: OWNER_ID,
+            permissions: None,
+            preferred_locale: "en-GB".to_owned(),
+            premium_subscription_count: Some(0),
+            premium_tier: PremiumTier::None,
+            presences: Vec::new(),
+            roles: Vec::from([
+                // Give the `@everyone` role a guild level and channel level
+                // permission.
+                role_with_permissions(
+                    EVERYONE_ROLE_ID,
+                    Permissions::CREATE_INVITE | Permissions::VIEW_AUDIT_LOG,
+                ),
+            ]),
+            splash: None,
+            stage_instances: Vec::new(),
+            system_channel_id: None,
+            system_channel_flags: SystemChannelFlags::SUPPRESS_JOIN_NOTIFICATIONS,
+            rules_channel_id: None,
+            unavailable: false,
+            verification_level: VerificationLevel::VeryHigh,
+            voice_states: Vec::new(),
+            vanity_url_code: None,
+            widget_channel_id: None,
+            widget_enabled: None,
+            max_video_channel_users: None,
+            approximate_member_count: None,
+            approximate_presence_count: None,
+        }
+    }
+
+    fn channel() -> Channel {
+        Channel::Guild(GuildChannel::Text(TextChannel {
+            guild_id: Some(GUILD_ID),
+            id: CHANNEL_ID,
+            kind: ChannelType::GuildText,
+            last_message_id: None,
+            last_pin_timestamp: None,
+            name: "test".to_owned(),
+            nsfw: false,
+            parent_id: None,
+            permission_overwrites: Vec::from([
+                PermissionOverwrite {
+                    allow: Permissions::empty(),
+                    deny: Permissions::CREATE_INVITE,
+                    kind: PermissionOverwriteType::Role(EVERYONE_ROLE_ID),
+                },
+                PermissionOverwrite {
+                    allow: Permissions::EMBED_LINKS,
+                    deny: Permissions::empty(),
+                    kind: PermissionOverwriteType::Member(USER_ID),
+                },
+            ]),
+            position: 0,
+            rate_limit_per_user: None,
+            topic: None,
+        }))
+    }
+
+    fn role_with_permissions(id: RoleId, permissions: Permissions) -> Role {
+        let mut role = test::role(id);
+        role.permissions = permissions;
+
+        role
+    }
+
+    const fn role_create(guild_id: GuildId, role: Role) -> RoleCreate {
+        RoleCreate { guild_id, role }
+    }
+
+    /// Test that the permissions interface returns the correct errors depending
+    /// on what information is unavailable during [`root`] operations.
+    ///
+    /// [`root`]: super::InMemoryCachePermissions::root
+    #[test]
+    fn test_root_errors() {
+        let cache = InMemoryCache::new();
+        let permissions = cache.permissions();
+        assert!(matches!(
+            permissions.root(USER_ID, GUILD_ID).unwrap_err().kind(),
+            &RootErrorType::MemberUnavailable { guild_id, user_id }
+            if guild_id == GUILD_ID && user_id == USER_ID
+        ));
+
+        cache.update(&MemberAdd(test::member(USER_ID, GUILD_ID)));
+
+        assert!(matches!(
+            permissions.root(USER_ID, GUILD_ID).unwrap_err().kind(),
+            &RootErrorType::RoleUnavailable { role_id }
+            if role_id == EVERYONE_ROLE_ID
+        ));
+    }
+
+    /// Test that the permissions interface returns the correct permissions for
+    /// a member on a root level.
+    ///
+    /// Notably [`root`] doesn't require that the guild *itself* is in the
+    /// cache.
+    ///
+    /// [`root`]: super::InMemoryCachePermissions::root
+    #[test]
+    fn test_root() -> Result<(), Box<dyn Error>> {
+        let cache = InMemoryCache::new();
+        let permissions = cache.permissions();
+
+        cache.update(&GuildCreate(base_guild()));
+        cache.update(&MemberAdd(test::member(USER_ID, GUILD_ID)));
+        cache.update(&MemberUpdate {
+            guild_id: GUILD_ID,
+            deaf: None,
+            joined_at: "foo".to_owned(),
+            mute: None,
+            nick: None,
+            pending: false,
+            premium_since: None,
+            roles: Vec::from([OTHER_ROLE_ID]),
+            user: test::user(USER_ID),
+        });
+        cache.update(&role_create(
+            GUILD_ID,
+            role_with_permissions(
+                OTHER_ROLE_ID,
+                Permissions::SEND_MESSAGES | Permissions::BAN_MEMBERS,
+            ),
+        ));
+
+        let expected = Permissions::CREATE_INVITE
+            | Permissions::BAN_MEMBERS
+            | Permissions::VIEW_AUDIT_LOG
+            | Permissions::SEND_MESSAGES;
+
+        assert_eq!(expected, permissions.root(USER_ID, GUILD_ID)?);
+
+        Ok(())
+    }
+
+    /// Test that the permissions interface returns the correct errors and
+    /// permissions depending on what information is unavailable during
+    /// [`in_channel`] operations.
+    ///
+    /// [`in_channel`]: super::InMemoryCachePermissions::in_channel
+    #[test]
+    fn test_in_channel() -> Result<(), Box<dyn Error>> {
+        let cache = InMemoryCache::new();
+        let permissions = cache.permissions();
+
+        cache.update(&GuildCreate(base_guild()));
+        assert!(matches!(
+            permissions.in_channel(USER_ID, CHANNEL_ID).unwrap_err().kind(),
+            ChannelErrorType::ChannelUnavailable { channel_id }
+            if *channel_id == CHANNEL_ID
+        ));
+
+        cache.update(&ChannelCreate(channel()));
+        assert!(matches!(
+            permissions.in_channel(USER_ID, CHANNEL_ID).unwrap_err().kind(),
+            ChannelErrorType::MemberUnavailable { guild_id, user_id }
+            if *guild_id == GUILD_ID && *user_id == USER_ID
+        ));
+
+        cache.update(&MemberAdd({
+            let mut member = test::member(USER_ID, GUILD_ID);
+            member.roles.push(OTHER_ROLE_ID);
+
+            member
+        }));
+        assert!(matches!(
+            permissions.in_channel(USER_ID, CHANNEL_ID).unwrap_err().kind(),
+            &ChannelErrorType::RoleUnavailable { role_id }
+            if role_id == OTHER_ROLE_ID
+        ));
+
+        cache.update(&role_create(
+            GUILD_ID,
+            role_with_permissions(
+                OTHER_ROLE_ID,
+                Permissions::SEND_MESSAGES | Permissions::BAN_MEMBERS,
+            ),
+        ));
+
+        assert_eq!(
+            Permissions::EMBED_LINKS | Permissions::SEND_MESSAGES,
+            permissions.in_channel(USER_ID, CHANNEL_ID)?,
+        );
+
+        Ok(())
+    }
 }
