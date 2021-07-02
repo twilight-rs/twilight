@@ -2,6 +2,16 @@
 
 Changelog for `twilight-lavalink`.
 
+## [0.5.1] - 2021-07-02
+
+### Enhancements
+
+Improve the `Display` implementation performance of `NodeError`'s `Display`
+implementation by calling `Formatter` methods directly instead of calling the
+`format_args!` and `write!` macros ([#944] - [@zeylahellyer]).
+
+[#944]: https://github.com/twilight-rs/twilight/pull/944
+
 ## [0.5.0] - 2021-06-13
 
 This major version bump of the Lavalink crate is done to match all of the other
@@ -164,12 +174,14 @@ Initial release.
 [@james7132]: https://github.com/james7132
 [@nickelc]: https://github.com/nickelc
 [@vivian]: https://github.com/vivian
+[@zeylahellyer]: https://github.com/zeylahellyer
 
 [#588]: https://github.com/twilight-rs/twilight/pull/588
 [#560]: https://github.com/twilight-rs/twilight/pull/560
 [#548]: https://github.com/twilight-rs/twilight/pull/548
 [#518]: https://github.com/twilight-rs/twilight/pull/518
 
+[0.5.1]: https://github.com/twilight-rs/twilight/releases/tag/lavalink-0.5.1
 [0.5.0]: https://github.com/twilight-rs/twilight/releases/tag/lavalink-0.5.0
 [0.4.1]: https://github.com/twilight-rs/twilight/releases/tag/lavalink-0.4.1
 [0.4.0]: https://github.com/twilight-rs/twilight/releases/tag/lavalink-0.4.0
