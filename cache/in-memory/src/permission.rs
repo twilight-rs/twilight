@@ -184,8 +184,26 @@ impl Error for RootError {}
 #[derive(Debug)]
 #[non_exhaustive]
 pub enum RootErrorType {
-    MemberUnavailable { guild_id: GuildId, user_id: UserId },
-    RoleUnavailable { role_id: RoleId },
+    /// The user's member information is not available in the guild.
+    ///
+    /// This could be because the user is not currently a member of the guild or
+    /// because the member entity has not yet been received by the cache.
+    MemberUnavailable {
+        /// ID of the guild.
+        guild_id: GuildId,
+        /// ID of the user.
+        user_id: UserId,
+    },
+    /// One of the user's roles is not available in the guild.
+    ///
+    /// The reasons this could happen could be due to the cache missing a
+    /// [`RoleCreate`] event or a user application race condition.
+    ///
+    /// [`RoleCreate`]: twilight_model::gateway::payload::RoleCreate
+    RoleUnavailable {
+        /// ID of the role that the user has but details about is missing.
+        role_id: RoleId,
+    },
 }
 
 /// Error type that occurred while getting a member's assigned roles'
