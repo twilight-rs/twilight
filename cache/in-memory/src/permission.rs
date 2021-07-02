@@ -730,7 +730,7 @@ mod tests {
     /// Only the guild needs to be in the cache to short-circuit on this
     /// condition.
     #[test]
-    fn test_root_owner() -> Result<(), Box<dyn Error>> {
+    fn test_owner() -> Result<(), Box<dyn Error>> {
         let cache = InMemoryCache::new();
         let permissions = cache.permissions();
         cache.update(&GuildCreate(base_guild()));
