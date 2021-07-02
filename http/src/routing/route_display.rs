@@ -935,7 +935,10 @@ mod tests {
             guild_id: 2,
         };
 
-        assert_eq!("applications/1/guilds/2/commands", route.display().to_string());
+        assert_eq!(
+            "applications/1/guilds/2/commands",
+            route.display().to_string()
+        );
     }
 
     #[test]
