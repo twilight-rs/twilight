@@ -2,6 +2,28 @@
 
 Changelog for `twilight-gateway`.
 
+## [0.5.2] - 2021-07-02
+
+### Fixes
+
+Tick ratelimiter only on successful message sends via shards and clusters, now
+avoiding doing so when there is a failure sending a message
+([#965] - [@zeylahellyer]).
+
+### Enhancements
+
+Shards would only emit `ShardDisconnected` events when the remote closed the
+connection via a Websocket close code. They are now emitted in additional
+circumstances ([#964] - [@zeylahellyer]).
+
+Improve the `Display` implementation performance on the `EmbedError` by calling
+`Formatter` methods directly instead of calling the `format_args!` and `write!`
+macros ([#944] - [@zeylahellyer]).
+
+[#965]: https://github.com/twilight-rs/twilight/pull/965
+[#964]: https://github.com/twilight-rs/twilight/pull/964
+[#944]: https://github.com/twilight-rs/twilight/pull/944
+
 ## [0.5.1] - 2021-06-24
 
 ### Additions
@@ -395,6 +417,7 @@ Initial release.
 [@nickelc]: https://github.com/nickelc
 [@tbnritzdoge]: https://github.com/tbnritzdoge
 [@vivian]: https://github.com/vivian
+[@zeylahellyer]: https://github.com/zeylahellyer
 
 [#647]: https://github.com/twilight-rs/twilight/pull/647
 [#642]: https://github.com/twilight-rs/twilight/pull/642
@@ -414,6 +437,7 @@ Initial release.
 [#515]: https://github.com/twilight-rs/twilight/pull/515
 [#512]: https://github.com/twilight-rs/twilight/pull/512
 
+[0.5.2]: https://github.com/twilight-rs/twilight/releases/tag/gateway-0.5.2
 [0.5.1]: https://github.com/twilight-rs/twilight/releases/tag/gateway-0.5.1
 [0.5.0]: https://github.com/twilight-rs/twilight/releases/tag/gateway-0.5.0
 [0.4.2]: https://github.com/twilight-rs/twilight/releases/tag/gateway-0.4.2
