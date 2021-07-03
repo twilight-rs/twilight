@@ -35,10 +35,12 @@ pub struct ListBody<T> {
 
 /// Marker that a response has a member.
 #[derive(Clone, Debug, Eq, PartialEq)]
+#[non_exhaustive]
 pub struct MemberBody;
 
 /// Marker that a response has a list of members.
 #[derive(Clone, Debug, Eq, PartialEq)]
+#[non_exhaustive]
 pub struct MemberListBody;
 
 #[cfg(test)]
