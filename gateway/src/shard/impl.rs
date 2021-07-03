@@ -456,6 +456,12 @@ impl Shard {
                     source: Some(Box::new(source)),
                     kind: ShardStartErrorType::RetrievingGatewayUrl,
                 })?
+                .model()
+                .await
+                .map_err(|source| ShardStartError {
+                    source: Some(Box::new(source)),
+                    kind: ShardStartErrorType::RetrievingGatewayUrl,
+                })?
                 .url
         };
 

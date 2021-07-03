@@ -1,14 +1,15 @@
 use crate::{
     client::Client,
     error::Error,
-    request::{self, AuditLogReason, AuditLogReasonError, Pending, Request},
+    request::{self, AuditLogReason, AuditLogReasonError, PendingResponse, Request},
+    response::marker::EmptyBody,
     routing::Route,
 };
 use twilight_model::id::{GuildId, IntegrationId};
 
 /// Delete an integration for a guild, by the integration's id.
 pub struct DeleteGuildIntegration<'a> {
-    fut: Option<Pending<'a, ()>>,
+    fut: Option<PendingResponse<'a, EmptyBody>>,
     guild_id: GuildId,
     http: &'a Client,
     integration_id: IntegrationId,
@@ -37,7 +38,7 @@ impl<'a> DeleteGuildIntegration<'a> {
         }
 
         self.fut
-            .replace(Box::pin(self.http.verify(request.build())));
+            .replace(Box::pin(self.http.request(request.build())));
 
         Ok(())
     }
@@ -52,4 +53,4 @@ impl<'a> AuditLogReason for DeleteGuildIntegration<'a> {
     }
 }
 
-poll_req!(DeleteGuildIntegration<'_>, ());
+poll_req!(DeleteGuildIntegration<'_>, EmptyBody);

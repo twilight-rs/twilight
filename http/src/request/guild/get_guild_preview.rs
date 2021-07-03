@@ -1,7 +1,7 @@
 use crate::{
     client::Client,
     error::Error,
-    request::{Pending, Request},
+    request::{PendingResponse, Request},
     routing::Route,
 };
 use twilight_model::{guild::GuildPreview, id::GuildId};
@@ -10,7 +10,7 @@ use twilight_model::{guild::GuildPreview, id::GuildId};
 ///
 /// This works even if the user is not in the guild.
 pub struct GetGuildPreview<'a> {
-    fut: Option<Pending<'a, GuildPreview>>,
+    fut: Option<PendingResponse<'a, GuildPreview>>,
     guild_id: GuildId,
     http: &'a Client,
 }

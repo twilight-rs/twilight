@@ -1,7 +1,7 @@
 use crate::{
     client::Client,
     error::Error,
-    request::{PendingOption, Request},
+    request::{PendingResponse, Request},
     routing::Route,
 };
 use twilight_model::{
@@ -12,7 +12,7 @@ use twilight_model::{
 /// Get a message by [`ChannelId`] and [`MessageId`].
 pub struct GetMessage<'a> {
     channel_id: ChannelId,
-    fut: Option<PendingOption<'a>>,
+    fut: Option<PendingResponse<'a, Message>>,
     http: &'a Client,
     message_id: MessageId,
 }
@@ -33,10 +33,10 @@ impl<'a> GetMessage<'a> {
             message_id: self.message_id.0,
         });
 
-        self.fut.replace(Box::pin(self.http.request_bytes(request)));
+        self.fut.replace(Box::pin(self.http.request(request)));
 
         Ok(())
     }
 }
 
-poll_req!(opt, GetMessage<'_>, Message);
+poll_req!(GetMessage<'_>, Message);

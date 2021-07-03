@@ -1,7 +1,7 @@
 use crate::{
     client::Client,
     error::Error,
-    request::{Pending, Request},
+    request::{PendingResponse, Request},
     routing::Route,
 };
 use twilight_model::{guild::Guild, id::GuildId};
@@ -14,7 +14,7 @@ struct GetGuildFields {
 /// Get information about a guild.
 pub struct GetGuild<'a> {
     fields: GetGuildFields,
-    fut: Option<Pending<'a, Option<Guild>>>,
+    fut: Option<PendingResponse<'a, Guild>>,
     guild_id: GuildId,
     http: &'a Client,
 }
@@ -49,4 +49,4 @@ impl<'a> GetGuild<'a> {
     }
 }
 
-poll_req!(GetGuild<'_>, Option<Guild>);
+poll_req!(GetGuild<'_>, Guild);

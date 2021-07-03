@@ -1,14 +1,15 @@
 use crate::{
     client::Client,
     error::Error,
-    request::{Pending, Request},
+    request::{PendingResponse, Request},
+    response::marker::ListBody,
     routing::Route,
 };
 use twilight_model::{channel::GuildChannel, id::GuildId};
 
 /// Get the channels in a guild.
 pub struct GetGuildChannels<'a> {
-    fut: Option<Pending<'a, Vec<GuildChannel>>>,
+    fut: Option<PendingResponse<'a, ListBody<GuildChannel>>>,
     guild_id: GuildId,
     http: &'a Client,
 }
@@ -33,4 +34,4 @@ impl<'a> GetGuildChannels<'a> {
     }
 }
 
-poll_req!(GetGuildChannels<'_>, Vec<GuildChannel>);
+poll_req!(GetGuildChannels<'_>, ListBody<GuildChannel>);

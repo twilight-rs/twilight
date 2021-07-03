@@ -1,7 +1,8 @@
 use crate::{
     client::Client,
     error::Error as HttpError,
-    request::{validate, AuditLogReason, AuditLogReasonError, Pending, Request},
+    request::{validate, AuditLogReason, AuditLogReasonError, PendingResponse, Request},
+    response::marker::EmptyBody,
     routing::Route,
 };
 use std::{
@@ -92,7 +93,7 @@ struct CreateBanFields {
 /// ```
 pub struct CreateBan<'a> {
     fields: CreateBanFields,
-    fut: Option<Pending<'a, ()>>,
+    fut: Option<PendingResponse<'a, EmptyBody>>,
     guild_id: GuildId,
     http: &'a Client,
     user_id: UserId,
@@ -137,7 +138,7 @@ impl<'a> CreateBan<'a> {
             user_id: self.user_id.0,
         });
 
-        self.fut.replace(Box::pin(self.http.verify(request)));
+        self.fut.replace(Box::pin(self.http.request(request)));
 
         Ok(())
     }
@@ -153,4 +154,4 @@ impl<'a> AuditLogReason for CreateBan<'a> {
     }
 }
 
-poll_req!(CreateBan<'_>, ());
+poll_req!(CreateBan<'_>, EmptyBody);

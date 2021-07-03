@@ -3,8 +3,9 @@ use crate::{
     error::Error as HttpError,
     request::{
         application::{InteractionError, InteractionErrorType},
-        validate, Pending, Request,
+        validate, PendingResponse, Request,
     },
+    response::marker::EmptyBody,
     routing::Route,
 };
 use twilight_model::{
@@ -23,7 +24,7 @@ use twilight_model::{
 pub struct CreateGuildCommand<'a> {
     application_id: ApplicationId,
     command: Command,
-    fut: Option<Pending<'a, ()>>,
+    fut: Option<PendingResponse<'a, EmptyBody>>,
     guild_id: GuildId,
     http: &'a Client,
     optional_option_added: bool,
@@ -110,10 +111,10 @@ impl<'a> CreateGuildCommand<'a> {
         .json(&self.command)?;
 
         self.fut
-            .replace(Box::pin(self.http.verify(request.build())));
+            .replace(Box::pin(self.http.request(request.build())));
 
         Ok(())
     }
 }
 
-poll_req!(CreateGuildCommand<'_>, ());
+poll_req!(CreateGuildCommand<'_>, EmptyBody);

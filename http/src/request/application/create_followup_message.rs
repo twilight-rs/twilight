@@ -1,7 +1,7 @@
 use crate::{
     client::Client,
     error::Error,
-    request::{Form, Pending, Request},
+    request::{Form, PendingResponse, Request},
     routing::Route,
 };
 use serde::Serialize;
@@ -48,7 +48,7 @@ pub(crate) struct CreateFollowupMessageFields {
 /// let client = Client::new(env::var("DISCORD_TOKEN")?);
 /// client.set_application_id(ApplicationId(1));
 ///
-/// let webhook = client
+/// client
 ///     .create_followup_message("webhook token")?
 ///     .content("Pinkie...")
 ///     .await?;
@@ -61,7 +61,7 @@ pub(crate) struct CreateFollowupMessageFields {
 pub struct CreateFollowupMessage<'a> {
     pub(crate) fields: CreateFollowupMessageFields,
     files: Vec<(String, Vec<u8>)>,
-    fut: Option<Pending<'a, Option<Message>>>,
+    fut: Option<PendingResponse<'a, Message>>,
     http: &'a Client,
     token: String,
     application_id: ApplicationId,
@@ -172,7 +172,8 @@ impl<'a> CreateFollowupMessage<'a> {
     ///     .content("some content")
     ///     .embeds(vec![EmbedBuilder::new().title("title").build()?])
     ///     .await?
-    ///     .unwrap();
+    ///     .model()
+    ///     .await?;
     ///
     /// assert_eq!(message.content, "some content");
     /// # Ok(()) }
@@ -194,7 +195,8 @@ impl<'a> CreateFollowupMessage<'a> {
     ///     .content("some content")
     ///     .payload_json(r#"{ "content": "other content", "embeds": [ { "title": "title" } ] }"#)
     ///     .await?
-    ///     .unwrap();
+    ///     .model()
+    ///     .await?;
     ///
     /// assert_eq!(message.content, "other content");
     /// # Ok(()) }
@@ -255,4 +257,4 @@ impl<'a> CreateFollowupMessage<'a> {
     }
 }
 
-poll_req!(CreateFollowupMessage<'_>, Option<Message>);
+poll_req!(CreateFollowupMessage<'_>, Message);

@@ -1,7 +1,8 @@
 use crate::{
     client::Client,
     error::Error,
-    request::{Pending, Request},
+    request::{PendingResponse, Request},
+    response::marker::EmptyBody,
     routing::Route,
 };
 use twilight_model::id::{ApplicationId, CommandId};
@@ -10,7 +11,7 @@ use twilight_model::id::{ApplicationId, CommandId};
 pub struct DeleteGlobalCommand<'a> {
     application_id: ApplicationId,
     command_id: CommandId,
-    fut: Option<Pending<'a, ()>>,
+    fut: Option<PendingResponse<'a, EmptyBody>>,
     http: &'a Client,
 }
 
@@ -34,10 +35,10 @@ impl<'a> DeleteGlobalCommand<'a> {
             command_id: self.command_id.0,
         });
 
-        self.fut.replace(Box::pin(self.http.verify(request)));
+        self.fut.replace(Box::pin(self.http.request(request)));
 
         Ok(())
     }
 }
 
-poll_req!(DeleteGlobalCommand<'_>, ());
+poll_req!(DeleteGlobalCommand<'_>, EmptyBody);

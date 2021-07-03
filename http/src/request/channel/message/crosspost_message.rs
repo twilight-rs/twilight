@@ -1,7 +1,7 @@
 use crate::{
     client::Client,
     error::Error,
-    request::{Pending, Request},
+    request::{PendingResponse, Request},
     routing::Route,
 };
 use twilight_model::{
@@ -12,7 +12,7 @@ use twilight_model::{
 /// Crosspost a message by [`ChannelId`] and [`MessageId`].
 pub struct CrosspostMessage<'a> {
     channel_id: ChannelId,
-    fut: Option<Pending<'a, Message>>,
+    fut: Option<PendingResponse<'a, Message>>,
     http: &'a Client,
     message_id: MessageId,
 }

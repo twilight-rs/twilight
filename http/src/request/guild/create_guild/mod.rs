@@ -1,7 +1,7 @@
 use crate::{
     client::Client,
     error::Error as HttpError,
-    request::{validate, Pending, Request},
+    request::{validate, PendingResponse, Request},
     routing::Route,
 };
 use serde::Serialize;
@@ -238,7 +238,7 @@ impl From<VoiceFieldsBuilder> for VoiceFields {
 /// This endpoint can only be used by bots in less than 10 guilds.
 pub struct CreateGuild<'a> {
     fields: CreateGuildFields,
-    fut: Option<Pending<'a, PartialGuild>>,
+    fut: Option<PendingResponse<'a, PartialGuild>>,
     http: &'a Client,
 }
 

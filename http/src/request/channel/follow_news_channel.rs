@@ -1,7 +1,7 @@
 use crate::{
     client::Client,
     error::Error,
-    request::{Pending, Request},
+    request::{PendingResponse, Request},
     routing::Route,
 };
 use serde::Serialize;
@@ -16,7 +16,7 @@ struct FollowNewsChannelFields {
 pub struct FollowNewsChannel<'a> {
     channel_id: ChannelId,
     fields: FollowNewsChannelFields,
-    fut: Option<Pending<'a, FollowedChannel>>,
+    fut: Option<PendingResponse<'a, FollowedChannel>>,
     http: &'a Client,
 }
 

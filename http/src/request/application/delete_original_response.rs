@@ -1,7 +1,8 @@
 use crate::{
     client::Client,
     error::Error,
-    request::{Pending, Request},
+    request::{PendingResponse, Request},
+    response::marker::EmptyBody,
     routing::Route,
 };
 use twilight_model::id::ApplicationId;
@@ -28,7 +29,7 @@ use twilight_model::id::ApplicationId;
 /// ```
 pub struct DeleteOriginalResponse<'a> {
     application_id: ApplicationId,
-    fut: Option<Pending<'a, ()>>,
+    fut: Option<PendingResponse<'a, EmptyBody>>,
     http: &'a Client,
     token: String,
 }
@@ -58,10 +59,10 @@ impl<'a> DeleteOriginalResponse<'a> {
 
     fn start(&mut self) -> Result<(), Error> {
         let request = self.request()?;
-        self.fut.replace(Box::pin(self.http.verify(request)));
+        self.fut.replace(Box::pin(self.http.request(request)));
 
         Ok(())
     }
 }
 
-poll_req!(DeleteOriginalResponse<'_>, ());
+poll_req!(DeleteOriginalResponse<'_>, EmptyBody);

@@ -3,7 +3,8 @@
 use crate::{
     client::Client,
     error::Error as HttpError,
-    request::{validate, Form, NullableField, Pending, Request},
+    request::{validate, Form, NullableField, PendingResponse, Request},
+    response::marker::EmptyBody,
     routing::Route,
 };
 use serde::Serialize;
@@ -155,7 +156,7 @@ struct UpdateFollowupMessageFields {
 pub struct UpdateFollowupMessage<'a> {
     fields: UpdateFollowupMessageFields,
     files: Vec<(String, Vec<u8>)>,
-    fut: Option<Pending<'a, ()>>,
+    fut: Option<PendingResponse<'a, EmptyBody>>,
     http: &'a Client,
     message_id: MessageId,
     token: String,
@@ -401,10 +402,10 @@ impl<'a> UpdateFollowupMessage<'a> {
 
     fn start(&mut self) -> Result<(), HttpError> {
         let request = self.request()?;
-        self.fut.replace(Box::pin(self.http.verify(request)));
+        self.fut.replace(Box::pin(self.http.request(request)));
 
         Ok(())
     }
 }
 
-poll_req!(UpdateFollowupMessage<'_>, ());
+poll_req!(UpdateFollowupMessage<'_>, EmptyBody);

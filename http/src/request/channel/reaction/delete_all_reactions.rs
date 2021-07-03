@@ -1,7 +1,8 @@
 use crate::{
     client::Client,
     error::Error,
-    request::{Pending, Request},
+    request::{PendingResponse, Request},
+    response::marker::EmptyBody,
     routing::Route,
 };
 use twilight_model::id::{ChannelId, MessageId};
@@ -9,7 +10,7 @@ use twilight_model::id::{ChannelId, MessageId};
 /// Delete all reactions by all users on a message.
 pub struct DeleteAllReactions<'a> {
     channel_id: ChannelId,
-    fut: Option<Pending<'a, ()>>,
+    fut: Option<PendingResponse<'a, EmptyBody>>,
     http: &'a Client,
     message_id: MessageId,
 }
@@ -30,10 +31,10 @@ impl<'a> DeleteAllReactions<'a> {
             message_id: self.message_id.0,
         });
 
-        self.fut.replace(Box::pin(self.http.verify(request)));
+        self.fut.replace(Box::pin(self.http.request(request)));
 
         Ok(())
     }
 }
 
-poll_req!(DeleteAllReactions<'_>, ());
+poll_req!(DeleteAllReactions<'_>, EmptyBody);

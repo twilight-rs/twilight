@@ -78,16 +78,13 @@ impl ClusterBuilder {
     /// [`ClusterStartErrorType::RetrievingGatewayInfo`]: super::ClusterStartErrorType::RetrievingGatewayInfo
     pub async fn build(mut self) -> Result<(Cluster, Events), ClusterStartError> {
         if (self.1).0.gateway_url.is_none() {
-            let gateway_url = (self.1)
-                .0
-                .http_client
-                .gateway()
-                .authed()
-                .await
-                .ok()
-                .map(|s| s.url);
+            let maybe_response = (self.1).0.http_client.gateway().authed().await;
 
-            self = self.gateway_url(gateway_url);
+            if let Ok(response) = maybe_response {
+                let gateway_url = response.model().await.ok().map(|info| info.url);
+
+                self = self.gateway_url(gateway_url);
+            }
         }
 
         self.0.shard_config = (self.1).0;

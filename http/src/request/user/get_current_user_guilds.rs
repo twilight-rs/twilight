@@ -1,7 +1,8 @@
 use crate::{
     client::Client,
     error::Error as HttpError,
-    request::{validate, Pending, Request},
+    request::{validate, PendingResponse, Request},
+    response::marker::ListBody,
     routing::Route,
 };
 use std::{
@@ -97,7 +98,7 @@ struct GetCurrentUserGuildsFields {
 /// ```
 pub struct GetCurrentUserGuilds<'a> {
     fields: GetCurrentUserGuildsFields,
-    fut: Option<Pending<'a, Vec<CurrentUserGuild>>>,
+    fut: Option<PendingResponse<'a, ListBody<CurrentUserGuild>>>,
     http: &'a Client,
 }
 
@@ -163,4 +164,4 @@ impl<'a> GetCurrentUserGuilds<'a> {
     }
 }
 
-poll_req!(GetCurrentUserGuilds<'_>, Vec<CurrentUserGuild>);
+poll_req!(GetCurrentUserGuilds<'_>, ListBody<CurrentUserGuild>);

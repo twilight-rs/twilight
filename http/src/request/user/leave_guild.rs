@@ -1,14 +1,15 @@
 use crate::{
     client::Client,
     error::Error,
-    request::{Pending, Request},
+    request::{PendingResponse, Request},
+    response::marker::EmptyBody,
     routing::Route,
 };
 use twilight_model::id::GuildId;
 
 /// Leave a guild by id.
 pub struct LeaveGuild<'a> {
-    fut: Option<Pending<'a, ()>>,
+    fut: Option<PendingResponse<'a, EmptyBody>>,
     guild_id: GuildId,
     http: &'a Client,
 }
@@ -27,10 +28,10 @@ impl<'a> LeaveGuild<'a> {
             guild_id: self.guild_id.0,
         });
 
-        self.fut.replace(Box::pin(self.http.verify(request)));
+        self.fut.replace(Box::pin(self.http.request(request)));
 
         Ok(())
     }
 }
 
-poll_req!(LeaveGuild<'_>, ());
+poll_req!(LeaveGuild<'_>, EmptyBody);

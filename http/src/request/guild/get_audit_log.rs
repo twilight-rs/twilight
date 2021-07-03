@@ -1,7 +1,7 @@
 use crate::{
     client::Client,
     error::Error as HttpError,
-    request::{validate, Pending, Request},
+    request::{validate, PendingResponse, Request},
     routing::Route,
 };
 use std::{
@@ -90,7 +90,7 @@ struct GetAuditLogFields {
 /// ```
 pub struct GetAuditLog<'a> {
     fields: GetAuditLogFields,
-    fut: Option<Pending<'a, Option<AuditLog>>>,
+    fut: Option<PendingResponse<'a, AuditLog>>,
     guild_id: GuildId,
     http: &'a Client,
 }
@@ -163,4 +163,4 @@ impl<'a> GetAuditLog<'a> {
     }
 }
 
-poll_req!(GetAuditLog<'_>, Option<AuditLog>);
+poll_req!(GetAuditLog<'_>, AuditLog);

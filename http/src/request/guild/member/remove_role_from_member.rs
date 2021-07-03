@@ -1,14 +1,15 @@
 use crate::{
     client::Client,
     error::Error,
-    request::{self, AuditLogReason, AuditLogReasonError, Pending, Request},
+    request::{self, AuditLogReason, AuditLogReasonError, PendingResponse, Request},
+    response::marker::EmptyBody,
     routing::Route,
 };
 use twilight_model::id::{GuildId, RoleId, UserId};
 
 /// Remove a role from a member in a guild, by id.
 pub struct RemoveRoleFromMember<'a> {
-    fut: Option<Pending<'a, ()>>,
+    fut: Option<PendingResponse<'a, EmptyBody>>,
     guild_id: GuildId,
     http: &'a Client,
     role_id: RoleId,
@@ -45,7 +46,7 @@ impl<'a> RemoveRoleFromMember<'a> {
         }
 
         self.fut
-            .replace(Box::pin(self.http.verify(request.build())));
+            .replace(Box::pin(self.http.request(request.build())));
 
         Ok(())
     }
@@ -60,4 +61,4 @@ impl<'a> AuditLogReason for RemoveRoleFromMember<'a> {
     }
 }
 
-poll_req!(RemoveRoleFromMember<'_>, ());
+poll_req!(RemoveRoleFromMember<'_>, EmptyBody);

@@ -1,7 +1,7 @@
 macro_rules! poll_req {
-    ($ty: ty, $ret: ty) => {
+    ($ty: ty, $out: ty) => {
         impl std::future::Future for $ty {
-            type Output = ::std::result::Result<$ret, $crate::error::Error>;
+            type Output = Result<$crate::request::Response<$out>, $crate::error::Error>;
 
             fn poll(
                 mut self: std::pin::Pin<&mut Self>,
@@ -13,41 +13,7 @@ macro_rules! poll_req {
                     }
 
                     if let Err(why) = self.as_mut().start() {
-                        return std::task::Poll::Ready(Err(why));
-                    }
-                }
-            }
-        }
-    };
-
-    (opt, $ty: ty, $ret: ty) => {
-        impl std::future::Future for $ty {
-            type Output = ::std::result::Result<Option<$ret>, $crate::error::Error>;
-
-            fn poll(
-                mut self: std::pin::Pin<&mut Self>,
-                cx: &mut std::task::Context<'_>,
-            ) -> ::std::task::Poll<Self::Output> {
-                use std::task::Poll;
-
-                loop {
-                    if let Some(fut) = self.as_mut().fut.as_mut() {
-                        let bytes = match fut.as_mut().poll(cx) {
-                            Poll::Ready(Ok(bytes)) => bytes,
-                            Poll::Ready(Err(e))
-                                if matches!(e.kind, crate::error::ErrorType::Response { status, .. } if status == hyper::StatusCode::NOT_FOUND) =>
-                            {
-                                return Poll::Ready(Ok(None));
-                            }
-                            Poll::Ready(Err(why)) => return Poll::Ready(Err(why)),
-                            Poll::Pending => return Poll::Pending,
-                        };
-
-                        return Poll::Ready(crate::json::parse_bytes(&bytes));
-                    }
-
-                    if let Err(why) = self.as_mut().start() {
-                        return Poll::Ready(Err(why));
+                        return ::std::task::Poll::Ready(Err(why));
                     }
                 }
             }
@@ -81,8 +47,10 @@ pub use self::{
     multipart::Form,
 };
 
-use crate::error::{Error, ErrorType};
-use hyper::body::Bytes;
+use crate::{
+    error::{Error, ErrorType},
+    response::Response,
+};
 use hyper::{
     header::{HeaderName, HeaderValue},
     Method as HyperMethod,
@@ -91,8 +59,11 @@ use percent_encoding::{utf8_percent_encode, NON_ALPHANUMERIC};
 use serde::{Serialize, Serializer};
 use std::{future::Future, iter, pin::Pin};
 
-type Pending<'a, T> = Pin<Box<dyn Future<Output = Result<T, Error>> + Send + 'a>>;
-type PendingOption<'a> = Pin<Box<dyn Future<Output = Result<Bytes, Error>> + Send + 'a>>;
+/// Response is in-flight and is currently pending.
+///
+/// Resolves to a [`Response`] when completed. Responses may or may not have
+/// deserializable bodies.
+type PendingResponse<'a, T> = Pin<Box<dyn Future<Output = Result<Response<T>, Error>> + Send + 'a>>;
 
 /// Request method.
 #[derive(Clone, Copy, Debug, Eq, Hash, PartialEq)]

@@ -4,8 +4,10 @@ use crate::{
     client::Client,
     error::Error as HttpError,
     request::{
-        self, validate, AuditLogReason, AuditLogReasonError, Form, NullableField, Pending, Request,
+        self, validate, AuditLogReason, AuditLogReasonError, Form, NullableField, PendingResponse,
+        Request,
     },
+    response::marker::EmptyBody,
     routing::Route,
 };
 use serde::Serialize;
@@ -154,7 +156,7 @@ struct UpdateWebhookMessageFields {
 pub struct UpdateWebhookMessage<'a> {
     fields: UpdateWebhookMessageFields,
     files: Vec<(String, Vec<u8>)>,
-    fut: Option<Pending<'a, ()>>,
+    fut: Option<PendingResponse<'a, EmptyBody>>,
     http: &'a Client,
     message_id: MessageId,
     reason: Option<String>,
@@ -401,7 +403,7 @@ impl<'a> UpdateWebhookMessage<'a> {
 
     fn start(&mut self) -> Result<(), HttpError> {
         let request = self.request()?;
-        self.fut.replace(Box::pin(self.http.verify(request)));
+        self.fut.replace(Box::pin(self.http.request(request)));
 
         Ok(())
     }
@@ -416,7 +418,7 @@ impl<'a> AuditLogReason for UpdateWebhookMessage<'a> {
     }
 }
 
-poll_req!(UpdateWebhookMessage<'_>, ());
+poll_req!(UpdateWebhookMessage<'_>, EmptyBody);
 
 #[cfg(test)]
 mod tests {

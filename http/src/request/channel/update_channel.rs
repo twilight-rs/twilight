@@ -2,7 +2,8 @@ use crate::{
     client::Client,
     error::Error as HttpError,
     request::{
-        self, validate, AuditLogReason, AuditLogReasonError, NullableField, Pending, Request,
+        self, validate, AuditLogReason, AuditLogReasonError, NullableField, PendingResponse,
+        Request,
     },
     routing::Route,
 };
@@ -116,7 +117,7 @@ struct UpdateChannelFields {
 pub struct UpdateChannel<'a> {
     channel_id: ChannelId,
     fields: UpdateChannelFields,
-    fut: Option<Pending<'a, Channel>>,
+    fut: Option<PendingResponse<'a, Channel>>,
     http: &'a Client,
     reason: Option<String>,
 }

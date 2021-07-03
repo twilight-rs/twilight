@@ -1,7 +1,8 @@
 use crate::{
     client::Client,
     error::Error as HttpError,
-    request::{validate, Pending, Request},
+    request::{validate, PendingResponse, Request},
+    response::marker::EmptyBody,
     routing::Route,
 };
 use serde::Serialize;
@@ -82,7 +83,7 @@ struct UpdateStageInstanceFields {
 pub struct UpdateStageInstance<'a> {
     channel_id: ChannelId,
     fields: UpdateStageInstanceFields,
-    fut: Option<Pending<'a, ()>>,
+    fut: Option<PendingResponse<'a, EmptyBody>>,
     http: &'a Client,
 }
 
@@ -128,10 +129,10 @@ impl<'a> UpdateStageInstance<'a> {
         .json(&self.fields)?
         .build();
 
-        self.fut.replace(Box::pin(self.http.verify(request)));
+        self.fut.replace(Box::pin(self.http.request(request)));
 
         Ok(())
     }
 }
 
-poll_req!(UpdateStageInstance<'_>, ());
+poll_req!(UpdateStageInstance<'_>, EmptyBody);

@@ -1,7 +1,7 @@
 use crate::{
     client::Client,
     error::Error,
-    request::{PendingOption, Request},
+    request::{PendingResponse, Request},
     routing::Route,
 };
 use twilight_model::{channel::Message, id::ApplicationId};
@@ -28,7 +28,7 @@ use twilight_model::{channel::Message, id::ApplicationId};
 /// ```
 pub struct GetOriginalResponse<'a> {
     application_id: ApplicationId,
-    fut: Option<PendingOption<'a>>,
+    fut: Option<PendingResponse<'a, Message>>,
     http: &'a Client,
     token: String,
 }
@@ -58,10 +58,10 @@ impl<'a> GetOriginalResponse<'a> {
 
     fn start(&mut self) -> Result<(), Error> {
         let request = self.request()?;
-        self.fut.replace(Box::pin(self.http.request_bytes(request)));
+        self.fut.replace(Box::pin(self.http.request(request)));
 
         Ok(())
     }
 }
 
-poll_req!(opt, GetOriginalResponse<'_>, Message);
+poll_req!(GetOriginalResponse<'_>, Message);

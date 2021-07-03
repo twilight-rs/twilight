@@ -22,7 +22,7 @@ async fn main() -> Result<(), Box<dyn Error + Send + Sync>> {
     }))
     .await;
 
-    let me = client.current_user().await?;
+    let me = client.current_user().await?.model().await?;
     println!("Current user: {}#{}", me.name, me.discriminator);
 
     Ok(())

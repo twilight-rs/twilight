@@ -1,7 +1,7 @@
 use crate::{
     client::Client,
     error::Error,
-    request::{NullableField, Pending, Request},
+    request::{NullableField, PendingResponse, Request},
     routing::Route,
 };
 use serde::Serialize;
@@ -18,7 +18,7 @@ struct UpdateWebhookWithTokenFields {
 /// Update a webhook, with a token, by ID.
 pub struct UpdateWebhookWithToken<'a> {
     fields: UpdateWebhookWithTokenFields,
-    fut: Option<Pending<'a, Webhook>>,
+    fut: Option<PendingResponse<'a, Webhook>>,
     http: &'a Client,
     token: String,
     webhook_id: WebhookId,
