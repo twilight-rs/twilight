@@ -23,16 +23,15 @@ use crate::{
         prelude::*,
         GetUserApplicationInfo, Method, Request,
     },
+    response::{Response, StatusCode},
     API_VERSION,
 };
-use hyper::body::Bytes;
 use hyper::{
     body,
     client::{Client as HyperClient, HttpConnector},
     header::{HeaderMap, HeaderValue, AUTHORIZATION, CONTENT_LENGTH, CONTENT_TYPE, USER_AGENT},
-    Body, Response, StatusCode,
+    Body, StatusCode as HyperStatusCode,
 };
-use serde::de::DeserializeOwned;
 use std::{
     convert::TryFrom,
     fmt::{Debug, Formatter, Result as FmtResult},
@@ -649,7 +648,7 @@ impl Client {
     /// # async fn main() -> Result<(), Box<dyn std::error::Error>> {
     /// # let client = Client::new("my token");
     /// #
-    /// let info = client.gateway().authed().await?;
+    /// let info = client.gateway().authed().await?.model().await?;
     ///
     /// println!("URL: {}", info.url);
     /// println!("Recommended shards to use: {}", info.shards);
@@ -905,6 +904,8 @@ impl Client {
     /// let member = client.update_guild_member(GuildId(1), UserId(2))
     ///     .mute(true)
     ///     .nick(Some("pinkie pie".to_owned()))?
+    ///     .await?
+    ///     .model()
     ///     .await?;
     ///
     /// println!("user {} now has the nickname '{:?}'", member.user.id, member.nick);
@@ -2140,7 +2141,7 @@ impl Client {
     /// Returns an [`ErrorType::Unauthorized`] error type if the configured
     /// token has become invalid due to expiration, revokation, etc.
     #[allow(clippy::too_many_lines)]
-    pub async fn raw(&self, request: Request) -> Result<Response<Body>, Error> {
+    pub async fn request<T>(&self, request: Request) -> Result<Response<T>, Error> {
         if self.state.token_invalid.load(Ordering::Relaxed) {
             return Err(Error {
                 kind: ErrorType::Unauthorized,
@@ -2263,16 +2264,17 @@ impl Client {
         let ratelimiter = match self.state.ratelimiter.as_ref() {
             Some(ratelimiter) => ratelimiter,
             None => {
-                return fut
-                    .await
-                    .map_err(|source| Error {
-                        kind: ErrorType::RequestTimedOut,
-                        source: Some(Box::new(source)),
-                    })?
-                    .map_err(|source| Error {
-                        kind: ErrorType::RequestError,
-                        source: Some(Box::new(source)),
-                    });
+                return Ok(Response::new(
+                    fut.await
+                        .map_err(|source| Error {
+                            kind: ErrorType::RequestTimedOut,
+                            source: Some(Box::new(source)),
+                        })?
+                        .map_err(|source| Error {
+                            kind: ErrorType::RequestError,
+                            source: Some(Box::new(source)),
+                        })?,
+                ));
             }
         };
 
@@ -2296,7 +2298,7 @@ impl Client {
         // If the API sent back an Unauthorized response, then the client's
         // configured token is permanently invalid and future requests must be
         // ignored to avoid API bans.
-        if resp.status() == StatusCode::UNAUTHORIZED {
+        if resp.status() == HyperStatusCode::UNAUTHORIZED {
             self.state.token_invalid.store(true, Ordering::Relaxed);
         }
 
@@ -2313,74 +2315,25 @@ impl Client {
             }
         }
 
-        Ok(resp)
-    }
-
-    /// Execute a request, chunking and deserializing the response.
-    ///
-    /// # Errors
-    ///
-    /// Returns an [`ErrorType::Unauthorized`] error type if the configured
-    /// token has become invalid due to expiration, revokation, etc.
-    pub async fn request<T: DeserializeOwned>(&self, request: Request) -> Result<T, Error> {
-        let resp = self.make_request(request).await?;
-
-        let bytes = body::to_bytes(resp.into_body())
-            .await
-            .map_err(|source| Error {
-                kind: ErrorType::ChunkingResponse,
-                source: Some(Box::new(source)),
-            })?;
-
-        crate::json::parse_bytes(&bytes)
-    }
-
-    pub(crate) async fn request_bytes(&self, request: Request) -> Result<Bytes, Error> {
-        let resp = self.make_request(request).await?;
-
-        hyper::body::to_bytes(resp.into_body())
-            .await
-            .map_err(|source| Error {
-                kind: ErrorType::ChunkingResponse,
-                source: Some(Box::new(source)),
-            })
-    }
-
-    /// Execute a request, checking only that the response was a success.
-    ///
-    /// This will not chunk and deserialize the body of the response.
-    ///
-    /// # Errors
-    ///
-    /// Returns an [`ErrorType::Unauthorized`] error type if the configured
-    /// token has become invalid due to expiration, revokation, etc.
-    pub async fn verify(&self, request: Request) -> Result<(), Error> {
-        self.make_request(request).await?;
-
-        Ok(())
-    }
-
-    async fn make_request(&self, request: Request) -> Result<Response<Body>, Error> {
-        let resp = self.raw(request).await?;
         let status = resp.status();
 
         if status.is_success() {
-            return Ok(resp);
+            return Ok(Response::new(resp));
         }
 
         match status {
-            StatusCode::IM_A_TEAPOT => {
+            HyperStatusCode::IM_A_TEAPOT => {
                 #[cfg(feature = "tracing")]
                 tracing::warn!(
                     "discord's api now runs off of teapots -- proceed to panic: {:?}",
                     resp,
                 );
             }
-            StatusCode::TOO_MANY_REQUESTS => {
+            HyperStatusCode::TOO_MANY_REQUESTS => {
                 #[cfg(feature = "tracing")]
                 tracing::warn!("429 response: {:?}", resp);
             }
-            StatusCode::SERVICE_UNAVAILABLE => {
+            HyperStatusCode::SERVICE_UNAVAILABLE => {
                 return Err(Error {
                     kind: ErrorType::ServiceUnavailable { response: resp },
                     source: None,
@@ -2411,7 +2364,7 @@ impl Client {
             kind: ErrorType::Response {
                 body: bytes.to_vec(),
                 error,
-                status,
+                status: StatusCode::new(status.as_u16()),
             },
             source: None,
         })

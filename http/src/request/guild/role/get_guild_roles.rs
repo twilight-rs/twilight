@@ -1,14 +1,15 @@
 use crate::{
     client::Client,
     error::Error,
-    request::{Pending, Request},
+    request::{PendingResponse, Request},
+    response::marker::ListBody,
     routing::Route,
 };
 use twilight_model::{guild::Role, id::GuildId};
 
 /// Get the roles of a guild.
 pub struct GetGuildRoles<'a> {
-    fut: Option<Pending<'a, Vec<Role>>>,
+    fut: Option<PendingResponse<'a, ListBody<Role>>>,
     guild_id: GuildId,
     http: &'a Client,
 }
@@ -33,4 +34,4 @@ impl<'a> GetGuildRoles<'a> {
     }
 }
 
-poll_req!(GetGuildRoles<'_>, Vec<Role>);
+poll_req!(GetGuildRoles<'_>, ListBody<Role>);

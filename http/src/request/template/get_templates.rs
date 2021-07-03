@@ -1,14 +1,15 @@
 use crate::{
     client::Client,
     error::Error,
-    request::{Pending, Request},
+    request::{PendingResponse, Request},
+    response::marker::ListBody,
     routing::Route,
 };
 use twilight_model::{id::GuildId, template::Template};
 
 /// Get a list of templates in a guild, by ID.
 pub struct GetTemplates<'a> {
-    fut: Option<Pending<'a, Vec<Template>>>,
+    fut: Option<PendingResponse<'a, ListBody<Template>>>,
     guild_id: GuildId,
     http: &'a Client,
 }
@@ -33,4 +34,4 @@ impl<'a> GetTemplates<'a> {
     }
 }
 
-poll_req!(GetTemplates<'_>, Vec<Template>);
+poll_req!(GetTemplates<'_>, ListBody<Template>);

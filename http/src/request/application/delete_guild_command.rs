@@ -1,7 +1,8 @@
 use crate::{
     client::Client,
     error::Error,
-    request::{Pending, Request},
+    request::{PendingResponse, Request},
+    response::marker::EmptyBody,
     routing::Route,
 };
 use twilight_model::id::{ApplicationId, CommandId, GuildId};
@@ -10,7 +11,7 @@ use twilight_model::id::{ApplicationId, CommandId, GuildId};
 pub struct DeleteGuildCommand<'a> {
     application_id: ApplicationId,
     command_id: CommandId,
-    fut: Option<Pending<'a, ()>>,
+    fut: Option<PendingResponse<'a, EmptyBody>>,
     guild_id: GuildId,
     http: &'a Client,
 }
@@ -38,10 +39,10 @@ impl<'a> DeleteGuildCommand<'a> {
             guild_id: self.guild_id.0,
         });
 
-        self.fut.replace(Box::pin(self.http.verify(request)));
+        self.fut.replace(Box::pin(self.http.request(request)));
 
         Ok(())
     }
 }
 
-poll_req!(DeleteGuildCommand<'_>, ());
+poll_req!(DeleteGuildCommand<'_>, EmptyBody);

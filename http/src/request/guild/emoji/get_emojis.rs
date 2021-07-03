@@ -1,7 +1,8 @@
 use crate::{
     client::Client,
     error::Error,
-    request::{Pending, Request},
+    request::{PendingResponse, Request},
+    response::marker::ListBody,
     routing::Route,
 };
 use twilight_model::{guild::Emoji, id::GuildId};
@@ -26,7 +27,7 @@ use twilight_model::{guild::Emoji, id::GuildId};
 /// # Ok(()) }
 /// ```
 pub struct GetEmojis<'a> {
-    fut: Option<Pending<'a, Vec<Emoji>>>,
+    fut: Option<PendingResponse<'a, ListBody<Emoji>>>,
     guild_id: GuildId,
     http: &'a Client,
 }
@@ -51,4 +52,4 @@ impl<'a> GetEmojis<'a> {
     }
 }
 
-poll_req!(GetEmojis<'_>, Vec<Emoji>);
+poll_req!(GetEmojis<'_>, ListBody<Emoji>);

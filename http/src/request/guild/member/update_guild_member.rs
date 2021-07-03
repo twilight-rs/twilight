@@ -2,12 +2,13 @@ use crate::{
     client::Client,
     error::Error as HttpError,
     request::{
-        self, validate, AuditLogReason, AuditLogReasonError, NullableField, Pending, Request,
+        self, validate, AuditLogReason, AuditLogReasonError, NullableField, PendingResponse,
+        Request,
     },
+    response::{marker::MemberBody, Response},
     routing::Route,
 };
-use hyper::body::Bytes;
-use serde::{de::DeserializeSeed, Serialize};
+use serde::Serialize;
 use std::{
     error::Error,
     fmt::{Display, Formatter, Result as FmtResult},
@@ -15,15 +16,7 @@ use std::{
     pin::Pin,
     task::{Context, Poll},
 };
-use twilight_model::{
-    guild::member::{Member, MemberDeserializer},
-    id::{ChannelId, GuildId, RoleId, UserId},
-};
-
-#[cfg(not(feature = "simd-json"))]
-use serde_json::Value;
-#[cfg(feature = "simd-json")]
-use simd_json::value::OwnedValue as Value;
+use twilight_model::id::{ChannelId, GuildId, RoleId, UserId};
 
 /// The error created when the member can not be updated as configured.
 #[derive(Debug)]
@@ -98,7 +91,7 @@ struct UpdateGuildMemberFields {
 /// [the discord docs]: https://discord.com/developers/docs/resources/guild#modify-guild-member
 pub struct UpdateGuildMember<'a> {
     fields: UpdateGuildMemberFields,
-    fut: Option<Pending<'a, Bytes>>,
+    fut: Option<PendingResponse<'a, MemberBody>>,
     guild_id: GuildId,
     http: &'a Client,
     user_id: UserId,
@@ -192,7 +185,7 @@ impl<'a> UpdateGuildMember<'a> {
 
     fn start(&mut self) -> Result<(), HttpError> {
         let request = self.request()?;
-        self.fut.replace(Box::pin(self.http.request_bytes(request)));
+        self.fut.replace(Box::pin(self.http.request(request)));
 
         Ok(())
     }
@@ -208,25 +201,16 @@ impl<'a> AuditLogReason for UpdateGuildMember<'a> {
 }
 
 impl Future for UpdateGuildMember<'_> {
-    type Output = Result<Member, HttpError>;
+    type Output = Result<Response<MemberBody>, HttpError>;
 
     fn poll(mut self: Pin<&mut Self>, cx: &mut Context<'_>) -> Poll<Self::Output> {
         loop {
             if let Some(fut) = self.as_mut().fut.as_mut() {
-                let bytes = match fut.as_mut().poll(cx) {
-                    Poll::Ready(Ok(bytes)) => bytes,
-                    Poll::Ready(Err(why)) => return Poll::Ready(Err(why)),
-                    Poll::Pending => return Poll::Pending,
-                };
+                return fut.as_mut().poll(cx).map_ok(|mut res| {
+                    res.set_guild_id(self.guild_id);
 
-                let value = crate::json::from_bytes::<Value>(&bytes).map_err(HttpError::json)?;
-
-                let member_deserializer = MemberDeserializer::new(self.guild_id);
-                let member = member_deserializer
-                    .deserialize(value)
-                    .map_err(HttpError::json)?;
-
-                return Poll::Ready(Ok(member));
+                    res
+                });
             }
 
             if let Err(why) = self.as_mut().start() {

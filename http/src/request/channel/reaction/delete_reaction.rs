@@ -2,7 +2,8 @@ use super::RequestReactionType;
 use crate::{
     client::Client,
     error::Error,
-    request::{Pending, Request},
+    request::{PendingResponse, Request},
+    response::marker::EmptyBody,
     routing::Route,
 };
 use twilight_model::id::{ChannelId, MessageId};
@@ -11,7 +12,7 @@ use twilight_model::id::{ChannelId, MessageId};
 pub struct DeleteReaction<'a> {
     channel_id: ChannelId,
     emoji: RequestReactionType,
-    fut: Option<Pending<'a, ()>>,
+    fut: Option<PendingResponse<'a, EmptyBody>>,
     http: &'a Client,
     message_id: MessageId,
     target_user: String,
@@ -43,10 +44,10 @@ impl<'a> DeleteReaction<'a> {
             user: self.target_user.clone(),
         });
 
-        self.fut.replace(Box::pin(self.http.verify(request)));
+        self.fut.replace(Box::pin(self.http.request(request)));
 
         Ok(())
     }
 }
 
-poll_req!(DeleteReaction<'_>, ());
+poll_req!(DeleteReaction<'_>, EmptyBody);

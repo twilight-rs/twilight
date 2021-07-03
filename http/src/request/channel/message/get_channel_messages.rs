@@ -2,7 +2,8 @@ use super::GetChannelMessagesConfigured;
 use crate::{
     client::Client,
     error::Error as HttpError,
-    request::{validate, Pending, Request},
+    request::{validate, PendingResponse, Request},
+    response::marker::ListBody,
     routing::Route,
 };
 use std::{
@@ -108,7 +109,7 @@ struct GetChannelMessagesFields {
 pub struct GetChannelMessages<'a> {
     channel_id: ChannelId,
     fields: GetChannelMessagesFields,
-    fut: Option<Pending<'a, Vec<Message>>>,
+    fut: Option<PendingResponse<'a, ListBody<Message>>>,
     http: &'a Client,
 }
 
@@ -190,4 +191,4 @@ impl<'a> GetChannelMessages<'a> {
     }
 }
 
-poll_req!(GetChannelMessages<'_>, Vec<Message>);
+poll_req!(GetChannelMessages<'_>, ListBody<Message>);

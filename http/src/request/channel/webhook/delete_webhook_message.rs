@@ -1,7 +1,8 @@
 use crate::{
     client::Client,
     error::Error,
-    request::{self, AuditLogReason, AuditLogReasonError, Pending, Request},
+    request::{self, AuditLogReason, AuditLogReasonError, PendingResponse, Request},
+    response::marker::EmptyBody,
     routing::Route,
 };
 use twilight_model::id::{MessageId, WebhookId};
@@ -25,7 +26,7 @@ use twilight_model::id::{MessageId, WebhookId};
 /// # Ok(()) }
 /// ```
 pub struct DeleteWebhookMessage<'a> {
-    fut: Option<Pending<'a, ()>>,
+    fut: Option<PendingResponse<'a, EmptyBody>>,
     http: &'a Client,
     message_id: MessageId,
     reason: Option<String>,
@@ -67,7 +68,7 @@ impl<'a> DeleteWebhookMessage<'a> {
 
     fn start(&mut self) -> Result<(), Error> {
         let request = self.request()?;
-        self.fut.replace(Box::pin(self.http.verify(request)));
+        self.fut.replace(Box::pin(self.http.request(request)));
 
         Ok(())
     }
@@ -82,7 +83,7 @@ impl<'a> AuditLogReason for DeleteWebhookMessage<'a> {
     }
 }
 
-poll_req!(DeleteWebhookMessage<'_>, ());
+poll_req!(DeleteWebhookMessage<'_>, EmptyBody);
 
 #[cfg(test)]
 mod tests {

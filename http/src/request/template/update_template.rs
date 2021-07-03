@@ -1,7 +1,7 @@
 use crate::{
     client::Client,
     error::Error as HttpError,
-    request::{validate, Pending, Request},
+    request::{validate, PendingResponse, Request},
     routing::Route,
 };
 use serde::Serialize;
@@ -83,7 +83,7 @@ struct UpdateTemplateFields {
 /// Update the template's metadata, by ID and code.
 pub struct UpdateTemplate<'a> {
     fields: UpdateTemplateFields,
-    fut: Option<Pending<'a, Template>>,
+    fut: Option<PendingResponse<'a, Template>>,
     guild_id: GuildId,
     http: &'a Client,
     template_code: String,

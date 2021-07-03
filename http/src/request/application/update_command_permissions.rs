@@ -3,8 +3,9 @@ use crate::{
     error::Error,
     request::{
         application::{InteractionError, InteractionErrorType},
-        validate, Pending, Request,
+        validate, PendingResponse, Request,
     },
+    response::marker::ListBody,
     routing::Route,
 };
 use serde::Serialize;
@@ -29,7 +30,7 @@ pub struct UpdateCommandPermissions<'a> {
     command_id: CommandId,
     guild_id: GuildId,
     fields: UpdateCommandPermissionsFields,
-    fut: Option<Pending<'a, Vec<CommandPermissions>>>,
+    fut: Option<PendingResponse<'a, ListBody<CommandPermissions>>>,
     http: &'a Client,
 }
 
@@ -72,4 +73,4 @@ impl<'a> UpdateCommandPermissions<'a> {
     }
 }
 
-poll_req!(UpdateCommandPermissions<'_>, Vec<CommandPermissions>);
+poll_req!(UpdateCommandPermissions<'_>, ListBody<CommandPermissions>);

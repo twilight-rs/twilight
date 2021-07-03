@@ -1,7 +1,7 @@
 use crate::{
     client::Client,
     error::Error,
-    request::{self, AuditLogReason, AuditLogReasonError, NullableField, Pending, Request},
+    request::{self, AuditLogReason, AuditLogReasonError, NullableField, PendingResponse, Request},
     routing::Route,
 };
 use serde::Serialize;
@@ -27,7 +27,7 @@ struct UpdateRoleFields {
 /// Update a role by guild id and its id.
 pub struct UpdateRole<'a> {
     fields: UpdateRoleFields,
-    fut: Option<Pending<'a, Role>>,
+    fut: Option<PendingResponse<'a, Role>>,
     guild_id: GuildId,
     http: &'a Client,
     role_id: RoleId,

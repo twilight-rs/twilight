@@ -1,7 +1,7 @@
 use crate::{
     client::Client,
     error::Error,
-    request::{Pending, Request},
+    request::{PendingResponse, Request},
     routing::Route,
 };
 use twilight_model::{
@@ -14,7 +14,7 @@ pub struct GetCommandPermissions<'a> {
     application_id: ApplicationId,
     command_id: CommandId,
     guild_id: GuildId,
-    fut: Option<Pending<'a, GuildCommandPermissions>>,
+    fut: Option<PendingResponse<'a, GuildCommandPermissions>>,
     http: &'a Client,
 }
 

@@ -1,7 +1,7 @@
 use crate::{
     client::Client,
     error::Error,
-    request::{PendingOption, Request},
+    request::{PendingResponse, Request},
     routing::Route,
 };
 use twilight_model::{channel::Channel, id::ChannelId};
@@ -27,7 +27,7 @@ use twilight_model::{channel::Channel, id::ChannelId};
 /// ```
 pub struct GetChannel<'a> {
     channel_id: ChannelId,
-    fut: Option<PendingOption<'a>>,
+    fut: Option<PendingResponse<'a, Channel>>,
     http: &'a Client,
 }
 
@@ -45,10 +45,10 @@ impl<'a> GetChannel<'a> {
             channel_id: self.channel_id.0,
         });
 
-        self.fut.replace(Box::pin(self.http.request_bytes(request)));
+        self.fut.replace(Box::pin(self.http.request(request)));
 
         Ok(())
     }
 }
 
-poll_req!(opt, GetChannel<'_>, Channel);
+poll_req!(GetChannel<'_>, Channel);

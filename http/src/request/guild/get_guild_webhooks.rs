@@ -1,14 +1,15 @@
 use crate::{
     client::Client,
     error::Error,
-    request::{Pending, Request},
+    request::{PendingResponse, Request},
+    response::marker::ListBody,
     routing::Route,
 };
 use twilight_model::{channel::Webhook, id::GuildId};
 
 /// Get the webhooks of a guild.
 pub struct GetGuildWebhooks<'a> {
-    fut: Option<Pending<'a, Vec<Webhook>>>,
+    fut: Option<PendingResponse<'a, ListBody<Webhook>>>,
     guild_id: GuildId,
     http: &'a Client,
 }
@@ -33,4 +34,4 @@ impl<'a> GetGuildWebhooks<'a> {
     }
 }
 
-poll_req!(GetGuildWebhooks<'_>, Vec<Webhook>);
+poll_req!(GetGuildWebhooks<'_>, ListBody<Webhook>);

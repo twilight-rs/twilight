@@ -1,18 +1,14 @@
+use super::ExecuteWebhookAndWait;
 use crate::{
     client::Client,
-    error::{Error, ErrorType},
-    request::{Form, PendingOption, Request},
+    error::Error,
+    request::{Form, PendingResponse, Request},
+    response::marker::EmptyBody,
     routing::Route,
 };
-use hyper::StatusCode;
 use serde::Serialize;
-use std::{
-    future::Future,
-    pin::Pin,
-    task::{Context, Poll},
-};
 use twilight_model::{
-    channel::{embed::Embed, message::AllowedMentions, Message},
+    channel::{embed::Embed, message::AllowedMentions},
     id::WebhookId,
 };
 
@@ -31,12 +27,10 @@ pub(crate) struct ExecuteWebhookFields {
     #[serde(skip_serializing_if = "Option::is_none")]
     username: Option<String>,
     #[serde(skip_serializing_if = "Option::is_none")]
-    wait: Option<bool>,
-    #[serde(skip_serializing_if = "Option::is_none")]
     pub(crate) allowed_mentions: Option<AllowedMentions>,
 }
 
-/// Executes a webhook, sending a message to its channel.
+/// Execute a webhook, sending a message to its channel.
 ///
 /// You can only specify one of [`content`], [`embeds`], or [`file`].
 ///
@@ -51,7 +45,7 @@ pub(crate) struct ExecuteWebhookFields {
 /// let client = Client::new("my token");
 /// let id = WebhookId(432);
 ///
-/// let webhook = client
+/// client
 ///     .execute_webhook(id, "webhook token")
 ///     .content("Pinkie...")
 ///     .await?;
@@ -64,8 +58,8 @@ pub(crate) struct ExecuteWebhookFields {
 pub struct ExecuteWebhook<'a> {
     pub(crate) fields: ExecuteWebhookFields,
     files: Vec<(String, Vec<u8>)>,
-    fut: Option<PendingOption<'a>>,
-    http: &'a Client,
+    fut: Option<PendingResponse<'a, EmptyBody>>,
+    pub(super) http: &'a Client,
     token: String,
     webhook_id: WebhookId,
 }
@@ -156,9 +150,10 @@ impl<'a> ExecuteWebhook<'a> {
     /// let message = client.execute_webhook(WebhookId(1), "token here")
     ///     .content("some content")
     ///     .embeds(vec![EmbedBuilder::new().title("title").build()?])
-    ///     .wait(true)
+    ///     .wait()
     ///     .await?
-    ///     .unwrap();
+    ///     .model()
+    ///     .await?;
     ///
     /// assert_eq!(message.content, "some content");
     /// # Ok(()) }
@@ -176,9 +171,10 @@ impl<'a> ExecuteWebhook<'a> {
     /// let message = client.execute_webhook(WebhookId(1), "token here")
     ///     .content("some content")
     ///     .payload_json(r#"{ "content": "other content", "embeds": [ { "title": "title" } ] }"#)
-    ///     .wait(true)
+    ///     .wait()
     ///     .await?
-    ///     .unwrap();
+    ///     .model()
+    ///     .await?;
     ///
     /// assert_eq!(message.content, "other content");
     /// # Ok(()) }
@@ -206,20 +202,20 @@ impl<'a> ExecuteWebhook<'a> {
         self
     }
 
-    /// If true, wait for the message to send before sending a response. See [Discord Docs/Execute
-    /// Webhook]
+    /// Wait for the message to send before sending a response. See
+    /// [Discord Docs/Execute Webhook].
+    ///
+    /// Using this will result in receiving the created message.
     ///
     /// [Discord Docs/Execute Webhook]: https://discord.com/developers/docs/resources/webhook#execute-webhook-querystring-params
-    pub fn wait(mut self, wait: bool) -> Self {
-        self.fields.wait.replace(wait);
-
-        self
+    pub fn wait(self) -> ExecuteWebhookAndWait<'a> {
+        ExecuteWebhookAndWait::new(self)
     }
 
-    fn start(&mut self) -> Result<(), Error> {
+    pub(super) fn request(&mut self, wait: bool) -> Result<Request, Error> {
         let mut request = Request::builder(Route::ExecuteWebhook {
             token: self.token.clone(),
-            wait: self.fields.wait,
+            wait: Some(wait),
             webhook_id: self.webhook_id.0,
         });
 
@@ -246,43 +242,16 @@ impl<'a> ExecuteWebhook<'a> {
             request = request.json(&self.fields)?;
         }
 
-        self.fut
-            .replace(Box::pin(self.http.request_bytes(request.build())));
+        Ok(request.build())
+    }
+
+    fn start(&mut self) -> Result<(), Error> {
+        let request = self.request(false)?;
+
+        self.fut.replace(Box::pin(self.http.request(request)));
 
         Ok(())
     }
 }
 
-impl Future for ExecuteWebhook<'_> {
-    type Output = Result<Option<Message>, Error>;
-
-    fn poll(mut self: Pin<&mut Self>, cx: &mut Context<'_>) -> Poll<Self::Output> {
-        loop {
-            if let Some(fut) = self.as_mut().fut.as_mut() {
-                let bytes = match fut.as_mut().poll(cx) {
-                    Poll::Ready(Ok(bytes)) => bytes,
-                    Poll::Ready(Err(Error {
-                        kind: ErrorType::Response { status, .. },
-                        source: None,
-                    })) if status == StatusCode::NOT_FOUND => {
-                        return Poll::Ready(Ok(None));
-                    }
-                    Poll::Ready(Err(why)) => return Poll::Ready(Err(why)),
-                    Poll::Pending => return Poll::Pending,
-                };
-
-                if !self.fields.wait.unwrap_or_default() {
-                    return Poll::Ready(Ok(None));
-                }
-
-                let message = crate::json::parse_bytes::<Message>(&bytes)?;
-
-                return Poll::Ready(Ok(Some(message)));
-            }
-
-            if let Err(why) = self.as_mut().start() {
-                return Poll::Ready(Err(why));
-            }
-        }
-    }
-}
+poll_req!(ExecuteWebhook<'_>, EmptyBody);

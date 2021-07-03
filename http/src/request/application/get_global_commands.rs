@@ -1,7 +1,8 @@
 use crate::{
     client::Client,
     error::Error,
-    request::{Pending, Request},
+    request::{PendingResponse, Request},
+    response::marker::ListBody,
     routing::Route,
 };
 use twilight_model::{application::command::Command, id::ApplicationId};
@@ -9,7 +10,7 @@ use twilight_model::{application::command::Command, id::ApplicationId};
 /// Retrieve all global commands for an application.
 pub struct GetGlobalCommands<'a> {
     application_id: ApplicationId,
-    fut: Option<Pending<'a, Vec<Command>>>,
+    fut: Option<PendingResponse<'a, ListBody<Command>>>,
     http: &'a Client,
 }
 
@@ -33,4 +34,4 @@ impl<'a> GetGlobalCommands<'a> {
     }
 }
 
-poll_req!(GetGlobalCommands<'_>, Vec<Command>);
+poll_req!(GetGlobalCommands<'_>, ListBody<Command>);

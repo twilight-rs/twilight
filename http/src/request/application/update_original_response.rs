@@ -3,7 +3,7 @@
 use crate::{
     client::Client,
     error::Error as HttpError,
-    request::{validate, Form, NullableField, Pending, Request},
+    request::{validate, Form, NullableField, PendingResponse, Request},
     routing::Route,
 };
 use serde::Serialize;
@@ -156,7 +156,7 @@ pub struct UpdateOriginalResponse<'a> {
     application_id: ApplicationId,
     fields: UpdateOriginalResponseFields,
     files: Vec<(String, Vec<u8>)>,
-    fut: Option<Pending<'a, Message>>,
+    fut: Option<PendingResponse<'a, Message>>,
     http: &'a Client,
     token: String,
 }

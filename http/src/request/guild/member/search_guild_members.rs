@@ -1,11 +1,10 @@
 use crate::{
     client::Client,
     error::Error as HttpError,
-    request::{validate, Pending, Request},
+    request::{validate, PendingResponse, Request},
+    response::{marker::MemberListBody, Response},
     routing::Route,
 };
-use hyper::body::Bytes;
-use serde::de::DeserializeSeed;
 use std::{
     error::Error,
     fmt::{Display, Formatter, Result as FmtResult},
@@ -13,15 +12,7 @@ use std::{
     pin::Pin,
     task::{Context, Poll},
 };
-use twilight_model::{
-    guild::member::{Member, MemberDeserializer},
-    id::GuildId,
-};
-
-#[cfg(not(feature = "simd-json"))]
-use serde_json::Value;
-#[cfg(feature = "simd-json")]
-use simd_json::value::OwnedValue as Value;
+use twilight_model::id::GuildId;
 
 /// The error created when the members can not be queried as configured.
 #[derive(Debug)]
@@ -110,7 +101,7 @@ struct SearchGuildMembersFields {
 /// [`GUILD_MEMBERS`]: twilight_model::gateway::Intents#GUILD_MEMBERS
 pub struct SearchGuildMembers<'a> {
     fields: SearchGuildMembersFields,
-    fut: Option<Pending<'a, Bytes>>,
+    fut: Option<PendingResponse<'a, MemberListBody>>,
     guild_id: GuildId,
     http: &'a Client,
 }
@@ -158,42 +149,28 @@ impl<'a> SearchGuildMembers<'a> {
             query: self.fields.query.clone(),
         });
 
-        self.fut.replace(Box::pin(self.http.request_bytes(request)));
+        self.fut.replace(Box::pin(self.http.request(request)));
 
         Ok(())
     }
 }
 
 impl Future for SearchGuildMembers<'_> {
-    type Output = Result<Vec<Member>, HttpError>;
+    type Output = Result<Response<MemberListBody>, HttpError>;
 
     fn poll(mut self: Pin<&mut Self>, cx: &mut Context<'_>) -> Poll<Self::Output> {
-        if self.fut.is_none() {
-            self.as_mut().start()?;
-        }
+        loop {
+            if let Some(fut) = self.as_mut().fut.as_mut() {
+                return fut.as_mut().poll(cx).map_ok(|mut res| {
+                    res.set_guild_id(self.guild_id);
 
-        let fut = self.fut.as_mut().expect("future is created");
-
-        match fut.as_mut().poll(cx) {
-            Poll::Ready(res) => {
-                let bytes = res?;
-                let mut members = Vec::new();
-
-                let values =
-                    crate::json::from_bytes::<Vec<Value>>(&bytes).map_err(HttpError::json)?;
-
-                for value in values {
-                    let member_deserializer = MemberDeserializer::new(self.guild_id);
-                    members.push(
-                        member_deserializer
-                            .deserialize(value)
-                            .map_err(HttpError::json)?,
-                    );
-                }
-
-                Poll::Ready(Ok(members))
+                    res
+                });
             }
-            Poll::Pending => Poll::Pending,
+
+            if let Err(why) = self.as_mut().start() {
+                return Poll::Ready(Err(why));
+            }
         }
     }
 }

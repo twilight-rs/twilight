@@ -4,7 +4,7 @@ use crate::{
     request::{
         multipart::Form,
         validate::{self, EmbedValidationError},
-        Pending, Request,
+        PendingResponse, Request,
     },
     routing::Route,
 };
@@ -147,7 +147,7 @@ pub struct CreateMessage<'a> {
     channel_id: ChannelId,
     pub(crate) fields: CreateMessageFields,
     files: Vec<(String, Vec<u8>)>,
-    fut: Option<Pending<'a, Message>>,
+    fut: Option<PendingResponse<'a, Message>>,
     http: &'a Client,
 }
 

@@ -1,7 +1,8 @@
 use crate::{
     client::Client,
     error::Error,
-    request::{Pending, Request},
+    request::{PendingResponse, Request},
+    response::marker::ListBody,
     routing::Route,
 };
 use twilight_model::user::Connection;
@@ -10,7 +11,7 @@ use twilight_model::user::Connection;
 ///
 /// Requires the `connections` `OAuth2` scope.
 pub struct GetCurrentUserConnections<'a> {
-    fut: Option<Pending<'a, Vec<Connection>>>,
+    fut: Option<PendingResponse<'a, ListBody<Connection>>>,
     http: &'a Client,
 }
 
@@ -28,4 +29,4 @@ impl<'a> GetCurrentUserConnections<'a> {
     }
 }
 
-poll_req!(GetCurrentUserConnections<'_>, Vec<Connection>);
+poll_req!(GetCurrentUserConnections<'_>, ListBody<Connection>);

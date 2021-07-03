@@ -1,7 +1,8 @@
 use crate::{
     client::Client,
     error::Error,
-    request::{Pending, Request},
+    request::{PendingResponse, Request},
+    response::marker::EmptyBody,
     routing::Route,
 };
 use serde::Serialize;
@@ -15,7 +16,7 @@ struct UpdateCurrentUserNickFields {
 /// Changes the user's nickname in a guild.
 pub struct UpdateCurrentUserNick<'a> {
     fields: UpdateCurrentUserNickFields,
-    fut: Option<Pending<'a, ()>>,
+    fut: Option<PendingResponse<'a, EmptyBody>>,
     guild_id: GuildId,
     http: &'a Client,
 }
@@ -37,10 +38,10 @@ impl<'a> UpdateCurrentUserNick<'a> {
         .json(&self.fields)?
         .build();
 
-        self.fut.replace(Box::pin(self.http.verify(request)));
+        self.fut.replace(Box::pin(self.http.request(request)));
 
         Ok(())
     }
 }
 
-poll_req!(UpdateCurrentUserNick<'_>, ());
+poll_req!(UpdateCurrentUserNick<'_>, EmptyBody);

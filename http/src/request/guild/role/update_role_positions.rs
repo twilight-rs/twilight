@@ -1,7 +1,8 @@
 use crate::{
     client::Client,
     error::Error,
-    request::{Pending, Request},
+    request::{PendingResponse, Request},
+    response::marker::ListBody,
     routing::Route,
 };
 use twilight_model::{
@@ -13,7 +14,7 @@ use twilight_model::{
 ///
 /// The minimum amount of roles to modify, is a swap between two roles.
 pub struct UpdateRolePositions<'a> {
-    fut: Option<Pending<'a, Vec<Role>>>,
+    fut: Option<PendingResponse<'a, ListBody<Role>>>,
     guild_id: GuildId,
     http: &'a Client,
     roles: Vec<(RoleId, u64)>,
@@ -46,4 +47,4 @@ impl<'a> UpdateRolePositions<'a> {
     }
 }
 
-poll_req!(UpdateRolePositions<'_>, Vec<Role>);
+poll_req!(UpdateRolePositions<'_>, ListBody<Role>);
