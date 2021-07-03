@@ -1,7 +1,7 @@
 use crate::{
     client::Client,
     error::Error,
-    request::{Pending, Request},
+    request::{PendingResponse, Request},
     routing::Route,
 };
 use twilight_model::gateway::connection_info::BotConnectionInfo;
@@ -11,7 +11,7 @@ use twilight_model::gateway::connection_info::BotConnectionInfo;
 /// Returns additional information: the recommended number of shards to use, and information on
 /// the current session start limit.
 pub struct GetGatewayAuthed<'a> {
-    fut: Option<Pending<'a, BotConnectionInfo>>,
+    fut: Option<PendingResponse<'a, BotConnectionInfo>>,
     http: &'a Client,
 }
 

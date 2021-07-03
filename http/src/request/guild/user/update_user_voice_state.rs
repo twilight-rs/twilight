@@ -1,7 +1,8 @@
 use crate::{
     client::Client,
     error::Error,
-    request::{Pending, Request},
+    request::{PendingResponse, Request},
+    response::marker::EmptyBody,
     routing::Route,
 };
 use serde::Serialize;
@@ -17,7 +18,7 @@ struct UpdateUserVoiceStateFields {
 /// Update another user's voice state.
 pub struct UpdateUserVoiceState<'a> {
     fields: UpdateUserVoiceStateFields,
-    fut: Option<Pending<'a, ()>>,
+    fut: Option<PendingResponse<'a, EmptyBody>>,
     guild_id: GuildId,
     http: &'a Client,
     user_id: UserId,
@@ -68,10 +69,10 @@ impl<'a> UpdateUserVoiceState<'a> {
         .json(&self.fields)?
         .build();
 
-        self.fut.replace(Box::pin(self.http.verify(request)));
+        self.fut.replace(Box::pin(self.http.request(request)));
 
         Ok(())
     }
 }
 
-poll_req!(UpdateUserVoiceState<'_>, ());
+poll_req!(UpdateUserVoiceState<'_>, EmptyBody);

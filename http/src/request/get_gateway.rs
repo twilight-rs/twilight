@@ -1,7 +1,7 @@
 use crate::{
     client::Client,
     error::Error,
-    request::{GetGatewayAuthed, Pending, Request},
+    request::{GetGatewayAuthed, PendingResponse, Request},
     routing::Route,
 };
 use twilight_model::gateway::connection_info::ConnectionInfo;
@@ -20,7 +20,7 @@ use twilight_model::gateway::connection_info::ConnectionInfo;
 /// # async fn main() -> Result<(), Box<dyn std::error::Error>> {
 /// let client = Client::new("my token");
 ///
-/// let info = client.gateway().await?;
+/// let info = client.gateway().await?.model().await?;
 /// # Ok(()) }
 /// ```
 ///
@@ -34,14 +34,14 @@ use twilight_model::gateway::connection_info::ConnectionInfo;
 /// # async fn main() -> Result<(), Box<dyn std::error::Error>> {
 /// let client = Client::new("my token");
 ///
-/// let info = client.gateway().authed().await?;
+/// let info = client.gateway().authed().await?.model().await?;
 ///
 /// println!("URL: {}", info.url);
 /// println!("Recommended shards to use: {}", info.shards);
 /// # Ok(()) }
 /// ```
 pub struct GetGateway<'a> {
-    fut: Option<Pending<'a, ConnectionInfo>>,
+    fut: Option<PendingResponse<'a, ConnectionInfo>>,
     http: &'a Client,
 }
 

@@ -3,7 +3,7 @@ use crate::{
     error::Error as HttpError,
     request::{
         validate::{self, EmbedValidationError},
-        NullableField, Pending, Request,
+        NullableField, PendingResponse, Request,
     },
     routing::Route,
 };
@@ -167,7 +167,7 @@ struct UpdateMessageFields {
 pub struct UpdateMessage<'a> {
     channel_id: ChannelId,
     fields: UpdateMessageFields,
-    fut: Option<Pending<'a, Message>>,
+    fut: Option<PendingResponse<'a, Message>>,
     http: &'a Client,
     message_id: MessageId,
 }

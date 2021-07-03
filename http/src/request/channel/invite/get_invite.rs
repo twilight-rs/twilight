@@ -1,7 +1,7 @@
 use crate::{
     client::Client,
     error::Error,
-    request::{PendingOption, Request},
+    request::{PendingResponse, Request},
     routing::Route,
 };
 use twilight_model::invite::Invite;
@@ -39,7 +39,7 @@ struct GetInviteFields {
 pub struct GetInvite<'a> {
     code: String,
     fields: GetInviteFields,
-    fut: Option<PendingOption<'a>>,
+    fut: Option<PendingResponse<'a, Invite>>,
     http: &'a Client,
 }
 
@@ -74,10 +74,10 @@ impl<'a> GetInvite<'a> {
             with_expiration: self.fields.with_expiration,
         });
 
-        self.fut.replace(Box::pin(self.http.request_bytes(request)));
+        self.fut.replace(Box::pin(self.http.request(request)));
 
         Ok(())
     }
 }
 
-poll_req!(opt, GetInvite<'_>, Invite);
+poll_req!(GetInvite<'_>, Invite);

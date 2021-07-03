@@ -1,14 +1,14 @@
 use crate::{
     client::Client,
     error::Error,
-    request::{PendingOption, Request},
+    request::{PendingResponse, Request},
     routing::Route,
 };
 use twilight_model::user::User;
 
 /// Get a user's information by id.
 pub struct GetUser<'a> {
-    fut: Option<PendingOption<'a>>,
+    fut: Option<PendingResponse<'a, User>>,
     http: &'a Client,
     target_user: String,
 }
@@ -27,10 +27,10 @@ impl<'a> GetUser<'a> {
             target_user: self.target_user.clone(),
         });
 
-        self.fut.replace(Box::pin(self.http.request_bytes(request)));
+        self.fut.replace(Box::pin(self.http.request(request)));
 
         Ok(())
     }
 }
 
-poll_req!(opt, GetUser<'_>, User);
+poll_req!(GetUser<'_>, User);

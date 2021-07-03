@@ -1,7 +1,7 @@
 use crate::{
     client::Client,
     error::Error,
-    request::{Pending, Request},
+    request::{PendingResponse, Request},
     routing::Route,
 };
 use serde::Serialize;
@@ -17,7 +17,7 @@ struct CreatePrivateChannelFields {
 /// This endpoint is limited to 10 active group DMs.
 pub struct CreatePrivateChannel<'a> {
     fields: CreatePrivateChannelFields,
-    fut: Option<Pending<'a, PrivateChannel>>,
+    fut: Option<PendingResponse<'a, PrivateChannel>>,
     http: &'a Client,
 }
 

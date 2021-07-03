@@ -1,7 +1,7 @@
 use crate::{
     client::Client,
     error::Error,
-    request::{PendingOption, Request},
+    request::{PendingResponse, Request},
     routing::Route,
 };
 use twilight_model::{
@@ -14,7 +14,7 @@ use twilight_model::{
 /// [`WebhookId`]: twilight_model::id::WebhookId
 /// [`MessageId`]: twilight_model::id::MessageId
 pub struct GetWebhookMessage<'a> {
-    fut: Option<PendingOption<'a>>,
+    fut: Option<PendingResponse<'a, Message>>,
     http: &'a Client,
     message_id: MessageId,
     token: String,
@@ -46,10 +46,10 @@ impl<'a> GetWebhookMessage<'a> {
         .use_authorization_token(false)
         .build();
 
-        self.fut.replace(Box::pin(self.http.request_bytes(request)));
+        self.fut.replace(Box::pin(self.http.request(request)));
 
         Ok(())
     }
 }
 
-poll_req!(opt, GetWebhookMessage<'_>, Message);
+poll_req!(GetWebhookMessage<'_>, Message);

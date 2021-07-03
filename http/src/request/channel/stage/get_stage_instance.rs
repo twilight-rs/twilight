@@ -1,7 +1,7 @@
 use crate::{
     client::Client,
     error::Error,
-    request::{Pending, Request},
+    request::{PendingResponse, Request},
     routing::Route,
 };
 use twilight_model::{channel::StageInstance, id::ChannelId};
@@ -9,7 +9,7 @@ use twilight_model::{channel::StageInstance, id::ChannelId};
 /// Gets the stage instance associated with a stage channel, if it exists.
 pub struct GetStageInstance<'a> {
     channel_id: ChannelId,
-    fut: Option<Pending<'a, Option<StageInstance>>>,
+    fut: Option<PendingResponse<'a, StageInstance>>,
     http: &'a Client,
 }
 
@@ -33,4 +33,4 @@ impl<'a> GetStageInstance<'a> {
     }
 }
 
-poll_req!(GetStageInstance<'_>, Option<StageInstance>);
+poll_req!(GetStageInstance<'_>, StageInstance);

@@ -2,7 +2,8 @@ use crate::{
     client::Client,
     error::Error as HttpError,
     request::{
-        self, validate, AuditLogReason, AuditLogReasonError, NullableField, Pending, Request,
+        self, validate, AuditLogReason, AuditLogReasonError, NullableField, PendingResponse,
+        Request,
     },
     routing::Route,
 };
@@ -113,7 +114,7 @@ struct UpdateGuildFields {
 /// [the discord docs]: https://discord.com/developers/docs/resources/guild#modify-guild
 pub struct UpdateGuild<'a> {
     fields: UpdateGuildFields,
-    fut: Option<Pending<'a, PartialGuild>>,
+    fut: Option<PendingResponse<'a, PartialGuild>>,
     guild_id: GuildId,
     http: &'a Client,
     reason: Option<String>,

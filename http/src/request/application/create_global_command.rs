@@ -3,8 +3,9 @@ use crate::{
     error::Error as HttpError,
     request::{
         application::{InteractionError, InteractionErrorType},
-        validate, Pending, Request,
+        validate, PendingResponse, Request,
     },
+    response::marker::EmptyBody,
     routing::Route,
 };
 use twilight_model::{
@@ -23,7 +24,7 @@ use twilight_model::{
 pub struct CreateGlobalCommand<'a> {
     command: Command,
     application_id: ApplicationId,
-    fut: Option<Pending<'a, ()>>,
+    fut: Option<PendingResponse<'a, EmptyBody>>,
     http: &'a Client,
     optional_option_added: bool,
 }
@@ -104,10 +105,10 @@ impl<'a> CreateGlobalCommand<'a> {
         .json(&self.command)?;
 
         self.fut
-            .replace(Box::pin(self.http.verify(request.build())));
+            .replace(Box::pin(self.http.request(request.build())));
 
         Ok(())
     }
 }
 
-poll_req!(CreateGlobalCommand<'_>, ());
+poll_req!(CreateGlobalCommand<'_>, EmptyBody);

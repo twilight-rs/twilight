@@ -1,7 +1,7 @@
 use crate::{
     client::Client,
     error::Error,
-    request::{PendingOption, Request},
+    request::{PendingResponse, Request},
     routing::Route,
 };
 use twilight_model::{guild::GuildWidget, id::GuildId};
@@ -12,7 +12,7 @@ use twilight_model::{guild::GuildWidget, id::GuildId};
 ///
 /// [the discord docs]: https://discord.com/developers/docs/resources/guild#get-guild-widget
 pub struct GetGuildWidget<'a> {
-    fut: Option<PendingOption<'a>>,
+    fut: Option<PendingResponse<'a, GuildWidget>>,
     guild_id: GuildId,
     http: &'a Client,
 }
@@ -31,10 +31,10 @@ impl<'a> GetGuildWidget<'a> {
             guild_id: self.guild_id.0,
         });
 
-        self.fut.replace(Box::pin(self.http.request_bytes(request)));
+        self.fut.replace(Box::pin(self.http.request(request)));
 
         Ok(())
     }
 }
 
-poll_req!(opt, GetGuildWidget<'_>, GuildWidget);
+poll_req!(GetGuildWidget<'_>, GuildWidget);

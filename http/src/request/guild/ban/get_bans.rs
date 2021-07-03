@@ -1,7 +1,8 @@
 use crate::{
     client::Client,
     error::Error,
-    request::{Pending, Request},
+    request::{PendingResponse, Request},
+    response::marker::ListBody,
     routing::Route,
 };
 use twilight_model::{guild::Ban, id::GuildId};
@@ -26,7 +27,7 @@ use twilight_model::{guild::Ban, id::GuildId};
 /// # Ok(()) }
 /// ```
 pub struct GetBans<'a> {
-    fut: Option<Pending<'a, Vec<Ban>>>,
+    fut: Option<PendingResponse<'a, ListBody<Ban>>>,
     guild_id: GuildId,
     http: &'a Client,
 }
@@ -51,4 +52,4 @@ impl<'a> GetBans<'a> {
     }
 }
 
-poll_req!(GetBans<'_>, Vec<Ban>);
+poll_req!(GetBans<'_>, ListBody<Ban>);

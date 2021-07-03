@@ -1,7 +1,8 @@
 use crate::{
     client::Client,
     error::Error,
-    request::{Pending, Request},
+    request::{PendingResponse, Request},
+    response::marker::EmptyBody,
     routing::Route,
 };
 use twilight_model::id::ChannelId;
@@ -9,7 +10,7 @@ use twilight_model::id::ChannelId;
 /// Fire a Typing Start event in the channel.
 pub struct CreateTypingTrigger<'a> {
     channel_id: ChannelId,
-    fut: Option<Pending<'a, ()>>,
+    fut: Option<PendingResponse<'a, EmptyBody>>,
     http: &'a Client,
 }
 
@@ -27,10 +28,10 @@ impl<'a> CreateTypingTrigger<'a> {
             channel_id: self.channel_id.0,
         });
 
-        self.fut.replace(Box::pin(self.http.verify(request)));
+        self.fut.replace(Box::pin(self.http.request(request)));
 
         Ok(())
     }
 }
 
-poll_req!(CreateTypingTrigger<'_>, ());
+poll_req!(CreateTypingTrigger<'_>, EmptyBody);

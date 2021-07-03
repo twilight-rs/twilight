@@ -1,7 +1,8 @@
 use crate::{
     client::Client,
     error::Error,
-    request::{self, AuditLogReason, AuditLogReasonError, Pending, Request},
+    request::{self, AuditLogReason, AuditLogReasonError, PendingResponse, Request},
+    response::marker::EmptyBody,
     routing::Route,
 };
 use serde::Serialize;
@@ -23,7 +24,7 @@ struct UpdateChannelPermissionConfiguredFields {
 pub struct UpdateChannelPermissionConfigured<'a> {
     channel_id: ChannelId,
     fields: UpdateChannelPermissionConfiguredFields,
-    fut: Option<Pending<'a, ()>>,
+    fut: Option<PendingResponse<'a, EmptyBody>>,
     http: &'a Client,
     target_id: u64,
     reason: Option<String>,
@@ -77,7 +78,7 @@ impl<'a> UpdateChannelPermissionConfigured<'a> {
     fn start(&mut self) -> Result<(), Error> {
         let request = self.request()?;
 
-        self.fut.replace(Box::pin(self.http.verify(request)));
+        self.fut.replace(Box::pin(self.http.request(request)));
 
         Ok(())
     }
@@ -92,7 +93,7 @@ impl<'a> AuditLogReason for UpdateChannelPermissionConfigured<'a> {
     }
 }
 
-poll_req!(UpdateChannelPermissionConfigured<'_>, ());
+poll_req!(UpdateChannelPermissionConfigured<'_>, EmptyBody);
 
 #[cfg(test)]
 mod tests {

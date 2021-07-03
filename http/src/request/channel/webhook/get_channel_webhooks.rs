@@ -1,7 +1,8 @@
 use crate::{
     client::Client,
     error::Error,
-    request::{Pending, Request},
+    request::{PendingResponse, Request},
+    response::marker::ListBody,
     routing::Route,
 };
 use twilight_model::{channel::Webhook, id::ChannelId};
@@ -9,7 +10,7 @@ use twilight_model::{channel::Webhook, id::ChannelId};
 /// Get all the webhooks of a channel.
 pub struct GetChannelWebhooks<'a> {
     channel_id: ChannelId,
-    fut: Option<Pending<'a, Vec<Webhook>>>,
+    fut: Option<PendingResponse<'a, ListBody<Webhook>>>,
     http: &'a Client,
 }
 
@@ -33,4 +34,4 @@ impl<'a> GetChannelWebhooks<'a> {
     }
 }
 
-poll_req!(GetChannelWebhooks<'_>, Vec<Webhook>);
+poll_req!(GetChannelWebhooks<'_>, ListBody<Webhook>);

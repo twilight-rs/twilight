@@ -1,7 +1,7 @@
 use crate::{
     client::Client,
     error::Error,
-    request::{self, AuditLogReason, AuditLogReasonError, Pending, Request},
+    request::{self, AuditLogReason, AuditLogReasonError, PendingResponse, Request},
     routing::Route,
 };
 use twilight_model::{channel::Channel, id::ChannelId};
@@ -9,7 +9,7 @@ use twilight_model::{channel::Channel, id::ChannelId};
 /// Delete a channel by ID.
 pub struct DeleteChannel<'a> {
     channel_id: ChannelId,
-    fut: Option<Pending<'a, Channel>>,
+    fut: Option<PendingResponse<'a, Channel>>,
     http: &'a Client,
     reason: Option<String>,
 }

@@ -1,7 +1,8 @@
 use crate::{
     client::Client,
     error::Error,
-    request::{self, AuditLogReason, AuditLogReasonError, Pending, Request},
+    request::{self, AuditLogReason, AuditLogReasonError, PendingResponse, Request},
+    response::marker::EmptyBody,
     routing::Route,
 };
 use twilight_model::id::{EmojiId, GuildId};
@@ -9,7 +10,7 @@ use twilight_model::id::{EmojiId, GuildId};
 /// Delete an emoji in a guild, by id.
 pub struct DeleteEmoji<'a> {
     emoji_id: EmojiId,
-    fut: Option<Pending<'a, ()>>,
+    fut: Option<PendingResponse<'a, EmptyBody>>,
     guild_id: GuildId,
     http: &'a Client,
     reason: Option<String>,
@@ -37,7 +38,7 @@ impl<'a> DeleteEmoji<'a> {
         }
 
         self.fut
-            .replace(Box::pin(self.http.verify(request.build())));
+            .replace(Box::pin(self.http.request(request.build())));
 
         Ok(())
     }
@@ -52,4 +53,4 @@ impl<'a> AuditLogReason for DeleteEmoji<'a> {
     }
 }
 
-poll_req!(DeleteEmoji<'_>, ());
+poll_req!(DeleteEmoji<'_>, EmptyBody);

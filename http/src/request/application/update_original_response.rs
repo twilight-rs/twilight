@@ -3,7 +3,8 @@
 use crate::{
     client::Client,
     error::Error as HttpError,
-    request::{validate, Form, NullableField, Pending, Request},
+    request::{validate, Form, NullableField, PendingResponse, Request},
+    response::marker::EmptyBody,
     routing::Route,
 };
 use serde::Serialize;
@@ -156,7 +157,7 @@ pub struct UpdateOriginalResponse<'a> {
     application_id: ApplicationId,
     fields: UpdateOriginalResponseFields,
     files: Vec<(String, Vec<u8>)>,
-    fut: Option<Pending<'a, ()>>,
+    fut: Option<PendingResponse<'a, EmptyBody>>,
     http: &'a Client,
     token: String,
 }
@@ -394,10 +395,10 @@ impl<'a> UpdateOriginalResponse<'a> {
 
     fn start(&mut self) -> Result<(), HttpError> {
         let request = self.request()?;
-        self.fut.replace(Box::pin(self.http.verify(request)));
+        self.fut.replace(Box::pin(self.http.request(request)));
 
         Ok(())
     }
 }
 
-poll_req!(UpdateOriginalResponse<'_>, ());
+poll_req!(UpdateOriginalResponse<'_>, EmptyBody);

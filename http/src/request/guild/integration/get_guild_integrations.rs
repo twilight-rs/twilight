@@ -1,14 +1,15 @@
 use crate::{
     client::Client,
     error::Error,
-    request::{Pending, Request},
+    request::{PendingResponse, Request},
+    response::marker::ListBody,
     routing::Route,
 };
 use twilight_model::{guild::GuildIntegration, id::GuildId};
 
 /// Get the guild's integrations.
 pub struct GetGuildIntegrations<'a> {
-    fut: Option<Pending<'a, Vec<GuildIntegration>>>,
+    fut: Option<PendingResponse<'a, ListBody<GuildIntegration>>>,
     guild_id: GuildId,
     http: &'a Client,
 }
@@ -33,4 +34,4 @@ impl<'a> GetGuildIntegrations<'a> {
     }
 }
 
-poll_req!(GetGuildIntegrations<'_>, Vec<GuildIntegration>);
+poll_req!(GetGuildIntegrations<'_>, ListBody<GuildIntegration>);

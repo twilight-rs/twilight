@@ -1,7 +1,8 @@
 use crate::{
     client::Client,
     error::Error,
-    request::{Pending, Request},
+    request::{PendingResponse, Request},
+    response::marker::ListBody,
     routing::Route,
 };
 use twilight_model::{id::GuildId, voice::VoiceRegion};
@@ -10,7 +11,7 @@ use twilight_model::{id::GuildId, voice::VoiceRegion};
 ///
 /// Can return VIP servers if the guild is VIP-enabled.
 pub struct GetGuildVoiceRegions<'a> {
-    fut: Option<Pending<'a, Vec<VoiceRegion>>>,
+    fut: Option<PendingResponse<'a, ListBody<VoiceRegion>>>,
     guild_id: GuildId,
     http: &'a Client,
 }
@@ -35,4 +36,4 @@ impl<'a> GetGuildVoiceRegions<'a> {
     }
 }
 
-poll_req!(GetGuildVoiceRegions<'_>, Vec<VoiceRegion>);
+poll_req!(GetGuildVoiceRegions<'_>, ListBody<VoiceRegion>);

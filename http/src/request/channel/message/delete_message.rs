@@ -1,7 +1,8 @@
 use crate::{
     client::Client,
     error::Error,
-    request::{self, AuditLogReason, AuditLogReasonError, Pending, Request},
+    request::{self, AuditLogReason, AuditLogReasonError, PendingResponse, Request},
+    response::marker::EmptyBody,
     routing::Route,
 };
 use twilight_model::id::{ChannelId, MessageId};
@@ -9,7 +10,7 @@ use twilight_model::id::{ChannelId, MessageId};
 /// Delete a message by [`ChannelId`] and [`MessageId`].
 pub struct DeleteMessage<'a> {
     channel_id: ChannelId,
-    fut: Option<Pending<'a, ()>>,
+    fut: Option<PendingResponse<'a, EmptyBody>>,
     http: &'a Client,
     message_id: MessageId,
     reason: Option<String>,
@@ -37,7 +38,7 @@ impl<'a> DeleteMessage<'a> {
         }
 
         self.fut
-            .replace(Box::pin(self.http.verify(request.build())));
+            .replace(Box::pin(self.http.request(request.build())));
 
         Ok(())
     }
@@ -52,4 +53,4 @@ impl<'a> AuditLogReason for DeleteMessage<'a> {
     }
 }
 
-poll_req!(DeleteMessage<'_>, ());
+poll_req!(DeleteMessage<'_>, EmptyBody);

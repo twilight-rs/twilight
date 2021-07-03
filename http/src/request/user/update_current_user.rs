@@ -1,7 +1,7 @@
 use crate::{
     client::Client,
     error::Error as HttpError,
-    request::{validate, NullableField, Pending, Request},
+    request::{validate, NullableField, PendingResponse, Request},
     routing::Route,
 };
 use serde::Serialize;
@@ -81,7 +81,7 @@ struct UpdateCurrentUserFields {
 /// rnadomized.
 pub struct UpdateCurrentUser<'a> {
     fields: UpdateCurrentUserFields,
-    fut: Option<Pending<'a, User>>,
+    fut: Option<PendingResponse<'a, User>>,
     http: &'a Client,
 }
 

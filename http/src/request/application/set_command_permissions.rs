@@ -3,7 +3,7 @@ use crate::{
     error::Error,
     request::{
         application::{InteractionError, InteractionErrorType},
-        validate, Pending, Request,
+        validate, PendingResponse, Request,
     },
     routing::Route,
 };
@@ -28,7 +28,7 @@ pub struct SetCommandPermissions<'a> {
     application_id: ApplicationId,
     guild_id: GuildId,
     fields: Vec<PartialGuildCommandPermissions>,
-    fut: Option<Pending<'a, CommandPermissions>>,
+    fut: Option<PendingResponse<'a, CommandPermissions>>,
     http: &'a Client,
 }
 

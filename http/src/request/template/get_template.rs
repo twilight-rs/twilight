@@ -1,14 +1,14 @@
 use crate::{
     client::Client,
     error::Error,
-    request::{Pending, Request},
+    request::{PendingResponse, Request},
     routing::Route,
 };
 use twilight_model::template::Template;
 
 /// Get a template by its code.
 pub struct GetTemplate<'a> {
-    fut: Option<Pending<'a, Template>>,
+    fut: Option<PendingResponse<'a, Template>>,
     http: &'a Client,
     template_code: String,
 }

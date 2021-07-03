@@ -1,7 +1,7 @@
 use crate::{
     client::Client,
     error::Error as HttpError,
-    request::{validate, Pending, Request},
+    request::{validate, PendingResponse, Request},
     routing::Route,
 };
 use std::{
@@ -74,7 +74,7 @@ struct GetGuildPruneCountFields {
 /// Get the counts of guild members to be pruned.
 pub struct GetGuildPruneCount<'a> {
     fields: GetGuildPruneCountFields,
-    fut: Option<Pending<'a, GuildPrune>>,
+    fut: Option<PendingResponse<'a, GuildPrune>>,
     guild_id: GuildId,
     http: &'a Client,
 }

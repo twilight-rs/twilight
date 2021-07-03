@@ -1,7 +1,8 @@
 use crate::{
     client::Client,
     error::Error,
-    request::{self, AuditLogReason, AuditLogReasonError, Pending, Request},
+    request::{self, AuditLogReason, AuditLogReasonError, PendingResponse, Request},
+    response::marker::EmptyBody,
     routing::Route,
 };
 use twilight_model::id::{GuildId, RoleId, UserId};
@@ -28,7 +29,7 @@ use twilight_model::id::{GuildId, RoleId, UserId};
 /// # Ok(()) }
 /// ```
 pub struct AddRoleToMember<'a> {
-    fut: Option<Pending<'a, ()>>,
+    fut: Option<PendingResponse<'a, EmptyBody>>,
     guild_id: GuildId,
     http: &'a Client,
     role_id: RoleId,
@@ -65,7 +66,7 @@ impl<'a> AddRoleToMember<'a> {
         }
 
         self.fut
-            .replace(Box::pin(self.http.verify(request.build())));
+            .replace(Box::pin(self.http.request(request.build())));
 
         Ok(())
     }
@@ -80,4 +81,4 @@ impl<'a> AuditLogReason for AddRoleToMember<'a> {
     }
 }
 
-poll_req!(AddRoleToMember<'_>, ());
+poll_req!(AddRoleToMember<'_>, EmptyBody);

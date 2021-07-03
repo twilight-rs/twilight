@@ -1,7 +1,7 @@
 use crate::{
     client::Client,
     error::Error,
-    request::{self, AuditLogReason, AuditLogReasonError, Pending, Request},
+    request::{self, AuditLogReason, AuditLogReasonError, PendingResponse, Request},
     routing::Route,
 };
 use serde::Serialize;
@@ -35,7 +35,7 @@ struct CreateWebhookFields {
 pub struct CreateWebhook<'a> {
     channel_id: ChannelId,
     fields: CreateWebhookFields,
-    fut: Option<Pending<'a, Webhook>>,
+    fut: Option<PendingResponse<'a, Webhook>>,
     http: &'a Client,
     reason: Option<String>,
 }

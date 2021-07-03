@@ -1,7 +1,8 @@
 use crate::{
     client::Client,
     error::Error,
-    request::{Pending, Request},
+    request::{PendingResponse, Request},
+    response::marker::EmptyBody,
     routing::Route,
 };
 use twilight_model::id::{ApplicationId, MessageId};
@@ -23,7 +24,7 @@ use twilight_model::id::{ApplicationId, MessageId};
 /// # Ok(()) }
 /// ```
 pub struct DeleteFollowupMessage<'a> {
-    fut: Option<Pending<'a, ()>>,
+    fut: Option<PendingResponse<'a, EmptyBody>>,
     http: &'a Client,
     message_id: MessageId,
     token: String,
@@ -58,13 +59,13 @@ impl<'a> DeleteFollowupMessage<'a> {
 
     fn start(&mut self) -> Result<(), Error> {
         let request = self.request()?;
-        self.fut.replace(Box::pin(self.http.verify(request)));
+        self.fut.replace(Box::pin(self.http.request(request)));
 
         Ok(())
     }
 }
 
-poll_req!(DeleteFollowupMessage<'_>, ());
+poll_req!(DeleteFollowupMessage<'_>, EmptyBody);
 
 #[cfg(test)]
 mod tests {

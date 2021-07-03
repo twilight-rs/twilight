@@ -1,7 +1,8 @@
 use crate::{
     client::Client,
     error::Error,
-    request::{Pending, Request},
+    request::{PendingResponse, Request},
+    response::marker::EmptyBody,
     routing::Route,
 };
 use twilight_model::{
@@ -30,7 +31,7 @@ pub struct UpdateGuildCommand<'a> {
     application_id: ApplicationId,
     command_id: CommandId,
     guild_id: GuildId,
-    fut: Option<Pending<'a, ()>>,
+    fut: Option<PendingResponse<'a, EmptyBody>>,
     http: &'a Client,
 }
 
@@ -85,10 +86,10 @@ impl<'a> UpdateGuildCommand<'a> {
         .json(&self.fields)?;
 
         self.fut
-            .replace(Box::pin(self.http.verify(request.build())));
+            .replace(Box::pin(self.http.request(request.build())));
 
         Ok(())
     }
 }
 
-poll_req!(UpdateGuildCommand<'_>, ());
+poll_req!(UpdateGuildCommand<'_>, EmptyBody);

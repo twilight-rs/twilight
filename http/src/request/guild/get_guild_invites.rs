@@ -1,7 +1,8 @@
 use crate::{
     client::Client,
     error::Error,
-    request::{Pending, Request},
+    request::{PendingResponse, Request},
+    response::marker::ListBody,
     routing::Route,
 };
 use twilight_model::{id::GuildId, invite::Invite};
@@ -12,7 +13,7 @@ use twilight_model::{id::GuildId, invite::Invite};
 ///
 /// [`MANAGE_GUILD`]: twilight_model::guild::Permissions::MANAGE_GUILD
 pub struct GetGuildInvites<'a> {
-    fut: Option<Pending<'a, Vec<Invite>>>,
+    fut: Option<PendingResponse<'a, ListBody<Invite>>>,
     guild_id: GuildId,
     http: &'a Client,
 }
@@ -37,4 +38,4 @@ impl<'a> GetGuildInvites<'a> {
     }
 }
 
-poll_req!(GetGuildInvites<'_>, Vec<Invite>);
+poll_req!(GetGuildInvites<'_>, ListBody<Invite>);

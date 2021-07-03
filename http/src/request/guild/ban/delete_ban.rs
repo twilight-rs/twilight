@@ -1,7 +1,8 @@
 use crate::{
     client::Client,
     error::Error,
-    request::{self, AuditLogReason, AuditLogReasonError, Pending, Request},
+    request::{self, AuditLogReason, AuditLogReasonError, PendingResponse, Request},
+    response::marker::EmptyBody,
     routing::Route,
 };
 use twilight_model::id::{GuildId, UserId};
@@ -27,7 +28,7 @@ use twilight_model::id::{GuildId, UserId};
 /// # Ok(()) }
 /// ```
 pub struct DeleteBan<'a> {
-    fut: Option<Pending<'a, ()>>,
+    fut: Option<PendingResponse<'a, EmptyBody>>,
     guild_id: GuildId,
     http: &'a Client,
     user_id: UserId,
@@ -56,7 +57,7 @@ impl<'a> DeleteBan<'a> {
         }
 
         self.fut
-            .replace(Box::pin(self.http.verify(request.build())));
+            .replace(Box::pin(self.http.request(request.build())));
 
         Ok(())
     }
@@ -71,4 +72,4 @@ impl<'a> AuditLogReason for DeleteBan<'a> {
     }
 }
 
-poll_req!(DeleteBan<'_>, ());
+poll_req!(DeleteBan<'_>, EmptyBody);

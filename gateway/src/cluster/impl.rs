@@ -379,6 +379,12 @@ impl Cluster {
             .map_err(|source| ClusterStartError {
                 kind: ClusterStartErrorType::RetrievingGatewayInfo,
                 source: Some(Box::new(source)),
+            })?
+            .model()
+            .await
+            .map_err(|source| ClusterStartError {
+                kind: ClusterStartErrorType::RetrievingGatewayInfo,
+                source: Some(Box::new(source)),
             })?;
 
         Ok(ShardScheme::Range {
