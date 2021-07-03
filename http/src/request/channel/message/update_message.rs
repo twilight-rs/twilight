@@ -1,7 +1,10 @@
 use crate::{
     client::Client,
     error::Error as HttpError,
-    request::{validate::{self, EmbedValidationError}, NullableField, PendingResponse, Request},
+    request::{
+        validate::{self, EmbedValidationError},
+        NullableField, PendingResponse, Request,
+    },
     routing::Route,
 };
 use serde::Serialize;

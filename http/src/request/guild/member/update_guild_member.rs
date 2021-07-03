@@ -1,7 +1,10 @@
 use crate::{
     client::Client,
     error::Error as HttpError,
-    request::{self, validate, AuditLogReason, AuditLogReasonError, NullableField, PendingResponse, Request},
+    request::{
+        self, validate, AuditLogReason, AuditLogReasonError, NullableField, PendingResponse,
+        Request,
+    },
     response::{marker::MemberBody, Response},
     routing::Route,
 };

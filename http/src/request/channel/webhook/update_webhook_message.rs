@@ -4,7 +4,8 @@ use crate::{
     client::Client,
     error::Error as HttpError,
     request::{
-        self, validate, AuditLogReason, AuditLogReasonError, Form, NullableField, PendingResponse, Request,
+        self, validate, AuditLogReason, AuditLogReasonError, Form, NullableField, PendingResponse,
+        Request,
     },
     response::marker::EmptyBody,
     routing::Route,

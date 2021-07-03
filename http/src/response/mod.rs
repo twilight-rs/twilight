@@ -48,7 +48,11 @@ pub use self::status_code::StatusCode;
 
 use self::marker::{ListBody, MemberBody, MemberListBody};
 use super::json::JsonDeserializer;
-use hyper::{Body, Error as HyperError, Response as HyperResponse, body::{self, Buf, Bytes}, header::{HeaderValue, Iter as HeaderMapIter}};
+use hyper::{
+    body::{self, Buf, Bytes},
+    header::{HeaderValue, Iter as HeaderMapIter},
+    Body, Error as HyperError, Response as HyperResponse,
+};
 use serde::de::{DeserializeOwned, DeserializeSeed};
 use std::{
     error::Error,
@@ -520,14 +524,14 @@ impl<T: DeserializeOwned + Unpin> Future for ModelFuture<T> {
 
     fn poll(mut self: Pin<&mut Self>, cx: &mut Context<'_>) -> Poll<Self::Output> {
         match Pin::new(&mut self.future).poll(cx) {
-            Poll::Ready(Ok(bytes)) => {
-                Poll::Ready(crate::json::from_bytes(&Bytes::from(bytes)).map_err(|source| {
+            Poll::Ready(Ok(bytes)) => Poll::Ready(
+                crate::json::from_bytes(&Bytes::from(bytes)).map_err(|source| {
                     DeserializeBodyError {
                         kind: DeserializeBodyErrorType::Deserializing,
                         source: Some(Box::new(source)),
                     }
-                }))
-            }
+                }),
+            ),
             Poll::Ready(Err(source)) => Poll::Ready(Err(source)),
             Poll::Pending => Poll::Pending,
         }

@@ -1,7 +1,11 @@
 use crate::{
     client::Client,
     error::Error as HttpError,
-    request::{multipart::Form, validate::{self, EmbedValidationError}, PendingResponse, Request},
+    request::{
+        multipart::Form,
+        validate::{self, EmbedValidationError},
+        PendingResponse, Request,
+    },
     routing::Route,
 };
 use serde::Serialize;
