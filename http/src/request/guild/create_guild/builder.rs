@@ -262,7 +262,7 @@ impl TextFieldsBuilder {
     /// This is used by [`new`].
     ///
     /// [`new`]: Self::new
-    pub const MIN_NAME_LENGTH: usize = 2;
+    pub const MIN_NAME_LENGTH: usize = 1;
 
     /// The maximum number of UTF-16 code points that can be in a channel name.
     ///
@@ -457,7 +457,7 @@ impl VoiceFieldsBuilder {
     /// This is used by [`new`].
     ///
     /// [`new`]: Self::new
-    pub const MIN_NAME_LENGTH: usize = 2;
+    pub const MIN_NAME_LENGTH: usize = 1;
 
     /// The maximum number of UTF-16 code points that can be in a channel name.
     ///
@@ -612,7 +612,7 @@ impl CategoryFieldsBuilder {
     /// This is used by [`new`].
     ///
     /// [`new`]: Self::new
-    pub const MIN_NAME_LENGTH: usize = 2;
+    pub const MIN_NAME_LENGTH: usize = 1;
 
     /// The maximum number of UTF-16 code points that can be in a channel name.
     ///

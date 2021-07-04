@@ -50,7 +50,7 @@ impl CreateGuildChannelError {
 #[derive(Debug)]
 #[non_exhaustive]
 pub enum CreateGuildChannelErrorType {
-    /// The length of the name is either fewer than 2 UTF-16 characters or
+    /// The length of the name is either fewer than 1 UTF-16 characters or
     /// more than 100 UTF-16 characters.
     NameInvalid {
         /// Provided name.
@@ -109,8 +109,8 @@ struct CreateGuildChannelFields {
 
 /// Create a new request to create a guild channel.
 ///
-/// All fields are optional except for name. The minimum length of the name is 2 UTF-16 characters
-/// and the maximum is 100 UTF-16 characters.
+/// All fields are optional except for name. The minimum length of the name is 1
+/// UTF-16 characters and the maximum is 100 UTF-16 characters.
 pub struct CreateGuildChannel<'a> {
     fields: CreateGuildChannelFields,
     fut: Option<Pending<'a, GuildChannel>>,

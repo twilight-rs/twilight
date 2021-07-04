@@ -224,7 +224,7 @@ impl<'a> UpdateGuild<'a> {
 
     /// Set the name of the guild.
     ///
-    /// The minimum length is 2 UTF-16 characters and the maximum is 100 UTF-16
+    /// The minimum length is 1 UTF-16 character and the maximum is 100 UTF-16
     /// characters.
     ///
     /// # Errors
