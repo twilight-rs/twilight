@@ -9,6 +9,11 @@ augment or enhance default functionality.
 
 ## Features
 
+### `link`
+
+Provides implementations for parsing and formatting entities' URLs, such as
+webhook URLs.
+
 ### `permission-calculator`
 
 Allows the use of a calculator to determine the permissions of a member in
