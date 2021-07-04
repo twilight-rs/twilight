@@ -10,10 +10,10 @@ use crate::{
         application::{
             CreateFollowupMessage, CreateGlobalCommand, CreateGuildCommand, DeleteFollowupMessage,
             DeleteGlobalCommand, DeleteGuildCommand, DeleteOriginalResponse, GetCommandPermissions,
-            GetGlobalCommands, GetGuildCommandPermissions, GetGuildCommands, InteractionCallback,
-            InteractionError, InteractionErrorType, SetCommandPermissions, SetGlobalCommands,
-            SetGuildCommands, UpdateCommandPermissions, UpdateFollowupMessage, UpdateGlobalCommand,
-            UpdateGuildCommand, UpdateOriginalResponse,
+            GetGlobalCommands, GetGuildCommandPermissions, GetGuildCommands, GetOriginalResponse,
+            InteractionCallback, InteractionError, InteractionErrorType, SetCommandPermissions,
+            SetGlobalCommands, SetGuildCommands, UpdateCommandPermissions, UpdateFollowupMessage,
+            UpdateGlobalCommand, UpdateGuildCommand, UpdateOriginalResponse,
         },
         channel::stage::create_stage_instance::CreateStageInstanceError,
         guild::{
@@ -1661,6 +1661,28 @@ impl Client {
         response: InteractionResponse,
     ) -> InteractionCallback<'_> {
         InteractionCallback::new(self, interaction_id, interaction_token, response)
+    }
+
+    /// Get the original message, by its token.
+    ///
+    /// # Errors
+    ///
+    /// Returns an [`InteractionErrorType::ApplicationIdNotPresent`]
+    /// error type if an application ID has not been configured via
+    /// [`Client::set_application_id`].
+    pub fn get_interaction_original(
+        &self,
+        interaction_token: impl Into<String>,
+    ) -> Result<GetOriginalResponse<'_>, InteractionError> {
+        let application_id = self.application_id().ok_or(InteractionError {
+            kind: InteractionErrorType::ApplicationIdNotPresent,
+        })?;
+
+        Ok(GetOriginalResponse::new(
+            self,
+            application_id,
+            interaction_token,
+        ))
     }
 
     /// Edit the original message, by its token.
