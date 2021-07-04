@@ -6,7 +6,7 @@ use crate::{
 };
 use twilight_model::{channel::Message, id::ApplicationId};
 
-/// Get an original interaction response.
+/// Get the original message, by its token.
 ///
 /// # Examples
 ///

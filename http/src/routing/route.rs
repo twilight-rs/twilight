@@ -460,9 +460,9 @@ pub enum Route {
     },
     /// Route information to get an original interaction response message.
     GetInteractionOriginal {
-        /// The ID of the owner application.
+        /// ID of the owner application.
         application_id: u64,
-        /// The token for the interaction.
+        /// Token of the interaction.
         interaction_token: String,
     },
     /// Route information to get an invite.
