@@ -9,6 +9,7 @@ mod get_command_permissions;
 mod get_global_commands;
 mod get_guild_command_permissions;
 mod get_guild_commands;
+mod get_original_response;
 mod interaction_callback;
 mod set_command_permissions;
 mod set_global_commands;
@@ -31,6 +32,7 @@ pub use self::{
     get_global_commands::GetGlobalCommands,
     get_guild_command_permissions::GetGuildCommandPermissions,
     get_guild_commands::GetGuildCommands,
+    get_original_response::GetOriginalResponse,
     interaction_callback::InteractionCallback,
     set_command_permissions::SetCommandPermissions,
     set_global_commands::SetGlobalCommands,
