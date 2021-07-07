@@ -15,12 +15,12 @@ pub enum AutoArchiveDuration {
 }
 
 impl AutoArchiveDuration {
-    /// Retrieve the length of the duration in seconds, uesd by the API
+    /// Retrieve the length of the duration in seconds, used by the API
     ///
     /// # Examples
     ///
     /// ```
-    /// use twilight_model::channel::AutoArchiveDuration;
+    /// use twilight_model::channel::thread::AutoArchiveDuration;
     ///
     /// assert_eq!(60, AutoArchiveDuration::Hour.number());
     /// ```

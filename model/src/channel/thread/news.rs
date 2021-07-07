@@ -1,9 +1,12 @@
-use crate::channel::{ChannelType, ThreadMember, ThreadMetadata};
+use crate::channel::{
+    thread::{ThreadMember, ThreadMetadata},
+    ChannelType,
+};
 use crate::id::{ChannelId, GuildId, MessageId, UserId};
 use serde::{Deserialize, Serialize};
 
 #[derive(Clone, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
-pub struct PublicThread {
+pub struct NewsThread {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub guild_id: Option<GuildId>,
     pub id: ChannelId,
@@ -28,21 +31,19 @@ pub struct PublicThread {
 
 #[cfg(test)]
 mod tests {
-    use super::PublicThread;
-    use crate::{
-        channel::{AutoArchiveDuration, ChannelType, ThreadMember, ThreadMetadata},
-        id::{ChannelId, GuildId, MessageId, UserId},
-    };
+    use super::{ChannelId, ChannelType, GuildId, MessageId, ThreadMember, ThreadMetadata, UserId};
+    use crate::channel::thread::{AutoArchiveDuration, NewsThread};
     use serde_test::Token;
 
     #[allow(clippy::too_many_lines)]
     #[test]
-    fn test_public_thread() {
-        let value = PublicThread {
+    fn test_news_thread() {
+        let value = NewsThread {
             guild_id: Some(GuildId(2)),
             id: ChannelId(1),
-            kind: ChannelType::GuildPublicThread,
+            kind: ChannelType::GuildNewsThread,
             last_message_id: Some(MessageId(5)),
+            name: "test".to_owned(),
             member_count: 7,
             member: ThreadMember {
                 id: Some(ChannelId(10)),
@@ -51,7 +52,6 @@ mod tests {
                 flags: 12,
             },
             message_count: 6,
-            name: "test".to_owned(),
             owner_id: Some(UserId(3)),
             parent_id: Some(ChannelId(4)),
             rate_limit_per_user: Some(8),
@@ -68,7 +68,7 @@ mod tests {
             &value,
             &[
                 Token::Struct {
-                    name: "PublicThread",
+                    name: "NewsThread",
                     len: 12,
                 },
                 Token::Str("guild_id"),
@@ -79,7 +79,7 @@ mod tests {
                 Token::NewtypeStruct { name: "ChannelId" },
                 Token::Str("1"),
                 Token::Str("type"),
-                Token::U8(11),
+                Token::U8(10),
                 Token::Str("last_message_id"),
                 Token::Some,
                 Token::NewtypeStruct { name: "MessageId" },

@@ -2,52 +2,44 @@ pub mod embed;
 pub mod message;
 pub mod permission_overwrite;
 pub mod stage_instance;
+pub mod thread;
 pub mod webhook;
 
 mod attachment;
-mod auto_archive_duration;
 mod category_channel;
 mod channel_mention;
 mod channel_type;
 mod followed_channel;
 mod group;
-mod news_thread;
 mod private_channel;
-mod private_thread;
-mod public_thread;
 mod reaction;
 mod reaction_type;
 mod text_channel;
-mod thread_member;
-mod thread_metadata;
 mod video_quality_mode;
 mod voice_channel;
 
 pub use self::{
     attachment::Attachment,
-    auto_archive_duration::AutoArchiveDuration,
     category_channel::CategoryChannel,
     channel_mention::ChannelMention,
     channel_type::ChannelType,
     followed_channel::FollowedChannel,
     group::Group,
     message::Message,
-    news_thread::NewsThread,
     private_channel::PrivateChannel,
-    private_thread::PrivateThread,
-    public_thread::PublicThread,
     reaction::Reaction,
     reaction_type::ReactionType,
     stage_instance::StageInstance,
     text_channel::TextChannel,
-    thread_member::ThreadMember,
-    thread_metadata::ThreadMetadata,
     video_quality_mode::VideoQualityMode,
     voice_channel::VoiceChannel,
     webhook::{Webhook, WebhookType},
 };
 
-use crate::id::{ChannelId, GuildId, MessageId};
+use crate::{
+    channel::thread::{NewsThread, PrivateThread, PublicThread},
+    id::{ChannelId, GuildId, MessageId},
+};
 use serde::{
     de::{Deserializer, Error as DeError, IgnoredAny, MapAccess, Visitor},
     Deserialize, Serialize,
