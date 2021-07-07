@@ -37,8 +37,10 @@ pub use self::{
 };
 
 use crate::{
-    channel::thread::{NewsThread, PrivateThread, PublicThread},
-    id::{ChannelId, GuildId, MessageId},
+    channel::thread::{
+        AutoArchiveDuration, NewsThread, PrivateThread, PublicThread, ThreadMember, ThreadMetadata,
+    },
+    id::{ChannelId, GuildId, MessageId, UserId},
 };
 use serde::{
     de::{Deserializer, Error as DeError, IgnoredAny, MapAccess, Visitor},
@@ -153,16 +155,22 @@ impl GuildChannel {
 #[serde(field_identifier, rename_all = "snake_case")]
 enum GuildChannelField {
     Bitrate,
+    DefaultAutoArchiveDuration,
     GuildId,
     Id,
     LastMessageId,
     LastPinTimestamp,
+    Member,
+    MemberCount,
+    MessageCount,
     Name,
     Nsfw,
+    OwnerId,
     ParentId,
     PermissionOverwrites,
     Position,
     RateLimitPerUser,
+    ThreadMetadata,
     Topic,
     Type,
     UserLimit,
@@ -183,23 +191,32 @@ impl<'de> Visitor<'de> for GuildChannelVisitor {
         const VARIANTS: &[&str] = &[
             "GuildCategory",
             "GuildNews",
+            "GuildNewsThread",
+            "GuildPrivateThread",
+            "GuildPublicThread",
             "GuildStore",
             "GuildText",
             "GuildVoice",
         ];
 
         let mut bitrate = None;
+        let mut default_auto_archive_duration: Option<Option<AutoArchiveDuration>> = None;
         let mut guild_id = None;
         let mut id = None;
         let mut kind = None;
         let mut last_message_id: Option<Option<MessageId>> = None;
         let mut last_pin_timestamp: Option<Option<String>> = None;
+        let mut member: Option<Option<ThreadMember>> = None;
+        let mut member_count: Option<u8> = None;
+        let mut message_count: Option<u8> = None;
         let mut name = None;
         let mut nsfw = None;
+        let mut owner_id: Option<Option<UserId>> = None;
         let mut parent_id: Option<Option<ChannelId>> = None;
         let mut permission_overwrites = None;
         let mut position = None;
         let mut rate_limit_per_user = None;
+        let mut thread_metadata: Option<ThreadMetadata> = None;
         let mut topic: Option<Option<String>> = None;
         let mut user_limit = None;
         let mut video_quality_mode = None;
@@ -236,6 +253,13 @@ impl<'de> Visitor<'de> for GuildChannelVisitor {
 
                     bitrate = Some(map.next_value()?);
                 }
+                GuildChannelField::DefaultAutoArchiveDuration => {
+                    if default_auto_archive_duration.is_some() {
+                        return Err(DeError::duplicate_field("default_auto_archive_duration"));
+                    }
+
+                    default_auto_archive_duration = Some(map.next_value()?);
+                }
                 GuildChannelField::GuildId => {
                     if guild_id.is_some() {
                         return Err(DeError::duplicate_field("guild_id"));
@@ -271,6 +295,27 @@ impl<'de> Visitor<'de> for GuildChannelVisitor {
 
                     last_pin_timestamp = Some(map.next_value()?);
                 }
+                GuildChannelField::Member => {
+                    if member.is_some() {
+                        return Err(DeError::duplicate_field("member"));
+                    }
+
+                    member = Some(map.next_value()?);
+                }
+                GuildChannelField::MemberCount => {
+                    if member_count.is_some() {
+                        return Err(DeError::duplicate_field("member_count"));
+                    }
+
+                    member_count = Some(map.next_value()?);
+                }
+                GuildChannelField::MessageCount => {
+                    if message_count.is_some() {
+                        return Err(DeError::duplicate_field("message_count"));
+                    }
+
+                    message_count = Some(map.next_value()?);
+                }
                 GuildChannelField::Name => {
                     if name.is_some() {
                         return Err(DeError::duplicate_field("name"));
@@ -284,6 +329,13 @@ impl<'de> Visitor<'de> for GuildChannelVisitor {
                     }
 
                     nsfw = Some(map.next_value()?);
+                }
+                GuildChannelField::OwnerId => {
+                    if owner_id.is_some() {
+                        return Err(DeError::duplicate_field("owner_id"));
+                    }
+
+                    owner_id = Some(map.next_value()?);
                 }
                 GuildChannelField::ParentId => {
                     if parent_id.is_some() {
@@ -312,6 +364,13 @@ impl<'de> Visitor<'de> for GuildChannelVisitor {
                     }
 
                     rate_limit_per_user = map.next_value::<Option<u64>>()?;
+                }
+                GuildChannelField::ThreadMetadata => {
+                    if thread_metadata.is_some() {
+                        return Err(DeError::duplicate_field("thread_metadata"));
+                    }
+
+                    thread_metadata = Some(map.next_value()?);
                 }
                 GuildChannelField::Topic => {
                     if topic.is_some() {
@@ -342,9 +401,6 @@ impl<'de> Visitor<'de> for GuildChannelVisitor {
         let id = id.ok_or_else(|| DeError::missing_field("id"))?;
         let kind = kind.ok_or_else(|| DeError::missing_field("type"))?;
         let name = name.ok_or_else(|| DeError::missing_field("name"))?;
-        let permission_overwrites =
-            permission_overwrites.ok_or_else(|| DeError::missing_field("permission_overwrites"))?;
-        let position = position.ok_or_else(|| DeError::missing_field("position"))?;
 
         let nsfw = nsfw.unwrap_or_default();
         let parent_id = parent_id.unwrap_or_default();
@@ -355,14 +411,16 @@ impl<'de> Visitor<'de> for GuildChannelVisitor {
             %name,
             %nsfw,
             ?parent_id,
-            ?permission_overwrites,
-            %position,
             "common fields of all variants exist"
         );
 
         Ok(match kind {
             ChannelType::GuildCategory => {
-                tracing::trace!("handling category channel");
+                let permission_overwrites = permission_overwrites
+                    .ok_or_else(|| DeError::missing_field("permission_overwrites"))?;
+                let position = position.ok_or_else(|| DeError::missing_field("position"))?;
+
+                tracing::trace!(?permission_overwrites, %position, "handling category channel");
 
                 GuildChannel::Category(CategoryChannel {
                     guild_id,
@@ -375,9 +433,19 @@ impl<'de> Visitor<'de> for GuildChannelVisitor {
             }
             ChannelType::GuildVoice | ChannelType::GuildStageVoice => {
                 let bitrate = bitrate.ok_or_else(|| DeError::missing_field("bitrate"))?;
+                let permission_overwrites = permission_overwrites
+                    .ok_or_else(|| DeError::missing_field("permission_overwrites"))?;
+                let position = position.ok_or_else(|| DeError::missing_field("position"))?;
                 let user_limit = user_limit.ok_or_else(|| DeError::missing_field("user_limit"))?;
 
-                tracing::trace!(%bitrate, ?user_limit, "handling voice channel");
+                tracing::trace!(
+                    %bitrate,
+                    ?permission_overwrites,
+                    %position,
+                    ?user_limit,
+                    "handling voice channel"
+                );
+
                 let voice_channel = VoiceChannel {
                     id,
                     bitrate,
@@ -401,11 +469,16 @@ impl<'de> Visitor<'de> for GuildChannelVisitor {
             ChannelType::GuildNews | ChannelType::GuildStore | ChannelType::GuildText => {
                 let last_message_id = last_message_id.unwrap_or_default();
                 let last_pin_timestamp = last_pin_timestamp.unwrap_or_default();
+                let permission_overwrites = permission_overwrites
+                    .ok_or_else(|| DeError::missing_field("permission_overwrites"))?;
+                let position = position.ok_or_else(|| DeError::missing_field("position"))?;
                 let topic = topic.unwrap_or_default();
 
                 tracing::trace!(
                     ?last_message_id,
                     ?last_pin_timestamp,
+                    ?permission_overwrites,
+                    %position,
                     ?topic,
                     "handling news, store, or text channel"
                 );
@@ -424,6 +497,103 @@ impl<'de> Visitor<'de> for GuildChannelVisitor {
                     rate_limit_per_user,
                     topic,
                 })
+            }
+            ChannelType::GuildNewsThread
+            | ChannelType::GuildPrivateThread
+            | ChannelType::GuildPublicThread => {
+                let last_message_id = last_message_id.unwrap_or_default();
+                let member = member.unwrap_or_default();
+                let member_count = member_count.unwrap_or_default();
+                let message_count = message_count.unwrap_or_default();
+                let owner_id = owner_id.unwrap_or_default();
+                let thread_metadata =
+                    thread_metadata.ok_or_else(|| DeError::missing_field("thread_metadata"))?;
+
+                match kind {
+                    ChannelType::GuildNewsThread => {
+                        tracing::trace!(
+                            ?last_message_id,
+                            ?member,
+                            ?member_count,
+                            ?message_count,
+                            ?owner_id,
+                            ?thread_metadata,
+                            "handling news thread"
+                        );
+
+                        GuildChannel::NewsThread(NewsThread {
+                            guild_id,
+                            id,
+                            kind,
+                            last_message_id,
+                            member,
+                            member_count,
+                            message_count,
+                            name,
+                            owner_id,
+                            parent_id,
+                            rate_limit_per_user,
+                            thread_metadata,
+                        })
+                    }
+                    ChannelType::GuildPrivateThread => {
+                        let permission_overwrites = permission_overwrites.unwrap_or_default();
+
+                        tracing::trace!(
+                            ?last_message_id,
+                            ?member,
+                            ?member_count,
+                            ?message_count,
+                            ?owner_id,
+                            ?permission_overwrites,
+                            ?thread_metadata,
+                            "handling private thread"
+                        );
+
+                        GuildChannel::PrivateThread(PrivateThread {
+                            guild_id,
+                            id,
+                            kind,
+                            last_message_id,
+                            member,
+                            member_count,
+                            message_count,
+                            name,
+                            owner_id,
+                            parent_id,
+                            permission_overwrites,
+                            rate_limit_per_user,
+                            thread_metadata,
+                        })
+                    }
+                    ChannelType::GuildPublicThread => {
+                        tracing::trace!(
+                            ?last_message_id,
+                            ?member,
+                            ?member_count,
+                            ?message_count,
+                            ?owner_id,
+                            ?thread_metadata,
+                            "handling public thread"
+                        );
+
+                        GuildChannel::PublicThread(PublicThread {
+                            guild_id,
+                            id,
+                            kind,
+                            last_message_id,
+                            member,
+                            member_count,
+                            message_count,
+                            name,
+                            owner_id,
+                            parent_id,
+                            rate_limit_per_user,
+                            thread_metadata,
+                        })
+                    }
+                    _ => unreachable!(),
+                }
             }
             other => return Err(DeError::unknown_variant(other.name(), VARIANTS)),
         })

@@ -15,9 +15,10 @@ pub struct PrivateThread {
     pub kind: ChannelType,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub last_message_id: Option<MessageId>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub member: Option<ThreadMember>,
     /// Max value of 50.
     pub member_count: u8,
-    pub member: ThreadMember,
     /// Max value of 50.
     pub message_count: u8,
     pub name: String,
