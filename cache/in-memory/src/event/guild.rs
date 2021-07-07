@@ -207,8 +207,8 @@ mod tests {
     use super::*;
     use twilight_model::{
         channel::{
-            AutoArchiveDuration, ChannelType, GuildChannel, PublicThread, TextChannel,
-            ThreadMember, ThreadMetadata,
+            thread::{AutoArchiveDuration, PublicThread, ThreadMember, ThreadMetadata},
+            ChannelType, GuildChannel, TextChannel,
         },
         guild::{
             DefaultMessageNotificationLevel, ExplicitContentFilter, MfaLevel, NSFWLevel,

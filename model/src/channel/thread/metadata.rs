@@ -1,6 +1,5 @@
+use crate::{channel::thread::AutoArchiveDuration, id::UserId};
 use serde::{Deserialize, Serialize};
-
-use crate::{channel::AutoArchiveDuration, id::UserId};
 
 /// The thread metadata object contains a number of thread-specific channel fields
 /// that are not needed by other channel types.
@@ -17,8 +16,7 @@ pub struct ThreadMetadata {
 
 #[cfg(test)]
 mod tests {
-    use super::ThreadMetadata;
-    use crate::{channel::AutoArchiveDuration, id::UserId};
+    use super::{AutoArchiveDuration, ThreadMetadata, UserId};
     use serde_test::Token;
 
     #[test]

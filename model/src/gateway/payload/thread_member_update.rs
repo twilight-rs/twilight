@@ -1,4 +1,4 @@
-use crate::channel::ThreadMember;
+use crate::channel::thread::ThreadMember;
 use serde::{Deserialize, Serialize};
 use std::ops::{Deref, DerefMut};
 
