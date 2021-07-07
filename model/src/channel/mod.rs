@@ -609,11 +609,13 @@ impl<'de> Deserialize<'de> for GuildChannel {
 #[cfg(test)]
 mod tests {
     use super::{
-        CategoryChannel, Channel, ChannelType, Group, GuildChannel, PrivateChannel, TextChannel,
-        VoiceChannel,
+        AutoArchiveDuration, CategoryChannel, Channel, ChannelType, Group, GuildChannel,
+        NewsThread, PrivateChannel, PrivateThread, PublicThread, TextChannel, ThreadMember,
+        ThreadMetadata, VoiceChannel,
     };
     use crate::{
-        channel::permission_overwrite::PermissionOverwrite,
+        channel::permission_overwrite::{PermissionOverwrite, PermissionOverwriteType},
+        guild::Permissions,
         id::{ChannelId, GuildId, MessageId, UserId},
     };
 
@@ -932,5 +934,195 @@ mod tests {
             }))
             .unwrap()
         );
+    }
+
+    #[test]
+    fn test_guild_news_thread_deserialization() {
+        let value = GuildChannel::NewsThread(NewsThread {
+            guild_id: Some(GuildId(1)),
+            id: ChannelId(6),
+            kind: ChannelType::GuildNewsThread,
+            last_message_id: Some(MessageId(3)),
+            member: Some(ThreadMember {
+                flags: 0_u64,
+                id: Some(ChannelId(4)),
+                join_timestamp: "jointimestamp".into(),
+                user_id: Some(UserId(5)),
+            }),
+            member_count: 50_u8,
+            message_count: 50_u8,
+            name: "newsthread".into(),
+            owner_id: Some(UserId(5)),
+            parent_id: Some(ChannelId(2)),
+            rate_limit_per_user: Some(1000_u64),
+            thread_metadata: ThreadMetadata {
+                archived: false,
+                archiver_id: Some(UserId(5)),
+                auto_archive_duration: AutoArchiveDuration::Day,
+                archive_timestamp: "archivetimestamp".into(),
+                locked: false,
+            },
+        });
+
+        assert_eq!(
+            value,
+            serde_json::from_value(serde_json::json!({
+                "id": "6",
+                "guild_id": "1",
+                "type": ChannelType::GuildNewsThread,
+                "last_message_id": "3",
+                "member": {
+                    "flags": 0,
+                    "id": "4",
+                    "join_timestamp": "jointimestamp",
+                    "user_id": "5",
+                },
+                "member_count": 50,
+                "message_count": 50,
+                "name": "newsthread",
+                "owner_id": "5",
+                "parent_id": "2",
+                "rate_limit_per_user": 1000,
+                "thread_metadata": {
+                    "archive_timestamp": "archivetimestamp",
+                    "archived": false,
+                    "archiver_id": "5",
+                    "auto_archive_duration": AutoArchiveDuration::Day,
+                    "locked": false
+                }
+            }))
+            .unwrap()
+        )
+    }
+
+    #[test]
+    fn test_guild_public_thread_deserialization() {
+        let value = GuildChannel::PublicThread(PublicThread {
+            guild_id: Some(GuildId(1)),
+            id: ChannelId(6),
+            kind: ChannelType::GuildPublicThread,
+            last_message_id: Some(MessageId(3)),
+            member: Some(ThreadMember {
+                flags: 0_u64,
+                id: Some(ChannelId(4)),
+                join_timestamp: "jointimestamp".into(),
+                user_id: Some(UserId(5)),
+            }),
+            member_count: 50_u8,
+            message_count: 50_u8,
+            name: "newsthread".into(),
+            owner_id: Some(UserId(5)),
+            parent_id: Some(ChannelId(2)),
+            rate_limit_per_user: Some(1000_u64),
+            thread_metadata: ThreadMetadata {
+                archived: false,
+                archiver_id: Some(UserId(5)),
+                auto_archive_duration: AutoArchiveDuration::Day,
+                archive_timestamp: "archivetimestamp".into(),
+                locked: false,
+            },
+        });
+
+        assert_eq!(
+            value,
+            serde_json::from_value(serde_json::json!({
+                "id": "6",
+                "guild_id": "1",
+                "type": ChannelType::GuildPublicThread,
+                "last_message_id": "3",
+                "member": {
+                    "flags": 0,
+                    "id": "4",
+                    "join_timestamp": "jointimestamp",
+                    "user_id": "5",
+                },
+                "member_count": 50,
+                "message_count": 50,
+                "name": "newsthread",
+                "owner_id": "5",
+                "parent_id": "2",
+                "rate_limit_per_user": 1000,
+                "thread_metadata": {
+                    "archive_timestamp": "archivetimestamp",
+                    "archived": false,
+                    "archiver_id": "5",
+                    "auto_archive_duration": AutoArchiveDuration::Day,
+                    "locked": false
+                }
+            }))
+            .unwrap()
+        )
+    }
+
+    #[test]
+    fn test_guild_private_thread_deserialization() {
+        let value = GuildChannel::PrivateThread(PrivateThread {
+            guild_id: Some(GuildId(1)),
+            id: ChannelId(6),
+            kind: ChannelType::GuildPrivateThread,
+            last_message_id: Some(MessageId(3)),
+            member: Some(ThreadMember {
+                flags: 0_u64,
+                id: Some(ChannelId(4)),
+                join_timestamp: "jointimestamp".into(),
+                user_id: Some(UserId(5)),
+            }),
+            member_count: 50_u8,
+            message_count: 50_u8,
+            name: "newsthread".into(),
+            owner_id: Some(UserId(5)),
+            parent_id: Some(ChannelId(2)),
+            rate_limit_per_user: Some(1000_u64),
+            thread_metadata: ThreadMetadata {
+                archived: false,
+                archiver_id: Some(UserId(5)),
+                auto_archive_duration: AutoArchiveDuration::Day,
+                archive_timestamp: "archivetimestamp".into(),
+                locked: false,
+            },
+            permission_overwrites: Vec::from([PermissionOverwrite {
+                allow: Permissions::empty(),
+                deny: Permissions::empty(),
+                kind: PermissionOverwriteType::Member(UserId(5)),
+            }]),
+        });
+
+        assert_eq!(
+            value,
+            serde_json::from_value(serde_json::json!({
+                "id": "6",
+                "guild_id": "1",
+                "type": ChannelType::GuildPrivateThread,
+                "last_message_id": "3",
+                "member": {
+                    "flags": 0,
+                    "id": "4",
+                    "join_timestamp": "jointimestamp",
+                    "user_id": "5",
+                },
+                "member_count": 50,
+                "message_count": 50,
+                "name": "newsthread",
+                "owner_id": "5",
+                "parent_id": "2",
+                "rate_limit_per_user": 1000,
+                "thread_metadata": {
+                    "archive_timestamp": "archivetimestamp",
+                    "archived": false,
+                    "archiver_id": "5",
+                    "auto_archive_duration": AutoArchiveDuration::Day,
+                    "locked": false
+                },
+                "permission_overwrites": [
+                    {
+                        "allow": "0",
+                        "deny": "0",
+                        "type": 1,
+                        "id": "5"
+                    }
+                ]
+            }))
+            .unwrap()
+        )
     }
 }
