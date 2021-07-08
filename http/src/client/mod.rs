@@ -352,9 +352,6 @@ impl Client {
     }
 
     /// Update a channel.
-    ///
-    /// All fields are optional. The minimum length of the name is 2 UTF-16 characters and the
-    /// maximum is 100 UTF-16 characters.
     pub fn update_channel(&self, channel_id: ChannelId) -> UpdateChannel<'_> {
         UpdateChannel::new(self, channel_id)
     }
@@ -711,13 +708,14 @@ impl Client {
 
     /// Create a new request to create a guild channel.
     ///
-    /// All fields are optional except for name. The minimum length of the name is 2 UTF-16
-    /// characters and the maximum is 100 UTF-16 characters.
+    /// All fields are optional except for name. The minimum length of the name
+    /// is 1 UTF-16 character and the maximum is 100 UTF-16 characters.
     ///
     /// # Errors
     ///
     /// Returns a [`CreateGuildChannelErrorType::NameInvalid`] error type when
-    /// the length of the name is either fewer than 2 UTF-16 characters or more than 100 UTF-16 characters.
+    /// the length of the name is either fewer than 1 UTF-16 character or more
+    /// than 100 UTF-16 characters.
     ///
     /// Returns a [`CreateGuildChannelErrorType::RateLimitPerUserInvalid`] error
     /// type when the seconds of the rate limit per user is more than 21600.

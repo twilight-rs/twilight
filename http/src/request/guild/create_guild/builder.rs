@@ -262,7 +262,7 @@ impl TextFieldsBuilder {
     /// This is used by [`new`].
     ///
     /// [`new`]: Self::new
-    pub const MIN_NAME_LENGTH: usize = 2;
+    pub const MIN_NAME_LENGTH: usize = 1;
 
     /// The maximum number of UTF-16 code points that can be in a channel name.
     ///
@@ -457,7 +457,7 @@ impl VoiceFieldsBuilder {
     /// This is used by [`new`].
     ///
     /// [`new`]: Self::new
-    pub const MIN_NAME_LENGTH: usize = 2;
+    pub const MIN_NAME_LENGTH: usize = 1;
 
     /// The maximum number of UTF-16 code points that can be in a channel name.
     ///
@@ -612,7 +612,7 @@ impl CategoryFieldsBuilder {
     /// This is used by [`new`].
     ///
     /// [`new`]: Self::new
-    pub const MIN_NAME_LENGTH: usize = 2;
+    pub const MIN_NAME_LENGTH: usize = 1;
 
     /// The maximum number of UTF-16 code points that can be in a channel name.
     ///
@@ -813,9 +813,9 @@ mod tests {
     #[test]
     fn test_voice_fields() {
         assert!(matches!(
-            VoiceFieldsBuilder::new("c").unwrap_err().kind(),
+            VoiceFieldsBuilder::new("").unwrap_err().kind(),
             VoiceFieldsErrorType::NameTooShort { name }
-            if name == "c"
+            if name.is_empty()
         ));
 
         let fields = voice();
@@ -852,9 +852,9 @@ mod tests {
     #[test]
     fn test_text_fields() {
         assert!(matches!(
-            TextFieldsBuilder::new("b").unwrap_err().kind(),
+            TextFieldsBuilder::new("").unwrap_err().kind(),
             TextFieldsErrorType::NameTooShort { name }
-            if name == "b"
+            if name.is_empty()
         ));
 
         let fields = text();
@@ -888,9 +888,9 @@ mod tests {
     #[test]
     fn test_category_fields() {
         assert!(matches!(
-            CategoryFieldsBuilder::new("a").unwrap_err().kind(),
+            CategoryFieldsBuilder::new("").unwrap_err().kind(),
             CategoryFieldsErrorType::NameTooShort { name }
-            if name == "a"
+            if name.is_empty()
         ));
 
         let fields = category();

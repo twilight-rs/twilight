@@ -62,8 +62,8 @@ impl Error for UpdateChannelError {}
 #[derive(Debug)]
 #[non_exhaustive]
 pub enum UpdateChannelErrorType {
-    /// The length of the name is either fewer than 2 UTF-16 characters or
-    /// more than 100 UTF-16 characters.
+    /// The length of the name is either fewer than 1 UTF-16 character or more
+    /// than 100 UTF-16 characters.
     NameInvalid {
         /// Provided name.
         name: String,
@@ -111,8 +111,8 @@ struct UpdateChannelFields {
 
 /// Update a channel.
 ///
-/// All fields are optional. The minimum length of the name is 2 UTF-16 characters and the maximum
-/// is 100 UTF-16 characters.
+/// All fields are optional. The minimum length of the name is 1 UTF-16 character
+/// and the maximum is 100 UTF-16 characters.
 pub struct UpdateChannel<'a> {
     channel_id: ChannelId,
     fields: UpdateChannelFields,
@@ -141,7 +141,7 @@ impl<'a> UpdateChannel<'a> {
 
     /// Set the name.
     ///
-    /// The minimum length is 2 UTF-16 characters and the maximum is 100 UTF-16
+    /// The minimum length is 1 UTF-16 character and the maximum is 100 UTF-16
     /// characters.
     ///
     /// # Errors
