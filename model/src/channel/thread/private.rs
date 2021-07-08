@@ -15,9 +15,10 @@ pub struct PrivateThread {
     pub kind: ChannelType,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub last_message_id: Option<MessageId>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub member: Option<ThreadMember>,
     /// Max value of 50.
     pub member_count: u8,
-    pub member: ThreadMember,
     /// Max value of 50.
     pub message_count: u8,
     pub name: String,
@@ -25,9 +26,9 @@ pub struct PrivateThread {
     pub owner_id: Option<UserId>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub parent_id: Option<ChannelId>,
+    pub permission_overwrites: Vec<PermissionOverwrite>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub rate_limit_per_user: Option<u64>,
-    pub permission_overwrites: Vec<PermissionOverwrite>,
     pub thread_metadata: ThreadMetadata,
 }
 
@@ -45,13 +46,13 @@ mod tests {
             id: ChannelId(1),
             kind: ChannelType::GuildPrivateThread,
             last_message_id: Some(MessageId(5)),
-            member_count: 7,
-            member: ThreadMember {
+            member: Some(ThreadMember {
                 id: Some(ChannelId(10)),
                 user_id: Some(UserId(11)),
                 join_timestamp: "456".to_owned(),
                 flags: 12,
-            },
+            }),
+            member_count: 7,
             message_count: 6,
             name: "test".to_owned(),
             owner_id: Some(UserId(3)),
@@ -87,9 +88,8 @@ mod tests {
                 Token::Some,
                 Token::NewtypeStruct { name: "MessageId" },
                 Token::Str("5"),
-                Token::Str("member_count"),
-                Token::U8(7),
                 Token::Str("member"),
+                Token::Some,
                 Token::Struct {
                     name: "ThreadMember",
                     len: 4,
@@ -107,6 +107,8 @@ mod tests {
                 Token::NewtypeStruct { name: "UserId" },
                 Token::Str("11"),
                 Token::StructEnd,
+                Token::Str("member_count"),
+                Token::U8(7),
                 Token::Str("message_count"),
                 Token::U8(6),
                 Token::Str("name"),
@@ -119,12 +121,12 @@ mod tests {
                 Token::Some,
                 Token::NewtypeStruct { name: "ChannelId" },
                 Token::Str("4"),
-                Token::Str("rate_limit_per_user"),
-                Token::Some,
-                Token::U64(8),
                 Token::Str("permission_overwrites"),
                 Token::Seq { len: Some(0) },
                 Token::SeqEnd,
+                Token::Str("rate_limit_per_user"),
+                Token::Some,
+                Token::U64(8),
                 Token::Str("thread_metadata"),
                 Token::Struct {
                     name: "ThreadMetadata",

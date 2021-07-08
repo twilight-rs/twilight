@@ -252,12 +252,12 @@ mod tests {
                 archive_timestamp: "".to_string(),
                 locked: false,
             },
-            member: ThreadMember {
+            member: Some(ThreadMember {
                 id: Some(ChannelId(1)),
                 user_id: Some(UserId(2)),
                 join_timestamp: "".to_string(),
                 flags: 0,
-            },
+            }),
         })]);
 
         let guild = Guild {
