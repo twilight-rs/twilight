@@ -50,6 +50,8 @@ impl<'a> DeleteWebhookMessage<'a> {
         }
     }
 
+    // `self` needs to be consumed and the client returned due to parameters
+    // being consumed in request construction.
     fn request(self) -> Result<(Request, &'a Client), Error> {
         let mut request = Request::builder(Route::DeleteWebhookMessage {
             message_id: self.message_id.0,

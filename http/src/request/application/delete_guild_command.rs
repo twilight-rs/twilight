@@ -29,7 +29,7 @@ impl<'a> DeleteGuildCommand<'a> {
         }
     }
 
-    pub fn exe(self) -> ResponseFuture<EmptyBody> {
+    pub fn exec(self) -> ResponseFuture<EmptyBody> {
         let request = Request::from_route(Route::DeleteGuildCommand {
             application_id: self.application_id.0,
             command_id: self.command_id.0,

@@ -77,12 +77,10 @@ impl<'a> UpdateChannelPermissionConfigured<'a> {
     ///
     /// [`Response`]: crate::response::Response
     pub fn exec(self) -> ResponseFuture<EmptyBody> {
-        let request = match self.request() {
-            Ok(request) => request,
-            Err(source) => return ResponseFuture::error(source),
-        };
-
-        self.http.request(request)
+        match self.request() {
+            Ok(request) => self.http.request(request),
+            Err(source) => ResponseFuture::error(source),
+        }
     }
 }
 

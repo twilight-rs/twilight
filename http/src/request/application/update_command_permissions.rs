@@ -3,7 +3,7 @@ use crate::{
     error::Error,
     request::{
         application::{InteractionError, InteractionErrorType},
-        validate, Request,
+        validate, Request, RequestBuilder,
     },
     response::{marker::ListBody, ResponseFuture},
     routing::Route,
@@ -57,13 +57,13 @@ impl<'a> UpdateCommandPermissions<'a> {
     }
 
     fn request(&self) -> Result<Request, Error> {
-        Ok(Request::builder(Route::UpdateCommandPermissions {
+        Request::builder(Route::UpdateCommandPermissions {
             application_id: self.application_id.0,
             command_id: self.command_id.0,
             guild_id: self.guild_id.0,
         })
-        .json(&self.fields)?
-        .build())
+        .json(&self.fields)
+        .map(RequestBuilder::build)
     }
 
     /// Execute the request, returning a future resolving to a [`Response`].

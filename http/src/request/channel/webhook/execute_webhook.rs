@@ -211,9 +211,11 @@ impl<'a> ExecuteWebhook<'a> {
         ExecuteWebhookAndWait::new(self)
     }
 
+    // `self` needs to be consumed and the client returned due to parameters
+    // being consumed in request construction.
     pub(super) fn request(self, wait: bool) -> Result<(Request, &'a Client), Error> {
         let mut request = Request::builder(Route::ExecuteWebhook {
-            token: self.token.clone(),
+            token: self.token,
             wait: Some(wait),
             webhook_id: self.webhook_id.0,
         });
@@ -249,11 +251,9 @@ impl<'a> ExecuteWebhook<'a> {
     ///
     /// [`Response`]: crate::response::Response
     pub fn exec(self) -> ResponseFuture<EmptyBody> {
-        let (request, client) = match self.request(false) {
-            Ok((request, client)) => (request, client),
-            Err(source) => return ResponseFuture::error(source),
-        };
-
-        client.request(request)
+        match self.request(false) {
+            Ok((request, client)) => client.request(request),
+            Err(source) => ResponseFuture::error(source),
+        }
     }
 }

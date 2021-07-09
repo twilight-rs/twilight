@@ -54,24 +54,19 @@ impl<'a> CreateReaction<'a> {
         }
     }
 
-    fn request(self) -> (Request, &'a Client) {
-        (
-            Request::from_route(Route::CreateReaction {
-                channel_id: self.channel_id.0,
-                emoji: self.emoji.display().to_string(),
-                message_id: self.message_id.0,
-            }),
-            self.http,
-        )
+    fn request(&self) -> Request {
+        Request::from_route(Route::CreateReaction {
+            channel_id: self.channel_id.0,
+            emoji: self.emoji.display().to_string(),
+            message_id: self.message_id.0,
+        })
     }
 
     /// Execute the request, returning a future resolving to a [`Response`].
     ///
     /// [`Response`]: crate::response::Response
     pub fn exec(self) -> ResponseFuture<EmptyBody> {
-        let (request, client) = self.request();
-
-        client.request(request)
+        self.http.request(self.request())
     }
 }
 
@@ -95,7 +90,7 @@ mod tests {
         };
 
         let builder = CreateReaction::new(&client, ChannelId(123), MessageId(456), emoji);
-        let (actual, _) = builder.request();
+        let actual = builder.request();
 
         let expected = Request::from_route(Route::CreateReaction {
             channel_id: 123,

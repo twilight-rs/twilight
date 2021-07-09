@@ -223,9 +223,11 @@ impl<'a> CreateFollowupMessage<'a> {
         self
     }
 
-    fn request(&mut self) -> Result<Request, Error> {
+    // `self` needs to be consumed and the client returned due to parameters
+    // being consumed in request construction.
+    fn request(mut self) -> Result<(Request, &'a Client), Error> {
         let mut request = Request::builder(Route::ExecuteWebhook {
-            token: self.token.clone(),
+            token: self.token,
             wait: None,
             webhook_id: self.application_id.0,
         });
@@ -249,15 +251,15 @@ impl<'a> CreateFollowupMessage<'a> {
             request = request.json(&self.fields)?;
         }
 
-        Ok(request.build())
+        Ok((request.build(), self.http))
     }
 
     /// Execute the request, returning a future resolving to a [`Response`].
     ///
     /// [`Response`]: crate::response::Response
-    pub fn exec(mut self) -> ResponseFuture<Message> {
+    pub fn exec(self) -> ResponseFuture<Message> {
         match self.request() {
-            Ok(request) => self.http.request(request),
+            Ok((request, client)) => client.request(request),
             Err(source) => ResponseFuture::error(source),
         }
     }

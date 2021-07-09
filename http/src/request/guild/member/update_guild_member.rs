@@ -179,15 +179,15 @@ impl<'a> UpdateGuildMember<'a> {
     ///
     /// [`Response`]: crate::response::Response
     pub fn exec(self) -> ResponseFuture<MemberBody> {
-        let request = match self.request() {
-            Ok(request) => request,
-            Err(source) => return ResponseFuture::error(source),
-        };
+        match self.request() {
+            Ok(request) => {
+                let mut future = self.http.request(request);
+                future.set_guild_id(self.guild_id);
 
-        let mut future = self.http.request(request);
-        future.set_guild_id(self.guild_id);
-
-        future
+                future
+            }
+            Err(source) => ResponseFuture::error(source),
+        }
     }
 }
 

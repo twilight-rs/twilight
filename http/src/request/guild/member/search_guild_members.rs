@@ -85,7 +85,10 @@ struct SearchGuildMembersFields {
 /// let client = Client::new("my token");
 ///
 /// let guild_id = GuildId(100);
-/// let members = client.search_guild_members(guild_id, String::from("Wumpus")).limit(10)?.exec().await?;
+/// let members = client.search_guild_members(guild_id, String::from("Wumpus"))
+///     .limit(10)?
+///     .exec()
+///     .await?;
 /// # Ok(()) }
 /// ```
 ///

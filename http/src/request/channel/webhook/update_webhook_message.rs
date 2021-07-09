@@ -360,6 +360,8 @@ impl<'a> UpdateWebhookMessage<'a> {
         self
     }
 
+    // `self` needs to be consumed and the client returned due to parameters
+    // being consumed in request construction.
     fn request(self) -> Result<(Request, &'a Client), HttpError> {
         let mut request = Request::builder(Route::UpdateWebhookMessage {
             message_id: self.message_id.0,

@@ -365,10 +365,12 @@ impl<'a> UpdateOriginalResponse<'a> {
         self
     }
 
-    fn request(&mut self) -> Result<Request, HttpError> {
+    // `self` needs to be consumed and the client returned due to parameters
+    // being consumed in request construction.
+    fn request(mut self) -> Result<(Request, &'a Client), HttpError> {
         let mut request = Request::builder(Route::UpdateInteractionOriginal {
             application_id: self.application_id.0,
-            interaction_token: self.token.clone(),
+            interaction_token: self.token,
         });
 
         if !self.files.is_empty() || self.fields.payload_json.is_some() {
@@ -390,12 +392,12 @@ impl<'a> UpdateOriginalResponse<'a> {
             request = request.json(&self.fields)?;
         }
 
-        Ok(request.build())
+        Ok((request.build(), self.http))
     }
 
-    pub fn exec(mut self) -> ResponseFuture<EmptyBody> {
+    pub fn exec(self) -> ResponseFuture<EmptyBody> {
         match self.request() {
-            Ok(request) => self.http.request(request),
+            Ok((request, client)) => client.request(request),
             Err(source) => ResponseFuture::error(source),
         }
     }

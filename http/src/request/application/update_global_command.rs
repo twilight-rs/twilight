@@ -1,7 +1,7 @@
 use crate::{
     client::Client,
     error::Error,
-    request::Request,
+    request::{Request, RequestBuilder},
     response::{marker::EmptyBody, ResponseFuture},
     routing::Route,
 };
@@ -73,12 +73,12 @@ impl<'a> UpdateGlobalCommand<'a> {
     }
 
     fn request(&self) -> Result<Request, Error> {
-        Ok(Request::builder(Route::UpdateGlobalCommand {
+        Request::builder(Route::UpdateGlobalCommand {
             application_id: self.application_id.0,
             command_id: self.command_id.0,
         })
-        .json(&self.fields)?
-        .build())
+        .json(&self.fields)
+        .map(RequestBuilder::build)
     }
 
     /// Execute the request, returning a future resolving to a [`Response`].

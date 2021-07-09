@@ -30,13 +30,17 @@ impl<'a> InteractionCallback<'a> {
         }
     }
 
-    fn request(&self) -> Result<Request, Error> {
-        Ok(Request::builder(Route::InteractionCallback {
+    // `self` needs to be consumed and the client returned due to parameters
+    // being consumed in request construction.
+    fn request(self) -> Result<(Request, &'a Client), Error> {
+        let request = Request::builder(Route::InteractionCallback {
             interaction_id: self.interaction_id.0,
-            interaction_token: self.interaction_token.clone(),
+            interaction_token: self.interaction_token,
         })
         .json(&self.response)?
-        .build())
+        .build();
+
+        Ok((request, self.http))
     }
 
     /// Execute the request, returning a future resolving to a [`Response`].
@@ -44,7 +48,7 @@ impl<'a> InteractionCallback<'a> {
     /// [`Response`]: crate::response::Response
     pub fn exec(self) -> ResponseFuture<EmptyBody> {
         match self.request() {
-            Ok(request) => self.http.request(request),
+            Ok((request, client)) => client.request(request),
             Err(source) => ResponseFuture::error(source),
         }
     }
