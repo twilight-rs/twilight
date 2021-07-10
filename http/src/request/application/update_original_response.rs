@@ -3,8 +3,8 @@
 use crate::{
     client::Client,
     error::Error as HttpError,
-    request::{validate, Form, NullableField, PendingResponse, Request},
-    response::marker::EmptyBody,
+    request::{validate, Form, NullableField, Request},
+    response::{marker::EmptyBody, ResponseFuture},
     routing::Route,
 };
 use serde::Serialize;
@@ -148,6 +148,7 @@ struct UpdateOriginalResponseFields {
 ///     // mentioned.
 ///     .allowed_mentions(AllowedMentions::default())
 ///     .content(Some("test <@3>".to_owned()))?
+///     .exec()
 ///     .await?;
 /// # Ok(()) }
 /// ```
@@ -157,7 +158,6 @@ pub struct UpdateOriginalResponse<'a> {
     application_id: ApplicationId,
     fields: UpdateOriginalResponseFields,
     files: Vec<(String, Vec<u8>)>,
-    fut: Option<PendingResponse<'a, EmptyBody>>,
     http: &'a Client,
     token: String,
 }
@@ -178,7 +178,6 @@ impl<'a> UpdateOriginalResponse<'a> {
                 ..UpdateOriginalResponseFields::default()
             },
             files: Vec::new(),
-            fut: None,
             http,
             token: interaction_token.into(),
         }
@@ -281,6 +280,7 @@ impl<'a> UpdateOriginalResponse<'a> {
     ///
     /// client.update_interaction_original("token")?
     ///     .embeds(Some(vec![embed]))?
+    ///     .exec()
     ///     .await?;
     /// # Ok(()) }
     /// ```
@@ -365,10 +365,12 @@ impl<'a> UpdateOriginalResponse<'a> {
         self
     }
 
-    fn request(&mut self) -> Result<Request, HttpError> {
+    // `self` needs to be consumed and the client returned due to parameters
+    // being consumed in request construction.
+    fn request(mut self) -> Result<(Request, &'a Client), HttpError> {
         let mut request = Request::builder(Route::UpdateInteractionOriginal {
             application_id: self.application_id.0,
-            interaction_token: self.token.clone(),
+            interaction_token: self.token,
         });
 
         if !self.files.is_empty() || self.fields.payload_json.is_some() {
@@ -390,15 +392,13 @@ impl<'a> UpdateOriginalResponse<'a> {
             request = request.json(&self.fields)?;
         }
 
-        Ok(request.build())
+        Ok((request.build(), self.http))
     }
 
-    fn start(&mut self) -> Result<(), HttpError> {
-        let request = self.request()?;
-        self.fut.replace(Box::pin(self.http.request(request)));
-
-        Ok(())
+    pub fn exec(self) -> ResponseFuture<EmptyBody> {
+        match self.request() {
+            Ok((request, client)) => client.request(request),
+            Err(source) => ResponseFuture::error(source),
+        }
     }
 }
-
-poll_req!(UpdateOriginalResponse<'_>, EmptyBody);
