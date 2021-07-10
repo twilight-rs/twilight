@@ -1530,7 +1530,7 @@ impl Client {
     /// When called on a [`GuildText`] channel, this creates a
     /// [`GuildPublicThread`].
     ///
-    /// When called on a [`GuildNews`] channel. this creates a
+    /// When called on a [`GuildNews`] channel, this creates a
     /// [`GuildNewsThread`].
     ///
     /// To use auto archive durations of [`ThreeDays`] or [`Week`], the guild
