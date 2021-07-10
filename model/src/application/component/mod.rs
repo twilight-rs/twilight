@@ -163,7 +163,7 @@ mod tests {
                 Token::StructEnd,
                 Token::SeqEnd,
                 Token::Str("type"),
-                Token::U8(1),
+                Token::U8(ComponentType::ActionRow as u8),
                 Token::StructEnd,
             ],
         );
