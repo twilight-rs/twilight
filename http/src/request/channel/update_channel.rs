@@ -1,10 +1,8 @@
 use crate::{
     client::Client,
     error::Error as HttpError,
-    request::{
-        self, validate, AuditLogReason, AuditLogReasonError, NullableField, PendingResponse,
-        Request,
-    },
+    request::{self, validate, AuditLogReason, AuditLogReasonError, NullableField, Request},
+    response::ResponseFuture,
     routing::Route,
 };
 use serde::Serialize;
@@ -117,7 +115,6 @@ struct UpdateChannelFields {
 pub struct UpdateChannel<'a> {
     channel_id: ChannelId,
     fields: UpdateChannelFields,
-    fut: Option<PendingResponse<'a, Channel>>,
     http: &'a Client,
     reason: Option<String>,
 }
@@ -127,7 +124,6 @@ impl<'a> UpdateChannel<'a> {
         Self {
             channel_id,
             fields: UpdateChannelFields::default(),
-            fut: None,
             http,
             reason: None,
         }
@@ -294,7 +290,7 @@ impl<'a> UpdateChannel<'a> {
         self
     }
 
-    fn start(&mut self) -> Result<(), HttpError> {
+    fn request(&self) -> Result<Request, HttpError> {
         let mut request = Request::builder(Route::UpdateChannel {
             channel_id: self.channel_id.0,
         })
@@ -304,10 +300,17 @@ impl<'a> UpdateChannel<'a> {
             request = request.headers(request::audit_header(reason)?);
         }
 
-        self.fut
-            .replace(Box::pin(self.http.request(request.build())));
+        Ok(request.build())
+    }
 
-        Ok(())
+    /// Execute the request, returning a future resolving to a [`Response`].
+    ///
+    /// [`Response`]: crate::response::Response
+    pub fn exec(self) -> ResponseFuture<Channel> {
+        match self.request() {
+            Ok(request) => self.http.request(request),
+            Err(source) => ResponseFuture::error(source),
+        }
     }
 }
 
@@ -319,5 +322,3 @@ impl<'a> AuditLogReason for UpdateChannel<'a> {
         Ok(self)
     }
 }
-
-poll_req!(UpdateChannel<'_>, Channel);

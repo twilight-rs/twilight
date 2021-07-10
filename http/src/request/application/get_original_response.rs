@@ -1,9 +1,4 @@
-use crate::{
-    client::Client,
-    error::Error,
-    request::{PendingResponse, Request},
-    routing::Route,
-};
+use crate::{client::Client, request::Request, response::ResponseFuture, routing::Route};
 use twilight_model::{channel::Message, id::ApplicationId};
 
 /// Get the original message, by its token.
@@ -23,12 +18,12 @@ use twilight_model::{channel::Message, id::ApplicationId};
 ///
 /// let message = client
 ///     .get_interaction_original("token here")?
+///     .exec()
 ///     .await?;
 /// # Ok(()) }
 /// ```
 pub struct GetOriginalResponse<'a> {
     application_id: ApplicationId,
-    fut: Option<PendingResponse<'a, Message>>,
     http: &'a Client,
     token: String,
 }
@@ -41,27 +36,20 @@ impl<'a> GetOriginalResponse<'a> {
     ) -> Self {
         Self {
             application_id,
-            fut: None,
             http,
             token: token.into(),
         }
     }
 
-    fn request(&self) -> Result<Request, Error> {
+    /// Execute the request, returning a future resolving to a [`Response`].
+    ///
+    /// [`Response`]: crate::response::Response
+    pub fn exec(self) -> ResponseFuture<Message> {
         let request = Request::from_route(Route::GetInteractionOriginal {
             application_id: self.application_id.0,
-            interaction_token: self.token.clone(),
+            interaction_token: self.token,
         });
 
-        Ok(request)
-    }
-
-    fn start(&mut self) -> Result<(), Error> {
-        let request = self.request()?;
-        self.fut.replace(Box::pin(self.http.request(request)));
-
-        Ok(())
+        self.http.request(request)
     }
 }
-
-poll_req!(GetOriginalResponse<'_>, Message);
