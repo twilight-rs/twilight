@@ -22,7 +22,7 @@ struct CreateThreadFromMessageFields {
 /// When called on a [`GuildText`] channel, this creates a
 /// [`GuildPublicThread`].
 ///
-/// When called on a [`GuildNews`] channel. this creates a [`GuildNewsThread`].
+/// When called on a [`GuildNews`] channel, this creates a [`GuildNewsThread`].
 ///
 /// To use auto archive durations of [`ThreeDays`] or [`Week`], the guild must
 /// be boosted.
