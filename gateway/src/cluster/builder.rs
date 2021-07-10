@@ -1,13 +1,13 @@
 use super::{
     config::Config as ClusterConfig,
+    event::Events,
     r#impl::{Cluster, ClusterStartError},
     scheme::ShardScheme,
 };
 use crate::{
     shard::{LargeThresholdError, ResumeSession, ShardBuilder},
-    Event, EventTypeFlags,
+    EventTypeFlags,
 };
-use futures_util::stream::Stream;
 use std::{collections::HashMap, sync::Arc};
 use twilight_gateway_queue::{LocalQueue, Queue};
 use twilight_http::Client;
@@ -81,7 +81,7 @@ impl ClusterBuilder {
     ) -> Result<
         (
             Cluster,
-            impl Stream<Item = (u64, Event)> + Send + Sync + Unpin + 'static,
+            Events,
         ),
         ClusterStartError,
     > {
