@@ -3,8 +3,8 @@
 use crate::{
     client::Client,
     error::Error as HttpError,
-    request::{validate, Form, NullableField, PendingResponse, Request},
-    response::marker::EmptyBody,
+    request::{validate, Form, NullableField, Request},
+    response::{marker::EmptyBody, ResponseFuture},
     routing::Route,
 };
 use serde::Serialize;
@@ -148,6 +148,7 @@ struct UpdateFollowupMessageFields {
 ///     // mentioned.
 ///     .allowed_mentions(AllowedMentions::default())
 ///     .content(Some("test <@3>".to_owned()))?
+///     .exec()
 ///     .await?;
 /// # Ok(()) }
 /// ```
@@ -156,7 +157,6 @@ struct UpdateFollowupMessageFields {
 pub struct UpdateFollowupMessage<'a> {
     fields: UpdateFollowupMessageFields,
     files: Vec<(String, Vec<u8>)>,
-    fut: Option<PendingResponse<'a, EmptyBody>>,
     http: &'a Client,
     message_id: MessageId,
     token: String,
@@ -179,7 +179,6 @@ impl<'a> UpdateFollowupMessage<'a> {
                 ..UpdateFollowupMessageFields::default()
             },
             files: Vec::new(),
-            fut: None,
             http,
             message_id,
             token: token.into(),
@@ -283,6 +282,7 @@ impl<'a> UpdateFollowupMessage<'a> {
     ///
     /// client.update_followup_message("token", MessageId(2))?
     ///     .embeds(Some(vec![embed]))?
+    ///     .exec()
     ///     .await?;
     /// # Ok(()) }
     /// ```
@@ -367,10 +367,12 @@ impl<'a> UpdateFollowupMessage<'a> {
         self
     }
 
-    fn request(&mut self) -> Result<Request, HttpError> {
+    // `self` needs to be consumed and the client returned due to parameters
+    // being consumed in request construction.
+    fn request(mut self) -> Result<(Request, &'a Client), HttpError> {
         let mut request = Request::builder(Route::UpdateWebhookMessage {
             message_id: self.message_id.0,
-            token: self.token.clone(),
+            token: self.token,
             webhook_id: self.application_id.0,
         });
 
@@ -393,15 +395,13 @@ impl<'a> UpdateFollowupMessage<'a> {
             request = request.json(&self.fields)?;
         }
 
-        Ok(request.build())
+        Ok((request.build(), self.http))
     }
 
-    fn start(&mut self) -> Result<(), HttpError> {
-        let request = self.request()?;
-        self.fut.replace(Box::pin(self.http.request(request)));
-
-        Ok(())
+    pub fn exec(self) -> ResponseFuture<EmptyBody> {
+        match self.request() {
+            Ok((request, client)) => client.request(request),
+            Err(source) => ResponseFuture::error(source),
+        }
     }
 }
-
-poll_req!(UpdateFollowupMessage<'_>, EmptyBody);
