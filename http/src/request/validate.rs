@@ -24,7 +24,7 @@ impl EmbedValidationError {
     pub const AUTHOR_NAME_LENGTH: usize = 256;
 
     /// The maximum embed description length in codepoints.
-    pub const DESCRIPTION_LENGTH: usize = 2048;
+    pub const DESCRIPTION_LENGTH: usize = 4096;
 
     /// The maximum combined embed length in codepoints.
     pub const EMBED_TOTAL_LENGTH: usize = 6000;
@@ -562,10 +562,13 @@ mod tests {
         embed.description.replace(str::repeat("a", 2048));
         assert!(super::embed(&embed).is_ok());
 
-        embed.description.replace(str::repeat("a", 2049));
+        embed.description.replace(str::repeat("a", 4096));
+        assert!(super::embed(&embed).is_ok());
+
+        embed.description.replace(str::repeat("a", 4097));
         assert!(matches!(
             super::embed(&embed).unwrap_err().kind(),
-            EmbedValidationErrorType::DescriptionTooLarge { chars: 2049 }
+            EmbedValidationErrorType::DescriptionTooLarge { chars: 4097 }
         ));
     }
 
