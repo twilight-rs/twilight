@@ -62,6 +62,39 @@ impl ComponentValidationError {
     /// [1]: https://discord.com/developers/docs/interactions/message-components#component-object-component-structure
     pub const COMPONENT_LABEL_LENGTH: usize = 80;
 
+    /// Maximum number of [`SelectMenuOption`]s that can be chosen in a
+    /// [`SelectMenu`].
+    ///
+    /// This is defined in Dicsord's documentation, per
+    /// [Discord Docs/Select Menu][1].
+    ///
+    /// [`SelectMenuOption`]: twilight_model::application::component::select_menu::SelectMenuOption
+    /// [`SelectMenu`]: twilight_model::application::component::select_menu::SelectMenu
+    /// [1]: https://discord.com/developers/docs/interactions/message-components#select-menu-object-select-menu-structure
+    pub const SELECT_MAXIMUM_VALUES_LIMIT: usize = 25;
+
+    /// Minimum number of [`SelectMenuOption`]s that can be chosen in a
+    /// [`SelectMenu`].
+    ///
+    /// This is defined in Dicsord's documentation, per
+    /// [Discord Docs/Select Menu][1].
+    ///
+    /// [`SelectMenuOption`]: twilight_model::application::component::select_menu::SelectMenuOption
+    /// [`SelectMenu`]: twilight_model::application::component::select_menu::SelectMenu
+    /// [1]: https://discord.com/developers/docs/interactions/message-components#select-menu-object-select-menu-structure
+    pub const SELECT_MAXIMUM_VALUES_REQUIREMENT: usize = 1;
+
+    /// Maximum number of [`SelectMenuOption`]s that must be chosen in a
+    /// [`SelectMenu`].
+    ///
+    /// This is defined in Dicsord's documentation, per
+    /// [Discord Docs/Select Menu][1].
+    ///
+    /// [`SelectMenuOption`]: twilight_model::application::component::select_menu::SelectMenuOption
+    /// [`SelectMenu`]: twilight_model::application::component::select_menu::SelectMenu
+    /// [1]: https://discord.com/developers/docs/interactions/message-components#select-menu-object-select-menu-structure
+    pub const SELECT_MINIMUM_VALUES_LIMIT: usize = 25;
+
     /// Maximum number of [`SelectMenuOption`]s in a [`SelectMenu`].
     ///
     /// This is defined in Discord's documentation, per
@@ -161,6 +194,22 @@ impl Display for ComponentValidationError {
 
                 f.write_str("' component was provided, but can not be a root component")
             }
+            ComponentValidationErrorType::SelectMaximumValuesCount { count } => {
+                f.write_str("maximum number of values that can be chosen is ")?;
+                Display::fmt(count, f)?;
+                f.write_str(", but must be greater than or equal to ")?;
+                Display::fmt(&Self::SELECT_MAXIMUM_VALUES_REQUIREMENT, f)?;
+                f.write_str("and less than or equal to ")?;
+
+                Display::fmt(&Self::SELECT_MAXIMUM_VALUES_LIMIT, f)
+            }
+            ComponentValidationErrorType::SelectMinimumValuesCount { count } => {
+                f.write_str("maximum number of values that must be chosen is ")?;
+                Display::fmt(count, f)?;
+                f.write_str(", but must be less than or equal to ")?;
+
+                Display::fmt(&Self::SELECT_MAXIMUM_VALUES_LIMIT, f)
+            }
             ComponentValidationErrorType::SelectOptionDescriptionLength { chars } => {
                 f.write_str("a select menu option's description is ")?;
                 Display::fmt(&chars, f)?;
@@ -248,6 +297,18 @@ pub enum ComponentValidationErrorType {
         /// Type of provided component.
         kind: ComponentType,
     },
+    /// Maximum number of items that can be chosen is smaller than
+    /// [the minimum][`SELECT_MAXIMUM_VALUES_REQUIREMENT`] or larger than
+    /// [the maximum][`SELECT_MAXIMUM_VALUES_LIMIT`].
+    ///
+    /// [`SELECT_MAXIMUM_VALUES_LIMIT`]: ComponentValidationError::SELECT_MAXIMUM_VALUES_LIMIT
+    /// [`SELECT_MAXIMUM_VALUES_REQUIREMENT`]: ComponentValidationError::SELECT_MAXIMUM_VALUES_REQUIREMENT
+    SelectMaximumValuesCount { count: usize },
+    /// Minimum number of items that must be chosen is larger than
+    /// [the maximum][`SELECT_MINIMUM_VALUES_LIMIT`].
+    ///
+    /// [`SELECT_MINIMUM_VALUES_LIMIT`]: ComponentValidationError::SELECT_MINIMUM_VALUES_LIMIT
+    SelectMinimumValuesCount { count: usize },
     /// Number of select menu options provided is larger than
     /// [the maximum][`SELECT_OPTION_COUNT`].
     ///
@@ -572,6 +633,14 @@ pub fn component(component: &Component) -> Result<(), ComponentValidationError> 
 /// Returns a [`ComponentValidationErrorType::OptionValueLength`] error type if
 /// a provided select option value is too long.
 ///
+/// Returns a [`ComponentValidationErrorType::SelectMaximumValuesCount`] if the
+/// provided number of select menu values that can be chosen is smaller than the minimum or
+/// larger than the maximum.
+///
+/// Returns a [`ComponentValidationErrorType::SelectMinimumValuesCount`] if the
+/// provided number of select menu values that must be chosen is larger than the
+/// maximum.
+///
 /// Returns a [`ComponentValidationErrorType::SelectPlaceholderLength`] error type if
 /// a provided select placeholder is too long.
 fn component_inner(component: &Component) -> Result<(), ComponentValidationError> {
@@ -594,12 +663,19 @@ fn component_inner(component: &Component) -> Result<(), ComponentValidationError
         }
         Component::SelectMenu(select_menu) => {
             component_custom_id(&select_menu.custom_id)?;
+            component_select_options(&select_menu.options)?;
 
             if let Some(placeholder) = select_menu.placeholder.as_ref() {
                 component_select_placeholder(placeholder)?;
             }
 
-            component_select_options(&select_menu.options)?;
+            if let Some(max_values) = select_menu.max_values {
+                component_select_max_values(usize::from(max_values))?;
+            }
+
+            if let Some(min_values) = select_menu.min_values {
+                component_select_min_values(usize::from(min_values))?;
+            }
 
             for option in &select_menu.options {
                 component_select_option_label(&option.label)?;
@@ -688,6 +764,54 @@ fn component_option_description(description: &str) -> Result<(), ComponentValida
     if chars > ComponentValidationError::SELECT_OPTION_DESCRIPTION_LENGTH {
         return Err(ComponentValidationError {
             kind: ComponentValidationErrorType::SelectOptionDescriptionLength { chars },
+        });
+    }
+
+    Ok(())
+}
+
+/// Validate a [`SelectMenu::max_values`] amount.
+///
+/// # Errors
+///
+/// Returns a [`ComponentValidationErrorType::SelectMaximumValuesCount`] if the
+/// provided number of values that can be chosen is smaller than
+/// [the minimum][`SELECT_MAXIMUM_VALUES_REQUIREMENT`] or larger than
+/// [the maximum][`SELECT_MAXIMUM_VALUES_LIMIT`].
+///
+/// [`SELECT_MAXIMUM_VALUES_LIMIT`]: ComponentValidationError::SELECT_MAXIMUM_VALUES_LIMIT
+/// [`SELECT_MAXIMUM_VALUES_REQUIREMENT`]: ComponentValidationError::SELECT_MAXIMUM_VALUES_REQUIREMENT
+/// [`SelectMenu::max_values`]: twilight_model::application::component::select_menu::SelectMenu::max_values
+const fn component_select_max_values(count: usize) -> Result<(), ComponentValidationError> {
+    if count > ComponentValidationError::SELECT_MAXIMUM_VALUES_LIMIT {
+        return Err(ComponentValidationError {
+            kind: ComponentValidationErrorType::SelectMaximumValuesCount { count },
+        });
+    }
+
+    if count < ComponentValidationError::SELECT_MAXIMUM_VALUES_REQUIREMENT {
+        return Err(ComponentValidationError {
+            kind: ComponentValidationErrorType::SelectMaximumValuesCount { count },
+        });
+    }
+
+    Ok(())
+}
+
+/// Validate a [`SelectMenu::min_values`] amount.
+///
+/// # Errors
+///
+/// Returns a [`ComponentValidationErrorType::SelectMinimumValuesCount`] if the
+/// provided number of values that must be chosen is larger than
+/// [the maximum][`SELECT_MINIMUM_VALUES_LIMIT`].
+///
+/// [`SELECT_MINIMUM_VALUES_LIMIT`]: ComponentValidationError::SELECT_MINIMUM_VALUES_LIMIT
+/// [`SelectMenu::min_values`]: twilight_model::application::component::select_menu::SelectMenu::min_values
+const fn component_select_min_values(count: usize) -> Result<(), ComponentValidationError> {
+    if count > ComponentValidationError::SELECT_MINIMUM_VALUES_LIMIT {
+        return Err(ComponentValidationError {
+            kind: ComponentValidationErrorType::SelectMinimumValuesCount { count },
         });
     }
 
@@ -1033,6 +1157,8 @@ mod tests {
     assert_fields!(ComponentValidationErrorType::ComponentLabelLength: chars);
     assert_fields!(ComponentValidationErrorType::InvalidChildComponent: kind);
     assert_fields!(ComponentValidationErrorType::InvalidRootComponent: kind);
+    assert_fields!(ComponentValidationErrorType::SelectMaximumValuesCount: count);
+    assert_fields!(ComponentValidationErrorType::SelectMinimumValuesCount: count);
     assert_fields!(ComponentValidationErrorType::SelectOptionDescriptionLength: chars);
     assert_fields!(ComponentValidationErrorType::SelectOptionLabelLength: chars);
     assert_fields!(ComponentValidationErrorType::SelectOptionValueLength: chars);
@@ -1045,6 +1171,12 @@ mod tests {
     const_assert_eq!(5, ComponentValidationError::COMPONENT_COUNT);
     const_assert_eq!(100, ComponentValidationError::COMPONENT_CUSTOM_ID_LENGTH);
     const_assert_eq!(80, ComponentValidationError::COMPONENT_LABEL_LENGTH);
+    const_assert_eq!(25, ComponentValidationError::SELECT_MAXIMUM_VALUES_LIMIT);
+    const_assert_eq!(
+        1,
+        ComponentValidationError::SELECT_MAXIMUM_VALUES_REQUIREMENT
+    );
+    const_assert_eq!(25, ComponentValidationError::SELECT_MINIMUM_VALUES_LIMIT);
     const_assert_eq!(25, ComponentValidationError::SELECT_OPTION_COUNT);
     const_assert_eq!(
         50,
