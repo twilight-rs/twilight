@@ -3,9 +3,8 @@ mod builder;
 pub use self::builder::ClientBuilder;
 
 use crate::{
-    api_error::ApiError,
     error::{Error, ErrorType},
-    ratelimiting::{RatelimitHeaders, Ratelimiter},
+    ratelimiting::Ratelimiter,
     request::{
         application::{
             CreateFollowupMessage, CreateGlobalCommand, CreateGuildCommand, DeleteFollowupMessage,
@@ -23,14 +22,13 @@ use crate::{
         prelude::*,
         GetUserApplicationInfo, Method, Request,
     },
-    response::{Response, StatusCode},
+    response::ResponseFuture,
     API_VERSION,
 };
 use hyper::{
-    body,
     client::{Client as HyperClient, HttpConnector},
     header::{HeaderMap, HeaderValue, AUTHORIZATION, CONTENT_LENGTH, CONTENT_TYPE, USER_AGENT},
-    Body, StatusCode as HyperStatusCode,
+    Body,
 };
 use std::{
     convert::TryFrom,
@@ -66,7 +64,7 @@ struct State {
     proxy: Option<Box<str>>,
     ratelimiter: Option<Ratelimiter>,
     timeout: Duration,
-    token_invalid: AtomicBool,
+    token_invalid: Arc<AtomicBool>,
     token: Option<Box<str>>,
     use_http: bool,
     pub(crate) application_id: AtomicU64,
@@ -233,6 +231,7 @@ impl Client {
     /// let audit_log = client
     /// // not done
     ///     .audit_log(guild_id)
+    ///     .exec()
     ///     .await?;
     /// # Ok(()) }
     /// ```
@@ -256,17 +255,17 @@ impl Client {
     /// #
     /// let guild_id = GuildId(1);
     ///
-    /// let bans = client.bans(guild_id).await?;
+    /// let bans = client.bans(guild_id).exec().await?;
     /// # Ok(()) }
     /// ```
-    pub fn bans(&self, guild_id: GuildId) -> GetBans<'_> {
+    pub const fn bans(&self, guild_id: GuildId) -> GetBans<'_> {
         GetBans::new(self, guild_id)
     }
 
     /// Get information about a ban of a guild.
     ///
     /// Includes the user banned and the reason.
-    pub fn ban(&self, guild_id: GuildId, user_id: UserId) -> GetBan<'_> {
+    pub const fn ban(&self, guild_id: GuildId, user_id: UserId) -> GetBan<'_> {
         GetBan::new(self, guild_id, user_id)
     }
 
@@ -291,6 +290,7 @@ impl Client {
     /// client.create_ban(guild_id, user_id)
     ///     .delete_message_days(1)?
     ///     .reason("memes")?
+    ///     .exec()
     ///     .await?;
     /// # Ok(()) }
     /// ```
@@ -315,10 +315,10 @@ impl Client {
     /// let guild_id = GuildId(100);
     /// let user_id = UserId(200);
     ///
-    /// client.delete_ban(guild_id, user_id).await?;
+    /// client.delete_ban(guild_id, user_id).exec().await?;
     /// # Ok(()) }
     /// ```
-    pub fn delete_ban(&self, guild_id: GuildId, user_id: UserId) -> DeleteBan<'_> {
+    pub const fn delete_ban(&self, guild_id: GuildId, user_id: UserId) -> DeleteBan<'_> {
         DeleteBan::new(self, guild_id, user_id)
     }
 
@@ -338,15 +338,15 @@ impl Client {
     /// #
     /// let channel_id = ChannelId(100);
     /// #
-    /// let channel = client.channel(channel_id).await?;
+    /// let channel = client.channel(channel_id).exec().await?;
     /// # Ok(()) }
     /// ```
-    pub fn channel(&self, channel_id: ChannelId) -> GetChannel<'_> {
+    pub const fn channel(&self, channel_id: ChannelId) -> GetChannel<'_> {
         GetChannel::new(self, channel_id)
     }
 
     /// Delete a channel by ID.
-    pub fn delete_channel(&self, channel_id: ChannelId) -> DeleteChannel<'_> {
+    pub const fn delete_channel(&self, channel_id: ChannelId) -> DeleteChannel<'_> {
         DeleteChannel::new(self, channel_id)
     }
 
@@ -360,7 +360,7 @@ impl Client {
     /// The type returned is [`FollowedChannel`].
     ///
     /// [`FollowedChannel`]: ::twilight_model::channel::FollowedChannel
-    pub fn follow_news_channel(
+    pub const fn follow_news_channel(
         &self,
         channel_id: ChannelId,
         webhook_channel_id: ChannelId,
@@ -375,7 +375,7 @@ impl Client {
     ///
     /// [`MANAGE_CHANNELS`]: twilight_model::guild::Permissions::MANAGE_CHANNELS
     /// [`GuildChannel`]: twilight_model::channel::GuildChannel
-    pub fn channel_invites(&self, channel_id: ChannelId) -> GetChannelInvites<'_> {
+    pub const fn channel_invites(&self, channel_id: ChannelId) -> GetChannelInvites<'_> {
         GetChannelInvites::new(self, channel_id)
     }
 
@@ -403,6 +403,7 @@ impl Client {
     ///     .channel_messages(channel_id)
     ///     .before(message_id)
     ///     .limit(limit)?
+    ///     .exec()
     ///     .await?;
     ///
     /// # Ok(()) }
@@ -452,6 +453,7 @@ impl Client {
     ///
     /// client.update_channel_permission(channel_id, allow, deny)
     ///     .role(role_id)
+    ///     .exec()
     ///     .await?;
     /// # Ok(()) }
     /// ```
@@ -465,17 +467,17 @@ impl Client {
     }
 
     /// Get all the webhooks of a channel.
-    pub fn channel_webhooks(&self, channel_id: ChannelId) -> GetChannelWebhooks<'_> {
+    pub const fn channel_webhooks(&self, channel_id: ChannelId) -> GetChannelWebhooks<'_> {
         GetChannelWebhooks::new(self, channel_id)
     }
 
     /// Get information about the current user.
-    pub fn current_user(&self) -> GetCurrentUser<'_> {
+    pub const fn current_user(&self) -> GetCurrentUser<'_> {
         GetCurrentUser::new(self)
     }
 
     /// Get information about the current bot application.
-    pub fn current_user_application(&self) -> GetUserApplicationInfo<'_> {
+    pub const fn current_user_application(&self) -> GetUserApplicationInfo<'_> {
         GetUserApplicationInfo::new(self)
     }
 
@@ -495,7 +497,7 @@ impl Client {
     ///
     /// - `channel_id` must currently point to a stage channel.
     /// - Current user must have already joined `channel_id`.
-    pub fn update_current_user_voice_state(
+    pub const fn update_current_user_voice_state(
         &self,
         guild_id: GuildId,
         channel_id: ChannelId,
@@ -506,7 +508,7 @@ impl Client {
     /// Get the current user's connections.
     ///
     /// Requires the `connections` `OAuth2` scope.
-    pub fn current_user_connections(&self) -> GetCurrentUserConnections<'_> {
+    pub const fn current_user_connections(&self) -> GetCurrentUserConnections<'_> {
         GetCurrentUserConnections::new(self)
     }
 
@@ -531,10 +533,11 @@ impl Client {
     ///     .after(after)
     ///     .before(before)
     ///     .limit(25)?
+    ///     .exec()
     ///     .await?;
     /// # Ok(()) }
     /// ```
-    pub fn current_user_guilds(&self) -> GetCurrentUserGuilds<'_> {
+    pub const fn current_user_guilds(&self) -> GetCurrentUserGuilds<'_> {
         GetCurrentUserGuilds::new(self)
     }
 
@@ -563,10 +566,10 @@ impl Client {
     /// #
     /// let guild_id = GuildId(100);
     ///
-    /// client.emojis(guild_id).await?;
+    /// client.emojis(guild_id).exec().await?;
     /// # Ok(()) }
     /// ```
-    pub fn emojis(&self, guild_id: GuildId) -> GetEmojis<'_> {
+    pub const fn emojis(&self, guild_id: GuildId) -> GetEmojis<'_> {
         GetEmojis::new(self, guild_id)
     }
 
@@ -587,10 +590,10 @@ impl Client {
     /// let guild_id = GuildId(50);
     /// let emoji_id = EmojiId(100);
     ///
-    /// client.emoji(guild_id, emoji_id).await?;
+    /// client.emoji(guild_id, emoji_id).exec().await?;
     /// # Ok(()) }
     /// ```
-    pub fn emoji(&self, guild_id: GuildId, emoji_id: EmojiId) -> GetEmoji<'_> {
+    pub const fn emoji(&self, guild_id: GuildId, emoji_id: EmojiId) -> GetEmoji<'_> {
         GetEmoji::new(self, guild_id, emoji_id)
     }
 
@@ -611,7 +614,7 @@ impl Client {
     }
 
     /// Delete an emoji in a guild, by id.
-    pub fn delete_emoji(&self, guild_id: GuildId, emoji_id: EmojiId) -> DeleteEmoji<'_> {
+    pub const fn delete_emoji(&self, guild_id: GuildId, emoji_id: EmojiId) -> DeleteEmoji<'_> {
         DeleteEmoji::new(self, guild_id, emoji_id)
     }
 
@@ -634,7 +637,7 @@ impl Client {
     /// # async fn main() -> Result<(), Box<dyn std::error::Error>> {
     /// # let client = Client::new("my token");
     /// #
-    /// let info = client.gateway().await?;
+    /// let info = client.gateway().exec().await?;
     /// # Ok(()) }
     /// ```
     ///
@@ -648,13 +651,13 @@ impl Client {
     /// # async fn main() -> Result<(), Box<dyn std::error::Error>> {
     /// # let client = Client::new("my token");
     /// #
-    /// let info = client.gateway().authed().await?.model().await?;
+    /// let info = client.gateway().authed().exec().await?.model().await?;
     ///
     /// println!("URL: {}", info.url);
     /// println!("Recommended shards to use: {}", info.shards);
     /// # Ok(()) }
     /// ```
-    pub fn gateway(&self) -> GetGateway<'_> {
+    pub const fn gateway(&self) -> GetGateway<'_> {
         GetGateway::new(self)
     }
 
@@ -682,7 +685,7 @@ impl Client {
     }
 
     /// Delete a guild permanently. The user must be the owner.
-    pub fn delete_guild(&self, guild_id: GuildId) -> DeleteGuild<'_> {
+    pub const fn delete_guild(&self, guild_id: GuildId) -> DeleteGuild<'_> {
         DeleteGuild::new(self, guild_id)
     }
 
@@ -696,12 +699,12 @@ impl Client {
     }
 
     /// Leave a guild by id.
-    pub fn leave_guild(&self, guild_id: GuildId) -> LeaveGuild<'_> {
+    pub const fn leave_guild(&self, guild_id: GuildId) -> LeaveGuild<'_> {
         LeaveGuild::new(self, guild_id)
     }
 
     /// Get the channels in a guild.
-    pub fn guild_channels(&self, guild_id: GuildId) -> GetGuildChannels<'_> {
+    pub const fn guild_channels(&self, guild_id: GuildId) -> GetGuildChannels<'_> {
         GetGuildChannels::new(self, guild_id)
     }
 
@@ -752,7 +755,7 @@ impl Client {
     /// Refer to [the discord docs] for more information.
     ///
     /// [the discord docs]: https://discord.com/developers/docs/resources/guild#get-guild-widget
-    pub fn guild_widget(&self, guild_id: GuildId) -> GetGuildWidget<'_> {
+    pub const fn guild_widget(&self, guild_id: GuildId) -> GetGuildWidget<'_> {
         GetGuildWidget::new(self, guild_id)
     }
 
@@ -762,12 +765,12 @@ impl Client {
     }
 
     /// Get the guild's integrations.
-    pub fn guild_integrations(&self, guild_id: GuildId) -> GetGuildIntegrations<'_> {
+    pub const fn guild_integrations(&self, guild_id: GuildId) -> GetGuildIntegrations<'_> {
         GetGuildIntegrations::new(self, guild_id)
     }
 
     /// Delete an integration for a guild, by the integration's id.
-    pub fn delete_guild_integration(
+    pub const fn delete_guild_integration(
         &self,
         guild_id: GuildId,
         integration_id: IntegrationId,
@@ -780,7 +783,7 @@ impl Client {
     /// Requires the [`MANAGE_GUILD`] permission.
     ///
     /// [`MANAGE_GUILD`]: twilight_model::guild::Permissions::MANAGE_GUILD
-    pub fn guild_invites(&self, guild_id: GuildId) -> GetGuildInvites<'_> {
+    pub const fn guild_invites(&self, guild_id: GuildId) -> GetGuildInvites<'_> {
         GetGuildInvites::new(self, guild_id)
     }
 
@@ -803,7 +806,7 @@ impl Client {
     /// #
     /// let guild_id = GuildId(100);
     /// let user_id = UserId(3000);
-    /// let members = client.guild_members(guild_id).after(user_id).await?;
+    /// let members = client.guild_members(guild_id).after(user_id).exec().await?;
     /// # Ok(()) }
     /// ```
     ///
@@ -834,7 +837,10 @@ impl Client {
     /// let client = Client::new("my token");
     ///
     /// let guild_id = GuildId(100);
-    /// let members = client.search_guild_members(guild_id, String::from("Wumpus")).limit(10)?.await?;
+    /// let members = client.search_guild_members(guild_id, String::from("Wumpus"))
+    ///     .limit(10)?
+    ///     .exec()
+    ///     .await?;
     /// # Ok(()) }
     /// ```
     ///
@@ -854,7 +860,7 @@ impl Client {
     }
 
     /// Get a member of a guild, by their id.
-    pub fn guild_member(&self, guild_id: GuildId, user_id: UserId) -> GetMember<'_> {
+    pub const fn guild_member(&self, guild_id: GuildId, user_id: UserId) -> GetMember<'_> {
         GetMember::new(self, guild_id, user_id)
     }
 
@@ -882,7 +888,11 @@ impl Client {
     }
 
     /// Kick a member from a guild.
-    pub fn remove_guild_member(&self, guild_id: GuildId, user_id: UserId) -> RemoveMember<'_> {
+    pub const fn remove_guild_member(
+        &self,
+        guild_id: GuildId,
+        user_id: UserId,
+    ) -> RemoveMember<'_> {
         RemoveMember::new(self, guild_id, user_id)
     }
 
@@ -904,6 +914,7 @@ impl Client {
     /// let member = client.update_guild_member(GuildId(1), UserId(2))
     ///     .mute(true)
     ///     .nick(Some("pinkie pie".to_owned()))?
+    ///     .exec()
     ///     .await?
     ///     .model()
     ///     .await?;
@@ -942,7 +953,10 @@ impl Client {
     /// let role_id = RoleId(2);
     /// let user_id = UserId(3);
     ///
-    /// client.add_guild_member_role(guild_id, user_id, role_id).reason("test")?.await?;
+    /// client.add_guild_member_role(guild_id, user_id, role_id)
+    ///     .reason("test")?
+    ///     .exec()
+    ///     .await?;
     /// # Ok(()) }
     /// ```
     pub fn add_guild_member_role(
@@ -967,7 +981,7 @@ impl Client {
     /// For public guilds, get the guild preview.
     ///
     /// This works even if the user is not in the guild.
-    pub fn guild_preview(&self, guild_id: GuildId) -> GetGuildPreview<'_> {
+    pub const fn guild_preview(&self, guild_id: GuildId) -> GetGuildPreview<'_> {
         GetGuildPreview::new(self, guild_id)
     }
 
@@ -986,24 +1000,24 @@ impl Client {
     }
 
     /// Get a guild's vanity url, if there is one.
-    pub fn guild_vanity_url(&self, guild_id: GuildId) -> GetGuildVanityUrl<'_> {
+    pub const fn guild_vanity_url(&self, guild_id: GuildId) -> GetGuildVanityUrl<'_> {
         GetGuildVanityUrl::new(self, guild_id)
     }
 
     /// Get voice region data for the guild.
     ///
     /// Can return VIP servers if the guild is VIP-enabled.
-    pub fn guild_voice_regions(&self, guild_id: GuildId) -> GetGuildVoiceRegions<'_> {
+    pub const fn guild_voice_regions(&self, guild_id: GuildId) -> GetGuildVoiceRegions<'_> {
         GetGuildVoiceRegions::new(self, guild_id)
     }
 
     /// Get the webhooks of a guild.
-    pub fn guild_webhooks(&self, guild_id: GuildId) -> GetGuildWebhooks<'_> {
+    pub const fn guild_webhooks(&self, guild_id: GuildId) -> GetGuildWebhooks<'_> {
         GetGuildWebhooks::new(self, guild_id)
     }
 
     /// Get the guild's welcome screen.
-    pub fn guild_welcome_screen(&self, guild_id: GuildId) -> GetGuildWelcomeScreen<'_> {
+    pub const fn guild_welcome_screen(&self, guild_id: GuildId) -> GetGuildWelcomeScreen<'_> {
         GetGuildWelcomeScreen::new(self, guild_id)
     }
 
@@ -1034,6 +1048,7 @@ impl Client {
     /// let invite = client
     ///     .invite("code")
     ///     .with_counts()
+    ///     .exec()
     ///     .await?;
     /// # Ok(()) }
     /// ```
@@ -1062,6 +1077,7 @@ impl Client {
     /// let invite = client
     ///     .create_invite(channel_id)
     ///     .max_uses(3)?
+    ///     .exec()
     ///     .await?;
     /// # Ok(()) }
     /// ```
@@ -1083,7 +1099,7 @@ impl Client {
     }
 
     /// Get a message by [`ChannelId`] and [`MessageId`].
-    pub fn message(&self, channel_id: ChannelId, message_id: MessageId) -> GetMessage<'_> {
+    pub const fn message(&self, channel_id: ChannelId, message_id: MessageId) -> GetMessage<'_> {
         GetMessage::new(self, channel_id, message_id)
     }
 
@@ -1104,6 +1120,7 @@ impl Client {
     ///     .create_message(channel_id)
     ///     .content("Twilight is best pony")?
     ///     .tts(true)
+    ///     .exec()
     ///     .await?;
     /// # Ok(()) }
     /// ```
@@ -1129,7 +1146,7 @@ impl Client {
     }
 
     /// Delete a message by [`ChannelId`] and [`MessageId`].
-    pub fn delete_message(
+    pub const fn delete_message(
         &self,
         channel_id: ChannelId,
         message_id: MessageId,
@@ -1171,6 +1188,7 @@ impl Client {
     /// let client = Client::new("my token");
     /// client.update_message(ChannelId(1), MessageId(2))
     ///     .content("test update".to_owned())?
+    ///     .exec()
     ///     .await?;
     /// # Ok(()) }
     /// ```
@@ -1186,6 +1204,7 @@ impl Client {
     /// # let client = Client::new("my token");
     /// client.update_message(ChannelId(1), MessageId(2))
     ///     .content(None)?
+    ///     .exec()
     ///     .await?;
     /// # Ok(()) }
     /// ```
@@ -1200,7 +1219,7 @@ impl Client {
     }
 
     /// Crosspost a message by [`ChannelId`] and [`MessageId`].
-    pub fn crosspost_message(
+    pub const fn crosspost_message(
         &self,
         channel_id: ChannelId,
         message_id: MessageId,
@@ -1209,17 +1228,17 @@ impl Client {
     }
 
     /// Get the pins of a channel.
-    pub fn pins(&self, channel_id: ChannelId) -> GetPins<'_> {
+    pub const fn pins(&self, channel_id: ChannelId) -> GetPins<'_> {
         GetPins::new(self, channel_id)
     }
 
     /// Create a new pin in a channel, by ID.
-    pub fn create_pin(&self, channel_id: ChannelId, message_id: MessageId) -> CreatePin<'_> {
+    pub const fn create_pin(&self, channel_id: ChannelId, message_id: MessageId) -> CreatePin<'_> {
         CreatePin::new(self, channel_id, message_id)
     }
 
     /// Delete a pin in a channel, by ID.
-    pub fn delete_pin(&self, channel_id: ChannelId, message_id: MessageId) -> DeletePin<'_> {
+    pub const fn delete_pin(&self, channel_id: ChannelId, message_id: MessageId) -> DeletePin<'_> {
         DeletePin::new(self, channel_id, message_id)
     }
 
@@ -1257,10 +1276,11 @@ impl Client {
     ///
     /// let reaction = client
     ///     .create_reaction(channel_id, message_id, emoji)
+    ///     .exec()
     ///     .await?;
     /// # Ok(()) }
     /// ```
-    pub fn create_reaction(
+    pub const fn create_reaction(
         &self,
         channel_id: ChannelId,
         message_id: MessageId,
@@ -1291,7 +1311,7 @@ impl Client {
     }
 
     /// Remove all reactions on a message of an emoji.
-    pub fn delete_all_reaction(
+    pub const fn delete_all_reaction(
         &self,
         channel_id: ChannelId,
         message_id: MessageId,
@@ -1301,7 +1321,7 @@ impl Client {
     }
 
     /// Delete all reactions by all users on a message.
-    pub fn delete_all_reactions(
+    pub const fn delete_all_reactions(
         &self,
         channel_id: ChannelId,
         message_id: MessageId,
@@ -1310,19 +1330,19 @@ impl Client {
     }
 
     /// Fire a Typing Start event in the channel.
-    pub fn create_typing_trigger(&self, channel_id: ChannelId) -> CreateTypingTrigger<'_> {
+    pub const fn create_typing_trigger(&self, channel_id: ChannelId) -> CreateTypingTrigger<'_> {
         CreateTypingTrigger::new(self, channel_id)
     }
 
     /// Create a group DM.
     ///
     /// This endpoint is limited to 10 active group DMs.
-    pub fn create_private_channel(&self, recipient_id: UserId) -> CreatePrivateChannel<'_> {
+    pub const fn create_private_channel(&self, recipient_id: UserId) -> CreatePrivateChannel<'_> {
         CreatePrivateChannel::new(self, recipient_id)
     }
 
     /// Get the roles of a guild.
-    pub fn roles(&self, guild_id: GuildId) -> GetGuildRoles<'_> {
+    pub const fn roles(&self, guild_id: GuildId) -> GetGuildRoles<'_> {
         GetGuildRoles::new(self, guild_id)
     }
 
@@ -1342,6 +1362,7 @@ impl Client {
     /// client.create_role(guild_id)
     ///     .color(0xd90083)
     ///     .name("Bright Pink")
+    ///     .exec()
     ///     .await?;
     /// # Ok(()) }
     /// ```
@@ -1350,7 +1371,7 @@ impl Client {
     }
 
     /// Delete a role in a guild, by id.
-    pub fn delete_role(&self, guild_id: GuildId, role_id: RoleId) -> DeleteRole<'_> {
+    pub const fn delete_role(&self, guild_id: GuildId, role_id: RoleId) -> DeleteRole<'_> {
         DeleteRole::new(self, guild_id, role_id)
     }
 
@@ -1389,7 +1410,7 @@ impl Client {
     }
 
     /// Gets the stage instance associated with a stage channel, if it exists.
-    pub fn stage_instance(&self, channel_id: ChannelId) -> GetStageInstance<'_> {
+    pub const fn stage_instance(&self, channel_id: ChannelId) -> GetStageInstance<'_> {
         GetStageInstance::new(self, channel_id)
     }
 
@@ -1403,7 +1424,7 @@ impl Client {
     /// Delete the stage instance of a stage channel.
     ///
     /// Requires the user to be a moderator of the stage channel.
-    pub fn delete_stage_instance(&self, channel_id: ChannelId) -> DeleteStageInstance<'_> {
+    pub const fn delete_stage_instance(&self, channel_id: ChannelId) -> DeleteStageInstance<'_> {
         DeleteStageInstance::new(self, channel_id)
     }
 
@@ -1459,7 +1480,7 @@ impl Client {
     }
 
     /// Get a list of templates in a guild, by ID.
-    pub fn get_templates(&self, guild_id: GuildId) -> GetTemplates<'_> {
+    pub const fn get_templates(&self, guild_id: GuildId) -> GetTemplates<'_> {
         GetTemplates::new(self, guild_id)
     }
 
@@ -1492,7 +1513,7 @@ impl Client {
     ///
     /// - `channel_id` must currently point to a stage channel.
     /// - User must already have joined `channel_id`.
-    pub fn update_user_voice_state(
+    pub const fn update_user_voice_state(
         &self,
         guild_id: GuildId,
         user_id: UserId,
@@ -1502,7 +1523,7 @@ impl Client {
     }
 
     /// Get a list of voice regions that can be used when creating a guild.
-    pub fn voice_regions(&self) -> GetVoiceRegions<'_> {
+    pub const fn voice_regions(&self) -> GetVoiceRegions<'_> {
         GetVoiceRegions::new(self)
     }
 
@@ -1526,6 +1547,7 @@ impl Client {
     ///
     /// let webhook = client
     ///     .create_webhook(channel_id, "Twily Bot")
+    ///     .exec()
     ///     .await?;
     /// # Ok(()) }
     /// ```
@@ -1538,7 +1560,7 @@ impl Client {
     }
 
     /// Delete a webhook by its ID.
-    pub fn delete_webhook(&self, id: WebhookId) -> DeleteWebhook<'_> {
+    pub const fn delete_webhook(&self, id: WebhookId) -> DeleteWebhook<'_> {
         DeleteWebhook::new(self, id)
     }
 
@@ -1574,6 +1596,7 @@ impl Client {
     /// let webhook = client
     ///     .execute_webhook(id, "webhook token")
     ///     .content("Pinkie...")
+    ///     .exec()
     ///     .await?;
     /// # Ok(()) }
     /// ```
@@ -1615,6 +1638,7 @@ impl Client {
     /// # let client = Client::new("token");
     /// client.update_webhook_message(WebhookId(1), "token here", MessageId(2))
     ///     .content(Some("new message content".to_owned()))?
+    ///     .exec()
     ///     .await?;
     /// # Ok(()) }
     /// ```
@@ -1640,6 +1664,7 @@ impl Client {
     /// # let client = Client::new("token");
     /// client
     ///     .delete_webhook_message(WebhookId(1), "token here", MessageId(2))
+    ///     .exec()
     ///     .await?;
     /// # Ok(()) }
     /// ```
@@ -2134,14 +2159,23 @@ impl Client {
         SetCommandPermissions::new(self, application_id, guild_id, permissions)
     }
 
-    /// Execute a request, returning the response.
+    /// Execute a request, returning a future resolving to a [`Response`].
     ///
     /// # Errors
     ///
     /// Returns an [`ErrorType::Unauthorized`] error type if the configured
     /// token has become invalid due to expiration, revokation, etc.
+    ///
+    /// [`Response`]: super::response::Response
+    pub fn request<T>(&self, request: Request) -> ResponseFuture<T> {
+        match self.try_request::<T>(request) {
+            Ok(future) => future,
+            Err(source) => ResponseFuture::error(source),
+        }
+    }
+
     #[allow(clippy::too_many_lines)]
-    pub async fn request<T>(&self, request: Request) -> Result<Response<T>, Error> {
+    fn try_request<T>(&self, request: Request) -> Result<ResponseFuture<T>, Error> {
         if self.state.token_invalid.load(Ordering::Relaxed) {
             return Err(Error {
                 kind: ErrorType::Unauthorized,
@@ -2259,114 +2293,27 @@ impl Client {
         };
 
         let inner = self.state.http.request(req);
-        let fut = time::timeout(self.state.timeout, inner);
+        let token_invalid = Arc::clone(&self.state.token_invalid);
 
-        let ratelimiter = match self.state.ratelimiter.as_ref() {
-            Some(ratelimiter) => ratelimiter,
-            None => {
-                return Ok(Response::new(
-                    fut.await
-                        .map_err(|source| Error {
-                            kind: ErrorType::RequestTimedOut,
-                            source: Some(Box::new(source)),
-                        })?
-                        .map_err(|source| Error {
-                            kind: ErrorType::RequestError,
-                            source: Some(Box::new(source)),
-                        })?,
-                ));
-            }
-        };
+        // Clippy suggests bad code; an `Option::map_or_else` won't work here
+        // due to move semantics in both cases.
+        #[allow(clippy::option_if_let_else)]
+        if let Some(ratelimiter) = self.state.ratelimiter.as_ref() {
+            let rx = ratelimiter.ticket(bucket);
 
-        let rx = ratelimiter.get(bucket).await;
-        let tx = rx.await.map_err(|source| Error {
-            kind: ErrorType::RequestCanceled,
-            source: Some(Box::new(source)),
-        })?;
-
-        let resp = fut
-            .await
-            .map_err(|source| Error {
-                kind: ErrorType::RequestTimedOut,
-                source: Some(Box::new(source)),
-            })?
-            .map_err(|source| Error {
-                kind: ErrorType::RequestError,
-                source: Some(Box::new(source)),
-            })?;
-
-        // If the API sent back an Unauthorized response, then the client's
-        // configured token is permanently invalid and future requests must be
-        // ignored to avoid API bans.
-        if resp.status() == HyperStatusCode::UNAUTHORIZED {
-            self.state.token_invalid.store(true, Ordering::Relaxed);
+            Ok(ResponseFuture::ratelimit(
+                None,
+                token_invalid,
+                rx,
+                self.state.timeout,
+                inner,
+            ))
+        } else {
+            Ok(ResponseFuture::new(
+                token_invalid,
+                time::timeout(self.state.timeout, inner),
+                None,
+            ))
         }
-
-        match RatelimitHeaders::try_from(resp.headers()) {
-            Ok(v) => {
-                let _res = tx.send(Some(v));
-            }
-            #[allow(unused_variables)]
-            Err(why) => {
-                #[cfg(feature = "tracing")]
-                tracing::warn!("header parsing failed: {:?}; {:?}", why, resp);
-
-                let _res = tx.send(None);
-            }
-        }
-
-        let status = resp.status();
-
-        if status.is_success() {
-            return Ok(Response::new(resp));
-        }
-
-        match status {
-            HyperStatusCode::IM_A_TEAPOT => {
-                #[cfg(feature = "tracing")]
-                tracing::warn!(
-                    "discord's api now runs off of teapots -- proceed to panic: {:?}",
-                    resp,
-                );
-            }
-            HyperStatusCode::TOO_MANY_REQUESTS => {
-                #[cfg(feature = "tracing")]
-                tracing::warn!("429 response: {:?}", resp);
-            }
-            HyperStatusCode::SERVICE_UNAVAILABLE => {
-                return Err(Error {
-                    kind: ErrorType::ServiceUnavailable { response: resp },
-                    source: None,
-                });
-            }
-            _ => {}
-        }
-
-        let bytes = body::to_bytes(resp.into_body())
-            .await
-            .map_err(|source| Error {
-                kind: ErrorType::ChunkingResponse,
-                source: Some(Box::new(source)),
-            })?;
-
-        let error = crate::json::parse_bytes::<ApiError>(&bytes)?;
-
-        #[cfg(feature = "tracing")]
-        if let ApiError::General(ref general) = error {
-            use crate::api_error::ErrorCode;
-
-            if let ErrorCode::Other(num) = general.code {
-                tracing::debug!("got unknown API error code variant: {}; {:?}", num, error);
-            }
-        }
-
-        Err(Error {
-            kind: ErrorType::Response {
-                body: bytes.to_vec(),
-                error,
-                status: StatusCode::new(status.as_u16()),
-            },
-            source: None,
-        })
     }
 }

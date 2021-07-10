@@ -78,7 +78,7 @@ impl ClusterBuilder {
     /// [`ClusterStartErrorType::RetrievingGatewayInfo`]: super::ClusterStartErrorType::RetrievingGatewayInfo
     pub async fn build(mut self) -> Result<(Cluster, Events), ClusterStartError> {
         if (self.1).0.gateway_url.is_none() {
-            let maybe_response = (self.1).0.http_client.gateway().authed().await;
+            let maybe_response = (self.1).0.http_client.gateway().authed().exec().await;
 
             if let Ok(response) = maybe_response {
                 let gateway_url = response.model().await.ok().map(|info| info.url);
