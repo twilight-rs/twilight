@@ -9,7 +9,7 @@
 //! the type of an event and to filter events from event streams via
 //! [`ClusterBuilder::event_types`].
 //!
-//! [`EventType`]: ::twilight_model::gateway::event::EventType
+//! [`EventType`]: twilight_model::gateway::event::EventType
 //! [`ClusterBuilder::event_types`]: crate::cluster::ClusterBuilder::event_types
 
 use crate::shard::Events as ShardEvents;
