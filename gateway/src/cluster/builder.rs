@@ -76,15 +76,7 @@ impl ClusterBuilder {
     /// there was an HTTP error Retrieving the gateway information.
     ///
     /// [`ClusterStartErrorType::RetrievingGatewayInfo`]: super::ClusterStartErrorType::RetrievingGatewayInfo
-    pub async fn build(
-        mut self,
-    ) -> Result<
-        (
-            Cluster,
-            Events,
-        ),
-        ClusterStartError,
-    > {
+    pub async fn build(mut self) -> Result<(Cluster, Events), ClusterStartError> {
         if (self.1).0.gateway_url.is_none() {
             let gateway_url = (self.1)
                 .0

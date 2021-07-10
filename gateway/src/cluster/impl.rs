@@ -1,9 +1,10 @@
 use super::{builder::ClusterBuilder, config::Config, event::Events, scheme::ShardScheme};
-use crate::{Intents, cluster::event::ShardEventsWithId, shard::{raw_message::Message, Information, ResumeSession, Shard}};
-use futures_util::{
-    future,
-    stream::SelectAll,
+use crate::{
+    cluster::event::ShardEventsWithId,
+    shard::{raw_message::Message, Information, ResumeSession, Shard},
+    Intents,
 };
+use futures_util::{future, stream::SelectAll};
 use std::{
     collections::HashMap,
     error::Error,
@@ -290,25 +291,13 @@ impl Cluster {
     pub async fn new(
         token: impl Into<String>,
         intents: Intents,
-    ) -> Result<
-        (
-            Self,
-            Events,
-        ),
-        ClusterStartError,
-    > {
+    ) -> Result<(Self, Events), ClusterStartError> {
         Self::builder(token, intents).build().await
     }
 
     pub(super) async fn new_with_config(
         mut config: Config,
-    ) -> Result<
-        (
-            Self,
-            Events,
-        ),
-        ClusterStartError,
-    > {
+    ) -> Result<(Self, Events), ClusterStartError> {
         #[derive(Default)]
         struct ShardFold {
             shards: HashMap<u64, Shard>,
