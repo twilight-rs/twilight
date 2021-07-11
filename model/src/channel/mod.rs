@@ -1030,7 +1030,6 @@ mod tests {
             rate_limit_per_user: Some(1000_u64),
             thread_metadata: ThreadMetadata {
                 archived: false,
-                archiver_id: Some(UserId(5)),
                 auto_archive_duration: AutoArchiveDuration::Day,
                 archive_timestamp: "archivetimestamp".into(),
                 locked: false,
@@ -1059,7 +1058,6 @@ mod tests {
                 "thread_metadata": {
                     "archive_timestamp": "archivetimestamp",
                     "archived": false,
-                    "archiver_id": "5",
                     "auto_archive_duration": AutoArchiveDuration::Day,
                     "locked": false
                 }
@@ -1089,7 +1087,6 @@ mod tests {
             rate_limit_per_user: Some(1000_u64),
             thread_metadata: ThreadMetadata {
                 archived: false,
-                archiver_id: Some(UserId(5)),
                 auto_archive_duration: AutoArchiveDuration::Day,
                 archive_timestamp: "archivetimestamp".into(),
                 locked: false,
@@ -1118,7 +1115,6 @@ mod tests {
                 "thread_metadata": {
                     "archive_timestamp": "archivetimestamp",
                     "archived": false,
-                    "archiver_id": "5",
                     "auto_archive_duration": AutoArchiveDuration::Day,
                     "locked": false
                 }
@@ -1148,7 +1144,6 @@ mod tests {
             rate_limit_per_user: Some(1000_u64),
             thread_metadata: ThreadMetadata {
                 archived: false,
-                archiver_id: Some(UserId(5)),
                 auto_archive_duration: AutoArchiveDuration::Day,
                 archive_timestamp: "archivetimestamp".into(),
                 locked: false,
@@ -1182,7 +1177,6 @@ mod tests {
                 "thread_metadata": {
                     "archive_timestamp": "archivetimestamp",
                     "archived": false,
-                    "archiver_id": "5",
                     "auto_archive_duration": AutoArchiveDuration::Day,
                     "locked": false
                 },
