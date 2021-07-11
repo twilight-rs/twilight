@@ -120,6 +120,7 @@ mod tests {
         );
     }
 
+    #[allow(clippy::too_many_lines)]
     #[test]
     fn test_full() {
         let value = Sticker {
