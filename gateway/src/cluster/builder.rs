@@ -1,13 +1,13 @@
 use super::{
     config::Config as ClusterConfig,
+    event::Events,
     r#impl::{Cluster, ClusterStartError},
     scheme::ShardScheme,
 };
 use crate::{
     shard::{LargeThresholdError, ResumeSession, ShardBuilder},
-    Event, EventTypeFlags,
+    EventTypeFlags,
 };
-use futures_util::stream::Stream;
 use std::{collections::HashMap, sync::Arc};
 use twilight_gateway_queue::{LocalQueue, Queue};
 use twilight_http::Client;
@@ -76,15 +76,7 @@ impl ClusterBuilder {
     /// there was an HTTP error Retrieving the gateway information.
     ///
     /// [`ClusterStartErrorType::RetrievingGatewayInfo`]: super::ClusterStartErrorType::RetrievingGatewayInfo
-    pub async fn build(
-        mut self,
-    ) -> Result<
-        (
-            Cluster,
-            impl Stream<Item = (u64, Event)> + Send + Sync + Unpin + 'static,
-        ),
-        ClusterStartError,
-    > {
+    pub async fn build(mut self) -> Result<(Cluster, Events), ClusterStartError> {
         if (self.1).0.gateway_url.is_none() {
             let gateway_url = (self.1)
                 .0
