@@ -18,6 +18,7 @@ pub use self::{
     reaction::MessageReaction, reference::MessageReference, sticker::Sticker,
 };
 
+use self::sticker::MessageSticker;
 use crate::{
     channel::{embed::Embed, Attachment, ChannelMention},
     guild::PartialMember,
@@ -72,7 +73,7 @@ pub struct Message {
     pub referenced_message: Option<Box<Message>>,
     /// Stickers within the message.
     #[serde(default)]
-    pub stickers: Vec<Sticker>,
+    pub sticker_items: Vec<MessageSticker>,
     pub timestamp: String,
     pub tts: bool,
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -82,7 +83,7 @@ pub struct Message {
 #[cfg(test)]
 mod tests {
     use super::{
-        sticker::{Sticker, StickerFormatType, StickerId, StickerPackId},
+        sticker::{MessageSticker, StickerFormatType, StickerId},
         ChannelMention, Message, MessageActivity, MessageActivityType, MessageApplication,
         MessageFlags, MessageReaction, MessageReference, MessageType, WebhookId,
     };
@@ -143,14 +144,10 @@ mod tests {
             pinned: false,
             reactions: Vec::new(),
             reference: None,
-            stickers: vec![Sticker {
-                asset: "foo1".to_owned(),
-                description: "foo2".to_owned(),
+            sticker_items: vec![MessageSticker {
                 format_type: StickerFormatType::Png,
                 id: StickerId(1),
                 name: "sticker name".to_owned(),
-                pack_id: StickerPackId(2),
-                tags: Some("foo,bar,baz".to_owned()),
             }],
             referenced_message: None,
             timestamp: "2020-02-02T02:02:02.020000+00:00".to_owned(),
@@ -242,16 +239,12 @@ mod tests {
                 Token::SeqEnd,
                 Token::Str("pinned"),
                 Token::Bool(false),
-                Token::Str("stickers"),
+                Token::Str("sticker_items"),
                 Token::Seq { len: Some(1) },
                 Token::Struct {
-                    name: "Sticker",
-                    len: 7,
+                    name: "MessageSticker",
+                    len: 3,
                 },
-                Token::Str("asset"),
-                Token::Str("foo1"),
-                Token::Str("description"),
-                Token::Str("foo2"),
                 Token::Str("format_type"),
                 Token::U8(1),
                 Token::Str("id"),
@@ -259,14 +252,6 @@ mod tests {
                 Token::Str("1"),
                 Token::Str("name"),
                 Token::Str("sticker name"),
-                Token::Str("pack_id"),
-                Token::NewtypeStruct {
-                    name: "StickerPackId",
-                },
-                Token::Str("2"),
-                Token::Str("tags"),
-                Token::Some,
-                Token::Str("foo,bar,baz"),
                 Token::StructEnd,
                 Token::SeqEnd,
                 Token::Str("timestamp"),
@@ -352,14 +337,10 @@ mod tests {
                 message_id: None,
                 fail_if_not_exists: None,
             }),
-            stickers: vec![Sticker {
-                asset: "foo1".to_owned(),
-                description: "foo2".to_owned(),
+            sticker_items: vec![MessageSticker {
                 format_type: StickerFormatType::Png,
                 id: StickerId(1),
                 name: "sticker name".to_owned(),
-                pack_id: StickerPackId(2),
-                tags: Some("foo,bar,baz".to_owned()),
             }],
             referenced_message: None,
             timestamp: "2020-02-02T02:02:02.020000+00:00".to_owned(),
@@ -538,16 +519,12 @@ mod tests {
                 Token::NewtypeStruct { name: "ChannelId" },
                 Token::Str("1"),
                 Token::StructEnd,
-                Token::Str("stickers"),
+                Token::Str("sticker_items"),
                 Token::Seq { len: Some(1) },
                 Token::Struct {
-                    name: "Sticker",
-                    len: 7,
+                    name: "MessageSticker",
+                    len: 3,
                 },
-                Token::Str("asset"),
-                Token::Str("foo1"),
-                Token::Str("description"),
-                Token::Str("foo2"),
                 Token::Str("format_type"),
                 Token::U8(1),
                 Token::Str("id"),
@@ -555,14 +532,6 @@ mod tests {
                 Token::Str("1"),
                 Token::Str("name"),
                 Token::Str("sticker name"),
-                Token::Str("pack_id"),
-                Token::NewtypeStruct {
-                    name: "StickerPackId",
-                },
-                Token::Str("2"),
-                Token::Str("tags"),
-                Token::Some,
-                Token::Str("foo,bar,baz"),
                 Token::StructEnd,
                 Token::SeqEnd,
                 Token::Str("timestamp"),
