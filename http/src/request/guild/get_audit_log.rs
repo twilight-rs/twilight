@@ -9,7 +9,7 @@ use std::{
     fmt::{Display, Formatter, Result as FmtResult},
 };
 use twilight_model::{
-    guild::audit_log::{AuditLog, AuditLogEvent},
+    guild::audit_log::{AuditLog, AuditLogEventType},
     id::{GuildId, UserId},
 };
 
@@ -63,7 +63,7 @@ pub enum GetAuditLogErrorType {
 
 #[derive(Default)]
 struct GetAuditLogFields {
-    action_type: Option<AuditLogEvent>,
+    action_type: Option<AuditLogEventType>,
     before: Option<u64>,
     limit: Option<u64>,
     user_id: Option<UserId>,
@@ -83,10 +83,21 @@ struct GetAuditLogFields {
 ///
 /// let guild_id = GuildId(101);
 /// let audit_log = client
-/// // not done
 ///     .audit_log(guild_id)
 ///     .exec()
+///     .await?
+///     .model()
 ///     .await?;
+///
+/// for entry in audit_log.entries {
+///     println!("ID: {}", entry.id);
+///     println!("  Action Type: {}", entry.action_type as u8);
+///     println!("  Changes:");
+///
+///     for change in entry.changes {
+///         println!("{:?}", change);
+///     }
+/// }
 /// # Ok(()) }
 /// ```
 pub struct GetAuditLog<'a> {
@@ -105,7 +116,7 @@ impl<'a> GetAuditLog<'a> {
     }
 
     /// Filter by an action type.
-    pub fn action_type(mut self, action_type: AuditLogEvent) -> Self {
+    pub fn action_type(mut self, action_type: AuditLogEventType) -> Self {
         self.fields.action_type.replace(action_type);
 
         self
