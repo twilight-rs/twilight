@@ -78,6 +78,15 @@ impl Channel {
         }
     }
 
+    /// Type of the channel.
+    pub const fn kind(&self) -> ChannelType {
+        match self {
+            Self::Group(c) => c.kind,
+            Self::Guild(c) => c.kind(),
+            Self::Private(c) => c.kind,
+        }
+    }
+
     /// Return an immutable reference to the name of the inner channel.
     ///
     /// The group variant might not always have a name, since they are optional
@@ -119,6 +128,15 @@ impl GuildChannel {
             Self::Text(text) => text.id,
             Self::Voice(voice) => voice.id,
             Self::Stage(stage) => stage.id,
+        }
+    }
+
+    /// Type of the guild channel.
+    pub const fn kind(&self) -> ChannelType {
+        match self {
+            Self::Category(c) => c.kind,
+            Self::Text(c) => c.kind,
+            Self::Stage(c) | Self::Voice(c) => c.kind,
         }
     }
 
@@ -535,6 +553,48 @@ mod tests {
             ChannelId(789)
         );
         assert_eq!(Channel::Private(private()).id(), ChannelId(234));
+    }
+
+    #[test]
+    fn test_channel_kind() {
+        assert_eq!(
+            Channel::Guild(GuildChannel::Category(guild_category())).kind(),
+            ChannelType::GuildCategory
+        );
+        assert_eq!(
+            Channel::Guild(GuildChannel::Stage(guild_stage())).kind(),
+            ChannelType::GuildStageVoice
+        );
+        assert_eq!(
+            Channel::Guild(GuildChannel::Text(guild_text())).kind(),
+            ChannelType::GuildText
+        );
+        assert_eq!(
+            Channel::Guild(GuildChannel::Stage(guild_voice())).kind(),
+            ChannelType::GuildVoice
+        );
+        assert_eq!(Channel::Group(group()).kind(), ChannelType::Group);
+        assert_eq!(Channel::Private(private()).kind(), ChannelType::Private);
+    }
+
+    #[test]
+    fn test_guild_channel_kind() {
+        assert_eq!(
+            GuildChannel::Category(guild_category()).kind(),
+            ChannelType::GuildCategory
+        );
+        assert_eq!(
+            GuildChannel::Stage(guild_stage()).kind(),
+            ChannelType::GuildStageVoice
+        );
+        assert_eq!(
+            GuildChannel::Text(guild_text()).kind(),
+            ChannelType::GuildText
+        );
+        assert_eq!(
+            GuildChannel::Stage(guild_voice()).kind(),
+            ChannelType::GuildVoice
+        );
     }
 
     #[test]
