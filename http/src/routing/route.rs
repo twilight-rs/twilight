@@ -458,6 +458,13 @@ pub enum Route {
         /// The maximum number of guilds to get.
         limit: Option<u64>,
     },
+    /// Route information to get an original interaction response message.
+    GetInteractionOriginal {
+        /// ID of the owner application.
+        application_id: u64,
+        /// Token of the interaction.
+        interaction_token: String,
+    },
     /// Route information to get an invite.
     GetInvite {
         /// The unique invite code.
@@ -929,6 +936,7 @@ impl Route {
             | Self::GetGuildWebhooks { .. }
             | Self::GetGuildWidget { .. }
             | Self::GetGuilds { .. }
+            | Self::GetInteractionOriginal { .. }
             | Self::GetInvite { .. }
             | Self::GetInviteWithExpiration { .. }
             | Self::GetMember { .. }
@@ -1110,6 +1118,7 @@ impl Route {
                 Path::GuildsIdIntegrationsId(*guild_id)
             }
             Self::DeleteInteractionOriginal { application_id, .. }
+            | Self::GetInteractionOriginal { application_id, .. }
             | Self::UpdateInteractionOriginal { application_id, .. } => {
                 Path::WebhooksIdTokenMessagesId(*application_id)
             }

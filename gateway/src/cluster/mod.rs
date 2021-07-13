@@ -87,11 +87,13 @@ pub mod scheme;
 
 mod builder;
 mod config;
+mod event;
 mod r#impl;
 
 pub use self::{
     builder::ClusterBuilder,
     config::Config,
+    event::Events,
     r#impl::{
         Cluster, ClusterCommandError, ClusterCommandErrorType, ClusterStartError,
         ClusterStartErrorType,

@@ -2,6 +2,23 @@
 
 Changelog for `twilight-http`.
 
+## [0.5.3] - 2021-07-03
+
+### Additions
+
+Add support for the following API error codes:
+
+- 10059: Unknown discoverable server category
+- 10060: Unknown sticker
+- 10068: Unknown Guild Member Verification Form
+- 10069: Unknown Guild Welcome Screen
+- 30030: Maximum number of server categories has been reached
+- 30039: Maximum number of stickers reached
+
+([#1006] - [@zeylahellyer]).
+
+[#1006]: https://github.com/twilight-rs/twilight/pull/1006
+
 ## [0.5.2] - 2021-07-02
 
 ### Fixes
@@ -983,6 +1000,7 @@ Initial release.
 
 [0.2.0-beta.1:app integrations]: https://github.com/discord/discord-api-docs/commit/a926694e2f8605848bda6b57d21c8817559e5cec
 
+[0.5.3]: https://github.com/twilight-rs/twilight/releases/tag/http-0.5.3
 [0.5.2]: https://github.com/twilight-rs/twilight/releases/tag/http-0.5.2
 [0.5.1]: https://github.com/twilight-rs/twilight/releases/tag/http-0.5.1
 [0.5.0]: https://github.com/twilight-rs/twilight/releases/tag/http-0.5.0

@@ -335,6 +335,10 @@ impl Display for RouteDisplay<'_> {
                 application_id,
                 interaction_token,
             }
+            | Route::GetInteractionOriginal {
+                application_id,
+                interaction_token,
+            }
             | Route::UpdateInteractionOriginal {
                 application_id,
                 interaction_token,

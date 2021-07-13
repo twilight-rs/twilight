@@ -1,6 +1,7 @@
 mod channel;
 mod guild;
 mod metadata;
+mod stage_instance;
 mod target_type;
 mod welcome_screen;
 
@@ -8,6 +9,7 @@ pub use self::{
     channel::InviteChannel,
     guild::InviteGuild,
     metadata::InviteMetadata,
+    stage_instance::{InviteStageInstance, InviteStageInstanceMember},
     target_type::TargetType,
     welcome_screen::{WelcomeScreen, WelcomeScreenChannel},
 };
@@ -30,6 +32,8 @@ pub struct Invite {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub inviter: Option<User>,
     #[serde(skip_serializing_if = "Option::is_none")]
+    pub stage_instance: Option<InviteStageInstance>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub target_type: Option<TargetType>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub target_user: Option<User>,
@@ -38,15 +42,42 @@ pub struct Invite {
 #[cfg(test)]
 mod tests {
     use super::{
-        welcome_screen::WelcomeScreenChannel, Invite, InviteChannel, InviteGuild, TargetType, User,
-        WelcomeScreen,
+        welcome_screen::WelcomeScreenChannel, Invite, InviteChannel, InviteGuild,
+        InviteStageInstance, InviteStageInstanceMember, TargetType, User, WelcomeScreen,
     };
     use crate::{
         channel::ChannelType,
         guild::VerificationLevel,
         id::{ChannelId, EmojiId, GuildId, UserId},
     };
+    use serde::{Deserialize, Serialize};
     use serde_test::Token;
+    use static_assertions::{assert_fields, assert_impl_all};
+    use std::fmt::Debug;
+
+    assert_fields!(
+        Invite: approximate_member_count,
+        approximate_presence_count,
+        channel,
+        code,
+        expires_at,
+        guild,
+        inviter,
+        stage_instance,
+        target_type,
+        target_user
+    );
+
+    assert_impl_all!(
+        Invite: Clone,
+        Debug,
+        Deserialize<'static>,
+        Eq,
+        PartialEq,
+        Serialize,
+        Send,
+        Sync,
+    );
 
     #[test]
     fn test_invite() {
@@ -62,6 +93,7 @@ mod tests {
             expires_at: None,
             guild: None,
             inviter: None,
+            stage_instance: None,
             target_type: Some(TargetType::Stream),
             target_user: None,
         };
@@ -156,6 +188,34 @@ mod tests {
                 system: None,
                 verified: None,
             }),
+            stage_instance: Some(InviteStageInstance {
+                members: Vec::from([InviteStageInstanceMember {
+                    avatar: None,
+                    joined_at: "joined at".into(),
+                    nick: None,
+                    pending: None,
+                    premium_since: None,
+                    roles: Vec::new(),
+                    user: User {
+                        avatar: None,
+                        bot: false,
+                        discriminator: "0001".to_owned(),
+                        email: None,
+                        flags: None,
+                        id: UserId(2),
+                        locale: None,
+                        mfa_enabled: None,
+                        name: "test".to_owned(),
+                        premium_type: None,
+                        public_flags: None,
+                        system: None,
+                        verified: None,
+                    },
+                }]),
+                participant_count: 4,
+                speaker_count: 2,
+                topic: "who is the best pony".into(),
+            }),
             target_type: Some(TargetType::Stream),
             target_user: Some(User {
                 avatar: None,
@@ -179,7 +239,7 @@ mod tests {
             &[
                 Token::Struct {
                     name: "Invite",
-                    len: 9,
+                    len: 10,
                 },
                 Token::Str("approximate_member_count"),
                 Token::Some,
@@ -298,6 +358,46 @@ mod tests {
                 Token::Str("2"),
                 Token::Str("username"),
                 Token::Str("test"),
+                Token::StructEnd,
+                Token::Str("stage_instance"),
+                Token::Some,
+                Token::Struct {
+                    name: "InviteStageInstance",
+                    len: 4,
+                },
+                Token::Str("members"),
+                Token::Seq { len: Some(1) },
+                Token::Struct {
+                    name: "InviteStageInstanceMember",
+                    len: 2,
+                },
+                Token::Str("joined_at"),
+                Token::Str("joined at"),
+                Token::Str("user"),
+                Token::Struct {
+                    name: "User",
+                    len: 5,
+                },
+                Token::Str("avatar"),
+                Token::None,
+                Token::Str("bot"),
+                Token::Bool(false),
+                Token::Str("discriminator"),
+                Token::Str("0001"),
+                Token::Str("id"),
+                Token::NewtypeStruct { name: "UserId" },
+                Token::Str("2"),
+                Token::Str("username"),
+                Token::Str("test"),
+                Token::StructEnd,
+                Token::StructEnd,
+                Token::SeqEnd,
+                Token::Str("participant_count"),
+                Token::U64(4),
+                Token::Str("speaker_count"),
+                Token::U64(2),
+                Token::Str("topic"),
+                Token::Str("who is the best pony"),
                 Token::StructEnd,
                 Token::Str("target_type"),
                 Token::Some,
