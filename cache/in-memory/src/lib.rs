@@ -6,6 +6,20 @@
 //! [`twilight-rs`] ecosystem. It's responsible for processing events and
 //! caching things like guilds, channels, users, and voice states.
 //!
+//! ## Features
+//!
+//! By default no feature is enabled.
+//!
+//! ### `permission-calculator`
+//!
+//! The `permission-calculator` feature flag will bring in support for the
+//! `PermissionCalculator`; an API for calculating permissions through it is
+//! exposed via `InMemoryCache::permissions`. Support for calculating the
+//! permissions of a member on a root guild-level and in a guild channel is
+//! included.
+//!
+//! Refer to the `permission` module for more documentation.
+//!
 //! ## Examples
 //!
 //! Update a cache with events that come in through the gateway:
@@ -45,6 +59,7 @@
 //! [license link]: https://github.com/twilight-rs/twilight/blob/main/LICENSE.md
 //! [rust badge]: https://img.shields.io/badge/rust-1.49+-93450a.svg?style=for-the-badge&logo=rust
 
+#![cfg_attr(docsrs, feature(doc_cfg))]
 #![deny(
     broken_intra_doc_links,
     clippy::missing_const_for_fn,
@@ -55,6 +70,10 @@
 )]
 
 pub mod model;
+
+#[cfg(feature = "permission-calculator")]
+#[cfg_attr(docsrs, doc(cfg(feature = "permission-calculator")))]
+pub mod permission;
 
 mod builder;
 mod config;
@@ -69,6 +88,10 @@ pub use self::{
     config::{Config, ResourceType},
     stats::InMemoryCacheStats,
 };
+
+#[cfg(feature = "permission-calculator")]
+#[cfg_attr(docsrs, doc(cfg(feature = "permission-calculator")))]
+pub use self::permission::InMemoryCachePermissions;
 
 use self::model::*;
 use dashmap::{
@@ -277,6 +300,43 @@ impl InMemoryCache {
     /// ```
     pub const fn stats(&self) -> InMemoryCacheStats<'_> {
         InMemoryCacheStats::new(self)
+    }
+
+    /// Create an interface for retrieving the permissions of a member in a
+    /// guild or channel.
+    ///
+    /// [`ResourceType`]s must be configured for the permission interface to
+    /// properly work; refer to the [`permission`] module-level documentation
+    /// for more information.
+    ///
+    /// # Examples
+    ///
+    /// Calculate the permissions of a member in a guild channel:
+    ///
+    /// ```no_run
+    /// # fn main() -> Result<(), Box<dyn std::error::Error>> {
+    /// use twilight_cache_inmemory::{InMemoryCache, ResourceType};
+    /// use twilight_model::id::{ChannelId, UserId};
+    ///
+    /// let resource_types = ResourceType::CHANNEL
+    ///     | ResourceType::MEMBER
+    ///     | ResourceType::ROLE;
+    ///
+    /// let cache = InMemoryCache::builder()
+    ///     .resource_types(resource_types)
+    ///     .build();
+    ///
+    /// let channel_id = ChannelId(4);
+    /// let user_id = UserId(5);
+    ///
+    /// let permissions = cache.permissions().in_channel(user_id, channel_id)?;
+    /// println!("member has these permissions: {:?}", permissions);
+    /// # Ok(()) }
+    /// ```
+    #[cfg(feature = "permission-calculator")]
+    #[cfg_attr(docsrs, doc(cfg(feature = "permission-calculator")))]
+    pub const fn permissions(&self) -> InMemoryCachePermissions<'_> {
+        InMemoryCachePermissions::new(self)
     }
 
     /// Update the cache with an event from the gateway.

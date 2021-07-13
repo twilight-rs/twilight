@@ -1,4 +1,3 @@
-#![allow(clippy::wildcard_imports)]
 //! Events that the shard emits to event streams.
 //!
 //! Included is the larger [`Event`] exposed to event streams. It contains
@@ -37,6 +36,7 @@ use twilight_model::gateway::event::Event;
 /// [`Events::event_types`]: Self::event_types
 /// [`Shard`]: super::Shard
 /// [`futures::stream::Stream`]: https://docs.rs/futures/*/futures/stream/trait.Stream.html
+#[derive(Debug)]
 pub struct Events {
     event_types: EventTypeFlags,
     rx: UnboundedReceiver<Event>,
@@ -66,6 +66,7 @@ mod tests {
     use super::Events;
     use futures_util::stream::Stream;
     use static_assertions::assert_impl_all;
+    use std::fmt::Debug;
 
-    assert_impl_all!(Events: Send, Stream, Sync);
+    assert_impl_all!(Events: Debug, Send, Stream, Sync);
 }

@@ -1,12 +1,10 @@
-use super::{builder::ClusterBuilder, config::Config, scheme::ShardScheme};
+use super::{builder::ClusterBuilder, config::Config, event::Events, scheme::ShardScheme};
 use crate::{
-    shard::{raw_message::Message, Events, Information, ResumeSession, Shard},
+    cluster::event::ShardEventsWithId,
+    shard::{raw_message::Message, Information, ResumeSession, Shard},
     Intents,
 };
-use futures_util::{
-    future,
-    stream::{SelectAll, Stream, StreamExt},
-};
+use futures_util::{future, stream::SelectAll};
 use std::{
     collections::HashMap,
     error::Error,
@@ -15,7 +13,6 @@ use std::{
     sync::{Arc, Mutex},
 };
 use twilight_http::Client as HttpClient;
-use twilight_model::gateway::event::Event;
 
 /// Sending a command to a shard failed.
 #[derive(Debug)]
@@ -294,29 +291,17 @@ impl Cluster {
     pub async fn new(
         token: impl Into<String>,
         intents: Intents,
-    ) -> Result<
-        (
-            Self,
-            impl Stream<Item = (u64, Event)> + Send + Sync + Unpin + 'static,
-        ),
-        ClusterStartError,
-    > {
+    ) -> Result<(Self, Events), ClusterStartError> {
         Self::builder(token, intents).build().await
     }
 
     pub(super) async fn new_with_config(
         mut config: Config,
-    ) -> Result<
-        (
-            Self,
-            impl Stream<Item = (u64, Event)> + Send + Sync + Unpin + 'static,
-        ),
-        ClusterStartError,
-    > {
+    ) -> Result<(Self, Events), ClusterStartError> {
         #[derive(Default)]
         struct ShardFold {
             shards: HashMap<u64, Shard>,
-            streams: Vec<(u64, Events)>,
+            streams: Vec<ShardEventsWithId>,
         }
 
         let scheme = match config.shard_scheme() {
@@ -345,17 +330,13 @@ impl Cluster {
             let (shard, stream) = Shard::new_with_config(shard_config);
 
             fold.shards.insert(idx, shard);
-            fold.streams.push((idx, stream));
+            fold.streams.push(ShardEventsWithId::new(idx, stream));
 
             fold
         });
 
-        let combined = streams
-            .into_iter()
-            .map(|(id, stream)| stream.map(move |e| (id, e)));
-
         #[allow(clippy::from_iter_instead_of_collect)]
-        let select_all = SelectAll::from_iter(combined);
+        let select_all = SelectAll::from_iter(streams);
 
         Ok((
             Self(Arc::new(ClusterRef {
@@ -364,7 +345,7 @@ impl Cluster {
                 shard_to: scheme.to().expect("shard scheme is not auto"),
                 shards: Mutex::new(shards),
             })),
-            select_all,
+            Events::new(select_all),
         ))
     }
 
