@@ -26,7 +26,9 @@ mod tests {
         Eq,
         Hash,
         PartialEq,
-        Serialize
+        Send,
+        Serialize,
+        Sync,
     );
 
     #[test]
