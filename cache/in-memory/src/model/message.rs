@@ -3,8 +3,8 @@ use twilight_model::{
     channel::{
         embed::Embed,
         message::{
-            Message, MessageActivity, MessageApplication, MessageFlags, MessageReaction,
-            MessageReference, MessageType, Sticker,
+            sticker::MessageSticker, Message, MessageActivity, MessageApplication, MessageFlags,
+            MessageReaction, MessageReference, MessageType, Sticker,
         },
         Attachment, ChannelMention,
     },
@@ -60,7 +60,10 @@ pub struct CachedMessage {
     /// Message reference.
     pub reference: Option<MessageReference>,
     #[allow(missing_docs)]
+    #[deprecated(since = "0.5.2", note = "use `sticker_items`")]
     pub stickers: Vec<Sticker>,
+    /// Stickers within the message.
+    pub sticker_items: Vec<MessageSticker>,
     /// ISO 8601 timestamp of the date the message was sent.
     pub timestamp: String,
     /// Whether the message is text-to-speech.
@@ -71,6 +74,7 @@ pub struct CachedMessage {
 
 impl From<Message> for CachedMessage {
     fn from(msg: Message) -> Self {
+        #[allow(deprecated)]
         Self {
             id: msg.id,
             activity: msg.activity,
@@ -92,7 +96,8 @@ impl From<Message> for CachedMessage {
             pinned: msg.pinned,
             reactions: msg.reactions,
             reference: msg.reference,
-            stickers: msg.stickers,
+            stickers: Vec::new(),
+            sticker_items: msg.sticker_items,
             timestamp: msg.timestamp,
             tts: msg.tts,
             webhook_id: msg.webhook_id,
