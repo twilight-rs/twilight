@@ -134,7 +134,7 @@ struct UpdateMessageFields {
     #[serde(skip_serializing_if = "Vec::is_empty")]
     pub attachments: Vec<Attachment>,
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub components: Option<Vec<Component>>,
+    pub components: Option<NullableField<Vec<Component>>>,
     // We don't serialize if this is Option::None, to avoid overwriting the
     // field without meaning to.
     //
@@ -234,6 +234,8 @@ impl<'a> UpdateMessage<'a> {
     ///
     /// Calling this method multiple times will clear previous calls.
     ///
+    /// Pass `None` to clear existing components.
+    ///
     /// # Errors
     ///
     /// Returns an [`UpdateMessageErrorType::ComponentCount`] error type if
@@ -241,23 +243,30 @@ impl<'a> UpdateMessage<'a> {
     ///
     /// Returns an [`UpdateMessageErrorType::ComponentInvalid`] error type if
     /// one of the provided components is invalid.
-    pub fn components(mut self, components: Vec<Component>) -> Result<Self, UpdateMessageError> {
-        validate_inner::components(&components).map_err(|source| {
-            let (kind, inner_source) = source.into_parts();
+    pub fn components(
+        mut self,
+        components: Option<Vec<Component>>,
+    ) -> Result<Self, UpdateMessageError> {
+        if let Some(components) = components.as_ref() {
+            validate_inner::components(&components).map_err(|source| {
+                let (kind, inner_source) = source.into_parts();
 
-            match kind {
-                ComponentValidationErrorType::ComponentCount { count } => UpdateMessageError {
-                    kind: UpdateMessageErrorType::ComponentCount { count },
-                    source: inner_source,
-                },
-                other => UpdateMessageError {
-                    kind: UpdateMessageErrorType::ComponentInvalid { kind: other },
-                    source: inner_source,
-                },
-            }
-        })?;
+                match kind {
+                    ComponentValidationErrorType::ComponentCount { count } => UpdateMessageError {
+                        kind: UpdateMessageErrorType::ComponentCount { count },
+                        source: inner_source,
+                    },
+                    other => UpdateMessageError {
+                        kind: UpdateMessageErrorType::ComponentInvalid { kind: other },
+                        source: inner_source,
+                    },
+                }
+            })?;
+        }
 
-        self.fields.components.replace(components);
+        self.fields
+            .components
+            .replace(NullableField::from_option(components));
 
         Ok(self)
     }

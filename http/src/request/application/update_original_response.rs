@@ -134,7 +134,7 @@ struct UpdateOriginalResponseFields {
     #[serde(skip_serializing_if = "Vec::is_empty")]
     attachments: Vec<Attachment>,
     #[serde(skip_serializing_if = "Option::is_none")]
-    components: Option<Vec<Component>>,
+    components: Option<NullableField<Vec<Component>>>,
     #[serde(skip_serializing_if = "Option::is_none")]
     content: Option<NullableField<String>>,
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -242,6 +242,8 @@ impl<'a> UpdateOriginalResponse<'a> {
     ///
     /// Calling this method multiple times will clear previous calls.
     ///
+    /// Pass `None` to clear existing components.
+    ///
     /// # Errors
     ///
     /// Returns an [`UpdateOriginalResponseErrorType::ComponentInvalid`] error
@@ -251,26 +253,30 @@ impl<'a> UpdateOriginalResponse<'a> {
     /// type if too many components are provided.
     pub fn components(
         mut self,
-        components: Vec<Component>,
+        components: Option<Vec<Component>>,
     ) -> Result<Self, UpdateOriginalResponseError> {
-        validate_inner::components(&components).map_err(|source| {
-            let (kind, inner_source) = source.into_parts();
+        if let Some(components) = components.as_ref() {
+            validate_inner::components(&components).map_err(|source| {
+                let (kind, inner_source) = source.into_parts();
 
-            match kind {
-                ComponentValidationErrorType::ComponentCount { count } => {
-                    UpdateOriginalResponseError {
-                        kind: UpdateOriginalResponseErrorType::ComponentCount { count },
-                        source: inner_source,
+                match kind {
+                    ComponentValidationErrorType::ComponentCount { count } => {
+                        UpdateOriginalResponseError {
+                            kind: UpdateOriginalResponseErrorType::ComponentCount { count },
+                            source: inner_source,
+                        }
                     }
+                    other => UpdateOriginalResponseError {
+                        kind: UpdateOriginalResponseErrorType::ComponentInvalid { kind: other },
+                        source: inner_source,
+                    },
                 }
-                other => UpdateOriginalResponseError {
-                    kind: UpdateOriginalResponseErrorType::ComponentInvalid { kind: other },
-                    source: inner_source,
-                },
-            }
-        })?;
+            })?;
+        }
 
-        self.fields.components.replace(components);
+        self.fields
+            .components
+            .replace(NullableField::from_option(components));
 
         Ok(self)
     }
