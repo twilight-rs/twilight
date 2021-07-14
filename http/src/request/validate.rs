@@ -1186,7 +1186,7 @@ mod tests {
     const_assert_eq!(100, ComponentValidationError::SELECT_OPTION_VALUE_LENGTH);
     const_assert_eq!(100, ComponentValidationError::SELECT_PLACEHOLDER_LENGTH);
     const_assert_eq!(256, EmbedValidationError::AUTHOR_NAME_LENGTH);
-    const_assert_eq!(2048, EmbedValidationError::DESCRIPTION_LENGTH);
+    const_assert_eq!(4096, EmbedValidationError::DESCRIPTION_LENGTH);
     const_assert_eq!(6000, EmbedValidationError::EMBED_TOTAL_LENGTH);
     const_assert_eq!(25, EmbedValidationError::FIELD_COUNT);
     const_assert_eq!(256, EmbedValidationError::FIELD_NAME_LENGTH);
