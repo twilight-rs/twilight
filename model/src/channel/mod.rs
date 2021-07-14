@@ -165,6 +165,7 @@ enum GuildChannelField {
     PermissionOverwrites,
     Position,
     RateLimitPerUser,
+    RtcRegion,
     Topic,
     Type,
     UserLimit,
@@ -202,6 +203,7 @@ impl<'de> Visitor<'de> for GuildChannelVisitor {
         let mut permission_overwrites = None;
         let mut position = None;
         let mut rate_limit_per_user = None;
+        let mut rtc_region: Option<Option<String>> = None;
         let mut topic: Option<Option<String>> = None;
         let mut user_limit = None;
         let mut video_quality_mode = None;
@@ -315,6 +317,13 @@ impl<'de> Visitor<'de> for GuildChannelVisitor {
 
                     rate_limit_per_user = map.next_value::<Option<u64>>()?;
                 }
+                GuildChannelField::RtcRegion => {
+                    if rtc_region.is_some() {
+                        return Err(DeError::duplicate_field("rtc_region"));
+                    }
+
+                    rtc_region = Some(map.next_value()?);
+                }
                 GuildChannelField::Topic => {
                     if topic.is_some() {
                         return Err(DeError::duplicate_field("topic"));
@@ -377,19 +386,20 @@ impl<'de> Visitor<'de> for GuildChannelVisitor {
             }
             ChannelType::GuildVoice | ChannelType::GuildStageVoice => {
                 let bitrate = bitrate.ok_or_else(|| DeError::missing_field("bitrate"))?;
+                let rtc_region = rtc_region.unwrap_or_default();
                 let user_limit = user_limit.ok_or_else(|| DeError::missing_field("user_limit"))?;
 
                 tracing::trace!(%bitrate, ?user_limit, "handling voice channel");
                 let voice_channel = VoiceChannel {
-                    id,
                     bitrate,
                     guild_id,
+                    id,
                     kind,
                     name,
                     parent_id,
                     permission_overwrites,
                     position,
-                    rtc_region: None,
+                    rtc_region,
                     user_limit,
                     video_quality_mode,
                 };
