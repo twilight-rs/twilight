@@ -391,9 +391,9 @@ impl<'de> Visitor<'de> for GuildChannelVisitor {
 
                 tracing::trace!(%bitrate, ?user_limit, "handling voice channel");
                 let voice_channel = VoiceChannel {
-                    id,
                     bitrate,
                     guild_id,
+                    id,
                     kind,
                     name,
                     parent_id,
