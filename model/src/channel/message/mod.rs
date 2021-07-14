@@ -20,6 +20,7 @@ pub use self::{
 
 use self::sticker::MessageSticker;
 use crate::{
+    application::component::Component,
     channel::{embed::Embed, Attachment, ChannelMention},
     guild::PartialMember,
     id::{ApplicationId, ChannelId, GuildId, MessageId, RoleId, WebhookId},
@@ -27,7 +28,7 @@ use crate::{
 };
 use serde::{Deserialize, Serialize};
 
-#[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
+#[derive(Clone, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
 pub struct Message {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub activity: Option<MessageActivity>,
@@ -41,6 +42,9 @@ pub struct Message {
     pub attachments: Vec<Attachment>,
     pub author: User,
     pub channel_id: ChannelId,
+    /// List of provided message components.
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub components: Vec<Component>,
     pub content: String,
     pub edited_timestamp: Option<String>,
     pub embeds: Vec<Embed>,
@@ -119,6 +123,7 @@ mod tests {
                 verified: None,
             },
             channel_id: ChannelId(2),
+            components: Vec::new(),
             content: "ping".to_owned(),
             edited_timestamp: None,
             embeds: Vec::new(),
@@ -296,6 +301,7 @@ mod tests {
                 verified: None,
             },
             channel_id: ChannelId(2),
+            components: Vec::new(),
             content: "ping".to_owned(),
             edited_timestamp: Some("123".to_owned()),
             embeds: Vec::new(),
