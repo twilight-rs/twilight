@@ -2,6 +2,16 @@
 
 Changelog for `twilight-gateway`.
 
+## [0.5.3] - 2021-07-14
+
+### Changes
+
+The event stream returned by `Cluster::new` and `ClusterBuilder::build` is now a
+named concrete type. It still a `Stream<Item = (u64, event)>` that implements
+`Send` and `Sync` ([#1021] - [@zeylahellyer]).
+
+[#1021]: https://github.com/twilight-rs/twilight/pull/1021
+
 ## [0.5.2] - 2021-07-02
 
 ### Fixes
@@ -437,6 +447,7 @@ Initial release.
 [#515]: https://github.com/twilight-rs/twilight/pull/515
 [#512]: https://github.com/twilight-rs/twilight/pull/512
 
+[0.5.3]: https://github.com/twilight-rs/twilight/releases/tag/gateway-0.5.3
 [0.5.2]: https://github.com/twilight-rs/twilight/releases/tag/gateway-0.5.2
 [0.5.1]: https://github.com/twilight-rs/twilight/releases/tag/gateway-0.5.1
 [0.5.0]: https://github.com/twilight-rs/twilight/releases/tag/gateway-0.5.0
