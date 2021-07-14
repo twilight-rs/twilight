@@ -2,6 +2,26 @@
 
 Changelog for `twilight-model`.
 
+## [0.5.3] - 2021-07-14
+
+### Additions
+
+Add `available`, `guild_id`, `sort_value`, and `user` fields to `Sticker`. Also
+add the `MessageSticker` struct ([#1029] - [@7596ff]).
+
+### Changes
+
+Replace the `stickers` fields with `sticker_items`, which is a list of
+`MessageSticker`s ([#1029] - [@7596ff]).
+
+### Fixes
+
+Properly deserialize the `rtc_region` field in voice and stage channels ([#1030]
+- [@7596ff]).
+
+[#1029]: https://github.com/twilight-rs/twilight/pull/1029
+[#1030]: https://github.com/twilight-rs/twilight/pull/1030
+
 ## [0.5.2] - 2021-07-03
 
 ### Additions
@@ -716,6 +736,7 @@ Initial release.
 
 [0.2.0-beta.1:app integrations]: https://github.com/discord/discord-api-docs/commit/a926694e2f8605848bda6b57d21c8817559e5cec
 
+[0.5.3]: https://github.com/twilight-rs/twilight/releases/tag/model-0.5.3
 [0.5.2]: https://github.com/twilight-rs/twilight/releases/tag/model-0.5.2
 [0.5.1]: https://github.com/twilight-rs/twilight/releases/tag/model-0.5.1
 [0.5.0]: https://github.com/twilight-rs/twilight/releases/tag/model-0.5.0
