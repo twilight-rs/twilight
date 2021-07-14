@@ -10,10 +10,10 @@ use crate::{
         application::{
             CreateFollowupMessage, CreateGlobalCommand, CreateGuildCommand, DeleteFollowupMessage,
             DeleteGlobalCommand, DeleteGuildCommand, DeleteOriginalResponse, GetCommandPermissions,
-            GetGlobalCommands, GetGuildCommandPermissions, GetGuildCommands, InteractionCallback,
-            InteractionError, InteractionErrorType, SetCommandPermissions, SetGlobalCommands,
-            SetGuildCommands, UpdateCommandPermissions, UpdateFollowupMessage, UpdateGlobalCommand,
-            UpdateGuildCommand, UpdateOriginalResponse,
+            GetGlobalCommands, GetGuildCommandPermissions, GetGuildCommands, GetOriginalResponse,
+            InteractionCallback, InteractionError, InteractionErrorType, SetCommandPermissions,
+            SetGlobalCommands, SetGuildCommands, UpdateCommandPermissions, UpdateFollowupMessage,
+            UpdateGlobalCommand, UpdateGuildCommand, UpdateOriginalResponse,
         },
         channel::stage::create_stage_instance::CreateStageInstanceError,
         guild::{
@@ -352,9 +352,6 @@ impl Client {
     }
 
     /// Update a channel.
-    ///
-    /// All fields are optional. The minimum length of the name is 2 UTF-16 characters and the
-    /// maximum is 100 UTF-16 characters.
     pub fn update_channel(&self, channel_id: ChannelId) -> UpdateChannel<'_> {
         UpdateChannel::new(self, channel_id)
     }
@@ -711,13 +708,14 @@ impl Client {
 
     /// Create a new request to create a guild channel.
     ///
-    /// All fields are optional except for name. The minimum length of the name is 2 UTF-16
-    /// characters and the maximum is 100 UTF-16 characters.
+    /// All fields are optional except for name. The minimum length of the name
+    /// is 1 UTF-16 character and the maximum is 100 UTF-16 characters.
     ///
     /// # Errors
     ///
     /// Returns a [`CreateGuildChannelErrorType::NameInvalid`] error type when
-    /// the length of the name is either fewer than 2 UTF-16 characters or more than 100 UTF-16 characters.
+    /// the length of the name is either fewer than 1 UTF-16 character or more
+    /// than 100 UTF-16 characters.
     ///
     /// Returns a [`CreateGuildChannelErrorType::RateLimitPerUserInvalid`] error
     /// type when the seconds of the rate limit per user is more than 21600.
@@ -1661,6 +1659,28 @@ impl Client {
         response: InteractionResponse,
     ) -> InteractionCallback<'_> {
         InteractionCallback::new(self, interaction_id, interaction_token, response)
+    }
+
+    /// Get the original message, by its token.
+    ///
+    /// # Errors
+    ///
+    /// Returns an [`InteractionErrorType::ApplicationIdNotPresent`]
+    /// error type if an application ID has not been configured via
+    /// [`Client::set_application_id`].
+    pub fn get_interaction_original(
+        &self,
+        interaction_token: impl Into<String>,
+    ) -> Result<GetOriginalResponse<'_>, InteractionError> {
+        let application_id = self.application_id().ok_or(InteractionError {
+            kind: InteractionErrorType::ApplicationIdNotPresent,
+        })?;
+
+        Ok(GetOriginalResponse::new(
+            self,
+            application_id,
+            interaction_token,
+        ))
     }
 
     /// Edit the original message, by its token.

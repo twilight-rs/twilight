@@ -181,3 +181,70 @@ impl Inflater {
         self.last_resize = Instant::now();
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::Inflater;
+    use std::error::Error;
+
+    const MESSAGE: &[u8] = &[
+        120, 156, 52, 201, 65, 10, 131, 48, 16, 5, 208, 187, 252, 117, 82, 98, 169, 32, 115, 21,
+        35, 50, 53, 67, 27, 136, 81, 226, 216, 82, 66, 238, 222, 110, 186, 123, 240, 42, 20, 148,
+        207, 148, 12, 142, 63, 182, 29, 212, 57, 131, 0, 170, 120, 10, 23, 189, 11, 235, 28, 179,
+        74, 121, 113, 2, 221, 186, 107, 255, 251, 89, 11, 47, 2, 26, 49, 122, 60, 88, 229, 205, 31,
+        187, 151, 96, 87, 142, 217, 14, 253, 16, 60, 76, 245, 88, 227, 82, 182, 195, 131, 220, 197,
+        181, 9, 83, 107, 95, 0, 0, 0, 255, 255,
+    ];
+    const OUTPUT: &[u8] = &[
+        123, 34, 116, 34, 58, 110, 117, 108, 108, 44, 34, 115, 34, 58, 110, 117, 108, 108, 44, 34,
+        111, 112, 34, 58, 49, 48, 44, 34, 100, 34, 58, 123, 34, 104, 101, 97, 114, 116, 98, 101,
+        97, 116, 95, 105, 110, 116, 101, 114, 118, 97, 108, 34, 58, 52, 49, 50, 53, 48, 44, 34, 95,
+        116, 114, 97, 99, 101, 34, 58, 91, 34, 91, 92, 34, 103, 97, 116, 101, 119, 97, 121, 45,
+        112, 114, 100, 45, 109, 97, 105, 110, 45, 56, 53, 56, 100, 92, 34, 44, 123, 92, 34, 109,
+        105, 99, 114, 111, 115, 92, 34, 58, 48, 46, 48, 125, 93, 34, 93, 125, 125,
+    ];
+    const SHARD: [u64; 2] = [2, 5];
+
+    #[test]
+    fn test_inflater() -> Result<(), Box<dyn Error>> {
+        let mut inflater = Inflater::new(SHARD);
+        inflater.extend(&MESSAGE[0..MESSAGE.len() - 2]);
+        assert_eq!(None, inflater.msg()?);
+
+        inflater.reset();
+        inflater.extend(&MESSAGE);
+
+        // Check the state of fields.
+        assert!(!inflater.compressed.is_empty());
+        assert!(inflater.internal_buffer.is_empty());
+        assert!(inflater.buffer.is_empty());
+        assert_eq!(Some(OUTPUT), inflater.msg()?.as_deref());
+
+        // Calling `msg` clears `compressed` and fills `buffer` and `internal_buffer`.
+        assert!(inflater.compressed.is_empty());
+        assert!(!inflater.buffer.is_empty());
+        assert!(!inflater.internal_buffer.is_empty());
+
+        assert_eq!(OUTPUT, inflater.buffer_mut());
+        assert_eq!(OUTPUT, inflater.buffer_ref());
+
+        // Check to make sure `buffer` and `internal_buffer` haven't been cleared.
+        assert!(!inflater.internal_buffer.is_empty());
+        assert!(!inflater.buffer.is_empty());
+
+        // Now clear the inflater and make sure all buffers are empty.
+        inflater.clear();
+        assert!(inflater.compressed.is_empty());
+        assert!(inflater.internal_buffer.is_empty());
+        assert!(inflater.buffer.is_empty());
+
+        // Reset the inflater after extending it, bringing it back to a default
+        // state.
+        inflater.extend(b"test");
+        assert!(!inflater.compressed.is_empty());
+        inflater.reset();
+        assert!(inflater.compressed.is_empty());
+
+        Ok(())
+    }
+}

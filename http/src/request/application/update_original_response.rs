@@ -16,7 +16,7 @@ use std::{
 };
 use twilight_model::{
     application::component::Component,
-    channel::{embed::Embed, message::AllowedMentions, Attachment},
+    channel::{embed::Embed, message::AllowedMentions, Attachment, Message},
     id::ApplicationId,
 };
 
@@ -182,7 +182,7 @@ pub struct UpdateOriginalResponse<'a> {
     application_id: ApplicationId,
     fields: UpdateOriginalResponseFields,
     files: Vec<(String, Vec<u8>)>,
-    fut: Option<Pending<'a, ()>>,
+    fut: Option<Pending<'a, Message>>,
     http: &'a Client,
     token: String,
 }
@@ -463,10 +463,10 @@ impl<'a> UpdateOriginalResponse<'a> {
 
     fn start(&mut self) -> Result<(), HttpError> {
         let request = self.request()?;
-        self.fut.replace(Box::pin(self.http.verify(request)));
+        self.fut.replace(Box::pin(self.http.request(request)));
 
         Ok(())
     }
 }
 
-poll_req!(UpdateOriginalResponse<'_>, ());
+poll_req!(UpdateOriginalResponse<'_>, Message);

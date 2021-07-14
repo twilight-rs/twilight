@@ -2,6 +2,14 @@
 
 Changelog for `twilight-model`.
 
+## [0.5.2] - 2021-07-03
+
+### Additions
+
+Support invite stage instances ([#993] - [@7596ff]).
+
+[#993]: https://github.com/twilight-rs/twilight/pull/993
+
 ## [0.5.1] - 2021-07-02
 
 ### Upgrade Path
@@ -708,6 +716,7 @@ Initial release.
 
 [0.2.0-beta.1:app integrations]: https://github.com/discord/discord-api-docs/commit/a926694e2f8605848bda6b57d21c8817559e5cec
 
+[0.5.2]: https://github.com/twilight-rs/twilight/releases/tag/model-0.5.2
 [0.5.1]: https://github.com/twilight-rs/twilight/releases/tag/model-0.5.1
 [0.5.0]: https://github.com/twilight-rs/twilight/releases/tag/model-0.5.0
 [0.4.3]: https://github.com/twilight-rs/twilight/releases/tag/model-0.4.3

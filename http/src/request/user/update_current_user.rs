@@ -111,7 +111,7 @@ impl<'a> UpdateCurrentUser<'a> {
 
     /// Set the username.
     ///
-    /// The minimum length is 2 UTF-16 characters and the maximum is 32 UTF-16 characters.
+    /// The minimum length is 1 UTF-16 character and the maximum is 32 UTF-16 characters.
     ///
     /// # Errors
     ///

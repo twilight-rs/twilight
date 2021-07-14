@@ -105,7 +105,7 @@ pub enum EmbedErrorType {
         /// included.
         description: String,
     },
-    /// Description is longer than 2048 UTF-16 code points.
+    /// Description is longer than 4096 UTF-16 code points.
     DescriptionTooLong {
         /// Provided description.
         description: String,
@@ -200,7 +200,7 @@ impl EmbedBuilder {
     pub const COLOR_MAXIMUM: u32 = 0xff_ff_ff;
 
     /// The maximum number of UTF-16 code points that can be in a description.
-    pub const DESCRIPTION_LENGTH_LIMIT: usize = 2048;
+    pub const DESCRIPTION_LENGTH_LIMIT: usize = 4096;
 
     /// The maximum number of fields that can be in an embed.
     pub const EMBED_FIELD_LIMIT: usize = 25;
@@ -776,7 +776,7 @@ mod tests {
     assert_impl_all!(EmbedError: Error, Send, Sync);
     const_assert!(EmbedBuilder::AUTHOR_NAME_LENGTH_LIMIT == 256);
     const_assert!(EmbedBuilder::COLOR_MAXIMUM == 0xff_ff_ff);
-    const_assert!(EmbedBuilder::DESCRIPTION_LENGTH_LIMIT == 2048);
+    const_assert!(EmbedBuilder::DESCRIPTION_LENGTH_LIMIT == 4096);
     const_assert!(EmbedBuilder::EMBED_FIELD_LIMIT == 25);
     const_assert!(EmbedBuilder::EMBED_LENGTH_LIMIT == 6000);
     const_assert!(EmbedBuilder::FIELD_NAME_LENGTH_LIMIT == 256);
