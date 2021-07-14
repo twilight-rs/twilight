@@ -2,6 +2,23 @@
 
 Changelog for `twilight-cache-inmemory`.
 
+## [0.5.2] - 2021-07-14
+
+### Additions
+
+Add an integration for the in-memory cache that uses the `util` crate's
+permission calculator. This feature is gated behind the optional, non-default
+`permission-calculator` feature. See the PR and the docs for more details
+([#874] - [@zeylahellyer]).
+
+### Changes
+
+The `stickers` field on `Message`s has been deprecated in favor of
+`sticker_items` ([#1029] - [@7596ff]).
+
+[#874]: https://github.com/twilight-rs/twilight/pull/874
+[#1029]: https://github.com/twilight-rs/twilight/pull/1029
+
 ## [0.5.1] - 2021-07-02
 
 ### Fixes
@@ -356,6 +373,7 @@ Initial release.
 [#528]: https://github.com/twilight-rs/twilight/pull/528
 [#524]: https://github.com/twilight-rs/twilight/pull/524
 
+[0.5.2]: https://github.com/twilight-rs/twilight/releases/tag/cache-in-memory-0.5.2
 [0.5.1]: https://github.com/twilight-rs/twilight/releases/tag/cache-in-memory-0.5.1
 [0.5.0]: https://github.com/twilight-rs/twilight/releases/tag/cache-in-memory-0.5.0
 [0.4.3]: https://github.com/twilight-rs/twilight/releases/tag/cache-in-memory-0.4.3
