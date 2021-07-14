@@ -86,7 +86,7 @@ impl<'a> RequestReactionType<'a> {
 /// // And now format it into an acceptable string and then check it.
 /// assert_eq!("rarity:123", display.to_string());
 /// ```
-#[derive(Clone, Debug, Eq, PartialEq)]
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub struct RequestReactionTypeDisplay<'a>(&'a RequestReactionType<'a>);
 
 impl Display for RequestReactionTypeDisplay<'_> {
@@ -118,13 +118,16 @@ mod tests {
 
     use super::{RequestReactionType, RequestReactionTypeDisplay};
     use static_assertions::{assert_fields, assert_impl_all};
-    use std::fmt::{Debug, Display};
+    use std::{
+        fmt::{Debug, Display},
+        hash::Hash,
+    };
     use twilight_model::id::EmojiId;
 
     assert_fields!(RequestReactionType::Custom: id, name);
     assert_fields!(RequestReactionType::Unicode: name);
-    assert_impl_all!(RequestReactionTypeDisplay<'_>: Clone, Debug, Display, Eq, PartialEq, Send, Sync);
-    assert_impl_all!(RequestReactionType<'_>: Clone, Debug, Eq, PartialEq, Send, Sync);
+    assert_impl_all!(RequestReactionTypeDisplay<'_>: Clone, Copy, Debug, Display, Eq, PartialEq, Send, Sync);
+    assert_impl_all!(RequestReactionType<'_>: Clone, Copy, Debug, Eq, Hash, PartialEq, Send, Sync);
 
     #[test]
     fn test_display_custom_with_name() {
