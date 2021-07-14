@@ -2,6 +2,15 @@
 
 Changelog for `twilight-util`.
 
+## [0.5.2] - 2021-07-14
+
+### Additions
+
+Document the `link` feature. This was already present, just not mentioned in any
+documentation ([#1011] - [@zeylahellyer]).
+
+[#1011]: https://github.com/twilight-rs/twilight/pull/1011
+
 ## [0.5.1] - 2021-07-02
 
 ### Additions
@@ -79,6 +88,7 @@ Initial release.
 [@vivian]: https://github.com/vivian
 [@zeylahellyer]: https://github.com/zeylahellyer
 
+[0.5.2]: https://github.com/twilight-rs/twilight/releases/tag/util-0.5.2
 [0.5.1]: https://github.com/twilight-rs/twilight/releases/tag/util-0.5.1
 [0.5.0]: https://github.com/twilight-rs/twilight/releases/tag/util-0.5.0
 [0.4.1]: https://github.com/twilight-rs/twilight/releases/tag/util-0.4.1
