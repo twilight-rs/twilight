@@ -2,6 +2,28 @@
 
 Changelog for `twilight-http`.
 
+## [0.5.4] - 2021-07-14
+
+### Additions
+
+Add `Client::get_interaction_original` ([#1013] - [@SuperiorJT]).
+
+### Changes
+
+Channel name validation has been updated to support a length of 1 character
+([#1012] - [@zeylahellyer]).
+
+Embed description validation has been updated to support a length of 4096
+characters ([#1024] - [@zeylahellyer]).
+
+The route `Client::update_original_response` now returns a `Message` ([#1023] -
+[@AsianIntel]).
+
+[#1012]: https://github.com/twilight-rs/twilight/pull/1012
+[#1013]: https://github.com/twilight-rs/twilight/pull/1013
+[#1023]: https://github.com/twilight-rs/twilight/pull/1023
+[#1024]: https://github.com/twilight-rs/twilight/pull/1024
+
 ## [0.5.3] - 2021-07-03
 
 ### Additions
@@ -959,6 +981,7 @@ Initial release.
 [@nickelc]: https://github.com/nickelc
 [@sam-kirby]: https://github.com/sam-kirby
 [@Silvea12]: https://github.com/Silvea12
+[@SuperiorJT]: https://github.com/SuperiorJT
 [@tbnritzdoge]: https://github.com/tbnritzdoge
 [@vivian]: https://github.com/vivian
 [@zeylahellyer]: https://github.com/zeylahellyer
@@ -1000,6 +1023,7 @@ Initial release.
 
 [0.2.0-beta.1:app integrations]: https://github.com/discord/discord-api-docs/commit/a926694e2f8605848bda6b57d21c8817559e5cec
 
+[0.5.4]: https://github.com/twilight-rs/twilight/releases/tag/http-0.5.4
 [0.5.3]: https://github.com/twilight-rs/twilight/releases/tag/http-0.5.3
 [0.5.2]: https://github.com/twilight-rs/twilight/releases/tag/http-0.5.2
 [0.5.1]: https://github.com/twilight-rs/twilight/releases/tag/http-0.5.1
