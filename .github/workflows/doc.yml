@@ -32,7 +32,7 @@ jobs:
         env:
           RUSTDOCFLAGS: --cfg docsrs -D broken_intra_doc_links
         run: |
-          cargo doc --workspace --no-deps
+          cargo doc --workspace --no-deps --all-features
           cargo doc -p twilight-util --no-deps --all-features
 
   sync-readme:
