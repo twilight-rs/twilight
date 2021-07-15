@@ -2,6 +2,15 @@
 
 Changelog for `twilight-embed-builder`.
 
+## [0.5.2]
+
+### Changes
+
+The description is now validated to a length of 4096 ([#1024] -
+[@zeylahellyer]).
+
+[#1024]: https://github.com/twilight-rs/twilight/pull/1024
+
 ## [0.5.1] - 2021-07-02
 
 ### Enhancements
