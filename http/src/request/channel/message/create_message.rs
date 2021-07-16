@@ -214,6 +214,7 @@ impl<'a> CreateMessage<'a> {
     ///
     /// [the discord docs]: https://discord.com/developers/docs/resources/channel#embed-limits
     /// [`EmbedBuilder`]: https://docs.rs/twilight-embed-builder/*/twilight_embed_builder
+    #[deprecated(since = "0.5.5", note = "will be removed in favor of `embeds`")]
     pub fn embed(mut self, embed: Embed) -> Result<Self, CreateMessageError> {
         validate::embed(&embed)
             .map_err(|source| CreateMessageError::embed(source, embed.clone(), None))?;
@@ -270,6 +271,7 @@ impl<'a> CreateMessage<'a> {
     /// Attach a file to the message.
     ///
     /// The file is raw binary data. It can be an image, or any other kind of file.
+    #[deprecated(since = "0.5.5", note = "will be removed in favor of `files`")]
     pub fn file(mut self, name: impl Into<String>, file: impl Into<Vec<u8>>) -> Self {
         self.files.push((name.into(), file.into()));
 
@@ -279,11 +281,13 @@ impl<'a> CreateMessage<'a> {
     /// Attach multiple files to the message.
     pub fn files<N: Into<String>, F: Into<Vec<u8>>>(
         mut self,
-        attachments: impl IntoIterator<Item = (N, F)>,
+        files: impl IntoIterator<Item = (N, F)>,
     ) -> Self {
-        for (name, file) in attachments {
-            self = self.file(name, file);
-        }
+        self.files.extend(
+            files
+                .into_iter()
+                .map(|(name, file)| (name.into(), file.into())),
+        );
 
         self
     }

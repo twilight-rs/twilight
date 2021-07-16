@@ -127,6 +127,7 @@ impl<'a> CreateFollowupMessage<'a> {
     /// Attach a file to the webhook.
     ///
     /// This method is repeatable.
+    #[deprecated(since = "0.5.5", note = "will be removed in favor of `files`")]
     pub fn file(mut self, name: impl Into<String>, file: impl Into<Vec<u8>>) -> Self {
         self.files.push((name.into(), file.into()));
 
@@ -138,9 +139,11 @@ impl<'a> CreateFollowupMessage<'a> {
         mut self,
         attachments: impl IntoIterator<Item = (N, F)>,
     ) -> Self {
-        for (name, file) in attachments {
-            self = self.file(name, file);
-        }
+        self.files.extend(
+            attachments
+                .into_iter()
+                .map(|(name, file)| (name.into(), file.into())),
+        );
 
         self
     }

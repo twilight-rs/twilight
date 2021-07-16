@@ -187,6 +187,7 @@ impl<'a> UpdateMessage<'a> {
     ///
     /// If called, all unspecified attachments will be removed from the message.
     /// If not called, all attachments will be kept.
+    #[deprecated(since = "0.5.5", note = "will be removed in favor of `attachments`")]
     pub fn attachment(mut self, attachment: Attachment) -> Self {
         self.fields.attachments.push(attachment);
 
@@ -257,6 +258,7 @@ impl<'a> UpdateMessage<'a> {
     /// embed is too large.
     ///
     /// [`embeds`]: Self::embeds
+    #[deprecated(since = "0.5.5", note = "will be removed in favor of `embeds`")]
     pub fn embed(self, embed: impl Into<Option<Embed>>) -> Result<Self, UpdateMessageError> {
         self._embed(embed.into())
     }
