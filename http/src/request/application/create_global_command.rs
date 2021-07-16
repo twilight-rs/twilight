@@ -1,17 +1,12 @@
+use super::{CommandBorrowed, InteractionError, InteractionErrorType};
 use crate::{
     client::Client,
     error::Error as HttpError,
-    request::{
-        application::{InteractionError, InteractionErrorType},
-        validate, Request, RequestBuilder,
-    },
+    request::{validate, Request, RequestBuilder},
     response::{marker::EmptyBody, ResponseFuture},
     routing::Route,
 };
-use twilight_model::{
-    application::command::{Command, CommandOption},
-    id::ApplicationId,
-};
+use twilight_model::{application::command::CommandOption, id::ApplicationId};
 
 /// Create a new global command.
 ///
@@ -22,76 +17,78 @@ use twilight_model::{
 ///
 /// [the discord docs]: https://discord.com/developers/docs/interactions/slash-commands#create-global-application-command
 pub struct CreateGlobalCommand<'a> {
-    command: Command,
     application_id: ApplicationId,
+    default_permission: Option<bool>,
+    description: &'a str,
     http: &'a Client,
-    optional_option_added: bool,
+    name: &'a str,
+    options: Option<&'a [CommandOption]>,
 }
 
 impl<'a> CreateGlobalCommand<'a> {
     pub(crate) fn new(
         http: &'a Client,
         application_id: ApplicationId,
-        name: impl Into<String>,
-        description: impl Into<String>,
+        name: &'a str,
+        description: &'a str,
     ) -> Result<Self, InteractionError> {
-        let name = name.into();
-        let description = description.into();
-
-        if !validate::command_name(&name) {
+        if !validate::command_name(name) {
             return Err(InteractionError {
-                kind: InteractionErrorType::CommandNameValidationFailed { name },
+                kind: InteractionErrorType::CommandNameValidationFailed,
             });
         }
-        if !validate::command_description(&description) {
+
+        if !validate::command_description(description) {
             return Err(InteractionError {
-                kind: InteractionErrorType::CommandDescriptionValidationFailed { description },
+                kind: InteractionErrorType::CommandDescriptionValidationFailed,
             });
         }
 
         Ok(Self {
-            command: Command {
-                application_id: Some(application_id),
-                guild_id: None,
-                name,
-                default_permission: None,
-                description,
-                id: None,
-                options: vec![],
-            },
             application_id,
+            default_permission: None,
+            description,
             http,
-            optional_option_added: false,
+            name,
+            options: None,
         })
     }
 
-    /// Add a command option.
+    /// Add a list of command options.
     ///
     /// Required command options must be added before optional options.
     ///
     /// Errors
     ///
     /// Retuns an [`InteractionErrorType::CommandOptionsRequiredFirst`]
-    /// if a required option was added after an optional option.
-    pub fn add_command_option(mut self, option: CommandOption) -> Result<Self, InteractionError> {
-        if !self.optional_option_added && !option.is_required() {
-            self.optional_option_added = true
+    /// if a required option was added after an optional option. The problem
+    /// option's index is provided.
+    pub fn command_options(
+        mut self,
+        options: &'a [CommandOption],
+    ) -> Result<Self, InteractionError> {
+        let mut optional_option_added = false;
+
+        for (idx, option) in options.iter().enumerate() {
+            if !optional_option_added && !option.is_required() {
+                optional_option_added = true
+            }
+
+            if option.is_required() && optional_option_added {
+                return Err(InteractionError {
+                    kind: InteractionErrorType::CommandOptionsRequiredFirst { index: idx },
+                });
+            }
         }
 
-        if option.is_required() && self.optional_option_added {
-            return Err(InteractionError {
-                kind: InteractionErrorType::CommandOptionsRequiredFirst { option },
-            });
-        }
-
-        self.command.options.push(option);
+        self.options = Some(options);
 
         Ok(self)
     }
 
     /// Whether the command is enabled by default when the app is added to a guild.
     pub fn default_permission(mut self, default: bool) -> Self {
-        self.command.default_permission.replace(default);
+        self.default_permission.replace(default);
 
         self
     }
@@ -100,7 +97,13 @@ impl<'a> CreateGlobalCommand<'a> {
         Request::builder(Route::CreateGlobalCommand {
             application_id: self.application_id.0,
         })
-        .json(&self.command)
+        .json(&CommandBorrowed {
+            application_id: Some(self.application_id),
+            default_permission: self.default_permission,
+            description: self.description,
+            name: self.name,
+            options: self.options,
+        })
         .map(RequestBuilder::build)
     }
 

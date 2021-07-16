@@ -83,9 +83,8 @@ pub enum UpdateWebhookMessageErrorType {
     EmbedTooLarge {
         /// Index of the embed that was too large.
         ///
-        /// This can be used to index into [`embeds`] to retrieve the bad embed.
-        ///
-        /// [`embeds`]: Self::EmbedTooLarge.embeds
+        /// This can be used to index into the provided embeds to retrieve the
+        /// invalid embed.
         index: usize,
     },
     /// Too many embeds were provided.
@@ -300,7 +299,7 @@ impl<'a> UpdateWebhookMessage<'a> {
 
     /// Attach multiple files to the webhook.
     ///
-    /// Calling this method again clears previous calls.
+    /// Calling this method will clear any previous calls.
     pub const fn files(mut self, files: &'a [(&'a str, &'a [u8])]) -> Self {
         self.files = files;
 

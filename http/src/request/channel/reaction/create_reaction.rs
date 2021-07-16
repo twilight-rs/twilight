@@ -72,6 +72,8 @@ impl<'a> CreateReaction<'a> {
 
 #[cfg(test)]
 mod tests {
+    #![allow(clippy::non_ascii_literal)]
+
     use super::CreateReaction;
     use crate::{
         request::{channel::reaction::RequestReactionType, Request},
@@ -84,14 +86,14 @@ mod tests {
     fn test_request() {
         let client = Client::new("foo".to_owned());
 
-        let emoji = RequestReactionType::Unicode { name: "\u{1f303}" };
+        let emoji = RequestReactionType::Unicode { name: "🌃" };
 
         let builder = CreateReaction::new(&client, ChannelId(123), MessageId(456), &emoji);
         let actual = builder.request();
 
         let expected = Request::from_route(Route::CreateReaction {
             channel_id: 123,
-            emoji: &RequestReactionType::Unicode { name: "\u{1f303}" },
+            emoji: &RequestReactionType::Unicode { name: "🌃" },
             message_id: 456,
         });
 

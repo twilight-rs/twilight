@@ -99,15 +99,6 @@ struct UpdateMessageFields<'a> {
     pub(crate) allowed_mentions: Option<AllowedMentions>,
     #[serde(skip_serializing_if = "request::slice_is_empty")]
     pub attachments: &'a [Attachment],
-    // We don't serialize if this is Option::None, to avoid overwriting the
-    // field without meaning to.
-    //
-    // So we use a nested Option, representing the following states:
-    //
-    // - Some(Some(str)): Modifying the "content" from one state to a string;
-    // - Some(None): Removing the "content" by giving the Discord API a written
-    //   `"content": null` in the JSON;
-    // - None: Don't serialize the field at all, not modifying the state.
     #[serde(skip_serializing_if = "Option::is_none")]
     content: Option<NullableField<&'a str>>,
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -178,7 +169,7 @@ impl<'a> UpdateMessage<'a> {
     /// If called, all unspecified attachments will be removed from the message.
     /// If not called, all attachments will be kept.
     ///
-    /// Calling this method will clear previous calls.
+    /// Calling this method will clear any previous calls.
     pub const fn attachments(mut self, attachments: &'a [Attachment]) -> Self {
         self.fields.attachments = attachments;
 
@@ -223,13 +214,12 @@ impl<'a> UpdateMessage<'a> {
     /// previous message, mutate them in place, then pass that list to this
     /// method.
     ///
-    /// To remove all embeds, pass an empty iterator via a function like
-    /// [`std::iter::empty`].
+    /// To remove all embeds pass an empty slice.
     ///
     /// Note that if there is no content or file then you will not be able to
     /// remove all of the embeds.
     ///
-    /// Calling this method again will clear previous calls.
+    /// Calling this method will clear any previous calls.
     ///
     /// # Errors
     ///

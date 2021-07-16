@@ -222,7 +222,7 @@ impl<'a> CreateMessage<'a> {
 
     /// Attach multiple files to the message.
     ///
-    /// Calling this method multiple times will clear previously added files.
+    /// Calling this method will clear any previous calls.
     pub const fn files(mut self, files: &'a [(&'a str, &'a [u8])]) -> Self {
         self.files = files;
 

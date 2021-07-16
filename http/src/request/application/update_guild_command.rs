@@ -17,7 +17,7 @@ struct UpdateGuildCommandFields<'a> {
     #[serde(skip_serializing_if = "Option::is_none")]
     name: Option<&'a str>,
     #[serde(skip_serializing_if = "Option::is_none")]
-    options: Option<Vec<CommandOption>>,
+    options: Option<&'a [CommandOption]>,
 }
 
 /// Edit a command in a guild, by ID.
@@ -65,12 +65,8 @@ impl<'a> UpdateGuildCommand<'a> {
     }
 
     /// Edit the command options of the command.
-    pub fn push_command_option(mut self, option: CommandOption) -> Self {
-        if let Some(ref mut arr) = self.fields.options {
-            arr.push(option);
-        } else {
-            self.fields.options = Some(vec![option]);
-        }
+    pub const fn command_options(mut self, options: &'a [CommandOption]) -> Self {
+        self.fields.options = Some(options);
 
         self
     }

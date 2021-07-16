@@ -852,8 +852,8 @@ impl Client {
     /// Returns a [`SearchGuildMembersErrorType::LimitInvalid`] error type if
     /// the limit is invalid.
     ///
-    /// [`GUILD_MEMBERS`]: ../../twilight_model/gateway/struct.Intents.html#associatedconstant.GUILD_MEMBERS
-    /// [`SearchGuildMembersErrorType::LimitInvalid`]: ../request/guild/member/search_guild_members/enum.SearchGuildMembersErrorType.html#variant.LimitInvalid
+    /// [`GUILD_MEMBERS`]: twilight_model::gateway::Intents::GUILD_MEMBERS
+    /// [`SearchGuildMembersErrorType::LimitInvalid`]: crate::request::guild::member::search_guild_members::SearchGuildMembersErrorType::LimitInvalid
     pub const fn search_guild_members<'a>(
         &'a self,
         guild_id: GuildId,
@@ -1685,7 +1685,7 @@ impl Client {
         &'a self,
         interaction_id: InteractionId,
         interaction_token: &'a str,
-        response: InteractionResponse,
+        response: &'a InteractionResponse,
     ) -> InteractionCallback<'a> {
         InteractionCallback::new(self, interaction_id, interaction_token, response)
     }
@@ -1826,12 +1826,12 @@ impl Client {
     /// 100 characters.
     ///
     /// [the discord docs]: https://discord.com/developers/docs/interactions/slash-commands#create-guild-application-command
-    pub fn create_guild_command(
-        &self,
+    pub fn create_guild_command<'a>(
+        &'a self,
         guild_id: GuildId,
-        name: String,
-        description: String,
-    ) -> Result<CreateGuildCommand<'_>, InteractionError> {
+        name: &'a str,
+        description: &'a str,
+    ) -> Result<CreateGuildCommand<'a>, InteractionError> {
         let application_id = self.application_id().ok_or(InteractionError {
             kind: InteractionErrorType::ApplicationIdNotPresent,
         })?;
@@ -1958,11 +1958,11 @@ impl Client {
     /// 100 characters.
     ///
     /// [the discord docs]: https://discord.com/developers/docs/interactions/slash-commands#create-global-application-command
-    pub fn create_global_command(
-        &self,
-        name: impl Into<String>,
-        description: impl Into<String>,
-    ) -> Result<CreateGlobalCommand<'_>, InteractionError> {
+    pub fn create_global_command<'a>(
+        &'a self,
+        name: &'a str,
+        description: &'a str,
+    ) -> Result<CreateGlobalCommand<'a>, InteractionError> {
         let application_id = self.application_id().ok_or(InteractionError {
             kind: InteractionErrorType::ApplicationIdNotPresent,
         })?;
@@ -2105,12 +2105,12 @@ impl Client {
     /// Returns an [`InteractionErrorType::ApplicationIdNotPresent`]
     /// error type if an application ID has not been configured via
     /// [`Client::set_application_id`].
-    pub fn update_command_permissions(
-        &self,
+    pub fn update_command_permissions<'a>(
+        &'a self,
         guild_id: GuildId,
         command_id: CommandId,
-        permissions: Vec<CommandPermissions>,
-    ) -> Result<UpdateCommandPermissions<'_>, InteractionError> {
+        permissions: &'a [CommandPermissions],
+    ) -> Result<UpdateCommandPermissions<'a>, InteractionError> {
         let application_id = self.application_id().ok_or(InteractionError {
             kind: InteractionErrorType::ApplicationIdNotPresent,
         })?;
@@ -2128,11 +2128,15 @@ impl Client {
     /// Returns an [`InteractionErrorType::ApplicationIdNotPresent`]
     /// error type if an application ID has not been configured via
     /// [`Client::set_application_id`].
-    pub fn set_command_permissions(
-        &self,
+    ///
+    /// Returns an [`InteractionErrorType::TooManyCommands`] error type if too
+    /// many commands have been provided. The maximum amount is defined by
+    /// [`InteractionError::GUILD_COMMAND_LIMIT`].
+    pub fn set_command_permissions<'a>(
+        &'a self,
         guild_id: GuildId,
-        permissions: impl Iterator<Item = (CommandId, CommandPermissions)>,
-    ) -> Result<SetCommandPermissions<'_>, InteractionError> {
+        permissions: &'a [(CommandId, CommandPermissions)],
+    ) -> Result<SetCommandPermissions<'a>, InteractionError> {
         let application_id = self.application_id().ok_or(InteractionError {
             kind: InteractionErrorType::ApplicationIdNotPresent,
         })?;

@@ -120,7 +120,7 @@ impl Display for AuditLogReasonError {
                 f.write_str("audit log reason is longer than ")?;
                 Display::fmt(&Self::AUDIT_REASON_LENGTH, f)?;
 
-                f.write_str(" characters long")
+                f.write_str(" characters")
             }
         }
     }

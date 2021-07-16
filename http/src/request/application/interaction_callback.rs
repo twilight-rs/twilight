@@ -11,7 +11,7 @@ use twilight_model::{application::callback::InteractionResponse, id::Interaction
 pub struct InteractionCallback<'a> {
     interaction_id: InteractionId,
     interaction_token: &'a str,
-    response: InteractionResponse,
+    response: &'a InteractionResponse,
     http: &'a Client,
 }
 
@@ -20,7 +20,7 @@ impl<'a> InteractionCallback<'a> {
         http: &'a Client,
         interaction_id: InteractionId,
         interaction_token: &'a str,
-        response: InteractionResponse,
+        response: &'a InteractionResponse,
     ) -> Self {
         Self {
             interaction_id,
@@ -37,7 +37,7 @@ impl<'a> InteractionCallback<'a> {
             interaction_id: self.interaction_id.0,
             interaction_token: self.interaction_token,
         })
-        .json(&self.response)?
+        .json(self.response)?
         .build();
 
         Ok(request)

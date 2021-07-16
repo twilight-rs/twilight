@@ -46,11 +46,12 @@ pub use self::{
     },
 };
 
+use serde::Serialize;
 use std::{
     error::Error,
     fmt::{Display, Formatter, Result as FmtResult},
 };
-use twilight_model::application::command::CommandOption;
+use twilight_model::{application::command::CommandOption, id::ApplicationId};
 
 /// The error created if the creation of interaction fails.
 #[derive(Debug)]
@@ -64,16 +65,32 @@ pub enum InteractionErrorType {
     /// Application id was not set on the client.
     ApplicationIdNotPresent,
     /// Command name validation failed.
-    CommandNameValidationFailed { name: String },
+    CommandNameValidationFailed,
     /// Command description validation failed.
-    CommandDescriptionValidationFailed { description: String },
+    CommandDescriptionValidationFailed,
     /// Required command options have to be passed before optional ones.
-    CommandOptionsRequiredFirst { option: CommandOption },
+    CommandOptionsRequiredFirst {
+        /// Index of the option that failed validation.
+        index: usize,
+    },
     /// More than 10 permission overwrites were set.
     TooManyCommandPermissions,
+    /// Too many commands have been provided.
+    ///
+    /// The maximum number of commands is defined by
+    /// [`InteractionError::GUILD_COMMAND_LIMIT`].
+    TooManyCommands,
 }
 
 impl InteractionError {
+    /// Maximum number of commands an application may have in an individual
+    /// guild.
+    pub const GUILD_COMMAND_LIMIT: usize = 100;
+
+    /// Maximum number of permission overwrites an application may have in an
+    /// individual guild command.
+    pub const GUILD_COMMAND_PERMISSION_LIMIT: usize = 10;
+
     /// Immutable reference to the type of error that occurred.
     #[must_use = "retrieving the type has no effect if left unused"]
     pub const fn kind(&self) -> &InteractionErrorType {
@@ -100,20 +117,83 @@ impl Display for InteractionError {
             InteractionErrorType::ApplicationIdNotPresent => {
                 f.write_str("application id not present")
             }
-            InteractionErrorType::CommandNameValidationFailed { .. } => {
+            InteractionErrorType::CommandNameValidationFailed => {
                 f.write_str("command name must be between 3 and 32 characters")
             }
-            InteractionErrorType::CommandDescriptionValidationFailed { .. } => {
+            InteractionErrorType::CommandDescriptionValidationFailed => {
                 f.write_str("command description must be between 1 and 100 characters")
             }
             InteractionErrorType::CommandOptionsRequiredFirst { .. } => {
                 f.write_str("optional command options must be added after required")
             }
-            InteractionErrorType::TooManyCommandPermissions { .. } => {
-                f.write_str("more than 10 permission overwrites were set")
+            InteractionErrorType::TooManyCommandPermissions => {
+                f.write_str("more than ")?;
+                Display::fmt(&InteractionError::GUILD_COMMAND_PERMISSION_LIMIT, f)?;
+
+                f.write_str(" permission overwrites were set")
+            }
+            InteractionErrorType::TooManyCommands => {
+                f.write_str("more than ")?;
+                Display::fmt(&InteractionError::GUILD_COMMAND_LIMIT, f)?;
+
+                f.write_str(" commands were set")
             }
         }
     }
 }
 
 impl Error for InteractionError {}
+
+/// Version of [`Command`] but with borrowed fields.
+///
+/// [`Command`]: twilight_model::application::command::Command
+#[derive(Serialize)]
+struct CommandBorrowed<'a> {
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub application_id: Option<ApplicationId>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub default_permission: Option<bool>,
+    pub description: &'a str,
+    pub name: &'a str,
+    #[serde(default)]
+    pub options: Option<&'a [CommandOption]>,
+}
+
+#[cfg(test)]
+mod tests {
+    use super::CommandBorrowed;
+    use twilight_model::{
+        application::command::{BaseCommandOptionData, Command, CommandOption},
+        id::{ApplicationId, CommandId, GuildId},
+    };
+
+    /// Test to convert a `Command` to a `CommandBorrowed`.
+    ///
+    /// Notably the point of this is to ensure that if a field is added to
+    /// `Command` or a type is changed then the destructure of it and creation
+    /// of `CommandBorrowed` will fail.
+    #[test]
+    fn test_command_borrowed_from_command() {
+        let command = Command {
+            application_id: Some(ApplicationId(1)),
+            default_permission: Some(true),
+            description: "command description".to_owned(),
+            guild_id: Some(GuildId(2)),
+            name: "command name".to_owned(),
+            id: Some(CommandId(3)),
+            options: Vec::from([CommandOption::Boolean(BaseCommandOptionData {
+                description: "command description".to_owned(),
+                name: "command name".to_owned(),
+                required: true,
+            })]),
+        };
+
+        let _ = CommandBorrowed {
+            application_id: command.application_id,
+            default_permission: command.default_permission,
+            description: &command.description,
+            name: &command.name,
+            options: Some(&command.options),
+        };
+    }
+}

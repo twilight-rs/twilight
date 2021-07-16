@@ -85,8 +85,6 @@ pub enum UpdateOriginalResponseErrorType {
         ///
         /// This can be used to index into the provided embeds to retrieve the
         /// invalid embed.
-        ///
-        /// [`embeds`]: Self::EmbedTooLarge.embeds
         index: usize,
     },
     /// Too many embeds were provided.
