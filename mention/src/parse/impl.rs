@@ -212,14 +212,14 @@ fn parse_maybe_style(value: Option<&str>) -> Result<Option<TimestampStyle>, Pars
 
 /// # Errors
 ///
-/// Returns [`ParseMentionError::LeadingArrow`] if the leading arrow is not
+/// Returns [`ParseMentionErrorType::LeadingArrow`] if the leading arrow is not
 /// present.
 ///
-/// Returns [`ParseMentionError::Sigil`] if the mention type's sigil is not
+/// Returns [`ParseMentionErrorType::Sigil`] if the mention type's sigil is not
 /// present after the leading arrow.
 ///
-/// Returns [`ParseMentionError::TrailingArrow`] if the trailing arrow is not
-/// present after the ID.
+/// Returns [`ParseMentionErrorType::TrailingArrow`] if the trailing arrow is
+/// not present after the ID.
 fn parse_mention<'a>(
     buf: &'a str,
     sigils: &'a [&'a str],
