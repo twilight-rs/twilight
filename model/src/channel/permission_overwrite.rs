@@ -4,6 +4,7 @@ use crate::{
 };
 use serde::{de::Deserializer, ser::SerializeStruct, Deserialize, Serialize, Serializer};
 use serde_repr::{Deserialize_repr, Serialize_repr};
+use std::num::NonZeroU64;
 
 pub(crate) mod integer {
     use serde::de::{Deserializer, Error as DeError, Visitor};
@@ -53,7 +54,7 @@ struct PermissionOverwriteData {
     allow: Permissions,
     deny: Permissions,
     #[serde(deserialize_with = "integer::deserialize")]
-    id: u64,
+    id: NonZeroU64,
     #[serde(rename = "type")]
     kind: PermissionOverwriteTargetType,
 }
@@ -130,7 +131,7 @@ mod tests {
     use serde::{Deserialize, Serialize};
     use serde_test::Token;
     use static_assertions::{assert_fields, assert_impl_all, const_assert_eq};
-    use std::{fmt::Debug, hash::Hash};
+    use std::{fmt::Debug, hash::Hash, num::NonZeroU64};
 
     assert_fields!(PermissionOverwrite: allow, deny, kind);
     assert_impl_all!(
@@ -173,7 +174,9 @@ mod tests {
         let overwrite = PermissionOverwrite {
             allow: Permissions::CREATE_INVITE,
             deny: Permissions::KICK_MEMBERS,
-            kind: PermissionOverwriteType::Member(UserId(12_345_678)),
+            kind: PermissionOverwriteType::Member(UserId(
+                NonZeroU64::new(12_345_678).expect("non zero"),
+            )),
         };
 
         // We can't use serde_test because it doesn't support 128 bit integers.
@@ -206,7 +209,7 @@ mod tests {
         let value = PermissionOverwrite {
             allow: Permissions::CREATE_INVITE,
             deny: Permissions::KICK_MEMBERS,
-            kind: PermissionOverwriteType::Member(UserId(0)),
+            kind: PermissionOverwriteType::Member(UserId(NonZeroU64::new(1).expect("non zero"))),
         };
 
         let deserialized = serde_json::from_str::<PermissionOverwrite>(raw).unwrap();

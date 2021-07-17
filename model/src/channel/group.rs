@@ -27,18 +27,19 @@ pub struct Group {
 mod tests {
     use super::{ApplicationId, ChannelId, ChannelType, Group, MessageId, UserId};
     use serde_test::Token;
+    use std::num::NonZeroU64;
 
     #[test]
     fn test_group() {
         let value = Group {
-            application_id: Some(ApplicationId(1)),
+            application_id: Some(ApplicationId(NonZeroU64::new(1).expect("non zero"))),
             icon: Some("icon hash".to_owned()),
-            id: ChannelId(2),
+            id: ChannelId(NonZeroU64::new(2).expect("non zero")),
             kind: ChannelType::Group,
-            last_message_id: Some(MessageId(3)),
+            last_message_id: Some(MessageId(NonZeroU64::new(3).expect("non zero"))),
             last_pin_timestamp: None,
             name: Some("a group".to_owned()),
-            owner_id: UserId(4),
+            owner_id: UserId(NonZeroU64::new(4).expect("non zero")),
             recipients: Vec::new(),
         };
 
@@ -84,14 +85,14 @@ mod tests {
     #[test]
     fn test_group_complete() {
         let value = Group {
-            application_id: Some(ApplicationId(1)),
+            application_id: Some(ApplicationId(NonZeroU64::new(1).expect("non zero"))),
             icon: Some("icon hash".to_owned()),
-            id: ChannelId(2),
+            id: ChannelId(NonZeroU64::new(2).expect("non zero")),
             kind: ChannelType::Group,
-            last_message_id: Some(MessageId(3)),
+            last_message_id: Some(MessageId(NonZeroU64::new(3).expect("non zero"))),
             last_pin_timestamp: Some("123".to_owned()),
             name: Some("a group".to_owned()),
-            owner_id: UserId(4),
+            owner_id: UserId(NonZeroU64::new(4).expect("non zero")),
             recipients: Vec::new(),
         };
 

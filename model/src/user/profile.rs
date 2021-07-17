@@ -39,6 +39,7 @@ pub struct UserProfile {
 mod tests {
     use super::{PremiumType, UserFlags, UserId, UserProfile};
     use serde_test::Token;
+    use std::num::NonZeroU64;
 
     fn user_tokens(discriminator_token: Token) -> Vec<Token> {
         vec![
@@ -88,7 +89,7 @@ mod tests {
             discriminator: "0004".to_owned(),
             email: Some("email@example.com".to_owned()),
             flags: Some(UserFlags::VERIFIED_BOT_DEVELOPER),
-            id: UserId(1),
+            id: UserId(NonZeroU64::new(1).expect("non zero")),
             locale: Some("en-us".to_owned()),
             mfa_enabled: Some(true),
             name: "user name".to_owned(),

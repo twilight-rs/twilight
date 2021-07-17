@@ -10,10 +10,13 @@ pub struct UnavailableGuild {
 mod tests {
     use super::{GuildId, UnavailableGuild};
     use serde_test::Token;
+    use std::num::NonZeroU64;
 
     #[test]
     fn test_unavailable_guild() {
-        let value = UnavailableGuild { id: GuildId(1) };
+        let value = UnavailableGuild {
+            id: GuildId(NonZeroU64::new(1).expect("non zero")),
+        };
 
         serde_test::assert_tokens(
             &value,

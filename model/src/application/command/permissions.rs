@@ -89,11 +89,12 @@ mod tests {
     use super::{CommandPermissions, CommandPermissionsType};
     use crate::id::RoleId;
     use serde_test::Token;
+    use std::num::NonZeroU64;
 
     #[test]
     fn test_command_permissions() {
         let value = CommandPermissions {
-            id: CommandPermissionsType::Role(RoleId(100)),
+            id: CommandPermissionsType::Role(RoleId(NonZeroU64::new(100).expect("non zero"))),
             permission: true,
         };
 

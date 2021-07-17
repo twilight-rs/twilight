@@ -23,6 +23,7 @@ pub struct PartialMember {
 mod tests {
     use super::{PartialMember, RoleId};
     use serde_test::Token;
+    use std::num::NonZeroU64;
 
     #[test]
     fn test_partial_member() {
@@ -33,7 +34,7 @@ mod tests {
             nick: Some("a nickname".to_owned()),
             permissions: None,
             premium_since: None,
-            roles: vec![RoleId(1)],
+            roles: vec![RoleId(NonZeroU64::new(1).expect("non zero"))],
             user: None,
         };
 

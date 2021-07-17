@@ -70,12 +70,13 @@ mod tests {
     use super::RoleTags;
     use crate::id::{IntegrationId, UserId};
     use serde_test::Token;
+    use std::num::NonZeroU64;
 
     #[test]
     fn test_role_tags_all() {
         let tags = RoleTags {
-            bot_id: Some(UserId(1)),
-            integration_id: Some(IntegrationId(2)),
+            bot_id: Some(UserId(NonZeroU64::new(1).expect("non zero"))),
+            integration_id: Some(IntegrationId(NonZeroU64::new(2).expect("non zero"))),
             premium_subscriber: true,
         };
 

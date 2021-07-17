@@ -116,13 +116,14 @@ impl PartialOrd for Role {
 mod tests {
     use super::{Permissions, Role, RoleId};
     use serde_test::Token;
+    use std::num::NonZeroU64;
 
     #[test]
     fn test_role() {
         let role = Role {
             color: 0,
             hoist: true,
-            id: RoleId(123),
+            id: RoleId(NonZeroU64::new(123).expect("non zero")),
             managed: false,
             mentionable: true,
             name: "test".to_owned(),

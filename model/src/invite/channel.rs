@@ -17,11 +17,12 @@ pub struct InviteChannel {
 mod tests {
     use super::{ChannelId, ChannelType, InviteChannel};
     use serde_test::Token;
+    use std::num::NonZeroU64;
 
     #[test]
     fn test_invite_channel() {
         let value = InviteChannel {
-            id: ChannelId(1),
+            id: ChannelId(NonZeroU64::new(1).expect("non zero")),
             name: Some("channel name".to_owned()),
             kind: ChannelType::GuildText,
         };

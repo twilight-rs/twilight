@@ -14,12 +14,13 @@ pub struct GuildInfo {
 mod tests {
     use super::{GuildId, GuildInfo, Permissions};
     use serde_test::Token;
+    use std::num::NonZeroU64;
 
     #[test]
     fn test_guild_info() {
         let value = GuildInfo {
             icon: Some("icon hash".to_owned()),
-            id: GuildId(1),
+            id: GuildId(NonZeroU64::new(1).expect("non zero")),
             name: "guild name".to_owned(),
             owner: false,
             permissions: Permissions::MANAGE_CHANNELS,

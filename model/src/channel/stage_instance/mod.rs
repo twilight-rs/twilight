@@ -20,14 +20,15 @@ mod test {
     use super::{PrivacyLevel, StageInstance};
     use crate::id::{ChannelId, GuildId, StageId};
     use serde_test::Token;
+    use std::num::NonZeroU64;
 
     #[test]
     fn test_stage_instance() {
         let value = StageInstance {
-            channel_id: ChannelId(100),
+            channel_id: ChannelId(NonZeroU64::new(100).expect("non zero")),
             discoverable_disabled: false,
-            guild_id: GuildId(200),
-            id: StageId(300),
+            guild_id: GuildId(NonZeroU64::new(200).expect("non zero")),
+            id: StageId(NonZeroU64::new(300).expect("non zero")),
             privacy_level: PrivacyLevel::Public,
             topic: "a topic".into(),
         };

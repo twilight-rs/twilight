@@ -20,6 +20,7 @@ mod tests {
     use super::{Emoji, GuildId, GuildPreview};
     use crate::id::EmojiId;
     use serde_test::Token;
+    use std::num::NonZeroU64;
 
     #[test]
     fn test_guild_preview() {
@@ -31,7 +32,7 @@ mod tests {
             emojis: vec![Emoji {
                 animated: false,
                 available: true,
-                id: EmojiId(2),
+                id: EmojiId(NonZeroU64::new(2).expect("non zero")),
                 managed: false,
                 name: "test".to_owned(),
                 require_colons: true,
@@ -39,7 +40,7 @@ mod tests {
                 user: None,
             }],
             features: vec!["a feature".to_owned()],
-            id: GuildId(1),
+            id: GuildId(NonZeroU64::new(1).expect("non zero")),
             name: "guild name".to_owned(),
             icon: Some("icon hash".to_owned()),
             splash: Some("splash hash".to_owned()),
