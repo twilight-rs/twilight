@@ -134,7 +134,7 @@ impl Display for RouteDisplay<'_> {
                 application_id,
                 guild_id,
             } => {
-                f.write_str("application/")?;
+                f.write_str("applications/")?;
                 Display::fmt(application_id, f)?;
                 f.write_str("/guilds/")?;
                 Display::fmt(guild_id, f)?;
@@ -293,7 +293,7 @@ impl Display for RouteDisplay<'_> {
                 application_id,
                 command_id,
             } => {
-                f.write_str("application/")?;
+                f.write_str("applications/")?;
                 Display::fmt(application_id, f)?;
                 f.write_str("/commands/")?;
 
