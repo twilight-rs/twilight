@@ -11,7 +11,7 @@ use std::{
 };
 use twilight_model::{id::GuildId, template::Template};
 
-/// Error emitted when the template can not be upated as configured.
+/// Error emitted when the template can not be updated as configured.
 #[derive(Debug)]
 pub struct UpdateTemplateError {
     kind: UpdateTemplateErrorType,

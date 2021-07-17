@@ -15,7 +15,7 @@ pub struct UpdatePresenceError {
 }
 
 impl UpdatePresenceError {
-    /// Immutable reference to the type of error that occured.
+    /// Immutable reference to the type of error that occurred.
     #[must_use = "retrieving the type has no effect if let unused"]
     pub const fn kind(&self) -> &UpdatePresenceErrorType {
         &self.kind
@@ -72,7 +72,7 @@ impl UpdatePresence {
     /// # Errors
     ///
     /// Returns an error of type [`UpdatePresenceErrorType::MissingActivity`] if
-    /// an empty set of activites is provided.
+    /// an empty set of activities is provided.
     pub fn new(
         activities: impl Into<Vec<Activity>>,
         afk: bool,
@@ -105,7 +105,7 @@ impl UpdatePresencePayload {
     /// # Errors
     ///
     /// Returns an [`UpdatePresenceErrorType::MissingActivity`] error type if an
-    /// empty set of activites is provided.
+    /// empty set of activities is provided.
     pub fn new(
         activities: impl Into<Vec<Activity>>,
         afk: bool,
