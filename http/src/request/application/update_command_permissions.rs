@@ -15,8 +15,8 @@ use twilight_model::{
 };
 
 #[derive(Serialize)]
-struct UpdateCommandPermissionsFields {
-    pub permissions: Vec<CommandPermissions>,
+struct UpdateCommandPermissionsFields<'a> {
+    pub permissions: &'a [CommandPermissions],
 }
 
 /// Update command permissions for a single command in a guild.
@@ -29,7 +29,7 @@ pub struct UpdateCommandPermissions<'a> {
     application_id: ApplicationId,
     command_id: CommandId,
     guild_id: GuildId,
-    fields: UpdateCommandPermissionsFields,
+    fields: UpdateCommandPermissionsFields<'a>,
     http: &'a Client,
 }
 
@@ -39,7 +39,7 @@ impl<'a> UpdateCommandPermissions<'a> {
         application_id: ApplicationId,
         guild_id: GuildId,
         command_id: CommandId,
-        permissions: Vec<CommandPermissions>,
+        permissions: &'a [CommandPermissions],
     ) -> Result<Self, InteractionError> {
         if !validate::command_permissions(permissions.len()) {
             return Err(InteractionError {
@@ -56,7 +56,7 @@ impl<'a> UpdateCommandPermissions<'a> {
         })
     }
 
-    fn request(&self) -> Result<Request, Error> {
+    fn request(&self) -> Result<Request<'a>, Error> {
         Request::builder(Route::UpdateCommandPermissions {
             application_id: self.application_id.0,
             command_id: self.command_id.0,
