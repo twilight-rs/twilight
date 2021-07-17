@@ -87,8 +87,8 @@ impl<'a> CreateGlobalCommand<'a> {
     }
 
     /// Whether the command is enabled by default when the app is added to a guild.
-    pub fn default_permission(mut self, default: bool) -> Self {
-        self.default_permission.replace(default);
+    pub const fn default_permission(mut self, default: bool) -> Self {
+        self.default_permission = Some(default);
 
         self
     }
