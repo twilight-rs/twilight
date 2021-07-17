@@ -333,9 +333,8 @@ impl TextFieldsBuilder {
     }
 
     /// Set the channel's permission overwrites.
-    #[allow(clippy::missing_const_for_fn)]
     pub fn permission_overwrites(mut self, overwrites: Vec<PermissionOverwrite>) -> Self {
-        self.0.permission_overwrites = Some(overwrites);
+        self.0.permission_overwrites.replace(overwrites);
 
         self
     }
@@ -346,7 +345,6 @@ impl TextFieldsBuilder {
     ///
     /// Returns a [`TextFieldsErrorType::RateLimitInvalid`] error type if the
     /// rate limit is invalid.
-    #[allow(clippy::missing_const_for_fn)]
     pub fn rate_limit_per_user(mut self, limit: u64) -> Result<Self, TextFieldsError> {
         if limit > Self::MAX_RATE_LIMIT {
             return Err(TextFieldsError {
@@ -354,7 +352,7 @@ impl TextFieldsBuilder {
             });
         }
 
-        self.0.rate_limit_per_user = Some(limit);
+        self.0.rate_limit_per_user.replace(limit);
 
         Ok(self)
     }
