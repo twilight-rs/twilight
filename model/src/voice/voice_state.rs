@@ -267,13 +267,14 @@ mod tests {
     use super::{ChannelId, GuildId, Member, UserId, VoiceState};
     use crate::{id::RoleId, user::User};
     use serde_test::Token;
+    use std::num::NonZeroU64;
 
     #[test]
     fn test_voice_state() {
         let value = VoiceState {
-            channel_id: Some(ChannelId(1)),
+            channel_id: Some(ChannelId(NonZeroU64::new(1).expect("non zero"))),
             deaf: false,
-            guild_id: Some(GuildId(2)),
+            guild_id: Some(GuildId(NonZeroU64::new(2).expect("non zero"))),
             member: None,
             mute: true,
             self_deaf: false,
@@ -282,7 +283,7 @@ mod tests {
             session_id: "a".to_owned(),
             suppress: true,
             token: None,
-            user_id: UserId(3),
+            user_id: UserId(NonZeroU64::new(3).expect("non zero")),
             request_to_speak_timestamp: None,
         };
 
@@ -329,13 +330,13 @@ mod tests {
     #[test]
     fn test_voice_state_complete() {
         let value = VoiceState {
-            channel_id: Some(ChannelId(1)),
+            channel_id: Some(ChannelId(NonZeroU64::new(1).expect("non zero"))),
             deaf: false,
-            guild_id: Some(GuildId(2)),
+            guild_id: Some(GuildId(NonZeroU64::new(2).expect("non zero"))),
             member: Some(Member {
                 deaf: false,
-                guild_id: GuildId(2),
-                hoisted_role: Some(RoleId(2)),
+                guild_id: GuildId(NonZeroU64::new(2).expect("non zero")),
+                hoisted_role: Some(RoleId(NonZeroU64::new(2).expect("non zero"))),
                 joined_at: Some("timestamp".to_owned()),
                 mute: true,
                 nick: Some("twilight".to_owned()),
@@ -348,7 +349,7 @@ mod tests {
                     discriminator: "0001".to_owned(),
                     email: None,
                     flags: None,
-                    id: UserId(3),
+                    id: UserId(NonZeroU64::new(3).expect("non zero")),
                     locale: None,
                     mfa_enabled: None,
                     name: "twilight".to_owned(),
@@ -365,7 +366,7 @@ mod tests {
             session_id: "a".to_owned(),
             suppress: true,
             token: Some("abc".to_owned()),
-            user_id: UserId(3),
+            user_id: UserId(NonZeroU64::new(3).expect("non zero")),
             request_to_speak_timestamp: Some("2021-04-21T22:16:50+0000".to_owned()),
         };
 

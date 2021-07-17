@@ -17,12 +17,13 @@ pub struct ChannelMention {
 mod tests {
     use super::{ChannelId, ChannelMention, ChannelType, GuildId};
     use serde_test::Token;
+    use std::num::NonZeroU64;
 
     #[test]
     fn test_channel_mention() {
         let value = ChannelMention {
-            guild_id: GuildId(1),
-            id: ChannelId(2),
+            guild_id: GuildId(NonZeroU64::new(1).expect("non zero")),
+            id: ChannelId(NonZeroU64::new(2).expect("non zero")),
             kind: ChannelType::GuildText,
             name: "channel".to_owned(),
         };

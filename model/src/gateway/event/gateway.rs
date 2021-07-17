@@ -526,6 +526,7 @@ mod tests {
     use serde::de::DeserializeSeed;
     use serde_json::de::Deserializer;
     use serde_test::Token;
+    use std::num::NonZeroU64;
 
     #[test]
     fn test_deserialize_dispatch_role_delete() {
@@ -830,8 +831,8 @@ mod tests {
     #[test]
     fn test_serialize_dispatch() {
         let role_delete = RoleDelete {
-            guild_id: GuildId(1),
-            role_id: RoleId(2),
+            guild_id: GuildId(NonZeroU64::new(1).expect("non zero")),
+            role_id: RoleId(NonZeroU64::new(2).expect("non zero")),
         };
         let dispatch = Box::new(DispatchEvent::RoleDelete(role_delete));
         let value = GatewayEvent::Dispatch(2_048, dispatch);

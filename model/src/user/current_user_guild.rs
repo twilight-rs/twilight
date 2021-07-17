@@ -36,12 +36,13 @@ pub struct CurrentUserGuild {
 mod tests {
     use super::{CurrentUserGuild, GuildId, Permissions};
     use serde_test::Token;
+    use std::num::NonZeroU64;
 
     #[test]
     fn test_current_user_guild() {
         // The example partial guild from the discord docs
         let value = CurrentUserGuild {
-            id: GuildId(80_351_110_224_678_912),
+            id: GuildId(NonZeroU64::new(80_351_110_224_678_912).expect("non zero")),
             name: "abcd".to_owned(),
             icon: Some("8342729096ea3675442027381ff50dfe".to_owned()),
             owner: true,

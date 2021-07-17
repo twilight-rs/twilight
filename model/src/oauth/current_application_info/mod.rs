@@ -44,7 +44,7 @@ mod tests {
     use serde::{Deserialize, Serialize};
     use serde_test::Token;
     use static_assertions::{assert_fields, assert_impl_all};
-    use std::{fmt::Debug, hash::Hash};
+    use std::{fmt::Debug, hash::Hash, num::NonZeroU64};
 
     assert_fields!(
         CurrentApplicationInfo: bot_public,
@@ -85,10 +85,10 @@ mod tests {
             bot_require_code_grant: false,
             cover_image: Some("cover image hash".to_owned()),
             description: "a pretty cool application".to_owned(),
-            guild_id: Some(GuildId(1)),
+            guild_id: Some(GuildId(NonZeroU64::new(1).expect("non zero"))),
             flags: Some(ApplicationFlags::EMBEDDED),
             icon: Some("icon hash".to_owned()),
-            id: ApplicationId(2),
+            id: ApplicationId(NonZeroU64::new(2).expect("non zero")),
             name: "cool application".to_owned(),
             owner: User {
                 avatar: None,
@@ -96,7 +96,7 @@ mod tests {
                 discriminator: "0001".to_owned(),
                 email: None,
                 flags: None,
-                id: UserId(3),
+                id: UserId(NonZeroU64::new(3).expect("non zero")),
                 locale: None,
                 mfa_enabled: None,
                 name: "app dev".to_owned(),
@@ -112,10 +112,10 @@ mod tests {
             summary: "a summary".to_owned(),
             team: Some(Team {
                 icon: None,
-                id: TeamId(5),
+                id: TeamId(NonZeroU64::new(5).expect("non zero")),
                 members: Vec::new(),
                 name: "team name".into(),
-                owner_user_id: UserId(6),
+                owner_user_id: UserId(NonZeroU64::new(6).expect("non zero")),
             }),
             terms_of_service_url: Some("https://termsofservice".into()),
             verify_key: "key".to_owned(),

@@ -15,6 +15,7 @@ pub struct MessageApplication {
 mod tests {
     use super::{ApplicationId, MessageApplication};
     use serde_test::Token;
+    use std::num::NonZeroU64;
 
     #[test]
     fn test_message_application() {
@@ -22,7 +23,7 @@ mod tests {
             cover_image: Some("cover".to_owned()),
             description: "a description".to_owned(),
             icon: Some("an icon".to_owned()),
-            id: ApplicationId(1),
+            id: ApplicationId(NonZeroU64::new(1).expect("non zero")),
             name: "application".to_owned(),
         };
 

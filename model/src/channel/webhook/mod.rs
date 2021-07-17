@@ -51,7 +51,7 @@ mod tests {
     use serde::{Deserialize, Serialize};
     use serde_test::Token;
     use static_assertions::{assert_fields, assert_impl_all};
-    use std::{fmt::Debug, hash::Hash};
+    use std::{fmt::Debug, hash::Hash, num::NonZeroU64};
 
     assert_fields!(
         Webhook: application_id,
@@ -80,11 +80,11 @@ mod tests {
     #[test]
     fn test_webhook() {
         let value = Webhook {
-            application_id: Some(ApplicationId(4)),
+            application_id: Some(ApplicationId(NonZeroU64::new(4).expect("non zero"))),
             avatar: Some("avatar".to_owned()),
-            channel_id: ChannelId(1),
-            guild_id: Some(GuildId(2)),
-            id: WebhookId(3),
+            channel_id: ChannelId(NonZeroU64::new(1).expect("non zero")),
+            guild_id: Some(GuildId(NonZeroU64::new(2).expect("non zero"))),
+            id: WebhookId(NonZeroU64::new(3).expect("non zero")),
             kind: WebhookType::Incoming,
             name: Some("a webhook".to_owned()),
             source_channel: None,
@@ -137,20 +137,20 @@ mod tests {
     #[test]
     fn test_webhook_complete() {
         let value = Webhook {
-            application_id: Some(ApplicationId(4)),
+            application_id: Some(ApplicationId(NonZeroU64::new(4).expect("non zero"))),
             avatar: Some("avatar".to_owned()),
-            channel_id: ChannelId(1),
-            guild_id: Some(GuildId(2)),
-            id: WebhookId(3),
+            channel_id: ChannelId(NonZeroU64::new(1).expect("non zero")),
+            guild_id: Some(GuildId(NonZeroU64::new(2).expect("non zero"))),
+            id: WebhookId(NonZeroU64::new(3).expect("non zero")),
             kind: WebhookType::Incoming,
             name: Some("a webhook".to_owned()),
             source_channel: Some(WebhookChannel {
-                id: ChannelId(4),
+                id: ChannelId(NonZeroU64::new(4).expect("non zero")),
                 name: "webhook channel".into(),
             }),
             source_guild: Some(WebhookGuild {
                 icon: Some("guild icon".into()),
-                id: GuildId(5),
+                id: GuildId(NonZeroU64::new(5).expect("non zero")),
                 name: "webhook guild".into(),
             }),
             token: Some("a token".to_owned()),
@@ -161,7 +161,7 @@ mod tests {
                 discriminator: "0001".to_owned(),
                 email: None,
                 flags: None,
-                id: UserId(2),
+                id: UserId(NonZeroU64::new(2).expect("non zero")),
                 locale: None,
                 mfa_enabled: None,
                 name: "test".to_owned(),

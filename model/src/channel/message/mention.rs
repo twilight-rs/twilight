@@ -37,6 +37,7 @@ pub struct Mention {
 mod tests {
     use super::{Mention, PartialMember, UserFlags, UserId};
     use serde_test::Token;
+    use std::num::NonZeroU64;
 
     #[test]
     fn test_mention_without_member() {
@@ -44,7 +45,7 @@ mod tests {
             avatar: None,
             bot: false,
             discriminator: "0001".to_owned(),
-            id: UserId(1),
+            id: UserId(NonZeroU64::new(1).expect("non zero")),
             member: None,
             name: "foo".to_owned(),
             public_flags: UserFlags::empty(),
@@ -83,7 +84,7 @@ mod tests {
             avatar: None,
             bot: false,
             discriminator: "0001".to_owned(),
-            id: UserId(1),
+            id: UserId(NonZeroU64::new(1).expect("non zero")),
             member: Some(PartialMember {
                 deaf: false,
                 joined_at: None,

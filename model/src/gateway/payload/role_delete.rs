@@ -11,12 +11,13 @@ pub struct RoleDelete {
 mod tests {
     use super::{GuildId, RoleDelete, RoleId};
     use serde_test::Token;
+    use std::num::NonZeroU64;
 
     #[test]
     fn test_webhooks_update() {
         let value = RoleDelete {
-            guild_id: GuildId(1),
-            role_id: RoleId(2),
+            guild_id: GuildId(NonZeroU64::new(1).expect("non zero")),
+            role_id: RoleId(NonZeroU64::new(2).expect("non zero")),
         };
 
         serde_test::assert_tokens(

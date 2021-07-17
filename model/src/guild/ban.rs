@@ -12,6 +12,7 @@ mod tests {
     use super::{Ban, User};
     use crate::id::UserId;
     use serde_test::Token;
+    use std::num::NonZeroU64;
 
     #[test]
     fn test_ban() {
@@ -23,7 +24,7 @@ mod tests {
                 discriminator: "0001".to_owned(),
                 email: None,
                 flags: None,
-                id: UserId(100_000_000_000_000_000),
+                id: UserId(NonZeroU64::new(100_000_000_000_000_000).expect("non zero")),
                 locale: None,
                 mfa_enabled: None,
                 name: "test".to_owned(),

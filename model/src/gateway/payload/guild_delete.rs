@@ -19,11 +19,12 @@ mod tests {
     use super::super::GuildDelete;
     use crate::id::GuildId;
     use serde_test::Token;
+    use std::num::NonZeroU64;
 
     #[test]
     fn test_guild_delete_available() {
         let expected = GuildDelete {
-            id: GuildId(123),
+            id: GuildId(NonZeroU64::new(123).expect("non zero")),
             unavailable: true,
         };
 
@@ -62,7 +63,7 @@ mod tests {
     #[test]
     fn test_guild_delete_unavailable() {
         let expected = GuildDelete {
-            id: GuildId(123),
+            id: GuildId(NonZeroU64::new(123).expect("non zero")),
             unavailable: false,
         };
 
@@ -101,7 +102,7 @@ mod tests {
     #[test]
     fn test_guild_delete_unavailable_null_default() {
         let expected = GuildDelete {
-            id: GuildId(123),
+            id: GuildId(NonZeroU64::new(123).expect("non zero")),
             unavailable: false,
         };
 

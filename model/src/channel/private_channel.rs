@@ -21,12 +21,13 @@ pub struct PrivateChannel {
 mod tests {
     use super::{ChannelId, ChannelType, MessageId, PrivateChannel};
     use serde_test::Token;
+    use std::num::NonZeroU64;
 
     #[test]
     fn test_category_channel() {
         let value = PrivateChannel {
-            id: ChannelId(1),
-            last_message_id: Some(MessageId(2)),
+            id: ChannelId(NonZeroU64::new(1).expect("non zero")),
+            last_message_id: Some(MessageId(NonZeroU64::new(2).expect("non zero"))),
             last_pin_timestamp: Some("timestamp".to_owned()),
             kind: ChannelType::Private,
             recipients: Vec::new(),

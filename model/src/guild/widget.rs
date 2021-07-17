@@ -11,11 +11,12 @@ pub struct GuildWidget {
 mod tests {
     use super::{ChannelId, GuildWidget};
     use serde_test::Token;
+    use std::num::NonZeroU64;
 
     #[test]
     fn test_guild_widget() {
         let value = GuildWidget {
-            channel_id: ChannelId(111_111_111_111_111_111),
+            channel_id: ChannelId(NonZeroU64::new(111_111_111_111_111_111).expect("non zero")),
             enabled: true,
         };
 

@@ -8,9 +8,13 @@
 //! [`id`]: ../id
 
 use serde::{Deserialize, Serialize};
-use std::fmt::{Display, Formatter, Result as FmtResult};
+use std::{
+    fmt::{Display, Formatter, Result as FmtResult},
+    num::NonZeroU64,
+};
 
 #[derive(Clone, Debug, Default, Deserialize, Eq, Hash, Ord, PartialEq, PartialOrd, Serialize)]
+// *not* a snowflake
 pub struct SkuId(#[serde(with = "crate::id::string")] pub u64);
 
 impl Display for SkuId {
@@ -19,8 +23,8 @@ impl Display for SkuId {
     }
 }
 
-#[derive(Clone, Debug, Default, Deserialize, Eq, Hash, Ord, PartialEq, PartialOrd, Serialize)]
-pub struct TeamId(#[serde(with = "crate::id::string")] pub u64);
+#[derive(Clone, Debug, Deserialize, Eq, Hash, Ord, PartialEq, PartialOrd, Serialize)]
+pub struct TeamId(#[serde(with = "crate::id::string")] pub NonZeroU64);
 
 impl Display for TeamId {
     fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
@@ -32,6 +36,7 @@ impl Display for TeamId {
 mod tests {
     use super::{SkuId, TeamId};
     use serde_test::Token;
+    use std::num::NonZeroU64;
 
     #[test]
     fn test_id_deser() {
@@ -50,14 +55,14 @@ mod tests {
             ],
         );
         serde_test::assert_tokens(
-            &TeamId(114_941_315_417_899_012),
+            &TeamId(NonZeroU64::new(114_941_315_417_899_012).expect("non zero")),
             &[
                 Token::NewtypeStruct { name: "TeamId" },
                 Token::Str("114941315417899012"),
             ],
         );
         serde_test::assert_de_tokens(
-            &TeamId(114_941_315_417_899_012),
+            &TeamId(NonZeroU64::new(114_941_315_417_899_012).expect("non zero")),
             &[
                 Token::NewtypeStruct { name: "TeamId" },
                 Token::U64(114_941_315_417_899_012),
