@@ -2,12 +2,12 @@ use crate::{
     client::Client,
     error::Error,
     request::{Request, RequestBuilder},
-    response::{marker::EmptyBody, ResponseFuture},
+    response::ResponseFuture,
     routing::Route,
 };
 use serde::Serialize;
 use twilight_model::{
-    application::command::CommandOption,
+    application::command::{Command, CommandOption},
     id::{ApplicationId, CommandId, GuildId},
 };
 
@@ -89,7 +89,7 @@ impl<'a> UpdateGuildCommand<'a> {
     /// Execute the request, returning a future resolving to a [`Response`].
     ///
     /// [`Response`]: crate::response::Response
-    pub fn exec(self) -> ResponseFuture<EmptyBody> {
+    pub fn exec(self) -> ResponseFuture<Command> {
         match self.request() {
             Ok(request) => self.http.request(request),
             Err(source) => ResponseFuture::error(source),

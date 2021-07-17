@@ -3,10 +3,13 @@ use crate::{
     client::Client,
     error::Error as HttpError,
     request::{validate, Request, RequestBuilder},
-    response::{marker::EmptyBody, ResponseFuture},
+    response::ResponseFuture,
     routing::Route,
 };
-use twilight_model::{application::command::CommandOption, id::ApplicationId};
+use twilight_model::{
+    application::command::{Command, CommandOption},
+    id::ApplicationId,
+};
 
 /// Create a new global command.
 ///
@@ -115,7 +118,7 @@ impl<'a> CreateGlobalCommand<'a> {
     /// Execute the request, returning a future resolving to a [`Response`].
     ///
     /// [`Response`]: crate::response::Response
-    pub fn exec(self) -> ResponseFuture<EmptyBody> {
+    pub fn exec(self) -> ResponseFuture<Command> {
         match self.request() {
             Ok(request) => self.http.request(request),
             Err(source) => ResponseFuture::error(source),
