@@ -15,7 +15,7 @@ pub struct Config {
     pub(super) http_client: Client,
     pub(super) shard_config: ShardConfig,
     pub(super) shard_scheme: ShardScheme,
-    pub(super) queue: Arc<Box<dyn Queue>>,
+    pub(super) queue: Arc<dyn Queue>,
     pub(super) resume_sessions: HashMap<u64, ResumeSession>,
 }
 
@@ -56,7 +56,7 @@ impl Config {
 
     /// Return an immutable reference to the queue used for initiating shard
     /// sessions.
-    pub fn queue(&self) -> &Arc<Box<dyn Queue>> {
+    pub fn queue(&self) -> &Arc<dyn Queue> {
         &self.queue
     }
 }
