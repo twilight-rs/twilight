@@ -64,7 +64,6 @@ pub enum GetChannelMessagesErrorType {
     LimitInvalid,
 }
 
-#[derive(Default)]
 struct GetChannelMessagesFields {
     limit: Option<u64>,
 }

@@ -77,13 +77,16 @@ impl<'a> CreateGuildCommand<'a> {
     /// Retuns an [`InteractionErrorType::CommandOptionsRequiredFirst`]
     /// if a required option was added after an optional option. The problem
     /// option's index is provided.
-    pub fn command_options(
+    pub const fn command_options(
         mut self,
         options: &'a [CommandOption],
     ) -> Result<Self, InteractionError> {
         let mut optional_option_added = false;
+        let mut idx = 0;
 
-        for (idx, option) in options.iter().enumerate() {
+        while idx < options.len() {
+            let option = &options[idx];
+
             if !optional_option_added && !option.is_required() {
                 optional_option_added = true;
             }
@@ -93,6 +96,8 @@ impl<'a> CreateGuildCommand<'a> {
                     kind: InteractionErrorType::CommandOptionsRequiredFirst { index: idx },
                 });
             }
+
+            idx += 1;
         }
 
         self.options = Some(options);

@@ -65,7 +65,6 @@ pub enum CreateGuildPruneErrorType {
     DaysInvalid,
 }
 
-#[derive(Default)]
 struct CreateGuildPruneFields<'a> {
     compute_prune_count: Option<bool>,
     days: Option<u64>,
@@ -85,9 +84,13 @@ pub struct CreateGuildPrune<'a> {
 }
 
 impl<'a> CreateGuildPrune<'a> {
-    pub(crate) fn new(http: &'a Client, guild_id: GuildId) -> Self {
+    pub(crate) const fn new(http: &'a Client, guild_id: GuildId) -> Self {
         Self {
-            fields: CreateGuildPruneFields::default(),
+            fields: CreateGuildPruneFields {
+                compute_prune_count: None,
+                days: None,
+                include_roles: &[],
+            },
             guild_id,
             http,
             reason: None,

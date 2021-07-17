@@ -1002,7 +1002,7 @@ impl Client {
     /// Refer to [the discord docs] for more information.
     ///
     /// [the discord docs]: https://discord.com/developers/docs/resources/guild#begin-guild-prune
-    pub fn create_guild_prune(&self, guild_id: GuildId) -> CreateGuildPrune<'_> {
+    pub const fn create_guild_prune(&self, guild_id: GuildId) -> CreateGuildPrune<'_> {
         CreateGuildPrune::new(self, guild_id)
     }
 
@@ -1151,7 +1151,7 @@ impl Client {
     /// crate::request::channel::message::create_message::CreateMessageErrorType::ContentInvalid
     /// [`CreateMessageErrorType::EmbedTooLarge`]:
     /// crate::request::channel::message::create_message::CreateMessageErrorType::EmbedTooLarge
-    pub fn create_message(&self, channel_id: ChannelId) -> CreateMessage<'_> {
+    pub const fn create_message(&self, channel_id: ChannelId) -> CreateMessage<'_> {
         CreateMessage::new(self, channel_id)
     }
 
@@ -1652,7 +1652,7 @@ impl Client {
     ///     .await?;
     /// # Ok(()) }
     /// ```
-    pub fn update_webhook_message<'a>(
+    pub const fn update_webhook_message<'a>(
         &'a self,
         webhook_id: WebhookId,
         token: &'a str,

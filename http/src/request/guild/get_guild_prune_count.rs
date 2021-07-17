@@ -65,7 +65,6 @@ pub enum GetGuildPruneCountErrorType {
     DaysInvalid,
 }
 
-#[derive(Default)]
 struct GetGuildPruneCountFields<'a> {
     days: Option<u64>,
     include_roles: &'a [RoleId],

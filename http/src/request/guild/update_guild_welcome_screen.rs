@@ -10,7 +10,7 @@ use twilight_model::{
     invite::{WelcomeScreen, WelcomeScreenChannel},
 };
 
-#[derive(Default, Serialize)]
+#[derive(Serialize)]
 struct UpdateGuildWelcomeScreenFields<'a> {
     #[serde(skip_serializing_if = "Option::is_none")]
     description: Option<&'a str>,

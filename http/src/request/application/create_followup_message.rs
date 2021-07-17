@@ -15,7 +15,7 @@ use twilight_model::{
     id::ApplicationId,
 };
 
-#[derive(Default, Serialize)]
+#[derive(Serialize)]
 pub(crate) struct CreateFollowupMessageFields<'a> {
     #[serde(skip_serializing_if = "Option::is_none")]
     avatar_url: Option<&'a str>,
@@ -69,9 +69,22 @@ pub struct CreateFollowupMessage<'a> {
 }
 
 impl<'a> CreateFollowupMessage<'a> {
-    pub(crate) fn new(http: &'a Client, application_id: ApplicationId, token: &'a str) -> Self {
+    pub(crate) const fn new(
+        http: &'a Client,
+        application_id: ApplicationId,
+        token: &'a str,
+    ) -> Self {
         Self {
-            fields: CreateFollowupMessageFields::default(),
+            fields: CreateFollowupMessageFields {
+                avatar_url: None,
+                content: None,
+                embeds: None,
+                payload_json: None,
+                tts: None,
+                username: None,
+                flags: None,
+                allowed_mentions: None,
+            },
             files: &[],
             http,
             token,
@@ -96,8 +109,8 @@ impl<'a> CreateFollowupMessage<'a> {
     /// The content of the webook's message.
     ///
     /// Up to 2000 UTF-16 codepoints.
-    pub fn content(mut self, content: &'a str) -> Self {
-        self.fields.content.replace(content);
+    pub const fn content(mut self, content: &'a str) -> Self {
+        self.fields.content = Some(content);
 
         self
     }

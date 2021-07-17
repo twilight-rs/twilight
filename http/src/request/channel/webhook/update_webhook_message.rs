@@ -93,7 +93,7 @@ pub enum UpdateWebhookMessageErrorType {
     TooManyEmbeds,
 }
 
-#[derive(Default, Serialize)]
+#[derive(Serialize)]
 struct UpdateWebhookMessageFields<'a> {
     #[serde(skip_serializing_if = "Option::is_none")]
     allowed_mentions: Option<AllowedMentions>,
@@ -154,7 +154,7 @@ impl<'a> UpdateWebhookMessage<'a> {
     /// Maximum number of embeds that a webhook's message may have.
     pub const EMBED_COUNT_LIMIT: usize = 10;
 
-    pub(crate) fn new(
+    pub(crate) const fn new(
         http: &'a Client,
         webhook_id: WebhookId,
         token: &'a str,
@@ -162,8 +162,11 @@ impl<'a> UpdateWebhookMessage<'a> {
     ) -> Self {
         Self {
             fields: UpdateWebhookMessageFields {
-                allowed_mentions: http.default_allowed_mentions(),
-                ..UpdateWebhookMessageFields::default()
+                allowed_mentions: None,
+                attachments: &[],
+                content: None,
+                embeds: None,
+                payload_json: None,
             },
             files: &[],
             http,
@@ -319,7 +322,7 @@ impl<'a> UpdateWebhookMessage<'a> {
 
     // `self` needs to be consumed and the client returned due to parameters
     // being consumed in request construction.
-    fn request(&self) -> Result<Request<'a>, HttpError> {
+    fn request(&mut self) -> Result<Request<'a>, HttpError> {
         let mut request = Request::builder(Route::UpdateWebhookMessage {
             message_id: self.message_id.0,
             token: self.token,
@@ -337,12 +340,20 @@ impl<'a> UpdateWebhookMessage<'a> {
             if let Some(payload_json) = &self.fields.payload_json {
                 form.payload_json(&payload_json);
             } else {
+                if self.fields.allowed_mentions.is_none() {
+                    self.fields.allowed_mentions = self.http.default_allowed_mentions();
+                }
+
                 let body = crate::json::to_vec(&self.fields).map_err(HttpError::json)?;
                 form.payload_json(&body);
             }
 
             request = request.form(form);
         } else {
+            if self.fields.allowed_mentions.is_none() {
+                self.fields.allowed_mentions = self.http.default_allowed_mentions();
+            }
+
             request = request.json(&self.fields)?;
         }
 
@@ -356,7 +367,7 @@ impl<'a> UpdateWebhookMessage<'a> {
     /// Execute the request, returning a future resolving to a [`Response`].
     ///
     /// [`Response`]: crate::response::Response
-    pub fn exec(self) -> ResponseFuture<EmptyBody> {
+    pub fn exec(mut self) -> ResponseFuture<EmptyBody> {
         match self.request() {
             Ok(request) => self.http.request(request),
             Err(source) => ResponseFuture::error(source),
@@ -385,7 +396,7 @@ mod tests {
     #[test]
     fn test_request() {
         let client = Client::new("token".to_owned());
-        let builder = UpdateWebhookMessage::new(&client, WebhookId(1), "token", MessageId(2))
+        let mut builder = UpdateWebhookMessage::new(&client, WebhookId(1), "token", MessageId(2))
             .content(Some("test"))
             .expect("'test' content couldn't be set")
             .reason("reason")
