@@ -61,7 +61,7 @@ impl ClusterBuilder {
                 http_client,
                 shard_config: shard_config.0,
                 shard_scheme: ShardScheme::Auto,
-                queue: Arc::new(Box::new(LocalQueue::new())),
+                queue: Arc::new(LocalQueue::new()),
                 resume_sessions: HashMap::new(),
             },
             ShardBuilder::new(token, intents),
@@ -211,7 +211,7 @@ impl ClusterBuilder {
     /// Refer to the [`queue`] module for more information.
     ///
     /// [`queue`]: crate::queue
-    pub fn queue(mut self, queue: Arc<Box<dyn Queue>>) -> Self {
+    pub fn queue(mut self, queue: Arc<dyn Queue>) -> Self {
         self.0.queue = Arc::clone(&queue);
         self.1 = self.1.queue(queue);
 
