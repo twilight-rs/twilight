@@ -25,19 +25,19 @@ use twilight_model::{channel::Message, id::ApplicationId};
 pub struct GetOriginalResponse<'a> {
     application_id: ApplicationId,
     http: &'a Client,
-    token: String,
+    token: &'a str,
 }
 
 impl<'a> GetOriginalResponse<'a> {
-    pub(crate) fn new(
+    pub(crate) const fn new(
         http: &'a Client,
         application_id: ApplicationId,
-        token: impl Into<String>,
+        interaction_token: &'a str,
     ) -> Self {
         Self {
             application_id,
             http,
-            token: token.into(),
+            token: interaction_token,
         }
     }
 

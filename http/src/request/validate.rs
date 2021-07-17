@@ -3,6 +3,7 @@
 /// This is in a centralised place so that the validation parameters can be kept
 /// up-to-date more easily and because some of the checks are re-used across
 /// different modules.
+use super::application::InteractionError;
 use std::{
     error::Error,
     fmt::{Display, Formatter, Result as FmtResult},
@@ -454,6 +455,15 @@ fn _command_description(value: &str) -> bool {
 pub fn command_permissions(len: usize) -> bool {
     // https://discord.com/developers/docs/interactions/slash-commands#edit-application-command-permissions
     (0..=10).contains(&len)
+}
+
+/// Validate the number of guild command permission overwrites.
+///
+/// The maximum number of commands allowed in a guild is defined by
+/// [`InteractionError::GUILD_COMMAND_PERMISSION_LIMIT`].
+pub const fn guild_command_permissions(count: usize) -> bool {
+    // https://discord.com/developers/docs/interactions/slash-commands#a-quick-note-on-limits
+    count <= InteractionError::GUILD_COMMAND_PERMISSION_LIMIT
 }
 
 #[cfg(test)]
