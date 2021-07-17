@@ -1,7 +1,7 @@
 use crate::timestamp::{Timestamp, TimestampStyle};
 
 use super::{MentionIter, MentionType, ParseMentionError, ParseMentionErrorType};
-use std::{convert::TryFrom, str::Chars};
+use std::{convert::TryFrom, num::NonZeroU64, str::Chars};
 use twilight_model::id::{ChannelId, EmojiId, RoleId, UserId};
 
 /// Parse mentions out of buffers.
@@ -31,8 +31,8 @@ pub trait ParseMention: private::Sealed {
     /// use twilight_model::id::{ChannelId, UserId};
     ///
     /// # fn main() -> Result<(), Box<dyn std::error::Error>> {
-    /// assert_eq!(ChannelId(123), ChannelId::parse("<#123>")?);
-    /// assert_eq!(UserId(456), UserId::parse("<@456>")?);
+    /// assert_eq!(ChannelId::new(123).expect("non zero"), ChannelId::parse("<#123>")?);
+    /// assert_eq!(UserId::new(456).expect("non zero"), UserId::parse("<@456>")?);
     /// assert!(ChannelId::parse("not a mention").is_err());
     /// # Ok(()) }
     /// ```
@@ -131,7 +131,10 @@ impl ParseMention for MentionType {
             if *sigil == found {
                 let maybe_style = parse_maybe_style(maybe_modifier)?;
 
-                return Ok(MentionType::Timestamp(Timestamp::new(id, maybe_style)));
+                return Ok(MentionType::Timestamp(Timestamp::new(
+                    id.get(),
+                    maybe_style,
+                )));
             }
         }
 
@@ -173,7 +176,10 @@ impl ParseMention for Timestamp {
     {
         let (unix, maybe_modifier, _) = parse_mention(buf, Self::SIGILS)?;
 
-        Ok(Timestamp::new(unix, parse_maybe_style(maybe_modifier)?))
+        Ok(Timestamp::new(
+            unix.get(),
+            parse_maybe_style(maybe_modifier)?,
+        ))
     }
 }
 
@@ -223,7 +229,7 @@ fn parse_maybe_style(value: Option<&str>) -> Result<Option<TimestampStyle>, Pars
 fn parse_mention<'a>(
     buf: &'a str,
     sigils: &'a [&'a str],
-) -> Result<(u64, Option<&'a str>, &'a str), ParseMentionError<'a>> {
+) -> Result<(NonZeroU64, Option<&'a str>, &'a str), ParseMentionError<'a>> {
     let mut chars = buf.chars();
 
     let c = chars.next();
@@ -366,7 +372,10 @@ mod tests {
 
     #[test]
     fn test_parse_channel_id() {
-        assert_eq!(ChannelId(123), ChannelId::parse("<#123>").unwrap());
+        assert_eq!(
+            ChannelId::new(123).expect("non zero"),
+            ChannelId::parse("<#123>").unwrap()
+        );
         assert_eq!(
             &ParseMentionErrorType::Sigil {
                 expected: &["#"],
@@ -378,7 +387,10 @@ mod tests {
 
     #[test]
     fn test_parse_emoji_id() {
-        assert_eq!(EmojiId(123), EmojiId::parse("<:name:123>").unwrap());
+        assert_eq!(
+            EmojiId::new(123).expect("non zero"),
+            EmojiId::parse("<:name:123>").unwrap()
+        );
         assert_eq!(
             &ParseMentionErrorType::Sigil {
                 expected: &[":"],
@@ -391,19 +403,19 @@ mod tests {
     #[test]
     fn test_parse_mention_type() {
         assert_eq!(
-            MentionType::Channel(ChannelId(123)),
+            MentionType::Channel(ChannelId::new(123).expect("non zero")),
             MentionType::parse("<#123>").unwrap()
         );
         assert_eq!(
-            MentionType::Emoji(EmojiId(123)),
+            MentionType::Emoji(EmojiId::new(123).expect("non zero")),
             MentionType::parse("<:name:123>").unwrap()
         );
         assert_eq!(
-            MentionType::Role(RoleId(123)),
+            MentionType::Role(RoleId::new(123).expect("non zero")),
             MentionType::parse("<@&123>").unwrap()
         );
         assert_eq!(
-            MentionType::User(UserId(123)),
+            MentionType::User(UserId::new(123).expect("non zero")),
             MentionType::parse("<@123>").unwrap()
         );
         assert_eq!(
@@ -417,7 +429,10 @@ mod tests {
 
     #[test]
     fn test_parse_role_id() {
-        assert_eq!(RoleId(123), RoleId::parse("<@&123>").unwrap());
+        assert_eq!(
+            RoleId::new(123).expect("non zero"),
+            RoleId::parse("<@&123>").unwrap()
+        );
         assert_eq!(
             &ParseMentionErrorType::Sigil {
                 expected: &["@&"],
@@ -444,7 +459,10 @@ mod tests {
 
     #[test]
     fn test_parse_user_id() {
-        assert_eq!(UserId(123), UserId::parse("<@123>").unwrap());
+        assert_eq!(
+            UserId::new(123).expect("non zero"),
+            UserId::parse("<@123>").unwrap()
+        );
         assert_eq!(
             &ParseMentionErrorType::IdNotU64 { found: "&123" },
             UserId::parse("<@&123>").unwrap_err().kind(),

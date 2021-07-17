@@ -278,7 +278,7 @@ impl<'a> UpdateChannel<'a> {
 
     fn request(&self) -> Result<Request, HttpError> {
         let mut request = Request::builder(&Route::UpdateChannel {
-            channel_id: self.channel_id.0,
+            channel_id: self.channel_id.get(),
         })
         .json(&self.fields)?;
 

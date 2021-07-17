@@ -94,7 +94,7 @@ struct CreateInviteFields {
 /// # async fn main() -> Result<(), Box<dyn std::error::Error>> {
 /// let client = Client::new("my token".to_owned());
 ///
-/// let channel_id = ChannelId(123);
+/// let channel_id = ChannelId::new(123).expect("non zero");
 /// let invite = client
 ///     .create_invite(channel_id)
 ///     .max_uses(3)?
@@ -147,7 +147,7 @@ impl<'a> CreateInvite<'a> {
     /// # #[tokio::main]
     /// # async fn main() -> Result<(), Box<dyn std::error::Error>> {
     /// let client = Client::new(env::var("DISCORD_TOKEN")?);
-    /// let invite = client.create_invite(ChannelId(1))
+    /// let invite = client.create_invite(ChannelId::new(1).expect("non zero"))
     ///     .max_age(60 * 60)?
     ///     .exec()
     ///     .await?
@@ -185,7 +185,7 @@ impl<'a> CreateInvite<'a> {
     /// # #[tokio::main]
     /// # async fn main() -> Result<(), Box<dyn std::error::Error>> {
     /// let client = Client::new(env::var("DISCORD_TOKEN")?);
-    /// let invite = client.create_invite(ChannelId(1))
+    /// let invite = client.create_invite(ChannelId::new(1).expect("non zero"))
     ///     .max_uses(5)?
     ///     .exec()
     ///     .await?
@@ -258,7 +258,7 @@ impl<'a> CreateInvite<'a> {
     /// [`Response`]: crate::response::Response
     pub fn exec(self) -> ResponseFuture<Invite> {
         let mut request = Request::builder(&Route::CreateInvite {
-            channel_id: self.channel_id.0,
+            channel_id: self.channel_id.get(),
         });
 
         request = match request.json(&self.fields) {
@@ -297,7 +297,8 @@ mod tests {
     #[test]
     fn test_max_age() -> Result<(), Box<dyn Error>> {
         let client = Client::new("foo".to_owned());
-        let mut builder = CreateInvite::new(&client, ChannelId(1)).max_age(0)?;
+        let mut builder =
+            CreateInvite::new(&client, ChannelId::new(1).expect("non zero")).max_age(0)?;
         assert_eq!(Some(0), builder.fields.max_age);
         builder = builder.max_age(604_800)?;
         assert_eq!(Some(604_800), builder.fields.max_age);
@@ -309,7 +310,8 @@ mod tests {
     #[test]
     fn test_max_uses() -> Result<(), Box<dyn Error>> {
         let client = Client::new("foo".to_owned());
-        let mut builder = CreateInvite::new(&client, ChannelId(1)).max_uses(0)?;
+        let mut builder =
+            CreateInvite::new(&client, ChannelId::new(1).expect("non zero")).max_uses(0)?;
         assert_eq!(Some(0), builder.fields.max_uses);
         builder = builder.max_uses(100)?;
         assert_eq!(Some(100), builder.fields.max_uses);

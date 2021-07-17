@@ -31,7 +31,7 @@ mod tests {
     fn test_custom() {
         let value = ReactionType::Custom {
             animated: false,
-            id: EmojiId(1337),
+            id: EmojiId::new(1337).expect("non zero"),
             name: Some("foo".to_owned()),
         };
 

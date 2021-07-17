@@ -47,7 +47,7 @@ pub(crate) struct CreateFollowupMessageFields<'a> {
 /// use twilight_model::id::ApplicationId;
 ///
 /// let client = Client::new(env::var("DISCORD_TOKEN")?);
-/// client.set_application_id(ApplicationId(1));
+/// client.set_application_id(ApplicationId::new(1).expect("non zero"));
 ///
 /// client
 ///     .create_followup_message("webhook token")?
@@ -158,7 +158,7 @@ impl<'a> CreateFollowupMessage<'a> {
     /// use twilight_model::id::{MessageId, ApplicationId};
     ///
     /// let client = Client::new(env::var("DISCORD_TOKEN")?);
-    /// client.set_application_id(ApplicationId(1));
+    /// client.set_application_id(ApplicationId::new(1).expect("non zero"));
     ///
     /// let message = client.create_followup_message("token here")?
     ///     .content("some content")
@@ -182,7 +182,7 @@ impl<'a> CreateFollowupMessage<'a> {
     /// use twilight_model::id::{MessageId, ApplicationId};
     ///
     /// let client = Client::new(env::var("DISCORD_TOKEN")?);
-    /// client.set_application_id(ApplicationId(1));
+    /// client.set_application_id(ApplicationId::new(1).expect("non zero"));
     ///
     /// let message = client.create_followup_message("token here")?
     ///     .content("some content")
@@ -224,7 +224,7 @@ impl<'a> CreateFollowupMessage<'a> {
         let mut request = Request::builder(&Route::ExecuteWebhook {
             token: self.token,
             wait: None,
-            webhook_id: self.application_id.0,
+            webhook_id: self.application_id.get(),
         });
 
         if !self.files.is_empty() || self.fields.payload_json.is_some() {

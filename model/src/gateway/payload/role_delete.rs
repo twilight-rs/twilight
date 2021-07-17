@@ -15,8 +15,8 @@ mod tests {
     #[test]
     fn test_webhooks_update() {
         let value = RoleDelete {
-            guild_id: GuildId(1),
-            role_id: RoleId(2),
+            guild_id: GuildId::new(1).expect("non zero"),
+            role_id: RoleId::new(2).expect("non zero"),
         };
 
         serde_test::assert_tokens(
