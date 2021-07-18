@@ -676,7 +676,7 @@ impl CategoryFieldsBuilder {
 
 /// A builder for a list of channels.
 #[derive(Clone, Debug, Default, Eq, PartialEq)]
-#[must_use = "must be built into a list of channnels"]
+#[must_use = "must be built into a list of channels"]
 pub struct GuildChannelFieldsBuilder(Vec<GuildChannelFields>);
 
 impl GuildChannelFieldsBuilder {

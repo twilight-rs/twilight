@@ -53,3 +53,13 @@ jobs:
 
       - name: Run cargo fmt
         run: cargo fmt --all -- --check
+
+  codespell:
+    name: Spelling
+    runs-on: ubuntu-latest
+    steps:
+        - name: Checkout sources
+          uses: actions/checkout@v2
+
+        - name: Run Codespell
+          uses: codespell-project/actions-codespell@master
