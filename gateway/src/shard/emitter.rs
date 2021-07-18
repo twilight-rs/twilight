@@ -114,12 +114,12 @@ impl Emitter {
     ///
     /// # Errors
     ///
-    /// Returns a [`EmitJsonError::EventTypeUnknown`] error type if the
+    /// Returns a [`EmitJsonErrorType::EventTypeUnknown`] error type if the
     /// event type is unknown.
     ///
-    /// Returns a [`EmitJsonError::Parsing`] error type if the combination of
-    /// the provided opcode, sequence, event type, and JSON could not be parsed
-    /// into an event.
+    /// Returns a [`EmitJsonErrorType::Parsing`] error type if the combination
+    /// of the provided opcode, sequence, event type, and JSON could not be
+    /// parsed into an event.
     pub fn json(
         &self,
         op: u8,
