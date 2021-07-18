@@ -116,6 +116,7 @@
     nonstandard_style,
     rust_2018_idioms,
     broken_intra_doc_links,
+    unsafe_code,
     unused,
     warnings
 )]

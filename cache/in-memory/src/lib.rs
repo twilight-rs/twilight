@@ -65,6 +65,7 @@
     clippy::missing_const_for_fn,
     missing_docs,
     rust_2018_idioms,
+    unsafe_code,
     unused,
     warnings
 )]
