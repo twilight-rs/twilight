@@ -487,7 +487,7 @@ impl Client {
 
     /// Update the current user.
     ///
-    /// All paramaters are optional. If the username is changed, it may cause the discriminator to
+    /// All parameters are optional. If the username is changed, it may cause the discriminator to
     /// be randomized.
     pub fn update_current_user(&self) -> UpdateCurrentUser<'_> {
         UpdateCurrentUser::new(self)
@@ -495,7 +495,7 @@ impl Client {
 
     /// Update the current user's voice state.
     ///
-    /// All paramaters are optional.
+    /// All parameters are optional.
     ///
     /// # Caveats
     ///

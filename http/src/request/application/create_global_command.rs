@@ -60,7 +60,7 @@ impl<'a> CreateGlobalCommand<'a> {
     ///
     /// Errors
     ///
-    /// Retuns an [`InteractionErrorType::CommandOptionsRequiredFirst`]
+    /// Returns an [`InteractionErrorType::CommandOptionsRequiredFirst`]
     /// if a required option was added after an optional option. The problem
     /// option's index is provided.
     pub fn command_options(
