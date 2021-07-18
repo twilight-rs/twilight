@@ -180,7 +180,7 @@ impl ShardBuilder {
             intents,
             large_threshold: 250,
             presence: None,
-            queue: Arc::new(Box::new(LocalQueue::new())),
+            queue: Arc::new(LocalQueue::new()),
             shard: [0, 1],
             token: token.into_boxed_str(),
             session_id: None,
@@ -318,7 +318,7 @@ impl ShardBuilder {
     ///
     /// [`Cluster`]: crate::cluster::Cluster
     /// [`queue`]: crate::queue
-    pub fn queue(mut self, queue: Arc<Box<dyn Queue>>) -> Self {
+    pub fn queue(mut self, queue: Arc<dyn Queue>) -> Self {
         self.0.queue = queue;
 
         self
