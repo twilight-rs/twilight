@@ -86,6 +86,7 @@ mod tests {
                 }),
                 Component::SelectMenu(SelectMenu {
                     custom_id: "test custom id 2".into(),
+                    disabled: false,
                     placeholder: Some("test placeholder".into()),
                     min_values: Some(5),
                     max_values: Some(25),
@@ -128,10 +129,12 @@ mod tests {
                 Token::StructEnd,
                 Token::Struct {
                     name: "SelectMenu",
-                    len: 6,
+                    len: 7,
                 },
                 Token::Str("custom_id"),
                 Token::Str("test custom id 2"),
+                Token::Str("disabled"),
+                Token::Bool(false),
                 Token::Str("max_values"),
                 Token::Some,
                 Token::U8(25),

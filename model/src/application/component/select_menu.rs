@@ -15,6 +15,11 @@ use crate::channel::ReactionType;
 pub struct SelectMenu {
     /// Developer defined identifier.
     pub custom_id: String,
+    /// Whether the select menu is disabled.
+    ///
+    /// Defaults to `false`.
+    #[serde(default)]
+    pub disabled: bool,
     /// Maximum number of options that may be chosen.
     pub max_values: Option<u8>,
     /// Minimum number of options that must be chosen.
@@ -48,18 +53,21 @@ pub struct SelectMenuOption {
 
 impl Serialize for SelectMenu {
     fn serialize<S: Serializer>(&self, serializer: S) -> Result<S::Ok, S::Error> {
-        // Base of 3 to account for the fields that are always present:
+        // Base of 4 to account for the fields that are always present:
         //
         // - `custom_id`
+        // - `disabled`
         // - `options`
         // - `type`
-        let field_count = 3
+        let field_count = 4
             + usize::from(self.placeholder.is_some())
             + usize::from(self.min_values.is_some())
             + usize::from(self.max_values.is_some());
         let mut state = serializer.serialize_struct("SelectMenu", field_count)?;
 
         state.serialize_field("custom_id", &self.custom_id)?;
+
+        state.serialize_field("disabled", &self.disabled)?;
 
         if self.max_values.is_some() {
             state.serialize_field("max_values", &self.max_values)?;
@@ -91,6 +99,7 @@ mod tests {
     assert_fields!(SelectMenuOption: default, description, emoji, label, value);
     assert_fields!(
         SelectMenu: custom_id,
+        disabled,
         max_values,
         min_values,
         options,
