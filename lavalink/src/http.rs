@@ -154,7 +154,7 @@ pub enum RoutePlanner {
 pub struct NanoIpRoutePlanner {
     /// The type of planner that is currently active.
     ///
-    /// For this planner, thsi is always [`RoutePlannerType::NanoIp`]
+    /// For this planner, this is always [`RoutePlannerType::NanoIp`]
     pub class: RoutePlannerType,
     /// The details of the currently active Nano IP route planner.
     pub details: NanoIpDetails,
@@ -180,7 +180,7 @@ pub struct NanoIpDetails {
 pub struct RotatingIpRoutePlanner {
     /// The type of planner that is currently active.
     ///
-    /// For this planner, thsi is always [`RoutePlannerType::RotatingIp`]
+    /// For this planner, this is always [`RoutePlannerType::RotatingIp`]
     pub class: RoutePlannerType,
     /// The details of the currently active rotating IP route planner.
     pub details: RotatingIpDetails,
@@ -210,7 +210,7 @@ pub struct RotatingIpDetails {
 pub struct RotatingNanoIpRoutePlanner {
     /// The type of planner that is currently active.
     ///
-    /// For this planner, thsi is always [`RoutePlannerType::RotatingNanoIp`]
+    /// For this planner, this is always [`RoutePlannerType::RotatingNanoIp`]
     pub class: RoutePlannerType,
     /// The details of the currently active rotating nano IP route planner.
     pub details: RotatingNanoIpDetails,
