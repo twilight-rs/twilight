@@ -18,7 +18,7 @@ pub struct Config {
     pub(super) intents: Intents,
     pub(super) large_threshold: u64,
     pub(super) presence: Option<UpdatePresencePayload>,
-    pub(super) queue: Arc<Box<dyn Queue>>,
+    pub(super) queue: Arc<dyn Queue>,
     pub(crate) shard: [u64; 2],
     pub(super) token: Box<str>,
     pub(crate) session_id: Option<Box<str>>,
