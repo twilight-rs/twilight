@@ -6,7 +6,7 @@ use super::InteractionType;
 use crate::{
     channel::Message,
     guild::PartialMember,
-    id::{ApplicationId, ChannelId, GuildId, InteractionId},
+    id::{ApplicationId, ChannelId, GuildId, InteractionId, UserId},
     user::User,
 };
 use serde::Serialize;
@@ -47,6 +47,16 @@ pub struct MessageComponentInteraction {
     /// Present when the command is used in a direct message.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub user: Option<User>,
+}
+
+impl MessageComponentInteraction {
+    /// Id of the user that invoked this interaction
+    pub fn author_id(&self) -> Option<UserId> {
+        self.member.as_ref().map_or_else(
+            || self.user.as_ref().map(|user| user.id),
+            |member| member.user.as_ref().map(|u| u.id),
+        )
+    }
 }
 
 #[cfg(test)]
