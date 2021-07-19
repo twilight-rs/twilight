@@ -2,6 +2,20 @@
 
 Changelog for `twilight-http`.
 
+## [0.5.5] - 2021-07-19
+
+### Upgrade Path
+
+Instead of using the `attachment`, `embed`, or `file` methods on requests, use
+the `attachments`, `embeds`, or `files` methods.
+
+### Changes
+
+Deprecate requests' `attachment`, `embed`, and `file` methods in favor of their
+plural forms ([#1034] - [@zeylahellyer]).
+
+[#1034]: https://github.com/twilight-rs/twilight/pull/1034
+
 ## [0.5.4] - 2021-07-14
 
 ### Additions
@@ -1023,6 +1037,7 @@ Initial release.
 
 [0.2.0-beta.1:app integrations]: https://github.com/discord/discord-api-docs/commit/a926694e2f8605848bda6b57d21c8817559e5cec
 
+[0.5.5]: https://github.com/twilight-rs/twilight/releases/tag/http-0.5.5
 [0.5.4]: https://github.com/twilight-rs/twilight/releases/tag/http-0.5.4
 [0.5.3]: https://github.com/twilight-rs/twilight/releases/tag/http-0.5.3
 [0.5.2]: https://github.com/twilight-rs/twilight/releases/tag/http-0.5.2
