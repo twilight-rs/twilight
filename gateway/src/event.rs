@@ -134,6 +134,134 @@ bitflags! {
     }
 }
 
+impl EventTypeFlags {
+    /// All [`EventTypeFlags`] in [`Intents::GUILDS`].
+    ///
+    /// [`Intents::GUILDS`]: twilight-gateway::Intents::GUILDS
+    pub fn guilds() -> EventTypeFlags {
+        EventTypeFlags::CHANNEL_CREATE
+            | EventTypeFlags::CHANNEL_DELETE
+            | EventTypeFlags::CHANNEL_PINS_UPDATE
+            | EventTypeFlags::CHANNEL_UPDATE
+            | EventTypeFlags::GUILD_CREATE
+            | EventTypeFlags::GUILD_DELETE
+            | EventTypeFlags::GUILD_UPDATE
+            | EventTypeFlags::ROLE_CREATE
+            | EventTypeFlags::ROLE_DELETE
+            | EventTypeFlags::ROLE_UPDATE
+    }
+
+    /// All [`EventTypeFlags`] in [`Intents::GUILD_MEMBERS`].
+    ///
+    /// [`Intents::GUILD_MEMBERS`]: twilight-gateway::Intents::GUILD_MEMBERS
+    pub fn guild_members() -> EventTypeFlags {
+        EventTypeFlags::MEMBER_ADD | EventTypeFlags::MEMBER_REMOVE | EventTypeFlags::MEMBER_UPDATE
+    }
+
+    /// All [`EventTypeFlags`] in [`Intents::GUILD_BANS`].
+    ///
+    /// [`Intents::GUILD_BANS`]: twilight-gateway::Intents::GUILD_BANS
+    pub fn guild_bans() -> EventTypeFlags {
+        EventTypeFlags::BAN_ADD | EventTypeFlags::BAN_REMOVE
+    }
+
+    /// All [`EventTypeFlags`] in [`Intents::GUILD_EMOJIS`].
+    ///
+    /// [`Intents::GUILD_EMOJIS`]: twilight-gateway::Intents::GUILD_EMOJIS
+    pub const fn guild_emojis() -> EventTypeFlags {
+        EventTypeFlags::GUILD_EMOJIS_UPDATE
+    }
+
+    /// All [`EventTypeFlags`] in [`Intents::GUILD_INTEGRATIONS`].
+    ///
+    /// [`Intents::GUILD_INTEGRATIONS`]: twilight-gateway::Intents::GUILD_INTEGRATIONS
+    pub const fn guild_integrations() -> EventTypeFlags {
+        EventTypeFlags::GUILD_INTEGRATIONS_UPDATE
+    }
+
+    /// All [`EventTypeFlags`] in [`Intents::GUILD_WEBHOOKS`].
+    ///
+    /// [`Intents::GUILD_WEBHOOKS`]: twilight-gateway::Intents::GUILD_WEBHOOKS
+    pub const fn guild_webhooks() -> EventTypeFlags {
+        EventTypeFlags::WEBHOOKS_UPDATE
+    }
+
+    /// All [`EventTypeFlags`] in [`Intents::GUILD_INVITES`].
+    ///
+    /// [`Intents::GUILD_INVITES`]: twilight-gateway::Intents::GUILD_INVITES
+    pub fn guild_invites() -> EventTypeFlags {
+        EventTypeFlags::INVITE_CREATE | EventTypeFlags::INVITE_DELETE
+    }
+
+    /// All [`EventTypeFlags`] in [`Intents::GUILD_VOICE_STATES`].
+    ///
+    /// [`Intents::GUILD_VOICE_STATES`]: twilight-gateway::Intents::GUILD_VOICE_STATES
+    pub const fn guild_voice_states() -> EventTypeFlags {
+        EventTypeFlags::VOICE_STATE_UPDATE
+    }
+
+    /// All [`EventTypeFlags`] in [`Intents::GUILD_PRESENCES`].
+    ///
+    /// [`Intents::GUILD_PRESENCES`]: twilight-gateway::Intents::GUILD_PRESENCES
+    pub const fn guild_presences() -> EventTypeFlags {
+        EventTypeFlags::PRESENCE_UPDATE
+    }
+
+    /// All [`EventTypeFlags`] in [`Intents::GUILD_MESSAGES`].
+    ///
+    /// [`Intents::GUILD_MESSAGES`]: twilight-gateway::Intents::GUILD_MESSAGES
+    pub fn guild_messages() -> EventTypeFlags {
+        EventTypeFlags::MESSAGE_CREATE
+            | EventTypeFlags::MESSAGE_DELETE
+            | EventTypeFlags::MESSAGE_DELETE
+            | EventTypeFlags::MESSAGE_DELETE_BULK
+    }
+
+    /// All [`EventTypeFlags`] in [`Intents::GUILD_MESSAGE_REACTIONS`].
+    ///
+    /// [`Intents::GUILD_MESSAGE_REACTIONS`]: twilight-gateway::Intents::GUILD_MESSAGE_REACTIONS
+    pub fn guild_message_reactions() -> EventTypeFlags {
+        EventTypeFlags::REACTION_ADD
+            | EventTypeFlags::REACTION_REMOVE
+            | EventTypeFlags::REACTION_REMOVE_ALL
+            | EventTypeFlags::REACTION_REMOVE_EMOJI
+    }
+
+    /// All [`EventTypeFlags`] in [`Intents::GUILD_MESSAGE_TYPING`].
+    ///
+    /// [`Intents::GUILD_MESSAGE_TYPING`]: twilight-gateway::Intents::GUILD_MESSAGE_TYPING
+    pub const fn guild_message_typing() -> EventTypeFlags {
+        EventTypeFlags::TYPING_START
+    }
+
+    /// All [`EventTypeFlags`] in [`Intents::DIRECT_MESSAGES`].
+    ///
+    /// [`Intents::DIRECT_MESSAGES`]: twilight-gateway::Intents::DIRECT_MESSAGES
+    pub fn direct_messages() -> EventTypeFlags {
+        EventTypeFlags::MESSAGE_CREATE
+            | EventTypeFlags::MESSAGE_DELETE
+            | EventTypeFlags::MESSAGE_DELETE_BULK
+            | EventTypeFlags::MESSAGE_UPDATE
+    }
+
+    /// All [`EventTypeFlags`] in [`Intents::DIRECT_MESSAGE_REACTIONS`].
+    ///
+    /// [`Intents::DIRECT_MESSAGE_REACTIONS`]: twilight-gateway::Intents::DIRECT_MESSAGE_REACTIONS
+    pub fn direct_message_reactions() -> EventTypeFlags {
+        EventTypeFlags::REACTION_ADD
+            | EventTypeFlags::REACTION_REMOVE
+            | EventTypeFlags::REACTION_REMOVE_ALL
+            | EventTypeFlags::REACTION_REMOVE_EMOJI
+    }
+
+    /// All [`EventTypeFlags`] in [`Intents::DIRECT_MESSAGE_TYPING`].
+    ///
+    /// [`Intents::DIRECT_MESSAGE_TYPING`]: twilight-gateway::Intents::DIRECT_MESSAGE_TYPING
+    pub const fn direct_message_typing() -> EventTypeFlags {
+        EventTypeFlags::TYPING_START
+    }
+}
+
 impl From<EventType> for EventTypeFlags {
     fn from(event_type: EventType) -> Self {
         match event_type {
