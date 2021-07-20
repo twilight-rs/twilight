@@ -28,6 +28,7 @@ pub enum CommandOption {
     Channel(BaseCommandOptionData),
     Role(BaseCommandOptionData),
     Mentionable(BaseCommandOptionData),
+    Number(ChoiceCommandOptionData)
 }
 
 impl CommandOption {
@@ -42,13 +43,14 @@ impl CommandOption {
             CommandOption::Channel(_) => CommandOptionType::Channel,
             CommandOption::Role(_) => CommandOptionType::Role,
             CommandOption::Mentionable(_) => CommandOptionType::Mentionable,
+            CommandOption::Number(_) => CommandOptionType::Number,
         }
     }
 
     pub const fn is_required(&self) -> bool {
         match self {
             CommandOption::SubCommand(data) | CommandOption::SubCommandGroup(data) => data.required,
-            CommandOption::String(data) | CommandOption::Integer(data) => data.required,
+            CommandOption::String(data) | CommandOption::Integer(data) | CommandOption::Number(data) => data.required,
             CommandOption::Boolean(data)
             | CommandOption::User(data)
             | CommandOption::Channel(data)
@@ -89,7 +91,7 @@ impl Serialize for CommandOption {
                 required: data.required,
                 kind: self.kind(),
             },
-            Self::String(data) | Self::Integer(data) => CommandOptionEnvelope {
+            Self::String(data) | Self::Integer(data) | Self::Number(data) => CommandOptionEnvelope {
                 choices: Some(data.choices.as_ref()),
                 description: data.description.as_ref(),
                 name: data.name.as_ref(),
@@ -300,6 +302,18 @@ impl<'de> Visitor<'de> for OptionVisitor {
                 name,
                 required,
             }),
+            CommandOptionType::Number => {
+                let choices = choices
+                    .flatten()
+                    .ok_or_else(|| DeError::missing_field("choices"))?;
+
+                CommandOption::Number(ChoiceCommandOptionData {
+                    choices,
+                    description,
+                    name,
+                    required,
+                })
+            }
         })
     }
 }
@@ -377,6 +391,7 @@ pub struct ChoiceCommandOptionData {
 pub enum CommandOptionChoice {
     String { name: String, value: String },
     Int { name: String, value: i64 },
+    Number { name: String, value: f64 },
 }
 
 /// Type of a [`CommandOption`].
@@ -394,6 +409,7 @@ pub enum CommandOptionType {
     Channel = 7,
     Role = 8,
     Mentionable = 9,
+    Number = 10,
 }
 
 impl CommandOptionType {
@@ -408,6 +424,7 @@ impl CommandOptionType {
             CommandOptionType::Channel => "Channel",
             CommandOptionType::Role => "Role",
             CommandOptionType::Mentionable => "Mentionable",
+            CommandOptionType::Number => "Number",
         }
     }
 }
@@ -479,6 +496,15 @@ mod tests {
                         CommandOption::Mentionable(BaseCommandOptionData {
                             description: "mentionable desc".into(),
                             name: "mentionable".into(),
+                            required: false,
+                        }),
+                        CommandOption::Number(ChoiceCommandOptionData {
+                            choices: vec![CommandOptionChoice::Number {
+                                name: "choice3".into(),
+                                value: 2.0,
+                            }],
+                            description: "number desc".into(),
+                            name: "number".into(),
                             required: false,
                         }),
                     ],
@@ -652,6 +678,30 @@ mod tests {
                 Token::Bool(true),
                 Token::Str("type"),
                 Token::U8(2),
+                Token::StructEnd,
+                Token::Struct {
+                    name: "CommandOptionEnvelope",
+                    len: 4,
+                },
+                Token::Str("choices"),
+                Token::Some,
+                Token::Seq { len: Some(1) },
+                Token::Struct {
+                    name: "CommandOptionChoice",
+                    len: 2,
+                },
+                Token::Str("name"),
+                Token::Str("choice2"),
+                Token::Str("value"),
+                Token::F64(2.0),
+                Token::StructEnd,
+                Token::SeqEnd,
+                Token::Str("description"),
+                Token::Str("int desc"),
+                Token::Str("name"),
+                Token::Str("int"),
+                Token::Str("type"),
+                Token::U8(4),
                 Token::StructEnd,
                 Token::SeqEnd,
                 Token::StructEnd,
