@@ -34,7 +34,7 @@ pub struct UpdateCommandPermissions<'a> {
 }
 
 impl<'a> UpdateCommandPermissions<'a> {
-    pub(crate) fn new(
+    pub(crate) const fn new(
         http: &'a Client,
         application_id: ApplicationId,
         guild_id: GuildId,

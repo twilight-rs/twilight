@@ -239,7 +239,7 @@ impl Client {
     ///     .await?;
     /// # Ok(()) }
     /// ```
-    pub fn audit_log(&self, guild_id: GuildId) -> GetAuditLog<'_> {
+    pub const fn audit_log(&self, guild_id: GuildId) -> GetAuditLog<'_> {
         GetAuditLog::new(self, guild_id)
     }
 
@@ -298,7 +298,7 @@ impl Client {
     ///     .await?;
     /// # Ok(()) }
     /// ```
-    pub fn create_ban(&self, guild_id: GuildId, user_id: UserId) -> CreateBan<'_> {
+    pub const fn create_ban(&self, guild_id: GuildId, user_id: UserId) -> CreateBan<'_> {
         CreateBan::new(self, guild_id, user_id)
     }
 
@@ -355,7 +355,7 @@ impl Client {
     }
 
     /// Update a channel.
-    pub fn update_channel(&self, channel_id: ChannelId) -> UpdateChannel<'_> {
+    pub const fn update_channel(&self, channel_id: ChannelId) -> UpdateChannel<'_> {
         UpdateChannel::new(self, channel_id)
     }
 
@@ -424,7 +424,7 @@ impl Client {
     /// [`GetChannelMessagesConfigured`]: crate::request::channel::message::GetChannelMessagesConfigured
     /// [`limit`]: GetChannelMessages::limit
     /// [`GetChannelMessagesErrorType::LimitInvalid`]: crate::request::channel::message::get_channel_messages::GetChannelMessagesErrorType::LimitInvalid
-    pub fn channel_messages(&self, channel_id: ChannelId) -> GetChannelMessages<'_> {
+    pub const fn channel_messages(&self, channel_id: ChannelId) -> GetChannelMessages<'_> {
         GetChannelMessages::new(self, channel_id)
     }
 
@@ -489,7 +489,7 @@ impl Client {
     ///
     /// All parameters are optional. If the username is changed, it may cause the discriminator to
     /// be randomized.
-    pub fn update_current_user(&self) -> UpdateCurrentUser<'_> {
+    pub const fn update_current_user(&self) -> UpdateCurrentUser<'_> {
         UpdateCurrentUser::new(self)
     }
 
@@ -623,7 +623,7 @@ impl Client {
     }
 
     /// Update an emoji in a guild, by id.
-    pub fn update_emoji(&self, guild_id: GuildId, emoji_id: EmojiId) -> UpdateEmoji<'_> {
+    pub const fn update_emoji(&self, guild_id: GuildId, emoji_id: EmojiId) -> UpdateEmoji<'_> {
         UpdateEmoji::new(self, guild_id, emoji_id)
     }
 
@@ -666,7 +666,7 @@ impl Client {
     }
 
     /// Get information about a guild.
-    pub fn guild(&self, guild_id: GuildId) -> GetGuild<'_> {
+    pub const fn guild(&self, guild_id: GuildId) -> GetGuild<'_> {
         GetGuild::new(self, guild_id)
     }
 
@@ -695,7 +695,7 @@ impl Client {
     /// All endpoints are optional. Refer to [the discord docs] for more information.
     ///
     /// [the discord docs]: https://discord.com/developers/docs/resources/guild#modify-guild
-    pub fn update_guild(&self, guild_id: GuildId) -> UpdateGuild<'_> {
+    pub const fn update_guild(&self, guild_id: GuildId) -> UpdateGuild<'_> {
         UpdateGuild::new(self, guild_id)
     }
 
@@ -761,7 +761,7 @@ impl Client {
     }
 
     /// Modify the guild widget.
-    pub fn update_guild_widget(&self, guild_id: GuildId) -> UpdateGuildWidget<'_> {
+    pub const fn update_guild_widget(&self, guild_id: GuildId) -> UpdateGuildWidget<'_> {
         UpdateGuildWidget::new(self, guild_id)
     }
 
@@ -817,7 +817,7 @@ impl Client {
     /// limit is invalid.
     ///
     /// [`GetGuildMembersErrorType::LimitInvalid`]: crate::request::guild::member::get_guild_members::GetGuildMembersErrorType::LimitInvalid
-    pub fn guild_members(&self, guild_id: GuildId) -> GetGuildMembers<'_> {
+    pub const fn guild_members(&self, guild_id: GuildId) -> GetGuildMembers<'_> {
         GetGuildMembers::new(self, guild_id)
     }
 
@@ -932,7 +932,11 @@ impl Client {
     /// [`UpdateGuildMemberErrorType::NicknameInvalid`]: crate::request::guild::member::update_guild_member::UpdateGuildMemberErrorType::NicknameInvalid
     ///
     /// [the discord docs]: https://discord.com/developers/docs/resources/guild#modify-guild-member
-    pub fn update_guild_member(&self, guild_id: GuildId, user_id: UserId) -> UpdateGuildMember<'_> {
+    pub const fn update_guild_member(
+        &self,
+        guild_id: GuildId,
+        user_id: UserId,
+    ) -> UpdateGuildMember<'_> {
         UpdateGuildMember::new(self, guild_id, user_id)
     }
 
@@ -987,7 +991,7 @@ impl Client {
     }
 
     /// Get the counts of guild members to be pruned.
-    pub fn guild_prune_count(&self, guild_id: GuildId) -> GetGuildPruneCount<'_> {
+    pub const fn guild_prune_count(&self, guild_id: GuildId) -> GetGuildPruneCount<'_> {
         GetGuildPruneCount::new(self, guild_id)
     }
 
@@ -996,7 +1000,7 @@ impl Client {
     /// Refer to [the discord docs] for more information.
     ///
     /// [the discord docs]: https://discord.com/developers/docs/resources/guild#begin-guild-prune
-    pub fn create_guild_prune(&self, guild_id: GuildId) -> CreateGuildPrune<'_> {
+    pub const fn create_guild_prune(&self, guild_id: GuildId) -> CreateGuildPrune<'_> {
         CreateGuildPrune::new(self, guild_id)
     }
 
@@ -1027,7 +1031,10 @@ impl Client {
     /// Requires the [`MANAGE_GUILD`] permission.
     ///
     /// [`MANAGE_GUILD`]: twilight_model::guild::Permissions::MANAGE_GUILD
-    pub fn update_guild_welcome_screen(&self, guild_id: GuildId) -> UpdateGuildWelcomeScreen<'_> {
+    pub const fn update_guild_welcome_screen(
+        &self,
+        guild_id: GuildId,
+    ) -> UpdateGuildWelcomeScreen<'_> {
         UpdateGuildWelcomeScreen::new(self, guild_id)
     }
 
@@ -1056,7 +1063,7 @@ impl Client {
     ///
     /// [`with_counts`]: crate::request::channel::invite::GetInvite::with_counts
     /// [`with_expiration`]: crate::request::channel::invite::GetInvite::with_expiration
-    pub fn invite<'a>(&'a self, code: &'a str) -> GetInvite<'a> {
+    pub const fn invite<'a>(&'a self, code: &'a str) -> GetInvite<'a> {
         GetInvite::new(self, code)
     }
 
@@ -1084,7 +1091,7 @@ impl Client {
     /// ```
     ///
     /// [`CREATE_INVITE`]: twilight_model::guild::Permissions::CREATE_INVITE
-    pub fn create_invite(&self, channel_id: ChannelId) -> CreateInvite<'_> {
+    pub const fn create_invite(&self, channel_id: ChannelId) -> CreateInvite<'_> {
         CreateInvite::new(self, channel_id)
     }
 
@@ -1142,7 +1149,7 @@ impl Client {
     /// crate::request::channel::message::create_message::CreateMessageErrorType::ContentInvalid
     /// [`CreateMessageErrorType::EmbedTooLarge`]:
     /// crate::request::channel::message::create_message::CreateMessageErrorType::EmbedTooLarge
-    pub fn create_message(&self, channel_id: ChannelId) -> CreateMessage<'_> {
+    pub const fn create_message(&self, channel_id: ChannelId) -> CreateMessage<'_> {
         CreateMessage::new(self, channel_id)
     }
 
@@ -1211,7 +1218,7 @@ impl Client {
     /// ```
     ///
     /// [embed]: Self::embed
-    pub fn update_message(
+    pub const fn update_message(
         &self,
         channel_id: ChannelId,
         message_id: MessageId,
@@ -1247,7 +1254,7 @@ impl Client {
     ///
     /// This endpoint is limited to 100 users maximum, so if a message has more than 100 reactions,
     /// requests must be chained until all reactions are retireved.
-    pub fn reactions<'a>(
+    pub const fn reactions<'a>(
         &'a self,
         channel_id: ChannelId,
         message_id: MessageId,
@@ -1367,7 +1374,7 @@ impl Client {
     ///     .await?;
     /// # Ok(()) }
     /// ```
-    pub fn create_role(&self, guild_id: GuildId) -> CreateRole<'_> {
+    pub const fn create_role(&self, guild_id: GuildId) -> CreateRole<'_> {
         CreateRole::new(self, guild_id)
     }
 
@@ -1377,7 +1384,7 @@ impl Client {
     }
 
     /// Update a role by guild id and its id.
-    pub fn update_role(&self, guild_id: GuildId, role_id: RoleId) -> UpdateRole<'_> {
+    pub const fn update_role(&self, guild_id: GuildId, role_id: RoleId) -> UpdateRole<'_> {
         UpdateRole::new(self, guild_id, role_id)
     }
 
@@ -1418,7 +1425,7 @@ impl Client {
     /// Update fields of an existing stage instance.
     ///
     /// Requires the user to be a moderator of the stage channel.
-    pub fn update_stage_instance(&self, channel_id: ChannelId) -> UpdateStageInstance<'_> {
+    pub const fn update_stage_instance(&self, channel_id: ChannelId) -> UpdateStageInstance<'_> {
         UpdateStageInstance::new(self, channel_id)
     }
 
@@ -1529,7 +1536,7 @@ impl Client {
     }
 
     /// Get a webhook by ID.
-    pub fn webhook(&self, id: WebhookId) -> GetWebhook<'_> {
+    pub const fn webhook(&self, id: WebhookId) -> GetWebhook<'_> {
         GetWebhook::new(self, id)
     }
 
@@ -1566,12 +1573,12 @@ impl Client {
     }
 
     /// Update a webhook by ID.
-    pub fn update_webhook(&self, webhook_id: WebhookId) -> UpdateWebhook<'_> {
+    pub const fn update_webhook(&self, webhook_id: WebhookId) -> UpdateWebhook<'_> {
         UpdateWebhook::new(self, webhook_id)
     }
 
     /// Update a webhook, with a token, by ID.
-    pub fn update_webhook_with_token<'a>(
+    pub const fn update_webhook_with_token<'a>(
         &'a self,
         webhook_id: WebhookId,
         token: &'a str,
@@ -1605,7 +1612,7 @@ impl Client {
     /// [`content`]: crate::request::channel::webhook::ExecuteWebhook::content
     /// [`embeds`]: crate::request::channel::webhook::ExecuteWebhook::embeds
     /// [`files`]: crate::request::channel::webhook::ExecuteWebhook::files
-    pub fn execute_webhook<'a>(
+    pub const fn execute_webhook<'a>(
         &'a self,
         webhook_id: WebhookId,
         token: &'a str,
@@ -1643,7 +1650,7 @@ impl Client {
     ///     .await?;
     /// # Ok(()) }
     /// ```
-    pub fn update_webhook_message<'a>(
+    pub const fn update_webhook_message<'a>(
         &'a self,
         webhook_id: WebhookId,
         token: &'a str,

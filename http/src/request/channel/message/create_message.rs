@@ -93,7 +93,7 @@ pub enum CreateMessageErrorType {
     },
 }
 
-#[derive(Default, Serialize)]
+#[derive(Serialize)]
 pub(crate) struct CreateMessageFields<'a> {
     #[serde(skip_serializing_if = "Option::is_none")]
     content: Option<&'a str>,
@@ -140,12 +140,17 @@ pub struct CreateMessage<'a> {
 }
 
 impl<'a> CreateMessage<'a> {
-    pub(crate) fn new(http: &'a Client, channel_id: ChannelId) -> Self {
+    pub(crate) const fn new(http: &'a Client, channel_id: ChannelId) -> Self {
         Self {
             channel_id,
             fields: CreateMessageFields {
-                allowed_mentions: http.default_allowed_mentions(),
-                ..CreateMessageFields::default()
+                content: None,
+                embeds: &[],
+                message_reference: None,
+                nonce: None,
+                payload_json: None,
+                allowed_mentions: None,
+                tts: None,
             },
             files: &[],
             http,
@@ -203,19 +208,24 @@ impl<'a> CreateMessage<'a> {
     }
 
     /// Whether to fail sending if the reply no longer exists.
-    pub fn fail_if_not_exists(mut self) -> Self {
-        self.fields.message_reference = Some(self.fields.message_reference.map_or_else(
-            || MessageReference {
+    pub const fn fail_if_not_exists(mut self) -> Self {
+        // Clippy recommends using `Option::map_or_else` which is not `const`.
+        #[allow(clippy::option_if_let_else)]
+        let reference = if let Some(reference) = self.fields.message_reference {
+            MessageReference {
+                fail_if_not_exists: Some(true),
+                ..reference
+            }
+        } else {
+            MessageReference {
                 channel_id: None,
                 guild_id: None,
                 message_id: None,
                 fail_if_not_exists: Some(true),
-            },
-            |message_reference| MessageReference {
-                fail_if_not_exists: Some(true),
-                ..message_reference
-            },
-        ));
+            }
+        };
+
+        self.fields.message_reference = Some(reference);
 
         self
     }
@@ -230,8 +240,8 @@ impl<'a> CreateMessage<'a> {
     }
 
     /// Attach a nonce to the message, for optimistic message sending.
-    pub fn nonce(mut self, nonce: u64) -> Self {
-        self.fields.nonce.replace(nonce);
+    pub const fn nonce(mut self, nonce: u64) -> Self {
+        self.fields.nonce = Some(nonce);
 
         self
     }
@@ -243,36 +253,41 @@ impl<'a> CreateMessage<'a> {
     ///
     /// [`files`]: Self::files
     /// [Discord Docs/Create Message]: https://discord.com/developers/docs/resources/channel#create-message-params
-    pub fn payload_json(mut self, payload_json: &'a [u8]) -> Self {
-        self.fields.payload_json.replace(payload_json);
+    pub const fn payload_json(mut self, payload_json: &'a [u8]) -> Self {
+        self.fields.payload_json = Some(payload_json);
 
         self
     }
 
     /// Specify the ID of another message to create a reply to.
-    pub fn reply(mut self, other: MessageId) -> Self {
+    pub const fn reply(mut self, other: MessageId) -> Self {
         let channel_id = self.channel_id;
 
-        self.fields.message_reference = Some(self.fields.message_reference.map_or_else(
-            || MessageReference {
+        // Clippy recommends using `Option::map_or_else` which is not `const`.
+        #[allow(clippy::option_if_let_else)]
+        let reference = if let Some(reference) = self.fields.message_reference {
+            MessageReference {
+                channel_id: Some(channel_id),
+                message_id: Some(other),
+                ..reference
+            }
+        } else {
+            MessageReference {
                 channel_id: Some(channel_id),
                 guild_id: None,
                 message_id: Some(other),
                 fail_if_not_exists: None,
-            },
-            |message_reference| MessageReference {
-                channel_id: Some(channel_id),
-                message_id: Some(other),
-                ..message_reference
-            },
-        ));
+            }
+        };
+
+        self.fields.message_reference = Some(reference);
 
         self
     }
 
     /// Specify true if the message is TTS.
-    pub fn tts(mut self, tts: bool) -> Self {
-        self.fields.tts.replace(tts);
+    pub const fn tts(mut self, tts: bool) -> Self {
+        self.fields.tts = Some(tts);
 
         self
     }
