@@ -122,8 +122,8 @@ impl RoleFieldsBuilder {
     }
 
     /// Show the role above other roles in the user list.
-    pub fn hoist(mut self) -> Self {
-        self.0.hoist.replace(true);
+    pub const fn hoist(mut self) -> Self {
+        self.0.hoist = Some(true);
 
         self
     }
@@ -147,22 +147,22 @@ impl RoleFieldsBuilder {
     }
 
     /// Allow the role to be @mentioned.
-    pub fn mentionable(mut self) -> Self {
-        self.0.mentionable.replace(true);
+    pub const fn mentionable(mut self) -> Self {
+        self.0.mentionable = Some(true);
 
         self
     }
 
     /// Set the permissions of the role.
-    pub fn permissions(mut self, permissions: Permissions) -> Self {
-        self.0.permissions.replace(permissions);
+    pub const fn permissions(mut self, permissions: Permissions) -> Self {
+        self.0.permissions = Some(permissions);
 
         self
     }
 
     /// Set the position of the role.
-    pub fn position(mut self, position: i64) -> Self {
-        self.0.position.replace(position);
+    pub const fn position(mut self, position: i64) -> Self {
+        self.0.position = Some(position);
 
         self
     }
@@ -326,8 +326,8 @@ impl TextFieldsBuilder {
     }
 
     /// Make the channel NSFW.
-    pub fn nsfw(mut self) -> Self {
-        self.0.nsfw.replace(true);
+    pub const fn nsfw(mut self) -> Self {
+        self.0.nsfw = Some(true);
 
         self
     }
@@ -498,8 +498,8 @@ impl VoiceFieldsBuilder {
     }
 
     /// Set the voice channel's bitrate.
-    pub fn bitrate(mut self, bitrate: u64) -> Self {
-        self.0.bitrate.replace(bitrate);
+    pub const fn bitrate(mut self, bitrate: u64) -> Self {
+        self.0.bitrate = Some(bitrate);
 
         self
     }
@@ -512,8 +512,8 @@ impl VoiceFieldsBuilder {
     }
 
     /// Set the voice channel's user limit.
-    pub fn user_limit(mut self, limit: u64) -> Self {
-        self.0.user_limit.replace(limit);
+    pub const fn user_limit(mut self, limit: u64) -> Self {
+        self.0.user_limit = Some(limit);
 
         self
     }

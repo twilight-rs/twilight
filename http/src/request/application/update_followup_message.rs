@@ -93,7 +93,7 @@ pub enum UpdateFollowupMessageErrorType {
     TooManyEmbeds,
 }
 
-#[derive(Default, Serialize)]
+#[derive(Serialize)]
 struct UpdateFollowupMessageFields<'a> {
     #[serde(skip_serializing_if = "Option::is_none")]
     allowed_mentions: Option<AllowedMentions>,
@@ -156,7 +156,7 @@ impl<'a> UpdateFollowupMessage<'a> {
     /// Maximum number of embeds that a followup message may have.
     pub const EMBED_COUNT_LIMIT: usize = 10;
 
-    pub(crate) fn new(
+    pub(crate) const fn new(
         http: &'a Client,
         application_id: ApplicationId,
         token: &'a str,
@@ -164,8 +164,11 @@ impl<'a> UpdateFollowupMessage<'a> {
     ) -> Self {
         Self {
             fields: UpdateFollowupMessageFields {
-                allowed_mentions: http.default_allowed_mentions(),
-                ..UpdateFollowupMessageFields::default()
+                allowed_mentions: None,
+                attachments: &[],
+                content: None,
+                embeds: None,
+                payload_json: None,
             },
             files: &[],
             http,
@@ -215,9 +218,7 @@ impl<'a> UpdateFollowupMessage<'a> {
             }
         }
 
-        self.fields
-            .content
-            .replace(NullableField::from_option(content));
+        self.fields.content = Some(NullableField(content));
 
         Ok(self)
     }
@@ -294,9 +295,7 @@ impl<'a> UpdateFollowupMessage<'a> {
             }
         }
 
-        self.fields
-            .embeds
-            .replace(NullableField::from_option(embeds));
+        self.fields.embeds = Some(NullableField(embeds));
 
         Ok(self)
     }
@@ -317,15 +316,15 @@ impl<'a> UpdateFollowupMessage<'a> {
     /// [`files`]: Self::files
     /// [`CreateFollowupMessage::payload_json`]: super::CreateFollowupMessage::payload_json
     /// [Discord Docs/Create Message]: https://discord.com/developers/docs/resources/channel#create-message-params
-    pub fn payload_json(mut self, payload_json: &'a [u8]) -> Self {
-        self.fields.payload_json.replace(payload_json);
+    pub const fn payload_json(mut self, payload_json: &'a [u8]) -> Self {
+        self.fields.payload_json = Some(payload_json);
 
         self
     }
 
     // `self` needs to be consumed and the client returned due to parameters
     // being consumed in request construction.
-    fn request(&self) -> Result<Request<'a>, HttpError> {
+    fn request(&mut self) -> Result<Request<'a>, HttpError> {
         let mut request = Request::builder(Route::UpdateWebhookMessage {
             message_id: self.message_id.0,
             token: self.token,
@@ -339,22 +338,30 @@ impl<'a> UpdateFollowupMessage<'a> {
                 form.file(index.to_be_bytes().as_ref(), name.as_bytes(), file);
             }
 
-            if let Some(payload_json) = &self.fields.payload_json {
+            if let Some(payload_json) = self.fields.payload_json.as_deref() {
                 form.payload_json(payload_json);
             } else {
+                if self.fields.allowed_mentions.is_none() {
+                    self.fields.allowed_mentions = self.http.default_allowed_mentions();
+                }
+
                 let body = crate::json::to_vec(&self.fields).map_err(HttpError::json)?;
                 form.payload_json(&body);
             }
 
             request = request.form(form);
         } else {
+            if self.fields.allowed_mentions.is_none() {
+                self.fields.allowed_mentions = self.http.default_allowed_mentions();
+            }
+
             request = request.json(&self.fields)?;
         }
 
         Ok(request.build())
     }
 
-    pub fn exec(self) -> ResponseFuture<EmptyBody> {
+    pub fn exec(mut self) -> ResponseFuture<EmptyBody> {
         match self.request() {
             Ok(request) => self.http.request(request),
             Err(source) => ResponseFuture::error(source),
