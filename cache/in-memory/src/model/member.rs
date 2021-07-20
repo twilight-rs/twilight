@@ -28,6 +28,8 @@ pub struct CachedMember {
     pub roles: Vec<RoleId>,
     /// ID of the user relating to the member.
     pub user_id: UserId,
+    /// The members hoisted (or highest) role.
+    pub hoisted_role: Option<RoleId>,
 }
 
 impl PartialEq<Member> for CachedMember {
@@ -123,6 +125,7 @@ mod tests {
             premium_since: None,
             roles: Vec::new(),
             user_id: user().id,
+            hoisted_role: Some(RoleId(4))
         }
     }
 
