@@ -125,7 +125,7 @@ impl Emitter {
         op: u8,
         seq: Option<u64>,
         event_type: Option<&str>,
-        json: &mut str,
+        json: &mut [u8],
     ) -> Result<(), EmitJsonError> {
         let flag = EventTypeFlags::try_from((op, event_type)).map_err(|(op, event_type)| {
             EmitJsonError {

@@ -439,7 +439,7 @@ impl ShardProcessor {
                 } else if op == OpCode::Reconnect as u8 {
                     GatewayEvent::Reconnect
                 } else {
-                    json::parse_gateway_event(op, seq, event_type.as_deref(), json).map_err(
+                    json::parse_gateway_event(op, seq, event_type.as_deref(), buffer).map_err(
                         |source| ProcessError {
                             kind: ProcessErrorType::ParsingPayload,
                             source: Some(Box::new(source)),
@@ -494,12 +494,10 @@ impl ShardProcessor {
             (op, seq, event_type)
         };
 
-        // We already know from earlier that the payload is valid UTF-8, so we
-        // can skip having to re-validate here since it hasn't been mutated.
-        let json = unsafe { self.compression.buffer_str_mut() };
+        let buffer = self.compression.buffer_slice_mut();
 
         self.emitter
-            .json(op, Some(seq), event_type.as_deref(), json)
+            .json(op, Some(seq), event_type.as_deref(), buffer)
             .map_err(|source| {
                 let (kind, source) = source.into_parts();
 
