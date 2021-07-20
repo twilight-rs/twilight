@@ -110,6 +110,7 @@ impl CommandBuilder {
 pub struct BooleanBuilder(BaseCommandOptionData);
 
 impl BooleanBuilder {
+    /// Creates a new default [`BooleanBuilder`].
     pub fn new(name: impl Into<String>, description: impl Into<String>) -> Self {
         Self::_new(name.into(), description.into())
     }
@@ -122,11 +123,15 @@ impl BooleanBuilder {
         })
     }
 
+    /// Builds this into a command option.
     #[allow(clippy::missing_const_for_fn)]
     pub fn build(self) -> CommandOption {
         CommandOption::Boolean(self.0)
     }
 
+    /// Sets whether this option is required.
+    ///
+    /// Defaults to false.
     pub const fn required(mut self, required: bool) -> Self {
         self.0.required = required;
 
@@ -143,6 +148,7 @@ impl From<BooleanBuilder> for CommandOption {
 pub struct ChannelBuilder(BaseCommandOptionData);
 
 impl ChannelBuilder {
+    /// Creates a new default [`ChannelBuilder`].
     pub fn new(name: impl Into<String>, description: impl Into<String>) -> Self {
         Self::_new(name.into(), description.into())
     }
@@ -155,11 +161,15 @@ impl ChannelBuilder {
         })
     }
 
+    /// Builds this into a command option.
     #[allow(clippy::missing_const_for_fn)]
     pub fn build(self) -> CommandOption {
         CommandOption::Channel(self.0)
     }
 
+    /// Sets whether this option is required.
+    ///
+    /// Defaults to false.
     pub const fn required(mut self, required: bool) -> Self {
         self.0.required = required;
 
@@ -175,6 +185,7 @@ impl From<ChannelBuilder> for CommandOption {
 pub struct IntegerBuilder(ChoiceCommandOptionData);
 
 impl IntegerBuilder {
+    /// Creates a new default [`IntegerBuilder`].
     pub fn new(name: impl Into<String>, description: impl Into<String>) -> Self {
         Self::_new(name.into(), description.into())
     }
@@ -188,17 +199,30 @@ impl IntegerBuilder {
         })
     }
 
+    /// Builds this into a command option.
     #[allow(clippy::missing_const_for_fn)]
     pub fn build(self) -> CommandOption {
         CommandOption::Integer(self.0)
     }
 
-    pub fn choice(mut self, choice: CommandOptionChoice) -> Self {
-        self.0.choices.push(choice);
+    /// Adds a choice to the command.
+    ///
+    /// Defaults to no choices.
+    pub fn choice(self, name: impl Into<String>, value: i64) -> Self {
+        self._choice(name.into(), value)
+    }
+
+    fn _choice(mut self, name: String, value: i64) -> Self {
+        self.0
+            .choices
+            .push(CommandOptionChoice::Int { name, value });
 
         self
     }
 
+    /// Sets whether this option is required.
+    ///
+    /// Defaults to false.
     pub const fn required(mut self, required: bool) -> Self {
         self.0.required = required;
 
@@ -215,6 +239,7 @@ impl From<IntegerBuilder> for CommandOption {
 pub struct MentionableBuilder(BaseCommandOptionData);
 
 impl MentionableBuilder {
+    /// Creates a new default [`MentionableBuilder`].
     pub fn new(name: impl Into<String>, description: impl Into<String>) -> Self {
         Self::_new(name.into(), description.into())
     }
@@ -227,11 +252,15 @@ impl MentionableBuilder {
         })
     }
 
+    /// Builds this into a command option.
     #[allow(clippy::missing_const_for_fn)]
     pub fn build(self) -> CommandOption {
         CommandOption::Mentionable(self.0)
     }
 
+    /// Sets whether this option is required.
+    ///
+    /// Defaults to false.
     pub const fn required(mut self, required: bool) -> Self {
         self.0.required = required;
 
@@ -248,6 +277,7 @@ impl From<MentionableBuilder> for CommandOption {
 pub struct RoleBuilder(BaseCommandOptionData);
 
 impl RoleBuilder {
+    /// Creates a new default [`RoleBuilder`].
     pub fn new(name: impl Into<String>, description: impl Into<String>) -> Self {
         Self::_new(name.into(), description.into())
     }
@@ -260,11 +290,15 @@ impl RoleBuilder {
         })
     }
 
+    /// Builds this into a command option.
     #[allow(clippy::missing_const_for_fn)]
     pub fn build(self) -> CommandOption {
         CommandOption::Role(self.0)
     }
 
+    /// Sets whether this option is required.
+    ///
+    /// Defaults to false.
     pub const fn required(mut self, required: bool) -> Self {
         self.0.required = required;
 
@@ -281,6 +315,7 @@ impl From<RoleBuilder> for CommandOption {
 pub struct StringBuilder(ChoiceCommandOptionData);
 
 impl StringBuilder {
+    /// Creates a new default [`StringBuilder`].
     pub fn new(name: impl Into<String>, description: impl Into<String>) -> Self {
         Self::_new(name.into(), description.into())
     }
@@ -294,17 +329,30 @@ impl StringBuilder {
         })
     }
 
+    /// Builds this into a command option.
     #[allow(clippy::missing_const_for_fn)]
     pub fn build(self) -> CommandOption {
         CommandOption::String(self.0)
     }
 
-    pub fn choice(mut self, choice: CommandOptionChoice) -> Self {
-        self.0.choices.push(choice);
+    /// Adds a choice to the command.
+    ///
+    /// Defaults to no choices.
+    pub fn choice(self, name: impl Into<String>, value: impl Into<String>) -> Self {
+        self._choice(name.into(), value.into())
+    }
+
+    fn _choice(mut self, name: String, value: String) -> Self {
+        self.0
+            .choices
+            .push(CommandOptionChoice::String { name, value });
 
         self
     }
 
+    /// Sets whether this option is required.
+    ///
+    /// Defaults to false.
     pub const fn required(mut self, required: bool) -> Self {
         self.0.required = required;
 
@@ -321,6 +369,7 @@ impl From<StringBuilder> for CommandOption {
 pub struct SubCommandBuilder(OptionsCommandOptionData);
 
 impl SubCommandBuilder {
+    /// Creates a new default [`SubCommandBuilder`].
     pub fn new(name: impl Into<String>, description: impl Into<String>) -> Self {
         Self::_new(name.into(), description.into())
     }
@@ -334,6 +383,7 @@ impl SubCommandBuilder {
         })
     }
 
+    /// Builds this into a command option.
     #[allow(clippy::missing_const_for_fn)]
     pub fn build(self) -> CommandOption {
         CommandOption::SubCommand(self.0)
@@ -362,6 +412,7 @@ impl From<SubCommandBuilder> for CommandOption {
 pub struct SubCommandGroupBuilder(OptionsCommandOptionData);
 
 impl SubCommandGroupBuilder {
+    /// Creates a new default [`SubCommandGroupBuilder`].
     pub fn new(name: impl Into<String>, description: impl Into<String>) -> Self {
         Self::_new(name.into(), description.into())
     }
@@ -375,6 +426,7 @@ impl SubCommandGroupBuilder {
         })
     }
 
+    /// Builds this into a command option.
     #[allow(clippy::missing_const_for_fn)]
     pub fn build(self) -> CommandOption {
         CommandOption::SubCommandGroup(self.0)
@@ -403,6 +455,7 @@ impl From<SubCommandGroupBuilder> for CommandOption {
 pub struct UserBuilder(BaseCommandOptionData);
 
 impl UserBuilder {
+    /// Creates a new default [`UserBuilder`].
     pub fn new(name: impl Into<String>, description: impl Into<String>) -> Self {
         Self::_new(name.into(), description.into())
     }
@@ -415,11 +468,15 @@ impl UserBuilder {
         })
     }
 
+    /// Builds this into a command option.
     #[allow(clippy::missing_const_for_fn)]
     pub fn build(self) -> CommandOption {
         CommandOption::User(self.0)
     }
 
+    /// Sets whether this option is required.
+    ///
+    /// Defaults to false.
     pub const fn required(mut self, required: bool) -> Self {
         self.0.required = required;
 
