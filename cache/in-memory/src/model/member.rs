@@ -125,7 +125,7 @@ mod tests {
             premium_since: None,
             roles: Vec::new(),
             user_id: user().id,
-            hoisted_role: Some(RoleId(4))
+            hoisted_role: Some(RoleId(4)),
         }
     }
 

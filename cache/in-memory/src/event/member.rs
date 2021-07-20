@@ -41,7 +41,7 @@ impl InMemoryCache {
             premium_since: member.premium_since,
             roles: member.roles,
             user_id,
-            hoisted_role: member.hoisted_role
+            hoisted_role: member.hoisted_role,
         };
         self.0.members.insert(id, cached);
         self.0
@@ -81,7 +81,7 @@ impl InMemoryCache {
             premium_since: None,
             roles: member.roles.to_owned(),
             user_id,
-            hoisted_role: None
+            hoisted_role: None,
         };
         self.0.members.insert(id, cached);
     }
