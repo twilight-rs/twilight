@@ -5,12 +5,13 @@ use crate::{
     response::{marker::EmptyBody, ResponseFuture},
     routing::Route,
 };
+use serde::Serialize;
 use twilight_model::{
     application::command::CommandOption,
     id::{ApplicationId, CommandId},
 };
 
-#[derive(Debug, Default, serde::Serialize)]
+#[derive(Serialize)]
 struct UpdateGlobalCommandFields<'a> {
     #[serde(skip_serializing_if = "Option::is_none")]
     description: Option<&'a str>,
@@ -34,7 +35,7 @@ pub struct UpdateGlobalCommand<'a> {
 }
 
 impl<'a> UpdateGlobalCommand<'a> {
-    pub(crate) fn new(
+    pub(crate) const fn new(
         http: &'a Client,
         application_id: ApplicationId,
         command_id: CommandId,
@@ -42,7 +43,11 @@ impl<'a> UpdateGlobalCommand<'a> {
         Self {
             application_id,
             command_id,
-            fields: UpdateGlobalCommandFields::default(),
+            fields: UpdateGlobalCommandFields {
+                description: None,
+                name: None,
+                options: None,
+            },
             http,
         }
     }

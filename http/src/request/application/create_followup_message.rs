@@ -15,7 +15,7 @@ use twilight_model::{
     id::ApplicationId,
 };
 
-#[derive(Default, Serialize)]
+#[derive(Serialize)]
 pub(crate) struct CreateFollowupMessageFields<'a> {
     #[serde(skip_serializing_if = "Option::is_none")]
     avatar_url: Option<&'a str>,
@@ -69,9 +69,22 @@ pub struct CreateFollowupMessage<'a> {
 }
 
 impl<'a> CreateFollowupMessage<'a> {
-    pub(crate) fn new(http: &'a Client, application_id: ApplicationId, token: &'a str) -> Self {
+    pub(crate) const fn new(
+        http: &'a Client,
+        application_id: ApplicationId,
+        token: &'a str,
+    ) -> Self {
         Self {
-            fields: CreateFollowupMessageFields::default(),
+            fields: CreateFollowupMessageFields {
+                avatar_url: None,
+                content: None,
+                embeds: None,
+                payload_json: None,
+                tts: None,
+                username: None,
+                flags: None,
+                allowed_mentions: None,
+            },
             files: &[],
             http,
             token,
@@ -80,15 +93,15 @@ impl<'a> CreateFollowupMessage<'a> {
     }
 
     /// Specify the [`AllowedMentions`] for the webhook message.
-    pub fn allowed_mentions(mut self, allowed_mentions: &'a AllowedMentions) -> Self {
-        self.fields.allowed_mentions.replace(allowed_mentions);
+    pub const fn allowed_mentions(mut self, allowed_mentions: &'a AllowedMentions) -> Self {
+        self.fields.allowed_mentions = Some(allowed_mentions);
 
         self
     }
 
     /// The URL of the avatar of the webhook.
-    pub fn avatar_url(mut self, avatar_url: &'a str) -> Self {
-        self.fields.avatar_url.replace(avatar_url);
+    pub const fn avatar_url(mut self, avatar_url: &'a str) -> Self {
+        self.fields.avatar_url = Some(avatar_url);
 
         self
     }
@@ -96,23 +109,23 @@ impl<'a> CreateFollowupMessage<'a> {
     /// The content of the webook's message.
     ///
     /// Up to 2000 UTF-16 codepoints.
-    pub fn content(mut self, content: &'a str) -> Self {
-        self.fields.content.replace(content);
+    pub const fn content(mut self, content: &'a str) -> Self {
+        self.fields.content = Some(content);
 
         self
     }
 
     /// Set the list of embeds of the webhook's message.
-    pub fn embeds(mut self, embeds: &'a [Embed]) -> Self {
-        self.fields.embeds.replace(embeds);
+    pub const fn embeds(mut self, embeds: &'a [Embed]) -> Self {
+        self.fields.embeds = Some(embeds);
 
         self
     }
 
     /// Set if the followup should be ephemeral.
-    pub fn ephemeral(mut self, ephemeral: bool) -> Self {
+    pub const fn ephemeral(mut self, ephemeral: bool) -> Self {
         if ephemeral {
-            self.fields.flags.replace(MessageFlags::EPHEMERAL);
+            self.fields.flags = Some(MessageFlags::EPHEMERAL);
         } else {
             self.fields.flags = None;
         }
@@ -185,22 +198,22 @@ impl<'a> CreateFollowupMessage<'a> {
     ///
     /// [`payload_json`]: Self::payload_json
     /// [Discord Docs/Create Message]: https://discord.com/developers/docs/resources/channel#create-message-params
-    pub fn payload_json(mut self, payload_json: &'a [u8]) -> Self {
-        self.fields.payload_json.replace(payload_json);
+    pub const fn payload_json(mut self, payload_json: &'a [u8]) -> Self {
+        self.fields.payload_json = Some(payload_json);
 
         self
     }
 
     /// Specify true if the message is TTS.
-    pub fn tts(mut self, tts: bool) -> Self {
-        self.fields.tts.replace(tts);
+    pub const fn tts(mut self, tts: bool) -> Self {
+        self.fields.tts = Some(tts);
 
         self
     }
 
     /// Specify the username of the webhook's message.
-    pub fn username(mut self, username: &'a str) -> Self {
-        self.fields.username.replace(username);
+    pub const fn username(mut self, username: &'a str) -> Self {
+        self.fields.username = Some(username);
 
         self
     }

@@ -452,9 +452,9 @@ fn _command_description(value: &str) -> bool {
     (1..=100).contains(&len)
 }
 
-pub fn command_permissions(len: usize) -> bool {
+pub const fn command_permissions(len: usize) -> bool {
     // https://discord.com/developers/docs/interactions/slash-commands#edit-application-command-permissions
-    (0..=10).contains(&len)
+    len <= 10
 }
 
 /// Validate the number of guild command permission overwrites.

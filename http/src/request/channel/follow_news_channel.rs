@@ -2,7 +2,7 @@ use crate::{client::Client, request::Request, response::ResponseFuture, routing:
 use serde::Serialize;
 use twilight_model::{channel::FollowedChannel, id::ChannelId};
 
-#[derive(Default, Serialize)]
+#[derive(Serialize)]
 struct FollowNewsChannelFields {
     webhook_channel_id: ChannelId,
 }
