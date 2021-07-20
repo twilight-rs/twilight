@@ -628,7 +628,7 @@ impl Display for RouteDisplay<'_> {
             } => {
                 f.write_str("guilds/")?;
                 Display::fmt(guild_id, f)?;
-                f.write_str("members?")?;
+                f.write_str("/members?")?;
 
                 if let Some(after) = after {
                     f.write_str("after=")?;
