@@ -2,6 +2,14 @@
 
 Changelog for `twilight-http`.
 
+## [0.5.6] - 2021-07-20
+
+### Fixes
+
+Fix the display implementation for `Route::GetGuildMembers` ([#1050] - [@Erk-]).
+
+[#1050]: https://github.com/twilight-rs/twilight/pull/1050
+
 ## [0.5.5] - 2021-07-19
 
 ### Upgrade Path
@@ -1037,6 +1045,7 @@ Initial release.
 
 [0.2.0-beta.1:app integrations]: https://github.com/discord/discord-api-docs/commit/a926694e2f8605848bda6b57d21c8817559e5cec
 
+[0.5.6]: https://github.com/twilight-rs/twilight/releases/tag/http-0.6.5
 [0.5.5]: https://github.com/twilight-rs/twilight/releases/tag/http-0.5.5
 [0.5.4]: https://github.com/twilight-rs/twilight/releases/tag/http-0.5.4
 [0.5.3]: https://github.com/twilight-rs/twilight/releases/tag/http-0.5.3
