@@ -34,6 +34,7 @@ impl InMemoryCache {
         let cached = CachedMember {
             deaf: Some(member.deaf),
             guild_id,
+            hoisted_role: member.hoisted_role,
             joined_at: member.joined_at,
             mute: Some(member.mute),
             nick: member.nick,
@@ -41,7 +42,6 @@ impl InMemoryCache {
             premium_since: member.premium_since,
             roles: member.roles,
             user_id,
-            hoisted_role: member.hoisted_role,
         };
         self.0.members.insert(id, cached);
         self.0
@@ -74,6 +74,7 @@ impl InMemoryCache {
         let cached = CachedMember {
             deaf: Some(member.deaf),
             guild_id,
+            hoisted_role: None,
             joined_at: member.joined_at.to_owned(),
             mute: Some(member.mute),
             nick: member.nick.to_owned(),
@@ -81,7 +82,6 @@ impl InMemoryCache {
             premium_since: None,
             roles: member.roles.to_owned(),
             user_id,
-            hoisted_role: None,
         };
         self.0.members.insert(id, cached);
     }
@@ -108,6 +108,7 @@ impl InMemoryCache {
         let cached = CachedMember {
             deaf,
             guild_id,
+            hoisted_role: member.hoisted_role.to_owned(),
             joined_at: member.joined_at.to_owned(),
             mute,
             nick: member.nick.to_owned(),
@@ -115,7 +116,6 @@ impl InMemoryCache {
             premium_since: member.premium_since.to_owned(),
             roles: member.roles.to_owned(),
             user_id: member.id,
-            hoisted_role: member.hoisted_role.to_owned(),
         };
 
         self.0.members.insert(id, cached);

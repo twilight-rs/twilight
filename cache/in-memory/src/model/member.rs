@@ -14,6 +14,8 @@ pub struct CachedMember {
     pub deaf: Option<bool>,
     /// ID of the guild this member is a part of.
     pub guild_id: GuildId,
+    /// The members hoisted (or highest) role.
+    pub hoisted_role: Option<RoleId>,
     /// ISO 8601 timestamp of this member's join date.
     pub joined_at: Option<String>,
     /// Whether the member is muted in a voice channel.
@@ -28,14 +30,13 @@ pub struct CachedMember {
     pub roles: Vec<RoleId>,
     /// ID of the user relating to the member.
     pub user_id: UserId,
-    /// The members hoisted (or highest) role.
-    pub hoisted_role: Option<RoleId>,
 }
 
 impl PartialEq<Member> for CachedMember {
     fn eq(&self, other: &Member) -> bool {
         (
             self.deaf,
+            self.hoisted_role,
             self.joined_at.as_ref(),
             self.mute,
             &self.nick,
@@ -45,6 +46,7 @@ impl PartialEq<Member> for CachedMember {
             self.user_id,
         ) == (
             Some(other.deaf),
+            other.hoisted_role,
             other.joined_at.as_ref(),
             Some(other.mute),
             &other.nick,
@@ -79,11 +81,13 @@ impl PartialEq<&PartialMember> for CachedMember {
 impl PartialEq<&InteractionMember> for CachedMember {
     fn eq(&self, other: &&InteractionMember) -> bool {
         (
+            self.hoisted_role,
             self.joined_at.as_ref(),
             &self.nick,
             &self.premium_since,
             &self.roles,
         ) == (
+            other.hoisted_role,
             other.joined_at.as_ref(),
             &other.nick,
             &other.premium_since,
@@ -105,6 +109,7 @@ mod tests {
     assert_fields!(
         CachedMember: deaf,
         guild_id,
+        hoisted_role,
         joined_at,
         mute,
         nick,
@@ -118,6 +123,7 @@ mod tests {
         CachedMember {
             deaf: Some(false),
             guild_id: GuildId(3),
+            hoisted_role: Some(RoleId(4)),
             joined_at: None,
             mute: Some(true),
             nick: Some("member nick".to_owned()),
@@ -125,7 +131,6 @@ mod tests {
             premium_since: None,
             roles: Vec::new(),
             user_id: user().id,
-            hoisted_role: Some(RoleId(4)),
         }
     }
 
