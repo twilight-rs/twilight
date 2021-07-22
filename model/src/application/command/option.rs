@@ -447,20 +447,17 @@ impl Number {
     }
 }
 
-impl PartialEq for Number {
-    fn eq(&self, other: &Number) -> bool {
-        self.canonicalize() == other.canonicalize()
-    }
-}
-
 impl Eq for Number {}
 
 impl Hash for Number {
-    fn hash<H>(&self, state: &mut H)
-    where
-        H: Hasher,
-    {
+    fn hash<H: Hasher>(&self, state: &mut H) {
         self.canonicalize().hash(state);
+    }
+}
+
+impl PartialEq for Number {
+    fn eq(&self, other: &Number) -> bool {
+        self.canonicalize() == other.canonicalize()
     }
 }
 
