@@ -50,7 +50,15 @@ pub struct MessageComponentInteraction {
 }
 
 impl MessageComponentInteraction {
-    /// Id of the user that invoked this interaction
+    /// Extract the id of the user that invoked this interaction.
+    ///
+    /// If the interaction came from a guild, it will get the id
+    /// from the member field.
+    /// Similarly, if the interaction came from a Direct Message,
+    /// it will get the id from the user field.
+    ///
+    /// Returns an [`Option`] to future-proof against any new fields
+    /// that could be used to return the user id.
     pub fn author_id(&self) -> Option<UserId> {
         self.member.as_ref().map_or_else(
             || self.user.as_ref().map(|user| user.id),
