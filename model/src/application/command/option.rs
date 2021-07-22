@@ -554,7 +554,7 @@ mod tests {
             &[
                 Token::Struct {
                     name: "Command",
-                    len: 7,
+                    len: 8,
                 },
                 Token::Str("application_id"),
                 Token::Some,
