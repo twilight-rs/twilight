@@ -5,7 +5,11 @@ use serde::{
     Deserialize, Serialize,
 };
 use serde_repr::{Deserialize_repr, Serialize_repr};
-use std::fmt::{Formatter, Result as FmtResult};
+use std::{
+    cmp::Eq,
+    fmt::{Formatter, Result as FmtResult},
+    hash::{Hash, Hasher},
+};
 
 /// Option for a [`Command`].
 ///
@@ -28,7 +32,7 @@ pub enum CommandOption {
     Channel(BaseCommandOptionData),
     Role(BaseCommandOptionData),
     Mentionable(BaseCommandOptionData),
-    Number(ChoiceCommandOptionData)
+    Number(ChoiceCommandOptionData),
 }
 
 impl CommandOption {
@@ -50,7 +54,9 @@ impl CommandOption {
     pub const fn is_required(&self) -> bool {
         match self {
             CommandOption::SubCommand(data) | CommandOption::SubCommandGroup(data) => data.required,
-            CommandOption::String(data) | CommandOption::Integer(data) | CommandOption::Number(data) => data.required,
+            CommandOption::String(data)
+            | CommandOption::Integer(data)
+            | CommandOption::Number(data) => data.required,
             CommandOption::Boolean(data)
             | CommandOption::User(data)
             | CommandOption::Channel(data)
@@ -91,14 +97,16 @@ impl Serialize for CommandOption {
                 required: data.required,
                 kind: self.kind(),
             },
-            Self::String(data) | Self::Integer(data) | Self::Number(data) => CommandOptionEnvelope {
-                choices: Some(data.choices.as_ref()),
-                description: data.description.as_ref(),
-                name: data.name.as_ref(),
-                options: None,
-                required: data.required,
-                kind: self.kind(),
-            },
+            Self::String(data) | Self::Integer(data) | Self::Number(data) => {
+                CommandOptionEnvelope {
+                    choices: Some(data.choices.as_ref()),
+                    description: data.description.as_ref(),
+                    name: data.name.as_ref(),
+                    options: None,
+                    required: data.required,
+                    kind: self.kind(),
+                }
+            }
             Self::Boolean(data)
             | Self::User(data)
             | Self::Channel(data)
@@ -391,7 +399,7 @@ pub struct ChoiceCommandOptionData {
 pub enum CommandOptionChoice {
     String { name: String, value: String },
     Int { name: String, value: i64 },
-    Number { name: String, value: f64 },
+    Number { name: String, value: Number },
 }
 
 /// Type of a [`CommandOption`].
@@ -429,11 +437,38 @@ impl CommandOptionType {
     }
 }
 
+#[derive(Clone, Copy, Debug, Deserialize, Serialize)]
+pub struct Number(f64);
+
+#[allow(clippy::cast_possible_truncation, clippy::trivially_copy_pass_by_ref)]
+impl Number {
+    fn canonicalize(&self) -> i64 {
+        (self.0 * 1024.0 * 1024.0).round() as i64
+    }
+}
+
+impl PartialEq for Number {
+    fn eq(&self, other: &Number) -> bool {
+        self.canonicalize() == other.canonicalize()
+    }
+}
+
+impl Eq for Number {}
+
+impl Hash for Number {
+    fn hash<H>(&self, state: &mut H)
+    where
+        H: Hasher,
+    {
+        self.canonicalize().hash(state);
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::{
         super::Command, BaseCommandOptionData, ChoiceCommandOptionData, CommandOption,
-        CommandOptionChoice, OptionsCommandOptionData,
+        CommandOptionChoice, Number, OptionsCommandOptionData,
     };
     use crate::id::{ApplicationId, CommandId, GuildId};
     use serde_test::Token;
@@ -501,7 +536,7 @@ mod tests {
                         CommandOption::Number(ChoiceCommandOptionData {
                             choices: vec![CommandOptionChoice::Number {
                                 name: "choice3".into(),
-                                value: 2.0,
+                                value: Number(2.0),
                             }],
                             description: "number desc".into(),
                             name: "number".into(),
