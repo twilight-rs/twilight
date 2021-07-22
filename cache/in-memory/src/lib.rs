@@ -586,7 +586,9 @@ impl InMemoryCache {
             Some(member) => member,
             None => return None,
         };
+
         let mut highest_role: Option<(i64, RoleId)> = None;
+
         for role_id in &member.roles {
             if let Some(role) = self.role(*role_id) {
                 if let Some((position, id)) = highest_role {
@@ -594,9 +596,11 @@ impl InMemoryCache {
                         continue;
                     }
                 }
+
                 highest_role = Some((role.position, role.id));
             }
         }
+
         highest_role.map(|(_, id)| id)
     }
 
