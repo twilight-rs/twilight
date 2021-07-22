@@ -575,6 +575,31 @@ impl InMemoryCache {
             .map(|r| r.clone())
     }
 
+    /// Gets the highest role of a member.
+    ///
+    /// This requires both the [`GUILDS`] and [`GUILD_MEMBERS`] intents.
+    ///
+    /// [`GUILDS`]: ::twilight_model::gateway::Intents::GUILDS
+    /// [`GUILD_MEMBERS`]: ::twilight_model::gateway::Intents::GUILD_MEMBERS
+    pub fn member_hoisted_role(&self, guild_id: GuildId, user_id: UserId) -> Option<RoleId> {
+        let member = match self.0.members.get(&(guild_id, user_id)).map(|r| r.clone()) {
+            Some(member) => member,
+            None => return None,
+        };
+        let mut highest_role: Option<(i64, RoleId)> = None;
+        for role_id in &member.roles {
+            if let Some(role) = self.role(*role_id) {
+                if let Some((position, id)) = highest_role {
+                    if role.position > position || (role.position != position && role.id < id) {
+                        return None;
+                    }
+                }
+                highest_role = Some((role.position, role.id));
+            }
+        }
+        highest_role.map(|(_, id)| id)
+    }
+
     fn new_with_config(config: Config) -> Self {
         Self(Arc::new(InMemoryCacheRef {
             config,

@@ -34,7 +34,6 @@ impl InMemoryCache {
         let cached = CachedMember {
             deaf: Some(member.deaf),
             guild_id,
-            hoisted_role: member.hoisted_role,
             joined_at: member.joined_at,
             mute: Some(member.mute),
             nick: member.nick,
@@ -74,7 +73,6 @@ impl InMemoryCache {
         let cached = CachedMember {
             deaf: Some(member.deaf),
             guild_id,
-            hoisted_role: None,
             joined_at: member.joined_at.to_owned(),
             mute: Some(member.mute),
             nick: member.nick.to_owned(),
@@ -108,7 +106,6 @@ impl InMemoryCache {
         let cached = CachedMember {
             deaf,
             guild_id,
-            hoisted_role: member.hoisted_role.to_owned(),
             joined_at: member.joined_at.to_owned(),
             mute,
             nick: member.nick.to_owned(),
