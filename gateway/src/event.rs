@@ -137,7 +137,7 @@ bitflags! {
 impl EventTypeFlags {
     /// All [`EventTypeFlags`] in [`Intents::GUILDS`].
     ///
-    /// [`Intents::GUILDS`]: twilight_gateway::Intents::GUILDS
+    /// [`Intents::GUILDS`]: crate::Intents::GUILDS
     pub const GUILDS: EventTypeFlags = EventTypeFlags::from_bits_truncate(
         EventTypeFlags::CHANNEL_CREATE.bits()
             | EventTypeFlags::CHANNEL_DELETE.bits()
@@ -153,7 +153,7 @@ impl EventTypeFlags {
 
     /// All [`EventTypeFlags`] in [`Intents::GUILD_MEMBERS`].
     ///
-    /// [`Intents::GUILD_MEMBERS`]: twilight_gateway::Intents::GUILD_MEMBERS
+    /// [`Intents::GUILD_MEMBERS`]: crate::Intents::GUILD_MEMBERS
     pub const GUILD_MEMBERS: EventTypeFlags = EventTypeFlags::from_bits_truncate(
         EventTypeFlags::MEMBER_ADD.bits()
             | EventTypeFlags::MEMBER_REMOVE.bits()
@@ -162,51 +162,51 @@ impl EventTypeFlags {
 
     /// All [`EventTypeFlags`] in [`Intents::GUILD_BANS`].
     ///
-    /// [`Intents::GUILD_BANS`]: twilight_gateway::Intents::GUILD_BANS
+    /// [`Intents::GUILD_BANS`]: crate::Intents::GUILD_BANS
     pub const GUILD_BANS: EventTypeFlags = EventTypeFlags::from_bits_truncate(
         EventTypeFlags::BAN_ADD.bits() | EventTypeFlags::BAN_REMOVE.bits(),
     );
 
     /// All [`EventTypeFlags`] in [`Intents::GUILD_EMOJIS`].
     ///
-    /// [`Intents::GUILD_EMOJIS`]: twilight_gateway::Intents::GUILD_EMOJIS
+    /// [`Intents::GUILD_EMOJIS`]: crate::Intents::GUILD_EMOJIS
     pub const GUILD_EMOJIS: EventTypeFlags =
         EventTypeFlags::from_bits_truncate(EventTypeFlags::GUILD_EMOJIS_UPDATE.bits());
 
     /// All [`EventTypeFlags`] in [`Intents::GUILD_INTEGRATIONS`].
     ///
-    /// [`Intents::GUILD_INTEGRATIONS`]: twilight_gateway::Intents::GUILD_INTEGRATIONS
+    /// [`Intents::GUILD_INTEGRATIONS`]: crate::Intents::GUILD_INTEGRATIONS
     pub const GUILD_INTEGRATIONS: EventTypeFlags =
         EventTypeFlags::from_bits_truncate(EventTypeFlags::GUILD_INTEGRATIONS_UPDATE.bits());
 
     /// All [`EventTypeFlags`] in [`Intents::GUILD_WEBHOOKS`].
     ///
-    /// [`Intents::GUILD_WEBHOOKS`]: twilight_gateway::Intents::GUILD_WEBHOOKS
+    /// [`Intents::GUILD_WEBHOOKS`]: crate::Intents::GUILD_WEBHOOKS
     pub const GUILD_WEBHOOKS: EventTypeFlags =
         EventTypeFlags::from_bits_truncate(EventTypeFlags::WEBHOOKS_UPDATE.bits());
 
     /// All [`EventTypeFlags`] in [`Intents::GUILD_INVITES`].
     ///
-    /// [`Intents::GUILD_INVITES`]: twilight_gateway::Intents::GUILD_INVITES
+    /// [`Intents::GUILD_INVITES`]: crate::Intents::GUILD_INVITES
     pub const GUILD_INVITES: EventTypeFlags = EventTypeFlags::from_bits_truncate(
         EventTypeFlags::INVITE_CREATE.bits() | EventTypeFlags::INVITE_DELETE.bits(),
     );
 
     /// All [`EventTypeFlags`] in [`Intents::GUILD_VOICE_STATES`].
     ///
-    /// [`Intents::GUILD_VOICE_STATES`]: twilight_gateway::Intents::GUILD_VOICE_STATES
+    /// [`Intents::GUILD_VOICE_STATES`]: crate::Intents::GUILD_VOICE_STATES
     pub const GUILD_VOICE_STATES: EventTypeFlags =
         EventTypeFlags::from_bits_truncate(EventTypeFlags::VOICE_STATE_UPDATE.bits());
 
     /// All [`EventTypeFlags`] in [`Intents::GUILD_PRESENCES`].
     ///
-    /// [`Intents::GUILD_PRESENCES`]: twilight_gateway::Intents::GUILD_PRESENCES
+    /// [`Intents::GUILD_PRESENCES`]: crate::Intents::GUILD_PRESENCES
     pub const GUILD_PRESENCES: EventTypeFlags =
         EventTypeFlags::from_bits_truncate(EventTypeFlags::PRESENCE_UPDATE.bits());
 
     /// All [`EventTypeFlags`] in [`Intents::GUILD_MESSAGES`].
     ///
-    /// [`Intents::GUILD_MESSAGES`]: twilight_gateway::Intents::GUILD_MESSAGES
+    /// [`Intents::GUILD_MESSAGES`]: crate::Intents::GUILD_MESSAGES
     pub const GUILD_MESSAGES: EventTypeFlags = EventTypeFlags::from_bits_truncate(
         EventTypeFlags::MESSAGE_CREATE.bits()
             | EventTypeFlags::MESSAGE_DELETE.bits()
@@ -216,7 +216,7 @@ impl EventTypeFlags {
 
     /// All [`EventTypeFlags`] in [`Intents::GUILD_MESSAGE_REACTIONS`].
     ///
-    /// [`Intents::GUILD_MESSAGE_REACTIONS`]: twilight_gateway::Intents::GUILD_MESSAGE_REACTIONS
+    /// [`Intents::GUILD_MESSAGE_REACTIONS`]: crate::Intents::GUILD_MESSAGE_REACTIONS
     pub const GUILD_MESSAGE_REACTIONS: EventTypeFlags = EventTypeFlags::from_bits_truncate(
         EventTypeFlags::REACTION_ADD.bits()
             | EventTypeFlags::REACTION_REMOVE.bits()
@@ -226,13 +226,13 @@ impl EventTypeFlags {
 
     /// All [`EventTypeFlags`] in [`Intents::GUILD_MESSAGE_TYPING`].
     ///
-    /// [`Intents::GUILD_MESSAGE_TYPING`]: twilight_gateway::Intents::GUILD_MESSAGE_TYPING
+    /// [`Intents::GUILD_MESSAGE_TYPING`]: crate::Intents::GUILD_MESSAGE_TYPING
     pub const GUILD_MESSAGE_TYPING: EventTypeFlags =
         EventTypeFlags::from_bits_truncate(EventTypeFlags::TYPING_START.bits());
 
     /// All [`EventTypeFlags`] in [`Intents::DIRECT_MESSAGES`].
     ///
-    /// [`Intents::DIRECT_MESSAGES`]: twilight_gateway::Intents::DIRECT_MESSAGES
+    /// [`Intents::DIRECT_MESSAGES`]: crate::Intents::DIRECT_MESSAGES
     pub const DIRECT_MESSAGES: EventTypeFlags = EventTypeFlags::from_bits_truncate(
         EventTypeFlags::MESSAGE_CREATE.bits()
             | EventTypeFlags::MESSAGE_DELETE.bits()
@@ -242,7 +242,7 @@ impl EventTypeFlags {
 
     /// All [`EventTypeFlags`] in [`Intents::DIRECT_MESSAGE_REACTIONS`].
     ///
-    /// [`Intents::DIRECT_MESSAGE_REACTIONS`]: twilight_gateway::Intents::DIRECT_MESSAGE_REACTIONS
+    /// [`Intents::DIRECT_MESSAGE_REACTIONS`]: crate::Intents::DIRECT_MESSAGE_REACTIONS
     pub const DIRECT_MESSAGE_REACTIONS: EventTypeFlags = EventTypeFlags::from_bits_truncate(
         EventTypeFlags::REACTION_ADD.bits()
             | EventTypeFlags::REACTION_REMOVE.bits()
@@ -252,7 +252,7 @@ impl EventTypeFlags {
 
     /// All [`EventTypeFlags`] in [`Intents::DIRECT_MESSAGE_TYPING`].
     ///
-    /// [`Intents::DIRECT_MESSAGE_TYPING`]: twilight_gateway::Intents::DIRECT_MESSAGE_TYPING
+    /// [`Intents::DIRECT_MESSAGE_TYPING`]: crate::Intents::DIRECT_MESSAGE_TYPING
     pub const DIRECT_MESSAGE_TYPING: EventTypeFlags =
         EventTypeFlags::from_bits_truncate(EventTypeFlags::TYPING_START.bits());
 }
