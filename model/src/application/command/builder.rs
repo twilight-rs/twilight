@@ -11,27 +11,28 @@ use crate::id::{ApplicationId, CommandId, GuildId};
 pub struct CommandBuilder(Command);
 
 impl CommandBuilder {
-    /// The maximum total textual length of the command in UTF-16 code points.
+    /// Maximum total textual length of the command in UTF-16 code points.
     ///
-    /// This combines the text of the name, description and value for the command and its subcommands and groups.
+    /// This combines the text of the name, description and value for the
+    /// command and its subcommands and groups.
     pub const COMMAND_LENGTH_LIMIT: usize = 4000;
 
-    /// The maximum number of options within a command.
+    /// Maximum number of options within a command.
     pub const COMMAND_OPTIONS_LIMIT: usize = 25;
 
-    /// The maximum number of UTF-16 code points that can be in a description.
+    /// Maximum number of UTF-16 code points that can be in a description.
     pub const DESCRIPTION_LENGTH_LIMIT: usize = 100;
 
-    /// The maximum number of UTF-16 code points in a name.
+    /// Maximum number of UTF-16 code points in a name.
     pub const NAME_LENGTH_LIMIT: usize = 32;
 
-    /// The maximum number of choices within a option.
+    /// Maximum number of choices within a option.
     pub const OPTIONS_CHOICES_LIMIT: usize = 25;
 
-    /// The maximum number of subcommand groups within a command.
+    /// Maximum number of subcommand groups within a command.
     pub const SUBCOMMAND_GROUP_LIMIT: usize = 25;
 
-    /// The maximum number of subcommands within a subcommand group.
+    /// Maximum number of subcommands within a subcommand group.
     pub const SUBCOMMAND_LIMIT: usize = 25;
 
     /// Creates a new default [`Command`] builder.
@@ -57,7 +58,7 @@ impl CommandBuilder {
         self.0
     }
 
-    /// Sets the application id of the command.
+    /// Sets the application ID of the command.
     ///
     /// Defaults to [`None`].
     pub const fn application_id(mut self, application_id: ApplicationId) -> Self {
@@ -66,7 +67,7 @@ impl CommandBuilder {
         self
     }
 
-    /// Sets the guild id of the command.
+    /// Sets the guild ID of the command.
     ///
     /// Defaults to [`None`].
     pub const fn guild_id(mut self, guild_id: GuildId) -> Self {
@@ -84,7 +85,7 @@ impl CommandBuilder {
         self
     }
 
-    /// Sets the id of the command.
+    /// Sets the ID of the command.
     ///
     /// Defaults to [`None`].
     pub const fn id(mut self, id: CommandId) -> Self {
@@ -107,6 +108,7 @@ impl CommandBuilder {
     }
 }
 
+/// Create a boolean option with a builder.
 pub struct BooleanBuilder(BaseCommandOptionData);
 
 impl BooleanBuilder {
@@ -145,6 +147,7 @@ impl From<BooleanBuilder> for CommandOption {
     }
 }
 
+/// Create a channel option with a builder.
 pub struct ChannelBuilder(BaseCommandOptionData);
 
 impl ChannelBuilder {
@@ -182,6 +185,7 @@ impl From<ChannelBuilder> for CommandOption {
         builder.build()
     }
 }
+/// Create a integer option with a builder.
 pub struct IntegerBuilder(ChoiceCommandOptionData);
 
 impl IntegerBuilder {
@@ -236,6 +240,7 @@ impl From<IntegerBuilder> for CommandOption {
     }
 }
 
+/// Create a mentionable option with a builder.
 pub struct MentionableBuilder(BaseCommandOptionData);
 
 impl MentionableBuilder {
@@ -274,6 +279,7 @@ impl From<MentionableBuilder> for CommandOption {
     }
 }
 
+/// Create a role option with a builder.
 pub struct RoleBuilder(BaseCommandOptionData);
 
 impl RoleBuilder {
@@ -312,6 +318,7 @@ impl From<RoleBuilder> for CommandOption {
     }
 }
 
+/// Create a string option with a builder.
 pub struct StringBuilder(ChoiceCommandOptionData);
 
 impl StringBuilder {
@@ -366,6 +373,7 @@ impl From<StringBuilder> for CommandOption {
     }
 }
 
+/// Create a subcommand option with a builder.
 pub struct SubCommandBuilder(OptionsCommandOptionData);
 
 impl SubCommandBuilder {
@@ -409,6 +417,7 @@ impl From<SubCommandBuilder> for CommandOption {
     }
 }
 
+/// Create a subcommand group option with a builder.
 pub struct SubCommandGroupBuilder(OptionsCommandOptionData);
 
 impl SubCommandGroupBuilder {
@@ -452,6 +461,7 @@ impl From<SubCommandGroupBuilder> for CommandOption {
     }
 }
 
+/// Create a user option with a builder.
 pub struct UserBuilder(BaseCommandOptionData);
 
 impl UserBuilder {
@@ -497,7 +507,7 @@ mod tests {
     #[test]
     #[allow(clippy::too_many_lines)]
     fn construct_command_with_builder() {
-        // command from <https://discord.com/developers/docs/interactions/slash-commands#example-walkthrough>
+        // from <https://discord.com/developers/docs/interactions/slash-commands#example-walkthrough>
         let command = CommandBuilder::new("permissions","Get or edit permissions for a user or a role")
             .option(
                 SubCommandGroupBuilder::new("user", "Get or edit permissions for a user")
