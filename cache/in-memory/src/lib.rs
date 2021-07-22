@@ -581,7 +581,7 @@ impl InMemoryCache {
     ///
     /// [`GUILDS`]: ::twilight_model::gateway::Intents::GUILDS
     /// [`GUILD_MEMBERS`]: ::twilight_model::gateway::Intents::GUILD_MEMBERS
-    pub fn member_hoisted_role(&self, guild_id: GuildId, user_id: UserId) -> Option<RoleId> {
+    pub fn member_highest_role(&self, guild_id: GuildId, user_id: UserId) -> Option<RoleId> {
         let member = match self.0.members.get(&(guild_id, user_id)).map(|r| r.clone()) {
             Some(member) => member,
             None => return None,
@@ -590,8 +590,8 @@ impl InMemoryCache {
         for role_id in &member.roles {
             if let Some(role) = self.role(*role_id) {
                 if let Some((position, id)) = highest_role {
-                    if role.position > position || (role.position != position && role.id < id) {
-                        return None;
+                    if role.position < position || (role.position == position && role.id > id) {
+                        continue;
                     }
                 }
                 highest_role = Some((role.position, role.id));
@@ -695,6 +695,7 @@ mod tests {
     use crate::{test, InMemoryCache};
     use twilight_model::{
         gateway::payload::RoleDelete,
+        guild::{Member, Permissions, Role},
         id::{EmojiId, GuildId, RoleId, UserId},
     };
 
@@ -715,5 +716,60 @@ mod tests {
         cache.clear();
         assert!(cache.0.emojis.is_empty());
         assert!(cache.0.members.is_empty());
+    }
+
+    #[test]
+    fn test_highest_role() {
+        let cache = InMemoryCache::new();
+        let guild_id = GuildId(1);
+        let user = test::user(UserId(1));
+        cache.cache_member(
+            guild_id,
+            Member {
+                deaf: false,
+                guild_id,
+                hoisted_role: None,
+                joined_at: None,
+                mute: false,
+                nick: None,
+                pending: false,
+                premium_since: None,
+                roles: vec![RoleId(1), RoleId(2)],
+                user,
+            },
+        );
+
+        cache.cache_roles(
+            guild_id,
+            vec![
+                Role {
+                    color: 0,
+                    hoist: false,
+                    id: RoleId(1),
+                    managed: false,
+                    mentionable: false,
+                    name: "test".to_owned(),
+                    permissions: Permissions::empty(),
+                    position: 0,
+                    tags: None,
+                },
+                Role {
+                    color: 0,
+                    hoist: false,
+                    id: RoleId(2),
+                    managed: false,
+                    mentionable: false,
+                    name: "test".to_owned(),
+                    permissions: Permissions::empty(),
+                    position: 1,
+                    tags: None,
+                },
+            ],
+        );
+
+        assert_eq!(
+            cache.member_highest_role(guild_id, UserId(1)),
+            Some(RoleId(2))
+        );
     }
 }
