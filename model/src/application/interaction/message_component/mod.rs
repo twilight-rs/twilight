@@ -50,25 +50,39 @@ pub struct MessageComponentInteraction {
 }
 
 impl MessageComponentInteraction {
-    /// Extract the id of the user that invoked this interaction.
+    /// ID of the user that invoked the interaction.
     ///
-    /// If the interaction came from a guild, it will get the id from the member
-    /// field.  Similarly, if the interaction came from a Direct Message, it
-    /// will get the id from the user field.
+    /// This will first check for the [`member`]'s
+    /// [`user`][`PartialMember::user`]'s ID and, if not present, then check the
+    /// [`user`]'s ID.
     ///
-    /// Returns an [`Option`] to future-proof against any new fields that could
-    /// be used to return the user id.
-    pub fn author_id(&self) -> Option<UserId> {
-        self.member.as_ref().map_or_else(
-            || self.user.as_ref().map(|user| user.id),
-            |member| member.user.as_ref().map(|u| u.id),
-        )
+    /// [`member`]: Self::member
+    /// [`user`]: Self::user
+    pub const fn author_id(&self) -> Option<UserId> {
+        if let Some(member) = &self.member {
+            if let Some(user) = &member.user {
+                return Some(user.id);
+            }
+        }
+
+        if let Some(user) = &self.user {
+            return Some(user.id);
+        }
+
+        None
     }
 }
 
 #[cfg(test)]
 mod tests {
-    use super::MessageComponentInteraction;
+    use super::{MessageComponentInteraction, MessageComponentInteractionData};
+    use crate::{
+        application::{component::ComponentType, interaction::InteractionType},
+        channel::message::{Message, MessageType},
+        guild::PartialMember,
+        id::{ApplicationId, ChannelId, GuildId, InteractionId, MessageId, UserId},
+        user::User,
+    };
     use serde::Serialize;
     use static_assertions::{assert_fields, assert_impl_all};
     use std::{fmt::Debug, hash::Hash};
@@ -95,4 +109,95 @@ mod tests {
         Serialize,
         Sync
     );
+
+    fn user(id: UserId) -> User {
+        User {
+            avatar: None,
+            bot: false,
+            discriminator: "4444".to_owned(),
+            email: None,
+            flags: None,
+            id,
+            locale: None,
+            mfa_enabled: None,
+            name: "twilight".to_owned(),
+            premium_type: None,
+            public_flags: None,
+            system: None,
+            verified: None,
+        }
+    }
+
+    #[test]
+    fn test_author_id() {
+        const USER_ID: UserId = UserId(7);
+
+        let in_guild = MessageComponentInteraction {
+            application_id: ApplicationId(1),
+            channel_id: ChannelId(2),
+            data: MessageComponentInteractionData {
+                custom_id: "foo".to_owned(),
+                component_type: ComponentType::Button,
+                values: Vec::from(["bar".to_owned()]),
+            },
+            guild_id: Some(GuildId(3)),
+            id: InteractionId(4),
+            kind: InteractionType::MessageComponent,
+            member: Some(PartialMember {
+                deaf: false,
+                joined_at: None,
+                mute: false,
+                nick: None,
+                permissions: None,
+                premium_since: None,
+                roles: Vec::new(),
+                user: Some(user(USER_ID)),
+            }),
+            message: Message {
+                activity: None,
+                application: None,
+                application_id: None,
+                attachments: Vec::new(),
+                author: user(USER_ID),
+                channel_id: ChannelId(5),
+                components: Vec::new(),
+                content: String::new(),
+                edited_timestamp: None,
+                embeds: Vec::new(),
+                flags: None,
+                guild_id: Some(GuildId(3)),
+                id: MessageId(6),
+                interaction: None,
+                kind: MessageType::Regular,
+                member: None,
+                mention_channels: Vec::new(),
+                mention_everyone: false,
+                mention_roles: Vec::new(),
+                mentions: Vec::new(),
+                pinned: false,
+                reactions: Vec::new(),
+                reference: None,
+                referenced_message: None,
+                sticker_items: Vec::new(),
+                timestamp: String::new(),
+                tts: false,
+                webhook_id: None,
+            },
+            token: String::new(),
+            user: None,
+        };
+
+        assert_eq!(Some(USER_ID), in_guild.author_id());
+
+        let in_dm = MessageComponentInteraction {
+            member: None,
+            message: Message {
+                guild_id: None,
+                ..in_guild.message
+            },
+            user: Some(user(USER_ID)),
+            ..in_guild
+        };
+        assert_eq!(Some(USER_ID), in_dm.author_id());
+    }
 }
