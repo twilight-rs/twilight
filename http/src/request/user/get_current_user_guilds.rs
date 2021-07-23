@@ -58,7 +58,7 @@ impl Error for GetCurrentUserGuildsError {}
 #[derive(Debug)]
 #[non_exhaustive]
 pub enum GetCurrentUserGuildsErrorType {
-    /// The maximum number of guilds to retrieve is 0 or more than 100.
+    /// The maximum number of guilds to retrieve is 0 or more than 200.
     LimitInvalid {
         /// Provided maximum number of guilds to retrieve.
         limit: u64,
@@ -130,12 +130,12 @@ impl<'a> GetCurrentUserGuilds<'a> {
 
     /// Set the maximum number of guilds to retrieve.
     ///
-    /// The minimum is 1 and the maximum is 100. Refer to [the discord docs] for more information.
+    /// The minimum is 1 and the maximum is 200. Refer to [the discord docs] for more information.
     ///
     /// # Errors
     ///
     /// Returns a [`GetCurrentUserGuildsErrorType::LimitInvalid`] error type if
-    /// the amount is greater than 100.
+    /// the amount is greater than 200.
     ///
     /// [the discord docs]: https://discordapp.com/developers/docs/resources/user#get-current-user-guilds-query-string-params
     pub fn limit(mut self, limit: u64) -> Result<Self, GetCurrentUserGuildsError> {

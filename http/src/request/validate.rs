@@ -330,7 +330,7 @@ pub const fn get_channel_messages_limit(value: u64) -> bool {
 
 pub const fn get_current_user_guilds_limit(value: u64) -> bool {
     // <https://discordapp.com/developers/docs/resources/user#get-current-user-guilds-query-string-params>
-    value >= 1 && value <= 100
+    value >= 1 && value <= 200
 }
 
 pub const fn get_guild_members_limit(value: u64) -> bool {
@@ -716,10 +716,10 @@ mod tests {
     #[test]
     fn test_get_current_user_guilds_limit() {
         assert!(get_current_user_guilds_limit(1));
-        assert!(get_current_user_guilds_limit(100));
+        assert!(get_current_user_guilds_limit(200));
 
         assert!(!get_current_user_guilds_limit(0));
-        assert!(!get_current_user_guilds_limit(101));
+        assert!(!get_current_user_guilds_limit(201));
     }
 
     #[test]
