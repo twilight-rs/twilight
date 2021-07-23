@@ -135,6 +135,32 @@ bitflags! {
 }
 
 impl EventTypeFlags {
+    /// All [`EventTypeFlags`] in [`Intents::DIRECT_MESSAGES`].
+    ///
+    /// [`Intents::DIRECT_MESSAGES`]: crate::Intents::DIRECT_MESSAGES
+    pub const DIRECT_MESSAGES: EventTypeFlags = EventTypeFlags::from_bits_truncate(
+        EventTypeFlags::MESSAGE_CREATE.bits()
+            | EventTypeFlags::MESSAGE_DELETE.bits()
+            | EventTypeFlags::MESSAGE_DELETE_BULK.bits()
+            | EventTypeFlags::MESSAGE_UPDATE.bits(),
+    );
+
+    /// All [`EventTypeFlags`] in [`Intents::DIRECT_MESSAGE_REACTIONS`].
+    ///
+    /// [`Intents::DIRECT_MESSAGE_REACTIONS`]: crate::Intents::DIRECT_MESSAGE_REACTIONS
+    pub const DIRECT_MESSAGE_REACTIONS: EventTypeFlags = EventTypeFlags::from_bits_truncate(
+        EventTypeFlags::REACTION_ADD.bits()
+            | EventTypeFlags::REACTION_REMOVE.bits()
+            | EventTypeFlags::REACTION_REMOVE_ALL.bits()
+            | EventTypeFlags::REACTION_REMOVE_EMOJI.bits(),
+    );
+
+    /// All [`EventTypeFlags`] in [`Intents::DIRECT_MESSAGE_TYPING`].
+    ///
+    /// [`Intents::DIRECT_MESSAGE_TYPING`]: crate::Intents::DIRECT_MESSAGE_TYPING
+    pub const DIRECT_MESSAGE_TYPING: EventTypeFlags =
+        EventTypeFlags::from_bits_truncate(EventTypeFlags::TYPING_START.bits());
+
     /// All [`EventTypeFlags`] in [`Intents::GUILDS`].
     ///
     /// [`Intents::GUILDS`]: crate::Intents::GUILDS
@@ -149,15 +175,6 @@ impl EventTypeFlags {
             | EventTypeFlags::ROLE_CREATE.bits()
             | EventTypeFlags::ROLE_DELETE.bits()
             | EventTypeFlags::ROLE_UPDATE.bits(),
-    );
-
-    /// All [`EventTypeFlags`] in [`Intents::GUILD_MEMBERS`].
-    ///
-    /// [`Intents::GUILD_MEMBERS`]: crate::Intents::GUILD_MEMBERS
-    pub const GUILD_MEMBERS: EventTypeFlags = EventTypeFlags::from_bits_truncate(
-        EventTypeFlags::MEMBER_ADD.bits()
-            | EventTypeFlags::MEMBER_REMOVE.bits()
-            | EventTypeFlags::MEMBER_UPDATE.bits(),
     );
 
     /// All [`EventTypeFlags`] in [`Intents::GUILD_BANS`].
@@ -179,12 +196,6 @@ impl EventTypeFlags {
     pub const GUILD_INTEGRATIONS: EventTypeFlags =
         EventTypeFlags::from_bits_truncate(EventTypeFlags::GUILD_INTEGRATIONS_UPDATE.bits());
 
-    /// All [`EventTypeFlags`] in [`Intents::GUILD_WEBHOOKS`].
-    ///
-    /// [`Intents::GUILD_WEBHOOKS`]: crate::Intents::GUILD_WEBHOOKS
-    pub const GUILD_WEBHOOKS: EventTypeFlags =
-        EventTypeFlags::from_bits_truncate(EventTypeFlags::WEBHOOKS_UPDATE.bits());
-
     /// All [`EventTypeFlags`] in [`Intents::GUILD_INVITES`].
     ///
     /// [`Intents::GUILD_INVITES`]: crate::Intents::GUILD_INVITES
@@ -192,17 +203,14 @@ impl EventTypeFlags {
         EventTypeFlags::INVITE_CREATE.bits() | EventTypeFlags::INVITE_DELETE.bits(),
     );
 
-    /// All [`EventTypeFlags`] in [`Intents::GUILD_VOICE_STATES`].
+    /// All [`EventTypeFlags`] in [`Intents::GUILD_MEMBERS`].
     ///
-    /// [`Intents::GUILD_VOICE_STATES`]: crate::Intents::GUILD_VOICE_STATES
-    pub const GUILD_VOICE_STATES: EventTypeFlags =
-        EventTypeFlags::from_bits_truncate(EventTypeFlags::VOICE_STATE_UPDATE.bits());
-
-    /// All [`EventTypeFlags`] in [`Intents::GUILD_PRESENCES`].
-    ///
-    /// [`Intents::GUILD_PRESENCES`]: crate::Intents::GUILD_PRESENCES
-    pub const GUILD_PRESENCES: EventTypeFlags =
-        EventTypeFlags::from_bits_truncate(EventTypeFlags::PRESENCE_UPDATE.bits());
+    /// [`Intents::GUILD_MEMBERS`]: crate::Intents::GUILD_MEMBERS
+    pub const GUILD_MEMBERS: EventTypeFlags = EventTypeFlags::from_bits_truncate(
+        EventTypeFlags::MEMBER_ADD.bits()
+            | EventTypeFlags::MEMBER_REMOVE.bits()
+            | EventTypeFlags::MEMBER_UPDATE.bits(),
+    );
 
     /// All [`EventTypeFlags`] in [`Intents::GUILD_MESSAGES`].
     ///
@@ -230,31 +238,23 @@ impl EventTypeFlags {
     pub const GUILD_MESSAGE_TYPING: EventTypeFlags =
         EventTypeFlags::from_bits_truncate(EventTypeFlags::TYPING_START.bits());
 
-    /// All [`EventTypeFlags`] in [`Intents::DIRECT_MESSAGES`].
+    /// All [`EventTypeFlags`] in [`Intents::GUILD_PRESENCES`].
     ///
-    /// [`Intents::DIRECT_MESSAGES`]: crate::Intents::DIRECT_MESSAGES
-    pub const DIRECT_MESSAGES: EventTypeFlags = EventTypeFlags::from_bits_truncate(
-        EventTypeFlags::MESSAGE_CREATE.bits()
-            | EventTypeFlags::MESSAGE_DELETE.bits()
-            | EventTypeFlags::MESSAGE_DELETE_BULK.bits()
-            | EventTypeFlags::MESSAGE_UPDATE.bits(),
-    );
+    /// [`Intents::GUILD_PRESENCES`]: crate::Intents::GUILD_PRESENCES
+    pub const GUILD_PRESENCES: EventTypeFlags =
+        EventTypeFlags::from_bits_truncate(EventTypeFlags::PRESENCE_UPDATE.bits());
 
-    /// All [`EventTypeFlags`] in [`Intents::DIRECT_MESSAGE_REACTIONS`].
+    /// All [`EventTypeFlags`] in [`Intents::GUILD_VOICE_STATES`].
     ///
-    /// [`Intents::DIRECT_MESSAGE_REACTIONS`]: crate::Intents::DIRECT_MESSAGE_REACTIONS
-    pub const DIRECT_MESSAGE_REACTIONS: EventTypeFlags = EventTypeFlags::from_bits_truncate(
-        EventTypeFlags::REACTION_ADD.bits()
-            | EventTypeFlags::REACTION_REMOVE.bits()
-            | EventTypeFlags::REACTION_REMOVE_ALL.bits()
-            | EventTypeFlags::REACTION_REMOVE_EMOJI.bits(),
-    );
+    /// [`Intents::GUILD_VOICE_STATES`]: crate::Intents::GUILD_VOICE_STATES
+    pub const GUILD_VOICE_STATES: EventTypeFlags =
+        EventTypeFlags::from_bits_truncate(EventTypeFlags::VOICE_STATE_UPDATE.bits());
 
-    /// All [`EventTypeFlags`] in [`Intents::DIRECT_MESSAGE_TYPING`].
+    /// All [`EventTypeFlags`] in [`Intents::GUILD_WEBHOOKS`].
     ///
-    /// [`Intents::DIRECT_MESSAGE_TYPING`]: crate::Intents::DIRECT_MESSAGE_TYPING
-    pub const DIRECT_MESSAGE_TYPING: EventTypeFlags =
-        EventTypeFlags::from_bits_truncate(EventTypeFlags::TYPING_START.bits());
+    /// [`Intents::GUILD_WEBHOOKS`]: crate::Intents::GUILD_WEBHOOKS
+    pub const GUILD_WEBHOOKS: EventTypeFlags =
+        EventTypeFlags::from_bits_truncate(EventTypeFlags::WEBHOOKS_UPDATE.bits());
 }
 
 impl From<EventType> for EventTypeFlags {
