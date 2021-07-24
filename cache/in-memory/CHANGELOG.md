@@ -2,6 +2,15 @@
 
 Changelog for `twilight-cache-inmemory`.
 
+## [0.5.3] - 2021-07-23
+
+### Changes
+
+`#![deny(unsafe_code)]` has been added, ensuring no unsafe code exists in the
+crate ([#1042] - [@zeylahellyer]).
+
+[#1042]: https://github.com/twilight-rs/twilight/pull/1042
+
 ## [0.5.2] - 2021-07-14
 
 ### Additions
@@ -373,6 +382,7 @@ Initial release.
 [#528]: https://github.com/twilight-rs/twilight/pull/528
 [#524]: https://github.com/twilight-rs/twilight/pull/524
 
+[0.5.3]: https://github.com/twilight-rs/twilight/releases/tag/cache-in-memory-0.5.3
 [0.5.2]: https://github.com/twilight-rs/twilight/releases/tag/cache-in-memory-0.5.2
 [0.5.1]: https://github.com/twilight-rs/twilight/releases/tag/cache-in-memory-0.5.1
 [0.5.0]: https://github.com/twilight-rs/twilight/releases/tag/cache-in-memory-0.5.0
