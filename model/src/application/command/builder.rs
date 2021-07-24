@@ -508,29 +508,53 @@ mod tests {
     #[allow(clippy::too_many_lines)]
     fn construct_command_with_builder() {
         // from <https://discord.com/developers/docs/interactions/slash-commands#example-walkthrough>
-        let command = CommandBuilder::new("permissions","Get or edit permissions for a user or a role")
-            .option(
-                SubCommandGroupBuilder::new("user", "Get or edit permissions for a user")
-                   .option(
-                        SubCommandBuilder::new("get", "Get permissions for a user")
-                            .option(UserBuilder::new("user", "The user to get").required(true))
-                            .option(ChannelBuilder::new("channel", "The channel permissions to get. If omitted, the guild permissions will be returned")),
-                    )
-                    .option(SubCommandBuilder::new("edit", "Edit permissions for a user")
+        let command = CommandBuilder::new(
+            "permissions",
+            "Get or edit permissions for a user or a role",
+        )
+        .option(
+            SubCommandGroupBuilder::new("user", "Get or edit permissions for a user")
+                .option(
+                    SubCommandBuilder::new("get", "Get permissions for a user")
+                        .option(UserBuilder::new("user", "The user to get").required(true))
+                        .option(ChannelBuilder::new(
+                            "channel",
+                            "The channel permissions to get. If omitted, the guild permissions \
+                             will be returned",
+                        )),
+                )
+                .option(
+                    SubCommandBuilder::new("edit", "Edit permissions for a user")
                         .option(UserBuilder::new("user", "The user to edit").required(true))
-                        .option(ChannelBuilder::new("channel", "The channel permissions to edit. If omitted, the guild permissions will be edited"))),
-                    )
-            .option(
-                SubCommandGroupBuilder::new("role", "Get or edit permissions for a role")
-                    .option(SubCommandBuilder::new("get", "Get permissions for a role")
+                        .option(ChannelBuilder::new(
+                            "channel",
+                            "The channel permissions to edit. If omitted, the guild permissions \
+                             will be edited",
+                        )),
+                ),
+        )
+        .option(
+            SubCommandGroupBuilder::new("role", "Get or edit permissions for a role")
+                .option(
+                    SubCommandBuilder::new("get", "Get permissions for a role")
                         .option(RoleBuilder::new("role", "The role to get").required(true))
-                        .option(ChannelBuilder::new("channel", "The channel permissions to get. If omitted, the guild permissions will be returned")))
-                    .option(SubCommandBuilder::new("edit","Edit permissions for a role")
+                        .option(ChannelBuilder::new(
+                            "channel",
+                            "The channel permissions to get. If omitted, the guild permissions \
+                             will be returned",
+                        )),
+                )
+                .option(
+                    SubCommandBuilder::new("edit", "Edit permissions for a role")
                         .option(RoleBuilder::new("role", "The role to edit").required(true))
-                        .option(ChannelBuilder::new("channel", "The channel permissions to edit. If omitted, the guild permissions will be edited")),
-                    )
-            )
-            .build();
+                        .option(ChannelBuilder::new(
+                            "channel",
+                            "The channel permissions to edit. If omitted, the guild permissions \
+                             will be edited",
+                        )),
+                ),
+        )
+        .build();
         let command_manual = Command {
             application_id: None,
             guild_id: None,
@@ -553,10 +577,13 @@ mod tests {
                                     required: true,
                                 }),
                                 CommandOption::Channel(BaseCommandOptionData {
-                                    description: String::from("The channel permissions to get. If omitted, the guild permissions will be returned"),
+                                    description: String::from(
+                                        "The channel permissions to get. If omitted, the guild \
+                                         permissions will be returned",
+                                    ),
                                     name: String::from("channel"),
                                     required: false,
-                                })
+                                }),
                             ],
                             required: false,
                         }),
@@ -570,10 +597,13 @@ mod tests {
                                     required: true,
                                 }),
                                 CommandOption::Channel(BaseCommandOptionData {
-                                    description: String::from("The channel permissions to edit. If omitted, the guild permissions will be edited"),
+                                    description: String::from(
+                                        "The channel permissions to edit. If omitted, the guild \
+                                         permissions will be edited",
+                                    ),
                                     name: String::from("channel"),
                                     required: false,
-                                })
+                                }),
                             ],
                             required: false,
                         }),
@@ -594,10 +624,13 @@ mod tests {
                                     required: true,
                                 }),
                                 CommandOption::Channel(BaseCommandOptionData {
-                                    description: String::from("The channel permissions to get. If omitted, the guild permissions will be returned"),
+                                    description: String::from(
+                                        "The channel permissions to get. If omitted, the guild \
+                                         permissions will be returned",
+                                    ),
                                     name: String::from("channel"),
                                     required: false,
-                                })
+                                }),
                             ],
                             required: false,
                         }),
@@ -611,10 +644,13 @@ mod tests {
                                     required: true,
                                 }),
                                 CommandOption::Channel(BaseCommandOptionData {
-                                    description: String::from("The channel permissions to edit. If omitted, the guild permissions will be edited"),
+                                    description: String::from(
+                                        "The channel permissions to edit. If omitted, the guild \
+                                         permissions will be edited",
+                                    ),
                                     name: String::from("channel"),
                                     required: false,
-                                })
+                                }),
                             ],
                             required: false,
                         }),
