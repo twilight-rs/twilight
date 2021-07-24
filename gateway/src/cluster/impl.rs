@@ -321,7 +321,7 @@ impl Cluster {
 
         let scheme = match config.shard_scheme() {
             ShardScheme::Auto => Self::retrieve_shard_count(&config.http_client).await?,
-            other => other.clone(),
+            other => other,
         };
 
         let iter = scheme.iter().expect("shard scheme is not auto");

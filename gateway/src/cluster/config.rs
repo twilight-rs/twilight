@@ -45,13 +45,13 @@ impl Config {
         &self.shard_config
     }
 
-    /// Return an immutable reference to the shard scheme used to start shards.
+    /// Return a copy of the shard scheme used to start shards.
     ///
     /// Refer to [`ClusterBuilder::shard_scheme`] for the default value.
     ///
     /// [`ClusterBuilder::shard_scheme`]: super::ClusterBuilder::shard_scheme
-    pub const fn shard_scheme(&self) -> &ShardScheme {
-        &self.shard_scheme
+    pub const fn shard_scheme(&self) -> ShardScheme {
+        self.shard_scheme
     }
 
     /// Return an immutable reference to the queue used for initiating shard

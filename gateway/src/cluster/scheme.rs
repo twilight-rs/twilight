@@ -128,7 +128,7 @@ pub struct ShardSchemeIter {
 
 impl ShardSchemeIter {
     /// Create an iterator of shard IDs out of a scheme.
-    fn new(scheme: &ShardScheme) -> Option<Self> {
+    fn new(scheme: ShardScheme) -> Option<Self> {
         let (from, to, step) = match scheme {
             ShardScheme::Auto => return None,
             ShardScheme::Bucket {
@@ -138,12 +138,12 @@ impl ShardSchemeIter {
             } => {
                 // It's reasonable to assume that no one will ever have a
                 // concurrency size greater than even 16 bits.
-                let concurrency = usize::try_from(*concurrency)
+                let concurrency = usize::try_from(concurrency)
                     .expect("concurrency is larger than target pointer width");
 
-                (*bucket_id, *total - 1, concurrency)
+                (bucket_id, total - 1, concurrency)
             }
-            ShardScheme::Range { from, to, .. } => (*from, *to, 1),
+            ShardScheme::Range { from, to, .. } => (from, to, 1),
         };
 
         Some(Self {
@@ -165,7 +165,7 @@ impl Iterator for ShardSchemeIter {
 /// By default this is [`Auto`].
 ///
 /// [`Auto`]: #variant.Auto
-#[derive(Clone, Debug, Eq, Hash, PartialEq)]
+#[derive(Clone, Copy, Debug, Eq, Hash, PartialEq)]
 #[non_exhaustive]
 pub enum ShardScheme {
     /// Specifies to retrieve the amount of shards recommended by Discord and
@@ -233,7 +233,7 @@ impl ShardScheme {
     /// variant.
     ///
     /// [`Auto`]: Self::Auto
-    pub fn iter(&self) -> Option<ShardSchemeIter> {
+    pub fn iter(self) -> Option<ShardSchemeIter> {
         ShardSchemeIter::new(self)
     }
 
@@ -242,11 +242,11 @@ impl ShardScheme {
     /// In the case of the [`Auto`] variant the total is unknown.
     ///
     /// [`Auto`]: Self::Auto
-    pub const fn from(&self) -> Option<u64> {
+    pub const fn from(self) -> Option<u64> {
         match self {
             Self::Auto => None,
-            Self::Bucket { bucket_id, .. } => Some(*bucket_id),
-            Self::Range { from, .. } => Some(*from),
+            Self::Bucket { bucket_id, .. } => Some(bucket_id),
+            Self::Range { from, .. } => Some(from),
         }
     }
 
@@ -255,10 +255,10 @@ impl ShardScheme {
     /// In the case of the [`Auto`] variant the total is unknown.
     ///
     /// [`Auto`]: Self::Auto
-    pub const fn total(&self) -> Option<u64> {
+    pub const fn total(self) -> Option<u64> {
         match self {
             Self::Auto => None,
-            Self::Bucket { total, .. } | Self::Range { total, .. } => Some(*total),
+            Self::Bucket { total, .. } | Self::Range { total, .. } => Some(total),
         }
     }
 
@@ -267,7 +267,7 @@ impl ShardScheme {
     /// In the case of the [`Auto`] variant the total is unknown.
     ///
     /// [`Auto`]: Self::Auto
-    pub fn to(&self) -> Option<u64> {
+    pub fn to(self) -> Option<u64> {
         match self {
             Self::Auto => None,
             Self::Bucket {
@@ -281,7 +281,7 @@ impl ShardScheme {
                 // subtract 1 here.
                 Some(total - (buckets - bucket_id) - 1)
             }
-            Self::Range { to, .. } => Some(*to),
+            Self::Range { to, .. } => Some(to),
         }
     }
 }
@@ -297,13 +297,13 @@ impl<T: RangeBounds<u64>> TryFrom<(T, u64)> for ShardScheme {
 
     fn try_from((range, total): (T, u64)) -> Result<Self, Self::Error> {
         let start = match range.start_bound() {
-            Bound::Excluded(num) => *num - 1,
-            Bound::Included(num) => *num,
+            Bound::Excluded(&num) => num - 1,
+            Bound::Included(&num) => num,
             Bound::Unbounded => 0,
         };
         let end = match range.end_bound() {
-            Bound::Excluded(num) => *num - 1,
-            Bound::Included(num) => *num,
+            Bound::Excluded(&num) => num - 1,
+            Bound::Included(&num) => num,
             Bound::Unbounded => total - 1,
         };
 
@@ -380,6 +380,7 @@ mod tests {
     assert_fields!(ShardScheme::Range: from, to, total);
     assert_impl_all!(
         ShardScheme: Clone,
+        Copy,
         Debug,
         Default,
         Eq,
