@@ -2,6 +2,21 @@
 
 Changelog for `twilight-http`.
 
+## [0.5.7] - 2021-07-23
+
+### Changes
+
+`#![deny(unsafe_code)]` has been added, ensuring no unsafe code exists in the
+crate ([#1042] - [@zeylahellyer]).
+
+### Fixes
+
+The `JSON` body is now actually serialized on the `update_channel` route
+([#1051] - [@Learath2]).
+
+[#1042]: https://github.com/twilight-rs/twilight/pull/1042
+[#1051]: https://github.com/twilight-rs/twilight/pull/1051
+
 ## [0.5.6] - 2021-07-20
 
 ### Fixes
@@ -999,6 +1014,7 @@ Initial release.
 [@Erk-]: https://github.com/Erk-
 [@Gelbpunkt]: https://github.com/Gelbpunkt
 [@jazevedo620]: https://github.com/jazevedo620
+[@Learath2]: https://github.com/Learath2
 [@MaxOhn]: https://github.com/MaxOhn
 [@nickelc]: https://github.com/nickelc
 [@sam-kirby]: https://github.com/sam-kirby
@@ -1045,7 +1061,8 @@ Initial release.
 
 [0.2.0-beta.1:app integrations]: https://github.com/discord/discord-api-docs/commit/a926694e2f8605848bda6b57d21c8817559e5cec
 
-[0.5.6]: https://github.com/twilight-rs/twilight/releases/tag/http-0.6.5
+[0.5.7]: https://github.com/twilight-rs/twilight/releases/tag/http-0.5.7
+[0.5.6]: https://github.com/twilight-rs/twilight/releases/tag/http-0.5.6
 [0.5.5]: https://github.com/twilight-rs/twilight/releases/tag/http-0.5.5
 [0.5.4]: https://github.com/twilight-rs/twilight/releases/tag/http-0.5.4
 [0.5.3]: https://github.com/twilight-rs/twilight/releases/tag/http-0.5.3
