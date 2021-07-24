@@ -2,6 +2,15 @@
 
 Changelog for `twilight-gateway-queue`.
 
+## [0.5.1] - 2021-07-23
+
+### Changes
+
+`#![deny(unsafe_code)]` has been added, ensuring no unsafe code exists in the
+crate ([#1042] - [@zeylahellyer]).
+
+[#1042]: https://github.com/twilight-rs/twilight/pull/1042
+
 ## [0.5.0] - 2021-06-13
 
 This major version bump of the Gateway Queue is done to match all of the other
@@ -57,9 +66,11 @@ Initial release.
 
 [@Gelbpunkt]: https://github.com/Gelbpunkt
 [@vivian]: https://github.com/vivian
+[@zeylahellyer]: https://github.com/zeylahellyer
 
 [#595]: https://github.com/twilight-rs/twilight/pull/595
 
+[0.5.1]: https://github.com/twilight-rs/twilight/releases/tag/gateway-queue-0.5.1
 [0.5.0]: https://github.com/twilight-rs/twilight/releases/tag/gateway-queue-0.5.0
 [0.4.0]: https://github.com/twilight-rs/twilight/releases/tag/gateway-queue-0.4.0
 [0.3.0]: https://github.com/twilight-rs/twilight/releases/tag/gateway-queue-v0.3.0
