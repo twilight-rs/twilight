@@ -555,6 +555,7 @@ mod tests {
                 ),
         )
         .build();
+
         let command_manual = Command {
             application_id: None,
             guild_id: None,
@@ -659,6 +660,7 @@ mod tests {
                 }),
             ],
         };
+
         assert_eq!(command, command_manual);
     }
 }
