@@ -582,7 +582,7 @@ impl InMemoryCache {
     /// [`GUILDS`]: ::twilight_model::gateway::Intents::GUILDS
     /// [`GUILD_MEMBERS`]: ::twilight_model::gateway::Intents::GUILD_MEMBERS
     pub fn member_highest_role(&self, guild_id: GuildId, user_id: UserId) -> Option<RoleId> {
-        let member = match self.0.members.get(&(guild_id, user_id)).map(|r| r.clone()) {
+        let member = match self.0.members.get(&(guild_id, user_id)) {
             Some(member) => member,
             None => return None,
         };
