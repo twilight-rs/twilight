@@ -2,6 +2,15 @@
 
 Changelog for `twilight-command-parser`.
 
+## [0.5.1] - 2021-07-23
+
+### Changes
+
+`#![deny(unsafe_code)]` has been added, ensuring no unsafe code exists in the
+crate ([#1042] - [@zeylahellyer]).
+
+[#1042]: https://github.com/twilight-rs/twilight/pull/1042
+
 ## [0.5.0] - 2021-06-13
 
 This major version bump of the Command Parser crate is done to match all of the
@@ -126,6 +135,7 @@ Initial release.
 [@nickelc]: https://github.com/nickelc
 [@vilgotf]: https://github.com/vilgotf
 [@vivian]: https://github.com/vivian
+[@zeylahellyer]: https://github.com/zeylahellyer
 
 [#585]: https://github.com/twilight-rs/twilight/pull/585
 [#584]: https://github.com/twilight-rs/twilight/pull/584
@@ -133,6 +143,7 @@ Initial release.
 [#515]: https://github.com/twilight-rs/twilight/pull/515
 [#511]: https://github.com/twilight-rs/twilight/pull/511
 
+[0.5.1]: https://github.com/twilight-rs/twilight/releases/tag/command-parser-0.5.1
 [0.5.0]: https://github.com/twilight-rs/twilight/releases/tag/command-parser-0.5.0
 [0.4.2]: https://github.com/twilight-rs/twilight/releases/tag/command-parser-0.4.2
 [0.4.1]: https://github.com/twilight-rs/twilight/releases/tag/command-parser-0.4.1
