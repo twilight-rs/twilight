@@ -1,3 +1,4 @@
+pub mod invite_create;
 pub mod identify;
 pub mod reaction_remove_emoji;
 pub mod request_guild_members;
@@ -20,7 +21,6 @@ mod integration_create;
 mod integration_delete;
 mod integration_update;
 mod interaction_create;
-mod invite_create;
 mod invite_delete;
 mod member_add;
 mod member_chunk;
