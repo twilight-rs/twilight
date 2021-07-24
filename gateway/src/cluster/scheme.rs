@@ -267,7 +267,7 @@ impl ShardScheme {
     /// In the case of the [`Auto`] variant the total is unknown.
     ///
     /// [`Auto`]: Self::Auto
-    pub fn to(self) -> Option<u64> {
+    pub const fn to(self) -> Option<u64> {
         match self {
             Self::Auto => None,
             Self::Bucket {
