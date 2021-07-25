@@ -367,7 +367,7 @@ struct ShardRef {
 pub struct Shard(Arc<ShardRef>);
 
 impl Shard {
-    /// Create a new unconfingured shard.
+    /// Create a new unconfigured shard.
     ///
     /// Use [`start`] to initiate the gateway session.
     ///
