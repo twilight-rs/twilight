@@ -2,6 +2,17 @@
 
 Changelog for `twilight-gateway`.
 
+## [0.5.5] - 2021-07-25
+
+This is a hotfix to actually include the changes that were supposed to be in
+0.5.5; they were erroneously left out during the release.
+
+### Documentation
+
+Fix a typo in the documentation for `Shard::new` ([#1071] - [@kotx]).
+
+[#1071]: https://github.com/twilight-rs/twilight/pull/1071
+
 ## [0.5.4] - 2021-07-23
 
 ### Additions
@@ -460,6 +471,7 @@ Initial release.
 [@Erk-]: https://github.com/Erk-
 [@Gelbpunkt]: https://github.com/Gelbpunkt
 [@james7132]: https://github.com/james7132
+[@kotx]: https://github.com/kotx
 [@nickelc]: https://github.com/nickelc
 [@tbnritzdoge]: https://github.com/tbnritzdoge
 [@vilgotf]: https://github.com/vilgotf
@@ -484,6 +496,7 @@ Initial release.
 [#515]: https://github.com/twilight-rs/twilight/pull/515
 [#512]: https://github.com/twilight-rs/twilight/pull/512
 
+[0.5.5]: https://github.com/twilight-rs/twilight/releases/tag/gateway-0.5.5
 [0.5.4]: https://github.com/twilight-rs/twilight/releases/tag/gateway-0.5.4
 [0.5.3]: https://github.com/twilight-rs/twilight/releases/tag/gateway-0.5.3
 [0.5.2]: https://github.com/twilight-rs/twilight/releases/tag/gateway-0.5.2
