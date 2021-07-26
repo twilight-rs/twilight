@@ -1,7 +1,7 @@
 use super::{builder::ClusterBuilder, config::Config, event::Events, scheme::ShardScheme};
 use crate::{
     cluster::event::ShardEventsWithId,
-    shard::{raw_message::Message, Information, ResumeSession, Shard},
+    shard::{raw_message::Message, Config as ShardConfig, Information, ResumeSession, Shard},
     Intents,
 };
 use futures_util::{future, stream::SelectAll};
@@ -297,6 +297,7 @@ impl Cluster {
 
     pub(super) async fn new_with_config(
         mut config: Config,
+        shard_config: ShardConfig,
     ) -> Result<(Self, Events), ClusterStartError> {
         #[derive(Default)]
         struct ShardFold {
@@ -305,7 +306,7 @@ impl Cluster {
         }
 
         let scheme = match config.shard_scheme() {
-            ShardScheme::Auto => Self::retrieve_shard_count(&config.http_client).await?,
+            ShardScheme::Auto => Self::retrieve_shard_count(&shard_config.http_client).await?,
             other => other.clone(),
         };
 
@@ -319,7 +320,7 @@ impl Cluster {
         }
 
         let ShardFold { shards, streams } = iter.fold(ShardFold::default(), |mut fold, idx| {
-            let mut shard_config = config.shard_config().clone();
+            let mut shard_config = shard_config.clone();
             shard_config.shard = [idx, total];
 
             if let Some(data) = config.resume_sessions.remove(&idx) {

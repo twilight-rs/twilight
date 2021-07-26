@@ -1,50 +1,19 @@
 use super::scheme::ShardScheme;
-use crate::{
-    shard::{Config as ShardConfig, ResumeSession},
-    EventTypeFlags,
-};
+use crate::shard::ResumeSession;
 use std::{collections::HashMap, sync::Arc};
 use twilight_gateway_queue::Queue;
-use twilight_http::Client;
 
 /// Built configuration for a [`Cluster`].
 ///
 /// [`Cluster`]: crate::Cluster
 #[derive(Debug)]
 pub struct Config {
-    pub(super) http_client: Client,
-    pub(super) shard_config: ShardConfig,
     pub(super) shard_scheme: ShardScheme,
     pub(super) queue: Arc<dyn Queue>,
     pub(super) resume_sessions: HashMap<u64, ResumeSession>,
 }
 
 impl Config {
-    /// Copy of the event type flags.
-    pub const fn event_types(&self) -> EventTypeFlags {
-        self.shard_config.event_types()
-    }
-
-    /// Return an immutable reference to the `twilight_http` client used by the
-    /// cluster and shards to get the gateway information.
-    ///
-    /// Refer to [`ClusterBuilder::http_client`] for the default value.
-    ///
-    /// [`ClusterBuilder::http_client`]: super::ClusterBuilder::http_client
-    pub const fn http_client(&self) -> &Client {
-        &self.http_client
-    }
-
-    /// Return an immutable reference to the configuration used to create
-    /// shards.
-    ///
-    /// Refer to [`ShardBuilder`]'s methods for the default values.
-    ///
-    /// [`ShardBuilder`]: crate::shard::ShardBuilder#impl
-    pub const fn shard_config(&self) -> &ShardConfig {
-        &self.shard_config
-    }
-
     /// Return an immutable reference to the shard scheme used to start shards.
     ///
     /// Refer to [`ClusterBuilder::shard_scheme`] for the default value.
