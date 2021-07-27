@@ -294,7 +294,7 @@ impl ShardProcessor {
 
         let properties = IdentifyProperties::new("twilight.rs", "twilight.rs", OS, "", "");
 
-        url.push_str("?v=8");
+        url.push_str("?v=9");
         compression::add_url_feature(&mut url);
 
         emitter.event(Event::ShardConnecting(Connecting {
