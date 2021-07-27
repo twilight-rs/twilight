@@ -883,8 +883,8 @@ mod tests {
             payload::{MessageCreate, ReactionAdd, Ready, RoleDelete},
         },
         id::{ApplicationId, ChannelId, GuildId, MessageId, RoleId, UserId},
-        oauth::PartialApplication,
-        user::{CurrentUser, User, UserFlags},
+        oauth::{current_application_info::ApplicationFlags, PartialApplication},
+        user::{CurrentUser, User},
     };
 
     assert_impl_all!(Standby: Clone, Debug, Default, Send, Sync);
@@ -1013,7 +1013,7 @@ mod tests {
     async fn test_wait_for_event() {
         let ready = Ready {
             application: PartialApplication {
-                flags: UserFlags::empty(),
+                flags: ApplicationFlags::empty(),
                 id: ApplicationId(0),
             },
             guilds: Vec::new(),
