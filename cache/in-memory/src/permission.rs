@@ -252,7 +252,7 @@ impl<'a> InMemoryCachePermissions<'a> {
 
     /// Consume the statistics interface, returning the underlying cache
     /// reference.
-    pub const fn into_cache(self) -> &'a InMemoryCache {
+    pub const fn into_cache(self) -> InMemoryCache {
         self.0
     }
 
