@@ -286,11 +286,15 @@ impl<'de> Visitor<'de> for InteractionVisitor {
 #[cfg(test)]
 mod test {
     use crate::{
-        application::interaction::{
-            application_command::{
-                ApplicationCommand, CommandData, CommandDataOption, CommandInteractionDataResolved,
+        application::{
+            command::CommandOptionType,
+            interaction::{
+                application_command::{
+                    ApplicationCommand, CommandData, CommandDataOption,
+                    CommandInteractionDataResolved, CommandOptionValue, InteractionMember,
+                },
+                Interaction, InteractionType,
             },
-            Interaction, InteractionType,
         },
         guild::{PartialMember, Permissions},
         id::{ApplicationId, ChannelId, CommandId, GuildId, InteractionId, UserId},
@@ -307,13 +311,20 @@ mod test {
             data: CommandData {
                 id: CommandId::new(300).expect("non zero"),
                 name: "command name".into(),
-                options: vec![CommandDataOption::String {
+                options: vec![CommandDataOption {
                     name: "member".into(),
-                    value: "600".into(),
+                    value: CommandOptionValue::User(UserId::new(600).expect("non zero")),
                 }],
                 resolved: Some(CommandInteractionDataResolved {
                     channels: Vec::new(),
-                    members: Vec::new(),
+                    members: vec![InteractionMember {
+                        hoisted_role: None,
+                        id: UserId::new(600).expect("non zero"),
+                        joined_at: Some("joined at".into()),
+                        nick: Some("nickname".into()),
+                        premium_since: None,
+                        roles: Vec::new(),
+                    }],
                     messages: Vec::new(),
                     roles: Vec::new(),
                     users: vec![User {
@@ -396,12 +407,19 @@ mod test {
                 Token::Str("options"),
                 Token::Seq { len: Some(1) },
                 Token::Struct {
-                    name: "CommandDataOption",
-                    len: 2,
+                    name: "CommandDataOptionRaw",
+                    len: 3,
                 },
                 Token::Str("name"),
                 Token::Str("member"),
+                Token::Str("type"),
+                Token::U8(CommandOptionType::User as u8),
                 Token::Str("value"),
+                Token::Some,
+                Token::NewtypeVariant {
+                    name: "CommandOptionValueRaw",
+                    variant: "String",
+                },
                 Token::Str("600"),
                 Token::StructEnd,
                 Token::SeqEnd,
@@ -409,8 +427,24 @@ mod test {
                 Token::Some,
                 Token::Struct {
                     name: "CommandInteractionDataResolved",
-                    len: 1,
+                    len: 2,
                 },
+                Token::Str("members"),
+                Token::Map { len: Some(1) },
+                Token::NewtypeStruct { name: "UserId" },
+                Token::Str("600"),
+                Token::Struct {
+                    name: "InteractionMemberEnvelope",
+                    len: 2,
+                },
+                Token::Str("joined_at"),
+                Token::Some,
+                Token::Str("joined at"),
+                Token::Str("nick"),
+                Token::Some,
+                Token::Str("nickname"),
+                Token::StructEnd,
+                Token::MapEnd,
                 Token::Str("users"),
                 Token::Map { len: Some(1) },
                 Token::NewtypeStruct { name: "UserId" },
