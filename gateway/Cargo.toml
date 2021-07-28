@@ -21,10 +21,9 @@ twilight-gateway-queue = { default-features = false, path = "./queue" }
 twilight-http = { default-features = false, path = "../http" }
 twilight-model = { default-features = false, path = "../model" }
 futures-util = { default-features = false, features = ["std"], version = "0.3" }
-once_cell = { default-features = false, features = ["std"], version = "1" }
 serde = { default-features = false, features = ["derive"], version = "1" }
 serde_json = { default-features = false, version = "1" }
-tokio = { default-features = false, features = ["net", "rt", "sync"], version = "1.0" }
+tokio = { default-features = false, features = ["net", "rt", "sync"], version = "1.5" }
 url = { default-features = false, version = "2" }
 
 # Optional
