@@ -112,7 +112,7 @@ impl Ratelimiter {
                 #[cfg(feature = "tracing")]
                 tracing::debug!("added request into bucket queue: {:?}", path);
 
-                (Arc::clone(&bucket), false)
+                (Arc::clone(bucket), false)
             }
             Entry::Vacant(entry) => {
                 #[cfg(feature = "tracing")]

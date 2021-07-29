@@ -91,7 +91,7 @@ impl AllowedMentionsBuilder {
                 .parse
                 .into_iter()
                 .filter(|t| *t != ParseTypes::Roles)
-                .collect()
+                .collect();
         }
 
         self.0

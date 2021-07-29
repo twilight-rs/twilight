@@ -15,7 +15,7 @@ use simd_json::Result as JsonResult;
 pub fn from_bytes<T: DeserializeOwned>(bytes: &Bytes) -> JsonResult<T> {
     #[cfg(not(feature = "simd-json"))]
     {
-        serde_json::from_slice::<T>(&bytes)
+        serde_json::from_slice::<T>(bytes)
     }
 
     #[cfg(feature = "simd-json")]

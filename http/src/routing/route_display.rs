@@ -92,7 +92,7 @@ impl Display for RouteDisplay<'_> {
 
                 if let Some(reason) = reason {
                     f.write_str("reason=")?;
-                    let encoded_reason = utf8_percent_encode(&reason, NON_ALPHANUMERIC);
+                    let encoded_reason = utf8_percent_encode(reason, NON_ALPHANUMERIC);
 
                     Display::fmt(&encoded_reason, f)?;
                 }

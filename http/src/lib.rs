@@ -93,10 +93,10 @@
     warnings
 )]
 #![allow(
-    clippy::module_name_repetitions,
-    clippy::pub_enum_variant_names,
-    clippy::must_use_candidate,
     clippy::missing_errors_doc,
+    clippy::module_name_repetitions,
+    clippy::must_use_candidate,
+    clippy::semicolon_if_nothing_returned,
     clippy::unnecessary_wraps
 )]
 #![cfg_attr(docsrs, feature(doc_cfg))]

@@ -39,7 +39,7 @@ impl Inflater {
 
     /// Extend the internal compressed buffer with bytes.
     pub fn extend(&mut self, slice: &[u8]) {
-        self.compressed.extend_from_slice(&slice);
+        self.compressed.extend_from_slice(slice);
     }
 
     /// Decompress the next message if a complete payload was received.
@@ -212,7 +212,7 @@ mod tests {
         assert_eq!(None, inflater.msg()?);
 
         inflater.reset();
-        inflater.extend(&MESSAGE);
+        inflater.extend(MESSAGE);
 
         // Check the state of fields.
         assert!(!inflater.compressed.is_empty());

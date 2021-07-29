@@ -310,7 +310,7 @@ impl<'a> UpdateOriginalResponse<'a> {
             }
 
             for (idx, embed) in embeds_present.iter().enumerate() {
-                if let Err(source) = validate::embed(&embed) {
+                if let Err(source) = validate::embed(embed) {
                     return Err(UpdateOriginalResponseError {
                         kind: UpdateOriginalResponseErrorType::EmbedTooLarge {
                             embeds: embeds.expect("embeds are known to be present"),
@@ -382,7 +382,7 @@ impl<'a> UpdateOriginalResponse<'a> {
             }
 
             if let Some(payload_json) = &self.fields.payload_json {
-                form.payload_json(&payload_json);
+                form.payload_json(payload_json);
             } else {
                 let body = crate::json::to_vec(&self.fields).map_err(HttpError::json)?;
                 form.payload_json(&body);
