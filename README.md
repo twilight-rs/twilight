@@ -205,10 +205,9 @@ async fn handle_event(
 and in your `Cargo.toml`, include the following dependencies:
 
 ```toml
-...
 [dependencies]
-futures = "0.3.16"
-tokio = { version = "1.9.0", features = ["full"] }
+futures = "0.3"
+tokio = { version = "1.0", features = ["macros, rt-multi-thread"] }
 twilight-cache-inmemory = "0.5"
 twilight-gateway = "0.5"
 twilight-http = "0.5"
