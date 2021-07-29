@@ -24,10 +24,10 @@ We recommend that most users start out with these crates added to your
 `Cargo.toml`'s `[dependencies]` section:
 
 ```toml
-twilight-cache-inmemory = "0.4"
-twilight-gateway = "0.4"
-twilight-http = "0.4"
-twilight-model = "0.4"
+twilight-cache-inmemory = "0.5"
+twilight-gateway = "0.5"
+twilight-http = "0.5"
+twilight-model = "0.5"
 ```
 
 If you need any other functionality that Twilight provides, you can just add
@@ -125,6 +125,9 @@ crates through the gateway.
 
 ## Examples
 
+Add this to your `main.rs`, and make sure to add your bot token to your
+environment with the variable `DISCORD_TOKEN`:
+
 ```rust,no_run
 use std::{env, error::Error, sync::Arc};
 use futures::stream::StreamExt;
@@ -197,6 +200,19 @@ async fn handle_event(
 
     Ok(())
 }
+```
+
+and in your `Cargo.toml`, include the following dependencies:
+
+```toml
+...
+[dependencies]
+futures = "0.3.16"
+tokio = { version = "1.9.0", features = ["full"] }
+twilight-cache-inmemory = "0.5"
+twilight-gateway = "0.5"
+twilight-http = "0.5"
+twilight-model = "0.5"
 ```
 
 ## Note about tracing
