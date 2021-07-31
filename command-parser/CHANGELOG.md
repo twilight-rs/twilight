@@ -2,6 +2,12 @@
 
 Changelog for `twilight-command-parser`.
 
+## [0.6.0] - 2021-07-31
+
+This major version bump of the Command Parser crate is done to match all of the
+other crates in the ecosystem receiving a major version bump. There are no
+changes.
+
 ## [0.5.1] - 2021-07-23
 
 ### Changes
