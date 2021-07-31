@@ -2,6 +2,40 @@
 
 Changelog for `twilight-model`.
 
+## [0.6.0] - 2021-07-31
+
+### Enhancements
+
+Fully support audit logs by creating types for Audit Log Changes and
+updating Audit Log Change Keys with new variants. Changes were generic
+`serde_value::Value`s, which provide no typed information. There are now
+variants with typed `new` and `old` values - checked against the API -
+which may or may not both always be present, or never.
+
+The `twilight_model::guild::audit_log` module is now entirely documented
+and tested as well. This has been manually tested by creating as many
+different audit log changes as could be created in the API and then
+deserializing the past 100 entries.
+
+([#1022] - [@zeylahellyer]).
+
+### Changes
+
+Rename the `GuildCreate` audit log event to `GuildUpdate` ([#966] -
+[@zeylahellyer]).
+
+A few spelling errors have been fixed by adding the `codespell` Action
+([#1041] - [@Gelbpunkt].
+
+### Fixes
+
+`PartialApplication` now uses `ApplicationFlags` instead of `UserFlags` ([#1072] - [@A5rocks]).
+
+[#966]: https://github.com/twilight-rs/twilight/pull/966
+[#1022]: https://github.com/twilight-rs/twilight/pull/1022
+[#1041]: https://github.com/twilight-rs/twilight/pull/1041
+[#1072]: https://github.com/twilight-rs/twilight/pull/1072
+
 ## [0.5.4] - 2021-07-23
 
 ### Changes
@@ -706,6 +740,7 @@ Similarly, the following permissions fields now (de)serialize to/from
 Initial release.
 
 [@7596ff]: https://github.com/7596ff
+[@A5rocks]: https://github.com/A5rocks
 [@AsianIntel]: https://github.com/AsianIntel
 [@BlackHoleFox]: https://github.com/BlackHoleFox
 [@chamburr]: https://github.com/chamburr
