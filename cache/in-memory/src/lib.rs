@@ -95,10 +95,7 @@ pub use self::{
 pub use self::permission::InMemoryCachePermissions;
 
 use self::model::*;
-use dashmap::{
-    mapref::{entry::Entry, one::Ref},
-    DashMap, DashSet,
-};
+use dashmap::{mapref::entry::Entry, DashMap, DashSet};
 use std::{
     collections::{BTreeSet, HashSet, VecDeque},
     hash::Hash,
