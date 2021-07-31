@@ -1829,7 +1829,7 @@ impl Client {
             kind: InteractionErrorType::ApplicationIdNotPresent,
         })?;
 
-        CreateGuildCommand::new(&self, application_id, guild_id, name, description)
+        CreateGuildCommand::new(self, application_id, guild_id, name, description)
     }
 
     /// Fetch all commands for a guild, by ID.
@@ -2058,7 +2058,7 @@ impl Client {
         })?;
 
         Ok(GetCommandPermissions::new(
-            &self,
+            self,
             application_id,
             guild_id,
             command_id,
@@ -2171,7 +2171,7 @@ impl Client {
 
         if use_authorization_token {
             if let Some(ref token) = self.state.token {
-                let value = HeaderValue::from_str(&token).map_err(|source| {
+                let value = HeaderValue::from_str(token).map_err(|source| {
                     #[allow(clippy::borrow_interior_mutable_const)]
                     let name = AUTHORIZATION.to_string();
 

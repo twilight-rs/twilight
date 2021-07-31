@@ -185,7 +185,7 @@ mod tests {
     fn double_command() {
         let parser = simple_config();
         if parser.parse("!echoecho").is_some() {
-            panic!("Double match!")
+            panic!("Double match!");
         }
     }
 

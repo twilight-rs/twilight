@@ -223,8 +223,8 @@ impl Standby {
         tracing::trace!(event_type = ?event.kind(), ?event, "processing event");
 
         match event {
-            Event::MessageCreate(e) => self.process_message(e.0.channel_id, &e),
-            Event::ReactionAdd(e) => self.process_reaction(e.0.message_id, &e),
+            Event::MessageCreate(e) => self.process_message(e.0.channel_id, e),
+            Event::ReactionAdd(e) => self.process_reaction(e.0.message_id, e),
             _ => {}
         }
 

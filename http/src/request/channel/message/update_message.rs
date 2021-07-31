@@ -265,7 +265,7 @@ impl<'a> UpdateMessage<'a> {
 
     fn _embed(mut self, embed: Option<Embed>) -> Result<Self, UpdateMessageError> {
         if let Some(embed_ref) = embed.as_ref() {
-            validate::embed(&embed_ref)
+            validate::embed(embed_ref)
                 .map_err(|source| UpdateMessageError::embed(source, embed_ref.clone(), None))?;
         }
 

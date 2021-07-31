@@ -112,7 +112,7 @@ impl Display for RequestReactionTypeDisplay<'_> {
                 Display::fmt(id, f)
             }
             RequestReactionType::Unicode { name } => {
-                Display::fmt(&utf8_percent_encode(&name, NON_ALPHANUMERIC), f)
+                Display::fmt(&utf8_percent_encode(name, NON_ALPHANUMERIC), f)
             }
         }
     }

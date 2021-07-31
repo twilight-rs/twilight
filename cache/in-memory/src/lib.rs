@@ -557,7 +557,7 @@ impl InMemoryCache {
         Some(
             user_ids
                 .iter()
-                .filter_map(|key| self.0.voice_states.get(&key).map(|r| r.clone()))
+                .filter_map(|key| self.0.voice_states.get(key).map(|r| r.clone()))
                 .collect(),
         )
     }
