@@ -2,6 +2,15 @@
 
 Changelog for `twilight-lavalink`.
 
+## [0.6.0] - 2021-07-31
+
+### Changes
+
+A few spelling errors have been fixed by adding the `codespell` Action
+([#1041] - [@Gelbpunkt].
+
+[#1041]: https://github.com/twilight-rs/twilight/pull/1041
+
 ## [0.5.2] - 2021-07-23
 
 ### Changes
