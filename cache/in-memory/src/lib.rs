@@ -534,17 +534,6 @@ impl InMemoryCache {
         self.0.users.get(&user_id).map(|r| r.0.clone())
     }
 
-    /// Gets a user by ID.
-    ///
-    /// This is an O(1) operation. This requires the [`GUILD_MEMBERS`] intent.
-    ///
-    /// [`GUILD_MEMBERS`]: ::twilight_model::gateway::Intents::GUILD_MEMBERS
-    #[deprecated(since = "0.5.1", note = "use `user`")]
-    #[doc(hidden)]
-    pub fn user_ref(&self, user_id: UserId) -> Option<Ref<'_, UserId, (User, BTreeSet<GuildId>)>> {
-        self.0.users.get(&user_id)
-    }
-
     /// Gets the voice states within a voice channel.
     ///
     /// This requires both the [`GUILDS`] and [`GUILD_VOICE_STATES`] intents.
