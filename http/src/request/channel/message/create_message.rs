@@ -199,7 +199,7 @@ impl<'a> CreateMessage<'a> {
     /// [the discord docs]: https://discord.com/developers/docs/resources/channel#embed-limits
     pub fn embeds(mut self, embeds: &'a [Embed]) -> Result<Self, CreateMessageError> {
         for (idx, embed) in embeds.iter().enumerate() {
-            validate::embed(&embed).map_err(|source| CreateMessageError::embed(source, idx))?;
+            validate::embed(embed).map_err(|source| CreateMessageError::embed(source, idx))?;
         }
 
         self.fields.embeds = embeds;
