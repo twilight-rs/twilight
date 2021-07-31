@@ -2,6 +2,64 @@
 
 Changelog for `twilight-http`.
 
+## [0.6.0] - 2021-07-31
+
+### Enhancements
+
+Many functions have been made constant ([#1010] - [@zeylahellyer]).
+
+### Changes
+
+There are significant changes to how users make HTTP requests. When
+users make a request, they must pass borrowed types instead of owned
+types. To execute the request, users must call `exec` on the request
+builder. Once the request has completed execution, users may use the
+`ResponseFuture` struct methods to access the status code of the
+request. To access a returned model, if there is one, users must call
+`model` on the response.
+
+A call to `Client::create_message` like this:
+
+```rust
+client.create_message(ChannelId(1))
+    .content("some content")?
+    .embed(Embed {})?
+    .await?;
+```
+
+is now written like this:
+
+```rust
+client.create_message(ChannelId(1))
+    .content(&"some conntent")?
+    .embeds(&[&Embed {}])?
+    .exec()
+    .await?
+    .model()
+    .await?;
+```
+
+For more information on the motivation behind these changes, see the PR
+descriptions of [#923], [#1008], and [#1009]. These changes were
+authored by [@zeylahellyer].
+
+Rename `ErrorCode::UnallowedWordsForPublicStage` variant to
+`UnallowedWords` ([#956] - [@7596ff])
+
+`CreateGlobalCommand`, `CreateGuildCommand`, `SetGlobalCommands`, and
+`SetGuildCommands` now return command(s) ([#1037] - [@vilgotf]).
+
+A few spelling errors have been fixed by adding the `codespell` Action
+([#1041] - [@Gelbpunkt].
+
+[#923]: https://github.com/twilight-rs/twilight/pull/923
+[#956]: https://github.com/twilight-rs/twilight/pull/956
+[#1008]: https://github.com/twilight-rs/twilight/pull/1008
+[#1009]: https://github.com/twilight-rs/twilight/pull/1009
+[#1010]: https://github.com/twilight-rs/twilight/pull/1010
+[#1037]: https://github.com/twilight-rs/twilight/pull/1037
+[#1041]: https://github.com/twilight-rs/twilight/pull/1041
+
 ## [0.5.7] - 2021-07-23
 
 ### Changes
@@ -1021,6 +1079,7 @@ Initial release.
 [@Silvea12]: https://github.com/Silvea12
 [@SuperiorJT]: https://github.com/SuperiorJT
 [@tbnritzdoge]: https://github.com/tbnritzdoge
+[@vilgotf]: https://github.com/vilgotf
 [@vivian]: https://github.com/vivian
 [@zeylahellyer]: https://github.com/zeylahellyer
 
