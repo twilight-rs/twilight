@@ -449,7 +449,7 @@ impl<'a> CreateGuild<'a> {
     ///
     /// [`Response`]: crate::response::Response
     pub fn exec(self) -> ResponseFuture<PartialGuild> {
-        let mut request = Request::builder(Route::CreateGuild);
+        let mut request = Request::builder(&Route::CreateGuild);
 
         request = match request.json(&self.fields) {
             Ok(request) => request,

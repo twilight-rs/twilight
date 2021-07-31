@@ -22,7 +22,7 @@ impl<'a> GetCurrentUserConnections<'a> {
     ///
     /// [`Response`]: crate::response::Response
     pub fn exec(self) -> ResponseFuture<ListBody<Connection>> {
-        let request = Request::from_route(Route::GetUserConnections);
+        let request = Request::from_route(&Route::GetUserConnections);
 
         self.http.request(request)
     }

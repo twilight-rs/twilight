@@ -89,7 +89,7 @@ impl<'a> UpdateRole<'a> {
     ///
     /// [`Response`]: crate::response::Response
     pub fn exec(self) -> ResponseFuture<Role> {
-        let mut request = Request::builder(Route::UpdateRole {
+        let mut request = Request::builder(&Route::UpdateRole {
             guild_id: self.guild_id.0,
             role_id: self.role_id.0,
         });

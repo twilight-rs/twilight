@@ -207,8 +207,8 @@ impl<'a> ExecuteWebhook<'a> {
 
     // `self` needs to be consumed and the client returned due to parameters
     // being consumed in request construction.
-    pub(super) fn request(&self, wait: bool) -> Result<Request<'a>, Error> {
-        let mut request = Request::builder(Route::ExecuteWebhook {
+    pub(super) fn request(&self, wait: bool) -> Result<Request, Error> {
+        let mut request = Request::builder(&Route::ExecuteWebhook {
             token: self.token,
             wait: Some(wait),
             webhook_id: self.webhook_id.0,

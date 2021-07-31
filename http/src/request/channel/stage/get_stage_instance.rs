@@ -16,7 +16,7 @@ impl<'a> GetStageInstance<'a> {
     ///
     /// [`Response`]: crate::response::Response
     pub fn exec(self) -> ResponseFuture<StageInstance> {
-        let request = Request::from_route(Route::GetStageInstance {
+        let request = Request::from_route(&Route::GetStageInstance {
             channel_id: self.channel_id.0,
         });
 

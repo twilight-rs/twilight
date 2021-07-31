@@ -60,7 +60,7 @@ impl<'a> UpdateWebhookWithToken<'a> {
     ///
     /// [`Response`]: crate::response::Response
     pub fn exec(self) -> ResponseFuture<Webhook> {
-        let mut request = Request::builder(Route::UpdateWebhook {
+        let mut request = Request::builder(&Route::UpdateWebhook {
             token: Some(self.token),
             webhook_id: self.webhook_id.0,
         })

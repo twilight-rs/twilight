@@ -119,7 +119,7 @@ impl<'a> CreateGuildFromTemplate<'a> {
     ///
     /// [`Response`]: crate::response::Response
     pub fn exec(self) -> ResponseFuture<Guild> {
-        let mut request = Request::builder(Route::CreateGuildFromTemplate {
+        let mut request = Request::builder(&Route::CreateGuildFromTemplate {
             template_code: self.template_code,
         });
 

@@ -39,7 +39,7 @@ impl<'a> GetBans<'a> {
     ///
     /// [`Response`]: crate::response::Response
     pub fn exec(self) -> ResponseFuture<ListBody<Ban>> {
-        let request = Request::from_route(Route::GetBans {
+        let request = Request::from_route(&Route::GetBans {
             guild_id: self.guild_id.0,
         });
 

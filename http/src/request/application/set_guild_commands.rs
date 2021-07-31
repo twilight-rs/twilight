@@ -36,8 +36,8 @@ impl<'a> SetGuildCommands<'a> {
         }
     }
 
-    fn request(&self) -> Result<Request<'a>, Error> {
-        Request::builder(Route::SetGuildCommands {
+    fn request(&self) -> Result<Request, Error> {
+        Request::builder(&Route::SetGuildCommands {
             application_id: self.application_id.0,
             guild_id: self.guild_id.0,
         })

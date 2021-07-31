@@ -108,7 +108,7 @@ impl<'a> CreateRole<'a> {
     ///
     /// [`Response`]: crate::response::Response
     pub fn exec(self) -> ResponseFuture<Role> {
-        let mut request = Request::builder(Route::CreateRole {
+        let mut request = Request::builder(&Route::CreateRole {
             guild_id: self.guild_id.0,
         });
 

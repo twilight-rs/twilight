@@ -59,7 +59,7 @@ impl<'a> UpdateEmoji<'a> {
     ///
     /// [`Response`]: crate::response::Response
     pub fn exec(self) -> ResponseFuture<Emoji> {
-        let mut request = Request::builder(Route::UpdateEmoji {
+        let mut request = Request::builder(&Route::UpdateEmoji {
             emoji_id: self.emoji_id.0,
             guild_id: self.guild_id.0,
         });

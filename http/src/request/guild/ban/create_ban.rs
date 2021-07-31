@@ -131,7 +131,7 @@ impl<'a> CreateBan<'a> {
     ///
     /// [`Response`]: crate::response::Response
     pub fn exec(self) -> ResponseFuture<EmptyBody> {
-        let request = Request::from_route(Route::CreateBan {
+        let request = Request::from_route(&Route::CreateBan {
             delete_message_days: self.fields.delete_message_days,
             guild_id: self.guild_id.0,
             reason: self.fields.reason,

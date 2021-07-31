@@ -67,7 +67,7 @@ impl<'a> GetInvite<'a> {
     ///
     /// [`Response`]: crate::response::Response
     pub fn exec(self) -> ResponseFuture<Invite> {
-        let request = Request::from_route(Route::GetInviteWithExpiration {
+        let request = Request::from_route(&Route::GetInviteWithExpiration {
             code: self.code,
             with_counts: self.fields.with_counts,
             with_expiration: self.fields.with_expiration,

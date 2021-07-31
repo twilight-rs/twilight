@@ -73,8 +73,8 @@ impl<'a> UpdateGlobalCommand<'a> {
         self
     }
 
-    fn request(&self) -> Result<Request<'a>, Error> {
-        Request::builder(Route::UpdateGlobalCommand {
+    fn request(&self) -> Result<Request, Error> {
+        Request::builder(&Route::UpdateGlobalCommand {
             application_id: self.application_id.0,
             command_id: self.command_id.0,
         })

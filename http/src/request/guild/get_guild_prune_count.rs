@@ -121,7 +121,7 @@ impl<'a> GetGuildPruneCount<'a> {
     ///
     /// [`Response`]: crate::response::Response
     pub fn exec(self) -> ResponseFuture<GuildPrune> {
-        let request = Request::from_route(Route::GetGuildPruneCount {
+        let request = Request::from_route(&Route::GetGuildPruneCount {
             days: self.fields.days,
             guild_id: self.guild_id.0,
             include_roles: self.fields.include_roles,

@@ -20,7 +20,7 @@ impl<'a> GetVoiceRegions<'a> {
     ///
     /// [`Response`]: crate::response::Response
     pub fn exec(self) -> ResponseFuture<ListBody<VoiceRegion>> {
-        let request = Request::from_route(Route::GetVoiceRegions);
+        let request = Request::from_route(&Route::GetVoiceRegions);
 
         self.http.request(request)
     }

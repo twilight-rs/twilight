@@ -105,8 +105,8 @@ impl<'a> CreateGuildCommand<'a> {
         Ok(self)
     }
 
-    fn request(&self) -> Result<Request<'a>, HttpError> {
-        Request::builder(Route::CreateGuildCommand {
+    fn request(&self) -> Result<Request, HttpError> {
+        Request::builder(&Route::CreateGuildCommand {
             application_id: self.application_id.0,
             guild_id: self.guild_id.0,
         })

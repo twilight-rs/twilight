@@ -129,7 +129,7 @@ impl<'a> UpdateCurrentUser<'a> {
     ///
     /// [`Response`]: crate::response::Response
     pub fn exec(self) -> ResponseFuture<User> {
-        let mut request = Request::builder(Route::UpdateCurrentUser);
+        let mut request = Request::builder(&Route::UpdateCurrentUser);
 
         request = match request.json(&self.fields) {
             Ok(request) => request,

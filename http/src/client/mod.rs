@@ -2179,7 +2179,7 @@ impl Client {
     /// token has become invalid due to expiration, revokation, etc.
     ///
     /// [`Response`]: super::response::Response
-    pub fn request<T>(&self, request: Request<'_>) -> ResponseFuture<T> {
+    pub fn request<T>(&self, request: Request) -> ResponseFuture<T> {
         match self.try_request::<T>(request) {
             Ok(future) => future,
             Err(source) => ResponseFuture::error(source),
@@ -2187,7 +2187,7 @@ impl Client {
     }
 
     #[allow(clippy::too_many_lines)]
-    fn try_request<T>(&self, request: Request<'_>) -> Result<ResponseFuture<T>, Error> {
+    fn try_request<T>(&self, request: Request) -> Result<ResponseFuture<T>, Error> {
         if self.state.token_invalid.load(Ordering::Relaxed) {
             return Err(Error {
                 kind: ErrorType::Unauthorized,
@@ -2199,25 +2199,21 @@ impl Client {
             body,
             form,
             headers: req_headers,
-            route,
+            method,
+            path,
+            ratelimit_path,
             use_authorization_token,
         } = request;
 
         let protocol = if self.state.use_http { "http" } else { "https" };
         let host = self.state.proxy.as_deref().unwrap_or("discord.com");
 
-        let url = format!(
-            "{}://{}/api/v{}/{}",
-            protocol,
-            host,
-            API_VERSION,
-            route.display()
-        );
+        let url = format!("{}://{}/api/v{}/{}", protocol, host, API_VERSION, path);
         #[cfg(feature = "tracing")]
         tracing::debug!("URL: {:?}", url);
 
         let mut builder = hyper::Request::builder()
-            .method(route.method().into_hyper())
+            .method(method.into_hyper())
             .uri(&url);
 
         if use_authorization_token {
@@ -2276,8 +2272,6 @@ impl Client {
             }
         }
 
-        let method = route.method();
-
         let req = if let Some(form) = form {
             let form_bytes = form.build();
             if let Some(headers) = builder.headers_mut() {
@@ -2317,7 +2311,7 @@ impl Client {
         // due to move semantics in both cases.
         #[allow(clippy::option_if_let_else)]
         if let Some(ratelimiter) = self.state.ratelimiter.as_ref() {
-            let rx = ratelimiter.ticket(route.path());
+            let rx = ratelimiter.ticket(ratelimit_path);
 
             Ok(ResponseFuture::ratelimit(
                 None,
