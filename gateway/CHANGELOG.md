@@ -2,6 +2,40 @@
 
 Changelog for `twilight-gateway`.
 
+## [0.6.0] - 2021-07-31
+
+### Enhancements
+
+The `tracing` feature is now optional ([#986] - [@zeylahellyer]).
+
+### Changes
+
+A few spelling errors have been fixed by adding the `codespell` Action
+([#1041] - [@Gelbpunkt].
+
+### Fixes
+
+When calling `Shard::shutdown`, `Shard::shutdown_resumable`,
+`Cluster::down`, or `Cluster::down_resumable`, shards would be stopped
+but the events stream returned by shards and clusters wouldn't return
+`None`. This is due to the events stream containing a receiver of
+events, while shard processors contained a sender. However, shards would
+keep a copy of the sender, so while the shard processor would be aborted
+and its sender dropped the shard's would not be dropped.
+
+To fix this we can move the sender into shard processors. When the
+shard processor is dropped so will the only sender. However, individual
+shard instances will now only be able to be started the first time;
+`Shard::start` can no longer be called multiple times. If a user shuts
+down a shard and wants to start it again they will need to create a new
+shard instance.
+
+([#1070] - [@zeylahellyer]).
+
+[#986]: https://github.com/twilight-rs/twilight/pull/986
+[#1041]: https://github.com/twilight-rs/twilight/pull/1041
+[#1070]: https://github.com/twilight-rs/twilight/pull/1070
+
 ## [0.5.5] - 2021-07-25
 
 This is a hotfix to actually include the changes that were supposed to be in
