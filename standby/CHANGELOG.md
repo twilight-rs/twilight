@@ -2,6 +2,14 @@
 
 Changelog for `twilight-standby`.
 
+## [0.6.0] - 2021-07-31
+
+### Enhancements
+
+The `tracing` feature is now optional ([#985] - [@zeylahellyer]).
+
+[#985]: https://github.com/twilight-rs/twilight/pull/985
+
 ## [0.5.1] - 2021-07-23
 
 ### Changes
