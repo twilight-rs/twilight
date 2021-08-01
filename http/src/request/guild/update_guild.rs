@@ -324,7 +324,7 @@ impl<'a> UpdateGuild<'a> {
     ///
     /// [`Response`]: crate::response::Response
     pub fn exec(self) -> ResponseFuture<PartialGuild> {
-        let mut request = Request::builder(Route::UpdateGuild {
+        let mut request = Request::builder(&Route::UpdateGuild {
             guild_id: self.guild_id.0,
         });
 

@@ -54,8 +54,8 @@ impl<'a> CreateReaction<'a> {
         }
     }
 
-    const fn request(&self) -> Request<'a> {
-        Request::from_route(Route::CreateReaction {
+    fn request(&self) -> Request {
+        Request::from_route(&Route::CreateReaction {
             channel_id: self.channel_id.0,
             emoji: self.emoji,
             message_id: self.message_id.0,
@@ -91,12 +91,12 @@ mod tests {
         let builder = CreateReaction::new(&client, ChannelId(123), MessageId(456), &emoji);
         let actual = builder.request();
 
-        let expected = Request::from_route(Route::CreateReaction {
+        let expected = Request::from_route(&Route::CreateReaction {
             channel_id: 123,
             emoji: &RequestReactionType::Unicode { name: "🌃" },
             message_id: 456,
         });
 
-        assert_eq!(actual.route, expected.route);
+        assert_eq!(actual.path, expected.path);
     }
 }

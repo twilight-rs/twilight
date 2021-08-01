@@ -163,7 +163,7 @@ impl<'a> GetAuditLog<'a> {
     ///
     /// [`Response`]: crate::response::Response
     pub fn exec(self) -> ResponseFuture<AuditLog> {
-        let request = Request::from_route(Route::GetAuditLogs {
+        let request = Request::from_route(&Route::GetAuditLogs {
             action_type: self.fields.action_type.map(|x| x as u64),
             before: self.fields.before,
             guild_id: self.guild_id.0,

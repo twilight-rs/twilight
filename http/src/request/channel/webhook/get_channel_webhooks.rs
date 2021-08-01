@@ -21,7 +21,7 @@ impl<'a> GetChannelWebhooks<'a> {
     ///
     /// [`Response`]: crate::response::Response
     pub fn exec(self) -> ResponseFuture<ListBody<Webhook>> {
-        let request = Request::from_route(Route::GetChannelWebhooks {
+        let request = Request::from_route(&Route::GetChannelWebhooks {
             channel_id: self.channel_id.0,
         });
 

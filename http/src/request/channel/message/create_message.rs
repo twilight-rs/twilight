@@ -296,7 +296,7 @@ impl<'a> CreateMessage<'a> {
     ///
     /// [`Response`]: crate::response::Response
     pub fn exec(self) -> ResponseFuture<Message> {
-        let mut request = Request::builder(Route::CreateMessage {
+        let mut request = Request::builder(&Route::CreateMessage {
             channel_id: self.channel_id.0,
         });
 

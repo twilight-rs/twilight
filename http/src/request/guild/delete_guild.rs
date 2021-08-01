@@ -21,7 +21,7 @@ impl<'a> DeleteGuild<'a> {
     ///
     /// [`Response`]: crate::response::Response
     pub fn exec(self) -> ResponseFuture<EmptyBody> {
-        let request = Request::from_route(Route::DeleteGuild {
+        let request = Request::from_route(&Route::DeleteGuild {
             guild_id: self.guild_id.0,
         });
 

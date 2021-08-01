@@ -322,8 +322,8 @@ impl<'a> UpdateWebhookMessage<'a> {
 
     // `self` needs to be consumed and the client returned due to parameters
     // being consumed in request construction.
-    fn request(&mut self) -> Result<Request<'a>, HttpError> {
-        let mut request = Request::builder(Route::UpdateWebhookMessage {
+    fn request(&mut self) -> Result<Request, HttpError> {
+        let mut request = Request::builder(&Route::UpdateWebhookMessage {
             message_id: self.message_id.0,
             token: self.token,
             webhook_id: self.webhook_id.0,
@@ -415,12 +415,12 @@ mod tests {
             token: "token",
             webhook_id: 1,
         };
-        let expected = Request::builder(route)
+        let expected = Request::builder(&route)
             .json(&body)
             .expect("failed to serialize body")
             .build();
 
         assert_eq!(expected.body, actual.body);
-        assert_eq!(expected.route, actual.route);
+        assert_eq!(expected.path, actual.path);
     }
 }

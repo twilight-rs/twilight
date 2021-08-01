@@ -255,7 +255,7 @@ impl<'a> CreateGuildChannel<'a> {
     ///
     /// [`Response`]: crate::response::Response
     pub fn exec(self) -> ResponseFuture<GuildChannel> {
-        let mut request = Request::builder(Route::CreateChannel {
+        let mut request = Request::builder(&Route::CreateChannel {
             guild_id: self.guild_id.0,
         });
 

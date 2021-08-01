@@ -1,5 +1,8 @@
-use super::Form;
-use crate::{error::Error, routing::Route};
+use super::{Form, Method};
+use crate::{
+    error::Error,
+    routing::{Path, Route},
+};
 use hyper::header::{HeaderMap, HeaderName, HeaderValue};
 use serde::Serialize;
 
@@ -17,24 +20,66 @@ use serde::Serialize;
 ///     "content": "test"
 /// }"#.to_vec();
 ///
-/// let request = Request::builder(Route::CreateMessage {
+/// let request = Request::builder(&Route::CreateMessage {
 ///     channel_id: 1,
 /// }).body(body).build();
 /// ```
 #[derive(Debug)]
-pub struct RequestBuilder<'a>(Request<'a>);
+pub struct RequestBuilder(Request);
 
-impl<'a> RequestBuilder<'a> {
+impl RequestBuilder {
     /// Create a new request builder.
     #[must_use = "request has not been fully built"]
-    pub const fn new(route: Route<'a>) -> Self {
+    pub fn new(route: &Route<'_>) -> Self {
         Self(Request::from_route(route))
+    }
+
+    /// Create a request with raw information about the method, ratelimiting
+    /// path, and URL path and query.
+    ///
+    /// The path and query should not include the leading slash as that is
+    /// prefixed by the client. In the URL
+    /// `https://discord.com/api/vX/channels/123/pins` the "path and query"
+    /// is considered to be `channels/123/pins`.
+    ///
+    /// # Examples
+    ///
+    /// Create a request from a method and the URL path and query
+    /// `channels/123/pins`:
+    ///
+    /// ```
+    /// # fn main() -> Result<(), Box<dyn std::error::Error>> {
+    /// use std::str::FromStr;
+    /// use twilight_http::{request::{Method, RequestBuilder}, routing::Path};
+    ///
+    /// let method = Method::Post;
+    /// let path_and_query = "channels/123/pins".to_owned();
+    /// let ratelimit_path = Path::from_str(&path_and_query)?;
+    ///
+    /// let _request = RequestBuilder::raw(
+    ///     method,
+    ///     ratelimit_path,
+    ///     path_and_query,
+    /// ).build();
+    /// # Ok(()) }
+    /// ```
+    #[must_use = "request has not been fully built"]
+    pub const fn raw(method: Method, ratelimit_path: Path, path_and_query: String) -> Self {
+        Self(Request {
+            body: None,
+            form: None,
+            headers: None,
+            method,
+            path: path_and_query,
+            ratelimit_path,
+            use_authorization_token: true,
+        })
     }
 
     /// Consume the builder, returning the built request.
     #[allow(clippy::missing_const_for_fn)]
     #[must_use = "request information is not useful on its own and must be acted on"]
-    pub fn build(self) -> Request<'a> {
+    pub fn build(self) -> Request {
         self.0
     }
 
@@ -90,20 +135,17 @@ impl<'a> RequestBuilder<'a> {
 }
 
 #[derive(Debug)]
-pub struct Request<'a> {
-    /// The body of the request, if any.
-    pub body: Option<Vec<u8>>,
-    /// The multipart form of the request, if any.
-    pub form: Option<Form>,
-    /// The headers to set in the request, if any.
-    pub headers: Option<HeaderMap<HeaderValue>>,
-    /// The route of the request.
-    pub route: Route<'a>,
-    /// Whether to use the client's authorization token in the request.
+pub struct Request {
+    pub(crate) body: Option<Vec<u8>>,
+    pub(crate) form: Option<Form>,
+    pub(crate) headers: Option<HeaderMap<HeaderValue>>,
+    pub(crate) method: Method,
+    pub(crate) path: String,
+    pub(crate) ratelimit_path: Path,
     pub(crate) use_authorization_token: bool,
 }
 
-impl<'a> Request<'a> {
+impl Request {
     /// Create a new request builder.
     ///
     /// # Examples
@@ -118,11 +160,11 @@ impl<'a> Request<'a> {
     ///     "content": "test"
     /// }"#.to_vec();
     ///
-    /// let request = Request::builder(Route::CreateMessage {
+    /// let request = Request::builder(&Route::CreateMessage {
     ///     channel_id: 1,
     /// }).body(body).build();
     /// ```
-    pub const fn builder(route: Route<'a>) -> RequestBuilder<'a> {
+    pub fn builder(route: &Route<'_>) -> RequestBuilder {
         RequestBuilder::new(route)
     }
 
@@ -139,21 +181,53 @@ impl<'a> Request<'a> {
     /// ```
     /// use twilight_http::{request::Request, routing::Route};
     ///
-    /// let request = Request::from_route(Route::GetMessage {
+    /// let request = Request::from_route(&Route::GetMessage {
     ///     channel_id: 1,
     ///     message_id: 2,
     /// });
     /// ```
     ///
     /// [`builder`]: Self::builder
-    pub const fn from_route(route: Route<'a>) -> Self {
+    pub fn from_route(route: &Route<'_>) -> Self {
         Self {
             body: None,
             form: None,
             headers: None,
-            route,
+            method: route.method(),
+            path: route.display().to_string(),
+            ratelimit_path: route.path(),
             use_authorization_token: true,
         }
+    }
+
+    /// Body of the request, if any.
+    pub fn body(&self) -> Option<&[u8]> {
+        self.body.as_deref()
+    }
+
+    /// Multipart form of the request, if any.
+    pub const fn form(&self) -> Option<&Form> {
+        self.form.as_ref()
+    }
+
+    /// Headers to set in the request, if any.
+    pub const fn headers(&self) -> Option<&HeaderMap<HeaderValue>> {
+        self.headers.as_ref()
+    }
+
+    /// Method when sending the request.
+    pub const fn method(&self) -> Method {
+        self.method
+    }
+
+    /// String path of the full URL.
+    pub fn path(&self) -> &str {
+        &self.path
+    }
+
+    /// Path used for ratelimiting.
+    pub const fn ratelimit_path(&self) -> &Path {
+        &self.ratelimit_path
     }
 
     /// Whether to use the client's authorization token in the request.
@@ -168,5 +242,5 @@ mod tests {
     use static_assertions::assert_impl_all;
     use std::fmt::Debug;
 
-    assert_impl_all!(RequestBuilder<'_>: Debug, Send, Sync);
+    assert_impl_all!(RequestBuilder: Debug, Send, Sync);
 }

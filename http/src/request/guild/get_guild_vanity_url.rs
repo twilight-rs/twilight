@@ -16,7 +16,7 @@ impl<'a> GetGuildVanityUrl<'a> {
     ///
     /// [`Response`]: crate::response::Response
     pub fn exec(self) -> ResponseFuture<VanityUrl> {
-        let request = Request::from_route(Route::GetGuildVanityUrl {
+        let request = Request::from_route(&Route::GetGuildVanityUrl {
             guild_id: self.guild_id.0,
         });
 

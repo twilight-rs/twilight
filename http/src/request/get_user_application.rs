@@ -14,7 +14,7 @@ impl<'a> GetUserApplicationInfo<'a> {
     ///
     /// [`Response`]: crate::response::Response
     pub fn exec(self) -> ResponseFuture<CurrentApplicationInfo> {
-        let request = Request::from_route(Route::GetCurrentUserApplicationInfo);
+        let request = Request::from_route(&Route::GetCurrentUserApplicationInfo);
 
         self.http.request(request)
     }

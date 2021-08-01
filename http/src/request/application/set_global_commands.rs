@@ -30,8 +30,8 @@ impl<'a> SetGlobalCommands<'a> {
         }
     }
 
-    fn request(&self) -> Result<Request<'a>, Error> {
-        Request::builder(Route::SetGlobalCommands {
+    fn request(&self) -> Result<Request, Error> {
+        Request::builder(&Route::SetGlobalCommands {
             application_id: self.application_id.0,
         })
         .json(&self.commands)

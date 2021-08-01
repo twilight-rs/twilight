@@ -52,8 +52,8 @@ impl<'a> DeleteWebhookMessage<'a> {
 
     // `self` needs to be consumed and the client returned due to parameters
     // being consumed in request construction.
-    fn request(&self) -> Result<Request<'a>, Error> {
-        let mut request = Request::builder(Route::DeleteWebhookMessage {
+    fn request(&self) -> Result<Request, Error> {
+        let mut request = Request::builder(&Route::DeleteWebhookMessage {
             message_id: self.message_id.0,
             token: self.token,
             webhook_id: self.webhook_id.0,
@@ -98,13 +98,13 @@ mod tests {
         let builder = DeleteWebhookMessage::new(&client, WebhookId(1), "token", MessageId(2));
         let actual = builder.request().expect("failed to create request");
 
-        let expected = Request::from_route(Route::DeleteWebhookMessage {
+        let expected = Request::from_route(&Route::DeleteWebhookMessage {
             message_id: 2,
             token: "token",
             webhook_id: 1,
         });
 
         assert_eq!(expected.body, actual.body);
-        assert_eq!(expected.route, actual.route);
+        assert_eq!(expected.path, actual.path);
     }
 }

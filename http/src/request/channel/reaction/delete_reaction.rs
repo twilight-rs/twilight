@@ -59,6 +59,6 @@ impl<'a> DeleteReaction<'a> {
             },
         };
 
-        self.http.request(Request::from_route(route))
+        self.http.request(Request::from_route(&route))
     }
 }

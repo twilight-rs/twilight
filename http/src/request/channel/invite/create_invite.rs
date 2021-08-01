@@ -257,7 +257,7 @@ impl<'a> CreateInvite<'a> {
     ///
     /// [`Response`]: crate::response::Response
     pub fn exec(self) -> ResponseFuture<Invite> {
-        let mut request = Request::builder(Route::CreateInvite {
+        let mut request = Request::builder(&Route::CreateInvite {
             channel_id: self.channel_id.0,
         });
 
