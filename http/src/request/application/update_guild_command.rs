@@ -76,8 +76,8 @@ impl<'a> UpdateGuildCommand<'a> {
         self
     }
 
-    fn request(&self) -> Result<Request<'a>, Error> {
-        Request::builder(Route::UpdateGuildCommand {
+    fn request(&self) -> Result<Request, Error> {
+        Request::builder(&Route::UpdateGuildCommand {
             application_id: self.application_id.0,
             command_id: self.command_id.0,
             guild_id: self.guild_id.0,

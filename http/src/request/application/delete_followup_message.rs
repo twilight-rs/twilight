@@ -45,8 +45,8 @@ impl<'a> DeleteFollowupMessage<'a> {
         }
     }
 
-    const fn request(self) -> Request<'a> {
-        Request::from_route(Route::DeleteWebhookMessage {
+    fn request(self) -> Request {
+        Request::from_route(&Route::DeleteWebhookMessage {
             message_id: self.message_id.0,
             token: self.token,
             webhook_id: self.application_id.0,
@@ -74,12 +74,12 @@ mod tests {
         let builder = DeleteFollowupMessage::new(&client, ApplicationId(1), "token", MessageId(2));
         let actual = builder.request();
 
-        let expected = Request::from_route(Route::DeleteWebhookMessage {
+        let expected = Request::from_route(&Route::DeleteWebhookMessage {
             message_id: 2,
             token: "token",
             webhook_id: 1,
         });
 
-        assert_eq!(expected.route, actual.route);
+        assert_eq!(expected.path, actual.path);
     }
 }

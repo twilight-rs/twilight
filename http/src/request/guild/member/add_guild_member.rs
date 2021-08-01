@@ -158,7 +158,7 @@ impl<'a> AddGuildMember<'a> {
     ///
     /// [`Response`]: crate::response::Response
     pub fn exec(self) -> ResponseFuture<PartialMember> {
-        let mut request = Request::builder(Route::AddGuildMember {
+        let mut request = Request::builder(&Route::AddGuildMember {
             guild_id: self.guild_id.0,
             user_id: self.user_id.0,
         });

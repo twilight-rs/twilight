@@ -34,7 +34,7 @@ impl<'a> GetWebhookMessage<'a> {
     ///
     /// [`Response`]: crate::response::Response
     pub fn exec(self) -> ResponseFuture<Message> {
-        let request = Request::builder(Route::GetWebhookMessage {
+        let request = Request::builder(&Route::GetWebhookMessage {
             message_id: self.message_id.0,
             token: self.token,
             webhook_id: self.webhook_id.0,

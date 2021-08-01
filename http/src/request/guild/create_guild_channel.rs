@@ -47,6 +47,7 @@ impl CreateGuildChannelError {
 }
 
 /// Type of [`CreateGuildChannelError`] that occurred.
+#[allow(clippy::pub_enum_variant_names)]
 #[derive(Debug)]
 #[non_exhaustive]
 pub enum CreateGuildChannelErrorType {
@@ -254,7 +255,7 @@ impl<'a> CreateGuildChannel<'a> {
     ///
     /// [`Response`]: crate::response::Response
     pub fn exec(self) -> ResponseFuture<GuildChannel> {
-        let mut request = Request::builder(Route::CreateChannel {
+        let mut request = Request::builder(&Route::CreateChannel {
             guild_id: self.guild_id.0,
         });
 

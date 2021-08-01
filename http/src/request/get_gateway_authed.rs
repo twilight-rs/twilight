@@ -18,7 +18,7 @@ impl<'a> GetGatewayAuthed<'a> {
     ///
     /// [`Response`]: crate::response::Response
     pub fn exec(self) -> ResponseFuture<BotConnectionInfo> {
-        let request = Request::from_route(Route::GetGatewayBot);
+        let request = Request::from_route(&Route::GetGatewayBot);
 
         self.http.request(request)
     }

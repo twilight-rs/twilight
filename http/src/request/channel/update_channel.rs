@@ -56,6 +56,7 @@ impl Display for UpdateChannelError {
 
 impl Error for UpdateChannelError {}
 
+#[allow(clippy::pub_enum_variant_names)]
 #[derive(Debug)]
 #[non_exhaustive]
 pub enum UpdateChannelErrorType {
@@ -275,8 +276,8 @@ impl<'a> UpdateChannel<'a> {
         self
     }
 
-    fn request(&self) -> Result<Request<'a>, HttpError> {
-        let mut request = Request::builder(Route::UpdateChannel {
+    fn request(&self) -> Result<Request, HttpError> {
+        let mut request = Request::builder(&Route::UpdateChannel {
             channel_id: self.channel_id.0,
         })
         .json(&self.fields)?;

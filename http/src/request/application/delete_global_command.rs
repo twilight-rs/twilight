@@ -30,7 +30,7 @@ impl<'a> DeleteGlobalCommand<'a> {
     ///
     /// [`Response`]: crate::response::Response
     pub fn exec(self) -> ResponseFuture<EmptyBody> {
-        let request = Request::from_route(Route::DeleteGlobalCommand {
+        let request = Request::from_route(&Route::DeleteGlobalCommand {
             application_id: self.application_id.0,
             command_id: self.command_id.0,
         });

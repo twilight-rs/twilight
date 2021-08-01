@@ -23,7 +23,7 @@ impl<'a> DeleteStageInstance<'a> {
     ///
     /// [`Response`]: crate::response::Response
     pub fn exec(self) -> ResponseFuture<EmptyBody> {
-        let request = Request::from_route(Route::DeleteStageInstance {
+        let request = Request::from_route(&Route::DeleteStageInstance {
             channel_id: self.channel_id.0,
         });
 

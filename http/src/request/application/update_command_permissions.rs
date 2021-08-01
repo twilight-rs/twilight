@@ -56,8 +56,8 @@ impl<'a> UpdateCommandPermissions<'a> {
         })
     }
 
-    fn request(&self) -> Result<Request<'a>, Error> {
-        Request::builder(Route::UpdateCommandPermissions {
+    fn request(&self) -> Result<Request, Error> {
+        Request::builder(&Route::UpdateCommandPermissions {
             application_id: self.application_id.0,
             command_id: self.command_id.0,
             guild_id: self.guild_id.0,

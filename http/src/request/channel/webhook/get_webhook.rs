@@ -35,7 +35,7 @@ impl<'a> GetWebhook<'a> {
     pub fn exec(self) -> ResponseFuture<Webhook> {
         let use_webhook_token = self.fields.token.is_some();
 
-        let mut request = Request::builder(Route::GetWebhook {
+        let mut request = Request::builder(&Route::GetWebhook {
             token: self.fields.token,
             webhook_id: self.id.0,
         });

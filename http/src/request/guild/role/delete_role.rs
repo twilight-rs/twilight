@@ -28,7 +28,7 @@ impl<'a> DeleteRole<'a> {
     ///
     /// [`Response`]: crate::response::Response
     pub fn exec(self) -> ResponseFuture<EmptyBody> {
-        let mut request = Request::builder(Route::DeleteRole {
+        let mut request = Request::builder(&Route::DeleteRole {
             guild_id: self.guild_id.0,
             role_id: self.role_id.0,
         });
