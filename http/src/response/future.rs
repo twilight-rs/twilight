@@ -26,6 +26,11 @@ use tokio::{
 };
 use twilight_model::id::GuildId;
 
+pub enum InvalidToken {
+    Forget,
+    Remember(Arc<AtomicBool>),
+}
+
 type Output<T> = Result<Response<T>, Error>;
 
 enum InnerPoll<T> {
@@ -97,7 +102,7 @@ impl Failed {
 struct InFlight {
     future: Pin<Box<Timeout<HyperResponseFuture>>>,
     guild_id: Option<GuildId>,
-    token_invalid: Arc<AtomicBool>,
+    invalid_token: InvalidToken,
     tx: Option<Sender<Option<RatelimitHeaders>>>,
 }
 
@@ -121,7 +126,7 @@ impl InFlight {
                 return InnerPoll::Pending(ResponseFutureStage::InFlight(Self {
                     future: self.future,
                     guild_id: self.guild_id,
-                    token_invalid: self.token_invalid,
+                    invalid_token: self.invalid_token,
                     tx: self.tx,
                 }))
             }
@@ -131,7 +136,9 @@ impl InFlight {
         // configured token is permanently invalid and future requests must be
         // ignored to avoid API bans.
         if resp.status() == HyperStatusCode::UNAUTHORIZED {
-            self.token_invalid.store(true, Ordering::Relaxed);
+            if let InvalidToken::Remember(state) = self.invalid_token {
+                state.store(true, Ordering::Relaxed);
+            }
         }
 
         if let Some(tx) = self.tx {
@@ -193,9 +200,9 @@ impl InFlight {
 
 struct RatelimitQueue {
     guild_id: Option<GuildId>,
+    invalid_token: InvalidToken,
     request_timeout: Duration,
     response_future: HyperResponseFuture,
-    token_invalid: Arc<AtomicBool>,
     wait_for_sender: Receiver<Sender<Option<RatelimitHeaders>>>,
 }
 
@@ -212,9 +219,9 @@ impl RatelimitQueue {
             Poll::Pending => {
                 return InnerPoll::Pending(ResponseFutureStage::RatelimitQueue(Self {
                     guild_id: self.guild_id,
+                    invalid_token: self.invalid_token,
                     request_timeout: self.request_timeout,
                     response_future: self.response_future,
-                    token_invalid: self.token_invalid,
                     wait_for_sender: self.wait_for_sender,
                 }))
             }
@@ -223,7 +230,7 @@ impl RatelimitQueue {
         InnerPoll::Advance(ResponseFutureStage::InFlight(InFlight {
             future: Box::pin(time::timeout(self.request_timeout, self.response_future)),
             guild_id: self.guild_id,
-            token_invalid: self.token_invalid,
+            invalid_token: self.invalid_token,
             tx: Some(tx),
         }))
     }
@@ -279,7 +286,7 @@ pub struct ResponseFuture<T> {
 
 impl<T> ResponseFuture<T> {
     pub(crate) fn new(
-        token_invalid: Arc<AtomicBool>,
+        invalid_token: InvalidToken,
         future: Timeout<HyperResponseFuture>,
         ratelimit_tx: Option<Sender<Option<RatelimitHeaders>>>,
     ) -> Self {
@@ -288,7 +295,7 @@ impl<T> ResponseFuture<T> {
             stage: ResponseFutureStage::InFlight(InFlight {
                 future: Box::pin(future),
                 guild_id: None,
-                token_invalid,
+                invalid_token,
                 tx: ratelimit_tx,
             }),
         }
@@ -303,7 +310,7 @@ impl<T> ResponseFuture<T> {
 
     pub(crate) fn ratelimit(
         guild_id: Option<GuildId>,
-        token_invalid: Arc<AtomicBool>,
+        invalid_token: InvalidToken,
         rx: Receiver<Sender<Option<RatelimitHeaders>>>,
         request_timeout: Duration,
         response_future: HyperResponseFuture,
@@ -312,10 +319,10 @@ impl<T> ResponseFuture<T> {
             phantom: PhantomData,
             stage: ResponseFutureStage::RatelimitQueue(RatelimitQueue {
                 guild_id,
+                invalid_token,
                 response_future,
                 wait_for_sender: rx,
                 request_timeout,
-                token_invalid,
             }),
         }
     }
