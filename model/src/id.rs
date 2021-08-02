@@ -55,6 +55,7 @@ use std::{
     num::NonZeroU64,
 };
 
+/// Unique ID of an application.
 #[allow(clippy::unsafe_derive_deserialize)]
 #[derive(Clone, Copy, Debug, Deserialize, Eq, Hash, Ord, PartialEq, PartialOrd, Serialize)]
 pub struct ApplicationId(#[serde(with = "string")] pub NonZeroU64);
@@ -100,6 +101,7 @@ impl From<NonZeroU64> for ApplicationId {
     }
 }
 
+/// Unique ID of an attachment.
 #[allow(clippy::unsafe_derive_deserialize)]
 #[derive(Clone, Copy, Debug, Deserialize, Eq, Hash, Ord, PartialEq, PartialOrd, Serialize)]
 pub struct AttachmentId(#[serde(with = "string")] pub NonZeroU64);
@@ -145,6 +147,7 @@ impl From<NonZeroU64> for AttachmentId {
     }
 }
 
+/// Unique ID of an audit log entry.
 #[allow(clippy::unsafe_derive_deserialize)]
 #[derive(Clone, Copy, Debug, Deserialize, Eq, Hash, Ord, PartialEq, PartialOrd, Serialize)]
 pub struct AuditLogEntryId(#[serde(with = "string")] pub NonZeroU64);
@@ -190,6 +193,7 @@ impl From<NonZeroU64> for AuditLogEntryId {
     }
 }
 
+/// Unique ID of a channel.
 #[allow(clippy::unsafe_derive_deserialize)]
 #[derive(Clone, Copy, Debug, Deserialize, Eq, Hash, Ord, PartialEq, PartialOrd, Serialize)]
 pub struct ChannelId(#[serde(with = "string")] pub NonZeroU64);
@@ -281,6 +285,7 @@ impl From<NonZeroU64> for CommandId {
     }
 }
 
+/// Unique ID of an emoji.
 #[allow(clippy::unsafe_derive_deserialize)]
 #[derive(Clone, Copy, Debug, Deserialize, Eq, Hash, Ord, PartialEq, PartialOrd, Serialize)]
 pub struct EmojiId(#[serde(with = "string")] pub NonZeroU64);
@@ -326,6 +331,7 @@ impl From<NonZeroU64> for EmojiId {
     }
 }
 
+/// Unique ID of a generic item.
 #[allow(clippy::unsafe_derive_deserialize)]
 #[derive(Clone, Copy, Debug, Deserialize, Eq, Hash, Ord, PartialEq, PartialOrd, Serialize)]
 pub struct GenericId(#[serde(with = "string")] pub NonZeroU64);
@@ -371,6 +377,7 @@ impl From<NonZeroU64> for GenericId {
     }
 }
 
+/// Unique ID of a guild.
 #[allow(clippy::unsafe_derive_deserialize)]
 #[derive(Clone, Copy, Debug, Deserialize, Eq, Hash, Ord, PartialEq, PartialOrd, Serialize)]
 pub struct GuildId(#[serde(with = "string")] pub NonZeroU64);
@@ -416,6 +423,7 @@ impl From<NonZeroU64> for GuildId {
     }
 }
 
+/// Unique ID of an integration.
 #[allow(clippy::unsafe_derive_deserialize)]
 #[derive(Clone, Copy, Debug, Deserialize, Eq, Hash, Ord, PartialEq, PartialOrd, Serialize)]
 pub struct IntegrationId(#[serde(with = "string")] pub NonZeroU64);
@@ -507,6 +515,7 @@ impl From<NonZeroU64> for InteractionId {
     }
 }
 
+/// Unique ID of a message.
 #[allow(clippy::unsafe_derive_deserialize)]
 #[derive(Clone, Copy, Debug, Deserialize, Eq, Hash, Ord, PartialEq, PartialOrd, Serialize)]
 pub struct MessageId(#[serde(with = "string")] pub NonZeroU64);
@@ -552,6 +561,7 @@ impl From<NonZeroU64> for MessageId {
     }
 }
 
+/// Unique ID of a role.
 #[allow(clippy::unsafe_derive_deserialize)]
 #[derive(Clone, Copy, Debug, Deserialize, Eq, Hash, Ord, PartialEq, PartialOrd, Serialize)]
 pub struct RoleId(#[serde(with = "string")] pub NonZeroU64);
@@ -597,6 +607,7 @@ impl From<NonZeroU64> for RoleId {
     }
 }
 
+/// Unique ID of a stage.
 #[allow(clippy::unsafe_derive_deserialize)]
 #[derive(Clone, Copy, Debug, Deserialize, Eq, Hash, Ord, PartialEq, PartialOrd, Serialize)]
 pub struct StageId(#[serde(with = "string")] pub NonZeroU64);
@@ -642,6 +653,7 @@ impl From<NonZeroU64> for StageId {
     }
 }
 
+/// Unique ID of an user.
 #[allow(clippy::unsafe_derive_deserialize)]
 #[derive(Clone, Copy, Debug, Deserialize, Eq, Hash, Ord, PartialEq, PartialOrd, Serialize)]
 pub struct UserId(#[serde(with = "string")] pub NonZeroU64);
@@ -687,6 +699,7 @@ impl From<NonZeroU64> for UserId {
     }
 }
 
+/// Unique ID of a webhook.
 #[allow(clippy::unsafe_derive_deserialize)]
 #[derive(Clone, Copy, Debug, Deserialize, Eq, Hash, Ord, PartialEq, PartialOrd, Serialize)]
 pub struct WebhookId(#[serde(with = "string")] pub NonZeroU64);
