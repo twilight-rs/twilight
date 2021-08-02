@@ -429,7 +429,7 @@ mod tests {
                     name: "sub command name".into(),
                     options: vec![
                         CommandOption::String(ChoiceCommandOptionData {
-                            choices: vec![],
+                            choices: Vec::new(),
                             description: "string manual desc".into(),
                             name: "string_manual".into(),
                             required: false,
