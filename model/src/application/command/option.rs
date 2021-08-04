@@ -438,7 +438,7 @@ impl CommandOptionType {
 }
 
 #[derive(Clone, Copy, Debug, Deserialize, Serialize)]
-pub struct Number(f64);
+pub struct Number(pub f64);
 
 #[allow(clippy::cast_possible_truncation, clippy::trivially_copy_pass_by_ref)]
 impl Number {
