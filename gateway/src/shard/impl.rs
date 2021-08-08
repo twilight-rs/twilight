@@ -10,7 +10,6 @@ use super::{
 };
 use crate::Intents;
 use futures_util::stream::StreamExt;
-use once_cell::sync::OnceCell;
 use serde::{Deserialize, Serialize};
 use std::{
     borrow::Cow,
@@ -18,7 +17,10 @@ use std::{
     fmt::{Display, Formatter, Result as FmtResult},
     sync::{atomic::Ordering, Arc, Mutex},
 };
-use tokio::{sync::watch::Receiver as WatchReceiver, task::JoinHandle};
+use tokio::{
+    sync::{watch::Receiver as WatchReceiver, OnceCell},
+    task::JoinHandle,
+};
 use tokio_tungstenite::tungstenite::protocol::{
     frame::coding::CloseCode, CloseFrame as TungsteniteCloseFrame,
 };
