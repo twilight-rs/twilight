@@ -44,25 +44,8 @@ pub struct ClusterBuilder(ClusterConfig, ShardBuilder);
 impl ClusterBuilder {
     /// Create a new builder to construct and configure a cluster.
     pub fn new(token: impl Into<String>, intents: Intents) -> Self {
-        Self::_new(token.into(), intents)
-    }
-
-    fn _new(mut token: String, intents: Intents) -> Self {
-        if !token.starts_with("Bot ") {
-            token.insert_str(0, "Bot ");
-        }
-
-        let token = token.into_boxed_str();
-
-        let http_client = Client::new(token.to_string());
-
-        let shard_config =
-            ShardBuilder::new(token.clone(), intents).http_client(http_client.clone());
-
         Self(
             ClusterConfig {
-                http_client,
-                shard_config: shard_config.0,
                 shard_scheme: ShardScheme::Auto,
                 queue: Arc::new(LocalQueue::new()),
                 resume_sessions: HashMap::new(),
@@ -90,9 +73,7 @@ impl ClusterBuilder {
             }
         }
 
-        self.0.shard_config = (self.1).0;
-
-        Cluster::new_with_config(self.0).await
+        Cluster::new_with_config(self.0, self.1 .0).await
     }
 
     /// Set the event types to process.
