@@ -56,10 +56,10 @@ impl CommandError {
         let (kind, source) = error.into_parts();
 
         let new_kind = match kind {
+            SendErrorType::ExecutorShutDown => CommandErrorType::ExecutorShutDown,
+            SendErrorType::HeartbeaterNotStarted => CommandErrorType::HeartbeaterNotStarted,
             SendErrorType::Sending => CommandErrorType::Sending,
             SendErrorType::SessionInactive => CommandErrorType::SessionInactive,
-            SendErrorType::RatelimiterFailed => CommandErrorType::RatelimiterFailed,
-            SendErrorType::HeartbeatNotActive => CommandErrorType::HeartbeatNotActive,
         };
 
         Self {
@@ -72,11 +72,9 @@ impl CommandError {
 impl Display for CommandError {
     fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
         match &self.kind {
-            CommandErrorType::HeartbeatNotActive => {
-                f.write_str("heartbeat hasn't been initialized yet")
-            }
-            CommandErrorType::RatelimiterFailed => {
-                f.write_str("ratelimiter actor has been stopped")
+            CommandErrorType::ExecutorShutDown => f.write_str("runtime executor has shut down"),
+            CommandErrorType::HeartbeaterNotStarted => {
+                f.write_str("heartbeater task hasn't been started yet")
             }
             CommandErrorType::Sending => {
                 f.write_str("sending the message over the websocket failed")
@@ -99,10 +97,10 @@ impl Error for CommandError {
 #[derive(Debug)]
 #[non_exhaustive]
 pub enum CommandErrorType {
-    /// Heartbeat has not been initialized yet.
-    HeartbeatNotActive,
-    /// Requesting the ratelimiter has failed because the actor has been stopped.
-    RatelimiterFailed,
+    /// The runtime executor shut down, causing the ratelimiting actor to stop.
+    ExecutorShutDown,
+    /// Heartbeater task has not been started yet.
+    HeartbeaterNotStarted,
     /// Sending the payload over the WebSocket failed. This is indicative of a
     /// shutdown shard.
     Sending,
@@ -157,11 +155,9 @@ impl SendError {
 impl Display for SendError {
     fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
         match &self.kind {
-            SendErrorType::HeartbeatNotActive { .. } => {
-                f.write_str("heartbeat hasn't been initialized yet")
-            }
-            SendErrorType::RatelimiterFailed { .. } => {
-                f.write_str("ratelimiter actor has been stopped")
+            SendErrorType::ExecutorShutDown { .. } => f.write_str("runtime executor has shut down"),
+            SendErrorType::HeartbeaterNotStarted { .. } => {
+                f.write_str("heartbeater task hasn't been started yet")
             }
             SendErrorType::Sending { .. } => {
                 f.write_str("sending the message over the websocket failed")
@@ -183,10 +179,10 @@ impl Error for SendError {
 #[derive(Debug)]
 #[non_exhaustive]
 pub enum SendErrorType {
-    /// Heartbeat has not been initialized yet.
-    HeartbeatNotActive,
-    /// Requesting the ratelimiter has failed because the actor has been stopped.
-    RatelimiterFailed,
+    /// The runtime executor shut down, causing the ratelimiting actor to stop.
+    ExecutorShutDown,
+    /// Heartbeater task has not been started yet.
+    HeartbeaterNotStarted,
     /// Sending the payload over the WebSocket failed. This is indicative of a
     /// shard that isn't properly running.
     Sending,
@@ -662,12 +658,12 @@ impl Shard {
                 if let Some(limiter) = ratelimiter {
                     limiter.acquire_one().await.map_err(|source| SendError {
                         source: Some(Box::new(source)),
-                        kind: SendErrorType::RatelimiterFailed,
+                        kind: SendErrorType::ExecutorShutDown,
                     })
                 } else {
                     Err(SendError {
                         source: None,
-                        kind: SendErrorType::HeartbeatNotActive,
+                        kind: SendErrorType::HeartbeaterNotStarted,
                     })
                 }
             }
