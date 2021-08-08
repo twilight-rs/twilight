@@ -17,10 +17,9 @@ version = "0.6.5"
 [dependencies]
 bitflags = { default-features = false, version = "1" }
 futures-util = { default-features = false, features = ["std"], version = "0.3" }
-once_cell = { default-features = false, features = ["std"], version = "1" }
 serde = { default-features = false, features = ["derive"], version = "1" }
 serde_json = { default-features = false, features = ["std"], version = "1" }
-tokio = { default-features = false, features = ["net", "rt", "sync", "time"], version = "1.0" }
+tokio = { default-features = false, features = ["net", "rt", "sync", "time"], version = "1.5" }
 tokio-tungstenite = { default-features = false, features = ["connect"], version = "0.14" }
 twilight-gateway-queue = { default-features = false, path = "queue" }
 twilight-http = { default-features = false, path = "../http" }
