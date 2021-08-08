@@ -130,11 +130,9 @@ impl Session {
         self.heartbeat_interval
             .store(new_heartbeat_interval, Ordering::Release);
 
-        let mut heartbeats_per_120s = 120_000 / new_heartbeat_interval as usize;
-        if 120_000 % new_heartbeat_interval > 0 {
-            heartbeats_per_120s += 1;
-        }
-        let payloads_without_heartbeat = 120 - heartbeats_per_120s;
+        #[allow(clippy::cast_precision_loss)]
+        let heartbeats_per_120s = (120_000.0 / new_heartbeat_interval as f64).ceil();
+        let payloads_without_heartbeat = 120.0 - heartbeats_per_120s;
 
         // We can safely ignore an error if the ratelimiter has already been set
         let _result = self.ratelimit.set(

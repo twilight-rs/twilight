@@ -25,7 +25,7 @@ serde = { default-features = false, features = ["derive"], version = "1" }
 serde_json = { default-features = false, version = "1" }
 tokio = { default-features = false, features = ["net", "rt", "sync"], version = "1.5" }
 url = { default-features = false, version = "2" }
-leaky-bucket-lite = { default-features = false, version = "0.1" }
+leaky-bucket-lite = { default-features = false, version = "0.2" }
 
 # Optional
 # The default backend for flate2; miniz-oxide, works differently
