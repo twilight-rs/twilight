@@ -111,7 +111,7 @@ impl ComponentValidationError {
     /// [Discord Docs/Select Menu Option][1].
     ///
     /// [1]: https://discord.com/developers/docs/interactions/message-components#select-menu-object-select-option-structure
-    pub const SELECT_OPTION_DESCRIPTION_LENGTH: usize = 50;
+    pub const SELECT_OPTION_DESCRIPTION_LENGTH: usize = 100;
 
     /// Maximum length of a [`SelectMenuOption::label`] in codepoints.
     ///
@@ -120,7 +120,7 @@ impl ComponentValidationError {
     ///
     /// [`SelectMenuOption::label`]: twilight_model::application::component::select_menu::SelectMenuOption::label
     /// [1]: https://discord.com/developers/docs/interactions/message-components#select-menu-object-select-option-structure
-    pub const SELECT_OPTION_LABEL_LENGTH: usize = 25;
+    pub const SELECT_OPTION_LABEL_LENGTH: usize = 100;
 
     /// Maximum length of a [`SelectMenuOption::value`] in codepoints.
     ///
