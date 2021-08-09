@@ -41,7 +41,7 @@ impl PlayerManager {
     /// Return an immutable reference to a player by guild ID.
     pub fn get(&self, guild_id: &GuildId) -> Option<Arc<Player>> {
         // Clippy recommends removing the `map` call, which is just wrong.
-        self.players.get(guild_id).map(|r| Arc::clone(&r.value()))
+        self.players.get(guild_id).map(|r| Arc::clone(r.value()))
     }
 
     /// Return a mutable reference to a player by guild ID or insert a new
