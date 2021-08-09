@@ -71,7 +71,7 @@ mod tests {
             user: Some(User {
                 avatar: Some("hash".to_owned()),
                 bot: true,
-                discriminator: "1000".to_owned(),
+                discriminator: 1000,
                 email: None,
                 flags: None,
                 id: UserId(4),
@@ -194,7 +194,7 @@ mod tests {
             user: Some(User {
                 avatar: Some("hash".to_owned()),
                 bot: true,
-                discriminator: "1000".to_owned(),
+                discriminator: 1000,
                 email: None,
                 flags: None,
                 id: UserId(4),

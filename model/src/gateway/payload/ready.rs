@@ -49,7 +49,7 @@ mod tests {
             user: CurrentUser {
                 avatar: None,
                 bot: false,
-                discriminator: "1212".to_owned(),
+                discriminator: 1212,
                 email: None,
                 flags: None,
                 id: UserId(3),
