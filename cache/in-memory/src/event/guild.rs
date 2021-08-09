@@ -16,22 +16,22 @@ impl InMemoryCache {
         // The map and set creation needs to occur first, so caching states and
         // objects always has a place to put them.
         if self.wants(ResourceType::CHANNEL) {
-            self.0.guild_channels.insert(guild.id, HashSet::new());
+            self.guild_channels.insert(guild.id, HashSet::new());
             self.cache_guild_channels(guild.id, guild.channels);
         }
 
         if self.wants(ResourceType::EMOJI) {
-            self.0.guild_emojis.insert(guild.id, HashSet::new());
+            self.guild_emojis.insert(guild.id, HashSet::new());
             self.cache_emojis(guild.id, guild.emojis);
         }
 
         if self.wants(ResourceType::MEMBER) {
-            self.0.guild_members.insert(guild.id, HashSet::new());
+            self.guild_members.insert(guild.id, HashSet::new());
             self.cache_members(guild.id, guild.members);
         }
 
         if self.wants(ResourceType::PRESENCE) {
-            self.0.guild_presences.insert(guild.id, HashSet::new());
+            self.guild_presences.insert(guild.id, HashSet::new());
             self.cache_presences(
                 guild.id,
                 guild.presences.into_iter().map(CachedPresence::from),
@@ -39,19 +39,17 @@ impl InMemoryCache {
         }
 
         if self.wants(ResourceType::ROLE) {
-            self.0.guild_roles.insert(guild.id, HashSet::new());
+            self.guild_roles.insert(guild.id, HashSet::new());
             self.cache_roles(guild.id, guild.roles);
         }
 
         if self.wants(ResourceType::VOICE_STATE) {
-            self.0.voice_state_guilds.insert(guild.id, HashSet::new());
+            self.voice_state_guilds.insert(guild.id, HashSet::new());
             self.cache_voice_states(guild.voice_states);
         }
 
         if self.wants(ResourceType::STAGE_INSTANCE) {
-            self.0
-                .guild_stage_instances
-                .insert(guild.id, HashSet::new());
+            self.guild_stage_instances.insert(guild.id, HashSet::new());
             self.cache_stage_instances(guild.id, guild.stage_instances);
         }
 
@@ -92,8 +90,8 @@ impl InMemoryCache {
             widget_enabled: guild.widget_enabled,
         };
 
-        self.0.unavailable_guilds.remove(&guild.id);
-        self.0.guilds.insert(guild.id, guild);
+        self.unavailable_guilds.remove(&guild.id);
+        self.guilds.insert(guild.id, guild);
     }
 }
 
@@ -127,37 +125,37 @@ impl UpdateCache for GuildDelete {
 
         let id = self.id;
 
-        cache.0.guilds.remove(&id);
+        cache.guilds.remove(&id);
 
         if cache.wants(ResourceType::CHANNEL) {
-            remove_ids(&cache.0.guild_channels, &cache.0.channels_guild, id);
+            remove_ids(&cache.guild_channels, &cache.channels_guild, id);
         }
 
         if cache.wants(ResourceType::EMOJI) {
-            remove_ids(&cache.0.guild_emojis, &cache.0.emojis, id);
+            remove_ids(&cache.guild_emojis, &cache.emojis, id);
         }
 
         if cache.wants(ResourceType::ROLE) {
-            remove_ids(&cache.0.guild_roles, &cache.0.roles, id);
+            remove_ids(&cache.guild_roles, &cache.roles, id);
         }
 
         if cache.wants(ResourceType::VOICE_STATE) {
             // Clear out a guilds voice states when a guild leaves
-            cache.0.voice_state_guilds.remove(&id);
+            cache.voice_state_guilds.remove(&id);
         }
 
         if cache.wants(ResourceType::MEMBER) {
-            if let Some((_, ids)) = cache.0.guild_members.remove(&id) {
+            if let Some((_, ids)) = cache.guild_members.remove(&id) {
                 for user_id in ids {
-                    cache.0.members.remove(&(id, user_id));
+                    cache.members.remove(&(id, user_id));
                 }
             }
         }
 
         if cache.wants(ResourceType::PRESENCE) {
-            if let Some((_, ids)) = cache.0.guild_presences.remove(&id) {
+            if let Some((_, ids)) = cache.guild_presences.remove(&id) {
                 for user_id in ids {
-                    cache.0.presences.remove(&(id, user_id));
+                    cache.presences.remove(&(id, user_id));
                 }
             }
         }
@@ -170,7 +168,7 @@ impl UpdateCache for GuildUpdate {
             return;
         }
 
-        if let Some(mut guild) = cache.0.guilds.get_mut(&self.0.id) {
+        if let Some(mut guild) = cache.guilds.get_mut(&self.0.id) {
             guild.afk_channel_id = self.afk_channel_id;
             guild.afk_timeout = self.afk_timeout;
             guild.banner = self.banner.clone();

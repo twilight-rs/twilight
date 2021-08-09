@@ -32,7 +32,6 @@ use std::{
     fmt::{Display, Formatter, Result as FmtResult},
     net::SocketAddr,
     pin::Pin,
-    sync::Arc,
     task::{Context, Poll},
     time::Duration,
 };
@@ -307,22 +306,19 @@ impl NodeConfig {
     }
 }
 
-#[derive(Debug)]
-struct NodeRef {
-    config: NodeConfig,
-    lavalink_tx: UnboundedSender<OutgoingEvent>,
-    players: PlayerManager,
-    stats: BiLock<Stats>,
-}
-
 /// A connection to a single Lavalink server. It receives events and forwards
 /// events from players to the server.
 ///
 /// Please refer to the [module] documentation.
 ///
 /// [module]: crate
-#[derive(Clone, Debug)]
-pub struct Node(Arc<NodeRef>);
+#[derive(Debug)]
+pub struct Node {
+    config: NodeConfig,
+    lavalink_tx: UnboundedSender<OutgoingEvent>,
+    players: PlayerManager,
+    stats: BiLock<Stats>,
+}
 
 impl Node {
     /// Connect to a node, providing a player manager so that the node can
@@ -364,24 +360,24 @@ impl Node {
         tokio::spawn(conn_loop.run());
 
         Ok((
-            Self(Arc::new(NodeRef {
+            Self {
                 config,
                 lavalink_tx,
                 players,
                 stats: bilock_left,
-            })),
+            },
             IncomingEvents { inner: lavalink_rx },
         ))
     }
 
     /// Retrieve an immutable reference to the node's configuration.
-    pub fn config(&self) -> &NodeConfig {
-        &self.0.config
+    pub const fn config(&self) -> &NodeConfig {
+        &self.config
     }
 
     /// Retrieve an immutable reference to the player manager used by the node.
-    pub fn players(&self) -> &PlayerManager {
-        &self.0.players
+    pub const fn players(&self) -> &PlayerManager {
+        &self.players
     }
 
     /// Retrieve an immutable reference to the node's configuration.
@@ -403,13 +399,13 @@ impl Node {
     /// player states, such as whether it's paused.
     pub fn sender(&self) -> NodeSender {
         NodeSender {
-            inner: self.0.lavalink_tx.clone(),
+            inner: self.lavalink_tx.clone(),
         }
     }
 
     /// Retrieve a copy of the node's stats.
     pub async fn stats(&self) -> Stats {
-        (*self.0.stats.lock().await).clone()
+        (*self.stats.lock().await).clone()
     }
 
     /// Retrieve the calculated penalty score of the node.
@@ -417,7 +413,7 @@ impl Node {
     /// This score can be used to calculate how loaded the server is. A higher
     /// number means it is more heavily loaded.
     pub async fn penalty(&self) -> i32 {
-        let stats = self.0.stats.lock().await;
+        let stats = self.stats.lock().await;
         let cpu = 1.05f64.powf(100f64 * stats.cpu.system_load) * 10f64 - 10f64;
 
         let (deficit_frame, null_frame) = (
@@ -718,7 +714,7 @@ mod tests {
     assert_fields!(NodeErrorType::Unauthorized: address, authorization);
     assert_impl_all!(NodeErrorType: Debug, Send, Sync);
     assert_impl_all!(NodeError: Error, Send, Sync);
-    assert_impl_all!(Node: Clone, Debug, Send, Sync);
+    assert_impl_all!(Node: Debug, Send, Sync);
     assert_fields!(Resume: timeout);
     assert_impl_all!(Resume: Clone, Debug, Default, Eq, PartialEq, Send, Sync);
 }

@@ -17,14 +17,13 @@ impl InMemoryCache {
     }
 
     fn cache_stage_instance(&self, guild_id: GuildId, stage_instance: StageInstance) {
-        self.0
-            .guild_stage_instances
+        self.guild_stage_instances
             .entry(guild_id)
             .or_default()
             .insert(stage_instance.id);
 
         crate::upsert_guild_item(
-            &self.0.stage_instances,
+            &self.stage_instances,
             guild_id,
             stage_instance.id,
             stage_instance,
@@ -32,10 +31,10 @@ impl InMemoryCache {
     }
 
     fn delete_stage_instance(&self, stage_id: StageId) {
-        if let Some((_, data)) = self.0.stage_instances.remove(&stage_id) {
+        if let Some((_, data)) = self.stage_instances.remove(&stage_id) {
             let guild_id = data.guild_id;
 
-            if let Some(mut stage_instances) = self.0.guild_stage_instances.get_mut(&guild_id) {
+            if let Some(mut stage_instances) = self.guild_stage_instances.get_mut(&guild_id) {
                 stage_instances.remove(&stage_id);
             }
         }

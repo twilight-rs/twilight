@@ -311,14 +311,10 @@ impl<'a> InMemoryCachePermissions<'a> {
         user_id: UserId,
         channel_id: ChannelId,
     ) -> Result<Permissions, ChannelError> {
-        let channel = (self.0)
-            .0
-            .channels_guild
-            .get(&channel_id)
-            .ok_or(ChannelError {
-                kind: ChannelErrorType::ChannelUnavailable { channel_id },
-                source: None,
-            })?;
+        let channel = self.0.channels_guild.get(&channel_id).ok_or(ChannelError {
+            kind: ChannelErrorType::ChannelUnavailable { channel_id },
+            source: None,
+        })?;
 
         let guild_id = channel.data.guild_id().ok_or(ChannelError {
             kind: ChannelErrorType::ChannelUnavailable { channel_id },
@@ -410,8 +406,7 @@ impl<'a> InMemoryCachePermissions<'a> {
     /// Returns true if the user is or false if the user is definitively not the
     /// owner of the guild or the guild is not in the cache.
     fn is_owner(&self, user_id: UserId, guild_id: GuildId) -> bool {
-        (self.0)
-            .0
+        self.0
             .guilds
             .get(&guild_id)
             .map(|r| r.owner_id == user_id)
@@ -433,7 +428,7 @@ impl<'a> InMemoryCachePermissions<'a> {
         user_id: UserId,
         guild_id: GuildId,
     ) -> Result<MemberRoles, MemberRolesErrorType> {
-        let member = if let Some(member) = (self.0).0.members.get(&(guild_id, user_id)) {
+        let member = if let Some(member) = self.0.members.get(&(guild_id, user_id)) {
             member
         } else {
             return Err(MemberRolesErrorType::MemberMissing { guild_id, user_id });
@@ -442,7 +437,7 @@ impl<'a> InMemoryCachePermissions<'a> {
         let mut member_roles = Vec::with_capacity(member.roles.len());
 
         for role_id in &member.roles {
-            let role = if let Some(role) = (self.0).0.roles.get(role_id) {
+            let role = if let Some(role) = self.0.roles.get(role_id) {
                 role
             } else {
                 return Err(MemberRolesErrorType::RoleMissing { role_id: *role_id });
@@ -454,7 +449,7 @@ impl<'a> InMemoryCachePermissions<'a> {
         // Assume that the `@everyone` role is always present, so do this last.
         let everyone_role_id = RoleId(guild_id.0);
 
-        if let Some(everyone_role) = (self.0).0.roles.get(&everyone_role_id) {
+        if let Some(everyone_role) = self.0.roles.get(&everyone_role_id) {
             Ok(MemberRoles {
                 assigned: member_roles,
                 everyone: everyone_role.data.permissions,

@@ -14,19 +14,18 @@ impl InMemoryCache {
 
     fn cache_role(&self, guild_id: GuildId, role: Role) {
         // Insert the role into the guild_roles map
-        self.0
-            .guild_roles
+        self.guild_roles
             .entry(guild_id)
             .or_default()
             .insert(role.id);
 
         // Insert the role into the all roles map
-        crate::upsert_guild_item(&self.0.roles, guild_id, role.id, role);
+        crate::upsert_guild_item(&self.roles, guild_id, role.id, role);
     }
 
     fn delete_role(&self, role_id: RoleId) {
-        if let Some((_, role)) = self.0.roles.remove(&role_id) {
-            if let Some(mut roles) = self.0.guild_roles.get_mut(&role.guild_id) {
+        if let Some((_, role)) = self.roles.remove(&role_id) {
+            if let Some(mut roles) = self.guild_roles.get_mut(&role.guild_id) {
                 roles.remove(&role_id);
             }
         }
@@ -78,8 +77,8 @@ mod tests {
         });
 
         {
-            assert_eq!(1, cache.0.guild_roles.get(&GuildId(1)).unwrap().len());
-            assert_eq!(1, cache.0.roles.len());
+            assert_eq!(1, cache.guild_roles.get(&GuildId(1)).unwrap().len());
+            assert_eq!(1, cache.roles.len());
 
             assert_eq!("test".to_string(), cache.role(RoleId(2)).unwrap().name);
         }

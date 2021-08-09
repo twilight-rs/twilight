@@ -68,7 +68,7 @@
 //!
 //! ```rust,no_run
 //! use futures_util::StreamExt;
-//! use std::{env, error::Error};
+//! use std::{env, error::Error, sync::Arc};
 //! use twilight_gateway::{Event, Intents, Shard};
 //! use twilight_model::{
 //!     channel::Message,
@@ -84,7 +84,7 @@
 //!     let (shard, mut events) = Shard::new(env::var("DISCORD_TOKEN")?, intents);
 //!     shard.start().await?;
 //!
-//!     let standby = Standby::new();
+//!     let standby = Arc::new(Standby::new());
 //!
 //!     while let Some(event) = events.next().await {
 //!         // Have standby process the event, which will fulfill any futures that
@@ -93,7 +93,7 @@
 //!
 //!         match event {
 //!             Event::MessageCreate(msg) if msg.content == "!react" => {
-//!                 tokio::spawn(react(msg.0, standby.clone()));
+//!                 tokio::spawn(react(msg.0, Arc::clone(&standby)));
 //!             },
 //!             _ => {},
 //!         }
@@ -104,7 +104,10 @@
 //!
 //! // Wait for a reaction from the user who sent the message, and then print it
 //! // once they react.
-//! async fn react(msg: Message, standby: Standby) -> Result<(), Box<dyn Error + Send + Sync + 'static>> {
+//! async fn react(
+//!     msg: Message,
+//!     standby: Arc<Standby>,
+//! ) -> Result<(), Box<dyn Error + Send + Sync + 'static>> {
 //!     let author_id = msg.author.id;
 //!
 //!     let reaction = standby.wait_for_reaction(msg.id, move |event: &ReactionAdd| {
@@ -148,10 +151,7 @@ pub use futures::{
 use dashmap::DashMap;
 use std::{
     fmt::{Debug, Formatter, Result as FmtResult},
-    sync::{
-        atomic::{AtomicU64, Ordering},
-        Arc,
-    },
+    sync::atomic::{AtomicU64, Ordering},
 };
 use tokio::sync::{
     mpsc::{self, UnboundedSender as MpscSender},
@@ -194,26 +194,23 @@ impl<E> Debug for Bystander<E> {
     }
 }
 
+/// The `Standby` struct, used by the main event loop to process events and by
+/// tasks to wait for an event.
+///
+/// Refer to the crate-level documentation for more information.
+///
+/// # Using Standby in multiple tasks
+///
+/// To use a Standby instance in multiple tasks, consider wrapping it in an
+/// [`std::sync::Arc`] or [`std::rc::Rc`].
 #[derive(Debug, Default)]
-struct StandbyRef {
+pub struct Standby {
     events: DashMap<u64, Bystander<Event>>,
     event_counter: AtomicU64,
     guilds: DashMap<GuildId, Vec<Bystander<Event>>>,
     messages: DashMap<ChannelId, Vec<Bystander<MessageCreate>>>,
     reactions: DashMap<MessageId, Vec<Bystander<ReactionAdd>>>,
 }
-
-/// The `Standby` struct, used by the main event loop to process events and by
-/// tasks to wait for an event.
-///
-/// Refer to the crate-level documentation for more information.
-///
-/// # Cloning
-///
-/// Standby internally wraps its data within an Arc. This means that standby can
-/// be cloned and passed around tasks and threads cheaply.
-#[derive(Clone, Debug, Default)]
-pub struct Standby(Arc<StandbyRef>);
 
 impl Standby {
     /// Create a new instance of `Standby`.
@@ -285,7 +282,7 @@ impl Standby {
         let (tx, rx) = oneshot::channel();
 
         {
-            let mut guild = self.0.guilds.entry(guild_id).or_default();
+            let mut guild = self.guilds.entry(guild_id).or_default();
             guild.push(Bystander {
                 func: check.into(),
                 sender: Some(Sender::Oneshot(tx)),
@@ -341,7 +338,7 @@ impl Standby {
         let (tx, rx) = mpsc::unbounded_channel();
 
         {
-            let mut guild = self.0.guilds.entry(guild_id).or_default();
+            let mut guild = self.guilds.entry(guild_id).or_default();
             guild.push(Bystander {
                 func: check.into(),
                 sender: Some(Sender::Mpsc(tx)),
@@ -392,7 +389,7 @@ impl Standby {
         let (tx, rx) = oneshot::channel();
 
         {
-            self.0.events.insert(
+            self.events.insert(
                 self.next_event_id(),
                 Bystander {
                     func: check.into(),
@@ -449,7 +446,7 @@ impl Standby {
         let (tx, rx) = mpsc::unbounded_channel();
 
         {
-            self.0.events.insert(
+            self.events.insert(
                 self.next_event_id(),
                 Bystander {
                     func: check.into(),
@@ -498,7 +495,7 @@ impl Standby {
         let (tx, rx) = oneshot::channel();
 
         {
-            let mut guild = self.0.messages.entry(channel_id).or_default();
+            let mut guild = self.messages.entry(channel_id).or_default();
             guild.push(Bystander {
                 func: check.into(),
                 sender: Some(Sender::Oneshot(tx)),
@@ -550,7 +547,7 @@ impl Standby {
         let (tx, rx) = mpsc::unbounded_channel();
 
         {
-            let mut guild = self.0.messages.entry(channel_id).or_default();
+            let mut guild = self.messages.entry(channel_id).or_default();
             guild.push(Bystander {
                 func: check.into(),
                 sender: Some(Sender::Mpsc(tx)),
@@ -597,7 +594,7 @@ impl Standby {
         let (tx, rx) = oneshot::channel();
 
         {
-            let mut guild = self.0.reactions.entry(message_id).or_default();
+            let mut guild = self.reactions.entry(message_id).or_default();
             guild.push(Bystander {
                 func: check.into(),
                 sender: Some(Sender::Oneshot(tx)),
@@ -652,7 +649,7 @@ impl Standby {
         let (tx, rx) = mpsc::unbounded_channel();
 
         {
-            let mut guild = self.0.reactions.entry(message_id).or_default();
+            let mut guild = self.reactions.entry(message_id).or_default();
             guild.push(Bystander {
                 func: check.into(),
                 sender: Some(Sender::Mpsc(tx)),
@@ -663,7 +660,7 @@ impl Standby {
     }
 
     fn next_event_id(&self) -> u64 {
-        self.0.event_counter.fetch_add(1, Ordering::SeqCst)
+        self.event_counter.fetch_add(1, Ordering::SeqCst)
     }
 
     #[cfg_attr(feature = "tracing", tracing::instrument(level = "trace"))]
@@ -672,7 +669,7 @@ impl Standby {
         tracing::trace!(?event, event_type = ?event.kind(), "processing event");
 
         #[cfg_attr(not(feature = "tracing"), allow(clippy::let_and_return))]
-        self.0.events.retain(|_id, bystander| {
+        self.events.retain(|_id, bystander| {
             // `bystander_process` returns whether it is fulfilled, so invert it
             // here. If it's fulfilled, then we don't want to retain it.
             let retaining = !self.bystander_process(bystander, event);
@@ -686,7 +683,7 @@ impl Standby {
 
     #[cfg_attr(feature = "tracing", tracing::instrument(level = "trace"))]
     fn process_guild(&self, guild_id: GuildId, event: &Event) {
-        let remove = match self.0.guilds.get_mut(&guild_id) {
+        let remove = match self.guilds.get_mut(&guild_id) {
             Some(mut bystanders) => {
                 self.bystander_iter(&mut bystanders, event);
 
@@ -704,7 +701,7 @@ impl Standby {
             #[cfg(feature = "tracing")]
             tracing::trace!(%guild_id, "removing guild from map");
 
-            self.0.guilds.remove(&guild_id);
+            self.guilds.remove(&guild_id);
         }
     }
 
@@ -713,7 +710,7 @@ impl Standby {
         #[cfg(feature = "tracing")]
         tracing::trace!(%channel_id, "processing message bystanders in channel");
 
-        let remove = match self.0.messages.get_mut(&channel_id) {
+        let remove = match self.messages.get_mut(&channel_id) {
             Some(mut bystanders) => {
                 self.bystander_iter(&mut bystanders, event);
 
@@ -734,12 +731,12 @@ impl Standby {
             #[cfg(feature = "tracing")]
             tracing::trace!(%channel_id, "removing channel");
 
-            self.0.messages.remove(&channel_id);
+            self.messages.remove(&channel_id);
         }
     }
 
     fn process_reaction(&self, message_id: MessageId, event: &ReactionAdd) {
-        let remove = match self.0.reactions.get_mut(&message_id) {
+        let remove = match self.reactions.get_mut(&message_id) {
             Some(mut bystanders) => {
                 self.bystander_iter(&mut bystanders, event);
 
@@ -757,7 +754,7 @@ impl Standby {
             #[cfg(feature = "tracing")]
             tracing::trace!("removing message {}", message_id);
 
-            self.0.reactions.remove(&message_id);
+            self.reactions.remove(&message_id);
         }
     }
 
@@ -937,7 +934,7 @@ mod tests {
         user::{CurrentUser, User},
     };
 
-    assert_impl_all!(Standby: Clone, Debug, Default, Send, Sync);
+    assert_impl_all!(Standby: Debug, Default, Send, Sync);
 
     fn message() -> Message {
         Message {
@@ -1017,7 +1014,7 @@ mod tests {
                 role_id: RoleId(2),
             }))
         ));
-        assert!(standby.0.guilds.is_empty());
+        assert!(standby.guilds.is_empty());
     }
 
     #[tokio::test]
@@ -1050,13 +1047,13 @@ mod tests {
                 role_id: RoleId(3),
             }))
         ));
-        assert!(!standby.0.guilds.is_empty());
+        assert!(!standby.guilds.is_empty());
         drop(stream);
         standby.process(&Event::RoleDelete(RoleDelete {
             guild_id: GuildId(1),
             role_id: RoleId(4),
         }));
-        assert!(standby.0.guilds.is_empty());
+        assert!(standby.guilds.is_empty());
     }
 
     #[tokio::test]
@@ -1092,11 +1089,11 @@ mod tests {
             Event::Ready(ready) => ready.shard.map(|[id, _]| id == 5).unwrap_or(false),
             _ => false,
         });
-        assert!(!standby.0.events.is_empty());
+        assert!(!standby.events.is_empty());
         standby.process(&event);
 
         assert_eq!(event, wait.await.unwrap());
-        assert!(standby.0.events.is_empty());
+        assert!(standby.events.is_empty());
     }
 
     #[tokio::test]
@@ -1106,10 +1103,10 @@ mod tests {
             standby.wait_for_event_stream(|event: &Event| event.kind() == EventType::Resumed);
         standby.process(&Event::Resumed);
         assert_eq!(stream.next().await, Some(Event::Resumed));
-        assert!(!standby.0.events.is_empty());
+        assert!(!standby.events.is_empty());
         drop(stream);
         standby.process(&Event::Resumed);
-        assert!(standby.0.events.is_empty());
+        assert!(standby.events.is_empty());
     }
 
     #[tokio::test]
@@ -1124,7 +1121,7 @@ mod tests {
         standby.process(&event);
 
         assert_eq!(MessageId(3), wait.await.map(|msg| msg.id).unwrap());
-        assert!(standby.0.messages.is_empty());
+        assert!(standby.messages.is_empty());
     }
 
     #[tokio::test]
@@ -1137,9 +1134,9 @@ mod tests {
         assert!(stream.next().await.is_some());
         assert!(stream.next().await.is_some());
         drop(stream);
-        assert_eq!(1, standby.0.messages.len());
+        assert_eq!(1, standby.messages.len());
         standby.process(&Event::MessageCreate(Box::new(MessageCreate(message()))));
-        assert!(standby.0.messages.is_empty());
+        assert!(standby.messages.is_empty());
     }
 
     #[tokio::test]
@@ -1157,7 +1154,7 @@ mod tests {
             UserId(3),
             wait.await.map(|reaction| reaction.user_id).unwrap()
         );
-        assert!(standby.0.reactions.is_empty());
+        assert!(standby.reactions.is_empty());
     }
 
     #[tokio::test]
@@ -1170,9 +1167,9 @@ mod tests {
         assert!(stream.next().await.is_some());
         assert!(stream.next().await.is_some());
         drop(stream);
-        assert_eq!(1, standby.0.reactions.len());
+        assert_eq!(1, standby.reactions.len());
         standby.process(&Event::ReactionAdd(Box::new(ReactionAdd(reaction()))));
-        assert!(standby.0.reactions.is_empty());
+        assert!(standby.reactions.is_empty());
     }
 
     #[tokio::test]

@@ -309,14 +309,6 @@ pub struct ResumeSession {
     pub sequence: u64,
 }
 
-#[derive(Debug)]
-struct ShardRef {
-    config: Arc<Config>,
-    emitter: Mutex<Option<Emitter>>,
-    processor_handle: OnceCell<JoinHandle<()>>,
-    session: OnceCell<WatchReceiver<Arc<Session>>>,
-}
-
 /// Shard to run and manage a session with the gateway.
 ///
 /// Shards are responsible for handling incoming events, process events relevant
@@ -328,10 +320,10 @@ struct ShardRef {
 /// sessions with the ratelimit. Refer to Discord's [documentation][docs:shards]
 /// on shards to have a better understanding of what they are.
 ///
-/// # Cloning
+/// # Using a shard in multiple tasks
 ///
-/// The shard internally wraps its data within an Arc. This means that the shard
-/// can be cloned and passed around tasks and threads cheaply.
+/// To use a shard instance in multiple tasks, consider wrapping it in an
+/// [`std::sync::Arc`] or [`std::rc::Rc`].
 ///
 /// # Examples
 ///
@@ -373,8 +365,13 @@ struct ShardRef {
 ///
 /// [`queue`]: crate::queue
 /// [docs:shards]: https://discord.com/developers/docs/topics/gateway#sharding
-#[derive(Clone, Debug)]
-pub struct Shard(Arc<ShardRef>);
+#[derive(Debug)]
+pub struct Shard {
+    config: Arc<Config>,
+    emitter: Mutex<Option<Emitter>>,
+    processor_handle: OnceCell<JoinHandle<()>>,
+    session: OnceCell<WatchReceiver<Arc<Session>>>,
+}
 
 impl Shard {
     /// Create a new unconfigured shard.
@@ -417,12 +414,12 @@ impl Shard {
 
         let (emitter, rx) = Emitter::new(event_types);
 
-        let this = Self(Arc::new(ShardRef {
+        let this = Self {
             config,
             emitter: Mutex::new(Some(emitter)),
             processor_handle: OnceCell::new(),
             session: OnceCell::new(),
-        }));
+        };
 
         (this, Events::new(event_types, rx))
     }
@@ -436,7 +433,7 @@ impl Shard {
 
     /// Return an immutable reference to the configuration used for this client.
     pub fn config(&self) -> &Config {
-        &self.0.config
+        &self.config
     }
 
     /// Start the shard, connecting it to the gateway and starting the process
@@ -463,11 +460,10 @@ impl Shard {
     /// [`shutdown_resumable`]: Self::shutdown_resumable
     /// [`shutdown`]: Self::shutdown
     pub async fn start(&self) -> Result<(), ShardStartError> {
-        let url = if let Some(u) = self.0.config.gateway_url.clone() {
+        let url = if let Some(u) = self.config.gateway_url.clone() {
             u.into_string()
         } else {
-            self.0
-                .config
+            self.config
                 .http_client()
                 .gateway()
                 .authed()
@@ -487,7 +483,6 @@ impl Shard {
         };
 
         let emitter = self
-            .0
             .emitter
             .lock()
             .expect("emitter poisoned")
@@ -497,7 +492,7 @@ impl Shard {
                 source: None,
             })?;
 
-        let config = Arc::clone(&self.0.config);
+        let config = Arc::clone(&self.config);
         let (processor, wrx) =
             ShardProcessor::new(config, url, emitter)
                 .await
@@ -525,8 +520,8 @@ impl Shard {
         });
 
         // We know that these haven't been set, so we can ignore the result.
-        let _res = self.0.processor_handle.set(handle);
-        let _session = self.0.session.set(wrx);
+        let _res = self.processor_handle.set(handle);
+        let _session = self.session.set(wrx);
 
         Ok(())
     }
@@ -679,7 +674,7 @@ impl Shard {
     /// code, causing Discord to show the bot as being offline. The session will
     /// not be resumable.
     pub fn shutdown(&self) {
-        if let Some(processor_handle) = self.0.processor_handle.get() {
+        if let Some(processor_handle) = self.processor_handle.get() {
             processor_handle.abort();
         }
 
@@ -702,7 +697,7 @@ impl Shard {
     ///
     /// [`ClusterBuilder::resume_sessions`]: crate::cluster::ClusterBuilder::resume_sessions
     pub fn shutdown_resumable(&self) -> (u64, Option<ResumeSession>) {
-        if let Some(processor_handle) = self.0.processor_handle.get() {
+        if let Some(processor_handle) = self.processor_handle.get() {
             processor_handle.abort();
         }
 
@@ -737,7 +732,7 @@ impl Shard {
     ///
     /// Returns a [`SessionInactiveError`] if the shard's session is inactive.
     fn session(&self) -> Result<Arc<Session>, SessionInactiveError> {
-        let session = self.0.session.get().ok_or(SessionInactiveError)?;
+        let session = self.session.get().ok_or(SessionInactiveError)?;
 
         Ok(Arc::clone(&session.borrow()))
     }
@@ -762,5 +757,5 @@ mod tests {
     assert_fields!(ShardStartErrorType::ParsingGatewayUrl: url);
     assert_impl_all!(ShardStartErrorType: Debug, Send, Sync);
     assert_impl_all!(ShardStartError: Error, Send, Sync);
-    assert_impl_all!(Shard: Clone, Debug, Send, Sync);
+    assert_impl_all!(Shard: Debug, Send, Sync);
 }
