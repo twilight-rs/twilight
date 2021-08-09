@@ -654,16 +654,15 @@ impl Shard {
         match session.tx.send(message.into_tungstenite()) {
             Ok(()) => {
                 // Tick ratelimiter.
-                let ratelimiter = session.ratelimit.get();
-                if let Some(limiter) = ratelimiter {
+                if let Some(limiter) = session.ratelimit.get() {
                     limiter.acquire_one().await.map_err(|source| SendError {
-                        source: Some(Box::new(source)),
                         kind: SendErrorType::ExecutorShutDown,
+                        source: Some(Box::new(source)),
                     })
                 } else {
                     Err(SendError {
-                        source: None,
                         kind: SendErrorType::HeartbeaterNotStarted,
+                        source: None,
                     })
                 }
             }
