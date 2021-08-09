@@ -9,24 +9,58 @@ use twilight_model::{
 /// [`Emoji`]: twilight_model::guild::Emoji
 #[derive(Clone, Debug, Eq, PartialEq, Serialize)]
 pub struct CachedEmoji {
-    /// ID of the Emoji.
-    pub id: EmojiId,
+    pub(crate) animated: bool,
+    pub(crate) available: bool,
+    pub(crate) id: EmojiId,
+    pub(crate) managed: bool,
+    pub(crate) name: String,
+    pub(crate) require_colons: bool,
+    pub(crate) roles: Vec<RoleId>,
+    pub(crate) user_id: Option<UserId>,
+}
+
+impl CachedEmoji {
     /// Whether the emoji is animated.
-    pub animated: bool,
-    /// Name of the Emoji.
-    pub name: String,
-    /// Whether the emoji is managed.
-    pub managed: bool,
-    /// Whether the emoji must be wrapped in colons.
-    pub require_colons: bool,
-    /// List of roles allowed to use this emoji.
-    pub roles: Vec<RoleId>,
-    /// ID of the user who created the emoji.
-    pub user_id: Option<UserId>,
+    pub const fn available(&self) -> bool {
+        self.available
+    }
+
     /// Whether this emoji can be used.
     ///
     /// May be false due to loss of Server Boosts.
-    pub available: bool,
+    pub const fn animated(&self) -> bool {
+        self.animated
+    }
+
+    /// ID of the Emoji.
+    pub const fn id(&self) -> EmojiId {
+        self.id
+    }
+
+    /// Whether the emoji is managed.
+    pub const fn managed(&self) -> bool {
+        self.managed
+    }
+
+    /// Name of the Emoji.
+    pub fn name(&self) -> &str {
+        &self.name
+    }
+
+    /// Whether the emoji must be wrapped in colons.
+    pub const fn require_colons(&self) -> bool {
+        self.require_colons
+    }
+
+    /// List of roles allowed to use this emoji.
+    pub fn roles(&self) -> &[RoleId] {
+        &self.roles
+    }
+
+    /// ID of the user who created the emoji.
+    pub const fn user_id(&self) -> Option<UserId> {
+        self.user_id
+    }
 }
 
 impl PartialEq<Emoji> for CachedEmoji {
