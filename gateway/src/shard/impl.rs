@@ -16,7 +16,7 @@ use std::{
     borrow::Cow,
     error::Error,
     fmt::{Display, Formatter, Result as FmtResult},
-    sync::{atomic::Ordering, Arc},
+    sync::{atomic::Ordering, Arc, Mutex},
 };
 use tokio::{sync::watch::Receiver as WatchReceiver, task::JoinHandle};
 use tokio_tungstenite::tungstenite::protocol::{
@@ -201,6 +201,9 @@ impl ShardStartError {
 impl Display for ShardStartError {
     fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
         match &self.kind {
+            ShardStartErrorType::AlreadyStarted => {
+                f.write_str("shard has already been previously started")
+            }
             ShardStartErrorType::Establishing => f.write_str("establishing the connection failed"),
             ShardStartErrorType::ParsingGatewayUrl { url } => {
                 f.write_str("the gateway url `")?;
@@ -227,6 +230,11 @@ impl Error for ShardStartError {
 #[derive(Debug)]
 #[non_exhaustive]
 pub enum ShardStartErrorType {
+    /// Shard has already been previously started.
+    ///
+    /// Shards can't be started multiple times; you need to create a new
+    /// instance of the shard.
+    AlreadyStarted,
     /// Establishing a connection to the gateway failed.
     Establishing,
     /// Parsing the gateway URL provided by Discord to connect to the gateway
@@ -302,7 +310,7 @@ pub struct ResumeSession {
 #[derive(Debug)]
 struct ShardRef {
     config: Arc<Config>,
-    emitter: Emitter,
+    emitter: Mutex<Option<Emitter>>,
     processor_handle: OnceCell<JoinHandle<()>>,
     session: OnceCell<WatchReceiver<Arc<Session>>>,
 }
@@ -367,7 +375,7 @@ struct ShardRef {
 pub struct Shard(Arc<ShardRef>);
 
 impl Shard {
-    /// Create a new unconfingured shard.
+    /// Create a new unconfigured shard.
     ///
     /// Use [`start`] to initiate the gateway session.
     ///
@@ -409,7 +417,7 @@ impl Shard {
 
         let this = Self(Arc::new(ShardRef {
             config,
-            emitter,
+            emitter: Mutex::new(Some(emitter)),
             processor_handle: OnceCell::new(),
             session: OnceCell::new(),
         }));
@@ -432,7 +440,14 @@ impl Shard {
     /// Start the shard, connecting it to the gateway and starting the process
     /// of receiving and processing events.
     ///
+    /// The same shard can't be started multiple times. If you stop a shard via
+    /// [`shutdown`] or [`shutdown_resumable`] you need to create a new instance
+    /// of the shard.
+    ///
     /// # Errors
+    ///
+    /// Returns a [`ShardStartErrorType::AlreadyStarted`] error type if the
+    /// shard has already been started.
     ///
     /// Returns a [`ShardStartErrorType::Establishing`] error type if
     /// establishing a connection to the gateway failed.
@@ -442,6 +457,9 @@ impl Shard {
     ///
     /// Returns a [`ShardStartErrorType::RetrievingGatewayUrl`] error type if
     /// the gateway URL couldn't be retrieved from the HTTP API.
+    ///
+    /// [`shutdown_resumable`]: Self::shutdown_resumable
+    /// [`shutdown`]: Self::shutdown
     pub async fn start(&self) -> Result<(), ShardStartError> {
         let url = if let Some(u) = self.0.config.gateway_url.clone() {
             u.into_string()
@@ -451,6 +469,13 @@ impl Shard {
                 .http_client()
                 .gateway()
                 .authed()
+                .exec()
+                .await
+                .map_err(|source| ShardStartError {
+                    source: Some(Box::new(source)),
+                    kind: ShardStartErrorType::RetrievingGatewayUrl,
+                })?
+                .model()
                 .await
                 .map_err(|source| ShardStartError {
                     source: Some(Box::new(source)),
@@ -459,8 +484,18 @@ impl Shard {
                 .url
         };
 
+        let emitter = self
+            .0
+            .emitter
+            .lock()
+            .expect("emitter poisoned")
+            .take()
+            .ok_or(ShardStartError {
+                kind: ShardStartErrorType::AlreadyStarted,
+                source: None,
+            })?;
+
         let config = Arc::clone(&self.0.config);
-        let emitter = self.0.emitter.clone();
         let (processor, wrx) =
             ShardProcessor::new(config, url, emitter)
                 .await
@@ -483,6 +518,7 @@ impl Shard {
         let handle = tokio::spawn(async move {
             processor.run().await;
 
+            #[cfg(feature = "tracing")]
             tracing::debug!("shard processor future ended");
         });
 

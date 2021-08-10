@@ -278,7 +278,7 @@ impl ShardScheme {
                 let buckets = total / concurrency;
 
                 // Total is 1-indexed but shards are 0-indexed, so we need to
-                // substract 1 here.
+                // subtract 1 here.
                 Some(total - (buckets - bucket_id) - 1)
             }
             Self::Range { to, .. } => Some(*to),

@@ -2,6 +2,87 @@
 
 Changelog for `twilight-gateway`.
 
+## [0.6.0] - 2021-07-31
+
+### Enhancements
+
+The `tracing` feature is now optional ([#986] - [@zeylahellyer]).
+
+### Changes
+
+A few spelling errors have been fixed by adding the `codespell` Action
+([#1041] - [@Gelbpunkt].
+
+### Fixes
+
+When calling `Shard::shutdown`, `Shard::shutdown_resumable`,
+`Cluster::down`, or `Cluster::down_resumable`, shards would be stopped
+but the events stream returned by shards and clusters wouldn't return
+`None`. This is due to the events stream containing a receiver of
+events, while shard processors contained a sender. However, shards would
+keep a copy of the sender, so while the shard processor would be aborted
+and its sender dropped the shard's would not be dropped.
+
+To fix this we can move the sender into shard processors. When the
+shard processor is dropped so will the only sender. However, individual
+shard instances will now only be able to be started the first time;
+`Shard::start` can no longer be called multiple times. If a user shuts
+down a shard and wants to start it again they will need to create a new
+shard instance.
+
+([#1070] - [@zeylahellyer]).
+
+[#986]: https://github.com/twilight-rs/twilight/pull/986
+[#1041]: https://github.com/twilight-rs/twilight/pull/1041
+[#1070]: https://github.com/twilight-rs/twilight/pull/1070
+
+## [0.5.5] - 2021-07-25
+
+This is a hotfix to actually include the changes that were supposed to be in
+0.5.5; they were erroneously left out during the release.
+
+### Documentation
+
+Fix a typo in the documentation for `Shard::new` ([#1071] - [@kotx]).
+
+[#1071]: https://github.com/twilight-rs/twilight/pull/1071
+
+## [0.5.4] - 2021-07-23
+
+### Additions
+
+Add `EventTypeFlags` constants with categories of flags that are equivalent to
+their Intents counterpart. For example, the new `EventTypeFlags::GUILD_BANS`
+associated constant includes the `BAN_ADD` and `BAN_REMOVE` event type flags.
+
+The following categories have been added ([#1049] - [@vilgotf]):
+
+- `DIRECT_MESSAGES`
+- `DIRECT_MESSAGE_REACTIONS`
+- `DIRECT_MESSAGE_TYPING`
+- `GUILDS`
+- `GUILD_BANS`
+- `GUILD_EMOJIS`
+- `GUILD_INTEGRATIONS`
+- `GUILD_INVITES`
+- `GUILD_MEMBERS`
+- `GUILD_MESSAGES`
+- `GUILD_MESSAGE_REACTIONS`
+- `GUILD_MESSAGE_TYPING`
+- `GUILD_PRESENCES`
+- `GUILD_VOICE_STATES`
+- `GUILD_WEBHOOKS`
+
+### Changes
+
+`#![deny(unsafe_code)]` has been added, ensuring no unsafe code exists in the
+crate. To comply with this, while using the `simd-json` feature, the mutable
+buffer is directly used instead of casting from bytes -> str -> bytes ([#1042] -
+[@zeylahellyer]).
+
+[#1042]: https://github.com/twilight-rs/twilight/pull/1042
+[#1049]: https://github.com/twilight-rs/twilight/pull/1049
+
 ## [0.5.3] - 2021-07-14
 
 ### Changes
@@ -424,8 +505,10 @@ Initial release.
 [@Erk-]: https://github.com/Erk-
 [@Gelbpunkt]: https://github.com/Gelbpunkt
 [@james7132]: https://github.com/james7132
+[@kotx]: https://github.com/kotx
 [@nickelc]: https://github.com/nickelc
 [@tbnritzdoge]: https://github.com/tbnritzdoge
+[@vilgotf]: https://github.com/vilgotf
 [@vivian]: https://github.com/vivian
 [@zeylahellyer]: https://github.com/zeylahellyer
 
@@ -447,6 +530,8 @@ Initial release.
 [#515]: https://github.com/twilight-rs/twilight/pull/515
 [#512]: https://github.com/twilight-rs/twilight/pull/512
 
+[0.5.5]: https://github.com/twilight-rs/twilight/releases/tag/gateway-0.5.5
+[0.5.4]: https://github.com/twilight-rs/twilight/releases/tag/gateway-0.5.4
 [0.5.3]: https://github.com/twilight-rs/twilight/releases/tag/gateway-0.5.3
 [0.5.2]: https://github.com/twilight-rs/twilight/releases/tag/gateway-0.5.2
 [0.5.1]: https://github.com/twilight-rs/twilight/releases/tag/gateway-0.5.1

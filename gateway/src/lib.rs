@@ -84,6 +84,12 @@
 //! Enabling **only** `zlib-simd` will make the library use [`zlib-ng`] which is a modern
 //! fork of zlib that is faster and more effective, but it needs `cmake` to compile.
 //!
+//! ### Tracing
+//!
+//! The `tracing` feature enables logging via the [`tracing`] crate.
+//!
+//! This is enabled by default.
+//!
 //! ### Metrics
 //!
 //! The `metrics` feature provides metrics information via the `metrics` crate.
@@ -98,6 +104,7 @@
 //! [`rustls`]: https://crates.io/crates/rustls
 //! [`serde_json`]: https://crates.io/crates/serde_json
 //! [`simd-json`]: https://crates.io/crates/simd-json
+//! [`tracing`]: https://crates.io/crates/tracing
 //! [`twilight-http`]: https://twilight-rs.github.io/twilight/twilight_http/index.html
 //! [`zlib-ng`]: https://github.com/zlib-ng/zlib-ng
 //! [discord badge]: https://img.shields.io/discord/745809834183753828?color=%237289DA&label=discord%20server&logo=discord&style=for-the-badge
@@ -122,7 +129,12 @@
     unused,
     warnings
 )]
-#![allow(clippy::module_name_repetitions, clippy::must_use_candidate)]
+#![allow(
+    clippy::module_name_repetitions,
+    clippy::must_use_candidate,
+    clippy::semicolon_if_nothing_returned,
+    clippy::used_underscore_binding
+)]
 
 pub mod cluster;
 pub mod shard;

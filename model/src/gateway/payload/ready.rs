@@ -19,8 +19,8 @@ mod tests {
     use crate::{
         guild::UnavailableGuild,
         id::{ApplicationId, GuildId, UserId},
-        oauth::PartialApplication,
-        user::{CurrentUser, UserFlags},
+        oauth::{current_application_info::ApplicationFlags, PartialApplication},
+        user::CurrentUser,
     };
     use serde_test::Token;
 
@@ -40,7 +40,7 @@ mod tests {
 
         let ready = Ready {
             application: PartialApplication {
-                flags: UserFlags::empty(),
+                flags: ApplicationFlags::empty(),
                 id: ApplicationId(100),
             },
             guilds,

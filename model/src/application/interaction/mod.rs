@@ -1,4 +1,4 @@
-//! Used when recieving interactions through gateway or webhooks.
+//! Used when receiving interactions through gateway or webhooks.
 
 pub mod application_command;
 pub mod message_component;

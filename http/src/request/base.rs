@@ -5,7 +5,6 @@ use crate::{
 };
 use hyper::header::{HeaderMap, HeaderName, HeaderValue};
 use serde::Serialize;
-use std::borrow::Cow;
 
 /// Builder to create a customized request.
 ///
@@ -21,7 +20,7 @@ use std::borrow::Cow;
 ///     "content": "test"
 /// }"#.to_vec();
 ///
-/// let request = Request::builder(Route::CreateMessage {
+/// let request = Request::builder(&Route::CreateMessage {
 ///     channel_id: 1,
 /// }).body(body).build();
 /// ```
@@ -31,7 +30,7 @@ pub struct RequestBuilder(Request);
 impl RequestBuilder {
     /// Create a new request builder.
     #[must_use = "request has not been fully built"]
-    pub fn new(route: Route) -> Self {
+    pub fn new(route: &Route<'_>) -> Self {
         Self(Request::from_route(route))
     }
 
@@ -65,14 +64,14 @@ impl RequestBuilder {
     /// # Ok(()) }
     /// ```
     #[must_use = "request has not been fully built"]
-    pub const fn raw(method: Method, path: Path, path_and_query: String) -> Self {
+    pub const fn raw(method: Method, ratelimit_path: Path, path_and_query: String) -> Self {
         Self(Request {
             body: None,
             form: None,
             headers: None,
             method,
-            path,
-            path_str: Cow::Owned(path_and_query),
+            path: path_and_query,
+            ratelimit_path,
             use_authorization_token: true,
         })
     }
@@ -87,15 +86,16 @@ impl RequestBuilder {
     /// Set the contents of the body.
     #[must_use = "request has not been fully built"]
     pub fn body(mut self, body: Vec<u8>) -> Self {
-        self.0.body.replace(body);
+        self.0.body = Some(body);
 
         self
     }
 
     /// Set the multipart form.
+    #[allow(clippy::missing_const_for_fn)]
     #[must_use = "request has not been fully built"]
     pub fn form(mut self, form: Form) -> Self {
-        self.0.form.replace(form);
+        self.0.form = Some(form);
 
         self
     }
@@ -136,47 +136,16 @@ impl RequestBuilder {
 
 #[derive(Debug)]
 pub struct Request {
-    /// The body of the request, if any.
-    pub body: Option<Vec<u8>>,
-    /// The multipart form of the request, if any.
-    pub form: Option<Form>,
-    /// The headers to set in the request, if any.
-    pub headers: Option<HeaderMap<HeaderValue>>,
-    /// The method of the request.
-    pub method: Method,
-    /// The ratelimiting bucket path.
-    pub path: Path,
-    /// The URI path to request.
-    pub path_str: Cow<'static, str>,
-    /// Whether to use the client's authorization token in the request.
+    pub(crate) body: Option<Vec<u8>>,
+    pub(crate) form: Option<Form>,
+    pub(crate) headers: Option<HeaderMap<HeaderValue>>,
+    pub(crate) method: Method,
+    pub(crate) path: String,
+    pub(crate) ratelimit_path: Path,
     pub(crate) use_authorization_token: bool,
 }
 
 impl Request {
-    /// Create a simple `Request` with basic information.
-    ///
-    /// Use the [`RequestBuilder`] if you need to set a combination of
-    /// configurations in the request.
-    // `Route`'s methods have been changed to no longer consume itself, so we
-    // could pass the route by reference but we need to avoid breakage.
-    #[allow(clippy::needless_pass_by_value)]
-    #[deprecated(since = "0.4.0", note = "Use `Request::builder` instead")]
-    pub fn new(
-        body: Option<Vec<u8>>,
-        headers: Option<HeaderMap<HeaderValue>>,
-        route: Route,
-    ) -> Self {
-        Self {
-            body,
-            form: None,
-            headers,
-            method: route.method(),
-            path: route.path(),
-            path_str: Cow::Owned(route.display().to_string()),
-            use_authorization_token: true,
-        }
-    }
-
     /// Create a new request builder.
     ///
     /// # Examples
@@ -191,11 +160,11 @@ impl Request {
     ///     "content": "test"
     /// }"#.to_vec();
     ///
-    /// let request = Request::builder(Route::CreateMessage {
+    /// let request = Request::builder(&Route::CreateMessage {
     ///     channel_id: 1,
     /// }).body(body).build();
     /// ```
-    pub fn builder(route: Route) -> RequestBuilder {
+    pub fn builder(route: &Route<'_>) -> RequestBuilder {
         RequestBuilder::new(route)
     }
 
@@ -212,26 +181,53 @@ impl Request {
     /// ```
     /// use twilight_http::{request::Request, routing::Route};
     ///
-    /// let request = Request::from_route(Route::GetMessage {
+    /// let request = Request::from_route(&Route::GetMessage {
     ///     channel_id: 1,
     ///     message_id: 2,
     /// });
     /// ```
     ///
     /// [`builder`]: Self::builder
-    // `Route`'s methods have been changed to no longer consume itself, so we
-    // could pass the route by reference but we need to avoid breakage.
-    #[allow(clippy::needless_pass_by_value)]
-    pub fn from_route(route: Route) -> Self {
+    pub fn from_route(route: &Route<'_>) -> Self {
         Self {
             body: None,
             form: None,
             headers: None,
             method: route.method(),
-            path: route.path(),
-            path_str: Cow::Owned(route.display().to_string()),
+            path: route.display().to_string(),
+            ratelimit_path: route.path(),
             use_authorization_token: true,
         }
+    }
+
+    /// Body of the request, if any.
+    pub fn body(&self) -> Option<&[u8]> {
+        self.body.as_deref()
+    }
+
+    /// Multipart form of the request, if any.
+    pub const fn form(&self) -> Option<&Form> {
+        self.form.as_ref()
+    }
+
+    /// Headers to set in the request, if any.
+    pub const fn headers(&self) -> Option<&HeaderMap<HeaderValue>> {
+        self.headers.as_ref()
+    }
+
+    /// Method when sending the request.
+    pub const fn method(&self) -> Method {
+        self.method
+    }
+
+    /// String path of the full URL.
+    pub fn path(&self) -> &str {
+        &self.path
+    }
+
+    /// Path used for ratelimiting.
+    pub const fn ratelimit_path(&self) -> &Path {
+        &self.ratelimit_path
     }
 
     /// Whether to use the client's authorization token in the request.
@@ -240,128 +236,11 @@ impl Request {
     }
 }
 
-impl From<Route> for Request {
-    fn from(route: Route) -> Self {
-        Self {
-            body: None,
-            form: None,
-            headers: None,
-            method: route.method(),
-            path: route.path(),
-            path_str: Cow::Owned(route.display().to_string()),
-            use_authorization_token: true,
-        }
-    }
-}
-
-impl From<(Vec<u8>, Route)> for Request {
-    fn from((body, route): (Vec<u8>, Route)) -> Self {
-        Self {
-            body: Some(body),
-            form: None,
-            headers: None,
-            method: route.method(),
-            path: route.path(),
-            path_str: Cow::Owned(route.display().to_string()),
-            use_authorization_token: true,
-        }
-    }
-}
-
-impl From<(Form, Route)> for Request {
-    fn from((form, route): (Form, Route)) -> Self {
-        Self {
-            body: None,
-            form: Some(form),
-            headers: None,
-            method: route.method(),
-            path: route.path(),
-            path_str: Cow::Owned(route.display().to_string()),
-            use_authorization_token: true,
-        }
-    }
-}
-
-impl From<(Vec<u8>, Form, Route)> for Request {
-    fn from((body, form, route): (Vec<u8>, Form, Route)) -> Self {
-        Self {
-            body: Some(body),
-            form: Some(form),
-            headers: None,
-            method: route.method(),
-            path: route.path(),
-            path_str: Cow::Owned(route.display().to_string()),
-            use_authorization_token: true,
-        }
-    }
-}
-
-impl From<(HeaderMap<HeaderValue>, Route)> for Request {
-    fn from((headers, route): (HeaderMap<HeaderValue>, Route)) -> Self {
-        Self {
-            body: None,
-            form: None,
-            headers: Some(headers),
-            method: route.method(),
-            path: route.path(),
-            path_str: Cow::Owned(route.display().to_string()),
-            use_authorization_token: true,
-        }
-    }
-}
-
-impl From<(Vec<u8>, HeaderMap<HeaderValue>, Route)> for Request {
-    fn from((body, headers, route): (Vec<u8>, HeaderMap<HeaderValue>, Route)) -> Self {
-        Self {
-            body: Some(body),
-            form: None,
-            headers: Some(headers),
-            method: route.method(),
-            path: route.path(),
-            path_str: Cow::Owned(route.display().to_string()),
-            use_authorization_token: true,
-        }
-    }
-}
-
-impl From<(Form, HeaderMap<HeaderValue>, Route)> for Request {
-    fn from((form, headers, route): (Form, HeaderMap<HeaderValue>, Route)) -> Self {
-        Self {
-            body: None,
-            form: Some(form),
-            headers: Some(headers),
-            method: route.method(),
-            path: route.path(),
-            path_str: Cow::Owned(route.display().to_string()),
-            use_authorization_token: true,
-        }
-    }
-}
-
 #[cfg(test)]
 mod tests {
-    use super::{super::Method, RequestBuilder};
-    use crate::routing::Path;
+    use super::RequestBuilder;
     use static_assertions::assert_impl_all;
-    use std::{error::Error, fmt::Debug, str::FromStr};
+    use std::fmt::Debug;
 
     assert_impl_all!(RequestBuilder: Debug, Send, Sync);
-
-    /// Test the default request values from [`RequestBuilder::raw`].
-    #[test]
-    fn test_builder_raw() -> Result<(), Box<dyn Error>> {
-        let path_and_query = "guilds".to_owned();
-        let path = Path::from_str(&path_and_query)?;
-
-        let builder = RequestBuilder::raw(Method::Post, path, path_and_query);
-        assert!(builder.0.body.is_none());
-        assert!(builder.0.form.is_none());
-        assert!(builder.0.headers.is_none());
-        assert_eq!(Method::Post, builder.0.method);
-        assert_eq!(Path::Guilds, builder.0.path);
-        assert_eq!("guilds", builder.0.path_str.as_ref());
-        assert!(builder.0.use_authorization_token);
-
-        Ok(())
-    }
 }

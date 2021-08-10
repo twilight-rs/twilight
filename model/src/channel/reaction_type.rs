@@ -12,7 +12,7 @@ pub enum ReactionType {
         // the reaction is a unicode emoji and then it is caught by
         // the other variant.
         id: EmojiId,
-        // Name is nil if the emoji data is no longer avaiable, for
+        // Name is nil if the emoji data is no longer available, for
         // example if the emoji have been deleted off the guild.
         name: Option<String>,
     },

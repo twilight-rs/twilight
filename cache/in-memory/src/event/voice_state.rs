@@ -9,7 +9,7 @@ impl InMemoryCache {
     }
 
     fn cache_voice_state(&self, voice_state: VoiceState) {
-        // This should always exist, but just incase use a match
+        // This should always exist, but just in case use a match
         let guild_id = match voice_state.guild_id {
             Some(id) => id,
             None => return,
@@ -106,7 +106,7 @@ mod tests {
 
         // Note: Channel ids are `<guildid><idx>` where idx is the index of the channel id
         // This is done to prevent channel id collisions between guilds
-        // The other 2 ids are not special since they cant overlap
+        // The other 2 ids are not special since they can't overlap
 
         // User 1 joins guild 1's channel 11 (1 channel, 1 guild)
         {
