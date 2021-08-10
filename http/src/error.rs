@@ -60,6 +60,7 @@ impl Display for Error {
             }
             ErrorType::RequestError => f.write_str("Parsing or sending the response failed"),
             ErrorType::RequestTimedOut => f.write_str("request timed out"),
+            #[allow(deprecated)]
             ErrorType::Response { error, status, .. } => {
                 f.write_str("Response error: status code ")?;
                 Display::fmt(status, f)?;
@@ -101,6 +102,7 @@ pub enum ErrorType {
     RequestCanceled,
     RequestError,
     RequestTimedOut,
+    #[deprecated(since = "0.6.2", note = "this variant is no longer used")]
     Response {
         body: Vec<u8>,
         error: ApiError,

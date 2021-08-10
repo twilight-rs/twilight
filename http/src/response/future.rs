@@ -1,12 +1,9 @@
-use super::{Response, StatusCode};
+use super::Response;
 use crate::{
-    api_error::ApiError,
     error::{Error, ErrorType},
     ratelimiting::RatelimitHeaders,
 };
-use hyper::{
-    body::Bytes, client::ResponseFuture as HyperResponseFuture, StatusCode as HyperStatusCode,
-};
+use hyper::{client::ResponseFuture as HyperResponseFuture, StatusCode as HyperStatusCode};
 use std::{
     convert::TryFrom,
     future::Future,
@@ -37,56 +34,6 @@ enum InnerPoll<T> {
     Advance(ResponseFutureStage),
     Pending(ResponseFutureStage),
     Ready(Output<T>),
-}
-
-struct Chunking {
-    future: Pin<Box<dyn Future<Output = Result<Bytes, Error>> + Send + Sync + 'static>>,
-    status: HyperStatusCode,
-}
-
-impl Chunking {
-    fn poll<T>(mut self, cx: &mut Context<'_>) -> InnerPoll<T> {
-        let bytes = match Pin::new(&mut self.future).poll(cx) {
-            Poll::Ready(Ok(bytes)) => bytes,
-            Poll::Ready(Err(source)) => return InnerPoll::Ready(Err(source)),
-            Poll::Pending => {
-                return InnerPoll::Pending(ResponseFutureStage::Chunking(Self {
-                    future: self.future,
-                    status: self.status,
-                }))
-            }
-        };
-
-        let error = match crate::json::from_bytes::<ApiError>(&bytes) {
-            Ok(error) => error,
-            Err(source) => {
-                return InnerPoll::Ready(Err(Error {
-                    kind: ErrorType::Parsing {
-                        body: bytes.to_vec(),
-                    },
-                    source: Some(Box::new(source)),
-                }));
-            }
-        };
-
-        #[cfg(feature = "tracing")]
-        if let ApiError::General(ref general) = error {
-            use crate::api_error::ErrorCode;
-
-            if let ErrorCode::Other(num) = general.code {
-                tracing::debug!("got unknown API error code variant: {}; {:?}", num, error);
-            }
-        }
-
-        InnerPoll::Ready(Err(Error {
-            kind: ErrorType::Response {
-                body: bytes.to_vec(),
-                error,
-                status: StatusCode::new(self.status.as_u16()),
-            },
-            source: None,
-        }))
-    }
 }
 
 struct Failed {
@@ -156,45 +103,13 @@ impl InFlight {
             }
         }
 
-        let status = resp.status();
+        let mut response = Response::new(resp);
 
-        if status.is_success() {
-            let mut response = Response::new(resp);
-
-            if let Some(guild_id) = self.guild_id {
-                response.set_guild_id(guild_id);
-            }
-
-            return InnerPoll::Ready(Ok(response));
+        if let Some(guild_id) = self.guild_id {
+            response.set_guild_id(guild_id);
         }
 
-        match status {
-            HyperStatusCode::TOO_MANY_REQUESTS => {
-                #[cfg(feature = "tracing")]
-                tracing::warn!("429 response: {:?}", resp)
-            }
-            HyperStatusCode::SERVICE_UNAVAILABLE => {
-                return InnerPoll::Ready(Err(Error {
-                    kind: ErrorType::ServiceUnavailable { response: resp },
-                    source: None,
-                }));
-            }
-            _ => {}
-        }
-
-        let fut = Box::pin(async {
-            hyper::body::to_bytes(resp.into_body())
-                .await
-                .map_err(|source| Error {
-                    kind: ErrorType::ChunkingResponse,
-                    source: Some(Box::new(source)),
-                })
-        });
-
-        InnerPoll::Advance(ResponseFutureStage::Chunking(Chunking {
-            future: fut,
-            status,
-        }))
+        InnerPoll::Ready(Ok(response))
     }
 }
 
@@ -237,7 +152,6 @@ impl RatelimitQueue {
 }
 
 enum ResponseFutureStage {
-    Chunking(Chunking),
     Completed,
     Failed(Failed),
     InFlight(InFlight),
@@ -264,8 +178,6 @@ enum ResponseFutureStage {
 /// Returns an [`ErrorType::RequestTimedOut`] error type if the request timed
 /// out. The timeout value is configured via [`ClientBuilder::timeout`].
 ///
-/// Returns an [`ErrorType::Response`] error type if the request failed.
-///
 /// Returns an [`ErrorType::ServiceUnavailable`] error type if the Discord API
 /// is unavailable.
 ///
@@ -275,7 +187,6 @@ enum ResponseFutureStage {
 /// [`ErrorType::RequestCanceled`]: crate::error::ErrorType::RequestCanceled
 /// [`ErrorType::RequestError`]: crate::error::ErrorType::RequestError
 /// [`ErrorType::RequestTimedOut`]: crate::error::ErrorType::RequestTimedOut
-/// [`ErrorType::Response`]: crate::error::ErrorType::Response
 /// [`ErrorType::ServiceUnavailable`]: crate::error::ErrorType::ServiceUnavailable
 /// [`Response`]: super::Response
 #[must_use = "futures do nothing unless you `.await` or poll them"]
@@ -351,7 +262,6 @@ impl<T: Unpin> Future for ResponseFuture<T> {
             let stage = mem::replace(&mut self.stage, ResponseFutureStage::Completed);
 
             let result = match stage {
-                ResponseFutureStage::Chunking(chunking) => chunking.poll(cx),
                 ResponseFutureStage::Completed => panic!("future already completed"),
                 ResponseFutureStage::Failed(failed) => failed.poll(cx),
                 ResponseFutureStage::InFlight(in_flight) => in_flight.poll(cx),
