@@ -30,8 +30,8 @@ twilight-model = { default-features = false, path = "../model" }
 serde_test = { default-features = false, version = "1" }
 static_assertions = { default-features = false, version = "1" }
 tokio = { default-features = false, features = ["macros", "rt-multi-thread"], version = "1.0" }
-twilight-gateway = { default-features = false, path = "../gateway" }
-twilight-http = { default-features = false, path = "../http" }
+twilight-gateway = { default-features = false, features = ["rustls"], path = "../gateway" }
+twilight-http = { default-features = false, features = ["rustls"], path = "../http" }
 
 [features]
 default = ["http-support", "rustls"]
