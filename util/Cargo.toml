@@ -26,9 +26,9 @@ all-features = true
 rustdoc-args = ["--cfg", "docsrs"]
 
 [dependencies]
-twilight-model = { path = "../model", default-features = false, optional = true }
+twilight-model = { optional = true, path = "../model" }
 
 [dev-dependencies]
 chrono = { default-features = false, version = "0.4", features = ["std"] }
-static_assertions = { default-features = false, version = "1" }
+static_assertions = "1"
 time = { default-features = false, version = "0.2" }

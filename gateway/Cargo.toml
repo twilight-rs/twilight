@@ -15,17 +15,17 @@ repository = "https://github.com/twilight-rs/twilight.git"
 version = "0.6.0"
 
 [dependencies]
-tokio-tungstenite = { default-features = false, features = ["connect"], version = "0.14" }
-bitflags = { default-features = false, version = "1" }
-twilight-gateway-queue = { default-features = false, path = "./queue" }
+tokio-tungstenite = "0.14"
+bitflags = "1"
+twilight-gateway-queue = { path = "queue" }
 twilight-http = { default-features = false, path = "../http" }
-twilight-model = { default-features = false, path = "../model" }
+twilight-model = { path = "../model" }
 futures-util = { default-features = false, features = ["std"], version = "0.3" }
-once_cell = { default-features = false, features = ["std"], version = "1" }
-serde = { default-features = false, features = ["derive"], version = "1" }
-serde_json = { default-features = false, version = "1" }
-tokio = { default-features = false, features = ["net", "rt", "sync"], version = "1.0" }
-url = { default-features = false, version = "2" }
+once_cell = "1"
+serde = { features = ["derive"], version = "1" }
+serde_json = "1"
+tokio = { features = ["net", "rt", "sync", "time"], version = "1.0" }
+url = "2"
 
 # Optional
 # The default backend for flate2; miniz-oxide, works differently
@@ -33,14 +33,14 @@ url = { default-features = false, version = "2" }
 # it does not seem to update the total_in of the function to have an offset
 # https://github.com/alexcrichton/flate2-rs/issues/217
 flate2 = { default-features = false, optional = true, version = "1.0" }
-metrics = { default-features = false, optional = true, version = "0.14", features = ["std"] }
-simd-json = { default-features = false, features = ["serde_impl", "swar-number-parsing"], optional = true, version = "0.4" }
-tracing = { default-features = false, features = ["std", "attributes"], optional = true, version = "0.1" }
+metrics = { optional = true, version = "0.14" }
+simd-json = { optional = true, version = "0.4" }
+tracing = { optional = true, version = "0.1" }
 
 [dev-dependencies]
 futures = { default-features = false, version = "0.3" }
-static_assertions = { default-features = false, version = "1" }
-tokio = { default-features = false, features = ["macros", "rt-multi-thread"], version = "1.0" }
+static_assertions = "1"
+tokio = { features = ["macros", "rt-multi-thread"], version = "1.0" }
 
 [features]
 default = ["compression", "rustls", "tracing", "flate2/zlib"]

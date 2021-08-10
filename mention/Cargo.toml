@@ -15,11 +15,11 @@ readme = "README.md"
 version = "0.6.0"
 
 [dependencies]
-twilight-model = { default-features = false, path = "../model" }
+twilight-model = { path = "../model" }
 
 [dev-dependencies]
 criterion = "0.3"
-static_assertions = { default-features = false, version = "1" }
+static_assertions = "1"
 
 [[bench]]
 name = "fmt"

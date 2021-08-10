@@ -15,12 +15,12 @@ repository = "https://github.com/twilight-rs/twilight.git"
 version = "0.6.0"
 
 [dependencies]
-tokio = { default-features = false, features = ["net", "rt-multi-thread", "sync"], version = "1.0" }
-tracing = { default-features = false, features = ["std", "attributes"], version = "0.1" }
+tokio = { features = ["rt", "sync", "time"], version = "1.0" }
+tracing = "0.1"
 twilight-http = { path = "../../http", default-features = false }
 
 [dev-dependencies]
-static_assertions = { default-features = false, version = "1" }
+static_assertions = "1"
 
 [features]
 default = ["rustls"]
