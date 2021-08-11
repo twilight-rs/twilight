@@ -1,8 +1,8 @@
 use super::{
     super::{json, stage::Stage},
     heartbeat::{Heartbeater, Heartbeats},
-    throttle::Throttle,
 };
+use leaky_bucket_lite::LeakyBucket;
 use serde::ser::Serialize;
 use std::{
     convert::TryFrom,
@@ -17,7 +17,7 @@ use std::{
 use tokio::{
     sync::{
         mpsc::{error::SendError, UnboundedSender},
-        Mutex,
+        OnceCell,
     },
     task::JoinHandle,
 };
@@ -72,7 +72,7 @@ pub struct Session {
     pub seq: Arc<AtomicU64>,
     pub stage: AtomicU8,
     pub tx: UnboundedSender<TungsteniteMessage>,
-    pub ratelimit: Mutex<Throttle>,
+    pub ratelimit: OnceCell<LeakyBucket>,
 }
 
 impl Session {
@@ -85,8 +85,7 @@ impl Session {
             seq: Arc::new(AtomicU64::new(0)),
             stage: AtomicU8::new(Stage::default() as u8),
             tx,
-            // 520 instead of 500 to make sure that it can heartbeat.
-            ratelimit: Mutex::new(Throttle::new(Duration::from_millis(520))),
+            ratelimit: OnceCell::new(),
         }
     }
 
@@ -130,6 +129,20 @@ impl Session {
     pub fn set_heartbeat_interval(&self, new_heartbeat_interval: u64) {
         self.heartbeat_interval
             .store(new_heartbeat_interval, Ordering::Release);
+
+        #[allow(clippy::cast_precision_loss)]
+        let heartbeats_per_120s = (120_000.0 / new_heartbeat_interval as f64).ceil();
+        let payloads_without_heartbeat = 120.0 - heartbeats_per_120s;
+
+        // We can safely ignore an error if the ratelimiter has already been set
+        let _result = self.ratelimit.set(
+            LeakyBucket::builder()
+                .max(payloads_without_heartbeat)
+                .tokens(payloads_without_heartbeat)
+                .refill_interval(Duration::from_secs(120))
+                .refill_amount(payloads_without_heartbeat)
+                .build(),
+        );
     }
 
     /// Returns the current sequence.
