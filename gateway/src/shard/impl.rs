@@ -9,7 +9,6 @@ use super::{
     stage::Stage,
 };
 use crate::Intents;
-use futures_util::stream::StreamExt;
 use serde::{Deserialize, Serialize};
 use std::{
     borrow::Cow,
@@ -57,6 +56,8 @@ impl CommandError {
         let (kind, source) = error.into_parts();
 
         let new_kind = match kind {
+            SendErrorType::ExecutorShutDown => CommandErrorType::ExecutorShutDown,
+            SendErrorType::HeartbeaterNotStarted => CommandErrorType::HeartbeaterNotStarted,
             SendErrorType::Sending => CommandErrorType::Sending,
             SendErrorType::SessionInactive => CommandErrorType::SessionInactive,
         };
@@ -71,6 +72,10 @@ impl CommandError {
 impl Display for CommandError {
     fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
         match &self.kind {
+            CommandErrorType::ExecutorShutDown => f.write_str("runtime executor has shut down"),
+            CommandErrorType::HeartbeaterNotStarted => {
+                f.write_str("heartbeater task hasn't been started yet")
+            }
             CommandErrorType::Sending => {
                 f.write_str("sending the message over the websocket failed")
             }
@@ -92,6 +97,10 @@ impl Error for CommandError {
 #[derive(Debug)]
 #[non_exhaustive]
 pub enum CommandErrorType {
+    /// The runtime executor shut down, causing the ratelimiting actor to stop.
+    ExecutorShutDown,
+    /// Heartbeater task has not been started yet.
+    HeartbeaterNotStarted,
     /// Sending the payload over the WebSocket failed. This is indicative of a
     /// shutdown shard.
     Sending,
@@ -146,6 +155,10 @@ impl SendError {
 impl Display for SendError {
     fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
         match &self.kind {
+            SendErrorType::ExecutorShutDown { .. } => f.write_str("runtime executor has shut down"),
+            SendErrorType::HeartbeaterNotStarted { .. } => {
+                f.write_str("heartbeater task hasn't been started yet")
+            }
             SendErrorType::Sending { .. } => {
                 f.write_str("sending the message over the websocket failed")
             }
@@ -166,6 +179,11 @@ impl Error for SendError {
 #[derive(Debug)]
 #[non_exhaustive]
 pub enum SendErrorType {
+    /// Runtime executor has been shutdown, causing the ratelimiting
+    /// actor to stop.
+    ExecutorShutDown,
+    /// Heartbeater task has not been started yet.
+    HeartbeaterNotStarted,
     /// Sending the payload over the WebSocket failed. This is indicative of a
     /// shard that isn't properly running.
     Sending,
@@ -639,9 +657,17 @@ impl Shard {
         match session.tx.send(message.into_tungstenite()) {
             Ok(()) => {
                 // Tick ratelimiter.
-                session.ratelimit.lock().await.next().await;
-
-                Ok(())
+                if let Some(limiter) = session.ratelimit.get() {
+                    limiter.acquire_one().await.map_err(|source| SendError {
+                        kind: SendErrorType::ExecutorShutDown,
+                        source: Some(Box::new(source)),
+                    })
+                } else {
+                    Err(SendError {
+                        kind: SendErrorType::HeartbeaterNotStarted,
+                        source: None,
+                    })
+                }
             }
             Err(source) => Err(SendError {
                 source: Some(Box::new(source)),
