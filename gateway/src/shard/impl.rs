@@ -179,7 +179,8 @@ impl Error for SendError {
 #[derive(Debug)]
 #[non_exhaustive]
 pub enum SendErrorType {
-    /// The runtime executor shut down, causing the ratelimiting actor to stop.
+    /// Runtime executor has been shutdown, causing the ratelimiting
+    /// actor to stop.
     ExecutorShutDown,
     /// Heartbeater task has not been started yet.
     HeartbeaterNotStarted,
