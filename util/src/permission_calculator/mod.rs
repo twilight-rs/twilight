@@ -381,7 +381,7 @@ impl<'a> PermissionCalculator<'a> {
         permissions = process_permission_overwrites(
             permissions,
             channel_overwrites,
-            &self.member_roles,
+            self.member_roles,
             self.guild_id,
             self.user_id,
         );

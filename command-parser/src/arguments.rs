@@ -89,7 +89,7 @@ impl<'a> Iterator for Arguments<'a> {
         let mut quoted = false;
         let mut started = false;
 
-        while let Some((i, ch)) = self.indices.next() {
+        for (i, ch) in &mut self.indices {
             if quoted {
                 if ch == '"' {
                     let v = self.buf.get(start_idx..i);

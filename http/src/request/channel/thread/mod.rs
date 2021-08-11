@@ -62,7 +62,7 @@ impl ThreadValidationError {
 impl Display for ThreadValidationError {
     fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
         match &self.kind {
-            ThreadValidationErrorType::NameInvalid { .. } => {
+            ThreadValidationErrorType::NameInvalid => {
                 f.write_str("the length of the name is invalid")
             }
             ThreadValidationErrorType::RateLimitPerUserInvalid { .. } => {
@@ -85,10 +85,7 @@ impl Error for ThreadValidationError {}
 pub enum ThreadValidationErrorType {
     /// The length of the name is either fewer than 2 UTF-16 characters or
     /// more than 100 UTF-16 characters.
-    NameInvalid {
-        /// Provided name.
-        name: String,
-    },
+    NameInvalid,
     /// The seconds of the rate limit per user is more than 21600.
     RateLimitPerUserInvalid {
         /// Provided ratelimit is invalid.

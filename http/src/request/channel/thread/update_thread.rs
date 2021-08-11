@@ -2,7 +2,8 @@ use super::{ThreadValidationError, ThreadValidationErrorType};
 use crate::{
     client::Client,
     error::Error as HttpError,
-    request::{self, validate, AuditLogReason, AuditLogReasonError, Pending, Request},
+    request::{self, validate, AuditLogReason, AuditLogReasonError, Request},
+    response::ResponseFuture,
     routing::Route,
 };
 use serde::Serialize;
@@ -11,8 +12,8 @@ use twilight_model::{
     id::ChannelId,
 };
 
-#[derive(Default, Serialize)]
-struct UpdateThreadFields {
+#[derive(Serialize)]
+struct UpdateThreadFields<'a> {
     #[serde(skip_serializing_if = "Option::is_none")]
     archived: Option<bool>,
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -20,7 +21,7 @@ struct UpdateThreadFields {
     #[serde(skip_serializing_if = "Option::is_none")]
     locked: Option<bool>,
     #[serde(skip_serializing_if = "Option::is_none")]
-    name: Option<String>,
+    name: Option<&'a str>,
     #[serde(skip_serializing_if = "Option::is_none")]
     rate_limit_per_user: Option<u64>,
 }
@@ -31,55 +32,56 @@ struct UpdateThreadFields {
 /// characters and the maximum is 100 UTF-16 characters.
 pub struct UpdateThread<'a> {
     channel_id: ChannelId,
-    fields: UpdateThreadFields,
-    fut: Option<Pending<'a, Channel>>,
+    fields: UpdateThreadFields<'a>,
     http: &'a Client,
-    reason: Option<String>,
+    reason: Option<&'a str>,
 }
 
 impl<'a> UpdateThread<'a> {
-    pub(crate) fn new(http: &'a Client, channel_id: ChannelId) -> Self {
+    pub(crate) const fn new(http: &'a Client, channel_id: ChannelId) -> Self {
         Self {
             channel_id,
-            fields: UpdateThreadFields::default(),
-            fut: None,
+            fields: UpdateThreadFields {
+                archived: None,
+                auto_archive_duration: None,
+                locked: None,
+                name: None,
+                rate_limit_per_user: None,
+            },
             http,
             reason: None,
         }
     }
 
-    pub fn archived(mut self, archived: bool) -> Self {
-        self.fields.archived.replace(archived);
+    pub const fn archived(mut self, archived: bool) -> Self {
+        self.fields.archived = Some(archived);
 
         self
     }
 
-    pub fn auto_archive_duration(mut self, auto_archive_duration: AutoArchiveDuration) -> Self {
-        self.fields
-            .auto_archive_duration
-            .replace(auto_archive_duration);
+    pub const fn auto_archive_duration(
+        mut self,
+        auto_archive_duration: AutoArchiveDuration,
+    ) -> Self {
+        self.fields.auto_archive_duration = Some(auto_archive_duration);
 
         self
     }
 
-    pub fn locked(mut self, locked: bool) -> Self {
-        self.fields.locked.replace(locked);
+    pub const fn locked(mut self, locked: bool) -> Self {
+        self.fields.locked = Some(locked);
 
         self
     }
 
-    pub fn name(self, name: impl Into<String>) -> Result<Self, ThreadValidationError> {
-        self._name(name.into())
-    }
-
-    fn _name(mut self, name: String) -> Result<Self, ThreadValidationError> {
-        if !validate::channel_name(&name) {
+    pub fn name(mut self, name: &'a str) -> Result<Self, ThreadValidationError> {
+        if !validate::channel_name(name) {
             return Err(ThreadValidationError {
-                kind: ThreadValidationErrorType::NameInvalid { name },
+                kind: ThreadValidationErrorType::NameInvalid,
             });
         }
 
-        self.fields.name.replace(name);
+        self.fields.name = Some(name);
 
         Ok(self)
     }
@@ -96,7 +98,7 @@ impl<'a> UpdateThread<'a> {
     /// if the amount is greater than 21600.
     ///
     /// [the discord docs]: https://discordapp.com/developers/docs/resources/channel#channel-object-channel-structure>
-    pub fn rate_limit_per_user(
+    pub const fn rate_limit_per_user(
         mut self,
         rate_limit_per_user: u64,
     ) -> Result<Self, ThreadValidationError> {
@@ -108,13 +110,13 @@ impl<'a> UpdateThread<'a> {
             });
         }
 
-        self.fields.rate_limit_per_user.replace(rate_limit_per_user);
+        self.fields.rate_limit_per_user = Some(rate_limit_per_user);
 
         Ok(self)
     }
 
-    fn start(&mut self) -> Result<(), HttpError> {
-        let mut request = Request::builder(Route::UpdateChannel {
+    fn request(&self) -> Result<Request, HttpError> {
+        let mut request = Request::builder(&Route::UpdateChannel {
             channel_id: self.channel_id.0,
         });
 
@@ -122,20 +124,24 @@ impl<'a> UpdateThread<'a> {
             request = request.headers(request::audit_header(reason)?);
         }
 
-        self.fut
-            .replace(Box::pin(self.http.request(request.build())));
+        Ok(request.build())
+    }
 
-        Ok(())
+    /// Execute the request, returning a future resolving to a [`Response`].
+    ///
+    /// [`Response`]: crate::response::Response
+    pub fn exec(self) -> ResponseFuture<Channel> {
+        match self.request() {
+            Ok(request) => self.http.request(request),
+            Err(source) => ResponseFuture::error(source),
+        }
     }
 }
 
-impl<'a> AuditLogReason for UpdateThread<'a> {
-    fn reason(mut self, reason: impl Into<String>) -> Result<Self, AuditLogReasonError> {
-        self.reason
-            .replace(AuditLogReasonError::validate(reason.into())?);
+impl<'a> AuditLogReason<'a> for UpdateThread<'a> {
+    fn reason(mut self, reason: &'a str) -> Result<Self, AuditLogReasonError> {
+        self.reason.replace(AuditLogReasonError::validate(reason)?);
 
         Ok(self)
     }
 }
-
-poll_req!(UpdateThread<'_>, Channel);

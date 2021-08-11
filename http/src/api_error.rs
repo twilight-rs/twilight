@@ -64,6 +64,10 @@ pub enum ErrorCode {
     UnknownRedistributable,
     /// Unknown gift code
     UnknownGiftCode,
+    /// Unknown stream
+    UnknownStream,
+    /// Unknown premium server subscribe cooldown
+    UnknownPremiumServerSubscribeCooldown,
     /// Unknown guild template
     UnknownGuildTemplate,
     /// Unknown discoverable server category
@@ -82,6 +86,10 @@ pub enum ErrorCode {
     UnknownGuildMemberVerificationForm,
     /// Unknown Guild Welcome Screen
     UnknownGuildWelcomeScreen,
+    /// Unknown guild scheduled event
+    UnknownGuildScheduledEvent,
+    /// Unknown guild scheduled event user
+    UnknownGuildScheduledEventUser,
     /// Bots cannot use this endpoint
     BotsCannotUseEndpoint,
     /// Only bots can use this endpoint
@@ -98,8 +106,8 @@ pub enum ErrorCode {
     AnnouncementRateLimitReached,
     /// The channel you are writing has hit the write rate limit
     ChannelRateLimitReached,
-    /// Your Stage topic contains words that are not allowed for public Stages
-    UnallowedWordsForPublicStage,
+    /// Your Stage topic, server name, server description, or channel names contain words that are not allowed
+    UnallowedWords,
     /// Guild premium subscription level too low
     GuildPremiumTooLow,
     /// Maximum number of guilds reached (100)
@@ -232,6 +240,10 @@ pub enum ErrorCode {
     ThreadInvalidNotificationSettings,
     /// `before` value is earlier than the thread creation date
     ThreadInvalidBeforeValue,
+    /// This server is not available in your location
+    ServerNotAvailableLocation,
+    /// This server needs monetization enabled in order to perform this action
+    ServerNeedsMonetiazation,
     /// Two factor is required for this operation.
     TwoFactorRequired,
     /// No users with DiscordTag exist
@@ -288,6 +300,8 @@ impl ErrorCode {
             Self::UnknownStoreDirectoryLayout => 10033,
             Self::UnknownRedistributable => 10036,
             Self::UnknownGiftCode => 10038,
+            Self::UnknownStream => 10049,
+            Self::UnknownPremiumServerSubscribeCooldown => 10050,
             Self::UnknownGuildTemplate => 10057,
             Self::UnknownDiscoverableServerCategory => 10059,
             Self::UnknownSticker => 10060,
@@ -297,6 +311,8 @@ impl ErrorCode {
             Self::UnknownStageInstance => 10067,
             Self::UnknownGuildMemberVerificationForm => 10068,
             Self::UnknownGuildWelcomeScreen => 10069,
+            Self::UnknownGuildScheduledEvent => 10070,
+            Self::UnknownGuildScheduledEventUser => 10071,
             Self::BotsCannotUseEndpoint => 20001,
             Self::OnlyBotsCanUseEndpoint => 20002,
             Self::ExplicitContentSendingBlocked => 20009,
@@ -305,7 +321,7 @@ impl ErrorCode {
             Self::NotAccountOwner => 20018,
             Self::AnnouncementRateLimitReached => 20022,
             Self::ChannelRateLimitReached => 20028,
-            Self::UnallowedWordsForPublicStage => 20031,
+            Self::UnallowedWords => 20031,
             Self::GuildPremiumTooLow => 20035,
             Self::MaximumGuildsReached => 30001,
             Self::MaximumFriendsReached => 30002,
@@ -371,6 +387,8 @@ impl ErrorCode {
             Self::ThreadArchived => 50083,
             Self::ThreadInvalidNotificationSettings => 50084,
             Self::ThreadInvalidBeforeValue => 50085,
+            Self::ServerNotAvailableLocation => 50095,
+            Self::ServerNeedsMonetiazation => 50097,
             Self::TwoFactorRequired => 60003,
             Self::NoSuchUser => 80004,
             Self::ReactionBlocked => 90001,
@@ -417,6 +435,8 @@ impl From<u64> for ErrorCode {
             10033 => Self::UnknownStoreDirectoryLayout,
             10036 => Self::UnknownRedistributable,
             10038 => Self::UnknownGiftCode,
+            10049 => Self::UnknownStream,
+            10050 => Self::UnknownPremiumServerSubscribeCooldown,
             10057 => Self::UnknownGuildTemplate,
             10059 => Self::UnknownDiscoverableServerCategory,
             10060 => Self::UnknownSticker,
@@ -426,6 +446,8 @@ impl From<u64> for ErrorCode {
             10067 => Self::UnknownStageInstance,
             10068 => Self::UnknownGuildMemberVerificationForm,
             10069 => Self::UnknownGuildWelcomeScreen,
+            10070 => Self::UnknownGuildScheduledEvent,
+            10071 => Self::UnknownGuildScheduledEventUser,
             20001 => Self::BotsCannotUseEndpoint,
             20002 => Self::OnlyBotsCanUseEndpoint,
             20022 => Self::AnnouncementRateLimitReached,
@@ -434,7 +456,7 @@ impl From<u64> for ErrorCode {
             20016 => Self::SlowModeRateLimitReached,
             20018 => Self::NotAccountOwner,
             20028 => Self::ChannelRateLimitReached,
-            20031 => Self::UnallowedWordsForPublicStage,
+            20031 => Self::UnallowedWords,
             20035 => Self::GuildPremiumTooLow,
             30001 => Self::MaximumGuildsReached,
             30002 => Self::MaximumFriendsReached,
@@ -500,6 +522,8 @@ impl From<u64> for ErrorCode {
             50083 => Self::ThreadArchived,
             50084 => Self::ThreadInvalidNotificationSettings,
             50085 => Self::ThreadInvalidBeforeValue,
+            50095 => Self::ServerNotAvailableLocation,
+            50097 => Self::ServerNeedsMonetiazation,
             60003 => Self::TwoFactorRequired,
             80004 => Self::NoSuchUser,
             90001 => Self::ReactionBlocked,
@@ -546,6 +570,8 @@ impl Display for ErrorCode {
             Self::UnknownStoreDirectoryLayout => f.write_str("Unknown store directory layout"),
             Self::UnknownRedistributable => f.write_str("Unknown redistributable"),
             Self::UnknownGiftCode => f.write_str("Unknown gift code"),
+            Self::UnknownStream => f.write_str("Unknown stream"),
+            Self::UnknownPremiumServerSubscribeCooldown => f.write_str("Unknown premium server subscribe cooldown"),
             Self::UnknownGuildTemplate => f.write_str("Unknown guild template"),
             Self::UnknownDiscoverableServerCategory => f.write_str("Unknown discoverable server category"),
             Self::UnknownSticker => f.write_str("Unknown sticker"),
@@ -555,6 +581,8 @@ impl Display for ErrorCode {
             Self::UnknownStageInstance => f.write_str("Unknown Stage Instance"),
             Self::UnknownGuildMemberVerificationForm => f.write_str("Unknown Guild Member Verification Form"),
             Self::UnknownGuildWelcomeScreen => f.write_str("Unknown Guild Welcome Screen"),
+            Self::UnknownGuildScheduledEvent => f.write_str("Unknown Guild Scheduled Event"),
+            Self::UnknownGuildScheduledEventUser => f.write_str("Unknown Guild Scheduled Event User"),
             Self::BotsCannotUseEndpoint => f.write_str("Bots cannot use this endpoint"),
             Self::OnlyBotsCanUseEndpoint => f.write_str("Only bots can use this endpoint"),
             Self::ExplicitContentSendingBlocked => f.write_str("Explicit content cannot be sent to the desired recipient(s)"),
@@ -563,7 +591,7 @@ impl Display for ErrorCode {
             Self::NotAccountOwner => f.write_str("Only the owner of this account can perform this action"),
             Self::AnnouncementRateLimitReached => f.write_str("Message cannot be edited due to announcement rate limits"),
             Self::ChannelRateLimitReached => f.write_str("The channel you are writing has hit the write rate limit"),
-            Self::UnallowedWordsForPublicStage => f.write_str("Your Stage topic contains words that are not allowed for public Stages"),
+            Self::UnallowedWords => f.write_str("Your Stage topic, server name, server description, or channel names contain words that are not allowed"),
             Self::GuildPremiumTooLow => f.write_str("Guild premium subscription level too low"),
             Self::MaximumGuildsReached => f.write_str("Maximum number of guilds reached (100)"),
             Self::MaximumFriendsReached => f.write_str("Maximum number of friends reached (1000)"),
@@ -629,6 +657,8 @@ impl Display for ErrorCode {
             Self::ThreadArchived => f.write_str("Tried to perform an operation on an archived thread, such as editing a message or adding a user to the thread"),
             Self::ThreadInvalidNotificationSettings => f.write_str("Invalid thread notification settings"),
             Self::ThreadInvalidBeforeValue => f.write_str("`before` value is earlier than the thread creation date"),
+            Self::ServerNotAvailableLocation => f.write_str("This server is not available in your location"),
+            Self::ServerNeedsMonetiazation => f.write_str("This server needs monetization enabled in order to perform this action"),
             Self::TwoFactorRequired => f.write_str("Two factor is required for this operation"),
             Self::NoSuchUser => f.write_str("No users with DiscordTag exist"),
             Self::ReactionBlocked => f.write_str("Reaction was blocked"),

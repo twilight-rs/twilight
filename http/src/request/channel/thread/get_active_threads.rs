@@ -1,9 +1,4 @@
-use crate::{
-    client::Client,
-    error::Error,
-    request::{Pending, Request},
-    routing::Route,
-};
+use crate::{client::Client, request::Request, response::ResponseFuture, routing::Route};
 use twilight_model::{channel::thread::ThreadsListing, id::ChannelId};
 
 /// Returns all active threads in the channel.
@@ -12,28 +7,22 @@ use twilight_model::{channel::thread::ThreadsListing, id::ChannelId};
 /// descending order.
 pub struct GetActiveThreads<'a> {
     channel_id: ChannelId,
-    fut: Option<Pending<'a, ThreadsListing>>,
     http: &'a Client,
 }
 
 impl<'a> GetActiveThreads<'a> {
-    pub(crate) fn new(http: &'a Client, channel_id: ChannelId) -> Self {
-        Self {
-            channel_id,
-            fut: None,
-            http,
-        }
+    pub(crate) const fn new(http: &'a Client, channel_id: ChannelId) -> Self {
+        Self { channel_id, http }
     }
 
-    fn start(&mut self) -> Result<(), Error> {
-        let request = Request::from_route(Route::GetActiveThreads {
+    /// Execute the request, returning a future resolving to a [`Response`].
+    ///
+    /// [`Response`]: crate::response::Response
+    pub fn exec(self) -> ResponseFuture<ThreadsListing> {
+        let request = Request::from_route(&Route::GetActiveThreads {
             channel_id: self.channel_id.0,
         });
 
-        self.fut.replace(Box::pin(self.http.request(request)));
-
-        Ok(())
+        self.http.request(request)
     }
 }
-
-poll_req!(GetActiveThreads<'_>, ThreadsListing);

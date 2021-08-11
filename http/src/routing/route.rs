@@ -1,10 +1,10 @@
 use super::{path::Path, route_display::RouteDisplay};
-use crate::request::Method;
-use std::borrow::Cow;
+use crate::request::{channel::reaction::RequestReactionType, Method};
+use twilight_model::id::RoleId;
 
 #[derive(Clone, Debug, Eq, Hash, PartialEq)]
 #[non_exhaustive]
-pub enum Route {
+pub enum Route<'a> {
     /// Route information to add a user to a guild.
     AddGuildMember { guild_id: u64, user_id: u64 },
     /// Route information to add a role to guild member.
@@ -31,7 +31,7 @@ pub enum Route {
         /// The ID of the guild.
         guild_id: u64,
         /// The reason for the ban.
-        reason: Option<String>,
+        reason: Option<&'a str>,
         /// The ID of the user.
         user_id: u64,
     },
@@ -62,7 +62,7 @@ pub enum Route {
     /// Route information to create a guild from a template.
     CreateGuildFromTemplate {
         /// Code of the template.
-        template_code: String,
+        template_code: &'a str,
     },
     /// Route information to create a guild's integration.
     CreateGuildIntegration {
@@ -82,7 +82,7 @@ pub enum Route {
         ///
         /// A user must have at least one of these roles to be able to be
         /// pruned.
-        include_roles: Vec<u64>,
+        include_roles: &'a [RoleId],
     },
     /// Route information to create an invite to a channel.
     CreateInvite {
@@ -113,7 +113,7 @@ pub enum Route {
         /// The ID of the channel.
         channel_id: u64,
         /// The URI encoded custom or unicode emoji.
-        emoji: String,
+        emoji: &'a RequestReactionType<'a>,
         /// The ID of the message.
         message_id: u64,
     },
@@ -196,14 +196,14 @@ pub enum Route {
     /// Route information to delete an invite.
     DeleteInvite {
         /// The unique invite code.
-        code: String,
+        code: &'a str,
     },
     /// Route information to delete the original interaction response.
     DeleteInteractionOriginal {
         /// The ID of the owner application
         application_id: u64,
         /// The token of the interaction.
-        interaction_token: String,
+        interaction_token: &'a str,
     },
     /// Route information to delete a channel's message.
     DeleteMessage {
@@ -230,7 +230,7 @@ pub enum Route {
         /// The ID of the channel.
         channel_id: u64,
         /// The URI encoded custom or unicode emoji.
-        emoji: String,
+        emoji: &'a RequestReactionType<'a>,
         /// The ID of the message.
         message_id: u64,
     },
@@ -242,16 +242,25 @@ pub enum Route {
         /// The ID of the target role or user.
         target_id: u64,
     },
+    /// Route information to delete the current user's reaction on a message.
+    DeleteReactionCurrentUser {
+        /// ID of the channel.
+        channel_id: u64,
+        /// URI encoded custom or unicode emoji.
+        emoji: &'a RequestReactionType<'a>,
+        /// ID of the message.
+        message_id: u64,
+    },
     /// Route information to delete a user's reaction on a message.
     DeleteReaction {
         /// The ID of the channel.
         channel_id: u64,
         /// The URI encoded custom or unicode emoji.
-        emoji: String,
+        emoji: &'a RequestReactionType<'a>,
         /// The ID of the message.
         message_id: u64,
-        /// The ID of the user. This can be `@me` to specify the current user.
-        user: String,
+        /// The ID of the user.
+        user_id: u64,
     },
     /// Route information to delete a guild's role.
     DeleteRole {
@@ -270,25 +279,25 @@ pub enum Route {
         /// The ID of the guild.
         guild_id: u64,
         /// The target template code.
-        template_code: String,
+        template_code: &'a str,
     },
     /// Route information to delete a message created by a webhook.
     DeleteWebhookMessage {
         message_id: u64,
-        token: String,
+        token: &'a str,
         webhook_id: u64,
     },
     /// Route information to delete a webhook.
     DeleteWebhook {
         /// The token of the webhook.
-        token: Option<String>,
+        token: Option<&'a str>,
         /// The ID of the webhook.
         webhook_id: u64,
     },
     /// Route information to execute a webhook by ID and token.
     ExecuteWebhook {
         /// The token of the webhook.
-        token: String,
+        token: &'a str,
         /// Whether to wait for a message response.
         wait: Option<bool>,
         /// The ID of the webhook.
@@ -360,6 +369,8 @@ pub enum Route {
     },
     /// Route information to get info about application the current bot user belongs to
     GetCurrentUserApplicationInfo,
+    /// Route information to get the current user.
+    GetCurrentUser,
     /// Route information to get an emoji by ID within a guild.
     GetEmoji {
         /// The ID of the emoji.
@@ -446,7 +457,7 @@ pub enum Route {
         ///
         /// A user must have at least one of these roles to be able to be
         /// pruned.
-        include_roles: Vec<u64>,
+        include_roles: &'a [RoleId],
     },
     /// Route information to get a guild's roles.
     GetGuildRoles {
@@ -487,19 +498,19 @@ pub enum Route {
         /// ID of the owner application.
         application_id: u64,
         /// Token of the interaction.
-        interaction_token: String,
+        interaction_token: &'a str,
     },
     /// Route information to get an invite.
     GetInvite {
         /// The unique invite code.
-        code: String,
+        code: &'a str,
         /// Whether to retrieve statistics about the invite.
         with_counts: bool,
     },
     /// Route information to get an invite with an expiration.
     GetInviteWithExpiration {
         /// The unique invite code.
-        code: String,
+        code: &'a str,
         /// Whether to retrieve statistics about the invite.
         with_counts: bool,
         /// Whether to retrieve the expiration date of the invite.
@@ -549,7 +560,7 @@ pub enum Route {
     /// Route information to get private archived threads in a channel.
     GetPrivateArchivedThreads {
         /// Optional timestamp to return threads before.
-        before: Option<String>,
+        before: Option<&'a str>,
         /// ID of the channel.
         channel_id: u64,
         /// Optional maximum number of threads to return.
@@ -558,7 +569,7 @@ pub enum Route {
     /// Route information to get public archived threads in a channel.
     GetPublicArchivedThreads {
         /// Optional timestamp to return threads before.
-        before: Option<String>,
+        before: Option<&'a str>,
         /// ID of the channel.
         channel_id: u64,
         /// Optional maximum number of threads to return.
@@ -572,7 +583,7 @@ pub enum Route {
         /// The ID of the channel.
         channel_id: u64,
         /// The URI encoded custom or unicode emoji.
-        emoji: String,
+        emoji: &'a RequestReactionType<'a>,
         /// The maximum number of users to retrieve.
         limit: Option<u64>,
         /// The ID of the message.
@@ -586,7 +597,7 @@ pub enum Route {
     /// Route information to get a template.
     GetTemplate {
         /// The template code.
-        template_code: String,
+        template_code: &'a str,
     },
     /// Route information to get a list of templates from a guild.
     GetTemplates {
@@ -598,11 +609,10 @@ pub enum Route {
         /// ID of the thread.
         channel_id: u64,
     },
-    /// Route information to get the current user.
+    /// Route information to get a user.
     GetUser {
-        /// The ID of the target user. This can be `@me` to specify the current
-        /// user.
-        target_user: String,
+        /// ID of the target user.
+        user_id: u64,
     },
     /// Route information to get the current user's connections.
     GetUserConnections,
@@ -614,7 +624,7 @@ pub enum Route {
     /// current user doesn't have access to it.
     GetWebhook {
         /// The token of the webhook.
-        token: Option<String>,
+        token: Option<&'a str>,
         /// The ID of the webhook.
         webhook_id: u64,
     },
@@ -623,7 +633,7 @@ pub enum Route {
         /// ID of the message.
         message_id: u64,
         /// Token of the webhook.
-        token: String,
+        token: &'a str,
         /// ID of the webhook.
         webhook_id: u64,
     },
@@ -632,7 +642,7 @@ pub enum Route {
         /// The ID of the interaction.
         interaction_id: u64,
         /// The token for the interaction.
-        interaction_token: String,
+        interaction_token: &'a str,
     },
     /// Route information to join a thread as the current user.
     JoinThread {
@@ -686,7 +696,7 @@ pub enum Route {
         /// Upper limit of members to query for.
         limit: Option<u64>,
         /// Query to search by.
-        query: String,
+        query: &'a str,
     },
     /// Route information to set permissions of commands in a guild.
     SetCommandPermissions {
@@ -719,7 +729,7 @@ pub enum Route {
         /// The ID of the guild.
         guild_id: u64,
         /// The template code.
-        template_code: String,
+        template_code: &'a str,
     },
     /// Route information to unpin a message from a channel.
     UnpinMessage {
@@ -804,7 +814,7 @@ pub enum Route {
         /// The ID of the owner application.
         application_id: u64,
         /// The token for the interaction.
-        interaction_token: String,
+        interaction_token: &'a str,
     },
     /// Route information to update a member.
     UpdateMember {
@@ -855,7 +865,7 @@ pub enum Route {
         /// The ID of the guild.
         guild_id: u64,
         /// The template code.
-        template_code: String,
+        template_code: &'a str,
     },
     /// Route information to update a user's voice state.
     UpdateUserVoiceState {
@@ -867,37 +877,19 @@ pub enum Route {
     /// Route information to update a message created by a webhook.
     UpdateWebhookMessage {
         message_id: u64,
-        token: String,
+        token: &'a str,
         webhook_id: u64,
     },
     /// Route information to update a webhook.
     UpdateWebhook {
         /// The token of the webhook.
-        token: Option<String>,
+        token: Option<&'a str>,
         /// The ID of the webhook.
         webhook_id: u64,
     },
 }
 
-impl Route {
-    /// Separate a route into its parts: the HTTP method, the path enum to use
-    /// for ratelimit buckets, and the URI path.
-    ///
-    /// The method and URI path are useful for actually performing requests,
-    /// while the returned path enum is useful for ratelimiting.
-    #[allow(clippy::cognitive_complexity, clippy::too_many_lines)]
-    #[deprecated(
-        since = "0.5.1",
-        note = "use the individual `display`, `method`, and `path` methods"
-    )]
-    pub fn into_parts(self) -> (Method, Path, Cow<'static, str>) {
-        (
-            self.method(),
-            self.path(),
-            Cow::Owned(self.display().to_string()),
-        )
-    }
-
+impl<'a> Route<'a> {
     /// Display formatter of the route portion of a URL.
     ///
     /// # Examples
@@ -920,7 +912,7 @@ impl Route {
     /// use twilight_http::routing::Route;
     ///
     /// let route = Route::GetInvite {
-    ///     code: "twilight-rs".to_owned(),
+    ///     code: "twilight-rs",
     ///     with_counts: true,
     /// };
     ///
@@ -932,7 +924,7 @@ impl Route {
     ///
     /// [`GetInvite`]: Self::GetInvite
     /// [`GetPins`]: Self::GetPins
-    pub const fn display(&self) -> RouteDisplay<'_> {
+    pub const fn display(&'a self) -> RouteDisplay<'a> {
         RouteDisplay::new(self)
     }
 
@@ -970,6 +962,7 @@ impl Route {
             | Self::DeleteMessageSpecificReaction { .. }
             | Self::DeleteMessage { .. }
             | Self::DeletePermissionOverwrite { .. }
+            | Self::DeleteReactionCurrentUser { .. }
             | Self::DeleteReaction { .. }
             | Self::DeleteRole { .. }
             | Self::DeleteStageInstance { .. }
@@ -993,6 +986,7 @@ impl Route {
             | Self::GetChannels { .. }
             | Self::GetCommandPermissions { .. }
             | Self::GetCurrentUserApplicationInfo
+            | Self::GetCurrentUser
             | Self::GetEmoji { .. }
             | Self::GetEmojis { .. }
             | Self::GetGateway
@@ -1177,7 +1171,9 @@ impl Route {
                 Path::ChannelsIdMessages(*channel_id)
             }
             Self::CreatePrivateChannel | Self::GetUserPrivateChannels => Path::UsersIdChannels,
-            Self::CreateReaction { channel_id, .. } | Self::DeleteReaction { channel_id, .. } => {
+            Self::CreateReaction { channel_id, .. }
+            | Self::DeleteReactionCurrentUser { channel_id, .. }
+            | Self::DeleteReaction { channel_id, .. } => {
                 Path::ChannelsIdMessagesIdReactionsUserIdType(*channel_id)
             }
             Self::CreateRole { guild_id } | Self::GetGuildRoles { guild_id } => {
@@ -1270,7 +1266,7 @@ impl Route {
                 Path::ApplicationGuildCommandId(*application_id)
             }
             Self::GetCurrentUserApplicationInfo => Path::OauthApplicationsMe,
-            Self::GetUser { .. } | Self::UpdateCurrentUser => Path::UsersId,
+            Self::GetCurrentUser | Self::GetUser { .. } | Self::UpdateCurrentUser => Path::UsersId,
             Self::GetEmoji { guild_id, .. } | Self::UpdateEmoji { guild_id, .. } => {
                 Path::GuildsIdEmojisId(*guild_id)
             }
@@ -1329,14 +1325,14 @@ mod tests {
         assert_eq!(
             Method::Delete,
             Route::DeleteInvite {
-                code: "twilight-rs".to_owned(),
+                code: "twilight-rs",
             }
             .method()
         );
         assert_eq!(
             Method::Get,
             Route::GetInvite {
-                code: "twilight-rs".to_owned(),
+                code: "twilight-rs",
                 with_counts: false,
             }
             .method()
@@ -1354,7 +1350,7 @@ mod tests {
             Method::Put,
             Route::SyncTemplate {
                 guild_id: 123,
-                template_code: "abc".to_owned(),
+                template_code: "abc",
             }
             .method()
         );

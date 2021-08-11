@@ -1,9 +1,4 @@
-use crate::{
-    client::Client,
-    error::Error,
-    request::{Pending, Request},
-    routing::Route,
-};
+use crate::{client::Client, request::Request, response::ResponseFuture, routing::Route};
 use twilight_model::{channel::thread::ThreadsListing, id::ChannelId};
 
 /// Returns archived private threads in the channel.
@@ -13,53 +8,46 @@ use twilight_model::{channel::thread::ThreadsListing, id::ChannelId};
 /// [`MANAGE_THREADS`]: twilight_model::guild::Permissions::MANAGE_THREADS
 /// [`READ_MESSAGE_HISTORY`]: twilight_model::guild::Permissions::READ_MESSAGE_HISTORY
 pub struct GetPrivateArchivedThreads<'a> {
-    before: Option<String>,
+    before: Option<&'a str>,
     channel_id: ChannelId,
-    fut: Option<Pending<'a, ThreadsListing>>,
     http: &'a Client,
     limit: Option<u64>,
 }
 
 impl<'a> GetPrivateArchivedThreads<'a> {
-    pub(crate) fn new(http: &'a Client, channel_id: ChannelId) -> Self {
+    pub(crate) const fn new(http: &'a Client, channel_id: ChannelId) -> Self {
         Self {
             before: None,
             channel_id,
-            fut: None,
             http,
             limit: None,
         }
     }
 
     /// Return threads before this ISO 8601 timestamp.
-    pub fn before(self, before: impl Into<String>) -> Self {
-        self._before(before.into())
-    }
-
-    fn _before(mut self, before: String) -> Self {
-        self.before.replace(before);
+    pub const fn before(mut self, before: &'a str) -> Self {
+        self.before = Some(before);
 
         self
     }
 
     /// Maximum number of threads to return.
-    pub fn limit(mut self, limit: u64) -> Self {
-        self.limit.replace(limit);
+    pub const fn limit(mut self, limit: u64) -> Self {
+        self.limit = Some(limit);
 
         self
     }
 
-    fn start(&mut self) -> Result<(), Error> {
-        let request = Request::from_route(Route::GetPrivateArchivedThreads {
-            before: self.before.clone(),
+    /// Execute the request, returning a future resolving to a [`Response`].
+    ///
+    /// [`Response`]: crate::response::Response
+    pub fn exec(self) -> ResponseFuture<ThreadsListing> {
+        let request = Request::from_route(&Route::GetPrivateArchivedThreads {
+            before: self.before,
             channel_id: self.channel_id.0,
             limit: self.limit,
         });
 
-        self.fut.replace(Box::pin(self.http.request(request)));
-
-        Ok(())
+        self.http.request(request)
     }
 }
-
-poll_req!(GetPrivateArchivedThreads<'_>, ThreadsListing);

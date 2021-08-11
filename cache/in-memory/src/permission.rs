@@ -348,7 +348,7 @@ impl<'a> InMemoryCachePermissions<'a> {
         let calculator =
             PermissionCalculator::new(guild_id, user_id, everyone, assigned.as_slice());
 
-        Ok(calculator.in_channel(channel.data.kind(), overwrites.clone().as_slice()))
+        Ok(calculator.in_channel(channel.data.kind(), overwrites.as_slice()))
     }
 
     /// Calculate the guild-level permissions of a member.
@@ -479,7 +479,7 @@ impl<'a> InMemoryCachePermissions<'a> {
         let channel = (self.0)
             .0
             .channels_guild
-            .get(&channel_id)
+            .get(channel_id)
             .ok_or(ChannelError {
                 kind: ChannelErrorType::ChannelUnavailable {
                     channel_id: *channel_id,

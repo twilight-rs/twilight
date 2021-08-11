@@ -17,6 +17,7 @@ pub struct ClientBuilder {
     pub(crate) default_allowed_mentions: Option<AllowedMentions>,
     pub(crate) proxy: Option<Box<str>>,
     pub(crate) ratelimiter: Option<Ratelimiter>,
+    remember_invalid_token: bool,
     pub(crate) default_headers: Option<HeaderMap>,
     pub(crate) timeout: Duration,
     pub(crate) token: Option<Box<str>>,
@@ -50,8 +51,9 @@ impl ClientBuilder {
                 default_headers: self.default_headers,
                 proxy: self.proxy,
                 ratelimiter: self.ratelimiter,
+                remember_invalid_token: self.remember_invalid_token,
                 timeout: self.timeout,
-                token_invalid: AtomicBool::new(false),
+                token_invalid: Arc::new(AtomicBool::new(false)),
                 token: self.token,
                 application_id: self.application_id,
                 default_allowed_mentions: self.default_allowed_mentions,
@@ -90,14 +92,14 @@ impl ClientBuilder {
     ///
     /// # fn main() -> Result<(), Box<dyn std::error::Error>> {
     /// let client = Client::builder()
-    ///     .proxy("twilight_http_proxy.internal", true)
+    ///     .proxy("twilight_http_proxy.internal".to_owned(), true)
     ///     .build();
     /// # Ok(()) }
     /// ```
     ///
     /// [twilight's HTTP proxy server]: https://github.com/twilight-rs/http-proxy
-    pub fn proxy(mut self, proxy_url: impl Into<String>, use_http: bool) -> Self {
-        self.proxy.replace(proxy_url.into().into_boxed_str());
+    pub fn proxy(mut self, proxy_url: String, use_http: bool) -> Self {
+        self.proxy.replace(proxy_url.into_boxed_str());
         self.use_http = use_http;
 
         self
@@ -110,8 +112,9 @@ impl ClientBuilder {
     ///
     /// If this method is not called at all then a default ratelimiter will be
     /// created by [`ClientBuilder::build`].
-    pub fn ratelimiter(mut self, ratelimiter: impl Into<Option<Ratelimiter>>) -> Self {
-        self.ratelimiter = ratelimiter.into();
+    #[allow(clippy::missing_const_for_fn)]
+    pub fn ratelimiter(mut self, ratelimiter: Option<Ratelimiter>) -> Self {
+        self.ratelimiter = ratelimiter;
 
         self
     }
@@ -132,10 +135,21 @@ impl ClientBuilder {
         self
     }
 
-    /// Set the token to use for HTTP requests.
-    pub fn token(mut self, token: impl Into<String>) -> Self {
-        let mut token = token.into();
+    /// Whether to remember whether the client has encountered an Unauthorized
+    /// response status.
+    ///
+    /// If the client remembers encountering an Unauthorized response, then it
+    /// will not process future requests.
+    ///
+    /// Defaults to true.
+    pub const fn remember_invalid_token(mut self, remember: bool) -> Self {
+        self.remember_invalid_token = remember;
 
+        self
+    }
+
+    /// Set the token to use for HTTP requests.
+    pub fn token(mut self, mut token: String) -> Self {
         let is_bot = token.starts_with("Bot ");
         let is_bearer = token.starts_with("Bearer ");
 
@@ -159,6 +173,7 @@ impl Default for ClientBuilder {
             default_headers: None,
             proxy: None,
             ratelimiter: Some(Ratelimiter::new()),
+            remember_invalid_token: true,
             timeout: Duration::from_secs(10),
             token: None,
             use_http: false,
