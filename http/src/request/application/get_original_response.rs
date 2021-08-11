@@ -22,6 +22,7 @@ use twilight_model::{channel::Message, id::ApplicationId};
 ///     .await?;
 /// # Ok(()) }
 /// ```
+#[must_use = "requests must be configured and executed"]
 pub struct GetOriginalResponse<'a> {
     application_id: ApplicationId,
     http: &'a Client,

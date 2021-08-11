@@ -7,6 +7,7 @@ use crate::{
 use twilight_model::{channel::Channel, id::ChannelId};
 
 /// Delete a channel by ID.
+#[must_use = "requests must be configured and executed"]
 pub struct DeleteChannel<'a> {
     channel_id: ChannelId,
     http: &'a Client,

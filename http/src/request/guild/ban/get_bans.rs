@@ -25,6 +25,7 @@ use twilight_model::{guild::Ban, id::GuildId};
 /// let bans = client.bans(guild_id).exec().await?;
 /// # Ok(()) }
 /// ```
+#[must_use = "requests must be configured and executed"]
 pub struct GetBans<'a> {
     guild_id: GuildId,
     http: &'a Client,

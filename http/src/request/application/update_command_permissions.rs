@@ -25,6 +25,7 @@ struct UpdateCommandPermissionsFields<'a> {
 ///
 /// This overwrites the command permissions so the full set of permissions
 /// have to be sent every time.
+#[must_use = "requests must be configured and executed"]
 pub struct UpdateCommandPermissions<'a> {
     application_id: ApplicationId,
     command_id: CommandId,

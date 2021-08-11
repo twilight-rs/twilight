@@ -19,6 +19,7 @@ use twilight_model::{
 /// will overwrite the old command. See [the discord docs] for more information.
 ///
 /// [the discord docs]: https://discord.com/developers/docs/interactions/slash-commands#create-guild-application-command
+#[must_use = "requests must be configured and executed"]
 pub struct CreateGuildCommand<'a> {
     application_id: ApplicationId,
     default_permission: Option<bool>,

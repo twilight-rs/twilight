@@ -2,6 +2,7 @@ use crate::{client::Client, request::Request, response::ResponseFuture, routing:
 use twilight_model::template::Template;
 
 /// Get a template by its code.
+#[must_use = "requests must be configured and executed"]
 pub struct GetTemplate<'a> {
     http: &'a Client,
     template_code: &'a str,

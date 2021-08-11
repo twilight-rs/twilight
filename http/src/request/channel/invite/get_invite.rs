@@ -31,6 +31,7 @@ struct GetInviteFields {
 ///
 /// [`with_counts`]: Self::with_counts
 /// [`with_expiration`]: Self::with_expiration
+#[must_use = "requests must be configured and executed"]
 pub struct GetInvite<'a> {
     code: &'a str,
     fields: GetInviteFields,
