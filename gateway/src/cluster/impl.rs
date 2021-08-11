@@ -223,8 +223,6 @@ pub enum ClusterStartErrorType {
 #[derive(Debug)]
 struct ClusterRef {
     config: Config,
-    shard_from: u64,
-    shard_to: u64,
     shards: HashMap<u64, Shard>,
 }
 
@@ -340,12 +338,7 @@ impl Cluster {
         let select_all = SelectAll::from_iter(streams);
 
         Ok((
-            Self(Arc::new(ClusterRef {
-                config,
-                shard_from: scheme.from().expect("shard scheme is not auto"),
-                shard_to: scheme.to().expect("shard scheme is not auto"),
-                shards,
-            })),
+            Self(Arc::new(ClusterRef { config, shards })),
             Events::new(select_all),
         ))
     }
@@ -450,10 +443,7 @@ impl Cluster {
     /// # Ok(()) }
     /// ```
     pub async fn up(&self) {
-        future::join_all(
-            (self.0.shard_from..=self.0.shard_to).map(|id| Self::start(Arc::clone(&self.0), id)),
-        )
-        .await;
+        future::join_all(self.0.shards.values().map(Shard::start)).await;
     }
 
     /// Bring down the cluster, stopping all of the shards that it's managing.
@@ -618,20 +608,6 @@ impl Cluster {
                 kind: ClusterSendErrorType::Sending,
                 source: Some(Box::new(source)),
             })
-    }
-
-    /// Queue a request to start a shard by ID and starts it once the queue
-    /// accepts the request.
-    ///
-    /// Accepts weak references to the queue and map of shards, because by the
-    /// time the future is polled the cluster may have already dropped, bringing
-    /// down the queue and shards with it.
-    async fn start(cluster: Arc<ClusterRef>, shard_id: u64) -> Option<Shard> {
-        let shard = cluster.shards.get(&shard_id)?.clone();
-
-        shard.start().await.ok()?;
-
-        Some(shard)
     }
 }
 
