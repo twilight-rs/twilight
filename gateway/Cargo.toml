@@ -25,6 +25,7 @@ twilight-gateway-queue = { default-features = false, path = "queue" }
 twilight-http = { default-features = false, path = "../http" }
 twilight-model = { default-features = false, path = "../model" }
 url = { default-features = false, version = "2" }
+leaky-bucket-lite = { default-features = false, version = "0.2" }
 
 # Optional
 # The default backend for flate2; miniz-oxide, works differently
