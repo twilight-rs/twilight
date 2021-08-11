@@ -13,10 +13,7 @@ async fn main() -> Result<(), Box<dyn Error>> {
     tracing_subscriber::fmt::init();
 
     // to interact with the gateway we first need to connect to it (with a shard or cluster)
-    let (shard, mut events) = Shard::new(
-        env::var("DISCORD_TOKEN")?,
-        Intents::GUILD_MEMBERS | Intents::GUILDS,
-    );
+    let (shard, mut events) = Shard::new(env::var("DISCORD_TOKEN")?, Intents::GUILD_MEMBERS);
     shard.start().await?;
     println!("Created shard");
 
