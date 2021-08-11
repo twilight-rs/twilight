@@ -29,6 +29,7 @@ pub struct TeamId(#[serde(with = "crate::id::string")] pub NonZeroU64);
 
 impl TeamId {
     /// Create a non-zero application ID without checking the value.
+    ///
     /// Equivalent to [`NonZeroU64::new_unchecked`].
     ///
     /// # Safety
@@ -40,6 +41,7 @@ impl TeamId {
     }
 
     /// Create a non-zero application ID if the given value is not zero.
+    ///
     /// Equivalent to [`NonZeroU64::new`].
     pub const fn new(n: u64) -> Option<Self> {
         #[allow(clippy::option_if_let_else)]
@@ -51,6 +53,8 @@ impl TeamId {
     }
 
     /// Return the inner primitive value.
+    ///
+    /// Equivalent to [`NonZeroU64::get`].
     pub const fn get(self) -> u64 {
         self.0.get()
     }

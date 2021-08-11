@@ -62,6 +62,7 @@ pub struct ApplicationId(#[serde(with = "string")] pub NonZeroU64);
 
 impl ApplicationId {
     /// Create a non-zero application ID without checking the value.
+    ///
     /// Equivalent to [`NonZeroU64::new_unchecked`].
     ///
     /// # Safety
@@ -73,6 +74,7 @@ impl ApplicationId {
     }
 
     /// Create a non-zero application ID if the given value is not zero.
+    ///
     /// Equivalent to [`NonZeroU64::new`].
     pub const fn new(n: u64) -> Option<Self> {
         #[allow(clippy::option_if_let_else)]
@@ -84,6 +86,8 @@ impl ApplicationId {
     }
 
     /// Return the inner primitive value.
+    ///
+    /// Equivalent to [`NonZeroU64::get`].
     pub const fn get(self) -> u64 {
         self.0.get()
     }
@@ -108,6 +112,7 @@ pub struct AttachmentId(#[serde(with = "string")] pub NonZeroU64);
 
 impl AttachmentId {
     /// Create a non-zero attachment ID without checking the value.
+    ///
     /// Equivalent to [`NonZeroU64::new_unchecked`].
     ///
     /// # Safety
@@ -119,6 +124,7 @@ impl AttachmentId {
     }
 
     /// Create a non-zero attachment ID if the given value is not zero.
+    ///
     /// Equivalent to [`NonZeroU64::new`].
     pub const fn new(n: u64) -> Option<Self> {
         #[allow(clippy::option_if_let_else)]
@@ -130,6 +136,8 @@ impl AttachmentId {
     }
 
     /// Return the inner primitive value.
+    ///
+    /// Equivalent to [`NonZeroU64::get`].
     pub const fn get(self) -> u64 {
         self.0.get()
     }
@@ -154,6 +162,7 @@ pub struct AuditLogEntryId(#[serde(with = "string")] pub NonZeroU64);
 
 impl AuditLogEntryId {
     /// Create a non-zero audit log entry ID without checking the value.
+    ///
     /// Equivalent to [`NonZeroU64::new_unchecked`].
     ///
     /// # Safety
@@ -165,6 +174,7 @@ impl AuditLogEntryId {
     }
 
     /// Create a non-zero audit log entry ID if the given value is not zero.
+    ///
     /// Equivalent to [`NonZeroU64::new`].
     pub const fn new(n: u64) -> Option<Self> {
         #[allow(clippy::option_if_let_else)]
@@ -176,6 +186,8 @@ impl AuditLogEntryId {
     }
 
     /// Return the inner primitive value.
+    ///
+    /// Equivalent to [`NonZeroU64::get`].
     pub const fn get(self) -> u64 {
         self.0.get()
     }
@@ -200,6 +212,7 @@ pub struct ChannelId(#[serde(with = "string")] pub NonZeroU64);
 
 impl ChannelId {
     /// Create a non-zero channel ID without checking the value.
+    ///
     /// Equivalent to [`NonZeroU64::new_unchecked`].
     ///
     /// # Safety
@@ -211,6 +224,7 @@ impl ChannelId {
     }
 
     /// Create a non-zero channel ID if the given value is not zero.
+    ///
     /// Equivalent to [`NonZeroU64::new`].
     pub const fn new(n: u64) -> Option<Self> {
         #[allow(clippy::option_if_let_else)]
@@ -222,6 +236,8 @@ impl ChannelId {
     }
 
     /// Return the inner primitive value.
+    ///
+    /// Equivalent to [`NonZeroU64::get`].
     pub const fn get(self) -> u64 {
         self.0.get()
     }
@@ -246,6 +262,7 @@ pub struct CommandId(#[serde(with = "string")] pub NonZeroU64);
 
 impl CommandId {
     /// Create a non-zero command ID without checking the value.
+    ///
     /// Equivalent to [`NonZeroU64::new_unchecked`].
     ///
     /// # Safety
@@ -257,6 +274,7 @@ impl CommandId {
     }
 
     /// Create a non-zero command ID if the given value is not zero.
+    ///
     /// Equivalent to [`NonZeroU64::new`].
     pub const fn new(n: u64) -> Option<Self> {
         #[allow(clippy::option_if_let_else)]
@@ -268,6 +286,8 @@ impl CommandId {
     }
 
     /// Return the inner primitive value.
+    ///
+    /// Equivalent to [`NonZeroU64::get`].
     pub const fn get(self) -> u64 {
         self.0.get()
     }
@@ -292,6 +312,7 @@ pub struct EmojiId(#[serde(with = "string")] pub NonZeroU64);
 
 impl EmojiId {
     /// Create a non-zero emoji ID without checking the value.
+    ///
     /// Equivalent to [`NonZeroU64::new_unchecked`].
     ///
     /// # Safety
@@ -303,6 +324,7 @@ impl EmojiId {
     }
 
     /// Create a non-zero emoji ID if the given value is not zero.
+    ///
     /// Equivalent to [`NonZeroU64::new`].
     pub const fn new(n: u64) -> Option<Self> {
         #[allow(clippy::option_if_let_else)]
@@ -314,6 +336,8 @@ impl EmojiId {
     }
 
     /// Return the inner primitive value.
+    ///
+    /// Equivalent to [`NonZeroU64::get`].
     pub const fn get(self) -> u64 {
         self.0.get()
     }
@@ -338,6 +362,7 @@ pub struct GenericId(#[serde(with = "string")] pub NonZeroU64);
 
 impl GenericId {
     /// Create a non-zero generic ID without checking the value.
+    ///
     /// Equivalent to [`NonZeroU64::new_unchecked`].
     ///
     /// # Safety
@@ -349,6 +374,7 @@ impl GenericId {
     }
 
     /// Create a non-zero generic ID if the given value is not zero.
+    ///
     /// Equivalent to [`NonZeroU64::new`].
     pub const fn new(n: u64) -> Option<Self> {
         #[allow(clippy::option_if_let_else)]
@@ -360,6 +386,8 @@ impl GenericId {
     }
 
     /// Return the inner primitive value.
+    ///
+    /// Equivalent to [`NonZeroU64::get`].
     pub const fn get(self) -> u64 {
         self.0.get()
     }
@@ -384,6 +412,7 @@ pub struct GuildId(#[serde(with = "string")] pub NonZeroU64);
 
 impl GuildId {
     /// Create a non-zero guild ID without checking the value.
+    ///
     /// Equivalent to [`NonZeroU64::new_unchecked`].
     ///
     /// # Safety
@@ -395,6 +424,7 @@ impl GuildId {
     }
 
     /// Create a non-zero guild ID if the given value is not zero.
+    ///
     /// Equivalent to [`NonZeroU64::new`].
     pub const fn new(n: u64) -> Option<Self> {
         #[allow(clippy::option_if_let_else)]
@@ -406,6 +436,8 @@ impl GuildId {
     }
 
     /// Return the inner primitive value.
+    ///
+    /// Equivalent to [`NonZeroU64::get`].
     pub const fn get(self) -> u64 {
         self.0.get()
     }
@@ -430,6 +462,7 @@ pub struct IntegrationId(#[serde(with = "string")] pub NonZeroU64);
 
 impl IntegrationId {
     /// Create a non-zero integration ID without checking the value.
+    ///
     /// Equivalent to [`NonZeroU64::new_unchecked`].
     ///
     /// # Safety
@@ -441,6 +474,7 @@ impl IntegrationId {
     }
 
     /// Create a non-zero integration ID if the given value is not zero.
+    ///
     /// Equivalent to [`NonZeroU64::new`].
     pub const fn new(n: u64) -> Option<Self> {
         #[allow(clippy::option_if_let_else)]
@@ -452,6 +486,8 @@ impl IntegrationId {
     }
 
     /// Return the inner primitive value.
+    ///
+    /// Equivalent to [`NonZeroU64::get`].
     pub const fn get(self) -> u64 {
         self.0.get()
     }
@@ -476,6 +512,7 @@ pub struct InteractionId(#[serde(with = "string")] pub NonZeroU64);
 
 impl InteractionId {
     /// Create a non-zero interaction ID without checking the value.
+    ///
     /// Equivalent to [`NonZeroU64::new_unchecked`].
     ///
     /// # Safety
@@ -487,6 +524,7 @@ impl InteractionId {
     }
 
     /// Create a non-zero interaction ID if the given value is not zero.
+    ///
     /// Equivalent to [`NonZeroU64::new`].
     pub const fn new(n: u64) -> Option<Self> {
         #[allow(clippy::option_if_let_else)]
@@ -498,6 +536,8 @@ impl InteractionId {
     }
 
     /// Return the inner primitive value.
+    ///
+    /// Equivalent to [`NonZeroU64::get`].
     pub const fn get(self) -> u64 {
         self.0.get()
     }
@@ -522,6 +562,7 @@ pub struct MessageId(#[serde(with = "string")] pub NonZeroU64);
 
 impl MessageId {
     /// Create a non-zero message ID without checking the value.
+    ///
     /// Equivalent to [`NonZeroU64::new_unchecked`].
     ///
     /// # Safety
@@ -533,6 +574,7 @@ impl MessageId {
     }
 
     /// Create a non-zero message ID if the given value is not zero.
+    ///
     /// Equivalent to [`NonZeroU64::new`].
     pub const fn new(n: u64) -> Option<Self> {
         #[allow(clippy::option_if_let_else)]
@@ -544,6 +586,8 @@ impl MessageId {
     }
 
     /// Return the inner primitive value.
+    ///
+    /// Equivalent to [`NonZeroU64::get`].
     pub const fn get(self) -> u64 {
         self.0.get()
     }
@@ -568,6 +612,7 @@ pub struct RoleId(#[serde(with = "string")] pub NonZeroU64);
 
 impl RoleId {
     /// Create a non-zero role ID without checking the value.
+    ///
     /// Equivalent to [`NonZeroU64::new_unchecked`].
     ///
     /// # Safety
@@ -579,6 +624,7 @@ impl RoleId {
     }
 
     /// Create a non-zero role ID if the given value is not zero.
+    ///
     /// Equivalent to [`NonZeroU64::new`].
     pub const fn new(n: u64) -> Option<Self> {
         #[allow(clippy::option_if_let_else)]
@@ -590,6 +636,8 @@ impl RoleId {
     }
 
     /// Return the inner primitive value.
+    ///
+    /// Equivalent to [`NonZeroU64::get`].
     pub const fn get(self) -> u64 {
         self.0.get()
     }
@@ -614,6 +662,7 @@ pub struct StageId(#[serde(with = "string")] pub NonZeroU64);
 
 impl StageId {
     /// Create a non-zero stage ID without checking the value.
+    ///
     /// Equivalent to [`NonZeroU64::new_unchecked`].
     ///
     /// # Safety
@@ -625,6 +674,7 @@ impl StageId {
     }
 
     /// Create a non-zero stage ID if the given value is not zero.
+    ///
     /// Equivalent to [`NonZeroU64::new`].
     pub const fn new(n: u64) -> Option<Self> {
         #[allow(clippy::option_if_let_else)]
@@ -636,6 +686,8 @@ impl StageId {
     }
 
     /// Return the inner primitive value.
+    ///
+    /// Equivalent to [`NonZeroU64::get`].
     pub const fn get(self) -> u64 {
         self.0.get()
     }
@@ -660,6 +712,7 @@ pub struct UserId(#[serde(with = "string")] pub NonZeroU64);
 
 impl UserId {
     /// Create a non-zero user ID without checking the value.
+    ///
     /// Equivalent to [`NonZeroU64::new_unchecked`].
     ///
     /// # Safety
@@ -671,6 +724,7 @@ impl UserId {
     }
 
     /// Create a non-zero user ID if the given value is not zero.
+    ///
     /// Equivalent to [`NonZeroU64::new`].
     pub const fn new(n: u64) -> Option<Self> {
         #[allow(clippy::option_if_let_else)]
@@ -682,6 +736,8 @@ impl UserId {
     }
 
     /// Return the inner primitive value.
+    ///
+    /// Equivalent to [`NonZeroU64::get`].
     pub const fn get(self) -> u64 {
         self.0.get()
     }
@@ -706,6 +762,7 @@ pub struct WebhookId(#[serde(with = "string")] pub NonZeroU64);
 
 impl WebhookId {
     /// Create a non-zero webhook ID without checking the value.
+    ///
     /// Equivalent to [`NonZeroU64::new_unchecked`].
     ///
     /// # Safety
@@ -717,6 +774,7 @@ impl WebhookId {
     }
 
     /// Create a non-zero webhook ID if the given value is not zero.
+    ///
     /// Equivalent to [`NonZeroU64::new`].
     pub const fn new(n: u64) -> Option<Self> {
         #[allow(clippy::option_if_let_else)]
@@ -728,6 +786,8 @@ impl WebhookId {
     }
 
     /// Return the inner primitive value.
+    ///
+    /// Equivalent to [`NonZeroU64::get`].
     pub const fn get(self) -> u64 {
         self.0.get()
     }

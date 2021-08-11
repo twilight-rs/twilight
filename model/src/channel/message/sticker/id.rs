@@ -17,6 +17,7 @@ pub struct StickerId(#[serde(with = "crate::id::string")] pub NonZeroU64);
 
 impl StickerId {
     /// Create a non-zero application ID without checking the value.
+    ///
     /// Equivalent to [`NonZeroU64::new_unchecked`].
     ///
     /// # Safety
@@ -28,6 +29,7 @@ impl StickerId {
     }
 
     /// Create a non-zero application ID if the given value is not zero.
+    ///
     /// Equivalent to [`NonZeroU64::new`].
     pub const fn new(n: u64) -> Option<Self> {
         #[allow(clippy::option_if_let_else)]
@@ -39,6 +41,8 @@ impl StickerId {
     }
 
     /// Return the inner primitive value.
+    ///
+    /// Equivalent to [`NonZeroU64::get`].
     pub const fn get(self) -> u64 {
         self.0.get()
     }
@@ -63,6 +67,7 @@ pub struct StickerPackId(#[serde(with = "crate::id::string")] pub NonZeroU64);
 
 impl StickerPackId {
     /// Create a non-zero application ID without checking the value.
+    ///
     /// Equivalent to [`NonZeroU64::new_unchecked`].
     ///
     /// # Safety
@@ -74,6 +79,7 @@ impl StickerPackId {
     }
 
     /// Create a non-zero application ID if the given value is not zero.
+    ///
     /// Equivalent to [`NonZeroU64::new`].
     pub const fn new(n: u64) -> Option<Self> {
         #[allow(clippy::option_if_let_else)]
@@ -85,6 +91,8 @@ impl StickerPackId {
     }
 
     /// Return the inner primitive value.
+    ///
+    /// Equivalent to [`NonZeroU64::get`].
     pub const fn get(self) -> u64 {
         self.0.get()
     }
