@@ -25,8 +25,8 @@ tracing = { default-features = false, features = ["std", "attributes"], optional
 
 [dev-dependencies]
 static_assertions = { default-features = false, version = "1" }
-twilight-gateway = { path = "../gateway" }
 tokio = { default-features = false, features = ["macros", "rt-multi-thread"], version = "1.0" }
+twilight-gateway = { default-features = false, features = ["rustls"], path = "../gateway" }
 
 [features]
 default = ["tracing"]
