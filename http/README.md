@@ -8,6 +8,12 @@ HTTP support for the twilight ecosystem.
 
 ## Features
 
+### Compression
+
+The `compression` feature enables brotli decompression support via the [`brotli`] crate.
+
+This is enabled by default.
+
 ### Deserialization
 
 `twilight-http` supports [`serde_json`] and [`simd-json`] for deserializing
@@ -68,6 +74,7 @@ The `tracing` feature enables logging via the [`tracing`] crate.
 
 This is disabled by default.
 
+[`brotli`]: https://github.com/dropbox/rust-brotli
 [`native-tls`]: https://crates.io/crates/native-tls
 [`hyper`]: https://crates.io/crates/hyper
 [`rustls`]: https://crates.io/crates/rustls

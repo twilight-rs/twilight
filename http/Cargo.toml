@@ -26,11 +26,13 @@ tokio = { default-features = false, features = ["sync", "time"], version = "1.0"
 twilight-model = { default-features = false, path = "../model" }
 
 # optional
+brotli = { default-features = false, features = ["std"], optional = true, version = "3.0.0" }
 simd-json = { default-features = false, features = ["serde_impl", "swar-number-parsing"], optional = true, version = "0.4" }
 tracing = { default-features = false, features = ["std", "attributes"], optional = true, version = "0.1" }
 
 [features]
-default = ["rustls"]
+default = ["compression", "rustls"]
+compression = ["brotli"]
 native = ["hyper-tls"]
 rustls = ["rustls-native-roots"]
 rustls-native-roots = ["hyper-rustls/native-tokio"]

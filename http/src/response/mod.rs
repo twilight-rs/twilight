@@ -55,7 +55,7 @@ pub use self::{future::ResponseFuture, status_code::StatusCode};
 use self::marker::{ListBody, MemberBody, MemberListBody};
 use super::json::JsonDeserializer;
 use hyper::{
-    body::{self, Buf, Bytes},
+    body::{self, Bytes},
     header::{HeaderValue, Iter as HeaderMapIter},
     Body, Error as HyperError, Response as HyperResponse,
 };
@@ -233,22 +233,34 @@ impl<T> Response<T> {
     ///
     /// [`text`]: Self::text
     pub fn bytes(self) -> BytesFuture {
+        #[cfg(feature = "compression")]
+        let compressed = self
+            .inner
+            .headers()
+            .get(hyper::header::CONTENT_ENCODING)
+            .is_some();
+
         let body = self.inner.into_body();
 
-        // We need to do additional processing here due to the return type of
-        // `body::aggregate` being `impl Buf`.
-        let fut = async {
-            let mut aggregate = body::aggregate(body).await?;
+        let fut = async move {
+            {
+                #[cfg(feature = "compression")]
+                if compressed {
+                    use hyper::body::Buf;
+                    use std::io::Read;
 
-            // Create a buffer filled with zeroes so we can copy the aggregate
-            // body into it.
-            //
-            // Using `vec!` is the fastest way to do this, despite it being a
-            // macro and having unsafe internals.
-            let mut buf = vec![0; aggregate.remaining()];
-            aggregate.copy_to_slice(&mut buf);
+                    let mut buf = vec![0; 4096];
+                    let mut reader = brotli::Decompressor::new(
+                        hyper::body::aggregate(body).await?.reader(),
+                        4096,
+                    );
+                    reader.read_to_end(&mut buf).expect("infallible read");
 
-            Ok(buf)
+                    return Ok(buf.into());
+                }
+
+                body::to_bytes(body).await
+            }
         };
 
         BytesFuture {
@@ -472,6 +484,8 @@ impl<'a> Iterator for HeaderIter<'a> {
 ///
 /// The body of the response is chunked and aggregated into a `Vec` of bytes.
 ///
+/// Body might be compressed if the `compression` feature is enabled.
+///
 /// Obtained via [`Response::bytes`].
 ///
 /// # Examples
@@ -500,7 +514,7 @@ impl<'a> Iterator for HeaderIter<'a> {
 /// response body could not be entirely read.
 #[must_use = "futures do nothing unless you `.await` or poll them"]
 pub struct BytesFuture {
-    inner: Pin<Box<dyn Future<Output = Result<Vec<u8>, HyperError>> + Send + Sync + 'static>>,
+    inner: Pin<Box<dyn Future<Output = Result<Bytes, HyperError>> + Send + Sync + 'static>>,
 }
 
 impl Future for BytesFuture {
@@ -510,9 +524,11 @@ impl Future for BytesFuture {
         if let Poll::Ready(result) = Pin::new(&mut self.inner).poll(cx) {
             // Convert `hyper`'s error type to our own in order to avoid
             // directly exposing a dependency.
-            Poll::Ready(result.map_err(|source| DeserializeBodyError {
-                kind: DeserializeBodyErrorType::Chunking,
-                source: Some(Box::new(source)),
+            Poll::Ready(result.map(|b| b.into_iter().collect()).map_err(|source| {
+                DeserializeBodyError {
+                    kind: DeserializeBodyErrorType::Chunking,
+                    source: Some(Box::new(source)),
+                }
             }))
         } else {
             Poll::Pending

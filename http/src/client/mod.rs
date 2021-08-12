@@ -2333,9 +2333,8 @@ impl Client {
             .uri(&url);
 
         if use_authorization_token {
-            if let Some(ref token) = self.state.token {
+            if let Some(token) = &self.state.token {
                 let value = HeaderValue::from_str(token).map_err(|source| {
-                    #[allow(clippy::borrow_interior_mutable_const)]
                     let name = AUTHORIZATION.to_string();
 
                     Error {
@@ -2371,6 +2370,11 @@ impl Client {
                 headers.insert(CONTENT_TYPE, content_type);
             }
 
+            #[cfg(feature = "compression")]
+            headers.insert(
+                hyper::header::ACCEPT_ENCODING,
+                HeaderValue::from_static("br"),
+            );
             headers.insert(USER_AGENT, user_agent);
 
             if let Some(req_headers) = req_headers {

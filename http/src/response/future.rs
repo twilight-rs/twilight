@@ -49,12 +49,7 @@ impl Chunking {
         let bytes = match Pin::new(&mut self.future).poll(cx) {
             Poll::Ready(Ok(bytes)) => bytes,
             Poll::Ready(Err(source)) => return InnerPoll::Ready(Err(source)),
-            Poll::Pending => {
-                return InnerPoll::Pending(ResponseFutureStage::Chunking(Self {
-                    future: self.future,
-                    status: self.status,
-                }))
-            }
+            Poll::Pending => return InnerPoll::Pending(ResponseFutureStage::Chunking(self)),
         };
 
         let error = match crate::json::from_bytes::<ApiError>(&bytes) {
@@ -122,14 +117,7 @@ impl InFlight {
                     source: Some(Box::new(source)),
                 }))
             }
-            Poll::Pending => {
-                return InnerPoll::Pending(ResponseFutureStage::InFlight(Self {
-                    future: self.future,
-                    guild_id: self.guild_id,
-                    invalid_token: self.invalid_token,
-                    tx: self.tx,
-                }))
-            }
+            Poll::Pending => return InnerPoll::Pending(ResponseFutureStage::InFlight(self)),
         };
 
         // If the API sent back an Unauthorized response, then the client's
@@ -159,6 +147,12 @@ impl InFlight {
         let status = resp.status();
 
         if status.is_success() {
+            #[cfg(feature = "compression")]
+            let mut resp = resp;
+            // Inaccurate since end-users can only access the decompressed body.
+            #[cfg(feature = "compression")]
+            resp.headers_mut().remove(hyper::header::CONTENT_LENGTH);
+
             let mut response = Response::new(resp);
 
             if let Some(guild_id) = self.guild_id {
@@ -182,17 +176,44 @@ impl InFlight {
             _ => {}
         }
 
-        let fut = Box::pin(async {
-            hyper::body::to_bytes(resp.into_body())
-                .await
-                .map_err(|source| Error {
-                    kind: ErrorType::ChunkingResponse,
-                    source: Some(Box::new(source)),
-                })
-        });
+        #[cfg(feature = "compression")]
+        let compressed = resp
+            .headers()
+            .get(hyper::header::CONTENT_ENCODING)
+            .is_some();
+
+        let body = resp.into_body();
+
+        let fut = async move {
+            #[cfg(feature = "compression")]
+            if compressed {
+                use hyper::body::Buf;
+                use std::io::Read;
+
+                let mut buf = vec![0; 4096];
+                let mut reader = brotli::Decompressor::new(
+                    hyper::body::aggregate(body)
+                        .await
+                        .map_err(|source| Error {
+                            kind: ErrorType::ChunkingResponse,
+                            source: Some(source.into()),
+                        })?
+                        .reader(),
+                    4096,
+                );
+                reader.read_to_end(&mut buf).expect("infallible read");
+
+                return Ok(buf.into());
+            }
+
+            hyper::body::to_bytes(body).await.map_err(|source| Error {
+                kind: ErrorType::ChunkingResponse,
+                source: Some(source.into()),
+            })
+        };
 
         InnerPoll::Advance(ResponseFutureStage::Chunking(Chunking {
-            future: fut,
+            future: Box::pin(fut),
             status,
         }))
     }
