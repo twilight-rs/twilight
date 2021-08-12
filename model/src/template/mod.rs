@@ -176,7 +176,7 @@ mod tests {
                 banner: Some("06c16474723fe537c283b8efa61a30c8".to_owned()),
                 bot: false,
                 email: None,
-                discriminator: "1111".into(),
+                discriminator: 1111,
                 flags: None,
                 id: UserId(100),
                 locale: None,

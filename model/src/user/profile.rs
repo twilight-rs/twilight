@@ -1,7 +1,5 @@
-use crate::{
-    id::UserId,
-    user::{PremiumType, UserFlags},
-};
+use super::{DiscriminatorDisplay, PremiumType, UserFlags};
+use crate::id::UserId;
 use serde::{Deserialize, Serialize};
 
 #[derive(Clone, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
@@ -23,7 +21,7 @@ pub struct UserProfile {
     /// integer. The field will always serialize into a string due to that being
     /// the type Discord's API uses.
     #[serde(with = "super::discriminator")]
-    pub discriminator: String,
+    pub discriminator: u16,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub email: Option<String>,
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -39,6 +37,15 @@ pub struct UserProfile {
     pub premium_type: Option<PremiumType>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub verified: Option<bool>,
+}
+
+impl UserProfile {
+    /// Create a [`Display`] formatter for a user discriminator.
+    ///
+    /// [`Display`]: core::fmt::Display
+    pub const fn discriminator(&self) -> DiscriminatorDisplay {
+        DiscriminatorDisplay::new(self.discriminator)
+    }
 }
 
 #[cfg(test)]
@@ -98,7 +105,7 @@ mod tests {
             avatar: Some("hash".to_owned()),
             banner: None,
             bot: false,
-            discriminator: "0004".to_owned(),
+            discriminator: 4,
             email: Some("email@example.com".to_owned()),
             flags: Some(UserFlags::VERIFIED_BOT_DEVELOPER),
             id: UserId(1),

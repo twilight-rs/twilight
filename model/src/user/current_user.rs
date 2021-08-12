@@ -1,4 +1,4 @@
-use super::{PremiumType, UserFlags};
+use super::{DiscriminatorDisplay, PremiumType, UserFlags};
 use crate::id::UserId;
 use serde::{Deserialize, Serialize};
 
@@ -28,7 +28,7 @@ pub struct CurrentUser {
     /// integer. The field will always serialize into a string due to that being
     /// the type Discord's API uses.
     #[serde(with = "super::discriminator")]
-    pub discriminator: String,
+    pub discriminator: u16,
     /// User's email address associated to the account.
     ///
     /// Requires the `email` oauth scope. See [Discord's documentation] for
@@ -64,6 +64,15 @@ pub struct CurrentUser {
     /// [Discord's documentation]: https://discord.com/developers/docs/resources/user#user-object-user-structure
     #[serde(skip_serializing_if = "Option::is_none")]
     pub verified: Option<bool>,
+}
+
+impl CurrentUser {
+    /// Create a [`Display`] formatter for a user discriminator.
+    ///
+    /// [`Display`]: core::fmt::Display
+    pub const fn discriminator(&self) -> DiscriminatorDisplay {
+        DiscriminatorDisplay::new(self.discriminator)
+    }
 }
 
 #[cfg(test)]
@@ -166,7 +175,7 @@ mod tests {
             avatar: Some("avatar hash".to_owned()),
             banner: None,
             bot: true,
-            discriminator: "9999".to_owned(),
+            discriminator: 9999,
             email: None,
             id: UserId(1),
             mfa_enabled: true,
@@ -195,7 +204,7 @@ mod tests {
             avatar: Some("avatar hash".to_owned()),
             banner: Some("06c16474723fe537c283b8efa61a30c8".to_owned()),
             bot: true,
-            discriminator: "9999".to_owned(),
+            discriminator: 9999,
             email: Some("test@example.com".to_owned()),
             id: UserId(1),
             mfa_enabled: true,

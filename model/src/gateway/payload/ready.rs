@@ -51,7 +51,7 @@ mod tests {
                 avatar: None,
                 banner: None,
                 bot: false,
-                discriminator: "1212".to_owned(),
+                discriminator: 1212,
                 email: None,
                 flags: None,
                 id: UserId(3),

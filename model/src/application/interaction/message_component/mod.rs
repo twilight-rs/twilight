@@ -116,7 +116,7 @@ mod tests {
             avatar: None,
             banner: None,
             bot: false,
-            discriminator: "4444".to_owned(),
+            discriminator: 4444,
             email: None,
             flags: None,
             id,

@@ -46,7 +46,7 @@ mod tests {
                 avatar: None,
                 banner: None,
                 bot: false,
-                discriminator: "0987".to_string(),
+                discriminator: 987,
                 name: "ab".to_string(),
                 mfa_enabled: None,
                 locale: None,
