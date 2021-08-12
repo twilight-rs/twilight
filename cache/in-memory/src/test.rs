@@ -22,7 +22,7 @@ pub fn cache_with_message_and_reactions() -> InMemoryCache {
         author: User {
             avatar: Some("".to_owned()),
             bot: false,
-            discriminator: "0001".to_owned(),
+            discriminator: 1,
             email: None,
             flags: None,
             id: UserId(3),
@@ -89,7 +89,7 @@ pub fn cache_with_message_and_reactions() -> InMemoryCache {
             user: User {
                 avatar: Some("".to_owned()),
                 bot: false,
-                discriminator: "0001".to_owned(),
+                discriminator: 1,
                 email: None,
                 flags: None,
                 id: UserId(3),
@@ -121,7 +121,7 @@ pub fn cache_with_message_and_reactions() -> InMemoryCache {
         user: User {
             avatar: Some("".to_owned()),
             bot: false,
-            discriminator: "0002".to_owned(),
+            discriminator: 2,
             email: None,
             flags: None,
             id: UserId(5),
@@ -151,7 +151,7 @@ pub fn current_user(id: u64) -> CurrentUser {
     CurrentUser {
         avatar: None,
         bot: true,
-        discriminator: "9876".to_owned(),
+        discriminator: 9876,
         email: None,
         id: UserId(id),
         mfa_enabled: true,
@@ -253,7 +253,7 @@ pub fn user(id: UserId) -> User {
     User {
         avatar: None,
         bot: false,
-        discriminator: "0001".to_owned(),
+        discriminator: 1,
         email: None,
         flags: None,
         id,

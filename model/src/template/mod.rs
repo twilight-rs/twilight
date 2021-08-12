@@ -172,7 +172,7 @@ mod tests {
                 avatar: Some("avatar".into()),
                 bot: false,
                 email: None,
-                discriminator: "1111".into(),
+                discriminator: 1111,
                 flags: None,
                 id: UserId(100),
                 locale: None,

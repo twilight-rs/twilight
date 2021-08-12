@@ -3,7 +3,7 @@
 use crate::{
     id::{ChannelId, GuildId, UserId},
     invite::TargetType,
-    user::User,
+    user::{self, DiscriminatorDisplay, User},
 };
 use serde::{Deserialize, Serialize};
 
@@ -57,11 +57,27 @@ pub struct PartialUser {
     /// Discriminator used to differentiate people with the same [`username`].
     ///
     /// [`username`]: Self::username
-    pub discriminator: String,
+    ///
+    /// # serde
+    ///
+    /// The discriminator field can be deserialized from either a string or an
+    /// integer. The field will always serialize into a string due to that being
+    /// the type Discord's API uses.
+    #[serde(with = "user::discriminator")]
+    pub discriminator: u16,
     /// ID of the user.
     pub id: UserId,
     /// Username of the user.
     pub username: String,
+}
+
+impl PartialUser {
+    /// Create a [`Display`] formatter for a user discriminator.
+    ///
+    /// [`Display`]: core::fmt::Display
+    pub const fn discriminator(&self) -> DiscriminatorDisplay {
+        DiscriminatorDisplay::new(self.discriminator)
+    }
 }
 
 #[cfg(test)]
@@ -160,7 +176,7 @@ mod tests {
     fn test_partial_user() {
         let value = PartialUser {
             avatar: Some("a".repeat(32)),
-            discriminator: "123".to_owned(),
+            discriminator: 123,
             id: UserId(1),
             username: "twilight".to_owned(),
         };
@@ -176,7 +192,7 @@ mod tests {
                 Token::Some,
                 Token::Str("aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"),
                 Token::Str("discriminator"),
-                Token::Str("123"),
+                Token::Str("0123"),
                 Token::Str("id"),
                 Token::NewtypeStruct { name: "UserId" },
                 Token::Str("1"),

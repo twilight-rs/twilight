@@ -288,7 +288,7 @@ mod tests {
                 author: User {
                     avatar: Some("aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa".to_owned()),
                     bot: false,
-                    discriminator: "0001".to_owned(),
+                    discriminator: 1,
                     email: None,
                     flags: None,
                     id: UserId(3),
@@ -351,7 +351,7 @@ mod tests {
             users: Vec::from([User {
                 avatar: Some("aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa".to_owned()),
                 bot: false,
-                discriminator: "0001".to_owned(),
+                discriminator: 1,
                 email: Some("address@example.com".to_owned()),
                 flags: Some(UserFlags::EARLY_SUPPORTER | UserFlags::VERIFIED_BOT_DEVELOPER),
                 id: UserId(300),

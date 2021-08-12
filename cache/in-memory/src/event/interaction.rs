@@ -105,7 +105,7 @@ mod tests {
                             author: User {
                                 avatar: Some("aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa".to_owned()),
                                 bot: false,
-                                discriminator: "0001".to_owned(),
+                                discriminator: 1,
                                 email: None,
                                 flags: None,
                                 id: UserId(3),
@@ -168,7 +168,7 @@ mod tests {
                         users: Vec::from([User {
                             avatar: Some("different avatar".into()),
                             bot: false,
-                            discriminator: "5678".into(),
+                            discriminator: 5678,
                             email: None,
                             flags: None,
                             id: UserId(7),
@@ -196,7 +196,7 @@ mod tests {
                     user: Some(User {
                         avatar: Some("avatar string".into()),
                         bot: false,
-                        discriminator: "1234".into(),
+                        discriminator: 1234,
                         email: None,
                         flags: None,
                         id: UserId(6),
