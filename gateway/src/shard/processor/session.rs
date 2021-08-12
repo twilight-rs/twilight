@@ -259,7 +259,7 @@ fn heartbeats_per_reset(heartbeat_interval: u64) -> u8 {
             RESERVE_ON_FAIL,
         );
 
-        COMMANDS_PER_RESET - RESERVE_ON_FAIL
+        RESERVE_ON_FAIL
     };
 
     COMMANDS_PER_RESET.saturating_sub(heartbeats_cast)
