@@ -263,7 +263,7 @@ mod test {
                     users: vec![User {
                         avatar: Some("avatar string".into()),
                         bot: false,
-                        discriminator: "1111".into(),
+                        discriminator: 1111,
                         email: None,
                         flags: None,
                         id: UserId(600),
@@ -291,7 +291,7 @@ mod test {
                 user: Some(User {
                     avatar: Some("avatar string".into()),
                     bot: false,
-                    discriminator: "1111".into(),
+                    discriminator: 1111,
                     email: None,
                     flags: None,
                     id: UserId(600),

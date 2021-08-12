@@ -138,7 +138,7 @@ mod tests {
             author: User {
                 avatar: Some("".to_owned()),
                 bot: false,
-                discriminator: "0001".to_owned(),
+                discriminator: 1,
                 email: None,
                 flags: None,
                 id: UserId(3),
