@@ -299,6 +299,10 @@ impl ShardProcessor {
 
         let properties = IdentifyProperties::new("twilight.rs", "twilight.rs", OS, "", "");
 
+        // Discord docs state:
+        // "Generally, it is a good idea to explicitly pass the gateway version
+        // and encoding".
+        // <https://discord.com/developers/docs/topics/gateway#connecting-gateway-url-query-string-params>
         url.push_str("?v=8");
         url.push_str("&encoding=json");
         compression::add_url_feature(&mut url);

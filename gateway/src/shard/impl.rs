@@ -464,11 +464,11 @@ impl Shard {
         let url = if let Some(u) = &self.0.config.gateway_url {
             u.to_string()
         } else {
+            // Validates the bot token
             self.0
                 .config
                 .http_client()
                 .gateway()
-                // Validates the bot token
                 .authed()
                 .exec()
                 .await
