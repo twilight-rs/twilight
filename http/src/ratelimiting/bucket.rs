@@ -188,7 +188,6 @@ impl BucketQueueTask {
             tracing::debug!(parent: &span, "starting to wait for response headers",);
 
             // TODO: Find a better way of handling nested types.
-            #[allow(clippy::unnested_or_patterns)]
             match timeout(Self::WAIT, rx).await {
                 Ok(Ok(Some(headers))) => self.handle_headers(&headers).await,
                 // - None was sent through the channel (request aborted)

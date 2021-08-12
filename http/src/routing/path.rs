@@ -211,7 +211,6 @@ impl FromStr for Path {
 
         let parts = s.split('/').skip(skip).collect::<Vec<&str>>();
 
-        #[allow(clippy::unnested_or_patterns)]
         Ok(match parts.as_slice() {
             ["applications", id, "commands"] => ApplicationCommand(parse_id(id)?),
             ["applications", id, "commands", _] => ApplicationCommandId(parse_id(id)?),
