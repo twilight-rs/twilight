@@ -139,7 +139,7 @@ impl Session {
             LeakyBucket::builder()
                 .max(payloads_without_heartbeat)
                 .tokens(payloads_without_heartbeat)
-                .refill_interval(Duration::from_secs(120))
+                .refill_interval(Duration::from_secs(60))
                 .refill_amount(payloads_without_heartbeat)
                 .build(),
         );
