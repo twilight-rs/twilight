@@ -242,7 +242,7 @@ fn heartbeats_per_reset(heartbeat_interval: u64) -> u8 {
         heartbeats += 1;
     }
 
-    // Cast the heartbeats to a u8. The number of heartbeats **should** never
+    // Convert the heartbeats to a u8. The number of heartbeats **should** never
     // be above `u8::MAX`, so the error pattern branch should never be reached.
     let heartbeats_cast = if let Ok(value) = heartbeats.try_into() {
         value
