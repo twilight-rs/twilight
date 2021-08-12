@@ -252,6 +252,7 @@ fn heartbeats_per_reset(heartbeat_interval: u64) -> u8 {
         // just being cautious here.
         const RESERVE_ON_FAIL: u8 = COMMANDS_PER_RESET - 10;
 
+        #[cfg(feature = "tracing")]
         tracing::warn!(
             %heartbeats,
             "heartbeats > u8 max; defaulting to reserving {}",
