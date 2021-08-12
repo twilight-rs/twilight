@@ -178,7 +178,7 @@ mod tests {
                     avatar: Some("aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa".to_owned()),
                     banner: None,
                     bot: false,
-                    discriminator: "0001".to_owned(),
+                    discriminator: 1,
                     name: "test".to_owned(),
                     mfa_enabled: None,
                     locale: None,

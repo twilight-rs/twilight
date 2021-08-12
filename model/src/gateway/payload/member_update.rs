@@ -42,7 +42,7 @@ mod tests {
                 name: "Twilight Sparkle".to_string(),
                 public_flags: None,
                 id: 424_242.into(),
-                discriminator: 1_234.to_string(),
+                discriminator: 1234,
                 avatar: Some("cool image".to_string()),
                 bot: false,
                 email: None,

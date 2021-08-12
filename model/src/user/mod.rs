@@ -14,38 +14,107 @@ pub use self::{
 
 use crate::id::UserId;
 use serde::{Deserialize, Serialize};
+use std::fmt::{Display, Formatter, Result as FmtResult};
 
 pub(crate) mod discriminator {
+    use super::DiscriminatorDisplay;
     use serde::{
         de::{Deserializer, Error as DeError, Visitor},
         ser::Serializer,
     };
-    use std::fmt::{Formatter, Result as FmtResult};
+    use std::{
+        convert::TryInto,
+        fmt::{Formatter, Result as FmtResult},
+    };
 
     struct DiscriminatorVisitor;
 
     impl<'de> Visitor<'de> for DiscriminatorVisitor {
-        type Value = String;
+        type Value = u16;
 
         fn expecting(&self, f: &mut Formatter<'_>) -> FmtResult {
             f.write_str("string or integer discriminator")
         }
 
         fn visit_u64<E: DeError>(self, value: u64) -> Result<Self::Value, E> {
-            Ok(format!("{:04}", value))
+            value.try_into().map_err(DeError::custom)
         }
 
         fn visit_str<E: DeError>(self, value: &str) -> Result<Self::Value, E> {
-            Ok(value.to_owned())
+            value.parse().map_err(DeError::custom)
         }
     }
 
-    pub fn deserialize<'de, D: Deserializer<'de>>(deserializer: D) -> Result<String, D::Error> {
+    pub fn deserialize<'de, D: Deserializer<'de>>(deserializer: D) -> Result<u16, D::Error> {
         deserializer.deserialize_any(DiscriminatorVisitor)
     }
 
-    pub fn serialize<S: Serializer>(value: &str, serializer: S) -> Result<S::Ok, S::Error> {
-        serializer.collect_str(value)
+    // Allow this lint because taking a reference is required by serde.
+    #[allow(clippy::trivially_copy_pass_by_ref)]
+    pub fn serialize<S: Serializer>(value: &u16, serializer: S) -> Result<S::Ok, S::Error> {
+        serializer.collect_str(&DiscriminatorDisplay(*value))
+    }
+}
+
+/// Display formatter for a user discriminator.
+///
+/// When formatted this will pad a discriminator with zeroes.
+///
+/// This may be preferable to use instead of using `format!` to avoid a String
+/// allocation, and may also be preferable to use rather than defining your own
+/// implementations via `format_args!("{:04}", discriminator)`.
+///
+/// # Examples
+///
+/// Display the discriminator value `16` as a string:
+///
+/// ```
+/// use twilight_model::user::DiscriminatorDisplay;
+///
+/// let display = DiscriminatorDisplay::new(16);
+/// assert_eq!("0016", display.to_string());
+/// ```
+#[derive(Clone, Copy, Debug, Eq, Hash, PartialEq)]
+#[must_use = "display implementations should be formatted"]
+pub struct DiscriminatorDisplay(u16);
+
+impl DiscriminatorDisplay {
+    /// Create a new display formatter for a discriminator.
+    ///
+    /// # Examples
+    ///
+    /// Display the discriminator value `5` as a string:
+    ///
+    /// ```
+    /// use twilight_model::user::DiscriminatorDisplay;
+    ///
+    /// let display = DiscriminatorDisplay::new(5);
+    /// assert_eq!("0005", display.to_string());
+    /// ```
+    pub const fn new(discriminator: u16) -> Self {
+        Self(discriminator)
+    }
+
+    /// Retrieve the inner discriminator value.
+    pub const fn get(self) -> u16 {
+        self.0
+    }
+}
+
+impl Display for DiscriminatorDisplay {
+    fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
+        // Pad the formatted value with zeroes depending on the number of
+        // digits.
+        //
+        // If the value is [1000, u16::MAX] then we don't need to pad.
+        match self.0 {
+            0..=9 => f.write_str("000")?,
+            10..=99 => f.write_str("00")?,
+            100..=999 => f.write_str("0")?,
+            _ => {}
+        }
+
+        Display::fmt(&self.0, f)
     }
 }
 
@@ -68,7 +137,7 @@ pub struct User {
     /// integer. The field will always serialize into a string due to that being
     /// the type Discord's API uses.
     #[serde(with = "discriminator")]
-    pub discriminator: String,
+    pub discriminator: u16,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub email: Option<String>,
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -90,10 +159,32 @@ pub struct User {
     pub verified: Option<bool>,
 }
 
+impl User {
+    /// Create a [`Display`] formatter for a user discriminator.
+    ///
+    /// [`Display`]: core::fmt::Display
+    pub const fn discriminator(&self) -> DiscriminatorDisplay {
+        DiscriminatorDisplay::new(self.discriminator)
+    }
+}
+
 #[cfg(test)]
 mod tests {
-    use super::{PremiumType, User, UserFlags, UserId};
+    use super::{DiscriminatorDisplay, PremiumType, User, UserFlags, UserId};
     use serde_test::Token;
+    use static_assertions::assert_impl_all;
+    use std::{fmt::Debug, hash::Hash};
+
+    assert_impl_all!(
+        DiscriminatorDisplay: Clone,
+        Copy,
+        Debug,
+        Eq,
+        Hash,
+        PartialEq,
+        Send,
+        Sync
+    );
 
     fn user_tokens(discriminator_token: Token) -> Vec<Token> {
         vec![
@@ -195,13 +286,22 @@ mod tests {
     }
 
     #[test]
+    fn test_discriminator_display() {
+        assert_eq!(3030, DiscriminatorDisplay::new(3030).get());
+        assert_eq!("0003", DiscriminatorDisplay::new(3).to_string());
+        assert_eq!("0033", DiscriminatorDisplay::new(33).to_string());
+        assert_eq!("0333", DiscriminatorDisplay::new(333).to_string());
+        assert_eq!("3333", DiscriminatorDisplay::new(3333).to_string());
+    }
+
+    #[test]
     fn test_user() {
         let value = User {
             accent_color: None,
             avatar: Some("aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa".to_owned()),
             banner: Some("06c16474723fe537c283b8efa61a30c8".to_owned()),
             bot: false,
-            discriminator: "0001".to_owned(),
+            discriminator: 1,
             email: Some("address@example.com".to_owned()),
             flags: Some(UserFlags::EARLY_SUPPORTER | UserFlags::VERIFIED_BOT_DEVELOPER),
             id: UserId(1),
@@ -231,7 +331,7 @@ mod tests {
             avatar: Some("aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa".to_owned()),
             banner: Some("06c16474723fe537c283b8efa61a30c8".to_owned()),
             bot: false,
-            discriminator: "0001".to_owned(),
+            discriminator: 1,
             email: Some("address@example.com".to_owned()),
             flags: Some(UserFlags::EARLY_SUPPORTER | UserFlags::VERIFIED_BOT_DEVELOPER),
             id: UserId(1),
