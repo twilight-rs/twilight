@@ -1179,10 +1179,10 @@ mod tests {
     const_assert_eq!(25, ComponentValidationError::SELECT_MINIMUM_VALUES_LIMIT);
     const_assert_eq!(25, ComponentValidationError::SELECT_OPTION_COUNT);
     const_assert_eq!(
-        50,
+        100,
         ComponentValidationError::SELECT_OPTION_DESCRIPTION_LENGTH
     );
-    const_assert_eq!(25, ComponentValidationError::SELECT_OPTION_LABEL_LENGTH);
+    const_assert_eq!(100, ComponentValidationError::SELECT_OPTION_LABEL_LENGTH);
     const_assert_eq!(100, ComponentValidationError::SELECT_OPTION_VALUE_LENGTH);
     const_assert_eq!(100, ComponentValidationError::SELECT_PLACEHOLDER_LENGTH);
     const_assert_eq!(256, EmbedValidationError::AUTHOR_NAME_LENGTH);
