@@ -250,16 +250,16 @@ fn heartbeats_per_reset(heartbeat_interval: u64) -> u8 {
         // Number of commands to reserve per reset. This number is a bit
         // high because the heartbeat interval may be anything, so we're
         // just being cautious here.
-        const RESERVE_ON_FAIL: u8 = COMMANDS_PER_RESET - 10;
+        const ALLOT_ON_FAIL: u8 = COMMANDS_PER_RESET - 10;
 
         #[cfg(feature = "tracing")]
         tracing::warn!(
             %heartbeats,
-            "heartbeats > u8 max; defaulting to reserving {}",
-            RESERVE_ON_FAIL,
+            "heartbeats > u8 max; defaulting to allotting {}",
+            ALLOT_ON_FAIL,
         );
 
-        RESERVE_ON_FAIL
+        ALLOT_ON_FAIL
     };
 
     COMMANDS_PER_RESET.saturating_sub(heartbeats_cast)
