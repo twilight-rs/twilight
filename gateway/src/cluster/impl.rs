@@ -447,7 +447,7 @@ impl Cluster {
     /// # Ok(()) }
     /// ```
     pub async fn up(&self) {
-        future::join_all((self.shard_from..=self.shard_to).map(|id| Self::start(&self, id))).await;
+        future::join_all((self.shard_from..=self.shard_to).map(|id| Self::start(self, id))).await;
     }
 
     /// Bring down the cluster, stopping all of the shards that it's managing.
