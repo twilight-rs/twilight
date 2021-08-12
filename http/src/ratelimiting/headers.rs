@@ -5,8 +5,6 @@
 //!
 //! [`Ratelimiter`]: super::Ratelimiter
 
-#![deny(missing_docs)]
-
 use std::{
     error::Error,
     fmt::{Debug, Display, Formatter, Result as FmtResult},
