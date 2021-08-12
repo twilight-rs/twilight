@@ -300,6 +300,7 @@ impl ShardProcessor {
         let properties = IdentifyProperties::new("twilight.rs", "twilight.rs", OS, "", "");
 
         url.push_str("?v=8");
+        url.push_str("&encoding=json");
         compression::add_url_feature(&mut url);
 
         emitter.event(Event::ShardConnecting(Connecting {
@@ -346,29 +347,26 @@ impl ShardProcessor {
 
     pub async fn run(mut self) {
         loop {
-            match self.next_payload().await {
-                Ok(v) => v,
-                Err(source) => {
-                    #[cfg(feature = "tracing")]
-                    tracing::warn!("{}", source);
+            if let Err(source) = self.next_payload().await {
+                #[cfg(feature = "tracing")]
+                tracing::warn!("{}", source);
 
-                    self.emit_disconnected(None, None).await;
+                self.emit_disconnected(None, None).await;
 
-                    if source.fatal() {
-                        break;
-                    }
-
-                    if source.reconnectable() {
-                        self.reconnect().await;
-                    }
-
-                    if source.resumable() {
-                        self.resume().await;
-                    }
-
-                    continue;
+                if source.fatal() {
+                    break;
                 }
-            };
+
+                if source.reconnectable() {
+                    self.reconnect().await;
+                }
+
+                if source.resumable() {
+                    self.resume().await;
+                }
+
+                continue;
+            }
 
             if let Err(source) = self.process().await {
                 #[cfg(feature = "tracing")]

@@ -461,13 +461,14 @@ impl Shard {
     /// [`shutdown_resumable`]: Self::shutdown_resumable
     /// [`shutdown`]: Self::shutdown
     pub async fn start(&self) -> Result<(), ShardStartError> {
-        let url = if let Some(u) = self.0.config.gateway_url.clone() {
-            u.into_string()
+        let url = if let Some(u) = &self.0.config.gateway_url {
+            u.to_string()
         } else {
             self.0
                 .config
                 .http_client()
                 .gateway()
+                // Validates the bot token
                 .authed()
                 .exec()
                 .await
