@@ -244,7 +244,7 @@ fn heartbeats_per_reset(heartbeat_interval: u64) -> u8 {
 
     // Convert the heartbeats to a u8. The number of heartbeats **should** never
     // be above `u8::MAX`, so the error pattern branch should never be reached.
-    let heartbeats_cast = if let Ok(value) = heartbeats.try_into() {
+    let heartbeats_converted = if let Ok(value) = heartbeats.try_into() {
         value
     } else {
         // Number of commands to reserve per reset. This number is a bit
@@ -262,7 +262,7 @@ fn heartbeats_per_reset(heartbeat_interval: u64) -> u8 {
         ALLOT_ON_FAIL
     };
 
-    COMMANDS_PER_RESET.saturating_sub(heartbeats_cast)
+    COMMANDS_PER_RESET.saturating_sub(heartbeats_converted)
 }
 
 #[cfg(test)]
