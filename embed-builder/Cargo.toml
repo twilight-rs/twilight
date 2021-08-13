@@ -15,7 +15,7 @@ repository = "https://github.com/twilight-rs/twilight.git"
 version = "0.6.0"
 
 [dependencies]
-twilight-model = { path = "../model", default-features = false }
+twilight-model = { default-features = false, path = "../model" }
 
 [dev-dependencies]
 static_assertions = { default-features = false, version = "1" }

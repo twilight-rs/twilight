@@ -10,7 +10,7 @@ use std::{
     error::Error,
     fmt::{Display, Formatter, Result as FmtResult},
     iter::FromIterator,
-    sync::{Arc, Mutex},
+    sync::Arc,
 };
 use twilight_http::Client as HttpClient;
 
@@ -223,9 +223,7 @@ pub enum ClusterStartErrorType {
 #[derive(Debug)]
 struct ClusterRef {
     config: Config,
-    shard_from: u64,
-    shard_to: u64,
-    shards: Mutex<HashMap<u64, Shard>>,
+    shards: HashMap<u64, Shard>,
 }
 
 /// A manager for multiple shards.
@@ -340,12 +338,7 @@ impl Cluster {
         let select_all = SelectAll::from_iter(streams);
 
         Ok((
-            Self(Arc::new(ClusterRef {
-                config,
-                shard_from: scheme.from().expect("shard scheme is not auto"),
-                shard_to: scheme.to().expect("shard scheme is not auto"),
-                shards: Mutex::new(shards),
-            })),
+            Self(Arc::new(ClusterRef { config, shards })),
             Events::new(select_all),
         ))
     }
@@ -450,15 +443,12 @@ impl Cluster {
     /// # Ok(()) }
     /// ```
     pub async fn up(&self) {
-        future::join_all(
-            (self.0.shard_from..=self.0.shard_to).map(|id| Self::start(Arc::clone(&self.0), id)),
-        )
-        .await;
+        future::join_all(self.0.shards.values().map(Shard::start)).await;
     }
 
     /// Bring down the cluster, stopping all of the shards that it's managing.
     pub fn down(&self) {
-        for shard in self.0.shards.lock().expect("shards poisoned").values() {
+        for shard in self.0.shards.values() {
             shard.shutdown();
         }
     }
@@ -475,8 +465,6 @@ impl Cluster {
     pub fn down_resumable(&self) -> HashMap<u64, ResumeSession> {
         self.0
             .shards
-            .lock()
-            .expect("shards poisoned")
             .values()
             .map(Shard::shutdown_resumable)
             .filter_map(|(id, session)| session.map(|s| (id, s)))
@@ -485,23 +473,12 @@ impl Cluster {
 
     /// Return a Shard by its ID.
     pub fn shard(&self, id: u64) -> Option<Shard> {
-        self.0
-            .shards
-            .lock()
-            .expect("shards poisoned")
-            .get(&id)
-            .cloned()
+        self.0.shards.get(&id).cloned()
     }
 
     /// Return a list of all the shards.
     pub fn shards(&self) -> Vec<Shard> {
-        self.0
-            .shards
-            .lock()
-            .expect("shards poisned")
-            .values()
-            .cloned()
-            .collect()
+        self.0.shards.values().cloned().collect()
     }
 
     /// Return information about all shards.
@@ -534,8 +511,6 @@ impl Cluster {
     pub fn info(&self) -> HashMap<u64, Information> {
         self.0
             .shards
-            .lock()
-            .expect("shards poisoned")
             .iter()
             .filter_map(|(id, shard)| shard.info().ok().map(|info| (*id, info)))
             .collect()
@@ -633,25 +608,6 @@ impl Cluster {
                 kind: ClusterSendErrorType::Sending,
                 source: Some(Box::new(source)),
             })
-    }
-
-    /// Queue a request to start a shard by ID and starts it once the queue
-    /// accepts the request.
-    ///
-    /// Accepts weak references to the queue and map of shards, because by the
-    /// time the future is polled the cluster may have already dropped, bringing
-    /// down the queue and shards with it.
-    async fn start(cluster: Arc<ClusterRef>, shard_id: u64) -> Option<Shard> {
-        let shard = cluster
-            .shards
-            .lock()
-            .expect("shards poisoned")
-            .get(&shard_id)?
-            .clone();
-
-        shard.start().await.ok()?;
-
-        Some(shard)
     }
 }
 

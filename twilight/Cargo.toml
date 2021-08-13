@@ -19,12 +19,12 @@ futures = { default-features = false, version = "0.3" }
 tokio = { default-features = false, features = ["macros", "rt-multi-thread"], version = "1.0" }
 tracing-log = { default-features = false, features = ["log-tracer", "std"], version = "0.1" }
 twilight-cache-inmemory = { default-features = false, path = "../cache/in-memory" }
-twilight-command-parser = { path = "../command-parser" }
+twilight-command-parser = { default-features = false, path = "../command-parser" }
 twilight-embed-builder = { default-features = false, path = "../embed-builder" }
 twilight-gateway = { default-features = false, features = ["rustls"], path = "../gateway" }
 twilight-http = { default-features = false, features = ["rustls"], path = "../http" }
-twilight-lavalink = { path = "../lavalink" }
+twilight-lavalink = { default-features = false, path = "../lavalink" }
 twilight-mention = { default-features = false, path = "../mention" }
-twilight-model = { path = "../model" }
-twilight-standby = { path = "../standby" }
+twilight-model = { default-features = false, path = "../model" }
+twilight-standby = { default-features = false, path = "../standby" }
 twilight-util = { default-features = false, path = "../util" }
