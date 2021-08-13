@@ -135,7 +135,7 @@ impl<'a> CreateGuildPrune<'a> {
     ///
     /// [`Response`]: crate::response::Response
     pub fn exec(self) -> ResponseFuture<GuildPrune> {
-        let mut request = Request::builder(Route::CreateGuildPrune {
+        let mut request = Request::builder(&Route::CreateGuildPrune {
             compute_prune_count: self.fields.compute_prune_count,
             days: self.fields.days,
             guild_id: self.guild_id.0,

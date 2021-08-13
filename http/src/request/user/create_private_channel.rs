@@ -23,7 +23,7 @@ impl<'a> CreatePrivateChannel<'a> {
         }
     }
     pub fn exec(self) -> ResponseFuture<PrivateChannel> {
-        let request = Request::builder(Route::CreatePrivateChannel);
+        let request = Request::builder(&Route::CreatePrivateChannel);
 
         let request = match request.json(&self.fields) {
             Ok(request) => request,

@@ -2,6 +2,31 @@
 
 Changelog for `twilight-http`.
 
+## [0.6.1] - 2021-08-01
+
+### Additions
+
+Adds `RequestBuilder::raw` back in, hiding the existing fields behind
+methods due to the type of one of the public fields being inaccurate in
+the first place. This is considered a hotfix ([#1084] -
+[@zeylahellyer]).
+
+BREAKING CHANGES: `request::Request` fields are now private and behind
+getters, `request::RequestBuilder` and `request::Request` initialization
+methods now take route references.
+
+Adds `ClientBuilder::remember_invalid_token`. By default we remember
+when the HTTP client encounters an invalid token (via the 401 response
+status). When one is encountered, all future requests are
+short-circuited and return a 401 ([#1085] - [@zeylahellyer]).
+
+This option allows a user to disable this functionality and to always
+continue with a request, even if past ones have encountered a 401
+response.
+
+[#1084]: https://github.com/twilight-rs/twilight/pull/1084
+[#1085]: https://github.com/twilight-rs/twilight/pull/1085
+
 ## [0.6.0] - 2021-07-31
 
 ### Enhancements

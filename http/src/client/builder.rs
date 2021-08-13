@@ -17,6 +17,7 @@ pub struct ClientBuilder {
     pub(crate) default_allowed_mentions: Option<AllowedMentions>,
     pub(crate) proxy: Option<Box<str>>,
     pub(crate) ratelimiter: Option<Ratelimiter>,
+    remember_invalid_token: bool,
     pub(crate) default_headers: Option<HeaderMap>,
     pub(crate) timeout: Duration,
     pub(crate) token: Option<Box<str>>,
@@ -50,6 +51,7 @@ impl ClientBuilder {
                 default_headers: self.default_headers,
                 proxy: self.proxy,
                 ratelimiter: self.ratelimiter,
+                remember_invalid_token: self.remember_invalid_token,
                 timeout: self.timeout,
                 token_invalid: Arc::new(AtomicBool::new(false)),
                 token: self.token,
@@ -133,6 +135,19 @@ impl ClientBuilder {
         self
     }
 
+    /// Whether to remember whether the client has encountered an Unauthorized
+    /// response status.
+    ///
+    /// If the client remembers encountering an Unauthorized response, then it
+    /// will not process future requests.
+    ///
+    /// Defaults to true.
+    pub const fn remember_invalid_token(mut self, remember: bool) -> Self {
+        self.remember_invalid_token = remember;
+
+        self
+    }
+
     /// Set the token to use for HTTP requests.
     pub fn token(mut self, mut token: String) -> Self {
         let is_bot = token.starts_with("Bot ");
@@ -158,6 +173,7 @@ impl Default for ClientBuilder {
             default_headers: None,
             proxy: None,
             ratelimiter: Some(Ratelimiter::new()),
+            remember_invalid_token: true,
             timeout: Duration::from_secs(10),
             token: None,
             use_http: false,

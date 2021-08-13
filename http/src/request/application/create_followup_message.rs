@@ -220,8 +220,8 @@ impl<'a> CreateFollowupMessage<'a> {
 
     // `self` needs to be consumed and the client returned due to parameters
     // being consumed in request construction.
-    fn request(&self) -> Result<Request<'a>, Error> {
-        let mut request = Request::builder(Route::ExecuteWebhook {
+    fn request(&self) -> Result<Request, Error> {
+        let mut request = Request::builder(&Route::ExecuteWebhook {
             token: self.token,
             wait: None,
             webhook_id: self.application_id.0,

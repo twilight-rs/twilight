@@ -148,7 +148,7 @@ impl<'a> GetCurrentUserGuilds<'a> {
     ///
     /// [`Response`]: crate::response::Response
     pub fn exec(self) -> ResponseFuture<ListBody<CurrentUserGuild>> {
-        let request = Request::from_route(Route::GetGuilds {
+        let request = Request::from_route(&Route::GetGuilds {
             after: self.fields.after.map(|x| x.0),
             before: self.fields.before.map(|x| x.0),
             limit: self.fields.limit,

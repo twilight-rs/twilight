@@ -19,7 +19,7 @@ impl<'a> GetTemplate<'a> {
     ///
     /// [`Response`]: crate::response::Response
     pub fn exec(self) -> ResponseFuture<Template> {
-        let request = Request::from_route(Route::GetTemplate {
+        let request = Request::from_route(&Route::GetTemplate {
             template_code: self.template_code,
         });
 

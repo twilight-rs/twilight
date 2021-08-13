@@ -33,7 +33,7 @@ impl<'a> GetGuildCommands<'a> {
     ///
     /// [`Response`]: crate::response::Response
     pub fn exec(self) -> ResponseFuture<ListBody<Command>> {
-        let request = Request::from_route(Route::GetGuildCommands {
+        let request = Request::from_route(&Route::GetGuildCommands {
             application_id: self.application_id.0,
             guild_id: self.guild_id.0,
         });

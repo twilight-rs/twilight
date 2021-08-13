@@ -325,8 +325,8 @@ impl<'a> UpdateOriginalResponse<'a> {
 
     // `self` needs to be consumed and the client returned due to parameters
     // being consumed in request construction.
-    fn request(&mut self) -> Result<Request<'a>, HttpError> {
-        let mut request = Request::builder(Route::UpdateInteractionOriginal {
+    fn request(&mut self) -> Result<Request, HttpError> {
+        let mut request = Request::builder(&Route::UpdateInteractionOriginal {
             application_id: self.application_id.0,
             interaction_token: self.token,
         });

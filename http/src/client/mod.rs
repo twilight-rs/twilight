@@ -25,7 +25,7 @@ use crate::{
         prelude::*,
         GetUserApplicationInfo, Method, Request,
     },
-    response::ResponseFuture,
+    response::{future::InvalidToken, ResponseFuture},
     API_VERSION,
 };
 use hyper::{
@@ -66,6 +66,13 @@ struct State {
     default_headers: Option<HeaderMap>,
     proxy: Option<Box<str>>,
     ratelimiter: Option<Ratelimiter>,
+    /// Whether to short-circuit when a 401 has been encountered with the client
+    /// authorization.
+    ///
+    /// This relates to [`token_invalid`].
+    ///
+    /// [`token_invalid`]: Self::token_invalid
+    remember_invalid_token: bool,
     timeout: Duration,
     token_invalid: Arc<AtomicBool>,
     token: Option<Box<str>>,
@@ -2179,7 +2186,7 @@ impl Client {
     /// token has become invalid due to expiration, revokation, etc.
     ///
     /// [`Response`]: super::response::Response
-    pub fn request<T>(&self, request: Request<'_>) -> ResponseFuture<T> {
+    pub fn request<T>(&self, request: Request) -> ResponseFuture<T> {
         match self.try_request::<T>(request) {
             Ok(future) => future,
             Err(source) => ResponseFuture::error(source),
@@ -2187,8 +2194,8 @@ impl Client {
     }
 
     #[allow(clippy::too_many_lines)]
-    fn try_request<T>(&self, request: Request<'_>) -> Result<ResponseFuture<T>, Error> {
-        if self.state.token_invalid.load(Ordering::Relaxed) {
+    fn try_request<T>(&self, request: Request) -> Result<ResponseFuture<T>, Error> {
+        if self.state.remember_invalid_token && self.state.token_invalid.load(Ordering::Relaxed) {
             return Err(Error {
                 kind: ErrorType::Unauthorized,
                 source: None,
@@ -2199,25 +2206,21 @@ impl Client {
             body,
             form,
             headers: req_headers,
-            route,
+            method,
+            path,
+            ratelimit_path,
             use_authorization_token,
         } = request;
 
         let protocol = if self.state.use_http { "http" } else { "https" };
         let host = self.state.proxy.as_deref().unwrap_or("discord.com");
 
-        let url = format!(
-            "{}://{}/api/v{}/{}",
-            protocol,
-            host,
-            API_VERSION,
-            route.display()
-        );
+        let url = format!("{}://{}/api/v{}/{}", protocol, host, API_VERSION, path);
         #[cfg(feature = "tracing")]
         tracing::debug!("URL: {:?}", url);
 
         let mut builder = hyper::Request::builder()
-            .method(route.method().into_hyper())
+            .method(method.into_hyper())
             .uri(&url);
 
         if use_authorization_token {
@@ -2276,8 +2279,6 @@ impl Client {
             }
         }
 
-        let method = route.method();
-
         let req = if let Some(form) = form {
             let form_bytes = form.build();
             if let Some(headers) = builder.headers_mut() {
@@ -2311,24 +2312,29 @@ impl Client {
         };
 
         let inner = self.state.http.request(req);
-        let token_invalid = Arc::clone(&self.state.token_invalid);
+
+        let invalid_token = if self.state.remember_invalid_token {
+            InvalidToken::Remember(Arc::clone(&self.state.token_invalid))
+        } else {
+            InvalidToken::Forget
+        };
 
         // Clippy suggests bad code; an `Option::map_or_else` won't work here
         // due to move semantics in both cases.
         #[allow(clippy::option_if_let_else)]
         if let Some(ratelimiter) = self.state.ratelimiter.as_ref() {
-            let rx = ratelimiter.ticket(route.path());
+            let rx = ratelimiter.ticket(ratelimit_path);
 
             Ok(ResponseFuture::ratelimit(
                 None,
-                token_invalid,
+                invalid_token,
                 rx,
                 self.state.timeout,
                 inner,
             ))
         } else {
             Ok(ResponseFuture::new(
-                token_invalid,
+                invalid_token,
                 time::timeout(self.state.timeout, inner),
                 None,
             ))

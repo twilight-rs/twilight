@@ -46,7 +46,8 @@
 
 pub mod marker;
 
-mod future;
+pub(crate) mod future;
+
 mod status_code;
 
 pub use self::{future::ResponseFuture, status_code::StatusCode};

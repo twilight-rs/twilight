@@ -159,8 +159,8 @@ impl<'a> UpdateGuildMember<'a> {
         self
     }
 
-    fn request(&self) -> Result<Request<'a>, HttpError> {
-        let mut request = Request::builder(Route::UpdateMember {
+    fn request(&self) -> Result<Request, HttpError> {
+        let mut request = Request::builder(&Route::UpdateMember {
             guild_id: self.guild_id.0,
             user_id: self.user_id.0,
         })
@@ -230,10 +230,10 @@ mod tests {
             guild_id: GUILD_ID.0,
             user_id: USER_ID.0,
         };
-        let expected = Request::builder(route).json(&body)?.build();
+        let expected = Request::builder(&route).json(&body)?.build();
 
         assert_eq!(actual.body, expected.body);
-        assert_eq!(actual.route, expected.route);
+        assert_eq!(actual.path, expected.path);
 
         Ok(())
     }
@@ -255,7 +255,7 @@ mod tests {
             guild_id: GUILD_ID.0,
             user_id: USER_ID.0,
         };
-        let expected = Request::builder(route).json(&body)?.build();
+        let expected = Request::builder(&route).json(&body)?.build();
 
         assert_eq!(actual.body, expected.body);
 
@@ -279,7 +279,7 @@ mod tests {
             guild_id: GUILD_ID.0,
             user_id: USER_ID.0,
         };
-        let expected = Request::builder(route).json(&body)?.build();
+        let expected = Request::builder(&route).json(&body)?.build();
 
         assert_eq!(actual.body, expected.body);
 

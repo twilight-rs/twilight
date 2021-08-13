@@ -59,8 +59,8 @@ impl<'a> UpdateChannelPermissionConfigured<'a> {
         }
     }
 
-    fn request(&self) -> Result<Request<'a>, Error> {
-        let mut request = Request::builder(Route::UpdatePermissionOverwrite {
+    fn request(&self) -> Result<Request, Error> {
+        let mut request = Request::builder(&Route::UpdatePermissionOverwrite {
             channel_id: self.channel_id.0,
             target_id: self.target_id,
         })
@@ -124,9 +124,9 @@ mod tests {
             channel_id: 1,
             target_id: 2,
         };
-        let expected = Request::builder(route).body(body).build();
+        let expected = Request::builder(&route).body(body).build();
 
         assert_eq!(expected.body, actual.body);
-        assert_eq!(expected.route, actual.route);
+        assert_eq!(expected.path, actual.path);
     }
 }

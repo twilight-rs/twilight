@@ -61,7 +61,7 @@ impl<'a> GetGateway<'a> {
     ///
     /// [`Response`]: crate::response::Response
     pub fn exec(self) -> ResponseFuture<ConnectionInfo> {
-        let request = Request::from_route(Route::GetGateway);
+        let request = Request::from_route(&Route::GetGateway);
 
         self.http.request(request)
     }

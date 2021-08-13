@@ -20,7 +20,7 @@ impl<'a> GetGuildWidget<'a> {
     ///
     /// [`Response`]: crate::response::Response
     pub fn exec(self) -> ResponseFuture<GuildWidget> {
-        let request = Request::from_route(Route::GetGuildWidget {
+        let request = Request::from_route(&Route::GetGuildWidget {
             guild_id: self.guild_id.0,
         });
 

@@ -32,8 +32,8 @@ impl<'a> InteractionCallback<'a> {
 
     // `self` needs to be consumed and the client returned due to parameters
     // being consumed in request construction.
-    fn request(&self) -> Result<Request<'a>, Error> {
-        let request = Request::builder(Route::InteractionCallback {
+    fn request(&self) -> Result<Request, Error> {
+        let request = Request::builder(&Route::InteractionCallback {
             interaction_id: self.interaction_id.0,
             interaction_token: self.interaction_token,
         })

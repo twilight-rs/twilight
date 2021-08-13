@@ -26,7 +26,7 @@ impl<'a> DeleteChannel<'a> {
     ///
     /// [`Response`]: crate::response::Response
     pub fn exec(self) -> ResponseFuture<Channel> {
-        let mut request = Request::builder(Route::DeleteChannel {
+        let mut request = Request::builder(&Route::DeleteChannel {
             channel_id: self.channel_id.0,
         });
 

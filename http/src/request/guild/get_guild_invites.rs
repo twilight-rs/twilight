@@ -25,7 +25,7 @@ impl<'a> GetGuildInvites<'a> {
     ///
     /// [`Response`]: crate::response::Response
     pub fn exec(self) -> ResponseFuture<ListBody<Invite>> {
-        let request = Request::from_route(Route::GetGuildInvites {
+        let request = Request::from_route(&Route::GetGuildInvites {
             guild_id: self.guild_id.0,
         });
 

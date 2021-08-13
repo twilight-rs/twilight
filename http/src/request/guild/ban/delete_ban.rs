@@ -47,7 +47,7 @@ impl<'a> DeleteBan<'a> {
     ///
     /// [`Response`]: crate::response::Response
     pub fn exec(self) -> ResponseFuture<EmptyBody> {
-        let mut request = Request::builder(Route::DeleteBan {
+        let mut request = Request::builder(&Route::DeleteBan {
             guild_id: self.guild_id.0,
             user_id: self.user_id.0,
         });

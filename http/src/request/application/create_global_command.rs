@@ -101,8 +101,8 @@ impl<'a> CreateGlobalCommand<'a> {
         self
     }
 
-    fn request(&self) -> Result<Request<'a>, HttpError> {
-        Request::builder(Route::CreateGlobalCommand {
+    fn request(&self) -> Result<Request, HttpError> {
+        Request::builder(&Route::CreateGlobalCommand {
             application_id: self.application_id.0,
         })
         .json(&CommandBorrowed {

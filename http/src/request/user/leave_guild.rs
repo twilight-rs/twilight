@@ -21,7 +21,7 @@ impl<'a> LeaveGuild<'a> {
     ///
     /// [`Response`]: crate::response::Response
     pub fn exec(self) -> ResponseFuture<EmptyBody> {
-        let request = Request::from_route(Route::LeaveGuild {
+        let request = Request::from_route(&Route::LeaveGuild {
             guild_id: self.guild_id.0,
         });
 

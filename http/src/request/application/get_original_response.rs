@@ -45,7 +45,7 @@ impl<'a> GetOriginalResponse<'a> {
     ///
     /// [`Response`]: crate::response::Response
     pub fn exec(self) -> ResponseFuture<Message> {
-        let request = Request::from_route(Route::GetInteractionOriginal {
+        let request = Request::from_route(&Route::GetInteractionOriginal {
             application_id: self.application_id.0,
             interaction_token: self.token,
         });

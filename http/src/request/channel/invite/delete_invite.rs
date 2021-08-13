@@ -31,7 +31,7 @@ impl<'a> DeleteInvite<'a> {
     ///
     /// [`Response`]: crate::response::Response
     pub fn exec(self) -> ResponseFuture<EmptyBody> {
-        let mut request = Request::builder(Route::DeleteInvite { code: self.code });
+        let mut request = Request::builder(&Route::DeleteInvite { code: self.code });
 
         if let Some(reason) = self.reason {
             let header = match request::audit_header(reason) {
