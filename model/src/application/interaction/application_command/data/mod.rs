@@ -162,18 +162,17 @@ impl<'de> Deserialize<'de> for CommandDataOption {
 }
 
 impl CommandOptionValue {
-    fn kind(&self) -> CommandOptionType {
-        use CommandOptionValue::*;
+    const fn kind(&self) -> CommandOptionType {
         match self {
-            String(_) => CommandOptionType::String,
-            Integer(_) => CommandOptionType::Integer,
-            Boolean(_) => CommandOptionType::Boolean,
-            User(_) => CommandOptionType::User,
-            Channel(_) => CommandOptionType::Channel,
-            Role(_) => CommandOptionType::Role,
-            Mentionable(_) => CommandOptionType::Mentionable,
-            SubCommand(_) => CommandOptionType::SubCommand,
-            SubCommandGroup(_) => CommandOptionType::SubCommandGroup,
+            CommandOptionValue::String(_) => CommandOptionType::String,
+            CommandOptionValue::Integer(_) => CommandOptionType::Integer,
+            CommandOptionValue::Boolean(_) => CommandOptionType::Boolean,
+            CommandOptionValue::User(_) => CommandOptionType::User,
+            CommandOptionValue::Channel(_) => CommandOptionType::Channel,
+            CommandOptionValue::Role(_) => CommandOptionType::Role,
+            CommandOptionValue::Mentionable(_) => CommandOptionType::Mentionable,
+            CommandOptionValue::SubCommand(_) => CommandOptionType::SubCommand,
+            CommandOptionValue::SubCommandGroup(_) => CommandOptionType::SubCommandGroup,
         }
     }
 
