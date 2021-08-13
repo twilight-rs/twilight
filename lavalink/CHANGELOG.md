@@ -2,6 +2,24 @@
 
 Changelog for `twilight-lavalink`.
 
+## [0.6.0] - 2021-07-31
+
+### Changes
+
+A few spelling errors have been fixed by adding the `codespell` Action
+([#1041] - [@Gelbpunkt].
+
+[#1041]: https://github.com/twilight-rs/twilight/pull/1041
+
+## [0.5.2] - 2021-07-23
+
+### Changes
+
+`#![deny(unsafe_code)]` has been added, ensuring no unsafe code exists in the
+crate ([#1042] - [@zeylahellyer]).
+
+[#1042]: https://github.com/twilight-rs/twilight/pull/1042
+
 ## [0.5.1] - 2021-07-02
 
 ### Enhancements
@@ -181,6 +199,7 @@ Initial release.
 [#548]: https://github.com/twilight-rs/twilight/pull/548
 [#518]: https://github.com/twilight-rs/twilight/pull/518
 
+[0.5.2]: https://github.com/twilight-rs/twilight/releases/tag/lavalink-0.5.2
 [0.5.1]: https://github.com/twilight-rs/twilight/releases/tag/lavalink-0.5.1
 [0.5.0]: https://github.com/twilight-rs/twilight/releases/tag/lavalink-0.5.0
 [0.4.1]: https://github.com/twilight-rs/twilight/releases/tag/lavalink-0.4.1

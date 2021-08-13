@@ -3,6 +3,7 @@
 /// This is in a centralised place so that the validation parameters can be kept
 /// up-to-date more easily and because some of the checks are re-used across
 /// different modules.
+use super::application::InteractionError;
 use std::{
     error::Error,
     fmt::{Display, Formatter, Result as FmtResult},
@@ -330,7 +331,7 @@ pub const fn get_channel_messages_limit(value: u64) -> bool {
 
 pub const fn get_current_user_guilds_limit(value: u64) -> bool {
     // <https://discordapp.com/developers/docs/resources/user#get-current-user-guilds-query-string-params>
-    value >= 1 && value <= 100
+    value >= 1 && value <= 200
 }
 
 pub const fn get_guild_members_limit(value: u64) -> bool {
@@ -451,9 +452,18 @@ fn _command_description(value: &str) -> bool {
     (1..=100).contains(&len)
 }
 
-pub fn command_permissions(len: usize) -> bool {
+pub const fn command_permissions(len: usize) -> bool {
     // https://discord.com/developers/docs/interactions/slash-commands#edit-application-command-permissions
-    (0..=10).contains(&len)
+    len <= 10
+}
+
+/// Validate the number of guild command permission overwrites.
+///
+/// The maximum number of commands allowed in a guild is defined by
+/// [`InteractionError::GUILD_COMMAND_PERMISSION_LIMIT`].
+pub const fn guild_command_permissions(count: usize) -> bool {
+    // https://discord.com/developers/docs/interactions/slash-commands#a-quick-note-on-limits
+    count <= InteractionError::GUILD_COMMAND_PERMISSION_LIMIT
 }
 
 #[cfg(test)]
@@ -716,10 +726,10 @@ mod tests {
     #[test]
     fn test_get_current_user_guilds_limit() {
         assert!(get_current_user_guilds_limit(1));
-        assert!(get_current_user_guilds_limit(100));
+        assert!(get_current_user_guilds_limit(200));
 
         assert!(!get_current_user_guilds_limit(0));
-        assert!(!get_current_user_guilds_limit(101));
+        assert!(!get_current_user_guilds_limit(201));
     }
 
     #[test]

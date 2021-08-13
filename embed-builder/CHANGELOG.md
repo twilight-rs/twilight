@@ -2,6 +2,12 @@
 
 Changelog for `twilight-embed-builder`.
 
+## [0.6.0] - 2021-07-31
+
+This major version bump of the Embed Builder crate is done to match all
+of the other crates in the ecosystem receiving a major version bump.
+There are no changes.
+
 ## [0.5.2]
 
 ### Changes

@@ -311,7 +311,7 @@ impl Lavalink {
     /// Remove a node from the list of nodes being managed by the Lavalink
     /// client and terminates the connection.
     ///
-    /// Use [`Lavalink::remove`] if detatching a node from a Lavalink instance
+    /// Use [`Lavalink::remove`] if detaching a node from a Lavalink instance
     /// is required without closing the underlying connection.
     ///
     /// Returns whether the node has been removed and disconnected.

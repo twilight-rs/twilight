@@ -32,6 +32,8 @@
 //!
 //! [Sharding for Very Large Bots]: https://discord.com/developers/docs/topics/gateway#sharding-for-very-large-bots
 
+#![deny(unsafe_code)]
+
 mod day_limiter;
 mod large_bot_queue;
 

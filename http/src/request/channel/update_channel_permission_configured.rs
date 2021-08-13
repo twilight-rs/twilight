@@ -1,7 +1,8 @@
 use crate::{
     client::Client,
     error::Error,
-    request::{self, AuditLogReason, AuditLogReasonError, Pending, Request},
+    request::{self, AuditLogReason, AuditLogReasonError, Request},
+    response::{marker::EmptyBody, ResponseFuture},
     routing::Route,
 };
 use serde::Serialize;
@@ -23,19 +24,18 @@ struct UpdateChannelPermissionConfiguredFields {
 pub struct UpdateChannelPermissionConfigured<'a> {
     channel_id: ChannelId,
     fields: UpdateChannelPermissionConfiguredFields,
-    fut: Option<Pending<'a, ()>>,
     http: &'a Client,
     target_id: u64,
-    reason: Option<String>,
+    reason: Option<&'a str>,
 }
 
 impl<'a> UpdateChannelPermissionConfigured<'a> {
-    pub(crate) fn new(
+    pub(crate) const fn new(
         http: &'a Client,
         channel_id: ChannelId,
         allow: Permissions,
         deny: Permissions,
-        target: &PermissionOverwriteType,
+        target: PermissionOverwriteType,
     ) -> Self {
         let (name, target_id) = match target {
             PermissionOverwriteType::Member(user_id) => {
@@ -53,7 +53,6 @@ impl<'a> UpdateChannelPermissionConfigured<'a> {
                 deny,
                 kind: name,
             },
-            fut: None,
             http,
             target_id,
             reason: None,
@@ -61,7 +60,7 @@ impl<'a> UpdateChannelPermissionConfigured<'a> {
     }
 
     fn request(&self) -> Result<Request, Error> {
-        let mut request = Request::builder(Route::UpdatePermissionOverwrite {
+        let mut request = Request::builder(&Route::UpdatePermissionOverwrite {
             channel_id: self.channel_id.0,
             target_id: self.target_id,
         })
@@ -74,25 +73,24 @@ impl<'a> UpdateChannelPermissionConfigured<'a> {
         Ok(request.build())
     }
 
-    fn start(&mut self) -> Result<(), Error> {
-        let request = self.request()?;
-
-        self.fut.replace(Box::pin(self.http.verify(request)));
-
-        Ok(())
+    /// Execute the request, returning a future resolving to a [`Response`].
+    ///
+    /// [`Response`]: crate::response::Response
+    pub fn exec(self) -> ResponseFuture<EmptyBody> {
+        match self.request() {
+            Ok(request) => self.http.request(request),
+            Err(source) => ResponseFuture::error(source),
+        }
     }
 }
 
-impl<'a> AuditLogReason for UpdateChannelPermissionConfigured<'a> {
-    fn reason(mut self, reason: impl Into<String>) -> Result<Self, AuditLogReasonError> {
-        self.reason
-            .replace(AuditLogReasonError::validate(reason.into())?);
+impl<'a> AuditLogReason<'a> for UpdateChannelPermissionConfigured<'a> {
+    fn reason(mut self, reason: &'a str) -> Result<Self, AuditLogReasonError> {
+        self.reason.replace(AuditLogReasonError::validate(reason)?);
 
         Ok(self)
     }
 }
-
-poll_req!(UpdateChannelPermissionConfigured<'_>, ());
 
 #[cfg(test)]
 mod tests {
@@ -106,13 +104,13 @@ mod tests {
 
     #[test]
     fn test_request() {
-        let client = Client::new("foo");
+        let client = Client::new("foo".to_owned());
         let builder = UpdateChannelPermissionConfigured::new(
             &client,
             ChannelId(1),
             Permissions::empty(),
             Permissions::SEND_MESSAGES,
-            &PermissionOverwriteType::Member(UserId(2)),
+            PermissionOverwriteType::Member(UserId(2)),
         );
         let actual = builder.request().expect("failed to create request");
 
@@ -126,7 +124,7 @@ mod tests {
             channel_id: 1,
             target_id: 2,
         };
-        let expected = Request::builder(route).body(body).build();
+        let expected = Request::builder(&route).body(body).build();
 
         assert_eq!(expected.body, actual.body);
         assert_eq!(expected.path, actual.path);

@@ -32,7 +32,7 @@ async fn main() -> Result<(), Box<dyn Error + Send + Sync>> {
     cluster.up().await;
     println!("Started cluster");
 
-    // Start exporter in a seperate task
+    // Start exporter in a separate task
     tokio::task::spawn_blocking(move || exporter.run());
 
     while let Some(event) = events.next().await {

@@ -2,6 +2,104 @@
 
 Changelog for `twilight-http`.
 
+## [0.6.1] - 2021-08-01
+
+### Additions
+
+Adds `RequestBuilder::raw` back in, hiding the existing fields behind
+methods due to the type of one of the public fields being inaccurate in
+the first place. This is considered a hotfix ([#1084] -
+[@zeylahellyer]).
+
+BREAKING CHANGES: `request::Request` fields are now private and behind
+getters, `request::RequestBuilder` and `request::Request` initialization
+methods now take route references.
+
+Adds `ClientBuilder::remember_invalid_token`. By default we remember
+when the HTTP client encounters an invalid token (via the 401 response
+status). When one is encountered, all future requests are
+short-circuited and return a 401 ([#1085] - [@zeylahellyer]).
+
+This option allows a user to disable this functionality and to always
+continue with a request, even if past ones have encountered a 401
+response.
+
+[#1084]: https://github.com/twilight-rs/twilight/pull/1084
+[#1085]: https://github.com/twilight-rs/twilight/pull/1085
+
+## [0.6.0] - 2021-07-31
+
+### Enhancements
+
+Many functions have been made constant ([#1010] - [@zeylahellyer]).
+
+### Changes
+
+There are significant changes to how users make HTTP requests. When
+users make a request, they must pass borrowed types instead of owned
+types. To execute the request, users must call `exec` on the request
+builder. Once the request has completed execution, users may use the
+`ResponseFuture` struct methods to access the status code of the
+request. To access a returned model, if there is one, users must call
+`model` on the response.
+
+A call to `Client::create_message` like this:
+
+```rust
+client.create_message(ChannelId(1))
+    .content("some content")?
+    .embed(Embed {})?
+    .await?;
+```
+
+is now written like this:
+
+```rust
+client.create_message(ChannelId(1))
+    .content(&"some conntent")?
+    .embeds(&[&Embed {}])?
+    .exec()
+    .await?
+    .model()
+    .await?;
+```
+
+For more information on the motivation behind these changes, see the PR
+descriptions of [#923], [#1008], and [#1009]. These changes were
+authored by [@zeylahellyer].
+
+Rename `ErrorCode::UnallowedWordsForPublicStage` variant to
+`UnallowedWords` ([#956] - [@7596ff])
+
+`CreateGlobalCommand`, `CreateGuildCommand`, `SetGlobalCommands`, and
+`SetGuildCommands` now return command(s) ([#1037] - [@vilgotf]).
+
+A few spelling errors have been fixed by adding the `codespell` Action
+([#1041] - [@Gelbpunkt].
+
+[#923]: https://github.com/twilight-rs/twilight/pull/923
+[#956]: https://github.com/twilight-rs/twilight/pull/956
+[#1008]: https://github.com/twilight-rs/twilight/pull/1008
+[#1009]: https://github.com/twilight-rs/twilight/pull/1009
+[#1010]: https://github.com/twilight-rs/twilight/pull/1010
+[#1037]: https://github.com/twilight-rs/twilight/pull/1037
+[#1041]: https://github.com/twilight-rs/twilight/pull/1041
+
+## [0.5.7] - 2021-07-23
+
+### Changes
+
+`#![deny(unsafe_code)]` has been added, ensuring no unsafe code exists in the
+crate ([#1042] - [@zeylahellyer]).
+
+### Fixes
+
+The `JSON` body is now actually serialized on the `update_channel` route
+([#1051] - [@Learath2]).
+
+[#1042]: https://github.com/twilight-rs/twilight/pull/1042
+[#1051]: https://github.com/twilight-rs/twilight/pull/1051
+
 ## [0.5.6] - 2021-07-20
 
 ### Fixes
@@ -999,12 +1097,14 @@ Initial release.
 [@Erk-]: https://github.com/Erk-
 [@Gelbpunkt]: https://github.com/Gelbpunkt
 [@jazevedo620]: https://github.com/jazevedo620
+[@Learath2]: https://github.com/Learath2
 [@MaxOhn]: https://github.com/MaxOhn
 [@nickelc]: https://github.com/nickelc
 [@sam-kirby]: https://github.com/sam-kirby
 [@Silvea12]: https://github.com/Silvea12
 [@SuperiorJT]: https://github.com/SuperiorJT
 [@tbnritzdoge]: https://github.com/tbnritzdoge
+[@vilgotf]: https://github.com/vilgotf
 [@vivian]: https://github.com/vivian
 [@zeylahellyer]: https://github.com/zeylahellyer
 
@@ -1045,7 +1145,8 @@ Initial release.
 
 [0.2.0-beta.1:app integrations]: https://github.com/discord/discord-api-docs/commit/a926694e2f8605848bda6b57d21c8817559e5cec
 
-[0.5.6]: https://github.com/twilight-rs/twilight/releases/tag/http-0.6.5
+[0.5.7]: https://github.com/twilight-rs/twilight/releases/tag/http-0.5.7
+[0.5.6]: https://github.com/twilight-rs/twilight/releases/tag/http-0.5.6
 [0.5.5]: https://github.com/twilight-rs/twilight/releases/tag/http-0.5.5
 [0.5.4]: https://github.com/twilight-rs/twilight/releases/tag/http-0.5.4
 [0.5.3]: https://github.com/twilight-rs/twilight/releases/tag/http-0.5.3

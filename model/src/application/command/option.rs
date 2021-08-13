@@ -261,30 +261,18 @@ impl<'de> Visitor<'de> for OptionVisitor {
                     required,
                 })
             }
-            CommandOptionType::String => {
-                let choices = choices
-                    .flatten()
-                    .ok_or_else(|| DeError::missing_field("choices"))?;
-
-                CommandOption::String(ChoiceCommandOptionData {
-                    choices,
-                    description,
-                    name,
-                    required,
-                })
-            }
-            CommandOptionType::Integer => {
-                let choices = choices
-                    .flatten()
-                    .ok_or_else(|| DeError::missing_field("choices"))?;
-
-                CommandOption::Integer(ChoiceCommandOptionData {
-                    choices,
-                    description,
-                    name,
-                    required,
-                })
-            }
+            CommandOptionType::String => CommandOption::String(ChoiceCommandOptionData {
+                choices: choices.flatten().unwrap_or_default(),
+                description,
+                name,
+                required,
+            }),
+            CommandOptionType::Integer => CommandOption::Integer(ChoiceCommandOptionData {
+                choices: choices.flatten().unwrap_or_default(),
+                description,
+                name,
+                required,
+            }),
             CommandOptionType::Boolean => CommandOption::Boolean(BaseCommandOptionData {
                 description,
                 name,
@@ -378,6 +366,8 @@ pub struct ChoiceCommandOptionData {
     ///
     /// When completing this option, the user is prompted with a selector of all
     /// available choices.
+    ///
+    /// If no choices are available, the user must input a value manually.
     #[serde(default)]
     pub choices: Vec<CommandOptionChoice>,
     /// Description of the option. It must be 100 characters or less.
@@ -488,6 +478,12 @@ mod tests {
                     name: "sub command name".into(),
                     options: vec![
                         CommandOption::String(ChoiceCommandOptionData {
+                            choices: Vec::new(),
+                            description: "string manual desc".into(),
+                            name: "string_manual".into(),
+                            required: false,
+                        }),
+                        CommandOption::String(ChoiceCommandOptionData {
                             choices: vec![CommandOptionChoice::String {
                                 name: "choicea".into(),
                                 value: "choice_a".into(),
@@ -597,7 +593,22 @@ mod tests {
                 Token::Str("sub command name"),
                 Token::Str("options"),
                 Token::Some,
-                Token::Seq { len: Some(8) },
+                Token::Seq { len: Some(9) },
+                Token::Struct {
+                    name: "CommandOptionEnvelope",
+                    len: 4,
+                },
+                Token::Str("choices"),
+                Token::Some,
+                Token::Seq { len: Some(0) },
+                Token::SeqEnd,
+                Token::Str("description"),
+                Token::Str("string manual desc"),
+                Token::Str("name"),
+                Token::Str("string_manual"),
+                Token::Str("type"),
+                Token::U8(3),
+                Token::StructEnd,
                 Token::Struct {
                     name: "CommandOptionEnvelope",
                     len: 4,

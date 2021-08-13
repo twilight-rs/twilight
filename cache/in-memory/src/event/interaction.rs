@@ -14,7 +14,7 @@ impl UpdateCache for InteractionCreate {
 
                             cache.cache_borrowed_partial_member(
                                 command.guild_id.unwrap(),
-                                &member,
+                                member,
                                 user.id,
                             );
                         }
@@ -37,7 +37,7 @@ impl UpdateCache for InteractionCreate {
                         // are guaranteed to have a matching resolved user
                         if let Some(member) = &resolved.members.iter().find(|m| m.id == u.id) {
                             if let Some(guild_id) = command.guild_id {
-                                cache.cache_borrowed_interaction_member(guild_id, &member);
+                                cache.cache_borrowed_interaction_member(guild_id, member);
                             }
                         }
                     }

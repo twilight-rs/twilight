@@ -43,10 +43,15 @@
     nonstandard_style,
     rust_2018_idioms,
     broken_intra_doc_links,
+    unsafe_code,
     unused,
     warnings
 )]
-#![allow(clippy::module_name_repetitions, clippy::must_use_candidate)]
+#![allow(
+    clippy::module_name_repetitions,
+    clippy::must_use_candidate,
+    clippy::semicolon_if_nothing_returned
+)]
 
 pub mod application;
 pub mod channel;

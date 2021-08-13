@@ -44,6 +44,7 @@
     unused,
     warnings
 )]
+#![allow(clippy::semicolon_if_nothing_returned)]
 #![cfg_attr(docsrs, feature(doc_cfg))]
 
 #[cfg(feature = "link")]

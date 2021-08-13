@@ -2,6 +2,23 @@
 
 Changelog for `twilight-standby`.
 
+## [0.6.0] - 2021-07-31
+
+### Enhancements
+
+The `tracing` feature is now optional ([#985] - [@zeylahellyer]).
+
+[#985]: https://github.com/twilight-rs/twilight/pull/985
+
+## [0.5.1] - 2021-07-23
+
+### Changes
+
+`#![deny(unsafe_code)]` has been added, ensuring no unsafe code exists in the
+crate ([#1042] - [@zeylahellyer]).
+
+[#1042]: https://github.com/twilight-rs/twilight/pull/1042
+
 ## [0.5.0] - 2021-06-13
 
 This major version bump of the Standby crate is done to match all of the other
@@ -87,10 +104,12 @@ Initial release.
 [@Gelbpunkt]: https://github.com/Gelbpunkt
 [@nickelc]: https://github.com/nickelc
 [@vivian]: https://github.com/vivian
+[@zeylahellyer]: https://github.com/zeylahellyer
 
 [#624]: https://github.com/twilight-rs/twilight/pull/624
 [#523]: https://github.com/twilight-rs/twilight/pull/523
 
+[0.5.1]: https://github.com/twilight-rs/twilight/releases/tag/standby-0.5.1
 [0.5.0]: https://github.com/twilight-rs/twilight/releases/tag/standby-0.5.0
 [0.4.1]: https://github.com/twilight-rs/twilight/releases/tag/standby-0.4.1
 [0.4.0]: https://github.com/twilight-rs/twilight/releases/tag/standby-0.4.0

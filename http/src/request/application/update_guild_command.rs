@@ -1,22 +1,24 @@
 use crate::{
     client::Client,
     error::Error,
-    request::{Pending, Request},
+    request::{Request, RequestBuilder},
+    response::ResponseFuture,
     routing::Route,
 };
+use serde::Serialize;
 use twilight_model::{
-    application::command::CommandOption,
+    application::command::{Command, CommandOption},
     id::{ApplicationId, CommandId, GuildId},
 };
 
-#[derive(Debug, Default, serde::Serialize)]
-struct UpdateGuildCommandFields {
+#[derive(Serialize)]
+struct UpdateGuildCommandFields<'a> {
     #[serde(skip_serializing_if = "Option::is_none")]
-    description: Option<String>,
+    description: Option<&'a str>,
     #[serde(skip_serializing_if = "Option::is_none")]
-    name: Option<String>,
+    name: Option<&'a str>,
     #[serde(skip_serializing_if = "Option::is_none")]
-    options: Option<Vec<CommandOption>>,
+    options: Option<&'a [CommandOption]>,
 }
 
 /// Edit a command in a guild, by ID.
@@ -26,16 +28,15 @@ struct UpdateGuildCommandFields {
 ///
 /// [the discord docs]: https://discord.com/developers/docs/interactions/slash-commands#edit-guild-application-command
 pub struct UpdateGuildCommand<'a> {
-    fields: UpdateGuildCommandFields,
+    fields: UpdateGuildCommandFields<'a>,
     application_id: ApplicationId,
     command_id: CommandId,
     guild_id: GuildId,
-    fut: Option<Pending<'a, ()>>,
     http: &'a Client,
 }
 
 impl<'a> UpdateGuildCommand<'a> {
-    pub(crate) fn new(
+    pub(crate) const fn new(
         http: &'a Client,
         application_id: ApplicationId,
         guild_id: GuildId,
@@ -44,51 +45,54 @@ impl<'a> UpdateGuildCommand<'a> {
         Self {
             application_id,
             command_id,
-            fields: UpdateGuildCommandFields::default(),
-            fut: None,
+            fields: UpdateGuildCommandFields {
+                description: None,
+                name: None,
+                options: None,
+            },
             guild_id,
             http,
         }
     }
 
     /// Edit the name of the command.
-    pub fn name(mut self, name: impl Into<String>) -> Self {
-        self.fields.name = Some(name.into());
+    pub const fn name(mut self, name: &'a str) -> Self {
+        self.fields.name = Some(name);
 
         self
     }
 
     /// Edit the description of the command.
-    pub fn description(mut self, description: impl Into<String>) -> Self {
-        self.fields.description = Some(description.into());
+    pub const fn description(mut self, description: &'a str) -> Self {
+        self.fields.description = Some(description);
 
         self
     }
 
     /// Edit the command options of the command.
-    pub fn push_command_option(mut self, option: CommandOption) -> Self {
-        if let Some(ref mut arr) = self.fields.options {
-            arr.push(option);
-        } else {
-            self.fields.options = Some(vec![option]);
-        }
+    pub const fn command_options(mut self, options: &'a [CommandOption]) -> Self {
+        self.fields.options = Some(options);
 
         self
     }
 
-    fn start(&mut self) -> Result<(), Error> {
-        let request = Request::builder(Route::UpdateGuildCommand {
+    fn request(&self) -> Result<Request, Error> {
+        Request::builder(&Route::UpdateGuildCommand {
             application_id: self.application_id.0,
             command_id: self.command_id.0,
             guild_id: self.guild_id.0,
         })
-        .json(&self.fields)?;
+        .json(&self.fields)
+        .map(RequestBuilder::build)
+    }
 
-        self.fut
-            .replace(Box::pin(self.http.verify(request.build())));
-
-        Ok(())
+    /// Execute the request, returning a future resolving to a [`Response`].
+    ///
+    /// [`Response`]: crate::response::Response
+    pub fn exec(self) -> ResponseFuture<Command> {
+        match self.request() {
+            Ok(request) => self.http.request(request),
+            Err(source) => ResponseFuture::error(source),
+        }
     }
 }
-
-poll_req!(UpdateGuildCommand<'_>, ());

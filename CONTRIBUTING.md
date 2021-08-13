@@ -68,7 +68,7 @@ impl Display for TwilightError {
 }
 
 impl Error for TwilightError {
-    fn source(&self) -> Optio<&(dyn Error + 'static)> {
+    fn source(&self) -> Option<&(dyn Error + 'static)> {
         self.source
             .as_ref()
             .map(|source| &**source as &(dyn Error + 'static))
@@ -199,7 +199,7 @@ struct Structy {
 Methods are to be documented as follows:
 ```rust
 impl Structy {
-    /// Short decription of the method, limited to one sentence.
+    /// Short description of the method, limited to one sentence.
     ///
     /// More important information or clarification.
     pub fn method(&self) -> Option<Something> {

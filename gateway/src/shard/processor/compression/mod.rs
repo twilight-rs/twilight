@@ -2,7 +2,6 @@
 mod inflater;
 
 use super::r#impl::ReceivingEventError;
-use std::str;
 
 #[cfg(feature = "compression")]
 use inflater::Inflater;
@@ -49,34 +48,6 @@ impl Compression {
 
         #[cfg(not(feature = "compression"))]
         self.inner.as_mut_slice()
-    }
-
-    /// Immutable reference to the internal buffer slice.
-    ///
-    /// When compression is enabled this will immutably reference the inflater's
-    /// buffer.
-    ///
-    /// When compression is disabled this will immutably reference the standard
-    /// buffer.
-    pub fn buffer_slice_ref(&self) -> &[u8] {
-        #[cfg(feature = "compression")]
-        {
-            self.inner.buffer_ref()
-        }
-
-        #[cfg(not(feature = "compression"))]
-        self.inner.as_slice()
-    }
-
-    /// Mutable reference to the internal buffer slice as a mutable string slice.
-    ///
-    /// # Safety
-    ///
-    /// Ensuring that the internal buffer slice is UTF-8 valid is left to the
-    /// caller to determine.
-    pub unsafe fn buffer_str_mut(&mut self) -> &mut str {
-        // SAFETY: ensuring safety is left to the caller.
-        str::from_utf8_unchecked_mut(self.buffer_slice_mut())
     }
 
     /// Clear the inner buffer.

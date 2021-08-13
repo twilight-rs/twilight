@@ -170,7 +170,7 @@ impl Error for NodeSenderError {
 #[derive(Debug)]
 #[non_exhaustive]
 pub enum NodeSenderErrorType {
-    /// Error occured while sending over the channel.
+    /// Error occurred while sending over the channel.
     Sending,
 }
 
@@ -686,7 +686,7 @@ async fn backoff(
                 }
 
                 tracing::debug!(
-                    "waiting {} sceonds before attempting to connect to node {} again",
+                    "waiting {} seconds before attempting to connect to node {} again",
                     seconds,
                     config.address,
                 );
