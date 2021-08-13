@@ -6,6 +6,12 @@
 
 HTTP support for the twilight ecosystem.
 
+## SemVer
+
+Library functionality unrelated to the Discord API is subject to standard
+SemVer rules. However, any functionality that relies on the Discord API may
+break in a minor release if it can not be avoided.
+
 ## Features
 
 ### Deserialization

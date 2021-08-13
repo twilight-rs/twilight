@@ -23,6 +23,12 @@ and returned by the gateway API. `guild` contains types owned by the Guild
 resource category. These types may be directly returned by, built on top of,
 or extended by other crates.
 
+## SemVer
+
+Library functionality unrelated to the Discord API is subject to standard
+SemVer rules. However, any functionality that relies on the Discord API may
+break in a minor release if it can not be avoided.
+
 ## License
 
 [ISC][LICENSE.md]
