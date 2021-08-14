@@ -102,6 +102,7 @@ struct UpdateChannelFields<'a> {
 ///
 /// All fields are optional. The minimum length of the name is 1 UTF-16 character
 /// and the maximum is 100 UTF-16 characters.
+#[must_use = "requests must be configured and executed"]
 pub struct UpdateChannel<'a> {
     channel_id: ChannelId,
     fields: UpdateChannelFields<'a>,

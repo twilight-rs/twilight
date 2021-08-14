@@ -77,6 +77,7 @@ struct CreateGuildFromTemplateFields<'a> {
 ///
 /// Returns a [`CreateGuildFromTemplateErrorType::NameInvalid`] error type if
 /// the name is invalid.
+#[must_use = "requests must be configured and executed"]
 pub struct CreateGuildFromTemplate<'a> {
     fields: CreateGuildFromTemplateFields<'a>,
     http: &'a Client,

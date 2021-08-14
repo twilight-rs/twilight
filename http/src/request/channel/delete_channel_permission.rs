@@ -5,6 +5,7 @@ use twilight_model::id::{ChannelId, RoleId, UserId};
 /// Clear the permissions for a target ID in a channel.
 ///
 /// The target ID must be set with one of the associated methods.
+#[must_use = "requests must be configured and executed"]
 pub struct DeleteChannelPermission<'a> {
     channel_id: ChannelId,
     http: &'a Client,

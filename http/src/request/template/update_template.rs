@@ -75,6 +75,7 @@ struct UpdateTemplateFields<'a> {
 }
 
 /// Update the template's metadata, by ID and code.
+#[must_use = "requests must be configured and executed"]
 pub struct UpdateTemplate<'a> {
     fields: UpdateTemplateFields<'a>,
     guild_id: GuildId,

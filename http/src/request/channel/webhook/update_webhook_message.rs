@@ -167,6 +167,7 @@ struct UpdateWebhookMessageFields<'a> {
 /// ```
 ///
 /// [`DeleteWebhookMessage`]: super::DeleteWebhookMessage
+#[must_use = "requests must be configured and executed"]
 pub struct UpdateWebhookMessage<'a> {
     fields: UpdateWebhookMessageFields<'a>,
     files: &'a [(&'a str, &'a [u8])],

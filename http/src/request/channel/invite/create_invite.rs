@@ -104,6 +104,7 @@ struct CreateInviteFields {
 /// ```
 ///
 /// [`CREATE_INVITE`]: twilight_model::guild::Permissions::CREATE_INVITE
+#[must_use = "requests must be configured and executed"]
 pub struct CreateInvite<'a> {
     channel_id: ChannelId,
     fields: CreateInviteFields,

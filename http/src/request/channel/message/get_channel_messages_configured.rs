@@ -76,6 +76,7 @@ struct GetChannelMessagesConfiguredFields {
 // nb: after, around, and before are mutually exclusive, so we use this
 // "configured" request to utilize the type system to prevent these from being
 // set in combination.
+#[must_use = "requests must be configured and executed"]
 pub struct GetChannelMessagesConfigured<'a> {
     after: Option<MessageId>,
     around: Option<MessageId>,

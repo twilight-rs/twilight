@@ -71,6 +71,7 @@ struct GetReactionsFields {
 ///
 /// This endpoint is limited to 100 users maximum, so if a message has more than 100 reactions,
 /// requests must be chained until all reactions are retrieved.
+#[must_use = "requests must be configured and executed"]
 pub struct GetReactions<'a> {
     channel_id: ChannelId,
     emoji: &'a RequestReactionType<'a>,
