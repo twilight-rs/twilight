@@ -7,6 +7,7 @@ use twilight_model::{channel::thread::ThreadsListing, id::ChannelId};
 ///
 /// [`MANAGE_THREADS`]: twilight_model::guild::Permissions::MANAGE_THREADS
 /// [`READ_MESSAGE_HISTORY`]: twilight_model::guild::Permissions::READ_MESSAGE_HISTORY
+#[must_use = "requests must be configured and executed"]
 pub struct GetPrivateArchivedThreads<'a> {
     before: Option<&'a str>,
     channel_id: ChannelId,

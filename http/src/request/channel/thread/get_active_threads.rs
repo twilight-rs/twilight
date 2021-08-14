@@ -5,6 +5,7 @@ use twilight_model::{channel::thread::ThreadsListing, id::ChannelId};
 ///
 /// Includes public and private threads. Threads are ordered by their ID in
 /// descending order.
+#[must_use = "requests must be configured and executed"]
 pub struct GetActiveThreads<'a> {
     channel_id: ChannelId,
     http: &'a Client,

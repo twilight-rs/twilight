@@ -9,6 +9,7 @@ use twilight_model::{channel::thread::ThreadMember, id::ChannelId};
 /// Returns the [`ThreadMember`]s of the thread.
 ///
 /// [`ThreadMember`]: twilight_model::channel::thread::ThreadMember
+#[must_use = "requests must be configured and executed"]
 pub struct GetThreadMembers<'a> {
     channel_id: ChannelId,
     http: &'a Client,

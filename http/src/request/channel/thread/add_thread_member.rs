@@ -10,6 +10,7 @@ use twilight_model::id::{ChannelId, UserId};
 ///
 /// Requires the ability to send messages in the thread, and that the thread is
 /// not archived.
+#[must_use = "requests must be configured and executed"]
 pub struct AddThreadMember<'a> {
     channel_id: ChannelId,
     http: &'a Client,

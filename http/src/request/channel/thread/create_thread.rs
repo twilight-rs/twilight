@@ -27,6 +27,7 @@ struct CreateThreadFields<'a> {
 ///
 /// [`ThreeDays`]: twilight_model::channel::thread::AutoArchiveDuration::ThreeDays
 /// [`Week`]: twilight_model::channel::thread::AutoArchiveDuration::Week
+#[must_use = "requests must be configured and executed"]
 pub struct CreateThread<'a> {
     channel_id: ChannelId,
     fields: CreateThreadFields<'a>,

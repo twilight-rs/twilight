@@ -5,6 +5,7 @@ use twilight_model::{channel::thread::ThreadsListing, id::ChannelId};
 /// joined.
 ///
 /// Threads are ordered by their ID in descending order.
+#[must_use = "requests must be configured and executed"]
 pub struct GetJoinedPrivateArchivedThreads<'a> {
     before: Option<ChannelId>,
     channel_id: ChannelId,

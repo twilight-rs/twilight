@@ -17,6 +17,7 @@ use twilight_model::{channel::thread::ThreadsListing, id::ChannelId};
 /// [`GuildPublicThread`]: twilight_model::channel::ChannelType::GuildPublicThread
 /// [`GuildText`]: twilight_model::channel::ChannelType::GuildText
 /// [`READ_MESSAGE_HISTORY`]: twilight_model::guild::Permissions::READ_MESSAGE_HISTORY
+#[must_use = "requests must be configured and executed"]
 pub struct GetPublicArchivedThreads<'a> {
     before: Option<&'a str>,
     channel_id: ChannelId,

@@ -9,6 +9,7 @@ use twilight_model::id::ChannelId;
 /// Remove the current user from a thread.
 ///
 /// Requires that the thread is not archived.
+#[must_use = "requests must be configured and executed"]
 pub struct LeaveThread<'a> {
     channel_id: ChannelId,
     http: &'a Client,

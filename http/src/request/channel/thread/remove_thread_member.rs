@@ -15,6 +15,7 @@ use twilight_model::id::{ChannelId, UserId};
 ///
 /// [`GuildPrivateThread`]: twilight_model::channel::ChannelType::GuildPrivateThread
 /// [`MANAGE_THREADS`]: twilight_model::guild::Permissions::MANAGE_THREADS
+#[must_use = "requests must be configured and executed"]
 pub struct RemoveThreadMember<'a> {
     channel_id: ChannelId,
     http: &'a Client,

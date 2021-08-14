@@ -7,6 +7,7 @@ use crate::{
 use twilight_model::id::ChannelId;
 
 /// Add the current user to a thread.
+#[must_use = "requests must be configured and executed"]
 pub struct JoinThread<'a> {
     channel_id: ChannelId,
     http: &'a Client,

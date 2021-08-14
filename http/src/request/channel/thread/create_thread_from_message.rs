@@ -37,6 +37,7 @@ struct CreateThreadFromMessageFields<'a> {
 /// [`GuildText`]: twilight_model::channel::ChannelType::GuildText
 /// [`ThreeDays`]: twilight_model::channel::thread::AutoArchiveDuration::ThreeDays
 /// [`Week`]: twilight_model::channel::thread::AutoArchiveDuration::Week
+#[must_use = "requests must be configured and executed"]
 pub struct CreateThreadFromMessage<'a> {
     channel_id: ChannelId,
     fields: CreateThreadFromMessageFields<'a>,
