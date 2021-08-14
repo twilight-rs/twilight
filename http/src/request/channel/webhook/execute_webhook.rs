@@ -56,6 +56,7 @@ pub(crate) struct ExecuteWebhookFields<'a> {
 /// [`content`]: Self::content
 /// [`embeds`]: Self::embeds
 /// [`files`]: Self::files
+#[must_use = "requests must be configured and executed"]
 pub struct ExecuteWebhook<'a> {
     pub(crate) fields: ExecuteWebhookFields<'a>,
     files: &'a [(&'a str, &'a [u8])],

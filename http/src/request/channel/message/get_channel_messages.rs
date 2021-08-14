@@ -102,6 +102,7 @@ struct GetChannelMessagesFields {
 /// [`before`]: Self::before
 /// [`GetChannelMessagesConfigured`]: super::GetChannelMessagesConfigured
 /// [`limit`]: Self::limit
+#[must_use = "requests must be configured and executed"]
 pub struct GetChannelMessages<'a> {
     channel_id: ChannelId,
     fields: GetChannelMessagesFields,

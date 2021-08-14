@@ -7,6 +7,7 @@ use crate::{
 use twilight_model::{channel::Webhook, id::ChannelId};
 
 /// Get all the webhooks of a channel.
+#[must_use = "requests must be configured and executed"]
 pub struct GetChannelWebhooks<'a> {
     channel_id: ChannelId,
     http: &'a Client,

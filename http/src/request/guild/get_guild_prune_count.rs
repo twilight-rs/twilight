@@ -71,6 +71,7 @@ struct GetGuildPruneCountFields<'a> {
 }
 
 /// Get the counts of guild members to be pruned.
+#[must_use = "requests must be configured and executed"]
 pub struct GetGuildPruneCount<'a> {
     fields: GetGuildPruneCountFields<'a>,
     guild_id: GuildId,

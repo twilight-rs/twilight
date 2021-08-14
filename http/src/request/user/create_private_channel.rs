@@ -10,6 +10,7 @@ struct CreatePrivateChannelFields {
 /// Create a group DM.
 ///
 /// This endpoint is limited to 10 active group DMs.
+#[must_use = "requests must be configured and executed"]
 pub struct CreatePrivateChannel<'a> {
     fields: CreatePrivateChannelFields,
     http: &'a Client,

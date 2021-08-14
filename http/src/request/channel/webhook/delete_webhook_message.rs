@@ -26,6 +26,7 @@ use twilight_model::id::{MessageId, WebhookId};
 ///     .await?;
 /// # Ok(()) }
 /// ```
+#[must_use = "requests must be configured and executed"]
 pub struct DeleteWebhookMessage<'a> {
     http: &'a Client,
     message_id: MessageId,

@@ -9,6 +9,7 @@ use twilight_model::{id::GuildId, voice::VoiceRegion};
 /// Get voice region data for the guild.
 ///
 /// Can return VIP servers if the guild is VIP-enabled.
+#[must_use = "requests must be configured and executed"]
 pub struct GetGuildVoiceRegions<'a> {
     guild_id: GuildId,
     http: &'a Client,
