@@ -21,7 +21,7 @@
 //! resource category. These types may be directly returned by, built on top of,
 //! or extended by other crates.
 //!
-//! ## SemVer
+//! ## Semantic Versioning
 //!
 //! Library functionality unrelated to the Discord API is subject to standard
 //! SemVer rules. However, any functionality that relies on the Discord API may
