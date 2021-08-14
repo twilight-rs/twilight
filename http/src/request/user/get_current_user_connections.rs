@@ -9,6 +9,7 @@ use twilight_model::user::Connection;
 /// Get the current user's connections.
 ///
 /// Requires the `connections` `OAuth2` scope.
+#[must_use = "requests must be configured and executed"]
 pub struct GetCurrentUserConnections<'a> {
     http: &'a Client,
 }

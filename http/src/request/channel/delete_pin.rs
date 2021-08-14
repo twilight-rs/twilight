@@ -7,6 +7,7 @@ use crate::{
 use twilight_model::id::{ChannelId, MessageId};
 
 /// Delete a pin in a channel, by ID.
+#[must_use = "requests must be configured and executed"]
 pub struct DeletePin<'a> {
     channel_id: ChannelId,
     http: &'a Client,

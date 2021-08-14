@@ -32,6 +32,7 @@ use twilight_model::channel::Message;
 /// [`content`]: Self::content
 /// [`embeds`]: Self::embeds
 /// [`file`]: Self::file
+#[must_use = "requests must be configured and executed"]
 pub struct ExecuteWebhookAndWait<'a> {
     inner: ExecuteWebhook<'a>,
 }

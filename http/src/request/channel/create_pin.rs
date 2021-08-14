@@ -7,6 +7,7 @@ use crate::{
 use twilight_model::id::{ChannelId, MessageId};
 
 /// Create a new pin in a channel.
+#[must_use = "requests must be configured and executed"]
 pub struct CreatePin<'a> {
     channel_id: ChannelId,
     http: &'a Client,

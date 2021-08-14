@@ -1,6 +1,7 @@
 use crate::{client::Client, request::Request, response::ResponseFuture, routing::Route};
 use twilight_model::oauth::CurrentApplicationInfo;
 
+#[must_use = "requests must be configured and executed"]
 pub struct GetUserApplicationInfo<'a> {
     http: &'a Client,
 }
