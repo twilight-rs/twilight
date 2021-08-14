@@ -5,6 +5,7 @@ use twilight_model::{
 };
 
 /// Retrieve a global command for an application.
+#[must_use = "requests must be configured and executed"]
 pub struct GetGuildCommand<'a> {
     application_id: ApplicationId,
     command_id: CommandId,
