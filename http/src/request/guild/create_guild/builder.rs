@@ -80,16 +80,16 @@ impl RoleFieldsBuilder {
     /// [`color`]: Self::color
     pub const COLOR_MAXIMUM: u32 = 0xff_ff_ff;
 
-    // SAFYTY: never zero
-    #[allow(unsafe_code)]
-    const ROLE_ID: RoleId = unsafe { RoleId::new_unchecked(1) };
+    fn role_id() -> RoleId {
+        RoleId::new(1).expect("non zero")
+    }
 
     /// Create a new default role field builder.
-    pub const fn new(name: String) -> Self {
+    pub fn new(name: String) -> Self {
         Self(RoleFields {
             color: None,
             hoist: None,
-            id: Self::ROLE_ID,
+            id: Self::role_id(),
             mentionable: None,
             name,
             permissions: None,
@@ -137,7 +137,7 @@ impl RoleFieldsBuilder {
     /// Returns a [`RoleFieldsErrorType::IdInvalid`] error type if the ID is set
     /// to 1.
     pub fn id(mut self, id: RoleId) -> Result<Self, RoleFieldsError> {
-        if id == Self::ROLE_ID {
+        if id == Self::role_id() {
             return Err(RoleFieldsError {
                 kind: RoleFieldsErrorType::IdInvalid,
             });
