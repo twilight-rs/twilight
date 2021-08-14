@@ -9,8 +9,8 @@ HTTP support for the twilight ecosystem.
 ## Semantic Versioning
 
 Library functionality unrelated to the Discord API is subject to standard
-SemVer rules. However, any functionality that relies on the Discord API may
-break in a minor release if it can not be avoided.
+Semantic Versioning rules. However, any functionality that relies on the
+Discord API may break in a minor release if it can not be avoided.
 
 ## Features
 
