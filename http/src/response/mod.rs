@@ -242,6 +242,9 @@ impl<T> Response<T> {
 
             // Create a buffer filled with zeroes so we can copy the aggregate
             // body into it.
+            //
+            // Using `vec!` is the fastest way to do this, despite it being a
+            // macro and having unsafe internals.
             let mut buf = vec![0; aggregate.remaining()];
             aggregate.copy_to_slice(&mut buf);
 
