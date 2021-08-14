@@ -39,6 +39,7 @@ impl Serialize for PermissionListSerializer<'_> {
 /// This overwrites the command permissions so the full set of permissions
 /// have to be sent every time.
 #[derive(Debug)]
+#[must_use = "requests must be configured and executed"]
 pub struct SetCommandPermissions<'a> {
     application_id: ApplicationId,
     guild_id: GuildId,

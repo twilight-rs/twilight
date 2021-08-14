@@ -6,6 +6,7 @@ struct GetWebhookFields<'a> {
 }
 
 /// Get a webhook by ID.
+#[must_use = "requests must be configured and executed"]
 pub struct GetWebhook<'a> {
     fields: GetWebhookFields<'a>,
     http: &'a Client,

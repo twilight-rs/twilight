@@ -20,6 +20,7 @@ use twilight_model::{channel::Channel, id::ChannelId};
 /// let channel = client.channel(channel_id).exec().await?;
 /// # Ok(()) }
 /// ```
+#[must_use = "requests must be configured and executed"]
 pub struct GetChannel<'a> {
     channel_id: ChannelId,
     http: &'a Client,

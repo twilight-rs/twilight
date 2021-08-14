@@ -40,6 +40,7 @@ use twilight_model::gateway::connection_info::ConnectionInfo;
 /// println!("Recommended shards to use: {}", info.shards);
 /// # Ok(()) }
 /// ```
+#[must_use = "requests must be configured and executed"]
 pub struct GetGateway<'a> {
     http: &'a Client,
 }

@@ -76,6 +76,7 @@ struct UpdateCurrentUserFields<'a> {
 ///
 /// All parameters are optional. If the username is changed, it may cause the discriminator to be
 /// rnadomized.
+#[must_use = "requests must be configured and executed"]
 pub struct UpdateCurrentUser<'a> {
     fields: UpdateCurrentUserFields<'a>,
     http: &'a Client,

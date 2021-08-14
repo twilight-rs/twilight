@@ -12,6 +12,7 @@ use crate::{
 ///
 /// [`MANAGE_CHANNELS`]: twilight_model::guild::Permissions::MANAGE_CHANNELS
 /// [`MANAGE_GUILD`]: twilight_model::guild::Permissions::MANAGE_GUILD
+#[must_use = "requests must be configured and executed"]
 pub struct DeleteInvite<'a> {
     code: &'a str,
     http: &'a Client,

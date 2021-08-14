@@ -6,6 +6,7 @@ struct GetGuildFields {
 }
 
 /// Get information about a guild.
+#[must_use = "requests must be configured and executed"]
 pub struct GetGuild<'a> {
     fields: GetGuildFields,
     guild_id: GuildId,

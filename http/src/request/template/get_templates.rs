@@ -7,6 +7,7 @@ use crate::{
 use twilight_model::{id::GuildId, template::Template};
 
 /// Get a list of templates in a guild, by ID.
+#[must_use = "requests must be configured and executed"]
 pub struct GetTemplates<'a> {
     guild_id: GuildId,
     http: &'a Client,

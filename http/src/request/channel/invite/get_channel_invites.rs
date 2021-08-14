@@ -13,6 +13,7 @@ use twilight_model::{id::ChannelId, invite::Invite};
 ///
 /// [`MANAGE_CHANNELS`]: twilight_model::guild::Permissions::MANAGE_CHANNELS
 /// [`GuildChannel`]: twilight_model::channel::GuildChannel
+#[must_use = "requests must be configured and executed"]
 pub struct GetChannelInvites<'a> {
     channel_id: ChannelId,
     http: &'a Client,
