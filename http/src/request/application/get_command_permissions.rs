@@ -5,6 +5,7 @@ use twilight_model::{
 };
 
 /// Fetch command permissions for a command from the current application in a guild.
+#[must_use = "requests must be configured and executed"]
 pub struct GetCommandPermissions<'a> {
     application_id: ApplicationId,
     command_id: CommandId,

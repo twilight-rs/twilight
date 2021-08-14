@@ -7,6 +7,7 @@ use crate::{
 use twilight_model::id::{GuildId, UserId};
 
 /// Kick a member from a guild, by their id.
+#[must_use = "requests must be configured and executed"]
 pub struct RemoveMember<'a> {
     guild_id: GuildId,
     http: &'a Client,

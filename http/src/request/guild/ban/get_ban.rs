@@ -7,6 +7,7 @@ use twilight_model::{
 /// Get information about a ban of a guild.
 ///
 /// Includes the user banned and the reason.
+#[must_use = "requests must be configured and executed"]
 pub struct GetBan<'a> {
     guild_id: GuildId,
     http: &'a Client,

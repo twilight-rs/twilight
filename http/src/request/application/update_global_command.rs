@@ -27,6 +27,7 @@ struct UpdateGlobalCommandFields<'a> {
 /// information.
 ///
 /// [the discord docs]: https://discord.com/developers/docs/interactions/slash-commands#edit-global-application-command
+#[must_use = "requests must be configured and executed"]
 pub struct UpdateGlobalCommand<'a> {
     fields: UpdateGlobalCommandFields<'a>,
     command_id: CommandId,

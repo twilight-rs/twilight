@@ -14,6 +14,7 @@ use twilight_model::{
 ///
 /// This method is idempotent: it can be used on every start, without being
 /// ratelimited if there aren't changes to the commands.
+#[must_use = "requests must be configured and executed"]
 pub struct SetGuildCommands<'a> {
     commands: &'a [Command],
     application_id: ApplicationId,

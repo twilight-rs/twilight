@@ -25,6 +25,7 @@ struct CreateEmojiFields<'a> {
 /// for more information about image data.
 ///
 /// [the discord docs]: https://discord.com/developers/docs/reference#image-data
+#[must_use = "requests must be configured and executed"]
 pub struct CreateEmoji<'a> {
     fields: CreateEmojiFields<'a>,
     guild_id: GuildId,

@@ -27,6 +27,7 @@ struct UpdateGuildCommandFields<'a> {
 /// information.
 ///
 /// [the discord docs]: https://discord.com/developers/docs/interactions/slash-commands#edit-guild-application-command
+#[must_use = "requests must be configured and executed"]
 pub struct UpdateGuildCommand<'a> {
     fields: UpdateGuildCommandFields<'a>,
     application_id: ApplicationId,
