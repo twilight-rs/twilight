@@ -259,6 +259,7 @@ mod test {
                 resolved: Some(CommandInteractionDataResolved {
                     channels: Vec::new(),
                     members: Vec::new(),
+                    messages: Vec::new(),
                     roles: Vec::new(),
                     users: vec![User {
                         avatar: Some("avatar string".into()),

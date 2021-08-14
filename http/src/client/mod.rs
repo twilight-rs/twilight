@@ -7,12 +7,19 @@ use crate::{
     ratelimiting::Ratelimiter,
     request::{
         application::{
-            CreateFollowupMessage, CreateGlobalCommand, CreateGuildCommand, DeleteFollowupMessage,
-            DeleteGlobalCommand, DeleteGuildCommand, DeleteOriginalResponse, GetCommandPermissions,
-            GetGlobalCommands, GetGuildCommandPermissions, GetGuildCommands, GetOriginalResponse,
-            InteractionCallback, InteractionError, InteractionErrorType, SetCommandPermissions,
-            SetGlobalCommands, SetGuildCommands, UpdateCommandPermissions, UpdateFollowupMessage,
-            UpdateGlobalCommand, UpdateGuildCommand, UpdateOriginalResponse,
+            command::{
+                CreateGlobalCommand, CreateGuildCommand, DeleteGlobalCommand, DeleteGuildCommand,
+                GetCommandPermissions, GetGlobalCommand, GetGlobalCommands, GetGuildCommand,
+                GetGuildCommandPermissions, GetGuildCommands, SetCommandPermissions,
+                SetGlobalCommands, SetGuildCommands, UpdateCommandPermissions, UpdateGlobalCommand,
+                UpdateGuildCommand,
+            },
+            interaction::{
+                CreateFollowupMessage, DeleteFollowupMessage, DeleteOriginalResponse,
+                GetOriginalResponse, InteractionCallback, UpdateFollowupMessage,
+                UpdateOriginalResponse,
+            },
+            InteractionError, InteractionErrorType,
         },
         channel::{
             reaction::delete_reaction::TargetUser,
@@ -1840,8 +1847,7 @@ impl Client {
 
     /// Create a new command in a guild.
     ///
-    /// The name must be between 3 and 32 characters in length, and the
-    /// description must be between 1 and 100 characters in length. Creating a
+    /// The name must be between 1 and 32 characters in length. Creating a
     /// guild command with the same name as an already-existing guild command in
     /// the same guild will overwrite the old command. See [the discord docs]
     /// for more information.
@@ -1853,24 +1859,43 @@ impl Client {
     /// [`Client::set_application_id`].
     ///
     /// Returns an [`InteractionErrorType::CommandNameValidationFailed`]
-    /// error type if the command name is not between 3 and 32 characters.
-    ///
-    /// Returns an [`InteractionErrorType::CommandDescriptionValidationFailed`]
-    /// error type if the command description is not between 1 and
-    /// 100 characters.
+    /// error type if the command name is not between 1 and 32 characters.
     ///
     /// [the discord docs]: https://discord.com/developers/docs/interactions/slash-commands#create-guild-application-command
     pub fn create_guild_command<'a>(
         &'a self,
         guild_id: GuildId,
         name: &'a str,
-        description: &'a str,
     ) -> Result<CreateGuildCommand<'a>, InteractionError> {
         let application_id = self.application_id().ok_or(InteractionError {
             kind: InteractionErrorType::ApplicationIdNotPresent,
         })?;
 
-        CreateGuildCommand::new(self, application_id, guild_id, name, description)
+        CreateGuildCommand::new(self, application_id, guild_id, name)
+    }
+
+    /// Fetch a guild command for your application.
+    ///
+    /// # Errors
+    ///
+    /// Returns an [`InteractionErrorType::ApplicationIdNotPresent`]
+    /// error type if an application ID has not been configured via
+    /// [`Client::set_application_id`].
+    pub fn get_guild_command(
+        &self,
+        guild_id: GuildId,
+        command_id: CommandId,
+    ) -> Result<GetGuildCommand<'_>, InteractionError> {
+        let application_id = self.application_id().ok_or(InteractionError {
+            kind: InteractionErrorType::ApplicationIdNotPresent,
+        })?;
+
+        Ok(GetGuildCommand::new(
+            self,
+            application_id,
+            guild_id,
+            command_id,
+        ))
     }
 
     /// Fetch all commands for a guild, by ID.
@@ -1973,8 +1998,7 @@ impl Client {
 
     /// Create a new global command.
     ///
-    /// The name must be between 3 and 32 characters in length, and the
-    /// description must be between 1 and 100 characters in length. Creating a
+    /// The name must be between 1 and 32 characters in length. Creating a
     /// command with the same name as an already-existing global command will
     /// overwrite the old command. See [the discord docs] for more information.
     ///
@@ -1985,23 +2009,36 @@ impl Client {
     /// [`Client::set_application_id`].
     ///
     /// Returns an [`InteractionErrorType::CommandNameValidationFailed`]
-    /// error type if the command name is not between 3 and 32 characters.
-    ///
-    /// Returns an [`InteractionErrorType::CommandDescriptionValidationFailed`]
-    /// error type if the command description is not between 1 and
-    /// 100 characters.
+    /// error type if the command name is not between 1 and 32 characters.
     ///
     /// [the discord docs]: https://discord.com/developers/docs/interactions/slash-commands#create-global-application-command
     pub fn create_global_command<'a>(
         &'a self,
         name: &'a str,
-        description: &'a str,
     ) -> Result<CreateGlobalCommand<'a>, InteractionError> {
         let application_id = self.application_id().ok_or(InteractionError {
             kind: InteractionErrorType::ApplicationIdNotPresent,
         })?;
 
-        CreateGlobalCommand::new(self, application_id, name, description)
+        CreateGlobalCommand::new(self, application_id, name)
+    }
+
+    /// Fetch a global command for your application.
+    ///
+    /// # Errors
+    ///
+    /// Returns an [`InteractionErrorType::ApplicationIdNotPresent`]
+    /// error type if an application ID has not been configured via
+    /// [`Client::set_application_id`].
+    pub fn get_global_command(
+        &self,
+        command_id: CommandId,
+    ) -> Result<GetGlobalCommand<'_>, InteractionError> {
+        let application_id = self.application_id().ok_or(InteractionError {
+            kind: InteractionErrorType::ApplicationIdNotPresent,
+        })?;
+
+        Ok(GetGlobalCommand::new(self, application_id, command_id))
     }
 
     /// Fetch all global commands for your application.

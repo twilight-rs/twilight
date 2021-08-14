@@ -438,7 +438,7 @@ fn _command_name(value: &str) -> bool {
     let len = value.chars().count();
 
     // https://discord.com/developers/docs/interactions/slash-commands#applicationcommandoption
-    (3..=32).contains(&len)
+    (1..=32).contains(&len)
 }
 
 pub fn command_description(value: impl AsRef<str>) -> bool {

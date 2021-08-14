@@ -2,11 +2,15 @@
 
 pub mod permissions;
 
+mod command_type;
 mod option;
 
-pub use self::option::{
-    BaseCommandOptionData, ChoiceCommandOptionData, CommandOption, CommandOptionChoice,
-    CommandOptionType, OptionsCommandOptionData,
+pub use self::{
+    command_type::CommandType,
+    option::{
+        BaseCommandOptionData, ChoiceCommandOptionData, CommandOption, CommandOptionChoice,
+        CommandOptionType, OptionsCommandOptionData,
+    },
 };
 
 use crate::id::{ApplicationId, CommandId, GuildId};
@@ -29,9 +33,17 @@ pub struct Command {
     pub name: String,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub default_permission: Option<bool>,
+    /// Description of the command.
+    ///
+    /// For [`User`] and [`Message`] commands, this will be an empty string.
+    ///
+    /// [`User`]: CommandType::User
+    /// [`Message`]: CommandType::Message
     pub description: String,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub id: Option<CommandId>,
+    #[serde(rename = "type")]
+    pub kind: CommandType,
     #[serde(default)]
     pub options: Vec<CommandOption>,
 }

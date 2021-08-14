@@ -1,4 +1,7 @@
-use super::{CommandBorrowed, InteractionError, InteractionErrorType};
+use super::super::{
+    super::{InteractionError, InteractionErrorType},
+    CommandBorrowed,
+};
 use crate::{
     client::Client,
     error::Error as HttpError,
@@ -7,42 +10,33 @@ use crate::{
     routing::Route,
 };
 use twilight_model::{
-    application::command::{Command, CommandOption},
-    id::{ApplicationId, GuildId},
+    application::command::{Command, CommandOption, CommandType},
+    id::ApplicationId,
 };
 
-/// Create a new command in a guild.
+/// Create a new chat input global command.
 ///
-/// The name must be between 3 and 32 characters in length, and the description
-/// must be between 1 and 100 characters in length. Creating a guild command
-/// with the same name as an already-existing guild command in the same guild
-/// will overwrite the old command. See [the discord docs] for more information.
+/// The description must be between 1 and 100 characters in length. Creating a
+/// command with the same name as an already-existing global command will
+/// overwrite the old command. See [the discord docs] for more information.
 ///
-/// [the discord docs]: https://discord.com/developers/docs/interactions/slash-commands#create-guild-application-command
-pub struct CreateGuildCommand<'a> {
+/// [the discord docs]: https://discord.com/developers/docs/interactions/slash-commands#create-global-application-command
+pub struct CreateGlobalChatInputCommand<'a> {
     application_id: ApplicationId,
     default_permission: Option<bool>,
     description: &'a str,
-    guild_id: GuildId,
     http: &'a Client,
     name: &'a str,
     options: Option<&'a [CommandOption]>,
 }
 
-impl<'a> CreateGuildCommand<'a> {
+impl<'a> CreateGlobalChatInputCommand<'a> {
     pub(crate) fn new(
         http: &'a Client,
         application_id: ApplicationId,
-        guild_id: GuildId,
         name: &'a str,
         description: &'a str,
     ) -> Result<Self, InteractionError> {
-        if !validate::command_name(name) {
-            return Err(InteractionError {
-                kind: InteractionErrorType::CommandNameValidationFailed,
-            });
-        }
-
         if !validate::command_description(description) {
             return Err(InteractionError {
                 kind: InteractionErrorType::CommandDescriptionValidationFailed,
@@ -53,19 +47,10 @@ impl<'a> CreateGuildCommand<'a> {
             application_id,
             default_permission: None,
             description,
-            guild_id,
             http,
             name,
             options: None,
         })
-    }
-
-    /// Whether the command is enabled by default when the app is added to
-    /// a guild.
-    pub fn default_permission(mut self, default: bool) -> Self {
-        self.default_permission.replace(default);
-
-        self
     }
 
     /// Add a list of command options.
@@ -88,7 +73,7 @@ impl<'a> CreateGuildCommand<'a> {
             let option = &options[idx];
 
             if !optional_option_added && !option.is_required() {
-                optional_option_added = true;
+                optional_option_added = true
             }
 
             if option.is_required() && optional_option_added {
@@ -105,15 +90,22 @@ impl<'a> CreateGuildCommand<'a> {
         Ok(self)
     }
 
+    /// Whether the command is enabled by default when the app is added to a guild.
+    pub const fn default_permission(mut self, default: bool) -> Self {
+        self.default_permission = Some(default);
+
+        self
+    }
+
     fn request(&self) -> Result<Request, HttpError> {
-        Request::builder(&Route::CreateGuildCommand {
+        Request::builder(&Route::CreateGlobalCommand {
             application_id: self.application_id.0,
-            guild_id: self.guild_id.0,
         })
         .json(&CommandBorrowed {
             application_id: Some(self.application_id),
             default_permission: self.default_permission,
-            description: self.description,
+            description: Some(self.description),
+            kind: CommandType::ChatInput,
             name: self.name,
             options: self.options,
         })

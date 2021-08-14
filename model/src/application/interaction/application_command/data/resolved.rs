@@ -1,7 +1,7 @@
 use crate::{
-    channel::ChannelType,
+    channel::{ChannelType, Message},
     guild::{Permissions, Role},
-    id::{ChannelId, RoleId, UserId},
+    id::{ChannelId, MessageId, RoleId, UserId},
     user::User,
 };
 use serde::{
@@ -18,6 +18,7 @@ use std::{
 pub struct CommandInteractionDataResolved {
     pub channels: Vec<InteractionChannel>,
     pub members: Vec<InteractionMember>,
+    pub messages: Vec<Message>,
     pub roles: Vec<Role>,
     pub users: Vec<User>,
 }
@@ -33,6 +34,7 @@ impl Serialize for CommandInteractionDataResolved {
         let len = vec![
             self.channels.is_empty(),
             self.members.is_empty(),
+            self.messages.is_empty(),
             self.roles.is_empty(),
             self.users.is_empty(),
         ]
@@ -62,6 +64,17 @@ impl Serialize for CommandInteractionDataResolved {
                 .collect();
 
             state.serialize_field("members", &map)?;
+        }
+
+        if !self.messages.is_empty() {
+            let map: HashMap<MessageId, &Message, RandomState> = self
+                .messages
+                .iter()
+                .map(|m| m.id)
+                .zip(self.messages.iter())
+                .collect();
+
+            state.serialize_field("messages", &map)?;
         }
 
         if !self.roles.is_empty() {
@@ -95,6 +108,7 @@ impl Serialize for CommandInteractionDataResolved {
 enum ResolvedField {
     Channels,
     Members,
+    Messages,
     Roles,
     Users,
 }
@@ -111,6 +125,7 @@ impl<'de> Visitor<'de> for ResolvedVisitor {
     fn visit_map<V: MapAccess<'de>>(self, mut map: V) -> Result<Self::Value, V::Error> {
         let mut channels: Option<Vec<InteractionChannel>> = None;
         let mut members: Option<Vec<InteractionMember>> = None;
+        let mut messages: Option<Vec<Message>> = None;
         let mut roles: Option<Vec<Role>> = None;
         let mut users: Option<Vec<User>> = None;
 
@@ -154,6 +169,15 @@ impl<'de> Visitor<'de> for ResolvedVisitor {
                             .collect(),
                     );
                 }
+                ResolvedField::Messages => {
+                    if messages.is_some() {
+                        return Err(DeError::duplicate_field("messages"));
+                    }
+
+                    let mapped_messages: HashMap<MessageId, Message> = map.next_value()?;
+
+                    messages = Some(mapped_messages.into_iter().map(|(_, v)| v).collect());
+                }
                 ResolvedField::Roles => {
                     if roles.is_some() {
                         return Err(DeError::duplicate_field("roles"));
@@ -178,6 +202,7 @@ impl<'de> Visitor<'de> for ResolvedVisitor {
         Ok(CommandInteractionDataResolved {
             channels: channels.unwrap_or_default(),
             members: members.unwrap_or_default(),
+            messages: messages.unwrap_or_default(),
             roles: roles.unwrap_or_default(),
             users: users.unwrap_or_default(),
         })
@@ -224,9 +249,15 @@ struct InteractionMemberEnvelope {
 mod tests {
     use super::{CommandInteractionDataResolved, InteractionChannel, InteractionMember};
     use crate::{
-        channel::ChannelType,
-        guild::{Permissions, Role},
-        id::{ChannelId, RoleId, UserId},
+        channel::{
+            message::{
+                sticker::{MessageSticker, StickerFormatType, StickerId},
+                MessageFlags, MessageType,
+            },
+            ChannelType, Message,
+        },
+        guild::{PartialMember, Permissions, Role},
+        id::{ChannelId, GuildId, MessageId, RoleId, UserId},
         user::{PremiumType, User, UserFlags},
     };
     use serde_test::Token;
@@ -235,21 +266,77 @@ mod tests {
     #[allow(clippy::too_many_lines)]
     fn test_data_resolved() {
         let value = CommandInteractionDataResolved {
-            channels: vec![InteractionChannel {
+            channels: Vec::from([InteractionChannel {
                 id: ChannelId(100),
                 kind: ChannelType::GuildText,
                 name: "channel name".into(),
                 permissions: Permissions::empty(),
-            }],
-            members: vec![InteractionMember {
+            }]),
+            members: Vec::from([InteractionMember {
                 hoisted_role: None,
                 id: UserId(300),
                 joined_at: Some("joined at".into()),
                 nick: None,
                 premium_since: None,
                 roles: Vec::new(),
-            }],
-            roles: vec![Role {
+            }]),
+            messages: Vec::from([Message {
+                activity: None,
+                application: None,
+                application_id: None,
+                attachments: Vec::new(),
+                author: User {
+                    avatar: Some("aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa".to_owned()),
+                    bot: false,
+                    discriminator: "0001".to_owned(),
+                    email: None,
+                    flags: None,
+                    id: UserId(3),
+                    locale: None,
+                    mfa_enabled: None,
+                    name: "test".to_owned(),
+                    premium_type: None,
+                    public_flags: None,
+                    system: None,
+                    verified: None,
+                },
+                channel_id: ChannelId(2),
+                content: "ping".to_owned(),
+                edited_timestamp: None,
+                embeds: Vec::new(),
+                flags: Some(MessageFlags::empty()),
+                guild_id: Some(GuildId(1)),
+                id: MessageId(4),
+                interaction: None,
+                kind: MessageType::Regular,
+                member: Some(PartialMember {
+                    deaf: false,
+                    joined_at: Some("2020-01-01T00:00:00.000000+00:00".to_owned()),
+                    mute: false,
+                    nick: Some("member nick".to_owned()),
+                    permissions: None,
+                    premium_since: None,
+                    roles: Vec::new(),
+                    user: None,
+                }),
+                mention_channels: Vec::new(),
+                mention_everyone: false,
+                mention_roles: Vec::new(),
+                mentions: Vec::new(),
+                pinned: false,
+                reactions: Vec::new(),
+                reference: None,
+                sticker_items: vec![MessageSticker {
+                    format_type: StickerFormatType::Png,
+                    id: StickerId(1),
+                    name: "sticker name".to_owned(),
+                }],
+                referenced_message: None,
+                timestamp: "2020-02-02T02:02:02.020000+00:00".to_owned(),
+                tts: false,
+                webhook_id: None,
+            }]),
+            roles: Vec::from([Role {
                 color: 0,
                 hoist: true,
                 id: RoleId(400),
@@ -259,8 +346,8 @@ mod tests {
                 permissions: Permissions::ADMINISTRATOR,
                 position: 12,
                 tags: None,
-            }],
-            users: vec![User {
+            }]),
+            users: Vec::from([User {
                 avatar: Some("aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa".to_owned()),
                 bot: false,
                 discriminator: "0001".to_owned(),
@@ -274,7 +361,7 @@ mod tests {
                 public_flags: Some(UserFlags::EARLY_SUPPORTER | UserFlags::VERIFIED_BOT_DEVELOPER),
                 system: None,
                 verified: Some(true),
-            }],
+            }]),
         };
 
         serde_test::assert_tokens(
@@ -282,7 +369,7 @@ mod tests {
             &[
                 Token::Struct {
                     name: "CommandInteractionDataResolved",
-                    len: 4,
+                    len: 5,
                 },
                 Token::Str("channels"),
                 Token::Map { len: Some(1) },
@@ -314,6 +401,112 @@ mod tests {
                 Token::Str("joined_at"),
                 Token::Some,
                 Token::Str("joined at"),
+                Token::StructEnd,
+                Token::MapEnd,
+                Token::Str("messages"),
+                Token::Map { len: Some(1) },
+                Token::NewtypeStruct { name: "MessageId" },
+                Token::Str("4"),
+                Token::Struct {
+                    name: "Message",
+                    len: 18,
+                },
+                Token::Str("attachments"),
+                Token::Seq { len: Some(0) },
+                Token::SeqEnd,
+                Token::Str("author"),
+                Token::Struct {
+                    name: "User",
+                    len: 5,
+                },
+                Token::Str("avatar"),
+                Token::Some,
+                Token::Str("aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"),
+                Token::Str("bot"),
+                Token::Bool(false),
+                Token::Str("discriminator"),
+                Token::Str("0001"),
+                Token::Str("id"),
+                Token::NewtypeStruct { name: "UserId" },
+                Token::Str("3"),
+                Token::Str("username"),
+                Token::Str("test"),
+                Token::StructEnd,
+                Token::Str("channel_id"),
+                Token::NewtypeStruct { name: "ChannelId" },
+                Token::Str("2"),
+                Token::Str("content"),
+                Token::Str("ping"),
+                Token::Str("edited_timestamp"),
+                Token::None,
+                Token::Str("embeds"),
+                Token::Seq { len: Some(0) },
+                Token::SeqEnd,
+                Token::Str("flags"),
+                Token::Some,
+                Token::U64(0),
+                Token::Str("guild_id"),
+                Token::Some,
+                Token::NewtypeStruct { name: "GuildId" },
+                Token::Str("1"),
+                Token::Str("id"),
+                Token::NewtypeStruct { name: "MessageId" },
+                Token::Str("4"),
+                Token::Str("type"),
+                Token::U8(0),
+                Token::Str("member"),
+                Token::Some,
+                Token::Struct {
+                    name: "PartialMember",
+                    len: 7,
+                },
+                Token::Str("deaf"),
+                Token::Bool(false),
+                Token::Str("joined_at"),
+                Token::Some,
+                Token::Str("2020-01-01T00:00:00.000000+00:00"),
+                Token::Str("mute"),
+                Token::Bool(false),
+                Token::Str("nick"),
+                Token::Some,
+                Token::Str("member nick"),
+                Token::Str("permissions"),
+                Token::None,
+                Token::Str("roles"),
+                Token::Seq { len: Some(0) },
+                Token::SeqEnd,
+                Token::Str("user"),
+                Token::None,
+                Token::StructEnd,
+                Token::Str("mention_everyone"),
+                Token::Bool(false),
+                Token::Str("mention_roles"),
+                Token::Seq { len: Some(0) },
+                Token::SeqEnd,
+                Token::Str("mentions"),
+                Token::Seq { len: Some(0) },
+                Token::SeqEnd,
+                Token::Str("pinned"),
+                Token::Bool(false),
+                Token::Str("sticker_items"),
+                Token::Seq { len: Some(1) },
+                Token::Struct {
+                    name: "MessageSticker",
+                    len: 3,
+                },
+                Token::Str("format_type"),
+                Token::U8(1),
+                Token::Str("id"),
+                Token::NewtypeStruct { name: "StickerId" },
+                Token::Str("1"),
+                Token::Str("name"),
+                Token::Str("sticker name"),
+                Token::StructEnd,
+                Token::SeqEnd,
+                Token::Str("timestamp"),
+                Token::Str("2020-02-02T02:02:02.020000+00:00"),
+                Token::Str("tts"),
+                Token::Bool(false),
                 Token::StructEnd,
                 Token::MapEnd,
                 Token::Str("roles"),

@@ -116,7 +116,7 @@ impl<'a> SetCommandPermissions<'a> {
 #[cfg(test)]
 mod tests {
     use super::{
-        super::{InteractionError, InteractionErrorType},
+        super::super::{InteractionError, InteractionErrorType},
         SetCommandPermissions,
     };
     use crate::Client;
