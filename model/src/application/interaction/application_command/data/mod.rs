@@ -142,7 +142,9 @@ impl<'de> Deserialize<'de> for CommandDataOption {
                 }
             }
         } else {
-            let options = raw.options.unwrap();
+            let options = raw
+                .options
+                .ok_or_else(|| de::Error::missing_field("options"))?;
             match raw.kind {
                 CommandOptionType::SubCommand => CommandOptionValue::SubCommand(options),
                 CommandOptionType::SubCommandGroup => CommandOptionValue::SubCommandGroup(options),
