@@ -15,7 +15,7 @@ repository = "https://github.com/twilight-rs/twilight.git"
 version = "0.6.1"
 
 [dependencies]
-hyper = { default-features = false, features = ["client", "http1", "http2", "runtime"], version = "0.14" }
+hyper = { default-features = false, features = ["client", "http2", "runtime"], version = "0.14" }
 hyper-rustls = { default-features = false, optional = true, version = "0.22" }
 hyper-tls = { default-features = false, optional = true, version = "0.5" }
 percent-encoding = { default-features = false, version = "2" }
