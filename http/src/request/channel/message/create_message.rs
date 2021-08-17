@@ -132,6 +132,7 @@ pub(crate) struct CreateMessageFields<'a> {
 ///     .await?;
 /// # Ok(()) }
 /// ```
+#[must_use = "requests must be configured and executed"]
 pub struct CreateMessage<'a> {
     channel_id: ChannelId,
     pub(crate) fields: CreateMessageFields<'a>,

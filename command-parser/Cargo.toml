@@ -18,8 +18,8 @@ version = "0.6.0"
 unicase = { default-features = false, version = "2" }
 
 [dev-dependencies]
-criterion = "0.3"
-patricia_tree = "0.3"
+criterion = { default-features = false, version = "0.3" }
+patricia_tree = { default-features = false, version = "0.3" }
 static_assertions = { default-features = false, version = "1" }
 
 [[bench]]

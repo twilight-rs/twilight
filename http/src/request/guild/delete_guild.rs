@@ -7,6 +7,7 @@ use crate::{
 use twilight_model::id::GuildId;
 
 /// Delete a guild permanently. The user must be the owner.
+#[must_use = "requests must be configured and executed"]
 pub struct DeleteGuild<'a> {
     guild_id: GuildId,
     http: &'a Client,

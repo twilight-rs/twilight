@@ -76,6 +76,7 @@ struct CreateStageInstanceFields<'a> {
 /// Create a new stage instance associated with a stage channel.
 ///
 /// Requires the user to be a moderator of the stage channel.
+#[must_use = "requests must be configured and executed"]
 pub struct CreateStageInstance<'a> {
     fields: CreateStageInstanceFields<'a>,
     http: &'a Client,

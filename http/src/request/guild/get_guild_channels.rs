@@ -7,6 +7,7 @@ use crate::{
 use twilight_model::{channel::GuildChannel, id::GuildId};
 
 /// Get the channels in a guild.
+#[must_use = "requests must be configured and executed"]
 pub struct GetGuildChannels<'a> {
     guild_id: GuildId,
     http: &'a Client,

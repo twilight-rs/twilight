@@ -8,6 +8,7 @@ use crate::{
 use twilight_model::{application::callback::InteractionResponse, id::InteractionId};
 
 /// Respond to an interaction, by ID and token.
+#[must_use = "requests must be configured and executed"]
 pub struct InteractionCallback<'a> {
     interaction_id: InteractionId,
     interaction_token: &'a str,

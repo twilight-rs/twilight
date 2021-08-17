@@ -5,6 +5,7 @@ use twilight_model::gateway::connection_info::BotConnectionInfo;
 ///
 /// Returns additional information: the recommended number of shards to use, and information on
 /// the current session start limit.
+#[must_use = "requests must be configured and executed"]
 pub struct GetGatewayAuthed<'a> {
     http: &'a Client,
 }

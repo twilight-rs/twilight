@@ -176,7 +176,7 @@ mod tests {
                     id: UserId(3),
                     avatar: Some("aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa".to_owned()),
                     bot: false,
-                    discriminator: "0001".to_owned(),
+                    discriminator: 1,
                     name: "test".to_owned(),
                     mfa_enabled: None,
                     locale: None,

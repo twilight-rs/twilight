@@ -40,7 +40,7 @@ impl UpdateCache for MessageDelete {
 
         let mut channel = cache.messages.entry(self.channel_id).or_default();
 
-        if let Some(idx) = channel.iter().position(|msg| msg.id == self.id) {
+        if let Some(idx) = channel.iter().position(|msg| msg.id() == self.id) {
             channel.remove(idx);
         }
     }
@@ -55,7 +55,7 @@ impl UpdateCache for MessageDeleteBulk {
         let mut channel = cache.messages.entry(self.channel_id).or_default();
 
         for id in &self.ids {
-            if let Some(idx) = channel.iter().position(|msg| &msg.id == id) {
+            if let Some(idx) = channel.iter().position(|msg| &msg.id() == id) {
                 channel.remove(idx);
             }
         }
@@ -70,7 +70,7 @@ impl UpdateCache for MessageUpdate {
 
         let mut channel = cache.messages.entry(self.channel_id).or_default();
 
-        if let Some(mut message) = channel.iter_mut().find(|msg| msg.id == self.id) {
+        if let Some(mut message) = channel.iter_mut().find(|msg| msg.id() == self.id) {
             if let Some(attachments) = &self.attachments {
                 message.attachments = attachments.clone();
             }
@@ -138,7 +138,7 @@ mod tests {
             author: User {
                 avatar: Some("".to_owned()),
                 bot: false,
-                discriminator: "0001".to_owned(),
+                discriminator: 1,
                 email: None,
                 flags: None,
                 id: UserId(3),

@@ -98,6 +98,7 @@ struct SearchGuildMembersFields<'a> {
 /// limit is invalid.
 ///
 /// [`GUILD_MEMBERS`]: twilight_model::gateway::Intents#GUILD_MEMBERS
+#[must_use = "requests must be configured and executed"]
 pub struct SearchGuildMembers<'a> {
     fields: SearchGuildMembersFields<'a>,
     guild_id: GuildId,

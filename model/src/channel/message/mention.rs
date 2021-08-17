@@ -1,7 +1,7 @@
 use crate::{
     guild::PartialMember,
     id::UserId,
-    user::{self, UserFlags},
+    user::{self, DiscriminatorDisplay, UserFlags},
 };
 use serde::{Deserialize, Serialize};
 
@@ -21,7 +21,7 @@ pub struct Mention {
     /// integer. The field will always serialize into a string due to that being
     /// the type Discord's API uses.
     #[serde(with = "user::discriminator")]
-    pub discriminator: String,
+    pub discriminator: u16,
     /// Unique ID of the user.
     pub id: UserId,
     /// Member object for the user in the guild, if available.
@@ -31,6 +31,15 @@ pub struct Mention {
     pub name: String,
     /// Public flags on the user's account.
     pub public_flags: UserFlags,
+}
+
+impl Mention {
+    /// Create a [`Display`] formatter for a user discriminator.
+    ///
+    /// [`Display`]: core::fmt::Display
+    pub const fn discriminator(&self) -> DiscriminatorDisplay {
+        DiscriminatorDisplay::new(self.discriminator)
+    }
 }
 
 #[cfg(test)]
@@ -43,7 +52,7 @@ mod tests {
         let value = Mention {
             avatar: None,
             bot: false,
-            discriminator: "0001".to_owned(),
+            discriminator: 1,
             id: UserId(1),
             member: None,
             name: "foo".to_owned(),
@@ -82,7 +91,7 @@ mod tests {
         let value = Mention {
             avatar: None,
             bot: false,
-            discriminator: "0001".to_owned(),
+            discriminator: 1,
             id: UserId(1),
             member: Some(PartialMember {
                 deaf: false,

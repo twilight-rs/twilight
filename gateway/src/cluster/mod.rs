@@ -96,7 +96,7 @@ pub use self::{
     event::Events,
     r#impl::{
         Cluster, ClusterCommandError, ClusterCommandErrorType, ClusterStartError,
-        ClusterStartErrorType,
+        ClusterStartErrorType, Shards,
     },
     scheme::{ShardScheme, ShardSchemeRangeError, ShardSchemeRangeErrorType},
 };

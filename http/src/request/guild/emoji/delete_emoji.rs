@@ -7,6 +7,7 @@ use crate::{
 use twilight_model::id::{EmojiId, GuildId};
 
 /// Delete an emoji in a guild, by id.
+#[must_use = "requests must be configured and executed"]
 pub struct DeleteEmoji<'a> {
     emoji_id: EmojiId,
     guild_id: GuildId,

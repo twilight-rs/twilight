@@ -27,7 +27,7 @@ mod tests {
             user: User {
                 avatar: None,
                 bot: false,
-                discriminator: "0001".to_owned(),
+                discriminator: 1,
                 email: None,
                 flags: None,
                 id: UserId(2),
