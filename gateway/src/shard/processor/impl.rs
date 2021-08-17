@@ -301,11 +301,14 @@ impl ShardProcessor {
 
         url.push_str("?v=8");
 
-        // Discord docs state:
+        // Discord's documentation states:
+        //
         // "Generally, it is a good idea to explicitly pass the gateway version
         // and encoding".
+        //
         // <https://discord.com/developers/docs/topics/gateway#connecting-gateway-url-query-string-params>
         url.push_str("&encoding=json");
+
         compression::add_url_feature(&mut url);
 
         emitter.event(Event::ShardConnecting(Connecting {
