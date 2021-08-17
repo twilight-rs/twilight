@@ -100,8 +100,8 @@ impl InMemoryCache {
             widget_enabled: guild.widget_enabled,
         };
 
-        self.0.unavailable_guilds.remove(&guild.id);
-        self.0.guilds.insert(guild.id, guild);
+        self.0.unavailable_guilds.remove(&guild.id());
+        self.0.guilds.insert(guild.id(), guild);
     }
 }
 

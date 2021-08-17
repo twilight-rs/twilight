@@ -93,7 +93,7 @@ impl InMemoryCache {
 
         let (deaf, mute) = match self.0.members.get(&id) {
             Some(m) if *m == member => return,
-            Some(m) => (m.deaf, m.mute),
+            Some(m) => (m.deaf(), m.mute()),
             None => (None, None),
         };
 
@@ -191,8 +191,8 @@ impl UpdateCache for MemberUpdate {
             None => return,
         };
 
-        member.deaf = self.deaf.or(member.deaf);
-        member.mute = self.mute.or(member.mute);
+        member.deaf = self.deaf.or_else(|| member.deaf());
+        member.mute = self.mute.or_else(|| member.mute());
         member.nick = self.nick.clone();
         member.roles = self.roles.clone();
         member.joined_at.replace(self.joined_at.clone());
