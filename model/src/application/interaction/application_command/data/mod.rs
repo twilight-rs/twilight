@@ -77,11 +77,27 @@ impl Serialize for CommandDataOption {
         let mut state = serializer.serialize_struct("CommandDataOptionRaw", 3)?;
         state.serialize_field("name", &self.name)?;
         state.serialize_field("type", &self.value.kind())?;
-        match &self.value {
-            CommandOptionValue::SubCommand(opts) | CommandOptionValue::SubCommandGroup(opts) => {
+        match self.value {
+            CommandOptionValue::SubCommand(ref opts)
+            | CommandOptionValue::SubCommandGroup(ref opts) => {
                 state.serialize_field("options", &Some(opts))?
             }
-            _ => state.serialize_field("value", &Some(self.value.raw_value().unwrap()))?,
+            CommandOptionValue::String(ref s) => {
+                state.serialize_field("value", &Some(CommandOptionValueRaw::String(s.into())))?
+            }
+            CommandOptionValue::Integer(i) => {
+                state.serialize_field("value", &Some(CommandOptionValueRaw::Integer(i)))?
+            }
+            CommandOptionValue::Boolean(b) => {
+                state.serialize_field("value", &Some(CommandOptionValueRaw::Boolean(b)))?
+            }
+            CommandOptionValue::User(UserId(id))
+            | CommandOptionValue::Channel(ChannelId(id))
+            | CommandOptionValue::Role(RoleId(id))
+            | CommandOptionValue::Mentionable(GenericId(id)) => state.serialize_field(
+                "value",
+                &Some(CommandOptionValueRaw::String(id.to_string().into())),
+            )?,
         }
         state.end()
     }
@@ -176,22 +192,5 @@ impl CommandOptionValue {
             CommandOptionValue::SubCommand(_) => CommandOptionType::SubCommand,
             CommandOptionValue::SubCommandGroup(_) => CommandOptionType::SubCommandGroup,
         }
-    }
-
-    fn raw_value(&self) -> Option<CommandOptionValueRaw<'_>> {
-        Some(match *self {
-            CommandOptionValue::String(ref s) => CommandOptionValueRaw::String(s.into()),
-            CommandOptionValue::Integer(i) => CommandOptionValueRaw::Integer(i),
-            CommandOptionValue::Boolean(b) => CommandOptionValueRaw::Boolean(b),
-            CommandOptionValue::User(u) => CommandOptionValueRaw::String(u.to_string().into()),
-            CommandOptionValue::Channel(c) => CommandOptionValueRaw::String(c.to_string().into()),
-            CommandOptionValue::Role(r) => CommandOptionValueRaw::String(r.to_string().into()),
-            CommandOptionValue::Mentionable(m) => {
-                CommandOptionValueRaw::String(m.to_string().into())
-            }
-            CommandOptionValue::SubCommand(_) | CommandOptionValue::SubCommandGroup(_) => {
-                return None;
-            }
-        })
     }
 }
