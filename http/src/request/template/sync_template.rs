@@ -2,6 +2,7 @@ use crate::{client::Client, request::Request, response::ResponseFuture, routing:
 use twilight_model::{id::GuildId, template::Template};
 
 /// Sync a template to the current state of the guild, by ID and code.
+#[must_use = "requests must be configured and executed"]
 pub struct SyncTemplate<'a> {
     guild_id: GuildId,
     http: &'a Client,

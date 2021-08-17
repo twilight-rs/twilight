@@ -19,6 +19,7 @@ struct UpdateEmojiFields<'a> {
 }
 
 /// Update an emoji in a guild, by id.
+#[must_use = "requests must be configured and executed"]
 pub struct UpdateEmoji<'a> {
     emoji_id: EmojiId,
     fields: UpdateEmojiFields<'a>,

@@ -35,6 +35,7 @@ impl From<(ChannelId, u64)> for Position {
 ///
 /// This function accepts an `Iterator` of `(ChannelId, u64)`. It also accepts
 /// an `Iterator` of `Position`, which has extra fields.
+#[must_use = "requests must be configured and executed"]
 pub struct UpdateGuildChannelPositions<'a> {
     guild_id: GuildId,
     http: &'a Client,

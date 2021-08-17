@@ -30,6 +30,7 @@ use twilight_model::id::{GuildId, RoleId, UserId};
 ///     .await?;
 /// # Ok(()) }
 /// ```
+#[must_use = "requests must be configured and executed"]
 pub struct AddRoleToMember<'a> {
     guild_id: GuildId,
     http: &'a Client,

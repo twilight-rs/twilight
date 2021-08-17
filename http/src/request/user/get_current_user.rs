@@ -2,6 +2,7 @@ use crate::{client::Client, request::Request, response::ResponseFuture, routing:
 use twilight_model::user::CurrentUser;
 
 /// Get information about the current user.
+#[must_use = "requests must be configured and executed"]
 pub struct GetCurrentUser<'a> {
     http: &'a Client,
 }
