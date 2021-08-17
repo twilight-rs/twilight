@@ -111,13 +111,13 @@ impl InFlight {
             Poll::Ready(Ok(Ok(resp))) => resp,
             Poll::Ready(Ok(Err(source))) => {
                 return InnerPoll::Ready(Err(Error {
-                    kind: ErrorType::RequestTimedOut,
+                    kind: ErrorType::RequestError,
                     source: Some(Box::new(source)),
                 }))
             }
             Poll::Ready(Err(source)) => {
                 return InnerPoll::Ready(Err(Error {
-                    kind: ErrorType::RequestError,
+                    kind: ErrorType::RequestTimedOut,
                     source: Some(Box::new(source)),
                 }))
             }
