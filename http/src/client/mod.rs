@@ -128,8 +128,10 @@ type HttpsConnector<T> = hyper_tls::HttpsConnector<T>;
 /// [here]: https://discord.com/developers/applications
 #[derive(Debug)]
 pub struct Client {
-    http: HyperClient<HttpsConnector<HttpConnector>, Body>,
+    pub(crate) application_id: AtomicU64,
+    pub(crate) default_allowed_mentions: Option<AllowedMentions>,
     default_headers: Option<HeaderMap>,
+    http: HyperClient<HttpsConnector<HttpConnector>, Body>,
     proxy: Option<Box<str>>,
     ratelimiter: Option<Ratelimiter>,
     /// Whether to short-circuit when a 401 has been encountered with the client
@@ -143,8 +145,6 @@ pub struct Client {
     token_invalid: Arc<AtomicBool>,
     token: Option<Box<str>>,
     use_http: bool,
-    pub(crate) application_id: AtomicU64,
-    pub(crate) default_allowed_mentions: Option<AllowedMentions>,
 }
 
 impl Client {
