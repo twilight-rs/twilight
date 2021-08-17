@@ -464,7 +464,8 @@ impl Shard {
         let url = if let Some(u) = &self.0.config.gateway_url {
             u.to_string()
         } else {
-            // Validates the bot token
+            // By making an authenticated gateway information retrieval request
+            // we're also validating the configured token.
             self.0
                 .config
                 .http_client()
