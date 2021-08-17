@@ -211,24 +211,15 @@ impl BucketQueueTask {
 
     async fn handle_headers(&self, headers: &RatelimitHeaders) {
         let ratelimits = match headers {
-            RatelimitHeaders::GlobalLimited { reset_after } => {
-                self.lock_global(Duration::from_secs(*reset_after)).await;
+            RatelimitHeaders::GlobalLimited(global_limited) => {
+                self.lock_global(Duration::from_secs(global_limited.retry_after()))
+                    .await;
 
                 None
             }
             RatelimitHeaders::None => return,
-            RatelimitHeaders::Present {
-                global,
-                limit,
-                remaining,
-                reset_after,
-                ..
-            } => {
-                if *global {
-                    self.lock_global(Duration::from_secs(*reset_after)).await;
-                }
-
-                Some((*limit, *remaining, *reset_after))
+            RatelimitHeaders::Present(present) => {
+                Some((present.limit(), present.remaining(), present.reset_after()))
             }
         };
 
