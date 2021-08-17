@@ -3,7 +3,7 @@ mod resolved;
 pub use self::resolved::{CommandInteractionDataResolved, InteractionChannel, InteractionMember};
 
 use crate::application::command::CommandOptionType;
-use crate::id::{ChannelId, CommandId, RoleId, UserId};
+use crate::id::{ChannelId, CommandId, GenericId, RoleId, UserId};
 use serde::de;
 use serde::ser::SerializeStruct;
 use serde::{Deserialize, Serialize};
@@ -47,7 +47,7 @@ pub enum CommandOptionValue {
     User(UserId),
     Channel(ChannelId),
     Role(RoleId),
-    Mentionable(u64),
+    Mentionable(GenericId),
     SubCommand(Vec<CommandDataOption>),
     SubCommandGroup(Vec<CommandDataOption>),
 }
@@ -123,9 +123,9 @@ impl<'de> Deserialize<'de> for CommandDataOption {
                     CommandOptionValue::Role(id)
                 }
                 (CommandOptionType::Mentionable, CommandOptionValueRaw::String(s)) => {
-                    let id = s.parse().map_err(|_| {
+                    let id = GenericId(s.parse().map_err(|_| {
                         de::Error::invalid_value(de::Unexpected::Str(&s), &"snowflake ID")
-                    })?;
+                    })?);
                     CommandOptionValue::Mentionable(id)
                 }
                 (CommandOptionType::SubCommand, _) | (CommandOptionType::SubCommandGroup, _) => {
