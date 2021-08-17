@@ -64,7 +64,7 @@ use std::{
     error::Error,
     fmt::{Display, Formatter, Result as FmtResult},
     future::Future,
-    iter::{self, FusedIterator},
+    iter::FusedIterator,
     marker::PhantomData,
     pin::Pin,
     task::{Context, Poll},
@@ -242,9 +242,10 @@ impl<T> Response<T> {
 
             // Create a buffer filled with zeroes so we can copy the aggregate
             // body into it.
-            let mut buf = iter::repeat(0)
-                .take(aggregate.remaining())
-                .collect::<Vec<_>>();
+            //
+            // Using `vec!` is the fastest way to do this, despite it being a
+            // macro and having unsafe internals.
+            let mut buf = vec![0; aggregate.remaining()];
             aggregate.copy_to_slice(&mut buf);
 
             Ok(buf)
