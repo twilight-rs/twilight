@@ -1,12 +1,8 @@
-pub mod error;
+pub mod headers;
 
 mod bucket;
-mod headers;
 
-pub use self::{
-    error::{RatelimitError, RatelimitResult},
-    headers::RatelimitHeaders,
-};
+pub use self::headers::RatelimitHeaders;
 
 use self::bucket::{Bucket, BucketQueueTask, TimeRemaining};
 use crate::routing::Path;
