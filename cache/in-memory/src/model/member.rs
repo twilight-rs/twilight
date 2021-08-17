@@ -10,24 +10,63 @@ use twilight_model::{
 /// [`Member`]: twilight_model::guild::Member
 #[derive(Clone, Debug, Eq, PartialEq, Serialize)]
 pub struct CachedMember {
+    pub(crate) deaf: Option<bool>,
+    pub(crate) guild_id: GuildId,
+    pub(crate) joined_at: Option<String>,
+    pub(crate) mute: Option<bool>,
+    pub(crate) nick: Option<String>,
+    pub(crate) pending: bool,
+    pub(crate) premium_since: Option<String>,
+    pub(crate) roles: Vec<RoleId>,
+    pub(crate) user_id: UserId,
+}
+
+impl CachedMember {
     /// Whether the member is deafened in a voice channel.
-    pub deaf: Option<bool>,
+    pub const fn deaf(&self) -> Option<bool> {
+        self.deaf
+    }
+
     /// ID of the guild this member is a part of.
-    pub guild_id: GuildId,
+    pub const fn guild_id(&self) -> GuildId {
+        self.guild_id
+    }
+
     /// ISO 8601 timestamp of this member's join date.
-    pub joined_at: Option<String>,
+    pub fn joined_at(&self) -> Option<&str> {
+        self.joined_at.as_deref()
+    }
+
     /// Whether the member is muted in a voice channel.
-    pub mute: Option<bool>,
+    pub const fn mute(&self) -> Option<bool> {
+        self.mute
+    }
+
     /// Nickname of the member.
-    pub nick: Option<String>,
-    /// Whether the member has not yet passed the guild's Membership Screening requirements.
-    pub pending: bool,
+    pub fn nick(&self) -> Option<&str> {
+        self.nick.as_deref()
+    }
+
+    /// Whether the member has not yet passed the guild's Membership Screening
+    /// requirements.
+    pub const fn pending(&self) -> bool {
+        self.pending
+    }
+
     /// ISO 8601 timestamp of the date the member boosted the guild.
-    pub premium_since: Option<String>,
+    pub fn premium_since(&self) -> Option<&str> {
+        self.premium_since.as_deref()
+    }
+
     /// List of role IDs this member has.
-    pub roles: Vec<RoleId>,
+    pub fn roles(&self) -> &[RoleId] {
+        &self.roles
+    }
+
     /// ID of the user relating to the member.
-    pub user_id: UserId,
+    pub const fn user_id(&self) -> UserId {
+        self.user_id
+    }
 }
 
 impl PartialEq<Member> for CachedMember {
