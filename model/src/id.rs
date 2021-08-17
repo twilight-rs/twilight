@@ -8,7 +8,7 @@
 
 pub(crate) mod string {
     use serde::{
-        de::{Deserializer, Error as DeError, Visitor},
+        de::{Deserializer, Error as DeError, Unexpected, Visitor},
         ser::Serializer,
     };
     use std::{
@@ -27,7 +27,11 @@ pub(crate) mod string {
         }
 
         fn visit_u64<E: DeError>(self, value: u64) -> Result<Self::Value, E> {
-            Ok(T::from(NonZeroU64::new(value).expect("not zero")))
+            NonZeroU64::new(value).map(T::from).ok_or_else(|| {
+                let unexpected = Unexpected::Unsigned(value);
+
+                DeError::invalid_value(unexpected, &"a positive integer")
+            })
         }
 
         fn visit_str<E: DeError>(self, value: &str) -> Result<Self::Value, E> {
