@@ -228,8 +228,7 @@ impl<'de> Visitor<'de> for OptionVisitor {
 
         Ok(match kind {
             CommandOptionType::SubCommand => {
-                let options = options
-                    .flatten().unwrap_or_default();
+                let options = options.flatten().unwrap_or_default();
 
                 CommandOption::SubCommand(OptionsCommandOptionData {
                     description,
@@ -239,8 +238,7 @@ impl<'de> Visitor<'de> for OptionVisitor {
                 })
             }
             CommandOptionType::SubCommandGroup => {
-                let options = options
-                    .flatten().unwrap_or_default();
+                let options = options.flatten().unwrap_or_default();
 
                 CommandOption::SubCommandGroup(OptionsCommandOptionData {
                     description,
