@@ -30,7 +30,7 @@ pub(crate) mod string {
             NonZeroU64::new(value).map(T::from).ok_or_else(|| {
                 let unexpected = Unexpected::Unsigned(value);
 
-                DeError::invalid_value(unexpected, &"a positive integer")
+                DeError::invalid_value(unexpected, &"a non-zero unsigned integer")
             })
         }
 
