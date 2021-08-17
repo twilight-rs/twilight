@@ -505,7 +505,7 @@ impl InMemoryCache {
     pub fn message(&self, channel_id: ChannelId, message_id: MessageId) -> Option<CachedMessage> {
         let channel = self.0.messages.get(&channel_id)?;
 
-        channel.iter().find(|msg| msg.id == message_id).cloned()
+        channel.iter().find(|msg| msg.id() == message_id).cloned()
     }
 
     /// Gets a presence by, optionally, guild ID, and user ID.
