@@ -229,8 +229,7 @@ impl<'de> Visitor<'de> for OptionVisitor {
         Ok(match kind {
             CommandOptionType::SubCommand => {
                 let options = options
-                    .flatten()
-                    .ok_or_else(|| DeError::missing_field("options"))?;
+                    .flatten().unwrap_or_default();
 
                 CommandOption::SubCommand(OptionsCommandOptionData {
                     description,
@@ -241,8 +240,7 @@ impl<'de> Visitor<'de> for OptionVisitor {
             }
             CommandOptionType::SubCommandGroup => {
                 let options = options
-                    .flatten()
-                    .ok_or_else(|| DeError::missing_field("options"))?;
+                    .flatten().unwrap_or_default();
 
                 CommandOption::SubCommandGroup(OptionsCommandOptionData {
                     description,
@@ -410,6 +408,17 @@ mod tests {
     };
     use crate::id::{ApplicationId, CommandId, GuildId};
     use serde_test::Token;
+
+    #[test]
+    fn pr_1112() {
+        let test_str = r#"
+{
+  "type": 1,
+  "description": "ponyland",
+  "name": "equestria"
+}"#;
+        serde_json::from_str::<CommandOption>(test_str).unwrap();
+    }
 
     #[test]
     #[allow(clippy::too_many_lines)]
