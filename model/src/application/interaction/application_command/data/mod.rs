@@ -110,10 +110,7 @@ impl Serialize for CommandDataOption {
 }
 
 impl<'de> Deserialize<'de> for CommandDataOption {
-    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
-    where
-        D: Deserializer<'de>,
-    {
+    fn deserialize<D: Deserializer<'de>>(deserializer: D) -> Result<Self, D::Error> {
         let raw = CommandDataOptionRaw::deserialize(deserializer)?;
         let value = if let Some(value) = raw.value {
             match (raw.kind, value) {
