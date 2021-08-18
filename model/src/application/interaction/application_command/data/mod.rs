@@ -74,10 +74,7 @@ enum CommandOptionValueRaw<'a> {
 }
 
 impl Serialize for CommandDataOption {
-    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
-    where
-        S: Serializer,
-    {
+    fn serialize<S: Serializer>(&self, serializer: S) -> Result<S::Ok, S::Error> {
         let mut state = serializer.serialize_struct("CommandDataOptionRaw", 3)?;
 
         state.serialize_field("name", &self.name)?;
