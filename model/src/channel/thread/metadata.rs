@@ -8,6 +8,8 @@ pub struct ThreadMetadata {
     pub archived: bool,
     pub auto_archive_duration: AutoArchiveDuration,
     pub archive_timestamp: String,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub invitable: Option<bool>,
     #[serde(default)]
     pub locked: bool,
 }
@@ -23,6 +25,7 @@ mod tests {
             archived: true,
             auto_archive_duration: AutoArchiveDuration::Day,
             archive_timestamp: "123".to_owned(),
+            invitable: Some(false),
             locked: false,
         };
 
@@ -31,7 +34,7 @@ mod tests {
             &[
                 Token::Struct {
                     name: "ThreadMetadata",
-                    len: 4,
+                    len: 5,
                 },
                 Token::Str("archived"),
                 Token::Bool(true),
@@ -39,6 +42,9 @@ mod tests {
                 Token::U16(1440),
                 Token::Str("archive_timestamp"),
                 Token::Str("123"),
+                Token::Str("invitable"),
+                Token::Some,
+                Token::Bool(false),
                 Token::Str("locked"),
                 Token::Bool(false),
                 Token::StructEnd,

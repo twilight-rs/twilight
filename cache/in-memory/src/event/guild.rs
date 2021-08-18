@@ -236,6 +236,7 @@ mod tests {
 
         let threads = Vec::from([GuildChannel::PublicThread(PublicThread {
             id: ChannelId(222),
+            default_auto_archive_duration: None,
             guild_id: None,
             kind: ChannelType::GuildPublicThread,
             last_message_id: None,
@@ -249,13 +250,16 @@ mod tests {
                 archived: false,
                 auto_archive_duration: AutoArchiveDuration::Hour,
                 archive_timestamp: "".to_string(),
+                invitable: None,
                 locked: false,
             },
             member: Some(ThreadMember {
-                id: Some(ChannelId(1)),
-                user_id: Some(UserId(2)),
-                join_timestamp: "".to_string(),
                 flags: 0,
+                id: Some(ChannelId(1)),
+                join_timestamp: "".to_string(),
+                member: None,
+                presence: None,
+                user_id: Some(UserId(2)),
             }),
         })]);
 

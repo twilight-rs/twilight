@@ -1,6 +1,6 @@
 use crate::channel::{
     permission_overwrite::PermissionOverwrite,
-    thread::{ThreadMember, ThreadMetadata},
+    thread::{AutoArchiveDuration, ThreadMember, ThreadMetadata},
     ChannelType,
 };
 use crate::id::{ChannelId, GuildId, MessageId, UserId};
@@ -9,8 +9,15 @@ use serde::{Deserialize, Serialize};
 #[derive(Clone, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
 pub struct PrivateThread {
     #[serde(skip_serializing_if = "Option::is_none")]
+    pub default_auto_archive_duration: Option<AutoArchiveDuration>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub guild_id: Option<GuildId>,
     pub id: ChannelId,
+    /// Whether non-moderators can add other non-moderators to a thread.
+    ///
+    /// Only available on private threads.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub invitable: Option<bool>,
     #[serde(rename = "type")]
     pub kind: ChannelType,
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -42,27 +49,32 @@ mod tests {
     #[allow(clippy::too_many_lines)]
     fn test_private_thread() {
         let value = PrivateThread {
+            default_auto_archive_duration: Some(AutoArchiveDuration::Hour),
             guild_id: Some(GuildId(2)),
             id: ChannelId(1),
+            invitable: Some(true),
             kind: ChannelType::GuildPrivateThread,
             last_message_id: Some(MessageId(5)),
             member: Some(ThreadMember {
-                id: Some(ChannelId(10)),
-                user_id: Some(UserId(11)),
-                join_timestamp: "456".to_owned(),
                 flags: 12,
+                id: Some(ChannelId(10)),
+                join_timestamp: "456".to_owned(),
+                member: None,
+                presence: None,
+                user_id: Some(UserId(11)),
             }),
             member_count: 7,
             message_count: 6,
             name: "test".to_owned(),
             owner_id: Some(UserId(3)),
             parent_id: Some(ChannelId(4)),
-            rate_limit_per_user: Some(8),
             permission_overwrites: Vec::new(),
+            rate_limit_per_user: Some(8),
             thread_metadata: ThreadMetadata {
                 archived: true,
                 auto_archive_duration: AutoArchiveDuration::Hour,
                 archive_timestamp: "123".to_string(),
+                invitable: Some(true),
                 locked: true,
             },
         };
@@ -72,8 +84,11 @@ mod tests {
             &[
                 Token::Struct {
                     name: "PrivateThread",
-                    len: 13,
+                    len: 15,
                 },
+                Token::Str("default_auto_archive_duration"),
+                Token::Some,
+                Token::U16(60),
                 Token::Str("guild_id"),
                 Token::Some,
                 Token::NewtypeStruct { name: "GuildId" },
@@ -81,6 +96,9 @@ mod tests {
                 Token::Str("id"),
                 Token::NewtypeStruct { name: "ChannelId" },
                 Token::Str("1"),
+                Token::Str("invitable"),
+                Token::Some,
+                Token::Bool(true),
                 Token::Str("type"),
                 Token::U8(12),
                 Token::Str("last_message_id"),
@@ -129,7 +147,7 @@ mod tests {
                 Token::Str("thread_metadata"),
                 Token::Struct {
                     name: "ThreadMetadata",
-                    len: 4,
+                    len: 5,
                 },
                 Token::Str("archived"),
                 Token::Bool(true),
@@ -137,6 +155,9 @@ mod tests {
                 Token::U16(60),
                 Token::Str("archive_timestamp"),
                 Token::Str("123"),
+                Token::Str("invitable"),
+                Token::Some,
+                Token::Bool(true),
                 Token::Str("locked"),
                 Token::Bool(true),
                 Token::StructEnd,

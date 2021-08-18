@@ -560,9 +560,9 @@ impl Display for RouteDisplay<'_> {
 
                 f.write_str("/followers")
             }
-            Route::GetActiveThreads { channel_id } => {
-                f.write_str("channels/")?;
-                Display::fmt(channel_id, f)?;
+            Route::GetActiveThreads { guild_id } => {
+                f.write_str("guild_id/")?;
+                Display::fmt(guild_id, f)?;
 
                 f.write_str("/threads/active")
             }

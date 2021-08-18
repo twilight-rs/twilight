@@ -18,7 +18,7 @@ use crate::{
             reaction::delete_reaction::TargetUser,
             stage::create_stage_instance::CreateStageInstanceError,
             thread::{
-                AddThreadMember, CreateThread, CreateThreadFromMessage, GetActiveThreads,
+                AddThreadMember, CreateThread, CreateThreadFromMessage,
                 GetJoinedPrivateArchivedThreads, GetPrivateArchivedThreads,
                 GetPublicArchivedThreads, GetThreadMembers, JoinThread, LeaveThread,
                 RemoveThreadMember, ThreadValidationError, UpdateThread,
@@ -1529,8 +1529,8 @@ impl Client {
     ///
     /// Includes public and private threads. Threads are ordered by their ID in
     /// descending order.
-    pub const fn active_threads(&self, channel_id: ChannelId) -> GetActiveThreads<'_> {
-        GetActiveThreads::new(self, channel_id)
+    pub const fn active_threads(&self, guild_id: GuildId) -> GetActiveThreads<'_> {
+        GetActiveThreads::new(self, guild_id)
     }
 
     /// Add another member to a thread.
@@ -1547,9 +1547,14 @@ impl Client {
 
     /// Start a thread that is not connected to a message.
     ///
-    /// To use auto archive durations of [`ThreeDays`] or [`Week`], the guild
-    /// must be boosted.
+    /// Values of [`ThreeDays`] and [`Week`] require the guild to be boosted.
+    /// The guild's features will indicate if a guild is able to use these
+    /// settings.
     ///
+    /// To make a [`GuildPrivateThread`], the guild must also have the
+    /// `PRIVATE_THREADS` feature.
+    ///
+    /// [`PrivateThread`]: twilight_model::channel::ChannelType::GuildPrivateThread
     /// [`ThreeDays`]: twilight_model::channel::thread::AutoArchiveDuration::ThreeDays
     /// [`Week`]: twilight_model::channel::thread::AutoArchiveDuration::Week
     pub fn create_thread<'a>(
@@ -1570,8 +1575,9 @@ impl Client {
     /// When called on a [`GuildNews`] channel, this creates a
     /// [`GuildNewsThread`].
     ///
-    /// To use auto archive durations of [`ThreeDays`] or [`Week`], the guild
-    /// must be boosted.
+    /// Values of [`ThreeDays`] and [`Week`] require the guild to be boosted.
+    /// The guild's features will indicate if a guild is able to use these
+    /// settings.
     ///
     /// The thread's ID will be the same as its parent message. This ensures
     /// only one thread can be created per message.

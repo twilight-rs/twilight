@@ -19,6 +19,8 @@ struct UpdateThreadFields<'a> {
     #[serde(skip_serializing_if = "Option::is_none")]
     auto_archive_duration: Option<AutoArchiveDuration>,
     #[serde(skip_serializing_if = "Option::is_none")]
+    invitable: Option<bool>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     locked: Option<bool>,
     #[serde(skip_serializing_if = "Option::is_none")]
     name: Option<&'a str>,
@@ -45,6 +47,7 @@ impl<'a> UpdateThread<'a> {
             fields: UpdateThreadFields {
                 archived: None,
                 auto_archive_duration: None,
+                invitable: None,
                 locked: None,
                 name: None,
                 rate_limit_per_user: None,
@@ -54,12 +57,27 @@ impl<'a> UpdateThread<'a> {
         }
     }
 
+    /// Set whether the thread is archived.
+    ///
+    /// Requires that the user have [`SEND_MESSAGES`] in the thread. However, if
+    /// the thread is locked, the user must have [`MANAGE_THREADS`].
+    ///
+    /// [`SEND_MESSAGES`]: twilight_model::guild::Permissions::SEND_MESSAGES
+    /// [`MANAGE_THREADS`]: twilight_model::guild::Permissions::MANAGE_THREADS
     pub const fn archived(mut self, archived: bool) -> Self {
         self.fields.archived = Some(archived);
 
         self
     }
 
+    /// Set the thread's auto archive duration.
+    ///
+    /// Values of [`ThreeDays`] and [`Week`] require the guild to be boosted.
+    /// The guild's features will indicate if a guild is able to use these
+    /// settings.
+    ///
+    /// [`ThreeDays`]: twilight_model::channel::thread::AutoArchiveDuration::ThreeDays
+    /// [`Week`]: twilight_model::channel::thread::AutoArchiveDuration::Week
     pub const fn auto_archive_duration(
         mut self,
         auto_archive_duration: AutoArchiveDuration,
@@ -69,12 +87,34 @@ impl<'a> UpdateThread<'a> {
         self
     }
 
+    /// Whether non-moderators can add other non-moderators to a thread.
+    pub const fn invitable(mut self, invitable: bool) -> Self {
+        self.fields.invitable = Some(invitable);
+
+        self
+    }
+
+
+    /// Set whether the thread is locked.
+    ///
+    /// If the thread is already locked, only users with [`MANAGE_THREADS`] can
+    /// unlock it.
+    ///
+    /// [`MANAGE_THREADS`]: twilight_model::guild::Permissions::MANAGE_THREADS
     pub const fn locked(mut self, locked: bool) -> Self {
         self.fields.locked = Some(locked);
 
         self
     }
 
+    /// Set the name of the thread.
+    ///
+    /// Must be between 1 and 100 characters in length.
+    ///
+    /// # Errors
+    ///
+    /// Returns a [`ThreadValidationErrorType::NameInvalid`] error type if the
+    /// name is invalid.
     pub fn name(mut self, name: &'a str) -> Result<Self, ThreadValidationError> {
         if !validate::channel_name(name) {
             return Err(ThreadValidationError {
@@ -95,7 +135,7 @@ impl<'a> UpdateThread<'a> {
     ///
     /// # Errors
     ///
-    /// Returns an [`ThreadValidationErrorType::RateLimitPerUserInvalid`] error type
+    /// Returns a [`ThreadValidationErrorType::RateLimitPerUserInvalid`] error type
     /// if the amount is greater than 21600.
     ///
     /// [the discord docs]: https://discordapp.com/developers/docs/resources/channel#channel-object-channel-structure>

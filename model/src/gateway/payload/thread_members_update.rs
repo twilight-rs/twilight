@@ -6,6 +6,11 @@ use serde::{Deserialize, Serialize};
 
 #[derive(Clone, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
 pub struct ThreadMembersUpdate {
+    /// List of thread members.
+    ///
+    /// Includes the [`member`] key.
+    ///
+    /// [`member`]: ThreadMember::member
     #[serde(default)]
     pub added_members: Vec<ThreadMember>,
     pub guild_id: GuildId,
