@@ -8,11 +8,12 @@ use crate::{
     request::{
         application::{
             command::{
-                CreateGlobalCommand, CreateGuildCommand, DeleteGlobalCommand, DeleteGuildCommand,
-                GetCommandPermissions, GetGlobalCommand, GetGlobalCommands, GetGuildCommand,
-                GetGuildCommandPermissions, GetGuildCommands, SetCommandPermissions,
-                SetGlobalCommands, SetGuildCommands, UpdateCommandPermissions, UpdateGlobalCommand,
-                UpdateGuildCommand,
+                create_global_command::CreateGlobalChatInputCommand,
+                create_guild_command::CreateGuildChatInputCommand, CreateGlobalCommand,
+                CreateGuildCommand, DeleteGlobalCommand, DeleteGuildCommand, GetCommandPermissions,
+                GetGlobalCommand, GetGlobalCommands, GetGuildCommand, GetGuildCommandPermissions,
+                GetGuildCommands, SetCommandPermissions, SetGlobalCommands, SetGuildCommands,
+                UpdateCommandPermissions, UpdateGlobalCommand, UpdateGuildCommand,
             },
             interaction::{
                 CreateFollowupMessage, DeleteFollowupMessage, DeleteOriginalResponse,
@@ -1845,6 +1846,40 @@ impl Client {
         ))
     }
 
+    /// Create a new chat input command in a guild.
+    ///
+    /// The name must be between 1 and 32 characters in length. Creating a
+    /// guild command with the same name as an already-existing guild command in
+    /// the same guild will overwrite the old command. See [the discord docs]
+    /// for more information.
+    ///
+    /// # Errors
+    ///
+    /// Returns an [`InteractionErrorType::ApplicationIdNotPresent`]
+    /// error type if an application ID has not been configured via
+    /// [`Client::set_application_id`].
+    ///
+    /// Returns an [`InteractionErrorType::CommandNameValidationFailed`]
+    /// error type if the command name is not between 1 and 32 characters.
+    ///
+    /// [the discord docs]: https://discord.com/developers/docs/interactions/slash-commands#create-guild-application-command
+    #[deprecated(
+        note = "the signature of this method will change in the next major version",
+        since = "0.5.3"
+    )]
+    pub fn create_guild_command<'a>(
+        &'a self,
+        guild_id: GuildId,
+        name: &'a str,
+        description: &'a str,
+    ) -> Result<CreateGuildChatInputCommand<'a>, InteractionError> {
+        let application_id = self.application_id().ok_or(InteractionError {
+            kind: InteractionErrorType::ApplicationIdNotPresent,
+        })?;
+
+        CreateGuildCommand::new(self, application_id, guild_id, name)?.chat_input(description)
+    }
+
     /// Create a new command in a guild.
     ///
     /// The name must be between 1 and 32 characters in length. Creating a
@@ -1862,7 +1897,7 @@ impl Client {
     /// error type if the command name is not between 1 and 32 characters.
     ///
     /// [the discord docs]: https://discord.com/developers/docs/interactions/slash-commands#create-guild-application-command
-    pub fn create_guild_command<'a>(
+    pub fn new_create_guild_command<'a>(
         &'a self,
         guild_id: GuildId,
         name: &'a str,
@@ -1996,6 +2031,43 @@ impl Client {
         ))
     }
 
+    /// Create a new chat input global command.
+    ///
+    /// The name must be between 1 and 32 characters in length. The description
+    /// must be between 1 and 100 characters in length. Creating a command with
+    /// the same name as an already-existing global command will overwrite the
+    /// old command. See [the discord docs] for more information.
+    ///
+    /// # Errors
+    ///
+    /// Returns an [`InteractionErrorType::ApplicationIdNotPresent`]
+    /// error type if an application ID has not been configured via
+    /// [`Client::set_application_id`].
+    ///
+    /// Returns an [`InteractionErrorType::CommandNameValidationFailed`]
+    /// error type if the command name is not between 1 and 32 characters.
+    ///
+    /// Returns an [`InteractionErrorType::CommandDescriptionValidationFailed`]
+    /// error type if the command description is not between 1 and 100
+    /// characters.
+    ///
+    /// [the discord docs]: https://discord.com/developers/docs/interactions/slash-commands#create-global-application-command
+    #[deprecated(
+        note = "the signature of this method will change in the next major version",
+        since = "0.5.3"
+    )]
+    pub fn create_global_command<'a>(
+        &'a self,
+        name: &'a str,
+        description: &'a str,
+    ) -> Result<CreateGlobalChatInputCommand<'a>, InteractionError> {
+        let application_id = self.application_id().ok_or(InteractionError {
+            kind: InteractionErrorType::ApplicationIdNotPresent,
+        })?;
+
+        CreateGlobalCommand::new(self, application_id, name)?.chat_input(description)
+    }
+
     /// Create a new global command.
     ///
     /// The name must be between 1 and 32 characters in length. Creating a
@@ -2012,7 +2084,7 @@ impl Client {
     /// error type if the command name is not between 1 and 32 characters.
     ///
     /// [the discord docs]: https://discord.com/developers/docs/interactions/slash-commands#create-global-application-command
-    pub fn create_global_command<'a>(
+    pub fn new_create_global_command<'a>(
         &'a self,
         name: &'a str,
     ) -> Result<CreateGlobalCommand<'a>, InteractionError> {
