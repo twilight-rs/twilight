@@ -2,11 +2,15 @@ mod resolved;
 
 pub use self::resolved::{CommandInteractionDataResolved, InteractionChannel, InteractionMember};
 
-use crate::application::command::CommandOptionType;
-use crate::id::{ChannelId, CommandId, GenericId, RoleId, UserId};
-use serde::de;
-use serde::ser::SerializeStruct;
-use serde::{Deserialize, Serialize};
+use crate::{
+    application::command::CommandOptionType,
+    id::{ChannelId, CommandId, GenericId, RoleId, UserId},
+};
+use serde::{
+    de::{Error as DeError, Unexpected},
+    ser::SerializeStruct,
+    Deserialize, Deserializer, Serialize, Serializer,
+};
 use std::borrow::Cow;
 
 /// Data received when an [`ApplicationCommand`] interaction is executed.
@@ -72,24 +76,26 @@ enum CommandOptionValueRaw<'a> {
 impl Serialize for CommandDataOption {
     fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
     where
-        S: serde::Serializer,
+        S: Serializer,
     {
         let mut state = serializer.serialize_struct("CommandDataOptionRaw", 3)?;
+
         state.serialize_field("name", &self.name)?;
+
         state.serialize_field("type", &self.value.kind())?;
+
         match self.value {
             CommandOptionValue::SubCommand(ref opts)
             | CommandOptionValue::SubCommandGroup(ref opts) => {
                 state.serialize_field("options", &Some(opts))?
             }
-            CommandOptionValue::String(ref s) => {
-                state.serialize_field("value", &Some(CommandOptionValueRaw::String(s.into())))?
+            CommandOptionValue::String(ref value) => state
+                .serialize_field("value", &Some(CommandOptionValueRaw::String(value.into())))?,
+            CommandOptionValue::Integer(value) => {
+                state.serialize_field("value", &Some(CommandOptionValueRaw::Integer(value)))?
             }
-            CommandOptionValue::Integer(i) => {
-                state.serialize_field("value", &Some(CommandOptionValueRaw::Integer(i)))?
-            }
-            CommandOptionValue::Boolean(b) => {
-                state.serialize_field("value", &Some(CommandOptionValueRaw::Boolean(b)))?
+            CommandOptionValue::Boolean(value) => {
+                state.serialize_field("value", &Some(CommandOptionValueRaw::Boolean(value)))?
             }
             CommandOptionValue::User(UserId(id))
             | CommandOptionValue::Channel(ChannelId(id))
@@ -106,7 +112,7 @@ impl Serialize for CommandDataOption {
 impl<'de> Deserialize<'de> for CommandDataOption {
     fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
     where
-        D: serde::Deserializer<'de>,
+        D: Deserializer<'de>,
     {
         let raw = CommandDataOptionRaw::deserialize(deserializer)?;
         let value = if let Some(value) = raw.value {
@@ -121,37 +127,40 @@ impl<'de> Deserialize<'de> for CommandDataOption {
                     CommandOptionValue::Boolean(b)
                 }
                 (CommandOptionType::User, CommandOptionValueRaw::String(s)) => {
-                    let id = UserId(s.parse().map_err(|_| {
-                        de::Error::invalid_value(de::Unexpected::Str(&s), &"user ID")
-                    })?);
+                    let id =
+                        UserId(s.parse().map_err(|_| {
+                            DeError::invalid_value(Unexpected::Str(&s), &"user ID")
+                        })?);
                     CommandOptionValue::User(id)
                 }
                 (CommandOptionType::Channel, CommandOptionValueRaw::String(s)) => {
-                    let id = ChannelId(s.parse().map_err(|_| {
-                        de::Error::invalid_value(de::Unexpected::Str(&s), &"channel ID")
-                    })?);
+                    let id =
+                        ChannelId(s.parse().map_err(|_| {
+                            DeError::invalid_value(Unexpected::Str(&s), &"channel ID")
+                        })?);
                     CommandOptionValue::Channel(id)
                 }
                 (CommandOptionType::Role, CommandOptionValueRaw::String(s)) => {
-                    let id = RoleId(s.parse().map_err(|_| {
-                        de::Error::invalid_value(de::Unexpected::Str(&s), &"role ID")
-                    })?);
+                    let id =
+                        RoleId(s.parse().map_err(|_| {
+                            DeError::invalid_value(Unexpected::Str(&s), &"role ID")
+                        })?);
                     CommandOptionValue::Role(id)
                 }
                 (CommandOptionType::Mentionable, CommandOptionValueRaw::String(s)) => {
                     let id = GenericId(s.parse().map_err(|_| {
-                        de::Error::invalid_value(de::Unexpected::Str(&s), &"snowflake ID")
+                        DeError::invalid_value(Unexpected::Str(&s), &"snowflake ID")
                     })?);
                     CommandOptionValue::Mentionable(id)
                 }
                 (CommandOptionType::SubCommand, _) | (CommandOptionType::SubCommandGroup, _) => {
-                    return Err(de::Error::custom(format!(
+                    return Err(DeError::custom(format!(
                         "invalid option data: {:?} has value instead of options",
                         raw.kind
                     )));
                 }
                 (kind, value) => {
-                    return Err(de::Error::custom(format!(
+                    return Err(DeError::custom(format!(
                         "invalid option value/type pair: value is {:?} but type is {:?}",
                         value, kind,
                     )));
@@ -160,12 +169,12 @@ impl<'de> Deserialize<'de> for CommandDataOption {
         } else {
             let options = raw
                 .options
-                .ok_or_else(|| de::Error::missing_field("options"))?;
+                .ok_or_else(|| DeError::missing_field("options"))?;
             match raw.kind {
                 CommandOptionType::SubCommand => CommandOptionValue::SubCommand(options),
                 CommandOptionType::SubCommandGroup => CommandOptionValue::SubCommandGroup(options),
                 kind => {
-                    return Err(de::Error::custom(format!(
+                    return Err(DeError::custom(format!(
                         "no `value` but type is {:?}",
                         kind
                     )))
