@@ -131,6 +131,7 @@ impl<'de> Deserialize<'de> for CommandDataOption {
                         UserId(s.parse().map_err(|_| {
                             DeError::invalid_value(Unexpected::Str(&s), &"user ID")
                         })?);
+
                     CommandOptionValue::User(id)
                 }
                 (CommandOptionType::Channel, CommandOptionValueRaw::String(s)) => {
@@ -138,6 +139,7 @@ impl<'de> Deserialize<'de> for CommandDataOption {
                         ChannelId(s.parse().map_err(|_| {
                             DeError::invalid_value(Unexpected::Str(&s), &"channel ID")
                         })?);
+
                     CommandOptionValue::Channel(id)
                 }
                 (CommandOptionType::Role, CommandOptionValueRaw::String(s)) => {
@@ -145,12 +147,14 @@ impl<'de> Deserialize<'de> for CommandDataOption {
                         RoleId(s.parse().map_err(|_| {
                             DeError::invalid_value(Unexpected::Str(&s), &"role ID")
                         })?);
+
                     CommandOptionValue::Role(id)
                 }
                 (CommandOptionType::Mentionable, CommandOptionValueRaw::String(s)) => {
                     let id = GenericId(s.parse().map_err(|_| {
                         DeError::invalid_value(Unexpected::Str(&s), &"snowflake ID")
                     })?);
+
                     CommandOptionValue::Mentionable(id)
                 }
                 (CommandOptionType::SubCommand, _) | (CommandOptionType::SubCommandGroup, _) => {
@@ -170,6 +174,7 @@ impl<'de> Deserialize<'de> for CommandDataOption {
             let options = raw
                 .options
                 .ok_or_else(|| DeError::missing_field("options"))?;
+
             match raw.kind {
                 CommandOptionType::SubCommand => CommandOptionValue::SubCommand(options),
                 CommandOptionType::SubCommandGroup => CommandOptionValue::SubCommandGroup(options),
