@@ -2,6 +2,23 @@
 
 Changelog for `twilight-gateway`.
 
+## [0.6.1] - 2021-08-18
+
+### Enhancements
+
+Bump the `metrics` crate from version 0.14 to >= 0.14, < 0.18
+([#1097] - [@vilgotf]).
+
+Refactor internal shard storage, improving the performance of retrieving
+shards from a cluster ([#1076] - [@vilgotf]).
+
+Remove some unnecessary internal Cluster fields, reducing memory usage
+([#1079] - [@vilgotf]).
+
+[#1097]: https://github.com/twilight-rs/twilight/pull/1097
+[#1079]: https://github.com/twilight-rs/twilight/pull/1079
+[#1076]: https://github.com/twilight-rs/twilight/pull/1076
+
 ## [0.6.0] - 2021-07-31
 
 ### Enhancements
@@ -530,6 +547,7 @@ Initial release.
 [#515]: https://github.com/twilight-rs/twilight/pull/515
 [#512]: https://github.com/twilight-rs/twilight/pull/512
 
+[0.6.1]: https://github.com/twilight-rs/twilight/releases/tag/gateway-0.6.1
 [0.5.5]: https://github.com/twilight-rs/twilight/releases/tag/gateway-0.5.5
 [0.5.4]: https://github.com/twilight-rs/twilight/releases/tag/gateway-0.5.4
 [0.5.3]: https://github.com/twilight-rs/twilight/releases/tag/gateway-0.5.3
