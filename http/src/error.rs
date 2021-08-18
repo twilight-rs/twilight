@@ -4,6 +4,7 @@ use std::{
     error::Error as StdError,
     fmt::{Debug, Display, Formatter, Result as FmtResult},
 };
+use std::str::from_utf8;
 
 #[derive(Debug)]
 pub struct Error {
@@ -52,8 +53,11 @@ impl Display for Error {
             ErrorType::Json => f.write_str("Given value couldn't be serialized"),
             ErrorType::Parsing { body, .. } => {
                 f.write_str("Response body couldn't be deserialized: ")?;
-
-                Debug::fmt(body, f)
+                if let Ok(body) = from_utf8(&body) {
+                    f.write_str(body)
+                } else {
+                    Debug::fmt(body, f)
+                }
             }
             ErrorType::RequestCanceled => {
                 f.write_str("Request was canceled either before or while being sent")
