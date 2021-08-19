@@ -432,6 +432,7 @@ pub struct Number(pub f64);
 
 #[allow(clippy::cast_possible_truncation, clippy::trivially_copy_pass_by_ref)]
 impl Number {
+    /// Canonicalizes internal `f64` to `i64`.
     fn canonicalize(&self) -> i64 {
         (self.0 * 1024.0 * 1024.0).round() as i64
     }
@@ -448,6 +449,12 @@ impl Hash for Number {
 impl PartialEq for Number {
     fn eq(&self, other: &Number) -> bool {
         self.canonicalize() == other.canonicalize()
+    }
+}
+
+impl From<Number> for f64 {
+    fn from(number: Number) -> f64 {
+        number.0
     }
 }
 
