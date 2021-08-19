@@ -67,6 +67,7 @@ struct CommandDataOptionRaw<'a> {
 }
 
 #[derive(Debug, Deserialize, Serialize)]
+#[serde(untagged)]
 enum CommandOptionValueRaw<'a> {
     String(Cow<'a, str>),
     Integer(i64),

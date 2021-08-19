@@ -416,10 +416,6 @@ mod test {
                 Token::U8(CommandOptionType::User as u8),
                 Token::Str("value"),
                 Token::Some,
-                Token::NewtypeVariant {
-                    name: "CommandOptionValueRaw",
-                    variant: "String",
-                },
                 Token::Str("600"),
                 Token::StructEnd,
                 Token::SeqEnd,
