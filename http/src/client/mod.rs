@@ -1554,7 +1554,7 @@ impl Client {
     /// To make a [`GuildPrivateThread`], the guild must also have the
     /// `PRIVATE_THREADS` feature.
     ///
-    /// [`PrivateThread`]: twilight_model::channel::ChannelType::GuildPrivateThread
+    /// [`GuildPrivateThread`]: twilight_model::channel::ChannelType::GuildPrivateThread
     /// [`ThreeDays`]: twilight_model::channel::thread::AutoArchiveDuration::ThreeDays
     /// [`Week`]: twilight_model::channel::thread::AutoArchiveDuration::Week
     pub fn create_thread<'a>(

@@ -190,8 +190,10 @@ pub struct InteractionChannel {
     #[serde(rename = "type")]
     pub kind: ChannelType,
     pub name: String,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub parent_id: Option<ChannelId>,
     pub permissions: Permissions,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub thread_metadata: Option<ThreadMetadata>,
 }
 

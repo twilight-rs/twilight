@@ -94,7 +94,6 @@ impl<'a> UpdateThread<'a> {
         self
     }
 
-
     /// Set whether the thread is locked.
     ///
     /// If the thread is already locked, only users with [`MANAGE_THREADS`] can
