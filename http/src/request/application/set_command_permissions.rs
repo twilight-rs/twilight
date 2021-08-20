@@ -40,7 +40,7 @@ impl Serialize for OptionalCommandPermissions<'_> {
     fn serialize<S: Serializer>(&self, serializer: S) -> Result<S::Ok, S::Error> {
         let mut seq = serializer.serialize_seq(Some(self.amount_present()))?;
 
-        for maybe_value in self.0 {
+        for maybe_value in &self.0 {
             if let Some(value) = maybe_value.as_ref() {
                 seq.serialize_element(value)?;
             } else {
