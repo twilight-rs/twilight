@@ -53,6 +53,7 @@ impl Display for Error {
             ErrorType::Json => f.write_str("Given value couldn't be serialized"),
             ErrorType::Parsing { body, .. } => {
                 f.write_str("Response body couldn't be deserialized: ")?;
+
                 if let Ok(body) = str::from_utf8(body) {
                     f.write_str(body)
                 } else {
