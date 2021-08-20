@@ -1,9 +1,9 @@
 use crate::{api_error::ApiError, json::JsonError, response::StatusCode};
 use hyper::{Body, Response};
-use std::str::from_utf8;
 use std::{
     error::Error as StdError,
     fmt::{Debug, Display, Formatter, Result as FmtResult},
+    str,
 };
 
 #[derive(Debug)]
@@ -53,7 +53,7 @@ impl Display for Error {
             ErrorType::Json => f.write_str("Given value couldn't be serialized"),
             ErrorType::Parsing { body, .. } => {
                 f.write_str("Response body couldn't be deserialized: ")?;
-                if let Ok(body) = from_utf8(body) {
+                if let Ok(body) = str::from_utf8(body) {
                     f.write_str(body)
                 } else {
                     Debug::fmt(body, f)
