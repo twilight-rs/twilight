@@ -144,6 +144,8 @@ pub enum ErrorCode {
     MaximumGuildBansFetchesReached,
     /// Maximum number of stickers reached
     MaximumStickersReached,
+    /// Maximum number of prune requests has been reached. Try again later
+    MaximumPruneRequestsReached,
     /// Unauthorized. Provide a valid token and try again
     Unauthorized,
     /// You need to verify your account in order to perform this action
@@ -321,6 +323,7 @@ impl ErrorCode {
             Self::MaximumNonGuildBansReached => 30035,
             Self::MaximumGuildBansFetchesReached => 30037,
             Self::MaximumStickersReached => 30039,
+            Self::MaximumPruneRequestsReached => 30040,
             Self::Unauthorized => 40001,
             Self::AccountNeedsVerification => 40002,
             Self::OpeningDirectMessageRateLimitReached => 40003,
@@ -447,6 +450,7 @@ impl From<u64> for ErrorCode {
             30035 => Self::MaximumNonGuildBansReached,
             30037 => Self::MaximumGuildBansFetchesReached,
             30039 => Self::MaximumStickersReached,
+            30040 => Self::MaximumPruneRequestsReached,
             40001 => Self::Unauthorized,
             40002 => Self::AccountNeedsVerification,
             40003 => Self::OpeningDirectMessageRateLimitReached,
@@ -573,6 +577,7 @@ impl Display for ErrorCode {
             Self::MaximumNonGuildBansReached => f.write_str("Maximum number of bans for non-guild members have been exceeded"),
             Self::MaximumGuildBansFetchesReached => f.write_str("Maximum number of bans fetches has been reached"),
             Self::MaximumStickersReached => f.write_str("Maximum number of stickers reached"),
+            Self::MaximumPruneRequestsReached => f.write_str("Maximum number of prune requests has been reached. Try again later"),
             Self::Unauthorized => f.write_str("Unauthorized. Provide a valid token and try again"),
             Self::AccountNeedsVerification => f.write_str("You need to verify your account in order to perform this action"),
             Self::OpeningDirectMessageRateLimitReached => f.write_str("You are opening direct messages too fast"),
@@ -941,6 +946,11 @@ mod tests {
             code: ErrorCode::MaximumStickersReached,
             display: "Maximum number of stickers reached",
             num: 30039,
+        });
+        assert_error_code(AssertErrorCode {
+            code: ErrorCode::MaximumPruneRequestsReached,
+            display: "Maximum number of prune requests has been reached. Try again later",
+            num: 30040,
         });
     }
 }
