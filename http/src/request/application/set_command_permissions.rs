@@ -14,12 +14,17 @@ use twilight_model::{
     id::{ApplicationId, CommandId, GuildId},
 };
 
-#[derive(Clone, Copy, Debug, Default)]
+#[derive(Clone, Copy, Debug)]
 struct OptionalCommandPermissions<'a>(
     [Option<&'a CommandPermissions>; InteractionError::GUILD_COMMAND_PERMISSION_LIMIT],
 );
 
 impl OptionalCommandPermissions<'_> {
+    /// Create a new list of command permissions with `None` elements.
+    const fn new() -> Self {
+        Self([None; InteractionError::GUILD_COMMAND_PERMISSION_LIMIT])
+    }
+
     /// Determine the number of elements present.
     ///
     /// If all elements are present then
@@ -66,19 +71,20 @@ struct SortedCommand<'a> {
 }
 
 impl SortedCommand<'_> {
-    // Retrieve the current count as a usize for indexing.
-    const fn count(self) -> usize {
-        self.count as usize
-    }
-}
-
-impl Default for SortedCommand<'_> {
-    fn default() -> Self {
+    /// Create a new default sorted command with no configured permissions.
+    ///
+    /// The ID of the command is `u64::MAX`.
+    const fn new() -> Self {
         Self {
             count: 0,
             id: CommandId(u64::MAX),
-            permissions: OptionalCommandPermissions::default(),
+            permissions: OptionalCommandPermissions::new(),
         }
+    }
+
+    // Retrieve the current count as a usize for indexing.
+    const fn count(self) -> usize {
+        self.count as usize
     }
 }
 
@@ -89,24 +95,34 @@ struct SortedCommands<'a> {
 }
 
 impl<'a> SortedCommands<'a> {
-    pub fn from_pairs(
+    pub const fn from_pairs(
         pairs: &'a [(CommandId, CommandPermissions)],
     ) -> Result<Self, InteractionError> {
-        let mut sorted = [SortedCommand::default(); InteractionError::GUILD_COMMAND_LIMIT];
+        let mut sorted = [SortedCommand::new(); InteractionError::GUILD_COMMAND_LIMIT];
+        let mut outer_idx = 0;
 
-        'outer: for (command_id, permissions) in pairs {
-            for mut sorted_command in &mut sorted {
+        'outer: while outer_idx < pairs.len() {
+            let (command_id, permissions) = &pairs[outer_idx];
+            let mut inner_idx = 0;
+
+            while inner_idx < sorted.len() {
                 // If the sorted command ID is neither the currently iterated
                 // provided command ID nor the maximum value, then we know this
                 // isn't it and can't be used.
-                if sorted_command.id != *command_id && sorted_command.id.0 != u64::MAX {
+                let sorted_id = sorted[inner_idx].id;
+
+                if sorted_id.0 != command_id.0 && sorted_id.0 != u64::MAX {
+                    inner_idx += 1;
+
                     continue;
                 }
 
                 // We've got the right sorted command, but we first need to check
                 // if we've already reached the maximum number of command
                 // permissions allowed.
-                if !validate_inner::guild_command_permissions(sorted_command.count() + 1) {
+                let sorted_count = sorted[inner_idx].count();
+
+                if !validate_inner::guild_command_permissions(sorted_count + 1) {
                     return Err(InteractionError {
                         kind: InteractionErrorType::TooManyCommandPermissions,
                     });
@@ -114,14 +130,16 @@ impl<'a> SortedCommands<'a> {
 
                 // Set the sorted command's ID if it's currently the maximum
                 // value.
-                if sorted_command.id != *command_id {
-                    sorted_command.id = *command_id;
+                if sorted_id.0 != command_id.0 {
+                    sorted[inner_idx].id = *command_id;
                 }
 
                 // And now set the permissions and increment the number of
                 // permissions set.
-                sorted_command.permissions.0[sorted_command.count()] = Some(permissions);
-                sorted_command.count += 1;
+                sorted[inner_idx].permissions.0[sorted_count] = Some(permissions);
+                sorted[inner_idx].count += 1;
+
+                outer_idx += 1;
 
                 continue 'outer;
             }
@@ -157,13 +175,16 @@ pub struct SetCommandPermissions<'a> {
 }
 
 impl<'a> SetCommandPermissions<'a> {
-    pub(crate) fn new(
+    pub(crate) const fn new(
         http: &'a Client,
         application_id: ApplicationId,
         guild_id: GuildId,
         permissions: &'a [(CommandId, CommandPermissions)],
     ) -> Result<Self, InteractionError> {
-        let sorted_permissions = SortedCommands::from_pairs(permissions)?;
+        let sorted_permissions = match SortedCommands::from_pairs(permissions) {
+            Ok(sorted_permissions) => sorted_permissions,
+            Err(source) => return Err(source),
+        };
 
         Ok(Self {
             application_id,
