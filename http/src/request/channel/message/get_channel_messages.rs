@@ -1,7 +1,7 @@
 use super::GetChannelMessagesConfigured;
 use crate::{
     client::Client,
-    request::{validate, Request},
+    request::{validate_inner, Request},
     response::{marker::ListBody, ResponseFuture},
     routing::Route,
 };
@@ -160,7 +160,7 @@ impl<'a> GetChannelMessages<'a> {
     /// Returns a [`GetChannelMessagesErrorType::LimitInvalid`] error type if
     /// the amount is less than 1 or greater than 100.
     pub const fn limit(mut self, limit: u64) -> Result<Self, GetChannelMessagesError> {
-        if !validate::get_channel_messages_limit(limit) {
+        if !validate_inner::get_channel_messages_limit(limit) {
             return Err(GetChannelMessagesError {
                 kind: GetChannelMessagesErrorType::LimitInvalid,
             });

@@ -962,6 +962,7 @@ mod tests {
                 verified: None,
             },
             channel_id: ChannelId::new(1).expect("non zero"),
+            components: Vec::new(),
             content: "test".to_owned(),
             edited_timestamp: None,
             embeds: Vec::new(),

@@ -1,7 +1,7 @@
 use super::RequestReactionType;
 use crate::{
     client::Client,
-    request::{validate, Request},
+    request::{validate_inner, Request},
     response::{marker::ListBody, ResponseFuture},
     routing::Route,
 };
@@ -70,7 +70,7 @@ struct GetReactionsFields {
 /// Get a list of users that reacted to a message with an `emoji`.
 ///
 /// This endpoint is limited to 100 users maximum, so if a message has more than 100 reactions,
-/// requests must be chained until all reactions are retireved.
+/// requests must be chained until all reactions are retrieved.
 #[must_use = "requests must be configured and executed"]
 pub struct GetReactions<'a> {
     channel_id: ChannelId,
@@ -116,7 +116,7 @@ impl<'a> GetReactions<'a> {
     /// Returns a [`GetReactionsErrorType::LimitInvalid`] error type if the
     /// amount is greater than 100.
     pub const fn limit(mut self, limit: u64) -> Result<Self, GetReactionsError> {
-        if !validate::get_reactions_limit(limit) {
+        if !validate_inner::get_reactions_limit(limit) {
             return Err(GetReactionsError {
                 kind: GetReactionsErrorType::LimitInvalid { limit },
             });

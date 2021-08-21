@@ -1,6 +1,6 @@
 use crate::{
     client::Client,
-    request::{validate, Request},
+    request::{validate_inner, Request},
     response::{marker::MemberListBody, ResponseFuture},
     routing::Route,
 };
@@ -125,7 +125,7 @@ impl<'a> SearchGuildMembers<'a> {
     pub const fn limit(mut self, limit: u64) -> Result<Self, SearchGuildMembersError> {
         // Using get_guild_members_limit here as the limits are the same
         // and this endpoint is not officially documented yet.
-        if !validate::search_guild_members_limit(limit) {
+        if !validate_inner::search_guild_members_limit(limit) {
             return Err(SearchGuildMembersError {
                 kind: SearchGuildMembersErrorType::LimitInvalid { limit },
             });

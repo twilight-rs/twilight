@@ -1,6 +1,6 @@
 use crate::{
     client::Client,
-    request::{validate, Request},
+    request::{validate_inner, Request},
     response::{marker::MemberListBody, ResponseFuture},
     routing::Route,
 };
@@ -127,7 +127,7 @@ impl<'a> GetGuildMembers<'a> {
     /// Returns a [`GetGuildMembersErrorType::LimitInvalid`] error type if the
     /// limit is 0 or greater than 1000.
     pub const fn limit(mut self, limit: u64) -> Result<Self, GetGuildMembersError> {
-        if !validate::get_guild_members_limit(limit) {
+        if !validate_inner::get_guild_members_limit(limit) {
             return Err(GetGuildMembersError {
                 kind: GetGuildMembersErrorType::LimitInvalid { limit },
             });

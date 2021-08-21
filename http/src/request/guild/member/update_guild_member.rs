@@ -1,7 +1,7 @@
 use crate::{
     client::Client,
     error::Error as HttpError,
-    request::{self, validate, AuditLogReason, AuditLogReasonError, NullableField, Request},
+    request::{self, validate_inner, AuditLogReason, AuditLogReasonError, NullableField, Request},
     response::{marker::MemberBody, ResponseFuture},
     routing::Route,
 };
@@ -141,7 +141,7 @@ impl<'a> UpdateGuildMember<'a> {
     /// the nickname length is too short or too long.
     pub fn nick(mut self, nick: Option<&'a str>) -> Result<Self, UpdateGuildMemberError> {
         if let Some(nick) = nick {
-            if !validate::nickname(nick) {
+            if !validate_inner::nickname(&nick) {
                 return Err(UpdateGuildMemberError {
                     kind: UpdateGuildMemberErrorType::NicknameInvalid,
                 });

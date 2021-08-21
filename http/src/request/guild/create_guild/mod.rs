@@ -1,6 +1,6 @@
 use crate::{
     client::Client,
-    request::{validate, Request},
+    request::{validate_inner, Request},
     response::ResponseFuture,
     routing::Route,
 };
@@ -222,7 +222,7 @@ pub struct CreateGuild<'a> {
 
 impl<'a> CreateGuild<'a> {
     pub(crate) fn new(http: &'a Client, name: String) -> Result<Self, CreateGuildError> {
-        if !validate::guild_name(&name) {
+        if !validate_inner::guild_name(&name) {
             return Err(CreateGuildError {
                 kind: CreateGuildErrorType::NameInvalid { name },
             });
