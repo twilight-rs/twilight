@@ -328,6 +328,24 @@ impl<T: DeserializeOwned> Response<ListBody<T>> {
     /// Consume the response, chunking the body and then deserializing it into
     /// a list of something.
     ///
+    /// This is an alias for [`models`].
+    ///
+    /// # Errors
+    ///
+    /// Returns a [`DeserializeBodyErrorType::Chunking`] error type if the
+    /// response body could not be entirely read.
+    ///
+    /// Returns a [`DeserializeBodyErrorType::Deserializing`] error type if the
+    /// response body could not be deserialized into a list of something.
+    ///
+    /// [`models`]: Self::models
+    pub fn model(self) -> ModelFuture<Vec<T>> {
+        self.models()
+    }
+
+    /// Consume the response, chunking the body and then deserializing it into
+    /// a list of something.
+    ///
     /// # Errors
     ///
     /// Returns a [`DeserializeBodyErrorType::Chunking`] error type if the
@@ -359,6 +377,24 @@ impl Response<MemberBody> {
 }
 
 impl Response<MemberListBody> {
+    /// Consume the response, chunking the body and then deserializing it into
+    /// a list of members.
+    ///
+    /// This is an alias for [`models`].
+    ///
+    /// # Errors
+    ///
+    /// Returns a [`DeserializeBodyErrorType::Chunking`] error type if the
+    /// response body could not be entirely read.
+    ///
+    /// Returns a [`DeserializeBodyErrorType::Deserializing`] error type if the
+    /// response body could not be deserialized into a list of something.
+    ///
+    /// [`models`]: Self::models
+    pub fn model(self) -> MemberListFuture {
+        self.models()
+    }
+
     /// Consume the response, chunking the body and then deserializing it into
     /// a list of members.
     ///
