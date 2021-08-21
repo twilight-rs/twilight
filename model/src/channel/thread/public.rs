@@ -1,5 +1,5 @@
 use crate::channel::{
-    thread::{ThreadMember, ThreadMetadata},
+    thread::{AutoArchiveDuration, ThreadMember, ThreadMetadata},
     ChannelType,
 };
 use crate::id::{ChannelId, GuildId, MessageId, UserId};
@@ -7,6 +7,8 @@ use serde::{Deserialize, Serialize};
 
 #[derive(Clone, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
 pub struct PublicThread {
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub default_auto_archive_duration: Option<AutoArchiveDuration>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub guild_id: Option<GuildId>,
     pub id: ChannelId,
@@ -40,15 +42,18 @@ mod tests {
     #[test]
     fn test_public_thread() {
         let value = PublicThread {
+            default_auto_archive_duration: Some(AutoArchiveDuration::Hour),
             guild_id: Some(GuildId(2)),
             id: ChannelId(1),
             kind: ChannelType::GuildPublicThread,
             last_message_id: Some(MessageId(5)),
             member: Some(ThreadMember {
-                id: Some(ChannelId(10)),
-                user_id: Some(UserId(11)),
-                join_timestamp: "456".to_owned(),
                 flags: 12,
+                id: Some(ChannelId(10)),
+                join_timestamp: "456".to_owned(),
+                member: None,
+                presence: None,
+                user_id: Some(UserId(11)),
             }),
             member_count: 7,
             message_count: 6,
@@ -60,6 +65,7 @@ mod tests {
                 archived: true,
                 auto_archive_duration: AutoArchiveDuration::Hour,
                 archive_timestamp: "123".to_string(),
+                invitable: None,
                 locked: true,
             },
         };
@@ -69,8 +75,11 @@ mod tests {
             &[
                 Token::Struct {
                     name: "PublicThread",
-                    len: 12,
+                    len: 13,
                 },
+                Token::Str("default_auto_archive_duration"),
+                Token::Some,
+                Token::U16(60),
                 Token::Str("guild_id"),
                 Token::Some,
                 Token::NewtypeStruct { name: "GuildId" },

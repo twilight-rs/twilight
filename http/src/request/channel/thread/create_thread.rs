@@ -15,6 +15,8 @@ use twilight_model::{
 #[derive(Serialize)]
 struct CreateThreadFields<'a> {
     auto_archive_duration: AutoArchiveDuration,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    invitable: Option<bool>,
     #[serde(rename = "type")]
     kind: ChannelType,
     name: &'a str,
@@ -22,9 +24,13 @@ struct CreateThreadFields<'a> {
 
 /// Start a thread that is not connected to a message.
 ///
-/// To use auto archive durations of [`ThreeDays`] or [`Week`], the guild must
-/// be boosted.
+/// Values of [`ThreeDays`] and [`Week`] require the guild to be boosted.  The
+/// guild's features will indicate if a guild is able to use these settings.
 ///
+/// To make a [`GuildPrivateThread`], the guild must also have the
+/// `PRIVATE_THREADS` feature.
+///
+/// [`GuildPrivateThread`]: twilight_model::channel::ChannelType::GuildPrivateThread
 /// [`ThreeDays`]: twilight_model::channel::thread::AutoArchiveDuration::ThreeDays
 /// [`Week`]: twilight_model::channel::thread::AutoArchiveDuration::Week
 #[must_use = "requests must be configured and executed"]
@@ -58,11 +64,19 @@ impl<'a> CreateThread<'a> {
             channel_id,
             fields: CreateThreadFields {
                 auto_archive_duration,
+                invitable: None,
                 kind,
                 name,
             },
             http,
         })
+    }
+
+    /// Whether non-moderators can add other non-moderators to a thread.
+    pub const fn invitable(mut self, invitable: bool) -> Self {
+        self.fields.invitable = Some(invitable);
+
+        self
     }
 
     fn request(&self) -> Result<Request, HttpError> {

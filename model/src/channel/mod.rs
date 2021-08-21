@@ -66,6 +66,7 @@ impl Display for ConversionError {
     }
 }
 
+#[allow(clippy::large_enum_variant)]
 #[derive(Clone, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
 #[serde(untagged)]
 pub enum Channel {
@@ -179,6 +180,7 @@ enum GuildChannelField {
     DefaultAutoArchiveDuration,
     GuildId,
     Id,
+    Invitable,
     LastMessageId,
     LastPinTimestamp,
     Member,
@@ -225,6 +227,7 @@ impl<'de> Visitor<'de> for GuildChannelVisitor {
         let mut default_auto_archive_duration: Option<Option<AutoArchiveDuration>> = None;
         let mut guild_id = None;
         let mut id = None;
+        let mut invitable: Option<Option<bool>> = None;
         let mut kind = None;
         let mut last_message_id: Option<Option<MessageId>> = None;
         let mut last_pin_timestamp: Option<Option<String>> = None;
@@ -296,6 +299,13 @@ impl<'de> Visitor<'de> for GuildChannelVisitor {
                     }
 
                     id = Some(map.next_value()?);
+                }
+                GuildChannelField::Invitable => {
+                    if invitable.is_some() {
+                        return Err(DeError::duplicate_field("invitable"));
+                    }
+
+                    invitable = Some(map.next_value()?);
                 }
                 GuildChannelField::Type => {
                     if kind.is_some() {
@@ -532,6 +542,8 @@ impl<'de> Visitor<'de> for GuildChannelVisitor {
             ChannelType::GuildNewsThread
             | ChannelType::GuildPrivateThread
             | ChannelType::GuildPublicThread => {
+                let default_auto_archive_duration =
+                    default_auto_archive_duration.unwrap_or_default();
                 let last_message_id = last_message_id.unwrap_or_default();
                 let member = member.unwrap_or_default();
                 let member_count = member_count.unwrap_or_default();
@@ -543,6 +555,7 @@ impl<'de> Visitor<'de> for GuildChannelVisitor {
                 match kind {
                     ChannelType::GuildNewsThread => {
                         tracing::trace!(
+                            ?default_auto_archive_duration,
                             ?last_message_id,
                             ?member,
                             ?member_count,
@@ -553,6 +566,7 @@ impl<'de> Visitor<'de> for GuildChannelVisitor {
                         );
 
                         GuildChannel::NewsThread(NewsThread {
+                            default_auto_archive_duration,
                             guild_id,
                             id,
                             kind,
@@ -568,9 +582,12 @@ impl<'de> Visitor<'de> for GuildChannelVisitor {
                         })
                     }
                     ChannelType::GuildPrivateThread => {
+                        let invitable = invitable.unwrap_or_default();
                         let permission_overwrites = permission_overwrites.unwrap_or_default();
 
                         tracing::trace!(
+                            ?default_auto_archive_duration,
+                            ?invitable,
                             ?last_message_id,
                             ?member,
                             ?member_count,
@@ -582,8 +599,10 @@ impl<'de> Visitor<'de> for GuildChannelVisitor {
                         );
 
                         GuildChannel::PrivateThread(PrivateThread {
+                            default_auto_archive_duration,
                             guild_id,
                             id,
+                            invitable,
                             kind,
                             last_message_id,
                             member,
@@ -599,6 +618,7 @@ impl<'de> Visitor<'de> for GuildChannelVisitor {
                     }
                     ChannelType::GuildPublicThread => {
                         tracing::trace!(
+                            ?default_auto_archive_duration,
                             ?last_message_id,
                             ?member,
                             ?member_count,
@@ -609,6 +629,7 @@ impl<'de> Visitor<'de> for GuildChannelVisitor {
                         );
 
                         GuildChannel::PublicThread(PublicThread {
+                            default_auto_archive_duration,
                             guild_id,
                             id,
                             kind,
@@ -1012,6 +1033,7 @@ mod tests {
     #[test]
     fn test_guild_news_thread_deserialization() {
         let value = GuildChannel::NewsThread(NewsThread {
+            default_auto_archive_duration: Some(AutoArchiveDuration::Hour),
             guild_id: Some(GuildId(1)),
             id: ChannelId(6),
             kind: ChannelType::GuildNewsThread,
@@ -1020,6 +1042,8 @@ mod tests {
                 flags: 0_u64,
                 id: Some(ChannelId(4)),
                 join_timestamp: "jointimestamp".into(),
+                member: None,
+                presence: None,
                 user_id: Some(UserId(5)),
             }),
             member_count: 50_u8,
@@ -1032,6 +1056,7 @@ mod tests {
                 archived: false,
                 auto_archive_duration: AutoArchiveDuration::Day,
                 archive_timestamp: "archivetimestamp".into(),
+                invitable: None,
                 locked: false,
             },
         });
@@ -1049,6 +1074,7 @@ mod tests {
                     "join_timestamp": "jointimestamp",
                     "user_id": "5",
                 },
+                "default_auto_archive_duration": 60,
                 "member_count": 50,
                 "message_count": 50,
                 "name": "newsthread",
@@ -1069,6 +1095,7 @@ mod tests {
     #[test]
     fn test_guild_public_thread_deserialization() {
         let value = GuildChannel::PublicThread(PublicThread {
+            default_auto_archive_duration: Some(AutoArchiveDuration::Hour),
             guild_id: Some(GuildId(1)),
             id: ChannelId(6),
             kind: ChannelType::GuildPublicThread,
@@ -1077,6 +1104,8 @@ mod tests {
                 flags: 0_u64,
                 id: Some(ChannelId(4)),
                 join_timestamp: "jointimestamp".into(),
+                member: None,
+                presence: None,
                 user_id: Some(UserId(5)),
             }),
             member_count: 50_u8,
@@ -1089,6 +1118,7 @@ mod tests {
                 archived: false,
                 auto_archive_duration: AutoArchiveDuration::Day,
                 archive_timestamp: "archivetimestamp".into(),
+                invitable: None,
                 locked: false,
             },
         });
@@ -1106,6 +1136,7 @@ mod tests {
                     "join_timestamp": "jointimestamp",
                     "user_id": "5",
                 },
+                "default_auto_archive_duration": 60,
                 "member_count": 50,
                 "message_count": 50,
                 "name": "publicthread",
@@ -1126,14 +1157,18 @@ mod tests {
     #[test]
     fn test_guild_private_thread_deserialization() {
         let value = GuildChannel::PrivateThread(PrivateThread {
+            default_auto_archive_duration: Some(AutoArchiveDuration::Hour),
             guild_id: Some(GuildId(1)),
             id: ChannelId(6),
+            invitable: Some(true),
             kind: ChannelType::GuildPrivateThread,
             last_message_id: Some(MessageId(3)),
             member: Some(ThreadMember {
                 flags: 0_u64,
                 id: Some(ChannelId(4)),
                 join_timestamp: "jointimestamp".into(),
+                member: None,
+                presence: None,
                 user_id: Some(UserId(5)),
             }),
             member_count: 50_u8,
@@ -1141,18 +1176,19 @@ mod tests {
             name: "privatethread".into(),
             owner_id: Some(UserId(5)),
             parent_id: Some(ChannelId(2)),
-            rate_limit_per_user: Some(1000_u64),
-            thread_metadata: ThreadMetadata {
-                archived: false,
-                auto_archive_duration: AutoArchiveDuration::Day,
-                archive_timestamp: "archivetimestamp".into(),
-                locked: false,
-            },
             permission_overwrites: Vec::from([PermissionOverwrite {
                 allow: Permissions::empty(),
                 deny: Permissions::empty(),
                 kind: PermissionOverwriteType::Member(UserId(5)),
             }]),
+            rate_limit_per_user: Some(1000_u64),
+            thread_metadata: ThreadMetadata {
+                archived: false,
+                auto_archive_duration: AutoArchiveDuration::Day,
+                archive_timestamp: "archivetimestamp".into(),
+                invitable: None,
+                locked: false,
+            },
         });
 
         assert_eq!(
@@ -1168,6 +1204,8 @@ mod tests {
                     "join_timestamp": "jointimestamp",
                     "user_id": "5",
                 },
+                "default_auto_archive_duration": 60,
+                "invitable": true,
                 "member_count": 50,
                 "message_count": 50,
                 "name": "privatethread",

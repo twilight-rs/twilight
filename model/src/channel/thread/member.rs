@@ -1,4 +1,8 @@
-use crate::id::{ChannelId, UserId};
+use crate::{
+    gateway::presence::Presence,
+    guild::Member,
+    id::{ChannelId, UserId},
+};
 use serde::{Deserialize, Serialize};
 
 #[derive(Clone, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
@@ -8,6 +12,10 @@ pub struct ThreadMember {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub id: Option<ChannelId>,
     pub join_timestamp: String,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub member: Option<Member>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub presence: Option<Presence>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub user_id: Option<UserId>,
 }
@@ -22,6 +30,8 @@ mod tests {
         let value = ThreadMember {
             flags: 3,
             id: Some(ChannelId(1)),
+            member: None,
+            presence: None,
             join_timestamp: "123".to_string(),
             user_id: Some(UserId(2)),
         };

@@ -1,7 +1,6 @@
 pub mod add_thread_member;
 pub mod create_thread;
 pub mod create_thread_from_message;
-pub mod get_active_threads;
 pub mod get_joined_private_archived_threads;
 pub mod get_private_archived_threads;
 pub mod get_public_archived_threads;
@@ -13,7 +12,7 @@ pub mod update_thread;
 
 pub use self::{
     add_thread_member::AddThreadMember, create_thread::CreateThread,
-    create_thread_from_message::CreateThreadFromMessage, get_active_threads::GetActiveThreads,
+    create_thread_from_message::CreateThreadFromMessage,
     get_joined_private_archived_threads::GetJoinedPrivateArchivedThreads,
     get_private_archived_threads::GetPrivateArchivedThreads,
     get_public_archived_threads::GetPublicArchivedThreads, get_thread_members::GetThreadMembers,

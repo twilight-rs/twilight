@@ -1,5 +1,5 @@
 use crate::{
-    channel::ChannelType,
+    channel::{thread::ThreadMetadata, ChannelType},
     guild::{Permissions, Role},
     id::{ChannelId, RoleId, UserId},
     user::User,
@@ -190,7 +190,11 @@ pub struct InteractionChannel {
     #[serde(rename = "type")]
     pub kind: ChannelType,
     pub name: String,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub parent_id: Option<ChannelId>,
     pub permissions: Permissions,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub thread_metadata: Option<ThreadMetadata>,
 }
 
 #[derive(Clone, Debug, Eq, PartialEq, Serialize)]
@@ -239,7 +243,9 @@ mod tests {
                 id: ChannelId(100),
                 kind: ChannelType::GuildText,
                 name: "channel name".into(),
+                parent_id: None,
                 permissions: Permissions::empty(),
+                thread_metadata: None,
             }],
             members: vec![InteractionMember {
                 hoisted_role: None,
