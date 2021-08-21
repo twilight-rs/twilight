@@ -1,6 +1,6 @@
 use crate::{
     client::Client,
-    request::{validate, Request},
+    request::{validate_inner, Request},
     response::{marker::EmptyBody, ResponseFuture},
     routing::Route,
 };
@@ -104,7 +104,7 @@ impl<'a> UpdateStageInstance<'a> {
 
     /// Set the new topic of the instance.
     pub fn topic(mut self, topic: &'a str) -> Result<Self, UpdateStageInstanceError> {
-        if !validate::stage_topic(&topic) {
+        if !validate_inner::stage_topic(&topic) {
             return Err(UpdateStageInstanceError {
                 kind: UpdateStageInstanceErrorType::InvalidTopic,
                 source: None,

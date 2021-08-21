@@ -3,7 +3,7 @@ use crate::{
     error::Error,
     request::{
         application::{InteractionError, InteractionErrorType},
-        validate, Request, RequestBuilder,
+        validate_inner, Request, RequestBuilder,
     },
     response::ResponseFuture,
     routing::Route,
@@ -53,6 +53,10 @@ impl Serialize for OptionalCommandPermissions<'_> {
         seq.end()
     }
 }
+
+/// A sorted command's permissions.
+///
+/// Used in combination with [`SortedCommands`].
 #[derive(Clone, Copy, Debug, Serialize)]
 struct SortedCommand<'a> {
     #[serde(skip_serializing)]
@@ -78,6 +82,7 @@ impl Default for SortedCommand<'_> {
     }
 }
 
+/// Sorted list of commands and their permissions.
 #[derive(Debug)]
 struct SortedCommands<'a> {
     inner: [SortedCommand<'a>; InteractionError::GUILD_COMMAND_LIMIT],
@@ -101,7 +106,7 @@ impl<'a> SortedCommands<'a> {
                 // We've got the right sorted command, but we first need to check
                 // if we've already reached the maximum number of command
                 // permissions allowed.
-                if !validate::guild_command_permissions(sorted_command.count() + 1) {
+                if !validate_inner::guild_command_permissions(sorted_command.count() + 1) {
                     return Err(InteractionError {
                         kind: InteractionErrorType::TooManyCommandPermissions,
                     });

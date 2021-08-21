@@ -2,7 +2,7 @@ use super::{CommandBorrowed, InteractionError, InteractionErrorType};
 use crate::{
     client::Client,
     error::Error as HttpError,
-    request::{validate, Request, RequestBuilder},
+    request::{validate_inner, Request, RequestBuilder},
     response::ResponseFuture,
     routing::Route,
 };
@@ -15,7 +15,7 @@ use twilight_model::{
 ///
 /// The name must be between 3 and 32 characters in length, and the description
 /// must be between 1 and 100 characters in length. Creating a command with the
-/// same name as an already-existing global command will overwwrite the old
+/// same name as an already-existing global command will overwrite the old
 /// command. See [the discord docs] for more information.
 ///
 /// [the discord docs]: https://discord.com/developers/docs/interactions/slash-commands#create-global-application-command
@@ -36,13 +36,13 @@ impl<'a> CreateGlobalCommand<'a> {
         name: &'a str,
         description: &'a str,
     ) -> Result<Self, InteractionError> {
-        if !validate::command_name(name) {
+        if !validate_inner::command_name(name) {
             return Err(InteractionError {
                 kind: InteractionErrorType::CommandNameValidationFailed,
             });
         }
 
-        if !validate::command_description(description) {
+        if !validate_inner::command_description(&description) {
             return Err(InteractionError {
                 kind: InteractionErrorType::CommandDescriptionValidationFailed,
             });
