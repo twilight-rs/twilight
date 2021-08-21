@@ -3,6 +3,7 @@ use hyper::{Body, Response};
 use std::{
     error::Error as StdError,
     fmt::{Debug, Display, Formatter, Result as FmtResult},
+    str,
 };
 
 #[derive(Debug)]
@@ -53,7 +54,11 @@ impl Display for Error {
             ErrorType::Parsing { body, .. } => {
                 f.write_str("Response body couldn't be deserialized: ")?;
 
-                Debug::fmt(body, f)
+                if let Ok(body) = str::from_utf8(body) {
+                    f.write_str(body)
+                } else {
+                    Debug::fmt(body, f)
+                }
             }
             ErrorType::RequestCanceled => {
                 f.write_str("Request was canceled either before or while being sent")
