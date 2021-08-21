@@ -47,7 +47,7 @@ impl CommandOption {
 
     pub const fn is_required(&self) -> bool {
         match self {
-            CommandOption::SubCommand(data) | CommandOption::SubCommandGroup(data) => data.required,
+            CommandOption::SubCommand(_) | CommandOption::SubCommandGroup(_) => false,
             CommandOption::String(data) | CommandOption::Integer(data) => data.required,
             CommandOption::Boolean(data)
             | CommandOption::User(data)
@@ -86,7 +86,7 @@ impl Serialize for CommandOption {
                 description: data.description.as_ref(),
                 name: data.name.as_ref(),
                 options: Some(data.options.as_ref()),
-                required: data.required,
+                required: false,
                 kind: self.kind(),
             },
             Self::String(data) | Self::Integer(data) => CommandOptionEnvelope {
@@ -234,7 +234,6 @@ impl<'de> Visitor<'de> for OptionVisitor {
                     description,
                     name,
                     options,
-                    required,
                 })
             }
             CommandOptionType::SubCommandGroup => {
@@ -244,7 +243,6 @@ impl<'de> Visitor<'de> for OptionVisitor {
                     description,
                     name,
                     options,
-                    required,
                 })
             }
             CommandOptionType::String => CommandOption::String(ChoiceCommandOptionData {
@@ -325,9 +323,6 @@ pub struct OptionsCommandOptionData {
     /// [`SubCommandGroup`]: CommandOptionType::SubCommandGroup
     #[serde(default)]
     pub options: Vec<CommandOption>,
-    /// Whether the option is required to be completed by a user.
-    #[serde(default)]
-    pub required: bool,
 }
 
 /// Data supplied to a [`CommandOption`] of type [`String`] or [`Integer`].
@@ -417,7 +412,6 @@ mod tests {
             description: "ponyville".to_owned(),
             name: "equestria".to_owned(),
             options: Vec::new(),
-            required: false,
         });
 
         serde_test::assert_de_tokens(
@@ -508,9 +502,7 @@ mod tests {
                             required: false,
                         }),
                     ],
-                    required: false,
                 })],
-                required: true,
             })],
         };
 
@@ -548,7 +540,7 @@ mod tests {
                 Token::Seq { len: Some(1) },
                 Token::Struct {
                     name: "CommandOptionEnvelope",
-                    len: 5,
+                    len: 4,
                 },
                 Token::Str("description"),
                 Token::Str("sub group desc"),
@@ -691,8 +683,6 @@ mod tests {
                 Token::U8(1),
                 Token::StructEnd,
                 Token::SeqEnd,
-                Token::Str("required"),
-                Token::Bool(true),
                 Token::Str("type"),
                 Token::U8(2),
                 Token::StructEnd,
