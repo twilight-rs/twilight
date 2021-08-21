@@ -1,6 +1,6 @@
 use crate::{
     client::Client,
-    request::{validate, Request},
+    request::{validate_inner, Request},
     response::{marker::EmptyBody, ResponseFuture},
     routing::Route,
 };
@@ -88,7 +88,7 @@ impl<'a> CreateStageInstance<'a> {
         channel_id: ChannelId,
         topic: &'a str,
     ) -> Result<Self, CreateStageInstanceError> {
-        if !validate::stage_topic(topic) {
+        if !validate_inner::stage_topic(topic) {
             return Err(CreateStageInstanceError {
                 kind: CreateStageInstanceErrorType::InvalidTopic,
                 source: None,

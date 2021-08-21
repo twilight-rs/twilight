@@ -3,7 +3,11 @@
 use crate::{
     client::Client,
     error::Error as HttpError,
-    request::{self, validate, Form, NullableField, Request},
+    request::{
+        self,
+        validate_inner::{self, ComponentValidationError, ComponentValidationErrorType},
+        Form, NullableField, Request,
+    },
     response::ResponseFuture,
     routing::Route,
 };
@@ -13,6 +17,7 @@ use std::{
     fmt::{Display, Formatter, Result as FmtResult},
 };
 use twilight_model::{
+    application::component::Component,
     channel::{embed::Embed, message::AllowedMentions, Attachment, Message},
     id::ApplicationId,
 };
@@ -52,6 +57,16 @@ impl UpdateOriginalResponseError {
 impl Display for UpdateOriginalResponseError {
     fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
         match &self.kind {
+            UpdateOriginalResponseErrorType::ComponentCount { count } => {
+                Display::fmt(count, f)?;
+                f.write_str(" components were provided, but only ")?;
+                Display::fmt(&ComponentValidationError::COMPONENT_COUNT, f)?;
+
+                f.write_str(" root components are allowed")
+            }
+            UpdateOriginalResponseErrorType::ComponentInvalid { .. } => {
+                f.write_str("a provided component is invalid")
+            }
             UpdateOriginalResponseErrorType::ContentInvalid => {
                 f.write_str("message content is invalid")
             }
@@ -77,6 +92,16 @@ impl Error for UpdateOriginalResponseError {
 #[derive(Debug)]
 #[non_exhaustive]
 pub enum UpdateOriginalResponseErrorType {
+    /// An invalid message component was provided.
+    ComponentInvalid {
+        /// Additional details about the validation failure type.
+        kind: ComponentValidationErrorType,
+    },
+    /// Too many message components were provided.
+    ComponentCount {
+        /// Number of components that were provided.
+        count: usize,
+    },
     /// Content is over 2000 UTF-16 characters.
     ContentInvalid,
     /// Length of one of the embeds is over 6000 characters.
@@ -99,6 +124,8 @@ struct UpdateOriginalResponseFields<'a> {
     allowed_mentions: Option<AllowedMentions>,
     #[serde(skip_serializing_if = "request::slice_is_empty")]
     attachments: &'a [Attachment],
+    #[serde(skip_serializing_if = "Option::is_none")]
+    components: Option<NullableField<&'a [Component]>>,
     #[serde(skip_serializing_if = "Option::is_none")]
     content: Option<NullableField<&'a str>>,
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -166,6 +193,7 @@ impl<'a> UpdateOriginalResponse<'a> {
             fields: UpdateOriginalResponseFields {
                 allowed_mentions: None,
                 attachments: &[],
+                components: None,
                 content: None,
                 embeds: None,
                 payload_json: None,
@@ -193,6 +221,47 @@ impl<'a> UpdateOriginalResponse<'a> {
         self
     }
 
+    /// Add multiple [`Component`]s to a message.
+    ///
+    /// Calling this method multiple times will clear previous calls.
+    ///
+    /// Pass `None` to clear existing components.
+    ///
+    /// # Errors
+    ///
+    /// Returns an [`UpdateOriginalResponseErrorType::ComponentInvalid`] error
+    /// type if one of the provided components is invalid.
+    ///
+    /// Returns an [`UpdateOriginalResponseErrorType::ComponentCount`] error
+    /// type if too many components are provided.
+    pub fn components(
+        mut self,
+        components: Option<&'a [Component]>,
+    ) -> Result<Self, UpdateOriginalResponseError> {
+        if let Some(components) = components.as_ref() {
+            validate_inner::components(components).map_err(|source| {
+                let (kind, inner_source) = source.into_parts();
+
+                match kind {
+                    ComponentValidationErrorType::ComponentCount { count } => {
+                        UpdateOriginalResponseError {
+                            kind: UpdateOriginalResponseErrorType::ComponentCount { count },
+                            source: inner_source,
+                        }
+                    }
+                    other => UpdateOriginalResponseError {
+                        kind: UpdateOriginalResponseErrorType::ComponentInvalid { kind: other },
+                        source: inner_source,
+                    },
+                }
+            })?;
+        }
+
+        self.fields.components = Some(NullableField(components));
+
+        Ok(self)
+    }
+
     /// Set the content of the message.
     ///
     /// Pass `None` if you want to remove the message content.
@@ -211,7 +280,7 @@ impl<'a> UpdateOriginalResponse<'a> {
         content: Option<&'a str>,
     ) -> Result<Self, UpdateOriginalResponseError> {
         if let Some(content_ref) = content {
-            if !validate::content_limit(content_ref) {
+            if !validate_inner::content_limit(content_ref) {
                 return Err(UpdateOriginalResponseError {
                     kind: UpdateOriginalResponseErrorType::ContentInvalid,
                     source: None,
@@ -288,7 +357,7 @@ impl<'a> UpdateOriginalResponse<'a> {
             }
 
             for (idx, embed) in embeds_present.iter().enumerate() {
-                if let Err(source) = validate::embed(embed) {
+                if let Err(source) = validate_inner::embed(embed) {
                     return Err(UpdateOriginalResponseError {
                         kind: UpdateOriginalResponseErrorType::EmbedTooLarge { index: idx },
                         source: Some(Box::new(source)),

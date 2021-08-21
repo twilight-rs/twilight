@@ -1,6 +1,6 @@
 use crate::{
     client::Client,
-    request::{self, validate, AuditLogReason, AuditLogReasonError, NullableField, Request},
+    request::{self, validate_inner, AuditLogReason, AuditLogReasonError, NullableField, Request},
     response::ResponseFuture,
     routing::Route,
 };
@@ -231,7 +231,7 @@ impl<'a> UpdateGuild<'a> {
     /// Returns an [`UpdateGuildErrorType::NameInvalid`] error type if the name
     /// length is too short or too long.
     pub fn name(mut self, name: &'a str) -> Result<Self, UpdateGuildError> {
-        if !validate::guild_name(name) {
+        if !validate_inner::guild_name(name) {
             return Err(UpdateGuildError {
                 kind: UpdateGuildErrorType::NameInvalid,
             });
