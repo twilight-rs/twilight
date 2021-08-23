@@ -37,6 +37,8 @@ mod tests {
     fn test_member_update() {
         let value = MemberUpdate {
             user: User {
+                accent_color: None,
+                banner: None,
                 name: "Twilight Sparkle".to_string(),
                 public_flags: None,
                 id: 424_242.into(),
@@ -92,11 +94,15 @@ mod tests {
                 Token::Str("user"),
                 Token::Struct {
                     name: "User",
-                    len: 5,
+                    len: 7,
                 },
+                Token::Str("accent_color"),
+                Token::None,
                 Token::Str("avatar"),
                 Token::Some,
                 Token::Str("cool image"),
+                Token::Str("banner"),
+                Token::None,
                 Token::Str("bot"),
                 Token::Bool(false),
                 Token::Str("discriminator"),

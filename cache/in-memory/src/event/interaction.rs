@@ -100,7 +100,9 @@ mod tests {
                             tags: None,
                         }],
                         users: vec![User {
+                            accent_color: None,
                             avatar: Some("different avatar".into()),
+                            banner: None,
                             bot: false,
                             discriminator: "5678".into(),
                             email: None,
@@ -128,7 +130,9 @@ mod tests {
                     premium_since: None,
                     roles: Vec::new(),
                     user: Some(User {
+                        accent_color: None,
                         avatar: Some("avatar string".into()),
+                        banner: None,
                         bot: false,
                         discriminator: "1234".into(),
                         email: None,

@@ -947,7 +947,9 @@ mod tests {
             application_id: None,
             attachments: Vec::new(),
             author: User {
+                accent_color: None,
                 avatar: None,
+                banner: None,
                 bot: false,
                 discriminator: "0001".to_owned(),
                 email: None,
@@ -1071,7 +1073,9 @@ mod tests {
             session_id: String::new(),
             shard: Some([5, 7]),
             user: CurrentUser {
+                accent_color: None,
                 avatar: None,
+                banner: None,
                 bot: false,
                 discriminator: "0001".to_owned(),
                 email: None,

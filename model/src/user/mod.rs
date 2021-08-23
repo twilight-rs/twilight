@@ -51,7 +51,21 @@ pub(crate) mod discriminator {
 
 #[derive(Clone, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
 pub struct User {
+    /// Accent color of the user's banner.
+    ///
+    /// This is an integer representation of a hexadecimal color code.
+    ///
+    /// This is exclusive with [`banner`].
+    ///
+    /// [`banner`]: Self::banner
+    pub accent_color: Option<u64>,
     pub avatar: Option<String>,
+    /// Hash of the user's banner image.
+    ///
+    /// This is exclusive with [`accent_color`].
+    ///
+    /// [`accent_color`]: Self::accent_color
+    pub banner: Option<String>,
     #[serde(default)]
     pub bot: bool,
     /// Discriminator used to differentiate people with the same username.
@@ -93,11 +107,16 @@ mod tests {
         vec![
             Token::Struct {
                 name: "User",
-                len: 12,
+                len: 14,
             },
+            Token::Str("accent_color"),
+            Token::None,
             Token::Str("avatar"),
             Token::Some,
             Token::Str("aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"),
+            Token::Str("banner"),
+            Token::Some,
+            Token::Str("06c16474723fe537c283b8efa61a30c8"),
             Token::Str("bot"),
             Token::Bool(false),
             Token::Str("discriminator"),
@@ -136,11 +155,16 @@ mod tests {
         vec![
             Token::Struct {
                 name: "User",
-                len: 13,
+                len: 15,
             },
+            Token::Str("accent_color"),
+            Token::None,
             Token::Str("avatar"),
             Token::Some,
             Token::Str("aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"),
+            Token::Str("banner"),
+            Token::Some,
+            Token::Str("06c16474723fe537c283b8efa61a30c8"),
             Token::Str("bot"),
             Token::Bool(false),
             Token::Str("discriminator"),
@@ -181,7 +205,9 @@ mod tests {
     #[test]
     fn test_user() {
         let value = User {
+            accent_color: None,
             avatar: Some("aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa".to_owned()),
+            banner: Some("06c16474723fe537c283b8efa61a30c8".to_owned()),
             bot: false,
             discriminator: "0001".to_owned(),
             email: Some("address@example.com".to_owned()),
@@ -209,7 +235,9 @@ mod tests {
     #[test]
     fn test_user_complete() {
         let value = User {
+            accent_color: None,
             avatar: Some("aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa".to_owned()),
+            banner: Some("06c16474723fe537c283b8efa61a30c8".to_owned()),
             bot: false,
             discriminator: "0001".to_owned(),
             email: Some("address@example.com".to_owned()),
