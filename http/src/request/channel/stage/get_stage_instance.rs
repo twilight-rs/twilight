@@ -2,6 +2,7 @@ use crate::{client::Client, request::Request, response::ResponseFuture, routing:
 use twilight_model::{channel::StageInstance, id::ChannelId};
 
 /// Gets the stage instance associated with a stage channel, if it exists.
+#[must_use = "requests must be configured and executed"]
 pub struct GetStageInstance<'a> {
     channel_id: ChannelId,
     http: &'a Client,

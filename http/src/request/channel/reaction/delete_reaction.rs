@@ -16,6 +16,7 @@ pub(crate) enum TargetUser {
 }
 
 /// Delete one reaction by a user on a message.
+#[must_use = "requests must be configured and executed"]
 pub struct DeleteReaction<'a> {
     channel_id: ChannelId,
     emoji: &'a RequestReactionType<'a>,

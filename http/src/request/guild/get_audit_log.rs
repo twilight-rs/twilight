@@ -96,6 +96,7 @@ struct GetAuditLogFields {
 /// }
 /// # Ok(()) }
 /// ```
+#[must_use = "requests must be configured and executed"]
 pub struct GetAuditLog<'a> {
     fields: GetAuditLogFields,
     guild_id: GuildId,

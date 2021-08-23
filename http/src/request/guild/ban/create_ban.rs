@@ -87,6 +87,7 @@ struct CreateBanFields<'a> {
 ///     .await?;
 /// # Ok(()) }
 /// ```
+#[must_use = "requests must be configured and executed"]
 pub struct CreateBan<'a> {
     fields: CreateBanFields<'a>,
     guild_id: GuildId,

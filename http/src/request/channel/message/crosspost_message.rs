@@ -5,6 +5,7 @@ use twilight_model::{
 };
 
 /// Crosspost a message by [`ChannelId`] and [`MessageId`].
+#[must_use = "requests must be configured and executed"]
 pub struct CrosspostMessage<'a> {
     channel_id: ChannelId,
     http: &'a Client,

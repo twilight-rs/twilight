@@ -19,6 +19,7 @@ struct UpdateGuildWidgetFields {
 }
 
 /// Modify the guild widget.
+#[must_use = "requests must be configured and executed"]
 pub struct UpdateGuildWidget<'a> {
     fields: UpdateGuildWidgetFields,
     guild_id: GuildId,

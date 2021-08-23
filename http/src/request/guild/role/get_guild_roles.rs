@@ -7,6 +7,7 @@ use crate::{
 use twilight_model::{guild::Role, id::GuildId};
 
 /// Get the roles of a guild.
+#[must_use = "requests must be configured and executed"]
 pub struct GetGuildRoles<'a> {
     guild_id: GuildId,
     http: &'a Client,

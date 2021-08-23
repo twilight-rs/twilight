@@ -7,6 +7,7 @@ use crate::{
 use twilight_model::id::ChannelId;
 
 /// Fire a Typing Start event in the channel.
+#[must_use = "requests must be configured and executed"]
 pub struct CreateTypingTrigger<'a> {
     channel_id: ChannelId,
     http: &'a Client,

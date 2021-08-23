@@ -7,6 +7,7 @@ use crate::{
 use twilight_model::id::{GuildId, RoleId, UserId};
 
 /// Remove a role from a member in a guild, by id.
+#[must_use = "requests must be configured and executed"]
 pub struct RemoveRoleFromMember<'a> {
     guild_id: GuildId,
     http: &'a Client,

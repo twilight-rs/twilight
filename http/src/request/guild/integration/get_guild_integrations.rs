@@ -7,6 +7,7 @@ use crate::{
 use twilight_model::{guild::GuildIntegration, id::GuildId};
 
 /// Get the guild's integrations.
+#[must_use = "requests must be configured and executed"]
 pub struct GetGuildIntegrations<'a> {
     guild_id: GuildId,
     http: &'a Client,

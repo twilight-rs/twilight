@@ -77,6 +77,7 @@ struct AddGuildMemberFields<'a> {
     pub roles: Option<&'a [RoleId]>,
 }
 
+#[must_use = "requests must be configured and executed"]
 pub struct AddGuildMember<'a> {
     fields: AddGuildMemberFields<'a>,
     guild_id: GuildId,

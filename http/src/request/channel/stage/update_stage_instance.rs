@@ -76,6 +76,7 @@ struct UpdateStageInstanceFields<'a> {
 /// Update fields of an existing stage instance.
 ///
 /// Requires the user to be a moderator of the stage channel.
+#[must_use = "requests must be configured and executed"]
 pub struct UpdateStageInstance<'a> {
     channel_id: ChannelId,
     fields: UpdateStageInstanceFields<'a>,

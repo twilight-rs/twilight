@@ -32,6 +32,7 @@ use twilight_model::{
 ///     .await?;
 /// # Ok(()) }
 /// ```
+#[must_use = "requests must be configured and executed"]
 pub struct UpdateChannelPermission<'a> {
     allow: Permissions,
     channel_id: ChannelId,

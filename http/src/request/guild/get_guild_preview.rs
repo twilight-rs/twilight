@@ -4,6 +4,7 @@ use twilight_model::{guild::GuildPreview, id::GuildId};
 /// For public guilds, get the guild preview.
 ///
 /// This works even if the user is not in the guild.
+#[must_use = "requests must be configured and executed"]
 pub struct GetGuildPreview<'a> {
     guild_id: GuildId,
     http: &'a Client,

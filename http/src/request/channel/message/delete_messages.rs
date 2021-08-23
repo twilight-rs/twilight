@@ -20,6 +20,7 @@ struct DeleteMessagesFields<'a> {
 /// [the discord docs] for more information.
 ///
 /// [the discord docs]: https://discord.com/developers/docs/resources/channel#bulk-delete-messages
+#[must_use = "requests must be configured and executed"]
 pub struct DeleteMessages<'a> {
     channel_id: ChannelId,
     fields: DeleteMessagesFields<'a>,

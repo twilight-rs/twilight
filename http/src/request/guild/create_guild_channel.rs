@@ -103,6 +103,7 @@ struct CreateGuildChannelFields<'a> {
 ///
 /// All fields are optional except for name. The minimum length of the name is 1
 /// UTF-16 characters and the maximum is 100 UTF-16 characters.
+#[must_use = "requests must be configured and executed"]
 pub struct CreateGuildChannel<'a> {
     fields: CreateGuildChannelFields<'a>,
     guild_id: GuildId,

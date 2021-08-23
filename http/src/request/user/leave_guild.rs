@@ -7,6 +7,7 @@ use crate::{
 use twilight_model::id::GuildId;
 
 /// Leave a guild by id.
+#[must_use = "requests must be configured and executed"]
 pub struct LeaveGuild<'a> {
     guild_id: GuildId,
     http: &'a Client,

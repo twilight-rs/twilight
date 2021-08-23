@@ -2,6 +2,7 @@ use crate::{client::Client, request::Request, response::ResponseFuture, routing:
 use twilight_model::{id::UserId, user::User};
 
 /// Get a user's information by id.
+#[must_use = "requests must be configured and executed"]
 pub struct GetUser<'a> {
     http: &'a Client,
     user_id: UserId,

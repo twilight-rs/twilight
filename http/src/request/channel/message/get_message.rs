@@ -5,6 +5,7 @@ use twilight_model::{
 };
 
 /// Get a message by [`ChannelId`] and [`MessageId`].
+#[must_use = "requests must be configured and executed"]
 pub struct GetMessage<'a> {
     channel_id: ChannelId,
     http: &'a Client,

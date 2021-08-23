@@ -143,6 +143,7 @@ struct UpdateOriginalResponseFields<'a> {
 /// ```
 ///
 /// [`DeleteOriginalResponse`]: super::DeleteOriginalResponse
+#[must_use = "requests must be configured and executed"]
 pub struct UpdateOriginalResponse<'a> {
     application_id: ApplicationId,
     fields: UpdateOriginalResponseFields<'a>,

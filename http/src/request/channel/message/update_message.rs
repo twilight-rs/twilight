@@ -146,6 +146,7 @@ struct UpdateMessageFields<'a> {
 ///     .await?;
 /// # Ok(()) }
 /// ```
+#[must_use = "requests must be configured and executed"]
 pub struct UpdateMessage<'a> {
     channel_id: ChannelId,
     fields: UpdateMessageFields<'a>,

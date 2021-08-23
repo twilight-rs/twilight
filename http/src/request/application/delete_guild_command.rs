@@ -7,6 +7,7 @@ use crate::{
 use twilight_model::id::{ApplicationId, CommandId, GuildId};
 
 /// Delete a command in a guild, by ID.
+#[must_use = "requests must be configured and executed"]
 pub struct DeleteGuildCommand<'a> {
     application_id: ApplicationId,
     command_id: CommandId,

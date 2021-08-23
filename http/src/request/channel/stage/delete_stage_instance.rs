@@ -9,6 +9,7 @@ use twilight_model::id::ChannelId;
 /// Delete the stage instance of a stage channel.
 ///
 /// Requires the user to be a moderator of the stage channel.
+#[must_use = "requests must be configured and executed"]
 pub struct DeleteStageInstance<'a> {
     channel_id: ChannelId,
     http: &'a Client,

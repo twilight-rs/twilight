@@ -8,7 +8,6 @@ use hyper::{
     body::Bytes, client::ResponseFuture as HyperResponseFuture, StatusCode as HyperStatusCode,
 };
 use std::{
-    convert::TryFrom,
     future::Future,
     marker::PhantomData,
     mem,
@@ -142,7 +141,12 @@ impl InFlight {
         }
 
         if let Some(tx) = self.tx {
-            match RatelimitHeaders::try_from(resp.headers()) {
+            let headers = resp
+                .headers()
+                .iter()
+                .map(|(key, value)| (key.as_str(), value.as_bytes()));
+
+            match RatelimitHeaders::from_pairs(headers) {
                 Ok(v) => {
                     let _res = tx.send(Some(v));
                 }

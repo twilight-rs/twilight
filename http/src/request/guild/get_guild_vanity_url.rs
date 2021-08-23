@@ -2,6 +2,7 @@ use crate::{client::Client, request::Request, response::ResponseFuture, routing:
 use twilight_model::{guild::VanityUrl, id::GuildId};
 
 /// Get a guild's vanity url, if there is one.
+#[must_use = "requests must be configured and executed"]
 pub struct GetGuildVanityUrl<'a> {
     guild_id: GuildId,
     http: &'a Client,

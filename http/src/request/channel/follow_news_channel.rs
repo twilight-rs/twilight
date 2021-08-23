@@ -8,6 +8,7 @@ struct FollowNewsChannelFields {
 }
 
 /// Follow a news channel by [`ChannelId`]s.
+#[must_use = "requests must be configured and executed"]
 pub struct FollowNewsChannel<'a> {
     channel_id: ChannelId,
     fields: FollowNewsChannelFields,

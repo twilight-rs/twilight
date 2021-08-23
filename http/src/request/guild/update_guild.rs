@@ -106,6 +106,7 @@ struct UpdateGuildFields<'a> {
 /// All endpoints are optional. Refer to [the discord docs] for more information.
 ///
 /// [the discord docs]: https://discord.com/developers/docs/resources/guild#modify-guild
+#[must_use = "requests must be configured and executed"]
 pub struct UpdateGuild<'a> {
     fields: UpdateGuildFields<'a>,
     guild_id: GuildId,

@@ -2,6 +2,7 @@ use crate::{client::Client, request::Request, response::ResponseFuture, routing:
 use twilight_model::{id::GuildId, invite::WelcomeScreen};
 
 /// Get the guild's welcome screen.
+#[must_use = "requests must be configured and executed"]
 pub struct GetGuildWelcomeScreen<'a> {
     guild_id: GuildId,
     http: &'a Client,

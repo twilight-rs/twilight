@@ -21,6 +21,7 @@ struct UpdateWebhookFields<'a> {
 }
 
 /// Update a webhook by ID.
+#[must_use = "requests must be configured and executed"]
 pub struct UpdateWebhook<'a> {
     fields: UpdateWebhookFields<'a>,
     http: &'a Client,

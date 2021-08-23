@@ -23,6 +23,7 @@ use twilight_model::id::{ApplicationId, MessageId};
 ///     .await?;
 /// # Ok(()) }
 /// ```
+#[must_use = "requests must be configured and executed"]
 pub struct DeleteFollowupMessage<'a> {
     http: &'a Client,
     message_id: MessageId,

@@ -25,6 +25,7 @@ struct UpdateRoleFields<'a> {
 }
 
 /// Update a role by guild id and its id.
+#[must_use = "requests must be configured and executed"]
 pub struct UpdateRole<'a> {
     fields: UpdateRoleFields<'a>,
     guild_id: GuildId,

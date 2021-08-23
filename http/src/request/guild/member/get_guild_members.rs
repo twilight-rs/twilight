@@ -91,6 +91,7 @@ struct GetGuildMembersFields {
 /// let members = client.guild_members(guild_id).after(user_id).exec().await?;
 /// # Ok(()) }
 /// ```
+#[must_use = "requests must be configured and executed"]
 pub struct GetGuildMembers<'a> {
     fields: GetGuildMembersFields,
     guild_id: GuildId,

@@ -7,6 +7,7 @@ use crate::{
 use twilight_model::id::GuildId;
 
 /// Delete a template by ID and code.
+#[must_use = "requests must be configured and executed"]
 pub struct DeleteTemplate<'a> {
     guild_id: GuildId,
     http: &'a Client,

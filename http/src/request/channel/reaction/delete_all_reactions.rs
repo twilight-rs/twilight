@@ -7,6 +7,7 @@ use crate::{
 use twilight_model::id::{ChannelId, MessageId};
 
 /// Delete all reactions by all users on a message.
+#[must_use = "requests must be configured and executed"]
 pub struct DeleteAllReactions<'a> {
     channel_id: ChannelId,
     http: &'a Client,

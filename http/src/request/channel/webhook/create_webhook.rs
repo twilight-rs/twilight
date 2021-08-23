@@ -33,6 +33,7 @@ struct CreateWebhookFields<'a> {
 ///     .await?;
 /// # Ok(()) }
 /// ```
+#[must_use = "requests must be configured and executed"]
 pub struct CreateWebhook<'a> {
     channel_id: ChannelId,
     fields: CreateWebhookFields<'a>,

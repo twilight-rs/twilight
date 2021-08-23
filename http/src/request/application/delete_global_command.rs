@@ -7,6 +7,7 @@ use crate::{
 use twilight_model::id::{ApplicationId, CommandId};
 
 /// Delete a global command, by ID.
+#[must_use = "requests must be configured and executed"]
 pub struct DeleteGlobalCommand<'a> {
     application_id: ApplicationId,
     command_id: CommandId,

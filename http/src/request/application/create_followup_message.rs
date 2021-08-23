@@ -60,6 +60,7 @@ pub(crate) struct CreateFollowupMessageFields<'a> {
 /// [`content`]: Self::content
 /// [`embeds`]: Self::embeds
 /// [`files`]: Self::files
+#[must_use = "requests must be configured and executed"]
 pub struct CreateFollowupMessage<'a> {
     pub(crate) fields: CreateFollowupMessageFields<'a>,
     files: &'a [(&'a str, &'a [u8])],

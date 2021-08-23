@@ -7,6 +7,7 @@ use crate::{
 use twilight_model::{application::command::Command, id::ApplicationId};
 
 /// Retrieve all global commands for an application.
+#[must_use = "requests must be configured and executed"]
 pub struct GetGlobalCommands<'a> {
     application_id: ApplicationId,
     http: &'a Client,

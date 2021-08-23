@@ -10,6 +10,7 @@ use twilight_model::{
 };
 
 /// Fetch all commands for a guild, by ID.
+#[must_use = "requests must be configured and executed"]
 pub struct GetGuildCommands<'a> {
     application_id: ApplicationId,
     guild_id: GuildId,

@@ -47,3 +47,8 @@ tokio = { default-features = false, features = ["macros", "rt-multi-thread"], ve
 name = "application_command_permissions"
 harness = false
 path = "benches/application_command_permissions.rs"
+
+[[bench]]
+name = "headers"
+harness = false
+path = "benches/headers.rs"

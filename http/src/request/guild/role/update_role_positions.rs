@@ -12,6 +12,7 @@ use twilight_model::{
 /// Modify the position of the roles.
 ///
 /// The minimum amount of roles to modify, is a swap between two roles.
+#[must_use = "requests must be configured and executed"]
 pub struct UpdateRolePositions<'a> {
     guild_id: GuildId,
     http: &'a Client,

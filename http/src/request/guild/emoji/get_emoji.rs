@@ -24,6 +24,7 @@ use twilight_model::{
 /// client.emoji(guild_id, emoji_id).exec().await?;
 /// # Ok(()) }
 /// ```
+#[must_use = "requests must be configured and executed"]
 pub struct GetEmoji<'a> {
     emoji_id: EmojiId,
     guild_id: GuildId,

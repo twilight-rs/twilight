@@ -7,6 +7,7 @@ use crate::{
 use twilight_model::id::{GuildId, IntegrationId};
 
 /// Delete an integration for a guild, by the integration's id.
+#[must_use = "requests must be configured and executed"]
 pub struct DeleteGuildIntegration<'a> {
     guild_id: GuildId,
     http: &'a Client,

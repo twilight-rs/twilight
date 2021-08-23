@@ -8,6 +8,7 @@ use crate::{
 use twilight_model::id::{ChannelId, MessageId};
 
 /// Remove all reactions of a specified emoji from a message.
+#[must_use = "requests must be configured and executed"]
 pub struct DeleteAllReaction<'a> {
     channel_id: ChannelId,
     emoji: &'a RequestReactionType<'a>,

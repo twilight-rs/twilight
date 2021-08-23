@@ -13,6 +13,7 @@ struct UpdateCurrentUserNickFields<'a> {
 }
 
 /// Changes the user's nickname in a guild.
+#[must_use = "requests must be configured and executed"]
 pub struct UpdateCurrentUserNick<'a> {
     fields: UpdateCurrentUserNickFields<'a>,
     guild_id: GuildId,

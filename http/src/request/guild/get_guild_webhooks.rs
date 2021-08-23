@@ -7,6 +7,7 @@ use crate::{
 use twilight_model::{channel::Webhook, id::GuildId};
 
 /// Get the webhooks of a guild.
+#[must_use = "requests must be configured and executed"]
 pub struct GetGuildWebhooks<'a> {
     guild_id: GuildId,
     http: &'a Client,

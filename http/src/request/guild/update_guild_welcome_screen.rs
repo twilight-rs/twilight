@@ -25,6 +25,7 @@ struct UpdateGuildWelcomeScreenFields<'a> {
 /// Requires the [`MANAGE_GUILD`] permission.
 ///
 /// [`MANAGE_GUILD`]: twilight_model::guild::Permissions::MANAGE_GUILD
+#[must_use = "requests must be configured and executed"]
 pub struct UpdateGuildWelcomeScreen<'a> {
     fields: UpdateGuildWelcomeScreenFields<'a>,
     guild_id: GuildId,

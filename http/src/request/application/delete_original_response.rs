@@ -27,6 +27,7 @@ use twilight_model::id::ApplicationId;
 ///     .await?;
 /// # Ok(()) }
 /// ```
+#[must_use = "requests must be configured and executed"]
 pub struct DeleteOriginalResponse<'a> {
     application_id: ApplicationId,
     http: &'a Client,

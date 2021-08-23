@@ -44,6 +44,7 @@ struct CreateRoleFields<'a> {
 ///     .await?;
 /// # Ok(()) }
 /// ```
+#[must_use = "requests must be configured and executed"]
 pub struct CreateRole<'a> {
     fields: CreateRoleFields<'a>,
     guild_id: GuildId,

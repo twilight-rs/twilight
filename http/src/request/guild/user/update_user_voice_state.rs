@@ -15,6 +15,7 @@ struct UpdateUserVoiceStateFields {
 }
 
 /// Update another user's voice state.
+#[must_use = "requests must be configured and executed"]
 pub struct UpdateUserVoiceState<'a> {
     fields: UpdateUserVoiceStateFields,
     guild_id: GuildId,

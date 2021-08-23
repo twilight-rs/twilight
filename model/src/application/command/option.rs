@@ -47,7 +47,7 @@ impl CommandOption {
 
     pub const fn is_required(&self) -> bool {
         match self {
-            CommandOption::SubCommand(data) | CommandOption::SubCommandGroup(data) => data.required,
+            CommandOption::SubCommand(_) | CommandOption::SubCommandGroup(_) => false,
             CommandOption::String(data) | CommandOption::Integer(data) => data.required,
             CommandOption::Boolean(data)
             | CommandOption::User(data)
@@ -86,7 +86,7 @@ impl Serialize for CommandOption {
                 description: data.description.as_ref(),
                 name: data.name.as_ref(),
                 options: Some(data.options.as_ref()),
-                required: data.required,
+                required: false,
                 kind: self.kind(),
             },
             Self::String(data) | Self::Integer(data) => CommandOptionEnvelope {
@@ -236,7 +236,6 @@ impl<'de> Visitor<'de> for OptionVisitor {
                     description,
                     name,
                     options,
-                    required,
                 })
             }
             CommandOptionType::SubCommandGroup => {
@@ -248,33 +247,20 @@ impl<'de> Visitor<'de> for OptionVisitor {
                     description,
                     name,
                     options,
-                    required,
                 })
             }
-            CommandOptionType::String => {
-                let choices = choices
-                    .flatten()
-                    .ok_or_else(|| DeError::missing_field("choices"))?;
-
-                CommandOption::String(ChoiceCommandOptionData {
-                    choices,
-                    description,
-                    name,
-                    required,
-                })
-            }
-            CommandOptionType::Integer => {
-                let choices = choices
-                    .flatten()
-                    .ok_or_else(|| DeError::missing_field("choices"))?;
-
-                CommandOption::Integer(ChoiceCommandOptionData {
-                    choices,
-                    description,
-                    name,
-                    required,
-                })
-            }
+            CommandOptionType::String => CommandOption::String(ChoiceCommandOptionData {
+                choices: choices.flatten().unwrap_or_default(),
+                description,
+                name,
+                required,
+            }),
+            CommandOptionType::Integer => CommandOption::Integer(ChoiceCommandOptionData {
+                choices: choices.flatten().unwrap_or_default(),
+                description,
+                name,
+                required,
+            }),
             CommandOptionType::Boolean => CommandOption::Boolean(BaseCommandOptionData {
                 description,
                 name,
@@ -341,9 +327,6 @@ pub struct OptionsCommandOptionData {
     /// [`SubCommandGroup`]: CommandOptionType::SubCommandGroup
     #[serde(default)]
     pub options: Vec<CommandOption>,
-    /// Whether the option is required to be completed by a user.
-    #[serde(default)]
-    pub required: bool,
 }
 
 /// Data supplied to a [`CommandOption`] of type [`String`] or [`Integer`].
@@ -356,6 +339,8 @@ pub struct ChoiceCommandOptionData {
     ///
     /// When completing this option, the user is prompted with a selector of all
     /// available choices.
+    ///
+    /// If no choices are available, the user must input a value manually.
     #[serde(default)]
     pub choices: Vec<CommandOptionChoice>,
     /// Description of the option. It must be 100 characters or less.
@@ -439,6 +424,12 @@ mod tests {
                     name: "sub command name".into(),
                     options: vec![
                         CommandOption::String(ChoiceCommandOptionData {
+                            choices: Vec::new(),
+                            description: "string manual desc".into(),
+                            name: "string_manual".into(),
+                            required: false,
+                        }),
+                        CommandOption::String(ChoiceCommandOptionData {
                             choices: vec![CommandOptionChoice::String {
                                 name: "choicea".into(),
                                 value: "choice_a".into(),
@@ -482,9 +473,7 @@ mod tests {
                             required: false,
                         }),
                     ],
-                    required: false,
                 })],
-                required: true,
             })],
         };
 
@@ -520,7 +509,7 @@ mod tests {
                 Token::Seq { len: Some(1) },
                 Token::Struct {
                     name: "CommandOptionEnvelope",
-                    len: 5,
+                    len: 4,
                 },
                 Token::Str("description"),
                 Token::Str("sub group desc"),
@@ -539,7 +528,22 @@ mod tests {
                 Token::Str("sub command name"),
                 Token::Str("options"),
                 Token::Some,
-                Token::Seq { len: Some(7) },
+                Token::Seq { len: Some(8) },
+                Token::Struct {
+                    name: "CommandOptionEnvelope",
+                    len: 4,
+                },
+                Token::Str("choices"),
+                Token::Some,
+                Token::Seq { len: Some(0) },
+                Token::SeqEnd,
+                Token::Str("description"),
+                Token::Str("string manual desc"),
+                Token::Str("name"),
+                Token::Str("string_manual"),
+                Token::Str("type"),
+                Token::U8(3),
+                Token::StructEnd,
                 Token::Struct {
                     name: "CommandOptionEnvelope",
                     len: 4,
@@ -648,8 +652,6 @@ mod tests {
                 Token::U8(1),
                 Token::StructEnd,
                 Token::SeqEnd,
-                Token::Str("required"),
-                Token::Bool(true),
                 Token::Str("type"),
                 Token::U8(2),
                 Token::StructEnd,

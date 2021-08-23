@@ -32,6 +32,7 @@ use twilight_model::id::{ChannelId, MessageId};
 ///     .await?;
 /// # Ok(()) }
 /// ```
+#[must_use = "requests must be configured and executed"]
 pub struct CreateReaction<'a> {
     channel_id: ChannelId,
     emoji: &'a RequestReactionType<'a>,

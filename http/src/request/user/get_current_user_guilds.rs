@@ -91,6 +91,7 @@ struct GetCurrentUserGuildsFields {
 ///     .await?;
 /// # Ok(()) }
 /// ```
+#[must_use = "requests must be configured and executed"]
 pub struct GetCurrentUserGuilds<'a> {
     fields: GetCurrentUserGuildsFields,
     http: &'a Client,

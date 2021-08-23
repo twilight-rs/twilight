@@ -21,6 +21,7 @@ struct UpdateChannelPermissionConfiguredFields {
 }
 
 /// Created when either `member` or `role` is called on a `DeleteChannelPermission` struct.
+#[must_use = "requests must be configured and executed"]
 pub struct UpdateChannelPermissionConfigured<'a> {
     channel_id: ChannelId,
     fields: UpdateChannelPermissionConfiguredFields,

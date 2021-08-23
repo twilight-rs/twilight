@@ -8,6 +8,7 @@ use twilight_model::{
 ///
 /// [`WebhookId`]: twilight_model::id::WebhookId
 /// [`MessageId`]: twilight_model::id::MessageId
+#[must_use = "requests must be configured and executed"]
 pub struct GetWebhookMessage<'a> {
     http: &'a Client,
     message_id: MessageId,

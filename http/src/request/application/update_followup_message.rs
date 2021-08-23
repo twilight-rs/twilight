@@ -143,6 +143,7 @@ struct UpdateFollowupMessageFields<'a> {
 /// ```
 ///
 /// [`DeleteFollowupMessage`]: super::DeleteFollowupMessage
+#[must_use = "requests must be configured and executed"]
 pub struct UpdateFollowupMessage<'a> {
     fields: UpdateFollowupMessageFields<'a>,
     files: &'a [(&'a str, &'a [u8])],

@@ -11,6 +11,7 @@ use twilight_model::{id::GuildId, invite::Invite};
 /// Requires the [`MANAGE_GUILD`] permission.
 ///
 /// [`MANAGE_GUILD`]: twilight_model::guild::Permissions::MANAGE_GUILD
+#[must_use = "requests must be configured and executed"]
 pub struct GetGuildInvites<'a> {
     guild_id: GuildId,
     http: &'a Client,

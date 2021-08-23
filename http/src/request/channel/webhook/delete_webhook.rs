@@ -11,6 +11,7 @@ struct DeleteWebhookParams<'a> {
 }
 
 /// Delete a webhook by its ID.
+#[must_use = "requests must be configured and executed"]
 pub struct DeleteWebhook<'a> {
     fields: DeleteWebhookParams<'a>,
     http: &'a Client,

@@ -7,6 +7,7 @@ use crate::{
 use twilight_model::{channel::Message, id::ChannelId};
 
 /// Get the pins of a channel.
+#[must_use = "requests must be configured and executed"]
 pub struct GetPins<'a> {
     channel_id: ChannelId,
     http: &'a Client,
