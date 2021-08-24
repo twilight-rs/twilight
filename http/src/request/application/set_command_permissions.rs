@@ -45,14 +45,12 @@ impl Serialize for OptionalCommandPermissions<'_> {
     fn serialize<S: Serializer>(&self, serializer: S) -> Result<S::Ok, S::Error> {
         let mut seq = serializer.serialize_seq(Some(self.amount_present()))?;
 
-        for maybe_value in &self.0 {
-            if let Some(value) = maybe_value.as_ref() {
-                seq.serialize_element(value)?;
-            } else {
-                // If an element isn't present then any trailing elements aren't
-                // either.
-                break;
-            }
+        let mut iter = self.0.iter();
+
+        // If an element isn't present while we haven't reached the end of the
+        // iterator then any trailing elements aren't present either.
+        while let Some(Some(value)) = iter.next() {
+            seq.serialize_element(value)?;
         }
 
         seq.end()
