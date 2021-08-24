@@ -7,7 +7,10 @@ use std::{
 };
 use twilight_gateway_queue::{LocalQueue, Queue};
 use twilight_http::Client as HttpClient;
-use twilight_model::gateway::{payload::update_presence::UpdatePresencePayload, Intents};
+use twilight_model::gateway::{
+    payload::{identify::IdentifyProperties, update_presence::UpdatePresencePayload},
+    Intents,
+};
 
 /// Large threshold configuration is invalid.
 ///
@@ -177,6 +180,7 @@ impl ShardBuilder {
             event_types: EventTypeFlags::default(),
             gateway_url: None,
             http_client: HttpClient::new(token.clone()),
+            identify_properties: None,
             intents,
             large_threshold: 250,
             presence: None,
@@ -221,6 +225,40 @@ impl ShardBuilder {
     #[allow(clippy::missing_const_for_fn)]
     pub fn http_client(mut self, http_client: HttpClient) -> Self {
         self.0.http_client = http_client;
+
+        self
+    }
+
+    /// Set the properties to identify with.
+    ///
+    /// This may be used if you want to set a different operating system.
+    ///
+    /// # Examples
+    ///
+    /// Set the identify properties for a shard:
+    ///
+    /// ```no_run
+    /// # fn main() -> Result<(), Box<dyn std::error::Error>> {
+    /// use std::env::{self, consts::OS};
+    /// use twilight_gateway::{Intents, Shard};
+    /// use twilight_model::gateway::payload::identify::IdentifyProperties;
+    ///
+    /// let token = env::var("DISCORD_TOKEN")?;
+    /// let properties = IdentifyProperties::new(
+    ///     "twilight.rs",
+    ///     "twilight.rs",
+    ///     OS,
+    ///     "",
+    ///     "",
+    /// );
+    ///
+    /// let builder = Shard::builder(token, Intents::empty())
+    ///     .identify_properties(properties);
+    /// # Ok(()) }
+    /// ```
+    #[allow(clippy::missing_const_for_fn)]
+    pub fn identify_properties(mut self, identify_properties: IdentifyProperties) -> Self {
+        self.0.identify_properties = Some(identify_properties);
 
         self
     }
