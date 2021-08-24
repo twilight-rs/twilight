@@ -9,10 +9,10 @@ use crate::{
         application::{
             CreateFollowupMessage, CreateGlobalCommand, CreateGuildCommand, DeleteFollowupMessage,
             DeleteGlobalCommand, DeleteGuildCommand, DeleteOriginalResponse, GetCommandPermissions,
-            GetGlobalCommands, GetGuildCommandPermissions, GetGuildCommands, GetOriginalResponse,
-            InteractionCallback, InteractionError, InteractionErrorType, SetCommandPermissions,
-            SetGlobalCommands, SetGuildCommands, UpdateCommandPermissions, UpdateFollowupMessage,
-            UpdateGlobalCommand, UpdateGuildCommand, UpdateOriginalResponse,
+            GetFollowupMessage, GetGlobalCommands, GetGuildCommandPermissions, GetGuildCommands,
+            GetOriginalResponse, InteractionCallback, InteractionError, InteractionErrorType,
+            SetCommandPermissions, SetGlobalCommands, SetGuildCommands, UpdateCommandPermissions,
+            UpdateFollowupMessage, UpdateGlobalCommand, UpdateGuildCommand, UpdateOriginalResponse,
         },
         channel::{
             reaction::delete_reaction::TargetUser,
@@ -1743,6 +1743,30 @@ impl Client {
             self,
             application_id,
             interaction_token,
+        ))
+    }
+
+    /// Get a followup message of an interaction.
+    ///
+    /// # Errors
+    ///
+    /// Returns an [`InteractionErrorType::ApplicationIdNotPresent`]
+    /// error type if an application ID has not been configured via
+    /// [`Client::set_application_id`].
+    pub fn followup_message<'a>(
+        &'a self,
+        interaction_token: &'a str,
+        message_id: MessageId,
+    ) -> Result<GetFollowupMessage<'a>, InteractionError> {
+        let application_id = self.application_id().ok_or(InteractionError {
+            kind: InteractionErrorType::ApplicationIdNotPresent,
+        })?;
+
+        Ok(GetFollowupMessage::new(
+            self,
+            application_id,
+            interaction_token,
+            message_id,
         ))
     }
 

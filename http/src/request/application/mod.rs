@@ -7,6 +7,7 @@ mod delete_global_command;
 mod delete_guild_command;
 mod delete_original_response;
 mod get_command_permissions;
+mod get_followup_message;
 mod get_global_commands;
 mod get_guild_command_permissions;
 mod get_guild_commands;
@@ -30,6 +31,7 @@ pub use self::{
     delete_guild_command::DeleteGuildCommand,
     delete_original_response::DeleteOriginalResponse,
     get_command_permissions::GetCommandPermissions,
+    get_followup_message::GetFollowupMessage,
     get_global_commands::GetGlobalCommands,
     get_guild_command_permissions::GetGuildCommandPermissions,
     get_guild_commands::GetGuildCommands,

@@ -359,6 +359,15 @@ pub enum Route<'a> {
         /// The ID of the guild.
         guild_id: u64,
     },
+    /// Route to get a followup message for an interaction.
+    GetFollowupMessage {
+        /// ID of the application.
+        application_id: u64,
+        /// Token of the interaction.
+        interaction_token: &'a str,
+        /// ID of the followup message.
+        message_id: u64,
+    },
     /// Route information to get basic gateway information.
     GetGateway,
     /// Route information to get gateway information tailored to the current
@@ -914,6 +923,7 @@ impl<'a> Route<'a> {
             | Self::GetEmoji { .. }
             | Self::GetEmojis { .. }
             | Self::GetGateway
+            | Self::GetFollowupMessage { .. }
             | Self::GetGlobalCommands { .. }
             | Self::GetGuild { .. }
             | Self::GetGuildCommandPermissions { .. }
@@ -1114,6 +1124,7 @@ impl<'a> Route<'a> {
                 Path::GuildsIdIntegrationsId(*guild_id)
             }
             Self::DeleteInteractionOriginal { application_id, .. }
+            | Self::GetFollowupMessage { application_id, .. }
             | Self::GetInteractionOriginal { application_id, .. }
             | Self::UpdateInteractionOriginal { application_id, .. } => {
                 Path::WebhooksIdTokenMessagesId(*application_id)
