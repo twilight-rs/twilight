@@ -116,7 +116,7 @@ mod tests {
     #[test]
     fn test_eq_with_integer() {
         assert_eq!(200u16, StatusCode::new(200));
-        assert_eq!(404u16, StatusCode::new(404));
+        assert_eq!(StatusCode::new(404), 404u16);
     }
 
     #[test]
