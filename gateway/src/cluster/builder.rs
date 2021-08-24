@@ -132,7 +132,8 @@ impl ClusterBuilder {
 
     /// Set the properties for shards to identify with.
     ///
-    /// This may be used if you want to set a different operating system.
+    /// This may be used if you want to set a different operating system, for
+    /// example.
     ///
     /// # Examples
     ///

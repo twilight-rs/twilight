@@ -46,8 +46,8 @@ impl Config {
         &self.http_client
     }
 
-    /// Return an immutable reference to the identification properties to be used
-    /// by the shard.
+    /// Return an immutable reference to the identification properties the shard
+    /// will use.
     pub const fn identify_properties(&self) -> Option<&IdentifyProperties> {
         self.identify_properties.as_ref()
     }
