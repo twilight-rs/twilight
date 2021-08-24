@@ -468,7 +468,7 @@ impl Cluster {
         self.shards.get(&id)
     }
 
-    /// Return a list of all the shards.
+    /// Return an iterator of all the shards.
     pub fn shards(&self) -> Shards<'_> {
         Shards {
             iter: self.shards.values(),
