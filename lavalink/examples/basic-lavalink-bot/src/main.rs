@@ -11,7 +11,10 @@ use twilight_lavalink::{
     model::{Destroy, Pause, Play, Seek, Stop, Volume},
     Lavalink,
 };
-use twilight_model::{channel::Message, gateway::payload::incoming::MessageCreate, id::ChannelId};
+use twilight_model::{
+    channel::Message,
+    gateway::payload::{incoming::MessageCreate, outgoing::UpdateVoiceState},
+};
 use twilight_standby::Standby;
 
 type State = Arc<StateRef>;
@@ -110,18 +113,11 @@ async fn join(msg: Message, state: State) -> Result<(), Box<dyn Error + Send + S
         })
         .await?;
     let channel_id = msg.content.parse::<u64>()?;
+    let guild_id = msg.guild_id.expect("known to be present");
 
     state
         .shard
-        .command(&serde_json::json!({
-            "op": 4,
-            "d": {
-                "channel_id": channel_id,
-                "guild_id": msg.guild_id,
-                "self_mute": false,
-                "self_deaf": false,
-            }
-        }))
+        .command(&UpdateVoiceState::new(guild_id, None, false, false))
         .await?;
 
     state
@@ -146,15 +142,7 @@ async fn leave(msg: Message, state: State) -> Result<(), Box<dyn Error + Send + 
     player.send(Destroy::from(guild_id))?;
     state
         .shard
-        .command(&serde_json::json!({
-            "op": 4,
-            "d": {
-                "channel_id": None::<ChannelId>,
-                "guild_id": msg.guild_id,
-                "self_mute": false,
-                "self_deaf": false,
-            }
-        }))
+        .command(&UpdateVoiceState::new(guild_id, None, false, false))
         .await?;
 
     state
