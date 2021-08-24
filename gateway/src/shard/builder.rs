@@ -7,7 +7,7 @@ use std::{
 };
 use twilight_gateway_queue::{LocalQueue, Queue};
 use twilight_http::Client as HttpClient;
-use twilight_model::gateway::{payload::update_presence::UpdatePresencePayload, Intents};
+use twilight_model::gateway::{payload::outgoing::update_presence::UpdatePresencePayload, Intents};
 
 /// Large threshold configuration is invalid.
 ///
@@ -281,7 +281,7 @@ impl ShardBuilder {
     /// ```no_run
     /// use twilight_gateway::{Intents, Shard};
     /// use twilight_model::gateway::{
-    ///     payload::update_presence::UpdatePresencePayload,
+    ///     payload::outgoing::update_presence::UpdatePresencePayload,
     ///     presence::{ActivityType, MinimalActivity, Status},
     /// };
     ///

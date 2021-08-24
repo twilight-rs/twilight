@@ -1,7 +1,7 @@
 use crate::{config::ResourceType, model::CachedEmoji, GuildItem, InMemoryCache, UpdateCache};
 use std::borrow::Cow;
 use twilight_model::{
-    gateway::payload::GuildEmojisUpdate,
+    gateway::payload::incoming::GuildEmojisUpdate,
     guild::Emoji,
     id::{EmojiId, GuildId},
 };

@@ -520,7 +520,7 @@ impl Serialize for GatewayEvent {
 mod tests {
     use super::{DispatchEvent, GatewayEvent, GatewayEventDeserializer, OpCode};
     use crate::{
-        gateway::payload::RoleDelete,
+        gateway::payload::incoming::RoleDelete,
         id::{GuildId, RoleId},
     };
     use serde::de::DeserializeSeed;

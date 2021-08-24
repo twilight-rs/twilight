@@ -11,7 +11,7 @@ use crate::{
 use std::{collections::HashMap, sync::Arc};
 use twilight_gateway_queue::{LocalQueue, Queue};
 use twilight_http::Client;
-use twilight_model::gateway::{payload::update_presence::UpdatePresencePayload, Intents};
+use twilight_model::gateway::{payload::outgoing::update_presence::UpdatePresencePayload, Intents};
 
 /// Builder to configure and construct a [`Cluster`].
 ///

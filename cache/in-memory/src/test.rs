@@ -4,7 +4,7 @@ use twilight_model::{
         message::{Message, MessageFlags, MessageType},
         ChannelType, GuildChannel, Reaction, ReactionType, TextChannel,
     },
-    gateway::payload::{MessageCreate, ReactionAdd},
+    gateway::payload::incoming::{MessageCreate, ReactionAdd},
     guild::{Emoji, Member, PartialMember, Permissions, Role},
     id::{ChannelId, EmojiId, GuildId, MessageId, RoleId, UserId},
     user::{CurrentUser, User},

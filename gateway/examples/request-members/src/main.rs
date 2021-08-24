@@ -2,7 +2,7 @@ use futures::StreamExt;
 use std::{env, error::Error};
 use twilight_gateway::{Event, Intents, Shard};
 use twilight_model::{
-    gateway::payload::RequestGuildMembers,
+    gateway::payload::outgoing::RequestGuildMembers,
     id::{GuildId, UserId},
 };
 

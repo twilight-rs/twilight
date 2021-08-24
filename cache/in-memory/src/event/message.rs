@@ -1,6 +1,6 @@
 use crate::{config::ResourceType, model::CachedMessage, InMemoryCache, UpdateCache};
 use std::borrow::Cow;
-use twilight_model::gateway::payload::{
+use twilight_model::gateway::payload::incoming::{
     MessageCreate, MessageDelete, MessageDeleteBulk, MessageUpdate,
 };
 

@@ -2,7 +2,7 @@ use crate::{config::ResourceType, model::CachedMember, InMemoryCache, UpdateCach
 use std::borrow::Cow;
 use twilight_model::{
     application::interaction::application_command::InteractionMember,
-    gateway::payload::{MemberAdd, MemberChunk, MemberRemove, MemberUpdate},
+    gateway::payload::incoming::{MemberAdd, MemberChunk, MemberRemove, MemberUpdate},
     guild::{Member, PartialMember},
     id::{GuildId, UserId},
 };

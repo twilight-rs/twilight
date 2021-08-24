@@ -2,7 +2,7 @@ use crate::EventTypeFlags;
 use std::sync::Arc;
 use twilight_gateway_queue::Queue;
 use twilight_http::Client;
-use twilight_model::gateway::{payload::update_presence::UpdatePresencePayload, Intents};
+use twilight_model::gateway::{payload::outgoing::update_presence::UpdatePresencePayload, Intents};
 
 /// The configuration used by the shard to identify with the gateway and
 /// operate.

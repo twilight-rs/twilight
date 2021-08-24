@@ -685,7 +685,7 @@ impl UpdateCache for Event {
 mod tests {
     use crate::{test, InMemoryCache};
     use twilight_model::{
-        gateway::payload::RoleDelete,
+        gateway::payload::incoming::RoleDelete,
         guild::{Member, Permissions, Role},
         id::{EmojiId, GuildId, RoleId, UserId},
     };
