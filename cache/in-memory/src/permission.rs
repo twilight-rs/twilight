@@ -122,7 +122,7 @@ pub enum ChannelErrorType {
     /// The reasons this could happen could be due to the cache missing a
     /// [`RoleCreate`] event or a user application race condition.
     ///
-    /// [`RoleCreate`]: twilight_model::gateway::payload::RoleCreate
+    /// [`RoleCreate`]: twilight_model::gateway::payload::incoming::RoleCreate
     RoleUnavailable {
         /// ID of the role that the user has but details about is missing.
         role_id: RoleId,
@@ -480,7 +480,9 @@ mod tests {
             permission_overwrite::{PermissionOverwrite, PermissionOverwriteType},
             Channel, ChannelType, GuildChannel, TextChannel,
         },
-        gateway::payload::{ChannelCreate, GuildCreate, MemberAdd, MemberUpdate, RoleCreate},
+        gateway::payload::incoming::{
+            ChannelCreate, GuildCreate, MemberAdd, MemberUpdate, RoleCreate,
+        },
         guild::{
             DefaultMessageNotificationLevel, ExplicitContentFilter, Guild, MfaLevel, NSFWLevel,
             Permissions, PremiumTier, Role, SystemChannelFlags, VerificationLevel,
