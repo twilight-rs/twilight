@@ -8,7 +8,7 @@ pub use self::{
 };
 
 use super::super::{InteractionError, InteractionErrorType};
-use crate::{request::validate, Client};
+use crate::{request::validate_inner, Client};
 use twilight_model::id::{ApplicationId, GuildId};
 
 /// Create a new command in a guild.
@@ -34,7 +34,7 @@ impl<'a> CreateGuildCommand<'a> {
         guild_id: GuildId,
         name: &'a str,
     ) -> Result<Self, InteractionError> {
-        if !validate::command_name(name) {
+        if !validate_inner::command_name(name) {
             return Err(InteractionError {
                 kind: InteractionErrorType::CommandNameValidationFailed,
             });

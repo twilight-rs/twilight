@@ -8,7 +8,7 @@ pub use self::{
 };
 
 use super::super::{InteractionError, InteractionErrorType};
-use crate::{request::validate, Client};
+use crate::{request::validate_inner, Client};
 use twilight_model::id::ApplicationId;
 
 /// Create a new global command.
@@ -31,7 +31,7 @@ impl<'a> CreateGlobalCommand<'a> {
         application_id: ApplicationId,
         name: &'a str,
     ) -> Result<Self, InteractionError> {
-        if !validate::command_name(name) {
+        if !validate_inner::command_name(name) {
             return Err(InteractionError {
                 kind: InteractionErrorType::CommandNameValidationFailed,
             });
