@@ -2,6 +2,15 @@
 
 Changelog for `twilight-model`.
 
+## [0.6.1] - 2021-08-18
+
+### Fixes
+
+Properly handle `ChoiceCommandOptionData` with a missing choices field
+([#1087] - [@MaxOhn]).
+
+[#1087]: https://github.com/twilight-rs/twilight/pull/1087
+
 ## [0.6.0] - 2021-07-31
 
 ### Enhancements
@@ -751,6 +760,7 @@ Initial release.
 [@james7132]: https://github.com/james7132
 [@jazevedo620]: https://github.com/jazevedo620
 [@kotx]: https://github.com/kotx
+[@MaxOhn]: https://github.com/MaxOhn
 [@nickelc]: https://github.com/nickelc
 [@sam-kirby]: https://github.com/sam-kirby
 [@tbnritzdoge]: https://github.com/tbnritzdoge
@@ -780,6 +790,7 @@ Initial release.
 
 [0.2.0-beta.1:app integrations]: https://github.com/discord/discord-api-docs/commit/a926694e2f8605848bda6b57d21c8817559e5cec
 
+[0.6.1]: https://github.com/twilight-rs/twilight/releases/tag/model-0.6.1
 [0.5.4]: https://github.com/twilight-rs/twilight/releases/tag/model-0.5.4
 [0.5.3]: https://github.com/twilight-rs/twilight/releases/tag/model-0.5.3
 [0.5.2]: https://github.com/twilight-rs/twilight/releases/tag/model-0.5.2

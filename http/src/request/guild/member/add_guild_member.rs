@@ -1,6 +1,6 @@
 use crate::{
     client::Client,
-    request::{validate, Request},
+    request::{validate_inner, Request},
     response::ResponseFuture,
     routing::Route,
 };
@@ -137,7 +137,7 @@ impl<'a> AddGuildMember<'a> {
     /// Returns an [`AddGuildMemberErrorType::NicknameInvalid`] error type if
     /// the nickname is too short or too long.
     pub fn nick(mut self, nick: &'a str) -> Result<Self, AddGuildMemberError> {
-        if !validate::nickname(&nick) {
+        if !validate_inner::nickname(&nick) {
             return Err(AddGuildMemberError {
                 kind: AddGuildMemberErrorType::NicknameInvalid,
             });

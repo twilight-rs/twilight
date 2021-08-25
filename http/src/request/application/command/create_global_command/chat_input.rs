@@ -5,7 +5,7 @@ use super::super::{
 use crate::{
     client::Client,
     error::Error as HttpError,
-    request::{validate, Request, RequestBuilder},
+    request::{validate_inner, Request, RequestBuilder},
     response::ResponseFuture,
     routing::Route,
 };
@@ -38,7 +38,7 @@ impl<'a> CreateGlobalChatInputCommand<'a> {
         name: &'a str,
         description: &'a str,
     ) -> Result<Self, InteractionError> {
-        if !validate::command_description(description) {
+        if !validate_inner::command_description(&description) {
             return Err(InteractionError {
                 kind: InteractionErrorType::CommandDescriptionValidationFailed,
             });

@@ -3,7 +3,7 @@ use crate::{
     error::Error,
     request::{
         application::{InteractionError, InteractionErrorType},
-        validate, Request, RequestBuilder,
+        validate_inner, Request, RequestBuilder,
     },
     response::ResponseFuture,
     routing::Route,
@@ -62,7 +62,7 @@ impl<'a> SetCommandPermissions<'a> {
                 if *sorted_id == *permission_id {
                     *count += 1;
 
-                    if !validate::guild_command_permissions(*count) {
+                    if !validate_inner::guild_command_permissions(*count) {
                         return Err(InteractionError {
                             kind: InteractionErrorType::TooManyCommandPermissions,
                         });

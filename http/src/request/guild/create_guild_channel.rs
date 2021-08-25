@@ -1,6 +1,6 @@
 use crate::{
     client::Client,
-    request::{self, validate, AuditLogReason, AuditLogReasonError, Request},
+    request::{self, validate_inner, AuditLogReason, AuditLogReasonError, Request},
     response::ResponseFuture,
     routing::Route,
 };
@@ -117,7 +117,7 @@ impl<'a> CreateGuildChannel<'a> {
         guild_id: GuildId,
         name: &'a str,
     ) -> Result<Self, CreateGuildChannelError> {
-        if !validate::channel_name(name) {
+        if !validate_inner::channel_name(name) {
             return Err(CreateGuildChannelError {
                 kind: CreateGuildChannelErrorType::NameInvalid,
             });
