@@ -390,9 +390,9 @@ impl Lavalink {
         let shard_count = self.shard_count;
 
         self.server_updates
-            .retain(|k, _| (k.0 >> 22) % shard_count != shard_id);
+            .retain(|k, _| (k.get() >> 22) % shard_count != shard_id);
         self.sessions
-            .retain(|k, _| (k.0 >> 22) % shard_count != shard_id);
+            .retain(|k, _| (k.get() >> 22) % shard_count != shard_id);
     }
 }
 

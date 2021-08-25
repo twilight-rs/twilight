@@ -18,7 +18,7 @@
 //! ```no_run
 //! # #[tokio::main]
 //! # async fn main() -> Result<(), Box<dyn std::error::Error>> {
-//! # let user_id = twilight_model::id::UserId(1);
+//! # let user_id = twilight_model::id::UserId::new(1).expect("non zero");
 //! use std::env;
 //! use twilight_http::Client;
 //!
@@ -64,7 +64,7 @@ use std::{
     error::Error,
     fmt::{Display, Formatter, Result as FmtResult},
     future::Future,
-    iter::{self, FusedIterator},
+    iter::FusedIterator,
     marker::PhantomData,
     pin::Pin,
     task::{Context, Poll},
@@ -158,7 +158,7 @@ pub enum DeserializeBodyErrorType {
 /// ```no_run
 /// # #[tokio::main]
 /// # async fn main() -> Result<(), Box<dyn std::error::Error>> {
-/// # let user_id = twilight_model::id::UserId(1);
+/// # let user_id = twilight_model::id::UserId::new(1).expect("non zero");
 /// use std::env;
 /// use twilight_http::Client;
 ///
@@ -214,7 +214,7 @@ impl<T> Response<T> {
     /// ```no_run
     /// # #[tokio::main]
     /// # async fn main() -> Result<(), Box<dyn std::error::Error>> {
-    /// # let user_id = twilight_model::id::UserId(1);
+    /// # let user_id = twilight_model::id::UserId::new(1).expect("non zero");
     /// use std::env;
     /// use twilight_http::Client;
     ///
@@ -242,9 +242,10 @@ impl<T> Response<T> {
 
             // Create a buffer filled with zeroes so we can copy the aggregate
             // body into it.
-            let mut buf = iter::repeat(0)
-                .take(aggregate.remaining())
-                .collect::<Vec<_>>();
+            //
+            // Using `vec!` is the fastest way to do this, despite it being a
+            // macro and having unsafe internals.
+            let mut buf = vec![0; aggregate.remaining()];
             aggregate.copy_to_slice(&mut buf);
 
             Ok(buf)
@@ -327,6 +328,24 @@ impl<T: DeserializeOwned> Response<ListBody<T>> {
     /// Consume the response, chunking the body and then deserializing it into
     /// a list of something.
     ///
+    /// This is an alias for [`models`].
+    ///
+    /// # Errors
+    ///
+    /// Returns a [`DeserializeBodyErrorType::Chunking`] error type if the
+    /// response body could not be entirely read.
+    ///
+    /// Returns a [`DeserializeBodyErrorType::Deserializing`] error type if the
+    /// response body could not be deserialized into a list of something.
+    ///
+    /// [`models`]: Self::models
+    pub fn model(self) -> ModelFuture<Vec<T>> {
+        self.models()
+    }
+
+    /// Consume the response, chunking the body and then deserializing it into
+    /// a list of something.
+    ///
     /// # Errors
     ///
     /// Returns a [`DeserializeBodyErrorType::Chunking`] error type if the
@@ -361,6 +380,24 @@ impl Response<MemberListBody> {
     /// Consume the response, chunking the body and then deserializing it into
     /// a list of members.
     ///
+    /// This is an alias for [`models`].
+    ///
+    /// # Errors
+    ///
+    /// Returns a [`DeserializeBodyErrorType::Chunking`] error type if the
+    /// response body could not be entirely read.
+    ///
+    /// Returns a [`DeserializeBodyErrorType::Deserializing`] error type if the
+    /// response body could not be deserialized into a list of something.
+    ///
+    /// [`models`]: Self::models
+    pub fn model(self) -> MemberListFuture {
+        self.models()
+    }
+
+    /// Consume the response, chunking the body and then deserializing it into
+    /// a list of members.
+    ///
     /// # Errors
     ///
     /// Returns a [`DeserializeBodyErrorType::Chunking`] error type if the
@@ -391,7 +428,7 @@ impl Response<MemberListBody> {
 /// ```no_run
 /// # #[tokio::main]
 /// # async fn main() -> Result<(), Box<dyn std::error::Error>> {
-/// # let channel_id = twilight_model::id::ChannelId(1);
+/// # let channel_id = twilight_model::id::ChannelId::new(1).expect("non zero");
 /// use std::env;
 /// use twilight_http::Client;
 ///
@@ -444,8 +481,8 @@ impl<'a> Iterator for HeaderIter<'a> {
 /// ```no_run
 /// # #[tokio::main]
 /// # async fn main() -> Result<(), Box<dyn std::error::Error>> {
-/// # let channel_id = twilight_model::id::ChannelId(1);
-/// # let message_id = twilight_model::id::MessageId(2);
+/// # let channel_id = twilight_model::id::ChannelId::new(1).expect("non zero");
+/// # let message_id = twilight_model::id::MessageId::new(2).expect("non zero");
 /// use std::env;
 /// use twilight_http::Client;
 ///
@@ -494,8 +531,8 @@ impl Future for BytesFuture {
 /// ```no_run
 /// # #[tokio::main]
 /// # async fn main() -> Result<(), Box<dyn std::error::Error>> {
-/// # let guild_id = twilight_model::id::GuildId(1);
-/// # let emoji_id = twilight_model::id::EmojiId(2);
+/// # let guild_id = twilight_model::id::GuildId::new(1).expect("non zero");
+/// # let emoji_id = twilight_model::id::EmojiId::new(2).expect("non zero");
 /// use std::env;
 /// use twilight_http::Client;
 ///
@@ -556,8 +593,8 @@ impl<T: DeserializeOwned + Unpin> Future for ModelFuture<T> {
 /// ```no_run
 /// # #[tokio::main]
 /// # async fn main() -> Result<(), Box<dyn std::error::Error>> {
-/// # let guild_id = twilight_model::id::GuildId(1);
-/// # let user_id = twilight_model::id::UserId(2);
+/// # let guild_id = twilight_model::id::GuildId::new(1).expect("non zero");
+/// # let user_id = twilight_model::id::UserId::new(2).expect("non zero");
 /// use std::env;
 /// use twilight_http::Client;
 ///
@@ -633,7 +670,7 @@ impl Future for MemberFuture {
 /// ```no_run
 /// # #[tokio::main]
 /// # async fn main() -> Result<(), Box<dyn std::error::Error>> {
-/// # let guild_id = twilight_model::id::GuildId(1);
+/// # let guild_id = twilight_model::id::GuildId::new(1).expect("non zero");
 /// use std::env;
 /// use twilight_http::Client;
 ///
@@ -712,8 +749,8 @@ impl Future for MemberListFuture {
 /// ```no_run
 /// # #[tokio::main]
 /// # async fn main() -> Result<(), Box<dyn std::error::Error>> {
-/// # let channel_id = twilight_model::id::ChannelId(1);
-/// # let message_id = twilight_model::id::MessageId(2);
+/// # let channel_id = twilight_model::id::ChannelId::new(1).expect("non zero");
+/// # let message_id = twilight_model::id::MessageId::new(2).expect("non zero");
 /// use std::env;
 /// use twilight_http::Client;
 ///

@@ -3,7 +3,11 @@
 use crate::{
     client::Client,
     error::Error as HttpError,
-    request::{self, validate, Form, NullableField, Request},
+    request::{
+        self,
+        validate_inner::{self, ComponentValidationError, ComponentValidationErrorType},
+        Form, NullableField, Request,
+    },
     response::{marker::EmptyBody, ResponseFuture},
     routing::Route,
 };
@@ -13,6 +17,7 @@ use std::{
     fmt::{Display, Formatter, Result as FmtResult},
 };
 use twilight_model::{
+    application::component::Component,
     channel::{embed::Embed, message::AllowedMentions, Attachment},
     id::{ApplicationId, MessageId},
 };
@@ -52,6 +57,16 @@ impl UpdateFollowupMessageError {
 impl Display for UpdateFollowupMessageError {
     fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
         match &self.kind {
+            UpdateFollowupMessageErrorType::ComponentCount { count } => {
+                Display::fmt(count, f)?;
+                f.write_str(" components were provided, but only ")?;
+                Display::fmt(&ComponentValidationError::COMPONENT_COUNT, f)?;
+
+                f.write_str(" root components are allowed")
+            }
+            UpdateFollowupMessageErrorType::ComponentInvalid { .. } => {
+                f.write_str("a provided component is invalid")
+            }
             UpdateFollowupMessageErrorType::ContentInvalid => {
                 f.write_str("message content is invalid")
             }
@@ -77,6 +92,16 @@ impl Error for UpdateFollowupMessageError {
 #[derive(Debug)]
 #[non_exhaustive]
 pub enum UpdateFollowupMessageErrorType {
+    /// An invalid message component was provided.
+    ComponentInvalid {
+        /// Additional details about the validation failure type.
+        kind: ComponentValidationErrorType,
+    },
+    /// Too many message components were provided.
+    ComponentCount {
+        /// Number of components that were provided.
+        count: usize,
+    },
     /// Content is over 2000 UTF-16 characters.
     ContentInvalid,
     /// Length of one of the embeds is over 6000 characters.
@@ -99,6 +124,8 @@ struct UpdateFollowupMessageFields<'a> {
     allowed_mentions: Option<AllowedMentions>,
     #[serde(skip_serializing_if = "request::slice_is_empty")]
     attachments: &'a [Attachment],
+    #[serde(skip_serializing_if = "Option::is_none")]
+    components: Option<NullableField<&'a [Component]>>,
     #[serde(skip_serializing_if = "Option::is_none")]
     content: Option<NullableField<&'a str>>,
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -130,9 +157,9 @@ struct UpdateFollowupMessageFields<'a> {
 /// };
 ///
 /// let client = Client::new(env::var("DISCORD_TOKEN")?);
-/// client.set_application_id(ApplicationId(1));
+/// client.set_application_id(ApplicationId::new(1).expect("non zero"));
 ///
-/// client.update_followup_message("token here", MessageId(2))?
+/// client.update_followup_message("token here", MessageId::new(2).expect("non zero"))?
 ///     // By creating a default set of allowed mentions, no entity can be
 ///     // mentioned.
 ///     .allowed_mentions(AllowedMentions::default())
@@ -167,6 +194,7 @@ impl<'a> UpdateFollowupMessage<'a> {
             fields: UpdateFollowupMessageFields {
                 allowed_mentions: None,
                 attachments: &[],
+                components: None,
                 content: None,
                 embeds: None,
                 payload_json: None,
@@ -196,6 +224,47 @@ impl<'a> UpdateFollowupMessage<'a> {
         self
     }
 
+    /// Add multiple [`Component`]s to a message.
+    ///
+    /// Calling this method multiple times will clear previous calls.
+    ///
+    /// Pass `None` to clear existing components.
+    ///
+    /// # Errors
+    ///
+    /// Returns an [`UpdateFollowupMessageErrorType::ComponentCount`] error type
+    /// if too many components are provided.
+    ///
+    /// Returns an [`UpdateFollowupMessageErrorType::ComponentInvalid`] error
+    /// type if one of the provided components is invalid.
+    pub fn components(
+        mut self,
+        components: Option<&'a [Component]>,
+    ) -> Result<Self, UpdateFollowupMessageError> {
+        if let Some(components) = components.as_ref() {
+            validate_inner::components(components).map_err(|source| {
+                let (kind, inner_source) = source.into_parts();
+
+                match kind {
+                    ComponentValidationErrorType::ComponentCount { count } => {
+                        UpdateFollowupMessageError {
+                            kind: UpdateFollowupMessageErrorType::ComponentCount { count },
+                            source: inner_source,
+                        }
+                    }
+                    other => UpdateFollowupMessageError {
+                        kind: UpdateFollowupMessageErrorType::ComponentInvalid { kind: other },
+                        source: inner_source,
+                    },
+                }
+            })?;
+        }
+
+        self.fields.components = Some(NullableField(components));
+
+        Ok(self)
+    }
+
     /// Set the content of the message.
     ///
     /// Pass `None` if you want to remove the message content.
@@ -211,7 +280,7 @@ impl<'a> UpdateFollowupMessage<'a> {
     /// the content length is too long.
     pub fn content(mut self, content: Option<&'a str>) -> Result<Self, UpdateFollowupMessageError> {
         if let Some(content_ref) = content.as_ref() {
-            if !validate::content_limit(content_ref) {
+            if !validate_inner::content_limit(content_ref) {
                 return Err(UpdateFollowupMessageError {
                     kind: UpdateFollowupMessageErrorType::ContentInvalid,
                     source: None,
@@ -249,7 +318,7 @@ impl<'a> UpdateFollowupMessage<'a> {
     /// use twilight_model::id::{ApplicationId, MessageId};
     ///
     /// let client = Client::new(env::var("DISCORD_TOKEN")?);
-    /// client.set_application_id(ApplicationId(1));
+    /// client.set_application_id(ApplicationId::new(1).expect("non zero"));
     ///
     /// let embed = EmbedBuilder::new()
     ///     .description("Powerful, flexible, and scalable ecosystem of Rust libraries for the Discord API.")
@@ -257,7 +326,7 @@ impl<'a> UpdateFollowupMessage<'a> {
     ///     .url("https://twilight.rs")
     ///     .build()?;
     ///
-    /// client.update_followup_message("token", MessageId(2))?
+    /// client.update_followup_message("token", MessageId::new(2).expect("non zero"))?
     ///     .embeds(Some(&[embed]))?
     ///     .exec()
     ///     .await?;
@@ -287,7 +356,7 @@ impl<'a> UpdateFollowupMessage<'a> {
             }
 
             for (idx, embed) in embeds_present.iter().enumerate() {
-                if let Err(source) = validate::embed(embed) {
+                if let Err(source) = validate_inner::embed(embed) {
                     return Err(UpdateFollowupMessageError {
                         kind: UpdateFollowupMessageErrorType::EmbedTooLarge { index: idx },
                         source: Some(Box::new(source)),
@@ -327,9 +396,9 @@ impl<'a> UpdateFollowupMessage<'a> {
     // being consumed in request construction.
     fn request(&mut self) -> Result<Request, HttpError> {
         let mut request = Request::builder(&Route::UpdateWebhookMessage {
-            message_id: self.message_id.0,
+            message_id: self.message_id.get(),
             token: self.token,
-            webhook_id: self.application_id.0,
+            webhook_id: self.application_id.get(),
         });
 
         if !self.files.is_empty() || self.fields.payload_json.is_some() {

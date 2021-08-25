@@ -125,7 +125,7 @@ impl Player {
     /// use twilight_lavalink::{model::{Play, Pause}, Lavalink};
     /// # use twilight_model::id::{GuildId, UserId};
     /// # fn main() -> Result<(), Box<dyn std::error::Error>> {
-    /// # let (guild_id, user_id) = (GuildId(1), UserId(2));
+    /// # let (guild_id, user_id) = (GuildId::new(1).expect("non zero"), UserId::new(2).expect("non zero"));
     /// # let track = String::new();
     ///
     /// let lavalink = Lavalink::new(user_id, 10);
@@ -180,14 +180,14 @@ impl Player {
         if channel_id == 0 {
             None
         } else {
-            Some(ChannelId(channel_id))
+            Some(ChannelId::new(channel_id).expect("non zero"))
         }
     }
 
     /// Sets the channel ID the player is currently connected to.
     pub(crate) fn set_channel_id(&self, channel_id: Option<ChannelId>) {
         self.channel_id.store(
-            channel_id.map(|id| id.0).unwrap_or(0_u64),
+            channel_id.map(|id| id.get()).unwrap_or(0_u64),
             Ordering::Release,
         );
     }

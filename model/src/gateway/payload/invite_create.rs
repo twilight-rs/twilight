@@ -129,10 +129,10 @@ mod tests {
     #[test]
     fn test_invite_create() {
         let value = InviteCreate {
-            channel_id: ChannelId(1),
+            channel_id: ChannelId::new(1).expect("non zero"),
             code: "a".repeat(7),
             created_at: "2021-01-01T00:00:00+00:00".to_owned(),
-            guild_id: GuildId(2),
+            guild_id: GuildId::new(2).expect("non zero"),
             inviter: None,
             max_age: 3600,
             max_uses: 5,
@@ -177,7 +177,7 @@ mod tests {
         let value = PartialUser {
             avatar: Some("a".repeat(32)),
             discriminator: 123,
-            id: UserId(1),
+            id: UserId::new(1).expect("non zero"),
             username: "twilight".to_owned(),
         };
 

@@ -1,7 +1,7 @@
 use super::GetChannelMessagesConfigured;
 use crate::{
     client::Client,
-    request::{validate, Request},
+    request::{validate_inner, Request},
     response::{marker::ListBody, ResponseFuture},
     routing::Route,
 };
@@ -84,8 +84,8 @@ struct GetChannelMessagesFields {
 /// # #[tokio::main]
 /// # async fn main() -> Result<(), Box<dyn std::error::Error>> {
 /// let client = Client::new("my token".to_owned());
-/// let channel_id = ChannelId(123);
-/// let message_id = MessageId(234);
+/// let channel_id = ChannelId::new(123).expect("non zero");
+/// let message_id = MessageId::new(234).expect("non zero");
 ///
 /// let messages = client
 ///     .channel_messages(channel_id)
@@ -160,7 +160,7 @@ impl<'a> GetChannelMessages<'a> {
     /// Returns a [`GetChannelMessagesErrorType::LimitInvalid`] error type if
     /// the amount is less than 1 or greater than 100.
     pub const fn limit(mut self, limit: u64) -> Result<Self, GetChannelMessagesError> {
-        if !validate::get_channel_messages_limit(limit) {
+        if !validate_inner::get_channel_messages_limit(limit) {
             return Err(GetChannelMessagesError {
                 kind: GetChannelMessagesErrorType::LimitInvalid,
             });
@@ -179,7 +179,7 @@ impl<'a> GetChannelMessages<'a> {
             after: None,
             around: None,
             before: None,
-            channel_id: self.channel_id.0,
+            channel_id: self.channel_id.get(),
             limit: self.fields.limit,
         });
 

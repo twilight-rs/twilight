@@ -1,21 +1,104 @@
 use super::ExecuteWebhookAndWait;
 use crate::{
     client::Client,
-    error::Error,
-    request::{Form, Request},
+    error::Error as HttpError,
+    request::{
+        validate_inner::{self, ComponentValidationError, ComponentValidationErrorType},
+        Form, Request,
+    },
     response::{marker::EmptyBody, ResponseFuture},
     routing::Route,
 };
 use serde::Serialize;
+use std::{
+    error::Error,
+    fmt::{Display, Formatter, Result as FmtResult},
+};
 use twilight_model::{
+    application::component::Component,
     channel::{embed::Embed, message::AllowedMentions},
     id::WebhookId,
 };
+
+/// A webhook could not be executed.
+#[derive(Debug)]
+pub struct ExecuteWebhookError {
+    kind: ExecuteWebhookErrorType,
+    source: Option<Box<dyn Error + Send + Sync>>,
+}
+
+impl ExecuteWebhookError {
+    /// Immutable reference to the type of error that occurred.
+    #[must_use = "retrieving the type has no effect if left unused"]
+    pub const fn kind(&self) -> &ExecuteWebhookErrorType {
+        &self.kind
+    }
+
+    /// Consume the error, returning the source error if there is any.
+    #[must_use = "consuming the error and retrieving the source has no effect if left unused"]
+    pub fn into_source(self) -> Option<Box<dyn Error + Send + Sync>> {
+        self.source
+    }
+
+    /// Consume the error, returning the owned error type and the source error.
+    #[must_use = "consuming the error into its parts has no effect if left unused"]
+    pub fn into_parts(
+        self,
+    ) -> (
+        ExecuteWebhookErrorType,
+        Option<Box<dyn Error + Send + Sync>>,
+    ) {
+        (self.kind, self.source)
+    }
+}
+
+impl Display for ExecuteWebhookError {
+    fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
+        match &self.kind {
+            ExecuteWebhookErrorType::ComponentCount { count } => {
+                Display::fmt(count, f)?;
+                f.write_str(" components were provided, but only ")?;
+                Display::fmt(&ComponentValidationError::COMPONENT_COUNT, f)?;
+
+                f.write_str(" root components are allowed")
+            }
+            ExecuteWebhookErrorType::ComponentInvalid { .. } => {
+                f.write_str("a provided component is invalid")
+            }
+        }
+    }
+}
+
+impl Error for ExecuteWebhookError {
+    fn source(&self) -> Option<&(dyn Error + 'static)> {
+        self.source
+            .as_ref()
+            .map(|source| &**source as &(dyn Error + 'static))
+    }
+}
+
+/// Type of [`ExecuteWebhookError`] that occurred.
+#[derive(Debug)]
+#[non_exhaustive]
+pub enum ExecuteWebhookErrorType {
+    /// Too many message components were provided.
+    ComponentCount {
+        /// Number of components that were provided.
+        count: usize,
+    },
+    /// An invalid message component was provided.
+    ComponentInvalid {
+        /// Additional details about the validation failure type.
+        kind: ComponentValidationErrorType,
+    },
+}
 
 #[derive(Serialize)]
 pub(crate) struct ExecuteWebhookFields<'a> {
     #[serde(skip_serializing_if = "Option::is_none")]
     avatar_url: Option<&'a str>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    components: Option<&'a [Component]>,
     #[serde(skip_serializing_if = "Option::is_none")]
     content: Option<&'a str>,
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -43,7 +126,7 @@ pub(crate) struct ExecuteWebhookFields<'a> {
 /// # #[tokio::main]
 /// # async fn main() -> Result<(), Box<dyn std::error::Error>> {
 /// let client = Client::new("my token".to_owned());
-/// let id = WebhookId(432);
+/// let id = WebhookId::new(432).expect("non zero");
 ///
 /// client
 ///     .execute_webhook(id, "webhook token")
@@ -70,6 +153,7 @@ impl<'a> ExecuteWebhook<'a> {
         Self {
             fields: ExecuteWebhookFields {
                 avatar_url: None,
+                components: None,
                 content: None,
                 embeds: None,
                 payload_json: None,
@@ -96,6 +180,38 @@ impl<'a> ExecuteWebhook<'a> {
         self.fields.avatar_url = Some(avatar_url);
 
         self
+    }
+
+    /// Add multiple [`Component`]s to a message.
+    ///
+    /// Calling this method multiple times will clear previous calls.
+    ///
+    /// # Errors
+    ///
+    /// Returns an [`ExecuteWebhookErrorType::ComponentCount`] error
+    /// type if too many components are provided.
+    ///
+    /// Returns an [`ExecuteWebhookErrorType::ComponentInvalid`] error
+    /// type if one of the provided components is invalid.
+    pub fn components(mut self, components: &'a [Component]) -> Result<Self, ExecuteWebhookError> {
+        validate_inner::components(components).map_err(|source| {
+            let (kind, inner_source) = source.into_parts();
+
+            match kind {
+                ComponentValidationErrorType::ComponentCount { count } => ExecuteWebhookError {
+                    kind: ExecuteWebhookErrorType::ComponentCount { count },
+                    source: inner_source,
+                },
+                other => ExecuteWebhookError {
+                    kind: ExecuteWebhookErrorType::ComponentInvalid { kind: other },
+                    source: inner_source,
+                },
+            }
+        })?;
+
+        self.fields.components = Some(components);
+
+        Ok(self)
     }
 
     /// The content of the webook's message.
@@ -138,7 +254,7 @@ impl<'a> ExecuteWebhook<'a> {
     /// # #[tokio::main]
     /// # async fn main() -> Result<(), Box<dyn std::error::Error>> {
     /// # let client = Client::new("token".to_owned());
-    /// let message = client.execute_webhook(WebhookId(1), "token here")
+    /// let message = client.execute_webhook(WebhookId::new(1).expect("non zero"), "token here")
     ///     .content("some content")
     ///     .embeds(&[EmbedBuilder::new().title("title").build()?])
     ///     .wait()
@@ -160,7 +276,7 @@ impl<'a> ExecuteWebhook<'a> {
     /// # #[tokio::main]
     /// # async fn main() -> Result<(), Box<dyn std::error::Error>> {
     /// # let client = Client::new("token".to_owned());
-    /// let message = client.execute_webhook(WebhookId(1), "token here")
+    /// let message = client.execute_webhook(WebhookId::new(1).expect("non zero"), "token here")
     ///     .content("some content")
     ///     .payload_json(br#"{ "content": "other content", "embeds": [ { "title": "title" } ] }"#)
     ///     .wait()
@@ -208,11 +324,11 @@ impl<'a> ExecuteWebhook<'a> {
 
     // `self` needs to be consumed and the client returned due to parameters
     // being consumed in request construction.
-    pub(super) fn request(&self, wait: bool) -> Result<Request, Error> {
+    pub(super) fn request(&self, wait: bool) -> Result<Request, HttpError> {
         let mut request = Request::builder(&Route::ExecuteWebhook {
             token: self.token,
             wait: Some(wait),
-            webhook_id: self.webhook_id.0,
+            webhook_id: self.webhook_id.get(),
         });
 
         // Webhook executions don't need the authorization token, only the
@@ -229,7 +345,7 @@ impl<'a> ExecuteWebhook<'a> {
             if let Some(payload_json) = &self.fields.payload_json {
                 form.payload_json(payload_json);
             } else {
-                let body = crate::json::to_vec(&self.fields).map_err(Error::json)?;
+                let body = crate::json::to_vec(&self.fields).map_err(HttpError::json)?;
 
                 form.payload_json(&body);
             }

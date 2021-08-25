@@ -36,8 +36,8 @@ mod tests {
     #[test]
     fn test_text_channel() {
         let value = TextChannel {
-            id: ChannelId(1),
-            guild_id: Some(GuildId(2)),
+            id: ChannelId::new(1).expect("non zero"),
+            guild_id: Some(GuildId::new(2).expect("non zero")),
             kind: ChannelType::GuildText,
             last_message_id: None,
             last_pin_timestamp: None,
@@ -89,15 +89,15 @@ mod tests {
     #[test]
     fn test_text_channel_complete() {
         let value = TextChannel {
-            id: ChannelId(1),
-            guild_id: Some(GuildId(2)),
+            id: ChannelId::new(1).expect("non zero"),
+            guild_id: Some(GuildId::new(2).expect("non zero")),
             kind: ChannelType::GuildText,
-            last_message_id: Some(MessageId(3)),
+            last_message_id: Some(MessageId::new(3).expect("non zero")),
             last_pin_timestamp: Some("123".to_owned()),
             name: "foo".to_owned(),
             nsfw: true,
             permission_overwrites: Vec::new(),
-            parent_id: Some(ChannelId(4)),
+            parent_id: Some(ChannelId::new(4).expect("non zero")),
             position: 3,
             rate_limit_per_user: Some(10),
             topic: Some("a topic".to_owned()),

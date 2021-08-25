@@ -1,6 +1,6 @@
 use crate::{
     client::Client,
-    request::{validate, Request},
+    request::{validate_inner, Request},
     response::ResponseFuture,
     routing::Route,
 };
@@ -100,7 +100,7 @@ impl<'a> GetGuildPruneCount<'a> {
     /// Returns a [`GetGuildPruneCountErrorType::DaysInvalid`] error type if the
     /// number of days is 0.
     pub const fn days(mut self, days: u64) -> Result<Self, GetGuildPruneCountError> {
-        if !validate::guild_prune_days(days) {
+        if !validate_inner::guild_prune_days(days) {
             return Err(GetGuildPruneCountError {
                 kind: GetGuildPruneCountErrorType::DaysInvalid,
             });
@@ -124,7 +124,7 @@ impl<'a> GetGuildPruneCount<'a> {
     pub fn exec(self) -> ResponseFuture<GuildPrune> {
         let request = Request::from_route(&Route::GetGuildPruneCount {
             days: self.fields.days,
-            guild_id: self.guild_id.0,
+            guild_id: self.guild_id.get(),
             include_roles: self.fields.include_roles,
         });
 
@@ -142,7 +142,7 @@ mod test {
     fn test_days() {
         fn days_valid(days: u64) -> bool {
             let client = Client::new("".to_owned());
-            let count = GetGuildPruneCount::new(&client, GuildId(0));
+            let count = GetGuildPruneCount::new(&client, GuildId::new(1).expect("non zero"));
             let days_result = count.days(days);
             days_result.is_ok()
         }

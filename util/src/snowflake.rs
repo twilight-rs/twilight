@@ -24,7 +24,7 @@ pub trait Snowflake {
     /// use twilight_util::snowflake::Snowflake;
     /// use twilight_model::id::UserId;
     ///
-    /// let id = UserId(105484726235607040);
+    /// let id = UserId::new(105484726235607040).expect("non zero");
     ///
     /// assert_eq!(
     ///     "2015-10-19T01:58:38.546+00:00",
@@ -36,10 +36,11 @@ pub trait Snowflake {
     ///
     /// ```rust
     /// use time::{Duration, Format, OffsetDateTime};
+    ///
     /// use twilight_util::snowflake::Snowflake;
     /// use twilight_model::id::UserId;
     ///
-    /// let id = UserId(105484726235607040);
+    /// let id = UserId::new(105484726235607040).expect("non zero");
     /// let dur = Duration::milliseconds(id.timestamp());
     /// // Or use seconds, at the cost of lost precision.
     /// let ts = OffsetDateTime::from_unix_timestamp_nanos(dur.whole_nanoseconds());
@@ -82,91 +83,91 @@ pub trait Snowflake {
 
 impl Snowflake for ApplicationId {
     fn id(&self) -> u64 {
-        self.0
+        self.get()
     }
 }
 
 impl Snowflake for AttachmentId {
     fn id(&self) -> u64 {
-        self.0
+        self.get()
     }
 }
 
 impl Snowflake for AuditLogEntryId {
     fn id(&self) -> u64 {
-        self.0
+        self.get()
     }
 }
 
 impl Snowflake for ChannelId {
     fn id(&self) -> u64 {
-        self.0
+        self.get()
     }
 }
 
 impl Snowflake for CommandId {
     fn id(&self) -> u64 {
-        self.0
+        self.get()
     }
 }
 
 impl Snowflake for EmojiId {
     fn id(&self) -> u64 {
-        self.0
+        self.get()
     }
 }
 
 impl Snowflake for GenericId {
     fn id(&self) -> u64 {
-        self.0
+        self.get()
     }
 }
 
 impl Snowflake for GuildId {
     fn id(&self) -> u64 {
-        self.0
+        self.get()
     }
 }
 
 impl Snowflake for IntegrationId {
     fn id(&self) -> u64 {
-        self.0
+        self.get()
     }
 }
 
 impl Snowflake for InteractionId {
     fn id(&self) -> u64 {
-        self.0
+        self.get()
     }
 }
 
 impl Snowflake for MessageId {
     fn id(&self) -> u64 {
-        self.0
+        self.get()
     }
 }
 
 impl Snowflake for RoleId {
     fn id(&self) -> u64 {
-        self.0
+        self.get()
     }
 }
 
 impl Snowflake for StageId {
     fn id(&self) -> u64 {
-        self.0
+        self.get()
     }
 }
 
 impl Snowflake for UserId {
     fn id(&self) -> u64 {
-        self.0
+        self.get()
     }
 }
 
 impl Snowflake for WebhookId {
     fn id(&self) -> u64 {
-        self.0
+        self.get()
     }
 }
 
@@ -199,7 +200,7 @@ mod tests {
     #[test]
     fn test_timestamp() {
         let expected: i64 = 1_445_219_918_546;
-        let id = GenericId(105_484_726_235_607_040);
+        let id = GenericId::new(105_484_726_235_607_040).expect("non zero");
 
         assert_eq!(expected, id.timestamp())
     }
@@ -207,7 +208,7 @@ mod tests {
     #[test]
     fn test_worker_id() {
         let expected: u8 = 8;
-        let id = GenericId(762_022_344_856_174_632);
+        let id = GenericId::new(762_022_344_856_174_632).expect("non zero");
 
         assert_eq!(expected, id.worker_id())
     }
@@ -215,7 +216,7 @@ mod tests {
     #[test]
     fn test_process_id() {
         let expected: u8 = 1;
-        let id = GenericId(61_189_081_970_774_016);
+        let id = GenericId::new(61_189_081_970_774_016).expect("non zero");
 
         assert_eq!(expected, id.process_id())
     }
@@ -223,7 +224,7 @@ mod tests {
     #[test]
     fn test_increment() {
         let expected: u16 = 40;
-        let id = GenericId(762_022_344_856_174_632);
+        let id = GenericId::new(762_022_344_856_174_632).expect("non zero");
 
         assert_eq!(expected, id.increment())
     }

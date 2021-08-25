@@ -2,7 +2,7 @@ use super::{CommandBorrowed, InteractionError, InteractionErrorType};
 use crate::{
     client::Client,
     error::Error as HttpError,
-    request::{validate, Request, RequestBuilder},
+    request::{validate_inner, Request, RequestBuilder},
     response::ResponseFuture,
     routing::Route,
 };
@@ -38,13 +38,13 @@ impl<'a> CreateGuildCommand<'a> {
         name: &'a str,
         description: &'a str,
     ) -> Result<Self, InteractionError> {
-        if !validate::command_name(name) {
+        if !validate_inner::command_name(&name) {
             return Err(InteractionError {
                 kind: InteractionErrorType::CommandNameValidationFailed,
             });
         }
 
-        if !validate::command_description(description) {
+        if !validate_inner::command_description(&description) {
             return Err(InteractionError {
                 kind: InteractionErrorType::CommandDescriptionValidationFailed,
             });
@@ -108,8 +108,8 @@ impl<'a> CreateGuildCommand<'a> {
 
     fn request(&self) -> Result<Request, HttpError> {
         Request::builder(&Route::CreateGuildCommand {
-            application_id: self.application_id.0,
-            guild_id: self.guild_id.0,
+            application_id: self.application_id.get(),
+            guild_id: self.guild_id.get(),
         })
         .json(&CommandBorrowed {
             application_id: Some(self.application_id),

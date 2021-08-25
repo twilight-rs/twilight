@@ -18,7 +18,7 @@ use twilight_model::id::{ApplicationId, MessageId};
 ///
 /// let client = Client::new(env::var("DISCORD_TOKEN")?);
 /// client
-///     .delete_followup_message("token here", MessageId(2))?
+///     .delete_followup_message("token here", MessageId::new(2).expect("non zero"))?
 ///     .exec()
 ///     .await?;
 /// # Ok(()) }
@@ -48,9 +48,9 @@ impl<'a> DeleteFollowupMessage<'a> {
 
     fn request(self) -> Request {
         Request::from_route(&Route::DeleteWebhookMessage {
-            message_id: self.message_id.0,
+            message_id: self.message_id.get(),
             token: self.token,
-            webhook_id: self.application_id.0,
+            webhook_id: self.application_id.get(),
         })
     }
 
@@ -72,7 +72,12 @@ mod tests {
     fn test_request() {
         let client = Client::new("token".to_owned());
 
-        let builder = DeleteFollowupMessage::new(&client, ApplicationId(1), "token", MessageId(2));
+        let builder = DeleteFollowupMessage::new(
+            &client,
+            ApplicationId::new(1).expect("non zero"),
+            "token",
+            MessageId::new(2).expect("non zero"),
+        );
         let actual = builder.request();
 
         let expected = Request::from_route(&Route::DeleteWebhookMessage {

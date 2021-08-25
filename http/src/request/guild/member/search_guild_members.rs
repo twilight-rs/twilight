@@ -1,6 +1,6 @@
 use crate::{
     client::Client,
-    request::{validate, Request},
+    request::{validate_inner, Request},
     response::{marker::MemberListBody, ResponseFuture},
     routing::Route,
 };
@@ -84,7 +84,7 @@ struct SearchGuildMembersFields<'a> {
 /// # async fn main() -> Result<(), Box<dyn std::error::Error>> {
 /// let client = Client::new("my token".to_owned());
 ///
-/// let guild_id = GuildId(100);
+/// let guild_id = GuildId::new(100).expect("non zero");
 /// let members = client.search_guild_members(guild_id, "Wumpus")
 ///     .limit(10)?
 ///     .exec()
@@ -125,7 +125,7 @@ impl<'a> SearchGuildMembers<'a> {
     pub const fn limit(mut self, limit: u64) -> Result<Self, SearchGuildMembersError> {
         // Using get_guild_members_limit here as the limits are the same
         // and this endpoint is not officially documented yet.
-        if !validate::search_guild_members_limit(limit) {
+        if !validate_inner::search_guild_members_limit(limit) {
             return Err(SearchGuildMembersError {
                 kind: SearchGuildMembersErrorType::LimitInvalid { limit },
             });
@@ -141,7 +141,7 @@ impl<'a> SearchGuildMembers<'a> {
     /// [`Response`]: crate::response::Response
     pub fn exec(self) -> ResponseFuture<MemberListBody> {
         let request = Request::from_route(&Route::SearchGuildMembers {
-            guild_id: self.guild_id.0,
+            guild_id: self.guild_id.get(),
             limit: self.fields.limit,
             query: self.fields.query,
         });

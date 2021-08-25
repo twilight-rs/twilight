@@ -73,7 +73,7 @@ impl<'a> UpdateCurrentUserVoiceState<'a> {
     /// [`Response`]: crate::response::Response
     pub fn exec(self) -> ResponseFuture<EmptyBody> {
         let mut request = Request::builder(&Route::UpdateCurrentUserVoiceState {
-            guild_id: self.guild_id.0,
+            guild_id: self.guild_id.get(),
         });
 
         request = match request.json(&self.fields) {

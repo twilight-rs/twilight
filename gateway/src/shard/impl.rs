@@ -481,6 +481,8 @@ impl Shard {
         let url = if let Some(u) = self.config.gateway_url.clone() {
             u.into_string()
         } else {
+            // By making an authenticated gateway information retrieval request
+            // we're also validating the configured token.
             self.config
                 .http_client()
                 .gateway()

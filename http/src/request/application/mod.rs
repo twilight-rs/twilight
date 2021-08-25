@@ -1,4 +1,5 @@
-mod create_followup_message;
+pub mod create_followup_message;
+
 mod create_global_command;
 mod create_guild_command;
 mod delete_followup_message;
@@ -177,12 +178,12 @@ mod tests {
     #[test]
     fn test_command_borrowed_from_command() {
         let command = Command {
-            application_id: Some(ApplicationId(1)),
+            application_id: Some(ApplicationId::new(1).expect("non zero")),
             default_permission: Some(true),
             description: "command description".to_owned(),
-            guild_id: Some(GuildId(2)),
+            guild_id: Some(GuildId::new(2).expect("non zero")),
             name: "command name".to_owned(),
-            id: Some(CommandId(3)),
+            id: Some(CommandId::new(3).expect("non zero")),
             options: Vec::from([CommandOption::Boolean(BaseCommandOptionData {
                 description: "command description".to_owned(),
                 name: "command name".to_owned(),

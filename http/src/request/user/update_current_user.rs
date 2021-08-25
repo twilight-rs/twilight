@@ -1,6 +1,6 @@
 use crate::{
     client::Client,
-    request::{validate, NullableField, Request},
+    request::{validate_inner, NullableField, Request},
     response::ResponseFuture,
     routing::Route,
 };
@@ -115,7 +115,7 @@ impl<'a> UpdateCurrentUser<'a> {
     /// Returns an [`UpdateCurrentUserErrorType::UsernameInvalid`] error type if
     /// the username length is too short or too long.
     pub fn username(mut self, username: &'a str) -> Result<Self, UpdateCurrentUserError> {
-        if !validate::username(&username) {
+        if !validate_inner::username(&username) {
             return Err(UpdateCurrentUserError {
                 kind: UpdateCurrentUserErrorType::UsernameInvalid,
             });

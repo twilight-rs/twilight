@@ -4,7 +4,9 @@ use crate::{
     request::{
         self,
         multipart::Form,
-        validate::{self, EmbedValidationError},
+        validate_inner::{
+            self, ComponentValidationError, ComponentValidationErrorType, EmbedValidationError,
+        },
         Request,
     },
     response::ResponseFuture,
@@ -16,6 +18,7 @@ use std::{
     fmt::{Display, Formatter, Result as FmtResult},
 };
 use twilight_model::{
+    application::component::Component,
     channel::{
         embed::Embed,
         message::{AllowedMentions, MessageReference},
@@ -61,6 +64,16 @@ impl CreateMessageError {
 impl Display for CreateMessageError {
     fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
         match &self.kind {
+            CreateMessageErrorType::ComponentCount { count } => {
+                Display::fmt(count, f)?;
+                f.write_str(" components were provided, but only ")?;
+                Display::fmt(&ComponentValidationError::COMPONENT_COUNT, f)?;
+
+                f.write_str(" root components are allowed")
+            }
+            CreateMessageErrorType::ComponentInvalid { .. } => {
+                f.write_str("a provided component is invalid")
+            }
             CreateMessageErrorType::ContentInvalid => f.write_str("the message content is invalid"),
             CreateMessageErrorType::EmbedTooLarge { idx } => {
                 f.write_str("the embed at index ")?;
@@ -84,6 +97,16 @@ impl Error for CreateMessageError {
 #[derive(Debug)]
 #[non_exhaustive]
 pub enum CreateMessageErrorType {
+    /// Too many message components were provided.
+    ComponentCount {
+        /// Number of components that were provided.
+        count: usize,
+    },
+    /// An invalid message component was provided.
+    ComponentInvalid {
+        /// Additional details about the validation failure type.
+        kind: ComponentValidationErrorType,
+    },
     /// Returned when the content is over 2000 UTF-16 characters.
     ContentInvalid,
     /// Returned when the length of the embed is over 6000 characters.
@@ -95,6 +118,8 @@ pub enum CreateMessageErrorType {
 
 #[derive(Serialize)]
 pub(crate) struct CreateMessageFields<'a> {
+    #[serde(skip_serializing_if = "request::slice_is_empty")]
+    components: &'a [Component],
     #[serde(skip_serializing_if = "Option::is_none")]
     content: Option<&'a str>,
     #[serde(skip_serializing_if = "request::slice_is_empty")]
@@ -123,7 +148,7 @@ pub(crate) struct CreateMessageFields<'a> {
 /// # async fn main() -> Result<(), Box<dyn std::error::Error>> {
 /// let client = Client::new("my token".to_owned());
 ///
-/// let channel_id = ChannelId(123);
+/// let channel_id = ChannelId::new(123).expect("non zero");
 /// let message = client
 ///     .create_message(channel_id)
 ///     .content("Twilight is best pony")?
@@ -145,6 +170,7 @@ impl<'a> CreateMessage<'a> {
         Self {
             channel_id,
             fields: CreateMessageFields {
+                components: &[],
                 content: None,
                 embeds: &[],
                 message_reference: None,
@@ -165,6 +191,38 @@ impl<'a> CreateMessage<'a> {
         self
     }
 
+    /// Add multiple [`Component`]s to a message.
+    ///
+    /// Calling this method multiple times will clear previous calls.
+    ///
+    /// # Errors
+    ///
+    /// Returns an [`CreateMessageErrorType::ComponentCount`] error type if
+    /// too many components are provided.
+    ///
+    /// Returns an [`CreateMessageErrorType::ComponentInvalid`] error type if
+    /// one of the provided components is invalid.
+    pub fn components(mut self, components: &'a [Component]) -> Result<Self, CreateMessageError> {
+        validate_inner::components(components).map_err(|source| {
+            let (kind, inner_source) = source.into_parts();
+
+            match kind {
+                ComponentValidationErrorType::ComponentCount { count } => CreateMessageError {
+                    kind: CreateMessageErrorType::ComponentCount { count },
+                    source: inner_source,
+                },
+                other => CreateMessageError {
+                    kind: CreateMessageErrorType::ComponentInvalid { kind: other },
+                    source: inner_source,
+                },
+            }
+        })?;
+
+        self.fields.components = components;
+
+        Ok(self)
+    }
+
     /// Set the content of the message.
     ///
     /// The maximum length is 2000 UTF-16 characters.
@@ -174,7 +232,7 @@ impl<'a> CreateMessage<'a> {
     /// Returns a [`CreateMessageErrorType::ContentInvalid`] error type if the
     /// content length is too long.
     pub fn content(mut self, content: &'a str) -> Result<Self, CreateMessageError> {
-        if !validate::content_limit(content) {
+        if !validate_inner::content_limit(content) {
             return Err(CreateMessageError {
                 kind: CreateMessageErrorType::ContentInvalid,
                 source: None,
@@ -200,7 +258,8 @@ impl<'a> CreateMessage<'a> {
     /// [the discord docs]: https://discord.com/developers/docs/resources/channel#embed-limits
     pub fn embeds(mut self, embeds: &'a [Embed]) -> Result<Self, CreateMessageError> {
         for (idx, embed) in embeds.iter().enumerate() {
-            validate::embed(embed).map_err(|source| CreateMessageError::embed(source, idx))?;
+            validate_inner::embed(embed)
+                .map_err(|source| CreateMessageError::embed(source, idx))?;
         }
 
         self.fields.embeds = embeds;
@@ -298,7 +357,7 @@ impl<'a> CreateMessage<'a> {
     /// [`Response`]: crate::response::Response
     pub fn exec(self) -> ResponseFuture<Message> {
         let mut request = Request::builder(&Route::CreateMessage {
-            channel_id: self.channel_id.0,
+            channel_id: self.channel_id.get(),
         });
 
         if !self.files.is_empty() || self.fields.payload_json.is_some() {

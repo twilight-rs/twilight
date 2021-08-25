@@ -174,7 +174,7 @@ impl Client {
         let id = self.application_id.load(Ordering::Relaxed);
 
         if id != 0 {
-            return Some(ApplicationId(id));
+            return Some(ApplicationId::new(id).expect("non zero"));
         }
 
         None
@@ -186,10 +186,10 @@ impl Client {
     pub fn set_application_id(&self, application_id: ApplicationId) -> Option<ApplicationId> {
         let prev = self
             .application_id
-            .swap(application_id.0, Ordering::Relaxed);
+            .swap(application_id.get(), Ordering::Relaxed);
 
         if prev != 0 {
-            return Some(ApplicationId(prev));
+            return Some(ApplicationId::new(prev).expect("non zero"));
         }
 
         None
@@ -219,7 +219,7 @@ impl Client {
     /// # #[tokio::main]
     /// # async fn main() -> Result<(), Box<dyn std::error::Error>> {
     /// # let client = Client::new("token".to_owned());
-    /// let guild_id = GuildId(101);
+    /// let guild_id = GuildId::new(101).expect("non zero");
     /// let audit_log = client
     /// // not done
     ///     .audit_log(guild_id)
@@ -245,7 +245,7 @@ impl Client {
     /// # async fn main() -> Result<(), Box<dyn std::error::Error>> {
     /// # let client = Client::new("my token".to_owned());
     /// #
-    /// let guild_id = GuildId(1);
+    /// let guild_id = GuildId::new(1).expect("non zero");
     ///
     /// let bans = client.bans(guild_id).exec().await?;
     /// # Ok(()) }
@@ -277,8 +277,8 @@ impl Client {
     /// # async fn main() -> Result<(), Box<dyn std::error::Error>> {
     /// # let client = Client::new("my token".to_owned());
     /// #
-    /// let guild_id = GuildId(100);
-    /// let user_id = UserId(200);
+    /// let guild_id = GuildId::new(100).expect("non zero");
+    /// let user_id = UserId::new(200).expect("non zero");
     /// client.create_ban(guild_id, user_id)
     ///     .delete_message_days(1)?
     ///     .reason("memes")?
@@ -304,8 +304,8 @@ impl Client {
     /// # async fn main() -> Result<(), Box<dyn std::error::Error>> {
     /// # let client = Client::new("my token".to_owned());
     /// #
-    /// let guild_id = GuildId(100);
-    /// let user_id = UserId(200);
+    /// let guild_id = GuildId::new(100).expect("non zero");
+    /// let user_id = UserId::new(200).expect("non zero");
     ///
     /// client.delete_ban(guild_id, user_id).exec().await?;
     /// # Ok(()) }
@@ -328,7 +328,7 @@ impl Client {
     /// # async fn main() -> Result<(), Box<dyn std::error::Error>> {
     /// # let client = Client::new("my token".to_owned());
     /// #
-    /// let channel_id = ChannelId(100);
+    /// let channel_id = ChannelId::new(100).expect("non zero");
     /// #
     /// let channel = client.channel(channel_id).exec().await?;
     /// # Ok(()) }
@@ -387,8 +387,8 @@ impl Client {
     /// # #[tokio::main]
     /// # async fn main() -> Result<(), Box<dyn std::error::Error>> {
     /// let client = Client::new("my token".to_owned());
-    /// let channel_id = ChannelId(123);
-    /// let message_id = MessageId(234);
+    /// let channel_id = ChannelId::new(123).expect("non zero");
+    /// let message_id = MessageId::new(234).expect("non zero");
     /// let limit: u64 = 6;
     ///
     /// let messages = client
@@ -438,10 +438,10 @@ impl Client {
     /// # async fn main() -> Result<(), Box<dyn std::error::Error>> {
     /// # let client = Client::new("my token".to_owned());
     ///
-    /// let channel_id = ChannelId(123);
+    /// let channel_id = ChannelId::new(123).expect("non zero");
     /// let allow = Permissions::VIEW_CHANNEL;
     /// let deny = Permissions::SEND_MESSAGES;
-    /// let role_id = RoleId(432);
+    /// let role_id = RoleId::new(432).expect("non zero");
     ///
     /// client.update_channel_permission(channel_id, allow, deny)
     ///     .role(role_id)
@@ -519,8 +519,8 @@ impl Client {
     /// # async fn main() -> Result<(), Box<dyn std::error::Error>> {
     /// # let client = Client::new("my token".to_owned());
     /// #
-    /// let after = GuildId(300);
-    /// let before = GuildId(400);
+    /// let after = GuildId::new(300).expect("non zero");
+    /// let before = GuildId::new(400).expect("non zero");
     /// let guilds = client.current_user_guilds()
     ///     .after(after)
     ///     .before(before)
@@ -556,7 +556,7 @@ impl Client {
     /// # async fn main() -> Result<(), Box<dyn std::error::Error>> {
     /// # let client = Client::new("my token".to_owned());
     /// #
-    /// let guild_id = GuildId(100);
+    /// let guild_id = GuildId::new(100).expect("non zero");
     ///
     /// client.emojis(guild_id).exec().await?;
     /// # Ok(()) }
@@ -579,8 +579,8 @@ impl Client {
     /// # async fn main() -> Result<(), Box<dyn std::error::Error>> {
     /// # let client = Client::new("my token".to_owned());
     /// #
-    /// let guild_id = GuildId(50);
-    /// let emoji_id = EmojiId(100);
+    /// let guild_id = GuildId::new(50).expect("non zero");
+    /// let emoji_id = EmojiId::new(100).expect("non zero");
     ///
     /// client.emoji(guild_id, emoji_id).exec().await?;
     /// # Ok(()) }
@@ -793,8 +793,8 @@ impl Client {
     /// # async fn main() -> Result<(), Box<dyn std::error::Error>> {
     /// # let client = Client::new("my token".to_owned());
     /// #
-    /// let guild_id = GuildId(100);
-    /// let user_id = UserId(3000);
+    /// let guild_id = GuildId::new(100).expect("non zero");
+    /// let user_id = UserId::new(3000).expect("non zero");
     /// let members = client.guild_members(guild_id).after(user_id).exec().await?;
     /// # Ok(()) }
     /// ```
@@ -825,7 +825,7 @@ impl Client {
     /// # async fn main() -> Result<(), Box<dyn std::error::Error>> {
     /// let client = Client::new("my token".to_owned());
     ///
-    /// let guild_id = GuildId(100);
+    /// let guild_id = GuildId::new(100).expect("non zero");
     /// let members = client.search_guild_members(guild_id, "Wumpus")
     ///     .limit(10)?
     ///     .exec()
@@ -900,7 +900,7 @@ impl Client {
     ///
     /// # #[tokio::main] async fn main() -> Result<(), Box<dyn std::error::Error>> {
     /// let client = Client::new(env::var("DISCORD_TOKEN")?);
-    /// let member = client.update_guild_member(GuildId(1), UserId(2))
+    /// let member = client.update_guild_member(GuildId::new(1).expect("non zero"), UserId::new(2).expect("non zero"))
     ///     .mute(true)
     ///     .nick(Some("pinkie pie"))?
     ///     .exec()
@@ -942,9 +942,9 @@ impl Client {
     /// # async fn main() -> Result<(), Box<dyn std::error::Error>> {
     /// # let client = Client::new("my token".to_owned());
     /// #
-    /// let guild_id = GuildId(1);
-    /// let role_id = RoleId(2);
-    /// let user_id = UserId(3);
+    /// let guild_id = GuildId::new(1).expect("non zero");
+    /// let role_id = RoleId::new(2).expect("non zero");
+    /// let user_id = UserId::new(3).expect("non zero");
     ///
     /// client.add_guild_member_role(guild_id, user_id, role_id)
     ///     .reason("test")?
@@ -1069,7 +1069,7 @@ impl Client {
     /// # async fn main() -> Result<(), Box<dyn std::error::Error>> {
     /// # let client = Client::new("my token".to_owned());
     /// #
-    /// let channel_id = ChannelId(123);
+    /// let channel_id = ChannelId::new(123).expect("non zero");
     /// let invite = client
     ///     .create_invite(channel_id)
     ///     .max_uses(3)?
@@ -1111,7 +1111,7 @@ impl Client {
     /// # async fn main() -> Result<(), Box<dyn std::error::Error>> {
     /// # let client = Client::new("my token".to_owned());
     /// #
-    /// let channel_id = ChannelId(123);
+    /// let channel_id = ChannelId::new(123).expect("non zero");
     /// let message = client
     ///     .create_message(channel_id)
     ///     .content("Twilight is best pony")?
@@ -1182,7 +1182,7 @@ impl Client {
     /// # #[tokio::main]
     /// # async fn main() -> Result<(), Box<dyn std::error::Error>> {
     /// let client = Client::new("my token".to_owned());
-    /// client.update_message(ChannelId(1), MessageId(2))
+    /// client.update_message(ChannelId::new(1).expect("non zero"), MessageId::new(2).expect("non zero"))
     ///     .content(Some("test update"))?
     ///     .exec()
     ///     .await?;
@@ -1198,7 +1198,7 @@ impl Client {
     /// # #[tokio::main]
     /// # async fn main() -> Result<(), Box<dyn std::error::Error>> {
     /// # let client = Client::new("my token".to_owned());
-    /// client.update_message(ChannelId(1), MessageId(2))
+    /// client.update_message(ChannelId::new(1).expect("non zero"), MessageId::new(2).expect("non zero"))
     ///     .content(None)?
     ///     .exec()
     ///     .await?;
@@ -1266,8 +1266,8 @@ impl Client {
     /// # async fn main() -> Result<(), Box<dyn std::error::Error>> {
     /// # let client = Client::new("my token".to_owned());
     /// #
-    /// let channel_id = ChannelId(123);
-    /// let message_id = MessageId(456);
+    /// let channel_id = ChannelId::new(123).expect("non zero");
+    /// let message_id = MessageId::new(456).expect("non zero");
     /// let emoji = RequestReactionType::Unicode { name: "🌃" };
     ///
     /// let reaction = client
@@ -1353,7 +1353,7 @@ impl Client {
     /// # #[tokio::main]
     /// # async fn main() -> Result<(), Box<dyn std::error::Error>> {
     /// # let client = Client::new("my token".to_owned());
-    /// let guild_id = GuildId(234);
+    /// let guild_id = GuildId::new(234).expect("non zero");
     ///
     /// client.create_role(guild_id)
     ///     .color(0xd90083)
@@ -1539,7 +1539,7 @@ impl Client {
     /// # #[tokio::main]
     /// # async fn main() -> Result<(), Box<dyn std::error::Error>> {
     /// # let client = Client::new("my token".to_owned());
-    /// let channel_id = ChannelId(123);
+    /// let channel_id = ChannelId::new(123).expect("non zero");
     ///
     /// let webhook = client
     ///     .create_webhook(channel_id, "Twily Bot")
@@ -1587,7 +1587,7 @@ impl Client {
     /// # #[tokio::main]
     /// # async fn main() -> Result<(), Box<dyn std::error::Error>> {
     /// # let client = Client::new("my token".to_owned());
-    /// let id = WebhookId(432);
+    /// let id = WebhookId::new(432).expect("non zero");
     /// #
     /// let webhook = client
     ///     .execute_webhook(id, "webhook token")
@@ -1632,7 +1632,7 @@ impl Client {
     /// # #[tokio::main]
     /// # async fn main() -> Result<(), Box<dyn std::error::Error>> {
     /// # let client = Client::new("token".to_owned());
-    /// client.update_webhook_message(WebhookId(1), "token here", MessageId(2))
+    /// client.update_webhook_message(WebhookId::new(1).expect("non zero"), "token here", MessageId::new(2).expect("non zero"))
     ///     .content(Some("new message content"))?
     ///     .exec()
     ///     .await?;
@@ -1659,7 +1659,7 @@ impl Client {
     /// # async fn main() -> Result<(), Box<dyn std::error::Error>> {
     /// # let client = Client::new("token".to_owned());
     /// client
-    ///     .delete_webhook_message(WebhookId(1), "token here", MessageId(2))
+    ///     .delete_webhook_message(WebhookId::new(1).expect("non zero"), "token here", MessageId::new(2).expect("non zero"))
     ///     .exec()
     ///     .await?;
     /// # Ok(()) }

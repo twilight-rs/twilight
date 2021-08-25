@@ -1,12 +1,20 @@
 use crate::{
     client::Client,
-    error::Error,
-    request::{Form, Request},
+    error::Error as HttpError,
+    request::{
+        validate_inner::{self, ComponentValidationError, ComponentValidationErrorType},
+        Form, Request,
+    },
     response::ResponseFuture,
     routing::Route,
 };
 use serde::Serialize;
+use std::{
+    error::Error,
+    fmt::{Display, Formatter, Result as FmtResult},
+};
 use twilight_model::{
+    application::component::Component,
     channel::{
         embed::Embed,
         message::{AllowedMentions, MessageFlags},
@@ -15,10 +23,85 @@ use twilight_model::{
     id::ApplicationId,
 };
 
+/// A followup message can not be created as configured.
+#[derive(Debug)]
+pub struct CreateFollowupMessageError {
+    kind: CreateFollowupMessageErrorType,
+    source: Option<Box<dyn Error + Send + Sync>>,
+}
+
+impl CreateFollowupMessageError {
+    /// Immutable reference to the type of error that occurred.
+    #[must_use = "retrieving the type has no effect if left unused"]
+    pub const fn kind(&self) -> &CreateFollowupMessageErrorType {
+        &self.kind
+    }
+
+    /// Consume the error, returning the source error if there is any.
+    #[must_use = "consuming the error and retrieving the source has no effect if left unused"]
+    pub fn into_source(self) -> Option<Box<dyn Error + Send + Sync>> {
+        self.source
+    }
+
+    /// Consume the error, returning the owned error type and the source error.
+    #[must_use = "consuming the error into its parts has no effect if left unused"]
+    pub fn into_parts(
+        self,
+    ) -> (
+        CreateFollowupMessageErrorType,
+        Option<Box<dyn Error + Send + Sync>>,
+    ) {
+        (self.kind, self.source)
+    }
+}
+
+impl Display for CreateFollowupMessageError {
+    fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
+        match &self.kind {
+            CreateFollowupMessageErrorType::ComponentCount { count } => {
+                Display::fmt(count, f)?;
+                f.write_str(" components were provided, but only ")?;
+                Display::fmt(&ComponentValidationError::COMPONENT_COUNT, f)?;
+
+                f.write_str(" root components are allowed")
+            }
+            CreateFollowupMessageErrorType::ComponentInvalid { .. } => {
+                f.write_str("a provided component is invalid")
+            }
+        }
+    }
+}
+
+impl Error for CreateFollowupMessageError {
+    fn source(&self) -> Option<&(dyn Error + 'static)> {
+        self.source
+            .as_ref()
+            .map(|source| &**source as &(dyn Error + 'static))
+    }
+}
+
+/// Type of [`CreateFollowupMessageError`] that occurred.
+#[derive(Debug)]
+#[non_exhaustive]
+pub enum CreateFollowupMessageErrorType {
+    /// An invalid message component was provided.
+    ComponentInvalid {
+        /// Additional details about the validation failure type.
+        kind: ComponentValidationErrorType,
+    },
+    /// Too many message components were provided.
+    ComponentCount {
+        /// Number of components that were provided.
+        count: usize,
+    },
+}
+
 #[derive(Serialize)]
 pub(crate) struct CreateFollowupMessageFields<'a> {
     #[serde(skip_serializing_if = "Option::is_none")]
     avatar_url: Option<&'a str>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    components: Option<&'a [Component]>,
     #[serde(skip_serializing_if = "Option::is_none")]
     content: Option<&'a str>,
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -47,7 +130,7 @@ pub(crate) struct CreateFollowupMessageFields<'a> {
 /// use twilight_model::id::ApplicationId;
 ///
 /// let client = Client::new(env::var("DISCORD_TOKEN")?);
-/// client.set_application_id(ApplicationId(1));
+/// client.set_application_id(ApplicationId::new(1).expect("non zero"));
 ///
 /// client
 ///     .create_followup_message("webhook token")?
@@ -78,6 +161,7 @@ impl<'a> CreateFollowupMessage<'a> {
         Self {
             fields: CreateFollowupMessageFields {
                 avatar_url: None,
+                components: None,
                 content: None,
                 embeds: None,
                 payload_json: None,
@@ -105,6 +189,43 @@ impl<'a> CreateFollowupMessage<'a> {
         self.fields.avatar_url = Some(avatar_url);
 
         self
+    }
+
+    /// Add multiple [`Component`]s to a message.
+    ///
+    /// Calling this method multiple times will clear previous calls.
+    ///
+    /// # Errors
+    ///
+    /// Returns an [`CreateFollowupMessageErrorType::ComponentCount`] error type
+    /// if too many components are provided.
+    ///
+    /// Returns an [`CreateFollowupMessageErrorType::ComponentInvalid`] error
+    /// type if one of the provided components is invalid.
+    pub fn components(
+        mut self,
+        components: &'a [Component],
+    ) -> Result<Self, CreateFollowupMessageError> {
+        validate_inner::components(components).map_err(|source| {
+            let (kind, inner_source) = source.into_parts();
+
+            match kind {
+                ComponentValidationErrorType::ComponentCount { count } => {
+                    CreateFollowupMessageError {
+                        kind: CreateFollowupMessageErrorType::ComponentCount { count },
+                        source: inner_source,
+                    }
+                }
+                other => CreateFollowupMessageError {
+                    kind: CreateFollowupMessageErrorType::ComponentInvalid { kind: other },
+                    source: inner_source,
+                },
+            }
+        })?;
+
+        self.fields.components = Some(components);
+
+        Ok(self)
     }
 
     /// The content of the webook's message.
@@ -159,7 +280,7 @@ impl<'a> CreateFollowupMessage<'a> {
     /// use twilight_model::id::{MessageId, ApplicationId};
     ///
     /// let client = Client::new(env::var("DISCORD_TOKEN")?);
-    /// client.set_application_id(ApplicationId(1));
+    /// client.set_application_id(ApplicationId::new(1).expect("non zero"));
     ///
     /// let message = client.create_followup_message("token here")?
     ///     .content("some content")
@@ -183,7 +304,7 @@ impl<'a> CreateFollowupMessage<'a> {
     /// use twilight_model::id::{MessageId, ApplicationId};
     ///
     /// let client = Client::new(env::var("DISCORD_TOKEN")?);
-    /// client.set_application_id(ApplicationId(1));
+    /// client.set_application_id(ApplicationId::new(1).expect("non zero"));
     ///
     /// let message = client.create_followup_message("token here")?
     ///     .content("some content")
@@ -221,11 +342,11 @@ impl<'a> CreateFollowupMessage<'a> {
 
     // `self` needs to be consumed and the client returned due to parameters
     // being consumed in request construction.
-    fn request(&self) -> Result<Request, Error> {
+    fn request(&self) -> Result<Request, HttpError> {
         let mut request = Request::builder(&Route::ExecuteWebhook {
             token: self.token,
             wait: None,
-            webhook_id: self.application_id.0,
+            webhook_id: self.application_id.get(),
         });
 
         if !self.files.is_empty() || self.fields.payload_json.is_some() {
@@ -238,7 +359,7 @@ impl<'a> CreateFollowupMessage<'a> {
             if let Some(payload_json) = &self.fields.payload_json {
                 form.payload_json(payload_json);
             } else {
-                let body = crate::json::to_vec(&self.fields).map_err(Error::json)?;
+                let body = crate::json::to_vec(&self.fields).map_err(HttpError::json)?;
                 form.payload_json(&body);
             }
 
