@@ -80,11 +80,11 @@ mod tests {
     #[test]
     fn test_webhook() {
         let value = Webhook {
-            application_id: Some(ApplicationId(4)),
+            application_id: Some(ApplicationId::new(4).expect("non zero")),
             avatar: Some("avatar".to_owned()),
-            channel_id: ChannelId(1),
-            guild_id: Some(GuildId(2)),
-            id: WebhookId(3),
+            channel_id: ChannelId::new(1).expect("non zero"),
+            guild_id: Some(GuildId::new(2).expect("non zero")),
+            id: WebhookId::new(3).expect("non zero"),
             kind: WebhookType::Incoming,
             name: Some("a webhook".to_owned()),
             source_channel: None,
@@ -137,20 +137,20 @@ mod tests {
     #[test]
     fn test_webhook_complete() {
         let value = Webhook {
-            application_id: Some(ApplicationId(4)),
+            application_id: Some(ApplicationId::new(4).expect("non zero")),
             avatar: Some("avatar".to_owned()),
-            channel_id: ChannelId(1),
-            guild_id: Some(GuildId(2)),
-            id: WebhookId(3),
+            channel_id: ChannelId::new(1).expect("non zero"),
+            guild_id: Some(GuildId::new(2).expect("non zero")),
+            id: WebhookId::new(3).expect("non zero"),
             kind: WebhookType::Incoming,
             name: Some("a webhook".to_owned()),
             source_channel: Some(WebhookChannel {
-                id: ChannelId(4),
+                id: ChannelId::new(4).expect("non zero"),
                 name: "webhook channel".into(),
             }),
             source_guild: Some(WebhookGuild {
                 icon: Some("guild icon".into()),
-                id: GuildId(5),
+                id: GuildId::new(5).expect("non zero"),
                 name: "webhook guild".into(),
             }),
             token: Some("a token".to_owned()),
@@ -163,7 +163,7 @@ mod tests {
                 discriminator: 1,
                 email: None,
                 flags: None,
-                id: UserId(2),
+                id: UserId::new(2).expect("non zero"),
                 locale: None,
                 mfa_enabled: None,
                 name: "test".to_owned(),

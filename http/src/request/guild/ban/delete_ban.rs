@@ -20,8 +20,8 @@ use twilight_model::id::{GuildId, UserId};
 /// # async fn main() -> Result<(), Box<dyn std::error::Error>> {
 /// let client = Client::new("my token".to_owned());
 ///
-/// let guild_id = GuildId(100);
-/// let user_id = UserId(200);
+/// let guild_id = GuildId::new(100).expect("non zero");
+/// let user_id = UserId::new(200).expect("non zero");
 ///
 /// client.delete_ban(guild_id, user_id).exec().await?;
 /// # Ok(()) }
@@ -49,8 +49,8 @@ impl<'a> DeleteBan<'a> {
     /// [`Response`]: crate::response::Response
     pub fn exec(self) -> ResponseFuture<EmptyBody> {
         let mut request = Request::builder(&Route::DeleteBan {
-            guild_id: self.guild_id.0,
-            user_id: self.user_id.0,
+            guild_id: self.guild_id.get(),
+            user_id: self.user_id.get(),
         });
 
         if let Some(reason) = self.reason.as_ref() {

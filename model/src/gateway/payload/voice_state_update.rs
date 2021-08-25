@@ -20,19 +20,19 @@ mod tests {
         let value = VoiceStateUpdate(VoiceState {
             channel_id: None,
             deaf: false,
-            guild_id: Some(GuildId(1)),
+            guild_id: Some(GuildId::new(1).expect("non zero")),
             member: Some(Member {
                 deaf: false,
-                guild_id: GuildId(1),
-                hoisted_role: Some(RoleId(4)),
+                guild_id: GuildId::new(1).expect("non zero"),
+                hoisted_role: Some(RoleId::new(4).expect("non zero")),
                 joined_at: None,
                 mute: false,
                 nick: None,
                 pending: false,
                 premium_since: None,
-                roles: vec![RoleId(4)],
+                roles: vec![RoleId::new(4).expect("non zero")],
                 user: User {
-                    id: UserId(1),
+                    id: UserId::new(1).expect("non zero"),
                     accent_color: None,
                     avatar: None,
                     banner: None,
@@ -56,7 +56,7 @@ mod tests {
             session_id: "a".to_owned(),
             suppress: false,
             token: None,
-            user_id: UserId(1),
+            user_id: UserId::new(1).expect("non zero"),
             request_to_speak_timestamp: None,
         });
 
@@ -156,19 +156,22 @@ mod tests {
         let value = VoiceStateUpdate(VoiceState {
             channel_id: None,
             deaf: false,
-            guild_id: Some(GuildId(999_999)),
+            guild_id: Some(GuildId::new(999_999).expect("non zero")),
             member: Some(Member {
                 deaf: false,
-                guild_id: GuildId(999_999),
-                hoisted_role: Some(RoleId(123)),
+                guild_id: GuildId::new(999_999).expect("non zero"),
+                hoisted_role: Some(RoleId::new(123).expect("non zero")),
                 joined_at: Some("2016-12-08T18:41:21.954000+00:00".to_string()),
                 mute: false,
                 nick: Some("Twilight".to_string()),
                 pending: false,
                 premium_since: None,
-                roles: vec![RoleId(123), RoleId(124)],
+                roles: vec![
+                    RoleId::new(123).expect("non zero"),
+                    RoleId::new(124).expect("non zero"),
+                ],
                 user: User {
-                    id: UserId(1_234_123_123_123),
+                    id: UserId::new(1_234_123_123_123).expect("non zero"),
                     accent_color: None,
                     avatar: Some("a21312321231236060dfe562c".to_string()),
                     banner: None,
@@ -192,7 +195,7 @@ mod tests {
             session_id: "asdasdas1da98da2b3ab3a".to_owned(),
             suppress: false,
             token: None,
-            user_id: UserId(123_213),
+            user_id: UserId::new(123_213).expect("non zero"),
             request_to_speak_timestamp: Some("2021-04-21T22:16:50+0000".to_owned()),
         });
 

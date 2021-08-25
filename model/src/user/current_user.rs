@@ -2,7 +2,7 @@ use super::{DiscriminatorDisplay, PremiumType, UserFlags};
 use crate::id::UserId;
 use serde::{Deserialize, Serialize};
 
-#[derive(Clone, Default, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
+#[derive(Clone, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
 pub struct CurrentUser {
     /// Accent color of the user's banner.
     ///
@@ -177,7 +177,7 @@ mod tests {
             bot: true,
             discriminator: 9999,
             email: None,
-            id: UserId(1),
+            id: UserId::new(1).expect("non zero"),
             mfa_enabled: true,
             name: "test name".to_owned(),
             verified: Some(true),
@@ -206,7 +206,7 @@ mod tests {
             bot: true,
             discriminator: 9999,
             email: Some("test@example.com".to_owned()),
-            id: UserId(1),
+            id: UserId::new(1).expect("non zero"),
             mfa_enabled: true,
             name: "test name".to_owned(),
             verified: Some(true),

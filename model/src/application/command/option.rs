@@ -438,13 +438,13 @@ mod tests {
     #[allow(clippy::too_many_lines)]
     fn test_command_option_full() {
         let value = Command {
-            application_id: Some(ApplicationId(100)),
-            guild_id: Some(GuildId(300)),
+            application_id: Some(ApplicationId::new(100).expect("non zero")),
+            guild_id: Some(GuildId::new(300).expect("non zero")),
             kind: CommandType::ChatInput,
             name: "test command".into(),
             default_permission: Some(true),
             description: "this command is a test".into(),
-            id: Some(CommandId(200)),
+            id: Some(CommandId::new(200).expect("non zero")),
             options: vec![CommandOption::SubCommandGroup(OptionsCommandOptionData {
                 description: "sub group desc".into(),
                 name: "sub group name".into(),

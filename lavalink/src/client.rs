@@ -72,7 +72,7 @@ pub enum ClientErrorType {
     SendingVoiceUpdate,
 }
 
-#[derive(Debug, Default)]
+#[derive(Debug)]
 struct LavalinkRef {
     nodes: DashMap<SocketAddr, Node>,
     players: PlayerManager,
@@ -392,10 +392,10 @@ impl Lavalink {
 
         self.0
             .server_updates
-            .retain(|k, _| (k.0 >> 22) % shard_count != shard_id);
+            .retain(|k, _| (k.get() >> 22) % shard_count != shard_id);
         self.0
             .sessions
-            .retain(|k, _| (k.0 >> 22) % shard_count != shard_id);
+            .retain(|k, _| (k.get() >> 22) % shard_count != shard_id);
     }
 }
 

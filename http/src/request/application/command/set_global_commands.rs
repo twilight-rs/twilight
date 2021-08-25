@@ -33,7 +33,7 @@ impl<'a> SetGlobalCommands<'a> {
 
     fn request(&self) -> Result<Request, Error> {
         Request::builder(&Route::SetGlobalCommands {
-            application_id: self.application_id.0,
+            application_id: self.application_id.get(),
         })
         .json(&self.commands)
         .map(RequestBuilder::build)

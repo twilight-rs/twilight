@@ -33,7 +33,7 @@ mod tests {
             nick: Some("a nickname".to_owned()),
             permissions: None,
             premium_since: None,
-            roles: vec![RoleId(1)],
+            roles: vec![RoleId::new(1).expect("non zero")],
             user: None,
         };
 

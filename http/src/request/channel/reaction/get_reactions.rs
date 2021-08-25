@@ -132,11 +132,11 @@ impl<'a> GetReactions<'a> {
     /// [`Response`]: crate::response::Response
     pub fn exec(self) -> ResponseFuture<ListBody<User>> {
         let request = Request::from_route(&Route::GetReactionUsers {
-            after: self.fields.after.map(|x| x.0),
-            channel_id: self.channel_id.0,
+            after: self.fields.after.map(UserId::get),
+            channel_id: self.channel_id.get(),
             emoji: self.emoji,
             limit: self.fields.limit,
-            message_id: self.message_id.0,
+            message_id: self.message_id.get(),
         });
 
         self.http.request(request)

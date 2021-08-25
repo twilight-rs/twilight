@@ -108,7 +108,7 @@ mod tests {
             discriminator: 4,
             email: Some("email@example.com".to_owned()),
             flags: Some(UserFlags::VERIFIED_BOT_DEVELOPER),
-            id: UserId(1),
+            id: UserId::new(1).expect("non zero"),
             locale: Some("en-us".to_owned()),
             mfa_enabled: Some(true),
             name: "user name".to_owned(),

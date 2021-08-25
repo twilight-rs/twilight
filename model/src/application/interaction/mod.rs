@@ -293,10 +293,10 @@ mod test {
     #[allow(clippy::too_many_lines)]
     fn test_interaction_full() {
         let value = Interaction::ApplicationCommand(Box::new(ApplicationCommand {
-            application_id: ApplicationId(100),
-            channel_id: ChannelId(200),
+            application_id: ApplicationId::new(100).expect("non zero"),
+            channel_id: ChannelId::new(200).expect("non zero"),
             data: CommandData {
-                id: CommandId(300),
+                id: CommandId::new(300).expect("non zero"),
                 name: "command name".into(),
                 options: vec![CommandDataOption::String {
                     name: "member".into(),
@@ -315,7 +315,7 @@ mod test {
                         discriminator: 1111,
                         email: None,
                         flags: None,
-                        id: UserId(600),
+                        id: UserId::new(600).expect("non zero"),
                         locale: None,
                         mfa_enabled: None,
                         name: "username".into(),
@@ -326,8 +326,8 @@ mod test {
                     }],
                 }),
             },
-            guild_id: Some(GuildId(400)),
-            id: InteractionId(500),
+            guild_id: Some(GuildId::new(400).expect("non zero")),
+            id: InteractionId::new(500).expect("non zero"),
             kind: InteractionType::ApplicationCommand,
             member: Some(PartialMember {
                 deaf: false,
@@ -345,7 +345,7 @@ mod test {
                     discriminator: 1111,
                     email: None,
                     flags: None,
-                    id: UserId(600),
+                    id: UserId::new(600).expect("non zero"),
                     locale: None,
                     mfa_enabled: None,
                     name: "username".into(),

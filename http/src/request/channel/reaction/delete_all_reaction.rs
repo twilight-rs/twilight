@@ -36,8 +36,8 @@ impl<'a> DeleteAllReaction<'a> {
     /// [`Response`]: crate::response::Response
     pub fn exec(self) -> ResponseFuture<EmptyBody> {
         let request = Request::from_route(&Route::DeleteMessageSpecificReaction {
-            channel_id: self.channel_id.0,
-            message_id: self.message_id.0,
+            channel_id: self.channel_id.get(),
+            message_id: self.message_id.get(),
             emoji: self.emoji,
         });
 

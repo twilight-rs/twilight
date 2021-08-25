@@ -15,7 +15,7 @@ use twilight_model::{channel::Channel, id::ChannelId};
 /// # async fn main() -> Result<(), Box<dyn std::error::Error>> {
 /// let client = Client::new("my token".to_owned());
 ///
-/// let channel_id = ChannelId(100);
+/// let channel_id = ChannelId::new(100).expect("non zero");
 ///
 /// let channel = client.channel(channel_id).exec().await?;
 /// # Ok(()) }
@@ -36,7 +36,7 @@ impl<'a> GetChannel<'a> {
     /// [`Response`]: crate::response::Response
     pub fn exec(self) -> ResponseFuture<Channel> {
         let request = Request::from_route(&Route::GetChannel {
-            channel_id: self.channel_id.0,
+            channel_id: self.channel_id.get(),
         });
 
         self.http.request(request)

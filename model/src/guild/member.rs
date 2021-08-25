@@ -191,8 +191,8 @@ mod tests {
     fn test_member_deserializer() {
         let value = Member {
             deaf: false,
-            guild_id: GuildId(1),
-            hoisted_role: Some(RoleId(2)),
+            guild_id: GuildId::new(1).expect("non zero"),
+            hoisted_role: Some(RoleId::new(2).expect("non zero")),
             joined_at: Some("timestamp".to_owned()),
             mute: true,
             nick: Some("twilight".to_owned()),
@@ -207,7 +207,7 @@ mod tests {
                 discriminator: 1,
                 email: None,
                 flags: None,
-                id: UserId(3),
+                id: UserId::new(3).expect("non zero"),
                 locale: None,
                 mfa_enabled: None,
                 name: "twilight".to_owned(),

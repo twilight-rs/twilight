@@ -154,7 +154,7 @@ mod tests {
     fn cached_member() -> CachedMember {
         CachedMember {
             deaf: Some(false),
-            guild_id: GuildId(3),
+            guild_id: GuildId::new(3).expect("non zero"),
             joined_at: None,
             mute: Some(true),
             nick: Some("member nick".to_owned()),
@@ -174,7 +174,7 @@ mod tests {
             discriminator: 1,
             email: None,
             flags: None,
-            id: UserId(1),
+            id: UserId::new(1).expect("non zero"),
             locale: None,
             mfa_enabled: None,
             name: "bar".to_owned(),
@@ -189,8 +189,8 @@ mod tests {
     fn test_eq_member() {
         let member = Member {
             deaf: false,
-            guild_id: GuildId(3),
-            hoisted_role: Some(RoleId(4)),
+            guild_id: GuildId::new(3).expect("non zero"),
+            hoisted_role: Some(RoleId::new(4).expect("non zero")),
             joined_at: None,
             mute: true,
             nick: Some("member nick".to_owned()),

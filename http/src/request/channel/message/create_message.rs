@@ -148,7 +148,7 @@ pub(crate) struct CreateMessageFields<'a> {
 /// # async fn main() -> Result<(), Box<dyn std::error::Error>> {
 /// let client = Client::new("my token".to_owned());
 ///
-/// let channel_id = ChannelId(123);
+/// let channel_id = ChannelId::new(123).expect("non zero");
 /// let message = client
 ///     .create_message(channel_id)
 ///     .content("Twilight is best pony")?
@@ -357,7 +357,7 @@ impl<'a> CreateMessage<'a> {
     /// [`Response`]: crate::response::Response
     pub fn exec(self) -> ResponseFuture<Message> {
         let mut request = Request::builder(&Route::CreateMessage {
-            channel_id: self.channel_id.0,
+            channel_id: self.channel_id.get(),
         });
 
         if !self.files.is_empty() || self.fields.payload_json.is_some() {
