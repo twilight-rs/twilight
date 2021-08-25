@@ -16,11 +16,11 @@ mod tests {
     #[test]
     fn test_role_update() {
         let value = RoleUpdate {
-            guild_id: GuildId(1),
+            guild_id: GuildId::new(1).expect("non zero"),
             role: Role {
                 color: 0,
                 hoist: true,
-                id: RoleId(1),
+                id: RoleId::new(1).expect("non zero"),
                 managed: false,
                 mentionable: false,
                 name: "a role".to_owned(),

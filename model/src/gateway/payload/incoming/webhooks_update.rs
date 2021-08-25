@@ -15,8 +15,8 @@ mod tests {
     #[test]
     fn test_webhooks_update() {
         let value = WebhooksUpdate {
-            channel_id: ChannelId(1),
-            guild_id: GuildId(2),
+            channel_id: ChannelId::new(1).expect("non zero"),
+            guild_id: GuildId::new(2).expect("non zero"),
         };
 
         serde_test::assert_tokens(

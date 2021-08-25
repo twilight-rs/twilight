@@ -1,6 +1,6 @@
 use crate::{
     client::Client,
-    request::{validate, Request},
+    request::{validate_inner, Request},
     response::ResponseFuture,
     routing::Route,
 };
@@ -96,7 +96,7 @@ impl<'a> CreateTemplate<'a> {
         guild_id: GuildId,
         name: &'a str,
     ) -> Result<Self, CreateTemplateError> {
-        if !validate::template_name(name) {
+        if !validate_inner::template_name(&name) {
             return Err(CreateTemplateError {
                 kind: CreateTemplateErrorType::NameInvalid,
             });
@@ -121,7 +121,7 @@ impl<'a> CreateTemplate<'a> {
     /// Returns a [`CreateTemplateErrorType::DescriptionTooLarge`] error type if
     /// the description is too large.
     pub fn description(mut self, description: &'a str) -> Result<Self, CreateTemplateError> {
-        if !validate::template_description(description) {
+        if !validate_inner::template_description(description) {
             return Err(CreateTemplateError {
                 kind: CreateTemplateErrorType::DescriptionTooLarge,
             });
@@ -137,7 +137,7 @@ impl<'a> CreateTemplate<'a> {
     /// [`Response`]: crate::response::Response
     pub fn exec(self) -> ResponseFuture<Template> {
         let mut request = Request::builder(&Route::CreateTemplate {
-            guild_id: self.guild_id.0,
+            guild_id: self.guild_id.get(),
         });
 
         request = match request.json(&self.fields) {

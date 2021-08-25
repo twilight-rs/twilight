@@ -28,7 +28,7 @@ impl<'a> DeleteTemplate<'a> {
     /// [`Response`]: crate::response::Response
     pub fn exec(self) -> ResponseFuture<EmptyBody> {
         let request = Request::from_route(&Route::DeleteTemplate {
-            guild_id: self.guild_id.0,
+            guild_id: self.guild_id.get(),
             template_code: self.template_code,
         });
 

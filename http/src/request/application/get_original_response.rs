@@ -14,7 +14,7 @@ use twilight_model::{channel::Message, id::ApplicationId};
 /// use twilight_model::id::ApplicationId;
 ///
 /// let client = Client::new(env::var("DISCORD_TOKEN")?);
-/// client.set_application_id(ApplicationId(1));
+/// client.set_application_id(ApplicationId::new(1).expect("non zero"));
 ///
 /// let message = client
 ///     .get_interaction_original("token here")?
@@ -47,7 +47,7 @@ impl<'a> GetOriginalResponse<'a> {
     /// [`Response`]: crate::response::Response
     pub fn exec(self) -> ResponseFuture<Message> {
         let request = Request::from_route(&Route::GetInteractionOriginal {
-            application_id: self.application_id.0,
+            application_id: self.application_id.get(),
             interaction_token: self.token,
         });
 

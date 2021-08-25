@@ -1,6 +1,6 @@
 use crate::{
     client::Client,
-    request::{self, validate, AuditLogReason, AuditLogReasonError, Request},
+    request::{self, validate_inner, AuditLogReason, AuditLogReasonError, Request},
     response::ResponseFuture,
     routing::Route,
 };
@@ -121,7 +121,7 @@ impl<'a> CreateGuildPrune<'a> {
     /// Returns a [`CreateGuildPruneErrorType::DaysInvalid`] error type if the
     /// number of days is 0.
     pub const fn days(mut self, days: u64) -> Result<Self, CreateGuildPruneError> {
-        if !validate::guild_prune_days(days) {
+        if !validate_inner::guild_prune_days(days) {
             return Err(CreateGuildPruneError {
                 kind: CreateGuildPruneErrorType::DaysInvalid,
             });
@@ -139,7 +139,7 @@ impl<'a> CreateGuildPrune<'a> {
         let mut request = Request::builder(&Route::CreateGuildPrune {
             compute_prune_count: self.fields.compute_prune_count,
             days: self.fields.days,
-            guild_id: self.guild_id.0,
+            guild_id: self.guild_id.get(),
             include_roles: self.fields.include_roles,
         });
 

@@ -38,7 +38,7 @@ impl<'a> GetWebhook<'a> {
 
         let mut request = Request::builder(&Route::GetWebhook {
             token: self.fields.token,
-            webhook_id: self.id.0,
+            webhook_id: self.id.get(),
         });
 
         // If a webhook token has been configured, then we don't need to use

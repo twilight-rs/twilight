@@ -23,14 +23,14 @@ mod tests {
         let value = TeamMember {
             membership_state: TeamMembershipState::Accepted,
             permissions: vec!["*".to_owned()],
-            team_id: TeamId(1),
+            team_id: TeamId::new(1).expect("non zero"),
             user: User {
                 avatar: None,
                 bot: false,
                 discriminator: 1,
                 email: None,
                 flags: None,
-                id: UserId(2),
+                id: UserId::new(2).expect("non zero"),
                 locale: None,
                 mfa_enabled: None,
                 name: "test".to_owned(),

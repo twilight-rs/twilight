@@ -25,8 +25,8 @@ mod tests {
     #[test]
     fn test_category_channel() {
         let value = PrivateChannel {
-            id: ChannelId(1),
-            last_message_id: Some(MessageId(2)),
+            id: ChannelId::new(1).expect("non zero"),
+            last_message_id: Some(MessageId::new(2).expect("non zero")),
             last_pin_timestamp: Some("timestamp".to_owned()),
             kind: ChannelType::Private,
             recipients: Vec::new(),

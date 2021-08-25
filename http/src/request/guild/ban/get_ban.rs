@@ -28,8 +28,8 @@ impl<'a> GetBan<'a> {
     /// [`Response`]: crate::response::Response
     pub fn exec(self) -> ResponseFuture<Ban> {
         let request = Request::from_route(&Route::GetBan {
-            guild_id: self.guild_id.0,
-            user_id: self.user_id.0,
+            guild_id: self.guild_id.get(),
+            user_id: self.user_id.get(),
         });
 
         self.http.request(request)

@@ -34,18 +34,21 @@ async fn main() -> Result<(), Box<dyn Error>> {
                 // Additionally, you can pass in a "nonce" and get it back in
                 // the received member chunk. This can be used to help identify
                 // which request the member is from.
-                let request = RequestGuildMembers::builder(GuildId(1))
+                let request = RequestGuildMembers::builder(GuildId::new(1).expect("non zero"))
                     .nonce("requesting a single member")
-                    .user_id(UserId(2));
+                    .user_id(UserId::new(2).expect("non zero"));
 
                 shard.command(&request).await?;
 
                 // Similarly, you can also request multiple members. Only 100
                 // members by ID can be requested at a time, so the builder will
                 // check to make sure you're requesting at most that many:
-                let request = RequestGuildMembers::builder(GuildId(1))
+                let request = RequestGuildMembers::builder(GuildId::new(1).expect("non zero"))
                     .nonce("requesting two member")
-                    .user_ids(vec![UserId(2), UserId(3)])
+                    .user_ids(vec![
+                        UserId::new(2).expect("non zero"),
+                        UserId::new(3).expect("non zero"),
+                    ])
                     .unwrap();
 
                 shard.command(&request).await?;
@@ -56,7 +59,7 @@ async fn main() -> Result<(), Box<dyn Error>> {
                 // number of members to retrieve can be specified. Here we'll
                 // request a list of up to 50 members and their current presence
                 // details whose names start with the letters "tw":
-                let request = RequestGuildMembers::builder(GuildId(1))
+                let request = RequestGuildMembers::builder(GuildId::new(1).expect("non zero"))
                     .nonce("querying for members")
                     .presences(true)
                     .query("tw", Some(50));

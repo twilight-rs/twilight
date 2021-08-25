@@ -36,9 +36,9 @@ mod tests {
     #[test]
     fn test_voice_channel() {
         let value = VoiceChannel {
-            id: ChannelId(1),
+            id: ChannelId::new(1).expect("non zero"),
             bitrate: 124_000,
-            guild_id: Some(GuildId(2)),
+            guild_id: Some(GuildId::new(2).expect("non zero")),
             kind: ChannelType::GuildVoice,
             name: "foo".to_owned(),
             permission_overwrites: Vec::new(),
@@ -86,13 +86,13 @@ mod tests {
     fn test_voice_channel_complete() {
         fn channel(kind: ChannelType) -> VoiceChannel {
             VoiceChannel {
-                id: ChannelId(1),
+                id: ChannelId::new(1).expect("non zero"),
                 bitrate: 124_000,
-                guild_id: Some(GuildId(2)),
+                guild_id: Some(GuildId::new(2).expect("non zero")),
                 kind,
                 name: "foo".to_owned(),
                 permission_overwrites: Vec::new(),
-                parent_id: Some(ChannelId(3)),
+                parent_id: Some(ChannelId::new(3).expect("non zero")),
                 position: 3,
                 rtc_region: Some("a".to_owned()),
                 user_limit: Some(7),

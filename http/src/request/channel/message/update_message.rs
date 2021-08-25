@@ -2,7 +2,9 @@ use crate::{
     client::Client,
     request::{
         self,
-        validate::{self, EmbedValidationError},
+        validate_inner::{
+            self, ComponentValidationError, ComponentValidationErrorType, EmbedValidationError,
+        },
         NullableField, Request,
     },
     response::ResponseFuture,
@@ -14,6 +16,7 @@ use std::{
     fmt::{Display, Formatter, Result as FmtResult},
 };
 use twilight_model::{
+    application::component::Component,
     channel::{
         embed::Embed,
         message::{AllowedMentions, MessageFlags},
@@ -59,6 +62,16 @@ impl UpdateMessageError {
 impl Display for UpdateMessageError {
     fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
         match &self.kind {
+            UpdateMessageErrorType::ComponentCount { count } => {
+                Display::fmt(count, f)?;
+                f.write_str(" components were provided, but only ")?;
+                Display::fmt(&ComponentValidationError::COMPONENT_COUNT, f)?;
+
+                f.write_str(" root components are allowed")
+            }
+            UpdateMessageErrorType::ComponentInvalid { .. } => {
+                f.write_str("a provided component is invalid")
+            }
             UpdateMessageErrorType::ContentInvalid { .. } => {
                 f.write_str("the message content is invalid")
             }
@@ -84,6 +97,16 @@ impl Error for UpdateMessageError {
 #[derive(Debug)]
 #[non_exhaustive]
 pub enum UpdateMessageErrorType {
+    /// Too many message components were provided.
+    ComponentCount {
+        /// Number of components that were provided.
+        count: usize,
+    },
+    /// An invalid message component was provided.
+    ComponentInvalid {
+        /// Additional details about the validation failure type.
+        kind: ComponentValidationErrorType,
+    },
     /// Returned when the content is over 2000 UTF-16 characters.
     ContentInvalid,
     /// Returned when the length of the embed is over 6000 characters.
@@ -99,6 +122,8 @@ struct UpdateMessageFields<'a> {
     pub(crate) allowed_mentions: Option<AllowedMentions>,
     #[serde(skip_serializing_if = "request::slice_is_empty")]
     pub attachments: &'a [Attachment],
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub components: Option<NullableField<&'a [Component]>>,
     #[serde(skip_serializing_if = "Option::is_none")]
     content: Option<NullableField<&'a str>>,
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -124,7 +149,7 @@ struct UpdateMessageFields<'a> {
 /// # #[tokio::main]
 /// # async fn main() -> Result<(), Box<dyn std::error::Error>> {
 /// let client = Client::new("my token".to_owned());
-/// client.update_message(ChannelId(1), MessageId(2))
+/// client.update_message(ChannelId::new(1).expect("non zero"), MessageId::new(2).expect("non zero"))
 ///     .content(Some("test update"))?
 ///     .exec()
 ///     .await?;
@@ -140,7 +165,7 @@ struct UpdateMessageFields<'a> {
 /// # #[tokio::main]
 /// # async fn main() -> Result<(), Box<dyn std::error::Error>> {
 /// # let client = Client::new("my token".to_owned());
-/// client.update_message(ChannelId(1), MessageId(2))
+/// client.update_message(ChannelId::new(1).expect("non zero"), MessageId::new(2).expect("non zero"))
 ///     .content(None)?
 ///     .exec()
 ///     .await?;
@@ -165,6 +190,7 @@ impl<'a> UpdateMessage<'a> {
             fields: UpdateMessageFields {
                 allowed_mentions: None,
                 attachments: &[],
+                components: None,
                 content: None,
                 embeds: None,
                 flags: None,
@@ -187,6 +213,45 @@ impl<'a> UpdateMessage<'a> {
         self
     }
 
+    /// Add multiple [`Component`]s to a message.
+    ///
+    /// Calling this method multiple times will clear previous calls.
+    ///
+    /// Pass `None` to clear existing components.
+    ///
+    /// # Errors
+    ///
+    /// Returns an [`UpdateMessageErrorType::ComponentCount`] error type if
+    /// too many components are provided.
+    ///
+    /// Returns an [`UpdateMessageErrorType::ComponentInvalid`] error type if
+    /// one of the provided components is invalid.
+    pub fn components(
+        mut self,
+        components: Option<&'a [Component]>,
+    ) -> Result<Self, UpdateMessageError> {
+        if let Some(components) = components.as_ref() {
+            validate_inner::components(components).map_err(|source| {
+                let (kind, inner_source) = source.into_parts();
+
+                match kind {
+                    ComponentValidationErrorType::ComponentCount { count } => UpdateMessageError {
+                        kind: UpdateMessageErrorType::ComponentCount { count },
+                        source: inner_source,
+                    },
+                    other => UpdateMessageError {
+                        kind: UpdateMessageErrorType::ComponentInvalid { kind: other },
+                        source: inner_source,
+                    },
+                }
+            })?;
+        }
+
+        self.fields.components = Some(NullableField(components));
+
+        Ok(self)
+    }
+
     /// Set the content of the message.
     ///
     /// Pass `None` if you want to remove the message content.
@@ -202,7 +267,7 @@ impl<'a> UpdateMessage<'a> {
     /// content length is too long.
     pub fn content(mut self, content: Option<&'a str>) -> Result<Self, UpdateMessageError> {
         if let Some(content_ref) = content.as_ref() {
-            if !validate::content_limit(content_ref) {
+            if !validate_inner::content_limit(content_ref) {
                 return Err(UpdateMessageError {
                     kind: UpdateMessageErrorType::ContentInvalid,
                     source: None,
@@ -236,7 +301,8 @@ impl<'a> UpdateMessage<'a> {
     /// embed is too large.
     pub fn embeds(mut self, embeds: &'a [Embed]) -> Result<Self, UpdateMessageError> {
         for (idx, embed) in embeds.iter().enumerate() {
-            validate::embed(embed).map_err(|source| UpdateMessageError::embed(source, idx))?;
+            validate_inner::embed(embed)
+                .map_err(|source| UpdateMessageError::embed(source, idx))?;
         }
 
         self.fields.embeds = Some(embeds);
@@ -276,8 +342,8 @@ impl<'a> UpdateMessage<'a> {
     /// [`Response`]: crate::response::Response
     pub fn exec(self) -> ResponseFuture<Message> {
         let mut request = Request::builder(&Route::UpdateMessage {
-            channel_id: self.channel_id.0,
-            message_id: self.message_id.0,
+            channel_id: self.channel_id.get(),
+            message_id: self.message_id.get(),
         });
 
         request = match request.json(&self.fields) {

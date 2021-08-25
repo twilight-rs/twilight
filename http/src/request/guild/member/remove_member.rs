@@ -30,8 +30,8 @@ impl<'a> RemoveMember<'a> {
     /// [`Response`]: crate::response::Response
     pub fn exec(self) -> ResponseFuture<EmptyBody> {
         let mut request = Request::builder(&Route::RemoveMember {
-            guild_id: self.guild_id.0,
-            user_id: self.user_id.0,
+            guild_id: self.guild_id.get(),
+            user_id: self.user_id.get(),
         });
 
         if let Some(reason) = self.reason.as_ref() {

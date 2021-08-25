@@ -1,7 +1,7 @@
 use crate::{
     client::Client,
     error::Error as HttpError,
-    request::{self, validate, AuditLogReason, AuditLogReasonError, NullableField, Request},
+    request::{self, validate_inner, AuditLogReason, AuditLogReasonError, NullableField, Request},
     response::ResponseFuture,
     routing::Route,
 };
@@ -149,7 +149,7 @@ impl<'a> UpdateChannel<'a> {
     /// Returns an [`UpdateChannelErrorType::NameInvalid`] error type if the name
     /// length is too short or too long.
     pub fn name(mut self, name: &'a str) -> Result<Self, UpdateChannelError> {
-        if !validate::channel_name(name) {
+        if !validate_inner::channel_name(name) {
             return Err(UpdateChannelError {
                 kind: UpdateChannelErrorType::NameInvalid,
             });
@@ -279,7 +279,7 @@ impl<'a> UpdateChannel<'a> {
 
     fn request(&self) -> Result<Request, HttpError> {
         let mut request = Request::builder(&Route::UpdateChannel {
-            channel_id: self.channel_id.0,
+            channel_id: self.channel_id.get(),
         })
         .json(&self.fields)?;
 

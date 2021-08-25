@@ -45,7 +45,6 @@ impl<'a> RequestReactionType<'a> {
     ///
     /// ```
     /// use twilight_http::request::channel::reaction::RequestReactionType;
-    /// use twilight_model::id::EmojiId;
     ///
     /// let reaction = RequestReactionType::Unicode {
     ///     name: "🏳️‍⚧️",
@@ -76,7 +75,7 @@ impl<'a> RequestReactionType<'a> {
 /// use twilight_model::id::EmojiId;
 ///
 /// let reaction = RequestReactionType::Custom {
-///     id: EmojiId(123),
+///     id: EmojiId::new(123).expect("non zero"),
 ///     name: Some("rarity"),
 /// };
 ///
@@ -132,7 +131,7 @@ mod tests {
     #[test]
     fn test_display_custom_with_name() {
         let reaction = RequestReactionType::Custom {
-            id: EmojiId(123),
+            id: EmojiId::new(123).expect("non zero"),
             name: Some("foo"),
         };
 
@@ -142,7 +141,7 @@ mod tests {
     #[test]
     fn test_display_custom_without_name() {
         let reaction = RequestReactionType::Custom {
-            id: EmojiId(123),
+            id: EmojiId::new(123).expect("non zero"),
             name: None,
         };
 

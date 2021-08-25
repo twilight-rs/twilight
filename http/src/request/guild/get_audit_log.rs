@@ -1,6 +1,6 @@
 use crate::{
     client::Client,
-    request::{validate, Request},
+    request::{validate_inner, Request},
     response::ResponseFuture,
     routing::Route,
 };
@@ -77,7 +77,7 @@ struct GetAuditLogFields {
 /// # async fn main() -> Result<(), Box<dyn std::error::Error>> {
 /// let client = Client::new("token".to_owned());
 ///
-/// let guild_id = GuildId(101);
+/// let guild_id = GuildId::new(101).expect("non zero");
 /// let audit_log = client
 ///     .audit_log(guild_id)
 ///     .exec()
@@ -140,7 +140,7 @@ impl<'a> GetAuditLog<'a> {
     /// Returns a [`GetAuditLogErrorType::LimitInvalid`] error type if the
     /// `limit` is 0 or greater than 100.
     pub const fn limit(mut self, limit: u64) -> Result<Self, GetAuditLogError> {
-        if !validate::get_audit_log_limit(limit) {
+        if !validate_inner::get_audit_log_limit(limit) {
             return Err(GetAuditLogError {
                 kind: GetAuditLogErrorType::LimitInvalid,
             });
@@ -167,9 +167,9 @@ impl<'a> GetAuditLog<'a> {
         let request = Request::from_route(&Route::GetAuditLogs {
             action_type: self.fields.action_type.map(|x| x as u64),
             before: self.fields.before,
-            guild_id: self.guild_id.0,
+            guild_id: self.guild_id.get(),
             limit: self.fields.limit,
-            user_id: self.fields.user_id.map(|x| x.0),
+            user_id: self.fields.user_id.map(UserId::get),
         });
 
         self.http.request(request)

@@ -1,6 +1,6 @@
 use crate::{
     client::Client,
-    request::{validate, AuditLogReason, AuditLogReasonError, Request},
+    request::{validate_inner, AuditLogReason, AuditLogReasonError, Request},
     response::{marker::EmptyBody, ResponseFuture},
     routing::Route,
 };
@@ -78,8 +78,8 @@ struct CreateBanFields<'a> {
 /// # async fn main() -> Result<(), Box<dyn std::error::Error>> {
 /// let client = Client::new("my token".to_owned());
 ///
-/// let guild_id = GuildId(100);
-/// let user_id = UserId(200);
+/// let guild_id = GuildId::new(100).expect("non zero");
+/// let user_id = UserId::new(200).expect("non zero");
 /// client.create_ban(guild_id, user_id)
 ///     .delete_message_days(1)?
 ///     .reason("memes")?
@@ -117,7 +117,7 @@ impl<'a> CreateBan<'a> {
     /// Returns a [`CreateBanErrorType::DeleteMessageDaysInvalid`] error type if
     /// the number of days is greater than 7.
     pub const fn delete_message_days(mut self, days: u64) -> Result<Self, CreateBanError> {
-        if !validate::ban_delete_message_days(days) {
+        if !validate_inner::ban_delete_message_days(days) {
             return Err(CreateBanError {
                 kind: CreateBanErrorType::DeleteMessageDaysInvalid,
             });
@@ -134,9 +134,9 @@ impl<'a> CreateBan<'a> {
     pub fn exec(self) -> ResponseFuture<EmptyBody> {
         let request = Request::from_route(&Route::CreateBan {
             delete_message_days: self.fields.delete_message_days,
-            guild_id: self.guild_id.0,
+            guild_id: self.guild_id.get(),
             reason: self.fields.reason,
-            user_id: self.user_id.0,
+            user_id: self.user_id.get(),
         });
 
         self.http.request(request)

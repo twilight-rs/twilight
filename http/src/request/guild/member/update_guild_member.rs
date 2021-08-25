@@ -1,7 +1,7 @@
 use crate::{
     client::Client,
     error::Error as HttpError,
-    request::{self, validate, AuditLogReason, AuditLogReasonError, NullableField, Request},
+    request::{self, validate_inner, AuditLogReason, AuditLogReasonError, NullableField, Request},
     response::{marker::MemberBody, ResponseFuture},
     routing::Route,
 };
@@ -141,7 +141,7 @@ impl<'a> UpdateGuildMember<'a> {
     /// the nickname length is too short or too long.
     pub fn nick(mut self, nick: Option<&'a str>) -> Result<Self, UpdateGuildMemberError> {
         if let Some(nick) = nick {
-            if !validate::nickname(nick) {
+            if !validate_inner::nickname(&nick) {
                 return Err(UpdateGuildMemberError {
                     kind: UpdateGuildMemberErrorType::NicknameInvalid,
                 });
@@ -162,8 +162,8 @@ impl<'a> UpdateGuildMember<'a> {
 
     fn request(&self) -> Result<Request, HttpError> {
         let mut request = Request::builder(&Route::UpdateMember {
-            guild_id: self.guild_id.0,
-            user_id: self.user_id.0,
+            guild_id: self.guild_id.get(),
+            user_id: self.user_id.get(),
         })
         .json(&self.fields)?;
 
@@ -209,13 +209,18 @@ mod tests {
     use std::error::Error;
     use twilight_model::id::{GuildId, UserId};
 
-    const GUILD_ID: GuildId = GuildId(1);
-    const USER_ID: UserId = UserId(1);
+    fn guild_id() -> GuildId {
+        GuildId::new(1).expect("non zero")
+    }
+
+    fn user_id() -> UserId {
+        UserId::new(1).expect("non zero")
+    }
 
     #[test]
     fn test_request() -> Result<(), Box<dyn Error>> {
         let client = Client::new("foo".to_owned());
-        let builder = UpdateGuildMember::new(&client, GUILD_ID, USER_ID)
+        let builder = UpdateGuildMember::new(&client, guild_id(), user_id())
             .deaf(true)
             .mute(true);
         let actual = builder.request()?;
@@ -228,8 +233,8 @@ mod tests {
             roles: None,
         };
         let route = Route::UpdateMember {
-            guild_id: GUILD_ID.0,
-            user_id: USER_ID.0,
+            guild_id: guild_id().get(),
+            user_id: user_id().get(),
         };
         let expected = Request::builder(&route).json(&body)?.build();
 
@@ -242,7 +247,7 @@ mod tests {
     #[test]
     fn test_nick_set_null() -> Result<(), Box<dyn Error>> {
         let client = Client::new("foo".to_owned());
-        let builder = UpdateGuildMember::new(&client, GUILD_ID, USER_ID).nick(None)?;
+        let builder = UpdateGuildMember::new(&client, guild_id(), user_id()).nick(None)?;
         let actual = builder.request()?;
 
         let body = UpdateGuildMemberFields {
@@ -253,8 +258,8 @@ mod tests {
             roles: None,
         };
         let route = Route::UpdateMember {
-            guild_id: GUILD_ID.0,
-            user_id: USER_ID.0,
+            guild_id: guild_id().get(),
+            user_id: user_id().get(),
         };
         let expected = Request::builder(&route).json(&body)?.build();
 
@@ -266,7 +271,7 @@ mod tests {
     #[test]
     fn test_nick_set_value() -> Result<(), Box<dyn Error>> {
         let client = Client::new("foo".to_owned());
-        let builder = UpdateGuildMember::new(&client, GUILD_ID, USER_ID).nick(Some("foo"))?;
+        let builder = UpdateGuildMember::new(&client, guild_id(), user_id()).nick(Some("foo"))?;
         let actual = builder.request()?;
 
         let body = UpdateGuildMemberFields {
@@ -277,8 +282,8 @@ mod tests {
             roles: None,
         };
         let route = Route::UpdateMember {
-            guild_id: GUILD_ID.0,
-            user_id: USER_ID.0,
+            guild_id: guild_id().get(),
+            user_id: user_id().get(),
         };
         let expected = Request::builder(&route).json(&body)?.build();
 
