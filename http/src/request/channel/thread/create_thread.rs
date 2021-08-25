@@ -2,7 +2,7 @@ use super::{ThreadValidationError, ThreadValidationErrorType};
 use crate::{
     client::Client,
     error::Error as HttpError,
-    request::{validate, Request},
+    request::{validate_inner, Request},
     response::ResponseFuture,
     routing::Route,
 };
@@ -48,13 +48,13 @@ impl<'a> CreateThread<'a> {
         auto_archive_duration: AutoArchiveDuration,
         kind: ChannelType,
     ) -> Result<Self, ThreadValidationError> {
-        if !validate::channel_name(name) {
+        if !validate_inner::channel_name(name) {
             return Err(ThreadValidationError {
                 kind: ThreadValidationErrorType::NameInvalid,
             });
         }
 
-        if !validate::is_thread(kind) {
+        if !validate_inner::is_thread(kind) {
             return Err(ThreadValidationError {
                 kind: ThreadValidationErrorType::TypeInvalid { kind },
             });

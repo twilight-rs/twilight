@@ -2,7 +2,7 @@ use super::{ThreadValidationError, ThreadValidationErrorType};
 use crate::{
     client::Client,
     error::Error as HttpError,
-    request::{self, validate, AuditLogReason, AuditLogReasonError, Request},
+    request::{self, validate_inner, AuditLogReason, AuditLogReasonError, Request},
     response::ResponseFuture,
     routing::Route,
 };
@@ -115,7 +115,7 @@ impl<'a> UpdateThread<'a> {
     /// Returns a [`ThreadValidationErrorType::NameInvalid`] error type if the
     /// name is invalid.
     pub fn name(mut self, name: &'a str) -> Result<Self, ThreadValidationError> {
-        if !validate::channel_name(name) {
+        if !validate_inner::channel_name(name) {
             return Err(ThreadValidationError {
                 kind: ThreadValidationErrorType::NameInvalid,
             });
