@@ -413,16 +413,6 @@ impl InMemoryCache {
 
     /// Gets the set of integrations in a guild.
     ///
-    /// This requires the [`GUILD_INTEGRATIONS`] intent. The
-    /// [`ResourceType::INTEGRATION`] resource type must be enabled.
-    ///
-    /// [`GUILD_INTEGRATIONS`]: twilight_model::gateway::Intents::GUILD_INTEGRATIONS
-    pub fn guild_members(&self, guild_id: GuildId) -> Option<HashSet<UserId>> {
-        self.0.guild_members.get(&guild_id).map(|r| r.clone())
-    }
-
-    /// Gets the set of members in a guild.
-    ///
     /// This list may be incomplete if not all members have been cached.
     ///
     /// This is a O(m) operation, where m is the amount of members in the guild.
@@ -431,6 +421,16 @@ impl InMemoryCache {
     /// [`GUILD_MEMBERS`]: ::twilight_model::gateway::Intents::GUILD_MEMBERS
     pub fn guild_integrations(&self, guild_id: GuildId) -> Option<HashSet<IntegrationId>> {
         self.0.guild_integrations.get(&guild_id).map(|r| r.clone())
+    }
+
+    /// Gets the set of members in a guild.
+    ///
+    /// This requires the [`GUILD_INTEGRATIONS`] intent. The
+    /// [`ResourceType::INTEGRATION`] resource type must be enabled.
+    ///
+    /// [`GUILD_INTEGRATIONS`]: twilight_model::gateway::Intents::GUILD_INTEGRATIONS
+    pub fn guild_members(&self, guild_id: GuildId) -> Option<HashSet<UserId>> {
+        self.0.guild_members.get(&guild_id).map(|r| r.clone())
     }
 
     /// Gets the set of presences in a guild.
