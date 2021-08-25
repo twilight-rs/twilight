@@ -22,8 +22,8 @@ use twilight_model::id::{ChannelId, MessageId};
 /// # async fn main() -> Result<(), Box<dyn std::error::Error>> {
 /// let client = Client::new("my token".to_owned());
 ///
-/// let channel_id = ChannelId(123);
-/// let message_id = MessageId(456);
+/// let channel_id = ChannelId::new(123).expect("non zero");
+/// let message_id = MessageId::new(456).expect("non zero");
 /// let emoji = RequestReactionType::Unicode { name: "🌃" };
 ///
 /// let reaction = client
@@ -57,9 +57,9 @@ impl<'a> CreateReaction<'a> {
 
     fn request(&self) -> Request {
         Request::from_route(&Route::CreateReaction {
-            channel_id: self.channel_id.0,
+            channel_id: self.channel_id.get(),
             emoji: self.emoji,
-            message_id: self.message_id.0,
+            message_id: self.message_id.get(),
         })
     }
 
@@ -89,7 +89,12 @@ mod tests {
 
         let emoji = RequestReactionType::Unicode { name: "🌃" };
 
-        let builder = CreateReaction::new(&client, ChannelId(123), MessageId(456), &emoji);
+        let builder = CreateReaction::new(
+            &client,
+            ChannelId::new(123).expect("non zero"),
+            MessageId::new(456).expect("non zero"),
+            &emoji,
+        );
         let actual = builder.request();
 
         let expected = Request::from_route(&Route::CreateReaction {

@@ -35,7 +35,7 @@ impl<'a> InteractionCallback<'a> {
     // being consumed in request construction.
     fn request(&self) -> Result<Request, Error> {
         let request = Request::builder(&Route::InteractionCallback {
-            interaction_id: self.interaction_id.0,
+            interaction_id: self.interaction_id.get(),
             interaction_token: self.interaction_token,
         })
         .json(self.response)?

@@ -20,7 +20,7 @@ use twilight_model::id::{MessageId, WebhookId};
 /// # async fn main() -> Result<(), Box<dyn std::error::Error>> {
 /// # let client = Client::new("token".to_owned());
 /// client
-///     .delete_webhook_message(WebhookId(1), "token here", MessageId(2))
+///     .delete_webhook_message(WebhookId::new(1).expect("non zero"), "token here", MessageId::new(2).expect("non zero"))
 ///     .reason("reason here")?
 ///     .exec()
 ///     .await?;
@@ -55,9 +55,9 @@ impl<'a> DeleteWebhookMessage<'a> {
     // being consumed in request construction.
     fn request(&self) -> Result<Request, Error> {
         let mut request = Request::builder(&Route::DeleteWebhookMessage {
-            message_id: self.message_id.0,
+            message_id: self.message_id.get(),
             token: self.token,
-            webhook_id: self.webhook_id.0,
+            webhook_id: self.webhook_id.get(),
         })
         .use_authorization_token(false);
 
@@ -96,7 +96,12 @@ mod tests {
     #[test]
     fn test_request() {
         let client = Client::new("token".to_owned());
-        let builder = DeleteWebhookMessage::new(&client, WebhookId(1), "token", MessageId(2));
+        let builder = DeleteWebhookMessage::new(
+            &client,
+            WebhookId::new(1).expect("non zero"),
+            "token",
+            MessageId::new(2).expect("non zero"),
+        );
         let actual = builder.request().expect("failed to create request");
 
         let expected = Request::from_route(&Route::DeleteWebhookMessage {

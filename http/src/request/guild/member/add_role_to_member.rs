@@ -20,9 +20,9 @@ use twilight_model::id::{GuildId, RoleId, UserId};
 /// # async fn main() -> Result<(), Box<dyn std::error::Error>> {
 /// let client = Client::new("my token".to_owned());
 ///
-/// let guild_id = GuildId(1);
-/// let role_id = RoleId(2);
-/// let user_id = UserId(3);
+/// let guild_id = GuildId::new(1).expect("non zero");
+/// let role_id = RoleId::new(2).expect("non zero");
+/// let user_id = UserId::new(3).expect("non zero");
 ///
 /// client.add_guild_member_role(guild_id, user_id, role_id)
 ///     .reason("test")?
@@ -60,9 +60,9 @@ impl<'a> AddRoleToMember<'a> {
     /// [`Response`]: crate::response::Response
     pub fn exec(self) -> ResponseFuture<EmptyBody> {
         let mut request = Request::builder(&Route::AddMemberRole {
-            guild_id: self.guild_id.0,
-            role_id: self.role_id.0,
-            user_id: self.user_id.0,
+            guild_id: self.guild_id.get(),
+            role_id: self.role_id.get(),
+            user_id: self.user_id.get(),
         });
 
         if let Some(reason) = self.reason.as_ref() {

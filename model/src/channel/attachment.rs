@@ -30,7 +30,7 @@ mod tests {
             content_type: Some("image/png".to_owned()),
             filename: "a.png".to_owned(),
             height: Some(184),
-            id: AttachmentId(700_000_000_000_000_000),
+            id: AttachmentId::new(700_000_000_000_000_000).expect("non zero"),
             proxy_url: "https://cdn.example.com/1.png".to_owned(),
             size: 13_593,
             url: "https://example.com/1.png".to_owned(),

@@ -124,7 +124,7 @@ impl<'a> GetGuildPruneCount<'a> {
     pub fn exec(self) -> ResponseFuture<GuildPrune> {
         let request = Request::from_route(&Route::GetGuildPruneCount {
             days: self.fields.days,
-            guild_id: self.guild_id.0,
+            guild_id: self.guild_id.get(),
             include_roles: self.fields.include_roles,
         });
 
@@ -142,7 +142,7 @@ mod test {
     fn test_days() {
         fn days_valid(days: u64) -> bool {
             let client = Client::new("".to_owned());
-            let count = GetGuildPruneCount::new(&client, GuildId(0));
+            let count = GetGuildPruneCount::new(&client, GuildId::new(1).expect("non zero"));
             let days_result = count.days(days);
             days_result.is_ok()
         }

@@ -77,7 +77,7 @@ struct GetAuditLogFields {
 /// # async fn main() -> Result<(), Box<dyn std::error::Error>> {
 /// let client = Client::new("token".to_owned());
 ///
-/// let guild_id = GuildId(101);
+/// let guild_id = GuildId::new(101).expect("non zero");
 /// let audit_log = client
 ///     .audit_log(guild_id)
 ///     .exec()
@@ -167,9 +167,9 @@ impl<'a> GetAuditLog<'a> {
         let request = Request::from_route(&Route::GetAuditLogs {
             action_type: self.fields.action_type.map(|x| x as u64),
             before: self.fields.before,
-            guild_id: self.guild_id.0,
+            guild_id: self.guild_id.get(),
             limit: self.fields.limit,
-            user_id: self.fields.user_id.map(|x| x.0),
+            user_id: self.fields.user_id.map(UserId::get),
         });
 
         self.http.request(request)

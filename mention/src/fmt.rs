@@ -21,7 +21,7 @@ use twilight_model::{
 /// use twilight_mention::Mention;
 /// use twilight_model::id::UserId;
 ///
-/// assert_eq!("<@123>", UserId(123).mention().to_string());
+/// assert_eq!("<@123>", UserId::new(123).expect("non zero").mention().to_string());
 /// ```
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub struct MentionFormat<T>(T);
@@ -96,7 +96,7 @@ impl Display for MentionFormat<UserId> {
 /// use twilight_mention::Mention;
 /// use twilight_model::id::ChannelId;
 ///
-/// assert_eq!("<#123>", ChannelId(123).mention().to_string());
+/// assert_eq!("<#123>", ChannelId::new(123).expect("non zero").mention().to_string());
 /// ```
 pub trait Mention<T> {
     /// Mention a resource by using its ID.
@@ -286,17 +286,26 @@ mod tests {
 
     #[test]
     fn test_mention_format_channel_id() {
-        assert_eq!("<#123>", ChannelId(123).mention().to_string());
+        assert_eq!(
+            "<#123>",
+            ChannelId::new(123).expect("non zero").mention().to_string()
+        );
     }
 
     #[test]
     fn test_mention_format_emoji_id() {
-        assert_eq!("<:emoji:123>", EmojiId(123).mention().to_string());
+        assert_eq!(
+            "<:emoji:123>",
+            EmojiId::new(123).expect("non zero").mention().to_string()
+        );
     }
 
     #[test]
     fn test_mention_format_role_id() {
-        assert_eq!("<@&123>", RoleId(123).mention().to_string());
+        assert_eq!(
+            "<@&123>",
+            RoleId::new(123).expect("non zero").mention().to_string()
+        );
     }
 
     /// Test that a timestamp with a style displays correctly.
@@ -317,6 +326,9 @@ mod tests {
 
     #[test]
     fn test_mention_format_user_id() {
-        assert_eq!("<@123>", UserId(123).mention().to_string());
+        assert_eq!(
+            "<@123>",
+            UserId::new(123).expect("non zero").mention().to_string()
+        );
     }
 }
