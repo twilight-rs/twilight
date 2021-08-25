@@ -1,6 +1,6 @@
 use crate::{
     client::Client,
-    request::{validate, Request},
+    request::{validate_inner, Request},
     response::ResponseFuture,
     routing::Route,
 };
@@ -90,7 +90,7 @@ impl<'a> CreateGuildFromTemplate<'a> {
         template_code: &'a str,
         name: &'a str,
     ) -> Result<Self, CreateGuildFromTemplateError> {
-        if !validate::guild_name(&name) {
+        if !validate_inner::guild_name(&name) {
             return Err(CreateGuildFromTemplateError {
                 kind: CreateGuildFromTemplateErrorType::NameInvalid,
             });

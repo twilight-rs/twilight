@@ -461,9 +461,11 @@ impl Shard {
     /// [`shutdown_resumable`]: Self::shutdown_resumable
     /// [`shutdown`]: Self::shutdown
     pub async fn start(&self) -> Result<(), ShardStartError> {
-        let url = if let Some(u) = self.0.config.gateway_url.clone() {
-            u.into_string()
+        let url = if let Some(u) = &self.0.config.gateway_url {
+            u.to_string()
         } else {
+            // By making an authenticated gateway information retrieval request
+            // we're also validating the configured token.
             self.0
                 .config
                 .http_client()

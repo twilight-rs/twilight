@@ -64,7 +64,7 @@
 //!
 //! The `tracing` feature enables logging via the [`tracing`] crate.
 //!
-//! This is enabled by default.
+//! This is disabled by default.
 //!
 //! [`native-tls`]: https://crates.io/crates/native-tls
 //! [`hyper`]: https://crates.io/crates/hyper

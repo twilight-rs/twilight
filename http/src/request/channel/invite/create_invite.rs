@@ -1,6 +1,6 @@
 use crate::{
     client::Client,
-    request::{self, validate, AuditLogReason, AuditLogReasonError, Request},
+    request::{self, validate_inner, AuditLogReason, AuditLogReasonError, Request},
     response::ResponseFuture,
     routing::Route,
 };
@@ -159,7 +159,7 @@ impl<'a> CreateInvite<'a> {
     /// # Ok(()) }
     /// ```
     pub const fn max_age(mut self, max_age: u64) -> Result<Self, CreateInviteError> {
-        if !validate::invite_max_age(max_age) {
+        if !validate_inner::invite_max_age(max_age) {
             return Err(CreateInviteError {
                 kind: CreateInviteErrorType::MaxAgeTooOld,
             });
@@ -197,7 +197,7 @@ impl<'a> CreateInvite<'a> {
     /// # Ok(()) }
     /// ```
     pub const fn max_uses(mut self, max_uses: u64) -> Result<Self, CreateInviteError> {
-        if !validate::invite_max_uses(max_uses) {
+        if !validate_inner::invite_max_uses(max_uses) {
             return Err(CreateInviteError {
                 kind: CreateInviteErrorType::MaxUsesTooLarge,
             });

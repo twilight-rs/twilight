@@ -1,6 +1,6 @@
 use crate::{
     client::Client,
-    request::{validate, Request},
+    request::{validate_inner, Request},
     response::ResponseFuture,
     routing::Route,
 };
@@ -105,7 +105,7 @@ impl<'a> UpdateTemplate<'a> {
     /// Returns an [`UpdateTemplateErrorType::DescriptionTooLarge`] error type
     /// if the description is too large.
     pub fn description(mut self, description: &'a str) -> Result<Self, UpdateTemplateError> {
-        if !validate::template_description(&description) {
+        if !validate_inner::template_description(&description) {
             return Err(UpdateTemplateError {
                 kind: UpdateTemplateErrorType::DescriptionTooLarge,
             });
@@ -125,7 +125,7 @@ impl<'a> UpdateTemplate<'a> {
     /// Returns an [`UpdateTemplateErrorType::NameInvalid`] error type when the
     /// name is invalid.
     pub fn name(mut self, name: &'a str) -> Result<Self, UpdateTemplateError> {
-        if !validate::template_name(name) {
+        if !validate_inner::template_name(name) {
             return Err(UpdateTemplateError {
                 kind: UpdateTemplateErrorType::NameInvalid,
             });

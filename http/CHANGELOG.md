@@ -2,6 +2,37 @@
 
 Changelog for `twilight-http`.
 
+## [0.6.2] - 2021-08-18
+
+### Additions
+
+Add 6 new HTTP API error codes:
+
+- 10049: Unknown stream
+- 10050: Unknown premium server subscribe cooldown
+- 10070: Unknown Guild Scheduled Event
+- 10071: Unknown Guild Scheduled Event User
+- 50095: This server is not available in your location
+- 50097: This server needs monetization enabled in order to perform this action
+
+([#1094] - [@Erk-]).
+
+### Fixes
+
+Fix `ResponseFuture` returning mismatched `RequestTimedOut` and `RequestError`
+error type variants ([#1100] - [@vilgotf]).
+
+### Enhancements
+
+Improve the performance of `Response::bytes` ([#1103] - [@vilgotf]).
+
+Add `[#must_use]` to typed HTTP request builders ([#1099] - [@zeylahellyer]).
+
+[#1103]: https://github.com/twilight-rs/twilight/pull/1103
+[#1100]: https://github.com/twilight-rs/twilight/pull/1100
+[#1099]: https://github.com/twilight-rs/twilight/pull/1099
+[#1094]: https://github.com/twilight-rs/twilight/pull/1094
+
 ## [0.6.1] - 2021-08-01
 
 ### Additions
@@ -1145,6 +1176,7 @@ Initial release.
 
 [0.2.0-beta.1:app integrations]: https://github.com/discord/discord-api-docs/commit/a926694e2f8605848bda6b57d21c8817559e5cec
 
+[0.6.2]: https://github.com/twilight-rs/twilight/releases/tag/http-0.6.2
 [0.5.7]: https://github.com/twilight-rs/twilight/releases/tag/http-0.5.7
 [0.5.6]: https://github.com/twilight-rs/twilight/releases/tag/http-0.5.6
 [0.5.5]: https://github.com/twilight-rs/twilight/releases/tag/http-0.5.5
