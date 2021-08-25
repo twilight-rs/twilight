@@ -132,18 +132,20 @@ mod tests {
 
     #[test]
     fn test_author_id() {
-        const USER_ID: UserId = UserId(7);
+        fn user_id() -> UserId {
+            UserId::new(7).expect("non zero")
+        }
 
         let in_guild = MessageComponentInteraction {
-            application_id: ApplicationId(1),
-            channel_id: ChannelId(2),
+            application_id: ApplicationId::new(1).expect("non zero"),
+            channel_id: ChannelId::new(2).expect("non zero"),
             data: MessageComponentInteractionData {
                 custom_id: "foo".to_owned(),
                 component_type: ComponentType::Button,
                 values: Vec::from(["bar".to_owned()]),
             },
-            guild_id: Some(GuildId(3)),
-            id: InteractionId(4),
+            guild_id: Some(GuildId::new(3).expect("non zero")),
+            id: InteractionId::new(4).expect("non zero"),
             kind: InteractionType::MessageComponent,
             member: Some(PartialMember {
                 deaf: false,
@@ -153,22 +155,22 @@ mod tests {
                 permissions: None,
                 premium_since: None,
                 roles: Vec::new(),
-                user: Some(user(USER_ID)),
+                user: Some(user(user_id())),
             }),
             message: Message {
                 activity: None,
                 application: None,
                 application_id: None,
                 attachments: Vec::new(),
-                author: user(USER_ID),
-                channel_id: ChannelId(5),
+                author: user(user_id()),
+                channel_id: ChannelId::new(5).expect("non zero"),
                 components: Vec::new(),
                 content: String::new(),
                 edited_timestamp: None,
                 embeds: Vec::new(),
                 flags: None,
-                guild_id: Some(GuildId(3)),
-                id: MessageId(6),
+                guild_id: Some(GuildId::new(3).expect("non zero")),
+                id: MessageId::new(6).expect("non zero"),
                 interaction: None,
                 kind: MessageType::Regular,
                 member: None,
@@ -190,7 +192,7 @@ mod tests {
             user: None,
         };
 
-        assert_eq!(Some(USER_ID), in_guild.author_id());
+        assert_eq!(Some(user_id()), in_guild.author_id());
 
         let in_dm = MessageComponentInteraction {
             member: None,
@@ -198,9 +200,9 @@ mod tests {
                 guild_id: None,
                 ..in_guild.message
             },
-            user: Some(user(USER_ID)),
+            user: Some(user(user_id())),
             ..in_guild
         };
-        assert_eq!(Some(USER_ID), in_dm.author_id());
+        assert_eq!(Some(user_id()), in_dm.author_id());
     }
 }

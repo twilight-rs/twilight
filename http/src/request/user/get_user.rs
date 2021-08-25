@@ -18,7 +18,7 @@ impl<'a> GetUser<'a> {
     /// [`Response`]: crate::response::Response
     pub fn exec(self) -> ResponseFuture<User> {
         let request = Request::from_route(&Route::GetUser {
-            user_id: self.user_id.0,
+            user_id: self.user_id.get(),
         });
 
         self.http.request(request)

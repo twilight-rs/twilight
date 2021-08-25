@@ -11,7 +11,7 @@ use serde::{Deserialize, Serialize};
 ///
 /// [`ApplicationCommand`]: crate::application::interaction::Interaction::ApplicationCommand
 /// [the discord docs]: https://discord.com/developers/docs/interactions/application-commands#interaction-applicationcommandinteractiondata
-#[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize, Default)]
+#[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
 pub struct CommandData {
     /// ID of the command.
     pub id: CommandId,

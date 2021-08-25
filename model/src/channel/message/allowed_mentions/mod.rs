@@ -71,8 +71,8 @@ mod tests {
     fn test_full() {
         let value = AllowedMentions {
             parse: vec![ParseTypes::Everyone],
-            users: vec![UserId(100)],
-            roles: vec![RoleId(200)],
+            users: vec![UserId::new(100).expect("non zero")],
+            roles: vec![RoleId::new(200).expect("non zero")],
             replied_user: true,
         };
 

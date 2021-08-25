@@ -86,8 +86,8 @@ struct GetGuildMembersFields {
 /// # async fn main() -> Result<(), Box<dyn std::error::Error>> {
 /// let client = Client::new("my token".to_owned());
 ///
-/// let guild_id = GuildId(100);
-/// let user_id = UserId(3000);
+/// let guild_id = GuildId::new(100).expect("non zero");
+/// let user_id = UserId::new(3000).expect("non zero");
 /// let members = client.guild_members(guild_id).after(user_id).exec().await?;
 /// # Ok(()) }
 /// ```
@@ -150,8 +150,8 @@ impl<'a> GetGuildMembers<'a> {
     /// [`Response`]: crate::response::Response
     pub fn exec(self) -> ResponseFuture<MemberListBody> {
         let request = Request::from_route(&Route::GetGuildMembers {
-            after: self.fields.after.map(|x| x.0),
-            guild_id: self.guild_id.0,
+            after: self.fields.after.map(UserId::get),
+            guild_id: self.guild_id.get(),
             limit: self.fields.limit,
             presences: self.fields.presences,
         });

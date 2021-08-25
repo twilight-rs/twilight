@@ -29,11 +29,11 @@ mod tests {
     fn test_thread_member() {
         let value = ThreadMember {
             flags: 3,
-            id: Some(ChannelId(1)),
+            id: Some(ChannelId::new(1).expect("non zero")),
             member: None,
             presence: None,
             join_timestamp: "123".to_string(),
-            user_id: Some(UserId(2)),
+            user_id: Some(UserId::new(2).expect("non zero")),
         };
 
         serde_test::assert_tokens(

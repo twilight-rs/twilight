@@ -139,7 +139,7 @@ impl<'a> CreateGuildPrune<'a> {
         let mut request = Request::builder(&Route::CreateGuildPrune {
             compute_prune_count: self.fields.compute_prune_count,
             days: self.fields.days,
-            guild_id: self.guild_id.0,
+            guild_id: self.guild_id.get(),
             include_roles: self.fields.include_roles,
         });
 

@@ -21,8 +21,8 @@ mod tests {
     #[test]
     fn test_followed_channel() {
         let value = FollowedChannel {
-            channel_id: ChannelId(1),
-            webhook_id: WebhookId(2),
+            channel_id: ChannelId::new(1).expect("non zero"),
+            webhook_id: WebhookId::new(2).expect("non zero"),
         };
 
         serde_test::assert_tokens(

@@ -143,7 +143,7 @@ mod tests {
                 discriminator: 1,
                 email: None,
                 flags: None,
-                id: UserId(3),
+                id: UserId::new(3).expect("non zero"),
                 locale: None,
                 mfa_enabled: None,
                 name: "test".to_owned(),
@@ -152,14 +152,14 @@ mod tests {
                 system: None,
                 verified: None,
             },
-            channel_id: ChannelId(2),
+            channel_id: ChannelId::new(2).expect("non zero"),
             components: Vec::new(),
             content: "ping".to_owned(),
             edited_timestamp: None,
             embeds: Vec::new(),
             flags: Some(MessageFlags::empty()),
-            guild_id: Some(GuildId(1)),
-            id: MessageId(4),
+            guild_id: Some(GuildId::new(1).expect("non zero")),
+            id: MessageId::new(4).expect("non zero"),
             interaction: None,
             kind: MessageType::Regular,
             member: Some(PartialMember {
@@ -190,15 +190,29 @@ mod tests {
         cache.update(&MessageCreate(msg));
 
         {
-            let entry = cache.0.user_guilds.get(&UserId(3)).unwrap();
+            let entry = cache
+                .0
+                .user_guilds
+                .get(&UserId::new(3).expect("non zero"))
+                .unwrap();
             assert_eq!(entry.value().len(), 1);
         }
         assert_eq!(
-            cache.member(GuildId(1), UserId(3)).unwrap().user_id,
-            UserId(3),
+            cache
+                .member(
+                    GuildId::new(1).expect("non zero"),
+                    UserId::new(3).expect("non zero")
+                )
+                .unwrap()
+                .user_id,
+            UserId::new(3).expect("non zero"),
         );
         {
-            let entry = cache.0.messages.get(&ChannelId(2)).unwrap();
+            let entry = cache
+                .0
+                .messages
+                .get(&ChannelId::new(2).expect("non zero"))
+                .unwrap();
             assert_eq!(entry.value().len(), 1);
         }
     }

@@ -77,7 +77,7 @@ impl<'a> UpdateWebhook<'a> {
     pub fn exec(self) -> ResponseFuture<Webhook> {
         let mut request = Request::builder(&Route::UpdateWebhook {
             token: None,
-            webhook_id: self.webhook_id.0,
+            webhook_id: self.webhook_id.get(),
         });
 
         request = match request.json(&self.fields) {

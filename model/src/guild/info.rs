@@ -19,7 +19,7 @@ mod tests {
     fn test_guild_info() {
         let value = GuildInfo {
             icon: Some("icon hash".to_owned()),
-            id: GuildId(1),
+            id: GuildId::new(1).expect("non zero"),
             name: "guild name".to_owned(),
             owner: false,
             permissions: Permissions::MANAGE_CHANNELS,

@@ -30,7 +30,10 @@ pub struct MemberUpdate {
 #[cfg(test)]
 mod tests {
     use super::MemberUpdate;
-    use crate::user::User;
+    use crate::{
+        id::{GuildId, UserId},
+        user::User,
+    };
     use serde_test::Token;
 
     #[test]
@@ -41,7 +44,7 @@ mod tests {
                 banner: None,
                 name: "Twilight Sparkle".to_string(),
                 public_flags: None,
-                id: 424_242.into(),
+                id: UserId::new(424_242).expect("non zero"),
                 discriminator: 1234,
                 avatar: Some("cool image".to_string()),
                 bot: false,
@@ -58,7 +61,7 @@ mod tests {
             pending: false,
             nick: Some("Twilight".to_string()),
             joined_at: "2017-02-27T22:21:50.121000+00:00".to_string(),
-            guild_id: 1_234.into(),
+            guild_id: GuildId::new(1_234).expect("non zero"),
             deaf: Some(false),
             mute: Some(false),
         };

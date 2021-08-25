@@ -271,7 +271,7 @@ mod tests {
     fn test_data_resolved() {
         let value = CommandInteractionDataResolved {
             channels: Vec::from([InteractionChannel {
-                id: ChannelId(100),
+                id: ChannelId::new(100).expect("non zero"),
                 kind: ChannelType::GuildText,
                 name: "channel name".into(),
                 parent_id: None,
@@ -280,7 +280,7 @@ mod tests {
             }]),
             members: Vec::from([InteractionMember {
                 hoisted_role: None,
-                id: UserId(300),
+                id: UserId::new(300).expect("non zero"),
                 joined_at: Some("joined at".into()),
                 nick: None,
                 premium_since: None,
@@ -299,7 +299,7 @@ mod tests {
                     discriminator: 1,
                     email: None,
                     flags: None,
-                    id: UserId(3),
+                    id: UserId::new(3).expect("non zero"),
                     locale: None,
                     mfa_enabled: None,
                     name: "test".to_owned(),
@@ -308,14 +308,14 @@ mod tests {
                     system: None,
                     verified: None,
                 },
-                channel_id: ChannelId(2),
+                channel_id: ChannelId::new(2).expect("non zero"),
                 components: Vec::new(),
                 content: "ping".to_owned(),
                 edited_timestamp: None,
                 embeds: Vec::new(),
                 flags: Some(MessageFlags::empty()),
-                guild_id: Some(GuildId(1)),
-                id: MessageId(4),
+                guild_id: Some(GuildId::new(1).expect("non zero")),
+                id: MessageId::new(4).expect("non zero"),
                 interaction: None,
                 kind: MessageType::Regular,
                 member: Some(PartialMember {
@@ -337,7 +337,7 @@ mod tests {
                 reference: None,
                 sticker_items: vec![MessageSticker {
                     format_type: StickerFormatType::Png,
-                    id: StickerId(1),
+                    id: StickerId::new(1).expect("non zero"),
                     name: "sticker name".to_owned(),
                 }],
                 referenced_message: None,
@@ -349,7 +349,7 @@ mod tests {
             roles: Vec::from([Role {
                 color: 0,
                 hoist: true,
-                id: RoleId(400),
+                id: RoleId::new(400).expect("non zero"),
                 managed: false,
                 mentionable: true,
                 name: "test".to_owned(),
@@ -365,7 +365,7 @@ mod tests {
                 discriminator: 1,
                 email: Some("address@example.com".to_owned()),
                 flags: Some(UserFlags::EARLY_SUPPORTER | UserFlags::VERIFIED_BOT_DEVELOPER),
-                id: UserId(300),
+                id: UserId::new(300).expect("non zero"),
                 locale: Some("en-us".to_owned()),
                 mfa_enabled: Some(true),
                 name: "test".to_owned(),

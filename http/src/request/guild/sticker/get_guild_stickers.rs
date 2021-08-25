@@ -21,7 +21,7 @@ use twilight_model::{channel::message::sticker::Sticker, id::GuildId};
 /// # async fn main() -> Result<(), Box<dyn std::error::Error>> {
 /// let client = Client::new("my token".to_owned());
 ///
-/// let guild_id = GuildId(1);
+/// let guild_id = GuildId::new(1).expect("non zero");
 /// let stickers = client
 ///     .guild_stickers(guild_id)
 ///     .exec()
@@ -47,7 +47,7 @@ impl<'a> GetGuildStickers<'a> {
     /// [`Response`]: crate::response::Response
     pub fn exec(self) -> ResponseFuture<ListBody<Sticker>> {
         let request = Request::from_route(&Route::GetGuildStickers {
-            guild_id: self.guild_id.0,
+            guild_id: self.guild_id.get(),
         });
 
         self.http.request(request)

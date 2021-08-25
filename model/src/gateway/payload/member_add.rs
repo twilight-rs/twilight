@@ -32,7 +32,7 @@ mod tests {
     fn test_member_add() {
         let value = MemberAdd(Member {
             deaf: false,
-            guild_id: GuildId(1),
+            guild_id: GuildId::new(1).expect("non zero"),
             hoisted_role: None,
             joined_at: None,
             mute: false,
@@ -41,7 +41,7 @@ mod tests {
             premium_since: None,
             roles: vec![],
             user: User {
-                id: UserId(2),
+                id: UserId::new(2).expect("non zero"),
                 accent_color: None,
                 avatar: None,
                 banner: None,

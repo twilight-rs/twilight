@@ -81,21 +81,21 @@ mod tests {
         let cache = InMemoryCache::new();
         cache.update(&InteractionCreate(Interaction::ApplicationCommand(
             Box::new(ApplicationCommand {
-                application_id: ApplicationId(1),
-                channel_id: ChannelId(2),
+                application_id: ApplicationId::new(1).expect("non zero"),
+                channel_id: ChannelId::new(2).expect("non zero"),
                 data: CommandData {
-                    id: CommandId(5),
+                    id: CommandId::new(5).expect("non zero"),
                     name: "command name".into(),
                     options: Vec::new(),
                     resolved: Some(CommandInteractionDataResolved {
                         channels: Vec::new(),
                         members: Vec::from([InteractionMember {
                             hoisted_role: None,
-                            id: UserId(7),
+                            id: UserId::new(7).expect("non zero"),
                             joined_at: Some("joined at date".into()),
                             nick: None,
                             premium_since: None,
-                            roles: vec![RoleId(8)],
+                            roles: vec![RoleId::new(8).expect("non zero")],
                         }]),
                         messages: Vec::from([Message {
                             activity: None,
@@ -110,7 +110,7 @@ mod tests {
                                 discriminator: 1,
                                 email: None,
                                 flags: None,
-                                id: UserId(3),
+                                id: UserId::new(3).expect("non zero"),
                                 locale: None,
                                 mfa_enabled: None,
                                 name: "test".to_owned(),
@@ -119,14 +119,14 @@ mod tests {
                                 system: None,
                                 verified: None,
                             },
-                            channel_id: ChannelId(2),
+                            channel_id: ChannelId::new(2).expect("non zero"),
                             components: Vec::new(),
                             content: "ping".to_owned(),
                             edited_timestamp: None,
                             embeds: Vec::new(),
                             flags: Some(MessageFlags::empty()),
-                            guild_id: Some(GuildId(1)),
-                            id: MessageId(4),
+                            guild_id: Some(GuildId::new(1).expect("non zero")),
+                            id: MessageId::new(4).expect("non zero"),
                             interaction: None,
                             kind: MessageType::Regular,
                             member: Some(PartialMember {
@@ -148,7 +148,7 @@ mod tests {
                             reference: None,
                             sticker_items: vec![MessageSticker {
                                 format_type: StickerFormatType::Png,
-                                id: StickerId(1),
+                                id: StickerId::new(1).expect("non zero"),
                                 name: "sticker name".to_owned(),
                             }],
                             referenced_message: None,
@@ -160,7 +160,7 @@ mod tests {
                         roles: Vec::from([Role {
                             color: 0u32,
                             hoist: false,
-                            id: RoleId(8),
+                            id: RoleId::new(8).expect("non zero"),
                             managed: false,
                             mentionable: true,
                             name: "role name".into(),
@@ -176,7 +176,7 @@ mod tests {
                             discriminator: 5678,
                             email: None,
                             flags: None,
-                            id: UserId(7),
+                            id: UserId::new(7).expect("non zero"),
                             locale: None,
                             mfa_enabled: None,
                             name: "different name".into(),
@@ -187,8 +187,8 @@ mod tests {
                         }]),
                     }),
                 },
-                guild_id: Some(GuildId(3)),
-                id: InteractionId(4),
+                guild_id: Some(GuildId::new(3).expect("non zero")),
+                id: InteractionId::new(4).expect("non zero"),
                 kind: InteractionType::ApplicationCommand,
                 member: Some(PartialMember {
                     deaf: false,
@@ -206,7 +206,7 @@ mod tests {
                         discriminator: 1234,
                         email: None,
                         flags: None,
-                        id: UserId(6),
+                        id: UserId::new(6).expect("non zero"),
                         locale: None,
                         mfa_enabled: None,
                         name: "username".into(),
@@ -222,24 +222,38 @@ mod tests {
         )));
 
         {
-            let guild_members = cache.guild_members(GuildId(3)).unwrap();
+            let guild_members = cache
+                .guild_members(GuildId::new(3).expect("non zero"))
+                .unwrap();
             assert_eq!(guild_members.len(), 2);
         }
 
         {
-            let member = cache.member(GuildId(3), UserId(6)).unwrap();
+            let member = cache
+                .member(
+                    GuildId::new(3).expect("non zero"),
+                    UserId::new(6).expect("non zero"),
+                )
+                .unwrap();
             let user = cache.user(member.user_id).unwrap();
             assert_eq!(user.avatar.unwrap(), "avatar string");
         }
 
         {
-            let member = cache.member(GuildId(3), UserId(7)).unwrap();
+            let member = cache
+                .member(
+                    GuildId::new(3).expect("non zero"),
+                    UserId::new(7).expect("non zero"),
+                )
+                .unwrap();
             let user = cache.user(member.user_id).unwrap();
             assert_eq!(user.avatar.unwrap(), "different avatar");
         }
 
         {
-            let guild_roles = cache.guild_roles(GuildId(3)).unwrap();
+            let guild_roles = cache
+                .guild_roles(GuildId::new(3).expect("non zero"))
+                .unwrap();
             assert_eq!(guild_roles.len(), 1);
         }
     }

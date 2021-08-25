@@ -42,8 +42,8 @@ impl<'a> GetJoinedPrivateArchivedThreads<'a> {
     /// [`Response`]: crate::response::Response
     pub fn exec(self) -> ResponseFuture<ThreadsListing> {
         let request = Request::from_route(&Route::GetJoinedPrivateArchivedThreads {
-            before: self.before.map(|id| id.0),
-            channel_id: self.channel_id.0,
+            before: self.before.map(ChannelId::get),
+            channel_id: self.channel_id.get(),
             limit: self.limit,
         });
 

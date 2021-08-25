@@ -41,7 +41,7 @@ impl<'a> DeleteWebhook<'a> {
     /// [`Response`]: crate::response::Response
     pub fn exec(self) -> ResponseFuture<EmptyBody> {
         let mut request = Request::builder(&Route::DeleteWebhook {
-            webhook_id: self.id.0,
+            webhook_id: self.id.get(),
             token: self.fields.token,
         });
 

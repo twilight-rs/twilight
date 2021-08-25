@@ -30,8 +30,8 @@ impl<'a> GetGlobalCommand<'a> {
     /// [`Response`]: crate::response::Response
     pub fn exec(self) -> ResponseFuture<Command> {
         let request = Request::from_route(&Route::GetGlobalCommand {
-            application_id: self.application_id.0,
-            command_id: self.command_id.0,
+            application_id: self.application_id.get(),
+            command_id: self.command_id.get(),
         });
 
         self.http.request(request)

@@ -89,7 +89,8 @@ impl<'de> Visitor<'de> for TypingStartVisitor {
                         return Err(DeError::duplicate_field("member"));
                     }
 
-                    let deserializer = OptionalMemberDeserializer::new(GuildId(0));
+                    let deserializer =
+                        OptionalMemberDeserializer::new(GuildId::new(1).expect("non zero"));
 
                     member = map.next_value_seed(deserializer)?;
                 }
@@ -160,20 +161,20 @@ mod tests {
     #[test]
     fn test_typing_start_with_member() {
         let value = TypingStart {
-            channel_id: ChannelId(2),
-            guild_id: Some(GuildId(1)),
+            channel_id: ChannelId::new(2).expect("non zero"),
+            guild_id: Some(GuildId::new(1).expect("non zero")),
             member: Some(Member {
                 deaf: false,
-                guild_id: GuildId(1),
-                hoisted_role: Some(RoleId(4)),
+                guild_id: GuildId::new(1).expect("non zero"),
+                hoisted_role: Some(RoleId::new(4).expect("non zero")),
                 joined_at: Some("2020-01-01T00:00:00.000000+00:00".to_owned()),
                 mute: false,
                 nick: Some("typing".to_owned()),
                 pending: false,
                 premium_since: None,
-                roles: vec![RoleId(4)],
+                roles: vec![RoleId::new(4).expect("non zero")],
                 user: User {
-                    id: UserId(3),
+                    id: UserId::new(3).expect("non zero"),
                     accent_color: None,
                     avatar: Some("aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa".to_owned()),
                     banner: None,
@@ -191,7 +192,7 @@ mod tests {
                 },
             }),
             timestamp: 1_500_000_000,
-            user_id: UserId(3),
+            user_id: UserId::new(3).expect("non zero"),
         };
 
         serde_test::assert_tokens(
@@ -274,11 +275,11 @@ mod tests {
     #[test]
     fn test_typing_start_without_member() {
         let value = TypingStart {
-            channel_id: ChannelId(2),
+            channel_id: ChannelId::new(2).expect("non zero"),
             guild_id: None,
             member: None,
             timestamp: 1_500_000_000,
-            user_id: UserId(3),
+            user_id: UserId::new(3).expect("non zero"),
         };
 
         serde_test::assert_tokens(

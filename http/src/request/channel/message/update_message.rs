@@ -149,7 +149,7 @@ struct UpdateMessageFields<'a> {
 /// # #[tokio::main]
 /// # async fn main() -> Result<(), Box<dyn std::error::Error>> {
 /// let client = Client::new("my token".to_owned());
-/// client.update_message(ChannelId(1), MessageId(2))
+/// client.update_message(ChannelId::new(1).expect("non zero"), MessageId::new(2).expect("non zero"))
 ///     .content(Some("test update"))?
 ///     .exec()
 ///     .await?;
@@ -165,7 +165,7 @@ struct UpdateMessageFields<'a> {
 /// # #[tokio::main]
 /// # async fn main() -> Result<(), Box<dyn std::error::Error>> {
 /// # let client = Client::new("my token".to_owned());
-/// client.update_message(ChannelId(1), MessageId(2))
+/// client.update_message(ChannelId::new(1).expect("non zero"), MessageId::new(2).expect("non zero"))
 ///     .content(None)?
 ///     .exec()
 ///     .await?;
@@ -342,8 +342,8 @@ impl<'a> UpdateMessage<'a> {
     /// [`Response`]: crate::response::Response
     pub fn exec(self) -> ResponseFuture<Message> {
         let mut request = Request::builder(&Route::UpdateMessage {
-            channel_id: self.channel_id.0,
-            message_id: self.message_id.0,
+            channel_id: self.channel_id.get(),
+            message_id: self.message_id.get(),
         });
 
         request = match request.json(&self.fields) {

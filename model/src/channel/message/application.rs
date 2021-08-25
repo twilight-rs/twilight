@@ -22,7 +22,7 @@ mod tests {
             cover_image: Some("cover".to_owned()),
             description: "a description".to_owned(),
             icon: Some("an icon".to_owned()),
-            id: ApplicationId(1),
+            id: ApplicationId::new(1).expect("non zero"),
             name: "application".to_owned(),
         };
 
