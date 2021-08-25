@@ -22,7 +22,7 @@ use serde::{Deserialize, Serialize};
 /// Command names must be lower case, matching the Regex `^[\w-]{1,32}$`. Refer
 /// to [the discord docs] for more information.
 ///
-/// [the discord docs]: https://discord.com/developers/docs/interactions/slash-commands#applicationcommand
+/// [the discord docs]: https://discord.com/developers/docs/interactions/application-commands#applicationcommand
 #[derive(Clone, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
 pub struct Command {
     #[serde(skip_serializing_if = "Option::is_none")]

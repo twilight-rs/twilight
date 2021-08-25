@@ -21,7 +21,7 @@ use twilight_model::{
 /// same guild will overwrite the old command. See [the discord docs] for more
 /// information.
 ///
-/// [the discord docs]: https://discord.com/developers/docs/interactions/slash-commands#create-guild-application-command
+/// [the discord docs]: https://discord.com/developers/docs/interactions/application-commands#create-guild-application-command
 #[must_use = "requests must be configured and executed"]
 pub struct CreateGuildChatInputCommand<'a> {
     application_id: ApplicationId,

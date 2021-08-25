@@ -16,7 +16,7 @@ use twilight_model::{
 /// Creating a command with the same name as an already-existing global command
 /// will overwrite the old command. See [the discord docs] for more information.
 ///
-/// [the discord docs]: https://discord.com/developers/docs/interactions/slash-commands#create-global-application-command
+/// [the discord docs]: https://discord.com/developers/docs/interactions/application-commands#create-global-application-command
 #[must_use = "requests must be configured and executed"]
 pub struct CreateGlobalUserCommand<'a> {
     application_id: ApplicationId,

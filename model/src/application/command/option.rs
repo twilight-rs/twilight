@@ -361,7 +361,7 @@ pub struct ChoiceCommandOptionData {
 ///
 /// Refer to [the discord docs] for more information.
 ///
-/// [the discord docs]: https://discord.com/developers/docs/interactions/slash-commands#applicationcommandoptionchoice
+/// [the discord docs]: https://discord.com/developers/docs/interactions/application-commands#applicationcommandoptionchoice
 #[derive(Clone, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
 #[serde(untagged)]
 pub enum CommandOptionChoice {

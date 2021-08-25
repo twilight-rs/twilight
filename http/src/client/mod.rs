@@ -1862,9 +1862,9 @@ impl Client {
     /// Returns an [`InteractionErrorType::CommandNameValidationFailed`]
     /// error type if the command name is not between 1 and 32 characters.
     ///
-    /// [the discord docs]: https://discord.com/developers/docs/interactions/slash-commands#create-guild-application-command
+    /// [the discord docs]: https://discord.com/developers/docs/interactions/application-commands#create-guild-application-command
     #[deprecated(
-        note = "the signature of this method will change in the next major version",
+        note = "this method will be replaced with `new_create_guild_command`",
         since = "0.5.3"
     )]
     pub fn create_guild_command<'a>(
@@ -1896,7 +1896,7 @@ impl Client {
     /// Returns an [`InteractionErrorType::CommandNameValidationFailed`]
     /// error type if the command name is not between 1 and 32 characters.
     ///
-    /// [the discord docs]: https://discord.com/developers/docs/interactions/slash-commands#create-guild-application-command
+    /// [the discord docs]: https://discord.com/developers/docs/interactions/application-commands#create-guild-application-command
     pub fn new_create_guild_command<'a>(
         &'a self,
         guild_id: GuildId,
@@ -1962,7 +1962,7 @@ impl Client {
     /// error type if an application ID has not been configured via
     /// [`Client::set_application_id`].
     ///
-    /// [the discord docs]: https://discord.com/developers/docs/interactions/slash-commands#edit-guild-application-command
+    /// [the discord docs]: https://discord.com/developers/docs/interactions/application-commands#edit-guild-application-command
     pub fn update_guild_command(
         &self,
         guild_id: GuildId,
@@ -2051,9 +2051,9 @@ impl Client {
     /// error type if the command description is not between 1 and 100
     /// characters.
     ///
-    /// [the discord docs]: https://discord.com/developers/docs/interactions/slash-commands#create-global-application-command
+    /// [the discord docs]: https://discord.com/developers/docs/interactions/application-commands#create-global-application-command
     #[deprecated(
-        note = "the signature of this method will change in the next major version",
+        note = "this method will be replaced with `new_create_global_command`",
         since = "0.5.3"
     )]
     pub fn create_global_command<'a>(
@@ -2083,7 +2083,7 @@ impl Client {
     /// Returns an [`InteractionErrorType::CommandNameValidationFailed`]
     /// error type if the command name is not between 1 and 32 characters.
     ///
-    /// [the discord docs]: https://discord.com/developers/docs/interactions/slash-commands#create-global-application-command
+    /// [the discord docs]: https://discord.com/developers/docs/interactions/application-commands#create-global-application-command
     pub fn new_create_global_command<'a>(
         &'a self,
         name: &'a str,
@@ -2139,7 +2139,7 @@ impl Client {
     /// error type if an application ID has not been configured via
     /// [`Client::set_application_id`].
     ///
-    /// [the discord docs]: https://discord.com/developers/docs/interactions/slash-commands#edit-global-application-command
+    /// [the discord docs]: https://discord.com/developers/docs/interactions/application-commands#edit-global-application-command
     pub fn update_global_command(
         &self,
         command_id: CommandId,
