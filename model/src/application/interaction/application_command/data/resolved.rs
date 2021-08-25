@@ -236,14 +236,14 @@ mod tests {
     fn test_data_resolved() {
         let value = CommandInteractionDataResolved {
             channels: vec![InteractionChannel {
-                id: ChannelId(100),
+                id: ChannelId::new(100).expect("non zero"),
                 kind: ChannelType::GuildText,
                 name: "channel name".into(),
                 permissions: Permissions::empty(),
             }],
             members: vec![InteractionMember {
                 hoisted_role: None,
-                id: UserId(300),
+                id: UserId::new(300).expect("non zero"),
                 joined_at: Some("joined at".into()),
                 nick: None,
                 premium_since: None,
@@ -252,7 +252,7 @@ mod tests {
             roles: vec![Role {
                 color: 0,
                 hoist: true,
-                id: RoleId(400),
+                id: RoleId::new(400).expect("non zero"),
                 managed: false,
                 mentionable: true,
                 name: "test".to_owned(),
@@ -266,7 +266,7 @@ mod tests {
                 discriminator: 1,
                 email: Some("address@example.com".to_owned()),
                 flags: Some(UserFlags::EARLY_SUPPORTER | UserFlags::VERIFIED_BOT_DEVELOPER),
-                id: UserId(300),
+                id: UserId::new(300).expect("non zero"),
                 locale: Some("en-us".to_owned()),
                 mfa_enabled: Some(true),
                 name: "test".to_owned(),

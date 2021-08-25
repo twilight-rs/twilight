@@ -37,7 +37,7 @@ impl<'a> UpdateRolePositions<'a> {
     /// [`Response`]: crate::response::Response
     pub fn exec(self) -> ResponseFuture<ListBody<Role>> {
         let mut request = Request::builder(&Route::UpdateRolePositions {
-            guild_id: self.guild_id.0,
+            guild_id: self.guild_id.get(),
         });
 
         request = match request.json(&self.roles) {

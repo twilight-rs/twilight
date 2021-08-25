@@ -65,7 +65,7 @@ impl ClientBuilder {
     /// Set the [`ApplicationId`] used by interaction methods.
     pub fn application_id(self, application_id: ApplicationId) -> Self {
         self.application_id
-            .store(application_id.0, Ordering::Relaxed);
+            .store(application_id.get(), Ordering::Relaxed);
 
         self
     }

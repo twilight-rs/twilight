@@ -78,8 +78,8 @@ struct CreateBanFields<'a> {
 /// # async fn main() -> Result<(), Box<dyn std::error::Error>> {
 /// let client = Client::new("my token".to_owned());
 ///
-/// let guild_id = GuildId(100);
-/// let user_id = UserId(200);
+/// let guild_id = GuildId::new(100).expect("non zero");
+/// let user_id = UserId::new(200).expect("non zero");
 /// client.create_ban(guild_id, user_id)
 ///     .delete_message_days(1)?
 ///     .reason("memes")?
@@ -134,9 +134,9 @@ impl<'a> CreateBan<'a> {
     pub fn exec(self) -> ResponseFuture<EmptyBody> {
         let request = Request::from_route(&Route::CreateBan {
             delete_message_days: self.fields.delete_message_days,
-            guild_id: self.guild_id.0,
+            guild_id: self.guild_id.get(),
             reason: self.fields.reason,
-            user_id: self.user_id.0,
+            user_id: self.user_id.get(),
         });
 
         self.http.request(request)

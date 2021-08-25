@@ -18,8 +18,8 @@ use twilight_model::{
 /// # async fn main() -> Result<(), Box<dyn std::error::Error>> {
 /// let client = Client::new("my token".to_owned());
 ///
-/// let guild_id = GuildId(50);
-/// let emoji_id = EmojiId(100);
+/// let guild_id = GuildId::new(50).expect("non zero");
+/// let emoji_id = EmojiId::new(100).expect("non zero");
 ///
 /// client.emoji(guild_id, emoji_id).exec().await?;
 /// # Ok(()) }
@@ -45,8 +45,8 @@ impl<'a> GetEmoji<'a> {
     /// [`Response`]: crate::response::Response
     pub fn exec(self) -> ResponseFuture<Emoji> {
         let request = Request::from_route(&Route::GetEmoji {
-            emoji_id: self.emoji_id.0,
-            guild_id: self.guild_id.0,
+            emoji_id: self.emoji_id.get(),
+            guild_id: self.guild_id.get(),
         });
 
         self.http.request(request)

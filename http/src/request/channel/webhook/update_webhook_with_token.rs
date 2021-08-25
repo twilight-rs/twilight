@@ -63,7 +63,7 @@ impl<'a> UpdateWebhookWithToken<'a> {
     pub fn exec(self) -> ResponseFuture<Webhook> {
         let mut request = Request::builder(&Route::UpdateWebhook {
             token: Some(self.token),
-            webhook_id: self.webhook_id.0,
+            webhook_id: self.webhook_id.get(),
         })
         .use_authorization_token(false);
 

@@ -29,7 +29,7 @@ impl<'a> GetChannelInvites<'a> {
     /// [`Response`]: crate::response::Response
     pub fn exec(self) -> ResponseFuture<ListBody<Invite>> {
         let request = Request::from_route(&Route::GetChannelInvites {
-            channel_id: self.channel_id.0,
+            channel_id: self.channel_id.get(),
         });
 
         self.http.request(request)

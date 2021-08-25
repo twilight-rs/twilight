@@ -36,9 +36,9 @@ impl<'a> GetWebhookMessage<'a> {
     /// [`Response`]: crate::response::Response
     pub fn exec(self) -> ResponseFuture<Message> {
         let request = Request::builder(&Route::GetWebhookMessage {
-            message_id: self.message_id.0,
+            message_id: self.message_id.get(),
             token: self.token,
-            webhook_id: self.webhook_id.0,
+            webhook_id: self.webhook_id.get(),
         })
         .use_authorization_token(false)
         .build();

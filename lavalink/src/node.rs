@@ -609,7 +609,7 @@ fn connect_request(state: &NodeConfig) -> Result<Request<()>, NodeError> {
     let mut builder = Request::get(format!("ws://{}", state.address));
     builder = builder.header("Authorization", &state.authorization);
     builder = builder.header("Num-Shards", state.shard_count);
-    builder = builder.header("User-Id", state.user_id.0);
+    builder = builder.header("User-Id", state.user_id.get());
 
     if state.resume.is_some() {
         builder = builder.header("Resume-Key", state.address.to_string());

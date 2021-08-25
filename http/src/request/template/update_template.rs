@@ -141,7 +141,7 @@ impl<'a> UpdateTemplate<'a> {
     /// [`Response`]: crate::response::Response
     pub fn exec(self) -> ResponseFuture<Template> {
         let mut request = Request::builder(&Route::UpdateTemplate {
-            guild_id: self.guild_id.0,
+            guild_id: self.guild_id.get(),
             template_code: self.template_code,
         });
 

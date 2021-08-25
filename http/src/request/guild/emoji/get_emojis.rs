@@ -20,7 +20,7 @@ use twilight_model::{guild::Emoji, id::GuildId};
 /// # async fn main() -> Result<(), Box<dyn std::error::Error>> {
 /// let client = Client::new("my token".to_owned());
 ///
-/// let guild_id = GuildId(100);
+/// let guild_id = GuildId::new(100).expect("non zero");
 ///
 /// client.emojis(guild_id).exec().await?;
 /// # Ok(()) }
@@ -41,7 +41,7 @@ impl<'a> GetEmojis<'a> {
     /// [`Response`]: crate::response::Response
     pub fn exec(self) -> ResponseFuture<ListBody<Emoji>> {
         let request = Request::from_route(&Route::GetEmojis {
-            guild_id: self.guild_id.0,
+            guild_id: self.guild_id.get(),
         });
 
         self.http.request(request)

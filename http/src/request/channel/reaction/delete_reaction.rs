@@ -48,15 +48,15 @@ impl<'a> DeleteReaction<'a> {
     pub fn exec(self) -> ResponseFuture<EmptyBody> {
         let route = match self.target_user {
             TargetUser::Current => Route::DeleteReactionCurrentUser {
-                channel_id: self.channel_id.0,
+                channel_id: self.channel_id.get(),
                 emoji: self.emoji,
-                message_id: self.message_id.0,
+                message_id: self.message_id.get(),
             },
             TargetUser::Id(user_id) => Route::DeleteReaction {
-                channel_id: self.channel_id.0,
+                channel_id: self.channel_id.get(),
                 emoji: self.emoji,
-                message_id: self.message_id.0,
-                user_id: user_id.0,
+                message_id: self.message_id.get(),
+                user_id: user_id.get(),
             },
         };
 

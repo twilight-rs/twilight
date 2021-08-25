@@ -18,7 +18,7 @@ Create a mention formatter for a user ID, and then format it in a message:
 use twilight_mention::Mention;
 use twilight_model::id::UserId;
 
-let user_id = UserId(123);
+let user_id = UserId::new(123).expect("non zero");
 let message = format!("Hey there, {}!", user_id.mention());
 ```
 

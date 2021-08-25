@@ -406,7 +406,8 @@ impl<'de> Deserialize<'de> for Guild {
                                 return Err(DeError::duplicate_field("members"));
                             }
 
-                            let deserializer = MemberListDeserializer::new(GuildId(0));
+                            let deserializer =
+                                MemberListDeserializer::new(GuildId::new(1).expect("non zero"));
 
                             members = Some(map.next_value_seed(deserializer)?);
                         }
@@ -478,7 +479,8 @@ impl<'de> Deserialize<'de> for Guild {
                                 return Err(DeError::duplicate_field("presences"));
                             }
 
-                            let deserializer = PresenceListDeserializer::new(GuildId(0));
+                            let deserializer =
+                                PresenceListDeserializer::new(GuildId::new(1).expect("non zero"));
 
                             presences = Some(map.next_value_seed(deserializer)?);
                         }
@@ -809,9 +811,9 @@ mod tests {
     #[test]
     fn test_guild() {
         let value = Guild {
-            afk_channel_id: Some(ChannelId(2)),
+            afk_channel_id: Some(ChannelId::new(2).expect("non zero")),
             afk_timeout: 900,
-            application_id: Some(ApplicationId(3)),
+            application_id: Some(ApplicationId::new(3).expect("non zero")),
             approximate_member_count: Some(1_200),
             approximate_presence_count: Some(900),
             banner: Some("banner hash".to_owned()),
@@ -823,7 +825,7 @@ mod tests {
             explicit_content_filter: ExplicitContentFilter::MembersWithoutRole,
             features: vec!["a feature".to_owned()],
             icon: Some("icon hash".to_owned()),
-            id: GuildId(1),
+            id: GuildId::new(1).expect("non zero"),
             joined_at: Some("timestamp".to_owned()),
             large: true,
             max_members: Some(25_000),
@@ -834,7 +836,7 @@ mod tests {
             mfa_level: MfaLevel::Elevated,
             name: "the name".to_owned(),
             nsfw_level: NSFWLevel::Default,
-            owner_id: UserId(5),
+            owner_id: UserId::new(5).expect("non zero"),
             owner: Some(false),
             permissions: Some(Permissions::SEND_MESSAGES),
             preferred_locale: "en-us".to_owned(),
@@ -842,16 +844,16 @@ mod tests {
             premium_tier: PremiumTier::Tier1,
             presences: Vec::new(),
             roles: Vec::new(),
-            rules_channel_id: Some(ChannelId(6)),
+            rules_channel_id: Some(ChannelId::new(6).expect("non zero")),
             splash: Some("splash hash".to_owned()),
             stage_instances: Vec::new(),
             system_channel_flags: SystemChannelFlags::SUPPRESS_PREMIUM_SUBSCRIPTIONS,
-            system_channel_id: Some(ChannelId(7)),
+            system_channel_id: Some(ChannelId::new(7).expect("non zero")),
             unavailable: false,
             vanity_url_code: Some("twilight".to_owned()),
             verification_level: VerificationLevel::Medium,
             voice_states: Vec::new(),
-            widget_channel_id: Some(ChannelId(8)),
+            widget_channel_id: Some(ChannelId::new(8).expect("non zero")),
             widget_enabled: Some(true),
         };
 

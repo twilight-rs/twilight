@@ -81,8 +81,8 @@ struct GetCurrentUserGuildsFields {
 /// # async fn main() -> Result<(), Box<dyn std::error::Error>> {
 /// let client = Client::new("my token".to_owned());
 ///
-/// let after = GuildId(300);
-/// let before = GuildId(400);
+/// let after = GuildId::new(300).expect("non zero");
+/// let before = GuildId::new(400).expect("non zero");
 /// let guilds = client.current_user_guilds()
 ///     .after(after)
 ///     .before(before)
@@ -150,8 +150,8 @@ impl<'a> GetCurrentUserGuilds<'a> {
     /// [`Response`]: crate::response::Response
     pub fn exec(self) -> ResponseFuture<ListBody<CurrentUserGuild>> {
         let request = Request::from_route(&Route::GetGuilds {
-            after: self.fields.after.map(|x| x.0),
-            before: self.fields.before.map(|x| x.0),
+            after: self.fields.after.map(GuildId::get),
+            before: self.fields.before.map(GuildId::get),
             limit: self.fields.limit,
         });
 
