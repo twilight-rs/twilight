@@ -2,6 +2,41 @@
 
 Changelog for `twilight-http`.
 
+## [0.6.3] - 2021-08-30
+
+### Additions
+
+Support message components, including action rows, buttons, and select menus
+([#1020], [#1043], [#1044], [#1090], aggregate [#1121] - [@AEnterprise],
+[@AsianIntel], [@zeylahellyer], [@7596ff]).
+
+Add comparing `StatusCode` with `u16` ([#1131] - [@zeylahellyer]).
+
+Add API error code 30040, described as "Maximum number of prune requests has
+been reached. Try again later" ([#1125] - [@zeylahellyer]).
+
+### Enhancements
+
+Document that `tracing` is now disabled by default ([#1129] - [@zeylahellyer]).
+
+Add `Response<ListBody<T>>::model` and `Response<MemberListBody>::model` aliases
+corresponding to their `models` equivalents ([#1123] - [@zeylahellyer]).
+
+Display body parsing errors as a legible string if they're UTF-8 valid
+([#1118] - [@AEnterprise]).
+
+[#1131]: https://github.com/twilight-rs/twilight/pull/1131
+[#1129]: https://github.com/twilight-rs/twilight/pull/1129
+[#1125]: https://github.com/twilight-rs/twilight/pull/1125
+[#1123]: https://github.com/twilight-rs/twilight/pull/1123
+[#1121]: https://github.com/twilight-rs/twilight/pull/1121
+[#1120]: https://github.com/twilight-rs/twilight/pull/1120
+[#1118]: https://github.com/twilight-rs/twilight/pull/1118
+[#1090]: https://github.com/twilight-rs/twilight/pull/1090
+[#1044]: https://github.com/twilight-rs/twilight/pull/1044
+[#1043]: https://github.com/twilight-rs/twilight/pull/1043
+[#1020]: https://github.com/twilight-rs/twilight/pull/1020
+
 ## [0.6.2] - 2021-08-18
 
 ### Additions
@@ -1176,6 +1211,7 @@ Initial release.
 
 [0.2.0-beta.1:app integrations]: https://github.com/discord/discord-api-docs/commit/a926694e2f8605848bda6b57d21c8817559e5cec
 
+[0.6.3]: https://github.com/twilight-rs/twilight/releases/tag/http-0.6.3
 [0.6.2]: https://github.com/twilight-rs/twilight/releases/tag/http-0.6.2
 [0.5.7]: https://github.com/twilight-rs/twilight/releases/tag/http-0.5.7
 [0.5.6]: https://github.com/twilight-rs/twilight/releases/tag/http-0.5.6
