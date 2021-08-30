@@ -411,6 +411,16 @@ impl InMemoryCache {
         self.0.guild_emojis.get(&guild_id).map(|r| r.clone())
     }
 
+    /// Gets the set of integrations in a guild.
+    ///
+    /// This requires the [`GUILD_INTEGRATIONS`] intent. The
+    /// [`ResourceType::INTEGRATION`] resource type must be enabled.
+    ///
+    /// [`GUILD_INTEGRATIONS`]: twilight_model::gateway::Intents::GUILD_INTEGRATIONS
+    pub fn guild_integrations(&self, guild_id: GuildId) -> Option<HashSet<IntegrationId>> {
+        self.0.guild_integrations.get(&guild_id).map(|r| r.clone())
+    }
+
     /// Gets the set of members in a guild.
     ///
     /// This list may be incomplete if not all members have been cached.
@@ -456,6 +466,23 @@ impl InMemoryCache {
             .guild_stage_instances
             .get(&guild_id)
             .map(|r| r.value().clone())
+    }
+
+    /// Gets an integration by guild ID and integration ID.
+    ///
+    /// This is an O(1) operation. This requires the [`GUILD_INTEGRATIONS`]
+    /// intent. The [`ResourceType::INTEGRATION`] resource type must be enabled.
+    ///
+    /// [`GUILD_INTEGRATIONS`]: twilight_model::gateway::Intents::GUILD_INTEGRATIONS
+    pub fn integration(
+        &self,
+        guild_id: GuildId,
+        integration_id: IntegrationId,
+    ) -> Option<GuildIntegration> {
+        self.0
+            .integrations
+            .get(&(guild_id, integration_id))
+            .map(|r| r.data.clone())
     }
 
     /// Gets a member by guild ID and user ID.
