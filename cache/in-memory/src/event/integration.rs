@@ -1,6 +1,6 @@
 use crate::{config::ResourceType, InMemoryCache, UpdateCache};
 use twilight_model::{
-    gateway::payload::{IntegrationCreate, IntegrationDelete, IntegrationUpdate},
+    gateway::payload::incoming::{IntegrationCreate, IntegrationDelete, IntegrationUpdate},
     guild::GuildIntegration,
     id::{GuildId, IntegrationId},
 };

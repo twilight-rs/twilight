@@ -11,7 +11,7 @@ use twilight_lavalink::{
     model::{Destroy, Pause, Play, Seek, Stop, Volume},
     Lavalink,
 };
-use twilight_model::{channel::Message, gateway::payload::MessageCreate, id::ChannelId};
+use twilight_model::{channel::Message, gateway::payload::incoming::MessageCreate, id::ChannelId};
 use twilight_standby::Standby;
 
 #[derive(Clone, Debug)]

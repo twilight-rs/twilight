@@ -12,7 +12,7 @@ use tokio::sync::{
 };
 use twilight_model::gateway::{
     event::Event,
-    payload::{MessageCreate, ReactionAdd},
+    payload::incoming::{MessageCreate, ReactionAdd},
 };
 
 /// Future canceled due to Standby being dropped.

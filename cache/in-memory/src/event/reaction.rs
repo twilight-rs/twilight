@@ -1,7 +1,9 @@
 use crate::{config::ResourceType, InMemoryCache, UpdateCache};
 use twilight_model::{
     channel::message::MessageReaction,
-    gateway::payload::{ReactionAdd, ReactionRemove, ReactionRemoveAll, ReactionRemoveEmoji},
+    gateway::payload::incoming::{
+        ReactionAdd, ReactionRemove, ReactionRemoveAll, ReactionRemoveEmoji,
+    },
 };
 
 impl UpdateCache for ReactionAdd {

@@ -1,7 +1,7 @@
 use crate::{config::ResourceType, InMemoryCache, UpdateCache};
 use twilight_model::{
     channel::{Channel, Group, GuildChannel, PrivateChannel},
-    gateway::payload::{ChannelCreate, ChannelDelete, ChannelPinsUpdate, ChannelUpdate},
+    gateway::payload::incoming::{ChannelCreate, ChannelDelete, ChannelPinsUpdate, ChannelUpdate},
     id::{ChannelId, GuildId},
 };
 

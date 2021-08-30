@@ -8,7 +8,7 @@ use twilight_gateway::{
     Event, Intents,
 };
 use twilight_model::gateway::{
-    payload::UpdatePresence,
+    payload::outgoing::UpdatePresence,
     presence::{Activity, ActivityType, Status},
 };
 

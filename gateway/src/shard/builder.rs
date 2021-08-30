@@ -8,7 +8,7 @@ use std::{
 use twilight_gateway_queue::{LocalQueue, Queue};
 use twilight_http::Client as HttpClient;
 use twilight_model::gateway::{
-    payload::{identify::IdentifyProperties, update_presence::UpdatePresencePayload},
+    payload::outgoing::{identify::IdentifyProperties, update_presence::UpdatePresencePayload},
     Intents,
 };
 
@@ -242,7 +242,7 @@ impl ShardBuilder {
     /// # fn main() -> Result<(), Box<dyn std::error::Error>> {
     /// use std::env::{self, consts::OS};
     /// use twilight_gateway::{Intents, Shard};
-    /// use twilight_model::gateway::payload::identify::IdentifyProperties;
+    /// use twilight_model::gateway::payload::outgoing::identify::IdentifyProperties;
     ///
     /// let token = env::var("DISCORD_TOKEN")?;
     /// let properties = IdentifyProperties::new(
@@ -320,7 +320,7 @@ impl ShardBuilder {
     /// ```no_run
     /// use twilight_gateway::{Intents, Shard};
     /// use twilight_model::gateway::{
-    ///     payload::update_presence::UpdatePresencePayload,
+    ///     payload::outgoing::update_presence::UpdatePresencePayload,
     ///     presence::{ActivityType, MinimalActivity, Status},
     /// };
     ///

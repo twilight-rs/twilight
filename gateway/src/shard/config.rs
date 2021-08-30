@@ -3,7 +3,7 @@ use std::sync::Arc;
 use twilight_gateway_queue::Queue;
 use twilight_http::Client;
 use twilight_model::gateway::{
-    payload::{identify::IdentifyProperties, update_presence::UpdatePresencePayload},
+    payload::outgoing::{identify::IdentifyProperties, update_presence::UpdatePresencePayload},
     Intents,
 };
 

@@ -12,7 +12,7 @@ use std::{collections::HashMap, sync::Arc};
 use twilight_gateway_queue::{LocalQueue, Queue};
 use twilight_http::Client;
 use twilight_model::gateway::{
-    payload::{identify::IdentifyProperties, update_presence::UpdatePresencePayload},
+    payload::outgoing::{identify::IdentifyProperties, update_presence::UpdatePresencePayload},
     Intents,
 };
 
@@ -124,7 +124,7 @@ impl ClusterBuilder {
     /// # fn main() -> Result<(), Box<dyn std::error::Error>> {
     /// use std::env::{self, consts::OS};
     /// use twilight_gateway::{Intents, Cluster};
-    /// use twilight_model::gateway::payload::identify::IdentifyProperties;
+    /// use twilight_model::gateway::payload::outgoing::identify::IdentifyProperties;
     ///
     /// let token = env::var("DISCORD_TOKEN")?;
     /// let properties = IdentifyProperties::new(
