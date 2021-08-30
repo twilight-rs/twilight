@@ -72,17 +72,6 @@ pub enum ClientErrorType {
     SendingVoiceUpdate,
 }
 
-#[derive(Debug)]
-struct LavalinkRef {
-    nodes: DashMap<SocketAddr, Node>,
-    players: PlayerManager,
-    resume: Option<Resume>,
-    shard_count: u64,
-    user_id: UserId,
-    server_updates: DashMap<GuildId, SlimVoiceServerUpdate>,
-    sessions: DashMap<GuildId, Box<str>>,
-}
-
 /// The lavalink client that manages nodes, players, and processes events from
 /// Discord to tie it all together.
 ///
@@ -95,16 +84,24 @@ struct LavalinkRef {
 /// information about the active playing information of a guild and allows you to send events to the
 /// connected node, such as [`Play`] events.
 ///
-/// # Cloning
+/// # Using a Lavalink client in multiple tasks
 ///
-/// The client internally wraps its data within an Arc. This means that the
-/// client can be cloned and passed around tasks and threads cheaply.
+/// To use a Lavalink client instance in multiple tasks, consider wrapping it in
+/// an [`std::sync::Arc`] or [`std::rc::Rc`].
 ///
 /// [`Play`]: crate::model::outgoing::Play
 /// [`player`]: Self::player
 /// [`process`]: Self::process
-#[derive(Clone, Debug)]
-pub struct Lavalink(Arc<LavalinkRef>);
+#[derive(Debug)]
+pub struct Lavalink {
+    nodes: DashMap<SocketAddr, Arc<Node>>,
+    players: PlayerManager,
+    resume: Option<Resume>,
+    shard_count: u64,
+    user_id: UserId,
+    server_updates: DashMap<GuildId, SlimVoiceServerUpdate>,
+    sessions: DashMap<GuildId, Box<str>>,
+}
 
 impl Lavalink {
     /// Create a new Lavalink client instance.
@@ -138,7 +135,7 @@ impl Lavalink {
     }
 
     fn _new_with_resume(user_id: UserId, shard_count: u64, resume: Option<Resume>) -> Self {
-        Self(Arc::new(LavalinkRef {
+        Self {
             nodes: DashMap::new(),
             players: PlayerManager::new(),
             resume,
@@ -146,7 +143,7 @@ impl Lavalink {
             user_id,
             server_updates: DashMap::new(),
             sessions: DashMap::new(),
-        }))
+        }
     }
 
     /// Process an event into the Lavalink client.
@@ -183,7 +180,7 @@ impl Lavalink {
             }
             Event::VoiceServerUpdate(e) => {
                 if let Some(guild_id) = e.guild_id {
-                    self.0.server_updates.insert(guild_id, e.clone().into());
+                    self.server_updates.insert(guild_id, e.clone().into());
                     guild_id
                 } else {
                     tracing::trace!("event has no guild ID: {:?}", e);
@@ -191,7 +188,7 @@ impl Lavalink {
                 }
             }
             Event::VoiceStateUpdate(e) => {
-                if e.0.user_id != self.0.user_id {
+                if e.0.user_id != self.user_id {
                     tracing::trace!("got voice state update from another user");
 
                     return Ok(());
@@ -199,15 +196,14 @@ impl Lavalink {
 
                 if let Some(guild_id) = e.0.guild_id {
                     // Update player if it exists and update the connected channel ID.
-                    if let Some(player) = self.0.players.get(&guild_id) {
+                    if let Some(player) = self.players.get(&guild_id) {
                         player.set_channel_id(e.0.channel_id);
                     }
 
                     if e.0.channel_id.is_none() {
-                        self.0.sessions.remove(&guild_id);
+                        self.sessions.remove(&guild_id);
                     } else {
-                        self.0
-                            .sessions
+                        self.sessions
                             .insert(guild_id, e.0.session_id.clone().into_boxed_str());
                     }
                     guild_id
@@ -226,8 +222,8 @@ impl Lavalink {
         );
 
         let update = {
-            let server = self.0.server_updates.get(&guild_id);
-            let session = self.0.sessions.get(&guild_id);
+            let server = self.server_updates.get(&guild_id);
+            let session = self.sessions.get(&guild_id);
             match (server, session) {
                 (Some(server), Some(session)) => {
                     let server = server.value();
@@ -280,17 +276,18 @@ impl Lavalink {
         &self,
         address: SocketAddr,
         authorization: impl Into<String>,
-    ) -> Result<(Node, IncomingEvents), NodeError> {
+    ) -> Result<(Arc<Node>, IncomingEvents), NodeError> {
         let config = NodeConfig {
             address,
             authorization: authorization.into(),
-            resume: self.0.resume.clone(),
-            shard_count: self.0.shard_count,
-            user_id: self.0.user_id,
+            resume: self.resume.clone(),
+            shard_count: self.shard_count,
+            user_id: self.user_id,
         };
 
-        let (node, rx) = Node::connect(config, self.0.players.clone()).await?;
-        self.0.nodes.insert(address, node.clone());
+        let (node, rx) = Node::connect(config, self.players.clone()).await?;
+        let node = Arc::new(node);
+        self.nodes.insert(address, Arc::clone(&node));
 
         Ok((node, rx))
     }
@@ -302,8 +299,8 @@ impl Lavalink {
     /// or drop all [`Node`]s.
     ///
     /// The node is returned if it existed.
-    pub async fn remove(&self, address: SocketAddr) -> Option<(SocketAddr, Node)> {
-        self.0.nodes.remove(&address)
+    pub async fn remove(&self, address: SocketAddr) -> Option<(SocketAddr, Arc<Node>)> {
+        self.nodes.remove(&address)
     }
 
     /// Remove a node from the list of nodes being managed by the Lavalink
@@ -314,7 +311,7 @@ impl Lavalink {
     ///
     /// Returns whether the node has been removed and disconnected.
     pub fn disconnect(&self, address: SocketAddr) -> bool {
-        self.0.nodes.remove(&address).is_some()
+        self.nodes.remove(&address).is_some()
     }
 
     /// Determine the "best" node for new players according to available nodes'
@@ -328,11 +325,11 @@ impl Lavalink {
     /// no connected nodes available in the client.
     ///
     /// [`Node::penalty`]: crate::node::Node::penalty
-    pub async fn best(&self) -> Result<Node, ClientError> {
+    pub async fn best(&self) -> Result<Arc<Node>, ClientError> {
         let mut lowest = i32::MAX;
         let mut best = None;
 
-        for node in self.0.nodes.iter() {
+        for node in self.nodes.iter() {
             if node.sender().is_closed() {
                 continue;
             }
@@ -352,8 +349,8 @@ impl Lavalink {
     }
 
     /// Retrieve an immutable reference to the player manager.
-    pub fn players(&self) -> &PlayerManager {
-        &self.0.players
+    pub const fn players(&self) -> &PlayerManager {
+        &self.players
     }
 
     /// Retrieve a player for the guild.
@@ -369,7 +366,7 @@ impl Lavalink {
     ///
     /// [`PlayerManager::get`]: crate::player::PlayerManager::get
     /// [`add`]: Self::add
-    pub async fn player(&self, guild_id: GuildId) -> Result<Player, ClientError> {
+    pub async fn player(&self, guild_id: GuildId) -> Result<Arc<Player>, ClientError> {
         if let Some(player) = self.players().get(&guild_id) {
             return Ok(player);
         }
@@ -388,13 +385,11 @@ impl Lavalink {
     /// This map should be small or empty, and if it isn't, then it needs to be
     /// cleared out anyway.
     fn clear_shard_states(&self, shard_id: u64) {
-        let shard_count = self.0.shard_count;
+        let shard_count = self.shard_count;
 
-        self.0
-            .server_updates
+        self.server_updates
             .retain(|k, _| (k.get() >> 22) % shard_count != shard_id);
-        self.0
-            .sessions
+        self.sessions
             .retain(|k, _| (k.get() >> 22) % shard_count != shard_id);
     }
 }
@@ -407,5 +402,5 @@ mod tests {
 
     assert_impl_all!(ClientErrorType: Debug, Send, Sync);
     assert_impl_all!(ClientError: Error, Send, Sync);
-    assert_impl_all!(Lavalink: Clone, Debug, Send, Sync);
+    assert_impl_all!(Lavalink: Debug, Send, Sync);
 }

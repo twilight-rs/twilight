@@ -22,7 +22,7 @@ impl InMemoryCache {
         let member_id = member.user.id;
         let id = (guild_id, member_id);
 
-        if let Some(m) = self.0.members.get(&id) {
+        if let Some(m) = self.members.get(&id) {
             if *m == member {
                 return;
             }
@@ -42,9 +42,8 @@ impl InMemoryCache {
             roles: member.roles,
             user_id,
         };
-        self.0.members.insert(id, cached);
-        self.0
-            .guild_members
+        self.members.insert(id, cached);
+        self.guild_members
             .entry(guild_id)
             .or_default()
             .insert(member_id);
@@ -58,14 +57,13 @@ impl InMemoryCache {
     ) {
         let id = (guild_id, user_id);
 
-        if let Some(m) = self.0.members.get(&id) {
+        if let Some(m) = self.members.get(&id) {
             if *m == member {
                 return;
             }
         }
 
-        self.0
-            .guild_members
+        self.guild_members
             .entry(guild_id)
             .or_default()
             .insert(user_id);
@@ -81,7 +79,7 @@ impl InMemoryCache {
             roles: member.roles.to_owned(),
             user_id,
         };
-        self.0.members.insert(id, cached);
+        self.members.insert(id, cached);
     }
 
     pub(crate) fn cache_borrowed_interaction_member(
@@ -91,14 +89,13 @@ impl InMemoryCache {
     ) {
         let id = (guild_id, member.id);
 
-        let (deaf, mute) = match self.0.members.get(&id) {
+        let (deaf, mute) = match self.members.get(&id) {
             Some(m) if *m == member => return,
             Some(m) => (m.deaf(), m.mute()),
             None => (None, None),
         };
 
-        self.0
-            .guild_members
+        self.guild_members
             .entry(guild_id)
             .or_default()
             .insert(member.id);
@@ -115,7 +112,7 @@ impl InMemoryCache {
             user_id: member.id,
         };
 
-        self.0.members.insert(id, cached);
+        self.members.insert(id, cached);
     }
 }
 
@@ -128,7 +125,6 @@ impl UpdateCache for MemberAdd {
         cache.cache_member(self.guild_id, self.0.clone());
 
         cache
-            .0
             .guild_members
             .entry(self.guild_id)
             .or_default()
@@ -147,7 +143,7 @@ impl UpdateCache for MemberChunk {
         }
 
         cache.cache_members(self.guild_id, self.members.clone());
-        let mut guild = cache.0.guild_members.entry(self.guild_id).or_default();
+        let mut guild = cache.guild_members.entry(self.guild_id).or_default();
         guild.extend(self.members.iter().map(|member| member.user.id));
     }
 }
@@ -158,9 +154,9 @@ impl UpdateCache for MemberRemove {
             return;
         }
 
-        cache.0.members.remove(&(self.guild_id, self.user.id));
+        cache.members.remove(&(self.guild_id, self.user.id));
 
-        if let Some(mut members) = cache.0.guild_members.get_mut(&self.guild_id) {
+        if let Some(mut members) = cache.guild_members.get_mut(&self.guild_id) {
             members.remove(&self.user.id);
         }
 
@@ -168,14 +164,14 @@ impl UpdateCache for MemberRemove {
         // and then removing the user later if they are in no guilds.
         let mut remove_user = false;
 
-        if let Some(mut user_guilds) = cache.0.user_guilds.get_mut(&self.user.id) {
+        if let Some(mut user_guilds) = cache.user_guilds.get_mut(&self.user.id) {
             user_guilds.remove(&self.guild_id);
 
             remove_user = user_guilds.is_empty();
         }
 
         if remove_user {
-            cache.0.users.remove(&self.user.id);
+            cache.users.remove(&self.user.id);
         }
     }
 }
@@ -186,7 +182,7 @@ impl UpdateCache for MemberUpdate {
             return;
         }
 
-        let mut member = match cache.0.members.get_mut(&(self.guild_id, self.user.id)) {
+        let mut member = match cache.members.get_mut(&(self.guild_id, self.user.id)) {
             Some(member) => member,
             None => return,
         };
@@ -280,7 +276,7 @@ mod tests {
 
         // Test the guild's ID is the only one in the user's set of guilds.
         {
-            let user_guilds = cache.0.user_guilds.get(&user_id).unwrap();
+            let user_guilds = cache.user_guilds.get(&user_id).unwrap();
             assert!(user_guilds.contains(&GuildId::new(1).expect("non zero")));
             assert_eq!(1, user_guilds.len());
         }
@@ -292,7 +288,7 @@ mod tests {
         );
 
         {
-            let user_guilds = cache.0.user_guilds.get(&user_id).unwrap();
+            let user_guilds = cache.user_guilds.get(&user_id).unwrap();
             assert!(user_guilds.contains(&GuildId::new(3).expect("non zero")));
             assert_eq!(2, user_guilds.len());
         }
@@ -305,7 +301,7 @@ mod tests {
         });
 
         {
-            let user_guilds = cache.0.user_guilds.get(&user_id).unwrap();
+            let user_guilds = cache.user_guilds.get(&user_id).unwrap();
             assert!(!user_guilds.contains(&GuildId::new(3).expect("non zero")));
             assert_eq!(1, user_guilds.len());
         }
@@ -316,6 +312,6 @@ mod tests {
             guild_id: GuildId::new(1).expect("non zero"),
             user: test::user(user_id),
         });
-        assert!(!cache.0.users.contains_key(&user_id));
+        assert!(!cache.users.contains_key(&user_id));
     }
 }

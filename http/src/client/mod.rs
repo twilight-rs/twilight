@@ -55,7 +55,6 @@ use hyper::{
 };
 use std::{
     convert::TryFrom,
-    fmt::{Debug, Formatter, Result as FmtResult},
     sync::{
         atomic::{AtomicBool, AtomicU64, Ordering},
         Arc,
@@ -85,39 +84,6 @@ type HttpsConnector<T> = hyper_rustls::HttpsConnector<T>;
 #[cfg(all(feature = "hyper-tls", not(feature = "hyper-rustls")))]
 type HttpsConnector<T> = hyper_tls::HttpsConnector<T>;
 
-struct State {
-    http: HyperClient<HttpsConnector<HttpConnector>, Body>,
-    default_headers: Option<HeaderMap>,
-    proxy: Option<Box<str>>,
-    ratelimiter: Option<Ratelimiter>,
-    /// Whether to short-circuit when a 401 has been encountered with the client
-    /// authorization.
-    ///
-    /// This relates to [`token_invalid`].
-    ///
-    /// [`token_invalid`]: Self::token_invalid
-    remember_invalid_token: bool,
-    timeout: Duration,
-    token_invalid: Arc<AtomicBool>,
-    token: Option<Box<str>>,
-    use_http: bool,
-    pub(crate) application_id: AtomicU64,
-    pub(crate) default_allowed_mentions: Option<AllowedMentions>,
-}
-
-impl Debug for State {
-    fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
-        f.debug_struct("State")
-            .field("http", &self.http)
-            .field("default_headers", &self.default_headers)
-            .field("proxy", &self.proxy)
-            .field("ratelimiter", &self.ratelimiter)
-            .field("token", &self.token)
-            .field("use_http", &self.use_http)
-            .finish()
-    }
-}
-
 /// Twilight's http client.
 ///
 /// Almost all of the client methods require authentication, and as such, the client must be
@@ -140,10 +106,10 @@ impl Debug for State {
 /// # Ok(()) }
 /// ```
 ///
-/// # Cloning
+/// # Using the client in multiple tasks
 ///
-/// The client internally wraps its data within an Arc. This means that the
-/// client can be cloned and passed around tasks and threads cheaply.
+/// To use a client instance in multiple tasks, consider wrapping it in an
+/// [`std::sync::Arc`] or [`std::rc::Rc`].
 ///
 /// # Unauthorized behavior
 ///
@@ -184,9 +150,25 @@ impl Debug for State {
 /// `client`.
 ///
 /// [here]: https://discord.com/developers/applications
-#[derive(Clone, Debug)]
+#[derive(Debug)]
 pub struct Client {
-    state: Arc<State>,
+    pub(crate) application_id: AtomicU64,
+    pub(crate) default_allowed_mentions: Option<AllowedMentions>,
+    default_headers: Option<HeaderMap>,
+    http: HyperClient<HttpsConnector<HttpConnector>, Body>,
+    proxy: Option<Box<str>>,
+    ratelimiter: Option<Ratelimiter>,
+    /// Whether to short-circuit when a 401 has been encountered with the client
+    /// authorization.
+    ///
+    /// This relates to [`token_invalid`].
+    ///
+    /// [`token_invalid`]: Self::token_invalid
+    remember_invalid_token: bool,
+    timeout: Duration,
+    token_invalid: Arc<AtomicBool>,
+    token: Option<Box<str>>,
+    use_http: bool,
 }
 
 impl Client {
@@ -208,12 +190,12 @@ impl Client {
     /// If the initial token provided is not prefixed with `Bot `, it will be, and this method
     /// reflects that.
     pub fn token(&self) -> Option<&str> {
-        self.state.token.as_deref()
+        self.token.as_deref()
     }
 
     /// Retrieve the [`ApplicationId`] used by interaction methods.
     pub fn application_id(&self) -> Option<ApplicationId> {
-        let id = self.state.application_id.load(Ordering::Relaxed);
+        let id = self.application_id.load(Ordering::Relaxed);
 
         if id != 0 {
             return Some(ApplicationId::new(id).expect("non zero"));
@@ -227,7 +209,6 @@ impl Client {
     /// Returns the previous ID, if there was one.
     pub fn set_application_id(&self, application_id: ApplicationId) -> Option<ApplicationId> {
         let prev = self
-            .state
             .application_id
             .swap(application_id.get(), Ordering::Relaxed);
 
@@ -240,7 +221,7 @@ impl Client {
 
     /// Get the default [`AllowedMentions`] for sent messages.
     pub fn default_allowed_mentions(&self) -> Option<AllowedMentions> {
-        self.state.default_allowed_mentions.clone()
+        self.default_allowed_mentions.clone()
     }
 
     /// Get the Ratelimiter used by the client internally.
@@ -248,7 +229,7 @@ impl Client {
     /// This will return `None` only if ratelimit handling
     /// has been explicitly disabled in the [`ClientBuilder`].
     pub fn ratelimiter(&self) -> Option<Ratelimiter> {
-        self.state.ratelimiter.clone()
+        self.ratelimiter.clone()
     }
 
     /// Get the audit log for a guild.
@@ -2746,7 +2727,7 @@ impl Client {
 
     #[allow(clippy::too_many_lines)]
     fn try_request<T>(&self, request: Request) -> Result<ResponseFuture<T>, Error> {
-        if self.state.remember_invalid_token && self.state.token_invalid.load(Ordering::Relaxed) {
+        if self.remember_invalid_token && self.token_invalid.load(Ordering::Relaxed) {
             return Err(Error {
                 kind: ErrorType::Unauthorized,
                 source: None,
@@ -2763,8 +2744,8 @@ impl Client {
             use_authorization_token,
         } = request;
 
-        let protocol = if self.state.use_http { "http" } else { "https" };
-        let host = self.state.proxy.as_deref().unwrap_or("discord.com");
+        let protocol = if self.use_http { "http" } else { "https" };
+        let host = self.proxy.as_deref().unwrap_or("discord.com");
 
         let url = format!("{}://{}/api/v{}/{}", protocol, host, API_VERSION, path);
         #[cfg(feature = "tracing")]
@@ -2775,7 +2756,7 @@ impl Client {
             .uri(&url);
 
         if use_authorization_token {
-            if let Some(ref token) = self.state.token {
+            if let Some(ref token) = self.token {
                 let value = HeaderValue::from_str(token).map_err(|source| {
                     #[allow(clippy::borrow_interior_mutable_const)]
                     let name = AUTHORIZATION.to_string();
@@ -2829,7 +2810,7 @@ impl Client {
                 }
             }
 
-            if let Some(default_headers) = &self.state.default_headers {
+            if let Some(default_headers) = &self.default_headers {
                 for (name, value) in default_headers {
                     headers.insert(name, HeaderValue::from(value));
                 }
@@ -2868,10 +2849,10 @@ impl Client {
             })?
         };
 
-        let inner = self.state.http.request(req);
+        let inner = self.http.request(req);
 
-        let invalid_token = if self.state.remember_invalid_token {
-            InvalidToken::Remember(Arc::clone(&self.state.token_invalid))
+        let invalid_token = if self.remember_invalid_token {
+            InvalidToken::Remember(Arc::clone(&self.token_invalid))
         } else {
             InvalidToken::Forget
         };
@@ -2879,20 +2860,20 @@ impl Client {
         // Clippy suggests bad code; an `Option::map_or_else` won't work here
         // due to move semantics in both cases.
         #[allow(clippy::option_if_let_else)]
-        if let Some(ratelimiter) = self.state.ratelimiter.as_ref() {
+        if let Some(ratelimiter) = self.ratelimiter.as_ref() {
             let rx = ratelimiter.ticket(ratelimit_path);
 
             Ok(ResponseFuture::ratelimit(
                 None,
                 invalid_token,
                 rx,
-                self.state.timeout,
+                self.timeout,
                 inner,
             ))
         } else {
             Ok(ResponseFuture::new(
                 invalid_token,
-                time::timeout(self.state.timeout, inner),
+                time::timeout(self.timeout, inner),
                 None,
             ))
         }

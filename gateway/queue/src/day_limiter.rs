@@ -1,12 +1,14 @@
 use std::{
     error::Error,
     fmt::{Display, Formatter, Result as FmtResult},
+    sync::Arc,
     time::Duration,
 };
 use tokio::{
     sync::Mutex,
     time::{self, Instant},
 };
+use twilight_http::Client;
 
 /// Creating a day limiter queue failed.
 #[derive(Debug)]
@@ -47,7 +49,7 @@ pub(crate) struct DayLimiter(pub(crate) Mutex<DayLimiterInner>);
 
 #[derive(Debug)]
 pub(crate) struct DayLimiterInner {
-    pub http: twilight_http::Client,
+    pub http: Arc<Client>,
     pub last_check: Instant,
     pub next_reset: Duration,
     pub total: u64,
@@ -55,7 +57,7 @@ pub(crate) struct DayLimiterInner {
 }
 
 impl DayLimiter {
-    pub async fn new(http: &twilight_http::Client) -> Result<Self, DayLimiterError> {
+    pub async fn new(http: Arc<Client>) -> Result<Self, DayLimiterError> {
         let info = http
             .gateway()
             .authed()
@@ -80,7 +82,7 @@ impl DayLimiter {
         debug_assert!(total >= remaining);
         let current = total - remaining;
         Ok(DayLimiter(Mutex::new(DayLimiterInner {
-            http: http.clone(),
+            http,
             last_check,
             next_reset,
             total: info.session_start_limit.total,

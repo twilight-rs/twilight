@@ -12,7 +12,7 @@ impl UpdateCache for ReactionAdd {
             return;
         }
 
-        let mut channel = cache.0.messages.entry(self.0.channel_id).or_default();
+        let mut channel = cache.messages.entry(self.0.channel_id).or_default();
 
         let message = match channel.iter_mut().find(|msg| msg.id() == self.0.message_id) {
             Some(message) => message,
@@ -54,7 +54,7 @@ impl UpdateCache for ReactionRemove {
             return;
         }
 
-        let mut channel = cache.0.messages.entry(self.0.channel_id).or_default();
+        let mut channel = cache.messages.entry(self.0.channel_id).or_default();
 
         let message = match channel.iter_mut().find(|msg| msg.id() == self.0.message_id) {
             Some(message) => message,
@@ -89,7 +89,7 @@ impl UpdateCache for ReactionRemoveAll {
             return;
         }
 
-        let mut channel = cache.0.messages.entry(self.channel_id).or_default();
+        let mut channel = cache.messages.entry(self.channel_id).or_default();
 
         let message = match channel.iter_mut().find(|msg| msg.id() == self.message_id) {
             Some(message) => message,
@@ -106,7 +106,7 @@ impl UpdateCache for ReactionRemoveEmoji {
             return;
         }
 
-        let mut channel = cache.0.messages.entry(self.channel_id).or_default();
+        let mut channel = cache.messages.entry(self.channel_id).or_default();
 
         let message = match channel.iter_mut().find(|msg| msg.id() == self.message_id) {
             Some(message) => message,

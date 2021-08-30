@@ -71,7 +71,7 @@ including a handler to wait for reactions:
 
 ```rust,no_run
 use futures_util::StreamExt;
-use std::{env, error::Error};
+use std::{env, error::Error, sync::Arc};
 use twilight_gateway::{Event, Intents, Shard};
 use twilight_model::{
     channel::Message,
@@ -87,7 +87,7 @@ async fn main() -> Result<(), Box<dyn Error>> {
     let (shard, mut events) = Shard::new(env::var("DISCORD_TOKEN")?, intents);
     shard.start().await?;
 
-    let standby = Standby::new();
+    let standby = Arc::new(Standby::new());
 
     while let Some(event) = events.next().await {
         // Have standby process the event, which will fulfill any futures that
@@ -96,7 +96,7 @@ async fn main() -> Result<(), Box<dyn Error>> {
 
         match event {
             Event::MessageCreate(msg) if msg.content == "!react" => {
-                tokio::spawn(react(msg.0, standby.clone()));
+                tokio::spawn(react(msg.0, Arc::clone(&standby)));
             },
             _ => {},
         }
@@ -107,7 +107,10 @@ async fn main() -> Result<(), Box<dyn Error>> {
 
 // Wait for a reaction from the user who sent the message, and then print it
 // once they react.
-async fn react(msg: Message, standby: Standby) -> Result<(), Box<dyn Error + Send + Sync + 'static>> {
+async fn react(
+    msg: Message,
+    standby: Arc<Standby>,
+) -> Result<(), Box<dyn Error + Send + Sync + 'static>> {
     let author_id = msg.author.id;
 
     let reaction = standby.wait_for_reaction(msg.id, move |event: &ReactionAdd| {

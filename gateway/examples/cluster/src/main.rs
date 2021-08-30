@@ -4,7 +4,7 @@ use twilight_gateway::{
 };
 
 use futures::StreamExt;
-use std::{env, error::Error};
+use std::{env, error::Error, sync::Arc};
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn Error + Send + Sync>> {
@@ -20,8 +20,9 @@ async fn main() -> Result<(), Box<dyn Error + Send + Sync>> {
         .shard_scheme(scheme)
         .build()
         .await?;
+    let cluster = Arc::new(cluster);
 
-    let cluster_spawn = cluster.clone();
+    let cluster_spawn = Arc::clone(&cluster);
 
     tokio::spawn(async move {
         cluster_spawn.up().await;

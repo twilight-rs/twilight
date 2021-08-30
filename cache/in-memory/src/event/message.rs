@@ -22,9 +22,9 @@ impl UpdateCache for MessageCreate {
             return;
         }
 
-        let mut channel = cache.0.messages.entry(self.0.channel_id).or_default();
+        let mut channel = cache.messages.entry(self.0.channel_id).or_default();
 
-        if channel.len() > cache.0.config.message_cache_size() {
+        if channel.len() > cache.config.message_cache_size() {
             channel.pop_back();
         }
 
@@ -38,7 +38,7 @@ impl UpdateCache for MessageDelete {
             return;
         }
 
-        let mut channel = cache.0.messages.entry(self.channel_id).or_default();
+        let mut channel = cache.messages.entry(self.channel_id).or_default();
 
         if let Some(idx) = channel.iter().position(|msg| msg.id() == self.id) {
             channel.remove(idx);
@@ -52,7 +52,7 @@ impl UpdateCache for MessageDeleteBulk {
             return;
         }
 
-        let mut channel = cache.0.messages.entry(self.channel_id).or_default();
+        let mut channel = cache.messages.entry(self.channel_id).or_default();
 
         for id in &self.ids {
             if let Some(idx) = channel.iter().position(|msg| &msg.id() == id) {
@@ -68,7 +68,7 @@ impl UpdateCache for MessageUpdate {
             return;
         }
 
-        let mut channel = cache.0.messages.entry(self.channel_id).or_default();
+        let mut channel = cache.messages.entry(self.channel_id).or_default();
 
         if let Some(mut message) = channel.iter_mut().find(|msg| msg.id() == self.id) {
             if let Some(attachments) = &self.attachments {
@@ -191,7 +191,6 @@ mod tests {
 
         {
             let entry = cache
-                .0
                 .user_guilds
                 .get(&UserId::new(3).expect("non zero"))
                 .unwrap();
@@ -209,7 +208,6 @@ mod tests {
         );
         {
             let entry = cache
-                .0
                 .messages
                 .get(&ChannelId::new(2).expect("non zero"))
                 .unwrap();

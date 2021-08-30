@@ -42,22 +42,17 @@ impl InMemoryCache {
         }
 
         let id = channel.id();
-        self.0
-            .guild_channels
-            .entry(guild_id)
-            .or_default()
-            .insert(id);
+        self.guild_channels.entry(guild_id).or_default().insert(id);
 
-        crate::upsert_guild_item(&self.0.channels_guild, guild_id, id, channel);
+        crate::upsert_guild_item(&self.channels_guild, guild_id, id, channel);
     }
 
     fn cache_group(&self, group: Group) {
-        crate::upsert_item(&self.0.groups, group.id, group)
+        crate::upsert_item(&self.groups, group.id, group)
     }
 
     fn cache_private_channel(&self, private_channel: PrivateChannel) {
-        self.0
-            .channels_private
+        self.channels_private
             .insert(private_channel.id, private_channel);
     }
 
@@ -66,15 +61,15 @@ impl InMemoryCache {
     /// The guild channel data itself and the channel entry in its guild's list
     /// of channels will be deleted.
     pub(crate) fn delete_guild_channel(&self, channel_id: ChannelId) {
-        if let Some((_, item)) = self.0.channels_guild.remove(&channel_id) {
-            if let Some(mut guild_channels) = self.0.guild_channels.get_mut(&item.guild_id) {
+        if let Some((_, item)) = self.channels_guild.remove(&channel_id) {
+            if let Some(mut guild_channels) = self.guild_channels.get_mut(&item.guild_id) {
                 guild_channels.remove(&channel_id);
             }
         }
     }
 
     fn delete_group(&self, channel_id: ChannelId) {
-        self.0.groups.remove(&channel_id);
+        self.groups.remove(&channel_id);
     }
 }
 
@@ -86,7 +81,7 @@ impl UpdateCache for ChannelCreate {
 
         match &self.0 {
             Channel::Group(c) => {
-                crate::upsert_item(&cache.0.groups, c.id, c.clone());
+                crate::upsert_item(&cache.groups, c.id, c.clone());
             }
             Channel::Guild(c) => {
                 if let Some(gid) = c.guild_id() {
@@ -114,7 +109,7 @@ impl UpdateCache for ChannelDelete {
                 cache.delete_guild_channel(c.id());
             }
             Channel::Private(ref c) => {
-                cache.0.channels_private.remove(&c.id);
+                cache.channels_private.remove(&c.id);
             }
         }
     }
@@ -126,7 +121,7 @@ impl UpdateCache for ChannelPinsUpdate {
             return;
         }
 
-        if let Some(mut r) = cache.0.channels_guild.get_mut(&self.channel_id) {
+        if let Some(mut r) = cache.channels_guild.get_mut(&self.channel_id) {
             let value = r.value_mut();
 
             if let GuildChannel::Text(ref mut text) = value.data {
@@ -136,13 +131,13 @@ impl UpdateCache for ChannelPinsUpdate {
             return;
         }
 
-        if let Some(mut channel) = cache.0.channels_private.get_mut(&self.channel_id) {
+        if let Some(mut channel) = cache.channels_private.get_mut(&self.channel_id) {
             channel.last_pin_timestamp = self.last_pin_timestamp.clone();
 
             return;
         }
 
-        if let Some(mut group) = cache.0.groups.get_mut(&self.channel_id) {
+        if let Some(mut group) = cache.groups.get_mut(&self.channel_id) {
             group.last_pin_timestamp = self.last_pin_timestamp.clone();
         }
     }
@@ -182,9 +177,8 @@ mod tests {
         let (guild_id, channel_id, channel) = test::guild_channel_text();
 
         cache.cache_guild_channel(guild_id, channel.clone());
-        assert_eq!(1, cache.0.channels_guild.len());
+        assert_eq!(1, cache.channels_guild.len());
         assert!(cache
-            .0
             .guild_channels
             .get(&guild_id)
             .unwrap()
@@ -193,8 +187,8 @@ mod tests {
         cache.update(&Event::ChannelDelete(ChannelDelete(Channel::Guild(
             channel,
         ))));
-        assert!(cache.0.channels_guild.is_empty());
-        assert!(cache.0.guild_channels.get(&guild_id).unwrap().is_empty());
+        assert!(cache.channels_guild.is_empty());
+        assert!(cache.guild_channels.get(&guild_id).unwrap().is_empty());
     }
 
     #[test]
@@ -203,9 +197,8 @@ mod tests {
         let (guild_id, channel_id, channel) = test::guild_channel_text();
 
         cache.update(&ChannelUpdate(Channel::Guild(channel)));
-        assert_eq!(1, cache.0.channels_guild.len());
+        assert_eq!(1, cache.channels_guild.len());
         assert!(cache
-            .0
             .guild_channels
             .get(&guild_id)
             .unwrap()

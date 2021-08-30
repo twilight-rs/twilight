@@ -1,4 +1,4 @@
-use super::{Client, State};
+use super::Client;
 use crate::ratelimiting::Ratelimiter;
 use hyper::header::HeaderMap;
 use std::{
@@ -46,19 +46,17 @@ impl ClientBuilder {
         let http = hyper::client::Builder::default().build(connector);
 
         Client {
-            state: Arc::new(State {
-                http,
-                default_headers: self.default_headers,
-                proxy: self.proxy,
-                ratelimiter: self.ratelimiter,
-                remember_invalid_token: self.remember_invalid_token,
-                timeout: self.timeout,
-                token_invalid: Arc::new(AtomicBool::new(false)),
-                token: self.token,
-                application_id: self.application_id,
-                default_allowed_mentions: self.default_allowed_mentions,
-                use_http: self.use_http,
-            }),
+            http,
+            default_headers: self.default_headers,
+            proxy: self.proxy,
+            ratelimiter: self.ratelimiter,
+            remember_invalid_token: self.remember_invalid_token,
+            timeout: self.timeout,
+            token_invalid: Arc::new(AtomicBool::new(false)),
+            token: self.token,
+            application_id: self.application_id,
+            default_allowed_mentions: self.default_allowed_mentions,
+            use_http: self.use_http,
         }
     }
 
