@@ -8,29 +8,154 @@ use crate::{
     response::ResponseFuture,
     routing::Route,
 };
-use serde::{Serialize, Serializer};
+use serde::{ser::SerializeSeq, Serialize, Serializer};
 use twilight_model::{
     application::command::permissions::CommandPermissions,
     id::{ApplicationId, CommandId, GuildId},
 };
 
-#[derive(Serialize)]
-struct GuildCommandPermission<'a> {
-    id: &'a CommandId,
-    permissions: &'a CommandPermissions,
+#[derive(Clone, Copy, Debug)]
+struct OptionalCommandPermissions<'a>(
+    [Option<&'a CommandPermissions>; InteractionError::GUILD_COMMAND_PERMISSION_LIMIT],
+);
+
+impl OptionalCommandPermissions<'_> {
+    /// Create a new list of command permissions with `None` elements.
+    const fn new() -> Self {
+        Self([None; InteractionError::GUILD_COMMAND_PERMISSION_LIMIT])
+    }
+
+    /// Determine the number of elements present.
+    ///
+    /// If all elements are present then
+    /// [`InteractionError::GUILD_COMMAND_PERMISSION_LIMIT`] is returned.
+    ///
+    /// If no elements are present then 0 is returned.
+    fn amount_present(&self) -> usize {
+        // Iterate over the elements until we find one that is None. If we don't,
+        // then the maximum number are present.
+        self.0
+            .iter()
+            .position(Option::is_none)
+            .unwrap_or(InteractionError::GUILD_COMMAND_PERMISSION_LIMIT)
+    }
 }
 
-struct PermissionListSerializer<'a> {
-    inner: &'a [(CommandId, CommandPermissions)],
-}
-
-impl Serialize for PermissionListSerializer<'_> {
+impl Serialize for OptionalCommandPermissions<'_> {
     fn serialize<S: Serializer>(&self, serializer: S) -> Result<S::Ok, S::Error> {
-        serializer.collect_seq(
-            self.inner
-                .iter()
-                .map(|(id, permissions)| GuildCommandPermission { id, permissions }),
-        )
+        let mut seq = serializer.serialize_seq(Some(self.amount_present()))?;
+
+        let mut iter = self.0.iter();
+
+        // If an element isn't present while we haven't reached the end of the
+        // iterator then any trailing elements aren't present either.
+        while let Some(Some(value)) = iter.next() {
+            seq.serialize_element(value)?;
+        }
+
+        seq.end()
+    }
+}
+
+/// A sorted command's permissions.
+///
+/// Used in combination with [`SortedCommands`].
+#[derive(Clone, Copy, Debug, Serialize)]
+struct SortedCommand<'a> {
+    #[serde(skip_serializing)]
+    count: u8,
+    id: CommandId,
+    permissions: OptionalCommandPermissions<'a>,
+}
+
+impl SortedCommand<'_> {
+    /// Create a new default sorted command with no configured permissions.
+    ///
+    /// The ID of the command is `u64::MAX`.
+    const fn new() -> Self {
+        Self {
+            count: 0,
+            id: CommandId(u64::MAX),
+            permissions: OptionalCommandPermissions::new(),
+        }
+    }
+
+    // Retrieve the current count as a usize for indexing.
+    const fn count(self) -> usize {
+        self.count as usize
+    }
+}
+
+/// Sorted list of commands and their permissions.
+#[derive(Debug)]
+struct SortedCommands<'a> {
+    inner: [SortedCommand<'a>; InteractionError::GUILD_COMMAND_LIMIT],
+}
+
+impl<'a> SortedCommands<'a> {
+    pub const fn from_pairs(
+        pairs: &'a [(CommandId, CommandPermissions)],
+    ) -> Result<Self, InteractionError> {
+        let mut sorted = [SortedCommand::new(); InteractionError::GUILD_COMMAND_LIMIT];
+        let mut outer_idx = 0;
+
+        'outer: while outer_idx < pairs.len() {
+            let (command_id, permissions) = &pairs[outer_idx];
+            let mut inner_idx = 0;
+
+            while inner_idx < sorted.len() {
+                // If the sorted command ID is neither the currently iterated
+                // provided command ID nor the maximum value, then we know this
+                // isn't it and can't be used.
+                let sorted_id = sorted[inner_idx].id;
+
+                if sorted_id.0 != command_id.0 && sorted_id.0 != u64::MAX {
+                    inner_idx += 1;
+
+                    continue;
+                }
+
+                // We've got the right sorted command, but we first need to check
+                // if we've already reached the maximum number of command
+                // permissions allowed.
+                let sorted_count = sorted[inner_idx].count();
+
+                if !validate_inner::guild_command_permissions(sorted_count + 1) {
+                    return Err(InteractionError {
+                        kind: InteractionErrorType::TooManyCommandPermissions,
+                    });
+                }
+
+                // Set the sorted command's ID if it's currently the maximum
+                // value.
+                if sorted_id.0 != command_id.0 {
+                    sorted[inner_idx].id = *command_id;
+                }
+
+                // And now set the permissions and increment the number of
+                // permissions set.
+                sorted[inner_idx].permissions.0[sorted_count] = Some(permissions);
+                sorted[inner_idx].count += 1;
+
+                outer_idx += 1;
+
+                continue 'outer;
+            }
+
+            // We've run out of space in the sorted permissions, which means the
+            // user provided too many commands.
+            return Err(InteractionError {
+                kind: InteractionErrorType::TooManyCommands,
+            });
+        }
+
+        Ok(Self { inner: sorted })
+    }
+}
+
+impl Serialize for SortedCommands<'_> {
+    fn serialize<S: Serializer>(&self, serializer: S) -> Result<S::Ok, S::Error> {
+        serializer.collect_seq(self.inner.iter().filter(|item| item.id.0 != u64::MAX))
     }
 }
 
@@ -44,51 +169,26 @@ pub struct SetCommandPermissions<'a> {
     application_id: ApplicationId,
     guild_id: GuildId,
     http: &'a Client,
-    permissions: &'a [(CommandId, CommandPermissions)],
+    permissions: SortedCommands<'a>,
 }
 
 impl<'a> SetCommandPermissions<'a> {
-    pub(crate) fn new(
+    pub(crate) const fn new(
         http: &'a Client,
         application_id: ApplicationId,
         guild_id: GuildId,
         permissions: &'a [(CommandId, CommandPermissions)],
     ) -> Result<Self, InteractionError> {
-        let mut sorted_permissions =
-            [(CommandId(u64::MAX), 0); InteractionError::GUILD_COMMAND_LIMIT];
-
-        'outer: for (permission_id, _) in permissions {
-            for (ref mut sorted_id, ref mut count) in &mut sorted_permissions {
-                if *sorted_id == *permission_id {
-                    *count += 1;
-
-                    if !validate_inner::guild_command_permissions(*count) {
-                        return Err(InteractionError {
-                            kind: InteractionErrorType::TooManyCommandPermissions,
-                        });
-                    }
-
-                    continue 'outer;
-                } else if sorted_id.0 == u64::MAX {
-                    *count += 1;
-                    *sorted_id = *permission_id;
-
-                    continue 'outer;
-                }
-            }
-
-            // We've run out of space in the sorted permissions, which means the
-            // user provided too many commands.
-            return Err(InteractionError {
-                kind: InteractionErrorType::TooManyCommands,
-            });
-        }
+        let sorted_permissions = match SortedCommands::from_pairs(permissions) {
+            Ok(sorted_permissions) => sorted_permissions,
+            Err(source) => return Err(source),
+        };
 
         Ok(Self {
             application_id,
             guild_id,
             http,
-            permissions,
+            permissions: sorted_permissions,
         })
     }
 
@@ -97,9 +197,7 @@ impl<'a> SetCommandPermissions<'a> {
             application_id: self.application_id.0,
             guild_id: self.guild_id.0,
         })
-        .json(&PermissionListSerializer {
-            inner: self.permissions,
-        })
+        .json(&self.permissions)
         .map(RequestBuilder::build)
     }
 
@@ -121,7 +219,8 @@ mod tests {
         SetCommandPermissions,
     };
     use crate::Client;
-    use std::iter;
+    use serde::Deserialize;
+    use std::{error::Error, iter};
     use twilight_model::{
         application::command::permissions::{CommandPermissions, CommandPermissionsType},
         id::{ApplicationId, CommandId, GuildId, RoleId},
@@ -129,6 +228,12 @@ mod tests {
 
     const APPLICATION_ID: ApplicationId = ApplicationId(1);
     const GUILD_ID: GuildId = GuildId(2);
+
+    #[derive(Debug, Deserialize, Eq, PartialEq)]
+    struct GuildCommandPermissionDeserializable {
+        id: CommandId,
+        permissions: Vec<CommandPermissions>,
+    }
 
     fn command_permissions(id: CommandId) -> impl Iterator<Item = (CommandId, CommandPermissions)> {
         iter::repeat((
@@ -140,17 +245,67 @@ mod tests {
         ))
     }
 
+    #[allow(unused)]
     #[test]
-    fn test_correct_validation() {
+    fn test_correct_validation() -> Result<(), Box<dyn Error>> {
         let http = Client::new("token".to_owned());
-        let command_permissions = command_permissions(CommandId(1))
-            .take(4)
-            .collect::<Vec<_>>();
+        let command_permissions = &[
+            (
+                CommandId(1),
+                CommandPermissions {
+                    id: CommandPermissionsType::Role(RoleId(3)),
+                    permission: true,
+                },
+            ),
+            (
+                CommandId(1),
+                CommandPermissions {
+                    id: CommandPermissionsType::Role(RoleId(4)),
+                    permission: true,
+                },
+            ),
+            (
+                CommandId(2),
+                CommandPermissions {
+                    id: CommandPermissionsType::Role(RoleId(5)),
+                    permission: true,
+                },
+            ),
+        ];
 
-        let request =
-            SetCommandPermissions::new(&http, APPLICATION_ID, GUILD_ID, &command_permissions);
+        let builder =
+            SetCommandPermissions::new(&http, APPLICATION_ID, GUILD_ID, command_permissions)?;
 
-        assert!(request.is_ok());
+        let request = builder.request()?;
+        let body = request.body().expect("body must be present");
+        let actual = serde_json::from_slice::<Vec<GuildCommandPermissionDeserializable>>(body)?;
+
+        let expected = &[
+            GuildCommandPermissionDeserializable {
+                id: CommandId(1),
+                permissions: Vec::from([
+                    CommandPermissions {
+                        id: CommandPermissionsType::Role(RoleId(3)),
+                        permission: true,
+                    },
+                    CommandPermissions {
+                        id: CommandPermissionsType::Role(RoleId(4)),
+                        permission: true,
+                    },
+                ]),
+            },
+            GuildCommandPermissionDeserializable {
+                id: CommandId(2),
+                permissions: Vec::from([CommandPermissions {
+                    id: CommandPermissionsType::Role(RoleId(5)),
+                    permission: true,
+                }]),
+            },
+        ];
+
+        assert_eq!(expected, actual.as_slice());
+
+        Ok(())
     }
 
     #[test]
