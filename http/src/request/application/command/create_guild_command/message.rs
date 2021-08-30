@@ -43,7 +43,8 @@ impl<'a> CreateGuildMessageCommand<'a> {
         }
     }
 
-    /// Whether the command is enabled by default when the app is added to a guild.
+    /// Whether the command is enabled by default when the app is added to a
+    /// guild.
     pub const fn default_permission(mut self, default: bool) -> Self {
         self.default_permission = Some(default);
 
