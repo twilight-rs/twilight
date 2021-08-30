@@ -1,6 +1,20 @@
 pub mod command;
 pub mod interaction;
 
+#[deprecated(note = "moved to `command` and `interaction` modules", since = "0.6.4")]
+pub use self::{
+    command::{
+        CreateGlobalCommand, CreateGuildCommand, DeleteGlobalCommand, DeleteGuildCommand,
+        GetCommandPermissions, GetGlobalCommand, GetGlobalCommands, GetGuildCommand,
+        GetGuildCommandPermissions, GetGuildCommands, SetCommandPermissions, SetGlobalCommands,
+        SetGuildCommands, UpdateCommandPermissions, UpdateGlobalCommand, UpdateGuildCommand,
+    },
+    interaction::{
+        CreateFollowupMessage, DeleteFollowupMessage, DeleteOriginalResponse, GetOriginalResponse,
+        InteractionCallback, UpdateFollowupMessage, UpdateOriginalResponse,
+    },
+};
+
 use std::{
     error::Error,
     fmt::{Display, Formatter, Result as FmtResult},

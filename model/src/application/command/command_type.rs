@@ -5,8 +5,17 @@ use serde_repr::{Deserialize_repr, Serialize_repr};
 )]
 #[repr(u8)]
 pub enum CommandType {
+    /// Slash command.
+    ///
+    /// Text-based command that appears when a user types `/`.
     ChatInput = 1,
+    /// UI-based command.
+    ///
+    /// Appears when a user right clicks or taps om a user.
     User = 2,
+    /// UI-based command.
+    ///
+    /// Appears when a user right clicks or taps on a message.
     Message = 3,
 }
 
@@ -38,7 +47,9 @@ mod tests {
         Ord,
         PartialEq,
         PartialOrd,
-        Serialize
+        Serialize,
+        Send,
+        Sync
     );
 
     #[test]
