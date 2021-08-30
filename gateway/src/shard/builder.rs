@@ -179,7 +179,7 @@ impl ShardBuilder {
         Self(Config {
             event_types: EventTypeFlags::default(),
             gateway_url: None,
-            http_client: HttpClient::new(token.clone()),
+            http_client: Arc::new(HttpClient::new(token.clone())),
             identify_properties: None,
             intents,
             large_threshold: 250,
@@ -223,7 +223,7 @@ impl ShardBuilder {
     ///
     /// Default is a new, unconfigured instance of an HTTP client.
     #[allow(clippy::missing_const_for_fn)]
-    pub fn http_client(mut self, http_client: HttpClient) -> Self {
+    pub fn http_client(mut self, http_client: Arc<HttpClient>) -> Self {
         self.0.http_client = http_client;
 
         self

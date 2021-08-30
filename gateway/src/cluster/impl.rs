@@ -6,11 +6,10 @@ use crate::{
 };
 use futures_util::{future, stream::SelectAll};
 use std::{
-    collections::HashMap,
+    collections::{hash_map::Values, HashMap},
     error::Error,
     fmt::{Display, Formatter, Result as FmtResult},
-    iter::FromIterator,
-    sync::Arc,
+    iter::{FromIterator, FusedIterator},
 };
 use twilight_http::Client as HttpClient;
 
@@ -220,27 +219,24 @@ pub enum ClusterStartErrorType {
     RetrievingGatewayInfo,
 }
 
-#[derive(Debug)]
-struct ClusterRef {
-    config: Config,
-    shards: HashMap<u64, Shard>,
-}
-
 /// A manager for multiple shards.
 ///
 /// The Cluster can be cloned and will point to the same cluster, so you can
 /// pass it around as needed.
 ///
-/// # Cloning
+/// # Using a cluster in multiple tasks
 ///
-/// The cluster internally wraps its data within an Arc. This means that the
-/// cluster can be cloned and passed around tasks and threads cheaply.
+/// To use a cluster instance in multiple tasks, consider wrapping it in an
+/// [`std::sync::Arc`] or [`std::rc::Rc`].
 ///
 /// # Examples
 ///
 /// Refer to the module-level documentation for examples.
-#[derive(Clone, Debug)]
-pub struct Cluster(Arc<ClusterRef>);
+#[derive(Debug)]
+pub struct Cluster {
+    config: Config,
+    shards: HashMap<u64, Shard>,
+}
 
 impl Cluster {
     /// Create a new unconfigured cluster.
@@ -337,10 +333,7 @@ impl Cluster {
         #[allow(clippy::from_iter_instead_of_collect)]
         let select_all = SelectAll::from_iter(streams);
 
-        Ok((
-            Self(Arc::new(ClusterRef { config, shards })),
-            Events::new(select_all),
-        ))
+        Ok((Self { config, shards }, Events::new(select_all)))
     }
 
     /// Retrieve the recommended number of shards from the HTTP API.
@@ -411,8 +404,8 @@ impl Cluster {
     }
 
     /// Return an immutable reference to the configuration of this cluster.
-    pub fn config(&self) -> &Config {
-        &self.0.config
+    pub const fn config(&self) -> &Config {
+        &self.config
     }
 
     /// Bring up the cluster, starting all of the shards that it was configured
@@ -443,12 +436,12 @@ impl Cluster {
     /// # Ok(()) }
     /// ```
     pub async fn up(&self) {
-        future::join_all(self.0.shards.values().map(Shard::start)).await;
+        future::join_all(self.shards.values().map(Shard::start)).await;
     }
 
     /// Bring down the cluster, stopping all of the shards that it's managing.
     pub fn down(&self) {
-        for shard in self.0.shards.values() {
+        for shard in self.shards.values() {
             shard.shutdown();
         }
     }
@@ -463,8 +456,7 @@ impl Cluster {
     /// disconnection. You may also not be able to resume if you missed too many
     /// events already.
     pub fn down_resumable(&self) -> HashMap<u64, ResumeSession> {
-        self.0
-            .shards
+        self.shards
             .values()
             .map(Shard::shutdown_resumable)
             .filter_map(|(id, session)| session.map(|s| (id, s)))
@@ -472,13 +464,15 @@ impl Cluster {
     }
 
     /// Return a Shard by its ID.
-    pub fn shard(&self, id: u64) -> Option<Shard> {
-        self.0.shards.get(&id).cloned()
+    pub fn shard(&self, id: u64) -> Option<&Shard> {
+        self.shards.get(&id)
     }
 
-    /// Return a list of all the shards.
-    pub fn shards(&self) -> Vec<Shard> {
-        self.0.shards.values().cloned().collect()
+    /// Return an iterator of all the shards.
+    pub fn shards(&self) -> Shards<'_> {
+        Shards {
+            iter: self.shards.values(),
+        }
     }
 
     /// Return information about all shards.
@@ -509,8 +503,7 @@ impl Cluster {
     /// # Ok(()) }
     /// ```
     pub fn info(&self) -> HashMap<u64, Information> {
-        self.0
-            .shards
+        self.shards
             .iter()
             .filter_map(|(id, shard)| shard.info().ok().map(|info| (*id, info)))
             .collect()
@@ -609,6 +602,29 @@ impl Cluster {
     }
 }
 
+/// Iterator over a [`Cluster`]'s managed [shards][`Shard`].
+///
+/// This is returned by [`Cluster::shards`].
+pub struct Shards<'a> {
+    iter: Values<'a, u64, Shard>,
+}
+
+impl ExactSizeIterator for Shards<'_> {
+    fn len(&self) -> usize {
+        self.iter.len()
+    }
+}
+
+impl FusedIterator for Shards<'_> {}
+
+impl<'a> Iterator for Shards<'a> {
+    type Item = &'a Shard;
+
+    fn next(&mut self) -> Option<Self::Item> {
+        self.iter.next()
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::{
@@ -626,5 +642,5 @@ mod tests {
     assert_impl_all!(ClusterSendError: Error, Send, Sync);
     assert_impl_all!(ClusterStartErrorType: Debug, Send, Sync);
     assert_impl_all!(ClusterStartError: Error, Send, Sync);
-    assert_impl_all!(Cluster: Clone, Debug, Send, Sync);
+    assert_impl_all!(Cluster: Debug, Send, Sync);
 }

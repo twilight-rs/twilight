@@ -8,7 +8,7 @@ use twilight_model::{
 
 impl InMemoryCache {
     pub(crate) fn cache_emojis(&self, guild_id: GuildId, emojis: Vec<Emoji>) {
-        if let Some(mut guild_emojis) = self.0.guild_emojis.get_mut(&guild_id) {
+        if let Some(mut guild_emojis) = self.guild_emojis.get_mut(&guild_id) {
             let incoming: Vec<EmojiId> = emojis.iter().map(|e| e.id).collect();
 
             let removal_filter: Vec<EmojiId> = guild_emojis
@@ -22,7 +22,7 @@ impl InMemoryCache {
             }
 
             for to_remove in &removal_filter {
-                self.0.emojis.remove(to_remove);
+                self.emojis.remove(to_remove);
             }
         }
 
@@ -32,7 +32,7 @@ impl InMemoryCache {
     }
 
     pub(crate) fn cache_emoji(&self, guild_id: GuildId, emoji: Emoji) {
-        match self.0.emojis.get(&emoji.id) {
+        match self.emojis.get(&emoji.id) {
             Some(cached_emoji) if cached_emoji.data == emoji => return,
             Some(_) | None => {}
         }
@@ -54,7 +54,7 @@ impl InMemoryCache {
             available: emoji.available,
         };
 
-        self.0.emojis.insert(
+        self.emojis.insert(
             cached.id,
             GuildItem {
                 data: cached,
@@ -62,8 +62,7 @@ impl InMemoryCache {
             },
         );
 
-        self.0
-            .guild_emojis
+        self.guild_emojis
             .entry(guild_id)
             .or_default()
             .insert(emoji.id);
@@ -175,8 +174,8 @@ mod tests {
             guild_id,
         });
 
-        assert_eq!(cache.0.emojis.len(), 2);
-        assert_eq!(cache.0.guild_emojis.get(&guild_id).unwrap().len(), 2);
+        assert_eq!(cache.emojis.len(), 2);
+        assert_eq!(cache.guild_emojis.get(&guild_id).unwrap().len(), 2);
         assert!(cache.emoji(emote.id).is_some());
         assert!(cache.emoji(emote_2.id).is_none());
         assert!(cache.emoji(emote_3.id).is_some());
@@ -186,8 +185,8 @@ mod tests {
             guild_id,
         });
 
-        assert_eq!(cache.0.emojis.len(), 1);
-        assert_eq!(cache.0.guild_emojis.get(&guild_id).unwrap().len(), 1);
+        assert_eq!(cache.emojis.len(), 1);
+        assert_eq!(cache.guild_emojis.get(&guild_id).unwrap().len(), 1);
         assert!(cache.emoji(emote.id).is_some());
         assert!(cache.emoji(emote_2.id).is_none());
 
@@ -198,8 +197,8 @@ mod tests {
             guild_id,
         });
 
-        assert_eq!(cache.0.emojis.len(), 1);
-        assert_eq!(cache.0.guild_emojis.get(&guild_id).unwrap().len(), 1);
+        assert_eq!(cache.emojis.len(), 1);
+        assert_eq!(cache.guild_emojis.get(&guild_id).unwrap().len(), 1);
         assert!(cache.emoji(emote_4.id).is_some());
         assert!(cache.emoji(emote.id).is_none());
 
@@ -208,7 +207,7 @@ mod tests {
             guild_id,
         });
 
-        assert!(cache.0.emojis.is_empty());
-        assert!(cache.0.guild_emojis.get(&guild_id).unwrap().is_empty());
+        assert!(cache.emojis.is_empty());
+        assert!(cache.guild_emojis.get(&guild_id).unwrap().is_empty());
     }
 }

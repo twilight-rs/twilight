@@ -29,7 +29,7 @@ use twilight_model::id::{ChannelId, GuildId};
 /// nodes, and can be used to read player information and send events to nodes.
 #[derive(Clone, Debug, Default)]
 pub struct PlayerManager {
-    pub(crate) players: Arc<DashMap<GuildId, Player>>,
+    pub(crate) players: Arc<DashMap<GuildId, Arc<Player>>>,
 }
 
 impl PlayerManager {
@@ -39,19 +39,19 @@ impl PlayerManager {
     }
 
     /// Return an immutable reference to a player by guild ID.
-    pub fn get(&self, guild_id: &GuildId) -> Option<Player> {
-        // Clippy recommends removing the `map` call, which is just wrong.
-        #[allow(clippy::map_clone)]
-        self.players.get(guild_id).map(|player| player.clone())
+    pub fn get(&self, guild_id: &GuildId) -> Option<Arc<Player>> {
+        self.players.get(guild_id).map(|r| Arc::clone(r.value()))
     }
 
     /// Return a mutable reference to a player by guild ID or insert a new
     /// player linked to a given node.
-    pub fn get_or_insert(&self, guild_id: GuildId, node: Node) -> Player {
-        self.players
+    pub fn get_or_insert(&self, guild_id: GuildId, node: Arc<Node>) -> Arc<Player> {
+        let player = self
+            .players
             .entry(guild_id)
-            .or_insert_with(|| Player::new(guild_id, node))
-            .clone()
+            .or_insert_with(|| Arc::new(Player::new(guild_id, node)));
+
+        Arc::clone(&player)
     }
 
     /// Destroy a player on the remote node and remove it from the [`PlayerManager`].
@@ -74,27 +74,24 @@ impl PlayerManager {
     }
 }
 
+/// A player for a guild connected to a node.
+///
+/// This can be used to send events over a node and to read the details of a
+/// player for a guild.
 #[derive(Debug)]
-struct PlayerRef {
+pub struct Player {
     channel_id: AtomicU64,
     guild_id: GuildId,
-    node: Node,
+    node: Arc<Node>,
     paused: AtomicBool,
     position: AtomicI64,
     time: AtomicI64,
     volume: AtomicU16,
 }
 
-/// A player for a guild connected to a node.
-///
-/// This can be used to send events over a node and to read the details of a
-/// player for a guild.
-#[derive(Clone, Debug)]
-pub struct Player(Arc<PlayerRef>);
-
 impl Player {
-    pub(crate) fn new(guild_id: GuildId, node: Node) -> Self {
-        Self(Arc::new(PlayerRef {
+    pub(crate) const fn new(guild_id: GuildId, node: Arc<Node>) -> Self {
+        Self {
             channel_id: AtomicU64::new(0),
             guild_id,
             node,
@@ -102,7 +99,7 @@ impl Player {
             position: AtomicI64::new(0),
             time: AtomicI64::new(0),
             volume: AtomicU16::new(100),
-        }))
+        }
     }
 
     /// Send an event to the player's node.
@@ -145,29 +142,29 @@ impl Player {
     fn _send(&self, event: OutgoingEvent) -> Result<(), NodeSenderError> {
         tracing::debug!(
             "sending event on guild player {}: {:?}",
-            self.0.guild_id,
+            self.guild_id,
             event
         );
 
         match event {
-            OutgoingEvent::Pause(ref event) => self.0.paused.store(event.pause, Ordering::Release),
+            OutgoingEvent::Pause(ref event) => self.paused.store(event.pause, Ordering::Release),
             OutgoingEvent::Volume(ref event) => {
-                self.0.volume.store(event.volume as u16, Ordering::Release)
+                self.volume.store(event.volume as u16, Ordering::Release)
             }
             _ => {}
         }
 
-        self.0.node.send(event)
+        self.node.send(event)
     }
 
     /// Return an immutable reference to the node linked to the player.
-    pub fn node(&self) -> &Node {
-        &self.0.node
+    pub const fn node(&self) -> &Arc<Node> {
+        &self.node
     }
 
     /// Return the player's channel ID.
     pub fn channel_id(&self) -> Option<ChannelId> {
-        let channel_id = self.0.channel_id.load(Ordering::Acquire);
+        let channel_id = self.channel_id.load(Ordering::Acquire);
 
         if channel_id == 0 {
             None
@@ -178,45 +175,45 @@ impl Player {
 
     /// Sets the channel ID the player is currently connected to.
     pub(crate) fn set_channel_id(&self, channel_id: Option<ChannelId>) {
-        self.0.channel_id.store(
+        self.channel_id.store(
             channel_id.map(|id| id.get()).unwrap_or(0_u64),
             Ordering::Release,
         );
     }
 
     /// Return the player's guild ID.
-    pub fn guild_id(&self) -> GuildId {
-        self.0.guild_id
+    pub const fn guild_id(&self) -> GuildId {
+        self.guild_id
     }
 
     /// Return whether the player is paused.
     pub fn paused(&self) -> bool {
-        self.0.paused.load(Ordering::Acquire)
+        self.paused.load(Ordering::Acquire)
     }
 
     /// Return the player's position.
     pub fn position(&self) -> i64 {
-        self.0.position.load(Ordering::Relaxed)
+        self.position.load(Ordering::Relaxed)
     }
 
     /// Set the player's position.
     pub(crate) fn set_position(&self, position: i64) {
-        self.0.position.store(position, Ordering::Release)
+        self.position.store(position, Ordering::Release)
     }
 
     /// Return the player's time.
     pub fn time(&mut self) -> i64 {
-        self.0.time.load(Ordering::Relaxed)
+        self.time.load(Ordering::Relaxed)
     }
 
     /// Set the player's time.
     pub(crate) fn set_time(&self, time: i64) {
-        self.0.time.store(time, Ordering::Release)
+        self.time.store(time, Ordering::Release)
     }
 
     /// Return the player's volume.
     pub fn volume(&self) -> u16 {
-        self.0.volume.load(Ordering::Relaxed)
+        self.volume.load(Ordering::Relaxed)
     }
 }
 
@@ -226,6 +223,6 @@ mod tests {
     use static_assertions::assert_impl_all;
     use std::fmt::Debug;
 
-    assert_impl_all!(PlayerManager: Clone, Debug, Default, Send, Sync);
+    assert_impl_all!(PlayerManager: Debug, Default, Send, Sync);
     assert_impl_all!(Player: Debug, Send, Sync);
 }

@@ -1,5 +1,5 @@
 use super::{DayLimiter, Queue};
-use std::{fmt::Debug, future::Future, pin::Pin, time::Duration};
+use std::{fmt::Debug, future::Future, pin::Pin, sync::Arc, time::Duration};
 use tokio::{
     sync::{
         mpsc::{unbounded_channel, UnboundedReceiver, UnboundedSender},
@@ -7,6 +7,7 @@ use tokio::{
     },
     time::sleep,
 };
+use twilight_http::Client;
 
 /// Queue built for single-process clusters that require identifying via
 /// [Sharding for Very Large Bots].
@@ -28,7 +29,7 @@ impl LargeBotQueue {
     ///
     /// You must provide the number of buckets Discord requires your bot to
     /// connect with.
-    pub async fn new(buckets: usize, http: &twilight_http::Client) -> Self {
+    pub async fn new(buckets: usize, http: Arc<Client>) -> Self {
         let mut queues = Vec::with_capacity(buckets);
         for _ in 0..buckets {
             let (tx, rx) = unbounded_channel();
