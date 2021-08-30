@@ -1,6 +1,6 @@
 use crate::{config::ResourceType, InMemoryCache, UpdateCache};
 use twilight_model::{
-    gateway::payload::{RoleCreate, RoleDelete, RoleUpdate},
+    gateway::payload::incoming::{RoleCreate, RoleDelete, RoleUpdate},
     guild::Role,
     id::{GuildId, RoleId},
 };

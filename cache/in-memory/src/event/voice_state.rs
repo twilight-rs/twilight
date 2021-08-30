@@ -1,5 +1,5 @@
 use crate::{config::ResourceType, InMemoryCache, UpdateCache};
-use twilight_model::{gateway::payload::VoiceStateUpdate, voice::VoiceState};
+use twilight_model::{gateway::payload::incoming::VoiceStateUpdate, voice::VoiceState};
 
 impl InMemoryCache {
     pub(crate) fn cache_voice_states(&self, voice_states: impl IntoIterator<Item = VoiceState>) {

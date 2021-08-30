@@ -65,10 +65,6 @@ use std::{
 use twilight_gateway::{Event, Intents, Shard};
 use twilight_http::Client as HttpClient;
 use twilight_lavalink::{http::LoadedTracks, model::Play, Lavalink};
-use twilight_model::{
-    channel::Message,
-    gateway::payload::MessageCreate,
-};
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn Error + Send + Sync + 'static>> {

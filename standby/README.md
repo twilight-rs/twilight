@@ -51,7 +51,10 @@ This is enabled by default.
 Wait for a message in channel 123 by user 456 with the content "test":
 
 ```rust,no_run
-use twilight_model::{gateway::payload::MessageCreate, id::{ChannelId, UserId}};
+use twilight_model::{
+    gateway::payload::incoming::MessageCreate,
+    id::{ChannelId, UserId},
+};
 use twilight_standby::Standby;
 
 let standby = Standby::new();
@@ -72,7 +75,7 @@ use std::{env, error::Error};
 use twilight_gateway::{Event, Intents, Shard};
 use twilight_model::{
     channel::Message,
-    gateway::payload::ReactionAdd,
+    gateway::payload::incoming::ReactionAdd,
     id::{ChannelId, UserId},
 };
 use twilight_standby::Standby;

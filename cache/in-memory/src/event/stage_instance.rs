@@ -1,7 +1,7 @@
 use crate::{config::ResourceType, InMemoryCache, UpdateCache};
 use twilight_model::{
     channel::StageInstance,
-    gateway::payload::{StageInstanceCreate, StageInstanceDelete, StageInstanceUpdate},
+    gateway::payload::incoming::{StageInstanceCreate, StageInstanceDelete, StageInstanceUpdate},
     id::{GuildId, StageId},
 };
 
