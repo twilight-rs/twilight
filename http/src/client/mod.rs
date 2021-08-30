@@ -2053,8 +2053,8 @@ impl Client {
     ///
     /// [the discord docs]: https://discord.com/developers/docs/interactions/application-commands#create-global-application-command
     #[deprecated(
-        note = "this method will be replaced with `new_create_global_command`",
-        since = "0.5.3"
+        note = "use `new_create_global_command`, which does not require a description",
+        since = "0.6.4"
     )]
     pub fn create_global_command<'a>(
         &'a self,
