@@ -29,7 +29,7 @@ impl<'a> InMemoryCacheStats<'a> {
     /// messages in the channel. However, the provided number may still be 0
     /// if some number is returned.
     pub fn channel_messages(&self, channel_id: ChannelId) -> Option<usize> {
-        let channel = self.0 .0.messages.get(&channel_id)?;
+        let channel = self.0.messages.get(&channel_id)?;
 
         Some(channel.len())
     }
@@ -40,31 +40,31 @@ impl<'a> InMemoryCacheStats<'a> {
     /// voice states in the channel. However, the provided number may still be 0
     /// if some number is returned.
     pub fn channel_voice_states(&self, channel_id: ChannelId) -> Option<usize> {
-        let channel = self.0 .0.voice_state_channels.get(&channel_id)?;
+        let channel = self.0.voice_state_channels.get(&channel_id)?;
 
         Some(channel.len())
     }
 
     /// Number of emojis in the cache.
     pub fn emojis(&self) -> usize {
-        self.0 .0.emojis.len()
+        self.0.emojis.len()
     }
 
     /// Number of groups in the cache.
     pub fn groups(&self) -> usize {
-        self.0 .0.groups.len()
+        self.0.groups.len()
     }
 
     /// Number of guilds in the cache.
     pub fn guilds(&self) -> usize {
-        self.0 .0.guilds.len()
+        self.0.guilds.len()
     }
 
     /// Number of channels in a given guild in the cache.
     ///
     /// Returns `None` if the guild hasn't yet been cached.
     pub fn guild_channels(&self, guild_id: GuildId) -> Option<usize> {
-        let guild = self.0 .0.guild_channels.get(&guild_id)?;
+        let guild = self.0.guild_channels.get(&guild_id)?;
 
         Some(guild.len())
     }
@@ -73,7 +73,7 @@ impl<'a> InMemoryCacheStats<'a> {
     ///
     /// Returns `None` if the guild hasn't yet been cached.
     pub fn guild_emojis(&self, guild_id: GuildId) -> Option<usize> {
-        let guild = self.0 .0.guild_emojis.get(&guild_id)?;
+        let guild = self.0.guild_emojis.get(&guild_id)?;
 
         Some(guild.len())
     }
@@ -82,7 +82,7 @@ impl<'a> InMemoryCacheStats<'a> {
     ///
     /// Returns `None` if the guild hasn't yet been cached.
     pub fn guild_members(&self, guild_id: GuildId) -> Option<usize> {
-        let guild = self.0 .0.guild_members.get(&guild_id)?;
+        let guild = self.0.guild_members.get(&guild_id)?;
 
         Some(guild.len())
     }
@@ -91,7 +91,7 @@ impl<'a> InMemoryCacheStats<'a> {
     ///
     /// Returns `None` if the guild hasn't yet been cached.
     pub fn guild_presences(&self, guild_id: GuildId) -> Option<usize> {
-        let guild = self.0 .0.guild_presences.get(&guild_id)?;
+        let guild = self.0.guild_presences.get(&guild_id)?;
 
         Some(guild.len())
     }
@@ -100,7 +100,7 @@ impl<'a> InMemoryCacheStats<'a> {
     ///
     /// Returns `None` if the guild hasn't yet been cached.
     pub fn guild_roles(&self, guild_id: GuildId) -> Option<usize> {
-        let guild = self.0 .0.guild_roles.get(&guild_id)?;
+        let guild = self.0.guild_roles.get(&guild_id)?;
 
         Some(guild.len())
     }
@@ -109,44 +109,44 @@ impl<'a> InMemoryCacheStats<'a> {
     ///
     /// Returns `None` if the guild hasn't yet been cached.
     pub fn guild_voice_states(&self, guild_id: GuildId) -> Option<usize> {
-        let guild = self.0 .0.voice_state_guilds.get(&guild_id)?;
+        let guild = self.0.voice_state_guilds.get(&guild_id)?;
 
         Some(guild.len())
     }
 
     /// Number of members in the cache.
     pub fn members(&self) -> usize {
-        self.0 .0.members.len()
+        self.0.members.len()
     }
 
     /// Number of presences in the cache.
     pub fn presences(&self) -> usize {
-        self.0 .0.presences.len()
+        self.0.presences.len()
     }
 
     /// Number of private channels in the cache.
     pub fn private_channels(&self) -> usize {
-        self.0 .0.channels_private.len()
+        self.0.channels_private.len()
     }
 
     /// Number of roles in the cache.
     pub fn roles(&self) -> usize {
-        self.0 .0.roles.len()
+        self.0.roles.len()
     }
 
     /// Number of unavailable_guilds in the cache.
     pub fn unavailable_guilds(&self) -> usize {
-        self.0 .0.unavailable_guilds.len()
+        self.0.unavailable_guilds.len()
     }
 
     /// Number of users in the cache.
     pub fn users(&self) -> usize {
-        self.0 .0.users.len()
+        self.0.users.len()
     }
 
     /// Number of voice_states in the cache.
     pub fn voice_states(&self) -> usize {
-        self.0 .0.voice_states.len()
+        self.0.voice_states.len()
     }
 }
 

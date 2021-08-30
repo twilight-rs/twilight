@@ -3,7 +3,7 @@ use hyper::{
     client::{Client as HyperClient, HttpConnector},
     Body, Request,
 };
-use std::{env, error::Error, future::Future, net::SocketAddr, str::FromStr};
+use std::{env, error::Error, future::Future, net::SocketAddr, str::FromStr, sync::Arc};
 use twilight_gateway::{Event, Intents, Shard};
 use twilight_http::Client as HttpClient;
 use twilight_lavalink::{
@@ -14,8 +14,10 @@ use twilight_lavalink::{
 use twilight_model::{channel::Message, gateway::payload::incoming::MessageCreate, id::ChannelId};
 use twilight_standby::Standby;
 
-#[derive(Clone, Debug)]
-struct State {
+type State = Arc<StateRef>;
+
+#[derive(Debug)]
+struct StateRef {
     http: HttpClient,
     lavalink: Lavalink,
     hyper: HyperClient<HttpConnector>,
@@ -52,17 +54,18 @@ async fn main() -> Result<(), Box<dyn Error + Send + Sync + 'static>> {
 
         let intents = Intents::GUILD_MESSAGES | Intents::GUILD_VOICE_STATES;
         let (shard, events) = Shard::new(token, intents);
+
         shard.start().await?;
 
         (
             events,
-            State {
+            Arc::new(StateRef {
                 http,
                 lavalink,
                 hyper: HyperClient::new(),
                 shard,
                 standby: Standby::new(),
-            },
+            }),
         )
     };
 
@@ -76,13 +79,13 @@ async fn main() -> Result<(), Box<dyn Error + Send + Sync + 'static>> {
             }
 
             match msg.content.splitn(2, ' ').next() {
-                Some("!join") => spawn(join(msg.0, state.clone())),
-                Some("!leave") => spawn(leave(msg.0, state.clone())),
-                Some("!pause") => spawn(pause(msg.0, state.clone())),
-                Some("!play") => spawn(play(msg.0, state.clone())),
-                Some("!seek") => spawn(seek(msg.0, state.clone())),
-                Some("!stop") => spawn(stop(msg.0, state.clone())),
-                Some("!volume") => spawn(volume(msg.0, state.clone())),
+                Some("!join") => spawn(join(msg.0, Arc::clone(&state))),
+                Some("!leave") => spawn(leave(msg.0, Arc::clone(&state))),
+                Some("!pause") => spawn(pause(msg.0, Arc::clone(&state))),
+                Some("!play") => spawn(play(msg.0, Arc::clone(&state))),
+                Some("!seek") => spawn(seek(msg.0, Arc::clone(&state))),
+                Some("!stop") => spawn(stop(msg.0, Arc::clone(&state))),
+                Some("!volume") => spawn(volume(msg.0, Arc::clone(&state))),
                 _ => continue,
             }
         }

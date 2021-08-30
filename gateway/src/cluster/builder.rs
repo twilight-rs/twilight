@@ -105,7 +105,7 @@ impl ClusterBuilder {
     /// information.
     ///
     /// Defaults to a new, default HTTP client is used.
-    pub fn http_client(mut self, http_client: Client) -> Self {
+    pub fn http_client(mut self, http_client: Arc<Client>) -> Self {
         self.1 = self.1.http_client(http_client);
 
         self
