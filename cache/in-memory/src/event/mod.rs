@@ -16,7 +16,7 @@ pub mod voice_state;
 use crate::{config::ResourceType, InMemoryCache, UpdateCache};
 use std::{borrow::Cow, collections::BTreeSet};
 use twilight_model::{
-    gateway::payload::{Ready, UnavailableGuild, UserUpdate},
+    gateway::payload::incoming::{Ready, UnavailableGuild, UserUpdate},
     id::GuildId,
     user::{CurrentUser, User},
 };

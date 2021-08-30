@@ -1,6 +1,8 @@
 use crate::{config::ResourceType, InMemoryCache, UpdateCache};
 use std::borrow::Cow;
-use twilight_model::{application::interaction::Interaction, gateway::payload::InteractionCreate};
+use twilight_model::{
+    application::interaction::Interaction, gateway::payload::incoming::InteractionCreate,
+};
 
 impl UpdateCache for InteractionCreate {
     fn update(&self, cache: &InMemoryCache) {

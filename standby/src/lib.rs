@@ -50,7 +50,10 @@
 //!
 //! ```rust,no_run
 //! # #[tokio::main] async fn main() -> Result<(), Box<dyn std::error::Error>> {
-//! use twilight_model::{gateway::payload::MessageCreate, id::{ChannelId, UserId}};
+//! use twilight_model::{
+//!     gateway::payload::incoming::MessageCreate,
+//!     id::{ChannelId, UserId},
+//! };
 //! use twilight_standby::Standby;
 //!
 //! let standby = Standby::new();
@@ -72,7 +75,7 @@
 //! use twilight_gateway::{Event, Intents, Shard};
 //! use twilight_model::{
 //!     channel::Message,
-//!     gateway::payload::ReactionAdd,
+//!     gateway::payload::incoming::ReactionAdd,
 //!     id::{ChannelId, UserId},
 //! };
 //! use twilight_standby::Standby;
@@ -161,7 +164,7 @@ use twilight_model::{
     channel::Channel,
     gateway::{
         event::Event,
-        payload::{MessageCreate, ReactionAdd},
+        payload::incoming::{MessageCreate, ReactionAdd},
     },
     id::{ChannelId, GuildId, MessageId},
 };
@@ -475,7 +478,10 @@ impl Standby {
     /// ```no_run
     /// # #[tokio::main] async fn main() -> Result<(), Box<dyn std::error::Error>> {
     /// use futures_util::future;
-    /// use twilight_model::{gateway::payload::MessageCreate, id::{ChannelId, UserId}};
+    /// use twilight_model::{
+    ///     gateway::payload::incoming::MessageCreate,
+    ///     id::{ChannelId, UserId},
+    /// };
     /// use twilight_standby::Standby;
     ///
     /// let standby = Standby::new();
@@ -523,7 +529,10 @@ impl Standby {
     /// ```no_run
     /// # #[tokio::main] async fn main() -> Result<(), Box<dyn std::error::Error>> {
     /// use futures_util::stream::StreamExt;
-    /// use twilight_model::{gateway::payload::MessageCreate, id::{ChannelId, UserId}};
+    /// use twilight_model::{
+    ///     gateway::payload::incoming::MessageCreate,
+    ///     id::{ChannelId, UserId},
+    /// };
     /// use twilight_standby::Standby;
     ///
     /// let standby = Standby::new();
@@ -574,7 +583,10 @@ impl Standby {
     /// ```no_run
     /// # #[tokio::main] async fn main() -> Result<(), Box<dyn std::error::Error>> {
     /// use futures_util::future;
-    /// use twilight_model::{gateway::payload::ReactionAdd, id::{MessageId, UserId}};
+    /// use twilight_model::{
+    ///     gateway::payload::incoming::ReactionAdd,
+    ///     id::{MessageId, UserId},
+    /// };
     /// use twilight_standby::Standby;
     ///
     /// let standby = Standby::new();
@@ -623,7 +635,7 @@ impl Standby {
     /// use futures_util::stream::StreamExt;
     /// use twilight_model::{
     ///     channel::ReactionType,
-    ///     gateway::payload::ReactionAdd,
+    ///     gateway::payload::incoming::ReactionAdd,
     ///     id::{MessageId, UserId},
     /// };
     /// use twilight_standby::Standby;
@@ -936,7 +948,7 @@ mod tests {
         },
         gateway::{
             event::{Event, EventType},
-            payload::{MessageCreate, ReactionAdd, Ready, RoleDelete},
+            payload::incoming::{MessageCreate, ReactionAdd, Ready, RoleDelete},
         },
         id::{ApplicationId, ChannelId, GuildId, MessageId, RoleId, UserId},
         oauth::{current_application_info::ApplicationFlags, PartialApplication},

@@ -35,9 +35,11 @@ use twilight_model::gateway::{
         DispatchEvent, Event, GatewayEvent, GatewayEventDeserializer,
     },
     payload::{
-        identify::{Identify, IdentifyInfo, IdentifyProperties},
-        resume::Resume,
-        Ready,
+        incoming::Ready,
+        outgoing::{
+            identify::{Identify, IdentifyInfo, IdentifyProperties},
+            resume::Resume,
+        },
     },
     Intents, OpCode,
 };

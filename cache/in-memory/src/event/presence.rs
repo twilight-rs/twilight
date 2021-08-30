@@ -1,6 +1,6 @@
 use crate::{config::ResourceType, model::CachedPresence, InMemoryCache, UpdateCache};
 use twilight_model::{
-    gateway::{payload::PresenceUpdate, presence::UserOrId},
+    gateway::{payload::incoming::PresenceUpdate, presence::UserOrId},
     id::{GuildId, UserId},
 };
 

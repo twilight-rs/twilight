@@ -138,7 +138,10 @@ impl RequestGuildMembersBuilder {
     /// their presences:
     ///
     /// ```
-    /// use twilight_model::{gateway::payload::RequestGuildMembers, id::GuildId};
+    /// use twilight_model::{
+    ///     gateway::payload::outgoing::RequestGuildMembers,
+    ///     id::GuildId,
+    /// };
     ///
     /// let request = RequestGuildMembers::builder(GuildId::new(1).expect("non zero"))
     ///     .presences(true)
@@ -176,7 +179,10 @@ impl RequestGuildMembersBuilder {
     ///
     /// ```
     /// use twilight_model::{
-    ///     gateway::payload::request_guild_members::{RequestGuildMemberId, RequestGuildMembers},
+    ///     gateway::payload::outgoing::request_guild_members::{
+    ///         RequestGuildMemberId,
+    ///         RequestGuildMembers,
+    ///     },
     ///     id::{GuildId, UserId},
     /// };
     ///
@@ -212,7 +218,10 @@ impl RequestGuildMembersBuilder {
     ///
     /// ```
     /// use twilight_model::{
-    ///     gateway::payload::request_guild_members::{RequestGuildMemberId, RequestGuildMembers},
+    ///     gateway::payload::outgoing::request_guild_members::{
+    ///         RequestGuildMemberId,
+    ///         RequestGuildMembers,
+    ///     },
     ///     id::{GuildId, UserId},
     /// };
     ///

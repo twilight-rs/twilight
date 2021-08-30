@@ -2,7 +2,7 @@ use crate::{config::ResourceType, model::CachedSticker, GuildItem, InMemoryCache
 use std::borrow::Cow;
 use twilight_model::{
     channel::message::sticker::{Sticker, StickerId},
-    gateway::payload::GuildStickersUpdate,
+    gateway::payload::incoming::GuildStickersUpdate,
     id::GuildId,
 };
 

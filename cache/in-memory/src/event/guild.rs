@@ -6,7 +6,7 @@ use crate::{
 use dashmap::DashMap;
 use std::{collections::HashSet, hash::Hash};
 use twilight_model::{
-    gateway::payload::{GuildCreate, GuildDelete, GuildUpdate},
+    gateway::payload::incoming::{GuildCreate, GuildDelete, GuildUpdate},
     guild::Guild,
     id::GuildId,
 };

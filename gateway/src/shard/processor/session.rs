@@ -22,7 +22,7 @@ use tokio::{
     task::JoinHandle,
 };
 use tokio_tungstenite::tungstenite::{protocol::CloseFrame, Message as TungsteniteMessage};
-use twilight_model::gateway::payload::Heartbeat;
+use twilight_model::gateway::payload::outgoing::Heartbeat;
 
 // Interval of how often the ratelimit bucket resets, in milliseconds.
 const RESET_DURATION_MILLISECONDS: u64 = 60_000;
