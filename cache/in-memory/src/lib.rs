@@ -170,7 +170,8 @@ struct InMemoryCacheRef {
     roles: DashMap<RoleId, GuildItem<Role>>,
     stage_instances: DashMap<StageId, GuildItem<StageInstance>>,
     unavailable_guilds: DashSet<GuildId>,
-    users: DashMap<UserId, (User, BTreeSet<GuildId>)>,
+    users: DashMap<UserId, User>,
+    user_guilds: DashMap<UserId, BTreeSet<GuildId>>,
     /// Mapping of channels and the users currently connected.
     voice_state_channels: DashMap<ChannelId, HashSet<(GuildId, UserId)>>,
     /// Mapping of guilds and users currently connected to its voice channels.
@@ -528,7 +529,7 @@ impl InMemoryCache {
     ///
     /// [`GUILD_MEMBERS`]: ::twilight_model::gateway::Intents::GUILD_MEMBERS
     pub fn user(&self, user_id: UserId) -> Option<User> {
-        self.0.users.get(&user_id).map(|r| r.0.clone())
+        self.0.users.get(&user_id).map(|r| r.value().clone())
     }
 
     /// Gets the voice states within a voice channel.
