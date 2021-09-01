@@ -86,18 +86,21 @@ impl CallbackDataBuilder {
     /// Multiple embeds can be set by calling this method multiple times.
     pub fn embed(mut self, embed: Embed) -> Self {
         self.0.embeds.push(embed);
+
         self
     }
 
     /// Set the interaction flags.
     pub const fn flags(mut self, flags: MessageFlags) -> Self {
         self.0.flags = Some(flags);
+
         self
     }
 
     /// Whether the response is TTS.
     pub const fn tts(mut self, value: bool) -> Self {
         self.0.tts = Some(value);
+
         self
     }
 
