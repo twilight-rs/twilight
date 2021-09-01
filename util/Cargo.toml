@@ -20,7 +20,7 @@ twilight-model = { default-features = false, optional = true, path = "../model" 
 [dev-dependencies]
 chrono = { default-features = false, features = ["std"], version = "0.4" }
 static_assertions = { default-features = false, version = "1" }
-time = { default-features = false, version = "0.2" }
+time = { default-features = false, features = ["formatting"], version = "0.3" }
 
 [features]
 default = []
