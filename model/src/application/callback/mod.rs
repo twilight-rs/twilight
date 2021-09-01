@@ -3,7 +3,10 @@
 mod callback_data;
 mod response_type;
 
-pub use self::{callback_data::CallbackData, response_type::ResponseType};
+pub use self::{
+    callback_data::{CallbackData, CallbackDataBuilder},
+    response_type::ResponseType,
+};
 
 use serde::{
     de::{Deserializer, Error as DeError, IgnoredAny, MapAccess, Visitor},
