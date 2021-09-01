@@ -40,15 +40,8 @@ impl CallbackData {
 }
 
 /// Builder for [`CallbackData`].
-#[derive(Debug, Default)]
-pub struct CallbackDataBuilder {
-    allowed_mentions: Option<AllowedMentions>,
-    components: Option<Vec<Component>>,
-    content: Option<String>,
-    embeds: Vec<Embed>,
-    flags: Option<MessageFlags>,
-    tts: Option<bool>,
-}
+#[derive(Debug)]
+pub struct CallbackDataBuilder(CallbackData);
 
 impl CallbackDataBuilder {
     /// Create a new builder to construct a [`CallbackData`].
@@ -59,7 +52,8 @@ impl CallbackDataBuilder {
     /// Set allowed mentions in the interaction response.
     #[allow(clippy::missing_const_for_fn)]
     pub fn allowed_mentions(mut self, allowed_mentions: AllowedMentions) -> Self {
-        self.allowed_mentions = Some(allowed_mentions);
+        self.0.allowed_mentions = Some(allowed_mentions);
+
         self
     }
 
@@ -67,16 +61,23 @@ impl CallbackDataBuilder {
     ///
     /// Multiple component can be set by calling this method multiple times.
     pub fn component(mut self, component: Component) -> Self {
-        match self.components {
+        match self.0.components {
             Some(ref mut components) => components.push(component),
-            None => self.components = Some(vec![component]),
+            None => self.0.components = Some(vec![component]),
         };
+
         self
     }
 
     /// Set the content.
-    pub fn content(mut self, content: impl Into<String>) -> Self {
-        self.content = Some(content.into());
+    pub fn content(self, content: impl Into<String>) -> Self {
+        self._content(content.into())
+    }
+
+    #[allow(clippy::missing_const_for_fn)]
+    fn _content(mut self, content: String) -> Self {
+        self.0.content = Some(content);
+
         self
     }
 
@@ -84,33 +85,39 @@ impl CallbackDataBuilder {
     ///
     /// Multiple embeds can be set by calling this method multiple times.
     pub fn embed(mut self, embed: Embed) -> Self {
-        self.embeds.push(embed);
+        self.0.embeds.push(embed);
         self
     }
 
     /// Set the interaction flags.
     pub const fn flags(mut self, flags: MessageFlags) -> Self {
-        self.flags = Some(flags);
+        self.0.flags = Some(flags);
         self
     }
 
     /// Whether the response is TTS.
     pub const fn tts(mut self, value: bool) -> Self {
-        self.tts = Some(value);
+        self.0.tts = Some(value);
         self
     }
 
     /// Build the [`CallbackData`] struct.
     #[allow(clippy::missing_const_for_fn)]
     pub fn build(self) -> CallbackData {
-        CallbackData {
-            allowed_mentions: self.allowed_mentions,
-            components: self.components,
-            content: self.content,
-            embeds: self.embeds,
-            flags: self.flags,
-            tts: self.tts,
-        }
+        self.0
+    }
+}
+
+impl Default for CallbackDataBuilder {
+    fn default() -> Self {
+        Self(CallbackData {
+            allowed_mentions: None,
+            components: None,
+            content: None,
+            embeds: Vec::new(),
+            flags: None,
+            tts: None,
+        })
     }
 }
 
