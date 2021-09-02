@@ -134,7 +134,7 @@ mod tests {
         },
     };
 
-    use super::CallbackData;
+    use super::{CallbackData, CallbackDataBuilder};
     use serde::{Deserialize, Serialize};
     use static_assertions::{assert_fields, assert_impl_all};
     use std::{fmt::Debug, hash::Hash};
@@ -158,6 +158,7 @@ mod tests {
         Serialize,
         Sync
     );
+    assert_impl_all!(CallbackDataBuilder: Debug, Default, Send, Sync);
 
     #[test]
     fn callback_data_builder() {
