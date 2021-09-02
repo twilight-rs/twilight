@@ -188,7 +188,7 @@ pub enum EmbedErrorType {
 ///
 /// [crate-level documentation]: crate
 #[allow(clippy::module_name_repetitions)]
-#[derive(Clone, Debug, Eq, PartialEq)]
+#[derive(Debug)]
 #[must_use = "must be built into an embed"]
 pub struct EmbedBuilder(Embed);
 

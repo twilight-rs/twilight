@@ -8,7 +8,7 @@ use twilight_model::channel::embed::EmbedFooter;
 /// This can be passed into [`EmbedBuilder::footer`].
 ///
 /// [`EmbedBuilder::footer`]: crate::EmbedBuilder::footer
-#[derive(Clone, Debug, Eq, PartialEq)]
+#[derive(Debug)]
 #[must_use = "must be built into an embed footer"]
 pub struct EmbedFooterBuilder(EmbedFooter);
 
@@ -78,7 +78,7 @@ mod tests {
     use std::fmt::Debug;
     use twilight_model::channel::embed::EmbedFooter;
 
-    assert_impl_all!(EmbedFooterBuilder: Clone, Debug, Eq, PartialEq, Send, Sync);
+    assert_impl_all!(EmbedFooterBuilder: Debug, Send, Sync);
     assert_impl_all!(EmbedFooter: From<EmbedFooterBuilder>);
 
     #[test]

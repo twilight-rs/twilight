@@ -8,7 +8,7 @@ use twilight_model::channel::embed::EmbedAuthor;
 /// This can be passed into [`EmbedBuilder::author`].
 ///
 /// [`EmbedBuilder::author`]: crate::EmbedBuilder::author
-#[derive(Clone, Debug, Eq, PartialEq)]
+#[derive(Debug)]
 #[must_use = "must be built into an embed author"]
 pub struct EmbedAuthorBuilder(EmbedAuthor);
 
@@ -88,15 +88,7 @@ mod tests {
     use std::fmt::Debug;
     use twilight_model::channel::embed::EmbedAuthor;
 
-    assert_impl_all!(
-        EmbedAuthorBuilder: Clone,
-        Debug,
-        Default,
-        Eq,
-        PartialEq,
-        Send,
-        Sync
-    );
+    assert_impl_all!(EmbedAuthorBuilder: Debug, Default, Send, Sync);
     assert_impl_all!(EmbedAuthor: From<EmbedAuthorBuilder>);
 
     #[test]

@@ -68,7 +68,7 @@ pub enum RoleFieldsErrorType {
 }
 
 /// A builder for role fields.
-#[derive(Clone, Debug, Eq, PartialEq)]
+#[derive(Debug)]
 #[must_use = "must be built into a role"]
 pub struct RoleFieldsBuilder(RoleFields);
 
@@ -254,7 +254,7 @@ pub enum TextFieldsErrorType {
 }
 
 /// A builder for text fields.
-#[derive(Clone, Debug, Eq, PartialEq)]
+#[derive(Debug)]
 #[must_use = "must be built into a text channel"]
 pub struct TextFieldsBuilder(TextFields);
 
@@ -441,7 +441,7 @@ pub enum VoiceFieldsErrorType {
 }
 
 /// A builder for voice fields.
-#[derive(Clone, Debug, Eq, PartialEq)]
+#[derive(Debug)]
 #[must_use = "must be built into a voice channel"]
 pub struct VoiceFieldsBuilder(VoiceFields);
 
@@ -589,7 +589,7 @@ pub enum CategoryFieldsErrorType {
 }
 
 /// A builder for a category channel, and its children.
-#[derive(Clone, Debug, Eq, PartialEq)]
+#[derive(Debug)]
 #[must_use = "must be built into a category channel"]
 pub struct CategoryFieldsBuilder {
     fields: CategoryFields,
@@ -677,7 +677,7 @@ impl CategoryFieldsBuilder {
 }
 
 /// A builder for a list of channels.
-#[derive(Clone, Debug, Default, Eq, PartialEq)]
+#[derive(Debug, Default)]
 #[must_use = "must be built into a list of channels"]
 pub struct GuildChannelFieldsBuilder(Vec<GuildChannelFields>);
 
@@ -732,6 +732,8 @@ mod tests {
         RoleFieldsBuilder, RoleFieldsErrorType, TextFieldsBuilder, TextFieldsErrorType,
         VoiceFieldsBuilder, VoiceFieldsErrorType,
     };
+    use static_assertions::assert_impl_all;
+    use std::fmt::Debug;
     use twilight_model::{
         channel::{
             permission_overwrite::{PermissionOverwrite, PermissionOverwriteType},
@@ -740,6 +742,12 @@ mod tests {
         guild::Permissions,
         id::{ChannelId, RoleId},
     };
+
+    assert_impl_all!(RoleFieldsBuilder: Debug, Send, Sync);
+    assert_impl_all!(TextFieldsBuilder: Debug, Send, Sync);
+    assert_impl_all!(VoiceFieldsBuilder: Debug, Send, Sync);
+    assert_impl_all!(CategoryFieldsBuilder: Debug, Send, Sync);
+    assert_impl_all!(GuildChannelFieldsBuilder: Debug, Default, Send, Sync);
 
     fn perms() -> Permissions {
         Permissions::CONNECT | Permissions::SPEAK | Permissions::SEND_TTS_MESSAGES
