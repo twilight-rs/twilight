@@ -57,7 +57,7 @@ use super::json::JsonDeserializer;
 use hyper::{
     body::{self, Bytes},
     header::{HeaderValue, Iter as HeaderMapIter},
-    Body, Error as HyperError, Response as HyperResponse,
+    Body, Response as HyperResponse,
 };
 use serde::de::{DeserializeOwned, DeserializeSeed};
 use std::{
@@ -112,10 +112,12 @@ impl Display for DeserializeBodyError {
             &DeserializeBodyErrorType::BodyNotUtf8 { .. } => {
                 f.write_str("response body is not a utf-8 valid string")
             }
-            DeserializeBodyErrorType::Chunking { .. } => {
-                f.write_str("failed to chunk response body")
+            DeserializeBodyErrorType::Chunking => f.write_str("failed to chunk response body"),
+            #[cfg(feature = "compression")]
+            DeserializeBodyErrorType::Decompressing => {
+                f.write_str("failed to decompress response body")
             }
-            DeserializeBodyErrorType::Deserializing { .. } => {
+            DeserializeBodyErrorType::Deserializing => {
                 f.write_str("failed to deserialize response body")
             }
         }
@@ -142,6 +144,9 @@ pub enum DeserializeBodyErrorType {
     },
     /// Response body couldn't be chunked.
     Chunking,
+    /// Decompressing the response failed.
+    #[cfg(feature = "compression")]
+    Decompressing,
     /// Deserializing the model failed.
     Deserializing,
 }
@@ -251,15 +256,31 @@ impl<T> Response<T> {
 
                     let mut buf = Vec::with_capacity(256);
                     let mut reader = brotli::Decompressor::new(
-                        hyper::body::aggregate(body).await?.reader(),
+                        hyper::body::aggregate(body)
+                            .await
+                            .map_err(|source| DeserializeBodyError {
+                                kind: DeserializeBodyErrorType::Chunking,
+                                source: Some(Box::new(source)),
+                            })?
+                            .reader(),
                         4096,
                     );
-                    reader.read_to_end(&mut buf).expect("infallible read");
+                    reader
+                        .read_to_end(&mut buf)
+                        .map_err(|_| DeserializeBodyError {
+                            kind: DeserializeBodyErrorType::Decompressing,
+                            source: None,
+                        })?;
 
                     return Ok(buf.into());
                 }
 
-                body::to_bytes(body).await
+                body::to_bytes(body)
+                    .await
+                    .map_err(|source| DeserializeBodyError {
+                        kind: DeserializeBodyErrorType::Chunking,
+                        source: Some(Box::new(source)),
+                    })
             }
         };
 
@@ -512,7 +533,8 @@ impl<'a> Iterator for HeaderIter<'a> {
 /// response body could not be entirely read.
 #[must_use = "futures do nothing unless you `.await` or poll them"]
 pub struct BytesFuture {
-    inner: Pin<Box<dyn Future<Output = Result<Bytes, HyperError>> + Send + Sync + 'static>>,
+    inner:
+        Pin<Box<dyn Future<Output = Result<Bytes, DeserializeBodyError>> + Send + Sync + 'static>>,
 }
 
 impl Future for BytesFuture {
@@ -520,14 +542,7 @@ impl Future for BytesFuture {
 
     fn poll(mut self: Pin<&mut Self>, cx: &mut Context<'_>) -> Poll<Self::Output> {
         if let Poll::Ready(result) = Pin::new(&mut self.inner).poll(cx) {
-            // Convert `hyper`'s error type to our own in order to avoid
-            // directly exposing a dependency.
-            Poll::Ready(result.map(|b| b.into_iter().collect()).map_err(|source| {
-                DeserializeBodyError {
-                    kind: DeserializeBodyErrorType::Chunking,
-                    source: Some(Box::new(source)),
-                }
-            }))
+            Poll::Ready(result.map(|b| b.into_iter().collect()))
         } else {
             Poll::Pending
         }

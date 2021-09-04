@@ -183,7 +183,7 @@ impl InFlight {
                 .map(Bytes::from)
                 .map_err(|source| Error {
                     kind: ErrorType::ChunkingResponse,
-                    source: Some(source.into()),
+                    source: Some(Box::new(source)),
                 })
         };
 
