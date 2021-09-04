@@ -484,8 +484,6 @@ impl<'a> Iterator for HeaderIter<'a> {
 ///
 /// The body of the response is chunked and aggregated into a `Vec` of bytes.
 ///
-/// Body might be compressed if the `compression` feature is enabled.
-///
 /// Obtained via [`Response::bytes`].
 ///
 /// # Examples
