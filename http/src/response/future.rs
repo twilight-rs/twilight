@@ -4,9 +4,7 @@ use crate::{
     error::{Error, ErrorType},
     ratelimiting::RatelimitHeaders,
 };
-use hyper::{
-    body::Bytes, client::ResponseFuture as HyperResponseFuture, StatusCode as HyperStatusCode,
-};
+use hyper::{client::ResponseFuture as HyperResponseFuture, StatusCode as HyperStatusCode};
 use std::{
     convert::TryFrom,
     future::Future,
@@ -40,7 +38,7 @@ enum InnerPoll<T> {
 }
 
 struct Chunking {
-    future: Pin<Box<dyn Future<Output = Result<Bytes, Error>> + Send + Sync + 'static>>,
+    future: Pin<Box<dyn Future<Output = Result<Vec<u8>, Error>> + Send + Sync + 'static>>,
     status: HyperStatusCode,
 }
 
@@ -56,9 +54,7 @@ impl Chunking {
             Ok(error) => error,
             Err(source) => {
                 return InnerPoll::Ready(Err(Error {
-                    kind: ErrorType::Parsing {
-                        body: bytes.to_vec(),
-                    },
+                    kind: ErrorType::Parsing { body: bytes },
                     source: Some(Box::new(source)),
                 }));
             }
@@ -75,7 +71,7 @@ impl Chunking {
 
         InnerPoll::Ready(Err(Error {
             kind: ErrorType::Response {
-                body: bytes.to_vec(),
+                body: bytes,
                 error,
                 status: StatusCode::new(self.status.as_u16()),
             },
@@ -180,7 +176,6 @@ impl InFlight {
             Response::<()>::new(resp)
                 .bytes()
                 .await
-                .map(Bytes::from)
                 .map_err(|source| Error {
                     kind: ErrorType::ChunkingResponse,
                     source: Some(Box::new(source)),
