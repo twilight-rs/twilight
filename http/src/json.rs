@@ -3,7 +3,6 @@ pub use serde_json::{to_vec, Deserializer as JsonDeserializer, Error as JsonErro
 #[cfg(feature = "simd-json")]
 pub use simd_json::{to_vec, Deserializer as JsonDeserializer, Error as JsonError};
 
-use hyper::body::Bytes;
 use serde::de::DeserializeOwned;
 
 #[cfg(not(feature = "simd-json"))]
@@ -11,7 +10,7 @@ use serde_json::Result as JsonResult;
 #[cfg(feature = "simd-json")]
 use simd_json::Result as JsonResult;
 
-pub fn from_bytes<T: DeserializeOwned>(bytes: &Bytes) -> JsonResult<T> {
+pub fn from_bytes<T: DeserializeOwned>(bytes: &[u8]) -> JsonResult<T> {
     #[cfg(not(feature = "simd-json"))]
     {
         serde_json::from_slice(bytes)

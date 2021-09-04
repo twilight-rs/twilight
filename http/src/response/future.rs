@@ -176,40 +176,15 @@ impl InFlight {
             _ => {}
         }
 
-        #[cfg(feature = "compression")]
-        let compressed = resp
-            .headers()
-            .get(hyper::header::CONTENT_ENCODING)
-            .is_some();
-
-        let body = resp.into_body();
-
-        let fut = async move {
-            #[cfg(feature = "compression")]
-            if compressed {
-                use hyper::body::Buf;
-                use std::io::Read;
-
-                let mut buf = Vec::with_capacity(256);
-                let mut reader = brotli::Decompressor::new(
-                    hyper::body::aggregate(body)
-                        .await
-                        .map_err(|source| Error {
-                            kind: ErrorType::ChunkingResponse,
-                            source: Some(source.into()),
-                        })?
-                        .reader(),
-                    4096,
-                );
-                reader.read_to_end(&mut buf).expect("infallible read");
-
-                return Ok(buf.into());
-            }
-
-            hyper::body::to_bytes(body).await.map_err(|source| Error {
-                kind: ErrorType::ChunkingResponse,
-                source: Some(source.into()),
-            })
+        let fut = async {
+            Response::<()>::new(resp)
+                .bytes()
+                .await
+                .map(Bytes::from)
+                .map_err(|source| Error {
+                    kind: ErrorType::ChunkingResponse,
+                    source: Some(source.into()),
+                })
         };
 
         InnerPoll::Advance(ResponseFutureStage::Chunking(Chunking {
