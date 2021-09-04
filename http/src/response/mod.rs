@@ -249,7 +249,7 @@ impl<T> Response<T> {
                     use hyper::body::Buf;
                     use std::io::Read;
 
-                    let mut buf = vec![0; 4096];
+                    let mut buf = Vec::with_capacity(256);
                     let mut reader = brotli::Decompressor::new(
                         hyper::body::aggregate(body).await?.reader(),
                         4096,
