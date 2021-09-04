@@ -255,7 +255,7 @@ impl<T> Response<T> {
                     use std::io::Read;
 
                     let mut buf = Vec::with_capacity(256);
-                    let mut reader = brotli::Decompressor::new(
+                    brotli::Decompressor::new(
                         hyper::body::aggregate(body)
                             .await
                             .map_err(|source| DeserializeBodyError {
@@ -264,13 +264,12 @@ impl<T> Response<T> {
                             })?
                             .reader(),
                         4096,
-                    );
-                    reader
-                        .read_to_end(&mut buf)
-                        .map_err(|_| DeserializeBodyError {
-                            kind: DeserializeBodyErrorType::Decompressing,
-                            source: None,
-                        })?;
+                    )
+                    .read_to_end(&mut buf)
+                    .map_err(|_| DeserializeBodyError {
+                        kind: DeserializeBodyErrorType::Decompressing,
+                        source: None,
+                    })?;
 
                     return Ok(buf.into());
                 }
