@@ -14,6 +14,7 @@ use twilight_lavalink::{
 use twilight_model::{
     channel::Message,
     gateway::payload::{incoming::MessageCreate, outgoing::UpdateVoiceState},
+    id::ChannelId,
 };
 use twilight_standby::Standby;
 
@@ -112,7 +113,7 @@ async fn join(msg: Message, state: State) -> Result<(), Box<dyn Error + Send + S
             new_msg.author.id == author_id
         })
         .await?;
-    let channel_id = msg.content.parse::<u64>()?;
+    let channel_id = ChannelId::new(msg.content.parse::<u64>()?).expect("non zero");
     let guild_id = msg.guild_id.expect("known to be present");
 
     state
