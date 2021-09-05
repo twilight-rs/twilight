@@ -1,19 +1,93 @@
 pub mod command;
 pub mod interaction;
 
+/// Alias of [`interaction::CreateFollowupMessage`].
 #[deprecated(note = "moved to `command` and `interaction` modules", since = "0.6.4")]
-pub use self::{
-    command::{
-        CreateGlobalCommand, CreateGuildCommand, DeleteGlobalCommand, DeleteGuildCommand,
-        GetCommandPermissions, GetGlobalCommand, GetGlobalCommands, GetGuildCommand,
-        GetGuildCommandPermissions, GetGuildCommands, SetCommandPermissions, SetGlobalCommands,
-        SetGuildCommands, UpdateCommandPermissions, UpdateGlobalCommand, UpdateGuildCommand,
-    },
-    interaction::{
-        CreateFollowupMessage, DeleteFollowupMessage, DeleteOriginalResponse, GetOriginalResponse,
-        InteractionCallback, UpdateFollowupMessage, UpdateOriginalResponse,
-    },
-};
+pub type CreateFollowupMessage<'a> = interaction::CreateFollowupMessage<'a>;
+
+/// Alias of [`interaction::DeleteOriginalResponse`].
+#[deprecated(note = "moved to `command` and `interaction` modules", since = "0.6.4")]
+pub type DeleteOriginalResponse<'a> = interaction::DeleteOriginalResponse<'a>;
+
+/// Alias of [`interaction::GetOriginalResponse`].
+#[deprecated(note = "moved to `command` and `interaction` modules", since = "0.6.4")]
+pub type GetOriginalResponse<'a> = interaction::GetOriginalResponse<'a>;
+
+/// Alias of [`interaction::InteractionCallback`].
+#[deprecated(note = "moved to `command` and `interaction` modules", since = "0.6.4")]
+pub type InteractionCallback<'a> = interaction::InteractionCallback<'a>;
+
+/// Alias of [`interaction::UpdateFollowupMessage`].
+#[deprecated(note = "moved to `command` and `interaction` modules", since = "0.6.4")]
+pub type UpdateFollowupMessage<'a> = interaction::UpdateFollowupMessage<'a>;
+
+/// Alias of [`interaction::UpdateOriginalResponse`].
+#[deprecated(note = "moved to `command` and `interaction` modules", since = "0.6.4")]
+pub type UpdateOriginalResponse<'a> = interaction::UpdateOriginalResponse<'a>;
+
+/// Alias of [`command::CreateGlobalCommand`].
+#[deprecated(note = "moved to `command` and `interaction` modules", since = "0.6.4")]
+pub type CreateGlobalCommand<'a> = command::CreateGlobalCommand<'a>;
+
+/// Alias of [`command::CreateGuildCommand`].
+#[deprecated(note = "moved to `command` and `interaction` modules", since = "0.6.4")]
+pub type CreateGuildCommand<'a> = command::CreateGuildCommand<'a>;
+
+/// Alias of [`command::DeleteGlobalCommand`].
+#[deprecated(note = "moved to `command` and `interaction` modules", since = "0.6.4")]
+pub type DeleteGlobalCommand<'a> = command::DeleteGlobalCommand<'a>;
+
+/// Alias of [`command::DeleteGuildCommand`].
+#[deprecated(note = "moved to `command` and `interaction` modules", since = "0.6.4")]
+pub type DeleteGuildCommand<'a> = command::DeleteGuildCommand<'a>;
+
+/// Alias of [`command::GetCommandPermissions`].
+#[deprecated(note = "moved to `command` and `interaction` modules", since = "0.6.4")]
+pub type GetCommandPermissions<'a> = command::GetCommandPermissions<'a>;
+
+/// Alias of [`command::GetGlobalCommand`].
+#[deprecated(note = "moved to `command` and `interaction` modules", since = "0.6.4")]
+pub type GetGlobalCommand<'a> = command::GetGlobalCommand<'a>;
+
+/// Alias of [`command::GetGlobalCommands`].
+#[deprecated(note = "moved to `command` and `interaction` modules", since = "0.6.4")]
+pub type GetGlobalCommands<'a> = command::GetGlobalCommands<'a>;
+
+/// Alias of [`command::GetGuildCommand`].
+#[deprecated(note = "moved to `command` and `interaction` modules", since = "0.6.4")]
+pub type GetGuildCommand<'a> = command::GetGuildCommand<'a>;
+
+/// Alias of [`command::GetGuildCommandPermissions`].
+#[deprecated(note = "moved to `command` and `interaction` modules", since = "0.6.4")]
+pub type GetGuildCommandPermissions<'a> = command::GetGuildCommandPermissions<'a>;
+
+/// Alias of [`command::GetGuildCommands`].
+#[deprecated(note = "moved to `command` and `interaction` modules", since = "0.6.4")]
+pub type GetGuildCommands<'a> = command::GetGuildCommands<'a>;
+
+/// Alias of [`command::SetCommandPermissions`].
+#[deprecated(note = "moved to `command` and `interaction` modules", since = "0.6.4")]
+pub type SetCommandPermissions<'a> = command::SetCommandPermissions<'a>;
+
+/// Alias of [`command::SetGlobalCommands`].
+#[deprecated(note = "moved to `command` and `interaction` modules", since = "0.6.4")]
+pub type SetGlobalCommands<'a> = command::SetGlobalCommands<'a>;
+
+/// Alias of [`command::SetGuildCommands`].
+#[deprecated(note = "moved to `command` and `interaction` modules", since = "0.6.4")]
+pub type SetGuildCommands<'a> = command::SetGuildCommands<'a>;
+
+/// Alias of [`command::UpdateCommandPermissions`].
+#[deprecated(note = "moved to `command` and `interaction` modules", since = "0.6.4")]
+pub type UpdateCommandPermissions<'a> = command::UpdateCommandPermissions<'a>;
+
+/// Alias of [`command::UpdateGlobalCommand`].
+#[deprecated(note = "moved to `command` and `interaction` modules", since = "0.6.4")]
+pub type UpdateGlobalCommand<'a> = command::UpdateGlobalCommand<'a>;
+
+/// Alias of [`command::UpdateGuildCommand`].
+#[deprecated(note = "moved to `command` and `interaction` modules", since = "0.6.4")]
+pub type UpdateGuildCommand<'a> = command::UpdateGuildCommand<'a>;
 
 use std::{
     error::Error,
