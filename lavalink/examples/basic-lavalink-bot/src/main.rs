@@ -117,7 +117,12 @@ async fn join(msg: Message, state: State) -> Result<(), Box<dyn Error + Send + S
 
     state
         .shard
-        .command(&UpdateVoiceState::new(guild_id, None, false, false))
+        .command(&UpdateVoiceState::new(
+            guild_id,
+            Some(channel_id),
+            false,
+            false,
+        ))
         .await?;
 
     state
