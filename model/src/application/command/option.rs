@@ -407,15 +407,38 @@ mod tests {
     use crate::id::{ApplicationId, CommandId, GuildId};
     use serde_test::Token;
 
+    /// Test that when a subcommand or subcommand group's `options` field is
+    /// missing during deserialization that the field is defaulted instead of
+    /// returning a missing field error.
     #[test]
-    fn pr_1112() {
-        let test_str = r#"
-{
-  "type": 1,
-  "description": "ponyland",
-  "name": "equestria"
-}"#;
-        serde_json::from_str::<CommandOption>(test_str).unwrap();
+    fn test_issue_1150() {
+        let value = CommandOption::SubCommand(OptionsCommandOptionData {
+            description: "ponyland".to_owned(),
+            name: "equestria".to_owned(),
+            options: Vec::new(),
+            required: false,
+        });
+
+        serde_test::assert_tokens(
+            &value,
+            &[
+                Token::Struct {
+                    name: "CommandOptionEnvelope",
+                    len: 4,
+                },
+                Token::Str("description"),
+                Token::Str("ponyland"),
+                Token::Str("name"),
+                Token::Str("equestria"),
+                Token::Str("options"),
+                Token::Some,
+                Token::Seq { len: Some(0) },
+                Token::SeqEnd,
+                Token::Str("type"),
+                Token::U8(1),
+                Token::StructEnd,
+            ],
+        );
     }
 
     #[test]
