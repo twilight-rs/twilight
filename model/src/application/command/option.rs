@@ -419,7 +419,7 @@ mod tests {
             required: false,
         });
 
-        serde_test::assert_tokens(
+        serde_test::assert_de_tokens(
             &value,
             &[
                 Token::Struct {
@@ -431,9 +431,7 @@ mod tests {
                 Token::Str("name"),
                 Token::Str("equestria"),
                 Token::Str("options"),
-                Token::Some,
-                Token::Seq { len: Some(0) },
-                Token::SeqEnd,
+                Token::None,
                 Token::Str("type"),
                 Token::U8(1),
                 Token::StructEnd,
