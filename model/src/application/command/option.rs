@@ -413,7 +413,7 @@ mod tests {
     #[test]
     fn test_issue_1150() {
         let value = CommandOption::SubCommand(OptionsCommandOptionData {
-            description: "ponyland".to_owned(),
+            description: "ponyville".to_owned(),
             name: "equestria".to_owned(),
             options: Vec::new(),
             required: false,
@@ -427,7 +427,7 @@ mod tests {
                     len: 4,
                 },
                 Token::Str("description"),
-                Token::Str("ponyland"),
+                Token::Str("ponyville"),
                 Token::Str("name"),
                 Token::Str("equestria"),
                 Token::Str("options"),
