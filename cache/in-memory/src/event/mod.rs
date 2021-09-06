@@ -46,7 +46,7 @@ impl InMemoryCache {
         if let Some(guild_id) = guild_id {
             let user_id = user.id;
 
-            self.users.insert(user.id, user);
+            self.users.insert(user_id, user);
 
             let mut guild_id_set = BTreeSet::new();
             guild_id_set.insert(guild_id);
