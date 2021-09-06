@@ -22,14 +22,8 @@ jobs:
           profile: minimal
           override: true
 
-      - name: Setup cache
-        uses: actions/cache@v2
-        with:
-          path: |
-            ~/.cargo/registry
-            ~/.cargo/git
-            target
-          key: ${{ runner.os }}-test-rustc-${{ steps.toolchain.outputs.rustc_hash }}-${{ hashFiles('**/Cargo.lock') }}
+      - name: Cache dependencies
+        uses: Swatinem/rust-cache@v1
 
       - name: Run cargo test
         run: cargo test
@@ -88,14 +82,8 @@ jobs:
           profile: minimal
           override: true
 
-      - name: Setup cache
-        uses: actions/cache@v2
-        with:
-          path: |
-            ~/.cargo/registry
-            ~/.cargo/git
-            target
-          key: ${{ runner.os }}-test-rustc-${{ steps.toolchain.outputs.rustc_hash }}-${{ hashFiles('**/Cargo.lock') }}
+      - name: Cache dependencies
+        uses: Swatinem/rust-cache@v1
 
       - name: Test ${{ matrix.package }} feat. ${{ matrix.features }}
         working-directory: ${{ matrix.package }}
@@ -119,14 +107,8 @@ jobs:
           profile: minimal
           override: true
 
-      - name: Setup cache
-        uses: actions/cache@v2
-        with:
-          path: |
-            ~/.cargo/registry
-            ~/.cargo/git
-            target
-          key: ${{ runner.os }}-msrv-${{ steps.tc.outputs.rustc_hash }}-${{ hashFiles('**/Cargo.lock') }}
+      - name: Cache dependencies
+        uses: Swatinem/rust-cache@v1
 
       - run: cargo check --examples --tests --all-features
         env:
