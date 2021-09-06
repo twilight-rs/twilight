@@ -22,13 +22,16 @@ impl UpdateCache for MessageCreate {
             return;
         }
 
-        let mut channel = cache.messages.entry(self.0.channel_id).or_default();
+        let mut channel_messages = cache.channel_messages.entry(self.0.channel_id).or_default();
 
-        if channel.len() > cache.config.message_cache_size() {
-            channel.pop_back();
+        if channel_messages.len() > cache.config.message_cache_size() {
+            channel_messages.pop_back();
         }
 
-        channel.push_front(CachedMessage::from(self.0.clone()));
+        channel_messages.push_front(self.0.id);
+        cache
+            .messages
+            .insert(self.0.id, CachedMessage::from(self.0.clone()));
     }
 }
 
@@ -38,10 +41,12 @@ impl UpdateCache for MessageDelete {
             return;
         }
 
-        let mut channel = cache.messages.entry(self.channel_id).or_default();
+        cache.messages.remove(&self.id);
 
-        if let Some(idx) = channel.iter().position(|msg| msg.id() == self.id) {
-            channel.remove(idx);
+        let mut channel_messages = cache.channel_messages.entry(self.channel_id).or_default();
+
+        if let Some(idx) = channel_messages.iter().position(|id| *id == self.id) {
+            channel_messages.remove(idx);
         }
     }
 }
@@ -52,11 +57,16 @@ impl UpdateCache for MessageDeleteBulk {
             return;
         }
 
-        let mut channel = cache.messages.entry(self.channel_id).or_default();
+        let mut channel_messages = cache.channel_messages.entry(self.channel_id).or_default();
 
         for id in &self.ids {
-            if let Some(idx) = channel.iter().position(|msg| &msg.id() == id) {
-                channel.remove(idx);
+            cache.messages.remove(id);
+
+            if let Some(idx) = channel_messages
+                .iter()
+                .position(|message_id| message_id == id)
+            {
+                channel_messages.remove(idx);
             }
         }
     }
@@ -68,9 +78,7 @@ impl UpdateCache for MessageUpdate {
             return;
         }
 
-        let mut channel = cache.messages.entry(self.channel_id).or_default();
-
-        if let Some(mut message) = channel.iter_mut().find(|msg| msg.id() == self.id) {
+        if let Some(mut message) = cache.messages.get_mut(&self.id) {
             if let Some(attachments) = &self.attachments {
                 message.attachments = attachments.clone();
             }
@@ -205,7 +213,7 @@ mod tests {
         );
         {
             let entry = cache
-                .messages
+                .channel_messages
                 .get(&ChannelId::new(2).expect("non zero"))
                 .unwrap();
             assert_eq!(entry.value().len(), 1);

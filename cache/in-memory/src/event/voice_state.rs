@@ -280,6 +280,7 @@ mod tests {
             cache
                 .voice_channel_states(ChannelId::new(2).expect("non zero"))
                 .unwrap()
+                .collect::<Vec<_>>()
                 .len()
         );
 

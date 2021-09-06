@@ -29,7 +29,7 @@ impl<'a> InMemoryCacheStats<'a> {
     /// messages in the channel. However, the provided number may still be 0
     /// if some number is returned.
     pub fn channel_messages(&self, channel_id: ChannelId) -> Option<usize> {
-        let channel = self.0.messages.get(&channel_id)?;
+        let channel = self.0.channel_messages.get(&channel_id)?;
 
         Some(channel.len())
     }
