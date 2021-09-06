@@ -361,7 +361,7 @@ pub struct ChoiceCommandOptionData {
 ///
 /// Refer to [the discord docs] for more information.
 ///
-/// [the discord docs]: https://discord.com/developers/docs/interactions/slash-commands#applicationcommandoptionchoice
+/// [the discord docs]: https://discord.com/developers/docs/interactions/application-commands#applicationcommandoptionchoice
 #[derive(Clone, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
 #[serde(untagged)]
 pub enum CommandOptionChoice {
@@ -405,8 +405,9 @@ impl CommandOptionType {
 #[cfg(test)]
 mod tests {
     use super::{
-        super::Command, BaseCommandOptionData, ChoiceCommandOptionData, CommandOption,
-        CommandOptionChoice, OptionsCommandOptionData,
+        super::{Command, CommandType},
+        BaseCommandOptionData, ChoiceCommandOptionData, CommandOption, CommandOptionChoice,
+        OptionsCommandOptionData,
     };
     use crate::id::{ApplicationId, CommandId, GuildId};
     use serde_test::Token;
@@ -417,6 +418,7 @@ mod tests {
         let value = Command {
             application_id: Some(ApplicationId(100)),
             guild_id: Some(GuildId(300)),
+            kind: CommandType::ChatInput,
             name: "test command".into(),
             default_permission: Some(true),
             description: "this command is a test".into(),
@@ -489,7 +491,7 @@ mod tests {
             &[
                 Token::Struct {
                     name: "Command",
-                    len: 7,
+                    len: 8,
                 },
                 Token::Str("application_id"),
                 Token::Some,
@@ -512,6 +514,8 @@ mod tests {
                 Token::Some,
                 Token::NewtypeStruct { name: "CommandId" },
                 Token::Str("200"),
+                Token::Str("type"),
+                Token::U8(1),
                 Token::Str("options"),
                 Token::Seq { len: Some(1) },
                 Token::Struct {

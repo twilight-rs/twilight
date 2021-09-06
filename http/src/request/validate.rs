@@ -1125,8 +1125,8 @@ pub fn command_name(value: impl AsRef<str>) -> bool {
 fn _command_name(value: &str) -> bool {
     let len = value.chars().count();
 
-    // https://discord.com/developers/docs/interactions/slash-commands#applicationcommandoption
-    (3..=32).contains(&len)
+    // https://discord.com/developers/docs/interactions/application-commands#application-command-object-application-command-option-structure
+    (1..=32).contains(&len)
 }
 
 pub fn command_description(value: impl AsRef<str>) -> bool {
@@ -1136,12 +1136,12 @@ pub fn command_description(value: impl AsRef<str>) -> bool {
 fn _command_description(value: &str) -> bool {
     let len = value.chars().count();
 
-    // https://discord.com/developers/docs/interactions/slash-commands#applicationcommandoption
+    // https://discord.com/developers/docs/interactions/application-commands#application-command-object-application-command-option-structure
     (1..=100).contains(&len)
 }
 
 pub const fn command_permissions(len: usize) -> bool {
-    // https://discord.com/developers/docs/interactions/slash-commands#edit-application-command-permissions
+    // https://discord.com/developers/docs/interactions/application-commands#edit-application-command-permissions
     len <= 10
 }
 
@@ -1150,7 +1150,7 @@ pub const fn command_permissions(len: usize) -> bool {
 /// The maximum number of commands allowed in a guild is defined by
 /// [`InteractionError::GUILD_COMMAND_PERMISSION_LIMIT`].
 pub const fn guild_command_permissions(count: usize) -> bool {
-    // https://discord.com/developers/docs/interactions/slash-commands#a-quick-note-on-limits
+    // https://discord.com/developers/docs/interactions/application-commands#registering-a-command
     count <= InteractionError::GUILD_COMMAND_PERMISSION_LIMIT
 }
 
