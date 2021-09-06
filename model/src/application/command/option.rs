@@ -228,9 +228,7 @@ impl<'de> Visitor<'de> for OptionVisitor {
 
         Ok(match kind {
             CommandOptionType::SubCommand => {
-                let options = options
-                    .flatten()
-                    .ok_or_else(|| DeError::missing_field("options"))?;
+                let options = options.flatten().unwrap_or_default();
 
                 CommandOption::SubCommand(OptionsCommandOptionData {
                     description,
@@ -240,9 +238,7 @@ impl<'de> Visitor<'de> for OptionVisitor {
                 })
             }
             CommandOptionType::SubCommandGroup => {
-                let options = options
-                    .flatten()
-                    .ok_or_else(|| DeError::missing_field("options"))?;
+                let options = options.flatten().unwrap_or_default();
 
                 CommandOption::SubCommandGroup(OptionsCommandOptionData {
                     description,
@@ -411,6 +407,38 @@ mod tests {
     };
     use crate::id::{ApplicationId, CommandId, GuildId};
     use serde_test::Token;
+
+    /// Test that when a subcommand or subcommand group's `options` field is
+    /// missing during deserialization that the field is defaulted instead of
+    /// returning a missing field error.
+    #[test]
+    fn test_issue_1150() {
+        let value = CommandOption::SubCommand(OptionsCommandOptionData {
+            description: "ponyville".to_owned(),
+            name: "equestria".to_owned(),
+            options: Vec::new(),
+            required: false,
+        });
+
+        serde_test::assert_de_tokens(
+            &value,
+            &[
+                Token::Struct {
+                    name: "CommandOptionEnvelope",
+                    len: 4,
+                },
+                Token::Str("description"),
+                Token::Str("ponyville"),
+                Token::Str("name"),
+                Token::Str("equestria"),
+                Token::Str("options"),
+                Token::None,
+                Token::Str("type"),
+                Token::U8(1),
+                Token::StructEnd,
+            ],
+        );
+    }
 
     #[test]
     #[allow(clippy::too_many_lines)]
