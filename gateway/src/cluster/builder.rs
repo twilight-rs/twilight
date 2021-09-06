@@ -137,7 +137,7 @@ impl ClusterBuilder {
     ///
     /// # Examples
     ///
-    /// Set the identify properties for a shard:
+    /// Set the identify properties for a cluster:
     ///
     /// ```no_run
     /// # fn main() -> Result<(), Box<dyn std::error::Error>> {
