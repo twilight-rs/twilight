@@ -7,7 +7,7 @@ use std::fmt::{Display, Formatter, Result as FmtResult};
 ///
 /// Refer to [the discord docs] for more information.
 ///
-/// [the discord docs]: https://discord.com/developers/docs/interactions/slash-commands#interaction-interactiontype
+/// [the discord docs]: https://discord.com/developers/docs/interactions/application-commands#interaction-interactiontype
 #[derive(
     Clone, Copy, Debug, Deserialize_repr, Eq, Hash, Ord, PartialEq, PartialOrd, Serialize_repr,
 )]

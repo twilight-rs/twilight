@@ -320,6 +320,10 @@ impl Display for RouteDisplay<'_> {
                 application_id,
                 command_id,
             }
+            | Route::GetGlobalCommand {
+                application_id,
+                command_id,
+            }
             | Route::UpdateGlobalCommand {
                 application_id,
                 command_id,
@@ -336,6 +340,11 @@ impl Display for RouteDisplay<'_> {
                 Display::fmt(guild_id, f)
             }
             Route::DeleteGuildCommand {
+                application_id,
+                command_id,
+                guild_id,
+            }
+            | Route::GetGuildCommand {
                 application_id,
                 command_id,
                 guild_id,

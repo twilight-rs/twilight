@@ -1,4 +1,7 @@
-use super::{CommandBorrowed, InteractionError, InteractionErrorType};
+use super::super::{
+    super::{InteractionError, InteractionErrorType},
+    CommandBorrowed,
+};
 use crate::{
     client::Client,
     error::Error as HttpError,
@@ -7,20 +10,19 @@ use crate::{
     routing::Route,
 };
 use twilight_model::{
-    application::command::{Command, CommandOption},
+    application::command::{Command, CommandOption, CommandType},
     id::ApplicationId,
 };
 
-/// Create a new global command.
+/// Create a new chat input global command.
 ///
-/// The name must be between 3 and 32 characters in length, and the description
-/// must be between 1 and 100 characters in length. Creating a command with the
-/// same name as an already-existing global command will overwrite the old
-/// command. See [the discord docs] for more information.
+/// The description must be between 1 and 100 characters in length. Creating a
+/// command with the same name as an already-existing global command will
+/// overwrite the old command. See [the discord docs] for more information.
 ///
-/// [the discord docs]: https://discord.com/developers/docs/interactions/slash-commands#create-global-application-command
+/// [the discord docs]: https://discord.com/developers/docs/interactions/application-commands#create-global-application-command
 #[must_use = "requests must be configured and executed"]
-pub struct CreateGlobalCommand<'a> {
+pub struct CreateGlobalChatInputCommand<'a> {
     application_id: ApplicationId,
     default_permission: Option<bool>,
     description: &'a str,
@@ -29,19 +31,13 @@ pub struct CreateGlobalCommand<'a> {
     options: Option<&'a [CommandOption]>,
 }
 
-impl<'a> CreateGlobalCommand<'a> {
+impl<'a> CreateGlobalChatInputCommand<'a> {
     pub(crate) fn new(
         http: &'a Client,
         application_id: ApplicationId,
         name: &'a str,
         description: &'a str,
     ) -> Result<Self, InteractionError> {
-        if !validate_inner::command_name(name) {
-            return Err(InteractionError {
-                kind: InteractionErrorType::CommandNameValidationFailed,
-            });
-        }
-
         if !validate_inner::command_description(&description) {
             return Err(InteractionError {
                 kind: InteractionErrorType::CommandDescriptionValidationFailed,
@@ -109,7 +105,8 @@ impl<'a> CreateGlobalCommand<'a> {
         .json(&CommandBorrowed {
             application_id: Some(self.application_id),
             default_permission: self.default_permission,
-            description: self.description,
+            description: Some(self.description),
+            kind: CommandType::ChatInput,
             name: self.name,
             options: self.options,
         })

@@ -30,6 +30,7 @@ pub enum MessageType {
     ApplicationCommand = 20,
     ThreadStarterMessage = 21,
     GuildInviteReminder = 22,
+    ContextMenuCommand = 23,
 }
 
 impl TryFrom<u8> for MessageType {
@@ -59,6 +60,7 @@ impl TryFrom<u8> for MessageType {
             20 => MessageType::ApplicationCommand,
             21 => MessageType::ThreadStarterMessage,
             22 => MessageType::GuildInviteReminder,
+            23 => MessageType::ContextMenuCommand,
             _ => return Err(ConversionError::MessageType(value)),
         };
 
@@ -102,6 +104,7 @@ mod tests {
         serde_test::assert_tokens(&MessageType::ApplicationCommand, &[Token::U8(20)]);
         serde_test::assert_tokens(&MessageType::ThreadStarterMessage, &[Token::U8(21)]);
         serde_test::assert_tokens(&MessageType::GuildInviteReminder, &[Token::U8(22)]);
+        serde_test::assert_tokens(&MessageType::ContextMenuCommand, &[Token::U8(23)]);
     }
 
     #[test]
@@ -181,6 +184,10 @@ mod tests {
         assert_eq!(
             MessageType::try_from(22).unwrap(),
             MessageType::GuildInviteReminder
+        );
+        assert_eq!(
+            MessageType::try_from(23).unwrap(),
+            MessageType::ContextMenuCommand
         );
         assert_eq!(
             MessageType::try_from(250).unwrap_err(),
