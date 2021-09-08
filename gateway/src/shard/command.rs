@@ -2,14 +2,14 @@
 //!
 //! [`Shard::command`]: super::Shard::command
 
-use twilight_model::gateway::payload::{
+use twilight_model::gateway::payload::outgoing::{
     identify::Identify, resume::Resume, Heartbeat, RequestGuildMembers, UpdatePresence,
     UpdateVoiceState,
 };
 
 mod private {
     use serde::Serialize;
-    use twilight_model::gateway::payload::{
+    use twilight_model::gateway::payload::outgoing::{
         identify::Identify, resume::Resume, Heartbeat, RequestGuildMembers, UpdatePresence,
         UpdateVoiceState,
     };
@@ -47,7 +47,7 @@ impl Command for UpdateVoiceState {}
 mod tests {
     use super::Command;
     use static_assertions::assert_impl_all;
-    use twilight_model::gateway::payload::{
+    use twilight_model::gateway::payload::outgoing::{
         identify::Identify, resume::Resume, Heartbeat, RequestGuildMembers, UpdatePresence,
         UpdateVoiceState,
     };
