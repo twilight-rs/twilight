@@ -323,8 +323,8 @@ mod tests {
 
         assert_eq!(cache.0.members.len(), 1);
         {
-            let entry = cache.0.users.get(&UserId(3)).unwrap();
-            assert_eq!(entry.value().1.len(), 1);
+            let entry = cache.0.user_guilds.get(&UserId(3)).unwrap();
+            assert_eq!(entry.value().len(), 1);
         }
         assert_eq!(
             cache.member(GuildId(2), UserId(3)).unwrap().user_id,

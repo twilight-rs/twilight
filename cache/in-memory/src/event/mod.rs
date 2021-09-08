@@ -30,9 +30,13 @@ impl InMemoryCache {
 
     fn cache_user(&self, user: Cow<'_, User>, guild_id: Option<GuildId>) {
         match self.0.users.get_mut(&user.id) {
-            Some(mut u) if u.0 == *user => {
+            Some(u) if *u.value() == *user => {
                 if let Some(guild_id) = guild_id {
-                    u.1.insert(guild_id);
+                    self.0
+                        .user_guilds
+                        .entry(user.id)
+                        .or_default()
+                        .insert(guild_id);
                 }
 
                 return;
@@ -42,9 +46,13 @@ impl InMemoryCache {
         let user = user.into_owned();
 
         if let Some(guild_id) = guild_id {
+            let user_id = user.id;
+
+            self.0.users.insert(user.id, user);
+
             let mut guild_id_set = BTreeSet::new();
             guild_id_set.insert(guild_id);
-            self.0.users.insert(user.id, (user, guild_id_set));
+            self.0.user_guilds.insert(user_id, guild_id_set);
         }
     }
 
