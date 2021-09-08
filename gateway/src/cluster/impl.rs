@@ -524,7 +524,7 @@ impl Cluster {
     /// use twilight_gateway::{cluster::Cluster, Intents};
     /// use twilight_model::{
     ///     gateway::{
-    ///         payload::UpdatePresence,
+    ///         payload::outgoing::UpdatePresence,
     ///         presence::{Activity, ActivityType, MinimalActivity, Status},
     ///     },
     ///     id::GuildId,
