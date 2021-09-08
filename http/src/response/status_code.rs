@@ -1,6 +1,12 @@
 use std::fmt::{Display, Formatter, Result as FmtResult};
 
 /// Status code of a response.
+///
+/// # Comparing the status code
+///
+/// Status codes can easily be compared with status code integers due to
+/// implementing `PartialEq<u16>`. This is equivalent to checking against the
+/// value returned by [`StatusCode::raw`].
 #[derive(Clone, Copy, Debug, Eq, Hash, PartialEq, PartialOrd, Ord)]
 pub struct StatusCode(u16);
 
@@ -72,6 +78,18 @@ impl Display for StatusCode {
     }
 }
 
+impl PartialEq<u16> for StatusCode {
+    fn eq(&self, other: &u16) -> bool {
+        self.raw() == *other
+    }
+}
+
+impl PartialEq<StatusCode> for u16 {
+    fn eq(&self, other: &StatusCode) -> bool {
+        *self == other.raw()
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::StatusCode;
@@ -94,6 +112,12 @@ mod tests {
         Send,
         Sync
     );
+
+    #[test]
+    fn test_eq_with_integer() {
+        assert_eq!(200_u16, StatusCode::new(200));
+        assert_eq!(StatusCode::new(404), 404_u16);
+    }
 
     #[test]
     fn test_ranges() {

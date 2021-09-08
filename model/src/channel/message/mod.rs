@@ -72,7 +72,7 @@ pub struct Message {
     pub reference: Option<MessageReference>,
     /// The message associated with the [reference].
     ///
-    /// [reference]: #structfield.reference
+    /// [reference]: Self::reference
     #[serde(skip_serializing_if = "Option::is_none")]
     pub referenced_message: Option<Box<Message>>,
     /// Stickers within the message.

@@ -164,7 +164,7 @@ impl Iterator for ShardSchemeIter {
 ///
 /// By default this is [`Auto`].
 ///
-/// [`Auto`]: #variant.Auto
+/// [`Auto`]: Self::Auto
 #[derive(Clone, Debug, Eq, Hash, PartialEq)]
 #[non_exhaustive]
 pub enum ShardScheme {

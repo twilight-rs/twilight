@@ -29,7 +29,7 @@ use std::fmt::{Formatter, Result as FmtResult};
 /// Each variant corresponds to `InteractionType` in the discord docs. Refer to
 /// [the discord docs] for more information.
 ///
-/// [the discord docs]: https://discord.com/developers/docs/interactions/slash-commands#interaction
+/// [the discord docs]: https://discord.com/developers/docs/interactions/receiving-and-responding#interaction-object-interaction-structure
 #[derive(Clone, Debug, Eq, PartialEq, Serialize)]
 #[serde(untagged)]
 #[non_exhaustive]
@@ -305,6 +305,7 @@ mod test {
                 resolved: Some(CommandInteractionDataResolved {
                     channels: Vec::new(),
                     members: Vec::new(),
+                    messages: Vec::new(),
                     roles: Vec::new(),
                     users: vec![User {
                         accent_color: None,

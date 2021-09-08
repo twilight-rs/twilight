@@ -19,7 +19,7 @@ pub trait Snowflake {
     ///
     /// See when a user was created using [`chrono`](https://docs.rs/chrono):
     ///
-    /// ```rust
+    /// ```
     /// use chrono::{Utc, TimeZone};
     /// use twilight_util::snowflake::Snowflake;
     /// use twilight_model::id::UserId;
@@ -34,17 +34,22 @@ pub trait Snowflake {
     ///
     /// See when a user was created using [`time`](https://docs.rs/time):
     ///
-    /// ```rust
-    /// use time::{Duration, Format, OffsetDateTime};
+    /// ```
+    /// use time::{Duration, format_description::well_known::Rfc3339, OffsetDateTime};
     /// use twilight_util::snowflake::Snowflake;
     /// use twilight_model::id::UserId;
     ///
+    /// # fn main() -> Result<(), Box<dyn std::error::Error>> {
     /// let id = UserId(105484726235607040);
+    /// // Convert milliseconds to seconds or nanoseconds.
     /// let dur = Duration::milliseconds(id.timestamp());
-    /// // Or use seconds, at the cost of lost precision.
-    /// let ts = OffsetDateTime::from_unix_timestamp_nanos(dur.whole_nanoseconds());
     ///
-    /// assert_eq!("2015-10-19T01:58:38+00:00", ts.format(Format::Rfc3339));
+    /// let ts = OffsetDateTime::from_unix_timestamp(dur.whole_seconds())?;
+    /// let ts_milli = OffsetDateTime::from_unix_timestamp_nanos(dur.whole_nanoseconds())?;
+    ///
+    /// assert_eq!("2015-10-19T01:58:38Z", ts.format(&Rfc3339)?);
+    /// assert_eq!("2015-10-19T01:58:38.546Z", ts_milli.format(&Rfc3339)?);
+    /// # Ok(()) }
     /// ```
     #[allow(clippy::cast_possible_wrap)]
     fn timestamp(&self) -> i64 {

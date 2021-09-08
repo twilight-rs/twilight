@@ -953,7 +953,7 @@ impl ShardProcessor {
     /// connection.
     async fn resume(&mut self) {
         #[cfg(feature = "tracing")]
-        tracing::info!("resuming shard {:?}", self.config.shard());
+        tracing::debug!("resuming shard {:?}", self.config.shard());
 
         self.session.set_stage(Stage::Resuming);
         self.session.stop_heartbeater();
