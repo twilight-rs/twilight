@@ -165,20 +165,17 @@ impl UpdateCache for MemberRemove {
         }
 
         // Avoid a deadlock by mutating the user, dropping the lock to the map,
-        // and then maybe conditionally removing the user later.
-        let mut maybe_remove_user = false;
+        // and then removing the user later if they are in no guilds.
+        let mut remove_user = false;
 
-        if let Some(mut user_tuple) = cache.0.users.get_mut(&self.user.id) {
-            user_tuple.1.remove(&self.guild_id);
+        if let Some(mut user_guilds) = cache.0.user_guilds.get_mut(&self.user.id) {
+            user_guilds.remove(&self.guild_id);
 
-            maybe_remove_user = true;
+            remove_user = user_guilds.is_empty();
         }
 
-        if maybe_remove_user {
-            cache
-                .0
-                .users
-                .remove_if(&self.user.id, |_, guild_set| guild_set.1.is_empty());
+        if remove_user {
+            cache.0.users.remove(&self.user.id);
         }
     }
 }
@@ -273,18 +270,18 @@ mod tests {
 
         // Test the guild's ID is the only one in the user's set of guilds.
         {
-            let user = cache.0.users.get(&user_id).unwrap();
-            assert!(user.1.contains(&GuildId(1)));
-            assert_eq!(1, user.1.len());
+            let user_guilds = cache.0.user_guilds.get(&user_id).unwrap();
+            assert!(user_guilds.contains(&GuildId(1)));
+            assert_eq!(1, user_guilds.len());
         }
 
         // Test that a second guild will cause 2 in the set.
         cache.cache_user(Cow::Owned(test::user(user_id)), Some(GuildId(3)));
 
         {
-            let user = cache.0.users.get(&user_id).unwrap();
-            assert!(user.1.contains(&GuildId(3)));
-            assert_eq!(2, user.1.len());
+            let user_guilds = cache.0.user_guilds.get(&user_id).unwrap();
+            assert!(user_guilds.contains(&GuildId(3)));
+            assert_eq!(2, user_guilds.len());
         }
 
         // Test that removing a user from a guild will cause the ID to be
@@ -295,9 +292,9 @@ mod tests {
         });
 
         {
-            let user = cache.0.users.get(&user_id).unwrap();
-            assert!(!user.1.contains(&GuildId(3)));
-            assert_eq!(1, user.1.len());
+            let user_guilds = cache.0.user_guilds.get(&user_id).unwrap();
+            assert!(!user_guilds.contains(&GuildId(3)));
+            assert_eq!(1, user_guilds.len());
         }
 
         // Test that removing the user from its last guild removes the user's
