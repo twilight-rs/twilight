@@ -718,8 +718,8 @@ pub trait UpdateCache {
 /// Iterator over a voice channel's list of voice states.
 pub struct VoiceChannelStates<'a> {
     index: usize,
-    voice_states: &'a DashMap<(GuildId, UserId), VoiceState>,
     user_ids: Ref<'a, ChannelId, HashSet<(GuildId, UserId)>>,
+    voice_states: &'a DashMap<(GuildId, UserId), VoiceState>,
 }
 
 impl<'a> Iterator for VoiceChannelStates<'a> {
@@ -728,6 +728,8 @@ impl<'a> Iterator for VoiceChannelStates<'a> {
     fn next(&mut self) -> Option<Self::Item> {
         while let Some((guild_id, user_id)) = self.user_ids.iter().nth(self.index) {
             if let Some(voice_state) = self.voice_states.get(&(*guild_id, *user_id)) {
+                self.index += 1;
+
                 return Some(Reference::new(voice_state));
             }
         }
