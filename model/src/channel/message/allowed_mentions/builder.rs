@@ -3,7 +3,7 @@ use crate::{
     id::{RoleId, UserId},
 };
 
-#[derive(Debug, Default)]
+#[derive(Clone, Debug, Default, Eq, PartialEq)]
 pub struct AllowedMentionsBuilder(AllowedMentions);
 
 impl AllowedMentionsBuilder {
@@ -108,7 +108,15 @@ mod tests {
     use static_assertions::assert_impl_all;
     use std::fmt::Debug;
 
-    assert_impl_all!(AllowedMentionsBuilder: Debug, Default, Send, Sync);
+    assert_impl_all!(
+        AllowedMentionsBuilder: Clone,
+        Debug,
+        Default,
+        Eq,
+        PartialEq,
+        Send,
+        Sync
+    );
 
     #[test]
     fn test_max_mentioned() {

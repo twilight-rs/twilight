@@ -68,7 +68,7 @@ pub enum RoleFieldsErrorType {
 }
 
 /// A builder for role fields.
-#[derive(Debug)]
+#[derive(Clone, Debug, Eq, PartialEq)]
 #[must_use = "must be built into a role"]
 pub struct RoleFieldsBuilder(RoleFields);
 
@@ -254,7 +254,7 @@ pub enum TextFieldsErrorType {
 }
 
 /// A builder for text fields.
-#[derive(Debug)]
+#[derive(Clone, Debug, Eq, PartialEq)]
 #[must_use = "must be built into a text channel"]
 pub struct TextFieldsBuilder(TextFields);
 
@@ -441,7 +441,7 @@ pub enum VoiceFieldsErrorType {
 }
 
 /// A builder for voice fields.
-#[derive(Debug)]
+#[derive(Clone, Debug, Eq, PartialEq)]
 #[must_use = "must be built into a voice channel"]
 pub struct VoiceFieldsBuilder(VoiceFields);
 
@@ -589,7 +589,7 @@ pub enum CategoryFieldsErrorType {
 }
 
 /// A builder for a category channel, and its children.
-#[derive(Debug)]
+#[derive(Clone, Debug, Eq, PartialEq)]
 #[must_use = "must be built into a category channel"]
 pub struct CategoryFieldsBuilder {
     fields: CategoryFields,
@@ -677,7 +677,7 @@ impl CategoryFieldsBuilder {
 }
 
 /// A builder for a list of channels.
-#[derive(Debug, Default)]
+#[derive(Clone, Debug, Default, Eq, PartialEq)]
 #[must_use = "must be built into a list of channels"]
 pub struct GuildChannelFieldsBuilder(Vec<GuildChannelFields>);
 
@@ -743,11 +743,26 @@ mod tests {
         id::{ChannelId, RoleId},
     };
 
-    assert_impl_all!(RoleFieldsBuilder: Debug, Send, Sync);
-    assert_impl_all!(TextFieldsBuilder: Debug, Send, Sync);
-    assert_impl_all!(VoiceFieldsBuilder: Debug, Send, Sync);
-    assert_impl_all!(CategoryFieldsBuilder: Debug, Send, Sync);
-    assert_impl_all!(GuildChannelFieldsBuilder: Debug, Default, Send, Sync);
+    assert_impl_all!(RoleFieldsBuilder: Clone, Debug, Eq, PartialEq, Send, Sync);
+    assert_impl_all!(TextFieldsBuilder: Clone, Debug, Eq, PartialEq, Send, Sync);
+    assert_impl_all!(VoiceFieldsBuilder: Clone, Debug, Eq, PartialEq, Send, Sync);
+    assert_impl_all!(
+        CategoryFieldsBuilder: Clone,
+        Debug,
+        Eq,
+        PartialEq,
+        Send,
+        Sync
+    );
+    assert_impl_all!(
+        GuildChannelFieldsBuilder: Clone,
+        Debug,
+        Default,
+        Eq,
+        PartialEq,
+        Send,
+        Sync
+    );
 
     fn perms() -> Permissions {
         Permissions::CONNECT | Permissions::SPEAK | Permissions::SEND_TTS_MESSAGES

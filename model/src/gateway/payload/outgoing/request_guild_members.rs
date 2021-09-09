@@ -83,7 +83,7 @@ impl RequestGuildMembers {
     }
 }
 
-#[derive(Debug)]
+#[derive(Clone, Debug, Eq, PartialEq)]
 pub struct RequestGuildMembersBuilder {
     guild_id: GuildId,
     nonce: Option<String>,
@@ -310,5 +310,12 @@ mod tests {
     use static_assertions::assert_impl_all;
     use std::fmt::Debug;
 
-    assert_impl_all!(RequestGuildMembersBuilder: Debug, Send, Sync);
+    assert_impl_all!(
+        RequestGuildMembersBuilder: Clone,
+        Debug,
+        Eq,
+        PartialEq,
+        Send,
+        Sync
+    );
 }

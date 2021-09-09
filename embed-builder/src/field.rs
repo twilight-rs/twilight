@@ -10,7 +10,7 @@ use twilight_model::channel::embed::EmbedField;
 ///
 /// [`EmbedBuilder::field`]: crate::EmbedBuilder::field
 /// [`inline`]: Self::inline
-#[derive(Debug)]
+#[derive(Clone, Debug, Eq, PartialEq)]
 #[must_use = "must be built into an embed field"]
 pub struct EmbedFieldBuilder(EmbedField);
 
@@ -81,7 +81,7 @@ mod tests {
     use std::fmt::Debug;
     use twilight_model::channel::embed::EmbedField;
 
-    assert_impl_all!(EmbedFieldBuilder: Debug, Send, Sync);
+    assert_impl_all!(EmbedFieldBuilder: Clone, Debug, Eq, PartialEq, Send, Sync);
     assert_impl_all!(EmbedField: From<EmbedFieldBuilder>);
 
     #[test]
