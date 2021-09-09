@@ -2375,6 +2375,7 @@ impl Client {
                 hyper::header::ACCEPT_ENCODING,
                 HeaderValue::from_static("br"),
             );
+
             headers.insert(USER_AGENT, user_agent);
 
             if let Some(req_headers) = req_headers {

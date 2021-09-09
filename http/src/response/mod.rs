@@ -112,12 +112,14 @@ impl Display for DeserializeBodyError {
             &DeserializeBodyErrorType::BodyNotUtf8 { .. } => {
                 f.write_str("response body is not a utf-8 valid string")
             }
-            DeserializeBodyErrorType::Chunking => f.write_str("failed to chunk response body"),
+            DeserializeBodyErrorType::Chunking { .. } => {
+                f.write_str("failed to chunk response body")
+            }
             #[cfg(feature = "compression")]
-            DeserializeBodyErrorType::Decompressing => {
+            DeserializeBodyErrorType::Decompressing { .. } => {
                 f.write_str("failed to decompress response body")
             }
-            DeserializeBodyErrorType::Deserializing => {
+            DeserializeBodyErrorType::Deserializing { .. } => {
                 f.write_str("failed to deserialize response body")
             }
         }
@@ -256,7 +258,7 @@ impl<T> Response<T> {
 
                     let mut buf = Vec::with_capacity(256);
                     brotli::Decompressor::new(
-                        hyper::body::aggregate(body)
+                        body::aggregate(body)
                             .await
                             .map_err(|source| DeserializeBodyError {
                                 kind: DeserializeBodyErrorType::Chunking,
