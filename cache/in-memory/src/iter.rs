@@ -279,7 +279,7 @@ mod tests {
         let mut actual = cache.iter().users().map(|user| user.id).collect::<Vec<_>>();
         actual.sort_unstable();
 
-        let expected = users.into_iter().map(|(id, _)| *id).collect::<Vec<_>>();
+        let expected = users.iter().map(|(id, _)| *id).collect::<Vec<_>>();
 
         assert_eq!(actual, expected);
     }
