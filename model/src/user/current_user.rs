@@ -7,10 +7,6 @@ pub struct CurrentUser {
     /// Accent color of the user's banner.
     ///
     /// This is an integer representation of a hexadecimal color code.
-    ///
-    /// This is exclusive with [`banner`].
-    ///
-    /// [`banner`]: Self::banner
     pub accent_color: Option<u64>,
     /// User's avatar hash.
     ///
@@ -20,10 +16,6 @@ pub struct CurrentUser {
     /// [Discord's documentation]: https://discord.com/developers/docs/reference#image-formatting
     pub avatar: Option<String>,
     /// Hash of the user's banner image.
-    ///
-    /// This is exclusive with [`accent_color`].
-    ///
-    /// [`accent_color`]: Self::accent_color
     pub banner: Option<String>,
     /// Whether the user belongs to an OAuth2 application.
     #[serde(default)]

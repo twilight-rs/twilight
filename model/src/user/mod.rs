@@ -54,17 +54,9 @@ pub struct User {
     /// Accent color of the user's banner.
     ///
     /// This is an integer representation of a hexadecimal color code.
-    ///
-    /// This is exclusive with [`banner`].
-    ///
-    /// [`banner`]: Self::banner
     pub accent_color: Option<u64>,
     pub avatar: Option<String>,
     /// Hash of the user's banner image.
-    ///
-    /// This is exclusive with [`accent_color`].
-    ///
-    /// [`accent_color`]: Self::accent_color
     pub banner: Option<String>,
     #[serde(default)]
     pub bot: bool,
