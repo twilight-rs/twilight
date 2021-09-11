@@ -563,7 +563,7 @@ impl InMemoryCache {
         self.members.get(&(guild_id, user_id)).map(Reference::new)
     }
 
-    /// Gets a message by channel ID and message ID.
+    /// Gets a message by ID.
     ///
     /// This requires one or both of the [`GUILD_MESSAGES`] or
     /// [`DIRECT_MESSAGES`] intents.
