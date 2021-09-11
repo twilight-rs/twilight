@@ -372,11 +372,7 @@ impl Standby {
     /// let standby = Standby::new();
     ///
     /// let ready = standby.wait_for_event(|event: &Event| {
-    ///     if let Event::Ready(ready) = event {
-    ///         ready.shard.map(|[id, _]| id == 5).unwrap_or(false)
-    ///     } else {
-    ///         false
-    ///     }
+    ///     matches!(event, Event::Ready(ready) if ready.shard[0] == 5)
     /// }).await?;
     /// # Ok(()) }
     /// ```
@@ -425,11 +421,7 @@ impl Standby {
     /// let standby = Standby::new();
     ///
     /// let mut events = standby.wait_for_event_stream(|event: &Event| {
-    ///     if let Event::Ready(ready) = event {
-    ///         ready.shard.map(|[id, _]| id == 5).unwrap_or(false)
-    ///     } else {
-    ///         false
-    ///     }
+    ///     matches!(event, Event::Ready(ready) if ready.shard[0] == 5)
     /// });
     ///
     /// while let Some(event) = events.next().await {
@@ -1083,7 +1075,7 @@ mod tests {
             },
             guilds: Vec::new(),
             session_id: String::new(),
-            shard: Some([5, 7]),
+            shard: [5, 7],
             user: CurrentUser {
                 accent_color: None,
                 avatar: None,
@@ -1105,10 +1097,9 @@ mod tests {
         let event = Event::Ready(Box::new(ready));
 
         let standby = Standby::new();
-        let wait = standby.wait_for_event(|event: &Event| match event {
-            Event::Ready(ready) => ready.shard.map(|[id, _]| id == 5).unwrap_or(false),
-            _ => false,
-        });
+        let wait = standby.wait_for_event(
+            |event: &Event| matches!(event, Event::Ready(ready) if ready.shard[0] == 5),
+        );
         assert!(!standby.events.is_empty());
         standby.process(&event);
 

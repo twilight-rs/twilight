@@ -6,8 +6,14 @@ pub struct Ready {
     pub application: PartialApplication,
     pub guilds: Vec<UnavailableGuild>,
     pub session_id: String,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub shard: Option<[u64; 2]>,
+    /// Two-element array where the first element is the 0-indexed ID of the
+    /// current shard and the 1-indexed total number of shards used by the
+    /// session.
+    ///
+    /// For example, if you have 5 shards and create a session with shard 3 then
+    /// it is the second-to-last shard in the set. This array value would be
+    /// `[3, 5]`.
+    pub shard: [u64; 2],
     pub user: CurrentUser,
     #[serde(rename = "v")]
     pub version: u64,
@@ -45,7 +51,7 @@ mod tests {
             },
             guilds,
             session_id: "foo".to_owned(),
-            shard: Some([4, 7]),
+            shard: [4, 7],
             user: CurrentUser {
                 accent_color: None,
                 avatar: None,
@@ -111,7 +117,6 @@ mod tests {
                 Token::Str("session_id"),
                 Token::Str("foo"),
                 Token::Str("shard"),
-                Token::Some,
                 Token::Tuple { len: 2 },
                 Token::U64(4),
                 Token::U64(7),
