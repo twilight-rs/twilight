@@ -2,7 +2,7 @@
 
 use super::{
     BaseCommandOptionData, ChoiceCommandOptionData, Command, CommandOption, CommandOptionChoice,
-    OptionsCommandOptionData,
+    CommandType, OptionsCommandOptionData,
 };
 use crate::id::{ApplicationId, CommandId, GuildId};
 
@@ -10,22 +10,27 @@ use crate::id::{ApplicationId, CommandId, GuildId};
 ///
 /// # Examples
 /// ```
-/// use twilight_model::application::command::builder::{
-/// BooleanBuilder, CommandBuilder, StringBuilder,
+/// use twilight_model::application::command::{
+///     builder::{BooleanBuilder, CommandBuilder, StringBuilder},
+///     CommandType,
 /// };
 ///
-/// CommandBuilder::new("blep", "Send a random adorable animal photo")
-///     .option(
-///         StringBuilder::new("animal", "The type of animal")
-///             .required(true)
-///             .choice("Dog", "animal_dog")
-///             .choice("Cat", "animal_cat")
-///             .choice("Penguin", "animal_penguin"),
-///     )
-///     .option(BooleanBuilder::new(
-///         "only_smol",
-///         "Whether to show only baby animals",
-///     ));
+/// CommandBuilder::new(
+///     "blep",
+///     "Send a random adorable animal photo",
+///     CommandType::ChatInput,
+/// )
+/// .option(
+///     StringBuilder::new("animal", "The type of animal")
+///         .required(true)
+///         .choice("Dog", "animal_dog")
+///         .choice("Cat", "animal_cat")
+///         .choice("Penguin", "animal_penguin"),
+/// )
+/// .option(BooleanBuilder::new(
+///     "only_smol",
+///     "Whether to show only baby animals",
+/// ));
 /// ```
 #[derive(Clone, Debug)]
 pub struct CommandBuilder(Command);
@@ -50,18 +55,19 @@ impl CommandBuilder {
     pub const OPTIONS_CHOICES_LIMIT: usize = 25;
 
     /// Create a new default [`Command`] builder.
-    pub fn new(name: impl Into<String>, description: impl Into<String>) -> Self {
-        Self::_new(name.into(), description.into())
+    pub fn new(name: impl Into<String>, description: impl Into<String>, kind: CommandType) -> Self {
+        Self::_new(name.into(), description.into(), kind)
     }
 
-    const fn _new(name: String, description: String) -> Self {
+    const fn _new(name: String, description: String, kind: CommandType) -> Self {
         Self(Command {
             application_id: None,
-            guild_id: None,
-            name,
             default_permission: None,
             description,
+            guild_id: None,
             id: None,
+            kind,
+            name,
             options: Vec::new(),
         })
     }
@@ -543,6 +549,7 @@ mod tests {
         let command = CommandBuilder::new(
             "permissions",
             "Get or edit permissions for a user or a role",
+            CommandType::ChatInput,
         )
         .option(
             SubCommandGroupBuilder::new("user", "Get or edit permissions for a user")
@@ -591,6 +598,7 @@ mod tests {
         let command_manual = Command {
             application_id: None,
             guild_id: None,
+            kind: CommandType::ChatInput,
             name: String::from("permissions"),
             default_permission: None,
             description: String::from("Get or edit permissions for a user or a role"),
