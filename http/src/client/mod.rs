@@ -2311,7 +2311,7 @@ impl Client {
     /// println!("{:#?}", sticker);
     /// # Ok(()) }
     /// ```
-    pub fn sticker<'a>(&'a self, sticker_id: StickerId) -> GetSticker<'a> {
+    pub const fn sticker(&self, sticker_id: StickerId) -> GetSticker<'_> {
         GetSticker::new(self, sticker_id)
     }
 
@@ -2331,7 +2331,7 @@ impl Client {
     /// println!("{}", packs.sticker_packs.len());
     /// # Ok(()) }
     /// ```
-    pub fn nitro_sticker_packs<'a>(&'a self) -> GetNitroStickerPacks<'a> {
+    pub const fn nitro_sticker_packs(&self) -> GetNitroStickerPacks<'_> {
         GetNitroStickerPacks::new(self)
     }
 
@@ -2361,7 +2361,7 @@ impl Client {
     /// println!("{}", stickers.len());
     /// # Ok(()) }
     /// ```
-    pub fn guild_stickers<'a>(&'a self, guild_id: GuildId) -> GetGuildStickers<'a> {
+    pub const fn guild_stickers(&self, guild_id: GuildId) -> GetGuildStickers<'_> {
         GetGuildStickers::new(self, guild_id)
     }
 
@@ -2392,11 +2392,11 @@ impl Client {
     /// println!("{:#?}", sticker);
     /// # Ok(()) }
     /// ```
-    pub fn guild_sticker<'a>(
-        &'a self,
+    pub const fn guild_sticker(
+        &self,
         guild_id: GuildId,
         sticker_id: StickerId,
-    ) -> GetGuildSticker<'a> {
+    ) -> GetGuildSticker<'_> {
         GetGuildSticker::new(self, guild_id, sticker_id)
     }
 
@@ -2439,7 +2439,7 @@ impl Client {
         description: &'a str,
         tags: &'a str,
         file: &'a [u8],
-    ) -> Result<CreateGuildSticker<'a>, StickerValidationError> {
+    ) -> Result<CreateGuildSticker<'_>, StickerValidationError> {
         CreateGuildSticker::new(self, guild_id, name, description, tags, file)
     }
 
@@ -2471,11 +2471,11 @@ impl Client {
     /// println!("{:#?}", sticker);
     /// # Ok(()) }
     /// ```
-    pub fn update_guild_sticker<'a>(
-        &'a self,
+    pub const fn update_guild_sticker(
+        &self,
         guild_id: GuildId,
         sticker_id: StickerId,
-    ) -> UpdateGuildSticker<'a> {
+    ) -> UpdateGuildSticker<'_> {
         UpdateGuildSticker::new(self, guild_id, sticker_id)
     }
 
@@ -2503,11 +2503,11 @@ impl Client {
     ///     .await?;
     /// # Ok(()) }
     /// ```
-    pub fn delete_guild_sticker<'a>(
-        &'a self,
+    pub const fn delete_guild_sticker(
+        &self,
         guild_id: GuildId,
         sticker_id: StickerId,
-    ) -> DeleteGuildSticker<'a> {
+    ) -> DeleteGuildSticker<'_> {
         DeleteGuildSticker::new(self, guild_id, sticker_id)
     }
 

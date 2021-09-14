@@ -38,7 +38,7 @@ pub struct GetGuildStickers<'a> {
 }
 
 impl<'a> GetGuildStickers<'a> {
-    pub(crate) fn new(http: &'a Client, guild_id: GuildId) -> Self {
+    pub(crate) const fn new(http: &'a Client, guild_id: GuildId) -> Self {
         Self { guild_id, http }
     }
 

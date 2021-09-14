@@ -352,16 +352,6 @@ impl Display for RouteDisplay<'_> {
 
                 Display::fmt(integration_id, f)
             }
-            Route::DeleteGuildSticker {
-                guild_id,
-                sticker_id,
-            } => {
-                f.write_str("guilds/")?;
-                Display::fmt(guild_id, f)?;
-                f.write_str("/stickers/")?;
-
-                Display::fmt(sticker_id, f)
-            }
             Route::DeleteInteractionOriginal {
                 application_id,
                 interaction_token,
@@ -715,6 +705,11 @@ impl Display for RouteDisplay<'_> {
                 Ok(())
             }
             Route::GetGuildSticker {
+                guild_id,
+                sticker_id,
+                ..
+            }
+            | Route::DeleteGuildSticker {
                 guild_id,
                 sticker_id,
                 ..

@@ -1152,8 +1152,7 @@ pub fn sticker_description(value: impl AsRef<str>) -> bool {
 fn _sticker_description(value: &str) -> bool {
     let len = value.chars().count();
 
-    len >= StickerValidationError::DESCRIPTION_MIN_LENGTH
-        && len <= StickerValidationError::DESCRIPTION_MAX_LENGTH
+    (StickerValidationError::DESCRIPTION_MIN_LENGTH..=StickerValidationError::DESCRIPTION_MAX_LENGTH).contains(&len)
 }
 
 pub fn sticker_name(value: impl AsRef<str>) -> bool {
@@ -1163,7 +1162,7 @@ pub fn sticker_name(value: impl AsRef<str>) -> bool {
 fn _sticker_name(value: &str) -> bool {
     let len = value.chars().count();
 
-    len >= StickerValidationError::NAME_MIN_LENGTH && len <= StickerValidationError::NAME_MAX_LENGTH
+    (StickerValidationError::NAME_MIN_LENGTH..=StickerValidationError::NAME_MAX_LENGTH).contains(&len)
 }
 
 pub fn sticker_tags(value: impl AsRef<str>) -> bool {
@@ -1173,7 +1172,7 @@ pub fn sticker_tags(value: impl AsRef<str>) -> bool {
 fn _sticker_tags(value: &str) -> bool {
     let len = value.chars().count();
 
-    len >= StickerValidationError::TAGS_MIN_LENGTH && len <= StickerValidationError::TAGS_MAX_LENGTH
+    (StickerValidationError::TAGS_MIN_LENGTH..=StickerValidationError::TAGS_MAX_LENGTH).contains(&len)
 }
 
 /// Validate the number of guild command permission overwrites.
