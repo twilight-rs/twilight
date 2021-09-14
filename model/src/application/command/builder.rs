@@ -443,15 +443,11 @@ impl SubCommandGroupBuilder {
         CommandOption::SubCommandGroup(self.0)
     }
 
-    /// Add an option to the sub command group.
+    /// Add a sub command option to the sub command group.
     ///
     /// Defaults to an empty list.
-    pub fn option(self, option: impl Into<CommandOption>) -> Self {
-        self._option(option.into())
-    }
-
-    fn _option(mut self, option: CommandOption) -> Self {
-        self.0.options.push(option);
+    pub fn option(mut self, option: SubCommandBuilder) -> Self {
+        self.0.options.push(option.into());
 
         self
     }
