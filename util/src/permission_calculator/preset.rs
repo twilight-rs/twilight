@@ -14,6 +14,7 @@ pub const PERMISSIONS_MESSAGING: Permissions = Permissions::from_bits_truncate(
 
 /// Permissions associated with a guild only at the root level (i.e. not channel
 /// related).
+#[allow(deprecated)]
 pub const PERMISSIONS_ROOT_ONLY: Permissions = Permissions::from_bits_truncate(
     Permissions::ADMINISTRATOR.bits()
         | Permissions::BAN_MEMBERS.bits()

@@ -27,10 +27,16 @@ use crate::{
             stage::create_stage_instance::CreateStageInstanceError,
         },
         guild::{
-            create_guild::CreateGuildError, create_guild_channel::CreateGuildChannelError,
+            create_guild::CreateGuildError,
+            create_guild_channel::CreateGuildChannelError,
+            sticker::{
+                CreateGuildSticker, DeleteGuildSticker, GetGuildSticker, GetGuildStickers,
+                StickerValidationError, UpdateGuildSticker,
+            },
             update_guild_channel_positions::Position,
         },
         prelude::*,
+        sticker::{GetNitroStickerPacks, GetSticker},
         GetUserApplicationInfo, Method, Request,
     },
     response::{future::InvalidToken, ResponseFuture},
@@ -56,7 +62,7 @@ use twilight_model::{
         callback::InteractionResponse,
         command::{permissions::CommandPermissions, Command},
     },
-    channel::message::allowed_mentions::AllowedMentions,
+    channel::message::{allowed_mentions::AllowedMentions, sticker::StickerId},
     guild::Permissions,
     id::{
         ApplicationId, ChannelId, CommandId, EmojiId, GuildId, IntegrationId, InteractionId,
@@ -2285,6 +2291,220 @@ impl Client {
         })?;
 
         SetCommandPermissions::new(self, application_id, guild_id, permissions)
+    }
+
+    /// Returns a single sticker by its ID.
+    ///
+    /// # Examples
+    ///
+    /// ```rust,no_run
+    /// use twilight_http::Client;
+    ///
+    /// # #[tokio::main]
+    /// # async fn main() -> Result<(), Box<dyn std::error::Error>> {
+    /// let client = Client::new("my token".to_owned());
+    ///
+    /// let id = StickerId(123);
+    /// let sticker = client.sticker(id).exec().await?.model().await?;
+    ///
+    /// println!("{:#?}", sticker);
+    /// # Ok(()) }
+    /// ```
+    pub fn sticker<'a>(&'a self, sticker_id: StickerId) -> GetSticker<'a> {
+        GetSticker::new(self, sticker_id)
+    }
+
+    /// Returns a list of sticker packs available to Nitro subscribers.
+    ///
+    /// # Examples
+    ///
+    /// ```rust,no_run
+    /// use twilight_http::Client;
+    ///
+    /// # #[tokio::main]
+    /// # async fn main() -> Result<(), Box<dyn std::error::Error>> {
+    /// let client = Client::new("my token".to_owned());
+    ///
+    /// let packs = client.nitro_sticker_packs().exec().await?.models().await?;
+    ///
+    /// println!("{}", packs.len());
+    /// # Ok(()) }
+    /// ```
+    pub fn nitro_sticker_packs<'a>(&'a self) -> GetNitroStickerPacks<'a> {
+        GetNitroStickerPacks::new(self)
+    }
+
+    /// Returns a list of stickers in a guild.
+    ///
+    /// # Examples
+    ///
+    /// ```rust,no_run
+    /// use twilight_http::Client;
+    /// use twilight_model::id::GuildId;
+    ///
+    /// # #[tokio::main]
+    /// # async fn main() -> Result<(), Box<dyn std::error::Error>> {
+    /// let client = Client::new("my token".to_owned());
+    ///
+    /// let guild_id = GuildId(1);
+    /// let stickers = client
+    ///     .guild_stickers(guild_id)
+    ///     .exec()
+    ///     .await?
+    ///     .models()
+    ///     .await?;
+    ///
+    /// println!("{}", stickers.len());
+    /// # Ok(()) }
+    /// ```
+    pub fn guild_stickers<'a>(&'a self, guild_id: GuildId) -> GetGuildStickers<'a> {
+        GetGuildStickers::new(self, guild_id)
+    }
+
+    /// Returns a guild sticker by the guild's ID and the sticker's ID.
+    ///
+    /// # Examples
+    ///
+    /// ```rust,no_run
+    /// use twilight_http::Client;
+    /// use twilight_model::{
+    ///     channel::message::sticker::StickerId,
+    ///     id::GuildId,
+    /// };
+    ///
+    /// # #[tokio::main]
+    /// # async fn main() -> Result<(), Box<dyn std::error::Error>> {
+    /// let client = Client::new("my token".to_owned());
+    ///
+    /// let guild_id = GuildId(1);
+    /// let sticker_id = StickerId(2);
+    /// let sticker = client
+    ///     .guild_sticker(guild_id, sticker_id)
+    ///     .exec()
+    ///     .await?
+    ///     .models()
+    ///     .await?;
+    ///
+    /// println!("{:#?}", sticker);
+    /// # Ok(()) }
+    /// ```
+    pub fn guild_sticker<'a>(
+        &'a self,
+        guild_id: GuildId,
+        sticker_id: StickerId,
+    ) -> GetGuildSticker<'a> {
+        GetGuildSticker::new(self, guild_id, sticker_id)
+    }
+
+    /// Creates a sticker in a guild, and returns the created sticker.
+    ///
+    /// # Examples
+    ///
+    /// ```rust,no_run
+    /// use twilight_http::Client;
+    /// use twilight_model::{
+    ///     channel::message::sticker::StickerId,
+    ///     id::GuildId,
+    /// };
+    ///
+    /// # #[tokio::main]
+    /// # async fn main() -> Result<(), Box<dyn std::error::Error>> {
+    /// let client = Client::new("my token".to_owned());
+    ///
+    /// let guild_id = GuildId(1);
+    /// let sticker = client
+    ///     .create_guild_sticker(
+    ///         guild_id,
+    ///         &"sticker name",
+    ///         &"sticker description",
+    ///         &"sticker,tags",
+    ///         &[23,23,23,23]
+    ///     )?
+    ///     .exec()
+    ///     .await?
+    ///     .models()
+    ///     .await?;
+    ///
+    /// println!("{:#?}", sticker);
+    /// # Ok(()) }
+    /// ```
+    pub fn create_guild_sticker<'a>(
+        &'a self,
+        guild_id: GuildId,
+        name: &'a str,
+        description: &'a str,
+        tags: &'a str,
+        file: &'a [u8],
+    ) -> Result<CreateGuildSticker<'a>, StickerValidationError> {
+        CreateGuildSticker::new(self, guild_id, name, description, tags, file)
+    }
+
+    /// Updates a sticker in a guild, and returns the updated sticker.
+    ///
+    /// # Examples
+    ///
+    /// ```rust,no_run
+    /// use twilight_http::Client;
+    /// use twilight_model::{
+    ///     channel::message::sticker::StickerId,
+    ///     id::GuildId,
+    /// };
+    ///
+    /// # #[tokio::main]
+    /// # async fn main() -> Result<(), Box<dyn std::error::Error>> {
+    /// let client = Client::new("my token".to_owned());
+    ///
+    /// let guild_id = GuildId(1);
+    /// let sticker_id = StickerId(2);
+    /// let sticker = client
+    ///     .update_guild_sticker(guild_id, sticker_id)
+    ///     .description("new description")?
+    ///     .exec()
+    ///     .await?
+    ///     .models()
+    ///     .await?;
+    ///
+    /// println!("{:#?}", sticker);
+    /// # Ok(()) }
+    /// ```
+    pub fn update_guild_sticker<'a>(
+        &'a self,
+        guild_id: GuildId,
+        sticker_id: StickerId,
+    ) -> UpdateGuildSticker<'a> {
+        UpdateGuildSticker::new(self, guild_id, sticker_id)
+    }
+
+    /// Deletes a guild sticker by the ID of the guild and its ID.
+    ///
+    /// # Examples
+    ///
+    /// ```rust,no_run
+    /// use twilight_http::Client;
+    /// use twilight_model::{
+    ///     channel::message::sticker::StickerId,
+    ///     id::GuildId,
+    /// };
+    ///
+    /// # #[tokio::main]
+    /// # async fn main() -> Result<(), Box<dyn std::error::Error>> {
+    /// let client = Client::new("my token".to_owned());
+    ///
+    /// let guild_id = GuildId(1);
+    /// let sticker_id = StickerId(2);
+    ///
+    /// client
+    ///     .delete_guild_sticker(guild_id, sticker_id)
+    ///     .exec()
+    ///     .await?;
+    /// # Ok(()) }
+    /// ```
+    pub fn delete_guild_sticker<'a>(
+        &'a self,
+        guild_id: GuildId,
+        sticker_id: StickerId,
+    ) -> DeleteGuildSticker<'a> {
+        DeleteGuildSticker::new(self, guild_id, sticker_id)
     }
 
     /// Execute a request, returning a future resolving to a [`Response`].

@@ -5,49 +5,50 @@ use std::{
     fmt::{Display, Formatter, Result as FmtResult},
 };
 
-/// Format type of a [Sticker][`super::Sticker`].
+/// Type of a [`Sticker`].
+///
+/// [`Sticker`]: super::Sticker
 #[derive(
     Clone, Copy, Debug, Deserialize_repr, Eq, Hash, Ord, PartialEq, PartialOrd, Serialize_repr,
 )]
 #[repr(u8)]
-pub enum StickerFormatType {
-    /// Sticker format is a PNG.
-    Png = 1,
-    /// Sticker format is an APNG.
-    Apng = 2,
-    /// Sticker format is a LOTTIE.
-    Lottie = 3,
+pub enum StickerType {
+    /// Official sticker in a pack.
+    ///
+    /// Part of nitro or in a removed purchasable pack.
+    Standard = 1,
+    /// Sticker uploaded to a boosted guild for the guild's members.
+    Guild = 2,
 }
 
-impl TryFrom<u8> for StickerFormatType {
-    type Error = StickerFormatTypeConversionError;
+impl TryFrom<u8> for StickerType {
+    type Error = StickerTypeConversionError;
 
     fn try_from(value: u8) -> Result<Self, Self::Error> {
         Ok(match value {
-            1 => StickerFormatType::Png,
-            2 => StickerFormatType::Apng,
-            3 => StickerFormatType::Lottie,
-            _ => return Err(StickerFormatTypeConversionError { value }),
+            1 => StickerType::Standard,
+            2 => StickerType::Guild,
+            _ => return Err(StickerTypeConversionError { value }),
         })
     }
 }
 
-/// Converting into a [`StickerFormatType`] failed.
+/// Converting into a [`StickerType`] failed.
 ///
 /// This occurs only when the input value doesn't map to a sticker type variant.
 #[derive(Clone, Debug, Eq, PartialEq)]
-pub struct StickerFormatTypeConversionError {
+pub struct StickerTypeConversionError {
     value: u8,
 }
 
-impl<'a> StickerFormatTypeConversionError {
+impl<'a> StickerTypeConversionError {
     /// Retrieve a copy of the input value that couldn't be parsed.
     pub const fn value(&self) -> u8 {
         self.value
     }
 }
 
-impl Display for StickerFormatTypeConversionError {
+impl Display for StickerTypeConversionError {
     fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
         f.write_str("Value (")?;
         Display::fmt(&self.value, f)?;
@@ -56,34 +57,23 @@ impl Display for StickerFormatTypeConversionError {
     }
 }
 
-impl Error for StickerFormatTypeConversionError {}
+impl Error for StickerTypeConversionError {}
 
 #[cfg(test)]
 mod tests {
-    use super::StickerFormatType;
+    use super::StickerType;
     use serde_test::Token;
     use std::convert::TryFrom;
 
     #[test]
     fn test_variants() {
-        serde_test::assert_tokens(&StickerFormatType::Png, &[Token::U8(1)]);
-        serde_test::assert_tokens(&StickerFormatType::Apng, &[Token::U8(2)]);
-        serde_test::assert_tokens(&StickerFormatType::Lottie, &[Token::U8(3)]);
+        serde_test::assert_tokens(&StickerType::Standard, &[Token::U8(1)]);
+        serde_test::assert_tokens(&StickerType::Guild, &[Token::U8(2)]);
     }
 
     #[test]
     fn test_conversions() {
-        assert_eq!(
-            StickerFormatType::try_from(1).unwrap(),
-            StickerFormatType::Png
-        );
-        assert_eq!(
-            StickerFormatType::try_from(2).unwrap(),
-            StickerFormatType::Apng
-        );
-        assert_eq!(
-            StickerFormatType::try_from(3).unwrap(),
-            StickerFormatType::Lottie
-        );
+        assert_eq!(StickerType::try_from(1).unwrap(), StickerType::Standard);
+        assert_eq!(StickerType::try_from(2).unwrap(), StickerType::Guild);
     }
 }

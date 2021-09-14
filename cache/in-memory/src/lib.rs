@@ -103,7 +103,7 @@ use std::{
     sync::{Arc, Mutex},
 };
 use twilight_model::{
-    channel::{Group, GuildChannel, PrivateChannel, StageInstance},
+    channel::{message::sticker::StickerId, Group, GuildChannel, PrivateChannel, StageInstance},
     gateway::event::Event,
     guild::{GuildIntegration, Role},
     id::{ChannelId, EmojiId, GuildId, IntegrationId, MessageId, RoleId, StageId, UserId},
@@ -163,12 +163,14 @@ struct InMemoryCacheRef {
     guild_presences: DashMap<GuildId, HashSet<UserId>>,
     guild_roles: DashMap<GuildId, HashSet<RoleId>>,
     guild_stage_instances: DashMap<GuildId, HashSet<StageId>>,
+    guild_stickers: DashMap<GuildId, HashSet<StickerId>>,
     integrations: DashMap<(GuildId, IntegrationId), GuildItem<GuildIntegration>>,
     members: DashMap<(GuildId, UserId), CachedMember>,
     messages: DashMap<ChannelId, VecDeque<CachedMessage>>,
     presences: DashMap<(GuildId, UserId), CachedPresence>,
     roles: DashMap<RoleId, GuildItem<Role>>,
     stage_instances: DashMap<StageId, GuildItem<StageInstance>>,
+    stickers: DashMap<StickerId, GuildItem<CachedSticker>>,
     unavailable_guilds: DashSet<GuildId>,
     users: DashMap<UserId, User>,
     user_guilds: DashMap<UserId, BTreeSet<GuildId>>,
@@ -265,11 +267,13 @@ impl InMemoryCache {
         self.0.guild_presences.clear();
         self.0.guild_roles.clear();
         self.0.guild_stage_instances.clear();
+        self.0.guild_stickers.clear();
         self.0.integrations.clear();
         self.0.members.clear();
         self.0.messages.clear();
         self.0.presences.clear();
         self.0.roles.clear();
+        self.0.stickers.clear();
         self.0.unavailable_guilds.clear();
         self.0.users.clear();
         self.0.voice_state_channels.clear();

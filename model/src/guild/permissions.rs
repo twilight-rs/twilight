@@ -37,9 +37,11 @@ bitflags! {
         const MANAGE_NICKNAMES = 0x0800_0000;
         const MANAGE_ROLES = 0x1000_0000;
         const MANAGE_WEBHOOKS = 0x2000_0000;
+        #[deprecated(note = "will be renamed to MANAGE_EMOJIS_AND_STICKERS", since = "0.6.4")]
         const MANAGE_EMOJIS = 0x4000_0000;
         const USE_SLASH_COMMANDS = 0x8000_0000;
         const REQUEST_TO_SPEAK = 0x10000_0000;
+        const USE_EXTERNAL_STICKERS = 0x20000_0000;
     }
 }
 

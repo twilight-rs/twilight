@@ -190,6 +190,13 @@ impl Display for RouteDisplay<'_> {
 
                 Ok(())
             }
+            Route::CreateGuildSticker { guild_id, .. }
+            | Route::GetGuildStickers { guild_id, .. } => {
+                f.write_str("guilds/")?;
+                Display::fmt(guild_id, f)?;
+
+                f.write_str("/stickers")
+            }
             Route::CreateInvite { channel_id } | Route::GetChannelInvites { channel_id } => {
                 f.write_str("channels/")?;
                 Display::fmt(channel_id, f)?;
@@ -344,6 +351,16 @@ impl Display for RouteDisplay<'_> {
                 f.write_str("/integrations/")?;
 
                 Display::fmt(integration_id, f)
+            }
+            Route::DeleteGuildSticker {
+                guild_id,
+                sticker_id,
+            } => {
+                f.write_str("guilds/")?;
+                Display::fmt(guild_id, f)?;
+                f.write_str("/stickers/")?;
+
+                Display::fmt(sticker_id, f)
             }
             Route::DeleteInteractionOriginal {
                 application_id,
@@ -697,6 +714,22 @@ impl Display for RouteDisplay<'_> {
 
                 Ok(())
             }
+            Route::GetGuildSticker {
+                guild_id,
+                sticker_id,
+                ..
+            }
+            | Route::UpdateGuildSticker {
+                guild_id,
+                sticker_id,
+                ..
+            } => {
+                f.write_str("guilds/")?;
+                Display::fmt(guild_id, f)?;
+                f.write_str("/stickers/")?;
+
+                Display::fmt(sticker_id, f)
+            }
             Route::GetGuildVanityUrl { guild_id } => {
                 f.write_str("guilds/")?;
                 Display::fmt(guild_id, f)?;
@@ -814,6 +847,7 @@ impl Display for RouteDisplay<'_> {
 
                 Ok(())
             }
+            Route::GetNitroStickerPacks { .. } => f.write_str("sticker-packs"),
             Route::GetPins { channel_id } => {
                 f.write_str("channels/")?;
                 Display::fmt(channel_id, f)?;
@@ -846,6 +880,11 @@ impl Display for RouteDisplay<'_> {
                 }
 
                 Ok(())
+            }
+            Route::GetSticker { sticker_id } => {
+                f.write_str("stickers/")?;
+
+                Display::fmt(sticker_id, f)
             }
             Route::GetUserConnections => f.write_str("users/@me/connections"),
             Route::GetUser { user_id } => {

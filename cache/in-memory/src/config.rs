@@ -34,6 +34,8 @@ bitflags! {
         const STAGE_INSTANCE = 1 << 11;
         /// Information relating to guild integrations.
         const INTEGRATION = 1 << 12;
+        /// Information relating to guild stickers.
+        const STICKER = 1 << 13;
     }
 }
 
@@ -109,6 +111,7 @@ mod tests {
         assert_eq!(1 << 9, ResourceType::USER.bits());
         assert_eq!(1 << 10, ResourceType::VOICE_STATE.bits());
         assert_eq!(1 << 11, ResourceType::STAGE_INSTANCE.bits());
+        assert_eq!(1 << 13, ResourceType::STICKER.bits());
     }
 
     #[test]

@@ -2,6 +2,7 @@ pub mod application;
 pub mod channel;
 pub mod guild;
 pub mod prelude;
+pub mod sticker;
 pub mod template;
 pub mod user;
 

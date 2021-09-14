@@ -27,6 +27,7 @@ mod private {
             integration::DeleteGuildIntegration,
             member::{AddRoleToMember, RemoveMember, RemoveRoleFromMember, UpdateGuildMember},
             role::{CreateRole, DeleteRole, UpdateRole},
+            sticker::{CreateGuildSticker, UpdateGuildSticker},
             CreateGuildChannel, CreateGuildPrune, UpdateGuild,
         },
     };
@@ -62,6 +63,8 @@ mod private {
     impl<'a> Sealed for CreateRole<'a> {}
     impl<'a> Sealed for DeleteRole<'a> {}
     impl<'a> Sealed for UpdateRole<'a> {}
+    impl<'a> Sealed for CreateGuildSticker<'a> {}
+    impl<'a> Sealed for UpdateGuildSticker<'a> {}
     impl<'a> Sealed for UpdateGuild<'a> {}
     impl Sealed for UpdateWebhookMessage<'_> {}
 }
@@ -153,6 +156,7 @@ mod test {
             integration::DeleteGuildIntegration,
             member::{AddRoleToMember, RemoveMember, RemoveRoleFromMember, UpdateGuildMember},
             role::{CreateRole, DeleteRole, UpdateRole},
+            sticker::{CreateGuildSticker, UpdateGuildSticker},
             CreateGuildChannel, CreateGuildPrune, UpdateGuild,
         },
     };
@@ -188,5 +192,7 @@ mod test {
     assert_impl_all!(CreateRole<'_>: AuditLogReason<'static>);
     assert_impl_all!(DeleteRole<'_>: AuditLogReason<'static>);
     assert_impl_all!(UpdateRole<'_>: AuditLogReason<'static>);
+    assert_impl_all!(CreateGuildSticker<'_>: AuditLogReason<'static>);
+    assert_impl_all!(UpdateGuildSticker<'_>: AuditLogReason<'static>);
     assert_impl_all!(UpdateGuild<'_>: AuditLogReason<'static>);
 }

@@ -8,6 +8,7 @@ pub mod get_guild_prune_count;
 pub mod integration;
 pub mod member;
 pub mod role;
+pub mod sticker;
 pub mod update_guild;
 pub mod update_guild_channel_positions;
 pub mod user;

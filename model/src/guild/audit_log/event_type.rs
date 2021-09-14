@@ -171,6 +171,18 @@ pub enum AuditLogEventType {
     ///
     /// [Stage instance]: crate::channel::stage_instance::StageInstance
     StageInstanceDelete = 85,
+    /// [Sticker] was created.
+    ///
+    /// [Sticker]: crate::channel::message::sticker::Sticker
+    StickerCreate = 90,
+    /// [Sticker] was updated.
+    ///
+    /// [Sticker]: crate::channel::message::sticker::Sticker
+    StickerUpdate = 91,
+    /// [Sticker] was deleted.
+    ///
+    /// [Sticker]: crate::channel::message::sticker::Sticker
+    StickerDelete = 92,
 }
 
 #[cfg(test)]

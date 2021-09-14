@@ -143,6 +143,7 @@ pub enum Path {
     GuildsIdRegions(u64),
     GuildsIdRoles(u64),
     GuildsIdRolesId(u64),
+    GuildsIdStickers(u64),
     GuildsIdTemplates(u64),
     GuildsIdTemplatesCode(u64),
     GuildsIdVanityUrl(u64),
@@ -153,6 +154,8 @@ pub enum Path {
     /// Operating on an interaction's callback.
     InteractionCallback(u64),
     StageInstances,
+    StickerPacks,
+    Stickers,
     UsersId,
     OauthApplicationsMe,
     UsersIdConnections,
@@ -279,6 +282,9 @@ impl FromStr for Path {
             ["guilds", id, "regions"] => GuildsIdRegions(parse_id(id)?),
             ["guilds", id, "roles"] => GuildsIdRoles(parse_id(id)?),
             ["guilds", id, "roles", _] => GuildsIdRolesId(parse_id(id)?),
+            ["guilds", id, "stickers"] | ["guilds", id, "stickers", _] => {
+                GuildsIdStickers(parse_id(id)?)
+            }
             ["guilds", id, "templates"] => GuildsIdTemplates(parse_id(id)?),
             ["guilds", id, "templates", _] => GuildsIdTemplatesCode(parse_id(id)?),
             ["guilds", id, "vanity-url"] => GuildsIdVanityUrl(parse_id(id)?),
@@ -288,6 +294,8 @@ impl FromStr for Path {
             ["invites", _] => InvitesCode,
             ["interactions", id, _, "callback"] => InteractionCallback(parse_id(id)?),
             ["stage-instances", _] => StageInstances,
+            ["sticker-packs"] => StickerPacks,
+            ["stickers", _] => Stickers,
             ["oauth2", "applications", "@me"] => OauthApplicationsMe,
             ["users", _] => UsersId,
             ["users", _, "connections"] => UsersIdConnections,

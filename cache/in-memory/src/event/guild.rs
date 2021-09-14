@@ -43,6 +43,13 @@ impl InMemoryCache {
             self.cache_roles(guild.id, guild.roles);
         }
 
+        if self.wants(ResourceType::STICKER) {
+            self.0
+                .guild_stage_instances
+                .insert(guild.id, HashSet::new());
+            self.cache_stickers(guild.id, guild.stickers);
+        }
+
         if self.wants(ResourceType::VOICE_STATE) {
             self.0.voice_state_guilds.insert(guild.id, HashSet::new());
             self.cache_voice_states(guild.voice_states);
@@ -139,6 +146,10 @@ impl UpdateCache for GuildDelete {
 
         if cache.wants(ResourceType::ROLE) {
             remove_ids(&cache.0.guild_roles, &cache.0.roles, id);
+        }
+
+        if cache.wants(ResourceType::STICKER) {
+            remove_ids(&cache.0.guild_stickers, &cache.0.stickers, id);
         }
 
         if cache.wants(ResourceType::VOICE_STATE) {
@@ -263,6 +274,7 @@ mod tests {
             roles: Vec::new(),
             splash: None,
             stage_instances: Vec::new(),
+            stickers: Vec::new(),
             system_channel_id: None,
             system_channel_flags: SystemChannelFlags::SUPPRESS_JOIN_NOTIFICATIONS,
             rules_channel_id: None,
@@ -334,6 +346,7 @@ mod tests {
             rules_channel_id: None,
             splash: None,
             stage_instances: Vec::new(),
+            stickers: Vec::new(),
             system_channel_flags: SystemChannelFlags::empty(),
             system_channel_id: None,
             unavailable: false,

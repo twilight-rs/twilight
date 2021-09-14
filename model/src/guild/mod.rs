@@ -41,7 +41,7 @@ pub use self::{
 use self::member::MemberListDeserializer;
 use super::gateway::presence::PresenceListDeserializer;
 use crate::{
-    channel::{GuildChannel, StageInstance},
+    channel::{message::sticker::Sticker, GuildChannel, StageInstance},
     gateway::presence::Presence,
     id::{ApplicationId, ChannelId, GuildId, UserId},
     voice::voice_state::VoiceState,
@@ -105,6 +105,8 @@ pub struct Guild {
     pub splash: Option<String>,
     #[serde(skip_serializing_if = "Vec::is_empty")]
     pub stage_instances: Vec<StageInstance>,
+    #[serde(skip_serializing_if = "Vec::is_empty")]
+    pub stickers: Vec<Sticker>,
     pub system_channel_flags: SystemChannelFlags,
     pub system_channel_id: Option<ChannelId>,
     #[serde(default)]
@@ -160,6 +162,7 @@ impl<'de> Deserialize<'de> for Guild {
             Roles,
             Splash,
             StageInstances,
+            Stickers,
             SystemChannelFlags,
             SystemChannelId,
             RulesChannelId,
@@ -217,6 +220,7 @@ impl<'de> Deserialize<'de> for Guild {
                 let mut roles = None;
                 let mut splash = None::<Option<_>>;
                 let mut stage_instances = None::<Vec<StageInstance>>;
+                let mut stickers = None::<Vec<Sticker>>;
                 let mut system_channel_id = None::<Option<_>>;
                 let mut system_channel_flags = None;
                 let mut rules_channel_id = None::<Option<_>>;
@@ -503,6 +507,13 @@ impl<'de> Deserialize<'de> for Guild {
 
                             stage_instances = Some(map.next_value()?);
                         }
+                        Field::Stickers => {
+                            if stickers.is_some() {
+                                return Err(DeError::duplicate_field("stickers"));
+                            }
+
+                            stickers = Some(map.next_value()?);
+                        }
                         Field::SystemChannelId => {
                             if system_channel_id.is_some() {
                                 return Err(DeError::duplicate_field("system_channel_id"));
@@ -614,6 +625,7 @@ impl<'de> Deserialize<'de> for Guild {
                 let rules_channel_id = rules_channel_id.unwrap_or_default();
                 let splash = splash.unwrap_or_default();
                 let stage_instances = stage_instances.unwrap_or_default();
+                let stickers = stickers.unwrap_or_default();
                 let system_channel_id = system_channel_id.unwrap_or_default();
                 let unavailable = unavailable.unwrap_or_default();
                 let vanity_url_code = vanity_url_code.unwrap_or_default();
@@ -661,6 +673,7 @@ impl<'de> Deserialize<'de> for Guild {
                     ?roles,
                     ?splash,
                     ?stage_instances,
+                    ?stickers,
                     ?system_channel_flags,
                     ?system_channel_id,
                     ?unavailable,
@@ -734,6 +747,7 @@ impl<'de> Deserialize<'de> for Guild {
                     rules_channel_id,
                     splash,
                     stage_instances,
+                    stickers,
                     system_channel_flags,
                     system_channel_id,
                     unavailable,
@@ -845,6 +859,7 @@ mod tests {
             rules_channel_id: Some(ChannelId(6)),
             splash: Some("splash hash".to_owned()),
             stage_instances: Vec::new(),
+            stickers: Vec::new(),
             system_channel_flags: SystemChannelFlags::SUPPRESS_PREMIUM_SUBSCRIPTIONS,
             system_channel_id: Some(ChannelId(7)),
             unavailable: false,

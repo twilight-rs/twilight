@@ -4,14 +4,18 @@
 //!
 //! [Discord documentation]: https://discord.com/developers/docs/resources/channel#message-object-message-sticker-structure
 
+mod format_type;
 mod id;
 mod kind;
 mod message;
+mod pack;
 
 pub use self::{
-    id::{StickerId, StickerPackId},
-    kind::{StickerFormatType, StickerFormatTypeConversionError},
+    format_type::{StickerFormatType, StickerFormatTypeConversionError},
+    id::{StickerBannerAssetId, StickerId, StickerPackId, StickerPackSkuId},
+    kind::{StickerType, StickerTypeConversionError},
     message::MessageSticker,
+    pack::StickerPack,
 };
 
 use crate::{id::GuildId, user::User, util::is_false};
@@ -32,6 +36,9 @@ pub struct Sticker {
     pub guild_id: Option<GuildId>,
     /// Unique ID of the sticker.
     pub id: StickerId,
+    /// Kind of sticker.
+    #[serde(rename = "type")]
+    pub kind: StickerType,
     /// Name of the sticker.
     pub name: String,
     /// Unique ID of the pack the sticker is in.
@@ -49,7 +56,7 @@ pub struct Sticker {
 
 #[cfg(test)]
 mod tests {
-    use super::{GuildId, Sticker, StickerFormatType, StickerId, StickerPackId, User};
+    use super::{GuildId, Sticker, StickerFormatType, StickerId, StickerPackId, StickerType, User};
     use crate::{
         id::UserId,
         user::{PremiumType, UserFlags},
@@ -65,6 +72,7 @@ mod tests {
         format_type,
         guild_id,
         id,
+        kind,
         name,
         pack_id,
         sort_value,
@@ -92,6 +100,7 @@ mod tests {
             format_type: StickerFormatType::Png,
             guild_id: None,
             id: StickerId(1),
+            kind: StickerType::Standard,
             name: "sticker name".to_owned(),
             pack_id: None,
             sort_value: None,
@@ -104,7 +113,7 @@ mod tests {
             &[
                 Token::Struct {
                     name: "Sticker",
-                    len: 5,
+                    len: 6,
                 },
                 Token::Str("description"),
                 Token::Str("foo2"),
@@ -113,6 +122,8 @@ mod tests {
                 Token::Str("id"),
                 Token::NewtypeStruct { name: "StickerId" },
                 Token::Str("1"),
+                Token::Str("type"),
+                Token::U8(1),
                 Token::Str("name"),
                 Token::Str("sticker name"),
                 Token::Str("tags"),
@@ -131,6 +142,7 @@ mod tests {
             format_type: StickerFormatType::Png,
             guild_id: Some(GuildId(1)),
             id: StickerId(2),
+            kind: StickerType::Guild,
             name: "stick".into(),
             pack_id: Some(StickerPackId(3)),
             sort_value: Some(1),
@@ -157,7 +169,7 @@ mod tests {
             &[
                 Token::Struct {
                     name: "Sticker",
-                    len: 10,
+                    len: 11,
                 },
                 Token::Str("available"),
                 Token::Bool(true),
@@ -172,6 +184,8 @@ mod tests {
                 Token::Str("id"),
                 Token::NewtypeStruct { name: "StickerId" },
                 Token::Str("2"),
+                Token::Str("type"),
+                Token::U8(2),
                 Token::Str("name"),
                 Token::Str("stick"),
                 Token::Str("pack_id"),

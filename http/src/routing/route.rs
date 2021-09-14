@@ -77,6 +77,11 @@ pub enum Route<'a> {
         /// pruned.
         include_roles: &'a [RoleId],
     },
+    /// Route information to create a sticker in a guild.
+    CreateGuildSticker {
+        /// ID of the guild.
+        guild_id: u64,
+    },
     /// Route information to create an invite to a channel.
     CreateInvite {
         /// The ID of the channel.
@@ -173,6 +178,13 @@ pub enum Route<'a> {
         guild_id: u64,
         /// The ID of the integration.
         integration_id: u64,
+    },
+    /// Route information to delete a guild sticker.
+    DeleteGuildSticker {
+        /// ID of the guild.
+        guild_id: u64,
+        /// ID of the sticker.
+        sticker_id: u64,
     },
     /// Route information to delete an invite.
     DeleteInvite {
@@ -456,6 +468,18 @@ pub enum Route<'a> {
         /// The ID of the guild.
         guild_id: u64,
     },
+    /// Route information to get a guild's sticker.
+    GetGuildSticker {
+        /// ID of the guild.
+        guild_id: u64,
+        /// ID of the stickers.
+        sticker_id: u64,
+    },
+    /// Route information to get a guild's stickers.
+    GetGuildStickers {
+        /// ID of the guild.
+        guild_id: u64,
+    },
     /// Route information to get a guild's vanity URL.
     GetGuildVanityUrl {
         /// The ID of the guild.
@@ -535,6 +559,9 @@ pub enum Route<'a> {
         /// The maximum number of messages to get.
         limit: Option<u64>,
     },
+    /// Route information to get a list of sticker packs available to Nitro
+    /// subscribers.
+    GetNitroStickerPacks,
     /// Route information to get a channel's pins.
     GetPins {
         /// The ID of the channel.
@@ -558,6 +585,11 @@ pub enum Route<'a> {
     GetStageInstance {
         /// ID of the stage channel.
         channel_id: u64,
+    },
+    /// Route information to get a sticker.
+    GetSticker {
+        /// ID of the sticker.
+        sticker_id: u64,
     },
     /// Route information to get a template.
     GetTemplate {
@@ -747,6 +779,13 @@ pub enum Route<'a> {
         /// The ID of the integration.
         integration_id: u64,
     },
+    /// Route information to update a guild sticker.
+    UpdateGuildSticker {
+        /// ID of the guild.
+        guild_id: u64,
+        /// ID of the sticker.
+        sticker_id: u64,
+    },
     /// Route information to update a guild's welcome screen.
     UpdateGuildWelcomeScreen {
         /// ID of the guild.
@@ -899,6 +938,7 @@ impl<'a> Route<'a> {
             | Self::DeleteGuild { .. }
             | Self::DeleteGuildCommand { .. }
             | Self::DeleteGuildIntegration { .. }
+            | Self::DeleteGuildSticker { .. }
             | Self::DeleteInteractionOriginal { .. }
             | Self::DeleteInvite { .. }
             | Self::DeleteMessageReactions { .. }
@@ -942,6 +982,8 @@ impl<'a> Route<'a> {
             | Self::GetGuildPreview { .. }
             | Self::GetGuildPruneCount { .. }
             | Self::GetGuildRoles { .. }
+            | Self::GetGuildSticker { .. }
+            | Self::GetGuildStickers { .. }
             | Self::GetGuildVanityUrl { .. }
             | Self::GetGuildVoiceRegions { .. }
             | Self::GetGuildWelcomeScreen { .. }
@@ -954,9 +996,11 @@ impl<'a> Route<'a> {
             | Self::GetMember { .. }
             | Self::GetMessage { .. }
             | Self::GetMessages { .. }
+            | Self::GetNitroStickerPacks { .. }
             | Self::GetPins { .. }
             | Self::GetReactionUsers { .. }
             | Self::GetStageInstance { .. }
+            | Self::GetSticker { .. }
             | Self::GetTemplate { .. }
             | Self::GetTemplates { .. }
             | Self::GetUserConnections
@@ -976,6 +1020,7 @@ impl<'a> Route<'a> {
             | Self::UpdateGuildCommand { .. }
             | Self::UpdateGuildWidget { .. }
             | Self::UpdateGuildIntegration { .. }
+            | Self::UpdateGuildSticker { .. }
             | Self::UpdateGuildWelcomeScreen { .. }
             | Self::UpdateInteractionOriginal { .. }
             | Self::UpdateMember { .. }
@@ -996,6 +1041,7 @@ impl<'a> Route<'a> {
             | Self::CreateGuildFromTemplate { .. }
             | Self::CreateGuildIntegration { .. }
             | Self::CreateGuildPrune { .. }
+            | Self::CreateGuildSticker { .. }
             | Self::CreateInvite { .. }
             | Self::CreateMessage { .. }
             | Self::CreatePrivateChannel
@@ -1092,6 +1138,11 @@ impl<'a> Route<'a> {
             Self::CreateGuildPrune { guild_id, .. } | Self::GetGuildPruneCount { guild_id, .. } => {
                 Path::GuildsIdPrune(*guild_id)
             }
+            Self::CreateGuildSticker { guild_id, .. }
+            | Self::DeleteGuildSticker { guild_id, .. }
+            | Self::GetGuildSticker { guild_id, .. }
+            | Self::GetGuildStickers { guild_id, .. }
+            | Self::UpdateGuildSticker { guild_id, .. } => Path::GuildsIdStickers(*guild_id),
             Self::CreateInvite { channel_id } | Self::GetChannelInvites { channel_id } => {
                 Path::ChannelsIdInvites(*channel_id)
             }
@@ -1209,9 +1260,11 @@ impl<'a> Route<'a> {
             Self::GetMessage { channel_id, .. } => {
                 Path::ChannelsIdMessagesId(Method::Get, *channel_id)
             }
+            Self::GetNitroStickerPacks { .. } => Path::StickerPacks,
             Self::GetPins { channel_id } | Self::PinMessage { channel_id, .. } => {
                 Path::ChannelsIdPins(*channel_id)
             }
+            Self::GetSticker { .. } => Path::Stickers,
             Self::GetUserConnections => Path::UsersIdConnections,
             Self::GetVoiceRegions => Path::VoiceRegions,
             Self::InteractionCallback { interaction_id, .. } => {
