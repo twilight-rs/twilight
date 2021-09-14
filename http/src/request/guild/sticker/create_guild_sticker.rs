@@ -38,10 +38,10 @@ struct CreateGuildStickerFields<'a> {
 ///         &"sticker description",
 ///         &"sticker,tags",
 ///         &[23,23,23,23]
-///     )
+///     )?
 ///     .exec()
 ///     .await?
-///     .models()
+///     .model()
 ///     .await?;
 ///
 /// println!("{:#?}", sticker);

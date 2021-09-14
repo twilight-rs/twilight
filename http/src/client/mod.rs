@@ -2299,6 +2299,7 @@ impl Client {
     ///
     /// ```rust,no_run
     /// use twilight_http::Client;
+    /// use twilight_model::channel::message::sticker::StickerId;
     ///
     /// # #[tokio::main]
     /// # async fn main() -> Result<(), Box<dyn std::error::Error>> {
@@ -2325,9 +2326,9 @@ impl Client {
     /// # async fn main() -> Result<(), Box<dyn std::error::Error>> {
     /// let client = Client::new("my token".to_owned());
     ///
-    /// let packs = client.nitro_sticker_packs().exec().await?.models().await?;
+    /// let packs = client.nitro_sticker_packs().exec().await?.model().await?;
     ///
-    /// println!("{}", packs.len());
+    /// println!("{}", packs.sticker_packs.len());
     /// # Ok(()) }
     /// ```
     pub fn nitro_sticker_packs<'a>(&'a self) -> GetNitroStickerPacks<'a> {
@@ -2340,7 +2341,10 @@ impl Client {
     ///
     /// ```rust,no_run
     /// use twilight_http::Client;
-    /// use twilight_model::id::GuildId;
+    /// use twilight_model::{
+    ///     channel::message::sticker::StickerId,
+    ///     id::GuildId,
+    /// };
     ///
     /// # #[tokio::main]
     /// # async fn main() -> Result<(), Box<dyn std::error::Error>> {
@@ -2382,7 +2386,7 @@ impl Client {
     ///     .guild_sticker(guild_id, sticker_id)
     ///     .exec()
     ///     .await?
-    ///     .models()
+    ///     .model()
     ///     .await?;
     ///
     /// println!("{:#?}", sticker);
@@ -2422,7 +2426,7 @@ impl Client {
     ///     )?
     ///     .exec()
     ///     .await?
-    ///     .models()
+    ///     .model()
     ///     .await?;
     ///
     /// println!("{:#?}", sticker);
@@ -2461,7 +2465,7 @@ impl Client {
     ///     .description("new description")?
     ///     .exec()
     ///     .await?
-    ///     .models()
+    ///     .model()
     ///     .await?;
     ///
     /// println!("{:#?}", sticker);

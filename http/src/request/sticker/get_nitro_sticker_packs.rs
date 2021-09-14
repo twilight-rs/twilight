@@ -18,9 +18,9 @@ pub struct StickerPackListing {
 /// # async fn main() -> Result<(), Box<dyn std::error::Error>> {
 /// let client = Client::new("my token".to_owned());
 ///
-/// let packs = client.nitro_sticker_packs().exec().await?.models().await?;
+/// let packs = client.nitro_sticker_packs().exec().await?.model().await?;
 ///
-/// println!("{}", packs.len());
+/// println!("{}", packs.sticker_packs.len());
 /// # Ok(()) }
 /// ```
 #[must_use = "requests must be configured and executed"]

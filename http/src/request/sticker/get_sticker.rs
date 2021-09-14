@@ -7,6 +7,7 @@ use twilight_model::channel::message::sticker::{Sticker, StickerId};
 ///
 /// ```rust,no_run
 /// use twilight_http::Client;
+/// use twilight_model::channel::message::sticker::StickerId;
 ///
 /// # #[tokio::main]
 /// # async fn main() -> Result<(), Box<dyn std::error::Error>> {

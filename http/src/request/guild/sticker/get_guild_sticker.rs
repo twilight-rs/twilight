@@ -25,7 +25,7 @@ use twilight_model::{
 ///     .guild_sticker(guild_id, sticker_id)
 ///     .exec()
 ///     .await?
-///     .models()
+///     .model()
 ///     .await?;
 ///
 /// println!("{:#?}", sticker);

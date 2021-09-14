@@ -1,4 +1,9 @@
-use crate::{client::Client, request::Request, response::ResponseFuture, routing::Route};
+use crate::{
+    client::Client,
+    request::Request,
+    response::{marker::ListBody, ResponseFuture},
+    routing::Route,
+};
 use twilight_model::{channel::message::sticker::Sticker, id::GuildId};
 
 /// Returns a list of stickers in a guild.
@@ -7,7 +12,10 @@ use twilight_model::{channel::message::sticker::Sticker, id::GuildId};
 ///
 /// ```rust,no_run
 /// use twilight_http::Client;
-/// use twilight_model::id::GuildId;
+/// use twilight_model::{
+///     channel::message::sticker::StickerId,
+///     id::GuildId,
+/// };
 ///
 /// # #[tokio::main]
 /// # async fn main() -> Result<(), Box<dyn std::error::Error>> {
@@ -37,7 +45,7 @@ impl<'a> GetGuildStickers<'a> {
     /// Execute the request, returning a future resolving to a [`Response`].
     ///
     /// [`Response`]: crate::response::Response
-    pub fn exec(self) -> ResponseFuture<Sticker> {
+    pub fn exec(self) -> ResponseFuture<ListBody<Sticker>> {
         let request = Request::from_route(&Route::GetGuildStickers {
             guild_id: self.guild_id.0,
         });

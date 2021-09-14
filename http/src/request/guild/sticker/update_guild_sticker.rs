@@ -41,7 +41,7 @@ struct UpdateGuildStickerFields<'a> {
 ///     .description("new description")?
 ///     .exec()
 ///     .await?
-///     .models()
+///     .model()
 ///     .await?;
 ///
 /// println!("{:#?}", sticker);
