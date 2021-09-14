@@ -529,7 +529,7 @@ mod tests {
     #[test]
     #[allow(clippy::too_many_lines)]
     fn construct_command_with_builder() {
-        // from <https://discord.com/developers/docs/interactions/slash-commands#example-walkthrough>
+        // from <https://discord.com/developers/docs/interactions/application-commands#example-walkthrough>
         let command = CommandBuilder::new(
             "permissions",
             "Get or edit permissions for a user or a role",
