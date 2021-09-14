@@ -7,7 +7,7 @@ use super::{
 use crate::id::{ApplicationId, CommandId, GuildId};
 
 /// Builder to create a [`Command`].
-#[derive(Debug)]
+#[derive(Clone, Debug)]
 pub struct CommandBuilder(Command);
 
 impl CommandBuilder {
@@ -109,7 +109,7 @@ impl CommandBuilder {
 }
 
 /// Create a boolean option with a builder.
-#[derive(Debug)]
+#[derive(Clone, Debug)]
 pub struct BooleanBuilder(BaseCommandOptionData);
 
 impl BooleanBuilder {
@@ -149,7 +149,7 @@ impl From<BooleanBuilder> for CommandOption {
 }
 
 /// Create a channel option with a builder.
-#[derive(Debug)]
+#[derive(Clone, Debug)]
 pub struct ChannelBuilder(BaseCommandOptionData);
 
 impl ChannelBuilder {
@@ -188,7 +188,7 @@ impl From<ChannelBuilder> for CommandOption {
     }
 }
 /// Create a integer option with a builder.
-#[derive(Debug)]
+#[derive(Clone, Debug)]
 pub struct IntegerBuilder(ChoiceCommandOptionData);
 
 impl IntegerBuilder {
@@ -244,7 +244,7 @@ impl From<IntegerBuilder> for CommandOption {
 }
 
 /// Create a mentionable option with a builder.
-#[derive(Debug)]
+#[derive(Clone, Debug)]
 pub struct MentionableBuilder(BaseCommandOptionData);
 
 impl MentionableBuilder {
@@ -284,7 +284,7 @@ impl From<MentionableBuilder> for CommandOption {
 }
 
 /// Create a role option with a builder.
-#[derive(Debug)]
+#[derive(Clone, Debug)]
 pub struct RoleBuilder(BaseCommandOptionData);
 
 impl RoleBuilder {
@@ -324,7 +324,7 @@ impl From<RoleBuilder> for CommandOption {
 }
 
 /// Create a string option with a builder.
-#[derive(Debug)]
+#[derive(Clone, Debug)]
 pub struct StringBuilder(ChoiceCommandOptionData);
 
 impl StringBuilder {
@@ -380,7 +380,7 @@ impl From<StringBuilder> for CommandOption {
 }
 
 /// Create a subcommand option with a builder.
-#[derive(Debug)]
+#[derive(Clone, Debug)]
 pub struct SubCommandBuilder(OptionsCommandOptionData);
 
 impl SubCommandBuilder {
@@ -425,7 +425,7 @@ impl From<SubCommandBuilder> for CommandOption {
 }
 
 /// Create a subcommand group option with a builder.
-#[derive(Debug)]
+#[derive(Clone, Debug)]
 pub struct SubCommandGroupBuilder(OptionsCommandOptionData);
 
 impl SubCommandGroupBuilder {
@@ -470,7 +470,7 @@ impl From<SubCommandGroupBuilder> for CommandOption {
 }
 
 /// Create a user option with a builder.
-#[derive(Debug)]
+#[derive(Clone, Debug)]
 pub struct UserBuilder(BaseCommandOptionData);
 
 impl UserBuilder {
@@ -515,16 +515,16 @@ mod tests {
     use static_assertions::assert_impl_all;
     use std::fmt::Debug;
 
-    assert_impl_all!(CommandBuilder: Debug, Send, Sync);
-    assert_impl_all!(BooleanBuilder: Debug, Send, Sync);
-    assert_impl_all!(ChannelBuilder: Debug, Send, Sync);
-    assert_impl_all!(IntegerBuilder: Debug, Send, Sync);
-    assert_impl_all!(MentionableBuilder: Debug, Send, Sync);
-    assert_impl_all!(RoleBuilder: Debug, Send, Sync);
-    assert_impl_all!(StringBuilder: Debug, Send, Sync);
-    assert_impl_all!(SubCommandBuilder: Debug, Send, Sync);
-    assert_impl_all!(SubCommandGroupBuilder: Debug, Send, Sync);
-    assert_impl_all!(UserBuilder: Debug, Send, Sync);
+    assert_impl_all!(CommandBuilder: Clone, Debug, Send, Sync);
+    assert_impl_all!(BooleanBuilder: Clone, Debug, Send, Sync);
+    assert_impl_all!(ChannelBuilder: Clone, Debug, Send, Sync);
+    assert_impl_all!(IntegerBuilder: Clone, Debug, Send, Sync);
+    assert_impl_all!(MentionableBuilder: Clone, Debug, Send, Sync);
+    assert_impl_all!(RoleBuilder: Clone, Debug, Send, Sync);
+    assert_impl_all!(StringBuilder: Clone, Debug, Send, Sync);
+    assert_impl_all!(SubCommandBuilder: Clone, Debug, Send, Sync);
+    assert_impl_all!(SubCommandGroupBuilder: Clone, Debug, Send, Sync);
+    assert_impl_all!(UserBuilder: Clone, Debug, Send, Sync);
 
     #[test]
     #[allow(clippy::too_many_lines)]
