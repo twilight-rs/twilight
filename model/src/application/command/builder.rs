@@ -29,12 +29,6 @@ impl CommandBuilder {
     /// Maximum number of choices within a option.
     pub const OPTIONS_CHOICES_LIMIT: usize = 25;
 
-    /// Maximum number of subcommand groups within a command.
-    pub const SUBCOMMAND_GROUP_LIMIT: usize = 25;
-
-    /// Maximum number of subcommands within a subcommand group.
-    pub const SUBCOMMAND_LIMIT: usize = 25;
-
     /// Create a new default [`Command`] builder.
     pub fn new(name: impl Into<String>, description: impl Into<String>) -> Self {
         Self::_new(name.into(), description.into())
