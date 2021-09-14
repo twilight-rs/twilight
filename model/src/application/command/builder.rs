@@ -7,6 +7,26 @@ use super::{
 use crate::id::{ApplicationId, CommandId, GuildId};
 
 /// Builder to create a [`Command`].
+///
+/// # Examples
+/// ```
+/// use twilight_model::application::command::builder::{
+/// BooleanBuilder, CommandBuilder, StringBuilder,
+/// };
+///
+/// CommandBuilder::new("blep", "Send a random adorable animal photo")
+///     .option(
+///         StringBuilder::new("animal", "The type of animal")
+///             .required(true)
+///             .choice("Dog", "animal_dog")
+///             .choice("Cat", "animal_cat")
+///             .choice("Penguin", "animal_penguin"),
+///     )
+///     .option(BooleanBuilder::new(
+///         "only_smol",
+///         "Whether to show only baby animals",
+///     ));
+/// ```
 #[derive(Clone, Debug)]
 pub struct CommandBuilder(Command);
 
