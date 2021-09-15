@@ -19,7 +19,6 @@ use std::{
 #[derive(Debug)]
 pub struct StickerValidationError {
     pub(crate) kind: StickerValidationErrorType,
-    pub(crate) source: Option<Box<dyn Error + Send + Sync>>,
 }
 
 impl StickerValidationError {
