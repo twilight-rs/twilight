@@ -5,8 +5,8 @@
 [![discord badge][]][discord link] [![github badge][]][github link] [![license badge][]][license link] ![rust badge]
 
 Standby is a utility to wait for an event to happen based on a predicate
-check. For example, you may have a command that has a reaction menu of ✅ and
-❌. If you want to handle a reaction to these, using something like an
+check. For example, you may have a command that has a reaction menu of ✅
+and ❌. If you want to handle a reaction to these, using something like an
 application-level state or event stream may not suit your use case. It may
 be cleaner to wait for a reaction inline to your function. This is where
 Twilight Standby comes in.
@@ -18,12 +18,12 @@ Standby allows you to wait for things like an event in a certain guild
 a guild, such as a new `Ready` event ([`Standby::wait_for_event`]). Each
 method also has a stream variant.
 
-To use Standby, you must process events with it in your main event loop.
-Check out the [`Standby::process`] method.
+To use Standby it must process events, such as in an event loop of events
+received by the gateway. Check out the [`Standby::process`] method.
 
 ## When to use futures and streams
 
-`Standby` has two variants of each method: a future variant and a stream
+[`Standby`] has two variants of each method: a future variant and a stream
 variant. An example is [`Standby::wait_for_message`], which also has a
 [`Standby::wait_for_message_stream`] variant. The future variant is useful
 when you want to oneshot an event that you need to wait for. This means that
@@ -59,7 +59,9 @@ use twilight_standby::Standby;
 
 let standby = Standby::new();
 
-let message = standby.wait_for_message(ChannelId::new(123).expect("non zero"), |event: &MessageCreate| {
+let channel_id = ChannelId::new(123).expect("non zero");
+
+let message = standby.wait_for_message(channel_id, |event: &MessageCreate| {
     event.author.id.get() == 456 && event.content == "test"
 }).await?;
 ```
@@ -82,16 +84,18 @@ use twilight_standby::Standby;
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn Error>> {
+    let token = env::var("DISCORD_TOKEN")?;
+
     // Start a shard connected to the gateway to receive events.
     let intents = Intents::GUILD_MESSAGES | Intents::GUILD_MESSAGE_REACTIONS;
-    let (shard, mut events) = Shard::new(env::var("DISCORD_TOKEN")?, intents);
+    let (shard, mut events) = Shard::new(token, intents);
     shard.start().await?;
 
     let standby = Arc::new(Standby::new());
 
     while let Some(event) = events.next().await {
-        // Have standby process the event, which will fulfill any futures that
-        // are waiting for an event.
+        // Have standby process the event, which will fulfill any futures
+        // that are waiting for an event.
         standby.process(&event);
 
         match event {
