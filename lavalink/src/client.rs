@@ -74,7 +74,6 @@ pub enum ClientErrorType {
 
 #[derive(Debug, Default)]
 struct LavalinkRef {
-    guilds: DashMap<GuildId, SocketAddr>,
     nodes: DashMap<SocketAddr, Node>,
     players: PlayerManager,
     resume: Option<Resume>,
@@ -140,7 +139,6 @@ impl Lavalink {
 
     fn _new_with_resume(user_id: UserId, shard_count: u64, resume: Option<Resume>) -> Self {
         Self(Arc::new(LavalinkRef {
-            guilds: DashMap::new(),
             nodes: DashMap::new(),
             players: PlayerManager::new(),
             resume,
