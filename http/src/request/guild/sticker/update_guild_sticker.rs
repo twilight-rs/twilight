@@ -74,7 +74,6 @@ impl<'a> UpdateGuildSticker<'a> {
         if !validate_inner::sticker_description(description) {
             return Err(StickerValidationError {
                 kind: StickerValidationErrorType::DescriptionInvalid,
-                source: None,
             });
         }
 
@@ -87,7 +86,6 @@ impl<'a> UpdateGuildSticker<'a> {
         if !validate_inner::sticker_name(name) {
             return Err(StickerValidationError {
                 kind: StickerValidationErrorType::NameInvalid,
-                source: None,
             });
         }
 
@@ -100,7 +98,6 @@ impl<'a> UpdateGuildSticker<'a> {
         if !validate_inner::sticker_tags(tags) {
             return Err(StickerValidationError {
                 kind: StickerValidationErrorType::TagsInvalid,
-                source: None,
             });
         }
 
