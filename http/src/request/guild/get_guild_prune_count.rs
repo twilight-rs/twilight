@@ -1,6 +1,6 @@
 use crate::{
     client::Client,
-    request::{validate_inner, Request},
+    request::{validate_inner, IntoRequest, Request},
     response::ResponseFuture,
     routing::Route,
 };
@@ -122,13 +122,22 @@ impl<'a> GetGuildPruneCount<'a> {
     ///
     /// [`Response`]: crate::response::Response
     pub fn exec(self) -> ResponseFuture<GuildPrune> {
-        let request = Request::from_route(&Route::GetGuildPruneCount {
+        let http = self.http;
+
+        match self.into_request() {
+            Ok(request) => http.request(request),
+            Err(source) => ResponseFuture::error(source),
+        }
+    }
+}
+
+impl IntoRequest for GetGuildPruneCount<'_> {
+    fn into_request(self) -> Result<Request, crate::Error> {
+        Ok(Request::from_route(&Route::GetGuildPruneCount {
             days: self.fields.days,
             guild_id: self.guild_id.get(),
             include_roles: self.fields.include_roles,
-        });
-
-        self.http.request(request)
+        }))
     }
 }
 

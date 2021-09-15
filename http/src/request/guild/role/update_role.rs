@@ -1,6 +1,7 @@
 use crate::{
     client::Client,
-    request::{self, AuditLogReason, AuditLogReasonError, NullableField, Request},
+    error::Error,
+    request::{self, AuditLogReason, AuditLogReasonError, IntoRequest, NullableField, Request},
     response::ResponseFuture,
     routing::Route,
 };
@@ -90,26 +91,12 @@ impl<'a> UpdateRole<'a> {
     ///
     /// [`Response`]: crate::response::Response
     pub fn exec(self) -> ResponseFuture<Role> {
-        let mut request = Request::builder(&Route::UpdateRole {
-            guild_id: self.guild_id.get(),
-            role_id: self.role_id.get(),
-        });
+        let http = self.http;
 
-        request = match request.json(&self.fields) {
-            Ok(request) => request,
-            Err(source) => return ResponseFuture::error(source),
-        };
-
-        if let Some(reason) = &self.reason {
-            let header = match request::audit_header(reason) {
-                Ok(header) => header,
-                Err(source) => return ResponseFuture::error(source),
-            };
-
-            request = request.headers(header);
+        match self.into_request() {
+            Ok(request) => http.request(request),
+            Err(source) => ResponseFuture::error(source),
         }
-
-        self.http.request(request.build())
     }
 }
 
@@ -118,5 +105,24 @@ impl<'a> AuditLogReason<'a> for UpdateRole<'a> {
         self.reason.replace(AuditLogReasonError::validate(reason)?);
 
         Ok(self)
+    }
+}
+
+impl IntoRequest for UpdateRole<'_> {
+    fn into_request(self) -> Result<Request, Error> {
+        let mut request = Request::builder(&Route::UpdateRole {
+            guild_id: self.guild_id.get(),
+            role_id: self.role_id.get(),
+        });
+
+        request = request.json(&self.fields)?;
+
+        if let Some(reason) = &self.reason {
+            let header = request::audit_header(reason)?;
+
+            request = request.headers(header);
+        }
+
+        Ok(request.build())
     }
 }

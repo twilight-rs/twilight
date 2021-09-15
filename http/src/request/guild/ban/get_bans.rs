@@ -1,6 +1,7 @@
 use crate::{
     client::Client,
-    request::Request,
+    error::Error,
+    request::{IntoRequest, Request},
     response::{marker::ListBody, ResponseFuture},
     routing::Route,
 };
@@ -40,10 +41,19 @@ impl<'a> GetBans<'a> {
     ///
     /// [`Response`]: crate::response::Response
     pub fn exec(self) -> ResponseFuture<ListBody<Ban>> {
-        let request = Request::from_route(&Route::GetBans {
-            guild_id: self.guild_id.get(),
-        });
+        let http = self.http;
 
-        self.http.request(request)
+        match self.into_request() {
+            Ok(request) => http.request(request),
+            Err(source) => ResponseFuture::error(source),
+        }
+    }
+}
+
+impl IntoRequest for GetBans<'_> {
+    fn into_request(self) -> Result<Request, Error> {
+        Ok(Request::from_route(&Route::GetBans {
+            guild_id: self.guild_id.get(),
+        }))
     }
 }

@@ -1,4 +1,9 @@
-use crate::{client::Client, request::Request, response::ResponseFuture, routing::Route};
+use crate::{
+    client::Client,
+    request::{IntoRequest, Request},
+    response::ResponseFuture,
+    routing::Route,
+};
 use twilight_model::{
     guild::Emoji,
     id::{EmojiId, GuildId},
@@ -44,11 +49,20 @@ impl<'a> GetEmoji<'a> {
     ///
     /// [`Response`]: crate::response::Response
     pub fn exec(self) -> ResponseFuture<Emoji> {
-        let request = Request::from_route(&Route::GetEmoji {
+        let http = self.http;
+
+        match self.into_request() {
+            Ok(request) => http.request(request),
+            Err(source) => ResponseFuture::error(source),
+        }
+    }
+}
+
+impl IntoRequest for GetEmoji<'_> {
+    fn into_request(self) -> Result<Request, crate::Error> {
+        Ok(Request::from_route(&Route::GetEmoji {
             emoji_id: self.emoji_id.get(),
             guild_id: self.guild_id.get(),
-        });
-
-        self.http.request(request)
+        }))
     }
 }

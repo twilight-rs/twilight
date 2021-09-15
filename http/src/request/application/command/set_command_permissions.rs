@@ -3,7 +3,7 @@ use crate::{
     error::Error,
     request::{
         application::{InteractionError, InteractionErrorType},
-        validate_inner, Request, RequestBuilder,
+        validate_inner, IntoRequest, Request, RequestBuilder,
     },
     response::ResponseFuture,
     routing::Route,
@@ -192,23 +192,27 @@ impl<'a> SetCommandPermissions<'a> {
         })
     }
 
-    fn request(&self) -> Result<Request, Error> {
+    /// Execute the request, returning a future resolving to a [`Response`].
+    ///
+    /// [`Response`]: crate::response::Response
+    pub fn exec(self) -> ResponseFuture<CommandPermissions> {
+        let http = self.http;
+
+        match self.into_request() {
+            Ok(request) => http.request(request),
+            Err(source) => ResponseFuture::error(source),
+        }
+    }
+}
+
+impl IntoRequest for SetCommandPermissions<'_> {
+    fn into_request(self) -> Result<Request, Error> {
         Request::builder(&Route::SetCommandPermissions {
             application_id: self.application_id.get(),
             guild_id: self.guild_id.get(),
         })
         .json(&self.permissions)
         .map(RequestBuilder::build)
-    }
-
-    /// Execute the request, returning a future resolving to a [`Response`].
-    ///
-    /// [`Response`]: crate::response::Response
-    pub fn exec(self) -> ResponseFuture<CommandPermissions> {
-        match self.request() {
-            Ok(request) => self.http.request(request),
-            Err(source) => ResponseFuture::error(source),
-        }
     }
 }
 
@@ -218,7 +222,7 @@ mod tests {
         super::super::{InteractionError, InteractionErrorType},
         SetCommandPermissions,
     };
-    use crate::Client;
+    use crate::{request::IntoRequest, Client};
     use serde::Deserialize;
     use std::{error::Error, iter};
     use twilight_model::{
@@ -281,7 +285,7 @@ mod tests {
         let builder =
             SetCommandPermissions::new(&http, application_id(), guild_id(), command_permissions)?;
 
-        let request = builder.request()?;
+        let request = builder.into_request()?;
         let body = request.body().expect("body must be present");
         let actual = serde_json::from_slice::<Vec<GuildCommandPermissionDeserializable>>(body)?;
 

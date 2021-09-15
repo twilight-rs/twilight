@@ -1,4 +1,9 @@
-use crate::{client::Client, request::Request, response::ResponseFuture, routing::Route};
+use crate::{
+    client::Client,
+    request::{IntoRequest, Request},
+    response::ResponseFuture,
+    routing::Route,
+};
 use twilight_model::{guild::GuildWidget, id::GuildId};
 
 /// Get the guild widget.
@@ -21,10 +26,19 @@ impl<'a> GetGuildWidget<'a> {
     ///
     /// [`Response`]: crate::response::Response
     pub fn exec(self) -> ResponseFuture<GuildWidget> {
-        let request = Request::from_route(&Route::GetGuildWidget {
-            guild_id: self.guild_id.get(),
-        });
+        let http = self.http;
 
-        self.http.request(request)
+        match self.into_request() {
+            Ok(request) => http.request(request),
+            Err(source) => ResponseFuture::error(source),
+        }
+    }
+}
+
+impl IntoRequest for GetGuildWidget<'_> {
+    fn into_request(self) -> Result<Request, crate::Error> {
+        Ok(Request::from_route(&Route::GetGuildWidget {
+            guild_id: self.guild_id.get(),
+        }))
     }
 }

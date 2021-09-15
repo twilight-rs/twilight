@@ -1,4 +1,9 @@
-use crate::{client::Client, request::Request, response::ResponseFuture, routing::Route};
+use crate::{
+    client::Client,
+    request::{IntoRequest, Request},
+    response::ResponseFuture,
+    routing::Route,
+};
 use twilight_model::{
     channel::Message,
     id::{ChannelId, MessageId},
@@ -29,11 +34,20 @@ impl<'a> GetMessage<'a> {
     ///
     /// [`Response`]: crate::response::Response
     pub fn exec(self) -> ResponseFuture<Message> {
-        let request = Request::from_route(&Route::GetMessage {
+        let http = self.http;
+
+        match self.into_request() {
+            Ok(request) => http.request(request),
+            Err(source) => ResponseFuture::error(source),
+        }
+    }
+}
+
+impl IntoRequest for GetMessage<'_> {
+    fn into_request(self) -> Result<Request, crate::Error> {
+        Ok(Request::from_route(&Route::GetMessage {
             channel_id: self.channel_id.get(),
             message_id: self.message_id.get(),
-        });
-
-        self.http.request(request)
+        }))
     }
 }

@@ -1,7 +1,7 @@
 use super::RequestReactionType;
 use crate::{
     client::Client,
-    request::{validate_inner, Request},
+    request::{validate_inner, IntoRequest, Request},
     response::{marker::ListBody, ResponseFuture},
     routing::Route,
 };
@@ -131,14 +131,23 @@ impl<'a> GetReactions<'a> {
     ///
     /// [`Response`]: crate::response::Response
     pub fn exec(self) -> ResponseFuture<ListBody<User>> {
-        let request = Request::from_route(&Route::GetReactionUsers {
+        let http = self.http;
+
+        match self.into_request() {
+            Ok(request) => http.request(request),
+            Err(source) => ResponseFuture::error(source),
+        }
+    }
+}
+
+impl IntoRequest for GetReactions<'_> {
+    fn into_request(self) -> Result<Request, crate::Error> {
+        Ok(Request::from_route(&Route::GetReactionUsers {
             after: self.fields.after.map(UserId::get),
             channel_id: self.channel_id.get(),
             emoji: self.emoji,
             limit: self.fields.limit,
             message_id: self.message_id.get(),
-        });
-
-        self.http.request(request)
+        }))
     }
 }

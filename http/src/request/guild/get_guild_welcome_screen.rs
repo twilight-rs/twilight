@@ -1,4 +1,9 @@
-use crate::{client::Client, request::Request, response::ResponseFuture, routing::Route};
+use crate::{
+    client::Client,
+    request::{IntoRequest, Request},
+    response::ResponseFuture,
+    routing::Route,
+};
 use twilight_model::{id::GuildId, invite::WelcomeScreen};
 
 /// Get the guild's welcome screen.
@@ -17,10 +22,19 @@ impl<'a> GetGuildWelcomeScreen<'a> {
     ///
     /// [`Response`]: crate::response::Response
     pub fn exec(self) -> ResponseFuture<WelcomeScreen> {
-        let request = Request::from_route(&Route::GetGuildWelcomeScreen {
-            guild_id: self.guild_id.get(),
-        });
+        let http = self.http;
 
-        self.http.request(request)
+        match self.into_request() {
+            Ok(request) => http.request(request),
+            Err(source) => ResponseFuture::error(source),
+        }
+    }
+}
+
+impl IntoRequest for GetGuildWelcomeScreen<'_> {
+    fn into_request(self) -> Result<Request, crate::Error> {
+        Ok(Request::from_route(&Route::GetGuildWelcomeScreen {
+            guild_id: self.guild_id.get(),
+        }))
     }
 }

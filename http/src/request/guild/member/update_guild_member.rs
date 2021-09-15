@@ -1,7 +1,10 @@
 use crate::{
     client::Client,
     error::Error as HttpError,
-    request::{self, validate_inner, AuditLogReason, AuditLogReasonError, NullableField, Request},
+    request::{
+        self, validate_inner, AuditLogReason, AuditLogReasonError, IntoRequest, NullableField,
+        Request,
+    },
     response::{marker::MemberBody, ResponseFuture},
     routing::Route,
 };
@@ -160,28 +163,17 @@ impl<'a> UpdateGuildMember<'a> {
         self
     }
 
-    fn request(&self) -> Result<Request, HttpError> {
-        let mut request = Request::builder(&Route::UpdateMember {
-            guild_id: self.guild_id.get(),
-            user_id: self.user_id.get(),
-        })
-        .json(&self.fields)?;
-
-        if let Some(reason) = &self.reason {
-            request = request.headers(request::audit_header(reason)?);
-        }
-
-        Ok(request.build())
-    }
-
     /// Execute the request, returning a future resolving to a [`Response`].
     ///
     /// [`Response`]: crate::response::Response
     pub fn exec(self) -> ResponseFuture<MemberBody> {
-        match self.request() {
+        let guild_id = self.guild_id;
+        let http = self.http;
+
+        match self.into_request() {
             Ok(request) => {
-                let mut future = self.http.request(request);
-                future.set_guild_id(self.guild_id);
+                let mut future = http.request(request);
+                future.set_guild_id(guild_id);
 
                 future
             }
@@ -198,11 +190,27 @@ impl<'a> AuditLogReason<'a> for UpdateGuildMember<'a> {
     }
 }
 
+impl IntoRequest for UpdateGuildMember<'_> {
+    fn into_request(self) -> Result<Request, HttpError> {
+        let mut request = Request::builder(&Route::UpdateMember {
+            guild_id: self.guild_id.get(),
+            user_id: self.user_id.get(),
+        })
+        .json(&self.fields)?;
+
+        if let Some(reason) = &self.reason {
+            request = request.headers(request::audit_header(reason)?);
+        }
+
+        Ok(request.build())
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::{UpdateGuildMember, UpdateGuildMemberFields};
     use crate::{
-        request::{NullableField, Request},
+        request::{IntoRequest, NullableField, Request},
         routing::Route,
         Client,
     };
@@ -223,7 +231,7 @@ mod tests {
         let builder = UpdateGuildMember::new(&client, guild_id(), user_id())
             .deaf(true)
             .mute(true);
-        let actual = builder.request()?;
+        let actual = builder.into_request()?;
 
         let body = UpdateGuildMemberFields {
             channel_id: None,
@@ -248,7 +256,7 @@ mod tests {
     fn test_nick_set_null() -> Result<(), Box<dyn Error>> {
         let client = Client::new("foo".to_owned());
         let builder = UpdateGuildMember::new(&client, guild_id(), user_id()).nick(None)?;
-        let actual = builder.request()?;
+        let actual = builder.into_request()?;
 
         let body = UpdateGuildMemberFields {
             channel_id: None,
@@ -272,7 +280,7 @@ mod tests {
     fn test_nick_set_value() -> Result<(), Box<dyn Error>> {
         let client = Client::new("foo".to_owned());
         let builder = UpdateGuildMember::new(&client, guild_id(), user_id()).nick(Some("foo"))?;
-        let actual = builder.request()?;
+        let actual = builder.into_request()?;
 
         let body = UpdateGuildMemberFields {
             channel_id: None,

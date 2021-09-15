@@ -1,4 +1,9 @@
-use crate::{client::Client, request::Request, response::ResponseFuture, routing::Route};
+use crate::{
+    client::Client,
+    request::{IntoRequest, Request},
+    response::ResponseFuture,
+    routing::Route,
+};
 use serde::Serialize;
 use twilight_model::{channel::PrivateChannel, id::UserId};
 
@@ -24,13 +29,21 @@ impl<'a> CreatePrivateChannel<'a> {
         }
     }
     pub fn exec(self) -> ResponseFuture<PrivateChannel> {
+        let http = self.http;
+
+        match self.into_request() {
+            Ok(request) => http.request(request),
+            Err(source) => ResponseFuture::error(source),
+        }
+    }
+}
+
+impl IntoRequest for CreatePrivateChannel<'_> {
+    fn into_request(self) -> Result<Request, crate::Error> {
         let request = Request::builder(&Route::CreatePrivateChannel);
 
-        let request = match request.json(&self.fields) {
-            Ok(request) => request,
-            Err(source) => return ResponseFuture::error(source),
-        };
+        let request = request.json(&self.fields)?;
 
-        self.http.request(request.build())
+        Ok(request.build())
     }
 }

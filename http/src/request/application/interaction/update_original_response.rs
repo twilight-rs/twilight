@@ -6,7 +6,7 @@ use crate::{
     request::{
         self,
         validate_inner::{self, ComponentValidationError, ComponentValidationErrorType},
-        Form, NullableField, Request,
+        Form, IntoRequest, NullableField, Request,
     },
     response::ResponseFuture,
     routing::Route,
@@ -393,9 +393,18 @@ impl<'a> UpdateOriginalResponse<'a> {
         self
     }
 
-    // `self` needs to be consumed and the client returned due to parameters
-    // being consumed in request construction.
-    fn request(&mut self) -> Result<Request, HttpError> {
+    pub fn exec(self) -> ResponseFuture<Message> {
+        let http = self.http;
+
+        match self.into_request() {
+            Ok(request) => http.request(request),
+            Err(source) => ResponseFuture::error(source),
+        }
+    }
+}
+
+impl IntoRequest for UpdateOriginalResponse<'_> {
+    fn into_request(mut self) -> Result<Request, HttpError> {
         let mut request = Request::builder(&Route::UpdateInteractionOriginal {
             application_id: self.application_id.get(),
             interaction_token: self.token,
@@ -429,12 +438,5 @@ impl<'a> UpdateOriginalResponse<'a> {
         }
 
         Ok(request.build())
-    }
-
-    pub fn exec(mut self) -> ResponseFuture<Message> {
-        match self.request() {
-            Ok(request) => self.http.request(request),
-            Err(source) => ResponseFuture::error(source),
-        }
     }
 }

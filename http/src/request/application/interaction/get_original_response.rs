@@ -1,4 +1,9 @@
-use crate::{client::Client, request::Request, response::ResponseFuture, routing::Route};
+use crate::{
+    client::Client,
+    request::{IntoRequest, Request},
+    response::ResponseFuture,
+    routing::Route,
+};
 use twilight_model::{channel::Message, id::ApplicationId};
 
 /// Get the original message, by its token.
@@ -46,11 +51,20 @@ impl<'a> GetOriginalResponse<'a> {
     ///
     /// [`Response`]: crate::response::Response
     pub fn exec(self) -> ResponseFuture<Message> {
-        let request = Request::from_route(&Route::GetInteractionOriginal {
+        let http = self.http;
+
+        match self.into_request() {
+            Ok(request) => http.request(request),
+            Err(source) => ResponseFuture::error(source),
+        }
+    }
+}
+
+impl IntoRequest for GetOriginalResponse<'_> {
+    fn into_request(self) -> Result<Request, crate::Error> {
+        Ok(Request::from_route(&Route::GetInteractionOriginal {
             application_id: self.application_id.get(),
             interaction_token: self.token,
-        });
-
-        self.http.request(request)
+        }))
     }
 }

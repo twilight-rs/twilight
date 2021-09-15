@@ -6,7 +6,7 @@ use crate::{
     request::{
         self,
         validate_inner::{self, ComponentValidationError, ComponentValidationErrorType},
-        AuditLogReason, AuditLogReasonError, Form, NullableField, Request,
+        AuditLogReason, AuditLogReasonError, Form, IntoRequest, NullableField, Request,
     },
     response::{marker::EmptyBody, ResponseFuture},
     routing::Route,
@@ -390,9 +390,29 @@ impl<'a> UpdateWebhookMessage<'a> {
         self
     }
 
-    // `self` needs to be consumed and the client returned due to parameters
-    // being consumed in request construction.
-    fn request(&mut self) -> Result<Request, HttpError> {
+    /// Execute the request, returning a future resolving to a [`Response`].
+    ///
+    /// [`Response`]: crate::response::Response
+    pub fn exec(self) -> ResponseFuture<EmptyBody> {
+        let http = self.http;
+
+        match self.into_request() {
+            Ok(request) => http.request(request),
+            Err(source) => ResponseFuture::error(source),
+        }
+    }
+}
+
+impl<'a> AuditLogReason<'a> for UpdateWebhookMessage<'a> {
+    fn reason(mut self, reason: &'a str) -> Result<Self, AuditLogReasonError> {
+        self.reason.replace(AuditLogReasonError::validate(reason)?);
+
+        Ok(self)
+    }
+}
+
+impl IntoRequest for UpdateWebhookMessage<'_> {
+    fn into_request(self) -> Result<Request, HttpError> {
         let mut request = Request::builder(&Route::UpdateWebhookMessage {
             message_id: self.message_id.get(),
             token: self.token,
@@ -410,21 +430,25 @@ impl<'a> UpdateWebhookMessage<'a> {
             if let Some(payload_json) = &self.fields.payload_json {
                 form.payload_json(payload_json);
             } else {
-                if self.fields.allowed_mentions.is_none() {
-                    self.fields.allowed_mentions = self.http.default_allowed_mentions();
+                let mut fields = self.fields;
+
+                if fields.allowed_mentions.is_none() {
+                    fields.allowed_mentions = self.http.default_allowed_mentions();
                 }
 
-                let body = crate::json::to_vec(&self.fields).map_err(HttpError::json)?;
+                let body = crate::json::to_vec(&fields).map_err(HttpError::json)?;
                 form.payload_json(&body);
             }
 
             request = request.form(form);
         } else {
-            if self.fields.allowed_mentions.is_none() {
-                self.fields.allowed_mentions = self.http.default_allowed_mentions();
+            let mut fields = self.fields;
+
+            if fields.allowed_mentions.is_none() {
+                fields.allowed_mentions = self.http.default_allowed_mentions();
             }
 
-            request = request.json(&self.fields)?;
+            request = request.json(&fields)?;
         }
 
         if let Some(reason) = self.reason.as_ref() {
@@ -433,24 +457,6 @@ impl<'a> UpdateWebhookMessage<'a> {
 
         Ok(request.build())
     }
-
-    /// Execute the request, returning a future resolving to a [`Response`].
-    ///
-    /// [`Response`]: crate::response::Response
-    pub fn exec(mut self) -> ResponseFuture<EmptyBody> {
-        match self.request() {
-            Ok(request) => self.http.request(request),
-            Err(source) => ResponseFuture::error(source),
-        }
-    }
-}
-
-impl<'a> AuditLogReason<'a> for UpdateWebhookMessage<'a> {
-    fn reason(mut self, reason: &'a str) -> Result<Self, AuditLogReasonError> {
-        self.reason.replace(AuditLogReasonError::validate(reason)?);
-
-        Ok(self)
-    }
 }
 
 #[cfg(test)]
@@ -458,7 +464,7 @@ mod tests {
     use super::{UpdateWebhookMessage, UpdateWebhookMessageFields};
     use crate::{
         client::Client,
-        request::{AuditLogReason, NullableField, Request},
+        request::{AuditLogReason, IntoRequest, NullableField, Request},
         routing::Route,
     };
     use twilight_model::id::{MessageId, WebhookId};
@@ -466,7 +472,7 @@ mod tests {
     #[test]
     fn test_request() {
         let client = Client::new("token".to_owned());
-        let mut builder = UpdateWebhookMessage::new(
+        let builder = UpdateWebhookMessage::new(
             &client,
             WebhookId::new(1).expect("non zero"),
             "token",
@@ -476,7 +482,7 @@ mod tests {
         .expect("'test' content couldn't be set")
         .reason("reason")
         .expect("'reason' is not a valid reason");
-        let actual = builder.request().expect("failed to create request");
+        let actual = builder.into_request().expect("failed to create request");
 
         let body = UpdateWebhookMessageFields {
             allowed_mentions: None,

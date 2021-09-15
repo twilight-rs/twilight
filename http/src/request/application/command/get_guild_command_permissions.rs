@@ -1,6 +1,6 @@
 use crate::{
     client::Client,
-    request::Request,
+    request::{IntoRequest, Request},
     response::{marker::ListBody, ResponseFuture},
     routing::Route,
 };
@@ -34,11 +34,20 @@ impl<'a> GetGuildCommandPermissions<'a> {
     ///
     /// [`Response`]: crate::response::Response
     pub fn exec(self) -> ResponseFuture<ListBody<GuildCommandPermissions>> {
-        let request = Request::from_route(&Route::GetGuildCommandPermissions {
+        let http = self.http;
+
+        match self.into_request() {
+            Ok(request) => http.request(request),
+            Err(source) => ResponseFuture::error(source),
+        }
+    }
+}
+
+impl IntoRequest for GetGuildCommandPermissions<'_> {
+    fn into_request(self) -> Result<Request, crate::Error> {
+        Ok(Request::from_route(&Route::GetGuildCommandPermissions {
             application_id: self.application_id.get(),
             guild_id: self.guild_id.get(),
-        });
-
-        self.http.request(request)
+        }))
     }
 }

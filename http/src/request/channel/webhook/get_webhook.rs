@@ -1,4 +1,9 @@
-use crate::{client::Client, request::Request, response::ResponseFuture, routing::Route};
+use crate::{
+    client::Client,
+    request::{IntoRequest, Request},
+    response::ResponseFuture,
+    routing::Route,
+};
 use twilight_model::{channel::Webhook, id::WebhookId};
 
 struct GetWebhookFields<'a> {
@@ -34,12 +39,23 @@ impl<'a> GetWebhook<'a> {
     ///
     /// [`Response`]: crate::response::Response
     pub fn exec(self) -> ResponseFuture<Webhook> {
-        let use_webhook_token = self.fields.token.is_some();
+        let http = self.http;
 
+        match self.into_request() {
+            Ok(request) => http.request(request),
+            Err(source) => ResponseFuture::error(source),
+        }
+    }
+}
+
+impl IntoRequest for GetWebhook<'_> {
+    fn into_request(self) -> Result<Request, crate::Error> {
         let mut request = Request::builder(&Route::GetWebhook {
             token: self.fields.token,
             webhook_id: self.id.get(),
         });
+
+        let use_webhook_token = self.fields.token.is_some();
 
         // If a webhook token has been configured, then we don't need to use
         // the client's authorization token.
@@ -47,6 +63,6 @@ impl<'a> GetWebhook<'a> {
             request = request.use_authorization_token(false);
         }
 
-        self.http.request(request.build())
+        Ok(request.build())
     }
 }

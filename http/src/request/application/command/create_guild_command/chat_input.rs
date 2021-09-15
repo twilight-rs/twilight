@@ -5,7 +5,7 @@ use super::super::{
 use crate::{
     client::Client,
     error::Error as HttpError,
-    request::{validate_inner, Request, RequestBuilder},
+    request::{validate_inner, IntoRequest, Request, RequestBuilder},
     response::ResponseFuture,
     routing::Route,
 };
@@ -103,7 +103,21 @@ impl<'a> CreateGuildChatInputCommand<'a> {
         Ok(self)
     }
 
-    fn request(&self) -> Result<Request, HttpError> {
+    /// Execute the request, returning a future resolving to a [`Response`].
+    ///
+    /// [`Response`]: crate::response::Response
+    pub fn exec(self) -> ResponseFuture<Command> {
+        let http = self.http;
+
+        match self.into_request() {
+            Ok(request) => http.request(request),
+            Err(source) => ResponseFuture::error(source),
+        }
+    }
+}
+
+impl IntoRequest for CreateGuildChatInputCommand<'_> {
+    fn into_request(self) -> Result<Request, HttpError> {
         Request::builder(&Route::CreateGuildCommand {
             application_id: self.application_id.get(),
             guild_id: self.guild_id.get(),
@@ -117,15 +131,5 @@ impl<'a> CreateGuildChatInputCommand<'a> {
             options: self.options,
         })
         .map(RequestBuilder::build)
-    }
-
-    /// Execute the request, returning a future resolving to a [`Response`].
-    ///
-    /// [`Response`]: crate::response::Response
-    pub fn exec(self) -> ResponseFuture<Command> {
-        match self.request() {
-            Ok(request) => self.http.request(request),
-            Err(source) => ResponseFuture::error(source),
-        }
     }
 }

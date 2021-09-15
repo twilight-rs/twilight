@@ -1,6 +1,6 @@
 use crate::{
     client::Client,
-    request::Request,
+    request::{IntoRequest, Request},
     response::{marker::EmptyBody, ResponseFuture},
     routing::Route,
 };
@@ -46,30 +46,42 @@ impl<'a> DeleteFollowupMessage<'a> {
         }
     }
 
-    fn request(self) -> Request {
-        Request::from_route(&Route::DeleteWebhookMessage {
-            message_id: self.message_id.get(),
-            token: self.token,
-            webhook_id: self.application_id.get(),
-        })
-    }
-
     /// Execute the request, returning a future resolving to a [`Response`].
     ///
     /// [`Response`]: crate::response::Response
     pub fn exec(self) -> ResponseFuture<EmptyBody> {
-        self.http.request(self.request())
+        let http = self.http;
+
+        match self.into_request() {
+            Ok(request) => http.request(request),
+            Err(source) => ResponseFuture::error(source),
+        }
+    }
+}
+
+impl IntoRequest for DeleteFollowupMessage<'_> {
+    fn into_request(self) -> Result<Request, crate::Error> {
+        Ok(Request::from_route(&Route::DeleteWebhookMessage {
+            message_id: self.message_id.get(),
+            token: self.token,
+            webhook_id: self.application_id.get(),
+        }))
     }
 }
 
 #[cfg(test)]
 mod tests {
     use super::DeleteFollowupMessage;
-    use crate::{client::Client, request::Request, routing::Route};
+    use crate::{
+        client::Client,
+        request::{IntoRequest, Request},
+        routing::Route,
+    };
+    use std::error::Error;
     use twilight_model::id::{ApplicationId, MessageId};
 
     #[test]
-    fn test_request() {
+    fn test_request() -> Result<(), Box<dyn Error>> {
         let client = Client::new("token".to_owned());
 
         let builder = DeleteFollowupMessage::new(
@@ -78,7 +90,7 @@ mod tests {
             "token",
             MessageId::new(2).expect("non zero"),
         );
-        let actual = builder.request();
+        let actual = builder.into_request()?;
 
         let expected = Request::from_route(&Route::DeleteWebhookMessage {
             message_id: 2,
@@ -87,5 +99,7 @@ mod tests {
         });
 
         assert_eq!(expected.path, actual.path);
+
+        Ok(())
     }
 }

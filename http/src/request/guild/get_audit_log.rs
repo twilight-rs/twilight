@@ -1,6 +1,6 @@
 use crate::{
     client::Client,
-    request::{validate_inner, Request},
+    request::{validate_inner, IntoRequest, Request},
     response::ResponseFuture,
     routing::Route,
 };
@@ -164,14 +164,23 @@ impl<'a> GetAuditLog<'a> {
     ///
     /// [`Response`]: crate::response::Response
     pub fn exec(self) -> ResponseFuture<AuditLog> {
-        let request = Request::from_route(&Route::GetAuditLogs {
+        let http = self.http;
+
+        match self.into_request() {
+            Ok(request) => http.request(request),
+            Err(source) => ResponseFuture::error(source),
+        }
+    }
+}
+
+impl IntoRequest for GetAuditLog<'_> {
+    fn into_request(self) -> Result<Request, crate::Error> {
+        Ok(Request::from_route(&Route::GetAuditLogs {
             action_type: self.fields.action_type.map(|x| x as u64),
             before: self.fields.before,
             guild_id: self.guild_id.get(),
             limit: self.fields.limit,
             user_id: self.fields.user_id.map(UserId::get),
-        });
-
-        self.http.request(request)
+        }))
     }
 }

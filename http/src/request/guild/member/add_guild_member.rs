@@ -1,6 +1,6 @@
 use crate::{
     client::Client,
-    request::{validate_inner, Request},
+    request::{validate_inner, IntoRequest, Request},
     response::ResponseFuture,
     routing::Route,
 };
@@ -159,16 +159,24 @@ impl<'a> AddGuildMember<'a> {
     ///
     /// [`Response`]: crate::response::Response
     pub fn exec(self) -> ResponseFuture<PartialMember> {
+        let http = self.http;
+
+        match self.into_request() {
+            Ok(request) => http.request(request),
+            Err(source) => ResponseFuture::error(source),
+        }
+    }
+}
+
+impl IntoRequest for AddGuildMember<'_> {
+    fn into_request(self) -> Result<Request, crate::Error> {
         let mut request = Request::builder(&Route::AddGuildMember {
             guild_id: self.guild_id.get(),
             user_id: self.user_id.get(),
         });
 
-        request = match request.json(&self.fields) {
-            Ok(request) => request,
-            Err(source) => return ResponseFuture::error(source),
-        };
+        request = request.json(&self.fields)?;
 
-        self.http.request(request.build())
+        Ok(request.build())
     }
 }

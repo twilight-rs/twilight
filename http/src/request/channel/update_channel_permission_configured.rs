@@ -1,7 +1,7 @@
 use crate::{
     client::Client,
     error::Error,
-    request::{self, AuditLogReason, AuditLogReasonError, Request},
+    request::{self, AuditLogReason, AuditLogReasonError, IntoRequest, Request},
     response::{marker::EmptyBody, ResponseFuture},
     routing::Route,
 };
@@ -60,26 +60,14 @@ impl<'a> UpdateChannelPermissionConfigured<'a> {
         }
     }
 
-    fn request(&self) -> Result<Request, Error> {
-        let mut request = Request::builder(&Route::UpdatePermissionOverwrite {
-            channel_id: self.channel_id.get(),
-            target_id: self.target_id,
-        })
-        .json(&self.fields)?;
-
-        if let Some(reason) = &self.reason {
-            request = request.headers(request::audit_header(reason)?);
-        }
-
-        Ok(request.build())
-    }
-
     /// Execute the request, returning a future resolving to a [`Response`].
     ///
     /// [`Response`]: crate::response::Response
     pub fn exec(self) -> ResponseFuture<EmptyBody> {
-        match self.request() {
-            Ok(request) => self.http.request(request),
+        let http = self.http;
+
+        match self.into_request() {
+            Ok(request) => http.request(request),
             Err(source) => ResponseFuture::error(source),
         }
     }
@@ -93,10 +81,30 @@ impl<'a> AuditLogReason<'a> for UpdateChannelPermissionConfigured<'a> {
     }
 }
 
+impl IntoRequest for UpdateChannelPermissionConfigured<'_> {
+    fn into_request(self) -> Result<Request, Error> {
+        let mut request = Request::builder(&Route::UpdatePermissionOverwrite {
+            channel_id: self.channel_id.get(),
+            target_id: self.target_id,
+        })
+        .json(&self.fields)?;
+
+        if let Some(reason) = &self.reason {
+            request = request.headers(request::audit_header(reason)?);
+        }
+
+        Ok(request.build())
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::{UpdateChannelPermissionConfigured, UpdateChannelPermissionConfiguredFields};
-    use crate::{request::Request, routing::Route, Client};
+    use crate::{
+        request::{IntoRequest, Request},
+        routing::Route,
+        Client,
+    };
     use twilight_model::{
         channel::permission_overwrite::{PermissionOverwriteTargetType, PermissionOverwriteType},
         guild::Permissions,
@@ -113,7 +121,7 @@ mod tests {
             Permissions::SEND_MESSAGES,
             PermissionOverwriteType::Member(UserId::new(2).expect("non zero")),
         );
-        let actual = builder.request().expect("failed to create request");
+        let actual = builder.into_request().expect("failed to create request");
 
         let body = crate::json::to_vec(&UpdateChannelPermissionConfiguredFields {
             allow: Permissions::empty(),

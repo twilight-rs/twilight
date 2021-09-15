@@ -1,5 +1,5 @@
 use super::execute_webhook::ExecuteWebhook;
-use crate::response::ResponseFuture;
+use crate::{request::IntoRequest, response::ResponseFuture};
 use twilight_model::channel::Message;
 
 /// Execute a webhook, sending a message to its channel, and then wait for the
@@ -46,9 +46,17 @@ impl<'a> ExecuteWebhookAndWait<'a> {
     ///
     /// [`Response`]: crate::response::Response
     pub fn exec(self) -> ResponseFuture<Message> {
-        match self.inner.request(false) {
-            Ok(request) => self.inner.http.request(request),
+        let http = self.inner.http;
+
+        match self.into_request() {
+            Ok(request) => http.request(request),
             Err(source) => ResponseFuture::error(source),
         }
+    }
+}
+
+impl IntoRequest for ExecuteWebhookAndWait<'_> {
+    fn into_request(self) -> Result<crate::request::Request, crate::Error> {
+        self.inner.request(true)
     }
 }

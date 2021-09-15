@@ -6,7 +6,7 @@ use crate::{
     request::{
         self,
         validate_inner::{self, ComponentValidationError, ComponentValidationErrorType},
-        Form, NullableField, Request,
+        Form, IntoRequest, NullableField, Request,
     },
     response::{marker::EmptyBody, ResponseFuture},
     routing::Route,
@@ -392,9 +392,18 @@ impl<'a> UpdateFollowupMessage<'a> {
         self
     }
 
-    // `self` needs to be consumed and the client returned due to parameters
-    // being consumed in request construction.
-    fn request(&mut self) -> Result<Request, HttpError> {
+    pub fn exec(self) -> ResponseFuture<EmptyBody> {
+        let http = self.http;
+
+        match self.into_request() {
+            Ok(request) => http.request(request),
+            Err(source) => ResponseFuture::error(source),
+        }
+    }
+}
+
+impl IntoRequest for UpdateFollowupMessage<'_> {
+    fn into_request(mut self) -> Result<Request, HttpError> {
         let mut request = Request::builder(&Route::UpdateWebhookMessage {
             message_id: self.message_id.get(),
             token: self.token,
@@ -429,12 +438,5 @@ impl<'a> UpdateFollowupMessage<'a> {
         }
 
         Ok(request.build())
-    }
-
-    pub fn exec(mut self) -> ResponseFuture<EmptyBody> {
-        match self.request() {
-            Ok(request) => self.http.request(request),
-            Err(source) => ResponseFuture::error(source),
-        }
     }
 }

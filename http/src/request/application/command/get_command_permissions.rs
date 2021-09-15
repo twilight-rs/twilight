@@ -1,4 +1,9 @@
-use crate::{client::Client, request::Request, response::ResponseFuture, routing::Route};
+use crate::{
+    client::Client,
+    request::{IntoRequest, Request},
+    response::ResponseFuture,
+    routing::Route,
+};
 use twilight_model::{
     application::command::permissions::GuildCommandPermissions,
     id::{ApplicationId, CommandId, GuildId},
@@ -32,12 +37,21 @@ impl<'a> GetCommandPermissions<'a> {
     ///
     /// [`Response`]: crate::response::Response
     pub fn exec(self) -> ResponseFuture<GuildCommandPermissions> {
-        let request = Request::from_route(&Route::GetCommandPermissions {
+        let http = self.http;
+
+        match self.into_request() {
+            Ok(request) => http.request(request),
+            Err(source) => ResponseFuture::error(source),
+        }
+    }
+}
+
+impl IntoRequest for GetCommandPermissions<'_> {
+    fn into_request(self) -> Result<Request, crate::Error> {
+        Ok(Request::from_route(&Route::GetCommandPermissions {
             application_id: self.application_id.get(),
             command_id: self.command_id.get(),
             guild_id: self.guild_id.get(),
-        });
-
-        self.http.request(request)
+        }))
     }
 }

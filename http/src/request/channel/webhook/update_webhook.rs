@@ -1,6 +1,6 @@
 use crate::{
     client::Client,
-    request::{self, AuditLogReason, AuditLogReasonError, NullableField, Request},
+    request::{self, AuditLogReason, AuditLogReasonError, IntoRequest, NullableField, Request},
     response::ResponseFuture,
     routing::Route,
 };
@@ -75,26 +75,12 @@ impl<'a> UpdateWebhook<'a> {
     ///
     /// [`Response`]: crate::response::Response
     pub fn exec(self) -> ResponseFuture<Webhook> {
-        let mut request = Request::builder(&Route::UpdateWebhook {
-            token: None,
-            webhook_id: self.webhook_id.get(),
-        });
+        let http = self.http;
 
-        request = match request.json(&self.fields) {
-            Ok(request) => request,
-            Err(source) => return ResponseFuture::error(source),
-        };
-
-        if let Some(reason) = self.reason.as_ref() {
-            let header = match request::audit_header(reason) {
-                Ok(header) => header,
-                Err(source) => return ResponseFuture::error(source),
-            };
-
-            request = request.headers(header);
+        match self.into_request() {
+            Ok(request) => http.request(request),
+            Err(source) => ResponseFuture::error(source),
         }
-
-        self.http.request(request.build())
     }
 }
 
@@ -103,5 +89,24 @@ impl<'a> AuditLogReason<'a> for UpdateWebhook<'a> {
         self.reason.replace(AuditLogReasonError::validate(reason)?);
 
         Ok(self)
+    }
+}
+
+impl IntoRequest for UpdateWebhook<'_> {
+    fn into_request(self) -> Result<Request, crate::Error> {
+        let mut request = Request::builder(&Route::UpdateWebhook {
+            token: None,
+            webhook_id: self.webhook_id.get(),
+        });
+
+        request = request.json(&self.fields)?;
+
+        if let Some(reason) = self.reason.as_ref() {
+            let header = request::audit_header(reason)?;
+
+            request = request.headers(header);
+        }
+
+        Ok(request.build())
     }
 }

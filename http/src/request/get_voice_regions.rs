@@ -6,6 +6,8 @@ use crate::{
 };
 use twilight_model::voice::VoiceRegion;
 
+use super::IntoRequest;
+
 /// Get a list of voice regions that can be used when creating a guild.
 #[must_use = "requests must be configured and executed"]
 pub struct GetVoiceRegions<'a> {
@@ -21,8 +23,17 @@ impl<'a> GetVoiceRegions<'a> {
     ///
     /// [`Response`]: crate::response::Response
     pub fn exec(self) -> ResponseFuture<ListBody<VoiceRegion>> {
-        let request = Request::from_route(&Route::GetVoiceRegions);
+        let http = self.http;
 
-        self.http.request(request)
+        match self.into_request() {
+            Ok(request) => http.request(request),
+            Err(source) => ResponseFuture::error(source),
+        }
+    }
+}
+
+impl IntoRequest for GetVoiceRegions<'_> {
+    fn into_request(self) -> Result<Request, crate::Error> {
+        Ok(Request::from_route(&Route::GetVoiceRegions))
     }
 }

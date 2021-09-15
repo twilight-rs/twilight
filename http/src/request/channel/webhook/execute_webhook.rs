@@ -4,7 +4,7 @@ use crate::{
     error::Error as HttpError,
     request::{
         validate_inner::{self, ComponentValidationError, ComponentValidationErrorType},
-        Form, Request,
+        Form, IntoRequest, Request,
     },
     response::{marker::EmptyBody, ResponseFuture},
     routing::Route,
@@ -334,7 +334,7 @@ impl<'a> ExecuteWebhook<'a> {
 
     // `self` needs to be consumed and the client returned due to parameters
     // being consumed in request construction.
-    pub(super) fn request(&self, wait: bool) -> Result<Request, HttpError> {
+    pub(super) fn request(self, wait: bool) -> Result<Request, HttpError> {
         let mut request = Request::builder(&Route::ExecuteWebhook {
             token: self.token,
             wait: Some(wait),
@@ -372,9 +372,17 @@ impl<'a> ExecuteWebhook<'a> {
     ///
     /// [`Response`]: crate::response::Response
     pub fn exec(self) -> ResponseFuture<EmptyBody> {
-        match self.request(false) {
-            Ok(request) => self.http.request(request),
+        let http = self.http;
+
+        match self.into_request() {
+            Ok(request) => http.request(request),
             Err(source) => ResponseFuture::error(source),
         }
+    }
+}
+
+impl IntoRequest for ExecuteWebhook<'_> {
+    fn into_request(self) -> Result<Request, HttpError> {
+        self.request(false)
     }
 }

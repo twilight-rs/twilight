@@ -1,4 +1,9 @@
-use crate::{client::Client, request::Request, response::ResponseFuture, routing::Route};
+use crate::{
+    client::Client,
+    request::{IntoRequest, Request},
+    response::ResponseFuture,
+    routing::Route,
+};
 use twilight_model::invite::Invite;
 
 struct GetInviteFields {
@@ -68,12 +73,21 @@ impl<'a> GetInvite<'a> {
     ///
     /// [`Response`]: crate::response::Response
     pub fn exec(self) -> ResponseFuture<Invite> {
-        let request = Request::from_route(&Route::GetInviteWithExpiration {
+        let http = self.http;
+
+        match self.into_request() {
+            Ok(request) => http.request(request),
+            Err(source) => ResponseFuture::error(source),
+        }
+    }
+}
+
+impl IntoRequest for GetInvite<'_> {
+    fn into_request(self) -> Result<Request, crate::Error> {
+        Ok(Request::from_route(&Route::GetInviteWithExpiration {
             code: self.code,
             with_counts: self.fields.with_counts,
             with_expiration: self.fields.with_expiration,
-        });
-
-        self.http.request(request)
+        }))
     }
 }

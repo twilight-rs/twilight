@@ -1,6 +1,6 @@
 use crate::{
     client::Client,
-    request::{self, validate_inner, AuditLogReason, AuditLogReasonError, Request},
+    request::{self, validate_inner, AuditLogReason, AuditLogReasonError, IntoRequest, Request},
     response::ResponseFuture,
     routing::Route,
 };
@@ -136,23 +136,12 @@ impl<'a> CreateGuildPrune<'a> {
     ///
     /// [`Response`]: crate::response::Response
     pub fn exec(self) -> ResponseFuture<GuildPrune> {
-        let mut request = Request::builder(&Route::CreateGuildPrune {
-            compute_prune_count: self.fields.compute_prune_count,
-            days: self.fields.days,
-            guild_id: self.guild_id.get(),
-            include_roles: self.fields.include_roles,
-        });
+        let http = self.http;
 
-        if let Some(reason) = self.reason.as_ref() {
-            let header = match request::audit_header(reason) {
-                Ok(header) => header,
-                Err(source) => return ResponseFuture::error(source),
-            };
-
-            request = request.headers(header);
+        match self.into_request() {
+            Ok(request) => http.request(request),
+            Err(source) => ResponseFuture::error(source),
         }
-
-        self.http.request(request.build())
     }
 }
 
@@ -161,5 +150,24 @@ impl<'a> AuditLogReason<'a> for CreateGuildPrune<'a> {
         self.reason.replace(AuditLogReasonError::validate(reason)?);
 
         Ok(self)
+    }
+}
+
+impl IntoRequest for CreateGuildPrune<'_> {
+    fn into_request(self) -> Result<Request, crate::Error> {
+        let mut request = Request::builder(&Route::CreateGuildPrune {
+            compute_prune_count: self.fields.compute_prune_count,
+            days: self.fields.days,
+            guild_id: self.guild_id.get(),
+            include_roles: self.fields.include_roles,
+        });
+
+        if let Some(reason) = self.reason.as_ref() {
+            let header = request::audit_header(reason)?;
+
+            request = request.headers(header);
+        }
+
+        Ok(request.build())
     }
 }

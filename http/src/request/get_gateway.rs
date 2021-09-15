@@ -6,6 +6,8 @@ use crate::{
 };
 use twilight_model::gateway::connection_info::ConnectionInfo;
 
+use super::IntoRequest;
+
 /// Get information about the gateway, optionally with additional information detailing the
 /// number of shards to use and sessions remaining.
 ///
@@ -62,8 +64,17 @@ impl<'a> GetGateway<'a> {
     ///
     /// [`Response`]: crate::response::Response
     pub fn exec(self) -> ResponseFuture<ConnectionInfo> {
-        let request = Request::from_route(&Route::GetGateway);
+        let http = self.http;
 
-        self.http.request(request)
+        match self.into_request() {
+            Ok(request) => http.request(request),
+            Err(source) => ResponseFuture::error(source),
+        }
+    }
+}
+
+impl IntoRequest for GetGateway<'_> {
+    fn into_request(self) -> Result<Request, crate::Error> {
+        Ok(Request::from_route(&Route::GetGateway))
     }
 }

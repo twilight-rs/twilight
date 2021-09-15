@@ -1,6 +1,6 @@
 use crate::{
     client::Client,
-    request::{self, AuditLogReason, AuditLogReasonError, Request},
+    request::{self, AuditLogReason, AuditLogReasonError, IntoRequest, Request},
     response::{marker::EmptyBody, ResponseFuture},
     routing::Route,
 };
@@ -31,21 +31,12 @@ impl<'a> DeleteChannelPermissionConfigured<'a> {
     ///
     /// [`Response`]: crate::response::Response
     pub fn exec(self) -> ResponseFuture<EmptyBody> {
-        let mut request = Request::builder(&Route::DeletePermissionOverwrite {
-            channel_id: self.channel_id.get(),
-            target_id: self.target_id,
-        });
+        let http = self.http;
 
-        if let Some(reason) = &self.reason {
-            let header = match request::audit_header(reason) {
-                Ok(header) => header,
-                Err(source) => return ResponseFuture::error(source),
-            };
-
-            request = request.headers(header);
+        match self.into_request() {
+            Ok(request) => http.request(request),
+            Err(source) => ResponseFuture::error(source),
         }
-
-        self.http.request(request.build())
     }
 }
 
@@ -54,5 +45,22 @@ impl<'a> AuditLogReason<'a> for DeleteChannelPermissionConfigured<'a> {
         self.reason.replace(AuditLogReasonError::validate(reason)?);
 
         Ok(self)
+    }
+}
+
+impl IntoRequest for DeleteChannelPermissionConfigured<'_> {
+    fn into_request(self) -> Result<Request, crate::Error> {
+        let mut request = Request::builder(&Route::DeletePermissionOverwrite {
+            channel_id: self.channel_id.get(),
+            target_id: self.target_id,
+        });
+
+        if let Some(reason) = self.reason {
+            let header = request::audit_header(reason)?;
+
+            request = request.headers(header);
+        }
+
+        Ok(request.build())
     }
 }
