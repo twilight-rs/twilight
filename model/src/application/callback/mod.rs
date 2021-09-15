@@ -16,7 +16,7 @@ use std::fmt::{Formatter, Result as FmtResult};
 ///
 /// Refer to [the discord docs] for more information.
 ///
-/// [the discord docs]: https://discord.com/developers/docs/interactions/slash-commands#interaction-response
+/// [the discord docs]: https://discord.com/developers/docs/interactions/receiving-and-responding#interaction-object-interaction-structure
 #[derive(Clone, Debug, Eq, Hash, PartialEq)]
 pub enum InteractionResponse {
     /// Used when responding to an interaction of type Ping.

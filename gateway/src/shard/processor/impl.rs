@@ -267,7 +267,6 @@ struct ReadyMinimal {
 pub struct ShardProcessor {
     pub config: Arc<Config>,
     pub emitter: Emitter,
-    pub properties: IdentifyProperties,
     pub rx: UnboundedReceiver<Message>,
     pub session: Arc<Session>,
     compression: Compression,
@@ -296,8 +295,6 @@ impl ShardProcessor {
             #[cfg(feature = "tracing")]
             tracing::debug!("shard {:?} finished queue", config.shard());
         }
-
-        let properties = IdentifyProperties::new("twilight.rs", "twilight.rs", OS, "", "");
 
         url.push_str("?v=8");
 
@@ -335,7 +332,6 @@ impl ShardProcessor {
             compression: Compression::new(shard_id),
             config,
             emitter,
-            properties,
             rx,
             session,
             url: url.into_boxed_str(),
@@ -845,7 +841,7 @@ impl ShardProcessor {
     }
 
     async fn connect(url: &str) -> Result<ShardStream, ConnectingError> {
-        #[allow(disjoint_capture_migration)]
+        #[allow(rust_2021_incompatible_closure_captures)]
         let url = Url::parse(url).map_err(|source| ConnectingError {
             kind: ConnectingErrorType::ParsingUrl {
                 url: url.to_owned(),
@@ -882,11 +878,17 @@ impl ShardProcessor {
     async fn identify(&mut self) -> Result<(), SessionSendError> {
         self.session.set_stage(Stage::Identifying);
 
+        let properties = self
+            .config
+            .identify_properties()
+            .cloned()
+            .unwrap_or_else(default_identify_properties);
+
         let identify = Identify::new(IdentifyInfo {
             compress: false,
             large_threshold: self.config.large_threshold(),
             intents: self.config.intents(),
-            properties: self.properties.clone(),
+            properties,
             shard: Some(self.config.shard()),
             presence: self.config.presence().cloned(),
             token: self.config.token().to_owned(),
@@ -953,7 +955,7 @@ impl ShardProcessor {
     /// connection.
     async fn resume(&mut self) {
         #[cfg(feature = "tracing")]
-        tracing::info!("resuming shard {:?}", self.config.shard());
+        tracing::debug!("resuming shard {:?}", self.config.shard());
 
         self.session.set_stage(Stage::Resuming);
         self.session.stop_heartbeater();
@@ -1028,4 +1030,12 @@ impl ShardProcessor {
             shard_id: self.config.shard()[0],
         }));
     }
+}
+
+/// Default identify properties to use when the user has not customized it via
+/// [`ShardBuilder::identify_properties`].
+///
+/// [`ShardBuilder::identify_properties`]: super::super::ShardBuilder::identify_properties
+fn default_identify_properties() -> IdentifyProperties {
+    IdentifyProperties::new("twilight.rs", "twilight.rs", OS, "", "")
 }

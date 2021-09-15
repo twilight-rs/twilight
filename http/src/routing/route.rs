@@ -373,6 +373,13 @@ pub enum Route<'a> {
     /// Route information to get gateway information tailored to the current
     /// user.
     GetGatewayBot,
+    /// Route information to get a global command for an application.
+    GetGlobalCommand {
+        /// ID of the owner application.
+        application_id: u64,
+        /// ID of the command.
+        command_id: u64,
+    },
     GetGlobalCommands {
         /// The ID of the owner application.
         application_id: u64,
@@ -384,6 +391,15 @@ pub enum Route<'a> {
         /// Whether to include approximate member and presence counts for the
         /// guild.
         with_counts: bool,
+    },
+    /// Route information to get a guild command.
+    GetGuildCommand {
+        /// ID of the owner application.
+        application_id: u64,
+        /// ID of the command.
+        command_id: u64,
+        /// ID of the guild.
+        guild_id: u64,
     },
     /// Route information to get permissions of all guild commands.
     GetGuildCommandPermissions {
@@ -924,8 +940,10 @@ impl<'a> Route<'a> {
             | Self::GetEmojis { .. }
             | Self::GetGateway
             | Self::GetFollowupMessage { .. }
+            | Self::GetGlobalCommand { .. }
             | Self::GetGlobalCommands { .. }
             | Self::GetGuild { .. }
+            | Self::GetGuildCommand { .. }
             | Self::GetGuildCommandPermissions { .. }
             | Self::GetGuildCommands { .. }
             | Self::GetGuildIntegrations { .. }
@@ -1072,6 +1090,7 @@ impl<'a> Route<'a> {
             }
             Self::CreateGuildCommand { application_id, .. }
             | Self::DeleteGuildCommand { application_id, .. }
+            | Self::GetGuildCommand { application_id, .. }
             | Self::GetGuildCommandPermissions { application_id, .. }
             | Self::GetGuildCommands { application_id, .. }
             | Self::SetCommandPermissions { application_id, .. }
@@ -1115,6 +1134,7 @@ impl<'a> Route<'a> {
             Self::DeleteChannel { channel_id } => Path::ChannelsId(*channel_id),
             Self::DeleteEmoji { guild_id, .. } => Path::GuildsIdEmojisId(*guild_id),
             Self::DeleteGlobalCommand { application_id, .. }
+            | Self::GetGlobalCommand { application_id, .. }
             | Self::UpdateGlobalCommand { application_id, .. } => {
                 Path::ApplicationCommandId(*application_id)
             }

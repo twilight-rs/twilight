@@ -2,7 +2,10 @@ use crate::EventTypeFlags;
 use std::sync::Arc;
 use twilight_gateway_queue::Queue;
 use twilight_http::Client;
-use twilight_model::gateway::{payload::update_presence::UpdatePresencePayload, Intents};
+use twilight_model::gateway::{
+    payload::{identify::IdentifyProperties, update_presence::UpdatePresencePayload},
+    Intents,
+};
 
 /// The configuration used by the shard to identify with the gateway and
 /// operate.
@@ -15,6 +18,7 @@ pub struct Config {
     pub(crate) event_types: EventTypeFlags,
     pub(crate) gateway_url: Option<Box<str>>,
     pub(crate) http_client: Client,
+    pub(super) identify_properties: Option<IdentifyProperties>,
     pub(super) intents: Intents,
     pub(super) large_threshold: u64,
     pub(super) presence: Option<UpdatePresencePayload>,
@@ -40,6 +44,12 @@ impl Config {
     /// by the shard.
     pub const fn http_client(&self) -> &Client {
         &self.http_client
+    }
+
+    /// Return an immutable reference to the identification properties the shard
+    /// will use.
+    pub const fn identify_properties(&self) -> Option<&IdentifyProperties> {
+        self.identify_properties.as_ref()
     }
 
     /// Return a copy of the intents that the gateway is using.

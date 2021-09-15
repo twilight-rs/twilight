@@ -10,7 +10,7 @@ use serde::{Deserialize, Serialize};
 /// Refer to [the discord docs] for more information.
 ///
 /// [`ApplicationCommand`]: crate::application::interaction::Interaction::ApplicationCommand
-/// [the discord docs]: https://discord.com/developers/docs/interactions/slash-commands#interaction-applicationcommandinteractiondata
+/// [the discord docs]: https://discord.com/developers/docs/interactions/application-commands#interaction-applicationcommandinteractiondata
 #[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize, Default)]
 pub struct CommandData {
     /// ID of the command.
@@ -31,7 +31,7 @@ pub struct CommandData {
 ///
 /// Refer to [the discord docs] for more information.
 ///
-/// [the discord docs]: https://discord.com/developers/docs/interactions/slash-commands#interaction-applicationcommandinteractiondataoption
+/// [the discord docs]: https://discord.com/developers/docs/interactions/application-commands#interaction-applicationcommandinteractiondataoption
 #[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
 #[serde(untagged)]
 pub enum CommandDataOption {

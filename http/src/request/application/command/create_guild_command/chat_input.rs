@@ -1,4 +1,7 @@
-use super::{CommandBorrowed, InteractionError, InteractionErrorType};
+use super::super::{
+    super::{InteractionError, InteractionErrorType},
+    CommandBorrowed,
+};
 use crate::{
     client::Client,
     error::Error as HttpError,
@@ -7,20 +10,20 @@ use crate::{
     routing::Route,
 };
 use twilight_model::{
-    application::command::{Command, CommandOption},
+    application::command::{Command, CommandOption, CommandType},
     id::{ApplicationId, GuildId},
 };
 
-/// Create a new command in a guild.
+/// Create a chat input command in a guild.
 ///
-/// The name must be between 3 and 32 characters in length, and the description
-/// must be between 1 and 100 characters in length. Creating a guild command
-/// with the same name as an already-existing guild command in the same guild
-/// will overwrite the old command. See [the discord docs] for more information.
+/// The description must be between 1 and 100 characters in length. Creating a
+/// guild command with the same name as an already-existing guild command in the
+/// same guild will overwrite the old command. See [the discord docs] for more
+/// information.
 ///
-/// [the discord docs]: https://discord.com/developers/docs/interactions/slash-commands#create-guild-application-command
+/// [the discord docs]: https://discord.com/developers/docs/interactions/application-commands#create-guild-application-command
 #[must_use = "requests must be configured and executed"]
-pub struct CreateGuildCommand<'a> {
+pub struct CreateGuildChatInputCommand<'a> {
     application_id: ApplicationId,
     default_permission: Option<bool>,
     description: &'a str,
@@ -30,7 +33,7 @@ pub struct CreateGuildCommand<'a> {
     options: Option<&'a [CommandOption]>,
 }
 
-impl<'a> CreateGuildCommand<'a> {
+impl<'a> CreateGuildChatInputCommand<'a> {
     pub(crate) fn new(
         http: &'a Client,
         application_id: ApplicationId,
@@ -38,12 +41,6 @@ impl<'a> CreateGuildCommand<'a> {
         name: &'a str,
         description: &'a str,
     ) -> Result<Self, InteractionError> {
-        if !validate_inner::command_name(&name) {
-            return Err(InteractionError {
-                kind: InteractionErrorType::CommandNameValidationFailed,
-            });
-        }
-
         if !validate_inner::command_description(&description) {
             return Err(InteractionError {
                 kind: InteractionErrorType::CommandDescriptionValidationFailed,
@@ -114,7 +111,8 @@ impl<'a> CreateGuildCommand<'a> {
         .json(&CommandBorrowed {
             application_id: Some(self.application_id),
             default_permission: self.default_permission,
-            description: self.description,
+            description: Some(self.description),
+            kind: CommandType::ChatInput,
             name: self.name,
             options: self.options,
         })

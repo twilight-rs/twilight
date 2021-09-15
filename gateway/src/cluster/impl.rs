@@ -592,8 +592,6 @@ impl Cluster {
     ///
     /// Returns a [`ClusterCommandErrorType::ShardNonexistent`] error type if
     /// the provided shard ID does not exist in the cluster.
-    ///
-    /// [`SessionInactiveError`]: struct.SessionInactiveError.html
     pub async fn send(&self, id: u64, message: Message) -> Result<(), ClusterSendError> {
         let shard = self.shard(id).ok_or(ClusterSendError {
             kind: ClusterSendErrorType::ShardNonexistent { id },

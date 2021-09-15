@@ -2,6 +2,25 @@
 
 Changelog for `twilight-model`.
 
+## [0.6.2] - 2021-08-30
+
+### Additions
+
+Support message components, including action rows, buttons, and select menus
+([#1020], [#1043], [#1044], [#1090], aggregate [#1121] - [@AEnterprise],
+[@AsianIntel], [@zeylahellyer], [@7596ff]).
+
+### Enhancements
+
+Fix a remaining intradoc link ([#1128] - [@zeylahellyer]).
+
+[#1128]: https://github.com/twilight-rs/twilight/pull/1128
+[#1121]: https://github.com/twilight-rs/twilight/pull/1121
+[#1090]: https://github.com/twilight-rs/twilight/pull/1090
+[#1044]: https://github.com/twilight-rs/twilight/pull/1044
+[#1043]: https://github.com/twilight-rs/twilight/pull/1043
+[#1020]: https://github.com/twilight-rs/twilight/pull/1020
+
 ## [0.6.1] - 2021-08-18
 
 ### Fixes
@@ -750,6 +769,7 @@ Initial release.
 
 [@7596ff]: https://github.com/7596ff
 [@A5rocks]: https://github.com/A5rocks
+[@AEnterprise]: https://github.com/AEnterprise
 [@AsianIntel]: https://github.com/AsianIntel
 [@BlackHoleFox]: https://github.com/BlackHoleFox
 [@chamburr]: https://github.com/chamburr
@@ -790,6 +810,7 @@ Initial release.
 
 [0.2.0-beta.1:app integrations]: https://github.com/discord/discord-api-docs/commit/a926694e2f8605848bda6b57d21c8817559e5cec
 
+[0.6.2]: https://github.com/twilight-rs/twilight/releases/tag/model-0.6.2
 [0.6.1]: https://github.com/twilight-rs/twilight/releases/tag/model-0.6.1
 [0.5.4]: https://github.com/twilight-rs/twilight/releases/tag/model-0.5.4
 [0.5.3]: https://github.com/twilight-rs/twilight/releases/tag/model-0.5.3
