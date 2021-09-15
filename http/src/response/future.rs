@@ -47,7 +47,12 @@ impl Chunking {
         let bytes = match Pin::new(&mut self.future).poll(cx) {
             Poll::Ready(Ok(bytes)) => bytes,
             Poll::Ready(Err(source)) => return InnerPoll::Ready(Err(source)),
-            Poll::Pending => return InnerPoll::Pending(ResponseFutureStage::Chunking(self)),
+            Poll::Pending => {
+                return InnerPoll::Pending(ResponseFutureStage::Chunking(Self {
+                    future: self.future,
+                    status: self.status,
+                }))
+            }
         };
 
         let error = match crate::json::from_bytes::<ApiError>(&bytes) {
@@ -113,7 +118,14 @@ impl InFlight {
                     source: Some(Box::new(source)),
                 }))
             }
-            Poll::Pending => return InnerPoll::Pending(ResponseFutureStage::InFlight(self)),
+            Poll::Pending => {
+                return InnerPoll::Pending(ResponseFutureStage::InFlight(Self {
+                    future: self.future,
+                    guild_id: self.guild_id,
+                    invalid_token: self.invalid_token,
+                    tx: self.tx,
+                }))
+            }
         };
 
         // If the API sent back an Unauthorized response, then the client's
