@@ -155,10 +155,10 @@ impl InFlight {
         let status = resp.status();
 
         if status.is_success() {
-            #[cfg(feature = "compression")]
+            #[cfg(feature = "decompression")]
             let mut resp = resp;
             // Inaccurate since end-users can only access the decompressed body.
-            #[cfg(feature = "compression")]
+            #[cfg(feature = "decompression")]
             resp.headers_mut().remove(hyper::header::CONTENT_LENGTH);
 
             let mut response = Response::new(resp);

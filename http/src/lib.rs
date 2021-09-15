@@ -6,9 +6,9 @@
 //!
 //! ## Features
 //!
-//! ### Compression
+//! ### Decompression
 //!
-//! The `compression` feature enables brotli decompression support via the [`brotli`] crate.
+//! The `decompression` feature enables brotli decompression support via the [`brotli`] crate.
 //!
 //! This is enabled by default.
 //!

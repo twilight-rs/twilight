@@ -2371,7 +2371,7 @@ impl Client {
                 headers.insert(CONTENT_TYPE, content_type);
             }
 
-            #[cfg(feature = "compression")]
+            #[cfg(feature = "decompression")]
             headers.insert(
                 hyper::header::ACCEPT_ENCODING,
                 HeaderValue::from_static("br"),

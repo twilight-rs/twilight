@@ -115,7 +115,7 @@ impl Display for DeserializeBodyError {
             DeserializeBodyErrorType::Chunking { .. } => {
                 f.write_str("failed to chunk response body")
             }
-            #[cfg(feature = "compression")]
+            #[cfg(feature = "decompression")]
             DeserializeBodyErrorType::Decompressing { .. } => {
                 f.write_str("failed to decompress response body")
             }
@@ -147,7 +147,7 @@ pub enum DeserializeBodyErrorType {
     /// Response body couldn't be chunked.
     Chunking,
     /// Decompressing the response failed.
-    #[cfg(feature = "compression")]
+    #[cfg(feature = "decompression")]
     Decompressing,
     /// Deserializing the model failed.
     Deserializing,
@@ -240,7 +240,7 @@ impl<T> Response<T> {
     ///
     /// [`text`]: Self::text
     pub fn bytes(self) -> BytesFuture {
-        #[cfg(feature = "compression")]
+        #[cfg(feature = "decompression")]
         let compressed = self
             .inner
             .headers()
@@ -251,7 +251,7 @@ impl<T> Response<T> {
 
         let fut = async move {
             {
-                #[cfg(feature = "compression")]
+                #[cfg(feature = "decompression")]
                 if compressed {
                     use hyper::body::Buf;
                     use std::io::Read;
