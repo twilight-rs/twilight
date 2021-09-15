@@ -135,10 +135,10 @@
 //! [rust badge]: https://img.shields.io/badge/rust-1.49+-93450a.svg?style=for-the-badge&logo=rust
 
 #![deny(
-    broken_intra_doc_links,
     clippy::missing_const_for_fn,
     missing_docs,
     rust_2018_idioms,
+    rustdoc::broken_intra_doc_links,
     unsafe_code,
     unused,
     warnings

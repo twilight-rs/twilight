@@ -61,10 +61,10 @@
 
 #![cfg_attr(docsrs, feature(doc_cfg))]
 #![deny(
-    broken_intra_doc_links,
     clippy::missing_const_for_fn,
     missing_docs,
     rust_2018_idioms,
+    rustdoc::broken_intra_doc_links,
     unsafe_code,
     unused,
     warnings
