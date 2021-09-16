@@ -205,7 +205,7 @@ use crate::error::Error;
 
 /// Convert a typed request builder into a raw [`Request`].
 ///
-/// Converting a typed request builder into a raw reques may be preferable in
+/// Converting a typed request builder into a raw request may be preferable in
 /// order to verify whether a request is valid prior to passing it to
 /// [`Client::request`].
 ///
