@@ -43,6 +43,7 @@ pub struct CommandDataOption {
     pub value: CommandOptionValue,
 }
 
+/// Value of a [`CommandDataOption`].
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub enum CommandOptionValue {
     String(String),
@@ -189,7 +190,7 @@ impl<'de> Deserialize<'de> for CommandDataOption {
 }
 
 impl CommandOptionValue {
-    const fn kind(&self) -> CommandOptionType {
+    pub const fn kind(&self) -> CommandOptionType {
         match self {
             CommandOptionValue::String(_) => CommandOptionType::String,
             CommandOptionValue::Integer(_) => CommandOptionType::Integer,
