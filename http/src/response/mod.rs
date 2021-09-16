@@ -253,27 +253,7 @@ impl<T> Response<T> {
             {
                 #[cfg(feature = "decompression")]
                 if compressed {
-                    use hyper::body::Buf;
-                    use std::io::Read;
-
-                    let mut buf = Vec::with_capacity(256);
-                    brotli::Decompressor::new(
-                        body::aggregate(body)
-                            .await
-                            .map_err(|source| DeserializeBodyError {
-                                kind: DeserializeBodyErrorType::Chunking,
-                                source: Some(Box::new(source)),
-                            })?
-                            .reader(),
-                        4096,
-                    )
-                    .read_to_end(&mut buf)
-                    .map_err(|_| DeserializeBodyError {
-                        kind: DeserializeBodyErrorType::Decompressing,
-                        source: None,
-                    })?;
-
-                    return Ok(buf.into());
+                    return decompress(body).await;
                 }
 
                 body::to_bytes(body)
@@ -822,6 +802,31 @@ impl Future for TextFuture {
             Poll::Pending => Poll::Pending,
         }
     }
+}
+
+#[cfg(feature = "decompression")]
+async fn decompress(body: Body) -> Result<Bytes, DeserializeBodyError> {
+    use hyper::body::Buf;
+    use std::io::Read;
+
+    let mut buf = Vec::with_capacity(256);
+    brotli::Decompressor::new(
+        body::aggregate(body)
+            .await
+            .map_err(|source| DeserializeBodyError {
+                kind: DeserializeBodyErrorType::Chunking,
+                source: Some(Box::new(source)),
+            })?
+            .reader(),
+        4096,
+    )
+    .read_to_end(&mut buf)
+    .map_err(|_| DeserializeBodyError {
+        kind: DeserializeBodyErrorType::Decompressing,
+        source: None,
+    })?;
+
+    return Ok(buf.into());
 }
 
 /// Create a `simd-json` Deserializer instance.
