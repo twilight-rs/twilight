@@ -1,5 +1,6 @@
 use super::{
     builder::ShardBuilder,
+    command::Command,
     config::Config,
     emitter::Emitter,
     event::Events,
@@ -566,6 +567,37 @@ impl Shard {
 
     /// Send a command over the gateway.
     ///
+    /// # Examples
+    ///
+    /// Request members whose names start with "tw" in a guild:
+    ///
+    /// ```no_run
+    /// # #[tokio::main]
+    /// # async fn main() -> Result<(), Box<dyn std::error::Error>> {
+    /// use std::env;
+    /// use twilight_gateway::{shard::Shard, Intents};
+    /// use twilight_model::{
+    ///     gateway::payload::outgoing::RequestGuildMembers,
+    ///     id::GuildId,
+    /// };
+    ///
+    /// let intents = Intents::GUILD_VOICE_STATES;
+    /// let token = env::var("DISCORD_TOKEN")?;
+    ///
+    /// let (shard, _events) = Shard::new(token, intents);
+    /// shard.start().await?;
+    ///
+    /// // Query members whose names start with "tw" and limit the results to
+    /// // 10 members.
+    /// let request =
+    ///     RequestGuildMembers::builder(GuildId::new(1).expect("non zero"))
+    ///         .query("tw", Some(10));
+    ///
+    /// // Send the request over the shard.
+    /// shard.command(&request).await?;
+    /// # Ok(()) }
+    /// ```
+    ///
     /// # Errors
     ///
     /// Returns a [`CommandErrorType::Sending`] error type if the message could
@@ -577,7 +609,7 @@ impl Shard {
     ///
     /// Returns a [`CommandErrorType::SessionInactive`] error type if the shard
     /// has not been started.
-    pub async fn command(&self, value: &impl serde::Serialize) -> Result<(), CommandError> {
+    pub async fn command(&self, value: &impl Command) -> Result<(), CommandError> {
         let json = json::to_vec(value).map_err(|source| CommandError {
             source: Some(Box::new(source)),
             kind: CommandErrorType::Serializing,

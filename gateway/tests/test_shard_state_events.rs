@@ -1,7 +1,7 @@
 use futures::stream::StreamExt;
 use std::{env, error::Error};
 use twilight_gateway::{
-    shard::{Events, Shard},
+    shard::{raw_message::Message, Events, Shard},
     Event, Intents,
 };
 
@@ -26,7 +26,9 @@ async fn test_shard_event_emits() -> Result<(), Box<dyn Error>> {
         events.next().await.unwrap(),
         Event::GuildCreate(_)
     ));
-    shard.command(&"bad command").await?;
+    let bad_command = Message::Binary(b"bad command".to_vec());
+    shard.send(bad_command).await?;
+
     // Might have more guilds or something.
     while let Some(event) = events.next().await {
         if matches!(event, Event::ShardDisconnected(_)) {
