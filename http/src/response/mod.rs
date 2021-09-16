@@ -826,7 +826,7 @@ async fn decompress(body: Body) -> Result<Bytes, DeserializeBodyError> {
         source: None,
     })?;
 
-    return Ok(buf.into());
+    Ok(buf.into())
 }
 
 /// Create a `simd-json` Deserializer instance.
