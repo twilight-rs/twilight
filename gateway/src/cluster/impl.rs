@@ -1,7 +1,9 @@
 use super::{builder::ClusterBuilder, config::Config, event::Events, scheme::ShardScheme};
 use crate::{
     cluster::event::ShardEventsWithId,
-    shard::{raw_message::Message, Config as ShardConfig, Information, ResumeSession, Shard},
+    shard::{
+        raw_message::Message, Command, Config as ShardConfig, Information, ResumeSession, Shard,
+    },
     Intents,
 };
 use futures_util::{future, stream::SelectAll};
@@ -511,6 +513,50 @@ impl Cluster {
 
     /// Send a command to the specified shard.
     ///
+    /// # Examples
+    ///
+    /// Update the current user's presence on shard ID 2:
+    ///
+    /// ```no_run
+    /// # #[tokio::main]
+    /// # async fn main() -> Result<(), Box<dyn std::error::Error>> {
+    /// use std::env;
+    /// use twilight_gateway::{cluster::Cluster, Intents};
+    /// use twilight_model::{
+    ///     gateway::{
+    ///         payload::outgoing::UpdatePresence,
+    ///         presence::{Activity, ActivityType, MinimalActivity, Status},
+    ///     },
+    ///     id::GuildId,
+    /// };
+    ///
+    /// let intents = Intents::GUILD_VOICE_STATES;
+    /// let token = env::var("DISCORD_TOKEN")?;
+    ///
+    /// let (cluster, _events) = Cluster::new(token, intents).await?;
+    ///
+    /// // Wait for shards to come up before sending a message to one of them.
+    /// cluster.up().await;
+    ///
+    /// // Update the user's presence to a custom activity with a name of
+    /// // "testing".
+    /// let activity = Activity::from(MinimalActivity {
+    ///     kind: ActivityType::Custom,
+    ///     name: "testing".to_owned(),
+    ///     url: None,
+    /// });
+    /// let request = UpdatePresence::new(
+    ///     Vec::from([activity]),
+    ///     false,
+    ///     None,
+    ///     Status::Online,
+    /// )?;
+    ///
+    /// // Send the request over the shard.
+    /// cluster.command(2, &request).await?;
+    /// # Ok(()) }
+    /// ```
+    ///
     /// # Errors
     ///
     /// Returns a [`ClusterCommandErrorType::Sending`] error type if the shard
@@ -518,11 +564,7 @@ impl Cluster {
     ///
     /// Returns a [`ClusterCommandErrorType::ShardNonexistent`] error type if
     /// the provided shard ID does not exist in the cluster.
-    pub async fn command(
-        &self,
-        id: u64,
-        value: &impl serde::Serialize,
-    ) -> Result<(), ClusterCommandError> {
+    pub async fn command(&self, id: u64, value: &impl Command) -> Result<(), ClusterCommandError> {
         let shard = self.shard(id).ok_or(ClusterCommandError {
             kind: ClusterCommandErrorType::ShardNonexistent { id },
             source: None,

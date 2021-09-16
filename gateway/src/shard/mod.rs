@@ -23,6 +23,7 @@ pub mod raw_message;
 pub mod stage;
 
 mod builder;
+mod command;
 mod config;
 mod emitter;
 mod event;
@@ -34,6 +35,7 @@ pub use self::{
     builder::{
         LargeThresholdError, LargeThresholdErrorType, ShardBuilder, ShardIdError, ShardIdErrorType,
     },
+    command::Command,
     config::Config,
     event::Events,
     processor::heartbeat::Latency,
