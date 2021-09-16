@@ -280,7 +280,7 @@ mod tests {
             cache
                 .voice_channel_states(ChannelId::new(2).expect("non zero"))
                 .unwrap()
-                .len()
+                .count()
         );
 
         // Returns None if the channel does not exist.

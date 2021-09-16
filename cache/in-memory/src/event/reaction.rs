@@ -12,9 +12,7 @@ impl UpdateCache for ReactionAdd {
             return;
         }
 
-        let mut channel = cache.messages.entry(self.0.channel_id).or_default();
-
-        let message = match channel.iter_mut().find(|msg| msg.id() == self.0.message_id) {
+        let mut message = match cache.messages.get_mut(&self.0.message_id) {
             Some(message) => message,
             None => return,
         };
@@ -54,9 +52,7 @@ impl UpdateCache for ReactionRemove {
             return;
         }
 
-        let mut channel = cache.messages.entry(self.0.channel_id).or_default();
-
-        let message = match channel.iter_mut().find(|msg| msg.id() == self.0.message_id) {
+        let mut message = match cache.messages.get_mut(&self.0.message_id) {
             Some(message) => message,
             None => return,
         };
@@ -89,9 +85,7 @@ impl UpdateCache for ReactionRemoveAll {
             return;
         }
 
-        let mut channel = cache.messages.entry(self.channel_id).or_default();
-
-        let message = match channel.iter_mut().find(|msg| msg.id() == self.message_id) {
+        let mut message = match cache.messages.get_mut(&self.message_id) {
             Some(message) => message,
             None => return,
         };
@@ -106,9 +100,7 @@ impl UpdateCache for ReactionRemoveEmoji {
             return;
         }
 
-        let mut channel = cache.messages.entry(self.channel_id).or_default();
-
-        let message = match channel.iter_mut().find(|msg| msg.id() == self.message_id) {
+        let mut message = match cache.messages.get_mut(&self.message_id) {
             Some(message) => message,
             None => return,
         };
@@ -133,12 +125,7 @@ mod tests {
     #[test]
     fn test_reaction_add() {
         let cache = test::cache_with_message_and_reactions();
-        let msg = cache
-            .message(
-                ChannelId::new(2).expect("non zero"),
-                MessageId::new(4).expect("non zero"),
-            )
-            .unwrap();
+        let msg = cache.message(MessageId::new(4).expect("non zero")).unwrap();
 
         assert_eq!(msg.reactions.len(), 2);
 
@@ -171,12 +158,7 @@ mod tests {
             user_id: UserId::new(5).expect("non zero"),
         }));
 
-        let msg = cache
-            .message(
-                ChannelId::new(2).expect("non zero"),
-                MessageId::new(4).expect("non zero"),
-            )
-            .unwrap();
+        let msg = cache.message(MessageId::new(4).expect("non zero")).unwrap();
 
         assert_eq!(msg.reactions.len(), 2);
 
@@ -204,12 +186,7 @@ mod tests {
             guild_id: Some(GuildId::new(1).expect("non zero")),
         });
 
-        let msg = cache
-            .message(
-                ChannelId::new(2).expect("non zero"),
-                MessageId::new(4).expect("non zero"),
-            )
-            .unwrap();
+        let msg = cache.message(MessageId::new(4).expect("non zero")).unwrap();
 
         assert_eq!(msg.reactions.len(), 0);
     }
@@ -226,12 +203,7 @@ mod tests {
             message_id: MessageId::new(4).expect("non zero"),
         });
 
-        let msg = cache
-            .message(
-                ChannelId::new(2).expect("non zero"),
-                MessageId::new(4).expect("non zero"),
-            )
-            .unwrap();
+        let msg = cache.message(MessageId::new(4).expect("non zero")).unwrap();
 
         assert_eq!(msg.reactions.len(), 1);
 

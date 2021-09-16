@@ -123,9 +123,11 @@ mod tests {
             assert!(guild_1_role_ids.iter().all(|id| cached_roles.contains(id)));
 
             // Check for the cached role
-            assert!(guild_1_roles
-                .into_iter()
-                .all(|role| cache.role(role.id).expect("Role missing from cache") == role))
+            assert!(guild_1_roles.into_iter().all(|role| cache
+                .role(role.id)
+                .expect("Role missing from cache")
+                .resource()
+                == &role))
         }
 
         // Bulk inserts
@@ -151,9 +153,11 @@ mod tests {
             assert!(guild_2_role_ids.iter().all(|id| cached_roles.contains(id)));
 
             // Check for the cached role
-            assert!(guild_2_roles
-                .into_iter()
-                .all(|role| cache.role(role.id).expect("Role missing from cache") == role))
+            assert!(guild_2_roles.into_iter().all(|role| cache
+                .role(role.id)
+                .expect("Role missing from cache")
+                .resource()
+                == &role))
         }
     }
 }

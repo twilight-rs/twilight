@@ -286,7 +286,7 @@ mod tests {
         // it's part of a guild create, the cache can automatically attach the
         // guild ID to it. So now, the channel's guild ID is present with the
         // correct value.
-        match channel {
+        match channel.resource() {
             GuildChannel::Text(ref c) => {
                 assert_eq!(Some(GuildId::new(123).expect("non zero")), c.guild_id);
             }

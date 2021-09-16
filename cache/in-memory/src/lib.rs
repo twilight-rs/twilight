@@ -95,9 +95,13 @@ pub use self::{
 pub use self::permission::InMemoryCachePermissions;
 
 use self::model::*;
-use dashmap::{mapref::entry::Entry, DashMap, DashSet};
+use dashmap::{
+    mapref::{entry::Entry, one::Ref},
+    DashMap, DashSet,
+};
 use std::{
     collections::{BTreeSet, HashSet, VecDeque},
+    fmt::{Debug, Formatter, Result as FmtResult},
     hash::Hash,
     ops::Deref,
     sync::Mutex,
@@ -111,31 +115,89 @@ use twilight_model::{
     voice::VoiceState,
 };
 
-#[derive(Debug)]
-struct GuildItem<T> {
-    data: T,
+/// Resource associated with a guild.
+///
+/// This is used when a resource does not itself include its associated guild's
+/// ID. In lieu of the resource itself storing its guild's ID this relation
+/// includes it.
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub struct GuildResource<T> {
     guild_id: GuildId,
+    value: T,
+}
+
+impl<T> GuildResource<T> {
+    /// ID of the guild associated with the resource.
+    pub const fn guild_id(&self) -> GuildId {
+        self.guild_id
+    }
+
+    /// Immutable reference to the resource's value.
+    pub const fn resource(&self) -> &T {
+        &self.value
+    }
+}
+
+impl<T> Deref for GuildResource<T> {
+    type Target = T;
+
+    fn deref(&self) -> &Self::Target {
+        self.resource()
+    }
+}
+
+/// Immutable reference to a resource in the cache.
+// We need this so as not to expose the underlying cache implementation.
+pub struct Reference<'a, K, V> {
+    inner: Ref<'a, K, V>,
+}
+
+impl<'a, K: Eq + Hash, V> Reference<'a, K, V> {
+    /// Create a new reference from a DashMap reference.
+    fn new(inner: Ref<'a, K, V>) -> Self {
+        Self { inner }
+    }
+
+    /// Immutable reference to the key identifying the resource.
+    pub fn key(&'a self) -> &'a K {
+        self.inner.key()
+    }
+
+    /// Immutable reference to the underlying value.
+    pub fn value(&'a self) -> &'a V {
+        self.inner.value()
+    }
+}
+
+impl<K: Eq + Hash, V: Debug> Debug for Reference<'_, K, V> {
+    fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
+        f.debug_struct("Reference")
+            .field("inner", self.value())
+            .finish()
+    }
+}
+
+impl<'a, K: Eq + Hash, V> Deref for Reference<'a, K, V> {
+    type Target = V;
+
+    fn deref(&self) -> &Self::Target {
+        self.value()
+    }
 }
 
 fn upsert_guild_item<K: Eq + Hash, V: PartialEq>(
-    map: &DashMap<K, GuildItem<V>>,
+    map: &DashMap<K, GuildResource<V>>,
     guild_id: GuildId,
     key: K,
     value: V,
 ) {
     match map.entry(key) {
-        Entry::Occupied(entry) if entry.get().data == value => {}
+        Entry::Occupied(entry) if entry.get().value == value => {}
         Entry::Occupied(mut entry) => {
-            entry.insert(GuildItem {
-                data: value,
-                guild_id,
-            });
+            entry.insert(GuildResource { guild_id, value });
         }
         Entry::Vacant(entry) => {
-            entry.insert(GuildItem {
-                data: value,
-                guild_id,
-            });
+            entry.insert(GuildResource { guild_id, value });
         }
     }
 }
@@ -158,28 +220,21 @@ fn upsert_item<K: Eq + Hash, V: PartialEq>(map: &DashMap<K, V>, k: K, v: V) {
 /// To use a cache instance in multiple tasks, consider wrapping it in an
 /// [`std::sync::Arc`] or [`std::rc::Rc`].
 ///
-/// # Design and Performance
+/// # Caution required
 ///
-/// The defining characteristic of this cache is that returned types (such as a
-/// guild or user) do not use locking for access. The internals of the cache use
-/// a concurrent map for mutability and the returned types are clones of the
-/// cached data. If a user is retrieved from the cache, then a clone of the user
-/// *at that point in time* is returned. If the cache updates the user, then the
-/// returned user  held by you will be outdated.
+/// The cache uses a concurrent map for mutability of cached resources. Return
+/// types of methods are immutable references to those resources. If a resource
+/// is retrieved from the cache then care must be taken to only hold it for as long as
+/// necessary. If the cache needs to mutate a resource to update it and a
+/// reference to it is being held then calls to [`InMemoryCache::update`] may
+/// be blocked.
 ///
-/// The intended use is that data is held outside the cache for only as long
-/// as necessary, where the state of the value at that point time doesn't need
-/// to be up-to-date. If you need to ensure you always have the most up-to-date
-/// "version" of a cached resource, then you can re-retrieve it whenever you use
-/// it: retrieval operations are extremely cheap.
-///
-/// For example, say you're deleting some of the guilds of a channel. You'll
-/// probably need the guild to do that, so you retrieve it from the cache. You
-/// can then use the guild to update all of the channels, because for most use
-/// cases you don't need the guild to be up-to-date in real time, you only need
-/// its state at that *point in time* or maybe across the lifetime of an
-/// operation. If you need the guild to always be up-to-date between operations,
-/// then the intent is that you keep getting it from the cache.
+/// In order to avoid blocking of cache updates care must be taken to hold them
+/// for as little as possible. For example, consider dropping references during
+/// long-running tasks such as HTTP requests. Processing HTTP requests takes
+/// milliseconds to seconds; retrieving a new reference to a resource is on the
+/// scale of nanoseconds. If only a couple of small fields are necessary from a
+/// reference consider copying or cloning them.
 ///
 /// [`Intents`]: ::twilight_model::gateway::Intents
 // When adding a field here, be sure to add it to `InMemoryCache::clear` if
@@ -187,11 +242,12 @@ fn upsert_item<K: Eq + Hash, V: PartialEq>(map: &DashMap<K, V>, k: K, v: V) {
 #[derive(Debug, Default)]
 pub struct InMemoryCache {
     config: Config,
-    channels_guild: DashMap<ChannelId, GuildItem<GuildChannel>>,
+    channels_guild: DashMap<ChannelId, GuildResource<GuildChannel>>,
     channels_private: DashMap<ChannelId, PrivateChannel>,
+    channel_messages: DashMap<ChannelId, VecDeque<MessageId>>,
     // So long as the lock isn't held across await or panic points this is fine.
     current_user: Mutex<Option<CurrentUser>>,
-    emojis: DashMap<EmojiId, GuildItem<CachedEmoji>>,
+    emojis: DashMap<EmojiId, GuildResource<CachedEmoji>>,
     groups: DashMap<ChannelId, Group>,
     guilds: DashMap<GuildId, CachedGuild>,
     guild_channels: DashMap<GuildId, HashSet<ChannelId>>,
@@ -201,12 +257,12 @@ pub struct InMemoryCache {
     guild_presences: DashMap<GuildId, HashSet<UserId>>,
     guild_roles: DashMap<GuildId, HashSet<RoleId>>,
     guild_stage_instances: DashMap<GuildId, HashSet<StageId>>,
-    integrations: DashMap<(GuildId, IntegrationId), GuildItem<GuildIntegration>>,
+    integrations: DashMap<(GuildId, IntegrationId), GuildResource<GuildIntegration>>,
     members: DashMap<(GuildId, UserId), CachedMember>,
-    messages: DashMap<ChannelId, VecDeque<CachedMessage>>,
+    messages: DashMap<MessageId, CachedMessage>,
     presences: DashMap<(GuildId, UserId), CachedPresence>,
-    roles: DashMap<RoleId, GuildItem<Role>>,
-    stage_instances: DashMap<StageId, GuildItem<StageInstance>>,
+    roles: DashMap<RoleId, GuildResource<Role>>,
+    stage_instances: DashMap<StageId, GuildResource<StageInstance>>,
     unavailable_guilds: DashSet<GuildId>,
     users: DashMap<UserId, User>,
     user_guilds: DashMap<UserId, BTreeSet<GuildId>>,
@@ -247,6 +303,7 @@ impl InMemoryCache {
     pub fn clear(&self) {
         self.channels_guild.clear();
         self.channels_private.clear();
+        self.channel_messages.clear();
         self.current_user
             .lock()
             .expect("current user poisoned")
@@ -274,8 +331,8 @@ impl InMemoryCache {
     }
 
     /// Returns a copy of the config cache.
-    pub fn config(&self) -> Config {
-        self.config.clone()
+    pub const fn config(&self) -> &Config {
+        &self.config
     }
 
     /// Create an interface for retrieving statistics about the cache.
@@ -340,8 +397,6 @@ impl InMemoryCache {
     }
 
     /// Gets the current user.
-    ///
-    /// This is an O(1) operation.
     pub fn current_user(&self) -> Option<CurrentUser> {
         self.current_user
             .lock()
@@ -351,57 +406,65 @@ impl InMemoryCache {
 
     /// Gets an emoji by ID.
     ///
-    /// This is an O(1) operation. This requires the [`GUILD_EMOJIS`] intent.
+    /// This requires the [`GUILD_EMOJIS`] intent.
     ///
     /// [`GUILD_EMOJIS`]: ::twilight_model::gateway::Intents::GUILD_EMOJIS
-    pub fn emoji(&self, emoji_id: EmojiId) -> Option<CachedEmoji> {
-        self.emojis.get(&emoji_id).map(|r| r.data.clone())
+    pub fn emoji(
+        &self,
+        emoji_id: EmojiId,
+    ) -> Option<Reference<'_, EmojiId, GuildResource<CachedEmoji>>> {
+        self.emojis.get(&emoji_id).map(Reference::new)
     }
 
     /// Gets a group by ID.
-    ///
-    /// This is an O(1) operation.
-    pub fn group(&self, channel_id: ChannelId) -> Option<Group> {
-        self.groups.get(&channel_id).map(|r| r.clone())
+    pub fn group(&self, channel_id: ChannelId) -> Option<Reference<'_, ChannelId, Group>> {
+        self.groups.get(&channel_id).map(Reference::new)
     }
 
     /// Gets a guild by ID.
     ///
-    /// This is an O(1) operation. This requires the [`GUILDS`] intent.
+    /// This requires the [`GUILDS`] intent.
     ///
     /// [`GUILDS`]: ::twilight_model::gateway::Intents::GUILDS
-    pub fn guild(&self, guild_id: GuildId) -> Option<CachedGuild> {
-        self.guilds.get(&guild_id).map(|r| r.clone())
+    pub fn guild(&self, guild_id: GuildId) -> Option<Reference<'_, GuildId, CachedGuild>> {
+        self.guilds.get(&guild_id).map(Reference::new)
     }
 
     /// Gets a channel by ID.
     ///
-    /// This is an O(1) operation. This requires the [`GUILDS`] intent.
+    /// This requires the [`GUILDS`] intent.
     ///
     /// [`GUILDS`]: ::twilight_model::gateway::Intents::GUILDS
-    pub fn guild_channel(&self, channel_id: ChannelId) -> Option<GuildChannel> {
-        self.channels_guild.get(&channel_id).map(|r| r.data.clone())
+    pub fn guild_channel(
+        &self,
+        channel_id: ChannelId,
+    ) -> Option<Reference<'_, ChannelId, GuildResource<GuildChannel>>> {
+        self.channels_guild.get(&channel_id).map(Reference::new)
     }
 
     /// Gets the set of channels in a guild.
     ///
-    /// This is a O(m) operation, where m is the amount of channels in the
-    /// guild. This requires the [`GUILDS`] intent.
+    /// This requires the [`GUILDS`] intent.
     ///
     /// [`GUILDS`]: ::twilight_model::gateway::Intents::GUILDS
-    pub fn guild_channels(&self, guild_id: GuildId) -> Option<HashSet<ChannelId>> {
-        self.guild_channels.get(&guild_id).map(|r| r.clone())
+    pub fn guild_channels(
+        &self,
+        guild_id: GuildId,
+    ) -> Option<Reference<'_, GuildId, HashSet<ChannelId>>> {
+        self.guild_channels.get(&guild_id).map(Reference::new)
     }
 
     /// Gets the set of emojis in a guild.
     ///
-    /// This is a O(m) operation, where m is the amount of emojis in the guild.
     /// This requires both the [`GUILDS`] and [`GUILD_EMOJIS`] intents.
     ///
     /// [`GUILDS`]: ::twilight_model::gateway::Intents::GUILDS
     /// [`GUILD_EMOJIS`]: ::twilight_model::gateway::Intents::GUILD_EMOJIS
-    pub fn guild_emojis(&self, guild_id: GuildId) -> Option<HashSet<EmojiId>> {
-        self.guild_emojis.get(&guild_id).map(|r| r.clone())
+    pub fn guild_emojis(
+        &self,
+        guild_id: GuildId,
+    ) -> Option<Reference<'_, GuildId, HashSet<EmojiId>>> {
+        self.guild_emojis.get(&guild_id).map(Reference::new)
     }
 
     /// Gets the set of integrations in a guild.
@@ -410,139 +473,163 @@ impl InMemoryCache {
     /// [`ResourceType::INTEGRATION`] resource type must be enabled.
     ///
     /// [`GUILD_INTEGRATIONS`]: twilight_model::gateway::Intents::GUILD_INTEGRATIONS
-    pub fn guild_integrations(&self, guild_id: GuildId) -> Option<HashSet<IntegrationId>> {
-        self.guild_integrations.get(&guild_id).map(|r| r.clone())
+    pub fn guild_integrations(
+        &self,
+        guild_id: GuildId,
+    ) -> Option<Reference<'_, GuildId, HashSet<IntegrationId>>> {
+        self.guild_integrations.get(&guild_id).map(Reference::new)
     }
 
     /// Gets the set of members in a guild.
     ///
     /// This list may be incomplete if not all members have been cached.
     ///
-    /// This is a O(m) operation, where m is the amount of members in the guild.
     /// This requires the [`GUILD_MEMBERS`] intent.
     ///
     /// [`GUILD_MEMBERS`]: ::twilight_model::gateway::Intents::GUILD_MEMBERS
-    pub fn guild_members(&self, guild_id: GuildId) -> Option<HashSet<UserId>> {
-        self.guild_members.get(&guild_id).map(|r| r.clone())
+    pub fn guild_members(
+        &self,
+        guild_id: GuildId,
+    ) -> Option<Reference<'_, GuildId, HashSet<UserId>>> {
+        self.guild_members.get(&guild_id).map(Reference::new)
     }
 
     /// Gets the set of presences in a guild.
     ///
     /// This list may be incomplete if not all members have been cached.
     ///
-    /// This is a O(m) operation, where m is the amount of members in the guild.
     /// This requires the [`GUILD_PRESENCES`] intent.
     ///
     /// [`GUILD_PRESENCES`]: ::twilight_model::gateway::Intents::GUILD_PRESENCES
-    pub fn guild_presences(&self, guild_id: GuildId) -> Option<HashSet<UserId>> {
-        self.guild_presences.get(&guild_id).map(|r| r.clone())
+    pub fn guild_presences(
+        &self,
+        guild_id: GuildId,
+    ) -> Option<Reference<'_, GuildId, HashSet<UserId>>> {
+        self.guild_presences.get(&guild_id).map(Reference::new)
     }
 
     /// Gets the set of roles in a guild.
     ///
-    /// This is a O(m) operation, where m is the amount of roles in the guild.
     /// This requires the [`GUILDS`] intent.
     ///
     /// [`GUILDS`]: ::twilight_model::gateway::Intents::GUILDS
-    pub fn guild_roles(&self, guild_id: GuildId) -> Option<HashSet<RoleId>> {
-        self.guild_roles.get(&guild_id).map(|r| r.clone())
+    pub fn guild_roles(
+        &self,
+        guild_id: GuildId,
+    ) -> Option<Reference<'_, GuildId, HashSet<RoleId>>> {
+        self.guild_roles.get(&guild_id).map(Reference::new)
     }
 
     /// Gets the set of stage instances in a guild.
     ///
-    /// This is a O(m) operation, where m is the amount of stage instances in
-    /// the guild. This requires the [`GUILDS`] intent.
+    /// This requires the [`GUILDS`] intent.
     ///
     /// [`GUILDS`]: twilight_model::gateway::Intents::GUILDS
-    pub fn guild_stage_instances(&self, guild_id: GuildId) -> Option<HashSet<StageId>> {
+    pub fn guild_stage_instances(
+        &self,
+        guild_id: GuildId,
+    ) -> Option<Reference<'_, GuildId, HashSet<StageId>>> {
         self.guild_stage_instances
             .get(&guild_id)
-            .map(|r| r.value().clone())
+            .map(Reference::new)
     }
 
     /// Gets an integration by guild ID and integration ID.
     ///
-    /// This is an O(1) operation. This requires the [`GUILD_INTEGRATIONS`]
-    /// intent. The [`ResourceType::INTEGRATION`] resource type must be enabled.
+    /// This requires the [`GUILD_INTEGRATIONS`] intent. The
+    /// [`ResourceType::INTEGRATION`] resource type must be enabled.
     ///
     /// [`GUILD_INTEGRATIONS`]: twilight_model::gateway::Intents::GUILD_INTEGRATIONS
     pub fn integration(
         &self,
         guild_id: GuildId,
         integration_id: IntegrationId,
-    ) -> Option<GuildIntegration> {
+    ) -> Option<Reference<'_, (GuildId, IntegrationId), GuildResource<GuildIntegration>>> {
         self.integrations
             .get(&(guild_id, integration_id))
-            .map(|r| r.data.clone())
+            .map(Reference::new)
     }
 
     /// Gets a member by guild ID and user ID.
     ///
-    /// This is an O(1) operation. This requires the [`GUILD_MEMBERS`] intent.
+    /// This requires the [`GUILD_MEMBERS`] intent.
     ///
     /// [`GUILD_MEMBERS`]: ::twilight_model::gateway::Intents::GUILD_MEMBERS
-    pub fn member(&self, guild_id: GuildId, user_id: UserId) -> Option<CachedMember> {
-        self.members.get(&(guild_id, user_id)).map(|r| r.clone())
+    pub fn member(
+        &self,
+        guild_id: GuildId,
+        user_id: UserId,
+    ) -> Option<Reference<'_, (GuildId, UserId), CachedMember>> {
+        self.members.get(&(guild_id, user_id)).map(Reference::new)
     }
 
-    /// Gets a message by channel ID and message ID.
+    /// Gets a message by ID.
     ///
-    /// This is an O(n) operation. This requires one or both of the
-    /// [`GUILD_MESSAGES`] or [`DIRECT_MESSAGES`] intents.
+    /// This requires one or both of the [`GUILD_MESSAGES`] or
+    /// [`DIRECT_MESSAGES`] intents.
     ///
     /// [`GUILD_MESSAGES`]: ::twilight_model::gateway::Intents::GUILD_MESSAGES
     /// [`DIRECT_MESSAGES`]: ::twilight_model::gateway::Intents::DIRECT_MESSAGES
-    pub fn message(&self, channel_id: ChannelId, message_id: MessageId) -> Option<CachedMessage> {
-        let channel = self.messages.get(&channel_id)?;
-
-        channel.iter().find(|msg| msg.id() == message_id).cloned()
+    pub fn message(
+        &self,
+        message_id: MessageId,
+    ) -> Option<Reference<'_, MessageId, CachedMessage>> {
+        self.messages.get(&message_id).map(Reference::new)
     }
 
     /// Gets a presence by, optionally, guild ID, and user ID.
     ///
-    /// This is an O(1) operation. This requires the [`GUILD_PRESENCES`] intent.
+    /// This requires the [`GUILD_PRESENCES`] intent.
     ///
     /// [`GUILD_PRESENCES`]: ::twilight_model::gateway::Intents::GUILD_PRESENCES
-    pub fn presence(&self, guild_id: GuildId, user_id: UserId) -> Option<CachedPresence> {
-        self.presences.get(&(guild_id, user_id)).map(|r| r.clone())
+    pub fn presence(
+        &self,
+        guild_id: GuildId,
+        user_id: UserId,
+    ) -> Option<Reference<'_, (GuildId, UserId), CachedPresence>> {
+        self.presences.get(&(guild_id, user_id)).map(Reference::new)
     }
 
     /// Gets a private channel by ID.
     ///
-    /// This is an O(1) operation. This requires the [`DIRECT_MESSAGES`] intent.
+    /// This requires the [`DIRECT_MESSAGES`] intent.
     ///
     /// [`DIRECT_MESSAGES`]: ::twilight_model::gateway::Intents::DIRECT_MESSAGES
-    pub fn private_channel(&self, channel_id: ChannelId) -> Option<PrivateChannel> {
-        self.channels_private.get(&channel_id).map(|r| r.clone())
+    pub fn private_channel(
+        &self,
+        channel_id: ChannelId,
+    ) -> Option<Reference<'_, ChannelId, PrivateChannel>> {
+        self.channels_private.get(&channel_id).map(Reference::new)
     }
 
     /// Gets a role by ID.
     ///
-    /// This is an O(1) operation. This requires the [`GUILDS`] intent.
+    /// This requires the [`GUILDS`] intent.
     ///
     /// [`GUILDS`]: ::twilight_model::gateway::Intents::GUILDS
-    pub fn role(&self, role_id: RoleId) -> Option<Role> {
-        self.roles.get(&role_id).map(|r| r.data.clone())
+    pub fn role(&self, role_id: RoleId) -> Option<Reference<'_, RoleId, GuildResource<Role>>> {
+        self.roles.get(&role_id).map(Reference::new)
     }
 
     /// Gets a stage instance by ID.
     ///
-    /// This is an O(1) operation. This requires the [`GUILDS`] intent.
+    /// This requires the [`GUILDS`] intent.
     ///
     /// [`GUILDS`]: twilight_model::gateway::Intents::GUILDS
-    pub fn stage_instance(&self, stage_id: StageId) -> Option<StageInstance> {
-        self.stage_instances
-            .get(&stage_id)
-            .map(|role| role.data.clone())
+    pub fn stage_instance(
+        &self,
+        stage_id: StageId,
+    ) -> Option<Reference<'_, StageId, GuildResource<StageInstance>>> {
+        self.stage_instances.get(&stage_id).map(Reference::new)
     }
 
     /// Gets a user by ID.
     ///
-    /// This is an O(1) operation. This requires the [`GUILD_MEMBERS`] intent.
+    /// This requires the [`GUILD_MEMBERS`] intent.
     ///
     /// [`GUILD_MEMBERS`]: ::twilight_model::gateway::Intents::GUILD_MEMBERS
-    pub fn user(&self, user_id: UserId) -> Option<User> {
-        self.users.get(&user_id).map(|r| r.value().clone())
+    pub fn user(&self, user_id: UserId) -> Option<Reference<'_, UserId, User>> {
+        self.users.get(&user_id).map(Reference::new)
     }
 
     /// Gets the voice states within a voice channel.
@@ -551,28 +638,30 @@ impl InMemoryCache {
     ///
     /// [`GUILDS`]: ::twilight_model::gateway::Intents::GUILDS
     /// [`GUILD_VOICE_STATES`]: ::twilight_model::gateway::Intents::GUILD_VOICE_STATES
-    pub fn voice_channel_states(&self, channel_id: ChannelId) -> Option<Vec<VoiceState>> {
+    pub fn voice_channel_states(&self, channel_id: ChannelId) -> Option<VoiceChannelStates<'_>> {
         let user_ids = self.voice_state_channels.get(&channel_id)?;
 
-        Some(
-            user_ids
-                .iter()
-                .filter_map(|key| self.voice_states.get(key).map(|r| r.clone()))
-                .collect(),
-        )
+        Some(VoiceChannelStates {
+            index: 0,
+            user_ids,
+            voice_states: &self.voice_states,
+        })
     }
 
     /// Gets a voice state by user ID and Guild ID.
     ///
-    /// This is an O(1) operation. This requires both the [`GUILDS`] and
-    /// [`GUILD_VOICE_STATES`] intents.
+    /// This requires both the [`GUILDS`] and [`GUILD_VOICE_STATES`] intents.
     ///
     /// [`GUILDS`]: ::twilight_model::gateway::Intents::GUILDS
     /// [`GUILD_VOICE_STATES`]: ::twilight_model::gateway::Intents::GUILD_VOICE_STATES
-    pub fn voice_state(&self, user_id: UserId, guild_id: GuildId) -> Option<VoiceState> {
+    pub fn voice_state(
+        &self,
+        user_id: UserId,
+        guild_id: GuildId,
+    ) -> Option<Reference<'_, (GuildId, UserId), VoiceState>> {
         self.voice_states
             .get(&(guild_id, user_id))
-            .map(|r| r.clone())
+            .map(Reference::new)
     }
 
     /// Gets the highest role of a member.
@@ -624,6 +713,29 @@ pub trait UpdateCache {
     // Allow this for presentation purposes in documentation.
     #[allow(unused_variables)]
     fn update(&self, cache: &InMemoryCache) {}
+}
+
+/// Iterator over a voice channel's list of voice states.
+pub struct VoiceChannelStates<'a> {
+    index: usize,
+    user_ids: Ref<'a, ChannelId, HashSet<(GuildId, UserId)>>,
+    voice_states: &'a DashMap<(GuildId, UserId), VoiceState>,
+}
+
+impl<'a> Iterator for VoiceChannelStates<'a> {
+    type Item = Reference<'a, (GuildId, UserId), VoiceState>;
+
+    fn next(&mut self) -> Option<Self::Item> {
+        while let Some((guild_id, user_id)) = self.user_ids.iter().nth(self.index) {
+            if let Some(voice_state) = self.voice_states.get(&(*guild_id, *user_id)) {
+                self.index += 1;
+
+                return Some(Reference::new(voice_state));
+            }
+        }
+
+        None
+    }
 }
 
 impl UpdateCache for Event {
