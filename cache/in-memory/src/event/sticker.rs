@@ -1,4 +1,6 @@
-use crate::{config::ResourceType, model::CachedSticker, GuildItem, InMemoryCache, UpdateCache};
+use crate::{
+    config::ResourceType, model::CachedSticker, GuildResource, InMemoryCache, UpdateCache,
+};
 use std::borrow::Cow;
 use twilight_model::{
     channel::message::sticker::{Sticker, StickerId},
@@ -33,7 +35,7 @@ impl InMemoryCache {
 
     pub(crate) fn cache_sticker(&self, guild_id: GuildId, sticker: Sticker) {
         match self.stickers.get(&sticker.id) {
-            Some(cached_sticker) if cached_sticker.data == sticker => return,
+            Some(cached_sticker) if cached_sticker.value == sticker => return,
             Some(_) | None => {}
         }
 
@@ -59,9 +61,9 @@ impl InMemoryCache {
 
         self.stickers.insert(
             cached.id,
-            GuildItem {
-                data: cached,
+            GuildResource {
                 guild_id,
+                value: cached,
             },
         );
 

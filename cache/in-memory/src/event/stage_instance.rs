@@ -127,7 +127,7 @@ mod tests {
 
         {
             let cached_instance = cache.stage_instance(stage_instance.id);
-            assert_eq!(cached_instance, None);
+            assert!(cached_instance.is_none());
         }
     }
 }

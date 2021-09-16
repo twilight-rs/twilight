@@ -316,10 +316,7 @@ impl<'a> InMemoryCachePermissions<'a> {
             source: None,
         })?;
 
-        let guild_id = channel.data.guild_id().ok_or(ChannelError {
-            kind: ChannelErrorType::ChannelUnavailable { channel_id },
-            source: None,
-        })?;
+        let guild_id = channel.guild_id();
 
         if self.is_owner(user_id, guild_id) {
             return Ok(Permissions::all());
@@ -329,7 +326,7 @@ impl<'a> InMemoryCachePermissions<'a> {
             .member_roles(user_id, guild_id)
             .map_err(ChannelError::from_member_roles)?;
 
-        let overwrites = match &channel.data {
+        let overwrites = match channel.value().resource() {
             GuildChannel::Category(c) => c.permission_overwrites.clone(),
             GuildChannel::NewsThread(c) => self.parent_overwrites(&c.id, None)?,
             GuildChannel::PrivateThread(c) => {
@@ -344,7 +341,7 @@ impl<'a> InMemoryCachePermissions<'a> {
         let calculator =
             PermissionCalculator::new(guild_id, user_id, everyone, assigned.as_slice());
 
-        Ok(calculator.in_channel(channel.data.kind(), overwrites.as_slice()))
+        Ok(calculator.in_channel(channel.resource().kind(), overwrites.as_slice()))
     }
 
     /// Calculate the guild-level permissions of a member.
@@ -448,7 +445,7 @@ impl<'a> InMemoryCachePermissions<'a> {
                 return Err(MemberRolesErrorType::RoleMissing { role_id: *role_id });
             };
 
-            member_roles.push((*role_id, role.data.permissions));
+            member_roles.push((*role_id, role.permissions));
         }
 
         // Assume that the `@everyone` role is always present, so do this last.
@@ -457,7 +454,7 @@ impl<'a> InMemoryCachePermissions<'a> {
         if let Some(everyone_role) = self.0.roles.get(&everyone_role_id) {
             Ok(MemberRoles {
                 assigned: member_roles,
-                everyone: everyone_role.data.permissions,
+                everyone: everyone_role.permissions,
             })
         } else {
             Err(MemberRolesErrorType::RoleMissing {
@@ -478,9 +475,9 @@ impl<'a> InMemoryCachePermissions<'a> {
             source: None,
         })?;
 
-        if let GuildChannel::Text(c) = &channel.data {
+        if let GuildChannel::Text(c) = channel.resource() {
             if let Some(parent_overwrites) = parent_overwrites {
-                Ok([c.permission_overwrites.clone(), parent_overwrites].concat())
+                Ok([c.permission_overwrites.clone(), parent_overwrites.to_vec()].concat())
             } else {
                 Ok(c.permission_overwrites.clone())
             }

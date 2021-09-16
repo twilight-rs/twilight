@@ -1,4 +1,4 @@
-use crate::{config::ResourceType, model::CachedEmoji, GuildItem, InMemoryCache, UpdateCache};
+use crate::{config::ResourceType, model::CachedEmoji, GuildResource, InMemoryCache, UpdateCache};
 use std::borrow::Cow;
 use twilight_model::{
     gateway::payload::incoming::GuildEmojisUpdate,
@@ -33,7 +33,7 @@ impl InMemoryCache {
 
     pub(crate) fn cache_emoji(&self, guild_id: GuildId, emoji: Emoji) {
         match self.emojis.get(&emoji.id) {
-            Some(cached_emoji) if cached_emoji.data == emoji => return,
+            Some(cached_emoji) if cached_emoji.value == emoji => return,
             Some(_) | None => {}
         }
 
@@ -56,9 +56,9 @@ impl InMemoryCache {
 
         self.emojis.insert(
             cached.id,
-            GuildItem {
-                data: cached,
+            GuildResource {
                 guild_id,
+                value: cached,
             },
         );
 

@@ -238,7 +238,7 @@ mod tests {
                 )
                 .unwrap();
             let user = cache.user(member.user_id).unwrap();
-            assert_eq!(user.avatar.unwrap(), "avatar string");
+            assert_eq!(user.avatar.as_ref().unwrap(), "avatar string");
         }
 
         {
@@ -249,7 +249,7 @@ mod tests {
                 )
                 .unwrap();
             let user = cache.user(member.user_id).unwrap();
-            assert_eq!(user.avatar.unwrap(), "different avatar");
+            assert_eq!(user.avatar.as_ref().unwrap(), "different avatar");
         }
 
         {

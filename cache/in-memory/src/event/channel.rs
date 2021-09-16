@@ -124,7 +124,7 @@ impl UpdateCache for ChannelPinsUpdate {
         if let Some(mut r) = cache.channels_guild.get_mut(&self.channel_id) {
             let value = r.value_mut();
 
-            if let GuildChannel::Text(ref mut text) = value.data {
+            if let GuildChannel::Text(ref mut text) = value.value {
                 text.last_pin_timestamp = self.last_pin_timestamp.clone();
             }
 

@@ -31,7 +31,7 @@ impl InMemoryCache {
 
     fn cache_user(&self, user: Cow<'_, User>, guild_id: Option<GuildId>) {
         match self.users.get_mut(&user.id) {
-            Some(u) if *u.value() == *user => {
+            Some(u) if u.value() == user.as_ref() => {
                 if let Some(guild_id) = guild_id {
                     self.user_guilds
                         .entry(user.id)
@@ -48,7 +48,7 @@ impl InMemoryCache {
         if let Some(guild_id) = guild_id {
             let user_id = user.id;
 
-            self.users.insert(user.id, user);
+            self.users.insert(user_id, user);
 
             let mut guild_id_set = BTreeSet::new();
             guild_id_set.insert(guild_id);
