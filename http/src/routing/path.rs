@@ -99,6 +99,8 @@ pub enum Path {
     /// Operating on an individual channel's message's reactions while
     /// specifying the user ID and emoji type.
     ChannelsIdMessagesIdReactionsUserIdType(u64),
+    /// Operating on an individual channel's message's threads.
+    ChannelsIdMessagesIdThreads(u64),
     /// Operating on a channel's permission overwrites by ID.
     ChannelsIdPermissionsOverwriteId(u64),
     /// Operating on a channel's pins.
@@ -107,6 +109,10 @@ pub enum Path {
     ChannelsIdPinsMessageId(u64),
     /// Operating on a group DM's recipients.
     ChannelsIdRecipients(u64),
+    /// Operating on a thread's members.
+    ChannelsIdThreadMembers(u64),
+    /// Operating on a channel's threads.
+    ChannelsIdThreads(u64),
     /// Operating on a channel's typing indicator.
     ChannelsIdTyping(u64),
     /// Operating on a channel's webhooks.
@@ -145,6 +151,7 @@ pub enum Path {
     GuildsIdRolesId(u64),
     GuildsIdTemplates(u64),
     GuildsIdTemplatesCode(u64),
+    GuildsIdThreads(u64),
     GuildsIdVanityUrl(u64),
     GuildsIdVoiceStates(u64),
     GuildsIdWelcomeScreen(u64),
@@ -242,12 +249,17 @@ impl FromStr for Path {
             ["channels", id, "messages", _, "reactions", _, _] => {
                 ChannelsIdMessagesIdReactionsUserIdType(parse_id(id)?)
             }
+            ["channels", id, "messages", _, "threads"] => {
+                ChannelsIdMessagesIdThreads(parse_id(id)?)
+            }
             ["channels", id, "permissions", _] => ChannelsIdPermissionsOverwriteId(parse_id(id)?),
             ["channels", id, "pins"] => ChannelsIdPins(parse_id(id)?),
             ["channels", id, "pins", _] => ChannelsIdPinsMessageId(parse_id(id)?),
             ["channels", id, "recipients"] | ["channels", id, "recipients", _] => {
                 ChannelsIdRecipients(parse_id(id)?)
             }
+            ["channels", id, "thread-members"] => ChannelsIdThreadMembers(parse_id(id)?),
+            ["channels", id, "threads"] => ChannelsIdThreads(parse_id(id)?),
             ["channels", id, "typing"] => ChannelsIdTyping(parse_id(id)?),
             ["channels", id, "webhooks"] | ["channels", id, "webhooks", _] => {
                 ChannelsIdWebhooks(parse_id(id)?)
@@ -281,6 +293,7 @@ impl FromStr for Path {
             ["guilds", id, "roles", _] => GuildsIdRolesId(parse_id(id)?),
             ["guilds", id, "templates"] => GuildsIdTemplates(parse_id(id)?),
             ["guilds", id, "templates", _] => GuildsIdTemplatesCode(parse_id(id)?),
+            ["guilds", id, "threads", _] => GuildsIdThreads(parse_id(id)?),
             ["guilds", id, "vanity-url"] => GuildsIdVanityUrl(parse_id(id)?),
             ["guilds", id, "voice-states", _] => GuildsIdVoiceStates(parse_id(id)?),
             ["guilds", id, "welcome-screen"] => GuildsIdWelcomeScreen(parse_id(id)?),

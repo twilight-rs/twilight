@@ -108,6 +108,8 @@ pub enum ErrorCode {
     ChannelRateLimitReached,
     /// Your Stage topic, server name, server description, or channel names contain words that are not allowed
     UnallowedWords,
+    /// Guild premium subscription level too low
+    GuildPremiumTooLow,
     /// Maximum number of guilds reached (100)
     MaximumGuildsReached,
     /// Maximum number of friends reached (1000)
@@ -138,6 +140,8 @@ pub enum ErrorCode {
     MaximumServerCategoriesReached,
     /// Guild already has a template
     GuildTemplateAlreadyExist,
+    /// Max number of thread participants has been reached
+    ThreadMaxParticipants,
     /// Maximum number of bans for non-guild members have been exceeded
     MaximumNonGuildBansReached,
     /// Maximum number of bans fetches has been reached
@@ -231,6 +235,13 @@ pub enum ErrorCode {
     CommunityGuildRequired,
     /// Invalid sticker sent
     InvalidStickerSent,
+    /// Tried to perform an operation on an archived thread, such as editing a message or adding a
+    /// user to the thread
+    ThreadArchived,
+    /// Invalid thread notification settings
+    ThreadInvalidNotificationSettings,
+    /// `before` value is earlier than the thread creation date
+    ThreadInvalidBeforeValue,
     /// This server is not available in your location
     ServerNotAvailableLocation,
     /// This server needs monetization enabled in order to perform this action
@@ -245,6 +256,14 @@ pub enum ErrorCode {
     ApiResourceOverloaded,
     /// The Stage is already open
     StageAlreadyOpen,
+    /// A thread has already been created for this message
+    ThreadAlreadyCreated,
+    /// Thread is locked
+    ThreadLocked,
+    /// Maximum number of active threads reached
+    MaxActiveThreads,
+    /// Maximum number of active announcement threads reached
+    MaxActiveAnnouncementThreads,
     /// A status code that Twilight doesn't have registered.
     ///
     /// Please report the number if you see this variant!
@@ -305,6 +324,7 @@ impl ErrorCode {
             Self::AnnouncementRateLimitReached => 20022,
             Self::ChannelRateLimitReached => 20028,
             Self::UnallowedWords => 20031,
+            Self::GuildPremiumTooLow => 20035,
             Self::MaximumGuildsReached => 30001,
             Self::MaximumFriendsReached => 30002,
             Self::MaximumPinsReached => 30003,
@@ -320,6 +340,7 @@ impl ErrorCode {
             Self::MaximumGuildMembersReached => 30019,
             Self::MaximumServerCategoriesReached => 30030,
             Self::GuildTemplateAlreadyExist => 30031,
+            Self::ThreadMaxParticipants => 30033,
             Self::MaximumNonGuildBansReached => 30035,
             Self::MaximumGuildBansFetchesReached => 30037,
             Self::MaximumStickersReached => 30039,
@@ -366,6 +387,9 @@ impl ErrorCode {
             Self::PaymentRequiredForGift => 50070,
             Self::CommunityGuildRequired => 50074,
             Self::InvalidStickerSent => 50081,
+            Self::ThreadArchived => 50083,
+            Self::ThreadInvalidNotificationSettings => 50084,
+            Self::ThreadInvalidBeforeValue => 50085,
             Self::ServerNotAvailableLocation => 50095,
             Self::ServerNeedsMonetiazation => 50097,
             Self::TwoFactorRequired => 60003,
@@ -373,6 +397,10 @@ impl ErrorCode {
             Self::ReactionBlocked => 90001,
             Self::ApiResourceOverloaded => 130_000,
             Self::StageAlreadyOpen => 150_006,
+            Self::ThreadAlreadyCreated => 160_004,
+            Self::ThreadLocked => 160_005,
+            Self::MaxActiveThreads => 160_006,
+            Self::MaxActiveAnnouncementThreads => 160_007,
             Self::Other(other) => *other,
         }
     }
@@ -432,6 +460,7 @@ impl From<u64> for ErrorCode {
             20018 => Self::NotAccountOwner,
             20028 => Self::ChannelRateLimitReached,
             20031 => Self::UnallowedWords,
+            20035 => Self::GuildPremiumTooLow,
             30001 => Self::MaximumGuildsReached,
             30002 => Self::MaximumFriendsReached,
             30003 => Self::MaximumPinsReached,
@@ -447,6 +476,7 @@ impl From<u64> for ErrorCode {
             30019 => Self::MaximumGuildMembersReached,
             30030 => Self::MaximumServerCategoriesReached,
             30031 => Self::GuildTemplateAlreadyExist,
+            30033 => Self::ThreadMaxParticipants,
             30035 => Self::MaximumNonGuildBansReached,
             30037 => Self::MaximumGuildBansFetchesReached,
             30039 => Self::MaximumStickersReached,
@@ -492,14 +522,21 @@ impl From<u64> for ErrorCode {
             50054 => Self::CannotSelfRedeemGift,
             50070 => Self::PaymentRequiredForGift,
             50074 => Self::CommunityGuildRequired,
+            50081 => Self::InvalidStickerSent,
+            50083 => Self::ThreadArchived,
+            50084 => Self::ThreadInvalidNotificationSettings,
+            50085 => Self::ThreadInvalidBeforeValue,
             50095 => Self::ServerNotAvailableLocation,
             50097 => Self::ServerNeedsMonetiazation,
-            50081 => Self::InvalidStickerSent,
             60003 => Self::TwoFactorRequired,
             80004 => Self::NoSuchUser,
             90001 => Self::ReactionBlocked,
             130_000 => Self::ApiResourceOverloaded,
             150_006 => Self::StageAlreadyOpen,
+            160_004 => Self::ThreadAlreadyCreated,
+            160_005 => Self::ThreadLocked,
+            160_006 => Self::MaxActiveThreads,
+            160_007 => Self::MaxActiveAnnouncementThreads,
             other => Self::Other(other),
         }
     }
@@ -559,6 +596,7 @@ impl Display for ErrorCode {
             Self::AnnouncementRateLimitReached => f.write_str("Message cannot be edited due to announcement rate limits"),
             Self::ChannelRateLimitReached => f.write_str("The channel you are writing has hit the write rate limit"),
             Self::UnallowedWords => f.write_str("Your Stage topic, server name, server description, or channel names contain words that are not allowed"),
+            Self::GuildPremiumTooLow => f.write_str("Guild premium subscription level too low"),
             Self::MaximumGuildsReached => f.write_str("Maximum number of guilds reached (100)"),
             Self::MaximumFriendsReached => f.write_str("Maximum number of friends reached (1000)"),
             Self::MaximumPinsReached => f.write_str("Maximum number of pins reached for the channel (50)"),
@@ -574,6 +612,7 @@ impl Display for ErrorCode {
             Self::MaximumGuildMembersReached => f.write_str("Maximum number of server members reached"),
             Self::MaximumServerCategoriesReached => f.write_str("Maximum number of server categories has been reached"),
             Self::GuildTemplateAlreadyExist => f.write_str("Guild already has a template"),
+            Self::ThreadMaxParticipants => f.write_str("Max number of thread participants has been reached"),
             Self::MaximumNonGuildBansReached => f.write_str("Maximum number of bans for non-guild members have been exceeded"),
             Self::MaximumGuildBansFetchesReached => f.write_str("Maximum number of bans fetches has been reached"),
             Self::MaximumStickersReached => f.write_str("Maximum number of stickers reached"),
@@ -620,6 +659,9 @@ impl Display for ErrorCode {
             Self::PaymentRequiredForGift => f.write_str("Payment source required to redeem gift"),
             Self::CommunityGuildRequired => f.write_str("Cannot delete a channel required for Community guilds"),
             Self::InvalidStickerSent => f.write_str("Invalid sticker sent"),
+            Self::ThreadArchived => f.write_str("Tried to perform an operation on an archived thread, such as editing a message or adding a user to the thread"),
+            Self::ThreadInvalidNotificationSettings => f.write_str("Invalid thread notification settings"),
+            Self::ThreadInvalidBeforeValue => f.write_str("`before` value is earlier than the thread creation date"),
             Self::ServerNotAvailableLocation => f.write_str("This server is not available in your location"),
             Self::ServerNeedsMonetiazation => f.write_str("This server needs monetization enabled in order to perform this action"),
             Self::TwoFactorRequired => f.write_str("Two factor is required for this operation"),
@@ -627,6 +669,10 @@ impl Display for ErrorCode {
             Self::ReactionBlocked => f.write_str("Reaction was blocked"),
             Self::ApiResourceOverloaded => f.write_str("API resource is currently overloaded. Try again a little later"),
             Self::StageAlreadyOpen => f.write_str("The Stage is already open"),
+            Self::ThreadAlreadyCreated => f.write_str("A thread has already been created for this message"),
+            Self::ThreadLocked => f.write_str("Thread is locked"),
+            Self::MaxActiveThreads => f.write_str("Maximum number of active threads reached"),
+            Self::MaxActiveAnnouncementThreads => f.write_str("Maximum number of active announcement threads reached"),
             Self::Other(number) => {
                 f.write_str("An error code Twilight doesn't have registered: ")?;
 

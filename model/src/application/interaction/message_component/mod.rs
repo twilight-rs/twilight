@@ -182,6 +182,7 @@ mod tests {
                 referenced_message: None,
                 sticker_items: Vec::new(),
                 timestamp: String::new(),
+                thread: None,
                 tts: false,
                 webhook_id: None,
             },

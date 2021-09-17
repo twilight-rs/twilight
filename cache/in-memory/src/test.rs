@@ -64,6 +64,7 @@ pub fn cache_with_message_and_reactions() -> InMemoryCache {
         reactions: Vec::new(),
         reference: None,
         sticker_items: Vec::new(),
+        thread: None,
         referenced_message: None,
         timestamp: String::new(),
         tts: false,
