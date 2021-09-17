@@ -42,10 +42,12 @@ bitflags! {
         const REQUEST_TO_SPEAK = 0x10000_0000;
         /// Allows for deleting and archiving threads, and viewing all private threads.
         const MANAGE_THREADS = 0x40000_0000;
-        /// Allows for creating and participating in public threads.
-        const USE_PUBLIC_THREADS = 0x0008_0000_0000;
-        /// Allows for creating and participating in private threads.
-        const USE_PRIVATE_THREADS = 0x0010_0000_0000;
+        /// Allows for creating public threads.
+        const CREATE_PUBLIC_THREADS = 0x0008_0000_0000;
+        /// Allows for creating private threads.
+        const CREATE_PRIVATE_THREADS = 0x0010_0000_0000;
+        /// Allows for sending messages in threads.
+        const SEND_MESSAGES_IN_THREADS = 0x0040_0000_0000;
     }
 }
 
@@ -105,8 +107,12 @@ mod tests {
         Serialize,
         Sync
     );
-    const_assert_eq!(0x8_0000_0000, Permissions::USE_PUBLIC_THREADS.bits());
-    const_assert_eq!(0x10_0000_0000, Permissions::USE_PRIVATE_THREADS.bits());
+    const_assert_eq!(0x0008_0000_0000, Permissions::CREATE_PUBLIC_THREADS.bits());
+    const_assert_eq!(0x0010_0000_0000, Permissions::CREATE_PRIVATE_THREADS.bits());
+    const_assert_eq!(
+        0x0040_0000_0000,
+        Permissions::SEND_MESSAGES_IN_THREADS.bits()
+    );
 
     #[test]
     fn test_permissions() {
