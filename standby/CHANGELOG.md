@@ -2,6 +2,12 @@
 
 Changelog for `twilight-standby`.
 
+## [0.6.2] - 2021-09-17
+
+### Thread Support
+
+Supports thread-related events.
+
 ## [0.6.1] - 2021-09-17
 
 ### Changes
