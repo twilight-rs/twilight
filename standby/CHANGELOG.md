@@ -2,6 +2,13 @@
 
 Changelog for `twilight-standby`.
 
+## [0.6.1] - 2021-09-17
+
+### Changes
+
+This release contains internal refactors, there are no public facing
+changes.
+
 ## [0.6.0] - 2021-07-31
 
 ### Enhancements
