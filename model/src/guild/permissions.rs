@@ -107,8 +107,9 @@ mod tests {
         Serialize,
         Sync
     );
-    const_assert_eq!(0x8_0000_0000, Permissions::USE_PUBLIC_THREADS.bits());
-    const_assert_eq!(0x10_0000_0000, Permissions::USE_PRIVATE_THREADS.bits());
+    const_assert_eq!(0x0008_0000_0000, Permissions::CREATE_PUBLIC_THREADS.bits());
+    const_assert_eq!(0x0010_0000_0000, Permissions::CREATE_PRIVATE_THREADS.bits());
+    const_assert_eq!(0x0040_0000_0000, Permissions::SEND_MESSAGES_IN_THREADS.bits());
 
     #[test]
     fn test_permissions() {
