@@ -2,6 +2,27 @@
 
 Changelog for `twilight-http`.
 
+## [0.6.5] - 2021-09-17
+
+### Thread Support
+
+The http API version has been updated to `v9`.
+
+9 new error codes have been added: `GuildPremiumTooLow`,
+`MaxActiveAnnouncementThreads`, `MaxActiveThreads`,
+`ThreadAlreadyCreated`, `ThreadArchived`, `ThreadInvalidBeforeValue`,
+`ThreadInvalidNotificationSettings`, `ThreadLocked`, and
+`ThreadMaxParticipants`.
+
+12 new HTTP requests have been added: `AddThreadMember`, `CreateThread`,
+`CreateThreadFromMessage`, `GetJoinedPrivateArchivedThreads`,
+`GetPrivateArchivedThreads`, `GetPublicArchivedThreads`,
+`GetThreadMembers`, `JoinThread`, `LeaveThread`, `RemoveThreadMember`,
+`ThreadValidationError`, and `UpdateThread`.
+
+`ExecuteWebhook` allows setting a `thread_id` parameter, which sends the
+payload to the thread instead.
+
 ## [0.6.4] - 2021-09-17
 
 ### Additions
