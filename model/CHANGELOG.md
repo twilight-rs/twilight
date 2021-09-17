@@ -2,6 +2,29 @@
 
 Changelog for `twilight-model`.
 
+## [0.6.3] - 2021-09-17
+
+### Additions
+
+Add `Command::kind`, which is a `CommandType`, in order to support
+Message and User application commands ([#1107] - [@7596ff]).
+
+Add `CommandInteractionDataResolved::messages`, which is a list of
+messages relevant to the interaction ([#1107] - [@7596ff]).
+
+Add `MessageType::ContextMenuCommand`, which is relevant to Message and
+User commands ([#1107] - [@7596ff]).
+
+Add the `{Current, User}::{accent_color, banner}` fields ([#1127] -
+[@zeylahellyer]).
+
+### Fixes
+
+`Command` deserialization no longer errors if the `options` field was
+missing ([#1112] - [@Erk-]).
+
+[#1107]: https://github.com/twilight-rs/twilight/pull/1107
+
 ## [0.6.2] - 2021-08-30
 
 ### Additions
@@ -810,6 +833,7 @@ Initial release.
 
 [0.2.0-beta.1:app integrations]: https://github.com/discord/discord-api-docs/commit/a926694e2f8605848bda6b57d21c8817559e5cec
 
+[0.6.3]: https://github.com/twilight-rs/twilight/releases/tag/model-0.6.3
 [0.6.2]: https://github.com/twilight-rs/twilight/releases/tag/model-0.6.2
 [0.6.1]: https://github.com/twilight-rs/twilight/releases/tag/model-0.6.1
 [0.5.4]: https://github.com/twilight-rs/twilight/releases/tag/model-0.5.4
