@@ -515,6 +515,11 @@ impl Display for RouteDisplay<'_> {
                 token,
                 webhook_id,
             }
+            | Route::GetFollowupMessage {
+                application_id: webhook_id,
+                interaction_token: token,
+                message_id,
+            }
             | Route::GetWebhookMessage {
                 message_id,
                 token,

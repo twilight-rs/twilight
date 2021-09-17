@@ -103,7 +103,9 @@ mod tests {
                             application_id: None,
                             attachments: Vec::new(),
                             author: User {
+                                accent_color: None,
                                 avatar: Some("aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa".to_owned()),
+                                banner: None,
                                 bot: false,
                                 discriminator: "0001".to_owned(),
                                 email: None,
@@ -167,7 +169,9 @@ mod tests {
                             tags: None,
                         }]),
                         users: Vec::from([User {
+                            accent_color: None,
                             avatar: Some("different avatar".into()),
+                            banner: None,
                             bot: false,
                             discriminator: "5678".into(),
                             email: None,
@@ -195,7 +199,9 @@ mod tests {
                     premium_since: None,
                     roles: Vec::new(),
                     user: Some(User {
+                        accent_color: None,
                         avatar: Some("avatar string".into()),
+                        banner: None,
                         bot: false,
                         discriminator: "1234".into(),
                         email: None,

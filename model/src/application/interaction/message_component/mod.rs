@@ -112,7 +112,9 @@ mod tests {
 
     fn user(id: UserId) -> User {
         User {
+            accent_color: None,
             avatar: None,
+            banner: None,
             bot: false,
             discriminator: "4444".to_owned(),
             email: None,
