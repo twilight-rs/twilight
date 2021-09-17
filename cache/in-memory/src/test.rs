@@ -20,7 +20,9 @@ pub fn cache_with_message_and_reactions() -> InMemoryCache {
         application_id: None,
         attachments: Vec::new(),
         author: User {
+            accent_color: None,
             avatar: Some("".to_owned()),
+            banner: None,
             bot: false,
             discriminator: "0001".to_owned(),
             email: None,
@@ -87,7 +89,9 @@ pub fn cache_with_message_and_reactions() -> InMemoryCache {
             premium_since: None,
             roles: Vec::new(),
             user: User {
+                accent_color: None,
                 avatar: Some("".to_owned()),
+                banner: None,
                 bot: false,
                 discriminator: "0001".to_owned(),
                 email: None,
@@ -119,7 +123,9 @@ pub fn cache_with_message_and_reactions() -> InMemoryCache {
         premium_since: None,
         roles: Vec::new(),
         user: User {
+            accent_color: None,
             avatar: Some("".to_owned()),
+            banner: None,
             bot: false,
             discriminator: "0002".to_owned(),
             email: None,
@@ -149,7 +155,9 @@ pub fn cache_with_message_and_reactions() -> InMemoryCache {
 
 pub fn current_user(id: u64) -> CurrentUser {
     CurrentUser {
+        accent_color: Some(16711680),
         avatar: None,
+        banner: None,
         bot: true,
         discriminator: "9876".to_owned(),
         email: None,
@@ -251,7 +259,9 @@ pub fn voice_state(
 
 pub fn user(id: UserId) -> User {
     User {
+        accent_color: None,
         avatar: None,
+        banner: Some("06c16474723fe537c283b8efa61a30c8".to_owned()),
         bot: false,
         discriminator: "0001".to_owned(),
         email: None,

@@ -59,7 +59,9 @@ mod tests {
     fn test_integration_account_complete() {
         let value = IntegrationApplication {
             bot: Some(User {
+                accent_color: None,
                 avatar: None,
+                banner: None,
                 bot: false,
                 discriminator: "0001".to_owned(),
                 email: None,
@@ -91,9 +93,13 @@ mod tests {
                 Token::Some,
                 Token::Struct {
                     name: "User",
-                    len: 5,
+                    len: 7,
                 },
+                Token::Str("accent_color"),
+                Token::None,
                 Token::Str("avatar"),
+                Token::None,
+                Token::Str("banner"),
                 Token::None,
                 Token::Str("bot"),
                 Token::Bool(false),

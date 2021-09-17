@@ -6,7 +6,13 @@ use serde::{Deserialize, Serialize};
 
 #[derive(Clone, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
 pub struct UserProfile {
+    /// Accent color of the user's banner.
+    ///
+    /// This is an integer representation of a hexadecimal color code.
+    pub accent_color: Option<u64>,
     pub avatar: Option<String>,
+    /// Hash of the user's banner image.
+    pub banner: Option<String>,
     #[serde(default)]
     pub bot: bool,
     /// Discriminator used to differentiate people with the same username.
@@ -44,11 +50,16 @@ mod tests {
         vec![
             Token::Struct {
                 name: "UserProfile",
-                len: 11,
+                len: 13,
             },
+            Token::Str("accent_color"),
+            Token::Some,
+            Token::U64(16_579_836),
             Token::Str("avatar"),
             Token::Some,
             Token::Str("hash"),
+            Token::Str("banner"),
+            Token::None,
             Token::Str("bot"),
             Token::Bool(false),
             Token::Str("discriminator"),
@@ -83,7 +94,9 @@ mod tests {
     #[test]
     fn test_user_profile() {
         let value = UserProfile {
+            accent_color: Some(16_579_836),
             avatar: Some("hash".to_owned()),
+            banner: None,
             bot: false,
             discriminator: "0004".to_owned(),
             email: Some("email@example.com".to_owned()),

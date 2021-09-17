@@ -293,7 +293,9 @@ mod tests {
                 premium_since: None,
                 roles: Vec::new(),
                 user: User {
+                    accent_color: None,
                     avatar: Some("".to_owned()),
+                    banner: None,
                     bot: false,
                     discriminator: "0001".to_owned(),
                     email: None,
