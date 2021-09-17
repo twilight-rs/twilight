@@ -2,6 +2,37 @@
 
 Changelog for `twilight-model`.
 
+## [0.6.4] - 2021-09-17
+
+### Thread Support
+
+3 new channel types have been added: `GuildNewsThread`,
+`GuildPublicThread`, and `GuildPrivateThread`.
+
+`InteractionChannel` now contains the `parent_id` and `thread_metadata`
+fields.
+
+Adds `MessageFlags::HAS_THREAD`, `MessageType::ThreadCreated`, and
+`MessageType::ThreadStarterMessage`.
+
+Adds thread-related models: `AutoArchiveDuration`, `ThreadsListing`,
+`ThreadMember`, `ThreadMetadata`, `NewsThread`, `PrivateThread`, and
+`PublicThread`.
+
+Adds thread-related gateway payloads: `ThreadCreate`, `ThreadDelete`,
+`ThreadListSync`, `ThreadMemberUpdate`, `ThreadMembersUpdate`, and
+`ThreadUpdate`.
+
+Adds thread-related audit log items:
+ - change keys: `Archived`, `AutoArchiveDuration`,
+   `DefaultAutoArchiveDuration`, and `Locked`.
+ - event types: `ThreadCreate`, `ThreadDelete`, and `ThreadUpdate`.
+ - root: `AuditLog::threads`.
+
+Adds thread-related permissions: `MANAGE_THREADS`,
+`CREATE_PUBLIC_THREADS`, `CREATE_PRIVATE_THREADS`, and
+`SEND_MESSAGES_IN_THREADS`.
+
 ## [0.6.3] - 2021-09-17
 
 ### Additions
