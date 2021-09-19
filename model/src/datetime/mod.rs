@@ -33,9 +33,10 @@
 
 #![deny(clippy::missing_docs_in_private_items)]
 
+pub mod error;
+
 mod constant;
 mod display;
-mod error;
 
 use crate::datetime::constant::{MINUTES_PER_HOUR, SECONDS_PER_MINUTE};
 
@@ -134,6 +135,9 @@ impl Timestamp {
     ///
     /// Returns a [`TimestampParseErrorType::Range`] error type if one of the
     /// provided datetime segment values is not within an acceptable range.
+    ///
+    /// [`TimestampParseErrorType::Format`]: error::TimestampParseErrorType::Format
+    /// [`TimestampParseErrorType::Range`]: error::TimestampParseErrorType::Range
     pub const fn parse(datetime: &str) -> Result<Self, TimestampParseError> {
         let micros = match parse_iso8601(datetime) {
             Ok(micros) => micros,
@@ -296,6 +300,9 @@ impl TryFrom<&'_ str> for Timestamp {
 ///
 /// Returns a [`TimestampParseErrorType::Range`] error type if one of the provided
 /// datetime segment values is not within an acceptable range.
+///
+/// [`TimestampParseErrorType::Format`]: error::TimestampParseErrorType::Format
+/// [`TimestampParseErrorType::Range`]: error::TimestampParseErrorType::Range
 const fn parse_iso8601(input: &str) -> Result<u64, TimestampParseError> {
     /// Discord sends some timestamps with the microseconds and some without.
     const TIMESTAMP_LENGTH: usize = "2021-01-01T01:01:01+00:00".len();
