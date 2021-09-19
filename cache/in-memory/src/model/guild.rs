@@ -2,6 +2,7 @@ use std::slice::Iter;
 
 use serde::Serialize;
 use twilight_model::{
+    datetime::Timestamp,
     guild::{
         DefaultMessageNotificationLevel, ExplicitContentFilter, MfaLevel, NSFWLevel, Permissions,
         PremiumTier, SystemChannelFlags, VerificationLevel,
@@ -25,7 +26,7 @@ pub struct CachedGuild {
     pub(crate) features: Vec<String>,
     pub(crate) icon: Option<String>,
     pub(crate) id: GuildId,
-    pub(crate) joined_at: Option<String>,
+    pub(crate) joined_at: Option<Timestamp>,
     pub(crate) large: bool,
     pub(crate) max_members: Option<u64>,
     pub(crate) max_presences: Option<u64>,
@@ -123,8 +124,8 @@ impl CachedGuild {
     }
 
     /// ISO 8601 timestamp of the user's join date.
-    pub fn joined_at(&self) -> Option<&str> {
-        self.joined_at.as_deref()
+    pub const fn joined_at(&self) -> Option<Timestamp> {
+        self.joined_at
     }
 
     /// Whether this guild is "large".

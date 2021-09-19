@@ -35,12 +35,20 @@ pub struct NewsThread {
 #[cfg(test)]
 mod tests {
     use super::{ChannelId, ChannelType, GuildId, MessageId, ThreadMember, ThreadMetadata, UserId};
-    use crate::channel::thread::{AutoArchiveDuration, NewsThread};
+    use crate::{
+        channel::thread::{AutoArchiveDuration, NewsThread},
+        datetime::{Timestamp, TimestampParseError},
+    };
     use serde_test::Token;
+    use std::str::FromStr;
 
     #[allow(clippy::too_many_lines)]
     #[test]
-    fn test_news_thread() {
+    fn test_news_thread() -> Result<(), TimestampParseError> {
+        const DATETIME: &str = "2021-09-19T14:17:32.000000+00:00";
+
+        let timestamp = Timestamp::from_str(DATETIME)?;
+
         let value = NewsThread {
             default_auto_archive_duration: Some(AutoArchiveDuration::Hour),
             guild_id: Some(GuildId::new(2).expect("non zero")),
@@ -50,7 +58,7 @@ mod tests {
             member: Some(ThreadMember {
                 flags: 12,
                 id: Some(ChannelId::new(10).expect("non zero")),
-                join_timestamp: "456".to_owned(),
+                join_timestamp: timestamp,
                 member: None,
                 presence: None,
                 user_id: Some(UserId::new(11).expect("non zero")),
@@ -64,7 +72,7 @@ mod tests {
             thread_metadata: ThreadMetadata {
                 archived: true,
                 auto_archive_duration: AutoArchiveDuration::Hour,
-                archive_timestamp: "123".to_string(),
+                archive_timestamp: timestamp,
                 invitable: None,
                 locked: true,
             },
@@ -106,7 +114,7 @@ mod tests {
                 Token::NewtypeStruct { name: "ChannelId" },
                 Token::Str("10"),
                 Token::Str("join_timestamp"),
-                Token::Str("456"),
+                Token::Str(DATETIME),
                 Token::Str("user_id"),
                 Token::Some,
                 Token::NewtypeStruct { name: "UserId" },
@@ -139,12 +147,14 @@ mod tests {
                 Token::Str("auto_archive_duration"),
                 Token::U16(60),
                 Token::Str("archive_timestamp"),
-                Token::Str("123"),
+                Token::Str(DATETIME),
                 Token::Str("locked"),
                 Token::Bool(true),
                 Token::StructEnd,
                 Token::StructEnd,
             ],
         );
+
+        Ok(())
     }
 }

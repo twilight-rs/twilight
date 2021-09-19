@@ -1,5 +1,6 @@
 use crate::{
     channel::{permission_overwrite::PermissionOverwrite, ChannelType},
+    datetime::Timestamp,
     id::{ChannelId, GuildId, MessageId},
 };
 use serde::{Deserialize, Serialize};
@@ -14,7 +15,7 @@ pub struct TextChannel {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub last_message_id: Option<MessageId>,
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub last_pin_timestamp: Option<String>,
+    pub last_pin_timestamp: Option<Timestamp>,
     pub name: String,
     #[serde(default)]
     pub nsfw: bool,
@@ -31,7 +32,9 @@ pub struct TextChannel {
 #[cfg(test)]
 mod tests {
     use super::{ChannelId, ChannelType, GuildId, MessageId, TextChannel};
+    use crate::datetime::{Timestamp, TimestampParseError};
     use serde_test::Token;
+    use std::str::FromStr;
 
     #[test]
     fn test_text_channel() {
@@ -87,13 +90,15 @@ mod tests {
     }
 
     #[test]
-    fn test_text_channel_complete() {
+    fn test_text_channel_complete() -> Result<(), TimestampParseError> {
+        let last_pin_timestamp = Timestamp::from_str("2021-08-10T12:34:00+00:00")?;
+
         let value = TextChannel {
             id: ChannelId::new(1).expect("non zero"),
             guild_id: Some(GuildId::new(2).expect("non zero")),
             kind: ChannelType::GuildText,
             last_message_id: Some(MessageId::new(3).expect("non zero")),
-            last_pin_timestamp: Some("123".to_owned()),
+            last_pin_timestamp: Some(last_pin_timestamp),
             name: "foo".to_owned(),
             nsfw: true,
             permission_overwrites: Vec::new(),
@@ -125,7 +130,7 @@ mod tests {
                 Token::Str("3"),
                 Token::Str("last_pin_timestamp"),
                 Token::Some,
-                Token::Str("123"),
+                Token::Str("2021-08-10T12:34:00.000000+00:00"),
                 Token::Str("name"),
                 Token::Str("foo"),
                 Token::Str("nsfw"),
@@ -148,5 +153,7 @@ mod tests {
                 Token::StructEnd,
             ],
         );
+
+        Ok(())
     }
 }

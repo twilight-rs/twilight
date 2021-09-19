@@ -15,6 +15,7 @@ pub use self::{
 };
 
 use super::user::User;
+use crate::datetime::Timestamp;
 use serde::{Deserialize, Serialize};
 
 #[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
@@ -26,7 +27,7 @@ pub struct Invite {
     pub channel: InviteChannel,
     pub code: String,
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub expires_at: Option<String>,
+    pub expires_at: Option<Timestamp>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub guild: Option<InviteGuild>,
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -47,13 +48,14 @@ mod tests {
     };
     use crate::{
         channel::ChannelType,
+        datetime::{Timestamp, TimestampParseError},
         guild::VerificationLevel,
         id::{ChannelId, EmojiId, GuildId, UserId},
     };
     use serde::{Deserialize, Serialize};
     use serde_test::Token;
     use static_assertions::{assert_fields, assert_impl_all};
-    use std::fmt::Debug;
+    use std::{fmt::Debug, str::FromStr};
 
     assert_fields!(
         Invite: approximate_member_count,
@@ -134,7 +136,10 @@ mod tests {
 
     #[allow(clippy::too_many_lines)]
     #[test]
-    fn test_invite_complete() {
+    fn test_invite_complete() -> Result<(), TimestampParseError> {
+        let expires_at = Timestamp::from_str("2021-08-10T16:08:36.325000+00:00")?;
+        let joined_at = Timestamp::from_str("2015-04-26T06:26:56.936000+00:00")?;
+
         let value = Invite {
             approximate_member_count: Some(31),
             approximate_presence_count: Some(7),
@@ -172,7 +177,7 @@ mod tests {
                     ],
                 }),
             }),
-            expires_at: Some("expires at timestamp".to_owned()),
+            expires_at: Some(expires_at),
             inviter: Some(User {
                 accent_color: None,
                 avatar: None,
@@ -193,7 +198,7 @@ mod tests {
             stage_instance: Some(InviteStageInstance {
                 members: Vec::from([InviteStageInstanceMember {
                     avatar: None,
-                    joined_at: "joined at".into(),
+                    joined_at,
                     nick: None,
                     pending: None,
                     premium_since: None,
@@ -268,7 +273,7 @@ mod tests {
                 Token::Str("uniquecode"),
                 Token::Str("expires_at"),
                 Token::Some,
-                Token::Str("expires at timestamp"),
+                Token::Str("2021-08-10T16:08:36.325000+00:00"),
                 Token::Str("guild"),
                 Token::Some,
                 Token::Struct {
@@ -382,7 +387,7 @@ mod tests {
                     len: 2,
                 },
                 Token::Str("joined_at"),
-                Token::Str("joined at"),
+                Token::Str("2015-04-26T06:26:56.936000+00:00"),
                 Token::Str("user"),
                 Token::Struct {
                     name: "User",
@@ -441,5 +446,7 @@ mod tests {
                 Token::StructEnd,
             ],
         );
+
+        Ok(())
     }
 }

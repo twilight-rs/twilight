@@ -1,4 +1,4 @@
-use crate::{guild::IntegrationAccount, id::IntegrationId, user::User};
+use crate::{datetime::Timestamp, guild::IntegrationAccount, id::IntegrationId, user::User};
 use serde::{Deserialize, Serialize};
 
 /// Information about a [guild integration] provided in an [audit log].
@@ -35,7 +35,7 @@ pub struct AuditLogGuildIntegration {
     ///
     /// This is an ISO 8601 timestamp.
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub synced_at: Option<String>,
+    pub synced_at: Option<Timestamp>,
     /// Whether the integration is syncing.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub syncing: Option<bool>,

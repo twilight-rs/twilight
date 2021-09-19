@@ -8,6 +8,7 @@ use twilight_model::{
         },
         Attachment, ChannelMention,
     },
+    datetime::Timestamp,
     guild::PartialMember,
     id::{ChannelId, GuildId, MessageId, RoleId, UserId, WebhookId},
 };
@@ -23,7 +24,7 @@ pub struct CachedMessage {
     author: UserId,
     channel_id: ChannelId,
     pub(crate) content: String,
-    pub(crate) edited_timestamp: Option<String>,
+    pub(crate) edited_timestamp: Option<Timestamp>,
     pub(crate) embeds: Vec<Embed>,
     flags: Option<MessageFlags>,
     guild_id: Option<GuildId>,
@@ -38,7 +39,7 @@ pub struct CachedMessage {
     pub(crate) reactions: Vec<MessageReaction>,
     reference: Option<MessageReference>,
     sticker_items: Vec<MessageSticker>,
-    pub(crate) timestamp: String,
+    pub(crate) timestamp: Timestamp,
     pub(crate) tts: bool,
     webhook_id: Option<WebhookId>,
 }
@@ -77,8 +78,8 @@ impl CachedMessage {
     }
 
     /// ISO 8601 timestamp of the date the message was last edited.
-    pub fn edited_timestamp(&self) -> Option<&str> {
-        self.edited_timestamp.as_deref()
+    pub const fn edited_timestamp(&self) -> Option<Timestamp> {
+        self.edited_timestamp
     }
 
     /// Embeds attached to the message.
@@ -152,8 +153,8 @@ impl CachedMessage {
     }
 
     /// ISO 8601 timestamp of the date the message was sent.
-    pub fn timestamp(&self) -> &str {
-        &self.timestamp
+    pub const fn timestamp(&self) -> Timestamp {
+        self.timestamp
     }
 
     /// Whether the message is text-to-speech.
