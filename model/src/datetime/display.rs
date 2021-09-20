@@ -187,9 +187,8 @@ impl Display for TimestampIso8601Display {
         // Input: 2021-01-01T01:01:01.010000+00:00
         //                                 |-----|
         //
-        // The API doesn't operate in microseconds so we can just fill those in
-        // with zeroes. It also doesn't operate in offsets other than +00:00, so
-        // we can also just fill that in.
+        // The API doesn't operate in offsets other than +00:00, so we can just
+        // fill that in.
         f.write_str("+00:00")
     }
 }
