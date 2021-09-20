@@ -806,25 +806,29 @@ impl Future for TextFuture {
 
 #[cfg(feature = "decompression")]
 async fn decompress(body: Body) -> Result<Bytes, DeserializeBodyError> {
+    use brotli::Decompressor;
     use hyper::body::Buf;
     use std::io::Read;
 
-    let mut buf = Vec::with_capacity(256);
-    brotli::Decompressor::new(
-        body::aggregate(body)
-            .await
-            .map_err(|source| DeserializeBodyError {
-                kind: DeserializeBodyErrorType::Chunking,
-                source: Some(Box::new(source)),
-            })?
-            .reader(),
-        4096,
-    )
-    .read_to_end(&mut buf)
-    .map_err(|_| DeserializeBodyError {
-        kind: DeserializeBodyErrorType::Decompressing,
-        source: None,
-    })?;
+    let aggregate = body::aggregate(body)
+        .await
+        .map_err(|source| DeserializeBodyError {
+            kind: DeserializeBodyErrorType::Chunking,
+            source: Some(Box::new(source)),
+        })?;
+
+    // Determine the size of the entire buffer, in order to create the
+    // decompressed and compressed buffers.
+    let size = aggregate.remaining();
+
+    let mut buf = Vec::with_capacity(size);
+
+    Decompressor::new(aggregate.reader(), size)
+        .read_to_end(&mut buf)
+        .map_err(|_| DeserializeBodyError {
+            kind: DeserializeBodyErrorType::Decompressing,
+            source: None,
+        })?;
 
     Ok(buf.into())
 }
