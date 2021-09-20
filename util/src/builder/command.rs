@@ -38,24 +38,6 @@ use twilight_model::{
 pub struct CommandBuilder(Command);
 
 impl CommandBuilder {
-    /// Maximum total textual length of the command in UTF-16 code points.
-    ///
-    /// This combines the text of the name, description and value for the
-    /// command and its subcommands and groups.
-    pub const COMMAND_LENGTH_LIMIT: usize = 4000;
-
-    /// Maximum number of options within a command.
-    pub const COMMAND_OPTIONS_LIMIT: usize = 25;
-
-    /// Maximum number of UTF-16 code points that can be in a description.
-    pub const DESCRIPTION_LENGTH_LIMIT: usize = 100;
-
-    /// Maximum number of UTF-16 code points in a name.
-    pub const NAME_LENGTH_LIMIT: usize = 32;
-
-    /// Maximum number of choices within a option.
-    pub const OPTIONS_CHOICES_LIMIT: usize = 25;
-
     /// Create a new default [`Command`] builder.
     pub fn new(name: impl Into<String>, description: impl Into<String>, kind: CommandType) -> Self {
         Self::_new(name.into(), description.into(), kind)
