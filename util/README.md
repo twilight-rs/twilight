@@ -9,6 +9,10 @@ augment or enhance default functionality.
 
 ## Features
 
+### `builder`
+
+Provides builders for large structs.
+
 ### `link`
 
 Provides implementations for parsing and formatting entities' URLs, such as

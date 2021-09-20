@@ -1,10 +1,12 @@
 //! Create a [`Command`] with a builder.
 
-use super::{
-    BaseCommandOptionData, ChoiceCommandOptionData, Command, CommandOption, CommandOptionChoice,
-    CommandType, OptionsCommandOptionData,
+use twilight_model::{
+    application::command::{
+        BaseCommandOptionData, ChoiceCommandOptionData, Command, CommandOption,
+        CommandOptionChoice, CommandType, OptionsCommandOptionData,
+    },
+    id::{ApplicationId, CommandId, GuildId},
 };
-use crate::id::{ApplicationId, CommandId, GuildId};
 
 /// Builder to create a [`Command`].
 ///

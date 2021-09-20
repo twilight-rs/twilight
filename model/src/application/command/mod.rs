@@ -1,6 +1,5 @@
 //! Used for building commands to send to Discord.
 
-pub mod builder;
 pub mod permissions;
 
 mod command_type;
