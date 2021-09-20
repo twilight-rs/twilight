@@ -858,17 +858,16 @@ fn json_deserializer(
 #[cfg(test)]
 mod tests {
     use super::{
-        decompress,
         marker::{EmptyBody, ListBody, MemberBody, MemberListBody},
         BytesFuture, DeserializeBodyError, DeserializeBodyErrorType, HeaderIter, MemberFuture,
         MemberListFuture, ModelFuture, Response, TextFuture,
     };
-    use hyper::Body;
     use static_assertions::assert_impl_all;
-    use std::{error::Error, fmt::Debug, future::Future, iter::FusedIterator};
-    use tokio::runtime::Runtime;
-    use twilight_model::invite::Invite;
+    use std::{fmt::Debug, future::Future, iter::FusedIterator};
     use twilight_model::{channel::Message, guild::Emoji};
+
+    #[cfg(feature = "decompression")]
+    use std::error::Error;
 
     assert_impl_all!(BytesFuture: Future);
     assert_impl_all!(DeserializeBodyErrorType: Debug, Send, Sync);
@@ -886,6 +885,11 @@ mod tests {
     #[cfg(feature = "decompression")]
     #[test]
     fn test_decompression() -> Result<(), Box<dyn Error + Send + Sync>> {
+        use super::decompress;
+        use hyper::Body;
+        use tokio::runtime::Runtime;
+        use twilight_model::invite::Invite;
+
         const COMPRESSED: [u8; 685] = [
             3, 160, 2, 0, 228, 178, 169, 189, 190, 59, 251, 86, 18, 36, 232, 63, 98, 235, 98, 82,
             176, 41, 41, 85, 35, 35, 17, 115, 161, 13, 136, 164, 79, 156, 11, 128, 135, 156, 152,
