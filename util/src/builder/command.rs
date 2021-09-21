@@ -13,7 +13,7 @@ use twilight_model::{
 /// # Examples
 /// ```
 /// use twilight_model::application::command::CommandType;
-/// use twilight_util::builder::Command::{BooleanBuilder, CommandBuilder, StringBuilder};
+/// use twilight_util::builder::command::{BooleanBuilder, CommandBuilder, StringBuilder};
 ///
 /// CommandBuilder::new(
 ///     "blep",
