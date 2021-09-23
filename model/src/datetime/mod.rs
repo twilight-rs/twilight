@@ -110,6 +110,8 @@ impl Timestamp {
     /// (2021-01-01T01:01:01.010000+00:00) and without microseconds
     /// (2021-01-01T01:01:01+00:00). This supports parsing from either.
     ///
+    /// Supports parsing dates between the Discord epoch year (2010) and 2038.
+    ///
     /// # Examples
     ///
     /// ```
@@ -208,6 +210,8 @@ impl FromStr for Timestamp {
     /// Discord emits two ISO 8601 valid formats of datetimes: with microseconds
     /// (2021-01-01T01:01:01.010000+00:00) and without microseconds
     /// (2021-01-01T01:01:01+00:00). This supports parsing from either.
+    ///
+    /// Supports parsing dates between the Discord epoch year (2010) and 2038.
     ///
     /// # Examples
     ///
