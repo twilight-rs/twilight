@@ -77,7 +77,7 @@ impl CachedMessage {
         &self.content
     }
 
-    /// ISO 8601 timestamp of the date the message was last edited.
+    /// [`Timestamp`] of the date the message was last edited.
     pub const fn edited_timestamp(&self) -> Option<Timestamp> {
         self.edited_timestamp
     }
@@ -152,7 +152,7 @@ impl CachedMessage {
         &self.sticker_items
     }
 
-    /// ISO 8601 timestamp of the date the message was sent.
+    /// [`Timestamp`] of the date the message was sent.
     pub const fn timestamp(&self) -> Timestamp {
         self.timestamp
     }

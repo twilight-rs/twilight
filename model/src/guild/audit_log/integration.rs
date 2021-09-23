@@ -32,8 +32,6 @@ pub struct AuditLogGuildIntegration {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub role_id: Option<IntegrationId>,
     /// When the integration was last synced.
-    ///
-    /// This is an ISO 8601 timestamp.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub synced_at: Option<Timestamp>,
     /// Whether the integration is syncing.

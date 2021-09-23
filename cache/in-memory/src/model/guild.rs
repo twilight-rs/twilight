@@ -123,7 +123,7 @@ impl CachedGuild {
         self.id
     }
 
-    /// ISO 8601 timestamp of the user's join date.
+    /// [`Timestamp`] of the user's join date.
     pub const fn joined_at(&self) -> Option<Timestamp> {
         self.joined_at
     }

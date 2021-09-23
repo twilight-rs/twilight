@@ -33,7 +33,7 @@ impl CachedMember {
         self.guild_id
     }
 
-    /// ISO 8601 timestamp of this member's join date.
+    /// [`Timestamp`] of this member's join date.
     pub const fn joined_at(&self) -> Option<Timestamp> {
         self.joined_at
     }
@@ -54,7 +54,7 @@ impl CachedMember {
         self.pending
     }
 
-    /// ISO 8601 timestamp of the date the member boosted the guild.
+    /// [`Timestamp`] of the date the member boosted the guild.
     pub const fn premium_since(&self) -> Option<Timestamp> {
         self.premium_since
     }
