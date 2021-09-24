@@ -883,11 +883,10 @@ mod tests {
     assert_impl_all!(TextFuture: Future);
 
     #[cfg(feature = "decompression")]
-    #[test]
-    fn test_decompression() -> Result<(), Box<dyn Error + Send + Sync>> {
+    #[tokio::test]
+    async fn test_decompression() -> Result<(), Box<dyn Error + Send + Sync>> {
         use super::decompress;
         use hyper::Body;
-        use tokio::runtime::Runtime;
         use twilight_model::invite::Invite;
 
         const COMPRESSED: [u8; 685] = [
@@ -930,10 +929,7 @@ mod tests {
             3,
         ];
 
-        let rt = Runtime::new()?;
-
-        let decompressed =
-            rt.block_on(async { decompress(Body::from(COMPRESSED.as_ref())).await })?;
+        let decompressed = decompress(Body::from(COMPRESSED.as_ref())).await?;
 
         let deserialized = serde_json::from_slice::<Invite>(&decompressed)?;
 
