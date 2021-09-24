@@ -298,18 +298,12 @@ impl<'de> Visitor<'de> for OptionVisitor {
                 name,
                 required,
             }),
-            CommandOptionType::Number => {
-                let choices = choices
-                    .flatten()
-                    .ok_or_else(|| DeError::missing_field("choices"))?;
-
-                CommandOption::Number(ChoiceCommandOptionData {
-                    choices,
-                    description,
-                    name,
-                    required,
-                })
-            }
+            CommandOptionType::Number => CommandOption::Number(ChoiceCommandOptionData {
+                choices: choices.flatten().unwrap_or_default(),
+                description,
+                name,
+                required,
+            }),
         })
     }
 }
