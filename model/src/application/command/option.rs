@@ -430,25 +430,17 @@ impl CommandOptionType {
 #[derive(Clone, Copy, Debug, Deserialize, Serialize)]
 pub struct Number(pub f64);
 
-#[allow(clippy::cast_possible_truncation, clippy::trivially_copy_pass_by_ref)]
-impl Number {
-    /// Canonicalizes internal `f64` to `i64`.
-    fn canonicalize(&self) -> i64 {
-        (self.0 * 1024.0 * 1024.0).round() as i64
-    }
-}
-
 impl Eq for Number {}
 
 impl Hash for Number {
     fn hash<H: Hasher>(&self, state: &mut H) {
-        self.canonicalize().hash(state);
+        self.0.to_bits().hash(state);
     }
 }
 
 impl PartialEq for Number {
     fn eq(&self, other: &Number) -> bool {
-        self.canonicalize() == other.canonicalize()
+        self.0.to_bits() == other.0.to_bits()
     }
 }
 
@@ -465,7 +457,21 @@ mod tests {
         CommandOptionChoice, Number, OptionsCommandOptionData,
     };
     use crate::id::{ApplicationId, CommandId, GuildId};
+    use serde::{Deserialize, Serialize};
     use serde_test::Token;
+    use static_assertions::assert_impl_all;
+    use std::{fmt::Debug, hash::Hash};
+
+    assert_impl_all!(
+        Number: Clone,
+        Copy,
+        Debug,
+        Deserialize<'static>,
+        Eq,
+        Hash,
+        PartialEq,
+        Serialize
+    );
 
     #[test]
     #[allow(clippy::too_many_lines)]
@@ -758,5 +764,13 @@ mod tests {
                 Token::StructEnd,
             ],
         );
+    }
+
+    #[test]
+    fn test_number() {
+        const NUMBER_1: Number = Number(12.34_f64);
+        const NUMBER_2: Number = Number(12.34_f64);
+
+        assert_eq!(NUMBER_1, NUMBER_2);
     }
 }
