@@ -1,6 +1,6 @@
 use crate::{
     client::Client,
-    request::{validate, Request},
+    request::{validate_inner, Request},
     response::ResponseFuture,
     routing::Route,
 };
@@ -83,6 +83,7 @@ struct CreateTemplateFields<'a> {
 ///
 /// Returns a [`CreateTemplateErrorType::NameInvalid`] error type if the name is
 /// invalid.
+#[must_use = "requests must be configured and executed"]
 pub struct CreateTemplate<'a> {
     fields: CreateTemplateFields<'a>,
     guild_id: GuildId,
@@ -95,7 +96,7 @@ impl<'a> CreateTemplate<'a> {
         guild_id: GuildId,
         name: &'a str,
     ) -> Result<Self, CreateTemplateError> {
-        if !validate::template_name(name) {
+        if !validate_inner::template_name(&name) {
             return Err(CreateTemplateError {
                 kind: CreateTemplateErrorType::NameInvalid,
             });
@@ -120,7 +121,7 @@ impl<'a> CreateTemplate<'a> {
     /// Returns a [`CreateTemplateErrorType::DescriptionTooLarge`] error type if
     /// the description is too large.
     pub fn description(mut self, description: &'a str) -> Result<Self, CreateTemplateError> {
-        if !validate::template_description(description) {
+        if !validate_inner::template_description(description) {
             return Err(CreateTemplateError {
                 kind: CreateTemplateErrorType::DescriptionTooLarge,
             });

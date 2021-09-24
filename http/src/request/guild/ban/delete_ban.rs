@@ -26,6 +26,7 @@ use twilight_model::id::{GuildId, UserId};
 /// client.delete_ban(guild_id, user_id).exec().await?;
 /// # Ok(()) }
 /// ```
+#[must_use = "requests must be configured and executed"]
 pub struct DeleteBan<'a> {
     guild_id: GuildId,
     http: &'a Client,

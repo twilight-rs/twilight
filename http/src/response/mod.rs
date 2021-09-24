@@ -64,7 +64,7 @@ use std::{
     error::Error,
     fmt::{Display, Formatter, Result as FmtResult},
     future::Future,
-    iter::{self, FusedIterator},
+    iter::FusedIterator,
     marker::PhantomData,
     pin::Pin,
     task::{Context, Poll},
@@ -242,9 +242,10 @@ impl<T> Response<T> {
 
             // Create a buffer filled with zeroes so we can copy the aggregate
             // body into it.
-            let mut buf = iter::repeat(0)
-                .take(aggregate.remaining())
-                .collect::<Vec<_>>();
+            //
+            // Using `vec!` is the fastest way to do this, despite it being a
+            // macro and having unsafe internals.
+            let mut buf = vec![0; aggregate.remaining()];
             aggregate.copy_to_slice(&mut buf);
 
             Ok(buf)
@@ -327,6 +328,24 @@ impl<T: DeserializeOwned> Response<ListBody<T>> {
     /// Consume the response, chunking the body and then deserializing it into
     /// a list of something.
     ///
+    /// This is an alias for [`models`].
+    ///
+    /// # Errors
+    ///
+    /// Returns a [`DeserializeBodyErrorType::Chunking`] error type if the
+    /// response body could not be entirely read.
+    ///
+    /// Returns a [`DeserializeBodyErrorType::Deserializing`] error type if the
+    /// response body could not be deserialized into a list of something.
+    ///
+    /// [`models`]: Self::models
+    pub fn model(self) -> ModelFuture<Vec<T>> {
+        self.models()
+    }
+
+    /// Consume the response, chunking the body and then deserializing it into
+    /// a list of something.
+    ///
     /// # Errors
     ///
     /// Returns a [`DeserializeBodyErrorType::Chunking`] error type if the
@@ -358,6 +377,24 @@ impl Response<MemberBody> {
 }
 
 impl Response<MemberListBody> {
+    /// Consume the response, chunking the body and then deserializing it into
+    /// a list of members.
+    ///
+    /// This is an alias for [`models`].
+    ///
+    /// # Errors
+    ///
+    /// Returns a [`DeserializeBodyErrorType::Chunking`] error type if the
+    /// response body could not be entirely read.
+    ///
+    /// Returns a [`DeserializeBodyErrorType::Deserializing`] error type if the
+    /// response body could not be deserialized into a list of something.
+    ///
+    /// [`models`]: Self::models
+    pub fn model(self) -> MemberListFuture {
+        self.models()
+    }
+
     /// Consume the response, chunking the body and then deserializing it into
     /// a list of members.
     ///

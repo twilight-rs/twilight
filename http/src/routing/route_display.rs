@@ -69,6 +69,20 @@ impl Display for RouteDisplay<'_> {
 
                 Display::fmt(role_id, f)
             }
+            Route::AddThreadMember {
+                channel_id,
+                user_id,
+            }
+            | Route::RemoveThreadMember {
+                channel_id,
+                user_id,
+            } => {
+                f.write_str("channels/")?;
+                Display::fmt(channel_id, f)?;
+                f.write_str("/thread-members/")?;
+
+                Display::fmt(user_id, f)
+            }
             Route::CreateBan {
                 guild_id,
                 delete_message_days,
@@ -239,6 +253,23 @@ impl Display for RouteDisplay<'_> {
 
                 f.write_str("/templates")
             }
+            Route::CreateThread { channel_id } => {
+                f.write_str("channels/")?;
+                Display::fmt(channel_id, f)?;
+
+                f.write_str("/threads")
+            }
+            Route::CreateThreadFromMessage {
+                channel_id,
+                message_id,
+            } => {
+                f.write_str("channels/")?;
+                Display::fmt(channel_id, f)?;
+                f.write_str("/messages/")?;
+                Display::fmt(message_id, f)?;
+
+                f.write_str("/threads")
+            }
             Route::CreateTypingTrigger { channel_id } => {
                 f.write_str("channels/")?;
                 Display::fmt(channel_id, f)?;
@@ -289,6 +320,10 @@ impl Display for RouteDisplay<'_> {
                 application_id,
                 command_id,
             }
+            | Route::GetGlobalCommand {
+                application_id,
+                command_id,
+            }
             | Route::UpdateGlobalCommand {
                 application_id,
                 command_id,
@@ -305,6 +340,11 @@ impl Display for RouteDisplay<'_> {
                 Display::fmt(guild_id, f)
             }
             Route::DeleteGuildCommand {
+                application_id,
+                command_id,
+                guild_id,
+            }
+            | Route::GetGuildCommand {
                 application_id,
                 command_id,
                 guild_id,
@@ -475,6 +515,11 @@ impl Display for RouteDisplay<'_> {
                 token,
                 webhook_id,
             }
+            | Route::GetFollowupMessage {
+                application_id: webhook_id,
+                interaction_token: token,
+                message_id,
+            }
             | Route::GetWebhookMessage {
                 message_id,
                 token,
@@ -528,6 +573,12 @@ impl Display for RouteDisplay<'_> {
                 Display::fmt(channel_id, f)?;
 
                 f.write_str("/followers")
+            }
+            Route::GetActiveThreads { guild_id } => {
+                f.write_str("guild_id/")?;
+                Display::fmt(guild_id, f)?;
+
+                f.write_str("/threads/active")
             }
             Route::GetAuditLogs {
                 action_type,
@@ -811,6 +862,69 @@ impl Display for RouteDisplay<'_> {
 
                 f.write_str("/pins")
             }
+            Route::GetJoinedPrivateArchivedThreads {
+                before,
+                channel_id,
+                limit,
+            } => {
+                f.write_str("channels/")?;
+                Display::fmt(channel_id, f)?;
+                f.write_str("/users/@me/threads/archived/private?")?;
+
+                if let Some(before) = before {
+                    f.write_str("before=")?;
+                    Display::fmt(before, f)?;
+                }
+
+                if let Some(limit) = limit {
+                    f.write_str("&limit=")?;
+                    Display::fmt(limit, f)?;
+                }
+
+                Ok(())
+            }
+            Route::GetPrivateArchivedThreads {
+                before,
+                channel_id,
+                limit,
+            } => {
+                f.write_str("channels/")?;
+                Display::fmt(channel_id, f)?;
+                f.write_str("/threads/archived/private?")?;
+
+                if let Some(before) = before {
+                    f.write_str("before=")?;
+                    Display::fmt(before, f)?;
+                }
+
+                if let Some(limit) = limit {
+                    f.write_str("&limit=")?;
+                    Display::fmt(limit, f)?;
+                }
+
+                Ok(())
+            }
+            Route::GetPublicArchivedThreads {
+                before,
+                channel_id,
+                limit,
+            } => {
+                f.write_str("channels/")?;
+                Display::fmt(channel_id, f)?;
+                f.write_str("/threads/archived/public")?;
+
+                if let Some(before) = before {
+                    f.write_str("before=")?;
+                    Display::fmt(before, f)?;
+                }
+
+                if let Some(limit) = limit {
+                    f.write_str("&limit=")?;
+                    Display::fmt(limit, f)?;
+                }
+
+                Ok(())
+            }
             Route::GetReactionUsers {
                 after,
                 channel_id,
@@ -838,6 +952,12 @@ impl Display for RouteDisplay<'_> {
 
                 Ok(())
             }
+            Route::GetThreadMembers { channel_id } => {
+                f.write_str("channels/")?;
+                Display::fmt(channel_id, f)?;
+
+                f.write_str("/thread-members")
+            }
             Route::GetUserConnections => f.write_str("users/@me/connections"),
             Route::GetUser { user_id } => {
                 f.write_str("users/")?;
@@ -855,6 +975,12 @@ impl Display for RouteDisplay<'_> {
                 f.write_str(interaction_token)?;
 
                 f.write_str("/callback")
+            }
+            Route::JoinThread { channel_id } | Route::LeaveThread { channel_id } => {
+                f.write_str("channels/")?;
+                Display::fmt(channel_id, f)?;
+
+                f.write_str("/thread-members/@me")
             }
             Route::LeaveGuild { guild_id } => {
                 f.write_str("users/@me/guilds/")?;

@@ -1,6 +1,6 @@
 use crate::{
     client::Client,
-    request::{validate, Request},
+    request::{validate_inner, Request},
     response::ResponseFuture,
     routing::Route,
 };
@@ -77,6 +77,7 @@ struct AddGuildMemberFields<'a> {
     pub roles: Option<&'a [RoleId]>,
 }
 
+#[must_use = "requests must be configured and executed"]
 pub struct AddGuildMember<'a> {
     fields: AddGuildMemberFields<'a>,
     guild_id: GuildId,
@@ -136,7 +137,7 @@ impl<'a> AddGuildMember<'a> {
     /// Returns an [`AddGuildMemberErrorType::NicknameInvalid`] error type if
     /// the nickname is too short or too long.
     pub fn nick(mut self, nick: &'a str) -> Result<Self, AddGuildMemberError> {
-        if !validate::nickname(&nick) {
+        if !validate_inner::nickname(&nick) {
             return Err(AddGuildMemberError {
                 kind: AddGuildMemberErrorType::NicknameInvalid,
             });

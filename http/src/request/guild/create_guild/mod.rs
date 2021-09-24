@@ -1,6 +1,6 @@
 use crate::{
     client::Client,
-    request::{validate, Request},
+    request::{validate_inner, Request},
     response::ResponseFuture,
     routing::Route,
 };
@@ -214,6 +214,7 @@ pub struct VoiceFields {
 ///
 /// The minimum length of the name is 2 UTF-16 characters and the maximum is 100 UTF-16 characters.
 /// This endpoint can only be used by bots in less than 10 guilds.
+#[must_use = "requests must be configured and executed"]
 pub struct CreateGuild<'a> {
     fields: CreateGuildFields,
     http: &'a Client,
@@ -221,7 +222,7 @@ pub struct CreateGuild<'a> {
 
 impl<'a> CreateGuild<'a> {
     pub(crate) fn new(http: &'a Client, name: String) -> Result<Self, CreateGuildError> {
-        if !validate::guild_name(&name) {
+        if !validate_inner::guild_name(&name) {
             return Err(CreateGuildError {
                 kind: CreateGuildErrorType::NameInvalid { name },
             });

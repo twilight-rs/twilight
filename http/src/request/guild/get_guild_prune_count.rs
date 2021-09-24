@@ -1,6 +1,6 @@
 use crate::{
     client::Client,
-    request::{validate, Request},
+    request::{validate_inner, Request},
     response::ResponseFuture,
     routing::Route,
 };
@@ -71,6 +71,7 @@ struct GetGuildPruneCountFields<'a> {
 }
 
 /// Get the counts of guild members to be pruned.
+#[must_use = "requests must be configured and executed"]
 pub struct GetGuildPruneCount<'a> {
     fields: GetGuildPruneCountFields<'a>,
     guild_id: GuildId,
@@ -99,7 +100,7 @@ impl<'a> GetGuildPruneCount<'a> {
     /// Returns a [`GetGuildPruneCountErrorType::DaysInvalid`] error type if the
     /// number of days is 0.
     pub const fn days(mut self, days: u64) -> Result<Self, GetGuildPruneCountError> {
-        if !validate::guild_prune_days(days) {
+        if !validate_inner::guild_prune_days(days) {
             return Err(GetGuildPruneCountError {
                 kind: GetGuildPruneCountErrorType::DaysInvalid,
             });

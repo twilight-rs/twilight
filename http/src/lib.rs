@@ -64,7 +64,7 @@
 //!
 //! The `tracing` feature enables logging via the [`tracing`] crate.
 //!
-//! This is enabled by default.
+//! This is disabled by default.
 //!
 //! [`native-tls`]: https://crates.io/crates/native-tls
 //! [`hyper`]: https://crates.io/crates/hyper
@@ -112,7 +112,7 @@ pub mod routing;
 mod json;
 
 /// Discord API version used by this crate.
-pub const API_VERSION: u8 = 8;
+pub const API_VERSION: u8 = 9;
 
 pub use crate::{client::Client, error::Error, response::Response};
 

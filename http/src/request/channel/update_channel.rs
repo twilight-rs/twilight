@@ -1,7 +1,7 @@
 use crate::{
     client::Client,
     error::Error as HttpError,
-    request::{self, validate, AuditLogReason, AuditLogReasonError, NullableField, Request},
+    request::{self, validate_inner, AuditLogReason, AuditLogReasonError, NullableField, Request},
     response::ResponseFuture,
     routing::Route,
 };
@@ -102,6 +102,7 @@ struct UpdateChannelFields<'a> {
 ///
 /// All fields are optional. The minimum length of the name is 1 UTF-16 character
 /// and the maximum is 100 UTF-16 characters.
+#[must_use = "requests must be configured and executed"]
 pub struct UpdateChannel<'a> {
     channel_id: ChannelId,
     fields: UpdateChannelFields<'a>,
@@ -148,7 +149,7 @@ impl<'a> UpdateChannel<'a> {
     /// Returns an [`UpdateChannelErrorType::NameInvalid`] error type if the name
     /// length is too short or too long.
     pub fn name(mut self, name: &'a str) -> Result<Self, UpdateChannelError> {
-        if !validate::channel_name(name) {
+        if !validate_inner::channel_name(name) {
             return Err(UpdateChannelError {
                 kind: UpdateChannelErrorType::NameInvalid,
             });

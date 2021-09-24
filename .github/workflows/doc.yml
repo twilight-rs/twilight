@@ -19,14 +19,8 @@ jobs:
           profile: minimal
           override: true
 
-      - name: Setup cache
-        uses: actions/cache@v2
-        with:
-          path: |
-            ~/.cargo/registry
-            ~/.cargo/git
-            target/debug
-          key: ${{ runner.os }}-docs-rustc-${{ steps.toolchain.outputs.rustc_hash }}-${{ hashFiles('**/Cargo.lock') }}
+      - name: Cache dependencies
+        uses: Swatinem/rust-cache@v1
 
       - name: Build docs
         env:

@@ -2,6 +2,88 @@
 
 Changelog for `twilight-model`.
 
+## [0.6.4] - 2021-09-17
+
+### Thread Support
+
+3 new channel types have been added: `GuildNewsThread`,
+`GuildPublicThread`, and `GuildPrivateThread`.
+
+`InteractionChannel` now contains the `parent_id` and `thread_metadata`
+fields.
+
+Adds `MessageFlags::HAS_THREAD`, `MessageType::ThreadCreated`, and
+`MessageType::ThreadStarterMessage`.
+
+Adds thread-related models: `AutoArchiveDuration`, `ThreadsListing`,
+`ThreadMember`, `ThreadMetadata`, `NewsThread`, `PrivateThread`, and
+`PublicThread`.
+
+Adds thread-related gateway payloads: `ThreadCreate`, `ThreadDelete`,
+`ThreadListSync`, `ThreadMemberUpdate`, `ThreadMembersUpdate`, and
+`ThreadUpdate`.
+
+Adds thread-related audit log items:
+ - change keys: `Archived`, `AutoArchiveDuration`,
+   `DefaultAutoArchiveDuration`, and `Locked`.
+ - event types: `ThreadCreate`, `ThreadDelete`, and `ThreadUpdate`.
+ - root: `AuditLog::threads`.
+
+Adds thread-related permissions: `MANAGE_THREADS`,
+`CREATE_PUBLIC_THREADS`, `CREATE_PRIVATE_THREADS`, and
+`SEND_MESSAGES_IN_THREADS`.
+
+## [0.6.3] - 2021-09-17
+
+### Additions
+
+Add `Command::kind`, which is a `CommandType`, in order to support
+Message and User application commands ([#1107] - [@7596ff]).
+
+Add `CommandInteractionDataResolved::messages`, which is a list of
+messages relevant to the interaction ([#1107] - [@7596ff]).
+
+Add `MessageType::ContextMenuCommand`, which is relevant to Message and
+User commands ([#1107] - [@7596ff]).
+
+Add the `{Current, User}::{accent_color, banner}` fields ([#1127] -
+[@zeylahellyer]).
+
+### Fixes
+
+`Command` deserialization no longer errors if the `options` field was
+missing ([#1112] - [@Erk-]).
+
+[#1107]: https://github.com/twilight-rs/twilight/pull/1107
+
+## [0.6.2] - 2021-08-30
+
+### Additions
+
+Support message components, including action rows, buttons, and select menus
+([#1020], [#1043], [#1044], [#1090], aggregate [#1121] - [@AEnterprise],
+[@AsianIntel], [@zeylahellyer], [@7596ff]).
+
+### Enhancements
+
+Fix a remaining intradoc link ([#1128] - [@zeylahellyer]).
+
+[#1128]: https://github.com/twilight-rs/twilight/pull/1128
+[#1121]: https://github.com/twilight-rs/twilight/pull/1121
+[#1090]: https://github.com/twilight-rs/twilight/pull/1090
+[#1044]: https://github.com/twilight-rs/twilight/pull/1044
+[#1043]: https://github.com/twilight-rs/twilight/pull/1043
+[#1020]: https://github.com/twilight-rs/twilight/pull/1020
+
+## [0.6.1] - 2021-08-18
+
+### Fixes
+
+Properly handle `ChoiceCommandOptionData` with a missing choices field
+([#1087] - [@MaxOhn]).
+
+[#1087]: https://github.com/twilight-rs/twilight/pull/1087
+
 ## [0.6.0] - 2021-07-31
 
 ### Enhancements
@@ -741,6 +823,7 @@ Initial release.
 
 [@7596ff]: https://github.com/7596ff
 [@A5rocks]: https://github.com/A5rocks
+[@AEnterprise]: https://github.com/AEnterprise
 [@AsianIntel]: https://github.com/AsianIntel
 [@BlackHoleFox]: https://github.com/BlackHoleFox
 [@chamburr]: https://github.com/chamburr
@@ -751,6 +834,7 @@ Initial release.
 [@james7132]: https://github.com/james7132
 [@jazevedo620]: https://github.com/jazevedo620
 [@kotx]: https://github.com/kotx
+[@MaxOhn]: https://github.com/MaxOhn
 [@nickelc]: https://github.com/nickelc
 [@sam-kirby]: https://github.com/sam-kirby
 [@tbnritzdoge]: https://github.com/tbnritzdoge
@@ -780,6 +864,9 @@ Initial release.
 
 [0.2.0-beta.1:app integrations]: https://github.com/discord/discord-api-docs/commit/a926694e2f8605848bda6b57d21c8817559e5cec
 
+[0.6.3]: https://github.com/twilight-rs/twilight/releases/tag/model-0.6.3
+[0.6.2]: https://github.com/twilight-rs/twilight/releases/tag/model-0.6.2
+[0.6.1]: https://github.com/twilight-rs/twilight/releases/tag/model-0.6.1
 [0.5.4]: https://github.com/twilight-rs/twilight/releases/tag/model-0.5.4
 [0.5.3]: https://github.com/twilight-rs/twilight/releases/tag/model-0.5.3
 [0.5.2]: https://github.com/twilight-rs/twilight/releases/tag/model-0.5.2

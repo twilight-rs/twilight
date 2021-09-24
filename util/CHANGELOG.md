@@ -2,6 +2,15 @@
 
 Changelog for `twilight-util`.
 
+## [0.6.1] - 2021-09-17
+
+### Changes
+
+The example for `Snowflake::timestamp` has been updated to use version
+0.3 of the `time` crate ([#1145] - [@vilgotf]).
+
+[#1145]: https://github.com/twilight-rs/twilight/pull/1145
+
 ## [0.6.0] - 2021-07-31
 
 This major version bump of the Util crate is done to match all of the
@@ -94,6 +103,8 @@ Initial release.
 [@vivian]: https://github.com/vivian
 [@zeylahellyer]: https://github.com/zeylahellyer
 
+[0.6.1]: https://github.com/twilight-rs/twilight/releases/tag/util-0.6.1
+[0.6.0]: https://github.com/twilight-rs/twilight/releases/tag/util-0.6.0
 [0.5.2]: https://github.com/twilight-rs/twilight/releases/tag/util-0.5.2
 [0.5.1]: https://github.com/twilight-rs/twilight/releases/tag/util-0.5.1
 [0.5.0]: https://github.com/twilight-rs/twilight/releases/tag/util-0.5.0

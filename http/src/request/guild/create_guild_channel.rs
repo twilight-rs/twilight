@@ -1,6 +1,6 @@
 use crate::{
     client::Client,
-    request::{self, validate, AuditLogReason, AuditLogReasonError, Request},
+    request::{self, validate_inner, AuditLogReason, AuditLogReasonError, Request},
     response::ResponseFuture,
     routing::Route,
 };
@@ -103,6 +103,7 @@ struct CreateGuildChannelFields<'a> {
 ///
 /// All fields are optional except for name. The minimum length of the name is 1
 /// UTF-16 characters and the maximum is 100 UTF-16 characters.
+#[must_use = "requests must be configured and executed"]
 pub struct CreateGuildChannel<'a> {
     fields: CreateGuildChannelFields<'a>,
     guild_id: GuildId,
@@ -116,7 +117,7 @@ impl<'a> CreateGuildChannel<'a> {
         guild_id: GuildId,
         name: &'a str,
     ) -> Result<Self, CreateGuildChannelError> {
-        if !validate::channel_name(name) {
+        if !validate_inner::channel_name(name) {
             return Err(CreateGuildChannelError {
                 kind: CreateGuildChannelErrorType::NameInvalid,
             });

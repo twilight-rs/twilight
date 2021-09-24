@@ -1,6 +1,6 @@
 use crate::{
     client::Client,
-    request::{validate, Request},
+    request::{validate_inner, Request},
     response::ResponseFuture,
     routing::Route,
 };
@@ -96,6 +96,7 @@ struct GetAuditLogFields {
 /// }
 /// # Ok(()) }
 /// ```
+#[must_use = "requests must be configured and executed"]
 pub struct GetAuditLog<'a> {
     fields: GetAuditLogFields,
     guild_id: GuildId,
@@ -139,7 +140,7 @@ impl<'a> GetAuditLog<'a> {
     /// Returns a [`GetAuditLogErrorType::LimitInvalid`] error type if the
     /// `limit` is 0 or greater than 100.
     pub const fn limit(mut self, limit: u64) -> Result<Self, GetAuditLogError> {
-        if !validate::get_audit_log_limit(limit) {
+        if !validate_inner::get_audit_log_limit(limit) {
             return Err(GetAuditLogError {
                 kind: GetAuditLogErrorType::LimitInvalid,
             });

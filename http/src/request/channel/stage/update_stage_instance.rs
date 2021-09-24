@@ -1,6 +1,6 @@
 use crate::{
     client::Client,
-    request::{validate, Request},
+    request::{validate_inner, Request},
     response::{marker::EmptyBody, ResponseFuture},
     routing::Route,
 };
@@ -76,6 +76,7 @@ struct UpdateStageInstanceFields<'a> {
 /// Update fields of an existing stage instance.
 ///
 /// Requires the user to be a moderator of the stage channel.
+#[must_use = "requests must be configured and executed"]
 pub struct UpdateStageInstance<'a> {
     channel_id: ChannelId,
     fields: UpdateStageInstanceFields<'a>,
@@ -103,7 +104,7 @@ impl<'a> UpdateStageInstance<'a> {
 
     /// Set the new topic of the instance.
     pub fn topic(mut self, topic: &'a str) -> Result<Self, UpdateStageInstanceError> {
-        if !validate::stage_topic(&topic) {
+        if !validate_inner::stage_topic(&topic) {
             return Err(UpdateStageInstanceError {
                 kind: UpdateStageInstanceErrorType::InvalidTopic,
                 source: None,

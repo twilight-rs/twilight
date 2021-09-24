@@ -2,6 +2,123 @@
 
 Changelog for `twilight-http`.
 
+## [0.6.5] - 2021-09-17
+
+### Thread Support
+
+The http API version has been updated to `v9`.
+
+9 new error codes have been added: `GuildPremiumTooLow`,
+`MaxActiveAnnouncementThreads`, `MaxActiveThreads`,
+`ThreadAlreadyCreated`, `ThreadArchived`, `ThreadInvalidBeforeValue`,
+`ThreadInvalidNotificationSettings`, `ThreadLocked`, and
+`ThreadMaxParticipants`.
+
+12 new HTTP requests have been added: `AddThreadMember`, `CreateThread`,
+`CreateThreadFromMessage`, `GetJoinedPrivateArchivedThreads`,
+`GetPrivateArchivedThreads`, `GetPublicArchivedThreads`,
+`GetThreadMembers`, `JoinThread`, `LeaveThread`, `RemoveThreadMember`,
+`ThreadValidationError`, and `UpdateThread`.
+
+`ExecuteWebhook` allows setting a `thread_id` parameter, which sends the
+payload to the thread instead.
+
+## [0.6.4] - 2021-09-17
+
+### Additions
+
+Support creating of Message and User application commands, via the
+methods `new_create_global_command` and `new_create_guild_command`.
+These will replace the methods `create_global_command` and
+`create_guild_command` in the next major version ([#1107] - [@7596ff]).
+
+Support the "Get Global Command" and "Get Guild Command" requests, which
+can be used to get a full command object ([#1107] - [@7596ff]).
+
+Support the "Get Followup Message" request, which can be used to
+retrieve one of the followup messages created for an application
+interaction ([#1133] - [@zeylahellyer]).
+
+### Fixes
+
+Fix links to Discord documentation that pointed to the old `slash`
+section ([#1107] - [@7596ff]).
+
+### Changes
+
+Application-related HTTP request builders have been separated into
+`command` and `interaction` modules, for ease of understanding ([#1107]
+- [@7596ff]).
+
+[#1131]: https://github.com/twilight-rs/twilight/pull/1131
+[#1133]: https://github.com/twilight-rs/twilight/pull/1133
+
+## [0.6.3] - 2021-08-30
+
+### Additions
+
+Support message components, including action rows, buttons, and select menus
+([#1020], [#1043], [#1044], [#1090], aggregate [#1121] - [@AEnterprise],
+[@AsianIntel], [@zeylahellyer], [@7596ff]).
+
+Add comparing `StatusCode` with `u16` ([#1131] - [@zeylahellyer]).
+
+Add API error code 30040, described as "Maximum number of prune requests has
+been reached. Try again later" ([#1125] - [@zeylahellyer]).
+
+### Enhancements
+
+Document that `tracing` is now disabled by default ([#1129] - [@zeylahellyer]).
+
+Add `Response<ListBody<T>>::model` and `Response<MemberListBody>::model` aliases
+corresponding to their `models` equivalents ([#1123] - [@zeylahellyer]).
+
+Display body parsing errors as a legible string if they're UTF-8 valid
+([#1118] - [@AEnterprise]).
+
+[#1131]: https://github.com/twilight-rs/twilight/pull/1131
+[#1129]: https://github.com/twilight-rs/twilight/pull/1129
+[#1125]: https://github.com/twilight-rs/twilight/pull/1125
+[#1123]: https://github.com/twilight-rs/twilight/pull/1123
+[#1121]: https://github.com/twilight-rs/twilight/pull/1121
+[#1120]: https://github.com/twilight-rs/twilight/pull/1120
+[#1118]: https://github.com/twilight-rs/twilight/pull/1118
+[#1090]: https://github.com/twilight-rs/twilight/pull/1090
+[#1044]: https://github.com/twilight-rs/twilight/pull/1044
+[#1043]: https://github.com/twilight-rs/twilight/pull/1043
+[#1020]: https://github.com/twilight-rs/twilight/pull/1020
+
+## [0.6.2] - 2021-08-18
+
+### Additions
+
+Add 6 new HTTP API error codes:
+
+- 10049: Unknown stream
+- 10050: Unknown premium server subscribe cooldown
+- 10070: Unknown Guild Scheduled Event
+- 10071: Unknown Guild Scheduled Event User
+- 50095: This server is not available in your location
+- 50097: This server needs monetization enabled in order to perform this action
+
+([#1094] - [@Erk-]).
+
+### Fixes
+
+Fix `ResponseFuture` returning mismatched `RequestTimedOut` and `RequestError`
+error type variants ([#1100] - [@vilgotf]).
+
+### Enhancements
+
+Improve the performance of `Response::bytes` ([#1103] - [@vilgotf]).
+
+Add `[#must_use]` to typed HTTP request builders ([#1099] - [@zeylahellyer]).
+
+[#1103]: https://github.com/twilight-rs/twilight/pull/1103
+[#1100]: https://github.com/twilight-rs/twilight/pull/1100
+[#1099]: https://github.com/twilight-rs/twilight/pull/1099
+[#1094]: https://github.com/twilight-rs/twilight/pull/1094
+
 ## [0.6.1] - 2021-08-01
 
 ### Additions
@@ -1145,6 +1262,9 @@ Initial release.
 
 [0.2.0-beta.1:app integrations]: https://github.com/discord/discord-api-docs/commit/a926694e2f8605848bda6b57d21c8817559e5cec
 
+[0.6.4]: https://github.com/twilight-rs/twilight/releases/tag/http-0.6.4
+[0.6.3]: https://github.com/twilight-rs/twilight/releases/tag/http-0.6.3
+[0.6.2]: https://github.com/twilight-rs/twilight/releases/tag/http-0.6.2
 [0.5.7]: https://github.com/twilight-rs/twilight/releases/tag/http-0.5.7
 [0.5.6]: https://github.com/twilight-rs/twilight/releases/tag/http-0.5.6
 [0.5.5]: https://github.com/twilight-rs/twilight/releases/tag/http-0.5.5

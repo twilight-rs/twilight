@@ -1,6 +1,6 @@
 use crate::{
     client::Client,
-    request::{validate, Request},
+    request::{validate_inner, Request},
     response::{marker::ListBody, ResponseFuture},
     routing::Route,
 };
@@ -91,6 +91,7 @@ struct GetCurrentUserGuildsFields {
 ///     .await?;
 /// # Ok(()) }
 /// ```
+#[must_use = "requests must be configured and executed"]
 pub struct GetCurrentUserGuilds<'a> {
     fields: GetCurrentUserGuildsFields,
     http: &'a Client,
@@ -133,7 +134,7 @@ impl<'a> GetCurrentUserGuilds<'a> {
     ///
     /// [the discord docs]: https://discordapp.com/developers/docs/resources/user#get-current-user-guilds-query-string-params
     pub const fn limit(mut self, limit: u64) -> Result<Self, GetCurrentUserGuildsError> {
-        if !validate::get_current_user_guilds_limit(limit) {
+        if !validate_inner::get_current_user_guilds_limit(limit) {
             return Err(GetCurrentUserGuildsError {
                 kind: GetCurrentUserGuildsErrorType::LimitInvalid,
             });

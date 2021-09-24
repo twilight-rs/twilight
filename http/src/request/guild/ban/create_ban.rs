@@ -1,6 +1,6 @@
 use crate::{
     client::Client,
-    request::{validate, AuditLogReason, AuditLogReasonError, Request},
+    request::{validate_inner, AuditLogReason, AuditLogReasonError, Request},
     response::{marker::EmptyBody, ResponseFuture},
     routing::Route,
 };
@@ -87,6 +87,7 @@ struct CreateBanFields<'a> {
 ///     .await?;
 /// # Ok(()) }
 /// ```
+#[must_use = "requests must be configured and executed"]
 pub struct CreateBan<'a> {
     fields: CreateBanFields<'a>,
     guild_id: GuildId,
@@ -116,7 +117,7 @@ impl<'a> CreateBan<'a> {
     /// Returns a [`CreateBanErrorType::DeleteMessageDaysInvalid`] error type if
     /// the number of days is greater than 7.
     pub const fn delete_message_days(mut self, days: u64) -> Result<Self, CreateBanError> {
-        if !validate::ban_delete_message_days(days) {
+        if !validate_inner::ban_delete_message_days(days) {
             return Err(CreateBanError {
                 kind: CreateBanErrorType::DeleteMessageDaysInvalid,
             });

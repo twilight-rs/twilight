@@ -238,9 +238,7 @@ impl<'de> Visitor<'de> for OptionVisitor {
 
         Ok(match kind {
             CommandOptionType::SubCommand => {
-                let options = options
-                    .flatten()
-                    .ok_or_else(|| DeError::missing_field("options"))?;
+                let options = options.flatten().unwrap_or_default();
 
                 CommandOption::SubCommand(OptionsCommandOptionData {
                     description,
@@ -250,9 +248,7 @@ impl<'de> Visitor<'de> for OptionVisitor {
                 })
             }
             CommandOptionType::SubCommandGroup => {
-                let options = options
-                    .flatten()
-                    .ok_or_else(|| DeError::missing_field("options"))?;
+                let options = options.flatten().unwrap_or_default();
 
                 CommandOption::SubCommandGroup(OptionsCommandOptionData {
                     description,
@@ -377,7 +373,7 @@ pub struct ChoiceCommandOptionData {
 ///
 /// Refer to [the discord docs] for more information.
 ///
-/// [the discord docs]: https://discord.com/developers/docs/interactions/slash-commands#applicationcommandoptionchoice
+/// [the discord docs]: https://discord.com/developers/docs/interactions/application-commands#applicationcommandoptionchoice
 #[derive(Clone, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
 #[serde(untagged)]
 pub enum CommandOptionChoice {
@@ -447,8 +443,9 @@ impl From<Number> for f64 {
 #[cfg(test)]
 mod tests {
     use super::{
-        super::Command, BaseCommandOptionData, ChoiceCommandOptionData, CommandOption,
-        CommandOptionChoice, Number, OptionsCommandOptionData,
+        super::{Command, CommandType},
+        BaseCommandOptionData, ChoiceCommandOptionData, CommandOption, CommandOptionChoice,
+        OptionsCommandOptionData,
     };
     use crate::id::{ApplicationId, CommandId, GuildId};
     use serde::{Deserialize, Serialize};
@@ -467,12 +464,45 @@ mod tests {
         Serialize
     );
 
+    /// Test that when a subcommand or subcommand group's `options` field is
+    /// missing during deserialization that the field is defaulted instead of
+    /// returning a missing field error.
+    #[test]
+    fn test_issue_1150() {
+        let value = CommandOption::SubCommand(OptionsCommandOptionData {
+            description: "ponyville".to_owned(),
+            name: "equestria".to_owned(),
+            options: Vec::new(),
+            required: false,
+        });
+
+        serde_test::assert_de_tokens(
+            &value,
+            &[
+                Token::Struct {
+                    name: "CommandOptionEnvelope",
+                    len: 4,
+                },
+                Token::Str("description"),
+                Token::Str("ponyville"),
+                Token::Str("name"),
+                Token::Str("equestria"),
+                Token::Str("options"),
+                Token::None,
+                Token::Str("type"),
+                Token::U8(1),
+                Token::StructEnd,
+            ],
+        );
+    }
+
     #[test]
     #[allow(clippy::too_many_lines)]
     fn test_command_option_full() {
         let value = Command {
             application_id: Some(ApplicationId(100)),
             guild_id: Some(GuildId(300)),
+            kind: CommandType::ChatInput,
             name: "test command".into(),
             default_permission: Some(true),
             description: "this command is a test".into(),
@@ -554,7 +584,7 @@ mod tests {
             &[
                 Token::Struct {
                     name: "Command",
-                    len: 7,
+                    len: 8,
                 },
                 Token::Str("application_id"),
                 Token::Some,
@@ -577,6 +607,8 @@ mod tests {
                 Token::Some,
                 Token::NewtypeStruct { name: "CommandId" },
                 Token::Str("200"),
+                Token::Str("type"),
+                Token::U8(1),
                 Token::Str("options"),
                 Token::Seq { len: Some(1) },
                 Token::Struct {

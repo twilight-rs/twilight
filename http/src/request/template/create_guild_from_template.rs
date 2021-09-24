@@ -1,6 +1,6 @@
 use crate::{
     client::Client,
-    request::{validate, Request},
+    request::{validate_inner, Request},
     response::ResponseFuture,
     routing::Route,
 };
@@ -77,6 +77,7 @@ struct CreateGuildFromTemplateFields<'a> {
 ///
 /// Returns a [`CreateGuildFromTemplateErrorType::NameInvalid`] error type if
 /// the name is invalid.
+#[must_use = "requests must be configured and executed"]
 pub struct CreateGuildFromTemplate<'a> {
     fields: CreateGuildFromTemplateFields<'a>,
     http: &'a Client,
@@ -89,7 +90,7 @@ impl<'a> CreateGuildFromTemplate<'a> {
         template_code: &'a str,
         name: &'a str,
     ) -> Result<Self, CreateGuildFromTemplateError> {
-        if !validate::guild_name(&name) {
+        if !validate_inner::guild_name(&name) {
             return Err(CreateGuildFromTemplateError {
                 kind: CreateGuildFromTemplateErrorType::NameInvalid,
             });

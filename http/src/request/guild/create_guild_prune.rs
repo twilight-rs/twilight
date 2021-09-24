@@ -1,6 +1,6 @@
 use crate::{
     client::Client,
-    request::{self, validate, AuditLogReason, AuditLogReasonError, Request},
+    request::{self, validate_inner, AuditLogReason, AuditLogReasonError, Request},
     response::ResponseFuture,
     routing::Route,
 };
@@ -76,6 +76,7 @@ struct CreateGuildPruneFields<'a> {
 /// Refer to [the discord docs] for more information.
 ///
 /// [the discord docs]: https://discord.com/developers/docs/resources/guild#begin-guild-prune
+#[must_use = "requests must be configured and executed"]
 pub struct CreateGuildPrune<'a> {
     fields: CreateGuildPruneFields<'a>,
     guild_id: GuildId,
@@ -120,7 +121,7 @@ impl<'a> CreateGuildPrune<'a> {
     /// Returns a [`CreateGuildPruneErrorType::DaysInvalid`] error type if the
     /// number of days is 0.
     pub const fn days(mut self, days: u64) -> Result<Self, CreateGuildPruneError> {
-        if !validate::guild_prune_days(days) {
+        if !validate_inner::guild_prune_days(days) {
             return Err(CreateGuildPruneError {
                 kind: CreateGuildPruneErrorType::DaysInvalid,
             });

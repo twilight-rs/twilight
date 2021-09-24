@@ -112,7 +112,10 @@ impl Compression {
     /// If compression is enabled then this returns a
     /// `ReceivingEventErrorType::Decompressing` error type if decompressing the
     /// message failed.
-    #[cfg_attr(not(feature = "compression"), allow(clippy::unused_self))]
+    #[cfg_attr(
+        not(feature = "compression"),
+        allow(clippy::unnecessary_wraps, clippy::unused_self)
+    )]
     pub fn message_mut(&mut self) -> Result<Option<&mut [u8]>, ReceivingEventError> {
         #[cfg(feature = "compression")]
         {

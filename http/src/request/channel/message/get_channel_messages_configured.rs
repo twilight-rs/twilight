@@ -1,6 +1,6 @@
 use crate::{
     client::Client,
-    request::{validate, Request},
+    request::{validate_inner, Request},
     response::{marker::ListBody, ResponseFuture},
     routing::Route,
 };
@@ -76,6 +76,7 @@ struct GetChannelMessagesConfiguredFields {
 // nb: after, around, and before are mutually exclusive, so we use this
 // "configured" request to utilize the type system to prevent these from being
 // set in combination.
+#[must_use = "requests must be configured and executed"]
 pub struct GetChannelMessagesConfigured<'a> {
     after: Option<MessageId>,
     around: Option<MessageId>,
@@ -113,7 +114,7 @@ impl<'a> GetChannelMessagesConfigured<'a> {
     /// Returns a [`GetChannelMessagesConfiguredErrorType::LimitInvalid`] error
     /// type if the amount is greater than 21600.
     pub const fn limit(mut self, limit: u64) -> Result<Self, GetChannelMessagesConfiguredError> {
-        if !validate::get_channel_messages_limit(limit) {
+        if !validate_inner::get_channel_messages_limit(limit) {
             return Err(GetChannelMessagesConfiguredError {
                 kind: GetChannelMessagesConfiguredErrorType::LimitInvalid,
             });

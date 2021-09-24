@@ -1,59 +1,98 @@
-mod create_followup_message;
-mod create_global_command;
-mod create_guild_command;
-mod delete_followup_message;
-mod delete_global_command;
-mod delete_guild_command;
-mod delete_original_response;
-mod get_command_permissions;
-mod get_global_commands;
-mod get_guild_command_permissions;
-mod get_guild_commands;
-mod get_original_response;
-mod interaction_callback;
-mod set_command_permissions;
-mod set_global_commands;
-mod set_guild_commands;
-mod update_command_permissions;
-mod update_followup_message;
-mod update_global_command;
-mod update_guild_command;
-mod update_original_response;
+pub mod command;
+pub mod interaction;
 
-pub use self::{
-    create_followup_message::CreateFollowupMessage,
-    create_global_command::CreateGlobalCommand,
-    create_guild_command::CreateGuildCommand,
-    delete_followup_message::DeleteFollowupMessage,
-    delete_global_command::DeleteGlobalCommand,
-    delete_guild_command::DeleteGuildCommand,
-    delete_original_response::DeleteOriginalResponse,
-    get_command_permissions::GetCommandPermissions,
-    get_global_commands::GetGlobalCommands,
-    get_guild_command_permissions::GetGuildCommandPermissions,
-    get_guild_commands::GetGuildCommands,
-    get_original_response::GetOriginalResponse,
-    interaction_callback::InteractionCallback,
-    set_command_permissions::SetCommandPermissions,
-    set_global_commands::SetGlobalCommands,
-    set_guild_commands::SetGuildCommands,
-    update_command_permissions::UpdateCommandPermissions,
-    update_followup_message::{
-        UpdateFollowupMessage, UpdateFollowupMessageError, UpdateFollowupMessageErrorType,
-    },
-    update_global_command::UpdateGlobalCommand,
-    update_guild_command::UpdateGuildCommand,
-    update_original_response::{
-        UpdateOriginalResponse, UpdateOriginalResponseError, UpdateOriginalResponseErrorType,
-    },
-};
+/// Alias of [`interaction::CreateFollowupMessage`].
+#[deprecated(note = "moved to `command` and `interaction` modules", since = "0.6.4")]
+pub type CreateFollowupMessage<'a> = interaction::CreateFollowupMessage<'a>;
 
-use serde::Serialize;
+/// Alias of [`interaction::DeleteOriginalResponse`].
+#[deprecated(note = "moved to `command` and `interaction` modules", since = "0.6.4")]
+pub type DeleteOriginalResponse<'a> = interaction::DeleteOriginalResponse<'a>;
+
+/// Alias of [`interaction::GetOriginalResponse`].
+#[deprecated(note = "moved to `command` and `interaction` modules", since = "0.6.4")]
+pub type GetOriginalResponse<'a> = interaction::GetOriginalResponse<'a>;
+
+/// Alias of [`interaction::InteractionCallback`].
+#[deprecated(note = "moved to `command` and `interaction` modules", since = "0.6.4")]
+pub type InteractionCallback<'a> = interaction::InteractionCallback<'a>;
+
+/// Alias of [`interaction::UpdateFollowupMessage`].
+#[deprecated(note = "moved to `command` and `interaction` modules", since = "0.6.4")]
+pub type UpdateFollowupMessage<'a> = interaction::UpdateFollowupMessage<'a>;
+
+/// Alias of [`interaction::UpdateOriginalResponse`].
+#[deprecated(note = "moved to `command` and `interaction` modules", since = "0.6.4")]
+pub type UpdateOriginalResponse<'a> = interaction::UpdateOriginalResponse<'a>;
+
+/// Alias of [`command::CreateGlobalCommand`].
+#[deprecated(note = "moved to `command` and `interaction` modules", since = "0.6.4")]
+pub type CreateGlobalCommand<'a> = command::CreateGlobalCommand<'a>;
+
+/// Alias of [`command::CreateGuildCommand`].
+#[deprecated(note = "moved to `command` and `interaction` modules", since = "0.6.4")]
+pub type CreateGuildCommand<'a> = command::CreateGuildCommand<'a>;
+
+/// Alias of [`command::DeleteGlobalCommand`].
+#[deprecated(note = "moved to `command` and `interaction` modules", since = "0.6.4")]
+pub type DeleteGlobalCommand<'a> = command::DeleteGlobalCommand<'a>;
+
+/// Alias of [`command::DeleteGuildCommand`].
+#[deprecated(note = "moved to `command` and `interaction` modules", since = "0.6.4")]
+pub type DeleteGuildCommand<'a> = command::DeleteGuildCommand<'a>;
+
+/// Alias of [`command::GetCommandPermissions`].
+#[deprecated(note = "moved to `command` and `interaction` modules", since = "0.6.4")]
+pub type GetCommandPermissions<'a> = command::GetCommandPermissions<'a>;
+
+/// Alias of [`command::GetGlobalCommand`].
+#[deprecated(note = "moved to `command` and `interaction` modules", since = "0.6.4")]
+pub type GetGlobalCommand<'a> = command::GetGlobalCommand<'a>;
+
+/// Alias of [`command::GetGlobalCommands`].
+#[deprecated(note = "moved to `command` and `interaction` modules", since = "0.6.4")]
+pub type GetGlobalCommands<'a> = command::GetGlobalCommands<'a>;
+
+/// Alias of [`command::GetGuildCommand`].
+#[deprecated(note = "moved to `command` and `interaction` modules", since = "0.6.4")]
+pub type GetGuildCommand<'a> = command::GetGuildCommand<'a>;
+
+/// Alias of [`command::GetGuildCommandPermissions`].
+#[deprecated(note = "moved to `command` and `interaction` modules", since = "0.6.4")]
+pub type GetGuildCommandPermissions<'a> = command::GetGuildCommandPermissions<'a>;
+
+/// Alias of [`command::GetGuildCommands`].
+#[deprecated(note = "moved to `command` and `interaction` modules", since = "0.6.4")]
+pub type GetGuildCommands<'a> = command::GetGuildCommands<'a>;
+
+/// Alias of [`command::SetCommandPermissions`].
+#[deprecated(note = "moved to `command` and `interaction` modules", since = "0.6.4")]
+pub type SetCommandPermissions<'a> = command::SetCommandPermissions<'a>;
+
+/// Alias of [`command::SetGlobalCommands`].
+#[deprecated(note = "moved to `command` and `interaction` modules", since = "0.6.4")]
+pub type SetGlobalCommands<'a> = command::SetGlobalCommands<'a>;
+
+/// Alias of [`command::SetGuildCommands`].
+#[deprecated(note = "moved to `command` and `interaction` modules", since = "0.6.4")]
+pub type SetGuildCommands<'a> = command::SetGuildCommands<'a>;
+
+/// Alias of [`command::UpdateCommandPermissions`].
+#[deprecated(note = "moved to `command` and `interaction` modules", since = "0.6.4")]
+pub type UpdateCommandPermissions<'a> = command::UpdateCommandPermissions<'a>;
+
+/// Alias of [`command::UpdateGlobalCommand`].
+#[deprecated(note = "moved to `command` and `interaction` modules", since = "0.6.4")]
+pub type UpdateGlobalCommand<'a> = command::UpdateGlobalCommand<'a>;
+
+/// Alias of [`command::UpdateGuildCommand`].
+#[deprecated(note = "moved to `command` and `interaction` modules", since = "0.6.4")]
+pub type UpdateGuildCommand<'a> = command::UpdateGuildCommand<'a>;
+
 use std::{
     error::Error,
     fmt::{Display, Formatter, Result as FmtResult},
 };
-use twilight_model::{application::command::CommandOption, id::ApplicationId};
 
 /// The error created if the creation of interaction fails.
 #[derive(Debug)]
@@ -145,57 +184,3 @@ impl Display for InteractionError {
 }
 
 impl Error for InteractionError {}
-
-/// Version of [`Command`] but with borrowed fields.
-///
-/// [`Command`]: twilight_model::application::command::Command
-#[derive(Serialize)]
-struct CommandBorrowed<'a> {
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub application_id: Option<ApplicationId>,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub default_permission: Option<bool>,
-    pub description: &'a str,
-    pub name: &'a str,
-    #[serde(default)]
-    pub options: Option<&'a [CommandOption]>,
-}
-
-#[cfg(test)]
-mod tests {
-    use super::CommandBorrowed;
-    use twilight_model::{
-        application::command::{BaseCommandOptionData, Command, CommandOption},
-        id::{ApplicationId, CommandId, GuildId},
-    };
-
-    /// Test to convert a `Command` to a `CommandBorrowed`.
-    ///
-    /// Notably the point of this is to ensure that if a field is added to
-    /// `Command` or a type is changed then the destructure of it and creation
-    /// of `CommandBorrowed` will fail.
-    #[test]
-    fn test_command_borrowed_from_command() {
-        let command = Command {
-            application_id: Some(ApplicationId(1)),
-            default_permission: Some(true),
-            description: "command description".to_owned(),
-            guild_id: Some(GuildId(2)),
-            name: "command name".to_owned(),
-            id: Some(CommandId(3)),
-            options: Vec::from([CommandOption::Boolean(BaseCommandOptionData {
-                description: "command description".to_owned(),
-                name: "command name".to_owned(),
-                required: true,
-            })]),
-        };
-
-        let _ = CommandBorrowed {
-            application_id: command.application_id,
-            default_permission: command.default_permission,
-            description: &command.description,
-            name: &command.name,
-            options: Some(&command.options),
-        };
-    }
-}

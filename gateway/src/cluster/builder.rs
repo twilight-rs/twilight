@@ -11,7 +11,10 @@ use crate::{
 use std::{collections::HashMap, sync::Arc};
 use twilight_gateway_queue::{LocalQueue, Queue};
 use twilight_http::Client;
-use twilight_model::gateway::{payload::update_presence::UpdatePresencePayload, Intents};
+use twilight_model::gateway::{
+    payload::{identify::IdentifyProperties, update_presence::UpdatePresencePayload},
+    Intents,
+};
 
 /// Builder to configure and construct a [`Cluster`].
 ///
@@ -123,6 +126,41 @@ impl ClusterBuilder {
     /// Defaults to a new, default HTTP client is used.
     pub fn http_client(mut self, http_client: Client) -> Self {
         self.1 = self.1.http_client(http_client);
+
+        self
+    }
+
+    /// Set the properties for shards to identify with.
+    ///
+    /// This may be used if you want to set a different operating system, for
+    /// example.
+    ///
+    /// # Examples
+    ///
+    /// Set the identify properties for a cluster:
+    ///
+    /// ```no_run
+    /// # fn main() -> Result<(), Box<dyn std::error::Error>> {
+    /// use std::env::{self, consts::OS};
+    /// use twilight_gateway::{Intents, Cluster};
+    /// use twilight_model::gateway::payload::identify::IdentifyProperties;
+    ///
+    /// let token = env::var("DISCORD_TOKEN")?;
+    /// let properties = IdentifyProperties::new(
+    ///     "twilight.rs",
+    ///     "twilight.rs",
+    ///     OS,
+    ///     "",
+    ///     "",
+    /// );
+    ///
+    /// let builder = Cluster::builder(token, Intents::empty())
+    ///     .identify_properties(properties);
+    /// # Ok(()) }
+    /// ```
+    #[allow(clippy::missing_const_for_fn)]
+    pub fn identify_properties(mut self, identify_properties: IdentifyProperties) -> Self {
+        self.1 = self.1.identify_properties(identify_properties);
 
         self
     }

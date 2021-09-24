@@ -136,7 +136,9 @@ mod tests {
             application_id: None,
             attachments: Vec::new(),
             author: User {
+                accent_color: None,
                 avatar: Some("".to_owned()),
+                banner: None,
                 bot: false,
                 discriminator: "0001".to_owned(),
                 email: None,
@@ -151,6 +153,7 @@ mod tests {
                 verified: None,
             },
             channel_id: ChannelId(2),
+            components: Vec::new(),
             content: "ping".to_owned(),
             edited_timestamp: None,
             embeds: Vec::new(),
@@ -177,6 +180,7 @@ mod tests {
             reactions: Vec::new(),
             reference: None,
             sticker_items: Vec::new(),
+            thread: None,
             referenced_message: None,
             timestamp: String::new(),
             tts: false,
@@ -186,8 +190,8 @@ mod tests {
         cache.update(&MessageCreate(msg));
 
         {
-            let entry = cache.0.users.get(&UserId(3)).unwrap();
-            assert_eq!(entry.value().1.len(), 1);
+            let entry = cache.0.user_guilds.get(&UserId(3)).unwrap();
+            assert_eq!(entry.value().len(), 1);
         }
         assert_eq!(
             cache.member(GuildId(1), UserId(3)).unwrap().user_id,

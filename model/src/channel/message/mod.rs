@@ -20,14 +20,15 @@ pub use self::{
 
 use self::sticker::MessageSticker;
 use crate::{
-    channel::{embed::Embed, Attachment, ChannelMention},
+    application::component::Component,
+    channel::{embed::Embed, Attachment, Channel, ChannelMention},
     guild::PartialMember,
     id::{ApplicationId, ChannelId, GuildId, MessageId, RoleId, WebhookId},
     user::User,
 };
 use serde::{Deserialize, Serialize};
 
-#[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
+#[derive(Clone, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
 pub struct Message {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub activity: Option<MessageActivity>,
@@ -41,6 +42,9 @@ pub struct Message {
     pub attachments: Vec<Attachment>,
     pub author: User,
     pub channel_id: ChannelId,
+    /// List of provided message components.
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub components: Vec<Component>,
     pub content: String,
     pub edited_timestamp: Option<String>,
     pub embeds: Vec<Embed>,
@@ -68,13 +72,15 @@ pub struct Message {
     pub reference: Option<MessageReference>,
     /// The message associated with the [reference].
     ///
-    /// [reference]: #structfield.reference
+    /// [reference]: Self::reference
     #[serde(skip_serializing_if = "Option::is_none")]
     pub referenced_message: Option<Box<Message>>,
     /// Stickers within the message.
     #[serde(default)]
     pub sticker_items: Vec<MessageSticker>,
     pub timestamp: String,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub thread: Option<Channel>,
     pub tts: bool,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub webhook_id: Option<WebhookId>,
@@ -104,7 +110,9 @@ mod tests {
             application_id: None,
             attachments: Vec::new(),
             author: User {
+                accent_color: None,
                 avatar: Some("aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa".to_owned()),
+                banner: None,
                 bot: false,
                 discriminator: "0001".to_owned(),
                 email: None,
@@ -119,6 +127,7 @@ mod tests {
                 verified: None,
             },
             channel_id: ChannelId(2),
+            components: Vec::new(),
             content: "ping".to_owned(),
             edited_timestamp: None,
             embeds: Vec::new(),
@@ -151,6 +160,7 @@ mod tests {
             }],
             referenced_message: None,
             timestamp: "2020-02-02T02:02:02.020000+00:00".to_owned(),
+            thread: None,
             tts: false,
             webhook_id: None,
         };
@@ -168,11 +178,15 @@ mod tests {
                 Token::Str("author"),
                 Token::Struct {
                     name: "User",
-                    len: 5,
+                    len: 7,
                 },
+                Token::Str("accent_color"),
+                Token::None,
                 Token::Str("avatar"),
                 Token::Some,
                 Token::Str("aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"),
+                Token::Str("banner"),
+                Token::None,
                 Token::Str("bot"),
                 Token::Bool(false),
                 Token::Str("discriminator"),
@@ -281,7 +295,9 @@ mod tests {
             application_id: Some(ApplicationId(1)),
             attachments: Vec::new(),
             author: User {
+                accent_color: None,
                 avatar: Some("aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa".to_owned()),
+                banner: None,
                 bot: false,
                 discriminator: "0001".to_owned(),
                 email: None,
@@ -296,6 +312,7 @@ mod tests {
                 verified: None,
             },
             channel_id: ChannelId(2),
+            components: Vec::new(),
             content: "ping".to_owned(),
             edited_timestamp: Some("123".to_owned()),
             embeds: Vec::new(),
@@ -344,6 +361,7 @@ mod tests {
             }],
             referenced_message: None,
             timestamp: "2020-02-02T02:02:02.020000+00:00".to_owned(),
+            thread: None,
             tts: false,
             webhook_id: Some(WebhookId(1)),
         };
@@ -398,11 +416,15 @@ mod tests {
                 Token::Str("author"),
                 Token::Struct {
                     name: "User",
-                    len: 5,
+                    len: 7,
                 },
+                Token::Str("accent_color"),
+                Token::None,
                 Token::Str("avatar"),
                 Token::Some,
                 Token::Str("aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"),
+                Token::Str("banner"),
+                Token::None,
                 Token::Str("bot"),
                 Token::Bool(false),
                 Token::Str("discriminator"),

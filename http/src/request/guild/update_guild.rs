@@ -1,6 +1,6 @@
 use crate::{
     client::Client,
-    request::{self, validate, AuditLogReason, AuditLogReasonError, NullableField, Request},
+    request::{self, validate_inner, AuditLogReason, AuditLogReasonError, NullableField, Request},
     response::ResponseFuture,
     routing::Route,
 };
@@ -106,6 +106,7 @@ struct UpdateGuildFields<'a> {
 /// All endpoints are optional. Refer to [the discord docs] for more information.
 ///
 /// [the discord docs]: https://discord.com/developers/docs/resources/guild#modify-guild
+#[must_use = "requests must be configured and executed"]
 pub struct UpdateGuild<'a> {
     fields: UpdateGuildFields<'a>,
     guild_id: GuildId,
@@ -230,7 +231,7 @@ impl<'a> UpdateGuild<'a> {
     /// Returns an [`UpdateGuildErrorType::NameInvalid`] error type if the name
     /// length is too short or too long.
     pub fn name(mut self, name: &'a str) -> Result<Self, UpdateGuildError> {
-        if !validate::guild_name(name) {
+        if !validate_inner::guild_name(name) {
             return Err(UpdateGuildError {
                 kind: UpdateGuildErrorType::NameInvalid,
             });
