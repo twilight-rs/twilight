@@ -56,7 +56,6 @@ impl Display for UpdateChannelError {
 
 impl Error for UpdateChannelError {}
 
-#[allow(clippy::pub_enum_variant_names)]
 #[derive(Debug)]
 #[non_exhaustive]
 pub enum UpdateChannelErrorType {
