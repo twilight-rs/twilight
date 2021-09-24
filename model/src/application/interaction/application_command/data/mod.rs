@@ -36,7 +36,7 @@ pub struct CommandData {
 ///
 /// Refer to [the discord docs] for more information.
 ///
-/// [the discord docs]: https://discord.com/developers/docs/interactions/application-commands#interaction-applicationcommandinteractiondataoption
+/// [the discord docs]: https://discord.com/developers/docs/interactions/application-commands#application-command-object-application-command-interaction-data-option-structure
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct CommandDataOption {
     pub name: String,
