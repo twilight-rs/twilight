@@ -42,6 +42,14 @@ bitflags! {
         const USE_SLASH_COMMANDS = 0x8000_0000;
         const REQUEST_TO_SPEAK = 0x10000_0000;
         const USE_EXTERNAL_STICKERS = 0x20000_0000;
+        /// Allows for deleting and archiving threads, and viewing all private threads.
+        const MANAGE_THREADS = 0x40000_0000;
+        /// Allows for creating public threads.
+        const CREATE_PUBLIC_THREADS = 0x0008_0000_0000;
+        /// Allows for creating private threads.
+        const CREATE_PRIVATE_THREADS = 0x0010_0000_0000;
+        /// Allows for sending messages in threads.
+        const SEND_MESSAGES_IN_THREADS = 0x0040_0000_0000;
     }
 }
 
@@ -83,7 +91,30 @@ impl Serialize for Permissions {
 #[cfg(test)]
 mod tests {
     use super::Permissions;
+    use serde::{Deserialize, Serialize};
     use serde_test::Token;
+    use static_assertions::{assert_impl_all, const_assert_eq};
+    use std::{fmt::Debug, hash::Hash};
+
+    assert_impl_all!(
+        Permissions: Copy,
+        Clone,
+        Debug,
+        Deserialize<'static>,
+        Eq,
+        Hash,
+        PartialEq,
+        Ord,
+        Send,
+        Serialize,
+        Sync
+    );
+    const_assert_eq!(0x0008_0000_0000, Permissions::CREATE_PUBLIC_THREADS.bits());
+    const_assert_eq!(0x0010_0000_0000, Permissions::CREATE_PRIVATE_THREADS.bits());
+    const_assert_eq!(
+        0x0040_0000_0000,
+        Permissions::SEND_MESSAGES_IN_THREADS.bits()
+    );
 
     #[test]
     fn test_permissions() {

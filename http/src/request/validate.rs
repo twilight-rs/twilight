@@ -10,7 +10,7 @@ use std::{
 };
 use twilight_model::{
     application::component::{select_menu::SelectMenuOption, Component, ComponentType},
-    channel::embed::Embed,
+    channel::{embed::Embed, ChannelType},
 };
 
 /// A provided [`Component`] is invalid.
@@ -1186,6 +1186,15 @@ fn _sticker_tags(value: &str) -> bool {
 pub const fn guild_command_permissions(count: usize) -> bool {
     // https://discord.com/developers/docs/interactions/application-commands#registering-a-command
     count <= InteractionError::GUILD_COMMAND_PERMISSION_LIMIT
+}
+
+pub const fn is_thread(channel_type: ChannelType) -> bool {
+    matches!(
+        channel_type,
+        ChannelType::GuildNewsThread
+            | ChannelType::GuildPublicThread
+            | ChannelType::GuildPrivateThread
+    )
 }
 
 #[cfg(test)]

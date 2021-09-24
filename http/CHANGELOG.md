@@ -2,6 +2,57 @@
 
 Changelog for `twilight-http`.
 
+## [0.6.5] - 2021-09-17
+
+### Thread Support
+
+The http API version has been updated to `v9`.
+
+9 new error codes have been added: `GuildPremiumTooLow`,
+`MaxActiveAnnouncementThreads`, `MaxActiveThreads`,
+`ThreadAlreadyCreated`, `ThreadArchived`, `ThreadInvalidBeforeValue`,
+`ThreadInvalidNotificationSettings`, `ThreadLocked`, and
+`ThreadMaxParticipants`.
+
+12 new HTTP requests have been added: `AddThreadMember`, `CreateThread`,
+`CreateThreadFromMessage`, `GetJoinedPrivateArchivedThreads`,
+`GetPrivateArchivedThreads`, `GetPublicArchivedThreads`,
+`GetThreadMembers`, `JoinThread`, `LeaveThread`, `RemoveThreadMember`,
+`ThreadValidationError`, and `UpdateThread`.
+
+`ExecuteWebhook` allows setting a `thread_id` parameter, which sends the
+payload to the thread instead.
+
+## [0.6.4] - 2021-09-17
+
+### Additions
+
+Support creating of Message and User application commands, via the
+methods `new_create_global_command` and `new_create_guild_command`.
+These will replace the methods `create_global_command` and
+`create_guild_command` in the next major version ([#1107] - [@7596ff]).
+
+Support the "Get Global Command" and "Get Guild Command" requests, which
+can be used to get a full command object ([#1107] - [@7596ff]).
+
+Support the "Get Followup Message" request, which can be used to
+retrieve one of the followup messages created for an application
+interaction ([#1133] - [@zeylahellyer]).
+
+### Fixes
+
+Fix links to Discord documentation that pointed to the old `slash`
+section ([#1107] - [@7596ff]).
+
+### Changes
+
+Application-related HTTP request builders have been separated into
+`command` and `interaction` modules, for ease of understanding ([#1107]
+- [@7596ff]).
+
+[#1131]: https://github.com/twilight-rs/twilight/pull/1131
+[#1133]: https://github.com/twilight-rs/twilight/pull/1133
+
 ## [0.6.3] - 2021-08-30
 
 ### Additions
@@ -1211,6 +1262,7 @@ Initial release.
 
 [0.2.0-beta.1:app integrations]: https://github.com/discord/discord-api-docs/commit/a926694e2f8605848bda6b57d21c8817559e5cec
 
+[0.6.4]: https://github.com/twilight-rs/twilight/releases/tag/http-0.6.4
 [0.6.3]: https://github.com/twilight-rs/twilight/releases/tag/http-0.6.3
 [0.6.2]: https://github.com/twilight-rs/twilight/releases/tag/http-0.6.2
 [0.5.7]: https://github.com/twilight-rs/twilight/releases/tag/http-0.5.7

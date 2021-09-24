@@ -17,7 +17,7 @@ use std::{
 use twilight_model::{
     application::component::Component,
     channel::{embed::Embed, message::AllowedMentions},
-    id::WebhookId,
+    id::{ChannelId, WebhookId},
 };
 
 /// A webhook could not be executed.
@@ -106,6 +106,8 @@ pub(crate) struct ExecuteWebhookFields<'a> {
     #[serde(skip_serializing_if = "Option::is_none")]
     payload_json: Option<&'a [u8]>,
     #[serde(skip_serializing_if = "Option::is_none")]
+    thread_id: Option<ChannelId>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     tts: Option<bool>,
     #[serde(skip_serializing_if = "Option::is_none")]
     username: Option<&'a str>,
@@ -157,6 +159,7 @@ impl<'a> ExecuteWebhook<'a> {
                 content: None,
                 embeds: None,
                 payload_json: None,
+                thread_id: None,
                 tts: None,
                 username: None,
                 allowed_mentions: None,
@@ -214,7 +217,7 @@ impl<'a> ExecuteWebhook<'a> {
         Ok(self)
     }
 
-    /// The content of the webook's message.
+    /// The content of the webhook's message.
     ///
     /// Up to 2000 UTF-16 codepoints, same as a message.
     pub const fn content(mut self, content: &'a str) -> Self {
@@ -293,6 +296,13 @@ impl<'a> ExecuteWebhook<'a> {
     /// [Discord Docs/Create Message]: https://discord.com/developers/docs/resources/channel#create-message-params
     pub const fn payload_json(mut self, payload_json: &'a [u8]) -> Self {
         self.fields.payload_json = Some(payload_json);
+
+        self
+    }
+
+    /// Execute in a thread belonging to the channel instead of the channel itself.
+    pub fn thread_id(mut self, thread_id: ChannelId) -> Self {
+        self.fields.thread_id.replace(thread_id);
 
         self
     }

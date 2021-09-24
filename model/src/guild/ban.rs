@@ -18,7 +18,9 @@ mod tests {
         let ban = Ban {
             reason: Some("foo".to_owned()),
             user: User {
+                accent_color: None,
                 avatar: Some("aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa".to_owned()),
+                banner: None,
                 bot: false,
                 discriminator: "0001".to_owned(),
                 email: None,
@@ -47,11 +49,15 @@ mod tests {
                 Token::Str("user"),
                 Token::Struct {
                     name: "User",
-                    len: 5,
+                    len: 7,
                 },
+                Token::Str("accent_color"),
+                Token::None,
                 Token::Str("avatar"),
                 Token::Some,
                 Token::Str("aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"),
+                Token::Str("banner"),
+                Token::None,
                 Token::Str("discriminator"),
                 Token::Str("0001"),
                 Token::Str("id"),

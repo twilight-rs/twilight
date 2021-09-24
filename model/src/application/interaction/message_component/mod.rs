@@ -112,7 +112,9 @@ mod tests {
 
     fn user(id: UserId) -> User {
         User {
+            accent_color: None,
             avatar: None,
+            banner: None,
             bot: false,
             discriminator: "4444".to_owned(),
             email: None,
@@ -180,6 +182,7 @@ mod tests {
                 referenced_message: None,
                 sticker_items: Vec::new(),
                 timestamp: String::new(),
+                thread: None,
                 tts: false,
                 webhook_id: None,
             },

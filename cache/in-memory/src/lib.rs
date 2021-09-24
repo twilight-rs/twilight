@@ -703,6 +703,12 @@ impl UpdateCache for Event {
             StageInstanceCreate(v) => c.update(v),
             StageInstanceDelete(v) => c.update(v),
             StageInstanceUpdate(v) => c.update(v),
+            ThreadCreate(v) => c.update(v),
+            ThreadUpdate(v) => c.update(v),
+            ThreadDelete(v) => c.update(v),
+            ThreadListSync(v) => c.update(v),
+            ThreadMemberUpdate(_) => {}
+            ThreadMembersUpdate(_) => {}
             TypingStart(_) => {}
             UnavailableGuild(v) => c.update(v),
             UserUpdate(v) => c.update(v),

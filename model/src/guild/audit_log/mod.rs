@@ -21,7 +21,10 @@ pub use self::{
     optional_entry_info::AuditLogOptionalEntryInfo,
 };
 
-use crate::{channel::Webhook, user::User};
+use crate::{
+    channel::{GuildChannel, Webhook},
+    user::User,
+};
 use serde::{Deserialize, Serialize};
 
 /// Paginated audit log entries with additional information.
@@ -36,6 +39,8 @@ pub struct AuditLog {
     pub entries: Vec<AuditLogEntry>,
     /// Information about mentioned integrations.
     pub integrations: Vec<AuditLogGuildIntegration>,
+    /// Information about mentioned threads.
+    pub threads: Vec<GuildChannel>,
     /// Information about mentioned users.
     ///
     /// For example, [users that performed the action][`AuditLogEntry::user_id`]
@@ -76,6 +81,7 @@ mod tests {
         let value = AuditLog {
             entries: Vec::new(),
             integrations: Vec::new(),
+            threads: Vec::new(),
             users: Vec::new(),
             webhooks: Vec::new(),
         };
@@ -85,12 +91,15 @@ mod tests {
             &[
                 Token::Struct {
                     name: "AuditLog",
-                    len: 4,
+                    len: 5,
                 },
                 Token::Str("audit_log_entries"),
                 Token::Seq { len: Some(0) },
                 Token::SeqEnd,
                 Token::Str("integrations"),
+                Token::Seq { len: Some(0) },
+                Token::SeqEnd,
+                Token::Str("threads"),
                 Token::Seq { len: Some(0) },
                 Token::SeqEnd,
                 Token::Str("users"),

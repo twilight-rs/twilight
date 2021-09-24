@@ -29,7 +29,7 @@ use std::{
     fmt::{Display, Formatter, Result as FmtResult},
 };
 use twilight_model::{
-    channel::GuildChannel,
+    channel::{permission_overwrite::PermissionOverwrite, GuildChannel},
     guild::Permissions,
     id::{ChannelId, GuildId, RoleId, UserId},
 };
@@ -334,16 +334,21 @@ impl<'a> InMemoryCachePermissions<'a> {
             .map_err(ChannelError::from_member_roles)?;
 
         let overwrites = match &channel.data {
-            GuildChannel::Category(c) => &c.permission_overwrites,
-            GuildChannel::Stage(c) => &c.permission_overwrites,
-            GuildChannel::Text(c) => &c.permission_overwrites,
-            GuildChannel::Voice(c) => &c.permission_overwrites,
+            GuildChannel::Category(c) => c.permission_overwrites.clone(),
+            GuildChannel::NewsThread(c) => self.parent_overwrites(&c.id, None)?,
+            GuildChannel::PrivateThread(c) => {
+                self.parent_overwrites(&c.id, Some(c.permission_overwrites.clone()))?
+            }
+            GuildChannel::PublicThread(c) => self.parent_overwrites(&c.id, None)?,
+            GuildChannel::Stage(c) => c.permission_overwrites.clone(),
+            GuildChannel::Text(c) => c.permission_overwrites.clone(),
+            GuildChannel::Voice(c) => c.permission_overwrites.clone(),
         };
 
         let calculator =
             PermissionCalculator::new(guild_id, user_id, everyone, assigned.as_slice());
 
-        Ok(calculator.in_channel(channel.data.kind(), overwrites))
+        Ok(calculator.in_channel(channel.data.kind(), overwrites.as_slice()))
     }
 
     /// Calculate the guild-level permissions of a member.
@@ -465,6 +470,38 @@ impl<'a> InMemoryCachePermissions<'a> {
             })
         }
     }
+
+    fn parent_overwrites(
+        &self,
+        channel_id: &ChannelId,
+        parent_overwrites: Option<Vec<PermissionOverwrite>>,
+    ) -> Result<Vec<PermissionOverwrite>, ChannelError> {
+        let channel = (self.0)
+            .0
+            .channels_guild
+            .get(channel_id)
+            .ok_or(ChannelError {
+                kind: ChannelErrorType::ChannelUnavailable {
+                    channel_id: *channel_id,
+                },
+                source: None,
+            })?;
+
+        if let GuildChannel::Text(c) = &channel.data {
+            if let Some(parent_overwrites) = parent_overwrites {
+                Ok([c.permission_overwrites.clone(), parent_overwrites].concat())
+            } else {
+                Ok(c.permission_overwrites.clone())
+            }
+        } else {
+            Err(ChannelError {
+                kind: ChannelErrorType::ChannelUnavailable {
+                    channel_id: *channel_id,
+                },
+                source: None,
+            })
+        }
+    }
 }
 
 #[cfg(test)]
@@ -563,6 +600,7 @@ mod tests {
             stickers: Vec::new(),
             system_channel_id: None,
             system_channel_flags: SystemChannelFlags::SUPPRESS_JOIN_NOTIFICATIONS,
+            threads: Vec::new(),
             rules_channel_id: None,
             unavailable: false,
             verification_level: VerificationLevel::VeryHigh,

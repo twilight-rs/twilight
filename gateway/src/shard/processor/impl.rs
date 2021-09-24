@@ -296,7 +296,7 @@ impl ShardProcessor {
             tracing::debug!("shard {:?} finished queue", config.shard());
         }
 
-        url.push_str("?v=8");
+        url.push_str("?v=9");
 
         // Discord's documentation states:
         //

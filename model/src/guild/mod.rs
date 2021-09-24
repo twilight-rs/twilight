@@ -110,6 +110,8 @@ pub struct Guild {
     pub system_channel_flags: SystemChannelFlags,
     pub system_channel_id: Option<ChannelId>,
     #[serde(default)]
+    pub threads: Vec<GuildChannel>,
+    #[serde(default)]
     pub unavailable: bool,
     pub vanity_url_code: Option<String>,
     pub verification_level: VerificationLevel,
@@ -166,6 +168,7 @@ impl<'de> Deserialize<'de> for Guild {
             SystemChannelFlags,
             SystemChannelId,
             RulesChannelId,
+            Threads,
             Unavailable,
             VerificationLevel,
             VoiceStates,
@@ -223,6 +226,7 @@ impl<'de> Deserialize<'de> for Guild {
                 let mut stickers = None::<Vec<Sticker>>;
                 let mut system_channel_id = None::<Option<_>>;
                 let mut system_channel_flags = None;
+                let mut threads = None::<Vec<GuildChannel>>;
                 let mut rules_channel_id = None::<Option<_>>;
                 let mut unavailable = None;
                 let mut verification_level = None;
@@ -535,6 +539,13 @@ impl<'de> Deserialize<'de> for Guild {
 
                             rules_channel_id = Some(map.next_value()?);
                         }
+                        Field::Threads => {
+                            if threads.is_some() {
+                                return Err(DeError::duplicate_field("threads"));
+                            }
+
+                            threads = Some(map.next_value()?);
+                        }
                         Field::Unavailable => {
                             if unavailable.is_some() {
                                 return Err(DeError::duplicate_field("unavailable"));
@@ -627,6 +638,7 @@ impl<'de> Deserialize<'de> for Guild {
                 let stage_instances = stage_instances.unwrap_or_default();
                 let stickers = stickers.unwrap_or_default();
                 let system_channel_id = system_channel_id.unwrap_or_default();
+                let mut threads = threads.unwrap_or_default();
                 let unavailable = unavailable.unwrap_or_default();
                 let vanity_url_code = vanity_url_code.unwrap_or_default();
                 let mut voice_states = voice_states.unwrap_or_default();
@@ -676,6 +688,7 @@ impl<'de> Deserialize<'de> for Guild {
                     ?stickers,
                     ?system_channel_flags,
                     ?system_channel_id,
+                    ?threads,
                     ?unavailable,
                     ?vanity_url_code,
                     ?voice_states,
@@ -687,6 +700,15 @@ impl<'de> Deserialize<'de> for Guild {
                 for channel in &mut channels {
                     match channel {
                         GuildChannel::Category(c) => {
+                            c.guild_id.replace(id);
+                        }
+                        GuildChannel::NewsThread(c) => {
+                            c.guild_id.replace(id);
+                        }
+                        GuildChannel::PrivateThread(c) => {
+                            c.guild_id.replace(id);
+                        }
+                        GuildChannel::PublicThread(c) => {
                             c.guild_id.replace(id);
                         }
                         GuildChannel::Text(c) => {
@@ -704,6 +726,25 @@ impl<'de> Deserialize<'de> for Guild {
 
                 for presence in &mut presences {
                     presence.guild_id = id;
+                }
+
+                for thread in &mut threads {
+                    match thread {
+                        GuildChannel::NewsThread(c) => {
+                            c.guild_id.replace(id);
+                        }
+                        GuildChannel::PrivateThread(c) => {
+                            c.guild_id.replace(id);
+                        }
+                        GuildChannel::PublicThread(c) => {
+                            c.guild_id.replace(id);
+                        }
+                        _ => {
+                            return Err(DeError::custom(
+                                "non-thread channel found in threads field",
+                            ))
+                        }
+                    }
                 }
 
                 for voice_state in &mut voice_states {
@@ -750,6 +791,7 @@ impl<'de> Deserialize<'de> for Guild {
                     stickers,
                     system_channel_flags,
                     system_channel_id,
+                    threads,
                     unavailable,
                     vanity_url_code,
                     verification_level,
@@ -798,6 +840,7 @@ impl<'de> Deserialize<'de> for Guild {
             "system_channel_id",
             "system_channel_flags",
             "rules_channel_id",
+            "threads",
             "unavailable",
             "verification_level",
             "voice_states",
@@ -862,6 +905,7 @@ mod tests {
             stickers: Vec::new(),
             system_channel_flags: SystemChannelFlags::SUPPRESS_PREMIUM_SUBSCRIPTIONS,
             system_channel_id: Some(ChannelId(7)),
+            threads: Vec::new(),
             unavailable: false,
             vanity_url_code: Some("twilight".to_owned()),
             verification_level: VerificationLevel::Medium,
@@ -875,7 +919,7 @@ mod tests {
             &[
                 Token::Struct {
                     name: "Guild",
-                    len: 43,
+                    len: 44,
                 },
                 Token::Str("afk_channel_id"),
                 Token::Some,
@@ -985,6 +1029,9 @@ mod tests {
                 Token::Some,
                 Token::NewtypeStruct { name: "ChannelId" },
                 Token::Str("7"),
+                Token::Str("threads"),
+                Token::Seq { len: Some(0) },
+                Token::SeqEnd,
                 Token::Str("unavailable"),
                 Token::Bool(false),
                 Token::Str("vanity_url_code"),

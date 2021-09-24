@@ -4,6 +4,10 @@ use serde::{Deserialize, Serialize};
 
 #[derive(Clone, Default, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
 pub struct CurrentUser {
+    /// Accent color of the user's banner.
+    ///
+    /// This is an integer representation of a hexadecimal color code.
+    pub accent_color: Option<u64>,
     /// User's avatar hash.
     ///
     /// To retrieve the url to the avatar, you can follow [Discord's documentation] on
@@ -11,6 +15,8 @@ pub struct CurrentUser {
     ///
     /// [Discord's documentation]: https://discord.com/developers/docs/reference#image-formatting
     pub avatar: Option<String>,
+    /// Hash of the user's banner image.
+    pub banner: Option<String>,
     /// Whether the user belongs to an OAuth2 application.
     #[serde(default)]
     pub bot: bool,
@@ -69,11 +75,16 @@ mod tests {
         vec![
             Token::Struct {
                 name: "CurrentUser",
-                len: 10,
+                len: 12,
             },
+            Token::Str("accent_color"),
+            Token::Some,
+            Token::U64(16_711_680),
             Token::Str("avatar"),
             Token::Some,
             Token::Str("avatar hash"),
+            Token::Str("banner"),
+            Token::None,
             Token::Str("bot"),
             Token::Bool(true),
             Token::Str("discriminator"),
@@ -105,11 +116,16 @@ mod tests {
         vec![
             Token::Struct {
                 name: "CurrentUser",
-                len: 12,
+                len: 14,
             },
+            Token::Str("accent_color"),
+            Token::None,
             Token::Str("avatar"),
             Token::Some,
             Token::Str("avatar hash"),
+            Token::Str("banner"),
+            Token::Some,
+            Token::Str("06c16474723fe537c283b8efa61a30c8"),
             Token::Str("bot"),
             Token::Bool(true),
             Token::Str("discriminator"),
@@ -146,7 +162,9 @@ mod tests {
     #[test]
     fn test_current_user() {
         let value = CurrentUser {
+            accent_color: Some(16_711_680),
             avatar: Some("avatar hash".to_owned()),
+            banner: None,
             bot: true,
             discriminator: "9999".to_owned(),
             email: None,
@@ -173,7 +191,9 @@ mod tests {
     #[test]
     fn test_current_user_complete() {
         let value = CurrentUser {
+            accent_color: None,
             avatar: Some("avatar hash".to_owned()),
+            banner: Some("06c16474723fe537c283b8efa61a30c8".to_owned()),
             bot: true,
             discriminator: "9999".to_owned(),
             email: Some("test@example.com".to_owned()),

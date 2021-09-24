@@ -95,7 +95,9 @@ mod tests {
             sort_value: Some(1),
             tags: "foo,bar,baz".into(),
             user: Some(User {
+                accent_color: None,
                 avatar: Some("aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa".to_owned()),
+                banner: None,
                 bot: false,
                 discriminator: "0001".to_owned(),
                 email: Some("address@example.com".to_owned()),

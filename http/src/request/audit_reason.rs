@@ -14,6 +14,7 @@ mod private {
         channel::{
             invite::{CreateInvite, DeleteInvite},
             message::{DeleteMessage, DeleteMessages},
+            thread::UpdateThread,
             webhook::{
                 CreateWebhook, DeleteWebhook, DeleteWebhookMessage, UpdateWebhook,
                 UpdateWebhookMessage,
@@ -66,6 +67,7 @@ mod private {
     impl<'a> Sealed for CreateGuildSticker<'a> {}
     impl<'a> Sealed for UpdateGuildSticker<'a> {}
     impl<'a> Sealed for UpdateGuild<'a> {}
+    impl<'a> Sealed for UpdateThread<'a> {}
     impl Sealed for UpdateWebhookMessage<'_> {}
 }
 

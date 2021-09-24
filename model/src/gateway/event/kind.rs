@@ -70,6 +70,12 @@ pub enum EventType {
     StageInstanceCreate,
     StageInstanceDelete,
     StageInstanceUpdate,
+    ThreadCreate,
+    ThreadDelete,
+    ThreadListSync,
+    ThreadMemberUpdate,
+    ThreadMembersUpdate,
+    ThreadUpdate,
     TypingStart,
     UnavailableGuild,
     UserUpdate,
@@ -121,6 +127,12 @@ impl EventType {
             Self::StageInstanceCreate => Some("STAGE_INSTANCE_CREATE"),
             Self::StageInstanceDelete => Some("STAGE_INSTANCE_DELETE"),
             Self::StageInstanceUpdate => Some("STAGE_INSTANCE_UPDATE"),
+            Self::ThreadCreate => Some("THREAD_CREATE"),
+            Self::ThreadDelete => Some("THREAD_DELETE"),
+            Self::ThreadListSync => Some("THREAD_LIST_SYNC"),
+            Self::ThreadMemberUpdate => Some("THREAD_MEMBER_UPDATE"),
+            Self::ThreadMembersUpdate => Some("THREAD_MEMBERS_UPDATE"),
+            Self::ThreadUpdate => Some("THREAD_UPDATE"),
             Self::TypingStart => Some("TYPING_START"),
             Self::UnavailableGuild => Some("UNAVAILABLE_GUILD"),
             Self::UserUpdate => Some("USER_UPDATE"),
@@ -188,6 +200,12 @@ impl<'a> TryFrom<&'a str> for EventType {
             "STAGE_INSTANCE_CREATE" => Ok(Self::StageInstanceCreate),
             "STAGE_INSTANCE_DELETE" => Ok(Self::StageInstanceDelete),
             "STAGE_INSTANCE_UPDATE" => Ok(Self::StageInstanceUpdate),
+            "THREAD_CREATE" => Ok(Self::ThreadCreate),
+            "THREAD_DELETE" => Ok(Self::ThreadDelete),
+            "THREAD_LIST_SYNC" => Ok(Self::ThreadListSync),
+            "THREAD_MEMBER_UPDATE" => Ok(Self::ThreadMemberUpdate),
+            "THREAD_MEMBERS_UPDATE" => Ok(Self::ThreadMembersUpdate),
+            "THREAD_UPDATE" => Ok(Self::ThreadUpdate),
             "TYPING_START" => Ok(Self::TypingStart),
             "UNAVAILABLE_GUILD" => Ok(Self::UnavailableGuild),
             "USER_UPDATE" => Ok(Self::UserUpdate),
@@ -277,6 +295,12 @@ mod tests {
         assert_variant(EventType::StageInstanceCreate, "STAGE_INSTANCE_CREATE");
         assert_variant(EventType::StageInstanceDelete, "STAGE_INSTANCE_DELETE");
         assert_variant(EventType::StageInstanceUpdate, "STAGE_INSTANCE_UPDATE");
+        assert_variant(EventType::ThreadCreate, "THREAD_CREATE");
+        assert_variant(EventType::ThreadDelete, "THREAD_DELETE");
+        assert_variant(EventType::ThreadListSync, "THREAD_LIST_SYNC");
+        assert_variant(EventType::ThreadMemberUpdate, "THREAD_MEMBER_UPDATE");
+        assert_variant(EventType::ThreadMembersUpdate, "THREAD_MEMBERS_UPDATE");
+        assert_variant(EventType::ThreadUpdate, "THREAD_UPDATE");
         assert_variant(EventType::TypingStart, "TYPING_START");
         assert_variant(EventType::UnavailableGuild, "UNAVAILABLE_GUILD");
         assert_variant(EventType::UserUpdate, "USER_UPDATE");

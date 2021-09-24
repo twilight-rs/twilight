@@ -2,6 +2,22 @@
 
 Changelog for `twilight-cache-inmemory`.
 
+## [0.6.3] - 2021-09-17
+
+### Thread Support
+
+The cache now processes the `ThreadCreate`, `ThreadDelete`,
+`ThreadListSync`, and `ThreadUpdate` events. Thread channels are stored
+in the same place as guild channels, and can be accessed through the
+`guild_channel` and `guild_channels` methods.
+
+## [0.6.2] - 2021-09-17
+
+### Changes
+
+This release contains internal refactors, there are no public facing
+changes.
+
 ## [0.6.1] - 2021-08-30
 
 ### Additions
@@ -408,6 +424,7 @@ Initial release.
 [#528]: https://github.com/twilight-rs/twilight/pull/528
 [#524]: https://github.com/twilight-rs/twilight/pull/524
 
+[0.6.2]: https://github.com/twilight-rs/twilight/releases/tag/cache-in-memory-0.6.2
 [0.6.1]: https://github.com/twilight-rs/twilight/releases/tag/cache-in-memory-0.6.1
 [0.5.3]: https://github.com/twilight-rs/twilight/releases/tag/cache-in-memory-0.5.3
 [0.5.2]: https://github.com/twilight-rs/twilight/releases/tag/cache-in-memory-0.5.2

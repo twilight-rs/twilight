@@ -17,6 +17,8 @@ pub enum AuditLogChangeKey {
     AfkTimeout,
     /// Allowed permissions of a permission overwrite target.
     Allow,
+    /// Thread was archived or unarchived.
+    Archived,
     /// ID of an application.
     ApplicationId,
     /// Asset of a sticker.
@@ -25,6 +27,8 @@ pub enum AuditLogChangeKey {
     Asset,
     /// Availability of a sticker.
     Available,
+    /// Auto archive duration of a thread.
+    AutoArchiveDuration,
     /// Hash of an avatar.
     AvatarHash,
     /// Hash of a guild banner.
@@ -39,6 +43,8 @@ pub enum AuditLogChangeKey {
     Color,
     /// Whether a user is guild deafened.
     Deaf,
+    /// Default auto archive duration for new threads.
+    DefaultAutoArchiveDuration,
     /// Default message notification level for a guild.
     DefaultMessageNotifications,
     /// Denied permissions of a permission overwrite target.
@@ -67,6 +73,8 @@ pub enum AuditLogChangeKey {
     Id,
     /// ID of the user who created an invite.
     InviterId,
+    /// Thread was locked or unlocked.
+    Locked,
     /// Maximum age of an invite.
     MaxAge,
     /// Maximum uses of an invite.
@@ -157,7 +165,9 @@ impl AuditLogChangeKey {
             Self::AfkTimeout => "afk_timeout",
             Self::Allow => "allow",
             Self::ApplicationId => "application_id",
+            Self::Archived => "archived",
             Self::Asset => "asset",
+            Self::AutoArchiveDuration => "auto_archive_duration",
             Self::Available => "available",
             Self::AvatarHash => "avatar_hash",
             Self::BannerHash => "banner_hash",
@@ -166,6 +176,7 @@ impl AuditLogChangeKey {
             Self::Code => "code",
             Self::Color => "color",
             Self::Deaf => "deaf",
+            Self::DefaultAutoArchiveDuration => "default_auto_archive_duration",
             Self::DefaultMessageNotifications => "default_message_notifications",
             Self::Deny => "deny",
             Self::Description => "description",
@@ -180,6 +191,7 @@ impl AuditLogChangeKey {
             Self::IconHash => "icon_hash",
             Self::Id => "id",
             Self::InviterId => "inviter_id",
+            Self::Locked => "locked",
             Self::MaxAge => "max_age",
             Self::MaxUses => "max_uses",
             Self::Mentionable => "mentionable",

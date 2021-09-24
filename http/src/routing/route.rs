@@ -16,6 +16,13 @@ pub enum Route<'a> {
         /// The ID of the user.
         user_id: u64,
     },
+    /// Route information to add a member to a thread.
+    AddThreadMember {
+        /// ID of the thread.
+        channel_id: u64,
+        /// ID of the member.
+        user_id: u64,
+    },
     /// Route information to create a ban on a user in a guild.
     CreateBan {
         /// The number of days' worth of the user's messages to delete in the
@@ -94,6 +101,18 @@ pub enum Route<'a> {
     },
     /// Route information to create a private channel.
     CreatePrivateChannel,
+    /// Route information to create a thread in a channel.
+    CreateThread {
+        /// ID of the channel.
+        channel_id: u64,
+    },
+    /// Route information to create a thread from a message.
+    CreateThreadFromMessage {
+        /// ID of the channel.
+        channel_id: u64,
+        /// ID of the message.
+        message_id: u64,
+    },
     /// Route information to create a reaction on a message.
     CreateReaction {
         /// The ID of the channel.
@@ -301,6 +320,11 @@ pub enum Route<'a> {
         /// The ID of the channel to follow.
         channel_id: u64,
     },
+    /// Route information to get active threads in a channel.
+    GetActiveThreads {
+        /// ID of the guild.
+        guild_id: u64,
+    },
     /// Route information to get a paginated list of audit logs in a guild.
     GetAuditLogs {
         /// The type of action to get audit logs for.
@@ -370,6 +394,15 @@ pub enum Route<'a> {
     GetEmojis {
         /// The ID of the guild.
         guild_id: u64,
+    },
+    /// Route to get a followup message for an interaction.
+    GetFollowupMessage {
+        /// ID of the application.
+        application_id: u64,
+        /// Token of the interaction.
+        interaction_token: &'a str,
+        /// ID of the followup message.
+        message_id: u64,
     },
     /// Route information to get basic gateway information.
     GetGateway,
@@ -567,6 +600,33 @@ pub enum Route<'a> {
         /// The ID of the channel.
         channel_id: u64,
     },
+    /// Route information to get joined private archived threads in a channel.
+    GetJoinedPrivateArchivedThreads {
+        /// Optional timestamp to return threads before.
+        before: Option<u64>,
+        /// ID of the channel.
+        channel_id: u64,
+        /// Optional maximum number of threads to return.
+        limit: Option<u64>,
+    },
+    /// Route information to get private archived threads in a channel.
+    GetPrivateArchivedThreads {
+        /// Optional timestamp to return threads before.
+        before: Option<&'a str>,
+        /// ID of the channel.
+        channel_id: u64,
+        /// Optional maximum number of threads to return.
+        limit: Option<u64>,
+    },
+    /// Route information to get public archived threads in a channel.
+    GetPublicArchivedThreads {
+        /// Optional timestamp to return threads before.
+        before: Option<&'a str>,
+        /// ID of the channel.
+        channel_id: u64,
+        /// Optional maximum number of threads to return.
+        limit: Option<u64>,
+    },
     /// Route information to get the users who reacted to a message with a
     /// specified emoji.
     GetReactionUsers {
@@ -600,6 +660,11 @@ pub enum Route<'a> {
     GetTemplates {
         /// The ID of the guild.
         guild_id: u64,
+    },
+    /// Route information to get members of a thread.
+    GetThreadMembers {
+        /// ID of the thread.
+        channel_id: u64,
     },
     /// Route information to get a user.
     GetUser {
@@ -636,10 +701,20 @@ pub enum Route<'a> {
         /// The token for the interaction.
         interaction_token: &'a str,
     },
+    /// Route information to join a thread as the current user.
+    JoinThread {
+        /// ID of the thread.
+        channel_id: u64,
+    },
     /// Route information to leave the guild.
     LeaveGuild {
         /// The ID of the guild.
         guild_id: u64,
+    },
+    /// Route information to leave a thread as the current user.
+    LeaveThread {
+        /// ID of the thread.
+        channel_id: u64,
     },
     /// Route information to pin a message to a channel.
     PinMessage {
@@ -662,6 +737,13 @@ pub enum Route<'a> {
         /// The ID of the role.
         role_id: u64,
         /// The ID of the user.
+        user_id: u64,
+    },
+    /// Route information to remove a member from a thread.
+    RemoveThreadMember {
+        /// ID of the thread.
+        channel_id: u64,
+        /// ID of the member.
         user_id: u64,
     },
     /// Route information to search for members in a guild.
@@ -953,10 +1035,13 @@ impl<'a> Route<'a> {
             | Self::DeleteWebhookMessage { .. }
             | Self::DeleteWebhook { .. }
             | Self::LeaveGuild { .. }
+            | Self::LeaveThread { .. }
             | Self::RemoveMember { .. }
             | Self::RemoveMemberRole { .. }
+            | Self::RemoveThreadMember { .. }
             | Self::UnpinMessage { .. } => Method::Delete,
-            Self::GetAuditLogs { .. }
+            Self::GetActiveThreads { .. }
+            | Self::GetAuditLogs { .. }
             | Self::GetBan { .. }
             | Self::GetBans { .. }
             | Self::GetGatewayBot
@@ -970,6 +1055,7 @@ impl<'a> Route<'a> {
             | Self::GetEmoji { .. }
             | Self::GetEmojis { .. }
             | Self::GetGateway
+            | Self::GetFollowupMessage { .. }
             | Self::GetGlobalCommand { .. }
             | Self::GetGlobalCommands { .. }
             | Self::GetGuild { .. }
@@ -998,11 +1084,15 @@ impl<'a> Route<'a> {
             | Self::GetMessages { .. }
             | Self::GetNitroStickerPacks { .. }
             | Self::GetPins { .. }
+            | Self::GetJoinedPrivateArchivedThreads { .. }
+            | Self::GetPrivateArchivedThreads { .. }
+            | Self::GetPublicArchivedThreads { .. }
             | Self::GetReactionUsers { .. }
             | Self::GetStageInstance { .. }
             | Self::GetSticker { .. }
             | Self::GetTemplate { .. }
             | Self::GetTemplates { .. }
+            | Self::GetThreadMembers { .. }
             | Self::GetUserConnections
             | Self::GetUserPrivateChannels
             | Self::GetUser { .. }
@@ -1045,6 +1135,8 @@ impl<'a> Route<'a> {
             | Self::CreateInvite { .. }
             | Self::CreateMessage { .. }
             | Self::CreatePrivateChannel
+            | Self::CreateThread { .. }
+            | Self::CreateThreadFromMessage { .. }
             | Self::CreateRole { .. }
             | Self::CreateStageInstance { .. }
             | Self::CreateTemplate { .. }
@@ -1058,8 +1150,10 @@ impl<'a> Route<'a> {
             | Self::SyncGuildIntegration { .. } => Method::Post,
             Self::AddGuildMember { .. }
             | Self::AddMemberRole { .. }
+            | Self::AddThreadMember { .. }
             | Self::CreateBan { .. }
             | Self::CreateReaction { .. }
+            | Self::JoinThread { .. }
             | Self::PinMessage { .. }
             | Self::SetCommandPermissions { .. }
             | Self::SetGlobalCommands { .. }
@@ -1108,6 +1202,13 @@ impl<'a> Route<'a> {
             | Self::UpdateMember { guild_id, .. } => Path::GuildsIdMembersId(*guild_id),
             Self::AddMemberRole { guild_id, .. } | Self::RemoveMemberRole { guild_id, .. } => {
                 Path::GuildsIdMembersIdRolesId(*guild_id)
+            }
+            Self::AddThreadMember { channel_id, .. }
+            | Self::GetThreadMembers { channel_id, .. }
+            | Self::JoinThread { channel_id, .. }
+            | Self::LeaveThread { channel_id, .. }
+            | Self::RemoveThreadMember { channel_id, .. } => {
+                Path::ChannelsIdThreadMembers(*channel_id)
             }
             Self::CreateBan { guild_id, .. } | Self::DeleteBan { guild_id, .. } => {
                 Path::GuildsIdBansUserId(*guild_id)
@@ -1165,6 +1266,10 @@ impl<'a> Route<'a> {
             Self::CreateTemplate { guild_id } | Self::GetTemplates { guild_id } => {
                 Path::GuildsIdTemplates(*guild_id)
             }
+            Self::CreateThread { channel_id, .. } => Path::ChannelsIdThreads(*channel_id),
+            Self::CreateThreadFromMessage { channel_id, .. } => {
+                Path::ChannelsIdMessagesIdThreads(*channel_id)
+            }
             Self::CreateTypingTrigger { channel_id } => Path::ChannelsIdTyping(*channel_id),
             Self::CreateWebhook { channel_id } | Self::GetChannelWebhooks { channel_id } => {
                 Path::ChannelsIdWebhooks(*channel_id)
@@ -1185,6 +1290,7 @@ impl<'a> Route<'a> {
                 Path::GuildsIdIntegrationsId(*guild_id)
             }
             Self::DeleteInteractionOriginal { application_id, .. }
+            | Self::GetFollowupMessage { application_id, .. }
             | Self::GetInteractionOriginal { application_id, .. }
             | Self::UpdateInteractionOriginal { application_id, .. } => {
                 Path::WebhooksIdTokenMessagesId(*application_id)
@@ -1221,6 +1327,12 @@ impl<'a> Route<'a> {
             | Self::GetWebhook { webhook_id, .. }
             | Self::UpdateWebhook { webhook_id, .. } => (Path::WebhooksId(*webhook_id)),
             Self::FollowNewsChannel { channel_id } => Path::ChannelsIdFollowers(*channel_id),
+            Self::GetJoinedPrivateArchivedThreads { channel_id, .. }
+            | Self::GetPrivateArchivedThreads { channel_id, .. }
+            | Self::GetPublicArchivedThreads { channel_id, .. } => {
+                Path::ChannelsIdThreads(*channel_id)
+            }
+            Self::GetActiveThreads { guild_id, .. } => Path::GuildsIdThreads(*guild_id),
             Self::GetAuditLogs { guild_id, .. } => Path::GuildsIdAuditLogs(*guild_id),
             Self::GetBan { guild_id, .. } => Path::GuildsIdBansId(*guild_id),
             Self::GetBans { guild_id } => Path::GuildsIdBans(*guild_id),
