@@ -444,7 +444,7 @@ impl From<Number> for f64 {
 mod tests {
     use super::{
         super::{Command, CommandType},
-        BaseCommandOptionData, ChoiceCommandOptionData, CommandOption, CommandOptionChoice,
+        BaseCommandOptionData, ChoiceCommandOptionData, CommandOption, CommandOptionChoice, Number,
         OptionsCommandOptionData,
     };
     use crate::id::{ApplicationId, CommandId, GuildId};
