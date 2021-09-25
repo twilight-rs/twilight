@@ -85,39 +85,3 @@ impl Serialize for Permissions {
         serializer.serialize_str(&self.bits().to_string())
     }
 }
-
-#[cfg(test)]
-mod tests {
-    use super::Permissions;
-    use serde::{Deserialize, Serialize};
-    use serde_test::Token;
-    use static_assertions::{assert_impl_all, const_assert_eq};
-    use std::{fmt::Debug, hash::Hash};
-
-    assert_impl_all!(
-        Permissions: Copy,
-        Clone,
-        Debug,
-        Deserialize<'static>,
-        Eq,
-        Hash,
-        PartialEq,
-        Ord,
-        Send,
-        Serialize,
-        Sync
-    );
-    const_assert_eq!(0x0008_0000_0000, Permissions::CREATE_PUBLIC_THREADS.bits());
-    const_assert_eq!(0x0010_0000_0000, Permissions::CREATE_PRIVATE_THREADS.bits());
-    const_assert_eq!(
-        0x0040_0000_0000,
-        Permissions::SEND_MESSAGES_IN_THREADS.bits()
-    );
-
-    #[test]
-    fn test_permissions() {
-        let permissions = Permissions::DEAFEN_MEMBERS;
-
-        serde_test::assert_tokens(&permissions, &[Token::Str("8388608")]);
-    }
-}

@@ -39,19 +39,3 @@ impl Serialize for MessageFlags {
         serializer.serialize_u64(self.bits())
     }
 }
-
-#[cfg(test)]
-mod tests {
-    use super::MessageFlags;
-    use serde_test::Token;
-
-    #[test]
-    fn test_variants() {
-        serde_test::assert_tokens(&MessageFlags::CROSSPOSTED, &[Token::U64(1)]);
-        serde_test::assert_tokens(&MessageFlags::IS_CROSSPOST, &[Token::U64(1 << 1)]);
-        serde_test::assert_tokens(&MessageFlags::SUPPRESS_EMBEDS, &[Token::U64(1 << 2)]);
-        serde_test::assert_tokens(&MessageFlags::SOURCE_MESSAGE_DELETED, &[Token::U64(1 << 3)]);
-        serde_test::assert_tokens(&MessageFlags::URGENT, &[Token::U64(1 << 4)]);
-        serde_test::assert_tokens(&MessageFlags::EPHEMERAL, &[Token::U64(1 << 6)]);
-    }
-}
