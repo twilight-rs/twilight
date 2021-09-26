@@ -225,7 +225,7 @@ impl<'a> InMemoryCacheIter<'a> {
 ///     .filter(|member| member.pending())
 ///     .count();
 ///
-/// println!("'twi' users: {}", count);
+/// println!("pending users: {}", count);
 /// ```
 pub struct ResourceIter<'a, K, V> {
     iter: Iter<'a, K, V>,
