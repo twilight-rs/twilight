@@ -16,32 +16,30 @@ use twilight_model::{
 /// use twilight_util::builder::command::{BooleanBuilder, CommandBuilder, StringBuilder};
 ///
 /// CommandBuilder::new(
-///     "blep",
-///     "Send a random adorable animal photo",
+///     "blep".into(),
+///     "Send a random adorable animal photo".into(),
 ///     CommandType::ChatInput,
 /// )
 /// .option(
-///     StringBuilder::new("animal", "The type of animal")
+///     StringBuilder::new("animal".into(), "The type of animal".into())
 ///         .required(true)
-///         .choice("Dog", "animal_dog")
-///         .choice("Cat", "animal_cat")
-///         .choice("Penguin", "animal_penguin"),
+///         .choice("Dog".into(), "animal_dog".into())
+///         .choice("Cat".into(), "animal_cat".into())
+///         .choice("Penguin".into(), "animal_penguin".into()),
 /// )
 /// .option(BooleanBuilder::new(
-///     "only_smol",
-///     "Whether to show only baby animals",
+///     "only_smol".into(),
+///     "Whether to show only baby animals".into(),
 /// ));
 /// ```
+#[allow(clippy::module_name_repetitions)]
 #[derive(Clone, Debug)]
 pub struct CommandBuilder(Command);
 
 impl CommandBuilder {
     /// Create a new default [`Command`] builder.
-    pub fn new(name: impl Into<String>, description: impl Into<String>, kind: CommandType) -> Self {
-        Self::_new(name.into(), description.into(), kind)
-    }
-
-    const fn _new(name: String, description: String, kind: CommandType) -> Self {
+    #[must_use = "builders have no effect if unused"]
+    pub const fn new(name: String, description: String, kind: CommandType) -> Self {
         Self(Command {
             application_id: None,
             default_permission: None,
@@ -56,6 +54,7 @@ impl CommandBuilder {
 
     /// Consume the builder, returning a [`Command`].
     #[allow(clippy::missing_const_for_fn)]
+    #[must_use = "must be built into a command"]
     pub fn build(self) -> Command {
         self.0
     }
@@ -63,6 +62,7 @@ impl CommandBuilder {
     /// Set the application ID of the command.
     ///
     /// Defaults to [`None`].
+    #[must_use]
     pub const fn application_id(mut self, application_id: ApplicationId) -> Self {
         self.0.application_id = Some(application_id);
 
@@ -72,6 +72,7 @@ impl CommandBuilder {
     /// Set the guild ID of the command.
     ///
     /// Defaults to [`None`].
+    #[must_use]
     pub const fn guild_id(mut self, guild_id: GuildId) -> Self {
         self.0.guild_id = Some(guild_id);
 
@@ -81,6 +82,7 @@ impl CommandBuilder {
     /// Set the default permission of the command.
     ///
     /// Defaults to [`None`].
+    #[must_use]
     pub const fn default_permission(mut self, default_permission: bool) -> Self {
         self.0.default_permission = Some(default_permission);
 
@@ -90,6 +92,7 @@ impl CommandBuilder {
     /// Set the ID of the command.
     ///
     /// Defaults to [`None`].
+    #[must_use]
     pub const fn id(mut self, id: CommandId) -> Self {
         self.0.id = Some(id);
 
@@ -116,11 +119,8 @@ pub struct BooleanBuilder(BaseCommandOptionData);
 
 impl BooleanBuilder {
     /// Create a new default [`BooleanBuilder`].
-    pub fn new(name: impl Into<String>, description: impl Into<String>) -> Self {
-        Self::_new(name.into(), description.into())
-    }
-
-    const fn _new(name: String, description: String) -> Self {
+    #[must_use = "builders have no effect if unused"]
+    pub const fn new(name: String, description: String) -> Self {
         Self(BaseCommandOptionData {
             description,
             name,
@@ -130,6 +130,7 @@ impl BooleanBuilder {
 
     /// Consume the builder, returning the built command option.
     #[allow(clippy::missing_const_for_fn)]
+    #[must_use = "should be used in a command builder"]
     pub fn build(self) -> CommandOption {
         CommandOption::Boolean(self.0)
     }
@@ -137,6 +138,7 @@ impl BooleanBuilder {
     /// Set whether this option is required.
     ///
     /// Defaults to false.
+    #[must_use]
     pub const fn required(mut self, required: bool) -> Self {
         self.0.required = required;
 
@@ -156,11 +158,8 @@ pub struct ChannelBuilder(BaseCommandOptionData);
 
 impl ChannelBuilder {
     /// Create a new default [`ChannelBuilder`].
-    pub fn new(name: impl Into<String>, description: impl Into<String>) -> Self {
-        Self::_new(name.into(), description.into())
-    }
-
-    const fn _new(name: String, description: String) -> Self {
+    #[must_use = "builders have no effect if unused"]
+    pub const fn new(name: String, description: String) -> Self {
         Self(BaseCommandOptionData {
             description,
             name,
@@ -170,6 +169,7 @@ impl ChannelBuilder {
 
     /// Consume the builder, returning the built command option.
     #[allow(clippy::missing_const_for_fn)]
+    #[must_use = "should be used in a command builder"]
     pub fn build(self) -> CommandOption {
         CommandOption::Channel(self.0)
     }
@@ -177,6 +177,7 @@ impl ChannelBuilder {
     /// Set whether this option is required.
     ///
     /// Defaults to false.
+    #[must_use]
     pub const fn required(mut self, required: bool) -> Self {
         self.0.required = required;
 
@@ -195,11 +196,8 @@ pub struct IntegerBuilder(ChoiceCommandOptionData);
 
 impl IntegerBuilder {
     /// Create a new default [`IntegerBuilder`].
-    pub fn new(name: impl Into<String>, description: impl Into<String>) -> Self {
-        Self::_new(name.into(), description.into())
-    }
-
-    const fn _new(name: String, description: String) -> Self {
+    #[must_use = "builders have no effect if unused"]
+    pub const fn new(name: String, description: String) -> Self {
         Self(ChoiceCommandOptionData {
             choices: Vec::new(),
             description,
@@ -210,21 +208,25 @@ impl IntegerBuilder {
 
     /// Consume the builder, returning the built command option.
     #[allow(clippy::missing_const_for_fn)]
+    #[must_use = "should be used in a command builder"]
     pub fn build(self) -> CommandOption {
         CommandOption::Integer(self.0)
     }
 
-    /// Add a choice to the command.
+    /// Add a list of choices to the command.
+    ///
+    /// Allocation: Copies the given values.
     ///
     /// Defaults to no choices.
-    pub fn choice(self, name: impl Into<String>, value: i64) -> Self {
-        self._choice(name.into(), value)
-    }
-
-    fn _choice(mut self, name: String, value: i64) -> Self {
-        self.0
-            .choices
-            .push(CommandOptionChoice::Int { name, value });
+    #[must_use]
+    pub fn choices(mut self, choices: &[(String, i64)]) -> Self {
+        self.0.choices = choices
+            .iter()
+            .map(|(name, value)| CommandOptionChoice::Int {
+                name: name.clone(),
+                value: *value,
+            })
+            .collect();
 
         self
     }
@@ -232,6 +234,7 @@ impl IntegerBuilder {
     /// Set whether this option is required.
     ///
     /// Defaults to false.
+    #[must_use]
     pub const fn required(mut self, required: bool) -> Self {
         self.0.required = required;
 
@@ -251,11 +254,8 @@ pub struct MentionableBuilder(BaseCommandOptionData);
 
 impl MentionableBuilder {
     /// Create a new default [`MentionableBuilder`].
-    pub fn new(name: impl Into<String>, description: impl Into<String>) -> Self {
-        Self::_new(name.into(), description.into())
-    }
-
-    const fn _new(name: String, description: String) -> Self {
+    #[must_use = "builders have no effect if unused"]
+    pub const fn new(name: String, description: String) -> Self {
         Self(BaseCommandOptionData {
             description,
             name,
@@ -265,6 +265,7 @@ impl MentionableBuilder {
 
     /// Consume the builder, returning the built command option.
     #[allow(clippy::missing_const_for_fn)]
+    #[must_use = "should be used in a command builder"]
     pub fn build(self) -> CommandOption {
         CommandOption::Mentionable(self.0)
     }
@@ -272,6 +273,7 @@ impl MentionableBuilder {
     /// Set whether this option is required.
     ///
     /// Defaults to false.
+    #[must_use]
     pub const fn required(mut self, required: bool) -> Self {
         self.0.required = required;
 
@@ -291,11 +293,8 @@ pub struct RoleBuilder(BaseCommandOptionData);
 
 impl RoleBuilder {
     /// Create a new default [`RoleBuilder`].
-    pub fn new(name: impl Into<String>, description: impl Into<String>) -> Self {
-        Self::_new(name.into(), description.into())
-    }
-
-    const fn _new(name: String, description: String) -> Self {
+    #[must_use = "builders have no effect if unused"]
+    pub const fn new(name: String, description: String) -> Self {
         Self(BaseCommandOptionData {
             description,
             name,
@@ -305,6 +304,7 @@ impl RoleBuilder {
 
     /// Consume the builder, returning the built command option.
     #[allow(clippy::missing_const_for_fn)]
+    #[must_use = "should be used in a command builder"]
     pub fn build(self) -> CommandOption {
         CommandOption::Role(self.0)
     }
@@ -312,6 +312,7 @@ impl RoleBuilder {
     /// Set whether this option is required.
     ///
     /// Defaults to false.
+    #[must_use]
     pub const fn required(mut self, required: bool) -> Self {
         self.0.required = required;
 
@@ -331,11 +332,8 @@ pub struct StringBuilder(ChoiceCommandOptionData);
 
 impl StringBuilder {
     /// Create a new default [`StringBuilder`].
-    pub fn new(name: impl Into<String>, description: impl Into<String>) -> Self {
-        Self::_new(name.into(), description.into())
-    }
-
-    const fn _new(name: String, description: String) -> Self {
+    #[must_use = "builders have no effect if unused"]
+    pub const fn new(name: String, description: String) -> Self {
         Self(ChoiceCommandOptionData {
             choices: Vec::new(),
             description,
@@ -346,21 +344,28 @@ impl StringBuilder {
 
     /// Consume the builder, returning the built command option.
     #[allow(clippy::missing_const_for_fn)]
+    #[must_use = "should be used in a command builder"]
     pub fn build(self) -> CommandOption {
         CommandOption::String(self.0)
     }
 
-    /// Add a choice to the command.
+    /// Add a list of choices to the command.
+    ///
+    /// Allocation: Copies the given values.
+    ///
+    /// Accepts a list of `(String, String)` tuples corresponding to the name
+    /// and value.
     ///
     /// Defaults to no choices.
-    pub fn choice(self, name: impl Into<String>, value: impl Into<String>) -> Self {
-        self._choice(name.into(), value.into())
-    }
-
-    fn _choice(mut self, name: String, value: String) -> Self {
-        self.0
-            .choices
-            .push(CommandOptionChoice::String { name, value });
+    #[must_use]
+    pub fn choices(mut self, choices: &[(String, String)]) -> Self {
+        self.0.choices = choices
+            .iter()
+            .map(|(name, value)| CommandOptionChoice::String {
+                name: name.clone(),
+                value: value.clone(),
+            })
+            .collect();
 
         self
     }
@@ -368,6 +373,7 @@ impl StringBuilder {
     /// Set whether this option is required.
     ///
     /// Defaults to false.
+    #[must_use]
     pub const fn required(mut self, required: bool) -> Self {
         self.0.required = required;
 
@@ -387,11 +393,8 @@ pub struct SubCommandBuilder(OptionsCommandOptionData);
 
 impl SubCommandBuilder {
     /// Create a new default [`SubCommandBuilder`].
-    pub fn new(name: impl Into<String>, description: impl Into<String>) -> Self {
-        Self::_new(name.into(), description.into())
-    }
-
-    const fn _new(name: String, description: String) -> Self {
+    #[must_use = "builders have no effect if unused"]
+    pub const fn new(name: String, description: String) -> Self {
         Self(OptionsCommandOptionData {
             description,
             name,
@@ -402,6 +405,7 @@ impl SubCommandBuilder {
 
     /// Consume the builder, returning the built command option.
     #[allow(clippy::missing_const_for_fn)]
+    #[must_use = "should be used in a command builder"]
     pub fn build(self) -> CommandOption {
         CommandOption::SubCommand(self.0)
     }
@@ -432,11 +436,8 @@ pub struct SubCommandGroupBuilder(OptionsCommandOptionData);
 
 impl SubCommandGroupBuilder {
     /// Create a new default [`SubCommandGroupBuilder`].
-    pub fn new(name: impl Into<String>, description: impl Into<String>) -> Self {
-        Self::_new(name.into(), description.into())
-    }
-
-    const fn _new(name: String, description: String) -> Self {
+    #[must_use = "builders have no effect if unused"]
+    pub const fn new(name: String, description: String) -> Self {
         Self(OptionsCommandOptionData {
             description,
             name,
@@ -447,6 +448,7 @@ impl SubCommandGroupBuilder {
 
     /// Consume the builder, returning the built command option.
     #[allow(clippy::missing_const_for_fn)]
+    #[must_use = "should be used in a command builder"]
     pub fn build(self) -> CommandOption {
         CommandOption::SubCommandGroup(self.0)
     }
@@ -454,6 +456,7 @@ impl SubCommandGroupBuilder {
     /// Add a sub command option to the sub command group.
     ///
     /// Defaults to an empty list.
+    #[must_use]
     pub fn option(mut self, option: SubCommandBuilder) -> Self {
         self.0.options.push(option.into());
 
@@ -473,11 +476,8 @@ pub struct UserBuilder(BaseCommandOptionData);
 
 impl UserBuilder {
     /// Create a new default [`UserBuilder`].
-    pub fn new(name: impl Into<String>, description: impl Into<String>) -> Self {
-        Self::_new(name.into(), description.into())
-    }
-
-    const fn _new(name: String, description: String) -> Self {
+    #[must_use = "builders have no effect if unused"]
+    pub const fn new(name: String, description: String) -> Self {
         Self(BaseCommandOptionData {
             description,
             name,
@@ -487,6 +487,7 @@ impl UserBuilder {
 
     /// Consume the builder, returning the built command option.
     #[allow(clippy::missing_const_for_fn)]
+    #[must_use = "should be used in a command builder"]
     pub fn build(self) -> CommandOption {
         CommandOption::User(self.0)
     }
@@ -494,6 +495,7 @@ impl UserBuilder {
     /// Set whether this option is required.
     ///
     /// Defaults to false.
+    #[must_use]
     pub const fn required(mut self, required: bool) -> Self {
         self.0.required = required;
 
@@ -529,49 +531,65 @@ mod tests {
     fn construct_command_with_builder() {
         // from <https://discord.com/developers/docs/interactions/application-commands#example-walkthrough>
         let command = CommandBuilder::new(
-            "permissions",
-            "Get or edit permissions for a user or a role",
+            "permissions".into(),
+            "Get or edit permissions for a user or a role".into(),
             CommandType::ChatInput,
         )
         .option(
-            SubCommandGroupBuilder::new("user", "Get or edit permissions for a user")
+            SubCommandGroupBuilder::new("user".into(), "Get or edit permissions for a user".into())
                 .option(
-                    SubCommandBuilder::new("get", "Get permissions for a user")
-                        .option(UserBuilder::new("user", "The user to get").required(true))
+                    SubCommandBuilder::new("get".into(), "Get permissions for a user".into())
+                        .option(
+                            UserBuilder::new("user".into(), "The user to get".into())
+                                .required(true),
+                        )
                         .option(ChannelBuilder::new(
-                            "channel",
+                            "channel".into(),
                             "The channel permissions to get. If omitted, the guild permissions \
-                             will be returned",
+                             will be returned"
+                                .into(),
                         )),
                 )
                 .option(
-                    SubCommandBuilder::new("edit", "Edit permissions for a user")
-                        .option(UserBuilder::new("user", "The user to edit").required(true))
+                    SubCommandBuilder::new("edit".into(), "Edit permissions for a user".into())
+                        .option(
+                            UserBuilder::new("user".into(), "The user to edit".into())
+                                .required(true),
+                        )
                         .option(ChannelBuilder::new(
-                            "channel",
+                            "channel".into(),
                             "The channel permissions to edit. If omitted, the guild permissions \
-                             will be edited",
+                             will be edited"
+                                .into(),
                         )),
                 ),
         )
         .option(
-            SubCommandGroupBuilder::new("role", "Get or edit permissions for a role")
+            SubCommandGroupBuilder::new("role".into(), "Get or edit permissions for a role".into())
                 .option(
-                    SubCommandBuilder::new("get", "Get permissions for a role")
-                        .option(RoleBuilder::new("role", "The role to get").required(true))
+                    SubCommandBuilder::new("get".into(), "Get permissions for a role".into())
+                        .option(
+                            RoleBuilder::new("role".into(), "The role to get".into())
+                                .required(true),
+                        )
                         .option(ChannelBuilder::new(
-                            "channel",
+                            "channel".into(),
                             "The channel permissions to get. If omitted, the guild permissions \
-                             will be returned",
+                             will be returned"
+                                .into(),
                         )),
                 )
                 .option(
-                    SubCommandBuilder::new("edit", "Edit permissions for a role")
-                        .option(RoleBuilder::new("role", "The role to edit").required(true))
+                    SubCommandBuilder::new("edit".into(), "Edit permissions for a role".into())
+                        .option(
+                            RoleBuilder::new("role".into(), "The role to edit".into())
+                                .required(true),
+                        )
                         .option(ChannelBuilder::new(
-                            "channel",
+                            "channel".into(),
                             "The channel permissions to edit. If omitted, the guild permissions \
-                             will be edited",
+                             will be edited"
+                                .into(),
                         )),
                 ),
         )
