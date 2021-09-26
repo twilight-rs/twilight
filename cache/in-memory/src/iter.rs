@@ -12,6 +12,10 @@
 //! underlying key and value. It also implements [`std::ops::Deref`] and
 //! dereferences to the value.
 
+use crate::{
+    model::{CachedEmoji, CachedGuild, CachedMember, CachedMessage, CachedPresence},
+    GuildResource, InMemoryCache,
+};
 use dashmap::{iter::Iter, mapref::multiple::RefMulti};
 use std::{hash::Hash, ops::Deref};
 use twilight_model::{
@@ -20,11 +24,6 @@ use twilight_model::{
     id::{ChannelId, EmojiId, GuildId, IntegrationId, MessageId, RoleId, StageId, UserId},
     user::User,
     voice::VoiceState,
-};
-
-use crate::{
-    model::{CachedEmoji, CachedGuild, CachedMember, CachedMessage, CachedPresence},
-    GuildResource, InMemoryCache,
 };
 
 /// Reference to a resource value being iterated over in the cache.
