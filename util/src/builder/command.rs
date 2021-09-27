@@ -23,9 +23,11 @@ use twilight_model::{
 /// .option(
 ///     StringBuilder::new("animal".into(), "The type of animal".into())
 ///         .required(true)
-///         .choice("Dog".into(), "animal_dog".into())
-///         .choice("Cat".into(), "animal_cat".into())
-///         .choice("Penguin".into(), "animal_penguin".into()),
+///         .choices([
+///             ("Dog".into(), "animal_dog".into()),
+///             ("Cat".into(), "animal_cat".into()),
+///             ("Penguin".into(), "animal_penguin".into()),
+///         ]),
 /// )
 /// .option(BooleanBuilder::new(
 ///     "only_smol".into(),
