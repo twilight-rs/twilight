@@ -36,6 +36,7 @@ use twilight_model::{
 /// ```
 #[allow(clippy::module_name_repetitions)]
 #[derive(Clone, Debug)]
+#[must_use = "must be built into a command"]
 pub struct CommandBuilder(Command);
 
 impl CommandBuilder {
@@ -64,7 +65,6 @@ impl CommandBuilder {
     /// Set the application ID of the command.
     ///
     /// Defaults to [`None`].
-    #[must_use]
     pub const fn application_id(mut self, application_id: ApplicationId) -> Self {
         self.0.application_id = Some(application_id);
 
@@ -74,7 +74,6 @@ impl CommandBuilder {
     /// Set the guild ID of the command.
     ///
     /// Defaults to [`None`].
-    #[must_use]
     pub const fn guild_id(mut self, guild_id: GuildId) -> Self {
         self.0.guild_id = Some(guild_id);
 
@@ -84,7 +83,6 @@ impl CommandBuilder {
     /// Set the default permission of the command.
     ///
     /// Defaults to [`None`].
-    #[must_use]
     pub const fn default_permission(mut self, default_permission: bool) -> Self {
         self.0.default_permission = Some(default_permission);
 
@@ -94,7 +92,6 @@ impl CommandBuilder {
     /// Set the ID of the command.
     ///
     /// Defaults to [`None`].
-    #[must_use]
     pub const fn id(mut self, id: CommandId) -> Self {
         self.0.id = Some(id);
 
@@ -117,6 +114,7 @@ impl CommandBuilder {
 
 /// Create a boolean option with a builder.
 #[derive(Clone, Debug)]
+#[must_use = "should be used in a command builder"]
 pub struct BooleanBuilder(BaseCommandOptionData);
 
 impl BooleanBuilder {
@@ -140,7 +138,6 @@ impl BooleanBuilder {
     /// Set whether this option is required.
     ///
     /// Defaults to false.
-    #[must_use]
     pub const fn required(mut self, required: bool) -> Self {
         self.0.required = required;
 
@@ -156,6 +153,7 @@ impl From<BooleanBuilder> for CommandOption {
 
 /// Create a channel option with a builder.
 #[derive(Clone, Debug)]
+#[must_use = "should be used in a command builder"]
 pub struct ChannelBuilder(BaseCommandOptionData);
 
 impl ChannelBuilder {
@@ -179,7 +177,6 @@ impl ChannelBuilder {
     /// Set whether this option is required.
     ///
     /// Defaults to false.
-    #[must_use]
     pub const fn required(mut self, required: bool) -> Self {
         self.0.required = required;
 
@@ -194,6 +191,7 @@ impl From<ChannelBuilder> for CommandOption {
 }
 /// Create a integer option with a builder.
 #[derive(Clone, Debug)]
+#[must_use = "should be used in a command builder"]
 pub struct IntegerBuilder(ChoiceCommandOptionData);
 
 impl IntegerBuilder {
@@ -218,7 +216,6 @@ impl IntegerBuilder {
     /// Add a list of choices to the command.
     ///
     /// Defaults to no choices.
-    #[must_use]
     pub fn choices(mut self, choices: impl IntoIterator<Item = (String, i64)>) -> Self {
         self.0.choices = choices
             .into_iter()
@@ -231,7 +228,6 @@ impl IntegerBuilder {
     /// Set whether this option is required.
     ///
     /// Defaults to false.
-    #[must_use]
     pub const fn required(mut self, required: bool) -> Self {
         self.0.required = required;
 
@@ -247,6 +243,7 @@ impl From<IntegerBuilder> for CommandOption {
 
 /// Create a mentionable option with a builder.
 #[derive(Clone, Debug)]
+#[must_use = "should be used in a command builder"]
 pub struct MentionableBuilder(BaseCommandOptionData);
 
 impl MentionableBuilder {
@@ -270,7 +267,6 @@ impl MentionableBuilder {
     /// Set whether this option is required.
     ///
     /// Defaults to false.
-    #[must_use]
     pub const fn required(mut self, required: bool) -> Self {
         self.0.required = required;
 
@@ -286,6 +282,7 @@ impl From<MentionableBuilder> for CommandOption {
 
 /// Create a role option with a builder.
 #[derive(Clone, Debug)]
+#[must_use = "should be used in a command builder"]
 pub struct RoleBuilder(BaseCommandOptionData);
 
 impl RoleBuilder {
@@ -309,7 +306,6 @@ impl RoleBuilder {
     /// Set whether this option is required.
     ///
     /// Defaults to false.
-    #[must_use]
     pub const fn required(mut self, required: bool) -> Self {
         self.0.required = required;
 
@@ -325,6 +321,7 @@ impl From<RoleBuilder> for CommandOption {
 
 /// Create a string option with a builder.
 #[derive(Clone, Debug)]
+#[must_use = "should be used in a command builder"]
 pub struct StringBuilder(ChoiceCommandOptionData);
 
 impl StringBuilder {
@@ -352,7 +349,6 @@ impl StringBuilder {
     /// value.
     ///
     /// Defaults to no choices.
-    #[must_use]
     pub fn choices(mut self, choices: impl IntoIterator<Item = (String, String)>) -> Self {
         self.0.choices = choices
             .into_iter()
@@ -365,7 +361,6 @@ impl StringBuilder {
     /// Set whether this option is required.
     ///
     /// Defaults to false.
-    #[must_use]
     pub const fn required(mut self, required: bool) -> Self {
         self.0.required = required;
 
@@ -381,6 +376,7 @@ impl From<StringBuilder> for CommandOption {
 
 /// Create a subcommand option with a builder.
 #[derive(Clone, Debug)]
+#[must_use = "should be used in a command builder"]
 pub struct SubCommandBuilder(OptionsCommandOptionData);
 
 impl SubCommandBuilder {
@@ -424,6 +420,7 @@ impl From<SubCommandBuilder> for CommandOption {
 
 /// Create a subcommand group option with a builder.
 #[derive(Clone, Debug)]
+#[must_use = "should be used in a command builder"]
 pub struct SubCommandGroupBuilder(OptionsCommandOptionData);
 
 impl SubCommandGroupBuilder {
@@ -448,7 +445,6 @@ impl SubCommandGroupBuilder {
     /// Add a sub command option to the sub command group.
     ///
     /// Defaults to an empty list.
-    #[must_use]
     pub fn option(mut self, option: SubCommandBuilder) -> Self {
         self.0.options.push(option.into());
 
@@ -464,6 +460,7 @@ impl From<SubCommandGroupBuilder> for CommandOption {
 
 /// Create a user option with a builder.
 #[derive(Clone, Debug)]
+#[must_use = "should be used in a command builder"]
 pub struct UserBuilder(BaseCommandOptionData);
 
 impl UserBuilder {
@@ -487,7 +484,6 @@ impl UserBuilder {
     /// Set whether this option is required.
     ///
     /// Defaults to false.
-    #[must_use]
     pub const fn required(mut self, required: bool) -> Self {
         self.0.required = required;
 
