@@ -215,17 +215,12 @@ impl IntegerBuilder {
 
     /// Add a list of choices to the command.
     ///
-    /// Allocation: Copies the given values.
-    ///
     /// Defaults to no choices.
     #[must_use]
-    pub fn choices(mut self, choices: &[(String, i64)]) -> Self {
+    pub fn choices(mut self, choices: impl IntoIterator<Item = (String, i64)>) -> Self {
         self.0.choices = choices
-            .iter()
-            .map(|(name, value)| CommandOptionChoice::Int {
-                name: name.clone(),
-                value: *value,
-            })
+            .into_iter()
+            .map(|(name, value)| CommandOptionChoice::Int { name, value })
             .collect();
 
         self
@@ -351,20 +346,15 @@ impl StringBuilder {
 
     /// Add a list of choices to the command.
     ///
-    /// Allocation: Copies the given values.
-    ///
-    /// Accepts a list of `(String, String)` tuples corresponding to the name
-    /// and value.
+    /// Accepts tuples of `(String, String)` corresponding to the name and
+    /// value.
     ///
     /// Defaults to no choices.
     #[must_use]
-    pub fn choices(mut self, choices: &[(String, String)]) -> Self {
+    pub fn choices(mut self, choices: impl IntoIterator<Item = (String, String)>) -> Self {
         self.0.choices = choices
-            .iter()
-            .map(|(name, value)| CommandOptionChoice::String {
-                name: name.clone(),
-                value: value.clone(),
-            })
+            .into_iter()
+            .map(|(name, value)| CommandOptionChoice::String { name, value })
             .collect();
 
         self
