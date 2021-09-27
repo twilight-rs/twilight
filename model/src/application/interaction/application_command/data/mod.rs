@@ -3,7 +3,7 @@ mod resolved;
 pub use self::resolved::{CommandInteractionDataResolved, InteractionChannel, InteractionMember};
 
 use crate::{
-    application::command::CommandOptionType,
+    application::command::{CommandOptionType, Number},
     id::{ChannelId, CommandId, GenericId, RoleId, UserId},
 };
 use serde::{
@@ -55,6 +55,7 @@ pub enum CommandOptionValue {
     Mentionable(GenericId),
     SubCommand(Vec<CommandDataOption>),
     SubCommandGroup(Vec<CommandDataOption>),
+    Number(Number),
 }
 
 #[derive(Debug, Deserialize)]
@@ -72,6 +73,7 @@ struct CommandDataOptionRaw<'a> {
 enum CommandOptionValueRaw<'a> {
     String(Cow<'a, str>),
     Integer(i64),
+    Number(f64),
     Boolean(bool),
 }
 
@@ -103,6 +105,9 @@ impl Serialize for CommandDataOption {
                 "value",
                 &Some(CommandOptionValueRaw::String(id.to_string().into())),
             )?,
+            CommandOptionValue::Number(value) => {
+                state.serialize_field("value", &Some(CommandOptionValueRaw::Number(value.0)))?
+            }
         }
         state.end()
     }
@@ -159,6 +164,13 @@ impl<'de> Deserialize<'de> for CommandDataOption {
                         raw.kind
                     )));
                 }
+                (CommandOptionType::Number, CommandOptionValueRaw::String(s)) => {
+                    let value = s
+                        .parse::<f64>()
+                        .map_err(|_| DeError::invalid_value(Unexpected::Str(&s), &"number"))?;
+
+                    CommandOptionValue::Number(Number(value))
+                }
                 (kind, value) => {
                     return Err(DeError::custom(format!(
                         "invalid option value/type pair: value is {:?} but type is {:?}",
@@ -201,6 +213,7 @@ impl CommandOptionValue {
             CommandOptionValue::Mentionable(_) => CommandOptionType::Mentionable,
             CommandOptionValue::SubCommand(_) => CommandOptionType::SubCommand,
             CommandOptionValue::SubCommandGroup(_) => CommandOptionType::SubCommandGroup,
+            CommandOptionValue::Number(_) => CommandOptionType::Number,
         }
     }
 }
