@@ -9,7 +9,7 @@ pub use self::{
     command_type::CommandType,
     option::{
         BaseCommandOptionData, ChoiceCommandOptionData, CommandOption, CommandOptionChoice,
-        CommandOptionType, OptionsCommandOptionData,
+        CommandOptionType, Number, OptionsCommandOptionData,
     },
 };
 
