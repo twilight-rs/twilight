@@ -213,8 +213,10 @@ impl IntegerBuilder {
         CommandOption::Integer(self.0)
     }
 
-    /// Add a list of choices to the command.
+    /// Set the list of choices for an option.
     ///
+    /// Accepts tuples of `(String, i64)` corresponding to the name and value.
+
     /// Defaults to no choices.
     pub fn choices(mut self, choices: impl IntoIterator<Item = (String, i64)>) -> Self {
         self.0.choices = choices
@@ -304,9 +306,9 @@ impl NumberBuilder {
         CommandOption::Number(self.0)
     }
 
-    /// Add a list of choices to the command.
+    /// Set the list of choices for an option.
     ///
-    /// Accepts tuples of `(Number, Number)` corresponding to the name and
+    /// Accepts tuples of `(String, Number)` corresponding to the name and
     /// value.
     ///
     /// Defaults to no choices.
@@ -398,7 +400,7 @@ impl StringBuilder {
         CommandOption::String(self.0)
     }
 
-    /// Add a list of choices to the command.
+    /// Set the list of choices for an option.
     ///
     /// Accepts tuples of `(String, String)` corresponding to the name and
     /// value.
@@ -572,7 +574,6 @@ mod tests {
     #[test]
     #[allow(clippy::too_many_lines)]
     fn construct_command_with_builder() {
-        // from <https://discord.com/developers/docs/interactions/application-commands#example-walkthrough>
         let command = CommandBuilder::new(
             "permissions".into(),
             "Get or edit permissions for a user or a role".into(),
