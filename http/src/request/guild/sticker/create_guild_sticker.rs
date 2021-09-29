@@ -19,7 +19,7 @@ struct CreateGuildStickerFields<'a> {
 ///
 /// # Examples
 ///
-/// ```rust,no_run
+/// ```no_run
 /// use twilight_http::Client;
 /// use twilight_model::{
 ///     channel::message::sticker::StickerId,

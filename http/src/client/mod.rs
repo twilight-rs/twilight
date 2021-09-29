@@ -2496,7 +2496,7 @@ impl Client {
     ///
     /// # Examples
     ///
-    /// ```rust,no_run
+    /// ```no_run
     /// use twilight_http::Client;
     /// use twilight_model::channel::message::sticker::StickerId;
     ///
@@ -2518,7 +2518,7 @@ impl Client {
     ///
     /// # Examples
     ///
-    /// ```rust,no_run
+    /// ```no_run
     /// use twilight_http::Client;
     ///
     /// # #[tokio::main]
@@ -2538,7 +2538,7 @@ impl Client {
     ///
     /// # Examples
     ///
-    /// ```rust,no_run
+    /// ```no_run
     /// use twilight_http::Client;
     /// use twilight_model::{
     ///     channel::message::sticker::StickerId,
@@ -2568,7 +2568,7 @@ impl Client {
     ///
     /// # Examples
     ///
-    /// ```rust,no_run
+    /// ```no_run
     /// use twilight_http::Client;
     /// use twilight_model::{
     ///     channel::message::sticker::StickerId,
@@ -2603,7 +2603,7 @@ impl Client {
     ///
     /// # Examples
     ///
-    /// ```rust,no_run
+    /// ```no_run
     /// use twilight_http::Client;
     /// use twilight_model::{
     ///     channel::message::sticker::StickerId,
@@ -2646,7 +2646,7 @@ impl Client {
     ///
     /// # Examples
     ///
-    /// ```rust,no_run
+    /// ```no_run
     /// use twilight_http::Client;
     /// use twilight_model::{
     ///     channel::message::sticker::StickerId,
@@ -2682,7 +2682,7 @@ impl Client {
     ///
     /// # Examples
     ///
-    /// ```rust,no_run
+    /// ```no_run
     /// use twilight_http::Client;
     /// use twilight_model::{
     ///     channel::message::sticker::StickerId,
