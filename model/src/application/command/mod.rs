@@ -8,8 +8,8 @@ mod option;
 pub use self::{
     command_type::CommandType,
     option::{
-        BaseCommandOptionData, ChoiceCommandOptionData, CommandOption, CommandOptionChoice,
-        CommandOptionType, Number, OptionsCommandOptionData,
+        BaseCommandOptionData, ChannelCommandOptionData, ChoiceCommandOptionData, CommandOption,
+        CommandOptionChoice, CommandOptionType, Number, OptionsCommandOptionData,
     },
 };
 

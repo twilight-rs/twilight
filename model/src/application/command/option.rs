@@ -1,4 +1,4 @@
-use crate::util::is_false;
+use crate::{channel::ChannelType, util::is_false};
 use serde::{
     de::{Deserializer, Error as DeError, IgnoredAny, MapAccess, Visitor},
     ser::Serializer,
@@ -29,7 +29,7 @@ pub enum CommandOption {
     Integer(ChoiceCommandOptionData),
     Boolean(BaseCommandOptionData),
     User(BaseCommandOptionData),
-    Channel(BaseCommandOptionData),
+    Channel(ChannelCommandOptionData),
     Role(BaseCommandOptionData),
     Mentionable(BaseCommandOptionData),
     Number(ChoiceCommandOptionData),
@@ -57,9 +57,9 @@ impl CommandOption {
             CommandOption::String(data)
             | CommandOption::Integer(data)
             | CommandOption::Number(data) => data.required,
+            CommandOption::Channel(data) => data.required,
             CommandOption::Boolean(data)
             | CommandOption::User(data)
-            | CommandOption::Channel(data)
             | CommandOption::Role(data)
             | CommandOption::Mentionable(data) => data.required,
         }
@@ -74,6 +74,8 @@ impl<'de> Deserialize<'de> for CommandOption {
 
 #[derive(Serialize)]
 struct CommandOptionEnvelope<'ser> {
+    #[serde(skip_serializing_if = "Option::is_none")]
+    channel_types: Option<&'ser [ChannelType]>,
     #[serde(skip_serializing_if = "Option::is_none")]
     choices: Option<&'ser [CommandOptionChoice]>,
     description: &'ser str,
@@ -90,6 +92,7 @@ impl Serialize for CommandOption {
     fn serialize<S: Serializer>(&self, serializer: S) -> Result<S::Ok, S::Error> {
         let envelope = match self {
             Self::SubCommand(data) | Self::SubCommandGroup(data) => CommandOptionEnvelope {
+                channel_types: None,
                 choices: None,
                 description: data.description.as_ref(),
                 name: data.name.as_ref(),
@@ -99,6 +102,7 @@ impl Serialize for CommandOption {
             },
             Self::String(data) | Self::Integer(data) | Self::Number(data) => {
                 CommandOptionEnvelope {
+                    channel_types: None,
                     choices: Some(data.choices.as_ref()),
                     description: data.description.as_ref(),
                     name: data.name.as_ref(),
@@ -107,11 +111,8 @@ impl Serialize for CommandOption {
                     kind: self.kind(),
                 }
             }
-            Self::Boolean(data)
-            | Self::User(data)
-            | Self::Channel(data)
-            | Self::Role(data)
-            | Self::Mentionable(data) => CommandOptionEnvelope {
+            Self::Channel(data) => CommandOptionEnvelope {
+                channel_types: Some(data.channel_types.as_ref()),
                 choices: None,
                 description: data.description.as_ref(),
                 name: data.name.as_ref(),
@@ -119,6 +120,17 @@ impl Serialize for CommandOption {
                 required: data.required,
                 kind: self.kind(),
             },
+            Self::Boolean(data) | Self::User(data) | Self::Role(data) | Self::Mentionable(data) => {
+                CommandOptionEnvelope {
+                    channel_types: None,
+                    choices: None,
+                    description: data.description.as_ref(),
+                    name: data.name.as_ref(),
+                    options: None,
+                    required: data.required,
+                    kind: self.kind(),
+                }
+            }
         };
 
         envelope.serialize(serializer)
@@ -128,6 +140,7 @@ impl Serialize for CommandOption {
 #[derive(Debug, Deserialize)]
 #[serde(field_identifier, rename_all = "snake_case")]
 enum OptionField {
+    ChannelTypes,
     Choices,
     Description,
     Name,
@@ -147,6 +160,7 @@ impl<'de> Visitor<'de> for OptionVisitor {
 
     #[allow(clippy::too_many_lines)]
     fn visit_map<V: MapAccess<'de>>(self, mut map: V) -> Result<Self::Value, V::Error> {
+        let mut channel_types: Option<Option<Vec<ChannelType>>> = None;
         let mut choices: Option<Option<Vec<CommandOptionChoice>>> = None;
         let mut description: Option<String> = None;
         let mut kind: Option<CommandOptionType> = None;
@@ -178,6 +192,13 @@ impl<'de> Visitor<'de> for OptionVisitor {
             };
 
             match key {
+                OptionField::ChannelTypes => {
+                    if choices.is_some() {
+                        return Err(DeError::duplicate_field("channel_types"));
+                    }
+
+                    channel_types = Some(map.next_value()?);
+                }
                 OptionField::Choices => {
                     if choices.is_some() {
                         return Err(DeError::duplicate_field("choices"));
@@ -279,7 +300,8 @@ impl<'de> Visitor<'de> for OptionVisitor {
                 name,
                 required,
             }),
-            CommandOptionType::Channel => CommandOption::Channel(BaseCommandOptionData {
+            CommandOptionType::Channel => CommandOption::Channel(ChannelCommandOptionData {
+                channel_types: channel_types.flatten().unwrap_or_default(),
                 description,
                 name,
                 required,
@@ -369,6 +391,25 @@ pub struct ChoiceCommandOptionData {
     pub required: bool,
 }
 
+/// Data supplied to a [`CommandOption`] of type [`Channel`].
+///
+/// [`Channel`]: CommandOption::Channel
+#[derive(Clone, Debug, Default, Deserialize, Eq, Hash, PartialEq, Serialize)]
+pub struct ChannelCommandOptionData {
+    /// Restricts the channel choice to specific types.
+    ///
+    /// If no types are selected, all channel types can be sent.
+    #[serde(default)]
+    pub channel_types: Vec<ChannelType>,
+    /// Description of the option. It must be 100 characters or less.
+    pub description: String,
+    /// Name of the option. It must be 32 characters or less.
+    pub name: String,
+    /// Whether or not the option is required to be completed by a user.
+    #[serde(default)]
+    pub required: bool,
+}
+
 /// Specifies an option that a user must choose from in a dropdown.
 ///
 /// Refer to [the discord docs] for more information.
@@ -444,10 +485,13 @@ impl From<Number> for f64 {
 mod tests {
     use super::{
         super::{Command, CommandType},
-        BaseCommandOptionData, ChoiceCommandOptionData, CommandOption, CommandOptionChoice, Number,
-        OptionsCommandOptionData,
+        BaseCommandOptionData, ChannelCommandOptionData, ChoiceCommandOptionData, CommandOption,
+        CommandOptionChoice, Number, OptionsCommandOptionData,
     };
-    use crate::id::{ApplicationId, CommandId, GuildId};
+    use crate::{
+        channel::ChannelType,
+        id::{ApplicationId, CommandId, GuildId},
+    };
     use serde::{Deserialize, Serialize};
     use serde_test::Token;
     use static_assertions::assert_impl_all;
@@ -548,7 +592,8 @@ mod tests {
                             name: "user".into(),
                             required: false,
                         }),
-                        CommandOption::Channel(BaseCommandOptionData {
+                        CommandOption::Channel(ChannelCommandOptionData {
+                            channel_types: vec![ChannelType::GuildText],
                             description: "channel desc".into(),
                             name: "channel".into(),
                             required: false,
@@ -720,8 +765,13 @@ mod tests {
                 Token::StructEnd,
                 Token::Struct {
                     name: "CommandOptionEnvelope",
-                    len: 3,
+                    len: 4,
                 },
+                Token::Str("channel_types"),
+                Token::Some,
+                Token::Seq { len: Some(1) },
+                Token::U8(0),
+                Token::SeqEnd,
                 Token::Str("description"),
                 Token::Str("channel desc"),
                 Token::Str("name"),
