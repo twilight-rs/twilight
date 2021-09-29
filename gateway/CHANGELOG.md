@@ -2,6 +2,25 @@
 
 Changelog for `twilight-gateway`.
 
+## [0.6.4] - 2021-09-17
+
+### Thread Support
+
+The gateway API version has been updated to `v9`. Six new events have
+been added: `THREAD_CREATE`, `THREAD_DELETE`, `THREAD_LIST_SYNC`,
+`THREAD_MEMBERS_UPDATE`, `THREAD_MEMBER_UPDATE`, and `THREAD_UPDATE`.
+
+## [0.6.3] - 2021-09-17
+
+### Additions
+
+Support users setting the properties to send during identify via the new
+`ClusterBuilder::identify_properties` and
+`ShardBuilder::identify_properties` methods. When not set a default will
+be used ([#1130] - [@zeylahellyer]).
+
+[#1130]: https://github.com/twilight-rs/twilight/pull/1130
+
 ## [0.6.2] - 2021-08-30
 
 ### Enhancements
@@ -558,6 +577,7 @@ Initial release.
 [#515]: https://github.com/twilight-rs/twilight/pull/515
 [#512]: https://github.com/twilight-rs/twilight/pull/512
 
+[0.6.3]: https://github.com/twilight-rs/twilight/releases/tag/gateway-0.6.3
 [0.6.2]: https://github.com/twilight-rs/twilight/releases/tag/gateway-0.6.2
 [0.6.1]: https://github.com/twilight-rs/twilight/releases/tag/gateway-0.6.1
 [0.5.5]: https://github.com/twilight-rs/twilight/releases/tag/gateway-0.5.5

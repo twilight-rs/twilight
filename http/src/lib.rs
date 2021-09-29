@@ -6,6 +6,12 @@
 //!
 //! ## Features
 //!
+//! ### Decompression
+//!
+//! The `decompression` feature enables brotli decompression support via the [`brotli`] crate.
+//!
+//! This is enabled by default.
+//!
 //! ### Deserialization
 //!
 //! `twilight-http` supports [`serde_json`] and [`simd-json`] for deserializing
@@ -66,6 +72,7 @@
 //!
 //! This is disabled by default.
 //!
+//! [`brotli`]: https://github.com/dropbox/rust-brotli
 //! [`native-tls`]: https://crates.io/crates/native-tls
 //! [`hyper`]: https://crates.io/crates/hyper
 //! [`rustls`]: https://crates.io/crates/rustls
@@ -112,7 +119,7 @@ pub mod routing;
 mod json;
 
 /// Discord API version used by this crate.
-pub const API_VERSION: u8 = 8;
+pub const API_VERSION: u8 = 9;
 
 pub use crate::{client::Client, error::Error, response::Response};
 

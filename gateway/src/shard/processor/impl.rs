@@ -296,7 +296,7 @@ impl ShardProcessor {
             tracing::debug!("shard {:?} finished queue", config.shard());
         }
 
-        url.push_str("?v=8");
+        url.push_str("?v=9");
 
         // Discord's documentation states:
         //
@@ -841,7 +841,7 @@ impl ShardProcessor {
     }
 
     async fn connect(url: &str) -> Result<ShardStream, ConnectingError> {
-        #[allow(disjoint_capture_migration)]
+        #[allow(rust_2021_incompatible_closure_captures)]
         let url = Url::parse(url).map_err(|source| ConnectingError {
             kind: ConnectingErrorType::ParsingUrl {
                 url: url.to_owned(),

@@ -316,7 +316,9 @@ mod tests {
                     roles: vec![RoleId(6), RoleId(7)],
                     user: User {
                         id: UserId(2),
+                        accent_color: None,
                         avatar: Some("dddddddddddddddddddddddddddddddd".to_owned()),
+                        banner: None,
                         bot: true,
                         discriminator: "0001".to_owned(),
                         name: "test".to_owned(),
@@ -342,7 +344,9 @@ mod tests {
                     roles: vec![RoleId(6)],
                     user: User {
                         id: UserId(3),
+                        accent_color: None,
                         avatar: Some("cccccccccccccccccccccccccccccccc".to_owned()),
+                        banner: None,
                         bot: true,
                         discriminator: "0001".to_owned(),
                         name: "test".to_owned(),
@@ -368,7 +372,9 @@ mod tests {
                     roles: vec![RoleId(6)],
                     user: User {
                         id: UserId(5),
+                        accent_color: None,
                         avatar: Some("aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa".to_owned()),
+                        banner: None,
                         bot: false,
                         discriminator: "0001".to_owned(),
                         name: "test".to_owned(),
@@ -394,7 +400,9 @@ mod tests {
                     roles: vec![RoleId(6)],
                     user: User {
                         id: UserId(6),
+                        accent_color: None,
                         avatar: Some("bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb".to_owned()),
+                        banner: None,
                         bot: false,
                         discriminator: "0001".to_owned(),
                         name: "test".to_owned(),

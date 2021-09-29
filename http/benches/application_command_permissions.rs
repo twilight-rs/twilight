@@ -1,5 +1,5 @@
 use criterion::{criterion_group, criterion_main, Criterion};
-use twilight_http::{client::Client, request::application::SetCommandPermissions};
+use twilight_http::client::Client;
 use twilight_model::{
     application::command::permissions::{CommandPermissions, CommandPermissionsType},
     id::{ApplicationId, CommandId, GuildId, RoleId},

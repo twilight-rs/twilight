@@ -47,7 +47,6 @@ impl CreateGuildChannelError {
 }
 
 /// Type of [`CreateGuildChannelError`] that occurred.
-#[allow(clippy::pub_enum_variant_names)]
 #[derive(Debug)]
 #[non_exhaustive]
 pub enum CreateGuildChannelErrorType {

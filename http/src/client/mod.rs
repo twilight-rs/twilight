@@ -17,14 +17,20 @@ use crate::{
             },
             interaction::{
                 CreateFollowupMessage, DeleteFollowupMessage, DeleteOriginalResponse,
-                GetOriginalResponse, InteractionCallback, UpdateFollowupMessage,
-                UpdateOriginalResponse,
+                GetFollowupMessage, GetOriginalResponse, InteractionCallback,
+                UpdateFollowupMessage, UpdateOriginalResponse,
             },
             InteractionError, InteractionErrorType,
         },
         channel::{
             reaction::delete_reaction::TargetUser,
             stage::create_stage_instance::CreateStageInstanceError,
+            thread::{
+                AddThreadMember, CreateThread, CreateThreadFromMessage,
+                GetJoinedPrivateArchivedThreads, GetPrivateArchivedThreads,
+                GetPublicArchivedThreads, GetThreadMembers, JoinThread, LeaveThread,
+                RemoveThreadMember, ThreadValidationError, UpdateThread,
+            },
         },
         guild::{
             create_guild::CreateGuildError, create_guild_channel::CreateGuildChannelError,
@@ -56,7 +62,9 @@ use twilight_model::{
         callback::InteractionResponse,
         command::{permissions::CommandPermissions, Command},
     },
-    channel::message::allowed_mentions::AllowedMentions,
+    channel::{
+        message::allowed_mentions::AllowedMentions, thread::AutoArchiveDuration, ChannelType,
+    },
     guild::Permissions,
     id::{
         ApplicationId, ChannelId, CommandId, EmojiId, GuildId, IntegrationId, InteractionId,
@@ -1525,6 +1533,171 @@ impl Client {
         UpdateTemplate::new(self, guild_id, template_code)
     }
 
+    /// Returns all active threads in the channel.
+    ///
+    /// Includes public and private threads. Threads are ordered by their ID in
+    /// descending order.
+    pub const fn active_threads(&self, guild_id: GuildId) -> GetActiveThreads<'_> {
+        GetActiveThreads::new(self, guild_id)
+    }
+
+    /// Add another member to a thread.
+    ///
+    /// Requires the ability to send messages in the thread, and that the thread
+    /// is not archived.
+    pub const fn add_thread_member(
+        &self,
+        channel_id: ChannelId,
+        user_id: UserId,
+    ) -> AddThreadMember<'_> {
+        AddThreadMember::new(self, channel_id, user_id)
+    }
+
+    /// Start a thread that is not connected to a message.
+    ///
+    /// Values of [`ThreeDays`] and [`Week`] require the guild to be boosted.
+    /// The guild's features will indicate if a guild is able to use these
+    /// settings.
+    ///
+    /// To make a [`GuildPrivateThread`], the guild must also have the
+    /// `PRIVATE_THREADS` feature.
+    ///
+    /// [`GuildPrivateThread`]: twilight_model::channel::ChannelType::GuildPrivateThread
+    /// [`ThreeDays`]: twilight_model::channel::thread::AutoArchiveDuration::ThreeDays
+    /// [`Week`]: twilight_model::channel::thread::AutoArchiveDuration::Week
+    pub fn create_thread<'a>(
+        &'a self,
+        channel_id: ChannelId,
+        name: &'a str,
+        auto_archive_duration: AutoArchiveDuration,
+        kind: ChannelType,
+    ) -> Result<CreateThread<'_>, ThreadValidationError> {
+        CreateThread::new(self, channel_id, name, auto_archive_duration, kind)
+    }
+
+    /// Create a new thread from an existing message.
+    ///
+    /// When called on a [`GuildText`] channel, this creates a
+    /// [`GuildPublicThread`].
+    ///
+    /// When called on a [`GuildNews`] channel, this creates a
+    /// [`GuildNewsThread`].
+    ///
+    /// Values of [`ThreeDays`] and [`Week`] require the guild to be boosted.
+    /// The guild's features will indicate if a guild is able to use these
+    /// settings.
+    ///
+    /// The thread's ID will be the same as its parent message. This ensures
+    /// only one thread can be created per message.
+    ///
+    /// [`GuildNewsThread`]: twilight_model::channel::ChannelType::GuildNewsThread
+    /// [`GuildNews`]: twilight_model::channel::ChannelType::GuildNews
+    /// [`GuildPublicThread`]: twilight_model::channel::ChannelType::GuildPublicThread
+    /// [`GuildText`]: twilight_model::channel::ChannelType::GuildText
+    /// [`ThreeDays`]: twilight_model::channel::thread::AutoArchiveDuration::ThreeDays
+    /// [`Week`]: twilight_model::channel::thread::AutoArchiveDuration::Week
+    pub fn create_thread_from_message<'a>(
+        &'a self,
+        channel_id: ChannelId,
+        message_id: MessageId,
+        name: &'a str,
+        auto_archive_duration: AutoArchiveDuration,
+    ) -> Result<CreateThreadFromMessage<'_>, ThreadValidationError> {
+        CreateThreadFromMessage::new(self, channel_id, message_id, name, auto_archive_duration)
+    }
+
+    /// Add the current user to a thread.
+    pub const fn join_thread(&self, channel_id: ChannelId) -> JoinThread<'_> {
+        JoinThread::new(self, channel_id)
+    }
+
+    /// Returns archived private threads in the channel that the current user
+    /// has joined.
+    ///
+    /// Threads are ordered by their ID in descending order.
+    pub const fn joined_private_archived_threads(
+        &self,
+        channel_id: ChannelId,
+    ) -> GetJoinedPrivateArchivedThreads<'_> {
+        GetJoinedPrivateArchivedThreads::new(self, channel_id)
+    }
+
+    /// Remove the current user from a thread.
+    ///
+    /// Requires that the thread is not archived.
+    pub const fn leave_thread(&self, channel_id: ChannelId) -> LeaveThread<'_> {
+        LeaveThread::new(self, channel_id)
+    }
+
+    /// Returns archived private threads in the channel.
+    ///
+    /// Requires both [`READ_MESSAGE_HISTORY`] and [`MANAGE_THREADS`].
+    ///
+    /// [`MANAGE_THREADS`]: twilight_model::guild::Permissions::MANAGE_THREADS
+    /// [`READ_MESSAGE_HISTORY`]: twilight_model::guild::Permissions::READ_MESSAGE_HISTORY
+    pub const fn private_archived_threads(
+        &self,
+        channel_id: ChannelId,
+    ) -> GetPrivateArchivedThreads<'_> {
+        GetPrivateArchivedThreads::new(self, channel_id)
+    }
+
+    /// Returns archived public threads in the channel.
+    ///
+    /// Requires the [`READ_MESSAGE_HISTORY`] permission.
+    ///
+    /// Threads are ordered by [`archive_timestamp`] in descending order.
+    ///
+    /// When called in a [`GuildText`] channel, returns [`GuildPublicThread`]s.
+    ///
+    /// When called in a [`GuildNews`] channel, returns [`GuildNewsThread`]s.
+    ///
+    /// [`archive_timestamp`]: twilight_model::channel::thread::ThreadMetadata::archive_timestamp
+    /// [`GuildNews`]: twilight_model::channel::ChannelType::GuildNews
+    /// [`GuildNewsThread`]: twilight_model::channel::ChannelType::GuildNewsThread
+    /// [`GuildPublicThread`]: twilight_model::channel::ChannelType::GuildPublicThread
+    /// [`GuildText`]: twilight_model::channel::ChannelType::GuildText
+    /// [`READ_MESSAGE_HISTORY`]: twilight_model::guild::Permissions::READ_MESSAGE_HISTORY
+    pub const fn public_archived_threads(
+        &self,
+        channel_id: ChannelId,
+    ) -> GetPublicArchivedThreads<'_> {
+        GetPublicArchivedThreads::new(self, channel_id)
+    }
+
+    /// Remove another member from a thread.
+    ///
+    /// Requires that the thread is not archived.
+    ///
+    /// Requires the [`MANAGE_THREADS`] permission, unless both the thread is a
+    /// [`GuildPrivateThread`], and the current user is the creator of the
+    /// thread.
+    ///
+    /// [`GuildPrivateThread`]: twilight_model::channel::ChannelType::GuildPrivateThread
+    /// [`MANAGE_THREADS`]: twilight_model::guild::Permissions::MANAGE_THREADS
+    pub const fn remove_thread_member(
+        &self,
+        channel_id: ChannelId,
+        user_id: UserId,
+    ) -> RemoveThreadMember<'_> {
+        RemoveThreadMember::new(self, channel_id, user_id)
+    }
+
+    /// Returns the [`ThreadMember`]s of the thread.
+    ///
+    /// [`ThreadMember`]: twilight_model::channel::thread::ThreadMember
+    pub const fn thread_members(&self, channel_id: ChannelId) -> GetThreadMembers<'_> {
+        GetThreadMembers::new(self, channel_id)
+    }
+
+    /// Update a thread.
+    ///
+    /// All fields are optional. The minimum length of the name is 1 UTF-16
+    /// characters and the maximum is 100 UTF-16 characters.
+    pub const fn update_thread(&self, channel_id: ChannelId) -> UpdateThread<'_> {
+        UpdateThread::new(self, channel_id)
+    }
+
     /// Get a user's information by id.
     pub const fn user(&self, user_id: UserId) -> GetUser<'_> {
         GetUser::new(self, user_id)
@@ -1751,6 +1924,30 @@ impl Client {
             self,
             application_id,
             interaction_token,
+        ))
+    }
+
+    /// Get a followup message of an interaction.
+    ///
+    /// # Errors
+    ///
+    /// Returns an [`InteractionErrorType::ApplicationIdNotPresent`]
+    /// error type if an application ID has not been configured via
+    /// [`Client::set_application_id`].
+    pub fn followup_message<'a>(
+        &'a self,
+        interaction_token: &'a str,
+        message_id: MessageId,
+    ) -> Result<GetFollowupMessage<'a>, InteractionError> {
+        let application_id = self.application_id().ok_or(InteractionError {
+            kind: InteractionErrorType::ApplicationIdNotPresent,
+        })?;
+
+        Ok(GetFollowupMessage::new(
+            self,
+            application_id,
+            interaction_token,
+            message_id,
         ))
     }
 
@@ -2370,6 +2567,12 @@ impl Client {
                 let content_type = HeaderValue::from_static("application/json");
                 headers.insert(CONTENT_TYPE, content_type);
             }
+
+            #[cfg(feature = "decompression")]
+            headers.insert(
+                hyper::header::ACCEPT_ENCODING,
+                HeaderValue::from_static("br"),
+            );
 
             headers.insert(USER_AGENT, user_agent);
 

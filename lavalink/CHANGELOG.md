@@ -2,6 +2,13 @@
 
 Changelog for `twilight-lavalink`.
 
+## [0.6.1] - 2021-09-17
+
+### Changes
+
+This release contains internal refactors, there are no public facing
+changes.
+
 ## [0.6.0] - 2021-07-31
 
 ### Changes
@@ -199,6 +206,8 @@ Initial release.
 [#548]: https://github.com/twilight-rs/twilight/pull/548
 [#518]: https://github.com/twilight-rs/twilight/pull/518
 
+[0.6.1]: https://github.com/twilight-rs/twilight/releases/tag/lavalink-0.6.1
+[0.6.0]: https://github.com/twilight-rs/twilight/releases/tag/lavalink-0.6.0
 [0.5.2]: https://github.com/twilight-rs/twilight/releases/tag/lavalink-0.5.2
 [0.5.1]: https://github.com/twilight-rs/twilight/releases/tag/lavalink-0.5.1
 [0.5.0]: https://github.com/twilight-rs/twilight/releases/tag/lavalink-0.5.0

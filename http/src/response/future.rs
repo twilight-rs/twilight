@@ -4,9 +4,7 @@ use crate::{
     error::{Error, ErrorType},
     ratelimiting::RatelimitHeaders,
 };
-use hyper::{
-    body::Bytes, client::ResponseFuture as HyperResponseFuture, StatusCode as HyperStatusCode,
-};
+use hyper::{client::ResponseFuture as HyperResponseFuture, StatusCode as HyperStatusCode};
 use std::{
     convert::TryFrom,
     future::Future,
@@ -40,7 +38,7 @@ enum InnerPoll<T> {
 }
 
 struct Chunking {
-    future: Pin<Box<dyn Future<Output = Result<Bytes, Error>> + Send + Sync + 'static>>,
+    future: Pin<Box<dyn Future<Output = Result<Vec<u8>, Error>> + Send + Sync + 'static>>,
     status: HyperStatusCode,
 }
 
@@ -61,9 +59,7 @@ impl Chunking {
             Ok(error) => error,
             Err(source) => {
                 return InnerPoll::Ready(Err(Error {
-                    kind: ErrorType::Parsing {
-                        body: bytes.to_vec(),
-                    },
+                    kind: ErrorType::Parsing { body: bytes },
                     source: Some(Box::new(source)),
                 }));
             }
@@ -80,7 +76,7 @@ impl Chunking {
 
         InnerPoll::Ready(Err(Error {
             kind: ErrorType::Response {
-                body: bytes.to_vec(),
+                body: bytes,
                 error,
                 status: StatusCode::new(self.status.as_u16()),
             },
@@ -159,6 +155,12 @@ impl InFlight {
         let status = resp.status();
 
         if status.is_success() {
+            #[cfg(feature = "decompression")]
+            let mut resp = resp;
+            // Inaccurate since end-users can only access the decompressed body.
+            #[cfg(feature = "decompression")]
+            resp.headers_mut().remove(hyper::header::CONTENT_LENGTH);
+
             let mut response = Response::new(resp);
 
             if let Some(guild_id) = self.guild_id {
@@ -182,17 +184,18 @@ impl InFlight {
             _ => {}
         }
 
-        let fut = Box::pin(async {
-            hyper::body::to_bytes(resp.into_body())
+        let fut = async {
+            Response::<()>::new(resp)
+                .bytes()
                 .await
                 .map_err(|source| Error {
                     kind: ErrorType::ChunkingResponse,
                     source: Some(Box::new(source)),
                 })
-        });
+        };
 
         InnerPoll::Advance(ResponseFutureStage::Chunking(Chunking {
-            future: fut,
+            future: Box::pin(fut),
             status,
         }))
     }

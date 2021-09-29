@@ -136,7 +136,9 @@ mod tests {
             application_id: None,
             attachments: Vec::new(),
             author: User {
+                accent_color: None,
                 avatar: Some("".to_owned()),
+                banner: None,
                 bot: false,
                 discriminator: "0001".to_owned(),
                 email: None,
@@ -178,6 +180,7 @@ mod tests {
             reactions: Vec::new(),
             reference: None,
             sticker_items: Vec::new(),
+            thread: None,
             referenced_message: None,
             timestamp: String::new(),
             tts: false,

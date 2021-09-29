@@ -21,7 +21,7 @@ pub use self::{
 use self::sticker::MessageSticker;
 use crate::{
     application::component::Component,
-    channel::{embed::Embed, Attachment, ChannelMention},
+    channel::{embed::Embed, Attachment, Channel, ChannelMention},
     guild::PartialMember,
     id::{ApplicationId, ChannelId, GuildId, MessageId, RoleId, WebhookId},
     user::User,
@@ -79,6 +79,8 @@ pub struct Message {
     #[serde(default)]
     pub sticker_items: Vec<MessageSticker>,
     pub timestamp: String,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub thread: Option<Channel>,
     pub tts: bool,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub webhook_id: Option<WebhookId>,
@@ -108,7 +110,9 @@ mod tests {
             application_id: None,
             attachments: Vec::new(),
             author: User {
+                accent_color: None,
                 avatar: Some("aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa".to_owned()),
+                banner: None,
                 bot: false,
                 discriminator: "0001".to_owned(),
                 email: None,
@@ -156,6 +160,7 @@ mod tests {
             }],
             referenced_message: None,
             timestamp: "2020-02-02T02:02:02.020000+00:00".to_owned(),
+            thread: None,
             tts: false,
             webhook_id: None,
         };
@@ -173,11 +178,15 @@ mod tests {
                 Token::Str("author"),
                 Token::Struct {
                     name: "User",
-                    len: 5,
+                    len: 7,
                 },
+                Token::Str("accent_color"),
+                Token::None,
                 Token::Str("avatar"),
                 Token::Some,
                 Token::Str("aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"),
+                Token::Str("banner"),
+                Token::None,
                 Token::Str("bot"),
                 Token::Bool(false),
                 Token::Str("discriminator"),
@@ -286,7 +295,9 @@ mod tests {
             application_id: Some(ApplicationId(1)),
             attachments: Vec::new(),
             author: User {
+                accent_color: None,
                 avatar: Some("aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa".to_owned()),
+                banner: None,
                 bot: false,
                 discriminator: "0001".to_owned(),
                 email: None,
@@ -350,6 +361,7 @@ mod tests {
             }],
             referenced_message: None,
             timestamp: "2020-02-02T02:02:02.020000+00:00".to_owned(),
+            thread: None,
             tts: false,
             webhook_id: Some(WebhookId(1)),
         };
@@ -404,11 +416,15 @@ mod tests {
                 Token::Str("author"),
                 Token::Struct {
                     name: "User",
-                    len: 5,
+                    len: 7,
                 },
+                Token::Str("accent_color"),
+                Token::None,
                 Token::Str("avatar"),
                 Token::Some,
                 Token::Str("aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"),
+                Token::Str("banner"),
+                Token::None,
                 Token::Str("bot"),
                 Token::Bool(false),
                 Token::Str("discriminator"),

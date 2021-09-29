@@ -128,7 +128,9 @@ mod tests {
 
     fn user() -> User {
         User {
+            accent_color: None,
             avatar: None,
+            banner: None,
             bot: false,
             discriminator: "0001".to_owned(),
             email: None,
