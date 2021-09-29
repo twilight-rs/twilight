@@ -3,7 +3,7 @@
 use twilight_model::{
     application::command::{
         BaseCommandOptionData, ChoiceCommandOptionData, Command, CommandOption,
-        CommandOptionChoice, CommandType, OptionsCommandOptionData,
+        CommandOptionChoice, CommandType, Number, OptionsCommandOptionData,
     },
     id::{ApplicationId, CommandId, GuildId},
 };
@@ -276,6 +276,61 @@ impl MentionableBuilder {
 
 impl From<MentionableBuilder> for CommandOption {
     fn from(builder: MentionableBuilder) -> CommandOption {
+        builder.build()
+    }
+}
+
+/// Create a [`Number`] option with a builder.
+#[derive(Clone, Debug)]
+#[must_use = "should be used in a command builder"]
+pub struct NumberBuilder(ChoiceCommandOptionData);
+
+impl NumberBuilder {
+    /// Create a new default [`NumberBuilder`].
+    #[must_use = "builders have no effect if unused"]
+    pub const fn new(name: String, description: String) -> Self {
+        Self(ChoiceCommandOptionData {
+            choices: Vec::new(),
+            description,
+            name,
+            required: false,
+        })
+    }
+
+    /// Consume the builder, returning the built command option.
+    #[allow(clippy::missing_const_for_fn)]
+    #[must_use = "should be used in a command builder"]
+    pub fn build(self) -> CommandOption {
+        CommandOption::Number(self.0)
+    }
+
+    /// Add a list of choices to the command.
+    ///
+    /// Accepts tuples of `(Number, Number)` corresponding to the name and
+    /// value.
+    ///
+    /// Defaults to no choices.
+    pub fn choices(mut self, choices: impl IntoIterator<Item = (String, Number)>) -> Self {
+        self.0.choices = choices
+            .into_iter()
+            .map(|(name, value)| CommandOptionChoice::Number { name, value })
+            .collect();
+
+        self
+    }
+
+    /// Set whether this option is required.
+    ///
+    /// Defaults to false.
+    pub const fn required(mut self, required: bool) -> Self {
+        self.0.required = required;
+
+        self
+    }
+}
+
+impl From<NumberBuilder> for CommandOption {
+    fn from(builder: NumberBuilder) -> CommandOption {
         builder.build()
     }
 }
@@ -578,6 +633,10 @@ mod tests {
                             "The channel permissions to edit. If omitted, the guild permissions \
                              will be edited"
                                 .into(),
+                        ))
+                        .option(NumberBuilder::new(
+                            "position".into(),
+                            "The position of the new role".into(),
                         )),
                 ),
         )
@@ -678,6 +737,12 @@ mod tests {
                                          permissions will be edited",
                                     ),
                                     name: String::from("channel"),
+                                    required: false,
+                                }),
+                                CommandOption::Number(ChoiceCommandOptionData {
+                                    choices: Vec::new(),
+                                    description: String::from("The position of the new role"),
+                                    name: String::from("position"),
                                     required: false,
                                 }),
                             ],
