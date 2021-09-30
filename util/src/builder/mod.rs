@@ -3,4 +3,4 @@
 mod callback_data;
 pub mod command;
 
-pub use callback_data::CallbackDataBuilder;
+pub use self::callback_data::CallbackDataBuilder;

@@ -14,11 +14,12 @@ use twilight_model::{
 /// use twilight_model::channel::message::MessageFlags;
 ///
 /// let callback_data = CallbackDataBuilder::new()
-///     .content("My callback message")
+///     .content("My callback message".to_string())
 ///     .flags(MessageFlags::EPHEMERAL)
 ///     .build();
 /// ```
 #[derive(Debug)]
+#[allow(clippy::module_name_repetitions)]
 #[must_use = "builders have no effect if unused"]
 pub struct CallbackDataBuilder(CallbackData);
 
@@ -36,35 +37,24 @@ impl CallbackDataBuilder {
         self
     }
 
-    /// Add a message component.
-    ///
-    /// Multiple component can be set by calling this method multiple times.
-    pub fn component(mut self, component: Component) -> Self {
-        match self.0.components {
-            Some(ref mut components) => components.push(component),
-            None => self.0.components = Some(vec![component]),
-        };
+    /// Set message components.
+    pub fn components(mut self, components: impl IntoIterator<Item = Component>) -> Self {
+        self.0.components = Some(components.into_iter().collect());
 
         self
     }
 
     /// Set the content.
-    pub fn content(self, content: impl Into<String>) -> Self {
-        self._content(content.into())
-    }
-
     #[allow(clippy::missing_const_for_fn)]
-    fn _content(mut self, content: String) -> Self {
+    pub fn content(mut self, content: String) -> Self {
         self.0.content = Some(content);
 
         self
     }
 
-    /// Add an embed.
-    ///
-    /// Multiple embeds can be set by calling this method multiple times.
-    pub fn embed(mut self, embed: Embed) -> Self {
-        self.0.embeds.push(embed);
+    /// Set message embeds.
+    pub fn embeds(mut self, embeds: impl IntoIterator<Item = Embed>) -> Self {
+        self.0.embeds = embeds.into_iter().collect();
 
         self
     }
@@ -154,9 +144,9 @@ mod tests {
 
         let value = CallbackDataBuilder::new()
             .allowed_mentions(allowed_mentions.clone())
-            .component(component.clone())
-            .content("a content")
-            .embed(embed.clone())
+            .components(vec![component.clone()])
+            .content("a content".into())
+            .embeds(vec![embed.clone()])
             .flags(MessageFlags::empty())
             .tts(false)
             .build();
