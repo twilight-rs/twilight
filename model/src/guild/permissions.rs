@@ -37,7 +37,7 @@ bitflags! {
         const MANAGE_NICKNAMES = 1 << 27;
         const MANAGE_ROLES = 1 << 28;
         const MANAGE_WEBHOOKS = 1 << 29;
-        #[deprecated(note = "will be renamed to MANAGE_EMOJIS_AND_STICKERS", since = "0.6.4")]
+        #[deprecated(note = "will be renamed to MANAGE_EMOJIS_AND_STICKERS", since = "0.6.5")]
         const MANAGE_EMOJIS = 1 << 30;
         const USE_SLASH_COMMANDS = 1 << 31;
         const REQUEST_TO_SPEAK = 1 << 32;
