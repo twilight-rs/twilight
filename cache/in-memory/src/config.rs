@@ -97,24 +97,6 @@ mod tests {
     assert_fields!(Config: resource_types, message_cache_size);
 
     #[test]
-    #[allow(clippy::cognitive_complexity)]
-    fn test_resource_type_const_values() {
-        assert_eq!(1, ResourceType::CHANNEL.bits());
-        assert_eq!(1 << 1, ResourceType::EMOJI.bits());
-        assert_eq!(1 << 2, ResourceType::GUILD.bits());
-        assert_eq!(1 << 3, ResourceType::MEMBER.bits());
-        assert_eq!(1 << 4, ResourceType::MESSAGE.bits());
-        assert_eq!(1 << 5, ResourceType::PRESENCE.bits());
-        assert_eq!(1 << 6, ResourceType::REACTION.bits());
-        assert_eq!(1 << 7, ResourceType::ROLE.bits());
-        assert_eq!(1 << 8, ResourceType::USER_CURRENT.bits());
-        assert_eq!(1 << 9, ResourceType::USER.bits());
-        assert_eq!(1 << 10, ResourceType::VOICE_STATE.bits());
-        assert_eq!(1 << 11, ResourceType::STAGE_INSTANCE.bits());
-        assert_eq!(1 << 13, ResourceType::STICKER.bits());
-    }
-
-    #[test]
     fn test_defaults() {
         let conf = Config {
             resource_types: ResourceType::all(),

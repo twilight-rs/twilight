@@ -7,6 +7,10 @@
 //!
 //! ## Features
 //!
+//! ### `builder`
+//!
+//! Provides builders for large structs.
+//!
 //! ### `link`
 //!
 //! Provides implementations for parsing and formatting entities' URLs, such as
@@ -46,6 +50,10 @@
 )]
 #![allow(clippy::semicolon_if_nothing_returned)]
 #![cfg_attr(docsrs, feature(doc_cfg))]
+
+#[cfg(feature = "builder")]
+#[cfg_attr(docrs, doc(cfg(feature = "builder")))]
+pub mod builder;
 
 #[cfg(feature = "link")]
 #[cfg_attr(docsrs, doc(cfg(feature = "link")))]

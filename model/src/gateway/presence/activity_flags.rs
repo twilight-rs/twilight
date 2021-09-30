@@ -29,19 +29,3 @@ impl Serialize for ActivityFlags {
         serializer.serialize_u64(self.bits())
     }
 }
-
-#[cfg(test)]
-mod tests {
-    use super::ActivityFlags;
-    use serde_test::Token;
-
-    #[test]
-    fn test_variants() {
-        serde_test::assert_tokens(&ActivityFlags::INSTANCE, &[Token::U64(1)]);
-        serde_test::assert_tokens(&ActivityFlags::JOIN, &[Token::U64(1 << 1)]);
-        serde_test::assert_tokens(&ActivityFlags::SPECTATE, &[Token::U64(1 << 2)]);
-        serde_test::assert_tokens(&ActivityFlags::JOIN_REQUEST, &[Token::U64(1 << 3)]);
-        serde_test::assert_tokens(&ActivityFlags::SYNC, &[Token::U64(1 << 4)]);
-        serde_test::assert_tokens(&ActivityFlags::PLAY, &[Token::U64(1 << 5)]);
-    }
-}

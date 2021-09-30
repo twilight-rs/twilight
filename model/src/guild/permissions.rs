@@ -7,49 +7,48 @@ use std::fmt::{Formatter, Result as FmtResult};
 
 bitflags! {
     pub struct Permissions: u64 {
-        const CREATE_INVITE = 0x0000_0001;
-        const KICK_MEMBERS = 0x0000_0002;
-        const BAN_MEMBERS = 0x0000_0004;
-        const ADMINISTRATOR = 0x0000_0008;
-        const MANAGE_CHANNELS = 0x0000_0010;
-        const MANAGE_GUILD = 0x0000_0020;
-        const ADD_REACTIONS = 0x0000_0040;
-        const VIEW_AUDIT_LOG = 0x0000_0080;
-        const PRIORITY_SPEAKER = 0x0000_0100;
-        const STREAM = 0x0000_0200;
-        const VIEW_CHANNEL = 0x0000_0400;
-        const SEND_MESSAGES = 0x0000_0800;
-        const SEND_TTS_MESSAGES = 0x0000_1000;
-        const MANAGE_MESSAGES = 0x0000_2000;
-        const EMBED_LINKS = 0x0000_4000;
-        const ATTACH_FILES = 0x0000_8000;
-        const READ_MESSAGE_HISTORY = 0x0001_0000;
-        const MENTION_EVERYONE = 0x0002_0000;
-        const USE_EXTERNAL_EMOJIS = 0x0004_0000;
-        const VIEW_GUILD_INSIGHTS = 0x0008_0000;
-        const CONNECT = 0x0010_0000;
-        const SPEAK = 0x0020_0000;
-        const MUTE_MEMBERS = 0x0040_0000;
-        const DEAFEN_MEMBERS = 0x0080_0000;
-        const MOVE_MEMBERS = 0x0100_0000;
-        const USE_VAD = 0x0200_0000;
-        const CHANGE_NICKNAME = 0x0400_0000;
-        const MANAGE_NICKNAMES = 0x0800_0000;
-        const MANAGE_ROLES = 0x1000_0000;
-        const MANAGE_WEBHOOKS = 0x2000_0000;
+        const CREATE_INVITE = 1;
+        const KICK_MEMBERS = 1 << 1;
+        const BAN_MEMBERS = 1 << 2;
+        const ADMINISTRATOR = 1 << 3;
+        const MANAGE_CHANNELS = 1 << 4;
+        const MANAGE_GUILD = 1 << 5;
+        const ADD_REACTIONS = 1 << 6;
+        const VIEW_AUDIT_LOG = 1 << 7;
+        const PRIORITY_SPEAKER = 1 << 8;
+        const STREAM = 1 << 9;
+        const VIEW_CHANNEL = 1 << 10;
+        const SEND_MESSAGES = 1 << 11;
+        const SEND_TTS_MESSAGES = 1 << 12;
+        const MANAGE_MESSAGES = 1 << 13;
+        const EMBED_LINKS = 1 << 14;
+        const ATTACH_FILES = 1 << 15;
+        const READ_MESSAGE_HISTORY = 1 << 16;
+        const MENTION_EVERYONE = 1 << 17;
+        const USE_EXTERNAL_EMOJIS = 1 << 18;
+        const VIEW_GUILD_INSIGHTS = 1 << 19;
+        const CONNECT = 1 << 20;
+        const SPEAK = 1 << 21;
+        const MUTE_MEMBERS = 1 << 22;
+        const DEAFEN_MEMBERS = 1 << 23;
+        const MOVE_MEMBERS = 1 << 24;
+        const USE_VAD = 1 << 25;
+        const CHANGE_NICKNAME = 1 << 26;
+        const MANAGE_NICKNAMES = 1 << 27;
+        const MANAGE_ROLES = 1 << 28;
+        const MANAGE_WEBHOOKS = 1 << 29;
         #[deprecated(note = "will be renamed to MANAGE_EMOJIS_AND_STICKERS", since = "0.6.4")]
-        const MANAGE_EMOJIS = 0x4000_0000;
-        const USE_SLASH_COMMANDS = 0x8000_0000;
-        const REQUEST_TO_SPEAK = 0x10000_0000;
-        const USE_EXTERNAL_STICKERS = 0x20000_0000;
+        const MANAGE_EMOJIS = 1 << 30;
+        const USE_SLASH_COMMANDS = 1 << 31;
+        const REQUEST_TO_SPEAK = 1 << 32;
         /// Allows for deleting and archiving threads, and viewing all private threads.
-        const MANAGE_THREADS = 0x40000_0000;
+        const MANAGE_THREADS = 1 << 34;
         /// Allows for creating public threads.
-        const CREATE_PUBLIC_THREADS = 0x0008_0000_0000;
+        const CREATE_PUBLIC_THREADS = 1 << 35;
         /// Allows for creating private threads.
-        const CREATE_PRIVATE_THREADS = 0x0010_0000_0000;
+        const CREATE_PRIVATE_THREADS = 1 << 36;
         /// Allows for sending messages in threads.
-        const SEND_MESSAGES_IN_THREADS = 0x0040_0000_0000;
+        const SEND_MESSAGES_IN_THREADS = 1 << 38;
     }
 }
 
@@ -85,41 +84,5 @@ impl<'de> Deserialize<'de> for Permissions {
 impl Serialize for Permissions {
     fn serialize<S: Serializer>(&self, serializer: S) -> Result<S::Ok, S::Error> {
         serializer.serialize_str(&self.bits().to_string())
-    }
-}
-
-#[cfg(test)]
-mod tests {
-    use super::Permissions;
-    use serde::{Deserialize, Serialize};
-    use serde_test::Token;
-    use static_assertions::{assert_impl_all, const_assert_eq};
-    use std::{fmt::Debug, hash::Hash};
-
-    assert_impl_all!(
-        Permissions: Copy,
-        Clone,
-        Debug,
-        Deserialize<'static>,
-        Eq,
-        Hash,
-        PartialEq,
-        Ord,
-        Send,
-        Serialize,
-        Sync
-    );
-    const_assert_eq!(0x0008_0000_0000, Permissions::CREATE_PUBLIC_THREADS.bits());
-    const_assert_eq!(0x0010_0000_0000, Permissions::CREATE_PRIVATE_THREADS.bits());
-    const_assert_eq!(
-        0x0040_0000_0000,
-        Permissions::SEND_MESSAGES_IN_THREADS.bits()
-    );
-
-    #[test]
-    fn test_permissions() {
-        let permissions = Permissions::DEAFEN_MEMBERS;
-
-        serde_test::assert_tokens(&permissions, &[Token::Str("8388608")]);
     }
 }

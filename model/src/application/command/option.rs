@@ -5,7 +5,11 @@ use serde::{
     Deserialize, Serialize,
 };
 use serde_repr::{Deserialize_repr, Serialize_repr};
-use std::fmt::{Formatter, Result as FmtResult};
+use std::{
+    cmp::Eq,
+    fmt::{Formatter, Result as FmtResult},
+    hash::{Hash, Hasher},
+};
 
 /// Option for a [`Command`].
 ///
@@ -28,6 +32,7 @@ pub enum CommandOption {
     Channel(BaseCommandOptionData),
     Role(BaseCommandOptionData),
     Mentionable(BaseCommandOptionData),
+    Number(ChoiceCommandOptionData),
 }
 
 impl CommandOption {
@@ -42,13 +47,16 @@ impl CommandOption {
             CommandOption::Channel(_) => CommandOptionType::Channel,
             CommandOption::Role(_) => CommandOptionType::Role,
             CommandOption::Mentionable(_) => CommandOptionType::Mentionable,
+            CommandOption::Number(_) => CommandOptionType::Number,
         }
     }
 
     pub const fn is_required(&self) -> bool {
         match self {
             CommandOption::SubCommand(data) | CommandOption::SubCommandGroup(data) => data.required,
-            CommandOption::String(data) | CommandOption::Integer(data) => data.required,
+            CommandOption::String(data)
+            | CommandOption::Integer(data)
+            | CommandOption::Number(data) => data.required,
             CommandOption::Boolean(data)
             | CommandOption::User(data)
             | CommandOption::Channel(data)
@@ -89,14 +97,16 @@ impl Serialize for CommandOption {
                 required: data.required,
                 kind: self.kind(),
             },
-            Self::String(data) | Self::Integer(data) => CommandOptionEnvelope {
-                choices: Some(data.choices.as_ref()),
-                description: data.description.as_ref(),
-                name: data.name.as_ref(),
-                options: None,
-                required: data.required,
-                kind: self.kind(),
-            },
+            Self::String(data) | Self::Integer(data) | Self::Number(data) => {
+                CommandOptionEnvelope {
+                    choices: Some(data.choices.as_ref()),
+                    description: data.description.as_ref(),
+                    name: data.name.as_ref(),
+                    options: None,
+                    required: data.required,
+                    kind: self.kind(),
+                }
+            }
             Self::Boolean(data)
             | Self::User(data)
             | Self::Channel(data)
@@ -284,6 +294,12 @@ impl<'de> Visitor<'de> for OptionVisitor {
                 name,
                 required,
             }),
+            CommandOptionType::Number => CommandOption::Number(ChoiceCommandOptionData {
+                choices: choices.flatten().unwrap_or_default(),
+                description,
+                name,
+                required,
+            }),
         })
     }
 }
@@ -363,6 +379,7 @@ pub struct ChoiceCommandOptionData {
 pub enum CommandOptionChoice {
     String { name: String, value: String },
     Int { name: String, value: i64 },
+    Number { name: String, value: Number },
 }
 
 /// Type of a [`CommandOption`].
@@ -380,6 +397,7 @@ pub enum CommandOptionType {
     Channel = 7,
     Role = 8,
     Mentionable = 9,
+    Number = 10,
 }
 
 impl CommandOptionType {
@@ -394,7 +412,31 @@ impl CommandOptionType {
             CommandOptionType::Channel => "Channel",
             CommandOptionType::Role => "Role",
             CommandOptionType::Mentionable => "Mentionable",
+            CommandOptionType::Number => "Number",
         }
+    }
+}
+
+#[derive(Clone, Copy, Debug, Deserialize, Serialize)]
+pub struct Number(pub f64);
+
+impl Eq for Number {}
+
+impl Hash for Number {
+    fn hash<H: Hasher>(&self, state: &mut H) {
+        self.0.to_bits().hash(state);
+    }
+}
+
+impl PartialEq for Number {
+    fn eq(&self, other: &Number) -> bool {
+        self.0.to_bits() == other.0.to_bits()
+    }
+}
+
+impl From<Number> for f64 {
+    fn from(number: Number) -> f64 {
+        number.0
     }
 }
 
@@ -402,11 +444,25 @@ impl CommandOptionType {
 mod tests {
     use super::{
         super::{Command, CommandType},
-        BaseCommandOptionData, ChoiceCommandOptionData, CommandOption, CommandOptionChoice,
+        BaseCommandOptionData, ChoiceCommandOptionData, CommandOption, CommandOptionChoice, Number,
         OptionsCommandOptionData,
     };
     use crate::id::{ApplicationId, CommandId, GuildId};
+    use serde::{Deserialize, Serialize};
     use serde_test::Token;
+    use static_assertions::assert_impl_all;
+    use std::{fmt::Debug, hash::Hash};
+
+    assert_impl_all!(
+        Number: Clone,
+        Copy,
+        Debug,
+        Deserialize<'static>,
+        Eq,
+        Hash,
+        PartialEq,
+        Serialize
+    );
 
     /// Test that when a subcommand or subcommand group's `options` field is
     /// missing during deserialization that the field is defaulted instead of
@@ -507,6 +563,15 @@ mod tests {
                             name: "mentionable".into(),
                             required: false,
                         }),
+                        CommandOption::Number(ChoiceCommandOptionData {
+                            choices: vec![CommandOptionChoice::Number {
+                                name: "choice3".into(),
+                                value: Number(2.0),
+                            }],
+                            description: "number desc".into(),
+                            name: "number".into(),
+                            required: false,
+                        }),
                     ],
                     required: false,
                 })],
@@ -567,7 +632,7 @@ mod tests {
                 Token::Str("sub command name"),
                 Token::Str("options"),
                 Token::Some,
-                Token::Seq { len: Some(8) },
+                Token::Seq { len: Some(9) },
                 Token::Struct {
                     name: "CommandOptionEnvelope",
                     len: 4,
@@ -686,6 +751,31 @@ mod tests {
                 Token::Str("type"),
                 Token::U8(9),
                 Token::StructEnd,
+                Token::Struct {
+                    name: "CommandOptionEnvelope",
+                    len: 4,
+                },
+                Token::Str("choices"),
+                Token::Some,
+                Token::Seq { len: Some(1) },
+                Token::Struct {
+                    name: "CommandOptionChoice",
+                    len: 2,
+                },
+                Token::Str("name"),
+                Token::Str("choice3"),
+                Token::Str("value"),
+                Token::NewtypeStruct { name: "Number" },
+                Token::F64(2.0),
+                Token::StructEnd,
+                Token::SeqEnd,
+                Token::Str("description"),
+                Token::Str("number desc"),
+                Token::Str("name"),
+                Token::Str("number"),
+                Token::Str("type"),
+                Token::U8(10),
+                Token::StructEnd,
                 Token::SeqEnd,
                 Token::Str("type"),
                 Token::U8(1),
@@ -700,5 +790,13 @@ mod tests {
                 Token::StructEnd,
             ],
         );
+    }
+
+    #[test]
+    fn test_number() {
+        const NUMBER_1: Number = Number(12.34_f64);
+        const NUMBER_2: Number = Number(12.34_f64);
+
+        assert_eq!(NUMBER_1, NUMBER_2);
     }
 }

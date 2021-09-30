@@ -36,29 +36,3 @@ impl Serialize for UserFlags {
         serializer.serialize_u64(self.bits())
     }
 }
-
-#[cfg(test)]
-mod tests {
-    use super::UserFlags;
-    use serde_test::Token;
-
-    #[test]
-    fn test_variants() {
-        serde_test::assert_tokens(&UserFlags::DISCORD_EMPLOYEE, &[Token::U64(1)]);
-        serde_test::assert_tokens(&UserFlags::DISCORD_PARTNER, &[Token::U64(1 << 1)]);
-        serde_test::assert_tokens(&UserFlags::HYPESQUAD_EVENTS, &[Token::U64(1 << 2)]);
-        serde_test::assert_tokens(&UserFlags::BUG_HUNTER, &[Token::U64(1 << 3)]);
-        serde_test::assert_tokens(&UserFlags::HOUSE_BRAVERY, &[Token::U64(1 << 6)]);
-        serde_test::assert_tokens(&UserFlags::HOUSE_BRILLIANCE, &[Token::U64(1 << 7)]);
-        serde_test::assert_tokens(&UserFlags::HOUSE_BALANCE, &[Token::U64(1 << 8)]);
-        serde_test::assert_tokens(&UserFlags::EARLY_SUPPORTER, &[Token::U64(1 << 9)]);
-        serde_test::assert_tokens(&UserFlags::TEAM_USER, &[Token::U64(1 << 10)]);
-        serde_test::assert_tokens(&UserFlags::BUG_HUNTER_LEVEL_2, &[Token::U64(1 << 14)]);
-        serde_test::assert_tokens(&UserFlags::VERIFIED_BOT, &[Token::U64(1 << 16)]);
-        serde_test::assert_tokens(&UserFlags::VERIFIED_BOT_DEVELOPER, &[Token::U64(1 << 17)]);
-        serde_test::assert_tokens(
-            &UserFlags::DISCORD_CERTIFIED_MODERATOR,
-            &[Token::U64(1 << 18)],
-        );
-    }
-}
