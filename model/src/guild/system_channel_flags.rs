@@ -26,25 +26,3 @@ impl Serialize for SystemChannelFlags {
         serializer.serialize_u64(self.bits())
     }
 }
-
-#[cfg(test)]
-mod tests {
-    use super::SystemChannelFlags;
-    use serde_test::Token;
-
-    #[test]
-    fn test_variants() {
-        serde_test::assert_tokens(
-            &SystemChannelFlags::SUPPRESS_JOIN_NOTIFICATIONS,
-            &[Token::U64(1)],
-        );
-        serde_test::assert_tokens(
-            &SystemChannelFlags::SUPPRESS_PREMIUM_SUBSCRIPTIONS,
-            &[Token::U64(1 << 1)],
-        );
-        serde_test::assert_tokens(
-            &SystemChannelFlags::SUPPRESS_GUILD_REMINDER_NOTIFICATIONS,
-            &[Token::U64(1 << 2)],
-        );
-    }
-}

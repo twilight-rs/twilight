@@ -206,28 +206,3 @@ impl Serialize for Intents {
         serializer.serialize_u64(self.bits())
     }
 }
-
-#[cfg(test)]
-mod tests {
-    use super::Intents;
-    use serde_test::Token;
-
-    #[test]
-    fn test_variants() {
-        serde_test::assert_tokens(&Intents::GUILDS, &[Token::U64(1)]);
-        serde_test::assert_tokens(&Intents::GUILD_MEMBERS, &[Token::U64(1 << 1)]);
-        serde_test::assert_tokens(&Intents::GUILD_BANS, &[Token::U64(1 << 2)]);
-        serde_test::assert_tokens(&Intents::GUILD_EMOJIS, &[Token::U64(1 << 3)]);
-        serde_test::assert_tokens(&Intents::GUILD_INTEGRATIONS, &[Token::U64(1 << 4)]);
-        serde_test::assert_tokens(&Intents::GUILD_WEBHOOKS, &[Token::U64(1 << 5)]);
-        serde_test::assert_tokens(&Intents::GUILD_INVITES, &[Token::U64(1 << 6)]);
-        serde_test::assert_tokens(&Intents::GUILD_VOICE_STATES, &[Token::U64(1 << 7)]);
-        serde_test::assert_tokens(&Intents::GUILD_PRESENCES, &[Token::U64(1 << 8)]);
-        serde_test::assert_tokens(&Intents::GUILD_MESSAGES, &[Token::U64(1 << 9)]);
-        serde_test::assert_tokens(&Intents::GUILD_MESSAGE_REACTIONS, &[Token::U64(1 << 10)]);
-        serde_test::assert_tokens(&Intents::GUILD_MESSAGE_TYPING, &[Token::U64(1 << 11)]);
-        serde_test::assert_tokens(&Intents::DIRECT_MESSAGES, &[Token::U64(1 << 12)]);
-        serde_test::assert_tokens(&Intents::DIRECT_MESSAGE_REACTIONS, &[Token::U64(1 << 13)]);
-        serde_test::assert_tokens(&Intents::DIRECT_MESSAGE_TYPING, &[Token::U64(1 << 14)]);
-    }
-}

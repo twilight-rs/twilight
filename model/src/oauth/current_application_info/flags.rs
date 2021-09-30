@@ -29,31 +29,3 @@ impl Serialize for ApplicationFlags {
         serializer.serialize_u64(self.bits())
     }
 }
-
-#[cfg(test)]
-mod tests {
-    use super::ApplicationFlags;
-    use serde_test::Token;
-
-    #[test]
-    fn test_variants() {
-        serde_test::assert_tokens(&ApplicationFlags::GATEWAY_PRESENCE, &[Token::U64(1 << 12)]);
-        serde_test::assert_tokens(
-            &ApplicationFlags::GATEWAY_PRESENCE_LIMITED,
-            &[Token::U64(1 << 13)],
-        );
-        serde_test::assert_tokens(
-            &ApplicationFlags::GATEWAY_GUILD_MEMBERS,
-            &[Token::U64(1 << 14)],
-        );
-        serde_test::assert_tokens(
-            &ApplicationFlags::GATEWAY_GUILD_MEMBERS_LIMITED,
-            &[Token::U64(1 << 15)],
-        );
-        serde_test::assert_tokens(
-            &ApplicationFlags::VERIFICATION_PENDING_GUILD_LIMIT,
-            &[Token::U64(1 << 16)],
-        );
-        serde_test::assert_tokens(&ApplicationFlags::EMBEDDED, &[Token::U64(1 << 17)]);
-    }
-}
