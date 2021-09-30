@@ -21,6 +21,12 @@ pub enum AuditLogChangeKey {
     Archived,
     /// ID of an application.
     ApplicationId,
+    /// Asset of a sticker.
+    ///
+    /// Empty string.
+    Asset,
+    /// Availability of a sticker.
+    Available,
     /// Auto archive duration of a thread.
     AutoArchiveDuration,
     /// Hash of an avatar.
@@ -55,6 +61,10 @@ pub enum AuditLogChangeKey {
     ExpireGracePeriod,
     /// Explicit content filter level of a guild.
     ExplicitContentFilter,
+    /// Format type of a sticker.
+    FormatType,
+    /// Guild that a sticker is in.
+    GuildId,
     /// Whether a role is hoisted.
     Hoist,
     /// Hash of a guild icon.
@@ -109,6 +119,8 @@ pub enum AuditLogChangeKey {
     SplashHash,
     /// ID of a guild's system channel.
     SystemChannelId,
+    /// Related emoji of a sticker.
+    Tags,
     /// Whether an invite is temporary.
     Temporary,
     /// Topic of a textual channel.
@@ -153,8 +165,10 @@ impl AuditLogChangeKey {
             Self::AfkTimeout => "afk_timeout",
             Self::Allow => "allow",
             Self::ApplicationId => "application_id",
-            Self::AutoArchiveDuration => "auto_archive_duration",
             Self::Archived => "archived",
+            Self::Asset => "asset",
+            Self::AutoArchiveDuration => "auto_archive_duration",
+            Self::Available => "available",
             Self::AvatarHash => "avatar_hash",
             Self::BannerHash => "banner_hash",
             Self::Bitrate => "bitrate",
@@ -171,6 +185,8 @@ impl AuditLogChangeKey {
             Self::ExpireBehavior => "expire_behavior",
             Self::ExpireGracePeriod => "expire_grace_period",
             Self::ExplicitContentFilter => "explicit_content_filter",
+            Self::FormatType => "format_type",
+            Self::GuildId => "guild_id",
             Self::Hoist => "hoist",
             Self::IconHash => "icon_hash",
             Self::Id => "id",
@@ -197,6 +213,7 @@ impl AuditLogChangeKey {
             Self::RulesChannelId => "rules_channel_id",
             Self::SplashHash => "splash_hash",
             Self::SystemChannelId => "system_channel_id",
+            Self::Tags => "tags",
             Self::Temporary => "temporary",
             Self::Topic => "topic",
             Self::Type => "type",

@@ -1,11 +1,11 @@
 use super::change_key::AuditLogChangeKey;
 use crate::{
-    channel::stage_instance::PrivacyLevel,
+    channel::{message::sticker::StickerFormatType, stage_instance::PrivacyLevel},
     guild::{
         DefaultMessageNotificationLevel, ExplicitContentFilter, MfaLevel, NSFWLevel, Permissions,
         VerificationLevel,
     },
-    id::{ApplicationId, ChannelId, GenericId, RoleId, UserId},
+    id::{ApplicationId, ChannelId, GenericId, GuildId, RoleId, UserId},
 };
 use serde::{Deserialize, Serialize};
 
@@ -61,6 +61,21 @@ pub enum AuditLogChange {
         /// Application's ID.
         #[serde(rename = "new_value")]
         new: ApplicationId,
+    },
+    /// Asset of a sticker.
+    Asset {
+        /// Empty string.
+        #[serde(rename = "new_value")]
+        new: String,
+    },
+    /// Availability of a sticker.
+    Available {
+        /// New availability.
+        #[serde(rename = "new_value")]
+        new: bool,
+        /// Old availability.
+        #[serde(rename = "old_value")]
+        old: bool,
     },
     /// Hash of an avatar.
     AvatarHash {
@@ -134,7 +149,7 @@ pub enum AuditLogChange {
         #[serde(rename = "new_value")]
         new: Permissions,
     },
-    /// Description of a guild.
+    /// Description of a guild or sticker.
     Description {
         /// New guild description.
         #[serde(rename = "new_value", skip_serializing_if = "Option::is_none")]
@@ -181,6 +196,24 @@ pub enum AuditLogChange {
         /// Old explicit content filter level.
         #[serde(rename = "old_value")]
         old: ExplicitContentFilter,
+    },
+    /// Format type of a sticker.
+    FormatType {
+        /// New format type of a sticker.
+        #[serde(rename = "new_value")]
+        new: StickerFormatType,
+        /// Old format type of a sticker.
+        #[serde(rename = "old_value")]
+        old: StickerFormatType,
+    },
+    /// Guild that a sticker is in.
+    GuildId {
+        /// New guild that a sticker is in.
+        #[serde(rename = "new_value")]
+        new: GuildId,
+        /// Old guild that a sticker is in.
+        #[serde(rename = "old_value")]
+        old: GuildId,
     },
     /// Whether a role is hoisted.
     Hoist {
@@ -386,6 +419,15 @@ pub enum AuditLogChange {
         #[serde(rename = "old_value", skip_serializing_if = "Option::is_none")]
         old: Option<ChannelId>,
     },
+    /// Related emoji of a sticker.
+    Tags {
+        /// New related emoji of a sticker.
+        #[serde(rename = "new_value", skip_serializing_if = "Option::is_none")]
+        new: Option<String>,
+        /// Old related emoji of a sticker.
+        #[serde(rename = "old_value", skip_serializing_if = "Option::is_none")]
+        old: Option<String>,
+    },
     /// Whether an invite is temporary.
     Temporary {
         /// New temporary state.
@@ -497,6 +539,8 @@ impl AuditLogChange {
             Self::AfkTimeout { .. } => AuditLogChangeKey::AfkTimeout,
             Self::Allow { .. } => AuditLogChangeKey::Allow,
             Self::ApplicationId { .. } => AuditLogChangeKey::ApplicationId,
+            Self::Asset { .. } => AuditLogChangeKey::Asset,
+            Self::Available { .. } => AuditLogChangeKey::Available,
             Self::AvatarHash { .. } => AuditLogChangeKey::AvatarHash,
             Self::BannerHash { .. } => AuditLogChangeKey::BannerHash,
             Self::Bitrate { .. } => AuditLogChangeKey::Bitrate,
@@ -514,6 +558,8 @@ impl AuditLogChange {
             Self::ExpireBehavior { .. } => AuditLogChangeKey::ExpireBehavior,
             Self::ExpireGracePeriod { .. } => AuditLogChangeKey::ExpireGracePeriod,
             Self::ExplicitContentFilter { .. } => AuditLogChangeKey::ExplicitContentFilter,
+            Self::FormatType { .. } => AuditLogChangeKey::FormatType,
+            Self::GuildId { .. } => AuditLogChangeKey::GuildId,
             Self::Hoist { .. } => AuditLogChangeKey::Hoist,
             Self::IconHash { .. } => AuditLogChangeKey::IconHash,
             Self::Id { .. } => AuditLogChangeKey::Id,
@@ -539,6 +585,7 @@ impl AuditLogChange {
             Self::RulesChannelId { .. } => AuditLogChangeKey::RulesChannelId,
             Self::SplashHash { .. } => AuditLogChangeKey::SplashHash,
             Self::SystemChannelId { .. } => AuditLogChangeKey::SystemChannelId,
+            Self::Tags { .. } => AuditLogChangeKey::Tags,
             Self::Temporary { .. } => AuditLogChangeKey::Temporary,
             Self::Topic { .. } => AuditLogChangeKey::Topic,
             Self::Type { .. } => AuditLogChangeKey::Type,

@@ -103,7 +103,7 @@ use std::{
     sync::{Arc, Mutex},
 };
 use twilight_model::{
-    channel::{Group, GuildChannel, PrivateChannel, StageInstance},
+    channel::{message::sticker::StickerId, Group, GuildChannel, PrivateChannel, StageInstance},
     gateway::event::Event,
     guild::{GuildIntegration, Role},
     id::{ChannelId, EmojiId, GuildId, IntegrationId, MessageId, RoleId, StageId, UserId},
@@ -163,12 +163,14 @@ struct InMemoryCacheRef {
     guild_presences: DashMap<GuildId, HashSet<UserId>>,
     guild_roles: DashMap<GuildId, HashSet<RoleId>>,
     guild_stage_instances: DashMap<GuildId, HashSet<StageId>>,
+    guild_stickers: DashMap<GuildId, HashSet<StickerId>>,
     integrations: DashMap<(GuildId, IntegrationId), GuildItem<GuildIntegration>>,
     members: DashMap<(GuildId, UserId), CachedMember>,
     messages: DashMap<ChannelId, VecDeque<CachedMessage>>,
     presences: DashMap<(GuildId, UserId), CachedPresence>,
     roles: DashMap<RoleId, GuildItem<Role>>,
     stage_instances: DashMap<StageId, GuildItem<StageInstance>>,
+    stickers: DashMap<StickerId, GuildItem<CachedSticker>>,
     unavailable_guilds: DashSet<GuildId>,
     users: DashMap<UserId, User>,
     user_guilds: DashMap<UserId, BTreeSet<GuildId>>,
@@ -265,11 +267,13 @@ impl InMemoryCache {
         self.0.guild_presences.clear();
         self.0.guild_roles.clear();
         self.0.guild_stage_instances.clear();
+        self.0.guild_stickers.clear();
         self.0.integrations.clear();
         self.0.members.clear();
         self.0.messages.clear();
         self.0.presences.clear();
         self.0.roles.clear();
+        self.0.stickers.clear();
         self.0.unavailable_guilds.clear();
         self.0.users.clear();
         self.0.voice_state_channels.clear();
@@ -469,6 +473,21 @@ impl InMemoryCache {
             .map(|r| r.value().clone())
     }
 
+    /// Gets the set of the stickers in a guild.
+    ///
+    /// This is an O(m) operation, where m is the amount of stickers in the
+    /// guild. This requires the [`GUILDS`] intent and the [`STICKER`] resource
+    /// type.
+    ///
+    /// [`GUILDS`]: twilight_model::gateway::Intents::GUILDS
+    /// [`STICKER`]: crate::config::ResourceType::STICKER
+    pub fn guild_stickers(&self, guild_id: GuildId) -> Option<HashSet<StickerId>> {
+        self.0
+            .guild_stickers
+            .get(&guild_id)
+            .map(|r| r.value().clone())
+    }
+
     /// Gets an integration by guild ID and integration ID.
     ///
     /// This is an O(1) operation. This requires the [`GUILD_INTEGRATIONS`]
@@ -548,6 +567,20 @@ impl InMemoryCache {
             .stage_instances
             .get(&stage_id)
             .map(|role| role.data.clone())
+    }
+
+    /// Gets a sticker by ID.
+    ///
+    /// This is the O(1) operation. This requires the [`GUILDS`] intent and the
+    /// [`STICKER`] resource type.
+    ///
+    /// [`GUILDS`]: twilight_model::gateway::Intents::GUILDS
+    /// [`STICKER`]: crate::config::ResourceType::STICKER
+    pub fn sticker(&self, sticker_id: StickerId) -> Option<CachedSticker> {
+        self.0
+            .stickers
+            .get(&sticker_id)
+            .map(|sticker| sticker.data.clone())
     }
 
     /// Gets a user by ID.

@@ -597,6 +597,7 @@ mod tests {
             ]),
             splash: None,
             stage_instances: Vec::new(),
+            stickers: Vec::new(),
             system_channel_id: None,
             system_channel_flags: SystemChannelFlags::SUPPRESS_JOIN_NOTIFICATIONS,
             threads: Vec::new(),

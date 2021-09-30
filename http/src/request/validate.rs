@@ -3,7 +3,7 @@
 /// This is in a centralised place so that the validation parameters can be kept
 /// up-to-date more easily and because some of the checks are re-used across
 /// different modules.
-use super::application::InteractionError;
+use super::{application::InteractionError, guild::sticker::StickerValidationError};
 use std::{
     error::Error,
     fmt::{Display, Formatter, Result as FmtResult},
@@ -1143,6 +1143,40 @@ fn _command_description(value: &str) -> bool {
 pub const fn command_permissions(len: usize) -> bool {
     // https://discord.com/developers/docs/interactions/application-commands#edit-application-command-permissions
     len <= 10
+}
+
+pub fn sticker_description(value: impl AsRef<str>) -> bool {
+    _sticker_description(value.as_ref())
+}
+
+fn _sticker_description(value: &str) -> bool {
+    let len = value.chars().count();
+
+    (StickerValidationError::DESCRIPTION_MIN_LENGTH
+        ..=StickerValidationError::DESCRIPTION_MAX_LENGTH)
+        .contains(&len)
+}
+
+pub fn sticker_name(value: impl AsRef<str>) -> bool {
+    _sticker_name(value.as_ref())
+}
+
+fn _sticker_name(value: &str) -> bool {
+    let len = value.chars().count();
+
+    (StickerValidationError::NAME_MIN_LENGTH..=StickerValidationError::NAME_MAX_LENGTH)
+        .contains(&len)
+}
+
+pub fn sticker_tags(value: impl AsRef<str>) -> bool {
+    _sticker_tags(value.as_ref())
+}
+
+fn _sticker_tags(value: &str) -> bool {
+    let len = value.chars().count();
+
+    (StickerValidationError::TAGS_MIN_LENGTH..=StickerValidationError::TAGS_MAX_LENGTH)
+        .contains(&len)
 }
 
 /// Validate the number of guild command permission overwrites.

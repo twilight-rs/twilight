@@ -8,7 +8,9 @@ use std::fmt::{Display, Formatter, Result as FmtResult};
 /// Like all of the IDs in the primary [`crate::id`] crate, these
 /// IDs support deserializing from both integers and strings and serialize into
 /// strings.
-#[derive(Clone, Debug, Default, Deserialize, Eq, Hash, Ord, PartialEq, PartialOrd, Serialize)]
+#[derive(
+    Clone, Copy, Debug, Default, Deserialize, Eq, Hash, Ord, PartialEq, PartialOrd, Serialize,
+)]
 pub struct StickerId(#[serde(with = "crate::id::string")] pub u64);
 
 impl Display for StickerId {
@@ -24,10 +26,48 @@ impl Display for StickerId {
 /// Like all of the IDs in the primary [`crate::id`] crate, these
 /// IDs support deserializing from both integers and strings and serialize into
 /// strings.
-#[derive(Clone, Debug, Default, Deserialize, Eq, Hash, Ord, PartialEq, PartialOrd, Serialize)]
+#[derive(
+    Clone, Copy, Debug, Default, Deserialize, Eq, Hash, Ord, PartialEq, PartialOrd, Serialize,
+)]
 pub struct StickerPackId(#[serde(with = "crate::id::string")] pub u64);
 
 impl Display for StickerPackId {
+    fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
+        Display::fmt(&self.0, f)
+    }
+}
+
+/// Unique ID denoting a sticker pack SKU.
+///
+/// # serde
+///
+/// Like all of the IDs in the primary [`crate::id`] crate, these
+/// IDs support deserializing from both integers and strings and serialize into
+/// strings.
+#[derive(
+    Clone, Copy, Debug, Default, Deserialize, Eq, Hash, Ord, PartialEq, PartialOrd, Serialize,
+)]
+pub struct StickerPackSkuId(#[serde(with = "crate::id::string")] pub u64);
+
+impl Display for StickerPackSkuId {
+    fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
+        Display::fmt(&self.0, f)
+    }
+}
+
+/// Unique ID denoting a sticker pack banner image.
+///
+/// # serde
+///
+/// Like all of the IDs in the primary [`crate::id`] crate, these
+/// IDs support deserializing from both integers and strings and serialize into
+/// strings.
+#[derive(
+    Clone, Copy, Debug, Default, Deserialize, Eq, Hash, Ord, PartialEq, PartialOrd, Serialize,
+)]
+pub struct StickerBannerAssetId(#[serde(with = "crate::id::string")] pub u64);
+
+impl Display for StickerBannerAssetId {
     fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
         Display::fmt(&self.0, f)
     }

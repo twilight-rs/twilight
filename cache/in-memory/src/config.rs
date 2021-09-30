@@ -34,6 +34,8 @@ bitflags! {
         const STAGE_INSTANCE = 1 << 11;
         /// Information relating to guild integrations.
         const INTEGRATION = 1 << 12;
+        /// Information relating to guild stickers.
+        const STICKER = 1 << 13;
     }
 }
 
