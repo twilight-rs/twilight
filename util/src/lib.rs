@@ -52,7 +52,7 @@
 #![cfg_attr(docsrs, feature(doc_cfg))]
 
 #[cfg(feature = "builder")]
-#[cfg_attr(docrs, doc(cfg(feature = "builder")))]
+#[cfg_attr(docsrs, doc(cfg(feature = "builder")))]
 pub mod builder;
 
 #[cfg(feature = "link")]
