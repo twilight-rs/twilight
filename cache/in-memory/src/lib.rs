@@ -473,6 +473,21 @@ impl InMemoryCache {
             .map(|r| r.value().clone())
     }
 
+    /// Gets the set of the stickers in a guild.
+    ///
+    /// This is an O(m) operation, where m is the amount of stickers in the
+    /// guild. This requires the [`GUILDS`] intent and the [`STICKER`] resource
+    /// type.
+    ///
+    /// [`GUILDS`]: twilight_model::gateway::Intents::GUILDS
+    /// [`STICKER`]: crate::config::ResourceType::STICKER
+    pub fn guild_stickers(&self, guild_id: GuildId) -> Option<HashSet<StickerId>> {
+        self.0
+            .guild_stickers
+            .get(&guild_id)
+            .map(|r| r.value().clone())
+    }
+
     /// Gets an integration by guild ID and integration ID.
     ///
     /// This is an O(1) operation. This requires the [`GUILD_INTEGRATIONS`]
@@ -552,6 +567,20 @@ impl InMemoryCache {
             .stage_instances
             .get(&stage_id)
             .map(|role| role.data.clone())
+    }
+
+    /// Gets a sticker by ID.
+    ///
+    /// This is the O(1) operation. This requires the [`GUILDS`] intent and the
+    /// [`STICKER`] resource type.
+    ///
+    /// [`GUILDS`]: twilight_model::gateway::Intents::GUILDS
+    /// [`STICKER`]: crate::config::ResourceType::STICKER
+    pub fn sticker(&self, sticker_id: StickerId) -> Option<CachedSticker> {
+        self.0
+            .stickers
+            .get(&sticker_id)
+            .map(|sticker| sticker.data.clone())
     }
 
     /// Gets a user by ID.
