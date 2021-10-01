@@ -6,7 +6,7 @@ use twilight_model::{
     },
 };
 
-/// Builder for [`CallbackData`].
+/// Create a [`CallbackData`] with a builder.
 ///
 /// # Example
 /// ```
@@ -29,7 +29,7 @@ impl CallbackDataBuilder {
         Self::default()
     }
 
-    /// Set allowed mentions in the interaction response.
+    /// Set the [`AllowedMentions`] of the callback.
     #[allow(clippy::missing_const_for_fn)]
     pub fn allowed_mentions(mut self, allowed_mentions: AllowedMentions) -> Self {
         self.0.allowed_mentions = Some(allowed_mentions);
@@ -37,14 +37,14 @@ impl CallbackDataBuilder {
         self
     }
 
-    /// Set message components.
+    /// Set the message [`Component`]s of the callback.
     pub fn components(mut self, components: impl IntoIterator<Item = Component>) -> Self {
         self.0.components = Some(components.into_iter().collect());
 
         self
     }
 
-    /// Set the content.
+    /// Set the message content of the callback.
     #[allow(clippy::missing_const_for_fn)]
     pub fn content(mut self, content: String) -> Self {
         self.0.content = Some(content);
@@ -52,28 +52,32 @@ impl CallbackDataBuilder {
         self
     }
 
-    /// Set message embeds.
+    /// Set the [`Embed`]s of the callback.
     pub fn embeds(mut self, embeds: impl IntoIterator<Item = Embed>) -> Self {
         self.0.embeds = embeds.into_iter().collect();
 
         self
     }
 
-    /// Set the interaction flags.
+    /// Set the [`MessageFlags`].
+    ///
+    /// The only supported flag is [`EPHEMERAL`].
+    ///
+    /// [`EPHEMERAL`]: twilight_model::channel::message::MessageFlags::EPHEMERAL
     pub const fn flags(mut self, flags: MessageFlags) -> Self {
         self.0.flags = Some(flags);
 
         self
     }
 
-    /// Whether the response is TTS.
+    /// Set whether the response has text-to-speech enabled.
     pub const fn tts(mut self, value: bool) -> Self {
         self.0.tts = Some(value);
 
         self
     }
 
-    /// Build the [`CallbackData`] struct.
+    /// Consume the builder, returning a [`CallbackData`].
     #[allow(clippy::missing_const_for_fn)]
     #[must_use = "builders have no effect if unused"]
     pub fn build(self) -> CallbackData {
