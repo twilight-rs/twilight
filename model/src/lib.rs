@@ -21,11 +21,15 @@
 //! resource category. These types may be directly returned by, built on top of,
 //! or extended by other crates.
 //!
+//! Some models have associated builders, which can be found in the
+//! [`twilight-util`] crate.
+//!
 //! ## License
 //!
 //! [ISC][LICENSE.md]
 //!
 //! [LICENSE.md]: https://github.com/twilight-rs/twilight/blob/main/LICENSE.md
+//! [`twilight-util`]: https://docs.rs/twilight-util
 //! [`twilight`]: https://docs.rs/twilight
 //! [discord badge]: https://img.shields.io/discord/745809834183753828?color=%237289DA&label=discord%20server&logo=discord&style=for-the-badge
 //! [discord link]: https://discord.gg/7jj8n7D
