@@ -38,6 +38,25 @@ use twilight_model::{
 pub struct CallbackDataBuilder(CallbackData);
 
 impl CallbackDataBuilder {
+    /// Create a new builder to construct a [`CallbackData`].
+    pub const fn new() -> Self {
+        Self(CallbackData {
+            allowed_mentions: None,
+            components: None,
+            content: None,
+            embeds: Vec::new(),
+            flags: None,
+            tts: None,
+        })
+    }
+
+    /// Consume the builder, returning a [`CallbackData`].
+    #[allow(clippy::missing_const_for_fn)]
+    #[must_use = "builders have no effect if unused"]
+    pub fn build(self) -> CallbackData {
+        self.0
+    }
+
     /// Set the [`AllowedMentions`] of the callback.
     ///
     /// Defaults to [`None`].
@@ -46,13 +65,6 @@ impl CallbackDataBuilder {
         self.0.allowed_mentions = Some(allowed_mentions);
 
         self
-    }
-
-    /// Consume the builder, returning a [`CallbackData`].
-    #[allow(clippy::missing_const_for_fn)]
-    #[must_use = "builders have no effect if unused"]
-    pub fn build(self) -> CallbackData {
-        self.0
     }
 
     /// Set the message [`Component`]s of the callback.
@@ -94,18 +106,6 @@ impl CallbackDataBuilder {
         self.0.flags = Some(flags);
 
         self
-    }
-
-    /// Create a new builder to construct a [`CallbackData`].
-    pub const fn new() -> Self {
-        Self(CallbackData {
-            allowed_mentions: None,
-            components: None,
-            content: None,
-            embeds: Vec::new(),
-            flags: None,
-            tts: None,
-        })
     }
 
     /// Set whether the response has text-to-speech enabled.
