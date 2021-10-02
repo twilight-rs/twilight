@@ -18,7 +18,7 @@ use twilight_model::{
 ///     .flags(MessageFlags::EPHEMERAL)
 ///     .build();
 /// ```
-#[derive(Debug)]
+#[derive(Clone, Debug)]
 #[allow(clippy::module_name_repetitions)]
 #[must_use = "builders have no effect if unused"]
 pub struct CallbackDataBuilder(CallbackData);
@@ -30,6 +30,8 @@ impl CallbackDataBuilder {
     }
 
     /// Set the [`AllowedMentions`] of the callback.
+    ///
+    /// Defaults to [`None`].
     #[allow(clippy::missing_const_for_fn)]
     pub fn allowed_mentions(mut self, allowed_mentions: AllowedMentions) -> Self {
         self.0.allowed_mentions = Some(allowed_mentions);
@@ -38,6 +40,8 @@ impl CallbackDataBuilder {
     }
 
     /// Set the message [`Component`]s of the callback.
+    ///
+    /// Defaults to [`None`].
     pub fn components(mut self, components: impl IntoIterator<Item = Component>) -> Self {
         self.0.components = Some(components.into_iter().collect());
 
@@ -45,6 +49,8 @@ impl CallbackDataBuilder {
     }
 
     /// Set the message content of the callback.
+    ///
+    /// Defaults to [`None`].
     #[allow(clippy::missing_const_for_fn)]
     pub fn content(mut self, content: String) -> Self {
         self.0.content = Some(content);
@@ -53,6 +59,8 @@ impl CallbackDataBuilder {
     }
 
     /// Set the [`Embed`]s of the callback.
+    ///
+    /// Defaults to an empty list.
     pub fn embeds(mut self, embeds: impl IntoIterator<Item = Embed>) -> Self {
         self.0.embeds = embeds.into_iter().collect();
 
@@ -63,6 +71,8 @@ impl CallbackDataBuilder {
     ///
     /// The only supported flag is [`EPHEMERAL`].
     ///
+    /// Defaults to [`None`].
+    ///
     /// [`EPHEMERAL`]: twilight_model::channel::message::MessageFlags::EPHEMERAL
     pub const fn flags(mut self, flags: MessageFlags) -> Self {
         self.0.flags = Some(flags);
@@ -71,6 +81,8 @@ impl CallbackDataBuilder {
     }
 
     /// Set whether the response has text-to-speech enabled.
+    ///
+    /// Defaults to [`None`].
     pub const fn tts(mut self, value: bool) -> Self {
         self.0.tts = Some(value);
 
@@ -148,9 +160,9 @@ mod tests {
 
         let value = CallbackDataBuilder::new()
             .allowed_mentions(allowed_mentions.clone())
-            .components(vec![component.clone()])
+            .components([component.clone()])
             .content("a content".into())
-            .embeds(vec![embed.clone()])
+            .embeds([embed.clone()])
             .flags(MessageFlags::empty())
             .tts(false)
             .build();
