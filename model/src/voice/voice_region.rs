@@ -8,7 +8,6 @@ pub struct VoiceRegion {
     pub id: String,
     pub name: String,
     pub optimal: bool,
-    pub vip: bool,
 }
 
 #[cfg(test)]
@@ -24,7 +23,6 @@ mod tests {
             id: "region".to_owned(),
             name: "Region".to_owned(),
             optimal: false,
-            vip: false,
         };
 
         serde_test::assert_tokens(
@@ -43,8 +41,6 @@ mod tests {
                 Token::Str("name"),
                 Token::Str("Region"),
                 Token::Str("optimal"),
-                Token::Bool(false),
-                Token::Str("vip"),
                 Token::Bool(false),
                 Token::StructEnd,
             ],
