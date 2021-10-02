@@ -120,14 +120,7 @@ impl CallbackDataBuilder {
 
 impl Default for CallbackDataBuilder {
     fn default() -> Self {
-        Self(CallbackData {
-            allowed_mentions: None,
-            components: None,
-            content: None,
-            embeds: Vec::new(),
-            flags: None,
-            tts: None,
-        })
+        Self::new()
     }
 }
 
