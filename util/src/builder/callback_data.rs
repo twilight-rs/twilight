@@ -141,7 +141,7 @@ mod tests {
         },
     };
 
-    assert_impl_all!(CallbackDataBuilder: Debug, Default, Send, Sync);
+    assert_impl_all!(CallbackDataBuilder: Clone, Debug, Default, Send, Sync);
 
     #[test]
     fn callback_data_builder() {
