@@ -11,24 +11,33 @@ use twilight_model::{
 /// # Example
 /// ```
 /// use twilight_util::builder::CallbackDataBuilder;
-/// use twilight_model::channel::message::MessageFlags;
+/// use twilight_model::{
+///     channel::message::MessageFlags,
+///     application::component::{button::ButtonStyle, Component, Button}
+/// };
+///
+/// let component = Component::Button(Button {
+///    style: ButtonStyle::Primary,
+///    emoji: None,
+///    label: Some("Button label".to_string()),
+///    custom_id: Some("button_id".to_string()),
+///    url: None,
+///    disabled: false,
+/// });
 ///
 /// let callback_data = CallbackDataBuilder::new()
-///     .content("My callback message".to_string())
+///     .content("Callback message".to_string())
 ///     .flags(MessageFlags::EPHEMERAL)
+///     .components([component.clone()])
 ///     .build();
+///
+/// assert_eq!(callback_data.components, Some(vec![component]));
 /// ```
 #[derive(Clone, Debug)]
-#[allow(clippy::module_name_repetitions)]
 #[must_use = "builders have no effect if unused"]
 pub struct CallbackDataBuilder(CallbackData);
 
 impl CallbackDataBuilder {
-    /// Create a new builder to construct a [`CallbackData`].
-    pub fn new() -> Self {
-        Self::default()
-    }
-
     /// Set the [`AllowedMentions`] of the callback.
     ///
     /// Defaults to [`None`].
@@ -37,6 +46,13 @@ impl CallbackDataBuilder {
         self.0.allowed_mentions = Some(allowed_mentions);
 
         self
+    }
+
+    /// Consume the builder, returning a [`CallbackData`].
+    #[allow(clippy::missing_const_for_fn)]
+    #[must_use = "builders have no effect if unused"]
+    pub fn build(self) -> CallbackData {
+        self.0
     }
 
     /// Set the message [`Component`]s of the callback.
@@ -80,6 +96,18 @@ impl CallbackDataBuilder {
         self
     }
 
+    /// Create a new builder to construct a [`CallbackData`].
+    pub const fn new() -> Self {
+        Self(CallbackData {
+            allowed_mentions: None,
+            components: None,
+            content: None,
+            embeds: Vec::new(),
+            flags: None,
+            tts: None,
+        })
+    }
+
     /// Set whether the response has text-to-speech enabled.
     ///
     /// Defaults to [`None`].
@@ -87,13 +115,6 @@ impl CallbackDataBuilder {
         self.0.tts = Some(value);
 
         self
-    }
-
-    /// Consume the builder, returning a [`CallbackData`].
-    #[allow(clippy::missing_const_for_fn)]
-    #[must_use = "builders have no effect if unused"]
-    pub fn build(self) -> CallbackData {
-        self.0
     }
 }
 
