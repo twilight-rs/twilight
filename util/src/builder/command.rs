@@ -2,9 +2,10 @@
 
 use twilight_model::{
     application::command::{
-        BaseCommandOptionData, ChoiceCommandOptionData, Command, CommandOption,
-        CommandOptionChoice, CommandType, Number, OptionsCommandOptionData,
+        BaseCommandOptionData, ChannelCommandOptionData, ChoiceCommandOptionData, Command,
+        CommandOption, CommandOptionChoice, CommandType, Number, OptionsCommandOptionData,
     },
+    channel::ChannelType,
     id::{ApplicationId, CommandId, GuildId},
 };
 
@@ -154,13 +155,14 @@ impl From<BooleanBuilder> for CommandOption {
 /// Create a channel option with a builder.
 #[derive(Clone, Debug)]
 #[must_use = "should be used in a command builder"]
-pub struct ChannelBuilder(BaseCommandOptionData);
+pub struct ChannelBuilder(ChannelCommandOptionData);
 
 impl ChannelBuilder {
     /// Create a new default [`ChannelBuilder`].
     #[must_use = "builders have no effect if unused"]
     pub const fn new(name: String, description: String) -> Self {
-        Self(BaseCommandOptionData {
+        Self(ChannelCommandOptionData {
+            channel_types: Vec::new(),
             description,
             name,
             required: false,
@@ -172,6 +174,15 @@ impl ChannelBuilder {
     #[must_use = "should be used in a command builder"]
     pub fn build(self) -> CommandOption {
         CommandOption::Channel(self.0)
+    }
+
+    /// Restricts the channel choice to specific types.
+    ///
+    /// Defaults to all channel types allowed.
+    pub fn channel_types(mut self, channel_types: impl IntoIterator<Item = ChannelType>) -> Self {
+        self.0.channel_types = channel_types.into_iter().collect();
+
+        self
     }
 
     /// Set whether this option is required.
@@ -665,7 +676,8 @@ mod tests {
                                     name: String::from("user"),
                                     required: true,
                                 }),
-                                CommandOption::Channel(BaseCommandOptionData {
+                                CommandOption::Channel(ChannelCommandOptionData {
+                                    channel_types: Vec::new(),
                                     description: String::from(
                                         "The channel permissions to get. If omitted, the guild \
                                          permissions will be returned",
@@ -685,7 +697,8 @@ mod tests {
                                     name: String::from("user"),
                                     required: true,
                                 }),
-                                CommandOption::Channel(BaseCommandOptionData {
+                                CommandOption::Channel(ChannelCommandOptionData {
+                                    channel_types: Vec::new(),
                                     description: String::from(
                                         "The channel permissions to edit. If omitted, the guild \
                                          permissions will be edited",
@@ -712,7 +725,8 @@ mod tests {
                                     name: String::from("role"),
                                     required: true,
                                 }),
-                                CommandOption::Channel(BaseCommandOptionData {
+                                CommandOption::Channel(ChannelCommandOptionData {
+                                    channel_types: Vec::new(),
                                     description: String::from(
                                         "The channel permissions to get. If omitted, the guild \
                                          permissions will be returned",
@@ -732,7 +746,8 @@ mod tests {
                                     name: String::from("role"),
                                     required: true,
                                 }),
-                                CommandOption::Channel(BaseCommandOptionData {
+                                CommandOption::Channel(ChannelCommandOptionData {
+                                    channel_types: Vec::new(),
                                     description: String::from(
                                         "The channel permissions to edit. If omitted, the guild \
                                          permissions will be edited",
