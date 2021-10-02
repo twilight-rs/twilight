@@ -10,7 +10,7 @@ pub struct VoiceRegion {
     pub optimal: bool,
     #[deprecated(
         since = "0.6.5",
-        ntoe = "the `vip` field has been removed from the Voice Region object on Discord's side."
+        note = "the `vip` field has been removed from the Voice Region object on Discord's side."
     )]
     #[serde(default)]
     pub vip: bool,
