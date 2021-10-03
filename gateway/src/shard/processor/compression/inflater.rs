@@ -46,7 +46,6 @@ impl Inflater {
     /// This returns `flate2`'s `DecompressError` as its method's type signature
     /// indicates it can return an error, however in reality in versions up to
     /// 1.0.17 it won't.
-    #[issue::track(url = "https://github.com/rust-lang/rust-clippy/issues/7757")]
     #[cfg_attr(feature = "tracing", tracing::instrument(level = "trace"))]
     pub fn msg(&mut self) -> Result<Option<&mut [u8]>, DecompressError> {
         let length = self.compressed.len();
@@ -125,7 +124,6 @@ impl Inflater {
     ///
     /// If the capacity is 4 times larger than the buffer length then the
     /// capacity will be shrunk to the length.
-    #[issue::track(url = "https://github.com/rust-lang/rust-clippy/issues/7757")]
     #[cfg_attr(feature = "tracing", tracing::instrument(level = "trace"))]
     pub fn clear(&mut self) {
         self.shrink();

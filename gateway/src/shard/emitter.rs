@@ -90,7 +90,6 @@ impl Emitter {
     /// be cloned. This means that for most users, this will be a cheap check.
     ///
     /// [`EventTypeFlags::SHARD_PAYLOAD`]: crate::EventTypeFlags::SHARD_PAYLOAD
-    #[issue::track(url = "https://github.com/rust-lang/rust-clippy/issues/7757")]
     #[cfg_attr(feature = "tracing", tracing::instrument(level = "trace"))]
     pub fn bytes(&self, bytes: &[u8]) {
         if self.wants(EventTypeFlags::SHARD_PAYLOAD) {
@@ -101,7 +100,6 @@ impl Emitter {
     }
 
     /// Send an event to the listener if it has subscribed to its event type.
-    #[issue::track(url = "https://github.com/rust-lang/rust-clippy/issues/7757")]
     #[cfg_attr(feature = "tracing", tracing::instrument(level = "trace"))]
     pub fn event(&self, event: Event) {
         let event_type = EventTypeFlags::from(event.kind());
