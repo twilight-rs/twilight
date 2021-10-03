@@ -31,6 +31,7 @@ mod private {
             sticker::{CreateGuildSticker, UpdateGuildSticker},
             CreateGuildChannel, CreateGuildPrune, UpdateGuild,
         },
+        user::UpdateCurrentUser,
     };
 
     /// Sealed stops crates other crates implementing the trait.
@@ -69,6 +70,7 @@ mod private {
     impl<'a> Sealed for UpdateGuild<'a> {}
     impl<'a> Sealed for UpdateThread<'a> {}
     impl Sealed for UpdateWebhookMessage<'_> {}
+    impl<'a> Sealed for UpdateCurrentUser<'a> {}
 }
 
 impl AuditLogReasonError {
@@ -161,6 +163,7 @@ mod test {
             sticker::{CreateGuildSticker, UpdateGuildSticker},
             CreateGuildChannel, CreateGuildPrune, UpdateGuild,
         },
+        user::UpdateCurrentUser,
     };
     use static_assertions::{assert_impl_all, assert_obj_safe};
 
@@ -197,4 +200,5 @@ mod test {
     assert_impl_all!(CreateGuildSticker<'_>: AuditLogReason<'static>);
     assert_impl_all!(UpdateGuildSticker<'_>: AuditLogReason<'static>);
     assert_impl_all!(UpdateGuild<'_>: AuditLogReason<'static>);
+    assert_impl_all!(UpdateCurrentUser<'_>: AuditLogReason<'static>);
 }
