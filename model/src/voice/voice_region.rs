@@ -1,3 +1,5 @@
+#![allow(deprecated)]
+
 use serde::{Deserialize, Serialize};
 
 #[allow(clippy::struct_excessive_bools)]
@@ -29,7 +31,6 @@ mod tests {
             id: "region".to_owned(),
             name: "Region".to_owned(),
             optimal: false,
-            #[allow(deprecated)]
             vip: false,
         };
 
