@@ -2,9 +2,6 @@ name: Test
 
 on: [push, pull_request]
 
-env:
-  minrust: 1.49.0
-
 jobs:
   test:
     name: Test
@@ -13,14 +10,6 @@ jobs:
     steps:
       - name: Checkout sources
         uses: actions/checkout@v2
-
-      - name: Install stable toolchain
-        id: toolchain
-        uses: actions-rs/toolchain@v1
-        with:
-          toolchain: stable
-          profile: minimal
-          override: true
 
       - name: Cache dependencies
         uses: Swatinem/rust-cache@v1
@@ -49,7 +38,7 @@ jobs:
           - package: http
             features: simd-json
             additional: --features rustls
-            rustflags: '-C target-cpu=native'
+            rustflags: "-C target-cpu=native"
           - package: gateway
             features: rustls
             additional: --features zlib-stock
@@ -59,7 +48,7 @@ jobs:
           - package: gateway
             features: simd-json
             additional: --features rustls,zlib-stock
-            rustflags: '-C target-cpu=native'
+            rustflags: "-C target-cpu=native"
           - package: lavalink
             additional: --features http-support
 
@@ -74,14 +63,6 @@ jobs:
       - name: Checkout sources
         uses: actions/checkout@v2
 
-      - name: Install stable toolchain
-        id: toolchain
-        uses: actions-rs/toolchain@v1
-        with:
-          toolchain: stable
-          profile: minimal
-          override: true
-
       - name: Cache dependencies
         uses: Swatinem/rust-cache@v1
 
@@ -94,13 +75,14 @@ jobs:
 
   MSRV:
     runs-on: ubuntu-latest
+    env:
+      minrust: 1.49
 
     steps:
       - name: Checkout sources
         uses: actions/checkout@v2
 
       - name: Install toolchain (${{ env.minrust }})
-        id: tc
         uses: actions-rs/toolchain@v1
         with:
           toolchain: ${{ env.minrust }}
@@ -112,4 +94,4 @@ jobs:
 
       - run: cargo check --examples --tests --all-features
         env:
-          RUSTFLAGS: '-C target-cpu=native'
+          RUSTFLAGS: "-C target-cpu=native"

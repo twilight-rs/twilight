@@ -12,15 +12,11 @@ jobs:
         uses: actions/checkout@v2
 
       - name: Install nightly toolchain
-        id: toolchain
         uses: actions-rs/toolchain@v1
         with:
           toolchain: nightly
           profile: minimal
           override: true
-
-      - name: Cache dependencies
-        uses: Swatinem/rust-cache@v1
 
       - name: Build docs
         env:
@@ -41,7 +37,6 @@ jobs:
         uses: actions-rs/install@v0.1
         with:
           crate: cargo-sync-readme
-          version: latest
 
       - name: Run in command-parser
         run: cd command-parser && cargo sync-readme --check
