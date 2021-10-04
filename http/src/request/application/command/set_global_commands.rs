@@ -11,6 +11,12 @@ use twilight_model::{application::command::Command, id::ApplicationId};
 ///
 /// This method is idempotent: it can be used on every start, without being
 /// ratelimited if there aren't changes to the commands.
+///
+/// The [`Command`] struct has an [associated builder] in the
+/// [`twilight-util`] crate.
+///
+/// [`twilight-util`]: https://api.twilight.rs/twilight_util/index.html
+/// [associated builder]: https://api.twilight.rs/twilight_util/builder/command/struct.CommandBuilder.html
 #[must_use = "requests must be configured and executed"]
 pub struct SetGlobalCommands<'a> {
     commands: &'a [Command],
