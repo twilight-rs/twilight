@@ -1,3 +1,5 @@
+#![allow(deprecated)]
+
 use serde::{Deserialize, Serialize};
 
 #[allow(clippy::struct_excessive_bools)]
@@ -8,6 +10,11 @@ pub struct VoiceRegion {
     pub id: String,
     pub name: String,
     pub optimal: bool,
+    #[deprecated(
+        note = "the `vip` field has been removed from the Voice Region object on Discord's side.",
+        since = "0.6.5"
+    )]
+    #[serde(default)]
     pub vip: bool,
 }
 
