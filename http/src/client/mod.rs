@@ -2861,7 +2861,6 @@ impl Client {
         // due to move semantics in both cases.
         #[allow(clippy::option_if_let_else)]
         if let Some(ratelimiter) = self.ratelimiter.as_ref() {
-            // TODO: This should not unwrap and be moved to ResponseFuture instead of blocking
             let rx_future = ratelimiter.ticket(ratelimit_path);
 
             Ok(ResponseFuture::ratelimit(
