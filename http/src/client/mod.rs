@@ -54,7 +54,7 @@ use hyper::{
     Body,
 };
 use std::{
-    convert::TryFrom,
+    convert::{TryFrom, AsRef},
     sync::{
         atomic::{AtomicBool, AtomicU64, Ordering},
         Arc,
@@ -228,8 +228,8 @@ impl Client {
     ///
     /// This will return `None` only if ratelimit handling
     /// has been explicitly disabled in the [`ClientBuilder`].
-    pub fn ratelimiter(&self) -> Option<&Box<(dyn Ratelimiter + 'static)>> {
-        self.ratelimiter.as_ref()
+    pub fn ratelimiter(&self) -> Option<&dyn Ratelimiter> {
+        self.ratelimiter.as_ref().map(AsRef::as_ref)
     }
 
     /// Get the audit log for a guild.

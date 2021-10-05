@@ -73,13 +73,13 @@ impl InMemoryRatelimiter {
                 #[cfg(feature = "tracing")]
                 tracing::debug!("added request into bucket queue: {:?}", path);
 
-                (Arc::clone(&bucket), false)
+                (Arc::clone(bucket), false)
             }
             Entry::Vacant(entry) => {
                 #[cfg(feature = "tracing")]
                 tracing::debug!("making new bucket for path: {:?}", path);
 
-                let bucket = Bucket::new(path.clone());
+                let bucket = Bucket::new(path);
                 bucket.queue.push(tx);
 
                 let bucket = Arc::new(bucket);

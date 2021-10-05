@@ -122,7 +122,7 @@ impl Future for TicketReceiver {
     type Output = Result<TicketSender, RecvError>;
 
     fn poll(mut self: Pin<&mut Self>, cx: &mut Context<'_>) -> Poll<Self::Output> {
-        Pin::new(&mut self.0).poll(cx).map_ok(|tx| TicketSender(tx))
+        Pin::new(&mut self.0).poll(cx).map_ok(TicketSender)
     }
 }
 

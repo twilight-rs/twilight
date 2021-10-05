@@ -315,7 +315,7 @@ impl<T> ResponseFuture<T> {
         }
     }
 
-    pub(crate) fn ratelimit(
+    pub(crate) const fn ratelimit(
         guild_id: Option<GuildId>,
         invalid_token: InvalidToken,
         wait_for_sender: TicketReceiver,
@@ -327,9 +327,9 @@ impl<T> ResponseFuture<T> {
             stage: ResponseFutureStage::RatelimitQueue(RatelimitQueue {
                 guild_id,
                 invalid_token,
+                request_timeout,
                 response_future,
                 wait_for_sender,
-                request_timeout,
             }),
         }
     }
