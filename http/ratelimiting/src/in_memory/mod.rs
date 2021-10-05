@@ -50,16 +50,13 @@ pub struct InMemoryRatelimiter {
 impl InMemoryRatelimiter {
     /// Create a new in-memory ratelimiter.
     ///
-    /// This is used by the [`Client`] to queue requests in order to avoid
+    /// This is used by HTTP client to queue requests in order to avoid
     /// hitting the API's ratelimits.
-    ///
-    /// [`Client`]: super::super::client::Client
     pub fn new() -> Self {
         Self::default()
     }
 
     fn entry(&self, path: Path, tx: TicketNotifier) -> (Arc<Bucket>, bool) {
-        // nb: not realisically point of contention
         let mut buckets = self.buckets.lock().expect("buckets poisoned");
 
         match buckets.entry(path.clone()) {

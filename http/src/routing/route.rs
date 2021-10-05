@@ -1166,7 +1166,7 @@ impl<'a> Route<'a> {
 
     /// Typed path of the route.
     ///
-    /// Paths are used with the [`Ratelimiter`].
+    /// Paths are used with a [`Ratelimiter`].
     ///
     /// # Examples
     ///
@@ -1175,15 +1175,15 @@ impl<'a> Route<'a> {
     /// ```
     /// # #[tokio::main]
     /// # async fn main() -> Result<(), Box<dyn std::error::Error>> {
-    /// use twilight_http::{ratelimiting::Ratelimiter, routing::Route};
+    /// use twilight_http::{ratelimiting::{InMemoryRatelimiter, Ratelimiter}, routing::Route};
     ///
-    /// let ratelimiter = Ratelimiter::new();
+    /// let ratelimiter = InMemoryRatelimiter::new();
     /// let route = Route::CreateMessage {
     ///     channel_id: 123,
     ///  };
     ///
     /// // Take a ticket from the ratelimiter.
-    /// let rx = ratelimiter.get(route.path()).await;
+    /// let rx = ratelimiter.ticket(route.path()).await.unwrap();
     ///
     /// // Wait to be told that a request can be made...
     /// let _tx = rx.await;

@@ -323,7 +323,7 @@ impl RatelimitHeaders {
     ///
     /// ```
     /// use std::array::IntoIter;
-    /// use twilight_http::ratelimiting::headers::RatelimitHeaders;
+    /// use twilight_http_ratelimiting::RatelimitHeaders;
     ///
     /// fn main() -> Result<(), Box<dyn std::error::Error>> {
     /// let iter = IntoIter::new([
@@ -347,7 +347,7 @@ impl RatelimitHeaders {
     ///
     /// ```
     /// use std::array::IntoIter;
-    /// use twilight_http::ratelimiting::headers::RatelimitHeaders;
+    /// use twilight_http_ratelimiting::RatelimitHeaders;
     ///
     /// fn main() -> Result<(), Box<dyn std::error::Error>> {
     /// let headers = Vec::from([

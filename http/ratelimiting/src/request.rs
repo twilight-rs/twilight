@@ -217,7 +217,7 @@ impl FromStr for Path {
     /// # Examples
     ///
     /// ```rust
-    /// use twilight_http::routing::Path;
+    /// use twilight_http_ratelimiting::Path;
     /// use std::str::FromStr;
     ///
     /// # fn main() -> Result<(), Box<dyn std::error::Error>> {

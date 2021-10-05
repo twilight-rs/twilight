@@ -21,7 +21,7 @@ pub mod ticket;
 
 pub use self::headers::RatelimitHeaders;
 pub use self::in_memory::InMemoryRatelimiter;
-pub use self::request::Path;
+pub use self::request::{Path, Method};
 
 use self::ticket::TicketReceiver;
 use std::{
@@ -50,7 +50,7 @@ impl Bucket {
         self.remaining
     }
 
-    /// Duration after the [`started_at`] time the bucket will
+    /// Duration after the [`Self::started_at`] time the bucket will
     /// refresh.
     pub fn reset_after(&self) -> Duration {
         self.reset_after

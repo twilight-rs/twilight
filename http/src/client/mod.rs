@@ -54,7 +54,7 @@ use hyper::{
     Body,
 };
 use std::{
-    convert::{TryFrom, AsRef},
+    convert::{AsRef, TryFrom},
     sync::{
         atomic::{AtomicBool, AtomicU64, Ordering},
         Arc,
