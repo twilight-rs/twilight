@@ -21,7 +21,7 @@ pub mod ticket;
 
 pub use self::headers::RatelimitHeaders;
 pub use self::in_memory::InMemoryRatelimiter;
-pub use self::request::{Path, Method};
+pub use self::request::{Method, Path};
 
 use self::ticket::TicketReceiver;
 use std::{
