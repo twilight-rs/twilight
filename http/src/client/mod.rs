@@ -157,7 +157,7 @@ pub struct Client {
     default_headers: Option<HeaderMap>,
     http: HyperClient<HttpsConnector<HttpConnector>, Body>,
     proxy: Option<Box<str>>,
-    ratelimiter: Option<Ratelimiter>,
+    ratelimiter: Option<Box<dyn Ratelimiter>>,
     /// Whether to short-circuit when a 401 has been encountered with the client
     /// authorization.
     ///
@@ -228,8 +228,8 @@ impl Client {
     ///
     /// This will return `None` only if ratelimit handling
     /// has been explicitly disabled in the [`ClientBuilder`].
-    pub fn ratelimiter(&self) -> Option<Ratelimiter> {
-        self.ratelimiter.clone()
+    pub fn ratelimiter(&self) -> Option<&Box<(dyn Ratelimiter + 'static)>> {
+        self.ratelimiter.as_ref()
     }
 
     /// Get the audit log for a guild.
@@ -2861,7 +2861,12 @@ impl Client {
         // due to move semantics in both cases.
         #[allow(clippy::option_if_let_else)]
         if let Some(ratelimiter) = self.ratelimiter.as_ref() {
-            let rx = ratelimiter.ticket(ratelimit_path);
+            // TODO: This should not unwrap and be moved to ResponseFuture instead of blocking
+            let rx = tokio::task::block_in_place(move || {
+                tokio::runtime::Handle::current()
+                    .block_on(async move { ratelimiter.ticket(ratelimit_path).await })
+            })
+            .unwrap();
 
             Ok(ResponseFuture::ratelimit(
                 None,

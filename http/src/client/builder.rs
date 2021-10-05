@@ -1,5 +1,5 @@
 use super::Client;
-use crate::ratelimiting::Ratelimiter;
+use crate::ratelimiting::{InMemoryRatelimiter, Ratelimiter};
 use hyper::header::HeaderMap;
 use std::{
     sync::{
@@ -16,7 +16,7 @@ pub struct ClientBuilder {
     pub(crate) application_id: AtomicU64,
     pub(crate) default_allowed_mentions: Option<AllowedMentions>,
     pub(crate) proxy: Option<Box<str>>,
-    pub(crate) ratelimiter: Option<Ratelimiter>,
+    pub(crate) ratelimiter: Option<Box<dyn Ratelimiter>>,
     remember_invalid_token: bool,
     pub(crate) default_headers: Option<HeaderMap>,
     pub(crate) timeout: Duration,
@@ -28,6 +28,14 @@ impl ClientBuilder {
     /// Create a new builder to create a [`Client`].
     pub fn new() -> Self {
         Self::default()
+    }
+
+    /// Create a new builder with the provided ratelimiter implementation.
+    pub fn with_ratelimiter(ratelimiter: impl Into<Option<Box<dyn Ratelimiter>>>) -> Self {
+        Self {
+            ratelimiter: ratelimiter.into(),
+            ..Self::new()
+        }
     }
 
     /// Build the [`Client`].
@@ -111,7 +119,7 @@ impl ClientBuilder {
     /// If this method is not called at all then a default ratelimiter will be
     /// created by [`ClientBuilder::build`].
     #[allow(clippy::missing_const_for_fn)]
-    pub fn ratelimiter(mut self, ratelimiter: Option<Ratelimiter>) -> Self {
+    pub fn ratelimiter(mut self, ratelimiter: Option<Box<dyn Ratelimiter>>) -> Self {
         self.ratelimiter = ratelimiter;
 
         self
@@ -170,7 +178,7 @@ impl Default for ClientBuilder {
             default_allowed_mentions: None,
             default_headers: None,
             proxy: None,
-            ratelimiter: Some(Ratelimiter::new()),
+            ratelimiter: Some(Box::new(InMemoryRatelimiter::default())),
             remember_invalid_token: true,
             timeout: Duration::from_secs(10),
             token: None,

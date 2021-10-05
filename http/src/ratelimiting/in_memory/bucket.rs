@@ -1,5 +1,5 @@
-use super::{headers::RatelimitHeaders, GlobalLockPair};
-use crate::routing::Path;
+use super::{ticket::TicketNotifier, GlobalLockPair};
+use crate::{ratelimiting::RatelimitHeaders, routing::Path};
 use std::{
     collections::HashMap,
     sync::{
@@ -11,7 +11,6 @@ use std::{
 use tokio::{
     sync::{
         mpsc::{self, UnboundedReceiver, UnboundedSender},
-        oneshot::{self, Sender},
         Mutex as AsyncMutex,
     },
     time::{sleep, timeout},
@@ -114,25 +113,19 @@ impl Bucket {
 
 #[derive(Debug)]
 pub struct BucketQueue {
-    rx: AsyncMutex<UnboundedReceiver<Sender<Sender<Option<RatelimitHeaders>>>>>,
-    tx: UnboundedSender<Sender<Sender<Option<RatelimitHeaders>>>>,
+    rx: AsyncMutex<UnboundedReceiver<TicketNotifier>>,
+    tx: UnboundedSender<TicketNotifier>,
 }
 
 impl BucketQueue {
-    pub fn push(&self, tx: Sender<Sender<Option<RatelimitHeaders>>>) {
+    pub fn push(&self, tx: TicketNotifier) {
         let _sent = self.tx.send(tx);
     }
 
-    pub async fn pop(
-        &self,
-        timeout_duration: Duration,
-    ) -> Option<Sender<Sender<Option<RatelimitHeaders>>>> {
+    pub async fn pop(&self, timeout_duration: Duration) -> Option<TicketNotifier> {
         let mut rx = self.rx.lock().await;
 
-        match timeout(timeout_duration, rx.recv()).await.ok() {
-            Some(x) => x,
-            None => None,
-        }
+        timeout(timeout_duration, rx.recv()).await.ok().flatten()
     }
 }
 
@@ -176,19 +169,20 @@ impl BucketQueueTask {
         let span = tracing::debug_span!("background queue task", path=?self.path);
 
         while let Some(queue_tx) = self.next().await {
-            let (tx, rx) = oneshot::channel();
-
             if self.global.is_locked() {
                 self.global.0.lock().await;
             }
 
-            let _sent = queue_tx.send(tx);
+            let ticket_headers = match queue_tx.available() {
+                Some(ticket_headers) => ticket_headers,
+                None => continue,
+            };
 
             #[cfg(feature = "tracing")]
             tracing::debug!(parent: &span, "starting to wait for response headers",);
 
             // TODO: Find a better way of handling nested types.
-            match timeout(Self::WAIT, rx).await {
+            match timeout(Self::WAIT, ticket_headers).await {
                 Ok(Ok(Some(headers))) => self.handle_headers(&headers).await,
                 // - None was sent through the channel (request aborted)
                 // - channel was closed
@@ -239,7 +233,7 @@ impl BucketQueueTask {
         drop(lock);
     }
 
-    async fn next(&self) -> Option<Sender<Sender<Option<RatelimitHeaders>>>> {
+    async fn next(&self) -> Option<TicketNotifier> {
         #[cfg(feature = "tracing")]
         tracing::debug!(path=?self.path, "starting to get next in queue");
 
