@@ -60,6 +60,9 @@ impl Display for Error {
                     Debug::fmt(body, f)
                 }
             }
+            ErrorType::RatelimiterTicket => {
+                f.write_str("Ratelimiter::ticket returned an Err value")
+            }
             ErrorType::RequestCanceled => {
                 f.write_str("Request was canceled either before or while being sent")
             }
@@ -103,6 +106,7 @@ pub enum ErrorType {
     Parsing {
         body: Vec<u8>,
     },
+    RatelimiterTicket,
     RequestCanceled,
     RequestError,
     RequestTimedOut,

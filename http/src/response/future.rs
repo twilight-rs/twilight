@@ -2,10 +2,7 @@ use super::{Response, StatusCode};
 use crate::{
     api_error::ApiError,
     error::{Error, ErrorType},
-    ratelimiting::{
-        ticket::{TicketReceiver, TicketSender},
-        RatelimitHeaders,
-    },
+    ratelimiting::{ticket::TicketSender, RatelimitHeaders},
 };
 use hyper::{client::ResponseFuture as HyperResponseFuture, StatusCode as HyperStatusCode};
 use std::{
@@ -21,6 +18,7 @@ use std::{
     time::Duration,
 };
 use tokio::time::{self, Timeout};
+use twilight_http_ratelimiting::GetTicketFuture;
 use twilight_model::id::GuildId;
 
 pub enum InvalidToken {
@@ -210,12 +208,31 @@ struct RatelimitQueue {
     invalid_token: InvalidToken,
     request_timeout: Duration,
     response_future: HyperResponseFuture,
-    wait_for_sender: TicketReceiver,
+    wait_for_sender: GetTicketFuture,
 }
 
 impl RatelimitQueue {
     fn poll<T>(mut self, cx: &mut Context<'_>) -> InnerPoll<T> {
-        let tx = match Pin::new(&mut self.wait_for_sender).poll(cx) {
+        let mut rx = match Pin::new(&mut self.wait_for_sender).poll(cx) {
+            Poll::Ready(Ok(rx)) => rx,
+            Poll::Ready(Err(source)) => {
+                return InnerPoll::Ready(Err(Error {
+                    kind: ErrorType::RatelimiterTicket {},
+                    source: Some(source),
+                }))
+            }
+            Poll::Pending => {
+                return InnerPoll::Pending(ResponseFutureStage::RatelimitQueue(Self {
+                    guild_id: self.guild_id,
+                    invalid_token: self.invalid_token,
+                    request_timeout: self.request_timeout,
+                    response_future: self.response_future,
+                    wait_for_sender: self.wait_for_sender,
+                }))
+            }
+        };
+
+        let tx = match Pin::new(&mut rx).poll(cx) {
             Poll::Ready(Ok(tx)) => tx,
             Poll::Ready(Err(source)) => {
                 return InnerPoll::Ready(Err(Error {
@@ -315,10 +332,10 @@ impl<T> ResponseFuture<T> {
         }
     }
 
-    pub(crate) const fn ratelimit(
+    pub(crate) fn ratelimit(
         guild_id: Option<GuildId>,
         invalid_token: InvalidToken,
-        wait_for_sender: TicketReceiver,
+        wait_for_sender: GetTicketFuture,
         request_timeout: Duration,
         response_future: HyperResponseFuture,
     ) -> Self {

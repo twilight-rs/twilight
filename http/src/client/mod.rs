@@ -2862,16 +2862,12 @@ impl Client {
         #[allow(clippy::option_if_let_else)]
         if let Some(ratelimiter) = self.ratelimiter.as_ref() {
             // TODO: This should not unwrap and be moved to ResponseFuture instead of blocking
-            let rx = tokio::task::block_in_place(move || {
-                tokio::runtime::Handle::current()
-                    .block_on(async move { ratelimiter.ticket(ratelimit_path).await })
-            })
-            .unwrap();
+            let rx_future = ratelimiter.ticket(ratelimit_path);
 
             Ok(ResponseFuture::ratelimit(
                 None,
                 invalid_token,
-                rx,
+                rx_future,
                 self.timeout,
                 inner,
             ))
