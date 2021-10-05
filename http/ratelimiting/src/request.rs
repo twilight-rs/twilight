@@ -1,10 +1,38 @@
-use crate::request::Method;
+use http::Method as HttpMethod;
 use std::{
     convert::TryFrom,
     error::Error,
     fmt::{Display, Formatter, Result as FmtResult},
     str::FromStr,
 };
+
+/// Request method.
+#[derive(Clone, Copy, Debug, Eq, Hash, PartialEq)]
+#[non_exhaustive]
+pub enum Method {
+    /// DELETE method.
+    Delete,
+    /// GET method.
+    Get,
+    /// PATCH method.
+    Patch,
+    /// POST method.
+    Post,
+    /// PUT method.
+    Put,
+}
+
+impl Method {
+    pub const fn into_http(self) -> HttpMethod {
+        match self {
+            Self::Delete => HttpMethod::DELETE,
+            Self::Get => HttpMethod::GET,
+            Self::Patch => HttpMethod::PATCH,
+            Self::Post => HttpMethod::POST,
+            Self::Put => HttpMethod::PUT,
+        }
+    }
+}
 
 #[derive(Debug)]
 pub struct PathParseError {
@@ -349,6 +377,7 @@ impl TryFrom<(Method, &str)> for Path {
 mod tests {
     use super::{Path, PathParseError, PathParseErrorType};
     use crate::request::Method;
+    use http::Method as HttpMethod;
     use static_assertions::{assert_fields, assert_impl_all};
     use std::{convert::TryFrom, error::Error, fmt::Debug, hash::Hash, str::FromStr};
 
@@ -388,5 +417,16 @@ mod tests {
         );
 
         Ok(())
+    }
+
+    assert_impl_all!(Method: Clone, Copy, Debug, Eq, PartialEq);
+
+    #[test]
+    fn test_method_conversions() {
+        assert_eq!(HttpMethod::DELETE, Method::Delete.into_http());
+        assert_eq!(HttpMethod::GET, Method::Get.into_http());
+        assert_eq!(HttpMethod::PATCH, Method::Patch.into_http());
+        assert_eq!(HttpMethod::POST, Method::Post.into_http());
+        assert_eq!(HttpMethod::PUT, Method::Put.into_http());
     }
 }

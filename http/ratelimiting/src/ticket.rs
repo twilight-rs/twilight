@@ -58,7 +58,7 @@
 //! [`Ratelimiter`]: super::Ratelimiter
 //! [must be parsed]: super::headers
 
-use super::headers::RatelimitHeaders;
+use crate::headers::RatelimitHeaders;
 use std::{
     future::Future,
     pin::Pin,

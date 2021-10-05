@@ -111,7 +111,6 @@
 pub mod api_error;
 pub mod client;
 pub mod error;
-pub mod ratelimiting;
 pub mod request;
 pub mod response;
 pub mod routing;
@@ -121,6 +120,8 @@ mod json;
 /// Discord API version used by this crate.
 pub const API_VERSION: u8 = 9;
 
+#[doc(no_inline)]
+pub use twilight_http_ratelimiting as ratelimiting;
 pub use crate::{client::Client, error::Error, response::Response};
 
 #[cfg(not(any(

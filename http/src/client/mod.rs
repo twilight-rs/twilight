@@ -2752,7 +2752,7 @@ impl Client {
         tracing::debug!("URL: {:?}", url);
 
         let mut builder = hyper::Request::builder()
-            .method(method.into_hyper())
+            .method(method.into_http())
             .uri(&url);
 
         if use_authorization_token {

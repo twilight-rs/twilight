@@ -1,4 +1,4 @@
-use super::{path::Path, route_display::RouteDisplay};
+use super::{route_display::RouteDisplay, Path};
 use crate::request::{channel::reaction::RequestReactionType, Method};
 use twilight_model::id::RoleId;
 

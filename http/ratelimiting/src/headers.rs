@@ -497,7 +497,7 @@ mod tests {
         GlobalLimited, HeaderName, HeaderParsingError, HeaderParsingErrorType, HeaderType, Present,
         RatelimitHeaders,
     };
-    use hyper::header::{HeaderMap, HeaderName as HyperHeaderName, HeaderValue};
+    use http::header::{HeaderMap, HeaderName as HttpHeaderName, HeaderValue};
     use static_assertions::{assert_fields, assert_impl_all};
     use std::{
         error::Error,
@@ -538,11 +538,11 @@ mod tests {
         let map = {
             let mut map = HeaderMap::new();
             map.insert(
-                HyperHeaderName::from_static("x-ratelimit-global"),
+                HttpHeaderName::from_static("x-ratelimit-global"),
                 HeaderValue::from_static("true"),
             );
             map.insert(
-                HyperHeaderName::from_static("retry-after"),
+                HttpHeaderName::from_static("retry-after"),
                 HeaderValue::from_static("65"),
             );
 

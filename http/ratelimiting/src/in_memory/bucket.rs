@@ -1,5 +1,5 @@
-use super::{ticket::TicketNotifier, GlobalLockPair};
-use crate::{ratelimiting::RatelimitHeaders, routing::Path};
+use super::GlobalLockPair;
+use crate::{headers::RatelimitHeaders, request::Path, ticket::TicketNotifier};
 use std::{
     collections::HashMap,
     sync::{

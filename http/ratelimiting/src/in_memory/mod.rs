@@ -5,7 +5,7 @@ use super::{
     ticket::{self, TicketNotifier, TicketReceiver},
     Bucket as InfoBucket, Ratelimiter,
 };
-use crate::routing::Path;
+use crate::request::Path;
 use futures_util::future;
 use std::{
     collections::hash_map::{Entry, HashMap},
