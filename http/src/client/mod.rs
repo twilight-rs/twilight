@@ -48,6 +48,7 @@ use crate::{
     response::{future::InvalidToken, ResponseFuture},
     API_VERSION,
 };
+use futures_util::FutureExt;
 use hyper::{
     client::{Client as HyperClient, HttpConnector},
     header::{HeaderMap, HeaderValue, AUTHORIZATION, CONTENT_LENGTH, CONTENT_TYPE, USER_AGENT},
@@ -2863,10 +2864,26 @@ impl Client {
         if let Some(ratelimiter) = self.ratelimiter.as_ref() {
             let rx_future = ratelimiter.ticket(ratelimit_path);
 
+            // Map the two steps of ratelimiting (getting a ticket and then waiting for the TicketSender) into one
+            let tx_future = Box::pin(rx_future.then(|maybe_rx| {
+                Box::pin(async move {
+                    match maybe_rx {
+                        Ok(rx) => rx.await.map_err(|source| Error {
+                            kind: ErrorType::RequestCanceled {},
+                            source: Some(Box::new(source)),
+                        }),
+                        Err(source) => Err(Error {
+                            kind: ErrorType::RatelimiterTicket {},
+                            source: Some(source),
+                        }),
+                    }
+                })
+            }));
+
             Ok(ResponseFuture::ratelimit(
                 None,
                 invalid_token,
-                rx_future,
+                tx_future,
                 self.timeout,
                 inner,
             ))

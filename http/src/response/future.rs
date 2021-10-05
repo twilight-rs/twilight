@@ -18,7 +18,6 @@ use std::{
     time::Duration,
 };
 use tokio::time::{self, Timeout};
-use twilight_http_ratelimiting::GetTicketFuture;
 use twilight_model::id::GuildId;
 
 pub enum InvalidToken {
@@ -27,6 +26,7 @@ pub enum InvalidToken {
 }
 
 type Output<T> = Result<Response<T>, Error>;
+type GetTicketSenderFuture = Pin<Box<dyn Future<Output = Result<TicketSender, Error>>>>;
 
 enum InnerPoll<T> {
     Advance(ResponseFutureStage),
@@ -208,38 +208,14 @@ struct RatelimitQueue {
     invalid_token: InvalidToken,
     request_timeout: Duration,
     response_future: HyperResponseFuture,
-    wait_for_sender: GetTicketFuture,
+    wait_for_sender: GetTicketSenderFuture,
 }
 
 impl RatelimitQueue {
     fn poll<T>(mut self, cx: &mut Context<'_>) -> InnerPoll<T> {
-        let mut rx = match Pin::new(&mut self.wait_for_sender).poll(cx) {
-            Poll::Ready(Ok(rx)) => rx,
-            Poll::Ready(Err(source)) => {
-                return InnerPoll::Ready(Err(Error {
-                    kind: ErrorType::RatelimiterTicket {},
-                    source: Some(source),
-                }))
-            }
-            Poll::Pending => {
-                return InnerPoll::Pending(ResponseFutureStage::RatelimitQueue(Self {
-                    guild_id: self.guild_id,
-                    invalid_token: self.invalid_token,
-                    request_timeout: self.request_timeout,
-                    response_future: self.response_future,
-                    wait_for_sender: self.wait_for_sender,
-                }))
-            }
-        };
-
-        let tx = match Pin::new(&mut rx).poll(cx) {
+        let tx = match Pin::new(&mut self.wait_for_sender).poll(cx) {
             Poll::Ready(Ok(tx)) => tx,
-            Poll::Ready(Err(source)) => {
-                return InnerPoll::Ready(Err(Error {
-                    kind: ErrorType::RequestCanceled {},
-                    source: Some(Box::new(source)),
-                }))
-            }
+            Poll::Ready(Err(err)) => return InnerPoll::Ready(Err(err)),
             Poll::Pending => {
                 return InnerPoll::Pending(ResponseFutureStage::RatelimitQueue(Self {
                     guild_id: self.guild_id,
@@ -335,7 +311,7 @@ impl<T> ResponseFuture<T> {
     pub(crate) fn ratelimit(
         guild_id: Option<GuildId>,
         invalid_token: InvalidToken,
-        wait_for_sender: GetTicketFuture,
+        wait_for_sender: GetTicketSenderFuture,
         request_timeout: Duration,
         response_future: HyperResponseFuture,
     ) -> Self {
