@@ -2,16 +2,15 @@ mod bucket;
 
 use self::bucket::{Bucket, BucketQueueTask};
 use super::{
-    ticket::{self, TicketNotifier, TicketReceiver},
+    ticket::{self, TicketNotifier},
     Bucket as InfoBucket, Ratelimiter,
 };
-use crate::request::Path;
+use crate::{
+    request::Path, GetBucketFuture, GetTicketFuture, HasBucketFuture, IsGloballyLockedFuture,
+};
 use futures_util::future;
 use std::{
     collections::hash_map::{Entry, HashMap},
-    error::Error,
-    future::Future,
-    pin::Pin,
     sync::{
         atomic::{AtomicBool, Ordering},
         Arc, Mutex,
@@ -89,16 +88,7 @@ impl InMemoryRatelimiter {
 }
 
 impl Ratelimiter for InMemoryRatelimiter {
-    fn bucket(
-        &self,
-        path: &Path,
-    ) -> Pin<
-        Box<
-            dyn Future<Output = Result<Option<InfoBucket>, Box<dyn Error + Send + Sync + 'static>>>
-                + Send
-                + 'static,
-        >,
-    > {
+    fn bucket(&self, path: &Path) -> GetBucketFuture {
         if let Some(bucket) = self.buckets.lock().expect("buckets poisoned").get(path) {
             let started_at = bucket.started_at.lock().expect("bucket poisoned");
 
@@ -113,28 +103,11 @@ impl Ratelimiter for InMemoryRatelimiter {
         }
     }
 
-    fn globally_locked(
-        &self,
-    ) -> Pin<
-        Box<
-            dyn Future<Output = Result<bool, Box<dyn Error + Send + Sync + 'static>>>
-                + Send
-                + 'static,
-        >,
-    > {
+    fn globally_locked(&self) -> IsGloballyLockedFuture {
         Box::pin(future::ok(self.global.is_locked()))
     }
 
-    fn has(
-        &self,
-        path: &Path,
-    ) -> Pin<
-        Box<
-            dyn Future<Output = Result<bool, Box<dyn Error + Send + Sync + 'static>>>
-                + Send
-                + 'static,
-        >,
-    > {
+    fn has(&self, path: &Path) -> HasBucketFuture {
         let has = self
             .buckets
             .lock()
@@ -144,16 +117,7 @@ impl Ratelimiter for InMemoryRatelimiter {
         Box::pin(future::ok(has))
     }
 
-    fn ticket(
-        &self,
-        path: Path,
-    ) -> Pin<
-        Box<
-            dyn Future<Output = Result<TicketReceiver, Box<dyn Error + Send + Sync + 'static>>>
-                + Send
-                + 'static,
-        >,
-    > {
+    fn ticket(&self, path: Path) -> GetTicketFuture {
         #[cfg(feature = "tracing")]
         tracing::debug!("getting bucket for path: {:?}", path);
 

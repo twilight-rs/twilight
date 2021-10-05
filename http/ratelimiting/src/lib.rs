@@ -78,41 +78,28 @@ impl Bucket {
     }
 }
 
+type GenericError = Box<dyn Error + Send + Sync>;
+pub type GetBucketFuture =
+    Pin<Box<dyn Future<Output = Result<Option<Bucket>, GenericError>> + Send + 'static>>;
+pub type IsGloballyLockedFuture =
+    Pin<Box<dyn Future<Output = Result<bool, GenericError>> + Send + 'static>>;
+pub type HasBucketFuture =
+    Pin<Box<dyn Future<Output = Result<bool, GenericError>> + Send + 'static>>;
+pub type GetTicketFuture =
+    Pin<Box<dyn Future<Output = Result<TicketReceiver, GenericError>> + Send + 'static>>;
+
 pub trait Ratelimiter: Debug + Send + Sync {
     /// Retrieve the basic information of the bucket for a given path.
-    fn bucket(
-        &self,
-        path: &Path,
-    ) -> Pin<
-        Box<
-            dyn Future<Output = Result<Option<Bucket>, Box<dyn Error + Send + Sync>>>
-                + Send
-                + 'static,
-        >,
-    >;
+    fn bucket(&self, path: &Path) -> GetBucketFuture;
 
     /// Whether the ratelimiter is currently globally locked.
-    fn globally_locked(
-        &self,
-    ) -> Pin<Box<dyn Future<Output = Result<bool, Box<dyn Error + Send + Sync>>> + Send + 'static>>;
+    fn globally_locked(&self) -> IsGloballyLockedFuture;
 
     /// Determine if the ratelimiter has a bucket for the given path.
-    fn has(
-        &self,
-        path: &Path,
-    ) -> Pin<Box<dyn Future<Output = Result<bool, Box<dyn Error + Send + Sync>>> + Send + 'static>>;
+    fn has(&self, path: &Path) -> HasBucketFuture;
 
     /// Retrieve a ticket to know when to send a request.
     /// The provided future will be ready when a ticket in the bucket is
     /// available. Tickets are ready in order of retrieval.
-    fn ticket(
-        &self,
-        path: Path,
-    ) -> Pin<
-        Box<
-            dyn Future<Output = Result<TicketReceiver, Box<dyn Error + Send + Sync>>>
-                + Send
-                + 'static,
-        >,
-    >;
+    fn ticket(&self, path: Path) -> GetTicketFuture;
 }
