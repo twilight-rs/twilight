@@ -1882,6 +1882,13 @@ impl Client {
     }
 
     /// Respond to an interaction, by ID and token.
+    ///
+    /// For variants of [`InteractionResponse`] that contain a [`CallbackData`],
+    /// there is an [associated builder] in the [`twilight-util`] crate.
+    ///
+    /// [`CallbackData`]: twilight_model::application::callback::CallbackData
+    /// [`twilight-util`]: https://api.twilight.rs/twilight_util/index.html
+    /// [associated builder]: https://api.twilight.rs/twilight_util/builder/struct.CallbackDataBuilder.html
     pub const fn interaction_callback<'a>(
         &'a self,
         interaction_id: InteractionId,
