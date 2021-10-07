@@ -160,29 +160,24 @@ impl Emitter {
 mod tests {
     use super::Emitter;
     use crate::{Event, EventTypeFlags};
-    use tokio::time::{self, Duration};
 
-    #[tokio::test]
-    async fn test_bytes_send() {
+    #[test]
+    fn test_bytes_send() {
         let (emitter, mut rx) = Emitter::new(EventTypeFlags::SHARD_PAYLOAD);
         emitter.bytes(&[1]);
 
-        assert!(rx.recv().await.is_some());
-        assert!(time::timeout(Duration::from_millis(10), rx.recv())
-            .await
-            .is_err());
+        assert!(rx.try_recv().is_ok());
+        assert!(rx.try_recv().is_err());
     }
 
-    #[tokio::test]
-    async fn test_event_sends_to_rx() {
+    #[test]
+    fn test_event_sends_to_rx() {
         let (emitter, mut rx) = Emitter::new(EventTypeFlags::default());
         emitter.event(Event::GatewayReconnect);
 
-        assert!(rx.recv().await.is_some());
+        assert!(rx.try_recv().is_ok());
 
         // now check that the event didn't send the event twice
-        assert!(time::timeout(Duration::from_millis(10), rx.recv())
-            .await
-            .is_err());
+        assert!(rx.try_recv().is_err());
     }
 }
