@@ -2,6 +2,15 @@
 
 Changelog for `twilight-util`.
 
+## [0.6.2] - 2021-10-07
+
+Adds the `builder` module, which is currently populated with the
+`CommandBuilder` ([#1048] - [@vilgotf]) and the `CallbackDataBuilder`
+([#1146] - [@baptiste0928]).
+
+[#1048]: https://github.com/twilight-rs/twilight/pull/1048
+[#1146]: https://github.com/twilight-rs/twilight/pull/1146
+
 ## [0.6.1] - 2021-09-17
 
 ### Changes
@@ -100,9 +109,12 @@ crates in the ecosystem receiving a major version bump. There are no changes.
 
 Initial release.
 
+[@baptiste0928]: https://github.com/baptiste0928
+[@vilgotf]: https://github.com/vilgotf
 [@vivian]: https://github.com/vivian
 [@zeylahellyer]: https://github.com/zeylahellyer
 
+[0.6.2]: https://github.com/twilight-rs/twilight/releases/tag/util-0.6.2
 [0.6.1]: https://github.com/twilight-rs/twilight/releases/tag/util-0.6.1
 [0.6.0]: https://github.com/twilight-rs/twilight/releases/tag/util-0.6.0
 [0.5.2]: https://github.com/twilight-rs/twilight/releases/tag/util-0.5.2
