@@ -2,6 +2,47 @@
 
 Changelog for `twilight-model`.
 
+## [0.6.5] - 2021-10-07
+
+### Additions
+
+Adds the `CommandOption::Number` variant, which is a single element
+tuple containing an inner `ChoiceCommandOptionData`. Adds the variant
+`CommandOptionChoice::Number`. Adds the type `Number`, which is a `f64`
+that implements `Eq`, `Hash`, and `PartialEq` comparing their
+`from_bits` values ([#1053] - [@tbnritzdoge]).
+
+Adds the following models: `GuildStickersUpdate`,
+`StickerBannerAssetId`, `StickerPackSkuId`, `StickerPack`, and
+`StickerType` ([#1157] - [@7596ff]).
+
+Adds `AuditLogChange::{Asset, Available, FormatType, GuildId, Tags}`
+([#1157] - [@7596ff]).
+
+Adds `Guild::stickers` ([#1157] - [@7596ff]).
+
+Adds `Interaction::id`, which retrieves the inner ID of an interaction
+([#1188] - [@PyroTechniac]).
+
+### Changes
+
+Deprecates `Permissions::MANAGE_EMOJIS`, as in the next breaking
+release, it will be renamed to `MANAGE_EMOJIS_AND_STICKERS` ([#1157] -
+[@7596ff]).
+
+Upgrades `CommandOption::Channel` from a `BaseCommandOptionData` to a
+`ChannelCommandOptionData`. This includes the field `channel_types`.
+which is a list of `ChannelType`s ([#1180] - [@baptiste0928])
+
+Deprecates `VoiceRegion::vip`, as it is no longer sent by Discord
+([#1182] - (@HTG-YT)).
+
+[#1053]: https://github.com/twilight-rs/twilight/pull/1053
+[#1157]: https://github.com/twilight-rs/twilight/pull/1157
+[#1180]: https://github.com/twilight-rs/twilight/pull/1180
+[#1182]: https://github.com/twilight-rs/twilight/pull/1182
+[#1188]: https://github.com/twilight-rs/twilight/pull/1188
+
 ## [0.6.4] - 2021-09-17
 
 ### Thread Support
@@ -825,17 +866,20 @@ Initial release.
 [@A5rocks]: https://github.com/A5rocks
 [@AEnterprise]: https://github.com/AEnterprise
 [@AsianIntel]: https://github.com/AsianIntel
+[@baptiste0928]: https://github.com/baptiste0928
 [@BlackHoleFox]: https://github.com/BlackHoleFox
 [@chamburr]: https://github.com/chamburr
 [@coadler]: https://github.com/coadler
 [@DusterTheFirst]: https://github.com/DusterTheFirst
 [@Erk-]: https://github.com/Erk-
 [@Gelbpunkt]: https://github.com/Gelbpunkt
+[@HTG-YT]: https://github.com/HTG-YT
 [@james7132]: https://github.com/james7132
 [@jazevedo620]: https://github.com/jazevedo620
 [@kotx]: https://github.com/kotx
 [@MaxOhn]: https://github.com/MaxOhn
 [@nickelc]: https://github.com/nickelc
+[@PyroTechniac]: https://github.com/PyroTechniac
 [@sam-kirby]: https://github.com/sam-kirby
 [@tbnritzdoge]: https://github.com/tbnritzdoge
 [@vivian]: https://github.com/vivian
@@ -864,6 +908,8 @@ Initial release.
 
 [0.2.0-beta.1:app integrations]: https://github.com/discord/discord-api-docs/commit/a926694e2f8605848bda6b57d21c8817559e5cec
 
+[0.6.5]: https://github.com/twilight-rs/twilight/releases/tag/model-0.6.5
+[0.6.4]: https://github.com/twilight-rs/twilight/releases/tag/model-0.6.4
 [0.6.3]: https://github.com/twilight-rs/twilight/releases/tag/model-0.6.3
 [0.6.2]: https://github.com/twilight-rs/twilight/releases/tag/model-0.6.2
 [0.6.1]: https://github.com/twilight-rs/twilight/releases/tag/model-0.6.1
