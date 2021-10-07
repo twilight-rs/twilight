@@ -56,7 +56,7 @@ impl Interaction {
         match self {
             Self::Ping(ping) => ping.id,
             Self::ApplicationCommand(command) => command.id,
-            Self::MessageComponent(component) => component.id
+            Self::MessageComponent(component) => component.id,
         }
     }
 }
