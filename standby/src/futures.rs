@@ -10,10 +10,10 @@ use tokio::sync::{
     mpsc::UnboundedReceiver as MpscReceiver,
     oneshot::{error::RecvError, Receiver},
 };
-use twilight_model::gateway::{
+use twilight_model::{application::interaction::MessageComponentInteraction, gateway::{
     event::Event,
     payload::{MessageCreate, ReactionAdd},
-};
+}};
 
 /// Future canceled due to Standby being dropped.
 #[derive(Debug)]
@@ -169,6 +169,40 @@ pub struct WaitForReactionStream {
 
 impl Stream for WaitForReactionStream {
     type Item = ReactionAdd;
+
+    fn poll_next(mut self: Pin<&mut Self>, cx: &mut Context<'_>) -> Poll<Option<Self::Item>> {
+        self.rx.poll_recv(cx)
+    }
+}
+
+/// The future returned from [`Standby::wait_for_button`].
+///
+/// [`Standby::wait_for_button`]: crate::Standby::wait_for_button
+#[derive(Debug)]
+#[must_use = "futures do nothing unless you `.await` or poll them"]
+pub struct WaitForButtonFuture {
+    pub(crate) rx: Receiver<MessageComponentInteraction>
+}
+
+impl Future for WaitForButtonFuture {
+    type Output = Result<MessageComponentInteraction, Canceled>;
+
+    fn poll(mut self: Pin<&mut Self>, cx: &mut Context<'_>) -> Poll<Self::Output> {
+        self.rx.poll_unpin(cx).map_err(Canceled)
+    }
+}
+
+/// The stream returned from [`Standby::wait_for_button_stream`].
+/// 
+/// [`Standby::wait_for_button_stream`]: crate::Standby::wait_for_button_stream
+#[derive(Debug)]
+#[must_use]
+pub struct WaitForButtonStream {
+    pub(crate) rx: MpscReceiver<MessageComponentInteraction>,
+}
+
+impl Stream for WaitForButtonStream {
+    type Item = MessageComponentInteraction;
 
     fn poll_next(mut self: Pin<&mut Self>, cx: &mut Context<'_>) -> Poll<Option<Self::Item>> {
         self.rx.poll_recv(cx)

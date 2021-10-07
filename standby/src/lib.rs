@@ -141,8 +141,9 @@
 mod futures;
 
 pub use futures::{
-    WaitForEventFuture, WaitForEventStream, WaitForGuildEventFuture, WaitForGuildEventStream,
-    WaitForMessageFuture, WaitForMessageStream, WaitForReactionFuture, WaitForReactionStream,
+    WaitForButtonFuture, WaitForButtonStream, WaitForEventFuture, WaitForEventStream,
+    WaitForGuildEventFuture, WaitForGuildEventStream, WaitForMessageFuture, WaitForMessageStream,
+    WaitForReactionFuture, WaitForReactionStream,
 };
 
 use dashmap::DashMap;
@@ -158,6 +159,7 @@ use tokio::sync::{
     oneshot::{self, Sender as OneshotSender},
 };
 use twilight_model::{
+    application::interaction::MessageComponentInteraction,
     channel::Channel,
     gateway::{
         event::Event,
@@ -201,6 +203,7 @@ struct StandbyRef {
     guilds: DashMap<GuildId, Vec<Bystander<Event>>>,
     messages: DashMap<ChannelId, Vec<Bystander<MessageCreate>>>,
     reactions: DashMap<MessageId, Vec<Bystander<ReactionAdd>>>,
+    buttons: DashMap<MessageId, Vec<Bystander<MessageComponentInteraction>>>,
 }
 
 /// The `Standby` struct, used by the main event loop to process events and by
@@ -660,6 +663,52 @@ impl Standby {
         }
 
         WaitForReactionStream { rx }
+    }
+
+    /// todo
+    pub fn wait_for_button<F: Fn(&MessageComponentInteraction) -> bool + Send + Sync + 'static>(
+        &self,
+        message_id: MessageId,
+        check: impl Into<Box<F>>,
+    ) -> WaitForButtonFuture {
+        #[cfg(feature = "tracing")]
+        tracing::trace!(%message_id, "waiting for button press on message");
+
+        let (tx, rx) = oneshot::channel();
+
+        {
+            let mut guild = self.0.buttons.entry(message_id).or_default();
+            guild.push(Bystander {
+                func: check.into(),
+                sender: Some(Sender::Oneshot(tx)),
+            });
+        }
+
+        WaitForButtonFuture { rx }
+    }
+
+    ///todo
+    pub fn wait_for_button_stream<
+        F: Fn(&MessageComponentInteraction) -> bool + Send + Sync + 'static,
+    >(
+        &self,
+        message_id: MessageId,
+        check: impl Into<Box<F>>,
+    ) -> WaitForButtonStream {
+        #[cfg(feature = "tracing")]
+        tracing::trace!(%message_id, "waiting for button on message");
+
+        let (tx, rx) = mpsc::unbounded_channel();
+
+        {
+            let mut guild = self.0.buttons.entry(message_id).or_default();
+            guild.push(Bystander {
+                func: check.into(),
+                sender: Some(Sender::Mpsc(tx)),
+            });
+        }
+
+        WaitForButtonStream { rx }
     }
 
     fn next_event_id(&self) -> u64 {
