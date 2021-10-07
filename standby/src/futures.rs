@@ -10,10 +10,13 @@ use tokio::sync::{
     mpsc::UnboundedReceiver as MpscReceiver,
     oneshot::{error::RecvError, Receiver},
 };
-use twilight_model::{application::interaction::MessageComponentInteraction, gateway::{
-    event::Event,
-    payload::{MessageCreate, ReactionAdd},
-}};
+use twilight_model::{
+    application::interaction::MessageComponentInteraction,
+    gateway::{
+        event::Event,
+        payload::{MessageCreate, ReactionAdd},
+    },
+};
 
 /// Future canceled due to Standby being dropped.
 #[derive(Debug)]
@@ -181,7 +184,7 @@ impl Stream for WaitForReactionStream {
 #[derive(Debug)]
 #[must_use = "futures do nothing unless you `.await` or poll them"]
 pub struct WaitForButtonFuture {
-    pub(crate) rx: Receiver<MessageComponentInteraction>
+    pub(crate) rx: Receiver<MessageComponentInteraction>,
 }
 
 impl Future for WaitForButtonFuture {
@@ -193,7 +196,7 @@ impl Future for WaitForButtonFuture {
 }
 
 /// The stream returned from [`Standby::wait_for_button_stream`].
-/// 
+///
 /// [`Standby::wait_for_button_stream`]: crate::Standby::wait_for_button_stream
 #[derive(Debug)]
 #[must_use]

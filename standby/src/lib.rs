@@ -159,7 +159,7 @@ use tokio::sync::{
     oneshot::{self, Sender as OneshotSender},
 };
 use twilight_model::{
-    application::interaction::MessageComponentInteraction,
+    application::interaction::{Interaction, MessageComponentInteraction},
     channel::Channel,
     gateway::{
         event::Event,
@@ -238,6 +238,11 @@ impl Standby {
         match event {
             Event::MessageCreate(e) => self.process_message(e.0.channel_id, e),
             Event::ReactionAdd(e) => self.process_reaction(e.0.message_id, e),
+            Event::InteractionCreate(e) => {
+                if let Interaction::MessageComponent(b) = &e.0 {
+                    self.process_interaction(b.message.id, b)
+                }
+            }
             _ => {}
         }
 
@@ -787,6 +792,31 @@ impl Standby {
         }
     }
 
+    #[cfg_attr(feature = "tracing", tracing::instrument(level = "trace"))]
+    fn process_interaction(&self, message_id: MessageId, event: &MessageComponentInteraction) {
+        let remove = match self.0.buttons.get_mut(&message_id) {
+            Some(mut bystanders) => {
+                self.bystander_iter(&mut bystanders, event);
+
+                bystanders.is_empty()
+            }
+            None => {
+                #[cfg(feature = "tracing")]
+                tracing::trace!("message {} has no button bystanders", message_id);
+
+                return;
+            }
+        };
+
+        if remove {
+            #[cfg(feature = "tracing")]
+            tracing::trace!("removing message {}", message_id);
+
+            self.0.buttons.remove(&message_id);
+        }
+    }
+
+    #[cfg_attr(feature = "tracing", tracing::instrument(level = "trace"))]
     fn process_reaction(&self, message_id: MessageId, event: &ReactionAdd) {
         let remove = match self.0.reactions.get_mut(&message_id) {
             Some(mut bystanders) => {
