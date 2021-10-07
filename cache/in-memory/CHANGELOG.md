@@ -2,6 +2,23 @@
 
 Changelog for `twilight-cache-inmemory`.
 
+## [0.6.4] - 2021-10-07
+
+### Additions
+
+Adds `ResourceType::STICKER` ([#1157] - [@7596ff]).
+
+Adds caching for stickers in the `GuildCreate` and `GuildStickersUpdate`
+events ([#1157] - [@7596ff]).
+
+Adds `InMemoryCache::guild_stickers` and `InMemoryCache::sticker`
+([#1157] - [@7596ff]).
+
+Adds `CachedSticker` that replaces the inner `User` with a `UserId`
+([#1157] - [@7596ff]).
+
+[#1157]: https://github.com/twilight-rs/twilight/pull/1157
+
 ## [0.6.3] - 2021-09-17
 
 ### Thread Support
@@ -424,6 +441,8 @@ Initial release.
 [#528]: https://github.com/twilight-rs/twilight/pull/528
 [#524]: https://github.com/twilight-rs/twilight/pull/524
 
+[0.6.4]: https://github.com/twilight-rs/twilight/releases/tag/cache-in-memory-0.6.4
+[0.6.3]: https://github.com/twilight-rs/twilight/releases/tag/cache-in-memory-0.6.3
 [0.6.2]: https://github.com/twilight-rs/twilight/releases/tag/cache-in-memory-0.6.2
 [0.6.1]: https://github.com/twilight-rs/twilight/releases/tag/cache-in-memory-0.6.1
 [0.5.3]: https://github.com/twilight-rs/twilight/releases/tag/cache-in-memory-0.5.3
