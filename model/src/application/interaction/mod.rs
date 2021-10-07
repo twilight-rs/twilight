@@ -50,6 +50,15 @@ impl Interaction {
             Self::MessageComponent(inner) => inner.guild_id,
         }
     }
+
+    /// Return the ID of the inner interaction.
+    pub const fn id(&self) -> InteractionId {
+        match self {
+            Self::Ping(ping) => ping.id,
+            Self::ApplicationCommand(command) => command.id,
+            Self::MessageComponent(component) => component.id,
+        }
+    }
 }
 
 impl<'de> Deserialize<'de> for Interaction {
