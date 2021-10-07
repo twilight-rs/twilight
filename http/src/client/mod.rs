@@ -1882,6 +1882,13 @@ impl Client {
     }
 
     /// Respond to an interaction, by ID and token.
+    ///
+    /// For variants of [`InteractionResponse`] that contain a [`CallbackData`],
+    /// there is an [associated builder] in the [`twilight-util`] crate.
+    ///
+    /// [`CallbackData`]: twilight_model::application::callback::CallbackData
+    /// [`twilight-util`]: https://docs.rs/twilight-util/latest/index.html
+    /// [associated builder]: https://docs.rs/twilight-util/latest/builder/struct.CallbackDataBuilder.html
     pub const fn interaction_callback<'a>(
         &'a self,
         interaction_id: InteractionId,
@@ -2223,8 +2230,8 @@ impl Client {
     /// error type if an application ID has not been configured via
     /// [`Client::set_application_id`].
     ///
-    /// [`twilight-util`]: https://api.twilight.rs/twilight_util/index.html
-    /// [associated builder]: https://api.twilight.rs/twilight_util/builder/command/struct.CommandBuilder.html
+    /// [`twilight-util`]: https://docs.rs/twilight_util/index.html
+    /// [associated builder]: https://docs.rs/twilight-util/latest/builder/command/struct.CommandBuilder.html
     pub fn set_guild_commands<'a>(
         &'a self,
         guild_id: GuildId,
@@ -2394,8 +2401,8 @@ impl Client {
     /// error type if an application ID has not been configured via
     /// [`Client::set_application_id`].
     ///
-    /// [`twilight-util`]: https://api.twilight.rs/twilight_util/index.html
-    /// [associated builder]: https://api.twilight.rs/twilight_util/builder/command/struct.CommandBuilder.html
+    /// [`twilight-util`]: https://docs.rs/twilight-util/latest/index.html
+    /// [associated builder]: https://docs.rs/twilight-util/latest/builder/command/struct.CommandBuilder.html
     pub fn set_global_commands<'a>(
         &'a self,
         commands: &'a [Command],

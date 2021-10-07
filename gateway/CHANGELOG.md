@@ -2,6 +2,13 @@
 
 Changelog for `twilight-gateway`.
 
+## [0.6.5] - 2021-10-07
+
+### Changes
+
+This release contains internal refactors, there are no public facing
+changes.
+
 ## [0.6.4] - 2021-09-17
 
 ### Thread Support

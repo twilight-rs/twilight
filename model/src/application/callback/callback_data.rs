@@ -13,6 +13,11 @@ use serde::{Deserialize, Serialize};
 ///
 /// This is used when intending to send a message in the response.
 ///
+/// This struct has an [associated builder] in the [`twilight-util`] crate.
+///
+/// [`twilight-util`]: https://docs.rs/twilight-util/latest/index.html
+/// [associated builder]: https://docs.rs/twilight-util/latest/builder/struct.CallbackDataBuilder.html
+///
 /// [`Interaction`]: crate::application::interaction::Interaction
 /// [`ApplicationCommand`]: crate::application::interaction::Interaction::ApplicationCommand
 #[derive(Clone, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
