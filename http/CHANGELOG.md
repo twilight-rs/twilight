@@ -2,6 +2,32 @@
 
 Changelog for `twilight-http`.
 
+## [0.6.6] - 2021-10-07
+
+### Additions
+
+Adds decompression support. This is enabled by default. The feature is
+named `decompression`. This pulls in the [`brotli`] dependency ([#1104]
+- [@vilgotf]).
+
+When this feature is enabled, the variant
+`DeserializeBodyErrorKind::Decompressing` is added.
+
+ Adds the following `Client` methods: `create_guild_sticker`,
+ `delete_guild_sticker`, `guild_sticker`, `guild_stickers`,
+ `nitro_sticker_packs`, `sticker`, and `update_guild_sticker` ([#1157] -
+ [@7596ff]).
+
+### Changes
+
+`UpdateCurrentUser` now implements `AuditLogReason` ([#1184] - [@Erk-]).
+
+[`brotli`]: https://crates.io/crates/brotli
+
+[#1104]: https://github.com/twilight-rs/twilight/pull/1104
+[#1157]: https://github.com/twilight-rs/twilight/pull/1157
+[#1184]: https://github.com/twilight-rs/twilight/pull/1184
+
 ## [0.6.5] - 2021-09-17
 
 ### Thread Support
@@ -1262,6 +1288,8 @@ Initial release.
 
 [0.2.0-beta.1:app integrations]: https://github.com/discord/discord-api-docs/commit/a926694e2f8605848bda6b57d21c8817559e5cec
 
+[0.6.6]: https://github.com/twilight-rs/twilight/releases/tag/http-0.6.6
+[0.6.5]: https://github.com/twilight-rs/twilight/releases/tag/http-0.6.5
 [0.6.4]: https://github.com/twilight-rs/twilight/releases/tag/http-0.6.4
 [0.6.3]: https://github.com/twilight-rs/twilight/releases/tag/http-0.6.3
 [0.6.2]: https://github.com/twilight-rs/twilight/releases/tag/http-0.6.2

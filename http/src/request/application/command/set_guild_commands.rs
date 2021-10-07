@@ -18,8 +18,8 @@ use twilight_model::{
 /// The [`Command`] struct has an [associated builder] in the
 /// [`twilight-util`] crate.
 ///
-/// [`twilight-util`]: https://api.twilight.rs/twilight_util/index.html
-/// [associated builder]: https://api.twilight.rs/twilight_util/builder/command/struct.CommandBuilder.html
+/// [`twilight-util`]: https://docs.rs/twilight-util/latest/index.html
+/// [associated builder]: https://docs.rs/twilight-util/latest/builder/command/struct.CommandBuilder.html
 #[must_use = "requests must be configured and executed"]
 pub struct SetGuildCommands<'a> {
     commands: &'a [Command],
