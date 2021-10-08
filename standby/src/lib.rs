@@ -670,7 +670,35 @@ impl Standby {
         WaitForReactionStream { rx }
     }
 
-    /// todo
+    /// Wait for a button on a certain message.
+    ///
+    /// Returns a `Canceled` error if the `Standby` struct was dropped.
+    ///
+    /// If you need to wait for multiple buttons matching the given predicate,
+    /// use [`wait_for_button_stream`].
+    ///
+    /// # Examples
+    ///
+    /// Wait for a button on message 123 by user 456:
+    ///
+    /// ```no_run
+    /// # #[tokio::main] async fn main() -> Result<(), Box<dyn std::error::Error>> {
+    /// use futures_util::future;
+    /// use twilight_model::{
+    ///     application::interaction::message_component::MessageComponentInteraction,
+    ///     id::{MessageId, UserId},
+    /// };
+    /// use twilight_standby::Standby;
+    ///
+    /// let standby = Standby::new();
+    ///
+    /// let button = standby.wait_for_button(MessageId(123), |event: &MessageComponentInteraction| {
+    ///     event.author_id() == Some(UserId(456))
+    /// }).await?;
+    /// # Ok(()) }
+    /// ```
+    ///
+    /// [`wait_for_button_stream`]: Self::wait_for_button_stream
     pub fn wait_for_button<F: Fn(&MessageComponentInteraction) -> bool + Send + Sync + 'static>(
         &self,
         message_id: MessageId,
@@ -692,7 +720,39 @@ impl Standby {
         WaitForButtonFuture { rx }
     }
 
-    ///todo
+    /// Wait for a stream of buttons on a certain message.
+    /// 
+    /// Returns a `Canceled` error if the `Standby` struct was dropped.
+    /// 
+    /// If you need to wait for only one button matching the given predicate,
+    /// use [`wait_for_button`].
+    /// 
+    /// # Examples
+    /// 
+    /// Wait for multiple buttons on message 123 with a custom_id of "Click":
+    /// 
+    /// ```no_run
+    /// # #[tokio::main] async fn main() -> Result<(), Box<dyn std::error::Error>> {
+    /// use futures_util::stream::StreamExt;
+    /// use twilight_model::{
+    ///     application::interaction::message_component::MessageComponentInteraction,
+    ///     id::{MessageId, UserId},
+    /// };
+    /// use twilight_standby::Standby;
+    /// 
+    /// let standby = Standby::new();
+    /// 
+    /// let mut buttons = standby.wait_for_button_stream(MessageId(123), |event: &MessageComponentInteraction| {
+    ///     event.data.custom_id = "Click".to_string()
+    /// });
+    /// 
+    /// while let Some(button) = buttons.next().await {
+    ///     println!("got a button by {}", button.author_id());
+    /// }
+    /// # Ok(()) }
+    /// ```
+    /// 
+    /// [`wait_for_button`]: Self::wait_for_button
     pub fn wait_for_button_stream<
         F: Fn(&MessageComponentInteraction) -> bool + Send + Sync + 'static,
     >(
