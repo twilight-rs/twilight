@@ -30,7 +30,7 @@ mod tests {
             &[
                 Token::Struct {
                     name: "VoiceRegion",
-                    len: 6,
+                    len: 5,
                 },
                 Token::Str("custom"),
                 Token::Bool(false),
