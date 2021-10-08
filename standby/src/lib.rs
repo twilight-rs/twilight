@@ -721,16 +721,16 @@ impl Standby {
     }
 
     /// Wait for a stream of buttons on a certain message.
-    /// 
+    ///
     /// Returns a `Canceled` error if the `Standby` struct was dropped.
-    /// 
+    ///
     /// If you need to wait for only one button matching the given predicate,
     /// use [`wait_for_button`].
-    /// 
+    ///
     /// # Examples
-    /// 
+    ///
     /// Wait for multiple buttons on message 123 with a custom_id of "Click":
-    /// 
+    ///
     /// ```no_run
     /// # #[tokio::main] async fn main() -> Result<(), Box<dyn std::error::Error>> {
     /// use futures_util::stream::StreamExt;
@@ -739,19 +739,19 @@ impl Standby {
     ///     id::{MessageId, UserId},
     /// };
     /// use twilight_standby::Standby;
-    /// 
+    ///
     /// let standby = Standby::new();
-    /// 
+    ///
     /// let mut buttons = standby.wait_for_button_stream(MessageId(123), |event: &MessageComponentInteraction| {
-    ///     event.data.custom_id = "Click".to_string()
+    ///     event.data.custom_id == "Click".to_string()
     /// });
-    /// 
+    ///
     /// while let Some(button) = buttons.next().await {
-    ///     println!("got a button by {}", button.author_id());
+    ///     println!("got a button by {}", button.author_id().unwrap());
     /// }
     /// # Ok(()) }
     /// ```
-    /// 
+    ///
     /// [`wait_for_button`]: Self::wait_for_button
     pub fn wait_for_button_stream<
         F: Fn(&MessageComponentInteraction) -> bool + Send + Sync + 'static,
@@ -1069,15 +1069,22 @@ mod tests {
     use static_assertions::assert_impl_all;
     use std::fmt::Debug;
     use twilight_model::{
+        application::{
+            component::ComponentType,
+            interaction::{
+                message_component::MessageComponentInteractionData, Interaction, InteractionType,
+                MessageComponentInteraction,
+            },
+        },
         channel::{
             message::{Message, MessageType},
             Reaction, ReactionType,
         },
         gateway::{
             event::{Event, EventType},
-            payload::{MessageCreate, ReactionAdd, Ready, RoleDelete},
+            payload::{InteractionCreate, MessageCreate, ReactionAdd, Ready, RoleDelete},
         },
-        id::{ApplicationId, ChannelId, GuildId, MessageId, RoleId, UserId},
+        id::{ApplicationId, ChannelId, GuildId, InteractionId, MessageId, RoleId, UserId},
         oauth::{current_application_info::ApplicationFlags, PartialApplication},
         user::{CurrentUser, User},
     };
@@ -1144,6 +1151,41 @@ mod tests {
             member: None,
             message_id: MessageId(4),
             user_id: UserId(3),
+        }
+    }
+
+    fn button() -> MessageComponentInteraction {
+        MessageComponentInteraction {
+            application_id: ApplicationId(1),
+            channel_id: ChannelId(2),
+            data: MessageComponentInteractionData {
+                custom_id: String::from("Click"),
+                component_type: ComponentType::Button,
+                values: vec![],
+            },
+            guild_id: Some(GuildId(3)),
+            id: InteractionId(4),
+            kind: InteractionType::MessageComponent,
+            member: None,
+            message: message(),
+            token: String::from("token"),
+            user: Some(User {
+                accent_color: None,
+                avatar: None,
+                banner: None,
+                bot: false,
+                discriminator: "0001".to_owned(),
+                email: None,
+                flags: None,
+                id: UserId(2),
+                locale: None,
+                mfa_enabled: None,
+                name: "twilight".to_owned(),
+                premium_type: None,
+                public_flags: None,
+                system: None,
+                verified: None,
+            }),
         }
     }
 
@@ -1324,6 +1366,48 @@ mod tests {
         assert_eq!(1, standby.0.reactions.len());
         standby.process(&Event::ReactionAdd(Box::new(ReactionAdd(reaction()))));
         assert!(standby.0.reactions.is_empty());
+    }
+
+    #[tokio::test]
+    async fn test_wait_for_button() {
+        let event = Event::InteractionCreate(Box::new(InteractionCreate(
+            Interaction::MessageComponent(Box::new(button())),
+        )));
+
+        let standby = Standby::new();
+        let wait = standby.wait_for_button(MessageId(3), |button: &MessageComponentInteraction| {
+            button.author_id() == Some(UserId(2))
+        });
+
+        standby.process(&event);
+
+        assert_eq!(
+            Some(UserId(2)),
+            wait.await.map(|button| button.author_id()).unwrap()
+        );
+        assert!(standby.0.buttons.is_empty());
+    }
+
+    #[tokio::test]
+    async fn test_wait_for_button_stream() {
+        let standby = Standby::new();
+        let mut stream =
+            standby.wait_for_button_stream(MessageId(3), |_: &MessageComponentInteraction| true);
+        standby.process(&Event::InteractionCreate(Box::new(InteractionCreate(
+            Interaction::MessageComponent(Box::new(button())),
+        ))));
+        standby.process(&Event::InteractionCreate(Box::new(InteractionCreate(
+            Interaction::MessageComponent(Box::new(button())),
+        ))));
+
+        assert!(stream.next().await.is_some());
+        assert!(stream.next().await.is_some());
+        drop(stream);
+        assert_eq!(1, standby.0.buttons.len());
+        standby.process(&Event::InteractionCreate(Box::new(InteractionCreate(
+            Interaction::MessageComponent(Box::new(button())),
+        ))));
+        assert!(standby.0.buttons.is_empty());
     }
 
     #[tokio::test]
