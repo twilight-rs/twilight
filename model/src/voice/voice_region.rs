@@ -1,5 +1,3 @@
-#![allow(deprecated)]
-
 use serde::{Deserialize, Serialize};
 
 #[allow(clippy::struct_excessive_bools)]
@@ -10,12 +8,6 @@ pub struct VoiceRegion {
     pub id: String,
     pub name: String,
     pub optimal: bool,
-    #[deprecated(
-        note = "the `vip` field has been removed from the Voice Region object on Discord's side.",
-        since = "0.6.5"
-    )]
-    #[serde(default)]
-    pub vip: bool,
 }
 
 #[cfg(test)]
@@ -31,7 +23,6 @@ mod tests {
             id: "region".to_owned(),
             name: "Region".to_owned(),
             optimal: false,
-            vip: false,
         };
 
         serde_test::assert_tokens(
@@ -50,8 +41,6 @@ mod tests {
                 Token::Str("name"),
                 Token::Str("Region"),
                 Token::Str("optimal"),
-                Token::Bool(false),
-                Token::Str("vip"),
                 Token::Bool(false),
                 Token::StructEnd,
             ],
