@@ -193,7 +193,7 @@ impl BucketQueueTask {
                 // - None was sent through the channel (request aborted)
                 // - channel was closed
                 // - timeout reached
-                Ok(Err(_)) | Err(_) | Ok(Ok(None)) => {
+                Ok(Err(_) | Ok(None)) | Err(_) => {
                     #[cfg(feature = "tracing")]
                     tracing::debug!(parent: &span, "receiver timed out");
                 }
