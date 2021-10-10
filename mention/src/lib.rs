@@ -27,7 +27,7 @@
 //! [github link]: https://github.com/twilight-rs/twilight
 //! [license badge]: https://img.shields.io/badge/license-ISC-blue.svg?style=for-the-badge&logo=pastebin
 //! [license link]: https://github.com/twilight-rs/twilight/blob/main/LICENSE.md
-//! [rust badge]: https://img.shields.io/badge/rust-1.49+-93450a.svg?style=for-the-badge&logo=rust
+//! [rust badge]: https://img.shields.io/badge/rust-1.53+-93450a.svg?style=for-the-badge&logo=rust
 
 #![deny(
     clippy::all,
@@ -37,7 +37,7 @@
     missing_docs,
     nonstandard_style,
     rust_2018_idioms,
-    broken_intra_doc_links,
+    rustdoc::broken_intra_doc_links,
     unsafe_code,
     unused,
     warnings
