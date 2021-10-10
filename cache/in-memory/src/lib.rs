@@ -175,11 +175,11 @@ struct InMemoryCacheRef {
     users: DashMap<UserId, User>,
     user_guilds: DashMap<UserId, BTreeSet<GuildId>>,
     /// Mapping of channels and the users currently connected.
-    voice_state_channels: DashMap<ChannelId, HashSet<(GuildId, UserId)>>,
+    voice_state_channels: DashMap<ChannelId, HashSet<UserId>>,
     /// Mapping of guilds and users currently connected to its voice channels.
     voice_state_guilds: DashMap<GuildId, HashSet<UserId>>,
     /// Mapping of guild ID and user ID pairs to their voice states.
-    voice_states: DashMap<(GuildId, UserId), VoiceState>,
+    voice_states: DashMap<UserId, VoiceState>,
 }
 
 /// A thread-safe, in-memory-process cache of Discord data. It can be cloned and
@@ -619,7 +619,8 @@ impl InMemoryCache {
     pub fn voice_state(&self, user_id: UserId, guild_id: GuildId) -> Option<VoiceState> {
         self.0
             .voice_states
-            .get(&(guild_id, user_id))
+            .get(&user_id)
+            .filter(|r| r.guild_id == Some(guild_id))
             .map(|r| r.clone())
     }
 

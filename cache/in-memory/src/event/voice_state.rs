@@ -18,14 +18,14 @@ impl InMemoryCache {
         let user_id = voice_state.user_id;
 
         // Check if the user is switching channels in the same guild (ie. they already have a voice state entry)
-        if let Some(voice_state) = self.0.voice_states.get(&(guild_id, user_id)) {
+        if let Some(voice_state) = self.0.voice_states.get(&user_id) {
             if let Some(channel_id) = voice_state.channel_id {
                 let remove_channel_mapping = self
                     .0
                     .voice_state_channels
                     .get_mut(&channel_id)
                     .map(|mut channel_voice_states| {
-                        channel_voice_states.remove(&(guild_id, user_id));
+                        channel_voice_states.remove(&user_id);
 
                         channel_voice_states.is_empty()
                     })
@@ -56,13 +56,13 @@ impl InMemoryCache {
                 }
             }
 
-            self.0.voice_states.remove(&(guild_id, user_id));
+            self.0.voice_states.remove(&user_id);
 
             return;
         }
 
         let maybe_channel_id = voice_state.channel_id;
-        self.0.voice_states.insert((guild_id, user_id), voice_state);
+        self.0.voice_states.insert(user_id, voice_state);
 
         self.0
             .voice_state_guilds
@@ -75,7 +75,7 @@ impl InMemoryCache {
                 .voice_state_channels
                 .entry(channel_id)
                 .or_default()
-                .insert((guild_id, user_id));
+                .insert(user_id);
         }
     }
 }
@@ -115,7 +115,7 @@ mod tests {
             cache.cache_voice_state(test::voice_state(guild_id, Some(channel_id), user_id));
 
             // The new user should show up in the global voice states
-            assert!(cache.0.voice_states.contains_key(&(guild_id, user_id)));
+            assert!(cache.0.voice_states.contains_key(&user_id));
             // There should only be the one new voice state in there
             assert_eq!(1, cache.0.voice_states.len());
 
@@ -135,7 +135,7 @@ mod tests {
             cache.cache_voice_state(test::voice_state(guild_id, Some(channel_id), user_id));
 
             // The new voice state should show up in the global voice states
-            assert!(cache.0.voice_states.contains_key(&(guild_id, user_id)));
+            assert!(cache.0.voice_states.contains_key(&user_id));
             // There should be two voice states now that we have inserted another
             assert_eq!(2, cache.0.voice_states.len());
 
@@ -155,7 +155,7 @@ mod tests {
             cache.cache_voice_state(test::voice_state(guild_id, Some(channel_id), user_id));
 
             // The new voice state should show up in the global voice states
-            assert!(cache.0.voice_states.contains_key(&(guild_id, user_id)));
+            assert!(cache.0.voice_states.contains_key(&user_id));
             assert_eq!(3, cache.0.voice_states.len());
 
             // The new channel should also show up in the voice states by channel lookup
@@ -176,7 +176,7 @@ mod tests {
             cache.cache_voice_state(test::voice_state(guild_id, Some(channel_id), user_id));
 
             // The new voice state should show up in the global voice states
-            assert!(cache.0.voice_states.contains_key(&(guild_id, user_id)));
+            assert!(cache.0.voice_states.contains_key(&user_id));
             // The amount of global voice states should not change since it was a move, not a join
             assert_eq!(3, cache.0.voice_states.len());
 
@@ -196,7 +196,7 @@ mod tests {
             cache.cache_voice_state(test::voice_state(guild_id, None, user_id));
 
             // Now that the user left, they should not show up in the voice states
-            assert!(!cache.0.voice_states.contains_key(&(guild_id, user_id)));
+            assert!(!cache.0.voice_states.contains_key(&user_id));
             assert_eq!(2, cache.0.voice_states.len());
 
             // Since they were not alone in their channel, the channel and guild mappings should not disappear
@@ -212,7 +212,7 @@ mod tests {
             cache.cache_voice_state(test::voice_state(guild_id, None, user_id));
 
             // Now that the user left, they should not show up in the voice states
-            assert!(!cache.0.voice_states.contains_key(&(guild_id, user_id)));
+            assert!(!cache.0.voice_states.contains_key(&user_id));
             assert_eq!(1, cache.0.voice_states.len());
 
             // Since they were the last in their channel, the mapping should disappear
@@ -234,6 +234,17 @@ mod tests {
             assert!(cache.0.voice_state_channels.is_empty());
             assert!(cache.0.voice_state_guilds.is_empty());
         }
+    }
+
+    #[test]
+    fn test_voice_state_wrong_guild() {
+        let cache = InMemoryCache::new();
+        cache.cache_voice_state(test::voice_state(GuildId(1), Some(ChannelId(1)), UserId(1)));
+
+        assert!(
+            cache.voice_state(UserId(1), GuildId(2)).is_none(),
+            "wrong guild ID wasn't filtered"
+        );
     }
 
     #[test]
