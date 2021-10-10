@@ -13,7 +13,7 @@
 //! dereferences to the value.
 
 use crate::{
-    model::{CachedEmoji, CachedGuild, CachedMember, CachedMessage, CachedPresence},
+    model::{CachedEmoji, CachedGuild, CachedMember, CachedMessage, CachedPresence, CachedSticker},
     GuildResource, InMemoryCache,
 };
 use dashmap::{iter::Iter, mapref::multiple::RefMulti};
@@ -193,6 +193,11 @@ impl<'a> InMemoryCacheIter<'a> {
     /// Create an iterator over the stage instances in the cache.
     pub fn stage_instances(&self) -> ResourceIter<'a, StageId, GuildResource<StageInstance>> {
         ResourceIter::new(self.0.stage_instances.iter())
+    }
+
+    /// Create an iterator over the stickers in the cache.
+    pub fn stickers(&self) -> ResourceIter<'a, EmojiId, GuildResource<CachedSticker>> {
+        ResourceIter::new(self.0.stickers.iter())
     }
 
     /// Create an iterator over the users in the cache.
