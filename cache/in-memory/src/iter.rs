@@ -19,7 +19,7 @@ use crate::{
 use dashmap::{iter::Iter, mapref::multiple::RefMulti};
 use std::{hash::Hash, ops::Deref};
 use twilight_model::{
-    channel::{Group, GuildChannel, PrivateChannel, StageInstance},
+    channel::{message::sticker::StickerId, Group, GuildChannel, PrivateChannel, StageInstance},
     guild::{GuildIntegration, Role},
     id::{ChannelId, EmojiId, GuildId, IntegrationId, MessageId, RoleId, StageId, UserId},
     user::User,
@@ -196,7 +196,7 @@ impl<'a> InMemoryCacheIter<'a> {
     }
 
     /// Create an iterator over the stickers in the cache.
-    pub fn stickers(&self) -> ResourceIter<'a, EmojiId, GuildResource<CachedSticker>> {
+    pub fn stickers(&self) -> ResourceIter<'a, StickerId, GuildResource<CachedSticker>> {
         ResourceIter::new(self.0.stickers.iter())
     }
 
