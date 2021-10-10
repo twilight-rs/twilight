@@ -26,7 +26,7 @@ pub enum InvalidToken {
 }
 
 type Output<T> = Result<Response<T>, Error>;
-type GetTicketSenderFuture = Pin<Box<dyn Future<Output = Result<TicketSender, Error>>>>;
+type GetTicketSenderFuture = Pin<Box<dyn Future<Output = Result<TicketSender, Error>> + Send>>;
 
 enum InnerPoll<T> {
     Advance(ResponseFutureStage),
