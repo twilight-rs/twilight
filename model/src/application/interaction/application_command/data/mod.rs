@@ -158,7 +158,7 @@ impl<'de> Deserialize<'de> for CommandDataOption {
 
                     CommandOptionValue::Mentionable(id)
                 }
-                (CommandOptionType::SubCommand, _) | (CommandOptionType::SubCommandGroup, _) => {
+                (CommandOptionType::SubCommand | CommandOptionType::SubCommandGroup, _) => {
                     return Err(DeError::custom(format!(
                         "invalid option data: {:?} has value instead of options",
                         raw.kind
