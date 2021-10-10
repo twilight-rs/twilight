@@ -178,7 +178,7 @@ struct InMemoryCacheRef {
     voice_state_channels: DashMap<ChannelId, HashSet<UserId>>,
     /// Mapping of guilds and users currently connected to its voice channels.
     voice_state_guilds: DashMap<GuildId, HashSet<UserId>>,
-    /// Mapping of guild ID and user ID pairs to their voice states.
+    /// Mapping of users to their voice states.
     voice_states: DashMap<UserId, VoiceState>,
 }
 
