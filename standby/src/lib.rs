@@ -141,7 +141,7 @@
 mod futures;
 
 pub use futures::{
-    WaitForButtonFuture, WaitForButtonStream, WaitForEventFuture, WaitForEventStream,
+    WaitForComponentFuture, WaitForComponentStream, WaitForEventFuture, WaitForEventStream,
     WaitForGuildEventFuture, WaitForGuildEventStream, WaitForMessageFuture, WaitForMessageStream,
     WaitForReactionFuture, WaitForReactionStream,
 };
@@ -203,7 +203,7 @@ struct StandbyRef {
     guilds: DashMap<GuildId, Vec<Bystander<Event>>>,
     messages: DashMap<ChannelId, Vec<Bystander<MessageCreate>>>,
     reactions: DashMap<MessageId, Vec<Bystander<ReactionAdd>>>,
-    buttons: DashMap<MessageId, Vec<Bystander<MessageComponentInteraction>>>,
+    components: DashMap<MessageId, Vec<Bystander<MessageComponentInteraction>>>,
 }
 
 /// The `Standby` struct, used by the main event loop to process events and by
@@ -240,7 +240,7 @@ impl Standby {
             Event::ReactionAdd(e) => self.process_reaction(e.0.message_id, e),
             Event::InteractionCreate(e) => {
                 if let Interaction::MessageComponent(b) = &e.0 {
-                    self.process_interaction(b.message.id, b)
+                    self.process_components(b.message.id, b)
                 }
             }
             _ => {}
@@ -670,16 +670,16 @@ impl Standby {
         WaitForReactionStream { rx }
     }
 
-    /// Wait for a button on a certain message.
+    /// Wait for a component on a certain message.
     ///
     /// Returns a `Canceled` error if the `Standby` struct was dropped.
     ///
-    /// If you need to wait for multiple buttons matching the given predicate,
-    /// use [`wait_for_button_stream`].
+    /// If you need to wait for multiple components matching the given predicate,
+    /// use [`wait_for_component_stream`].
     ///
     /// # Examples
     ///
-    /// Wait for a button on message 123 by user 456:
+    /// Wait for a component on message 123 by user 456:
     ///
     /// ```no_run
     /// # #[tokio::main] async fn main() -> Result<(), Box<dyn std::error::Error>> {
@@ -692,44 +692,44 @@ impl Standby {
     ///
     /// let standby = Standby::new();
     ///
-    /// let button = standby.wait_for_button(MessageId(123), |event: &MessageComponentInteraction| {
+    /// let component = standby.wait_for_component(MessageId(123), |event: &MessageComponentInteraction| {
     ///     event.author_id() == Some(UserId(456))
     /// }).await?;
     /// # Ok(()) }
     /// ```
     ///
-    /// [`wait_for_button_stream`]: Self::wait_for_button_stream
-    pub fn wait_for_button<F: Fn(&MessageComponentInteraction) -> bool + Send + Sync + 'static>(
+    /// [`wait_for_component_stream`]: Self::wait_for_component_stream
+    pub fn wait_for_component<F: Fn(&MessageComponentInteraction) -> bool + Send + Sync + 'static>(
         &self,
         message_id: MessageId,
         check: impl Into<Box<F>>,
-    ) -> WaitForButtonFuture {
+    ) -> WaitForComponentFuture {
         #[cfg(feature = "tracing")]
-        tracing::trace!(%message_id, "waiting for button press on message");
+        tracing::trace!(%message_id, "waiting for component interaction on message");
 
         let (tx, rx) = oneshot::channel();
 
         {
-            let mut guild = self.0.buttons.entry(message_id).or_default();
+            let mut guild = self.0.components.entry(message_id).or_default();
             guild.push(Bystander {
                 func: check.into(),
                 sender: Some(Sender::Oneshot(tx)),
             });
         }
 
-        WaitForButtonFuture { rx }
+        WaitForComponentFuture { rx }
     }
 
-    /// Wait for a stream of buttons on a certain message.
+    /// Wait for a stream of components on a certain message.
     ///
     /// Returns a `Canceled` error if the `Standby` struct was dropped.
     ///
-    /// If you need to wait for only one button matching the given predicate,
-    /// use [`wait_for_button`].
+    /// If you need to wait for only one component matching the given predicate,
+    /// use [`wait_for_component`].
     ///
     /// # Examples
     ///
-    /// Wait for multiple buttons on message 123 with a custom_id of "Click":
+    /// Wait for multiple components on message 123 with a custom_id of "Click":
     ///
     /// ```no_run
     /// # #[tokio::main] async fn main() -> Result<(), Box<dyn std::error::Error>> {
@@ -742,38 +742,38 @@ impl Standby {
     ///
     /// let standby = Standby::new();
     ///
-    /// let mut buttons = standby.wait_for_button_stream(MessageId(123), |event: &MessageComponentInteraction| {
+    /// let mut components = standby.wait_for_component_stream(MessageId(123), |event: &MessageComponentInteraction| {
     ///     event.data.custom_id == "Click".to_string()
     /// });
     ///
-    /// while let Some(button) = buttons.next().await {
-    ///     println!("got a button by {}", button.author_id().unwrap());
+    /// while let Some(component) = components.next().await {
+    ///     println!("got a component by {}", component.author_id().unwrap());
     /// }
     /// # Ok(()) }
     /// ```
     ///
-    /// [`wait_for_button`]: Self::wait_for_button
-    pub fn wait_for_button_stream<
+    /// [`wait_for_component`]: Self::wait_for_component
+    pub fn wait_for_component_stream<
         F: Fn(&MessageComponentInteraction) -> bool + Send + Sync + 'static,
     >(
         &self,
         message_id: MessageId,
         check: impl Into<Box<F>>,
-    ) -> WaitForButtonStream {
+    ) -> WaitForComponentStream {
         #[cfg(feature = "tracing")]
-        tracing::trace!(%message_id, "waiting for button on message");
+        tracing::trace!(%message_id, "waiting for component interaction on message");
 
         let (tx, rx) = mpsc::unbounded_channel();
 
         {
-            let mut guild = self.0.buttons.entry(message_id).or_default();
+            let mut guild = self.0.components.entry(message_id).or_default();
             guild.push(Bystander {
                 func: check.into(),
                 sender: Some(Sender::Mpsc(tx)),
             });
         }
 
-        WaitForButtonStream { rx }
+        WaitForComponentStream { rx }
     }
 
     fn next_event_id(&self) -> u64 {
@@ -853,8 +853,8 @@ impl Standby {
     }
 
     #[cfg_attr(feature = "tracing", tracing::instrument(level = "trace"))]
-    fn process_interaction(&self, message_id: MessageId, event: &MessageComponentInteraction) {
-        let remove = match self.0.buttons.get_mut(&message_id) {
+    fn process_components(&self, message_id: MessageId, event: &MessageComponentInteraction) {
+        let remove = match self.0.components.get_mut(&message_id) {
             Some(mut bystanders) => {
                 self.bystander_iter(&mut bystanders, event);
 
@@ -862,7 +862,7 @@ impl Standby {
             }
             None => {
                 #[cfg(feature = "tracing")]
-                tracing::trace!("message {} has no button bystanders", message_id);
+                tracing::trace!("message {} has no component bystanders", message_id);
 
                 return;
             }
@@ -872,7 +872,7 @@ impl Standby {
             #[cfg(feature = "tracing")]
             tracing::trace!("removing message {}", message_id);
 
-            self.0.buttons.remove(&message_id);
+            self.0.components.remove(&message_id);
         }
     }
 
@@ -1369,13 +1369,13 @@ mod tests {
     }
 
     #[tokio::test]
-    async fn test_wait_for_button() {
+    async fn test_wait_for_component() {
         let event = Event::InteractionCreate(Box::new(InteractionCreate(
             Interaction::MessageComponent(Box::new(button())),
         )));
 
         let standby = Standby::new();
-        let wait = standby.wait_for_button(MessageId(3), |button: &MessageComponentInteraction| {
+        let wait = standby.wait_for_component(MessageId(3), |button: &MessageComponentInteraction| {
             button.author_id() == Some(UserId(2))
         });
 
@@ -1385,14 +1385,14 @@ mod tests {
             Some(UserId(2)),
             wait.await.map(|button| button.author_id()).unwrap()
         );
-        assert!(standby.0.buttons.is_empty());
+        assert!(standby.0.components.is_empty());
     }
 
     #[tokio::test]
-    async fn test_wait_for_button_stream() {
+    async fn test_wait_for_component_stream() {
         let standby = Standby::new();
         let mut stream =
-            standby.wait_for_button_stream(MessageId(3), |_: &MessageComponentInteraction| true);
+            standby.wait_for_component_stream(MessageId(3), |_: &MessageComponentInteraction| true);
         standby.process(&Event::InteractionCreate(Box::new(InteractionCreate(
             Interaction::MessageComponent(Box::new(button())),
         ))));
@@ -1403,11 +1403,11 @@ mod tests {
         assert!(stream.next().await.is_some());
         assert!(stream.next().await.is_some());
         drop(stream);
-        assert_eq!(1, standby.0.buttons.len());
+        assert_eq!(1, standby.0.components.len());
         standby.process(&Event::InteractionCreate(Box::new(InteractionCreate(
             Interaction::MessageComponent(Box::new(button())),
         ))));
-        assert!(standby.0.buttons.is_empty());
+        assert!(standby.0.components.is_empty());
     }
 
     #[tokio::test]

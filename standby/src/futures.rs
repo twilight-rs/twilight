@@ -178,16 +178,16 @@ impl Stream for WaitForReactionStream {
     }
 }
 
-/// The future returned from [`Standby::wait_for_button`].
+/// The future returned from [`Standby::wait_for_component`].
 ///
-/// [`Standby::wait_for_button`]: crate::Standby::wait_for_button
+/// [`Standby::wait_for_component`]: crate::Standby::wait_for_component
 #[derive(Debug)]
 #[must_use = "futures do nothing unless you `.await` or poll them"]
-pub struct WaitForButtonFuture {
+pub struct WaitForComponentFuture {
     pub(crate) rx: Receiver<MessageComponentInteraction>,
 }
 
-impl Future for WaitForButtonFuture {
+impl Future for WaitForComponentFuture {
     type Output = Result<MessageComponentInteraction, Canceled>;
 
     fn poll(mut self: Pin<&mut Self>, cx: &mut Context<'_>) -> Poll<Self::Output> {
@@ -195,16 +195,16 @@ impl Future for WaitForButtonFuture {
     }
 }
 
-/// The stream returned from [`Standby::wait_for_button_stream`].
+/// The stream returned from [`Standby::wait_for_component_stream`].
 ///
-/// [`Standby::wait_for_button_stream`]: crate::Standby::wait_for_button_stream
+/// [`Standby::wait_for_component_stream`]: crate::Standby::wait_for_component_stream
 #[derive(Debug)]
 #[must_use]
-pub struct WaitForButtonStream {
+pub struct WaitForComponentStream {
     pub(crate) rx: MpscReceiver<MessageComponentInteraction>,
 }
 
-impl Stream for WaitForButtonStream {
+impl Stream for WaitForComponentStream {
     type Item = MessageComponentInteraction;
 
     fn poll_next(mut self: Pin<&mut Self>, cx: &mut Context<'_>) -> Poll<Option<Self::Item>> {
