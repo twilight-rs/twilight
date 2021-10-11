@@ -57,14 +57,14 @@
 //! [github link]: https://github.com/twilight-rs/twilight
 //! [license badge]: https://img.shields.io/badge/license-ISC-blue.svg?style=for-the-badge&logo=pastebin
 //! [license link]: https://github.com/twilight-rs/twilight/blob/main/LICENSE.md
-//! [rust badge]: https://img.shields.io/badge/rust-1.49+-93450a.svg?style=for-the-badge&logo=rust
+//! [rust badge]: https://img.shields.io/badge/rust-1.53+-93450a.svg?style=for-the-badge&logo=rust
 
 #![cfg_attr(docsrs, feature(doc_cfg))]
 #![deny(
-    broken_intra_doc_links,
     clippy::missing_const_for_fn,
     missing_docs,
     rust_2018_idioms,
+    rustdoc::broken_intra_doc_links,
     unsafe_code,
     unused,
     warnings
