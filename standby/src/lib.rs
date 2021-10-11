@@ -699,7 +699,9 @@ impl Standby {
     /// ```
     ///
     /// [`wait_for_component_stream`]: Self::wait_for_component_stream
-    pub fn wait_for_component<F: Fn(&MessageComponentInteraction) -> bool + Send + Sync + 'static>(
+    pub fn wait_for_component<
+        F: Fn(&MessageComponentInteraction) -> bool + Send + Sync + 'static,
+    >(
         &self,
         message_id: MessageId,
         check: impl Into<Box<F>>,
@@ -729,7 +731,7 @@ impl Standby {
     ///
     /// # Examples
     ///
-    /// Wait for multiple components on message 123 with a custom_id of "Click":
+    /// Wait for multiple button components on message 123 with a custom_id of "Click":
     ///
     /// ```no_run
     /// # #[tokio::main] async fn main() -> Result<(), Box<dyn std::error::Error>> {
@@ -1375,9 +1377,10 @@ mod tests {
         )));
 
         let standby = Standby::new();
-        let wait = standby.wait_for_component(MessageId(3), |button: &MessageComponentInteraction| {
-            button.author_id() == Some(UserId(2))
-        });
+        let wait = standby
+            .wait_for_component(MessageId(3), |button: &MessageComponentInteraction| {
+                button.author_id() == Some(UserId(2))
+            });
 
         standby.process(&event);
 
