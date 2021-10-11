@@ -68,11 +68,11 @@ mod private {
             GetGuildWelcomeScreen, GetGuildWidget, UpdateCurrentUserNick, UpdateGuild,
             UpdateGuildChannelPositions, UpdateGuildWelcomeScreen, UpdateGuildWidget,
         },
-        prelude::{
+        sticker::{GetNitroStickerPacks, GetSticker},
+        template::{
             CreateGuildFromTemplate, CreateTemplate, DeleteTemplate, GetTemplate, GetTemplates,
             SyncTemplate, UpdateTemplate,
         },
-        sticker::{GetNitroStickerPacks, GetSticker},
         user::{
             CreatePrivateChannel, GetCurrentUser, GetCurrentUserConnections, GetCurrentUserGuilds,
             GetUser, LeaveGuild, UpdateCurrentUser,
