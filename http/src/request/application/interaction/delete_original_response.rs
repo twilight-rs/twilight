@@ -1,5 +1,6 @@
 use crate::{
     client::Client,
+    error::Error,
     request::{IntoRequest, Request},
     response::{marker::EmptyBody, ResponseFuture},
     routing::Route,
@@ -61,7 +62,7 @@ impl<'a> DeleteOriginalResponse<'a> {
 }
 
 impl IntoRequest for DeleteOriginalResponse<'_> {
-    fn into_request(self) -> Result<Request, crate::Error> {
+    fn into_request(self) -> Result<Request, Error> {
         Ok(Request::from_route(&Route::DeleteInteractionOriginal {
             application_id: self.application_id.get(),
             interaction_token: self.token,

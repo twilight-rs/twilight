@@ -1,6 +1,7 @@
 use super::GetChannelMessagesConfigured;
 use crate::{
     client::Client,
+    error::Error as HttpError,
     request::{validate_inner, IntoRequest, Request},
     response::{marker::ListBody, ResponseFuture},
     routing::Route,
@@ -185,7 +186,7 @@ impl<'a> GetChannelMessages<'a> {
 }
 
 impl IntoRequest for GetChannelMessages<'_> {
-    fn into_request(self) -> Result<Request, crate::Error> {
+    fn into_request(self) -> Result<Request, HttpError> {
         Ok(Request::from_route(&Route::GetMessages {
             after: None,
             around: None,

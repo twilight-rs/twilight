@@ -1,5 +1,6 @@
 use crate::{
     client::Client,
+    error::Error,
     request::{IntoRequest, Request},
     response::ResponseFuture,
     routing::Route,
@@ -47,7 +48,7 @@ impl<'a> FollowNewsChannel<'a> {
 }
 
 impl IntoRequest for FollowNewsChannel<'_> {
-    fn into_request(self) -> Result<Request, crate::Error> {
+    fn into_request(self) -> Result<Request, Error> {
         let mut request = Request::builder(&Route::FollowNewsChannel {
             channel_id: self.channel_id.get(),
         });

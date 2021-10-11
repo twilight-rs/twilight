@@ -1,5 +1,6 @@
 use crate::{
     client::Client,
+    error::Error as HttpError,
     request::{self, validate_inner, AuditLogReason, AuditLogReasonError, IntoRequest, Request},
     response::ResponseFuture,
     routing::Route,
@@ -154,7 +155,7 @@ impl<'a> AuditLogReason<'a> for CreateGuildPrune<'a> {
 }
 
 impl IntoRequest for CreateGuildPrune<'_> {
-    fn into_request(self) -> Result<Request, crate::Error> {
+    fn into_request(self) -> Result<Request, HttpError> {
         let mut request = Request::builder(&Route::CreateGuildPrune {
             compute_prune_count: self.fields.compute_prune_count,
             days: self.fields.days,

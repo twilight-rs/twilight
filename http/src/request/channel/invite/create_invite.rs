@@ -1,5 +1,6 @@
 use crate::{
     client::Client,
+    error::Error as HttpError,
     request::{self, validate_inner, AuditLogReason, AuditLogReasonError, IntoRequest, Request},
     response::ResponseFuture,
     routing::Route,
@@ -276,7 +277,7 @@ impl<'a> AuditLogReason<'a> for CreateInvite<'a> {
 }
 
 impl IntoRequest for CreateInvite<'_> {
-    fn into_request(self) -> Result<Request, crate::Error> {
+    fn into_request(self) -> Result<Request, HttpError> {
         let mut request = Request::builder(&Route::CreateInvite {
             channel_id: self.channel_id.get(),
         });

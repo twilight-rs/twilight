@@ -1,5 +1,6 @@
 use crate::{
     client::Client,
+    error::Error,
     request::{self, AuditLogReason, AuditLogReasonError, IntoRequest, Request},
     response::{marker::EmptyBody, ResponseFuture},
     routing::Route,
@@ -47,7 +48,7 @@ impl<'a> AuditLogReason<'a> for DeleteEmoji<'a> {
 }
 
 impl IntoRequest for DeleteEmoji<'_> {
-    fn into_request(self) -> Result<Request, crate::Error> {
+    fn into_request(self) -> Result<Request, Error> {
         let mut request = Request::builder(&Route::DeleteEmoji {
             emoji_id: self.emoji_id.get(),
             guild_id: self.guild_id.get(),

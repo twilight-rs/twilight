@@ -1,5 +1,6 @@
 use crate::{
     client::Client,
+    error::Error as HttpError,
     request::{validate_inner, IntoRequest, Request},
     response::ResponseFuture,
     routing::Route,
@@ -132,7 +133,7 @@ impl<'a> GetGuildPruneCount<'a> {
 }
 
 impl IntoRequest for GetGuildPruneCount<'_> {
-    fn into_request(self) -> Result<Request, crate::Error> {
+    fn into_request(self) -> Result<Request, HttpError> {
         Ok(Request::from_route(&Route::GetGuildPruneCount {
             days: self.fields.days,
             guild_id: self.guild_id.get(),

@@ -1,5 +1,6 @@
 use crate::{
     client::Client,
+    error::Error,
     request::{self, AuditLogReason, AuditLogReasonError, IntoRequest, Request},
     response::ResponseFuture,
     routing::Route,
@@ -127,7 +128,7 @@ impl<'a> AuditLogReason<'a> for CreateRole<'a> {
 }
 
 impl IntoRequest for CreateRole<'_> {
-    fn into_request(self) -> Result<Request, crate::Error> {
+    fn into_request(self) -> Result<Request, Error> {
         let mut request = Request::builder(&Route::CreateRole {
             guild_id: self.guild_id.get(),
         });

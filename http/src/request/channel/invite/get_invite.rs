@@ -1,5 +1,6 @@
 use crate::{
     client::Client,
+    error::Error,
     request::{IntoRequest, Request},
     response::ResponseFuture,
     routing::Route,
@@ -83,7 +84,7 @@ impl<'a> GetInvite<'a> {
 }
 
 impl IntoRequest for GetInvite<'_> {
-    fn into_request(self) -> Result<Request, crate::Error> {
+    fn into_request(self) -> Result<Request, Error> {
         Ok(Request::from_route(&Route::GetInviteWithExpiration {
             code: self.code,
             with_counts: self.fields.with_counts,

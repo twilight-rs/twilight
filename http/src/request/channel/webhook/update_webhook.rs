@@ -1,5 +1,6 @@
 use crate::{
     client::Client,
+    error::Error,
     request::{self, AuditLogReason, AuditLogReasonError, IntoRequest, NullableField, Request},
     response::ResponseFuture,
     routing::Route,
@@ -93,7 +94,7 @@ impl<'a> AuditLogReason<'a> for UpdateWebhook<'a> {
 }
 
 impl IntoRequest for UpdateWebhook<'_> {
-    fn into_request(self) -> Result<Request, crate::Error> {
+    fn into_request(self) -> Result<Request, Error> {
         let mut request = Request::builder(&Route::UpdateWebhook {
             token: None,
             webhook_id: self.webhook_id.get(),

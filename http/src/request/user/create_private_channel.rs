@@ -1,5 +1,6 @@
 use crate::{
     client::Client,
+    error::Error,
     request::{IntoRequest, Request},
     response::ResponseFuture,
     routing::Route,
@@ -39,7 +40,7 @@ impl<'a> CreatePrivateChannel<'a> {
 }
 
 impl IntoRequest for CreatePrivateChannel<'_> {
-    fn into_request(self) -> Result<Request, crate::Error> {
+    fn into_request(self) -> Result<Request, Error> {
         let request = Request::builder(&Route::CreatePrivateChannel);
 
         let request = request.json(&self.fields)?;

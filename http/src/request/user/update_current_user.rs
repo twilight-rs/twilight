@@ -1,5 +1,6 @@
 use crate::{
     client::Client,
+    error::Error as HttpError,
     request::{
         self, validate_inner, AuditLogReason, AuditLogReasonError, IntoRequest, NullableField,
         Request,
@@ -145,7 +146,7 @@ impl<'a> UpdateCurrentUser<'a> {
 }
 
 impl IntoRequest for UpdateCurrentUser<'_> {
-    fn into_request(self) -> Result<Request, crate::Error> {
+    fn into_request(self) -> Result<Request, HttpError> {
         let mut request = Request::builder(&Route::UpdateCurrentUser);
 
         request = request.json(&self.fields)?;

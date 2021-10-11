@@ -1,9 +1,9 @@
 use crate::{
     client::Client,
+    error::Error,
     request::{IntoRequest, Request},
     response::ResponseFuture,
     routing::Route,
-    Error,
 };
 use serde::Deserialize;
 use twilight_model::channel::message::sticker::StickerPack;

@@ -1,5 +1,6 @@
 use crate::{
     client::Client,
+    error::Error as HttpError,
     request::{validate_inner, IntoRequest, Request},
     response::ResponseFuture,
     routing::Route,
@@ -460,7 +461,7 @@ impl<'a> CreateGuild<'a> {
 }
 
 impl IntoRequest for CreateGuild<'_> {
-    fn into_request(self) -> Result<Request, crate::Error> {
+    fn into_request(self) -> Result<Request, HttpError> {
         let mut request = Request::builder(&Route::CreateGuild);
 
         request = request.json(&self.fields)?;

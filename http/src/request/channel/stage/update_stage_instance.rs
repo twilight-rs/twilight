@@ -1,5 +1,6 @@
 use crate::{
     client::Client,
+    error::Error as HttpError,
     request::{validate_inner, IntoRequest, Request},
     response::{marker::EmptyBody, ResponseFuture},
     routing::Route,
@@ -130,7 +131,7 @@ impl<'a> UpdateStageInstance<'a> {
 }
 
 impl IntoRequest for UpdateStageInstance<'_> {
-    fn into_request(self) -> Result<Request, crate::Error> {
+    fn into_request(self) -> Result<Request, HttpError> {
         let mut request = Request::builder(&Route::UpdateStageInstance {
             channel_id: self.channel_id.get(),
         });

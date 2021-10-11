@@ -1,5 +1,6 @@
 use crate::{
     client::Client,
+    error::Error,
     request::{IntoRequest, Request},
     response::ResponseFuture,
     routing::Route,
@@ -36,7 +37,7 @@ impl<'a> GetGuildWidget<'a> {
 }
 
 impl IntoRequest for GetGuildWidget<'_> {
-    fn into_request(self) -> Result<Request, crate::Error> {
+    fn into_request(self) -> Result<Request, Error> {
         Ok(Request::from_route(&Route::GetGuildWidget {
             guild_id: self.guild_id.get(),
         }))

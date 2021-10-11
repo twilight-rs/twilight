@@ -1,6 +1,7 @@
 use super::RequestReactionType;
 use crate::{
     client::Client,
+    error::Error,
     request::{IntoRequest, Request},
     response::{marker::EmptyBody, ResponseFuture},
     routing::Route,
@@ -56,7 +57,7 @@ impl<'a> DeleteReaction<'a> {
 }
 
 impl IntoRequest for DeleteReaction<'_> {
-    fn into_request(self) -> Result<Request, crate::Error> {
+    fn into_request(self) -> Result<Request, Error> {
         let route = match self.target_user {
             TargetUser::Current => Route::DeleteReactionCurrentUser {
                 channel_id: self.channel_id.get(),

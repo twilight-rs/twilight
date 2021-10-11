@@ -1,5 +1,6 @@
 use crate::{
     client::Client,
+    error::Error,
     request::{IntoRequest, Request},
     response::ResponseFuture,
     routing::Route,
@@ -44,7 +45,7 @@ impl<'a> CrosspostMessage<'a> {
 }
 
 impl IntoRequest for CrosspostMessage<'_> {
-    fn into_request(self) -> Result<Request, crate::Error> {
+    fn into_request(self) -> Result<Request, Error> {
         Ok(Request::from_route(&Route::CrosspostMessage {
             channel_id: self.channel_id.get(),
             message_id: self.message_id.get(),

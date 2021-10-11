@@ -1,7 +1,11 @@
-use crate::{client::Client, request::Request, response::ResponseFuture, routing::Route};
+use crate::{
+    client::Client,
+    error::Error,
+    request::{IntoRequest, Request},
+    response::ResponseFuture,
+    routing::Route,
+};
 use twilight_model::gateway::connection_info::BotConnectionInfo;
-
-use super::IntoRequest;
 
 /// Get information about the gateway, authenticated as a bot user.
 ///
@@ -31,7 +35,7 @@ impl<'a> GetGatewayAuthed<'a> {
 }
 
 impl IntoRequest for GetGatewayAuthed<'_> {
-    fn into_request(self) -> Result<Request, crate::Error> {
+    fn into_request(self) -> Result<Request, Error> {
         Ok(Request::from_route(&Route::GetGatewayBot))
     }
 }

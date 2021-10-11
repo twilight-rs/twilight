@@ -1,5 +1,6 @@
 use crate::{
     client::Client,
+    error::Error as HttpError,
     request::{
         self,
         validate_inner::{
@@ -351,7 +352,7 @@ impl<'a> UpdateMessage<'a> {
 }
 
 impl IntoRequest for UpdateMessage<'_> {
-    fn into_request(self) -> Result<Request, crate::Error> {
+    fn into_request(self) -> Result<Request, HttpError> {
         let mut request = Request::builder(&Route::UpdateMessage {
             channel_id: self.channel_id.get(),
             message_id: self.message_id.get(),

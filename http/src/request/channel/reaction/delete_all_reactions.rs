@@ -1,5 +1,6 @@
 use crate::{
     client::Client,
+    error::Error,
     request::{IntoRequest, Request},
     response::{marker::EmptyBody, ResponseFuture},
     routing::Route,
@@ -41,7 +42,7 @@ impl<'a> DeleteAllReactions<'a> {
 }
 
 impl IntoRequest for DeleteAllReactions<'_> {
-    fn into_request(self) -> Result<Request, crate::Error> {
+    fn into_request(self) -> Result<Request, Error> {
         Ok(Request::from_route(&Route::DeleteMessageReactions {
             channel_id: self.channel_id.get(),
             message_id: self.message_id.get(),

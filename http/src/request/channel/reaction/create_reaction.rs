@@ -1,6 +1,7 @@
 use super::RequestReactionType;
 use crate::{
     client::Client,
+    error::Error,
     request::{IntoRequest, Request},
     response::{marker::EmptyBody, ResponseFuture},
     routing::Route,
@@ -69,7 +70,7 @@ impl<'a> CreateReaction<'a> {
 }
 
 impl IntoRequest for CreateReaction<'_> {
-    fn into_request(self) -> Result<Request, crate::Error> {
+    fn into_request(self) -> Result<Request, Error> {
         Ok(Request::from_route(&Route::CreateReaction {
             channel_id: self.channel_id.get(),
             emoji: self.emoji,

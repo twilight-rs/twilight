@@ -1,5 +1,6 @@
 use crate::{
     client::Client,
+    error::Error,
     request::{self, AuditLogReason, AuditLogReasonError, IntoRequest, Request},
     response::{marker::EmptyBody, ResponseFuture},
     routing::Route,
@@ -51,7 +52,7 @@ impl<'a> AuditLogReason<'a> for DeleteGuildIntegration<'a> {
 }
 
 impl IntoRequest for DeleteGuildIntegration<'_> {
-    fn into_request(self) -> Result<Request, crate::Error> {
+    fn into_request(self) -> Result<Request, Error> {
         let mut request = Request::builder(&Route::DeleteGuildIntegration {
             guild_id: self.guild_id.get(),
             integration_id: self.integration_id.get(),

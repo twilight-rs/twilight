@@ -1,10 +1,10 @@
 use super::{ThreadValidationError, ThreadValidationErrorType};
 use crate::{
     client::Client,
+    error::Error,
     request::{validate_inner, IntoRequest, Request, RequestBuilder},
     response::ResponseFuture,
     routing::Route,
-    Error,
 };
 use serde::Serialize;
 use twilight_model::{

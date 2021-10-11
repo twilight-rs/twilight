@@ -1,5 +1,6 @@
 use crate::{
     client::Client,
+    error::Error,
     request::{self, AuditLogReason, AuditLogReasonError, IntoRequest, Request},
     response::{marker::EmptyBody, ResponseFuture},
     routing::Route,
@@ -49,7 +50,7 @@ impl<'a> AuditLogReason<'a> for DeleteChannelPermissionConfigured<'a> {
 }
 
 impl IntoRequest for DeleteChannelPermissionConfigured<'_> {
-    fn into_request(self) -> Result<Request, crate::Error> {
+    fn into_request(self) -> Result<Request, Error> {
         let mut request = Request::builder(&Route::DeletePermissionOverwrite {
             channel_id: self.channel_id.get(),
             target_id: self.target_id,

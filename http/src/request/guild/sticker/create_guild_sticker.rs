@@ -1,11 +1,11 @@
 use crate::{
     client::Client,
+    error::Error,
     request::{
         multipart::Form, validate_inner, AuditLogReason, AuditLogReasonError, IntoRequest, Request,
     },
     response::ResponseFuture,
     routing::Route,
-    Error,
 };
 use twilight_model::{channel::message::Sticker, id::GuildId};
 

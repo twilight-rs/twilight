@@ -1,12 +1,11 @@
 use crate::{
     client::Client,
-    request::{GetGatewayAuthed, Request},
+    error::Error,
+    request::{GetGatewayAuthed, IntoRequest, Request},
     response::ResponseFuture,
     routing::Route,
 };
 use twilight_model::gateway::connection_info::ConnectionInfo;
-
-use super::IntoRequest;
 
 /// Get information about the gateway, optionally with additional information detailing the
 /// number of shards to use and sessions remaining.
@@ -74,7 +73,7 @@ impl<'a> GetGateway<'a> {
 }
 
 impl IntoRequest for GetGateway<'_> {
-    fn into_request(self) -> Result<Request, crate::Error> {
+    fn into_request(self) -> Result<Request, Error> {
         Ok(Request::from_route(&Route::GetGateway))
     }
 }

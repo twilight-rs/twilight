@@ -1,5 +1,6 @@
 use crate::{
     client::Client,
+    error::Error,
     request::{IntoRequest, Request},
     response::{marker::ListBody, ResponseFuture},
     routing::Route,
@@ -34,7 +35,7 @@ impl<'a> GetGuildVoiceRegions<'a> {
 }
 
 impl IntoRequest for GetGuildVoiceRegions<'_> {
-    fn into_request(self) -> Result<Request, crate::Error> {
+    fn into_request(self) -> Result<Request, Error> {
         Ok(Request::from_route(&Route::GetGuildVoiceRegions {
             guild_id: self.guild_id.get(),
         }))

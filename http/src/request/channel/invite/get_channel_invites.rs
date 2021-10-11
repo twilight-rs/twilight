@@ -1,5 +1,6 @@
 use crate::{
     client::Client,
+    error::Error,
     request::{IntoRequest, Request},
     response::{marker::ListBody, ResponseFuture},
     routing::Route,
@@ -38,7 +39,7 @@ impl<'a> GetChannelInvites<'a> {
 }
 
 impl IntoRequest for GetChannelInvites<'_> {
-    fn into_request(self) -> Result<Request, crate::Error> {
+    fn into_request(self) -> Result<Request, Error> {
         Ok(Request::from_route(&Route::GetChannelInvites {
             channel_id: self.channel_id.get(),
         }))

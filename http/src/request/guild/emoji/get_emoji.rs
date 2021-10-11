@@ -1,5 +1,6 @@
 use crate::{
     client::Client,
+    error::Error,
     request::{IntoRequest, Request},
     response::ResponseFuture,
     routing::Route,
@@ -59,7 +60,7 @@ impl<'a> GetEmoji<'a> {
 }
 
 impl IntoRequest for GetEmoji<'_> {
-    fn into_request(self) -> Result<Request, crate::Error> {
+    fn into_request(self) -> Result<Request, Error> {
         Ok(Request::from_route(&Route::GetEmoji {
             emoji_id: self.emoji_id.get(),
             guild_id: self.guild_id.get(),

@@ -1,5 +1,6 @@
 use crate::{
     client::Client,
+    error::Error,
     request::{IntoRequest, Request},
     response::ResponseFuture,
     routing::Route,
@@ -32,7 +33,7 @@ impl<'a> GetStageInstance<'a> {
 }
 
 impl IntoRequest for GetStageInstance<'_> {
-    fn into_request(self) -> Result<Request, crate::Error> {
+    fn into_request(self) -> Result<Request, Error> {
         Ok(Request::from_route(&Route::GetStageInstance {
             channel_id: self.channel_id.get(),
         }))

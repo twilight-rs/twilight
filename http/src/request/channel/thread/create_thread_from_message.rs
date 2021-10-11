@@ -1,6 +1,7 @@
 use super::{ThreadValidationError, ThreadValidationErrorType};
 use crate::{
     client::Client,
+    error::Error,
     request::{validate_inner, IntoRequest, Request, RequestBuilder},
     response::ResponseFuture,
     routing::Route,
@@ -83,7 +84,7 @@ impl<'a> CreateThreadFromMessage<'a> {
 }
 
 impl IntoRequest for CreateThreadFromMessage<'_> {
-    fn into_request(self) -> Result<Request, crate::Error> {
+    fn into_request(self) -> Result<Request, Error> {
         Request::builder(&Route::CreateThreadFromMessage {
             channel_id: self.channel_id.get(),
             message_id: self.message_id.get(),

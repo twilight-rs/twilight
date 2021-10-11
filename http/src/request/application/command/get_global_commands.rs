@@ -1,5 +1,6 @@
 use crate::{
     client::Client,
+    error::Error,
     request::{IntoRequest, Request},
     response::{marker::ListBody, ResponseFuture},
     routing::Route,
@@ -35,7 +36,7 @@ impl<'a> GetGlobalCommands<'a> {
 }
 
 impl IntoRequest for GetGlobalCommands<'_> {
-    fn into_request(self) -> Result<Request, crate::Error> {
+    fn into_request(self) -> Result<Request, Error> {
         Ok(Request::from_route(&Route::GetGlobalCommands {
             application_id: self.application_id.get(),
         }))

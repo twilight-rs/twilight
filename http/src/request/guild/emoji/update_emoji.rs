@@ -1,5 +1,6 @@
 use crate::{
     client::Client,
+    error::Error,
     request::{self, AuditLogReason, AuditLogReasonError, IntoRequest, Request},
     response::ResponseFuture,
     routing::Route,
@@ -78,7 +79,7 @@ impl<'a> AuditLogReason<'a> for UpdateEmoji<'a> {
 }
 
 impl IntoRequest for UpdateEmoji<'_> {
-    fn into_request(self) -> Result<Request, crate::Error> {
+    fn into_request(self) -> Result<Request, Error> {
         let mut request = Request::builder(&Route::UpdateEmoji {
             emoji_id: self.emoji_id.get(),
             guild_id: self.guild_id.get(),

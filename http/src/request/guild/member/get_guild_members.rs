@@ -1,5 +1,6 @@
 use crate::{
     client::Client,
+    error::Error as HttpError,
     request::{validate_inner, IntoRequest, Request},
     response::{marker::MemberListBody, ResponseFuture},
     routing::Route,
@@ -165,7 +166,7 @@ impl<'a> GetGuildMembers<'a> {
 }
 
 impl IntoRequest for GetGuildMembers<'_> {
-    fn into_request(self) -> Result<Request, crate::Error> {
+    fn into_request(self) -> Result<Request, HttpError> {
         Ok(Request::from_route(&Route::GetGuildMembers {
             after: self.fields.after.map(UserId::get),
             guild_id: self.guild_id.get(),

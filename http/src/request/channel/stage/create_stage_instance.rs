@@ -1,5 +1,6 @@
 use crate::{
     client::Client,
+    error::Error as HttpError,
     request::{validate_inner, IntoRequest, Request},
     response::{marker::EmptyBody, ResponseFuture},
     routing::Route,
@@ -126,7 +127,7 @@ impl<'a> CreateStageInstance<'a> {
 }
 
 impl IntoRequest for CreateStageInstance<'_> {
-    fn into_request(self) -> Result<Request, crate::Error> {
+    fn into_request(self) -> Result<Request, HttpError> {
         let mut request = Request::builder(&Route::CreateStageInstance);
 
         request = request.json(&self.fields)?;

@@ -1,5 +1,6 @@
 use crate::{
     client::Client,
+    error::Error as HttpError,
     request::{validate_inner, IntoRequest, Request},
     response::ResponseFuture,
     routing::Route,
@@ -169,7 +170,7 @@ impl<'a> AddGuildMember<'a> {
 }
 
 impl IntoRequest for AddGuildMember<'_> {
-    fn into_request(self) -> Result<Request, crate::Error> {
+    fn into_request(self) -> Result<Request, HttpError> {
         let mut request = Request::builder(&Route::AddGuildMember {
             guild_id: self.guild_id.get(),
             user_id: self.user_id.get(),

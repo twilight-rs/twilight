@@ -1,5 +1,6 @@
 use crate::{
     client::Client,
+    error::Error,
     request::{self, AuditLogReason, AuditLogReasonError, IntoRequest, Request},
     response::{marker::EmptyBody, ResponseFuture},
     routing::Route,
@@ -64,7 +65,7 @@ impl<'a> AuditLogReason<'a> for DeleteMessages<'a> {
 }
 
 impl IntoRequest for DeleteMessages<'_> {
-    fn into_request(self) -> Result<Request, crate::Error> {
+    fn into_request(self) -> Result<Request, Error> {
         let mut request = Request::builder(&Route::DeleteMessages {
             channel_id: self.channel_id.get(),
         });

@@ -1,9 +1,9 @@
 use crate::{
     client::Client,
+    error::Error,
     request::{IntoRequest, Request},
     response::{marker::ListBody, ResponseFuture},
     routing::Route,
-    Error,
 };
 use twilight_model::{channel::message::sticker::Sticker, id::GuildId};
 
