@@ -1,6 +1,6 @@
 use crate::{
     client::Client,
-    request::Request,
+    request::{IntoRequest, Request},
     response::{marker::EmptyBody, ResponseFuture},
     routing::Route,
 };
@@ -30,11 +30,20 @@ impl<'a> AddThreadMember<'a> {
     ///
     /// [`Response`]: crate::response::Response
     pub fn exec(self) -> ResponseFuture<EmptyBody> {
-        let request = Request::from_route(&Route::AddThreadMember {
+        let http = self.http;
+
+        match self.into_request() {
+            Ok(request) => http.request(request),
+            Err(source) => ResponseFuture::error(source),
+        }
+    }
+}
+
+impl IntoRequest for AddThreadMember<'_> {
+    fn into_request(self) -> Result<Request, crate::Error> {
+        Ok(Request::from_route(&Route::AddThreadMember {
             channel_id: self.channel_id.get(),
             user_id: self.user_id.get(),
-        });
-
-        self.http.request(request)
+        }))
     }
 }

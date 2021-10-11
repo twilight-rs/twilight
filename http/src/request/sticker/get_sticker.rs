@@ -1,4 +1,10 @@
-use crate::{client::Client, request::Request, response::ResponseFuture, routing::Route};
+use crate::{
+    client::Client,
+    request::{IntoRequest, Request},
+    response::ResponseFuture,
+    routing::Route,
+    Error,
+};
 use twilight_model::channel::message::sticker::{Sticker, StickerId};
 
 /// Returns a single sticker by its ID.
@@ -32,10 +38,19 @@ impl<'a> GetSticker<'a> {
     ///
     /// [`Response`]: crate::response::Response
     pub fn exec(self) -> ResponseFuture<Sticker> {
-        let request = Request::from_route(&Route::GetSticker {
-            sticker_id: self.sticker_id.get(),
-        });
+        let http = self.http;
 
-        self.http.request(request)
+        match self.into_request() {
+            Ok(request) => http.request(request),
+            Err(source) => ResponseFuture::error(source),
+        }
+    }
+}
+
+impl IntoRequest for GetSticker<'_> {
+    fn into_request(self) -> Result<Request, Error> {
+        Ok(Request::from_route(&Route::GetSticker {
+            sticker_id: self.sticker_id.get(),
+        }))
     }
 }

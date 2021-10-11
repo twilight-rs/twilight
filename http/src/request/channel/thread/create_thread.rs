@@ -1,10 +1,10 @@
 use super::{ThreadValidationError, ThreadValidationErrorType};
 use crate::{
     client::Client,
-    error::Error as HttpError,
-    request::{validate_inner, Request},
+    request::{validate_inner, IntoRequest, Request, RequestBuilder},
     response::ResponseFuture,
     routing::Route,
+    Error,
 };
 use serde::Serialize;
 use twilight_model::{
@@ -79,22 +79,25 @@ impl<'a> CreateThread<'a> {
         self
     }
 
-    fn request(&self) -> Result<Request, HttpError> {
-        let request = Request::builder(&Route::CreateThread {
-            channel_id: self.channel_id.get(),
-        })
-        .json(&self.fields)?;
-
-        Ok(request.build())
-    }
-
     /// Execute the request, returning a future resolving to a [`Response`].
     ///
     /// [`Response`]: crate::response::Response
     pub fn exec(self) -> ResponseFuture<Channel> {
-        match self.request() {
-            Ok(request) => self.http.request(request),
+        let http = self.http;
+
+        match self.into_request() {
+            Ok(request) => http.request(request),
             Err(source) => ResponseFuture::error(source),
         }
+    }
+}
+
+impl IntoRequest for CreateThread<'_> {
+    fn into_request(self) -> Result<Request, Error> {
+        Request::builder(&Route::CreateThread {
+            channel_id: self.channel_id.get(),
+        })
+        .json(&self.fields)
+        .map(RequestBuilder::build)
     }
 }

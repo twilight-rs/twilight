@@ -1,4 +1,10 @@
-use crate::{client::Client, request::Request, response::ResponseFuture, routing::Route};
+use crate::{
+    client::Client,
+    request::{IntoRequest, Request},
+    response::ResponseFuture,
+    routing::Route,
+    Error,
+};
 use twilight_model::{channel::thread::ThreadsListing, id::ChannelId};
 
 /// Returns archived private threads in the channel.
@@ -43,12 +49,21 @@ impl<'a> GetPrivateArchivedThreads<'a> {
     ///
     /// [`Response`]: crate::response::Response
     pub fn exec(self) -> ResponseFuture<ThreadsListing> {
-        let request = Request::from_route(&Route::GetPrivateArchivedThreads {
+        let http = self.http;
+
+        match self.into_request() {
+            Ok(request) => http.request(request),
+            Err(source) => ResponseFuture::error(source),
+        }
+    }
+}
+
+impl IntoRequest for GetPrivateArchivedThreads<'_> {
+    fn into_request(self) -> Result<Request, Error> {
+        Ok(Request::from_route(&Route::GetPrivateArchivedThreads {
             before: self.before,
             channel_id: self.channel_id.get(),
             limit: self.limit,
-        });
-
-        self.http.request(request)
+        }))
     }
 }

@@ -1,4 +1,10 @@
-use crate::{client::Client, request::Request, response::ResponseFuture, routing::Route};
+use crate::{
+    client::Client,
+    request::{IntoRequest, Request},
+    response::ResponseFuture,
+    routing::Route,
+    Error,
+};
 use twilight_model::{channel::thread::ThreadsListing, id::ChannelId};
 
 /// Returns archived private threads in the channel that the current user has
@@ -41,12 +47,23 @@ impl<'a> GetJoinedPrivateArchivedThreads<'a> {
     ///
     /// [`Response`]: crate::response::Response
     pub fn exec(self) -> ResponseFuture<ThreadsListing> {
-        let request = Request::from_route(&Route::GetJoinedPrivateArchivedThreads {
-            before: self.before.map(ChannelId::get),
-            channel_id: self.channel_id.get(),
-            limit: self.limit,
-        });
+        let http = self.http;
 
-        self.http.request(request)
+        match self.into_request() {
+            Ok(request) => http.request(request),
+            Err(source) => ResponseFuture::error(source),
+        }
+    }
+}
+
+impl IntoRequest for GetJoinedPrivateArchivedThreads<'_> {
+    fn into_request(self) -> Result<Request, Error> {
+        Ok(Request::from_route(
+            &Route::GetJoinedPrivateArchivedThreads {
+                before: self.before.map(ChannelId::get),
+                channel_id: self.channel_id.get(),
+                limit: self.limit,
+            },
+        ))
     }
 }

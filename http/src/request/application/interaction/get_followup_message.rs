@@ -1,4 +1,9 @@
-use crate::{client::Client, request::Request, response::ResponseFuture, routing::Route};
+use crate::{
+    client::Client,
+    request::{IntoRequest, Request},
+    response::ResponseFuture,
+    routing::Route,
+};
 use twilight_model::{
     channel::Message,
     id::{ApplicationId, MessageId},
@@ -48,26 +53,37 @@ impl<'a> GetFollowupMessage<'a> {
         }
     }
 
-    fn request(&self) -> Request {
-        Request::from_route(&Route::GetFollowupMessage {
-            application_id: self.application_id.get(),
-            interaction_token: self.interaction_token,
-            message_id: self.message_id.get(),
-        })
-    }
-
     /// Execute the request, returning a future resolving to a [`Response`].
     ///
     /// [`Response`]: crate::response::Response
     pub fn exec(self) -> ResponseFuture<Message> {
-        self.http.request(self.request())
+        let http = self.http;
+
+        match self.into_request() {
+            Ok(request) => http.request(request),
+            Err(source) => ResponseFuture::error(source),
+        }
+    }
+}
+
+impl IntoRequest for GetFollowupMessage<'_> {
+    fn into_request(self) -> Result<Request, crate::Error> {
+        Ok(Request::from_route(&Route::GetFollowupMessage {
+            application_id: self.application_id.get(),
+            interaction_token: self.interaction_token,
+            message_id: self.message_id.get(),
+        }))
     }
 }
 
 #[cfg(test)]
 mod tests {
     use super::GetFollowupMessage;
-    use crate::{client::Client, request::Request, routing::Route};
+    use crate::{
+        client::Client,
+        request::{IntoRequest, Request},
+        routing::Route,
+    };
     use static_assertions::assert_impl_all;
     use std::error::Error;
     use twilight_model::id::{ApplicationId, MessageId};
@@ -89,7 +105,10 @@ mod tests {
         let client = Client::new("token".to_owned());
         client.set_application_id(application_id());
 
-        let actual = client.followup_message(TOKEN, message_id())?.request();
+        let actual = client
+            .followup_message(TOKEN, message_id())?
+            .into_request()?;
+
         let expected = Request::from_route(&Route::GetFollowupMessage {
             application_id: application_id().get(),
             interaction_token: TOKEN,

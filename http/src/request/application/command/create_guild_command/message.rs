@@ -2,7 +2,7 @@ use super::super::CommandBorrowed;
 use crate::{
     client::Client,
     error::Error,
-    request::{Request, RequestBuilder},
+    request::{IntoRequest, Request, RequestBuilder},
     response::ResponseFuture,
     routing::Route,
 };
@@ -51,7 +51,21 @@ impl<'a> CreateGuildMessageCommand<'a> {
         self
     }
 
-    fn request(&self) -> Result<Request, Error> {
+    /// Execute the request, returning a future resolving to a [`Response`].
+    ///
+    /// [`Response`]: crate::response::Response
+    pub fn exec(self) -> ResponseFuture<Command> {
+        let http = self.http;
+
+        match self.into_request() {
+            Ok(request) => http.request(request),
+            Err(source) => ResponseFuture::error(source),
+        }
+    }
+}
+
+impl IntoRequest for CreateGuildMessageCommand<'_> {
+    fn into_request(self) -> Result<Request, Error> {
         Request::builder(&Route::CreateGuildCommand {
             application_id: self.application_id.get(),
             guild_id: self.guild_id.get(),
@@ -65,15 +79,5 @@ impl<'a> CreateGuildMessageCommand<'a> {
             options: None,
         })
         .map(RequestBuilder::build)
-    }
-
-    /// Execute the request, returning a future resolving to a [`Response`].
-    ///
-    /// [`Response`]: crate::response::Response
-    pub fn exec(self) -> ResponseFuture<Command> {
-        match self.request() {
-            Ok(request) => self.http.request(request),
-            Err(source) => ResponseFuture::error(source),
-        }
     }
 }

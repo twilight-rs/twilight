@@ -1,8 +1,9 @@
 use crate::{
     client::Client,
-    request::Request,
+    request::{IntoRequest, Request},
     response::{marker::EmptyBody, ResponseFuture},
     routing::Route,
+    Error,
 };
 use twilight_model::id::{ChannelId, UserId};
 
@@ -35,11 +36,20 @@ impl<'a> RemoveThreadMember<'a> {
     ///
     /// [`Response`]: crate::response::Response
     pub fn exec(self) -> ResponseFuture<EmptyBody> {
-        let request = Request::from_route(&Route::RemoveThreadMember {
+        let http = self.http;
+
+        match self.into_request() {
+            Ok(request) => http.request(request),
+            Err(source) => ResponseFuture::error(source),
+        }
+    }
+}
+
+impl IntoRequest for RemoveThreadMember<'_> {
+    fn into_request(self) -> Result<Request, Error> {
+        Ok(Request::from_route(&Route::RemoveThreadMember {
             channel_id: self.channel_id.get(),
             user_id: self.user_id.get(),
-        });
-
-        self.http.request(request)
+        }))
     }
 }

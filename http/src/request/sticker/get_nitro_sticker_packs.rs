@@ -1,4 +1,10 @@
-use crate::{client::Client, request::Request, response::ResponseFuture, routing::Route};
+use crate::{
+    client::Client,
+    request::{IntoRequest, Request},
+    response::ResponseFuture,
+    routing::Route,
+    Error,
+};
 use serde::Deserialize;
 use twilight_model::channel::message::sticker::StickerPack;
 
@@ -37,8 +43,17 @@ impl<'a> GetNitroStickerPacks<'a> {
     ///
     /// [`Response`]: crate::response::Response
     pub fn exec(self) -> ResponseFuture<StickerPackListing> {
-        let request = Request::from_route(&Route::GetNitroStickerPacks);
+        let http = self.http;
 
-        self.http.request(request)
+        match self.into_request() {
+            Ok(request) => http.request(request),
+            Err(source) => ResponseFuture::error(source),
+        }
+    }
+}
+
+impl IntoRequest for GetNitroStickerPacks<'_> {
+    fn into_request(self) -> Result<Request, Error> {
+        Ok(Request::from_route(&Route::GetNitroStickerPacks))
     }
 }

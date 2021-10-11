@@ -2,7 +2,7 @@ use super::{ThreadValidationError, ThreadValidationErrorType};
 use crate::{
     client::Client,
     error::Error as HttpError,
-    request::{self, validate_inner, AuditLogReason, AuditLogReasonError, Request},
+    request::{self, validate_inner, AuditLogReason, AuditLogReasonError, IntoRequest, Request},
     response::ResponseFuture,
     routing::Route,
 };
@@ -155,24 +155,14 @@ impl<'a> UpdateThread<'a> {
         Ok(self)
     }
 
-    fn request(&self) -> Result<Request, HttpError> {
-        let mut request = Request::builder(&Route::UpdateChannel {
-            channel_id: self.channel_id.get(),
-        });
-
-        if let Some(reason) = &self.reason {
-            request = request.headers(request::audit_header(reason)?);
-        }
-
-        Ok(request.build())
-    }
-
     /// Execute the request, returning a future resolving to a [`Response`].
     ///
     /// [`Response`]: crate::response::Response
     pub fn exec(self) -> ResponseFuture<Channel> {
-        match self.request() {
-            Ok(request) => self.http.request(request),
+        let http = self.http;
+
+        match self.into_request() {
+            Ok(request) => http.request(request),
             Err(source) => ResponseFuture::error(source),
         }
     }
@@ -183,5 +173,19 @@ impl<'a> AuditLogReason<'a> for UpdateThread<'a> {
         self.reason.replace(AuditLogReasonError::validate(reason)?);
 
         Ok(self)
+    }
+}
+
+impl IntoRequest for UpdateThread<'_> {
+    fn into_request(self) -> Result<Request, HttpError> {
+        let mut request = Request::builder(&Route::UpdateChannel {
+            channel_id: self.channel_id.get(),
+        });
+
+        if let Some(reason) = &self.reason {
+            request = request.headers(request::audit_header(reason)?);
+        }
+
+        Ok(request.build())
     }
 }

@@ -1,8 +1,9 @@
 use crate::{
     client::Client,
-    request::Request,
+    request::{IntoRequest, Request},
     response::{marker::ListBody, ResponseFuture},
     routing::Route,
+    Error,
 };
 use twilight_model::{channel::message::sticker::Sticker, id::GuildId};
 
@@ -46,10 +47,19 @@ impl<'a> GetGuildStickers<'a> {
     ///
     /// [`Response`]: crate::response::Response
     pub fn exec(self) -> ResponseFuture<ListBody<Sticker>> {
-        let request = Request::from_route(&Route::GetGuildStickers {
-            guild_id: self.guild_id.get(),
-        });
+        let http = self.http;
 
-        self.http.request(request)
+        match self.into_request() {
+            Ok(request) => http.request(request),
+            Err(source) => ResponseFuture::error(source),
+        }
+    }
+}
+
+impl IntoRequest for GetGuildStickers<'_> {
+    fn into_request(self) -> Result<Request, Error> {
+        Ok(Request::from_route(&Route::GetGuildStickers {
+            guild_id: self.guild_id.get(),
+        }))
     }
 }

@@ -1,8 +1,11 @@
 use crate::{
     client::Client,
-    request::{multipart::Form, validate_inner, AuditLogReason, AuditLogReasonError, Request},
+    request::{
+        multipart::Form, validate_inner, AuditLogReason, AuditLogReasonError, IntoRequest, Request,
+    },
     response::ResponseFuture,
     routing::Route,
+    Error,
 };
 use twilight_model::{channel::message::Sticker, id::GuildId};
 
@@ -98,6 +101,25 @@ impl<'a> CreateGuildSticker<'a> {
     ///
     /// [`Response`]: crate::response::Response
     pub fn exec(self) -> ResponseFuture<Sticker> {
+        let http = self.http;
+
+        match self.into_request() {
+            Ok(request) => http.request(request),
+            Err(source) => ResponseFuture::error(source),
+        }
+    }
+}
+
+impl<'a> AuditLogReason<'a> for CreateGuildSticker<'a> {
+    fn reason(mut self, reason: &'a str) -> Result<Self, AuditLogReasonError> {
+        self.reason.replace(AuditLogReasonError::validate(reason)?);
+
+        Ok(self)
+    }
+}
+
+impl IntoRequest for CreateGuildSticker<'_> {
+    fn into_request(self) -> Result<Request, Error> {
         let mut request = Request::builder(&Route::CreateGuildSticker {
             guild_id: self.guild_id.get(),
         });
@@ -114,14 +136,6 @@ impl<'a> CreateGuildSticker<'a> {
 
         request = request.form(form);
 
-        self.http.request(request.build())
-    }
-}
-
-impl<'a> AuditLogReason<'a> for CreateGuildSticker<'a> {
-    fn reason(mut self, reason: &'a str) -> Result<Self, AuditLogReasonError> {
-        self.reason.replace(AuditLogReasonError::validate(reason)?);
-
-        Ok(self)
+        Ok(request.build())
     }
 }

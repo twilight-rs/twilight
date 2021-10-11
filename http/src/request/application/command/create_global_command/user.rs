@@ -2,7 +2,7 @@ use super::super::CommandBorrowed;
 use crate::{
     client::Client,
     error::Error,
-    request::{Request, RequestBuilder},
+    request::{IntoRequest, Request, RequestBuilder},
     response::ResponseFuture,
     routing::Route,
 };
@@ -46,7 +46,21 @@ impl<'a> CreateGlobalUserCommand<'a> {
         self
     }
 
-    fn request(&self) -> Result<Request, Error> {
+    /// Execute the request, returning a future resolving to a [`Response`].
+    ///
+    /// [`Response`]: crate::response::Response
+    pub fn exec(self) -> ResponseFuture<Command> {
+        let http = self.http;
+
+        match self.into_request() {
+            Ok(request) => http.request(request),
+            Err(source) => ResponseFuture::error(source),
+        }
+    }
+}
+
+impl IntoRequest for CreateGlobalUserCommand<'_> {
+    fn into_request(self) -> Result<Request, Error> {
         Request::builder(&Route::CreateGlobalCommand {
             application_id: self.application_id.get(),
         })
@@ -59,15 +73,5 @@ impl<'a> CreateGlobalUserCommand<'a> {
             options: None,
         })
         .map(RequestBuilder::build)
-    }
-
-    /// Execute the request, returning a future resolving to a [`Response`].
-    ///
-    /// [`Response`]: crate::response::Response
-    pub fn exec(self) -> ResponseFuture<Command> {
-        match self.request() {
-            Ok(request) => self.http.request(request),
-            Err(source) => ResponseFuture::error(source),
-        }
     }
 }
