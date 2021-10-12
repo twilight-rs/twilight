@@ -45,21 +45,6 @@ impl ClusterCommandError {
     ) {
         (self.kind, self.source)
     }
-
-    fn from_send(error: ClusterSendError) -> Self {
-        let (kind, source) = error.into_parts();
-
-        match kind {
-            ClusterSendErrorType::Sending => Self {
-                source,
-                kind: ClusterCommandErrorType::Sending,
-            },
-            ClusterSendErrorType::ShardNonexistent { id } => Self {
-                source,
-                kind: ClusterCommandErrorType::ShardNonexistent { id },
-            },
-        }
-    }
 }
 
 impl Display for ClusterCommandError {
