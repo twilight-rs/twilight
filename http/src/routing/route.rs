@@ -1183,7 +1183,7 @@ impl<'a> Route<'a> {
     ///  };
     ///
     /// // Take a ticket from the ratelimiter.
-    /// let rx = ratelimiter.ticket(route.path());
+    /// let rx = ratelimiter.get(route.path()).await;
     ///
     /// // Wait to be told that a request can be made...
     /// let _tx = rx.await;
