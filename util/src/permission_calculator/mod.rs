@@ -226,8 +226,8 @@ impl<'a> PermissionCalculator<'a> {
     /// permissions.
     ///
     /// **Note** that this method will not return guild-level permissions such
-    /// as [Manage Emojis and Stickers]; if you need the guild-level permissions
-    /// use [`root`].
+    /// as [Manage Emojis]; if you need the guild-level permissions use
+    /// [`root`].
     ///
     /// # Conditional exclusions
     ///
@@ -316,7 +316,7 @@ impl<'a> PermissionCalculator<'a> {
     /// - [Ban Members]
     /// - [Change Nickname]
     /// - [Kick Members]
-    /// - [Manage Emojis and Stickers]
+    /// - [Manage Emojis]
     /// - [Manage Guild]
     /// - [Manage Nicknames]
     /// - [View Audit Log]
@@ -339,7 +339,7 @@ impl<'a> PermissionCalculator<'a> {
     /// [Deafen Members]: twilight_model::guild::Permissions::DEAFEN_MEMBERS
     /// [Embed Links]: twilight_model::guild::Permissions::EMBED_LINKS
     /// [Kick Members]: twilight_model::guild::Permissions::KICK_MEMBERS
-    /// [Manage Emojis and Stickers]: twilight_model::guild::Permissions::MANAGE_EMOJIS_AND_STICKERS
+    /// [Manage Emojis]: twilight_model::guild::Permissions::MANAGE_EMOJIS
     /// [Manage Guild]: twilight_model::guild::Permissions::MANAGE_GUILD
     /// [Manage Messages]: twilight_model::guild::Permissions::MANAGE_MESSAGES
     /// [Manage Nicknames]: twilight_model::guild::Permissions::MANAGE_NICKNAMES
