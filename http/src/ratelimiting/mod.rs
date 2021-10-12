@@ -55,11 +55,6 @@ impl Ratelimiter {
         Self::default()
     }
 
-    #[deprecated(since = "0.5.0", note = "use `ticket` instead, which is not async")]
-    pub async fn get(&self, path: Path) -> Receiver<Sender<Option<RatelimitHeaders>>> {
-        self.ticket(path)
-    }
-
     pub fn ticket(&self, path: Path) -> Receiver<Sender<Option<RatelimitHeaders>>> {
         #[cfg(feature = "tracing")]
         tracing::debug!("getting bucket for path: {:?}", path);
