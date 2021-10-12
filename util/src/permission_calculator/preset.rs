@@ -14,13 +14,12 @@ pub const PERMISSIONS_MESSAGING: Permissions = Permissions::from_bits_truncate(
 
 /// Permissions associated with a guild only at the root level (i.e. not channel
 /// related).
-#[allow(deprecated)]
 pub const PERMISSIONS_ROOT_ONLY: Permissions = Permissions::from_bits_truncate(
     Permissions::ADMINISTRATOR.bits()
         | Permissions::BAN_MEMBERS.bits()
         | Permissions::CHANGE_NICKNAME.bits()
         | Permissions::KICK_MEMBERS.bits()
-        | Permissions::MANAGE_EMOJIS.bits()
+        | Permissions::MANAGE_EMOJIS_AND_STICKERS.bits()
         | Permissions::MANAGE_GUILD.bits()
         | Permissions::MANAGE_NICKNAMES.bits()
         | Permissions::VIEW_AUDIT_LOG.bits()
