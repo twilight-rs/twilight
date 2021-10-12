@@ -23,7 +23,8 @@ pub use self::headers::RatelimitHeaders;
 pub use self::in_memory::InMemoryRatelimiter;
 pub use self::request::{Method, Path};
 
-use self::ticket::TicketReceiver;
+use self::ticket::{TicketReceiver, TicketSender};
+use futures_util::FutureExt;
 use std::{
     error::Error,
     fmt::Debug,
@@ -87,6 +88,8 @@ pub type HasBucketFuture =
     Pin<Box<dyn Future<Output = Result<bool, GenericError>> + Send + 'static>>;
 pub type GetTicketFuture =
     Pin<Box<dyn Future<Output = Result<TicketReceiver, GenericError>> + Send + 'static>>;
+pub type WaitForTicketFuture =
+    Pin<Box<dyn Future<Output = Result<TicketSender, GenericError>> + Send + 'static>>;
 
 pub trait Ratelimiter: Debug + Send + Sync {
     /// Retrieve the basic information of the bucket for a given path.
@@ -102,4 +105,19 @@ pub trait Ratelimiter: Debug + Send + Sync {
     /// The provided future will be ready when a ticket in the bucket is
     /// available. Tickets are ready in order of retrieval.
     fn ticket(&self, path: Path) -> GetTicketFuture;
+
+    /// Retrieve a ticket to send a request.
+    /// Other than [`Self::ticket`], this method will return
+    /// a [`TicketSender`].
+    ///
+    /// This is identical to calling [`Self::ticket`] and then
+    /// awaiting the [`TicketReceiver`].
+    fn wait_for_ticket(&self, path: Path) -> WaitForTicketFuture {
+        Box::pin(self.ticket(path).then(|maybe_rx| async move {
+            match maybe_rx {
+                Ok(rx) => rx.await.map_err(|e| e.into()),
+                Err(e) => Err(e),
+            }
+        }))
+    }
 }

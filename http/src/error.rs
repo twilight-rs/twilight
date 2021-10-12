@@ -60,9 +60,7 @@ impl Display for Error {
                     Debug::fmt(body, f)
                 }
             }
-            ErrorType::RatelimiterTicket => {
-                f.write_str("Ratelimiter::ticket returned an Err value")
-            }
+            ErrorType::RatelimiterTicket => f.write_str("Failed to get ratelimiter ticket"),
             ErrorType::RequestCanceled => {
                 f.write_str("Request was canceled either before or while being sent")
             }

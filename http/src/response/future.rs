@@ -18,6 +18,7 @@ use std::{
     time::Duration,
 };
 use tokio::time::{self, Timeout};
+use twilight_http_ratelimiting::WaitForTicketFuture;
 use twilight_model::id::GuildId;
 
 pub enum InvalidToken {
@@ -26,7 +27,6 @@ pub enum InvalidToken {
 }
 
 type Output<T> = Result<Response<T>, Error>;
-type GetTicketSenderFuture = Pin<Box<dyn Future<Output = Result<TicketSender, Error>> + Send>>;
 
 enum InnerPoll<T> {
     Advance(ResponseFutureStage),
@@ -208,14 +208,19 @@ struct RatelimitQueue {
     invalid_token: InvalidToken,
     request_timeout: Duration,
     response_future: HyperResponseFuture,
-    wait_for_sender: GetTicketSenderFuture,
+    wait_for_sender: WaitForTicketFuture,
 }
 
 impl RatelimitQueue {
     fn poll<T>(mut self, cx: &mut Context<'_>) -> InnerPoll<T> {
         let tx = match Pin::new(&mut self.wait_for_sender).poll(cx) {
             Poll::Ready(Ok(tx)) => tx,
-            Poll::Ready(Err(err)) => return InnerPoll::Ready(Err(err)),
+            Poll::Ready(Err(err)) => {
+                return InnerPoll::Ready(Err(Error {
+                    kind: ErrorType::RatelimiterTicket,
+                    source: Some(err),
+                }))
+            }
             Poll::Pending => {
                 return InnerPoll::Pending(ResponseFutureStage::RatelimitQueue(Self {
                     guild_id: self.guild_id,
@@ -311,7 +316,7 @@ impl<T> ResponseFuture<T> {
     pub(crate) fn ratelimit(
         guild_id: Option<GuildId>,
         invalid_token: InvalidToken,
-        wait_for_sender: GetTicketSenderFuture,
+        wait_for_sender: WaitForTicketFuture,
         request_timeout: Duration,
         response_future: HyperResponseFuture,
     ) -> Self {
