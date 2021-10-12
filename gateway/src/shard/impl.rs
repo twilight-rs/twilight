@@ -703,31 +703,6 @@ impl Shard {
         }
     }
 
-    /// Send a raw command over the gateway.
-    ///
-    /// This method should be used with caution, [`command`] should be
-    /// preferred.
-    ///
-    /// # Errors
-    ///
-    /// Returns a [`CommandErrorType::Sending`] error type if the message could
-    /// not be sent over the websocket. This indicates the shard is currently
-    /// restarting.
-    ///
-    /// Returns a [`CommandErrorType::Serializing`] error type if the provided
-    /// value failed to serialize into JSON.
-    ///
-    /// Returns a [`CommandErrorType::SessionInactive`] error type if the shard
-    /// has not been started.
-    ///
-    /// [`command`]: Self::command
-    #[deprecated(note = "Use `send` which is more versatile", since = "0.3.0")]
-    pub async fn command_raw(&self, value: Vec<u8>) -> Result<(), CommandError> {
-        self.send(Message::Binary(value))
-            .await
-            .map_err(CommandError::from_send)
-    }
-
     /// Shut down the shard.
     ///
     /// The shard will cleanly close the connection by sending a normal close
