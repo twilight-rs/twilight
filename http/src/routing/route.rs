@@ -1174,7 +1174,7 @@ impl<'a> Route<'a> {
     ///
     /// ```
     /// # #[tokio::main]
-    /// # async fn main() -> Result<(), Box<dyn std::error::Error>> {
+    /// # async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
     /// use twilight_http::routing::Route;
     /// use twilight_http_ratelimiting::{InMemoryRatelimiter, Ratelimiter};
     ///
