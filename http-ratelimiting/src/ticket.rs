@@ -99,6 +99,7 @@ impl TicketNotifier {
     ///
     /// Returns a `futures` `Canceled` error if the consumer has dropped their
     /// [`TicketReceiver`] half. The ticket is considered canceled.
+    #[must_use]
     pub fn available(self) -> Option<TicketHeaders> {
         let (tx, rx) = oneshot::channel();
 
@@ -168,6 +169,7 @@ impl TicketSender {
 /// Refer to the [module-level] documentation for more information.
 ///
 /// [module-level]: self
+#[must_use]
 pub fn channel() -> (TicketNotifier, TicketReceiver) {
     let (tx, rx) = oneshot::channel();
 

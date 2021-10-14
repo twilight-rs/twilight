@@ -173,21 +173,26 @@ impl BucketQueueTask {
                 self.global.0.lock().await;
             }
 
-            let ticket_headers = match queue_tx.available() {
-                Some(ticket_headers) => ticket_headers,
-                None => continue,
+            let ticket_headers = if let Some(ticket_headers) = queue_tx.available() {
+                ticket_headers
+            } else {
+                continue;
             };
 
             #[cfg(feature = "tracing")]
             tracing::debug!(parent: &span, "starting to wait for response headers",);
 
-            // TODO: Find a better way of handling nested types.
             match timeout(Self::WAIT, ticket_headers).await {
                 Ok(Ok(Some(headers))) => self.handle_headers(&headers).await,
-                // - None was sent through the channel (request aborted)
-                // - channel was closed
-                // - timeout reached
-                Ok(Err(_) | Ok(None)) | Err(_) => {
+                Ok(Ok(None)) => {
+                    #[cfg(feature = "tracing")]
+                    tracing::debug!(parent: &span, "request aborted");
+                }
+                Ok(Err(_)) => {
+                    #[cfg(feature = "tracing")]
+                    tracing::debug!(parent: &span, "ticket channel closed");
+                }
+                Err(_) => {
                     #[cfg(feature = "tracing")]
                     tracing::debug!(parent: &span, "receiver timed out");
                 }

@@ -23,6 +23,7 @@ pub enum Method {
 }
 
 impl Method {
+    #[must_use]
     pub const fn into_http(self) -> HttpMethod {
         match self {
             Self::Delete => HttpMethod::DELETE,

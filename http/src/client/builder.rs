@@ -30,14 +30,6 @@ impl ClientBuilder {
         Self::default()
     }
 
-    /// Create a new builder with the provided ratelimiter implementation.
-    pub fn with_ratelimiter(ratelimiter: impl Into<Option<Box<dyn Ratelimiter>>>) -> Self {
-        Self {
-            ratelimiter: ratelimiter.into(),
-            ..Self::new()
-        }
-    }
-
     /// Build the [`Client`].
     pub fn build(self) -> Client {
         #[cfg(feature = "rustls-native-roots")]
@@ -116,7 +108,7 @@ impl ClientBuilder {
     /// If the argument is `None` then the client's ratelimiter will be skipped
     /// before making a request.
     ///
-    /// If this method is not called at all then a default ratelimiter will be
+    /// If this method is not called at all then a default [`InMemoryRatelimiter`] will be
     /// created by [`ClientBuilder::build`].
     #[allow(clippy::missing_const_for_fn)]
     pub fn ratelimiter(mut self, ratelimiter: Option<Box<dyn Ratelimiter>>) -> Self {

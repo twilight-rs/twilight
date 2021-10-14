@@ -51,6 +51,7 @@ impl InMemoryRatelimiter {
     ///
     /// This is used by HTTP client to queue requests in order to avoid
     /// hitting the API's ratelimits.
+    #[must_use]
     pub fn new() -> Self {
         Self::default()
     }
@@ -89,18 +90,23 @@ impl InMemoryRatelimiter {
 
 impl Ratelimiter for InMemoryRatelimiter {
     fn bucket(&self, path: &Path) -> GetBucketFuture {
-        if let Some(bucket) = self.buckets.lock().expect("buckets poisoned").get(path) {
-            let started_at = bucket.started_at.lock().expect("bucket poisoned");
+        self.buckets
+            .lock()
+            .expect("buckets poisoned")
+            .get(path)
+            .map_or_else(
+                || Box::pin(future::ok(None)),
+                |bucket| {
+                    let started_at = bucket.started_at.lock().expect("bucket poisoned");
 
-            Box::pin(future::ok(Some(InfoBucket {
-                limit: bucket.limit(),
-                remaining: bucket.remaining(),
-                reset_after: Duration::from_millis(bucket.reset_after()),
-                started_at: *started_at,
-            })))
-        } else {
-            Box::pin(future::ok(None))
-        }
+                    Box::pin(future::ok(Some(InfoBucket {
+                        limit: bucket.limit(),
+                        remaining: bucket.remaining(),
+                        reset_after: Duration::from_millis(bucket.reset_after()),
+                        started_at: *started_at,
+                    })))
+                },
+            )
     }
 
     fn globally_locked(&self) -> IsGloballyLockedFuture {

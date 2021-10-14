@@ -12,16 +12,34 @@
 //!
 //! [Discord's documentation]: https://discord.com/developers/docs/topics/rate-limits
 
-#![deny(unsafe_code)]
+#![deny(
+    clippy::all,
+    clippy::missing_const_for_fn,
+    clippy::pedantic,
+    future_incompatible,
+    nonstandard_style,
+    rust_2018_idioms,
+    rustdoc::broken_intra_doc_links,
+    unsafe_code,
+    unused,
+    warnings
+)]
+#![allow(
+    clippy::module_name_repetitions,
+    clippy::semicolon_if_nothing_returned,
+    clippy::unnecessary_wraps
+)]
 
 pub mod headers;
 pub mod in_memory;
 pub mod request;
 pub mod ticket;
 
-pub use self::headers::RatelimitHeaders;
-pub use self::in_memory::InMemoryRatelimiter;
-pub use self::request::{Method, Path};
+pub use self::{
+    headers::RatelimitHeaders,
+    in_memory::InMemoryRatelimiter,
+    request::{Method, Path},
+};
 
 use self::ticket::{TicketReceiver, TicketSender};
 use futures_util::FutureExt;
@@ -42,23 +60,27 @@ pub struct Bucket {
 
 impl Bucket {
     /// Total number of tickets allotted in a cycle.
-    pub fn limit(&self) -> u64 {
+    #[must_use]
+    pub const fn limit(&self) -> u64 {
         self.limit
     }
 
     /// Number of tickets remaining.
-    pub fn remaining(&self) -> u64 {
+    #[must_use]
+    pub const fn remaining(&self) -> u64 {
         self.remaining
     }
 
     /// Duration after the [`Self::started_at`] time the bucket will
     /// refresh.
-    pub fn reset_after(&self) -> Duration {
+    #[must_use]
+    pub const fn reset_after(&self) -> Duration {
         self.reset_after
     }
 
     /// When the bucket's ratelimit refresh countdown started.
-    pub fn started_at(&self) -> Option<Instant> {
+    #[must_use]
+    pub const fn started_at(&self) -> Option<Instant> {
         self.started_at
     }
 
@@ -66,6 +88,7 @@ impl Bucket {
     ///
     /// May return `None` if the refresh timer has not been started yet or
     /// the bucket has already refreshed.
+    #[must_use]
     pub fn time_remaining(&self) -> Option<Duration> {
         let started_at = self.started_at?;
         let now = Instant::now();

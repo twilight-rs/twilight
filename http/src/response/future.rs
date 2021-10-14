@@ -215,10 +215,10 @@ impl RatelimitQueue {
     fn poll<T>(mut self, cx: &mut Context<'_>) -> InnerPoll<T> {
         let tx = match Pin::new(&mut self.wait_for_sender).poll(cx) {
             Poll::Ready(Ok(tx)) => tx,
-            Poll::Ready(Err(err)) => {
+            Poll::Ready(Err(source)) => {
                 return InnerPoll::Ready(Err(Error {
                     kind: ErrorType::RatelimiterTicket,
-                    source: Some(err),
+                    source: Some(source),
                 }))
             }
             Poll::Pending => {
