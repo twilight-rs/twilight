@@ -83,6 +83,7 @@ impl RequestGuildMembers {
     }
 }
 
+#[derive(Clone, Debug, Eq, PartialEq)]
 pub struct RequestGuildMembersBuilder {
     guild_id: GuildId,
     nonce: Option<String>,
@@ -301,4 +302,20 @@ impl<T> From<Vec<T>> for RequestGuildMemberId<T> {
     fn from(ids: Vec<T>) -> Self {
         Self::Multiple(ids)
     }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::RequestGuildMembersBuilder;
+    use static_assertions::assert_impl_all;
+    use std::fmt::Debug;
+
+    assert_impl_all!(
+        RequestGuildMembersBuilder: Clone,
+        Debug,
+        Eq,
+        PartialEq,
+        Send,
+        Sync
+    );
 }

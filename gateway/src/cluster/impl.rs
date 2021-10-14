@@ -45,21 +45,6 @@ impl ClusterCommandError {
     ) {
         (self.kind, self.source)
     }
-
-    fn from_send(error: ClusterSendError) -> Self {
-        let (kind, source) = error.into_parts();
-
-        match kind {
-            ClusterSendErrorType::Sending => Self {
-                source,
-                kind: ClusterCommandErrorType::Sending,
-            },
-            ClusterSendErrorType::ShardNonexistent { id } => Self {
-                source,
-                kind: ClusterCommandErrorType::ShardNonexistent { id },
-            },
-        }
-    }
 }
 
 impl Display for ClusterCommandError {
@@ -577,22 +562,6 @@ impl Cluster {
                 kind: ClusterCommandErrorType::Sending,
                 source: Some(Box::new(source)),
             })
-    }
-
-    /// Send a raw command to the specified shard.
-    ///
-    /// # Errors
-    ///
-    /// Returns a [`ClusterCommandErrorType::Sending`] error type if the shard
-    /// exists, but sending it failed.
-    ///
-    /// Returns a [`ClusterCommandErrorType::ShardNonexistent`] error type if
-    /// the provided shard ID does not exist in the cluster.
-    #[deprecated(note = "Use `send` which is more versatile", since = "0.3.0")]
-    pub async fn command_raw(&self, id: u64, value: Vec<u8>) -> Result<(), ClusterCommandError> {
-        self.send(id, Message::Binary(value))
-            .await
-            .map_err(ClusterCommandError::from_send)
     }
 
     /// Send a raw websocket message.

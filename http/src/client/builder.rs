@@ -178,3 +178,12 @@ impl Default for ClientBuilder {
         }
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::ClientBuilder;
+    use static_assertions::assert_impl_all;
+    use std::fmt::Debug;
+
+    assert_impl_all!(ClientBuilder: Debug, Default, Send, Sync);
+}

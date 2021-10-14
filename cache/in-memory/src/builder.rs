@@ -4,7 +4,7 @@ use super::{
 };
 
 /// Builder to configure and construct an [`InMemoryCache`].
-#[derive(Clone, Debug, Default, Eq, PartialEq)]
+#[derive(Debug, Default)]
 pub struct InMemoryCacheBuilder(Config);
 
 impl InMemoryCacheBuilder {
@@ -43,5 +43,5 @@ mod tests {
     use static_assertions::assert_impl_all;
     use std::fmt::Debug;
 
-    assert_impl_all!(InMemoryCacheBuilder: Clone, Debug, Default, Send, Sync);
+    assert_impl_all!(InMemoryCacheBuilder: Debug, Default, Send, Sync);
 }
