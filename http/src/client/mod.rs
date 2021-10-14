@@ -4,7 +4,6 @@ pub use self::builder::ClientBuilder;
 
 use crate::{
     error::{Error, ErrorType},
-    ratelimiting::Ratelimiter,
     request::{
         application::{
             command::{
@@ -61,6 +60,7 @@ use std::{
     time::Duration,
 };
 use tokio::time;
+use twilight_http_ratelimiting::Ratelimiter;
 use twilight_model::{
     application::{
         callback::InteractionResponse,

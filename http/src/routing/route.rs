@@ -1175,7 +1175,8 @@ impl<'a> Route<'a> {
     /// ```
     /// # #[tokio::main]
     /// # async fn main() -> Result<(), Box<dyn std::error::Error>> {
-    /// use twilight_http::{ratelimiting::{InMemoryRatelimiter, Ratelimiter}, routing::Route};
+    /// use twilight_http::routing::Route;
+    /// use twilight_http_ratelimiting::{InMemoryRatelimiter, Ratelimiter};
     ///
     /// let ratelimiter = InMemoryRatelimiter::new();
     /// let route = Route::CreateMessage {
@@ -1192,7 +1193,7 @@ impl<'a> Route<'a> {
     /// # Ok(()) }
     /// ```
     ///
-    /// [`Ratelimiter`]: crate::ratelimiting::Ratelimiter
+    /// [`Ratelimiter`]: twilight_http_ratelimiting::Ratelimiter
     #[allow(clippy::too_many_lines)]
     pub fn path(&self) -> Path {
         match self {

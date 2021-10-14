@@ -2,7 +2,6 @@ use super::{Response, StatusCode};
 use crate::{
     api_error::ApiError,
     error::{Error, ErrorType},
-    ratelimiting::{ticket::TicketSender, RatelimitHeaders},
 };
 use hyper::{client::ResponseFuture as HyperResponseFuture, StatusCode as HyperStatusCode};
 use std::{
@@ -19,6 +18,7 @@ use std::{
 };
 use tokio::time::{self, Timeout};
 use twilight_http_ratelimiting::WaitForTicketFuture;
+use twilight_http_ratelimiting::{ticket::TicketSender, RatelimitHeaders};
 use twilight_model::id::GuildId;
 
 pub enum InvalidToken {

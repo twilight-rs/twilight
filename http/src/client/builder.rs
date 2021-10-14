@@ -1,5 +1,4 @@
 use super::Client;
-use crate::ratelimiting::{InMemoryRatelimiter, Ratelimiter};
 use hyper::header::HeaderMap;
 use std::{
     sync::{
@@ -8,6 +7,7 @@ use std::{
     },
     time::Duration,
 };
+use twilight_http_ratelimiting::{InMemoryRatelimiter, Ratelimiter};
 use twilight_model::{channel::message::allowed_mentions::AllowedMentions, id::ApplicationId};
 
 #[derive(Debug)]

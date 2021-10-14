@@ -121,8 +121,6 @@ mod json;
 pub const API_VERSION: u8 = 9;
 
 pub use crate::{client::Client, error::Error, response::Response};
-#[doc(no_inline)]
-pub use twilight_http_ratelimiting as ratelimiting;
 
 #[cfg(not(any(
     feature = "native",
