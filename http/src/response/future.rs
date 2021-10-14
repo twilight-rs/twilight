@@ -17,8 +17,7 @@ use std::{
     time::Duration,
 };
 use tokio::time::{self, Timeout};
-use twilight_http_ratelimiting::WaitForTicketFuture;
-use twilight_http_ratelimiting::{ticket::TicketSender, RatelimitHeaders};
+use twilight_http_ratelimiting::{ticket::TicketSender, RatelimitHeaders, WaitForTicketFuture};
 use twilight_model::id::GuildId;
 
 pub enum InvalidToken {
