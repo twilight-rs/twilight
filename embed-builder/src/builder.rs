@@ -783,6 +783,7 @@ mod tests {
     const_assert!(EmbedBuilder::FIELD_VALUE_LENGTH_LIMIT == 1024);
     const_assert!(EmbedBuilder::FOOTER_TEXT_LENGTH_LIMIT == 2048);
     const_assert!(EmbedBuilder::TITLE_LENGTH_LIMIT == 256);
+    assert_impl_all!(EmbedBuilder: Clone, Debug, Eq, PartialEq, Send, Sync);
     assert_impl_all!(Embed: TryFrom<EmbedBuilder>);
 
     #[test]
