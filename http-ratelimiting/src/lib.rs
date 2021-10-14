@@ -58,7 +58,7 @@ pub struct Bucket {
     limit: u64,
     /// Number of tickets remaining.
     remaining: u64,
-    /// Duration after [`started_at`] time the bucket will refresh.
+    /// Duration after [`Self::started_at`] time the bucket will refresh.
     reset_after: Duration,
     /// When the bucket's ratelimit refresh countdown started.
     started_at: Option<Instant>,
