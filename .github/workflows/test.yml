@@ -92,11 +92,9 @@ jobs:
       - name: Cache dependencies
         uses: Swatinem/rust-cache@v1
 
+      - name: Output processor info
+        run: cat /proc/cpuinfo
+
       - run: cargo check --examples --tests --all-features
         env:
           RUSTFLAGS: "-C target-cpu=native"
-
-      - name: Output processor info on failure
-        if: ${{ failure() }}
-
-        run: cat /proc/cpuinfo
