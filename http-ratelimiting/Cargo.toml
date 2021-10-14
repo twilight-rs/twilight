@@ -1,7 +1,7 @@
 [package]
 authors = ["Twilight Contributors"]
 categories = []
-description = "Discord REST API client for the Twilight ecosystem."
+description = "Discord REST API ratelimiter implementations for the Twilight ecosystem."
 documentation = "https://docs.rs/twilight-http-ratelimiting"
 edition = "2018"
 homepage = "https://twilight.rs/"
