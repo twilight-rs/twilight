@@ -16,6 +16,7 @@
     clippy::all,
     clippy::missing_const_for_fn,
     clippy::pedantic,
+    clippy::missing_docs_in_private_items,
     future_incompatible,
     nonstandard_style,
     rust_2018_idioms,
@@ -51,10 +52,15 @@ use std::{
     time::{Duration, Instant},
 };
 
+/// A bucket containing ratelimiting information for a [`Path`].
 pub struct Bucket {
+    /// Total number of tickets allotted in a cycle.
     limit: u64,
+    /// Number of tickets remaining.
     remaining: u64,
+    /// Duration after [`started_at`] time the bucket will refresh.
     reset_after: Duration,
+    /// When the bucket's ratelimit refresh countdown started.
     started_at: Option<Instant>,
 }
 
@@ -102,18 +108,45 @@ impl Bucket {
     }
 }
 
-type GenericError = Box<dyn Error + Send + Sync>;
+/// A generic error type that implements [`Error`].
+pub type GenericError = Box<dyn Error + Send + Sync>;
+
+/// Future returned by [`Ratelimiter::bucket`].
 pub type GetBucketFuture =
     Pin<Box<dyn Future<Output = Result<Option<Bucket>, GenericError>> + Send + 'static>>;
+
+/// Future returned by [`Ratelimiter::globally_locked`].
 pub type IsGloballyLockedFuture =
     Pin<Box<dyn Future<Output = Result<bool, GenericError>> + Send + 'static>>;
+
+/// Future returned by [`Ratelimiter::has`].
 pub type HasBucketFuture =
     Pin<Box<dyn Future<Output = Result<bool, GenericError>> + Send + 'static>>;
+
+/// Future returned by [`Ratelimiter::ticket`].
 pub type GetTicketFuture =
     Pin<Box<dyn Future<Output = Result<TicketReceiver, GenericError>> + Send + 'static>>;
+
+/// Future returned by [`Ratelimiter::wait_for_ticket`].
 pub type WaitForTicketFuture =
     Pin<Box<dyn Future<Output = Result<TicketSender, GenericError>> + Send + 'static>>;
 
+/// An implementation of a ratelimiter for the Discord REST API.
+///
+/// A default implementation can be found in [`InMemoryRatelimiter`].
+///
+/// All operations are asynchronous to allow for custom implementations to
+/// use different storage backends, for example databases.
+///
+/// Ratelimiters should keep track of two kids of ratelimits:
+/// * The global ratelimit status
+/// * [`Path`]-specific ratelimits
+///
+/// To do this, clients utilizing a ratelimiter will send back response
+/// ratelimit headers via a [`TicketSender`].
+///
+/// The ratelimiter itself will hand a [`TicketReceiver`] to the caller
+/// when a ticket is being requested.
 pub trait Ratelimiter: Debug + Send + Sync {
     /// Retrieve the basic information of the bucket for a given path.
     fn bucket(&self, path: &Path) -> GetBucketFuture;
@@ -138,7 +171,7 @@ pub trait Ratelimiter: Debug + Send + Sync {
     fn wait_for_ticket(&self, path: Path) -> WaitForTicketFuture {
         Box::pin(self.ticket(path).then(|maybe_rx| async move {
             match maybe_rx {
-                Ok(rx) => rx.await.map_err(|e| e.into()),
+                Ok(rx) => rx.await.map_err(From::from),
                 Err(e) => Err(e),
             }
         }))

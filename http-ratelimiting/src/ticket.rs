@@ -95,9 +95,7 @@ impl TicketNotifier {
     /// ratelimiting backends can handle the headers that the API consumer will
     /// send back, thus completing the cycle.
     ///
-    /// # Errors
-    ///
-    /// Returns a `futures` `Canceled` error if the consumer has dropped their
+    /// Returns a `None` if the consumer has dropped their
     /// [`TicketReceiver`] half. The ticket is considered canceled.
     #[must_use]
     pub fn available(self) -> Option<TicketHeaders> {

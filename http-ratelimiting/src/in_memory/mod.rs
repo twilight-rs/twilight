@@ -1,3 +1,5 @@
+//! In-memory based default [`Ratelimiter`] implementation used in `twilight-http`.
+
 mod bucket;
 
 use self::bucket::{Bucket, BucketQueueTask};
@@ -27,22 +29,36 @@ use tokio::sync::Mutex as AsyncMutex;
 struct GlobalLockPair(AsyncMutex<()>, AtomicBool);
 
 impl GlobalLockPair {
+    /// Set the global ratelimit as exhausted.
     pub fn lock(&self) {
         self.1.store(true, Ordering::Release);
     }
 
+    /// Set the global ratelimit as no longer exhausted.
     pub fn unlock(&self) {
         self.1.store(false, Ordering::Release);
     }
 
+    /// Whether the global ratelimit is exhausted.
     pub fn is_locked(&self) -> bool {
         self.1.load(Ordering::Relaxed)
     }
 }
 
+/// Default ratelimiter implementation used in twilight that
+/// stores ratelimit information in an in-memory mapping.
+///
+/// This will meet most users' needs for simple ratelimiting,
+/// but for multi-processed bots, consider either implementing
+/// your own [`Ratelimiter`] that uses a shared storage backend
+/// or use the [HTTP proxy].
+///
+/// [HTTP proxy]: (https://twilight.rs/chapter_2_multi-serviced_approach.html#http-proxy-ratelimiting)
 #[derive(Clone, Debug, Default)]
 pub struct InMemoryRatelimiter {
+    /// Mapping of [`Path`]s to their associated [`Bucket`]s.
     buckets: Arc<Mutex<HashMap<Path, Arc<Bucket>>>>,
+    /// Global ratelimit data.
     global: Arc<GlobalLockPair>,
 }
 
@@ -56,6 +72,8 @@ impl InMemoryRatelimiter {
         Self::default()
     }
 
+    /// Get the [`Bucket`] for a [`Path`] and queue for a [`TicketNotifier`]
+    /// to be notified when a request may be performed.
     fn entry(&self, path: Path, tx: TicketNotifier) -> (Arc<Bucket>, bool) {
         let mut buckets = self.buckets.lock().expect("buckets poisoned");
 

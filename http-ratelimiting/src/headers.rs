@@ -14,8 +14,10 @@ use std::{
 /// Iterator of header name-value pairs failed to be parsed.
 #[derive(Debug)]
 pub struct HeaderParsingError {
-    pub(super) source: Option<Box<dyn Error + Send + Sync>>,
+    /// Detailed reason why the headers failed to be parsed.
     pub(super) kind: HeaderParsingErrorType,
+    /// Original error leading up to this one.
+    pub(super) source: Option<Box<dyn Error + Send + Sync>>,
 }
 
 impl HeaderParsingError {
@@ -37,6 +39,7 @@ impl HeaderParsingError {
         (self.kind, self.source)
     }
 
+    /// Create a new error because a header is missing in the response.
     pub(super) fn missing(name: HeaderName) -> Self {
         Self {
             kind: HeaderParsingErrorType::Missing { name },
@@ -44,6 +47,7 @@ impl HeaderParsingError {
         }
     }
 
+    /// Create a new error because a header is not valid UTF-8.
     pub(super) fn not_utf8(name: HeaderName, value: Vec<u8>, source: Utf8Error) -> Self {
         Self {
             kind: HeaderParsingErrorType::NotUtf8 { name, value },

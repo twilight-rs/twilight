@@ -1,3 +1,11 @@
+//! Request parameters for ratelimiting.
+//!
+//! This module contains the type definitions for parameters
+//! relevant for ratelimiting.
+//!
+//! The [`super::Ratelimiter`] uses [`Path`]s and [`Method`]s to store
+//! and associate buckets with routes.
+
 use http::Method as HttpMethod;
 use std::{
     convert::TryFrom,
@@ -23,6 +31,7 @@ pub enum Method {
 }
 
 impl Method {
+    /// Convert the method into the equivalent [`http::Method`].
     #[must_use]
     pub const fn into_http(self) -> HttpMethod {
         match self {
@@ -35,9 +44,12 @@ impl Method {
     }
 }
 
+/// Error returned when a [`Path`] could not be parsed from a string.
 #[derive(Debug)]
 pub struct PathParseError {
+    /// Detailed reason why this could not be parsed.
     kind: PathParseErrorType,
+    /// Original error leading up to this one.
     source: Option<Box<dyn Error + Send + Sync>>,
 }
 
@@ -83,6 +95,7 @@ impl Error for PathParseError {
     }
 }
 
+/// Type of [`PathParseError`] specifying what failed to parse.
 #[derive(Debug)]
 #[non_exhaustive]
 pub enum PathParseErrorType {
@@ -156,45 +169,85 @@ pub enum Path {
     Guilds,
     /// Operating on one of user's guilds.
     GuildsId(u64),
+    /// Operating on one of the user's guilds' bans.
     GuildsIdBans(u64),
+    /// Operating on a ban from one of the user's guilds.
     GuildsIdBansId(u64),
+    /// Operating on a ban from one of the user's guilds.
     GuildsIdAuditLogs(u64),
+    /// Operating on specific member's ban from one of the user's guilds.
     GuildsIdBansUserId(u64),
+    /// Operating on one of the user's guilds' channels.
     GuildsIdChannels(u64),
+    /// Operating on one of the user's guilds' widget.
     GuildsIdWidget(u64),
+    /// Operating on one of the user's guilds' emojis.
     GuildsIdEmojis(u64),
+    /// Operating on an emoji from one of the user's guilds.
     GuildsIdEmojisId(u64),
+    /// Operating on one of the user's guilds' integrations.
     GuildsIdIntegrations(u64),
+    /// Operating on an integration from one of the user's guilds.
     GuildsIdIntegrationsId(u64),
+    /// Operating on an integration from one of the user's guilds by synchronizing it.
     GuildsIdIntegrationsIdSync(u64),
+    /// Operating on one of the user's guilds' invites.
     GuildsIdInvites(u64),
+    /// Operating on one of the user's guilds' members.
     GuildsIdMembers(u64),
+    /// Operating on a member from one of the user's guilds.
     GuildsIdMembersId(u64),
+    /// Operating on a role of a member from one of the user's guilds.
     GuildsIdMembersIdRolesId(u64),
+    /// Operating on the user's nickname in one of the user's guilds.
     GuildsIdMembersMeNick(u64),
+    /// Operating on one of the user's guilds' members by searching.
     GuildsIdMembersSearch(u64),
+    /// Operating on one of the user's guilds' by previewing it.
     GuildsIdPreview(u64),
+    /// Operating on one of the user's guilds' by pruning members.
     GuildsIdPrune(u64),
+    /// Operating on the voice regions of one of the user's guilds.
     GuildsIdRegions(u64),
+    /// Operating on the roles of one of the user's guilds.
     GuildsIdRoles(u64),
+    /// Operating on a role of one of the user's guilds.
     GuildsIdRolesId(u64),
+    /// Operating on one of the user's guilds' stickers.
     GuildsIdStickers(u64),
+    /// Operating on one of the user's guilds' templates.
     GuildsIdTemplates(u64),
-    GuildsIdTemplatesCode(u64),
+    /// Operating on a guild template.
+    GuildsTemplatesCode(Box<str>),
+    /// Operating on a template from one of the user's guilds.
+    GuildsIdTemplatesCode(u64, Box<str>),
+    /// Operating on one of the user's guilds' threads.
     GuildsIdThreads(u64),
+    /// Operating on one of the user's guilds' vanity URL.
     GuildsIdVanityUrl(u64),
+    /// Operating on one of the user's guilds' voice states.
     GuildsIdVoiceStates(u64),
+    /// Operating on one of the user's guilds' welcome screen.
     GuildsIdWelcomeScreen(u64),
+    /// Operating on one of the user's guilds' webhooks.
     GuildsIdWebhooks(u64),
+    /// Operating on an invite.
     InvitesCode,
     /// Operating on an interaction's callback.
     InteractionCallback(u64),
+    /// Operating on stage instances.
     StageInstances,
+    /// Operating on sticker packs.
     StickerPacks,
+    /// Operating on a sticker.
     Stickers,
+    /// Operating on a sticker.
     UsersId,
+    /// Operating on the user's application information.
     OauthApplicationsMe,
+    /// Operating on the user's connections.
     UsersIdConnections,
+    /// Operating on the user's private channels.
     UsersIdChannels,
     /// Operating on the state of a guild that the user is in.
     UsersIdGuilds,
@@ -233,6 +286,7 @@ impl FromStr for Path {
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         use Path::*;
 
+        /// Parse a string into a Discord ID.
         fn parse_id(id: &str) -> Result<u64, PathParseError> {
             id.parse().map_err(|source| PathParseError {
                 kind: PathParseErrorType::IntegerParsing,
@@ -299,6 +353,9 @@ impl FromStr for Path {
             ["gateway"] => Gateway,
             ["gateway", "bot"] => GatewayBot,
             ["guilds"] => Guilds,
+            ["guilds", "templates", code] => {
+                GuildsTemplatesCode((*code).to_string().into_boxed_str())
+            }
             ["guilds", id] => GuildsId(parse_id(id)?),
             ["guilds", id, "audit-logs"] => GuildsIdAuditLogs(parse_id(id)?),
             ["guilds", id, "bans"] => GuildsIdBans(parse_id(id)?),
@@ -325,7 +382,9 @@ impl FromStr for Path {
                 GuildsIdStickers(parse_id(id)?)
             }
             ["guilds", id, "templates"] => GuildsIdTemplates(parse_id(id)?),
-            ["guilds", id, "templates", _] => GuildsIdTemplatesCode(parse_id(id)?),
+            ["guilds", id, "templates", code] => {
+                GuildsIdTemplatesCode(parse_id(id)?, (*code).to_string().into_boxed_str())
+            }
             ["guilds", id, "threads", _] => GuildsIdThreads(parse_id(id)?),
             ["guilds", id, "vanity-url"] => GuildsIdVanityUrl(parse_id(id)?),
             ["guilds", id, "voice-states", _] => GuildsIdVoiceStates(parse_id(id)?),
