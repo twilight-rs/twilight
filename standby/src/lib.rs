@@ -139,7 +139,6 @@
 //! [rust badge]: https://img.shields.io/badge/rust-1.53+-93450a.svg?style=for-the-badge&logo=rust
 
 #![deny(
-    broken_intra_doc_links,
     clippy::all,
     clippy::missing_const_for_fn,
     clippy::missing_docs_in_private_items,
