@@ -66,7 +66,7 @@ mod tests {
             sku_id: StickerPackSkuId(847_199_849_233_514_547),
             stickers: Vec::from([Sticker {
                 available: true,
-                description: "Wumpus waves hello".into(),
+                description: Some("Wumpus waves hello".into()),
                 format_type: StickerFormatType::Lottie,
                 guild_id: None,
                 id: StickerId(749_054_660_769_218_631),
