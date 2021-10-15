@@ -118,6 +118,7 @@ mod tests {
                 Token::Str("available"),
                 Token::Bool(true),
                 Token::Str("description"),
+                Token::Some,
                 Token::Str("Wumpus waves hello"),
                 Token::Str("format_type"),
                 Token::U8(3),
