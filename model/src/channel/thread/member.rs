@@ -1,4 +1,5 @@
 use crate::{
+    datetime::Timestamp,
     gateway::presence::Presence,
     guild::Member,
     id::{ChannelId, UserId},
@@ -11,7 +12,7 @@ pub struct ThreadMember {
     pub flags: u64,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub id: Option<ChannelId>,
-    pub join_timestamp: String,
+    pub join_timestamp: Timestamp,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub member: Option<Member>,
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -23,16 +24,22 @@ pub struct ThreadMember {
 #[cfg(test)]
 mod tests {
     use super::{ChannelId, ThreadMember, UserId};
+    use crate::datetime::{Timestamp, TimestampParseError};
     use serde_test::Token;
+    use std::str::FromStr;
 
     #[test]
-    fn test_thread_member() {
+    fn test_thread_member() -> Result<(), TimestampParseError> {
+        const DATETIME: &str = "2021-09-19T14:17:32.000000+00:00";
+
+        let join_timestamp = Timestamp::from_str(DATETIME)?;
+
         let value = ThreadMember {
             flags: 3,
             id: Some(ChannelId::new(1).expect("non zero")),
             member: None,
             presence: None,
-            join_timestamp: "123".to_string(),
+            join_timestamp,
             user_id: Some(UserId::new(2).expect("non zero")),
         };
 
@@ -50,7 +57,7 @@ mod tests {
                 Token::NewtypeStruct { name: "ChannelId" },
                 Token::Str("1"),
                 Token::Str("join_timestamp"),
-                Token::Str("123"),
+                Token::Str(DATETIME),
                 Token::Str("user_id"),
                 Token::Some,
                 Token::NewtypeStruct { name: "UserId" },
@@ -58,5 +65,7 @@ mod tests {
                 Token::StructEnd,
             ],
         );
+
+        Ok(())
     }
 }

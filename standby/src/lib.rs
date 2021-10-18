@@ -975,6 +975,7 @@ mod tests {
             message::{Message, MessageType},
             Reaction, ReactionType,
         },
+        datetime::Timestamp,
         gateway::{
             event::{Event, EventType},
             payload::incoming::{MessageCreate, ReactionAdd, Ready, RoleDelete},
@@ -1029,7 +1030,7 @@ mod tests {
             reference: None,
             sticker_items: Vec::new(),
             referenced_message: None,
-            timestamp: String::new(),
+            timestamp: Timestamp::from_secs(1_632_072_645).expect("non zero"),
             thread: None,
             tts: false,
             webhook_id: None,

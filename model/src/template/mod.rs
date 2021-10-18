@@ -5,6 +5,7 @@ pub use guild::TemplateGuild;
 pub use role::TemplateRole;
 
 use crate::{
+    datetime::Timestamp,
     id::{GuildId, UserId},
     user::User,
 };
@@ -13,7 +14,7 @@ use serde::{Deserialize, Serialize};
 #[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
 pub struct Template {
     pub code: String,
-    pub created_at: String,
+    pub created_at: Timestamp,
     /// User object of who created this template.
     pub creator: User,
     /// ID of the user who created this template.
@@ -24,7 +25,7 @@ pub struct Template {
     pub name: String,
     pub serialized_source_guild: TemplateGuild,
     pub source_guild_id: GuildId,
-    pub updated_at: String,
+    pub updated_at: Timestamp,
     pub usage_count: u64,
 }
 
@@ -36,6 +37,7 @@ mod tests {
             permission_overwrite::{PermissionOverwrite, PermissionOverwriteType},
             CategoryChannel, ChannelType, GuildChannel, TextChannel, VoiceChannel,
         },
+        datetime::{Timestamp, TimestampParseError},
         guild::{
             DefaultMessageNotificationLevel, ExplicitContentFilter, Permissions,
             SystemChannelFlags, VerificationLevel,
@@ -44,10 +46,14 @@ mod tests {
         user::{User, UserFlags},
     };
     use serde_test::Token;
+    use std::str::FromStr;
 
     #[test]
     #[allow(clippy::too_many_lines)]
-    fn test_template() {
+    fn test_template() -> Result<(), TimestampParseError> {
+        let created_at = Timestamp::from_str("2021-04-07T14:55:37+00:00")?;
+        let updated_at = Timestamp::from_str("2021-04-07T14:55:37+00:00")?;
+
         let raw = r#"{
     "code": "code",
     "created_at": "2021-04-07T14:55:37+00:00",
@@ -169,7 +175,7 @@ mod tests {
 
         let value = Template {
             code: "code".into(),
-            created_at: "2021-04-07T14:55:37+00:00".into(),
+            created_at,
             creator: User {
                 accent_color: None,
                 avatar: Some("avatar".into()),
@@ -311,7 +317,7 @@ mod tests {
                 verification_level: VerificationLevel::None,
             },
             source_guild_id: GuildId::new(200).expect("non zero"),
-            updated_at: "2021-04-07T14:55:37+00:00".into(),
+            updated_at,
             usage_count: 0,
         };
 
@@ -329,7 +335,7 @@ mod tests {
                 Token::Str("code"),
                 Token::Str("code"),
                 Token::Str("created_at"),
-                Token::Str("2021-04-07T14:55:37+00:00"),
+                Token::Str("2021-04-07T14:55:37.000000+00:00"),
                 Token::Str("creator"),
                 Token::Struct {
                     name: "User",
@@ -554,11 +560,13 @@ mod tests {
                 Token::NewtypeStruct { name: "GuildId" },
                 Token::Str("200"),
                 Token::Str("updated_at"),
-                Token::Str("2021-04-07T14:55:37+00:00"),
+                Token::Str("2021-04-07T14:55:37.000000+00:00"),
                 Token::Str("usage_count"),
                 Token::U64(0),
                 Token::StructEnd,
             ],
         );
+
+        Ok(())
     }
 }

@@ -79,13 +79,14 @@ mod tests {
     use crate::{
         application::{component::ComponentType, interaction::InteractionType},
         channel::message::{Message, MessageType},
+        datetime::{Timestamp, TimestampParseError},
         guild::PartialMember,
         id::{ApplicationId, ChannelId, GuildId, InteractionId, MessageId, UserId},
         user::User,
     };
     use serde::Serialize;
     use static_assertions::{assert_fields, assert_impl_all};
-    use std::{fmt::Debug, hash::Hash};
+    use std::{fmt::Debug, hash::Hash, str::FromStr};
 
     assert_fields!(
         MessageComponentInteraction: application_id,
@@ -131,10 +132,12 @@ mod tests {
     }
 
     #[test]
-    fn test_author_id() {
+    fn test_author_id() -> Result<(), TimestampParseError> {
         fn user_id() -> UserId {
             UserId::new(7).expect("non zero")
         }
+
+        let timestamp = Timestamp::from_str("2020-02-02T02:02:02.020000+00:00")?;
 
         let in_guild = MessageComponentInteraction {
             application_id: ApplicationId::new(1).expect("non zero"),
@@ -183,7 +186,7 @@ mod tests {
                 reference: None,
                 referenced_message: None,
                 sticker_items: Vec::new(),
-                timestamp: String::new(),
+                timestamp,
                 thread: None,
                 tts: false,
                 webhook_id: None,
@@ -204,5 +207,7 @@ mod tests {
             ..in_guild
         };
         assert_eq!(Some(user_id()), in_dm.author_id());
+
+        Ok(())
     }
 }

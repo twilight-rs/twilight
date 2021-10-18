@@ -4,6 +4,7 @@ use twilight_model::{
         message::{Message, MessageFlags, MessageType},
         ChannelType, GuildChannel, Reaction, ReactionType, TextChannel,
     },
+    datetime::Timestamp,
     gateway::payload::incoming::{MessageCreate, ReactionAdd},
     guild::{Emoji, Member, PartialMember, Permissions, Role},
     id::{ChannelId, EmojiId, GuildId, MessageId, RoleId, UserId},
@@ -66,7 +67,7 @@ pub fn cache_with_message_and_reactions() -> InMemoryCache {
         sticker_items: Vec::new(),
         thread: None,
         referenced_message: None,
-        timestamp: String::new(),
+        timestamp: Timestamp::from_secs(1_632_072_645).expect("non zero"),
         tts: false,
         webhook_id: None,
     };
@@ -254,7 +255,7 @@ pub fn voice_state(
         suppress: false,
         token: None,
         user_id,
-        request_to_speak_timestamp: Some("2021-04-21T22:16:50+0000".to_owned()),
+        request_to_speak_timestamp: Some(Timestamp::from_secs(1_632_072_645).expect("non zero")),
     }
 }
 

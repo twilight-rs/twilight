@@ -11,6 +11,7 @@ pub use self::{
     provider::EmbedProvider, thumbnail::EmbedThumbnail, video::EmbedVideo,
 };
 
+use crate::datetime::Timestamp;
 use serde::{Deserialize, Serialize};
 
 #[derive(Clone, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
@@ -34,7 +35,7 @@ pub struct Embed {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub thumbnail: Option<EmbedThumbnail>,
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub timestamp: Option<String>,
+    pub timestamp: Option<Timestamp>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub title: Option<String>,
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -49,10 +50,14 @@ mod tests {
         Embed, EmbedAuthor, EmbedField, EmbedFooter, EmbedImage, EmbedProvider, EmbedThumbnail,
         EmbedVideo,
     };
+    use crate::datetime::{Timestamp, TimestampParseError};
     use serde_test::Token;
+    use std::str::FromStr;
 
     #[test]
-    fn test_embed() {
+    fn test_embed() -> Result<(), TimestampParseError> {
+        let timestamp = Timestamp::from_str("2021-08-02T16:56:43.772000+00:00")?;
+
         let value = Embed {
             author: None,
             color: Some(123),
@@ -63,7 +68,7 @@ mod tests {
             kind: "rich".to_owned(),
             provider: None,
             thumbnail: None,
-            timestamp: Some("a timestamp".to_owned()),
+            timestamp: Some(timestamp),
             title: Some("a title".to_owned()),
             url: Some("https://example.com".to_owned()),
             video: None,
@@ -86,7 +91,7 @@ mod tests {
                 Token::Str("rich"),
                 Token::Str("timestamp"),
                 Token::Some,
-                Token::Str("a timestamp"),
+                Token::Str("2021-08-02T16:56:43.772000+00:00"),
                 Token::Str("title"),
                 Token::Some,
                 Token::Str("a title"),
@@ -96,11 +101,15 @@ mod tests {
                 Token::StructEnd,
             ],
         );
+
+        Ok(())
     }
 
     #[allow(clippy::too_many_lines)]
     #[test]
-    fn test_embed_complete() {
+    fn test_embed_complete() -> Result<(), TimestampParseError> {
+        let timestamp = Timestamp::from_str("2021-08-02T16:56:43.772000+00:00")?;
+
         let value = Embed {
             author: Some(EmbedAuthor {
                 icon_url: Some("https://example.com/1.png".to_owned()),
@@ -137,7 +146,7 @@ mod tests {
                 url: Some("https://example.com/1.png".to_owned()),
                 width: Some(2560),
             }),
-            timestamp: Some("a timestamp".to_owned()),
+            timestamp: Some(timestamp),
             title: Some("a title".to_owned()),
             url: Some("https://example.com".to_owned()),
             video: Some(EmbedVideo {
@@ -264,7 +273,7 @@ mod tests {
                 Token::StructEnd,
                 Token::Str("timestamp"),
                 Token::Some,
-                Token::Str("a timestamp"),
+                Token::Str("2021-08-02T16:56:43.772000+00:00"),
                 Token::Str("title"),
                 Token::Some,
                 Token::Str("a title"),
@@ -293,5 +302,7 @@ mod tests {
                 Token::StructEnd,
             ],
         );
+
+        Ok(())
     }
 }
