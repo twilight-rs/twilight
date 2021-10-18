@@ -13,27 +13,84 @@ use twilight_model::{
 #[derive(Clone, Debug, Eq, PartialEq, Serialize)]
 pub struct CachedSticker {
     /// Whether the sticker is available.
-    pub available: bool,
+    pub(crate) available: bool,
     /// Description of the sticker.
-    pub description: String,
+    pub(crate) description: String,
     /// Format type.
-    pub format_type: StickerFormatType,
+    pub(crate) format_type: StickerFormatType,
     /// ID of the guild that owns the sticker.
-    pub guild_id: Option<GuildId>,
+    pub(crate) guild_id: Option<GuildId>,
     /// Unique ID of the sticker.
-    pub id: StickerId,
+    pub(crate) id: StickerId,
     /// Kind of sticker.
-    pub kind: StickerType,
+    pub(crate) kind: StickerType,
     /// Name of the sticker.
-    pub name: String,
+    pub(crate) name: String,
     /// Unique ID of the pack the sticker is in.
-    pub pack_id: Option<StickerPackId>,
+    pub(crate) pack_id: Option<StickerPackId>,
     /// Sticker's sort order within a pack.
-    pub sort_value: Option<u64>,
+    pub(crate) sort_value: Option<u64>,
     /// CSV list of tags the sticker is assigned to, if any.
-    pub tags: String,
+    pub(crate) tags: String,
     /// ID of the user that uploaded the sticker.
-    pub user_id: Option<UserId>,
+    pub(crate) user_id: Option<UserId>,
+}
+
+impl CachedSticker {
+    /// Whether the sticker is available.
+    pub const fn available(&self) -> bool {
+        self.available
+    }
+
+    /// Description of the sticker.
+    pub fn description(&self) -> &str {
+        &self.description
+    }
+
+    /// Format type.
+    pub const fn format_type(&self) -> StickerFormatType {
+        self.format_type
+    }
+
+    /// ID of the guild that owns the sticker.
+    pub const fn guild_id(&self) -> Option<GuildId> {
+        self.guild_id
+    }
+
+    /// Unique ID of the sticker.
+    pub const fn id(&self) -> StickerId {
+        self.id
+    }
+
+    /// Kind of sticker.
+    pub const fn kind(&self) -> StickerType {
+        self.kind
+    }
+
+    /// Name of the sticker.
+    pub fn name(&self) -> &str {
+        &self.name
+    }
+
+    /// Unique ID of the pack the sticker is in.
+    pub const fn pack_id(&self) -> Option<StickerPackId> {
+        self.pack_id
+    }
+
+    /// Sticker's sort order within a pack.
+    pub const fn sort_value(&self) -> Option<u64> {
+        self.sort_value
+    }
+
+    /// CSV list of tags the sticker is assigned to, if any.
+    pub fn tags(&self) -> &str {
+        &self.tags
+    }
+
+    /// ID of the user that uploaded the sticker.
+    pub const fn user_id(&self) -> Option<UserId> {
+        self.user_id
+    }
 }
 
 impl PartialEq<Sticker> for CachedSticker {
