@@ -38,6 +38,8 @@ jobs:
           - package: http
             features: simd-json
             additional: --features rustls
+            # Use `haswell` instead of `native` due to some GitHub
+            # Actions runners not supporting some `avx512` instructions.
             rustflags: "-C target-cpu=haswell"
           - package: gateway
             features: rustls
@@ -97,4 +99,6 @@ jobs:
 
       - run: cargo check --examples --tests --all-features
         env:
+          # Use `haswell` instead of `native` due to some GitHub Actions
+          # runners not supporting some `avx512` instructions.
           RUSTFLAGS: "-C target-cpu=haswell"
