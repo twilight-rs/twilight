@@ -380,7 +380,8 @@ impl RatelimitHeaders {
     ///
     /// # Errors
     ///
-    /// This method will error if a required header is missing or the header value is of an invalid type.
+    /// This method will error if a required header is missing or the header
+    /// value is of an invalid type.
     pub fn from_pairs<'a>(
         headers: impl Iterator<Item = (&'a str, &'a [u8])>,
     ) -> Result<Self, HeaderParsingError> {

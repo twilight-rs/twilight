@@ -53,7 +53,7 @@ impl GlobalLockPair {
 /// your own [`Ratelimiter`] that uses a shared storage backend
 /// or use the [HTTP proxy].
 ///
-/// [HTTP proxy]: (https://twilight.rs/chapter_2_multi-serviced_approach.html#http-proxy-ratelimiting)
+/// [HTTP proxy]: https://twilight.rs/chapter_2_multi-serviced_approach.html#http-proxy-ratelimiting
 #[derive(Clone, Debug, Default)]
 pub struct InMemoryRatelimiter {
     /// Mapping of [`Path`]s to their associated [`Bucket`]s.

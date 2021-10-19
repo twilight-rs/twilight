@@ -32,7 +32,7 @@ simd-json = { default-features = false, features = ["serde_impl", "swar-number-p
 tracing = { default-features = false, features = ["std", "attributes"], optional = true, version = "0.1" }
 
 [features]
-default = ["decompression", "rustls", "tracing"]
+default = ["decompression", "rustls"]
 decompression = ["brotli"]
 native = ["hyper-tls"]
 rustls = ["rustls-native-roots"]

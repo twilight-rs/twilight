@@ -24,15 +24,16 @@ use tokio::{
 /// Time remaining until a bucket will reset.
 #[derive(Clone, Debug)]
 pub enum TimeRemaining {
-    /// The bucket reset in the past.
+    /// Bucket has already reset.
     Finished,
-    /// The bucket's ratelimit refresh countdown has not started yet.
+    /// Bucket's ratelimit refresh countdown has not started yet.
     NotStarted,
-    /// The bucket will reset after this duration.
+    /// Amount of time until the bucket resets.
     Some(Duration),
 }
 
 /// Ratelimit information for a bucket used in the [`super::InMemoryRatelimiter`].
+///
 /// A generic version not specific to this ratelimiter is [`crate::Bucket`].
 #[derive(Debug)]
 pub struct Bucket {
@@ -44,16 +45,14 @@ pub struct Bucket {
     pub queue: BucketQueue,
     /// Number of tickets remaining.
     pub remaining: AtomicU64,
-    /// Duration after the [`Self::started_at`] time the bucket will
-    /// refresh.
+    /// Duration after the [`Self::started_at`] time the bucket will refresh.
     pub reset_after: AtomicU64,
     /// When the bucket's ratelimit refresh countdown started.
     pub started_at: Mutex<Option<Instant>>,
 }
 
 impl Bucket {
-    /// Create a new bucket for the specified [`Path`] and
-    /// no ratelimit information.
+    /// Create a new bucket for the specified [`Path`].
     pub fn new(path: Path) -> Self {
         Self {
             limit: AtomicU64::new(u64::max_value()),
@@ -75,8 +74,9 @@ impl Bucket {
         self.remaining.load(Ordering::Relaxed)
     }
 
-    /// Duration after the [`Self::started_at`] time the bucket will
-    /// refresh.
+    /// Duration after the [`started_at`] time the bucket will refresh.
+    ///
+    /// [`started_at`]: Self::started_at
     pub fn reset_after(&self) -> u64 {
         self.reset_after.load(Ordering::Relaxed)
     }
@@ -97,8 +97,11 @@ impl Bucket {
         TimeRemaining::Some(Duration::from_millis(reset_after) - elapsed)
     }
 
-    /// Try to reset this bucket's `started_at` value if it has finished.
+    /// Try to reset this bucket's [`started_at`] value if it has finished.
+    ///
     /// Returns whether resetting was possible.
+    ///
+    /// [`started_at`]: Self::started_at
     pub fn try_reset(&self) -> bool {
         if self.started_at.lock().expect("bucket poisoned").is_none() {
             return false;
@@ -139,7 +142,7 @@ impl Bucket {
     }
 }
 
-/// A queue of ratelimit requests for a bucket.
+/// Queue of ratelimit requests for a bucket.
 #[derive(Debug)]
 pub struct BucketQueue {
     /// Receiver for the ratelimit requests.
