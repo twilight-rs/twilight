@@ -2,6 +2,65 @@
 
 Changelog for `twilight-model`.
 
+## [0.7.0] - 2021-10-21
+
+### Enhancements
+
+All `Id` models are now based on `NonZeroU64` instead of `u64` ([#1039]
+- [@vilgotf]). This type takes up less space in memory than a regular
+`u64` when used in an `Option`. Instead of simple initialization of an
+`Id`, the models now have methods that map to their `NonZeroU64`
+equivalents: `get`, `new_unchecked`, and `new`. Additionally, the types
+no longer implement `Default` since there is no default value for a
+`NonZeroU64`.
+
+`User::discriminator` is now stored as a `u16` instead of a `String`
+([#1068] - [@zeylahellyer]). The display implementation pads the value
+to four digits.
+
+`CommandDataOption` is no longer an enum ([#1077] - [@LeSeulArtichaut]).
+It is a struct with a `name` field of type `String`, and a `value` field
+of type `CommandOptionValue`. `CommandOptionValue` is an enum of each
+type of option the user might receive from an interaction. Instead of
+coalescing all types as strings, numbers, booleans or subcommands, the
+new type explicitly tells the user what type of option they have
+received.
+
+Timestamps are now parsed and formatted with a custom implementation
+([#1164] - [@zeylahellyer]). `Timestamp` is used in place of `String`s
+on fields such as `joined_at`, `premium_since`, `timestamp`, and so on.
+Included are `serde::Deserialize` and `serde::Serialize` implementations
+on `Timestamp` itself and a `serde::Serialize` implementation on the
+Display formatter. `Timestamp`s contain a `NonZeroU64` for greater
+efficiency when wrapped in an `Option`. See the PR and the `Timestamp`
+documentation for more information.
+
+### Changes
+
+The `gateway::payload` module has been reorganized into two sections:
+`incoming` and `outgoing` events ([#1135] - [@zeylahellyer]).
+
+`OptionsCommandOptionData::required` has been removed, since it is
+always false ([#1108] - [@vilgotf]).
+
+The MSRV has been updated to 1.53 ([#1161] - [@7596ff]).
+
+`VoiceRegion::vip` has been removed ([#1190] - [@HTG-YT]).
+
+`Permissions::MANAGE_EMOJIS` has been renamed to
+`MANAGE_EMOJIS_AND_STICKERS`, with no change in value ([#1197] -
+[@7596ff]).
+
+[#1039]: https://github.com/twilight-rs/twilight/pull/1039
+[#1068]: https://github.com/twilight-rs/twilight/pull/1068
+[#1077]: https://github.com/twilight-rs/twilight/pull/1077
+[#1108]: https://github.com/twilight-rs/twilight/pull/1108
+[#1135]: https://github.com/twilight-rs/twilight/pull/1135
+[#1161]: https://github.com/twilight-rs/twilight/pull/1161
+[#1164]: https://github.com/twilight-rs/twilight/pull/1164
+[#1190]: https://github.com/twilight-rs/twilight/pull/1190
+[#1197]: https://github.com/twilight-rs/twilight/pull/1197
+
 ## [0.6.5] - 2021-10-07
 
 ### Additions
@@ -877,11 +936,13 @@ Initial release.
 [@james7132]: https://github.com/james7132
 [@jazevedo620]: https://github.com/jazevedo620
 [@kotx]: https://github.com/kotx
+[@LeSeulArtichaut]: https://github.com/LeSeulArtichaut
 [@MaxOhn]: https://github.com/MaxOhn
 [@nickelc]: https://github.com/nickelc
 [@PyroTechniac]: https://github.com/PyroTechniac
 [@sam-kirby]: https://github.com/sam-kirby
 [@tbnritzdoge]: https://github.com/tbnritzdoge
+[@vilgotf]: https://github.com/vilgotf
 [@vivian]: https://github.com/vivian
 [@zeylahellyer]: https://github.com/zeylahellyer
 
@@ -908,6 +969,7 @@ Initial release.
 
 [0.2.0-beta.1:app integrations]: https://github.com/discord/discord-api-docs/commit/a926694e2f8605848bda6b57d21c8817559e5cec
 
+[0.7.0]: https://github.com/twilight-rs/twilight/releases/tag/model-0.7.0
 [0.6.5]: https://github.com/twilight-rs/twilight/releases/tag/model-0.6.5
 [0.6.4]: https://github.com/twilight-rs/twilight/releases/tag/model-0.6.4
 [0.6.3]: https://github.com/twilight-rs/twilight/releases/tag/model-0.6.3
