@@ -2,6 +2,38 @@
 
 Changelog for `twilight-http`.
 
+## [0.7.0] - 2021-10-21
+
+### Changes
+
+The MSRV has been updated to 1.53 ([#1161] - [@7596ff]).
+
+Rework the header API ([#1066] - [@zeylahellyer]) by taking an iterator
+of key-value header pairs instead of an `http` crate `HeaderMap`,
+removing the ratelimit error types in favor of header parsing error
+types, and providing additional information about how parsing failed.
+See the PR for more details.
+
+`Client` no longer implements `Clone`, because it is no longer
+internally wrapped in an `Arc` ([#1067] - [@zeylahellyer]). To retain
+this functionality, you can wrap them it an `Arc` or a `Rc` manually.
+
+`Client::{new_create_global_command, new_create_guild_command}` have
+been renamed to `create_global_command` and `create_guild_command`
+respectively, and their previous implementations have been removed.
+
+Deprecated re-exports of application request builders have been removed
+([#1193] - [@7596ff]).
+
+`Ratelimiter::get` has been removed in favor of `ticket` ([#1195] -
+[@7596ff]).
+
+[#1066]: https://github.com/twilight-rs/twilight/pull/1066
+[#1067]: https://github.com/twilight-rs/twilight/pull/1067
+[#1161]: https://github.com/twilight-rs/twilight/pull/1161
+[#1193]: https://github.com/twilight-rs/twilight/pull/1193
+[#1195]: https://github.com/twilight-rs/twilight/pull/1195
+
 ## [0.6.6] - 2021-10-07
 
 ### Additions
@@ -1288,6 +1320,7 @@ Initial release.
 
 [0.2.0-beta.1:app integrations]: https://github.com/discord/discord-api-docs/commit/a926694e2f8605848bda6b57d21c8817559e5cec
 
+[0.7.0]: https://github.com/twilight-rs/twilight/releases/tag/http-0.7.0
 [0.6.6]: https://github.com/twilight-rs/twilight/releases/tag/http-0.6.6
 [0.6.5]: https://github.com/twilight-rs/twilight/releases/tag/http-0.6.5
 [0.6.4]: https://github.com/twilight-rs/twilight/releases/tag/http-0.6.4
