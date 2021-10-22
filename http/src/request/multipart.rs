@@ -133,7 +133,7 @@ fn push_digits(mut id: u64, buf: &mut Vec<u8>) {
     // digit by taking the rest after modulo 10. We then divide with
     // 10 to truncate the number from the right and then loop
     while id >= 10 {
-        // To go from the interger to the ascii value we add the
+        // To go from the integer to the ascii value we add the
         // ascii value of '0'.
         //
         // (id % 10) will always be less than 10 so trunccation cannot
