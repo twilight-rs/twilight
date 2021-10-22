@@ -157,8 +157,9 @@ pub mod future;
 mod event;
 
 use self::future::{
-    WaitForEventFuture, WaitForEventStream, WaitForGuildEventFuture, WaitForGuildEventStream,
-    WaitForMessageFuture, WaitForMessageStream, WaitForReactionFuture, WaitForReactionStream,
+    WaitForComponentFuture, WaitForComponentStream, WaitForEventFuture, WaitForEventStream,
+    WaitForGuildEventFuture, WaitForGuildEventStream, WaitForMessageFuture, WaitForMessageStream,
+    WaitForReactionFuture, WaitForReactionStream,
 };
 use dashmap::DashMap;
 use std::{
@@ -171,6 +172,7 @@ use tokio::sync::{
     oneshot::{self, Receiver, Sender as OneshotSender},
 };
 use twilight_model::{
+    application::interaction::{Interaction, MessageComponentInteraction},
     gateway::{
         event::Event,
         payload::incoming::{MessageCreate, ReactionAdd},
@@ -248,6 +250,8 @@ pub struct Standby {
     /// List of reaction bystanders where the ID of the message is known
     /// beforehand.
     reactions: DashMap<MessageId, Vec<Bystander<ReactionAdd>>>,
+    /// List of component bystanders where the ID of the message is known
+    /// beforehand.
     components: DashMap<MessageId, Vec<Bystander<MessageComponentInteraction>>>,
 }
 
@@ -284,6 +288,12 @@ impl Standby {
             Event::ReactionAdd(e) => {
                 Self::process_specific_event(&self.reactions, e.0.message_id, e);
             }
+            Event::InteractionCreate(e) => match &e.0 {
+                Interaction::MessageComponent(comp) => {
+                    Self::process_specific_event(&self.components, comp.message.id, &**comp)
+                }
+                _ => {}
+            },
             _ => {}
         }
 
@@ -724,6 +734,98 @@ impl Standby {
 
         WaitForReactionStream {
             rx: Self::insert_stream(&self.reactions, message_id, check),
+        }
+    }
+
+    /// Wait for a component on a certain message.
+    ///
+    /// Returns a `Canceled` error if the `Standby` struct was dropped.
+    ///
+    /// If you need to wait for multiple components matching the given predicate,
+    /// use [`wait_for_component_stream`].
+    ///
+    /// # Examples
+    ///
+    /// Wait for a component on message 123 by user 456:
+    ///
+    /// ```no_run
+    /// # #[tokio::main] async fn main() -> Result<(), Box<dyn std::error::Error>> {
+    /// use futures_util::future;
+    /// use twilight_model::{
+    ///     application::interaction::message_component::MessageComponentInteraction,
+    ///     id::{MessageId, UserId},
+    /// };
+    /// use twilight_standby::Standby;
+    ///
+    /// let standby = Standby::new();
+    ///
+    /// let component = standby.wait_for_component(MessageId(123), |event: &MessageComponentInteraction| {
+    ///     event.author_id() == Some(UserId(456))
+    /// }).await?;
+    /// # Ok(()) }
+    /// ```
+    ///
+    /// [`wait_for_component_stream`]: Self::wait_for_component_stream
+    pub fn wait_for_component<
+        F: Fn(&MessageComponentInteraction) -> bool + Send + Sync + 'static,
+    >(
+        &self,
+        message_id: MessageId,
+        check: impl Into<Box<F>>,
+    ) -> WaitForComponentFuture {
+        #[cfg(feature = "tracing")]
+        tracing::trace!(%message_id, "waiting for component on message");
+
+        WaitForComponentFuture {
+            rx: Self::insert_future(&self.components, message_id, check),
+        }
+    }
+
+    /// Wait for a stream of components on a certain message.
+    ///
+    /// Returns a `Canceled` error if the `Standby` struct was dropped.
+    ///
+    /// If you need to wait for only one component matching the given predicate,
+    /// use [`wait_for_component`].
+    ///
+    /// # Examples
+    ///
+    /// Wait for multiple button components on message 123 with a custom_id of "Click":
+    ///
+    /// ```no_run
+    /// # #[tokio::main] async fn main() -> Result<(), Box<dyn std::error::Error>> {
+    /// use futures_util::stream::StreamExt;
+    /// use twilight_model::{
+    ///     application::interaction::message_component::MessageComponentInteraction,
+    ///     id::{MessageId, UserId},
+    /// };
+    /// use twilight_standby::Standby;
+    ///
+    /// let standby = Standby::new();
+    ///
+    /// let mut components = standby.wait_for_component_stream(MessageId(123), |event: &MessageComponentInteraction| {
+    ///     event.data.custom_id == "Click".to_string()
+    /// });
+    ///
+    /// while let Some(component) = components.next().await {
+    ///     println!("got a component by {}", component.author_id().unwrap());
+    /// }
+    /// # Ok(()) }
+    /// ```
+    ///
+    /// [`wait_for_component`]: Self::wait_for_component
+    pub fn wait_for_component_stream<
+        F: Fn(&MessageComponentInteraction) -> bool + Send + Sync + 'static,
+    >(
+        &self,
+        message_id: MessageId,
+        check: impl Into<Box<F>>,
+    ) -> WaitForComponentStream {
+        #[cfg(feature = "tracing")]
+        tracing::trace!(%message_id, "waiting for component on message");
+
+        WaitForComponentStream {
+            rx: Self::insert_stream(&self.components, message_id, check),
         }
     }
 

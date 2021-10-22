@@ -14,9 +14,12 @@ use tokio::sync::{
     mpsc::UnboundedReceiver as MpscReceiver,
     oneshot::{error::RecvError, Receiver},
 };
-use twilight_model::gateway::{
-    event::Event,
-    payload::incoming::{MessageCreate, ReactionAdd},
+use twilight_model::{
+    application::interaction::MessageComponentInteraction,
+    gateway::{
+        event::Event,
+        payload::incoming::{MessageCreate, ReactionAdd},
+    },
 };
 
 /// Future canceled due to Standby being dropped.
