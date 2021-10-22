@@ -120,7 +120,7 @@ impl Default for Form {
 /// Value of '0' in ascii
 const ASCII_NUMBER: u8 = 0x30;
 
-/// Extend the buffer with the digits of the interger `id`, the reason
+/// Extend the buffer with the digits of the integer `id`, the reason
 /// for this is to get around a allocation by for example using
 /// `format!("files[{}]", id)`.
 fn push_digits(mut id: u64, buf: &mut Vec<u8>) {
@@ -130,10 +130,10 @@ fn push_digits(mut id: u64, buf: &mut Vec<u8>) {
     let mut i = 0;
 
     // While the number have more than one digit we print the last
-    // digit by taking the rest after modulu 10. We then devide with
-    // 10 to trunctate the number from the right and then loop
+    // digit by taking the rest after modulo 10. We then divide with
+    // 10 to truncate the number from the right and then loop
     while id >= 10 {
-        // To go from the interger to the ascii valuie we add the
+        // To go from the interger to the ascii value we add the
         // ascii value of '0'.
         //
         // (id % 10) will always be less than 10 so trunccation cannot
