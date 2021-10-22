@@ -191,7 +191,7 @@ impl UpdateCache for MemberUpdate {
         member.mute = self.mute.or_else(|| member.mute());
         member.nick = self.nick.clone();
         member.roles = self.roles.clone();
-        member.joined_at.replace(self.joined_at.clone());
+        member.joined_at.replace(self.joined_at);
         member.pending = self.pending;
     }
 }

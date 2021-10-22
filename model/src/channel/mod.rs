@@ -40,6 +40,7 @@ use crate::{
     channel::thread::{
         AutoArchiveDuration, NewsThread, PrivateThread, PublicThread, ThreadMember, ThreadMetadata,
     },
+    datetime::Timestamp,
     id::{ChannelId, GuildId, MessageId, UserId},
 };
 use serde::{
@@ -230,7 +231,7 @@ impl<'de> Visitor<'de> for GuildChannelVisitor {
         let mut invitable: Option<Option<bool>> = None;
         let mut kind = None;
         let mut last_message_id: Option<Option<MessageId>> = None;
-        let mut last_pin_timestamp: Option<Option<String>> = None;
+        let mut last_pin_timestamp: Option<Option<Timestamp>> = None;
         let mut member: Option<Option<ThreadMember>> = None;
         let mut member_count: Option<u8> = None;
         let mut message_count: Option<u8> = None;
@@ -667,6 +668,7 @@ mod tests {
     };
     use crate::{
         channel::permission_overwrite::{PermissionOverwrite, PermissionOverwriteType},
+        datetime::Timestamp,
         guild::Permissions,
         id::{ChannelId, GuildId, MessageId, UserId},
     };
@@ -1047,6 +1049,9 @@ mod tests {
 
     #[test]
     fn test_guild_news_thread_deserialization() {
+        let timestamp = Timestamp::from_secs(1_632_074_792).expect("non zero");
+        let formatted = timestamp.iso_8601().to_string();
+
         let value = GuildChannel::NewsThread(NewsThread {
             default_auto_archive_duration: Some(AutoArchiveDuration::Hour),
             guild_id: Some(GuildId::new(1)).expect("non zero"),
@@ -1056,7 +1061,7 @@ mod tests {
             member: Some(ThreadMember {
                 flags: 0_u64,
                 id: Some(ChannelId::new(4)).expect("non zero"),
-                join_timestamp: "jointimestamp".into(),
+                join_timestamp: timestamp,
                 member: None,
                 presence: None,
                 user_id: Some(UserId::new(5)).expect("non zero"),
@@ -1070,7 +1075,7 @@ mod tests {
             thread_metadata: ThreadMetadata {
                 archived: false,
                 auto_archive_duration: AutoArchiveDuration::Day,
-                archive_timestamp: "archivetimestamp".into(),
+                archive_timestamp: timestamp,
                 invitable: None,
                 locked: false,
             },
@@ -1086,7 +1091,7 @@ mod tests {
                 "member": {
                     "flags": 0,
                     "id": "4",
-                    "join_timestamp": "jointimestamp",
+                    "join_timestamp": formatted,
                     "user_id": "5",
                 },
                 "default_auto_archive_duration": 60,
@@ -1097,7 +1102,7 @@ mod tests {
                 "parent_id": "2",
                 "rate_limit_per_user": 1000,
                 "thread_metadata": {
-                    "archive_timestamp": "archivetimestamp",
+                    "archive_timestamp": formatted,
                     "archived": false,
                     "auto_archive_duration": AutoArchiveDuration::Day,
                     "locked": false
@@ -1109,6 +1114,8 @@ mod tests {
 
     #[test]
     fn test_guild_public_thread_deserialization() {
+        let timestamp = Timestamp::from_secs(1_632_074_792).expect("non zero");
+
         let value = GuildChannel::PublicThread(PublicThread {
             default_auto_archive_duration: Some(AutoArchiveDuration::Hour),
             guild_id: Some(GuildId::new(1)).expect("non zero"),
@@ -1118,7 +1125,7 @@ mod tests {
             member: Some(ThreadMember {
                 flags: 0_u64,
                 id: Some(ChannelId::new(4)).expect("non zero"),
-                join_timestamp: "jointimestamp".into(),
+                join_timestamp: timestamp,
                 member: None,
                 presence: None,
                 user_id: Some(UserId::new(5)).expect("non zero"),
@@ -1132,7 +1139,7 @@ mod tests {
             thread_metadata: ThreadMetadata {
                 archived: false,
                 auto_archive_duration: AutoArchiveDuration::Day,
-                archive_timestamp: "archivetimestamp".into(),
+                archive_timestamp: timestamp,
                 invitable: None,
                 locked: false,
             },
@@ -1148,7 +1155,7 @@ mod tests {
                 "member": {
                     "flags": 0,
                     "id": "4",
-                    "join_timestamp": "jointimestamp",
+                    "join_timestamp": timestamp,
                     "user_id": "5",
                 },
                 "default_auto_archive_duration": 60,
@@ -1159,7 +1166,7 @@ mod tests {
                 "parent_id": "2",
                 "rate_limit_per_user": 1000,
                 "thread_metadata": {
-                    "archive_timestamp": "archivetimestamp",
+                    "archive_timestamp": timestamp,
                     "archived": false,
                     "auto_archive_duration": AutoArchiveDuration::Day,
                     "locked": false
@@ -1171,6 +1178,9 @@ mod tests {
 
     #[test]
     fn test_guild_private_thread_deserialization() {
+        let timestamp = Timestamp::from_secs(1_632_074_792).expect("non zero");
+        let formatted = timestamp.iso_8601().to_string();
+
         let value = GuildChannel::PrivateThread(PrivateThread {
             default_auto_archive_duration: Some(AutoArchiveDuration::Hour),
             guild_id: Some(GuildId::new(1)).expect("non zero"),
@@ -1181,7 +1191,7 @@ mod tests {
             member: Some(ThreadMember {
                 flags: 0_u64,
                 id: Some(ChannelId::new(4)).expect("non zero"),
-                join_timestamp: "jointimestamp".into(),
+                join_timestamp: timestamp,
                 member: None,
                 presence: None,
                 user_id: Some(UserId::new(5)).expect("non zero"),
@@ -1200,7 +1210,7 @@ mod tests {
             thread_metadata: ThreadMetadata {
                 archived: false,
                 auto_archive_duration: AutoArchiveDuration::Day,
-                archive_timestamp: "archivetimestamp".into(),
+                archive_timestamp: timestamp,
                 invitable: None,
                 locked: false,
             },
@@ -1216,7 +1226,7 @@ mod tests {
                 "member": {
                     "flags": 0,
                     "id": "4",
-                    "join_timestamp": "jointimestamp",
+                    "join_timestamp": formatted,
                     "user_id": "5",
                 },
                 "default_auto_archive_duration": 60,
@@ -1228,7 +1238,7 @@ mod tests {
                 "parent_id": "2",
                 "rate_limit_per_user": 1000,
                 "thread_metadata": {
-                    "archive_timestamp": "archivetimestamp",
+                    "archive_timestamp": formatted,
                     "archived": false,
                     "auto_archive_duration": AutoArchiveDuration::Day,
                     "locked": false

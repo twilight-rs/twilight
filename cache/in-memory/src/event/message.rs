@@ -93,8 +93,8 @@ impl UpdateCache for MessageUpdate {
                 message.content = content.clone();
             }
 
-            if let Some(edited_timestamp) = &self.edited_timestamp {
-                message.edited_timestamp.replace(edited_timestamp.clone());
+            if let Some(edited_timestamp) = self.edited_timestamp {
+                message.edited_timestamp.replace(edited_timestamp);
             }
 
             if let Some(embeds) = &self.embeds {
@@ -117,8 +117,8 @@ impl UpdateCache for MessageUpdate {
                 message.pinned = pinned;
             }
 
-            if let Some(timestamp) = &self.timestamp {
-                message.timestamp = timestamp.clone();
+            if let Some(timestamp) = self.timestamp {
+                message.timestamp = timestamp;
             }
 
             if let Some(tts) = self.tts {
@@ -133,6 +133,7 @@ mod tests {
     use super::*;
     use twilight_model::{
         channel::message::{Message, MessageFlags, MessageType},
+        datetime::Timestamp,
         guild::PartialMember,
         id::{ChannelId, GuildId, MessageId, UserId},
         user::User,
@@ -196,7 +197,7 @@ mod tests {
             sticker_items: Vec::new(),
             thread: None,
             referenced_message: None,
-            timestamp: String::new(),
+            timestamp: Timestamp::from_secs(1_632_072_645).expect("non zero"),
             tts: false,
             webhook_id: None,
         };

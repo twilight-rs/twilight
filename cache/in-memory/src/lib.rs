@@ -70,6 +70,7 @@
     warnings
 )]
 
+pub mod iter;
 pub mod model;
 
 #[cfg(feature = "permission-calculator")]
@@ -94,7 +95,7 @@ pub use self::{
 #[cfg_attr(docsrs, doc(cfg(feature = "permission-calculator")))]
 pub use self::permission::InMemoryCachePermissions;
 
-use self::model::*;
+use self::{iter::InMemoryCacheIter, model::*};
 use dashmap::{
     mapref::{entry::Entry, one::Ref},
     DashMap, DashSet,
@@ -337,6 +338,30 @@ impl InMemoryCache {
     /// Returns a copy of the config cache.
     pub const fn config(&self) -> &Config {
         &self.config
+    }
+
+    /// Create an interface for iterating over the various resources in the
+    /// cache.
+    ///
+    /// Via the iterator interface many resource types can be iterated over
+    /// including, but not limited to, emojis, guilds, presences, and users.
+    ///
+    /// # Examples
+    ///
+    /// Iterate over every guild in the cache and print their IDs and names:
+    ///
+    /// ```no_run
+    /// use twilight_cache_inmemory::InMemoryCache;
+    ///
+    /// let cache = InMemoryCache::new();
+    ///
+    /// // later in the application...
+    /// for guild in cache.iter().guilds() {
+    ///     println!("{}: {}", guild.id(), guild.name());
+    /// }
+    /// ```
+    pub const fn iter(&self) -> InMemoryCacheIter<'_> {
+        InMemoryCacheIter::new(self)
     }
 
     /// Create an interface for retrieving statistics about the cache.

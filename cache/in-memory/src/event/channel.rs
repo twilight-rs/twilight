@@ -125,20 +125,20 @@ impl UpdateCache for ChannelPinsUpdate {
             let value = r.value_mut();
 
             if let GuildChannel::Text(ref mut text) = value.value {
-                text.last_pin_timestamp = self.last_pin_timestamp.clone();
+                text.last_pin_timestamp = self.last_pin_timestamp;
             }
 
             return;
         }
 
         if let Some(mut channel) = cache.channels_private.get_mut(&self.channel_id) {
-            channel.last_pin_timestamp = self.last_pin_timestamp.clone();
+            channel.last_pin_timestamp = self.last_pin_timestamp;
 
             return;
         }
 
         if let Some(mut group) = cache.groups.get_mut(&self.channel_id) {
-            group.last_pin_timestamp = self.last_pin_timestamp.clone();
+            group.last_pin_timestamp = self.last_pin_timestamp;
         }
     }
 }

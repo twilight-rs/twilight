@@ -7,8 +7,9 @@ use std::{
     fmt::{Display, Formatter, Result as FmtResult},
     mem,
 };
-use twilight_model::channel::embed::{
-    Embed, EmbedAuthor, EmbedField, EmbedFooter, EmbedImage, EmbedThumbnail,
+use twilight_model::{
+    channel::embed::{Embed, EmbedAuthor, EmbedField, EmbedFooter, EmbedImage, EmbedThumbnail},
+    datetime::Timestamp,
 };
 
 /// Error building an embed.
@@ -659,12 +660,8 @@ impl EmbedBuilder {
     }
 
     /// Set the ISO 8601 timestamp.
-    pub fn timestamp(self, timestamp: impl Into<String>) -> Self {
-        self._timestamp(timestamp.into())
-    }
-
-    fn _timestamp(mut self, timestamp: String) -> Self {
-        self.0.timestamp.replace(timestamp);
+    pub const fn timestamp(mut self, timestamp: Timestamp) -> Self {
+        self.0.timestamp = Some(timestamp);
 
         self
     }
@@ -755,7 +752,10 @@ mod tests {
     use crate::{field::EmbedFieldBuilder, footer::EmbedFooterBuilder, image_source::ImageSource};
     use static_assertions::{assert_fields, assert_impl_all, const_assert};
     use std::{convert::TryFrom, error::Error, fmt::Debug};
-    use twilight_model::channel::embed::{Embed, EmbedField, EmbedFooter};
+    use twilight_model::{
+        channel::embed::{Embed, EmbedField, EmbedFooter},
+        datetime::Timestamp,
+    };
 
     assert_impl_all!(EmbedErrorType: Debug, Send, Sync);
     assert_fields!(EmbedErrorType::AuthorNameEmpty: name);
@@ -835,10 +835,12 @@ mod tests {
             "https://raw.githubusercontent.com/twilight-rs/twilight/main/logo.png",
         )
         .unwrap();
+        let timestamp = Timestamp::from_secs(1_580_608_922).expect("non zero");
+
         let embed = EmbedBuilder::new()
             .color(0x00_43_ff)
             .description("Description")
-            .timestamp("123")
+            .timestamp(timestamp)
             .footer(EmbedFooterBuilder::new("Warn").icon_url(footer_image))
             .field(EmbedFieldBuilder::new("name", "title").inline())
             .build()
@@ -866,7 +868,7 @@ mod tests {
             kind: "rich".to_string(),
             provider: None,
             thumbnail: None,
-            timestamp: Some("123".to_string()),
+            timestamp: Some(timestamp),
             title: None,
             url: None,
             video: None,

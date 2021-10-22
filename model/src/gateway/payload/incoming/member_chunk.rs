@@ -195,15 +195,19 @@ impl<'de> Deserialize<'de> for MemberChunk {
 mod tests {
     use super::super::MemberChunk;
     use crate::{
+        datetime::{Timestamp, TimestampParseError},
         gateway::presence::{ClientStatus, Presence, Status, UserOrId},
         guild::Member,
         id::{GuildId, RoleId, UserId},
         user::{User, UserFlags},
     };
+    use std::str::FromStr;
 
     #[allow(clippy::too_many_lines)]
     #[test]
-    fn test_simple_member_chunk() {
+    fn test_simple_member_chunk() -> Result<(), TimestampParseError> {
+        let joined_at = Timestamp::from_str("2020-04-04T04:04:04.000000+00:00")?;
+
         let input = serde_json::json!({
             "chunk_count": 1,
             "chunk_index": 0,
@@ -310,7 +314,7 @@ mod tests {
                     deaf: false,
                     guild_id: GuildId::new(1).expect("non zero"),
                     hoisted_role: Some(RoleId::new(6).expect("non zero")),
-                    joined_at: Some("2020-04-04T04:04:04.000000+00:00".to_owned()),
+                    joined_at: Some(joined_at),
                     mute: false,
                     nick: Some("chunk".to_owned()),
                     pending: false,
@@ -341,7 +345,7 @@ mod tests {
                     deaf: false,
                     guild_id: GuildId::new(1).expect("non zero"),
                     hoisted_role: Some(RoleId::new(6).expect("non zero")),
-                    joined_at: Some("2020-04-04T04:04:04.000000+00:00".to_owned()),
+                    joined_at: Some(joined_at),
                     mute: false,
                     nick: Some("chunk".to_owned()),
                     pending: false,
@@ -369,7 +373,7 @@ mod tests {
                     deaf: false,
                     guild_id: GuildId::new(1).expect("non zero"),
                     hoisted_role: Some(RoleId::new(6).expect("non zero")),
-                    joined_at: Some("2020-04-04T04:04:04.000000+00:00".to_owned()),
+                    joined_at: Some(joined_at),
                     mute: false,
                     nick: Some("chunk".to_owned()),
                     pending: true,
@@ -397,7 +401,7 @@ mod tests {
                     deaf: false,
                     guild_id: GuildId::new(1).expect("non zero"),
                     hoisted_role: Some(RoleId::new(6).expect("non zero")),
-                    joined_at: Some("2020-04-04T04:04:04.000000+00:00".to_owned()),
+                    joined_at: Some(joined_at),
                     mute: false,
                     nick: Some("chunk".to_owned()),
                     pending: false,
@@ -481,5 +485,7 @@ mod tests {
         for presences in &actual.presences {
             assert!(expected.presences.iter().any(|p| p == presences));
         }
+
+        Ok(())
     }
 }
