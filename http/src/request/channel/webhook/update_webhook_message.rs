@@ -404,7 +404,7 @@ impl<'a> UpdateWebhookMessage<'a> {
             let mut form = Form::new();
 
             for (index, (name, file)) in self.files.iter().enumerate() {
-                form.file(format!("{}", index).as_bytes(), name.as_bytes(), file);
+                form.attach(index as u64, name.as_bytes(), file);
             }
 
             if let Some(payload_json) = &self.fields.payload_json {
