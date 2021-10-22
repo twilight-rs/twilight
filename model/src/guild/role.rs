@@ -58,11 +58,13 @@ impl Ord for Role {
     ///     position: 12,
     ///#    color: 0,
     ///#    hoist: true,
+    ///#    icon: None,
     ///#    managed: false,
     ///#    mentionable: true,
     ///#    name: "test".to_owned(),
     ///#    permissions: Permissions::ADMINISTRATOR,
     ///#    tags: None,
+    ///#    unicode_emoji: None,
     ///     // ...
     /// };
     /// let role_b = Role {
@@ -70,11 +72,13 @@ impl Ord for Role {
     ///     position: 13,
     ///#    color: 0,
     ///#    hoist: true,
+    ///#    icon: None,
     ///#    managed: false,
     ///#    mentionable: true,
     ///#    name: "test".to_owned(),
     ///#    permissions: Permissions::ADMINISTRATOR,
     ///#    tags: None,
+    ///#    unicode_emoji: None,
     ///     // ...
     /// };
     /// assert_eq!(Ordering::Less, role_a.cmp(&role_b));
@@ -93,22 +97,26 @@ impl Ord for Role {
     ///     position: 12,
     ///#    color: 0,
     ///#    hoist: true,
+    ///#    icon: None,
     ///#    managed: false,
     ///#    mentionable: true,
     ///#    name: "test".to_owned(),
     ///#    permissions: Permissions::ADMINISTRATOR,
     ///#    tags: None,
+    ///#    unicode_emoji: None,
     /// };
     /// let role_b = Role {
     ///     id: RoleId::new(456).expect("non zero"),
     ///     position: 12,
     ///#    color: 0,
     ///#    hoist: true,
+    ///#    icon: None,
     ///#    managed: false,
     ///#    mentionable: true,
     ///#    name: "test".to_owned(),
     ///#    permissions: Permissions::ADMINISTRATOR,
     ///#    tags: None,
+    ///#    unicode_emoji: None,
     /// };
     /// assert_eq!(Ordering::Less, role_a.cmp(&role_b));
     /// assert_eq!(Ordering::Greater, role_b.cmp(&role_a));
