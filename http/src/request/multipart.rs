@@ -122,7 +122,7 @@ const ASCII_NUMBER: u8 = 0x30;
 /// Extend the buffer with the digits of id.
 fn push_digits(mut id: u64, buf: &mut Vec<u8>) {
     // The largest 64 bit integer is 20 digits.
-    let mut inner_buf = [0u8; 20];
+    let mut inner_buf = [0_u8; 20];
     let mut i = 0;
     while id >= 10 {
         // (id % 10) will always be less than 10 so trunccation cannot happen.
