@@ -139,7 +139,34 @@ impl PartialOrd for Role {
 #[cfg(test)]
 mod tests {
     use super::{Permissions, Role, RoleId};
+    use serde::{Deserialize, Serialize};
     use serde_test::Token;
+    use static_assertions::{assert_fields, assert_impl_all};
+    use std::{fmt::Debug, hash::Hash};
+
+    assert_fields!(
+        Role: color,
+        hoist,
+        icon,
+        id,
+        managed,
+        mentionable,
+        name,
+        permissions,
+        position,
+        tags,
+        unicode_emoji
+    );
+
+    assert_impl_all!(
+        Role: Clone,
+        Debug,
+        Deserialize<'static>,
+        Eq,
+        Hash,
+        PartialEq,
+        Serialize
+    );
 
     #[test]
     fn test_role() {
