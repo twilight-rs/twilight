@@ -28,7 +28,7 @@ pub struct Sticker {
     #[serde(default, skip_serializing_if = "is_false")]
     pub available: bool,
     /// Description of the sticker.
-    pub description: String,
+    pub description: Option<String>,
     /// Format type.
     pub format_type: StickerFormatType,
     /// ID of the guild that owns the sticker.
@@ -96,7 +96,7 @@ mod tests {
     fn test_minimal() {
         let value = Sticker {
             available: false,
-            description: "foo2".to_owned(),
+            description: Some("foo2".to_owned()),
             format_type: StickerFormatType::Png,
             guild_id: None,
             id: StickerId::new(1).expect("non zero"),
@@ -116,6 +116,7 @@ mod tests {
                     len: 6,
                 },
                 Token::Str("description"),
+                Token::Some,
                 Token::Str("foo2"),
                 Token::Str("format_type"),
                 Token::U8(StickerFormatType::Png as u8),
@@ -138,7 +139,7 @@ mod tests {
     fn test_full() {
         let value = Sticker {
             available: true,
-            description: "sticker".into(),
+            description: Some("sticker".into()),
             format_type: StickerFormatType::Png,
             guild_id: Some(GuildId::new(1).expect("non zero")),
             id: StickerId::new(2).expect("non zero"),
@@ -176,6 +177,7 @@ mod tests {
                 Token::Str("available"),
                 Token::Bool(true),
                 Token::Str("description"),
+                Token::Some,
                 Token::Str("sticker"),
                 Token::Str("format_type"),
                 Token::U8(StickerFormatType::Png as u8),

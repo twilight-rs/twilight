@@ -47,7 +47,7 @@ impl InMemoryCache {
 
         let cached = CachedSticker {
             available: sticker.available,
-            description: sticker.description,
+            description: sticker.description.unwrap_or_default(),
             format_type: sticker.format_type,
             guild_id: sticker.guild_id,
             id: sticker.id,
