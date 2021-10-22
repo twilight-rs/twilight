@@ -1,16 +1,17 @@
 use super::{builder::ClusterBuilder, config::Config, event::Events, scheme::ShardScheme};
 use crate::{
     cluster::event::ShardEventsWithId,
-    shard::{raw_message::Message, Information, ResumeSession, Shard},
+    shard::{
+        raw_message::Message, Command, Config as ShardConfig, Information, ResumeSession, Shard,
+    },
     Intents,
 };
 use futures_util::{future, stream::SelectAll};
 use std::{
-    collections::HashMap,
+    collections::{hash_map::Values, HashMap},
     error::Error,
     fmt::{Display, Formatter, Result as FmtResult},
-    iter::FromIterator,
-    sync::Arc,
+    iter::{FromIterator, FusedIterator},
 };
 use twilight_http::Client as HttpClient;
 
@@ -43,21 +44,6 @@ impl ClusterCommandError {
         Option<Box<dyn Error + Send + Sync>>,
     ) {
         (self.kind, self.source)
-    }
-
-    fn from_send(error: ClusterSendError) -> Self {
-        let (kind, source) = error.into_parts();
-
-        match kind {
-            ClusterSendErrorType::Sending => Self {
-                source,
-                kind: ClusterCommandErrorType::Sending,
-            },
-            ClusterSendErrorType::ShardNonexistent { id } => Self {
-                source,
-                kind: ClusterCommandErrorType::ShardNonexistent { id },
-            },
-        }
     }
 }
 
@@ -220,27 +206,24 @@ pub enum ClusterStartErrorType {
     RetrievingGatewayInfo,
 }
 
-#[derive(Debug)]
-struct ClusterRef {
-    config: Config,
-    shards: HashMap<u64, Shard>,
-}
-
 /// A manager for multiple shards.
 ///
 /// The Cluster can be cloned and will point to the same cluster, so you can
 /// pass it around as needed.
 ///
-/// # Cloning
+/// # Using a cluster in multiple tasks
 ///
-/// The cluster internally wraps its data within an Arc. This means that the
-/// cluster can be cloned and passed around tasks and threads cheaply.
+/// To use a cluster instance in multiple tasks, consider wrapping it in an
+/// [`std::sync::Arc`] or [`std::rc::Rc`].
 ///
 /// # Examples
 ///
 /// Refer to the module-level documentation for examples.
-#[derive(Clone, Debug)]
-pub struct Cluster(Arc<ClusterRef>);
+#[derive(Debug)]
+pub struct Cluster {
+    config: Config,
+    shards: HashMap<u64, Shard>,
+}
 
 impl Cluster {
     /// Create a new unconfigured cluster.
@@ -295,6 +278,7 @@ impl Cluster {
 
     pub(super) async fn new_with_config(
         mut config: Config,
+        shard_config: ShardConfig,
     ) -> Result<(Self, Events), ClusterStartError> {
         #[derive(Default)]
         struct ShardFold {
@@ -303,7 +287,7 @@ impl Cluster {
         }
 
         let scheme = match config.shard_scheme() {
-            ShardScheme::Auto => Self::retrieve_shard_count(&config.http_client).await?,
+            ShardScheme::Auto => Self::retrieve_shard_count(&shard_config.http_client).await?,
             other => other.clone(),
         };
 
@@ -317,7 +301,7 @@ impl Cluster {
         }
 
         let ShardFold { shards, streams } = iter.fold(ShardFold::default(), |mut fold, idx| {
-            let mut shard_config = config.shard_config().clone();
+            let mut shard_config = shard_config.clone();
             shard_config.shard = [idx, total];
 
             if let Some(data) = config.resume_sessions.remove(&idx) {
@@ -336,10 +320,7 @@ impl Cluster {
         #[allow(clippy::from_iter_instead_of_collect)]
         let select_all = SelectAll::from_iter(streams);
 
-        Ok((
-            Self(Arc::new(ClusterRef { config, shards })),
-            Events::new(select_all),
-        ))
+        Ok((Self { config, shards }, Events::new(select_all)))
     }
 
     /// Retrieve the recommended number of shards from the HTTP API.
@@ -410,8 +391,8 @@ impl Cluster {
     }
 
     /// Return an immutable reference to the configuration of this cluster.
-    pub fn config(&self) -> &Config {
-        &self.0.config
+    pub const fn config(&self) -> &Config {
+        &self.config
     }
 
     /// Bring up the cluster, starting all of the shards that it was configured
@@ -442,12 +423,12 @@ impl Cluster {
     /// # Ok(()) }
     /// ```
     pub async fn up(&self) {
-        future::join_all(self.0.shards.values().map(Shard::start)).await;
+        future::join_all(self.shards.values().map(Shard::start)).await;
     }
 
     /// Bring down the cluster, stopping all of the shards that it's managing.
     pub fn down(&self) {
-        for shard in self.0.shards.values() {
+        for shard in self.shards.values() {
             shard.shutdown();
         }
     }
@@ -462,8 +443,7 @@ impl Cluster {
     /// disconnection. You may also not be able to resume if you missed too many
     /// events already.
     pub fn down_resumable(&self) -> HashMap<u64, ResumeSession> {
-        self.0
-            .shards
+        self.shards
             .values()
             .map(Shard::shutdown_resumable)
             .filter_map(|(id, session)| session.map(|s| (id, s)))
@@ -471,13 +451,15 @@ impl Cluster {
     }
 
     /// Return a Shard by its ID.
-    pub fn shard(&self, id: u64) -> Option<Shard> {
-        self.0.shards.get(&id).cloned()
+    pub fn shard(&self, id: u64) -> Option<&Shard> {
+        self.shards.get(&id)
     }
 
-    /// Return a list of all the shards.
-    pub fn shards(&self) -> Vec<Shard> {
-        self.0.shards.values().cloned().collect()
+    /// Return an iterator of all the shards.
+    pub fn shards(&self) -> Shards<'_> {
+        Shards {
+            iter: self.shards.values(),
+        }
     }
 
     /// Return information about all shards.
@@ -508,14 +490,57 @@ impl Cluster {
     /// # Ok(()) }
     /// ```
     pub fn info(&self) -> HashMap<u64, Information> {
-        self.0
-            .shards
+        self.shards
             .iter()
             .filter_map(|(id, shard)| shard.info().ok().map(|info| (*id, info)))
             .collect()
     }
 
     /// Send a command to the specified shard.
+    ///
+    /// # Examples
+    ///
+    /// Update the current user's presence on shard ID 2:
+    ///
+    /// ```no_run
+    /// # #[tokio::main]
+    /// # async fn main() -> Result<(), Box<dyn std::error::Error>> {
+    /// use std::env;
+    /// use twilight_gateway::{cluster::Cluster, Intents};
+    /// use twilight_model::{
+    ///     gateway::{
+    ///         payload::outgoing::UpdatePresence,
+    ///         presence::{Activity, ActivityType, MinimalActivity, Status},
+    ///     },
+    ///     id::GuildId,
+    /// };
+    ///
+    /// let intents = Intents::GUILD_VOICE_STATES;
+    /// let token = env::var("DISCORD_TOKEN")?;
+    ///
+    /// let (cluster, _events) = Cluster::new(token, intents).await?;
+    ///
+    /// // Wait for shards to come up before sending a message to one of them.
+    /// cluster.up().await;
+    ///
+    /// // Update the user's presence to a custom activity with a name of
+    /// // "testing".
+    /// let activity = Activity::from(MinimalActivity {
+    ///     kind: ActivityType::Custom,
+    ///     name: "testing".to_owned(),
+    ///     url: None,
+    /// });
+    /// let request = UpdatePresence::new(
+    ///     Vec::from([activity]),
+    ///     false,
+    ///     None,
+    ///     Status::Online,
+    /// )?;
+    ///
+    /// // Send the request over the shard.
+    /// cluster.command(2, &request).await?;
+    /// # Ok(()) }
+    /// ```
     ///
     /// # Errors
     ///
@@ -524,11 +549,7 @@ impl Cluster {
     ///
     /// Returns a [`ClusterCommandErrorType::ShardNonexistent`] error type if
     /// the provided shard ID does not exist in the cluster.
-    pub async fn command(
-        &self,
-        id: u64,
-        value: &impl serde::Serialize,
-    ) -> Result<(), ClusterCommandError> {
+    pub async fn command(&self, id: u64, value: &impl Command) -> Result<(), ClusterCommandError> {
         let shard = self.shard(id).ok_or(ClusterCommandError {
             kind: ClusterCommandErrorType::ShardNonexistent { id },
             source: None,
@@ -541,22 +562,6 @@ impl Cluster {
                 kind: ClusterCommandErrorType::Sending,
                 source: Some(Box::new(source)),
             })
-    }
-
-    /// Send a raw command to the specified shard.
-    ///
-    /// # Errors
-    ///
-    /// Returns a [`ClusterCommandErrorType::Sending`] error type if the shard
-    /// exists, but sending it failed.
-    ///
-    /// Returns a [`ClusterCommandErrorType::ShardNonexistent`] error type if
-    /// the provided shard ID does not exist in the cluster.
-    #[deprecated(note = "Use `send` which is more versatile", since = "0.3.0")]
-    pub async fn command_raw(&self, id: u64, value: Vec<u8>) -> Result<(), ClusterCommandError> {
-        self.send(id, Message::Binary(value))
-            .await
-            .map_err(ClusterCommandError::from_send)
     }
 
     /// Send a raw websocket message.
@@ -608,6 +613,29 @@ impl Cluster {
     }
 }
 
+/// Iterator over a [`Cluster`]'s managed [shards][`Shard`].
+///
+/// This is returned by [`Cluster::shards`].
+pub struct Shards<'a> {
+    iter: Values<'a, u64, Shard>,
+}
+
+impl ExactSizeIterator for Shards<'_> {
+    fn len(&self) -> usize {
+        self.iter.len()
+    }
+}
+
+impl FusedIterator for Shards<'_> {}
+
+impl<'a> Iterator for Shards<'a> {
+    type Item = &'a Shard;
+
+    fn next(&mut self) -> Option<Self::Item> {
+        self.iter.next()
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::{
@@ -625,5 +653,5 @@ mod tests {
     assert_impl_all!(ClusterSendError: Error, Send, Sync);
     assert_impl_all!(ClusterStartErrorType: Debug, Send, Sync);
     assert_impl_all!(ClusterStartError: Error, Send, Sync);
-    assert_impl_all!(Cluster: Clone, Debug, Send, Sync);
+    assert_impl_all!(Cluster: Debug, Send, Sync);
 }

@@ -1,3 +1,7 @@
+//! Futures and streams returned by [`Standby`].
+//!
+//! [`Standby`]: super::Standby
+
 use futures_util::{future::FutureExt, stream::Stream};
 use std::{
     error::Error,
@@ -10,12 +14,9 @@ use tokio::sync::{
     mpsc::UnboundedReceiver as MpscReceiver,
     oneshot::{error::RecvError, Receiver},
 };
-use twilight_model::{
-    application::interaction::MessageComponentInteraction,
-    gateway::{
-        event::Event,
-        payload::{MessageCreate, ReactionAdd},
-    },
+use twilight_model::gateway::{
+    event::Event,
+    payload::incoming::{MessageCreate, ReactionAdd},
 };
 
 /// Future canceled due to Standby being dropped.
@@ -45,9 +46,11 @@ impl Error for Canceled {
 /// The future returned from [`Standby::wait_for_event`].
 ///
 /// [`Standby::wait_for_event`]: crate::Standby::wait_for_event
+#[allow(clippy::module_name_repetitions)]
 #[derive(Debug)]
 #[must_use = "futures do nothing unless you `.await` or poll them"]
 pub struct WaitForEventFuture {
+    /// Receiver half of the oneshot channel.
     pub(crate) rx: Receiver<Event>,
 }
 
@@ -65,6 +68,7 @@ impl Future for WaitForEventFuture {
 #[derive(Debug)]
 #[must_use = "streams do nothing unless you poll them"]
 pub struct WaitForEventStream {
+    /// Receiver half of the MPSC channel.
     pub(crate) rx: MpscReceiver<Event>,
 }
 
@@ -79,9 +83,11 @@ impl Stream for WaitForEventStream {
 /// The future returned from [`Standby::wait_for`].
 ///
 /// [`Standby::wait_for`]: crate::Standby::wait_for
+#[allow(clippy::module_name_repetitions)]
 #[derive(Debug)]
 #[must_use = "futures do nothing unless you `.await` or poll them"]
 pub struct WaitForGuildEventFuture {
+    /// Receiver half of the oneshot channel.
     pub(crate) rx: Receiver<Event>,
 }
 
@@ -99,6 +105,7 @@ impl Future for WaitForGuildEventFuture {
 #[derive(Debug)]
 #[must_use = "streams do nothing unless you poll them"]
 pub struct WaitForGuildEventStream {
+    /// Receiver half of the MPSC channel.
     pub(crate) rx: MpscReceiver<Event>,
 }
 
@@ -113,9 +120,11 @@ impl Stream for WaitForGuildEventStream {
 /// The future returned from [`Standby::wait_for_message`].
 ///
 /// [`Standby::wait_for_message`]: crate::Standby::wait_for_message
+#[allow(clippy::module_name_repetitions)]
 #[derive(Debug)]
 #[must_use = "futures do nothing unless you `.await` or poll them"]
 pub struct WaitForMessageFuture {
+    /// Receiver half of the oneshot channel.
     pub(crate) rx: Receiver<MessageCreate>,
 }
 
@@ -133,6 +142,7 @@ impl Future for WaitForMessageFuture {
 #[derive(Debug)]
 #[must_use = "streams do nothing unless you poll them"]
 pub struct WaitForMessageStream {
+    /// Receiver half of the MPSC channel.
     pub(crate) rx: MpscReceiver<MessageCreate>,
 }
 
@@ -147,9 +157,11 @@ impl Stream for WaitForMessageStream {
 /// The future returned from [`Standby::wait_for_reaction`].
 ///
 /// [`Standby::wait_for_reaction`]: crate::Standby::wait_for_reaction
+#[allow(clippy::module_name_repetitions)]
 #[derive(Debug)]
 #[must_use = "futures do nothing unless you `.await` or poll them"]
 pub struct WaitForReactionFuture {
+    /// Receiver half of the oneshot channel.
     pub(crate) rx: Receiver<ReactionAdd>,
 }
 
@@ -167,6 +179,7 @@ impl Future for WaitForReactionFuture {
 #[derive(Debug)]
 #[must_use = "streams do nothing unless you poll them"]
 pub struct WaitForReactionStream {
+    /// Receiver half of the MPSC channel.
     pub(crate) rx: MpscReceiver<ReactionAdd>,
 }
 

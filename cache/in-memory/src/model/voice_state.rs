@@ -9,28 +9,74 @@ use twilight_model::{
 /// [`VoiceState`]: twilight_model::voice::VoiceState
 #[derive(Clone, Debug, Eq, PartialEq, Serialize)]
 pub struct CachedVoiceState {
+    channel_id: Option<ChannelId>,
+    deaf: bool,
+    guild_id: Option<GuildId>,
+    mute: bool,
+    self_deaf: bool,
+    self_mute: bool,
+    self_stream: bool,
+    session_id: String,
+    suppress: bool,
+    token: Option<String>,
+    user_id: UserId,
+}
+
+impl CachedVoiceState {
     /// ID of the channel that this user is connected to.
-    pub channel_id: Option<ChannelId>,
+    pub const fn channel_id(&self) -> Option<ChannelId> {
+        self.channel_id
+    }
+
     /// Whether the user is deafened.
-    pub deaf: bool,
+    pub const fn deaf(&self) -> bool {
+        self.deaf
+    }
+
     /// ID of the guild that this user is connected in, if there is one.
-    pub guild_id: Option<GuildId>,
+    pub const fn guild_id(&self) -> Option<GuildId> {
+        self.guild_id
+    }
+
     /// Whether the user is muted.
-    pub mute: bool,
+    pub const fn mute(&self) -> bool {
+        self.mute
+    }
+
     /// Whether the user has deafened themself.
-    pub self_deaf: bool,
+    pub const fn self_deaf(&self) -> bool {
+        self.self_deaf
+    }
+
     /// Whether the user has muted themself.
-    pub self_mute: bool,
+    pub const fn self_mute(&self) -> bool {
+        self.self_mute
+    }
+
     /// Whether the user is streaming via "Go Live".
-    pub self_stream: bool,
+    pub const fn self_stream(&self) -> bool {
+        self.self_stream
+    }
+
     /// Session ID.
-    pub session_id: String,
+    pub fn session_id(&self) -> &str {
+        &self.session_id
+    }
+
     /// Whether this user is muted by the current user.
-    pub suppress: bool,
+    pub const fn suppress(&self) -> bool {
+        self.suppress
+    }
+
     /// Voice connection token.
-    pub token: Option<String>,
+    pub fn token(&self) -> Option<&str> {
+        self.token.as_deref()
+    }
+
     /// ID of the user.
-    pub user_id: UserId,
+    pub const fn user_id(&self) -> UserId {
+        self.user_id
+    }
 }
 
 impl PartialEq<VoiceState> for CachedVoiceState {

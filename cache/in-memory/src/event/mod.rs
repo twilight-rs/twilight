@@ -16,26 +16,24 @@ pub mod voice_state;
 use crate::{config::ResourceType, InMemoryCache, UpdateCache};
 use std::{borrow::Cow, collections::BTreeSet};
 use twilight_model::{
-    gateway::payload::{Ready, UnavailableGuild, UserUpdate},
+    gateway::payload::incoming::{Ready, UnavailableGuild, UserUpdate},
     id::GuildId,
     user::{CurrentUser, User},
 };
 
 impl InMemoryCache {
     fn cache_current_user(&self, current_user: CurrentUser) {
-        self.0
-            .current_user
+        self.current_user
             .lock()
             .expect("current user poisoned")
             .replace(current_user);
     }
 
-    fn cache_user(&self, user: Cow<'_, User>, guild_id: Option<GuildId>) {
-        match self.0.users.get_mut(&user.id) {
-            Some(u) if *u.value() == *user => {
+    pub(crate) fn cache_user(&self, user: Cow<'_, User>, guild_id: Option<GuildId>) {
+        match self.users.get_mut(&user.id) {
+            Some(u) if u.value() == user.as_ref() => {
                 if let Some(guild_id) = guild_id {
-                    self.0
-                        .user_guilds
+                    self.user_guilds
                         .entry(user.id)
                         .or_default()
                         .insert(guild_id);
@@ -46,21 +44,20 @@ impl InMemoryCache {
             Some(_) | None => {}
         }
         let user = user.into_owned();
+        let user_id = user.id;
+
+        self.users.insert(user_id, user);
 
         if let Some(guild_id) = guild_id {
-            let user_id = user.id;
-
-            self.0.users.insert(user.id, user);
-
             let mut guild_id_set = BTreeSet::new();
             guild_id_set.insert(guild_id);
-            self.0.user_guilds.insert(user_id, guild_id_set);
+            self.user_guilds.insert(user_id, guild_id_set);
         }
     }
 
     fn unavailable_guild(&self, guild_id: GuildId) {
-        self.0.unavailable_guilds.insert(guild_id);
-        self.0.guilds.remove(&guild_id);
+        self.unavailable_guilds.insert(guild_id);
+        self.guilds.remove(&guild_id);
     }
 }
 
@@ -84,8 +81,8 @@ impl UpdateCache for UnavailableGuild {
             return;
         }
 
-        cache.0.guilds.remove(&self.id);
-        cache.0.unavailable_guilds.insert(self.id);
+        cache.guilds.remove(&self.id);
+        cache.unavailable_guilds.insert(self.id);
     }
 }
 

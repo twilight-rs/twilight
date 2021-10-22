@@ -72,8 +72,8 @@ impl<'a> CreateThreadFromMessage<'a> {
 
     fn request(&self) -> Result<Request, HttpError> {
         let request = Request::builder(&Route::CreateThreadFromMessage {
-            channel_id: self.channel_id.0,
-            message_id: self.message_id.0,
+            channel_id: self.channel_id.get(),
+            message_id: self.message_id.get(),
         })
         .json(&self.fields)?;
 

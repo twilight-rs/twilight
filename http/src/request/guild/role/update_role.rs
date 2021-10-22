@@ -91,8 +91,8 @@ impl<'a> UpdateRole<'a> {
     /// [`Response`]: crate::response::Response
     pub fn exec(self) -> ResponseFuture<Role> {
         let mut request = Request::builder(&Route::UpdateRole {
-            guild_id: self.guild_id.0,
-            role_id: self.role_id.0,
+            guild_id: self.guild_id.get(),
+            role_id: self.role_id.get(),
         });
 
         request = match request.json(&self.fields) {

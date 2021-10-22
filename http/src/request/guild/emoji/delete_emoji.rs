@@ -30,8 +30,8 @@ impl<'a> DeleteEmoji<'a> {
     /// [`Response`]: crate::response::Response
     pub fn exec(self) -> ResponseFuture<EmptyBody> {
         let mut request = Request::builder(&Route::DeleteEmoji {
-            emoji_id: self.emoji_id.0,
-            guild_id: self.guild_id.0,
+            emoji_id: self.emoji_id.get(),
+            guild_id: self.guild_id.get(),
         });
 
         if let Some(reason) = self.reason.as_ref() {

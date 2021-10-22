@@ -275,9 +275,7 @@ impl FromStr for Path {
             ["guilds", id, "bans"] => GuildsIdBans(parse_id(id)?),
             ["guilds", id, "bans", _] => GuildsIdBansUserId(parse_id(id)?),
             ["guilds", id, "channels"] => GuildsIdChannels(parse_id(id)?),
-            ["guilds", id, "widget"] | ["guilds", id, "widget.json"] => {
-                GuildsIdWidget(parse_id(id)?)
-            }
+            ["guilds", id, "widget" | "widget.json"] => GuildsIdWidget(parse_id(id)?),
             ["guilds", id, "emojis"] => GuildsIdEmojis(parse_id(id)?),
             ["guilds", id, "emojis", _] => GuildsIdEmojisId(parse_id(id)?),
             ["guilds", id, "integrations"] => GuildsIdIntegrations(parse_id(id)?),

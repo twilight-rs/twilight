@@ -1,8 +1,8 @@
 mod data;
 
 pub use self::data::{
-    CommandData, CommandDataOption, CommandInteractionDataResolved, InteractionChannel,
-    InteractionMember,
+    CommandData, CommandDataOption, CommandInteractionDataResolved, CommandOptionValue,
+    InteractionChannel, InteractionMember,
 };
 
 use super::InteractionType;

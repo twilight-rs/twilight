@@ -6,7 +6,7 @@ use crate::{
 use dashmap::DashMap;
 use std::{collections::HashSet, hash::Hash};
 use twilight_model::{
-    gateway::payload::{GuildCreate, GuildDelete, GuildUpdate},
+    gateway::payload::incoming::{GuildCreate, GuildDelete, GuildUpdate},
     guild::Guild,
     id::GuildId,
 };
@@ -16,23 +16,23 @@ impl InMemoryCache {
         // The map and set creation needs to occur first, so caching states and
         // objects always has a place to put them.
         if self.wants(ResourceType::CHANNEL) {
-            self.0.guild_channels.insert(guild.id, HashSet::new());
+            self.guild_channels.insert(guild.id, HashSet::new());
             self.cache_guild_channels(guild.id, guild.channels);
             self.cache_guild_channels(guild.id, guild.threads);
         }
 
         if self.wants(ResourceType::EMOJI) {
-            self.0.guild_emojis.insert(guild.id, HashSet::new());
+            self.guild_emojis.insert(guild.id, HashSet::new());
             self.cache_emojis(guild.id, guild.emojis);
         }
 
         if self.wants(ResourceType::MEMBER) {
-            self.0.guild_members.insert(guild.id, HashSet::new());
+            self.guild_members.insert(guild.id, HashSet::new());
             self.cache_members(guild.id, guild.members);
         }
 
         if self.wants(ResourceType::PRESENCE) {
-            self.0.guild_presences.insert(guild.id, HashSet::new());
+            self.guild_presences.insert(guild.id, HashSet::new());
             self.cache_presences(
                 guild.id,
                 guild.presences.into_iter().map(CachedPresence::from),
@@ -40,26 +40,22 @@ impl InMemoryCache {
         }
 
         if self.wants(ResourceType::ROLE) {
-            self.0.guild_roles.insert(guild.id, HashSet::new());
+            self.guild_roles.insert(guild.id, HashSet::new());
             self.cache_roles(guild.id, guild.roles);
         }
 
         if self.wants(ResourceType::STICKER) {
-            self.0
-                .guild_stage_instances
-                .insert(guild.id, HashSet::new());
+            self.guild_stage_instances.insert(guild.id, HashSet::new());
             self.cache_stickers(guild.id, guild.stickers);
         }
 
         if self.wants(ResourceType::VOICE_STATE) {
-            self.0.voice_state_guilds.insert(guild.id, HashSet::new());
+            self.voice_state_guilds.insert(guild.id, HashSet::new());
             self.cache_voice_states(guild.voice_states);
         }
 
         if self.wants(ResourceType::STAGE_INSTANCE) {
-            self.0
-                .guild_stage_instances
-                .insert(guild.id, HashSet::new());
+            self.guild_stage_instances.insert(guild.id, HashSet::new());
             self.cache_stage_instances(guild.id, guild.stage_instances);
         }
 
@@ -100,8 +96,8 @@ impl InMemoryCache {
             widget_enabled: guild.widget_enabled,
         };
 
-        self.0.unavailable_guilds.remove(&guild.id);
-        self.0.guilds.insert(guild.id, guild);
+        self.unavailable_guilds.remove(&guild.id());
+        self.guilds.insert(guild.id(), guild);
     }
 }
 
@@ -135,41 +131,41 @@ impl UpdateCache for GuildDelete {
 
         let id = self.id;
 
-        cache.0.guilds.remove(&id);
+        cache.guilds.remove(&id);
 
         if cache.wants(ResourceType::CHANNEL) {
-            remove_ids(&cache.0.guild_channels, &cache.0.channels_guild, id);
+            remove_ids(&cache.guild_channels, &cache.channels_guild, id);
         }
 
         if cache.wants(ResourceType::EMOJI) {
-            remove_ids(&cache.0.guild_emojis, &cache.0.emojis, id);
+            remove_ids(&cache.guild_emojis, &cache.emojis, id);
         }
 
         if cache.wants(ResourceType::ROLE) {
-            remove_ids(&cache.0.guild_roles, &cache.0.roles, id);
+            remove_ids(&cache.guild_roles, &cache.roles, id);
         }
 
         if cache.wants(ResourceType::STICKER) {
-            remove_ids(&cache.0.guild_stickers, &cache.0.stickers, id);
+            remove_ids(&cache.guild_stickers, &cache.stickers, id);
         }
 
         if cache.wants(ResourceType::VOICE_STATE) {
             // Clear out a guilds voice states when a guild leaves
-            cache.0.voice_state_guilds.remove(&id);
+            cache.voice_state_guilds.remove(&id);
         }
 
         if cache.wants(ResourceType::MEMBER) {
-            if let Some((_, ids)) = cache.0.guild_members.remove(&id) {
+            if let Some((_, ids)) = cache.guild_members.remove(&id) {
                 for user_id in ids {
-                    cache.0.members.remove(&(id, user_id));
+                    cache.members.remove(&(id, user_id));
                 }
             }
         }
 
         if cache.wants(ResourceType::PRESENCE) {
-            if let Some((_, ids)) = cache.0.guild_presences.remove(&id) {
+            if let Some((_, ids)) = cache.guild_presences.remove(&id) {
                 for user_id in ids {
-                    cache.0.presences.remove(&(id, user_id));
+                    cache.presences.remove(&(id, user_id));
                 }
             }
         }
@@ -182,7 +178,7 @@ impl UpdateCache for GuildUpdate {
             return;
         }
 
-        if let Some(mut guild) = cache.0.guilds.get_mut(&self.0.id) {
+        if let Some(mut guild) = cache.guilds.get_mut(&self.0.id) {
             guild.afk_channel_id = self.afk_channel_id;
             guild.afk_timeout = self.afk_timeout;
             guild.banner = self.banner.clone();
@@ -215,12 +211,15 @@ impl UpdateCache for GuildUpdate {
 
 #[cfg(test)]
 mod tests {
+    use std::str::FromStr;
+
     use super::*;
     use twilight_model::{
         channel::{
             thread::{AutoArchiveDuration, PublicThread, ThreadMember, ThreadMetadata},
             ChannelType, GuildChannel, TextChannel,
         },
+        datetime::{Timestamp, TimestampParseError},
         guild::{
             DefaultMessageNotificationLevel, ExplicitContentFilter, MfaLevel, NSFWLevel,
             PartialGuild, Permissions, PremiumTier, SystemChannelFlags, VerificationLevel,
@@ -229,9 +228,13 @@ mod tests {
     };
 
     #[test]
-    fn test_guild_create_channels_have_guild_ids() {
+    fn test_guild_create_channels_have_guild_ids() -> Result<(), TimestampParseError> {
+        const DATETIME: &str = "2021-09-19T14:17:32.000000+00:00";
+
+        let timestamp = Timestamp::from_str(DATETIME)?;
+
         let channels = Vec::from([GuildChannel::Text(TextChannel {
-            id: ChannelId(111),
+            id: ChannelId::new(111).expect("non zero"),
             guild_id: None,
             kind: ChannelType::GuildText,
             last_message_id: None,
@@ -246,7 +249,7 @@ mod tests {
         })]);
 
         let threads = Vec::from([GuildChannel::PublicThread(PublicThread {
-            id: ChannelId(222),
+            id: ChannelId::new(222).expect("non zero"),
             default_auto_archive_duration: None,
             guild_id: None,
             kind: ChannelType::GuildPublicThread,
@@ -260,22 +263,22 @@ mod tests {
             thread_metadata: ThreadMetadata {
                 archived: false,
                 auto_archive_duration: AutoArchiveDuration::Hour,
-                archive_timestamp: "".to_string(),
+                archive_timestamp: timestamp,
                 invitable: None,
                 locked: false,
             },
             member: Some(ThreadMember {
                 flags: 0,
-                id: Some(ChannelId(1)),
-                join_timestamp: "".to_string(),
+                id: Some(ChannelId::new(1).expect("non zero")),
+                join_timestamp: timestamp,
                 member: None,
                 presence: None,
-                user_id: Some(UserId(2)),
+                user_id: Some(UserId::new(2).expect("non zero")),
             }),
         })]);
 
         let guild = Guild {
-            id: GuildId(123),
+            id: GuildId::new(123).expect("non zero"),
             afk_channel_id: None,
             afk_timeout: 300,
             application_id: None,
@@ -288,7 +291,7 @@ mod tests {
             explicit_content_filter: ExplicitContentFilter::AllMembers,
             features: vec![],
             icon: None,
-            joined_at: Some("".to_owned()),
+            joined_at: Some(Timestamp::from_secs(1_632_072_645).expect("non zero")),
             large: false,
             max_members: Some(50),
             max_presences: Some(100),
@@ -298,7 +301,7 @@ mod tests {
             name: "this is a guild".to_owned(),
             nsfw_level: NSFWLevel::AgeRestricted,
             owner: Some(false),
-            owner_id: UserId(456),
+            owner_id: UserId::new(456).expect("non zero"),
             permissions: Some(Permissions::SEND_MESSAGES),
             preferred_locale: "en-GB".to_owned(),
             premium_subscription_count: Some(0),
@@ -326,26 +329,33 @@ mod tests {
         let cache = InMemoryCache::new();
         cache.cache_guild(guild);
 
-        let channel = cache.guild_channel(ChannelId(111)).unwrap();
-        let thread = cache.guild_channel(ChannelId(222)).unwrap();
+        let channel = cache
+            .guild_channel(ChannelId::new(111).expect("non zero"))
+            .unwrap();
+
+        let thread = cache
+            .guild_channel(ChannelId::new(222).expect("non zero"))
+            .unwrap();
 
         // The channel was given to the cache without a guild ID, but because
         // it's part of a guild create, the cache can automatically attach the
         // guild ID to it. So now, the channel's guild ID is present with the
         // correct value.
-        match channel {
+        match channel.resource() {
             GuildChannel::Text(ref c) => {
-                assert_eq!(Some(GuildId(123)), c.guild_id);
+                assert_eq!(Some(GuildId::new(123).expect("non zero")), c.guild_id);
             }
             _ => panic!("{:?}", channel),
         }
 
-        match thread {
+        match thread.resource() {
             GuildChannel::PublicThread(ref c) => {
-                assert_eq!(Some(GuildId(123)), c.guild_id);
+                assert_eq!(Some(GuildId::new(123).expect("non zero")), c.guild_id);
             }
             _ => panic!("{:?}", channel),
         }
+
+        Ok(())
     }
 
     #[test]
@@ -366,7 +376,7 @@ mod tests {
             explicit_content_filter: ExplicitContentFilter::None,
             features: Vec::new(),
             icon: None,
-            id: GuildId(1),
+            id: GuildId::new(1).expect("non zero"),
             joined_at: None,
             large: false,
             max_members: None,
@@ -377,7 +387,7 @@ mod tests {
             mfa_level: MfaLevel::None,
             name: "test".to_owned(),
             nsfw_level: NSFWLevel::Default,
-            owner_id: UserId(1),
+            owner_id: UserId::new(1).expect("non zero"),
             owner: None,
             permissions: None,
             preferred_locale: "en_us".to_owned(),
@@ -421,7 +431,7 @@ mod tests {
             mfa_level: guild.mfa_level,
             name: "test2222".to_owned(),
             nsfw_level: guild.nsfw_level,
-            owner_id: UserId(2),
+            owner_id: UserId::new(2).expect("non zero"),
             owner: guild.owner,
             permissions: guild.permissions,
             preferred_locale: guild.preferred_locale,

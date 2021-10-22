@@ -13,7 +13,7 @@ use twilight_model::channel::message::sticker::{Sticker, StickerId};
 /// # async fn main() -> Result<(), Box<dyn std::error::Error>> {
 /// let client = Client::new("my token".to_owned());
 ///
-/// let id = StickerId(123);
+/// let id = StickerId::new(123).expect("non zero");
 /// let sticker = client.sticker(id).exec().await?.model().await?;
 /// # Ok(()) }
 /// ```
@@ -33,7 +33,7 @@ impl<'a> GetSticker<'a> {
     /// [`Response`]: crate::response::Response
     pub fn exec(self) -> ResponseFuture<Sticker> {
         let request = Request::from_route(&Route::GetSticker {
-            sticker_id: self.sticker_id.0,
+            sticker_id: self.sticker_id.get(),
         });
 
         self.http.request(request)

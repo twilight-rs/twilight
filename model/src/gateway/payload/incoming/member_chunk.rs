@@ -107,7 +107,8 @@ impl<'de> Visitor<'de> for MemberChunkVisitor {
                     // Since the guild ID may not be deserialised yet we'll use
                     // a temporary placeholder value and update it with the real
                     // guild ID after all the fields have been deserialised.
-                    let deserializer = MemberListDeserializer::new(GuildId(0));
+                    let deserializer =
+                        MemberListDeserializer::new(GuildId::new(1).expect("non zero"));
 
                     members = Some(map.next_value_seed(deserializer)?);
                 }
@@ -130,7 +131,8 @@ impl<'de> Visitor<'de> for MemberChunkVisitor {
                         return Err(DeError::duplicate_field("presences"));
                     }
 
-                    let deserializer = PresenceListDeserializer::new(GuildId(0));
+                    let deserializer =
+                        PresenceListDeserializer::new(GuildId::new(1).expect("non zero"));
 
                     presences = Some(map.next_value_seed(deserializer)?);
                 }
@@ -193,15 +195,19 @@ impl<'de> Deserialize<'de> for MemberChunk {
 mod tests {
     use super::super::MemberChunk;
     use crate::{
+        datetime::{Timestamp, TimestampParseError},
         gateway::presence::{ClientStatus, Presence, Status, UserOrId},
         guild::Member,
         id::{GuildId, RoleId, UserId},
         user::{User, UserFlags},
     };
+    use std::str::FromStr;
 
     #[allow(clippy::too_many_lines)]
     #[test]
-    fn test_simple_member_chunk() {
+    fn test_simple_member_chunk() -> Result<(), TimestampParseError> {
+        let joined_at = Timestamp::from_str("2020-04-04T04:04:04.000000+00:00")?;
+
         let input = serde_json::json!({
             "chunk_count": 1,
             "chunk_index": 0,
@@ -302,25 +308,28 @@ mod tests {
         let expected = MemberChunk {
             chunk_count: 1,
             chunk_index: 0,
-            guild_id: GuildId(1),
+            guild_id: GuildId::new(1).expect("non zero"),
             members: Vec::from([
                 Member {
                     deaf: false,
-                    guild_id: GuildId(1),
-                    hoisted_role: Some(RoleId(6)),
-                    joined_at: Some("2020-04-04T04:04:04.000000+00:00".to_owned()),
+                    guild_id: GuildId::new(1).expect("non zero"),
+                    hoisted_role: Some(RoleId::new(6).expect("non zero")),
+                    joined_at: Some(joined_at),
                     mute: false,
                     nick: Some("chunk".to_owned()),
                     pending: false,
                     premium_since: None,
-                    roles: vec![RoleId(6), RoleId(7)],
+                    roles: vec![
+                        RoleId::new(6).expect("non zero"),
+                        RoleId::new(7).expect("non zero"),
+                    ],
                     user: User {
-                        id: UserId(2),
+                        id: UserId::new(2).expect("non zero"),
                         accent_color: None,
                         avatar: Some("dddddddddddddddddddddddddddddddd".to_owned()),
                         banner: None,
                         bot: true,
-                        discriminator: "0001".to_owned(),
+                        discriminator: 1,
                         name: "test".to_owned(),
                         mfa_enabled: None,
                         locale: None,
@@ -334,21 +343,21 @@ mod tests {
                 },
                 Member {
                     deaf: false,
-                    guild_id: GuildId(1),
-                    hoisted_role: Some(RoleId(6)),
-                    joined_at: Some("2020-04-04T04:04:04.000000+00:00".to_owned()),
+                    guild_id: GuildId::new(1).expect("non zero"),
+                    hoisted_role: Some(RoleId::new(6).expect("non zero")),
+                    joined_at: Some(joined_at),
                     mute: false,
                     nick: Some("chunk".to_owned()),
                     pending: false,
                     premium_since: None,
-                    roles: vec![RoleId(6)],
+                    roles: vec![RoleId::new(6).expect("non zero")],
                     user: User {
-                        id: UserId(3),
+                        id: UserId::new(3).expect("non zero"),
                         accent_color: None,
                         avatar: Some("cccccccccccccccccccccccccccccccc".to_owned()),
                         banner: None,
                         bot: true,
-                        discriminator: "0001".to_owned(),
+                        discriminator: 1,
                         name: "test".to_owned(),
                         mfa_enabled: None,
                         locale: None,
@@ -362,21 +371,21 @@ mod tests {
                 },
                 Member {
                     deaf: false,
-                    guild_id: GuildId(1),
-                    hoisted_role: Some(RoleId(6)),
-                    joined_at: Some("2020-04-04T04:04:04.000000+00:00".to_owned()),
+                    guild_id: GuildId::new(1).expect("non zero"),
+                    hoisted_role: Some(RoleId::new(6).expect("non zero")),
+                    joined_at: Some(joined_at),
                     mute: false,
                     nick: Some("chunk".to_owned()),
                     pending: true,
                     premium_since: None,
-                    roles: vec![RoleId(6)],
+                    roles: vec![RoleId::new(6).expect("non zero")],
                     user: User {
-                        id: UserId(5),
+                        id: UserId::new(5).expect("non zero"),
                         accent_color: None,
                         avatar: Some("aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa".to_owned()),
                         banner: None,
                         bot: false,
-                        discriminator: "0001".to_owned(),
+                        discriminator: 1,
                         name: "test".to_owned(),
                         mfa_enabled: None,
                         locale: None,
@@ -390,21 +399,21 @@ mod tests {
                 },
                 Member {
                     deaf: false,
-                    guild_id: GuildId(1),
-                    hoisted_role: Some(RoleId(6)),
-                    joined_at: Some("2020-04-04T04:04:04.000000+00:00".to_owned()),
+                    guild_id: GuildId::new(1).expect("non zero"),
+                    hoisted_role: Some(RoleId::new(6).expect("non zero")),
+                    joined_at: Some(joined_at),
                     mute: false,
                     nick: Some("chunk".to_owned()),
                     pending: false,
                     premium_since: None,
-                    roles: vec![RoleId(6)],
+                    roles: vec![RoleId::new(6).expect("non zero")],
                     user: User {
-                        id: UserId(6),
+                        id: UserId::new(6).expect("non zero"),
                         accent_color: None,
                         avatar: Some("bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb".to_owned()),
                         banner: None,
                         bot: false,
-                        discriminator: "0001".to_owned(),
+                        discriminator: 1,
                         name: "test".to_owned(),
                         mfa_enabled: None,
                         locale: None,
@@ -427,9 +436,11 @@ mod tests {
                         mobile: None,
                         web: Some(Status::Online),
                     },
-                    guild_id: GuildId(1),
+                    guild_id: GuildId::new(1).expect("non zero"),
                     status: Status::Online,
-                    user: UserOrId::UserId { id: UserId(2) },
+                    user: UserOrId::UserId {
+                        id: UserId::new(2).expect("non zero"),
+                    },
                 },
                 Presence {
                     activities: Vec::new(),
@@ -438,9 +449,11 @@ mod tests {
                         mobile: None,
                         web: Some(Status::Online),
                     },
-                    guild_id: GuildId(1),
+                    guild_id: GuildId::new(1).expect("non zero"),
                     status: Status::Online,
-                    user: UserOrId::UserId { id: UserId(3) },
+                    user: UserOrId::UserId {
+                        id: UserId::new(3).expect("non zero"),
+                    },
                 },
                 Presence {
                     activities: Vec::new(),
@@ -449,9 +462,11 @@ mod tests {
                         mobile: None,
                         web: None,
                     },
-                    guild_id: GuildId(1),
+                    guild_id: GuildId::new(1).expect("non zero"),
                     status: Status::DoNotDisturb,
-                    user: UserOrId::UserId { id: UserId(5) },
+                    user: UserOrId::UserId {
+                        id: UserId::new(5).expect("non zero"),
+                    },
                 },
             ]),
         };
@@ -470,5 +485,7 @@ mod tests {
         for presences in &actual.presences {
             assert!(expected.presences.iter().any(|p| p == presences));
         }
+
+        Ok(())
     }
 }

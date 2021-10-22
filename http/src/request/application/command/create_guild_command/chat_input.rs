@@ -105,8 +105,8 @@ impl<'a> CreateGuildChatInputCommand<'a> {
 
     fn request(&self) -> Result<Request, HttpError> {
         Request::builder(&Route::CreateGuildCommand {
-            application_id: self.application_id.0,
-            guild_id: self.guild_id.0,
+            application_id: self.application_id.get(),
+            guild_id: self.guild_id.get(),
         })
         .json(&CommandBorrowed {
             application_id: Some(self.application_id),

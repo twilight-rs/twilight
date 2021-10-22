@@ -1,9 +1,10 @@
 //! Gateway event payload when an invite is created.
 
 use crate::{
+    datetime::Timestamp,
     id::{ChannelId, GuildId, UserId},
     invite::TargetType,
-    user::User,
+    user::{self, DiscriminatorDisplay, User},
 };
 use serde::{Deserialize, Serialize};
 
@@ -17,9 +18,7 @@ pub struct InviteCreate {
     /// Unique code.
     pub code: String,
     /// When the invite was created.
-    ///
-    /// This is in an ISO 8601 timestamp format.
-    pub created_at: String,
+    pub created_at: Timestamp,
     /// ID of the guild being invited to.
     pub guild_id: GuildId,
     /// Information about the user who created the invite.
@@ -57,17 +56,36 @@ pub struct PartialUser {
     /// Discriminator used to differentiate people with the same [`username`].
     ///
     /// [`username`]: Self::username
-    pub discriminator: String,
+    ///
+    /// # serde
+    ///
+    /// The discriminator field can be deserialized from either a string or an
+    /// integer. The field will always serialize into a string due to that being
+    /// the type Discord's API uses.
+    #[serde(with = "user::discriminator")]
+    pub discriminator: u16,
     /// ID of the user.
     pub id: UserId,
     /// Username of the user.
     pub username: String,
 }
 
+impl PartialUser {
+    /// Create a [`Display`] formatter for a user discriminator.
+    ///
+    /// [`Display`]: core::fmt::Display
+    pub const fn discriminator(&self) -> DiscriminatorDisplay {
+        DiscriminatorDisplay::new(self.discriminator)
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::{InviteCreate, PartialUser};
-    use crate::id::{ChannelId, GuildId, UserId};
+    use crate::{
+        datetime::Timestamp,
+        id::{ChannelId, GuildId, UserId},
+    };
     use serde::{Deserialize, Serialize};
     use serde_test::Token;
     use static_assertions::{assert_fields, assert_impl_all};
@@ -112,11 +130,13 @@ mod tests {
 
     #[test]
     fn test_invite_create() {
+        let created_at = Timestamp::from_secs(1_609_459_200).expect("non zero");
+
         let value = InviteCreate {
-            channel_id: ChannelId(1),
+            channel_id: ChannelId::new(1).expect("non zero"),
             code: "a".repeat(7),
-            created_at: "2021-01-01T00:00:00+00:00".to_owned(),
-            guild_id: GuildId(2),
+            created_at,
+            guild_id: GuildId::new(2).expect("non zero"),
             inviter: None,
             max_age: 3600,
             max_uses: 5,
@@ -139,7 +159,7 @@ mod tests {
                 Token::Str("code"),
                 Token::Str("aaaaaaa"),
                 Token::Str("created_at"),
-                Token::Str("2021-01-01T00:00:00+00:00"),
+                Token::Str("2021-01-01T00:00:00.000000+00:00"),
                 Token::Str("guild_id"),
                 Token::NewtypeStruct { name: "GuildId" },
                 Token::Str("2"),
@@ -160,8 +180,8 @@ mod tests {
     fn test_partial_user() {
         let value = PartialUser {
             avatar: Some("a".repeat(32)),
-            discriminator: "123".to_owned(),
-            id: UserId(1),
+            discriminator: 123,
+            id: UserId::new(1).expect("non zero"),
             username: "twilight".to_owned(),
         };
 
@@ -176,7 +196,7 @@ mod tests {
                 Token::Some,
                 Token::Str("aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"),
                 Token::Str("discriminator"),
-                Token::Str("123"),
+                Token::Str("0123"),
                 Token::Str("id"),
                 Token::NewtypeStruct { name: "UserId" },
                 Token::Str("1"),

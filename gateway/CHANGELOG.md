@@ -2,6 +2,53 @@
 
 Changelog for `twilight-gateway`.
 
+## [0.7.0] - 2021-10-21
+
+### Changes
+
+The gateway ratelimiter has been reworked in multiple PRs ([#1061] -
+[@Gelbpunkt], [#1101] and [#1102] - [@zeylahellyer]). It now depends on
+`leaky-bucket-lite`'s `LeakyBucket` instead of using the now-removed
+internal `Throttle` implementation. There are two new `CommandErrorType`
+and `ShardErrorType` variants: `ExecutorShutDown` and
+`HeartbeaterNotStarted`.
+
+`Cluster` and `Shard` no longer implement `Clone`, because they are no
+longer internally wrapped in an `Arc` ([#1067] - [@zeylahellyer]). To
+retain this functionality, you can wrap them in an `Arc` or a `Rc`
+manually.  Additionally, the `Cluster::shard` method now returns a
+reference, and the `Cluster::shards` method now returns a type
+implementing `Iterator<Item = Shard>`.
+
+As part of an internal refactor of the `Cluster`, its methods
+`event_types`, `http_client`, and `shard_config` have been removed
+([#1073] - [@vilgotf]).  These can instead be retrieved through
+individual `Shard`s.
+
+A dependency on `once-cell` has been removed, and replaced with `tokio
+^1.5`'s implementation ([#1075] - [@Gelbpunkt]).
+
+`Cluster::command` and `Shard::command` now take a `Command` marker
+trait instead of anything that implements `serde::Serialize` ([#1132] -
+[@zeylahellyer]).
+
+`ShardBuilder` no longer implements `Clone` ([#1147] - [@vilgotf]).
+
+The MSRV has been updated to 1.53 ([#1161] - [@7596ff]).
+
+`Cluster::command_raw` and `Shard::command_raw` have been removed
+([#1193] - [@7596ff]).
+
+[#1061]: https://github.com/twilight-rs/twilight/pull/1061
+[#1067]: https://github.com/twilight-rs/twilight/pull/1061
+[#1073]: https://github.com/twilight-rs/twilight/pull/1073
+[#1101]: https://github.com/twilight-rs/twilight/pull/1101
+[#1102]: https://github.com/twilight-rs/twilight/pull/1102
+[#1132]: https://github.com/twilight-rs/twilight/pull/1132
+[#1147]: https://github.com/twilight-rs/twilight/pull/1147
+[#1161]: https://github.com/twilight-rs/twilight/pull/1147
+[#1193]: https://github.com/twilight-rs/twilight/pull/1193
+
 ## [0.6.5] - 2021-10-07
 
 ### Changes
@@ -584,6 +631,7 @@ Initial release.
 [#515]: https://github.com/twilight-rs/twilight/pull/515
 [#512]: https://github.com/twilight-rs/twilight/pull/512
 
+[0.7.0]: https://github.com/twilight-rs/twilight/releases/tag/gateway-0.7.0
 [0.6.3]: https://github.com/twilight-rs/twilight/releases/tag/gateway-0.6.3
 [0.6.2]: https://github.com/twilight-rs/twilight/releases/tag/gateway-0.6.2
 [0.6.1]: https://github.com/twilight-rs/twilight/releases/tag/gateway-0.6.1

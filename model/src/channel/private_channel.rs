@@ -1,5 +1,6 @@
 use crate::{
     channel::ChannelType,
+    datetime::Timestamp,
     id::{ChannelId, MessageId},
     user::User,
 };
@@ -11,7 +12,7 @@ pub struct PrivateChannel {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub last_message_id: Option<MessageId>,
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub last_pin_timestamp: Option<String>,
+    pub last_pin_timestamp: Option<Timestamp>,
     #[serde(rename = "type")]
     pub kind: ChannelType,
     pub recipients: Vec<User>,
@@ -20,14 +21,18 @@ pub struct PrivateChannel {
 #[cfg(test)]
 mod tests {
     use super::{ChannelId, ChannelType, MessageId, PrivateChannel};
+    use crate::datetime::{Timestamp, TimestampParseError};
     use serde_test::Token;
+    use std::str::FromStr;
 
     #[test]
-    fn test_category_channel() {
+    fn test_category_channel() -> Result<(), TimestampParseError> {
+        let last_pin_timestamp = Timestamp::from_str("2021-08-10T12:34:00+00:00")?;
+
         let value = PrivateChannel {
-            id: ChannelId(1),
-            last_message_id: Some(MessageId(2)),
-            last_pin_timestamp: Some("timestamp".to_owned()),
+            id: ChannelId::new(1).expect("non zero"),
+            last_message_id: Some(MessageId::new(2).expect("non zero")),
+            last_pin_timestamp: Some(last_pin_timestamp),
             kind: ChannelType::Private,
             recipients: Vec::new(),
         };
@@ -48,7 +53,7 @@ mod tests {
                 Token::Str("2"),
                 Token::Str("last_pin_timestamp"),
                 Token::Some,
-                Token::Str("timestamp"),
+                Token::Str("2021-08-10T12:34:00.000000+00:00"),
                 Token::Str("type"),
                 Token::U8(1),
                 Token::Str("recipients"),
@@ -57,5 +62,7 @@ mod tests {
                 Token::StructEnd,
             ],
         );
+
+        Ok(())
     }
 }

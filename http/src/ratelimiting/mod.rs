@@ -1,12 +1,8 @@
-pub mod error;
+pub mod headers;
 
 mod bucket;
-mod headers;
 
-pub use self::{
-    error::{RatelimitError, RatelimitResult},
-    headers::RatelimitHeaders,
-};
+pub use self::headers::RatelimitHeaders;
 
 use self::bucket::{Bucket, BucketQueueTask, TimeRemaining};
 use crate::routing::Path;
@@ -57,11 +53,6 @@ impl Ratelimiter {
     /// HTTP proxy then this is good to use for your own ratelimiting.
     pub fn new() -> Self {
         Self::default()
-    }
-
-    #[deprecated(since = "0.5.0", note = "use `ticket` instead, which is not async")]
-    pub async fn get(&self, path: Path) -> Receiver<Sender<Option<RatelimitHeaders>>> {
-        self.ticket(path)
     }
 
     pub fn ticket(&self, path: Path) -> Receiver<Sender<Option<RatelimitHeaders>>> {

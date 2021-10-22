@@ -34,8 +34,8 @@ struct UpdateGuildStickerFields<'a> {
 /// # async fn main() -> Result<(), Box<dyn std::error::Error>> {
 /// let client = Client::new("my token".to_owned());
 ///
-/// let guild_id = GuildId(1);
-/// let sticker_id = StickerId(2);
+/// let guild_id = GuildId::new(1).expect("non zero");
+/// let sticker_id = StickerId::new(2).expect("non zero");
 /// let sticker = client
 ///     .update_guild_sticker(guild_id, sticker_id)
 ///     .description("new description")?
@@ -108,8 +108,8 @@ impl<'a> UpdateGuildSticker<'a> {
 
     fn request(&self) -> Result<Request, HttpError> {
         let request = Request::builder(&Route::UpdateGuildSticker {
-            guild_id: self.guild_id.0,
-            sticker_id: self.sticker_id.0,
+            guild_id: self.guild_id.get(),
+            sticker_id: self.sticker_id.get(),
         })
         .json(&self.fields)?;
 

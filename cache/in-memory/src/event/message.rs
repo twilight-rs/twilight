@@ -1,6 +1,6 @@
 use crate::{config::ResourceType, model::CachedMessage, InMemoryCache, UpdateCache};
 use std::borrow::Cow;
-use twilight_model::gateway::payload::{
+use twilight_model::gateway::payload::incoming::{
     MessageCreate, MessageDelete, MessageDeleteBulk, MessageUpdate,
 };
 
@@ -22,13 +22,22 @@ impl UpdateCache for MessageCreate {
             return;
         }
 
-        let mut channel = cache.0.messages.entry(self.0.channel_id).or_default();
+        let mut channel_messages = cache.channel_messages.entry(self.0.channel_id).or_default();
 
-        if channel.len() > cache.0.config.message_cache_size() {
-            channel.pop_back();
+        // If the channel has more messages than the cache size the user has
+        // requested then we pop a message ID out. Once we have the popped ID we
+        // can remove it from the message cache. This prevents the cache from
+        // filling up with old messages that aren't in any channel cache.
+        if channel_messages.len() > cache.config.message_cache_size() {
+            if let Some(popped_id) = channel_messages.pop_back() {
+                cache.messages.remove(&popped_id);
+            }
         }
 
-        channel.push_front(CachedMessage::from(self.0.clone()));
+        channel_messages.push_front(self.0.id);
+        cache
+            .messages
+            .insert(self.0.id, CachedMessage::from(self.0.clone()));
     }
 }
 
@@ -38,10 +47,12 @@ impl UpdateCache for MessageDelete {
             return;
         }
 
-        let mut channel = cache.0.messages.entry(self.channel_id).or_default();
+        cache.messages.remove(&self.id);
 
-        if let Some(idx) = channel.iter().position(|msg| msg.id == self.id) {
-            channel.remove(idx);
+        let mut channel_messages = cache.channel_messages.entry(self.channel_id).or_default();
+
+        if let Some(idx) = channel_messages.iter().position(|id| *id == self.id) {
+            channel_messages.remove(idx);
         }
     }
 }
@@ -52,11 +63,16 @@ impl UpdateCache for MessageDeleteBulk {
             return;
         }
 
-        let mut channel = cache.0.messages.entry(self.channel_id).or_default();
+        let mut channel_messages = cache.channel_messages.entry(self.channel_id).or_default();
 
         for id in &self.ids {
-            if let Some(idx) = channel.iter().position(|msg| &msg.id == id) {
-                channel.remove(idx);
+            cache.messages.remove(id);
+
+            if let Some(idx) = channel_messages
+                .iter()
+                .position(|message_id| message_id == id)
+            {
+                channel_messages.remove(idx);
             }
         }
     }
@@ -68,9 +84,7 @@ impl UpdateCache for MessageUpdate {
             return;
         }
 
-        let mut channel = cache.0.messages.entry(self.channel_id).or_default();
-
-        if let Some(mut message) = channel.iter_mut().find(|msg| msg.id == self.id) {
+        if let Some(mut message) = cache.messages.get_mut(&self.id) {
             if let Some(attachments) = &self.attachments {
                 message.attachments = attachments.clone();
             }
@@ -79,8 +93,8 @@ impl UpdateCache for MessageUpdate {
                 message.content = content.clone();
             }
 
-            if let Some(edited_timestamp) = &self.edited_timestamp {
-                message.edited_timestamp.replace(edited_timestamp.clone());
+            if let Some(edited_timestamp) = self.edited_timestamp {
+                message.edited_timestamp.replace(edited_timestamp);
             }
 
             if let Some(embeds) = &self.embeds {
@@ -103,8 +117,8 @@ impl UpdateCache for MessageUpdate {
                 message.pinned = pinned;
             }
 
-            if let Some(timestamp) = &self.timestamp {
-                message.timestamp = timestamp.clone();
+            if let Some(timestamp) = self.timestamp {
+                message.timestamp = timestamp;
             }
 
             if let Some(tts) = self.tts {
@@ -119,6 +133,7 @@ mod tests {
     use super::*;
     use twilight_model::{
         channel::message::{Message, MessageFlags, MessageType},
+        datetime::Timestamp,
         guild::PartialMember,
         id::{ChannelId, GuildId, MessageId, UserId},
         user::User,
@@ -140,10 +155,10 @@ mod tests {
                 avatar: Some("".to_owned()),
                 banner: None,
                 bot: false,
-                discriminator: "0001".to_owned(),
+                discriminator: 1,
                 email: None,
                 flags: None,
-                id: UserId(3),
+                id: UserId::new(3).expect("non zero"),
                 locale: None,
                 mfa_enabled: None,
                 name: "test".to_owned(),
@@ -152,14 +167,14 @@ mod tests {
                 system: None,
                 verified: None,
             },
-            channel_id: ChannelId(2),
+            channel_id: ChannelId::new(2).expect("non zero"),
             components: Vec::new(),
             content: "ping".to_owned(),
             edited_timestamp: None,
             embeds: Vec::new(),
             flags: Some(MessageFlags::empty()),
-            guild_id: Some(GuildId(1)),
-            id: MessageId(4),
+            guild_id: Some(GuildId::new(1).expect("non zero")),
+            id: MessageId::new(4).expect("non zero"),
             interaction: None,
             kind: MessageType::Regular,
             member: Some(PartialMember {
@@ -182,7 +197,7 @@ mod tests {
             sticker_items: Vec::new(),
             thread: None,
             referenced_message: None,
-            timestamp: String::new(),
+            timestamp: Timestamp::from_secs(1_632_072_645).expect("non zero"),
             tts: false,
             webhook_id: None,
         };
@@ -190,15 +205,27 @@ mod tests {
         cache.update(&MessageCreate(msg));
 
         {
-            let entry = cache.0.user_guilds.get(&UserId(3)).unwrap();
+            let entry = cache
+                .user_guilds
+                .get(&UserId::new(3).expect("non zero"))
+                .unwrap();
             assert_eq!(entry.value().len(), 1);
         }
         assert_eq!(
-            cache.member(GuildId(1), UserId(3)).unwrap().user_id,
-            UserId(3),
+            cache
+                .member(
+                    GuildId::new(1).expect("non zero"),
+                    UserId::new(3).expect("non zero")
+                )
+                .unwrap()
+                .user_id,
+            UserId::new(3).expect("non zero"),
         );
         {
-            let entry = cache.0.messages.get(&ChannelId(2)).unwrap();
+            let entry = cache
+                .channel_messages
+                .get(&ChannelId::new(2).expect("non zero"))
+                .unwrap();
             assert_eq!(entry.value().len(), 1);
         }
     }

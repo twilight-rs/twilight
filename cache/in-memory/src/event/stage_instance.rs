@@ -1,7 +1,7 @@
 use crate::{config::ResourceType, InMemoryCache, UpdateCache};
 use twilight_model::{
     channel::StageInstance,
-    gateway::payload::{StageInstanceCreate, StageInstanceDelete, StageInstanceUpdate},
+    gateway::payload::incoming::{StageInstanceCreate, StageInstanceDelete, StageInstanceUpdate},
     id::{GuildId, StageId},
 };
 
@@ -17,14 +17,13 @@ impl InMemoryCache {
     }
 
     fn cache_stage_instance(&self, guild_id: GuildId, stage_instance: StageInstance) {
-        self.0
-            .guild_stage_instances
+        self.guild_stage_instances
             .entry(guild_id)
             .or_default()
             .insert(stage_instance.id);
 
         crate::upsert_guild_item(
-            &self.0.stage_instances,
+            &self.stage_instances,
             guild_id,
             stage_instance.id,
             stage_instance,
@@ -32,10 +31,10 @@ impl InMemoryCache {
     }
 
     fn delete_stage_instance(&self, stage_id: StageId) {
-        if let Some((_, data)) = self.0.stage_instances.remove(&stage_id) {
+        if let Some((_, data)) = self.stage_instances.remove(&stage_id) {
             let guild_id = data.guild_id;
 
-            if let Some(mut stage_instances) = self.0.guild_stage_instances.get_mut(&guild_id) {
+            if let Some(mut stage_instances) = self.guild_stage_instances.get_mut(&guild_id) {
                 stage_instances.remove(&stage_id);
             }
         }
@@ -82,10 +81,10 @@ mod tests {
         let cache = InMemoryCache::new();
 
         let stage_instance = StageInstance {
-            channel_id: ChannelId(1),
+            channel_id: ChannelId::new(1).expect("non zero"),
             discoverable_disabled: true,
-            guild_id: GuildId(2),
-            id: StageId(3),
+            guild_id: GuildId::new(2).expect("non zero"),
+            id: StageId::new(3).expect("non zero"),
             privacy_level: PrivacyLevel::GuildOnly,
             topic: "topic".into(),
         };
@@ -128,7 +127,7 @@ mod tests {
 
         {
             let cached_instance = cache.stage_instance(stage_instance.id);
-            assert_eq!(cached_instance, None);
+            assert!(cached_instance.is_none());
         }
     }
 }

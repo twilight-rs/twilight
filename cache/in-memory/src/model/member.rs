@@ -1,6 +1,7 @@
 use serde::Serialize;
 use twilight_model::{
     application::interaction::application_command::InteractionMember,
+    datetime::Timestamp,
     guild::{Member, PartialMember},
     id::{GuildId, RoleId, UserId},
 };
@@ -10,44 +11,83 @@ use twilight_model::{
 /// [`Member`]: twilight_model::guild::Member
 #[derive(Clone, Debug, Eq, PartialEq, Serialize)]
 pub struct CachedMember {
+    pub(crate) deaf: Option<bool>,
+    pub(crate) guild_id: GuildId,
+    pub(crate) joined_at: Option<Timestamp>,
+    pub(crate) mute: Option<bool>,
+    pub(crate) nick: Option<String>,
+    pub(crate) pending: bool,
+    pub(crate) premium_since: Option<Timestamp>,
+    pub(crate) roles: Vec<RoleId>,
+    pub(crate) user_id: UserId,
+}
+
+impl CachedMember {
     /// Whether the member is deafened in a voice channel.
-    pub deaf: Option<bool>,
+    pub const fn deaf(&self) -> Option<bool> {
+        self.deaf
+    }
+
     /// ID of the guild this member is a part of.
-    pub guild_id: GuildId,
-    /// ISO 8601 timestamp of this member's join date.
-    pub joined_at: Option<String>,
+    pub const fn guild_id(&self) -> GuildId {
+        self.guild_id
+    }
+
+    /// [`Timestamp`] of this member's join date.
+    pub const fn joined_at(&self) -> Option<Timestamp> {
+        self.joined_at
+    }
+
     /// Whether the member is muted in a voice channel.
-    pub mute: Option<bool>,
+    pub const fn mute(&self) -> Option<bool> {
+        self.mute
+    }
+
     /// Nickname of the member.
-    pub nick: Option<String>,
-    /// Whether the member has not yet passed the guild's Membership Screening requirements.
-    pub pending: bool,
-    /// ISO 8601 timestamp of the date the member boosted the guild.
-    pub premium_since: Option<String>,
+    pub fn nick(&self) -> Option<&str> {
+        self.nick.as_deref()
+    }
+
+    /// Whether the member has not yet passed the guild's Membership Screening
+    /// requirements.
+    pub const fn pending(&self) -> bool {
+        self.pending
+    }
+
+    /// [`Timestamp`] of the date the member boosted the guild.
+    pub const fn premium_since(&self) -> Option<Timestamp> {
+        self.premium_since
+    }
+
     /// List of role IDs this member has.
-    pub roles: Vec<RoleId>,
+    pub fn roles(&self) -> &[RoleId] {
+        &self.roles
+    }
+
     /// ID of the user relating to the member.
-    pub user_id: UserId,
+    pub const fn user_id(&self) -> UserId {
+        self.user_id
+    }
 }
 
 impl PartialEq<Member> for CachedMember {
     fn eq(&self, other: &Member) -> bool {
         (
             self.deaf,
-            self.joined_at.as_ref(),
+            self.joined_at,
             self.mute,
             &self.nick,
             self.pending,
-            self.premium_since.as_ref(),
+            self.premium_since,
             &self.roles,
             self.user_id,
         ) == (
             Some(other.deaf),
-            other.joined_at.as_ref(),
+            other.joined_at,
             Some(other.mute),
             &other.nick,
             other.pending,
-            other.premium_since.as_ref(),
+            other.premium_since,
             &other.roles,
             self.user_id,
         )
@@ -58,17 +98,17 @@ impl PartialEq<&PartialMember> for CachedMember {
     fn eq(&self, other: &&PartialMember) -> bool {
         (
             self.deaf,
-            self.joined_at.as_ref(),
+            self.joined_at,
             self.mute,
             &self.nick,
-            &self.premium_since,
+            self.premium_since,
             &self.roles,
         ) == (
             Some(other.deaf),
-            other.joined_at.as_ref(),
+            other.joined_at,
             Some(other.mute),
             &other.nick,
-            &other.premium_since,
+            other.premium_since,
             &other.roles,
         )
     }
@@ -77,14 +117,14 @@ impl PartialEq<&PartialMember> for CachedMember {
 impl PartialEq<&InteractionMember> for CachedMember {
     fn eq(&self, other: &&InteractionMember) -> bool {
         (
-            self.joined_at.as_ref(),
-            &self.nick,
-            &self.premium_since,
+            self.joined_at,
+            self.nick.as_deref(),
+            self.premium_since,
             &self.roles,
         ) == (
-            other.joined_at.as_ref(),
-            &other.nick,
-            &other.premium_since,
+            other.joined_at,
+            other.nick.as_deref(),
+            other.premium_since,
             &other.roles,
         )
     }
@@ -115,7 +155,7 @@ mod tests {
     fn cached_member() -> CachedMember {
         CachedMember {
             deaf: Some(false),
-            guild_id: GuildId(3),
+            guild_id: GuildId::new(3).expect("non zero"),
             joined_at: None,
             mute: Some(true),
             nick: Some("member nick".to_owned()),
@@ -132,10 +172,10 @@ mod tests {
             avatar: None,
             banner: None,
             bot: false,
-            discriminator: "0001".to_owned(),
+            discriminator: 1,
             email: None,
             flags: None,
-            id: UserId(1),
+            id: UserId::new(1).expect("non zero"),
             locale: None,
             mfa_enabled: None,
             name: "bar".to_owned(),
@@ -150,8 +190,8 @@ mod tests {
     fn test_eq_member() {
         let member = Member {
             deaf: false,
-            guild_id: GuildId(3),
-            hoisted_role: Some(RoleId(4)),
+            guild_id: GuildId::new(3).expect("non zero"),
+            hoisted_role: Some(RoleId::new(4).expect("non zero")),
             joined_at: None,
             mute: true,
             nick: Some("member nick".to_owned()),

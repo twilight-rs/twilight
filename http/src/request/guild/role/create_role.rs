@@ -35,7 +35,7 @@ struct CreateRoleFields<'a> {
 /// # #[tokio::main]
 /// # async fn main() -> Result<(), Box<dyn std::error::Error>> {
 /// let client = Client::new("my token".to_owned());
-/// let guild_id = GuildId(234);
+/// let guild_id = GuildId::new(234).expect("non zero");
 ///
 /// client.create_role(guild_id)
 ///     .color(0xd90083)
@@ -110,7 +110,7 @@ impl<'a> CreateRole<'a> {
     /// [`Response`]: crate::response::Response
     pub fn exec(self) -> ResponseFuture<Role> {
         let mut request = Request::builder(&Route::CreateRole {
-            guild_id: self.guild_id.0,
+            guild_id: self.guild_id.get(),
         });
 
         request = match request.json(&self.fields) {

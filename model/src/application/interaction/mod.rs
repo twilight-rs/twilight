@@ -286,34 +286,49 @@ impl<'de> Visitor<'de> for InteractionVisitor {
 #[cfg(test)]
 mod test {
     use crate::{
-        application::interaction::{
-            application_command::{
-                ApplicationCommand, CommandData, CommandDataOption, CommandInteractionDataResolved,
+        application::{
+            command::CommandOptionType,
+            interaction::{
+                application_command::{
+                    ApplicationCommand, CommandData, CommandDataOption,
+                    CommandInteractionDataResolved, CommandOptionValue, InteractionMember,
+                },
+                Interaction, InteractionType,
             },
-            Interaction, InteractionType,
         },
+        datetime::{Timestamp, TimestampParseError},
         guild::{PartialMember, Permissions},
         id::{ApplicationId, ChannelId, CommandId, GuildId, InteractionId, UserId},
         user::User,
     };
     use serde_test::Token;
+    use std::str::FromStr;
 
     #[test]
     #[allow(clippy::too_many_lines)]
-    fn test_interaction_full() {
+    fn test_interaction_full() -> Result<(), TimestampParseError> {
+        let joined_at = Timestamp::from_str("2020-01-01T00:00:00.000000+00:00")?;
+
         let value = Interaction::ApplicationCommand(Box::new(ApplicationCommand {
-            application_id: ApplicationId(100),
-            channel_id: ChannelId(200),
+            application_id: ApplicationId::new(100).expect("non zero"),
+            channel_id: ChannelId::new(200).expect("non zero"),
             data: CommandData {
-                id: CommandId(300),
+                id: CommandId::new(300).expect("non zero"),
                 name: "command name".into(),
-                options: vec![CommandDataOption::String {
+                options: vec![CommandDataOption {
                     name: "member".into(),
-                    value: "600".into(),
+                    value: CommandOptionValue::User(UserId::new(600).expect("non zero")),
                 }],
                 resolved: Some(CommandInteractionDataResolved {
                     channels: Vec::new(),
-                    members: Vec::new(),
+                    members: vec![InteractionMember {
+                        hoisted_role: None,
+                        id: UserId::new(600).expect("non zero"),
+                        joined_at: Some(joined_at),
+                        nick: Some("nickname".into()),
+                        premium_since: None,
+                        roles: Vec::new(),
+                    }],
                     messages: Vec::new(),
                     roles: Vec::new(),
                     users: vec![User {
@@ -321,10 +336,10 @@ mod test {
                         avatar: Some("avatar string".into()),
                         banner: None,
                         bot: false,
-                        discriminator: "1111".into(),
+                        discriminator: 1111,
                         email: None,
                         flags: None,
-                        id: UserId(600),
+                        id: UserId::new(600).expect("non zero"),
                         locale: None,
                         mfa_enabled: None,
                         name: "username".into(),
@@ -335,12 +350,12 @@ mod test {
                     }],
                 }),
             },
-            guild_id: Some(GuildId(400)),
-            id: InteractionId(500),
+            guild_id: Some(GuildId::new(400).expect("non zero")),
+            id: InteractionId::new(500).expect("non zero"),
             kind: InteractionType::ApplicationCommand,
             member: Some(PartialMember {
                 deaf: false,
-                joined_at: Some("joined at".into()),
+                joined_at: Some(joined_at),
                 mute: false,
                 nick: Some("nickname".into()),
                 permissions: Some(Permissions::empty()),
@@ -351,10 +366,10 @@ mod test {
                     avatar: Some("avatar string".into()),
                     banner: None,
                     bot: false,
-                    discriminator: "1111".into(),
+                    discriminator: 1111,
                     email: None,
                     flags: None,
-                    id: UserId(600),
+                    id: UserId::new(600).expect("non zero"),
                     locale: None,
                     mfa_enabled: None,
                     name: "username".into(),
@@ -396,12 +411,15 @@ mod test {
                 Token::Str("options"),
                 Token::Seq { len: Some(1) },
                 Token::Struct {
-                    name: "CommandDataOption",
-                    len: 2,
+                    name: "CommandDataOptionRaw",
+                    len: 3,
                 },
                 Token::Str("name"),
                 Token::Str("member"),
+                Token::Str("type"),
+                Token::U8(CommandOptionType::User as u8),
                 Token::Str("value"),
+                Token::Some,
                 Token::Str("600"),
                 Token::StructEnd,
                 Token::SeqEnd,
@@ -409,8 +427,24 @@ mod test {
                 Token::Some,
                 Token::Struct {
                     name: "CommandInteractionDataResolved",
-                    len: 1,
+                    len: 2,
                 },
+                Token::Str("members"),
+                Token::Map { len: Some(1) },
+                Token::NewtypeStruct { name: "UserId" },
+                Token::Str("600"),
+                Token::Struct {
+                    name: "InteractionMemberEnvelope",
+                    len: 2,
+                },
+                Token::Str("joined_at"),
+                Token::Some,
+                Token::Str("2020-01-01T00:00:00.000000+00:00"),
+                Token::Str("nick"),
+                Token::Some,
+                Token::Str("nickname"),
+                Token::StructEnd,
+                Token::MapEnd,
                 Token::Str("users"),
                 Token::Map { len: Some(1) },
                 Token::NewtypeStruct { name: "UserId" },
@@ -460,7 +494,7 @@ mod test {
                 Token::Bool(false),
                 Token::Str("joined_at"),
                 Token::Some,
-                Token::Str("joined at"),
+                Token::Str("2020-01-01T00:00:00.000000+00:00"),
                 Token::Str("mute"),
                 Token::Bool(false),
                 Token::Str("nick"),
@@ -501,5 +535,7 @@ mod test {
                 Token::StructEnd,
             ],
         );
+
+        Ok(())
     }
 }

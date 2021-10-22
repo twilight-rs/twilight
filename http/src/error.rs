@@ -90,9 +90,9 @@ impl StdError for Error {
     }
 }
 
+/// Type of [`Error`] that occurred.
 #[derive(Debug)]
 #[non_exhaustive]
-/// Type of [`Error`] that occurred.
 pub enum ErrorType {
     BuildingRequest,
     ChunkingResponse,

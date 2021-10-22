@@ -22,6 +22,7 @@ use self::sticker::MessageSticker;
 use crate::{
     application::component::Component,
     channel::{embed::Embed, Attachment, Channel, ChannelMention},
+    datetime::Timestamp,
     guild::PartialMember,
     id::{ApplicationId, ChannelId, GuildId, MessageId, RoleId, WebhookId},
     user::User,
@@ -46,7 +47,7 @@ pub struct Message {
     #[serde(default, skip_serializing_if = "Vec::is_empty")]
     pub components: Vec<Component>,
     pub content: String,
-    pub edited_timestamp: Option<String>,
+    pub edited_timestamp: Option<Timestamp>,
     pub embeds: Vec<Embed>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub flags: Option<MessageFlags>,
@@ -78,7 +79,8 @@ pub struct Message {
     /// Stickers within the message.
     #[serde(default)]
     pub sticker_items: Vec<MessageSticker>,
-    pub timestamp: String,
+    /// Timestamp of when the message was created.
+    pub timestamp: Timestamp,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub thread: Option<Channel>,
     pub tts: bool,
@@ -95,15 +97,20 @@ mod tests {
     };
     use crate::{
         channel::{ChannelType, ReactionType},
+        datetime::{Timestamp, TimestampParseError},
         guild::PartialMember,
         id::{ApplicationId, ChannelId, GuildId, MessageId, UserId},
         user::User,
     };
     use serde_test::Token;
+    use std::str::FromStr;
 
     #[allow(clippy::too_many_lines)]
     #[test]
-    fn test_message_deserialization() {
+    fn test_message_deserialization() -> Result<(), TimestampParseError> {
+        let joined_at = Timestamp::from_str("2020-01-01T00:00:00.000000+00:00")?;
+        let timestamp = Timestamp::from_micros(1_580_608_922_020_000).expect("non zero");
+
         let value = Message {
             activity: None,
             application: None,
@@ -114,10 +121,10 @@ mod tests {
                 avatar: Some("aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa".to_owned()),
                 banner: None,
                 bot: false,
-                discriminator: "0001".to_owned(),
+                discriminator: 1,
                 email: None,
                 flags: None,
-                id: UserId(3),
+                id: UserId::new(3).expect("non zero"),
                 locale: None,
                 mfa_enabled: None,
                 name: "test".to_owned(),
@@ -126,19 +133,19 @@ mod tests {
                 system: None,
                 verified: None,
             },
-            channel_id: ChannelId(2),
+            channel_id: ChannelId::new(2).expect("non zero"),
             components: Vec::new(),
             content: "ping".to_owned(),
             edited_timestamp: None,
             embeds: Vec::new(),
             flags: Some(MessageFlags::empty()),
-            guild_id: Some(GuildId(1)),
-            id: MessageId(4),
+            guild_id: Some(GuildId::new(1).expect("non zero")),
+            id: MessageId::new(4).expect("non zero"),
             interaction: None,
             kind: MessageType::Regular,
             member: Some(PartialMember {
                 deaf: false,
-                joined_at: Some("2020-01-01T00:00:00.000000+00:00".to_owned()),
+                joined_at: Some(joined_at),
                 mute: false,
                 nick: Some("member nick".to_owned()),
                 permissions: None,
@@ -155,11 +162,11 @@ mod tests {
             reference: None,
             sticker_items: vec![MessageSticker {
                 format_type: StickerFormatType::Png,
-                id: StickerId(1),
+                id: StickerId::new(1).expect("non zero"),
                 name: "sticker name".to_owned(),
             }],
             referenced_message: None,
-            timestamp: "2020-02-02T02:02:02.020000+00:00".to_owned(),
+            timestamp,
             thread: None,
             tts: false,
             webhook_id: None,
@@ -275,11 +282,17 @@ mod tests {
                 Token::StructEnd,
             ],
         );
+
+        Ok(())
     }
 
     #[allow(clippy::too_many_lines)]
     #[test]
-    fn test_message_deserialization_complete() {
+    fn test_message_deserialization_complete() -> Result<(), TimestampParseError> {
+        let edited_timestamp = Timestamp::from_str("2021-08-10T12:41:51.602000+00:00")?;
+        let joined_at = Timestamp::from_str("2020-01-01T00:00:00.000000+00:00")?;
+        let timestamp = Timestamp::from_micros(1_580_608_922_020_000).expect("non zero");
+
         let value = Message {
             activity: Some(MessageActivity {
                 kind: MessageActivityType::Join,
@@ -289,20 +302,20 @@ mod tests {
                 cover_image: Some("cover".to_owned()),
                 description: "a description".to_owned(),
                 icon: Some("an icon".to_owned()),
-                id: ApplicationId(1),
+                id: ApplicationId::new(1).expect("non zero"),
                 name: "application".to_owned(),
             }),
-            application_id: Some(ApplicationId(1)),
+            application_id: Some(ApplicationId::new(1).expect("non zero")),
             attachments: Vec::new(),
             author: User {
                 accent_color: None,
                 avatar: Some("aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa".to_owned()),
                 banner: None,
                 bot: false,
-                discriminator: "0001".to_owned(),
+                discriminator: 1,
                 email: None,
                 flags: None,
-                id: UserId(3),
+                id: UserId::new(3).expect("non zero"),
                 locale: None,
                 mfa_enabled: None,
                 name: "test".to_owned(),
@@ -311,19 +324,19 @@ mod tests {
                 system: None,
                 verified: None,
             },
-            channel_id: ChannelId(2),
+            channel_id: ChannelId::new(2).expect("non zero"),
             components: Vec::new(),
             content: "ping".to_owned(),
-            edited_timestamp: Some("123".to_owned()),
+            edited_timestamp: Some(edited_timestamp),
             embeds: Vec::new(),
             flags: Some(MessageFlags::empty()),
-            guild_id: Some(GuildId(1)),
-            id: MessageId(4),
+            guild_id: Some(GuildId::new(1).expect("non zero")),
+            id: MessageId::new(4).expect("non zero"),
             interaction: None,
             kind: MessageType::Regular,
             member: Some(PartialMember {
                 deaf: false,
-                joined_at: Some("2020-01-01T00:00:00.000000+00:00".to_owned()),
+                joined_at: Some(joined_at),
                 mute: false,
                 nick: Some("member nick".to_owned()),
                 permissions: None,
@@ -332,8 +345,8 @@ mod tests {
                 user: None,
             }),
             mention_channels: vec![ChannelMention {
-                guild_id: GuildId(1),
-                id: ChannelId(2),
+                guild_id: GuildId::new(1).expect("non zero"),
+                id: ChannelId::new(2).expect("non zero"),
                 kind: ChannelType::GuildText,
                 name: "channel".to_owned(),
             }],
@@ -349,21 +362,21 @@ mod tests {
                 me: true,
             }],
             reference: Some(MessageReference {
-                channel_id: Some(ChannelId(1)),
+                channel_id: Some(ChannelId::new(1).expect("non zero")),
                 guild_id: None,
                 message_id: None,
                 fail_if_not_exists: None,
             }),
             sticker_items: vec![MessageSticker {
                 format_type: StickerFormatType::Png,
-                id: StickerId(1),
+                id: StickerId::new(1).expect("non zero"),
                 name: "sticker name".to_owned(),
             }],
             referenced_message: None,
-            timestamp: "2020-02-02T02:02:02.020000+00:00".to_owned(),
+            timestamp,
             thread: None,
             tts: false,
-            webhook_id: Some(WebhookId(1)),
+            webhook_id: Some(WebhookId::new(1).expect("non zero")),
         };
 
         serde_test::assert_tokens(
@@ -442,7 +455,7 @@ mod tests {
                 Token::Str("ping"),
                 Token::Str("edited_timestamp"),
                 Token::Some,
-                Token::Str("123"),
+                Token::Str("2021-08-10T12:41:51.602000+00:00"),
                 Token::Str("embeds"),
                 Token::Seq { len: Some(0) },
                 Token::SeqEnd,
@@ -567,5 +580,7 @@ mod tests {
                 Token::StructEnd,
             ],
         );
+
+        Ok(())
     }
 }

@@ -17,10 +17,10 @@ use twilight_model::{
 /// use twilight_model::id::{ApplicationId, MessageId};
 ///
 /// let client = Client::new(env::var("DISCORD_TOKEN")?);
-/// client.set_application_id(ApplicationId(1));
+/// client.set_application_id(ApplicationId::new(1).expect("non zero"));
 ///
 /// let response = client
-///     .followup_message("token here", MessageId(2))?
+///     .followup_message("token here", MessageId::new(2).expect("non zero"))?
 ///     .exec()
 ///     .await?;
 /// # Ok(()) }
@@ -50,9 +50,9 @@ impl<'a> GetFollowupMessage<'a> {
 
     fn request(&self) -> Request {
         Request::from_route(&Route::GetFollowupMessage {
-            application_id: self.application_id.0,
+            application_id: self.application_id.get(),
             interaction_token: self.interaction_token,
-            message_id: self.message_id.0,
+            message_id: self.message_id.get(),
         })
     }
 
@@ -76,18 +76,24 @@ mod tests {
 
     #[test]
     fn test_request() -> Result<(), Box<dyn Error>> {
-        const APPLICATION_ID: ApplicationId = ApplicationId(1);
         const TOKEN: &str = "token";
-        const MESSAGE_ID: MessageId = MessageId(2);
+
+        fn application_id() -> ApplicationId {
+            ApplicationId::new(1).expect("non zero")
+        }
+
+        fn message_id() -> MessageId {
+            MessageId::new(2).expect("non zero")
+        }
 
         let client = Client::new("token".to_owned());
-        client.set_application_id(APPLICATION_ID);
+        client.set_application_id(application_id());
 
-        let actual = client.followup_message(TOKEN, MESSAGE_ID)?.request();
+        let actual = client.followup_message(TOKEN, message_id())?.request();
         let expected = Request::from_route(&Route::GetFollowupMessage {
-            application_id: APPLICATION_ID.0,
+            application_id: application_id().get(),
             interaction_token: TOKEN,
-            message_id: MESSAGE_ID.0,
+            message_id: message_id().get(),
         });
 
         assert!(expected.body().is_none());

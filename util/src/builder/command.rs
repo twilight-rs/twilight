@@ -456,7 +456,6 @@ impl SubCommandBuilder {
             description,
             name,
             options: Vec::new(),
-            required: false,
         })
     }
 
@@ -500,7 +499,6 @@ impl SubCommandGroupBuilder {
             description,
             name,
             options: Vec::new(),
-            required: false,
         })
     }
 
@@ -687,7 +685,6 @@ mod tests {
                                     required: false,
                                 }),
                             ],
-                            required: false,
                         }),
                         CommandOption::SubCommand(OptionsCommandOptionData {
                             description: String::from("Edit permissions for a user"),
@@ -708,10 +705,8 @@ mod tests {
                                     required: false,
                                 }),
                             ],
-                            required: false,
                         }),
                     ],
-                    required: false,
                 }),
                 CommandOption::SubCommandGroup(OptionsCommandOptionData {
                     description: String::from("Get or edit permissions for a role"),
@@ -736,7 +731,6 @@ mod tests {
                                     required: false,
                                 }),
                             ],
-                            required: false,
                         }),
                         CommandOption::SubCommand(OptionsCommandOptionData {
                             description: String::from("Edit permissions for a role"),
@@ -763,10 +757,8 @@ mod tests {
                                     required: false,
                                 }),
                             ],
-                            required: false,
                         }),
                     ],
-                    required: false,
                 }),
             ],
         };

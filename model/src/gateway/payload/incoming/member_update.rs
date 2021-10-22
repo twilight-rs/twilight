@@ -1,4 +1,5 @@
 use crate::{
+    datetime::Timestamp,
     id::{GuildId, RoleId},
     user::User,
 };
@@ -8,7 +9,7 @@ use serde::{Deserialize, Serialize};
 pub struct MemberUpdate {
     pub guild_id: GuildId,
     pub deaf: Option<bool>,
-    pub joined_at: String,
+    pub joined_at: Timestamp,
     pub mute: Option<bool>,
     pub nick: Option<String>,
     /// Whether the user has yet to pass the guild's [Membership Screening]
@@ -22,7 +23,7 @@ pub struct MemberUpdate {
     /// [pull request]: https://github.com/discord/discord-api-docs/pull/2547
     #[serde(default)]
     pub pending: bool,
-    pub premium_since: Option<String>,
+    pub premium_since: Option<Timestamp>,
     pub roles: Vec<RoleId>,
     pub user: User,
 }
@@ -30,19 +31,25 @@ pub struct MemberUpdate {
 #[cfg(test)]
 mod tests {
     use super::MemberUpdate;
-    use crate::user::User;
+    use crate::{
+        datetime::Timestamp,
+        id::{GuildId, UserId},
+        user::User,
+    };
     use serde_test::Token;
 
     #[test]
     fn test_member_update() {
+        let joined_at = Timestamp::from_micros(1_488_234_110_121_000).expect("non zero");
+
         let value = MemberUpdate {
             user: User {
                 accent_color: None,
                 banner: None,
                 name: "Twilight Sparkle".to_string(),
                 public_flags: None,
-                id: 424_242.into(),
-                discriminator: 1_234.to_string(),
+                id: UserId::new(424_242).expect("non zero"),
+                discriminator: 1234,
                 avatar: Some("cool image".to_string()),
                 bot: false,
                 email: None,
@@ -57,8 +64,8 @@ mod tests {
             premium_since: None,
             pending: false,
             nick: Some("Twilight".to_string()),
-            joined_at: "2017-02-27T22:21:50.121000+00:00".to_string(),
-            guild_id: 1_234.into(),
+            joined_at,
+            guild_id: GuildId::new(1_234).expect("non zero"),
             deaf: Some(false),
             mute: Some(false),
         };

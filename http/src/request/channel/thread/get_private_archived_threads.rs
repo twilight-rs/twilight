@@ -45,7 +45,7 @@ impl<'a> GetPrivateArchivedThreads<'a> {
     pub fn exec(self) -> ResponseFuture<ThreadsListing> {
         let request = Request::from_route(&Route::GetPrivateArchivedThreads {
             before: self.before,
-            channel_id: self.channel_id.0,
+            channel_id: self.channel_id.get(),
             limit: self.limit,
         });
 

@@ -41,39 +41,48 @@ pub struct PrivateThread {
 
 #[cfg(test)]
 mod tests {
+    use std::str::FromStr;
+
     use super::{ChannelId, ChannelType, GuildId, MessageId, ThreadMember, ThreadMetadata, UserId};
-    use crate::channel::thread::{AutoArchiveDuration, PrivateThread};
+    use crate::{
+        channel::thread::{AutoArchiveDuration, PrivateThread},
+        datetime::{Timestamp, TimestampParseError},
+    };
     use serde_test::Token;
 
     #[test]
     #[allow(clippy::too_many_lines)]
-    fn test_private_thread() {
+    fn test_private_thread() -> Result<(), TimestampParseError> {
+        const DATETIME: &str = "2021-09-19T14:17:32.000000+00:00";
+
+        let timestamp = Timestamp::from_str(DATETIME)?;
+
         let value = PrivateThread {
             default_auto_archive_duration: Some(AutoArchiveDuration::Hour),
-            guild_id: Some(GuildId(2)),
-            id: ChannelId(1),
+            guild_id: Some(GuildId::new(2).expect("non zero")),
+            id: ChannelId::new(1).expect("non zero"),
             invitable: Some(true),
             kind: ChannelType::GuildPrivateThread,
-            last_message_id: Some(MessageId(5)),
+            last_message_id: Some(MessageId::new(5).expect("non zero")),
             member: Some(ThreadMember {
                 flags: 12,
-                id: Some(ChannelId(10)),
-                join_timestamp: "456".to_owned(),
+                id: Some(ChannelId::new(10)).expect("non zero"),
+                join_timestamp: timestamp,
                 member: None,
                 presence: None,
-                user_id: Some(UserId(11)),
+                user_id: Some(UserId::new(11)).expect("non zero"),
             }),
             member_count: 7,
             message_count: 6,
             name: "test".to_owned(),
-            owner_id: Some(UserId(3)),
-            parent_id: Some(ChannelId(4)),
+            owner_id: Some(UserId::new(3).expect("non zero")),
+            parent_id: Some(ChannelId::new(4).expect("non zero")),
             permission_overwrites: Vec::new(),
             rate_limit_per_user: Some(8),
             thread_metadata: ThreadMetadata {
                 archived: true,
                 auto_archive_duration: AutoArchiveDuration::Hour,
-                archive_timestamp: "123".to_string(),
+                archive_timestamp: timestamp,
                 invitable: Some(true),
                 locked: true,
             },
@@ -118,7 +127,7 @@ mod tests {
                 Token::NewtypeStruct { name: "ChannelId" },
                 Token::Str("10"),
                 Token::Str("join_timestamp"),
-                Token::Str("456"),
+                Token::Str(DATETIME),
                 Token::Str("user_id"),
                 Token::Some,
                 Token::NewtypeStruct { name: "UserId" },
@@ -154,7 +163,7 @@ mod tests {
                 Token::Str("auto_archive_duration"),
                 Token::U16(60),
                 Token::Str("archive_timestamp"),
-                Token::Str("123"),
+                Token::Str(DATETIME),
                 Token::Str("invitable"),
                 Token::Some,
                 Token::Bool(true),
@@ -164,5 +173,7 @@ mod tests {
                 Token::StructEnd,
             ],
         );
+
+        Ok(())
     }
 }

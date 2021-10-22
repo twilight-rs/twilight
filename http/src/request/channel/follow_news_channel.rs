@@ -33,7 +33,7 @@ impl<'a> FollowNewsChannel<'a> {
     /// [`Response`]: crate::response::Response
     pub fn exec(self) -> ResponseFuture<FollowedChannel> {
         let mut request = Request::builder(&Route::FollowNewsChannel {
-            channel_id: self.channel_id.0,
+            channel_id: self.channel_id.get(),
         });
 
         request = match request.json(&self.fields) {

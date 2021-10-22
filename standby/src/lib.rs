@@ -3,8 +3,8 @@
 //! [![discord badge][]][discord link] [![github badge][]][github link] [![license badge][]][license link] ![rust badge]
 //!
 //! Standby is a utility to wait for an event to happen based on a predicate
-//! check. For example, you may have a command that has a reaction menu of ✅ and
-//! ❌. If you want to handle a reaction to these, using something like an
+//! check. For example, you may have a command that has a reaction menu of ✅
+//! and ❌. If you want to handle a reaction to these, using something like an
 //! application-level state or event stream may not suit your use case. It may
 //! be cleaner to wait for a reaction inline to your function. This is where
 //! Twilight Standby comes in.
@@ -16,12 +16,12 @@
 //! a guild, such as a new `Ready` event ([`Standby::wait_for_event`]). Each
 //! method also has a stream variant.
 //!
-//! To use Standby, you must process events with it in your main event loop.
-//! Check out the [`Standby::process`] method.
+//! To use Standby it must process events, such as in an event loop of events
+//! received by the gateway. Check out the [`Standby::process`] method.
 //!
 //! ## When to use futures and streams
 //!
-//! `Standby` has two variants of each method: a future variant and a stream
+//! [`Standby`] has two variants of each method: a future variant and a stream
 //! variant. An example is [`Standby::wait_for_message`], which also has a
 //! [`Standby::wait_for_message_stream`] variant. The future variant is useful
 //! when you want to oneshot an event that you need to wait for. This means that
@@ -50,13 +50,18 @@
 //!
 //! ```rust,no_run
 //! # #[tokio::main] async fn main() -> Result<(), Box<dyn std::error::Error>> {
-//! use twilight_model::{gateway::payload::MessageCreate, id::{ChannelId, UserId}};
+//! use twilight_model::{
+//!     gateway::payload::incoming::MessageCreate,
+//!     id::{ChannelId, UserId},
+//! };
 //! use twilight_standby::Standby;
 //!
 //! let standby = Standby::new();
 //!
-//! let message = standby.wait_for_message(ChannelId(123), |event: &MessageCreate| {
-//!     event.author.id == UserId(456) && event.content == "test"
+//! let channel_id = ChannelId::new(123).expect("non zero");
+//!
+//! let message = standby.wait_for_message(channel_id, |event: &MessageCreate| {
+//!     event.author.id.get() == 456 && event.content == "test"
 //! }).await?;
 //! # Ok(()) }
 //! ```
@@ -68,32 +73,34 @@
 //!
 //! ```rust,no_run
 //! use futures_util::StreamExt;
-//! use std::{env, error::Error};
+//! use std::{env, error::Error, sync::Arc};
 //! use twilight_gateway::{Event, Intents, Shard};
 //! use twilight_model::{
 //!     channel::Message,
-//!     gateway::payload::ReactionAdd,
+//!     gateway::payload::incoming::ReactionAdd,
 //!     id::{ChannelId, UserId},
 //! };
 //! use twilight_standby::Standby;
 //!
 //! #[tokio::main]
 //! async fn main() -> Result<(), Box<dyn Error>> {
+//!     let token = env::var("DISCORD_TOKEN")?;
+//!
 //!     // Start a shard connected to the gateway to receive events.
 //!     let intents = Intents::GUILD_MESSAGES | Intents::GUILD_MESSAGE_REACTIONS;
-//!     let (shard, mut events) = Shard::new(env::var("DISCORD_TOKEN")?, intents);
+//!     let (shard, mut events) = Shard::new(token, intents);
 //!     shard.start().await?;
 //!
-//!     let standby = Standby::new();
+//!     let standby = Arc::new(Standby::new());
 //!
 //!     while let Some(event) = events.next().await {
-//!         // Have standby process the event, which will fulfill any futures that
-//!         // are waiting for an event.
+//!         // Have standby process the event, which will fulfill any futures
+//!         // that are waiting for an event.
 //!         standby.process(&event);
 //!
 //!         match event {
 //!             Event::MessageCreate(msg) if msg.content == "!react" => {
-//!                 tokio::spawn(react(msg.0, standby.clone()));
+//!                 tokio::spawn(react(msg.0, Arc::clone(&standby)));
 //!             },
 //!             _ => {},
 //!         }
@@ -104,7 +111,10 @@
 //!
 //! // Wait for a reaction from the user who sent the message, and then print it
 //! // once they react.
-//! async fn react(msg: Message, standby: Standby) -> Result<(), Box<dyn Error + Send + Sync + 'static>> {
+//! async fn react(
+//!     msg: Message,
+//!     standby: Arc<Standby>,
+//! ) -> Result<(), Box<dyn Error + Send + Sync + 'static>> {
 //!     let author_id = msg.author.id;
 //!
 //!     let reaction = standby.wait_for_reaction(msg.id, move |event: &ReactionAdd| {
@@ -126,84 +136,87 @@
 //! [github link]: https://github.com/twilight-rs/twilight
 //! [license badge]: https://img.shields.io/badge/license-ISC-blue.svg?style=for-the-badge&logo=pastebin
 //! [license link]: https://github.com/twilight-rs/twilight/blob/main/LICENSE.md
-//! [rust badge]: https://img.shields.io/badge/rust-1.49+-93450a.svg?style=for-the-badge&logo=rust
+//! [rust badge]: https://img.shields.io/badge/rust-1.53+-93450a.svg?style=for-the-badge&logo=rust
 
 #![deny(
-    broken_intra_doc_links,
+    clippy::all,
     clippy::missing_const_for_fn,
+    clippy::missing_docs_in_private_items,
+    future_incompatible,
     missing_docs,
+    nonstandard_style,
     rust_2018_idioms,
+    rustdoc::broken_intra_doc_links,
     unsafe_code,
     unused,
     warnings
 )]
 
-mod futures;
+pub mod future;
 
-pub use futures::{
-    WaitForComponentFuture, WaitForComponentStream, WaitForEventFuture, WaitForEventStream,
-    WaitForGuildEventFuture, WaitForGuildEventStream, WaitForMessageFuture, WaitForMessageStream,
-    WaitForReactionFuture, WaitForReactionStream,
+mod event;
+
+use self::future::{
+    WaitForEventFuture, WaitForEventStream, WaitForGuildEventFuture, WaitForGuildEventStream,
+    WaitForMessageFuture, WaitForMessageStream, WaitForReactionFuture, WaitForReactionStream,
 };
-
 use dashmap::DashMap;
 use std::{
-    fmt::{Debug, Formatter, Result as FmtResult},
-    sync::{
-        atomic::{AtomicU64, Ordering},
-        Arc,
-    },
+    fmt::{Debug, Display, Formatter, Result as FmtResult},
+    hash::Hash,
+    sync::atomic::{AtomicU64, Ordering},
 };
 use tokio::sync::{
-    mpsc::{self, UnboundedSender as MpscSender},
-    oneshot::{self, Sender as OneshotSender},
+    mpsc::{self, UnboundedReceiver, UnboundedSender as MpscSender},
+    oneshot::{self, Receiver, Sender as OneshotSender},
 };
 use twilight_model::{
-    application::interaction::{Interaction, MessageComponentInteraction},
-    channel::Channel,
     gateway::{
         event::Event,
-        payload::{MessageCreate, ReactionAdd},
+        payload::incoming::{MessageCreate, ReactionAdd},
     },
     id::{ChannelId, GuildId, MessageId},
 };
 
+/// Map keyed by an ID - such as a channel ID or message ID - storing a list of
+/// bystanders.
+type BystanderMap<K, V> = DashMap<K, Vec<Bystander<V>>>;
+
+/// Sender to a caller that may be for a future bystander or a stream bystander.
+#[derive(Debug)]
 enum Sender<E> {
-    Mpsc(MpscSender<E>),
-    Oneshot(OneshotSender<E>),
+    /// Bystander is a future and the sender is a oneshot.
+    Future(OneshotSender<E>),
+    /// Bystander is a stream and the sender is an MPSC.
+    Stream(MpscSender<E>),
 }
 
 impl<E> Sender<E> {
+    /// Whether the channel is closed.
     fn is_closed(&self) -> bool {
         match self {
-            Self::Mpsc(sender) => sender.is_closed(),
-            Self::Oneshot(sender) => sender.is_closed(),
+            Self::Future(sender) => sender.is_closed(),
+            Self::Stream(sender) => sender.is_closed(),
         }
     }
 }
 
-struct Bystander<E> {
-    func: Box<dyn Fn(&E) -> bool + Send + Sync>,
-    sender: Option<Sender<E>>,
+/// Registration for a caller to wait for an event based on a predicate
+/// function.
+struct Bystander<T> {
+    /// Predicate check to perform on an event.
+    func: Box<dyn Fn(&T) -> bool + Send + Sync>,
+    /// [`Sender::Future`]s consume themselves once upon sending so the sender
+    /// needs to be able to be taken out separately.
+    sender: Option<Sender<T>>,
 }
 
-impl<E> Debug for Bystander<E> {
+impl<T: Debug> Debug for Bystander<T> {
     fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
         f.debug_struct("Bystander")
-            .field("check", &"check func")
-            .field("sender", &"mpsc sender")
+            .field("sender", &self.sender)
             .finish()
     }
-}
-
-#[derive(Debug, Default)]
-struct StandbyRef {
-    events: DashMap<u64, Bystander<Event>>,
-    event_counter: AtomicU64,
-    guilds: DashMap<GuildId, Vec<Bystander<Event>>>,
-    messages: DashMap<ChannelId, Vec<Bystander<MessageCreate>>>,
-    reactions: DashMap<MessageId, Vec<Bystander<ReactionAdd>>>,
-    components: DashMap<MessageId, Vec<Bystander<MessageComponentInteraction>>>,
 }
 
 /// The `Standby` struct, used by the main event loop to process events and by
@@ -211,15 +224,44 @@ struct StandbyRef {
 ///
 /// Refer to the crate-level documentation for more information.
 ///
-/// # Cloning
+/// # Using Standby in multiple tasks
 ///
-/// Standby internally wraps its data within an Arc. This means that standby can
-/// be cloned and passed around tasks and threads cheaply.
-#[derive(Clone, Debug, Default)]
-pub struct Standby(Arc<StandbyRef>);
+/// To use a Standby instance in multiple tasks, consider wrapping it in an
+/// [`std::sync::Arc`] or [`std::rc::Rc`].
+#[derive(Debug, Default)]
+pub struct Standby {
+    /// Bystanders for any event that may not be in any particular guild.
+    ///
+    /// The key is generated via [`event_counter`].
+    ///
+    /// [`event_counter`]: Self::event_counter
+    events: DashMap<u64, Bystander<Event>>,
+    /// Event counter to be used as the key of [`events`].
+    ///
+    /// [`events`]: Self::events
+    event_counter: AtomicU64,
+    /// List of bystanders where the ID of the guild is known beforehand.
+    guilds: DashMap<GuildId, Vec<Bystander<Event>>>,
+    /// List of message bystanders where the ID of the channel is known
+    /// beforehand.
+    messages: DashMap<ChannelId, Vec<Bystander<MessageCreate>>>,
+    /// List of reaction bystanders where the ID of the message is known
+    /// beforehand.
+    reactions: DashMap<MessageId, Vec<Bystander<ReactionAdd>>>,
+    components: DashMap<MessageId, Vec<Bystander<MessageComponentInteraction>>>,
+}
 
 impl Standby {
     /// Create a new instance of `Standby`.
+    ///
+    /// Once a `Standby` has been created it must process gateway events via
+    /// [`process`]. Awaiting an event can start via methods such as
+    /// [`wait_for`] and [`wait_for_message_stream`].
+    ///
+    /// [`process`]: Self::process
+    /// [`wait_for`]: Self::wait_for
+    /// [`wait_for_message_stream`]: Self::wait_for_message_stream
+    #[must_use = "must process events to be useful"]
     pub fn new() -> Self {
         Self::default()
     }
@@ -236,36 +278,34 @@ impl Standby {
         tracing::trace!(event_type = ?event.kind(), ?event, "processing event");
 
         match event {
-            Event::MessageCreate(e) => self.process_message(e.0.channel_id, e),
-            Event::ReactionAdd(e) => self.process_reaction(e.0.message_id, e),
-            Event::InteractionCreate(e) => {
-                if let Interaction::MessageComponent(b) = &e.0 {
-                    self.process_components(b.message.id, b)
-                }
+            Event::MessageCreate(e) => {
+                Self::process_specific_event(&self.messages, e.0.channel_id, e);
+            }
+            Event::ReactionAdd(e) => {
+                Self::process_specific_event(&self.reactions, e.0.message_id, e);
             }
             _ => {}
         }
 
-        if let Some(guild_id) = event_guild_id(event) {
-            self.process_guild(guild_id, event);
+        if let Some(guild_id) = event::guild_id(event) {
+            Self::process_specific_event(&self.guilds, guild_id, event);
         }
 
-        self.process_event(event);
+        Self::process_event(&self.events, event);
     }
 
     /// Wait for an event in a certain guild.
     ///
-    /// Returns a Canceled error if the Standby struct was dropped.
-    ///
-    /// If you need to wait for multiple guild events matching the given
-    /// predicate, use [`wait_for_stream`].
+    /// To wait for multiple guild events matching the given predicate use
+    /// [`wait_for_stream`].
     ///
     /// # Examples
     ///
-    /// Wait for a `BanAdd` event in guild 123:
+    /// Wait for a [`BanAdd`] event in guild 123:
     ///
     /// ```no_run
-    /// # #[tokio::main] async fn main() -> Result<(), Box<dyn std::error::Error>> {
+    /// # #[tokio::main]
+    /// # async fn main() -> Result<(), Box<dyn std::error::Error>> {
     /// use futures_util::future;
     /// use twilight_model::{
     ///     gateway::event::{EventType, Event},
@@ -275,12 +315,21 @@ impl Standby {
     ///
     /// let standby = Standby::new();
     ///
-    /// let reaction = standby.wait_for(GuildId(123), |event: &Event| {
+    /// let guild_id = GuildId::new(123).expect("non zero");
+    ///
+    /// let reaction = standby.wait_for(guild_id, |event: &Event| {
     ///     event.kind() == EventType::BanAdd
     /// }).await?;
     /// # Ok(()) }
     /// ```
     ///
+    /// # Errors
+    ///
+    /// The returned future resolves to a [`Canceled`] error if the associated
+    /// [`Standby`] instance is dropped.
+    ///
+    /// [`BanAdd`]: twilight_model::gateway::payload::incoming::BanAdd
+    /// [`Canceled`]: future::Canceled
     /// [`wait_for_stream`]: Self::wait_for_stream
     pub fn wait_for<F: Fn(&Event) -> bool + Send + Sync + 'static>(
         &self,
@@ -290,32 +339,23 @@ impl Standby {
         #[cfg(feature = "tracing")]
         tracing::trace!(%guild_id, "waiting for event in guild");
 
-        let (tx, rx) = oneshot::channel();
-
-        {
-            let mut guild = self.0.guilds.entry(guild_id).or_default();
-            guild.push(Bystander {
-                func: check.into(),
-                sender: Some(Sender::Oneshot(tx)),
-            });
+        WaitForGuildEventFuture {
+            rx: Self::insert_future(&self.guilds, guild_id, check),
         }
-
-        WaitForGuildEventFuture { rx }
     }
 
     /// Wait for a stream of events in a certain guild.
     ///
-    /// Returns a Canceled error if the Standby struct was dropped.
-    ///
-    /// If you need to wait for only one guild event matching the given
-    /// predicate, use [`wait_for`].
+    /// To wait for only one guild event matching the given predicate use
+    /// [`wait_for`].
     ///
     /// # Examples
     ///
-    /// Wait for multiple `BanAdd` events in guild 123:
+    /// Wait for multiple [`BanAdd`] events in guild 123:
     ///
     /// ```no_run
-    /// # #[tokio::main] async fn main() -> Result<(), Box<dyn std::error::Error>> {
+    /// # #[tokio::main]
+    /// # async fn main() -> Result<(), Box<dyn std::error::Error>> {
     /// use futures_util::stream::StreamExt;
     /// use twilight_model::{
     ///     gateway::event::{EventType, Event},
@@ -325,18 +365,30 @@ impl Standby {
     ///
     /// let standby = Standby::new();
     ///
-    /// let mut stream = standby.wait_for_stream(GuildId(123), |event: &Event| {
+    /// let guild_id = GuildId::new(123).expect("non zero");
+    ///
+    /// let mut stream = standby.wait_for_stream(guild_id, |event: &Event| {
     ///     event.kind() == EventType::BanAdd
     /// });
     ///
     /// while let Some(event) = stream.next().await {
     ///     if let Event::BanAdd(ban) = event {
-    ///         println!("user {} was banned in guild {}", ban.user.id, ban.guild_id);
+    ///         println!(
+    ///             "user {} was banned in guild {}",
+    ///             ban.user.id,
+    ///             ban.guild_id,
+    ///         );
     ///     }
     ///  }
     /// # Ok(()) }
     /// ```
     ///
+    /// # Errors
+    ///
+    /// The returned stream ends when the associated [`Standby`] instance is
+    /// dropped.
+    ///
+    /// [`BanAdd`]: twilight_model::gateway::payload::incoming::BanAdd
     /// [`wait_for`]: Self::wait_for
     pub fn wait_for_stream<F: Fn(&Event) -> bool + Send + Sync + 'static>(
         &self,
@@ -346,33 +398,24 @@ impl Standby {
         #[cfg(feature = "tracing")]
         tracing::trace!(%guild_id, "waiting for event in guild");
 
-        let (tx, rx) = mpsc::unbounded_channel();
-
-        {
-            let mut guild = self.0.guilds.entry(guild_id).or_default();
-            guild.push(Bystander {
-                func: check.into(),
-                sender: Some(Sender::Mpsc(tx)),
-            });
+        WaitForGuildEventStream {
+            rx: Self::insert_stream(&self.guilds, guild_id, check),
         }
-
-        WaitForGuildEventStream { rx }
     }
 
     /// Wait for an event not in a certain guild. This must be filtered by an
     /// event type.
     ///
-    /// Returns a `Canceled` error if the `Standby` struct was dropped.
-    ///
-    /// If you need to wait for multiple events matching the given predicate,
-    /// use [`wait_for_event_stream`].
+    /// To wait for multiple events matching the given predicate use
+    /// [`wait_for_event_stream`].
     ///
     /// # Examples
     ///
-    /// Wait for a `Ready` event for shard 5:
+    /// Wait for a [`Ready`] event for shard 5:
     ///
     /// ```no_run
-    /// # #[tokio::main] async fn main() -> Result<(), Box<dyn std::error::Error>> {
+    /// # #[tokio::main]
+    /// # async fn main() -> Result<(), Box<dyn std::error::Error>> {
     /// use futures_util::future;
     /// use twilight_model::gateway::event::{EventType, Event};
     /// use twilight_standby::Standby;
@@ -389,6 +432,13 @@ impl Standby {
     /// # Ok(()) }
     /// ```
     ///
+    /// # Errors
+    ///
+    /// The returned future resolves to a [`Canceled`] error if the associated
+    /// [`Standby`] instance is dropped.
+    ///
+    /// [`Canceled`]: future::Canceled
+    /// [`Ready`]: twilight_model::gateway::payload::incoming::Ready
     /// [`wait_for_event_stream`]: Self::wait_for_event_stream
     pub fn wait_for_event<F: Fn(&Event) -> bool + Send + Sync + 'static>(
         &self,
@@ -399,15 +449,13 @@ impl Standby {
 
         let (tx, rx) = oneshot::channel();
 
-        {
-            self.0.events.insert(
-                self.next_event_id(),
-                Bystander {
-                    func: check.into(),
-                    sender: Some(Sender::Oneshot(tx)),
-                },
-            );
-        }
+        self.events.insert(
+            self.next_event_id(),
+            Bystander {
+                func: check.into(),
+                sender: Some(Sender::Future(tx)),
+            },
+        );
 
         WaitForEventFuture { rx }
     }
@@ -415,17 +463,16 @@ impl Standby {
     /// Wait for a stream of events not in a certain guild. This must be
     /// filtered by an event type.
     ///
-    /// Returns a `Canceled` error if the `Standby` struct was dropped.
-    ///
-    /// If you need to wait for only one event matching the given predicate, use
+    /// To wait for only one event matching the given predicate use
     /// [`wait_for_event`].
     ///
     /// # Examples
     ///
-    /// Wait for multiple `Ready` events on shard 5:
+    /// Wait for multiple [`Ready`] events on shard 5:
     ///
     /// ```no_run
-    /// # #[tokio::main] async fn main() -> Result<(), Box<dyn std::error::Error>> {
+    /// # #[tokio::main]
+    /// # async fn main() -> Result<(), Box<dyn std::error::Error>> {
     /// use futures_util::stream::StreamExt;
     /// use twilight_model::gateway::event::{EventType, Event};
     /// use twilight_standby::Standby;
@@ -446,6 +493,12 @@ impl Standby {
     /// # Ok(()) }
     /// ```
     ///
+    /// # Errors
+    ///
+    /// The returned stream ends when the associated [`Standby`] instance is
+    /// dropped.
+    ///
+    /// [`Ready`]: twilight_model::gateway::payload::incoming::Ready
     /// [`wait_for_event`]: Self::wait_for_event
     pub fn wait_for_event_stream<F: Fn(&Event) -> bool + Send + Sync + 'static>(
         &self,
@@ -456,44 +509,53 @@ impl Standby {
 
         let (tx, rx) = mpsc::unbounded_channel();
 
-        {
-            self.0.events.insert(
-                self.next_event_id(),
-                Bystander {
-                    func: check.into(),
-                    sender: Some(Sender::Mpsc(tx)),
-                },
-            );
-        }
+        self.events.insert(
+            self.next_event_id(),
+            Bystander {
+                func: check.into(),
+                sender: Some(Sender::Stream(tx)),
+            },
+        );
 
         WaitForEventStream { rx }
     }
 
     /// Wait for a message in a certain channel.
     ///
-    /// Returns a `Canceled` error if the `Standby` struct was dropped.
-    ///
-    /// If you need to wait for multiple messages matching the given predicate,
-    /// use [`wait_for_message_stream`].
+    /// To wait for multiple messages matching the given predicate use
+    /// [`wait_for_message_stream`].
     ///
     /// # Examples
     ///
     /// Wait for a message in channel 123 by user 456 with the content "test":
     ///
     /// ```no_run
-    /// # #[tokio::main] async fn main() -> Result<(), Box<dyn std::error::Error>> {
+    /// # #[tokio::main]
+    /// # async fn main() -> Result<(), Box<dyn std::error::Error>> {
     /// use futures_util::future;
-    /// use twilight_model::{gateway::payload::MessageCreate, id::{ChannelId, UserId}};
+    /// use twilight_model::{
+    ///     gateway::payload::incoming::MessageCreate,
+    ///     id::{ChannelId, UserId},
+    /// };
     /// use twilight_standby::Standby;
     ///
     /// let standby = Standby::new();
     ///
-    /// let message = standby.wait_for_message(ChannelId(123), |event: &MessageCreate| {
-    ///     event.author.id == UserId(456) && event.content == "test"
+    /// let author_id = UserId::new(456).expect("non zero");
+    /// let channel_id = ChannelId::new(123).expect("non zero");
+    ///
+    /// let message = standby.wait_for_message(channel_id, move |event: &MessageCreate| {
+    ///     event.author.id == author_id && event.content == "test"
     /// }).await?;
     /// # Ok(()) }
     /// ```
     ///
+    /// # Errors
+    ///
+    /// The returned future resolves to a [`Canceled`] error if the associated
+    /// [`Standby`] instance is dropped.
+    ///
+    /// [`Canceled`]: future::Canceled
     /// [`wait_for_message_stream`]: Self::wait_for_message_stream
     pub fn wait_for_message<F: Fn(&MessageCreate) -> bool + Send + Sync + 'static>(
         &self,
@@ -503,25 +565,15 @@ impl Standby {
         #[cfg(feature = "tracing")]
         tracing::trace!(%channel_id, "waiting for message in channel");
 
-        let (tx, rx) = oneshot::channel();
-
-        {
-            let mut guild = self.0.messages.entry(channel_id).or_default();
-            guild.push(Bystander {
-                func: check.into(),
-                sender: Some(Sender::Oneshot(tx)),
-            });
+        WaitForMessageFuture {
+            rx: Self::insert_future(&self.messages, channel_id, check),
         }
-
-        WaitForMessageFuture { rx }
     }
 
     /// Wait for a stream of message in a certain channel.
     ///
-    /// Returns a `Canceled` error if the `Standby` struct was dropped.
-    ///
-    /// If you need to wait for only one message matching the given predicate,
-    /// use [`wait_for_message`].
+    /// To wait for only one message matching the given predicate use
+    /// [`wait_for_message`].
     ///
     /// # Examples
     ///
@@ -529,15 +581,22 @@ impl Standby {
     /// "test":
     ///
     /// ```no_run
-    /// # #[tokio::main] async fn main() -> Result<(), Box<dyn std::error::Error>> {
+    /// # #[tokio::main]
+    /// # async fn main() -> Result<(), Box<dyn std::error::Error>> {
     /// use futures_util::stream::StreamExt;
-    /// use twilight_model::{gateway::payload::MessageCreate, id::{ChannelId, UserId}};
+    /// use twilight_model::{
+    ///     gateway::payload::incoming::MessageCreate,
+    ///     id::{ChannelId, UserId},
+    /// };
     /// use twilight_standby::Standby;
     ///
     /// let standby = Standby::new();
     ///
-    /// let mut messages = standby.wait_for_message_stream(ChannelId(123), |event: &MessageCreate| {
-    ///     event.author.id == UserId(456) && event.content == "test"
+    /// let author_id = UserId::new(456).expect("non zero");
+    /// let channel_id = ChannelId::new(123).expect("non zero");
+    ///
+    /// let mut messages = standby.wait_for_message_stream(channel_id, move |event: &MessageCreate| {
+    ///     event.author.id == author_id && event.content == "test"
     /// });
     ///
     /// while let Some(message) = messages.next().await {
@@ -545,6 +604,11 @@ impl Standby {
     /// }
     /// # Ok(()) }
     /// ```
+    ///
+    /// # Errors
+    ///
+    /// The returned stream ends when the associated [`Standby`] instance is
+    /// dropped.
     ///
     /// [`wait_for_message`]: Self::wait_for_message
     pub fn wait_for_message_stream<F: Fn(&MessageCreate) -> bool + Send + Sync + 'static>(
@@ -555,44 +619,47 @@ impl Standby {
         #[cfg(feature = "tracing")]
         tracing::trace!(%channel_id, "waiting for message in channel");
 
-        let (tx, rx) = mpsc::unbounded_channel();
-
-        {
-            let mut guild = self.0.messages.entry(channel_id).or_default();
-            guild.push(Bystander {
-                func: check.into(),
-                sender: Some(Sender::Mpsc(tx)),
-            });
+        WaitForMessageStream {
+            rx: Self::insert_stream(&self.messages, channel_id, check),
         }
-
-        WaitForMessageStream { rx }
     }
 
     /// Wait for a reaction on a certain message.
     ///
-    /// Returns a `Canceled` error if the `Standby` struct was dropped.
-    ///
-    /// If you need to wait for multiple reactions matching the given predicate,
-    /// use [`wait_for_reaction_stream`].
+    /// To wait for multiple reactions matching the given predicate use
+    /// [`wait_for_reaction_stream`].
     ///
     /// # Examples
     ///
     /// Wait for a reaction on message 123 by user 456:
     ///
     /// ```no_run
-    /// # #[tokio::main] async fn main() -> Result<(), Box<dyn std::error::Error>> {
+    /// # #[tokio::main]
+    /// # async fn main() -> Result<(), Box<dyn std::error::Error>> {
     /// use futures_util::future;
-    /// use twilight_model::{gateway::payload::ReactionAdd, id::{MessageId, UserId}};
+    /// use twilight_model::{
+    ///     gateway::payload::incoming::ReactionAdd,
+    ///     id::{MessageId, UserId},
+    /// };
     /// use twilight_standby::Standby;
     ///
     /// let standby = Standby::new();
     ///
-    /// let reaction = standby.wait_for_reaction(MessageId(123), |event: &ReactionAdd| {
-    ///     event.user_id == UserId(456)
+    /// let message_id = MessageId::new(123).expect("non zero");
+    /// let user_id = UserId::new(456).expect("non zero");
+    ///
+    /// let reaction = standby.wait_for_reaction(message_id, move |event: &ReactionAdd| {
+    ///     event.user_id == user_id
     /// }).await?;
     /// # Ok(()) }
     /// ```
     ///
+    /// # Errors
+    ///
+    /// The returned future resolves to a [`Canceled`] error if the associated
+    /// [`Standby`] instance is dropped.
+    ///
+    /// [`Canceled`]: future::Canceled
     /// [`wait_for_reaction_stream`]: Self::wait_for_reaction_stream
     pub fn wait_for_reaction<F: Fn(&ReactionAdd) -> bool + Send + Sync + 'static>(
         &self,
@@ -602,43 +669,36 @@ impl Standby {
         #[cfg(feature = "tracing")]
         tracing::trace!(%message_id, "waiting for reaction on message");
 
-        let (tx, rx) = oneshot::channel();
-
-        {
-            let mut guild = self.0.reactions.entry(message_id).or_default();
-            guild.push(Bystander {
-                func: check.into(),
-                sender: Some(Sender::Oneshot(tx)),
-            });
+        WaitForReactionFuture {
+            rx: Self::insert_future(&self.reactions, message_id, check),
         }
-
-        WaitForReactionFuture { rx }
     }
 
     /// Wait for a stream of reactions on a certain message.
     ///
-    /// Returns a `Canceled` error if the `Standby` struct was dropped.
-    ///
-    /// If you need to wait for only one reaction matching the given predicate,
-    /// use [`wait_for_reaction`].
+    /// To wait for only one reaction matching the given predicate use
+    /// [`wait_for_reaction`].
     ///
     /// # Examples
     ///
     /// Wait for multiple reactions on message 123 with unicode reaction "🤠":
     ///
     /// ```no_run
-    /// # #[tokio::main] async fn main() -> Result<(), Box<dyn std::error::Error>> {
+    /// # #[tokio::main]
+    /// # async fn main() -> Result<(), Box<dyn std::error::Error>> {
     /// use futures_util::stream::StreamExt;
     /// use twilight_model::{
     ///     channel::ReactionType,
-    ///     gateway::payload::ReactionAdd,
+    ///     gateway::payload::incoming::ReactionAdd,
     ///     id::{MessageId, UserId},
     /// };
     /// use twilight_standby::Standby;
     ///
     /// let standby = Standby::new();
     ///
-    /// let mut reactions = standby.wait_for_reaction_stream(MessageId(123), |event: &ReactionAdd| {
+    /// let message_id = MessageId::new(123).expect("non zero");
+    ///
+    /// let mut reactions = standby.wait_for_reaction_stream(message_id, |event: &ReactionAdd| {
     ///     matches!(&event.emoji, ReactionType::Unicode { name } if name == "🤠")
     /// });
     ///
@@ -647,6 +707,11 @@ impl Standby {
     /// }
     /// # Ok(()) }
     /// ```
+    ///
+    /// # Errors
+    ///
+    /// The returned stream ends when the associated [`Standby`] instance is
+    /// dropped.
     ///
     /// [`wait_for_reaction`]: Self::wait_for_reaction
     pub fn wait_for_reaction_stream<F: Fn(&ReactionAdd) -> bool + Send + Sync + 'static>(
@@ -657,275 +722,154 @@ impl Standby {
         #[cfg(feature = "tracing")]
         tracing::trace!(%message_id, "waiting for reaction on message");
 
-        let (tx, rx) = mpsc::unbounded_channel();
-
-        {
-            let mut guild = self.0.reactions.entry(message_id).or_default();
-            guild.push(Bystander {
-                func: check.into(),
-                sender: Some(Sender::Mpsc(tx)),
-            });
+        WaitForReactionStream {
+            rx: Self::insert_stream(&self.reactions, message_id, check),
         }
-
-        WaitForReactionStream { rx }
     }
 
-    /// Wait for a component on a certain message.
-    ///
-    /// Returns a `Canceled` error if the `Standby` struct was dropped.
-    ///
-    /// If you need to wait for multiple components matching the given predicate,
-    /// use [`wait_for_component_stream`].
-    ///
-    /// # Examples
-    ///
-    /// Wait for a component on message 123 by user 456:
-    ///
-    /// ```no_run
-    /// # #[tokio::main] async fn main() -> Result<(), Box<dyn std::error::Error>> {
-    /// use futures_util::future;
-    /// use twilight_model::{
-    ///     application::interaction::message_component::MessageComponentInteraction,
-    ///     id::{MessageId, UserId},
-    /// };
-    /// use twilight_standby::Standby;
-    ///
-    /// let standby = Standby::new();
-    ///
-    /// let component = standby.wait_for_component(MessageId(123), |event: &MessageComponentInteraction| {
-    ///     event.author_id() == Some(UserId(456))
-    /// }).await?;
-    /// # Ok(()) }
-    /// ```
-    ///
-    /// [`wait_for_component_stream`]: Self::wait_for_component_stream
-    pub fn wait_for_component<
-        F: Fn(&MessageComponentInteraction) -> bool + Send + Sync + 'static,
-    >(
-        &self,
-        message_id: MessageId,
-        check: impl Into<Box<F>>,
-    ) -> WaitForComponentFuture {
-        #[cfg(feature = "tracing")]
-        tracing::trace!(%message_id, "waiting for component interaction on message");
+    /// Next event ID in [`Standby::event_counter`].
+    fn next_event_id(&self) -> u64 {
+        self.event_counter.fetch_add(1, Ordering::SeqCst)
+    }
 
+    /// Append a new future bystander into a map according to the ID.
+    fn insert_future<F: Fn(&V) -> bool + Send + Sync + 'static, K: Eq + Hash, V>(
+        map: &BystanderMap<K, V>,
+        id: K,
+        check: impl Into<Box<F>>,
+    ) -> Receiver<V> {
         let (tx, rx) = oneshot::channel();
 
-        {
-            let mut guild = self.0.components.entry(message_id).or_default();
-            guild.push(Bystander {
-                func: check.into(),
-                sender: Some(Sender::Oneshot(tx)),
-            });
-        }
+        let mut entry = map.entry(id).or_default();
+        entry.push(Bystander {
+            func: check.into(),
+            sender: Some(Sender::Future(tx)),
+        });
 
-        WaitForComponentFuture { rx }
+        rx
     }
 
-    /// Wait for a stream of components on a certain message.
-    ///
-    /// Returns a `Canceled` error if the `Standby` struct was dropped.
-    ///
-    /// If you need to wait for only one component matching the given predicate,
-    /// use [`wait_for_component`].
-    ///
-    /// # Examples
-    ///
-    /// Wait for multiple button components on message 123 with a custom_id of "Click":
-    ///
-    /// ```no_run
-    /// # #[tokio::main] async fn main() -> Result<(), Box<dyn std::error::Error>> {
-    /// use futures_util::stream::StreamExt;
-    /// use twilight_model::{
-    ///     application::interaction::message_component::MessageComponentInteraction,
-    ///     id::{MessageId, UserId},
-    /// };
-    /// use twilight_standby::Standby;
-    ///
-    /// let standby = Standby::new();
-    ///
-    /// let mut components = standby.wait_for_component_stream(MessageId(123), |event: &MessageComponentInteraction| {
-    ///     event.data.custom_id == "Click".to_string()
-    /// });
-    ///
-    /// while let Some(component) = components.next().await {
-    ///     println!("got a component by {}", component.author_id().unwrap());
-    /// }
-    /// # Ok(()) }
-    /// ```
-    ///
-    /// [`wait_for_component`]: Self::wait_for_component
-    pub fn wait_for_component_stream<
-        F: Fn(&MessageComponentInteraction) -> bool + Send + Sync + 'static,
-    >(
-        &self,
-        message_id: MessageId,
+    /// Append a new stream bystander into a map according to the ID.
+    fn insert_stream<F: Fn(&V) -> bool + Send + Sync + 'static, K: Eq + Hash, V>(
+        map: &BystanderMap<K, V>,
+        id: K,
         check: impl Into<Box<F>>,
-    ) -> WaitForComponentStream {
-        #[cfg(feature = "tracing")]
-        tracing::trace!(%message_id, "waiting for component interaction on message");
-
+    ) -> UnboundedReceiver<V> {
         let (tx, rx) = mpsc::unbounded_channel();
 
-        {
-            let mut guild = self.0.components.entry(message_id).or_default();
-            guild.push(Bystander {
-                func: check.into(),
-                sender: Some(Sender::Mpsc(tx)),
-            });
-        }
+        let mut entry = map.entry(id).or_default();
+        entry.push(Bystander {
+            func: check.into(),
+            sender: Some(Sender::Stream(tx)),
+        });
 
-        WaitForComponentStream { rx }
+        rx
     }
 
-    fn next_event_id(&self) -> u64 {
-        self.0.event_counter.fetch_add(1, Ordering::SeqCst)
-    }
-
+    /// Process a general event that is not of any particular type or in any
+    /// particular guild.
     #[cfg_attr(feature = "tracing", tracing::instrument(level = "trace"))]
-    fn process_event(&self, event: &Event) {
+    fn process_event<K: Debug + Display + Eq + Hash + PartialEq + 'static, V: Clone + Debug>(
+        map: &DashMap<K, Bystander<V>>,
+        event: &V,
+    ) {
         #[cfg(feature = "tracing")]
-        tracing::trace!(?event, event_type = ?event.kind(), "processing event");
+        tracing::trace!(?event, "processing event");
 
         #[cfg_attr(not(feature = "tracing"), allow(clippy::let_and_return))]
-        self.0.events.retain(|_id, bystander| {
-            // `bystander_process` returns whether it is fulfilled, so invert it
-            // here. If it's fulfilled, then we don't want to retain it.
-            let retaining = !self.bystander_process(bystander, event);
+        map.retain(|id, bystander| {
+            let result = Self::bystander_process(bystander, event);
 
             #[cfg(feature = "tracing")]
-            tracing::trace!(bystander_id = _id, %retaining, "event bystander processed");
+            tracing::trace!(bystander_id = %id, ?result, "event bystander processed");
 
-            retaining
+            result.retain()
         });
     }
 
+    /// Process a general event that is either of a particular type or in a
+    /// particular guild.
     #[cfg_attr(feature = "tracing", tracing::instrument(level = "trace"))]
-    fn process_guild(&self, guild_id: GuildId, event: &Event) {
-        let remove = match self.0.guilds.get_mut(&guild_id) {
-            Some(mut bystanders) => {
-                self.bystander_iter(&mut bystanders, event);
+    fn process_specific_event<
+        K: Debug + Display + Eq + Hash + PartialEq + 'static,
+        V: Clone + Debug,
+    >(
+        map: &DashMap<K, Vec<Bystander<V>>>,
+        guild_id: K,
+        event: &V,
+    ) {
+        // Iterate over a guild's bystanders and mark it for removal if there
+        // are no bystanders remaining.
+        let remove_guild = if let Some(mut bystanders) = map.get_mut(&guild_id) {
+            Self::bystander_iter(&mut bystanders, event);
 
-                bystanders.is_empty()
-            }
-            None => {
-                #[cfg(feature = "tracing")]
-                tracing::trace!(%guild_id, "guild has no event bystanders");
+            bystanders.is_empty()
+        } else {
+            #[cfg(feature = "tracing")]
+            tracing::trace!(%guild_id, "guild has no event bystanders");
 
-                return;
-            }
+            return;
         };
 
-        if remove {
+        if remove_guild {
             #[cfg(feature = "tracing")]
             tracing::trace!(%guild_id, "removing guild from map");
 
-            self.0.guilds.remove(&guild_id);
-        }
-    }
-
-    #[cfg_attr(feature = "tracing", tracing::instrument(level = "trace"))]
-    fn process_message(&self, channel_id: ChannelId, event: &MessageCreate) {
-        #[cfg(feature = "tracing")]
-        tracing::trace!(%channel_id, "processing message bystanders in channel");
-
-        let remove = match self.0.messages.get_mut(&channel_id) {
-            Some(mut bystanders) => {
-                self.bystander_iter(&mut bystanders, event);
-
-                bystanders.is_empty()
-            }
-            None => {
-                #[cfg(feature = "tracing")]
-                tracing::trace!(%channel_id, "channel has no message bystanders");
-
-                return;
-            }
-        };
-
-        #[cfg(feature = "tracing")]
-        tracing::trace!(%channel_id, %remove, "bystanders processed");
-
-        if remove {
-            #[cfg(feature = "tracing")]
-            tracing::trace!(%channel_id, "removing channel");
-
-            self.0.messages.remove(&channel_id);
-        }
-    }
-
-    #[cfg_attr(feature = "tracing", tracing::instrument(level = "trace"))]
-    fn process_components(&self, message_id: MessageId, event: &MessageComponentInteraction) {
-        let remove = match self.0.components.get_mut(&message_id) {
-            Some(mut bystanders) => {
-                self.bystander_iter(&mut bystanders, event);
-
-                bystanders.is_empty()
-            }
-            None => {
-                #[cfg(feature = "tracing")]
-                tracing::trace!("message {} has no component bystanders", message_id);
-
-                return;
-            }
-        };
-
-        if remove {
-            #[cfg(feature = "tracing")]
-            tracing::trace!("removing message {}", message_id);
-
-            self.0.components.remove(&message_id);
-        }
-    }
-
-    #[cfg_attr(feature = "tracing", tracing::instrument(level = "trace"))]
-    fn process_reaction(&self, message_id: MessageId, event: &ReactionAdd) {
-        let remove = match self.0.reactions.get_mut(&message_id) {
-            Some(mut bystanders) => {
-                self.bystander_iter(&mut bystanders, event);
-
-                bystanders.is_empty()
-            }
-            None => {
-                #[cfg(feature = "tracing")]
-                tracing::trace!("message {} has no reaction bystanders", message_id);
-
-                return;
-            }
-        };
-
-        if remove {
-            #[cfg(feature = "tracing")]
-            tracing::trace!("removing message {}", message_id);
-
-            self.0.reactions.remove(&message_id);
+            map.remove(&guild_id);
         }
     }
 
     /// Iterate over bystanders and remove the ones that match the predicate.
     #[cfg_attr(feature = "tracing", tracing::instrument(level = "trace"))]
-    fn bystander_iter<E: Clone + Debug>(&self, bystanders: &mut Vec<Bystander<E>>, event: &E) {
+    fn bystander_iter<E: Clone + Debug>(bystanders: &mut Vec<Bystander<E>>, event: &E) {
         #[cfg(feature = "tracing")]
         tracing::trace!(?bystanders, "iterating over bystanders");
 
-        let mut idx = 0;
+        // Iterate over the list of bystanders by using an index and manually
+        // indexing in to the list.
+        //
+        // # Logic
+        //
+        // In each iteration we decide whether to retain a bystander: if we do
+        // then we can increment our index and move on, but if we opt to instead
+        // remove it then we do so and don't increment the index. The reason we
+        // don't increment the index is because when we remove an element the
+        // index does not become empty and instead everything to the right is
+        // shifted to the left, illustrated as such:
+        //
+        //     |---|
+        //     v   |
+        // A - B - C - D
+        //     |   ^   |
+        //     |   |---|
+        //     |
+        //  Remove B
+        //
+        // After: A - C - D
+        //
+        // # Reasons not to use alternatives
+        //
+        // **`Vec::retain`** we need to mutate the entries in order to take out
+        // the sender and `Vec::retain` only gives us immutable references.
+        //
+        // A form of enumeration can't be used because sometimes the index
+        // doesn't advance; iterators would continue to provide incrementing
+        // enumeration indexes while we sometimes want to re-use an index.
+        let mut index = 0;
 
-        while idx < bystanders.len() {
+        while index < bystanders.len() {
             #[cfg(feature = "tracing")]
-            tracing::trace!(%idx, "checking bystander");
+            tracing::trace!(%index, "checking bystander");
 
-            let bystander = &mut bystanders[idx];
+            let status = Self::bystander_process(&mut bystanders[index], event);
 
-            if self.bystander_process(bystander, event) {
-                #[cfg(feature = "tracing")]
-                tracing::trace!(%idx, "removing bystander in list");
+            #[cfg(feature = "tracing")]
+            tracing::trace!(%index, ?status, "checked bystander");
 
-                bystanders.remove(idx);
+            if status.retain() {
+                index += 1;
             } else {
-                #[cfg(feature = "tracing")]
-                tracing::trace!("retaining bystander");
-
-                idx += 1;
+                bystanders.remove(index);
             }
         }
     }
@@ -933,139 +877,96 @@ impl Standby {
     /// Process a bystander, sending the event if the sender is active and the
     /// predicate matches. Returns whether the bystander has fulfilled.
     ///
-    /// Returns `true` if the bystander is fulfilled, meaning that the channel
-    /// is now closed or the predicate matched and the event closed.
+    /// Returns whether the bystander is fulfilled; if the bystander has been
+    /// fulfilled then the channel is now closed.
     #[cfg_attr(feature = "tracing", tracing::instrument(level = "trace"))]
-    fn bystander_process<E: Clone + Debug>(&self, bystander: &mut Bystander<E>, event: &E) -> bool {
-        let sender = match bystander.sender.take() {
-            Some(sender) => sender,
-            None => {
-                #[cfg(feature = "tracing")]
-                tracing::trace!("bystander has no sender, indicating for removal");
+    fn bystander_process<T: Clone + Debug>(
+        bystander: &mut Bystander<T>,
+        event: &T,
+    ) -> ProcessStatus {
+        // We need to take the sender out because `OneshotSender`s consume
+        // themselves when calling `OneshotSender::send`.
+        let sender = if let Some(sender) = bystander.sender.take() {
+            sender
+        } else {
+            #[cfg(feature = "tracing")]
+            tracing::trace!("bystander has no sender, indicating for removal");
 
-                return true;
-            }
+            return ProcessStatus::Complete;
         };
 
+        // The channel may have closed due to the receiver dropping their end,
+        // in which case we can say we're done.
         if sender.is_closed() {
             #[cfg(feature = "tracing")]
             tracing::trace!("bystander's rx dropped, indicating for removal");
 
-            return true;
+            return ProcessStatus::Complete;
         }
 
+        // Lastly check to see if the predicate matches the event. If it doesn't
+        // then we can short-circuit.
         if !(bystander.func)(event) {
             #[cfg(feature = "tracing")]
             tracing::trace!("bystander check doesn't match, not removing");
 
+            // Put the sender back into its bystander since we'll still need it
+            // next time around.
             bystander.sender.replace(sender);
 
-            return false;
+            return ProcessStatus::Incomplete;
         }
 
         match sender {
-            Sender::Oneshot(tx) => {
-                let _ = tx.send(event.clone());
+            Sender::Future(tx) => {
+                // We don't care if the event successfully sends or not since
+                // we're going to be tossing out the bystander anyway.
+                drop(tx.send(event.clone()));
 
                 #[cfg(feature = "tracing")]
                 tracing::trace!("bystander matched event, indicating for removal");
 
-                true
+                ProcessStatus::Complete
             }
-            Sender::Mpsc(tx) => {
+            Sender::Stream(tx) => {
+                // If we can send an event to the receiver and the channel is
+                // still open then we need to retain the bystander, otherwise we
+                // need to mark it for removal.
                 if tx.send(event.clone()).is_ok() {
                     #[cfg(feature = "tracing")]
                     tracing::trace!("bystander is a stream, retaining in map");
 
-                    bystander.sender.replace(Sender::Mpsc(tx));
+                    bystander.sender.replace(Sender::Stream(tx));
 
-                    false
+                    ProcessStatus::Incomplete
                 } else {
-                    true
+                    ProcessStatus::Complete
                 }
             }
         }
     }
 }
 
-const fn event_guild_id(event: &Event) -> Option<GuildId> {
-    match event {
-        Event::BanAdd(e) => Some(e.guild_id),
-        Event::BanRemove(e) => Some(e.guild_id),
-        Event::ChannelCreate(e) => channel_guild_id(&e.0),
-        Event::ChannelDelete(e) => channel_guild_id(&e.0),
-        Event::ChannelPinsUpdate(_) => None,
-        Event::ChannelUpdate(e) => channel_guild_id(&e.0),
-        Event::GatewayHeartbeatAck => None,
-        Event::GatewayHeartbeat(_) => None,
-        Event::GatewayHello(_) => None,
-        Event::GatewayInvalidateSession(_) => None,
-        Event::GatewayReconnect => None,
-        Event::GiftCodeUpdate => None,
-        Event::GuildCreate(e) => Some(e.0.id),
-        Event::GuildDelete(e) => Some(e.id),
-        Event::GuildEmojisUpdate(e) => Some(e.guild_id),
-        Event::GuildIntegrationsUpdate(e) => Some(e.guild_id),
-        Event::GuildUpdate(e) => Some(e.0.id),
-        Event::IntegrationCreate(e) => e.0.guild_id,
-        Event::IntegrationDelete(e) => Some(e.guild_id),
-        Event::IntegrationUpdate(e) => e.0.guild_id,
-        Event::InteractionCreate(e) => e.0.guild_id(),
-        Event::InviteCreate(e) => Some(e.guild_id),
-        Event::InviteDelete(e) => Some(e.guild_id),
-        Event::MemberAdd(e) => Some(e.0.guild_id),
-        Event::MemberChunk(e) => Some(e.guild_id),
-        Event::MemberRemove(e) => Some(e.guild_id),
-        Event::MemberUpdate(e) => Some(e.guild_id),
-        Event::MessageCreate(e) => e.0.guild_id,
-        Event::MessageDelete(_) => None,
-        Event::MessageDeleteBulk(_) => None,
-        Event::MessageUpdate(_) => None,
-        Event::PresenceUpdate(e) => Some(e.guild_id),
-        Event::PresencesReplace => None,
-        Event::ReactionAdd(e) => e.0.guild_id,
-        Event::ReactionRemove(e) => e.0.guild_id,
-        Event::ReactionRemoveAll(e) => e.guild_id,
-        Event::ReactionRemoveEmoji(e) => Some(e.guild_id),
-        Event::Ready(_) => None,
-        Event::Resumed => None,
-        Event::RoleCreate(e) => Some(e.guild_id),
-        Event::RoleDelete(e) => Some(e.guild_id),
-        Event::RoleUpdate(e) => Some(e.guild_id),
-        Event::ShardConnected(_) => None,
-        Event::ShardConnecting(_) => None,
-        Event::ShardDisconnected(_) => None,
-        Event::ShardIdentifying(_) => None,
-        Event::ShardPayload(_) => None,
-        Event::ShardReconnecting(_) => None,
-        Event::ShardResuming(_) => None,
-        Event::StageInstanceCreate(e) => Some(e.0.guild_id),
-        Event::StageInstanceDelete(e) => Some(e.0.guild_id),
-        Event::StageInstanceUpdate(e) => Some(e.0.guild_id),
-        Event::ThreadCreate(e) => channel_guild_id(&e.0),
-        Event::ThreadDelete(e) => channel_guild_id(&e.0),
-        Event::ThreadListSync(e) => Some(e.guild_id),
-        Event::ThreadMemberUpdate(_) => None,
-        Event::ThreadMembersUpdate(e) => Some(e.guild_id),
-        Event::ThreadUpdate(e) => channel_guild_id(&e.0),
-        Event::TypingStart(e) => e.guild_id,
-        Event::UnavailableGuild(e) => Some(e.id),
-        Event::UserUpdate(_) => None,
-        Event::VoiceServerUpdate(e) => e.guild_id,
-        Event::VoiceStateUpdate(e) => e.0.guild_id,
-        Event::WebhooksUpdate(e) => Some(e.guild_id),
-    }
+/// Status result of processing a bystander via [`Standby::bystander_process`].
+#[derive(Clone, Copy, Debug)]
+enum ProcessStatus {
+    /// Bystander has been completed and can be removed from [`Standby`].
+    Complete,
+    /// Bystander was not matched by the predicate and must be retained.
+    Incomplete,
 }
 
-const fn channel_guild_id(channel: &Channel) -> Option<GuildId> {
-    match channel {
-        Channel::Guild(c) => c.guild_id(),
-        _ => None,
+impl ProcessStatus {
+    /// Whether to retain the bystander.
+    const fn retain(self) -> bool {
+        matches!(self, Self::Incomplete)
     }
 }
 
 #[cfg(test)]
 mod tests {
+    #![allow(clippy::non_ascii_literal)]
+
     use super::Standby;
     use futures_util::StreamExt;
     use static_assertions::assert_impl_all;
@@ -1082,20 +983,21 @@ mod tests {
             message::{Message, MessageType},
             Reaction, ReactionType,
         },
+        datetime::Timestamp,
         gateway::{
             event::{Event, EventType},
-            payload::{InteractionCreate, MessageCreate, ReactionAdd, Ready, RoleDelete},
+            payload::incoming::{MessageCreate, ReactionAdd, Ready, RoleDelete},
         },
         id::{ApplicationId, ChannelId, GuildId, InteractionId, MessageId, RoleId, UserId},
         oauth::{current_application_info::ApplicationFlags, PartialApplication},
         user::{CurrentUser, User},
     };
 
-    assert_impl_all!(Standby: Clone, Debug, Default, Send, Sync);
+    assert_impl_all!(Standby: Debug, Default, Send, Sync);
 
     fn message() -> Message {
         Message {
-            id: MessageId(3),
+            id: MessageId::new(3).expect("non zero"),
             activity: None,
             application: None,
             application_id: None,
@@ -1105,10 +1007,10 @@ mod tests {
                 avatar: None,
                 banner: None,
                 bot: false,
-                discriminator: "0001".to_owned(),
+                discriminator: 1,
                 email: None,
                 flags: None,
-                id: UserId(2),
+                id: UserId::new(2).expect("non zero"),
                 locale: None,
                 mfa_enabled: None,
                 name: "twilight".to_owned(),
@@ -1117,13 +1019,13 @@ mod tests {
                 system: None,
                 verified: None,
             },
-            channel_id: ChannelId(1),
+            channel_id: ChannelId::new(1).expect("non zero"),
             components: Vec::new(),
             content: "test".to_owned(),
             edited_timestamp: None,
             embeds: Vec::new(),
             flags: None,
-            guild_id: Some(GuildId(4)),
+            guild_id: Some(GuildId::new(4).expect("non zero")),
             interaction: None,
             kind: MessageType::Regular,
             member: None,
@@ -1136,7 +1038,7 @@ mod tests {
             reference: None,
             sticker_items: Vec::new(),
             referenced_message: None,
-            timestamp: String::new(),
+            timestamp: Timestamp::from_secs(1_632_072_645).expect("non zero"),
             thread: None,
             tts: false,
             webhook_id: None,
@@ -1145,119 +1047,87 @@ mod tests {
 
     fn reaction() -> Reaction {
         Reaction {
-            channel_id: ChannelId(2),
+            channel_id: ChannelId::new(2).expect("non zero"),
             emoji: ReactionType::Unicode {
                 name: "🍎".to_owned(),
             },
-            guild_id: Some(GuildId(1)),
+            guild_id: Some(GuildId::new(1).expect("non zero")),
             member: None,
-            message_id: MessageId(4),
-            user_id: UserId(3),
+            message_id: MessageId::new(4).expect("non zero"),
+            user_id: UserId::new(3).expect("non zero"),
         }
     }
 
-    fn button() -> MessageComponentInteraction {
-        MessageComponentInteraction {
-            application_id: ApplicationId(1),
-            channel_id: ChannelId(2),
-            data: MessageComponentInteractionData {
-                custom_id: String::from("Click"),
-                component_type: ComponentType::Button,
-                values: vec![],
-            },
-            guild_id: Some(GuildId(3)),
-            id: InteractionId(4),
-            kind: InteractionType::MessageComponent,
-            member: None,
-            message: message(),
-            token: String::from("token"),
-            user: Some(User {
-                accent_color: None,
-                avatar: None,
-                banner: None,
-                bot: false,
-                discriminator: "0001".to_owned(),
-                email: None,
-                flags: None,
-                id: UserId(2),
-                locale: None,
-                mfa_enabled: None,
-                name: "twilight".to_owned(),
-                premium_type: None,
-                public_flags: None,
-                system: None,
-                verified: None,
-            }),
-        }
-    }
-
+    /// Test basic functionality of the [`Standby::wait_for`] method.
     #[tokio::test]
     async fn test_wait_for() {
         let standby = Standby::new();
-        let wait = standby.wait_for(GuildId(1), |event: &Event| match event {
-            Event::RoleDelete(e) => e.guild_id == GuildId(1),
-            _ => false,
-        });
+        let wait = standby.wait_for(
+            GuildId::new(1).expect("non zero"),
+            |event: &Event| matches!(event, Event::RoleDelete(e) if e.guild_id.get() == 1),
+        );
         standby.process(&Event::RoleDelete(RoleDelete {
-            guild_id: GuildId(1),
-            role_id: RoleId(2),
+            guild_id: GuildId::new(1).expect("non zero"),
+            role_id: RoleId::new(2).expect("non zero"),
         }));
 
-        assert!(matches!(
-            wait.await,
-            Ok(Event::RoleDelete(RoleDelete {
-                guild_id: GuildId(1),
-                role_id: RoleId(2),
-            }))
-        ));
-        assert!(standby.0.guilds.is_empty());
+        assert_eq!(
+            wait.await.unwrap(),
+            Event::RoleDelete(RoleDelete {
+                guild_id: GuildId::new(1).expect("non zero"),
+                role_id: RoleId::new(2).expect("non zero"),
+            })
+        );
+        assert!(standby.guilds.is_empty());
     }
 
+    /// Test basic functionality of the [`Standby::wait_for_stream`] method.
     #[tokio::test]
     async fn test_wait_for_stream() {
         let standby = Standby::new();
         let mut stream = standby.wait_for_stream(
-            GuildId(1),
-            |event: &Event| matches!(event, Event::RoleDelete(e) if e.guild_id.0 == 1),
+            GuildId::new(1).expect("non zero"),
+            |event: &Event| matches!(event, Event::RoleDelete(e) if e.guild_id.get() == 1),
         );
         standby.process(&Event::RoleDelete(RoleDelete {
-            guild_id: GuildId(1),
-            role_id: RoleId(2),
+            guild_id: GuildId::new(1).expect("non zero"),
+            role_id: RoleId::new(2).expect("non zero"),
         }));
         standby.process(&Event::RoleDelete(RoleDelete {
-            guild_id: GuildId(1),
-            role_id: RoleId(3),
+            guild_id: GuildId::new(1).expect("non zero"),
+            role_id: RoleId::new(3).expect("non zero"),
         }));
 
-        assert!(matches!(
+        assert_eq!(
             stream.next().await,
             Some(Event::RoleDelete(RoleDelete {
-                guild_id: GuildId(1),
-                role_id: RoleId(2),
+                guild_id: GuildId::new(1).expect("non zero"),
+                role_id: RoleId::new(2).expect("non zero")
             }))
-        ));
-        assert!(matches!(
+        );
+        assert_eq!(
             stream.next().await,
             Some(Event::RoleDelete(RoleDelete {
-                guild_id: GuildId(1),
-                role_id: RoleId(3),
+                guild_id: GuildId::new(1).expect("non zero"),
+                role_id: RoleId::new(3).expect("non zero")
             }))
-        ));
-        assert!(!standby.0.guilds.is_empty());
+        );
+        assert!(!standby.guilds.is_empty());
         drop(stream);
         standby.process(&Event::RoleDelete(RoleDelete {
-            guild_id: GuildId(1),
-            role_id: RoleId(4),
+            guild_id: GuildId::new(1).expect("non zero"),
+            role_id: RoleId::new(4).expect("non zero"),
         }));
-        assert!(standby.0.guilds.is_empty());
+        assert!(standby.guilds.is_empty());
     }
 
+    /// Test basic functionality of the [`Standby::wait_for_event`] method.
     #[tokio::test]
     async fn test_wait_for_event() {
         let ready = Ready {
             application: PartialApplication {
                 flags: ApplicationFlags::empty(),
-                id: ApplicationId(0),
+                id: ApplicationId::new(1).expect("non zero"),
             },
             guilds: Vec::new(),
             session_id: String::new(),
@@ -1267,9 +1137,9 @@ mod tests {
                 avatar: None,
                 banner: None,
                 bot: false,
-                discriminator: "0001".to_owned(),
+                discriminator: 1,
                 email: None,
-                id: UserId(1),
+                id: UserId::new(1).expect("non zero"),
                 mfa_enabled: true,
                 name: "twilight".to_owned(),
                 verified: Some(false),
@@ -1287,13 +1157,15 @@ mod tests {
             Event::Ready(ready) => ready.shard.map(|[id, _]| id == 5).unwrap_or(false),
             _ => false,
         });
-        assert!(!standby.0.events.is_empty());
+        assert!(!standby.events.is_empty());
         standby.process(&event);
 
         assert_eq!(event, wait.await.unwrap());
-        assert!(standby.0.events.is_empty());
+        assert!(standby.events.is_empty());
     }
 
+    /// Test basic functionality of the [`Standby::wait_for_event_stream`]
+    /// method.
     #[tokio::test]
     async fn test_wait_for_event_stream() {
         let standby = Standby::new();
@@ -1301,75 +1173,89 @@ mod tests {
             standby.wait_for_event_stream(|event: &Event| event.kind() == EventType::Resumed);
         standby.process(&Event::Resumed);
         assert_eq!(stream.next().await, Some(Event::Resumed));
-        assert!(!standby.0.events.is_empty());
+        assert!(!standby.events.is_empty());
         drop(stream);
         standby.process(&Event::Resumed);
-        assert!(standby.0.events.is_empty());
+        assert!(standby.events.is_empty());
     }
 
+    /// Test basic functionality of the [`Standby::wait_for_message`] method.
     #[tokio::test]
     async fn test_wait_for_message() {
         let message = message();
         let event = Event::MessageCreate(Box::new(MessageCreate(message)));
 
         let standby = Standby::new();
-        let wait = standby.wait_for_message(ChannelId(1), |message: &MessageCreate| {
-            message.author.id == UserId(2)
-        });
+        let wait = standby.wait_for_message(
+            ChannelId::new(1).expect("non zero"),
+            |message: &MessageCreate| message.author.id.get() == 2,
+        );
         standby.process(&event);
 
-        assert_eq!(MessageId(3), wait.await.map(|msg| msg.id).unwrap());
-        assert!(standby.0.messages.is_empty());
+        assert_eq!(3, wait.await.map(|msg| msg.id.get()).unwrap());
+        assert!(standby.messages.is_empty());
     }
 
+    /// Test basic functionality of the [`Standby::wait_for_message_stream`]
+    /// method.
     #[tokio::test]
     async fn test_wait_for_message_stream() {
         let standby = Standby::new();
-        let mut stream = standby.wait_for_message_stream(ChannelId(1), |_: &MessageCreate| true);
+        let mut stream = standby
+            .wait_for_message_stream(ChannelId::new(1).expect("non zero"), |_: &MessageCreate| {
+                true
+            });
         standby.process(&Event::MessageCreate(Box::new(MessageCreate(message()))));
         standby.process(&Event::MessageCreate(Box::new(MessageCreate(message()))));
 
         assert!(stream.next().await.is_some());
         assert!(stream.next().await.is_some());
         drop(stream);
-        assert_eq!(1, standby.0.messages.len());
+        assert_eq!(1, standby.messages.len());
         standby.process(&Event::MessageCreate(Box::new(MessageCreate(message()))));
-        assert!(standby.0.messages.is_empty());
+        assert!(standby.messages.is_empty());
     }
 
+    /// Test basic functionality of the [`Standby::wait_for_reaction`] method.
     #[tokio::test]
     async fn test_wait_for_reaction() {
         let event = Event::ReactionAdd(Box::new(ReactionAdd(reaction())));
 
         let standby = Standby::new();
-        let wait = standby.wait_for_reaction(MessageId(4), |reaction: &ReactionAdd| {
-            reaction.user_id == UserId(3)
-        });
+        let wait = standby.wait_for_reaction(
+            MessageId::new(4).expect("non zero"),
+            |reaction: &ReactionAdd| reaction.user_id.get() == 3,
+        );
 
         standby.process(&event);
 
         assert_eq!(
-            UserId(3),
+            UserId::new(3).expect("non zero"),
             wait.await.map(|reaction| reaction.user_id).unwrap()
         );
-        assert!(standby.0.reactions.is_empty());
+        assert!(standby.reactions.is_empty());
     }
 
+    /// Test basic functionality of the [`Standby::wait_for_reaction_stream`]
+    /// method.
     #[tokio::test]
     async fn test_wait_for_reaction_stream() {
         let standby = Standby::new();
-        let mut stream = standby.wait_for_reaction_stream(MessageId(4), |_: &ReactionAdd| true);
+        let mut stream = standby
+            .wait_for_reaction_stream(MessageId::new(4).expect("non zero"), |_: &ReactionAdd| true);
         standby.process(&Event::ReactionAdd(Box::new(ReactionAdd(reaction()))));
         standby.process(&Event::ReactionAdd(Box::new(ReactionAdd(reaction()))));
 
         assert!(stream.next().await.is_some());
         assert!(stream.next().await.is_some());
         drop(stream);
-        assert_eq!(1, standby.0.reactions.len());
+        assert_eq!(1, standby.reactions.len());
         standby.process(&Event::ReactionAdd(Box::new(ReactionAdd(reaction()))));
-        assert!(standby.0.reactions.is_empty());
+        assert!(standby.reactions.is_empty());
     }
 
+    /// Assert that Standby processing some non-matching events will not affect
+    /// the matching of a later event.
     #[tokio::test]
     async fn test_wait_for_component() {
         let event = Event::InteractionCreate(Box::new(InteractionCreate(
@@ -1446,13 +1332,13 @@ mod tests {
         // generic event handler gets other guild events
         let wait = standby.wait_for_event(|event: &Event| event.kind() == EventType::RoleDelete);
         standby.process(&Event::RoleDelete(RoleDelete {
-            guild_id: GuildId(1),
-            role_id: RoleId(2),
+            guild_id: GuildId::new(1).expect("non zero"),
+            role_id: RoleId::new(2).expect("non zero"),
         }));
         assert!(matches!(wait.await, Ok(Event::RoleDelete(_))));
 
         // guild event handler gets message creates or reaction events
-        let wait = standby.wait_for(GuildId(1), |event: &Event| {
+        let wait = standby.wait_for(GuildId::new(1).expect("non zero"), |event: &Event| {
             event.kind() == EventType::ReactionAdd
         });
         standby.process(&Event::ReactionAdd(Box::new(ReactionAdd(reaction()))));

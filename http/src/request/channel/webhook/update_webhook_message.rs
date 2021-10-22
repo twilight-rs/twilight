@@ -156,7 +156,7 @@ struct UpdateWebhookMessageFields<'a> {
 /// # #[tokio::main]
 /// # async fn main() -> Result<(), Box<dyn std::error::Error>> {
 /// # let client = Client::new("token".to_owned());
-/// client.update_webhook_message(WebhookId(1), "token here", MessageId(2))
+/// client.update_webhook_message(WebhookId::new(1).expect("non zero"), "token here", MessageId::new(2).expect("non zero"))
 ///     // By creating a default set of allowed mentions, no entity can be
 ///     // mentioned.
 ///     .allowed_mentions(AllowedMentions::default())
@@ -322,7 +322,7 @@ impl<'a> UpdateWebhookMessage<'a> {
     ///     .url("https://twilight.rs")
     ///     .build()?;
     ///
-    /// client.update_webhook_message(WebhookId(1), "token", MessageId(2))
+    /// client.update_webhook_message(WebhookId::new(1).expect("non zero"), "token", MessageId::new(2).expect("non zero"))
     ///     .embeds(Some(&[embed]))?
     ///     .exec()
     ///     .await?;
@@ -394,9 +394,9 @@ impl<'a> UpdateWebhookMessage<'a> {
     // being consumed in request construction.
     fn request(&mut self) -> Result<Request, HttpError> {
         let mut request = Request::builder(&Route::UpdateWebhookMessage {
-            message_id: self.message_id.0,
+            message_id: self.message_id.get(),
             token: self.token,
-            webhook_id: self.webhook_id.0,
+            webhook_id: self.webhook_id.get(),
         })
         .use_authorization_token(false);
 
@@ -466,11 +466,16 @@ mod tests {
     #[test]
     fn test_request() {
         let client = Client::new("token".to_owned());
-        let mut builder = UpdateWebhookMessage::new(&client, WebhookId(1), "token", MessageId(2))
-            .content(Some("test"))
-            .expect("'test' content couldn't be set")
-            .reason("reason")
-            .expect("'reason' is not a valid reason");
+        let mut builder = UpdateWebhookMessage::new(
+            &client,
+            WebhookId::new(1).expect("non zero"),
+            "token",
+            MessageId::new(2).expect("non zero"),
+        )
+        .content(Some("test"))
+        .expect("'test' content couldn't be set")
+        .reason("reason")
+        .expect("'reason' is not a valid reason");
         let actual = builder.request().expect("failed to create request");
 
         let body = UpdateWebhookMessageFields {

@@ -1,7 +1,7 @@
 use crate::{config::ResourceType, InMemoryCache, UpdateCache};
 use twilight_model::{
     channel::{Channel, GuildChannel},
-    gateway::payload::{ThreadCreate, ThreadDelete, ThreadListSync, ThreadUpdate},
+    gateway::payload::incoming::{ThreadCreate, ThreadDelete, ThreadListSync, ThreadUpdate},
 };
 
 impl UpdateCache for ThreadCreate {

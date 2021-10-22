@@ -122,7 +122,7 @@ pub enum ChannelErrorType {
     /// The reasons this could happen could be due to the cache missing a
     /// [`RoleCreate`] event or a user application race condition.
     ///
-    /// [`RoleCreate`]: twilight_model::gateway::payload::RoleCreate
+    /// [`RoleCreate`]: twilight_model::gateway::payload::incoming::RoleCreate
     RoleUnavailable {
         /// ID of the role that the user has but details about is missing.
         role_id: RoleId,
@@ -207,7 +207,7 @@ pub enum RootErrorType {
     /// The reasons this could happen could be due to the cache missing a
     /// [`RoleCreate`] event or a user application race condition.
     ///
-    /// [`RoleCreate`]: twilight_model::gateway::payload::RoleCreate
+    /// [`RoleCreate`]: twilight_model::gateway::payload::incoming::RoleCreate
     RoleUnavailable {
         /// ID of the role that the user has but details about is missing.
         role_id: RoleId,
@@ -277,8 +277,8 @@ impl<'a> InMemoryCachePermissions<'a> {
     ///
     /// // later on...
     ///
-    /// let channel_id = ChannelId(4);
-    /// let user_id = UserId(5);
+    /// let channel_id = ChannelId::new(4).expect("non zero");
+    /// let user_id = UserId::new(5).expect("non zero");
     ///
     /// let permissions = cache.permissions().in_channel(user_id, channel_id)?;
     /// println!(
@@ -311,19 +311,12 @@ impl<'a> InMemoryCachePermissions<'a> {
         user_id: UserId,
         channel_id: ChannelId,
     ) -> Result<Permissions, ChannelError> {
-        let channel = (self.0)
-            .0
-            .channels_guild
-            .get(&channel_id)
-            .ok_or(ChannelError {
-                kind: ChannelErrorType::ChannelUnavailable { channel_id },
-                source: None,
-            })?;
-
-        let guild_id = channel.data.guild_id().ok_or(ChannelError {
+        let channel = self.0.channels_guild.get(&channel_id).ok_or(ChannelError {
             kind: ChannelErrorType::ChannelUnavailable { channel_id },
             source: None,
         })?;
+
+        let guild_id = channel.guild_id();
 
         if self.is_owner(user_id, guild_id) {
             return Ok(Permissions::all());
@@ -333,7 +326,7 @@ impl<'a> InMemoryCachePermissions<'a> {
             .member_roles(user_id, guild_id)
             .map_err(ChannelError::from_member_roles)?;
 
-        let overwrites = match &channel.data {
+        let overwrites = match channel.value().resource() {
             GuildChannel::Category(c) => c.permission_overwrites.clone(),
             GuildChannel::NewsThread(c) => self.parent_overwrites(&c.id, None)?,
             GuildChannel::PrivateThread(c) => {
@@ -348,7 +341,7 @@ impl<'a> InMemoryCachePermissions<'a> {
         let calculator =
             PermissionCalculator::new(guild_id, user_id, everyone, assigned.as_slice());
 
-        Ok(calculator.in_channel(channel.data.kind(), overwrites.as_slice()))
+        Ok(calculator.in_channel(channel.resource().kind(), overwrites.as_slice()))
     }
 
     /// Calculate the guild-level permissions of a member.
@@ -371,8 +364,8 @@ impl<'a> InMemoryCachePermissions<'a> {
     ///
     /// // later on...
     ///
-    /// let guild_id = GuildId(4);
-    /// let user_id = UserId(5);
+    /// let guild_id = GuildId::new(4).expect("non zero");
+    /// let user_id = UserId::new(5).expect("non zero");
     ///
     /// let permissions = cache.permissions().root(user_id, guild_id)?;
     /// println!(
@@ -415,8 +408,7 @@ impl<'a> InMemoryCachePermissions<'a> {
     /// Returns true if the user is or false if the user is definitively not the
     /// owner of the guild or the guild is not in the cache.
     fn is_owner(&self, user_id: UserId, guild_id: GuildId) -> bool {
-        (self.0)
-            .0
+        self.0
             .guilds
             .get(&guild_id)
             .map(|r| r.owner_id == user_id)
@@ -438,7 +430,7 @@ impl<'a> InMemoryCachePermissions<'a> {
         user_id: UserId,
         guild_id: GuildId,
     ) -> Result<MemberRoles, MemberRolesErrorType> {
-        let member = if let Some(member) = (self.0).0.members.get(&(guild_id, user_id)) {
+        let member = if let Some(member) = self.0.members.get(&(guild_id, user_id)) {
             member
         } else {
             return Err(MemberRolesErrorType::MemberMissing { guild_id, user_id });
@@ -447,22 +439,22 @@ impl<'a> InMemoryCachePermissions<'a> {
         let mut member_roles = Vec::with_capacity(member.roles.len());
 
         for role_id in &member.roles {
-            let role = if let Some(role) = (self.0).0.roles.get(role_id) {
+            let role = if let Some(role) = self.0.roles.get(role_id) {
                 role
             } else {
                 return Err(MemberRolesErrorType::RoleMissing { role_id: *role_id });
             };
 
-            member_roles.push((*role_id, role.data.permissions));
+            member_roles.push((*role_id, role.permissions));
         }
 
         // Assume that the `@everyone` role is always present, so do this last.
         let everyone_role_id = RoleId(guild_id.0);
 
-        if let Some(everyone_role) = (self.0).0.roles.get(&everyone_role_id) {
+        if let Some(everyone_role) = self.0.roles.get(&everyone_role_id) {
             Ok(MemberRoles {
                 assigned: member_roles,
-                everyone: everyone_role.data.permissions,
+                everyone: everyone_role.permissions,
             })
         } else {
             Err(MemberRolesErrorType::RoleMissing {
@@ -476,20 +468,16 @@ impl<'a> InMemoryCachePermissions<'a> {
         channel_id: &ChannelId,
         parent_overwrites: Option<Vec<PermissionOverwrite>>,
     ) -> Result<Vec<PermissionOverwrite>, ChannelError> {
-        let channel = (self.0)
-            .0
-            .channels_guild
-            .get(channel_id)
-            .ok_or(ChannelError {
-                kind: ChannelErrorType::ChannelUnavailable {
-                    channel_id: *channel_id,
-                },
-                source: None,
-            })?;
+        let channel = self.0.channels_guild.get(channel_id).ok_or(ChannelError {
+            kind: ChannelErrorType::ChannelUnavailable {
+                channel_id: *channel_id,
+            },
+            source: None,
+        })?;
 
-        if let GuildChannel::Text(c) = &channel.data {
+        if let GuildChannel::Text(c) = channel.resource() {
             if let Some(parent_overwrites) = parent_overwrites {
-                Ok([c.permission_overwrites.clone(), parent_overwrites].concat())
+                Ok([c.permission_overwrites.clone(), parent_overwrites.to_vec()].concat())
             } else {
                 Ok(c.permission_overwrites.clone())
             }
@@ -511,13 +499,16 @@ mod tests {
     };
     use crate::{test, InMemoryCache};
     use static_assertions::{assert_fields, assert_impl_all};
-    use std::{error::Error, fmt::Debug};
+    use std::{error::Error, fmt::Debug, str::FromStr};
     use twilight_model::{
         channel::{
             permission_overwrite::{PermissionOverwrite, PermissionOverwriteType},
             Channel, ChannelType, GuildChannel, TextChannel,
         },
-        gateway::payload::{ChannelCreate, GuildCreate, MemberAdd, MemberUpdate, RoleCreate},
+        datetime::Timestamp,
+        gateway::payload::incoming::{
+            ChannelCreate, GuildCreate, MemberAdd, MemberUpdate, RoleCreate,
+        },
         guild::{
             DefaultMessageNotificationLevel, ExplicitContentFilter, Guild, MfaLevel, NSFWLevel,
             Permissions, PremiumTier, Role, SystemChannelFlags, VerificationLevel,
@@ -537,28 +528,40 @@ mod tests {
     assert_impl_all!(RootError: Debug, Send, Sync);
 
     /// Guild ID used in tests.
-    const GUILD_ID: GuildId = GuildId(1);
+    fn guild_id() -> GuildId {
+        GuildId::new(1).expect("non zero")
+    }
 
     /// ID of the `@everyone` role.
-    const EVERYONE_ROLE_ID: RoleId = RoleId(GUILD_ID.0);
+    fn everyone_role_id() -> RoleId {
+        RoleId(guild_id().0)
+    }
 
     /// User ID used in tests.
-    const USER_ID: UserId = UserId(2);
+    fn user_id() -> UserId {
+        UserId::new(2).expect("non zero")
+    }
 
-    /// ID of the `@everyone` role.
-    const OTHER_ROLE_ID: RoleId = RoleId(3);
+    /// ID of another role.
+    fn other_role_id() -> RoleId {
+        RoleId::new(3).expect("non zero")
+    }
 
     /// ID of the user that owns the guild with the ID [`GUILD_ID`].
-    const OWNER_ID: UserId = UserId(4);
+    fn owner_id() -> UserId {
+        UserId::new(4).expect("non zero")
+    }
 
     /// ID of the #general channel in the guild.
     ///
     /// This has the same ID as the [`GUILD_ID`].
-    const CHANNEL_ID: ChannelId = ChannelId(GUILD_ID.0);
+    fn channel_id() -> ChannelId {
+        ChannelId(guild_id().0)
+    }
 
     fn base_guild() -> Guild {
         Guild {
-            id: GUILD_ID,
+            id: guild_id(),
             afk_channel_id: None,
             afk_timeout: 300,
             application_id: None,
@@ -581,7 +584,7 @@ mod tests {
             name: "this is a guild".to_owned(),
             nsfw_level: NSFWLevel::AgeRestricted,
             owner: Some(false),
-            owner_id: OWNER_ID,
+            owner_id: owner_id(),
             permissions: None,
             preferred_locale: "en-GB".to_owned(),
             premium_subscription_count: Some(0),
@@ -591,7 +594,7 @@ mod tests {
                 // Give the `@everyone` role a guild level and channel level
                 // permission.
                 role_with_permissions(
-                    EVERYONE_ROLE_ID,
+                    everyone_role_id(),
                     Permissions::CREATE_INVITE | Permissions::VIEW_AUDIT_LOG,
                 ),
             ]),
@@ -616,8 +619,8 @@ mod tests {
 
     fn channel() -> Channel {
         Channel::Guild(GuildChannel::Text(TextChannel {
-            guild_id: Some(GUILD_ID),
-            id: CHANNEL_ID,
+            guild_id: Some(guild_id()),
+            id: channel_id(),
             kind: ChannelType::GuildText,
             last_message_id: None,
             last_pin_timestamp: None,
@@ -628,12 +631,12 @@ mod tests {
                 PermissionOverwrite {
                     allow: Permissions::empty(),
                     deny: Permissions::CREATE_INVITE,
-                    kind: PermissionOverwriteType::Role(EVERYONE_ROLE_ID),
+                    kind: PermissionOverwriteType::Role(everyone_role_id()),
                 },
                 PermissionOverwrite {
                     allow: Permissions::EMBED_LINKS,
                     deny: Permissions::empty(),
-                    kind: PermissionOverwriteType::Member(USER_ID),
+                    kind: PermissionOverwriteType::Member(user_id()),
                 },
             ]),
             position: 0,
@@ -662,17 +665,17 @@ mod tests {
         let cache = InMemoryCache::new();
         let permissions = cache.permissions();
         assert!(matches!(
-            permissions.root(USER_ID, GUILD_ID).unwrap_err().kind(),
-            &RootErrorType::MemberUnavailable { guild_id, user_id }
-            if guild_id == GUILD_ID && user_id == USER_ID
+            permissions.root(user_id(), guild_id()).unwrap_err().kind(),
+            &RootErrorType::MemberUnavailable { guild_id: g_id, user_id: u_id }
+            if g_id == guild_id() && u_id == user_id()
         ));
 
-        cache.update(&MemberAdd(test::member(USER_ID, GUILD_ID)));
+        cache.update(&MemberAdd(test::member(user_id(), guild_id())));
 
         assert!(matches!(
-            permissions.root(USER_ID, GUILD_ID).unwrap_err().kind(),
+            permissions.root(user_id(), guild_id()).unwrap_err().kind(),
             &RootErrorType::RoleUnavailable { role_id }
-            if role_id == EVERYONE_ROLE_ID
+            if role_id == everyone_role_id()
         ));
     }
 
@@ -685,26 +688,28 @@ mod tests {
     /// [`root`]: super::InMemoryCachePermissions::root
     #[test]
     fn test_root() -> Result<(), Box<dyn Error>> {
+        let joined_at = Timestamp::from_str("2021-09-19T14:17:32.000000+00:00")?;
+
         let cache = InMemoryCache::new();
         let permissions = cache.permissions();
 
         cache.update(&GuildCreate(base_guild()));
-        cache.update(&MemberAdd(test::member(USER_ID, GUILD_ID)));
+        cache.update(&MemberAdd(test::member(user_id(), guild_id())));
         cache.update(&MemberUpdate {
-            guild_id: GUILD_ID,
+            guild_id: guild_id(),
             deaf: None,
-            joined_at: "foo".to_owned(),
+            joined_at,
             mute: None,
             nick: None,
             pending: false,
             premium_since: None,
-            roles: Vec::from([OTHER_ROLE_ID]),
-            user: test::user(USER_ID),
+            roles: Vec::from([other_role_id()]),
+            user: test::user(user_id()),
         });
         cache.update(&role_create(
-            GUILD_ID,
+            guild_id(),
             role_with_permissions(
-                OTHER_ROLE_ID,
+                other_role_id(),
                 Permissions::SEND_MESSAGES | Permissions::BAN_MEMBERS,
             ),
         ));
@@ -714,7 +719,7 @@ mod tests {
             | Permissions::VIEW_AUDIT_LOG
             | Permissions::SEND_MESSAGES;
 
-        assert_eq!(expected, permissions.root(USER_ID, GUILD_ID)?);
+        assert_eq!(expected, permissions.root(user_id(), guild_id())?);
 
         Ok(())
     }
@@ -731,41 +736,41 @@ mod tests {
 
         cache.update(&GuildCreate(base_guild()));
         assert!(matches!(
-            permissions.in_channel(USER_ID, CHANNEL_ID).unwrap_err().kind(),
-            ChannelErrorType::ChannelUnavailable { channel_id }
-            if *channel_id == CHANNEL_ID
+            permissions.in_channel(user_id(), channel_id()).unwrap_err().kind(),
+            ChannelErrorType::ChannelUnavailable { channel_id: c_id }
+            if *c_id == channel_id()
         ));
 
         cache.update(&ChannelCreate(channel()));
         assert!(matches!(
-            permissions.in_channel(USER_ID, CHANNEL_ID).unwrap_err().kind(),
-            ChannelErrorType::MemberUnavailable { guild_id, user_id }
-            if *guild_id == GUILD_ID && *user_id == USER_ID
+            permissions.in_channel(user_id(), channel_id()).unwrap_err().kind(),
+            ChannelErrorType::MemberUnavailable { guild_id: g_id, user_id: u_id }
+            if *g_id == guild_id() && *u_id == user_id()
         ));
 
         cache.update(&MemberAdd({
-            let mut member = test::member(USER_ID, GUILD_ID);
-            member.roles.push(OTHER_ROLE_ID);
+            let mut member = test::member(user_id(), guild_id());
+            member.roles.push(other_role_id());
 
             member
         }));
         assert!(matches!(
-            permissions.in_channel(USER_ID, CHANNEL_ID).unwrap_err().kind(),
+            permissions.in_channel(user_id(), channel_id()).unwrap_err().kind(),
             &ChannelErrorType::RoleUnavailable { role_id }
-            if role_id == OTHER_ROLE_ID
+            if role_id == other_role_id()
         ));
 
         cache.update(&role_create(
-            GUILD_ID,
+            guild_id(),
             role_with_permissions(
-                OTHER_ROLE_ID,
+                other_role_id(),
                 Permissions::SEND_MESSAGES | Permissions::BAN_MEMBERS,
             ),
         ));
 
         assert_eq!(
             Permissions::EMBED_LINKS | Permissions::SEND_MESSAGES,
-            permissions.in_channel(USER_ID, CHANNEL_ID)?,
+            permissions.in_channel(user_id(), channel_id())?,
         );
 
         Ok(())
@@ -785,10 +790,10 @@ mod tests {
         let permissions = cache.permissions();
         cache.update(&GuildCreate(base_guild()));
 
-        assert!(permissions.root(OWNER_ID, GUILD_ID)?.is_all());
+        assert!(permissions.root(owner_id(), guild_id())?.is_all());
 
         cache.update(&ChannelCreate(channel()));
-        assert!(permissions.in_channel(OWNER_ID, CHANNEL_ID)?.is_all());
+        assert!(permissions.in_channel(owner_id(), channel_id())?.is_all());
 
         Ok(())
     }
