@@ -57,7 +57,7 @@ impl<'a> UpdateGuildWidget<'a> {
     /// [`Response`]: crate::response::Response
     pub fn exec(self) -> ResponseFuture<GuildWidget> {
         let mut request = Request::builder(&Route::UpdateGuildWidget {
-            guild_id: self.guild_id.0,
+            guild_id: self.guild_id.get(),
         });
 
         request = match request.json(&self.fields) {

@@ -1,4 +1,5 @@
 use super::AutoArchiveDuration;
+use crate::datetime::Timestamp;
 use serde::{Deserialize, Serialize};
 
 /// The thread metadata object contains a number of thread-specific channel fields
@@ -7,7 +8,7 @@ use serde::{Deserialize, Serialize};
 pub struct ThreadMetadata {
     pub archived: bool,
     pub auto_archive_duration: AutoArchiveDuration,
-    pub archive_timestamp: String,
+    pub archive_timestamp: Timestamp,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub invitable: Option<bool>,
     #[serde(default)]
@@ -17,14 +18,20 @@ pub struct ThreadMetadata {
 #[cfg(test)]
 mod tests {
     use super::{AutoArchiveDuration, ThreadMetadata};
+    use crate::datetime::{Timestamp, TimestampParseError};
     use serde_test::Token;
+    use std::str::FromStr;
 
     #[test]
-    fn test_thread_metadata() {
+    fn test_thread_metadata() -> Result<(), TimestampParseError> {
+        const DATETIME: &str = "2021-09-19T14:17:32.000000+00:00";
+
+        let archive_timestamp = Timestamp::from_str(DATETIME)?;
+
         let value = ThreadMetadata {
             archived: true,
             auto_archive_duration: AutoArchiveDuration::Day,
-            archive_timestamp: "123".to_owned(),
+            archive_timestamp,
             invitable: Some(false),
             locked: false,
         };
@@ -41,7 +48,7 @@ mod tests {
                 Token::Str("auto_archive_duration"),
                 Token::U16(1440),
                 Token::Str("archive_timestamp"),
-                Token::Str("123"),
+                Token::Str(DATETIME),
                 Token::Str("invitable"),
                 Token::Some,
                 Token::Bool(false),
@@ -50,5 +57,7 @@ mod tests {
                 Token::StructEnd,
             ],
         );
+
+        Ok(())
     }
 }

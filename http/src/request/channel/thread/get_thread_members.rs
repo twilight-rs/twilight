@@ -25,7 +25,7 @@ impl<'a> GetThreadMembers<'a> {
     /// [`Response`]: crate::response::Response
     pub fn exec(self) -> ResponseFuture<ListBody<ThreadMember>> {
         let request = Request::from_route(&Route::GetThreadMembers {
-            channel_id: self.channel_id.0,
+            channel_id: self.channel_id.get(),
         });
 
         self.http.request(request)

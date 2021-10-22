@@ -74,8 +74,8 @@ mod tests {
     #[test]
     fn test_role_tags_all() {
         let tags = RoleTags {
-            bot_id: Some(UserId(1)),
-            integration_id: Some(IntegrationId(2)),
+            bot_id: Some(UserId::new(1).expect("non zero")),
+            integration_id: Some(IntegrationId::new(2).expect("non zero")),
             premium_subscriber: true,
         };
 

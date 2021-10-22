@@ -8,7 +8,7 @@ use std::{
 use twilight_gateway_queue::{LocalQueue, Queue};
 use twilight_http::Client as HttpClient;
 use twilight_model::gateway::{
-    payload::{identify::IdentifyProperties, update_presence::UpdatePresencePayload},
+    payload::outgoing::{identify::IdentifyProperties, update_presence::UpdatePresencePayload},
     Intents,
 };
 
@@ -160,7 +160,7 @@ pub enum ShardIdErrorType {
 /// [`ShardBuilder::new`]: Self::new
 /// [`large_threshold`]: Self::large_threshold
 /// [`shard`]: Self::shard
-#[derive(Clone, Debug)]
+#[derive(Debug)]
 pub struct ShardBuilder(pub(crate) Config);
 
 impl ShardBuilder {
@@ -179,7 +179,7 @@ impl ShardBuilder {
         Self(Config {
             event_types: EventTypeFlags::default(),
             gateway_url: None,
-            http_client: HttpClient::new(token.clone()),
+            http_client: Arc::new(HttpClient::new(token.clone())),
             identify_properties: None,
             intents,
             large_threshold: 250,
@@ -223,7 +223,7 @@ impl ShardBuilder {
     ///
     /// Default is a new, unconfigured instance of an HTTP client.
     #[allow(clippy::missing_const_for_fn)]
-    pub fn http_client(mut self, http_client: HttpClient) -> Self {
+    pub fn http_client(mut self, http_client: Arc<HttpClient>) -> Self {
         self.0.http_client = http_client;
 
         self
@@ -242,7 +242,7 @@ impl ShardBuilder {
     /// # fn main() -> Result<(), Box<dyn std::error::Error>> {
     /// use std::env::{self, consts::OS};
     /// use twilight_gateway::{Intents, Shard};
-    /// use twilight_model::gateway::payload::identify::IdentifyProperties;
+    /// use twilight_model::gateway::payload::outgoing::identify::IdentifyProperties;
     ///
     /// let token = env::var("DISCORD_TOKEN")?;
     /// let properties = IdentifyProperties::new(
@@ -320,7 +320,7 @@ impl ShardBuilder {
     /// ```no_run
     /// use twilight_gateway::{Intents, Shard};
     /// use twilight_model::gateway::{
-    ///     payload::update_presence::UpdatePresencePayload,
+    ///     payload::outgoing::update_presence::UpdatePresencePayload,
     ///     presence::{ActivityType, MinimalActivity, Status},
     /// };
     ///
@@ -431,13 +431,7 @@ mod tests {
     assert_fields!(LargeThresholdErrorType::TooFew: value);
     assert_fields!(LargeThresholdErrorType::TooMany: value);
     assert_impl_all!(LargeThresholdError: Error, Send, Sync);
-    assert_impl_all!(
-        ShardBuilder: Clone,
-        Debug,
-        From<(String, Intents)>,
-        Send,
-        Sync
-    );
+    assert_impl_all!(ShardBuilder: Debug, From<(String, Intents)>, Send, Sync);
     assert_impl_all!(ShardIdErrorType: Debug, Send, Sync);
     assert_fields!(ShardIdErrorType::IdTooLarge: id, total);
     assert_impl_all!(ShardIdError: Error, Send, Sync);

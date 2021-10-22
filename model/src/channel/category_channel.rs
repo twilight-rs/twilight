@@ -24,8 +24,8 @@ mod tests {
     #[test]
     fn test_category_channel() {
         let value = CategoryChannel {
-            guild_id: Some(GuildId(1)),
-            id: ChannelId(2),
+            guild_id: Some(GuildId::new(1).expect("non zero")),
+            id: ChannelId::new(2).expect("non zero"),
             kind: ChannelType::GuildCategory,
             name: "category".to_owned(),
             permission_overwrites: Vec::new(),

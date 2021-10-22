@@ -5,6 +5,7 @@ pub use guild::TemplateGuild;
 pub use role::TemplateRole;
 
 use crate::{
+    datetime::Timestamp,
     id::{GuildId, UserId},
     user::User,
 };
@@ -13,7 +14,7 @@ use serde::{Deserialize, Serialize};
 #[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
 pub struct Template {
     pub code: String,
-    pub created_at: String,
+    pub created_at: Timestamp,
     /// User object of who created this template.
     pub creator: User,
     /// ID of the user who created this template.
@@ -24,7 +25,7 @@ pub struct Template {
     pub name: String,
     pub serialized_source_guild: TemplateGuild,
     pub source_guild_id: GuildId,
-    pub updated_at: String,
+    pub updated_at: Timestamp,
     pub usage_count: u64,
 }
 
@@ -36,6 +37,7 @@ mod tests {
             permission_overwrite::{PermissionOverwrite, PermissionOverwriteType},
             CategoryChannel, ChannelType, GuildChannel, TextChannel, VoiceChannel,
         },
+        datetime::{Timestamp, TimestampParseError},
         guild::{
             DefaultMessageNotificationLevel, ExplicitContentFilter, Permissions,
             SystemChannelFlags, VerificationLevel,
@@ -44,10 +46,14 @@ mod tests {
         user::{User, UserFlags},
     };
     use serde_test::Token;
+    use std::str::FromStr;
 
     #[test]
     #[allow(clippy::too_many_lines)]
-    fn test_template() {
+    fn test_template() -> Result<(), TimestampParseError> {
+        let created_at = Timestamp::from_str("2021-04-07T14:55:37+00:00")?;
+        let updated_at = Timestamp::from_str("2021-04-07T14:55:37+00:00")?;
+
         let raw = r#"{
     "code": "code",
     "created_at": "2021-04-07T14:55:37+00:00",
@@ -91,7 +97,7 @@ mod tests {
                     {
                         "allow": "0",
                         "deny": "2048",
-                        "id": 0,
+                        "id": 1,
                         "type": 0
                     },
                     {
@@ -144,7 +150,7 @@ mod tests {
             {
                 "color": 0,
                 "hoist": false,
-                "id": 0,
+                "id": 200,
                 "mentionable": false,
                 "name": "@everyone",
                 "permissions": "104320577"
@@ -152,7 +158,7 @@ mod tests {
             {
                 "color": 0,
                 "hoist": false,
-                "id": 2,
+                "id": 1,
                 "mentionable": false,
                 "name": "new role",
                 "permissions": "104320577"
@@ -169,16 +175,16 @@ mod tests {
 
         let value = Template {
             code: "code".into(),
-            created_at: "2021-04-07T14:55:37+00:00".into(),
+            created_at,
             creator: User {
                 accent_color: None,
                 avatar: Some("avatar".into()),
                 banner: Some("06c16474723fe537c283b8efa61a30c8".to_owned()),
                 bot: false,
                 email: None,
-                discriminator: "1111".into(),
+                discriminator: 1111,
                 flags: None,
-                id: UserId(100),
+                id: UserId::new(100).expect("non zero"),
                 locale: None,
                 mfa_enabled: None,
                 name: "username".into(),
@@ -187,7 +193,7 @@ mod tests {
                 system: None,
                 verified: None,
             },
-            creator_id: UserId(100),
+            creator_id: UserId::new(100).expect("non zero"),
             description: Some("description".into()),
             is_dirty: None,
             name: "name".into(),
@@ -197,7 +203,7 @@ mod tests {
                 channels: vec![
                     GuildChannel::Category(CategoryChannel {
                         guild_id: None,
-                        id: ChannelId(1),
+                        id: ChannelId::new(1).expect("non zero"),
                         kind: ChannelType::GuildCategory,
                         name: "Text Channels".into(),
                         permission_overwrites: vec![],
@@ -205,23 +211,27 @@ mod tests {
                     }),
                     GuildChannel::Text(TextChannel {
                         guild_id: None,
-                        id: ChannelId(2),
+                        id: ChannelId::new(2).expect("non zero"),
                         kind: ChannelType::GuildText,
                         last_message_id: None,
                         last_pin_timestamp: None,
                         name: "general".into(),
                         nsfw: false,
-                        parent_id: Some(ChannelId(1)),
+                        parent_id: Some(ChannelId::new(1).expect("non zero")),
                         permission_overwrites: vec![
                             PermissionOverwrite {
                                 allow: Permissions::from_bits(0).unwrap(),
                                 deny: Permissions::from_bits(2048).unwrap(),
-                                kind: PermissionOverwriteType::Role(RoleId(0)),
+                                kind: PermissionOverwriteType::Role(
+                                    RoleId::new(1).expect("non zero"),
+                                ),
                             },
                             PermissionOverwrite {
                                 allow: Permissions::from_bits(2048).unwrap(),
                                 deny: Permissions::from_bits(0).unwrap(),
-                                kind: PermissionOverwriteType::Role(RoleId(2)),
+                                kind: PermissionOverwriteType::Role(
+                                    RoleId::new(2).expect("non zero"),
+                                ),
                             },
                         ],
                         position: 0,
@@ -230,7 +240,7 @@ mod tests {
                     }),
                     GuildChannel::Category(CategoryChannel {
                         guild_id: None,
-                        id: ChannelId(3),
+                        id: ChannelId::new(3).expect("non zero"),
                         kind: ChannelType::GuildCategory,
                         name: "Voice Channels".into(),
                         permission_overwrites: vec![],
@@ -239,10 +249,10 @@ mod tests {
                     GuildChannel::Voice(VoiceChannel {
                         bitrate: 64000,
                         guild_id: None,
-                        id: ChannelId(4),
+                        id: ChannelId::new(4).expect("non zero"),
                         kind: ChannelType::GuildVoice,
                         name: "General".into(),
-                        parent_id: Some(ChannelId(3)),
+                        parent_id: Some(ChannelId::new(3).expect("non zero")),
                         permission_overwrites: vec![],
                         rtc_region: None,
                         position: 0,
@@ -260,7 +270,7 @@ mod tests {
                     TemplateRole {
                         color: 0,
                         hoist: false,
-                        id: RoleId(0),
+                        id: RoleId::new(200).expect("non zero"),
                         mentionable: false,
                         name: "@everyone".into(),
                         permissions: Permissions::CREATE_INVITE
@@ -282,7 +292,7 @@ mod tests {
                     TemplateRole {
                         color: 0,
                         hoist: false,
-                        id: RoleId(2),
+                        id: RoleId::new(1).expect("non zero"),
                         mentionable: false,
                         name: "new role".into(),
                         permissions: Permissions::CREATE_INVITE
@@ -303,11 +313,11 @@ mod tests {
                     },
                 ],
                 system_channel_flags: SystemChannelFlags::empty(),
-                system_channel_id: Some(ChannelId(2)),
+                system_channel_id: Some(ChannelId::new(2).expect("non zero")),
                 verification_level: VerificationLevel::None,
             },
-            source_guild_id: GuildId(200),
-            updated_at: "2021-04-07T14:55:37+00:00".into(),
+            source_guild_id: GuildId::new(200).expect("non zero"),
+            updated_at,
             usage_count: 0,
         };
 
@@ -325,7 +335,7 @@ mod tests {
                 Token::Str("code"),
                 Token::Str("code"),
                 Token::Str("created_at"),
-                Token::Str("2021-04-07T14:55:37+00:00"),
+                Token::Str("2021-04-07T14:55:37.000000+00:00"),
                 Token::Str("creator"),
                 Token::Struct {
                     name: "User",
@@ -418,7 +428,7 @@ mod tests {
                 Token::Str("deny"),
                 Token::Str("2048"),
                 Token::Str("id"),
-                Token::Str("0"),
+                Token::Str("1"),
                 Token::Str("type"),
                 Token::U8(0),
                 Token::StructEnd,
@@ -510,7 +520,7 @@ mod tests {
                 Token::Bool(false),
                 Token::Str("id"),
                 Token::NewtypeStruct { name: "RoleId" },
-                Token::Str("0"),
+                Token::Str("200"),
                 Token::Str("mentionable"),
                 Token::Bool(false),
                 Token::Str("name"),
@@ -528,7 +538,7 @@ mod tests {
                 Token::Bool(false),
                 Token::Str("id"),
                 Token::NewtypeStruct { name: "RoleId" },
-                Token::Str("2"),
+                Token::Str("1"),
                 Token::Str("mentionable"),
                 Token::Bool(false),
                 Token::Str("name"),
@@ -550,11 +560,13 @@ mod tests {
                 Token::NewtypeStruct { name: "GuildId" },
                 Token::Str("200"),
                 Token::Str("updated_at"),
-                Token::Str("2021-04-07T14:55:37+00:00"),
+                Token::Str("2021-04-07T14:55:37.000000+00:00"),
                 Token::Str("usage_count"),
                 Token::U64(0),
                 Token::StructEnd,
             ],
         );
+
+        Ok(())
     }
 }

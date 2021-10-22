@@ -1,11 +1,11 @@
 use super::{
     super::{json, stage::Stage},
     heartbeat::{Heartbeater, Heartbeats},
-    throttle::Throttle,
 };
+use leaky_bucket_lite::LeakyBucket;
 use serde::ser::Serialize;
 use std::{
-    convert::TryFrom,
+    convert::{TryFrom, TryInto},
     error::Error,
     fmt::{Display, Formatter, Result as FmtResult},
     sync::{
@@ -17,12 +17,15 @@ use std::{
 use tokio::{
     sync::{
         mpsc::{error::SendError, UnboundedSender},
-        Mutex,
+        OnceCell,
     },
     task::JoinHandle,
 };
 use tokio_tungstenite::tungstenite::{protocol::CloseFrame, Message as TungsteniteMessage};
-use twilight_model::gateway::payload::Heartbeat;
+use twilight_model::gateway::payload::outgoing::Heartbeat;
+
+// Interval of how often the ratelimit bucket resets, in milliseconds.
+const RESET_DURATION_MILLISECONDS: u64 = 60_000;
 
 #[derive(Debug)]
 pub struct SessionSendError {
@@ -72,7 +75,7 @@ pub struct Session {
     pub seq: Arc<AtomicU64>,
     pub stage: AtomicU8,
     pub tx: UnboundedSender<TungsteniteMessage>,
-    pub ratelimit: Mutex<Throttle>,
+    pub ratelimit: OnceCell<LeakyBucket>,
 }
 
 impl Session {
@@ -85,8 +88,7 @@ impl Session {
             seq: Arc::new(AtomicU64::new(0)),
             stage: AtomicU8::new(Stage::default() as u8),
             tx,
-            // 520 instead of 500 to make sure that it can heartbeat.
-            ratelimit: Mutex::new(Throttle::new(Duration::from_millis(520))),
+            ratelimit: OnceCell::new(),
         }
     }
 
@@ -128,8 +130,24 @@ impl Session {
     }
 
     pub fn set_heartbeat_interval(&self, new_heartbeat_interval: u64) {
+        // Interval of how often to refill the bucket.
+        const REFILL_INTERVAL: Duration = Duration::from_millis(RESET_DURATION_MILLISECONDS);
+
         self.heartbeat_interval
             .store(new_heartbeat_interval, Ordering::Release);
+
+        // Number of commands allotted to the user per reset period.
+        let commands_allotted = f64::from(heartbeats_per_reset(new_heartbeat_interval));
+
+        // We can ignore an error if the ratelimiter has already been set.
+        let _result = self.ratelimit.set(
+            LeakyBucket::builder()
+                .max(commands_allotted)
+                .tokens(commands_allotted)
+                .refill_interval(REFILL_INTERVAL)
+                .refill_amount(commands_allotted)
+                .build(),
+        );
     }
 
     /// Returns the current sequence.
@@ -197,5 +215,63 @@ impl Session {
 impl Drop for Session {
     fn drop(&mut self) {
         self.stop_heartbeater();
+    }
+}
+
+/// Calculate the number of heartbeats to allot in a given reset period while
+/// taking the heartbeat interval into account.
+///
+/// For example, when the heartbeat interval is 42500 milliseconds then 118
+/// heartbeats will be allotted per reset period.
+fn heartbeats_per_reset(heartbeat_interval: u64) -> u8 {
+    // Number of commands allowed in a given reset period.
+    //
+    // API documentation with details:
+    // <https://discord.com/developers/docs/topics/gateway#rate-limiting>
+    const COMMANDS_PER_RESET: u8 = 120;
+
+    let mut heartbeats = RESET_DURATION_MILLISECONDS / heartbeat_interval;
+    let remainder = RESET_DURATION_MILLISECONDS % heartbeat_interval;
+
+    // If we have a remainder then we reserve an additional heartbeat.
+    //
+    // If there is a remainder per reset then in theory we could allot one less
+    // command for heartbeating variably every number of resets, but it's best
+    // to be cautious and keep it simple.
+    if remainder > 0 {
+        heartbeats += 1;
+    }
+
+    // Convert the heartbeats to a u8. The number of heartbeats **should** never
+    // be above `u8::MAX`, so the error pattern branch should never be reached.
+    let heartbeats_converted = if let Ok(value) = heartbeats.try_into() {
+        value
+    } else {
+        // Number of commands to reserve per reset. This number is a bit
+        // high because the heartbeat interval may be anything, so we're
+        // just being cautious here.
+        const ALLOT_ON_FAIL: u8 = COMMANDS_PER_RESET - 10;
+
+        #[cfg(feature = "tracing")]
+        tracing::warn!(
+            %heartbeats,
+            "heartbeats > u8 max; defaulting to allotting {}",
+            ALLOT_ON_FAIL,
+        );
+
+        ALLOT_ON_FAIL
+    };
+
+    COMMANDS_PER_RESET.saturating_sub(heartbeats_converted)
+}
+
+#[cfg(test)]
+mod tests {
+    #[test]
+    fn test_heartbeats_per_reset() {
+        assert_eq!(119, super::heartbeats_per_reset(60_000));
+        assert_eq!(118, super::heartbeats_per_reset(42_500));
+        assert_eq!(118, super::heartbeats_per_reset(30_000));
+        assert_eq!(117, super::heartbeats_per_reset(29_999));
     }
 }

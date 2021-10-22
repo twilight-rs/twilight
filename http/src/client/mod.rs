@@ -8,12 +8,11 @@ use crate::{
     request::{
         application::{
             command::{
-                create_global_command::CreateGlobalChatInputCommand,
-                create_guild_command::CreateGuildChatInputCommand, CreateGlobalCommand,
-                CreateGuildCommand, DeleteGlobalCommand, DeleteGuildCommand, GetCommandPermissions,
-                GetGlobalCommand, GetGlobalCommands, GetGuildCommand, GetGuildCommandPermissions,
-                GetGuildCommands, SetCommandPermissions, SetGlobalCommands, SetGuildCommands,
-                UpdateCommandPermissions, UpdateGlobalCommand, UpdateGuildCommand,
+                CreateGlobalCommand, CreateGuildCommand, DeleteGlobalCommand, DeleteGuildCommand,
+                GetCommandPermissions, GetGlobalCommand, GetGlobalCommands, GetGuildCommand,
+                GetGuildCommandPermissions, GetGuildCommands, SetCommandPermissions,
+                SetGlobalCommands, SetGuildCommands, UpdateCommandPermissions, UpdateGlobalCommand,
+                UpdateGuildCommand,
             },
             interaction::{
                 CreateFollowupMessage, DeleteFollowupMessage, DeleteOriginalResponse,
@@ -55,7 +54,6 @@ use hyper::{
 };
 use std::{
     convert::TryFrom,
-    fmt::{Debug, Formatter, Result as FmtResult},
     sync::{
         atomic::{AtomicBool, AtomicU64, Ordering},
         Arc,
@@ -85,39 +83,6 @@ type HttpsConnector<T> = hyper_rustls::HttpsConnector<T>;
 #[cfg(all(feature = "hyper-tls", not(feature = "hyper-rustls")))]
 type HttpsConnector<T> = hyper_tls::HttpsConnector<T>;
 
-struct State {
-    http: HyperClient<HttpsConnector<HttpConnector>, Body>,
-    default_headers: Option<HeaderMap>,
-    proxy: Option<Box<str>>,
-    ratelimiter: Option<Ratelimiter>,
-    /// Whether to short-circuit when a 401 has been encountered with the client
-    /// authorization.
-    ///
-    /// This relates to [`token_invalid`].
-    ///
-    /// [`token_invalid`]: Self::token_invalid
-    remember_invalid_token: bool,
-    timeout: Duration,
-    token_invalid: Arc<AtomicBool>,
-    token: Option<Box<str>>,
-    use_http: bool,
-    pub(crate) application_id: AtomicU64,
-    pub(crate) default_allowed_mentions: Option<AllowedMentions>,
-}
-
-impl Debug for State {
-    fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
-        f.debug_struct("State")
-            .field("http", &self.http)
-            .field("default_headers", &self.default_headers)
-            .field("proxy", &self.proxy)
-            .field("ratelimiter", &self.ratelimiter)
-            .field("token", &self.token)
-            .field("use_http", &self.use_http)
-            .finish()
-    }
-}
-
 /// Twilight's http client.
 ///
 /// Almost all of the client methods require authentication, and as such, the client must be
@@ -140,10 +105,10 @@ impl Debug for State {
 /// # Ok(()) }
 /// ```
 ///
-/// # Cloning
+/// # Using the client in multiple tasks
 ///
-/// The client internally wraps its data within an Arc. This means that the
-/// client can be cloned and passed around tasks and threads cheaply.
+/// To use a client instance in multiple tasks, consider wrapping it in an
+/// [`std::sync::Arc`] or [`std::rc::Rc`].
 ///
 /// # Unauthorized behavior
 ///
@@ -184,9 +149,25 @@ impl Debug for State {
 /// `client`.
 ///
 /// [here]: https://discord.com/developers/applications
-#[derive(Clone, Debug)]
+#[derive(Debug)]
 pub struct Client {
-    state: Arc<State>,
+    pub(crate) application_id: AtomicU64,
+    pub(crate) default_allowed_mentions: Option<AllowedMentions>,
+    default_headers: Option<HeaderMap>,
+    http: HyperClient<HttpsConnector<HttpConnector>, Body>,
+    proxy: Option<Box<str>>,
+    ratelimiter: Option<Ratelimiter>,
+    /// Whether to short-circuit when a 401 has been encountered with the client
+    /// authorization.
+    ///
+    /// This relates to [`token_invalid`].
+    ///
+    /// [`token_invalid`]: Self::token_invalid
+    remember_invalid_token: bool,
+    timeout: Duration,
+    token_invalid: Arc<AtomicBool>,
+    token: Option<Box<str>>,
+    use_http: bool,
 }
 
 impl Client {
@@ -208,15 +189,15 @@ impl Client {
     /// If the initial token provided is not prefixed with `Bot `, it will be, and this method
     /// reflects that.
     pub fn token(&self) -> Option<&str> {
-        self.state.token.as_deref()
+        self.token.as_deref()
     }
 
     /// Retrieve the [`ApplicationId`] used by interaction methods.
     pub fn application_id(&self) -> Option<ApplicationId> {
-        let id = self.state.application_id.load(Ordering::Relaxed);
+        let id = self.application_id.load(Ordering::Relaxed);
 
         if id != 0 {
-            return Some(ApplicationId(id));
+            return Some(ApplicationId::new(id).expect("non zero"));
         }
 
         None
@@ -227,12 +208,11 @@ impl Client {
     /// Returns the previous ID, if there was one.
     pub fn set_application_id(&self, application_id: ApplicationId) -> Option<ApplicationId> {
         let prev = self
-            .state
             .application_id
-            .swap(application_id.0, Ordering::Relaxed);
+            .swap(application_id.get(), Ordering::Relaxed);
 
         if prev != 0 {
-            return Some(ApplicationId(prev));
+            return Some(ApplicationId::new(prev).expect("non zero"));
         }
 
         None
@@ -240,7 +220,7 @@ impl Client {
 
     /// Get the default [`AllowedMentions`] for sent messages.
     pub fn default_allowed_mentions(&self) -> Option<AllowedMentions> {
-        self.state.default_allowed_mentions.clone()
+        self.default_allowed_mentions.clone()
     }
 
     /// Get the Ratelimiter used by the client internally.
@@ -248,7 +228,7 @@ impl Client {
     /// This will return `None` only if ratelimit handling
     /// has been explicitly disabled in the [`ClientBuilder`].
     pub fn ratelimiter(&self) -> Option<Ratelimiter> {
-        self.state.ratelimiter.clone()
+        self.ratelimiter.clone()
     }
 
     /// Get the audit log for a guild.
@@ -262,7 +242,7 @@ impl Client {
     /// # #[tokio::main]
     /// # async fn main() -> Result<(), Box<dyn std::error::Error>> {
     /// # let client = Client::new("token".to_owned());
-    /// let guild_id = GuildId(101);
+    /// let guild_id = GuildId::new(101).expect("non zero");
     /// let audit_log = client
     /// // not done
     ///     .audit_log(guild_id)
@@ -288,7 +268,7 @@ impl Client {
     /// # async fn main() -> Result<(), Box<dyn std::error::Error>> {
     /// # let client = Client::new("my token".to_owned());
     /// #
-    /// let guild_id = GuildId(1);
+    /// let guild_id = GuildId::new(1).expect("non zero");
     ///
     /// let bans = client.bans(guild_id).exec().await?;
     /// # Ok(()) }
@@ -320,8 +300,8 @@ impl Client {
     /// # async fn main() -> Result<(), Box<dyn std::error::Error>> {
     /// # let client = Client::new("my token".to_owned());
     /// #
-    /// let guild_id = GuildId(100);
-    /// let user_id = UserId(200);
+    /// let guild_id = GuildId::new(100).expect("non zero");
+    /// let user_id = UserId::new(200).expect("non zero");
     /// client.create_ban(guild_id, user_id)
     ///     .delete_message_days(1)?
     ///     .reason("memes")?
@@ -347,8 +327,8 @@ impl Client {
     /// # async fn main() -> Result<(), Box<dyn std::error::Error>> {
     /// # let client = Client::new("my token".to_owned());
     /// #
-    /// let guild_id = GuildId(100);
-    /// let user_id = UserId(200);
+    /// let guild_id = GuildId::new(100).expect("non zero");
+    /// let user_id = UserId::new(200).expect("non zero");
     ///
     /// client.delete_ban(guild_id, user_id).exec().await?;
     /// # Ok(()) }
@@ -371,7 +351,7 @@ impl Client {
     /// # async fn main() -> Result<(), Box<dyn std::error::Error>> {
     /// # let client = Client::new("my token".to_owned());
     /// #
-    /// let channel_id = ChannelId(100);
+    /// let channel_id = ChannelId::new(100).expect("non zero");
     /// #
     /// let channel = client.channel(channel_id).exec().await?;
     /// # Ok(()) }
@@ -430,8 +410,8 @@ impl Client {
     /// # #[tokio::main]
     /// # async fn main() -> Result<(), Box<dyn std::error::Error>> {
     /// let client = Client::new("my token".to_owned());
-    /// let channel_id = ChannelId(123);
-    /// let message_id = MessageId(234);
+    /// let channel_id = ChannelId::new(123).expect("non zero");
+    /// let message_id = MessageId::new(234).expect("non zero");
     /// let limit: u64 = 6;
     ///
     /// let messages = client
@@ -481,10 +461,10 @@ impl Client {
     /// # async fn main() -> Result<(), Box<dyn std::error::Error>> {
     /// # let client = Client::new("my token".to_owned());
     ///
-    /// let channel_id = ChannelId(123);
+    /// let channel_id = ChannelId::new(123).expect("non zero");
     /// let allow = Permissions::VIEW_CHANNEL;
     /// let deny = Permissions::SEND_MESSAGES;
-    /// let role_id = RoleId(432);
+    /// let role_id = RoleId::new(432).expect("non zero");
     ///
     /// client.update_channel_permission(channel_id, allow, deny)
     ///     .role(role_id)
@@ -562,8 +542,8 @@ impl Client {
     /// # async fn main() -> Result<(), Box<dyn std::error::Error>> {
     /// # let client = Client::new("my token".to_owned());
     /// #
-    /// let after = GuildId(300);
-    /// let before = GuildId(400);
+    /// let after = GuildId::new(300).expect("non zero");
+    /// let before = GuildId::new(400).expect("non zero");
     /// let guilds = client.current_user_guilds()
     ///     .after(after)
     ///     .before(before)
@@ -599,7 +579,7 @@ impl Client {
     /// # async fn main() -> Result<(), Box<dyn std::error::Error>> {
     /// # let client = Client::new("my token".to_owned());
     /// #
-    /// let guild_id = GuildId(100);
+    /// let guild_id = GuildId::new(100).expect("non zero");
     ///
     /// client.emojis(guild_id).exec().await?;
     /// # Ok(()) }
@@ -622,8 +602,8 @@ impl Client {
     /// # async fn main() -> Result<(), Box<dyn std::error::Error>> {
     /// # let client = Client::new("my token".to_owned());
     /// #
-    /// let guild_id = GuildId(50);
-    /// let emoji_id = EmojiId(100);
+    /// let guild_id = GuildId::new(50).expect("non zero");
+    /// let emoji_id = EmojiId::new(100).expect("non zero");
     ///
     /// client.emoji(guild_id, emoji_id).exec().await?;
     /// # Ok(()) }
@@ -836,8 +816,8 @@ impl Client {
     /// # async fn main() -> Result<(), Box<dyn std::error::Error>> {
     /// # let client = Client::new("my token".to_owned());
     /// #
-    /// let guild_id = GuildId(100);
-    /// let user_id = UserId(3000);
+    /// let guild_id = GuildId::new(100).expect("non zero");
+    /// let user_id = UserId::new(3000).expect("non zero");
     /// let members = client.guild_members(guild_id).after(user_id).exec().await?;
     /// # Ok(()) }
     /// ```
@@ -868,7 +848,7 @@ impl Client {
     /// # async fn main() -> Result<(), Box<dyn std::error::Error>> {
     /// let client = Client::new("my token".to_owned());
     ///
-    /// let guild_id = GuildId(100);
+    /// let guild_id = GuildId::new(100).expect("non zero");
     /// let members = client.search_guild_members(guild_id, "Wumpus")
     ///     .limit(10)?
     ///     .exec()
@@ -943,7 +923,7 @@ impl Client {
     ///
     /// # #[tokio::main] async fn main() -> Result<(), Box<dyn std::error::Error>> {
     /// let client = Client::new(env::var("DISCORD_TOKEN")?);
-    /// let member = client.update_guild_member(GuildId(1), UserId(2))
+    /// let member = client.update_guild_member(GuildId::new(1).expect("non zero"), UserId::new(2).expect("non zero"))
     ///     .mute(true)
     ///     .nick(Some("pinkie pie"))?
     ///     .exec()
@@ -985,9 +965,9 @@ impl Client {
     /// # async fn main() -> Result<(), Box<dyn std::error::Error>> {
     /// # let client = Client::new("my token".to_owned());
     /// #
-    /// let guild_id = GuildId(1);
-    /// let role_id = RoleId(2);
-    /// let user_id = UserId(3);
+    /// let guild_id = GuildId::new(1).expect("non zero");
+    /// let role_id = RoleId::new(2).expect("non zero");
+    /// let user_id = UserId::new(3).expect("non zero");
     ///
     /// client.add_guild_member_role(guild_id, user_id, role_id)
     ///     .reason("test")?
@@ -1112,7 +1092,7 @@ impl Client {
     /// # async fn main() -> Result<(), Box<dyn std::error::Error>> {
     /// # let client = Client::new("my token".to_owned());
     /// #
-    /// let channel_id = ChannelId(123);
+    /// let channel_id = ChannelId::new(123).expect("non zero");
     /// let invite = client
     ///     .create_invite(channel_id)
     ///     .max_uses(3)?
@@ -1154,7 +1134,7 @@ impl Client {
     /// # async fn main() -> Result<(), Box<dyn std::error::Error>> {
     /// # let client = Client::new("my token".to_owned());
     /// #
-    /// let channel_id = ChannelId(123);
+    /// let channel_id = ChannelId::new(123).expect("non zero");
     /// let message = client
     ///     .create_message(channel_id)
     ///     .content("Twilight is best pony")?
@@ -1225,7 +1205,7 @@ impl Client {
     /// # #[tokio::main]
     /// # async fn main() -> Result<(), Box<dyn std::error::Error>> {
     /// let client = Client::new("my token".to_owned());
-    /// client.update_message(ChannelId(1), MessageId(2))
+    /// client.update_message(ChannelId::new(1).expect("non zero"), MessageId::new(2).expect("non zero"))
     ///     .content(Some("test update"))?
     ///     .exec()
     ///     .await?;
@@ -1241,7 +1221,7 @@ impl Client {
     /// # #[tokio::main]
     /// # async fn main() -> Result<(), Box<dyn std::error::Error>> {
     /// # let client = Client::new("my token".to_owned());
-    /// client.update_message(ChannelId(1), MessageId(2))
+    /// client.update_message(ChannelId::new(1).expect("non zero"), MessageId::new(2).expect("non zero"))
     ///     .content(None)?
     ///     .exec()
     ///     .await?;
@@ -1309,8 +1289,8 @@ impl Client {
     /// # async fn main() -> Result<(), Box<dyn std::error::Error>> {
     /// # let client = Client::new("my token".to_owned());
     /// #
-    /// let channel_id = ChannelId(123);
-    /// let message_id = MessageId(456);
+    /// let channel_id = ChannelId::new(123).expect("non zero");
+    /// let message_id = MessageId::new(456).expect("non zero");
     /// let emoji = RequestReactionType::Unicode { name: "🌃" };
     ///
     /// let reaction = client
@@ -1396,7 +1376,7 @@ impl Client {
     /// # #[tokio::main]
     /// # async fn main() -> Result<(), Box<dyn std::error::Error>> {
     /// # let client = Client::new("my token".to_owned());
-    /// let guild_id = GuildId(234);
+    /// let guild_id = GuildId::new(234).expect("non zero");
     ///
     /// client.create_role(guild_id)
     ///     .color(0xd90083)
@@ -1747,7 +1727,7 @@ impl Client {
     /// # #[tokio::main]
     /// # async fn main() -> Result<(), Box<dyn std::error::Error>> {
     /// # let client = Client::new("my token".to_owned());
-    /// let channel_id = ChannelId(123);
+    /// let channel_id = ChannelId::new(123).expect("non zero");
     ///
     /// let webhook = client
     ///     .create_webhook(channel_id, "Twily Bot")
@@ -1795,7 +1775,7 @@ impl Client {
     /// # #[tokio::main]
     /// # async fn main() -> Result<(), Box<dyn std::error::Error>> {
     /// # let client = Client::new("my token".to_owned());
-    /// let id = WebhookId(432);
+    /// let id = WebhookId::new(432).expect("non zero");
     /// #
     /// let webhook = client
     ///     .execute_webhook(id, "webhook token")
@@ -1840,7 +1820,7 @@ impl Client {
     /// # #[tokio::main]
     /// # async fn main() -> Result<(), Box<dyn std::error::Error>> {
     /// # let client = Client::new("token".to_owned());
-    /// client.update_webhook_message(WebhookId(1), "token here", MessageId(2))
+    /// client.update_webhook_message(WebhookId::new(1).expect("non zero"), "token here", MessageId::new(2).expect("non zero"))
     ///     .content(Some("new message content"))?
     ///     .exec()
     ///     .await?;
@@ -1867,7 +1847,7 @@ impl Client {
     /// # async fn main() -> Result<(), Box<dyn std::error::Error>> {
     /// # let client = Client::new("token".to_owned());
     /// client
-    ///     .delete_webhook_message(WebhookId(1), "token here", MessageId(2))
+    ///     .delete_webhook_message(WebhookId::new(1).expect("non zero"), "token here", MessageId::new(2).expect("non zero"))
     ///     .exec()
     ///     .await?;
     /// # Ok(()) }
@@ -2058,40 +2038,6 @@ impl Client {
         ))
     }
 
-    /// Create a new chat input command in a guild.
-    ///
-    /// The name must be between 1 and 32 characters in length. Creating a
-    /// guild command with the same name as an already-existing guild command in
-    /// the same guild will overwrite the old command. See [the discord docs]
-    /// for more information.
-    ///
-    /// # Errors
-    ///
-    /// Returns an [`InteractionErrorType::ApplicationIdNotPresent`]
-    /// error type if an application ID has not been configured via
-    /// [`Client::set_application_id`].
-    ///
-    /// Returns an [`InteractionErrorType::CommandNameValidationFailed`]
-    /// error type if the command name is not between 1 and 32 characters.
-    ///
-    /// [the discord docs]: https://discord.com/developers/docs/interactions/application-commands#create-guild-application-command
-    #[deprecated(
-        note = "use `new_create_guild_command`, which does not require a description",
-        since = "0.6.4"
-    )]
-    pub fn create_guild_command<'a>(
-        &'a self,
-        guild_id: GuildId,
-        name: &'a str,
-        description: &'a str,
-    ) -> Result<CreateGuildChatInputCommand<'a>, InteractionError> {
-        let application_id = self.application_id().ok_or(InteractionError {
-            kind: InteractionErrorType::ApplicationIdNotPresent,
-        })?;
-
-        CreateGuildCommand::new(self, application_id, guild_id, name)?.chat_input(description)
-    }
-
     /// Create a new command in a guild.
     ///
     /// The name must be between 1 and 32 characters in length. Creating a
@@ -2109,7 +2055,7 @@ impl Client {
     /// error type if the command name is not between 1 and 32 characters.
     ///
     /// [the discord docs]: https://discord.com/developers/docs/interactions/application-commands#create-guild-application-command
-    pub fn new_create_guild_command<'a>(
+    pub fn create_guild_command<'a>(
         &'a self,
         guild_id: GuildId,
         name: &'a str,
@@ -2249,43 +2195,6 @@ impl Client {
         ))
     }
 
-    /// Create a new chat input global command.
-    ///
-    /// The name must be between 1 and 32 characters in length. The description
-    /// must be between 1 and 100 characters in length. Creating a command with
-    /// the same name as an already-existing global command will overwrite the
-    /// old command. See [the discord docs] for more information.
-    ///
-    /// # Errors
-    ///
-    /// Returns an [`InteractionErrorType::ApplicationIdNotPresent`]
-    /// error type if an application ID has not been configured via
-    /// [`Client::set_application_id`].
-    ///
-    /// Returns an [`InteractionErrorType::CommandNameValidationFailed`]
-    /// error type if the command name is not between 1 and 32 characters.
-    ///
-    /// Returns an [`InteractionErrorType::CommandDescriptionValidationFailed`]
-    /// error type if the command description is not between 1 and 100
-    /// characters.
-    ///
-    /// [the discord docs]: https://discord.com/developers/docs/interactions/application-commands#create-global-application-command
-    #[deprecated(
-        note = "use `new_create_global_command`, which does not require a description",
-        since = "0.6.4"
-    )]
-    pub fn create_global_command<'a>(
-        &'a self,
-        name: &'a str,
-        description: &'a str,
-    ) -> Result<CreateGlobalChatInputCommand<'a>, InteractionError> {
-        let application_id = self.application_id().ok_or(InteractionError {
-            kind: InteractionErrorType::ApplicationIdNotPresent,
-        })?;
-
-        CreateGlobalCommand::new(self, application_id, name)?.chat_input(description)
-    }
-
     /// Create a new global command.
     ///
     /// The name must be between 1 and 32 characters in length. Creating a
@@ -2302,7 +2211,7 @@ impl Client {
     /// error type if the command name is not between 1 and 32 characters.
     ///
     /// [the discord docs]: https://discord.com/developers/docs/interactions/application-commands#create-global-application-command
-    pub fn new_create_global_command<'a>(
+    pub fn create_global_command<'a>(
         &'a self,
         name: &'a str,
     ) -> Result<CreateGlobalCommand<'a>, InteractionError> {
@@ -2523,7 +2432,7 @@ impl Client {
     /// # async fn main() -> Result<(), Box<dyn std::error::Error>> {
     /// let client = Client::new("my token".to_owned());
     ///
-    /// let id = StickerId(123);
+    /// let id = StickerId::new(123).expect("non zero");
     /// let sticker = client.sticker(id).exec().await?.model().await?;
     ///
     /// println!("{:#?}", sticker);
@@ -2568,7 +2477,7 @@ impl Client {
     /// # async fn main() -> Result<(), Box<dyn std::error::Error>> {
     /// let client = Client::new("my token".to_owned());
     ///
-    /// let guild_id = GuildId(1);
+    /// let guild_id = GuildId::new(1).expect("non zero");
     /// let stickers = client
     ///     .guild_stickers(guild_id)
     ///     .exec()
@@ -2598,8 +2507,8 @@ impl Client {
     /// # async fn main() -> Result<(), Box<dyn std::error::Error>> {
     /// let client = Client::new("my token".to_owned());
     ///
-    /// let guild_id = GuildId(1);
-    /// let sticker_id = StickerId(2);
+    /// let guild_id = GuildId::new(1).expect("non zero");
+    /// let sticker_id = StickerId::new(2).expect("non zero");
     /// let sticker = client
     ///     .guild_sticker(guild_id, sticker_id)
     ///     .exec()
@@ -2633,7 +2542,7 @@ impl Client {
     /// # async fn main() -> Result<(), Box<dyn std::error::Error>> {
     /// let client = Client::new("my token".to_owned());
     ///
-    /// let guild_id = GuildId(1);
+    /// let guild_id = GuildId::new(1).expect("non zero");
     /// let sticker = client
     ///     .create_guild_sticker(
     ///         guild_id,
@@ -2676,8 +2585,8 @@ impl Client {
     /// # async fn main() -> Result<(), Box<dyn std::error::Error>> {
     /// let client = Client::new("my token".to_owned());
     ///
-    /// let guild_id = GuildId(1);
-    /// let sticker_id = StickerId(2);
+    /// let guild_id = GuildId::new(1).expect("non zero");
+    /// let sticker_id = StickerId::new(2).expect("non zero");
     /// let sticker = client
     ///     .update_guild_sticker(guild_id, sticker_id)
     ///     .description("new description")?
@@ -2712,8 +2621,8 @@ impl Client {
     /// # async fn main() -> Result<(), Box<dyn std::error::Error>> {
     /// let client = Client::new("my token".to_owned());
     ///
-    /// let guild_id = GuildId(1);
-    /// let sticker_id = StickerId(2);
+    /// let guild_id = GuildId::new(1).expect("non zero");
+    /// let sticker_id = StickerId::new(2).expect("non zero");
     ///
     /// client
     ///     .delete_guild_sticker(guild_id, sticker_id)
@@ -2746,7 +2655,7 @@ impl Client {
 
     #[allow(clippy::too_many_lines)]
     fn try_request<T>(&self, request: Request) -> Result<ResponseFuture<T>, Error> {
-        if self.state.remember_invalid_token && self.state.token_invalid.load(Ordering::Relaxed) {
+        if self.remember_invalid_token && self.token_invalid.load(Ordering::Relaxed) {
             return Err(Error {
                 kind: ErrorType::Unauthorized,
                 source: None,
@@ -2763,8 +2672,8 @@ impl Client {
             use_authorization_token,
         } = request;
 
-        let protocol = if self.state.use_http { "http" } else { "https" };
-        let host = self.state.proxy.as_deref().unwrap_or("discord.com");
+        let protocol = if self.use_http { "http" } else { "https" };
+        let host = self.proxy.as_deref().unwrap_or("discord.com");
 
         let url = format!("{}://{}/api/v{}/{}", protocol, host, API_VERSION, path);
         #[cfg(feature = "tracing")]
@@ -2775,7 +2684,7 @@ impl Client {
             .uri(&url);
 
         if use_authorization_token {
-            if let Some(ref token) = self.state.token {
+            if let Some(ref token) = self.token {
                 let value = HeaderValue::from_str(token).map_err(|source| {
                     #[allow(clippy::borrow_interior_mutable_const)]
                     let name = AUTHORIZATION.to_string();
@@ -2829,7 +2738,7 @@ impl Client {
                 }
             }
 
-            if let Some(default_headers) = &self.state.default_headers {
+            if let Some(default_headers) = &self.default_headers {
                 for (name, value) in default_headers {
                     headers.insert(name, HeaderValue::from(value));
                 }
@@ -2868,10 +2777,10 @@ impl Client {
             })?
         };
 
-        let inner = self.state.http.request(req);
+        let inner = self.http.request(req);
 
-        let invalid_token = if self.state.remember_invalid_token {
-            InvalidToken::Remember(Arc::clone(&self.state.token_invalid))
+        let invalid_token = if self.remember_invalid_token {
+            InvalidToken::Remember(Arc::clone(&self.token_invalid))
         } else {
             InvalidToken::Forget
         };
@@ -2879,20 +2788,20 @@ impl Client {
         // Clippy suggests bad code; an `Option::map_or_else` won't work here
         // due to move semantics in both cases.
         #[allow(clippy::option_if_let_else)]
-        if let Some(ratelimiter) = self.state.ratelimiter.as_ref() {
+        if let Some(ratelimiter) = self.ratelimiter.as_ref() {
             let rx = ratelimiter.ticket(ratelimit_path);
 
             Ok(ResponseFuture::ratelimit(
                 None,
                 invalid_token,
                 rx,
-                self.state.timeout,
+                self.timeout,
                 inner,
             ))
         } else {
             Ok(ResponseFuture::new(
                 invalid_token,
-                time::timeout(self.state.timeout, inner),
+                time::timeout(self.timeout, inner),
                 None,
             ))
         }

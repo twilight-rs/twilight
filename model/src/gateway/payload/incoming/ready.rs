@@ -29,11 +29,11 @@ mod tests {
     fn test_ready() {
         let guilds = vec![
             UnavailableGuild {
-                id: GuildId(1),
+                id: GuildId::new(1).expect("non zero"),
                 unavailable: true,
             },
             UnavailableGuild {
-                id: GuildId(2),
+                id: GuildId::new(2).expect("non zero"),
                 unavailable: true,
             },
         ];
@@ -41,7 +41,7 @@ mod tests {
         let ready = Ready {
             application: PartialApplication {
                 flags: ApplicationFlags::empty(),
-                id: ApplicationId(100),
+                id: ApplicationId::new(100).expect("non zero"),
             },
             guilds,
             session_id: "foo".to_owned(),
@@ -51,10 +51,10 @@ mod tests {
                 avatar: None,
                 banner: None,
                 bot: false,
-                discriminator: "1212".to_owned(),
+                discriminator: 1212,
                 email: None,
                 flags: None,
-                id: UserId(3),
+                id: UserId::new(3).expect("non zero"),
                 locale: None,
                 mfa_enabled: false,
                 name: "bar".to_owned(),

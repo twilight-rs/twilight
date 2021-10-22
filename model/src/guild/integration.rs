@@ -1,5 +1,6 @@
 use super::{IntegrationAccount, IntegrationApplication, IntegrationExpireBehavior};
 use crate::{
+    datetime::Timestamp,
     id::{GuildId, IntegrationId, RoleId},
     user::User,
 };
@@ -30,7 +31,7 @@ pub struct GuildIntegration {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub subscriber_count: Option<u64>,
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub synced_at: Option<String>,
+    pub synced_at: Option<Timestamp>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub syncing: Option<bool>,
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -43,12 +44,18 @@ mod tests {
         GuildIntegration, IntegrationAccount, IntegrationApplication, IntegrationExpireBehavior,
         IntegrationId, User,
     };
-    use crate::id::{ApplicationId, RoleId, UserId};
+    use crate::{
+        datetime::{Timestamp, TimestampParseError},
+        id::{ApplicationId, RoleId, UserId},
+    };
     use serde_test::Token;
+    use std::str::FromStr;
 
     #[allow(clippy::too_many_lines)]
     #[test]
-    fn test_guild_integration() {
+    fn test_guild_integration() -> Result<(), TimestampParseError> {
+        let synced_at = Timestamp::from_str("2021-01-01T01:01:01+00:00")?;
+
         let value = GuildIntegration {
             account: IntegrationAccount {
                 id: "abcd".to_owned(),
@@ -60,23 +67,23 @@ mod tests {
             expire_behavior: Some(IntegrationExpireBehavior::Kick),
             expire_grace_period: Some(3_600),
             guild_id: None,
-            id: IntegrationId(2),
+            id: IntegrationId::new(2).expect("non zero"),
             kind: "a".to_owned(),
             name: "integration name".to_owned(),
             revoked: Some(false),
-            role_id: Some(RoleId(3)),
+            role_id: Some(RoleId::new(3).expect("non zero")),
             subscriber_count: Some(1337),
-            synced_at: Some("timestamp".to_owned()),
+            synced_at: Some(synced_at),
             syncing: Some(false),
             user: Some(User {
                 accent_color: None,
                 avatar: Some("hash".to_owned()),
                 banner: None,
                 bot: true,
-                discriminator: "1000".to_owned(),
+                discriminator: 1000,
                 email: None,
                 flags: None,
-                id: UserId(4),
+                id: UserId::new(4).expect("non zero"),
                 locale: None,
                 mfa_enabled: None,
                 name: "user".to_owned(),
@@ -136,7 +143,7 @@ mod tests {
                 Token::U64(1337),
                 Token::Str("synced_at"),
                 Token::Some,
-                Token::Str("timestamp"),
+                Token::Str("2021-01-01T01:01:01.000000+00:00"),
                 Token::Str("syncing"),
                 Token::Some,
                 Token::Bool(false),
@@ -166,11 +173,15 @@ mod tests {
                 Token::StructEnd,
             ],
         );
+
+        Ok(())
     }
 
     #[allow(clippy::too_many_lines)]
     #[test]
-    fn test_guild_integration_complete() {
+    fn test_guild_integration_complete() -> Result<(), TimestampParseError> {
+        let synced_at = Timestamp::from_str("2021-01-01T01:01:01+00:00")?;
+
         let value = GuildIntegration {
             account: IntegrationAccount {
                 id: "abcd".to_owned(),
@@ -180,7 +191,7 @@ mod tests {
                 bot: None,
                 description: "Friendship is Magic".to_string(),
                 icon: None,
-                id: ApplicationId(123),
+                id: ApplicationId::new(123).expect("non zero"),
                 name: "Twilight".to_string(),
                 summary: "A cool pony".to_string(),
             }),
@@ -189,23 +200,23 @@ mod tests {
             expire_behavior: Some(IntegrationExpireBehavior::Kick),
             expire_grace_period: Some(3_600),
             guild_id: None,
-            id: IntegrationId(2),
+            id: IntegrationId::new(2).expect("non zero"),
             kind: "a".to_owned(),
             name: "integration name".to_owned(),
             revoked: Some(false),
-            role_id: Some(RoleId(3)),
+            role_id: Some(RoleId::new(3).expect("non zero")),
             subscriber_count: Some(1337),
-            synced_at: Some("timestamp".to_owned()),
+            synced_at: Some(synced_at),
             syncing: Some(false),
             user: Some(User {
                 accent_color: None,
                 avatar: Some("hash".to_owned()),
                 banner: None,
                 bot: true,
-                discriminator: "1000".to_owned(),
+                discriminator: 1000,
                 email: None,
                 flags: None,
-                id: UserId(4),
+                id: UserId::new(4).expect("non zero"),
                 locale: None,
                 mfa_enabled: None,
                 name: "user".to_owned(),
@@ -285,7 +296,7 @@ mod tests {
                 Token::U64(1337),
                 Token::Str("synced_at"),
                 Token::Some,
-                Token::Str("timestamp"),
+                Token::Str("2021-01-01T01:01:01.000000+00:00"),
                 Token::Str("syncing"),
                 Token::Some,
                 Token::Bool(false),
@@ -315,5 +326,7 @@ mod tests {
                 Token::StructEnd,
             ],
         );
+
+        Ok(())
     }
 }

@@ -14,7 +14,7 @@ use std::{
 };
 use tokio::sync::mpsc::UnboundedSender;
 use tokio_tungstenite::tungstenite::Message as TungsteniteMessage;
-use twilight_model::gateway::payload::Heartbeat;
+use twilight_model::gateway::payload::outgoing::Heartbeat;
 
 /// Information about the latency of a [`Shard`]'s websocket connection.
 ///

@@ -84,7 +84,7 @@ struct SearchGuildMembersFields<'a> {
 /// # async fn main() -> Result<(), Box<dyn std::error::Error>> {
 /// let client = Client::new("my token".to_owned());
 ///
-/// let guild_id = GuildId(100);
+/// let guild_id = GuildId::new(100).expect("non zero");
 /// let members = client.search_guild_members(guild_id, "Wumpus")
 ///     .limit(10)?
 ///     .exec()
@@ -141,7 +141,7 @@ impl<'a> SearchGuildMembers<'a> {
     /// [`Response`]: crate::response::Response
     pub fn exec(self) -> ResponseFuture<MemberListBody> {
         let request = Request::from_route(&Route::SearchGuildMembers {
-            guild_id: self.guild_id.0,
+            guild_id: self.guild_id.get(),
             limit: self.fields.limit,
             query: self.fields.query,
         });

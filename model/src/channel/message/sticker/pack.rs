@@ -58,21 +58,21 @@ mod tests {
     #[test]
     fn test_full() {
         let value = StickerPack {
-            banner_asset_id: StickerBannerAssetId(761_773_777_976_819_732),
-            cover_sticker_id: Some(StickerId(749_053_689_419_006_003)),
+            banner_asset_id: StickerBannerAssetId::new(761_773_777_976_819_732).expect("non zero"),
+            cover_sticker_id: Some(StickerId::new(749_053_689_419_006_003).expect("non zero")),
             description: "Say hello to Wumpus!".into(),
-            id: StickerPackId(847_199_849_233_514_549),
+            id: StickerPackId::new(847_199_849_233_514_549).expect("non zero"),
             name: "Wumpus Beyond".into(),
-            sku_id: StickerPackSkuId(847_199_849_233_514_547),
+            sku_id: StickerPackSkuId::new(847_199_849_233_514_547).expect("non zero"),
             stickers: Vec::from([Sticker {
                 available: true,
                 description: Some("Wumpus waves hello".into()),
                 format_type: StickerFormatType::Lottie,
                 guild_id: None,
-                id: StickerId(749_054_660_769_218_631),
+                id: StickerId::new(749_054_660_769_218_631).expect("non zero"),
                 kind: StickerType::Standard,
                 name: "Wave".into(),
-                pack_id: Some(StickerPackId(847_199_849_233_514_549)),
+                pack_id: Some(StickerPackId::new(847_199_849_233_514_549).expect("non zero")),
                 sort_value: Some(12),
                 tags: "wumpus, hello, sup, hi, oi, heyo, heya, yo, wave".into(),
                 user: None,

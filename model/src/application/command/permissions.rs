@@ -93,7 +93,7 @@ mod tests {
     #[test]
     fn test_command_permissions() {
         let value = CommandPermissions {
-            id: CommandPermissionsType::Role(RoleId(100)),
+            id: CommandPermissionsType::Role(RoleId::new(100).expect("non zero")),
             permission: true,
         };
 

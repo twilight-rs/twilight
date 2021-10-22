@@ -1,14 +1,16 @@
-use crate::{config::ResourceType, model::CachedSticker, GuildItem, InMemoryCache, UpdateCache};
+use crate::{
+    config::ResourceType, model::CachedSticker, GuildResource, InMemoryCache, UpdateCache,
+};
 use std::borrow::Cow;
 use twilight_model::{
     channel::message::sticker::{Sticker, StickerId},
-    gateway::payload::GuildStickersUpdate,
+    gateway::payload::incoming::GuildStickersUpdate,
     id::GuildId,
 };
 
 impl InMemoryCache {
     pub(crate) fn cache_stickers(&self, guild_id: GuildId, stickers: Vec<Sticker>) {
-        if let Some(mut guild_stickers) = self.0.guild_stickers.get_mut(&guild_id) {
+        if let Some(mut guild_stickers) = self.guild_stickers.get_mut(&guild_id) {
             let incoming: Vec<StickerId> = stickers.iter().map(|s| s.id).collect();
 
             let removal_filter: Vec<StickerId> = guild_stickers
@@ -22,7 +24,7 @@ impl InMemoryCache {
             }
 
             for to_remove in &removal_filter {
-                self.0.stickers.remove(to_remove);
+                self.stickers.remove(to_remove);
             }
         }
 
@@ -32,8 +34,8 @@ impl InMemoryCache {
     }
 
     pub(crate) fn cache_sticker(&self, guild_id: GuildId, sticker: Sticker) {
-        match self.0.stickers.get(&sticker.id) {
-            Some(cached_sticker) if cached_sticker.data == sticker => return,
+        match self.stickers.get(&sticker.id) {
+            Some(cached_sticker) if cached_sticker.value == sticker => return,
             Some(_) | None => {}
         }
 
@@ -57,16 +59,15 @@ impl InMemoryCache {
             user_id,
         };
 
-        self.0.stickers.insert(
+        self.stickers.insert(
             cached.id,
-            GuildItem {
-                data: cached,
+            GuildResource {
                 guild_id,
+                value: cached,
             },
         );
 
-        self.0
-            .guild_stickers
+        self.guild_stickers
             .entry(guild_id)
             .or_default()
             .insert(sticker.id);

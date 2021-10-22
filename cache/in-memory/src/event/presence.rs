@@ -1,6 +1,6 @@
 use crate::{config::ResourceType, model::CachedPresence, InMemoryCache, UpdateCache};
 use twilight_model::{
-    gateway::{payload::PresenceUpdate, presence::UserOrId},
+    gateway::{payload::incoming::PresenceUpdate, presence::UserOrId},
     id::{GuildId, UserId},
 };
 
@@ -23,9 +23,8 @@ impl InMemoryCache {
     }
 
     fn cache_presence(&self, guild_id: GuildId, presence: CachedPresence) {
-        self.0
-            .presences
-            .insert((guild_id, presence.user_id), presence);
+        self.presences
+            .insert((guild_id, presence.user_id()), presence);
     }
 }
 

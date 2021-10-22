@@ -37,7 +37,7 @@ pub mod outgoing {
 
     use super::Opcode;
     use serde::{Deserialize, Serialize};
-    use twilight_model::{gateway::payload::VoiceServerUpdate, id::GuildId};
+    use twilight_model::{gateway::payload::incoming::VoiceServerUpdate, id::GuildId};
 
     /// An outgoing event to send to Lavalink.
     #[derive(Clone, Debug, Deserialize, PartialEq, Serialize)]

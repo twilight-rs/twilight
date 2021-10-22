@@ -4,7 +4,8 @@ use twilight_model::{
         message::{Message, MessageFlags, MessageType},
         ChannelType, GuildChannel, Reaction, ReactionType, TextChannel,
     },
-    gateway::payload::{MessageCreate, ReactionAdd},
+    datetime::Timestamp,
+    gateway::payload::incoming::{MessageCreate, ReactionAdd},
     guild::{Emoji, Member, PartialMember, Permissions, Role},
     id::{ChannelId, EmojiId, GuildId, MessageId, RoleId, UserId},
     user::{CurrentUser, User},
@@ -24,10 +25,10 @@ pub fn cache_with_message_and_reactions() -> InMemoryCache {
             avatar: Some("".to_owned()),
             banner: None,
             bot: false,
-            discriminator: "0001".to_owned(),
+            discriminator: 1,
             email: None,
             flags: None,
-            id: UserId(3),
+            id: UserId::new(3).expect("non zero"),
             locale: None,
             mfa_enabled: None,
             name: "test".to_owned(),
@@ -36,14 +37,14 @@ pub fn cache_with_message_and_reactions() -> InMemoryCache {
             system: None,
             verified: None,
         },
-        channel_id: ChannelId(2),
+        channel_id: ChannelId::new(2).expect("non zero"),
         components: Vec::new(),
         content: "ping".to_owned(),
         edited_timestamp: None,
         embeds: Vec::new(),
         flags: Some(MessageFlags::empty()),
-        guild_id: Some(GuildId(1)),
-        id: MessageId(4),
+        guild_id: Some(GuildId::new(1).expect("non zero")),
+        id: MessageId::new(4).expect("non zero"),
         interaction: None,
         kind: MessageType::Regular,
         member: Some(PartialMember {
@@ -66,7 +67,7 @@ pub fn cache_with_message_and_reactions() -> InMemoryCache {
         sticker_items: Vec::new(),
         thread: None,
         referenced_message: None,
-        timestamp: String::new(),
+        timestamp: Timestamp::from_secs(1_632_072_645).expect("non zero"),
         tts: false,
         webhook_id: None,
     };
@@ -74,14 +75,14 @@ pub fn cache_with_message_and_reactions() -> InMemoryCache {
     cache.update(&MessageCreate(msg));
 
     let mut reaction = ReactionAdd(Reaction {
-        channel_id: ChannelId(2),
+        channel_id: ChannelId::new(2).expect("non zero"),
         emoji: ReactionType::Unicode {
             name: "😀".to_owned(),
         },
-        guild_id: Some(GuildId(1)),
+        guild_id: Some(GuildId::new(1).expect("non zero")),
         member: Some(Member {
             deaf: false,
-            guild_id: GuildId(1),
+            guild_id: GuildId::new(1).expect("non zero"),
             hoisted_role: None,
             joined_at: None,
             mute: false,
@@ -94,10 +95,10 @@ pub fn cache_with_message_and_reactions() -> InMemoryCache {
                 avatar: Some("".to_owned()),
                 banner: None,
                 bot: false,
-                discriminator: "0001".to_owned(),
+                discriminator: 1,
                 email: None,
                 flags: None,
-                id: UserId(3),
+                id: UserId::new(3).expect("non zero"),
                 locale: None,
                 mfa_enabled: None,
                 name: "test".to_owned(),
@@ -107,15 +108,15 @@ pub fn cache_with_message_and_reactions() -> InMemoryCache {
                 verified: None,
             },
         }),
-        message_id: MessageId(4),
-        user_id: UserId(3),
+        message_id: MessageId::new(4).expect("non zero"),
+        user_id: UserId::new(3).expect("non zero"),
     });
 
     cache.update(&reaction);
 
     reaction.member.replace(Member {
         deaf: false,
-        guild_id: GuildId(1),
+        guild_id: GuildId::new(1).expect("non zero"),
         hoisted_role: None,
         joined_at: None,
         mute: false,
@@ -128,10 +129,10 @@ pub fn cache_with_message_and_reactions() -> InMemoryCache {
             avatar: Some("".to_owned()),
             banner: None,
             bot: false,
-            discriminator: "0002".to_owned(),
+            discriminator: 2,
             email: None,
             flags: None,
-            id: UserId(5),
+            id: UserId::new(5).expect("non zero"),
             locale: None,
             mfa_enabled: None,
             name: "test".to_owned(),
@@ -141,7 +142,7 @@ pub fn cache_with_message_and_reactions() -> InMemoryCache {
             verified: None,
         },
     });
-    reaction.user_id = UserId(5);
+    reaction.user_id = UserId::new(5).expect("non zero");
 
     cache.update(&reaction);
 
@@ -160,9 +161,9 @@ pub fn current_user(id: u64) -> CurrentUser {
         avatar: None,
         banner: None,
         bot: true,
-        discriminator: "9876".to_owned(),
+        discriminator: 9876,
         email: None,
-        id: UserId(id),
+        id: UserId::new(id).expect("non zero"),
         mfa_enabled: true,
         name: "test".to_owned(),
         verified: Some(true),
@@ -187,8 +188,8 @@ pub fn emoji(id: EmojiId, user: Option<User>) -> Emoji {
 }
 
 pub fn guild_channel_text() -> (GuildId, ChannelId, GuildChannel) {
-    let guild_id = GuildId(1);
-    let channel_id = ChannelId(2);
+    let guild_id = GuildId::new(1).expect("non zero");
+    let channel_id = ChannelId::new(2).expect("non zero");
     let channel = GuildChannel::Text(TextChannel {
         guild_id: Some(guild_id),
         id: channel_id,
@@ -254,7 +255,7 @@ pub fn voice_state(
         suppress: false,
         token: None,
         user_id,
-        request_to_speak_timestamp: Some("2021-04-21T22:16:50+0000".to_owned()),
+        request_to_speak_timestamp: Some(Timestamp::from_secs(1_632_072_645).expect("non zero")),
     }
 }
 
@@ -264,7 +265,7 @@ pub fn user(id: UserId) -> User {
         avatar: None,
         banner: Some("06c16474723fe537c283b8efa61a30c8".to_owned()),
         bot: false,
-        discriminator: "0001".to_owned(),
+        discriminator: 1,
         email: None,
         flags: None,
         id,

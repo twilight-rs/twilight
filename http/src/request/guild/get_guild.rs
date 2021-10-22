@@ -35,7 +35,7 @@ impl<'a> GetGuild<'a> {
     /// [`Response`]: crate::response::Response
     pub fn exec(self) -> ResponseFuture<Guild> {
         let request = Request::from_route(&Route::GetGuild {
-            guild_id: self.guild_id.0,
+            guild_id: self.guild_id.get(),
             with_counts: self.fields.with_counts,
         });
 

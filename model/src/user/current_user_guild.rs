@@ -41,7 +41,7 @@ mod tests {
     fn test_current_user_guild() {
         // The example partial guild from the discord docs
         let value = CurrentUserGuild {
-            id: GuildId(80_351_110_224_678_912),
+            id: GuildId::new(80_351_110_224_678_912).expect("non zero"),
             name: "abcd".to_owned(),
             icon: Some("8342729096ea3675442027381ff50dfe".to_owned()),
             owner: true,

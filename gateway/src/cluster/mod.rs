@@ -9,18 +9,18 @@
 //! ```no_run
 //! use twilight_gateway::{Cluster, Event, Intents};
 //! use futures::StreamExt;
-//! use std::env;
+//! use std::{env, sync::Arc};
 //!
 //! #[tokio::main]
 //! async fn main() -> Result<(), Box<dyn std::error::Error>> {
 //!     let token = env::var("DISCORD_TOKEN")?;
 //!     let intents = Intents::GUILD_BANS | Intents::GUILD_EMOJIS | Intents::GUILD_MESSAGES;
 //!     let (cluster, mut events) = Cluster::new(token, intents).await?;
-//!
+//!     let cluster = Arc::new(cluster);
 //!     cluster.up().await;
 //!
 //!     while let Some((shard_id, event)) = events.next().await {
-//!         tokio::spawn(handle_event(cluster.clone(), shard_id, event));
+//!         tokio::spawn(handle_event(Arc::clone(&cluster), shard_id, event));
 //!     }
 //!
 //!     println!("Cluster is now shutdown");
@@ -28,7 +28,7 @@
 //!     Ok(())
 //! }
 //!
-//! async fn handle_event(cluster: Cluster, shard_id: u64, event: Event) {
+//! async fn handle_event(cluster: Arc<Cluster>, shard_id: u64, event: Event) {
 //!     match event {
 //!         Event::ShardConnected { .. } => {
 //!             println!("Shard {} is now connected", shard_id);
@@ -96,7 +96,7 @@ pub use self::{
     event::Events,
     r#impl::{
         Cluster, ClusterCommandError, ClusterCommandErrorType, ClusterStartError,
-        ClusterStartErrorType,
+        ClusterStartErrorType, Shards,
     },
     scheme::{ShardScheme, ShardSchemeRangeError, ShardSchemeRangeErrorType},
 };

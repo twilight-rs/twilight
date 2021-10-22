@@ -30,7 +30,7 @@ struct CreateGuildStickerFields<'a> {
 /// # async fn main() -> Result<(), Box<dyn std::error::Error>> {
 /// let client = Client::new("my token".to_owned());
 ///
-/// let guild_id = GuildId(1);
+/// let guild_id = GuildId::new(1).expect("non zero");
 /// let sticker = client
 ///     .create_guild_sticker(
 ///         guild_id,
@@ -99,7 +99,7 @@ impl<'a> CreateGuildSticker<'a> {
     /// [`Response`]: crate::response::Response
     pub fn exec(self) -> ResponseFuture<Sticker> {
         let mut request = Request::builder(&Route::CreateGuildSticker {
-            guild_id: self.guild_id.0,
+            guild_id: self.guild_id.get(),
         });
 
         let mut form = Form::new();

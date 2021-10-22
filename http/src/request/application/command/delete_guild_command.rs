@@ -32,9 +32,9 @@ impl<'a> DeleteGuildCommand<'a> {
 
     pub fn exec(self) -> ResponseFuture<EmptyBody> {
         let request = Request::from_route(&Route::DeleteGuildCommand {
-            application_id: self.application_id.0,
-            command_id: self.command_id.0,
-            guild_id: self.guild_id.0,
+            application_id: self.application_id.get(),
+            command_id: self.command_id.get(),
+            guild_id: self.guild_id.get(),
         });
 
         self.http.request(request)

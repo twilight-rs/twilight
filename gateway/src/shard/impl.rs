@@ -1,5 +1,6 @@
 use super::{
     builder::ShardBuilder,
+    command::Command,
     config::Config,
     emitter::Emitter,
     event::Events,
@@ -9,8 +10,6 @@ use super::{
     stage::Stage,
 };
 use crate::Intents;
-use futures_util::stream::StreamExt;
-use once_cell::sync::OnceCell;
 use serde::{Deserialize, Serialize};
 use std::{
     borrow::Cow,
@@ -18,7 +17,10 @@ use std::{
     fmt::{Display, Formatter, Result as FmtResult},
     sync::{atomic::Ordering, Arc, Mutex},
 };
-use tokio::{sync::watch::Receiver as WatchReceiver, task::JoinHandle};
+use tokio::{
+    sync::{watch::Receiver as WatchReceiver, OnceCell},
+    task::JoinHandle,
+};
 use tokio_tungstenite::tungstenite::protocol::{
     frame::coding::CloseCode, CloseFrame as TungsteniteCloseFrame,
 };
@@ -55,6 +57,8 @@ impl CommandError {
         let (kind, source) = error.into_parts();
 
         let new_kind = match kind {
+            SendErrorType::ExecutorShutDown => CommandErrorType::ExecutorShutDown,
+            SendErrorType::HeartbeaterNotStarted => CommandErrorType::HeartbeaterNotStarted,
             SendErrorType::Sending => CommandErrorType::Sending,
             SendErrorType::SessionInactive => CommandErrorType::SessionInactive,
         };
@@ -69,6 +73,10 @@ impl CommandError {
 impl Display for CommandError {
     fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
         match &self.kind {
+            CommandErrorType::ExecutorShutDown => f.write_str("runtime executor has shut down"),
+            CommandErrorType::HeartbeaterNotStarted => {
+                f.write_str("heartbeater task hasn't been started yet")
+            }
             CommandErrorType::Sending => {
                 f.write_str("sending the message over the websocket failed")
             }
@@ -90,6 +98,10 @@ impl Error for CommandError {
 #[derive(Debug)]
 #[non_exhaustive]
 pub enum CommandErrorType {
+    /// The runtime executor shut down, causing the ratelimiting actor to stop.
+    ExecutorShutDown,
+    /// Heartbeater task has not been started yet.
+    HeartbeaterNotStarted,
     /// Sending the payload over the WebSocket failed. This is indicative of a
     /// shutdown shard.
     Sending,
@@ -144,6 +156,10 @@ impl SendError {
 impl Display for SendError {
     fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
         match &self.kind {
+            SendErrorType::ExecutorShutDown { .. } => f.write_str("runtime executor has shut down"),
+            SendErrorType::HeartbeaterNotStarted { .. } => {
+                f.write_str("heartbeater task hasn't been started yet")
+            }
             SendErrorType::Sending { .. } => {
                 f.write_str("sending the message over the websocket failed")
             }
@@ -164,6 +180,11 @@ impl Error for SendError {
 #[derive(Debug)]
 #[non_exhaustive]
 pub enum SendErrorType {
+    /// Runtime executor has been shutdown, causing the ratelimiting
+    /// actor to stop.
+    ExecutorShutDown,
+    /// Heartbeater task has not been started yet.
+    HeartbeaterNotStarted,
     /// Sending the payload over the WebSocket failed. This is indicative of a
     /// shard that isn't properly running.
     Sending,
@@ -307,14 +328,6 @@ pub struct ResumeSession {
     pub sequence: u64,
 }
 
-#[derive(Debug)]
-struct ShardRef {
-    config: Arc<Config>,
-    emitter: Mutex<Option<Emitter>>,
-    processor_handle: OnceCell<JoinHandle<()>>,
-    session: OnceCell<WatchReceiver<Arc<Session>>>,
-}
-
 /// Shard to run and manage a session with the gateway.
 ///
 /// Shards are responsible for handling incoming events, process events relevant
@@ -326,10 +339,10 @@ struct ShardRef {
 /// sessions with the ratelimit. Refer to Discord's [documentation][docs:shards]
 /// on shards to have a better understanding of what they are.
 ///
-/// # Cloning
+/// # Using a shard in multiple tasks
 ///
-/// The shard internally wraps its data within an Arc. This means that the shard
-/// can be cloned and passed around tasks and threads cheaply.
+/// To use a shard instance in multiple tasks, consider wrapping it in an
+/// [`std::sync::Arc`] or [`std::rc::Rc`].
 ///
 /// # Examples
 ///
@@ -371,8 +384,13 @@ struct ShardRef {
 ///
 /// [`queue`]: crate::queue
 /// [docs:shards]: https://discord.com/developers/docs/topics/gateway#sharding
-#[derive(Clone, Debug)]
-pub struct Shard(Arc<ShardRef>);
+#[derive(Debug)]
+pub struct Shard {
+    config: Arc<Config>,
+    emitter: Mutex<Option<Emitter>>,
+    processor_handle: OnceCell<JoinHandle<()>>,
+    session: OnceCell<WatchReceiver<Arc<Session>>>,
+}
 
 impl Shard {
     /// Create a new unconfigured shard.
@@ -415,12 +433,12 @@ impl Shard {
 
         let (emitter, rx) = Emitter::new(event_types);
 
-        let this = Self(Arc::new(ShardRef {
+        let this = Self {
             config,
             emitter: Mutex::new(Some(emitter)),
             processor_handle: OnceCell::new(),
             session: OnceCell::new(),
-        }));
+        };
 
         (this, Events::new(event_types, rx))
     }
@@ -434,7 +452,7 @@ impl Shard {
 
     /// Return an immutable reference to the configuration used for this client.
     pub fn config(&self) -> &Config {
-        &self.0.config
+        &self.config
     }
 
     /// Start the shard, connecting it to the gateway and starting the process
@@ -461,13 +479,12 @@ impl Shard {
     /// [`shutdown_resumable`]: Self::shutdown_resumable
     /// [`shutdown`]: Self::shutdown
     pub async fn start(&self) -> Result<(), ShardStartError> {
-        let url = if let Some(u) = &self.0.config.gateway_url {
-            u.to_string()
+        let url = if let Some(u) = self.config.gateway_url.clone() {
+            u.into_string()
         } else {
             // By making an authenticated gateway information retrieval request
             // we're also validating the configured token.
-            self.0
-                .config
+            self.config
                 .http_client()
                 .gateway()
                 .authed()
@@ -487,7 +504,6 @@ impl Shard {
         };
 
         let emitter = self
-            .0
             .emitter
             .lock()
             .expect("emitter poisoned")
@@ -497,7 +513,7 @@ impl Shard {
                 source: None,
             })?;
 
-        let config = Arc::clone(&self.0.config);
+        let config = Arc::clone(&self.config);
         let (processor, wrx) =
             ShardProcessor::new(config, url, emitter)
                 .await
@@ -525,8 +541,8 @@ impl Shard {
         });
 
         // We know that these haven't been set, so we can ignore the result.
-        let _res = self.0.processor_handle.set(handle);
-        let _session = self.0.session.set(wrx);
+        let _res = self.processor_handle.set(handle);
+        let _session = self.session.set(wrx);
 
         Ok(())
     }
@@ -551,6 +567,37 @@ impl Shard {
 
     /// Send a command over the gateway.
     ///
+    /// # Examples
+    ///
+    /// Request members whose names start with "tw" in a guild:
+    ///
+    /// ```no_run
+    /// # #[tokio::main]
+    /// # async fn main() -> Result<(), Box<dyn std::error::Error>> {
+    /// use std::env;
+    /// use twilight_gateway::{shard::Shard, Intents};
+    /// use twilight_model::{
+    ///     gateway::payload::outgoing::RequestGuildMembers,
+    ///     id::GuildId,
+    /// };
+    ///
+    /// let intents = Intents::GUILD_VOICE_STATES;
+    /// let token = env::var("DISCORD_TOKEN")?;
+    ///
+    /// let (shard, _events) = Shard::new(token, intents);
+    /// shard.start().await?;
+    ///
+    /// // Query members whose names start with "tw" and limit the results to
+    /// // 10 members.
+    /// let request =
+    ///     RequestGuildMembers::builder(GuildId::new(1).expect("non zero"))
+    ///         .query("tw", Some(10));
+    ///
+    /// // Send the request over the shard.
+    /// shard.command(&request).await?;
+    /// # Ok(()) }
+    /// ```
+    ///
     /// # Errors
     ///
     /// Returns a [`CommandErrorType::Sending`] error type if the message could
@@ -562,7 +609,7 @@ impl Shard {
     ///
     /// Returns a [`CommandErrorType::SessionInactive`] error type if the shard
     /// has not been started.
-    pub async fn command(&self, value: &impl serde::Serialize) -> Result<(), CommandError> {
+    pub async fn command(&self, value: &impl Command) -> Result<(), CommandError> {
         let json = json::to_vec(value).map_err(|source| CommandError {
             source: Some(Box::new(source)),
             kind: CommandErrorType::Serializing,
@@ -637,9 +684,17 @@ impl Shard {
         match session.tx.send(message.into_tungstenite()) {
             Ok(()) => {
                 // Tick ratelimiter.
-                session.ratelimit.lock().await.next().await;
-
-                Ok(())
+                if let Some(limiter) = session.ratelimit.get() {
+                    limiter.acquire_one().await.map_err(|source| SendError {
+                        kind: SendErrorType::ExecutorShutDown,
+                        source: Some(Box::new(source)),
+                    })
+                } else {
+                    Err(SendError {
+                        kind: SendErrorType::HeartbeaterNotStarted,
+                        source: None,
+                    })
+                }
             }
             Err(source) => Err(SendError {
                 source: Some(Box::new(source)),
@@ -648,38 +703,13 @@ impl Shard {
         }
     }
 
-    /// Send a raw command over the gateway.
-    ///
-    /// This method should be used with caution, [`command`] should be
-    /// preferred.
-    ///
-    /// # Errors
-    ///
-    /// Returns a [`CommandErrorType::Sending`] error type if the message could
-    /// not be sent over the websocket. This indicates the shard is currently
-    /// restarting.
-    ///
-    /// Returns a [`CommandErrorType::Serializing`] error type if the provided
-    /// value failed to serialize into JSON.
-    ///
-    /// Returns a [`CommandErrorType::SessionInactive`] error type if the shard
-    /// has not been started.
-    ///
-    /// [`command`]: Self::command
-    #[deprecated(note = "Use `send` which is more versatile", since = "0.3.0")]
-    pub async fn command_raw(&self, value: Vec<u8>) -> Result<(), CommandError> {
-        self.send(Message::Binary(value))
-            .await
-            .map_err(CommandError::from_send)
-    }
-
     /// Shut down the shard.
     ///
     /// The shard will cleanly close the connection by sending a normal close
     /// code, causing Discord to show the bot as being offline. The session will
     /// not be resumable.
     pub fn shutdown(&self) {
-        if let Some(processor_handle) = self.0.processor_handle.get() {
+        if let Some(processor_handle) = self.processor_handle.get() {
             processor_handle.abort();
         }
 
@@ -702,7 +732,7 @@ impl Shard {
     ///
     /// [`ClusterBuilder::resume_sessions`]: crate::cluster::ClusterBuilder::resume_sessions
     pub fn shutdown_resumable(&self) -> (u64, Option<ResumeSession>) {
-        if let Some(processor_handle) = self.0.processor_handle.get() {
+        if let Some(processor_handle) = self.processor_handle.get() {
             processor_handle.abort();
         }
 
@@ -737,7 +767,7 @@ impl Shard {
     ///
     /// Returns a [`SessionInactiveError`] if the shard's session is inactive.
     fn session(&self) -> Result<Arc<Session>, SessionInactiveError> {
-        let session = self.0.session.get().ok_or(SessionInactiveError)?;
+        let session = self.session.get().ok_or(SessionInactiveError)?;
 
         Ok(Arc::clone(&session.borrow()))
     }
@@ -762,5 +792,5 @@ mod tests {
     assert_fields!(ShardStartErrorType::ParsingGatewayUrl: url);
     assert_impl_all!(ShardStartErrorType: Debug, Send, Sync);
     assert_impl_all!(ShardStartError: Error, Send, Sync);
-    assert_impl_all!(Shard: Clone, Debug, Send, Sync);
+    assert_impl_all!(Shard: Debug, Send, Sync);
 }

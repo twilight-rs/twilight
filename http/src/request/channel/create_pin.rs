@@ -34,8 +34,8 @@ impl<'a> CreatePin<'a> {
     /// [`Response`]: crate::response::Response
     pub fn exec(self) -> ResponseFuture<EmptyBody> {
         let mut request = Request::builder(&Route::PinMessage {
-            channel_id: self.channel_id.0,
-            message_id: self.message_id.0,
+            channel_id: self.channel_id.get(),
+            message_id: self.message_id.get(),
         });
 
         if let Some(reason) = &self.reason {

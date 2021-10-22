@@ -1,4 +1,4 @@
-use super::{Client, State};
+use super::Client;
 use crate::ratelimiting::Ratelimiter;
 use hyper::header::HeaderMap;
 use std::{
@@ -46,26 +46,24 @@ impl ClientBuilder {
         let http = hyper::client::Builder::default().build(connector);
 
         Client {
-            state: Arc::new(State {
-                http,
-                default_headers: self.default_headers,
-                proxy: self.proxy,
-                ratelimiter: self.ratelimiter,
-                remember_invalid_token: self.remember_invalid_token,
-                timeout: self.timeout,
-                token_invalid: Arc::new(AtomicBool::new(false)),
-                token: self.token,
-                application_id: self.application_id,
-                default_allowed_mentions: self.default_allowed_mentions,
-                use_http: self.use_http,
-            }),
+            http,
+            default_headers: self.default_headers,
+            proxy: self.proxy,
+            ratelimiter: self.ratelimiter,
+            remember_invalid_token: self.remember_invalid_token,
+            timeout: self.timeout,
+            token_invalid: Arc::new(AtomicBool::new(false)),
+            token: self.token,
+            application_id: self.application_id,
+            default_allowed_mentions: self.default_allowed_mentions,
+            use_http: self.use_http,
         }
     }
 
     /// Set the [`ApplicationId`] used by interaction methods.
     pub fn application_id(self, application_id: ApplicationId) -> Self {
         self.application_id
-            .store(application_id.0, Ordering::Relaxed);
+            .store(application_id.get(), Ordering::Relaxed);
 
         self
     }
@@ -179,4 +177,13 @@ impl Default for ClientBuilder {
             use_http: false,
         }
     }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::ClientBuilder;
+    use static_assertions::assert_impl_all;
+    use std::fmt::Debug;
+
+    assert_impl_all!(ClientBuilder: Debug, Default, Send, Sync);
 }

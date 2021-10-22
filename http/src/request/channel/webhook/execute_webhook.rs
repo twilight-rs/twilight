@@ -128,7 +128,7 @@ pub(crate) struct ExecuteWebhookFields<'a> {
 /// # #[tokio::main]
 /// # async fn main() -> Result<(), Box<dyn std::error::Error>> {
 /// let client = Client::new("my token".to_owned());
-/// let id = WebhookId(432);
+/// let id = WebhookId::new(432).expect("non zero");
 ///
 /// client
 ///     .execute_webhook(id, "webhook token")
@@ -257,7 +257,7 @@ impl<'a> ExecuteWebhook<'a> {
     /// # #[tokio::main]
     /// # async fn main() -> Result<(), Box<dyn std::error::Error>> {
     /// # let client = Client::new("token".to_owned());
-    /// let message = client.execute_webhook(WebhookId(1), "token here")
+    /// let message = client.execute_webhook(WebhookId::new(1).expect("non zero"), "token here")
     ///     .content("some content")
     ///     .embeds(&[EmbedBuilder::new().title("title").build()?])
     ///     .wait()
@@ -279,7 +279,7 @@ impl<'a> ExecuteWebhook<'a> {
     /// # #[tokio::main]
     /// # async fn main() -> Result<(), Box<dyn std::error::Error>> {
     /// # let client = Client::new("token".to_owned());
-    /// let message = client.execute_webhook(WebhookId(1), "token here")
+    /// let message = client.execute_webhook(WebhookId::new(1).expect("non zero"), "token here")
     ///     .content("some content")
     ///     .payload_json(br#"{ "content": "other content", "embeds": [ { "title": "title" } ] }"#)
     ///     .wait()
@@ -338,7 +338,7 @@ impl<'a> ExecuteWebhook<'a> {
         let mut request = Request::builder(&Route::ExecuteWebhook {
             token: self.token,
             wait: Some(wait),
-            webhook_id: self.webhook_id.0,
+            webhook_id: self.webhook_id.get(),
         });
 
         // Webhook executions don't need the authorization token, only the

@@ -23,7 +23,7 @@ impl<'a> GetGuildIntegrations<'a> {
     /// [`Response`]: crate::response::Response
     pub fn exec(self) -> ResponseFuture<ListBody<GuildIntegration>> {
         let request = Request::from_route(&Route::GetGuildIntegrations {
-            guild_id: self.guild_id.0,
+            guild_id: self.guild_id.get(),
         });
 
         self.http.request(request)

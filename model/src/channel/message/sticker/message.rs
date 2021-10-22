@@ -35,7 +35,7 @@ mod tests {
     fn test_full() {
         let value = MessageSticker {
             format_type: StickerFormatType::Lottie,
-            id: StickerId(1),
+            id: StickerId::new(1).expect("non zero"),
             name: "sticker".into(),
         };
 

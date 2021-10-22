@@ -1,5 +1,6 @@
 use crate::{
     channel::ChannelType,
+    datetime::Timestamp,
     id::{ApplicationId, ChannelId, MessageId, UserId},
     user::User,
 };
@@ -16,7 +17,7 @@ pub struct Group {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub last_message_id: Option<MessageId>,
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub last_pin_timestamp: Option<String>,
+    pub last_pin_timestamp: Option<Timestamp>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub name: Option<String>,
     pub owner_id: UserId,
@@ -26,19 +27,21 @@ pub struct Group {
 #[cfg(test)]
 mod tests {
     use super::{ApplicationId, ChannelId, ChannelType, Group, MessageId, UserId};
+    use crate::datetime::{Timestamp, TimestampParseError};
     use serde_test::Token;
+    use std::str::FromStr;
 
     #[test]
     fn test_group() {
         let value = Group {
-            application_id: Some(ApplicationId(1)),
+            application_id: Some(ApplicationId::new(1).expect("non zero")),
             icon: Some("icon hash".to_owned()),
-            id: ChannelId(2),
+            id: ChannelId::new(2).expect("non zero"),
             kind: ChannelType::Group,
-            last_message_id: Some(MessageId(3)),
+            last_message_id: Some(MessageId::new(3).expect("non zero")),
             last_pin_timestamp: None,
             name: Some("a group".to_owned()),
-            owner_id: UserId(4),
+            owner_id: UserId::new(4).expect("non zero"),
             recipients: Vec::new(),
         };
 
@@ -82,16 +85,18 @@ mod tests {
     }
 
     #[test]
-    fn test_group_complete() {
+    fn test_group_complete() -> Result<(), TimestampParseError> {
+        let timestamp = Timestamp::from_str("2021-08-10T12:21:10+00:00")?;
+
         let value = Group {
-            application_id: Some(ApplicationId(1)),
+            application_id: Some(ApplicationId::new(1).expect("non zero")),
             icon: Some("icon hash".to_owned()),
-            id: ChannelId(2),
+            id: ChannelId::new(2).expect("non zero"),
             kind: ChannelType::Group,
-            last_message_id: Some(MessageId(3)),
-            last_pin_timestamp: Some("123".to_owned()),
+            last_message_id: Some(MessageId::new(3).expect("non zero")),
+            last_pin_timestamp: Some(timestamp),
             name: Some("a group".to_owned()),
-            owner_id: UserId(4),
+            owner_id: UserId::new(4).expect("non zero"),
             recipients: Vec::new(),
         };
 
@@ -122,7 +127,7 @@ mod tests {
                 Token::Str("3"),
                 Token::Str("last_pin_timestamp"),
                 Token::Some,
-                Token::Str("123"),
+                Token::Str("2021-08-10T12:21:10.000000+00:00"),
                 Token::Str("name"),
                 Token::Some,
                 Token::Str("a group"),
@@ -135,5 +140,7 @@ mod tests {
                 Token::StructEnd,
             ],
         );
+
+        Ok(())
     }
 }

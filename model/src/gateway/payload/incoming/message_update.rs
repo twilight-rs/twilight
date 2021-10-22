@@ -4,6 +4,7 @@ use crate::{
         message::{Mention, MessageType},
         Attachment,
     },
+    datetime::Timestamp,
     id::{ChannelId, GuildId, MessageId, RoleId},
     user::User,
 };
@@ -18,7 +19,7 @@ pub struct MessageUpdate {
     pub channel_id: ChannelId,
     pub content: Option<String>,
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub edited_timestamp: Option<String>,
+    pub edited_timestamp: Option<Timestamp>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub embeds: Option<Vec<Embed>>,
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -35,7 +36,7 @@ pub struct MessageUpdate {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub pinned: Option<bool>,
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub timestamp: Option<String>,
+    pub timestamp: Option<Timestamp>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub tts: Option<bool>,
 }

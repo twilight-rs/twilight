@@ -83,6 +83,7 @@ impl RequestGuildMembers {
     }
 }
 
+#[derive(Clone, Debug, Eq, PartialEq)]
 pub struct RequestGuildMembersBuilder {
     guild_id: GuildId,
     nonce: Option<String>,
@@ -138,13 +139,16 @@ impl RequestGuildMembersBuilder {
     /// their presences:
     ///
     /// ```
-    /// use twilight_model::{gateway::payload::RequestGuildMembers, id::GuildId};
+    /// use twilight_model::{
+    ///     gateway::payload::outgoing::RequestGuildMembers,
+    ///     id::GuildId,
+    /// };
     ///
-    /// let request = RequestGuildMembers::builder(GuildId(1))
+    /// let request = RequestGuildMembers::builder(GuildId::new(1).expect("non zero"))
     ///     .presences(true)
     ///     .query("a", None);
     ///
-    /// assert_eq!(GuildId(1), request.d.guild_id);
+    /// assert_eq!(GuildId::new(1).expect("non zero"), request.d.guild_id);
     /// assert_eq!(Some(0), request.d.limit);
     /// assert_eq!(Some("a"), request.d.query.as_deref());
     /// assert_eq!(Some(true), request.d.presences);
@@ -176,15 +180,18 @@ impl RequestGuildMembersBuilder {
     ///
     /// ```
     /// use twilight_model::{
-    ///     gateway::payload::request_guild_members::{RequestGuildMemberId, RequestGuildMembers},
+    ///     gateway::payload::outgoing::request_guild_members::{
+    ///         RequestGuildMemberId,
+    ///         RequestGuildMembers,
+    ///     },
     ///     id::{GuildId, UserId},
     /// };
     ///
-    /// let request = RequestGuildMembers::builder(GuildId(1))
+    /// let request = RequestGuildMembers::builder(GuildId::new(1).expect("non zero"))
     ///     .nonce("test")
-    ///     .user_id(UserId(2));
+    ///     .user_id(UserId::new(2).expect("non zero"));
     ///
-    /// assert_eq!(Some(RequestGuildMemberId::One(UserId(2))), request.d.user_ids);
+    /// assert_eq!(Some(RequestGuildMemberId::One(UserId::new(2).expect("non zero"))), request.d.user_ids);
     /// ```
     #[allow(clippy::missing_const_for_fn)]
     pub fn user_id(self, user_id: UserId) -> RequestGuildMembers {
@@ -212,14 +219,17 @@ impl RequestGuildMembersBuilder {
     ///
     /// ```
     /// use twilight_model::{
-    ///     gateway::payload::request_guild_members::{RequestGuildMemberId, RequestGuildMembers},
+    ///     gateway::payload::outgoing::request_guild_members::{
+    ///         RequestGuildMemberId,
+    ///         RequestGuildMembers,
+    ///     },
     ///     id::{GuildId, UserId},
     /// };
     ///
     /// # fn main() -> Result<(), Box<dyn std::error::Error>> {
-    /// let request = RequestGuildMembers::builder(GuildId(1))
+    /// let request = RequestGuildMembers::builder(GuildId::new(1).expect("non zero"))
     ///     .nonce("test")
-    ///     .user_ids(vec![UserId(2), UserId(3)])?;
+    ///     .user_ids(vec![UserId::new(2).expect("non zero"), UserId::new(2).expect("non zero")])?;
     ///
     /// assert!(matches!(request.d.user_ids, Some(RequestGuildMemberId::Multiple(ids)) if ids.len() == 2));
     /// # Ok(()) }
@@ -292,4 +302,20 @@ impl<T> From<Vec<T>> for RequestGuildMemberId<T> {
     fn from(ids: Vec<T>) -> Self {
         Self::Multiple(ids)
     }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::RequestGuildMembersBuilder;
+    use static_assertions::assert_impl_all;
+    use std::fmt::Debug;
+
+    assert_impl_all!(
+        RequestGuildMembersBuilder: Clone,
+        Debug,
+        Eq,
+        PartialEq,
+        Send,
+        Sync
+    );
 }

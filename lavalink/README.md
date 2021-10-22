@@ -65,10 +65,6 @@ use std::{
 use twilight_gateway::{Event, Intents, Shard};
 use twilight_http::Client as HttpClient;
 use twilight_lavalink::{http::LoadedTracks, model::Play, Lavalink};
-use twilight_model::{
-    channel::Message,
-    gateway::payload::MessageCreate,
-};
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn Error + Send + Sync + 'static>> {
@@ -108,6 +104,6 @@ async fn main() -> Result<(), Box<dyn Error + Send + Sync + 'static>> {
 [license link]: https://github.com/twilight-rs/twilight/blob/main/LICENSE.md
 [node]: Node
 [process]: Lavalink::process
-[rust badge]: https://img.shields.io/badge/rust-1.49+-93450a.svg?style=for-the-badge&logo=rust
+[rust badge]: https://img.shields.io/badge/rust-1.53+-93450a.svg?style=for-the-badge&logo=rust
 
 <!-- cargo-sync-readme end -->

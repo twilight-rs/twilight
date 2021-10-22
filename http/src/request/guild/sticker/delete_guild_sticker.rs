@@ -21,8 +21,8 @@ use twilight_model::{channel::message::sticker::StickerId, id::GuildId};
 /// # async fn main() -> Result<(), Box<dyn std::error::Error>> {
 /// let client = Client::new("my token".to_owned());
 ///
-/// let guild_id = GuildId(1);
-/// let sticker_id = StickerId(2);
+/// let guild_id = GuildId::new(1).expect("non zero");
+/// let sticker_id = StickerId::new(2).expect("non zero");
 ///
 /// client
 ///     .delete_guild_sticker(guild_id, sticker_id)
@@ -50,8 +50,8 @@ impl<'a> DeleteGuildSticker<'a> {
     /// [`Response`]: crate::response::Response
     pub fn exec(self) -> ResponseFuture<EmptyBody> {
         let request = Request::from_route(&Route::DeleteGuildSticker {
-            guild_id: self.guild_id.0,
-            sticker_id: self.sticker_id.0,
+            guild_id: self.guild_id.get(),
+            sticker_id: self.sticker_id.get(),
         });
 
         self.http.request(request)

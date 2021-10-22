@@ -13,7 +13,7 @@ pub use self::{
 };
 
 use self::shard::*;
-use super::payload::*;
+use super::payload::incoming::*;
 use std::error::Error;
 use std::fmt::{Debug, Display, Formatter, Result as FmtResult};
 
