@@ -7,6 +7,16 @@ use std::cmp::{Ord, Ordering, PartialOrd};
 pub struct Role {
     pub color: u32,
     pub hoist: bool,
+    /// Icon image hash.
+    ///
+    /// Present if the guild has the `ROLE_ICONS` feature and if the role has
+    /// one.
+    ///
+    /// See [Discord Docs/Image Formatting].
+    ///
+    /// [Discord Docs/Image Formatting]: https://discord.com/developers/docs/reference#image-formatting
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub icon: Option<String>,
     pub id: RoleId,
     pub managed: bool,
     pub mentionable: bool,
@@ -16,6 +26,12 @@ pub struct Role {
     /// Tags about the role.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub tags: Option<RoleTags>,
+    /// Icon unicode emoji.
+    ///
+    /// Present if the guild has the `ROLE_ICONS` feature and if the role has
+    /// one.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub unicode_emoji: Option<String>,
 }
 
 impl Ord for Role {
@@ -122,6 +138,7 @@ mod tests {
         let role = Role {
             color: 0,
             hoist: true,
+            icon: None,
             id: RoleId::new(123).expect("non zero"),
             managed: false,
             mentionable: true,
@@ -129,6 +146,7 @@ mod tests {
             permissions: Permissions::ADMINISTRATOR,
             position: 12,
             tags: None,
+            unicode_emoji: None,
         };
 
         serde_test::assert_tokens(
