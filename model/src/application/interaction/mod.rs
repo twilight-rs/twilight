@@ -232,7 +232,9 @@ impl<'de> Visitor<'de> for InteractionVisitor {
                 let data = data
                     .ok_or_else(|| DeError::missing_field("data"))?
                     .deserialize_into()
-                    .map_err(|_| DeError::custom("expected CommandData struct"))?;
+                    .map_err(|e| {
+                        DeError::custom(format!("CommandData deserialization error: {}", e))
+                    })?;
 
                 let guild_id = guild_id.unwrap_or_default();
                 let member = member.unwrap_or_default();
