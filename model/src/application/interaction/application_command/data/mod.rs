@@ -79,16 +79,11 @@ enum CommandOptionValueRaw<'a> {
 
 impl Serialize for CommandDataOption {
     fn serialize<S: Serializer>(&self, serializer: S) -> Result<S::Ok, S::Error> {
-        let mut state = serializer.serialize_struct("CommandDataOptionRaw", {
-            match &self.value {
-                CommandOptionValue::SubCommand(o) | CommandOptionValue::SubCommandGroup(o)
-                    if o.is_empty() =>
-                {
-                    2
-                }
-                _ => 3,
-            }
-        })?;
+        let sub_command_is_empty = matches!(&self.value, CommandOptionValue::SubCommand(o) | CommandOptionValue::SubCommandGroup(o) if o.is_empty());
+
+        let len = if sub_command_is_empty { 2 } else { 3 };
+
+        let mut state = serializer.serialize_struct("CommandDataOption", len)?;
 
         state.serialize_field("name", &self.name)?;
 
@@ -97,7 +92,7 @@ impl Serialize for CommandDataOption {
         match self.value {
             CommandOptionValue::SubCommand(ref opts)
             | CommandOptionValue::SubCommandGroup(ref opts) => {
-                if opts.is_empty() {
+                if sub_command_is_empty {
                     state.skip_field("options")?
                 } else {
                     state.serialize_field("options", &Some(opts))?
