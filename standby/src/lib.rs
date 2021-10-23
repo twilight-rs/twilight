@@ -1192,7 +1192,7 @@ mod tests {
         let guild_id = GuildId::new(1).expect("non zero");
 
         {
-            let _rx = standby.wait_for(guild_id.clone(), move |_: &Event| false);
+            let _rx = standby.wait_for(guild_id, move |_: &Event| false);
         }
 
         let results = standby.process(&Event::RoleDelete(RoleDelete {
@@ -1243,7 +1243,7 @@ mod tests {
         let standby = Standby::new();
         let guild_id = GuildId::new(1).expect("non zero");
 
-        let _rx = standby.wait_for_stream(guild_id.clone(), move |_: &Event| true);
+        let _rx = standby.wait_for_stream(guild_id, move |_: &Event| true);
 
         let results = standby.process(&Event::RoleDelete(RoleDelete {
             guild_id,
