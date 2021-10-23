@@ -1184,6 +1184,27 @@ mod tests {
         }
     }
 
+    /// Test that if a receiver drops their end, the result properly counts the
+    /// statistic.
+    #[tokio::test]
+    async fn test_dropped() {
+        let standby = Standby::new();
+        let guild_id = GuildId::new(1).expect("non zero");
+
+        {
+            let _rx = standby.wait_for(guild_id.clone(), move |_: &Event| false);
+        }
+
+        let results = standby.process(&Event::RoleDelete(RoleDelete {
+            guild_id,
+            role_id: RoleId::new(2).expect("non zero"),
+        }));
+
+        assert_eq!(1, results.dropped());
+        assert_eq!(0, results.fulfilled());
+        assert_eq!(0, results.sent());
+    }
+
     /// Test that both events in guild 1 is matched but the event in guild 2 is
     /// not matched by testing the returned matched amount.
     #[tokio::test]
@@ -1213,6 +1234,25 @@ mod tests {
         assert_eq!(0, results.dropped());
         assert_eq!(2, results.fulfilled());
         assert_eq!(0, results.sent());
+    }
+
+    /// Test that the [`ProcessResults::sent`] counter increments if a match is
+    /// sent to it.
+    #[tokio::test]
+    async fn test_sent() {
+        let standby = Standby::new();
+        let guild_id = GuildId::new(1).expect("non zero");
+
+        let _rx = standby.wait_for_stream(guild_id.clone(), move |_: &Event| true);
+
+        let results = standby.process(&Event::RoleDelete(RoleDelete {
+            guild_id,
+            role_id: RoleId::new(2).expect("non zero"),
+        }));
+
+        assert_eq!(0, results.dropped());
+        assert_eq!(0, results.fulfilled());
+        assert_eq!(1, results.sent());
     }
 
     /// Test basic functionality of the [`Standby::wait_for`] method.
