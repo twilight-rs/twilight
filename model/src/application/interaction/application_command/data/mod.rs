@@ -83,7 +83,7 @@ impl Serialize for CommandDataOption {
 
         let len = if sub_command_is_empty { 2 } else { 3 };
 
-        let mut state = serializer.serialize_struct("CommandDataOption", len)?;
+        let mut state = serializer.serialize_struct("CommandDataOptionRaw", len)?;
 
         state.serialize_field("name", &self.name)?;
 
