@@ -2,6 +2,20 @@
 
 Changelog for `twilight-lavalink`.
 
+## [0.7.0] - 2021-10-21
+
+### Changes
+
+`Lavalink`, `Node`, and `Player`, no longer implement `Clone`, because
+they are no longer internally wrapped in an `Arc` ([#1067] -
+[@zeylahellyer]). To retain this functionality, you can wrap them it an
+`Arc` or a `Rc` manually.
+
+The MSRV has been updated to 1.53 ([#1161] - [@7596ff]).
+
+[#1067]: https://github.com/twilight-rs/twilight/pull/1067
+[#1161]: https://github.com/twilight-rs/twilight/pull/1161
+
 ## [0.6.1] - 2021-09-17
 
 ### Changes
@@ -194,9 +208,10 @@ crates in the ecosystem receiving a major version bump. There are no changes.
 
 Initial release.
 
+[@7596ff]: https://github.com/7596ff
 [@Gelbpunkt]: https://github.com/Gelbpunkt
-[@MOZGIII]: https://github.com/MOZGIII
 [@james7132]: https://github.com/james7132
+[@MOZGIII]: https://github.com/MOZGIII
 [@nickelc]: https://github.com/nickelc
 [@vivian]: https://github.com/vivian
 [@zeylahellyer]: https://github.com/zeylahellyer
@@ -206,6 +221,7 @@ Initial release.
 [#548]: https://github.com/twilight-rs/twilight/pull/548
 [#518]: https://github.com/twilight-rs/twilight/pull/518
 
+[0.7.0]: https://github.com/twilight-rs/twilight/releases/tag/lavalink-0.7.0
 [0.6.1]: https://github.com/twilight-rs/twilight/releases/tag/lavalink-0.6.1
 [0.6.0]: https://github.com/twilight-rs/twilight/releases/tag/lavalink-0.6.0
 [0.5.2]: https://github.com/twilight-rs/twilight/releases/tag/lavalink-0.5.2
