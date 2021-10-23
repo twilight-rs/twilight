@@ -2,13 +2,25 @@
 
 Changelog for `twilight-embed-builder`.
 
+## [0.7.0] - 2021-10-21
+
+### Changes
+
+The MSRV has been updated to 1.53 ([#1161] - [@7596ff]).
+
+`EmbedBuilder::timestamp` now takes a `Timestamp` instead of a `String`
+([#1164] - [@zeylahellyer]).
+
+[#1161]: https://github.com/twilight-rs/twilight/pull/1161
+[#1164]: https://github.com/twilight-rs/twilight/pull/1164
+
 ## [0.6.0] - 2021-07-31
 
 This major version bump of the Embed Builder crate is done to match all
 of the other crates in the ecosystem receiving a major version bump.
 There are no changes.
 
-## [0.5.2]
+## [0.5.2] - 2021-07-14
 
 ### Changes
 
@@ -121,8 +133,12 @@ crates in the ecosystem receiving a major version bump. There are no changes.
 
 Initial release.
 
+[@7596ff]: https://github.com/7596ff
 [@zeylahellyer]: https://github.com/zeylahellyer
 
+[0.7.0]: https://github.com/twilight-rs/twilight/releases/tag/embed-builder-0.7.0
+[0.6.0]: https://github.com/twilight-rs/twilight/releases/tag/embed-builder-0.6.0
+[0.5.2]: https://github.com/twilight-rs/twilight/releases/tag/embed-builder-0.5.2
 [0.5.1]: https://github.com/twilight-rs/twilight/releases/tag/embed-builder-0.5.1
 [0.5.0]: https://github.com/twilight-rs/twilight/releases/tag/embed-builder-0.5.0
 [0.4.1]: https://github.com/twilight-rs/twilight/releases/tag/embed-builder-0.4.1

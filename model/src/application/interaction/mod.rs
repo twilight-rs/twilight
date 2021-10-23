@@ -296,15 +296,19 @@ mod test {
                 Interaction, InteractionType,
             },
         },
+        datetime::{Timestamp, TimestampParseError},
         guild::{PartialMember, Permissions},
         id::{ApplicationId, ChannelId, CommandId, GuildId, InteractionId, UserId},
         user::User,
     };
     use serde_test::Token;
+    use std::str::FromStr;
 
     #[test]
     #[allow(clippy::too_many_lines)]
-    fn test_interaction_full() {
+    fn test_interaction_full() -> Result<(), TimestampParseError> {
+        let joined_at = Timestamp::from_str("2020-01-01T00:00:00.000000+00:00")?;
+
         let value = Interaction::ApplicationCommand(Box::new(ApplicationCommand {
             application_id: ApplicationId::new(100).expect("non zero"),
             channel_id: ChannelId::new(200).expect("non zero"),
@@ -320,7 +324,7 @@ mod test {
                     members: vec![InteractionMember {
                         hoisted_role: None,
                         id: UserId::new(600).expect("non zero"),
-                        joined_at: Some("joined at".into()),
+                        joined_at: Some(joined_at),
                         nick: Some("nickname".into()),
                         premium_since: None,
                         roles: Vec::new(),
@@ -351,7 +355,7 @@ mod test {
             kind: InteractionType::ApplicationCommand,
             member: Some(PartialMember {
                 deaf: false,
-                joined_at: Some("joined at".into()),
+                joined_at: Some(joined_at),
                 mute: false,
                 nick: Some("nickname".into()),
                 permissions: Some(Permissions::empty()),
@@ -435,7 +439,7 @@ mod test {
                 },
                 Token::Str("joined_at"),
                 Token::Some,
-                Token::Str("joined at"),
+                Token::Str("2020-01-01T00:00:00.000000+00:00"),
                 Token::Str("nick"),
                 Token::Some,
                 Token::Str("nickname"),
@@ -490,7 +494,7 @@ mod test {
                 Token::Bool(false),
                 Token::Str("joined_at"),
                 Token::Some,
-                Token::Str("joined at"),
+                Token::Str("2020-01-01T00:00:00.000000+00:00"),
                 Token::Str("mute"),
                 Token::Bool(false),
                 Token::Str("nick"),
@@ -531,5 +535,7 @@ mod test {
                 Token::StructEnd,
             ],
         );
+
+        Ok(())
     }
 }

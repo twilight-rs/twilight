@@ -1,10 +1,10 @@
-use crate::{guild::Permissions, id::RoleId, user::User};
+use crate::{datetime::Timestamp, guild::Permissions, id::RoleId, user::User};
 use serde::{Deserialize, Serialize};
 
 #[derive(Clone, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
 pub struct PartialMember {
     pub deaf: bool,
-    pub joined_at: Option<String>,
+    pub joined_at: Option<Timestamp>,
     pub mute: bool,
     pub nick: Option<String>,
     /// Permission data for the member.
@@ -14,7 +14,7 @@ pub struct PartialMember {
     /// [`Interaction`]: crate::application::interaction::Interaction
     pub permissions: Option<Permissions>,
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub premium_since: Option<String>,
+    pub premium_since: Option<Timestamp>,
     pub roles: Vec<RoleId>,
     pub user: Option<User>,
 }
@@ -22,13 +22,17 @@ pub struct PartialMember {
 #[cfg(test)]
 mod tests {
     use super::{PartialMember, RoleId};
+    use crate::datetime::{Timestamp, TimestampParseError};
     use serde_test::Token;
+    use std::str::FromStr;
 
     #[test]
-    fn test_partial_member() {
+    fn test_partial_member() -> Result<(), TimestampParseError> {
+        let joined_at = Timestamp::from_str("2015-04-26T06:26:56.936000+00:00")?;
+
         let value = PartialMember {
             deaf: false,
-            joined_at: Some("timestamp".to_owned()),
+            joined_at: Some(joined_at),
             mute: true,
             nick: Some("a nickname".to_owned()),
             permissions: None,
@@ -48,7 +52,7 @@ mod tests {
                 Token::Bool(false),
                 Token::Str("joined_at"),
                 Token::Some,
-                Token::Str("timestamp"),
+                Token::Str("2015-04-26T06:26:56.936000+00:00"),
                 Token::Str("mute"),
                 Token::Bool(true),
                 Token::Str("nick"),
@@ -66,5 +70,7 @@ mod tests {
                 Token::StructEnd,
             ],
         );
+
+        Ok(())
     }
 }

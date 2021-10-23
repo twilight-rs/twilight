@@ -42,6 +42,7 @@ use self::member::MemberListDeserializer;
 use super::gateway::presence::PresenceListDeserializer;
 use crate::{
     channel::{message::sticker::Sticker, GuildChannel, StageInstance},
+    datetime::Timestamp,
     gateway::presence::Presence,
     id::{ApplicationId, ChannelId, GuildId, UserId},
     voice::voice_state::VoiceState,
@@ -73,7 +74,7 @@ pub struct Guild {
     pub icon: Option<String>,
     pub id: GuildId,
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub joined_at: Option<String>,
+    pub joined_at: Option<Timestamp>,
     pub large: bool,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub max_members: Option<u64>,
@@ -857,16 +858,21 @@ impl<'de> Deserialize<'de> for Guild {
 
 #[cfg(test)]
 mod tests {
+
     use super::{
         ApplicationId, ChannelId, DefaultMessageNotificationLevel, ExplicitContentFilter, Guild,
         GuildId, MfaLevel, NSFWLevel, Permissions, PremiumTier, SystemChannelFlags, UserId,
         VerificationLevel,
     };
+    use crate::datetime::{Timestamp, TimestampParseError};
     use serde_test::Token;
+    use std::str::FromStr;
 
     #[allow(clippy::too_many_lines)]
     #[test]
-    fn test_guild() {
+    fn test_guild() -> Result<(), TimestampParseError> {
+        let joined_at = Timestamp::from_str("2015-04-26T06:26:56.936000+00:00")?;
+
         let value = Guild {
             afk_channel_id: Some(ChannelId::new(2).expect("non zero")),
             afk_timeout: 900,
@@ -883,7 +889,7 @@ mod tests {
             features: vec!["a feature".to_owned()],
             icon: Some("icon hash".to_owned()),
             id: GuildId::new(1).expect("non zero"),
-            joined_at: Some("timestamp".to_owned()),
+            joined_at: Some(joined_at),
             large: true,
             max_members: Some(25_000),
             max_presences: Some(10_000),
@@ -972,7 +978,7 @@ mod tests {
                 Token::Str("1"),
                 Token::Str("joined_at"),
                 Token::Some,
-                Token::Str("timestamp"),
+                Token::Str("2015-04-26T06:26:56.936000+00:00"),
                 Token::Str("large"),
                 Token::Bool(true),
                 Token::Str("max_members"),
@@ -1054,5 +1060,7 @@ mod tests {
                 Token::StructEnd,
             ],
         );
+
+        Ok(())
     }
 }
