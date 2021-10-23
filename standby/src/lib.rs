@@ -288,8 +288,10 @@ impl Standby {
             Event::ReactionAdd(e) => {
                 Self::process_specific_event(&self.reactions, e.0.message_id, e);
             }
-            Event::InteractionCreate(e) => if let Interaction::MessageComponent(comp)= &e.0 {
-                Self::process_specific_event(&self.components, comp.message.id, &**comp)
+            Event::InteractionCreate(e) => {
+                if let Interaction::MessageComponent(comp) = &e.0 {
+                    Self::process_specific_event(&self.components, comp.message.id, &**comp)
+                }
             }
             _ => {}
         }
@@ -1085,7 +1087,7 @@ mod tests {
         datetime::Timestamp,
         gateway::{
             event::{Event, EventType},
-            payload::incoming::{MessageCreate, ReactionAdd, Ready, RoleDelete},
+            payload::incoming::{InteractionCreate, MessageCreate, ReactionAdd, Ready, RoleDelete},
         },
         id::{ApplicationId, ChannelId, GuildId, InteractionId, MessageId, RoleId, UserId},
         oauth::{current_application_info::ApplicationFlags, PartialApplication},
@@ -1154,6 +1156,41 @@ mod tests {
             member: None,
             message_id: MessageId::new(4).expect("non zero"),
             user_id: UserId::new(3).expect("non zero"),
+        }
+    }
+
+    fn button() -> MessageComponentInteraction {
+        MessageComponentInteraction {
+            application_id: ApplicationId::new(1).expect("non zero id"),
+            channel_id: ChannelId::new(2).expect("non zero id"),
+            data: MessageComponentInteractionData {
+                custom_id: String::from("Click"),
+                component_type: ComponentType::Button,
+                values: vec![],
+            },
+            guild_id: Some(GuildId::new(3).expect("non zero id")),
+            id: InteractionId::new(4).expect("non zero id"),
+            kind: InteractionType::MessageComponent,
+            member: None,
+            message: message(),
+            token: String::from("token"),
+            user: Some(User {
+                accent_color: None,
+                avatar: None,
+                banner: None,
+                bot: false,
+                discriminator: 1,
+                email: None,
+                flags: None,
+                id: UserId::new(2).expect("non zero id"),
+                locale: None,
+                mfa_enabled: None,
+                name: "twilight".to_owned(),
+                premium_type: None,
+                public_flags: None,
+                system: None,
+                verified: None,
+            }),
         }
     }
 
@@ -1362,25 +1399,29 @@ mod tests {
         )));
 
         let standby = Standby::new();
-        let wait = standby
-            .wait_for_component(MessageId(3), |button: &MessageComponentInteraction| {
-                button.author_id() == Some(UserId(2))
-            });
+        let wait = standby.wait_for_component(
+            MessageId::new(3).expect("non zero id"),
+            |button: &MessageComponentInteraction| {
+                button.author_id() == Some(UserId::new(2).expect("non zero id"))
+            },
+        );
 
         standby.process(&event);
 
         assert_eq!(
-            Some(UserId(2)),
+            Some(UserId::new(2).expect("non zero id")),
             wait.await.map(|button| button.author_id()).unwrap()
         );
-        assert!(standby.0.components.is_empty());
+        assert!(standby.components.is_empty());
     }
 
     #[tokio::test]
     async fn test_wait_for_component_stream() {
         let standby = Standby::new();
-        let mut stream =
-            standby.wait_for_component_stream(MessageId(3), |_: &MessageComponentInteraction| true);
+        let mut stream = standby.wait_for_component_stream(
+            MessageId::new(3).expect("non zero id"),
+            |_: &MessageComponentInteraction| true,
+        );
         standby.process(&Event::InteractionCreate(Box::new(InteractionCreate(
             Interaction::MessageComponent(Box::new(button())),
         ))));
@@ -1391,11 +1432,11 @@ mod tests {
         assert!(stream.next().await.is_some());
         assert!(stream.next().await.is_some());
         drop(stream);
-        assert_eq!(1, standby.0.components.len());
+        assert_eq!(1, standby.components.len());
         standby.process(&Event::InteractionCreate(Box::new(InteractionCreate(
             Interaction::MessageComponent(Box::new(button())),
         ))));
-        assert!(standby.0.components.is_empty());
+        assert!(standby.components.is_empty());
     }
 
     #[tokio::test]
