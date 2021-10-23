@@ -288,12 +288,9 @@ impl Standby {
             Event::ReactionAdd(e) => {
                 Self::process_specific_event(&self.reactions, e.0.message_id, e);
             }
-            Event::InteractionCreate(e) => match &e.0 {
-                Interaction::MessageComponent(comp) => {
-                    Self::process_specific_event(&self.components, comp.message.id, &**comp)
-                }
-                _ => {}
-            },
+            Event::InteractionCreate(e) => if let Interaction::MessageComponent(comp)= &e.0 {
+                Self::process_specific_event(&self.components, comp.message.id, &**comp)
+            }
             _ => {}
         }
 

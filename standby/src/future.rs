@@ -200,6 +200,7 @@ impl Stream for WaitForReactionStream {
 #[derive(Debug)]
 #[must_use = "futures do nothing unless you `.await` or poll them"]
 pub struct WaitForComponentFuture {
+    /// Receiver half of the oneshot channel.
     pub(crate) rx: Receiver<MessageComponentInteraction>,
 }
 
@@ -217,6 +218,7 @@ impl Future for WaitForComponentFuture {
 #[derive(Debug)]
 #[must_use]
 pub struct WaitForComponentStream {
+    /// Receiver half of the MPSC channel.
     pub(crate) rx: MpscReceiver<MessageComponentInteraction>,
 }
 
