@@ -79,7 +79,12 @@ enum CommandOptionValueRaw<'a> {
 
 impl Serialize for CommandDataOption {
     fn serialize<S: Serializer>(&self, serializer: S) -> Result<S::Ok, S::Error> {
-        let sub_command_is_empty = matches!(&self.value, CommandOptionValue::SubCommand(o) | CommandOptionValue::SubCommandGroup(o) if o.is_empty());
+        let sub_command_is_empty = matches!(
+            &self.value,
+            CommandOptionValue::SubCommand(o)
+            | CommandOptionValue::SubCommandGroup(o)
+                if o.is_empty()
+        );
 
         let len = if sub_command_is_empty { 2 } else { 3 };
 
