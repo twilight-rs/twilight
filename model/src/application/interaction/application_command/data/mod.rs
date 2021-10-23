@@ -79,7 +79,16 @@ enum CommandOptionValueRaw<'a> {
 
 impl Serialize for CommandDataOption {
     fn serialize<S: Serializer>(&self, serializer: S) -> Result<S::Ok, S::Error> {
-        let mut state = serializer.serialize_struct("CommandDataOptionRaw", 3)?;
+        let mut state = serializer.serialize_struct("CommandDataOptionRaw", {
+            match &self.value {
+                CommandOptionValue::SubCommand(o) | CommandOptionValue::SubCommandGroup(o)
+                    if o.is_empty() =>
+                {
+                    2
+                }
+                _ => 3,
+            }
+        })?;
 
         state.serialize_field("name", &self.name)?;
 
@@ -88,7 +97,11 @@ impl Serialize for CommandDataOption {
         match self.value {
             CommandOptionValue::SubCommand(ref opts)
             | CommandOptionValue::SubCommandGroup(ref opts) => {
-                state.serialize_field("options", &Some(opts))?
+                if opts.is_empty() {
+                    state.skip_field("options")?
+                } else {
+                    state.serialize_field("options", &Some(opts))?
+                }
             }
             CommandOptionValue::String(ref value) => state
                 .serialize_field("value", &Some(CommandOptionValueRaw::String(value.into())))?,
@@ -213,5 +226,63 @@ impl CommandOptionValue {
             CommandOptionValue::SubCommandGroup(_) => CommandOptionType::SubCommandGroup,
             CommandOptionValue::Number(_) => CommandOptionType::Number,
         }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use serde_test::Token;
+
+    use crate::{
+        application::{
+            command::CommandOptionType,
+            interaction::application_command::{CommandDataOption, CommandOptionValue},
+        },
+        id::CommandId,
+    };
+
+    use super::CommandData;
+
+    #[test]
+    fn subcommand_without_option() {
+        let value = CommandData {
+            id: CommandId::new(1).expect("non zero"),
+            name: "photo".to_owned(),
+            options: vec![CommandDataOption {
+                name: "cat".to_owned(),
+                value: CommandOptionValue::SubCommand(vec![]),
+            }],
+            resolved: None,
+        };
+
+        serde_test::assert_tokens(
+            &value,
+            &[
+                Token::Struct {
+                    name: "CommandData",
+                    len: 4,
+                },
+                Token::Str("id"),
+                Token::NewtypeStruct { name: "CommandId" },
+                Token::Str("1"),
+                Token::Str("name"),
+                Token::Str("photo"),
+                Token::Str("options"),
+                Token::Seq { len: Some(1) },
+                Token::Struct {
+                    name: "CommandDataOptionRaw",
+                    len: 2,
+                },
+                Token::Str("name"),
+                Token::Str("cat"),
+                Token::Str("type"),
+                Token::U8(CommandOptionType::SubCommand as u8),
+                Token::StructEnd,
+                Token::SeqEnd,
+                Token::Str("resolved"),
+                Token::None,
+                Token::StructEnd,
+            ],
+        );
     }
 }
