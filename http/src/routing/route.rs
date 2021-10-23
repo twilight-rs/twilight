@@ -1,4 +1,4 @@
-use super::{path::Path, route_display::RouteDisplay};
+use super::{route_display::RouteDisplay, Path};
 use crate::request::{channel::reaction::RequestReactionType, Method};
 use twilight_model::id::RoleId;
 
@@ -1166,7 +1166,7 @@ impl<'a> Route<'a> {
 
     /// Typed path of the route.
     ///
-    /// Paths are used with the [`Ratelimiter`].
+    /// Paths are used with a [`Ratelimiter`].
     ///
     /// # Examples
     ///
@@ -1174,16 +1174,17 @@ impl<'a> Route<'a> {
     ///
     /// ```
     /// # #[tokio::main]
-    /// # async fn main() -> Result<(), Box<dyn std::error::Error>> {
-    /// use twilight_http::{ratelimiting::Ratelimiter, routing::Route};
+    /// # async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
+    /// use twilight_http::routing::Route;
+    /// use twilight_http_ratelimiting::{InMemoryRatelimiter, Ratelimiter};
     ///
-    /// let ratelimiter = Ratelimiter::new();
+    /// let ratelimiter = InMemoryRatelimiter::new();
     /// let route = Route::CreateMessage {
     ///     channel_id: 123,
     ///  };
     ///
     /// // Take a ticket from the ratelimiter.
-    /// let rx = ratelimiter.ticket(route.path());
+    /// let rx = ratelimiter.ticket(route.path()).await?;
     ///
     /// // Wait to be told that a request can be made...
     /// let _tx = rx.await;
@@ -1192,7 +1193,7 @@ impl<'a> Route<'a> {
     /// # Ok(()) }
     /// ```
     ///
-    /// [`Ratelimiter`]: crate::ratelimiting::Ratelimiter
+    /// [`Ratelimiter`]: twilight_http_ratelimiting::Ratelimiter
     #[allow(clippy::too_many_lines)]
     pub const fn path(&self) -> Path {
         match self {
