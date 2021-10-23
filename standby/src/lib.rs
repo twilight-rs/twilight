@@ -232,6 +232,9 @@ impl<T: Debug> Debug for Bystander<T> {
 /// [`std::sync::Arc`] or [`std::rc::Rc`].
 #[derive(Debug, Default)]
 pub struct Standby {
+    /// List of component bystanders where the ID of the message is known
+    /// beforehand.
+    components: DashMap<MessageId, Vec<Bystander<MessageComponentInteraction>>>,
     /// Bystanders for any event that may not be in any particular guild.
     ///
     /// The key is generated via [`event_counter`].
@@ -250,9 +253,6 @@ pub struct Standby {
     /// List of reaction bystanders where the ID of the message is known
     /// beforehand.
     reactions: DashMap<MessageId, Vec<Bystander<ReactionAdd>>>,
-    /// List of component bystanders where the ID of the message is known
-    /// beforehand.
-    components: DashMap<MessageId, Vec<Bystander<MessageComponentInteraction>>>,
 }
 
 impl Standby {
@@ -282,16 +282,16 @@ impl Standby {
         tracing::trace!(event_type = ?event.kind(), ?event, "processing event");
 
         match event {
+            Event::InteractionCreate(e) => {
+                if let Interaction::MessageComponent(comp) = &e.0 {
+                    Self::process_specific_event(&self.components, comp.message.id, &**comp)
+                }
+            }
             Event::MessageCreate(e) => {
                 Self::process_specific_event(&self.messages, e.0.channel_id, e);
             }
             Event::ReactionAdd(e) => {
                 Self::process_specific_event(&self.reactions, e.0.message_id, e);
-            }
-            Event::InteractionCreate(e) => {
-                if let Interaction::MessageComponent(comp) = &e.0 {
-                    Self::process_specific_event(&self.components, comp.message.id, &**comp)
-                }
             }
             _ => {}
         }
@@ -758,8 +758,8 @@ impl Standby {
     ///
     /// let standby = Standby::new();
     ///
-    /// let component = standby.wait_for_component(MessageId(123), |event: &MessageComponentInteraction| {
-    ///     event.author_id() == Some(UserId(456))
+    /// let component = standby.wait_for_component(MessageId::new(123).expect("non zero"), |event: &MessageComponentInteraction| {
+    ///     event.author_id() == Some(UserId::new(456).expect("non zero"))
     /// }).await?;
     /// # Ok(()) }
     /// ```
@@ -802,7 +802,7 @@ impl Standby {
     ///
     /// let standby = Standby::new();
     ///
-    /// let mut components = standby.wait_for_component_stream(MessageId(123), |event: &MessageComponentInteraction| {
+    /// let mut components = standby.wait_for_component_stream(MessageId::new(123).expect("non zero"), |event: &MessageComponentInteraction| {
     ///     event.data.custom_id == "Click".to_string()
     /// });
     ///
@@ -1161,15 +1161,15 @@ mod tests {
 
     fn button() -> MessageComponentInteraction {
         MessageComponentInteraction {
-            application_id: ApplicationId::new(1).expect("non zero id"),
-            channel_id: ChannelId::new(2).expect("non zero id"),
+            application_id: ApplicationId::new(1).expect("non zero"),
+            channel_id: ChannelId::new(2).expect("non zero"),
             data: MessageComponentInteractionData {
                 custom_id: String::from("Click"),
                 component_type: ComponentType::Button,
                 values: vec![],
             },
-            guild_id: Some(GuildId::new(3).expect("non zero id")),
-            id: InteractionId::new(4).expect("non zero id"),
+            guild_id: Some(GuildId::new(3).expect("non zero")),
+            id: InteractionId::new(4).expect("non zero"),
             kind: InteractionType::MessageComponent,
             member: None,
             message: message(),
@@ -1182,7 +1182,7 @@ mod tests {
                 discriminator: 1,
                 email: None,
                 flags: None,
-                id: UserId::new(2).expect("non zero id"),
+                id: UserId::new(2).expect("non zero"),
                 locale: None,
                 mfa_enabled: None,
                 name: "twilight".to_owned(),
@@ -1400,16 +1400,16 @@ mod tests {
 
         let standby = Standby::new();
         let wait = standby.wait_for_component(
-            MessageId::new(3).expect("non zero id"),
+            MessageId::new(3).expect("non zero"),
             |button: &MessageComponentInteraction| {
-                button.author_id() == Some(UserId::new(2).expect("non zero id"))
+                button.author_id() == Some(UserId::new(2).expect("non zero"))
             },
         );
 
         standby.process(&event);
 
         assert_eq!(
-            Some(UserId::new(2).expect("non zero id")),
+            Some(UserId::new(2).expect("non zero")),
             wait.await.map(|button| button.author_id()).unwrap()
         );
         assert!(standby.components.is_empty());
@@ -1419,7 +1419,7 @@ mod tests {
     async fn test_wait_for_component_stream() {
         let standby = Standby::new();
         let mut stream = standby.wait_for_component_stream(
-            MessageId::new(3).expect("non zero id"),
+            MessageId::new(3).expect("non zero"),
             |_: &MessageComponentInteraction| true,
         );
         standby.process(&Event::InteractionCreate(Box::new(InteractionCreate(
