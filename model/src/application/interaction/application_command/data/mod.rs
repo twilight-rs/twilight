@@ -231,8 +231,7 @@ impl CommandOptionValue {
 
 #[cfg(test)]
 mod tests {
-    use serde_test::Token;
-
+    use super::CommandData;
     use crate::{
         application::{
             command::CommandOptionType,
@@ -240,18 +239,17 @@ mod tests {
         },
         id::CommandId,
     };
-
-    use super::CommandData;
+    use serde_test::Token;
 
     #[test]
     fn subcommand_without_option() {
         let value = CommandData {
             id: CommandId::new(1).expect("non zero"),
             name: "photo".to_owned(),
-            options: vec![CommandDataOption {
+            options: Vec::from([CommandDataOption {
                 name: "cat".to_owned(),
-                value: CommandOptionValue::SubCommand(vec![]),
-            }],
+                value: CommandOptionValue::SubCommand(Vec::new()),
+            }]),
             resolved: None,
         };
 
