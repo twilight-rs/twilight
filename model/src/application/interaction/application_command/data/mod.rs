@@ -65,7 +65,7 @@ struct CommandDataOptionRaw<'a> {
     kind: CommandOptionType,
     value: Option<CommandOptionValueRaw<'a>>,
     #[serde(default)]
-    options: Option<Vec<CommandDataOption>>,
+    options: Vec<CommandDataOption>,
 }
 
 #[derive(Debug, Deserialize, Serialize)]
@@ -129,82 +129,80 @@ impl Serialize for CommandDataOption {
 impl<'de> Deserialize<'de> for CommandDataOption {
     fn deserialize<D: Deserializer<'de>>(deserializer: D) -> Result<Self, D::Error> {
         let raw = CommandDataOptionRaw::deserialize(deserializer)?;
-        let value = if let Some(value) = raw.value {
-            match (raw.kind, value) {
-                (CommandOptionType::String, CommandOptionValueRaw::String(s)) => {
-                    CommandOptionValue::String(s.into_owned())
-                }
-                (CommandOptionType::Integer, CommandOptionValueRaw::Integer(i)) => {
-                    CommandOptionValue::Integer(i)
-                }
-                (CommandOptionType::Boolean, CommandOptionValueRaw::Boolean(b)) => {
-                    CommandOptionValue::Boolean(b)
-                }
-                (CommandOptionType::User, CommandOptionValueRaw::String(s)) => {
-                    let id =
-                        UserId(s.parse().map_err(|_| {
+        let value =
+            if let Some(value) = raw.value {
+                match (raw.kind, value) {
+                    (CommandOptionType::String, CommandOptionValueRaw::String(s)) => {
+                        CommandOptionValue::String(s.into_owned())
+                    }
+                    (CommandOptionType::Integer, CommandOptionValueRaw::Integer(i)) => {
+                        CommandOptionValue::Integer(i)
+                    }
+                    (CommandOptionType::Boolean, CommandOptionValueRaw::Boolean(b)) => {
+                        CommandOptionValue::Boolean(b)
+                    }
+                    (CommandOptionType::User, CommandOptionValueRaw::String(s)) => {
+                        let id = UserId(s.parse().map_err(|_| {
                             DeError::invalid_value(Unexpected::Str(&s), &"user ID")
                         })?);
 
-                    CommandOptionValue::User(id)
-                }
-                (CommandOptionType::Channel, CommandOptionValueRaw::String(s)) => {
-                    let id =
-                        ChannelId(s.parse().map_err(|_| {
+                        CommandOptionValue::User(id)
+                    }
+                    (CommandOptionType::Channel, CommandOptionValueRaw::String(s)) => {
+                        let id = ChannelId(s.parse().map_err(|_| {
                             DeError::invalid_value(Unexpected::Str(&s), &"channel ID")
                         })?);
 
-                    CommandOptionValue::Channel(id)
-                }
-                (CommandOptionType::Role, CommandOptionValueRaw::String(s)) => {
-                    let id =
-                        RoleId(s.parse().map_err(|_| {
+                        CommandOptionValue::Channel(id)
+                    }
+                    (CommandOptionType::Role, CommandOptionValueRaw::String(s)) => {
+                        let id = RoleId(s.parse().map_err(|_| {
                             DeError::invalid_value(Unexpected::Str(&s), &"role ID")
                         })?);
 
-                    CommandOptionValue::Role(id)
-                }
-                (CommandOptionType::Mentionable, CommandOptionValueRaw::String(s)) => {
-                    let id = GenericId(s.parse().map_err(|_| {
-                        DeError::invalid_value(Unexpected::Str(&s), &"snowflake ID")
-                    })?);
+                        CommandOptionValue::Role(id)
+                    }
+                    (CommandOptionType::Mentionable, CommandOptionValueRaw::String(s)) => {
+                        let id = GenericId(s.parse().map_err(|_| {
+                            DeError::invalid_value(Unexpected::Str(&s), &"snowflake ID")
+                        })?);
 
-                    CommandOptionValue::Mentionable(id)
-                }
-                (CommandOptionType::SubCommand | CommandOptionType::SubCommandGroup, _) => {
-                    return Err(DeError::custom(format!(
-                        "invalid option data: {:?} has value instead of options",
-                        raw.kind
-                    )));
-                }
-                (CommandOptionType::Number, CommandOptionValueRaw::String(s)) => {
-                    let value = s
-                        .parse::<f64>()
-                        .map_err(|_| DeError::invalid_value(Unexpected::Str(&s), &"number"))?;
+                        CommandOptionValue::Mentionable(id)
+                    }
+                    (CommandOptionType::SubCommand | CommandOptionType::SubCommandGroup, _) => {
+                        return Err(DeError::custom(format!(
+                            "invalid option data: {:?} has value instead of options",
+                            raw.kind
+                        )));
+                    }
+                    (CommandOptionType::Number, CommandOptionValueRaw::String(s)) => {
+                        let value = s
+                            .parse::<f64>()
+                            .map_err(|_| DeError::invalid_value(Unexpected::Str(&s), &"number"))?;
 
-                    CommandOptionValue::Number(Number(value))
+                        CommandOptionValue::Number(Number(value))
+                    }
+                    (kind, value) => {
+                        return Err(DeError::custom(format!(
+                            "invalid option value/type pair: value is {:?} but type is {:?}",
+                            value, kind,
+                        )));
+                    }
                 }
-                (kind, value) => {
-                    return Err(DeError::custom(format!(
-                        "invalid option value/type pair: value is {:?} but type is {:?}",
-                        value, kind,
-                    )));
+            } else {
+                match raw.kind {
+                    CommandOptionType::SubCommand => CommandOptionValue::SubCommand(raw.options),
+                    CommandOptionType::SubCommandGroup => {
+                        CommandOptionValue::SubCommandGroup(raw.options)
+                    }
+                    kind => {
+                        return Err(DeError::custom(format!(
+                            "no `value` but type is {:?}",
+                            kind
+                        )))
+                    }
                 }
-            }
-        } else {
-            let options = raw.options.unwrap_or_default();
-
-            match raw.kind {
-                CommandOptionType::SubCommand => CommandOptionValue::SubCommand(options),
-                CommandOptionType::SubCommandGroup => CommandOptionValue::SubCommandGroup(options),
-                kind => {
-                    return Err(DeError::custom(format!(
-                        "no `value` but type is {:?}",
-                        kind
-                    )))
-                }
-            }
-        };
+            };
         Ok(CommandDataOption {
             name: raw.name,
             value,
