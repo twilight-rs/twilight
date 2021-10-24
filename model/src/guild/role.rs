@@ -7,6 +7,16 @@ use std::cmp::{Ord, Ordering, PartialOrd};
 pub struct Role {
     pub color: u32,
     pub hoist: bool,
+    /// Icon image hash.
+    ///
+    /// Present if the guild has the `ROLE_ICONS` feature and if the role has
+    /// one.
+    ///
+    /// See [Discord Docs/Image Formatting].
+    ///
+    /// [Discord Docs/Image Formatting]: https://discord.com/developers/docs/reference#image-formatting
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub icon: Option<String>,
     pub id: RoleId,
     pub managed: bool,
     pub mentionable: bool,
@@ -16,6 +26,12 @@ pub struct Role {
     /// Tags about the role.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub tags: Option<RoleTags>,
+    /// Icon unicode emoji.
+    ///
+    /// Present if the guild has the `ROLE_ICONS` feature and if the role has
+    /// one.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub unicode_emoji: Option<String>,
 }
 
 impl Ord for Role {
@@ -42,11 +58,13 @@ impl Ord for Role {
     ///     position: 12,
     ///#    color: 0,
     ///#    hoist: true,
+    ///#    icon: None,
     ///#    managed: false,
     ///#    mentionable: true,
     ///#    name: "test".to_owned(),
     ///#    permissions: Permissions::ADMINISTRATOR,
     ///#    tags: None,
+    ///#    unicode_emoji: None,
     ///     // ...
     /// };
     /// let role_b = Role {
@@ -54,11 +72,13 @@ impl Ord for Role {
     ///     position: 13,
     ///#    color: 0,
     ///#    hoist: true,
+    ///#    icon: None,
     ///#    managed: false,
     ///#    mentionable: true,
     ///#    name: "test".to_owned(),
     ///#    permissions: Permissions::ADMINISTRATOR,
     ///#    tags: None,
+    ///#    unicode_emoji: None,
     ///     // ...
     /// };
     /// assert_eq!(Ordering::Less, role_a.cmp(&role_b));
@@ -77,22 +97,26 @@ impl Ord for Role {
     ///     position: 12,
     ///#    color: 0,
     ///#    hoist: true,
+    ///#    icon: None,
     ///#    managed: false,
     ///#    mentionable: true,
     ///#    name: "test".to_owned(),
     ///#    permissions: Permissions::ADMINISTRATOR,
     ///#    tags: None,
+    ///#    unicode_emoji: None,
     /// };
     /// let role_b = Role {
     ///     id: RoleId::new(456).expect("non zero"),
     ///     position: 12,
     ///#    color: 0,
     ///#    hoist: true,
+    ///#    icon: None,
     ///#    managed: false,
     ///#    mentionable: true,
     ///#    name: "test".to_owned(),
     ///#    permissions: Permissions::ADMINISTRATOR,
     ///#    tags: None,
+    ///#    unicode_emoji: None,
     /// };
     /// assert_eq!(Ordering::Less, role_a.cmp(&role_b));
     /// assert_eq!(Ordering::Greater, role_b.cmp(&role_a));
@@ -115,13 +139,41 @@ impl PartialOrd for Role {
 #[cfg(test)]
 mod tests {
     use super::{Permissions, Role, RoleId};
+    use serde::{Deserialize, Serialize};
     use serde_test::Token;
+    use static_assertions::{assert_fields, assert_impl_all};
+    use std::{fmt::Debug, hash::Hash};
+
+    assert_fields!(
+        Role: color,
+        hoist,
+        icon,
+        id,
+        managed,
+        mentionable,
+        name,
+        permissions,
+        position,
+        tags,
+        unicode_emoji
+    );
+
+    assert_impl_all!(
+        Role: Clone,
+        Debug,
+        Deserialize<'static>,
+        Eq,
+        Hash,
+        PartialEq,
+        Serialize
+    );
 
     #[test]
     fn test_role() {
         let role = Role {
             color: 0,
             hoist: true,
+            icon: None,
             id: RoleId::new(123).expect("non zero"),
             managed: false,
             mentionable: true,
@@ -129,6 +181,7 @@ mod tests {
             permissions: Permissions::ADMINISTRATOR,
             position: 12,
             tags: None,
+            unicode_emoji: None,
         };
 
         serde_test::assert_tokens(
