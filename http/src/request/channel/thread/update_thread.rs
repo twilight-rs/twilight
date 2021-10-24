@@ -158,7 +158,8 @@ impl<'a> UpdateThread<'a> {
     fn request(&self) -> Result<Request, HttpError> {
         let mut request = Request::builder(&Route::UpdateChannel {
             channel_id: self.channel_id.get(),
-        });
+        })
+        .json(&self.fields)?;
 
         if let Some(reason) = &self.reason {
             request = request.headers(request::audit_header(reason)?);
