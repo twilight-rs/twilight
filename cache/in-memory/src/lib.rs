@@ -917,7 +917,6 @@ mod tests {
             Member {
                 deaf: false,
                 guild_id,
-                hoisted_role: None,
                 joined_at: None,
                 mute: false,
                 nick: None,

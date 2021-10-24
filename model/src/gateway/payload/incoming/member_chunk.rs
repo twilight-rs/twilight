@@ -313,7 +313,6 @@ mod tests {
                 Member {
                     deaf: false,
                     guild_id: GuildId::new(1).expect("non zero"),
-                    hoisted_role: Some(RoleId::new(6).expect("non zero")),
                     joined_at: Some(joined_at),
                     mute: false,
                     nick: Some("chunk".to_owned()),
@@ -344,7 +343,6 @@ mod tests {
                 Member {
                     deaf: false,
                     guild_id: GuildId::new(1).expect("non zero"),
-                    hoisted_role: Some(RoleId::new(6).expect("non zero")),
                     joined_at: Some(joined_at),
                     mute: false,
                     nick: Some("chunk".to_owned()),
@@ -372,7 +370,6 @@ mod tests {
                 Member {
                     deaf: false,
                     guild_id: GuildId::new(1).expect("non zero"),
-                    hoisted_role: Some(RoleId::new(6).expect("non zero")),
                     joined_at: Some(joined_at),
                     mute: false,
                     nick: Some("chunk".to_owned()),
@@ -400,7 +397,6 @@ mod tests {
                 Member {
                     deaf: false,
                     guild_id: GuildId::new(1).expect("non zero"),
-                    hoisted_role: Some(RoleId::new(6).expect("non zero")),
                     joined_at: Some(joined_at),
                     mute: false,
                     nick: Some("chunk".to_owned()),
