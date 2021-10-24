@@ -321,6 +321,7 @@ mod tests {
 
     #[test]
     fn test_voice_states_members() {
+        let joined_at = Timestamp::from_secs(1_632_072_645).expect("non zero");
         use twilight_model::{guild::member::Member, user::User};
 
         let cache = InMemoryCache::new();
@@ -333,7 +334,7 @@ mod tests {
                 deaf: false,
                 guild_id: GuildId::new(2).expect("non zero"),
                 hoisted_role: None,
-                joined_at: None,
+                joined_at,
                 mute: false,
                 nick: None,
                 pending: false,

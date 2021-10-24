@@ -13,6 +13,7 @@ use twilight_model::{
 };
 
 pub fn cache_with_message_and_reactions() -> InMemoryCache {
+    let joined_at = Timestamp::from_secs(1_632_072_645).expect("non zero");
     let cache = InMemoryCache::new();
 
     let msg = Message {
@@ -84,7 +85,7 @@ pub fn cache_with_message_and_reactions() -> InMemoryCache {
             deaf: false,
             guild_id: GuildId::new(1).expect("non zero"),
             hoisted_role: None,
-            joined_at: None,
+            joined_at,
             mute: false,
             nick: Some("member nick".to_owned()),
             pending: false,
@@ -118,7 +119,7 @@ pub fn cache_with_message_and_reactions() -> InMemoryCache {
         deaf: false,
         guild_id: GuildId::new(1).expect("non zero"),
         hoisted_role: None,
-        joined_at: None,
+        joined_at,
         mute: false,
         nick: None,
         pending: false,
@@ -209,11 +210,13 @@ pub fn guild_channel_text() -> (GuildId, ChannelId, GuildChannel) {
 }
 
 pub fn member(id: UserId, guild_id: GuildId) -> Member {
+    let joined_at = Timestamp::from_secs(1_632_072_645).expect("non zero");
+
     Member {
         deaf: false,
         guild_id,
         hoisted_role: None,
-        joined_at: None,
+        joined_at,
         mute: false,
         nick: None,
         pending: false,

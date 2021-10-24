@@ -34,7 +34,7 @@ impl InMemoryCache {
         let cached = CachedMember {
             deaf: Some(member.deaf),
             guild_id,
-            joined_at: member.joined_at,
+            joined_at: Some(member.joined_at),
             mute: Some(member.mute),
             nick: member.nick,
             pending: member.pending,

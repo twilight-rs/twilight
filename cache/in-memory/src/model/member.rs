@@ -83,7 +83,7 @@ impl PartialEq<Member> for CachedMember {
             self.user_id,
         ) == (
             Some(other.deaf),
-            other.joined_at,
+            Some(other.joined_at),
             Some(other.mute),
             &other.nick,
             other.pending,
@@ -135,6 +135,7 @@ mod tests {
     use super::CachedMember;
     use static_assertions::assert_fields;
     use twilight_model::{
+        datetime::Timestamp,
         guild::{Member, PartialMember},
         id::{GuildId, RoleId, UserId},
         user::User,
@@ -153,10 +154,12 @@ mod tests {
     );
 
     fn cached_member() -> CachedMember {
+        let joined_at = Timestamp::from_secs(1_632_072_645).expect("non zero");
+
         CachedMember {
             deaf: Some(false),
             guild_id: GuildId::new(3).expect("non zero"),
-            joined_at: None,
+            joined_at: Some(joined_at),
             mute: Some(true),
             nick: Some("member nick".to_owned()),
             pending: false,
@@ -188,11 +191,13 @@ mod tests {
 
     #[test]
     fn test_eq_member() {
+        let joined_at = Timestamp::from_secs(1_632_072_645).expect("non zero");
+
         let member = Member {
             deaf: false,
             guild_id: GuildId::new(3).expect("non zero"),
             hoisted_role: Some(RoleId::new(4).expect("non zero")),
-            joined_at: None,
+            joined_at,
             mute: true,
             nick: Some("member nick".to_owned()),
             pending: false,
@@ -206,9 +211,11 @@ mod tests {
 
     #[test]
     fn test_eq_partial_member() {
+        let joined_at = Timestamp::from_secs(1_632_072_645).expect("non zero");
+
         let member = PartialMember {
             deaf: false,
-            joined_at: None,
+            joined_at: Some(joined_at),
             mute: true,
             nick: Some("member nick".to_owned()),
             permissions: None,

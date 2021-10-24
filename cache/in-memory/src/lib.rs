@@ -874,6 +874,7 @@ impl UpdateCache for Event {
 mod tests {
     use crate::{test, InMemoryCache};
     use twilight_model::{
+        datetime::Timestamp,
         gateway::payload::incoming::RoleDelete,
         guild::{Member, Permissions, Role},
         id::{EmojiId, GuildId, RoleId, UserId},
@@ -909,6 +910,7 @@ mod tests {
 
     #[test]
     fn test_highest_role() {
+        let joined_at = Timestamp::from_secs(1_632_072_645).expect("non zero");
         let cache = InMemoryCache::new();
         let guild_id = GuildId::new(1).expect("non zero");
         let user = test::user(UserId::new(1).expect("non zero"));
@@ -918,7 +920,7 @@ mod tests {
                 deaf: false,
                 guild_id,
                 hoisted_role: None,
-                joined_at: None,
+                joined_at,
                 mute: false,
                 nick: None,
                 pending: false,

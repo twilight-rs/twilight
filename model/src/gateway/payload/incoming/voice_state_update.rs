@@ -19,6 +19,8 @@ mod tests {
     #[test]
     #[allow(clippy::too_many_lines)]
     fn test_voice_state_update() {
+        let joined_at = Timestamp::from_secs(1_632_072_645).expect("non zero");
+
         let value = VoiceStateUpdate(VoiceState {
             channel_id: None,
             deaf: false,
@@ -27,7 +29,7 @@ mod tests {
                 deaf: false,
                 guild_id: GuildId::new(1).expect("non zero"),
                 hoisted_role: Some(RoleId::new(4).expect("non zero")),
-                joined_at: None,
+                joined_at,
                 mute: false,
                 nick: None,
                 pending: false,
@@ -96,7 +98,7 @@ mod tests {
                 Token::NewtypeStruct { name: "RoleId" },
                 Token::Str("4"),
                 Token::Str("joined_at"),
-                Token::None,
+                Token::Str("2021-09-19T17:30:45.000000+00:00"),
                 Token::Str("mute"),
                 Token::Bool(false),
                 Token::Str("nick"),
@@ -166,7 +168,7 @@ mod tests {
                 deaf: false,
                 guild_id: GuildId::new(999_999).expect("non zero"),
                 hoisted_role: Some(RoleId::new(123).expect("non zero")),
-                joined_at: Some(joined_at),
+                joined_at,
                 mute: false,
                 nick: Some("Twilight".to_string()),
                 pending: false,
@@ -239,7 +241,6 @@ mod tests {
                 Token::NewtypeStruct { name: "RoleId" },
                 Token::Str("123"),
                 Token::Str("joined_at"),
-                Token::Some,
                 Token::Str("2016-12-08T18:41:21.954000+00:00"),
                 Token::Str("mute"),
                 Token::Bool(false),

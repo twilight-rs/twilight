@@ -18,7 +18,7 @@ pub struct Member {
     pub deaf: bool,
     pub guild_id: GuildId,
     pub hoisted_role: Option<RoleId>,
-    pub joined_at: Option<Timestamp>,
+    pub joined_at: Timestamp,
     pub mute: bool,
     pub nick: Option<String>,
     /// Whether the user has yet to pass the guild's [Membership Screening]
@@ -40,7 +40,7 @@ pub struct Member {
 pub struct MemberIntermediary {
     pub deaf: bool,
     pub hoisted_role: Option<RoleId>,
-    pub joined_at: Option<Timestamp>,
+    pub joined_at: Timestamp,
     pub mute: bool,
     pub nick: Option<String>,
     #[serde(default)]
@@ -199,7 +199,7 @@ mod tests {
             deaf: false,
             guild_id: GuildId::new(1).expect("non zero"),
             hoisted_role: Some(RoleId::new(2).expect("non zero")),
-            joined_at: Some(joined_at),
+            joined_at,
             mute: true,
             nick: Some("twilight".to_owned()),
             pending: false,
@@ -241,7 +241,6 @@ mod tests {
                 Token::NewtypeStruct { name: "RoleId" },
                 Token::Str("2"),
                 Token::Str("joined_at"),
-                Token::Some,
                 Token::Str("2015-04-26T06:26:56.936000+00:00"),
                 Token::Str("mute"),
                 Token::Bool(true),
