@@ -186,3 +186,40 @@ impl<'a> AuditLogReason<'a> for UpdateThread<'a> {
         Ok(self)
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::{UpdateThread, UpdateThreadFields};
+    use crate::{request::Request, routing::Route, Client};
+    use std::error::Error;
+    use twilight_model::id::ChannelId;
+
+    #[test]
+    fn test_request() -> Result<(), Box<dyn Error>> {
+        let client = Client::new("token".to_string());
+        let channel_id = ChannelId::new(123).expect("non zero");
+
+        let actual = UpdateThread::new(&client, channel_id)
+            .rate_limit_per_user(60)?
+            .request()?;
+
+        let expected = Request::builder(&Route::UpdateChannel {
+            channel_id: channel_id.get(),
+        })
+        .json(&UpdateThreadFields {
+            archived: None,
+            auto_archive_duration: None,
+            invitable: None,
+            locked: None,
+            name: None,
+            rate_limit_per_user: Some(60),
+        })?
+        .build();
+
+        assert_eq!(expected.body(), actual.body());
+        assert_eq!(expected.path(), actual.path());
+        assert_eq!(expected.ratelimit_path(), actual.ratelimit_path());
+
+        Ok(())
+    }
+}
