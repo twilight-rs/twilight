@@ -49,6 +49,15 @@ pub enum UserOrId {
     UserId { id: UserId },
 }
 
+impl UserOrId {
+    pub const fn id(&self) -> UserId {
+        match self {
+            UserOrId::User(u) => u.id,
+            UserOrId::UserId { id } => *id,
+        }
+    }
+}
+
 #[derive(Clone, Debug, Deserialize, Eq, Hash, PartialEq)]
 pub struct PresenceIntermediary {
     #[serde(default)]
