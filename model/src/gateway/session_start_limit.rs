@@ -1,6 +1,6 @@
 use serde::{Deserialize, Serialize};
 
-/// Current gateway session utilisation status.
+/// Current gateway session utilization status.
 #[derive(Clone, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
 pub struct SessionStartLimit {
     /// Maximum number of session that may be started concurrently.
