@@ -17,7 +17,7 @@ version = "0.7.0"
 [dependencies]
 tokio = { default-features = false, features = ["rt", "sync", "time"], version = "1.0" }
 tracing = { default-features = false, features = ["std", "attributes"], version = "0.1" }
-twilight-http = { default-features = false, path = "../../http" }
+twilight-http = { default-features = false, path = "../http" }
 
 [dev-dependencies]
 static_assertions = { default-features = false, version = "1" }

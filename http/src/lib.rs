@@ -111,7 +111,6 @@
 pub mod api_error;
 pub mod client;
 pub mod error;
-pub mod ratelimiting;
 pub mod request;
 pub mod response;
 pub mod routing;

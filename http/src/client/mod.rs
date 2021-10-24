@@ -4,7 +4,6 @@ pub use self::builder::ClientBuilder;
 
 use crate::{
     error::{Error, ErrorType},
-    ratelimiting::Ratelimiter,
     request::{
         application::{
             command::{
@@ -53,7 +52,7 @@ use hyper::{
     Body,
 };
 use std::{
-    convert::TryFrom,
+    convert::{AsRef, TryFrom},
     sync::{
         atomic::{AtomicBool, AtomicU64, Ordering},
         Arc,
@@ -61,6 +60,7 @@ use std::{
     time::Duration,
 };
 use tokio::time;
+use twilight_http_ratelimiting::Ratelimiter;
 use twilight_model::{
     application::{
         callback::InteractionResponse,
@@ -156,7 +156,7 @@ pub struct Client {
     default_headers: Option<HeaderMap>,
     http: HyperClient<HttpsConnector<HttpConnector>, Body>,
     proxy: Option<Box<str>>,
-    ratelimiter: Option<Ratelimiter>,
+    ratelimiter: Option<Box<dyn Ratelimiter>>,
     /// Whether to short-circuit when a 401 has been encountered with the client
     /// authorization.
     ///
@@ -227,8 +227,8 @@ impl Client {
     ///
     /// This will return `None` only if ratelimit handling
     /// has been explicitly disabled in the [`ClientBuilder`].
-    pub fn ratelimiter(&self) -> Option<Ratelimiter> {
-        self.ratelimiter.clone()
+    pub fn ratelimiter(&self) -> Option<&dyn Ratelimiter> {
+        self.ratelimiter.as_ref().map(AsRef::as_ref)
     }
 
     /// Get the audit log for a guild.
@@ -2680,7 +2680,7 @@ impl Client {
         tracing::debug!("URL: {:?}", url);
 
         let mut builder = hyper::Request::builder()
-            .method(method.into_hyper())
+            .method(method.into_http())
             .uri(&url);
 
         if use_authorization_token {
@@ -2789,12 +2789,12 @@ impl Client {
         // due to move semantics in both cases.
         #[allow(clippy::option_if_let_else)]
         if let Some(ratelimiter) = self.ratelimiter.as_ref() {
-            let rx = ratelimiter.ticket(ratelimit_path);
+            let tx_future = ratelimiter.wait_for_ticket(ratelimit_path);
 
             Ok(ResponseFuture::ratelimit(
                 None,
                 invalid_token,
-                rx,
+                tx_future,
                 self.timeout,
                 inner,
             ))

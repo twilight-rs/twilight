@@ -2,7 +2,6 @@ use super::{Response, StatusCode};
 use crate::{
     api_error::ApiError,
     error::{Error, ErrorType},
-    ratelimiting::RatelimitHeaders,
 };
 use hyper::{client::ResponseFuture as HyperResponseFuture, StatusCode as HyperStatusCode};
 use std::{
@@ -17,10 +16,8 @@ use std::{
     task::{Context, Poll},
     time::Duration,
 };
-use tokio::{
-    sync::oneshot::{Receiver, Sender},
-    time::{self, Timeout},
-};
+use tokio::time::{self, Timeout};
+use twilight_http_ratelimiting::{ticket::TicketSender, RatelimitHeaders, WaitForTicketFuture};
 use twilight_model::id::GuildId;
 
 pub enum InvalidToken {
@@ -98,7 +95,7 @@ struct InFlight {
     future: Pin<Box<Timeout<HyperResponseFuture>>>,
     guild_id: Option<GuildId>,
     invalid_token: InvalidToken,
-    tx: Option<Sender<Option<RatelimitHeaders>>>,
+    tx: Option<TicketSender>,
 }
 
 impl InFlight {
@@ -144,14 +141,14 @@ impl InFlight {
 
             match RatelimitHeaders::from_pairs(headers) {
                 Ok(v) => {
-                    let _res = tx.send(Some(v));
+                    let _res = tx.headers(Some(v));
                 }
                 #[cfg_attr(not(feature = "tracing"), allow(unused_variables))]
                 Err(source) => {
                     #[cfg(feature = "tracing")]
                     tracing::warn!("header parsing failed: {:?}; {:?}", source, resp);
 
-                    let _res = tx.send(None);
+                    let _res = tx.headers(None);
                 }
             }
         }
@@ -210,7 +207,7 @@ struct RatelimitQueue {
     invalid_token: InvalidToken,
     request_timeout: Duration,
     response_future: HyperResponseFuture,
-    wait_for_sender: Receiver<Sender<Option<RatelimitHeaders>>>,
+    wait_for_sender: WaitForTicketFuture,
 }
 
 impl RatelimitQueue {
@@ -219,8 +216,8 @@ impl RatelimitQueue {
             Poll::Ready(Ok(tx)) => tx,
             Poll::Ready(Err(source)) => {
                 return InnerPoll::Ready(Err(Error {
-                    kind: ErrorType::RequestCanceled {},
-                    source: Some(Box::new(source)),
+                    kind: ErrorType::RatelimiterTicket,
+                    source: Some(source),
                 }))
             }
             Poll::Pending => {
@@ -295,7 +292,7 @@ impl<T> ResponseFuture<T> {
     pub(crate) fn new(
         invalid_token: InvalidToken,
         future: Timeout<HyperResponseFuture>,
-        ratelimit_tx: Option<Sender<Option<RatelimitHeaders>>>,
+        ratelimit_tx: Option<TicketSender>,
     ) -> Self {
         Self {
             phantom: PhantomData,
@@ -318,7 +315,7 @@ impl<T> ResponseFuture<T> {
     pub(crate) fn ratelimit(
         guild_id: Option<GuildId>,
         invalid_token: InvalidToken,
-        rx: Receiver<Sender<Option<RatelimitHeaders>>>,
+        wait_for_sender: WaitForTicketFuture,
         request_timeout: Duration,
         response_future: HyperResponseFuture,
     ) -> Self {
@@ -327,9 +324,9 @@ impl<T> ResponseFuture<T> {
             stage: ResponseFutureStage::RatelimitQueue(RatelimitQueue {
                 guild_id,
                 invalid_token,
-                response_future,
-                wait_for_sender: rx,
                 request_timeout,
+                response_future,
+                wait_for_sender,
             }),
         }
     }
