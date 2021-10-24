@@ -97,9 +97,7 @@ impl Serialize for CommandDataOption {
         match self.value {
             CommandOptionValue::SubCommand(ref opts)
             | CommandOptionValue::SubCommandGroup(ref opts) => {
-                if sub_command_is_empty {
-                    state.skip_field("options")?
-                } else {
+                if !sub_command_is_empty {
                     state.serialize_field("options", &Some(opts))?
                 }
             }
