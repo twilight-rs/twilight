@@ -355,7 +355,7 @@ mod test {
             kind: InteractionType::ApplicationCommand,
             member: Some(PartialMember {
                 deaf: false,
-                joined_at: Some(joined_at),
+                joined_at,
                 mute: false,
                 nick: Some("nickname".into()),
                 permissions: Some(Permissions::empty()),
@@ -492,7 +492,6 @@ mod test {
                 Token::Str("deaf"),
                 Token::Bool(false),
                 Token::Str("joined_at"),
-                Token::Some,
                 Token::Str("2020-01-01T00:00:00.000000+00:00"),
                 Token::Str("mute"),
                 Token::Bool(false),

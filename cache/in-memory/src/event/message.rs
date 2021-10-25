@@ -141,6 +141,7 @@ mod tests {
 
     #[test]
     fn test_message_create() {
+        let joined_at = Timestamp::from_secs(1_632_072_645).expect("non zero");
         let cache = InMemoryCache::builder()
             .resource_types(ResourceType::MESSAGE | ResourceType::MEMBER | ResourceType::USER)
             .message_cache_size(1)
@@ -179,7 +180,7 @@ mod tests {
             kind: MessageType::Regular,
             member: Some(PartialMember {
                 deaf: false,
-                joined_at: None,
+                joined_at,
                 mute: false,
                 nick: Some("member nick".to_owned()),
                 permissions: None,

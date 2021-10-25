@@ -4,7 +4,7 @@ use serde::{Deserialize, Serialize};
 #[derive(Clone, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
 pub struct PartialMember {
     pub deaf: bool,
-    pub joined_at: Option<Timestamp>,
+    pub joined_at: Timestamp,
     pub mute: bool,
     pub nick: Option<String>,
     /// Permission data for the member.
@@ -32,7 +32,7 @@ mod tests {
 
         let value = PartialMember {
             deaf: false,
-            joined_at: Some(joined_at),
+            joined_at,
             mute: true,
             nick: Some("a nickname".to_owned()),
             permissions: None,
@@ -51,7 +51,6 @@ mod tests {
                 Token::Str("deaf"),
                 Token::Bool(false),
                 Token::Str("joined_at"),
-                Token::Some,
                 Token::Str("2015-04-26T06:26:56.936000+00:00"),
                 Token::Str("mute"),
                 Token::Bool(true),

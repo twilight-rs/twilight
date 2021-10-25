@@ -136,7 +136,7 @@ mod tests {
                             kind: MessageType::Regular,
                             member: Some(PartialMember {
                                 deaf: false,
-                                joined_at: Some(timestamp),
+                                joined_at: timestamp,
                                 mute: false,
                                 nick: Some("member nick".to_owned()),
                                 permissions: None,
@@ -197,7 +197,7 @@ mod tests {
                 kind: InteractionType::ApplicationCommand,
                 member: Some(PartialMember {
                     deaf: false,
-                    joined_at: Some(timestamp),
+                    joined_at: timestamp,
                     mute: false,
                     nick: None,
                     permissions: Some(Permissions::empty()),

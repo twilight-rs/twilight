@@ -13,7 +13,7 @@ use twilight_model::{
 pub struct CachedMember {
     pub(crate) deaf: Option<bool>,
     pub(crate) guild_id: GuildId,
-    pub(crate) joined_at: Option<Timestamp>,
+    pub(crate) joined_at: Timestamp,
     pub(crate) mute: Option<bool>,
     pub(crate) nick: Option<String>,
     pub(crate) pending: bool,
@@ -35,7 +35,7 @@ impl CachedMember {
 
     /// [`Timestamp`] of this member's join date.
     pub const fn joined_at(&self) -> Option<Timestamp> {
-        self.joined_at
+        Some(self.joined_at)
     }
 
     /// Whether the member is muted in a voice channel.
@@ -83,7 +83,7 @@ impl PartialEq<Member> for CachedMember {
             self.user_id,
         ) == (
             Some(other.deaf),
-            Some(other.joined_at),
+            other.joined_at,
             Some(other.mute),
             &other.nick,
             other.pending,
@@ -122,7 +122,7 @@ impl PartialEq<&InteractionMember> for CachedMember {
             self.premium_since,
             &self.roles,
         ) == (
-            Some(other.joined_at),
+            other.joined_at,
             other.nick.as_deref(),
             other.premium_since,
             &other.roles,
@@ -159,7 +159,7 @@ mod tests {
         CachedMember {
             deaf: Some(false),
             guild_id: GuildId::new(3).expect("non zero"),
-            joined_at: Some(joined_at),
+            joined_at,
             mute: Some(true),
             nick: Some("member nick".to_owned()),
             pending: false,
@@ -215,7 +215,7 @@ mod tests {
 
         let member = PartialMember {
             deaf: false,
-            joined_at: Some(joined_at),
+            joined_at,
             mute: true,
             nick: Some("member nick".to_owned()),
             permissions: None,

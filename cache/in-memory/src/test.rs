@@ -50,7 +50,7 @@ pub fn cache_with_message_and_reactions() -> InMemoryCache {
         kind: MessageType::Regular,
         member: Some(PartialMember {
             deaf: false,
-            joined_at: None,
+            joined_at,
             mute: false,
             nick: Some("member nick".to_owned()),
             permissions: None,
