@@ -97,7 +97,7 @@ mod tests {
                         members: Vec::from([InteractionMember {
                             hoisted_role: None,
                             id: UserId::new(7).expect("non zero"),
-                            joined_at: Some(timestamp),
+                            joined_at: timestamp,
                             nick: None,
                             premium_since: None,
                             roles: vec![RoleId::new(8).expect("non zero")],

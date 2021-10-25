@@ -230,8 +230,7 @@ pub struct InteractionMember {
     pub hoisted_role: Option<RoleId>,
     #[serde(skip_serializing)]
     pub id: UserId,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub joined_at: Option<Timestamp>,
+    pub joined_at: Timestamp,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub nick: Option<String>,
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -243,7 +242,7 @@ pub struct InteractionMember {
 #[derive(Deserialize)]
 struct InteractionMemberEnvelope {
     pub hoisted_role: Option<RoleId>,
-    pub joined_at: Option<Timestamp>,
+    pub joined_at: Timestamp,
     pub nick: Option<String>,
     pub premium_since: Option<Timestamp>,
     #[serde(default)]
@@ -287,7 +286,7 @@ mod tests {
             members: Vec::from([InteractionMember {
                 hoisted_role: None,
                 id: UserId::new(300).expect("non zero"),
-                joined_at: Some(joined_at),
+                joined_at,
                 nick: None,
                 premium_since: None,
                 roles: Vec::new(),
@@ -417,7 +416,6 @@ mod tests {
                     len: 1,
                 },
                 Token::Str("joined_at"),
-                Token::Some,
                 Token::Str("2021-08-10T12:18:37.000000+00:00"),
                 Token::StructEnd,
                 Token::MapEnd,

@@ -122,7 +122,7 @@ impl PartialEq<&InteractionMember> for CachedMember {
             self.premium_since,
             &self.roles,
         ) == (
-            other.joined_at,
+            Some(other.joined_at),
             other.nick.as_deref(),
             other.premium_since,
             &other.roles,

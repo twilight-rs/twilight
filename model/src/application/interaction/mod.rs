@@ -324,7 +324,7 @@ mod test {
                     members: vec![InteractionMember {
                         hoisted_role: None,
                         id: UserId::new(600).expect("non zero"),
-                        joined_at: Some(joined_at),
+                        joined_at,
                         nick: Some("nickname".into()),
                         premium_since: None,
                         roles: Vec::new(),
@@ -438,7 +438,6 @@ mod test {
                     len: 2,
                 },
                 Token::Str("joined_at"),
-                Token::Some,
                 Token::Str("2020-01-01T00:00:00.000000+00:00"),
                 Token::Str("nick"),
                 Token::Some,
