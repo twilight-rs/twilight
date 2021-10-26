@@ -227,6 +227,7 @@ pub fn role(id: RoleId) -> Role {
     Role {
         color: 0,
         hoist: false,
+        icon: None,
         id,
         managed: false,
         mentionable: false,
@@ -234,6 +235,7 @@ pub fn role(id: RoleId) -> Role {
         permissions: Permissions::empty(),
         position: 0,
         tags: None,
+        unicode_emoji: None,
     }
 }
 
