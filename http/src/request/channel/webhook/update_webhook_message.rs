@@ -425,7 +425,7 @@ impl<'a> UpdateWebhookMessage<'a> {
                     form.attach(
                         index as u64,
                         attachment.filename.as_bytes(),
-                        &attachment.file,
+                        attachment.file,
                     );
                 }
             } else if !self.files.is_empty() {
@@ -433,7 +433,7 @@ impl<'a> UpdateWebhookMessage<'a> {
                 // only to keep compatibility, and should be removed
                 // in next breaking release.
                 for (index, (name, file)) in self.files.iter().enumerate() {
-                    form.attach(index as u64, name.as_bytes(), &file);
+                    form.attach(index as u64, name.as_bytes(), file);
                 }
             }
 

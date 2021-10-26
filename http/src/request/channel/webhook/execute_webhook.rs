@@ -376,11 +376,11 @@ impl<'a> ExecuteWebhook<'a> {
                     form.attach(
                         index as u64,
                         attachment.filename.as_bytes(),
-                        &attachment.file,
+                        attachment.file,
                     );
                     self.fields.attachments.push(PartialAttachment {
                         id: index as u64,
-                        filename: &attachment.filename,
+                        filename: attachment.filename,
                         description: attachment.description.as_deref(),
                     })
                 }
@@ -389,10 +389,10 @@ impl<'a> ExecuteWebhook<'a> {
                 // only to keep compatibility, and should be removed
                 // in next breaking release.
                 for (index, (name, file)) in self.files.iter().enumerate() {
-                    form.attach(index as u64, name.as_bytes(), &file);
+                    form.attach(index as u64, name.as_bytes(), file);
                     self.fields.attachments.push(PartialAttachment {
                         id: index as u64,
-                        filename: &name,
+                        filename: name,
                         description: None,
                     })
                 }
