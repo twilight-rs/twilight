@@ -302,7 +302,7 @@ mod test {
         user::User,
     };
     use serde_test::Token;
-    use std::str::FromStr;
+    use std::{collections::HashMap, str::FromStr};
 
     #[test]
     #[allow(clippy::too_many_lines)]
@@ -320,34 +320,41 @@ mod test {
                     value: CommandOptionValue::User(UserId::new(600).expect("non zero")),
                 }],
                 resolved: Some(CommandInteractionDataResolved {
-                    channels: Vec::new(),
-                    members: vec![InteractionMember {
-                        hoisted_role: None,
-                        id: UserId::new(600).expect("non zero"),
-                        joined_at: Some(joined_at),
-                        nick: Some("nickname".into()),
-                        premium_since: None,
-                        roles: Vec::new(),
-                    }],
-                    messages: Vec::new(),
-                    roles: Vec::new(),
-                    users: vec![User {
-                        accent_color: None,
-                        avatar: Some("avatar string".into()),
-                        banner: None,
-                        bot: false,
-                        discriminator: 1111,
-                        email: None,
-                        flags: None,
-                        id: UserId::new(600).expect("non zero"),
-                        locale: None,
-                        mfa_enabled: None,
-                        name: "username".into(),
-                        premium_type: None,
-                        public_flags: None,
-                        system: None,
-                        verified: None,
-                    }],
+                    channels: HashMap::new(),
+                    members: IntoIterator::into_iter([(
+                        UserId::new(600).expect("non zero"),
+                        InteractionMember {
+                            hoisted_role: None,
+                            joined_at: Some(joined_at),
+                            nick: Some("nickname".into()),
+                            premium_since: None,
+                            roles: Vec::new(),
+                        },
+                    )])
+                    .collect(),
+                    messages: HashMap::new(),
+                    roles: HashMap::new(),
+                    users: IntoIterator::into_iter([(
+                        UserId::new(600).expect("non zero"),
+                        User {
+                            accent_color: None,
+                            avatar: Some("avatar string".into()),
+                            banner: None,
+                            bot: false,
+                            discriminator: 1111,
+                            email: None,
+                            flags: None,
+                            id: UserId::new(600).expect("non zero"),
+                            locale: None,
+                            mfa_enabled: None,
+                            name: "username".into(),
+                            premium_type: None,
+                            public_flags: None,
+                            system: None,
+                            verified: None,
+                        },
+                    )])
+                    .collect(),
                 }),
             },
             guild_id: Some(GuildId::new(400).expect("non zero")),
@@ -434,8 +441,8 @@ mod test {
                 Token::NewtypeStruct { name: "UserId" },
                 Token::Str("600"),
                 Token::Struct {
-                    name: "InteractionMemberEnvelope",
-                    len: 2,
+                    name: "InteractionMember",
+                    len: 3,
                 },
                 Token::Str("joined_at"),
                 Token::Some,
@@ -443,6 +450,9 @@ mod test {
                 Token::Str("nick"),
                 Token::Some,
                 Token::Str("nickname"),
+                Token::Str("roles"),
+                Token::Seq { len: Some(0) },
+                Token::SeqEnd,
                 Token::StructEnd,
                 Token::MapEnd,
                 Token::Str("users"),
