@@ -3,7 +3,7 @@ use crate::{
     error::Error as HttpError,
     request::{
         validate_inner::{self, ComponentValidationError, ComponentValidationErrorType},
-        Form, Request,
+        AttachmentFile, Form, PartialAttachment, Request,
     },
     response::ResponseFuture,
     routing::Route,
@@ -98,6 +98,8 @@ pub enum CreateFollowupMessageErrorType {
 
 #[derive(Serialize)]
 pub(crate) struct CreateFollowupMessageFields<'a> {
+    #[serde(skip_serializing_if = "Vec::is_empty")]
+    attachments: Vec<PartialAttachment<'a>>,
     #[serde(skip_serializing_if = "Option::is_none")]
     avatar_url: Option<&'a str>,
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -147,6 +149,7 @@ pub(crate) struct CreateFollowupMessageFields<'a> {
 pub struct CreateFollowupMessage<'a> {
     pub(crate) fields: CreateFollowupMessageFields<'a>,
     files: &'a [(&'a str, &'a [u8])],
+    attachments: &'a [AttachmentFile<'a>],
     http: &'a Client,
     token: &'a str,
     application_id: ApplicationId,
@@ -160,6 +163,7 @@ impl<'a> CreateFollowupMessage<'a> {
     ) -> Self {
         Self {
             fields: CreateFollowupMessageFields {
+                attachments: Vec::new(),
                 avatar_url: None,
                 components: None,
                 content: None,
@@ -171,6 +175,7 @@ impl<'a> CreateFollowupMessage<'a> {
                 allowed_mentions: None,
             },
             files: &[],
+            attachments: &[],
             http,
             token,
             application_id,
@@ -255,7 +260,24 @@ impl<'a> CreateFollowupMessage<'a> {
         self
     }
 
-    /// Attach multiple files to the webhook.
+    /// Attach multiple files to the message.
+    ///
+    /// Calling this method will clear any previous calls.
+    pub const fn attach(mut self, files: &'a [AttachmentFile<'a>]) -> Self {
+        self.attachments = files;
+
+        self
+    }
+
+    /// Attach multiple files to the message.
+    ///
+    /// Calling this method will clear any previous calls.
+    ///
+    /// If there have been any calls to [`attach`] that will be used
+    /// instead.
+    ///
+    /// [`attach`]: Self::attach
+    #[deprecated(since = "0.7.1", note = "Use attach instead")]
     pub const fn files(mut self, files: &'a [(&'a str, &'a [u8])]) -> Self {
         self.files = files;
 
@@ -265,7 +287,7 @@ impl<'a> CreateFollowupMessage<'a> {
     /// JSON encoded body of any additional request fields.
     ///
     /// If this method is called, all other fields are ignored, except for
-    /// [`file`]. See [Discord Docs/Create Message].
+    /// [`attach`]. See [Discord Docs/Create Message].
     ///
     /// # Examples
     ///
@@ -318,6 +340,7 @@ impl<'a> CreateFollowupMessage<'a> {
     /// # Ok(()) }
     /// ```
     ///
+    /// [`attach`]: Self::attach
     /// [`payload_json`]: Self::payload_json
     /// [Discord Docs/Create Message]: https://discord.com/developers/docs/resources/channel#create-message-params
     pub const fn payload_json(mut self, payload_json: &'a [u8]) -> Self {
@@ -342,7 +365,7 @@ impl<'a> CreateFollowupMessage<'a> {
 
     // `self` needs to be consumed and the client returned due to parameters
     // being consumed in request construction.
-    fn request(&self) -> Result<Request, HttpError> {
+    fn request(&mut self) -> Result<Request, HttpError> {
         let mut request = Request::builder(&Route::ExecuteWebhook {
             token: self.token,
             wait: None,
@@ -352,8 +375,31 @@ impl<'a> CreateFollowupMessage<'a> {
         if !self.files.is_empty() || self.fields.payload_json.is_some() {
             let mut form = Form::new();
 
-            for (index, (name, file)) in self.files.iter().enumerate() {
-                form.attach(index as u64, name.as_bytes(), file);
+            if !self.attachments.is_empty() {
+                for (index, attachment) in self.attachments.iter().enumerate() {
+                    form.attach(
+                        index as u64,
+                        attachment.filename.as_bytes(),
+                        &attachment.file,
+                    );
+                    self.fields.attachments.push(PartialAttachment {
+                        id: index as u64,
+                        filename: &attachment.filename,
+                        description: attachment.description.as_deref(),
+                    })
+                }
+            } else if !self.files.is_empty() {
+                // Only add "files" if attachment is empty.  This is
+                // only to keep compatibility, and should be removed
+                // in next breaking release.
+                for (index, (name, file)) in self.files.iter().enumerate() {
+                    form.attach(index as u64, name.as_bytes(), &file);
+                    self.fields.attachments.push(PartialAttachment {
+                        id: index as u64,
+                        filename: &name,
+                        description: None,
+                    })
+                }
             }
 
             if let Some(payload_json) = &self.fields.payload_json {
@@ -374,7 +420,7 @@ impl<'a> CreateFollowupMessage<'a> {
     /// Execute the request, returning a future resolving to a [`Response`].
     ///
     /// [`Response`]: crate::response::Response
-    pub fn exec(self) -> ResponseFuture<Message> {
+    pub fn exec(mut self) -> ResponseFuture<Message> {
         match self.request() {
             Ok(request) => self.http.request(request),
             Err(source) => ResponseFuture::error(source),

@@ -6,7 +6,7 @@ use crate::{
     request::{
         self,
         validate_inner::{self, ComponentValidationError, ComponentValidationErrorType},
-        Form, NullableField, Request,
+        AttachmentFile, Form, NullableField, Request,
     },
     response::{marker::EmptyBody, ResponseFuture},
     routing::Route,
@@ -174,6 +174,7 @@ struct UpdateFollowupMessageFields<'a> {
 pub struct UpdateFollowupMessage<'a> {
     fields: UpdateFollowupMessageFields<'a>,
     files: &'a [(&'a str, &'a [u8])],
+    attachments: &'a [AttachmentFile<'a>],
     http: &'a Client,
     message_id: MessageId,
     token: &'a str,
@@ -200,6 +201,7 @@ impl<'a> UpdateFollowupMessage<'a> {
                 payload_json: None,
             },
             files: &[],
+            attachments: &[],
             http,
             message_id,
             token,
@@ -370,7 +372,24 @@ impl<'a> UpdateFollowupMessage<'a> {
         Ok(self)
     }
 
-    /// Attach multiple files to the followup message.
+    /// Attach multiple files to the message.
+    ///
+    /// Calling this method will clear any previous calls.
+    pub const fn attach(mut self, files: &'a [AttachmentFile<'a>]) -> Self {
+        self.attachments = files;
+
+        self
+    }
+
+    /// Attach multiple files to the message.
+    ///
+    /// Calling this method will clear any previous calls.
+    ///
+    /// If there have been any calls to [`attach`] that will be used
+    /// instead.
+    ///
+    /// [`attach`]: Self::attach
+    #[deprecated(since = "0.7.1", note = "Use attach instead")]
     pub const fn files(mut self, files: &'a [(&'a str, &'a [u8])]) -> Self {
         self.files = files;
 
@@ -380,10 +399,10 @@ impl<'a> UpdateFollowupMessage<'a> {
     /// JSON encoded body of any additional request fields.
     ///
     /// If this method is called, all other fields are ignored, except for
-    /// [`files`]. See [Discord Docs/Create Message] and
+    /// [`attachments`]. See [Discord Docs/Create Message] and
     /// [`CreateFollowupMessage::payload_json`].
     ///
-    /// [`files`]: Self::files
+    /// [`attachments`]: Self::attachments
     /// [`CreateFollowupMessage::payload_json`]: super::CreateFollowupMessage::payload_json
     /// [Discord Docs/Create Message]: https://discord.com/developers/docs/resources/channel#create-message-params
     pub const fn payload_json(mut self, payload_json: &'a [u8]) -> Self {
@@ -404,8 +423,21 @@ impl<'a> UpdateFollowupMessage<'a> {
         if !self.files.is_empty() || self.fields.payload_json.is_some() {
             let mut form = Form::new();
 
-            for (index, (name, file)) in self.files.iter().enumerate() {
-                form.attach(index as u64, name.as_bytes(), file);
+            if !self.attachments.is_empty() {
+                for (index, attachment) in self.attachments.iter().enumerate() {
+                    form.attach(
+                        index as u64,
+                        attachment.filename.as_bytes(),
+                        &attachment.file,
+                    );
+                }
+            } else if !self.files.is_empty() {
+                // Only add "files" if attachment is empty.  This is
+                // only to keep compatibility, and should be removed
+                // in next breaking release.
+                for (index, (name, file)) in self.files.iter().enumerate() {
+                    form.attach(index as u64, name.as_bytes(), &file);
+                }
             }
 
             if let Some(payload_json) = self.fields.payload_json.as_deref() {

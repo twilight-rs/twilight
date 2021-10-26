@@ -3,11 +3,12 @@ use crate::{
     error::Error as HttpError,
     request::{
         self,
+        attachment::AttachmentFile,
         multipart::Form,
         validate_inner::{
             self, ComponentValidationError, ComponentValidationErrorType, EmbedValidationError,
         },
-        Request,
+        PartialAttachment, Request,
     },
     response::ResponseFuture,
     routing::Route,
@@ -118,6 +119,8 @@ pub enum CreateMessageErrorType {
 
 #[derive(Serialize)]
 pub(crate) struct CreateMessageFields<'a> {
+    #[serde(skip_serializing_if = "Vec::is_empty")]
+    attachments: Vec<PartialAttachment<'a>>,
     #[serde(skip_serializing_if = "request::slice_is_empty")]
     components: &'a [Component],
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -162,6 +165,7 @@ pub struct CreateMessage<'a> {
     channel_id: ChannelId,
     pub(crate) fields: CreateMessageFields<'a>,
     files: &'a [(&'a str, &'a [u8])],
+    attachments: &'a [AttachmentFile<'a>],
     http: &'a Client,
 }
 
@@ -170,6 +174,7 @@ impl<'a> CreateMessage<'a> {
         Self {
             channel_id,
             fields: CreateMessageFields {
+                attachments: Vec::new(),
                 components: &[],
                 content: None,
                 embeds: &[],
@@ -180,6 +185,7 @@ impl<'a> CreateMessage<'a> {
                 tts: None,
             },
             files: &[],
+            attachments: &[],
             http,
         }
     }
@@ -293,6 +299,21 @@ impl<'a> CreateMessage<'a> {
     /// Attach multiple files to the message.
     ///
     /// Calling this method will clear any previous calls.
+    pub const fn attach(mut self, files: &'a [AttachmentFile<'a>]) -> Self {
+        self.attachments = files;
+
+        self
+    }
+
+    /// Attach multiple files to the message.
+    ///
+    /// Calling this method will clear any previous calls.
+    ///
+    /// If there have been any calls to [`attach`] that will be used
+    /// instead.
+    ///
+    /// [`attach`]: Self::attach
+    #[deprecated(since = "0.7.1", note = "Use attachments instead")]
     pub const fn files(mut self, files: &'a [(&'a str, &'a [u8])]) -> Self {
         self.files = files;
 
@@ -309,9 +330,9 @@ impl<'a> CreateMessage<'a> {
     /// JSON encoded body of any additional request fields.
     ///
     /// If this method is called, all other fields are ignored, except for
-    /// [`files`]. See [Discord Docs/Create Message].
+    /// [`attach`]. See [Discord Docs/Create Message].
     ///
-    /// [`files`]: Self::files
+    /// [`attach`]: Self::attach
     /// [Discord Docs/Create Message]: https://discord.com/developers/docs/resources/channel#create-message-params
     pub const fn payload_json(mut self, payload_json: &'a [u8]) -> Self {
         self.fields.payload_json = Some(payload_json);
@@ -355,16 +376,42 @@ impl<'a> CreateMessage<'a> {
     /// Execute the request, returning a future resolving to a [`Response`].
     ///
     /// [`Response`]: crate::response::Response
-    pub fn exec(self) -> ResponseFuture<Message> {
+    pub fn exec(mut self) -> ResponseFuture<Message> {
         let mut request = Request::builder(&Route::CreateMessage {
             channel_id: self.channel_id.get(),
         });
 
-        if !self.files.is_empty() || self.fields.payload_json.is_some() {
+        if !self.attachments.is_empty()
+            || !self.files.is_empty()
+            || self.fields.payload_json.is_some()
+        {
             let mut form = Form::new();
 
-            for (index, (name, file)) in self.files.iter().enumerate() {
-                form.attach(index as u64, name.as_bytes(), file);
+            if !self.attachments.is_empty() {
+                for (index, attachment) in self.attachments.iter().enumerate() {
+                    form.attach(
+                        index as u64,
+                        attachment.filename.as_bytes(),
+                        &attachment.file,
+                    );
+                    self.fields.attachments.push(PartialAttachment {
+                        id: index as u64,
+                        filename: &attachment.filename,
+                        description: attachment.description.as_deref(),
+                    })
+                }
+            } else if !self.files.is_empty() {
+                // Only add "files" if attachment is empty.  This is
+                // only to keep compatibility, and should be removed
+                // in next breaking release.
+                for (index, (name, file)) in self.files.iter().enumerate() {
+                    form.attach(index as u64, name.as_bytes(), &file);
+                    self.fields.attachments.push(PartialAttachment {
+                        id: index as u64,
+                        filename: &name,
+                        description: None,
+                    })
+                }
             }
 
             if let Some(payload_json) = &self.fields.payload_json {

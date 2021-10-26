@@ -6,6 +6,7 @@ pub mod sticker;
 pub mod template;
 pub mod user;
 
+mod attachment;
 mod audit_reason;
 mod base;
 mod get_gateway;
@@ -22,6 +23,7 @@ mod multipart;
 mod validate_inner;
 
 pub use self::{
+    attachment::AttachmentFile,
     audit_reason::{AuditLogReason, AuditLogReasonError},
     base::{Request, RequestBuilder},
     get_gateway::GetGateway,
@@ -85,6 +87,13 @@ impl<T: Serialize> Serialize for NullableField<T> {
             None => serializer.serialize_none(),
         }
     }
+}
+
+#[derive(Serialize)]
+pub(crate) struct PartialAttachment<'a> {
+    pub id: u64,
+    pub filename: &'a str,
+    pub description: Option<&'a str>,
 }
 
 pub(crate) fn audit_header(
