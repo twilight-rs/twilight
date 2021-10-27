@@ -1,3 +1,4 @@
+/// Attachment for when creating and updating messages.
 #[derive(Clone, Debug)]
 pub struct AttachmentFile<'a> {
     pub(crate) filename: &'a str,
@@ -6,6 +7,7 @@ pub struct AttachmentFile<'a> {
 }
 
 impl<'a> AttachmentFile<'a> {
+    /// Create a attachment from a filename and bytes.
     pub const fn from_bytes(filename: &'a str, file: &'a [u8]) -> Self {
         AttachmentFile {
             filename,
@@ -14,6 +16,8 @@ impl<'a> AttachmentFile<'a> {
         }
     }
 
+    /// Set the description of a attachment, this is used for alt-text
+    /// on Discords end.
     pub const fn description(mut self, description: &'a str) -> Self {
         self.description = Some(description);
 
