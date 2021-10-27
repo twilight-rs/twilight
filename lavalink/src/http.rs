@@ -93,7 +93,7 @@ pub struct LoadedTracks {
 pub struct FailingAddress {
     /// The IP address.
     pub address: String,
-    /// The time that the address started failing in unixtime.
+    /// The time that the address started failing in unix time.
     pub failing_timestamp: u64,
     /// The time that the address started failing as a timestamp.
     pub failing_time: String,

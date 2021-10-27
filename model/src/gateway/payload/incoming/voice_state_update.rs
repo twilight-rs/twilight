@@ -198,7 +198,7 @@ mod tests {
             request_to_speak_timestamp: Some(request_to_speak_timestamp),
         });
 
-        // Token stream here's `Member` has no `guild_id`, which deserialiser
+        // Token stream here's `Member` has no `guild_id`, which deserializer
         // must add.
         // Lack of "guild_id" in real "member" means that de+ser does not
         // reproduce original input (assert only `de`).

@@ -34,7 +34,7 @@ pub enum CloseCode {
     Disconnected = 4014,
     /// The voice server crashed.
     VoiceServerCrashed = 4015,
-    /// The encryption could not be recognised.
+    /// The encryption could not be recognized.
     UnknownEncryptionMode = 4016,
 }
 
