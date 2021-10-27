@@ -65,7 +65,7 @@ struct CommandDataOptionRaw<'a> {
     kind: CommandOptionType,
     value: Option<CommandOptionValueRaw<'a>>,
     #[serde(default)]
-    options: Option<Vec<CommandDataOption>>,
+    options: Vec<CommandDataOption>,
 }
 
 #[derive(Debug, Deserialize, Serialize)]
@@ -79,7 +79,16 @@ enum CommandOptionValueRaw<'a> {
 
 impl Serialize for CommandDataOption {
     fn serialize<S: Serializer>(&self, serializer: S) -> Result<S::Ok, S::Error> {
-        let mut state = serializer.serialize_struct("CommandDataOptionRaw", 3)?;
+        let sub_command_is_empty = matches!(
+            &self.value,
+            CommandOptionValue::SubCommand(o)
+            | CommandOptionValue::SubCommandGroup(o)
+                if o.is_empty()
+        );
+
+        let len = if sub_command_is_empty { 2 } else { 3 };
+
+        let mut state = serializer.serialize_struct("CommandDataOptionRaw", len)?;
 
         state.serialize_field("name", &self.name)?;
 
@@ -88,7 +97,9 @@ impl Serialize for CommandDataOption {
         match self.value {
             CommandOptionValue::SubCommand(ref opts)
             | CommandOptionValue::SubCommandGroup(ref opts) => {
-                state.serialize_field("options", &Some(opts))?
+                if !sub_command_is_empty {
+                    state.serialize_field("options", &Some(opts))?
+                }
             }
             CommandOptionValue::String(ref value) => state
                 .serialize_field("value", &Some(CommandOptionValueRaw::String(value.into())))?,
@@ -116,84 +127,80 @@ impl Serialize for CommandDataOption {
 impl<'de> Deserialize<'de> for CommandDataOption {
     fn deserialize<D: Deserializer<'de>>(deserializer: D) -> Result<Self, D::Error> {
         let raw = CommandDataOptionRaw::deserialize(deserializer)?;
-        let value = if let Some(value) = raw.value {
-            match (raw.kind, value) {
-                (CommandOptionType::String, CommandOptionValueRaw::String(s)) => {
-                    CommandOptionValue::String(s.into_owned())
-                }
-                (CommandOptionType::Integer, CommandOptionValueRaw::Integer(i)) => {
-                    CommandOptionValue::Integer(i)
-                }
-                (CommandOptionType::Boolean, CommandOptionValueRaw::Boolean(b)) => {
-                    CommandOptionValue::Boolean(b)
-                }
-                (CommandOptionType::User, CommandOptionValueRaw::String(s)) => {
-                    let id =
-                        UserId(s.parse().map_err(|_| {
+        let value =
+            if let Some(value) = raw.value {
+                match (raw.kind, value) {
+                    (CommandOptionType::String, CommandOptionValueRaw::String(s)) => {
+                        CommandOptionValue::String(s.into_owned())
+                    }
+                    (CommandOptionType::Integer, CommandOptionValueRaw::Integer(i)) => {
+                        CommandOptionValue::Integer(i)
+                    }
+                    (CommandOptionType::Boolean, CommandOptionValueRaw::Boolean(b)) => {
+                        CommandOptionValue::Boolean(b)
+                    }
+                    (CommandOptionType::User, CommandOptionValueRaw::String(s)) => {
+                        let id = UserId(s.parse().map_err(|_| {
                             DeError::invalid_value(Unexpected::Str(&s), &"user ID")
                         })?);
 
-                    CommandOptionValue::User(id)
-                }
-                (CommandOptionType::Channel, CommandOptionValueRaw::String(s)) => {
-                    let id =
-                        ChannelId(s.parse().map_err(|_| {
+                        CommandOptionValue::User(id)
+                    }
+                    (CommandOptionType::Channel, CommandOptionValueRaw::String(s)) => {
+                        let id = ChannelId(s.parse().map_err(|_| {
                             DeError::invalid_value(Unexpected::Str(&s), &"channel ID")
                         })?);
 
-                    CommandOptionValue::Channel(id)
-                }
-                (CommandOptionType::Role, CommandOptionValueRaw::String(s)) => {
-                    let id =
-                        RoleId(s.parse().map_err(|_| {
+                        CommandOptionValue::Channel(id)
+                    }
+                    (CommandOptionType::Role, CommandOptionValueRaw::String(s)) => {
+                        let id = RoleId(s.parse().map_err(|_| {
                             DeError::invalid_value(Unexpected::Str(&s), &"role ID")
                         })?);
 
-                    CommandOptionValue::Role(id)
-                }
-                (CommandOptionType::Mentionable, CommandOptionValueRaw::String(s)) => {
-                    let id = GenericId(s.parse().map_err(|_| {
-                        DeError::invalid_value(Unexpected::Str(&s), &"snowflake ID")
-                    })?);
+                        CommandOptionValue::Role(id)
+                    }
+                    (CommandOptionType::Mentionable, CommandOptionValueRaw::String(s)) => {
+                        let id = GenericId(s.parse().map_err(|_| {
+                            DeError::invalid_value(Unexpected::Str(&s), &"snowflake ID")
+                        })?);
 
-                    CommandOptionValue::Mentionable(id)
-                }
-                (CommandOptionType::SubCommand | CommandOptionType::SubCommandGroup, _) => {
-                    return Err(DeError::custom(format!(
-                        "invalid option data: {:?} has value instead of options",
-                        raw.kind
-                    )));
-                }
-                (CommandOptionType::Number, CommandOptionValueRaw::String(s)) => {
-                    let value = s
-                        .parse::<f64>()
-                        .map_err(|_| DeError::invalid_value(Unexpected::Str(&s), &"number"))?;
+                        CommandOptionValue::Mentionable(id)
+                    }
+                    (CommandOptionType::SubCommand | CommandOptionType::SubCommandGroup, _) => {
+                        return Err(DeError::custom(format!(
+                            "invalid option data: {:?} has value instead of options",
+                            raw.kind
+                        )));
+                    }
+                    (CommandOptionType::Number, CommandOptionValueRaw::String(s)) => {
+                        let value = s
+                            .parse::<f64>()
+                            .map_err(|_| DeError::invalid_value(Unexpected::Str(&s), &"number"))?;
 
-                    CommandOptionValue::Number(Number(value))
+                        CommandOptionValue::Number(Number(value))
+                    }
+                    (kind, value) => {
+                        return Err(DeError::custom(format!(
+                            "invalid option value/type pair: value is {:?} but type is {:?}",
+                            value, kind,
+                        )));
+                    }
                 }
-                (kind, value) => {
-                    return Err(DeError::custom(format!(
-                        "invalid option value/type pair: value is {:?} but type is {:?}",
-                        value, kind,
-                    )));
+            } else {
+                match raw.kind {
+                    CommandOptionType::SubCommand => CommandOptionValue::SubCommand(raw.options),
+                    CommandOptionType::SubCommandGroup => {
+                        CommandOptionValue::SubCommandGroup(raw.options)
+                    }
+                    kind => {
+                        return Err(DeError::custom(format!(
+                            "no `value` but type is {:?}",
+                            kind
+                        )))
+                    }
                 }
-            }
-        } else {
-            let options = raw
-                .options
-                .ok_or_else(|| DeError::missing_field("options"))?;
-
-            match raw.kind {
-                CommandOptionType::SubCommand => CommandOptionValue::SubCommand(options),
-                CommandOptionType::SubCommandGroup => CommandOptionValue::SubCommandGroup(options),
-                kind => {
-                    return Err(DeError::custom(format!(
-                        "no `value` but type is {:?}",
-                        kind
-                    )))
-                }
-            }
-        };
+            };
         Ok(CommandDataOption {
             name: raw.name,
             value,
@@ -215,5 +222,61 @@ impl CommandOptionValue {
             CommandOptionValue::SubCommandGroup(_) => CommandOptionType::SubCommandGroup,
             CommandOptionValue::Number(_) => CommandOptionType::Number,
         }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::CommandData;
+    use crate::{
+        application::{
+            command::CommandOptionType,
+            interaction::application_command::{CommandDataOption, CommandOptionValue},
+        },
+        id::CommandId,
+    };
+    use serde_test::Token;
+
+    #[test]
+    fn subcommand_without_option() {
+        let value = CommandData {
+            id: CommandId::new(1).expect("non zero"),
+            name: "photo".to_owned(),
+            options: Vec::from([CommandDataOption {
+                name: "cat".to_owned(),
+                value: CommandOptionValue::SubCommand(Vec::new()),
+            }]),
+            resolved: None,
+        };
+
+        serde_test::assert_tokens(
+            &value,
+            &[
+                Token::Struct {
+                    name: "CommandData",
+                    len: 4,
+                },
+                Token::Str("id"),
+                Token::NewtypeStruct { name: "CommandId" },
+                Token::Str("1"),
+                Token::Str("name"),
+                Token::Str("photo"),
+                Token::Str("options"),
+                Token::Seq { len: Some(1) },
+                Token::Struct {
+                    name: "CommandDataOptionRaw",
+                    len: 2,
+                },
+                Token::Str("name"),
+                Token::Str("cat"),
+                Token::Str("type"),
+                Token::U8(CommandOptionType::SubCommand as u8),
+                Token::StructEnd,
+                Token::SeqEnd,
+                Token::Str("resolved"),
+                Token::None,
+                Token::StructEnd,
+            ],
+        );
     }
 }
