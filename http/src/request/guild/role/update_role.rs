@@ -17,11 +17,15 @@ struct UpdateRoleFields<'a> {
     #[serde(skip_serializing_if = "Option::is_none")]
     hoist: Option<bool>,
     #[serde(skip_serializing_if = "Option::is_none")]
+    icon: Option<&'a [u8]>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     mentionable: Option<bool>,
     #[serde(skip_serializing_if = "Option::is_none")]
     name: Option<NullableField<&'a str>>,
     #[serde(skip_serializing_if = "Option::is_none")]
     permissions: Option<Permissions>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    unicode_emoji: Option<&'a str>,
 }
 
 /// Update a role by guild id and its id.
@@ -40,9 +44,11 @@ impl<'a> UpdateRole<'a> {
             fields: UpdateRoleFields {
                 color: None,
                 hoist: None,
+                icon: None,
                 mentionable: None,
                 name: None,
                 permissions: None,
+                unicode_emoji: None,
             },
             guild_id,
             http,
@@ -65,6 +71,19 @@ impl<'a> UpdateRole<'a> {
         self
     }
 
+    /// Set the icon of the role.
+    ///
+    /// Only works if the guild has the `ROLE_ICONS` feature.
+    ///
+    /// See [Discord Docs/Image Data].
+    ///
+    /// [Discord Docs/Image Data]: https://discord.com/developers/docs/reference#image-data
+    pub const fn icon(mut self, icon: &'a [u8]) -> Self {
+        self.fields.icon = Some(icon);
+
+        self
+    }
+
     /// If true, the role can be @mentioned (pinged) in chat.
     pub const fn mentionable(mut self, mentionable: bool) -> Self {
         self.fields.mentionable = Some(mentionable);
@@ -82,6 +101,13 @@ impl<'a> UpdateRole<'a> {
     /// Set the allowed permissions of this role.
     pub const fn permissions(mut self, permissions: Permissions) -> Self {
         self.fields.permissions = Some(permissions);
+
+        self
+    }
+
+    /// Set the unicode emoji of a role.
+    pub const fn unicode_emoji(mut self, unicode_emoji: &'a str) -> Self {
+        self.fields.unicode_emoji = Some(unicode_emoji);
 
         self
     }

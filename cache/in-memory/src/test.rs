@@ -84,7 +84,6 @@ pub fn cache_with_message_and_reactions() -> InMemoryCache {
         member: Some(Member {
             deaf: false,
             guild_id: GuildId::new(1).expect("non zero"),
-            hoisted_role: None,
             joined_at,
             mute: false,
             nick: Some("member nick".to_owned()),
@@ -118,7 +117,6 @@ pub fn cache_with_message_and_reactions() -> InMemoryCache {
     reaction.member.replace(Member {
         deaf: false,
         guild_id: GuildId::new(1).expect("non zero"),
-        hoisted_role: None,
         joined_at,
         mute: false,
         nick: None,
@@ -215,7 +213,6 @@ pub fn member(id: UserId, guild_id: GuildId) -> Member {
     Member {
         deaf: false,
         guild_id,
-        hoisted_role: None,
         joined_at,
         mute: false,
         nick: None,
@@ -230,6 +227,7 @@ pub fn role(id: RoleId) -> Role {
     Role {
         color: 0,
         hoist: false,
+        icon: None,
         id,
         managed: false,
         mentionable: false,
@@ -237,6 +235,7 @@ pub fn role(id: RoleId) -> Role {
         permissions: Permissions::empty(),
         position: 0,
         tags: None,
+        unicode_emoji: None,
     }
 }
 

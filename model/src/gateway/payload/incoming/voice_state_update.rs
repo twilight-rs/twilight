@@ -28,7 +28,6 @@ mod tests {
             member: Some(Member {
                 deaf: false,
                 guild_id: GuildId::new(1).expect("non zero"),
-                hoisted_role: Some(RoleId::new(4).expect("non zero")),
                 joined_at,
                 mute: false,
                 nick: None,
@@ -86,17 +85,13 @@ mod tests {
                 Token::Some,
                 Token::Struct {
                     name: "Member",
-                    len: 9,
+                    len: 8,
                 },
                 Token::Str("deaf"),
                 Token::Bool(false),
                 Token::Str("guild_id"),
                 Token::NewtypeStruct { name: "GuildId" },
                 Token::Str("1"),
-                Token::Str("hoisted_role"),
-                Token::Some,
-                Token::NewtypeStruct { name: "RoleId" },
-                Token::Str("4"),
                 Token::Str("joined_at"),
                 Token::Str("2021-09-19T17:30:45.000000+00:00"),
                 Token::Str("mute"),
@@ -167,7 +162,6 @@ mod tests {
             member: Some(Member {
                 deaf: false,
                 guild_id: GuildId::new(999_999).expect("non zero"),
-                hoisted_role: Some(RoleId::new(123).expect("non zero")),
                 joined_at,
                 mute: false,
                 nick: Some("Twilight".to_string()),
@@ -206,7 +200,7 @@ mod tests {
             request_to_speak_timestamp: Some(request_to_speak_timestamp),
         });
 
-        // Token stream here's `Member` has no `guild_id`, which deserialiser
+        // Token stream here's `Member` has no `guild_id`, which deserializer
         // must add.
         // Lack of "guild_id" in real "member" means that de+ser does not
         // reproduce original input (assert only `de`).
@@ -232,14 +226,10 @@ mod tests {
                 Token::Some,
                 Token::Struct {
                     name: "Member",
-                    len: 9,
+                    len: 8,
                 },
                 Token::Str("deaf"),
                 Token::Bool(false),
-                Token::Str("hoisted_role"),
-                Token::Some,
-                Token::NewtypeStruct { name: "RoleId" },
-                Token::Str("123"),
                 Token::Str("joined_at"),
                 Token::Str("2016-12-08T18:41:21.954000+00:00"),
                 Token::Str("mute"),

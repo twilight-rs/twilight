@@ -137,7 +137,7 @@ mod tests {
     use twilight_model::{
         datetime::Timestamp,
         guild::{Member, PartialMember},
-        id::{GuildId, RoleId, UserId},
+        id::{GuildId, UserId},
         user::User,
     };
 
@@ -196,7 +196,6 @@ mod tests {
         let member = Member {
             deaf: false,
             guild_id: GuildId::new(3).expect("non zero"),
-            hoisted_role: Some(RoleId::new(4).expect("non zero")),
             joined_at,
             mute: true,
             nick: Some("member nick".to_owned()),

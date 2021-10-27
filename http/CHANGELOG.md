@@ -231,7 +231,7 @@ is now written like this:
 
 ```rust
 client.create_message(ChannelId(1))
-    .content(&"some conntent")?
+    .content(&"some content")?
     .embeds(&[&Embed {}])?
     .exec()
     .await?
@@ -759,7 +759,7 @@ if the referenced message does not exist ([#708] - [@7596ff]).
 
 ### Enhancements
 
-Update `simd-json` to 0.4 ([#786] - [@Gekbpunkt]).
+Update `simd-json` to 0.4 ([#786] - [@Gelbpunkt]).
 
 The `futures-channel` dependency has been removed ([#785] - [@Gelbpunkt]).
 
@@ -972,7 +972,7 @@ a proxy, which can be configured with a manual `hyper` client.
 
 `error::UrlError`'s `UrlParsing` variant has been removed as it can no longer
 occur. `error::Error`'s `BuildingClient` has been removed as building clients
-can no longer fail. All Weqwest errors are now `hyper` errors.
+can no longer fail. All Reqwest errors are now `hyper` errors.
 
 A couple of re-exports have been removed. Use
 `twilight_model::user::CurrentUserGuild` instead of

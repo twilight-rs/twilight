@@ -919,7 +919,6 @@ mod tests {
             Member {
                 deaf: false,
                 guild_id,
-                hoisted_role: None,
                 joined_at,
                 mute: false,
                 nick: None,
@@ -939,6 +938,7 @@ mod tests {
                 Role {
                     color: 0,
                     hoist: false,
+                    icon: None,
                     id: RoleId::new(1).expect("non zero"),
                     managed: false,
                     mentionable: false,
@@ -946,10 +946,12 @@ mod tests {
                     permissions: Permissions::empty(),
                     position: 0,
                     tags: None,
+                    unicode_emoji: None,
                 },
                 Role {
                     color: 0,
                     hoist: false,
+                    icon: None,
                     id: RoleId::new(2).expect("non zero"),
                     managed: false,
                     mentionable: false,
@@ -957,6 +959,7 @@ mod tests {
                     permissions: Permissions::empty(),
                     position: 1,
                     tags: None,
+                    unicode_emoji: None,
                 },
             ],
         );

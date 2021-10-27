@@ -21,7 +21,7 @@ use serde::{
     de::{Deserializer, Error as DeError, IgnoredAny, MapAccess, Visitor},
     Deserialize, Serialize,
 };
-use serde_value::Value;
+use serde_value::{DeserializerError, Value};
 use std::fmt::{Formatter, Result as FmtResult};
 
 /// Payload received when a user executes an interaction.
@@ -232,7 +232,7 @@ impl<'de> Visitor<'de> for InteractionVisitor {
                 let data = data
                     .ok_or_else(|| DeError::missing_field("data"))?
                     .deserialize_into()
-                    .map_err(|_| DeError::custom("expected CommandData struct"))?;
+                    .map_err(DeserializerError::into_error)?;
 
                 let guild_id = guild_id.unwrap_or_default();
                 let member = member.unwrap_or_default();

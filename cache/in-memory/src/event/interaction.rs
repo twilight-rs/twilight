@@ -165,6 +165,7 @@ mod tests {
                         roles: Vec::from([Role {
                             color: 0u32,
                             hoist: false,
+                            icon: None,
                             id: RoleId::new(8).expect("non zero"),
                             managed: false,
                             mentionable: true,
@@ -172,6 +173,7 @@ mod tests {
                             permissions: Permissions::empty(),
                             position: 2i64,
                             tags: None,
+                            unicode_emoji: None,
                         }]),
                         users: Vec::from([User {
                             accent_color: None,
