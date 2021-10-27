@@ -50,6 +50,7 @@ pub enum UserOrId {
 }
 
 impl UserOrId {
+    /// ID of the inner object.
     pub const fn id(&self) -> UserId {
         match self {
             UserOrId::User(u) => u.id,
