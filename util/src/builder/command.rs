@@ -44,14 +44,14 @@ pub struct CommandBuilder(Command);
 impl CommandBuilder {
     /// Create a new default [`Command`] builder.
     #[must_use = "builders have no effect if unused"]
-    pub const fn new(name: String, description: String, kind: CommandType) -> Self {
+    pub const fn new(name: String, description: String) -> Self {
         Self(Command {
             application_id: None,
             default_permission: None,
             description,
             guild_id: None,
             id: None,
-            kind,
+            kind: CommandType::ChatInput,
             name,
             options: Vec::new(),
         })
@@ -96,6 +96,15 @@ impl CommandBuilder {
     /// Defaults to [`None`].
     pub const fn id(mut self, id: CommandId) -> Self {
         self.0.id = Some(id);
+
+        self
+    }
+
+    /// Set the command type.
+    ///
+    /// Defaults to [`CommandType::ChatInput`]
+    pub const fn kind(mut self, kind: CommandType) -> Self {
+        self.0.kind = kind;
 
         self
     }
@@ -587,7 +596,6 @@ mod tests {
         let command = CommandBuilder::new(
             "permissions".into(),
             "Get or edit permissions for a user or a role".into(),
-            CommandType::ChatInput,
         )
         .option(
             SubCommandGroupBuilder::new("user".into(), "Get or edit permissions for a user".into())
