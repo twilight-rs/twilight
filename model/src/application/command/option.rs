@@ -51,6 +51,22 @@ impl CommandOption {
         }
     }
 
+    /// Whether the command supports autocomplete.
+    pub const fn is_autocomplete(&self) -> bool {
+        match self {
+            CommandOption::String(data)
+            | CommandOption::Integer(data)
+            | CommandOption::Number(data) => data.autocomplete,
+            CommandOption::Boolean(_)
+            | CommandOption::User(_)
+            | CommandOption::Role(_)
+            | CommandOption::Mentionable(_)
+            | CommandOption::SubCommand(_)
+            | CommandOption::SubCommandGroup(_)
+            | CommandOption::Channel(_) => false,
+        }
+    }
+
     pub const fn is_required(&self) -> bool {
         match self {
             CommandOption::SubCommand(_) | CommandOption::SubCommandGroup(_) => false,
@@ -72,26 +88,31 @@ impl<'de> Deserialize<'de> for CommandOption {
     }
 }
 
+// "Required options must be listed before optional options"
+// <https://discord.com/developers/docs/interactions/application-commands#application-command-object-application-command-option-structure>
 #[derive(Serialize)]
 struct CommandOptionEnvelope<'ser> {
+    description: &'ser str,
+    name: &'ser str,
+    #[serde(rename = "type")]
+    kind: CommandOptionType,
+    #[serde(skip_serializing_if = "is_false")]
+    autocomplete: bool,
     #[serde(skip_serializing_if = "Option::is_none")]
     channel_types: Option<&'ser [ChannelType]>,
     #[serde(skip_serializing_if = "Option::is_none")]
     choices: Option<&'ser [CommandOptionChoice]>,
-    description: &'ser str,
-    name: &'ser str,
     #[serde(skip_serializing_if = "Option::is_none")]
     options: Option<&'ser [CommandOption]>,
     #[serde(skip_serializing_if = "is_false")]
     required: bool,
-    #[serde(rename = "type")]
-    kind: CommandOptionType,
 }
 
 impl Serialize for CommandOption {
     fn serialize<S: Serializer>(&self, serializer: S) -> Result<S::Ok, S::Error> {
         let envelope = match self {
             Self::SubCommand(data) | Self::SubCommandGroup(data) => CommandOptionEnvelope {
+                autocomplete: false,
                 channel_types: None,
                 choices: None,
                 description: data.description.as_ref(),
@@ -102,6 +123,7 @@ impl Serialize for CommandOption {
             },
             Self::String(data) | Self::Integer(data) | Self::Number(data) => {
                 CommandOptionEnvelope {
+                    autocomplete: data.autocomplete,
                     channel_types: None,
                     choices: Some(data.choices.as_ref()),
                     description: data.description.as_ref(),
@@ -112,6 +134,7 @@ impl Serialize for CommandOption {
                 }
             }
             Self::Channel(data) => CommandOptionEnvelope {
+                autocomplete: false,
                 channel_types: Some(data.channel_types.as_ref()),
                 choices: None,
                 description: data.description.as_ref(),
@@ -122,6 +145,7 @@ impl Serialize for CommandOption {
             },
             Self::Boolean(data) | Self::User(data) | Self::Role(data) | Self::Mentionable(data) => {
                 CommandOptionEnvelope {
+                    autocomplete: false,
                     channel_types: None,
                     choices: None,
                     description: data.description.as_ref(),
@@ -140,6 +164,7 @@ impl Serialize for CommandOption {
 #[derive(Debug, Deserialize)]
 #[serde(field_identifier, rename_all = "snake_case")]
 enum OptionField {
+    Autocomplete,
     ChannelTypes,
     Choices,
     Description,
@@ -160,6 +185,7 @@ impl<'de> Visitor<'de> for OptionVisitor {
 
     #[allow(clippy::too_many_lines)]
     fn visit_map<V: MapAccess<'de>>(self, mut map: V) -> Result<Self::Value, V::Error> {
+        let mut autocomplete: Option<bool> = None;
         let mut channel_types: Option<Option<Vec<ChannelType>>> = None;
         let mut choices: Option<Option<Vec<CommandOptionChoice>>> = None;
         let mut description: Option<String> = None;
@@ -192,8 +218,15 @@ impl<'de> Visitor<'de> for OptionVisitor {
             };
 
             match key {
+                OptionField::Autocomplete => {
+                    if autocomplete.is_some() {
+                        return Err(DeError::duplicate_field("autocomplete"));
+                    }
+
+                    autocomplete = Some(map.next_value()?);
+                }
                 OptionField::ChannelTypes => {
-                    if choices.is_some() {
+                    if channel_types.is_some() {
                         return Err(DeError::duplicate_field("channel_types"));
                     }
 
@@ -255,6 +288,7 @@ impl<'de> Visitor<'de> for OptionVisitor {
             "common fields of all variants exist"
         );
 
+        let autocomplete = autocomplete.unwrap_or_default();
         let required = required.unwrap_or_default();
 
         Ok(match kind {
@@ -277,12 +311,14 @@ impl<'de> Visitor<'de> for OptionVisitor {
                 })
             }
             CommandOptionType::String => CommandOption::String(ChoiceCommandOptionData {
+                autocomplete,
                 choices: choices.flatten().unwrap_or_default(),
                 description,
                 name,
                 required,
             }),
             CommandOptionType::Integer => CommandOption::Integer(ChoiceCommandOptionData {
+                autocomplete,
                 choices: choices.flatten().unwrap_or_default(),
                 description,
                 name,
@@ -315,6 +351,7 @@ impl<'de> Visitor<'de> for OptionVisitor {
                 required,
             }),
             CommandOptionType::Number => CommandOption::Number(ChoiceCommandOptionData {
+                autocomplete,
                 choices: choices.flatten().unwrap_or_default(),
                 description,
                 name,
@@ -369,6 +406,9 @@ pub struct OptionsCommandOptionData {
 /// [`Integer`]: CommandOption::Integer
 #[derive(Clone, Debug, Default, Deserialize, Eq, Hash, PartialEq, Serialize)]
 pub struct ChoiceCommandOptionData {
+    /// Whether the command supports autocomplete.
+    #[serde(default)]
+    pub autocomplete: bool,
     /// Predetermined choices may be defined for a user to select.
     ///
     /// When completing this option, the user is prompted with a selector of all
@@ -545,33 +585,36 @@ mod tests {
             id: Some(CommandId::new(200).expect("non zero")),
             kind: CommandType::ChatInput,
             name: "test command".into(),
-            options: vec![CommandOption::SubCommandGroup(OptionsCommandOptionData {
+            options: Vec::from([CommandOption::SubCommandGroup(OptionsCommandOptionData {
                 description: "sub group desc".into(),
                 name: "sub group name".into(),
-                options: vec![CommandOption::SubCommand(OptionsCommandOptionData {
+                options: Vec::from([CommandOption::SubCommand(OptionsCommandOptionData {
                     description: "sub command desc".into(),
                     name: "sub command name".into(),
-                    options: vec![
+                    options: Vec::from([
                         CommandOption::String(ChoiceCommandOptionData {
+                            autocomplete: true,
                             choices: Vec::new(),
                             description: "string manual desc".into(),
                             name: "string_manual".into(),
                             required: false,
                         }),
                         CommandOption::String(ChoiceCommandOptionData {
-                            choices: vec![CommandOptionChoice::String {
+                            autocomplete: false,
+                            choices: Vec::from([CommandOptionChoice::String {
                                 name: "choicea".into(),
                                 value: "choice_a".into(),
-                            }],
+                            }]),
                             description: "string desc".into(),
                             name: "string".into(),
                             required: false,
                         }),
                         CommandOption::Integer(ChoiceCommandOptionData {
-                            choices: vec![CommandOptionChoice::Int {
+                            autocomplete: false,
+                            choices: Vec::from([CommandOptionChoice::Int {
                                 name: "choice2".into(),
                                 value: 2,
-                            }],
+                            }]),
                             description: "int desc".into(),
                             name: "int".into(),
                             required: false,
@@ -587,7 +630,7 @@ mod tests {
                             required: false,
                         }),
                         CommandOption::Channel(ChannelCommandOptionData {
-                            channel_types: vec![ChannelType::GuildText],
+                            channel_types: Vec::from([ChannelType::GuildText]),
                             description: "channel desc".into(),
                             name: "channel".into(),
                             required: false,
@@ -603,17 +646,18 @@ mod tests {
                             required: false,
                         }),
                         CommandOption::Number(ChoiceCommandOptionData {
-                            choices: vec![CommandOptionChoice::Number {
+                            autocomplete: false,
+                            choices: Vec::from([CommandOptionChoice::Number {
                                 name: "choice3".into(),
                                 value: Number(2.0),
-                            }],
+                            }]),
                             description: "number desc".into(),
                             name: "number".into(),
                             required: false,
                         }),
-                    ],
-                })],
-            })],
+                    ]),
+                })]),
+            })]),
             version: CommandVersionId::new(1).expect("non zero"),
         };
 
@@ -657,6 +701,8 @@ mod tests {
                 Token::Str("sub group desc"),
                 Token::Str("name"),
                 Token::Str("sub group name"),
+                Token::Str("type"),
+                Token::U8(2),
                 Token::Str("options"),
                 Token::Some,
                 Token::Seq { len: Some(1) },
@@ -668,28 +714,38 @@ mod tests {
                 Token::Str("sub command desc"),
                 Token::Str("name"),
                 Token::Str("sub command name"),
+                Token::Str("type"),
+                Token::U8(1),
                 Token::Str("options"),
                 Token::Some,
                 Token::Seq { len: Some(9) },
                 Token::Struct {
                     name: "CommandOptionEnvelope",
-                    len: 4,
+                    len: 5,
                 },
-                Token::Str("choices"),
-                Token::Some,
-                Token::Seq { len: Some(0) },
-                Token::SeqEnd,
                 Token::Str("description"),
                 Token::Str("string manual desc"),
                 Token::Str("name"),
                 Token::Str("string_manual"),
                 Token::Str("type"),
                 Token::U8(3),
+                Token::Str("autocomplete"),
+                Token::Bool(true),
+                Token::Str("choices"),
+                Token::Some,
+                Token::Seq { len: Some(0) },
+                Token::SeqEnd,
                 Token::StructEnd,
                 Token::Struct {
                     name: "CommandOptionEnvelope",
                     len: 4,
                 },
+                Token::Str("description"),
+                Token::Str("string desc"),
+                Token::Str("name"),
+                Token::Str("string"),
+                Token::Str("type"),
+                Token::U8(3),
                 Token::Str("choices"),
                 Token::Some,
                 Token::Seq { len: Some(1) },
@@ -703,17 +759,17 @@ mod tests {
                 Token::Str("choice_a"),
                 Token::StructEnd,
                 Token::SeqEnd,
-                Token::Str("description"),
-                Token::Str("string desc"),
-                Token::Str("name"),
-                Token::Str("string"),
-                Token::Str("type"),
-                Token::U8(3),
                 Token::StructEnd,
                 Token::Struct {
                     name: "CommandOptionEnvelope",
                     len: 4,
                 },
+                Token::Str("description"),
+                Token::Str("int desc"),
+                Token::Str("name"),
+                Token::Str("int"),
+                Token::Str("type"),
+                Token::U8(4),
                 Token::Str("choices"),
                 Token::Some,
                 Token::Seq { len: Some(1) },
@@ -727,12 +783,6 @@ mod tests {
                 Token::I64(2),
                 Token::StructEnd,
                 Token::SeqEnd,
-                Token::Str("description"),
-                Token::Str("int desc"),
-                Token::Str("name"),
-                Token::Str("int"),
-                Token::Str("type"),
-                Token::U8(4),
                 Token::StructEnd,
                 Token::Struct {
                     name: "CommandOptionEnvelope",
@@ -760,17 +810,17 @@ mod tests {
                     name: "CommandOptionEnvelope",
                     len: 4,
                 },
-                Token::Str("channel_types"),
-                Token::Some,
-                Token::Seq { len: Some(1) },
-                Token::U8(0),
-                Token::SeqEnd,
                 Token::Str("description"),
                 Token::Str("channel desc"),
                 Token::Str("name"),
                 Token::Str("channel"),
                 Token::Str("type"),
                 Token::U8(7),
+                Token::Str("channel_types"),
+                Token::Some,
+                Token::Seq { len: Some(1) },
+                Token::U8(0),
+                Token::SeqEnd,
                 Token::StructEnd,
                 Token::Struct {
                     name: "CommandOptionEnvelope",
@@ -798,6 +848,12 @@ mod tests {
                     name: "CommandOptionEnvelope",
                     len: 4,
                 },
+                Token::Str("description"),
+                Token::Str("number desc"),
+                Token::Str("name"),
+                Token::Str("number"),
+                Token::Str("type"),
+                Token::U8(10),
                 Token::Str("choices"),
                 Token::Some,
                 Token::Seq { len: Some(1) },
@@ -812,20 +868,10 @@ mod tests {
                 Token::F64(2.0),
                 Token::StructEnd,
                 Token::SeqEnd,
-                Token::Str("description"),
-                Token::Str("number desc"),
-                Token::Str("name"),
-                Token::Str("number"),
-                Token::Str("type"),
-                Token::U8(10),
                 Token::StructEnd,
                 Token::SeqEnd,
-                Token::Str("type"),
-                Token::U8(1),
                 Token::StructEnd,
                 Token::SeqEnd,
-                Token::Str("type"),
-                Token::U8(2),
                 Token::StructEnd,
                 Token::SeqEnd,
                 Token::Str("version"),

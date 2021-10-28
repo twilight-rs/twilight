@@ -15,6 +15,7 @@ pub enum ResponseType {
     DeferredUpdateMessage = 6,
     /// Edit the message a component is attached to.
     UpdateMessage = 7,
+    ApplicationCommandAutocompleteResult = 8,
 }
 
 impl ResponseType {
@@ -42,6 +43,7 @@ impl ResponseType {
             Self::DeferredChannelMessageWithSource => "DeferredChannelMessageWithSource",
             Self::DeferredUpdateMessage => "DeferredUpdateMessage",
             Self::UpdateMessage => "UpdateMessage",
+            Self::ApplicationCommandAutocompleteResult => "ApplicationCommandAutocompleteResult",
         }
     }
 }
@@ -72,6 +74,7 @@ mod tests {
     const_assert_eq!(5, ResponseType::DeferredChannelMessageWithSource as u8);
     const_assert_eq!(6, ResponseType::DeferredUpdateMessage as u8);
     const_assert_eq!(7, ResponseType::UpdateMessage as u8);
+    const_assert_eq!(8, ResponseType::ApplicationCommandAutocompleteResult as u8);
 
     #[test]
     fn test_name() {
@@ -89,5 +92,9 @@ mod tests {
             ResponseType::DeferredUpdateMessage.name()
         );
         assert_eq!("UpdateMessage", ResponseType::UpdateMessage.name());
+        assert_eq!(
+            "ApplicationCommandAutocompleteResult",
+            ResponseType::ApplicationCommandAutocompleteResult.name()
+        );
     }
 }

@@ -36,6 +36,8 @@ pub struct CommandData {
 /// [the discord docs]: https://discord.com/developers/docs/interactions/application-commands#application-command-object-application-command-interaction-data-option-structure
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct CommandDataOption {
+    /// [`true`] if this autocomplete option is currently highlighted.
+    pub focused: bool,
     pub name: String,
     pub value: CommandOptionValue,
 }
@@ -82,6 +84,7 @@ impl<'de> Deserialize<'de> for CommandDataOption {
         };
 
         Ok(CommandDataOption {
+            focused: raw.focused,
             name: raw.name,
             value,
         })
@@ -97,9 +100,13 @@ impl Serialize for CommandDataOption {
                 if o.is_empty()
         );
 
-        let len = 2 + !subcommand_is_empty as usize;
+        let len = 2 + !subcommand_is_empty as usize + self.focused as usize;
 
         let mut state = serializer.serialize_struct("CommandDataOptionEnvelope", len)?;
+
+        if self.focused {
+            state.serialize_field("focused", &self.focused)?;
+        }
 
         state.serialize_field("name", &self.name)?;
 
@@ -127,6 +134,8 @@ impl Serialize for CommandDataOption {
 
 #[derive(Deserialize)]
 struct CommandDataOptionEnvelope {
+    #[serde(default)]
+    focused: bool,
     name: String,
     #[serde(rename = "type")]
     kind: CommandOptionType,
@@ -195,6 +204,7 @@ mod tests {
             id: CommandId::new(1).expect("non zero"),
             name: "photo".to_owned(),
             options: Vec::from([CommandDataOption {
+                focused: false,
                 name: "cat".to_owned(),
                 value: CommandOptionValue::SubCommand(Vec::new()),
             }]),
